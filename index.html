@@ -54,10 +54,15 @@
           <span id="count-green" class="flex items-center gap-1 ml-2"><span class="w-3 h-3 rounded-full bg-green-400"></span>0</span>
           <span class="ml-3 text-slate-400 mono" id="count-total">0 / 0 reviewed</span>
         </div>
-        <div class="flex gap-2 flex-wrap">
+        <div class="flex gap-2 flex-wrap items-center">
           <button onclick="setFilter('all')" id="filter-all" class="filter-btn active bg-white border border-slate-300 text-slate-700 px-3 py-2 rounded shadow-sm hover:bg-slate-50 transition font-semibold text-sm">All</button>
           <button onclick="setFilter('needs')" id="filter-needs" class="filter-btn bg-white border border-slate-300 text-slate-700 px-3 py-2 rounded shadow-sm hover:bg-slate-50 transition font-semibold text-sm">Needs Review</button>
           <button onclick="shuffleQuestions()" class="bg-white border border-slate-300 text-slate-700 px-3 py-2 rounded shadow-sm hover:bg-slate-50 transition font-semibold text-sm">🔀 Shuffle</button>
+          <select id="order-select" onchange="orderQuestions(this.value)" class="bg-white border border-slate-300 text-slate-700 px-2 py-2 rounded shadow-sm text-sm font-semibold">
+            <option value="number">Order: Number</option>
+            <option value="hard-first">Order: Hardest first</option>
+            <option value="easy-first">Order: Easiest first</option>
+          </select>
           <button onclick="toggleAll(true)" class="bg-indigo-600 text-white px-3 py-2 rounded shadow hover:bg-indigo-700 transition font-semibold text-sm">Expand All</button>
           <button onclick="toggleAll(false)" class="bg-slate-200 text-slate-700 px-3 py-2 rounded shadow hover:bg-slate-300 transition font-semibold text-sm">Collapse All</button>
           <button onclick="resetProgress()" class="bg-white border border-red-200 text-red-500 px-3 py-2 rounded shadow-sm hover:bg-red-50 transition font-semibold text-sm">Reset</button>
@@ -98,49 +103,49 @@
 
 <script>
 const questions = [
-  { q: "Why are Grignard reagents strong nucleophiles?", a: "Mg is far less electronegative than carbon, so the $C-Mg$ bond is highly polarized, leaving carbon electron-rich ($\\delta^-$) and eager to attack electrophiles." },
-  { q: "Why are Grignard reagents sensitive to moisture?", a: "They're extremely strong bases. Water gets deprotonated instantly, forming $R-H$ and $Mg(OH)X$ and destroying the reagent." },
-  { q: "Why must we dry glassware in the oven?", a: "To drive off invisible adsorbed water on the glass surface, which would otherwise quench the Grignard reagent." },
-  { q: "Why do we remove the plastic and Teflon pieces from the glassware before placing it in the oven?", a: "They have much lower melting points than glass and will melt, warp, or fuse into the joints." },
-  { q: "Why do we add grease to glassware? What happens if we don't add enough? What happens if we add too much?", a: "Grease seals joints airtight and keeps them from seizing. Too little lets moisture in; too much can smear into the joint and contaminate the reaction." },
-  { q: "Why do Grignard reagents typically need to be synthesized in situ instead of made in advance?", a: "They're too reactive to store; trace air or moisture leaking into a container degrades them quickly." },
-  { q: "Why are carbonyls electrophilic?", a: "Electronegative oxygen pulls electron density through the $\\pi$ bond, leaving the carbonyl carbon $\\delta^+$." },
-  { q: "Why do we need a workup step? What kinds of reagents are good workup reagents?", a: "It protonates the magnesium alkoxide into a neutral alcohol and dissolves the Mg salts. Dilute aqueous acids work best: $H_2SO_4$, $HCl$, or saturated $NH_4Cl$." },
-  { q: "What is happening during the extraction?", a: "The alcohol product partitions into the ether layer, since it's more soluble there than in water, separating it from the water-soluble salts." },
-  { q: "What is anhydrous ether? Why do we need to use it?", a: "Diethyl ether with essentially no trace water. Needed for the reaction step since any water would quench the Grignard reagent." },
-  { q: "What is the reaction setup? Be sure you understand why each piece is connected correctly.", a: "Round-bottom flask (holds the reaction) sits on a heating source (hot plate/heating mantle mounted on a lab jack, so it can be raised to heat or lowered to stop heating quickly), all held in place by clamps attached to a ring stand or support rod. A Claisen adapter splits the single flask neck into two openings, secured with keck clips (plastic clips that lock the ground-glass joints together so they can't pop apart or twist loose). One arm holds the reflux condenser, topped with a drying tube packed with $CaCl_2$ (blocks atmospheric moisture, lets the system vent). The other arm holds the separatory/addition funnel used for dropwise addition, with its top stopper resting on a piece of paper against the joint (keeps the joint from seizing while still letting air in as liquid drips out), and a loose cotton plug can be used in the drying tube to keep out particulates without sealing the system airtight." },
-  { q: "Why must we vent the separatory funnel stopper?", a: "Vaporizing ether builds pressure in the closed funnel; venting keeps the stopper from blowing out." },
-  { q: "What does $CaCl_2$ do?", a: "Acts as a desiccant in the drying tube, absorbing atmospheric water vapor before it reaches the apparatus." },
-  { q: "What do $I_2$ chips do?", a: "React with the $MgO$ coating on the magnesium, exposing fresh reactive metal to start the reaction." },
-  { q: "Which way do we connect the condenser (water flow)?", a: "In at the bottom, out at the top, so the jacket stays full against gravity." },
-  { q: "Why do we add a pipette bulb to the end of the side arm adapter?", a: "It's a flexible reservoir that absorbs minor pressure changes while keeping the system sealed from moisture." },
-  { q: "What's a Claisen adapter? Why do we use it here?", a: "A glass Y-piece that turns one flask neck into two, letting us attach both the condenser and addition funnel." },
-  { q: "Why do we need a separatory funnel attached to our reaction setup?", a: "Used as an addition funnel for dropwise addition of the alkyl halide, keeping the exothermic reaction controlled." },
-  { q: "What happens if the ether is added to the separatory funnel while it is still hot?", a: "Ether (bp $35^\\circ C$) flash-vaporizes, spiking pressure and potentially blowing the stopper out." },
-  { q: "Why do we add a piece of paper between the separatory funnel cap and joint?", a: "It keeps the joint from sealing completely airtight. As liquid drips out during addition, air needs to get in to equalize the pressure or the flow stops. The paper creates a tiny gap for that air to enter while still keeping the fit snug enough to block most atmospheric moisture. It also has the side benefit of keeping the ground-glass joint from seizing shut." },
-  { q: "After the alkyl bromide is added, why do we rinse the flask with more ether?", a: "Quantitative transfer: washes residual alkyl bromide into the reaction to maximize yield." },
-  { q: "Why do we need to use a condenser?", a: "Ether boils at $35^\\circ C$; the condenser returns vapor to the flask (reflux) so it doesn't boil dry." },
-  { q: "After addition of the alkyl bromide, why do we wait 15 minutes?", a: "Gives the solid/liquid reaction time to finish forming the Grignard reagent." },
-  { q: "After addition of the alkyl bromide, why does the reaction get hot?", a: "Forming the $C-Mg$ bond is exothermic." },
-  { q: "Why do we add reagents dropwise?", a: "Controls the rate of heat release so the exothermic reaction doesn't boil the ether over." },
-  { q: "What would happen if you forgot to turn the water on to the condenser?", a: "Ether vapor escapes uncooled, risking a dry flask and a fire hazard." },
-  { q: "In 'week 2,' why do we use ice instead of room-temperature water with the sulfuric acid?", a: "Diluting acid is strongly exothermic; ice absorbs the heat and prevents splattering." },
-  { q: "When doing the extraction, which layer is the ether layer?", a: "The top layer &mdash; ether ($\\approx 0.71\\ g/mL$) is less dense than water ($1.0\\ g/mL$)." },
-  { q: "Which layer is the desired product in?", a: "The organic (ether) layer." },
+  { q: "Why are Grignard reagents strong nucleophiles?", a: "Mg is far less electronegative than carbon, so the $C-Mg$ bond is <strong class='text-indigo-700'>highly polarized</strong>, leaving carbon electron-rich ($\\delta^-$) and eager to attack electrophiles." },
+  { q: "Why are Grignard reagents sensitive to moisture?", a: "They're extremely <strong class='text-indigo-700'>strong bases</strong>. Water gets deprotonated instantly, forming $R-H$ and $Mg(OH)X$ and destroying the reagent." },
+  { q: "Why must we dry glassware in the oven?", a: "To drive off invisible <strong class='text-indigo-700'>adsorbed water</strong> on the glass surface, which would otherwise quench the moisture-sensitive Grignard reagent." },
+  { q: "Why do we remove the plastic and Teflon pieces from the glassware before placing it in the oven?", a: "They have <strong class='text-indigo-700'>much lower melting points</strong> than glass and will melt, warp, or fuse into the joints." },
+  { q: "Why do we add grease to glassware? What happens if we don't add enough? What happens if we add too much?", a: "Grease creates an <strong class='text-indigo-700'>airtight seal</strong> and keeps joints from seizing. Too little lets moisture in; too much can smear into the joint and contaminate the reaction." },
+  { q: "Why do Grignard reagents typically need to be synthesized in situ instead of made in advance?", a: "They're <strong class='text-indigo-700'>too reactive to store</strong>. Trace air or moisture leaking into a container degrades them quickly." },
+  { q: "Why are carbonyls electrophilic?", a: "Electronegative oxygen pulls electron density through the $\\pi$ bond, leaving the carbonyl carbon <strong class='text-indigo-700'>electron-poor</strong> ($\\delta^+$)." },
+  { q: "Why do we need a workup step? What kinds of reagents are good workup reagents?", a: "It <strong class='text-indigo-700'>protonates</strong> the magnesium alkoxide into a neutral alcohol and dissolves the Mg salts. Dilute aqueous acids work best: $H_2SO_4$, $HCl$, or saturated $NH_4Cl$." },
+  { q: "What is happening during the extraction?", a: "The alcohol product <strong class='text-indigo-700'>partitions into the ether layer</strong>, since it's more soluble there than in water, separating it from the water-soluble salts." },
+  { q: "What is anhydrous ether? Why do we need to use it?", a: "Diethyl ether with essentially <strong class='text-indigo-700'>no trace water</strong>. Needed for the reaction step since any water would quench the Grignard reagent." },
+  { q: "What is the reaction setup? Be sure you understand why each piece is connected correctly.", a: "The <strong class='text-indigo-700'>round-bottom flask</strong> (holds the reaction) sits on a heating source (hot plate/heating mantle mounted on a <strong>lab jack</strong>, so it can be raised to heat or lowered to stop heating quickly), all held in place by <strong>clamps</strong> attached to a ring stand or support rod. A <strong>Claisen adapter</strong> splits the single flask neck into two openings, secured with <strong>keck clips</strong> (plastic clips that lock the ground-glass joints together so they can't pop apart). One arm holds the <strong>reflux condenser</strong>, topped with a <strong>drying tube</strong> packed with $CaCl_2$ and loose cotton (the cotton holds the $CaCl_2$ in place while still letting air pass; the $CaCl_2$ blocks atmospheric moisture). The other arm holds the <strong>separatory/addition funnel</strong> used for dropwise addition, with its stopper resting on a piece of paper against the joint (see Q20)." },
+  { q: "Why must we vent the separatory funnel stopper?", a: "Vaporizing ether builds <strong class='text-red-600'>pressure</strong> in the closed funnel; venting keeps the stopper from blowing out." },
+  { q: "What does $CaCl_2$ do?", a: "Acts as a <strong class='text-indigo-700'>desiccant</strong> in the drying tube, absorbing atmospheric water vapor before it reaches the apparatus." },
+  { q: "What do $I_2$ chips do?", a: "React with the $MgO$ coating on the magnesium, <strong class='text-indigo-700'>exposing fresh reactive metal</strong> to start the reaction." },
+  { q: "Which way do we connect the condenser (water flow)?", a: "<strong class='text-indigo-700'>In at the bottom, out at the top</strong>, so the jacket stays completely full against gravity." },
+  { q: "Why do we add a pipette bulb to the end of the side arm adapter?", a: "It's a <strong class='text-indigo-700'>flexible reservoir</strong> that absorbs minor pressure changes while keeping the system sealed from moisture." },
+  { q: "What's a Claisen adapter? Why do we use it here?", a: "A glass Y-piece that <strong class='text-indigo-700'>turns one flask neck into two</strong>, letting us attach both the condenser and addition funnel." },
+  { q: "Why do we need a separatory funnel attached to our reaction setup?", a: "Used as an <strong class='text-indigo-700'>addition funnel</strong> for dropwise addition of the alkyl halide, keeping the exothermic reaction controlled." },
+  { q: "What happens if the ether is added to the separatory funnel while it is still hot?", a: "Ether (bp $35^\\circ C$) <strong class='text-red-600'>flash-vaporizes</strong>, spiking pressure and potentially blowing the stopper out." },
+  { q: "Why do we add a piece of paper between the separatory funnel cap and joint?", a: "It keeps the joint from sealing completely airtight. As liquid drips out during addition, <strong class='text-indigo-700'>air needs to get in to equalize the pressure</strong> or the flow stops. The paper creates a tiny gap for that air while still keeping the fit snug enough to block most atmospheric moisture. It also helps keep the joint from seizing shut." },
+  { q: "After the alkyl bromide is added, why do we rinse the flask with more ether?", a: "<strong class='text-indigo-700'>Quantitative transfer</strong>: washes residual alkyl bromide into the reaction to maximize yield." },
+  { q: "Why do we need to use a condenser?", a: "Ether boils at $35^\\circ C$; the condenser <strong class='text-indigo-700'>returns vapor to the flask</strong> (reflux) so it doesn't boil dry." },
+  { q: "After addition of the alkyl bromide, why do we wait 15 minutes?", a: "Gives the reaction time to <strong class='text-indigo-700'>go to completion</strong>, finishing formation of the Grignard reagent." },
+  { q: "After addition of the alkyl bromide, why does the reaction get hot?", a: "Forming the $C-Mg$ bond is <strong class='text-indigo-700'>exothermic</strong>." },
+  { q: "Why do we add reagents dropwise?", a: "Controls the <strong class='text-indigo-700'>rate of heat release</strong> so the exothermic reaction doesn't boil the ether over." },
+  { q: "What would happen if you forgot to turn the water on to the condenser?", a: "Ether vapor escapes uncooled, risking a dry flask and a <strong class='text-red-600'>fire hazard</strong>." },
+  { q: "In 'week 2,' why do we use ice instead of room-temperature water with the sulfuric acid?", a: "Diluting acid is strongly <strong class='text-red-600'>exothermic</strong>; ice absorbs the heat and prevents splattering." },
+  { q: "When doing the extraction, which layer is the ether layer?", a: "The <strong class='text-indigo-700'>top layer</strong>. Ether ($\\approx 0.71\\ g/mL$) is less dense than water ($1.0\\ g/mL$)." },
+  { q: "Which layer is the desired product in?", a: "The <strong class='text-indigo-700'>organic (ether) layer</strong>." },
   { q: "What goes in the aqueous layer?", a: "Water, leftover acid, and dissolved Mg salts (e.g. $MgBr_2$)." },
-  { q: "Why do we return the aqueous layer to the funnel and add more ether?", a: "One extraction never removes 100% of the product (partition coefficient); re-extracting recovers more." },
-  { q: "Why do we only use a few mL of ether for each extraction?", a: "Several small extractions recover more total product than one large one, and limit how much ether must later be evaporated." },
-  { q: "Why do we wash the combined ether layers with aqueous sodium bicarbonate?", a: "Neutralizes any residual acid that carried over into the organic layer." },
-  { q: "Why do we vent the funnel when washing with sodium bicarbonate?", a: "Neutralization produces $CO_2$ gas, which builds pressure quickly." },
-  { q: "Why do we dry the ether layer with sodium sulfate?", a: "Removes the trace dissolved water the ether still holds after separation." },
-  { q: "How do you know when enough sodium sulfate has been added?", a: "Granules stop clumping and swirl freely, like dry sand." },
-  { q: "How do we remove the sodium sulfate afterward?", a: "Gravity filtration through filter paper or a cotton plug." },
-  { q: "What would the NMR look like if the ether wasn't fully evaporated?", a: "Extra ether peaks: a triplet near $1.2\\ ppm$ ($CH_3$) and a quartet near $3.5\\ ppm$ ($OCH_2$)." },
-  { q: "What should you do if you spill sulfuric acid on your bench?", a: "Alert your TA, don't just flush with water &mdash; neutralize with solid sodium bicarbonate first." },
+  { q: "Why do we return the aqueous layer to the funnel and add more ether?", a: "One extraction never removes 100% of the product (<strong class='text-indigo-700'>partition coefficient</strong>); re-extracting recovers more." },
+  { q: "Why do we only use a few mL of ether for each extraction?", a: "Several <strong class='text-indigo-700'>small extractions</strong> recover more total product than one large one, and limit how much ether must later be evaporated." },
+  { q: "Why do we wash the combined ether layers with aqueous sodium bicarbonate?", a: "<strong class='text-indigo-700'>Neutralizes</strong> any residual acid that carried over into the organic layer." },
+  { q: "Why do we vent the funnel when washing with sodium bicarbonate?", a: "Neutralization produces $CO_2$ gas, which builds <strong class='text-red-600'>pressure</strong> quickly." },
+  { q: "Why do we dry the ether layer with sodium sulfate?", a: "Removes the <strong class='text-indigo-700'>trace dissolved water</strong> the ether still holds after separation." },
+  { q: "How do you know when enough sodium sulfate has been added?", a: "Granules <strong class='text-indigo-700'>stop clumping</strong> and swirl freely, like dry sand." },
+  { q: "How do we remove the sodium sulfate afterward?", a: "<strong class='text-indigo-700'>Gravity filtration</strong> through filter paper or a cotton plug." },
+  { q: "What would the NMR look like if the ether wasn't fully evaporated?", a: "Extra ether peaks: a <strong class='text-indigo-700'>triplet</strong> near $1.2\\ ppm$ ($CH_3$) and a <strong class='text-indigo-700'>quartet</strong> near $3.5\\ ppm$ ($OCH_2$)." },
+  { q: "What should you do if you spill sulfuric acid on your bench?", a: "<strong class='text-red-600'>Alert your TA</strong>. Don't just flush with water; neutralize with solid sodium bicarbonate first." },
   { q: "What are likely reasons for a low yield?", a: "Moisture quenching the Grignard reagent, incomplete extraction, transfer losses, or spills." },
-  { q: "What is a likely impurity in your final product?", a: "Biphenyl, from homocoupling of the Grignard reagent with unreacted bromobenzene." },
-  { q: "What should pure product look like in the IR spectrum?", a: "Broad $O-H$ stretch ($\\approx 3200-3550\\ cm^{-1}$), no $C=O$ peak ($\\approx 1700\\ cm^{-1}$)." },
-  { q: "What should impure product look like in the IR spectrum?", a: "A sharp $C=O$ peak ($\\approx 1700\\ cm^{-1}$) shows leftover starting material." },
+  { q: "What is a likely impurity in your final product?", a: "<strong class='text-indigo-700'>Biphenyl</strong>, from homocoupling of the Grignard reagent with unreacted bromobenzene." },
+  { q: "What should pure product look like in the IR spectrum?", a: "<strong class='text-indigo-700'>Broad $O-H$ stretch</strong> ($\\approx 3200-3550\\ cm^{-1}$), no $C=O$ peak ($\\approx 1700\\ cm^{-1}$)." },
+  { q: "What should impure product look like in the IR spectrum?", a: "A <strong class='text-indigo-700'>sharp $C=O$ peak</strong> ($\\approx 1700\\ cm^{-1}$) shows leftover starting material." },
   {
     mc: true,
     q: "Sample LCTA: For this experiment, would a 3M NaOH solution be a good workup reagent? Choose the best answer.",
@@ -152,7 +157,7 @@ const questions = [
       "No, because a stronger concentration of NaOH is required."
     ],
     correct: 3,
-    a: "Correct answer: D. Workup needs to protonate the magnesium alkoxide into a neutral alcohol. $NaOH$ is a base, not a proton source, so it can't supply the $H^+$ &mdash; concentration (A, E) or solubility (C) don't fix that. A dilute acid ($H_2SO_4$, $HCl$, $NH_4Cl$) is needed instead."
+    a: "Correct answer: D. Workup needs to <strong class='text-indigo-700'>protonate</strong> the magnesium alkoxide into a neutral alcohol. $NaOH$ is a base, not a proton source, so it can't supply the $H^+$. Concentration (A, E) or solubility (C) don't fix that. A dilute acid ($H_2SO_4$, $HCl$, $NH_4Cl$) is needed instead."
   }
 ];
 
@@ -299,6 +304,25 @@ function shuffleQuestions() {
     [shuffleable[i], shuffleable[j]] = [shuffleable[j], shuffleable[i]];
   }
   shuffleable.forEach(c => container.appendChild(c));
+  if (mcCard) container.appendChild(mcCard);
+  document.getElementById('order-select').value = 'number'; // shuffle overrides the dropdown state visually
+}
+
+/* --- Order by number or by your own difficulty rating (either direction), MC question stays pinned last --- */
+function orderQuestions(mode) {
+  const diffRank = { red: 0, yellow: 1, none: 2, green: 3 };
+  const cards = Array.from(container.children);
+  const mcCard = cards.find(c => questions[parseInt(c.id.split('-')[1], 10) - 1]?.mc);
+  const rest = cards.filter(c => c !== mcCard);
+
+  if (mode === 'number') {
+    rest.sort((a, b) => parseInt(a.id.split('-')[1], 10) - parseInt(b.id.split('-')[1], 10));
+  } else if (mode === 'hard-first') {
+    rest.sort((a, b) => diffRank[a.dataset.status] - diffRank[b.dataset.status]);
+  } else if (mode === 'easy-first') {
+    rest.sort((a, b) => diffRank[b.dataset.status] - diffRank[a.dataset.status]);
+  }
+  rest.forEach(c => container.appendChild(c));
   if (mcCard) container.appendChild(mcCard);
 }
 
