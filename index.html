@@ -202,7 +202,13 @@ questions.forEach((item, index) => {
   container.appendChild(card);
 });
 
-if (window.MathJax) { MathJax.typesetPromise(); }
+(function typesetMath() {
+  if (window.MathJax && window.MathJax.typesetPromise) {
+    MathJax.typesetPromise();
+  } else {
+    setTimeout(typesetMath, 150);
+  }
+})();
 
 function toggleAnswer(btn) { btn.parentElement.classList.toggle('show'); }
 
@@ -306,6 +312,33 @@ document.addEventListener('mousemove', (e) => {
   note.style.top = Math.max(0, Math.min(window.innerHeight - 40, e.clientY - offsetY)) + 'px';
 });
 document.addEventListener('mouseup', () => { dragging = false; });
+
+function startDrag(clientX, clientY) {
+  dragging = true;
+  const rect = note.getBoundingClientRect();
+  offsetX = clientX - rect.left;
+  offsetY = clientY - rect.top;
+  note.style.right = 'auto';
+  note.style.bottom = 'auto';
+  note.style.left = rect.left + 'px';
+  note.style.top = rect.top + 'px';
+}
+function moveDrag(clientX, clientY) {
+  if (!dragging) return;
+  note.style.left = Math.max(0, Math.min(window.innerWidth - note.offsetWidth, clientX - offsetX)) + 'px';
+  note.style.top = Math.max(0, Math.min(window.innerHeight - 40, clientY - offsetY)) + 'px';
+}
+handle.addEventListener('touchstart', (e) => {
+  const t = e.touches[0];
+  startDrag(t.clientX, t.clientY);
+}, { passive: true });
+document.addEventListener('touchmove', (e) => {
+  if (!dragging) return;
+  const t = e.touches[0];
+  moveDrag(t.clientX, t.clientY);
+  e.preventDefault();
+}, { passive: false });
+document.addEventListener('touchend', () => { dragging = false; });
 
 /* --- Confetti celebration --- */
 function launchConfetti() {
