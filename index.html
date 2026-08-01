@@ -57,8 +57,10 @@
         <div class="flex gap-2 flex-wrap">
           <button onclick="setFilter('all')" id="filter-all" class="filter-btn active bg-white border border-slate-300 text-slate-700 px-3 py-2 rounded shadow-sm hover:bg-slate-50 transition font-semibold text-sm">All</button>
           <button onclick="setFilter('needs')" id="filter-needs" class="filter-btn bg-white border border-slate-300 text-slate-700 px-3 py-2 rounded shadow-sm hover:bg-slate-50 transition font-semibold text-sm">Needs Review</button>
+          <button onclick="shuffleQuestions()" class="bg-white border border-slate-300 text-slate-700 px-3 py-2 rounded shadow-sm hover:bg-slate-50 transition font-semibold text-sm">🔀 Shuffle</button>
           <button onclick="toggleAll(true)" class="bg-indigo-600 text-white px-3 py-2 rounded shadow hover:bg-indigo-700 transition font-semibold text-sm">Expand All</button>
           <button onclick="toggleAll(false)" class="bg-slate-200 text-slate-700 px-3 py-2 rounded shadow hover:bg-slate-300 transition font-semibold text-sm">Collapse All</button>
+          <button onclick="resetProgress()" class="bg-white border border-red-200 text-red-500 px-3 py-2 rounded shadow-sm hover:bg-red-50 transition font-semibold text-sm">Reset</button>
         </div>
       </div>
       <p id="filter-hint" class="hidden text-xs text-indigo-600 mt-2">Showing only questions marked <span class="font-semibold">Review</span>, <span class="font-semibold">Almost</span>, or not yet rated.</p>
@@ -106,7 +108,7 @@ const questions = [
   { q: "Why do we need a workup step? What kinds of reagents are good workup reagents?", a: "It protonates the magnesium alkoxide into a neutral alcohol and dissolves the Mg salts. Dilute aqueous acids work best: $H_2SO_4$, $HCl$, or saturated $NH_4Cl$." },
   { q: "What is happening during the extraction?", a: "The alcohol product partitions into the ether layer, since it's more soluble there than in water, separating it from the water-soluble salts." },
   { q: "What is anhydrous ether? Why do we need to use it?", a: "Diethyl ether with essentially no trace water. Needed for the reaction step since any water would quench the Grignard reagent." },
-  { q: "What is the reaction setup? Be sure you understand why each piece is connected correctly.", a: "Round-bottom flask &rarr; Claisen adapter (splits the neck in two) &rarr; reflux condenser with a drying tube on top (returns ether, blocks moisture), plus an addition funnel on the second arm (controls addition rate)." },
+  { q: "What is the reaction setup? Be sure you understand why each piece is connected correctly.", a: "Round-bottom flask (holds the reaction) sits on a heating source (hot plate/heating mantle mounted on a lab jack, so it can be raised to heat or lowered to stop heating quickly), all held in place by clamps attached to a ring stand or support rod. A Claisen adapter splits the single flask neck into two openings, secured with keck clips (plastic clips that lock the ground-glass joints together so they can't pop apart or twist loose). One arm holds the reflux condenser, topped with a drying tube packed with $CaCl_2$ (blocks atmospheric moisture, lets the system vent). The other arm holds the separatory/addition funnel used for dropwise addition, with its top stopper resting on a piece of paper against the joint (keeps the joint from seizing while still letting air in as liquid drips out), and a loose cotton plug can be used in the drying tube to keep out particulates without sealing the system airtight." },
   { q: "Why must we vent the separatory funnel stopper?", a: "Vaporizing ether builds pressure in the closed funnel; venting keeps the stopper from blowing out." },
   { q: "What does $CaCl_2$ do?", a: "Acts as a desiccant in the drying tube, absorbing atmospheric water vapor before it reaches the apparatus." },
   { q: "What do $I_2$ chips do?", a: "React with the $MgO$ coating on the magnesium, exposing fresh reactive metal to start the reaction." },
@@ -115,7 +117,7 @@ const questions = [
   { q: "What's a Claisen adapter? Why do we use it here?", a: "A glass Y-piece that turns one flask neck into two, letting us attach both the condenser and addition funnel." },
   { q: "Why do we need a separatory funnel attached to our reaction setup?", a: "Used as an addition funnel for dropwise addition of the alkyl halide, keeping the exothermic reaction controlled." },
   { q: "What happens if the ether is added to the separatory funnel while it is still hot?", a: "Ether (bp $35^\\circ C$) flash-vaporizes, spiking pressure and potentially blowing the stopper out." },
-  { q: "Why do we add a piece of paper between the separatory funnel cap and joint?", a: "Keeps the ground-glass joint from seizing shut during storage." },
+  { q: "Why do we add a piece of paper between the separatory funnel cap and joint?", a: "It keeps the joint from sealing completely airtight. As liquid drips out during addition, air needs to get in to equalize the pressure or the flow stops. The paper creates a tiny gap for that air to enter while still keeping the fit snug enough to block most atmospheric moisture. It also has the side benefit of keeping the ground-glass joint from seizing shut." },
   { q: "After the alkyl bromide is added, why do we rinse the flask with more ether?", a: "Quantitative transfer: washes residual alkyl bromide into the reaction to maximize yield." },
   { q: "Why do we need to use a condenser?", a: "Ether boils at $35^\\circ C$; the condenser returns vapor to the flask (reflux) so it doesn't boil dry." },
   { q: "After addition of the alkyl bromide, why do we wait 15 minutes?", a: "Gives the solid/liquid reaction time to finish forming the Grignard reagent." },
@@ -223,9 +225,8 @@ function selectOption(num, idx) {
   const item = questions[num - 1];
   const wrap = document.getElementById(`mc-options-${num}`);
   wrap.querySelectorAll('.opt-btn').forEach((btn, i) => {
-    btn.classList.add('disabled');
-    if (i === item.correct) btn.classList.add('correct');
-    else if (i === idx) btn.classList.add('incorrect');
+    btn.classList.remove('correct', 'incorrect');
+    if (i === idx) btn.classList.add(idx === item.correct ? 'correct' : 'incorrect');
   });
   document.getElementById(`mc-explain-${num}`).classList.remove('hidden');
 }
@@ -255,11 +256,12 @@ function setStatus(num, color) {
   card.classList.add(`status-${color}`);
   updateCounters();
   applyFilter();
+  saveProgress();
 
-  // close this card, then scroll to the next visible one
+  // close this card, then scroll to the next visible one (DOM order, so this still works after shuffling)
   card.classList.remove('show');
   setTimeout(() => {
-    let next = document.getElementById(`card-${num + 1}`);
+    let next = card.nextElementSibling;
     while (next && next.classList.contains('filtered-out')) {
       next = next.nextElementSibling;
     }
@@ -287,6 +289,63 @@ function applyFilter() {
   });
 }
 
+/* --- Shuffle (keeps the final multiple-choice question pinned at the end) --- */
+function shuffleQuestions() {
+  const cards = Array.from(container.children);
+  const mcCard = cards.find(c => questions[parseInt(c.id.split('-')[1], 10) - 1]?.mc);
+  const shuffleable = cards.filter(c => c !== mcCard);
+  for (let i = shuffleable.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffleable[i], shuffleable[j]] = [shuffleable[j], shuffleable[i]];
+  }
+  shuffleable.forEach(c => container.appendChild(c));
+  if (mcCard) container.appendChild(mcCard);
+}
+
+/* --- Persistence: ratings + notes saved to localStorage so progress survives closing the tab --- */
+const STORAGE_KEY = 'grignard_lcta_progress_v1';
+
+function saveProgress() {
+  try {
+    const noteEl = document.getElementById('sticky-note-text');
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ status, note: noteEl ? noteEl.value : '' }));
+  } catch (e) { /* localStorage unavailable, fail silently */ }
+}
+
+function loadProgress() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    Object.entries(data.status || {}).forEach(([num, color]) => {
+      status[num] = color;
+      const card = document.getElementById(`card-${num}`);
+      if (card) {
+        card.dataset.status = color;
+        card.classList.add(`status-${color}`);
+      }
+    });
+    updateCounters();
+    const noteEl = document.getElementById('sticky-note-text');
+    if (noteEl && data.note) noteEl.value = data.note;
+  } catch (e) { /* corrupted or unavailable, ignore */ }
+}
+
+function resetProgress() {
+  if (!confirm('Clear all saved ratings and notes? This can\'t be undone.')) return;
+  try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+  Object.keys(status).forEach(k => delete status[k]);
+  document.querySelectorAll('.question-card').forEach(card => {
+    card.dataset.status = 'none';
+    card.classList.remove('status-red', 'status-yellow', 'status-green');
+  });
+  const noteEl = document.getElementById('sticky-note-text');
+  if (noteEl) noteEl.value = '';
+  document.getElementById('finish-banner').classList.add('hidden');
+  updateCounters();
+  applyFilter();
+}
+
 /* --- Sticky note (draggable, in-memory only) --- */
 const note = document.getElementById('sticky-note');
 const handle = document.getElementById('sticky-note-handle');
@@ -295,6 +354,8 @@ let dragging = false, offsetX = 0, offsetY = 0;
 function toggleNote() {
   note.classList.toggle('hidden');
 }
+document.getElementById('sticky-note-text').addEventListener('input', saveProgress);
+loadProgress();
 
 handle.addEventListener('mousedown', (e) => {
   dragging = true;
