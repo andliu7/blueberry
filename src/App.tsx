@@ -3,7 +3,7 @@ import { ChevronsUpDown, ChevronsDownUp, Shuffle, GalleryHorizontalEnd, List } f
 import { questions } from "@/data/questions";
 import { testimonials, testimonialArt } from "@/data/testimonials";
 import GradientMenu from "@/components/ui/gradient-menu";
-import { ThemeSwitch } from "@/components/ui/theme-switch-button";
+import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import BoldOnHover from "@/components/ui/bold-on-hover";
 import { QuestionCard, type Status } from "@/components/QuestionCard";
 import { PressDepth } from "@/components/ui/press-depth";
@@ -176,7 +176,7 @@ export default function App() {
                 className="cursor-default"
               />
             </h1>
-            <ThemeSwitch />
+            <AnimatedThemeToggler />
           </div>
 
           {/* Row 1 — what you are looking at: progress, then the view filters. */}
