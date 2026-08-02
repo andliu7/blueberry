@@ -3,6 +3,8 @@ import type { Question } from "@/data/questions";
 import { PressDepth } from "@/components/ui/press-depth";
 import { cn } from "@/lib/utils";
 import { useMathJaxTypeset } from "@/lib/useMathJaxTypeset";
+import { useIsDark } from "@/lib/useIsDark";
+import { SpotlightCard } from "@/components/ui/spotlight-card";
 
 export type Status = "none" | "red" | "yellow" | "green";
 
@@ -41,12 +43,24 @@ export function QuestionCard({
   };
 
   const bodyRef = useRef<HTMLDivElement>(null);
+  const isDark = useIsDark();
   useMathJaxTypeset([open, selected], bodyRef);
 
   if (!isActive) return null;
 
   return (
-    <div ref={bodyRef} className={cn("rounded-lg shadow-sm border transition-colors", statusStyles[status])}>
+    <SpotlightCard
+      // Spotlight reads well on the pale cards; on the dark ones the glow all
+      // but disappears, so those lean into a tilt instead.
+      spotlight={!isDark}
+      tilt={isDark}
+      spotlightColor="#6366f13d"
+      className={cn(
+        "rounded-lg shadow-sm border transition-[background-color,border-color,transform] duration-200",
+        statusStyles[status],
+      )}
+    >
+    <div ref={bodyRef}>
       <button
         onClick={toggle}
         aria-expanded={open}
@@ -129,5 +143,6 @@ export function QuestionCard({
         </div>
       )}
     </div>
+    </SpotlightCard>
   );
 }

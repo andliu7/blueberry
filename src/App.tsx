@@ -4,6 +4,7 @@ import { questions } from "@/data/questions";
 import { testimonials, testimonialArt } from "@/data/testimonials";
 import GradientMenu from "@/components/ui/gradient-menu";
 import { ThemeSwitch } from "@/components/ui/theme-switch-button";
+import BoldOnHover from "@/components/ui/bold-on-hover";
 import { QuestionCard, type Status } from "@/components/QuestionCard";
 import { PressDepth } from "@/components/ui/press-depth";
 import { ButtonHoldAndRelease } from "@/components/ui/hold-and-release-button";
@@ -168,7 +169,12 @@ export default function App() {
         <div className="sticky top-0 z-20 -mx-4 px-4 pt-3 pb-3 mb-6 bg-[#f6f4ef]/95 dark:bg-[#0c0a09]/95 backdrop-blur border-b border-slate-200 dark:border-stone-800">
           <div className="flex items-center justify-center gap-3 mb-3">
             <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-stone-100 text-center tracking-tight">
-              Grignard LCTA Master List
+              <BoldOnHover
+                text="GRIGNARD LCTA MASTER LIST"
+                initialWeight={700}
+                hoverWeight={900}
+                className="cursor-default"
+              />
             </h1>
             <ThemeSwitch />
           </div>
@@ -222,8 +228,9 @@ export default function App() {
             </div>
           </div>
 
-          {/* Row 2 — what you can do: actions left, destructive reset held off to the right. */}
-          <div className="flex flex-wrap items-center justify-between gap-2.5 mt-2.5">
+          {/* Row 2 — what you can do. Reset lives down in the corner, well away
+              from the controls you reach for constantly. */}
+          <div className="flex flex-wrap items-center gap-2.5 mt-2.5">
             <GradientMenu
               items={[
                 {
@@ -258,7 +265,6 @@ export default function App() {
               ]}
             />
 
-            <ButtonHoldAndRelease onConfirm={doReset} holdDuration={1200} />
           </div>
 
           {filter === "needs" && (
@@ -356,6 +362,12 @@ export default function App() {
         <footer className="mt-12 text-center text-gray-500 dark:text-stone-400 text-sm">
           <p>Ready for the LCTA! Remember: Anhydrous = Dry Reaction | Regular = Wet Workup.</p>
         </footer>
+      </div>
+
+      {/* Sits to the left of the Notes button rather than above it, which is
+          where the notes panel itself opens. */}
+      <div className="fixed bottom-5 right-36 z-40">
+        <ButtonHoldAndRelease onConfirm={doReset} holdDuration={1200} />
       </div>
 
       <StickyNote value={note} onChange={setNote} />
