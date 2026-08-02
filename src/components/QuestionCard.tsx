@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { Question } from "@/data/questions";
 import { PressDepth } from "@/components/ui/press-depth";
 import { cn } from "@/lib/utils";
@@ -19,24 +19,37 @@ export function QuestionCard({
   status,
   onRate,
   isActive = true,
+  open: openProp,
+  onOpenChange,
 }: {
   num: number;
   item: Question;
   status: Status;
   onRate: (color: Status) => void;
   isActive?: boolean;
+  /** Supply with onOpenChange to let a parent drive expand/collapse all. */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
-  const [open, setOpen] = useState(false);
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
   const [selected, setSelected] = useState<number | null>(null);
+  const open = openProp ?? uncontrolledOpen;
 
-  useMathJaxTypeset([open, selected]);
+  const toggle = () => {
+    setUncontrolledOpen(!open);
+    onOpenChange?.(!open);
+  };
+
+  const bodyRef = useRef<HTMLDivElement>(null);
+  useMathJaxTypeset([open, selected], bodyRef);
 
   if (!isActive) return null;
 
   return (
-    <div className={cn("rounded-lg shadow-sm border transition-colors", statusStyles[status])}>
+    <div ref={bodyRef} className={cn("rounded-lg shadow-sm border transition-colors", statusStyles[status])}>
       <button
-        onClick={() => setOpen((o) => !o)}
+        onClick={toggle}
+        aria-expanded={open}
         className="w-full text-left p-5 flex justify-between items-start hover:bg-black/[0.02] transition"
       >
         <div className="flex-1 pr-4">

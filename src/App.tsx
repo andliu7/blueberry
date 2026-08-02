@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { ChevronsUpDown, ChevronsDownUp, Shuffle, GalleryHorizontalEnd, List } from "lucide-react";
 import { questions } from "@/data/questions";
-import { testimonials, avatarDataUri } from "@/data/testimonials";
+import { testimonials, testimonialArt } from "@/data/testimonials";
+import GradientMenu from "@/components/ui/gradient-menu";
 import { QuestionCard, type Status } from "@/components/QuestionCard";
 import { PressDepth } from "@/components/ui/press-depth";
 import { HoldToConfirm } from "@/components/ui/hold-to-confirm";
@@ -25,6 +27,8 @@ export default function App() {
   const [confettiTrigger, setConfettiTrigger] = useState(0);
   const hasCelebrated = useRef(false);
   const [tIndex, setTIndex] = useState(0);
+  // Question number -> expanded. Absent means collapsed.
+  const [openMap, setOpenMap] = useState<Record<number, boolean>>({});
 
   // Load saved progress once on mount
   useEffect(() => {
@@ -111,6 +115,18 @@ export default function App() {
     setCarouselIndex(0);
   }
 
+  function toggleAll(open: boolean) {
+    if (!open) {
+      setOpenMap({});
+      return;
+    }
+    const next: Record<number, boolean> = {};
+    visibleIdx.forEach((i) => {
+      next[i + 1] = true;
+    });
+    setOpenMap(next);
+  }
+
   function doReset() {
     setStatus({});
     setNote("");
@@ -122,11 +138,12 @@ export default function App() {
     }
   }
 
+  const active = testimonials[tIndex];
   const carouselTotal = visibleIdx.length;
   const safeCarouselIndex = carouselTotal ? ((carouselIndex % carouselTotal) + carouselTotal) % carouselTotal : 0;
 
   return (
-    <div className="min-h-screen py-10 px-4 text-slate-800">
+    <div className="min-h-screen pt-10 pb-16 px-4 text-slate-800">
       <div className="max-w-3xl mx-auto">
 
         <div className="sticky top-0 z-20 -mx-4 px-4 pt-3 pb-3 mb-6 bg-[#f6f4ef]/95 backdrop-blur border-b border-slate-200">
@@ -134,6 +151,7 @@ export default function App() {
             Grignard LCTA Master List
           </h1>
 
+          {/* Row 1 — what you are looking at: progress, then the view filters. */}
           <div className="flex flex-wrap items-center justify-between gap-2.5">
             <div className="flex items-center gap-2.5 text-sm font-medium bg-white px-3 py-1.5 rounded-lg border border-slate-200">
               <span className="flex items-center gap-1 text-slate-600">
@@ -150,50 +168,82 @@ export default function App() {
               </span>
             </div>
 
-            <div className="flex items-center gap-1 bg-white px-1.5 py-1.5 rounded-lg border border-slate-200">
-              <button
-                onClick={() => setFilter("all")}
-                className={cn("px-2.5 py-1 rounded-md text-sm font-semibold transition", filter === "all" ? "bg-indigo-50 text-indigo-700" : "text-slate-600")}
-              >
-                All
-              </button>
-              <button
-                onClick={() => setFilter("needs")}
-                className={cn("px-2.5 py-1 rounded-md text-sm font-semibold transition", filter === "needs" ? "bg-indigo-50 text-indigo-700" : "text-slate-600")}
-              >
-                Needs Review
-              </button>
-            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-1 bg-white px-1.5 py-1.5 rounded-lg border border-slate-200">
+                <span className="text-[0.65rem] text-slate-400 font-semibold font-mono pl-1 pr-0.5">SHOW</span>
+                <button
+                  onClick={() => setFilter("all")}
+                  className={cn("px-2.5 py-1 rounded-md text-sm font-semibold transition", filter === "all" ? "bg-indigo-50 text-indigo-700" : "text-slate-600 hover:bg-slate-50")}
+                >
+                  All
+                </button>
+                <button
+                  onClick={() => setFilter("needs")}
+                  className={cn("px-2.5 py-1 rounded-md text-sm font-semibold transition", filter === "needs" ? "bg-indigo-50 text-indigo-700" : "text-slate-600 hover:bg-slate-50")}
+                >
+                  Needs Review
+                </button>
+              </div>
 
-            <div className="flex items-center gap-1.5 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200">
-              <span className="text-xs text-slate-400 font-semibold font-mono">ORDER</span>
-              <select
-                value={order}
-                onChange={(e) => applyOrder(e.target.value as typeof order)}
-                className="bg-slate-50 border border-slate-200 text-slate-700 pl-2 pr-1 py-1 rounded-md text-sm font-semibold"
-              >
-                <option value="number">Number</option>
-                <option value="hard-first">Hardest first</option>
-                <option value="easy-first">Easiest first</option>
-              </select>
-              <PressDepth depth={2} className="!h-7 !px-2.5 !text-sm !font-semibold" onClick={shuffle}>
-                🔀 Shuffle
-              </PressDepth>
+              <div className="flex items-center gap-1.5 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200">
+                <span className="text-[0.65rem] text-slate-400 font-semibold font-mono">ORDER</span>
+                <select
+                  value={order}
+                  onChange={(e) => applyOrder(e.target.value as typeof order)}
+                  className="bg-slate-50 border border-slate-200 text-slate-700 pl-2 pr-1 py-1 rounded-md text-sm font-semibold"
+                >
+                  <option value="number">Number</option>
+                  <option value="hard-first">Hardest first</option>
+                  <option value="easy-first">Easiest first</option>
+                </select>
+              </div>
             </div>
+          </div>
 
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <PressDepth depth={3} className="!h-9 !px-3 !text-sm !font-semibold" onClick={() => setCarouselMode((m) => !m)}>
-                {carouselMode ? "📋 List View" : "🎠 Carousel View"}
-              </PressDepth>
-              <HoldToConfirm
-                onConfirm={doReset}
-                confirmLabel="Reset!"
-                duration={1200}
-                className="!h-9 !px-3 !text-sm !font-semibold !bg-red-50 !text-red-700 !border-red-300"
-              >
-                Hold to Reset
-              </HoldToConfirm>
-            </div>
+          {/* Row 2 — what you can do: actions left, destructive reset held off to the right. */}
+          <div className="flex flex-wrap items-center justify-between gap-2.5 mt-2.5">
+            <GradientMenu
+              items={[
+                {
+                  title: "Expand All",
+                  icon: <ChevronsUpDown />,
+                  onClick: () => toggleAll(true),
+                  gradientFrom: "#4f46e5",
+                  gradientTo: "#6366f1",
+                },
+                {
+                  title: "Collapse All",
+                  icon: <ChevronsDownUp />,
+                  onClick: () => toggleAll(false),
+                  gradientFrom: "#475569",
+                  gradientTo: "#64748b",
+                },
+                {
+                  title: "Shuffle",
+                  icon: <Shuffle />,
+                  onClick: shuffle,
+                  gradientFrom: "#0f766e",
+                  gradientTo: "#0e7490",
+                },
+                {
+                  title: carouselMode ? "List View" : "Carousel",
+                  icon: carouselMode ? <List /> : <GalleryHorizontalEnd />,
+                  onClick: () => setCarouselMode((m) => !m),
+                  gradientFrom: "#b45309",
+                  gradientTo: "#d97706",
+                  active: carouselMode,
+                },
+              ]}
+            />
+
+            <HoldToConfirm
+              onConfirm={doReset}
+              confirmLabel="Reset!"
+              duration={1200}
+              className="!h-9 !px-3 !text-sm !font-semibold !bg-red-50 !text-red-700 !border-red-300"
+            >
+              Hold to Reset
+            </HoldToConfirm>
           </div>
 
           {filter === "needs" && (
@@ -234,6 +284,8 @@ export default function App() {
               status={status[qi + 1] ?? "none"}
               onRate={(color) => rate(qi + 1, color)}
               isActive={!carouselMode || pos === safeCarouselIndex}
+              open={openMap[qi + 1] ?? false}
+              onOpenChange={(o) => setOpenMap((m) => ({ ...m, [qi + 1]: o }))}
             />
           ))}
         </div>
@@ -252,18 +304,41 @@ export default function App() {
           <h2 className="text-center text-lg font-bold text-slate-800 mb-4">What Orgo Students Are Saying</h2>
           <SocialCards
             cards={testimonials.map((t) => ({
-              imgUrl: avatarDataUri(t.initials, t.color),
-              alt: t.name,
+              imgUrl: testimonialArt(t),
+              alt: `${t.name} — ${t.role}`,
+              title: t.name,
+              subtitle: t.role,
             }))}
             activeIndex={tIndex}
             onActiveIndexChange={setTIndex}
-            spread={0.55}
+            spread={0.65}
           />
-          <div className="max-w-md mx-auto mt-4 text-center">
-            <p className="text-slate-700 italic text-sm">"{testimonials[tIndex]?.quote}"</p>
-            <p className="font-bold text-slate-900 text-sm mt-2">{testimonials[tIndex]?.name}</p>
-            <p className="text-xs text-slate-400 font-mono">{testimonials[tIndex]?.role}</p>
-          </div>
+
+          {active && (
+            <figure className="max-w-xl mx-auto mt-5 bg-white border border-slate-200 rounded-2xl shadow-sm px-6 py-5 relative">
+              <span
+                aria-hidden
+                className="absolute left-5 -top-3 text-5xl leading-none font-serif text-indigo-200 select-none"
+              >
+                &ldquo;
+              </span>
+              <blockquote className="text-slate-700 text-base leading-relaxed text-center">
+                {active.quote}
+              </blockquote>
+              <figcaption className="flex items-center justify-center gap-3 mt-4 pt-4 border-t border-slate-100">
+                <span
+                  className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
+                  style={{ background: `linear-gradient(135deg, ${active.from}, ${active.to})` }}
+                >
+                  {active.initials}
+                </span>
+                <span className="text-left">
+                  <span className="block font-bold text-slate-900 text-sm leading-tight">{active.name}</span>
+                  <span className="block text-xs text-slate-400 font-mono leading-tight">{active.role}</span>
+                </span>
+              </figcaption>
+            </figure>
+          )}
           <p className="text-center text-xs text-slate-400 mt-3">(these are fake testimonials)</p>
         </div>
 

@@ -7,6 +7,9 @@ export interface CardItem {
   imgUrl: string;
   alt?: string;
   linkUrl?: string;
+  /** Caption printed over the bottom of the card. */
+  title?: string;
+  subtitle?: string;
 }
 
 interface SocialCardsProps {
@@ -316,6 +319,23 @@ export default function SocialCards({ cards, activeIndex, onActiveIndexChange, s
             const image = (
               <div className="relative w-full h-full overflow-hidden">
                 <img src={card.imgUrl} loading="lazy" alt={card.alt || `Card ${index}`} className="absolute inset-0 w-full h-full object-cover z-10" />
+                {(card.title || card.subtitle) && (
+                  <div className="absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-black/70 via-black/35 to-transparent px-2 pt-5 pb-1.5 text-center">
+                    {card.title && (
+                      <p className="text-white text-[0.6rem] md:text-[0.68rem] font-bold leading-tight truncate">
+                        {card.title}
+                      </p>
+                    )}
+                    {card.subtitle && (
+                      <p className="text-white/70 text-[0.5rem] md:text-[0.55rem] font-mono leading-tight truncate">
+                        {card.subtitle}
+                      </p>
+                    )}
+                  </div>
+                )}
+                {index === activeIdx && (
+                  <span className="absolute inset-0 z-30 rounded-[inherit] ring-2 ring-inset ring-white/70" />
+                )}
               </div>
             );
             return card.linkUrl ? (

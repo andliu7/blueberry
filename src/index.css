@@ -13,16 +13,16 @@ body {
    or they collapse to zero height and nothing is visible. Layout heights track
    the breakpoints in getHeightMultiplier(). */
 .fan-layout {
-  height: 11rem;
+  height: 13rem;
 }
 .fan-card {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 4.5rem;
-  height: 6rem;
-  margin-top: -3rem;
-  margin-left: -2.25rem;
+  width: 5.5rem;
+  height: 7.25rem;
+  margin-top: -3.625rem;
+  margin-left: -2.75rem;
   border-radius: 0.75rem;
   overflow: hidden;
   background: #fff;
@@ -33,34 +33,34 @@ body {
 }
 
 @media (min-width: 480px) {
-  .fan-layout { height: 12rem; }
-  .fan-card {
-    width: 5rem; height: 6.75rem;
-    margin-top: -3.375rem; margin-left: -2.5rem;
-  }
-}
-
-@media (min-width: 640px) {
-  .fan-layout { height: 13rem; }
-  .fan-card {
-    width: 5.5rem; height: 7.25rem;
-    margin-top: -3.625rem; margin-left: -2.75rem;
-  }
-}
-
-@media (min-width: 768px) {
   .fan-layout { height: 14rem; }
   .fan-card {
     width: 6rem; height: 8rem;
     margin-top: -4rem; margin-left: -3rem;
+  }
+}
+
+@media (min-width: 640px) {
+  .fan-layout { height: 15rem; }
+  .fan-card {
+    width: 6.75rem; height: 9rem;
+    margin-top: -4.5rem; margin-left: -3.375rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .fan-layout { height: 16rem; }
+  .fan-card {
+    width: 7.5rem; height: 10rem;
+    margin-top: -5rem; margin-left: -3.75rem;
     border-radius: 1rem;
   }
 }
 
 @media (min-width: 1024px) {
-  .fan-layout { height: 15rem; }
+  .fan-layout { height: 17rem; }
   .fan-card {
-    width: 6.5rem; height: 8.5rem;
-    margin-top: -4.25rem; margin-left: -3.25rem;
+    width: 8rem; height: 10.75rem;
+    margin-top: -5.375rem; margin-left: -4rem;
   }
 }
