@@ -14,16 +14,16 @@
       // would show a flash of the light theme on every load for dark users.
       (function () {
         try {
+          // Light unless the visitor has explicitly chosen dark before. The OS
+          // preference is deliberately not consulted: this reads as a paper
+          // study sheet, and first impressions should match that.
           var saved = localStorage.getItem('theme');
-          var dark = saved
-            ? saved === 'dark'
-            : window.matchMedia('(prefers-color-scheme: dark)').matches;
-          document.documentElement.classList.toggle('dark', dark);
+          document.documentElement.classList.toggle('dark', saved === 'dark');
         } catch (e) {}
       })();
     </script>
-    <script type="module" crossorigin src="./assets/index-BiXDdvmG.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-BS7UFsDH.css">
+    <script type="module" crossorigin src="./assets/index-DM02buVz.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-WP32uKWb.css">
   </head>
   <body>
     <div id="root"></div>
