@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence } from "motion/react";
 import { ChevronsUpDown, ChevronsDownUp, Shuffle, GalleryHorizontalEnd, List, MoveVertical, MessageSquare, ArrowDownToLine, GitBranch, ArrowUpRight } from "lucide-react";
 import { FeedbackWidget } from "@/components/ui/feedback-widget";
+import { GlassFilter, LiquidGlassLayers } from "@/components/ui/liquid-glass-button";
 import { questions } from "@/data/questions";
 import { testimonials, testimonialArt } from "@/data/testimonials";
 import { GradientMenuButton, type GradientMenuItem } from "@/components/ui/gradient-menu";
@@ -75,7 +76,7 @@ export default function App() {
   const [orderedIdx, setOrderedIdx] = useState<number[]>(questions.map((_, i) => i));
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [shuffled, setShuffled] = useState(false);
-  const [toolsOpen, setToolsOpen] = useState(true);
+  const [toolsOpen, setToolsOpen] = useState(false);
   const [view, setView] = useState<"list" | "carousel" | "scroll">("list");
   const carouselMode = view === "carousel";
   const [carouselIndex, setCarouselIndex] = useState(0);
@@ -542,11 +543,17 @@ export default function App() {
       <button
         type="button"
         onClick={() => setFeedbackOpen(true)}
-        className="fixed bottom-5 right-36 z-40 flex items-center gap-2 rounded-full bg-white dark:bg-stone-900 border border-slate-200 dark:border-stone-800 px-4 py-2 font-bold text-slate-700 dark:text-stone-200 shadow-lg transition-colors hover:bg-slate-50 dark:hover:bg-stone-800 cursor-pointer"
+        className="fixed bottom-5 right-36 z-40 flex items-center gap-2 rounded-full px-4 py-2 font-bold text-slate-700 dark:text-stone-200 shadow-lg cursor-pointer relative transition-transform hover:scale-105"
       >
-        <MessageSquare className="w-4 h-4" />
-        Feedback
+        <LiquidGlassLayers />
+        <span className="relative z-10 flex items-center gap-2">
+          <MessageSquare className="w-4 h-4" />
+          Feedback
+        </span>
       </button>
+
+      {/* One instance supplies the filter every glass surface references. */}
+      <GlassFilter />
 
       <AnimatePresence>
         {feedbackOpen && (

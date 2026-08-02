@@ -2,6 +2,7 @@
 
 import { useId, useRef, useState } from "react";
 import { motion } from "motion/react";
+import { LiquidGlassLayers } from "@/components/ui/liquid-glass-button";
 
 /**
  * Animated Theme Toggler — sun↔moon morph.
@@ -132,20 +133,23 @@ export function AnimatedThemeToggler({
           background: "none",
           border: "none",
           cursor: "pointer",
-          padding: 6,
+          padding: 8,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           color: "var(--at-ink)",
-          borderRadius: 8,
+          borderRadius: 9999,
           outline: "none",
+          position: "relative",
           WebkitTapHighlightColor: "transparent",
         }}
         aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
         aria-pressed={isDark}
         title={isDark ? "Switch to light theme" : "Switch to dark theme"}
       >
+        <LiquidGlassLayers />
         <motion.svg
+          className="relative z-10"
           width="20"
           height="20"
           viewBox="0 0 24 24"

@@ -2,8 +2,10 @@
 
 import { AnimatePresence, motion } from "motion/react";
 import { Plus } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { MagneticButton } from "@/components/ui/magnetic-button";
+import { SuccessParticles, useParticleBurst } from "@/components/ui/particle-button";
 
 export interface AnimatedActionClusterProps {
   /** Each child is revealed as its own action. Children keep their own
@@ -44,6 +46,8 @@ export function AnimatedActionCluster({
 }: AnimatedActionClusterProps) {
   const [uncontrolled, setUncontrolled] = useState(defaultOpen);
   const active = open ?? uncontrolled;
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const { bursting, burst } = useParticleBurst(700);
   const setActive = (next: boolean) => {
     setUncontrolled(next);
     onOpenChange?.(next);
@@ -53,13 +57,19 @@ export function AnimatedActionCluster({
   const enterX = openingLeft ? 18 : -18;
 
   const trigger = (
-    <motion.button
+    <MagneticButton distance={0.35} className="shrink-0">
+      {bursting && <SuccessParticles anchorRef={triggerRef} />}
+      <motion.button
+        ref={triggerRef}
         type="button"
         // `layout` animates the trigger's own travel: with the cluster anchored
         // to the right edge, opening it grows the group leftward and carries the
         // trigger along rather than teleporting it.
         layout
-        onClick={() => setActive(!active)}
+        onClick={() => {
+          burst();
+          setActive(!active);
+        }}
         aria-expanded={active}
         aria-label={active ? `Hide ${label}` : `Show ${label}`}
         title={active ? `Hide ${label}` : `Show ${label}`}
@@ -77,6 +87,7 @@ export function AnimatedActionCluster({
       >
         <Plus size={18} strokeWidth={3} />
       </motion.button>
+    </MagneticButton>
   );
 
   const actions = (
