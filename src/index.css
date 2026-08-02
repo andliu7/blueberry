@@ -28,6 +28,13 @@ body {
   transition-delay: 0s !important;
 }
 
+/* Loose handwritten face for the testimonials heading. */
+.playful-face {
+  font-family: "Bradley Hand", "Segoe Print", "Chalkboard SE", "Comic Sans MS",
+    "Marker Felt", ui-rounded, cursive;
+  letter-spacing: 0.01em;
+}
+
 /* Serif display face for the page title. */
 .title-face {
   font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Palladio,

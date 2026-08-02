@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence } from "motion/react";
-import { ChevronsUpDown, ChevronsDownUp, Shuffle, GalleryHorizontalEnd, List, MoveVertical, MessageSquare, ArrowDownToLine } from "lucide-react";
+import { ChevronsUpDown, ChevronsDownUp, Shuffle, GalleryHorizontalEnd, List, MoveVertical, MessageSquare, ArrowDownToLine, GitBranch, ArrowUpRight } from "lucide-react";
 import { FeedbackWidget } from "@/components/ui/feedback-widget";
 import { questions } from "@/data/questions";
 import { testimonials, testimonialArt } from "@/data/testimonials";
@@ -443,7 +443,9 @@ export default function App() {
         )}
 
         <div className="mt-12">
-          <h2 className="text-center text-lg font-bold text-slate-800 dark:text-stone-200 mb-4">What Orgo Students Are Saying</h2>
+          <h2 className="playful-face text-center text-2xl font-bold text-slate-800 dark:text-stone-200 mb-4">
+            What Orgo Students Are Saying
+          </h2>
           <SocialCards
             cards={testimonialCards}
             activeIndex={tIndex}
@@ -484,6 +486,28 @@ export default function App() {
 
         <footer className="mt-12 text-center text-gray-500 dark:text-stone-400 text-sm">
           <p>Ready for the LCTA! Remember: Anhydrous = Dry Reaction | Regular = Wet Workup.</p>
+
+          <p className="playful-face mt-6 text-lg text-slate-600 dark:text-stone-300">
+            Thank you for using this website!
+          </p>
+
+          <a
+            href="https://github.com/andliu7/grignard_LCTA/tree/gh-pages"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group mt-2 inline-flex items-center gap-2 rounded-full px-3 py-1.5 font-semibold text-indigo-600 dark:text-indigo-300 outline-none transition-colors hover:text-indigo-700 dark:hover:text-indigo-200 focus-visible:ring-2 focus-visible:ring-indigo-400"
+          >
+            <GitBranch className="w-4 h-4 transition-transform duration-300 group-hover:-rotate-12 group-hover:scale-110" />
+            <span className="relative">
+              Check out the GitHub here
+              {/* Underline sweeps in from the left on hover. */}
+              <span
+                aria-hidden
+                className="absolute left-0 -bottom-0.5 h-[2px] w-full origin-left scale-x-0 rounded-full bg-gradient-to-r from-indigo-500 to-fuchsia-500 transition-transform duration-300 ease-out group-hover:scale-x-100"
+              />
+            </span>
+            <ArrowUpRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
+          </a>
         </footer>
         </div>
       </div>
