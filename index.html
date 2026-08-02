@@ -14,11 +14,11 @@
       // would show a flash of the light theme on every load for dark users.
       (function () {
         try {
-          // Light unless the visitor has explicitly chosen dark before. The OS
-          // preference is deliberately not consulted: this reads as a paper
-          // study sheet, and first impressions should match that.
+          // Dark unless the visitor has explicitly chosen light before. The OS
+          // preference is deliberately not consulted, so the first impression is
+          // the same for everyone.
           var saved = localStorage.getItem('theme');
-          document.documentElement.classList.toggle('dark', saved === 'dark');
+          document.documentElement.classList.toggle('dark', saved !== 'light');
         } catch (e) {}
       })();
     </script>
