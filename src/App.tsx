@@ -3,6 +3,7 @@ import { ChevronsUpDown, ChevronsDownUp, Shuffle, GalleryHorizontalEnd, List } f
 import { questions } from "@/data/questions";
 import { testimonials, testimonialArt } from "@/data/testimonials";
 import GradientMenu from "@/components/ui/gradient-menu";
+import { ThemeSwitch } from "@/components/ui/theme-switch-button";
 import { QuestionCard, type Status } from "@/components/QuestionCard";
 import { PressDepth } from "@/components/ui/press-depth";
 import { ButtonHoldAndRelease } from "@/components/ui/hold-and-release-button";
@@ -161,54 +162,57 @@ export default function App() {
   const safeCarouselIndex = carouselTotal ? ((carouselIndex % carouselTotal) + carouselTotal) % carouselTotal : 0;
 
   return (
-    <div className="min-h-screen pt-10 pb-16 px-4 text-slate-800">
+    <div className="min-h-screen pt-10 pb-16 px-4 text-slate-800 dark:text-stone-200">
       <div className="max-w-3xl mx-auto">
 
-        <div className="sticky top-0 z-20 -mx-4 px-4 pt-3 pb-3 mb-6 bg-[#f6f4ef]/95 backdrop-blur border-b border-slate-200">
-          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 text-center tracking-tight mb-3">
-            Grignard LCTA Master List
-          </h1>
+        <div className="sticky top-0 z-20 -mx-4 px-4 pt-3 pb-3 mb-6 bg-[#f6f4ef]/95 dark:bg-[#0c0a09]/95 backdrop-blur border-b border-slate-200 dark:border-stone-800">
+          <div className="flex items-center justify-center gap-3 mb-3">
+            <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-stone-100 text-center tracking-tight">
+              Grignard LCTA Master List
+            </h1>
+            <ThemeSwitch />
+          </div>
 
           {/* Row 1 — what you are looking at: progress, then the view filters. */}
           <div className="flex flex-wrap items-center justify-between gap-2.5">
-            <div className="flex items-center gap-2.5 text-sm font-medium bg-white px-3 py-1.5 rounded-lg border border-slate-200">
-              <span className="flex items-center gap-1 text-slate-600">
+            <div className="flex items-center gap-2.5 text-sm font-medium bg-white dark:bg-stone-900 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-stone-800">
+              <span className="flex items-center gap-1 text-slate-600 dark:text-stone-300">
                 <span className="w-2.5 h-2.5 rounded-full bg-red-400" />{counts.red}
               </span>
-              <span className="flex items-center gap-1 text-slate-600">
+              <span className="flex items-center gap-1 text-slate-600 dark:text-stone-300">
                 <span className="w-2.5 h-2.5 rounded-full bg-yellow-400" />{counts.yellow}
               </span>
-              <span className="flex items-center gap-1 text-slate-600">
+              <span className="flex items-center gap-1 text-slate-600 dark:text-stone-300">
                 <span className="w-2.5 h-2.5 rounded-full bg-green-400" />{counts.green}
               </span>
-              <span className="text-slate-400 text-xs font-mono border-l border-slate-200 pl-2.5">
+              <span className="text-slate-400 dark:text-stone-500 text-xs font-mono border-l border-slate-200 dark:border-stone-700 pl-2.5">
                 {reviewed} / {questions.length} reviewed
               </span>
             </div>
 
             <div className="flex items-center gap-2 flex-wrap">
-              <div className="flex items-center gap-1 bg-white px-1.5 py-1.5 rounded-lg border border-slate-200">
-                <span className="text-[0.65rem] text-slate-400 font-semibold font-mono pl-1 pr-0.5">SHOW</span>
+              <div className="flex items-center gap-1 bg-white dark:bg-stone-900 px-1.5 py-1.5 rounded-lg border border-slate-200 dark:border-stone-800">
+                <span className="text-[0.65rem] text-slate-400 dark:text-stone-500 font-semibold font-mono pl-1 pr-0.5">SHOW</span>
                 <button
                   onClick={() => setFilter("all")}
-                  className={cn("px-2.5 py-1 rounded-md text-sm font-semibold transition", filter === "all" ? "bg-indigo-50 text-indigo-700" : "text-slate-600 hover:bg-slate-50")}
+                  className={cn("px-2.5 py-1 rounded-md text-sm font-semibold transition", filter === "all" ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-400/15 dark:text-indigo-300" : "text-slate-600 hover:bg-slate-50 dark:text-stone-300 dark:hover:bg-white/5")}
                 >
                   All
                 </button>
                 <button
                   onClick={() => setFilter("needs")}
-                  className={cn("px-2.5 py-1 rounded-md text-sm font-semibold transition", filter === "needs" ? "bg-indigo-50 text-indigo-700" : "text-slate-600 hover:bg-slate-50")}
+                  className={cn("px-2.5 py-1 rounded-md text-sm font-semibold transition", filter === "needs" ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-400/15 dark:text-indigo-300" : "text-slate-600 hover:bg-slate-50 dark:text-stone-300 dark:hover:bg-white/5")}
                 >
                   Needs Review
                 </button>
               </div>
 
-              <div className="flex items-center gap-1.5 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200">
-                <span className="text-[0.65rem] text-slate-400 font-semibold font-mono">ORDER</span>
+              <div className="flex items-center gap-1.5 bg-white dark:bg-stone-900 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-stone-800">
+                <span className="text-[0.65rem] text-slate-400 dark:text-stone-500 font-semibold font-mono">ORDER</span>
                 <select
                   value={order}
                   onChange={(e) => applyOrder(e.target.value as typeof order)}
-                  className="bg-slate-50 border border-slate-200 text-slate-700 pl-2 pr-1 py-1 rounded-md text-sm font-semibold"
+                  className="bg-slate-50 border border-slate-200 text-slate-700 dark:bg-stone-800 dark:border-stone-700 dark:text-stone-200 pl-2 pr-1 py-1 rounded-md text-sm font-semibold"
                 >
                   <option value="number">Number</option>
                   <option value="hard-first">Hardest first</option>
@@ -258,13 +262,13 @@ export default function App() {
           </div>
 
           {filter === "needs" && (
-            <p className="text-xs text-indigo-600 mt-2">
+            <p className="text-xs text-indigo-600 dark:text-indigo-300 mt-2">
               Showing only questions marked <span className="font-semibold">Review</span>,{" "}
               <span className="font-semibold">Almost</span>, or not yet rated.
             </p>
           )}
 
-          <div className="h-1.5 w-full bg-slate-200 rounded mt-3 overflow-hidden">
+          <div className="h-1.5 w-full bg-slate-200 dark:bg-stone-800 rounded mt-3 overflow-hidden">
             <div
               className="h-full bg-indigo-500 transition-all duration-300"
               style={{ width: `${(reviewed / questions.length) * 100}%` }}
@@ -277,7 +281,7 @@ export default function App() {
             <PressDepth depth={2} className="!h-9 !w-9 !rounded-full !px-0" onClick={() => setCarouselIndex((i) => i - 1)}>
               ‹
             </PressDepth>
-            <span className="font-mono text-sm text-slate-500">
+            <span className="font-mono text-sm text-slate-500 dark:text-stone-400">
               {carouselTotal ? safeCarouselIndex + 1 : 0} / {carouselTotal}
             </span>
             <PressDepth depth={2} className="!h-9 !w-9 !rounded-full !px-0" onClick={() => setCarouselIndex((i) => i + 1)}>
@@ -302,17 +306,17 @@ export default function App() {
         </div>
 
         {reviewed === questions.length && (
-          <div className="mt-6 text-center bg-indigo-50 border border-indigo-200 rounded-lg p-6">
+          <div className="mt-6 text-center bg-indigo-50 dark:bg-indigo-400/10 border border-indigo-200 dark:border-indigo-500/30 rounded-lg p-6">
             <p className="text-5xl mb-2">👍</p>
-            <p className="font-bold text-indigo-900 text-lg">You've reviewed every question.</p>
-            <p className="text-indigo-700 text-sm mt-1">
+            <p className="font-bold text-indigo-900 dark:text-indigo-200 text-lg">You've reviewed every question.</p>
+            <p className="text-indigo-700 dark:text-indigo-300 text-sm mt-1">
               Use "Needs Review" to double-check anything marked red or yellow before the LCTA.
             </p>
           </div>
         )}
 
         <div className="mt-12">
-          <h2 className="text-center text-lg font-bold text-slate-800 mb-4">What Orgo Students Are Saying</h2>
+          <h2 className="text-center text-lg font-bold text-slate-800 dark:text-stone-200 mb-4">What Orgo Students Are Saying</h2>
           <SocialCards
             cards={testimonialCards}
             activeIndex={tIndex}
@@ -322,17 +326,17 @@ export default function App() {
           />
 
           {active && (
-            <figure className="max-w-xl mx-auto mt-5 bg-white border border-slate-200 rounded-2xl shadow-sm px-6 py-5 relative">
+            <figure className="max-w-xl mx-auto mt-5 bg-white dark:bg-stone-900 border border-slate-200 dark:border-stone-800 rounded-2xl shadow-sm px-6 py-5 relative">
               <span
                 aria-hidden
-                className="absolute left-5 -top-3 text-5xl leading-none font-serif text-indigo-200 select-none"
+                className="absolute left-5 -top-3 text-5xl leading-none font-serif text-indigo-200 dark:text-indigo-400/40 select-none"
               >
                 &ldquo;
               </span>
-              <blockquote className="text-slate-700 text-base leading-relaxed text-center">
+              <blockquote className="text-slate-700 dark:text-stone-300 text-base leading-relaxed text-center">
                 {active.quote}
               </blockquote>
-              <figcaption className="flex items-center justify-center gap-3 mt-4 pt-4 border-t border-slate-100">
+              <figcaption className="flex items-center justify-center gap-3 mt-4 pt-4 border-t border-slate-100 dark:border-stone-800">
                 <span
                   className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
                   style={{ background: `linear-gradient(135deg, ${active.from}, ${active.to})` }}
@@ -340,16 +344,16 @@ export default function App() {
                   {active.initials}
                 </span>
                 <span className="text-left">
-                  <span className="block font-bold text-slate-900 text-sm leading-tight">{active.name}</span>
-                  <span className="block text-xs text-slate-400 font-mono leading-tight">{active.role}</span>
+                  <span className="block font-bold text-slate-900 dark:text-stone-100 text-sm leading-tight">{active.name}</span>
+                  <span className="block text-xs text-slate-400 dark:text-stone-500 font-mono leading-tight">{active.role}</span>
                 </span>
               </figcaption>
             </figure>
           )}
-          <p className="text-center text-xs text-slate-400 mt-3">(these are fake testimonials)</p>
+          <p className="text-center text-xs text-slate-400 dark:text-stone-500 mt-3">(these are fake testimonials)</p>
         </div>
 
-        <footer className="mt-12 text-center text-gray-500 text-sm">
+        <footer className="mt-12 text-center text-gray-500 dark:text-stone-400 text-sm">
           <p>Ready for the LCTA! Remember: Anhydrous = Dry Reaction | Regular = Wet Workup.</p>
         </footer>
       </div>

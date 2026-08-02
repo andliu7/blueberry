@@ -41,9 +41,10 @@ export default function GradientMenu({
             }
             className={cn(
               "relative h-9 rounded-full bg-white border border-slate-200 shadow-sm",
+              "dark:bg-stone-900 dark:border-stone-800",
               "flex items-center justify-center overflow-hidden shrink-0 cursor-pointer group",
               "transition-[width,box-shadow] duration-500 ease-out outline-none",
-              "focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#f6f4ef]",
+              "focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#f6f4ef] dark:focus-visible:ring-offset-[#0c0a09]",
               active ? "w-auto px-3.5 border-transparent" : "w-9 hover:w-[8.5rem]",
             )}
           >
@@ -74,7 +75,7 @@ export default function GradientMenu({
             ) : (
               <>
                 {/* Icon shrinks away as the label scales in. */}
-                <span className="relative z-10 text-slate-500 transition-transform duration-500 group-hover:scale-0 [&>svg]:w-[1.15rem] [&>svg]:h-[1.15rem]">
+                <span className="relative z-10 text-slate-500 dark:text-stone-300 transition-transform duration-500 group-hover:scale-0 [&>svg]:w-[1.15rem] [&>svg]:h-[1.15rem]">
                   {icon}
                 </span>
                 <span className="absolute z-10 text-white text-sm font-semibold whitespace-nowrap scale-0 transition-transform duration-500 delay-150 group-hover:scale-100">

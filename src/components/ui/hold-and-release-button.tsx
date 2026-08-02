@@ -91,8 +91,9 @@ export function ButtonHoldAndRelease({
       className={cn(
         "relative min-w-[9rem] h-9 px-3 overflow-hidden touch-none select-none rounded-lg",
         "border border-red-300 bg-red-50 text-red-700 text-sm font-semibold",
+        "dark:border-red-900 dark:bg-red-950/60 dark:text-red-300",
         "cursor-pointer outline-none transition-colors",
-        "focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#f6f4ef]",
+        "focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#f6f4ef] dark:focus-visible:ring-offset-[#0c0a09]",
         className,
       )}
       onPointerDown={(e) => {
@@ -120,7 +121,7 @@ export function ButtonHoldAndRelease({
         aria-hidden
         initial={{ width: "0%" }}
         animate={controls}
-        className="absolute left-0 top-0 h-full bg-red-300/50"
+        className="absolute left-0 top-0 h-full bg-red-300/50 dark:bg-red-700/50"
       />
       <span className="relative z-10 w-full flex items-center justify-center gap-1.5 whitespace-nowrap">
         <Trash2 className="w-3.5 h-3.5" />

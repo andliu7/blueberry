@@ -1,11 +1,25 @@
 @import "tailwindcss";
 
+/* Tailwind v4 wires `dark:` to prefers-color-scheme by default. The theme
+   switch toggles a class instead, so point the variant at it. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 body {
   background: #f6f4ef;
   background-image:
     linear-gradient(rgba(15,23,42,0.025) 1px, transparent 1px),
     linear-gradient(90deg, rgba(15,23,42,0.025) 1px, transparent 1px);
   background-size: 28px 28px;
+  transition: background-color 0.25s ease;
+}
+
+/* Warm near-black, so the dark theme reads as a dimmed version of the cream
+   paper rather than a different product. */
+.dark body {
+  background: #0c0a09;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
 }
 
 /* Card fan carousel. The component positions .fan-card purely through GSAP
@@ -30,6 +44,11 @@ body {
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.18);
   will-change: transform;
   transform-origin: center bottom;
+}
+.dark .fan-card {
+  background: #1c1917;
+  border-color: #1c1917;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
 }
 
 @media (min-width: 480px) {
