@@ -1,5 +1,6 @@
-import type { ReactNode } from "react";
+import { useRef, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { SuccessParticles, useParticleBurst } from "@/components/ui/particle-button";
 
 export interface GradientMenuItem {
   title: string;
@@ -10,6 +11,8 @@ export interface GradientMenuItem {
   gradientTo: string;
   /** Renders the pill already open and filled, for toggles that are on. */
   active?: boolean;
+  /** Emit a particle burst on click. */
+  particles?: boolean;
 }
 
 /**
@@ -44,11 +47,23 @@ export function GradientMenuButton({
   gradientFrom,
   gradientTo,
   active,
+  particles,
 }: GradientMenuItem) {
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const { bursting, burst } = useParticleBurst(700);
+
   return (
+    <>
+    {/* SuccessParticles portals to document.body, so a transformed ancestor
+        cannot capture its fixed positioning. */}
+    {particles && bursting && <SuccessParticles anchorRef={btnRef} />}
     <button
+            ref={btnRef}
             type="button"
-            onClick={onClick}
+            onClick={() => {
+              if (particles) burst();
+              onClick();
+            }}
             aria-label={title}
             aria-pressed={active}
             style={
@@ -102,5 +117,6 @@ export function GradientMenuButton({
               </>
       )}
     </button>
+    </>
   );
 }

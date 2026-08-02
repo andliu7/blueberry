@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence } from "motion/react";
-import { ChevronsUpDown, ChevronsDownUp, Shuffle, GalleryHorizontalEnd, List, MoveVertical, MessageSquare, ArrowDownToLine, GitBranch, ArrowUpRight } from "lucide-react";
+import { ChevronsUpDown, ChevronsDownUp, Shuffle, GalleryHorizontalEnd, List, MoveVertical, MessageSquare, ArrowDownToLine, GitBranch, ArrowUpRight, Layers } from "lucide-react";
 import { FeedbackWidget } from "@/components/ui/feedback-widget";
 import { ClickHereHint } from "@/components/ui/click-here-hint";
 import { GlassFilter, LiquidGlassLayers } from "@/components/ui/liquid-glass-button";
@@ -11,6 +11,7 @@ import { AnimatedActionCluster } from "@/components/ui/floating-action-button";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { HeroTitle } from "@/components/ui/hero-title";
 import { ScrollTiltedGrid } from "@/components/ui/scroll-tilted-grid";
+import { StackedCards } from "@/components/ui/stacked-cards";
 import { TiltCard } from "@/components/ui/be-ui-tilt-card";
 import { useIsDark } from "@/lib/useIsDark";
 import { QuestionCard, type Status } from "@/components/QuestionCard";
@@ -26,11 +27,12 @@ const STORAGE_KEY = "grignard_lcta_progress_v1";
 const FEEDBACK_KEY = "grignard_lcta_feedback_v1";
 const FEEDBACK_ENDPOINT = import.meta.env.VITE_FEEDBACK_ENDPOINT as string | undefined;
 
-const VIEW_LABEL = { list: "List", carousel: "Carousel", scroll: "Scroll" } as const;
+const VIEW_LABEL = { list: "List", carousel: "Carousel", scroll: "Scroll", stack: "Stack" } as const;
 const VIEW_ICON = {
   list: <List />,
   carousel: <GalleryHorizontalEnd />,
   scroll: <MoveVertical />,
+  stack: <Layers />,
 } as const;
 const diffRank: Record<Status, number> = { red: 0, yellow: 1, none: 2, green: 3 };
 
@@ -89,7 +91,7 @@ export default function App() {
     const t = setTimeout(() => setShowHint(true), 320);
     return () => clearTimeout(t);
   }, [toolsOpen]);
-  const [view, setView] = useState<"list" | "carousel" | "scroll">("list");
+  const [view, setView] = useState<"list" | "carousel" | "scroll" | "stack">("list");
   const carouselMode = view === "carousel";
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [confettiTrigger, setConfettiTrigger] = useState(0);
@@ -164,7 +166,7 @@ export default function App() {
     setShuffled(true);
   }
 
-  const VIEWS = ["list", "carousel", "scroll"] as const;
+  const VIEWS = ["list", "carousel", "scroll", "stack"] as const;
   function cycleView() {
     setView((v) => VIEWS[(VIEWS.indexOf(v) + 1) % VIEWS.length]);
   }
@@ -374,6 +376,7 @@ export default function App() {
                     gradientFrom: "#7c3aed",
                     gradientTo: "#a855f7",
                     active: view !== "list",
+                    particles: true,
                   },
                   {
                     title: "To Bottom",
@@ -382,8 +385,12 @@ export default function App() {
                     gradientFrom: "#b45309",
                     gradientTo: "#d97706",
                   },
-                ] as GradientMenuItem[]).map((item) => (
-                  <GradientMenuButton key={item.title} {...item} />
+                ] as GradientMenuItem[]).map((item, i) => (
+                  // Keyed by position, not title. The view and shuffle buttons
+                  // relabel themselves on click, and a title key made React
+                  // unmount and remount them, throwing away the particle burst
+                  // state before it could render.
+                  <GradientMenuButton key={i} {...item} />
                 )),
                 <ButtonHoldAndRelease
                   key="reset"
@@ -446,6 +453,20 @@ export default function App() {
               />
             ))}
           </ScrollTiltedGrid>
+        ) : view === "stack" ? (
+          <StackedCards>
+            {visibleIdx.map((qi) => (
+              <QuestionCard
+                key={qi}
+                num={qi + 1}
+                item={questions[qi]}
+                status={status[qi + 1] ?? "none"}
+                onRate={(color) => rate(qi + 1, color)}
+                open={openMap[qi + 1] ?? false}
+                onOpenChange={(o) => setOpenMap((m) => ({ ...m, [qi + 1]: o }))}
+              />
+            ))}
+          </StackedCards>
         ) : (
         <div className="space-y-4">
           {visibleIdx.map((qi, pos) => (
