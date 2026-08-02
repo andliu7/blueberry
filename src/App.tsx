@@ -265,8 +265,10 @@ export default function App() {
             <AnimatedThemeToggler />
           </div>
 
-          {/* Row 1 — what you are looking at: progress, then the view filters. */}
-          <div className="flex flex-wrap items-center justify-between gap-2.5">
+          {/* Progress and filters stay anchored left; the tool cluster is pushed
+              to the right edge with ml-auto so opening it eats the gap between
+              them instead of shunting the filters around. */}
+          <div className="flex flex-wrap items-center gap-2.5">
             <div className="flex items-center gap-2.5 text-sm font-medium bg-white dark:bg-stone-900 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-stone-800">
               <span className="flex items-center gap-1 text-slate-600 dark:text-stone-300">
                 <span className="w-2.5 h-2.5 rounded-full bg-red-400" />{counts.red}
@@ -282,7 +284,9 @@ export default function App() {
               </span>
             </div>
 
-            <div className="flex items-center gap-2 flex-wrap">
+            {/* display:contents so SHOW, ORDER and the cluster are direct flex
+                items of the row above, letting ml-auto reach the right edge. */}
+            <div className="contents">
               <div className="flex items-center gap-1 bg-white dark:bg-stone-900 px-1.5 py-1.5 rounded-lg border border-slate-200 dark:border-stone-800">
                 <span className="text-[0.65rem] text-slate-400 dark:text-stone-500 font-semibold font-mono pl-1 pr-0.5">SHOW</span>
                 <button
@@ -313,7 +317,7 @@ export default function App() {
               </div>
             </div>
 
-            <AnimatedActionCluster label="tools">
+            <AnimatedActionCluster label="tools" direction="left" className="ml-auto">
               {[
                 ...([
                   {

@@ -30,6 +30,13 @@ interface AnimatedTextProps {
    */
   initialWeight?: number;
   hoverWeight?: number;
+  /**
+   * Per-character pop. Weight alone is invisible on a static font like a system
+   * serif, which only ships regular and bold — 900 then renders identically to
+   * 700 and the whole effect disappears. Scale and lift always read.
+   */
+  hoverScale?: number;
+  hoverLift?: number;
   animationConfig?: AnimationOptions;
   staggerTiming?: number;
   staggerOrigin?: "first" | "last" | "center" | number;
@@ -43,6 +50,8 @@ const BoldOnHover = ({
   hoverStyle = "'wght' 900, 'slnt' -10",
   initialWeight = 700,
   hoverWeight = 900,
+  hoverScale = 1.22,
+  hoverLift = -4,
   animationConfig = { type: "spring", duration: 0.7 },
   staggerTiming = 0.03,
   staggerOrigin = "first",
@@ -62,17 +71,27 @@ const BoldOnHover = ({
     setIsActive(true);
     animate(
       ".char",
-      { fontVariationSettings: hoverStyle, fontWeight: hoverWeight },
+      {
+        fontVariationSettings: hoverStyle,
+        fontWeight: hoverWeight,
+        scale: hoverScale,
+        y: hoverLift,
+      },
       staggered(animationConfig),
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isActive, animate, hoverStyle, hoverWeight, animationConfig]);
+  }, [isActive, animate, hoverStyle, hoverWeight, hoverScale, hoverLift, animationConfig]);
 
   const handleDeactivate = useCallback(() => {
     setIsActive(false);
     animate(
       ".char",
-      { fontVariationSettings: initialStyle, fontWeight: initialWeight },
+      {
+        fontVariationSettings: initialStyle,
+        fontWeight: initialWeight,
+        scale: 1,
+        y: 0,
+      },
       staggered(animationConfig),
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -95,6 +114,7 @@ const BoldOnHover = ({
         <motion.span
           key={index}
           className="inline-block whitespace-pre char"
+          style={{ transformOrigin: "bottom center" }}
           aria-hidden="true"
         >
           {char}

@@ -13,6 +13,12 @@ export interface AnimatedActionClusterProps {
   /** Start expanded. */
   defaultOpen?: boolean;
   label?: string;
+  /**
+   * Which way the actions unfold. "left" puts the trigger on the right and the
+   * actions emerge to its left, so the motion matches a cluster anchored to the
+   * right edge of a toolbar.
+   */
+  direction?: "right" | "left";
 }
 
 /**
@@ -29,12 +35,15 @@ export function AnimatedActionCluster({
   className,
   defaultOpen = true,
   label = "actions",
+  direction = "right",
 }: AnimatedActionClusterProps) {
   const [active, setActive] = useState(defaultOpen);
+  const openingLeft = direction === "left";
+  // Actions slide out of the trigger, so they enter from whichever side it sits on.
+  const enterX = openingLeft ? 18 : -18;
 
-  return (
-    <div className={cn("flex items-center gap-2", className)}>
-      <motion.button
+  const trigger = (
+    <motion.button
         type="button"
         onClick={() => setActive((a) => !a)}
         aria-expanded={active}
@@ -54,33 +63,51 @@ export function AnimatedActionCluster({
       >
         <Plus size={18} strokeWidth={3} />
       </motion.button>
+  );
 
-      <AnimatePresence initial={false}>
-        {active &&
-          children.map((child, i) => (
-            <motion.div
-              key={i}
-              className="shrink-0"
-              initial={{ opacity: 0, scale: 0.6, x: -18, filter: "blur(4px)" }}
-              animate={{
-                opacity: 1,
-                scale: 1,
-                x: 0,
-                filter: "blur(0px)",
-                transition: { delay: i * 0.045, duration: 0.28 },
-              }}
-              exit={{
-                opacity: 0,
-                scale: 0.6,
-                x: -18,
-                filter: "blur(4px)",
-                transition: { duration: 0.16 },
-              }}
-            >
-              {child}
-            </motion.div>
-          ))}
-      </AnimatePresence>
+  const actions = (
+    <AnimatePresence initial={false}>
+      {active &&
+        children.map((child, i) => (
+          <motion.div
+            key={i}
+            className="shrink-0"
+            initial={{ opacity: 0, scale: 0.6, x: enterX, filter: "blur(4px)" }}
+            animate={{
+              opacity: 1,
+              scale: 1,
+              x: 0,
+              filter: "blur(0px)",
+              // Nearest the trigger leads, so the row unfurls outward.
+              transition: { delay: (openingLeft ? children.length - 1 - i : i) * 0.045, duration: 0.28 },
+            }}
+            exit={{
+              opacity: 0,
+              scale: 0.6,
+              x: enterX,
+              filter: "blur(4px)",
+              transition: { duration: 0.16 },
+            }}
+          >
+            {child}
+          </motion.div>
+        ))}
+    </AnimatePresence>
+  );
+
+  return (
+    <div className={cn("flex items-center gap-2", className)}>
+      {openingLeft ? (
+        <>
+          {actions}
+          {trigger}
+        </>
+      ) : (
+        <>
+          {trigger}
+          {actions}
+        </>
+      )}
     </div>
   );
 }
