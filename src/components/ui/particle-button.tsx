@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useState, useRef } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "@/lib/utils";
 
@@ -27,7 +28,11 @@ export function SuccessParticles({
   const centerX = rect.left + rect.width / 2;
   const centerY = rect.top + rect.height / 2;
 
-  return (
+  // Rendered through a portal on purpose. These are positioned with viewport
+  // coordinates, but any transformed ancestor (the magnetic wrapper, a tilt
+  // card) becomes the containing block for position:fixed children, which would
+  // throw the burst far off screen. document.body has no such ancestor.
+  return createPortal(
     <AnimatePresence>
       {[...Array(count)].map((_, i) => {
         // Fire evenly in every direction. The stock version only threw
@@ -55,7 +60,8 @@ export function SuccessParticles({
           />
         );
       })}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
 }
 

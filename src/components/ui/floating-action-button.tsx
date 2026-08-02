@@ -62,10 +62,10 @@ export function AnimatedActionCluster({
       <motion.button
         ref={triggerRef}
         type="button"
-        // `layout` animates the trigger's own travel: with the cluster anchored
-        // to the right edge, opening it grows the group leftward and carries the
-        // trigger along rather than teleporting it.
-        layout
+        // Deliberately no `layout` prop. The trigger is meant to stay pinned at
+        // the right edge, but opening the toolbar moves it to a different row,
+        // and layout animation tweened it across that gap: it visibly shot left
+        // before settling back at the right.
         onClick={() => {
           burst();
           setActive(!active);

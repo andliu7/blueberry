@@ -322,7 +322,11 @@ export default function App() {
             {/* Open, the cluster gets a line of its own so hovering a button has
                 room to widen. The filter hint shares that line on the left,
                 where the right-anchored toolbar leaves it free. */}
-            <div className={toolsOpen ? "basis-full flex items-center gap-3 mt-1" : "contents"}>
+            {/* Always its own row, open or closed. Switching this back to
+                `contents` on close returned the cluster to row 1 while its
+                buttons were still mounted mid-exit, briefly overfilling the row
+                and wrapping the trigger to the left before it snapped back. */}
+            <div className="basis-full flex items-center gap-3 mt-1">
               {toolsOpen && filter === "needs" && (
                 <p className="text-xs text-indigo-600 dark:text-indigo-300">
                   Showing only questions marked <span className="font-semibold">Review</span>,{" "}
