@@ -75,7 +75,9 @@ export default function App() {
     if (reviewed < questions.length) hasCelebrated.current = false;
   }, [reviewed]);
 
-  useMathJaxTypeset([status, orderedIdx, filter, carouselMode, carouselIndex, tIndex]);
+  // Deliberately excludes tIndex: testimonials contain no math, and a full-document
+  // typeset reflows the page and throws the scroll position to the top.
+  useMathJaxTypeset([status, orderedIdx, filter, carouselMode, carouselIndex]);
 
   function rate(num: number, color: Status) {
     setStatus((s) => ({ ...s, [num]: color }));
@@ -253,20 +255,14 @@ export default function App() {
               imgUrl: avatarDataUri(t.initials, t.color),
               alt: t.name,
             }))}
+            activeIndex={tIndex}
+            onActiveIndexChange={setTIndex}
+            spread={0.55}
           />
-          <div className="max-w-md mx-auto -mt-2 text-center">
+          <div className="max-w-md mx-auto mt-4 text-center">
             <p className="text-slate-700 italic text-sm">"{testimonials[tIndex]?.quote}"</p>
             <p className="font-bold text-slate-900 text-sm mt-2">{testimonials[tIndex]?.name}</p>
             <p className="text-xs text-slate-400 font-mono">{testimonials[tIndex]?.role}</p>
-            <div className="flex justify-center gap-2 mt-3">
-              {testimonials.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setTIndex(i)}
-                  className={cn("w-2 h-2 rounded-full transition", i === tIndex ? "bg-indigo-500" : "bg-slate-300")}
-                />
-              ))}
-            </div>
           </div>
           <p className="text-center text-xs text-slate-400 mt-3">(these are fake testimonials)</p>
         </div>

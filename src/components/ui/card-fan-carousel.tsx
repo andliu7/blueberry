@@ -11,6 +11,11 @@ export interface CardItem {
 
 interface SocialCardsProps {
   cards: CardItem[];
+  /** Index of the highlighted card. Makes the component controlled. */
+  activeIndex?: number;
+  onActiveIndexChange?: (index: number) => void;
+  /** Scales how far the fan spreads. Below 1 keeps it inside a narrow column. */
+  spread?: number;
 }
 
 const MAX_VISIBLE = 7;
@@ -54,22 +59,24 @@ function getHeightMultiplier(width: number) {
 
 function getSlotConfig(totalCards: number, slot: number) {
   if (totalCards >= MAX_VISIBLE) return FAN_POSITIONS[slot];
-  const center = totalCards >> 1;
-  const distance = totalCards > 1 ? (slot - center) / center : 0;
+  // Centre on the midpoint between slots, so an even number of cards fans out
+  // symmetrically instead of leaning left.
+  const center = (totalCards - 1) / 2;
+  const distance = center > 0 ? (slot - center) / center : 0;
   const absDistance = Math.abs(distance);
   return {
     rot: distance * 21,
     scale: 1.0 - 0.2244 * absDistance * absDistance,
     x: distance * 30,
     y: absDistance * absDistance * 7.3,
-    zIndex: 10 - Math.abs(slot - center),
+    zIndex: 10 - Math.round(Math.abs(slot - center)),
   };
 }
 
 const ARROW_CLASSES =
-  "relative flex items-center justify-center rounded-full border-[1.5px] border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 backdrop-blur-[16px] text-black/40 dark:text-white/55 cursor-pointer shrink-0 z-30 outline-none shadow-[0_4px_20px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.4)] hover:border-black/25 dark:hover:border-white/25 hover:text-black/70 dark:hover:text-white/80 active:opacity-70 transition-colors duration-300 before:content-[''] before:absolute before:inset-[3px] before:rounded-full before:border before:border-black/[0.04] dark:before:border-white/[0.04] before:pointer-events-none";
+  "relative flex items-center justify-center rounded-full border-[1.5px] border-black/20 dark:border-white/10 bg-black/5 dark:bg-white/5 backdrop-blur-[16px] text-black/60 dark:text-white/55 cursor-pointer shrink-0 z-30 outline-none shadow-[0_4px_20px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.4)] hover:border-black/40 dark:hover:border-white/25 hover:text-black/80 dark:hover:text-white/80 active:opacity-70 transition-colors duration-300 before:content-[''] before:absolute before:inset-[3px] before:rounded-full before:border before:border-black/[0.04] dark:before:border-white/[0.04] before:pointer-events-none";
 
-export default function SocialCards({ cards }: SocialCardsProps) {
+export default function SocialCards({ cards, activeIndex, onActiveIndexChange, spread = 1 }: SocialCardsProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const isAnimating = useRef(false);
   const hasEntered = useRef(false);
@@ -79,6 +86,13 @@ export default function SocialCards({ cards }: SocialCardsProps) {
   const totalCards = cards.length;
   const needsPagination = totalCards > MAX_VISIBLE;
   const [centerIndex, setCenterIndex] = useState(needsPagination ? HALF : totalCards >> 1);
+  const [uncontrolledActive, setUncontrolledActive] = useState(centerIndex);
+  const activeIdx = activeIndex ?? uncontrolledActive;
+
+  const select = useCallback((index: number) => {
+    setUncontrolledActive(index);
+    onActiveIndexChange?.(index);
+  }, [onActiveIndexChange]);
 
   const getVisibleMap = useCallback((center: number) => {
     const map = new Map<number, number>();
@@ -93,13 +107,22 @@ export default function SocialCards({ cards }: SocialCardsProps) {
   }, [totalCards, needsPagination, cards]);
 
   const cycle = useCallback((direction: "left" | "right") => {
-    if (isAnimating.current || !needsPagination) return;
+    if (isAnimating.current || totalCards < 2) return;
+    const step = (i: number) =>
+      direction === "right" ? (i + 1) % totalCards : (i - 1 + totalCards) % totalCards;
+
+    // When every card already fits on screen there is nothing to page through,
+    // so the arrows just move the highlight along the fan.
+    if (!needsPagination) {
+      select(step(activeIdx));
+      return;
+    }
     isAnimating.current = true;
     directionRef.current = direction;
-    setCenterIndex(prev =>
-      direction === "right" ? (prev + 1) % totalCards : (prev - 1 + totalCards) % totalCards
-    );
-  }, [totalCards, needsPagination]);
+    const next = step(centerIndex);
+    setCenterIndex(next);
+    select(next);
+  }, [totalCards, needsPagination, activeIdx, centerIndex, select]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -112,12 +135,16 @@ export default function SocialCards({ cards }: SocialCardsProps) {
     const previouslyVisible = prevVisible.current;
     const direction = directionRef.current;
     const isFirstMount = !hasEntered.current;
-    const multiplier = getResponsiveMultiplier(window.innerWidth);
-    const hMult = getHeightMultiplier(window.innerWidth);
+    const multiplier = getResponsiveMultiplier(window.innerWidth) * spread;
+    const hMult = getHeightMultiplier(window.innerWidth) * spread;
     const slotCount = needsPagination ? MAX_VISIBLE : totalCards;
     const config = (slot: number) => getSlotConfig(slotCount, slot);
 
     if (isFirstMount) isAnimating.current = true;
+
+    // Assigned once updateHoverLayout exists; runs after cards finish flying in
+    // so the settle animation cannot overwrite their opacity tween.
+    let settle: (() => void) | null = null;
 
     let completedCount = 0;
     const visibleCount = visibleMap.size;
@@ -125,6 +152,7 @@ export default function SocialCards({ cards }: SocialCardsProps) {
       if (++completedCount >= visibleCount) {
         isAnimating.current = false;
         if (isFirstMount) hasEntered.current = true;
+        settle?.();
       }
     };
 
@@ -171,13 +199,20 @@ export default function SocialCards({ cards }: SocialCardsProps) {
     });
     visibleEntries.sort((a, b) => a.slot - b.slot);
 
-    let activeSlot: number | null = null;
+    // Slot the fan settles on when nothing is hovered: the selected card, so the
+    // fan always shows which testimonial is being quoted.
+    const restingSlot = visibleMap.get(activeIdx) ?? null;
+    let activeSlot: number | null = restingSlot;
+    let hovering = false;
     let leaveTimer: ReturnType<typeof setTimeout> | null = null;
-    const centerSlot = visibleEntries.length >> 1;
+    const centerSlot = (visibleEntries.length - 1) / 2;
 
-    const updateHoverLayout = (hoveredSlot: number | null) => {
-      const mult = getResponsiveMultiplier(window.innerWidth);
-      const hM = getHeightMultiplier(window.innerWidth);
+    // `push` spreads the neighbouring cards away from the focused one. That reads
+    // well as a transient hover, but leaves gaps if held, so the resting
+    // highlight passes push=false and only lifts the selected card.
+    const updateHoverLayout = (hoveredSlot: number | null, push = true) => {
+      const mult = getResponsiveMultiplier(window.innerWidth) * spread;
+      const hM = getHeightMultiplier(window.innerWidth) * spread;
 
       visibleEntries.forEach(({ el, slot }) => {
         const base = config(slot);
@@ -194,7 +229,7 @@ export default function SocialCards({ cards }: SocialCardsProps) {
           if (slot === hoveredSlot) {
             targetY -= 2.5 * hM;
             targetScale *= 1.08;
-          } else {
+          } else if (push) {
             const normalized = centerSlot > 0 ? (slot - centerSlot) / centerSlot : 0;
             const pushStrength = 8 * (1 - Math.abs(normalized)) * (1 + 0.2 * Math.max(0, 3 - distance));
 
@@ -221,11 +256,23 @@ export default function SocialCards({ cards }: SocialCardsProps) {
       });
     };
 
+    // Cards flying in or out own their opacity tween until they land, so defer
+    // the resting layout to onCardDone in that case; otherwise apply it now.
+    const cardsMoving =
+      isFirstMount ||
+      cardElements.some((_, i) => visibleMap.has(i) !== previouslyVisible.has(i));
+    if (cardsMoving) settle = () => updateHoverLayout(restingSlot, false);
+    else updateHoverLayout(restingSlot, false);
+
     const enterHandlers = visibleEntries.map(({ el, slot }) => {
       const handler = () => {
         if (isAnimating.current) return;
         if (leaveTimer) { clearTimeout(leaveTimer); leaveTimer = null; }
-        if (activeSlot !== slot) { activeSlot = slot; updateHoverLayout(slot); }
+        if (activeSlot !== slot || !hovering) {
+          activeSlot = slot;
+          hovering = true;
+          updateHoverLayout(slot);
+        }
       };
       el.addEventListener("mouseenter", handler);
       return { el, handler };
@@ -234,11 +281,15 @@ export default function SocialCards({ cards }: SocialCardsProps) {
     const onMouseLeave = () => {
       if (isAnimating.current) return;
       if (leaveTimer) clearTimeout(leaveTimer);
-      leaveTimer = setTimeout(() => { activeSlot = null; updateHoverLayout(null); }, 50);
+      leaveTimer = setTimeout(() => {
+        hovering = false;
+        activeSlot = restingSlot;
+        updateHoverLayout(restingSlot, false);
+      }, 50);
     };
     container.addEventListener("mouseleave", onMouseLeave);
 
-    const onResize = () => { if (!isAnimating.current) updateHoverLayout(activeSlot); };
+    const onResize = () => { if (!isAnimating.current) updateHoverLayout(activeSlot, hovering); };
     window.addEventListener("resize", onResize);
 
     return () => {
@@ -247,7 +298,7 @@ export default function SocialCards({ cards }: SocialCardsProps) {
       window.removeEventListener("resize", onResize);
       if (leaveTimer) clearTimeout(leaveTimer);
     };
-  }, [centerIndex, totalCards, getVisibleMap, needsPagination]);
+  }, [centerIndex, totalCards, getVisibleMap, needsPagination, activeIdx, spread]);
 
   if (!totalCards) return null;
 
@@ -258,7 +309,7 @@ export default function SocialCards({ cards }: SocialCardsProps) {
   );
 
   return (
-    <section className="flex flex-col items-center w-full py-4 lg:py-8 px-4 md:px-8 relative z-20">
+    <section className="flex flex-col items-center w-full py-4 lg:py-8 px-4 md:px-8 relative z-0">
       <div className="flex items-center justify-center w-full max-w-[90rem]">
         <div ref={containerRef} className="fan-layout flex relative justify-center items-center w-full max-w-[80rem]">
           {cards.map((card, index) => {
@@ -268,22 +319,44 @@ export default function SocialCards({ cards }: SocialCardsProps) {
               </div>
             );
             return card.linkUrl ? (
-              <a key={index} href={card.linkUrl} target={card.linkUrl.startsWith("http") ? "_blank" : "_self"} rel="noopener noreferrer" className="fan-card block cursor-pointer">{image}</a>
+              <a key={index} href={card.linkUrl} target={card.linkUrl.startsWith("http") ? "_blank" : "_self"} rel="noopener noreferrer" className="fan-card block cursor-pointer" onClick={() => select(index)}>{image}</a>
             ) : (
-              <div key={index} className="fan-card">{image}</div>
+              <div
+                key={index}
+                className="fan-card cursor-pointer"
+                role="button"
+                tabIndex={0}
+                aria-label={card.alt || `Card ${index + 1}`}
+                aria-current={index === activeIdx}
+                onClick={() => select(index)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    select(index);
+                  }
+                }}
+              >
+                {image}
+              </div>
             );
           })}
         </div>
       </div>
 
-      {needsPagination && (
+      {totalCards > 1 && (
         <div className="flex items-center justify-center gap-4 mt-4 md:mt-6 z-30">
           <button className={`${ARROW_CLASSES} w-10 h-10 md:w-12 md:h-12`} onClick={() => cycle("left")} aria-label="Previous">
             {chevron("left")}
           </button>
           <div className="flex items-center gap-2">
             {cards.map((_, i) => (
-              <span key={i} className={`w-2 h-2 rounded-full transition-all duration-300 ${i === centerIndex ? "bg-black/70 dark:bg-white/80 scale-[1.3]" : "bg-black/15 dark:bg-white/15"}`} />
+              <button
+                key={i}
+                onClick={() => select(i)}
+                aria-label={`Go to card ${i + 1}`}
+                aria-current={i === activeIdx}
+                className={`w-2 h-2 rounded-full transition-all duration-300 cursor-pointer ${i === activeIdx ? "bg-black/70 dark:bg-white/80 scale-[1.3]" : "bg-black/30 dark:bg-white/15 hover:bg-black/50"}`}
+              />
             ))}
           </div>
           <button className={`${ARROW_CLASSES} w-10 h-10 md:w-12 md:h-12`} onClick={() => cycle("right")} aria-label="Next">
