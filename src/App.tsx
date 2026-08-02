@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence } from "motion/react";
 import { ChevronsUpDown, ChevronsDownUp, Shuffle, GalleryHorizontalEnd, List, MoveVertical, MessageSquare, ArrowDownToLine, GitBranch, ArrowUpRight } from "lucide-react";
 import { FeedbackWidget } from "@/components/ui/feedback-widget";
-import { GlassFilter, LiquidGlassLayers } from "@/components/ui/liquid-glass-button";
+import { ClickHereHint } from "@/components/ui/click-here-hint";
 import { questions } from "@/data/questions";
 import { testimonials, testimonialArt } from "@/data/testimonials";
 import { GradientMenuButton, type GradientMenuItem } from "@/components/ui/gradient-menu";
@@ -329,12 +329,15 @@ export default function App() {
                   <span className="font-semibold">Almost</span>, or not yet rated.
                 </p>
               )}
+              {/* Collapsed, a hint points at the trigger so the toolbar is
+                  findable. It takes the ml-auto so the pair sits together. */}
+              {!toolsOpen && <ClickHereHint className="ml-auto" />}
               {/* Trigger last so it stays pinned at the right edge; the actions
                   unfold to its left. */}
               <AnimatedActionCluster
                 label="tools"
                 direction="left"
-                className="ml-auto"
+                className={toolsOpen ? "ml-auto" : ""}
                 open={toolsOpen}
                 onOpenChange={setToolsOpen}
               >
@@ -543,17 +546,11 @@ export default function App() {
       <button
         type="button"
         onClick={() => setFeedbackOpen(true)}
-        className="fixed bottom-5 right-36 z-40 flex items-center gap-2 rounded-full px-4 py-2 font-bold text-slate-700 dark:text-stone-200 shadow-lg cursor-pointer relative transition-transform hover:scale-105"
+        className="fixed bottom-5 right-36 z-40 flex items-center gap-2 rounded-full bg-white dark:bg-stone-900 border border-slate-200 dark:border-stone-800 px-4 py-2 font-bold text-slate-700 dark:text-stone-200 shadow-lg cursor-pointer transition-colors hover:bg-slate-50 dark:hover:bg-stone-800"
       >
-        <LiquidGlassLayers />
-        <span className="relative z-10 flex items-center gap-2">
-          <MessageSquare className="w-4 h-4" />
-          Feedback
-        </span>
+        <MessageSquare className="w-4 h-4" />
+        Feedback
       </button>
-
-      {/* One instance supplies the filter every glass surface references. */}
-      <GlassFilter />
 
       <AnimatePresence>
         {feedbackOpen && (

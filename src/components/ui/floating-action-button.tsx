@@ -57,7 +57,7 @@ export function AnimatedActionCluster({
   const enterX = openingLeft ? 18 : -18;
 
   const trigger = (
-    <MagneticButton distance={0.35} className="shrink-0">
+    <MagneticButton distance={0.5} className="shrink-0">
       {bursting && <SuccessParticles anchorRef={triggerRef} />}
       <motion.button
         ref={triggerRef}

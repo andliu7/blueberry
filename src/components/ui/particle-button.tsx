@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
  */
 export function SuccessParticles({
   anchorRef,
-  count = 8,
+  count = 14,
   className,
 }: {
   anchorRef: React.RefObject<HTMLElement | null>;
@@ -29,24 +29,32 @@ export function SuccessParticles({
 
   return (
     <AnimatePresence>
-      {[...Array(count)].map((_, i) => (
-        <motion.div
-          key={i}
-          className={cn(
-            "pointer-events-none fixed z-[60] w-1 h-1 rounded-full bg-indigo-500 dark:bg-white",
-            className,
-          )}
-          style={{ left: centerX, top: centerY }}
-          initial={{ scale: 0, x: 0, y: 0, opacity: 1 }}
-          animate={{
-            scale: [0, 1, 0],
-            x: [0, (i % 2 ? 1 : -1) * (Math.random() * 50 + 20)],
-            y: [0, -Math.random() * 50 - 20],
-            opacity: [1, 1, 0],
-          }}
-          transition={{ duration: 0.6, delay: i * 0.05, ease: "easeOut" }}
-        />
-      ))}
+      {[...Array(count)].map((_, i) => {
+        // Fire evenly in every direction. The stock version only threw
+        // particles upward and alternated left/right, which on a small round
+        // button read as a couple of stray specks rather than a burst.
+        const angle = (i / count) * Math.PI * 2 + Math.random() * 0.4;
+        const radius = 34 + Math.random() * 30;
+        return (
+          <motion.div
+            key={i}
+            className={cn(
+              "pointer-events-none fixed z-[60] w-2 h-2 rounded-full",
+              "bg-indigo-500 dark:bg-amber-300 shadow-[0_0_8px_currentColor]",
+              className,
+            )}
+            style={{ left: centerX - 4, top: centerY - 4 }}
+            initial={{ scale: 0, x: 0, y: 0, opacity: 1 }}
+            animate={{
+              scale: [0, 1.15, 0],
+              x: [0, Math.cos(angle) * radius],
+              y: [0, Math.sin(angle) * radius],
+              opacity: [1, 1, 0],
+            }}
+            transition={{ duration: 0.75, delay: i * 0.012, ease: "easeOut" }}
+          />
+        );
+      })}
     </AnimatePresence>
   );
 }

@@ -2,7 +2,6 @@
 
 import { useId, useRef, useState } from "react";
 import { motion } from "motion/react";
-import { LiquidGlassLayers } from "@/components/ui/liquid-glass-button";
 
 /**
  * Animated Theme Toggler — sun↔moon morph.
@@ -147,9 +146,7 @@ export function AnimatedThemeToggler({
         aria-pressed={isDark}
         title={isDark ? "Switch to light theme" : "Switch to dark theme"}
       >
-        <LiquidGlassLayers />
         <motion.svg
-          className="relative z-10"
           width="20"
           height="20"
           viewBox="0 0 24 24"

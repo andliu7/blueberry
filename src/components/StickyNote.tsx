@@ -1,6 +1,5 @@
 import { motion } from "motion/react";
 import { useState } from "react";
-import { LiquidGlassLayers } from "@/components/ui/liquid-glass-button";
 
 export function StickyNote({
   value,
@@ -15,10 +14,9 @@ export function StickyNote({
     <>
       <button
         onClick={() => setOpen((o) => !o)}
-        className="fixed bottom-5 right-5 z-40 flex items-center gap-2 rounded-full bg-yellow-400/70 px-4 py-2 font-bold text-yellow-900 shadow-lg transition hover:bg-yellow-300/80 dark:text-yellow-50 relative"
+        className="fixed bottom-5 right-5 z-40 flex items-center gap-2 rounded-full bg-yellow-400 px-4 py-2 font-bold text-yellow-900 shadow-lg transition hover:bg-yellow-300"
       >
-        <LiquidGlassLayers />
-        <span className="relative z-10">📝 Notes</span>
+        📝 Notes
       </button>
 
       {open && (
