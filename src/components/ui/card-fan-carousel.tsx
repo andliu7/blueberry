@@ -19,6 +19,11 @@ interface SocialCardsProps {
   onActiveIndexChange?: (index: number) => void;
   /** Scales how far the fan spreads. Below 1 keeps it inside a narrow column. */
   spread?: number;
+  /**
+   * Milliseconds between automatic advances. Pauses while hovered and switches
+   * off for good once the reader picks a card, a dot, or an arrow.
+   */
+  autoPlayInterval?: number;
 }
 
 const MAX_VISIBLE = 7;
@@ -79,7 +84,13 @@ function getSlotConfig(totalCards: number, slot: number) {
 const ARROW_CLASSES =
   "relative flex items-center justify-center rounded-full border-[1.5px] border-black/20 dark:border-white/10 bg-black/5 dark:bg-white/5 backdrop-blur-[16px] text-black/60 dark:text-white/55 cursor-pointer shrink-0 z-30 outline-none shadow-[0_4px_20px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.4)] hover:border-black/40 dark:hover:border-white/25 hover:text-black/80 dark:hover:text-white/80 active:opacity-70 transition-colors duration-300 before:content-[''] before:absolute before:inset-[3px] before:rounded-full before:border before:border-black/[0.04] dark:before:border-white/[0.04] before:pointer-events-none";
 
-export default function SocialCards({ cards, activeIndex, onActiveIndexChange, spread = 1 }: SocialCardsProps) {
+export default function SocialCards({
+  cards,
+  activeIndex,
+  onActiveIndexChange,
+  spread = 1,
+  autoPlayInterval = 0,
+}: SocialCardsProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const isAnimating = useRef(false);
   const hasEntered = useRef(false);
@@ -91,41 +102,58 @@ export default function SocialCards({ cards, activeIndex, onActiveIndexChange, s
   const [centerIndex, setCenterIndex] = useState(needsPagination ? HALF : totalCards >> 1);
   const [uncontrolledActive, setUncontrolledActive] = useState(centerIndex);
   const activeIdx = activeIndex ?? uncontrolledActive;
+  // Autoplay runs until the reader takes over, then stays off for the session.
+  const [autoStopped, setAutoStopped] = useState(false);
+  const [hovering, setHovering] = useState(false);
 
-  const select = useCallback((index: number) => {
+  const applySelect = useCallback((index: number, byUser: boolean) => {
+    if (byUser) setAutoStopped(true);
     setUncontrolledActive(index);
     onActiveIndexChange?.(index);
   }, [onActiveIndexChange]);
 
+  const select = useCallback((index: number) => applySelect(index, true), [applySelect]);
+
+  // Keyed off totalCards rather than the `cards` array: callers routinely build
+  // that array inline, so depending on it re-ran the animation effect on every
+  // parent render and could strand `isAnimating` mid-flight.
   const getVisibleMap = useCallback((center: number) => {
     const map = new Map<number, number>();
     if (!needsPagination) {
-      cards.forEach((_, i) => map.set(i, i));
+      for (let i = 0; i < totalCards; i++) map.set(i, i);
       return map;
     }
     for (let slot = 0; slot < MAX_VISIBLE; slot++) {
       map.set(((center + slot - HALF) % totalCards + totalCards) % totalCards, slot);
     }
     return map;
-  }, [totalCards, needsPagination, cards]);
+  }, [totalCards, needsPagination]);
 
-  const cycle = useCallback((direction: "left" | "right") => {
-    if (isAnimating.current || totalCards < 2) return;
+  const cycle = useCallback((direction: "left" | "right", byUser = true) => {
+    if (totalCards < 2) return;
     const step = (i: number) =>
       direction === "right" ? (i + 1) % totalCards : (i - 1 + totalCards) % totalCards;
 
     // When every card already fits on screen there is nothing to page through,
-    // so the arrows just move the highlight along the fan.
+    // so the arrows just move the highlight along the fan. No cards enter or
+    // leave, so this path must not be gated on the paging animation lock.
     if (!needsPagination) {
-      select(step(activeIdx));
+      applySelect(step(activeIdx), byUser);
       return;
     }
+    if (isAnimating.current) return;
     isAnimating.current = true;
     directionRef.current = direction;
     const next = step(centerIndex);
     setCenterIndex(next);
-    select(next);
-  }, [totalCards, needsPagination, activeIdx, centerIndex, select]);
+    applySelect(next, byUser);
+  }, [totalCards, needsPagination, activeIdx, centerIndex, applySelect]);
+
+  useEffect(() => {
+    if (!autoPlayInterval || autoStopped || hovering || totalCards < 2) return;
+    const id = setInterval(() => cycle("right", false), autoPlayInterval);
+    return () => clearInterval(id);
+  }, [autoPlayInterval, autoStopped, hovering, totalCards, cycle]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -312,7 +340,11 @@ export default function SocialCards({ cards, activeIndex, onActiveIndexChange, s
   );
 
   return (
-    <section className="flex flex-col items-center w-full py-4 lg:py-8 px-4 md:px-8 relative z-0">
+    <section
+      className="flex flex-col items-center w-full py-4 lg:py-8 px-4 md:px-8 relative z-0"
+      onMouseEnter={() => setHovering(true)}
+      onMouseLeave={() => setHovering(false)}
+    >
       <div className="flex items-center justify-center w-full max-w-[90rem]">
         <div ref={containerRef} className="fan-layout flex relative justify-center items-center w-full max-w-[80rem]">
           {cards.map((card, index) => {

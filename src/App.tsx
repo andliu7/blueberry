@@ -5,7 +5,7 @@ import { testimonials, testimonialArt } from "@/data/testimonials";
 import GradientMenu from "@/components/ui/gradient-menu";
 import { QuestionCard, type Status } from "@/components/QuestionCard";
 import { PressDepth } from "@/components/ui/press-depth";
-import { HoldToConfirm } from "@/components/ui/hold-to-confirm";
+import { ButtonHoldAndRelease } from "@/components/ui/hold-and-release-button";
 import SocialCards from "@/components/ui/card-fan-carousel";
 import { StickyNote } from "@/components/StickyNote";
 import { Confetti } from "@/components/Confetti";
@@ -16,9 +16,25 @@ const STORAGE_KEY = "grignard_lcta_progress_v1";
 const diffRank: Record<Status, number> = { red: 0, yellow: 1, none: 2, green: 3 };
 
 
+function loadSaved(): { status?: Record<number, Status>; note?: string } {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const data = JSON.parse(raw);
+      if (data && typeof data === "object") return data;
+    }
+  } catch {
+    /* ignore */
+  }
+  return {};
+}
+
 export default function App() {
-  const [status, setStatus] = useState<Record<number, Status>>({});
-  const [note, setNote] = useState("");
+  const [status, setStatus] = useState<Record<number, Status>>(() => loadSaved().status ?? {});
+  const [note, setNote] = useState(() => {
+    const saved = loadSaved().note;
+    return typeof saved === "string" ? saved : "";
+  });
   const [filter, setFilter] = useState<"all" | "needs">("all");
   const [order, setOrder] = useState<"number" | "hard-first" | "easy-first">("number");
   const [orderedIdx, setOrderedIdx] = useState<number[]>(questions.map((_, i) => i));
@@ -30,21 +46,10 @@ export default function App() {
   // Question number -> expanded. Absent means collapsed.
   const [openMap, setOpenMap] = useState<Record<number, boolean>>({});
 
-  // Load saved progress once on mount
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const data = JSON.parse(raw);
-        if (data.status) setStatus(data.status);
-        if (typeof data.note === "string") setNote(data.note);
-      }
-    } catch {
-      /* ignore */
-    }
-  }, []);
-
-  // Save progress whenever it changes
+  // Save progress whenever it changes. Restoring happens in the useState
+  // initialisers above rather than in an effect: an effect-based load races this
+  // one, which also runs on mount and would write the empty initial state over
+  // the saved progress before the restore landed.
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({ status, note }));
@@ -130,6 +135,7 @@ export default function App() {
   function doReset() {
     setStatus({});
     setNote("");
+    setOpenMap({});
     hasCelebrated.current = false;
     try {
       localStorage.removeItem(STORAGE_KEY);
@@ -139,6 +145,18 @@ export default function App() {
   }
 
   const active = testimonials[tIndex];
+  // Stable identity: a fresh array here would restart the fan's entry animation
+  // on every render of this component.
+  const testimonialCards = useMemo(
+    () =>
+      testimonials.map((t) => ({
+        imgUrl: testimonialArt(t),
+        alt: `${t.name} — ${t.role}`,
+        title: t.name,
+        subtitle: t.role,
+      })),
+    [],
+  );
   const carouselTotal = visibleIdx.length;
   const safeCarouselIndex = carouselTotal ? ((carouselIndex % carouselTotal) + carouselTotal) % carouselTotal : 0;
 
@@ -236,14 +254,7 @@ export default function App() {
               ]}
             />
 
-            <HoldToConfirm
-              onConfirm={doReset}
-              confirmLabel="Reset!"
-              duration={1200}
-              className="!h-9 !px-3 !text-sm !font-semibold !bg-red-50 !text-red-700 !border-red-300"
-            >
-              Hold to Reset
-            </HoldToConfirm>
+            <ButtonHoldAndRelease onConfirm={doReset} holdDuration={1200} />
           </div>
 
           {filter === "needs" && (
@@ -303,15 +314,11 @@ export default function App() {
         <div className="mt-12">
           <h2 className="text-center text-lg font-bold text-slate-800 mb-4">What Orgo Students Are Saying</h2>
           <SocialCards
-            cards={testimonials.map((t) => ({
-              imgUrl: testimonialArt(t),
-              alt: `${t.name} — ${t.role}`,
-              title: t.name,
-              subtitle: t.role,
-            }))}
+            cards={testimonialCards}
             activeIndex={tIndex}
             onActiveIndexChange={setTIndex}
             spread={0.65}
+            autoPlayInterval={4500}
           />
 
           {active && (
