@@ -82,6 +82,24 @@
       <p class="text-indigo-700 text-sm mt-1">Use "Needs Review" to double-check anything marked red or yellow before the LCTA.</p>
     </div>
 
+    <div class="mt-12">
+      <h2 class="text-center text-lg font-bold text-slate-800 mb-4">What Orgo Students Are Saying</h2>
+      <div class="relative max-w-md mx-auto bg-white border border-slate-200 rounded-lg shadow-sm p-6">
+        <p id="testimonial-quote" class="text-slate-700 italic leading-relaxed mb-5 min-h-[4.5rem]"></p>
+        <div class="flex items-center justify-between">
+          <div>
+            <p id="testimonial-name" class="font-bold text-slate-900 text-sm"></p>
+            <p id="testimonial-role" class="text-xs text-slate-400 mono"></p>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="prevTestimonial()" aria-label="Previous testimonial" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 font-bold transition">&lsaquo;</button>
+            <button onclick="nextTestimonial()" aria-label="Next testimonial" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 font-bold transition">&rsaquo;</button>
+          </div>
+        </div>
+        <div id="testimonial-dots" class="flex justify-center gap-1.5 mt-4"></div>
+      </div>
+    </div>
+
     <footer class="mt-12 text-center text-gray-500 text-sm">
       <p>Ready for the LCTA! Remember: Anhydrous = Dry Reaction | Regular = Wet Workup.</p>
     </footer>
@@ -375,11 +393,42 @@ const note = document.getElementById('sticky-note');
 const handle = document.getElementById('sticky-note-handle');
 let dragging = false, offsetX = 0, offsetY = 0;
 
-function toggleNote() {
-  note.classList.toggle('hidden');
+/* --- Testimonial carousel (just for laughs) --- */
+const testimonials = [
+  { quote: "This saved my Orgo 242 grade. I walked into lab knowing more about $CaCl_2$ than my own blood type.", name: "Anonymous Junior", role: "somehow still pre-med" },
+  { quote: "Used the Needs Review filter the morning of the LCTA and actually passed. 10/10 would deprotonate again.", name: "A Very Tired TA", role: "survived 3 semesters of this lab" },
+  { quote: "Read every card, aced the quiz, still can't smell diethyl ether without flashbacks to week 2.", name: "Future Dentist", role: "Grignard survivor" }
+];
+let tIndex = 0;
+let testimonialTimer = null;
+
+function renderTestimonial() {
+  document.getElementById('testimonial-quote').innerHTML = `"${testimonials[tIndex].quote}"`;
+  document.getElementById('testimonial-name').textContent = testimonials[tIndex].name;
+  document.getElementById('testimonial-role').textContent = testimonials[tIndex].role;
+  document.querySelectorAll('.t-dot').forEach((d, i) => {
+    d.classList.toggle('bg-indigo-500', i === tIndex);
+    d.classList.toggle('bg-slate-300', i !== tIndex);
+  });
+  if (window.MathJax && window.MathJax.typesetPromise) MathJax.typesetPromise();
 }
-document.getElementById('sticky-note-text').addEventListener('input', saveProgress);
-loadProgress();
+function nextTestimonial() { tIndex = (tIndex + 1) % testimonials.length; renderTestimonial(); restartTestimonialTimer(); }
+function prevTestimonial() { tIndex = (tIndex - 1 + testimonials.length) % testimonials.length; renderTestimonial(); restartTestimonialTimer(); }
+function restartTestimonialTimer() {
+  if (testimonialTimer) clearInterval(testimonialTimer);
+  testimonialTimer = setInterval(() => { tIndex = (tIndex + 1) % testimonials.length; renderTestimonial(); }, 5000);
+}
+
+const dotsWrap = document.getElementById('testimonial-dots');
+testimonials.forEach((_, i) => {
+  const dot = document.createElement('button');
+  dot.className = `t-dot w-2 h-2 rounded-full transition ${i === 0 ? 'bg-indigo-500' : 'bg-slate-300'}`;
+  dot.setAttribute('aria-label', `Go to testimonial ${i + 1}`);
+  dot.onclick = () => { tIndex = i; renderTestimonial(); restartTestimonialTimer(); };
+  dotsWrap.appendChild(dot);
+});
+renderTestimonial();
+restartTestimonialTimer();
 
 handle.addEventListener('mousedown', (e) => {
   dragging = true;
