@@ -24,6 +24,12 @@ export interface AnimatedActionClusterProps {
    * right edge of a toolbar.
    */
   direction?: "right" | "left";
+  /**
+   * Float the actions in a panel below the trigger rather than laying them out
+   * inline. Keeps the container's height fixed, so a header does not grow and
+   * shove the page down when the toolbar opens.
+   */
+  overlay?: boolean;
 }
 
 /**
@@ -43,6 +49,7 @@ export function AnimatedActionCluster({
   onOpenChange,
   label = "actions",
   direction = "right",
+  overlay = false,
 }: AnimatedActionClusterProps) {
   const [uncontrolled, setUncontrolled] = useState(defaultOpen);
   const active = open ?? uncontrolled;
@@ -142,6 +149,20 @@ export function AnimatedActionCluster({
         ))}
     </AnimatePresence>
   );
+
+  if (overlay) {
+    // The trigger alone occupies layout. The actions hang beneath it in an
+    // absolutely positioned strip, so the header keeps its height and the panel
+    // simply floats over whatever is below.
+    return (
+      <div className={cn("relative flex items-center", className)}>
+        {trigger}
+        <div className="absolute top-full right-0 z-50 mt-2 flex flex-nowrap items-center gap-2">
+          {actions}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div

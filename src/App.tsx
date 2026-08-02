@@ -3,6 +3,7 @@ import { AnimatePresence } from "motion/react";
 import { ChevronsUpDown, ChevronsDownUp, Shuffle, GalleryHorizontalEnd, List, MoveVertical, MessageSquare, ArrowDownToLine, GitBranch, ArrowUpRight } from "lucide-react";
 import { FeedbackWidget } from "@/components/ui/feedback-widget";
 import { ClickHereHint } from "@/components/ui/click-here-hint";
+import { GlassFilter, LiquidGlassLayers } from "@/components/ui/liquid-glass-button";
 import { questions } from "@/data/questions";
 import { testimonials, testimonialArt } from "@/data/testimonials";
 import { GradientMenuButton, type GradientMenuItem } from "@/components/ui/gradient-menu";
@@ -77,6 +78,17 @@ export default function App() {
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [shuffled, setShuffled] = useState(false);
   const [toolsOpen, setToolsOpen] = useState(false);
+  // Delayed so it appears where it belongs rather than sliding into place while
+  // the toolbar is still collapsing.
+  const [showHint, setShowHint] = useState(true);
+  useEffect(() => {
+    if (toolsOpen) {
+      setShowHint(false);
+      return;
+    }
+    const t = setTimeout(() => setShowHint(true), 320);
+    return () => clearTimeout(t);
+  }, [toolsOpen]);
   const [view, setView] = useState<"list" | "carousel" | "scroll">("list");
   const carouselMode = view === "carousel";
   const [carouselIndex, setCarouselIndex] = useState(0);
@@ -322,26 +334,17 @@ export default function App() {
             {/* Open, the cluster gets a line of its own so hovering a button has
                 room to widen. The filter hint shares that line on the left,
                 where the right-anchored toolbar leaves it free. */}
-            {/* Always its own row, open or closed. Switching this back to
-                `contents` on close returned the cluster to row 1 while its
-                buttons were still mounted mid-exit, briefly overfilling the row
-                and wrapping the trigger to the left before it snapped back. */}
-            <div className="basis-full flex items-center gap-3 mt-1">
-              {toolsOpen && filter === "needs" && (
-                <p className="text-xs text-indigo-600 dark:text-indigo-300">
-                  Showing only questions marked <span className="font-semibold">Review</span>,{" "}
-                  <span className="font-semibold">Almost</span>, or not yet rated.
-                </p>
-              )}
-              {/* Collapsed, a hint points at the trigger so the toolbar is
-                  findable. It takes the ml-auto so the pair sits together. */}
-              {!toolsOpen && <ClickHereHint className="ml-auto" />}
-              {/* Trigger last so it stays pinned at the right edge; the actions
-                  unfold to its left. */}
+            {/* Hint waits for the close animation to finish. Mounting it while
+                the buttons were still exiting made it appear mid-row and then
+                slide right as they unmounted. */}
+            {showHint && <ClickHereHint className="ml-auto" />}
+            {/* Trigger stays inline in the header; its actions drop into a
+                floating panel, so opening never changes the header's height. */}
+            <div className={showHint ? "" : "ml-auto"}>
               <AnimatedActionCluster
                 label="tools"
                 direction="left"
-                className={toolsOpen ? "ml-auto" : ""}
+                overlay
                 open={toolsOpen}
                 onOpenChange={setToolsOpen}
               >
@@ -401,8 +404,7 @@ export default function App() {
             </div>
           </div>
 
-          {/* Closed, the hint drops below the row as usual. */}
-          {!toolsOpen && filter === "needs" && (
+          {filter === "needs" && (
             <p className="text-xs text-indigo-600 dark:text-indigo-300 mt-2">
               Showing only questions marked <span className="font-semibold">Review</span>,{" "}
               <span className="font-semibold">Almost</span>, or not yet rated.
@@ -490,9 +492,12 @@ export default function App() {
           {active && (
             <QuoteSurface>
             <figure className="bg-white dark:bg-stone-900 border border-slate-200 dark:border-stone-800 rounded-2xl shadow-sm px-6 py-5 relative">
+              {/* Sits inside the box on purpose: the tilt wrapper clips with
+                  overflow-hidden, so a glyph hanging above the top edge simply
+                  disappeared. */}
               <span
                 aria-hidden
-                className="absolute left-5 -top-3 text-5xl leading-none font-serif text-indigo-200 dark:text-indigo-400/40 select-none"
+                className="absolute left-4 top-1 text-5xl leading-none font-serif text-indigo-200 dark:text-indigo-400/40 select-none"
               >
                 &ldquo;
               </span>
@@ -521,9 +526,9 @@ export default function App() {
           <p>Ready for the LCTA! Remember: Anhydrous = Dry Reaction | Regular = Wet Workup.</p>
 
           <p className="playful-face mt-6 mx-auto max-w-xl text-lg leading-relaxed text-slate-600 dark:text-stone-300">
-            Thank you for visiting [Website Name]. I appreciate your time and interest in
-            my work. If you have any questions, please feel free to reach out through my
-            feedback form.
+            Thank you for visiting [Website Name]! I appreciate your time and interest in
+            my work! If you have any questions, please feel free to reach out through my
+            feedback form on the right <span aria-hidden>&rarr;</span>!
           </p>
 
           <a
@@ -550,11 +555,20 @@ export default function App() {
       <button
         type="button"
         onClick={() => setFeedbackOpen(true)}
-        className="fixed bottom-5 right-36 z-40 flex items-center gap-2 rounded-full bg-white dark:bg-stone-900 border border-slate-200 dark:border-stone-800 px-4 py-2 font-bold text-slate-700 dark:text-stone-200 shadow-lg cursor-pointer transition-colors hover:bg-slate-50 dark:hover:bg-stone-800"
+        // No `relative` here: `fixed` already establishes the containing block
+        // for the glass layers, and setting both lets the cascade decide which
+        // position wins, which previously threw this button off screen.
+        className="fixed bottom-5 right-36 z-40 flex items-center gap-2 rounded-full bg-white/60 dark:bg-stone-900/50 px-4 py-2 font-bold text-slate-700 dark:text-stone-200 shadow-lg cursor-pointer transition-transform hover:scale-105 overflow-hidden"
       >
-        <MessageSquare className="w-4 h-4" />
-        Feedback
+        <LiquidGlassLayers />
+        <span className="relative z-10 flex items-center gap-2">
+          <MessageSquare className="w-4 h-4" />
+          Feedback
+        </span>
       </button>
+
+      {/* One instance supplies the filter the glass layers reference. */}
+      <GlassFilter />
 
       <AnimatePresence>
         {feedbackOpen && (
