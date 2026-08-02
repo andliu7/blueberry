@@ -43,6 +43,8 @@ export type ScrollTiltItemProps = {
   maxBlur?: number;
   /** Opacity at entry and exit. */
   minOpacity?: number;
+  /** How far the tile recedes at entry and exit, in px. */
+  depth?: number;
   className?: string;
 };
 
@@ -53,6 +55,7 @@ export function ScrollTiltItem({
   maxTilt = 35,
   maxBlur = 5,
   minOpacity = 0.3,
+  depth = 180,
   className,
 }: ScrollTiltItemProps) {
   const ref = useRef<HTMLDivElement>(null);
@@ -68,11 +71,14 @@ export function ScrollTiltItem({
   const opacity = useTransform(p, [0, 0.5, 1], [minOpacity, 1, minOpacity], { ease: focusEase });
 
   const ty = useTransform(p, [0, 0.5, 1], ["14%", "0%", "-14%"], { ease: focusEase });
-  const tz = useTransform(p, [0, 0.5, 1], [180, 0, 180], { ease: focusEase });
+  // Negative: the tile recedes at the extremes and comes forward into focus.
+  // The original pushed +300px toward the viewer, which against a 900px
+  // perspective magnifies a tile by ~1.25x — fine for a narrow image column,
+  // but on a full-width card it overflows the container and gets sliced off at
+  // the left and right edges.
+  const tz = useTransform(p, [0, 0.5, 1], [-depth, 0, -depth], { ease: focusEase });
   const rx = useTransform(p, [0, 0.5, 1], [maxTilt, 0, -maxTilt], { ease: focusEase });
 
-  // Kept small: a large lateral drift pushes wide cards past the viewport and
-  // gives the page a horizontal scrollbar.
   const tx = useTransform(p, [0, 0.5, 1], [`${sign * 6}%`, "0%", `${sign * 6}%`], { ease: focusEase });
   const rot = useTransform(p, [0, 0.5, 1], [-sign * 2, 0, sign * 2], { ease: focusEase });
 

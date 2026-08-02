@@ -10,7 +10,29 @@ body {
     linear-gradient(rgba(15,23,42,0.025) 1px, transparent 1px),
     linear-gradient(90deg, rgba(15,23,42,0.025) 1px, transparent 1px);
   background-size: 28px 28px;
-  transition: background-color 0.25s ease;
+}
+
+/* Theme switching used to look staggered: the body eased over 250ms while the
+   header, cards and controls had no transition at all and snapped instantly.
+   The toggler adds this class for the length of the swap so every themed
+   surface crossfades together, then removes it so these rules never interfere
+   with ordinary hover transitions. */
+.theme-transition,
+.theme-transition *,
+.theme-transition *::before,
+.theme-transition *::after {
+  transition-property: background-color, border-color, color, fill, stroke,
+    box-shadow !important;
+  transition-duration: 220ms !important;
+  transition-timing-function: ease !important;
+  transition-delay: 0s !important;
+}
+
+/* Serif display face for the page title. */
+.title-face {
+  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Palladio,
+    "Book Antiqua", Georgia, "Times New Roman", serif;
+  letter-spacing: 0.02em;
 }
 
 /* Warm near-black, so the dark theme reads as a dimmed version of the cream

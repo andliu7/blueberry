@@ -81,8 +81,11 @@ function getSlotConfig(totalCards: number, slot: number) {
   };
 }
 
+// The original leaned on backdrop-blur plus a wide soft drop shadow, which read
+// as a dark rounded square hanging behind each circle in both themes. This
+// matches the plain bordered buttons used elsewhere in the app instead.
 const ARROW_CLASSES =
-  "relative flex items-center justify-center rounded-full border-[1.5px] border-black/20 dark:border-white/10 bg-black/5 dark:bg-white/5 backdrop-blur-[16px] text-black/60 dark:text-white/55 cursor-pointer shrink-0 z-30 outline-none shadow-[0_4px_20px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.4)] hover:border-black/40 dark:hover:border-white/25 hover:text-black/80 dark:hover:text-white/80 active:opacity-70 transition-colors duration-300 before:content-[''] before:absolute before:inset-[3px] before:rounded-full before:border before:border-black/[0.04] dark:before:border-white/[0.04] before:pointer-events-none";
+  "relative flex items-center justify-center rounded-full border border-slate-200 dark:border-stone-800 bg-white dark:bg-stone-900 text-slate-600 dark:text-stone-300 cursor-pointer shrink-0 z-30 outline-none shadow-sm hover:border-slate-300 dark:hover:border-stone-700 hover:text-slate-900 dark:hover:text-white active:scale-95 transition-[color,border-color,transform] duration-200 focus-visible:ring-2 focus-visible:ring-indigo-400";
 
 export default function SocialCards({
   cards,

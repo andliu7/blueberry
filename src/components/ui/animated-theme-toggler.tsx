@@ -89,8 +89,20 @@ export function AnimatedThemeToggler({
       document.documentElement.classList.contains("dark"),
   );
 
+  const swapTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const toggle = () => {
-    const dark = document.documentElement.classList.toggle("dark");
+    const root = document.documentElement;
+    // Crossfade every themed surface together for the length of the swap.
+    // Without this the untransitioned elements flip a beat ahead of the body.
+    root.classList.add("theme-transition");
+    if (swapTimer.current) clearTimeout(swapTimer.current);
+    swapTimer.current = setTimeout(() => {
+      root.classList.remove("theme-transition");
+      swapTimer.current = null;
+    }, 260);
+
+    const dark = root.classList.toggle("dark");
     setIsDark(dark);
     // Persist, so the choice survives a reload and the pre-paint script can
     // restore it before anything renders.

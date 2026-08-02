@@ -1,11 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronsUpDown, ChevronsDownUp, Shuffle, GalleryHorizontalEnd, List, MoveVertical } from "lucide-react";
+import { AnimatePresence } from "motion/react";
+import { ChevronsUpDown, ChevronsDownUp, Shuffle, GalleryHorizontalEnd, List, MoveVertical, MessageSquare } from "lucide-react";
+import { FeedbackWidget } from "@/components/ui/feedback-widget";
 import { questions } from "@/data/questions";
 import { testimonials, testimonialArt } from "@/data/testimonials";
-import GradientMenu from "@/components/ui/gradient-menu";
+import { GradientMenuButton, type GradientMenuItem } from "@/components/ui/gradient-menu";
+import { AnimatedActionCluster } from "@/components/ui/floating-action-button";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import BoldOnHover from "@/components/ui/bold-on-hover";
 import { ScrollTiltedGrid } from "@/components/ui/scroll-tilted-grid";
+import { TiltCard } from "@/components/ui/be-ui-tilt-card";
+import { SpotlightCard } from "@/components/ui/spotlight-card";
+import { useIsDark } from "@/lib/useIsDark";
 import { QuestionCard, type Status } from "@/components/QuestionCard";
 import { PressDepth } from "@/components/ui/press-depth";
 import { ButtonHoldAndRelease } from "@/components/ui/hold-and-release-button";
@@ -16,8 +22,23 @@ import { cn } from "@/lib/utils";
 import { useMathJaxTypeset } from "@/lib/useMathJaxTypeset";
 
 const STORAGE_KEY = "grignard_lcta_progress_v1";
+const FEEDBACK_KEY = "grignard_lcta_feedback_v1";
 const diffRank: Record<Status, number> = { red: 0, yellow: 1, none: 2, green: 3 };
 
+
+/** The quote card gets the same theme-split treatment as the question cards. */
+function QuoteSurface({ children }: { children: React.ReactNode }) {
+  const isDark = useIsDark();
+  return isDark ? (
+    <TiltCard max={6} className="max-w-xl mx-auto mt-5 rounded-2xl">
+      {children}
+    </TiltCard>
+  ) : (
+    <SpotlightCard spotlightColor="#6366f13d" className="max-w-xl mx-auto mt-5 rounded-2xl">
+      {children}
+    </SpotlightCard>
+  );
+}
 
 function loadSaved(): { status?: Record<number, Status>; note?: string } {
   try {
@@ -41,6 +62,7 @@ export default function App() {
   const [filter, setFilter] = useState<"all" | "needs">("all");
   const [order, setOrder] = useState<"number" | "hard-first" | "easy-first">("number");
   const [orderedIdx, setOrderedIdx] = useState<number[]>(questions.map((_, i) => i));
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [view, setView] = useState<"list" | "carousel" | "scroll">("list");
   const carouselMode = view === "carousel";
   const [carouselIndex, setCarouselIndex] = useState(0);
@@ -136,6 +158,20 @@ export default function App() {
     setOpenMap(next);
   }
 
+  // There is no backend here, so feedback is appended to localStorage under
+  // FEEDBACK_KEY. Nothing is transmitted anywhere.
+  async function saveFeedback(entry: { rating: "helpful" | "not-helpful"; comment: string }) {
+    try {
+      const raw = localStorage.getItem(FEEDBACK_KEY);
+      const all = raw ? JSON.parse(raw) : [];
+      all.push({ ...entry, at: new Date().toISOString() });
+      localStorage.setItem(FEEDBACK_KEY, JSON.stringify(all));
+    } catch {
+      /* ignore */
+    }
+    setFeedbackOpen(false);
+  }
+
   function doReset() {
     setStatus({});
     setNote("");
@@ -166,7 +202,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen pt-10 pb-16 px-4 text-slate-800 dark:text-stone-200">
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-5xl mx-auto">
 
         <div className="sticky top-0 z-20 -mx-4 px-4 pt-3 pb-3 mb-6 bg-[#f6f4ef]/95 dark:bg-[#0c0a09]/95 backdrop-blur border-b border-slate-200 dark:border-stone-800">
           <div className="flex items-center justify-center gap-3 mb-3">
@@ -175,7 +211,7 @@ export default function App() {
                 text="GRIGNARD LCTA MASTER LIST"
                 initialWeight={700}
                 hoverWeight={900}
-                className="cursor-default"
+                className="title-face cursor-default"
               />
             </h1>
             <AnimatedThemeToggler />
@@ -230,11 +266,11 @@ export default function App() {
             </div>
           </div>
 
-          {/* Row 2 — what you can do. Reset lives down in the corner, well away
-              from the controls you reach for constantly. */}
+          {/* Row 2 — what you can do. Reset lives at the end of the question
+              list, well away from the controls you reach for constantly. */}
           <div className="flex flex-wrap items-center gap-2.5 mt-2.5">
-            <GradientMenu
-              items={[
+            <AnimatedActionCluster label="tools">
+              {([
                 {
                   title: "Expand All",
                   icon: <ChevronsUpDown />,
@@ -272,9 +308,10 @@ export default function App() {
                   gradientTo: "#a855f7",
                   active: view === "scroll",
                 },
-              ]}
-            />
-
+              ] as GradientMenuItem[]).map((item) => (
+                <GradientMenuButton key={item.title} {...item} />
+              ))}
+            </AnimatedActionCluster>
           </div>
 
           {filter === "needs" && (
@@ -307,9 +344,7 @@ export default function App() {
         )}
 
         {view === "scroll" ? (
-          // The tiles rotate and drift, so the row has to be able to clip
-          // sideways or the page picks up a horizontal scrollbar.
-          <ScrollTiltedGrid className="gap-[14vh] py-[12vh] overflow-x-clip">
+          <ScrollTiltedGrid className="gap-[14vh] py-[12vh]">
             {visibleIdx.map((qi) => (
               <QuestionCard
                 key={qi}
@@ -339,6 +374,12 @@ export default function App() {
         </div>
         )}
 
+        {/* End of the question list — out of the way of everyday controls, but
+            reachable without hunting in a corner. */}
+        <div className="mt-8 flex justify-center">
+          <ButtonHoldAndRelease onConfirm={doReset} holdDuration={1200} />
+        </div>
+
         {reviewed === questions.length && (
           <div className="mt-6 text-center bg-indigo-50 dark:bg-indigo-400/10 border border-indigo-200 dark:border-indigo-500/30 rounded-lg p-6">
             <p className="text-5xl mb-2">👍</p>
@@ -360,7 +401,8 @@ export default function App() {
           />
 
           {active && (
-            <figure className="max-w-xl mx-auto mt-5 bg-white dark:bg-stone-900 border border-slate-200 dark:border-stone-800 rounded-2xl shadow-sm px-6 py-5 relative">
+            <QuoteSurface>
+            <figure className="bg-white dark:bg-stone-900 border border-slate-200 dark:border-stone-800 rounded-2xl shadow-sm px-6 py-5 relative">
               <span
                 aria-hidden
                 className="absolute left-5 -top-3 text-5xl leading-none font-serif text-indigo-200 dark:text-indigo-400/40 select-none"
@@ -383,6 +425,7 @@ export default function App() {
                 </span>
               </figcaption>
             </figure>
+            </QuoteSurface>
           )}
           <p className="text-center text-xs text-slate-400 dark:text-stone-500 mt-3">(these are fake testimonials)</p>
         </div>
@@ -392,11 +435,25 @@ export default function App() {
         </footer>
       </div>
 
-      {/* Sits to the left of the Notes button rather than above it, which is
-          where the notes panel itself opens. */}
-      <div className="fixed bottom-5 right-36 z-40">
-        <ButtonHoldAndRelease onConfirm={doReset} holdDuration={1200} />
-      </div>
+      <button
+        type="button"
+        onClick={() => setFeedbackOpen(true)}
+        className="fixed bottom-5 right-36 z-40 flex items-center gap-2 rounded-full bg-white dark:bg-stone-900 border border-slate-200 dark:border-stone-800 px-4 py-2 font-bold text-slate-700 dark:text-stone-200 shadow-lg transition-colors hover:bg-slate-50 dark:hover:bg-stone-800 cursor-pointer"
+      >
+        <MessageSquare className="w-4 h-4" />
+        Feedback
+      </button>
+
+      <AnimatePresence>
+        {feedbackOpen && (
+          <FeedbackWidget
+            title="How's this study guide?"
+            placeholder="What would make this more useful before the LCTA?"
+            onSubmit={saveFeedback}
+            onClose={() => setFeedbackOpen(false)}
+          />
+        )}
+      </AnimatePresence>
 
       <StickyNote value={note} onChange={setNote} />
       <Confetti trigger={confettiTrigger} />

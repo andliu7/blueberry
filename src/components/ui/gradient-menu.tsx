@@ -26,9 +26,27 @@ export default function GradientMenu({
 }) {
   return (
     <ul className={cn("flex items-center gap-2", className)}>
-      {items.map(({ title, icon, onClick, gradientFrom, gradientTo, active }) => (
-        <li key={title} className="contents">
-          <button
+      {items.map((item) => (
+        <li key={item.title} className="contents">
+          <GradientMenuButton {...item} />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** A single pill. Exported so a parent can lay the buttons out itself — the
+ *  floating cluster animates each one individually. */
+export function GradientMenuButton({
+  title,
+  icon,
+  onClick,
+  gradientFrom,
+  gradientTo,
+  active,
+}: GradientMenuItem) {
+  return (
+    <button
             type="button"
             onClick={onClick}
             aria-label={title}
@@ -82,10 +100,7 @@ export default function GradientMenu({
                   {title}
                 </span>
               </>
-            )}
-          </button>
-        </li>
-      ))}
-    </ul>
+      )}
+    </button>
   );
 }
