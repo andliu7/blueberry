@@ -9,7 +9,7 @@ import { testimonials, testimonialArt } from "@/data/testimonials";
 import { GradientMenuButton, type GradientMenuItem } from "@/components/ui/gradient-menu";
 import { AnimatedActionCluster } from "@/components/ui/floating-action-button";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
-import BoldOnHover from "@/components/ui/bold-on-hover";
+import { HeroTitle } from "@/components/ui/hero-title";
 import { ScrollTiltedGrid } from "@/components/ui/scroll-tilted-grid";
 import { TiltCard } from "@/components/ui/be-ui-tilt-card";
 import { useIsDark } from "@/lib/useIsDark";
@@ -263,25 +263,19 @@ export default function App() {
   const safeCarouselIndex = carouselTotal ? ((carouselIndex % carouselTotal) + carouselTotal) % carouselTotal : 0;
 
   return (
-    <div className="min-h-screen pt-10 pb-16 px-4 text-slate-800 dark:text-stone-200">
+    <div className="min-h-screen text-slate-800 dark:text-stone-200">
+      {/* Title page. Sticky, so the content below scrolls up over it. */}
+      {/* Swap to variant="ghost" for the giant outlined-word backdrop instead. */}
+      <HeroTitle variant="art" />
+
+      {/* The curtain: rides over the hero on its own background, with a rounded
+          top edge and a shadow so the seam reads as a deliberate transition. */}
+      <div className="relative z-10 bg-[#f6f4ef] dark:bg-[#0c0a09] rounded-t-[2rem] shadow-[0_-24px_60px_-20px_rgba(15,23,42,0.25)] dark:shadow-[0_-24px_60px_-20px_rgba(0,0,0,0.7)] pt-4 pb-16 px-4">
       <div className="max-w-5xl mx-auto">
 
-        <div className="sticky top-0 z-20 -mx-4 px-4 pt-3 pb-3 mb-6 bg-[#f6f4ef]/95 dark:bg-[#0c0a09]/95 backdrop-blur border-b border-slate-200 dark:border-stone-800">
-          <div className="flex items-center justify-center gap-3 mb-3">
-            <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-stone-100 text-center tracking-tight">
-              <BoldOnHover
-                text="GRIGNARD LCTA MASTER LIST"
-                initialWeight={700}
-                hoverWeight={900}
-                className="title-face cursor-default"
-              />
-            </h1>
-            <AnimatedThemeToggler />
-          </div>
-
-          {/* Progress and filters stay anchored left; the tool cluster is pushed
-              to the right edge with ml-auto so opening it eats the gap between
-              them instead of shunting the filters around. */}
+        {/* Floating toolbar. No title here on purpose: it lives on the hero, and
+            keeping it out is what stops this bar feeling cramped. */}
+        <div className="sticky top-3 z-30 mb-6 rounded-2xl px-3 py-2.5 bg-white/85 dark:bg-stone-900/85 backdrop-blur border border-slate-200 dark:border-stone-800 shadow-lg">
           <div className="flex flex-wrap items-center gap-2.5">
             <div className="flex items-center gap-2.5 text-sm font-medium bg-white dark:bg-stone-900 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-stone-800">
               <span className="flex items-center gap-1 text-slate-600 dark:text-stone-300">
@@ -402,6 +396,8 @@ export default function App() {
               ]}
             </AnimatedActionCluster>
             </div>
+            {/* Moves into the pill now that the title row is gone. */}
+            <AnimatedThemeToggler />
           </div>
 
           {filter === "needs" && (
@@ -550,6 +546,7 @@ export default function App() {
           </a>
         </footer>
         </div>
+      </div>
       </div>
 
       <button

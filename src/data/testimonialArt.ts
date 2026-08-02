@@ -71,6 +71,29 @@ const MOTIFS: Record<ArtMotif, string> = {
     <circle cx="150" cy="106" r="5" fill="#fff" opacity=".45"/>`,
 };
 
+export const ART_MOTIFS: ArtMotif[] = [
+  "erlenmeyer",
+  "benzene",
+  "reflux",
+  "sepfunnel",
+  "ir",
+  "nmr",
+];
+
+/** The motif's viewBox, so callers can size it without guessing. */
+export const MOTIF_VIEWBOX = "0 0 240 320";
+
+/**
+ * Raw motif markup with the baked-in white swapped for a caller-chosen colour.
+ *
+ * The card art draws these on a saturated wash, where white reads well. The hero
+ * puts the same shapes on pale paper, where white would be invisible, so the
+ * colour has to be substitutable rather than fixed.
+ */
+export function motifMarkup(motif: ArtMotif, color = "currentColor"): string {
+  return MOTIFS[motif].replace(/#fff\b/g, color);
+}
+
 /**
  * Builds a portrait card image: gradient wash, the site's faint grid, then the motif.
  */

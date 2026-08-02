@@ -35,6 +35,28 @@ body {
   letter-spacing: 0.01em;
 }
 
+/* Giant outlined word behind the hero title, for the "ghost" variant. Sized in
+   viewport units so it always spans the screen. */
+.ghost-word {
+  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia,
+    "Times New Roman", serif;
+  font-size: 26vw;
+  line-height: 0.75;
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(79, 70, 229, 0.22);
+  background: linear-gradient(180deg, rgba(79, 70, 229, 0.1) 0%, transparent 65%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+.dark .ghost-word {
+  -webkit-text-stroke: 1px rgba(253, 230, 138, 0.18);
+  background: linear-gradient(180deg, rgba(253, 230, 138, 0.09) 0%, transparent 65%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
 /* Serif display face for the page title. */
 .title-face {
   font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Palladio,
