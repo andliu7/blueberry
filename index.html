@@ -9,8 +9,21 @@
       window.MathJax = { tex: { inlineMath: [['$', '$']] } };
     </script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <script type="module" crossorigin src="./assets/index-B5U2ud3w.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-yUhhSRyB.css">
+    <script>
+      // Applies the saved theme before first paint. Doing this in React instead
+      // would show a flash of the light theme on every load for dark users.
+      (function () {
+        try {
+          var saved = localStorage.getItem('theme');
+          var dark = saved
+            ? saved === 'dark'
+            : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          document.documentElement.classList.toggle('dark', dark);
+        } catch (e) {}
+      })();
+    </script>
+    <script type="module" crossorigin src="./assets/index-B0cVoTyo.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-CmLWOwcf.css">
   </head>
   <body>
     <div id="root"></div>
