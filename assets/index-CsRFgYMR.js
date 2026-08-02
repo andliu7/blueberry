@@ -57,25 +57,16 @@ Error generating stack: `+e.message+`
       <path d="M157 148 157 200" stroke-width="5"/>
       <path d="M76 176 116 176" stroke-width="5"/>
     </g>
-    <circle cx="157" cy="82" r="24" fill="none" stroke="#fff" stroke-width="4.5" opacity=".92"/>
-    <circle cx="149" cy="77" r="3.4" fill="#fff" opacity=".92"/>
-    <circle cx="165" cy="77" r="3.4" fill="#fff" opacity=".92"/>
-    <path d="M148 90q9 7 18 0" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" opacity=".92"/>
-    <text x="157" y="62" font-family="Georgia, serif" font-size="15" fill="#fff" text-anchor="middle" opacity=".7">O</text>
-    <circle cx="157" cy="148" r="21" fill="none" stroke="#fff" stroke-width="4.5" opacity=".92"/>
-    <circle cx="150" cy="144" r="3" fill="#fff" opacity=".92"/>
-    <circle cx="164" cy="144" r="3" fill="#fff" opacity=".92"/>
-    <path d="M150 158q7 -6 14 0" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" opacity=".92"/>
-    <text x="186" y="140" font-family="Georgia, serif" font-size="17" fill="#fff" text-anchor="middle" opacity=".65">&#948;+</text>
-    <text x="60" y="164" font-family="Georgia, serif" font-size="17" fill="#fff" text-anchor="middle" opacity=".65">&#948;-</text>
-    <text x="62" y="200" font-family="Georgia, serif" font-size="22" fill="#fff" text-anchor="middle" opacity=".8">MgBr</text>
-    <circle cx="122" cy="168" r="4" fill="#fff" opacity=".85"/>
-    <circle cx="122" cy="184" r="4" fill="#fff" opacity=".85"/>
-    <path d="M124 176a34 34 0 0 1 34 -34" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" opacity=".85"/>
-    <path d="M150 145l9 -4 -1 10z" fill="#fff" opacity=".85"/>
-    <path d="M172 130a30 30 0 0 0 12 -28" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" opacity=".8"/>
-    <path d="M178 108l6 -9 5 9z" fill="#fff" opacity=".8"/>
-    <text x="120" y="286" font-family="Georgia, serif" font-size="18" fill="#fff" text-anchor="middle" opacity=".5">carbonyl addition</text>`,mascot:`
+    <text x="157" y="90" font-family="Georgia, serif" font-size="36" fill="#fff" text-anchor="middle" opacity=".92">O</text>
+    <text x="192" y="146" font-family="Georgia, serif" font-size="18" fill="#fff" text-anchor="middle" opacity=".6">&#948;+</text>
+    <text x="62" y="160" font-family="Georgia, serif" font-size="18" fill="#fff" text-anchor="middle" opacity=".6">&#948;-</text>
+    <text x="64" y="204" font-family="Georgia, serif" font-size="23" fill="#fff" text-anchor="middle" opacity=".8">MgBr</text>
+    <circle cx="124" cy="168" r="4" fill="#fff" opacity=".8"/>
+    <circle cx="124" cy="184" r="4" fill="#fff" opacity=".8"/>
+    <path d="M126 176a32 32 0 0 1 30 -30" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" opacity=".85"/>
+    <path d="M148 149l9 -5 0 10z" fill="#fff" opacity=".85"/>
+    <path d="M172 128a30 30 0 0 0 10 -26" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" opacity=".8"/>
+    <path d="M176 106l6 -9 5 9z" fill="#fff" opacity=".8"/>`,mascot:`
     <path d="M100 60v46L64 214q-7 24 18 24h76q25 0 18-24l-36-108V60" fill="none" stroke="#fff" stroke-width="5.5" stroke-linejoin="round" opacity=".92"/>
     <path d="M92 56h56" stroke="#fff" stroke-width="7.5" stroke-linecap="round" opacity=".92"/>
     <path d="M82 176h76l8 34q6 22-16 22H90q-22 0-16-22z" fill="#fff" opacity=".3"/>
