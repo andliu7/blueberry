@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { Question } from "@/data/questions";
 import { PressDepth } from "@/components/ui/press-depth";
 import { cn } from "@/lib/utils";
+import { useMathJaxTypeset } from "@/lib/useMathJaxTypeset";
 
 export type Status = "none" | "red" | "yellow" | "green";
 
@@ -27,6 +28,8 @@ export function QuestionCard({
 }) {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<number | null>(null);
+
+  useMathJaxTypeset([open, selected]);
 
   if (!isActive) return null;
 

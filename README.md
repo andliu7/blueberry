@@ -1,32 +1,31 @@
-# React + TypeScript + Vite
+# Grignard LCTA Master List
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+An interactive study app for reviewing Grignard reaction lab concepts (LCTA). It presents 44 review questions — short-answer and multiple-choice — with expandable answers, LaTeX chemistry notation rendered by MathJax, and a self-rating system (Review / Almost / Got It) whose progress persists in the browser via localStorage.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- 44 Grignard lab questions with expandable answer cards
+- Multiple-choice questions with instant right/wrong feedback
+- Recall self-rating (red / yellow / green) with a progress tracker
+- "Needs Review" filter, sort by number or difficulty, and shuffle
+- Carousel study mode and confetti when you finish
+- MathJax rendering for chemical formulas and math notation
 
-## React Compiler
+## Tech stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+React 19 · TypeScript · Vite 8 · Tailwind CSS 4 · Motion/GSAP · MathJax 3 (CDN)
 
-## Expanding the Oxlint configuration
+## Development
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
+npm run dev      # start dev server at http://localhost:5173
+npm run build    # type-check and build production bundle to dist/
+npm run preview  # preview the production build
+npm run lint     # run oxlint
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## Branches
+
+- `main` — application source code
+- `gh-pages` — built production output (deployable static site)

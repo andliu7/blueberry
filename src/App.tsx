@@ -8,28 +8,11 @@ import SocialCards from "@/components/ui/card-fan-carousel";
 import { StickyNote } from "@/components/StickyNote";
 import { Confetti } from "@/components/Confetti";
 import { cn } from "@/lib/utils";
+import { useMathJaxTypeset } from "@/lib/useMathJaxTypeset";
 
 const STORAGE_KEY = "grignard_lcta_progress_v1";
 const diffRank: Record<Status, number> = { red: 0, yellow: 1, none: 2, green: 3 };
 
-function useMathJaxTypeset(deps: unknown[]) {
-  useEffect(() => {
-    let cancelled = false;
-    function tryTypeset() {
-      if (cancelled) return;
-      if (window.MathJax?.typesetPromise) {
-        window.MathJax.typesetPromise();
-      } else {
-        setTimeout(tryTypeset, 150);
-      }
-    }
-    tryTypeset();
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, deps);
-}
 
 export default function App() {
   const [status, setStatus] = useState<Record<number, Status>>({});
