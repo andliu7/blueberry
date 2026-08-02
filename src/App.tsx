@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence } from "motion/react";
-import { ChevronsUpDown, ChevronsDownUp, Shuffle, GalleryHorizontalEnd, List, MoveVertical, MessageSquare, ArrowDownToLine, GitBranch, ArrowUpRight, Layers } from "lucide-react";
+import { ChevronsUpDown, ChevronsDownUp, Shuffle, GalleryHorizontalEnd, List, MoveVertical, MessageSquare, ArrowDownToLine, GitBranch, ArrowUpRight, Layers, Home } from "lucide-react";
 import { FeedbackWidget } from "@/components/ui/feedback-widget";
 import { ClickHereHint } from "@/components/ui/click-here-hint";
 import { GlassFilter, LiquidGlassLayers } from "@/components/ui/liquid-glass-button";
@@ -13,6 +13,8 @@ import { HeroTitle } from "@/components/ui/hero-title";
 import { ScrollTiltedGrid } from "@/components/ui/scroll-tilted-grid";
 import { StackedCards } from "@/components/ui/stacked-cards";
 import { GooeyTogglePair, type ToggleVisibility } from "@/components/ui/gooey-toggle-pair";
+import { HomePage } from "@/components/HomePage";
+import { useHashRoute } from "@/lib/useHashRoute";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
 import { SnapCarousel } from "@/components/ui/snap-carousel";
 import { TiltCard } from "@/components/ui/be-ui-tilt-card";
@@ -70,7 +72,17 @@ function loadSaved(): { status?: Record<number, Status>; note?: string } {
   return {};
 }
 
+/**
+ * The root only decides which page is showing. The study app stays at the bare
+ * URL, because that is the link people already have; the hub sits behind
+ * #/home, reached from the Home link on the title screen.
+ */
 export default function App() {
+  const route = useHashRoute();
+  return route === "home" ? <HomePage /> : <StudyApp />;
+}
+
+function StudyApp() {
   const [status, setStatus] = useState<Record<number, Status>>(() => loadSaved().status ?? {});
   const [note, setNote] = useState(() => {
     const saved = loadSaved().note;
@@ -296,7 +308,18 @@ export default function App() {
     <div className="min-h-screen text-slate-800 dark:text-stone-200">
       {/* Title page. Sticky, so the content below scrolls up over it. */}
       {/* Swap to variant="ghost" for the giant outlined-word backdrop instead. */}
-      <HeroTitle variant="art" />
+      <HeroTitle
+        variant="art"
+        topLeft={
+          <a
+            href="#/home"
+            className="group inline-flex items-center gap-1.5 rounded-full border border-slate-300/70 bg-white/60 px-3 py-1.5 text-sm font-semibold text-slate-600 backdrop-blur transition-colors hover:text-slate-900 dark:border-stone-700/70 dark:bg-stone-900/50 dark:text-stone-400 dark:hover:text-stone-100"
+          >
+            <Home className="h-3.5 w-3.5 transition-transform duration-300 group-hover:-translate-x-0.5" />
+            Home
+          </a>
+        }
+      />
 
       {/* The curtain: rides over the hero on its own background, with a rounded
           top edge and a shadow so the seam reads as a deliberate transition. */}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, type ReactNode } from "react";
 import { motion, useScroll, useTransform, useReducedMotion } from "motion/react";
 import { ChevronDown } from "lucide-react";
 import BoldOnHover from "@/components/ui/bold-on-hover";
@@ -67,12 +67,19 @@ export function HeroTitle({
   titleLines = ["GRIGNARD LCTA", "MASTER LIST"],
   subtitle = "44 questions for the lab practical. Hide the answers, rate your recall, and drill until they stick.",
   ghostWord = "GRIGNARD",
+  topLeft,
 }: {
   variant?: HeroVariant;
   align?: "left" | "center";
   titleLines?: string[];
   subtitle?: string;
   ghostWord?: string;
+  /**
+   * Corner slot, for a link out of this deck. Sits outside the title's motion
+   * wrapper so it does not fade and shrink along with the heading, and the
+   * curtain below covers it on its way past.
+   */
+  topLeft?: ReactNode;
 }) {
   const leftAligned = align === "left";
   const ref = useRef<HTMLElement>(null);
@@ -99,6 +106,8 @@ export function HeroTitle({
       )}
       aria-label="Title"
     >
+      {topLeft && <div className="absolute left-6 top-6 z-20">{topLeft}</div>}
+
       {/* Backdrop */}
       {variant === "art" ? (
         <div aria-hidden className="pointer-events-none absolute inset-0 select-none">
