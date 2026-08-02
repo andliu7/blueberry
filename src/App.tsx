@@ -113,6 +113,10 @@ function StudyApp() {
   const [tIndex, setTIndex] = useState(0);
   // Question number -> expanded. Absent means collapsed.
   const [openMap, setOpenMap] = useState<Record<number, boolean>>({});
+  // Question number -> chosen multiple choice option. Lifted out of the card for
+  // the same reason as openMap: while it lived inside, Reset could not reach it,
+  // so a reset question still showed its answer marked right or wrong.
+  const [answerMap, setAnswerMap] = useState<Record<number, number>>({});
 
   // Save progress whenever it changes. Restoring happens in the useState
   // initialisers above rather than in an effect: an effect-based load races this
@@ -267,6 +271,7 @@ function StudyApp() {
     setStatus({});
     setNote("");
     setOpenMap({});
+    setAnswerMap({});
     hasCelebrated.current = false;
     try {
       localStorage.removeItem(STORAGE_KEY);
@@ -285,6 +290,8 @@ function StudyApp() {
       onRate={(color) => rate(qi + 1, color)}
       open={openMap[qi + 1] ?? false}
       onOpenChange={(o) => setOpenMap((m) => ({ ...m, [qi + 1]: o }))}
+      selected={answerMap[qi + 1] ?? null}
+      onSelect={(i) => setAnswerMap((m) => ({ ...m, [qi + 1]: i }))}
     />
   );
 

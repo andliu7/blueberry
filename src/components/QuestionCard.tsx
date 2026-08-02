@@ -24,6 +24,8 @@ export function QuestionCard({
   isActive = true,
   open: openProp,
   onOpenChange,
+  selected: selectedProp,
+  onSelect,
 }: {
   num: number;
   item: Question;
@@ -33,10 +35,24 @@ export function QuestionCard({
   /** Supply with onOpenChange to let a parent drive expand/collapse all. */
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  /**
+   * Chosen multiple choice option. Supply with onSelect to let a parent clear
+   * it: held inside this card, a reset had no way to reach it.
+   */
+  selected?: number | null;
+  onSelect?: (index: number) => void;
 }) {
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
-  const [selected, setSelected] = useState<number | null>(null);
+  const [uncontrolledSelected, setUncontrolledSelected] = useState<number | null>(null);
   const open = openProp ?? uncontrolledOpen;
+  // Not `??`: null is the meaningful "nothing chosen yet" value, so only an
+  // absent prop should fall back to this card's own state.
+  const selected = selectedProp !== undefined ? selectedProp : uncontrolledSelected;
+
+  const choose = (index: number) => {
+    setUncontrolledSelected(index);
+    onSelect?.(index);
+  };
 
   const toggle = () => {
     setUncontrolledOpen(!open);
@@ -85,7 +101,7 @@ export function QuestionCard({
                 {item.options.map((opt, i) => (
                   <button
                     key={i}
-                    onClick={() => setSelected(i)}
+                    onClick={() => choose(i)}
                     className={cn(
                       "w-full text-left px-4 py-2 rounded border text-sm transition",
                       selected === null && "border-slate-200 bg-slate-50 hover:bg-slate-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700",

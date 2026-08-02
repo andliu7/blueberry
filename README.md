@@ -320,7 +320,9 @@ falling to the body.
 their own open and closed state, which made Expand All impossible to build.
 Lifting that state into a parent map made the feature trivial, and later made the
 gooey merge possible for free, since button visibility is just a function of that
-same map. The same applied to the toolbar: once the parent knew it was open, it
+same map. The multiple choice selection stayed behind and quietly broke Reset,
+which is the same lesson arriving a third time: state that any other control
+needs to read or clear does not belong inside the component that displays it. The same applied to the toolbar: once the parent knew it was open, it
 could lay the filter hint out beside it.
 
 **Controlled and uncontrolled components.** Several components take an optional
@@ -415,6 +417,21 @@ commit, so the guard was already open. React StrictMode's double mount made the
 loss permanent rather than intermittent. The real fix was to read from storage
 inside the `useState` initialisers, which removes the window entirely rather than
 trying to police it.
+
+### State in the wrong place
+
+**Hold to reset cleared everything except the multiple choice answer.** Ratings,
+notes and open cards all reset; the chosen option stayed highlighted green or
+red. The chosen option was the one piece of card state still living inside
+`QuestionCard`, so `doReset` had no way to reach it. Lifting it into a map beside
+`openMap` fixed it, and is the third time this exact shape of bug has appeared:
+Expand All was impossible for the same reason, and the gooey merge only works
+because that state had already been lifted.
+
+Worth noting the small trap in the fix. The controlled and uncontrolled fallback
+cannot be `selectedProp ?? internal`, because `null` is the meaningful "nothing
+chosen yet" value and `??` would swallow it. Only an *absent* prop should fall
+through, so the check is `!== undefined`.
 
 ### Things that rendered but did nothing
 
