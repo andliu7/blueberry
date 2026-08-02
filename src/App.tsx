@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronsUpDown, ChevronsDownUp, Shuffle, GalleryHorizontalEnd, List } from "lucide-react";
+import { ChevronsUpDown, ChevronsDownUp, Shuffle, GalleryHorizontalEnd, List, MoveVertical } from "lucide-react";
 import { questions } from "@/data/questions";
 import { testimonials, testimonialArt } from "@/data/testimonials";
 import GradientMenu from "@/components/ui/gradient-menu";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import BoldOnHover from "@/components/ui/bold-on-hover";
+import { ScrollTiltedGrid } from "@/components/ui/scroll-tilted-grid";
 import { QuestionCard, type Status } from "@/components/QuestionCard";
 import { PressDepth } from "@/components/ui/press-depth";
 import { ButtonHoldAndRelease } from "@/components/ui/hold-and-release-button";
@@ -40,7 +41,8 @@ export default function App() {
   const [filter, setFilter] = useState<"all" | "needs">("all");
   const [order, setOrder] = useState<"number" | "hard-first" | "easy-first">("number");
   const [orderedIdx, setOrderedIdx] = useState<number[]>(questions.map((_, i) => i));
-  const [carouselMode, setCarouselMode] = useState(false);
+  const [view, setView] = useState<"list" | "carousel" | "scroll">("list");
+  const carouselMode = view === "carousel";
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [confettiTrigger, setConfettiTrigger] = useState(0);
   const hasCelebrated = useRef(false);
@@ -88,7 +90,7 @@ export default function App() {
 
   // Deliberately excludes tIndex: testimonials contain no math, and a full-document
   // typeset reflows the page and throws the scroll position to the top.
-  useMathJaxTypeset([status, orderedIdx, filter, carouselMode, carouselIndex]);
+  useMathJaxTypeset([status, orderedIdx, filter, view, carouselIndex]);
 
   function rate(num: number, color: Status) {
     setStatus((s) => ({ ...s, [num]: color }));
@@ -257,10 +259,18 @@ export default function App() {
                 {
                   title: carouselMode ? "List View" : "Carousel",
                   icon: carouselMode ? <List /> : <GalleryHorizontalEnd />,
-                  onClick: () => setCarouselMode((m) => !m),
+                  onClick: () => setView((v) => (v === "carousel" ? "list" : "carousel")),
                   gradientFrom: "#b45309",
                   gradientTo: "#d97706",
                   active: carouselMode,
+                },
+                {
+                  title: view === "scroll" ? "List View" : "Scroll",
+                  icon: view === "scroll" ? <List /> : <MoveVertical />,
+                  onClick: () => setView((v) => (v === "scroll" ? "list" : "scroll")),
+                  gradientFrom: "#7c3aed",
+                  gradientTo: "#a855f7",
+                  active: view === "scroll",
                 },
               ]}
             />
@@ -296,6 +306,23 @@ export default function App() {
           </div>
         )}
 
+        {view === "scroll" ? (
+          // The tiles rotate and drift, so the row has to be able to clip
+          // sideways or the page picks up a horizontal scrollbar.
+          <ScrollTiltedGrid className="gap-[14vh] py-[12vh] overflow-x-clip">
+            {visibleIdx.map((qi) => (
+              <QuestionCard
+                key={qi}
+                num={qi + 1}
+                item={questions[qi]}
+                status={status[qi + 1] ?? "none"}
+                onRate={(color) => rate(qi + 1, color)}
+                open={openMap[qi + 1] ?? false}
+                onOpenChange={(o) => setOpenMap((m) => ({ ...m, [qi + 1]: o }))}
+              />
+            ))}
+          </ScrollTiltedGrid>
+        ) : (
         <div className="space-y-4">
           {visibleIdx.map((qi, pos) => (
             <QuestionCard
@@ -310,6 +337,7 @@ export default function App() {
             />
           ))}
         </div>
+        )}
 
         {reviewed === questions.length && (
           <div className="mt-6 text-center bg-indigo-50 dark:bg-indigo-400/10 border border-indigo-200 dark:border-indigo-500/30 rounded-lg p-6">
