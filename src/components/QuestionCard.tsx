@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { useMathJaxTypeset } from "@/lib/useMathJaxTypeset";
 import { useIsDark } from "@/lib/useIsDark";
 import { SpotlightCard } from "@/components/ui/spotlight-card";
+import { TiltCard } from "@/components/ui/be-ui-tilt-card";
 
 export type Status = "none" | "red" | "yellow" | "green";
 
@@ -48,18 +49,12 @@ export function QuestionCard({
 
   if (!isActive) return null;
 
-  return (
-    <SpotlightCard
-      // Spotlight reads well on the pale cards; on the dark ones the glow all
-      // but disappears, so those lean into a tilt instead.
-      spotlight={!isDark}
-      tilt={isDark}
-      spotlightColor="#6366f13d"
-      className={cn(
-        "rounded-lg shadow-sm border transition-[background-color,border-color,transform] duration-200",
-        statusStyles[status],
-      )}
-    >
+  const surfaceClass = cn(
+    "rounded-lg shadow-sm border transition-[background-color,border-color] duration-200",
+    statusStyles[status],
+  );
+
+  const body = (
     <div ref={bodyRef}>
       <button
         onClick={toggle}
@@ -143,6 +138,17 @@ export function QuestionCard({
         </div>
       )}
     </div>
+  );
+
+  // Spotlight reads well on the pale cards; on the dark ones a soft indigo glow
+  // barely registers, so those tilt instead.
+  return isDark ? (
+    <TiltCard max={6} className={surfaceClass}>
+      {body}
+    </TiltCard>
+  ) : (
+    <SpotlightCard spotlightColor="#6366f13d" className={surfaceClass}>
+      {body}
     </SpotlightCard>
   );
 }
