@@ -10,8 +10,11 @@ export interface AnimatedActionClusterProps {
    *  interactions — the cluster only animates a wrapper around them. */
   children: ReactNode[];
   className?: string;
-  /** Start expanded. */
+  /** Start expanded. Ignored when `open` is supplied. */
   defaultOpen?: boolean;
+  /** Supply with onOpenChange to let a parent lay out around the open state. */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   label?: string;
   /**
    * Which way the actions unfold. "left" puts the trigger on the right and the
@@ -34,10 +37,17 @@ export function AnimatedActionCluster({
   children,
   className,
   defaultOpen = true,
+  open,
+  onOpenChange,
   label = "actions",
   direction = "right",
 }: AnimatedActionClusterProps) {
-  const [active, setActive] = useState(defaultOpen);
+  const [uncontrolled, setUncontrolled] = useState(defaultOpen);
+  const active = open ?? uncontrolled;
+  const setActive = (next: boolean) => {
+    setUncontrolled(next);
+    onOpenChange?.(next);
+  };
   const openingLeft = direction === "left";
   // Actions slide out of the trigger, so they enter from whichever side it sits on.
   const enterX = openingLeft ? 18 : -18;
@@ -49,7 +59,7 @@ export function AnimatedActionCluster({
         // to the right edge, opening it grows the group leftward and carries the
         // trigger along rather than teleporting it.
         layout
-        onClick={() => setActive((a) => !a)}
+        onClick={() => setActive(!active)}
         aria-expanded={active}
         aria-label={active ? `Hide ${label}` : `Show ${label}`}
         title={active ? `Hide ${label}` : `Show ${label}`}
@@ -103,10 +113,10 @@ export function AnimatedActionCluster({
     <div
       className={cn(
         "flex items-center gap-2",
-        // Once open the cluster claims its own line. Sharing a row leaves too
-        // little slack, and hovering a button widens it into a pill — enough to
-        // wrap the row and make the buttons jump to the next line mid-hover.
-        active && "basis-full justify-end flex-nowrap",
+        // Hovering a button widens it into a pill; without this the row can wrap
+        // mid-hover and the buttons jump to the next line. The parent is
+        // responsible for giving an open cluster a line with room on it.
+        active && "flex-nowrap",
         className,
       )}
     >

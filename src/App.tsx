@@ -75,6 +75,7 @@ export default function App() {
   const [orderedIdx, setOrderedIdx] = useState<number[]>(questions.map((_, i) => i));
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [shuffled, setShuffled] = useState(false);
+  const [toolsOpen, setToolsOpen] = useState(true);
   const [view, setView] = useState<"list" | "carousel" | "scroll">("list");
   const carouselMode = view === "carousel";
   const [carouselIndex, setCarouselIndex] = useState(0);
@@ -317,10 +318,25 @@ export default function App() {
               </div>
             </div>
 
-            {/* Trigger first and the whole group pinned right: opening grows it
-                leftward, so the trigger travels left while the actions fill in
-                toward the right edge. */}
-            <AnimatedActionCluster label="tools" className="ml-auto">
+            {/* Open, the cluster gets a line of its own so hovering a button has
+                room to widen. The filter hint shares that line on the left,
+                where the right-anchored toolbar leaves it free. */}
+            <div className={toolsOpen ? "basis-full flex items-center gap-3 mt-1" : "contents"}>
+              {toolsOpen && filter === "needs" && (
+                <p className="text-xs text-indigo-600 dark:text-indigo-300">
+                  Showing only questions marked <span className="font-semibold">Review</span>,{" "}
+                  <span className="font-semibold">Almost</span>, or not yet rated.
+                </p>
+              )}
+              {/* Trigger last so it stays pinned at the right edge; the actions
+                  unfold to its left. */}
+              <AnimatedActionCluster
+                label="tools"
+                direction="left"
+                className="ml-auto"
+                open={toolsOpen}
+                onOpenChange={setToolsOpen}
+              >
               {[
                 ...([
                   {
@@ -374,9 +390,11 @@ export default function App() {
                 />,
               ]}
             </AnimatedActionCluster>
+            </div>
           </div>
 
-          {filter === "needs" && (
+          {/* Closed, the hint drops below the row as usual. */}
+          {!toolsOpen && filter === "needs" && (
             <p className="text-xs text-indigo-600 dark:text-indigo-300 mt-2">
               Showing only questions marked <span className="font-semibold">Review</span>,{" "}
               <span className="font-semibold">Almost</span>, or not yet rated.
@@ -495,8 +513,8 @@ export default function App() {
           <p>Ready for the LCTA! Remember: Anhydrous = Dry Reaction | Regular = Wet Workup.</p>
 
           <p className="playful-face mt-6 mx-auto max-w-xl text-lg leading-relaxed text-slate-600 dark:text-stone-300">
-            Thank you for visiting [Website Name]. We appreciate your time and interest in
-            our work. If you have any questions, please feel free to reach out through our
+            Thank you for visiting [Website Name]. I appreciate your time and interest in
+            my work. If you have any questions, please feel free to reach out through my
             feedback form.
           </p>
 
