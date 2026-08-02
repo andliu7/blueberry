@@ -45,6 +45,10 @@ export function AnimatedActionCluster({
   const trigger = (
     <motion.button
         type="button"
+        // `layout` animates the trigger's own travel: with the cluster anchored
+        // to the right edge, opening it grows the group leftward and carries the
+        // trigger along rather than teleporting it.
+        layout
         onClick={() => setActive((a) => !a)}
         aria-expanded={active}
         aria-label={active ? `Hide ${label}` : `Show ${label}`}
@@ -96,7 +100,16 @@ export function AnimatedActionCluster({
   );
 
   return (
-    <div className={cn("flex items-center gap-2", className)}>
+    <div
+      className={cn(
+        "flex items-center gap-2",
+        // Once open the cluster claims its own line. Sharing a row leaves too
+        // little slack, and hovering a button widens it into a pill — enough to
+        // wrap the row and make the buttons jump to the next line mid-hover.
+        active && "basis-full justify-end flex-nowrap",
+        className,
+      )}
+    >
       {openingLeft ? (
         <>
           {actions}

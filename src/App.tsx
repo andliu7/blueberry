@@ -317,7 +317,10 @@ export default function App() {
               </div>
             </div>
 
-            <AnimatedActionCluster label="tools" direction="left" className="ml-auto">
+            {/* Trigger first and the whole group pinned right: opening grows it
+                leftward, so the trigger travels left while the actions fill in
+                toward the right edge. */}
+            <AnimatedActionCluster label="tools" className="ml-auto">
               {[
                 ...([
                   {
@@ -491,8 +494,10 @@ export default function App() {
         <footer className="mt-12 text-center text-gray-500 dark:text-stone-400 text-sm">
           <p>Ready for the LCTA! Remember: Anhydrous = Dry Reaction | Regular = Wet Workup.</p>
 
-          <p className="playful-face mt-6 text-lg text-slate-600 dark:text-stone-300">
-            Thank you for using this website!
+          <p className="playful-face mt-6 mx-auto max-w-xl text-lg leading-relaxed text-slate-600 dark:text-stone-300">
+            Thank you for visiting [Website Name]. We appreciate your time and interest in
+            our work. If you have any questions, please feel free to reach out through our
+            feedback form.
           </p>
 
           <a
