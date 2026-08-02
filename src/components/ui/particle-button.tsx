@@ -16,10 +16,20 @@ import { cn } from "@/lib/utils";
 export function SuccessParticles({
   anchorRef,
   count = 14,
+  minRadius = 34,
+  spread = 30,
+  duration = 0.75,
+  sizeClass = "w-2 h-2",
   className,
 }: {
   anchorRef: React.RefObject<HTMLElement | null>;
   count?: number;
+  /** Closest a particle travels before fading. */
+  minRadius?: number;
+  /** Extra random distance on top of minRadius. */
+  spread?: number;
+  duration?: number;
+  sizeClass?: string;
   className?: string;
 }) {
   const rect = anchorRef.current?.getBoundingClientRect();
@@ -39,12 +49,13 @@ export function SuccessParticles({
         // particles upward and alternated left/right, which on a small round
         // button read as a couple of stray specks rather than a burst.
         const angle = (i / count) * Math.PI * 2 + Math.random() * 0.4;
-        const radius = 34 + Math.random() * 30;
+        const radius = minRadius + Math.random() * spread;
         return (
           <motion.div
             key={i}
             className={cn(
-              "pointer-events-none fixed z-[60] w-2 h-2 rounded-full",
+              "pointer-events-none fixed z-[60] rounded-full",
+              sizeClass,
               "bg-indigo-500 dark:bg-amber-300 shadow-[0_0_8px_currentColor]",
               className,
             )}
@@ -56,7 +67,7 @@ export function SuccessParticles({
               y: [0, Math.sin(angle) * radius],
               opacity: [1, 1, 0],
             }}
-            transition={{ duration: 0.75, delay: i * 0.012, ease: "easeOut" }}
+            transition={{ duration, delay: i * 0.012, ease: "easeOut" }}
           />
         );
       })}
@@ -70,11 +81,13 @@ export function useParticleBurst(duration = 700) {
   const [bursting, setBursting] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const burst = () => {
+  // Stable identity so an interval can depend on it without resetting itself
+  // on every render.
+  const burst = React.useCallback(() => {
     if (timer.current) clearTimeout(timer.current);
     setBursting(true);
     timer.current = setTimeout(() => setBursting(false), duration);
-  };
+  }, [duration]);
 
   React.useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
 

@@ -1,8 +1,8 @@
 "use client";
 
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Plus } from "lucide-react";
-import { useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { MagneticButton } from "@/components/ui/magnetic-button";
 import { SuccessParticles, useParticleBurst } from "@/components/ui/particle-button";
@@ -48,6 +48,17 @@ export function AnimatedActionCluster({
   const active = open ?? uncontrolled;
   const triggerRef = useRef<HTMLButtonElement>(null);
   const { bursting, burst } = useParticleBurst(700);
+  const { bursting: sparkling, burst: sparkle } = useParticleBurst(1000);
+  const reduce = useReducedMotion();
+  // The trigger twinkles periodically to advertise itself, and retires the
+  // moment it has been used once. Nagging past the first click is just noise.
+  const [everClicked, setEverClicked] = useState(false);
+
+  useEffect(() => {
+    if (everClicked || reduce) return;
+    const id = setInterval(sparkle, 2800);
+    return () => clearInterval(id);
+  }, [everClicked, reduce, sparkle]);
   const setActive = (next: boolean) => {
     setUncontrolled(next);
     onOpenChange?.(next);
@@ -59,6 +70,17 @@ export function AnimatedActionCluster({
   const trigger = (
     <MagneticButton distance={0.5} className="shrink-0">
       {bursting && <SuccessParticles anchorRef={triggerRef} />}
+      {/* Gentler than the click burst: fewer, smaller, shorter throw. */}
+      {sparkling && !bursting && (
+        <SuccessParticles
+          anchorRef={triggerRef}
+          count={5}
+          minRadius={14}
+          spread={14}
+          duration={1}
+          sizeClass="w-1.5 h-1.5"
+        />
+      )}
       <motion.button
         ref={triggerRef}
         type="button"
@@ -67,6 +89,7 @@ export function AnimatedActionCluster({
         // and layout animation tweened it across that gap: it visibly shot left
         // before settling back at the right.
         onClick={() => {
+          setEverClicked(true);
           burst();
           setActive(!active);
         }}
