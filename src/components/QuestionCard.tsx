@@ -1,8 +1,8 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import type { Question } from "@/data/questions";
 import { PressDepth } from "@/components/ui/press-depth";
 import { cn } from "@/lib/utils";
-import { useMathJaxTypeset } from "@/lib/useMathJaxTypeset";
+import { MathHtml } from "@/components/ui/math-html";
 import { useIsDark } from "@/lib/useIsDark";
 import { SpotlightCard } from "@/components/ui/spotlight-card";
 import { TiltCard } from "@/components/ui/be-ui-tilt-card";
@@ -43,9 +43,7 @@ export function QuestionCard({
     onOpenChange?.(!open);
   };
 
-  const bodyRef = useRef<HTMLDivElement>(null);
   const isDark = useIsDark();
-  useMathJaxTypeset([open, selected], bodyRef);
 
   if (!isActive) return null;
 
@@ -55,7 +53,7 @@ export function QuestionCard({
   );
 
   const body = (
-    <div ref={bodyRef}>
+    <div>
       <button
         onClick={toggle}
         aria-expanded={open}
@@ -66,7 +64,10 @@ export function QuestionCard({
             Question {num}
             {item.mc ? " · Multiple Choice" : ""}
           </span>
-          <h3 className="font-semibold text-gray-800 dark:text-stone-200 leading-tight">{item.q}</h3>
+          <MathHtml
+            html={item.q}
+            className="font-semibold text-gray-800 dark:text-stone-200 leading-tight"
+          />
         </div>
         <svg
           className={cn("w-5 h-5 text-gray-400 dark:text-stone-500 shrink-0 mt-1 transition-transform", open && "rotate-180")}
@@ -99,14 +100,14 @@ export function QuestionCard({
                 ))}
               </div>
               {selected !== null && (
-                <p
+                <MathHtml
+                  html={item.a}
                   className="text-gray-800 dark:text-stone-300 leading-relaxed mt-4 pt-4 border-t border-indigo-100 dark:border-stone-800"
-                  dangerouslySetInnerHTML={{ __html: item.a }}
                 />
               )}
             </>
           ) : (
-            <p className="text-gray-800 dark:text-stone-300 leading-relaxed" dangerouslySetInnerHTML={{ __html: item.a }} />
+            <MathHtml html={item.a} className="text-gray-800 dark:text-stone-300 leading-relaxed" />
           )}
 
           <div className="mt-4 pt-4 border-t border-indigo-100 dark:border-stone-800 flex flex-wrap gap-2 items-center">

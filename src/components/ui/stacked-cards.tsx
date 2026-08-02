@@ -31,8 +31,8 @@ export type StackedCardsProps = {
   vhPerCard?: number;
   /** Pixels each card is offset down from the one before, showing the stack edge. */
   peek?: number;
-  /** Smallest a card may shrink to, so late cards stay readable. */
-  minScale?: number;
+  /** How many cards stay visible behind the current one before retiring. */
+  depth?: number;
   /** Alternate a slight tilt per card, the fanned flavour of the reference. */
   rotate?: boolean;
   className?: string;
@@ -43,7 +43,7 @@ function StackedCard({
   count,
   progress,
   peek,
-  minScale,
+  depth,
   rotate,
   children,
 }: {
@@ -51,23 +51,30 @@ function StackedCard({
   count: number;
   progress: ReturnType<typeof useScroll>["scrollYProgress"];
   peek: number;
-  minScale: number;
+  depth: number;
   rotate: boolean;
   children: ReactNode;
 }) {
-  // Each card starts shrinking when the stack reaches it and finishes at the end.
-  const start = count > 1 ? index / count : 0;
-  // Cards deeper in the stack end up smaller, floored so they stay legible.
-  const targetScale = Math.max(minScale, 1 - (count - index - 1) * 0.015);
-  const scale = useTransform(progress, [start, 1], [1, targetScale]);
+  const span = count > 1 ? 1 / count : 1;
+  const start = index * span;
+  // Once `depth` more cards have stacked on top, this one has done its job.
+  const retireAt = Math.min(1, start + span * depth);
+
+  // Shrink and fade out over its retirement window rather than piling up
+  // forever, which pushed the live card further down the screen with every
+  // card passed.
+  const scale = useTransform(progress, [start, retireAt], [1, 0.9]);
+  const opacity = useTransform(progress, [start, retireAt], [1, 0]);
   const tilt = rotate ? (index % 2 === 0 ? -1.2 : 1.2) : 0;
 
   return (
     <div
       className="sticky flex justify-center"
-      style={{ top: `calc(6rem + ${index * peek}px)` }}
+      // Offsets cycle within the depth window, so the visible stack edge stays
+      // a few pixels deep instead of marching down the page.
+      style={{ top: `calc(6rem + ${(index % depth) * peek}px)` }}
     >
-      <motion.div style={{ scale, rotate: tilt }} className="w-full origin-top">
+      <motion.div style={{ scale, opacity, rotate: tilt }} className="w-full origin-top">
         {children}
       </motion.div>
     </div>
@@ -78,7 +85,7 @@ export function StackedCards({
   children,
   vhPerCard = 18,
   peek = 8,
-  minScale = 0.86,
+  depth = 5,
   rotate = false,
   className,
 }: StackedCardsProps) {
@@ -99,9 +106,10 @@ export function StackedCards({
     <div
       ref={container}
       className={cn("relative", className)}
-      // The stack needs real scroll distance to pin against, one screenful-ish
-      // per card, plus a tail so the last card can settle.
-      style={{ minHeight: `${children.length * vhPerCard + 40}vh` }}
+      // Scroll distance for the stack to pin against. The tail is deliberately
+      // short: a long one leaves empty space below the last card that you have
+      // to scroll back up through, which felt like getting caught at the bottom.
+      style={{ minHeight: `${children.length * vhPerCard + 10}vh` }}
     >
       {children.map((child, i) => (
         <StackedCard
@@ -110,7 +118,7 @@ export function StackedCards({
           count={children.length}
           progress={scrollYProgress}
           peek={peek}
-          minScale={minScale}
+          depth={depth}
           rotate={rotate}
         >
           {child}

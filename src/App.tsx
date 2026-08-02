@@ -49,7 +49,7 @@ function QuoteSurface({ children }: { children: React.ReactNode }) {
     <TiltCard
       max={6}
       glareColor={isDark ? "rgba(255,255,255,0.9)" : "rgba(99,102,241,0.7)"}
-      className="max-w-xl mx-auto mt-5 rounded-2xl"
+      className="rounded-2xl"
     >
       {children}
     </TiltCard>
@@ -487,17 +487,9 @@ export default function App() {
           />
 
           {active && (
+            <div className="relative max-w-xl mx-auto mt-8">
             <QuoteSurface>
             <figure className="bg-white dark:bg-stone-900 border border-slate-200 dark:border-stone-800 rounded-2xl shadow-sm px-6 py-5 relative">
-              {/* Sits inside the box on purpose: the tilt wrapper clips with
-                  overflow-hidden, so a glyph hanging above the top edge simply
-                  disappeared. */}
-              <span
-                aria-hidden
-                className="absolute left-4 top-1 text-5xl leading-none font-serif text-indigo-200 dark:text-indigo-400/40 select-none"
-              >
-                &ldquo;
-              </span>
               <blockquote className="text-slate-700 dark:text-stone-300 text-base leading-relaxed text-center">
                 {active.quote}
               </blockquote>
@@ -515,6 +507,16 @@ export default function App() {
               </figcaption>
             </figure>
             </QuoteSurface>
+            {/* Sibling of the tilt wrapper, not a child: that wrapper clips with
+                overflow-hidden, so anything hanging over the top edge would be
+                cut off. Centred on the border so it slices the glyph in half. */}
+            <span
+              aria-hidden
+              className="pointer-events-none absolute left-7 top-0 z-20 -translate-y-1/2 text-7xl leading-none font-serif text-indigo-300 dark:text-indigo-400/60 select-none"
+            >
+              &ldquo;
+            </span>
+            </div>
           )}
           <p className="text-center text-xs text-slate-400 dark:text-stone-500 mt-3">(these are fake testimonials)</p>
         </div>
@@ -525,7 +527,7 @@ export default function App() {
           <p className="playful-face mt-6 mx-auto max-w-xl text-lg leading-relaxed text-slate-600 dark:text-stone-300">
             Thank you for visiting [Website Name]! I appreciate your time and interest in
             my work! If you have any questions, please feel free to reach out through my
-            feedback form on the right <span aria-hidden>&rarr;</span>!
+            feedback form on the right (<span aria-hidden>&rarr;</span>)!
           </p>
 
           <a
