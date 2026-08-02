@@ -12,6 +12,7 @@ import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { HeroTitle } from "@/components/ui/hero-title";
 import { ScrollTiltedGrid } from "@/components/ui/scroll-tilted-grid";
 import { StackedCards } from "@/components/ui/stacked-cards";
+import { GooeyTogglePair, type ToggleVisibility } from "@/components/ui/gooey-toggle-pair";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
 import { SnapCarousel } from "@/components/ui/snap-carousel";
 import { TiltCard } from "@/components/ui/be-ui-tilt-card";
@@ -121,6 +122,19 @@ export default function App() {
       return (status[i + 1] ?? "none") !== "green";
     });
   }, [orderedIdx, filter, status]);
+
+  /**
+   * Which of Expand All / Collapse All still does anything, read off the cards
+   * rather than off the last button pressed. Opening the final card by hand has
+   * to retire Expand All exactly as clicking it would, and the filter can change
+   * which cards count without either button being touched.
+   */
+  const toggleVisibility: ToggleVisibility = useMemo(() => {
+    const open = visibleIdx.filter((i) => openMap[i + 1]).length;
+    if (open === 0) return "expand";
+    if (open === visibleIdx.length) return "collapse";
+    return "both";
+  }, [visibleIdx, openMap]);
 
   const counts = useMemo(() => {
     const c = { red: 0, yellow: 0, green: 0 };
@@ -359,21 +373,27 @@ export default function App() {
                 onOpenChange={setToolsOpen}
               >
               {[
-                ...([
-                  {
+                // Whichever of these two has nothing left to do merges into the
+                // other, so the toolbar never offers a button that is a no-op.
+                <GooeyTogglePair
+                  key="expand-collapse"
+                  show={toggleVisibility}
+                  expand={{
                     title: "Expand All",
                     icon: <ChevronsUpDown />,
                     onClick: () => toggleAll(true),
                     gradientFrom: "#4f46e5",
                     gradientTo: "#6366f1",
-                  },
-                  {
+                  }}
+                  collapse={{
                     title: "Collapse All",
                     icon: <ChevronsDownUp />,
                     onClick: () => toggleAll(false),
                     gradientFrom: "#475569",
                     gradientTo: "#64748b",
-                  },
+                  }}
+                />,
+                ...([
                   {
                     title: shuffled ? "Unshuffle" : "Shuffle",
                     icon: <Shuffle />,
@@ -509,10 +529,16 @@ export default function App() {
             </QuoteSurface>
             {/* Sibling of the tilt wrapper, not a child: that wrapper clips with
                 overflow-hidden, so anything hanging over the top edge would be
-                cut off. Centred on the border so it slices the glyph in half. */}
+                cut off.
+
+                The offset is deliberately not -50%. A quote mark's ink sits high
+                in its line box (measured: rows 7 to 26 of a 72px box), so
+                centring the box left the whole glyph floating a good 19px clear
+                of the card. 0.23em is where the ink itself straddles the border,
+                which is what makes it read as popping out of the edge. */}
             <span
               aria-hidden
-              className="pointer-events-none absolute left-7 top-0 z-20 -translate-y-1/2 text-7xl leading-none font-serif text-indigo-300 dark:text-indigo-400/60 select-none"
+              className="pointer-events-none absolute left-7 top-0 z-20 -translate-y-[0.23em] text-7xl leading-none font-serif text-indigo-300 dark:text-indigo-400/60 select-none"
             >
               &ldquo;
             </span>

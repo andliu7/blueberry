@@ -77,16 +77,24 @@ const MOTIFS: Record<ArtMotif, string> = {
    * methyl Grignard. Deliberately just the structures. Curly arrows, partial
    * charges and lone pairs all crowded the hero, where this sits large and faint
    * behind the title and is meant to be read at a glance, not studied.
+   *
+   * The carbonyl carbon is properly trigonal planar: substituents 120 degrees
+   * off the C=O rather than one hanging straight down. Each fragment carries its
+   * own small rotation so the two read as drifting past each other.
    */
   attack: `
-    <g stroke="#fff" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity=".92">
-      <path d="M150 104v40M164 104v40" stroke-width="5"/>
-      <path d="M157 148 200 176" stroke-width="5"/>
-      <path d="M157 148 157 200" stroke-width="5"/>
-      <path d="M76 176 116 176" stroke-width="5"/>
+    <g transform="rotate(-7 157 148)">
+      <g stroke="#fff" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity=".92">
+        <path d="M150 104v40M164 104v40" stroke-width="5"/>
+        <path d="M157 148 200 173" stroke-width="5"/>
+        <path d="M157 148 114 173" stroke-width="5"/>
+      </g>
+      <text x="157" y="90" font-family="Georgia, serif" font-size="36" fill="#fff" text-anchor="middle" opacity=".92">O</text>
     </g>
-    <text x="157" y="90" font-family="Georgia, serif" font-size="36" fill="#fff" text-anchor="middle" opacity=".92">O</text>
-    <text x="70" y="185" font-family="Georgia, serif" font-size="26" fill="#fff" text-anchor="end" opacity=".9">MgBr</text>`,
+    <g transform="rotate(-15 86 206)">
+      <path d="M66 206 106 206" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".92"/>
+      <text x="60" y="215" font-family="Georgia, serif" font-size="26" fill="#fff" text-anchor="end" opacity=".9">MgBr</text>
+    </g>`,
 
   /** Friendly flask, for when the page should not take itself too seriously. */
   mascot: `
