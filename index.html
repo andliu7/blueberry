@@ -26,6 +26,10 @@
   .opt-btn.disabled { pointer-events: none; }
   .filter-btn.active { background-color: #EEF2FF; color: #4338CA; }
 
+  /* satisfying tactile press */
+  button { transition: transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.12s ease; }
+  button:active:not(:disabled) { transform: scale(0.94) translateY(1px); }
+
   /* sticky note */
   #sticky-note { position: fixed; width: 260px; background: rgba(253, 224, 71, 0.88); border: 1px solid rgba(202, 138, 4, 0.4); box-shadow: 0 8px 24px rgba(0,0,0,0.18); border-radius: 6px; z-index: 50; }
   #sticky-note-handle { cursor: grab; }
@@ -73,7 +77,11 @@
         <div class="flex items-center gap-1.5">
           <button onclick="toggleAll(true)" class="bg-indigo-600 text-white px-3 py-1.5 rounded-lg shadow-sm hover:bg-indigo-700 transition font-semibold text-sm">Expand All</button>
           <button onclick="toggleAll(false)" class="bg-white border border-slate-200 text-slate-600 px-3 py-1.5 rounded-lg shadow-sm hover:bg-slate-50 transition font-semibold text-sm">Collapse All</button>
-          <button onclick="resetProgress()" class="bg-white border border-slate-200 text-red-500 px-3 py-1.5 rounded-lg shadow-sm hover:bg-red-50 transition font-semibold text-sm">Reset</button>
+          <button id="reset-btn" class="relative overflow-hidden bg-white border border-slate-200 text-red-500 px-3 py-1.5 rounded-lg shadow-sm hover:bg-red-50 transition font-semibold text-sm select-none" aria-describedby="reset-hint">
+            <span id="reset-fill" class="absolute inset-y-0 left-0 bg-red-200/70" style="width:0%"></span>
+            <span id="reset-label" class="relative z-10">Hold to Reset</span>
+          </button>
+          <span id="reset-hint" class="sr-only">Press and hold for one second to clear all saved ratings and notes.</span>
         </div>
       </div>
       <p id="filter-hint" class="hidden text-xs text-indigo-600 mt-2">Showing only questions marked <span class="font-semibold">Review</span>, <span class="font-semibold">Almost</span>, or not yet rated.</p>
@@ -191,6 +199,28 @@ const questions = [
 const container = document.getElementById('question-list');
 const status = {};
 let currentFilter = 'all';
+
+/* --- Satisfying synthesized click (no audio file needed) --- */
+let audioCtx = null;
+function playClick(strong) {
+  try {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = 'square';
+    o.frequency.value = strong ? 620 : 950;
+    g.gain.setValueAtTime(strong ? 0.07 : 0.045, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + (strong ? 0.09 : 0.045));
+    o.connect(g);
+    g.connect(audioCtx.destination);
+    o.start();
+    o.stop(audioCtx.currentTime + 0.1);
+  } catch (e) { /* audio unavailable, ignore */ }
+}
+document.addEventListener('click', (e) => {
+  if (e.target.closest('button')) playClick(false);
+});
 
 questions.forEach((item, index) => {
   const num = index + 1;
@@ -382,8 +412,7 @@ function loadProgress() {
   } catch (e) { /* corrupted or unavailable, ignore */ }
 }
 
-function resetProgress() {
-  if (!confirm('Clear all saved ratings and notes? This can\'t be undone.')) return;
+function doReset() {
   try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
   Object.keys(status).forEach(k => delete status[k]);
   document.querySelectorAll('.question-card').forEach(card => {
@@ -396,6 +425,48 @@ function resetProgress() {
   updateCounters();
   applyFilter();
 }
+
+/* --- Hold-to-confirm Reset button --- */
+(function setupHoldReset() {
+  const btn = document.getElementById('reset-btn');
+  const fill = document.getElementById('reset-fill');
+  const label = document.getElementById('reset-label');
+  const DURATION = 1000;
+  let holding = false, start = null, raf = null;
+
+  function step(ts) {
+    if (!holding) return;
+    if (start === null) start = ts;
+    const pct = Math.min(100, ((ts - start) / DURATION) * 100);
+    fill.style.width = pct + '%';
+    if (pct >= 100) {
+      holding = false;
+      label.textContent = 'Reset!';
+      doReset();
+      playClick(true);
+      setTimeout(() => { fill.style.width = '0%'; label.textContent = 'Hold to Reset'; }, 700);
+      return;
+    }
+    raf = requestAnimationFrame(step);
+  }
+  function begin(e) {
+    e.preventDefault();
+    holding = true; start = null;
+    label.textContent = 'Keep holding...';
+    raf = requestAnimationFrame(step);
+  }
+  function cancel() {
+    if (!holding) return;
+    holding = false;
+    cancelAnimationFrame(raf);
+    fill.style.width = '0%';
+    label.textContent = 'Hold to Reset';
+  }
+  btn.addEventListener('pointerdown', begin);
+  btn.addEventListener('pointerup', cancel);
+  btn.addEventListener('pointerleave', cancel);
+  btn.addEventListener('pointercancel', cancel);
+})();
 
 /* --- Sticky note (draggable, in-memory only) --- */
 const note = document.getElementById('sticky-note');
