@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence } from "motion/react";
-import { ChevronsUpDown, ChevronsDownUp, Shuffle, GalleryHorizontalEnd, List, MoveVertical, MessageSquare } from "lucide-react";
+import { ChevronsUpDown, ChevronsDownUp, Shuffle, GalleryHorizontalEnd, List, MoveVertical, MessageSquare, ArrowDownToLine } from "lucide-react";
 import { FeedbackWidget } from "@/components/ui/feedback-widget";
 import { questions } from "@/data/questions";
 import { testimonials, testimonialArt } from "@/data/testimonials";
@@ -10,7 +10,6 @@ import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import BoldOnHover from "@/components/ui/bold-on-hover";
 import { ScrollTiltedGrid } from "@/components/ui/scroll-tilted-grid";
 import { TiltCard } from "@/components/ui/be-ui-tilt-card";
-import { SpotlightCard } from "@/components/ui/spotlight-card";
 import { useIsDark } from "@/lib/useIsDark";
 import { QuestionCard, type Status } from "@/components/QuestionCard";
 import { PressDepth } from "@/components/ui/press-depth";
@@ -23,20 +22,32 @@ import { useMathJaxTypeset } from "@/lib/useMathJaxTypeset";
 
 const STORAGE_KEY = "grignard_lcta_progress_v1";
 const FEEDBACK_KEY = "grignard_lcta_feedback_v1";
+const FEEDBACK_ENDPOINT = import.meta.env.VITE_FEEDBACK_ENDPOINT as string | undefined;
+
+const VIEW_LABEL = { list: "List", carousel: "Carousel", scroll: "Scroll" } as const;
+const VIEW_ICON = {
+  list: <List />,
+  carousel: <GalleryHorizontalEnd />,
+  scroll: <MoveVertical />,
+} as const;
 const diffRank: Record<Status, number> = { red: 0, yellow: 1, none: 2, green: 3 };
 
 
-/** The quote card gets the same theme-split treatment as the question cards. */
+/**
+ * The quote card tilts in both themes. Only the glare changes: white reads as a
+ * sheen on a dark card but washes out a pale one, so light mode gets an indigo
+ * tint instead.
+ */
 function QuoteSurface({ children }: { children: React.ReactNode }) {
   const isDark = useIsDark();
-  return isDark ? (
-    <TiltCard max={6} className="max-w-xl mx-auto mt-5 rounded-2xl">
+  return (
+    <TiltCard
+      max={6}
+      glareColor={isDark ? "rgba(255,255,255,0.9)" : "rgba(99,102,241,0.7)"}
+      className="max-w-xl mx-auto mt-5 rounded-2xl"
+    >
       {children}
     </TiltCard>
-  ) : (
-    <SpotlightCard spotlightColor="#6366f13d" className="max-w-xl mx-auto mt-5 rounded-2xl">
-      {children}
-    </SpotlightCard>
   );
 }
 
@@ -63,6 +74,7 @@ export default function App() {
   const [order, setOrder] = useState<"number" | "hard-first" | "easy-first">("number");
   const [orderedIdx, setOrderedIdx] = useState<number[]>(questions.map((_, i) => i));
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [shuffled, setShuffled] = useState(false);
   const [view, setView] = useState<"list" | "carousel" | "scroll">("list");
   const carouselMode = view === "carousel";
   const [carouselIndex, setCarouselIndex] = useState(0);
@@ -121,7 +133,12 @@ export default function App() {
     }
   }
 
-  function shuffle() {
+  /** Shuffles, or puts the questions back in number order if already shuffled. */
+  function toggleShuffle() {
+    if (shuffled) {
+      applyOrder("number");
+      return;
+    }
     const rest = orderedIdx.filter((i) => i !== mcIdx);
     for (let i = rest.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -130,10 +147,21 @@ export default function App() {
     setOrder("number");
     setOrderedIdx(mcIdx >= 0 ? [...rest, mcIdx] : rest);
     setCarouselIndex(0);
+    setShuffled(true);
+  }
+
+  const VIEWS = ["list", "carousel", "scroll"] as const;
+  function cycleView() {
+    setView((v) => VIEWS[(VIEWS.indexOf(v) + 1) % VIEWS.length]);
+  }
+
+  function jumpToBottom() {
+    window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
   }
 
   function applyOrder(mode: typeof order) {
     setOrder(mode);
+    setShuffled(false);
     const rest = orderedIdx.filter((i) => i !== mcIdx);
     if (mode === "number") {
       rest.sort((a, b) => a - b);
@@ -158,17 +186,37 @@ export default function App() {
     setOpenMap(next);
   }
 
-  // There is no backend here, so feedback is appended to localStorage under
-  // FEEDBACK_KEY. Nothing is transmitted anywhere.
+  /**
+   * Keeps a local copy always, and additionally POSTs to VITE_FEEDBACK_ENDPOINT
+   * when one is configured. With no endpoint set nothing leaves the browser, so
+   * a default checkout transmits nothing.
+   */
   async function saveFeedback(entry: { rating: "helpful" | "not-helpful"; comment: string }) {
+    const record = { ...entry, at: new Date().toISOString() };
+
     try {
       const raw = localStorage.getItem(FEEDBACK_KEY);
       const all = raw ? JSON.parse(raw) : [];
-      all.push({ ...entry, at: new Date().toISOString() });
+      all.push(record);
       localStorage.setItem(FEEDBACK_KEY, JSON.stringify(all));
     } catch {
       /* ignore */
     }
+
+    if (FEEDBACK_ENDPOINT) {
+      try {
+        await fetch(FEEDBACK_ENDPOINT, {
+          method: "POST",
+          // text/plain keeps this a simple request. Apps Script web apps do not
+          // answer the CORS preflight that application/json would trigger.
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(record),
+        });
+      } catch {
+        /* the local copy above is the fallback */
+      }
+    }
+
     setFeedbackOpen(false);
   }
 
@@ -264,53 +312,60 @@ export default function App() {
                 </select>
               </div>
             </div>
-          </div>
 
-          {/* Row 2 — what you can do. Reset lives at the end of the question
-              list, well away from the controls you reach for constantly. */}
-          <div className="flex flex-wrap items-center gap-2.5 mt-2.5">
             <AnimatedActionCluster label="tools">
-              {([
-                {
-                  title: "Expand All",
-                  icon: <ChevronsUpDown />,
-                  onClick: () => toggleAll(true),
-                  gradientFrom: "#4f46e5",
-                  gradientTo: "#6366f1",
-                },
-                {
-                  title: "Collapse All",
-                  icon: <ChevronsDownUp />,
-                  onClick: () => toggleAll(false),
-                  gradientFrom: "#475569",
-                  gradientTo: "#64748b",
-                },
-                {
-                  title: "Shuffle",
-                  icon: <Shuffle />,
-                  onClick: shuffle,
-                  gradientFrom: "#0f766e",
-                  gradientTo: "#0e7490",
-                },
-                {
-                  title: carouselMode ? "List View" : "Carousel",
-                  icon: carouselMode ? <List /> : <GalleryHorizontalEnd />,
-                  onClick: () => setView((v) => (v === "carousel" ? "list" : "carousel")),
-                  gradientFrom: "#b45309",
-                  gradientTo: "#d97706",
-                  active: carouselMode,
-                },
-                {
-                  title: view === "scroll" ? "List View" : "Scroll",
-                  icon: view === "scroll" ? <List /> : <MoveVertical />,
-                  onClick: () => setView((v) => (v === "scroll" ? "list" : "scroll")),
-                  gradientFrom: "#7c3aed",
-                  gradientTo: "#a855f7",
-                  active: view === "scroll",
-                },
-              ] as GradientMenuItem[]).map((item) => (
-                <GradientMenuButton key={item.title} {...item} />
-              ))}
+              {[
+                ...([
+                  {
+                    title: "Expand All",
+                    icon: <ChevronsUpDown />,
+                    onClick: () => toggleAll(true),
+                    gradientFrom: "#4f46e5",
+                    gradientTo: "#6366f1",
+                  },
+                  {
+                    title: "Collapse All",
+                    icon: <ChevronsDownUp />,
+                    onClick: () => toggleAll(false),
+                    gradientFrom: "#475569",
+                    gradientTo: "#64748b",
+                  },
+                  {
+                    title: shuffled ? "Unshuffle" : "Shuffle",
+                    icon: <Shuffle />,
+                    onClick: toggleShuffle,
+                    gradientFrom: "#0f766e",
+                    gradientTo: "#0e7490",
+                    active: shuffled,
+                  },
+                  // One control cycles List -> Carousel -> Scroll.
+                  {
+                    title: VIEW_LABEL[view],
+                    icon: VIEW_ICON[view],
+                    onClick: cycleView,
+                    gradientFrom: "#7c3aed",
+                    gradientTo: "#a855f7",
+                    active: view !== "list",
+                  },
+                  {
+                    title: "To Bottom",
+                    icon: <ArrowDownToLine />,
+                    onClick: jumpToBottom,
+                    gradientFrom: "#b45309",
+                    gradientTo: "#d97706",
+                  },
+                ] as GradientMenuItem[]).map((item) => (
+                  <GradientMenuButton key={item.title} {...item} />
+                )),
+                <ButtonHoldAndRelease
+                  key="reset"
+                  onConfirm={doReset}
+                  holdDuration={1200}
+                  label="Reset"
+                  holdingLabel="Hold…"
+                  className="min-w-0 h-9 px-3"
+                />,
+              ]}
             </AnimatedActionCluster>
           </div>
 
@@ -343,6 +398,9 @@ export default function App() {
           </div>
         )}
 
+        {/* Header spans the wider shell so the title is not cramped; the reading
+            column below comes back in to a comfortable measure. */}
+        <div className="max-w-3xl mx-auto">
         {view === "scroll" ? (
           <ScrollTiltedGrid className="gap-[14vh] py-[12vh]">
             {visibleIdx.map((qi) => (
@@ -373,12 +431,6 @@ export default function App() {
           ))}
         </div>
         )}
-
-        {/* End of the question list — out of the way of everyday controls, but
-            reachable without hunting in a corner. */}
-        <div className="mt-8 flex justify-center">
-          <ButtonHoldAndRelease onConfirm={doReset} holdDuration={1200} />
-        </div>
 
         {reviewed === questions.length && (
           <div className="mt-6 text-center bg-indigo-50 dark:bg-indigo-400/10 border border-indigo-200 dark:border-indigo-500/30 rounded-lg p-6">
@@ -433,6 +485,7 @@ export default function App() {
         <footer className="mt-12 text-center text-gray-500 dark:text-stone-400 text-sm">
           <p>Ready for the LCTA! Remember: Anhydrous = Dry Reaction | Regular = Wet Workup.</p>
         </footer>
+        </div>
       </div>
 
       <button

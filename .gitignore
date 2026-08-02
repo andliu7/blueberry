@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Local env (may contain endpoint URLs)
+.env
+.env.local
+.env.*.local
