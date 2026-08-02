@@ -12,10 +12,11 @@ import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { HeroTitle } from "@/components/ui/hero-title";
 import { ScrollTiltedGrid } from "@/components/ui/scroll-tilted-grid";
 import { StackedCards } from "@/components/ui/stacked-cards";
+import { ScrollToTop } from "@/components/ui/scroll-to-top";
+import { SnapCarousel } from "@/components/ui/snap-carousel";
 import { TiltCard } from "@/components/ui/be-ui-tilt-card";
 import { useIsDark } from "@/lib/useIsDark";
 import { QuestionCard, type Status } from "@/components/QuestionCard";
-import { PressDepth } from "@/components/ui/press-depth";
 import { ButtonHoldAndRelease } from "@/components/ui/hold-and-release-button";
 import SocialCards from "@/components/ui/card-fan-carousel";
 import { StickyNote } from "@/components/StickyNote";
@@ -248,6 +249,19 @@ export default function App() {
     }
   }
 
+  /** Every view renders the same card; only the container differs. */
+  const renderCard = (qi: number) => (
+    <QuestionCard
+      key={qi}
+      num={qi + 1}
+      item={questions[qi]}
+      status={status[qi + 1] ?? "none"}
+      onRate={(color) => rate(qi + 1, color)}
+      open={openMap[qi + 1] ?? false}
+      onOpenChange={(o) => setOpenMap((m) => ({ ...m, [qi + 1]: o }))}
+    />
+  );
+
   const active = testimonials[tIndex];
   // Stable identity: a fresh array here would restart the fan's entry animation
   // on every render of this component.
@@ -422,67 +436,33 @@ export default function App() {
           </div>
         </div>
 
-        {carouselMode && (
-          <div className="flex items-center justify-center gap-4 mb-4">
-            <PressDepth depth={2} className="!h-9 !w-9 !rounded-full !px-0" onClick={() => setCarouselIndex((i) => i - 1)}>
-              ‹
-            </PressDepth>
-            <span className="font-mono text-sm text-slate-500 dark:text-stone-400">
-              {carouselTotal ? safeCarouselIndex + 1 : 0} / {carouselTotal}
-            </span>
-            <PressDepth depth={2} className="!h-9 !w-9 !rounded-full !px-0" onClick={() => setCarouselIndex((i) => i + 1)}>
-              ›
-            </PressDepth>
-          </div>
-        )}
 
         {/* Header spans the wider shell so the title is not cramped; the reading
             column below comes back in to a comfortable measure. */}
         <div className="max-w-3xl mx-auto">
+        {/* One card definition for all four views. Previously each branch
+            repeated the same eight props, so a change to any of them had to be
+            made in three places. */}
         {view === "scroll" ? (
           <ScrollTiltedGrid className="gap-[14vh] py-[12vh]">
-            {visibleIdx.map((qi) => (
-              <QuestionCard
-                key={qi}
-                num={qi + 1}
-                item={questions[qi]}
-                status={status[qi + 1] ?? "none"}
-                onRate={(color) => rate(qi + 1, color)}
-                open={openMap[qi + 1] ?? false}
-                onOpenChange={(o) => setOpenMap((m) => ({ ...m, [qi + 1]: o }))}
-              />
-            ))}
+            {visibleIdx.map(renderCard)}
           </ScrollTiltedGrid>
         ) : view === "stack" ? (
-          <StackedCards>
-            {visibleIdx.map((qi) => (
-              <QuestionCard
-                key={qi}
-                num={qi + 1}
-                item={questions[qi]}
-                status={status[qi + 1] ?? "none"}
-                onRate={(color) => rate(qi + 1, color)}
-                open={openMap[qi + 1] ?? false}
-                onOpenChange={(o) => setOpenMap((m) => ({ ...m, [qi + 1]: o }))}
-              />
-            ))}
-          </StackedCards>
+          <StackedCards>{visibleIdx.map(renderCard)}</StackedCards>
+        ) : view === "carousel" ? (
+          <SnapCarousel
+            label="Questions"
+            index={safeCarouselIndex}
+            onIndexChange={setCarouselIndex}
+          >
+            {visibleIdx.map(renderCard)}
+          </SnapCarousel>
         ) : (
-        <div className="space-y-4">
-          {visibleIdx.map((qi, pos) => (
-            <QuestionCard
-              key={qi}
-              num={qi + 1}
-              item={questions[qi]}
-              status={status[qi + 1] ?? "none"}
-              onRate={(color) => rate(qi + 1, color)}
-              isActive={!carouselMode || pos === safeCarouselIndex}
-              open={openMap[qi + 1] ?? false}
-              onOpenChange={(o) => setOpenMap((m) => ({ ...m, [qi + 1]: o }))}
-            />
-          ))}
-        </div>
+          <div className="space-y-4">{visibleIdx.map(renderCard)}</div>
         )}
+
+        {/* End of the cards, bottom right. */}
+        <ScrollToTop className="mt-6" />
 
         {reviewed === questions.length && (
           <div className="mt-6 text-center bg-indigo-50 dark:bg-indigo-400/10 border border-indigo-200 dark:border-indigo-500/30 rounded-lg p-6">

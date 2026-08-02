@@ -22,22 +22,37 @@ import { cn } from "@/lib/utils";
 export type HeroVariant = "art" | "ghost";
 
 /**
- * A single large motif at the right edge. Four scattered pieces read as busy and
- * crowded the title; one keeps the left half clear for the words.
+ * The right edge carries the reaction this lab actually performs, a Grignard
+ * adding to a carbonyl, rather than a generic benzene ring. The mascot tucks
+ * into the corner as a small joke.
  */
-const ART_LAYOUT: { motif: ArtMotif; className: string }[] = [
+const ART_LAYOUT: { motif: ArtMotif; className: string; opacity: string }[] = [
   {
-    motif: "benzene",
-    className: "right-[-6%] md:right-[2%] top-1/2 -translate-y-1/2 w-72 md:w-[26rem] rotate-6",
+    motif: "attack",
+    className: "right-[-4%] md:right-[3%] top-1/2 -translate-y-1/2 w-72 md:w-[24rem]",
+    opacity: "text-indigo-500/20 dark:text-amber-200/15",
+  },
+  {
+    motif: "mascot",
+    className: "left-[2%] bottom-[4%] w-24 md:w-32 -rotate-6",
+    opacity: "text-indigo-500/15 dark:text-amber-200/12",
   },
 ];
 
-function MotifArt({ motif, className }: { motif: ArtMotif; className: string }) {
+function MotifArt({
+  motif,
+  className,
+  opacity,
+}: {
+  motif: ArtMotif;
+  className: string;
+  opacity: string;
+}) {
   return (
     <svg
       aria-hidden
       viewBox={MOTIF_VIEWBOX}
-      className={cn("absolute text-indigo-500/15 dark:text-amber-200/12", className)}
+      className={cn("absolute", opacity, className)}
       dangerouslySetInnerHTML={{ __html: motifMarkup(motif) }}
     />
   );
@@ -88,7 +103,7 @@ export function HeroTitle({
       {variant === "art" ? (
         <div aria-hidden className="pointer-events-none absolute inset-0 select-none">
           {ART_LAYOUT.map((a) => (
-            <MotifArt key={a.motif} motif={a.motif} className={a.className} />
+            <MotifArt key={a.motif} motif={a.motif} className={a.className} opacity={a.opacity} />
           ))}
         </div>
       ) : (

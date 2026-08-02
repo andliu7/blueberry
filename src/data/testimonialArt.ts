@@ -13,7 +13,9 @@ export type ArtMotif =
   | "reflux"
   | "sepfunnel"
   | "ir"
-  | "nmr";
+  | "nmr"
+  | "attack"
+  | "mascot";
 
 const MOTIFS: Record<ArtMotif, string> = {
   // Erlenmeyer flask, part filled.
@@ -69,6 +71,43 @@ const MOTIFS: Record<ArtMotif, string> = {
     <path d="M26 250h188" stroke="#fff" stroke-width="3.5" stroke-linecap="round" opacity=".3"/>
     <circle cx="96" cy="86" r="6" fill="#fff" opacity=".5"/>
     <circle cx="150" cy="106" r="5" fill="#fff" opacity=".45"/>`,
+
+  /**
+   * The reaction this whole lab is about: the Grignard carbanion attacking the
+   * carbonyl carbon, with the curly arrow, and the carbonyl's own arrow pushing
+   * electrons up onto oxygen.
+   */
+  attack: `
+    <text x="152" y="78" font-family="Georgia, serif" font-size="32" fill="#fff" text-anchor="middle" opacity=".92">O</text>
+    <path d="M146 96v34M158 96v34" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".92"/>
+    <path d="M152 138 206 168" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".92"/>
+    <text x="222" y="182" font-family="Georgia, serif" font-size="24" fill="#fff" text-anchor="middle" opacity=".82">R</text>
+    <path d="M152 138 152 196" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".92"/>
+    <text x="152" y="224" font-family="Georgia, serif" font-size="24" fill="#fff" text-anchor="middle" opacity=".82">R</text>
+    <text x="44" y="196" font-family="Georgia, serif" font-size="28" fill="#fff" text-anchor="middle" opacity=".92">R</text>
+    <path d="M44 208v16" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".7"/>
+    <text x="48" y="252" font-family="Georgia, serif" font-size="21" fill="#fff" text-anchor="middle" opacity=".75">MgX</text>
+    <circle cx="64" cy="176" r="4.5" fill="#fff" opacity=".85"/>
+    <circle cx="76" cy="168" r="4.5" fill="#fff" opacity=".85"/>
+    <path d="M74 160q34 -6 66 -20" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" opacity=".85"/>
+    <path d="M132 132l10 6 -8 7z" fill="#fff" opacity=".85"/>
+    <path d="M168 112q30 -6 26 -34" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" opacity=".8"/>
+    <path d="M188 82l6 -9 6 9z" fill="#fff" opacity=".8"/>
+    <text x="120" y="292" font-family="Georgia, serif" font-size="18" fill="#fff" text-anchor="middle" opacity=".5">carbonyl addition</text>`,
+
+  /** Friendly flask, for when the page should not take itself too seriously. */
+  mascot: `
+    <path d="M100 60v46L64 214q-7 24 18 24h76q25 0 18-24l-36-108V60" fill="none" stroke="#fff" stroke-width="5.5" stroke-linejoin="round" opacity=".92"/>
+    <path d="M92 56h56" stroke="#fff" stroke-width="7.5" stroke-linecap="round" opacity=".92"/>
+    <path d="M82 176h76l8 34q6 22-16 22H90q-22 0-16-22z" fill="#fff" opacity=".3"/>
+    <circle cx="104" cy="196" r="7.5" fill="#fff" opacity=".92"/>
+    <circle cx="140" cy="196" r="7.5" fill="#fff" opacity=".92"/>
+    <path d="M106 214q16 14 32 0" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".92"/>
+    <circle cx="88" cy="210" r="6" fill="#fff" opacity=".35"/>
+    <circle cx="156" cy="210" r="6" fill="#fff" opacity=".35"/>
+    <circle cx="118" cy="150" r="6" fill="#fff" opacity=".5"/>
+    <circle cx="140" cy="132" r="4.5" fill="#fff" opacity=".45"/>
+    <circle cx="104" cy="128" r="3.5" fill="#fff" opacity=".4"/>`,
 };
 
 export const ART_MOTIFS: ArtMotif[] = [
