@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, User } from "lucide-react";
 import { DECKS } from "@/data/decks";
 import {
   DECK_GROUPS,
@@ -15,6 +15,7 @@ import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { GlassCard } from "@/components/ui/glass-card";
 import { DeckSearch } from "@/components/ui/deck-search";
 import { DeckUploadTicket } from "@/components/DeckUploadTicket";
+import { FeedbackButton } from "@/components/FeedbackButton";
 import { matchedDeckIds, type SearchHit } from "@/lib/searchDecks";
 import { reviewedCount } from "@/lib/progress";
 
@@ -49,7 +50,16 @@ export function FolderPage({ groupId }: { groupId: DeckGroupId }) {
       <div className="mx-auto flex max-w-5xl flex-col">
         <div className="flex items-start justify-between gap-4">
           <NavPill items={navItems} activeId="home" />
-          <AnimatedThemeToggler />
+          <div className="flex items-center gap-2">
+            <a
+              href="#/about"
+              className="group inline-flex items-center gap-1.5 rounded-full border border-slate-300/70 bg-white/60 px-3 py-1.5 text-sm font-semibold text-slate-600 backdrop-blur transition-colors hover:text-slate-900 dark:border-stone-700/70 dark:bg-stone-900/50 dark:text-stone-400 dark:hover:text-stone-100"
+            >
+              <User className="h-3.5 w-3.5" />
+              About / Contact
+            </a>
+            <AnimatedThemeToggler />
+          </div>
         </div>
 
         <header className="mt-16 mb-10 max-w-2xl">
@@ -103,8 +113,26 @@ export function FolderPage({ groupId }: { groupId: DeckGroupId }) {
           ))}
         </div>
 
+        {/* Repeated at the foot as well as the head: after scrolling a folder
+            of cards, the link at the top is a long way back up. */}
+        <a
+          href="#/home"
+          className="group mt-12 inline-flex w-fit items-center gap-1.5 self-end text-sm font-bold text-indigo-600 outline-none dark:text-indigo-300"
+        >
+          <ArrowLeft className="h-3.5 w-3.5 transition-transform duration-300 group-hover:-translate-x-1" />
+          <span className="relative">
+            Back to all decks
+            <span
+              aria-hidden
+              className="absolute left-0 -bottom-0.5 h-[2px] w-full origin-left scale-x-0 rounded-full bg-gradient-to-r from-indigo-500 to-fuchsia-500 transition-transform duration-300 ease-out group-hover:scale-x-100"
+            />
+          </span>
+        </a>
+
         <DeckUploadTicket />
       </div>
+
+      <FeedbackButton />
     </main>
   );
 }

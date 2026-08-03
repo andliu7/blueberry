@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, User } from "lucide-react";
 import { DECKS } from "@/data/decks";
 import { deckCount, DECK_GROUPS, type Deck } from "@/data/types";
 
@@ -14,6 +14,7 @@ import { DeckSearch } from "@/components/ui/deck-search";
 import { FolderDeckFan } from "@/components/ui/folder-deck-fan";
 import { matchedDeckIds, type SearchHit } from "@/lib/searchDecks";
 import { DeckUploadTicket } from "@/components/DeckUploadTicket";
+import { FeedbackButton } from "@/components/FeedbackButton";
 import { TiltCard } from "@/components/ui/be-ui-tilt-card";
 import { useIsDark } from "@/lib/useIsDark";
 import { NavPill, type NavPillItem } from "@/components/ui/nav-pill";
@@ -51,7 +52,16 @@ export function HomePage() {
       <div className="mx-auto flex max-w-5xl flex-col">
         <div className="flex items-start justify-between gap-4">
           <NavPill items={navItems} activeId="home" />
-          <AnimatedThemeToggler />
+          <div className="flex items-center gap-2">
+            <a
+              href="#/about"
+              className="group inline-flex items-center gap-1.5 rounded-full border border-slate-300/70 bg-white/60 px-3 py-1.5 text-sm font-semibold text-slate-600 backdrop-blur transition-colors hover:text-slate-900 dark:border-stone-700/70 dark:bg-stone-900/50 dark:text-stone-400 dark:hover:text-stone-100"
+            >
+              <User className="h-3.5 w-3.5" />
+              About / Contact
+            </a>
+            <AnimatedThemeToggler />
+          </div>
         </div>
 
         <header className="mt-16 mb-12 max-w-2xl">
@@ -93,6 +103,8 @@ export function HomePage() {
           </a>
         </footer>
       </div>
+
+      <FeedbackButton />
     </main>
   );
 }

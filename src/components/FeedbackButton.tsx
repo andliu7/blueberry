@@ -1,0 +1,106 @@
+import { useState } from "react";
+import { AnimatePresence } from "motion/react";
+import { MessageSquare } from "lucide-react";
+import { FeedbackWidget } from "@/components/ui/feedback-widget";
+import { GlassFilter, LiquidGlassLayers } from "@/components/ui/liquid-glass-button";
+import { cn } from "@/lib/utils";
+
+/**
+ * The floating feedback button and its panel.
+ *
+ * Lifted out of the study view so the hub and folder pages can carry it too.
+ * It was written inline there, and copying it to two more pages would have
+ * meant three places to change the endpoint or the copy.
+ */
+
+const FEEDBACK_KEY = "grignard_lcta_feedback_v1";
+const FEEDBACK_ENDPOINT = import.meta.env.VITE_FEEDBACK_ENDPOINT as string | undefined;
+
+/**
+ * Keeps a local copy always, and additionally POSTs to VITE_FEEDBACK_ENDPOINT
+ * when one is configured. With no endpoint set nothing leaves the browser, so a
+ * default checkout transmits nothing.
+ */
+export async function saveFeedback(entry: {
+  rating: "helpful" | "not-helpful";
+  comment: string;
+}) {
+  const record = { ...entry, at: new Date().toISOString() };
+
+  try {
+    const raw = localStorage.getItem(FEEDBACK_KEY);
+    const all = raw ? JSON.parse(raw) : [];
+    all.push(record);
+    localStorage.setItem(FEEDBACK_KEY, JSON.stringify(all));
+  } catch {
+    /* ignore */
+  }
+
+  if (FEEDBACK_ENDPOINT) {
+    try {
+      await fetch(FEEDBACK_ENDPOINT, {
+        // text/plain keeps this a simple request. Apps Script web apps do not
+        // answer the CORS preflight that application/json would trigger.
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(record),
+      });
+    } catch {
+      /* the local copy above is the fallback */
+    }
+  }
+}
+
+export function FeedbackButton({
+  title = "How's this study guide?",
+  placeholder = "What would make this more useful?",
+  className,
+}: {
+  title?: string;
+  placeholder?: string;
+  /** Position override. The study pages sit it left of the Notes button. */
+  className?: string;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        // No `relative` here: `fixed` already establishes the containing block
+        // for the glass layers, and setting both lets the cascade decide which
+        // position wins, which previously threw this button off screen.
+        className={cn(
+          "fixed bottom-5 z-40 flex cursor-pointer items-center gap-2 overflow-hidden rounded-full bg-white/60 px-4 py-2 font-bold text-slate-700 shadow-lg transition-transform hover:scale-105 dark:bg-stone-900/50 dark:text-stone-200",
+          className ?? "right-5",
+        )}
+      >
+        <LiquidGlassLayers />
+        <span className="relative z-10 flex items-center gap-2">
+          <MessageSquare className="h-4 w-4" />
+          Feedback
+        </span>
+      </button>
+
+      {/* One instance supplies the filter the glass layers reference. */}
+      <GlassFilter />
+
+      <AnimatePresence>
+        {open && (
+          <FeedbackWidget
+            title={title}
+            placeholder={placeholder}
+            onSubmit={async (entry) => {
+              await saveFeedback(entry);
+              setOpen(false);
+            }}
+            onClose={() => setOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+    </>
+  );
+}
+
+export default FeedbackButton;

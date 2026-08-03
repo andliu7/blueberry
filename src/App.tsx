@@ -11,6 +11,7 @@ import { findDeck } from "@/data/decks";
 import { isReference, DECK_GROUPS, type DeckGroupId, type StudyDeck } from "@/data/types";
 import { ReferenceApp } from "@/components/ReferenceApp";
 import { FolderPage } from "@/components/FolderPage";
+import { AboutPage } from "@/components/AboutPage";
 import { NotFoundPage } from "@/components/ui/404-page-not-found";
 import { testimonials, testimonialArt } from "@/data/testimonials";
 import { GradientMenuButton, type GradientMenuItem } from "@/components/ui/gradient-menu";
@@ -137,6 +138,7 @@ function QuoteSurface({ children }: { children: React.ReactNode }) {
 export default function App() {
   const route = useHashRoute();
   if (route === "home") return <HomePage />;
+  if (route === "about") return <AboutPage />;
 
   if (route.startsWith("folder/")) {
     const gid = route.slice(7) as DeckGroupId;
