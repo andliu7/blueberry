@@ -11,6 +11,7 @@ import { findDeck } from "@/data/decks";
 import { isReference, DECK_GROUPS, type DeckGroupId, type StudyDeck } from "@/data/types";
 import { ReferenceApp } from "@/components/ReferenceApp";
 import { FolderPage } from "@/components/FolderPage";
+import { NotFoundPage } from "@/components/ui/404-page-not-found";
 import { testimonials, testimonialArt } from "@/data/testimonials";
 import { GradientMenuButton, type GradientMenuItem } from "@/components/ui/gradient-menu";
 import { AnimatedActionCluster } from "@/components/ui/floating-action-button";
@@ -156,16 +157,32 @@ function loadSaved(deckId: string): { status?: Record<number, Status>; note?: st
 export default function App() {
   const route = useHashRoute();
   if (route === "home") return <HomePage />;
+
   if (route.startsWith("folder/")) {
     const gid = route.slice(7) as DeckGroupId;
-    // An unknown folder falls back to the hub, same as an unknown deck.
-    return DECK_GROUPS.some((g) => g.id === gid) ? <FolderPage key={gid} groupId={gid} /> : <HomePage />;
+    return DECK_GROUPS.some((g) => g.id === gid) ? (
+      <FolderPage key={gid} groupId={gid} />
+    ) : (
+      <NotFoundPage what="That folder" detail={`#/${route}`} />
+    );
   }
-  const id = route.startsWith("deck/") ? route.slice(5) : route === "" ? "grignard" : "";
+
+  // The bare URL is the Grignard deck; anything else unrecognised is a 404.
+  if (route !== "" && !route.startsWith("deck/")) {
+    return <NotFoundPage detail={`#/${route}`} />;
+  }
+
+  const id = route.startsWith("deck/") ? route.slice(5) : "grignard";
   const deck = findDeck(id);
-  // An unknown or missing deck falls back to the hub rather than erroring, so a
-  // stale bookmark from a renamed deck still lands somewhere useful.
-  if (!deck) return <HomePage />;
+  /**
+   * An unknown deck used to fall through to the hub on the theory that a stale
+   * bookmark should land somewhere useful. Silently swapping the page for a
+   * different one is worse than saying so: someone following a link to a
+   * renamed deck was left wondering whether they had misread it. The 404 says
+   * what happened and offers the hub, which lands them in the same place with
+   * an explanation.
+   */
+  if (!deck) return <NotFoundPage what="That deck" detail={`#/${route}`} />;
   // Keyed so switching decks remounts rather than carrying the old deck's
   // ratings, open cards and scroll position across.
   if (isReference(deck)) return <ReferenceApp key={deck.id} deck={deck} />;
