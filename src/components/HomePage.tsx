@@ -1,23 +1,21 @@
 import { useCallback, useMemo, useState } from "react";
-import { motion, useReducedMotion } from "motion/react";
 import { ArrowRight } from "lucide-react";
 import { DECKS } from "@/data/decks";
-import { deckHref, deckCount, isReference, DECK_GROUPS, type Deck } from "@/data/types";
-import { MOTIF_VIEWBOX, motifMarkup, cardArt } from "@/data/testimonialArt";
+import { deckCount, DECK_GROUPS, type Deck } from "@/data/types";
+
 import {
   InfoCard,
   InfoCardContent,
   InfoCardTitle,
   InfoCardDescription,
-  InfoCardMedia,
   InfoCardFooter,
 } from "@/components/ui/info-card";
 import { DeckSearch } from "@/components/ui/deck-search";
+import { FolderDeckFan } from "@/components/ui/folder-deck-fan";
 import { matchedDeckIds, type SearchHit } from "@/lib/searchDecks";
 import { DeckUploadTicket } from "@/components/DeckUploadTicket";
 import { NavPill, type NavPillItem } from "@/components/ui/nav-pill";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
-import { GlassCard } from "@/components/ui/glass-card";
 
 /**
  * The hub: one card per deck, with room to grow.
@@ -28,18 +26,22 @@ import { GlassCard } from "@/components/ui/glass-card";
  * lives at #/home, reached from the small Home link on the title screen.
  */
 export function HomePage() {
-  const reduce = useReducedMotion();
   const [hits, setHits] = useState<SearchHit[] | null>(null);
   // Stable identity: DeckSearch reports through an effect, so a fresh callback
   // every render would re-fire it on every keystroke's re-render.
   const handleResults = useCallback((next: SearchHit[] | null) => setHits(next), []);
   const matched = useMemo(() => (hits ? matchedDeckIds(hits) : null), [hits]);
 
+  // The pill mirrors the page: this one lists folders, and each folder page
+  // lists the decks inside it. Listing every deck here would contradict the
+  // decision to move them off the hub.
   const navItems: NavPillItem[] = [
     { id: "home", label: "Home", href: "#/home" },
-    // The pill gets the short name: the full course titles are far too long to
-    // sit side by side in it.
-    ...DECKS.map((d) => ({ id: d.id, label: d.short ?? d.title, href: deckHref(d) })),
+    ...DECK_GROUPS.filter((g) => DECKS.some((d) => (d.group ?? "lab") === g.id)).map((g) => ({
+      id: g.id,
+      label: g.title.replace(/\[[^\]]*\]\s*/, ""),
+      href: `#/folder/${g.id}`,
+    })),
   ];
 
   return (
@@ -63,25 +65,18 @@ export function HomePage() {
 
         <DeckSearch decks={DECKS} onResults={handleResults} />
 
-        {DECK_GROUPS.map((group) => {
-          const decks = DECKS.filter(
-            (d) => (d.group ?? "lab") === group.id && (!matched || matched.has(d.id)),
-          );
-          if (decks.length === 0) return null;
-          return (
-            <section key={group.id} className="mb-14">
-              <DeckFolder group={group} decks={decks} />
-              {/* Roomier than a tight gutter: these cards tilt out of the plane
-                  on hover, and the raised corner used to clip its neighbour. */}
-              <div className="mt-6 grid gap-7 sm:grid-cols-2">
-                {decks.map((deck, i) => (
-                  <DeckCard key={deck.id} deck={deck} index={i} reduce={reduce} />
-                ))}
-
-              </div>
-            </section>
-          );
-        })}
+        {/* Folders only. The decks themselves are one click away on each
+            folder's page, which is what stops this list growing without bound
+            as more decks arrive. */}
+        <div className="grid gap-7 sm:grid-cols-2">
+          {DECK_GROUPS.map((group) => {
+            const decks = DECKS.filter(
+              (d) => (d.group ?? "lab") === group.id && (!matched || matched.has(d.id)),
+            );
+            if (decks.length === 0) return null;
+            return <DeckFolder key={group.id} group={group} decks={decks} />;
+          })}
+        </div>
 
         <DeckUploadTicket />
 
@@ -115,22 +110,6 @@ function DeckFolder({
   group: (typeof DECK_GROUPS)[number];
   decks: Deck[];
 }) {
-  /**
-   * The upstream media styling assumes landscape screenshots: `w-full` with no
-   * height, so the height falls out of the aspect ratio. This artwork is
-   * portrait 240x320, which made each image 546px tall and burst out of the
-   * card. Fixing the height and letting the width follow keeps them card
-   * shaped, and `object-contain` stops the motif being cropped away.
-   */
-  const media = useMemo(
-    () =>
-      decks.slice(0, 3).map((d) => ({
-        src: cardArt(d.motif, d.from, d.to),
-        alt: d.title,
-        className: "mx-auto block h-[104px] w-auto rounded-md object-contain",
-      })),
-    [decks],
-  );
   const cards = decks.reduce((n, d) => n + deckCount(d), 0);
 
   return (
@@ -146,31 +125,23 @@ function DeckFolder({
           </a>
         </InfoCardTitle>
         <InfoCardDescription>{group.blurb}</InfoCardDescription>
-        {/* Shorter at rest than the images are tall, so the stack peeks out of
-            the folder and has somewhere to open into on hover. */}
-        <InfoCardMedia media={media} shrinkHeight={74} expandHeight={128} />
+        <FolderDeckFan decks={decks} />
 
-        {/* Every deck in the folder, linked. The fanned artwork says how many
-            are in here; these say which, and get you into one in a single
-            click instead of scrolling to find its card. */}
-        <nav className="mt-2 flex flex-wrap gap-1.5">
-          {decks.map((d) => (
-            <a
-              key={d.id}
-              href={deckHref(d)}
-              className="rounded-full border border-slate-200 px-2 py-0.5 text-[0.7rem] font-semibold text-slate-600 transition-colors hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700 dark:border-stone-700 dark:text-stone-300 dark:hover:border-indigo-500/40 dark:hover:bg-indigo-400/10 dark:hover:text-indigo-300"
-            >
-              {d.short ?? d.title}
-            </a>
-          ))}
-        </nav>
 
+        {/* Same treatment as "Check out the GitHub here" in the deck footer:
+            the underline sweeps in from the left and the arrow steps out. */}
         <a
           href={`#/folder/${group.id}`}
-          className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-indigo-600 hover:underline dark:text-indigo-300"
+          className="group/open mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 outline-none dark:text-indigo-300"
         >
-          Open folder
-          <ArrowRight className="h-3 w-3" />
+          <span className="relative">
+            Open folder
+            <span
+              aria-hidden
+              className="absolute left-0 -bottom-0.5 h-[2px] w-full origin-left scale-x-0 rounded-full bg-gradient-to-r from-indigo-500 to-fuchsia-500 transition-transform duration-300 ease-out group-hover/open:scale-x-100"
+            />
+          </span>
+          <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover/open:translate-x-1" />
         </a>
 
         <InfoCardFooter>
@@ -181,37 +152,6 @@ function DeckFolder({
         </InfoCardFooter>
       </InfoCardContent>
     </InfoCard>
-  );
-}
-
-function DeckCard({
-  deck,
-  index,
-  reduce,
-}: {
-  deck: Deck;
-  index: number;
-  reduce: boolean | null;
-}) {
-  return (
-    <motion.div
-      initial={reduce ? false : { opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.08, duration: 0.4, ease: "easeOut" }}
-      className="h-full"
-    >
-      <GlassCard
-        href={deckHref(deck)}
-        title={deck.title}
-        description={deck.blurb}
-        meta={`${deckCount(deck)} ${isReference(deck) ? "rows" : "cards"}`}
-        cta={isReference(deck) ? "Open reference" : "Start studying"}
-        from={deck.from}
-        to={deck.to}
-        motifMarkup={motifMarkup(deck.motif)}
-        motifViewBox={MOTIF_VIEWBOX}
-      />
-    </motion.div>
   );
 }
 

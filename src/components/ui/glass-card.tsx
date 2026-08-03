@@ -85,17 +85,19 @@ export const GlassCard = React.forwardRef<HTMLAnchorElement, GlassCardProps>(
                 }}
               />
             ))}
+            {/* The motif rides the top disc directly. It used to sit inside an
+                opaque white bubble, which read as a sticker pasted over the
+                artwork rather than part of it. */}
             <div
-              className="absolute grid aspect-square w-[22%] place-content-center rounded-full bg-white/95 shadow-[rgba(100,100,111,0.2)_-10px_10px_20px_0px] transition-all duration-500 ease-in-out [transform:translate3d(0,0,100px)] [transition-delay:0.48s] group-hover:[transform:translate3d(0,0,120px)]"
-              style={{ top: "17%", right: "17%" }}
+              className="absolute grid aspect-square w-[26%] place-content-center transition-all duration-500 ease-in-out [transform:translate3d(0,0,100px)] [transition-delay:0.48s] group-hover:[transform:translate3d(0,0,120px)]"
+              style={{ top: "15%", right: "15%" }}
             >
               {/* Both axes sized explicitly. `w-auto` collapsed to zero here:
                   a grid item has no width to derive from an intrinsic SVG, so
-                  the drawing rendered at 0x0 and the bubble came out empty.
-                  The viewBox letterboxes inside the square on its own. */}
+                  the drawing rendered at 0x0. The viewBox letterboxes itself. */}
               <svg
                 viewBox={motifViewBox}
-                className="h-[64%] w-[64%] text-slate-900"
+                className="h-full w-full text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.35)]"
                 dangerouslySetInnerHTML={{ __html: motifMarkup }}
               />
             </div>
