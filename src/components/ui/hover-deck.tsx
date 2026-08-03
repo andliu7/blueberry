@@ -24,7 +24,21 @@ const cardSrc = (name: string) => `${import.meta.env.BASE_URL}cards/${name}.png`
 const PREVIEW_W = 380;
 const PREVIEW_H = 250;
 
-export function HoverDeck({ groups, quizMode }: { groups: DeckGroup[]; quizMode: boolean }) {
+export function HoverDeck({
+  groups,
+  quizMode,
+  hoverPreview = true,
+}: {
+  groups: DeckGroup[];
+  quizMode: boolean;
+  /**
+   * Whether hovering a row floats its diagram next to the cursor. Turning it
+   * off leaves the rows readable and still lets a tap pin the image inline,
+   * which is what you want when scanning the whole ladder rather than looking
+   * one thing up.
+   */
+  hoverPreview?: boolean;
+}) {
   const flat = groups.flatMap((g) => g.items);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [pinnedIndex, setPinnedIndex] = useState<number | null>(null);
@@ -54,6 +68,12 @@ export function HoverDeck({ groups, quizMode }: { groups: DeckGroup[]; quizMode:
     };
   }, [mousePosition]);
 
+  // Turning the option off mid-hover has to retract a preview that is already
+  // on screen, not just stop the next one appearing.
+  useEffect(() => {
+    if (!hoverPreview) setIsVisible(false);
+  }, [hoverPreview]);
+
   const handleMouseMove = (e: React.MouseEvent) => {
     if (containerRef.current) {
       const rect = containerRef.current.getBoundingClientRect();
@@ -63,7 +83,7 @@ export function HoverDeck({ groups, quizMode }: { groups: DeckGroup[]; quizMode:
 
   const enter = (index: number) => {
     setHoveredIndex(index);
-    setIsVisible(Boolean(flat[index]?.image));
+    setIsVisible(hoverPreview && Boolean(flat[index]?.image));
   };
 
   const leave = () => {

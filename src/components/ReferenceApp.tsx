@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Home, Eye, EyeOff, GitBranch, ArrowUpRight } from "lucide-react";
+import { Home, Eye, EyeOff, GitBranch, ArrowUpRight, MousePointerClick, ImageOff } from "lucide-react";
 import { HeroTitle } from "@/components/ui/hero-title";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils";
  */
 export function ReferenceApp({ deck }: { deck: ReferenceDeck }) {
   const [quizMode, setQuizMode] = useState(true);
+  const [hoverPreview, setHoverPreview] = useState(true);
   const total = deckCount(deck);
 
   return (
@@ -64,8 +65,30 @@ export function ReferenceApp({ deck }: { deck: ReferenceDeck }) {
                 {quizMode ? "Quiz mode" : "Reveal all"}
               </button>
 
-              <p className="hidden text-xs text-slate-400 sm:block dark:text-stone-500">
-                Hover a row for the diagram · tap to pin it
+              <button
+                onClick={() => setHoverPreview((h) => !h)}
+                title={
+                  hoverPreview
+                    ? "Diagrams follow the cursor on hover"
+                    : "Diagrams only open when you tap a row"
+                }
+                className={cn(
+                  "flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-semibold transition",
+                  hoverPreview
+                    ? "border-indigo-200 bg-indigo-50 text-indigo-700 dark:border-indigo-500/30 dark:bg-indigo-400/15 dark:text-indigo-300"
+                    : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-stone-800 dark:bg-stone-900 dark:text-stone-300 dark:hover:bg-white/5",
+                )}
+              >
+                {hoverPreview ? (
+                  <MousePointerClick className="h-4 w-4" />
+                ) : (
+                  <ImageOff className="h-4 w-4" />
+                )}
+                {hoverPreview ? "Hover previews" : "Tap only"}
+              </button>
+
+              <p className="hidden text-xs text-slate-400 lg:block dark:text-stone-500">
+                {hoverPreview ? "Hover a row for the diagram · tap to pin it" : "Tap a row to open its diagram"}
               </p>
 
               <div className="ml-auto">
@@ -75,7 +98,7 @@ export function ReferenceApp({ deck }: { deck: ReferenceDeck }) {
           </div>
 
           <div className="mx-auto max-w-3xl">
-            <HoverDeck groups={deck.groups} quizMode={quizMode} />
+            <HoverDeck groups={deck.groups} quizMode={quizMode} hoverPreview={hoverPreview} />
 
             <ScrollToTop className="mt-6" />
 

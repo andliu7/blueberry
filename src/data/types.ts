@@ -97,7 +97,7 @@ export const DECK_GROUPS: { id: DeckGroupId; title: string; blurb: string }[] = 
   },
   {
     id: "reference",
-    title: "[CHEM 242] Reference sheets",
+    title: "[CHEM 241] Reference sheets",
     blurb: "The charts you look up mid-problem. Hover any row for the diagram.",
   },
   {

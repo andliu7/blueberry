@@ -1,5 +1,6 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
+import { useIsDark } from "@/lib/useIsDark";
 
 /**
  * Click-to-flip card with pointer-tracked tilt on the face that is showing.
@@ -36,6 +37,27 @@ function mapRange(value: number, minA: number, maxA: number, minB: number, maxB:
   return minB + ((value - minA) * (maxB - minB)) / (maxA - minA);
 }
 
+/**
+ * Same sheen the classic question cards get from `TiltCard`, so switching card
+ * style changes the shape of a card and not the way light falls on it.
+ *
+ * Positioned inside each face rather than over the whole card, so it turns with
+ * the face instead of floating in front of the flip.
+ */
+function Glare({ dark }: { dark: boolean }) {
+  return (
+    <div
+      aria-hidden
+      className="pointer-events-none absolute inset-0 rounded-[inherit] opacity-15"
+      style={{
+        background: `radial-gradient(circle at var(--gx, 50%) var(--gy, 50%), ${
+          dark ? "rgba(255,255,255,0.9)" : "rgba(99,102,241,0.7)"
+        }, transparent 50%)`,
+      }}
+    />
+  );
+}
+
 function DefaultLogo() {
   return (
     <svg viewBox="0 0 48 48" className="h-10 w-10" fill="none" aria-hidden="true">
@@ -63,6 +85,7 @@ export function FlipCard({
   className,
 }: FlipCardProps) {
   const [internalFlipped, setInternalFlipped] = React.useState(defaultFlipped);
+  const isDark = useIsDark();
 
   const cardRef = React.useRef<HTMLDivElement>(null);
   const frontRef = React.useRef<HTMLDivElement>(null);
@@ -92,6 +115,10 @@ export function FlipCard({
       activeSide.style.transform = targetFlipped
         ? `rotateY(180deg) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`
         : `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+
+      // Feeds the glare, which reads the same custom properties.
+      card.style.setProperty("--gx", `${((clientX - rect.left) / rect.width) * 100}%`);
+      card.style.setProperty("--gy", `${((clientY - rect.top) / rect.height) * 100}%`);
     },
     [flipped],
   );
@@ -157,7 +184,7 @@ export function FlipCard({
       className={cn(
         // Width is fluid rather than the upstream fixed 185/224px: this has to
         // sit in a grid cell and fill a carousel slide.
-        "my-2 h-[300px] w-full cursor-pointer rounded-lg text-slate-900 outline-none transition-transform duration-500 ease-in-out [perspective:1000px] focus-visible:ring-2 focus-visible:ring-indigo-400 dark:text-stone-100",
+        "my-2 h-[340px] w-full cursor-pointer rounded-lg text-slate-900 outline-none transition-transform duration-500 ease-in-out [perspective:1000px] focus-visible:ring-2 focus-visible:ring-indigo-400 dark:text-stone-100",
         !canFlip && "cursor-not-allowed opacity-70",
         className,
       )}
@@ -170,7 +197,7 @@ export function FlipCard({
       >
         <div
           ref={frontRef}
-          className="absolute flex h-full w-full flex-col items-center justify-center rounded-lg border border-slate-200 bg-white/80 shadow-[0_10px_20px_rgba(0,0,0,0.06)] transition-[transform,filter] duration-[250ms] ease-out [backface-visibility:hidden] dark:border-stone-800 dark:bg-stone-900/80"
+          className="absolute flex h-full w-full flex-col items-center justify-center overflow-hidden rounded-lg border border-slate-200 bg-white/80 shadow-[0_10px_20px_rgba(0,0,0,0.06)] transition-[transform,filter] duration-[250ms] ease-out [backface-visibility:hidden] dark:border-stone-800 dark:bg-stone-900/80"
         >
           {frontContent ? (
             <div className="h-full w-full">{frontContent}</div>
@@ -194,6 +221,7 @@ export function FlipCard({
               </div>
             </>
           )}
+          <Glare dark={isDark} />
         </div>
 
         <div
@@ -226,6 +254,7 @@ export function FlipCard({
               </div>
             </>
           )}
+          <Glare dark={isDark} />
         </div>
       </div>
     </div>

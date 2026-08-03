@@ -8,8 +8,9 @@ import { FeedbackWidget } from "@/components/ui/feedback-widget";
 import { ClickHereHint } from "@/components/ui/click-here-hint";
 import { GlassFilter, LiquidGlassLayers } from "@/components/ui/liquid-glass-button";
 import { findDeck } from "@/data/decks";
-import { isReference, type StudyDeck } from "@/data/types";
+import { isReference, DECK_GROUPS, type DeckGroupId, type StudyDeck } from "@/data/types";
 import { ReferenceApp } from "@/components/ReferenceApp";
+import { FolderPage } from "@/components/FolderPage";
 import { testimonials, testimonialArt } from "@/data/testimonials";
 import { GradientMenuButton, type GradientMenuItem } from "@/components/ui/gradient-menu";
 import { AnimatedActionCluster } from "@/components/ui/floating-action-button";
@@ -75,17 +76,25 @@ function FlipRateRow({
   compact?: boolean;
 }) {
   return (
+    // `relative z-10` matters: the faces carry a glare layer and the content
+    // sits on a translateZ plane, so without an explicit stacking context the
+    // buttons can end up underneath and swallow their own clicks.
     <div
-      className={cn("mt-2 flex shrink-0", compact ? "gap-1" : "gap-1.5")}
+      className={cn("relative z-10 mt-3 flex shrink-0", compact ? "gap-1.5" : "gap-2")}
       onClick={(e) => e.stopPropagation()}
     >
       {RATINGS.map(([color, label, cls]) => (
         <button
           key={color}
-          onClick={() => onRate(color)}
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onRate(color);
+          }}
           className={cn(
-            "rounded font-bold transition hover:brightness-95",
-            compact ? "px-1.5 py-1 text-[0.65rem]" : "px-2 py-1 text-xs",
+            "rounded-md font-bold transition hover:brightness-95 active:scale-95",
+            // Big enough to hit with a thumb rather than decorative.
+            compact ? "px-3 py-2 text-xs" : "px-3.5 py-2 text-sm",
             cls,
           )}
         >
@@ -146,6 +155,11 @@ function loadSaved(deckId: string): { status?: Record<number, Status>; note?: st
 export default function App() {
   const route = useHashRoute();
   if (route === "home") return <HomePage />;
+  if (route.startsWith("folder/")) {
+    const gid = route.slice(7) as DeckGroupId;
+    // An unknown folder falls back to the hub, same as an unknown deck.
+    return DECK_GROUPS.some((g) => g.id === gid) ? <FolderPage key={gid} groupId={gid} /> : <HomePage />;
+  }
   const id = route.startsWith("deck/") ? route.slice(5) : route === "" ? "grignard" : "";
   const deck = findDeck(id);
   // An unknown or missing deck falls back to the hub rather than erroring, so a
@@ -385,7 +399,7 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
       <FlippingCard
         key={qi}
         width={320}
-        height={260}
+        height={300}
         flipped={flippedMap[num] ?? false}
         onFlip={() => setFlippedMap((m) => ({ ...m, [num]: !m[num] }))}
         className={cn(
@@ -396,17 +410,17 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
         )}
         frontContent={
           <div className="flex h-full w-full flex-col p-5">
-            <span className="font-mono text-xs font-bold text-indigo-600 dark:text-indigo-400">
+            <span className="font-mono text-sm font-bold text-indigo-600 dark:text-indigo-400">
               Question {num}
               {item.mc ? " · MC" : ""}
             </span>
             <div className="flex flex-1 items-center">
               <MathHtml
                 html={item.q}
-                className="text-[0.95rem] leading-snug font-semibold text-slate-800 dark:text-stone-100"
+                className="text-lg leading-snug font-semibold text-slate-800 dark:text-stone-100"
               />
             </div>
-            <span className="font-mono text-[0.65rem] tracking-wider text-slate-400 uppercase dark:text-stone-500">
+            <span className="font-mono text-[0.72rem] tracking-wider text-slate-400 uppercase dark:text-stone-500">
               click to flip
             </span>
           </div>
@@ -416,7 +430,7 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
             <div className="flex-1 overflow-y-auto">
               <MathHtml
                 html={item.a}
-                className="text-sm leading-relaxed text-slate-700 dark:text-stone-300"
+                className="text-[0.95rem] leading-relaxed text-slate-700 dark:text-stone-300"
               />
             </div>
             <FlipRateRow onRate={(color) => rate(num, color)} />
@@ -450,10 +464,10 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
             <div className="flex flex-1 items-center">
               <MathHtml
                 html={item.q}
-                className="text-sm leading-snug font-semibold text-slate-800 dark:text-stone-100"
+                className="text-base leading-snug font-semibold text-slate-800 dark:text-stone-100"
               />
             </div>
-            <span className="font-mono text-[0.6rem] tracking-wider text-slate-400 uppercase dark:text-stone-500">
+            <span className="font-mono text-[0.7rem] tracking-wider text-slate-400 uppercase dark:text-stone-500">
               click to flip
             </span>
           </div>
@@ -463,7 +477,7 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
             <div className="flex-1 overflow-y-auto">
               <MathHtml
                 html={item.a}
-                className="text-[0.8rem] leading-relaxed text-slate-700 dark:text-stone-300"
+                className="text-[0.9rem] leading-relaxed text-slate-700 dark:text-stone-300"
               />
             </div>
             <FlipRateRow onRate={(color) => rate(num, color)} compact />

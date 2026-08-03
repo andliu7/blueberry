@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
-import { Plus } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { DECKS } from "@/data/decks";
 import { deckHref, deckCount, isReference, DECK_GROUPS, type Deck } from "@/data/types";
 import { MOTIF_VIEWBOX, motifMarkup, cardArt } from "@/data/testimonialArt";
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/info-card";
 import { DeckSearch } from "@/components/ui/deck-search";
 import { matchedDeckIds, type SearchHit } from "@/lib/searchDecks";
+import { DeckUploadTicket } from "@/components/DeckUploadTicket";
 import { NavPill, type NavPillItem } from "@/components/ui/nav-pill";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { GlassCard } from "@/components/ui/glass-card";
@@ -54,9 +55,9 @@ export function HomePage() {
             Study decks
           </h1>
           <p className="playful-face mt-4 text-lg text-slate-500 dark:text-stone-400">
-            Everything I use to study for CHEM 242, mostly the night before. Lab
-            practical questions, plus the pKa, IR, NMR and resonance sheets I always
-            end up digging for. Answers stay hidden until you ask for them.
+            Everything I use to study for CHEM 241 and 242, mostly the night before.
+            Lab practical questions, plus the pKa, IR, NMR and resonance sheets I
+            always end up digging for. Answers stay hidden until you ask for them.
           </p>
         </header>
 
@@ -76,13 +77,13 @@ export function HomePage() {
                 {decks.map((deck, i) => (
                   <DeckCard key={deck.id} deck={deck} index={i} reduce={reduce} />
                 ))}
-                {group.id === "lab" && !matched && (
-                  <PlaceholderCard index={decks.length} reduce={reduce} />
-                )}
+
               </div>
             </section>
           );
         })}
+
+        <DeckUploadTicket />
 
         <footer className="mt-16 text-center text-sm text-slate-400 dark:text-stone-500">
           <a
@@ -135,7 +136,15 @@ function DeckFolder({
   return (
     <InfoCard className="max-w-sm">
       <InfoCardContent>
-        <InfoCardTitle className="text-base">{group.title}</InfoCardTitle>
+        <InfoCardTitle className="text-base">
+          <a
+            href={`#/folder/${group.id}`}
+            className="inline-flex items-center gap-1 hover:text-indigo-600 dark:hover:text-indigo-300"
+          >
+            {group.title}
+            <ArrowRight className="h-3.5 w-3.5" />
+          </a>
+        </InfoCardTitle>
         <InfoCardDescription>{group.blurb}</InfoCardDescription>
         {/* Shorter at rest than the images are tall, so the stack peeks out of
             the folder and has somewhere to open into on hover. */}
@@ -155,6 +164,14 @@ function DeckFolder({
             </a>
           ))}
         </nav>
+
+        <a
+          href={`#/folder/${group.id}`}
+          className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-indigo-600 hover:underline dark:text-indigo-300"
+        >
+          Open folder
+          <ArrowRight className="h-3 w-3" />
+        </a>
 
         <InfoCardFooter>
           <span className="font-mono">
@@ -194,35 +211,6 @@ function DeckCard({
         motifMarkup={motifMarkup(deck.motif)}
         motifViewBox={MOTIF_VIEWBOX}
       />
-    </motion.div>
-  );
-}
-
-/** Holds the shape of the grid open, so one deck does not look like a mistake. */
-function PlaceholderCard({ index, reduce }: { index: number; reduce: boolean | null }) {
-  return (
-    <motion.div
-      initial={reduce ? false : { opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.08, duration: 0.4, ease: "easeOut" }}
-      className="flex min-h-[18rem] flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 p-5 text-center dark:border-stone-700"
-    >
-      <span
-        aria-hidden
-        className="mb-3 text-slate-300 dark:text-stone-700"
-        dangerouslySetInnerHTML={{
-          __html: `<svg viewBox="${MOTIF_VIEWBOX}" width="56" height="74" fill="none">${motifMarkup(
-            "erlenmeyer",
-          )}</svg>`,
-        }}
-      />
-      <p className="flex items-center gap-1.5 text-sm font-semibold text-slate-400 dark:text-stone-500">
-        <Plus className="h-4 w-4" />
-        More decks to come
-      </p>
-      <p className="mt-1 max-w-[16rem] text-xs text-slate-400 dark:text-stone-600">
-        Each one is a list of questions and answers, dropped in as a single file.
-      </p>
     </motion.div>
   );
 }
