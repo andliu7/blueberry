@@ -16,7 +16,13 @@ export function DeckAbout({ text }: { text?: string }) {
         <BookOpen className="h-3.5 w-3.5" />
         What this covers
       </h2>
-      <p className="text-[0.95rem] leading-relaxed text-slate-700 dark:text-stone-300">{text}</p>
+      {/* Blank lines are paragraph breaks. These run to three paragraphs and
+          read as a wall without them. */}
+      <div className="space-y-3 text-[0.95rem] leading-relaxed text-slate-700 dark:text-stone-300">
+        {text.split(/\n\s*\n/).map((para, i) => (
+          <p key={i}>{para}</p>
+        ))}
+      </div>
     </section>
   );
 }

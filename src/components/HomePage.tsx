@@ -14,6 +14,8 @@ import { DeckSearch } from "@/components/ui/deck-search";
 import { FolderDeckFan } from "@/components/ui/folder-deck-fan";
 import { matchedDeckIds, type SearchHit } from "@/lib/searchDecks";
 import { DeckUploadTicket } from "@/components/DeckUploadTicket";
+import { TiltCard } from "@/components/ui/be-ui-tilt-card";
+import { useIsDark } from "@/lib/useIsDark";
 import { NavPill, type NavPillItem } from "@/components/ui/nav-pill";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 
@@ -110,9 +112,18 @@ function DeckFolder({
   group: (typeof DECK_GROUPS)[number];
   decks: Deck[];
 }) {
+  const isDark = useIsDark();
   const cards = decks.reduce((n, d) => n + deckCount(d), 0);
 
   return (
+    // Tilts like everything else on the site. `overflow-visible` matters: the
+    // top card of the fan lifts and scales past the card's edge on hover, and
+    // TiltCard clips by default, which sliced the corner off it.
+    <TiltCard
+      max={6}
+      glareColor={isDark ? "rgba(255,255,255,0.9)" : "rgba(99,102,241,0.7)"}
+      className="rounded-lg !overflow-visible"
+    >
     <InfoCard className="max-w-sm">
       <InfoCardContent>
         <InfoCardTitle className="text-base">
@@ -152,6 +163,7 @@ function DeckFolder({
         </InfoCardFooter>
       </InfoCardContent>
     </InfoCard>
+    </TiltCard>
   );
 }
 

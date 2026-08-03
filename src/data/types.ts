@@ -134,6 +134,29 @@ export type StudyDeck = DeckCommon & {
 export type ReferenceDeck = DeckCommon & {
   kind: "reference";
   groups: DeckGroup[];
+  /**
+   * How this deck's diagrams are shown.
+   *
+   * Per deck rather than global because the pKa structures and a full IR
+   * spectrum need opposite treatment: one is a small drawing with the answer
+   * printed beside it, the other is a wide chart you need to see all of.
+   */
+  preview?: {
+    width?: number;
+    height?: number;
+    /**
+     * Trim this much off the right edge, e.g. "25%". The pKa sheet prints each
+     * value to the right of its structure, so an uncropped preview hands you
+     * the answer that quiz mode just blurred.
+     */
+    cropRight?: string;
+    /**
+     * Put a magnifying glass over the pinned diagram. Only the pinned copy: the
+     * floating panel is pointer-events-none and rides the cursor, so the
+     * pointer is never over it to drive a lens.
+     */
+    magnify?: { lensSize?: number; zoomFactor?: number };
+  };
 };
 
 export type Deck = StudyDeck | ReferenceDeck;

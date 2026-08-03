@@ -21,6 +21,12 @@ export interface GradientMenuItem {
    * each burst.
    */
   idleBurstMs?: number;
+  /**
+   * Overrides the pill's resting colour, before any hover. The default rest
+   * state is plain white, which makes a button easy to overlook in a row of
+   * them. The hover and active gradient is unaffected.
+   */
+  restClassName?: string;
 }
 
 /**
@@ -58,6 +64,7 @@ export function GradientMenuButton({
   particles,
   particleClassName,
   idleBurstMs,
+  restClassName,
 }: GradientMenuItem) {
   const btnRef = useRef<HTMLButtonElement>(null);
   const { bursting, burst } = useParticleBurst(700);
@@ -98,6 +105,9 @@ export function GradientMenuButton({
             className={cn(
               "relative h-9 rounded-full bg-white border border-slate-200 shadow-sm",
               "dark:bg-stone-900 dark:border-stone-800",
+              // Resting tint, if this button asked for one. Only at rest: once
+              // active the gradient covers it anyway.
+              !active && restClassName,
               "flex items-center justify-center overflow-hidden shrink-0 cursor-pointer group",
               "transition-[width,box-shadow] duration-500 ease-out outline-none",
               "focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#f6f4ef] dark:focus-visible:ring-offset-[#0c0a09]",

@@ -18,7 +18,7 @@ export const irDeck: ReferenceDeck = {
     "The four regions, the C–H stretch ladder, and what each functional group actually looks like — with the spectrum from the slides on every row.",
   footNote: "Four regions, left to right: bonds to H, triple bonds, double bonds, fingerprint.",
   about:
-    "The IR chart from the slides, split into the four regions and then by functional group. IR answers one question well: which functional groups are present. Reading it is a matter of working left to right through the regions, then using the details to separate groups that share a peak, an aldehyde from a ketone by the C-H stretch near 2750, or an acid from an ester by the very broad O-H. The fingerprint region below 1500 is not read peak by peak; it is compared against a known spectrum.",
+    "The IR chart from the slides, laid out by region first and then by functional group.\n\nIR is good at one question: which functional groups are in here. Work left to right through the four regions to narrow it down, then use the small details to split groups that share a peak. An aldehyde and a ketone both have a strong carbonyl, and the C-H stretch near 2750 is what separates them. An acid and an ester both have one too, and there the very broad O-H gives the acid away.\n\nBelow 1500 you are in the fingerprint region. Nobody reads that peak by peak. You compare it against a spectrum of something you already know.",
   motif: "ir",
   from: "#0369a1",
   to: "#0891b2",
@@ -63,7 +63,7 @@ export const irDeck: ReferenceDeck = {
       ],
     },
     {
-      heading: "Worked example — C4H8O",
+      heading: "Worked example: C4H8O",
       items: [
         { title: "The candidates", description: "Four structures with the same formula", badge: "which one?", image: "ir_c4h8o_cands" },
         { title: "The answer", description: "Read the peaks, eliminate, commit", badge: "reveal", image: "ir_c4h8o_answer" },

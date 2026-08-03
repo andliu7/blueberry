@@ -21,10 +21,18 @@ export const pkaDeck: ReferenceDeck = {
     "Every pKa worth memorising, strongest acid first, with the structure behind each one. The number you need before you can pick a base.",
   footNote: "Lower pKa = stronger acid = more willing to hand off that proton.",
   about:
-    "Dr. Stocker's pKa sheet, ordered strongest acid first. Nearly every acid-base question in the course reduces to finding the lowest-pKa proton and asking whether the base in front of you is strong enough to take it, so these are worth knowing cold rather than looking up. The numbers also explain reactivity elsewhere: why an alpha proton can be removed but an alkane proton cannot, why a terminal alkyne can be deprotonated to make a nucleophile, and why a carboxylic acid comes off long before a phenol.",
+    "Dr. Stocker's pKa sheet, strongest acid at the top.\n\nAlmost every acid-base question comes down to two moves: find the proton with the lowest pKa, then ask whether the base in front of you is strong enough to take it. Quick if you know the numbers, slow if you are hunting for a chart.\n\nThey explain plenty beyond acid-base too. An alpha proton comes off and an alkane proton never does. A terminal alkyne can be deprotonated into a nucleophile. A carboxylic acid gives up its proton long before a phenol does.",
   motif: "pka",
   from: "#9f1239",
   to: "#be123c",
+  // Crops the printed pKa out of every structure and shows it small: these are
+  // one-molecule drawings, not spectra.
+  preview: {
+    width: 230,
+    height: 140,
+    cropRight: "25%",
+    magnify: { lensSize: 130, zoomFactor: 2.2 },
+  },
   groups: [
     {
       heading: "Strongest acids first — low pKa lets go of H+ easily",

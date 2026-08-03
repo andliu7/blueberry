@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence } from "motion/react";
-import { ChevronsUpDown, ChevronsDownUp, Shuffle, GalleryHorizontalEnd, List, MoveVertical, MessageSquare, ArrowDownToLine, GitBranch, ArrowUpRight, Layers, Home, RefreshCw } from "lucide-react";
+import { ChevronsUpDown, ChevronsDownUp, Shuffle, GalleryHorizontalEnd, List, MoveVertical, MessageSquare, ArrowDownToLine, GitBranch, ArrowUpRight, Layers, Home, RefreshCw, Highlighter } from "lucide-react";
 import { FlippingCard } from "@/components/ui/flipping-card";
 import { FlipCard } from "@/components/ui/flip-card";
 import { MathHtml } from "@/components/ui/math-html";
@@ -32,19 +32,12 @@ import SocialCards from "@/components/ui/card-fan-carousel";
 import { StickyNote } from "@/components/StickyNote";
 import { Confetti } from "@/components/Confetti";
 import { DeckUploadTicket } from "@/components/DeckUploadTicket";
+import { LaserPointer } from "@/components/ui/laser-pointer";
 import { DeckAbout } from "@/components/ui/deck-about";
+import { progressKey, loadSaved } from "@/lib/progress";
 import { cn } from "@/lib/utils";
 import { useMathJaxTypeset } from "@/lib/useMathJaxTypeset";
 
-/**
- * Progress is saved per deck, so one deck's ratings never overwrite another's.
- *
- * Grignard keeps the original un-suffixed key rather than being migrated: it was
- * the only deck for months, and anyone mid-revision would otherwise open the
- * site to find their ratings gone.
- */
-const progressKey = (deckId: string) =>
-  deckId === "grignard" ? "grignard_lcta_progress_v1" : `grignard_lcta_progress_${deckId}_v1`;
 const FEEDBACK_KEY = "grignard_lcta_feedback_v1";
 const FEEDBACK_ENDPOINT = import.meta.env.VITE_FEEDBACK_ENDPOINT as string | undefined;
 
@@ -133,19 +126,6 @@ function QuoteSurface({ children }: { children: React.ReactNode }) {
       {children}
     </TiltCard>
   );
-}
-
-function loadSaved(deckId: string): { status?: Record<number, Status>; note?: string } {
-  try {
-    const raw = localStorage.getItem(progressKey(deckId));
-    if (raw) {
-      const data = JSON.parse(raw);
-      if (data && typeof data === "object") return data;
-    }
-  } catch {
-    /* ignore */
-  }
-  return {};
 }
 
 /**
@@ -238,6 +218,7 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
    */
   const [cardStyle, setCardStyle] = useState<CardStyle>("classic");
   const [flippedMap, setFlippedMap] = useState<Record<number, boolean>>({});
+  const [laser, setLaser] = useState(false);
 
   // Save progress whenever it changes. Restoring happens in the useState
   // initialisers above rather than in an effect: an effect-based load races this
@@ -695,16 +676,19 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
                     active: shuffled,
                   },
                   // One control cycles List -> Carousel -> Scroll.
-                  // Grey rather than another saturated pill, with a yellow
-                  // spark every few seconds: the view control is the least
-                  // guessable thing in the toolbar, and it was disappearing
-                  // among four coloured neighbours.
+                  // Keeps its violet gradient on hover and when active, like
+                  // the others. What changed is the resting state: an amber
+                  // tint plus a spark every few seconds, because this is the
+                  // least guessable control in the toolbar and a plain white
+                  // pill gave no hint that it did anything.
                   {
                     title: VIEW_LABEL[view],
                     icon: VIEW_ICON[view],
                     onClick: cycleView,
-                    gradientFrom: "#6b7280",
-                    gradientTo: "#9ca3af",
+                    gradientFrom: "#7c3aed",
+                    gradientTo: "#a855f7",
+                    restClassName:
+                      "!bg-amber-100 !border-amber-300 dark:!bg-amber-400/15 dark:!border-amber-500/40",
                     active: view !== "list",
                     particles: true,
                     particleClassName: "bg-yellow-200 dark:bg-yellow-200",
@@ -716,6 +700,14 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
                     onClick: jumpToBottom,
                     gradientFrom: "#b45309",
                     gradientTo: "#d97706",
+                  },
+                  {
+                    title: laser ? "Laser: on" : "Laser",
+                    icon: <Highlighter />,
+                    onClick: () => setLaser((l) => !l),
+                    gradientFrom: "#b91c1c",
+                    gradientTo: "#ef4444",
+                    active: laser,
                   },
                 ] as GradientMenuItem[]).map((item, i) => (
                   // Keyed by position, not title. The view and shuffle buttons
@@ -854,6 +846,8 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
           )}
           <p className="text-center text-xs text-slate-400 dark:text-stone-500 mt-3">(these are fake testimonials)</p>
         </div>
+
+        <LaserPointer active={laser} onExit={() => setLaser(false)} />
 
         <DeckUploadTicket />
 

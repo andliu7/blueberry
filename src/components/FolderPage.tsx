@@ -16,6 +16,7 @@ import { GlassCard } from "@/components/ui/glass-card";
 import { DeckSearch } from "@/components/ui/deck-search";
 import { DeckUploadTicket } from "@/components/DeckUploadTicket";
 import { matchedDeckIds, type SearchHit } from "@/lib/searchDecks";
+import { reviewedCount } from "@/lib/progress";
 
 /**
  * One folder's decks on their own page, at `#/folder/<id>`.
@@ -91,6 +92,12 @@ export function FolderPage({ groupId }: { groupId: DeckGroupId }) {
                 to={deck.to}
                 motifMarkup={motifMarkup(deck.motif)}
                 motifViewBox={MOTIF_VIEWBOX}
+                // Reference decks are not rated, so they never show a bar.
+                progress={
+                  isReference(deck)
+                    ? undefined
+                    : { reviewed: reviewedCount(deck.id), total: deckCount(deck) }
+                }
               />
             </motion.div>
           ))}

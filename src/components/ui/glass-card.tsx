@@ -28,6 +28,11 @@ export interface GlassCardProps {
   meta: string;
   cta: string;
   href: string;
+  /**
+   * Rated-so-far and total. Once someone has started a deck the call to action
+   * is stale advice, so the card shows how far in they are instead.
+   */
+  progress?: { reviewed: number; total: number };
   from: string;
   to: string;
   /** Pre-rendered SVG markup for the deck motif. */
@@ -46,7 +51,20 @@ const DISCS = [
 
 export const GlassCard = React.forwardRef<HTMLAnchorElement, GlassCardProps>(
   (
-    { title, description, meta, cta, href, from, to, motifMarkup, motifViewBox, className, style },
+    {
+      title,
+      description,
+      meta,
+      cta,
+      href,
+      from,
+      to,
+      motifMarkup,
+      motifViewBox,
+      progress,
+      className,
+      style,
+    },
     ref,
   ) => {
     return (
@@ -119,10 +137,31 @@ export const GlassCard = React.forwardRef<HTMLAnchorElement, GlassCardProps>(
               <p className="mt-2 line-clamp-3 text-[0.82rem] leading-relaxed text-white/75">
                 {description}
               </p>
-              <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-bold text-white transition-transform duration-200 ease-in-out group-hover:[transform:translate3d(0,0,10px)]">
-                {cta}
-                <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-              </span>
+              {progress && progress.reviewed > 0 ? (
+                <div className="mt-4">
+                  <div className="flex items-center justify-between text-[0.7rem] font-bold text-white">
+                    <span>
+                      {progress.reviewed === progress.total
+                        ? "Reviewed every card"
+                        : "Pick up where you left off"}
+                    </span>
+                    <span className="font-mono">
+                      {progress.reviewed}/{progress.total}
+                    </span>
+                  </div>
+                  <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-black/25">
+                    <div
+                      className="h-full rounded-full bg-white transition-[width] duration-500"
+                      style={{ width: `${(progress.reviewed / progress.total) * 100}%` }}
+                    />
+                  </div>
+                </div>
+              ) : (
+                <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-bold text-white transition-transform duration-200 ease-in-out group-hover:[transform:translate3d(0,0,10px)]">
+                  {cta}
+                  <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                </span>
+              )}
             </div>
           </div>
         </div>

@@ -2,6 +2,7 @@ import type React from "react";
 import { useState, useRef, useEffect } from "react";
 import { Eye } from "lucide-react";
 import type { DeckGroup } from "@/data/types";
+import { Lens } from "@/components/ui/magnifier-lens";
 import { cn } from "@/lib/utils";
 
 /**
@@ -24,13 +25,23 @@ const cardSrc = (name: string) => `${import.meta.env.BASE_URL}cards/${name}.png`
 const PREVIEW_W = 380;
 const PREVIEW_H = 250;
 
+/** Per-deck overrides; see `ReferenceDeck.preview`. */
+export interface PreviewOptions {
+  width?: number;
+  height?: number;
+  cropRight?: string;
+  magnify?: { lensSize?: number; zoomFactor?: number };
+}
+
 export function HoverDeck({
   groups,
   quizMode,
   hoverPreview = true,
+  preview,
 }: {
   groups: DeckGroup[];
   quizMode: boolean;
+  preview?: PreviewOptions;
   /**
    * Whether hovering a row floats its diagram next to the cursor. Turning it
    * off leaves the rows readable and still lets a tap pin the image inline,
@@ -40,6 +51,13 @@ export function HoverDeck({
   hoverPreview?: boolean;
 }) {
   const flat = groups.flatMap((g) => g.items);
+  const previewW = preview?.width ?? PREVIEW_W;
+  const previewH = preview?.height ?? PREVIEW_H;
+  // Applied to both the floating panel and the pinned inline copy, or the
+  // answer would still be readable through whichever one was left uncropped.
+  const cropStyle = preview?.cropRight
+    ? { clipPath: `inset(0 ${preview.cropRight} 0 0)` }
+    : undefined;
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [pinnedIndex, setPinnedIndex] = useState<number | null>(null);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -95,7 +113,7 @@ export function HoverDeck({
   // right edge, rather than letting it hang off into a scrollbar.
   const rect = containerRef.current?.getBoundingClientRect();
   const flip =
-    rect !== undefined && rect.left + smoothPosition.x + PREVIEW_W + 40 > window.innerWidth;
+    rect !== undefined && rect.left + smoothPosition.x + previewW + 40 > window.innerWidth;
 
   let running = 0;
 
@@ -114,7 +132,7 @@ export function HoverDeck({
         style={{
           left: rect?.left ?? 0,
           top: rect?.top ?? 0,
-          transform: `translate3d(${smoothPosition.x + (flip ? -PREVIEW_W - 28 : 24)}px, ${smoothPosition.y - 120}px, 0)`,
+          transform: `translate3d(${smoothPosition.x + (flip ? -previewW - 28 : 24)}px, ${smoothPosition.y - 120}px, 0)`,
           opacity: isVisible ? 1 : 0,
           scale: isVisible ? 1 : 0.9,
           transition:
@@ -126,7 +144,7 @@ export function HoverDeck({
             rectangle. */}
         <div
           className="relative overflow-hidden rounded-xl bg-white"
-          style={{ width: PREVIEW_W, height: PREVIEW_H }}
+          style={{ width: previewW, height: previewH }}
         >
           {flat.map(
             (item, index) =>
@@ -138,6 +156,7 @@ export function HoverDeck({
                   loading="lazy"
                   className="absolute inset-0 h-full w-full object-contain p-3 transition-all duration-300 ease-out"
                   style={{
+                    ...cropStyle,
                     opacity: hoveredIndex === index ? 1 : 0,
                     scale: hoveredIndex === index ? 1 : 1.06,
                     filter: hoveredIndex === index ? "none" : "blur(8px)",
@@ -237,12 +256,33 @@ export function HoverDeck({
                           the deck usable on a phone, where the floating preview
                           never appears. */}
                       {pinned && item.image && (
-                        <div className="relative mt-3 overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-stone-700">
-                          <img
-                            src={cardSrc(item.image)}
-                            alt={item.title}
-                            className="max-h-[320px] w-full object-contain p-3"
-                          />
+                        <div
+                          className="relative mt-3 overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-stone-700"
+                          style={preview ? { maxWidth: previewW * 1.6 } : undefined}
+                        >
+                          {(() => {
+                            const img = (
+                              <img
+                                src={cardSrc(item.image)}
+                                alt={item.title}
+                                className="w-full object-contain p-3"
+                                style={{ ...cropStyle, maxHeight: previewH + 120 }}
+                              />
+                            );
+                            // The crop lives on the image itself, so the lens's
+                            // scaled duplicate carries it too and magnifying
+                            // cannot bring the hidden value back into view.
+                            return preview?.magnify ? (
+                              <Lens
+                                lensSize={preview.magnify.lensSize ?? 130}
+                                zoomFactor={preview.magnify.zoomFactor ?? 2.2}
+                              >
+                                {img}
+                              </Lens>
+                            ) : (
+                              img
+                            );
+                          })()}
                         </div>
                       )}
                     </button>

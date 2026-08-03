@@ -18,7 +18,7 @@ export const resonanceDeck: ReferenceDeck = {
     "Where to start the arrow and where to push it, worked through for cations, anions and neutral molecules — plus FONClBrCSIPH, BrINClHOF, and the octet rule.",
   footNote: "The octet rule RULES. No contributor is worth drawing if it breaks one.",
   about:
-    "Arrow pushing for resonance, with the mnemonics worth writing down in the first week. The rules split by charge: push toward a positive centre, push away from a negative one, and for a neutral molecule find a polar pi bond and make the charges first. The octet rule overrides all of it, and FONClBrCSIPH decides where the electrons prefer to end up. Getting this right early is what makes mechanisms in the rest of the course readable rather than memorised.",
+    "Arrow pushing, plus the mnemonics Dr. Stocker tells you to write down in week one.\n\nThe rules sort themselves by charge. If there is a positive centre, push electrons toward it. If there is a negative one, push away from it. If the molecule is neutral, find a polar pi bond and make the charges yourself, then treat it like the other two cases.\n\nTwo things override the rest. The octet rule is not negotiable, so a contributor that breaks it is not a contributor. And FONClBrCSIPH tells you which atom the electrons would rather sit on. Get comfortable with this now and the mechanisms later in the course stop being things you memorise.",
   motif: "resonance",
   from: "#047857",
   to: "#059669",
