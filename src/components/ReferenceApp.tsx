@@ -4,6 +4,7 @@ import { HeroTitle } from "@/components/ui/hero-title";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
 import { HoverDeck } from "@/components/ui/hover-deck";
+import { DeckUploadTicket } from "@/components/DeckUploadTicket";
 import { deckCount, type ReferenceDeck } from "@/data/types";
 import { cn } from "@/lib/utils";
 
@@ -77,6 +78,8 @@ export function ReferenceApp({ deck }: { deck: ReferenceDeck }) {
             <HoverDeck groups={deck.groups} quizMode={quizMode} />
 
             <ScrollToTop className="mt-6" />
+
+            <DeckUploadTicket />
 
             <footer className="mt-12 text-center text-sm text-gray-500 dark:text-stone-400">
               {deck.footNote && <p>{deck.footNote}</p>}

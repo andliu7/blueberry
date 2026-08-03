@@ -29,6 +29,7 @@ import { ButtonHoldAndRelease } from "@/components/ui/hold-and-release-button";
 import SocialCards from "@/components/ui/card-fan-carousel";
 import { StickyNote } from "@/components/StickyNote";
 import { Confetti } from "@/components/Confetti";
+import { DeckUploadTicket } from "@/components/DeckUploadTicket";
 import { cn } from "@/lib/utils";
 import { useMathJaxTypeset } from "@/lib/useMathJaxTypeset";
 
@@ -812,6 +813,8 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
           )}
           <p className="text-center text-xs text-slate-400 dark:text-stone-500 mt-3">(these are fake testimonials)</p>
         </div>
+
+        <DeckUploadTicket />
 
         <footer className="mt-12 text-center text-gray-500 dark:text-stone-400 text-sm">
           {deck.footNote && <p>{deck.footNote}</p>}

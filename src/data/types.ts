@@ -92,17 +92,17 @@ export type DeckGroupId = "lab" | "reference" | "uploaded";
 export const DECK_GROUPS: { id: DeckGroupId; title: string; blurb: string }[] = [
   {
     id: "lab",
-    title: "Lab practicals",
+    title: "[CHEM 242] Lab practicals",
     blurb: "One deck per experiment, written for the LCTA.",
   },
   {
     id: "reference",
-    title: "Reference sheets",
+    title: "[CHEM 242] Reference sheets",
     blurb: "The charts you look up mid-problem. Hover any row for the diagram.",
   },
   {
     id: "uploaded",
-    title: "Uploaded",
+    title: "[CHEM 242] Uploaded",
     blurb: "Decks added from a text file.",
   },
 ];

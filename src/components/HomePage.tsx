@@ -140,6 +140,22 @@ function DeckFolder({
         {/* Shorter at rest than the images are tall, so the stack peeks out of
             the folder and has somewhere to open into on hover. */}
         <InfoCardMedia media={media} shrinkHeight={74} expandHeight={128} />
+
+        {/* Every deck in the folder, linked. The fanned artwork says how many
+            are in here; these say which, and get you into one in a single
+            click instead of scrolling to find its card. */}
+        <nav className="mt-2 flex flex-wrap gap-1.5">
+          {decks.map((d) => (
+            <a
+              key={d.id}
+              href={deckHref(d)}
+              className="rounded-full border border-slate-200 px-2 py-0.5 text-[0.7rem] font-semibold text-slate-600 transition-colors hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700 dark:border-stone-700 dark:text-stone-300 dark:hover:border-indigo-500/40 dark:hover:bg-indigo-400/10 dark:hover:text-indigo-300"
+            >
+              {d.short ?? d.title}
+            </a>
+          ))}
+        </nav>
+
         <InfoCardFooter>
           <span className="font-mono">
             {decks.length} {decks.length === 1 ? "deck" : "decks"}
