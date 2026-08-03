@@ -12,6 +12,20 @@ body {
   background-size: 28px 28px;
 }
 
+/* Reference-deck answer badges: blurred in quiz mode until you hover the row,
+   or tap it on a phone. Kept in CSS rather than as a React `blurred` prop so
+   the hover case never has to round-trip through state, which is what stops the
+   whole list re-rendering as the cursor travels down it. */
+.answer-hidden {
+  filter: blur(7px);
+  user-select: none;
+  transition: filter 180ms ease;
+}
+.group-row:hover .answer-hidden,
+.answer-hidden.revealed {
+  filter: blur(0);
+}
+
 /* Theme switching used to look staggered: the body eased over 250ms while the
    header, cards and controls had no transition at all and snapped instantly.
    The toggler adds this class for the length of the swap so every themed

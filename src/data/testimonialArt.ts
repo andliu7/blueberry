@@ -15,6 +15,8 @@ export type ArtMotif =
   | "ir"
   | "nmr"
   | "attack"
+  | "resonance"
+  | "pka"
   | "mascot";
 
 const MOTIFS: Record<ArtMotif, string> = {
@@ -26,6 +28,27 @@ const MOTIFS: Record<ArtMotif, string> = {
     <circle cx="104" cy="214" r="6" fill="#fff" opacity=".45"/>
     <circle cx="132" cy="228" r="4.5" fill="#fff" opacity=".4"/>
     <circle cx="118" cy="198" r="3.5" fill="#fff" opacity=".35"/>`,
+
+  // Two contributors either side of the double-headed resonance arrow. Drawn
+  // rather than reusing the benzene ring so the resonance deck does not wear
+  // the same badge as the iodination one.
+  resonance: `
+    <path d="M74 118 46 134 46 166 74 182 102 166 102 134Z" fill="none" stroke="#fff" stroke-width="4.5" stroke-linejoin="round" opacity=".92"/>
+    <path d="M198 118 170 134 170 166 198 182 226 166 226 134Z" fill="none" stroke="#fff" stroke-width="4.5" stroke-linejoin="round" opacity=".92"/>
+    <path d="M52 140 66 132M52 160 66 168" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".65"/>
+    <path d="M206 132 220 140M206 168 220 160" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".65"/>
+    <path d="M118 150h36" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".9"/>
+    <path d="M126 142 116 150 126 158M146 142 156 150 146 158" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity=".9"/>
+    <circle cx="74" cy="96" r="6" fill="#fff" opacity=".5"/>
+    <circle cx="198" cy="204" r="6" fill="#fff" opacity=".5"/>`,
+
+  // A titration curve with its half-equivalence point marked: the pKa.
+  pka: `
+    <path d="M40 60v200h176" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity=".75"/>
+    <path d="M56 236q44 0 60-30t26-58q10-28 54-28" fill="none" stroke="#fff" stroke-width="5.5" stroke-linecap="round" opacity=".92"/>
+    <path d="M128 92v130M40 148h88" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="7 9" opacity=".5"/>
+    <circle cx="128" cy="148" r="9" fill="#fff" opacity=".85"/>
+    <circle cx="128" cy="148" r="17" fill="none" stroke="#fff" stroke-width="3.5" opacity=".45"/>`,
 
   // Benzene ring with the classic inner circle.
   benzene: `

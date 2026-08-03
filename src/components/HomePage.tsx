@@ -1,11 +1,22 @@
+import { useCallback, useMemo, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
-import { ArrowRight, Plus } from "lucide-react";
-import { DECKS, type Deck } from "@/data/decks";
-import { MOTIF_VIEWBOX, motifMarkup } from "@/data/testimonialArt";
+import { Plus } from "lucide-react";
+import { DECKS } from "@/data/decks";
+import { deckHref, deckCount, isReference, DECK_GROUPS, type Deck } from "@/data/types";
+import { MOTIF_VIEWBOX, motifMarkup, cardArt } from "@/data/testimonialArt";
+import {
+  InfoCard,
+  InfoCardContent,
+  InfoCardTitle,
+  InfoCardDescription,
+  InfoCardMedia,
+  InfoCardFooter,
+} from "@/components/ui/info-card";
+import { DeckSearch } from "@/components/ui/deck-search";
+import { matchedDeckIds, type SearchHit } from "@/lib/searchDecks";
 import { NavPill, type NavPillItem } from "@/components/ui/nav-pill";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
-import { TiltCard } from "@/components/ui/be-ui-tilt-card";
-import { useIsDark } from "@/lib/useIsDark";
+import { GlassCard } from "@/components/ui/glass-card";
 
 /**
  * The hub: one card per deck, with room to grow.
@@ -16,12 +27,18 @@ import { useIsDark } from "@/lib/useIsDark";
  * lives at #/home, reached from the small Home link on the title screen.
  */
 export function HomePage() {
-  const isDark = useIsDark();
   const reduce = useReducedMotion();
+  const [hits, setHits] = useState<SearchHit[] | null>(null);
+  // Stable identity: DeckSearch reports through an effect, so a fresh callback
+  // every render would re-fire it on every keystroke's re-render.
+  const handleResults = useCallback((next: SearchHit[] | null) => setHits(next), []);
+  const matched = useMemo(() => (hits ? matchedDeckIds(hits) : null), [hits]);
 
   const navItems: NavPillItem[] = [
     { id: "home", label: "Home", href: "#/home" },
-    ...DECKS.map((d) => ({ id: d.id, label: d.title, href: d.href })),
+    // The pill gets the short name: the full course titles are far too long to
+    // sit side by side in it.
+    ...DECKS.map((d) => ({ id: d.id, label: d.short ?? d.title, href: deckHref(d) })),
   ];
 
   return (
@@ -37,17 +54,35 @@ export function HomePage() {
             Study decks
           </h1>
           <p className="playful-face mt-4 text-lg text-slate-500 dark:text-stone-400">
-            Question sets built for the ten minutes before a lab practical. Pick
-            one, hide the answers, and drill until they stick.
+            Everything I use to study for CHEM 242, mostly the night before. Lab
+            practical questions, plus the pKa, IR, NMR and resonance sheets I always
+            end up digging for. Answers stay hidden until you ask for them.
           </p>
         </header>
 
-        <div className="grid gap-5 sm:grid-cols-2">
-          {DECKS.map((deck, i) => (
-            <DeckCard key={deck.id} deck={deck} index={i} isDark={isDark} reduce={reduce} />
-          ))}
-          <PlaceholderCard index={DECKS.length} reduce={reduce} />
-        </div>
+        <DeckSearch decks={DECKS} onResults={handleResults} />
+
+        {DECK_GROUPS.map((group) => {
+          const decks = DECKS.filter(
+            (d) => (d.group ?? "lab") === group.id && (!matched || matched.has(d.id)),
+          );
+          if (decks.length === 0) return null;
+          return (
+            <section key={group.id} className="mb-14">
+              <DeckFolder group={group} decks={decks} />
+              {/* Roomier than a tight gutter: these cards tilt out of the plane
+                  on hover, and the raised corner used to clip its neighbour. */}
+              <div className="mt-6 grid gap-7 sm:grid-cols-2">
+                {decks.map((deck, i) => (
+                  <DeckCard key={deck.id} deck={deck} index={i} reduce={reduce} />
+                ))}
+                {group.id === "lab" && !matched && (
+                  <PlaceholderCard index={decks.length} reduce={reduce} />
+                )}
+              </div>
+            </section>
+          );
+        })}
 
         <footer className="mt-16 text-center text-sm text-slate-400 dark:text-stone-500">
           <a
@@ -64,15 +99,65 @@ export function HomePage() {
   );
 }
 
+/**
+ * A folder heading for one group of decks.
+ *
+ * The stacked artwork is the decks themselves: `cardArt()` already renders a
+ * motif onto its gradient as a self-contained SVG data URI, so the fan needs no
+ * new image assets and nothing that can 404. Hovering spreads the stack, which
+ * is what makes this read as a folder rather than a heading with a picture.
+ */
+function DeckFolder({
+  group,
+  decks,
+}: {
+  group: (typeof DECK_GROUPS)[number];
+  decks: Deck[];
+}) {
+  /**
+   * The upstream media styling assumes landscape screenshots: `w-full` with no
+   * height, so the height falls out of the aspect ratio. This artwork is
+   * portrait 240x320, which made each image 546px tall and burst out of the
+   * card. Fixing the height and letting the width follow keeps them card
+   * shaped, and `object-contain` stops the motif being cropped away.
+   */
+  const media = useMemo(
+    () =>
+      decks.slice(0, 3).map((d) => ({
+        src: cardArt(d.motif, d.from, d.to),
+        alt: d.title,
+        className: "mx-auto block h-[104px] w-auto rounded-md object-contain",
+      })),
+    [decks],
+  );
+  const cards = decks.reduce((n, d) => n + deckCount(d), 0);
+
+  return (
+    <InfoCard className="max-w-sm">
+      <InfoCardContent>
+        <InfoCardTitle className="text-base">{group.title}</InfoCardTitle>
+        <InfoCardDescription>{group.blurb}</InfoCardDescription>
+        {/* Shorter at rest than the images are tall, so the stack peeks out of
+            the folder and has somewhere to open into on hover. */}
+        <InfoCardMedia media={media} shrinkHeight={74} expandHeight={128} />
+        <InfoCardFooter>
+          <span className="font-mono">
+            {decks.length} {decks.length === 1 ? "deck" : "decks"}
+          </span>
+          <span className="font-mono">{cards} cards</span>
+        </InfoCardFooter>
+      </InfoCardContent>
+    </InfoCard>
+  );
+}
+
 function DeckCard({
   deck,
   index,
-  isDark,
   reduce,
 }: {
   deck: Deck;
   index: number;
-  isDark: boolean;
   reduce: boolean | null;
 }) {
   return (
@@ -80,47 +165,19 @@ function DeckCard({
       initial={reduce ? false : { opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.08, duration: 0.4, ease: "easeOut" }}
+      className="h-full"
     >
-      <TiltCard
-        max={6}
-        glareColor={isDark ? "rgba(255,255,255,0.9)" : "rgba(99,102,241,0.7)"}
-        className="rounded-2xl"
-      >
-        <a
-          href={deck.href}
-          className="group block h-full rounded-2xl border border-slate-200 bg-white p-5 shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 dark:border-stone-800 dark:bg-stone-900"
-        >
-          {/* The motif is drawn to fit rather than set as a cover image: the
-              artwork is portrait 240x320 and this well is wide and short, so
-              `object-cover` cropped the reaction down to two stray bonds. */}
-          <div
-            aria-hidden
-            className="mb-4 flex h-32 w-full items-center justify-center overflow-hidden rounded-xl"
-            style={{ background: `linear-gradient(135deg, ${deck.from}, ${deck.to})` }}
-          >
-            <svg
-              viewBox={MOTIF_VIEWBOX}
-              className="h-full w-auto py-3 text-white/90"
-              dangerouslySetInnerHTML={{ __html: motifMarkup(deck.motif) }}
-            />
-          </div>
-          <div className="flex items-start justify-between gap-3">
-            <h2 className="text-lg font-bold text-slate-900 dark:text-stone-100">
-              {deck.title}
-            </h2>
-            <span className="shrink-0 rounded-full bg-indigo-50 px-2.5 py-1 font-mono text-xs font-semibold text-indigo-600 dark:bg-indigo-400/10 dark:text-indigo-300">
-              {deck.count} cards
-            </span>
-          </div>
-          <p className="mt-2 text-sm leading-relaxed text-slate-500 dark:text-stone-400">
-            {deck.subtitle}
-          </p>
-          <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-indigo-600 dark:text-indigo-300">
-            Start studying
-            <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-          </span>
-        </a>
-      </TiltCard>
+      <GlassCard
+        href={deckHref(deck)}
+        title={deck.title}
+        description={deck.blurb}
+        meta={`${deckCount(deck)} ${isReference(deck) ? "rows" : "cards"}`}
+        cta={isReference(deck) ? "Open reference" : "Start studying"}
+        from={deck.from}
+        to={deck.to}
+        motifMarkup={motifMarkup(deck.motif)}
+        motifViewBox={MOTIF_VIEWBOX}
+      />
     </motion.div>
   );
 }

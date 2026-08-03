@@ -1,17 +1,23 @@
 # Grignard LCTA Master List
 
-An interactive study guide for the Grignard synthesis lab practical, built as a
-single-page web app.
+Interactive study guides for the CHEM 242 lab practicals, built as a single-page
+web app. It started as one deck for the Grignard lab and now carries three.
 
 **Live site:** https://andliu7.github.io/grignard_LCTA/
 
-> 44 questions, four reading modes, self-rating with saved progress, light and
-> dark themes, and a great deal of animation work. React, TypeScript, Vite,
-> Tailwind.
+| Deck | Cards | Route |
+| --- | --- | --- |
+| [CHEM 242] Lab 3: Epoxidation | 43 | `#/deck/epoxidation` |
+| [CHEM 242] Lab 4: Iodination of Salicylamide | 51 | `#/deck/iodination` |
+| [CHEM 242] Lab 6: Grignard Addition | 44 | `#/` |
+
+> Four reading modes, self-rating with saved progress, light and dark themes,
+> and a great deal of animation work. React, TypeScript, Vite, Tailwind.
 
 **Contents**
 [Why this exists](#why-this-exists) ·
 [Features](#features) ·
+[Adding a deck](#adding-a-deck) ·
 [Every element, in order](#every-element-in-order) ·
 [Every animation](#every-animation) ·
 [How it was built](#how-it-was-built) ·
@@ -26,9 +32,9 @@ single-page web app.
 
 ### Studying the LCTA anywhere
 
-All 44 questions live in one page that loads fast and works on a phone. Answers
-stay hidden until you ask for them, so you can quiz yourself on the bus, in the
-car, or in the ten minutes before walking into lab.
+Each deck lives in one page that loads fast and works on a phone. Answers stay
+hidden until you ask for them, so you can quiz yourself on the bus, in the car,
+or in the ten minutes before walking into lab.
 
 Ratings and notes save automatically, so you pick up where you left off. The
 Needs Review filter narrows the set to whatever you have not locked in yet, which
@@ -55,10 +61,12 @@ section, because that is where nearly all of the learning actually happened.
 
 **Studying**
 
-- 44 questions covering the full experiment, from oven-drying glassware through
-  extraction, washing, drying, and IR and NMR interpretation
+- Three decks, one per lab, chosen from a hub at `#/home`
+- Questions covering each experiment end to end, from setup and reagent roles
+  through workup, purification, and IR and NMR interpretation
 - Expandable answers, so you can test yourself before revealing
-- Multiple choice with instant right and wrong feedback
+- Multiple choice with instant right and wrong feedback, including
+  select-all-that-apply questions that grade on a Check button
 - Self-rating: mark each question Review, Almost, or Got It, tracked by a counter
   and progress bar
 - Needs Review filter hides anything already marked green
@@ -67,7 +75,8 @@ section, because that is where nearly all of the learning actually happened.
 - Expand All and Collapse All, which merge into one another as they become
   redundant
 - Draggable sticky notes that persist between sessions
-- Progress saved automatically to the browser
+- Progress saved automatically to the browser, **per deck**, so decks never
+  overwrite each other
 
 **Four reading modes**, cycled from a single control:
 
@@ -86,6 +95,116 @@ remembered and applied before the first paint.
 
 ---
 
+## Adding a deck
+
+Two steps. Nothing else in the app needs to change.
+
+**1. Write the deck.** Copy any file in `src/data/decks/` and edit it:
+
+```ts
+import type { Deck } from "@/data/types";
+
+export const distillationDeck: Deck = {
+  id: "distillation",                          // becomes #/deck/distillation
+  title: "[CHEM 242] Lab 5: Distillation",     // hub card
+  short: "Distillation",                       // nav pill, since the title is long
+  titleLines: ["DISTILLATION", "MASTER LIST"], // title screen, one line per entry
+  subtitle: "40 questions for the lab practical. Hide the answers, ...",
+  blurb: "Fractional versus simple, and reading a distillation curve.",
+  footNote: "Ready for the LCTA!",             // optional parting line
+  motif: "reflux",                             // see the motif list below
+  from: "#0f766e",
+  to: "#0e7490",
+  questions: [
+    { q: "Why does the thermometer bulb sit level with the side arm?",
+      a: "So it reads the <strong class='text-indigo-700'>vapour</strong> temperature." },
+  ],
+};
+```
+
+**2. Register it** in `src/data/decks/index.ts`:
+
+```ts
+import { distillationDeck } from "./distillation";
+
+export const DECKS: Deck[] = [epoxidationDeck, iodinationDeck, distillationDeck, grignardDeck];
+```
+
+It now appears on the hub, in the navigation pill, and at `#/deck/distillation`,
+with its own title screen, artwork and saved progress.
+
+### Card formats
+
+A plain card, with inline HTML allowed in both fields:
+
+```ts
+{ q: "Why does it work?", a: "Because <strong class='text-indigo-700'>this</strong> happens." }
+```
+
+A card with maths. Wrap LaTeX in single dollar signs, and remember the string
+literal eats one level of backslashes:
+
+```ts
+{ q: "What is the enthalpy?", a: "About $\\Delta H = -92\\ kJ/mol$." }
+```
+
+A multiple choice card. `correct` is a zero-based index into `options`, and `a`
+is the explanation shown after an option is picked:
+
+```ts
+{
+  mc: true,
+  q: "Which is the rate-determining step?",
+  options: ["The first", "The second", "The third"],
+  correct: 1,
+  a: "The second, because it has the highest activation energy.",
+}
+```
+
+A **select-all-that-apply** card, which the LCTA also asks. Pass an array for
+`correct` and the card switches behaviour: options toggle on and off instead of
+locking in, and the answer stays hidden behind a **Check answer** button rather
+than being revealed by the first click, which would otherwise give the game away
+before you had finished choosing.
+
+```ts
+{
+  mc: true,
+  q: "Which of the following are true? Select all that apply.",
+  options: ["...", "...", "...", "...", "..."],
+  correct: [1, 2],
+  a: "Correct answers: B and C, because ...",
+}
+```
+
+Ticked-but-unchecked options show indigo, which is deliberately neither of the
+grading colours. Green and red only appear once the answer has been checked.
+
+### Artwork
+
+`motif` picks an illustration from `src/data/testimonialArt.ts`, used on both the
+hub card and the deck's title screen: `erlenmeyer`, `benzene`, `reflux`,
+`sepfunnel`, `ir`, `nmr`, `attack`, `mascot`.
+
+They are plain SVG paths held as strings, so adding your own means adding an
+entry to `MOTIFS` and its name to `ArtMotif`. Keep to the `0 0 240 320` viewBox
+and use `#fff` for strokes; `motifMarkup()` swaps that for whatever colour the
+caller needs, which is how one drawing works on a dark card and on pale paper.
+
+### Routing
+
+Decks live at `#/deck/<id>` and the hub at `#/home`, with one deliberate
+exception: **Grignard also answers at the bare `#/`**. It was the only deck for
+months and that is the link classmates already have, so `deckHref()` in
+`src/data/types.ts` lets a deck override its own URL rather than breaking every
+shared bookmark. An unknown deck id falls back to the hub instead of erroring.
+
+Progress keys work the same way. Grignard keeps the original
+`grignard_lcta_progress_v1`; every other deck gets
+`grignard_lcta_progress_<id>_v1`. Anyone mid-revision keeps their ratings.
+
+---
+
 ## Every element, in order
 
 This section walks the page from top to bottom, then covers the controls that
@@ -95,8 +214,8 @@ float above it. Each entry names the file it lives in.
 
 `src/components/ui/hero-title.tsx`
 
-A full-viewport opening scene that holds the title alone, so the app introduces
-itself before showing 44 cards. It is `sticky`, so the content below scrolls up
+A full-viewport opening scene that holds the title alone, so a deck introduces
+itself before showing its cards. It is `sticky`, so the content below scrolls up
 over it rather than pushing it away, which gives the transition into the question
 list without a scroll library.
 
@@ -106,8 +225,9 @@ list without a scroll library.
 - **`variant="art"`** draws faint chemistry line art behind the title.
   `variant="ghost"` is the alternative, kept reachable, which stamps oversized
   translucent words instead.
-- **`align`** and the art layout are props, so the arrangement is data rather
-  than markup.
+- **`align`**, the title lines, the subtitle and the backdrop `motif` are all
+  props, so the arrangement is data rather than markup. That is what lets each
+  deck bring its own title screen without a second component.
 - A small **scroll cue** sits under the subtitle rather than centred on the
   viewport, so it belongs to the title block instead of floating loose.
 
@@ -264,7 +384,7 @@ Grouped by what drives them.
 | **Theme morph** | Theme toggle | A sun morphs into a crescent moon, the crescent carved by an animated SVG mask |
 | **Theme crossfade** | Whole page | Every surface transitions together for 260ms |
 | **Hold to reset** | Reset button | Requires a 1.2 second hold with a fill showing progress. Releasing early cancels |
-| **Confetti** | On completion | Fires once when all 44 questions have been reviewed |
+| **Confetti** | On completion | Fires once when every question in the deck has been reviewed |
 
 ### Scroll-driven
 

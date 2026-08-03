@@ -22,13 +22,13 @@ import { cn } from "@/lib/utils";
 export type HeroVariant = "art" | "ghost";
 
 /**
- * The right edge carries the reaction this lab actually performs, a Grignard
- * adding to a carbonyl, rather than a generic benzene ring. The mascot tucks
- * into the corner as a small joke.
+ * The right edge carries the reaction that lab actually performs rather than a
+ * generic benzene ring, so the motif comes from the deck. The mascot tucks into
+ * the corner as a small joke, the same on every deck.
  */
-const ART_LAYOUT: { motif: ArtMotif; className: string; opacity: string }[] = [
+const artLayout = (motif: ArtMotif): { motif: ArtMotif; className: string; opacity: string }[] => [
   {
-    motif: "attack",
+    motif,
     className: "right-[-4%] md:right-[3%] top-1/2 -translate-y-1/2 w-72 md:w-[24rem]",
     opacity: "text-indigo-500/20 dark:text-amber-200/15",
   },
@@ -67,6 +67,7 @@ export function HeroTitle({
   titleLines = ["GRIGNARD LCTA", "MASTER LIST"],
   subtitle = "44 questions for the lab practical. Hide the answers, rate your recall, and drill until they stick.",
   ghostWord = "GRIGNARD",
+  motif = "attack",
   topLeft,
 }: {
   variant?: HeroVariant;
@@ -74,6 +75,8 @@ export function HeroTitle({
   titleLines?: string[];
   subtitle?: string;
   ghostWord?: string;
+  /** Backdrop illustration, normally the deck's own motif. */
+  motif?: ArtMotif;
   /**
    * Corner slot, for a link out of this deck. Sits outside the title's motion
    * wrapper so it does not fade and shrink along with the heading, and the
@@ -111,7 +114,7 @@ export function HeroTitle({
       {/* Backdrop */}
       {variant === "art" ? (
         <div aria-hidden className="pointer-events-none absolute inset-0 select-none">
-          {ART_LAYOUT.map((a) => (
+          {artLayout(motif).map((a) => (
             <MotifArt key={a.motif} motif={a.motif} className={a.className} opacity={a.opacity} />
           ))}
         </div>

@@ -1,10 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence } from "motion/react";
-import { ChevronsUpDown, ChevronsDownUp, Shuffle, GalleryHorizontalEnd, List, MoveVertical, MessageSquare, ArrowDownToLine, GitBranch, ArrowUpRight, Layers, Home } from "lucide-react";
+import { ChevronsUpDown, ChevronsDownUp, Shuffle, GalleryHorizontalEnd, List, MoveVertical, MessageSquare, ArrowDownToLine, GitBranch, ArrowUpRight, Layers, Home, RefreshCw } from "lucide-react";
+import { FlippingCard } from "@/components/ui/flipping-card";
+import { FlipCard } from "@/components/ui/flip-card";
+import { MathHtml } from "@/components/ui/math-html";
 import { FeedbackWidget } from "@/components/ui/feedback-widget";
 import { ClickHereHint } from "@/components/ui/click-here-hint";
 import { GlassFilter, LiquidGlassLayers } from "@/components/ui/liquid-glass-button";
-import { questions } from "@/data/questions";
+import { findDeck } from "@/data/decks";
+import { isReference, type StudyDeck } from "@/data/types";
+import { ReferenceApp } from "@/components/ReferenceApp";
 import { testimonials, testimonialArt } from "@/data/testimonials";
 import { GradientMenuButton, type GradientMenuItem } from "@/components/ui/gradient-menu";
 import { AnimatedActionCluster } from "@/components/ui/floating-action-button";
@@ -27,7 +32,15 @@ import { Confetti } from "@/components/Confetti";
 import { cn } from "@/lib/utils";
 import { useMathJaxTypeset } from "@/lib/useMathJaxTypeset";
 
-const STORAGE_KEY = "grignard_lcta_progress_v1";
+/**
+ * Progress is saved per deck, so one deck's ratings never overwrite another's.
+ *
+ * Grignard keeps the original un-suffixed key rather than being migrated: it was
+ * the only deck for months, and anyone mid-revision would otherwise open the
+ * site to find their ratings gone.
+ */
+const progressKey = (deckId: string) =>
+  deckId === "grignard" ? "grignard_lcta_progress_v1" : `grignard_lcta_progress_${deckId}_v1`;
 const FEEDBACK_KEY = "grignard_lcta_feedback_v1";
 const FEEDBACK_ENDPOINT = import.meta.env.VITE_FEEDBACK_ENDPOINT as string | undefined;
 
@@ -39,6 +52,57 @@ const VIEW_ICON = {
   stack: <Layers />,
 } as const;
 const diffRank: Record<Status, number> = { red: 0, yellow: 1, none: 2, green: 3 };
+
+/**
+ * The rate buttons on the back of a flipped card. Shared by both flip styles,
+ * which otherwise had this table and its three buttons written out twice.
+ *
+ * Stops the click bubbling: the whole card is the flip target, so rating one
+ * would otherwise immediately turn it back over.
+ */
+const RATINGS = [
+  ["red", "Review", "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-200"],
+  ["yellow", "Almost", "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-200"],
+  ["green", "Got It", "bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-200"],
+] as const;
+
+function FlipRateRow({
+  onRate,
+  compact = false,
+}: {
+  onRate: (color: Status) => void;
+  compact?: boolean;
+}) {
+  return (
+    <div
+      className={cn("mt-2 flex shrink-0", compact ? "gap-1" : "gap-1.5")}
+      onClick={(e) => e.stopPropagation()}
+    >
+      {RATINGS.map(([color, label, cls]) => (
+        <button
+          key={color}
+          onClick={() => onRate(color)}
+          className={cn(
+            "rounded font-bold transition hover:brightness-95",
+            compact ? "px-1.5 py-1 text-[0.65rem]" : "px-2 py-1 text-xs",
+            cls,
+          )}
+        >
+          {label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/** Card presentation, orthogonal to the view mode that arranges them. */
+type CardStyle = "classic" | "flip" | "tilt";
+const CARD_STYLES = ["classic", "flip", "tilt"] as const;
+const CARD_STYLE_LABEL: Record<CardStyle, string> = {
+  classic: "Cards",
+  flip: "Flip",
+  tilt: "Tilt",
+};
 
 
 /**
@@ -59,9 +123,9 @@ function QuoteSurface({ children }: { children: React.ReactNode }) {
   );
 }
 
-function loadSaved(): { status?: Record<number, Status>; note?: string } {
+function loadSaved(deckId: string): { status?: Record<number, Status>; note?: string } {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(progressKey(deckId));
     if (raw) {
       const data = JSON.parse(raw);
       if (data && typeof data === "object") return data;
@@ -73,19 +137,30 @@ function loadSaved(): { status?: Record<number, Status>; note?: string } {
 }
 
 /**
- * The root only decides which page is showing. The study app stays at the bare
- * URL, because that is the link people already have; the hub sits behind
+ * The root only decides which page is showing. Decks live at #/deck/<id>, with
+ * one exception: Grignard answers at the bare URL too, because that is the link
+ * people already have and no bookmark of it should break. The hub sits behind
  * #/home, reached from the Home link on the title screen.
  */
 export default function App() {
   const route = useHashRoute();
-  return route === "home" ? <HomePage /> : <StudyApp />;
+  if (route === "home") return <HomePage />;
+  const id = route.startsWith("deck/") ? route.slice(5) : route === "" ? "grignard" : "";
+  const deck = findDeck(id);
+  // An unknown or missing deck falls back to the hub rather than erroring, so a
+  // stale bookmark from a renamed deck still lands somewhere useful.
+  if (!deck) return <HomePage />;
+  // Keyed so switching decks remounts rather than carrying the old deck's
+  // ratings, open cards and scroll position across.
+  if (isReference(deck)) return <ReferenceApp key={deck.id} deck={deck} />;
+  return <StudyApp key={deck.id} deck={deck} />;
 }
 
-function StudyApp() {
-  const [status, setStatus] = useState<Record<number, Status>>(() => loadSaved().status ?? {});
+function StudyApp({ deck }: { deck: StudyDeck }) {
+  const questions = deck.questions;
+  const [status, setStatus] = useState<Record<number, Status>>(() => loadSaved(deck.id).status ?? {});
   const [note, setNote] = useState(() => {
-    const saved = loadSaved().note;
+    const saved = loadSaved(deck.id).note;
     return typeof saved === "string" ? saved : "";
   });
   const [filter, setFilter] = useState<"all" | "needs">("all");
@@ -116,7 +191,20 @@ function StudyApp() {
   // Question number -> chosen multiple choice option. Lifted out of the card for
   // the same reason as openMap: while it lived inside, Reset could not reach it,
   // so a reset question still showed its answer marked right or wrong.
-  const [answerMap, setAnswerMap] = useState<Record<number, number>>({});
+  const [answerMap, setAnswerMap] = useState<Record<number, number[]>>({});
+  // Separate from the ticks: a select-all question is ticked over several
+  // clicks and only graded when Check is pressed, so "what is chosen" and
+  // "has it been revealed" are genuinely two pieces of state.
+  const [submittedMap, setSubmittedMap] = useState<Record<number, boolean>>({});
+  /**
+   * How a card presents itself, independent of which container it sits in.
+   *
+   * This used to be a `flipMode` boolean checked *before* the view branch, so
+   * turning flip on replaced the carousel instead of filling it. Style and
+   * container are separate questions, so they are separate state.
+   */
+  const [cardStyle, setCardStyle] = useState<CardStyle>("classic");
+  const [flippedMap, setFlippedMap] = useState<Record<number, boolean>>({});
 
   // Save progress whenever it changes. Restoring happens in the useState
   // initialisers above rather than in an effect: an effect-based load races this
@@ -124,11 +212,11 @@ function StudyApp() {
   // the saved progress before the restore landed.
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ status, note }));
+      localStorage.setItem(progressKey(deck.id), JSON.stringify({ status, note }));
     } catch {
       /* ignore */
     }
-  }, [status, note]);
+  }, [status, note, deck.id]);
 
   const mcIdx = questions.findIndex((q) => q.mc);
 
@@ -167,7 +255,7 @@ function StudyApp() {
       setConfettiTrigger((t) => t + 1);
     }
     if (reviewed < questions.length) hasCelebrated.current = false;
-  }, [reviewed]);
+  }, [reviewed, questions.length]);
 
   // Deliberately excludes tIndex: testimonials contain no math, and a full-document
   // typeset reflows the page and throws the scroll position to the top.
@@ -272,13 +360,128 @@ function StudyApp() {
     setNote("");
     setOpenMap({});
     setAnswerMap({});
+    setSubmittedMap({});
     hasCelebrated.current = false;
     try {
-      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(progressKey(deck.id));
     } catch {
       /* ignore */
     }
   }
+
+  /**
+   * Flip view: question on the front, answer on the back.
+   *
+   * Click rather than hover, even though the component supports both. On a
+   * phone there is no hover at all, and on a laptop a hover flip fires every
+   * time the cursor crosses a card on its way somewhere else, which turns
+   * scrolling a deck into a strobe.
+   */
+  const renderFlipCard = (qi: number) => {
+    const item = questions[qi];
+    const num = qi + 1;
+    return (
+      <FlippingCard
+        key={qi}
+        width={320}
+        height={260}
+        flipped={flippedMap[num] ?? false}
+        onFlip={() => setFlippedMap((m) => ({ ...m, [num]: !m[num] }))}
+        className={cn(
+          "w-full max-w-full",
+          status[num] === "red" && "!border-red-300 dark:!border-red-900",
+          status[num] === "yellow" && "!border-yellow-300 dark:!border-yellow-900",
+          status[num] === "green" && "!border-green-300 dark:!border-green-900",
+        )}
+        frontContent={
+          <div className="flex h-full w-full flex-col p-5">
+            <span className="font-mono text-xs font-bold text-indigo-600 dark:text-indigo-400">
+              Question {num}
+              {item.mc ? " · MC" : ""}
+            </span>
+            <div className="flex flex-1 items-center">
+              <MathHtml
+                html={item.q}
+                className="text-[0.95rem] leading-snug font-semibold text-slate-800 dark:text-stone-100"
+              />
+            </div>
+            <span className="font-mono text-[0.65rem] tracking-wider text-slate-400 uppercase dark:text-stone-500">
+              click to flip
+            </span>
+          </div>
+        }
+        backContent={
+          <div className="flex h-full w-full flex-col p-5">
+            <div className="flex-1 overflow-y-auto">
+              <MathHtml
+                html={item.a}
+                className="text-sm leading-relaxed text-slate-700 dark:text-stone-300"
+              />
+            </div>
+            <FlipRateRow onRate={(color) => rate(num, color)} />
+          </div>
+        }
+      />
+    );
+  };
+
+  /** Same question and answer as the flip card, on the tilt-tracking variant. */
+  const renderTiltCard = (qi: number) => {
+    const item = questions[qi];
+    const num = qi + 1;
+    return (
+      <FlipCard
+        key={qi}
+        cardNumber={num}
+        isFlipped={flippedMap[num] ?? false}
+        onFlipChange={() => setFlippedMap((m) => ({ ...m, [num]: !m[num] }))}
+        className={cn(
+          status[num] === "red" && "[&_[class*=border-slate-200]]:!border-red-300",
+          status[num] === "yellow" && "[&_[class*=border-slate-200]]:!border-yellow-300",
+          status[num] === "green" && "[&_[class*=border-slate-200]]:!border-green-300",
+        )}
+        frontContent={
+          <div className="flex h-full w-full flex-col p-4">
+            <span className="font-mono text-xs font-bold text-indigo-600 dark:text-indigo-400">
+              {num}
+              {item.mc ? " · MC" : ""}
+            </span>
+            <div className="flex flex-1 items-center">
+              <MathHtml
+                html={item.q}
+                className="text-sm leading-snug font-semibold text-slate-800 dark:text-stone-100"
+              />
+            </div>
+            <span className="font-mono text-[0.6rem] tracking-wider text-slate-400 uppercase dark:text-stone-500">
+              click to flip
+            </span>
+          </div>
+        }
+        backFace={
+          <div className="flex h-full w-full flex-col p-4">
+            <div className="flex-1 overflow-y-auto">
+              <MathHtml
+                html={item.a}
+                className="text-[0.8rem] leading-relaxed text-slate-700 dark:text-stone-300"
+              />
+            </div>
+            <FlipRateRow onRate={(color) => rate(num, color)} compact />
+          </div>
+        }
+      />
+    );
+  };
+
+  /**
+   * The single indirection that lets any style appear in any view. Containers
+   * call this and never know which card they are laying out.
+   */
+  const renderAnyCard = (qi: number) =>
+    cardStyle === "flip"
+      ? renderFlipCard(qi)
+      : cardStyle === "tilt"
+        ? renderTiltCard(qi)
+        : renderCard(qi);
 
   /** Every view renders the same card; only the container differs. */
   const renderCard = (qi: number) => (
@@ -290,8 +493,10 @@ function StudyApp() {
       onRate={(color) => rate(qi + 1, color)}
       open={openMap[qi + 1] ?? false}
       onOpenChange={(o) => setOpenMap((m) => ({ ...m, [qi + 1]: o }))}
-      selected={answerMap[qi + 1] ?? null}
-      onSelect={(i) => setAnswerMap((m) => ({ ...m, [qi + 1]: i }))}
+      picks={answerMap[qi + 1] ?? []}
+      onPicksChange={(next) => setAnswerMap((m) => ({ ...m, [qi + 1]: next }))}
+      submitted={submittedMap[qi + 1] ?? false}
+      onSubmit={() => setSubmittedMap((m) => ({ ...m, [qi + 1]: true }))}
     />
   );
 
@@ -317,6 +522,10 @@ function StudyApp() {
       {/* Swap to variant="ghost" for the giant outlined-word backdrop instead. */}
       <HeroTitle
         variant="art"
+        titleLines={deck.titleLines}
+        subtitle={deck.subtitle}
+        ghostWord={deck.titleLines[0]}
+        motif={deck.motif}
         topLeft={
           <a
             href="#/home"
@@ -423,6 +632,25 @@ function StudyApp() {
                     gradientTo: "#64748b",
                   }}
                 />,
+                // Sits immediately after Expand/Collapse and before the rest,
+                // because it belongs with the controls that change how a card
+                // presents itself rather than with the ones that reorder them.
+                <GradientMenuButton
+                  key="card-style"
+                  title={CARD_STYLE_LABEL[cardStyle]}
+                  icon={<RefreshCw />}
+                  onClick={() => {
+                    setCardStyle(
+                      (s) => CARD_STYLES[(CARD_STYLES.indexOf(s) + 1) % CARD_STYLES.length],
+                    );
+                    // Every card starts question-side up in the new style;
+                    // carrying flips across reads as cards already answered.
+                    setFlippedMap({});
+                  }}
+                  gradientFrom="#be123c"
+                  gradientTo="#e11d48"
+                  active={cardStyle !== "classic"}
+                />,
                 ...([
                   {
                     title: shuffled ? "Unshuffle" : "Shuffle",
@@ -493,22 +721,30 @@ function StudyApp() {
         {/* One card definition for all four views. Previously each branch
             repeated the same eight props, so a change to any of them had to be
             made in three places. */}
+        {/* Container and card style are independent: every branch below calls
+            the same renderAnyCard, so Flip and Tilt work inside the carousel,
+            the scroll grid and the stack, not just the list. */}
         {view === "scroll" ? (
           <ScrollTiltedGrid className="gap-[14vh] py-[12vh]">
-            {visibleIdx.map(renderCard)}
+            {visibleIdx.map(renderAnyCard)}
           </ScrollTiltedGrid>
         ) : view === "stack" ? (
-          <StackedCards>{visibleIdx.map(renderCard)}</StackedCards>
+          <StackedCards>{visibleIdx.map(renderAnyCard)}</StackedCards>
         ) : view === "carousel" ? (
           <SnapCarousel
             label="Questions"
             index={safeCarouselIndex}
             onIndexChange={setCarouselIndex}
           >
-            {visibleIdx.map(renderCard)}
+            {visibleIdx.map(renderAnyCard)}
           </SnapCarousel>
+        ) : cardStyle === "classic" ? (
+          <div className="space-y-4">{visibleIdx.map(renderAnyCard)}</div>
         ) : (
-          <div className="space-y-4">{visibleIdx.map(renderCard)}</div>
+          // The flip styles are fixed-height and squarer than a question card,
+          // so the list view gives them a two-column grid rather than one tall
+          // column of half-empty cards.
+          <div className="grid gap-5 sm:grid-cols-2">{visibleIdx.map(renderAnyCard)}</div>
         )}
 
         {/* End of the cards, bottom right. */}
@@ -578,7 +814,7 @@ function StudyApp() {
         </div>
 
         <footer className="mt-12 text-center text-gray-500 dark:text-stone-400 text-sm">
-          <p>Ready for the LCTA! Remember: Anhydrous = Dry Reaction | Regular = Wet Workup.</p>
+          {deck.footNote && <p>{deck.footNote}</p>}
 
           <p className="playful-face mt-6 mx-auto max-w-xl text-lg leading-relaxed text-slate-600 dark:text-stone-300">
             Thank you for visiting [Website Name]! I appreciate your time and interest in

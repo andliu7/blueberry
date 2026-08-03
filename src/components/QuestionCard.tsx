@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { Question } from "@/data/questions";
+import type { Question } from "@/data/types";
 import { PressDepth } from "@/components/ui/press-depth";
 import { cn } from "@/lib/utils";
 import { MathHtml } from "@/components/ui/math-html";
@@ -24,8 +24,10 @@ export function QuestionCard({
   isActive = true,
   open: openProp,
   onOpenChange,
-  selected: selectedProp,
-  onSelect,
+  picks: picksProp,
+  onPicksChange,
+  submitted: submittedProp,
+  onSubmit,
 }: {
   num: number;
   item: Question;
@@ -36,22 +38,42 @@ export function QuestionCard({
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   /**
-   * Chosen multiple choice option. Supply with onSelect to let a parent clear
-   * it: held inside this card, a reset had no way to reach it.
+   * Ticked multiple choice options, and whether the answer has been revealed.
+   * Both are lifted for the same reason: held inside this card, a reset had no
+   * way to reach them and a reset question still showed itself marked.
    */
-  selected?: number | null;
-  onSelect?: (index: number) => void;
+  picks?: number[];
+  onPicksChange?: (next: number[]) => void;
+  submitted?: boolean;
+  onSubmit?: () => void;
 }) {
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
-  const [uncontrolledSelected, setUncontrolledSelected] = useState<number | null>(null);
+  const [uncontrolledPicks, setUncontrolledPicks] = useState<number[]>([]);
+  const [uncontrolledSubmitted, setUncontrolledSubmitted] = useState(false);
   const open = openProp ?? uncontrolledOpen;
-  // Not `??`: null is the meaningful "nothing chosen yet" value, so only an
-  // absent prop should fall back to this card's own state.
-  const selected = selectedProp !== undefined ? selectedProp : uncontrolledSelected;
+  const picks = picksProp !== undefined ? picksProp : uncontrolledPicks;
+  const submitted = submittedProp !== undefined ? submittedProp : uncontrolledSubmitted;
 
-  const choose = (index: number) => {
-    setUncontrolledSelected(index);
-    onSelect?.(index);
+  // A single-answer question reveals on the first click, the way it always has.
+  // A select-all waits for Check, since the second tick would otherwise land
+  // after the answer had already been given away.
+  const choose = (index: number, multi: boolean) => {
+    const next = multi
+      ? picks.includes(index)
+        ? picks.filter((p) => p !== index)
+        : [...picks, index]
+      : [index];
+    setUncontrolledPicks(next);
+    onPicksChange?.(next);
+    if (!multi) {
+      setUncontrolledSubmitted(true);
+      onSubmit?.();
+    }
+  };
+
+  const reveal = () => {
+    setUncontrolledSubmitted(true);
+    onSubmit?.();
   };
 
   const toggle = () => {
@@ -62,6 +84,11 @@ export function QuestionCard({
   const isDark = useIsDark();
 
   if (!isActive) return null;
+
+  const multi = item.mc === true && Array.isArray(item.correct);
+  const correct = item.mc
+    ? new Set(Array.isArray(item.correct) ? item.correct : [item.correct])
+    : new Set<number>();
 
   const surfaceClass = cn(
     "rounded-lg shadow-sm border transition-[background-color,border-color] duration-200",
@@ -78,7 +105,7 @@ export function QuestionCard({
         <div className="flex-1 pr-4">
           <span className="text-indigo-600 dark:text-indigo-400 font-bold text-sm block mb-1 font-mono">
             Question {num}
-            {item.mc ? " · Multiple Choice" : ""}
+            {item.mc ? (multi ? " · Select all that apply" : " · Multiple Choice") : ""}
           </span>
           <MathHtml
             html={item.q}
@@ -101,13 +128,17 @@ export function QuestionCard({
                 {item.options.map((opt, i) => (
                   <button
                     key={i}
-                    onClick={() => choose(i)}
+                    onClick={() => choose(i, multi)}
+                    aria-pressed={picks.includes(i)}
                     className={cn(
                       "w-full text-left px-4 py-2 rounded border text-sm transition",
-                      selected === null && "border-slate-200 bg-slate-50 hover:bg-slate-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700",
-                      selected !== null && i === item.correct && "bg-green-100 border-green-400 text-green-800 dark:bg-green-900/50 dark:border-green-700 dark:text-green-200",
-                      selected !== null && i === selected && i !== item.correct && "bg-red-100 border-red-300 text-red-800 dark:bg-red-900/50 dark:border-red-800 dark:text-red-200",
-                      selected !== null && i !== selected && i !== item.correct && "border-slate-200 bg-slate-50 opacity-60 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300",
+                      !submitted && !picks.includes(i) && "border-slate-200 bg-slate-50 hover:bg-slate-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700",
+                      // Ticked but not yet checked: neither right nor wrong, so
+                      // indigo rather than either of the grading colours.
+                      !submitted && picks.includes(i) && "bg-indigo-100 border-indigo-400 text-indigo-900 dark:bg-indigo-400/20 dark:border-indigo-500 dark:text-indigo-100",
+                      submitted && correct.has(i) && "bg-green-100 border-green-400 text-green-800 dark:bg-green-900/50 dark:border-green-700 dark:text-green-200",
+                      submitted && picks.includes(i) && !correct.has(i) && "bg-red-100 border-red-300 text-red-800 dark:bg-red-900/50 dark:border-red-800 dark:text-red-200",
+                      submitted && !picks.includes(i) && !correct.has(i) && "border-slate-200 bg-slate-50 opacity-60 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300",
                     )}
                   >
                     <span className="font-mono font-bold mr-2">{String.fromCharCode(97 + i)})</span>
@@ -115,7 +146,16 @@ export function QuestionCard({
                   </button>
                 ))}
               </div>
-              {selected !== null && (
+              {multi && !submitted && (
+                <button
+                  onClick={reveal}
+                  disabled={picks.length === 0}
+                  className="mt-3 rounded-md bg-indigo-600 px-4 py-1.5 text-sm font-bold text-white transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  Check answer
+                </button>
+              )}
+              {submitted && (
                 <MathHtml
                   html={item.a}
                   className="text-gray-800 dark:text-stone-300 leading-relaxed mt-4 pt-4 border-t border-indigo-100 dark:border-stone-800"
