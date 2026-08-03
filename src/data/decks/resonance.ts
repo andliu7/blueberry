@@ -17,6 +17,8 @@ export const resonanceDeck: ReferenceDeck = {
   blurb:
     "Where to start the arrow and where to push it, worked through for cations, anions and neutral molecules — plus FONClBrCSIPH, BrINClHOF, and the octet rule.",
   footNote: "The octet rule RULES. No contributor is worth drawing if it breaks one.",
+  about:
+    "Arrow pushing for resonance, with the mnemonics worth writing down in the first week. The rules split by charge: push toward a positive centre, push away from a negative one, and for a neutral molecule find a polar pi bond and make the charges first. The octet rule overrides all of it, and FONClBrCSIPH decides where the electrons prefer to end up. Getting this right early is what makes mechanisms in the rest of the course readable rather than memorised.",
   motif: "resonance",
   from: "#047857",
   to: "#059669",

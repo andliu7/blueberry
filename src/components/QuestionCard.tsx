@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { RotateCcw } from "lucide-react";
 import type { Question } from "@/data/types";
 import { PressDepth } from "@/components/ui/press-depth";
 import { cn } from "@/lib/utils";
@@ -28,6 +29,7 @@ export function QuestionCard({
   onPicksChange,
   submitted: submittedProp,
   onSubmit,
+  onRetry,
 }: {
   num: number;
   item: Question;
@@ -46,6 +48,7 @@ export function QuestionCard({
   onPicksChange?: (next: number[]) => void;
   submitted?: boolean;
   onSubmit?: () => void;
+  onRetry?: () => void;
 }) {
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
   const [uncontrolledPicks, setUncontrolledPicks] = useState<number[]>([]);
@@ -74,6 +77,21 @@ export function QuestionCard({
   const reveal = () => {
     setUncontrolledSubmitted(true);
     onSubmit?.();
+  };
+
+  /**
+   * Clears the attempt so the question can be answered again.
+   *
+   * Goes through the same props the parent drives, rather than only resetting
+   * this card's local state: the parent owns picks and submitted, so touching
+   * one and not the other would leave a card that says it is unanswered while
+   * the parent still thinks it is graded.
+   */
+  const retry = () => {
+    setUncontrolledPicks([]);
+    setUncontrolledSubmitted(false);
+    onPicksChange?.([]);
+    onRetry?.();
   };
 
   const toggle = () => {
@@ -139,10 +157,17 @@ export function QuestionCard({
                       submitted && correct.has(i) && "bg-green-100 border-green-400 text-green-800 dark:bg-green-900/50 dark:border-green-700 dark:text-green-200",
                       submitted && picks.includes(i) && !correct.has(i) && "bg-red-100 border-red-300 text-red-800 dark:bg-red-900/50 dark:border-red-800 dark:text-red-200",
                       submitted && !picks.includes(i) && !correct.has(i) && "border-slate-200 bg-slate-50 opacity-60 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300",
+                      // Marks what *you* chose, which the red/green alone does
+                      // not: on a select-all you need to see which correct
+                      // options you actually picked and which you missed.
+                      submitted && picks.includes(i) && "ring-2 ring-offset-1 ring-slate-400 dark:ring-stone-400 dark:ring-offset-stone-900",
                     )}
                   >
                     <span className="font-mono font-bold mr-2">{String.fromCharCode(97 + i)})</span>
                     {opt}
+                    {submitted && picks.includes(i) && (
+                      <span className="ml-2 font-mono text-[0.65rem] opacity-70">your answer</span>
+                    )}
                   </button>
                 ))}
               </div>
@@ -156,10 +181,19 @@ export function QuestionCard({
                 </button>
               )}
               {submitted && (
-                <MathHtml
-                  html={item.a}
-                  className="text-gray-800 dark:text-stone-300 leading-relaxed mt-4 pt-4 border-t border-indigo-100 dark:border-stone-800"
-                />
+                <>
+                  <button
+                    onClick={retry}
+                    className="mt-3 inline-flex items-center gap-1.5 rounded-md border border-slate-300 px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50 dark:border-stone-700 dark:text-stone-300 dark:hover:bg-white/5"
+                  >
+                    <RotateCcw className="h-3.5 w-3.5" />
+                    Try again
+                  </button>
+                  <MathHtml
+                    html={item.a}
+                    className="text-gray-800 dark:text-stone-300 leading-relaxed mt-4 pt-4 border-t border-indigo-100 dark:border-stone-800"
+                  />
+                </>
               )}
             </>
           ) : (

@@ -31,6 +31,7 @@ import SocialCards from "@/components/ui/card-fan-carousel";
 import { StickyNote } from "@/components/StickyNote";
 import { Confetti } from "@/components/Confetti";
 import { DeckUploadTicket } from "@/components/DeckUploadTicket";
+import { DeckAbout } from "@/components/ui/deck-about";
 import { cn } from "@/lib/utils";
 import { useMathJaxTypeset } from "@/lib/useMathJaxTypeset";
 
@@ -512,6 +513,7 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
       onPicksChange={(next) => setAnswerMap((m) => ({ ...m, [qi + 1]: next }))}
       submitted={submittedMap[qi + 1] ?? false}
       onSubmit={() => setSubmittedMap((m) => ({ ...m, [qi + 1]: true }))}
+      onRetry={() => setSubmittedMap((m) => ({ ...m, [qi + 1]: false }))}
     />
   );
 
@@ -676,14 +678,20 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
                     active: shuffled,
                   },
                   // One control cycles List -> Carousel -> Scroll.
+                  // Grey rather than another saturated pill, with a yellow
+                  // spark every few seconds: the view control is the least
+                  // guessable thing in the toolbar, and it was disappearing
+                  // among four coloured neighbours.
                   {
                     title: VIEW_LABEL[view],
                     icon: VIEW_ICON[view],
                     onClick: cycleView,
-                    gradientFrom: "#7c3aed",
-                    gradientTo: "#a855f7",
+                    gradientFrom: "#6b7280",
+                    gradientTo: "#9ca3af",
                     active: view !== "list",
                     particles: true,
+                    particleClassName: "bg-yellow-200 dark:bg-yellow-200",
+                    idleBurstMs: 6000,
                   },
                   {
                     title: "To Bottom",
@@ -736,6 +744,8 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
         {/* One card definition for all four views. Previously each branch
             repeated the same eight props, so a change to any of them had to be
             made in three places. */}
+        <DeckAbout text={deck.about} />
+
         {/* Container and card style are independent: every branch below calls
             the same renderAnyCard, so Flip and Tilt work inside the carousel,
             the scroll grid and the stack, not just the list. */}

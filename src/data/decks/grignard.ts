@@ -17,6 +17,8 @@ export const grignardDeck: Deck = {
   blurb:
     "Addition to a carbonyl, start to finish: drying glassware, the reaction, extraction, washing, and reading the IR and NMR.",
   footNote: "Ready for the LCTA! Remember: Anhydrous = Dry Reaction | Regular = Wet Workup.",
+  about:
+    "You form a Grignard reagent from bromobenzene and magnesium, add it to a carbonyl, then work up, extract and identify the alcohol you made. Most of the lab is about keeping water away from a reagent that is destroyed by it, which is why so much of the procedure is glassware and technique rather than chemistry. Concepts to have straight: why the polarised carbon-magnesium bond makes the reagent both a strong nucleophile and a strong base, why carbonyls are electrophilic, what the workup is actually doing to the magnesium alkoxide, how a separatory funnel extraction partitions a product between two solvents, and how the IR tells a finished alcohol from leftover starting material.",
   motif: "attack",
   from: "#4338ca",
   to: "#6d28d9",

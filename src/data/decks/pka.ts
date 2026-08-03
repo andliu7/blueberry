@@ -20,6 +20,8 @@ export const pkaDeck: ReferenceDeck = {
   blurb:
     "Every pKa worth memorising, strongest acid first, with the structure behind each one. The number you need before you can pick a base.",
   footNote: "Lower pKa = stronger acid = more willing to hand off that proton.",
+  about:
+    "Dr. Stocker's pKa sheet, ordered strongest acid first. Nearly every acid-base question in the course reduces to finding the lowest-pKa proton and asking whether the base in front of you is strong enough to take it, so these are worth knowing cold rather than looking up. The numbers also explain reactivity elsewhere: why an alpha proton can be removed but an alkane proton cannot, why a terminal alkyne can be deprotonated to make a nucleophile, and why a carboxylic acid comes off long before a phenol.",
   motif: "pka",
   from: "#9f1239",
   to: "#be123c",

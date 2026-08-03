@@ -72,6 +72,12 @@ type DeckCommon = {
   subtitle: string;
   /** Longer description for the hub card. */
   blurb: string;
+  /**
+   * What this deck is actually for: the purpose of the experiment and the
+   * concepts it tests, or for a reference deck the background behind the
+   * chart. Shown once at the top of the deck page, above the questions.
+   */
+  about?: string;
   /** Optional parting line in the deck footer, above the thank-you note. */
   footNote?: string;
   /** Illustration, chosen from the motifs in `testimonialArt.ts`. */

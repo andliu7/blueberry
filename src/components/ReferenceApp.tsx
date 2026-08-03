@@ -6,6 +6,7 @@ import { ScrollToTop } from "@/components/ui/scroll-to-top";
 import { HoverDeck } from "@/components/ui/hover-deck";
 import { DeckUploadTicket } from "@/components/DeckUploadTicket";
 import { deckCount, type ReferenceDeck } from "@/data/types";
+import { DeckAbout } from "@/components/ui/deck-about";
 import { cn } from "@/lib/utils";
 
 /**
@@ -98,6 +99,8 @@ export function ReferenceApp({ deck }: { deck: ReferenceDeck }) {
           </div>
 
           <div className="mx-auto max-w-3xl">
+            <DeckAbout text={deck.about} />
+
             <HoverDeck groups={deck.groups} quizMode={quizMode} hoverPreview={hoverPreview} />
 
             <ScrollToTop className="mt-6" />

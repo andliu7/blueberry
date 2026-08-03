@@ -18,6 +18,8 @@ export const iodinationDeck: Deck = {
   blurb:
     "Electrophilic aromatic substitution start to finish: directing effects and the arenium ion, the in situ electrophile, acidifying the phenoxide, TLC, and reading the IR and NMR.",
   footNote: "Ready for the LCTA! Remember: no HCl = no solid, because the phenoxide stays dissolved.",
+  about:
+    "You iodinate salicylamide using sodium iodide and bleach, then acidify, filter, recrystallize and characterise. Iodine on its own is too weak an electrophile, so the lab is really about generating one in situ and then letting the ring's own substituents decide where it lands. Concepts to have straight: the two steps of electrophilic aromatic substitution and why forming the arenium ion is rate limiting, activating and deactivating groups and how they direct, why both substituents point at C5, the role of the oxidant and of the thiosulfate quench, and the reason the product stays dissolved until you add acid, which is the single most testable idea in the experiment.",
   motif: "benzene",
   from: "#b45309",
   to: "#d97706",

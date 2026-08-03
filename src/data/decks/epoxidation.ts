@@ -19,6 +19,8 @@ export const epoxidationDeck: Deck = {
   blurb:
     "Nucleophilic epoxidation of chalcone with alkaline peroxide: solution prep and percentages, recrystallization, and reading the melting point, IR and NMR.",
   footNote: "Ready for the LCTA! Remember: electron-poor alkene = nucleophilic epoxidation.",
+  about:
+    "You make an epoxide from chalcone using hydrogen peroxide and a catalytic amount of sodium hydroxide, then purify it by recrystallization and check it by melting point and IR. The point of the lab is that chalcone's alkene is electron-poor, so the electrophilic reagent you would normally reach for does not work. The nucleophile has to come to the alkene instead. Concepts to have straight: conjugate addition and the Weitz-Scheffer mechanism, why the alpha effect makes hydroperoxide a better nucleophile than hydroxide, catalytic versus stoichiometric base, w/v and w/w percentages and converting them to molarity, limiting reagent and theoretical yield, and how recrystallization separates a product from impurities that are simply more dilute.",
   motif: "erlenmeyer",
   from: "#0f766e",
   to: "#0e7490",

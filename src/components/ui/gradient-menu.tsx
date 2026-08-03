@@ -1,4 +1,4 @@
-import { useRef, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { SuccessParticles, useParticleBurst } from "@/components/ui/particle-button";
 
@@ -13,6 +13,14 @@ export interface GradientMenuItem {
   active?: boolean;
   /** Emit a particle burst on click. */
   particles?: boolean;
+  /** Tailwind colour for the particles, e.g. "bg-yellow-200". */
+  particleClassName?: string;
+  /**
+   * Fire a burst on a timer as well as on click, so a control that is easy to
+   * miss in a crowded toolbar keeps catching the eye. The button flashes with
+   * each burst.
+   */
+  idleBurstMs?: number;
 }
 
 /**
@@ -48,15 +56,30 @@ export function GradientMenuButton({
   gradientTo,
   active,
   particles,
+  particleClassName,
+  idleBurstMs,
 }: GradientMenuItem) {
   const btnRef = useRef<HTMLButtonElement>(null);
   const { bursting, burst } = useParticleBurst(700);
+
+  // Intermittent, not continuous: a burst every few seconds reads as a nudge,
+  // where a constant animation reads as a broken loading state. Pauses while
+  // the tab is hidden so a backgrounded page is not animating to nobody.
+  useEffect(() => {
+    if (!idleBurstMs || !particles) return;
+    const id = setInterval(() => {
+      if (!document.hidden) burst();
+    }, idleBurstMs);
+    return () => clearInterval(id);
+  }, [idleBurstMs, particles, burst]);
 
   return (
     <>
     {/* SuccessParticles portals to document.body, so a transformed ancestor
         cannot capture its fixed positioning. */}
-    {particles && bursting && <SuccessParticles anchorRef={btnRef} />}
+    {particles && bursting && (
+      <SuccessParticles anchorRef={btnRef} className={particleClassName} />
+    )}
     <button
             ref={btnRef}
             type="button"
@@ -79,6 +102,9 @@ export function GradientMenuButton({
               "transition-[width,box-shadow] duration-500 ease-out outline-none",
               "focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#f6f4ef] dark:focus-visible:ring-offset-[#0c0a09]",
               active ? "w-auto px-3.5 border-transparent" : "w-9 hover:w-[8.5rem]",
+              // Flashes with the idle burst so the eye is drawn to the button,
+              // not only to the sparks leaving it.
+              idleBurstMs && bursting && "ring-2 ring-yellow-300/80 dark:ring-yellow-200/70",
             )}
           >
             {/* Gradient fill, revealed as the pill opens. */}

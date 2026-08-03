@@ -17,6 +17,8 @@ export const irDeck: ReferenceDeck = {
   blurb:
     "The four regions, the C–H stretch ladder, and what each functional group actually looks like — with the spectrum from the slides on every row.",
   footNote: "Four regions, left to right: bonds to H, triple bonds, double bonds, fingerprint.",
+  about:
+    "The IR chart from the slides, split into the four regions and then by functional group. IR answers one question well: which functional groups are present. Reading it is a matter of working left to right through the regions, then using the details to separate groups that share a peak, an aldehyde from a ketone by the C-H stretch near 2750, or an acid from an ester by the very broad O-H. The fingerprint region below 1500 is not read peak by peak; it is compared against a known spectrum.",
   motif: "ir",
   from: "#0369a1",
   to: "#0891b2",

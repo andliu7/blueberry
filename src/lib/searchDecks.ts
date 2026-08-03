@@ -94,7 +94,14 @@ export function searchDecks(decks: Deck[], rawQuery: string, limit = 24): Search
     });
   }
 
-  return hits.sort((a, b) => b.score - a.score).slice(0, limit);
+  // Decks always come before the cards inside them. Ranking purely on score
+  // let a question that happens to say "grignard" three times outrank the
+  // Grignard deck itself, which is never what someone typing a deck name
+  // wants. Within each kind, score still decides.
+  const rank = { deck: 0, row: 1, question: 1 } as const;
+  return hits
+    .sort((a, b) => rank[a.kind] - rank[b.kind] || b.score - a.score)
+    .slice(0, limit);
 }
 
 /** Deck ids with any hit, for filtering the hub down to what matched. */

@@ -17,6 +17,8 @@ export const nmrDeck: ReferenceDeck = {
   blurb:
     "Where every proton and carbon shows up, downfield to upfield, from the class shift chart.",
   footNote: "Downfield = deshielded = near electronegative atoms or pi systems.",
+  about:
+    "The proton and carbon shift charts. Both work on one idea: the more electron density is pulled away from a nucleus, the further downfield it appears. So protons near oxygen, nitrogen or a halogen move downfield, protons on a benzene ring or an aldehyde move further still, and plain alkyl protons sit near the top of the scale. Shift narrows down what a signal is; splitting and integration finish the job.",
   motif: "nmr",
   from: "#7e22ce",
   to: "#a21caf",
