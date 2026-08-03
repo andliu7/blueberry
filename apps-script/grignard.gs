@@ -109,18 +109,31 @@ function handleContact_(data) {
   var subject = clean_(data.subject) || '(no subject)';
   sh.appendRow([new Date().toISOString(), first, last, email, subject, message]);
 
+  // The row is already saved by this point, so a failed notification must not
+  // fail the request. MailApp needs a scope the deployment may not have been
+  // granted yet, and an uncaught throw here returns an error page with no CORS
+  // headers, which the browser reports to the visitor as a network failure on
+  // a message that was in fact received.
   var to = props_('NOTIFY_TO');
+  var mailed = false;
   if (to) {
-    MailApp.sendEmail({
-      to: to,
-      subject: 'Study site: ' + subject,
-      // replyTo means hitting reply in your inbox answers the sender rather
-      // than yourself.
-      replyTo: email,
-      body: ['From: ' + first + ' ' + last + ' <' + email + '>', '', message].join('\n'),
-    });
+    try {
+      MailApp.sendEmail({
+        to: to,
+        subject: 'Study site: ' + subject,
+        // replyTo means hitting reply in your inbox answers the sender rather
+        // than yourself.
+        replyTo: email,
+        body: ['From: ' + first + ' ' + last + ' <' + email + '>', '', message].join('\n'),
+      });
+      mailed = true;
+    } catch (mailErr) {
+      // Left in the sheet so a missing authorisation is visible rather than
+      // silent. Run any function in the editor once to grant the mail scope.
+      sh.getRange(sh.getLastRow(), 6).setValue(message + '\n\n[notify failed: ' + mailErr + ']');
+    }
   }
-  return json_({ ok: true });
+  return json_({ ok: true, mailed: mailed });
 }
 
 // -------------------------------------------------------------------- decks
