@@ -4,9 +4,9 @@ import { AdmitOneTicket } from "@/components/ui/admit-one-ticket";
 import { QuestionCard } from "@/components/QuestionCard";
 import { useGoogleAuth } from "@/lib/useGoogleAuth";
 import { parseDeckText, type ParseResult } from "@/lib/parseDeckText";
+import { endpointFor, postToAppsScript } from "@/lib/appsScript";
 import { cn } from "@/lib/utils";
 
-const DECKS_ENDPOINT = import.meta.env.VITE_DECKS_ENDPOINT as string | undefined;
 
 /**
  * The ticket at the foot of every deck: admission to adding a new one.
@@ -34,31 +34,23 @@ export function DeckUploadTicket() {
 
   const publish = async () => {
     if (!result?.deck || !user) return;
-    if (!DECKS_ENDPOINT) {
+    if (!endpointFor("deck")) {
       setStatus("failed");
       setServerMessage("No deck endpoint is configured, so there is nowhere to publish to yet.");
       return;
     }
     setStatus("sending");
-    try {
-      const res = await fetch(DECKS_ENDPOINT, {
-        method: "POST",
-        // text/plain keeps this a simple request. Apps Script web apps do not
-        // answer the CORS preflight that application/json would trigger.
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ idToken: user.idToken, deck: result.deck }),
-      });
-      const body = (await res.json()) as { ok?: boolean; error?: string };
-      if (body.ok) {
-        setStatus("done");
-        setServerMessage("Published. It will appear on the hub for everyone.");
-      } else {
-        setStatus("failed");
-        setServerMessage(body.error ?? "The server refused the upload.");
-      }
-    } catch {
+    const body = await postToAppsScript("deck", { idToken: user.idToken, deck: result.deck });
+    if (body.ok) {
+      setStatus("done");
+      setServerMessage("Published. It will appear on the hub for everyone.");
+    } else {
       setStatus("failed");
-      setServerMessage("Could not reach the deck endpoint.");
+      setServerMessage(
+        body.error === "unreachable"
+          ? "Could not reach the deck endpoint."
+          : (body.error ?? "The server refused the upload."),
+      );
     }
   };
 
@@ -86,7 +78,7 @@ export function DeckUploadTicket() {
             <p className="text-sm text-slate-500 dark:text-stone-400">
               Sign-in is not configured on this build. Set{" "}
               <code className="font-mono text-xs">VITE_GOOGLE_CLIENT_ID</code> and{" "}
-              <code className="font-mono text-xs">VITE_DECKS_ENDPOINT</code> in{" "}
+              <code className="font-mono text-xs">VITE_APPS_SCRIPT_ENDPOINT</code> in{" "}
               <code className="font-mono text-xs">.env.local</code> to enable uploads.
             </p>
           ) : !user ? (

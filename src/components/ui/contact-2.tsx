@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Mail, Send, Check, AlertTriangle } from "lucide-react";
+import { endpointFor, postToAppsScript } from "@/lib/appsScript";
 import { cn } from "@/lib/utils";
 
 /**
@@ -16,12 +17,11 @@ import { cn } from "@/lib/utils";
  * v4 dropped the breakpoint-based max-width utilities, so they set no width at
  * all.
  *
- * Submissions POST to VITE_CONTACT_ENDPOINT when one is configured. With it
+ * Submissions POST to the shared Apps Script backend when one is configured. With it
  * unset the form still validates and tells you it is not connected, rather than
  * pretending to send.
  */
 
-const CONTACT_ENDPOINT = import.meta.env.VITE_CONTACT_ENDPOINT as string | undefined;
 
 const fieldClass =
   "w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm outline-none placeholder:text-slate-400 focus-visible:border-indigo-400 focus-visible:ring-2 focus-visible:ring-indigo-400/40 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-200 dark:placeholder:text-stone-500";
@@ -51,33 +51,25 @@ export const Contact2 = ({
     const form = e.currentTarget;
     const data = Object.fromEntries(new FormData(form).entries());
 
-    if (!CONTACT_ENDPOINT) {
+    if (!endpointFor("contact")) {
       setStatus("failed");
       setMessage(`This form is not connected yet. Email me directly at ${email}.`);
       return;
     }
 
     setStatus("sending");
-    try {
-      const res = await fetch(CONTACT_ENDPOINT, {
-        method: "POST",
-        // text/plain keeps this a simple request. Apps Script web apps do not
-        // answer the CORS preflight that application/json would trigger.
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ ...data, at: new Date().toISOString() }),
-      });
-      const body = (await res.json()) as { ok?: boolean; error?: string };
-      if (body.ok) {
-        setStatus("sent");
-        setMessage("Thanks, that reached me. I will get back to you.");
-        form.reset();
-      } else {
-        setStatus("failed");
-        setMessage(body.error ?? "That did not send. Try emailing me instead.");
-      }
-    } catch {
+    const body = await postToAppsScript("contact", data);
+    if (body.ok) {
+      setStatus("sent");
+      setMessage("Thanks, that reached me. I will get back to you.");
+      form.reset();
+    } else {
       setStatus("failed");
-      setMessage(`That did not send. Email me directly at ${email}.`);
+      setMessage(
+        body.error === "unreachable"
+          ? `That did not send. Email me directly at ${email}.`
+          : (body.error ?? "That did not send. Try emailing me instead."),
+      );
     }
   };
 

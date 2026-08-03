@@ -1,12 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { AnimatePresence } from "motion/react";
-import { ChevronsUpDown, ChevronsDownUp, Shuffle, GalleryHorizontalEnd, List, MoveVertical, MessageSquare, ArrowDownToLine, GitBranch, ArrowUpRight, Layers, Home, RefreshCw, Highlighter } from "lucide-react";
+import { ChevronsUpDown, ChevronsDownUp, Shuffle, GalleryHorizontalEnd, List, MoveVertical, ArrowDownToLine, GitBranch, ArrowUpRight, Layers, Home, RefreshCw, Highlighter } from "lucide-react";
 import { FlippingCard } from "@/components/ui/flipping-card";
 import { FlipCard } from "@/components/ui/flip-card";
 import { MathHtml } from "@/components/ui/math-html";
-import { FeedbackWidget } from "@/components/ui/feedback-widget";
 import { ClickHereHint } from "@/components/ui/click-here-hint";
-import { GlassFilter, LiquidGlassLayers } from "@/components/ui/liquid-glass-button";
 import { findDeck } from "@/data/decks";
 import { isReference, DECK_GROUPS, type DeckGroupId, type StudyDeck } from "@/data/types";
 import { ReferenceApp } from "@/components/ReferenceApp";
@@ -33,14 +30,13 @@ import SocialCards from "@/components/ui/card-fan-carousel";
 import { StickyNote } from "@/components/StickyNote";
 import { Confetti } from "@/components/Confetti";
 import { DeckUploadTicket } from "@/components/DeckUploadTicket";
+import { FeedbackButton } from "@/components/FeedbackButton";
 import { LaserPointer } from "@/components/ui/laser-pointer";
 import { DeckAbout } from "@/components/ui/deck-about";
 import { progressKey, loadSaved } from "@/lib/progress";
 import { cn } from "@/lib/utils";
 import { useMathJaxTypeset } from "@/lib/useMathJaxTypeset";
 
-const FEEDBACK_KEY = "grignard_lcta_feedback_v1";
-const FEEDBACK_ENDPOINT = import.meta.env.VITE_FEEDBACK_ENDPOINT as string | undefined;
 
 const VIEW_LABEL = { list: "List", carousel: "Carousel", scroll: "Scroll", stack: "Stack" } as const;
 const VIEW_ICON = {
@@ -181,7 +177,6 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
   const [filter, setFilter] = useState<"all" | "needs">("all");
   const [order, setOrder] = useState<"number" | "hard-first" | "easy-first">("number");
   const [orderedIdx, setOrderedIdx] = useState<number[]>(questions.map((_, i) => i));
-  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [shuffled, setShuffled] = useState(false);
   const [toolsOpen, setToolsOpen] = useState(false);
   // Delayed so it appears where it belongs rather than sliding into place while
@@ -335,40 +330,6 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
       next[i + 1] = true;
     });
     setOpenMap(next);
-  }
-
-  /**
-   * Keeps a local copy always, and additionally POSTs to VITE_FEEDBACK_ENDPOINT
-   * when one is configured. With no endpoint set nothing leaves the browser, so
-   * a default checkout transmits nothing.
-   */
-  async function saveFeedback(entry: { rating: "helpful" | "not-helpful"; comment: string }) {
-    const record = { ...entry, at: new Date().toISOString() };
-
-    try {
-      const raw = localStorage.getItem(FEEDBACK_KEY);
-      const all = raw ? JSON.parse(raw) : [];
-      all.push(record);
-      localStorage.setItem(FEEDBACK_KEY, JSON.stringify(all));
-    } catch {
-      /* ignore */
-    }
-
-    if (FEEDBACK_ENDPOINT) {
-      try {
-        await fetch(FEEDBACK_ENDPOINT, {
-          method: "POST",
-          // text/plain keeps this a simple request. Apps Script web apps do not
-          // answer the CORS preflight that application/json would trigger.
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify(record),
-        });
-      } catch {
-        /* the local copy above is the fallback */
-      }
-    }
-
-    setFeedbackOpen(false);
   }
 
   function doReset() {
@@ -884,34 +845,11 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
       </div>
       </div>
 
-      <button
-        type="button"
-        onClick={() => setFeedbackOpen(true)}
-        // No `relative` here: `fixed` already establishes the containing block
-        // for the glass layers, and setting both lets the cascade decide which
-        // position wins, which previously threw this button off screen.
-        className="fixed bottom-5 right-36 z-40 flex items-center gap-2 rounded-full bg-white/60 dark:bg-stone-900/50 px-4 py-2 font-bold text-slate-700 dark:text-stone-200 shadow-lg cursor-pointer transition-transform hover:scale-105 overflow-hidden"
-      >
-        <LiquidGlassLayers />
-        <span className="relative z-10 flex items-center gap-2">
-          <MessageSquare className="w-4 h-4" />
-          Feedback
-        </span>
-      </button>
-
-      {/* One instance supplies the filter the glass layers reference. */}
-      <GlassFilter />
-
-      <AnimatePresence>
-        {feedbackOpen && (
-          <FeedbackWidget
-            title="How's this study guide?"
-            placeholder="What would make this more useful before the LCTA?"
-            onSubmit={saveFeedback}
-            onClose={() => setFeedbackOpen(false)}
-          />
-        )}
-      </AnimatePresence>
+      {/* Sits left of the Notes button rather than on top of it. */}
+      <FeedbackButton
+        className="right-36"
+        placeholder="What would make this more useful before the LCTA?"
+      />
 
       <StickyNote value={note} onChange={setNote} />
       <Confetti trigger={confettiTrigger} />

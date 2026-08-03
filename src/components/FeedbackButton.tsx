@@ -3,6 +3,7 @@ import { AnimatePresence } from "motion/react";
 import { MessageSquare } from "lucide-react";
 import { FeedbackWidget } from "@/components/ui/feedback-widget";
 import { GlassFilter, LiquidGlassLayers } from "@/components/ui/liquid-glass-button";
+import { postToAppsScript } from "@/lib/appsScript";
 import { cn } from "@/lib/utils";
 
 /**
@@ -14,10 +15,9 @@ import { cn } from "@/lib/utils";
  */
 
 const FEEDBACK_KEY = "grignard_lcta_feedback_v1";
-const FEEDBACK_ENDPOINT = import.meta.env.VITE_FEEDBACK_ENDPOINT as string | undefined;
 
 /**
- * Keeps a local copy always, and additionally POSTs to VITE_FEEDBACK_ENDPOINT
+ * Keeps a local copy always, and additionally POSTs to the Apps Script backend
  * when one is configured. With no endpoint set nothing leaves the browser, so a
  * default checkout transmits nothing.
  */
@@ -36,19 +36,9 @@ export async function saveFeedback(entry: {
     /* ignore */
   }
 
-  if (FEEDBACK_ENDPOINT) {
-    try {
-      await fetch(FEEDBACK_ENDPOINT, {
-        // text/plain keeps this a simple request. Apps Script web apps do not
-        // answer the CORS preflight that application/json would trigger.
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify(record),
-      });
-    } catch {
-      /* the local copy above is the fallback */
-    }
-  }
+  // Fire and forget: the local copy above is the fallback, and a failed POST
+  // should never block the widget from closing.
+  await postToAppsScript("feedback", record);
 }
 
 export function FeedbackButton({
