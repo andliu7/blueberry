@@ -1,7 +1,8 @@
 ﻿"use client";
 
 import type { ReactNode } from "react";
-import { MOTIF_VIEWBOX, motifMarkup, type ArtMotif } from "@/data/testimonialArt";
+import { BlueberryMark } from "@/components/ui/blueberry-mark";
+import { PulseIconButton } from "@/components/ui/pulse-icon-button";
 import { TiltCard } from "@/components/ui/be-ui-tilt-card";
 import { useIsDark } from "@/lib/useIsDark";
 import { cn } from "@/lib/utils";
@@ -42,9 +43,7 @@ import { cn } from "@/lib/utils";
 export interface ProfileCardProps {
   name: string;
   role: string;
-  /** Defaults to the site's flask mascot. */
-  motif?: ArtMotif;
-  /** A photograph, if there ever is one. Takes precedence over the motif. */
+  /** A photograph, if there ever is one. Otherwise the logo, pulsing. */
   avatarSrc?: string;
   tags?: string[];
   /** The body of the card. */
@@ -59,7 +58,6 @@ export interface ProfileCardProps {
 export function ProfileCard({
   name,
   role,
-  motif = "mascot",
   avatarSrc,
   tags = [],
   children,
@@ -84,7 +82,7 @@ export function ProfileCard({
       )}
     >
       <div className="mb-5 flex justify-center">
-        <div className="relative">
+        {avatarSrc ? (
           <div
             className={cn(
               "h-24 w-24 overflow-hidden rounded-full bg-white p-3 transition-all duration-500 group-hover/card:scale-110",
@@ -93,26 +91,34 @@ export function ProfileCard({
               "dark:shadow-[inset_6px_6px_12px_rgba(0,0,0,0.5),inset_-6px_-6px_12px_rgba(255,255,255,0.05)]",
             )}
           >
-            {avatarSrc ? (
-              <img
-                src={avatarSrc}
-                alt={name}
-                className="h-full w-full rounded-full object-cover transition-transform duration-500 group-hover/card:scale-105"
-              />
-            ) : (
-              <svg
-                aria-hidden
-                viewBox={MOTIF_VIEWBOX}
-                className="h-full w-full text-indigo-500 transition-transform duration-500 group-hover/card:scale-105 dark:text-violet-300/90"
-                dangerouslySetInnerHTML={{ __html: motifMarkup(motif) }}
-              />
-            )}
+            <img
+              src={avatarSrc}
+              alt={name}
+              className="h-full w-full rounded-full object-cover transition-transform duration-500 group-hover/card:scale-105"
+            />
           </div>
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 rounded-full border-2 border-indigo-400/70 opacity-0 transition-opacity duration-500 group-hover/card:opacity-100 dark:border-violet-400/60"
+        ) : (
+          /* The logo, with rings pulsing off it, spinning when you point at it.
+             Decoration rather than a control: `interactive={false}` keeps it out
+             of the accessibility tree instead of announcing a button that does
+             nothing. The near-black shell the component ships with would be a
+             hole in the middle of a white card, so it wears the card's own
+             recessed well instead, and the rings are tinted indigo because white
+             rings on white paper are invisible. */
+          <PulseIconButton
+            icon={<BlueberryMark />}
+            size="md"
+            interactive={false}
+            animateOn="group-hover"
+            className={cn(
+              "border-transparent bg-none shadow-none",
+              "bg-white dark:bg-[#231c3c]",
+              "shadow-[inset_6px_6px_12px_rgba(79,70,229,0.10),inset_-6px_-6px_12px_rgba(255,255,255,0.9)]",
+              "dark:shadow-[inset_6px_6px_12px_rgba(0,0,0,0.5),inset_-6px_-6px_12px_rgba(255,255,255,0.05)]",
+            )}
+            ringClassName="border-indigo-400/45 dark:border-violet-400/40"
           />
-        </div>
+        )}
       </div>
 
       <div className="text-center transition-transform duration-300 group-hover/card:-translate-y-1">
