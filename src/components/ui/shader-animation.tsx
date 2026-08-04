@@ -27,19 +27,22 @@ void main() {
 
 /**
  * `CYCLE` is the only change to the supplied fragment shader, and it is what
- * removes the long black pause.
+ * sets the length of the black pause between sweeps.
  *
  * The bands are bright where the denominator approaches zero, which needs
  * `fract(...) * 5.0` to land within `length(uv)`, and `length(uv)` only reaches
- * about 1.4 at the corners. So the sweep was over once `fract` passed 0.28, and
- * the remaining 72% of every cycle was the screen sitting dark waiting to wrap.
- * Wrapping at 0.32 instead of at 1.0 cuts the dead stretch while leaving the
- * sweep itself moving at exactly the rate it always did.
+ * about 1.4 at the corners. So a sweep is over once the wrapped value passes
+ * 0.28, and everything past that is the screen sitting dark waiting to wrap.
+ * Upstream wrapped at 1.0, which left the pattern idle for 72% of every cycle.
+ *
+ * Wrapping at 0.36 keeps 0.08 of dark, which against the timing below is a beat
+ * of about 0.6s: enough to read as the animation resetting rather than looping
+ * seamlessly, without the long dead stretch it started with.
  */
 const FRAG = `
 #define TWO_PI 6.2831853072
 #define PI 3.14159265359
-#define CYCLE 0.32
+#define CYCLE 0.36
 
 precision highp float;
 uniform vec2 resolution;
@@ -78,24 +81,27 @@ function compile(gl: WebGLRenderingContext, type: number, src: string) {
  * How far `time` must travel for one pass of the pattern.
  *
  * The shader's `t` is `time * 0.05` and it now wraps at `CYCLE`, so a pass is
- * `time` advancing by `0.32 / 0.05`. Driving that off elapsed seconds rather
+ * `time` advancing by `0.36 / 0.05`. Driving that off elapsed seconds rather
  * than a fixed step per frame means the duration below means what it says, and
  * the animation no longer runs at double speed on a 120Hz display the way the
  * old `time += 0.05` per frame did.
  */
-const TIME_PER_CYCLE = 6.4;
+const TIME_PER_CYCLE = 7.2;
 
 export function ShaderAnimation({
   className,
-  cycleSeconds = 2.1,
+  cycleSeconds = 2.8,
 }: {
   className?: string;
   /**
-   * Seconds for one sweep of the bands. The default reproduces the original
-   * rate of travel: the supplied shader took about 1.9 seconds to cross the
-   * screen and then held black for nearly five more before repeating, and the
-   * five seconds are what `CYCLE` removed. Lowering this speeds up the sweep
-   * itself, which is a different thing and was not the problem.
+   * Seconds for a full pass, sweep and pause together. At the default that is
+   * about 2.2s of bands crossing the screen and 0.6s of black before they come
+   * round again.
+   *
+   * Worth knowing which of the two knobs to reach for. This one changes how
+   * fast the bands travel; `CYCLE` in the shader changes how long the screen
+   * stays dark afterwards. The supplied shader was slow to repeat because of
+   * the second, and turning this one down instead just made the sweep hurried.
    */
   cycleSeconds?: number;
 }) {
