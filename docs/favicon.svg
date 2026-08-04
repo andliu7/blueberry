@@ -1,36 +1,63 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Blueberry">
   <title>Blueberry</title>
   <defs>
-    <!-- Lit from the upper left so the berry reads as round. The pale violet at
-         the top is the same one the intro words start on. -->
-    <radialGradient id="berry" cx="34%" cy="26%" r="82%">
-      <stop offset="0%" stop-color="#c4b5fd" />
-      <stop offset="38%" stop-color="#7c6cf5" />
-      <stop offset="75%" stop-color="#4c3ad4" />
-      <stop offset="100%" stop-color="#2e1f7a" />
+    <!-- Blue into purple, lit from the upper left so the berry reads as round. -->
+    <radialGradient id="berry" cx="33%" cy="27%" r="84%">
+      <stop offset="0%" stop-color="#7dd3fc" />
+      <stop offset="28%" stop-color="#4f86f7" />
+      <stop offset="66%" stop-color="#6d3fe0" />
+      <stop offset="100%" stop-color="#3b1d8f" />
     </radialGradient>
-    <linearGradient id="leaf" x1="0" y1="0" x2="0.3" y2="1">
-      <stop offset="0%" stop-color="#a3e635" />
-      <stop offset="100%" stop-color="#22c55e" />
+    <!-- Deeper than the berry it sits on. The calyx is the feature that names
+         the fruit, so it has to hold at 16px, and a lobe only a shade off the
+         body behind it disappears at that size. -->
+    <linearGradient id="calyx" x1="0.3" y1="0" x2="0.7" y2="1">
+      <stop offset="0%" stop-color="#3350d8" />
+      <stop offset="100%" stop-color="#1c1668" />
     </linearGradient>
+    <linearGradient id="leaf" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0%" stop-color="#16a34a" />
+      <stop offset="100%" stop-color="#6ee7a0" />
+    </linearGradient>
+    <!-- Painted rather than filtered. A blur filter on a 16px favicon costs more
+         than the softness is worth, and a radial fade gives the same read. -->
+    <radialGradient id="shade" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#475569" stop-opacity="0.4" />
+      <stop offset="55%" stop-color="#475569" stop-opacity="0.17" />
+      <stop offset="100%" stop-color="#475569" stop-opacity="0" />
+    </radialGradient>
   </defs>
 
-  <circle cx="32" cy="37" r="24" fill="url(#berry)" />
+  <ellipse cx="32" cy="59" rx="18" ry="4.8" fill="url(#shade)" />
 
-  <!-- Specular highlight, small and off centre. A large one reads as a bauble. -->
-  <ellipse cx="22" cy="27" rx="7" ry="5" fill="#ffffff" opacity="0.3"
-           transform="rotate(-28 22 27)" />
-
-  <!-- No face. A favicon renders at 16px in a browser tab, where eyes and a
-       mouth collapse into three dark smudges and the berry stops reading as
-       anything. The silhouette and the green crown are what survive at that
-       size, so they are all that is drawn. -->
-
-  <!-- The crown. A blueberry's calyx is the one feature that keeps a purple
-       circle from reading as a grape, so it is the five point star it really is,
-       in bright green. -->
-  <g fill="url(#leaf)" stroke="#15803d" stroke-width="1.1" stroke-linejoin="round">
-    <path d="M32 4.5 35.4 14.2 45.6 13.9 37.6 20.3 40.4 30.1 32 24.3 23.6 30.1 26.4 20.3 18.4 13.9 28.6 14.2 Z" />
+  <!-- One leaf, sprouting from behind the fruit. Drawn before the berry so the
+       berry overlaps its base, which is what makes it read as behind. -->
+  <g>
+    <path d="M39 21.5 C42.5 9 51 3 58 5.5 C59 13.5 51.5 21 39 21.5 Z" fill="url(#leaf)" />
+    <path d="M41 20.4 C46.5 16 52.5 10.6 57.2 6.4" fill="none" stroke="#15803d"
+          stroke-width="1.1" stroke-linecap="round" opacity="0.5" />
   </g>
-  <circle cx="32" cy="18.5" r="3.4" fill="#166534" />
+
+  <circle cx="32" cy="35" r="21" fill="url(#berry)" />
+
+  <!-- Kept clear of the calyx. Sitting over a lobe, it washed the lobe out and
+       read as a smudge rather than as a curved surface. -->
+  <ellipse cx="20.5" cy="24.5" rx="5.6" ry="3.8" fill="#ffffff" opacity="0.26"
+           transform="rotate(-30 20.5 24.5)" />
+
+  <!-- The calyx, facing forward: five tapered blue lobes around a small centre,
+       which is what a blueberry's crown actually looks like head on and what
+       stops a purple circle from reading as a grape. -->
+  <g fill="url(#calyx)" transform="translate(32 34)">
+    <path d="M0 -10.5 C2.7 -6.4 3.6 -2.7 2.5 0 C1.5 2.1 -1.5 2.1 -2.5 0 C-3.6 -2.7 -2.7 -6.4 0 -10.5 Z" />
+    <path d="M0 -10.5 C2.7 -6.4 3.6 -2.7 2.5 0 C1.5 2.1 -1.5 2.1 -2.5 0 C-3.6 -2.7 -2.7 -6.4 0 -10.5 Z"
+          transform="rotate(72)" />
+    <path d="M0 -10.5 C2.7 -6.4 3.6 -2.7 2.5 0 C1.5 2.1 -1.5 2.1 -2.5 0 C-3.6 -2.7 -2.7 -6.4 0 -10.5 Z"
+          transform="rotate(144)" />
+    <path d="M0 -10.5 C2.7 -6.4 3.6 -2.7 2.5 0 C1.5 2.1 -1.5 2.1 -2.5 0 C-3.6 -2.7 -2.7 -6.4 0 -10.5 Z"
+          transform="rotate(216)" />
+    <path d="M0 -10.5 C2.7 -6.4 3.6 -2.7 2.5 0 C1.5 2.1 -1.5 2.1 -2.5 0 C-3.6 -2.7 -2.7 -6.4 0 -10.5 Z"
+          transform="rotate(288)" />
+    <circle r="3.4" fill="#241f7a" />
+  </g>
 </svg>

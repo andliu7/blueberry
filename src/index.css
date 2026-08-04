@@ -78,6 +78,71 @@ body {
   letter-spacing: 0.02em;
 }
 
+/* A band of light that travels the border, from the top right corner down to
+   the bottom left. Used on the contact form, where the only feedback the card
+   gave was that a field had focus.
+
+   The ring is one element masked to its own rim: a gradient fills the whole box,
+   then `mask-composite: exclude` punches the content box out of it, leaving
+   painted only the 1.5px the padding covers. That is what keeps the light on the
+   border itself rather than washing over the card. Drawing it as a real border
+   is not an option, since a border cannot carry a moving gradient.
+
+   It runs on hover and on focus-within, so it is also lit the whole time
+   someone is actually typing. */
+.shine-border::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 1.5px;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 300ms ease;
+  background-image: linear-gradient(
+    225deg,
+    transparent 30%,
+    #6366f1 44%,
+    #d946ef 52%,
+    transparent 68%
+  );
+  background-size: 300% 300%;
+  background-position: 100% 100%;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+.shine-border:hover::before,
+.shine-border:focus-within::before {
+  opacity: 1;
+  animation: border-shine 2.6s linear infinite;
+}
+
+/* 225deg points the gradient axis down and to the left, so walking the position
+   back toward the origin carries the highlight the same way: in at the top
+   right, out at the bottom left. */
+@keyframes border-shine {
+  from {
+    background-position: 100% 100%;
+  }
+  to {
+    background-position: 0% 0%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shine-border:hover::before,
+  .shine-border:focus-within::before {
+    animation: none;
+  }
+}
+
 /* Warm near-black, so the dark theme reads as a dimmed version of the cream
    paper rather than a different product. */
 .dark body {

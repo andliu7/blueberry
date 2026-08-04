@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Mail, Send, Check, AlertTriangle } from "lucide-react";
 import { endpointFor, postToAppsScript } from "@/lib/appsScript";
+import { TiltCard } from "@/components/ui/be-ui-tilt-card";
+import { useIsDark } from "@/lib/useIsDark";
 import { cn } from "@/lib/utils";
 
 /**
@@ -48,6 +50,7 @@ export const Contact2 = ({
 }: Contact2Props) => {
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "failed">("idle");
   const [message, setMessage] = useState("");
+  const isDark = useIsDark();
 
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -120,9 +123,22 @@ export const Contact2 = ({
           </div>
         </div>
 
+        {/* Lifted a little above the heading column on wide screens. The two
+            columns are different lengths, and starting them on the same line
+            left the card looking dropped rather than placed. `self-start` keeps
+            it from stretching to the height of the column beside it. */}
+        <div className="w-full max-w-xl self-start lg:-mt-10">
+        <TiltCard
+          // Shallower than the deck cards. This one holds text fields, and a
+          // card that leans hard while you are aiming at an input is a nuisance
+          // rather than a flourish.
+          max={4}
+          glareColor={isDark ? "rgba(255,255,255,0.5)" : "rgba(99,102,241,0.45)"}
+          className="rounded-2xl !overflow-visible"
+        >
         <form
           onSubmit={submit}
-          className="flex w-full max-w-xl flex-col gap-5 rounded-2xl border border-slate-200 bg-white/60 p-8 shadow-sm dark:border-stone-800 dark:bg-stone-900/50"
+          className="shine-border relative flex w-full flex-col gap-5 rounded-2xl border border-slate-200 bg-white/60 p-8 shadow-sm dark:border-stone-800 dark:bg-stone-900/50"
         >
           <div className="flex flex-col gap-5 sm:flex-row sm:gap-4">
             <div className="grid w-full gap-1.5">
@@ -193,6 +209,8 @@ export const Contact2 = ({
             </p>
           )}
         </form>
+        </TiltCard>
+        </div>
       </div>
     </section>
   );
