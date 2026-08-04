@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Home, Eye, EyeOff, GitBranch, ArrowUpRight, MousePointerClick, ImageOff, Highlighter } from "lucide-react";
+import { Home, Eye, EyeOff, GitBranch, ArrowUpRight, MousePointerClick, ImageOff, Highlighter, List, RefreshCw, GalleryHorizontalEnd } from "lucide-react";
 import { HeroTitle } from "@/components/ui/hero-title";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
 import { HoverDeck } from "@/components/ui/hover-deck";
+import { ReferenceCards } from "@/components/ui/reference-cards";
 import { LaserPointer } from "@/components/ui/laser-pointer";
 import { deckCount, type ReferenceDeck } from "@/data/types";
 import { DeckAbout } from "@/components/ui/deck-about";
@@ -18,11 +19,34 @@ import { cn } from "@/lib/utils";
  * no rating, no Needs Review filter, no view modes. What is left is one toggle,
  * because the only real choice here is whether the answers start hidden.
  */
+/**
+ * Table is the default and stays it: a reference sheet is something you read
+ * down and compare across, which a stack of cards cannot do. The card views are
+ * for the other half of the job, drilling one row without the six around it
+ * visible to read off.
+ */
+const VIEWS = ["table", "flip", "carousel"] as const;
+type ReferenceView = (typeof VIEWS)[number];
+
+const VIEW_LABEL: Record<ReferenceView, string> = {
+  table: "Table",
+  flip: "Flip",
+  carousel: "Carousel",
+};
+
+const VIEW_ICON: Record<ReferenceView, typeof List> = {
+  table: List,
+  flip: RefreshCw,
+  carousel: GalleryHorizontalEnd,
+};
+
 export function ReferenceApp({ deck }: { deck: ReferenceDeck }) {
   const [quizMode, setQuizMode] = useState(true);
   const [hoverPreview, setHoverPreview] = useState(true);
   const [laser, setLaser] = useState(false);
+  const [view, setView] = useState<ReferenceView>("table");
   const total = deckCount(deck);
+  const ViewIcon = VIEW_ICON[view];
 
   return (
     <div className="min-h-screen text-slate-800 dark:text-stone-200">
@@ -53,6 +77,27 @@ export function ReferenceApp({ deck }: { deck: ReferenceDeck }) {
                 </span>
               </div>
 
+              {/* One control cycling the three, like the deck toolbar's. */}
+              <button
+                onClick={() => setView((v) => VIEWS[(VIEWS.indexOf(v) + 1) % VIEWS.length]!)}
+                title="Switch between the table and the card views"
+                className={cn(
+                  "flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-semibold transition",
+                  view !== "table"
+                    ? "border-indigo-200 bg-indigo-50 text-indigo-700 dark:border-indigo-500/30 dark:bg-indigo-400/15 dark:text-indigo-300"
+                    : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-stone-800 dark:bg-stone-900 dark:text-stone-300 dark:hover:bg-white/5",
+                )}
+              >
+                <ViewIcon className="h-4 w-4" />
+                {VIEW_LABEL[view]}
+              </button>
+
+              {/* Both of these describe the table and nothing else. On a card
+                  the answer is on the back, which is the whole mechanism, and
+                  there is no row to hover. Leaving them on screen would offer
+                  two controls that quietly do nothing. */}
+              {view === "table" && (
+                <>
               <button
                 onClick={() => setQuizMode((q) => !q)}
                 title={quizMode ? "Answers hidden until you hover or tap" : "All answers showing"}
@@ -88,6 +133,8 @@ export function ReferenceApp({ deck }: { deck: ReferenceDeck }) {
                 )}
                 {hoverPreview ? "Hover previews" : "Tap only"}
               </button>
+                </>
+              )}
 
               <button
                 onClick={() => setLaser((l) => !l)}
@@ -104,7 +151,11 @@ export function ReferenceApp({ deck }: { deck: ReferenceDeck }) {
               </button>
 
               <p className="hidden text-xs text-slate-400 lg:block dark:text-stone-500">
-                {hoverPreview ? "Hover a row for the diagram · tap to pin it" : "Tap a row to open its diagram"}
+                {view !== "table"
+                  ? "Click a card to turn it over"
+                  : hoverPreview
+                    ? "Hover a row for the diagram · tap to pin it"
+                    : "Tap a row to open its diagram"}
               </p>
 
               <div className="ml-auto">
@@ -116,12 +167,16 @@ export function ReferenceApp({ deck }: { deck: ReferenceDeck }) {
           <div className="mx-auto max-w-3xl">
             <DeckAbout text={deck.about} purpose={deck.purpose} funFact={deck.funFact} />
 
-            <HoverDeck
-              groups={deck.groups}
-              quizMode={quizMode}
-              hoverPreview={hoverPreview}
-              preview={deck.preview}
-            />
+            {view === "table" ? (
+              <HoverDeck
+                groups={deck.groups}
+                quizMode={quizMode}
+                hoverPreview={hoverPreview}
+                preview={deck.preview}
+              />
+            ) : (
+              <ReferenceCards groups={deck.groups} preview={deck.preview} layout={view} />
+            )}
 
             <ScrollToTop className="mt-6" />
 
