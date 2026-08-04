@@ -8,7 +8,7 @@ import { findDeck } from "@/data/decks";
 import { isReference, DECK_GROUPS, type DeckGroupId, type StudyDeck } from "@/data/types";
 import { ReferenceApp } from "@/components/ReferenceApp";
 import { FolderPage } from "@/components/FolderPage";
-import { AboutPage } from "@/components/AboutPage";
+import { ContactPage } from "@/components/ContactPage";
 import { NotFoundPage } from "@/components/ui/404-page-not-found";
 import { testimonials, testimonialArt } from "@/data/testimonials";
 import { GradientMenuButton, type GradientMenuItem } from "@/components/ui/gradient-menu";
@@ -146,7 +146,9 @@ export default function App() {
   }, [route]);
 
   if (route === "home") return <HomePage />;
-  if (route === "about") return <AboutPage />;
+  // `about` is the old address for what is now the contact page. About itself is
+  // a card opened over whatever you were looking at, so it has no route at all.
+  if (route === "contact" || route === "about") return <ContactPage />;
 
   if (route.startsWith("folder/")) {
     const gid = route.slice(7) as DeckGroupId;

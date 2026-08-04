@@ -4,32 +4,25 @@ import { DECK_GROUPS } from "@/data/types";
 import { NavPill, type NavPillItem } from "@/components/ui/nav-pill";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { Contact2 } from "@/components/ui/contact-2";
-import { ProfileCard } from "@/components/ui/profile-card";
 import { GradientMenuButton } from "@/components/ui/gradient-menu";
 import { GithubMark, LinkedinMark } from "@/components/ui/brand-marks";
+import { SiteActions } from "@/components/SiteActions";
 import { FeedbackButton } from "@/components/FeedbackButton";
+import { EMAIL, GITHUB_URL, LINKEDIN_URL, REPO_URL } from "@/data/site";
 import { SURFACE } from "@/lib/hubSurface";
 import { useIsDark } from "@/lib/useIsDark";
 
 /**
- * About and contact, at `#/about`.
+ * Contact, at `#/contact`.
  *
- * Two sections rather than one. They were run together on the theory that the
- * introduction and the reason to get in touch are the same subject, and in
- * practice that buried the reason to get in touch underneath a biography. Who I
- * am and how to reach me are now separate things on the same page.
+ * This was half of a combined about-and-contact page. The introduction is now a
+ * card that comes up over whatever you were looking at, which left this page
+ * with one job: the form, and the other ways of reaching the same person.
+ *
+ * `#/about` still lands here rather than 404ing, since that was the old address
+ * and it is the closest thing to what an old link was asking for.
  */
-
-const GITHUB_URL = "https://github.com/andliu7";
-
-/**
- * Not set yet, and deliberately left empty rather than guessed at: a profile
- * button that goes nowhere is worse than no button. Fill this in and the
- * LinkedIn pill appears next to the GitHub one.
- */
-const LINKEDIN_URL = "";
-
-export function AboutPage() {
+export function ContactPage() {
   const isDark = useIsDark();
   const surface = isDark ? SURFACE.dark : SURFACE.light;
 
@@ -50,7 +43,11 @@ export function AboutPage() {
       <div className="mx-auto flex max-w-5xl flex-col">
         <div className="flex items-start justify-between gap-4">
           <NavPill items={navItems} activeId="home" />
-          <AnimatedThemeToggler />
+          <div className="flex items-center gap-2">
+            {/* No Contact button here: it would link to this page. */}
+            <SiteActions showContact={false} />
+            <AnimatedThemeToggler />
+          </div>
         </div>
 
         <a
@@ -61,32 +58,9 @@ export function AboutPage() {
           All decks
         </a>
 
-        <section className="py-10">
-          <h1 className="title-face mb-8 text-4xl leading-[1.05] text-slate-900 sm:text-5xl dark:text-stone-100">
-            About me
-          </h1>
-
-          <ProfileCard
-            name="Andrew Liu"
-            role="University of Maryland"
-            tags={["Computer Science", "Pre-dental"]}
-            className="max-w-xl"
-          >
-            <p>
-              I'm a Computer Science major at the University of Maryland, and I'm on
-              the pre-dental track! My dream is to start my own practice and pursue a
-              specialty, all with the purpose of helping others.
-            </p>
-            <p>
-              I really hope that the people using this site are able to take something
-              away from it beyond just organic chemistry memorization!
-            </p>
-          </ProfileCard>
-        </section>
-
         <Contact2
           title="Contact me"
-          email="andliu@terpmail.umd.edu"
+          email={EMAIL}
           about={
             <p>
               Found a mistake? Want a deck for a lab that isn't here yet? Just want to
@@ -106,15 +80,13 @@ export function AboutPage() {
                 gradientFrom="#334155"
                 gradientTo="#0f172a"
               />
-              {LINKEDIN_URL && (
-                <GradientMenuButton
-                  title="LinkedIn"
-                  icon={<LinkedinMark />}
-                  href={LINKEDIN_URL}
-                  gradientFrom="#0a66c2"
-                  gradientTo="#004182"
-                />
-              )}
+              <GradientMenuButton
+                title="LinkedIn"
+                icon={<LinkedinMark />}
+                href={LINKEDIN_URL}
+                gradientFrom="#0a66c2"
+                gradientTo="#004182"
+              />
             </>
           }
         />
@@ -124,7 +96,7 @@ export function AboutPage() {
               sweep the deck footer's GitHub link already uses, so the two do not
               behave differently for no reason. */}
           <a
-            href="https://github.com/andliu7/grignard_LCTA"
+            href={REPO_URL}
             target="_blank"
             rel="noreferrer"
             className="group/gh inline-flex items-center gap-1.5 outline-none transition-colors hover:text-slate-600 dark:hover:text-stone-300"
@@ -147,4 +119,4 @@ export function AboutPage() {
   );
 }
 
-export default AboutPage;
+export default ContactPage;

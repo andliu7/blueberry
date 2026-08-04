@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
-import { ArrowLeft, User } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { DECKS } from "@/data/decks";
 import {
   DECK_GROUPS,
@@ -16,6 +16,7 @@ import { GlassCard } from "@/components/ui/glass-card";
 import { DeckSearch } from "@/components/ui/deck-search";
 import { DeckUploadTicket } from "@/components/DeckUploadTicket";
 import { FeedbackButton } from "@/components/FeedbackButton";
+import { SiteActions } from "@/components/SiteActions";
 import { matchedDeckIds, type SearchHit } from "@/lib/searchDecks";
 import { reviewedCount } from "@/lib/progress";
 import { SpotlightCursor } from "@/components/ui/spotlight-cursor";
@@ -62,13 +63,7 @@ export function FolderPage({ groupId }: { groupId: DeckGroupId }) {
         <div className="flex items-start justify-between gap-4">
           <NavPill items={navItems} activeId="home" />
           <div className="flex items-center gap-2">
-            <a
-              href="#/about"
-              className="group inline-flex items-center gap-1.5 rounded-full border border-slate-300/70 bg-white/60 px-3 py-1.5 text-sm font-semibold text-slate-600 backdrop-blur transition-colors hover:text-slate-900 dark:border-stone-700/70 dark:bg-stone-900/50 dark:text-stone-400 dark:hover:text-stone-100"
-            >
-              <User className="h-3.5 w-3.5" />
-              About / Contact
-            </a>
+            <SiteActions />
             <AnimatedThemeToggler />
           </div>
         </div>

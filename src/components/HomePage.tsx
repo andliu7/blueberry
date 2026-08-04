@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion, useInView, useReducedMotion } from "motion/react";
-import { ArrowRight, ArrowUpRight, User } from "lucide-react";
+import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { DECKS } from "@/data/decks";
 import { deckCount, deckHref, DECK_GROUPS, type Deck } from "@/data/types";
 
@@ -21,6 +21,7 @@ import { matchedDeckIds, type SearchHit } from "@/lib/searchDecks";
 import { DeckUploadTicket } from "@/components/DeckUploadTicket";
 import { HomeIntro } from "@/components/HomeIntro";
 import { FeedbackButton } from "@/components/FeedbackButton";
+import { SiteActions } from "@/components/SiteActions";
 import { TiltCard } from "@/components/ui/be-ui-tilt-card";
 import { useIsDark } from "@/lib/useIsDark";
 import { NavPill, type NavPillItem } from "@/components/ui/nav-pill";
@@ -147,13 +148,7 @@ export function HomePage() {
         <div className="flex items-start justify-between gap-4">
           <NavPill items={navItems} activeId="home" />
           <div className="flex items-center gap-2">
-            <a
-              href="#/about"
-              className="group inline-flex items-center gap-1.5 rounded-full border border-slate-300/70 bg-white/60 px-3 py-1.5 text-sm font-semibold text-slate-600 backdrop-blur transition-colors hover:text-slate-900 dark:border-stone-700/70 dark:bg-stone-900/50 dark:text-stone-400 dark:hover:text-stone-100"
-            >
-              <User className="h-3.5 w-3.5" />
-              About / Contact
-            </a>
+            <SiteActions />
             <AnimatedThemeToggler />
           </div>
         </div>
