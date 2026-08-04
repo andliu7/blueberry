@@ -18,6 +18,9 @@ import { DeckUploadTicket } from "@/components/DeckUploadTicket";
 import { FeedbackButton } from "@/components/FeedbackButton";
 import { matchedDeckIds, type SearchHit } from "@/lib/searchDecks";
 import { reviewedCount } from "@/lib/progress";
+import { SpotlightCursor } from "@/components/ui/spotlight-cursor";
+import { SURFACE, spotlightFor } from "@/lib/hubSurface";
+import { useIsDark } from "@/lib/useIsDark";
 
 /**
  * One folder's decks on their own page, at `#/folder/<id>`.
@@ -28,6 +31,8 @@ import { reviewedCount } from "@/lib/progress";
  */
 export function FolderPage({ groupId }: { groupId: DeckGroupId }) {
   const reduce = useReducedMotion();
+  const isDark = useIsDark();
+  const surface = isDark ? SURFACE.dark : SURFACE.light;
   const [hits, setHits] = useState<SearchHit[] | null>(null);
   const handleResults = useCallback((next: SearchHit[] | null) => setHits(next), []);
   const matched = useMemo(() => (hits ? matchedDeckIds(hits) : null), [hits]);
@@ -46,8 +51,14 @@ export function FolderPage({ groupId }: { groupId: DeckGroupId }) {
   const cards = all.reduce((n, d) => n + deckCount(d), 0);
 
   return (
-    <main className="min-h-screen bg-[#f6f4ef] px-6 py-8 dark:bg-[#0c0a09]">
-      <div className="mx-auto flex max-w-5xl flex-col">
+    // Same surface and same spotlight as the hub: a folder is the hub with one
+    // group open, so it should not look like a different site.
+    <main
+      className="relative min-h-screen px-6 py-8"
+      style={{ backgroundColor: surface.base, backgroundImage: surface.gradient }}
+    >
+      <SpotlightCursor className="z-0" config={spotlightFor(isDark)} />
+      <div className="relative z-10 mx-auto flex max-w-5xl flex-col">
         <div className="flex items-start justify-between gap-4">
           <NavPill items={navItems} activeId="home" />
           <div className="flex items-center gap-2">

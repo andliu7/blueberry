@@ -1,6 +1,6 @@
 # Grignard LCTA Master List
 
-Interactive study guides for the CHEM 242 lab practicals, built as a single-page
+Interactive study guides for the CHEM 242 lab LCTAs, built as a single-page
 web app. It started as one deck for the Grignard lab and now carries three.
 
 **Live site:** https://andliu7.github.io/grignard_LCTA/
@@ -18,6 +18,7 @@ web app. It started as one deck for the Grignard lab and now carries three.
 [Why this exists](#why-this-exists) ·
 [Features](#features) ·
 [Adding a deck](#adding-a-deck) ·
+[The hub](#the-hub) ·
 [Every element, in order](#every-element-in-order) ·
 [Every animation](#every-animation) ·
 [How it was built](#how-it-was-built) ·
@@ -109,7 +110,7 @@ export const distillationDeck: Deck = {
   title: "[CHEM 242] Lab 5: Distillation",     // hub card
   short: "Distillation",                       // nav pill, since the title is long
   titleLines: ["DISTILLATION", "MASTER LIST"], // title screen, one line per entry
-  subtitle: "40 questions for the lab practical. Hide the answers, ...",
+  subtitle: "40 questions for the lab LCTA. Hide the answers, ...",
   blurb: "Fractional versus simple, and reading a distillation curve.",
   footNote: "Ready for the LCTA!",             // optional parting line
   motif: "reflux",                             // see the motif list below
@@ -205,9 +206,72 @@ Progress keys work the same way. Grignard keeps the original
 
 ---
 
+## The hub
+
+`src/components/HomePage.tsx`, `src/components/HomeIntro.tsx`
+
+The hub at `#/home` is the front door. It opens with a sequence, then settles
+into the folders and the deck cards.
+
+### The opening
+
+A swarm of particles flies in from off screen and spells WELCOME, scatters, and
+gathers again into TO and then the site's name. Only once that last word is
+standing still does the shader fade up behind it and the scroll cue appear.
+
+The words used to be a scrambling `<h1>`. Particles replace it because the
+hand-off between words is the point: one cloud re-forms into the next word, so
+the three read as one thing changing rather than three headings swapped in and
+out. The last word is a placeholder called `SITE_WORD` at the top of
+`HomeIntro.tsx`, waiting on a name.
+
+The sequence runs on the particle canvas's own clock rather than a chain of
+`setTimeout` calls, so a tab left in the background pauses the whole thing
+instead of letting the phase timers race ahead of an animation Chrome has
+stopped giving frames to. It does not move the page for you. Skip is on screen
+from the first frame, and the descent to the decks is yours to make.
+
+### Backdrops
+
+An aurora drifts behind the opening, so scrolling past the words has something
+to move against instead of black on black. It renders at 40% of the display size
+and CSS stretches it back up, which on an image made entirely of soft gradients
+looks the same and costs about a sixth as much.
+
+Below that, a spotlight follows the cursor across the hub and the folder pages,
+lighting the background between the cards. It has to do opposite things in the
+two themes: on the dark surface it adds a pale violet glow, and on the near-white
+surface adding light does nothing you can see, so it tints with a deeper
+blue-violet instead. Both live in `src/lib/hubSurface.ts` alongside the page
+surface, since a folder is the hub with one group open and should not look like a
+different site.
+
+The deck pages get neither. Those are for reading, and a light following the
+cursor across a wall of questions is a distraction from the one thing that screen
+is for.
+
+### The heading
+
+STUDY DECKS resolves out of random letters the first time it comes into view,
+then pops letter by letter the way the deck titles do when you hover them. The
+pop plays itself once, because there is no cursor anywhere near the words to set
+it off. Two components rather than one: `TextScramble` swaps the whole string on
+a timer, and `BoldOnHover` needs every character to be its own animated box, so
+they hand over at the moment the scramble lands.
+
+### Folder cards
+
+The whole card opens the folder, not just the two links on it. Most of a folder
+card is the fanned deck art and the space around it, and clicking that used to do
+nothing, which reads as a broken card rather than a decorative one. Anything that
+is already a link keeps its own destination, so the deck cards in the fan still
+go to their decks.
+
+---
+
 ## Every element, in order
 
-This section walks the page from top to bottom, then covers the controls that
+This section walks a deck page from top to bottom, then covers the controls that
 float above it. Each entry names the file it lives in.
 
 ### 1. Hero title page
@@ -391,6 +455,7 @@ Grouped by what drives them.
 | Effect | Where | How |
 |---|---|---|
 | **Hero hand-off** | Title page | The hero is sticky, so the content below rides up over it |
+| **Hub seam** | Between the opening and the decks | The deck surface fades in over the 220px above its own top edge, so the aurora dissolves into it rather than being covered by a hard rounded line |
 | **Card choreography** | Scroll mode | Blur, opacity, depth and tilt all interpolated from each card's viewport position |
 | **Rolling stack** | Stack mode | Every card's depth in the deck comes from one shared motion value: the continuous index of the card currently arriving at the pin line |
 | **Scroll to top** | Bottom of page | Fades in past the last card |
@@ -602,6 +667,11 @@ changes.
 **The even-count fan was asymmetric**, because slot positions were computed with
 `totalCards >> 1` instead of `(totalCards - 1) / 2`.
 
+**Opening a deck dropped you into the middle of it.** A hash change does not
+reset the scroll position, so clicking a deck from halfway down the hub landed
+you the same distance down the deck, past its title screen and into the cards.
+The router now scrolls to the top on every route change.
+
 ### Rendering and performance
 
 **Expand All froze the tab.** Each card triggered a full-document MathJax pass,
@@ -645,6 +715,64 @@ marker sibling in normal flow, which never moves, and that is what gets measured
 space. The tail is now 24vh, which is enough for the last card to hold for a beat
 before the whole deck releases, and leaves about 109px before the testimonials
 begin.
+
+### Canvas
+
+**Particle trails left a starfield that never went away.** The supplied particle
+component fakes motion blur by washing each frame with a translucent black
+instead of clearing it. That only works on a page which is already black, and the
+aurora sits behind this one, so the wash became `destination-out` erasing to
+transparent instead. It looked right for about a second. Canvas alpha is 8-bit,
+and repeatedly multiplying it by 0.84 rounds 1 back to 1 and never reaches zero,
+so every pixel a particle had ever crossed kept a permanent speck. The count only
+grew. Each particle now draws its own streak, stretched backwards along whichever
+axis it is moving fastest on, and the canvas gets cleared outright. It is still
+one `fillRect` per particle.
+
+**Words came out at wildly different sizes.** Fitting each word to the canvas on
+its own is the obvious thing and it is wrong: WELCOME arrived at a sensible size
+and TO filled the screen, so the sequence lurched between scales instead of
+reading as one title changing. One type size is now chosen for the whole
+sequence, from whichever word is widest.
+
+**The opening never started on a slow page.** Measuring text before the font is
+ready rasterises the fallback, so the first layout waited on
+`document.fonts.ready`. That promise does not resolve until the document's `load`
+event, not merely until the fonts are loaded. Measured mid-build:
+`document.fonts.status` was already `loaded` while the promise was still pending
+long after the hub had rendered. One slow image anywhere on the page would have
+held the entire opening at a black screen. It now starts immediately and
+re-measures afterwards if the metrics turn out to have changed.
+
+**Particles took longer to assemble than the word was on screen for.** The
+supplied speeds are in pixels per frame against a 1000px demo canvas, and at full
+width a word took a median 1.45 seconds to come together with a tail past two,
+against a 1.5 second hold. Rather than guess at new numbers, the physics was
+replayed on its own against the real viewport: median 0.6 seconds and 99th
+percentile 0.95, holding across phone, laptop and desktop widths in both
+orientations. The spawn ring also moved to the half-diagonal, because a fraction
+of the width puts it inside the corners on a wide canvas and particles meant to
+fly in from off screen blinked into existence in the middle of the picture.
+
+### Hit targets
+
+**The first card in a folder fan only took hover from below.** Each card sits in
+a full-width wrapper pinned to the top of the fan, and the wrappers stack on top
+of one another. A transparent div is still a hit target across its whole box, and
+the last one in the DOM wins, so the first card was buried under three invisible
+sheets. The only part of it you could reach was the few pixels its downward offset
+pushed below their bottom edge, which is exactly the "come at it from
+underneath" the bug was reported as. Measured before and after: the first card
+went from **0% of its area hoverable to 64%**, the remainder being genuine
+card-on-card overlap in the fan. The wrappers now take no pointer events and the
+cards take them back, and the z-index moved to the wrapper so paint order and hit
+order agree.
+
+**A click handler on `InfoCard` did nothing.** Its props type has always extended
+`HTMLAttributes<HTMLDivElement>`, but none of those props were ever passed to the
+element, so the handler was accepted and dropped. Forwarding the whole rest of
+the props would collide with motion's own `onDrag` and `onAnimationStart`
+signatures, so only what is needed crosses.
 
 ### Typography and theming
 
@@ -695,6 +823,29 @@ that came out of it: **structure, geometry and DOM state are verifiable there;
 motion is not.** Where an animation could not be observed, the underlying maths
 was verified instead by replaying the same formula against real measured DOM
 geometry, which is how the rolling stack was checked.
+
+The clearest case of the false negative was a text scramble that appeared never
+to resolve. It was logged as an open bug for a while on real measurements: still
+showing `KNCQ` at 3.9 seconds, still `HOHJ` at 12.9, when it should settle inside
+a second. Chasing it later with an interval counter found three ticks in four
+seconds against an expected 114, and `requestAnimationFrame` running at **0 fps**
+while a plain `setTimeout(0)` still came back in a millisecond. The main thread
+was not busy, the tab was hidden. Twenty-four steps at roughly one second each is
+the twenty-six second stall that had been recorded. The component was correct the
+whole time. Nothing was fixed, because nothing was broken.
+
+Two more things about that environment are worth writing down. Chrome escalates
+to intensive throttling after about five minutes hidden, at which point timers
+fire roughly once a minute and any in-page `await new Promise(r =>
+setTimeout(r, 250))` will outlive the tooling's timeout. And the screenshot tool
+resizes the viewport to capture, which fires a `ResizeObserver`, which re-lays out
+the word and re-targets every particle: several confusing captures turned out to
+be the act of taking the picture disturbing the thing being photographed.
+
+What did work was replacing the clock. Patching `requestAnimationFrame` to
+collect its callbacks and then driving them by hand with fabricated timestamps
+runs the animation deterministically and as fast as the CPU allows, which is how
+the particle sequence was stepped through and measured frame by frame.
 
 ---
 
@@ -758,7 +909,22 @@ hint that keeps nagging after it has been taken is just noise.
 
 **Know what your tools cannot tell you.** A hidden browser tab cannot verify
 animation. Recognising that turned a string of confusing false negatives into a
-clear rule about which claims the environment can and cannot support.
+clear rule about which claims the environment can and cannot support. It also
+retired a bug that had been on the list for a while: the text scramble everyone
+thought was broken was a correct component being measured through a frozen clock.
+An open bug is a claim about the code, and it is worth occasionally checking that
+the claim is about the code and not about how you looked at it.
+
+**When the environment will not run the animation, replace the clock.** Patching
+`requestAnimationFrame` and driving the callbacks by hand with made-up timestamps
+turned an unobservable sequence into one that could be stepped a frame at a time.
+Tuning the particle physics against measured convergence times beat guessing at
+speeds and looking at the result.
+
+**Some visual tricks do not survive being made transparent.** Fading trails by
+washing the frame works on an opaque page and silently accumulates forever once
+the wash has to erase to transparent instead, because 8-bit alpha will not round
+down to zero. The fix was to stop faking the trail and draw it.
 
 **Deployment is part of the project.** The site served a blank page for a while
 because Pages was publishing the source branch, where the only script tag points

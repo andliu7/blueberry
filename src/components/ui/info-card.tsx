@@ -122,7 +122,21 @@ const InfoCardContext = createContext<{
   onDismiss: () => {},
 });
 
-function InfoCard({ children, className, style, storageKey, dismissType = "once" }: InfoCardProps) {
+/**
+ * `onClick` is forwarded explicitly. The props type has always extended
+ * `HTMLAttributes<HTMLDivElement>`, but nothing was ever passed through to the
+ * element, so a handler put on this component was silently dropped. Forwarding
+ * the whole rest of the props instead would collide with motion's own `onDrag`
+ * and `onAnimationStart` signatures, so only what is actually needed crosses.
+ */
+function InfoCard({
+  children,
+  className,
+  style,
+  storageKey,
+  dismissType = "once",
+  onClick,
+}: InfoCardProps) {
   if (dismissType === "forever" && !storageKey) {
     throw new Error('A storageKey must be provided when using dismissType="forever"');
   }
@@ -177,6 +191,7 @@ function InfoCard({ children, className, style, storageKey, dismissType = "once"
               )}
               onMouseEnter={() => setIsHovered(true)}
               onMouseLeave={() => setIsHovered(false)}
+              onClick={onClick}
             >
               {children}
             </motion.div>

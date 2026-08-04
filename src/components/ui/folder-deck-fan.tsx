@@ -38,15 +38,31 @@ export function FolderDeckFan({ decks, max = 4 }: { decks: Deck[]; max?: number 
           // Centred by flexbox rather than by subtracting half a card width.
           // That offset was hardcoded at 34px while the cards render 84px wide,
           // so the whole fan sat 8px right of the middle of its folder.
-          <div key={deck.id} className="absolute inset-x-0 top-0 flex justify-center">
+          //
+          // These wrappers are the full width of the fan and all sit at top-0,
+          // stacked on top of one another. Left alone they are the hit target
+          // across that whole band, and since the last one in the DOM wins, the
+          // first card was buried under three invisible sheets: the only part
+          // of it you could actually hover was the few pixels its downward
+          // offset pushed below the bottom edge of the sheets above, which is
+          // why it would only light up when approached from underneath.
+          //
+          // So the wrapper takes no pointer events and the card takes them
+          // back. The z-index moves here too, so paint order and hit order
+          // agree: the wrapper is what actually stacks, and putting the index
+          // on the link inside it left the fan's layering to DOM order.
+          <div
+            key={deck.id}
+            className="pointer-events-none absolute inset-x-0 top-0 flex justify-center"
+            style={{ zIndex: active ? 20 : i }}
+          >
           <motion.a
             href={deckHref(deck)}
             aria-label={`${deck.title}, ${deckCount(deck)} ${isReference(deck) ? "rows" : "cards"}`}
             onMouseEnter={() => setHovered(i)}
             onFocus={() => setHovered(i)}
             onBlur={() => setHovered(null)}
-            className="block origin-bottom rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
-            style={{ zIndex: active ? 20 : i }}
+            className="pointer-events-auto block origin-bottom rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
             initial={false}
             animate={
               reduce

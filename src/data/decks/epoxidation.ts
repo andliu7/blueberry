@@ -1,4 +1,4 @@
-import type { Deck } from "@/data/types";
+﻿import type { Deck } from "@/data/types";
 
 /**
  * Lab 3. Weitz-Scheffer epoxidation of chalcone with alkaline hydrogen
@@ -15,7 +15,7 @@ export const epoxidationDeck: Deck = {
   group: "lab",
   titleLines: ["EPOXIDATION", "MASTER LIST"],
   subtitle:
-    "43 questions for the lab practical. Hide the answers, rate your recall, and drill until they stick.",
+    "43 questions for the lab LCTA. Hide the answers, rate your recall, and drill until they stick.",
   blurb:
     "Nucleophilic epoxidation of chalcone with alkaline peroxide: solution prep and percentages, recrystallization, and reading the melting point, IR and NMR.",
   footNote: "Ready for the LCTA! Remember: electron-poor alkene = nucleophilic epoxidation.",

@@ -69,7 +69,7 @@ export function DeckUploadTicket() {
       />
 
       <p className="mt-3 max-w-sm text-center text-xs text-slate-400 dark:text-stone-500">
-        Got a question list? Authorised staff can turn a .txt into a deck.
+        Got a question list? Authorized staff can turn a .txt into a deck.
       </p>
 
       {open && (

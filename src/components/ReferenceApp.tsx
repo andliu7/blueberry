@@ -4,7 +4,6 @@ import { HeroTitle } from "@/components/ui/hero-title";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
 import { HoverDeck } from "@/components/ui/hover-deck";
-import { DeckUploadTicket } from "@/components/DeckUploadTicket";
 import { LaserPointer } from "@/components/ui/laser-pointer";
 import { deckCount, type ReferenceDeck } from "@/data/types";
 import { DeckAbout } from "@/components/ui/deck-about";
@@ -128,7 +127,9 @@ export function ReferenceApp({ deck }: { deck: ReferenceDeck }) {
 
             <LaserPointer active={laser} onExit={() => setLaser(false)} />
 
-            <DeckUploadTicket />
+            {/* The ticket lives on the hub and the folder pages only. At the
+                foot of a deck it was an invitation to add another deck at the
+                exact moment someone had finished studying this one. */}
 
             <footer className="mt-12 text-center text-sm text-gray-500 dark:text-stone-400">
               {deck.footNote && <p>{deck.footNote}</p>}

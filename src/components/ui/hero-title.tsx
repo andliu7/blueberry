@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useRef, type ReactNode } from "react";
 import { motion, useScroll, useTransform, useReducedMotion } from "motion/react";
@@ -65,7 +65,7 @@ export function HeroTitle({
   // character as its own inline-block, so a single long title can break
   // mid-word on a narrow screen.
   titleLines = ["GRIGNARD LCTA", "MASTER LIST"],
-  subtitle = "44 questions for the lab practical. Hide the answers, rate your recall, and drill until they stick.",
+  subtitle = "44 questions for the lab LCTA. Hide the answers, rate your recall, and drill until they stick.",
   ghostWord = "GRIGNARD",
   motif = "attack",
   topLeft,

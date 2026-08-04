@@ -1,0 +1,599 @@
+﻿"use client";
+
+import { useEffect, useRef } from "react";
+import { useReducedMotion } from "motion/react";
+import { cn } from "@/lib/utils";
+
+/**
+ * A word drawn as a swarm of particles that fly in from off screen, hold the
+ * letterforms, then scatter and re-form as the next word.
+ *
+ * Adapted from the supplied component. What changed and why:
+ *
+ * 1. **It fills its parent instead of being a fixed 1000x500 box.** The intro is
+ *    full bleed, so the canvas measures its host through a ResizeObserver and
+ *    redraws the current word on resize.
+ * 2. **The canvas is cleared, and each particle draws its own trail.** Upstream
+ *    faked motion blur by washing the frame with `rgba(0,0,0,0.1)` instead of
+ *    clearing it, which only works on a page that is already black. The aurora
+ *    and the shader both sit behind this, so it has to stay transparent. Erasing
+ *    with `destination-out` looked like the answer and is a trap; see the note
+ *    on `Particle.draw`.
+ * 3. **Sampling is a 2-D grid, not a 1-D stride over the pixel array.** A stride
+ *    big enough to keep the particle count sane on a 1900px canvas samples every
+ *    n-th pixel along a row and every pixel down a column, so the word comes out
+ *    as vertical streaks. Walking x and y by the same gap gives an even cloud
+ *    and makes the count predictable, which matters because upstream's numbers
+ *    were tuned for a canvas a third of this size.
+ * 4. **Physics scales with the canvas.** Speeds were in pixels per frame against
+ *    a 1000px box; at full width the particles took several seconds to cross the
+ *    screen. They are now a fraction of the canvas, so a word settles in about
+ *    the same time on a phone and on a monitor.
+ * 5. **Fixed 60Hz timestep.** Upstream advanced the word every 240 raw frames,
+ *    which runs twice as fast on a 120Hz display. Time is accumulated and spent
+ *    in fixed steps, so the sequence takes the same wall-clock time everywhere.
+ * 6. **Right-click-to-destroy is gone.** It needed `preventDefault` on
+ *    `contextmenu` across the whole hero, and silently killing the context menu
+ *    on a full-screen element is a bad trade for an easter egg. The pointer
+ *    pushes particles around instead, which needs no button and no hijack.
+ * 7. Colour is a gradient across the word rather than one random RGB per word.
+ *    Random colours are the demo's party trick; this is the front door of the
+ *    site and wants the site's own indigo and fuchsia.
+ *
+ * `words` must be referentially stable. It is an effect dependency, and a fresh
+ * array literal on every render would restart the sequence from the first word.
+ */
+
+interface Vec {
+  x: number;
+  y: number;
+}
+
+interface Rgb {
+  r: number;
+  g: number;
+  b: number;
+}
+
+export interface ParticleWord {
+  text: string;
+  /** Gradient endpoints, read left to right across the word. */
+  from: string;
+  to: string;
+}
+
+const SIM_STEP_MS = 1000 / 60;
+/** Square drawn per particle, in CSS pixels. */
+const POINT_SIZE = 2;
+/** Longest motion-blur streak a particle draws behind itself, in CSS pixels. */
+const MAX_STREAK = 16;
+/** Ceiling on live particles, so a long word on a wide monitor stays cheap. */
+const MAX_PARTICLES = 4200;
+/** Same display face as the rest of the site. */
+const FONT_FAMILY =
+  '"Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, "Times New Roman", serif';
+
+/**
+ * One type size for the whole sequence, chosen so the widest word fits.
+ *
+ * Sizing each word to the canvas on its own is the obvious thing and it looks
+ * wrong: WELCOME comes out at a sensible size and TO fills the screen, so the
+ * sequence lurches between scales instead of reading as one title changing.
+ *
+ * The sampling gap follows the type size. A gap tuned for a monitor leaves a
+ * phone with a few hundred particles and the word stops being legible.
+ */
+function layoutFor(
+  ctx: CanvasRenderingContext2D,
+  words: ParticleWord[],
+  width: number,
+  height: number,
+) {
+  const probe = 100;
+  ctx.font = `bold ${probe}px ${FONT_FAMILY}`;
+  const widest = words.reduce((w, word) => Math.max(w, ctx.measureText(word.text).width), 1);
+
+  const targetWidth = Math.min(width * 0.8, 1100);
+  const fontSize = Math.max(40, Math.min((probe * targetWidth) / widest, height * 0.3));
+  const gap = Math.max(2, Math.min(5, Math.round(fontSize / 40)));
+  return { fontSize, gap };
+}
+
+function hexToRgb(hex: string): Rgb {
+  const h = hex.replace("#", "");
+  const full =
+    h.length === 3
+      ? h
+          .split("")
+          .map((c) => c + c)
+          .join("")
+      : h;
+  const n = parseInt(full, 16);
+  return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+}
+
+function mixRgb(a: Rgb, b: Rgb, t: number): Rgb {
+  return {
+    r: a.r + (b.r - a.r) * t,
+    g: a.g + (b.g - a.g) * t,
+    b: a.b + (b.b - a.b) * t,
+  };
+}
+
+class Particle {
+  pos: Vec = { x: 0, y: 0 };
+  vel: Vec = { x: 0, y: 0 };
+  acc: Vec = { x: 0, y: 0 };
+  target: Vec = { x: 0, y: 0 };
+
+  closeEnoughTarget = 100;
+  maxSpeed = 1;
+  maxForce = 0.1;
+  isKilled = false;
+
+  startColor: Rgb = { r: 0, g: 0, b: 0 };
+  targetColor: Rgb = { r: 0, g: 0, b: 0 };
+  colorWeight = 0;
+  colorBlendRate = 0.01;
+  /** 1 while alive, driven to 0 once killed so the exit is a fade, not a jump. */
+  alpha = 1;
+
+  move() {
+    // Ease off as the target gets close, otherwise particles overshoot and
+    // oscillate around the letterform instead of settling into it.
+    const dx = this.target.x - this.pos.x;
+    const dy = this.target.y - this.pos.y;
+    const distance = Math.hypot(dx, dy);
+    const proximity = distance < this.closeEnoughTarget ? distance / this.closeEnoughTarget : 1;
+
+    if (distance > 0) {
+      const desiredX = (dx / distance) * this.maxSpeed * proximity;
+      const desiredY = (dy / distance) * this.maxSpeed * proximity;
+
+      let steerX = desiredX - this.vel.x;
+      let steerY = desiredY - this.vel.y;
+      const steerMag = Math.hypot(steerX, steerY);
+      if (steerMag > this.maxForce) {
+        steerX = (steerX / steerMag) * this.maxForce;
+        steerY = (steerY / steerMag) * this.maxForce;
+      }
+
+      this.acc.x += steerX;
+      this.acc.y += steerY;
+    }
+
+    this.vel.x += this.acc.x;
+    this.vel.y += this.acc.y;
+    this.pos.x += this.vel.x;
+    this.pos.y += this.vel.y;
+    this.acc.x = 0;
+    this.acc.y = 0;
+
+    if (this.colorWeight < 1) {
+      this.colorWeight = Math.min(this.colorWeight + this.colorBlendRate, 1);
+    }
+    if (this.isKilled) {
+      this.alpha = Math.max(0, this.alpha - 0.02);
+    }
+  }
+
+  /** Nudged away from the pointer, so the swarm reacts to a cursor crossing it. */
+  push(from: Vec, radius: number, strength: number) {
+    const dx = this.pos.x - from.x;
+    const dy = this.pos.y - from.y;
+    const d = Math.hypot(dx, dy);
+    if (d === 0 || d > radius) return;
+    const falloff = (1 - d / radius) * strength;
+    this.acc.x += (dx / d) * falloff;
+    this.acc.y += (dy / d) * falloff;
+  }
+
+  /**
+   * A dot, stretched backwards along whichever axis it is moving fastest on.
+   *
+   * This is the motion blur, and it replaces the trail the original faked by
+   * washing the frame with a translucent black every frame instead of clearing
+   * it. That trick cannot be undone: canvas alpha is 8-bit, so repeatedly
+   * multiplying it by 0.84 rounds 1 back to 1 and never reaches 0, and every
+   * pixel a particle had ever crossed kept a permanent speck. The result was a
+   * starfield that grew denser for as long as the page was open.
+   *
+   * Drawing the streak instead means the canvas can be cleared outright each
+   * frame, and it is still one `fillRect` per particle. The streak is
+   * axis-aligned rather than along the true velocity, which at a 2px dot moving
+   * 30px a frame is not a difference anyone can see.
+   */
+  draw(ctx: CanvasRenderingContext2D) {
+    const c = mixRgb(this.startColor, this.targetColor, this.colorWeight);
+    ctx.fillStyle = `rgba(${Math.round(c.r)}, ${Math.round(c.g)}, ${Math.round(c.b)}, ${this.alpha})`;
+
+    const vx = this.vel.x;
+    const vy = this.vel.y;
+    if (Math.abs(vx) > Math.abs(vy)) {
+      const len = Math.min(Math.abs(vx), MAX_STREAK) + POINT_SIZE;
+      ctx.fillRect(vx < 0 ? this.pos.x : this.pos.x + POINT_SIZE - len, this.pos.y, len, POINT_SIZE);
+    } else {
+      const len = Math.min(Math.abs(vy), MAX_STREAK) + POINT_SIZE;
+      ctx.fillRect(this.pos.x, vy < 0 ? this.pos.y : this.pos.y + POINT_SIZE - len, POINT_SIZE, len);
+    }
+  }
+
+  /** Sends the particle back out of frame and starts it fading. */
+  kill(width: number, height: number) {
+    if (this.isKilled) return;
+    const away = randomEdgePos(width, height);
+    this.target.x = away.x;
+    this.target.y = away.y;
+    // Freeze the colour where the blend had got to, so the exit does not also
+    // snap to a different hue on its way out.
+    const c = mixRgb(this.startColor, this.targetColor, this.colorWeight);
+    this.startColor = c;
+    this.targetColor = c;
+    this.colorWeight = 1;
+    this.isKilled = true;
+  }
+}
+
+/**
+ * A point on a ring just outside the canvas, in a random direction.
+ *
+ * Sized off the half-diagonal rather than the wider side. A fraction of the
+ * width puts the ring inside the corners on a wide canvas, and particles that
+ * are meant to fly in from off screen instead blink into existence in the middle
+ * of the picture. The half-diagonal is the smallest radius that clears every
+ * corner at any aspect ratio, and staying close to it keeps the flight short.
+ */
+function randomEdgePos(width: number, height: number): Vec {
+  const angle = Math.random() * Math.PI * 2;
+  const mag = (Math.hypot(width, height) / 2) * 1.06;
+  return {
+    x: width / 2 + Math.cos(angle) * mag,
+    y: height / 2 + Math.sin(angle) * mag,
+  };
+}
+
+export interface ParticleTextEffectProps {
+  /** The sequence to play. Must be referentially stable; see the note above. */
+  words: ParticleWord[];
+  /** How long each word holds before the next one takes over. */
+  wordMs?: number;
+  /** Time after the last word arrives before `onFinished` fires. */
+  settleMs?: number;
+  /** Repeat from the first word instead of holding on the last. */
+  loop?: boolean;
+  /** Let the pointer shove particles around. */
+  interactive?: boolean;
+  onWordChange?: (index: number) => void;
+  /** Fires once the final word has had `settleMs` to arrive and read. */
+  onFinished?: () => void;
+  className?: string;
+  /** Announced to screen readers, which get no canvas. */
+  label?: string;
+}
+
+export function ParticleTextEffect({
+  words,
+  wordMs = 1600,
+  settleMs = 900,
+  loop = false,
+  interactive = true,
+  onWordChange,
+  onFinished,
+  className,
+  label,
+}: ParticleTextEffectProps) {
+  const hostRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const reduce = useReducedMotion();
+
+  // Held in refs so an inline arrow from the parent does not restart the
+  // sequence on every parent render.
+  const onWordChangeRef = useRef(onWordChange);
+  const onFinishedRef = useRef(onFinished);
+  onWordChangeRef.current = onWordChange;
+  onFinishedRef.current = onFinished;
+
+  useEffect(() => {
+    if (reduce) return;
+    const host = hostRef.current;
+    const canvas = canvasRef.current;
+    if (!host || !canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const particles: Particle[] = [];
+    const pointer: Vec & { active: boolean } = { x: 0, y: 0, active: false };
+
+    let width = 0;
+    let height = 0;
+    let fontSize = 0;
+    let gap = 4;
+    /** Canvas size relative to the 1000px box the original numbers were tuned on. */
+    let scale = 1;
+    let raf = 0;
+    let stopped = false;
+    let lastTime = 0;
+    let carry = 0;
+    let step = 0;
+    let wordIndex = -1;
+    let announcedFinish = false;
+
+    const wordSteps = Math.max(1, Math.round(wordMs / SIM_STEP_MS));
+    const settleSteps = Math.max(1, Math.round(settleMs / SIM_STEP_MS));
+
+    /**
+     * Rasterises a word off screen and hands every particle a pixel of it.
+     *
+     * `keepIndex` is for a resize: the same word is laid out again at the new
+     * size without counting as a new word in the sequence.
+     */
+    const setWord = (index: number, keepIndex = false) => {
+      const word = words[index];
+      if (!word || width === 0 || height === 0) return;
+
+      const off = document.createElement("canvas");
+      off.width = width;
+      off.height = height;
+      const offCtx = off.getContext("2d", { willReadFrequently: true });
+      if (!offCtx) return;
+
+      offCtx.font = `bold ${fontSize}px ${FONT_FAMILY}`;
+      offCtx.fillStyle = "white";
+      offCtx.textAlign = "center";
+      offCtx.textBaseline = "middle";
+      offCtx.fillText(word.text, width / 2, height / 2);
+
+      const pixels = offCtx.getImageData(0, 0, width, height).data;
+
+      const coords: Vec[] = [];
+      let minX = Infinity;
+      let maxX = -Infinity;
+      for (let y = 0; y < height; y += gap) {
+        for (let x = 0; x < width; x += gap) {
+          if (pixels[(y * width + x) * 4 + 3] > 128) {
+            coords.push({ x, y });
+            if (x < minX) minX = x;
+            if (x > maxX) maxX = x;
+          }
+        }
+      }
+      if (coords.length === 0) return;
+
+      // Shuffled so particles claim scattered pixels rather than sweeping the
+      // word top to bottom, and so the cap below takes an even subset.
+      for (let i = coords.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [coords[i], coords[j]] = [coords[j], coords[i]];
+      }
+      const wanted = coords.slice(0, MAX_PARTICLES);
+
+      const from = hexToRgb(word.from);
+      const to = hexToRgb(word.to);
+      const span = Math.max(1, maxX - minX);
+
+      wanted.forEach((coord, i) => {
+        let p = particles[i];
+        const fresh = !p;
+        if (!p) {
+          p = new Particle();
+          const spawn = randomEdgePos(width, height);
+          p.pos.x = spawn.x;
+          p.pos.y = spawn.y;
+          particles.push(p);
+        }
+
+        p.isKilled = false;
+        p.alpha = 1;
+        // Measured rather than guessed. At the supplied speeds a word took a
+        // median 1.45s to assemble with a tail past 2s, so against a 1.5s hold
+        // it was legible for a blink before scattering again. Faster, and over
+        // a narrower range so the stragglers do not drag the tail out: median
+        // 0.6s and 99th percentile 0.95s, holding across phone, laptop and
+        // desktop widths in both orientations.
+        p.maxSpeed = (Math.random() * 4 + 8) * scale * 2.4;
+        p.maxForce = p.maxSpeed * 0.16;
+        p.closeEnoughTarget = 110 * scale;
+        p.colorBlendRate = Math.random() * 0.028 + 0.008;
+
+        const colour = mixRgb(from, to, (coord.x - minX) / span);
+        // A new particle arrives already the right colour. Blending it up from
+        // the class default would mean flying in as a black dot, which is
+        // invisible on the black opening and then a smudge over the shader.
+        p.startColor = fresh ? colour : mixRgb(p.startColor, p.targetColor, p.colorWeight);
+        p.targetColor = colour;
+        p.colorWeight = fresh ? 1 : 0;
+        p.target.x = coord.x;
+        p.target.y = coord.y;
+      });
+
+      for (let i = wanted.length; i < particles.length; i++) {
+        particles[i].kill(width, height);
+      }
+
+      if (!keepIndex) onWordChangeRef.current?.(index);
+    };
+
+    const resize = () => {
+      const rect = host.getBoundingClientRect();
+      const nextW = Math.max(1, Math.round(rect.width));
+      const nextH = Math.max(1, Math.round(rect.height));
+      if (nextW === width && nextH === height) return;
+
+      width = nextW;
+      height = nextH;
+      scale = Math.max(width, height) / 1000;
+      // Capped: the particles are 2px squares, so a 3x backing store costs a
+      // lot of fill rate and buys almost nothing.
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.round(width * dpr);
+      canvas.height = Math.round(height * dpr);
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+      // Everything below works in CSS pixels.
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      ({ fontSize, gap } = layoutFor(ctx, words, width, height));
+
+      if (wordIndex >= 0) setWord(wordIndex, true);
+    };
+
+    const simulate = () => {
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        if (interactive && pointer.active) {
+          p.push(pointer, 110 * scale, 1.6 * scale);
+        }
+        p.move();
+        if (
+          p.isKilled &&
+          (p.alpha <= 0 ||
+            p.pos.x < -40 ||
+            p.pos.x > width + 40 ||
+            p.pos.y < -40 ||
+            p.pos.y > height + 40)
+        ) {
+          particles.splice(i, 1);
+        }
+      }
+    };
+
+    const frame = (now: number) => {
+      if (stopped) return;
+      raf = requestAnimationFrame(frame);
+
+      if (lastTime === 0) lastTime = now;
+      // Clamped: coming back from a background tab hands over a delta of many
+      // seconds, and replaying all of it at once teleports the whole swarm.
+      const delta = Math.min(now - lastTime, 100);
+      lastTime = now;
+      carry += delta;
+
+      while (carry >= SIM_STEP_MS) {
+        carry -= SIM_STEP_MS;
+
+        const due = Math.floor(step / wordSteps);
+        if (due !== wordIndex) {
+          if (due < words.length) {
+            wordIndex = due;
+            setWord(wordIndex);
+          } else if (loop) {
+            step = 0;
+            wordIndex = 0;
+            setWord(0);
+          }
+        }
+
+        const lastStart = (words.length - 1) * wordSteps;
+        if (!loop && !announcedFinish && step >= lastStart + settleSteps) {
+          announcedFinish = true;
+          onFinishedRef.current?.();
+        }
+
+        simulate();
+        step++;
+      }
+
+      // Cleared outright, leaving the canvas transparent so the aurora and the
+      // shader behind it show through. The trailing is drawn per particle; see
+      // the note on `Particle.draw` for why it is not done by washing the frame.
+      ctx.clearRect(0, 0, width, height);
+
+      for (const p of particles) p.draw(ctx);
+    };
+
+    const observer = new ResizeObserver(resize);
+    observer.observe(host);
+    resize();
+
+    const onPointerMove = (e: PointerEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      pointer.x = e.clientX - rect.left;
+      pointer.y = e.clientY - rect.top;
+      pointer.active = true;
+    };
+    const onPointerLeave = () => {
+      pointer.active = false;
+    };
+    if (interactive) {
+      host.addEventListener("pointermove", onPointerMove);
+      host.addEventListener("pointerleave", onPointerLeave);
+    }
+
+    // A tab that goes to the background stops getting frames, so the first
+    // delta on the way back would be the whole time away. Reset the clock.
+    const onVisibility = () => {
+      lastTime = 0;
+      carry = 0;
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
+    raf = requestAnimationFrame(frame);
+
+    /**
+     * Re-measure once the font set is settled, in case the first layout was
+     * done against a fallback face and came out the wrong width.
+     *
+     * Deliberately not a gate on starting. `document.fonts.ready` waits for the
+     * document's `load` event as well as for the fonts, so one slow image
+     * anywhere on the page would hold the entire opening at a black screen.
+     * Measured here mid-build: the promise was still pending long after the
+     * hub had rendered, with `document.fonts.status` already "loaded". The site
+     * sets its display face from a system stack, so the first measurement is
+     * almost always right and this is only insurance.
+     */
+    document.fonts?.ready.then(() => {
+      if (stopped || width === 0) return;
+      const next = layoutFor(ctx, words, width, height);
+      if (Math.abs(next.fontSize - fontSize) < 0.5) return;
+      fontSize = next.fontSize;
+      gap = next.gap;
+      if (wordIndex >= 0) setWord(wordIndex, true);
+    });
+
+    return () => {
+      stopped = true;
+      cancelAnimationFrame(raf);
+      observer.disconnect();
+      document.removeEventListener("visibilitychange", onVisibility);
+      host.removeEventListener("pointermove", onPointerMove);
+      host.removeEventListener("pointerleave", onPointerLeave);
+    };
+  }, [words, wordMs, settleMs, loop, interactive, reduce]);
+
+  // Reduced motion gets the destination without the journey: the last word,
+  // held still, and the sequence reported as finished so the page moves on.
+  const finishedRef = useRef(false);
+  useEffect(() => {
+    if (!reduce || finishedRef.current) return;
+    finishedRef.current = true;
+    onFinishedRef.current?.();
+  }, [reduce]);
+
+  const last = words[words.length - 1];
+
+  return (
+    <div ref={hostRef} className={cn("relative h-full w-full", className)}>
+      {reduce ? (
+        <div className="flex h-full w-full items-center justify-center px-6">
+          <span
+            className="title-face text-6xl font-bold tracking-tight sm:text-8xl"
+            style={{
+              backgroundImage: `linear-gradient(90deg, ${last?.from}, ${last?.to})`,
+              WebkitBackgroundClip: "text",
+              backgroundClip: "text",
+              color: "transparent",
+            }}
+          >
+            {last?.text}
+          </span>
+        </div>
+      ) : (
+        <canvas ref={canvasRef} aria-hidden className="block h-full w-full" />
+      )}
+      <span className="sr-only">{label ?? words.map((w) => w.text).join(" ")}</span>
+    </div>
+  );
+}
+
+export default ParticleTextEffect;
+

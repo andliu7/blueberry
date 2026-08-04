@@ -1,4 +1,4 @@
-import type { Deck } from "@/data/types";
+﻿import type { Deck } from "@/data/types";
 
 /**
  * Lab 4. Electrophilic aromatic substitution on salicylamide, with the
@@ -14,7 +14,7 @@ export const iodinationDeck: Deck = {
   group: "lab",
   titleLines: ["IODINATION", "MASTER LIST"],
   subtitle:
-    "51 questions for the lab practical. Hide the answers, rate your recall, and drill until they stick.",
+    "51 questions for the lab LCTA. Hide the answers, rate your recall, and drill until they stick.",
   blurb:
     "Electrophilic aromatic substitution start to finish: directing effects and the arenium ion, the in situ electrophile, acidifying the phenoxide, TLC, and reading the IR and NMR.",
   footNote: "Ready for the LCTA! Remember: no HCl = no solid, because the phenoxide stays dissolved.",

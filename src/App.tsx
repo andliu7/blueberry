@@ -29,7 +29,6 @@ import { ButtonHoldAndRelease } from "@/components/ui/hold-and-release-button";
 import SocialCards from "@/components/ui/card-fan-carousel";
 import { StickyNote } from "@/components/StickyNote";
 import { Confetti } from "@/components/Confetti";
-import { DeckUploadTicket } from "@/components/DeckUploadTicket";
 import { FeedbackButton } from "@/components/FeedbackButton";
 import { LaserPointer } from "@/components/ui/laser-pointer";
 import { DeckAbout } from "@/components/ui/deck-about";
@@ -133,6 +132,19 @@ function QuoteSurface({ children }: { children: React.ReactNode }) {
  */
 export default function App() {
   const route = useHashRoute();
+
+  /**
+   * Every route starts at the top.
+   *
+   * A hash change does not reset the scroll position, so clicking a deck from
+   * halfway down the hub dropped you the same distance down the deck: past the
+   * title screen and into the middle of the cards. The deck's own opening is
+   * the first thing it wants to show you.
+   */
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [route]);
+
   if (route === "home") return <HomePage />;
   if (route === "about") return <AboutPage />;
 
@@ -812,7 +824,8 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
 
         <LaserPointer active={laser} onExit={() => setLaser(false)} />
 
-        <DeckUploadTicket />
+        {/* The ticket lives on the hub and the folder pages only; see the note
+            in ReferenceApp. */}
 
         <footer className="mt-12 text-center text-gray-500 dark:text-stone-400 text-sm">
           {deck.footNote && <p>{deck.footNote}</p>}

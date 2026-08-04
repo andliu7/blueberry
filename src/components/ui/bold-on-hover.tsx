@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, stagger, useAnimate, type AnimationOptions } from "motion/react";
 
 function useThrottledCallback<A extends unknown[]>(
@@ -42,6 +42,18 @@ interface AnimatedTextProps {
   staggerOrigin?: "first" | "last" | "center" | number;
   className?: string;
   onClick?: () => void;
+  /**
+   * Plays the pop once without being hovered, then hands back to hover.
+   *
+   * The hub's heading arrives on its own after the opening, with no cursor
+   * anywhere near it, so it needs a way to show what it does before anyone
+   * thinks to point at it.
+   */
+  autoPlay?: boolean;
+  /** Wait before the automatic pop starts. */
+  autoPlayDelay?: number;
+  /** How long the letters stay up before settling back. */
+  autoPlayHold?: number;
 }
 
 const BoldOnHover = ({
@@ -57,6 +69,9 @@ const BoldOnHover = ({
   staggerOrigin = "first",
   className,
   onClick,
+  autoPlay = false,
+  autoPlayDelay = 250,
+  autoPlayHold = 700,
 }: AnimatedTextProps) => {
   const [animationScope, animate] = useAnimate();
   const [isActive, setIsActive] = useState(false);
@@ -99,6 +114,27 @@ const BoldOnHover = ({
 
   const throttledActivate = useThrottledCallback(handleActivate, 100);
   const throttledDeactivate = useThrottledCallback(handleDeactivate, 100);
+
+  /**
+   * Read through refs on purpose. `animationConfig` defaults to an object
+   * literal, so both handlers get a new identity on every render; depending on
+   * them directly would re-run this effect each time and pop the letters over
+   * and over.
+   */
+  const activateRef = useRef(handleActivate);
+  const deactivateRef = useRef(handleDeactivate);
+  activateRef.current = handleActivate;
+  deactivateRef.current = handleDeactivate;
+
+  useEffect(() => {
+    if (!autoPlay) return;
+    const up = setTimeout(() => activateRef.current(), autoPlayDelay);
+    const down = setTimeout(() => deactivateRef.current(), autoPlayDelay + autoPlayHold);
+    return () => {
+      clearTimeout(up);
+      clearTimeout(down);
+    };
+  }, [autoPlay, autoPlayDelay, autoPlayHold]);
 
   return (
     <motion.span

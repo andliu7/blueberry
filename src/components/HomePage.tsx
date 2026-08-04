@@ -1,6 +1,6 @@
-import { useCallback, useMemo, useState } from "react";
-import { motion, useReducedMotion } from "motion/react";
-import { ArrowRight, ArrowUpRight, User, Sparkles } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { motion, useInView, useReducedMotion } from "motion/react";
+import { ArrowRight, ArrowUpRight, User } from "lucide-react";
 import { DECKS } from "@/data/decks";
 import { deckCount, deckHref, DECK_GROUPS, type Deck } from "@/data/types";
 
@@ -14,6 +14,7 @@ import {
 import { GlassCard } from "@/components/ui/glass-card";
 import { MOTIF_VIEWBOX, motifMarkup } from "@/data/testimonialArt";
 import { reviewedCount } from "@/lib/progress";
+import { ExpandableText } from "@/components/ui/expandable-text";
 import { DeckSearch } from "@/components/ui/deck-search";
 import { FolderDeckFan } from "@/components/ui/folder-deck-fan";
 import { matchedDeckIds, type SearchHit } from "@/lib/searchDecks";
@@ -24,6 +25,10 @@ import { TiltCard } from "@/components/ui/be-ui-tilt-card";
 import { useIsDark } from "@/lib/useIsDark";
 import { NavPill, type NavPillItem } from "@/components/ui/nav-pill";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
+import { TextScramble } from "@/components/ui/text-scramble";
+import BoldOnHover from "@/components/ui/bold-on-hover";
+import { SpotlightCursor } from "@/components/ui/spotlight-cursor";
+import { SURFACE, spotlightFor } from "@/lib/hubSurface";
 
 /**
  * The hub: one card per deck, with room to grow.
@@ -33,30 +38,54 @@ import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
  * the questions would be a worse app for the sake of a nicer front door. This
  * lives at #/home, reached from the small Home link on the title screen.
  */
-const INTRO_KEY = "grignard_lcta_intro_seen_v1";
-
 export function HomePage() {
   /**
-   * Shown on a first visit only. Read in the initialiser rather than an effect
-   * so a returning visitor never sees the intro flash before it is dismissed.
+   * Replayed on every arrival at the hub, not just the first.
+   *
+   * Skip is what keeps that from being a toll gate: it is on screen from the
+   * first frame, including during the black screen, so anyone in a hurry is one
+   * click from the decks.
    */
-  const [showIntro, setShowIntro] = useState(() => {
-    try {
-      return localStorage.getItem(INTRO_KEY) !== "yes";
-    } catch {
-      return false;
-    }
-  });
+  const [showIntro, setShowIntro] = useState(true);
 
   const dismissIntro = useCallback(() => {
     setShowIntro(false);
-    try {
-      localStorage.setItem(INTRO_KEY, "yes");
-    } catch {
-      /* ignore */
-    }
     window.scrollTo({ top: 0 });
   }, []);
+
+  /**
+   * The opening does not move the page. It resolves the words, brings the
+   * shader up behind them, shows the cue, and then waits.
+   *
+   * It did carry you down to the decks on its own for a while, which turned the
+   * last beat of the sequence into being thrown somewhere you had not asked to
+   * go. Landing on it and leaving is a fair thing to want to do with a front
+   * door, so the descent is the visitor's.
+   */
+  const decksRef = useRef<HTMLElement>(null);
+
+  const isDark = useIsDark();
+  const surface = isDark ? SURFACE.dark : SURFACE.light;
+
+  /**
+   * Whether the opening has been scrolled clear of the screen.
+   *
+   * The tubes canvas is fixed to the viewport, so it would sit over the intro if
+   * it mounted with the page. Gating it on scroll position also means the
+   * library is not fetched at all for someone who opens the hub and clicks
+   * straight into a deck.
+   */
+  const [pastIntro, setPastIntro] = useState(!showIntro);
+  useEffect(() => {
+    if (!showIntro) {
+      setPastIntro(true);
+      return;
+    }
+    const check = () => setPastIntro(window.scrollY > window.innerHeight * 1.05);
+    check();
+    window.addEventListener("scroll", check, { passive: true });
+    return () => window.removeEventListener("scroll", check);
+  }, [showIntro]);
 
   const reduce = useReducedMotion();
   const [hits, setHits] = useState<SearchHit[] | null>(null);
@@ -86,12 +115,35 @@ export function HomePage() {
       {showIntro && <HomeIntro onSkip={dismissIntro} />}
 
       <main
-        className="relative z-10 min-h-screen bg-[#f6f4ef] px-6 py-8 dark:bg-[#0c0a09]"
-        // Rounds the seam and casts a shadow up over the shader, the same
-        // curtain treatment the deck title screens already use.
-        style={showIntro ? { borderTopLeftRadius: "2rem", borderTopRightRadius: "2rem" } : undefined}
+        ref={decksRef}
+        className="relative z-10 min-h-screen px-6 py-8"
+        style={{ backgroundColor: surface.base, backgroundImage: surface.gradient }}
       >
-      <div className="mx-auto flex max-w-5xl flex-col">
+        {/* The seam.
+
+            This used to be a rounded, shadowed edge that slid up over the intro
+            as a hard line: one page ending and another starting on the same
+            frame. Instead the surface fades in over the 220px above its own top
+            edge, so the aurora underneath dissolves into the deck background
+            rather than being covered by it. The strip sits outside the element's
+            box, which is also why it is gone by the time you are actually
+            reading the decks: at rest the top of `main` is the top of the
+            screen and the strip is above it. */}
+        {showIntro && (
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 -top-56 h-56"
+            style={{ backgroundImage: `linear-gradient(180deg, transparent, ${surface.base})` }}
+          />
+        )}
+
+        {/* Behind the content, above the surface, so it lights the background
+            between the cards without washing over the text on them. Held back
+            until the intro is out of the way: the canvas is fixed to the
+            viewport, so mounting it sooner would put it over the opening. */}
+        {pastIntro && <SpotlightCursor className="z-0" config={spotlightFor(isDark)} />}
+
+      <div className="relative z-10 mx-auto flex max-w-5xl flex-col">
         <div className="flex items-start justify-between gap-4">
           <NavPill items={navItems} activeId="home" />
           <div className="flex items-center gap-2">
@@ -102,44 +154,26 @@ export function HomePage() {
               <User className="h-3.5 w-3.5" />
               About / Contact
             </a>
-            {!showIntro && (
-              <button
-                onClick={() => setShowIntro(true)}
-                title="Replay the opening animation"
-                className="inline-flex items-center gap-1.5 rounded-full border border-slate-300/70 bg-white/60 px-3 py-1.5 text-sm font-semibold text-slate-600 backdrop-blur transition-colors hover:text-slate-900 dark:border-stone-700/70 dark:bg-stone-900/50 dark:text-stone-400 dark:hover:text-stone-100"
-              >
-                <Sparkles className="h-3.5 w-3.5" />
-                Intro
-              </button>
-            )}
             <AnimatedThemeToggler />
           </div>
         </div>
 
         <header className="mt-16 mb-12 max-w-2xl">
-          <h1 className="title-face text-5xl leading-[1.05] text-slate-900 dark:text-stone-100 sm:text-6xl">
-            Home
-          </h1>
-          <p className="playful-face mt-4 text-lg text-slate-500 dark:text-stone-400">
-            Flashcard decks I built to make the rote memorization part of organic
-            chemistry a little more fun! Pick a folder to see what's inside and
-            choose a deck, or click any card in the stacks below to jump straight
-            in.
-          </p>
-          <p className="playful-face mt-4 text-base text-slate-500 dark:text-stone-400">
-            Answers stay hidden until you ask, and you rate yourself as you go so
-            the deck can show you what still needs work. Flip the cards over like
-            real flashcards, drop into the carousel to drill one question at a
-            time, or switch on the laser pointer and scribble over the whole page
-            while you think it through.
-          </p>
+          <StudyDecksHeading />
+          {/* One sentence by default. The full version ran to two paragraphs
+              and pushed the decks themselves below the fold. */}
+          <ExpandableText
+            className="playful-face mt-4 text-lg text-slate-500 dark:text-stone-400"
+            text={
+              "Flashcard decks I built to make the rote memorization part of organic chemistry a little more fun! " +
+              "Pick a folder to see what's inside and choose a deck, or click any card in the stacks below to jump straight in. " +
+              "Answers stay hidden until you ask, and you rate yourself as you go so the deck can show you what still needs work. " +
+              "Flip the cards over like real flashcards, drop into the carousel to drill one question at a time, or switch on the laser pointer and scribble over the whole page while you think it through."
+            }
+          />
         </header>
 
         <DeckSearch decks={DECKS} onResults={handleResults} />
-
-        <h2 className="title-face mb-5 text-2xl text-slate-900 sm:text-3xl dark:text-stone-100">
-          Study decks
-        </h2>
 
         {/* Folders first, then the lab decks themselves below, since those are
             what most people are here for. */}
@@ -156,7 +190,7 @@ export function HomePage() {
         {labDecks.length > 0 && (
           <section className="mt-14">
             <h2 className="title-face mb-5 text-2xl text-slate-900 sm:text-3xl dark:text-stone-100">
-              Lab practicals
+              Lab LCTA
             </h2>
             <div className="grid gap-7 sm:grid-cols-2">
               {labDecks.map((deck, i) => (
@@ -219,6 +253,74 @@ export function HomePage() {
   );
 }
 
+const HEADING_TEXT = "STUDY DECKS";
+const HEADING_CLASS =
+  "title-face text-5xl leading-[1.05] text-slate-900 dark:text-stone-100 sm:text-6xl";
+
+/**
+ * The hub's heading, which arrives in two beats.
+ *
+ * It resolves out of random letters the first time it comes into view, and then
+ * pops letter by letter the way the deck titles do when you hover them. The pop
+ * plays itself once, because the opening scrolls the page here on its own and
+ * there is no cursor anywhere near the words to set it off.
+ *
+ * Two components rather than one because they want the text in incompatible
+ * shapes: `TextScramble` swaps the whole string on a timer, `BoldOnHover` needs
+ * every character to be its own animated box. Handing over at the moment the
+ * scramble lands is what lets each do the thing it is good at.
+ */
+function StudyDecksHeading() {
+  const ref = useRef<HTMLHeadingElement>(null);
+  const reduce = useReducedMotion();
+  // `once`: coming back up the page should not restage the whole thing.
+  const inView = useInView(ref, { once: true, amount: 0.6 });
+  const [settled, setSettled] = useState(false);
+
+  // Reduced motion gets the words, plainly, with the hover pop still available.
+  if (reduce) {
+    return (
+      <h1 ref={ref} className={HEADING_CLASS}>
+        <BoldOnHover text={HEADING_TEXT} initialWeight={400} hoverWeight={800} />
+      </h1>
+    );
+  }
+
+  return (
+    <h1
+      ref={ref}
+      className={HEADING_CLASS}
+      // Held back until it is on screen, so the scramble is not already over by
+      // the time the page arrives here.
+      style={{ opacity: inView ? 1 : 0, transition: "opacity 200ms ease-out" }}
+    >
+      {settled ? (
+        <BoldOnHover
+          text={HEADING_TEXT}
+          initialWeight={400}
+          hoverWeight={800}
+          hoverScale={1.18}
+          hoverLift={-5}
+          autoPlay
+          autoPlayDelay={120}
+          autoPlayHold={620}
+        />
+      ) : (
+        <TextScramble
+          as="span"
+          trigger={inView}
+          duration={0.9}
+          speed={0.03}
+          characterSet="ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+          onScrambleComplete={() => setSettled(true)}
+        >
+          {HEADING_TEXT}
+        </TextScramble>
+      )}
+    </h1>
+  );
+}
+
 /**
  * A folder heading for one group of decks.
  *
@@ -237,6 +339,21 @@ function DeckFolder({
   const isDark = useIsDark();
   const cards = decks.reduce((n, d) => n + deckCount(d), 0);
 
+  /**
+   * The whole card is a way into the folder, not just the two links on it.
+   *
+   * Most of a folder card is the fanned deck art and the space around it, and
+   * clicking that did nothing at all, which reads as a broken card rather than
+   * a decorative one. Anything that is already a link keeps its own
+   * destination: the deck cards in the fan still go to their decks, and the
+   * title and Open folder links are untouched. The links are also what keeps
+   * this reachable from a keyboard, which a click handler on a div is not.
+   */
+  const openFolder = (e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest("a, button")) return;
+    window.location.hash = `#/folder/${group.id}`;
+  };
+
   return (
     // Tilts like everything else on the site. `overflow-visible` matters: the
     // top card of the fan lifts and scales past the card's edge on hover, and
@@ -247,7 +364,8 @@ function DeckFolder({
       className="rounded-lg !overflow-visible"
     >
     <InfoCard
-      className="!border-transparent"
+      onClick={openFolder}
+      className="!border-transparent cursor-pointer"
       style={{
         // A tinted wash rather than plain white, so the two folders read as
         // different places at a glance instead of two identical panels.

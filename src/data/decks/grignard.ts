@@ -1,4 +1,4 @@
-import type { Deck } from "@/data/types";
+﻿import type { Deck } from "@/data/types";
 
 /**
  * The original deck, and the reason this site exists. It keeps the bare URL
@@ -13,7 +13,7 @@ export const grignardDeck: Deck = {
   group: "lab",
   titleLines: ["GRIGNARD LCTA", "MASTER LIST"],
   subtitle:
-    "44 questions for the lab practical. Hide the answers, rate your recall, and drill until they stick.",
+    "44 questions for the lab LCTA. Hide the answers, rate your recall, and drill until they stick.",
   blurb:
     "Addition to a carbonyl, start to finish: drying glassware, the reaction, extraction, washing, and reading the IR and NMR.",
   footNote: "Ready for the LCTA! Remember: Anhydrous = Dry Reaction | Regular = Wet Workup.",
