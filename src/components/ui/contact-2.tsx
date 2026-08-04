@@ -80,7 +80,10 @@ export const Contact2 = ({
   };
 
   return (
-    <section className="py-10">
+    // Light on the top padding: the page already puts a back link below the nav
+    // row, so an even `py-10` here left the heading a long way down an otherwise
+    // empty screen.
+    <section className="pt-1 pb-10">
       <div className="mx-auto flex max-w-5xl flex-col justify-between gap-12 lg:flex-row lg:gap-16">
         <div className="flex max-w-md flex-col gap-8">
           <div>
