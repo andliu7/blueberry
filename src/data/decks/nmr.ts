@@ -22,6 +22,13 @@ export const nmrDeck: ReferenceDeck = {
   motif: "nmr",
   from: "#7e22ce",
   to: "#a21caf",
+  // As with IR: a spectrum, where the answer is where a signal sits on the
+  // shift axis, so it wants room and a lens rather than a crop.
+  preview: {
+    width: 460,
+    height: 300,
+    magnify: { lensSize: 180, zoomFactor: 2.6 },
+  },
   groups: [
     {
       heading: "1H NMR chemical shifts",

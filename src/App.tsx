@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronsUpDown, ChevronsDownUp, Shuffle, GalleryHorizontalEnd, List, MoveVertical, ArrowDownToLine, GitBranch, ArrowUpRight, Layers, Home, RefreshCw, Highlighter } from "lucide-react";
+import { ChevronsUpDown, ChevronsDownUp, Shuffle, GalleryHorizontalEnd, List, MoveVertical, ArrowDown, GitBranch, ArrowUpRight, Layers, Home, RefreshCw } from "lucide-react";
 import { FlippingCard } from "@/components/ui/flipping-card";
 import { FlipCard } from "@/components/ui/flip-card";
 import { MathHtml } from "@/components/ui/math-html";
@@ -30,7 +30,6 @@ import SocialCards from "@/components/ui/card-fan-carousel";
 import { StickyNote } from "@/components/StickyNote";
 import { Confetti } from "@/components/Confetti";
 import { FeedbackButton } from "@/components/FeedbackButton";
-import { LaserPointer } from "@/components/ui/laser-pointer";
 import { DeckAbout } from "@/components/ui/deck-about";
 import { SITE_NAME } from "@/data/site";
 import { progressKey, loadSaved } from "@/lib/progress";
@@ -230,7 +229,6 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
    */
   const [cardStyle, setCardStyle] = useState<CardStyle>("classic");
   const [flippedMap, setFlippedMap] = useState<Record<number, boolean>>({});
-  const [laser, setLaser] = useState(false);
 
   // Save progress whenever it changes. Restoring happens in the useState
   // initialisers above rather than in an effect: an effect-based load races this
@@ -674,19 +672,17 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
                   },
                   {
                     title: "To Bottom",
-                    icon: <ArrowDownToLine />,
+                    // A plain arrow. The one with a line under it is what every
+                    // browser and file manager uses for download, and people
+                    // read the icon before the label.
+                    icon: <ArrowDown />,
                     onClick: jumpToBottom,
                     gradientFrom: "#b45309",
                     gradientTo: "#d97706",
                   },
-                  {
-                    title: laser ? "Laser: on" : "Laser",
-                    icon: <Highlighter />,
-                    onClick: () => setLaser((l) => !l),
-                    gradientFrom: "#b91c1c",
-                    gradientTo: "#ef4444",
-                    active: laser,
-                  },
+                  // No laser here. Drawing over the page earns its place on a
+                  // reference sheet, where you are annotating a spectrum, and
+                  // not on a wall of question cards.
                 ] as GradientMenuItem[]).map((item, i) => (
                   // Keyed by position, not title. The view and shuffle buttons
                   // relabel themselves on click, and a title key made React
@@ -825,7 +821,6 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
           <p className="text-center text-xs text-slate-400 dark:text-stone-500 mt-3">(these are fake testimonials)</p>
         </div>
 
-        <LaserPointer active={laser} onExit={() => setLaser(false)} />
 
         {/* The ticket lives on the hub and the folder pages only; see the note
             in ReferenceApp. */}

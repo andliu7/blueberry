@@ -22,6 +22,15 @@ export const irDeck: ReferenceDeck = {
   motif: "ir",
   from: "#0369a1",
   to: "#0891b2",
+  // Bigger than the default, and with a lens. These are whole spectra rather
+  // than one-molecule drawings: the useful detail is a peak's position on the
+  // axis, which is unreadable at thumbnail size. No crop, because nothing on a
+  // spectrum gives the answer away the way the pKa sheet's printed value does.
+  preview: {
+    width: 460,
+    height: 300,
+    magnify: { lensSize: 180, zoomFactor: 2.6 },
+  },
   groups: [
     {
       heading: "The four IR regions",

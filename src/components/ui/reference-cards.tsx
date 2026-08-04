@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { FlippingCard } from "@/components/ui/flipping-card";
 import { SnapCarousel } from "@/components/ui/snap-carousel";
+import { Lens } from "@/components/ui/magnifier-lens";
 import type { PreviewOptions } from "@/components/ui/hover-deck";
 import type { DeckGroup } from "@/data/types";
 import { cn } from "@/lib/utils";
@@ -53,11 +54,13 @@ function RowCard({
   flipped,
   onFlip,
   cropStyle,
+  magnify,
 }: {
   row: Row;
   flipped: boolean;
   onFlip: () => void;
   cropStyle?: React.CSSProperties;
+  magnify?: PreviewOptions["magnify"];
 }) {
   return (
     <FlippingCard
@@ -108,12 +111,26 @@ function RowCard({
 
           {row.image && (
             <div className="mt-3 flex flex-1 items-center justify-center overflow-hidden">
-              <img
-                src={cardSrc(row.image)}
-                alt={row.title}
-                loading="lazy"
-                className="max-h-full w-full object-contain"
-              />
+              {/* The lens goes on the back and not the front. The front's image
+                  is cropped to keep the answer hidden, and magnifying a crop
+                  would only enlarge the half you are allowed to see. */}
+              {magnify ? (
+                <Lens lensSize={magnify.lensSize ?? 150} zoomFactor={magnify.zoomFactor ?? 2}>
+                  <img
+                    src={cardSrc(row.image)}
+                    alt={row.title}
+                    loading="lazy"
+                    className="max-h-full w-full object-contain"
+                  />
+                </Lens>
+              ) : (
+                <img
+                  src={cardSrc(row.image)}
+                  alt={row.title}
+                  loading="lazy"
+                  className="max-h-full w-full object-contain"
+                />
+              )}
             </div>
           )}
 
@@ -145,7 +162,50 @@ export function ReferenceCards({
     ? { clipPath: `inset(0 ${preview.cropRight} 0 0)` }
     : undefined;
 
-  const toggle = (i: number) => setFlipped((f) => ({ ...f, [i]: !f[i] }));
+  const toggle = useCallback((i: number) => setFlipped((f) => ({ ...f, [i]: !f[i] })), []);
+
+  // The carousel counts past both ends and wraps, so the raw index is not
+  // always a real row. Space has to act on the card actually showing.
+  const safe = rows.length ? ((index % rows.length) + rows.length) % rows.length : 0;
+
+  /**
+   * Space turns the card that is showing, without having to tab to it first.
+   *
+   * The card already flips on Enter or Space when it has focus, but drilling in
+   * the carousel means arrowing or clicking through and never touching the card
+   * itself, so the key that ought to be the whole interaction did nothing.
+   *
+   * It bows out whenever something else has a claim on the key: a text field, or
+   * anything exposing itself as a button. That second case covers both the
+   * toolbar, where Space should press the button you tabbed to, and the card
+   * itself, whose own handler should run rather than firing alongside this one
+   * and flipping twice.
+   */
+  useEffect(() => {
+    if (layout !== "carousel") return;
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== " " && e.code !== "Space") return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+
+      const el = document.activeElement as HTMLElement | null;
+      if (
+        el &&
+        (el.isContentEditable ||
+          /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName) ||
+          el.closest('[role="button"], button, a'))
+      ) {
+        return;
+      }
+
+      // Otherwise the page scrolls a screen down under the carousel.
+      e.preventDefault();
+      toggle(safe);
+    };
+
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [layout, safe, toggle]);
 
   const cards = rows.map((row, i) => (
     <RowCard
@@ -154,11 +214,11 @@ export function ReferenceCards({
       flipped={flipped[i] ?? false}
       onFlip={() => toggle(i)}
       cropStyle={cropStyle}
+      magnify={preview?.magnify}
     />
   ));
 
   if (layout === "carousel") {
-    const safe = rows.length ? ((index % rows.length) + rows.length) % rows.length : 0;
     return (
       <SnapCarousel label="Reference rows" index={safe} onIndexChange={setIndex}>
         {cards}

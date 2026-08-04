@@ -46,7 +46,16 @@ export function ReferenceApp({ deck }: { deck: ReferenceDeck }) {
   const [laser, setLaser] = useState(false);
   const [view, setView] = useState<ReferenceView>("table");
   const total = deckCount(deck);
-  const ViewIcon = VIEW_ICON[view];
+
+  /**
+   * The button names the view it will switch you to, not the one you are in.
+   *
+   * Labelling it with the current view meant the control read as a status
+   * light, so pressing "Table" while looking at a table was the only way to
+   * find out it did anything. Which mode you are in is the message's job.
+   */
+  const next = VIEWS[(VIEWS.indexOf(view) + 1) % VIEWS.length]!;
+  const NextIcon = VIEW_ICON[next];
 
   return (
     <div className="min-h-screen text-slate-800 dark:text-stone-200">
@@ -77,19 +86,17 @@ export function ReferenceApp({ deck }: { deck: ReferenceDeck }) {
                 </span>
               </div>
 
-              {/* One control cycling the three, like the deck toolbar's. */}
+              {/* One control cycling the three, like the deck toolbar's.
+                  Styled neutrally throughout: it is an action rather than a
+                  state, and a highlighted button reading "Flip" would say you
+                  were already on flip. */}
               <button
-                onClick={() => setView((v) => VIEWS[(VIEWS.indexOf(v) + 1) % VIEWS.length]!)}
-                title="Switch between the table and the card views"
-                className={cn(
-                  "flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-semibold transition",
-                  view !== "table"
-                    ? "border-indigo-200 bg-indigo-50 text-indigo-700 dark:border-indigo-500/30 dark:bg-indigo-400/15 dark:text-indigo-300"
-                    : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-stone-800 dark:bg-stone-900 dark:text-stone-300 dark:hover:bg-white/5",
-                )}
+                onClick={() => setView(next)}
+                title={`Switch to the ${VIEW_LABEL[next].toLowerCase()} view`}
+                className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 dark:border-stone-800 dark:bg-stone-900 dark:text-stone-300 dark:hover:bg-white/5"
               >
-                <ViewIcon className="h-4 w-4" />
-                {VIEW_LABEL[view]}
+                <NextIcon className="h-4 w-4" />
+                {VIEW_LABEL[next]}
               </button>
 
               {/* Both of these describe the table and nothing else. On a card
@@ -150,10 +157,17 @@ export function ReferenceApp({ deck }: { deck: ReferenceDeck }) {
                 {laser ? "Laser on" : "Laser"}
               </button>
 
+              {/* Says which view you are in, since the button no longer does,
+                  then how to work it. */}
               <p className="hidden text-xs text-slate-400 lg:block dark:text-stone-500">
-                {view !== "table"
-                  ? "Click a card to turn it over"
-                  : hoverPreview
+                <span className="font-semibold text-slate-500 dark:text-stone-400">
+                  {VIEW_LABEL[view]} mode.
+                </span>{" "}
+                {view === "carousel"
+                  ? "Arrow keys, the arrows, the dots or a drag to move · space or click to turn a card over"
+                  : view === "flip"
+                    ? "Click a card to turn it over"
+                    : hoverPreview
                     ? "Hover a row for the diagram · tap to pin it"
                     : "Tap a row to open its diagram"}
               </p>
