@@ -45,7 +45,11 @@ export interface ProfileCardProps {
   role: string;
   /** A photograph, if there ever is one. Otherwise the logo, pulsing. */
   avatarSrc?: string;
-  tags?: string[];
+  /**
+   * A plain string is a label. Give it an `href` and it becomes a link out, and
+   * an `icon` and that sits alongside the text.
+   */
+  tags?: (string | { label: string; href?: string; icon?: ReactNode })[];
   /** The body of the card. */
   children?: ReactNode;
   /** Buttons or links along the bottom edge. */
@@ -72,7 +76,10 @@ export function ProfileCard({
       className={cn(
         // Padding pulled in a little: at p-7 the copy sat a long way off the
         // card's edges and the whole thing read as roomier than it needed to be.
-        "group/card relative rounded-3xl bg-white p-5 transition-all duration-500",
+        //
+        // `shine-border` is the contact form's travelling rim, reused here so
+        // the two cards behave the same way when you point at them.
+        "group/card shine-border relative rounded-3xl bg-white p-5 transition-all duration-500",
         "shadow-[12px_12px_24px_rgba(79,70,229,0.10),-12px_-12px_24px_rgba(255,255,255,0.9)]",
         "hover:shadow-[20px_20px_40px_rgba(79,70,229,0.16),-20px_-20px_40px_rgba(255,255,255,1)]",
         "dark:bg-[#1b1630]",
@@ -108,7 +115,11 @@ export function ProfileCard({
              recessed well instead, and the rings are tinted indigo because white
              rings on white paper are invisible. */
           <PulseIconButton
-            icon={<BlueberryMark />}
+            // The glow follows the berry's silhouette rather than boxing it,
+            // which a box-shadow on an SVG would.
+            icon={
+              <BlueberryMark className="blueberry-glow-art h-full w-full transition-[filter] duration-300" />
+            }
             size="md"
             interactive={false}
             animateOn="group-hover"
@@ -133,27 +144,44 @@ export function ProfileCard({
       </div>
 
       {tags.length > 0 && (
-        <div className="mt-4 flex flex-wrap justify-center gap-2">
-          {tags.map((tag) => (
-            <span
-              key={tag}
-              className={cn(
-                "inline-block rounded-full bg-white px-3 py-1 text-[0.7rem] font-semibold text-indigo-600",
-                "transition-all duration-300 group-hover/card:scale-105",
-                // Its own hover, on top of the card's. Pointing at a tag lifts
-                // that one out of the row rather than moving the pair together,
-                // so each reads as a thing in its own right.
-                "hover:!scale-115 hover:-translate-y-0.5 hover:px-4",
-                "shadow-[2px_2px_4px_rgba(79,70,229,0.10),-2px_-2px_4px_rgba(255,255,255,0.9)]",
-                "hover:shadow-[4px_4px_10px_rgba(79,70,229,0.18),-4px_-4px_10px_rgba(255,255,255,1)]",
-                "dark:bg-[#231c3c] dark:text-violet-300",
-                "dark:shadow-[2px_2px_4px_rgba(0,0,0,0.4),-2px_-2px_4px_rgba(255,255,255,0.05)]",
-                "dark:hover:shadow-[4px_4px_10px_rgba(0,0,0,0.55),-4px_-4px_10px_rgba(255,255,255,0.08)]",
-              )}
-            >
-              {tag}
-            </span>
-          ))}
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+          {tags.map((raw) => {
+            const tag = typeof raw === "string" ? { label: raw } : raw;
+            const className = cn(
+              "blueberry-glow inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1",
+              "text-[0.7rem] font-semibold text-indigo-600 outline-none",
+              "transition-all duration-300 group-hover/card:scale-105",
+              // Its own hover, on top of the card's, so pointing at one lifts it
+              // out of the row rather than moving the pair together.
+              "hover:!scale-110 hover:-translate-y-0.5",
+              "shadow-[2px_2px_4px_rgba(79,70,229,0.10),-2px_-2px_4px_rgba(255,255,255,0.9)]",
+              "dark:bg-[#231c3c] dark:text-violet-300",
+              "dark:shadow-[2px_2px_4px_rgba(0,0,0,0.4),-2px_-2px_4px_rgba(255,255,255,0.05)]",
+            );
+
+            const inner = (
+              <>
+                {tag.icon}
+                {tag.label}
+              </>
+            );
+
+            return tag.href ? (
+              <a
+                key={tag.label}
+                href={tag.href}
+                target="_blank"
+                rel="noreferrer"
+                className={cn(className, "group/cs")}
+              >
+                {inner}
+              </a>
+            ) : (
+              <span key={tag.label} className={className}>
+                {inner}
+              </span>
+            );
+          })}
         </div>
       )}
 

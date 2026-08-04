@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronsUpDown, ChevronsDownUp, Shuffle, GalleryHorizontalEnd, List, MoveVertical, ArrowDown, GitBranch, ArrowUpRight, Layers, Home, RefreshCw } from "lucide-react";
+import { ChevronsUpDown, ChevronsDownUp, Shuffle, GalleryHorizontalEnd, List, MoveVertical, ArrowDown, GitBranch, ArrowUpRight, Layers, RefreshCw } from "lucide-react";
 import { FlippingCard } from "@/components/ui/flipping-card";
 import { FlipCard } from "@/components/ui/flip-card";
 import { MathHtml } from "@/components/ui/math-html";
@@ -15,6 +15,7 @@ import { GradientMenuButton, type GradientMenuItem } from "@/components/ui/gradi
 import { AnimatedActionCluster } from "@/components/ui/floating-action-button";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { HeroTitle } from "@/components/ui/hero-title";
+import { HomeBlueberry } from "@/components/ui/home-blueberry";
 import { ScrollTiltedGrid } from "@/components/ui/scroll-tilted-grid";
 import { StackedCards } from "@/components/ui/stacked-cards";
 import { GooeyTogglePair, type ToggleVisibility } from "@/components/ui/gooey-toggle-pair";
@@ -517,15 +518,7 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
         subtitle={deck.subtitle}
         ghostWord={deck.titleLines[0]}
         motif={deck.motif}
-        topLeft={
-          <a
-            href="#/home"
-            className="group inline-flex items-center gap-1.5 rounded-full border border-slate-300/70 bg-white/60 px-3 py-1.5 text-sm font-semibold text-slate-600 backdrop-blur transition-colors hover:text-slate-900 dark:border-stone-700/70 dark:bg-stone-900/50 dark:text-stone-400 dark:hover:text-stone-100"
-          >
-            <Home className="h-3.5 w-3.5 transition-transform duration-300 group-hover:-translate-x-0.5" />
-            Home
-          </a>
-        }
+        topLeft={<HomeBlueberry />}
       />
 
       {/* The curtain: rides over the hero on its own background, with a rounded

@@ -143,6 +143,44 @@ body {
   }
 }
 
+/* The violet halo the form fields wear when focused, as something anything can
+   pick up on hover. Used on the about card's tags, its profile links and the
+   logo, so pointing at any of them gets the same answer.
+
+   A box-shadow rather than a ring utility, because it has to sit outside a
+   fully rounded pill without clipping and has to be able to soften rather than
+   draw a hard edge. */
+/* Deliberately sets no `transition` of its own.
+
+   It did, and that was a bug: this is unlayered CSS, so its shorthand beat the
+   `transition-[width,box-shadow]` utility on the expanding GitHub and LinkedIn
+   pills, replacing `width` in the transition list. The glow arrived and the pill
+   stopped widening, snapping open instead. Each caller already declares the
+   transition it wants, and `box-shadow` rides along with it. */
+.blueberry-glow:hover,
+.blueberry-glow:focus-visible {
+  box-shadow:
+    0 0 0 3px rgba(139, 92, 246, 0.28),
+    0 6px 22px -4px rgba(124, 58, 237, 0.55);
+}
+
+:root[data-theme="dark"] .blueberry-glow:hover,
+.dark .blueberry-glow:hover,
+.dark .blueberry-glow:focus-visible {
+  box-shadow:
+    0 0 0 3px rgba(167, 139, 250, 0.3),
+    0 6px 26px -4px rgba(167, 139, 250, 0.45);
+}
+
+/* The same halo for artwork rather than a box. A box-shadow on an SVG paints a
+   rectangle around it, so the berry needs a drop-shadow that follows its own
+   silhouette. No `transition` here either, for the reason above. */
+.blueberry-glow-art:hover {
+  filter:
+    drop-shadow(0 0 10px rgba(139, 92, 246, 0.65))
+    drop-shadow(0 4px 16px rgba(124, 58, 237, 0.45));
+}
+
 /* Warm near-black, so the dark theme reads as a dimmed version of the cream
    paper rather than a different product. */
 .dark body {

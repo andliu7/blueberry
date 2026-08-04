@@ -20,3 +20,8 @@ export const EMAIL = "andliu@terpmail.umd.edu";
 
 /** The project's own repository, which is not the same link as the profile. */
 export const REPO_URL = "https://github.com/andliu7/grignard_LCTA";
+
+/** Where the about card's two tags point: the college, and the advising programme. */
+export const CMNS_URL = "https://cmns.umd.edu/";
+export const PREHEALTH_URL =
+  "https://academiccatalog.umd.edu/undergraduate/campus-administration-resources-student-services/academic-resources-services/pre-health-professions-advising-programs/";

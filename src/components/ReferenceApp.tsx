@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Home, Eye, EyeOff, GitBranch, ArrowUpRight, MousePointerClick, ImageOff, Highlighter, List, RefreshCw, GalleryHorizontalEnd } from "lucide-react";
+import { Eye, EyeOff, GitBranch, ArrowUpRight, MousePointerClick, ImageOff, Highlighter, List, RefreshCw, GalleryHorizontalEnd } from "lucide-react";
 import { HeroTitle } from "@/components/ui/hero-title";
+import { HomeBlueberry } from "@/components/ui/home-blueberry";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
 import { HoverDeck } from "@/components/ui/hover-deck";
@@ -65,15 +66,7 @@ export function ReferenceApp({ deck }: { deck: ReferenceDeck }) {
         subtitle={deck.subtitle}
         ghostWord={deck.titleLines[0]}
         motif={deck.motif}
-        topLeft={
-          <a
-            href="#/home"
-            className="group inline-flex items-center gap-1.5 rounded-full border border-slate-300/70 bg-white/60 px-3 py-1.5 text-sm font-semibold text-slate-600 backdrop-blur transition-colors hover:text-slate-900 dark:border-stone-700/70 dark:bg-stone-900/50 dark:text-stone-400 dark:hover:text-stone-100"
-          >
-            <Home className="h-3.5 w-3.5 transition-transform duration-300 group-hover:-translate-x-0.5" />
-            Home
-          </a>
-        }
+        topLeft={<HomeBlueberry />}
       />
 
       <div className="relative z-10 rounded-t-[2rem] bg-[#f6f4ef] px-4 pt-4 pb-16 shadow-[0_-24px_60px_-20px_rgba(15,23,42,0.25)] dark:bg-[#0c0a09] dark:shadow-[0_-24px_60px_-20px_rgba(0,0,0,0.7)]">

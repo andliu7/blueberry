@@ -133,10 +133,10 @@ export function NavPill({ items, activeId, className }: NavPillProps) {
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const active = items.find((i) => i.id === activeId) ?? items[0];
-  // A mark needs a fraction of the room a word does, so the closed pill shrinks
-  // to something nearer a button than a label.
+  // Closed on a mark, the pill is a circle: same width as its 56px height, with
+  // the radius it already had. A word needs a lozenge, a logo does not.
   const collapsedWidth = active?.icon
-    ? 96
+    ? 56
     : Math.max(140, measureWidth([active?.label ?? ""]) - 24);
   const expandedWidth = measureWidth(items.map((i) => i.label));
 
@@ -324,7 +324,17 @@ export function NavPill({ items, activeId, className }: NavPillProps) {
                     e.currentTarget.style.transform = "translateY(0)";
                   }}
                 >
-                  {item.label}
+                  {/* An item with a mark keeps it open as well as closed, so
+                      Home does not turn back into a word halfway through the
+                      pill expanding. */}
+                  {item.icon ? (
+                    <>
+                      <span className="grid place-items-center">{item.icon}</span>
+                      <span className="sr-only">{item.label}</span>
+                    </>
+                  ) : (
+                    item.label
+                  )}
                 </motion.button>
               );
             })}

@@ -5,7 +5,8 @@ import { Mail, User, X } from "lucide-react";
 import { ProfileCard } from "@/components/ui/profile-card";
 import { GradientMenuButton } from "@/components/ui/gradient-menu";
 import { GithubMark, LinkedinMark } from "@/components/ui/brand-marks";
-import { GITHUB_URL, LINKEDIN_URL, SITE_NAME } from "@/data/site";
+import { MiniMacbook } from "@/components/ui/mini-macbook";
+import { CMNS_URL, GITHUB_URL, LINKEDIN_URL, PREHEALTH_URL, SITE_NAME } from "@/data/site";
 import { cn } from "@/lib/utils";
 
 /**
@@ -92,7 +93,16 @@ export function AboutOverlay({ open, onClose }: { open: boolean; onClose: () => 
             <ProfileCard
               name="About Me"
               role="University of Maryland"
-              tags={["Computer Science", "Pre-Dental"]}
+              tags={[
+                {
+                  label: "Computer Science",
+                  href: CMNS_URL,
+                  // Opens its lid when you point at the tag, which is what the
+                  // `group/cs` on the link is for.
+                  icon: <MiniMacbook />,
+                },
+                { label: "Pre-Dental", href: PREHEALTH_URL },
+              ]}
               tilt
               actions={
                 <>

@@ -147,12 +147,18 @@ export function GradientMenuButton({
   );
 
   const shellClass = cn(
+              // The same violet halo the about card's tags and the form fields
+              // wear, so everything on that card answers a pointer the same way.
+              "blueberry-glow",
               "relative h-9 rounded-full bg-white border border-slate-200 shadow-sm",
               "dark:bg-stone-900 dark:border-stone-800",
               // Resting tint, if this button asked for one. Only at rest: once
               // active the gradient covers it anyway.
               !active && restClassName,
               "flex items-center justify-center overflow-hidden shrink-0 cursor-pointer group",
+              // `box-shadow` is in the list so the halo fades in with the pill
+              // rather than snapping on, and `width` stays first so the widening
+              // is never lost.
               "transition-[width,box-shadow] duration-500 ease-out outline-none",
               "focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#f6f4ef] dark:focus-visible:ring-offset-[#0c0a09]",
               active ? "w-auto px-3.5 border-transparent" : "w-9 hover:w-[8.5rem]",

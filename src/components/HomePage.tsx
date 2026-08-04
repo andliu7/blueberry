@@ -31,6 +31,7 @@ import { TextScramble } from "@/components/ui/text-scramble";
 import BoldOnHover from "@/components/ui/bold-on-hover";
 import { SpotlightCursor } from "@/components/ui/spotlight-cursor";
 import { SURFACE, spotlightFor } from "@/lib/hubSurface";
+import { hasSeenIntro, markIntroSeen } from "@/lib/intro";
 
 /**
  * The hub: one card per deck, with room to grow.
@@ -40,38 +41,13 @@ import { SURFACE, spotlightFor } from "@/lib/hubSurface";
  * the questions would be a worse app for the sake of a nicer front door. This
  * lives at #/home, reached from the small Home link on the title screen.
  */
-/**
- * Per tab, not forever. Opening the site fresh tomorrow should still get the
- * opening; walking into a folder and back should not. `sessionStorage` draws
- * exactly that line, and it needs no cleanup or version key.
- */
-const INTRO_SEEN_KEY = "blueberry_intro_seen";
-
 export function HomePage() {
   const [showIntro, setShowIntro] = useState(true);
 
-  /**
-   * Whether the opening has already run this visit.
-   *
-   * It used to replay on every arrival at the hub, which meant going into a
-   * folder and pressing back put you through the whole sequence again. Read once
-   * on mount, before the flag below is set, so the first visit still sees it.
-   */
-  const [seenIntro] = useState(() => {
-    try {
-      return sessionStorage.getItem(INTRO_SEEN_KEY) === "1";
-    } catch {
-      return false;
-    }
-  });
-
-  useEffect(() => {
-    try {
-      sessionStorage.setItem(INTRO_SEEN_KEY, "1");
-    } catch {
-      /* private mode, and replaying the opening is not worth an error */
-    }
-  }, []);
+  // Read once on mount, before the mark below is set, so a first arrival still
+  // sees the opening. See `lib/intro` for which arrivals count as first.
+  const [seenIntro] = useState(hasSeenIntro);
+  useEffect(markIntroSeen, []);
 
   const dismissIntro = useCallback(() => {
     setShowIntro(false);
