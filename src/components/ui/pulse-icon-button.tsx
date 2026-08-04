@@ -89,7 +89,7 @@ export function PulseIconButton({
     "transition-transform duration-500 ease-out",
     PAD[size],
     spin && onSelf && "hover:rotate-12 hover:scale-110",
-    spin && onGroup && "group-hover/card:rotate-12 group-hover/card:scale-110",
+    spin && onGroup && "group-hover/card:scale-110",
     interactive &&
       "cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2",
     className,
@@ -103,7 +103,12 @@ export function PulseIconButton({
         // Counter-rotates, so the icon ends up nearly upright while the shell
         // around it turns.
         spin && onSelf && "group-hover/pulse:-rotate-180",
-        spin && onGroup && "group-hover/card:-rotate-180",
+        // Turns when the pointer enters the card, and turns back when it
+        // reaches the icon itself, so the mark answers each step of the
+        // approach rather than settling once. The important modifier is what
+        // makes the second rule win: both are one class deep, so without it the
+        // outcome would be decided by whichever Tailwind happened to emit last.
+        spin && onGroup && "group-hover/card:rotate-180 group-hover/pulse:!rotate-0",
         "[&>svg]:h-full [&>svg]:w-full",
       )}
     >
@@ -114,24 +119,34 @@ export function PulseIconButton({
   return (
     <div className="relative inline-flex">
       {/* Rings sit behind and never take a click, so they cannot swallow the
-          button they are drawing attention to. Held at zero opacity until they
-          are wanted, so a ring that only animates on hover is not left sitting
-          there as a static outline in the meantime. */}
+          button they are drawing attention to.
+
+          In group-hover mode each ring fires exactly once, and the two answer
+          different things: the first when the pointer enters the card, the
+          second when it reaches the icon. A loop reads as a notification badge
+          waiting to be dealt with, where a single ring going out reads as a
+          reply.
+
+          They sit at `opacity-0` and are never given an opacity on hover. The
+          ping keyframes set their own opacity while they run, so the ring is
+          visible for exactly as long as it is moving and gone the instant it
+          stops. Turning it opaque on hover instead would leave a static outline
+          sitting there afterwards. */}
       <span
         aria-hidden
         className={cn(
-          "pointer-events-none absolute inset-0 rounded-full border-2 border-white/20",
-          onSelf && "animate-ping",
-          onGroup && "opacity-0 group-hover/card:animate-ping group-hover/card:opacity-100",
+          "pointer-events-none absolute inset-0 rounded-full border-2 border-white/20 opacity-0",
+          onSelf && "animate-ping opacity-100",
+          onGroup && "group-hover/card:animate-ping [animation-iteration-count:1]",
           ringClassName,
         )}
       />
       <span
         aria-hidden
         className={cn(
-          "pointer-events-none absolute inset-0 rounded-full border border-white/10",
-          onSelf && "animate-pulse",
-          onGroup && "opacity-0 group-hover/card:animate-pulse group-hover/card:opacity-100",
+          "pointer-events-none absolute inset-0 rounded-full border border-white/10 opacity-0",
+          onSelf && "animate-pulse opacity-100",
+          onGroup && "group-hover/pulse:animate-ping [animation-iteration-count:1]",
           ringClassName,
         )}
       />

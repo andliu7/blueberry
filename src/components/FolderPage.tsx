@@ -19,8 +19,7 @@ import { FeedbackButton } from "@/components/FeedbackButton";
 import { SiteActions } from "@/components/SiteActions";
 import { matchedDeckIds, type SearchHit } from "@/lib/searchDecks";
 import { reviewedCount } from "@/lib/progress";
-import { SpotlightCursor } from "@/components/ui/spotlight-cursor";
-import { SURFACE, spotlightFor } from "@/lib/hubSurface";
+import { SURFACE } from "@/lib/hubSurface";
 import { useIsDark } from "@/lib/useIsDark";
 
 /**
@@ -52,13 +51,12 @@ export function FolderPage({ groupId }: { groupId: DeckGroupId }) {
   const cards = all.reduce((n, d) => n + deckCount(d), 0);
 
   return (
-    // Same surface and same spotlight as the hub: a folder is the hub with one
-    // group open, so it should not look like a different site.
+    // Same surface as the hub: a folder is the hub with one group open, so it
+    // should not look like a different site.
     <main
       className="relative min-h-screen px-6 py-8"
       style={{ backgroundColor: surface.base, backgroundImage: surface.gradient }}
     >
-      <SpotlightCursor className="z-0" config={spotlightFor(isDark)} />
       <div className="relative z-10 mx-auto flex max-w-5xl flex-col">
         <div className="flex items-start justify-between gap-4">
           <NavPill items={navItems} activeId="home" />

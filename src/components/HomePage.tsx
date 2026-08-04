@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { motion, useInView, useReducedMotion } from "motion/react";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { DECKS } from "@/data/decks";
@@ -28,8 +28,7 @@ import { NavPill, type NavPillItem } from "@/components/ui/nav-pill";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { TextScramble } from "@/components/ui/text-scramble";
 import BoldOnHover from "@/components/ui/bold-on-hover";
-import { SpotlightCursor } from "@/components/ui/spotlight-cursor";
-import { SURFACE, spotlightFor } from "@/lib/hubSurface";
+import { SURFACE } from "@/lib/hubSurface";
 
 /**
  * The hub: one card per deck, with room to grow.
@@ -67,26 +66,6 @@ export function HomePage() {
 
   const isDark = useIsDark();
   const surface = isDark ? SURFACE.dark : SURFACE.light;
-
-  /**
-   * Whether the opening has been scrolled clear of the screen.
-   *
-   * The tubes canvas is fixed to the viewport, so it would sit over the intro if
-   * it mounted with the page. Gating it on scroll position also means the
-   * library is not fetched at all for someone who opens the hub and clicks
-   * straight into a deck.
-   */
-  const [pastIntro, setPastIntro] = useState(!showIntro);
-  useEffect(() => {
-    if (!showIntro) {
-      setPastIntro(true);
-      return;
-    }
-    const check = () => setPastIntro(window.scrollY > window.innerHeight * 1.05);
-    check();
-    window.addEventListener("scroll", check, { passive: true });
-    return () => window.removeEventListener("scroll", check);
-  }, [showIntro]);
 
   const reduce = useReducedMotion();
   const [hits, setHits] = useState<SearchHit[] | null>(null);
@@ -137,12 +116,6 @@ export function HomePage() {
             style={{ backgroundImage: `linear-gradient(180deg, transparent, ${surface.base})` }}
           />
         )}
-
-        {/* Behind the content, above the surface, so it lights the background
-            between the cards without washing over the text on them. Held back
-            until the intro is out of the way: the canvas is fixed to the
-            viewport, so mounting it sooner would put it over the opening. */}
-        {pastIntro && <SpotlightCursor className="z-0" config={spotlightFor(isDark)} />}
 
       <div className="relative z-10 mx-auto flex max-w-5xl flex-col">
         <div className="flex items-start justify-between gap-4">

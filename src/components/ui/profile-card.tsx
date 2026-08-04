@@ -70,7 +70,9 @@ export function ProfileCard({
   const card = (
     <div
       className={cn(
-        "group/card relative rounded-3xl bg-white p-7 transition-all duration-500",
+        // Padding pulled in a little: at p-7 the copy sat a long way off the
+        // card's edges and the whole thing read as roomier than it needed to be.
+        "group/card relative rounded-3xl bg-white p-5 transition-all duration-500",
         "shadow-[12px_12px_24px_rgba(79,70,229,0.10),-12px_-12px_24px_rgba(255,255,255,0.9)]",
         "hover:shadow-[20px_20px_40px_rgba(79,70,229,0.16),-20px_-20px_40px_rgba(255,255,255,1)]",
         "dark:bg-[#1b1630]",

@@ -90,7 +90,7 @@ export function AboutOverlay({ open, onClose }: { open: boolean; onClose: () => 
             </button>
 
             <ProfileCard
-              name="Andrew Liu"
+              name="About Me"
               role="University of Maryland"
               tags={["Computer Science", "Pre-Dental"]}
               tilt
