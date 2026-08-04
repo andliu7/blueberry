@@ -1,4 +1,4 @@
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import { DECKS } from "@/data/decks";
 import { DECK_GROUPS } from "@/data/types";
 import { NavPill, type NavPillItem } from "@/components/ui/nav-pill";
@@ -42,30 +42,41 @@ export function AboutPage() {
           about={
             <>
               <p>
-                I'm an undergraduate at the University of Maryland studying Computer Science on a
-                pre-dental track. My dream is to start my own practice and pursue a specialty, and
-                all of it points at the same thing, which is helping people.
+                I'm a Computer Science major at the University of Maryland, and I'm
+                on the pre-dental track! My dream is to start my own practice and
+                pursue a specialty, all with the purpose of helping others.
               </p>
               <p>
-                That is also why this site exists. I hope anyone using it comes away with something
-                more than memorised organic chemistry.
+                I really hope that the people using this site are able to take
+                something away from it beyond just organic chemistry memorization!
               </p>
               <p className="text-base">
-                If you spot a mistake, want a deck for another lab, or just want to say hello, the
-                form is the fastest way to reach me.
+                Found a mistake? Want a deck for a lab that isn't here yet? Just
+                want to say hi? The form is the fastest way to reach me!
               </p>
             </>
           }
         />
 
         <footer className="mt-16 text-center text-sm text-slate-400 dark:text-stone-500">
+          {/* Keeps the dotted underline a link is expected to have, and adds the
+              sweep the deck footer's GitHub link already uses, so the two do not
+              behave differently for no reason. */}
           <a
             href="https://github.com/andliu7/grignard_LCTA"
             target="_blank"
             rel="noreferrer"
-            className="underline decoration-dotted underline-offset-4 hover:text-slate-600 dark:hover:text-stone-300"
+            className="group/gh inline-flex items-center gap-1.5 outline-none transition-colors hover:text-slate-600 dark:hover:text-stone-300"
           >
-            Source on GitHub
+            <span className="relative">
+              Source on GitHub
+              <span className="absolute right-0 -bottom-1 left-0 border-b border-dotted border-current" />
+              <span
+                aria-hidden
+                className="absolute right-0 -bottom-1 left-0 h-[2px] origin-left scale-x-0 rounded-full bg-gradient-to-r from-indigo-500 to-fuchsia-500 transition-transform duration-300 ease-out group-hover/gh:scale-x-100"
+              />
+            </span>
+            <ArrowUpRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover/gh:translate-x-0.5 group-hover/gh:-translate-y-0.5" />
           </a>
         </footer>
       </div>

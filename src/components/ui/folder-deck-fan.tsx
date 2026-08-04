@@ -24,7 +24,9 @@ export function FolderDeckFan({ decks, max = 4 }: { decks: Deck[]; max?: number 
 
   return (
     <div
-      className="relative mt-3 h-[132px] w-full"
+      // Scaled down below `sm`: the spread is fixed in pixels, so at a phone
+      // width the outer cards would otherwise run past the edge of the folder.
+      className="relative mt-3 h-[180px] w-full origin-top scale-[0.72] sm:scale-100"
       onMouseLeave={() => setHovered(null)}
     >
       {shown.map((deck, i) => {
@@ -48,13 +50,13 @@ export function FolderDeckFan({ decks, max = 4 }: { decks: Deck[]; max?: number 
             initial={false}
             animate={
               reduce
-                ? { x: off * 46, y: 0, rotate: 0 }
+                ? { x: off * 62, y: 0, rotate: 0 }
                 : {
                     // Hovering opens the hand: the active card rises and
                     // straightens, and its neighbours lean further out of the
                     // way instead of staying buried under it.
-                    x: off * (active ? 52 : 40),
-                    y: active ? -12 : Math.abs(off) * 4,
+                    x: off * (active ? 78 : 62),
+                    y: active ? -16 : Math.abs(off) * 5,
                     rotate: active ? 0 : off * 7,
                     scale: active ? 1.08 : dimmed ? 0.96 : 1,
                   }
@@ -64,7 +66,7 @@ export function FolderDeckFan({ decks, max = 4 }: { decks: Deck[]; max?: number 
             <img
               src={cardArt(deck.motif, deck.from, deck.to)}
               alt=""
-              className="h-[112px] w-auto rounded-lg shadow-lg transition-[filter,opacity] duration-200"
+              className="h-[150px] w-auto rounded-lg shadow-lg transition-[filter,opacity] duration-200"
               style={{ opacity: dimmed ? 0.55 : 1 }}
               draggable={false}
             />

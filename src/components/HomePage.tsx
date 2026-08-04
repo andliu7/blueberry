@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import { ArrowRight, User } from "lucide-react";
+import { ArrowRight, ArrowUpRight, User } from "lucide-react";
 import { DECKS } from "@/data/decks";
 import { deckCount, DECK_GROUPS, type Deck } from "@/data/types";
 
@@ -69,9 +69,17 @@ export function HomePage() {
             Study decks
           </h1>
           <p className="playful-face mt-4 text-lg text-slate-500 dark:text-stone-400">
-            Everything I use to study for CHEM 241 and 242, mostly the night before.
-            Lab practical questions, plus the pKa, IR, NMR and resonance sheets I
-            always end up digging for. Answers stay hidden until you ask for them.
+            Flashcard decks I built to make the rote memorization part of organic
+            chemistry a little more fun! Pick a folder to see what's inside and
+            choose a deck, or click any card in the stacks below to jump straight
+            in.
+          </p>
+          <p className="playful-face mt-4 text-base text-slate-500 dark:text-stone-400">
+            Answers stay hidden until you ask, and you rate yourself as you go so
+            the deck can show you what still needs work. Flip the cards over like
+            real flashcards, drop into the carousel to drill one question at a
+            time, or switch on the laser pointer and scribble over the whole page
+            while you think it through.
           </p>
         </header>
 
@@ -93,13 +101,24 @@ export function HomePage() {
         <DeckUploadTicket />
 
         <footer className="mt-16 text-center text-sm text-slate-400 dark:text-stone-500">
+          {/* Keeps the dotted underline a link is expected to have, and adds the
+              sweep the deck footer's GitHub link already uses, so the two do not
+              behave differently for no reason. */}
           <a
             href="https://github.com/andliu7/grignard_LCTA"
             target="_blank"
             rel="noreferrer"
-            className="underline decoration-dotted underline-offset-4 hover:text-slate-600 dark:hover:text-stone-300"
+            className="group/gh inline-flex items-center gap-1.5 outline-none transition-colors hover:text-slate-600 dark:hover:text-stone-300"
           >
-            Source on GitHub
+            <span className="relative">
+              Source on GitHub
+              <span className="absolute right-0 -bottom-1 left-0 border-b border-dotted border-current" />
+              <span
+                aria-hidden
+                className="absolute right-0 -bottom-1 left-0 h-[2px] origin-left scale-x-0 rounded-full bg-gradient-to-r from-indigo-500 to-fuchsia-500 transition-transform duration-300 ease-out group-hover/gh:scale-x-100"
+              />
+            </span>
+            <ArrowUpRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover/gh:translate-x-0.5 group-hover/gh:-translate-y-0.5" />
           </a>
         </footer>
       </div>
@@ -137,7 +156,7 @@ function DeckFolder({
       className="rounded-lg !overflow-visible"
     >
     <InfoCard
-      className="max-w-sm !border-transparent"
+      className="!border-transparent"
       style={{
         // A tinted wash rather than plain white, so the two folders read as
         // different places at a glance instead of two identical panels.
