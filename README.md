@@ -795,10 +795,21 @@ the sheet.
 GitHub Pages serves the **`main` branch, `/docs` folder**:
 
 ```bash
-npm run build
-rm -rf docs && cp -r dist docs && touch docs/.nojekyll
-git add docs && git commit -m "Publish" && git push
+npm run publish:site
+git add -A
+git commit -m "Publish"
+git push
 ```
+
+`publish:site` builds and copies the output into `docs/`. It runs through Node
+rather than as a shell one-liner because `rm -rf`, `cp -r` and `touch` do not
+exist in Windows PowerShell, and PowerShell 5.1 rejects `&&` as a statement
+separator, so the shell version failed on the machine this is developed on.
+
+Note that `VITE_*` values are compiled into the bundle at build time. Whatever
+is in `.env.local` when `npm run build` runs is what the deployed site uses, and
+a build on a machine without that file produces a version with those features
+switched off.
 
 `.nojekyll` stops Pages running the output through Jekyll, and `vite.config.ts`
 sets `base: './'` so the build works from a subpath. A `gh-pages` branch carries
