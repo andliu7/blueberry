@@ -21,17 +21,10 @@
   <ellipse cx="22" cy="27" rx="7" ry="5" fill="#ffffff" opacity="0.3"
            transform="rotate(-28 22 27)" />
 
-  <!-- The face. Chunky and low on the berry, because a cartoon face sitting too
-       high fights the crown for the same space. -->
-  <g fill="#1e1b4b">
-    <circle cx="25" cy="36" r="2.9" />
-    <circle cx="39" cy="36" r="2.9" />
-  </g>
-  <path d="M24.5 44 Q32 51.5 39.5 44" fill="none" stroke="#1e1b4b" stroke-width="3.2"
-        stroke-linecap="round" />
-  <!-- Cheeks, which is most of what makes it read as cheerful rather than blank. -->
-  <ellipse cx="19" cy="42.5" rx="3.4" ry="2.2" fill="#f472b6" opacity="0.45" />
-  <ellipse cx="45" cy="42.5" rx="3.4" ry="2.2" fill="#f472b6" opacity="0.45" />
+  <!-- No face. A favicon renders at 16px in a browser tab, where eyes and a
+       mouth collapse into three dark smudges and the berry stops reading as
+       anything. The silhouette and the green crown are what survive at that
+       size, so they are all that is drawn. -->
 
   <!-- The crown. A blueberry's calyx is the one feature that keeps a purple
        circle from reading as a grape, so it is the five point star it really is,
