@@ -5,7 +5,16 @@ import { SuccessParticles, useParticleBurst } from "@/components/ui/particle-but
 export interface GradientMenuItem {
   title: string;
   icon: ReactNode;
-  onClick: () => void;
+  onClick?: () => void;
+  /**
+   * Renders an anchor rather than a button.
+   *
+   * The pill is used for toolbar actions and, on the about page, for links out
+   * to a profile. A button with `window.open` in its handler looks the same and
+   * is not the same thing: it cannot be middle-clicked, copied, or opened in a
+   * new tab, and a screen reader announces the wrong kind of control.
+   */
+  href?: string;
   /** Start of the 45deg fill revealed on hover. */
   gradientFrom: string;
   gradientTo: string;
@@ -58,6 +67,7 @@ export function GradientMenuButton({
   title,
   icon,
   onClick,
+  href,
   gradientFrom,
   gradientTo,
   active,
@@ -66,7 +76,7 @@ export function GradientMenuButton({
   idleBurstMs,
   restClassName,
 }: GradientMenuItem) {
-  const btnRef = useRef<HTMLButtonElement>(null);
+  const btnRef = useRef<HTMLElement>(null);
   const { bursting, burst } = useParticleBurst(700);
 
   // Intermittent, not continuous: a burst every few seconds reads as a nudge,
@@ -80,43 +90,24 @@ export function GradientMenuButton({
     return () => clearInterval(id);
   }, [idleBurstMs, particles, burst]);
 
-  return (
+  const handleActivate = () => {
+    if (particles) burst();
+    onClick?.();
+  };
+
+  // One set of props for both element types, so the anchor cannot drift away
+  // from the button's look as either is changed.
+  const shared = {
+    onClick: handleActivate,
+    "aria-label": title,
+    style: {
+      "--gradient-from": gradientFrom,
+      "--gradient-to": gradientTo,
+    } as React.CSSProperties,
+  };
+
+  const inner = (
     <>
-    {/* SuccessParticles portals to document.body, so a transformed ancestor
-        cannot capture its fixed positioning. */}
-    {particles && bursting && (
-      <SuccessParticles anchorRef={btnRef} className={particleClassName} />
-    )}
-    <button
-            ref={btnRef}
-            type="button"
-            onClick={() => {
-              if (particles) burst();
-              onClick();
-            }}
-            aria-label={title}
-            aria-pressed={active}
-            style={
-              {
-                "--gradient-from": gradientFrom,
-                "--gradient-to": gradientTo,
-              } as React.CSSProperties
-            }
-            className={cn(
-              "relative h-9 rounded-full bg-white border border-slate-200 shadow-sm",
-              "dark:bg-stone-900 dark:border-stone-800",
-              // Resting tint, if this button asked for one. Only at rest: once
-              // active the gradient covers it anyway.
-              !active && restClassName,
-              "flex items-center justify-center overflow-hidden shrink-0 cursor-pointer group",
-              "transition-[width,box-shadow] duration-500 ease-out outline-none",
-              "focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#f6f4ef] dark:focus-visible:ring-offset-[#0c0a09]",
-              active ? "w-auto px-3.5 border-transparent" : "w-9 hover:w-[8.5rem]",
-              // Flashes with the idle burst so the eye is drawn to the button,
-              // not only to the sparks leaving it.
-              idleBurstMs && bursting && "ring-2 ring-yellow-300/80 dark:ring-yellow-200/70",
-            )}
-          >
             {/* Gradient fill, revealed as the pill opens. */}
             <span
               className={cn(
@@ -152,7 +143,54 @@ export function GradientMenuButton({
                 </span>
               </>
       )}
-    </button>
+    </>
+  );
+
+  const shellClass = cn(
+              "relative h-9 rounded-full bg-white border border-slate-200 shadow-sm",
+              "dark:bg-stone-900 dark:border-stone-800",
+              // Resting tint, if this button asked for one. Only at rest: once
+              // active the gradient covers it anyway.
+              !active && restClassName,
+              "flex items-center justify-center overflow-hidden shrink-0 cursor-pointer group",
+              "transition-[width,box-shadow] duration-500 ease-out outline-none",
+              "focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#f6f4ef] dark:focus-visible:ring-offset-[#0c0a09]",
+              active ? "w-auto px-3.5 border-transparent" : "w-9 hover:w-[8.5rem]",
+              // Flashes with the idle burst so the eye is drawn to the button,
+              // not only to the sparks leaving it.
+              idleBurstMs && bursting && "ring-2 ring-yellow-300/80 dark:ring-yellow-200/70",
+  );
+
+  return (
+    <>
+      {/* SuccessParticles portals to document.body, so a transformed ancestor
+          cannot capture its fixed positioning. */}
+      {particles && bursting && (
+        <SuccessParticles anchorRef={btnRef} className={particleClassName} />
+      )}
+
+      {href ? (
+        <a
+          {...shared}
+          ref={btnRef as React.Ref<HTMLAnchorElement>}
+          href={href}
+          target="_blank"
+          rel="noreferrer"
+          className={shellClass}
+        >
+          {inner}
+        </a>
+      ) : (
+        <button
+          {...shared}
+          ref={btnRef as React.Ref<HTMLButtonElement>}
+          type="button"
+          aria-pressed={active}
+          className={shellClass}
+        >
+          {inner}
+        </button>
+      )}
     </>
   );
 }

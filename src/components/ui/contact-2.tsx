@@ -34,6 +34,8 @@ export interface Contact2Props {
   email?: string;
   phone?: string;
   web?: { label: string; url: string };
+  /** Profile links, shown above the address list. */
+  links?: React.ReactNode;
 }
 
 export const Contact2 = ({
@@ -42,6 +44,7 @@ export const Contact2 = ({
   email = "andliu@terpmail.umd.edu",
   phone,
   web,
+  links,
 }: Contact2Props) => {
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "failed">("idle");
   const [message, setMessage] = useState("");
@@ -87,6 +90,11 @@ export const Contact2 = ({
           </div>
 
           <div>
+            {/* Above the address list on purpose: the profiles are where most
+                people will actually go, and an email row is a poor thing to
+                make them read past first. */}
+            {links && <div className="mb-6 flex flex-wrap items-center gap-2.5">{links}</div>}
+
             <h2 className="mb-3 font-mono text-xs font-bold tracking-wider text-indigo-600 uppercase dark:text-indigo-300">
               Where to find me
             </h2>

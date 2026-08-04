@@ -62,9 +62,31 @@ function compile(gl: WebGLRenderingContext, type: number, src: string) {
   return shader;
 }
 
-export function ShaderAnimation({ className }: { className?: string }) {
+/**
+ * Seconds for one pass of the pattern.
+ *
+ * The shader's `t` is `time * 0.05`, and the figure repeats every time `t`
+ * advances by 1, so one cycle is `time` advancing by 20. Driving that off
+ * elapsed seconds rather than a fixed step per frame does two things: the
+ * duration below means what it says, and the animation no longer runs at double
+ * speed on a 120Hz display, which the old `time += 0.05` per frame did.
+ */
+const TIME_PER_CYCLE = 20;
+
+export function ShaderAnimation({
+  className,
+  cycleSeconds = 2,
+}: {
+  className?: string;
+  /** Lower is faster. The pattern spends part of each pass nearly black, so a
+   *  long cycle reads as the screen having gone dark rather than as motion. */
+  cycleSeconds?: number;
+}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [failed, setFailed] = useState(false);
+
+  const cycleRef = useRef(cycleSeconds);
+  cycleRef.current = cycleSeconds;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -126,10 +148,20 @@ export function ShaderAnimation({ className }: { className?: string }) {
     const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
     let time = 1;
     let raf = 0;
+    let last = 0;
 
-    const frame = () => {
+    const frame = (now?: number) => {
       resize();
-      time += 0.05;
+
+      if (now !== undefined) {
+        if (last === 0) last = now;
+        // Clamped, so returning from a background tab does not fast-forward the
+        // pattern through several cycles in one frame.
+        const dt = Math.min((now - last) / 1000, 0.1);
+        last = now;
+        time += TIME_PER_CYCLE * (dt / Math.max(0.2, cycleRef.current));
+      }
+
       gl.uniform1f(uTime, time);
       gl.drawArrays(gl.TRIANGLES, 0, 6);
       if (!reduced) raf = requestAnimationFrame(frame);

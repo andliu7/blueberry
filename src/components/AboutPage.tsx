@@ -4,13 +4,35 @@ import { DECK_GROUPS } from "@/data/types";
 import { NavPill, type NavPillItem } from "@/components/ui/nav-pill";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { Contact2 } from "@/components/ui/contact-2";
+import { ProfileCard } from "@/components/ui/profile-card";
+import { GradientMenuButton } from "@/components/ui/gradient-menu";
+import { GithubMark, LinkedinMark } from "@/components/ui/brand-marks";
 import { FeedbackButton } from "@/components/FeedbackButton";
+import { SURFACE } from "@/lib/hubSurface";
+import { useIsDark } from "@/lib/useIsDark";
 
 /**
- * About and contact, at `#/about`. One page rather than two, because the
- * introduction and the reason to get in touch are the same subject.
+ * About and contact, at `#/about`.
+ *
+ * Two sections rather than one. They were run together on the theory that the
+ * introduction and the reason to get in touch are the same subject, and in
+ * practice that buried the reason to get in touch underneath a biography. Who I
+ * am and how to reach me are now separate things on the same page.
  */
+
+const GITHUB_URL = "https://github.com/andliu7";
+
+/**
+ * Not set yet, and deliberately left empty rather than guessed at: a profile
+ * button that goes nowhere is worse than no button. Fill this in and the
+ * LinkedIn pill appears next to the GitHub one.
+ */
+const LINKEDIN_URL = "";
+
 export function AboutPage() {
+  const isDark = useIsDark();
+  const surface = isDark ? SURFACE.dark : SURFACE.light;
+
   const navItems: NavPillItem[] = [
     { id: "home", label: "Home", href: "#/home" },
     ...DECK_GROUPS.filter((g) => DECKS.some((d) => (d.group ?? "lab") === g.id)).map((g) => ({
@@ -21,7 +43,10 @@ export function AboutPage() {
   ];
 
   return (
-    <main className="min-h-screen bg-[#f6f4ef] px-6 py-8 dark:bg-[#0c0a09]">
+    <main
+      className="min-h-screen px-6 py-8"
+      style={{ backgroundColor: surface.base, backgroundImage: surface.gradient }}
+    >
       <div className="mx-auto flex max-w-5xl flex-col">
         <div className="flex items-start justify-between gap-4">
           <NavPill items={navItems} activeId="home" />
@@ -36,24 +61,60 @@ export function AboutPage() {
           All decks
         </a>
 
+        <section className="py-10">
+          <h1 className="title-face mb-8 text-4xl leading-[1.05] text-slate-900 sm:text-5xl dark:text-stone-100">
+            About me
+          </h1>
+
+          <ProfileCard
+            name="Andrew Liu"
+            role="University of Maryland"
+            tags={["Computer Science", "Pre-dental"]}
+            className="max-w-xl"
+          >
+            <p>
+              I'm a Computer Science major at the University of Maryland, and I'm on
+              the pre-dental track! My dream is to start my own practice and pursue a
+              specialty, all with the purpose of helping others.
+            </p>
+            <p>
+              I really hope that the people using this site are able to take something
+              away from it beyond just organic chemistry memorization!
+            </p>
+          </ProfileCard>
+        </section>
+
         <Contact2
-          title="About me"
+          title="Contact me"
           email="andliu@terpmail.umd.edu"
           about={
+            <p>
+              Found a mistake? Want a deck for a lab that isn't here yet? Just want to
+              say hi? The form is the fastest way to reach me! I'll try to get back
+              within a few business days!
+            </p>
+          }
+          links={
             <>
-              <p>
-                I'm a Computer Science major at the University of Maryland, and I'm
-                on the pre-dental track! My dream is to start my own practice and
-                pursue a specialty, all with the purpose of helping others.
-              </p>
-              <p>
-                I really hope that the people using this site are able to take
-                something away from it beyond just organic chemistry memorization!
-              </p>
-              <p className="text-base">
-                Found a mistake? Want a deck for a lab that isn't here yet? Just
-                want to say hi? The form is the fastest way to reach me!
-              </p>
+              {/* The same pill as the deck toolbars: a circle that widens into a
+                  labelled tab on hover. `href` makes it a real link rather than a
+                  button that opens a window. */}
+              <GradientMenuButton
+                title="GitHub"
+                icon={<GithubMark />}
+                href={GITHUB_URL}
+                gradientFrom="#334155"
+                gradientTo="#0f172a"
+              />
+              {LINKEDIN_URL && (
+                <GradientMenuButton
+                  title="LinkedIn"
+                  icon={<LinkedinMark />}
+                  href={LINKEDIN_URL}
+                  gradientFrom="#0a66c2"
+                  gradientTo="#004182"
+                />
+              )}
             </>
           }
         />

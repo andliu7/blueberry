@@ -250,6 +250,28 @@ The deck pages get neither. Those are for reading, and a light following the
 cursor across a wall of questions is a distraction from the one thing that screen
 is for.
 
+Behind the last word, the shader opens outward through a clip path as you scroll.
+Its cycle is set in seconds rather than as a fixed step per frame, which is what
+lets the duration mean what it says and stops the pattern running at double speed
+on a 120Hz display. It spends part of every pass nearly black, so the cycle is
+short: a long one reads as the screen having gone dark rather than as motion.
+
+### About and contact
+
+`src/components/AboutPage.tsx`
+
+Two sections rather than one. They were run together on the theory that the
+introduction and the reason to get in touch are the same subject, and in practice
+that buried the reason to get in touch underneath a biography.
+
+The introduction is a soft-shadowed profile card. Its avatar is the flask mascot
+drawn from `testimonialArt`, not a photograph and not a remote image, so it
+cannot 404 like everything else on the site. GitHub and LinkedIn sit above the
+address list as the same expanding pills the deck toolbars use, rendered as real
+anchors rather than buttons that call `window.open`, so they can be
+middle-clicked and are announced as links. lucide dropped its brand icons, so
+those two marks are drawn inline in `src/components/ui/brand-marks.tsx`.
+
 ### The heading
 
 STUDY DECKS resolves out of random letters the first time it comes into view,
