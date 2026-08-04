@@ -95,21 +95,34 @@ type DeckCommon = {
 export type DeckGroupId = "lab" | "reference" | "uploaded";
 
 /** Folder headings, in the order the hub shows them. */
-export const DECK_GROUPS: { id: DeckGroupId; title: string; blurb: string }[] = [
+export const DECK_GROUPS: {
+  id: DeckGroupId;
+  title: string;
+  blurb: string;
+  /** Folder card wash, so the two groups are told apart at a glance. */
+  from: string;
+  to: string;
+}[] = [
   {
     id: "lab",
     title: "[CHEM 242] LCTA",
     blurb: "One deck per experiment, written for the lab critical thinking assessment.",
+    from: "#4f46e5",
+    to: "#7c3aed",
   },
   {
     id: "reference",
     title: "[CHEM 241] Reference sheets",
     blurb: "The charts you look up mid-problem. Hover any row for the diagram.",
+    from: "#0891b2",
+    to: "#0e7490",
   },
   {
     id: "uploaded",
     title: "[CHEM 242] Uploaded",
     blurb: "Decks added from a text file.",
+    from: "#c2410c",
+    to: "#ea580c",
   },
 ];
 

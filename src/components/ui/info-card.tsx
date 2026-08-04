@@ -122,7 +122,7 @@ const InfoCardContext = createContext<{
   onDismiss: () => {},
 });
 
-function InfoCard({ children, className, storageKey, dismissType = "once" }: InfoCardProps) {
+function InfoCard({ children, className, style, storageKey, dismissType = "once" }: InfoCardProps) {
   if (dismissType === "forever" && !storageKey) {
     throw new Error('A storageKey must be provided when using dismissType="forever"');
   }
@@ -170,6 +170,7 @@ function InfoCard({ children, className, storageKey, dismissType = "once" }: Inf
               }}
               exit={{ opacity: 0, y: 10, transition: { duration: 0.2 } }}
               transition={{ duration: 0.3, delay: 0 }}
+              style={style}
               className={cn(
                 "group rounded-lg border border-slate-200 bg-white p-3 dark:border-stone-800 dark:bg-stone-900",
                 className,

@@ -136,18 +136,25 @@ function DeckFolder({
       glareColor={isDark ? "rgba(255,255,255,0.9)" : "rgba(99,102,241,0.7)"}
       className="rounded-lg !overflow-visible"
     >
-    <InfoCard className="max-w-sm">
+    <InfoCard
+      className="max-w-sm !border-transparent"
+      style={{
+        // A tinted wash rather than plain white, so the two folders read as
+        // different places at a glance instead of two identical panels.
+        backgroundImage: `linear-gradient(140deg, ${group.from}, ${group.to})`,
+      }}
+    >
       <InfoCardContent>
-        <InfoCardTitle className="text-base">
+        <InfoCardTitle className="text-base !text-white">
           <a
             href={`#/folder/${group.id}`}
-            className="inline-flex items-center gap-1 hover:text-indigo-600 dark:hover:text-indigo-300"
+            className="inline-flex items-center gap-1 transition-opacity hover:opacity-80"
           >
             {group.title}
             <ArrowRight className="h-3.5 w-3.5" />
           </a>
         </InfoCardTitle>
-        <InfoCardDescription>{group.blurb}</InfoCardDescription>
+        <InfoCardDescription className="!text-white/75">{group.blurb}</InfoCardDescription>
         <FolderDeckFan decks={decks} />
 
 
@@ -155,19 +162,19 @@ function DeckFolder({
             the underline sweeps in from the left and the arrow steps out. */}
         <a
           href={`#/folder/${group.id}`}
-          className="group/open mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 outline-none dark:text-indigo-300"
+          className="group/open mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-white outline-none"
         >
           <span className="relative">
             Open folder
             <span
               aria-hidden
-              className="absolute left-0 -bottom-0.5 h-[2px] w-full origin-left scale-x-0 rounded-full bg-gradient-to-r from-indigo-500 to-fuchsia-500 transition-transform duration-300 ease-out group-hover/open:scale-x-100"
+              className="absolute left-0 -bottom-0.5 h-[2px] w-full origin-left scale-x-0 rounded-full bg-white/80 transition-transform duration-300 ease-out group-hover/open:scale-x-100"
             />
           </span>
           <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover/open:translate-x-1" />
         </a>
 
-        <InfoCardFooter>
+        <InfoCardFooter className="!text-white/70">
           <span className="font-mono">
             {decks.length} {decks.length === 1 ? "deck" : "decks"}
           </span>

@@ -33,24 +33,27 @@ export function FolderDeckFan({ decks, max = 4 }: { decks: Deck[]; max?: number 
         const dimmed = hovered !== null && !active;
 
         return (
+          // Centred by flexbox rather than by subtracting half a card width.
+          // That offset was hardcoded at 34px while the cards render 84px wide,
+          // so the whole fan sat 8px right of the middle of its folder.
+          <div key={deck.id} className="absolute inset-x-0 top-0 flex justify-center">
           <motion.a
-            key={deck.id}
             href={deckHref(deck)}
             aria-label={`${deck.title}, ${deckCount(deck)} ${isReference(deck) ? "rows" : "cards"}`}
             onMouseEnter={() => setHovered(i)}
             onFocus={() => setHovered(i)}
             onBlur={() => setHovered(null)}
-            className="absolute top-0 left-1/2 block origin-bottom rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+            className="block origin-bottom rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
             style={{ zIndex: active ? 20 : i }}
             initial={false}
             animate={
               reduce
-                ? { x: off * 46 - 34, y: 0, rotate: 0 }
+                ? { x: off * 46, y: 0, rotate: 0 }
                 : {
                     // Hovering opens the hand: the active card rises and
                     // straightens, and its neighbours lean further out of the
                     // way instead of staying buried under it.
-                    x: off * (active ? 52 : 40) - 34,
+                    x: off * (active ? 52 : 40),
                     y: active ? -12 : Math.abs(off) * 4,
                     rotate: active ? 0 : off * 7,
                     scale: active ? 1.08 : dimmed ? 0.96 : 1,
@@ -66,6 +69,7 @@ export function FolderDeckFan({ decks, max = 4 }: { decks: Deck[]; max?: number 
               draggable={false}
             />
           </motion.a>
+          </div>
         );
       })}
 
