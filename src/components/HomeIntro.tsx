@@ -3,6 +3,7 @@ import { motion, useReducedMotion, useTransform } from "motion/react";
 import { ChevronDown, X } from "lucide-react";
 import { ShaderAnimation } from "@/components/ui/shader-animation";
 import { AuroraBackground } from "@/components/ui/aurora-background";
+import { SITE_NAME } from "@/data/site";
 import {
   ParticleTextEffect,
   type ParticleWord,
@@ -38,11 +39,8 @@ import {
  * screen, and any scroll or key press cancels the automatic descent.
  */
 
-/**
- * The last word is the site's name. It is "HOME" as a placeholder; change it
- * here and the opening follows.
- */
-const SITE_WORD = "HOME";
+/** The last word is the site's name, uppercased for the particle canvas. */
+const SITE_WORD = SITE_NAME.toUpperCase();
 
 /**
  * Colour reads left to right across each word. Indigo into fuchsia is the

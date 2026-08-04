@@ -1,7 +1,11 @@
-# Grignard LCTA Master List
+# Blueberry
 
 Interactive study guides for the CHEM 242 lab LCTAs, built as a single-page
 web app. It started as one deck for the Grignard lab and now carries three.
+
+Named for the fruit, in the manner of a certain computer company, and it happens
+to be the colour the site was already wearing. The repository keeps its original
+name so no existing link breaks.
 
 **Live site:** https://andliu7.github.io/grignard_LCTA/
 
@@ -60,9 +64,23 @@ section, because that is where nearly all of the learning actually happened.
 
 ## Features
 
+**The hub**
+
+- An animated opening: particles fly in from off screen to spell WELCOME, scatter,
+  and re-form into TO and then the site's name, over a drifting aurora
+- A cursor-following spotlight across the hub and the folder pages, tuned
+  separately for the light and dark surfaces
+- A heading that resolves out of random letters, then pops letter by letter
+- Folder cards where the whole card opens the folder, with the decks inside drawn
+  as a fanned hand you can hover
+- About is a card that opens over whatever you are looking at; Contact is its own
+  page with a form
+
 **Studying**
 
 - Three decks, one per lab, chosen from a hub at `#/home`
+- Each deck opens with one panel and three tabs: what the experiment is for, what
+  you need in your head before the LCTA, and an aside
 - Questions covering each experiment end to end, from setup and reagent roles
   through workup, purification, and IR and NMR interpretation
 - Expandable answers, so you can test yourself before revealing
@@ -113,6 +131,8 @@ export const distillationDeck: Deck = {
   subtitle: "40 questions for the lab LCTA. Hide the answers, ...",
   blurb: "Fractional versus simple, and reading a distillation curve.",
   footNote: "Ready for the LCTA!",             // optional parting line
+  purpose: "The purpose of this experiment is ...",  // lab-manual framing
+  funFact: "Distillation is mostly waiting.",  // aside, shown on its own
   motif: "reflux",                             // see the motif list below
   from: "#0f766e",
   to: "#0e7490",
@@ -216,14 +236,14 @@ into the folders and the deck cards.
 ### The opening
 
 A swarm of particles flies in from off screen and spells WELCOME, scatters, and
-gathers again into TO and then the site's name. Only once that last word is
-standing still does the shader fade up behind it and the scroll cue appear.
+gathers again into TO and then BLUEBERRY. Only once that last word is standing
+still does the shader fade up behind it and the scroll cue appear.
 
 The words used to be a scrambling `<h1>`. Particles replace it because the
 hand-off between words is the point: one cloud re-forms into the next word, so
 the three read as one thing changing rather than three headings swapped in and
-out. The last word is a placeholder called `SITE_WORD` at the top of
-`HomeIntro.tsx`, waiting on a name.
+out. The last word comes from `SITE_NAME` in `src/data/site.ts`, which also
+supplies the deck footer's sign-off.
 
 The sequence runs on the particle canvas's own clock rather than a chain of
 `setTimeout` calls, so a tab left in the background pauses the whole thing
@@ -258,17 +278,25 @@ short: a long one reads as the screen having gone dark rather than as motion.
 
 ### About and contact
 
-`src/components/AboutPage.tsx`
+`src/components/SiteActions.tsx`, `src/components/ContactPage.tsx`
 
-Two sections rather than one. They were run together on the theory that the
-introduction and the reason to get in touch are the same subject, and in practice
-that buried the reason to get in touch underneath a biography.
+These were one link to one page that ran both together, which buried the reason
+to get in touch underneath a biography. They are different kinds of thing and now
+behave differently. About is a soft-shadowed card that comes up over whatever you
+were already looking at, because it is a paragraph you read and dismiss rather
+than somewhere you go. Contact is its own page at `#/contact`, because it holds a
+form. `#/about` still lands on the contact page rather than 404ing, since that was
+the old address.
 
-The introduction is a soft-shadowed profile card. Its avatar is the flask mascot
-drawn from `testimonialArt`, not a photograph and not a remote image, so it
-cannot 404 like everything else on the site. GitHub and LinkedIn sit above the
-address list as the same expanding pills the deck toolbars use, rendered as real
-anchors rather than buttons that call `window.open`, so they can be
+The card is portaled to the body so no transformed or z-indexed ancestor can trap
+it: the hub alone has a fixed spotlight canvas, a stacking context on `main` and a
+floating feedback button to sit above. It closes on Escape, on the backdrop and on
+its own button, locks the page behind it, and moves focus in and back out again.
+
+Its avatar is the flask mascot drawn from `testimonialArt`, not a photograph and
+not a remote image, so it cannot 404 like everything else on the site. GitHub and
+LinkedIn appear as the same expanding pills the deck toolbars use, rendered as
+real anchors rather than buttons that call `window.open`, so they can be
 middle-clicked and are announced as links. lucide dropped its brand icons, so
 those two marks are drawn inline in `src/components/ui/brand-marks.tsx`.
 

@@ -5,6 +5,15 @@
  * to be written out twice.
  */
 
+/**
+ * The site's name. Named for the fruit, in the manner of a certain computer
+ * company, and it happens to be the colour the whole thing was already wearing.
+ *
+ * The opening spells this out in particles, so it is uppercased there. Changing
+ * it here changes the last word of the intro and the footer sign-off.
+ */
+export const SITE_NAME = "Blueberry";
+
 export const GITHUB_URL = "https://github.com/andliu7";
 export const LINKEDIN_URL = "https://www.linkedin.com/in/andrew-liu-06154225b/";
 export const EMAIL = "andliu@terpmail.umd.edu";

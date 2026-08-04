@@ -114,7 +114,7 @@ export function ReferenceApp({ deck }: { deck: ReferenceDeck }) {
           </div>
 
           <div className="mx-auto max-w-3xl">
-            <DeckAbout text={deck.about} />
+            <DeckAbout text={deck.about} purpose={deck.purpose} funFact={deck.funFact} />
 
             <HoverDeck
               groups={deck.groups}

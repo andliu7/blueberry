@@ -78,6 +78,15 @@ type DeckCommon = {
    * chart. Shown once at the top of the deck page, above the questions.
    */
   about?: string;
+  /**
+   * Why the experiment is run and what it is meant to teach, written in the
+   * register of a lab manual rather than of revision notes. Separate from
+   * `about` because the two answer different questions: `about` is what you
+   * need in your head before the LCTA, this is what the experiment is for.
+   */
+  purpose?: string;
+  /** A lighter aside, shown apart from `purpose` so it cannot be mistaken for it. */
+  funFact?: string;
   /** Optional parting line in the deck footer, above the thank-you note. */
   footNote?: string;
   /** Illustration, chosen from the motifs in `testimonialArt.ts`. */

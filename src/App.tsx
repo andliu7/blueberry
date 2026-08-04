@@ -32,6 +32,7 @@ import { Confetti } from "@/components/Confetti";
 import { FeedbackButton } from "@/components/FeedbackButton";
 import { LaserPointer } from "@/components/ui/laser-pointer";
 import { DeckAbout } from "@/components/ui/deck-about";
+import { SITE_NAME } from "@/data/site";
 import { progressKey, loadSaved } from "@/lib/progress";
 import { cn } from "@/lib/utils";
 import { useMathJaxTypeset } from "@/lib/useMathJaxTypeset";
@@ -730,7 +731,7 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
         {/* One card definition for all four views. Previously each branch
             repeated the same eight props, so a change to any of them had to be
             made in three places. */}
-        <DeckAbout text={deck.about} />
+        <DeckAbout text={deck.about} purpose={deck.purpose} funFact={deck.funFact} />
 
         {/* Container and card style are independent: every branch below calls
             the same renderAnyCard, so Flip and Tilt work inside the carousel,
@@ -833,7 +834,7 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
           {deck.footNote && <p>{deck.footNote}</p>}
 
           <p className="playful-face mt-6 mx-auto max-w-xl text-lg leading-relaxed text-slate-600 dark:text-stone-300">
-            Thank you for visiting [Website Name]! I appreciate your time and interest in
+            Thank you for visiting {SITE_NAME}! I appreciate your time and interest in
             my work! If you have any questions, please feel free to reach out through my
             feedback form on the right (<span aria-hidden>&rarr;</span>)!
           </p>
