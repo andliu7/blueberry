@@ -8,9 +8,8 @@ import { GradientMenuButton } from "@/components/ui/gradient-menu";
 import { GithubMark, LinkedinMark } from "@/components/ui/brand-marks";
 import { SiteActions } from "@/components/SiteActions";
 import { FeedbackButton } from "@/components/FeedbackButton";
-import { SpotlightCursor } from "@/components/ui/spotlight-cursor";
 import { EMAIL, GITHUB_URL, LINKEDIN_URL, REPO_URL } from "@/data/site";
-import { SURFACE, spotlightFor } from "@/lib/hubSurface";
+import { SURFACE } from "@/lib/hubSurface";
 import { useIsDark } from "@/lib/useIsDark";
 
 /**
@@ -41,10 +40,11 @@ export function ContactPage() {
       className="relative min-h-screen px-6 py-8"
       style={{ backgroundColor: surface.base, backgroundImage: surface.gradient }}
     >
-      {/* Same backdrop as the hub and the folders. This page had been missed:
-          it inherited its markup from the combined about-and-contact page, which
-          predated the spotlight. */}
-      <SpotlightCursor className="z-0" config={spotlightFor(isDark)} />
+      {/* No spotlight here, deliberately. The hub and the folder pages are
+          things you scan, where a light tracking the cursor gives the eye
+          something to follow. This one is a form you sit and fill in, and the
+          card carries its own border shine as feedback, so a second moving light
+          was one too many. */}
       <div className="relative z-10 mx-auto flex max-w-5xl flex-col">
         <div className="flex items-start justify-between gap-4">
           <NavPill items={navItems} activeId="home" />

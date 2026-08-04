@@ -69,7 +69,17 @@ export function DeckUploadTicket() {
       />
 
       <p className="mt-3 max-w-sm text-center text-xs text-slate-400 dark:text-stone-500">
-        Got a question list? Authorized staff can turn a .txt into a deck.
+        Got a question list? Authorized staff can turn a .txt into a deck.{" "}
+        {/* Relative, not absolute: the site is served from a subpath on GitHub
+            Pages, so a leading slash would land on the domain root. */}
+        <a
+          href="deck-format.html"
+          target="_blank"
+          rel="noreferrer"
+          className="font-semibold text-indigo-500 underline decoration-dotted underline-offset-4 hover:text-indigo-600 dark:text-indigo-400 dark:hover:text-indigo-300"
+        >
+          How to write one
+        </a>
       </p>
 
       {open && (

@@ -114,18 +114,19 @@ export function AboutOverlay({ open, onClose }: { open: boolean; onClose: () => 
               }
             >
               <p>
-                Welcome to {SITE_NAME}! Small, sweet and meant to be picked at a
-                handful at a time, which is exactly how these decks are built to be
-                studied. I'm Andrew! Thanks for checking us out!
+                Welcome to {SITE_NAME}! Just like the fruit, these decks are small,
+                sweet, and meant to be picked up a handful at a time, which is exactly
+                how they are designed to be studied.
               </p>
               <p>
-                I'm a Computer Science major at the University of Maryland, and I'm on
-                the Pre-Dental track! My dream is to start my own practice and pursue a
+                I'm Andrew! Thanks for checking us out. I'm a final-year Computer
+                Science major on the Pre-Dental track at the University of Maryland. My
+                ultimate dream is to start my own dental practice and pursue a
                 specialty, all with the purpose of helping others.
               </p>
               <p>
-                I really hope that the people using this site are able to take something
-                away from it beyond just organic chemistry memorization!
+                I really hope you're able to take something valuable away from this site
+                that goes far beyond just organic chemistry memorization!
               </p>
             </ProfileCard>
           </motion.div>
