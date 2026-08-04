@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion, useSpring } from "motion/react";
 import { useIsDark } from "@/lib/useIsDark";
+import { cn } from "@/lib/utils";
 
 /**
  * A navigation pill that shows only where you are, and opens into the full set
@@ -54,13 +55,23 @@ export type NavPillProps = {
   className?: string;
 };
 
+/** The closed pill's height, and so the width of an icon-only slot. */
+const UNIT = 56;
+
 /**
- * Rough label width at 15.5px in the display stack. The pill spreads its items
- * with `justify-evenly`, so erring wide costs a little air and erring narrow
- * would clip, which is why this leans generous.
+ * Rough label width at 15.5px in the display stack. Erring wide costs a little
+ * air and erring narrow would clip, which is why this leans generous.
+ *
+ * An item with a mark takes exactly one `UNIT`, the same room it occupies while
+ * the pill is closed. That is what lets the mark stay still as the pill opens:
+ * its slot does not change size, so nothing pushes it along.
  */
-function measureWidth(labels: string[]): number {
-  return labels.reduce((total, label) => total + label.length * 9 + 56, 0) + 48;
+function measureItem(item: NavPillItem): number {
+  return item.icon ? UNIT : item.label.length * 9 + 56;
+}
+
+function measureWidth(items: NavPillItem[], pad: number): number {
+  return items.reduce((total, item) => total + measureItem(item), 0) + pad;
 }
 
 const LIGHT = {
@@ -133,12 +144,25 @@ export function NavPill({ items, activeId, className }: NavPillProps) {
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const active = items.find((i) => i.id === activeId) ?? items[0];
-  // Closed on a mark, the pill is a circle: same width as its 56px height, with
-  // the radius it already had. A word needs a lozenge, a logo does not.
-  const collapsedWidth = active?.icon
-    ? 56
-    : Math.max(140, measureWidth([active?.label ?? ""]) - 24);
-  const expandedWidth = measureWidth(items.map((i) => i.label));
+  /**
+   * Anchored: the mark sits in the same place open or closed.
+   *
+   * The pill used to spread its items with `justify-evenly` and carry a 24px
+   * inset, so opening it slid the first item rightwards into its share of a much
+   * wider box. With a word that is invisible, because the word is replaced by
+   * other words. With a logo it reads as the logo sliding away from under the
+   * pointer that just reached it.
+   *
+   * So an anchored pill has no inset, packs from the left, and gives the mark a
+   * fixed slot exactly as wide as the closed pill. The mark's centre is then the
+   * same distance from the left edge either way, and the rest of the
+   * destinations simply appear to its right.
+   */
+  const anchored = Boolean(active?.icon);
+  const collapsedWidth = anchored
+    ? UNIT
+    : Math.max(140, measureWidth(active ? [active] : [], 48) - 24);
+  const expandedWidth = measureWidth(items, anchored ? 24 : 48);
 
   const width = useSpring(collapsedWidth, { stiffness: 220, damping: 25, mass: 1 });
 
@@ -244,7 +268,10 @@ export function NavPill({ items, activeId, className }: NavPillProps) {
       />
 
       <div
-        className="relative z-10 flex h-full items-center justify-center px-6"
+        className={cn(
+          "relative z-10 flex h-full items-center justify-center",
+          anchored ? "px-0" : "px-6",
+        )}
         style={{ fontFamily: FONT }}
       >
         {!open && (
@@ -287,7 +314,12 @@ export function NavPill({ items, activeId, className }: NavPillProps) {
         )}
 
         {open && (
-          <div className="flex w-full items-center justify-evenly">
+          <div
+            className={cn(
+              "flex w-full items-center",
+              anchored ? "justify-start" : "justify-evenly",
+            )}
+          >
             {items.map((item, index) => {
               const isActive = item.id === activeId;
               return (
@@ -296,8 +328,12 @@ export function NavPill({ items, activeId, className }: NavPillProps) {
                   type="button"
                   onClick={() => go(item)}
                   aria-current={isActive ? "page" : undefined}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
+                  // Destinations slide in from the left as the pill opens. The
+                  // mark does not: it is already on screen and in place, and
+                  // easing it from -10px is a 10px shuffle away from the pointer
+                  // that just arrived on it.
+                  initial={item.icon ? false : { opacity: 0, x: -10 }}
+                  animate={item.icon ? undefined : { opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.08, duration: 0.25, ease: "easeOut" }}
                   className="relative cursor-pointer border-none bg-transparent outline-none"
                   style={{
@@ -305,7 +341,19 @@ export function NavPill({ items, activeId, className }: NavPillProps) {
                     fontWeight: isActive ? 700 : 500,
                     color: isActive ? p.activeText : p.idleText,
                     letterSpacing: ".45px",
-                    padding: "10px 16px",
+                    // A mark keeps the closed pill's slot exactly, so it does
+                    // not shift when the pill opens around it.
+                    //
+                    // `flexShrink: 0` is what makes that true *during* the
+                    // opening as well as after it. The row is laid out at the
+                    // pill's current width while the spring is still running, so
+                    // by default every item is squashed to fit and then eases
+                    // out as the pill catches up, which is exactly the sliding
+                    // this was meant to stop.
+                    flexShrink: 0,
+                    ...(item.icon
+                      ? { width: UNIT, padding: 0, display: "grid", placeItems: "center" }
+                      : { padding: "10px 16px" }),
                     whiteSpace: "nowrap",
                     fontFamily: FONT,
                     transform: isActive ? "translateY(-1.5px)" : "translateY(0)",

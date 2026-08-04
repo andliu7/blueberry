@@ -303,6 +303,32 @@ export function SnapCarousel({
     maxFlick,
   });
 
+  /**
+   * The viewport takes the height of the slide you are on, not of the tallest.
+   *
+   * The track lays its slides out in a row, so its height was whichever slide
+   * was longest. Expanding one card's answer therefore made the whole carousel
+   * that tall for good: move on to a two-line card and the arrows stayed where
+   * the long one had pushed them, marooned under a screenful of nothing.
+   *
+   * Measured rather than guessed, because a card's height changes for reasons
+   * this component knows nothing about: an answer opening, an image loading, a
+   * window narrowing and rewrapping the text. A ResizeObserver on the active
+   * slide catches all of those; watching only the index would miss every one.
+   */
+  const slideRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [viewportHeight, setViewportHeight] = useState<number | undefined>(undefined);
+
+  useEffect(() => {
+    const el = slideRefs.current[car.index];
+    if (!el) return;
+    const measure = () => setViewportHeight(el.getBoundingClientRect().height);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [car.index, slides.length]);
+
   const arrow = cn(
     "grid size-9 place-items-center rounded-full cursor-pointer",
     "border border-slate-200 bg-white text-slate-600 shadow-sm",
@@ -352,6 +378,8 @@ export function SnapCarousel({
         style={{
           paddingLeft: peek,
           paddingRight: peek,
+          height: viewportHeight,
+          transition: reduced ? undefined : "height 320ms cubic-bezier(0.4, 0, 0.2, 1)",
           // Softens both edges so the peeking neighbours dissolve rather than
           // being cut off by the viewport.
           WebkitMaskImage: `linear-gradient(to right, transparent 0, black ${peek}px, black calc(100% - ${peek}px), transparent 100%)`,
@@ -362,7 +390,9 @@ export function SnapCarousel({
       >
         <motion.div
           {...car.trackProps}
-          className={cn("flex items-stretch", car.dragging ? "cursor-grabbing" : "cursor-grab")}
+          // `items-start`, not `items-stretch`: stretching made every slide as
+          // tall as the tallest, which is the thing that stranded the arrows.
+          className={cn("flex items-start", car.dragging ? "cursor-grabbing" : "cursor-grab")}
         >
           {slides.map((slide, i) => {
             // Distance from the active slide drives the shrink and fade, so
@@ -371,6 +401,9 @@ export function SnapCarousel({
             return (
               <motion.div
                 key={slideKey(slide, i)}
+                ref={(el: HTMLDivElement | null) => {
+                  slideRefs.current[i] = el;
+                }}
                 role="group"
                 aria-roledescription="slide"
                 aria-label={`${i + 1} of ${slides.length}`}
