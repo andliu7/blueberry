@@ -1,30 +1,43 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Blueberry">
   <title>Blueberry</title>
   <defs>
-    <!-- The site's own indigo into violet, the pair the intro words and the link
-         underlines already use, lit from the upper left so the berry reads as
-         round rather than as a flat disc. -->
-    <radialGradient id="berry" cx="36%" cy="30%" r="80%">
-      <stop offset="0%" stop-color="#a78bfa" />
-      <stop offset="45%" stop-color="#6366f1" />
-      <stop offset="100%" stop-color="#3b1d8f" />
+    <!-- Lit from the upper left so the berry reads as round. The pale violet at
+         the top is the same one the intro words start on. -->
+    <radialGradient id="berry" cx="34%" cy="26%" r="82%">
+      <stop offset="0%" stop-color="#c4b5fd" />
+      <stop offset="38%" stop-color="#7c6cf5" />
+      <stop offset="75%" stop-color="#4c3ad4" />
+      <stop offset="100%" stop-color="#2e1f7a" />
     </radialGradient>
-    <linearGradient id="crown" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#ede9fe" />
-      <stop offset="100%" stop-color="#c084fc" />
+    <linearGradient id="leaf" x1="0" y1="0" x2="0.3" y2="1">
+      <stop offset="0%" stop-color="#a3e635" />
+      <stop offset="100%" stop-color="#22c55e" />
     </linearGradient>
   </defs>
 
-  <circle cx="32" cy="36" r="25" fill="url(#berry)" />
+  <circle cx="32" cy="37" r="24" fill="url(#berry)" />
 
   <!-- Specular highlight, small and off centre. A large one reads as a bauble. -->
-  <ellipse cx="23" cy="25" rx="7.5" ry="5.5" fill="#ffffff" opacity="0.26"
-           transform="rotate(-28 23 25)" />
+  <ellipse cx="22" cy="27" rx="7" ry="5" fill="#ffffff" opacity="0.3"
+           transform="rotate(-28 22 27)" />
 
-  <!-- The calyx. A blueberry's crown is the one feature that keeps a purple
-       circle from reading as a grape or a plum, so it is drawn as the five
-       point star it actually is rather than as a leaf. -->
-  <path fill="url(#crown)"
-        d="M32 7 34.8 15.7 43.9 15.7 36.5 21.1 39.4 29.8 32 24.4 24.6 29.8 27.5 21.1 20.1 15.7 29.2 15.7 Z" />
-  <circle cx="32" cy="19.6" r="3.9" fill="#4c1d95" opacity="0.5" />
+  <!-- The face. Chunky and low on the berry, because a cartoon face sitting too
+       high fights the crown for the same space. -->
+  <g fill="#1e1b4b">
+    <circle cx="25" cy="36" r="2.9" />
+    <circle cx="39" cy="36" r="2.9" />
+  </g>
+  <path d="M24.5 44 Q32 51.5 39.5 44" fill="none" stroke="#1e1b4b" stroke-width="3.2"
+        stroke-linecap="round" />
+  <!-- Cheeks, which is most of what makes it read as cheerful rather than blank. -->
+  <ellipse cx="19" cy="42.5" rx="3.4" ry="2.2" fill="#f472b6" opacity="0.45" />
+  <ellipse cx="45" cy="42.5" rx="3.4" ry="2.2" fill="#f472b6" opacity="0.45" />
+
+  <!-- The crown. A blueberry's calyx is the one feature that keeps a purple
+       circle from reading as a grape, so it is the five point star it really is,
+       in bright green. -->
+  <g fill="url(#leaf)" stroke="#15803d" stroke-width="1.1" stroke-linejoin="round">
+    <path d="M32 4.5 35.4 14.2 45.6 13.9 37.6 20.3 40.4 30.1 32 24.3 23.6 30.1 26.4 20.3 18.4 13.9 28.6 14.2 Z" />
+  </g>
+  <circle cx="32" cy="18.5" r="3.4" fill="#166534" />
 </svg>

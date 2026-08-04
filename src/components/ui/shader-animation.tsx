@@ -25,9 +25,21 @@ void main() {
   gl_Position = vec4(position, 0.0, 1.0);
 }`;
 
+/**
+ * `CYCLE` is the only change to the supplied fragment shader, and it is what
+ * removes the long black pause.
+ *
+ * The bands are bright where the denominator approaches zero, which needs
+ * `fract(...) * 5.0` to land within `length(uv)`, and `length(uv)` only reaches
+ * about 1.4 at the corners. So the sweep was over once `fract` passed 0.28, and
+ * the remaining 72% of every cycle was the screen sitting dark waiting to wrap.
+ * Wrapping at 0.32 instead of at 1.0 cuts the dead stretch while leaving the
+ * sweep itself moving at exactly the rate it always did.
+ */
 const FRAG = `
 #define TWO_PI 6.2831853072
 #define PI 3.14159265359
+#define CYCLE 0.32
 
 precision highp float;
 uniform vec2 resolution;
@@ -42,7 +54,7 @@ void main(void) {
   for (int j = 0; j < 3; j++) {
     for (int i = 0; i < 5; i++) {
       color[j] += lineWidth * float(i * i) /
-        abs(fract(t - 0.01 * float(j) + float(i) * 0.01) * 5.0 - length(uv) + mod(uv.x + uv.y, 0.2));
+        abs(mod(t - 0.01 * float(j) + float(i) * 0.01, CYCLE) * 5.0 - length(uv) + mod(uv.x + uv.y, 0.2));
     }
   }
 
@@ -63,23 +75,28 @@ function compile(gl: WebGLRenderingContext, type: number, src: string) {
 }
 
 /**
- * Seconds for one pass of the pattern.
+ * How far `time` must travel for one pass of the pattern.
  *
- * The shader's `t` is `time * 0.05`, and the figure repeats every time `t`
- * advances by 1, so one cycle is `time` advancing by 20. Driving that off
- * elapsed seconds rather than a fixed step per frame does two things: the
- * duration below means what it says, and the animation no longer runs at double
- * speed on a 120Hz display, which the old `time += 0.05` per frame did.
+ * The shader's `t` is `time * 0.05` and it now wraps at `CYCLE`, so a pass is
+ * `time` advancing by `0.32 / 0.05`. Driving that off elapsed seconds rather
+ * than a fixed step per frame means the duration below means what it says, and
+ * the animation no longer runs at double speed on a 120Hz display the way the
+ * old `time += 0.05` per frame did.
  */
-const TIME_PER_CYCLE = 20;
+const TIME_PER_CYCLE = 6.4;
 
 export function ShaderAnimation({
   className,
-  cycleSeconds = 2,
+  cycleSeconds = 2.1,
 }: {
   className?: string;
-  /** Lower is faster. The pattern spends part of each pass nearly black, so a
-   *  long cycle reads as the screen having gone dark rather than as motion. */
+  /**
+   * Seconds for one sweep of the bands. The default reproduces the original
+   * rate of travel: the supplied shader took about 1.9 seconds to cross the
+   * screen and then held black for nearly five more before repeating, and the
+   * five seconds are what `CYCLE` removed. Lowering this speeds up the sweep
+   * itself, which is a different thing and was not the problem.
+   */
   cycleSeconds?: number;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);

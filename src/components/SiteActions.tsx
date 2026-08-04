@@ -5,7 +5,7 @@ import { Mail, User, X } from "lucide-react";
 import { ProfileCard } from "@/components/ui/profile-card";
 import { GradientMenuButton } from "@/components/ui/gradient-menu";
 import { GithubMark, LinkedinMark } from "@/components/ui/brand-marks";
-import { GITHUB_URL, LINKEDIN_URL } from "@/data/site";
+import { GITHUB_URL, LINKEDIN_URL, SITE_NAME } from "@/data/site";
 import { cn } from "@/lib/utils";
 
 /**
@@ -92,7 +92,8 @@ export function AboutOverlay({ open, onClose }: { open: boolean; onClose: () => 
             <ProfileCard
               name="Andrew Liu"
               role="University of Maryland"
-              tags={["Computer Science", "Pre-dental"]}
+              tags={["Computer Science", "Pre-Dental"]}
+              tilt
               actions={
                 <>
                   <GradientMenuButton
@@ -113,8 +114,13 @@ export function AboutOverlay({ open, onClose }: { open: boolean; onClose: () => 
               }
             >
               <p>
+                Welcome to {SITE_NAME}! Small, sweet and meant to be picked at a
+                handful at a time, which is exactly how these decks are built to be
+                studied. I'm Andrew! Thanks for checking us out!
+              </p>
+              <p>
                 I'm a Computer Science major at the University of Maryland, and I'm on
-                the pre-dental track! My dream is to start my own practice and pursue a
+                the Pre-Dental track! My dream is to start my own practice and pursue a
                 specialty, all with the purpose of helping others.
               </p>
               <p>
