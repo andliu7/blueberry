@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+﻿import { useCallback, useMemo, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { ArrowLeft } from "lucide-react";
 import { DECKS } from "@/data/decks";
@@ -11,6 +11,7 @@ import {
 } from "@/data/types";
 import { MOTIF_VIEWBOX, motifMarkup } from "@/data/testimonialArt";
 import { NavPill, type NavPillItem } from "@/components/ui/nav-pill";
+import { BlueberryMark } from "@/components/ui/blueberry-mark";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { GlassCard } from "@/components/ui/glass-card";
 import { DeckSearch } from "@/components/ui/deck-search";
@@ -19,7 +20,8 @@ import { FeedbackButton } from "@/components/FeedbackButton";
 import { SiteActions } from "@/components/SiteActions";
 import { matchedDeckIds, type SearchHit } from "@/lib/searchDecks";
 import { reviewedCount } from "@/lib/progress";
-import { SURFACE } from "@/lib/hubSurface";
+import { SpotlightCursor } from "@/components/ui/spotlight-cursor";
+import { SURFACE, spotlightFor } from "@/lib/hubSurface";
 import { useIsDark } from "@/lib/useIsDark";
 
 /**
@@ -42,7 +44,7 @@ export function FolderPage({ groupId }: { groupId: DeckGroupId }) {
   const decks = matched ? all.filter((d) => matched.has(d.id)) : all;
 
   const navItems: NavPillItem[] = [
-    { id: "home", label: "Home", href: "#/home" },
+    { id: "home", label: "Home", href: "#/home", icon: <BlueberryMark className="h-7 w-7" /> },
     ...all.map((d) => ({ id: d.id, label: d.short ?? d.title, href: deckHref(d) })),
   ];
 
@@ -51,12 +53,13 @@ export function FolderPage({ groupId }: { groupId: DeckGroupId }) {
   const cards = all.reduce((n, d) => n + deckCount(d), 0);
 
   return (
-    // Same surface as the hub: a folder is the hub with one group open, so it
-    // should not look like a different site.
+    // Same surface and same spotlight as the hub: a folder is the hub with one
+    // group open, so it should not look like a different site.
     <main
       className="relative min-h-screen px-6 py-8"
       style={{ backgroundColor: surface.base, backgroundImage: surface.gradient }}
     >
+      <SpotlightCursor className="z-0" config={spotlightFor(isDark)} />
       <div className="relative z-10 mx-auto flex max-w-5xl flex-col">
         <div className="flex items-start justify-between gap-4">
           <NavPill items={navItems} activeId="home" />

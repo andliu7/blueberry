@@ -53,14 +53,26 @@ const INTRO_WORDS: ParticleWord[] = [
   { text: SITE_WORD, from: "#818cf8", to: "#f0abfc" },
 ];
 
+/**
+ * What the opening shows once it has already been seen this visit: the last
+ * word alone, with no greeting to sit through a second time.
+ *
+ * A separate module-level array rather than a slice computed in the component.
+ * `words` is an effect dependency on the canvas, and a fresh array on every
+ * render would restart the sequence continuously.
+ */
+const SETTLED_WORDS: ParticleWord[] = [INTRO_WORDS[2]!];
+
 function IntroStage({
   ready,
   onSettled,
   onSkip,
+  settled,
 }: {
   ready: boolean;
   onSettled: () => void;
   onSkip: () => void;
+  settled: boolean;
 }) {
   const progress = useScrollProgress();
   const reduce = useReducedMotion();
@@ -130,11 +142,11 @@ function IntroStage({
         style={reduce ? undefined : { opacity }}
       >
         <ParticleTextEffect
-          words={INTRO_WORDS}
+          words={settled ? SETTLED_WORDS : INTRO_WORDS}
           wordMs={1500}
-          settleMs={1000}
+          settleMs={settled ? 200 : 1000}
           onFinished={onSettled}
-          label={`Welcome to ${SITE_WORD}`}
+          label={settled ? SITE_WORD : `Welcome to ${SITE_WORD}`}
         />
       </motion.div>
 
@@ -169,6 +181,7 @@ function IntroStage({
 export function HomeIntro({
   onSkip,
   onComplete,
+  settled = false,
 }: {
   onSkip: () => void;
   /**
@@ -177,20 +190,29 @@ export function HomeIntro({
    * motion, where the page is left where the visitor put it.
    */
   onComplete?: () => void;
+  /**
+   * Already seen this visit, so show the finished picture rather than replaying
+   * the sequence. The opening stays mounted either way, since the hub puts you
+   * below it and it should still be there to scroll back up to.
+   */
+  settled?: boolean;
 }) {
   const reduce = useReducedMotion();
-  const [ready, setReady] = useState(false);
+  // Nothing to wait for when the sequence is not going to run.
+  const [ready, setReady] = useState(settled);
 
   const onCompleteRef = useRef(onComplete);
   onCompleteRef.current = onComplete;
 
   useEffect(() => {
-    if (!ready || reduce) return;
+    // Nothing to hand off when the sequence did not play: the hub has already
+    // put the visitor at the decks.
+    if (!ready || reduce || settled) return;
     // Long enough for the shader's 1.1s fade to finish, so the descent starts
     // from the finished picture rather than interrupting it.
     const t = setTimeout(() => onCompleteRef.current?.(), 1200);
     return () => clearTimeout(t);
-  }, [ready, reduce]);
+  }, [ready, reduce, settled]);
 
   // The page must not scroll while the black screen is playing, or a flick of
   // the wheel lands you in the middle of an empty 220vh column.
@@ -207,7 +229,12 @@ export function HomeIntro({
     // Tall enough that the reveal has room to play, short enough that two
     // flicks of a trackpad clear it.
     <ContainerScroll className="h-[220vh]">
-      <IntroStage ready={ready} onSettled={() => setReady(true)} onSkip={onSkip} />
+      <IntroStage
+        ready={ready}
+        settled={settled}
+        onSettled={() => setReady(true)}
+        onSkip={onSkip}
+      />
     </ContainerScroll>
   );
 }

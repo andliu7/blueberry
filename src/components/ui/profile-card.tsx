@@ -138,10 +138,17 @@ export function ProfileCard({
             <span
               key={tag}
               className={cn(
-                "inline-block rounded-full bg-white px-3 py-1 text-[0.7rem] font-semibold text-indigo-600 transition-all duration-300 group-hover/card:scale-105",
+                "inline-block rounded-full bg-white px-3 py-1 text-[0.7rem] font-semibold text-indigo-600",
+                "transition-all duration-300 group-hover/card:scale-105",
+                // Its own hover, on top of the card's. Pointing at a tag lifts
+                // that one out of the row rather than moving the pair together,
+                // so each reads as a thing in its own right.
+                "hover:!scale-115 hover:-translate-y-0.5 hover:px-4",
                 "shadow-[2px_2px_4px_rgba(79,70,229,0.10),-2px_-2px_4px_rgba(255,255,255,0.9)]",
+                "hover:shadow-[4px_4px_10px_rgba(79,70,229,0.18),-4px_-4px_10px_rgba(255,255,255,1)]",
                 "dark:bg-[#231c3c] dark:text-violet-300",
                 "dark:shadow-[2px_2px_4px_rgba(0,0,0,0.4),-2px_-2px_4px_rgba(255,255,255,0.05)]",
+                "dark:hover:shadow-[4px_4px_10px_rgba(0,0,0,0.55),-4px_-4px_10px_rgba(255,255,255,0.08)]",
               )}
             >
               {tag}

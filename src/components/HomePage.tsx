@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion, useInView, useReducedMotion } from "motion/react";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { DECKS } from "@/data/decks";
@@ -25,10 +25,12 @@ import { SiteActions } from "@/components/SiteActions";
 import { TiltCard } from "@/components/ui/be-ui-tilt-card";
 import { useIsDark } from "@/lib/useIsDark";
 import { NavPill, type NavPillItem } from "@/components/ui/nav-pill";
+import { BlueberryMark } from "@/components/ui/blueberry-mark";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { TextScramble } from "@/components/ui/text-scramble";
 import BoldOnHover from "@/components/ui/bold-on-hover";
-import { SURFACE } from "@/lib/hubSurface";
+import { SpotlightCursor } from "@/components/ui/spotlight-cursor";
+import { SURFACE, spotlightFor } from "@/lib/hubSurface";
 
 /**
  * The hub: one card per deck, with room to grow.
@@ -38,15 +40,38 @@ import { SURFACE } from "@/lib/hubSurface";
  * the questions would be a worse app for the sake of a nicer front door. This
  * lives at #/home, reached from the small Home link on the title screen.
  */
+/**
+ * Per tab, not forever. Opening the site fresh tomorrow should still get the
+ * opening; walking into a folder and back should not. `sessionStorage` draws
+ * exactly that line, and it needs no cleanup or version key.
+ */
+const INTRO_SEEN_KEY = "blueberry_intro_seen";
+
 export function HomePage() {
-  /**
-   * Replayed on every arrival at the hub, not just the first.
-   *
-   * Skip is what keeps that from being a toll gate: it is on screen from the
-   * first frame, including during the black screen, so anyone in a hurry is one
-   * click from the decks.
-   */
   const [showIntro, setShowIntro] = useState(true);
+
+  /**
+   * Whether the opening has already run this visit.
+   *
+   * It used to replay on every arrival at the hub, which meant going into a
+   * folder and pressing back put you through the whole sequence again. Read once
+   * on mount, before the flag below is set, so the first visit still sees it.
+   */
+  const [seenIntro] = useState(() => {
+    try {
+      return sessionStorage.getItem(INTRO_SEEN_KEY) === "1";
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(INTRO_SEEN_KEY, "1");
+    } catch {
+      /* private mode, and replaying the opening is not worth an error */
+    }
+  }, []);
 
   const dismissIntro = useCallback(() => {
     setShowIntro(false);
@@ -64,8 +89,38 @@ export function HomePage() {
    */
   const decksRef = useRef<HTMLElement>(null);
 
+  /**
+   * Already seen: start at the decks rather than at the top of a 220vh column.
+   *
+   * The opening stays mounted above rather than being torn out, so it is still
+   * there to scroll up to. Jumping rather than gliding, because this is where
+   * the page should have opened, not somewhere it is taking you.
+   */
+  useEffect(() => {
+    if (!seenIntro || !showIntro) return;
+    decksRef.current?.scrollIntoView({ block: "start" });
+  }, [seenIntro, showIntro]);
+
   const isDark = useIsDark();
   const surface = isDark ? SURFACE.dark : SURFACE.light;
+
+  /**
+   * Whether the opening has been scrolled clear of the screen.
+   *
+   * The spotlight canvas is fixed to the viewport, so it would sit over the
+   * intro if it mounted with the page.
+   */
+  const [pastIntro, setPastIntro] = useState(!showIntro || seenIntro);
+  useEffect(() => {
+    if (!showIntro) {
+      setPastIntro(true);
+      return;
+    }
+    const check = () => setPastIntro(window.scrollY > window.innerHeight * 1.05);
+    check();
+    window.addEventListener("scroll", check, { passive: true });
+    return () => window.removeEventListener("scroll", check);
+  }, [showIntro]);
 
   const reduce = useReducedMotion();
   const [hits, setHits] = useState<SearchHit[] | null>(null);
@@ -82,7 +137,7 @@ export function HomePage() {
   // lists the decks inside it. Listing every deck here would contradict the
   // decision to move them off the hub.
   const navItems: NavPillItem[] = [
-    { id: "home", label: "Home", href: "#/home" },
+    { id: "home", label: "Home", href: "#/home", icon: <BlueberryMark className="h-7 w-7" /> },
     ...DECK_GROUPS.filter((g) => DECKS.some((d) => (d.group ?? "lab") === g.id)).map((g) => ({
       id: g.id,
       label: g.title.replace(/\[[^\]]*\]\s*/, ""),
@@ -92,7 +147,7 @@ export function HomePage() {
 
   return (
     <>
-      {showIntro && <HomeIntro onSkip={dismissIntro} />}
+      {showIntro && <HomeIntro onSkip={dismissIntro} settled={seenIntro} />}
 
       <main
         ref={decksRef}
@@ -116,6 +171,10 @@ export function HomePage() {
             style={{ backgroundImage: `linear-gradient(180deg, transparent, ${surface.base})` }}
           />
         )}
+
+        {/* Behind the content, above the surface, so it lights the background
+            between the cards without washing over the text on them. */}
+        {pastIntro && <SpotlightCursor className="z-0" config={spotlightFor(isDark)} />}
 
       <div className="relative z-10 mx-auto flex max-w-5xl flex-col">
         <div className="flex items-start justify-between gap-4">

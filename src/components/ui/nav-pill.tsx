@@ -36,6 +36,15 @@ export type NavPillItem = {
   /** Hash target, e.g. "#/home". */
   href: string;
   id: string;
+  /**
+   * Shown instead of the label while the pill is closed.
+   *
+   * Only while closed. Opened, the pill is a list of destinations and they have
+   * to be readable as words; a mark is only unambiguous for the place you are
+   * already standing in. `label` is still required either way, since it is what
+   * the item is called once the pill opens and what a screen reader announces.
+   */
+  icon?: React.ReactNode;
 };
 
 export type NavPillProps = {
@@ -124,7 +133,11 @@ export function NavPill({ items, activeId, className }: NavPillProps) {
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const active = items.find((i) => i.id === activeId) ?? items[0];
-  const collapsedWidth = Math.max(140, measureWidth([active?.label ?? ""]) - 24);
+  // A mark needs a fraction of the room a word does, so the closed pill shrinks
+  // to something nearer a button than a label.
+  const collapsedWidth = active?.icon
+    ? 96
+    : Math.max(140, measureWidth([active?.label ?? ""]) - 24);
   const expandedWidth = measureWidth(items.map((i) => i.label));
 
   const width = useSpring(collapsedWidth, { stiffness: 220, damping: 25, mass: 1 });
@@ -243,17 +256,31 @@ export function NavPill({ items, activeId, className }: NavPillProps) {
                 animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                 exit={{ opacity: 0, y: -8, filter: "blur(4px)" }}
                 transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
-                style={{
-                  fontSize: "15.5px",
-                  fontWeight: 700,
-                  color: p.activeText,
-                  letterSpacing: ".45px",
-                  whiteSpace: "nowrap",
-                  textShadow: p.activeShadow,
-                  WebkitFontSmoothing: "antialiased",
-                }}
+                style={
+                  active.icon
+                    ? { display: "grid", placeItems: "center" }
+                    : {
+                        fontSize: "15.5px",
+                        fontWeight: 700,
+                        color: p.activeText,
+                        letterSpacing: ".45px",
+                        whiteSpace: "nowrap",
+                        textShadow: p.activeShadow,
+                        WebkitFontSmoothing: "antialiased",
+                      }
+                }
               >
-                {active.label}
+                {/* The label goes to screen readers either way. A mark on its
+                    own would otherwise leave the closed pill announcing
+                    nothing. */}
+                {active.icon ? (
+                  <>
+                    {active.icon}
+                    <span className="sr-only">{active.label}</span>
+                  </>
+                ) : (
+                  active.label
+                )}
               </motion.span>
             )}
           </AnimatePresence>

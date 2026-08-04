@@ -1,7 +1,8 @@
-import { ArrowLeft, ArrowUpRight } from "lucide-react";
+﻿import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import { DECKS } from "@/data/decks";
 import { DECK_GROUPS } from "@/data/types";
 import { NavPill, type NavPillItem } from "@/components/ui/nav-pill";
+import { BlueberryMark } from "@/components/ui/blueberry-mark";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { Contact2 } from "@/components/ui/contact-2";
 import { GradientMenuButton } from "@/components/ui/gradient-menu";
@@ -27,7 +28,7 @@ export function ContactPage() {
   const surface = isDark ? SURFACE.dark : SURFACE.light;
 
   const navItems: NavPillItem[] = [
-    { id: "home", label: "Home", href: "#/home" },
+    { id: "home", label: "Home", href: "#/home", icon: <BlueberryMark className="h-7 w-7" /> },
     ...DECK_GROUPS.filter((g) => DECKS.some((d) => (d.group ?? "lab") === g.id)).map((g) => ({
       id: g.id,
       label: g.title.replace(/\[[^\]]*\]\s*/, ""),
