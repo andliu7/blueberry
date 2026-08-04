@@ -172,6 +172,39 @@ body {
     0 6px 26px -4px rgba(167, 139, 250, 0.45);
 }
 
+/* The laptop's lid, opening and closing on a loop.
+
+   Only runs while the tag is hovered, which is what keeps this from being 75
+   elements animating behind a paragraph forever the way the original did. */
+@keyframes lid-open-close {
+  0% {
+    transform: rotateX(78deg);
+  }
+  22% {
+    transform: rotateX(4deg);
+  }
+  70% {
+    transform: rotateX(4deg);
+  }
+  92% {
+    transform: rotateX(78deg);
+  }
+  100% {
+    transform: rotateX(78deg);
+  }
+}
+
+.group\/cs:hover .cs-lid {
+  animation: lid-open-close 2.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .group\/cs:hover .cs-lid {
+    animation: none;
+    transform: rotateX(4deg);
+  }
+}
+
 /* The same halo for artwork rather than a box. A box-shadow on an SVG paints a
    rectangle around it, so the berry needs a drop-shadow that follows its own
    silhouette. No `transition` here either, for the reason above. */

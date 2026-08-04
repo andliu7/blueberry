@@ -55,13 +55,15 @@ export function MiniMacbook({ className }: { className?: string }) {
           opacity: 0.9,
         }}
       />
-      {/* The lid. Shut at 78 degrees, swinging up to vertical on hover. */}
+      {/* The lid. Shut at 78 degrees, and once the tag is hovered it opens and
+          closes on a loop; see `lid-open-close` in index.css. The keyframes live
+          there because a looping animation cannot be expressed as a Tailwind
+          transition, and gating them on `.group\/cs:hover` keeps the loop from
+          running when nobody is looking at it. */}
       <span
         className={cn(
-          "absolute bottom-[3px] left-[1px] h-[19px] w-[calc(100%-2px)] rounded-[2px]",
-          "origin-bottom transition-transform duration-500 ease-out",
-          "[transform:rotateX(78deg)] group-hover/cs:[transform:rotateX(4deg)]",
-          "motion-reduce:[transform:rotateX(4deg)]",
+          "cs-lid absolute bottom-[3px] left-[1px] h-[19px] w-[calc(100%-2px)] rounded-[2px]",
+          "origin-bottom [transform:rotateX(78deg)]",
         )}
         style={{
           background: "linear-gradient(160deg, #f0f0f4 0%, #c8c8d0 55%, #a6a6ae 100%)",

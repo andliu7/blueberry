@@ -159,6 +159,8 @@ export function NavPill({ items, activeId, className }: NavPillProps) {
    * destinations simply appear to its right.
    */
   const anchored = Boolean(active?.icon);
+  /** Closed on a mark: the mark alone, with none of the pill's moulding. */
+  const bare = anchored && !open;
   const collapsedWidth = anchored
     ? UNIT
     : Math.max(140, measureWidth(active ? [active] : [], 48) - 24);
@@ -207,11 +209,18 @@ export function NavPill({ items, activeId, className }: NavPillProps) {
         borderRadius: 9999,
         position: "relative",
         overflow: "hidden",
-        background: p.surface,
-        boxShadow: open ? p.open : p.rest,
+        // Closed on a mark, the pill is only the mark: no surface, no shadow, no
+        // moulded edges. That is the treatment the deck title screens already
+        // use, where a bordered button in the corner read as a control bolted
+        // onto the picture. The chrome fades back in as it opens, because a row
+        // of destinations does need something to sit on.
+        background: bare ? "transparent" : p.surface,
+        boxShadow: bare ? "none" : open ? p.open : p.rest,
         transition: "box-shadow .3s ease-out, background .3s ease-out",
       }}
     >
+      {!bare && (
+        <>
       {/* Bright ridge along the top edge, where a real object catches light. */}
       <div
         aria-hidden
@@ -266,6 +275,8 @@ export function NavPill({ items, activeId, className }: NavPillProps) {
         className="pointer-events-none absolute inset-0 rounded-full"
         style={{ boxShadow: p.hairline }}
       />
+        </>
+      )}
 
       <div
         className={cn(
@@ -302,7 +313,11 @@ export function NavPill({ items, activeId, className }: NavPillProps) {
                     nothing. */}
                 {active.icon ? (
                   <>
-                    {active.icon}
+                    {/* Glows on hover, the same as the one on a deck's title
+                        screen, so the bare mark is still plainly pressable. */}
+                    <span className="blueberry-glow-art transition-[filter] duration-300">
+                      {active.icon}
+                    </span>
                     <span className="sr-only">{active.label}</span>
                   </>
                 ) : (

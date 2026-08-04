@@ -56,10 +56,88 @@ interface Rgb {
 }
 
 export interface ParticleWord {
+  /** Also the accessible label, including for a shape. */
   text: string;
   /** Gradient endpoints, read left to right across the word. */
   from: string;
   to: string;
+  /**
+   * Draw a shape instead of the text.
+   *
+   * A shape takes its colours from the drawing itself rather than from `from`
+   * and `to`: the logo is lit from the upper left and shaded round to a deep
+   * violet, and a flat left-to-right gradient would throw that away.
+   */
+  shape?: "blueberry";
+}
+
+/**
+ * The logo, drawn with canvas primitives rather than loaded as an image.
+ *
+ * `drawImage` from an SVG data URI would mean an async load in the middle of
+ * `setWord`, which is called synchronously from the animation loop and on every
+ * resize. The mark is a circle, five petals and a dot, so drawing it directly is
+ * both simpler and instant.
+ *
+ * Kept in step with `BlueberryMark` by eye. It only has to survive being
+ * sampled on a grid and thrown across the screen, so it is the silhouette and
+ * the shading that matter, not the exact control points.
+ */
+function drawBlueberry(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number) {
+  const r = size * 0.46;
+  const bodyY = cy + size * 0.04;
+
+  const body = ctx.createRadialGradient(
+    cx - r * 0.34,
+    bodyY - r * 0.44,
+    r * 0.08,
+    cx,
+    bodyY,
+    r * 1.2,
+  );
+  body.addColorStop(0, "#7dd3fc");
+  body.addColorStop(0.28, "#4f86f7");
+  body.addColorStop(0.66, "#6d3fe0");
+  body.addColorStop(1, "#3b1d8f");
+
+  ctx.fillStyle = body;
+  ctx.beginPath();
+  ctx.arc(cx, bodyY, r, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Specular highlight, upper left.
+  ctx.save();
+  ctx.translate(cx - r * 0.56, bodyY - r * 0.42);
+  ctx.rotate((-30 * Math.PI) / 180);
+  ctx.fillStyle = "rgba(255,255,255,0.5)";
+  ctx.beginPath();
+  ctx.ellipse(0, 0, r * 0.26, r * 0.18, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  // The calyx: five lobes on top, squashed vertically because a crown lying
+  // flat on a sphere is foreshortened seen from the side.
+  const lobe = r * 0.48;
+  ctx.save();
+  ctx.translate(cx, bodyY - r * 0.82);
+  ctx.scale(1, 0.62);
+  ctx.fillStyle = "#2c3fb0";
+  for (let i = 0; i < 5; i++) {
+    ctx.save();
+    ctx.rotate((i * 72 * Math.PI) / 180);
+    ctx.beginPath();
+    ctx.moveTo(0, -lobe);
+    ctx.bezierCurveTo(lobe * 0.25, -lobe * 0.6, lobe * 0.34, -lobe * 0.25, lobe * 0.24, 0);
+    ctx.bezierCurveTo(lobe * 0.14, lobe * 0.2, -lobe * 0.14, lobe * 0.2, -lobe * 0.24, 0);
+    ctx.bezierCurveTo(-lobe * 0.34, -lobe * 0.25, -lobe * 0.25, -lobe * 0.6, 0, -lobe);
+    ctx.fill();
+    ctx.restore();
+  }
+  ctx.fillStyle = "#241f7a";
+  ctx.beginPath();
+  ctx.arc(0, 0, lobe * 0.33, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
 }
 
 const SIM_STEP_MS = 1000 / 60;
@@ -337,21 +415,35 @@ export function ParticleTextEffect({
       const offCtx = off.getContext("2d", { willReadFrequently: true });
       if (!offCtx) return;
 
-      offCtx.font = `bold ${fontSize}px ${FONT_FAMILY}`;
-      offCtx.fillStyle = "white";
-      offCtx.textAlign = "center";
-      offCtx.textBaseline = "middle";
-      offCtx.fillText(word.text, width / 2, height / 2);
+      if (word.shape === "blueberry") {
+        // Sized off the type, so the mark lands about as tall as the words that
+        // preceded it rather than jumping scale on the last beat.
+        drawBlueberry(offCtx, width / 2, height / 2, fontSize * 1.15);
+      } else {
+        offCtx.font = `bold ${fontSize}px ${FONT_FAMILY}`;
+        offCtx.fillStyle = "white";
+        offCtx.textAlign = "center";
+        offCtx.textBaseline = "middle";
+        offCtx.fillText(word.text, width / 2, height / 2);
+      }
 
       const pixels = offCtx.getImageData(0, 0, width, height).data;
 
-      const coords: Vec[] = [];
+      const coords: (Vec & { rgb?: Rgb })[] = [];
       let minX = Infinity;
       let maxX = -Infinity;
       for (let y = 0; y < height; y += gap) {
         for (let x = 0; x < width; x += gap) {
-          if (pixels[(y * width + x) * 4 + 3] > 128) {
-            coords.push({ x, y });
+          const at = (y * width + x) * 4;
+          if (pixels[at + 3]! > 128) {
+            // A shape carries its own shading, so each particle keeps the colour
+            // of the pixel it came from. Text is flat white and takes the
+            // gradient instead.
+            coords.push(
+              word.shape
+                ? { x, y, rgb: { r: pixels[at]!, g: pixels[at + 1]!, b: pixels[at + 2]! } }
+                : { x, y },
+            );
             if (x < minX) minX = x;
             if (x > maxX) maxX = x;
           }
@@ -395,7 +487,7 @@ export function ParticleTextEffect({
         p.closeEnoughTarget = 110 * scale;
         p.colorBlendRate = Math.random() * 0.028 + 0.008;
 
-        const colour = mixRgb(from, to, (coord.x - minX) / span);
+        const colour = coord.rgb ?? mixRgb(from, to, (coord.x - minX) / span);
         // A new particle arrives already the right colour. Blending it up from
         // the class default would mean flying in as a black dot, which is
         // invisible on the black opening and then a smudge over the shader.

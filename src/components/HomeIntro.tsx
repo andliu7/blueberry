@@ -51,6 +51,10 @@ const INTRO_WORDS: ParticleWord[] = [
   { text: "WELCOME", from: "#6366f1", to: "#d946ef" },
   { text: "TO", from: "#d946ef", to: "#f59e0b" },
   { text: SITE_WORD, from: "#818cf8", to: "#f0abfc" },
+  // The name scatters one last time and comes back as the mark itself. The
+  // swarm carries the logo's own shading rather than the gradient the words
+  // wear, so the berry arrives lit rather than flat.
+  { text: SITE_NAME, from: "#818cf8", to: "#f0abfc", shape: "blueberry" },
 ];
 
 /**
@@ -61,7 +65,7 @@ const INTRO_WORDS: ParticleWord[] = [
  * `words` is an effect dependency on the canvas, and a fresh array on every
  * render would restart the sequence continuously.
  */
-const SETTLED_WORDS: ParticleWord[] = [INTRO_WORDS[2]!];
+const SETTLED_WORDS: ParticleWord[] = [INTRO_WORDS[3]!];
 
 function IntroStage({
   ready,
@@ -143,7 +147,9 @@ function IntroStage({
       >
         <ParticleTextEffect
           words={settled ? SETTLED_WORDS : INTRO_WORDS}
-          wordMs={1500}
+          // Trimmed from 1500 now there are four beats rather than three, so the
+          // whole opening still lands inside five seconds.
+          wordMs={1300}
           settleMs={settled ? 200 : 1000}
           onFinished={onSettled}
           label={settled ? SITE_WORD : `Welcome to ${SITE_WORD}`}

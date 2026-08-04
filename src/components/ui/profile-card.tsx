@@ -159,11 +159,26 @@ export function ProfileCard({
               "dark:shadow-[2px_2px_4px_rgba(0,0,0,0.4),-2px_-2px_4px_rgba(255,255,255,0.05)]",
             );
 
-            const inner = (
-              <>
-                {tag.icon}
-                {tag.label}
-              </>
+            /**
+             * With an icon the tag runs the other way to the profile pills:
+             * the word is what you see at rest and it collapses into the mark
+             * when you point at it, rather than a mark widening into a word.
+             *
+             * The two are stacked in a grid cell rather than swapped, so the
+             * pill never reflows mid-transition and there is nothing to catch
+             * the eye but the crossfade itself.
+             */
+            const inner = tag.icon ? (
+              <span className="grid place-items-center [&>*]:col-start-1 [&>*]:row-start-1">
+                <span className="transition-all duration-300 group-hover/cs:scale-75 group-hover/cs:opacity-0">
+                  {tag.label}
+                </span>
+                <span className="scale-50 opacity-0 transition-all duration-300 group-hover/cs:scale-100 group-hover/cs:opacity-100">
+                  {tag.icon}
+                </span>
+              </span>
+            ) : (
+              tag.label
             );
 
             return tag.href ? (
