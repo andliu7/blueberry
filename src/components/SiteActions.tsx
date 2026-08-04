@@ -6,6 +6,7 @@ import { ProfileCard } from "@/components/ui/profile-card";
 import { GradientMenuButton } from "@/components/ui/gradient-menu";
 import { GithubMark, LinkedinMark } from "@/components/ui/brand-marks";
 import { MiniMacbook } from "@/components/ui/mini-macbook";
+import { usePageFlip } from "@/components/ui/page-flip";
 import { CMNS_URL, GITHUB_URL, LINKEDIN_URL, PREHEALTH_URL, SITE_NAME } from "@/data/site";
 import { cn } from "@/lib/utils";
 
@@ -162,19 +163,55 @@ export function SiteActions({
 }) {
   const [aboutOpen, setAboutOpen] = useState(false);
   const close = useCallback(() => setAboutOpen(false), []);
+  const flipTo = usePageFlip();
+  const reduce = useReducedMotion();
+
+  /**
+   * Contact dissolves into About on its way out, the way Expand All dissolves
+   * into Collapse All when it has nothing left to do.
+   *
+   * It is leaving the page, so the pair is about to stop being a pair. Letting
+   * it vanish would read as the button having been removed; letting it slide
+   * into its neighbour reads as the two becoming one thing again, which is what
+   * they are once you have arrived.
+   */
+  const [merging, setMerging] = useState(false);
+
+  const goToContact = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (reduce) {
+      flipTo("#/contact");
+      return;
+    }
+    setMerging(true);
+    // Long enough for the droplet to reach About, short enough that the sheet
+    // starts turning while the merge still reads as one movement.
+    window.setTimeout(() => flipTo("#/contact"), 260);
+  };
 
   return (
-    <div className={cn("flex items-center gap-2", className)}>
+    <div className={cn("relative flex items-center gap-2", className)}>
       <button type="button" onClick={() => setAboutOpen(true)} className={buttonClass}>
         <User className="h-3.5 w-3.5" />
         About
       </button>
 
       {showContact && (
-        <a href="#/contact" className={buttonClass}>
+        <motion.a
+          href="#/contact"
+          onClick={goToContact}
+          className={buttonClass}
+          animate={
+            merging
+              ? // Toward About, which sits to its left, shrinking as it goes.
+                { x: -96, scale: 0.55, opacity: 0.9 }
+              : { x: 0, scale: 1, opacity: 1 }
+          }
+          transition={{ type: "spring", stiffness: 320, damping: 26 }}
+        >
           <Mail className="h-3.5 w-3.5 transition-transform duration-300 group-hover:-translate-y-0.5" />
           Contact
-        </a>
+        </motion.a>
       )}
 
       <AboutOverlay open={aboutOpen} onClose={close} />
