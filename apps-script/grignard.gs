@@ -1,44 +1,51 @@
 /**
  * One Apps Script backend for the whole study site.
  *
- * A web app can only export one doPost and one doGet. A second definition does
- * not add an endpoint, it silently replaces the first. So everything is routed
- * through a single entry point on a `type` field instead, and each feature
- * writes to its own tab of the same spreadsheet.
+ *   POST { type: "feedback", rating, comment }          -> feedback tab
+ *   POST { type: "contact",  firstname, ..., message }  -> messages tab, emails you
+ *   POST { type: "deck",     idToken, deck }            -> decks tab, allowlist only
+ *   GET  ?type=decks                                    -> published decks as JSON
  *
- *   POST { type: "feedback", rating, comment }        -> feedback tab
- *   POST { type: "contact",  firstname, ..., message } -> messages tab, emails you
- *   POST { type: "deck",     idToken, deck }           -> decks tab, allowlist only
- *   GET  ?type=decks                                   -> published decks as JSON
- *
- * A payload with no `type` is treated as feedback, so a browser still running
- * an older cached bundle keeps working after this is deployed.
+ * A web app exports one doPost. A second definition does not add an endpoint,
+ * it silently replaces the first, so everything routes through one entry point
+ * on a `type` field. No `type` is treated as feedback, so a browser running an
+ * older cached bundle keeps working after a redeploy.
  *
  * SETUP
- * 1. Paste this into the existing "Grignard" Apps Script project, replacing
- *    what is there.
- * 2. Project Settings > Script Properties:
- *      SHEET_ID   = the spreadsheet id from its URL
- *      NOTIFY_TO  = your email, for contact form notifications
- *      CLIENT_ID  = Google OAuth client id      (only needed for deck upload)
- *      ALLOWLIST  = comma separated emails      (only needed for deck upload)
- *    These live here rather than in the file because this repo is public. The
- *    spreadsheet id is not a credential, but it does tell a reader exactly
- *    which document to go and try.
- * 3. Deploy > Manage deployments > edit the existing one > Version: New version.
- *    Editing the existing deployment keeps the same /exec URL, so the feedback
- *    widget already pointing at it does not break. Creating a *new* deployment
- *    would give you a different URL.
- *    Execute as: Me.   Who has access: Anyone.
- * 4. Run doGet once from the editor to trigger the authorisation prompt.
+ * 1. Script Properties: SHEET_ID, NOTIFY_TO. CLIENT_ID and ALLOWLIST may go
+ *    there too, or be left as the constants below.
+ * 2. Run any function once from the editor and accept the consent screen. The
+ *    mail permission is only requested at that point, and without it the
+ *    contact route fails in a way the browser reports as a network error.
+ * 3. Deploy > Manage deployments > edit the existing one > New version. That
+ *    keeps the same /exec URL. A new deployment would hand you a different one.
  */
+
+// One OAuth client id covers every site that uses it. Add both origins to it
+// in Google Cloud rather than creating a client id per origin:
+//   http://localhost:5173
+//   https://andliu7.github.io
+var CLIENT_ID = '971212739983-b8equevo7r4injk7jhmo2kpchi40cadj.apps.googleusercontent.com';
+var ALLOWLIST = 'andliu@terpmail.umd.edu, zeus.andrewliu@gmail.com';
 
 var TABS = { feedback: 'feedback', contact: 'messages', deck: 'decks' };
 var MAX_CONTACT_PER_HOUR = 20;
 var MAX_LEN = 5000;
 
+/**
+ * Script Properties first, then the constants above.
+ *
+ * The fallback matters: the rest of the file reads CLIENT_ID and ALLOWLIST
+ * through this function, so declaring them only as variables at the top would
+ * leave every deck upload refused with "Sign-in could not be verified", since
+ * the audience check would be comparing against an empty string.
+ */
 function props_(key) {
-  return PropertiesService.getScriptProperties().getProperty(key) || '';
+  var fromProps = PropertiesService.getScriptProperties().getProperty(key);
+  if (fromProps) return fromProps;
+  if (key === 'CLIENT_ID') return CLIENT_ID;
+  if (key === 'ALLOWLIST') return ALLOWLIST;
+  return '';
 }
 
 function json_(obj) {
@@ -109,11 +116,11 @@ function handleContact_(data) {
   var subject = clean_(data.subject) || '(no subject)';
   sh.appendRow([new Date().toISOString(), first, last, email, subject, message]);
 
-  // The row is already saved by this point, so a failed notification must not
-  // fail the request. MailApp needs a scope the deployment may not have been
-  // granted yet, and an uncaught throw here returns an error page with no CORS
-  // headers, which the browser reports to the visitor as a network failure on
-  // a message that was in fact received.
+  // The row is saved by this point, so a failed notification must not fail the
+  // request. MailApp needs a scope the deployment may not have been granted,
+  // and an uncaught throw returns an error page with no CORS headers, which the
+  // browser reports to the visitor as a network failure on a message that was
+  // in fact received.
   var to = props_('NOTIFY_TO');
   var mailed = false;
   if (to) {
@@ -128,11 +135,15 @@ function handleContact_(data) {
       });
       mailed = true;
     } catch (mailErr) {
-      // Left in the sheet so a missing authorisation is visible rather than
+      // Recorded in the sheet so a missing authorisation is visible rather than
       // silent. Run any function in the editor once to grant the mail scope.
       sh.getRange(sh.getLastRow(), 6).setValue(message + '\n\n[notify failed: ' + mailErr + ']');
     }
   }
+
+  // Every branch must return. Without this the function hands back undefined,
+  // doPost returns undefined, and Apps Script sends an empty response the
+  // browser cannot parse.
   return json_({ ok: true, mailed: mailed });
 }
 
@@ -212,7 +223,6 @@ function doPost(e) {
         return handleDeck_(data);
       case 'feedback':
       default:
-        // No type means an older cached bundle, which only ever sent feedback.
         return handleFeedback_(data);
     }
   } catch (err) {
