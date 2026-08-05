@@ -99,6 +99,8 @@ export function HomePage() {
   }, [showIntro]);
 
   const reduce = useReducedMotion();
+  // Bumped to restage the heading; see StudyDecksHeading.
+  const [headingReplay, setHeadingReplay] = useState(0);
   const [hits, setHits] = useState<SearchHit[] | null>(null);
   // Stable identity: DeckSearch reports through an effect, so a fresh callback
   // every render would re-fire it on every keystroke's re-render.
@@ -162,10 +164,13 @@ export function HomePage() {
         </div>
 
         <header className="mt-16 mb-12 max-w-2xl">
-          <StudyDecksHeading />
+          <StudyDecksHeading replayKey={headingReplay} />
           {/* One sentence by default. The full version ran to two paragraphs
               and pushed the decks themselves below the fold. */}
           <ExpandableText
+            // Opening the blurb restages the heading above it, so the two read
+            // as one block responding rather than the text growing on its own.
+            onToggle={() => setHeadingReplay((n) => n + 1)}
             className="playful-face mt-4 text-lg text-slate-500 dark:text-stone-400"
             text={
               "Flashcard decks I built to make the rote memorization part of organic chemistry a little more fun! " +
@@ -263,22 +268,35 @@ const HEADING_CLASS =
 /**
  * The hub's heading, which arrives in two beats.
  *
- * It resolves out of random letters the first time it comes into view, and then
- * pops letter by letter the way the deck titles do when you hover them. The pop
- * plays itself once, because the opening scrolls the page here on its own and
- * there is no cursor anywhere near the words to set it off.
+ * It resolves out of random letters whenever it comes into view, and then pops
+ * letter by letter the way the deck titles do when you hover them. The pop plays
+ * itself, because you arrive here by scrolling and there is no cursor anywhere
+ * near the words to set it off.
+ *
+ * It replays on every arrival rather than only the first. Scrolling down from
+ * the opening is the moment the heading is meant to introduce, and that is a
+ * moment you have every time you come back up and go down again.
  *
  * Two components rather than one because they want the text in incompatible
  * shapes: `TextScramble` swaps the whole string on a timer, `BoldOnHover` needs
  * every character to be its own animated box. Handing over at the moment the
  * scramble lands is what lets each do the thing it is good at.
  */
-function StudyDecksHeading() {
+function StudyDecksHeading({ replayKey = 0 }: { replayKey?: number }) {
   const ref = useRef<HTMLHeadingElement>(null);
   const reduce = useReducedMotion();
-  // `once`: coming back up the page should not restage the whole thing.
-  const inView = useInView(ref, { once: true, amount: 0.6 });
+  const inView = useInView(ref, { amount: 0.6 });
   const [settled, setSettled] = useState(false);
+
+  // Back to letters whenever it leaves the screen, or whenever the caller bumps
+  // the key, so the next arrival has something to resolve out of.
+  useEffect(() => {
+    if (!inView) setSettled(false);
+  }, [inView]);
+
+  useEffect(() => {
+    if (replayKey > 0) setSettled(false);
+  }, [replayKey]);
 
   // Reduced motion gets the words, plainly, with the hover pop still available.
   if (reduce) {

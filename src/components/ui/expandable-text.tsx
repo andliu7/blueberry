@@ -29,10 +29,13 @@ export function ExpandableText({
   text,
   className,
   buttonClassName,
+  onToggle,
 }: {
   text: string;
   className?: string;
   buttonClassName?: string;
+  /** Fired on each toggle, so a caller can restage whatever sits above it. */
+  onToggle?: (open: boolean) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [head, rest] = useMemo(() => splitFirstSentence(text), [text]);
@@ -45,7 +48,12 @@ export function ExpandableText({
       <p>
         {open ? text : head}{" "}
         <button
-          onClick={() => setOpen((o) => !o)}
+          onClick={() =>
+            setOpen((o) => {
+              onToggle?.(!o);
+              return !o;
+            })
+          }
           aria-expanded={open}
           className={cn(
             "cursor-pointer font-medium text-slate-400 underline decoration-dotted underline-offset-4 transition-colors hover:text-slate-600 dark:text-stone-500 dark:hover:text-stone-300",

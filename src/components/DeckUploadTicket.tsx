@@ -1,5 +1,6 @@
-import { useRef, useState } from "react";
-import { Upload, CheckCircle2, AlertTriangle, LogOut } from "lucide-react";
+﻿import { useState } from "react";
+import { CheckCircle2, AlertTriangle, LogOut, Lock } from "lucide-react";
+import { FileUpload, type FileUploadItem } from "@/components/ui/be-ui-file-upload";
 import { AdmitOneTicket } from "@/components/ui/admit-one-ticket";
 import { QuestionCard } from "@/components/QuestionCard";
 import { useGoogleAuth } from "@/lib/useGoogleAuth";
@@ -16,20 +17,55 @@ import { cn } from "@/lib/utils";
  * someone in, and publishing is only ever accepted or refused by the server.
  * Nothing here decides who is allowed in; the allowlist lives in Apps Script.
  */
+/**
+ * A latch, not a lock.
+ *
+ * It keeps the half-finished upload form out of the way of anyone who happens to
+ * press the ticket, and that is all it is for. The passphrase is compiled into
+ * the bundle like every other string in it, so anyone who wants it can read it;
+ * what actually decides whether a deck can be published is the Google sign-in
+ * and the allowlist in Apps Script, which run on the server where they cannot be
+ * read or edited from a browser.
+ */
+const PASSPHRASE = "anthocyanin";
+const UNLOCK_KEY = "blueberry_upload_unlocked";
+
 export function DeckUploadTicket() {
   const { configured, ready, user, error, signIn, signOut, renderButton } = useGoogleAuth();
   const [open, setOpen] = useState(false);
   const [result, setResult] = useState<ParseResult | null>(null);
-  const [fileName, setFileName] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "done" | "failed">("idle");
   const [serverMessage, setServerMessage] = useState("");
-  const fileRef = useRef<HTMLInputElement>(null);
+  const [queue, setQueue] = useState<FileUploadItem[]>([]);
+  const [unlocked, setUnlocked] = useState(() => {
+    try {
+      return sessionStorage.getItem(UNLOCK_KEY) === "1";
+    } catch {
+      return false;
+    }
+  });
+  const [word, setWord] = useState("");
+  const [wrong, setWrong] = useState(false);
 
   const onFile = async (file: File) => {
-    setFileName(file.name);
     setStatus("idle");
     setServerMessage("");
-    setResult(parseDeckText(await file.text()));
+    const parsed = parseDeckText(await file.text());
+    setResult(parsed);
+    // The queue row reports on the parse, since that is the only work that
+    // happens when a file lands: nothing is uploaded until Publish is pressed.
+    setQueue((q) =>
+      q.map((item) =>
+        item.name === file.name
+          ? {
+              ...item,
+              progress: 100,
+              status: parsed.deck ? "success" : "error",
+              error: parsed.errors[0],
+            }
+          : item,
+      ),
+    );
   };
 
   const publish = async () => {
@@ -82,7 +118,53 @@ export function DeckUploadTicket() {
         </a>
       </p>
 
-      {open && (
+      {open && !unlocked && (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (word.trim().toLowerCase() === PASSPHRASE) {
+              sessionStorage.setItem(UNLOCK_KEY, "1");
+              setUnlocked(true);
+              setWrong(false);
+            } else {
+              setWrong(true);
+            }
+          }}
+          className="mt-6 w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm dark:border-stone-800 dark:bg-stone-900"
+        >
+          <p className="flex items-center gap-2 text-sm font-semibold text-slate-800 dark:text-stone-100">
+            <Lock className="h-4 w-4" />
+            Passphrase
+          </p>
+          <p className="mt-1 text-xs text-slate-500 dark:text-stone-400">
+            This only hides the form while it is being worked on. Publishing is
+            still decided by the server.
+          </p>
+          <input
+            type="password"
+            value={word}
+            autoComplete="off"
+            onChange={(e) => {
+              setWord(e.target.value);
+              setWrong(false);
+            }}
+            className="mt-3 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus-visible:border-indigo-400 focus-visible:ring-2 focus-visible:ring-indigo-400/40 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-200"
+          />
+          {wrong && (
+            <p className="mt-2 text-xs text-red-600 dark:text-red-400">
+              Not that one.
+            </p>
+          )}
+          <button
+            type="submit"
+            className="mt-3 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-indigo-500"
+          >
+            Unlock
+          </button>
+        </form>
+      )}
+
+      {open && unlocked && (
         <div className="mt-6 w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm dark:border-stone-800 dark:bg-stone-900">
           {!configured ? (
             <p className="text-sm text-slate-500 dark:text-stone-400">
@@ -118,20 +200,41 @@ export function DeckUploadTicket() {
                 </button>
               </div>
 
-              <input
-                ref={fileRef}
-                type="file"
+              <FileUpload
+                value={queue}
+                onValueChange={setQueue}
+                onFilesAdded={(_added, files) => files[0] && onFile(files[0])}
+                onRemove={() => {
+                  setResult(null);
+                  setStatus("idle");
+                  setServerMessage("");
+                }}
                 accept=".txt,text/plain"
-                className="hidden"
-                onChange={(e) => e.target.files?.[0] && onFile(e.target.files[0])}
+                maxFiles={1}
+                title="Drop a .txt deck here"
+                description="One file. Parsed in your browser before anything is sent."
               />
-              <button
-                onClick={() => fileRef.current?.click()}
-                className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-indigo-500"
-              >
-                <Upload className="h-4 w-4" />
-                {fileName || "Attach a .txt"}
-              </button>
+
+              <p className="mt-3 text-xs text-slate-400 dark:text-stone-500">
+                Not sure of the format?{" "}
+                <a
+                  href="deck-format.html"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="font-semibold text-indigo-500 underline decoration-dotted underline-offset-4"
+                >
+                  Read the guide
+                </a>{" "}
+                or{" "}
+                <a
+                  href="sample-deck.txt"
+                  download
+                  className="font-semibold text-indigo-500 underline decoration-dotted underline-offset-4"
+                >
+                  download a sample
+                </a>
+                .
+              </p>
 
               {result && (
                 <div className="mt-4 space-y-3">
