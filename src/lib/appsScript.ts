@@ -18,7 +18,15 @@ const OVERRIDES = {
 } as const;
 
 /** The deck web app also serves folder management; see `endpointFor`. */
-type DeckWriteFeature = "deleteDeck" | "addShelf" | "deleteShelf" | "setDeckShelf";
+type DeckWriteFeature =
+  | "deleteDeck"
+  | "addShelf"
+  | "deleteShelf"
+  | "setDeckShelf"
+  | "workspace"
+  | "addTodo"
+  | "updateTodo"
+  | "deleteTodo";
 
 export type AppsScriptFeature = keyof typeof OVERRIDES | DeckWriteFeature;
 
@@ -27,6 +35,10 @@ const DECK_WRITES: DeckWriteFeature[] = [
   "addShelf",
   "deleteShelf",
   "setDeckShelf",
+  "workspace",
+  "addTodo",
+  "updateTodo",
+  "deleteTodo",
 ];
 
 /**

@@ -1,8 +1,9 @@
 import { useEffect } from "react";
-import { ArrowLeft, LogOut, ShieldCheck, Upload } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { ShaderAnimation } from "@/components/ui/shader-animation";
 import { BlueberryMark } from "@/components/ui/blueberry-mark";
 import { useGoogleAuth } from "@/lib/useGoogleAuth";
+import { WorkspacePage } from "@/components/WorkspacePage";
 import { SITE_NAME } from "@/data/site";
 
 /**
@@ -21,6 +22,27 @@ import { SITE_NAME } from "@/data/site";
  */
 export function SignInPage() {
   const { configured, ready, user, error, signIn, signOut, renderButton } = useGoogleAuth();
+
+  // Signed in, so this is no longer a door. The shader page has done its job and
+  // the workspace takes over the route rather than sitting behind another click.
+  if (user) return <WorkspacePage user={user} />;
+  return <SignInDoor {...{ configured, ready, user, error, signIn, signOut, renderButton }} />;
+}
+
+/**
+ * The door itself, shown only while signed out.
+ *
+ * It used to carry a signed-in state of its own, offering a link onward to the
+ * deck ticket. That branch is unreachable now that signing in swaps the whole
+ * route for the workspace, and an unreachable branch is a thing that rots.
+ */
+function SignInDoor({
+  configured,
+  ready,
+  error,
+  signIn,
+  renderButton,
+}: ReturnType<typeof useGoogleAuth>) {
 
   // The shader is white bands on black and the panel is built for that, so this
   // page is dark whatever the site theme is. Restored on the way out rather than
@@ -69,34 +91,6 @@ export function SignInPage() {
                 <code className="font-mono text-xs text-white/70">VITE_GOOGLE_CLIENT_ID</code> in{" "}
                 <code className="font-mono text-xs text-white/70">.env.local</code>.
               </p>
-            ) : user ? (
-              <div className="flex flex-col items-center gap-4">
-                <p className="inline-flex items-center gap-2 rounded-full bg-emerald-400/10 px-3 py-1.5 text-xs font-semibold text-emerald-300">
-                  <ShieldCheck className="h-3.5 w-3.5" />
-                  Signed in as {user.email}
-                </p>
-                {/* Says "may" on purpose. Being signed in is not being allowed:
-                    the allowlist runs on the server and this page cannot see it,
-                    so promising access here would be a promise it cannot keep. */}
-                <p className="text-xs leading-relaxed text-white/45">
-                  If this account is on the allowlist, the ticket at the foot of the
-                  hub will let you publish and remove decks.
-                </p>
-                <a
-                  href="#/home"
-                  className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-bold text-slate-900 transition hover:bg-white/90"
-                >
-                  <Upload className="h-4 w-4" />
-                  Go to the deck ticket
-                </a>
-                <button
-                  onClick={signOut}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-white/40 transition-colors hover:text-white/80"
-                >
-                  <LogOut className="h-3 w-3" />
-                  Sign out
-                </button>
-              </div>
             ) : (
               <div className="flex flex-col items-center gap-3">
                 {/* Google's own button. Their terms require the real thing for

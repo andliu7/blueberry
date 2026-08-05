@@ -28,7 +28,13 @@
 var CLIENT_ID = '971212739983-b8equevo7r4injk7jhmo2kpchi40cadj.apps.googleusercontent.com';
 var ALLOWLIST = 'andliu@terpmail.umd.edu, zeus.andrewliu@gmail.com';
 
-var TABS = { feedback: 'feedback', contact: 'messages', deck: 'decks', shelf: 'shelves' };
+var TABS = {
+  feedback: 'feedback',
+  contact: 'messages',
+  deck: 'decks',
+  shelf: 'shelves',
+  todo: 'todos',
+};
 var MAX_CONTACT_PER_HOUR = 20;
 var MAX_LEN = 5000;
 
@@ -405,6 +411,156 @@ function handleSetDeckShelf_(data) {
   return json_({ ok: false, error: 'That deck was not found.' });
 }
 
+// ---------------------------------------------------------------- workspace
+
+/**
+ * The staff workspace: the feedback that has come in, and the todo board.
+ *
+ * Read over POST rather than GET, unlike the decks. A GET would have to carry
+ * the ID token in the query string, which puts a credential in browser history,
+ * in any proxy log along the way, and in the Referer header of anything the page
+ * loads afterwards. The deck list is public and needs no token; this is not.
+ *
+ * Columns are free text rather than an enum. The board is one person's todo
+ * list, and a schema that has to be redeployed to rename a column is worse than
+ * a string.
+ */
+var TODO_COLUMNS = ['idea', 'todo', 'doing', 'done'];
+
+function todoTab_() {
+  return tab_(TABS.todo, ['id', 'title', 'column', 'note', 'email', 'at']);
+}
+
+function readTodos_() {
+  var sh = todoTab_();
+  var last = sh.getLastRow();
+  if (last < 2) return [];
+  return sh
+    .getRange(2, 1, last - 1, 6)
+    .getValues()
+    .filter(function (r) {
+      return String(r[0] || '').trim() !== '';
+    })
+    .map(function (r) {
+      return {
+        id: String(r[0]),
+        title: String(r[1] || ''),
+        column: String(r[2] || 'todo'),
+        note: String(r[3] || ''),
+        email: String(r[4] || ''),
+        at: String(r[5] || ''),
+      };
+    });
+}
+
+function readFeedback_() {
+  var sh = tab_(TABS.feedback, ['at', 'rating', 'comment']);
+  var last = sh.getLastRow();
+  if (last < 2) return [];
+  var rows = sh.getRange(2, 1, last - 1, 3).getValues();
+  var out = [];
+  // Newest first, and capped. The whole point is a notification list, and
+  // nobody scrolls to the two hundredth item.
+  for (var i = rows.length - 1; i >= 0 && out.length < 100; i--) {
+    var comment = String(rows[i][2] == null ? '' : rows[i][2]).trim();
+    var rating = String(rows[i][1] == null ? '' : rows[i][1]).trim();
+    if (!comment && !rating) continue;
+    out.push({
+      // The row number is a stable id for "have I read this", which is why the
+      // feedback tab does not need an id column adding to it.
+      id: 'fb-' + (i + 2),
+      at: String(rows[i][0] || ''),
+      rating: rating,
+      comment: comment,
+    });
+  }
+  return out;
+}
+
+function handleWorkspace_(data) {
+  var who = staff_(data);
+  if (who.error) return json_({ ok: false, error: who.error });
+  return json_({ ok: true, email: who.email, feedback: readFeedback_(), todos: readTodos_() });
+}
+
+function handleAddTodo_(data) {
+  var who = staff_(data);
+  if (who.error) return json_({ ok: false, error: who.error });
+
+  var title = clean_(data.title).trim();
+  if (!title) return json_({ ok: false, error: 'A task needs a title.' });
+
+  var column = clean_(data.column).trim() || 'idea';
+  if (TODO_COLUMNS.indexOf(column) === -1) column = 'idea';
+
+  // Utilities.getUuid rather than a counter: two people adding at the same
+  // moment through the lock would otherwise be handed the same next number.
+  var id = Utilities.getUuid();
+  todoTab_().appendRow([
+    id,
+    title,
+    column,
+    clean_(data.note),
+    who.email,
+    new Date().toISOString(),
+  ]);
+  return json_({ ok: true, id: id });
+}
+
+/** Moves a task between columns, or edits its title or note. */
+function handleUpdateTodo_(data) {
+  var who = staff_(data);
+  if (who.error) return json_({ ok: false, error: who.error });
+
+  var id = clean_(data.id);
+  if (!id) return json_({ ok: false, error: 'No task id given.' });
+
+  var sh = todoTab_();
+  var last = sh.getLastRow();
+  if (last < 2) return json_({ ok: false, error: 'That task was not found.' });
+
+  var ids = sh.getRange(2, 1, last - 1, 1).getValues();
+  for (var i = 0; i < ids.length; i++) {
+    if (String(ids[i][0]) !== id) continue;
+    var row = i + 2;
+    if (data.title != null) sh.getRange(row, 2).setValue(clean_(data.title));
+    if (data.column != null) {
+      var col = clean_(data.column).trim();
+      if (TODO_COLUMNS.indexOf(col) === -1) {
+        return json_({ ok: false, error: 'Unknown column: ' + col });
+      }
+      sh.getRange(row, 3).setValue(col);
+    }
+    if (data.note != null) sh.getRange(row, 4).setValue(clean_(data.note));
+    return json_({ ok: true, id: id });
+  }
+  return json_({ ok: false, error: 'That task was not found.' });
+}
+
+function handleDeleteTodo_(data) {
+  var who = staff_(data);
+  if (who.error) return json_({ ok: false, error: who.error });
+
+  var id = clean_(data.id);
+  if (!id) return json_({ ok: false, error: 'No task id given.' });
+
+  var sh = todoTab_();
+  var last = sh.getLastRow();
+  if (last < 2) return json_({ ok: false, error: 'That task was not found.' });
+
+  var ids = sh.getRange(2, 1, last - 1, 1).getValues();
+  // Backwards: deleting a row shifts everything below it up.
+  var removed = 0;
+  for (var i = ids.length - 1; i >= 0; i--) {
+    if (String(ids[i][0]) === id) {
+      sh.deleteRow(i + 2);
+      removed++;
+    }
+  }
+  if (removed === 0) return json_({ ok: false, error: 'That task was not found.' });
+  return json_({ ok: true, id: id });
+}
+
 // ------------------------------------------------------------------ routing
 
 function doPost(e) {
@@ -427,6 +583,14 @@ function doPost(e) {
         return handleDeleteShelf_(data);
       case 'setDeckShelf':
         return handleSetDeckShelf_(data);
+      case 'workspace':
+        return handleWorkspace_(data);
+      case 'addTodo':
+        return handleAddTodo_(data);
+      case 'updateTodo':
+        return handleUpdateTodo_(data);
+      case 'deleteTodo':
+        return handleDeleteTodo_(data);
       case 'feedback':
         return handleFeedback_(data);
       default:
