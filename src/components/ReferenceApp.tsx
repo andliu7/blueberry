@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Eye, EyeOff, GitBranch, ArrowUpRight, MousePointerClick, ImageOff, Highlighter, List, RefreshCw, GalleryHorizontalEnd } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Eye, EyeOff, GitBranch, ArrowUpRight, MousePointerClick, ImageOff, Highlighter, List, RefreshCw, GalleryHorizontalEnd, Orbit } from "lucide-react";
 import { HeroTitle } from "@/components/ui/hero-title";
 import { HomeBlueberry } from "@/components/ui/home-blueberry";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
@@ -9,6 +9,7 @@ import { ReferenceCards } from "@/components/ui/reference-cards";
 import { LaserPointer } from "@/components/ui/laser-pointer";
 import { deckCount, type ReferenceDeck } from "@/data/types";
 import { DeckAbout } from "@/components/ui/deck-about";
+import { CardGallery3D, GALLERY_MAX, type GalleryItem } from "@/components/ui/card-gallery-3d";
 import { cn } from "@/lib/utils";
 
 /**
@@ -26,22 +27,47 @@ import { cn } from "@/lib/utils";
  * for the other half of the job, drilling one row without the six around it
  * visible to read off.
  */
-const VIEWS = ["table", "flip", "carousel"] as const;
-type ReferenceView = (typeof VIEWS)[number];
+const ALL_VIEWS = ["table", "flip", "carousel", "gallery"] as const;
+type ReferenceView = (typeof ALL_VIEWS)[number];
 
 const VIEW_LABEL: Record<ReferenceView, string> = {
   table: "Table",
   flip: "Flip",
   carousel: "Carousel",
+  gallery: "Gallery",
 };
 
 const VIEW_ICON: Record<ReferenceView, typeof List> = {
   table: List,
   flip: RefreshCw,
   carousel: GalleryHorizontalEnd,
+  gallery: Orbit,
 };
 
 export function ReferenceApp({ deck }: { deck: ReferenceDeck }) {
+  /**
+   * Every row of the sheet, flattened, and whether there are few enough of them
+   * for the ring to be readable. The pKa and IR sheets run past twenty rows and
+   * would smear into each other; NMR and resonance fit.
+   */
+  const rows = useMemo(() => deck.groups.flatMap((g) => g.items), [deck.groups]);
+  const VIEWS = useMemo(
+    () => (rows.length <= GALLERY_MAX ? ALL_VIEWS : (["table", "flip", "carousel"] as const)),
+    [rows.length],
+  ) as readonly ReferenceView[];
+
+  const galleryItems: GalleryItem[] = useMemo(
+    () =>
+      rows.map((row, i) => ({
+        id: `${i}-${row.title}`,
+        title: row.title,
+        body: row.description,
+        badge: row.badge,
+        image: row.image ? `${import.meta.env.BASE_URL}cards/${row.image}.png` : undefined,
+      })),
+    [rows],
+  );
+
   const [quizMode, setQuizMode] = useState(true);
   const [hoverPreview, setHoverPreview] = useState(true);
   const [laser, setLaser] = useState(false);
@@ -160,9 +186,11 @@ export function ReferenceApp({ deck }: { deck: ReferenceDeck }) {
                   ? "Arrow keys, the arrows, the dots or a drag to move · press space to turn the card you are on"
                   : view === "flip"
                     ? "Click a card to turn it over, or tab to one and press space"
-                    : hoverPreview
-                    ? "Hover a row for the diagram · tap to pin it"
-                    : "Tap a row to open its diagram"}
+                    : view === "gallery"
+                      ? "Drag the ring or use the arrow keys · click a card to bring it round and open it"
+                      : hoverPreview
+                        ? "Hover a row for the diagram · tap to pin it"
+                        : "Tap a row to open its diagram"}
               </p>
 
               <div className="ml-auto">
@@ -181,6 +209,8 @@ export function ReferenceApp({ deck }: { deck: ReferenceDeck }) {
                 hoverPreview={hoverPreview}
                 preview={deck.preview}
               />
+            ) : view === "gallery" ? (
+              <CardGallery3D items={galleryItems} label={`${deck.title} rows`} />
             ) : (
               <ReferenceCards groups={deck.groups} preview={deck.preview} layout={view} />
             )}

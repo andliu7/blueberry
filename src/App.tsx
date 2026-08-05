@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
-import { ChevronsUpDown, ChevronsDownUp, Shuffle, GalleryHorizontalEnd, List, MoveVertical, ArrowDown, GitBranch, ArrowUpRight, Layers, RefreshCw } from "lucide-react";
+import { ChevronsUpDown, ChevronsDownUp, Shuffle, GalleryHorizontalEnd, List, MoveVertical, ArrowDown, GitBranch, ArrowUpRight, Layers, RefreshCw, Orbit } from "lucide-react";
 import { FlippingCard } from "@/components/ui/flipping-card";
 import { FlipCard } from "@/components/ui/flip-card";
 import { MathHtml } from "@/components/ui/math-html";
@@ -23,6 +23,7 @@ import { SnapCarousel } from "@/components/ui/snap-carousel";
 import { TiltCard } from "@/components/ui/be-ui-tilt-card";
 import { useIsDark } from "@/lib/useIsDark";
 import { QuestionCard, type Status } from "@/components/QuestionCard";
+import { CardGallery3D, GALLERY_MAX, type GalleryItem } from "@/components/ui/card-gallery-3d";
 import { ButtonHoldAndRelease } from "@/components/ui/hold-and-release-button";
 import SocialCards from "@/components/ui/card-fan-carousel";
 import { StickyNote } from "@/components/StickyNote";
@@ -57,12 +58,19 @@ const SignInPage = lazy(() =>
 );
 
 
-const VIEW_LABEL = { list: "List", carousel: "Carousel", scroll: "Scroll", stack: "Stack" } as const;
+const VIEW_LABEL = {
+  list: "List",
+  carousel: "Carousel",
+  scroll: "Scroll",
+  stack: "Stack",
+  gallery: "Gallery",
+} as const;
 const VIEW_ICON = {
   list: <List />,
   carousel: <GalleryHorizontalEnd />,
   scroll: <MoveVertical />,
   stack: <Layers />,
+  gallery: <Orbit />,
 } as const;
 const diffRank: Record<Status, number> = { red: 0, yellow: 1, none: 2, green: 3 };
 
@@ -260,7 +268,7 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
     const t = setTimeout(() => setShowHint(true), 320);
     return () => clearTimeout(t);
   }, [toolsOpen]);
-  const [view, setView] = useState<"list" | "carousel" | "scroll" | "stack">("list");
+  const [view, setView] = useState<"list" | "carousel" | "scroll" | "stack" | "gallery">("list");
   const carouselMode = view === "carousel";
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [confettiTrigger, setConfettiTrigger] = useState(0);
@@ -365,10 +373,28 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
     setShuffled(true);
   }
 
-  const VIEWS = ["list", "carousel", "scroll", "stack"] as const;
+  /**
+   * The gallery only joins the cycle on a deck short enough for a ring of cards
+   * to be readable. Past about fifteen the cards overlap into a smear, and a
+   * view that is useless on the 44-question decks should not be one of the
+   * things the button cycles you through on them.
+   */
+  const VIEWS = useMemo(
+    () =>
+      (questions.length <= GALLERY_MAX
+        ? (["list", "carousel", "scroll", "stack", "gallery"] as const)
+        : (["list", "carousel", "scroll", "stack"] as const)) as readonly typeof view[],
+    [questions.length],
+  );
   function cycleView() {
-    setView((v) => VIEWS[(VIEWS.indexOf(v) + 1) % VIEWS.length]);
+    setView((v) => VIEWS[(VIEWS.indexOf(v) + 1) % VIEWS.length]!);
   }
+
+  /** Questions as gallery cards. No diagrams on a study deck, so title only. */
+  const galleryItems: GalleryItem[] = useMemo(
+    () => visibleIdx.map((qi) => ({ id: String(qi), title: questions[qi]!.q, body: questions[qi]!.a })),
+    [visibleIdx, questions],
+  );
 
   function jumpToBottom() {
     window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
@@ -847,7 +873,9 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
         {/* Container and card style are independent: every branch below calls
             the same renderAnyCard, so Flip and Tilt work inside the carousel,
             the scroll grid and the stack, not just the list. */}
-        {view === "scroll" ? (
+        {view === "gallery" ? (
+          <CardGallery3D items={galleryItems} label="Questions" />
+        ) : view === "scroll" ? (
           <ScrollTiltedGrid className="gap-[14vh] py-[12vh]">
             {visibleIdx.map(renderAnyCard)}
           </ScrollTiltedGrid>
