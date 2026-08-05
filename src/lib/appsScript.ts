@@ -26,7 +26,10 @@ type DeckWriteFeature =
   | "workspace"
   | "addTodo"
   | "updateTodo"
-  | "deleteTodo";
+  | "deleteTodo"
+  | "listAdmins"
+  | "addAdmin"
+  | "removeAdmin";
 
 export type AppsScriptFeature = keyof typeof OVERRIDES | DeckWriteFeature;
 
@@ -39,6 +42,9 @@ const DECK_WRITES: DeckWriteFeature[] = [
   "addTodo",
   "updateTodo",
   "deleteTodo",
+  "listAdmins",
+  "addAdmin",
+  "removeAdmin",
 ];
 
 /**

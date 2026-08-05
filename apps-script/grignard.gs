@@ -34,6 +34,7 @@ var TABS = {
   deck: 'decks',
   shelf: 'shelves',
   todo: 'todos',
+  admin: 'admins',
 };
 var MAX_CONTACT_PER_HOUR = 20;
 var MAX_LEN = 5000;
@@ -177,14 +178,126 @@ function verify_(idToken) {
   return String(info.email || '').toLowerCase();
 }
 
-function allowed_(email) {
-  var list = props_('ALLOWLIST')
+/**
+ * The permanent owners, from Script Properties or the constant at the top.
+ *
+ * These cannot be removed through the workspace, and that is the whole safety
+ * story for admin management. Everything else about who may sign in is editable
+ * from a web page by anyone who is already signed in, so without a floor there
+ * is a sequence of ordinary clicks that removes the last admin and locks the
+ * project out of its own backend, recoverable only by editing the script.
+ */
+function owners_() {
+  return props_('ALLOWLIST')
     .split(',')
     .map(function (e) {
       return e.trim().toLowerCase();
     })
     .filter(Boolean);
-  return list.indexOf(email) !== -1;
+}
+
+function adminTab_() {
+  return tab_(TABS.admin, ['email', 'addedBy', 'at']);
+}
+
+/** Invited admins, from the sheet. Owners are not in here. */
+function invited_() {
+  var sh = adminTab_();
+  var last = sh.getLastRow();
+  if (last < 2) return [];
+  return sh
+    .getRange(2, 1, last - 1, 1)
+    .getValues()
+    .map(function (r) {
+      return String(r[0] == null ? '' : r[0]).trim().toLowerCase();
+    })
+    .filter(Boolean);
+}
+
+function allowed_(email) {
+  if (!email) return false;
+  var who = String(email).toLowerCase();
+  return owners_().indexOf(who) !== -1 || invited_().indexOf(who) !== -1;
+}
+
+// -------------------------------------------------------------------- admins
+
+function handleListAdmins_(data) {
+  var who = staff_(data);
+  if (who.error) return json_({ ok: false, error: who.error });
+
+  var sh = adminTab_();
+  var last = sh.getLastRow();
+  var rows = last < 2 ? [] : sh.getRange(2, 1, last - 1, 3).getValues();
+  return json_({
+    ok: true,
+    you: who.email,
+    owners: owners_(),
+    admins: rows
+      .filter(function (r) {
+        return String(r[0] || '').trim() !== '';
+      })
+      .map(function (r) {
+        return {
+          email: String(r[0]).trim().toLowerCase(),
+          addedBy: String(r[1] || ''),
+          at: String(r[2] || ''),
+        };
+      }),
+  });
+}
+
+function handleAddAdmin_(data) {
+  var who = staff_(data);
+  if (who.error) return json_({ ok: false, error: who.error });
+
+  var email = clean_(data.email).trim().toLowerCase();
+  if (!email) return json_({ ok: false, error: 'An email is required.' });
+  // Deliberately loose. The real check is that Google will only ever hand us a
+  // token for an address it has verified, so a typo here fails at sign-in
+  // rather than letting anyone in.
+  if (email.indexOf('@') < 1 || email.indexOf('.') === -1 || email.length > 254) {
+    return json_({ ok: false, error: 'That does not look like an email address.' });
+  }
+  if (allowed_(email)) return json_({ ok: false, error: 'That account already has access.' });
+
+  adminTab_().appendRow([email, who.email, new Date().toISOString()]);
+  return json_({ ok: true, email: email });
+}
+
+function handleRemoveAdmin_(data) {
+  var who = staff_(data);
+  if (who.error) return json_({ ok: false, error: who.error });
+
+  var email = clean_(data.email).trim().toLowerCase();
+  if (!email) return json_({ ok: false, error: 'No account given.' });
+
+  // An owner is a floor, not a row, so there is nothing here to delete and
+  // saying so is better than reporting a successful no-op.
+  if (owners_().indexOf(email) !== -1) {
+    return json_({ ok: false, error: 'Owners cannot be removed from the workspace.' });
+  }
+  // Removing yourself works, but only while an owner remains, so the click that
+  // ends your own access can never be the click that ends everyone's.
+  if (email === who.email && owners_().length === 0) {
+    return json_({ ok: false, error: 'You are the last admin. Add another before removing yourself.' });
+  }
+
+  var sh = adminTab_();
+  var last = sh.getLastRow();
+  if (last < 2) return json_({ ok: false, error: 'That account was not found.' });
+
+  var rows = sh.getRange(2, 1, last - 1, 1).getValues();
+  // Backwards: deleting a row shifts everything below it up.
+  var removed = 0;
+  for (var i = rows.length - 1; i >= 0; i--) {
+    if (String(rows[i][0]).trim().toLowerCase() === email) {
+      sh.deleteRow(i + 2);
+      removed++;
+    }
+  }
+  if (removed === 0) return json_({ ok: false, error: 'That account was not found.' });
+  return json_({ ok: true, email: email });
 }
 
 function handleDeck_(data) {
@@ -480,7 +593,29 @@ function readFeedback_() {
 function handleWorkspace_(data) {
   var who = staff_(data);
   if (who.error) return json_({ ok: false, error: who.error });
-  return json_({ ok: true, email: who.email, feedback: readFeedback_(), todos: readTodos_() });
+  // Admins ride along, so opening the workspace is one request rather than two
+  // that can disagree with each other while the second is in flight.
+  var sh = adminTab_();
+  var last = sh.getLastRow();
+  var rows = last < 2 ? [] : sh.getRange(2, 1, last - 1, 3).getValues();
+  return json_({
+    ok: true,
+    email: who.email,
+    feedback: readFeedback_(),
+    todos: readTodos_(),
+    owners: owners_(),
+    admins: rows
+      .filter(function (r) {
+        return String(r[0] || '').trim() !== '';
+      })
+      .map(function (r) {
+        return {
+          email: String(r[0]).trim().toLowerCase(),
+          addedBy: String(r[1] || ''),
+          at: String(r[2] || ''),
+        };
+      }),
+  });
 }
 
 function handleAddTodo_(data) {
@@ -591,6 +726,12 @@ function doPost(e) {
         return handleUpdateTodo_(data);
       case 'deleteTodo':
         return handleDeleteTodo_(data);
+      case 'listAdmins':
+        return handleListAdmins_(data);
+      case 'addAdmin':
+        return handleAddAdmin_(data);
+      case 'removeAdmin':
+        return handleRemoveAdmin_(data);
       case 'feedback':
         return handleFeedback_(data);
       default:

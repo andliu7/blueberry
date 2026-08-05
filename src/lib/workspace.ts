@@ -102,9 +102,24 @@ export function sentimentOf(note: FeedbackNote): Sentiment {
   return "neutral";
 }
 
+export interface AdminEntry {
+  email: string;
+  addedBy: string;
+  at: string;
+}
+
 export interface WorkspaceData {
   feedback: FeedbackNote[];
   todos: Todo[];
+  /**
+   * Invited admins, who can be removed from the workspace.
+   *
+   * Kept apart from `owners` because the difference is the whole safety story:
+   * owners live in the script and cannot be removed through a web page, so no
+   * sequence of clicks here can end in nobody having access.
+   */
+  admins: AdminEntry[];
+  owners: string[];
 }
 
 export async function fetchWorkspace(idToken: string): Promise<
@@ -127,6 +142,10 @@ export async function fetchWorkspace(idToken: string): Promise<
     ok: true,
     data: {
       feedback,
+      admins: Array.isArray(body.admins) ? (body.admins as AdminEntry[]) : [],
+      owners: Array.isArray(body.owners)
+        ? (body.owners as unknown[]).filter((o): o is string => typeof o === "string")
+        : [],
       // A task in a column that no longer exists would render nowhere at all, so
       // it comes back to the first one rather than silently vanishing.
       todos: rawTodos.map((t) => ({ ...t, column: valid.has(t.column) ? t.column : "idea" })),

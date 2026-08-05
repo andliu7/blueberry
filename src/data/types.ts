@@ -111,12 +111,24 @@ type DeckCommon = {
 
 export type DeckGroupId = "lab" | "reference" | "uploaded";
 
-/** Folder headings, in the order the hub shows them. */
+/**
+ * Folder headings, in the order the hub shows them.
+ *
+ * One palette, walked along rather than three unrelated colours. The site's
+ * accent is an indigo-to-fuchsia gradient, used on every link underline and card
+ * edge, so the folders are three steps along that same ramp: indigo, violet,
+ * fuchsia. Telling them apart is a matter of where they sit on one line, not of
+ * being different colours.
+ *
+ * The teal and the orange that were here before did tell the folders apart, and
+ * that was the only thing they did. Neither appears anywhere else on the site,
+ * so the hub read as three unrelated products stacked on one page.
+ */
 export const DECK_GROUPS: {
   id: DeckGroupId;
   title: string;
   blurb: string;
-  /** Folder card wash, so the two groups are told apart at a glance. */
+  /** Folder card wash: one step along the site's indigo-to-fuchsia ramp. */
   from: string;
   to: string;
 }[] = [
@@ -124,15 +136,15 @@ export const DECK_GROUPS: {
     id: "lab",
     title: "[CHEM 242] LCTA",
     blurb: "One deck per experiment, written for the lab critical thinking assessment.",
-    from: "#4f46e5",
-    to: "#7c3aed",
+    from: "#4338ca",
+    to: "#6d28d9",
   },
   {
     id: "reference",
     title: "[CHEM 241] Reference sheets",
     blurb: "The charts you look up mid-problem. Hover any row for the diagram.",
-    from: "#0891b2",
-    to: "#0e7490",
+    from: "#7c3aed",
+    to: "#9333ea",
   },
   {
     id: "uploaded",
@@ -140,8 +152,8 @@ export const DECK_GROUPS: {
     // holds whatever anyone uploads, which may well not be CHEM 242 at all.
     title: "Uploaded",
     blurb: "Decks added from a text file.",
-    from: "#c2410c",
-    to: "#ea580c",
+    from: "#a21caf",
+    to: "#c026d3",
   },
 ];
 

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { TextScramble } from "@/components/ui/text-scramble";
+import { ScrambleReveal } from "@/components/ui/scramble-reveal";
 import { cn } from "@/lib/utils";
 
 /**
@@ -60,25 +60,13 @@ export function ExpandableText({
       <p>
         {/* Only the hidden part resolves. Scrambling the opening sentence too
             would mean the line you had just read dissolving as a reward for
-            asking to read more.
-
-            `whitespace-pre-wrap` matters: the scrambler substitutes a character
-            per non-space character, so without it the browser is free to
-            collapse a run that happens to land next to the wrap point and the
-            paragraph twitches a word left and right while it resolves. */}
+            asking to read more. See `ScrambleReveal` for why the words hold
+            their positions while it runs. */}
         {open ? (
           scramble ? (
             <>
               {head}{" "}
-              <TextScramble
-                as="span"
-                className="whitespace-pre-wrap"
-                trigger
-                duration={2.4}
-                speed={0.035}
-              >
-                {rest}
-              </TextScramble>
+              <ScrambleReveal text={rest} duration={5.5} tick={0.055} />
             </>
           ) : (
             text

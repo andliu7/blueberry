@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { BlueberryMark } from "@/components/ui/blueberry-mark";
 import { NotificationBell } from "@/components/ui/notification-bell";
+import { AdminPanel } from "@/components/AdminPanel";
 import { ButtonHoldAndRelease } from "@/components/ui/hold-and-release-button";
 import { postToAppsScript } from "@/lib/appsScript";
 import { useGoogleAuth, type GoogleUser } from "@/lib/useGoogleAuth";
@@ -27,6 +28,7 @@ import {
   type Sentiment,
   type Todo,
   type TodoColumn,
+  type AdminEntry,
 } from "@/lib/workspace";
 import { cn } from "@/lib/utils";
 
@@ -61,6 +63,8 @@ export function WorkspacePage({ user }: { user: GoogleUser }) {
   const { signOut } = useGoogleAuth();
   const [feedback, setFeedback] = useState<FeedbackNote[]>([]);
   const [todos, setTodos] = useState<Todo[]>([]);
+  const [admins, setAdmins] = useState<AdminEntry[]>([]);
+  const [owners, setOwners] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
@@ -76,6 +80,8 @@ export function WorkspacePage({ user }: { user: GoogleUser }) {
     if (res.ok) {
       setFeedback(res.data.feedback);
       setTodos(res.data.todos);
+      setAdmins(res.data.admins);
+      setOwners(res.data.owners);
       setError("");
     } else {
       setError(res.error);
@@ -380,6 +386,14 @@ export function WorkspacePage({ user }: { user: GoogleUser }) {
             );
           })}
         </div>
+
+        <AdminPanel
+          admins={admins}
+          owners={owners}
+          you={user.email}
+          idToken={user.idToken}
+          onChanged={() => void refresh()}
+        />
 
         <p className="mt-8 flex items-center gap-2 text-xs text-slate-400 dark:text-stone-500">
           <Trash2 className="h-3 w-3" />
