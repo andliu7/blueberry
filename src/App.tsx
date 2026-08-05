@@ -508,6 +508,54 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
   const carouselTotal = visibleIdx.length;
   const safeCarouselIndex = carouselTotal ? ((carouselIndex % carouselTotal) + carouselTotal) % carouselTotal : 0;
 
+  /**
+   * Space turns over the card you are on, without having to reach for it.
+   *
+   * Drilling the carousel means arrowing or clicking through and never touching
+   * the card itself, so the key that ought to be the whole interaction did
+   * nothing. What "turn over" means depends on how the card is dressed: a flip
+   * or tilt card turns, and a plain card opens its answer, which is the same
+   * gesture wearing different clothes.
+   *
+   * It stands down whenever something else has a claim on the key: a text field,
+   * or anything exposing itself as a button, which covers both the toolbar and a
+   * focused card whose own handler should run instead of firing alongside this
+   * one and flipping twice.
+   */
+  useEffect(() => {
+    if (!carouselMode || carouselTotal === 0) return;
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== " " && e.code !== "Space") return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+
+      const el = document.activeElement as HTMLElement | null;
+      if (
+        el &&
+        (el.isContentEditable ||
+          /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName) ||
+          el.closest('[role="button"], button, a'))
+      ) {
+        return;
+      }
+
+      const qi = visibleIdx[safeCarouselIndex];
+      if (qi === undefined) return;
+      const num = qi + 1;
+
+      // Otherwise the page scrolls a screen down under the carousel.
+      e.preventDefault();
+      if (cardStyle === "classic") {
+        setOpenMap((m) => ({ ...m, [num]: !m[num] }));
+      } else {
+        setFlippedMap((m) => ({ ...m, [num]: !m[num] }));
+      }
+    };
+
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [carouselMode, carouselTotal, visibleIdx, safeCarouselIndex, cardStyle]);
+
   return (
     <div className="min-h-screen text-slate-800 dark:text-stone-200">
       {/* Title page. Sticky, so the content below scrolls up over it. */}
@@ -702,6 +750,25 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
             <p className="text-xs text-indigo-600 dark:text-indigo-300 mt-2">
               Showing only questions marked <span className="font-semibold">Review</span>,{" "}
               <span className="font-semibold">Almost</span>, or not yet rated.
+            </p>
+          )}
+
+          {/* Says what the key does, since nothing on screen suggests it. In the
+              carousel it acts on the card you are on; in the grid there is no
+              such thing, so it says how to pick one first. */}
+          {(carouselMode || cardStyle !== "classic") && (
+            <p className="mt-2 text-xs text-slate-400 dark:text-stone-500">
+              {carouselMode ? (
+                <>
+                  Press <kbd className="rounded border border-slate-300 px-1 font-mono dark:border-stone-700">space</kbd>{" "}
+                  to {cardStyle === "classic" ? "reveal the answer" : "flip the card"} you are on.
+                </>
+              ) : (
+                <>
+                  Click a card to flip it, or tab to one and press{" "}
+                  <kbd className="rounded border border-slate-300 px-1 font-mono dark:border-stone-700">space</kbd>.
+                </>
+              )}
             </p>
           )}
 

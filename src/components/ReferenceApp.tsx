@@ -157,9 +157,9 @@ export function ReferenceApp({ deck }: { deck: ReferenceDeck }) {
                   {VIEW_LABEL[view]} mode.
                 </span>{" "}
                 {view === "carousel"
-                  ? "Arrow keys, the arrows, the dots or a drag to move · space or click to turn a card over"
+                  ? "Arrow keys, the arrows, the dots or a drag to move · press space to turn the card you are on"
                   : view === "flip"
-                    ? "Click a card to turn it over"
+                    ? "Click a card to turn it over, or tab to one and press space"
                     : hoverPreview
                     ? "Hover a row for the diagram · tap to pin it"
                     : "Tap a row to open its diagram"}
