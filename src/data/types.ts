@@ -96,6 +96,14 @@ type DeckCommon = {
    * arrive for; reference decks are what they look up mid-lab.
    */
   group?: DeckGroupId;
+  /**
+   * A sub-folder inside Uploaded, by name. Only uploaded decks use this: the
+   * built-in groups are fixed and are not something anyone reorganises.
+   *
+   * Absent means loose, shown at the top level of the folder rather than hidden
+   * inside anything.
+   */
+  shelf?: string;
   /** Gradient for the hub card's artwork well. */
   from: string;
   to: string;
@@ -128,7 +136,9 @@ export const DECK_GROUPS: {
   },
   {
     id: "uploaded",
-    title: "[CHEM 242] Uploaded",
+    // No course prefix. The other two are tied to a specific course; this one
+    // holds whatever anyone uploads, which may well not be CHEM 242 at all.
+    title: "Uploaded",
     blurb: "Decks added from a text file.",
     from: "#c2410c",
     to: "#ea580c",

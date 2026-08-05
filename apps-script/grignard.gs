@@ -28,7 +28,7 @@
 var CLIENT_ID = '971212739983-b8equevo7r4injk7jhmo2kpchi40cadj.apps.googleusercontent.com';
 var ALLOWLIST = 'andliu@terpmail.umd.edu, zeus.andrewliu@gmail.com';
 
-var TABS = { feedback: 'feedback', contact: 'messages', deck: 'decks' };
+var TABS = { feedback: 'feedback', contact: 'messages', deck: 'decks', shelf: 'shelves' };
 var MAX_CONTACT_PER_HOUR = 20;
 var MAX_LEN = 5000;
 
@@ -246,6 +246,165 @@ function handleDeleteDeck_(data) {
   return json_({ ok: true, id: id, removed: removed });
 }
 
+// ------------------------------------------------------------------ shelves
+
+/**
+ * Sub-folders inside Uploaded.
+ *
+ * Held in their own tab rather than derived from the decks that reference them,
+ * because a folder you have just made and not filled yet still has to survive a
+ * reload. Deriving the list from deck rows would make an empty folder
+ * indistinguishable from one that never existed.
+ *
+ * A shelf is just a name. Decks point at it by that name, which means renaming
+ * is not supported and that is deliberate: it would have to rewrite every deck
+ * that referenced the old name, and the whole feature is worth less than the bug
+ * that would eventually come out of a half-finished rename.
+ */
+function shelfTab_() {
+  return tab_(TABS.shelf, ['name', 'email', 'at']);
+}
+
+function listShelves_() {
+  var sh = shelfTab_();
+  if (sh.getLastRow() < 2) return [];
+  return sh
+    .getRange(2, 1, sh.getLastRow() - 1, 1)
+    .getValues()
+    .map(function (r) {
+      return String(r[0] == null ? '' : r[0]).trim();
+    })
+    .filter(Boolean);
+}
+
+/** Verifies and authorises in one step, since every writer below needs both. */
+function staff_(data) {
+  var email = verify_(data.idToken);
+  if (!email) return { error: 'Sign-in could not be verified.' };
+  if (!allowed_(email)) return { error: 'That account is not authorised.' };
+  return { email: email };
+}
+
+function handleAddShelf_(data) {
+  var who = staff_(data);
+  if (who.error) return json_({ ok: false, error: who.error });
+
+  var name = clean_(data.name).trim();
+  if (!name) return json_({ ok: false, error: 'A folder needs a name.' });
+  if (name.length > 60) return json_({ ok: false, error: 'That name is too long.' });
+
+  // Case-insensitive, because two folders differing only in capitals are two
+  // folders a person cannot tell apart.
+  var existing = listShelves_();
+  for (var i = 0; i < existing.length; i++) {
+    if (existing[i].toLowerCase() === name.toLowerCase()) {
+      return json_({ ok: false, error: 'There is already a folder called that.' });
+    }
+  }
+
+  shelfTab_().appendRow([name, who.email, new Date().toISOString()]);
+  return json_({ ok: true, name: name });
+}
+
+/**
+ * Removes a folder. The decks inside it are kept and become loose.
+ *
+ * Deleting the decks along with it would be the more obvious implementation and
+ * the wrong one: someone tidying their folders would lose the uploads, and there
+ * is no undo and no copy on the server of the .txt they came from.
+ */
+function handleDeleteShelf_(data) {
+  var who = staff_(data);
+  if (who.error) return json_({ ok: false, error: who.error });
+
+  var name = clean_(data.name).trim();
+  if (!name) return json_({ ok: false, error: 'No folder name given.' });
+
+  var sh = shelfTab_();
+  var last = sh.getLastRow();
+  var removed = 0;
+  if (last >= 2) {
+    var names = sh.getRange(2, 1, last - 1, 1).getValues();
+    // Backwards: deleting a row shifts everything below it up.
+    for (var i = names.length - 1; i >= 0; i--) {
+      if (String(names[i][0]).trim().toLowerCase() === name.toLowerCase()) {
+        sh.deleteRow(i + 2);
+        removed++;
+      }
+    }
+  }
+  if (removed === 0) return json_({ ok: false, error: 'That folder was not found.' });
+
+  // Any deck still pointing at it would be filed under a folder that no longer
+  // exists, which is how a deck goes missing from every view at once.
+  var freed = clearShelfFromDecks_(name);
+  return json_({ ok: true, name: name, freed: freed });
+}
+
+function clearShelfFromDecks_(name) {
+  var sh = tab_(TABS.deck, ['id', 'email', 'at', 'deckJson']);
+  var last = sh.getLastRow();
+  if (last < 2) return 0;
+
+  var rows = sh.getRange(2, 4, last - 1, 1).getValues();
+  var freed = 0;
+  for (var i = 0; i < rows.length; i++) {
+    try {
+      var deck = JSON.parse(rows[i][0]);
+      if (deck && deck.shelf && String(deck.shelf).toLowerCase() === name.toLowerCase()) {
+        delete deck.shelf;
+        sh.getRange(i + 2, 4).setValue(JSON.stringify(deck));
+        freed++;
+      }
+    } catch (err) {
+      // A row that will not parse is already invisible to the client, so there
+      // is nothing here to repair.
+    }
+  }
+  return freed;
+}
+
+/** Files a deck under a shelf, or takes it out of one when `shelf` is empty. */
+function handleSetDeckShelf_(data) {
+  var who = staff_(data);
+  if (who.error) return json_({ ok: false, error: who.error });
+
+  var id = clean_(data.id);
+  if (!id) return json_({ ok: false, error: 'No deck id given.' });
+  var shelf = clean_(data.shelf).trim();
+
+  if (shelf) {
+    var known = listShelves_();
+    var match = '';
+    for (var i = 0; i < known.length; i++) {
+      if (known[i].toLowerCase() === shelf.toLowerCase()) match = known[i];
+    }
+    // Filing into a folder that does not exist would hide the deck, so the name
+    // has to be one of ours, spelled the way we spell it.
+    if (!match) return json_({ ok: false, error: 'There is no folder called that.' });
+    shelf = match;
+  }
+
+  var sh = tab_(TABS.deck, ['id', 'email', 'at', 'deckJson']);
+  var last = sh.getLastRow();
+  if (last < 2) return json_({ ok: false, error: 'That deck was not found.' });
+
+  var ids = sh.getRange(2, 1, last - 1, 1).getValues();
+  for (var j = 0; j < ids.length; j++) {
+    if (ids[j][0] !== id) continue;
+    try {
+      var deck = JSON.parse(sh.getRange(j + 2, 4).getValue());
+      if (shelf) deck.shelf = shelf;
+      else delete deck.shelf;
+      sh.getRange(j + 2, 4).setValue(JSON.stringify(deck));
+      return json_({ ok: true, id: id, shelf: shelf });
+    } catch (err) {
+      return json_({ ok: false, error: 'That deck could not be read.' });
+    }
+  }
+  return json_({ ok: false, error: 'That deck was not found.' });
+}
+
 // ------------------------------------------------------------------ routing
 
 function doPost(e) {
@@ -262,6 +421,12 @@ function doPost(e) {
         return handleDeck_(data);
       case 'deleteDeck':
         return handleDeleteDeck_(data);
+      case 'addShelf':
+        return handleAddShelf_(data);
+      case 'deleteShelf':
+        return handleDeleteShelf_(data);
+      case 'setDeckShelf':
+        return handleSetDeckShelf_(data);
       case 'feedback':
         return handleFeedback_(data);
       default:
@@ -292,8 +457,14 @@ function doGet(e) {
     var type = (e && e.parameter && e.parameter.type) || '';
     if (type !== 'decks') return json_({ ok: true, note: 'POST to this endpoint.' });
 
+    // Shelves ride along with the decks rather than getting their own request.
+    // The client needs both to draw one page, and an empty folder only exists in
+    // this list, so fetching them separately would mean the page could render
+    // with decks filed under folders it had not heard of yet.
+    var shelves = listShelves_();
+
     var sh = tab_(TABS.deck, ['id', 'email', 'at', 'deckJson']);
-    if (sh.getLastRow() < 2) return json_({ decks: [] });
+    if (sh.getLastRow() < 2) return json_({ decks: [], shelves: shelves });
     var rows = sh.getRange(2, 4, sh.getLastRow() - 1, 1).getValues();
     var decks = rows
       .map(function (r) {
@@ -304,8 +475,8 @@ function doGet(e) {
         }
       })
       .filter(Boolean);
-    return json_({ decks: decks });
+    return json_({ decks: decks, shelves: shelves });
   } catch (err) {
-    return json_({ decks: [], error: String(err) });
+    return json_({ decks: [], shelves: [], error: String(err) });
   }
 }

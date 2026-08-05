@@ -16,6 +16,7 @@ import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { GlassCard } from "@/components/ui/glass-card";
 import { DeckSearch } from "@/components/ui/deck-search";
 import { DeckUploadTicket } from "@/components/DeckUploadTicket";
+import { UploadedFolderView } from "@/components/UploadedFolderView";
 import { FeedbackButton } from "@/components/FeedbackButton";
 import { SiteActions } from "@/components/SiteActions";
 import { matchedDeckIds, type SearchHit } from "@/lib/searchDecks";
@@ -40,7 +41,7 @@ export function FolderPage({ groupId }: { groupId: DeckGroupId }) {
   const matched = useMemo(() => (hits ? matchedDeckIds(hits) : null), [hits]);
 
   const group = DECK_GROUPS.find((g) => g.id === groupId);
-  const { decks: allDecks } = useDecks();
+  const { decks: allDecks, shelves } = useDecks();
   const all = useMemo(
     () => allDecks.filter((d) => (d.group ?? "lab") === groupId),
     [allDecks, groupId],
@@ -94,16 +95,12 @@ export function FolderPage({ groupId }: { groupId: DeckGroupId }) {
 
         <DeckSearch decks={all} onResults={handleResults} />
 
-        {/* An empty folder says so. Uploaded starts empty by design, and a page
-            with a heading and then nothing at all reads as a failed load. */}
-        {decks.length === 0 && (
-          <p className="rounded-xl border border-dashed border-slate-300 px-5 py-8 text-center text-sm text-slate-500 dark:border-stone-700 dark:text-stone-400">
-            {matched
-              ? "No decks in this folder match that search."
-              : "Nothing here yet. Decks published from a .txt file land in this folder."}
-          </p>
-        )}
-
+        {/* Uploaded is the one group anyone can rearrange, so it draws itself:
+            sub-folders, and the controls to manage them when signed in. The
+            other two are fixed and stay a plain grid. */}
+        {groupId === "uploaded" ? (
+          <UploadedFolderView decks={decks} shelves={shelves} searching={Boolean(matched)} />
+        ) : (
         <div className="grid gap-7 sm:grid-cols-2">
           {decks.map((deck, i) => (
             <motion.div
@@ -133,6 +130,7 @@ export function FolderPage({ groupId }: { groupId: DeckGroupId }) {
             </motion.div>
           ))}
         </div>
+        )}
 
         {/* Repeated at the foot as well as the head: after scrolling a folder
             of cards, the link at the top is a long way back up. */}

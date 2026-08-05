@@ -72,13 +72,21 @@ function isPublishedDeck(value: unknown): value is StudyDeck {
  */
 const RESERVED = new Set(BUILTIN_DECKS.map((d) => d.id));
 
-function normalise(raw: unknown[]): StudyDeck[] {
+function normalise(raw: unknown[], shelves: string[]): StudyDeck[] {
   const seen = new Set<string>();
+  const known = new Map(shelves.map((s) => [s.toLowerCase(), s]));
   const out: StudyDeck[] = [];
   for (const value of raw) {
     if (!isPublishedDeck(value)) continue;
     if (RESERVED.has(value.id) || seen.has(value.id)) continue;
     seen.add(value.id);
+
+    // A deck pointing at a folder that is not in the list would be filed
+    // somewhere with no heading to draw, so it comes back to the top level
+    // instead of disappearing into a folder nobody can open.
+    const shelf =
+      typeof value.shelf === "string" ? known.get(value.shelf.trim().toLowerCase()) : undefined;
+
     out.push({
       ...value,
       // Uploaded decks always land in their own folder, whatever the file asked
@@ -86,6 +94,7 @@ function normalise(raw: unknown[]): StudyDeck[] {
       // deck naming itself a lab deck would file itself among the course's own
       // material.
       group: "uploaded",
+      shelf,
       questions: value.questions.map(cleanQuestion),
     });
   }
@@ -97,19 +106,27 @@ export interface DecksSnapshot {
   decks: Deck[];
   /** Published decks only, which are the ones that can be removed. */
   published: StudyDeck[];
+  /** Sub-folder names inside Uploaded, including ones with nothing in them. */
+  shelves: string[];
   /** True until the first fetch settles. */
   loading: boolean;
 }
 
 const EMPTY: StudyDeck[] = [];
+const NO_SHELVES: string[] = [];
 
 // Rebuilt only when the data changes, because useSyncExternalStore compares
 // snapshots by identity and a fresh object every read is an infinite loop.
-let snapshot: DecksSnapshot = { decks: BUILTIN_DECKS, published: EMPTY, loading: true };
+let snapshot: DecksSnapshot = {
+  decks: BUILTIN_DECKS,
+  published: EMPTY,
+  shelves: NO_SHELVES,
+  loading: true,
+};
 const listeners = new Set<() => void>();
 
-function publish(published: StudyDeck[], loading: boolean) {
-  snapshot = { decks: [...BUILTIN_DECKS, ...published], published, loading };
+function publish(published: StudyDeck[], shelves: string[], loading: boolean) {
+  snapshot = { decks: [...BUILTIN_DECKS, ...published], published, shelves, loading };
   listeners.forEach((fn) => fn());
 }
 
@@ -117,10 +134,10 @@ let started = false;
 
 function load() {
   started = true;
-  if (!snapshot.loading) publish(snapshot.published, true);
+  if (!snapshot.loading) publish(snapshot.published, snapshot.shelves, true);
   fetchPublishedDecks()
-    .then((raw) => publish(normalise(raw), false))
-    .catch(() => publish(snapshot.published, false));
+    .then(({ decks, shelves }) => publish(normalise(decks, shelves), shelves, false))
+    .catch(() => publish(snapshot.published, snapshot.shelves, false));
 }
 
 function subscribe(fn: () => void) {
@@ -143,11 +160,37 @@ export function refreshDecks() {
  *
  * Called after the server confirms the row is gone. Refetching instead would
  * work, but Apps Script takes a moment to reflect a deleted row and the deck
- * would flicker back before disappearing again.
+ * would flicker back before disappearing again. The same reasoning covers the
+ * three below.
  */
 export function forgetDeck(id: string) {
   publish(
     snapshot.published.filter((d) => d.id !== id),
+    snapshot.shelves,
+    snapshot.loading,
+  );
+}
+
+export function rememberShelf(name: string) {
+  if (snapshot.shelves.some((s) => s.toLowerCase() === name.toLowerCase())) return;
+  publish(snapshot.published, [...snapshot.shelves, name], snapshot.loading);
+}
+
+/** Drops a folder and turns its decks loose, mirroring what the server does. */
+export function forgetShelf(name: string) {
+  const key = name.toLowerCase();
+  publish(
+    snapshot.published.map((d) => (d.shelf?.toLowerCase() === key ? { ...d, shelf: undefined } : d)),
+    snapshot.shelves.filter((s) => s.toLowerCase() !== key),
+    snapshot.loading,
+  );
+}
+
+/** Moves a deck into a folder, or out of one when `shelf` is undefined. */
+export function fileDeck(id: string, shelf: string | undefined) {
+  publish(
+    snapshot.published.map((d) => (d.id === id ? { ...d, shelf } : d)),
+    snapshot.shelves,
     snapshot.loading,
   );
 }
