@@ -3,6 +3,9 @@ import { motion, useReducedMotion, useTransform } from "motion/react";
 import { ChevronDown, X } from "lucide-react";
 import { ShaderAnimation } from "@/components/ui/shader-animation";
 import { AuroraBackground } from "@/components/ui/aurora-background";
+import { BackgroundGradientGlow } from "@/components/ui/background-gradient-glow";
+import { useIsDark } from "@/lib/useIsDark";
+import { cn } from "@/lib/utils";
 import { SITE_NAME } from "@/data/site";
 import {
   ParticleTextEffect,
@@ -58,6 +61,25 @@ const INTRO_WORDS: ParticleWord[] = [
 ];
 
 /**
+ * The same words, darkened, for the pastel opening.
+ *
+ * The dark palette is picked to glow on near-black, and the two lightest stops
+ * in it are `#f0abfc` and `#f59e0b`. Laid over cream and pink those are close
+ * enough to the background to disappear, so light mode gets the deeper end of
+ * the same indigo-to-fuchsia ramp rather than a different palette.
+ *
+ * A separate module-level array for the same reason as SETTLED_WORDS below:
+ * `words` is a canvas effect dependency, so building this in the render body
+ * would restart the sequence on every frame.
+ */
+const INTRO_WORDS_LIGHT: ParticleWord[] = [
+  { text: "WELCOME", from: "#4338ca", to: "#a21caf" },
+  { text: "TO", from: "#a21caf", to: "#b45309" },
+  { text: SITE_WORD, from: "#4f46e5", to: "#c026d3" },
+  { text: SITE_NAME, from: "#4f46e5", to: "#c026d3", shape: "blueberry" },
+];
+
+/**
  * What the opening shows once it has already been seen this visit: the last
  * word alone, with no greeting to sit through a second time.
  *
@@ -66,6 +88,7 @@ const INTRO_WORDS: ParticleWord[] = [
  * render would restart the sequence continuously.
  */
 const SETTLED_WORDS: ParticleWord[] = [INTRO_WORDS[3]!];
+const SETTLED_WORDS_LIGHT: ParticleWord[] = [INTRO_WORDS_LIGHT[3]!];
 
 function IntroStage({
   ready,
@@ -80,31 +103,41 @@ function IntroStage({
 }) {
   const progress = useScrollProgress();
   const reduce = useReducedMotion();
+  const isDark = useIsDark();
   const opacity = useTransform(progress, [0, 0.75, 1], [1, 1, 0]);
   const cueOpacity = useTransform(progress, [0, 0.12], [1, 0]);
 
   return (
-    <ContainerSticky className="overflow-hidden bg-[#08060f]">
+    <ContainerSticky className={cn("overflow-hidden", isDark ? "bg-[#08060f]" : "bg-[#f7eaff]")}>
       <motion.div className="absolute inset-0" style={reduce ? undefined : { opacity }}>
-        {/* Running from the first frame, under everything else. A flat black
-            opening gives a scroll nothing to move against, so the descent past
-            the words reads as a jump; drifting colour gives the eye something
-            that is plainly moving. Slow, and dim enough that the words still
-            own the screen. */}
+        {/* The pastel wash, under everything, in light mode only. The dark
+            opening is built on near-black and every layer above it adds light;
+            laying those over cream would wash the whole screen out. */}
+        {!isDark && <BackgroundGradientGlow />}
+
+        {/* Running from the first frame, under everything else. A flat opening
+            gives a scroll nothing to move against, so the descent past the words
+            reads as a jump; drifting colour gives the eye something that is
+            plainly moving. Slow, and dim enough that the words still own the
+            screen. Dimmer again on the pastel, which already carries colour of
+            its own for the blobs to fight with. */}
         <AuroraBackground
           variant="default"
           speed={0.5}
           blobCount={5}
-          className="absolute inset-0 opacity-70"
+          className={cn("absolute inset-0", isDark ? "opacity-70" : "opacity-25")}
         />
-        {/* Keeps the middle of the screen dark whatever the aurora is doing
-            under it, so the words never have to compete with a bright blob. */}
+        {/* Holds the middle of the screen away from whatever the aurora is doing
+            under it, so the words never have to compete with a blob. It darkens
+            on near-black and lightens on pastel: both are pulling the centre
+            away from the particle colours rather than toward them. */}
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0"
           style={{
-            background:
-              "radial-gradient(64% 52% at 50% 48%, rgba(6,5,14,0.78) 0%, rgba(6,5,14,0.42) 58%, rgba(6,5,14,0) 100%)",
+            background: isDark
+              ? "radial-gradient(64% 52% at 50% 48%, rgba(6,5,14,0.78) 0%, rgba(6,5,14,0.42) 58%, rgba(6,5,14,0) 100%)"
+              : "radial-gradient(64% 52% at 50% 48%, rgba(255,255,255,0.82) 0%, rgba(255,255,255,0.45) 58%, rgba(255,255,255,0) 100%)",
           }}
         />
 
@@ -122,17 +155,23 @@ function IntroStage({
             insetXRange={[12, 0]}
             roundednessRange={[420, 0]}
           >
-            <ShaderAnimation />
+            {/* The shader is white bands drawn on black, so it can only ever be
+                a dark rectangle. On the pastel opening the same beat is the
+                gradient itself coming up at full strength inside the expanding
+                panel, which keeps the reveal without flipping the screen to
+                black halfway through it. */}
+            {isDark ? <ShaderAnimation /> : <BackgroundGradientGlow className="opacity-95" />}
           </ContainerInset>
           {/* The shader runs to near-white in places, so the title needs
-              something behind it. Darkest in the middle where the copy sits,
+              something behind it. Strongest in the middle where the copy sits,
               clearing toward the edges so the animation is still the star. */}
           <div
             aria-hidden
             className="pointer-events-none absolute inset-0"
             style={{
-              background:
-                "radial-gradient(58% 46% at 50% 46%, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.45) 55%, rgba(0,0,0,0) 100%)",
+              background: isDark
+                ? "radial-gradient(58% 46% at 50% 46%, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.45) 55%, rgba(0,0,0,0) 100%)"
+                : "radial-gradient(58% 46% at 50% 46%, rgba(255,255,255,0.78) 0%, rgba(255,255,255,0.42) 55%, rgba(255,255,255,0) 100%)",
             }}
           />
         </motion.div>
@@ -146,7 +185,15 @@ function IntroStage({
         style={reduce ? undefined : { opacity }}
       >
         <ParticleTextEffect
-          words={settled ? SETTLED_WORDS : INTRO_WORDS}
+          words={
+            isDark
+              ? settled
+                ? SETTLED_WORDS
+                : INTRO_WORDS
+              : settled
+                ? SETTLED_WORDS_LIGHT
+                : INTRO_WORDS_LIGHT
+          }
           // Trimmed from 1500 now there are four beats rather than three, so the
           // whole opening still lands inside five seconds.
           wordMs={1300}
@@ -162,7 +209,10 @@ function IntroStage({
         animate={{ opacity: ready ? 1 : 0 }}
         transition={{ duration: 0.6, delay: ready ? 0.3 : 0 }}
         style={reduce ? undefined : { opacity: ready ? cueOpacity : 0 }}
-        className="pointer-events-none absolute inset-x-0 top-[64%] z-10 flex flex-col items-center gap-1 text-white/70"
+        className={cn(
+          "pointer-events-none absolute inset-x-0 top-[64%] z-10 flex flex-col items-center gap-1",
+          isDark ? "text-white/70" : "text-slate-500",
+        )}
       >
         <span className="playful-face text-sm">scroll</span>
         <motion.span
@@ -175,7 +225,12 @@ function IntroStage({
 
       <button
         onClick={onSkip}
-        className="absolute top-5 right-5 z-20 inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-black/30 px-3 py-1.5 text-sm font-semibold text-white/90 backdrop-blur transition-colors hover:bg-black/50"
+        className={cn(
+          "absolute top-5 right-5 z-20 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold backdrop-blur transition-colors",
+          isDark
+            ? "border border-white/25 bg-black/30 text-white/90 hover:bg-black/50"
+            : "border border-slate-900/15 bg-white/60 text-slate-700 hover:bg-white/85",
+        )}
       >
         <X className="h-3.5 w-3.5" />
         Skip

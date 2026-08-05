@@ -109,10 +109,29 @@ export function HomePage() {
 
   // Built-ins plus anything that has been published. Search covers both, so a
   // deck someone uploaded is findable the same way the rest are.
-  const { decks: allDecks } = useDecks();
-  const labDecks = useMemo(
-    () => allDecks.filter((d) => (d.group ?? "lab") === "lab" && (!matched || matched.has(d.id))),
-    [allDecks, matched],
+  const { decks: allDecks, published } = useDecks();
+
+  /**
+   * The newest uploads, shown under the folders.
+   *
+   * This used to list the lab decks, which meant the hub showed the CHEM 242
+   * folder and then immediately showed everything inside it, so the folder was
+   * decoration. Recent uploads are the thing that actually changes between
+   * visits, and they are the reason to come back to the hub rather than
+   * bookmarking a deck.
+   *
+   * Newest first is the sheet's own row order reversed, since publishing
+   * appends. Republishing a deck overwrites its original row rather than adding
+   * one, so a corrected re-upload keeps its old position instead of jumping to
+   * the front. Worth knowing, and not worth a timestamp column to fix.
+   */
+  const recentUploads = useMemo(
+    () =>
+      [...published]
+        .reverse()
+        .filter((d) => !matched || matched.has(d.id))
+        .slice(0, 4),
+    [published, matched],
   );
 
   // The pill mirrors the page: this one lists folders, and each folder page
@@ -227,13 +246,24 @@ export function HomePage() {
           })}
         </div>
 
-        {labDecks.length > 0 && (
+        {recentUploads.length > 0 && (
           <section className="mt-14">
-            <h2 className="title-face mb-5 text-2xl text-slate-900 sm:text-3xl dark:text-stone-100">
-              Lab LCTA
-            </h2>
+            <div className="mb-5 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <h2 className="title-face text-2xl text-slate-900 sm:text-3xl dark:text-stone-100">
+                Recently uploaded
+              </h2>
+              <a
+                href="#/folder/uploaded"
+                className="group/all font-mono text-xs text-slate-400 transition-colors hover:text-slate-600 dark:text-stone-500 dark:hover:text-stone-300"
+              >
+                see all
+                <span className="ml-1 inline-block transition-transform group-hover/all:translate-x-0.5">
+                  &rarr;
+                </span>
+              </a>
+            </div>
             <div className="grid gap-7 sm:grid-cols-2">
-              {labDecks.map((deck, i) => (
+              {recentUploads.map((deck, i) => (
                 <motion.div
                   key={deck.id}
                   // Same reveal as the intro: blurred and low, settling as it
