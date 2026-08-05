@@ -17,10 +17,17 @@ const OVERRIDES = {
   deck: import.meta.env.VITE_DECKS_ENDPOINT as string | undefined,
 } as const;
 
-export type AppsScriptFeature = keyof typeof OVERRIDES;
+export type AppsScriptFeature = keyof typeof OVERRIDES | "deleteDeck";
 
-/** The URL for a feature, or undefined when nothing is configured. */
+/**
+ * The URL for a feature, or undefined when nothing is configured.
+ *
+ * `deleteDeck` has no override of its own on purpose. It is the same web app as
+ * `deck` and always will be, so giving it a separate variable would only create
+ * a way to point them at two different scripts by accident.
+ */
 export function endpointFor(feature: AppsScriptFeature): string | undefined {
+  if (feature === "deleteDeck") return OVERRIDES.deck ?? SHARED;
   return OVERRIDES[feature] ?? SHARED;
 }
 

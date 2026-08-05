@@ -4,7 +4,7 @@ import { FlippingCard } from "@/components/ui/flipping-card";
 import { FlipCard } from "@/components/ui/flip-card";
 import { MathHtml } from "@/components/ui/math-html";
 import { ClickHereHint } from "@/components/ui/click-here-hint";
-import { findDeck } from "@/data/decks";
+import { useDecks } from "@/lib/useDecks";
 import { isReference, DECK_GROUPS, type DeckGroupId, type StudyDeck } from "@/data/types";
 import { ReferenceApp } from "@/components/ReferenceApp";
 import { FolderPage } from "@/components/FolderPage";
@@ -133,6 +133,10 @@ function QuoteSurface({ children }: { children: React.ReactNode }) {
  */
 export default function App() {
   const route = useHashRoute();
+  // Includes the published decks, which arrive a moment after the page does.
+  // The router is what makes an uploaded deck reachable at its own URL rather
+  // than only visible as a card on the hub.
+  const { decks, loading } = useDecks();
 
   /**
    * Every route starts at the top.
@@ -166,7 +170,7 @@ export default function App() {
   }
 
   const id = route.startsWith("deck/") ? route.slice(5) : "grignard";
-  const deck = findDeck(id);
+  const deck = decks.find((d) => d.id === id);
   /**
    * An unknown deck used to fall through to the hub on the theory that a stale
    * bookmark should land somewhere useful. Silently swapping the page for a
@@ -174,12 +178,37 @@ export default function App() {
    * renamed deck was left wondering whether they had misread it. The 404 says
    * what happened and offers the hub, which lands them in the same place with
    * an explanation.
+   *
+   * Not while the published decks are still in flight, though. Opening a link to
+   * an uploaded deck would otherwise show a 404 for as long as the request took
+   * and then replace it with the deck, which reads as the site being broken and
+   * then changing its mind.
    */
-  if (!deck) return <NotFoundPage what="That deck" detail={`#/${route}`} />;
+  if (!deck) {
+    return loading ? (
+      <DeckLoading />
+    ) : (
+      <NotFoundPage what="That deck" detail={`#/${route}`} />
+    );
+  }
   // Keyed so switching decks remounts rather than carrying the old deck's
   // ratings, open cards and scroll position across.
   if (isReference(deck)) return <ReferenceApp key={deck.id} deck={deck} />;
   return <StudyApp key={deck.id} deck={deck} />;
+}
+
+/**
+ * Shown only in the gap between asking for a deck that is not built in and
+ * hearing back about the published ones. Deliberately plain: a spinner that
+ * appears for 300ms is noise, and a skeleton of a deck page would be a lie about
+ * what is coming, since the answer is often a 404.
+ */
+function DeckLoading() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-[#f6f4ef] dark:bg-[#0c0a09]">
+      <p className="font-mono text-sm text-slate-400 dark:text-stone-500">Looking for that deck…</p>
+    </div>
+  );
 }
 
 function StudyApp({ deck }: { deck: StudyDeck }) {

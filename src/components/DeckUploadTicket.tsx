@@ -1,11 +1,13 @@
 ﻿import { useState } from "react";
-import { CheckCircle2, AlertTriangle, LogOut, Lock } from "lucide-react";
+import { CheckCircle2, AlertTriangle, LogOut, Lock, Trash2 } from "lucide-react";
 import { FileUpload, type FileUploadItem } from "@/components/ui/be-ui-file-upload";
 import { AdmitOneTicket } from "@/components/ui/admit-one-ticket";
 import { QuestionCard } from "@/components/QuestionCard";
 import { useGoogleAuth } from "@/lib/useGoogleAuth";
 import { parseDeckText, type ParseResult } from "@/lib/parseDeckText";
 import { endpointFor, postToAppsScript } from "@/lib/appsScript";
+import { useDecks, refreshDecks, forgetDeck } from "@/lib/useDecks";
+import { deckCount, deckHref } from "@/data/types";
 import { cn } from "@/lib/utils";
 
 
@@ -46,6 +48,11 @@ export function DeckUploadTicket() {
   });
   const [word, setWord] = useState("");
   const [wrong, setWrong] = useState(false);
+  const { published } = useDecks();
+  // Which deck is mid-delete, and which one has been armed by a first click.
+  const [removing, setRemoving] = useState<string | null>(null);
+  const [confirming, setConfirming] = useState<string | null>(null);
+  const [removeError, setRemoveError] = useState("");
 
   const onFile = async (file: File) => {
     setStatus("idle");
@@ -80,12 +87,41 @@ export function DeckUploadTicket() {
     if (body.ok) {
       setStatus("done");
       setServerMessage("Published. It will appear on the hub for everyone.");
+      // Re-reads the sheet so the new deck joins the Uploaded folder without a
+      // page reload, and so it appears in the list below straight away.
+      refreshDecks();
     } else {
       setStatus("failed");
       setServerMessage(
         body.error === "unreachable"
           ? "Could not reach the deck endpoint."
           : (body.error ?? "The server refused the upload."),
+      );
+    }
+  };
+
+  /**
+   * Removes a published deck.
+   *
+   * Only the published ones are listed here, so there is no way to aim this at a
+   * built-in deck: those live in the repository and are not in the sheet the
+   * script deletes from. The server checks the token and the allowlist again
+   * regardless, since a button the browser decides to show is not a permission.
+   */
+  const remove = async (id: string) => {
+    if (!user) return;
+    setRemoving(id);
+    setRemoveError("");
+    const body = await postToAppsScript("deleteDeck", { idToken: user.idToken, id });
+    setRemoving(null);
+    setConfirming(null);
+    if (body.ok) {
+      forgetDeck(id);
+    } else {
+      setRemoveError(
+        body.error === "unreachable"
+          ? "Could not reach the deck endpoint."
+          : (body.error ?? "The server refused the delete."),
       );
     }
   };
@@ -292,6 +328,75 @@ export function DeckUploadTicket() {
                     >
                       {serverMessage}
                     </p>
+                  )}
+                </div>
+              )}
+
+              {/* Only the published decks are listed, which is the whole point:
+                  the built-in decks are part of the site and are not something a
+                  sign-in should be able to take down. */}
+              {published.length > 0 && (
+                <div className="mt-6 border-t border-slate-200 pt-4 dark:border-stone-800">
+                  <p className="text-sm font-semibold text-slate-800 dark:text-stone-100">
+                    Published decks
+                  </p>
+                  <p className="mt-1 text-xs text-slate-500 dark:text-stone-400">
+                    Uploaded from a file, so these are the ones that can be removed.
+                  </p>
+
+                  <ul className="mt-3 space-y-2">
+                    {published.map((deck) => (
+                      <li
+                        key={deck.id}
+                        className="flex items-center gap-3 rounded-lg border border-slate-200 px-3 py-2 dark:border-stone-800"
+                      >
+                        <a
+                          href={deckHref(deck)}
+                          className="min-w-0 flex-1 text-sm text-slate-700 hover:text-indigo-600 dark:text-stone-300 dark:hover:text-indigo-300"
+                        >
+                          <span className="block truncate font-semibold">{deck.title}</span>
+                          <span className="font-mono text-[0.7rem] text-slate-400 dark:text-stone-500">
+                            {deckCount(deck)} cards
+                          </span>
+                        </a>
+
+                        {/* Two clicks, because there is no undo: the row is gone
+                            from the sheet and the .txt it came from is on
+                            someone's laptop, not on the server. */}
+                        {confirming === deck.id ? (
+                          <span className="flex shrink-0 items-center gap-2">
+                            <button
+                              onClick={() => remove(deck.id)}
+                              disabled={removing === deck.id}
+                              className="rounded-md bg-red-600 px-2.5 py-1 text-xs font-bold text-white transition hover:bg-red-500 disabled:opacity-50"
+                            >
+                              {removing === deck.id ? "Deleting…" : "Delete"}
+                            </button>
+                            <button
+                              onClick={() => setConfirming(null)}
+                              className="text-xs font-semibold text-slate-500 hover:text-slate-800 dark:text-stone-400 dark:hover:text-stone-200"
+                            >
+                              Cancel
+                            </button>
+                          </span>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              setConfirming(deck.id);
+                              setRemoveError("");
+                            }}
+                            aria-label={`Delete ${deck.title}`}
+                            className="shrink-0 rounded-md p-1.5 text-slate-400 transition hover:bg-red-50 hover:text-red-600 dark:text-stone-500 dark:hover:bg-red-500/10 dark:hover:text-red-400"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+
+                  {removeError && (
+                    <p className="mt-2 text-sm text-red-600 dark:text-red-400">{removeError}</p>
                   )}
                 </div>
               )}

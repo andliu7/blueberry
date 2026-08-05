@@ -207,6 +207,45 @@ function handleDeck_(data) {
   return json_({ ok: true, id: deck.id });
 }
 
+/**
+ * Removes a published deck.
+ *
+ * Same gate as publishing, and for the same reason: the client is a static
+ * bundle anyone can edit, so a delete button that the browser decides to show is
+ * not a permission. The token is verified and the email checked against the
+ * allowlist here, where neither can be tampered with.
+ *
+ * Only ever touches the decks tab. There is nothing to delete that was not
+ * uploaded, since the built-in decks live in the repository and never appear in
+ * this sheet at all.
+ */
+function handleDeleteDeck_(data) {
+  var email = verify_(data.idToken);
+  if (!email) return json_({ ok: false, error: 'Sign-in could not be verified.' });
+  if (!allowed_(email)) return json_({ ok: false, error: 'That account is not authorised.' });
+
+  var id = data.id;
+  if (!id) return json_({ ok: false, error: 'No deck id given.' });
+
+  var sh = tab_(TABS.deck, ['id', 'email', 'at', 'deckJson']);
+  var last = sh.getLastRow();
+  if (last < 2) return json_({ ok: false, error: 'No published decks.' });
+
+  var ids = sh.getRange(2, 1, last - 1, 1).getValues();
+  // Backwards: deleting a row shifts everything below it up, so walking forwards
+  // would skip the row after each removal.
+  var removed = 0;
+  for (var i = ids.length - 1; i >= 0; i--) {
+    if (ids[i][0] === id) {
+      sh.deleteRow(i + 2);
+      removed++;
+    }
+  }
+
+  if (removed === 0) return json_({ ok: false, error: 'That deck was not found.' });
+  return json_({ ok: true, id: id, removed: removed });
+}
+
 // ------------------------------------------------------------------ routing
 
 function doPost(e) {
@@ -221,6 +260,8 @@ function doPost(e) {
         return handleContact_(data);
       case 'deck':
         return handleDeck_(data);
+      case 'deleteDeck':
+        return handleDeleteDeck_(data);
       case 'feedback':
       default:
         return handleFeedback_(data);

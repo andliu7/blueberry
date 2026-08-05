@@ -1,8 +1,8 @@
 ﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion, useInView, useReducedMotion } from "motion/react";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
-import { DECKS } from "@/data/decks";
 import { deckCount, deckHref, DECK_GROUPS, type Deck } from "@/data/types";
+import { useDecks } from "@/lib/useDecks";
 
 import {
   InfoCard,
@@ -106,17 +106,27 @@ export function HomePage() {
   // every render would re-fire it on every keystroke's re-render.
   const handleResults = useCallback((next: SearchHit[] | null) => setHits(next), []);
   const matched = useMemo(() => (hits ? matchedDeckIds(hits) : null), [hits]);
+
+  // Built-ins plus anything that has been published. Search covers both, so a
+  // deck someone uploaded is findable the same way the rest are.
+  const { decks: allDecks } = useDecks();
   const labDecks = useMemo(
-    () => DECKS.filter((d) => (d.group ?? "lab") === "lab" && (!matched || matched.has(d.id))),
-    [matched],
+    () => allDecks.filter((d) => (d.group ?? "lab") === "lab" && (!matched || matched.has(d.id))),
+    [allDecks, matched],
   );
 
   // The pill mirrors the page: this one lists folders, and each folder page
   // lists the decks inside it. Listing every deck here would contradict the
   // decision to move them off the hub.
+  //
+  // Uploaded is always listed, even with nothing in it, because it is where a
+  // deck you have just published goes and it should be somewhere you can look
+  // before there is anything to see.
   const navItems: NavPillItem[] = [
     { id: "home", label: "Home", href: "#/home", icon: <BlueberryMark className="h-7 w-7" /> },
-    ...DECK_GROUPS.filter((g) => DECKS.some((d) => (d.group ?? "lab") === g.id)).map((g) => ({
+    ...DECK_GROUPS.filter(
+      (g) => g.id === "uploaded" || allDecks.some((d) => (d.group ?? "lab") === g.id),
+    ).map((g) => ({
       id: g.id,
       label: g.title.replace(/\[[^\]]*\]\s*/, ""),
       href: `#/folder/${g.id}`,
@@ -181,17 +191,36 @@ export function HomePage() {
           />
         </header>
 
-        <DeckSearch decks={DECKS} onResults={handleResults} />
+        <DeckSearch decks={allDecks} onResults={handleResults} />
 
         {/* Folders first, then the lab decks themselves below, since those are
             what most people are here for. */}
         <div className="grid gap-7 sm:grid-cols-2">
           {DECK_GROUPS.map((group) => {
-            const decks = DECKS.filter(
+            const decks = allDecks.filter(
               (d) => (d.group ?? "lab") === group.id && (!matched || matched.has(d.id)),
             );
-            if (decks.length === 0) return null;
-            return <DeckFolder key={group.id} group={group} decks={decks} />;
+            // Uploaded keeps its folder even with nothing in it, so there is
+            // somewhere for a published deck to land and somewhere to look for
+            // one. Every other folder hides when empty, since a course folder
+            // with no decks in it is just a dead end.
+            //
+            // A search is the exception: with a query typed, an Uploaded folder
+            // showing zero decks is a result, not a placeholder, and leaving it
+            // on screen would look like it matched.
+            if (decks.length === 0 && (group.id !== "uploaded" || matched)) return null;
+            return (
+              <DeckFolder
+                key={group.id}
+                group={group}
+                decks={decks}
+                emptyNote={
+                  group.id === "uploaded"
+                    ? "Nothing here yet. Decks published from a .txt file land in this folder."
+                    : undefined
+                }
+              />
+            );
           })}
         </div>
 
@@ -353,9 +382,12 @@ function StudyDecksHeading({ replayKey = 0 }: { replayKey?: number }) {
 function DeckFolder({
   group,
   decks,
+  emptyNote,
 }: {
   group: (typeof DECK_GROUPS)[number];
   decks: Deck[];
+  /** Stands in for the fan when the folder has nothing in it yet. */
+  emptyNote?: string;
 }) {
   const isDark = useIsDark();
   const cards = decks.reduce((n, d) => n + deckCount(d), 0);
@@ -404,7 +436,15 @@ function DeckFolder({
           </a>
         </InfoCardTitle>
         <InfoCardDescription className="!text-white/75">{group.blurb}</InfoCardDescription>
-        <FolderDeckFan decks={decks} />
+        {decks.length > 0 ? (
+          <FolderDeckFan decks={decks} />
+        ) : (
+          // Roughly the height the fan would take, so an empty folder is the
+          // same size as a full one and the grid does not go ragged.
+          <p className="mt-4 flex min-h-[7.5rem] items-center rounded-lg border border-dashed border-white/30 px-4 text-xs leading-relaxed text-white/70">
+            {emptyNote}
+          </p>
+        )}
 
 
         {/* Same treatment as "Check out the GitHub here" in the deck footer:

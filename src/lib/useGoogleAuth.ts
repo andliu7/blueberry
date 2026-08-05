@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 
 /**
  * Google sign-in, used to prove who is uploading a deck.
@@ -39,6 +39,29 @@ function decodePayload(jwt: string): { email?: string; name?: string; picture?: 
   }
 }
 
+/**
+ * Who is signed in, held once for the page rather than once per component.
+ *
+ * Being signed in is a fact about the visitor, not about a component. While this
+ * lived in component state, the upload ticket and the delete controls each had
+ * their own copy, so signing in to publish a deck left the thing next to it
+ * still asking you to sign in.
+ */
+let currentUser: GoogleUser | null = null;
+const userListeners = new Set<() => void>();
+
+function setCurrentUser(next: GoogleUser | null) {
+  currentUser = next;
+  userListeners.forEach((fn) => fn());
+}
+
+function subscribeUser(fn: () => void) {
+  userListeners.add(fn);
+  return () => {
+    userListeners.delete(fn);
+  };
+}
+
 let scriptPromise: Promise<void> | null = null;
 
 function loadGis(): Promise<void> {
@@ -70,7 +93,7 @@ interface GoogleIdApi {
 export function useGoogleAuth() {
   const configured = Boolean(CLIENT_ID);
   const [ready, setReady] = useState(false);
-  const [user, setUser] = useState<GoogleUser | null>(null);
+  const user = useSyncExternalStore(subscribeUser, () => currentUser);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -81,11 +104,19 @@ export function useGoogleAuth() {
         if (cancelled) return;
         const g = (window as unknown as { google?: GoogleIdApi }).google;
         if (!g) return setError("Google sign-in unavailable");
+        // Safe to repeat. Every caller registers the same callback and it writes
+        // to the same store, so a second component mounting re-registers rather
+        // than stealing the credential from the first.
         g.accounts.id.initialize({
           client_id: CLIENT_ID!,
           callback: ({ credential }) => {
             const p = decodePayload(credential);
-            setUser({ email: p.email ?? "", name: p.name, picture: p.picture, idToken: credential });
+            setCurrentUser({
+              email: p.email ?? "",
+              name: p.name,
+              picture: p.picture,
+              idToken: credential,
+            });
           },
         });
         setReady(true);
@@ -104,7 +135,7 @@ export function useGoogleAuth() {
   const signOut = useCallback(() => {
     const g = (window as unknown as { google?: GoogleIdApi }).google;
     g?.accounts.id.disableAutoSelect();
-    setUser(null);
+    setCurrentUser(null);
   }, []);
 
   /**

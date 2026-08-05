@@ -1,7 +1,7 @@
 ﻿import { useCallback, useMemo, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { ArrowLeft } from "lucide-react";
-import { DECKS } from "@/data/decks";
+import { useDecks } from "@/lib/useDecks";
 import {
   DECK_GROUPS,
   deckCount,
@@ -40,7 +40,11 @@ export function FolderPage({ groupId }: { groupId: DeckGroupId }) {
   const matched = useMemo(() => (hits ? matchedDeckIds(hits) : null), [hits]);
 
   const group = DECK_GROUPS.find((g) => g.id === groupId);
-  const all = useMemo(() => DECKS.filter((d) => (d.group ?? "lab") === groupId), [groupId]);
+  const { decks: allDecks } = useDecks();
+  const all = useMemo(
+    () => allDecks.filter((d) => (d.group ?? "lab") === groupId),
+    [allDecks, groupId],
+  );
   const decks = matched ? all.filter((d) => matched.has(d.id)) : all;
 
   const navItems: NavPillItem[] = [
@@ -89,6 +93,16 @@ export function FolderPage({ groupId }: { groupId: DeckGroupId }) {
         </header>
 
         <DeckSearch decks={all} onResults={handleResults} />
+
+        {/* An empty folder says so. Uploaded starts empty by design, and a page
+            with a heading and then nothing at all reads as a failed load. */}
+        {decks.length === 0 && (
+          <p className="rounded-xl border border-dashed border-slate-300 px-5 py-8 text-center text-sm text-slate-500 dark:border-stone-700 dark:text-stone-400">
+            {matched
+              ? "No decks in this folder match that search."
+              : "Nothing here yet. Decks published from a .txt file land in this folder."}
+          </p>
+        )}
 
         <div className="grid gap-7 sm:grid-cols-2">
           {decks.map((deck, i) => (
