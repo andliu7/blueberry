@@ -27,7 +27,13 @@ import { cn } from "@/lib/utils";
  * the question side would be handing over the thing it is asking for.
  */
 
-const cardSrc = (name: string) => `${import.meta.env.BASE_URL}cards/${name}.png`;
+/**
+ * Most diagrams are PNGs exported from the handouts, so the extension is
+ * implied. A name that already carries one is used as given, which is what lets
+ * a hand-drawn SVG sit in the same folder as the scans.
+ */
+const cardSrc = (name: string) =>
+  `${import.meta.env.BASE_URL}cards/${/\.[a-z0-9]+$/i.test(name) ? name : `${name}.png`}`;
 
 interface Row {
   heading?: string;

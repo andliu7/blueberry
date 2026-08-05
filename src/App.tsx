@@ -24,6 +24,8 @@ import { TiltCard } from "@/components/ui/be-ui-tilt-card";
 import { useIsDark } from "@/lib/useIsDark";
 import { QuestionCard, type Status } from "@/components/QuestionCard";
 import { CardGallery3D, GALLERY_MAX, type GalleryItem } from "@/components/ui/card-gallery-3d";
+import { StudyToast, useDeckMilestones } from "@/components/ui/study-toast";
+import { Reaction } from "@/components/ui/reaction";
 import { ButtonHoldAndRelease } from "@/components/ui/hold-and-release-button";
 import SocialCards from "@/components/ui/card-fan-carousel";
 import { StickyNote } from "@/components/StickyNote";
@@ -336,6 +338,14 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
     return c;
   }, [status]);
   const reviewed = counts.red + counts.yellow + counts.green;
+
+  // Fires once as the deck crosses its middle. See useDeckMilestones for why
+  // that point specifically.
+  const { toast: milestone, dismiss: dismissMilestone } = useDeckMilestones(
+    deck.id,
+    reviewed,
+    questions.length,
+  );
 
   useEffect(() => {
     if (reviewed === questions.length && !hasCelebrated.current) {
@@ -1004,6 +1014,22 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
         className="right-36"
         placeholder="What would make this more useful before the LCTA?"
       />
+
+      <StudyToast
+        open={Boolean(milestone)}
+        title={milestone?.title ?? ""}
+        message={milestone?.message}
+        variant={milestone?.variant ?? "encourage"}
+        onClose={dismissMilestone}
+      >
+        {/* Nothing is recorded from these. They are a place to put the feeling
+            down and carry on, which is the whole job at the halfway mark. */}
+        <span className="flex items-center gap-1">
+          <Reaction symbol="🔥" name="On a roll" />
+          <Reaction symbol="🧠" name="Brain full" />
+          <Reaction symbol="☕" name="Taking a break" />
+        </span>
+      </StudyToast>
 
       <StickyNote value={note} onChange={setNote} />
       <Confetti trigger={confettiTrigger} />

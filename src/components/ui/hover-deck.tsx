@@ -20,7 +20,13 @@ import { cn } from "@/lib/utils";
  * image up while looking away from it.
  */
 
-const cardSrc = (name: string) => `${import.meta.env.BASE_URL}cards/${name}.png`;
+/**
+ * Most diagrams are PNGs exported from the handouts, so the extension is
+ * implied. A name that already carries one is used as given, which is what lets
+ * a hand-drawn SVG sit in the same folder as the scans.
+ */
+const cardSrc = (name: string) =>
+  `${import.meta.env.BASE_URL}cards/${/\.[a-z0-9]+$/i.test(name) ? name : `${name}.png`}`;
 
 const PREVIEW_W = 380;
 const PREVIEW_H = 250;
@@ -121,7 +127,10 @@ export function HoverDeck({
     <section
       ref={containerRef}
       onMouseMove={handleMouseMove}
-      className="relative mx-auto w-full max-w-2xl px-1 pb-8"
+      // `quiz-on` is what stops a hover un-blurring the badge; see index.css.
+      // It has to live on an ancestor because the rule it drives is CSS, kept
+      // that way so travelling down the list does not re-render every row.
+      className={cn("relative mx-auto w-full max-w-2xl px-1 pb-8", quizMode && "quiz-on")}
     >
       {/* Floating preview. Hidden below `sm`, where it would cover most of the
           screen and there is no cursor to anchor it to; small screens get the

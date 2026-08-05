@@ -63,7 +63,9 @@ export function ReferenceApp({ deck }: { deck: ReferenceDeck }) {
         title: row.title,
         body: row.description,
         badge: row.badge,
-        image: row.image ? `${import.meta.env.BASE_URL}cards/${row.image}.png` : undefined,
+        image: row.image
+          ? `${import.meta.env.BASE_URL}cards/${/\.[a-z0-9]+$/i.test(row.image) ? row.image : `${row.image}.png`}`
+          : undefined,
       })),
     [rows],
   );

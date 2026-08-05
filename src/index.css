@@ -26,6 +26,16 @@ body {
   filter: blur(0);
 }
 
+/* ...except while quiz mode is on.
+   The same hover that peeks at the answer is the one that summons the
+   structure preview, so looking at the drawing handed you the pKa every single
+   time and quiz mode did nothing on any row with an image. Pinning still
+   reveals, which is the deliberate act the peek was meant to be.
+   `:not(.revealed)` rather than !important, so a pinned row still wins. */
+.quiz-on .group-row:hover .answer-hidden:not(.revealed) {
+  filter: blur(7px);
+}
+
 /* Theme switching used to look staggered: the body eased over 250ms while the
    header, cards and controls had no transition at all and snapped instantly.
    The toggler adds this class for the length of the swap so every themed

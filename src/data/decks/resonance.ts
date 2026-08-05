@@ -56,7 +56,7 @@ export const resonanceDeck: ReferenceDeck = {
     {
       heading: "Dr. Stocker's tricks — write these down NOW",
       items: [
-        { title: "FONClBrCSIPH", description: "Electronegativity order: F > O > N > Cl > Br > C ≈ S > I > P > H — decides where pushed electrons land", badge: "EN ranking", image: "res_neutral_example" },
+        { title: "FONClBrCSIPH", description: "Electronegativity order: F > O > N > Cl > Br > C ≈ S > I > P > H — decides where pushed electrons land", badge: "EN ranking", image: "res_electronegativity.svg" },
         { title: "BrINClHOF", description: "The elements that exist as diatomic molecules: Br2, I2, N2, Cl2, H2, O2, F2", badge: "diatomics" },
         { title: "The octet rule RULES!", description: "Never draw a contributor that breaks it — especially (+) on N or O without a full octet", badge: "always", image: "res_octet_example" },
       ],

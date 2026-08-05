@@ -27,15 +27,17 @@ export const pkaDeck: ReferenceDeck = {
   to: "#be123c",
   // Crops the printed pKa out of every structure and shows it small: these are
   // one-molecule drawings, not spectra.
+  // No magnifier. These are one-molecule line drawings that are already legible
+  // at preview size; a lens over them enlarges white space. It earns its place
+  // on IR and NMR, where the diagram is a full spectrum with detail too fine to
+  // read at any size the page can give it.
   preview: {
     width: 230,
     height: 140,
     cropRight: "25%",
-    magnify: { lensSize: 130, zoomFactor: 2.2 },
   },
   groups: [
     {
-      heading: "Strongest acids first — low pKa lets go of H+ easily",
       items: [
         { title: "Hydroiodic acid", description: "HI", badge: "-10", image: "pka_hi" },
         { title: "Hydrobromic acid", description: "HBr", badge: "-8", image: "pka_hbr" },
