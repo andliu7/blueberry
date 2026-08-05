@@ -130,10 +130,18 @@ export function AboutOverlay({ open, onClose }: { open: boolean; onClose: () => 
                 how they are designed to be studied.
               </p>
               <p>
-                I'm Andrew! Thanks for checking us out. I'm a final-year Computer
-                Science major on the Pre-Dental track at the University of Maryland. My
-                ultimate dream is to start my own dental practice and pursue a
-                specialty, all with the purpose of helping others.
+                {/* The staff door. Styled as nothing: no underline, no colour, no
+                    pointer cursor, so it reads as the word it already was. It
+                    leads to a sign-in that refuses everyone not on the
+                    allowlist, which is a poor thing to invite people to try. */}
+                I'm{" "}
+                <a href="#/signin" className="cursor-text text-inherit no-underline outline-none">
+                  Andrew
+                </a>
+                ! Thanks for checking us out. I'm a final-year Computer Science major on
+                the Pre-Dental track at the University of Maryland. My ultimate dream is
+                to start my own dental practice and pursue a specialty, all with the
+                purpose of helping others.
               </p>
               <p>
                 I really hope you're able to take something valuable away from this site

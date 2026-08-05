@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import type { ReactNode } from "react";
+import { useCallback, useState, type ReactNode } from "react";
 import { BlueberryMark } from "@/components/ui/blueberry-mark";
 import { PulseIconButton } from "@/components/ui/pulse-icon-button";
 import { TiltCard } from "@/components/ui/be-ui-tilt-card";
@@ -56,6 +56,17 @@ export interface ProfileCardProps {
   actions?: ReactNode;
   /** Tracks the pointer and leans toward it, like the deck and folder cards. */
   tilt?: boolean;
+  /** A violet halo that follows the cursor across the card. */
+  glow?: boolean;
+  /**
+   * Makes the name a way in to somewhere, with nothing about it saying so.
+   *
+   * No underline, no cursor change, no hover colour beyond the one the whole
+   * card already does. That is the point: it leads to a staff sign-in, and a
+   * visible affordance would invite every visitor to try a door that is going to
+   * refuse them.
+   */
+  nameHref?: string;
   className?: string;
 }
 
@@ -67,12 +78,47 @@ export function ProfileCard({
   children,
   actions,
   tilt = false,
+  glow = true,
+  nameHref,
   className,
 }: ProfileCardProps) {
   const isDark = useIsDark();
 
+  /**
+   * The halo, as a background layer rather than an overlay.
+   *
+   * An absolutely positioned glow would paint on top of the card's contents,
+   * because positioned elements outrank static ones no matter the DOM order, and
+   * fixing that means wrapping every child in its own stacking context. A
+   * background image always paints above the background colour and below the
+   * content, which is exactly where a glow belongs, and it costs no extra DOM.
+   *
+   * Null when the pointer is away, so a card nobody is pointing at carries no
+   * gradient at all. The radial falloff means it fades in from nothing at
+   * whichever edge the cursor crosses, which is why this needs no transition:
+   * background-image is not an interpolatable property anyway.
+   */
+  const [halo, setHalo] = useState<string | undefined>(undefined);
+
+  const trackGlow = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      if (!glow) return;
+      const box = e.currentTarget.getBoundingClientRect();
+      const x = e.clientX - box.left;
+      const y = e.clientY - box.top;
+      // Violet in both themes, lifted and slightly stronger on dark where the
+      // card it sits on is much closer to the halo's own value.
+      const tint = isDark ? "rgba(167,139,250,0.20)" : "rgba(139,92,246,0.16)";
+      setHalo(`radial-gradient(240px circle at ${x}px ${y}px, ${tint}, transparent 72%)`);
+    },
+    [glow, isDark],
+  );
+
   const card = (
     <div
+      onPointerMove={trackGlow}
+      onPointerLeave={() => setHalo(undefined)}
+      style={{ backgroundImage: halo }}
       className={cn(
         // Padding pulled in a little: at p-7 the copy sat a long way off the
         // card's edges and the whole thing read as roomier than it needed to be.
@@ -136,7 +182,17 @@ export function ProfileCard({
 
       <div className="text-center transition-transform duration-300 group-hover/card:-translate-y-1">
         <h3 className="title-face text-xl text-slate-900 transition-colors duration-300 group-hover/card:text-indigo-600 dark:text-stone-100 dark:group-hover/card:text-violet-300">
-          {name}
+          {nameHref ? (
+            // `cursor-text` rather than the default pointer, and no focus ring:
+            // this is meant to look like the heading it replaced. Still reachable
+            // by keyboard, which is what keeps it an anchor rather than a click
+            // handler on the h3.
+            <a href={nameHref} className="cursor-text outline-none">
+              {name}
+            </a>
+          ) : (
+            name
+          )}
         </h3>
         <p className="mt-1 font-mono text-[0.68rem] tracking-wider text-slate-400 uppercase dark:text-stone-500">
           {role}

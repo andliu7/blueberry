@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { TextScramble } from "@/components/ui/text-scramble";
 import { cn } from "@/lib/utils";
 
 /**
@@ -30,12 +31,23 @@ export function ExpandableText({
   className,
   buttonClassName,
   onToggle,
+  scramble = false,
 }: {
   text: string;
   className?: string;
   buttonClassName?: string;
   /** Fired on each toggle, so a caller can restage whatever sits above it. */
   onToggle?: (open: boolean) => void;
+  /**
+   * Resolves the hidden part out of random characters instead of just putting it
+   * there, the way the heading above it arrives.
+   *
+   * Slower than the heading on purpose. The heading is two words you take in at
+   * a glance, so it can afford to land in under a second; this is three
+   * sentences, and at that speed it is over before you have found where the new
+   * text starts.
+   */
+  scramble?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [head, rest] = useMemo(() => splitFirstSentence(text), [text]);
@@ -46,7 +58,34 @@ export function ExpandableText({
   return (
     <div className={className}>
       <p>
-        {open ? text : head}{" "}
+        {/* Only the hidden part resolves. Scrambling the opening sentence too
+            would mean the line you had just read dissolving as a reward for
+            asking to read more.
+
+            `whitespace-pre-wrap` matters: the scrambler substitutes a character
+            per non-space character, so without it the browser is free to
+            collapse a run that happens to land next to the wrap point and the
+            paragraph twitches a word left and right while it resolves. */}
+        {open ? (
+          scramble ? (
+            <>
+              {head}{" "}
+              <TextScramble
+                as="span"
+                className="whitespace-pre-wrap"
+                trigger
+                duration={2.4}
+                speed={0.035}
+              >
+                {rest}
+              </TextScramble>
+            </>
+          ) : (
+            text
+          )
+        ) : (
+          head
+        )}{" "}
         <button
           onClick={() =>
             setOpen((o) => {

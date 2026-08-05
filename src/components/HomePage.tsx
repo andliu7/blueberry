@@ -181,6 +181,9 @@ export function HomePage() {
             // Opening the blurb restages the heading above it, so the two read
             // as one block responding rather than the text growing on its own.
             onToggle={() => setHeadingReplay((n) => n + 1)}
+            // The heading restages and the new copy decrypts in underneath it,
+            // so the two read as one block responding to the click.
+            scramble
             className="playful-face mt-4 text-lg text-slate-500 dark:text-stone-400"
             text={
               "Flashcard decks I built to make the rote memorization part of organic chemistry a little more fun! " +

@@ -1,5 +1,5 @@
 ﻿import { useState } from "react";
-import { CheckCircle2, AlertTriangle, LogOut, Lock, Trash2 } from "lucide-react";
+import { CheckCircle2, AlertTriangle, LogOut, Lock, Trash2, Eye, EyeOff } from "lucide-react";
 import { FileUpload, type FileUploadItem } from "@/components/ui/be-ui-file-upload";
 import { AdmitOneTicket } from "@/components/ui/admit-one-ticket";
 import { QuestionCard } from "@/components/QuestionCard";
@@ -48,6 +48,7 @@ export function DeckUploadTicket() {
   });
   const [word, setWord] = useState("");
   const [wrong, setWrong] = useState(false);
+  const [showWord, setShowWord] = useState(false);
   const { published } = useDecks();
   // Which deck is mid-delete, and which one has been armed by a first click.
   const [removing, setRemoving] = useState<string | null>(null);
@@ -176,16 +177,32 @@ export function DeckUploadTicket() {
             This only hides the form while it is being worked on. Publishing is
             still decided by the server.
           </p>
-          <input
-            type="password"
-            value={word}
-            autoComplete="off"
-            onChange={(e) => {
-              setWord(e.target.value);
-              setWrong(false);
-            }}
-            className="mt-3 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus-visible:border-indigo-400 focus-visible:ring-2 focus-visible:ring-indigo-400/40 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-200"
-          />
+          {/* The toggle is a sibling of the input, not a wrapper around it, so
+              the focus ring still traces the field rather than a box drawn
+              around both. `pr-10` keeps the text clear of the button. */}
+          <div className="relative mt-3">
+            <input
+              type={showWord ? "text" : "password"}
+              value={word}
+              autoComplete="off"
+              onChange={(e) => {
+                setWord(e.target.value);
+                setWrong(false);
+              }}
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 pr-10 text-sm text-slate-800 outline-none focus-visible:border-indigo-400 focus-visible:ring-2 focus-visible:ring-indigo-400/40 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-200"
+            />
+            <button
+              type="button"
+              onClick={() => setShowWord((s) => !s)}
+              // Without this the button is inside the form and defaults to
+              // submit, so revealing the passphrase would also guess it.
+              aria-label={showWord ? "Hide passphrase" : "Show passphrase"}
+              aria-pressed={showWord}
+              className="absolute inset-y-0 right-0 flex items-center px-3 text-slate-400 transition-colors hover:text-slate-700 dark:text-stone-500 dark:hover:text-stone-200"
+            >
+              {showWord ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
           {wrong && (
             <p className="mt-2 text-xs text-red-600 dark:text-red-400">
               Not that one.

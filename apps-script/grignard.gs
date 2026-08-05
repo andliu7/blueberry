@@ -263,8 +263,22 @@ function doPost(e) {
       case 'deleteDeck':
         return handleDeleteDeck_(data);
       case 'feedback':
-      default:
         return handleFeedback_(data);
+      default:
+        /**
+         * A missing `type` is feedback, because that is what the widget sent
+         * before any of the other routes existed and an older cached bundle
+         * should keep working.
+         *
+         * A `type` that is present but unrecognised is not. It used to land
+         * here too, which meant a route the deployment did not have yet wrote a
+         * blank row to the feedback tab and answered `{"ok":true}`. The caller
+         * was told its delete had succeeded while nothing had been deleted.
+         * Measured: a `deleteDeck` POST against a deployment predating that
+         * route returned ok and added a feedback row.
+         */
+        if (data.type == null || data.type === '') return handleFeedback_(data);
+        return json_({ ok: false, error: 'Unknown request type: ' + clean_(data.type) });
     }
   } catch (err) {
     return json_({ ok: false, error: String(err) });
