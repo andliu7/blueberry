@@ -4,17 +4,33 @@ import { motion, useReducedMotion } from "motion/react";
 import { cn } from "@/lib/utils";
 
 /**
- * Handwritten "click here!" with a curved arrow pointing right at whatever sits
- * next to it. Used to point at the toolbar trigger, which now starts collapsed
- * and would otherwise be easy to miss.
+ * Handwritten "click here!" with a curved arrow pointing at whatever sits next
+ * to it. Used to point at the toolbar trigger, which starts collapsed and would
+ * otherwise be easy to miss, and at the home mark on a deck page.
+ *
+ * `direction` is which way the arrow points, which is also which side of the
+ * target the hint belongs on. The toolbar trigger sits to the hint's right; the
+ * home mark sits to its left, and an arrow curving away from the thing it means
+ * is worse than no arrow.
  */
-export function ClickHereHint({ className }: { className?: string }) {
+export function ClickHereHint({
+  className,
+  direction = "right",
+}: {
+  className?: string;
+  direction?: "left" | "right";
+}) {
   const reduce = useReducedMotion();
+  const left = direction === "left";
 
   return (
     <motion.span
-      className={cn("flex items-center gap-1 select-none pointer-events-none", className)}
-      initial={reduce ? false : { opacity: 0, x: 8 }}
+      className={cn(
+        "flex items-center gap-1 select-none pointer-events-none",
+        left && "flex-row-reverse",
+        className,
+      )}
+      initial={reduce ? false : { opacity: 0, x: left ? -8 : 8 }}
       animate={reduce ? undefined : { opacity: 1, x: 0 }}
       transition={{ duration: 0.35 }}
       aria-hidden
@@ -23,14 +39,15 @@ export function ClickHereHint({ className }: { className?: string }) {
         click here!
       </span>
 
-      {/* Nudges toward the button so the eye follows it. */}
+      {/* Nudges toward the button so the eye follows it. Mirrored rather than
+          redrawn for the left-pointing case, and the nudge mirrors with it. */}
       <motion.svg
         width="34"
         height="22"
         viewBox="0 0 34 22"
         fill="none"
-        className="text-indigo-500 dark:text-amber-300 shrink-0"
-        animate={reduce ? undefined : { x: [0, 4, 0] }}
+        className={cn("text-indigo-500 dark:text-amber-300 shrink-0", left && "-scale-x-100")}
+        animate={reduce ? undefined : { x: left ? [0, -4, 0] : [0, 4, 0] }}
         transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
       >
         <path
