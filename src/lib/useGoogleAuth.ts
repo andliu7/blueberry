@@ -63,6 +63,7 @@ function subscribeUser(fn: () => void) {
 }
 
 let scriptPromise: Promise<void> | null = null;
+let initPromise: Promise<void> | null = null;
 
 function loadGis(): Promise<void> {
   if (scriptPromise) return scriptPromise;
@@ -90,6 +91,37 @@ interface GoogleIdApi {
   };
 }
 
+/**
+ * Loads the Google script and initialises it, once for the page.
+ *
+ * Once, because Google says so: calling `initialize` again logs
+ * "called multiple times. This could cause unexpected behavior and only the
+ * last initialized instance will be used." Two components on the same page use
+ * this hook, so it was firing on every mount of either one. The credential now
+ * lands in a store rather than in whichever component initialised last, so
+ * there is nothing left that a second call would be doing.
+ */
+function initGis(): Promise<void> {
+  if (initPromise) return initPromise;
+  initPromise = loadGis().then(() => {
+    const g = (window as unknown as { google?: GoogleIdApi }).google;
+    if (!g) throw new Error("Google sign-in unavailable");
+    g.accounts.id.initialize({
+      client_id: CLIENT_ID!,
+      callback: ({ credential }) => {
+        const p = decodePayload(credential);
+        setCurrentUser({
+          email: p.email ?? "",
+          name: p.name,
+          picture: p.picture,
+          idToken: credential,
+        });
+      },
+    });
+  });
+  return initPromise;
+}
+
 export function useGoogleAuth() {
   const configured = Boolean(CLIENT_ID);
   const [ready, setReady] = useState(false);
@@ -99,28 +131,10 @@ export function useGoogleAuth() {
   useEffect(() => {
     if (!configured) return;
     let cancelled = false;
-    loadGis()
-      .then(() => {
-        if (cancelled) return;
-        const g = (window as unknown as { google?: GoogleIdApi }).google;
-        if (!g) return setError("Google sign-in unavailable");
-        // Safe to repeat. Every caller registers the same callback and it writes
-        // to the same store, so a second component mounting re-registers rather
-        // than stealing the credential from the first.
-        g.accounts.id.initialize({
-          client_id: CLIENT_ID!,
-          callback: ({ credential }) => {
-            const p = decodePayload(credential);
-            setCurrentUser({
-              email: p.email ?? "",
-              name: p.name,
-              picture: p.picture,
-              idToken: credential,
-            });
-          },
-        });
-        setReady(true);
-      })
+    // Every mount awaits the same promise, so a component mounting second is
+    // ready as soon as it renders rather than starting the load again.
+    initGis()
+      .then(() => !cancelled && setReady(true))
       .catch((e: Error) => !cancelled && setError(e.message));
     return () => {
       cancelled = true;
