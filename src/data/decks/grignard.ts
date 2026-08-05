@@ -7,7 +7,7 @@
  */
 export const grignardDeck: Deck = {
   id: "grignard",
-  title: "[CHEM 242] Lab 6: Grignard Addition",
+  title: "[CHEM 242] Lab 5: Grignard Addition",
   short: "Grignard",
   href: "#/",
   group: "lab",

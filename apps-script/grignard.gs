@@ -35,6 +35,7 @@ var TABS = {
   shelf: 'shelves',
   todo: 'todos',
   admin: 'admins',
+  fbState: 'feedbackState',
 };
 var MAX_CONTACT_PER_HOUR = 20;
 var MAX_LEN = 5000;
@@ -590,6 +591,100 @@ function readFeedback_() {
   return out;
 }
 
+/**
+ * What has been done with each piece of feedback, shared by every admin.
+ *
+ * In its own tab rather than as columns on `feedback`, because that tab is
+ * written by the public widget on every study page and this one is written only
+ * by staff. Keeping them apart means a burst of feedback arriving cannot
+ * collide with someone triaging, and the feedback tab keeps the shape the
+ * widget has always appended to.
+ *
+ * Keyed by the feedback row id. That is why `readFeedback_` derives ids from the
+ * row number and never renumbers them: the id has to survive between the moment
+ * one person marks something resolved and the moment another loads the page.
+ */
+var FB_STATES = ['new', 'resolved', 'idea', 'todo'];
+
+function fbStateTab_() {
+  return tab_(TABS.fbState, ['id', 'state', 'by', 'at']);
+}
+
+function readFeedbackState_() {
+  var sh = fbStateTab_();
+  var last = sh.getLastRow();
+  if (last < 2) return {};
+  var rows = sh.getRange(2, 1, last - 1, 4).getValues();
+  var out = {};
+  // Later rows win, so a re-triage does not need the old row deleting first.
+  for (var i = 0; i < rows.length; i++) {
+    var id = String(rows[i][0] || '').trim();
+    if (!id) continue;
+    out[id] = { state: String(rows[i][1] || 'new'), by: String(rows[i][2] || ''), at: String(rows[i][3] || '') };
+  }
+  return out;
+}
+
+function writeFeedbackState_(id, state, email) {
+  var sh = fbStateTab_();
+  var last = sh.getLastRow();
+  if (last >= 2) {
+    var ids = sh.getRange(2, 1, last - 1, 1).getValues();
+    for (var i = 0; i < ids.length; i++) {
+      if (String(ids[i][0]).trim() === id) {
+        sh.getRange(i + 2, 1, 1, 4).setValues([[id, state, email, new Date().toISOString()]]);
+        return;
+      }
+    }
+  }
+  sh.appendRow([id, state, email, new Date().toISOString()]);
+}
+
+function handleSetFeedbackState_(data) {
+  var who = staff_(data);
+  if (who.error) return json_({ ok: false, error: who.error });
+
+  var id = clean_(data.id);
+  var state = clean_(data.state).trim();
+  if (!id) return json_({ ok: false, error: 'No feedback id given.' });
+  if (FB_STATES.indexOf(state) === -1) {
+    return json_({ ok: false, error: 'Unknown state: ' + state });
+  }
+  writeFeedbackState_(id, state, who.email);
+  return json_({ ok: true, id: id, state: state });
+}
+
+/**
+ * Turns a piece of feedback into a task and records that it was promoted.
+ *
+ * One route rather than the client calling addTodo and then setFeedbackState,
+ * because two calls can half-succeed: the task appears and the note still looks
+ * untriaged, so the next person promotes it again and you get duplicates.
+ */
+function handlePromoteFeedback_(data) {
+  var who = staff_(data);
+  if (who.error) return json_({ ok: false, error: who.error });
+
+  var id = clean_(data.id);
+  var title = clean_(data.title).trim();
+  if (!id || !title) return json_({ ok: false, error: 'Feedback id and a title are both needed.' });
+
+  var column = clean_(data.column).trim();
+  if (TODO_COLUMNS.indexOf(column) === -1) column = 'idea';
+
+  var todoId = Utilities.getUuid();
+  todoTab_().appendRow([
+    todoId,
+    title,
+    column,
+    'From feedback ' + id,
+    who.email,
+    new Date().toISOString(),
+  ]);
+  writeFeedbackState_(id, column === 'idea' ? 'idea' : 'todo', who.email);
+  return json_({ ok: true, id: id, todoId: todoId, column: column });
+}
+
 function handleWorkspace_(data) {
   var who = staff_(data);
   if (who.error) return json_({ ok: false, error: who.error });
@@ -602,6 +697,7 @@ function handleWorkspace_(data) {
     ok: true,
     email: who.email,
     feedback: readFeedback_(),
+    feedbackState: readFeedbackState_(),
     todos: readTodos_(),
     owners: owners_(),
     admins: rows
@@ -732,6 +828,10 @@ function doPost(e) {
         return handleAddAdmin_(data);
       case 'removeAdmin':
         return handleRemoveAdmin_(data);
+      case 'setFeedbackState':
+        return handleSetFeedbackState_(data);
+      case 'promoteFeedback':
+        return handlePromoteFeedback_(data);
       case 'feedback':
         return handleFeedback_(data);
       default:

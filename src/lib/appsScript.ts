@@ -29,7 +29,9 @@ type DeckWriteFeature =
   | "deleteTodo"
   | "listAdmins"
   | "addAdmin"
-  | "removeAdmin";
+  | "removeAdmin"
+  | "setFeedbackState"
+  | "promoteFeedback";
 
 export type AppsScriptFeature = keyof typeof OVERRIDES | DeckWriteFeature;
 
@@ -45,6 +47,8 @@ const DECK_WRITES: DeckWriteFeature[] = [
   "listAdmins",
   "addAdmin",
   "removeAdmin",
+  "setFeedbackState",
+  "promoteFeedback",
 ];
 
 /**

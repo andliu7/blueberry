@@ -143,6 +143,35 @@ body {
   }
 }
 
+/* Chrome paints its own background on any field it has autofilled, and there is
+   no property that overrides it: `background-color` is ignored on
+   `:-webkit-autofill`. The one thing that does win is an inset box-shadow large
+   enough to cover the field, which is why this looks like a hack. It is the
+   standard one.
+
+   Without it the admin email box and the passphrase box turn white the moment a
+   password manager touches them, which on the dark workspace and the near-black
+   sign-in reads as the input having broken. `currentColor` on the shadow means
+   each field keeps whatever background its own theme gave it. */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px var(--autofill-bg, #ffffff) inset;
+  -webkit-text-fill-color: var(--autofill-fg, #1e293b);
+  caret-color: var(--autofill-fg, #1e293b);
+  transition: background-color 9999s ease-in-out 0s;
+}
+
+.dark input:-webkit-autofill,
+.dark input:-webkit-autofill:hover,
+.dark input:-webkit-autofill:focus,
+.dark input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px var(--autofill-bg, #1c1917) inset;
+  -webkit-text-fill-color: var(--autofill-fg, #e7e5e4);
+  caret-color: var(--autofill-fg, #e7e5e4);
+}
+
 /* The violet halo the form fields wear when focused, as something anything can
    pick up on hover. Used on the about card's tags, its profile links and the
    logo, so pointing at any of them gets the same answer.

@@ -102,6 +102,15 @@ export function sentimentOf(note: FeedbackNote): Sentiment {
   return "neutral";
 }
 
+export type FeedbackState = "new" | "resolved" | "idea" | "todo";
+
+/** What has been done with a note, shared by every admin rather than per device. */
+export interface FeedbackStateEntry {
+  state: FeedbackState;
+  by: string;
+  at: string;
+}
+
 export interface AdminEntry {
   email: string;
   addedBy: string;
@@ -110,6 +119,14 @@ export interface AdminEntry {
 
 export interface WorkspaceData {
   feedback: FeedbackNote[];
+  /**
+   * Triage state by feedback id, from the sheet.
+   *
+   * On the server rather than in localStorage, which is what makes the workspace
+   * shared: one admin marking a note resolved has to be true for the next admin
+   * who opens it, not just on the browser it was clicked in.
+   */
+  feedbackState: Record<string, FeedbackStateEntry>;
   todos: Todo[];
   /**
    * Invited admins, who can be removed from the workspace.
@@ -143,6 +160,10 @@ export async function fetchWorkspace(idToken: string): Promise<
     data: {
       feedback,
       admins: Array.isArray(body.admins) ? (body.admins as AdminEntry[]) : [],
+      feedbackState:
+        body.feedbackState && typeof body.feedbackState === "object"
+          ? (body.feedbackState as Record<string, FeedbackStateEntry>)
+          : {},
       owners: Array.isArray(body.owners)
         ? (body.owners as unknown[]).filter((o): o is string => typeof o === "string")
         : [],

@@ -5,30 +5,27 @@ import {
   LogOut,
   Plus,
   RefreshCw,
-  Smile,
-  Frown,
-  Minus,
   Trash2,
   GripVertical,
 } from "lucide-react";
 import { BlueberryMark } from "@/components/ui/blueberry-mark";
 import { NotificationBell } from "@/components/ui/notification-bell";
 import { AdminPanel } from "@/components/AdminPanel";
+import { FeedbackInbox } from "@/components/FeedbackInbox";
 import { ButtonHoldAndRelease } from "@/components/ui/hold-and-release-button";
 import { postToAppsScript } from "@/lib/appsScript";
 import { useGoogleAuth, type GoogleUser } from "@/lib/useGoogleAuth";
 import {
   fetchWorkspace,
   sentimentOf,
-  timeAgo,
   loadSeen,
   saveSeen,
   TODO_COLUMNS,
   type FeedbackNote,
-  type Sentiment,
   type Todo,
   type TodoColumn,
   type AdminEntry,
+  type FeedbackStateEntry,
 } from "@/lib/workspace";
 import { cn } from "@/lib/utils";
 
@@ -41,23 +38,6 @@ import { cn } from "@/lib/utils";
  * server, so nothing on this page is trusted to be true just because it rendered.
  */
 
-const SENTIMENT: Record<Sentiment, { icon: typeof Smile; label: string; chip: string }> = {
-  good: {
-    icon: Smile,
-    label: "Positive",
-    chip: "bg-emerald-100 text-emerald-700 dark:bg-emerald-400/15 dark:text-emerald-300",
-  },
-  bad: {
-    icon: Frown,
-    label: "Needs attention",
-    chip: "bg-red-100 text-red-700 dark:bg-red-400/15 dark:text-red-300",
-  },
-  neutral: {
-    icon: Minus,
-    label: "Neutral",
-    chip: "bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-stone-300",
-  },
-};
 
 export function WorkspacePage({ user }: { user: GoogleUser }) {
   const { signOut } = useGoogleAuth();
@@ -65,6 +45,7 @@ export function WorkspacePage({ user }: { user: GoogleUser }) {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [admins, setAdmins] = useState<AdminEntry[]>([]);
   const [owners, setOwners] = useState<string[]>([]);
+  const [fbState, setFbState] = useState<Record<string, FeedbackStateEntry>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
@@ -82,6 +63,7 @@ export function WorkspacePage({ user }: { user: GoogleUser }) {
       setTodos(res.data.todos);
       setAdmins(res.data.admins);
       setOwners(res.data.owners);
+      setFbState(res.data.feedbackState);
       setError("");
     } else {
       setError(res.error);
@@ -92,7 +74,10 @@ export function WorkspacePage({ user }: { user: GoogleUser }) {
     void refresh();
   }, [refresh]);
 
-  const unread = useMemo(() => feedback.filter((f) => !seen.has(f.id)), [feedback, seen]);
+  const unread = useMemo(
+    () => feedback.filter((f) => !seen.has(f.id) && (fbState[f.id]?.state ?? "new") === "new"),
+    [feedback, seen, fbState],
+  );
 
   const markAllSeen = useCallback(() => {
     const ids = feedback.map((f) => f.id);
@@ -183,50 +168,13 @@ export function WorkspacePage({ user }: { user: GoogleUser }) {
             </button>
 
             <NotificationBell count={unread.length} label="Feedback" onOpen={markAllSeen}>
-              {feedback.length === 0 ? (
-                <p className="p-4 text-center text-sm text-slate-500 dark:text-stone-400">
-                  {loading ? "Loading feedback…" : "No feedback yet."}
-                </p>
-              ) : (
-                <ul className="divide-y divide-slate-100 dark:divide-stone-800">
-                  {feedback.map((note) => {
-                    const mood = sentimentOf(note);
-                    const Icon = SENTIMENT[mood].icon;
-                    return (
-                      <li
-                        key={note.id}
-                        className={cn(
-                          "p-3",
-                          !seen.has(note.id) && "bg-indigo-50/60 dark:bg-indigo-400/5",
-                        )}
-                      >
-                        <div className="mb-1 flex items-center justify-between gap-2">
-                          <span
-                            className={cn(
-                              "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[0.65rem] font-bold",
-                              SENTIMENT[mood].chip,
-                            )}
-                          >
-                            <Icon className="h-3 w-3" />
-                            {SENTIMENT[mood].label}
-                          </span>
-                          <span className="font-mono text-[0.65rem] text-slate-400 dark:text-stone-500">
-                            {timeAgo(note.at)}
-                          </span>
-                        </div>
-                        <p className="text-xs leading-relaxed text-slate-600 dark:text-stone-300">
-                          {note.comment || <em className="opacity-60">Rating only</em>}
-                        </p>
-                        {note.rating && (
-                          <p className="mt-1 font-mono text-[0.65rem] text-slate-400 dark:text-stone-500">
-                            rating: {note.rating}
-                          </p>
-                        )}
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
+              <FeedbackInbox
+                feedback={feedback}
+                state={fbState}
+                loading={loading}
+                idToken={user.idToken}
+                onChanged={() => void refresh()}
+              />
             </NotificationBell>
 
             <span className="hidden font-mono text-xs text-slate-500 sm:inline dark:text-stone-400">
