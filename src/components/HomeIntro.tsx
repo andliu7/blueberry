@@ -155,12 +155,29 @@ function IntroStage({
             insetXRange={[12, 0]}
             roundednessRange={[420, 0]}
           >
-            {/* The shader is white bands drawn on black, so it can only ever be
-                a dark rectangle. On the pastel opening the same beat is the
-                gradient itself coming up at full strength inside the expanding
-                panel, which keeps the reveal without flipping the screen to
-                black halfway through it. */}
-            {isDark ? <ShaderAnimation /> : <BackgroundGradientGlow className="opacity-95" />}
+            {/* The same shader in both themes, inverted for the pastel one.
+                It draws white bands on black, so on a light background it can
+                only be a dark rectangle; `invert` turns it into dark bands on
+                white and `hue-rotate` puts the colours back where they started,
+                and `multiply` lets the gradient underneath show through instead
+                of being covered.
+
+                A static gradient sat here for a while, which was worse than it
+                sounds: the panel still expanded, but into something identical to
+                the background behind it, so the beat played and nothing
+                appeared to happen. Keeping the real shader keeps the timing and
+                the movement rather than approximating them. */}
+            <ShaderAnimation
+              className={cn(
+                // Measured by looking at it: at full strength the inverted bands
+                // go grey and muddy against the pastel, because multiply darkens
+                // every channel of a background that is already pale. Half
+                // opacity keeps the sweep legible as movement without turning
+                // the panel into a smudge.
+                !isDark &&
+                  "opacity-50 [filter:invert(1)_hue-rotate(180deg)_saturate(1.4)] mix-blend-multiply",
+              )}
+            />
           </ContainerInset>
           {/* The shader runs to near-white in places, so the title needs
               something behind it. Strongest in the middle where the copy sits,

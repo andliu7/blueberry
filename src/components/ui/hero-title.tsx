@@ -109,7 +109,18 @@ export function HeroTitle({
       )}
       aria-label="Title"
     >
-      {topLeft && <div className="absolute left-6 top-6 z-20">{topLeft}</div>}
+      {/* Aligned to the content column rather than to the viewport edge.
+          `left-6` put the mark 24px from the screen on a deck page while the hub
+          and folder pages put it at the start of their centred `max-w-5xl`
+          column, so it jumped several hundred pixels sideways when you clicked
+          into a deck. The padding and measure below are the hub's, so the mark
+          now lines up with the deck's own content once you scroll past the
+          hero. */}
+      {topLeft && (
+        <div className="absolute inset-x-0 top-8 z-20 px-6">
+          <div className="mx-auto max-w-5xl">{topLeft}</div>
+        </div>
+      )}
 
       {/* Backdrop */}
       {variant === "art" ? (

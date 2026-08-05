@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { ChevronsUpDown, ChevronsDownUp, Shuffle, GalleryHorizontalEnd, List, MoveVertical, ArrowDown, GitBranch, ArrowUpRight, Layers, RefreshCw } from "lucide-react";
 import { FlippingCard } from "@/components/ui/flipping-card";
 import { FlipCard } from "@/components/ui/flip-card";
@@ -6,10 +6,6 @@ import { MathHtml } from "@/components/ui/math-html";
 import { ClickHereHint } from "@/components/ui/click-here-hint";
 import { useDecks } from "@/lib/useDecks";
 import { isReference, DECK_GROUPS, type DeckGroupId, type StudyDeck } from "@/data/types";
-import { ReferenceApp } from "@/components/ReferenceApp";
-import { FolderPage } from "@/components/FolderPage";
-import { ContactPage } from "@/components/ContactPage";
-import { SignInPage } from "@/components/SignInPage";
 import { NotFoundPage } from "@/components/ui/404-page-not-found";
 import { testimonials, testimonialArt } from "@/data/testimonials";
 import { GradientMenuButton, type GradientMenuItem } from "@/components/ui/gradient-menu";
@@ -37,6 +33,28 @@ import { SITE_NAME } from "@/data/site";
 import { progressKey, loadSaved } from "@/lib/progress";
 import { cn } from "@/lib/utils";
 import { useMathJaxTypeset } from "@/lib/useMathJaxTypeset";
+
+/**
+ * Split by route, because the whole site used to arrive as one 755 kB file.
+ * Someone opening a single deck on phone data was downloading the workspace,
+ * the admin panel, the contact form and every other page before their first
+ * card rendered.
+ *
+ * `HomePage` is deliberately not lazy: it is the most common landing point and
+ * splitting it would trade the bundle win for a blank frame on arrival.
+ */
+const ReferenceApp = lazy(() =>
+  import("@/components/ReferenceApp").then((m) => ({ default: m.ReferenceApp })),
+);
+const FolderPage = lazy(() =>
+  import("@/components/FolderPage").then((m) => ({ default: m.FolderPage })),
+);
+const ContactPage = lazy(() =>
+  import("@/components/ContactPage").then((m) => ({ default: m.ContactPage })),
+);
+const SignInPage = lazy(() =>
+  import("@/components/SignInPage").then((m) => ({ default: m.SignInPage })),
+);
 
 
 const VIEW_LABEL = { list: "List", carousel: "Carousel", scroll: "Scroll", stack: "Stack" } as const;
@@ -126,6 +144,11 @@ function QuoteSurface({ children }: { children: React.ReactNode }) {
   );
 }
 
+/** Wraps a split route so its chunk can arrive without a blank frame. */
+function withBoundary(node: React.ReactNode) {
+  return <Suspense fallback={<DeckLoading />}>{node}</Suspense>;
+}
+
 /**
  * The root only decides which page is showing. Decks live at #/deck/<id>, with
  * one exception: Grignard answers at the bare URL too, because that is the link
@@ -154,14 +177,14 @@ export default function App() {
   if (route === "home") return <HomePage />;
   // `about` is the old address for what is now the contact page. About itself is
   // a card opened over whatever you were looking at, so it has no route at all.
-  if (route === "contact" || route === "about") return <ContactPage />;
+  if (route === "contact" || route === "about") return withBoundary(<ContactPage />);
   // Unlinked from the nav on purpose; reached from the name on the About card.
-  if (route === "signin") return <SignInPage />;
+  if (route === "signin") return withBoundary(<SignInPage />);
 
   if (route.startsWith("folder/")) {
     const gid = route.slice(7) as DeckGroupId;
     return DECK_GROUPS.some((g) => g.id === gid) ? (
-      <FolderPage key={gid} groupId={gid} />
+      withBoundary(<FolderPage key={gid} groupId={gid} />)
     ) : (
       <NotFoundPage what="That folder" detail={`#/${route}`} />
     );
@@ -196,7 +219,7 @@ export default function App() {
   }
   // Keyed so switching decks remounts rather than carrying the old deck's
   // ratings, open cards and scroll position across.
-  if (isReference(deck)) return <ReferenceApp key={deck.id} deck={deck} />;
+  if (isReference(deck)) return withBoundary(<ReferenceApp key={deck.id} deck={deck} />);
   return <StudyApp key={deck.id} deck={deck} />;
 }
 

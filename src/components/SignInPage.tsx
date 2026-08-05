@@ -4,6 +4,7 @@ import { ShaderAnimation } from "@/components/ui/shader-animation";
 import { BlueberryMark } from "@/components/ui/blueberry-mark";
 import { useGoogleAuth } from "@/lib/useGoogleAuth";
 import { WorkspacePage } from "@/components/WorkspacePage";
+import { PassphraseGate } from "@/components/ui/passphrase-gate";
 import { SITE_NAME } from "@/data/site";
 
 /**
@@ -68,23 +69,39 @@ function SignInDoor({
 
       <a
         href="#/home"
-        className="group absolute top-6 left-6 z-20 inline-flex items-center gap-1.5 text-sm font-semibold text-white/60 transition-colors hover:text-white"
+        className="group absolute top-8 left-1/2 z-20 inline-flex w-full max-w-5xl -translate-x-1/2 items-center gap-2 px-6 text-sm font-semibold text-white/60 transition-colors hover:text-white"
       >
+        {/* The mark, in the same corner of the same column as every other page.
+            It used to be an arrow here and a centred logo inside the panel,
+            which meant the one element that is supposed to be constant moved on
+            the one page you arrive at from somewhere unfamiliar. */}
+        <BlueberryMark className="blueberry-glow-art h-8 w-8 shrink-0 transition-[filter] duration-300" />
         <ArrowLeft className="h-3.5 w-3.5 transition-transform duration-300 group-hover:-translate-x-0.5" />
         Back to {SITE_NAME}
       </a>
 
       <div className="relative z-10 flex min-h-screen items-center justify-center px-6">
         <div className="w-full max-w-sm rounded-3xl border border-white/10 bg-white/5 p-8 text-center shadow-[0_24px_80px_-12px_rgba(0,0,0,0.9)] backdrop-blur-xl">
-          <BlueberryMark className="blueberry-glow-art mx-auto h-14 w-14 transition-[filter] duration-300" />
-
-          <h1 className="title-face mt-5 text-2xl text-white">Staff sign-in</h1>
+          {/* No mark here. It lives in the corner with every other page's, and
+              two of them on one screen makes neither the anchor. */}
+          <h1 className="title-face text-2xl text-white">Staff sign-in</h1>
           <p className="mt-2 text-sm leading-relaxed text-white/55">
             For adding and removing decks. Everything else on {SITE_NAME} is open,
             so there is nothing to sign in for unless you are publishing.
           </p>
 
+          {/* The passphrase sits in front of the Google button, not behind it.
+              There is nothing here for a student: progress is saved on their own
+              device and needs no account. Showing a sign-in to everyone who
+              finds this URL only invites people to try an account that will be
+              refused, and a refusal reads as the site being broken. */}
           <div className="mt-7">
+            <PassphraseGate
+              tone="dark"
+              title="Staff passphrase"
+              blurb="Not security, and not pretending to be. It keeps the door quiet; the allowlist on the server is what actually decides."
+              className="mx-auto"
+            >
             {!configured ? (
               <p className="text-sm text-white/50">
                 Sign-in is not configured on this build. Set{" "}
@@ -106,6 +123,7 @@ function SignInDoor({
                 {error && <p className="text-xs text-red-300">{error}</p>}
               </div>
             )}
+            </PassphraseGate>
           </div>
         </div>
       </div>

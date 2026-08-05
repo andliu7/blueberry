@@ -175,15 +175,34 @@ export function SiteActions({
   const reduce = useReducedMotion();
 
   /**
-   * Contact dissolves into About on its way out, the way Expand All dissolves
-   * into Collapse All when it has nothing left to do.
+   * Contact leaves to the right and About slides right into the space it was
+   * using, the way Expand All dissolves into Collapse All when it has nothing
+   * left to do.
    *
    * It is leaving the page, so the pair is about to stop being a pair. Letting
-   * it vanish would read as the button having been removed; letting it slide
-   * into its neighbour reads as the two becoming one thing again, which is what
+   * it vanish would read as the button having been removed; letting the row
+   * close up behind it reads as the two becoming one thing again, which is what
    * they are once you have arrived.
    */
   const [merging, setMerging] = useState(false);
+
+  /**
+   * How far the pair moves, measured rather than guessed.
+   *
+   * This was a hardcoded 96px, which was only ever right for the word "Contact"
+   * at the padding it had on the day it was written. Relabelling either button,
+   * or changing `buttonClass`, would silently leave About sliding to the wrong
+   * place.
+   *
+   * The distance between the two left edges, rather than either button's width.
+   * Measured live: About sits at x=913 and Contact at x=1006, so About has to
+   * travel 93px to land exactly where Contact started. Reaching for Contact's
+   * own width (95) or About's (85) gets a number that looks about right and is
+   * wrong by the size of the gap, in opposite directions.
+   */
+  const aboutRef = useRef<HTMLButtonElement>(null);
+  const contactRef = useRef<HTMLAnchorElement>(null);
+  const [shift, setShift] = useState(0);
 
   const goToContact = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -191,31 +210,53 @@ export function SiteActions({
       flipTo("#/contact");
       return;
     }
+    // Measured at the moment of the click rather than on mount, so a font that
+    // swaps in late or a zoom change cannot leave a stale number behind.
+    const a = aboutRef.current?.getBoundingClientRect();
+    const c = contactRef.current?.getBoundingClientRect();
+    setShift(a && c ? c.left - a.left : 93);
     setMerging(true);
-    // Long enough for the droplet to reach About, short enough that the sheet
-    // starts turning while the merge still reads as one movement.
+    // Long enough for the row to close up, short enough that the sheet starts
+    // turning while the merge still reads as one movement.
     window.setTimeout(() => flipTo("#/contact"), 260);
   };
 
   return (
     <div className={cn("relative flex items-center gap-2", className)}>
-      <button type="button" onClick={() => setAboutOpen(true)} className={buttonClass}>
+      <motion.button
+        ref={aboutRef}
+        type="button"
+        onClick={() => setAboutOpen(true)}
+        className={buttonClass}
+        // Slides right into the space Contact is vacating, so the row closes up
+        // rather than leaving a hole where a button used to be.
+        animate={merging ? { x: shift } : { x: 0 }}
+        transition={{ type: "spring", stiffness: 320, damping: 26 }}
+      >
         <User className="h-3.5 w-3.5" />
         About
-      </button>
+      </motion.button>
 
       {showContact && (
         <motion.a
+          ref={contactRef}
           href="#/contact"
           onClick={goToContact}
           className={buttonClass}
           animate={
             merging
-              ? // Toward About, which sits to its left, shrinking as it goes.
-                { x: -96, scale: 0.55, opacity: 0.9 }
+              ? // Out to the right, shrinking as it goes. The theme switch sits
+                // just beyond it and is not ours to move, so the fade is front
+                // loaded: gone by roughly the time it would reach it.
+                { x: shift, scale: 0.55, opacity: 0 }
               : { x: 0, scale: 1, opacity: 1 }
           }
-          transition={{ type: "spring", stiffness: 320, damping: 26 }}
+          transition={{
+            type: "spring",
+            stiffness: 320,
+            damping: 26,
+            opacity: { duration: 0.16, ease: "easeIn" },
+          }}
         >
           <Mail className="h-3.5 w-3.5 transition-transform duration-300 group-hover:-translate-y-0.5" />
           Contact

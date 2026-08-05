@@ -161,10 +161,13 @@ export function WorkspacePage({ user }: { user: GoogleUser }) {
     <main className="min-h-screen bg-[#faf9ff] px-6 py-8 dark:bg-[#171327]">
       <div className="mx-auto max-w-6xl">
         <header className="mb-8 flex flex-wrap items-center gap-4">
+          {/* The mark sits in the corner here as it does everywhere else,
+              rather than inline beside the page heading below. */}
           <a
             href="#/home"
-            className="group inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500 transition-colors hover:text-slate-900 dark:text-stone-400 dark:hover:text-stone-100"
+            className="group inline-flex items-center gap-2 text-sm font-semibold text-slate-500 transition-colors hover:text-slate-900 dark:text-stone-400 dark:hover:text-stone-100"
           >
+            <BlueberryMark className="blueberry-glow-art h-8 w-8 shrink-0 transition-[filter] duration-300" />
             <ArrowLeft className="h-3.5 w-3.5 transition-transform duration-300 group-hover:-translate-x-0.5" />
             Back to site
           </a>
@@ -239,8 +242,7 @@ export function WorkspacePage({ user }: { user: GoogleUser }) {
           </div>
         </header>
 
-        <div className="mb-8 flex flex-wrap items-end gap-4">
-          <BlueberryMark className="h-10 w-10" />
+        <div className="mb-8">
           <div>
             <h1 className="title-face text-3xl text-slate-900 dark:text-stone-100">Workspace</h1>
             <p className="mt-1 text-sm text-slate-500 dark:text-stone-400">

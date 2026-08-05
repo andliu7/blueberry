@@ -1,5 +1,5 @@
 ﻿import { useState } from "react";
-import { CheckCircle2, AlertTriangle, LogOut, Lock, Trash2, Eye, EyeOff } from "lucide-react";
+import { CheckCircle2, AlertTriangle, LogOut, Trash2 } from "lucide-react";
 import { FileUpload, type FileUploadItem } from "@/components/ui/be-ui-file-upload";
 import { AdmitOneTicket } from "@/components/ui/admit-one-ticket";
 import { QuestionCard } from "@/components/QuestionCard";
@@ -8,6 +8,7 @@ import { parseDeckText, type ParseResult } from "@/lib/parseDeckText";
 import { endpointFor, postToAppsScript } from "@/lib/appsScript";
 import { useDecks, refreshDecks, forgetDeck } from "@/lib/useDecks";
 import { deckCount, deckHref } from "@/data/types";
+import { PassphraseGate } from "@/components/ui/passphrase-gate";
 import { cn } from "@/lib/utils";
 
 
@@ -19,18 +20,6 @@ import { cn } from "@/lib/utils";
  * someone in, and publishing is only ever accepted or refused by the server.
  * Nothing here decides who is allowed in; the allowlist lives in Apps Script.
  */
-/**
- * A latch, not a lock.
- *
- * It keeps the half-finished upload form out of the way of anyone who happens to
- * press the ticket, and that is all it is for. The passphrase is compiled into
- * the bundle like every other string in it, so anyone who wants it can read it;
- * what actually decides whether a deck can be published is the Google sign-in
- * and the allowlist in Apps Script, which run on the server where they cannot be
- * read or edited from a browser.
- */
-const PASSPHRASE = "anthocyanin";
-const UNLOCK_KEY = "blueberry_upload_unlocked";
 
 export function DeckUploadTicket() {
   const { configured, ready, user, error, signIn, signOut, renderButton } = useGoogleAuth();
@@ -39,16 +28,6 @@ export function DeckUploadTicket() {
   const [status, setStatus] = useState<"idle" | "sending" | "done" | "failed">("idle");
   const [serverMessage, setServerMessage] = useState("");
   const [queue, setQueue] = useState<FileUploadItem[]>([]);
-  const [unlocked, setUnlocked] = useState(() => {
-    try {
-      return sessionStorage.getItem(UNLOCK_KEY) === "1";
-    } catch {
-      return false;
-    }
-  });
-  const [word, setWord] = useState("");
-  const [wrong, setWrong] = useState(false);
-  const [showWord, setShowWord] = useState(false);
   const { published } = useDecks();
   // Which deck is mid-delete, and which one has been armed by a first click.
   const [removing, setRemoving] = useState<string | null>(null);
@@ -155,69 +134,10 @@ export function DeckUploadTicket() {
         </a>
       </p>
 
-      {open && !unlocked && (
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (word.trim().toLowerCase() === PASSPHRASE) {
-              sessionStorage.setItem(UNLOCK_KEY, "1");
-              setUnlocked(true);
-              setWrong(false);
-            } else {
-              setWrong(true);
-            }
-          }}
-          className="mt-6 w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm dark:border-stone-800 dark:bg-stone-900"
-        >
-          <p className="flex items-center gap-2 text-sm font-semibold text-slate-800 dark:text-stone-100">
-            <Lock className="h-4 w-4" />
-            Passphrase
-          </p>
-          <p className="mt-1 text-xs text-slate-500 dark:text-stone-400">
-            This only hides the form while it is being worked on. Publishing is
-            still decided by the server.
-          </p>
-          {/* The toggle is a sibling of the input, not a wrapper around it, so
-              the focus ring still traces the field rather than a box drawn
-              around both. `pr-10` keeps the text clear of the button. */}
-          <div className="relative mt-3">
-            <input
-              type={showWord ? "text" : "password"}
-              value={word}
-              autoComplete="off"
-              onChange={(e) => {
-                setWord(e.target.value);
-                setWrong(false);
-              }}
-              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 pr-10 text-sm text-slate-800 outline-none focus-visible:border-indigo-400 focus-visible:ring-2 focus-visible:ring-indigo-400/40 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-200"
-            />
-            <button
-              type="button"
-              onClick={() => setShowWord((s) => !s)}
-              // Without this the button is inside the form and defaults to
-              // submit, so revealing the passphrase would also guess it.
-              aria-label={showWord ? "Hide passphrase" : "Show passphrase"}
-              aria-pressed={showWord}
-              className="absolute inset-y-0 right-0 flex items-center px-3 text-slate-400 transition-colors hover:text-slate-700 dark:text-stone-500 dark:hover:text-stone-200"
-            >
-              {showWord ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
-          </div>
-          {wrong && (
-            <p className="mt-2 text-xs text-red-600 dark:text-red-400">
-              Not that one.
-            </p>
-          )}
-          <button
-            type="submit"
-            className="mt-3 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-indigo-500"
-          >
-            Unlock
-          </button>
-        </form>
-      )}
-
-      {open && unlocked && (
+      {/* The gate renders the form only once it is satisfied, so the two are
+          one block rather than two conditions that can disagree. */}
+      {open && (
+        <PassphraseGate className="mt-6">
         <div className="mt-6 w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm dark:border-stone-800 dark:bg-stone-900">
           {!configured ? (
             <p className="text-sm text-slate-500 dark:text-stone-400">
@@ -420,6 +340,7 @@ export function DeckUploadTicket() {
             </>
           )}
         </div>
+        </PassphraseGate>
       )}
     </section>
   );
