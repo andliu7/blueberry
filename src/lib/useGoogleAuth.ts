@@ -107,12 +107,25 @@ export function useGoogleAuth() {
     setUser(null);
   }, []);
 
-  /** Renders Google's own button, which the prompt flow needs as a fallback. */
-  const renderButton = useCallback((el: HTMLElement | null) => {
-    if (!el) return;
-    const g = (window as unknown as { google?: GoogleIdApi }).google;
-    g?.accounts.id.renderButton(el, { theme: "outline", size: "medium", text: "signin_with" });
-  }, []);
+  /**
+   * Renders Google's own button, which the prompt flow needs as a fallback.
+   *
+   * `ready` is in the dependency list and that is the whole point of it. This is
+   * used as a ref callback, so React only calls it when the element mounts or
+   * when the callback's identity changes. With an empty list the identity never
+   * changed, so it ran exactly once, at mount, which is before the Google script
+   * has finished loading: `window.google` was undefined, the optional chain
+   * swallowed it, and the button silently never appeared. Depending on `ready`
+   * makes React re-run it the moment the script is up.
+   */
+  const renderButton = useCallback(
+    (el: HTMLElement | null) => {
+      if (!el || !ready) return;
+      const g = (window as unknown as { google?: GoogleIdApi }).google;
+      g?.accounts.id.renderButton(el, { theme: "outline", size: "medium", text: "signin_with" });
+    },
+    [ready],
+  );
 
   return { configured, ready, user, error, signIn, signOut, renderButton };
 }
