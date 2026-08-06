@@ -196,17 +196,17 @@ function Berry() {
     if (head.current) {
       // Leans toward the cursor rather than looking straight at it: a true
       // look-at on a sphere with a face reads as the head spinning off.
-      // Flustered, it stops following and squirms instead.
-      const wobble = hovered.current ? Math.sin(t * 6.5) * 0.045 : 0;
-      const ty = (hovered.current ? 0 : pointer.x * 0.62) + wobble;
+      // Flustered, it stops following and holds still.
+      //
+      // It used to squirm here. Two passes on the speed and amplitude and it
+      // still read as a shiver rather than embarrassment, so the whole thing is
+      // gone: the squeezed eyes, the blush and the lift already say it, and the
+      // stillness makes them easier to read rather than harder.
+      const ty = hovered.current ? 0 : pointer.x * 0.62;
       const tx = hovered.current ? -0.12 : -pointer.y * 0.34;
       head.current.rotation.y = THREE.MathUtils.lerp(head.current.rotation.y, ty, 9 * dt);
       head.current.rotation.x = THREE.MathUtils.lerp(head.current.rotation.x, tx, 7 * dt);
-      head.current.rotation.z = THREE.MathUtils.lerp(
-        head.current.rotation.z,
-        hovered.current ? Math.sin(t * 5.5) * 0.022 : 0,
-        9 * dt,
-      );
+      head.current.rotation.z = THREE.MathUtils.lerp(head.current.rotation.z, 0, 9 * dt);
       // Lifts a little, the way a face does when it is caught out.
       head.current.position.y = THREE.MathUtils.lerp(
         head.current.position.y,

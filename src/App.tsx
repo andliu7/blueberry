@@ -949,24 +949,34 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
               {[
                 // Whichever of these two has nothing left to do merges into the
                 // other, so the toolbar never offers a button that is a no-op.
-                <GooeyTogglePair
-                  key="expand-collapse"
-                  show={toggleVisibility}
-                  expand={{
-                    title: "Expand All",
-                    icon: <ChevronsUpDown />,
-                    onClick: () => toggleAll(true),
-                    gradientFrom: "#4f46e5",
-                    gradientTo: "#6366f1",
-                  }}
-                  collapse={{
-                    title: "Collapse All",
-                    icon: <ChevronsDownUp />,
-                    onClick: () => toggleAll(false),
-                    gradientFrom: "#475569",
-                    gradientTo: "#64748b",
-                  }}
-                />,
+                //
+                // Both drop out entirely in the card styles and the gallery,
+                // for the same reason. A flip or tilt card has no expanded
+                // state to reach: you turn it over. Left in, the pair sat there
+                // through a whole deck doing nothing, which is worse than a
+                // no-op button, because it looks like the flip is broken.
+                ...(cardStyle === "classic" && view !== "gallery"
+                  ? [
+                      <GooeyTogglePair
+                        key="expand-collapse"
+                        show={toggleVisibility}
+                        expand={{
+                          title: "Expand All",
+                          icon: <ChevronsUpDown />,
+                          onClick: () => toggleAll(true),
+                          gradientFrom: "#4f46e5",
+                          gradientTo: "#6366f1",
+                        }}
+                        collapse={{
+                          title: "Collapse All",
+                          icon: <ChevronsDownUp />,
+                          onClick: () => toggleAll(false),
+                          gradientFrom: "#475569",
+                          gradientTo: "#64748b",
+                        }}
+                      />,
+                    ]
+                  : []),
                 // Sits immediately after Expand/Collapse and before the rest,
                 // because it belongs with the controls that change how a card
                 // presents itself rather than with the ones that reorder them.

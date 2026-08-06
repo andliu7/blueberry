@@ -2,6 +2,7 @@
 import { motion, useInView, useReducedMotion } from "motion/react";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { deckCount, deckHref, DECK_GROUPS, type Deck } from "@/data/types";
+import { DECKS } from "@/data/decks";
 import { useDecks } from "@/lib/useDecks";
 
 import {
@@ -139,8 +140,15 @@ export function HomePage() {
    */
   const recentUploads = useMemo(
     () =>
-      [...published]
-        .reverse()
+      [
+        // Built-ins carrying an `added` date come first, newest of those first.
+        // A new lab deck is the biggest thing that can change between visits,
+        // and before this the hub had no way to say so: it went into the CHEM
+        // 242 folder and the only sign anything had happened was the count on
+        // the folder card going up by one.
+        ...DECKS.filter((d) => d.added).sort((a, b) => (a.added! < b.added! ? 1 : -1)),
+        ...[...published].reverse(),
+      ]
         .filter((d) => !matched || matched.has(d.id))
         .slice(0, 4),
     [published, matched],
@@ -262,8 +270,12 @@ export function HomePage() {
           <section className="mt-14">
             <div className="mb-5 flex flex-wrap items-baseline gap-x-3 gap-y-1">
               <h2 className="title-face text-2xl text-slate-900 sm:text-3xl dark:text-stone-100">
-                Recently uploaded
+                Recently added
               </h2>
+              {/* Not "uploaded" any more, because the list is mixed: a new lab
+                  deck ships with the site and never passes through the sheet.
+                  The link still goes to Uploaded, since that is the only one of
+                  the two sources you can browse as a folder. */}
               <a
                 href="#/folder/uploaded"
                 className="group/all font-mono text-xs text-slate-400 transition-colors hover:text-slate-600 dark:text-stone-500 dark:hover:text-stone-300"

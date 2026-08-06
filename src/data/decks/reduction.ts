@@ -15,6 +15,7 @@ export const reductionDeck: Deck = {
   title: "[CHEM 242] Lab 7: Reduction of Vanillin Acetate",
   short: "Reduction",
   group: "lab",
+  added: "2026-08-03",
   titleLines: ["REDUCTION", "LCTA"],
   subtitle:
     "37 questions on the chemoselective reduction. Hide the answers, rate your recall, and drill until they stick.",

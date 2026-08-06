@@ -119,30 +119,57 @@ const MOTIFS: Record<ArtMotif, string> = {
    * bond. At 240x320 behind a card title, a full skeletal structure is a grey
    * tangle; the labels are what make it readable as this molecule.
    */
+  /**
+   * Vanillin acetate, whole, with the borohydride under it.
+   *
+   * Drawn Kekule rather than with the inner circle the benzene badge uses,
+   * because half of what this lab asks is which carbonyl the hydride picks, and
+   * a ring with alternating pi bonds sits next to two explicit C=O double bonds
+   * without one of them looking like a different kind of drawing.
+   *
+   * The acetate is spelled out as Ar-O-C(=O)-CH3 rather than shortened to OAc,
+   * since the ester is exactly the group that survives the reduction and the
+   * point is lost if you cannot see it.
+   *
+   * The borohydride sits beside the aldehyde rather than under the molecule.
+   * Stacked, it pushed the last line of ink to about 92% of the way down the
+   * viewBox, and this drawing is used at half a dozen sizes in containers that
+   * crop differently, so anything down there is the first thing to go. It also
+   * reads better here: an arrow at the carbon it actually attacks says more than
+   * a caption underneath saying the same thing in words.
+   */
   vanillin: `
-    <g stroke="#fff" fill="none" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity=".92">
-      <path d="M96 118 128 100 160 118 160 154 128 172 96 154Z"/>
-      <path d="M102 126 102 148M154 126 154 148M128 106 154 121" opacity=".55"/>
+    <g transform="translate(21.6,4) scale(0.82)">
+      <g stroke="#fff" fill="none" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" opacity=".92">
+        <path d="M120 122 161.6 146 161.6 194 120 218 78.4 194 78.4 146Z"/>
+        <path d="M123.8 134.6 148.8 149M148.8 191 123.8 205.4M87.4 155.6 87.4 184.4" stroke-width="5" opacity=".72"/>
+      </g>
+
+      <g stroke="#fff" fill="none" stroke-width="5.5" stroke-linecap="round" opacity=".92">
+        <path d="M120 122 120 103"/>
+        <path d="M115 82 88 66"/>
+        <path d="M84 66 84 44M92 66 92 44"/>
+        <path d="M88 66 58 83"/>
+        <path d="M161.6 146 188 131"/>
+        <path d="M120 218 120 252"/>
+        <path d="M117.8 255.9 143.8 270.5M122.2 248.1 148.2 262.7"/>
+        <path d="M120 252 96 265.5"/>
+      </g>
+
+      <g font-family="Georgia, serif" fill="#fff">
+        <text x="120" y="99" font-size="24" text-anchor="middle" opacity=".9">O</text>
+        <text x="88" y="38" font-size="24" text-anchor="middle" opacity=".9">O</text>
+        <text x="52" y="94" font-size="20" text-anchor="end" opacity=".85">CH3</text>
+        <text x="192" y="138" font-size="20" text-anchor="start" opacity=".85">OCH3</text>
+        <text x="158" y="280" font-size="24" text-anchor="start" opacity=".9">O</text>
+        <text x="88" y="276" font-size="22" text-anchor="end" opacity=".82">H</text>
+      </g>
     </g>
 
-    <g stroke="#fff" fill="none" stroke-width="5" stroke-linecap="round" opacity=".92">
-      <path d="M96 154 66 172"/>
-      <path d="M96 118 66 100"/>
-      <path d="M160 136 194 136"/>
-      <path d="M194 136 210 118"/>
-      <path d="M204 122 216 134" stroke-width="4" opacity=".85"/>
-    </g>
-
-    <text x="60" y="180" font-family="Georgia, serif" font-size="21" fill="#fff" text-anchor="end" opacity=".9">O</text>
-    <text x="60" y="96" font-family="Georgia, serif" font-size="19" fill="#fff" text-anchor="end" opacity=".9">OCH3</text>
-    <text x="66" y="200" font-family="Georgia, serif" font-size="17" fill="#fff" text-anchor="middle" opacity=".78">acetate</text>
-    <text x="216" y="112" font-family="Georgia, serif" font-size="19" fill="#fff" text-anchor="start" opacity=".9">O</text>
-    <text x="204" y="160" font-family="Georgia, serif" font-size="15" fill="#fff" text-anchor="middle" opacity=".72">CHO</text>
-
-    <g opacity=".8">
-      <path d="M92 236 h56" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".45"/>
-      <text x="120" y="228" font-family="Georgia, serif" font-size="24" fill="#fff" text-anchor="middle">NaBH4</text>
-      <text x="120" y="258" font-family="Georgia, serif" font-size="15" fill="#fff" text-anchor="middle" opacity=".72">H- delivered here</text>
+    <g opacity=".82">
+      <text x="24" y="250" font-family="Georgia, serif" font-size="22" fill="#fff" text-anchor="start">NaBH4</text>
+      <path d="M96 240 112 220" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" opacity=".6"/>
+      <path d="M104 220 113 219 112 228" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" opacity=".6"/>
     </g>`,
 
   attack: `

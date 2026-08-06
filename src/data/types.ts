@@ -104,6 +104,15 @@ type DeckCommon = {
    * inside anything.
    */
   shelf?: string;
+  /**
+   * The day this deck went up, `YYYY-MM-DD`.
+   *
+   * Only for built-ins, and only worth setting on recent ones. It is what puts
+   * a new lab deck in the hub's Recently added list alongside the published
+   * uploads, which otherwise had no way to mention that the site itself gained
+   * a deck. Uploads carry their own order from the sheet and never need this.
+   */
+  added?: string;
   /** Gradient for the hub card's artwork well. */
   from: string;
   to: string;
