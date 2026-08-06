@@ -182,6 +182,48 @@ input:-webkit-autofill:active {
   caret-color: var(--autofill-fg, #e7e5e4);
 }
 
+/* While a blocking toast is up, everything is behind a blurred scrim except
+   whatever the toast is pointing at.
+
+   The scrim is a fixed element at z-80, so lifting one control above it is a
+   matter of giving that control a stacking context of its own at a higher
+   index. `position: relative` is required: `z-index` does nothing on a static
+   element, which is the trap this rule exists to avoid. */
+.toast-blocking .toast-spotlight {
+  position: relative;
+  z-index: 85;
+}
+
+/* A ring, so the one sharp control on a blurred page reads as chosen rather
+   than as the only thing that failed to blur. */
+.toast-blocking .toast-spotlight::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 0.85rem;
+  pointer-events: none;
+  box-shadow:
+    0 0 0 2px rgba(139, 92, 246, 0.55),
+    0 0 26px -2px rgba(124, 58, 237, 0.6);
+  animation: spotlight-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes spotlight-pulse {
+  0%,
+  100% {
+    opacity: 0.75;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast-blocking .toast-spotlight::after {
+    animation: none;
+  }
+}
+
 /* The violet halo the form fields wear when focused, as something anything can
    pick up on hover. Used on the about card's tags, its profile links and the
    logo, so pointing at any of them gets the same answer.

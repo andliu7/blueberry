@@ -8,7 +8,7 @@ import type { Question, StudyDeck } from "@/data/types";
  * The format is deliberately forgiving, because the person writing it is
  * writing chemistry questions, not JSON:
  *
- *     title: [CHEM 242] Lab 5: Distillation
+ *     title: Example: Distillation
  *     short: Distillation
  *     blurb: Fractional versus simple.
  *     motif: reflux

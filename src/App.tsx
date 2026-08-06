@@ -24,8 +24,8 @@ import { TiltCard } from "@/components/ui/be-ui-tilt-card";
 import { useIsDark } from "@/lib/useIsDark";
 import { QuestionCard, type Status } from "@/components/QuestionCard";
 import { CardGallery3D, GALLERY_MAX, type GalleryItem } from "@/components/ui/card-gallery-3d";
-import { StudyToast, useDeckMilestones } from "@/components/ui/study-toast";
-import { Reaction } from "@/components/ui/reaction";
+import { ToastQueue, useToastQueue } from "@/components/ui/toast-queue";
+import { PixelFireButton } from "@/components/ui/pixel-fire-button";
 import { ButtonHoldAndRelease } from "@/components/ui/hold-and-release-button";
 import SocialCards from "@/components/ui/card-fan-carousel";
 import { StickyNote } from "@/components/StickyNote";
@@ -74,6 +74,9 @@ const VIEW_ICON = {
   stack: <Layers />,
   gallery: <Orbit />,
 } as const;
+const FLAME = "🔥";
+const PARTY = "🎉";
+
 const diffRank: Record<Status, number> = { red: 0, yellow: 1, none: 2, green: 3 };
 
 /**
@@ -307,6 +310,7 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [confettiTrigger, setConfettiTrigger] = useState(0);
   const hasCelebrated = useRef(false);
+  const [completed, setCompleted] = useState(false);
   const [tIndex, setTIndex] = useState(0);
   // Question number -> expanded. Absent means collapsed.
   const [openMap, setOpenMap] = useState<Record<number, boolean>>({});
@@ -371,20 +375,103 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
   }, [status]);
   const reviewed = counts.red + counts.yellow + counts.green;
 
-  // Fires once as the deck crosses its middle. See useDeckMilestones for why
-  // that point specifically.
-  const { toast: milestone, dismiss: dismissMilestone } = useDeckMilestones(
-    deck.id,
-    reviewed,
-    questions.length,
-  );
+  const { toasts, push: pushToast, dismiss: dismissToast } = useToastQueue();
+  const needsWork = counts.red + counts.yellow;
+
+  /**
+   * Halfway, then finished. Two notices, and the second one blocks.
+   *
+   * Halfway is where people stop, so it is worth marking, and it offers a break
+   * as readily as it cheers: someone twenty cards into forty at one in the
+   * morning is better served by permission to stop than by another "keep
+   * going".
+   *
+   * Finishing blocks the page, because scrolling past the end of a deck without
+   * noticing you finished it is a worse ending than a pause. Which notice you
+   * get depends on what is left: anything still red or yellow points you at
+   * Needs Review and lifts that button out of the blur, and a clean sweep gets
+   * the congratulations instead.
+   */
+  useEffect(() => {
+    if (questions.length < 6) return;
+    const half = Math.ceil(questions.length / 2);
+    if (reviewed === half) {
+      pushToast({
+        id: `${deck.id}:half`,
+        tone: "encourage",
+        glyph: FLAME,
+        title: "Halfway there.",
+        message: "Good spot to stretch, or keep the run going while it is flowing.",
+        actions: (
+          <>
+            <PixelFireButton onClick={() => dismissToast(`${deck.id}:half`)}>
+              Keep going
+            </PixelFireButton>
+            <PixelFireButton
+              variant="ghost"
+              onClick={() => dismissToast(`${deck.id}:half`)}
+            >
+              Take a break
+            </PixelFireButton>
+          </>
+        ),
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reviewed, questions.length, deck.id]);
+
+  /**
+   * The finish notice, and which of the two it is.
+   *
+   * Pushed from an effect rather than inline in the completion check, because
+   * its actions close over `setFilter` and `setConfettiTrigger` and building
+   * them where the ref flips would capture a stale copy of both.
+   */
+  useEffect(() => {
+    if (!completed) return;
+    const id = `${deck.id}:done`;
+    pushToast(
+      needsWork > 0
+        ? {
+            id,
+            tone: "encourage",
+            glyph: FLAME,
+            blocking: true,
+            title: "Deck finished.",
+            message: `${needsWork} ${needsWork === 1 ? "card" : "cards"} still marked Review or Almost. Needs Review is lit up in the toolbar.`,
+            actions: (
+              <PixelFireButton onClick={() => setFilter("needs")}>
+                Show me those
+              </PixelFireButton>
+            ),
+          }
+        : {
+            id,
+            tone: "celebrate",
+            glyph: PARTY,
+            blocking: true,
+            title: "Every card, green.",
+            message: "That is the whole deck with nothing left to review. Go and sit down.",
+            actions: (
+              <PixelFireButton onClick={() => setConfettiTrigger((t) => t + 1)}>
+                More confetti
+              </PixelFireButton>
+            ),
+          },
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [completed, needsWork, deck.id]);
 
   useEffect(() => {
     if (reviewed === questions.length && !hasCelebrated.current) {
       hasCelebrated.current = true;
       setConfettiTrigger((t) => t + 1);
+      setCompleted(true);
     }
-    if (reviewed < questions.length) hasCelebrated.current = false;
+    if (reviewed < questions.length) {
+      hasCelebrated.current = false;
+      setCompleted(false);
+    }
   }, [reviewed, questions.length]);
 
   // Deliberately excludes tIndex: testimonials contain no math, and a full-document
@@ -745,7 +832,10 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
                 </button>
                 <button
                   onClick={() => setFilter("needs")}
-                  className={cn("px-2.5 py-1 rounded-md text-sm font-semibold transition", filter === "needs" ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-400/15 dark:text-indigo-300" : "text-slate-600 hover:bg-slate-50 dark:text-stone-300 dark:hover:bg-white/5")}
+                  className={cn("px-2.5 py-1 rounded-md text-sm font-semibold transition",
+                    // Lifted above the blur when the finish notice is pointing
+                    // at it; inert otherwise. See `.toast-spotlight` in the CSS.
+                    completed && needsWork > 0 && "toast-spotlight", filter === "needs" ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-400/15 dark:text-indigo-300" : "text-slate-600 hover:bg-slate-50 dark:text-stone-300 dark:hover:bg-white/5")}
                 >
                   Needs Review
                 </button>
@@ -1063,21 +1153,7 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
         placeholder="What would make this more useful before the LCTA?"
       />
 
-      <StudyToast
-        open={Boolean(milestone)}
-        title={milestone?.title ?? ""}
-        message={milestone?.message}
-        variant={milestone?.variant ?? "encourage"}
-        onClose={dismissMilestone}
-      >
-        {/* Nothing is recorded from these. They are a place to put the feeling
-            down and carry on, which is the whole job at the halfway mark. */}
-        <span className="flex items-center gap-1">
-          <Reaction symbol="🔥" name="On a roll" />
-          <Reaction symbol="🧠" name="Brain full" />
-          <Reaction symbol="☕" name="Taking a break" />
-        </span>
-      </StudyToast>
+      <ToastQueue toasts={toasts} onDismiss={dismissToast} />
 
       <StickyNote value={note} onChange={setNote} />
       <Confetti trigger={confettiTrigger} />
