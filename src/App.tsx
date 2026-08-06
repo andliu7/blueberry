@@ -341,6 +341,13 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
       deck.questions.length,
   );
   const cardsTopRef = useRef<HTMLDivElement>(null);
+  /**
+   * Wraps every view's cards, so the arrow keys have somewhere to look for them
+   * that is not the whole document. Scoped rather than global because the page
+   * also carries the quote carousel and the testimonial fan, and stepping the
+   * study cursor into a testimonial would be a surprise.
+   */
+  const cardsRef = useRef<HTMLDivElement>(null);
 
   /**
    * Switches to the unfinished cards and takes you to them.
@@ -773,7 +780,8 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
   }, []);
 
   /**
-   * Arrows move, space turns the card over, and moving takes focus with it.
+   * Arrows move between cards, space turns over the one you are on, and moving
+   * takes focus with it. Every view except the gallery, which has its own ring.
    *
    * Both keys were dead in practice, for the same reason. The carousel binds its
    * own arrows to the viewport, so they only fire while the viewport holds
@@ -793,11 +801,13 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
    *   distinction and the browser already tracks it: it is set when focus
    *   arrived by keyboard and not when it is left over from a click.
    *
-   * Arrows step through `visibleIdx`, so shuffling or filtering to Needs Review
-   * changes what "next" means without this needing to know.
+   * In the carousel, arrows step through `visibleIdx`; everywhere else they
+   * step through the rendered card roots. Either way shuffling or filtering to
+   * Needs Review changes what "next" means without this needing to know, since
+   * both are already in the order the cards are on screen.
    */
   useEffect(() => {
-    if (!carouselMode || carouselTotal === 0) return;
+    if (view === "gallery") return;
 
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
@@ -806,6 +816,57 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
       if (el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName))) return;
 
       const step = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+
+      /**
+       * Outside the carousel there is no current slide, so the cursor is
+       * literally DOM focus, stepping between the card roots in the order they
+       * are laid out. That order is the shuffled, filtered order for free,
+       * because it is the order they were rendered in.
+       *
+       * Only left and right. Up and down are how you scroll a long list, and
+       * taking them would be a worse trade than the feature is worth.
+       *
+       * With nothing focused it starts from the card nearest the middle of the
+       * screen rather than the top of the deck, since after scrolling to
+       * question thirty, being sent back to question one is not "next".
+       */
+      if (step !== 0 && !carouselMode) {
+        const cards = Array.from(
+          cardsRef.current?.querySelectorAll<HTMLElement>("[data-card]") ?? [],
+        );
+        if (cards.length === 0) return;
+        e.preventDefault();
+        e.stopPropagation();
+
+        const here = el ? cards.findIndex((c) => c === el || c.contains(el)) : -1;
+        let next: number;
+        if (here === -1) {
+          const mid = window.innerHeight / 2;
+          let best = 0;
+          let bestGap = Infinity;
+          cards.forEach((c, i) => {
+            const box = c.getBoundingClientRect();
+            const gap = Math.abs(box.top + box.height / 2 - mid);
+            if (gap < bestGap) {
+              bestGap = gap;
+              best = i;
+            }
+          });
+          next = best;
+        } else {
+          next = Math.min(cards.length - 1, Math.max(0, here + step));
+        }
+
+        // Read at press time rather than through a hook, so someone who turns
+        // the setting on mid-session gets it on the next arrow.
+        const glide = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        cards[next].focus({ preventScroll: true });
+        cards[next].scrollIntoView({ block: "center", behavior: glide ? "smooth" : "auto" });
+        return;
+      }
+
+      if (!carouselMode || carouselTotal === 0) return;
+
       if (step !== 0) {
         // Capture phase, so stopping it here keeps the carousel's own arrow
         // binding from moving a second slide when the card inside it has focus.
@@ -841,7 +902,15 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
 
     window.addEventListener("keydown", onKey, true);
     return () => window.removeEventListener("keydown", onKey, true);
-  }, [carouselMode, carouselTotal, visibleIdx, safeCarouselIndex, cardStyle, focusCarouselCard]);
+  }, [
+    view,
+    carouselMode,
+    carouselTotal,
+    visibleIdx,
+    safeCarouselIndex,
+    cardStyle,
+    focusCarouselCard,
+  ]);
 
   return (
     <div className="min-h-screen text-slate-800 dark:text-stone-200">
@@ -1071,24 +1140,14 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
             </p>
           )}
 
-          {/* Says what the key does, since nothing on screen suggests it. In the
-              carousel it acts on the card you are on; in the grid there is no
-              such thing, so it says how to pick one first. */}
-          {(carouselMode || cardStyle !== "classic") && (
-            <p className="mt-2 text-xs text-slate-400 dark:text-stone-500">
-              {carouselMode ? (
-                <>
-                  Press <kbd className="rounded border border-slate-300 px-1 font-mono dark:border-stone-700">space</kbd>{" "}
-                  to {cardStyle === "classic" ? "reveal the answer" : "flip the card"} you are on.
-                </>
-              ) : (
-                <>
-                  Click a card to flip it, or tab to one and press{" "}
-                  <kbd className="rounded border border-slate-300 px-1 font-mono dark:border-stone-700">space</kbd>.
-                </>
-              )}
-            </p>
-          )}
+          {/* Says what the keys do, since nothing on screen suggests it. Shown
+              in every view now that the arrows work everywhere, and not only
+              when the cards are flippable. */}
+          <p className="mt-2 text-xs text-slate-400 dark:text-stone-500">
+            <kbd className="rounded border border-slate-300 px-1 font-mono dark:border-stone-700">&larr;</kbd> <kbd className="rounded border border-slate-300 px-1 font-mono dark:border-stone-700">&rarr;</kbd> to move between cards,{" "}
+            <kbd className="rounded border border-slate-300 px-1 font-mono dark:border-stone-700">space</kbd> to{" "}
+            {cardStyle === "classic" ? "reveal the answer" : "flip the card"} you are on.
+          </p>
 
           <div className="h-1.5 w-full bg-slate-200 dark:bg-stone-800 rounded mt-3 overflow-hidden">
             <div
@@ -1112,6 +1171,7 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
             scroll grid and the stack, not just the list. */}
         <div ref={cardsTopRef} className="scroll-mt-28" />
 
+        <div ref={cardsRef}>
         {view === "gallery" ? (
           <CardGallery3D items={galleryItems} label="Questions" />
         ) : view === "scroll" ? (
@@ -1170,11 +1230,12 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
         ) : cardStyle === "classic" ? (
           <div className="space-y-4">{visibleIdx.map(renderAnyCard)}</div>
         ) : (
-          // The flip styles are fixed-height and squarer than a question card,
-          // so the list view gives them a two-column grid rather than one tall
+          // Flip cards are fixed-height and squarer than a question card, so
+          // the list view gives them a two-column grid rather than one tall
           // column of half-empty cards.
           <div className="grid gap-5 sm:grid-cols-2">{visibleIdx.map(renderAnyCard)}</div>
         )}
+        </div>
 
         {/* End of the cards, bottom right. */}
         <ScrollToTop className="mt-6" />

@@ -102,6 +102,8 @@ export function FlippingCard({
         <div
 
       data-click-silent
+          // See QuestionCard: the deck page's arrows step between these.
+          data-card={onFlip ? "" : undefined}
           role={onFlip ? "button" : undefined}
           tabIndex={onFlip ? 0 : undefined}
           aria-pressed={controlled ? flipped : undefined}

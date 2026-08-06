@@ -119,6 +119,11 @@ export function QuestionCard({
 
       // The card is the content, not a control: opening it is reading.
       data-click-silent
+      // What the deck page's arrow keys step between. Marking the roots rather
+      // than wrapping each card in a marker div keeps the containers that lay
+      // them out — the grid, the stack, the scroll rail — seeing the card they
+      // expect as their direct child.
+      data-card
       onClick={toggle}
         aria-expanded={open}
         className="w-full text-left p-5 flex justify-between items-start hover:bg-black/[0.02] dark:hover:bg-white/[0.03] transition"
