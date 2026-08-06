@@ -456,6 +456,51 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
   const needsWork = counts.red + counts.yellow;
 
   /**
+   * The one-time nudge toward the way this is actually meant to be used.
+   *
+   * Flip, carousel and focus mode were built separately and are three separate
+   * controls, so nothing tells you they are one thing: a card at a time, filling
+   * the screen, turned over with the space bar. People find Flip and then drill
+   * a two-column grid of small cards, which is the worst of both.
+   *
+   * Fires once per visit, on arriving at Flip, and only when you are not already
+   * there. The action does all three switches, because the point is that it is
+   * one decision rather than three.
+   */
+  const nudgedFlip = useRef(false);
+  useEffect(() => {
+    if (cardStyle !== "flip" || nudgedFlip.current) return;
+    if (carouselMode && focusMode) return;
+    nudgedFlip.current = true;
+    const id = `${deck.id}:flip-nudge`;
+    pushToast({
+      id,
+      tone: "encourage",
+      glyph: PARTY,
+      title: "Try it one card at a time.",
+      message:
+        "Flip cards drill best in the carousel with focus mode on: one card filling the screen, arrows to move, space to turn it over.",
+      actions: (
+        <>
+          <PixelFireButton
+            onClick={() => {
+              setView("carousel");
+              setFocusMode(true);
+              dismissToast(id);
+            }}
+          >
+            Set it up
+          </PixelFireButton>
+          <PixelFireButton variant="ghost" onClick={() => dismissToast(id)}>
+            No thanks
+          </PixelFireButton>
+        </>
+      ),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cardStyle, carouselMode, focusMode, deck.id]);
+
+  /**
    * Halfway, then finished. Two notices, and the second one blocks.
    *
    * Halfway is where people stop, so it is worth marking, and it offers a break
@@ -660,7 +705,18 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
       <FlippingCard
         key={qi}
         width={320}
-        height={300}
+        /**
+         * Taller in the carousel, tallest in focus mode.
+         *
+         * 300px is right for the two-column grid, where a card is one of many
+         * on screen and the deck reads as a wall. The carousel shows one card
+         * with the whole width to itself, and at 300 the answer and the rate
+         * row were fighting over the same fixed box: a long answer scrolled its
+         * own pane while the buttons sat crammed against the bottom edge. There
+         * is no reason to hold it to a grid cell's height when nothing else is
+         * beside it.
+         */
+        height={carouselMode ? (focusMode ? 460 : 400) : 300}
         flipped={flippedMap[num] ?? false}
         onFlip={() => setFlippedMap((m) => ({ ...m, [num]: !m[num] }))}
         className={cn(

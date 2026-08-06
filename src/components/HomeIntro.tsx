@@ -57,7 +57,13 @@ const INTRO_WORDS: ParticleWord[] = [
   // The name scatters one last time and comes back as the mark itself. The
   // swarm carries the logo's own shading rather than the gradient the words
   // wear, so the berry arrives lit rather than flat.
-  { text: SITE_NAME, from: "#818cf8", to: "#f0abfc", shape: "blueberry" },
+  //
+  // Then it scatters once more and comes back shy. Two beats rather than one,
+  // because the berry arriving and the panel opening behind it used to happen
+  // at the same instant and read as a single event; splitting them gives the
+  // berry a moment of looking at you before it reacts to being looked at.
+  { text: SITE_NAME, from: "#818cf8", to: "#f0abfc", shape: "blueberry", eyes: "open" },
+  { text: SITE_NAME, from: "#818cf8", to: "#f0abfc", shape: "blueberry", eyes: "shut", blush: true },
 ];
 
 /**
@@ -79,7 +85,17 @@ const INTRO_WORDS_LIGHT: ParticleWord[] = [
   // Saturation up, brightness barely down. Darkening alone walked every channel
   // toward black, which is what had taken the life out of it: the berry needs to
   // be more itself against the cream, not dimmer.
-  { text: SITE_NAME, from: "#4f46e5", to: "#c026d3", shape: "blueberry", vivid: 1.25, shade: 1 },
+  { text: SITE_NAME, from: "#4f46e5", to: "#c026d3", shape: "blueberry", vivid: 1.25, shade: 1, eyes: "open" },
+  {
+    text: SITE_NAME,
+    from: "#4f46e5",
+    to: "#c026d3",
+    shape: "blueberry",
+    vivid: 1.25,
+    shade: 1,
+    eyes: "shut",
+    blush: true,
+  },
 ];
 
 /**
@@ -90,8 +106,10 @@ const INTRO_WORDS_LIGHT: ParticleWord[] = [
  * `words` is an effect dependency on the canvas, and a fresh array on every
  * render would restart the sequence continuously.
  */
-const SETTLED_WORDS: ParticleWord[] = [INTRO_WORDS[3]!];
-const SETTLED_WORDS_LIGHT: ParticleWord[] = [INTRO_WORDS_LIGHT[3]!];
+const SETTLED_WORDS: ParticleWord[] = [INTRO_WORDS[INTRO_WORDS.length - 1]!];
+const SETTLED_WORDS_LIGHT: ParticleWord[] = [
+  INTRO_WORDS_LIGHT[INTRO_WORDS_LIGHT.length - 1]!,
+];
 
 function IntroStage({
   ready,
@@ -218,9 +236,11 @@ function IntroStage({
                 ? SETTLED_WORDS_LIGHT
                 : INTRO_WORDS_LIGHT
           }
-          // Trimmed from 1500 now there are four beats rather than three, so the
-          // whole opening still lands inside five seconds.
-          wordMs={1300}
+          // Trimmed again now there are five beats rather than four. The two
+          // berry beats are the same silhouette, so the second scatter reads as
+          // a change of expression rather than a new arrival, and it does not
+          // need as long to land as a word does.
+          wordMs={1150}
           settleMs={settled ? 200 : 1000}
           onFinished={onSettled}
           label={settled ? SITE_WORD : `Welcome to ${SITE_WORD}`}

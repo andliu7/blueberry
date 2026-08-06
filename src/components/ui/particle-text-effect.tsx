@@ -70,6 +70,19 @@ export interface ParticleWord {
    */
   shape?: "blueberry";
   /**
+   * The berry's expression, when `shape` is set.
+   *
+   * `shut` is the safe one and the default. An open eye is a solid dark oval,
+   * and a swarm of particles resolving into two dark holes reads as damage on
+   * the fruit rather than as a face, which is why this drawing had closed eyes
+   * only for a long time. What rescues `open` is the specular dot inside each
+   * one: a highlight is what the eye uses to tell a pupil from a hole, so the
+   * sparkle is load-bearing rather than decoration.
+   */
+  eyes?: "open" | "shut";
+  /** Two soft patches on the cheeks. Reads best with `eyes: "shut"`. */
+  blush?: boolean;
+  /**
    * Multiplies saturation, for shapes that draw their own colours.
    *
    * Darkening alone pulls every channel toward black, which is exactly what
@@ -101,7 +114,13 @@ export interface ParticleWord {
  * sampled on a grid and thrown across the screen, so it is the silhouette and
  * the shading that matter, not the exact control points.
  */
-function drawBlueberry(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number) {
+function drawBlueberry(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  size: number,
+  face: { eyes: "open" | "shut"; blush: boolean } = { eyes: "shut", blush: false },
+) {
   const r = size * 0.46;
   const bodyY = cy + size * 0.04;
 
@@ -158,12 +177,10 @@ function drawBlueberry(ctx: CanvasRenderingContext2D, cx: number, cy: number, si
   ctx.restore();
 
   /**
-   * The closed, pleased eyes, in the same proportions as the SVG mark.
+   * The eyes, in the same proportions as the SVG mark.
    *
-   * Closed rather than open, because these are drawn as particles: an open eye
-   * is a solid black oval, and a swarm resolving into two dark holes reads as
-   * damage on the fruit rather than as a face. An arc is a stroke, so it stays
-   * legible at the density the cloud can actually manage.
+   * Both are drawn at the same place and size so the two beats of the opening
+   * are recognisably the same face doing two things, rather than two faces.
    *
    * Traced with `stroke` and then filled by the sampler, which reads the pixels
    * back rather than the path, so the line width has to be generous enough to
@@ -177,10 +194,35 @@ function drawBlueberry(ctx: CanvasRenderingContext2D, cx: number, cy: number, si
   for (const dir of [-1, 1]) {
     // 0.37 rather than 0.305: the first spacing crowded the middle of the face.
     const ex = cx + dir * r * 0.37;
-    ctx.beginPath();
-    ctx.moveTo(ex - eyeR, eyeY + eyeR * 0.42);
-    ctx.quadraticCurveTo(ex, eyeY - eyeR * 0.78, ex + eyeR, eyeY + eyeR * 0.42);
-    ctx.stroke();
+    if (face.eyes === "open") {
+      ctx.fillStyle = "#0b0b14";
+      ctx.beginPath();
+      ctx.ellipse(ex, eyeY, eyeR * 0.66, eyeR * 1.12, 0, 0, Math.PI * 2);
+      ctx.fill();
+      // The sparkle. Without it the two ovals read as holes punched in the
+      // fruit; with it they read as looking at you.
+      ctx.fillStyle = "rgba(255,255,255,0.92)";
+      ctx.beginPath();
+      ctx.arc(ex - eyeR * 0.24, eyeY - eyeR * 0.44, eyeR * 0.3, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      ctx.beginPath();
+      ctx.moveTo(ex - eyeR, eyeY + eyeR * 0.42);
+      ctx.quadraticCurveTo(ex, eyeY - eyeR * 0.78, ex + eyeR, eyeY + eyeR * 0.42);
+      ctx.stroke();
+    }
+  }
+
+  // Cheeks. Outboard of the eyes and below them, which is where blush sits on a
+  // face; level with the eyes it reads as two more eyes.
+  if (face.blush) {
+    ctx.fillStyle = "rgba(255,122,158,0.62)";
+    for (const dir of [-1, 1]) {
+      ctx.beginPath();
+      ctx.ellipse(cx + dir * r * 0.6, bodyY + r * 0.2, r * 0.16, r * 0.1, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.strokeStyle = "#0b0b14";
   }
 
   // The smile: shallow and wide, matching the mark. Deeper turns the berry into
@@ -471,7 +513,10 @@ export function ParticleTextEffect({
       if (word.shape === "blueberry") {
         // Sized off the type, so the mark lands about as tall as the words that
         // preceded it rather than jumping scale on the last beat.
-        drawBlueberry(offCtx, width / 2, height / 2, fontSize * 1.15);
+        drawBlueberry(offCtx, width / 2, height / 2, fontSize * 1.15, {
+          eyes: word.eyes ?? "shut",
+          blush: word.blush ?? false,
+        });
       } else {
         offCtx.font = `bold ${fontSize}px ${FONT_FAMILY}`;
         offCtx.fillStyle = "white";
