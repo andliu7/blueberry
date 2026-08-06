@@ -367,6 +367,23 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
   const [cardStyle, setCardStyle] = useState<CardStyle>("classic");
   const [flippedMap, setFlippedMap] = useState<Record<number, boolean>>({});
 
+  /**
+   * Every card starts question-side up again whenever the deck is re-arranged.
+   *
+   * A turned card is a card you are part-way through, and that state does not
+   * survive leaving: come back to a deck and a card you had flipped was still
+   * showing its answer, so the question you meant to test yourself on had
+   * already been given away. Filtering, reordering and shuffling are the same
+   * situation, since the card under a given position is no longer the one you
+   * turned over.
+   *
+   * Not in `rate`, deliberately: turning a card and then rating it should leave
+   * it as you left it, or the answer vanishes at the moment you are reading it.
+   */
+  useEffect(() => {
+    setFlippedMap({});
+  }, [deck.id, filter, order, shuffled]);
+
   // Save progress whenever it changes. Restoring happens in the useState
   // initialisers above rather than in an effect: an effect-based load races this
   // one, which also runs on mount and would write the empty initial state over
