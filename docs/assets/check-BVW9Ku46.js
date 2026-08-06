@@ -1,0 +1,1 @@
+import{it as e}from"./blueberry-mark-B5H61xp8.js";var t=e(`check`,[[`path`,{d:`M20 6 9 17l-5-5`,key:`1gmf2c`}]]);export{t};

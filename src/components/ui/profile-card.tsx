@@ -163,8 +163,14 @@ export function ProfileCard({
           <PulseIconButton
             // The glow follows the berry's silhouette rather than boxing it,
             // which a box-shadow on an SVG would.
+            // `eyes` here and nowhere else. The favicon, the nav pill and the
+            // corner marks stay plain, because those are identity and a blinking
+            // favicon is a distraction; this card is where the character belongs.
             icon={
-              <BlueberryMark className="blueberry-glow-art h-full w-full transition-[filter] duration-300" />
+              <BlueberryMark
+                eyes
+                className="blueberry-glow-art h-full w-full transition-[filter] duration-300"
+              />
             }
             size="md"
             interactive={false}
