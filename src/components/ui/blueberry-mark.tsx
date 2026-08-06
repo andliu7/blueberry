@@ -89,24 +89,40 @@ export function BlueberryMark({
           {loved ? (
             <>
               <path
-                d="M21.5 32.2 C21.5 29.4 25.4 29.4 25.4 32.2 C25.4 29.4 29.3 29.4 29.3 32.2 C29.3 35.4 25.4 38 25.4 38 C25.4 38 21.5 35.4 21.5 32.2 Z"
+                d="M21 32 C21 28.9 25.6 28.9 25.6 32 C25.6 28.9 30.2 28.9 30.2 32 C30.2 35.7 25.6 38.8 25.6 38.8 C25.6 38.8 21 35.7 21 32 Z"
                 fill="#fb7185"
               />
               <path
-                d="M34.7 32.2 C34.7 29.4 38.6 29.4 38.6 32.2 C38.6 29.4 42.5 29.4 42.5 32.2 C42.5 35.4 38.6 38 38.6 38 C38.6 38 34.7 35.4 34.7 32.2 Z"
+                d="M33.8 32 C33.8 28.9 38.4 28.9 38.4 32 C38.4 28.9 43 28.9 43 32 C43 35.7 38.4 38.8 38.4 38.8 C38.4 38.8 33.8 35.7 33.8 32 Z"
                 fill="#fb7185"
               />
             </>
           ) : (
-            /* Soft almonds rather than the robot's square brackets. The
-               brackets read as a machine, which is the wrong note for a berry;
-               a rounded eye with a highlight in the upper left reads as
-               friendly and keeps the same lighting direction as the fruit. */
             <>
-              <ellipse cx="25" cy="33.5" rx="3.5" ry="4.4" fill="#f8fafc" />
-              <ellipse cx="39" cy="33.5" rx="3.5" ry="4.4" fill="#f8fafc" />
-              <circle cx="23.9" cy="31.8" r="1.15" fill="#c7d2fe" />
-              <circle cx="37.9" cy="31.8" r="1.15" fill="#c7d2fe" />
+              {/* Open: tall black ovals with a small shine high on the left, so
+                  the light on the eyes comes from where the light on the fruit
+                  already does. */}
+              <g className="bb-eye-open">
+                <ellipse cx="25" cy="33.5" rx="3.2" ry="5.7" fill="#0b0b14" />
+                <ellipse cx="39" cy="33.5" rx="3.2" ry="5.7" fill="#0b0b14" />
+                <ellipse cx="23.9" cy="30.9" rx="1" ry="1.5" fill="#ffffff" opacity="0.9" />
+                <ellipse cx="37.9" cy="30.9" rx="1" ry="1.5" fill="#ffffff" opacity="0.9" />
+              </g>
+
+              {/* Closed: arcs bulging upward, which is the shape a face makes
+                  when it is pleased rather than when it is blinking. Swapped for
+                  the ovals rather than squashing them, because a squashed oval
+                  is a blink and an arc is an expression. */}
+              <g
+                className="bb-eye-kind"
+                fill="none"
+                stroke="#0b0b14"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              >
+                <path d="M20.7 35.1 Q25 30.0 29.3 35.1" />
+                <path d="M34.7 35.1 Q39 30.0 43.3 35.1" />
+              </g>
             </>
           )}
         </g>

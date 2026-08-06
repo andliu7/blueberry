@@ -513,34 +513,41 @@ input:-webkit-autofill:active {
   100% { transform: rotateX(80deg) rotateY(0deg) rotateZ(0deg); box-shadow: 0 0 60px 40px rgba(0,0,0,0.3); }
 }
 
-/* The mark's blink.
+/* The mark closing its eyes.
 
-   A scaleY on the pair, because that is what an eyelid does; fading them out
-   instead reads as the face disappearing rather than closing. The origin is the
-   eye's own centre line, so the lid meets in the middle rather than the eyes
-   sinking into the berry.
+   Not a blink. A blink is a squashed eye and reads as involuntary; these swap
+   the ovals for arcs that bulge upward, which is the shape a face makes when it
+   is pleased. So the two states cross-fade rather than one of them scaling.
 
-   Long gaps and a very short close: a blink that is 4% of its cycle is a blink,
-   and one that is 30% is a character falling asleep. */
-.bb-eyes {
-  transform-origin: 32px 33.5px;
-  animation: bb-blink 5.2s ease-in-out infinite;
+   Slow and rare on purpose: held closed for about a fifth of a second every
+   six, which reads as the berry enjoying itself rather than as a tic. The two
+   animations are one timeline in opposition, so there is never a frame with
+   both sets of eyes or neither. */
+.bb-eye-open {
+  animation: bb-eyes-open 6s ease-in-out infinite;
+}
+.bb-eye-kind {
+  animation: bb-eyes-kind 6s ease-in-out infinite;
 }
 
-/* A second, offset cycle so it is not metronomic. Every mark on a page would
-   otherwise blink in perfect unison, which reads as a glitch. */
-.bb-eyes-loved {
-  animation: none;
+@keyframes bb-eyes-open {
+  0%, 86%, 96%, 100% { opacity: 1; }
+  89%, 93% { opacity: 0; }
 }
 
-@keyframes bb-blink {
-  0%, 92%, 100% { transform: scaleY(1); }
-  95% { transform: scaleY(0.08); }
-  97% { transform: scaleY(1); }
+@keyframes bb-eyes-kind {
+  0%, 86%, 96%, 100% { opacity: 0; }
+  89%, 93% { opacity: 1; }
 }
 
+/* Reduced motion keeps the eyes open and still, rather than parking them shut. */
 @media (prefers-reduced-motion: reduce) {
-  .bb-eyes {
+  .bb-eye-open {
     animation: none;
+    opacity: 1;
+  }
+  .bb-eye-kind {
+    animation: none;
+    opacity: 0;
   }
 }
