@@ -22,53 +22,9 @@ export interface AnimatedThemeTogglerProps {
 
 /* ── Audio ── */
 
-let _ctx: AudioContext | null = null;
-let _buf: AudioBuffer | null = null;
-
-function audioCtx() {
-  if (!_ctx) {
-    _ctx = new (window.AudioContext ||
-      (window as unknown as { webkitAudioContext: typeof AudioContext })
-        .webkitAudioContext)();
-  }
-  if (_ctx.state === "suspended") _ctx.resume();
-  return _ctx;
-}
-
-function ensureBuf(ac: AudioContext): AudioBuffer {
-  if (_buf && _buf.sampleRate === ac.sampleRate) return _buf;
-  const rate = ac.sampleRate;
-  const len = Math.floor(rate * 0.006);
-  const buf = ac.createBuffer(1, len, rate);
-  const ch = buf.getChannelData(0);
-  for (let i = 0; i < len; i++) {
-    const t = i / len;
-    const sine = Math.sin(2 * Math.PI * 3400 * t);
-    const noise = Math.random() * 2 - 1;
-    ch[i] = (sine * 0.6 + noise * 0.4) * (1 - t) ** 3;
-  }
-  _buf = buf;
-  return buf;
-}
-
-function tick(last: { current: number }) {
-  const now = performance.now();
-  if (now - last.current < 80) return;
-  last.current = now;
-  try {
-    const ac = audioCtx();
-    const buf = ensureBuf(ac);
-    const src = ac.createBufferSource();
-    const gain = ac.createGain();
-    src.buffer = buf;
-    gain.gain.value = 0.08;
-    src.connect(gain);
-    gain.connect(ac.destination);
-    src.start();
-  } catch {
-    /* silent */
-  }
-}
+// The click lives in lib/clickSound now, played for every control by one
+// delegated listener. This component keeps its `sound` prop, which opts out
+// rather than opting in, since silence is the exception everywhere else.
 
 /* ── Component ── */
 
@@ -78,7 +34,7 @@ export function AnimatedThemeToggler({
 }: AnimatedThemeTogglerProps) {
   const rawId = useId();
   const maskId = `att${rawId.replace(/:/g, "")}`;
-  const lastSnd = useRef(0);
+
 
   // Seeded from the class the pre-paint script in index.html already applied.
   // Reading it in an effect instead would render the sun for a frame and then
@@ -111,7 +67,6 @@ export function AnimatedThemeToggler({
     } catch {
       /* ignore */
     }
-    if (sound) tick(lastSnd);
   };
 
   const spring = { type: "spring" as const, stiffness: 380, damping: 30 };
@@ -124,6 +79,10 @@ export function AnimatedThemeToggler({
       `}</style>
       <motion.button
         className="att-btn"
+        // The click now comes from the delegated listener in lib/clickSound,
+        // which is where the rest of the site gets it. `sound` survives as an
+        // opt-out, since silence is the exception everywhere else.
+        {...(sound ? {} : { "data-click-silent": true })}
         onClick={toggle}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.86 }}

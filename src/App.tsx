@@ -613,7 +613,17 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
       onPicksChange={(next) => setAnswerMap((m) => ({ ...m, [qi + 1]: next }))}
       submitted={submittedMap[qi + 1] ?? false}
       onSubmit={() => setSubmittedMap((m) => ({ ...m, [qi + 1]: true }))}
-      onRetry={() => setSubmittedMap((m) => ({ ...m, [qi + 1]: false }))}
+      onRetry={() => {
+        setSubmittedMap((m) => ({ ...m, [qi + 1]: false }));
+        // Trying again means you have not answered it yet, so the rating that
+        // came from the previous attempt has to go too. Leaving it counted a
+        // question you were in the middle of re-answering as reviewed.
+        setStatus((st) => {
+          const next = { ...st };
+          delete next[qi + 1];
+          return next;
+        });
+      }}
     />
   );
 
@@ -719,8 +729,12 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
             </div>
 
             {/* display:contents so SHOW, ORDER and the cluster are direct flex
-                items of the row above, letting ml-auto reach the right edge. */}
-            <div className="contents">
+                items of the row above, letting ml-auto reach the right edge.
+
+                Silent: these narrow and reorder what is on screen rather than
+                performing an action, and a click for each one turns changing
+                your mind about a filter into a burst of noise. */}
+            <div className="contents" data-click-silent>
               <div className="flex items-center gap-1 bg-white dark:bg-stone-900 px-1.5 py-1.5 rounded-lg border border-slate-200 dark:border-stone-800">
                 <span className="text-[0.65rem] text-slate-400 dark:text-stone-500 font-semibold font-mono pl-1 pr-0.5">SHOW</span>
                 <button

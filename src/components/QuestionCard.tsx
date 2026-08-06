@@ -116,7 +116,10 @@ export function QuestionCard({
   const body = (
     <div>
       <button
-        onClick={toggle}
+
+      // The card is the content, not a control: opening it is reading.
+      data-click-silent
+      onClick={toggle}
         aria-expanded={open}
         className="w-full text-left p-5 flex justify-between items-start hover:bg-black/[0.02] dark:hover:bg-white/[0.03] transition"
       >

@@ -100,6 +100,8 @@ export function FlippingCard({
         className="transition-transform duration-300 ease-out [transform:rotateX(var(--rx))_rotateY(var(--ry))] [transform-style:preserve-3d] motion-reduce:[transform:none]"
       >
         <div
+
+      data-click-silent
           role={onFlip ? "button" : undefined}
           tabIndex={onFlip ? 0 : undefined}
           aria-pressed={controlled ? flipped : undefined}

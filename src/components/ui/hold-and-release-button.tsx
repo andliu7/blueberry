@@ -88,6 +88,8 @@ export function ButtonHoldAndRelease({
     <button
       type="button"
       aria-label={label}
+      // A hold is not a discrete press, so it does not get the click sound.
+      data-click-silent
       className={cn(
         "relative min-w-[9rem] h-9 px-3 overflow-hidden touch-none select-none rounded-lg",
         "border border-red-300 bg-red-50 text-red-700 text-sm font-semibold",

@@ -154,6 +154,8 @@ export function FlipCard({
 
   return (
     <div
+
+      data-click-silent
       ref={cardRef}
       role="button"
       tabIndex={canFlip ? 0 : -1}

@@ -53,6 +53,7 @@ export function HomeBlueberry({ className }: { className?: string }) {
           requestIntroReplay();
         }}
         aria-label="Home"
+        data-click-silent
         className={cn(
           "blueberry-glow-art group inline-flex rounded-full outline-none",
           // `filter` is listed so the halo fades in rather than appearing at once.
