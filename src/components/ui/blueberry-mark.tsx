@@ -86,33 +86,40 @@ export function BlueberryMark({
           them out instead reads as the face disappearing. */}
       {eyes && (
         <g className={cn("bb-eyes", loved && "bb-eyes-loved")}>
+          {/* Blush, under everything else so the face sits on top of it. Only
+              visible on hover, which is also when the eyes close: the two
+              together read as one expression rather than two effects. */}
+          <g className="bb-blush" fill="#fb7185">
+            <ellipse cx="19.5" cy="40" rx="4.2" ry="2.6" opacity="0.5" />
+            <ellipse cx="44.5" cy="40" rx="4.2" ry="2.6" opacity="0.5" />
+          </g>
+
           {loved ? (
             <>
               <path
-                d="M21 32 C21 28.9 25.6 28.9 25.6 32 C25.6 28.9 30.2 28.9 30.2 32 C30.2 35.7 25.6 38.8 25.6 38.8 C25.6 38.8 21 35.7 21 32 Z"
+                d="M19.5 32 C19.5 28.9 24.1 28.9 24.1 32 C24.1 28.9 28.7 28.9 28.7 32 C28.7 35.7 24.1 38.8 24.1 38.8 C24.1 38.8 19.5 35.7 19.5 32 Z"
                 fill="#fb7185"
               />
               <path
-                d="M33.8 32 C33.8 28.9 38.4 28.9 38.4 32 C38.4 28.9 43 28.9 43 32 C43 35.7 38.4 38.8 38.4 38.8 C38.4 38.8 33.8 35.7 33.8 32 Z"
+                d="M35.3 32 C35.3 28.9 39.9 28.9 39.9 32 C39.9 28.9 44.5 28.9 44.5 32 C44.5 35.7 39.9 38.8 39.9 38.8 C39.9 38.8 35.3 35.7 35.3 32 Z"
                 fill="#fb7185"
               />
             </>
           ) : (
             <>
-              {/* Open: tall black ovals with a small shine high on the left, so
-                  the light on the eyes comes from where the light on the fruit
-                  already does. */}
+              {/* Open: tall black ovals with a shine high on the left, so the
+                  light on the eyes comes from where the light on the fruit
+                  already does. Set a little wider apart than the first pass,
+                  which had them crowding the middle of the face. */}
               <g className="bb-eye-open">
-                <ellipse cx="25" cy="33.5" rx="3.2" ry="5.7" fill="#0b0b14" />
-                <ellipse cx="39" cy="33.5" rx="3.2" ry="5.7" fill="#0b0b14" />
-                <ellipse cx="23.9" cy="30.9" rx="1" ry="1.5" fill="#ffffff" opacity="0.9" />
-                <ellipse cx="37.9" cy="30.9" rx="1" ry="1.5" fill="#ffffff" opacity="0.9" />
+                <ellipse cx="23.5" cy="33" rx="3.2" ry="5.7" fill="#0b0b14" />
+                <ellipse cx="40.5" cy="33" rx="3.2" ry="5.7" fill="#0b0b14" />
+                <ellipse cx="22.4" cy="30.4" rx="1" ry="1.5" fill="#ffffff" opacity="0.9" />
+                <ellipse cx="39.4" cy="30.4" rx="1" ry="1.5" fill="#ffffff" opacity="0.9" />
               </g>
 
-              {/* Closed: arcs bulging upward, which is the shape a face makes
-                  when it is pleased rather than when it is blinking. Swapped for
-                  the ovals rather than squashing them, because a squashed oval
-                  is a blink and an arc is an expression. */}
+              {/* Closed: arcs bulging upward, the shape a face makes when it is
+                  pleased rather than when it is blinking. */}
               <g
                 className="bb-eye-kind"
                 fill="none"
@@ -120,11 +127,22 @@ export function BlueberryMark({
                 strokeWidth="2.5"
                 strokeLinecap="round"
               >
-                <path d="M20.7 35.1 Q25 30.0 29.3 35.1" />
-                <path d="M34.7 35.1 Q39 30.0 43.3 35.1" />
+                <path d="M19.2 34.6 Q23.5 29.5 27.8 34.6" />
+                <path d="M36.2 34.6 Q40.5 29.5 44.8 34.6" />
               </g>
             </>
           )}
+
+          {/* The smile: a shallow U, much wider than it is deep. A deeper curve
+              turns the berry into a cartoon mouth; this reads as contentment. */}
+          <path
+            className="bb-smile"
+            d="M26.5 42.4 Q32 46.2 37.5 42.4"
+            fill="none"
+            stroke="#0b0b14"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+          />
         </g>
       )}
     </svg>

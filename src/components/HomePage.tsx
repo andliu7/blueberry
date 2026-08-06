@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+﻿import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion, useInView, useReducedMotion } from "motion/react";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { deckCount, deckHref, DECK_GROUPS, type Deck } from "@/data/types";
@@ -32,6 +32,18 @@ import BoldOnHover from "@/components/ui/bold-on-hover";
 import { SpotlightCursor } from "@/components/ui/spotlight-cursor";
 import { SURFACE, spotlightFor } from "@/lib/hubSurface";
 import { hasSeenIntro, markIntroSeen } from "@/lib/intro";
+import { BlueberryBot2D } from "@/components/ui/blueberry-bot-2d";
+
+/**
+ * three, fiber and drei are around 600 kB and the hub is where most people
+ * land, so none of it is in the first paint. The flat bot renders immediately
+ * and is the Suspense fallback, which means the placeholder is the finished
+ * article rather than a spinner: if the chunk never arrives, or WebGL is
+ * unavailable, what is on screen is already the folder pages' version.
+ */
+const BlueberryBot3D = lazy(() =>
+  import("@/components/ui/blueberry-bot-3d").then((m) => ({ default: m.BlueberryBot3D })),
+);
 
 /**
  * The hub: one card per deck, with room to grow.
@@ -291,6 +303,18 @@ export function HomePage() {
             </div>
           </section>
         )}
+
+        {/* The bot, under the decks rather than over them: the hub is somewhere
+            people arrive to find a deck quickly, and a toy above the fold would
+            be in the way of that. */}
+        <section className="mt-16 flex flex-col items-center">
+          <Suspense fallback={<BlueberryBot2D className="h-72 w-72" />}>
+            <BlueberryBot3D className="h-72 w-72" />
+          </Suspense>
+          <p className="mt-1 text-center text-xs text-slate-400 dark:text-stone-500">
+            Point at him. Click the berry and see what the pot does.
+          </p>
+        </section>
 
         <DeckUploadTicket />
 

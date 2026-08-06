@@ -17,6 +17,7 @@ import { GlassCard } from "@/components/ui/glass-card";
 import { DeckSearch } from "@/components/ui/deck-search";
 import { DeckUploadTicket } from "@/components/DeckUploadTicket";
 import { UploadedFolderView } from "@/components/UploadedFolderView";
+import { BlueberryBot2D } from "@/components/ui/blueberry-bot-2d";
 import { FeedbackButton } from "@/components/FeedbackButton";
 import { SiteActions } from "@/components/SiteActions";
 import { matchedDeckIds, type SearchHit } from "@/lib/searchDecks";
@@ -147,6 +148,13 @@ export function FolderPage({ groupId }: { groupId: DeckGroupId }) {
             />
           </span>
         </a>
+
+        {/* The flat bot here rather than the three.js one. A folder page is a
+            step on the way to a deck, and it should not pull 600 kB to decorate
+            a page nobody stays on. */}
+        <div className="mt-14 flex justify-center">
+          <BlueberryBot2D className="h-56 w-56" autoplay />
+        </div>
 
         <DeckUploadTicket />
       </div>

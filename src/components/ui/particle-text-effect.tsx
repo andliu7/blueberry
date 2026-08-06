@@ -175,12 +175,22 @@ function drawBlueberry(ctx: CanvasRenderingContext2D, cx: number, cy: number, si
   ctx.lineWidth = Math.max(2, r * 0.115);
   ctx.lineCap = "round";
   for (const dir of [-1, 1]) {
-    const ex = cx + dir * r * 0.305;
+    // 0.37 rather than 0.305: the first spacing crowded the middle of the face.
+    const ex = cx + dir * r * 0.37;
     ctx.beginPath();
     ctx.moveTo(ex - eyeR, eyeY + eyeR * 0.42);
     ctx.quadraticCurveTo(ex, eyeY - eyeR * 0.78, ex + eyeR, eyeY + eyeR * 0.42);
     ctx.stroke();
   }
+
+  // The smile: shallow and wide, matching the mark. Deeper turns the berry into
+  // a cartoon mouth, and at particle density it would close into a blob.
+  const smileW = r * 0.24;
+  const smileY = bodyY + r * 0.36;
+  ctx.beginPath();
+  ctx.moveTo(cx - smileW, smileY);
+  ctx.quadraticCurveTo(cx, smileY + smileW * 0.68, cx + smileW, smileY);
+  ctx.stroke();
 }
 
 const SIM_STEP_MS = 1000 / 60;

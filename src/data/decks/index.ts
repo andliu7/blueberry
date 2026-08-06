@@ -2,6 +2,7 @@ import type { Deck } from "@/data/types";
 import { epoxidationDeck } from "./epoxidation";
 import { iodinationDeck } from "./iodination";
 import { grignardDeck } from "./grignard";
+import { reductionDeck } from "./reduction";
 import { pkaDeck } from "./pka";
 import { irDeck } from "./ir";
 import { nmrDeck } from "./nmr";
@@ -21,6 +22,7 @@ export const DECKS: Deck[] = [
   epoxidationDeck,
   iodinationDeck,
   grignardDeck,
+  reductionDeck,
   pkaDeck,
   irDeck,
   nmrDeck,

@@ -73,13 +73,13 @@ const INTRO_WORDS: ParticleWord[] = [
  * would restart the sequence on every frame.
  */
 const INTRO_WORDS_LIGHT: ParticleWord[] = [
-  { text: "WELCOME", from: "#4338ca", to: "#a21caf" },
-  { text: "TO", from: "#a21caf", to: "#b45309" },
-  { text: SITE_WORD, from: "#4f46e5", to: "#c026d3" },
+  { text: "WELCOME", from: "#818cf8", to: "#f0abfc" },
+  { text: "TO", from: "#f0abfc", to: "#fbbf24" },
+  { text: SITE_WORD, from: "#a5b4fc", to: "#f5d0fe" },
   // Saturation up, brightness barely down. Darkening alone walked every channel
   // toward black, which is what had taken the life out of it: the berry needs to
   // be more itself against the cream, not dimmer.
-  { text: SITE_NAME, from: "#4f46e5", to: "#c026d3", shape: "blueberry", vivid: 1.45, shade: 0.94 },
+  { text: SITE_NAME, from: "#4f46e5", to: "#c026d3", shape: "blueberry", vivid: 1.25, shade: 1 },
 ];
 
 /**
@@ -140,7 +140,11 @@ function IntroStage({
           style={{
             background: isDark
               ? "radial-gradient(64% 52% at 50% 48%, rgba(6,5,14,0.78) 0%, rgba(6,5,14,0.42) 58%, rgba(6,5,14,0) 100%)"
-              : "radial-gradient(64% 52% at 50% 48%, rgba(255,255,255,0.82) 0%, rgba(255,255,255,0.45) 58%, rgba(255,255,255,0) 100%)",
+              : // A deep violet wash rather than white. The berry is lit from its
+                // upper left and its own highlight is near-white, so a white
+                // centre was hiding exactly the part that gives it form. Tinted
+                // rather than grey so it still belongs to the pastel around it.
+                "radial-gradient(64% 52% at 50% 48%, rgba(49,29,94,0.60) 0%, rgba(76,45,130,0.34) 58%, rgba(124,58,237,0) 100%)",
           }}
         />
 
@@ -191,7 +195,7 @@ function IntroStage({
             style={{
               background: isDark
                 ? "radial-gradient(58% 46% at 50% 46%, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.45) 55%, rgba(0,0,0,0) 100%)"
-                : "radial-gradient(58% 46% at 50% 46%, rgba(255,255,255,0.78) 0%, rgba(255,255,255,0.42) 55%, rgba(255,255,255,0) 100%)",
+                : "radial-gradient(58% 46% at 50% 46%, rgba(49,29,94,0.52) 0%, rgba(76,45,130,0.28) 55%, rgba(124,58,237,0) 100%)",
             }}
           />
         </motion.div>

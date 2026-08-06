@@ -529,8 +529,24 @@ input:-webkit-autofill:active {
    because the mark is usually inside a link or a button and the eyes should
    answer a press aimed at that, not require the cursor to find the fruit. */
 .bb-eye-open,
-.bb-eye-kind {
+.bb-eye-kind,
+.bb-blush {
   transition: opacity 200ms ease;
+}
+
+/* Blush arrives with the closed eyes rather than on its own, so the two read as
+   one expression. Hidden at rest: a mark that is permanently blushing has no
+   way left to react. */
+.bb-blush {
+  opacity: 0;
+}
+svg:hover .bb-blush,
+a:hover .bb-blush,
+button:hover .bb-blush,
+[role="button"]:hover .bb-blush,
+.blueberry-glow-art:hover .bb-blush,
+.group\/card:hover .bb-blush {
+  opacity: 1;
 }
 .bb-eye-open {
   opacity: 1;
