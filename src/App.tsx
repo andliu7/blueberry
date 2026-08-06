@@ -5,7 +5,7 @@ import { FlipCard } from "@/components/ui/flip-card";
 import { MathHtml } from "@/components/ui/math-html";
 import { ClickHereHint } from "@/components/ui/click-here-hint";
 import { useDecks } from "@/lib/useDecks";
-import { isReference, DECK_GROUPS, type DeckGroupId, type StudyDeck } from "@/data/types";
+import { isReference, DECK_GROUPS, type DeckGroupId, type StudyDeck, type Question } from "@/data/types";
 import { NotFoundPage } from "@/components/ui/404-page-not-found";
 import { testimonials, testimonialArt } from "@/data/testimonials";
 import { GradientMenuButton, type GradientMenuItem } from "@/components/ui/gradient-menu";
@@ -88,6 +88,38 @@ const RATINGS = [
   ["yellow", "Almost", "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-200"],
   ["green", "Got It", "bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-200"],
 ] as const;
+
+/**
+ * The options of a multiple choice question, for the flip and tilt faces.
+ *
+ * Without this those two styles rendered `item.q` and `item.a` and nothing
+ * else, so a multiple choice card read "Choose the best answer" with no choices
+ * under it, and its back announced "Correct answer: D" for a D you had never
+ * been shown. The list view had them all along; these two never did.
+ *
+ * Scrolls rather than shrinks: the faces are a fixed height, and four options
+ * of unequal length will not reliably fit whatever size we pick for them.
+ */
+function FlipOptions({ item, compact = false }: { item: Question; compact?: boolean }) {
+  if (!item.mc) return null;
+  return (
+    <ol
+      className={cn(
+        "mt-2 min-h-0 flex-1 space-y-1 overflow-y-auto pr-1",
+        compact ? "text-[0.7rem]" : "text-xs",
+      )}
+    >
+      {item.options.map((opt, i) => (
+        <li key={i} className="flex gap-1.5 text-slate-600 dark:text-stone-300">
+          <span className="font-mono font-bold text-indigo-500 dark:text-indigo-400">
+            {String.fromCharCode(65 + i)}
+          </span>
+          <MathHtml html={opt} className="leading-snug" />
+        </li>
+      ))}
+    </ol>
+  );
+}
 
 function FlipRateRow({
   onRate,
@@ -481,11 +513,12 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
               Question {num}
               {item.mc ? " · MC" : ""}
             </span>
-            <div className="flex flex-1 items-center">
+            <div className={cn("flex min-h-0", item.mc ? "flex-col" : "flex-1 items-center")}>
               <MathHtml
                 html={item.q}
                 className="text-lg leading-snug font-semibold text-slate-800 dark:text-stone-100"
               />
+              <FlipOptions item={item} />
             </div>
             <span className="font-mono text-[0.72rem] tracking-wider text-slate-400 uppercase dark:text-stone-500">
               click to flip
@@ -528,11 +561,12 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
               {num}
               {item.mc ? " · MC" : ""}
             </span>
-            <div className="flex flex-1 items-center">
+            <div className={cn("flex min-h-0", item.mc ? "flex-col" : "flex-1 items-center")}>
               <MathHtml
                 html={item.q}
                 className="text-base leading-snug font-semibold text-slate-800 dark:text-stone-100"
               />
+              <FlipOptions item={item} compact />
             </div>
             <span className="font-mono text-[0.7rem] tracking-wider text-slate-400 uppercase dark:text-stone-500">
               click to flip
