@@ -142,7 +142,7 @@ export function HomePage() {
   // deck you have just published goes and it should be somewhere you can look
   // before there is anything to see.
   const navItems: NavPillItem[] = [
-    { id: "home", label: "Home", href: "#/home", icon: <BlueberryMark className="h-7 w-7" /> },
+    { id: "home", label: "Home", href: "#/home", icon: <BlueberryMark eyes className="h-[2.6rem] w-[2.6rem]" /> },
     ...DECK_GROUPS.filter(
       (g) => g.id === "uploaded" || allDecks.some((d) => (d.group ?? "lab") === g.id),
     ).map((g) => ({

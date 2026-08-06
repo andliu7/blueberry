@@ -75,7 +75,7 @@ function SignInDoor({
             It used to be an arrow here and a centred logo inside the panel,
             which meant the one element that is supposed to be constant moved on
             the one page you arrive at from somewhere unfamiliar. */}
-        <BlueberryMark className="blueberry-glow-art h-8 w-8 shrink-0 transition-[filter] duration-300" />
+        <BlueberryMark eyes className="blueberry-glow-art h-12 w-12 shrink-0 transition-[filter] duration-300" />
         <ArrowLeft className="h-3.5 w-3.5 transition-transform duration-300 group-hover:-translate-x-0.5" />
         Back to {SITE_NAME}
       </a>

@@ -79,36 +79,51 @@ export function AnimatedMacbook({ className }: { className?: string }) {
 }
 
 /**
- * The laptop sized for a tag, mounted only while hovered.
+ * The tag opens a small card with the laptop running inside it.
  *
- * The slot keeps the tag's own dimensions so the row does not reflow when the
- * label collapses; the laptop itself overflows it, scaled and centred, because
- * a tumbling laptop cropped to 34px is a grey smudge.
+ * Scaling the whole routine down into a 34px slot made a grey smudge: the lid,
+ * the keys and the shadow are all a couple of pixels at that size, so the
+ * animation played and read as noise. A popup gives it room to be legible while
+ * the tag itself keeps its place in the row, so the paragraph does not reflow
+ * when you point at it.
+ *
+ * Mounted only while open, so eighty animating elements exist for exactly as
+ * long as someone is looking at them.
  */
 export function MiniMacbook({ className }: { className?: string }) {
-  const [hot, setHot] = useState(false);
+  const [open, setOpen] = useState(false);
 
   return (
     <span
-      aria-hidden
-      onPointerEnter={() => setHot(true)}
-      onPointerLeave={() => setHot(false)}
+      onPointerEnter={() => setOpen(true)}
+      onPointerLeave={() => setOpen(false)}
       className={cn("relative inline-block h-[26px] w-[34px] align-middle", className)}
     >
+      {/* The resting state: a small still laptop, so the tag is not empty. */}
       <span
-        className="pointer-events-none absolute top-1/2 left-1/2 block"
-        style={{ transform: "translate(-50%, -50%) scale(0.42)" }}
+        aria-hidden
+        className="mb-still pointer-events-none absolute top-1/2 left-1/2 block"
+        style={{ transform: "translate(-50%, -50%) scale(0.24)" }}
       >
-        {hot ? (
-          <AnimatedMacbook />
-        ) : (
-          // A still frame at rest, so the tag shows a laptop rather than a gap
-          // before you point at it.
-          <span className="mb-still block">
+        <AnimatedMacbook />
+      </span>
+
+      {open && (
+        <span
+          aria-hidden
+          // Centred over the tag and lifted clear of it. `z-[60]` sits above the
+          // About card's own content but below the overlay chrome at 100.
+          className="pointer-events-none absolute bottom-full left-1/2 z-[60] mb-2 block -translate-x-1/2 rounded-xl border border-slate-200 bg-white/95 p-2 shadow-2xl backdrop-blur dark:border-stone-700 dark:bg-stone-900/95"
+          style={{ width: 132, height: 116 }}
+        >
+          <span
+            className="block"
+            style={{ transform: "scale(0.78)", transformOrigin: "top left" }}
+          >
             <AnimatedMacbook />
           </span>
-        )}
-      </span>
+        </span>
+      )}
     </span>
   );
 }

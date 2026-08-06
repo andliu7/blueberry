@@ -28,7 +28,7 @@ export function ContactPage() {
   const surface = isDark ? SURFACE.dark : SURFACE.light;
 
   const navItems: NavPillItem[] = [
-    { id: "home", label: "Home", href: "#/home", icon: <BlueberryMark className="h-7 w-7" /> },
+    { id: "home", label: "Home", href: "#/home", icon: <BlueberryMark eyes className="h-[2.6rem] w-[2.6rem]" /> },
     ...DECK_GROUPS.filter((g) => DECKS.some((d) => (d.group ?? "lab") === g.id)).map((g) => ({
       id: g.id,
       label: g.title.replace(/\[[^\]]*\]\s*/, ""),

@@ -85,16 +85,28 @@ export function BlueberryMark({
           The blink is a scaleY on the pair, which is what an eyelid does; fading
           them out instead reads as the face disappearing. */}
       {eyes && (
-        <g className={cn("bb-eyes", loved && "bb-eyes-loved")} fill="none" stroke="#f8fafc" strokeWidth="2.6" strokeLinecap="round">
+        <g className={cn("bb-eyes", loved && "bb-eyes-loved")}>
           {loved ? (
             <>
-              <path d="M22 33 C22 30.5 25.5 30.5 25.5 33 C25.5 30.5 29 30.5 29 33 C29 36 25.5 38.5 25.5 38.5 C25.5 38.5 22 36 22 33 Z" fill="#fb7185" stroke="none" />
-              <path d="M35 33 C35 30.5 38.5 30.5 38.5 33 C38.5 30.5 42 30.5 42 33 C42 36 38.5 38.5 38.5 38.5 C38.5 38.5 35 36 35 33 Z" fill="#fb7185" stroke="none" />
+              <path
+                d="M21.5 32.2 C21.5 29.4 25.4 29.4 25.4 32.2 C25.4 29.4 29.3 29.4 29.3 32.2 C29.3 35.4 25.4 38 25.4 38 C25.4 38 21.5 35.4 21.5 32.2 Z"
+                fill="#fb7185"
+              />
+              <path
+                d="M34.7 32.2 C34.7 29.4 38.6 29.4 38.6 32.2 C38.6 29.4 42.5 29.4 42.5 32.2 C42.5 35.4 38.6 38 38.6 38 C38.6 38 34.7 35.4 34.7 32.2 Z"
+                fill="#fb7185"
+              />
             </>
           ) : (
+            /* Soft almonds rather than the robot's square brackets. The
+               brackets read as a machine, which is the wrong note for a berry;
+               a rounded eye with a highlight in the upper left reads as
+               friendly and keeps the same lighting direction as the fruit. */
             <>
-              <path d="M22.5 30.5 L22.5 35.5 M22.5 30.5 Q22.5 29 24 29 L27 29 Q28.5 29 28.5 30.5 L28.5 35.5" />
-              <path d="M35.5 30.5 L35.5 35.5 M35.5 30.5 Q35.5 29 37 29 L40 29 Q41.5 29 41.5 30.5 L41.5 35.5" />
+              <ellipse cx="25" cy="33.5" rx="3.5" ry="4.4" fill="#f8fafc" />
+              <ellipse cx="39" cy="33.5" rx="3.5" ry="4.4" fill="#f8fafc" />
+              <circle cx="23.9" cy="31.8" r="1.15" fill="#c7d2fe" />
+              <circle cx="37.9" cy="31.8" r="1.15" fill="#c7d2fe" />
             </>
           )}
         </g>

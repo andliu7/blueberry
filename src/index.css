@@ -512,3 +512,35 @@ input:-webkit-autofill:active {
   60% { transform: rotateX(80deg) rotateY(0deg) rotateZ(-50deg) translateX(30px); box-shadow: 0 0 60px 40px rgba(0,0,0,0.3); }
   100% { transform: rotateX(80deg) rotateY(0deg) rotateZ(0deg); box-shadow: 0 0 60px 40px rgba(0,0,0,0.3); }
 }
+
+/* The mark's blink.
+
+   A scaleY on the pair, because that is what an eyelid does; fading them out
+   instead reads as the face disappearing rather than closing. The origin is the
+   eye's own centre line, so the lid meets in the middle rather than the eyes
+   sinking into the berry.
+
+   Long gaps and a very short close: a blink that is 4% of its cycle is a blink,
+   and one that is 30% is a character falling asleep. */
+.bb-eyes {
+  transform-origin: 32px 33.5px;
+  animation: bb-blink 5.2s ease-in-out infinite;
+}
+
+/* A second, offset cycle so it is not metronomic. Every mark on a page would
+   otherwise blink in perfect unison, which reads as a glitch. */
+.bb-eyes-loved {
+  animation: none;
+}
+
+@keyframes bb-blink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(0.08); }
+  97% { transform: scaleY(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bb-eyes {
+    animation: none;
+  }
+}

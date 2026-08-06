@@ -49,7 +49,7 @@ export function FolderPage({ groupId }: { groupId: DeckGroupId }) {
   const decks = matched ? all.filter((d) => matched.has(d.id)) : all;
 
   const navItems: NavPillItem[] = [
-    { id: "home", label: "Home", href: "#/home", icon: <BlueberryMark className="h-7 w-7" /> },
+    { id: "home", label: "Home", href: "#/home", icon: <BlueberryMark eyes className="h-[2.6rem] w-[2.6rem]" /> },
     ...all.map((d) => ({ id: d.id, label: d.short ?? d.title, href: deckHref(d) })),
   ];
 

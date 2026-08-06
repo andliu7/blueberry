@@ -62,7 +62,7 @@ export function HomeBlueberry({ className }: { className?: string }) {
           className,
         )}
       >
-        <BlueberryMark className="h-10 w-10" />
+        <BlueberryMark eyes className="h-[3.75rem] w-[3.75rem]" />
       </a>
 
       {/* Sits to the right of the mark and points back at it. The mark is
