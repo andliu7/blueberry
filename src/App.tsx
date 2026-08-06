@@ -1,7 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ChevronsUpDown, ChevronsDownUp, Shuffle, GalleryHorizontalEnd, List, MoveVertical, ArrowDown, GitBranch, ArrowUpRight, Layers, RefreshCw, Orbit, Maximize2, Minimize2 } from "lucide-react";
 import { FlippingCard } from "@/components/ui/flipping-card";
-import { FlipCard } from "@/components/ui/flip-card";
 import { MathHtml } from "@/components/ui/math-html";
 import { ClickHereHint } from "@/components/ui/click-here-hint";
 import { useDecks } from "@/lib/useDecks";
@@ -93,25 +92,20 @@ const RATINGS = [
 ] as const;
 
 /**
- * The options of a multiple choice question, for the flip and tilt faces.
+ * The options of a multiple choice question, for the two faces of a flip card.
  *
- * Without this those two styles rendered `item.q` and `item.a` and nothing
- * else, so a multiple choice card read "Choose the best answer" with no choices
- * under it, and its back announced "Correct answer: D" for a D you had never
- * been shown. The list view had them all along; these two never did.
+ * Without this the flip style rendered `item.q` and `item.a` and nothing else,
+ * so a multiple choice card read "Choose the best answer" with no choices under
+ * it, and its back announced "Correct answer: D" for a D you had never been
+ * shown. The list view had them all along; this one never did.
  *
  * Scrolls rather than shrinks: the faces are a fixed height, and four options
  * of unequal length will not reliably fit whatever size we pick for them.
  */
-function FlipOptions({ item, compact = false }: { item: Question; compact?: boolean }) {
+function FlipOptions({ item }: { item: Question }) {
   if (!item.mc) return null;
   return (
-    <ol
-      className={cn(
-        "mt-2 min-h-0 flex-1 space-y-1 overflow-y-auto pr-1",
-        compact ? "text-[0.7rem]" : "text-xs",
-      )}
-    >
+    <ol className="mt-2 min-h-0 flex-1 space-y-1 overflow-y-auto pr-1 text-xs">
       {item.options.map((opt, i) => (
         <li key={i} className="flex gap-1.5 text-slate-600 dark:text-stone-300">
           <span className="font-mono font-bold text-indigo-500 dark:text-indigo-400">
@@ -124,19 +118,13 @@ function FlipOptions({ item, compact = false }: { item: Question; compact?: bool
   );
 }
 
-function FlipRateRow({
-  onRate,
-  compact = false,
-}: {
-  onRate: (color: Status) => void;
-  compact?: boolean;
-}) {
+function FlipRateRow({ onRate }: { onRate: (color: Status) => void }) {
   return (
     // `relative z-10` matters: the faces carry a glare layer and the content
     // sits on a translateZ plane, so without an explicit stacking context the
     // buttons can end up underneath and swallow their own clicks.
     <div
-      className={cn("relative z-10 mt-3 flex shrink-0", compact ? "gap-1.5" : "gap-2")}
+      className="relative z-10 mt-3 flex shrink-0 gap-2"
       onClick={(e) => e.stopPropagation()}
     >
       {RATINGS.map(([color, label, cls]) => (
@@ -148,9 +136,8 @@ function FlipRateRow({
             onRate(color);
           }}
           className={cn(
-            "rounded-md font-bold transition hover:brightness-95 active:scale-95",
+            "rounded-md px-3.5 py-2 text-sm font-bold transition hover:brightness-95 active:scale-95",
             // Big enough to hit with a thumb rather than decorative.
-            compact ? "px-3 py-2 text-xs" : "px-3.5 py-2 text-sm",
             cls,
           )}
         >
@@ -161,13 +148,20 @@ function FlipRateRow({
   );
 }
 
-/** Card presentation, orthogonal to the view mode that arranges them. */
-type CardStyle = "classic" | "flip" | "tilt";
-const CARD_STYLES = ["classic", "flip", "tilt"] as const;
+/**
+ * Card presentation, orthogonal to the view mode that arranges them.
+ *
+ * There was a third, Tilt: the same question and answer on a card that tracked
+ * the cursor in 3-D. It is gone. It did nothing Flip did not already do, and
+ * doing it on a face that moves under the pointer made the rate buttons feel
+ * like a moving target. Two styles that differ in what they are for beats three
+ * where one is a decoration of another.
+ */
+type CardStyle = "classic" | "flip";
+const CARD_STYLES = ["classic", "flip"] as const;
 const CARD_STYLE_LABEL: Record<CardStyle, string> = {
   classic: "Cards",
   flip: "Flip",
-  tilt: "Tilt",
 };
 
 
@@ -701,64 +695,12 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
     );
   };
 
-  /** Same question and answer as the flip card, on the tilt-tracking variant. */
-  const renderTiltCard = (qi: number) => {
-    const item = questions[qi];
-    const num = qi + 1;
-    return (
-      <FlipCard
-        key={qi}
-        cardNumber={num}
-        isFlipped={flippedMap[num] ?? false}
-        onFlipChange={() => setFlippedMap((m) => ({ ...m, [num]: !m[num] }))}
-        className={cn(
-          status[num] === "red" && "[&_[class*=border-slate-200]]:!border-red-300",
-          status[num] === "yellow" && "[&_[class*=border-slate-200]]:!border-yellow-300",
-          status[num] === "green" && "[&_[class*=border-slate-200]]:!border-green-300",
-        )}
-        frontContent={
-          <div className="flex h-full w-full flex-col p-4">
-            <span className="font-mono text-xs font-bold text-indigo-600 dark:text-indigo-400">
-              {num}
-              {item.mc ? " · MC" : ""}
-            </span>
-            <div className={cn("flex min-h-0", item.mc ? "flex-col" : "flex-1 items-center")}>
-              <MathHtml
-                html={item.q}
-                className="text-base leading-snug font-semibold text-slate-800 dark:text-stone-100"
-              />
-              <FlipOptions item={item} compact />
-            </div>
-            <span className="font-mono text-[0.7rem] tracking-wider text-slate-400 uppercase dark:text-stone-500">
-              click to flip
-            </span>
-          </div>
-        }
-        backFace={
-          <div className="flex h-full w-full flex-col p-4">
-            <div className="flex-1 overflow-y-auto">
-              <MathHtml
-                html={item.a}
-                className="text-[0.9rem] leading-relaxed text-slate-700 dark:text-stone-300"
-              />
-            </div>
-            <FlipRateRow onRate={(color) => rate(num, color)} compact />
-          </div>
-        }
-      />
-    );
-  };
-
   /**
    * The single indirection that lets any style appear in any view. Containers
    * call this and never know which card they are laying out.
    */
   const renderAnyCard = (qi: number) =>
-    cardStyle === "flip"
-      ? renderFlipCard(qi)
-      : cardStyle === "tilt"
-        ? renderTiltCard(qi)
-        : renderCard(qi);
+    cardStyle === "flip" ? renderFlipCard(qi) : renderCard(qi);
 
   /** Every view renders the same card; only the container differs. */
   const renderCard = (qi: number) => (
@@ -999,11 +941,11 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
                 // Whichever of these two has nothing left to do merges into the
                 // other, so the toolbar never offers a button that is a no-op.
                 //
-                // Both drop out entirely in the card styles and the gallery,
-                // for the same reason. A flip or tilt card has no expanded
-                // state to reach: you turn it over. Left in, the pair sat there
-                // through a whole deck doing nothing, which is worse than a
-                // no-op button, because it looks like the flip is broken.
+                // Both drop out entirely in the flip style and the gallery,
+                // for the same reason. A flip card has no expanded state to
+                // reach: you turn it over. Left in, the pair sat there through a
+                // whole deck doing nothing, which is worse than a no-op button,
+                // because it looks like the flip is broken.
                 ...(cardStyle === "classic" && view !== "gallery"
                   ? [
                       <GooeyTogglePair
@@ -1166,8 +1108,8 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
         <DeckAbout text={deck.about} purpose={deck.purpose} funFact={deck.funFact} />
 
         {/* Container and card style are independent: every branch below calls
-            the same renderAnyCard, so Flip and Tilt work inside the carousel,
-            the scroll grid and the stack, not just the list. */}
+            the same renderAnyCard, so Flip works inside the carousel, the
+            scroll grid and the stack, not just the list. */}
         <div ref={cardsTopRef} className="scroll-mt-28" />
 
         {view === "gallery" ? (
