@@ -1,31 +1,34 @@
-import { Suspense, useMemo, useRef, useState } from "react";
-import { Canvas, useFrame, type ThreeEvent } from "@react-three/fiber";
+import { Suspense, useMemo, useRef } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
 import { ContactShadows } from "@react-three/drei";
 import * as THREE from "three";
 import { cn } from "@/lib/utils";
 
 /**
- * The blueberry bot in three dimensions: a berry head with a calyx and closed
- * eyes, a body, and a pot beneath it that leans over and swallows the head.
+ * The blueberry, in three dimensions, watching the cursor.
  *
- * Adapted from the supplied robot hero rather than taken from it. What changed:
+ * A berry with its calyx, the kind eyes, and a mouth that drops open as it
+ * follows you. There is no pot and nothing gets swallowed: that was a lot of
+ * geometry and timing in service of a gag you see once, and what people
+ * actually do with this is move the mouse and watch it look back.
  *
- * 1. **The head is a blueberry**, which is the whole reason it is here, so the
- *    machined sphere, the ears and the antennae are gone.
+ * Adapted from the supplied robot hero rather than taken from it:
+ *
+ * 1. **The head is a blueberry**, which is the whole point, so the machined
+ *    sphere, the ears and the antennae are gone.
  * 2. **No `Environment` preset.** drei's presets fetch an HDR from pmndrs' CDN
  *    at runtime, which would make the hub depend on a third-party asset host to
- *    finish rendering. Three lights do the job and ship with the page.
- * 3. **No `react-icons` and no `framer-motion`.** The first duplicates lucide,
- *    already installed; the second *is* `motion` under its former name, so
- *    adding it would ship the same library twice.
- * 4. **No procedural PBR textures.** The original generates two 512px canvases
- *    with ten thousand drawn circles each, on the main thread, to give a plastic
- *    shell its grain. A berry is smooth.
+ *    finish rendering. Three lights ship with the page and do the job.
+ * 3. **No `react-icons`, no `framer-motion`.** The first duplicates lucide; the
+ *    second *is* `motion` under its former name, so it would ship the same
+ *    library twice.
+ * 4. **No procedural PBR textures.** The original draws ten thousand circles
+ *    onto two 512px canvases on the main thread to give a plastic shell grain.
+ *    A berry is smooth.
  *
- * The whole module is loaded lazily. three, fiber and drei are around 600 kB,
- * and the hub is the most common landing page on the site; paying that before
- * first paint would undo the split that took the main bundle from 756 kB to
- * 545 kB. The flat bot renders instantly and this replaces it once it arrives.
+ * Loaded lazily. three, fiber and drei are around 600 kB and the hub is the most
+ * common landing page; paying that before first paint would undo the split that
+ * took the main bundle from 756 kB to 545 kB.
  */
 
 const BERRY_STOPS: [number, string][] = [
@@ -36,12 +39,11 @@ const BERRY_STOPS: [number, string][] = [
 ];
 
 /**
- * The berry's shading, baked into a texture rather than lit for.
+ * The berry's shading, painted into a texture rather than lit for.
  *
- * The mark is drawn with a radial gradient offset to the upper left, and no
- * arrangement of lights reproduces that exactly. Painting the same gradient onto
- * a canvas and wrapping the sphere in it keeps the 3-D head recognisably the
- * same object as the flat one.
+ * The mark is a radial gradient offset to the upper left, and no arrangement of
+ * lights reproduces that exactly. Wrapping the sphere in the same gradient keeps
+ * the 3-D head recognisably the same object as the flat one.
  */
 function useBerryTexture() {
   return useMemo(() => {
@@ -58,156 +60,194 @@ function useBerryTexture() {
   }, []);
 }
 
-/** The closed, pleased eyes, as tubes so they read from any angle. */
-function Eyes() {
-  const curve = useMemo(() => {
-    const arc = (flip: number) =>
+/**
+ * One eye: an open oval, the closed arc it becomes, and three lashes.
+ *
+ * The two states are separate meshes toggled by visibility rather than one mesh
+ * being squashed. A scaled sphere flattening to nothing passes through shapes
+ * that look like neither an eye nor a lid, and at this size that reads as a
+ * glitch rather than a blink.
+ *
+ * The lashes stay put through both, because that is where they are on a face.
+ */
+function Eye({ side, closedRef }: { side: number; closedRef: React.RefObject<boolean> }) {
+  const open = useRef<THREE.Group>(null);
+  const shut = useRef<THREE.Group>(null);
+
+  const arc = useMemo(
+    () =>
       new THREE.QuadraticBezierCurve3(
-        new THREE.Vector3(flip * 0.34 - 0.12, -0.03, 0.93),
-        new THREE.Vector3(flip * 0.34, 0.14, 1.02),
-        new THREE.Vector3(flip * 0.34 + 0.12, -0.03, 0.93),
-      );
-    return [arc(-1), arc(1)];
-  }, []);
+        new THREE.Vector3(-0.15, 0.0, 0.0),
+        new THREE.Vector3(0, 0.2, 0.05),
+        new THREE.Vector3(0.15, 0.0, 0.0),
+      ),
+    [],
+  );
+
+  useFrame(() => {
+    if (open.current) open.current.visible = !closedRef.current;
+    if (shut.current) shut.current.visible = closedRef.current;
+  });
+
+  // Splayed outward and up, which is the direction lashes actually grow and
+  // what keeps them from reading as spider legs.
+  const lashes = useMemo(() => [-0.42, 0, 0.42].map((a) => a + side * 0.35), [side]);
 
   return (
-    <>
-      {curve.map((c, i) => (
-        <mesh key={i}>
-          <tubeGeometry args={[c, 24, 0.035, 8, false]} />
+    <group position={[side * 0.38, 0.12, 0.9]}>
+      <group ref={open}>
+        <mesh scale={[0.13, 0.2, 0.08]}>
+          <sphereGeometry args={[1, 20, 20]} />
+          <meshBasicMaterial color="#0b0b14" toneMapped={false} />
+        </mesh>
+        {/* The shine, high on the left, matching the flat mark. */}
+        <mesh position={[-0.045, 0.075, 0.06]} scale={[0.04, 0.055, 0.03]}>
+          <sphereGeometry args={[1, 12, 12]} />
+          <meshBasicMaterial color="#ffffff" toneMapped={false} />
+        </mesh>
+      </group>
+
+      <group ref={shut} visible={false}>
+        <mesh>
+          <tubeGeometry args={[arc, 20, 0.035, 8, false]} />
+          <meshBasicMaterial color="#0b0b14" toneMapped={false} />
+        </mesh>
+      </group>
+
+      {lashes.map((angle, i) => (
+        <mesh key={i} position={[Math.sin(angle) * 0.14, 0.2, 0.02]} rotation={[0, 0, -angle]}>
+          <cylinderGeometry args={[0.012, 0.005, 0.13, 6]} />
           <meshBasicMaterial color="#0b0b14" toneMapped={false} />
         </mesh>
       ))}
-    </>
+    </group>
   );
 }
 
 function Calyx() {
   const lobes = useMemo(() => [0, 1, 2, 3, 4].map((i) => (i * 72 * Math.PI) / 180), []);
   return (
-    <group position={[0, 0.98, 0]} scale={[1, 0.62, 1]}>
+    <group position={[0, 0.97, 0]} scale={[1, 0.62, 1]}>
       {lobes.map((rot, i) => (
-        <mesh key={i} rotation={[0, rot, 0]} position={[0.22, 0, 0]}>
-          <coneGeometry args={[0.11, 0.42, 5]} />
-          <meshStandardMaterial color="#2c3fb0" roughness={0.6} />
+        <mesh key={i} rotation={[0, rot, 0.42]} position={[0.26, 0.06, 0]}>
+          <coneGeometry args={[0.12, 0.5, 5]} />
+          <meshStandardMaterial color="#2c3fb0" roughness={0.55} />
         </mesh>
       ))}
       <mesh>
-        <sphereGeometry args={[0.13, 20, 20]} />
+        <sphereGeometry args={[0.15, 20, 20]} />
         <meshStandardMaterial color="#241f7a" roughness={0.5} />
       </mesh>
     </group>
   );
 }
 
-function Bot({ onEat, eating }: { onEat: () => void; eating: boolean }) {
+/** Seconds per blink cycle, and how much of it the eyes are shut. */
+const BLINK_CYCLE = 5.4;
+const BLINK_SHUT = 0.22;
+
+function Berry() {
   const head = useRef<THREE.Group>(null);
-  const pot = useRef<THREE.Group>(null);
-  const lid = useRef<THREE.Group>(null);
+  // A ref rather than state: this changes on a clock and nothing about the
+  // React tree depends on it, so re-rendering for it would be waste.
+  const closed = useRef(false);
+  const mouth = useRef<THREE.Mesh>(null);
+  const smile = useRef<THREE.Mesh>(null);
   const tex = useBerryTexture();
 
-  useFrame(({ pointer }, delta) => {
-    const dt = Math.min(delta, 0.1);
-    if (head.current) {
-      // Leans toward the cursor rather than looking straight at it: a full
-      // look-at on a sphere with a face reads as the head spinning.
-      const ty = pointer.x * 0.5;
-      const tx = -pointer.y * 0.28;
-      head.current.rotation.y = THREE.MathUtils.lerp(head.current.rotation.y, ty, 8 * dt);
-      head.current.rotation.x = THREE.MathUtils.lerp(head.current.rotation.x, tx, 8 * dt);
+  /** The resting smile: shallow and wide, matching the flat mark. */
+  const smileCurve = useMemo(
+    () =>
+      new THREE.QuadraticBezierCurve3(
+        new THREE.Vector3(-0.3, -0.42, 0.9),
+        new THREE.Vector3(0, -0.62, 1.0),
+        new THREE.Vector3(0.3, -0.42, 0.9),
+      ),
+    [],
+  );
 
-      // The swallow: down into the pot and shrinking as it goes.
-      const targetY = eating ? -1.15 : 0;
-      const targetS = eating ? 0.35 : 1;
-      head.current.position.y = THREE.MathUtils.lerp(head.current.position.y, targetY, 4 * dt);
-      const s = THREE.MathUtils.lerp(head.current.scale.x, targetS, 4 * dt);
-      head.current.scale.setScalar(s);
+  useFrame(({ pointer, clock }, delta) => {
+    const dt = Math.min(delta, 0.1);
+
+    // Open for most of the cycle: a fifth of a second shut every five and a
+    // half. Much more than that and it stops reading as a blink and starts
+    // reading as a berry falling asleep.
+    closed.current = clock.getElapsedTime() % BLINK_CYCLE > BLINK_CYCLE - BLINK_SHUT;
+
+    if (head.current) {
+      // Leans toward the cursor rather than looking straight at it: a true
+      // look-at on a sphere with a face reads as the head spinning off.
+      const ty = pointer.x * 0.62;
+      const tx = -pointer.y * 0.34;
+      head.current.rotation.y = THREE.MathUtils.lerp(head.current.rotation.y, ty, 7 * dt);
+      head.current.rotation.x = THREE.MathUtils.lerp(head.current.rotation.x, tx, 7 * dt);
     }
-    if (pot.current) {
-      pot.current.rotation.z = THREE.MathUtils.lerp(
-        pot.current.rotation.z,
-        eating ? 0.22 : 0,
-        5 * dt,
-      );
+
+    /**
+     * The gawk. How far the cursor sits from dead centre decides how far the jaw
+     * drops, so it is most startled when you are furthest away and settles back
+     * into a smile when you come to rest in front of it.
+     */
+    const reach = Math.min(1, Math.hypot(pointer.x, pointer.y));
+    const openness = Math.min(1, reach * 2.2);
+
+    if (mouth.current) {
+      mouth.current.scale.y = THREE.MathUtils.lerp(mouth.current.scale.y, 0.1 + reach * 0.5, 8 * dt);
+      mouth.current.scale.x = THREE.MathUtils.lerp(mouth.current.scale.x, 0.5 + reach * 0.22, 8 * dt);
+      const m = mouth.current.material as THREE.MeshBasicMaterial;
+      m.opacity = THREE.MathUtils.lerp(m.opacity, openness, 8 * dt);
     }
-    if (lid.current) {
-      lid.current.rotation.z = THREE.MathUtils.lerp(
-        lid.current.rotation.z,
-        eating ? 1.1 : 0,
-        6 * dt,
-      );
+    if (smile.current) {
+      // The two trade places, so there is never a smile inside an open mouth.
+      const m = smile.current.material as THREE.MeshBasicMaterial;
+      m.opacity = THREE.MathUtils.lerp(m.opacity, 1 - openness, 8 * dt);
     }
   });
 
   return (
-    /**
-     * Lifted, because the bot is not centred on its own origin: the head sits at
-     * 0 and the pot hangs to about -2.4, so the shape's middle is roughly a unit
-     * below where the camera was pointing and it framed low and clipped.
-     */
-    <group position={[0, 0.95, 0]}>
-      <group
-        ref={head}
-        onPointerDown={(e: ThreeEvent<PointerEvent>) => {
-          e.stopPropagation();
-          onEat();
-        }}
-        onPointerOver={() => (document.body.style.cursor = "pointer")}
-        onPointerOut={() => (document.body.style.cursor = "auto")}
-      >
-        <mesh castShadow>
-          <sphereGeometry args={[1, 48, 48]} />
-          <meshStandardMaterial map={tex} roughness={0.42} metalness={0.05} />
-        </mesh>
-        <Calyx />
-        <Eyes />
-      </group>
+    <group ref={head}>
+      <mesh castShadow>
+        <sphereGeometry args={[1, 48, 48]} />
+        <meshStandardMaterial map={tex} roughness={0.42} metalness={0.05} />
+      </mesh>
+      <Calyx />
+      <Eye side={-1} closedRef={closed} />
+      <Eye side={1} closedRef={closed} />
 
-      {/* Pot */}
-      <group ref={pot} position={[0, -1.75, 0]}>
-        <mesh castShadow receiveShadow>
-          <cylinderGeometry args={[0.95, 0.72, 1.15, 40]} />
-          <meshStandardMaterial color="#5b21b6" roughness={0.5} />
-        </mesh>
-        <group ref={lid} position={[-0.95, 0.6, 0]}>
-          <mesh position={[0.95, 0, 0]} castShadow>
-            <cylinderGeometry args={[1.0, 1.0, 0.12, 40]} />
-            <meshStandardMaterial color="#7c3aed" roughness={0.4} />
-          </mesh>
-        </group>
-      </group>
+      {/* Resting smile */}
+      <mesh ref={smile}>
+        <tubeGeometry args={[smileCurve, 28, 0.045, 8, false]} />
+        <meshBasicMaterial color="#0b0b14" toneMapped={false} transparent opacity={1} />
+      </mesh>
+
+      {/* The open mouth: a flattened sphere pushed just proud of the surface so
+          it cannot z-fight with the berry it sits on. */}
+      <mesh ref={mouth} position={[0, -0.44, 0.82]} scale={[0.5, 0.1, 0.4]}>
+        <sphereGeometry args={[0.42, 24, 24]} />
+        <meshBasicMaterial color="#0b0b14" toneMapped={false} transparent opacity={0} />
+      </mesh>
     </group>
   );
 }
 
 export function BlueberryBot3D({ className }: { className?: string }) {
-  const [eating, setEating] = useState(false);
-
-  const eat = () => {
-    if (eating) return;
-    setEating(true);
-    setTimeout(() => setEating(false), 2400);
-  };
-
   return (
-    // `relative` and a definite size on the wrapper, with the canvas filling it
-    // absolutely. Left to size itself against a flex parent, the renderer
-    // measured before the column had settled, kept a stale aspect, and drew the
-    // scene shifted off to one side and clipped.
+    // `relative` with the canvas filling it absolutely. Left to size itself
+    // against a flex parent, the renderer measured before the column had
+    // settled, kept a stale aspect, and drew the scene off to one side.
     <div className={cn("relative", className)}>
       <Canvas
         shadows
-        camera={{ position: [0, 0, 7.4], fov: 44 }}
+        camera={{ position: [0, 0, 4.6], fov: 42 }}
         dpr={[1, 2]}
-        resize={{ scroll: false, debounce: { scroll: 0, resize: 0 } }}
         style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
       >
         <Suspense fallback={null}>
-          <ambientLight intensity={0.85} />
+          <ambientLight intensity={0.9} />
           <directionalLight position={[3, 5, 4]} intensity={1.1} castShadow />
           <directionalLight position={[-4, 1, -3]} intensity={0.35} color="#c4b5fd" />
-          <Bot eating={eating} onEat={eat} />
-          <ContactShadows position={[0, -1.55, 0]} opacity={0.4} scale={9} blur={2.4} far={4} />
+          <Berry />
+          <ContactShadows position={[0, -1.45, 0]} opacity={0.35} scale={7} blur={2.6} far={3} />
         </Suspense>
       </Canvas>
     </div>

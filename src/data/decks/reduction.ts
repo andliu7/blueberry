@@ -22,14 +22,14 @@ export const reductionDeck: Deck = {
     "Hydride chemistry, TLC monitoring, extraction workup and the IR that proves the ester survived.",
   footNote: "Remember: the aldehyde goes, the ester stays. That is the whole experiment.",
   about:
-    "In this lab you reduce the aldehyde of vanillin acetate to a primary alcohol with sodium borohydride, while deliberately leaving the ester alone.\\n\\nThat selectivity is the point. $NaBH_4$ is reactive enough for an aldehyde and too weak for an ester, so one functional group in a polyfunctional molecule can be changed on purpose. Swap in $LiAlH_4$ and you lose exactly that: it takes the ester too, and you end up with vanillyl alcohol.\\n\\nThree techniques carry the experiment. TLC tells you when the reaction is done, by the reactant spot disappearing. A liquid-liquid extraction separates your product from the boron and sodium salts. The IR at the end is the proof: a new broad $O-H$, no aldehyde $C=O$ and no $2720/2820$ doublet, and an ester $C=O$ still sitting there.",
+    "In this lab you reduce the aldehyde of vanillin acetate to a primary alcohol with sodium borohydride, while deliberately leaving the ester alone.\n\nThat selectivity is the point. $NaBH_4$ is reactive enough for an aldehyde and too weak for an ester, so one functional group in a polyfunctional molecule can be changed on purpose. Swap in $LiAlH_4$ and you lose exactly that: it takes the ester too, and you end up with vanillyl alcohol.\n\nThree techniques carry the experiment. TLC tells you when the reaction is done, by the reactant spot disappearing. A liquid-liquid extraction separates your product from the boron and sodium salts. The IR at the end is the proof: a new broad $O-H$, no aldehyde $C=O$ and no $2720/2820$ doublet, and an ester $C=O$ still sitting there.",
   purpose:
     "Demonstrate chemoselective reduction: sodium borohydride is reactive enough to convert an aldehyde to a primary alcohol but too weak to touch an ester, so a single functional group in a polyfunctional molecule can be modified deliberately. The supporting skills are TLC reaction monitoring, liquid-liquid extraction workup, and IR confirmation of a functional group transformation.",
   funFact:
     "The acetate protecting group is why this works at all: free vanillin's phenol would just get deprotonated and consume hydride. And less than about one percent of the world's vanillin comes from actual orchid pods. Most is synthesised from guaiacol or pulled out of lignin, a waste stream of paper pulping. Fittingly, borohydride chemistry is also used industrially to bleach that same wood pulp.",
-  motif: "attack",
-  from: "#4338ca",
-  to: "#6d28d9",
+  motif: "vanillin",
+  from: "#5b21b6",
+  to: "#7c3aed",
   questions: [
     // ---- Reduction fundamentals
     { q: "What is a reduction?", a: "Gain of electrons. In organic terms, an <strong class='text-indigo-700'>increase in C–H bonds</strong> and/or a decrease in C–heteroatom bonds. Here: aldehyde → primary alcohol." },

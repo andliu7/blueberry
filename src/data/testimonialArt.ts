@@ -17,6 +17,7 @@ export type ArtMotif =
   | "attack"
   | "resonance"
   | "pka"
+  | "vanillin"
   | "mascot";
 
 const MOTIFS: Record<ArtMotif, string> = {
@@ -105,6 +106,45 @@ const MOTIFS: Record<ArtMotif, string> = {
    * off the C=O rather than one hanging straight down. Each fragment carries its
    * own small rotation so the two read as drifting past each other.
    */
+
+  /**
+   * Vanillin acetate, whole, with the borohydride waiting beside it.
+   *
+   * Lab 7 shared the Grignard's motif and read as the same experiment on the
+   * folder page, which is the one place the two sit next to each other. This
+   * draws the actual substrate: the ring, the methoxy, the acetate ester it has
+   * to keep, and the aldehyde it is about to lose.
+   *
+   * The three substituents are labelled rather than drawn out to their last
+   * bond. At 240x320 behind a card title, a full skeletal structure is a grey
+   * tangle; the labels are what make it readable as this molecule.
+   */
+  vanillin: `
+    <g stroke="#fff" fill="none" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity=".92">
+      <path d="M96 118 128 100 160 118 160 154 128 172 96 154Z"/>
+      <path d="M102 126 102 148M154 126 154 148M128 106 154 121" opacity=".55"/>
+    </g>
+
+    <g stroke="#fff" fill="none" stroke-width="5" stroke-linecap="round" opacity=".92">
+      <path d="M96 154 66 172"/>
+      <path d="M96 118 66 100"/>
+      <path d="M160 136 194 136"/>
+      <path d="M194 136 210 118"/>
+      <path d="M204 122 216 134" stroke-width="4" opacity=".85"/>
+    </g>
+
+    <text x="60" y="180" font-family="Georgia, serif" font-size="21" fill="#fff" text-anchor="end" opacity=".9">O</text>
+    <text x="60" y="96" font-family="Georgia, serif" font-size="19" fill="#fff" text-anchor="end" opacity=".9">OCH3</text>
+    <text x="66" y="200" font-family="Georgia, serif" font-size="17" fill="#fff" text-anchor="middle" opacity=".78">acetate</text>
+    <text x="216" y="112" font-family="Georgia, serif" font-size="19" fill="#fff" text-anchor="start" opacity=".9">O</text>
+    <text x="204" y="160" font-family="Georgia, serif" font-size="15" fill="#fff" text-anchor="middle" opacity=".72">CHO</text>
+
+    <g opacity=".8">
+      <path d="M92 236 h56" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".45"/>
+      <text x="120" y="228" font-family="Georgia, serif" font-size="24" fill="#fff" text-anchor="middle">NaBH4</text>
+      <text x="120" y="258" font-family="Georgia, serif" font-size="15" fill="#fff" text-anchor="middle" opacity=".72">H- delivered here</text>
+    </g>`,
+
   attack: `
     <g transform="rotate(-7 157 148)">
       <g stroke="#fff" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity=".92">
@@ -153,6 +193,7 @@ export const ART_MOTIFS: ArtMotif[] = [
   "attack",
   "resonance",
   "pka",
+  "vanillin",
   "mascot",
 ];
 

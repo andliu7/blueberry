@@ -157,7 +157,11 @@ export function AnimatedActionCluster({
     return (
       <div className={cn("relative flex items-center", className)}>
         {trigger}
-        <div className="absolute top-full right-0 z-50 mt-2 flex flex-nowrap items-center gap-2">
+        {/* Wraps on a phone. `flex-nowrap` anchored to the right edge pushed
+            the leftmost buttons off the side of the screen on an iPhone, where
+            six controls in a row are wider than the viewport. Capped to the
+            viewport minus the page's own padding so a wrapped row still fits. */}
+        <div className="absolute top-full right-0 z-50 mt-2 flex max-w-[calc(100vw-2.5rem)] flex-wrap items-center justify-end gap-2 sm:flex-nowrap">
           {actions}
         </div>
       </div>

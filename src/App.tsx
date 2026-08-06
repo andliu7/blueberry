@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
-import { ChevronsUpDown, ChevronsDownUp, Shuffle, GalleryHorizontalEnd, List, MoveVertical, ArrowDown, GitBranch, ArrowUpRight, Layers, RefreshCw, Orbit } from "lucide-react";
+import { ChevronsUpDown, ChevronsDownUp, Shuffle, GalleryHorizontalEnd, List, MoveVertical, ArrowDown, GitBranch, ArrowUpRight, Layers, RefreshCw, Orbit, Maximize2, Minimize2 } from "lucide-react";
 import { FlippingCard } from "@/components/ui/flipping-card";
 import { FlipCard } from "@/components/ui/flip-card";
 import { MathHtml } from "@/components/ui/math-html";
@@ -308,6 +308,30 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
   const [view, setView] = useState<"list" | "carousel" | "scroll" | "stack" | "gallery">("list");
   const carouselMode = view === "carousel";
   const [carouselIndex, setCarouselIndex] = useState(0);
+  /**
+   * Carousel with everything else taken away: one card, the arrows, and a way
+   * home. Nothing to scroll past, nothing in the margins, which is the point of
+   * a hands-off pass through a deck.
+   *
+   * Only offered in the carousel, because it is the only view that shows one
+   * card at a time. Full-screening a list would just be the list.
+   */
+  const [focusMode, setFocusMode] = useState(false);
+  useEffect(() => {
+    if (view !== "carousel") setFocusMode(false);
+  }, [view]);
+  useEffect(() => {
+    if (!focusMode) return;
+    const esc = (e: KeyboardEvent) => e.key === "Escape" && setFocusMode(false);
+    window.addEventListener("keydown", esc);
+    // The page behind must not scroll while this is up.
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", esc);
+      document.body.style.overflow = prev;
+    };
+  }, [focusMode]);
   const [confettiTrigger, setConfettiTrigger] = useState(0);
   const hasCelebrated = useRef(false);
   const [completed, setCompleted] = useState(false);
@@ -946,6 +970,20 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
                 // Sits immediately after Expand/Collapse and before the rest,
                 // because it belongs with the controls that change how a card
                 // presents itself rather than with the ones that reorder them.
+                // Only in the carousel, since it is the only view that shows one
+                // card at a time; full-screening a list would just be the list.
+                ...(view === "carousel"
+                  ? [
+                      <GradientMenuButton
+                        key="focus"
+                        title="Focus"
+                        icon={<Maximize2 />}
+                        onClick={() => setFocusMode(true)}
+                        gradientFrom="#0f766e"
+                        gradientTo="#0891b2"
+                      />,
+                    ]
+                  : []),
                 <GradientMenuButton
                   key="card-style"
                   title={CARD_STYLE_LABEL[cardStyle]}
@@ -1082,13 +1120,52 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
         ) : view === "stack" ? (
           <StackedCards>{visibleIdx.map(renderAnyCard)}</StackedCards>
         ) : view === "carousel" ? (
-          <SnapCarousel
-            label="Questions"
-            index={safeCarouselIndex}
-            onIndexChange={setCarouselIndex}
-          >
-            {visibleIdx.map(renderAnyCard)}
-          </SnapCarousel>
+          focusMode ? (
+            // Fixed and full screen rather than raised with a z-index: the deck
+            // page has a sticky hero, a sticky toolbar and a floating feedback
+            // button, and lifting one element above all of them is a fight that
+            // taking it out of flow avoids entirely.
+            <div className="fixed inset-0 z-[110] flex flex-col bg-[#f6f4ef] px-4 py-5 dark:bg-[#0c0a09]">
+              <div className="mx-auto flex w-full max-w-3xl items-center gap-3">
+                <HomeBlueberry />
+                <span className="font-mono text-xs text-slate-400 dark:text-stone-500">
+                  {safeCarouselIndex + 1} / {carouselTotal}
+                </span>
+                <button
+                  onClick={() => setFocusMode(false)}
+                  className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-500 transition hover:text-slate-900 dark:border-stone-700 dark:text-stone-400 dark:hover:text-stone-100"
+                >
+                  <Minimize2 className="h-3.5 w-3.5" />
+                  Exit focus
+                </button>
+              </div>
+
+              <div className="mx-auto flex w-full max-w-3xl flex-1 items-center">
+                <div className="w-full">
+                  <SnapCarousel
+                    label="Questions"
+                    index={safeCarouselIndex}
+                    onIndexChange={setCarouselIndex}
+                  >
+                    {visibleIdx.map(renderAnyCard)}
+                  </SnapCarousel>
+                </div>
+              </div>
+
+              <p className="text-center font-mono text-[0.7rem] text-slate-400 dark:text-stone-500">
+                arrow keys to move &middot; space to{" "}
+                {cardStyle === "classic" ? "reveal" : "flip"} &middot; esc to leave
+              </p>
+            </div>
+          ) : (
+            <SnapCarousel
+              label="Questions"
+              index={safeCarouselIndex}
+              onIndexChange={setCarouselIndex}
+            >
+              {visibleIdx.map(renderAnyCard)}
+            </SnapCarousel>
+          )
         ) : cardStyle === "classic" ? (
           <div className="space-y-4">{visibleIdx.map(renderAnyCard)}</div>
         ) : (

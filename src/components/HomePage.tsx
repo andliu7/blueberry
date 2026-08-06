@@ -312,7 +312,7 @@ export function HomePage() {
             <BlueberryBot3D className="h-72 w-72" />
           </Suspense>
           <p className="mt-1 text-center text-xs text-slate-400 dark:text-stone-500">
-            Point at him. Click the berry and see what the pot does.
+            Move your cursor around and see what he does.
           </p>
         </section>
 

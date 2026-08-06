@@ -153,7 +153,10 @@ export function FolderPage({ groupId }: { groupId: DeckGroupId }) {
             step on the way to a deck, and it should not pull 600 kB to decorate
             a page nobody stays on. */}
         <div className="mt-14 flex justify-center">
-          <BlueberryBot2D className="h-56 w-56" autoplay />
+          <BlueberryBot2D
+            className="w-full max-w-lg"
+            says="Hello! How are you enjoying Blueberry today? Give us some feedback at the bottom right!"
+          />
         </div>
 
         <DeckUploadTicket />
