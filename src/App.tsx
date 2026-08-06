@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ChevronsUpDown, ChevronsDownUp, Shuffle, GalleryHorizontalEnd, List, MoveVertical, ArrowDown, GitBranch, ArrowUpRight, Layers, RefreshCw, Orbit, Maximize2, Minimize2 } from "lucide-react";
 import { FlippingCard } from "@/components/ui/flipping-card";
 import { FlipCard } from "@/components/ui/flip-card";
@@ -805,35 +805,83 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
   const safeCarouselIndex = carouselTotal ? ((carouselIndex % carouselTotal) + carouselTotal) % carouselTotal : 0;
 
   /**
-   * Space turns over the card you are on, without having to reach for it.
+   * Moves keyboard focus onto the card at a slide index.
    *
-   * Drilling the carousel means arrowing or clicking through and never touching
-   * the card itself, so the key that ought to be the whole interaction did
-   * nothing. What "turn over" means depends on how the card is dressed: a flip
-   * or tilt card turns, and a plain card opens its answer, which is the same
-   * gesture wearing different clothes.
+   * The point is not the focus ring. It is that once the card holds focus, the
+   * keys belong to the card: its own handler turns it over on space, and the
+   * carousel's arrows are already bound. Arrowing to a card and then studying it
+   * from the keyboard becomes one continuous thing rather than two systems that
+   * each need the right element focused first.
    *
-   * It stands down whenever something else has a claim on the key: a text field,
-   * or anything exposing itself as a button, which covers both the toolbar and a
-   * focused card whose own handler should run instead of firing alongside this
-   * one and flipping twice.
+   * Deferred a frame because the slide has to have moved. `preventScroll`
+   * because the track is positioned by transform inside an `overflow-hidden`
+   * viewport, and focusing something in there without it makes the browser
+   * scroll the viewport sideways to a place the transform then fights.
+   */
+  const focusCarouselCard = useCallback((slideIndex: number) => {
+    requestAnimationFrame(() => {
+      const slides = document.querySelectorAll<HTMLElement>('[aria-roledescription="slide"]');
+      const slide = slides[slideIndex];
+      if (!slide) return;
+      const target = slide.querySelector<HTMLElement>(
+        '[tabindex="0"], button:not([disabled]), a[href]',
+      );
+      (target ?? slide).focus({ preventScroll: true });
+    });
+  }, []);
+
+  /**
+   * Arrows move, space turns the card over, and moving takes focus with it.
+   *
+   * Both keys were dead in practice, for the same reason. The carousel binds its
+   * own arrows to the viewport, so they only fire while the viewport holds
+   * focus; and space stood down for anything that looked like a button. Click a
+   * toolbar button once and focus stays on it, so from that moment on the
+   * arrows went to nothing and space went to the button. Measured on a live
+   * deck: after opening the tools panel, `document.activeElement` was still the
+   * theme toggle, and every space press after that was swallowed.
+   *
+   * So this owns both keys for the whole carousel, in the capture phase, and
+   * hands them back only to whoever genuinely has a claim:
+   *
+   * - a text field, always;
+   * - the card you are on, since its own handler turns it over and running both
+   *   would turn it over twice, which looks like nothing happening;
+   * - a control the visitor *tabbed* to. `:focus-visible` is exactly this
+   *   distinction and the browser already tracks it: it is set when focus
+   *   arrived by keyboard and not when it is left over from a click.
+   *
+   * Arrows step through `visibleIdx`, so shuffling or filtering to Needs Review
+   * changes what "next" means without this needing to know.
    */
   useEffect(() => {
     if (!carouselMode || carouselTotal === 0) return;
 
     const onKey = (e: KeyboardEvent) => {
-      if (e.key !== " " && e.code !== "Space") return;
-      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
 
       const el = document.activeElement as HTMLElement | null;
-      if (
-        el &&
-        (el.isContentEditable ||
-          /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName) ||
-          el.closest('[role="button"], button, a'))
-      ) {
+      if (el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName))) return;
+
+      const step = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+      if (step !== 0) {
+        // Capture phase, so stopping it here keeps the carousel's own arrow
+        // binding from moving a second slide when the card inside it has focus.
+        e.preventDefault();
+        e.stopPropagation();
+        const next = Math.min(carouselTotal - 1, Math.max(0, safeCarouselIndex + step));
+        setCarouselIndex(next);
+        focusCarouselCard(next);
         return;
       }
+
+      if (e.key !== " " && e.code !== "Space") return;
+
+      const slide = document.querySelectorAll<HTMLElement>('[aria-roledescription="slide"]')[
+        safeCarouselIndex
+      ];
+      if (el && slide?.contains(el)) return;
+      if (el && el.matches?.(":focus-visible")) return;
 
       const qi = visibleIdx[safeCarouselIndex];
       if (qi === undefined) return;
@@ -841,6 +889,7 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
 
       // Otherwise the page scrolls a screen down under the carousel.
       e.preventDefault();
+      e.stopPropagation();
       if (cardStyle === "classic") {
         setOpenMap((m) => ({ ...m, [num]: !m[num] }));
       } else {
@@ -848,9 +897,9 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
       }
     };
 
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [carouselMode, carouselTotal, visibleIdx, safeCarouselIndex, cardStyle]);
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
+  }, [carouselMode, carouselTotal, visibleIdx, safeCarouselIndex, cardStyle, focusCarouselCard]);
 
   return (
     <div className="min-h-screen text-slate-800 dark:text-stone-200">
