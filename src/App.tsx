@@ -311,6 +311,17 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
   const [confettiTrigger, setConfettiTrigger] = useState(0);
   const hasCelebrated = useRef(false);
   const [completed, setCompleted] = useState(false);
+  /**
+   * True when the deck was already finished the moment it opened.
+   *
+   * Without this, returning to a deck you completed last week blurs the page and
+   * congratulates you again before you have done anything. The notice marks the
+   * moment of finishing, and that moment has already passed.
+   */
+  const openedFinished = useRef(
+    (Object.values(loadSaved(deck.id).status ?? {}).filter((v) => v && v !== "none").length) >=
+      deck.questions.length,
+  );
   const cardsTopRef = useRef<HTMLDivElement>(null);
 
   /**
@@ -452,7 +463,7 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
    * them where the ref flips would capture a stale copy of both.
    */
   useEffect(() => {
-    if (!completed) return;
+    if (!completed || openedFinished.current) return;
     const id = `${deck.id}:done`;
     pushToast(
       needsWork > 0

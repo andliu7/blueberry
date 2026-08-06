@@ -5,7 +5,7 @@ import { Mail, User, X } from "lucide-react";
 import { ProfileCard } from "@/components/ui/profile-card";
 import { GradientMenuButton } from "@/components/ui/gradient-menu";
 import { GithubMark, LinkedinMark } from "@/components/ui/brand-marks";
-import { MiniMacbook } from "@/components/ui/mini-macbook";
+import { MiniMacbook } from "@/components/ui/animated-macbook";
 import { usePageFlip } from "@/components/ui/page-flip";
 import { CMNS_URL, GITHUB_URL, LINKEDIN_URL, PREHEALTH_URL, SITE_NAME } from "@/data/site";
 import { cn } from "@/lib/utils";

@@ -76,9 +76,10 @@ const INTRO_WORDS_LIGHT: ParticleWord[] = [
   { text: "WELCOME", from: "#4338ca", to: "#a21caf" },
   { text: "TO", from: "#a21caf", to: "#b45309" },
   { text: SITE_WORD, from: "#4f46e5", to: "#c026d3" },
-  // 0.55 rather than a recolour: the shape keeps its own lighting and just
-  // sits darker, which is what makes it read on cream instead of vanishing.
-  { text: SITE_NAME, from: "#4f46e5", to: "#c026d3", shape: "blueberry", shade: 0.55 },
+  // Only a shade under the dark palette. 0.55 read on the cream but flattened
+  // the berry into a silhouette, and the shading is the whole reason the mark
+  // is drawn rather than filled.
+  { text: SITE_NAME, from: "#4f46e5", to: "#c026d3", shape: "blueberry", shade: 0.85 },
 ];
 
 /**

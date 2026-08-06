@@ -365,3 +365,150 @@ input:-webkit-autofill:active {
     margin-top: -5.375rem; margin-left: -4rem;
   }
 }
+
+/* ---------------------------------------------------------------- MacBook
+
+   The full routine from the supplied component, kept as-is: the machine turns
+   a full circle, the lid shuts and reopens on the way round, the keys catch the
+   light, and a shadow swings underneath.
+
+   These live here rather than inline because they are keyframes, which Tailwind
+   arbitrary values cannot express, and because `preserve-3d` has to be a real
+   declaration: a utility that sets `transform-style` is not enough when the
+   children are themselves rotated in three dimensions. */
+.mb-perspective {
+  perspective: 500px;
+}
+.mb-inner,
+.mb-screen,
+.mb-body,
+.mb-body-face,
+.mb-keyboard {
+  transform-style: preserve-3d;
+}
+.mb-screen {
+  transform-origin: bottom center;
+}
+.mb-body {
+  transform-origin: bottom center;
+  transform: rotateX(-90deg);
+}
+.mb-screen-face {
+  transform: translateZ(2px);
+}
+.mb-body-face {
+  transform: translateZ(-2px);
+}
+.mb-key {
+  transform: translateZ(-2px);
+}
+.mb-shadow {
+  transform: rotateX(80deg);
+}
+
+.mb-anim-rotate {
+  animation: mb-rotate 9s ease-in-out infinite;
+}
+.mb-anim-lid-screen {
+  animation: mb-lid-screen 9s ease-in-out infinite;
+}
+.mb-anim-lid-body {
+  animation: mb-lid-body 9s ease-in-out infinite;
+}
+.mb-anim-deck {
+  animation: mb-deck 9s ease-in-out infinite;
+}
+.mb-anim-shade {
+  animation: mb-shade 9s ease-in-out infinite;
+}
+.mb-anim-keys {
+  animation: mb-keys 9s ease-in-out infinite;
+}
+.mb-anim-shadow {
+  animation: mb-shadow 9s ease-in-out infinite;
+}
+
+/* At rest the laptop holds the first frame: lid up, turned slightly, still. */
+.mb-still * {
+  animation: none !important;
+}
+.mb-still .mb-inner {
+  transform: rotateX(-20deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mb-anim-rotate,
+  .mb-anim-lid-screen,
+  .mb-anim-lid-body,
+  .mb-anim-deck,
+  .mb-anim-shade,
+  .mb-anim-keys,
+  .mb-anim-shadow {
+    animation: none;
+  }
+  .mb-inner {
+    transform: rotateX(-20deg);
+  }
+}
+
+@keyframes mb-rotate {
+  0% { transform: rotateX(-20deg) rotateY(0deg); }
+  5% { transform: rotateX(-20deg) rotateY(-20deg); }
+  20% { transform: rotateX(30deg) rotateY(200deg); }
+  25% { transform: rotateX(-60deg) rotateY(150deg); }
+  60% { transform: rotateX(-20deg) rotateY(130deg); }
+  65% { transform: rotateX(-20deg) rotateY(120deg); }
+  80% { transform: rotateX(-20deg) rotateY(375deg); }
+  85% { transform: rotateX(-20deg) rotateY(357deg); }
+  87% { transform: rotateX(-20deg) rotateY(360deg); }
+  100% { transform: rotateX(-20deg) rotateY(360deg); }
+}
+
+@keyframes mb-lid-screen {
+  0% { transform: rotateX(0deg); background-position: left bottom; }
+  5% { transform: rotateX(50deg); background-position: left bottom; }
+  20% { transform: rotateX(-90deg); background-position: -150px top; }
+  25% { transform: rotateX(15deg); background-position: left bottom; }
+  30% { transform: rotateX(-5deg); background-position: right top; }
+  38% { transform: rotateX(5deg); background-position: right top; }
+  48% { transform: rotateX(0deg); background-position: right top; }
+  90% { transform: rotateX(0deg); background-position: right top; }
+  100% { transform: rotateX(0deg); background-position: right center; }
+}
+
+@keyframes mb-lid-body {
+  0%, 100% { transform: rotateX(-90deg); }
+}
+
+@keyframes mb-deck {
+  0% { background-color: #dfdfdf; }
+  50% { background-color: #bbb; }
+  100% { background-color: #dfdfdf; }
+}
+
+@keyframes mb-shade {
+  0% { background-position: -20px 0px; }
+  5% { background-position: -40px 0px; }
+  20% { background-position: 200px 0; }
+  50% { background-position: -200px 0; }
+  80% { background-position: 0px 0px; }
+  85% { background-position: -30px 0; }
+  90% { background-position: -20px 0; }
+  100% { background-position: -20px 0px; }
+}
+
+@keyframes mb-keys {
+  0% { box-shadow: 0 -2px 0 #222; }
+  5% { box-shadow: 1px -1px 0 #222; }
+  20%, 25%, 60% { box-shadow: -1px 1px 0 #222; }
+  80%, 85%, 87%, 100% { box-shadow: 0 -2px 0 #222; }
+}
+
+@keyframes mb-shadow {
+  0% { transform: rotateX(80deg) rotateY(0deg) rotateZ(0deg); box-shadow: 0 0 60px 40px rgba(0,0,0,0.3); }
+  5% { transform: rotateX(80deg) rotateY(10deg) rotateZ(0deg); box-shadow: 0 0 60px 40px rgba(0,0,0,0.3); }
+  20% { transform: rotateX(30deg) rotateY(-20deg) rotateZ(-20deg); box-shadow: 0 0 50px 30px rgba(0,0,0,0.3); }
+  25% { transform: rotateX(80deg) rotateY(-20deg) rotateZ(50deg); box-shadow: 0 0 35px 15px rgba(0,0,0,0.1); }
+  60% { transform: rotateX(80deg) rotateY(0deg) rotateZ(-50deg) translateX(30px); box-shadow: 0 0 60px 40px rgba(0,0,0,0.3); }
+  100% { transform: rotateX(80deg) rotateY(0deg) rotateZ(0deg); box-shadow: 0 0 60px 40px rgba(0,0,0,0.3); }
+}
