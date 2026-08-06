@@ -513,41 +513,58 @@ input:-webkit-autofill:active {
   100% { transform: rotateX(80deg) rotateY(0deg) rotateZ(0deg); box-shadow: 0 0 60px 40px rgba(0,0,0,0.3); }
 }
 
-/* The mark closing its eyes.
+/* The mark closes its eyes when you point at it.
 
-   Not a blink. A blink is a squashed eye and reads as involuntary; these swap
-   the ovals for arcs that bulge upward, which is the shape a face makes when it
-   is pleased. So the two states cross-fade rather than one of them scaling.
+   Driven by hover rather than a timer. A mark that closes its eyes on its own
+   schedule is decoration and eventually reads as a tic; one that does it when
+   you arrive is answering you, which is the whole difference between an
+   animation and a reaction.
 
-   Slow and rare on purpose: held closed for about a fifth of a second every
-   six, which reads as the berry enjoying itself rather than as a tic. The two
-   animations are one timeline in opposition, so there is never a frame with
-   both sets of eyes or neither. */
+   Not a blink either. A blink is a squashed eye and reads as involuntary; these
+   swap the ovals for arcs that bulge upward, the shape a face makes when it is
+   pleased. The two states cross-fade, so there is never a frame with both sets
+   or neither.
+
+   The hover is taken from any interactive ancestor rather than the svg itself,
+   because the mark is usually inside a link or a button and the eyes should
+   answer a press aimed at that, not require the cursor to find the fruit. */
+.bb-eye-open,
+.bb-eye-kind {
+  transition: opacity 200ms ease;
+}
 .bb-eye-open {
-  animation: bb-eyes-open 6s ease-in-out infinite;
+  opacity: 1;
 }
 .bb-eye-kind {
-  animation: bb-eyes-kind 6s ease-in-out infinite;
+  opacity: 0;
 }
 
-@keyframes bb-eyes-open {
-  0%, 86%, 96%, 100% { opacity: 1; }
-  89%, 93% { opacity: 0; }
+/* `svg:hover` is the one that always applies: measured, the nav pill's mark has
+   no link or button ancestor at all, so keying only off those would have left
+   the most visible mark on the site never reacting. The rest widen the target so
+   the eyes answer a press aimed at the control rather than at the fruit. */
+svg:hover .bb-eye-open,
+a:hover .bb-eye-open,
+button:hover .bb-eye-open,
+[role="button"]:hover .bb-eye-open,
+.blueberry-glow-art:hover .bb-eye-open,
+.group\/card:hover .bb-eye-open {
+  opacity: 0;
+}
+svg:hover .bb-eye-kind,
+a:hover .bb-eye-kind,
+button:hover .bb-eye-kind,
+[role="button"]:hover .bb-eye-kind,
+.blueberry-glow-art:hover .bb-eye-kind,
+.group\/card:hover .bb-eye-kind {
+  opacity: 1;
 }
 
-@keyframes bb-eyes-kind {
-  0%, 86%, 96%, 100% { opacity: 0; }
-  89%, 93% { opacity: 1; }
-}
-
-/* Reduced motion keeps the eyes open and still, rather than parking them shut. */
+/* Reduced motion still swaps, since the swap is the meaning rather than the
+   motion; it just does it instantly. */
 @media (prefers-reduced-motion: reduce) {
-  .bb-eye-open {
-    animation: none;
-    opacity: 1;
-  }
+  .bb-eye-open,
   .bb-eye-kind {
-    animation: none;
-    opacity: 0;
+    transition: none;
   }
 }

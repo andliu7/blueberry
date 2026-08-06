@@ -76,10 +76,10 @@ const INTRO_WORDS_LIGHT: ParticleWord[] = [
   { text: "WELCOME", from: "#4338ca", to: "#a21caf" },
   { text: "TO", from: "#a21caf", to: "#b45309" },
   { text: SITE_WORD, from: "#4f46e5", to: "#c026d3" },
-  // Only a shade under the dark palette. 0.55 read on the cream but flattened
-  // the berry into a silhouette, and the shading is the whole reason the mark
-  // is drawn rather than filled.
-  { text: SITE_NAME, from: "#4f46e5", to: "#c026d3", shape: "blueberry", shade: 0.85 },
+  // Saturation up, brightness barely down. Darkening alone walked every channel
+  // toward black, which is what had taken the life out of it: the berry needs to
+  // be more itself against the cream, not dimmer.
+  { text: SITE_NAME, from: "#4f46e5", to: "#c026d3", shape: "blueberry", vivid: 1.45, shade: 0.94 },
 ];
 
 /**

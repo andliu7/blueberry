@@ -70,6 +70,15 @@ export interface ParticleWord {
    */
   shape?: "blueberry";
   /**
+   * Multiplies saturation, for shapes that draw their own colours.
+   *
+   * Darkening alone pulls every channel toward black, which is exactly what
+   * takes the life out of a berry on a pale background. Pushing saturation
+   * first and then darkening a little keeps it a blueberry rather than a grey
+   * ball with a blue memory.
+   */
+  vivid?: number;
+  /**
    * Multiplies the sampled colour, for shapes that draw their own.
    *
    * The berry is lit for a near-black opening, so on the pastel one it arrived
@@ -147,6 +156,31 @@ function drawBlueberry(ctx: CanvasRenderingContext2D, cx: number, cy: number, si
   ctx.arc(0, 0, lobe * 0.33, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
+
+  /**
+   * The closed, pleased eyes, in the same proportions as the SVG mark.
+   *
+   * Closed rather than open, because these are drawn as particles: an open eye
+   * is a solid black oval, and a swarm resolving into two dark holes reads as
+   * damage on the fruit rather than as a face. An arc is a stroke, so it stays
+   * legible at the density the cloud can actually manage.
+   *
+   * Traced with `stroke` and then filled by the sampler, which reads the pixels
+   * back rather than the path, so the line width has to be generous enough to
+   * survive the sampling grid.
+   */
+  const eyeR = r * 0.185;
+  const eyeY = bodyY - r * 0.02;
+  ctx.strokeStyle = "#0b0b14";
+  ctx.lineWidth = Math.max(2, r * 0.115);
+  ctx.lineCap = "round";
+  for (const dir of [-1, 1]) {
+    const ex = cx + dir * r * 0.305;
+    ctx.beginPath();
+    ctx.moveTo(ex - eyeR, eyeY + eyeR * 0.42);
+    ctx.quadraticCurveTo(ex, eyeY - eyeR * 0.78, ex + eyeR, eyeY + eyeR * 0.42);
+    ctx.stroke();
+  }
 }
 
 const SIM_STEP_MS = 1000 / 60;
@@ -471,6 +505,7 @@ export function ParticleTextEffect({
       const from = hexToRgb(word.from);
       const to = hexToRgb(word.to);
       const shade = word.shade ?? 1;
+      const vivid = word.vivid ?? 1;
       const span = Math.max(1, maxX - minX);
 
       wanted.forEach((coord, i) => {
@@ -498,14 +533,15 @@ export function ParticleTextEffect({
         p.colorBlendRate = Math.random() * 0.028 + 0.008;
 
         const raw = coord.rgb ?? mixRgb(from, to, (coord.x - minX) / span);
-        const colour: Rgb =
-          shade === 1
-            ? raw
-            : {
-                r: Math.round(raw.r * shade),
-                g: Math.round(raw.g * shade),
-                b: Math.round(raw.b * shade),
-              };
+        let colour: Rgb = raw;
+        if (vivid !== 1 || shade !== 1) {
+          // Rec. 601 luma, so pushing away from grey keeps the perceived
+          // lightness roughly where the drawing put it.
+          const grey = 0.299 * raw.r + 0.587 * raw.g + 0.114 * raw.b;
+          const push = (c: number) =>
+            Math.max(0, Math.min(255, Math.round((grey + (c - grey) * vivid) * shade)));
+          colour = { r: push(raw.r), g: push(raw.g), b: push(raw.b) };
+        }
         // A new particle arrives already the right colour. Blending it up from
         // the class default would mean flying in as a black dot, which is
         // invisible on the black opening and then a smudge over the shader.
