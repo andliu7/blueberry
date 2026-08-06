@@ -1,5 +1,24 @@
 @import "tailwindcss";
 
+/* Real webfonts, self-hosted from node_modules. No CDN, no external request, no
+   JS, and they work offline.
+ *
+ * Until this, `.title-face` and `.playful-face` were system font stacks, which
+ * meant the site looked like a different site on every operating system: Iowan
+ * Old Style and Bradley Hand on a Mac, Palatino Linotype and Segoe Print on
+ * Windows, and generic `serif` / `cursive` on Android. Andrew had never seen
+ * what most of his classmates were seeing.
+ *
+ * The `wght` builds rather than the full ones: one variable file covering
+ * weights 100 to 900, split by `unicode-range`, so a browser fetches only the
+ * latin subset. Fraunces' full build carries the optical-size, softness and
+ * wonk axes as well and is three times the size for axes nothing here varies.
+ * `font-display: swap` is already set by fontsource, which is what we want:
+ * text is readable in the fallback immediately rather than invisible while the
+ * font arrives. */
+@import "@fontsource-variable/fraunces/wght.css";
+@import "@fontsource-variable/caveat/wght.css";
+
 /* Tailwind v4 wires `dark:` to prefers-color-scheme by default. The theme
    switch toggles a class instead, so point the variant at it. */
 @custom-variant dark (&:where(.dark, .dark *));
@@ -53,10 +72,30 @@ body {
 }
 
 /* Loose handwritten face for the testimonials heading. */
+/* The handwriting accent. Caveat is the closest legible match to the Bradley
+   Hand this design was drawn against; the old stack stays behind it as a
+   fallback for the swap window.
+
+   Deliberately not for paragraphs. See `.playful-body`. */
 .playful-face {
-  font-family: "Bradley Hand", "Segoe Print", "Chalkboard SE", "Comic Sans MS",
-    "Marker Felt", ui-rounded, cursive;
+  font-family: "Caveat Variable", "Bradley Hand", "Segoe Print", "Chalkboard SE",
+    "Comic Sans MS", "Marker Felt", ui-rounded, cursive;
   letter-spacing: 0.01em;
+}
+
+/* Long copy that used to be handwritten.
+ *
+ * A handwriting face at paragraph length is hard work for everyone and
+ * materially worse for dyslexic readers, and several of these blocks run to
+ * three or four lines. They keep the warmth through the slightly looser
+ * measure and the same colour; they just do not ask you to decode a script
+ * face to read a paragraph about hydride chemistry.
+ *
+ * Short accents — "scroll", the click hint, a one-line subtitle — keep
+ * `.playful-face`. That is where the character was doing work. */
+.playful-body {
+  letter-spacing: 0.01em;
+  line-height: 1.7;
 }
 
 /* Giant outlined word behind the hero title, for the "ghost" variant. Sized in
@@ -82,9 +121,12 @@ body {
 }
 
 /* Serif display face for the page title. */
+/* Headings. Fraunces is a warm bookish serif close to the Iowan Old Style the
+   design already assumed, and now everyone gets it rather than only Mac users.
+   The old stack stays as the fallback shown during the swap. */
 .title-face {
-  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Palladio,
-    "Book Antiqua", Georgia, "Times New Roman", serif;
+  font-family: "Fraunces Variable", "Iowan Old Style", "Palatino Linotype",
+    Palatino, Palladio, "Book Antiqua", Georgia, "Times New Roman", serif;
   letter-spacing: 0.02em;
 }
 

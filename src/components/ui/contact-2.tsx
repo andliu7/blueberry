@@ -90,7 +90,12 @@ export const Contact2 = ({
             <h1 className="title-face mb-3 text-4xl leading-[1.05] text-slate-900 sm:text-5xl dark:text-stone-100">
               {title}
             </h1>
-            <div className="playful-face space-y-3 text-lg leading-relaxed text-slate-500 dark:text-stone-400">
+            {/* The one block of real body copy that was set in handwriting. It
+                runs to several paragraphs, and a script face at that length is
+                hard work for everyone and materially worse for dyslexic
+                readers. The one and two line accents elsewhere keep
+                `.playful-face`; this reads. */}
+            <div className="playful-body space-y-3 text-lg leading-relaxed text-slate-500 dark:text-stone-400">
               {about}
             </div>
           </div>
