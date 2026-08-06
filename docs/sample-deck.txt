@@ -1,9 +1,9 @@
-title: [CHEM 242] Lab 5: Distillation
-short: Distillation
+title: Example: Distillation
+short: Example
 blurb: Simple versus fractional, and what a distillation curve is telling you.
 motif: reflux
-from: #0f766e
-to: #0e7490
+from: #7c3aed
+to: #9333ea
 ---
 Q: Why does the thermometer bulb sit level with the side arm?
 A: So it reads the temperature of the <strong>vapor</strong> leaving toward the

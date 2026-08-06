@@ -69,6 +69,15 @@ export interface ParticleWord {
    * violet, and a flat left-to-right gradient would throw that away.
    */
   shape?: "blueberry";
+  /**
+   * Multiplies the sampled colour, for shapes that draw their own.
+   *
+   * The berry is lit for a near-black opening, so on the pastel one it arrived
+   * as a pale smudge you could barely pick out. `from` and `to` cannot fix that
+   * because a shape ignores them by design, so light mode darkens the drawing
+   * instead of recolouring it, keeping the logo's own shading.
+   */
+  shade?: number;
 }
 
 /**
@@ -461,6 +470,7 @@ export function ParticleTextEffect({
 
       const from = hexToRgb(word.from);
       const to = hexToRgb(word.to);
+      const shade = word.shade ?? 1;
       const span = Math.max(1, maxX - minX);
 
       wanted.forEach((coord, i) => {
@@ -487,7 +497,15 @@ export function ParticleTextEffect({
         p.closeEnoughTarget = 110 * scale;
         p.colorBlendRate = Math.random() * 0.028 + 0.008;
 
-        const colour = coord.rgb ?? mixRgb(from, to, (coord.x - minX) / span);
+        const raw = coord.rgb ?? mixRgb(from, to, (coord.x - minX) / span);
+        const colour: Rgb =
+          shade === 1
+            ? raw
+            : {
+                r: Math.round(raw.r * shade),
+                g: Math.round(raw.g * shade),
+                b: Math.round(raw.b * shade),
+              };
         // A new particle arrives already the right colour. Blending it up from
         // the class default would mean flying in as a black dot, which is
         // invisible on the black opening and then a smudge over the shader.

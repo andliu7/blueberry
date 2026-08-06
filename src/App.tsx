@@ -311,6 +311,30 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
   const [confettiTrigger, setConfettiTrigger] = useState(0);
   const hasCelebrated = useRef(false);
   const [completed, setCompleted] = useState(false);
+  const cardsTopRef = useRef<HTMLDivElement>(null);
+
+  /**
+   * Switches to the unfinished cards and takes you to them.
+   *
+   * Setting the filter alone was not enough: the finish notice appears after
+   * you have scrolled to the end of a deck, so the cards it had just filtered
+   * were a screen and a half above and nothing appeared to happen. The scroll
+   * waits a frame because the list has to re-render at its new length first,
+   * or the browser measures the old one and stops short. `scroll-mt-28` on the
+   * anchor keeps the sticky toolbar from covering the first card.
+   *
+   * `auto` rather than `smooth`, and that is measured rather than preferred. A
+   * smooth scroll on this page is cancelled before it arrives: the same call
+   * with `behavior: "auto"` lands at 1130, and with `"smooth"` ends back at 0.
+   * Something here interrupts an in-flight smooth scroll, and an instant jump
+   * that works beats a glide that silently does nothing.
+   */
+  const showNeedsReview = () => {
+    setFilter("needs");
+    requestAnimationFrame(() =>
+      cardsTopRef.current?.scrollIntoView({ behavior: "auto", block: "start" }),
+    );
+  };
   const [tIndex, setTIndex] = useState(0);
   // Question number -> expanded. Absent means collapsed.
   const [openMap, setOpenMap] = useState<Record<number, boolean>>({});
@@ -440,9 +464,7 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
             title: "Deck finished.",
             message: `${needsWork} ${needsWork === 1 ? "card" : "cards"} still marked Review or Almost. Needs Review is lit up in the toolbar.`,
             actions: (
-              <PixelFireButton onClick={() => setFilter("needs")}>
-                Show me those
-              </PixelFireButton>
+              <PixelFireButton onClick={showNeedsReview}>Show me those</PixelFireButton>
             ),
           }
         : {
@@ -1021,6 +1043,8 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
         {/* Container and card style are independent: every branch below calls
             the same renderAnyCard, so Flip and Tilt work inside the carousel,
             the scroll grid and the stack, not just the list. */}
+        <div ref={cardsTopRef} className="scroll-mt-28" />
+
         {view === "gallery" ? (
           <CardGallery3D items={galleryItems} label="Questions" />
         ) : view === "scroll" ? (

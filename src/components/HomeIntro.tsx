@@ -76,7 +76,9 @@ const INTRO_WORDS_LIGHT: ParticleWord[] = [
   { text: "WELCOME", from: "#4338ca", to: "#a21caf" },
   { text: "TO", from: "#a21caf", to: "#b45309" },
   { text: SITE_WORD, from: "#4f46e5", to: "#c026d3" },
-  { text: SITE_NAME, from: "#4f46e5", to: "#c026d3", shape: "blueberry" },
+  // 0.55 rather than a recolour: the shape keeps its own lighting and just
+  // sits darker, which is what makes it read on cream instead of vanishing.
+  { text: SITE_NAME, from: "#4f46e5", to: "#c026d3", shape: "blueberry", shade: 0.55 },
 ];
 
 /**
@@ -175,7 +177,7 @@ function IntroStage({
                 // opacity keeps the sweep legible as movement without turning
                 // the panel into a smudge.
                 !isDark &&
-                  "opacity-50 [filter:invert(1)_hue-rotate(180deg)_saturate(1.4)] mix-blend-multiply",
+                  "opacity-80 [filter:invert(1)_hue-rotate(180deg)_saturate(1.6)_contrast(1.35)] mix-blend-multiply",
               )}
             />
           </ContainerInset>
