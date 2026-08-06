@@ -61,18 +61,24 @@ function useBerryTexture() {
 }
 
 /**
- * One eye: an open oval, the closed arc it becomes, and three lashes.
+ * One eye, in three states: open, blinked shut, and flustered.
  *
- * The two states are separate meshes toggled by visibility rather than one mesh
- * being squashed. A scaled sphere flattening to nothing passes through shapes
- * that look like neither an eye nor a lid, and at this size that reads as a
- * glitch rather than a blink.
+ * The flustered pair is the same curve as the blink, turned a quarter turn so
+ * its apex points inward: a curved `>` on the left and `<` on the right. Rotating
+ * one geometry rather than drawing a second keeps the two expressions
+ * recognisably the same eye, which is the whole reason they read as one
+ * character doing different things rather than three different faces.
  *
- * The lashes stay put through both, because that is where they are on a face.
+ * States are separate meshes toggled by visibility rather than one mesh being
+ * squashed. A scaled sphere flattening to nothing passes through shapes that
+ * are neither an eye nor a lid, and at this size that reads as a glitch.
  */
-function Eye({ side, closedRef }: { side: number; closedRef: React.RefObject<boolean> }) {
+type EyeMode = "open" | "shut" | "fluster";
+
+function Eye({ side, modeRef }: { side: number; modeRef: React.RefObject<EyeMode> }) {
   const open = useRef<THREE.Group>(null);
   const shut = useRef<THREE.Group>(null);
+  const cross = useRef<THREE.Group>(null);
 
   const arc = useMemo(
     () =>
@@ -85,13 +91,11 @@ function Eye({ side, closedRef }: { side: number; closedRef: React.RefObject<boo
   );
 
   useFrame(() => {
-    if (open.current) open.current.visible = !closedRef.current;
-    if (shut.current) shut.current.visible = closedRef.current;
+    const m = modeRef.current;
+    if (open.current) open.current.visible = m === "open";
+    if (shut.current) shut.current.visible = m === "shut";
+    if (cross.current) cross.current.visible = m === "fluster";
   });
-
-  // Splayed outward and up, which is the direction lashes actually grow and
-  // what keeps them from reading as spider legs.
-  const lashes = useMemo(() => [-0.42, 0, 0.42].map((a) => a + side * 0.35), [side]);
 
   return (
     <group position={[side * 0.38, 0.12, 0.9]}>
@@ -114,12 +118,13 @@ function Eye({ side, closedRef }: { side: number; closedRef: React.RefObject<boo
         </mesh>
       </group>
 
-      {lashes.map((angle, i) => (
-        <mesh key={i} position={[Math.sin(angle) * 0.14, 0.2, 0.02]} rotation={[0, 0, -angle]}>
-          <cylinderGeometry args={[0.012, 0.005, 0.13, 6]} />
+      {/* A quarter turn inward, so the apex faces the middle of the face. */}
+      <group ref={cross} visible={false} rotation={[0, 0, side * Math.PI * 0.5]}>
+        <mesh>
+          <tubeGeometry args={[arc, 20, 0.035, 8, false]} />
           <meshBasicMaterial color="#0b0b14" toneMapped={false} />
         </mesh>
-      ))}
+      </group>
     </group>
   );
 }
@@ -127,15 +132,18 @@ function Eye({ side, closedRef }: { side: number; closedRef: React.RefObject<boo
 function Calyx() {
   const lobes = useMemo(() => [0, 1, 2, 3, 4].map((i) => (i * 72 * Math.PI) / 180), []);
   return (
-    <group position={[0, 0.97, 0]} scale={[1, 0.62, 1]}>
+    <group position={[0, 0.93, 0]} scale={[1, 0.55, 1]}>
       {lobes.map((rot, i) => (
-        <mesh key={i} rotation={[0, rot, 0.42]} position={[0.26, 0.06, 0]}>
-          <coneGeometry args={[0.12, 0.5, 5]} />
-          <meshStandardMaterial color="#2c3fb0" roughness={0.55} />
+        // Laid outward at roughly sixty degrees and lengthened. Standing more
+        // upright they read as spikes out of the crown of the head rather than
+        // as a calyx lying on it.
+        <mesh key={i} rotation={[0, rot, 1.05]} position={[0.34, 0.02, 0]}>
+          <coneGeometry args={[0.13, 0.62, 5]} />
+          <meshStandardMaterial color="#2c3fb0" roughness={0.55} flatShading />
         </mesh>
       ))}
-      <mesh>
-        <sphereGeometry args={[0.15, 20, 20]} />
+      <mesh scale={[1, 1.3, 1]}>
+        <sphereGeometry args={[0.17, 20, 20]} />
         <meshStandardMaterial color="#241f7a" roughness={0.5} />
       </mesh>
     </group>
@@ -150,7 +158,11 @@ function Berry() {
   const head = useRef<THREE.Group>(null);
   // A ref rather than state: this changes on a clock and nothing about the
   // React tree depends on it, so re-rendering for it would be waste.
-  const closed = useRef(false);
+  // Refs rather than state: these change on a clock and on a pointer, and
+  // nothing about the React tree depends on them, so re-rendering would be waste.
+  const eyeMode = useRef<EyeMode>("open");
+  const hovered = useRef(false);
+  const blush = useRef<THREE.Group>(null);
   const mouth = useRef<THREE.Mesh>(null);
   const smile = useRef<THREE.Mesh>(null);
   const tex = useBerryTexture();
@@ -169,18 +181,45 @@ function Berry() {
   useFrame(({ pointer, clock }, delta) => {
     const dt = Math.min(delta, 0.1);
 
-    // Open for most of the cycle: a fifth of a second shut every five and a
-    // half. Much more than that and it stops reading as a blink and starts
-    // reading as a berry falling asleep.
-    closed.current = clock.getElapsedTime() % BLINK_CYCLE > BLINK_CYCLE - BLINK_SHUT;
+    const t = clock.getElapsedTime();
+    /**
+     * Flustered while you are pointing at it, otherwise open with a blink.
+     *
+     * The blink is a fifth of a second every five and a half: much longer and it
+     * stops reading as a blink and starts reading as a berry falling asleep. The
+     * fluster still blinks, briefly showing the ordinary shut eye, which is what
+     * keeps the squeezed pair from looking like a painted-on expression.
+     */
+    const blinking = t % BLINK_CYCLE > BLINK_CYCLE - BLINK_SHUT;
+    eyeMode.current = hovered.current ? (blinking ? "shut" : "fluster") : blinking ? "shut" : "open";
 
     if (head.current) {
       // Leans toward the cursor rather than looking straight at it: a true
       // look-at on a sphere with a face reads as the head spinning off.
-      const ty = pointer.x * 0.62;
-      const tx = -pointer.y * 0.34;
-      head.current.rotation.y = THREE.MathUtils.lerp(head.current.rotation.y, ty, 7 * dt);
+      // Flustered, it stops following and squirms instead.
+      const wobble = hovered.current ? Math.sin(t * 6.5) * 0.045 : 0;
+      const ty = (hovered.current ? 0 : pointer.x * 0.62) + wobble;
+      const tx = hovered.current ? -0.12 : -pointer.y * 0.34;
+      head.current.rotation.y = THREE.MathUtils.lerp(head.current.rotation.y, ty, 9 * dt);
       head.current.rotation.x = THREE.MathUtils.lerp(head.current.rotation.x, tx, 7 * dt);
+      head.current.rotation.z = THREE.MathUtils.lerp(
+        head.current.rotation.z,
+        hovered.current ? Math.sin(t * 5.5) * 0.022 : 0,
+        9 * dt,
+      );
+      // Lifts a little, the way a face does when it is caught out.
+      head.current.position.y = THREE.MathUtils.lerp(
+        head.current.position.y,
+        hovered.current ? 0.12 : 0,
+        6 * dt,
+      );
+    }
+
+    if (blush.current) {
+      blush.current.children.forEach((c) => {
+        const m = (c as THREE.Mesh).material as THREE.MeshBasicMaterial;
+        m.opacity = THREE.MathUtils.lerp(m.opacity, hovered.current ? 0.62 : 0, 7 * dt);
+      });
     }
 
     /**
@@ -188,7 +227,7 @@ function Berry() {
      * drops, so it is most startled when you are furthest away and settles back
      * into a smile when you come to rest in front of it.
      */
-    const reach = Math.min(1, Math.hypot(pointer.x, pointer.y));
+    const reach = hovered.current ? 0 : Math.min(1, Math.hypot(pointer.x, pointer.y));
     const openness = Math.min(1, reach * 2.2);
 
     if (mouth.current) {
@@ -205,14 +244,29 @@ function Berry() {
   });
 
   return (
-    <group ref={head}>
+    <group
+      ref={head}
+      onPointerOver={() => (hovered.current = true)}
+      onPointerOut={() => (hovered.current = false)}
+    >
       <mesh castShadow>
         <sphereGeometry args={[1, 48, 48]} />
         <meshStandardMaterial map={tex} roughness={0.42} metalness={0.05} />
       </mesh>
       <Calyx />
-      <Eye side={-1} closedRef={closed} />
-      <Eye side={1} closedRef={closed} />
+      <Eye side={-1} modeRef={eyeMode} />
+      <Eye side={1} modeRef={eyeMode} />
+
+      {/* Blush, out on the cheeks and clear of the eyes. Flattened onto the
+          surface so it reads as colour on the skin rather than two balls. */}
+      <group ref={blush}>
+        {[-1, 1].map((side) => (
+          <mesh key={side} position={[side * 0.44, -0.14, 0.84]} scale={[0.17, 0.11, 0.05]}>
+            <sphereGeometry args={[1, 18, 18]} />
+            <meshBasicMaterial color="#fb7185" toneMapped={false} transparent opacity={0} />
+          </mesh>
+        ))}
+      </group>
 
       {/* Resting smile */}
       <mesh ref={smile}>
