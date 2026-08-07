@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -7,6 +7,8 @@ import {
   RefreshCw,
   Trash2,
   GripVertical,
+  Check,
+  X,
 } from "lucide-react";
 import { BlueberryMark } from "@/components/ui/blueberry-mark";
 import { NotificationBell } from "@/components/ui/notification-bell";
@@ -39,6 +41,183 @@ import { cn } from "@/lib/utils";
  */
 
 
+/**
+ * One card on the board: clamped to three lines, expandable, and editable.
+ *
+ * The clamp is a real line count rather than a character budget, because these
+ * are whatever someone typed into the feedback widget and one of them is a
+ * paragraph about subscription pricing. `line-clamp-3` does the clamping and the
+ * toggle only appears when the text is genuinely taller than the clamp, measured
+ * against the element rather than guessed from its length. Re-measured on resize
+ * and whenever the text changes, since a card that fits in a four-column layout
+ * wraps to five lines when the board stacks on a phone.
+ *
+ * Editing turns the paragraph into a textarea in place. Two things that are not
+ * obvious:
+ *
+ * `draggable` goes off while editing. The card is a drag handle for the whole
+ * board, and a draggable ancestor swallows the mousedown that would otherwise
+ * put a cursor in the text, so selecting a word to fix a typo starts dragging
+ * the card to another column instead.
+ *
+ * Escape cancels and Enter saves, with Shift+Enter for a newline. Blur saves
+ * too, because the alternative is losing an edit by clicking away, and the
+ * server takes the same `updateTodo` route the arrows already use — the sheet
+ * has accepted a `title` on that route all along, so none of this needed a
+ * backend change.
+ */
+function TodoCard({
+  todo,
+  onSave,
+  onEditingChange,
+  children,
+}: {
+  todo: Todo;
+  onSave: (title: string) => void;
+  /**
+   * Lets the board suspend `draggable` on this card.
+   *
+   * The `<li>` is a drag handle for the whole board, and a draggable ancestor
+   * swallows the mousedown that would put a caret in the textarea, so selecting
+   * a word to fix a typo starts dragging the card to another column instead.
+   */
+  onEditingChange?: (editing: boolean) => void;
+  children: React.ReactNode;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [text, setText] = useState(todo.title);
+  const [clamped, setClamped] = useState(false);
+  const bodyRef = useRef<HTMLParagraphElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  useLayoutEffect(() => {
+    const el = bodyRef.current;
+    if (!el) return;
+    const measure = () => setClamped(el.scrollHeight > el.clientHeight + 1);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [todo.title, expanded]);
+
+  const begin = () => {
+    setText(todo.title);
+    setEditing(true);
+    onEditingChange?.(true);
+    // Focus after the textarea exists, with the caret at the end rather than
+    // selecting everything, so a small correction does not risk replacing it all.
+    requestAnimationFrame(() => {
+      const el = inputRef.current;
+      if (!el) return;
+      el.focus();
+      el.setSelectionRange(el.value.length, el.value.length);
+    });
+  };
+
+  const commit = () => {
+    const next = text.trim();
+    setEditing(false);
+    onEditingChange?.(false);
+    if (!next || next === todo.title) return;
+    onSave(next);
+  };
+
+  const cancel = () => {
+    setEditing(false);
+    onEditingChange?.(false);
+  };
+
+  return (
+    <>
+      {editing ? (
+        <div className="flex items-start gap-2">
+          <textarea
+            ref={inputRef}
+            value={text}
+            rows={4}
+            onChange={(e) => setText(e.target.value)}
+            onBlur={commit}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") {
+                e.preventDefault();
+                cancel();
+              } else if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                commit();
+              }
+            }}
+            className="min-w-0 flex-1 resize-y rounded-md border border-indigo-300 bg-white px-2 py-1 text-sm leading-snug text-slate-700 outline-none focus:border-indigo-500 dark:border-indigo-500/60 dark:bg-stone-900 dark:text-stone-200"
+          />
+          <div className="flex shrink-0 flex-col gap-1">
+            {/* Mousedown rather than click: blur fires first on a click and
+                would have already committed or cancelled by the time it lands. */}
+            <button
+              onMouseDown={(e) => {
+                e.preventDefault();
+                commit();
+              }}
+              aria-label="Save"
+              className="rounded p-1 text-slate-400 transition hover:bg-slate-100 hover:text-green-600 dark:hover:bg-white/10"
+            >
+              <Check className="h-3.5 w-3.5" />
+            </button>
+            <button
+              onMouseDown={(e) => {
+                e.preventDefault();
+                cancel();
+              }}
+              aria-label="Cancel"
+              className="rounded p-1 text-slate-400 transition hover:bg-slate-100 hover:text-red-600 dark:hover:bg-white/10"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className="flex items-start gap-2">
+            <GripVertical className="mt-0.5 h-3.5 w-3.5 shrink-0 cursor-grab text-slate-300 dark:text-stone-600" />
+            <p
+              ref={bodyRef}
+              onDoubleClick={begin}
+              title="Double-click to edit"
+              className={cn(
+                "min-w-0 flex-1 cursor-text text-sm leading-snug whitespace-pre-wrap text-slate-700 dark:text-stone-200",
+                !expanded && "line-clamp-3",
+              )}
+            >
+              {todo.title}
+            </p>
+          </div>
+
+          {(clamped || expanded) && (
+            <button
+              onClick={() => setExpanded((o) => !o)}
+              className="mt-1 ml-5 text-[0.7rem] font-semibold text-slate-400 transition-colors hover:text-slate-600 dark:text-stone-500 dark:hover:text-stone-300"
+            >
+              {expanded ? "Show less" : "Show more"}
+            </button>
+          )}
+        </>
+      )}
+
+      <div className="mt-2 flex items-center gap-1 pl-5">
+        {!editing && (
+          <button
+            onClick={begin}
+            aria-label="Edit"
+            className="rounded px-1.5 py-0.5 text-xs text-slate-400 opacity-0 transition hover:bg-slate-100 hover:text-slate-700 group-hover/card:opacity-100 focus-visible:opacity-100 dark:hover:bg-white/10 dark:hover:text-stone-200"
+          >
+            Edit
+          </button>
+        )}
+        {children}
+      </div>
+    </>
+  );
+}
+
 export function WorkspacePage({ user }: { user: GoogleUser }) {
   const { signOut } = useGoogleAuth();
   const [feedback, setFeedback] = useState<FeedbackNote[]>([]);
@@ -53,6 +232,8 @@ export function WorkspacePage({ user }: { user: GoogleUser }) {
   const [draft, setDraft] = useState("");
   const [draftColumn, setDraftColumn] = useState<TodoColumn>("idea");
   const [dragging, setDragging] = useState<string | null>(null);
+  /** Which card is mid-edit, so its `<li>` can stop being a drag handle. */
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -132,6 +313,13 @@ export function WorkspacePage({ user }: { user: GoogleUser }) {
         ]),
     );
     void refresh();
+  };
+
+  /** Same `updateTodo` route the arrows use; the sheet has always taken a title. */
+  const editTodo = (id: string, title: string) => {
+    void write("edit-" + id, "updateTodo", { id, title }, () =>
+      setTodos((t) => t.map((x) => (x.id === id ? { ...x, title } : x))),
+    );
   };
 
   const moveTodo = (id: string, column: TodoColumn) => {
@@ -271,13 +459,19 @@ export function WorkspacePage({ user }: { user: GoogleUser }) {
                   </p>
                 </div>
 
-                <ul className="flex flex-1 flex-col gap-2">
+                {/* Scrolls rather than growing. Ideas is the column that fills
+                    up, and at fourteen cards it was pushing the other three
+                    columns' worth of board off the bottom of the screen, so the
+                    thing you came to look at moved further away the more of it
+                    there was. Capped near a screen's height and given its own
+                    scrollbar, the board stays one page whatever is in it. */}
+                <ul className="flex max-h-[60vh] flex-1 flex-col gap-2 overflow-y-auto pr-1">
                   {inColumn.map((todo) => {
                     const idx = TODO_COLUMNS.findIndex((c) => c.id === todo.column);
                     return (
                       <li
                         key={todo.id}
-                        draggable
+                        draggable={editingId !== todo.id}
                         onDragStart={() => setDragging(todo.id)}
                         onDragEnd={() => setDragging(null)}
                         className={cn(
@@ -285,14 +479,11 @@ export function WorkspacePage({ user }: { user: GoogleUser }) {
                           dragging === todo.id && "opacity-40",
                         )}
                       >
-                        <div className="flex items-start gap-2">
-                          <GripVertical className="mt-0.5 h-3.5 w-3.5 shrink-0 cursor-grab text-slate-300 dark:text-stone-600" />
-                          <p className="min-w-0 flex-1 text-sm leading-snug text-slate-700 dark:text-stone-200">
-                            {todo.title}
-                          </p>
-                        </div>
-
-                        <div className="mt-2 flex items-center gap-1 pl-5">
+                        <TodoCard
+                          todo={todo}
+                          onEditingChange={(on) => setEditingId(on ? todo.id : null)}
+                          onSave={(title) => editTodo(todo.id, title)}
+                        >
                           <button
                             onClick={() => moveTodo(todo.id, TODO_COLUMNS[idx - 1]!.id)}
                             disabled={idx === 0}
@@ -321,7 +512,7 @@ export function WorkspacePage({ user }: { user: GoogleUser }) {
                             holdingLabel="Hold…"
                             className="ml-auto h-6 min-w-0 px-1.5 text-[0.65rem] opacity-0 transition-opacity group-hover/card:opacity-100 focus-within:opacity-100"
                           />
-                        </div>
+                        </TodoCard>
                       </li>
                     );
                   })}
