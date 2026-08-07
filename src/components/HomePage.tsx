@@ -3,6 +3,7 @@ import { motion, useInView, useReducedMotion } from "motion/react";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { deckCount, deckHref, DECK_GROUPS, type Deck } from "@/data/types";
 import { DECKS } from "@/data/decks";
+import { REPO_URL } from "@/data/site";
 import { useDecks } from "@/lib/useDecks";
 
 import {
@@ -335,7 +336,7 @@ export function HomePage() {
               sweep the deck footer's GitHub link already uses, so the two do not
               behave differently for no reason. */}
           <a
-            href="https://github.com/andliu7/grignard_LCTA"
+            href={REPO_URL}
             target="_blank"
             rel="noreferrer"
             className="group/gh inline-flex items-center gap-1.5 outline-none transition-colors hover:text-slate-600 dark:hover:text-stone-300"

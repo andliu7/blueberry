@@ -11,6 +11,7 @@ import { deckCount, type ReferenceDeck } from "@/data/types";
 import { DeckAbout } from "@/components/ui/deck-about";
 import { CardGallery3D, GALLERY_MAX, type GalleryItem } from "@/components/ui/card-gallery-3d";
 import { cn } from "@/lib/utils";
+import { REPO_URL } from "@/data/site";
 
 /**
  * The page for a reference deck.
@@ -234,7 +235,7 @@ export function ReferenceApp({ deck }: { deck: ReferenceDeck }) {
               </p>
 
               <a
-                href="https://github.com/andliu7/grignard_LCTA"
+                href={REPO_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="group mt-2 inline-flex items-center gap-2 rounded-full px-3 py-1.5 font-semibold text-indigo-600 outline-none transition-colors hover:text-indigo-700 focus-visible:ring-2 focus-visible:ring-indigo-400 dark:text-indigo-300 dark:hover:text-indigo-200"

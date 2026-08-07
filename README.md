@@ -1,13 +1,14 @@
 # Blueberry
 
 Interactive study guides for the CHEM 242 lab LCTAs, built as a single-page
-web app. It started as one deck for the Grignard lab and now carries three.
+web app. It started as one deck for the Grignard lab and now carries eight: four
+lab decks and four reference decks.
 
 Named for the fruit, in the manner of a certain computer company, and it happens
-to be the colour the site was already wearing. The repository keeps its original
-name so no existing link breaks.
+to be the colour the site was already wearing. The repository has been renamed to
+match; GitHub redirects the old `grignard_LCTA` links.
 
-**Live site:** https://andliu7.github.io/grignard_LCTA/
+**Live site:** https://andliu7.github.io/blueberry/
 
 | Deck | Cards | Route |
 | --- | --- | --- |

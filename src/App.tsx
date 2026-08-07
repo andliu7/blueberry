@@ -31,7 +31,7 @@ import { StickyNote } from "@/components/StickyNote";
 import { Confetti } from "@/components/Confetti";
 import { FeedbackButton } from "@/components/FeedbackButton";
 import { DeckAbout } from "@/components/ui/deck-about";
-import { SITE_NAME } from "@/data/site";
+import { REPO_URL, SITE_NAME } from "@/data/site";
 import { progressKey, loadSaved } from "@/lib/progress";
 import { cn } from "@/lib/utils";
 import { useMathJaxTypeset } from "@/lib/useMathJaxTypeset";
@@ -1373,7 +1373,7 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
           </p>
 
           <a
-            href="https://github.com/andliu7/grignard_LCTA/tree/gh-pages"
+            href={`${REPO_URL}/tree/gh-pages`}
             target="_blank"
             rel="noopener noreferrer"
             className="group mt-2 inline-flex items-center gap-2 rounded-full px-3 py-1.5 font-semibold text-indigo-600 dark:text-indigo-300 outline-none transition-colors hover:text-indigo-700 dark:hover:text-indigo-200 focus-visible:ring-2 focus-visible:ring-indigo-400"

@@ -19,7 +19,7 @@ export const LINKEDIN_URL = "https://www.linkedin.com/in/andrew-liu-06154225b/";
 export const EMAIL = "andliu@terpmail.umd.edu";
 
 /** The project's own repository, which is not the same link as the profile. */
-export const REPO_URL = "https://github.com/andliu7/grignard_LCTA";
+export const REPO_URL = "https://github.com/andliu7/blueberry";
 
 /** Where the about card's two tags point: the college, and the advising programme. */
 export const CMNS_URL = "https://cmns.umd.edu/";
