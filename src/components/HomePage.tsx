@@ -351,6 +351,7 @@ export function HomePage() {
             </span>
             <ArrowUpRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover/gh:translate-x-0.5 group-hover/gh:-translate-y-0.5" />
           </a>
+
         </footer>
       </div>
 

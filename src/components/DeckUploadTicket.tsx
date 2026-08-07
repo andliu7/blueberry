@@ -339,6 +339,30 @@ export function DeckUploadTicket() {
               )}
             </>
           )}
+
+          {/* The way through to the workspace.
+
+              Inside the opened ticket rather than out in the footer, because
+              this is already the staff door: it says "staff only, sign in to
+              enter" on its face, and it is already behind the passphrase by the
+              time you can read this. A second entrance out in the open would
+              undo the reason the gate exists.
+
+              Outside the three-way branch above, so it is there whether you are
+              signed out, signed in, or looking at an unconfigured build. The
+              workspace is a different destination from uploading a deck, and
+              wanting it does not depend on how the upload form happens to be
+              feeling. */}
+          <p className="mt-5 border-t border-slate-200 pt-4 text-xs text-slate-500 dark:border-stone-800 dark:text-stone-400">
+            Admin?{" "}
+            <a
+              href="#/signin"
+              className="font-semibold text-indigo-600 underline decoration-dotted underline-offset-4 hover:text-indigo-700 dark:text-indigo-300 dark:hover:text-indigo-200"
+            >
+              Click here to sign in to the workspace
+            </a>{" "}
+            for feedback, the to-do board and admin management.
+          </p>
         </div>
         </PassphraseGate>
       )}
