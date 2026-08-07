@@ -99,15 +99,27 @@ const INTRO_WORDS_LIGHT: ParticleWord[] = [
 ];
 
 /**
- * What the opening shows once it has already been seen this visit: the last
- * word alone, with no greeting to sit through a second time.
+ * What the opening shows once it has already been seen this visit.
  *
- * A separate module-level array rather than a slice computed in the component.
+ * The name, then the berry. Not the full greeting — nobody wants to sit through
+ * "welcome to" twice in one visit — but not the berry on its own either, which
+ * is what this was and which made coming back to the hub feel like arriving at a
+ * static image. Two beats keeps the thing that makes the opening worth having,
+ * which is watching the swarm resolve into something.
+ *
+ * The berry beat is the shy one, the same frame the full sequence ends on, so
+ * the page settles into the same picture either way.
+ *
+ * Separate module-level arrays rather than slices computed in the component:
  * `words` is an effect dependency on the canvas, and a fresh array on every
  * render would restart the sequence continuously.
  */
-const SETTLED_WORDS: ParticleWord[] = [INTRO_WORDS[INTRO_WORDS.length - 1]!];
+const SETTLED_WORDS: ParticleWord[] = [
+  INTRO_WORDS[2]!,
+  INTRO_WORDS[INTRO_WORDS.length - 1]!,
+];
 const SETTLED_WORDS_LIGHT: ParticleWord[] = [
+  INTRO_WORDS_LIGHT[2]!,
   INTRO_WORDS_LIGHT[INTRO_WORDS_LIGHT.length - 1]!,
 ];
 
@@ -241,7 +253,7 @@ function IntroStage({
           // a change of expression rather than a new arrival, and it does not
           // need as long to land as a word does.
           wordMs={1150}
-          settleMs={settled ? 200 : 1000}
+          settleMs={settled ? 600 : 1000}
           onFinished={onSettled}
           label={settled ? SITE_WORD : `Welcome to ${SITE_WORD}`}
         />

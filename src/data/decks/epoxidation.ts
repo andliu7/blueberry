@@ -10,7 +10,7 @@
  */
 export const epoxidationDeck: Deck = {
   id: "epoxidation",
-  title: "[CHEM 242] Lab 3: Epoxidation",
+  title: "[CHEM 242] Lab 3: Epoxidation of Chalcone",
   short: "Epoxidation",
   group: "lab",
   titleLines: ["EPOXIDATION", "MASTER LIST"],
@@ -25,7 +25,7 @@ export const epoxidationDeck: Deck = {
     "The golden rule of recrystallization is that a product which has mysteriously gone missing is probably still in the mother liquor, or stuck to the spatula, or clinging to the filter paper. Green chemistry aims at 100% atom economy, but the arithmetic makes no allowance for the atoms left behind on the benchtop.",
   about:
     "Chalcone plus hydrogen peroxide and a splash of sodium hydroxide gives an epoxide, which you recrystallize and then check by melting point and IR.\n\nWhat makes the lab worth doing is that the usual epoxidation reagent fails here. Chalcone's alkene is electron-poor, so nothing electrophilic wants to touch it. The nucleophile has to come to the alkene instead. That two-step route is the Weitz-Scheffer mechanism, and it is worth being able to say what it does rather than just name it: hydroperoxide adds to the far end of the enone, and the enolate that forms then closes the ring by pushing hydroxide out of the same oxygen. Both halves are things you already know, a conjugate addition followed by an intramolecular substitution.\n\nExpect to be asked why hydroperoxide beats hydroxide as a nucleophile (the alpha effect), why the base is catalytic rather than stoichiometric, and how to get from a w/v or w/w percentage to a molarity. The yield calculation turns on spotting the limiting reagent. Recrystallization works because your impurities are too dilute to crystallize.",
-  motif: "erlenmeyer",
+  motif: "chalcone",
   from: "#0f766e",
   to: "#0e7490",
   questions: [

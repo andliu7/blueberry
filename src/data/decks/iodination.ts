@@ -9,7 +9,7 @@
  */
 export const iodinationDeck: Deck = {
   id: "iodination",
-  title: "[CHEM 242] Lab 4: Iodination of Salicylamide",
+  title: "[CHEM 242] Lab 4: Synthesis of Iodosalicylamide",
   short: "Iodination",
   group: "lab",
   titleLines: ["IODINATION", "MASTER LIST"],
@@ -24,7 +24,7 @@ export const iodinationDeck: Deck = {
     "There is a pleasing irony in a high-level organic chemistry laboratory using plain household bleach as its oxidizing agent. Some of the most complex transformations run on exactly the same reagent that gets grass stains out of the laundry.",
   about:
     "Sodium iodide and household bleach put an iodine onto salicylamide. Then you acidify, filter, recrystallize and characterize.\n\nIodine on its own is far too weak an electrophile to attack a ring, so the first job is making one in the flask. That is what the bleach is for: hypochlorite oxidizes the iodide you added into an electrophilic iodine species. After that the ring decides for itself where the iodine lands, and the phenol and the amide both point at C5, so there is no competition to resolve.\n\nWorth having ready: the two steps of electrophilic aromatic substitution and why the first one sets the rate, what activating and deactivating groups do to that, and what the thiosulfate is quenching. Then the one that catches people out. Your product sits in solution as a soluble salt until you add the acid. Skip that step and the filter paper comes out bare.\n\nThe IR is what proves where the iodine went, and the useful part is not the functional groups, since none are created or destroyed. It is the aromatic out-of-plane bending region: $735-770\\ cm^{-1}$ for the $1,2$-disubstituted starting material, $800-860\\ cm^{-1}$ for a $1,2,4$-trisubstituted product, and $755-785\\ cm^{-1}$ for $1,2,3$, which is what substitution at C3 would have given you instead.",
-  motif: "benzene",
+  motif: "iodosalicylamide",
   from: "#b45309",
   to: "#d97706",
   questions: [

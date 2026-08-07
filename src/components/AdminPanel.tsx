@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { ShieldCheck, UserPlus, Crown, AlertTriangle } from "lucide-react";
+import { ShieldCheck, UserPlus, Crown, AlertTriangle, Check } from "lucide-react";
+import { Confetti } from "@/components/Confetti";
 import { ButtonHoldAndRelease } from "@/components/ui/hold-and-release-button";
 import { postToAppsScript } from "@/lib/appsScript";
 import type { AdminEntry } from "@/lib/workspace";
@@ -37,6 +38,14 @@ export function AdminPanel({
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [note, setNote] = useState("");
+  /**
+   * Bumped on a successful add, which is what the confetti watches.
+   *
+   * Only on adding. Removing someone's access is not a moment to celebrate, and
+   * a failed add gets the error line instead — throwing confetti at a rejected
+   * request would be actively misleading.
+   */
+  const [cheer, setCheer] = useState(0);
 
   const call = async (key: string, type: "addAdmin" | "removeAdmin", value: string) => {
     setBusy(key);
@@ -48,6 +57,7 @@ export function AdminPanel({
       if (type === "addAdmin") {
         setEmail("");
         setNote(`${value} can now sign in. Nothing was emailed to them.`);
+        setCheer((n) => n + 1);
       }
       onChanged();
     } else {
@@ -60,7 +70,8 @@ export function AdminPanel({
   };
 
   return (
-    <section className="mt-10 rounded-xl border border-slate-200 bg-white p-5 dark:border-stone-800 dark:bg-stone-900">
+    <section>
+      <Confetti trigger={cheer} />
       <h2 className="flex items-center gap-2 text-sm font-bold text-slate-800 dark:text-stone-100">
         <ShieldCheck className="h-4 w-4" />
         Who can sign in
@@ -86,12 +97,17 @@ export function AdminPanel({
           placeholder="name@terpmail.umd.edu"
           className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-800 outline-none focus-visible:border-indigo-400 focus-visible:ring-2 focus-visible:ring-indigo-400/40 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-200"
         />
+        {/* A tick rather than "Give access". The row is already an email field
+            next to a person icon; the button only has to say yes, and a word
+            there was the widest thing on the line. */}
         <button
           type="submit"
           disabled={busy === "add" || email.trim() === ""}
-          className="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-bold text-white transition hover:bg-indigo-500 disabled:opacity-50"
+          aria-label="Give access"
+          title="Give access"
+          className="shrink-0 rounded-lg bg-emerald-600 p-2 text-white transition hover:bg-emerald-500 disabled:opacity-40"
         >
-          {busy === "add" ? "Adding…" : "Give access"}
+          <Check className="h-4 w-4" />
         </button>
       </form>
 
@@ -107,7 +123,7 @@ export function AdminPanel({
         {owners.map((owner) => (
           <li
             key={owner}
-            className="flex flex-wrap items-center gap-3 rounded-lg border border-slate-200 px-3 py-2 dark:border-stone-800"
+            className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-1.5 dark:border-stone-800"
           >
             <Crown className="h-3.5 w-3.5 shrink-0 text-amber-500" />
             <span className="min-w-0 flex-1 truncate font-mono text-xs text-slate-700 dark:text-stone-300">
@@ -123,22 +139,36 @@ export function AdminPanel({
         {admins.map((admin) => (
           <li
             key={admin.email}
-            className="flex flex-wrap items-center gap-3 rounded-lg border border-slate-200 px-3 py-2 dark:border-stone-800"
+            className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-1.5 dark:border-stone-800"
           >
             <span className="min-w-0 flex-1 truncate font-mono text-xs text-slate-700 dark:text-stone-300">
               {admin.email}
               {admin.email === you && <span className="ml-2 text-slate-400">(you)</span>}
             </span>
-            <span className="shrink-0 font-mono text-[0.65rem] text-slate-400 dark:text-stone-500">
-              {admin.addedBy ? `added by ${admin.addedBy.split("@")[0]}` : ""}{" "}
+            {/* "added by X, 3 days ago" used to sit here and was the reason a row
+                wrapped onto two lines. It is provenance nobody reads on a list
+                of four people, so it moved to the title where it is still there
+                if you want it. */}
+            <span
+              title={[
+                admin.addedBy ? `added by ${admin.addedBy}` : "",
+                admin.at ? timeAgo(admin.at) : "",
+              ]
+                .filter(Boolean)
+                .join(" · ")}
+              className="shrink-0 font-mono text-[0.65rem] text-slate-400 dark:text-stone-500"
+            >
               {admin.at ? timeAgo(admin.at) : ""}
             </span>
+            {/* Just the bin. Still hold-to-confirm — this is the control that can
+                lock someone out — but the word was costing a third of the row. */}
             <ButtonHoldAndRelease
               onConfirm={() => void call("rm-" + admin.email, "removeAdmin", admin.email)}
               holdDuration={1400}
-              label={admin.email === you ? "Remove me" : "Remove"}
-              holdingLabel="Hold…"
-              className="h-7 min-w-0 shrink-0 px-2 text-[0.7rem]"
+              label=""
+              holdingLabel=""
+              aria-label={admin.email === you ? "Remove me" : `Remove ${admin.email}`}
+              className="h-7 w-7 min-w-0 shrink-0 p-0"
             />
           </li>
         ))}

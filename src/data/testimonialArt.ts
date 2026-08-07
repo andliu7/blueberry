@@ -18,6 +18,8 @@ export type ArtMotif =
   | "resonance"
   | "pka"
   | "vanillin"
+  | "iodosalicylamide"
+  | "chalcone"
   | "mascot";
 
 const MOTIFS: Record<ArtMotif, string> = {
@@ -172,6 +174,71 @@ const MOTIFS: Record<ArtMotif, string> = {
       <path d="M104 220 113 219 112 228" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" opacity=".6"/>
     </g>`,
 
+  /**
+   * 5-iodosalicylamide, the product of Lab 4.
+   *
+   * All three substituents drawn, because the whole question the lab asks is
+   * *where the iodine went*: the phenol and the amide both point at C5, and a
+   * picture that leaves the iodine off cannot say that.
+   */
+  iodosalicylamide: `
+    <g transform="translate(19.2,10) scale(0.84)">
+      <g stroke="#fff" fill="none" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" opacity=".92">
+        <path d="M120 122 161.6 146 161.6 194 120 218 78.4 194 78.4 146Z"/>
+        <path d="M123.8 134.6 148.8 149M148.8 191 123.8 205.4M87.4 155.6 87.4 184.4" stroke-width="5" opacity=".72"/>
+      </g>
+
+      <g stroke="#fff" fill="none" stroke-width="5.5" stroke-linecap="round" opacity=".92">
+        <path d="M120 218 120 250"/>
+        <path d="M116 254 92 268M124 254 148 268"/>
+        <path d="M78.4 194 50 210"/>
+        <path d="M161.6 146 190 130"/>
+      </g>
+
+      <g font-family="Georgia, serif" fill="#fff">
+        <text x="84" y="286" font-size="22" text-anchor="middle" opacity=".9">O</text>
+        <text x="156" y="286" font-size="20" text-anchor="middle" opacity=".85">NH2</text>
+        <text x="44" y="220" font-size="21" text-anchor="end" opacity=".9">OH</text>
+        <text x="196" y="126" font-size="24" text-anchor="start" opacity=".9">I</text>
+      </g>
+    </g>`,
+
+  /**
+   * Chalcone, the enone that gets epoxidised in Lab 3.
+   *
+   * Two rings and the three carbons between them, because the reactive part is
+   * exactly the bit in the middle: the C=C conjugated to the ketone. Drawn
+   * smaller than the single-ring motifs so both rings fit without crowding the
+   * card edge.
+   */
+  chalcone: `
+    <g transform="translate(6,14) scale(0.95)">
+      <g stroke="#fff" fill="none" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity=".92">
+        <path d="M56 58 78.5 71 78.5 97 56 110 33.5 97 33.5 71Z"/>
+        <path d="M59.4 68.6 73 76.4M73 91.6 59.4 99.4M39.5 91.6 39.5 76.4" stroke-width="4.5" opacity=".7"/>
+
+        <path d="M184 126 206.5 139 206.5 165 184 178 161.5 165 161.5 139Z"/>
+        <path d="M187.4 136.6 201 144.4M201 159.6 187.4 167.4M167.5 159.6 167.5 144.4" stroke-width="4.5" opacity=".7"/>
+      </g>
+
+      <g stroke="#fff" fill="none" stroke-width="5" stroke-linecap="round" opacity=".92">
+        <path d="M78.5 97 104 112"/>
+        <path d="M104 112 130 97"/>
+        <path d="M106 120 130 105" stroke-width="4.5" opacity=".85"/>
+        <path d="M130 97 156 112"/>
+        <path d="M156 112 161.5 139"/>
+        <path d="M156 112 140 88M164 108 148 84"/>
+      </g>
+
+      <text x="146" y="76" font-family="Georgia, serif" font-size="22" fill="#fff" text-anchor="middle" opacity=".9">O</text>
+
+      <g opacity=".8">
+        <text x="120" y="252" font-family="Georgia, serif" font-size="19" fill="#fff" text-anchor="middle">the enone</text>
+        <path d="M120 262 120 276" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".55"/>
+        <path d="M114 270 120 278 126 270" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity=".55"/>
+      </g>
+    </g>`,
+
   attack: `
     <g transform="rotate(-7 157 148)">
       <g stroke="#fff" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity=".92">
@@ -221,6 +288,8 @@ export const ART_MOTIFS: ArtMotif[] = [
   "resonance",
   "pka",
   "vanillin",
+  "iodosalicylamide",
+  "chalcone",
   "mascot",
 ];
 

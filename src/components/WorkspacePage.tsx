@@ -10,6 +10,7 @@ import {
   Check,
   X,
   ChevronDown,
+  BarChart3,
 } from "lucide-react";
 import { BlueberryMark } from "@/components/ui/blueberry-mark";
 import { NotificationBell } from "@/components/ui/notification-bell";
@@ -238,6 +239,7 @@ export function WorkspacePage({ user }: { user: GoogleUser }) {
   /** Which card is mid-edit, so its `<li>` can stop being a drag handle. */
   const [editingId, setEditingId] = useState<string | null>(null);
   const [adminOpen, setAdminOpen] = useState(false);
+  const [activityOpen, setActivityOpen] = useState(false);
   /**
    * One scroll container per column, so each gets its own progress bar.
    *
@@ -368,6 +370,18 @@ export function WorkspacePage({ user }: { user: GoogleUser }) {
               {loading ? "Loading…" : "Refresh"}
             </button>
 
+            {/* Activity lives behind this rather than inline. It is a thing you
+                glance at now and then, not something you need on screen while
+                dragging cards, and inline it was pushing the board itself below
+                the fold. */}
+            <button
+              onClick={() => setActivityOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-xs font-semibold text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-stone-400 dark:hover:bg-white/10 dark:hover:text-stone-100"
+            >
+              <BarChart3 className="h-3.5 w-3.5" />
+              Activity
+            </button>
+
             <NotificationBell count={unread.length} label="Feedback" onOpen={markAllSeen}>
               <FeedbackInbox
                 feedback={feedback}
@@ -401,7 +415,7 @@ export function WorkspacePage({ user }: { user: GoogleUser }) {
                   {/* Catches the click that closes it. A document listener would
                       fire on the same click that opened it. */}
                   <div className="fixed inset-0 z-10" onClick={() => setAdminOpen(false)} />
-                  <div className="absolute right-0 z-20 mt-2 w-80 rounded-xl border border-slate-200 bg-white p-3 shadow-xl dark:border-stone-700 dark:bg-stone-900">
+                  <div className="absolute right-0 z-20 mt-1 w-[34rem] max-w-[calc(100vw-3rem)] rounded-xl border border-slate-200 bg-white p-4 shadow-xl dark:border-stone-700 dark:bg-stone-900">
                     <AdminPanel
                       admins={admins}
                       owners={owners}
@@ -451,13 +465,13 @@ export function WorkspacePage({ user }: { user: GoogleUser }) {
             
             The form gives up the width because it is a single input and a
             select; it never used the other two thirds for anything. */}
-        <div className="mb-8 grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
+        <div className="mb-8">
         <form
           onSubmit={(e) => {
             e.preventDefault();
             void addTodo();
           }}
-          className="flex h-fit flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white p-3 dark:border-stone-800 dark:bg-stone-900"
+          className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white p-3 dark:border-stone-800 dark:bg-stone-900"
         >
           <Plus className="h-4 w-4 shrink-0 text-slate-400 dark:text-stone-500" />
           <input
@@ -486,8 +500,6 @@ export function WorkspacePage({ user }: { user: GoogleUser }) {
             Add
           </button>
         </form>
-
-          <WorkspaceActivity feedback={feedback} todos={todos} />
         </div>
 
         {/* Four columns on a wide screen, stacked on a narrow one. Drag moves a
@@ -603,6 +615,42 @@ export function WorkspacePage({ user }: { user: GoogleUser }) {
             );
           })}
         </div>
+
+        {/* Activity, as a card over the page.
+        
+            Wider than it is tall, unlike the About card, because a time series
+            needs width to be readable and nothing is gained by making it square.
+            Dismissed by the scrim, the corner button, or Escape — three ways out
+            because a modal with one is a modal people feel trapped by. */}
+        {activityOpen && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm dark:bg-black/60"
+            onClick={() => setActivityOpen(false)}
+            onKeyDown={(e) => e.key === "Escape" && setActivityOpen(false)}
+            role="presentation"
+          >
+            <div
+              role="dialog"
+              aria-modal
+              aria-label="Activity"
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-3xl rounded-2xl border border-slate-200 bg-white p-1 shadow-2xl dark:border-stone-700 dark:bg-stone-900"
+            >
+              <div className="flex justify-end p-2 pb-0">
+                <button
+                  onClick={() => setActivityOpen(false)}
+                  aria-label="Close activity"
+                  className="rounded-full p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-white/10 dark:hover:text-stone-200"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="p-3 pt-0">
+                <WorkspaceActivity feedback={feedback} todos={todos} />
+              </div>
+            </div>
+          </div>
+        )}
 
         <p className="mt-8 flex items-center gap-2 text-xs text-slate-400 dark:text-stone-500">
           <Trash2 className="h-3 w-3" />

@@ -132,18 +132,21 @@ function Eye({ side, modeRef }: { side: number; modeRef: React.RefObject<EyeMode
 function Calyx() {
   const lobes = useMemo(() => [0, 1, 2, 3, 4].map((i) => (i * 72 * Math.PI) / 180), []);
   return (
-    <group position={[0, 0.93, 0]} scale={[1, 0.55, 1]}>
+    // Higher and much less squashed than it was. Laid almost flat at 0.55 it
+    // vanished the moment the head tipped back to look up, which is exactly when
+    // you are looking at the top of him.
+    <group position={[0, 1.02, 0]} scale={[1, 0.92, 1]}>
       {lobes.map((rot, i) => (
         // Laid outward at roughly sixty degrees and lengthened. Standing more
         // upright they read as spikes out of the crown of the head rather than
         // as a calyx lying on it.
-        <mesh key={i} rotation={[0, rot, 1.05]} position={[0.34, 0.02, 0]}>
-          <coneGeometry args={[0.13, 0.62, 5]} />
+        <mesh key={i} rotation={[0, rot, 0.82]} position={[0.3, 0.08, 0]}>
+          <coneGeometry args={[0.16, 0.72, 5]} />
           <meshStandardMaterial color="#2c3fb0" roughness={0.55} flatShading />
         </mesh>
       ))}
       <mesh scale={[1, 1.3, 1]}>
-        <sphereGeometry args={[0.17, 20, 20]} />
+        <sphereGeometry args={[0.2, 20, 20]} />
         <meshStandardMaterial color="#241f7a" roughness={0.5} />
       </mesh>
     </group>
@@ -244,11 +247,26 @@ function Berry() {
   });
 
   return (
-    <group
-      ref={head}
-      onPointerOver={() => (hovered.current = true)}
-      onPointerOut={() => (hovered.current = false)}
-    >
+    <group ref={head}>
+      {/*
+        The hover target, at 75% of his radius.
+        
+        It used to be the head itself, so he stopped tracking the cursor the
+        instant it touched his silhouette — which is the moment he is most worth
+        watching. A smaller sphere lets him keep following you well inside his
+        own outline and only fluster when you really are pointing at him.
+        
+        Transparent rather than `visible={false}`: three skips invisible objects
+        when raycasting, so hiding it would stop it being hoverable at all.
+      */}
+      <mesh
+        onPointerOver={() => (hovered.current = true)}
+        onPointerOut={() => (hovered.current = false)}
+      >
+        <sphereGeometry args={[0.75, 16, 16]} />
+        <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+      </mesh>
+
       <mesh castShadow>
         <sphereGeometry args={[1, 48, 48]} />
         <meshStandardMaterial map={tex} roughness={0.42} metalness={0.05} />
@@ -292,7 +310,9 @@ export function BlueberryBot3D({ className }: { className?: string }) {
     <div className={cn("relative", className)}>
       <Canvas
         shadows
-        camera={{ position: [0, 0, 4.6], fov: 42 }}
+        // Raised to match: with a fuller calyx the silhouette's centre is above
+        // the sphere's, and a camera on the equator framed him low.
+        camera={{ position: [0, 0.22, 4.6], fov: 42 }}
         dpr={[1, 2]}
         style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
       >
