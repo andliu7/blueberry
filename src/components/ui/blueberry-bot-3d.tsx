@@ -249,7 +249,7 @@ function Berry() {
   return (
     <group ref={head}>
       {/*
-        The hover target, at 75% of his radius.
+        The hover target, at half his radius.
         
         It used to be the head itself, so he stopped tracking the cursor the
         instant it touched his silhouette — which is the moment he is most worth
@@ -263,7 +263,7 @@ function Berry() {
         onPointerOver={() => (hovered.current = true)}
         onPointerOut={() => (hovered.current = false)}
       >
-        <sphereGeometry args={[0.75, 16, 16]} />
+        <sphereGeometry args={[0.5, 16, 16]} />
         <meshBasicMaterial transparent opacity={0} depthWrite={false} />
       </mesh>
 

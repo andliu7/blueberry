@@ -505,7 +505,16 @@ export function WorkspacePage({ user }: { user: GoogleUser }) {
         {/* Four columns on a wide screen, stacked on a narrow one. Drag moves a
             card, and so do the arrows on it: a drag has no keyboard equivalent,
             and a board you can only use with a mouse is a board half the time. */}
-        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+        {/* The board scrolls sideways, not down.
+        
+            Four columns in a grid meant the tallest one set the page's height,
+            and Ideas is always the tallest, so the page grew a vertical scrollbar
+            that had nothing to do with the other three. Laid in a row that
+            overflows horizontally, the board is as wide as it needs to be and as
+            tall as the screen — which is what a board is supposed to be.
+            
+            `snap-x` so a flick lands on a column rather than between two. */}
+        <div className="-mx-1 flex snap-x snap-mandatory gap-5 overflow-x-auto px-1 pb-3">
           {TODO_COLUMNS.map((col) => {
             const inColumn = todos.filter((t) => t.column === col.id);
             return (
@@ -517,7 +526,7 @@ export function WorkspacePage({ user }: { user: GoogleUser }) {
                   if (dragging) moveTodo(dragging, col.id);
                   setDragging(null);
                 }}
-                className="flex min-h-[12rem] flex-col rounded-xl border border-slate-200 bg-white/70 p-3 dark:border-stone-800 dark:bg-stone-900/60"
+                className="flex w-[19rem] shrink-0 snap-start flex-col rounded-xl border border-slate-200 bg-white/70 p-3 md:w-[21rem] dark:border-stone-800 dark:bg-stone-900/60"
               >
                 <div className="mb-3">
                   <h2 className="flex items-center gap-2 text-sm font-bold text-slate-800 dark:text-stone-100">
@@ -531,12 +540,10 @@ export function WorkspacePage({ user }: { user: GoogleUser }) {
                   </p>
                 </div>
 
-                {/* Scrolls rather than growing. Ideas is the column that fills
-                    up, and at fourteen cards it was pushing the other three
-                    columns' worth of board off the bottom of the screen, so the
-                    thing you came to look at moved further away the more of it
-                    there was. Capped near a screen's height and given its own
-                    scrollbar, the board stays one page whatever is in it. */}
+                {/* Each column keeps its own scroll, capped so the board never
+                    grows past the screen. That cap is what stops the *page*
+                    scrolling vertically: the tallest column can no longer push
+                    the rest of the layout down. */}
                 {/* A progress bar for the column, since the native scrollbar on
                     a 60vh list inside a card is easy to miss and says nothing
                     about how much is left. Sits under the heading, above the

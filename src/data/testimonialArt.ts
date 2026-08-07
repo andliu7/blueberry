@@ -210,6 +210,11 @@ const MOTIFS: Record<ArtMotif, string> = {
    * exactly the bit in the middle: the C=C conjugated to the ketone. Drawn
    * smaller than the single-ring motifs so both rings fit without crowding the
    * card edge.
+   *
+   * Both strokes of the carbonyl straddle the bond axis, offset perpendicular to
+   * it. The second one used to start at (164,108), which is not on the carbonyl
+   * carbon at all — it hung in the air beside the chain and read as a stray line
+   * rather than as half of a double bond.
    */
   chalcone: `
     <g transform="translate(6,14) scale(0.95)">
@@ -227,7 +232,7 @@ const MOTIFS: Record<ArtMotif, string> = {
         <path d="M106 120 130 105" stroke-width="4.5" opacity=".85"/>
         <path d="M130 97 156 112"/>
         <path d="M156 112 161.5 139"/>
-        <path d="M156 112 140 88M164 108 148 84"/>
+        <path d="M159.3 109.8 143.3 85.8M152.7 114.2 136.7 90.2"/>
       </g>
 
       <text x="146" y="76" font-family="Georgia, serif" font-size="22" fill="#fff" text-anchor="middle" opacity=".9">O</text>
