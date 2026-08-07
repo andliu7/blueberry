@@ -1,15 +1,17 @@
 ﻿import type { Deck } from "@/data/types";
 
 /**
- * The original deck, and the reason this site exists. It keeps the bare URL
- * (`#/`) rather than moving to `#/deck/grignard`, because that is the link
- * classmates already have.
+ * The original deck, and the reason this site exists.
+ *
+ * It held the bare URL (`#/`) for a long time, because that was the link
+ * classmates already had. The root is the hub now, so this takes the ordinary
+ * `#/deck/grignard` address like every other deck — leaving `href: "#/"` here
+ * would have pointed its own card on the hub straight back at the hub.
  */
 export const grignardDeck: Deck = {
   id: "grignard",
   title: "[CHEM 242] Lab 5: Grignard Addition",
   short: "Grignard",
-  href: "#/",
   group: "lab",
   titleLines: ["GRIGNARD LCTA", "MASTER LIST"],
   subtitle:

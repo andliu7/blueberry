@@ -213,7 +213,19 @@ export default function App() {
     window.scrollTo(0, 0);
   }, [route]);
 
-  if (route === "home") return <HomePage />;
+  /**
+   * The bare URL is the hub.
+   *
+   * It used to be the Grignard deck, on the reasoning that the link classmates
+   * already had should land on questions rather than on a landing page they
+   * would have to click through mid-revision. That held while there was one
+   * deck. There are eight now, the repository rename moved the address anyway,
+   * and a front door that opens onto one arbitrary experiment is a worse
+   * introduction than one that shows the shelf.
+   *
+   * `#/home` still works, so nothing that links to it breaks.
+   */
+  if (route === "" || route === "home") return <HomePage />;
   // `about` is the old address for what is now the contact page. About itself is
   // a card opened over whatever you were looking at, so it has no route at all.
   if (route === "contact" || route === "about") return withBoundary(<ContactPage />);
@@ -229,12 +241,12 @@ export default function App() {
     );
   }
 
-  // The bare URL is the Grignard deck; anything else unrecognised is a 404.
-  if (route !== "" && !route.startsWith("deck/")) {
+  // Everything reaching here should be a deck; anything else is a 404.
+  if (!route.startsWith("deck/")) {
     return <NotFoundPage detail={`#/${route}`} />;
   }
 
-  const id = route.startsWith("deck/") ? route.slice(5) : "grignard";
+  const id = route.slice(5);
   const deck = decks.find((d) => d.id === id);
   /**
    * An unknown deck used to fall through to the hub on the theory that a stale

@@ -50,10 +50,11 @@ const BlueberryBot3D = lazy(() =>
 /**
  * The hub: one card per deck, with room to grow.
  *
- * Deliberately not the site root. The existing link is what classmates already
- * have, and making everyone mid-revision click through a landing page to reach
- * the questions would be a worse app for the sake of a nicer front door. This
- * lives at #/home, reached from the small Home link on the title screen.
+ * This is the site root as well as `#/home`. It was not always: the bare URL
+ * used to open the Grignard deck, so the link classmates already had landed on
+ * questions instead of on a landing page they would have to click through
+ * mid-revision. That was right while there was one deck. With eight, a front
+ * door that opens onto one arbitrary experiment is the worse introduction.
  */
 export function HomePage() {
   const [showIntro, setShowIntro] = useState(true);
