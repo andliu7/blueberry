@@ -9,10 +9,13 @@ import {
   GripVertical,
   Check,
   X,
+  ChevronDown,
 } from "lucide-react";
 import { BlueberryMark } from "@/components/ui/blueberry-mark";
 import { NotificationBell } from "@/components/ui/notification-bell";
 import { AdminPanel } from "@/components/AdminPanel";
+import { WorkspaceActivity } from "@/components/WorkspaceActivity";
+import { ScrollProgress } from "@/components/ui/scroll-progress";
 import { FeedbackInbox } from "@/components/FeedbackInbox";
 import { ButtonHoldAndRelease } from "@/components/ui/hold-and-release-button";
 import { postToAppsScript } from "@/lib/appsScript";
@@ -234,6 +237,16 @@ export function WorkspacePage({ user }: { user: GoogleUser }) {
   const [dragging, setDragging] = useState<string | null>(null);
   /** Which card is mid-edit, so its `<li>` can stop being a drag handle. */
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [adminOpen, setAdminOpen] = useState(false);
+  /**
+   * One scroll container per column, so each gets its own progress bar.
+   *
+   * Held in a ref object rather than state: `useScroll` wants a ref, and
+   * putting the element in state would re-render the whole board on mount.
+   */
+  const listRefs = useRef<Record<string, { current: HTMLElement | null }>>(
+    Object.fromEntries(TODO_COLUMNS.map((c) => [c.id, { current: null }])),
+  );
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -365,16 +378,48 @@ export function WorkspacePage({ user }: { user: GoogleUser }) {
               />
             </NotificationBell>
 
-            <span className="hidden font-mono text-xs text-slate-500 sm:inline dark:text-stone-400">
-              {user.email}
-            </span>
-            <button
-              onClick={signOut}
-              className="inline-flex items-center gap-1 rounded-full px-2.5 py-1.5 text-xs font-semibold text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-stone-400 dark:hover:bg-white/10 dark:hover:text-stone-100"
-            >
-              <LogOut className="h-3 w-3" />
-              Sign out
-            </button>
+            {/* Your address opens the allowlist rather than just sitting there.
+                "Who can sign in" was a full-width panel at the bottom of the
+                page for a list that is usually two lines and changes about
+                twice a term. It belongs next to the identity it is about, and
+                it belongs shut. */}
+            <div className="relative">
+              <button
+                onClick={() => setAdminOpen((o) => !o)}
+                aria-expanded={adminOpen}
+                className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 font-mono text-xs text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-stone-400 dark:hover:bg-white/10 dark:hover:text-stone-100"
+              >
+                <span className="hidden sm:inline">{user.email}</span>
+                <span className="sm:hidden">Account</span>
+                <ChevronDown
+                  className={cn("h-3 w-3 transition-transform", adminOpen && "rotate-180")}
+                />
+              </button>
+
+              {adminOpen && (
+                <>
+                  {/* Catches the click that closes it. A document listener would
+                      fire on the same click that opened it. */}
+                  <div className="fixed inset-0 z-10" onClick={() => setAdminOpen(false)} />
+                  <div className="absolute right-0 z-20 mt-2 w-80 rounded-xl border border-slate-200 bg-white p-3 shadow-xl dark:border-stone-700 dark:bg-stone-900">
+                    <AdminPanel
+                      admins={admins}
+                      owners={owners}
+                      you={user.email}
+                      idToken={user.idToken}
+                      onChanged={() => void refresh()}
+                    />
+                    <button
+                      onClick={signOut}
+                      className="mt-3 flex w-full items-center gap-1.5 border-t border-slate-200 pt-3 text-xs font-semibold text-slate-500 transition-colors hover:text-slate-900 dark:border-stone-800 dark:text-stone-400 dark:hover:text-stone-100"
+                    >
+                      <LogOut className="h-3 w-3" />
+                      Sign out
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </header>
 
@@ -395,12 +440,24 @@ export function WorkspacePage({ user }: { user: GoogleUser }) {
           </p>
         )}
 
+        {/* The form and the chart share a row.
+            
+            Deliberately not a pop-up in the corner, which was the other option
+            on the table. A number you have to click to see is a number you stop
+            checking, and a floating panel over a board you drag cards around on
+            is a panel that gets in the way. Inline, left to right, is how every
+            dashboard worth copying reads: the thing you do on the left, the
+            thing you watch on the right, both always there.
+            
+            The form gives up the width because it is a single input and a
+            select; it never used the other two thirds for anything. */}
+        <div className="mb-8 grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
         <form
           onSubmit={(e) => {
             e.preventDefault();
             void addTodo();
           }}
-          className="mb-8 flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white p-3 dark:border-stone-800 dark:bg-stone-900"
+          className="flex h-fit flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white p-3 dark:border-stone-800 dark:bg-stone-900"
         >
           <Plus className="h-4 w-4 shrink-0 text-slate-400 dark:text-stone-500" />
           <input
@@ -429,6 +486,9 @@ export function WorkspacePage({ user }: { user: GoogleUser }) {
             Add
           </button>
         </form>
+
+          <WorkspaceActivity feedback={feedback} todos={todos} />
+        </div>
 
         {/* Four columns on a wide screen, stacked on a narrow one. Drag moves a
             card, and so do the arrows on it: a drag has no keyboard equivalent,
@@ -465,7 +525,23 @@ export function WorkspacePage({ user }: { user: GoogleUser }) {
                     thing you came to look at moved further away the more of it
                     there was. Capped near a screen's height and given its own
                     scrollbar, the board stays one page whatever is in it. */}
-                <ul className="flex max-h-[60vh] flex-1 flex-col gap-2 overflow-y-auto pr-1">
+                {/* A progress bar for the column, since the native scrollbar on
+                    a 60vh list inside a card is easy to miss and says nothing
+                    about how much is left. Sits under the heading, above the
+                    cards, so it reads as belonging to this column. */}
+                <div className="relative mb-2 h-0.5 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-stone-800">
+                  <ScrollProgress
+                    containerRef={listRefs.current[col.id]}
+                    className="absolute inset-x-0 top-0 h-0.5 rounded-full bg-indigo-500 dark:bg-indigo-400"
+                  />
+                </div>
+
+                <ul
+                  ref={(el) => {
+                    listRefs.current[col.id] = { current: el };
+                  }}
+                  className="flex max-h-[60vh] flex-1 flex-col gap-2 overflow-y-auto pr-1"
+                >
                   {inColumn.map((todo) => {
                     const idx = TODO_COLUMNS.findIndex((c) => c.id === todo.column);
                     return (
@@ -527,14 +603,6 @@ export function WorkspacePage({ user }: { user: GoogleUser }) {
             );
           })}
         </div>
-
-        <AdminPanel
-          admins={admins}
-          owners={owners}
-          you={user.email}
-          idToken={user.idToken}
-          onChanged={() => void refresh()}
-        />
 
         <p className="mt-8 flex items-center gap-2 text-xs text-slate-400 dark:text-stone-500">
           <Trash2 className="h-3 w-3" />
