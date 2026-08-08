@@ -1,7 +1,7 @@
 import type { ArtMotif } from "@/data/testimonialArt";
 
 /**
- * A plain question with a written answer.
+ * What every card has, whichever kind it is.
  *
  * `image`, `badge` and `heading` are what let a picture be a flashcard. The
  * carbonyl decks were reference decks purely because their cards are drawings,
@@ -9,17 +9,34 @@ import type { ArtMotif } from "@/data/testimonialArt";
  * image does not stop a card being a card. With these three a study deck can
  * carry a scheme, the short answer that goes on the back, and the group it
  * belongs to, which is also everything the table view needs to render itself.
+ *
+ * Shared rather than sitting on the plain kind alone, because "which reagent
+ * does this" is a perfectly good multiple choice question about a picture.
  */
-export interface QAItem {
-  mc?: false;
+interface QuestionCommon {
   q: string;
   a: string;
   /** A file in `public/cards`, with its extension. */
   image?: string;
+  /**
+   * Hide this much of the image's right edge until the answer is shown, e.g.
+   * "37%".
+   *
+   * One picture serves both sides of the card. A reaction scheme draws the
+   * product in its right-hand third, so cropping that off is the difference
+   * between a question and its own answer — and it costs nothing, where a
+   * separate front image would have doubled the number of files on disk.
+   */
+  imageCrop?: string;
   /** The short answer, when there is one worth showing apart from `a`. */
   badge?: string;
   /** The section this card belongs to, used to group the table view. */
   heading?: string;
+}
+
+/** A plain question with a written answer. */
+export interface QAItem extends QuestionCommon {
+  mc?: false;
 }
 
 /**
@@ -29,12 +46,10 @@ export interface QAItem {
  * tick several options and reveals the answer on a Check button rather than on
  * the first click. The LCTA asks both kinds, so both are worth drilling.
  */
-export interface MCItem {
+export interface MCItem extends QuestionCommon {
   mc: true;
-  q: string;
   options: string[];
   correct: number | number[];
-  a: string;
 }
 
 export type Question = QAItem | MCItem;
@@ -355,6 +370,39 @@ export function deckCount(deck: Deck): number {
   return isReference(deck)
     ? deck.groups.reduce((n, g) => n + g.items.length, 0)
     : deck.questions.length;
+}
+
+/**
+ * A study deck's questions, as the rows the table view draws.
+ *
+ * Derived rather than stored. The carbonyl decks could have carried both a
+ * `questions` array and a `groups` array covering the same reactions, and then
+ * one of them would eventually have been edited without the other. A card that
+ * already knows its image, its short answer and its section has everything a row
+ * needs, so the table is a second reading of one list rather than a second list.
+ *
+ * Returns nothing when no card has an image, which is how a deck of written
+ * questions declines the table without having to say so.
+ */
+export function questionsAsGroups(questions: Question[]): DeckGroup[] {
+  if (!questions.some((q) => q.image)) return [];
+
+  const groups: DeckGroup[] = [];
+  for (const q of questions) {
+    const heading = q.heading ?? "";
+    let group = groups.find((g) => g.heading === heading);
+    if (!group) {
+      group = { heading: heading || undefined, items: [] };
+      groups.push(group);
+    }
+    group.items.push({
+      title: q.q,
+      description: q.a,
+      badge: q.badge ?? "",
+      image: q.image,
+    });
+  }
+  return groups;
 }
 
 /** Where a deck lives. Defaults to `#/deck/<id>` unless it overrides `href`. */

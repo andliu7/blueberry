@@ -1,4 +1,4 @@
-import type { ReferenceDeck } from "@/data/types";
+import type { StudyDeck } from "@/data/types";
 
 /**
  * Reactions of the acids — 12 cards.
@@ -7,8 +7,7 @@ import type { ReferenceDeck } from "@/data/types";
  * hand edit: the next run overwrites it, and the point of generating it is that
  * a card cannot drift from the reaction page it came from.
  */
-export const carbonylAcidsDeck: ReferenceDeck = {
-  kind: "reference",
+export const carbonylAcidsDeck: StudyDeck = {
   id: "carbonyl-acids",
   title: "Reactions of the acids",
   short: "Acids",
@@ -18,35 +17,21 @@ export const carbonylAcidsDeck: ReferenceDeck = {
   blurb: "A carboxylic acid is a poor electrophile. Each of these is a way around that.",
   about: "The OH is the problem. It is a terrible leaving group, and a nucleophile that approaches an acid is far more likely to just take the proton.\n\nSo every reaction here is a way of dealing with that: turn the OH into something that can leave (SOCl₂), push the equilibrium with excess alcohol and remove water (Fischer), or sidestep the carbonyl entirely by putting a second one β to it and heating (decarboxylation).\n\nFischer is the reversible one on this list, and that matters: it is the reaction where the conditions, not the reagents, decide which way you end up going.",
   motif: "pka",
+  art: "cover_acids.svg",
   from: "#7c3aed",
   to: "#a855f7",
-  preview: {
-    width: 420,
-    height: 168,
-    cropRight: "37%",
-  },
-  groups: [
-    {
-      heading: "Worked examples — the version of each of these the trainer walks through.",
-      items: [
-        { title: "Fischer esterification", description: "Benzoic acid  +  CH₃OH , H₂SO₄ cat.   ·   acidic  ·  reversible  ·  Reflux", badge: "Methyl benzoate", image: "carbonyl_fischer.svg" },
-        { title: "Acid chloride from a carboxylic acid", description: "Benzoic acid  +  SOCl₂ , pyridine   ·   anhydrous  ·  irreversible  ·  Room temperature, sometimes warmed", badge: "Benzoyl chloride", image: "carbonyl_socl2.svg" },
-        { title: "Decarboxylation of a β-keto acid", description: "Acetoacetic acid  +  Δ   ·   neutral  ·  irreversible  ·  Heat, around 150 °C", badge: "Acetone", image: "carbonyl_decarboxylation.svg" },
-      ],
-    },
-    {
-      heading: "More of the same — the same reactions on substrates you have not seen.",
-      items: [
-        { title: "Fischer esterification of acetic acid", description: "Acetic acid  +  CH₃OH , H₂SO₄ cat. , reflux, −H₂O   ·   acidic  ·  reversible  ·  Reflux", badge: "Methyl acetate", image: "carbonyl_var_fischer_0.svg" },
-        { title: "Fischer esterification of 4-Nitrobenzoic acid", description: "4-Nitrobenzoic acid  +  CH₃OH , H₂SO₄ cat. , reflux, −H₂O   ·   acidic  ·  reversible  ·  Reflux", badge: "Methyl 4-nitrobenzoate", image: "carbonyl_var_fischer_1.svg" },
-        { title: "Fischer esterification of propanoic acid", description: "Propanoic acid  +  CH₃OH , H₂SO₄ cat. , reflux, −H₂O   ·   acidic  ·  reversible  ·  Reflux", badge: "Methyl propanoate", image: "carbonyl_var_fischer_2.svg" },
-        { title: "Acid chloride from a carboxylic acid of acetic acid", description: "Acetic acid  +  SOCl₂ , pyridine   ·   anhydrous  ·  irreversible  ·  Room temperature, sometimes warmed", badge: "Acetyl chloride", image: "carbonyl_var_socl2_3.svg" },
-        { title: "Acid chloride from a carboxylic acid of 4-Methoxybenzoic acid", description: "4-Methoxybenzoic acid  +  SOCl₂ , pyridine   ·   anhydrous  ·  irreversible  ·  Room temperature, sometimes warmed", badge: "4-Methoxybenzoyl chloride", image: "carbonyl_var_socl2_4.svg" },
-        { title: "Acid chloride from a carboxylic acid of butanoic acid", description: "Butanoic acid  +  SOCl₂ , pyridine   ·   anhydrous  ·  irreversible  ·  Room temperature, sometimes warmed", badge: "Butanoyl chloride", image: "carbonyl_var_socl2_5.svg" },
-        { title: "Decarboxylation of a β-keto acid of 3-Oxobutanoic acid", description: "3-Oxobutanoic acid  +  Δ , −CO₂   ·   neutral  ·  irreversible  ·  Heat, around 150 °C", badge: "Acetone", image: "carbonyl_var_decarboxylation_6.svg" },
-        { title: "Decarboxylation of a β-keto acid of 3-Oxopentanoic acid", description: "3-Oxopentanoic acid  +  Δ , −CO₂   ·   neutral  ·  irreversible  ·  Heat, around 150 °C", badge: "Butan-2-one", image: "carbonyl_var_decarboxylation_7.svg" },
-        { title: "Decarboxylation of a β-keto acid of benzoylacetic acid", description: "Benzoylacetic acid  +  Δ , −CO₂   ·   neutral  ·  irreversible  ·  Heat, around 150 °C", badge: "Acetophenone", image: "carbonyl_var_decarboxylation_8.svg" },
-      ],
-    },
+  questions: [
+    { q: "Fischer esterification: Benzoic acid + CH₃OH , H₂SO₄ cat.", a: "acidic  ·  reversible  ·  Reflux", badge: "Methyl benzoate", image: "carbonyl_fischer.svg", imageCrop: "37%", heading: "Reactions of the acids · worked examples" },
+    { q: "Acid chloride from a carboxylic acid: Benzoic acid + SOCl₂ , pyridine", a: "anhydrous  ·  irreversible  ·  Room temperature, sometimes warmed", badge: "Benzoyl chloride", image: "carbonyl_socl2.svg", imageCrop: "37%", heading: "Reactions of the acids · worked examples" },
+    { q: "Decarboxylation of a β-keto acid: Acetoacetic acid + Δ", a: "neutral  ·  irreversible  ·  Heat, around 150 °C", badge: "Acetone", image: "carbonyl_decarboxylation.svg", imageCrop: "37%", heading: "Reactions of the acids · worked examples" },
+    { q: "Fischer esterification of acetic acid: Acetic acid + CH₃OH , H₂SO₄ cat. , reflux, −H₂O", a: "acidic  ·  reversible  ·  Reflux", badge: "Methyl acetate", image: "carbonyl_var_fischer_0.svg", imageCrop: "37%", heading: "Reactions of the acids · more of the same" },
+    { q: "Fischer esterification of 4-Nitrobenzoic acid: 4-Nitrobenzoic acid + CH₃OH , H₂SO₄ cat. , reflux, −H₂O", a: "acidic  ·  reversible  ·  Reflux", badge: "Methyl 4-nitrobenzoate", image: "carbonyl_var_fischer_1.svg", imageCrop: "37%", heading: "Reactions of the acids · more of the same" },
+    { q: "Fischer esterification of propanoic acid: Propanoic acid + CH₃OH , H₂SO₄ cat. , reflux, −H₂O", a: "acidic  ·  reversible  ·  Reflux", badge: "Methyl propanoate", image: "carbonyl_var_fischer_2.svg", imageCrop: "37%", heading: "Reactions of the acids · more of the same" },
+    { q: "Acid chloride from a carboxylic acid of acetic acid: Acetic acid + SOCl₂ , pyridine", a: "anhydrous  ·  irreversible  ·  Room temperature, sometimes warmed", badge: "Acetyl chloride", image: "carbonyl_var_socl2_3.svg", imageCrop: "37%", heading: "Reactions of the acids · more of the same" },
+    { q: "Acid chloride from a carboxylic acid of 4-Methoxybenzoic acid: 4-Methoxybenzoic acid + SOCl₂ , pyridine", a: "anhydrous  ·  irreversible  ·  Room temperature, sometimes warmed", badge: "4-Methoxybenzoyl chloride", image: "carbonyl_var_socl2_4.svg", imageCrop: "37%", heading: "Reactions of the acids · more of the same" },
+    { q: "Acid chloride from a carboxylic acid of butanoic acid: Butanoic acid + SOCl₂ , pyridine", a: "anhydrous  ·  irreversible  ·  Room temperature, sometimes warmed", badge: "Butanoyl chloride", image: "carbonyl_var_socl2_5.svg", imageCrop: "37%", heading: "Reactions of the acids · more of the same" },
+    { q: "Decarboxylation of a β-keto acid of 3-Oxobutanoic acid: 3-Oxobutanoic acid + Δ , −CO₂", a: "neutral  ·  irreversible  ·  Heat, around 150 °C", badge: "Acetone", image: "carbonyl_var_decarboxylation_6.svg", imageCrop: "37%", heading: "Reactions of the acids · more of the same" },
+    { q: "Decarboxylation of a β-keto acid of 3-Oxopentanoic acid: 3-Oxopentanoic acid + Δ , −CO₂", a: "neutral  ·  irreversible  ·  Heat, around 150 °C", badge: "Butan-2-one", image: "carbonyl_var_decarboxylation_7.svg", imageCrop: "37%", heading: "Reactions of the acids · more of the same" },
+    { q: "Decarboxylation of a β-keto acid of benzoylacetic acid: Benzoylacetic acid + Δ , −CO₂", a: "neutral  ·  irreversible  ·  Heat, around 150 °C", badge: "Acetophenone", image: "carbonyl_var_decarboxylation_8.svg", imageCrop: "37%", heading: "Reactions of the acids · more of the same" },
   ],
 };

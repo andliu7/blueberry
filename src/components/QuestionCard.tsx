@@ -17,6 +17,49 @@ const statusStyles: Record<Status, string> = {
   green: "bg-green-50 border-green-300 dark:bg-green-950/40 dark:border-green-900",
 };
 
+/**
+ * A card's diagram, optionally with its right-hand side masked off.
+ *
+ * The mask is a wrapper whose width is reduced rather than a crop on the image,
+ * so the picture itself is never rescaled and the two states are the same
+ * drawing at the same size — the answer half slides into view instead of the
+ * whole scheme jumping when it resizes.
+ *
+ * White background regardless of theme: these are line drawings in dark ink,
+ * and on the dark surface they would otherwise be invisible.
+ */
+/** How wide the drawing is rendered. The mask is measured against this. */
+const IMG_W = 460;
+
+function CardImage({ src, crop }: { src: string; crop?: string }) {
+  /**
+   * The mask width in pixels, not a percentage.
+   *
+   * `calc(100% - 37%)` resolves against the *card*, which is far wider than the
+   * drawing, so `max-width` clamped it straight back to the full image and the
+   * answer was never hidden at all. The crop has to be a fraction of the image,
+   * and only the image knows how wide it is.
+   */
+  const masked = crop ? (IMG_W * (100 - parseFloat(crop))) / 100 : IMG_W;
+
+  return (
+    <span
+      className="mt-3 block max-w-full overflow-hidden rounded-lg bg-white ring-1 ring-slate-200 transition-[width] duration-300 ease-out dark:ring-stone-700"
+      style={{ width: masked }}
+    >
+      <img
+        src={`${import.meta.env.BASE_URL}cards/${src}`}
+        alt=""
+        loading="lazy"
+        className="block h-auto"
+        // Held at the uncropped width so the mask reveals the drawing rather
+        // than squashing it.
+        style={{ width: IMG_W, maxWidth: "none" }}
+      />
+    </span>
+  );
+}
+
 export function QuestionCard({
   num,
   item,
@@ -140,6 +183,9 @@ export function QuestionCard({
             html={item.q}
             className="font-semibold text-gray-800 dark:text-stone-200 leading-tight"
           />
+          {/* The scheme, with its answer half hidden until you ask. See
+              `imageCrop` for why one picture rather than two files. */}
+          {item.image && <CardImage src={item.image} crop={open ? undefined : item.imageCrop} />}
         </div>
         <svg
           className={cn("w-5 h-5 text-gray-400 dark:text-stone-500 shrink-0 mt-1 transition-transform", open && "rotate-180")}
@@ -208,7 +254,16 @@ export function QuestionCard({
               )}
             </>
           ) : (
-            <MathHtml html={item.a} className="text-gray-800 dark:text-stone-300 leading-relaxed" />
+            <>
+              {/* The short answer first, big, because on a reaction card it is
+                  the whole answer and the prose underneath is the reasoning. */}
+              {item.badge && (
+                <p className="mb-2 text-lg font-bold text-indigo-700 dark:text-indigo-300">
+                  {item.badge}
+                </p>
+              )}
+              <MathHtml html={item.a} className="text-gray-800 dark:text-stone-300 leading-relaxed" />
+            </>
           )}
 
           {/* A deck can turn rating off. Then there is no row here at all,

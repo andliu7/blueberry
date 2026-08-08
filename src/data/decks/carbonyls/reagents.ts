@@ -1,4 +1,4 @@
-import type { ReferenceDeck } from "@/data/types";
+import type { StudyDeck } from "@/data/types";
 
 /**
  * Making the reagents — 2 cards.
@@ -7,8 +7,7 @@ import type { ReferenceDeck } from "@/data/types";
  * hand edit: the next run overwrites it, and the point of generating it is that
  * a card cannot drift from the reaction page it came from.
  */
-export const carbonylReagentsDeck: ReferenceDeck = {
-  kind: "reference",
+export const carbonylReagentsDeck: StudyDeck = {
   id: "carbonyl-reagents",
   title: "Making the reagents",
   short: "Reagents",
@@ -20,18 +19,8 @@ export const carbonylReagentsDeck: ReferenceDeck = {
   motif: "benzene",
   from: "#c026d3",
   to: "#e879f9",
-  preview: {
-    width: 420,
-    height: 168,
-    cropRight: "37%",
-  },
-  groups: [
-    {
-      heading: "Worked examples — the version of each of these the trainer walks through.",
-      items: [
-        { title: "Friedel-Crafts acylation", description: "Benzene  +  CH₃COCl , AlCl₃   ·   anhydrous  ·  irreversible  ·  0 °C to room temperature", badge: "Acetophenone", image: "carbonyl_friedel-crafts.svg" },
-        { title: "Making a phosphonium ylide", description: "Triphenylphosphine  +  CH₃Br , then n-BuLi   ·   anhydrous  ·  irreversible  ·  0 °C, under nitrogen", badge: "Methylenetriphenylphosphorane", image: "carbonyl_ylide.svg" },
-      ],
-    },
+  questions: [
+    { q: "Friedel-Crafts acylation: Benzene + CH₃COCl , AlCl₃", a: "anhydrous  ·  irreversible  ·  0 °C to room temperature", badge: "Acetophenone", image: "carbonyl_friedel-crafts.svg", imageCrop: "37%", heading: "Making the reagents · worked examples" },
+    { q: "Making a phosphonium ylide: Triphenylphosphine + CH₃Br , then n-BuLi", a: "anhydrous  ·  irreversible  ·  0 °C, under nitrogen", badge: "Methylenetriphenylphosphorane", image: "carbonyl_ylide.svg", imageCrop: "37%", heading: "Making the reagents · worked examples" },
   ],
 };

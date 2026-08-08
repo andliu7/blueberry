@@ -101,16 +101,28 @@ function useHasHover() {
  * against each other unpredictably and the cards would surface through the lid.
  * Declaring a flat context here puts `z-index` back in charge.
  */
+/**
+ * The folder's own colours, which are deliberately not the deck's.
+ *
+ * It was tinted with each folder's gradient so it matched the card it sat on.
+ * That reads as one flat shape: a violet folder on a violet card has nothing to
+ * catch an edge against, and the cards inside it are also washes of the same
+ * ramp. A neutral graphite folder is the thing every one of those colours is
+ * *in*, so the folder reads as an object and the deck art reads as its contents.
+ */
+const SHELL = {
+  tab: "#3f3f46",
+  back: "#27272a",
+  frontFrom: "#52525b",
+  frontTo: "#3f3f46",
+};
+
 function FolderShell({
   open,
   reduce,
-  from,
-  to,
 }: {
   open: boolean;
   reduce: boolean | null;
-  from: string;
-  to: string;
 }) {
   const tilt = (deg: number) => (reduce || !open ? "rotateX(0deg)" : `rotateX(${deg}deg)`);
 
@@ -127,8 +139,7 @@ function FolderShell({
           style={{
             top: -12,
             left: 16,
-            background: to,
-            filter: "brightness(0.86)",
+            background: SHELL.tab,
             transformOrigin: "bottom center",
             transform: reduce || !open ? "rotateX(0deg)" : "rotateX(-25deg) translateY(-2px)",
             transition: `transform ${SPRING}`,
@@ -141,8 +152,7 @@ function FolderShell({
           className="absolute inset-x-0 bottom-0 rounded-lg shadow-md"
           style={{
             height: FOLDER_H,
-            background: from,
-            filter: "brightness(0.92)",
+            background: SHELL.back,
             transformOrigin: "bottom center",
             transform: tilt(-15),
             transition: `transform ${SPRING}`,
@@ -155,7 +165,7 @@ function FolderShell({
           className="absolute inset-x-0 bottom-0 rounded-lg shadow-lg"
           style={{
             height: FLAP_H,
-            background: `linear-gradient(160deg, ${to}, ${from})`,
+            background: `linear-gradient(160deg, ${SHELL.frontFrom}, ${SHELL.frontTo})`,
             transformOrigin: "bottom center",
             transform: reduce || !open ? "rotateX(0deg)" : "rotateX(25deg) translateY(8px)",
             transition: `transform ${SPRING}`,
@@ -186,14 +196,9 @@ function FolderShell({
 export function FolderDeckFan({
   decks,
   max = 4,
-  from = "#4338ca",
-  to = "#7c3aed",
 }: {
   decks: Deck[];
   max?: number;
-  /** The folder card's own gradient, so the folder matches what it sits on. */
-  from?: string;
-  to?: string;
 }) {
   const reduce = useReducedMotion();
   const hasHover = useHasHover();
@@ -240,7 +245,7 @@ export function FolderDeckFan({
           if (hasHover && previewIndex === null) setOpen(false);
         }}
       >
-        <FolderShell open={open} reduce={reduce} from={from} to={to} />
+        <FolderShell open={open} reduce={reduce} />
 
         {/*
           The folder is also a control, for touch and for the keyboard.
@@ -356,7 +361,7 @@ export function FolderDeckFan({
                 }}
               >
                 <img
-                  src={cardArt(deck.motif, deck.from, deck.to)}
+                  src={cardArt(deck.motif, deck.from, deck.to, deck.art)}
                   alt=""
                   className="h-[150px] w-auto rounded-lg shadow-lg transition-[filter,opacity] duration-200"
                   style={{ opacity: dimmed ? 0.55 : 1 }}

@@ -218,7 +218,7 @@ export function DeckPreviewLightbox({
           <div
             className="h-40 w-full bg-cover bg-center"
             style={{
-              backgroundImage: `url("${cardArt(deck.motif, deck.from, deck.to)}")`,
+              backgroundImage: `url("${cardArt(deck.motif, deck.from, deck.to, deck.art)}")`,
             }}
           />
 

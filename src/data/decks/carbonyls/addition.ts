@@ -1,4 +1,4 @@
-import type { ReferenceDeck } from "@/data/types";
+import type { StudyDeck } from "@/data/types";
 
 /**
  * Nucleophilic addition — 19 cards.
@@ -7,8 +7,7 @@ import type { ReferenceDeck } from "@/data/types";
  * hand edit: the next run overwrites it, and the point of generating it is that
  * a card cannot drift from the reaction page it came from.
  */
-export const carbonylAdditionDeck: ReferenceDeck = {
-  kind: "reference",
+export const carbonylAdditionDeck: StudyDeck = {
   id: "carbonyl-addition",
   title: "Nucleophilic addition",
   short: "Addition",
@@ -18,42 +17,28 @@ export const carbonylAdditionDeck: ReferenceDeck = {
   blurb: "Aldehydes and ketones, where nothing on the carbon can leave, so whatever adds stays.",
   about: "The nucleophile goes onto the carbonyl carbon and the oxygen comes down to alkoxide. Then it stops, because there is nothing on that carbon that can leave.\n\nThat is the whole distinction between this deck and the acyl substitution one. Same first step, same tetrahedral intermediate, different second half.\n\nThe reagent decides what you end up with, so the cards vary the substrate and keep the reagent fixed: if you can only answer NaBH₄ on acetophenone, you have learned acetophenone rather than NaBH₄.",
   motif: "attack",
+  art: "cover_addition.svg",
   from: "#4338ca",
   to: "#6366f1",
-  preview: {
-    width: 420,
-    height: 168,
-    cropRight: "37%",
-  },
-  groups: [
-    {
-      heading: "Worked examples — the version of each of these the trainer walks through.",
-      items: [
-        { title: "NaBH₄ on a ketone", description: "Acetophenone  +  NaBH₄ , MeOH   ·   neutral  ·  irreversible  ·  0 °C to room temperature", badge: "1-Phenylethanol", image: "carbonyl_nabh4-ketone.svg" },
-        { title: "Cyanohydrin formation", description: "Acetone  +  NaCN , H₂O, pH ≈ 10   ·   basic  ·  irreversible  ·  Room temperature", badge: "Acetone cyanohydrin", image: "carbonyl_cyanohydrin.svg" },
-        { title: "Acetylide addition to a ketone", description: "Acetone  +  HC≡CH, NaNH₂ , NH₃ (l); then H₃O⁺   ·   basic  ·  irreversible  ·  −33 °C in liquid ammonia, then acidic workup", badge: "2-Methyl-3-butyn-2-ol", image: "carbonyl_acetylide.svg" },
-        { title: "Carboxylic acid from a Grignard and CO₂", description: "Carbon dioxide  +  CH₃MgBr , then H₃O⁺   ·   anhydrous  ·  irreversible  ·  Dry ice, then warm", badge: "Acetic acid", image: "carbonyl_grignard-co2.svg" },
-        { title: "Wittig olefination", description: "Benzaldehyde  +  Ph₃P=CH₂ , THF   ·   anhydrous  ·  irreversible  ·  0 °C to room temperature", badge: "Styrene", image: "carbonyl_wittig.svg" },
-        { title: "Cyclic hemiacetal", description: "5-hydroxypentanal  +  H⁺ cat. , (intramolecular)   ·   acidic  ·  reversible  ·  Room temperature", badge: "Cyclic hemiacetal", image: "carbonyl_cyclic-hemiacetal.svg" },
-      ],
-    },
-    {
-      heading: "More of the same — the same reactions on substrates you have not seen.",
-      items: [
-        { title: "NaBH₄ reduction of cyclohexanone", description: "Cyclohexanone  +  NaBH₄ , MeOH   ·   neutral  ·  irreversible  ·  0 °C to room temperature", badge: "Cyclohexanol", image: "carbonyl_var_nabh4_0.svg" },
-        { title: "NaBH₄ reduction of benzaldehyde", description: "Benzaldehyde  +  NaBH₄ , MeOH   ·   neutral  ·  irreversible  ·  0 °C to room temperature", badge: "Benzyl alcohol", image: "carbonyl_var_nabh4_1.svg" },
-        { title: "NaBH₄ reduction of butan-2-one", description: "Butan-2-one  +  NaBH₄ , MeOH   ·   neutral  ·  irreversible  ·  0 °C to room temperature", badge: "Butan-2-ol", image: "carbonyl_var_nabh4_2.svg" },
-        { title: "NaBH₄ reduction of 4-Methoxybenzaldehyde", description: "4-Methoxybenzaldehyde  +  NaBH₄ , MeOH   ·   neutral  ·  irreversible  ·  0 °C to room temperature", badge: "4-Methoxybenzyl alcohol", image: "carbonyl_var_nabh4_3.svg" },
-        { title: "Cyanohydrin formation of benzaldehyde", description: "Benzaldehyde  +  NaCN , H₂O, pH ≈ 10   ·   basic  ·  irreversible  ·  Room temperature", badge: "Mandelonitrile", image: "carbonyl_var_cyanohydrin_4.svg" },
-        { title: "Cyanohydrin formation of cyclohexanone", description: "Cyclohexanone  +  NaCN , H₂O, pH ≈ 10   ·   basic  ·  irreversible  ·  Room temperature", badge: "Cyclohexanone cyanohydrin", image: "carbonyl_var_cyanohydrin_5.svg" },
-        { title: "Cyanohydrin formation of butanal", description: "Butanal  +  NaCN , H₂O, pH ≈ 10   ·   basic  ·  irreversible  ·  Room temperature", badge: "Butanal cyanohydrin", image: "carbonyl_var_cyanohydrin_6.svg" },
-        { title: "Grignard onto a carbonyl of cyclohexanone", description: "Cyclohexanone  +  CH₃MgBr , then H₃O⁺ , Et₂O, anhydrous   ·   anhydrous  ·  irreversible  ·  0 °C, then acidic workup", badge: "1-Methylcyclohexan-1-ol", image: "carbonyl_var_grignard-add_7.svg" },
-        { title: "Grignard onto a carbonyl of benzaldehyde", description: "Benzaldehyde  +  CH₃MgBr , then H₃O⁺ , Et₂O, anhydrous   ·   anhydrous  ·  irreversible  ·  0 °C, then acidic workup", badge: "1-Phenylethanol", image: "carbonyl_var_grignard-add_8.svg" },
-        { title: "Grignard onto a carbonyl of propanal", description: "Propanal  +  CH₃MgBr , then H₃O⁺ , Et₂O, anhydrous   ·   anhydrous  ·  irreversible  ·  0 °C, then acidic workup", badge: "Butan-2-ol", image: "carbonyl_var_grignard-add_9.svg" },
-        { title: "Wittig olefination of cyclohexanone", description: "Cyclohexanone  +  Ph₃P=CH₂ , THF   ·   anhydrous  ·  irreversible  ·  0 °C to room temperature", badge: "Methylenecyclohexane", image: "carbonyl_var_wittig_10.svg" },
-        { title: "Wittig olefination of 4-Nitrobenzaldehyde", description: "4-Nitrobenzaldehyde  +  Ph₃P=CH₂ , THF   ·   anhydrous  ·  irreversible  ·  0 °C to room temperature", badge: "4-Nitrostyrene", image: "carbonyl_var_wittig_11.svg" },
-        { title: "Wittig olefination of acetophenone", description: "Acetophenone  +  Ph₃P=CH₂ , THF   ·   anhydrous  ·  irreversible  ·  0 °C to room temperature", badge: "2-Phenylpropene", image: "carbonyl_var_wittig_12.svg" },
-      ],
-    },
+  questions: [
+    { q: "NaBH₄ on a ketone: Acetophenone + NaBH₄ , MeOH", a: "neutral  ·  irreversible  ·  0 °C to room temperature", badge: "1-Phenylethanol", image: "carbonyl_nabh4-ketone.svg", imageCrop: "37%", heading: "Nucleophilic addition · worked examples" },
+    { q: "Cyanohydrin formation: Acetone + NaCN , H₂O, pH ≈ 10", a: "basic  ·  irreversible  ·  Room temperature", badge: "Acetone cyanohydrin", image: "carbonyl_cyanohydrin.svg", imageCrop: "37%", heading: "Nucleophilic addition · worked examples" },
+    { q: "Acetylide addition to a ketone: Acetone + HC≡CH, NaNH₂ , NH₃ (l); then H₃O⁺", a: "basic  ·  irreversible  ·  −33 °C in liquid ammonia, then acidic workup", badge: "2-Methyl-3-butyn-2-ol", image: "carbonyl_acetylide.svg", imageCrop: "37%", heading: "Nucleophilic addition · worked examples" },
+    { q: "Carboxylic acid from a Grignard and CO₂: Carbon dioxide + CH₃MgBr , then H₃O⁺", a: "anhydrous  ·  irreversible  ·  Dry ice, then warm", badge: "Acetic acid", image: "carbonyl_grignard-co2.svg", imageCrop: "37%", heading: "Nucleophilic addition · worked examples" },
+    { q: "Wittig olefination: Benzaldehyde + Ph₃P=CH₂ , THF", a: "anhydrous  ·  irreversible  ·  0 °C to room temperature", badge: "Styrene", image: "carbonyl_wittig.svg", imageCrop: "37%", heading: "Nucleophilic addition · worked examples" },
+    { q: "Cyclic hemiacetal: 5-hydroxypentanal + H⁺ cat. , (intramolecular)", a: "acidic  ·  reversible  ·  Room temperature", badge: "Cyclic hemiacetal", image: "carbonyl_cyclic-hemiacetal.svg", imageCrop: "37%", heading: "Nucleophilic addition · worked examples" },
+    { q: "NaBH₄ reduction of cyclohexanone: Cyclohexanone + NaBH₄ , MeOH", a: "neutral  ·  irreversible  ·  0 °C to room temperature", badge: "Cyclohexanol", image: "carbonyl_var_nabh4_0.svg", imageCrop: "37%", heading: "Nucleophilic addition · more of the same" },
+    { q: "NaBH₄ reduction of benzaldehyde: Benzaldehyde + NaBH₄ , MeOH", a: "neutral  ·  irreversible  ·  0 °C to room temperature", badge: "Benzyl alcohol", image: "carbonyl_var_nabh4_1.svg", imageCrop: "37%", heading: "Nucleophilic addition · more of the same" },
+    { q: "NaBH₄ reduction of butan-2-one: Butan-2-one + NaBH₄ , MeOH", a: "neutral  ·  irreversible  ·  0 °C to room temperature", badge: "Butan-2-ol", image: "carbonyl_var_nabh4_2.svg", imageCrop: "37%", heading: "Nucleophilic addition · more of the same" },
+    { q: "NaBH₄ reduction of 4-Methoxybenzaldehyde: 4-Methoxybenzaldehyde + NaBH₄ , MeOH", a: "neutral  ·  irreversible  ·  0 °C to room temperature", badge: "4-Methoxybenzyl alcohol", image: "carbonyl_var_nabh4_3.svg", imageCrop: "37%", heading: "Nucleophilic addition · more of the same" },
+    { q: "Cyanohydrin formation of benzaldehyde: Benzaldehyde + NaCN , H₂O, pH ≈ 10", a: "basic  ·  irreversible  ·  Room temperature", badge: "Mandelonitrile", image: "carbonyl_var_cyanohydrin_4.svg", imageCrop: "37%", heading: "Nucleophilic addition · more of the same" },
+    { q: "Cyanohydrin formation of cyclohexanone: Cyclohexanone + NaCN , H₂O, pH ≈ 10", a: "basic  ·  irreversible  ·  Room temperature", badge: "Cyclohexanone cyanohydrin", image: "carbonyl_var_cyanohydrin_5.svg", imageCrop: "37%", heading: "Nucleophilic addition · more of the same" },
+    { q: "Cyanohydrin formation of butanal: Butanal + NaCN , H₂O, pH ≈ 10", a: "basic  ·  irreversible  ·  Room temperature", badge: "Butanal cyanohydrin", image: "carbonyl_var_cyanohydrin_6.svg", imageCrop: "37%", heading: "Nucleophilic addition · more of the same" },
+    { q: "Grignard onto a carbonyl of cyclohexanone: Cyclohexanone + CH₃MgBr , then H₃O⁺ , Et₂O, anhydrous", a: "anhydrous  ·  irreversible  ·  0 °C, then acidic workup", badge: "1-Methylcyclohexan-1-ol", image: "carbonyl_var_grignard-add_7.svg", imageCrop: "37%", heading: "Nucleophilic addition · more of the same" },
+    { q: "Grignard onto a carbonyl of benzaldehyde: Benzaldehyde + CH₃MgBr , then H₃O⁺ , Et₂O, anhydrous", a: "anhydrous  ·  irreversible  ·  0 °C, then acidic workup", badge: "1-Phenylethanol", image: "carbonyl_var_grignard-add_8.svg", imageCrop: "37%", heading: "Nucleophilic addition · more of the same" },
+    { q: "Grignard onto a carbonyl of propanal: Propanal + CH₃MgBr , then H₃O⁺ , Et₂O, anhydrous", a: "anhydrous  ·  irreversible  ·  0 °C, then acidic workup", badge: "Butan-2-ol", image: "carbonyl_var_grignard-add_9.svg", imageCrop: "37%", heading: "Nucleophilic addition · more of the same" },
+    { q: "Wittig olefination of cyclohexanone: Cyclohexanone + Ph₃P=CH₂ , THF", a: "anhydrous  ·  irreversible  ·  0 °C to room temperature", badge: "Methylenecyclohexane", image: "carbonyl_var_wittig_10.svg", imageCrop: "37%", heading: "Nucleophilic addition · more of the same" },
+    { q: "Wittig olefination of 4-Nitrobenzaldehyde: 4-Nitrobenzaldehyde + Ph₃P=CH₂ , THF", a: "anhydrous  ·  irreversible  ·  0 °C to room temperature", badge: "4-Nitrostyrene", image: "carbonyl_var_wittig_11.svg", imageCrop: "37%", heading: "Nucleophilic addition · more of the same" },
+    { q: "Wittig olefination of acetophenone: Acetophenone + Ph₃P=CH₂ , THF", a: "anhydrous  ·  irreversible  ·  0 °C to room temperature", badge: "2-Phenylpropene", image: "carbonyl_var_wittig_12.svg", imageCrop: "37%", heading: "Nucleophilic addition · more of the same" },
   ],
 };

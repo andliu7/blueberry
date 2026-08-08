@@ -1,4 +1,4 @@
-import type { ReferenceDeck } from "@/data/types";
+import type { StudyDeck } from "@/data/types";
 
 /**
  * Oxidation — 13 cards.
@@ -7,8 +7,7 @@ import type { ReferenceDeck } from "@/data/types";
  * hand edit: the next run overwrites it, and the point of generating it is that
  * a card cannot drift from the reaction page it came from.
  */
-export const carbonylOxidationDeck: ReferenceDeck = {
-  kind: "reference",
+export const carbonylOxidationDeck: StudyDeck = {
   id: "carbonyl-oxidation",
   title: "Oxidation",
   short: "Oxidation",
@@ -18,36 +17,22 @@ export const carbonylOxidationDeck: ReferenceDeck = {
   blurb: "Alcohol up to a carbonyl. How far it goes is the whole question.",
   about: "A secondary alcohol has one answer: the ketone, and it stops there because there is no second hydrogen on that carbon to remove.\n\nA primary alcohol has two, and the reagent picks. PCC is anhydrous and stops at the aldehyde. Jones is aqueous chromium, the aldehyde hydrates as soon as it forms, and the hydrate is oxidised again — so you get the carboxylic acid.\n\nAlmost every exam question on this topic is that one distinction, asked in a different molecule each time. Which is why the cards here are the same two reagents on a lot of different alcohols.",
   motif: "erlenmeyer",
+  art: "cover_oxidation.svg",
   from: "#9333ea",
   to: "#c026d3",
-  preview: {
-    width: 420,
-    height: 168,
-    cropRight: "37%",
-  },
-  groups: [
-    {
-      heading: "Worked examples — the version of each of these the trainer walks through.",
-      items: [
-        { title: "PCC oxidation of a primary alcohol", description: "Benzyl alcohol  +  PCC , CH₂Cl₂, anhydrous   ·   anhydrous  ·  irreversible  ·  Room temperature", badge: "Benzaldehyde", image: "carbonyl_pcc.svg" },
-        { title: "Jones oxidation of a secondary alcohol", description: "Propan-2-ol  +  CrO₃, H₂SO₄ , H₂O, acetone   ·   acidic  ·  irreversible  ·  0 °C to room temperature", badge: "Acetone", image: "carbonyl_jones.svg" },
-        { title: "Jones oxidation of a primary alcohol", description: "Benzyl alcohol  +  CrO₃, H₂SO₄ , H₂O, acetone   ·   acidic  ·  irreversible  ·  0 °C to room temperature", badge: "Benzoic acid", image: "carbonyl_jones-primary.svg" },
-      ],
-    },
-    {
-      heading: "More of the same — the same reactions on substrates you have not seen.",
-      items: [
-        { title: "PCC oxidation of butan-1-ol", description: "Butan-1-ol  +  PCC , CH₂Cl₂, anhydrous   ·   anhydrous  ·  irreversible  ·  Room temperature", badge: "Butanal", image: "carbonyl_var_pcc_0.svg" },
-        { title: "PCC oxidation of cyclohexanol", description: "Cyclohexanol  +  PCC , CH₂Cl₂, anhydrous   ·   anhydrous  ·  irreversible  ·  Room temperature", badge: "Cyclohexanone", image: "carbonyl_var_pcc_1.svg" },
-        { title: "PCC oxidation of 2-Phenylethanol", description: "2-Phenylethanol  +  PCC , CH₂Cl₂, anhydrous   ·   anhydrous  ·  irreversible  ·  Room temperature", badge: "Phenylacetaldehyde", image: "carbonyl_var_pcc_2.svg" },
-        { title: "PCC oxidation of pentan-2-ol", description: "Pentan-2-ol  +  PCC , CH₂Cl₂, anhydrous   ·   anhydrous  ·  irreversible  ·  Room temperature", badge: "Pentan-2-one", image: "carbonyl_var_pcc_3.svg" },
-        { title: "Jones oxidation of a primary alcohol of butan-1-ol", description: "Butan-1-ol  +  CrO₃, H₂SO₄ , H₂O, acetone   ·   acidic  ·  irreversible  ·  0 °C to room temperature", badge: "Butanoic acid", image: "carbonyl_var_jones-primary_4.svg" },
-        { title: "Jones oxidation of a primary alcohol of 2-Phenylethanol", description: "2-Phenylethanol  +  CrO₃, H₂SO₄ , H₂O, acetone   ·   acidic  ·  irreversible  ·  0 °C to room temperature", badge: "Phenylacetic acid", image: "carbonyl_var_jones-primary_5.svg" },
-        { title: "Jones oxidation of a primary alcohol of 4-Methoxybenzyl alcohol", description: "4-Methoxybenzyl alcohol  +  CrO₃, H₂SO₄ , H₂O, acetone   ·   acidic  ·  irreversible  ·  0 °C to room temperature", badge: "4-Methoxybenzoic acid", image: "carbonyl_var_jones-primary_6.svg" },
-        { title: "Jones oxidation of a secondary alcohol of cyclohexanol", description: "Cyclohexanol  +  CrO₃, H₂SO₄ , H₂O, acetone   ·   acidic  ·  irreversible  ·  0 °C to room temperature", badge: "Cyclohexanone", image: "carbonyl_var_jones_7.svg" },
-        { title: "Jones oxidation of a secondary alcohol of 1-Phenylethanol", description: "1-Phenylethanol  +  CrO₃, H₂SO₄ , H₂O, acetone   ·   acidic  ·  irreversible  ·  0 °C to room temperature", badge: "Acetophenone", image: "carbonyl_var_jones_8.svg" },
-        { title: "Jones oxidation of a secondary alcohol of pentan-3-ol", description: "Pentan-3-ol  +  CrO₃, H₂SO₄ , H₂O, acetone   ·   acidic  ·  irreversible  ·  0 °C to room temperature", badge: "Pentan-3-one", image: "carbonyl_var_jones_9.svg" },
-      ],
-    },
+  questions: [
+    { q: "PCC oxidation of a primary alcohol: Benzyl alcohol + PCC , CH₂Cl₂, anhydrous", a: "anhydrous  ·  irreversible  ·  Room temperature", badge: "Benzaldehyde", image: "carbonyl_pcc.svg", imageCrop: "37%", heading: "Oxidation · worked examples" },
+    { q: "Jones oxidation of a secondary alcohol: Propan-2-ol + CrO₃, H₂SO₄ , H₂O, acetone", a: "acidic  ·  irreversible  ·  0 °C to room temperature", badge: "Acetone", image: "carbonyl_jones.svg", imageCrop: "37%", heading: "Oxidation · worked examples" },
+    { q: "Jones oxidation of a primary alcohol: Benzyl alcohol + CrO₃, H₂SO₄ , H₂O, acetone", a: "acidic  ·  irreversible  ·  0 °C to room temperature", badge: "Benzoic acid", image: "carbonyl_jones-primary.svg", imageCrop: "37%", heading: "Oxidation · worked examples" },
+    { q: "PCC oxidation of butan-1-ol: Butan-1-ol + PCC , CH₂Cl₂, anhydrous", a: "anhydrous  ·  irreversible  ·  Room temperature", badge: "Butanal", image: "carbonyl_var_pcc_0.svg", imageCrop: "37%", heading: "Oxidation · more of the same" },
+    { q: "PCC oxidation of cyclohexanol: Cyclohexanol + PCC , CH₂Cl₂, anhydrous", a: "anhydrous  ·  irreversible  ·  Room temperature", badge: "Cyclohexanone", image: "carbonyl_var_pcc_1.svg", imageCrop: "37%", heading: "Oxidation · more of the same" },
+    { q: "PCC oxidation of 2-Phenylethanol: 2-Phenylethanol + PCC , CH₂Cl₂, anhydrous", a: "anhydrous  ·  irreversible  ·  Room temperature", badge: "Phenylacetaldehyde", image: "carbonyl_var_pcc_2.svg", imageCrop: "37%", heading: "Oxidation · more of the same" },
+    { q: "PCC oxidation of pentan-2-ol: Pentan-2-ol + PCC , CH₂Cl₂, anhydrous", a: "anhydrous  ·  irreversible  ·  Room temperature", badge: "Pentan-2-one", image: "carbonyl_var_pcc_3.svg", imageCrop: "37%", heading: "Oxidation · more of the same" },
+    { q: "Jones oxidation of a primary alcohol of butan-1-ol: Butan-1-ol + CrO₃, H₂SO₄ , H₂O, acetone", a: "acidic  ·  irreversible  ·  0 °C to room temperature", badge: "Butanoic acid", image: "carbonyl_var_jones-primary_4.svg", imageCrop: "37%", heading: "Oxidation · more of the same" },
+    { q: "Jones oxidation of a primary alcohol of 2-Phenylethanol: 2-Phenylethanol + CrO₃, H₂SO₄ , H₂O, acetone", a: "acidic  ·  irreversible  ·  0 °C to room temperature", badge: "Phenylacetic acid", image: "carbonyl_var_jones-primary_5.svg", imageCrop: "37%", heading: "Oxidation · more of the same" },
+    { q: "Jones oxidation of a primary alcohol of 4-Methoxybenzyl alcohol: 4-Methoxybenzyl alcohol + CrO₃, H₂SO₄ , H₂O, acetone", a: "acidic  ·  irreversible  ·  0 °C to room temperature", badge: "4-Methoxybenzoic acid", image: "carbonyl_var_jones-primary_6.svg", imageCrop: "37%", heading: "Oxidation · more of the same" },
+    { q: "Jones oxidation of a secondary alcohol of cyclohexanol: Cyclohexanol + CrO₃, H₂SO₄ , H₂O, acetone", a: "acidic  ·  irreversible  ·  0 °C to room temperature", badge: "Cyclohexanone", image: "carbonyl_var_jones_7.svg", imageCrop: "37%", heading: "Oxidation · more of the same" },
+    { q: "Jones oxidation of a secondary alcohol of 1-Phenylethanol: 1-Phenylethanol + CrO₃, H₂SO₄ , H₂O, acetone", a: "acidic  ·  irreversible  ·  0 °C to room temperature", badge: "Acetophenone", image: "carbonyl_var_jones_8.svg", imageCrop: "37%", heading: "Oxidation · more of the same" },
+    { q: "Jones oxidation of a secondary alcohol of pentan-3-ol: Pentan-3-ol + CrO₃, H₂SO₄ , H₂O, acetone", a: "acidic  ·  irreversible  ·  0 °C to room temperature", badge: "Pentan-3-one", image: "carbonyl_var_jones_9.svg", imageCrop: "37%", heading: "Oxidation · more of the same" },
   ],
 };

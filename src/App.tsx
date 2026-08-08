@@ -1,5 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ChevronsUpDown, ChevronsDownUp, Shuffle, GalleryHorizontalEnd, List, MoveVertical, ArrowDown, GitBranch, ArrowUpRight, Layers, RefreshCw, Orbit, Maximize2, Minimize2 } from "lucide-react";
+import { ChevronsUpDown, ChevronsDownUp, Shuffle, GalleryHorizontalEnd, List, MoveVertical, ArrowDown, GitBranch, ArrowUpRight, Layers, RefreshCw, Orbit, Rows3, Maximize2, Minimize2 } from "lucide-react";
 import { FlippingCard } from "@/components/ui/flipping-card";
 import { MathHtml } from "@/components/ui/math-html";
 import { ClickHereHint } from "@/components/ui/click-here-hint";
@@ -7,12 +7,15 @@ import { useDecks } from "@/lib/useDecks";
 import {
   isReference,
   deckAllows,
+  questionsAsGroups,
   ALL_DECK_VIEWS,
   DECK_GROUPS,
   type DeckGroupId,
+  type DeckView,
   type StudyDeck,
   type Question,
 } from "@/data/types";
+import { HoverDeck } from "@/components/ui/hover-deck";
 import { NotFoundPage } from "@/components/ui/404-page-not-found";
 import { testimonials, testimonialArt } from "@/data/testimonials";
 import { GradientMenuButton, type GradientMenuItem } from "@/components/ui/gradient-menu";
@@ -74,6 +77,7 @@ const VIEW_LABEL = {
   scroll: "Scroll",
   stack: "Stack",
   gallery: "Gallery",
+  table: "Table",
 } as const;
 const VIEW_ICON = {
   list: <List />,
@@ -81,9 +85,13 @@ const VIEW_ICON = {
   scroll: <MoveVertical />,
   stack: <Layers />,
   gallery: <Orbit />,
+  table: <Rows3 />,
 } as const;
 const FLAME = "🔥";
 const PARTY = "🎉";
+
+/** Matches the crop the generator writes onto each card. */
+const TABLE_PREVIEW = { width: 420, height: 168, cropRight: "37%" };
 
 const diffRank: Record<Status, number> = { red: 0, yellow: 1, none: 2, green: 3 };
 
@@ -320,7 +328,7 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
     const t = setTimeout(() => setShowHint(true), 320);
     return () => clearTimeout(t);
   }, [toolsOpen]);
-  const [view, setView] = useState<"list" | "carousel" | "scroll" | "stack" | "gallery">("list");
+  const [view, setView] = useState<DeckView>("list");
   const carouselMode = view === "carousel";
   const [carouselIndex, setCarouselIndex] = useState(0);
   /**
@@ -616,17 +624,23 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
    * view that is useless on the 44-question decks should not be one of the
    * things the button cycles you through on them.
    */
-  const VIEWS = useMemo(() => {
-    const offered = (deck.features?.views ?? ALL_DECK_VIEWS).filter(
-      // `table` belongs to the reference layout; a study deck without images has
-      // no rows to draw. Decks that do carry images get it back in step 5.
-      (v): v is typeof view => v !== "table",
+  /**
+   * The questions as table rows, when they can be. Empty for a deck of written
+   * questions, which is what takes `table` back out of the view cycle.
+   */
+  const tableGroups = useMemo(() => questionsAsGroups(questions), [questions]);
+
+  const VIEWS = useMemo<readonly DeckView[]>(() => {
+    const offered: DeckView[] = deck.features?.views ?? ALL_DECK_VIEWS;
+    const usable = offered.filter(
+      (v) =>
+        (v !== "gallery" || questions.length <= GALLERY_MAX) &&
+        (v !== "table" || tableGroups.length > 0),
     );
-    const usable = offered.filter((v) => v !== "gallery" || questions.length <= GALLERY_MAX);
     // A deck that switched everything off still has to render something, and
     // list is the view that needs no controls to be useful.
-    return (usable.length ? usable : (["list"] as typeof usable)) as readonly typeof view[];
-  }, [deck.features, questions.length]);
+    return usable.length ? usable : ["list"];
+  }, [deck.features, questions.length, tableGroups.length]);
 
   // Whatever was selected has to be one of the offered views, or a deck that
   // turned off the view it opens on renders nothing at all.
@@ -1254,7 +1268,12 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
         <div ref={cardsTopRef} className="scroll-mt-28" />
 
         <div ref={cardsRef}>
-        {view === "gallery" ? (
+        {view === "table" ? (
+          // The reference layout, kept. Scanning nineteen reactions at once is
+          // genuinely the best way to see which ones share a mechanism, and that
+          // is the one thing the card views cannot do.
+          <HoverDeck groups={tableGroups} quizMode hoverPreview preview={TABLE_PREVIEW} />
+        ) : view === "gallery" ? (
           <CardGallery3D items={galleryItems} label="Questions" />
         ) : view === "scroll" ? (
           <ScrollTiltedGrid className="gap-[14vh] py-[12vh]">

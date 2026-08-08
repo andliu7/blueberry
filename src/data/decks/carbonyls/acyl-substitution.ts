@@ -1,4 +1,4 @@
-import type { ReferenceDeck } from "@/data/types";
+import type { StudyDeck } from "@/data/types";
 
 /**
  * Nucleophilic acyl substitution — 11 cards.
@@ -7,8 +7,7 @@ import type { ReferenceDeck } from "@/data/types";
  * hand edit: the next run overwrites it, and the point of generating it is that
  * a card cannot drift from the reaction page it came from.
  */
-export const carbonylAcylSubstitutionDeck: ReferenceDeck = {
-  kind: "reference",
+export const carbonylAcylSubstitutionDeck: StudyDeck = {
   id: "carbonyl-acyl-substitution",
   title: "Nucleophilic acyl substitution",
   short: "Acyl subst.",
@@ -18,34 +17,20 @@ export const carbonylAcylSubstitutionDeck: ReferenceDeck = {
   blurb: "A derivative, so the oxygen comes back down and pushes a leaving group out.",
   about: "Identical opening move to nucleophilic addition: nucleophile on, oxygen down. The difference is what is sitting on the carbonyl carbon.\n\nA chloride, an ester oxygen or an anhydride can leave, so the oxygen comes back down and throws it out, and you end up substituted rather than added to.\n\nWhich derivative is more reactive follows from how good that leaving group is, and that ordering — acid chloride, anhydride, ester, amide — is worth more marks than any single mechanism here.",
   motif: "vanillin",
+  art: "cover_acyl-substitution.svg",
   from: "#5b21b6",
   to: "#7c3aed",
-  preview: {
-    width: 420,
-    height: 168,
-    cropRight: "37%",
-  },
-  groups: [
-    {
-      heading: "Worked examples — the version of each of these the trainer walks through.",
-      items: [
-        { title: "Acetylation of vanillin", description: "Vanillin  +  Ac₂O , NaOH , H₂O   ·   basic  ·  irreversible  ·  Room temperature", badge: "Vanillin acetate", image: "carbonyl_vanillin-acetylation.svg" },
-        { title: "Anhydride from an acid chloride", description: "Acetyl chloride  +  CH₃CO₂⁻ , pyridine   ·   neutral  ·  irreversible  ·  Room temperature", badge: "Acetic anhydride", image: "carbonyl_anhydride.svg" },
-        { title: "Gilman reagent on an acid chloride", description: "Benzoyl chloride  +  Me₂CuLi , Et₂O, −78 °C   ·   anhydrous  ·  irreversible  ·  −78 °C", badge: "Acetophenone", image: "carbonyl_gilman.svg" },
-        { title: "Nitrile hydrolysis, basic", description: "Benzonitrile  +  NaOH, H₂O , heat   ·   basic  ·  irreversible  ·  Reflux", badge: "Benzoate", image: "carbonyl_nitrile-basic.svg" },
-        { title: "Nitrile hydrolysis, acidic", description: "Benzonitrile  +  H₃O⁺ , heat   ·   acidic  ·  irreversible  ·  Reflux, often for hours", badge: "Benzoic acid", image: "carbonyl_nitrile-acidic.svg" },
-      ],
-    },
-    {
-      heading: "More of the same — the same reactions on substrates you have not seen.",
-      items: [
-        { title: "Gilman reagent on an acid chloride of acetyl chloride", description: "Acetyl chloride  +  Me₂CuLi , Et₂O, −78 °C   ·   anhydrous  ·  irreversible  ·  −78 °C", badge: "Acetone", image: "carbonyl_var_gilman_0.svg" },
-        { title: "Gilman reagent on an acid chloride of 4-Chlorobenzoyl chloride", description: "4-Chlorobenzoyl chloride  +  Me₂CuLi , Et₂O, −78 °C   ·   anhydrous  ·  irreversible  ·  −78 °C", badge: "4′-Chloroacetophenone", image: "carbonyl_var_gilman_1.svg" },
-        { title: "Gilman reagent on an acid chloride of propanoyl chloride", description: "Propanoyl chloride  +  Me₂CuLi , Et₂O, −78 °C   ·   anhydrous  ·  irreversible  ·  −78 °C", badge: "Butan-2-one", image: "carbonyl_var_gilman_2.svg" },
-        { title: "Nitrile hydrolysis, acidic of acetonitrile", description: "Acetonitrile  +  H₃O⁺ , heat , excess H₂O   ·   acidic  ·  irreversible  ·  Reflux, often for hours", badge: "Acetic acid", image: "carbonyl_var_nitrile-acidic_3.svg" },
-        { title: "Nitrile hydrolysis, acidic of 4-Methylbenzonitrile", description: "4-Methylbenzonitrile  +  H₃O⁺ , heat , excess H₂O   ·   acidic  ·  irreversible  ·  Reflux, often for hours", badge: "4-Methylbenzoic acid", image: "carbonyl_var_nitrile-acidic_4.svg" },
-        { title: "Nitrile hydrolysis, acidic of phenylacetonitrile", description: "Phenylacetonitrile  +  H₃O⁺ , heat , excess H₂O   ·   acidic  ·  irreversible  ·  Reflux, often for hours", badge: "Phenylacetic acid", image: "carbonyl_var_nitrile-acidic_5.svg" },
-      ],
-    },
+  questions: [
+    { q: "Acetylation of vanillin: Vanillin + Ac₂O , NaOH , H₂O", a: "basic  ·  irreversible  ·  Room temperature", badge: "Vanillin acetate", image: "carbonyl_vanillin-acetylation.svg", imageCrop: "37%", heading: "Nucleophilic acyl substitution · worked examples" },
+    { q: "Anhydride from an acid chloride: Acetyl chloride + CH₃CO₂⁻ , pyridine", a: "neutral  ·  irreversible  ·  Room temperature", badge: "Acetic anhydride", image: "carbonyl_anhydride.svg", imageCrop: "37%", heading: "Nucleophilic acyl substitution · worked examples" },
+    { q: "Gilman reagent on an acid chloride: Benzoyl chloride + Me₂CuLi , Et₂O, −78 °C", a: "anhydrous  ·  irreversible  ·  −78 °C", badge: "Acetophenone", image: "carbonyl_gilman.svg", imageCrop: "37%", heading: "Nucleophilic acyl substitution · worked examples" },
+    { q: "Nitrile hydrolysis, basic: Benzonitrile + NaOH, H₂O , heat", a: "basic  ·  irreversible  ·  Reflux", badge: "Benzoate", image: "carbonyl_nitrile-basic.svg", imageCrop: "37%", heading: "Nucleophilic acyl substitution · worked examples" },
+    { q: "Nitrile hydrolysis, acidic: Benzonitrile + H₃O⁺ , heat", a: "acidic  ·  irreversible  ·  Reflux, often for hours", badge: "Benzoic acid", image: "carbonyl_nitrile-acidic.svg", imageCrop: "37%", heading: "Nucleophilic acyl substitution · worked examples" },
+    { q: "Gilman reagent on an acid chloride of acetyl chloride: Acetyl chloride + Me₂CuLi , Et₂O, −78 °C", a: "anhydrous  ·  irreversible  ·  −78 °C", badge: "Acetone", image: "carbonyl_var_gilman_0.svg", imageCrop: "37%", heading: "Nucleophilic acyl substitution · more of the same" },
+    { q: "Gilman reagent on an acid chloride of 4-Chlorobenzoyl chloride: 4-Chlorobenzoyl chloride + Me₂CuLi , Et₂O, −78 °C", a: "anhydrous  ·  irreversible  ·  −78 °C", badge: "4′-Chloroacetophenone", image: "carbonyl_var_gilman_1.svg", imageCrop: "37%", heading: "Nucleophilic acyl substitution · more of the same" },
+    { q: "Gilman reagent on an acid chloride of propanoyl chloride: Propanoyl chloride + Me₂CuLi , Et₂O, −78 °C", a: "anhydrous  ·  irreversible  ·  −78 °C", badge: "Butan-2-one", image: "carbonyl_var_gilman_2.svg", imageCrop: "37%", heading: "Nucleophilic acyl substitution · more of the same" },
+    { q: "Nitrile hydrolysis, acidic of acetonitrile: Acetonitrile + H₃O⁺ , heat , excess H₂O", a: "acidic  ·  irreversible  ·  Reflux, often for hours", badge: "Acetic acid", image: "carbonyl_var_nitrile-acidic_3.svg", imageCrop: "37%", heading: "Nucleophilic acyl substitution · more of the same" },
+    { q: "Nitrile hydrolysis, acidic of 4-Methylbenzonitrile: 4-Methylbenzonitrile + H₃O⁺ , heat , excess H₂O", a: "acidic  ·  irreversible  ·  Reflux, often for hours", badge: "4-Methylbenzoic acid", image: "carbonyl_var_nitrile-acidic_4.svg", imageCrop: "37%", heading: "Nucleophilic acyl substitution · more of the same" },
+    { q: "Nitrile hydrolysis, acidic of phenylacetonitrile: Phenylacetonitrile + H₃O⁺ , heat , excess H₂O", a: "acidic  ·  irreversible  ·  Reflux, often for hours", badge: "Phenylacetic acid", image: "carbonyl_var_nitrile-acidic_5.svg", imageCrop: "37%", heading: "Nucleophilic acyl substitution · more of the same" },
   ],
 };

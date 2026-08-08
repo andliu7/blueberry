@@ -345,8 +345,18 @@ export function motifMarkup(motif: ArtMotif, color = "currentColor"): string {
 
 /**
  * Builds a portrait card image: gradient wash, the site's faint grid, then the motif.
+ *
+ * `art` wins when a deck has one. A carbonyl deck is better introduced by the
+ * chemistry it drills than by an abstract mark, and those covers are drawn by
+ * the generator at these exact proportions so they drop straight in.
  */
-export function cardArt(motif: ArtMotif, from: string, to: string): string {
+export function cardArt(
+  motif: ArtMotif,
+  from: string,
+  to: string,
+  art?: string,
+): string {
+  if (art) return `${import.meta.env.BASE_URL}cards/${art}`;
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 320" width="240" height="320">
   <defs>
     <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">

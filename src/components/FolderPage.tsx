@@ -1,5 +1,5 @@
-﻿import { useCallback, useMemo, useState } from "react";
-import { motion, useReducedMotion } from "motion/react";
+﻿import { useCallback, useMemo, useRef, useState } from "react";
+import { motion, useInView, useReducedMotion } from "motion/react";
 import { ArrowLeft } from "lucide-react";
 import { useDecks } from "@/lib/useDecks";
 import {
@@ -42,6 +42,15 @@ export function FolderPage({ groupId }: { groupId: DeckGroupId }) {
   const [browseOpen, setBrowseOpen] = useState(false);
   const toggleBrowse = useCallback(() => setBrowseOpen((o) => !o), []);
 
+  // Same rule as the hub's: hand over as the heading starts sliding under the
+  // bar rather than once it has fully cleared the screen.
+  const headingRef = useRef<HTMLElement>(null);
+  const headingInView = useInView(headingRef, {
+    amount: "all",
+    margin: "-76px 0px 0px 0px",
+  });
+  const pastHeading = !headingInView;
+
   const group = DECK_GROUPS.find((g) => g.id === groupId);
   const { decks: allDecks, shelves } = useDecks();
   const all = useMemo(
@@ -68,9 +77,17 @@ export function FolderPage({ groupId }: { groupId: DeckGroupId }) {
       style={{ backgroundColor: surface.base, backgroundImage: surface.gradient }}
     >
       <SpotlightCursor className="z-0" config={spotlightFor(isDark)} />
-      <SiteHeader browse={{ open: browseOpen, onToggle: toggleBrowse }} />
+      {/* Same handover as the hub: the folder's name moves up to the bar once
+          its own heading has scrolled under it, so you always know which folder
+          you are in. A folder page is one category deep, so the whole page is
+          the category and the title never has to let go. */}
+      <SiteHeader
+        category={pastHeading ? group.title : null}
+        browse={{ open: browseOpen, onToggle: toggleBrowse }}
+        search={{ value: query, onChange: setQuery, hits }}
+      />
       <div className="relative z-10 mx-auto flex max-w-5xl flex-col px-6">
-        <header className="mt-12 mb-10 max-w-2xl">
+        <header ref={headingRef} className="mt-12 mb-10 max-w-2xl">
           <a
             href="#/home"
             className="group inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500 transition-colors hover:text-slate-800 dark:text-stone-400 dark:hover:text-stone-100"
