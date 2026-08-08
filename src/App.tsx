@@ -4,7 +4,15 @@ import { FlippingCard } from "@/components/ui/flipping-card";
 import { MathHtml } from "@/components/ui/math-html";
 import { ClickHereHint } from "@/components/ui/click-here-hint";
 import { useDecks } from "@/lib/useDecks";
-import { isReference, DECK_GROUPS, type DeckGroupId, type StudyDeck, type Question } from "@/data/types";
+import {
+  isReference,
+  deckAllows,
+  ALL_DECK_VIEWS,
+  DECK_GROUPS,
+  type DeckGroupId,
+  type StudyDeck,
+  type Question,
+} from "@/data/types";
 import { NotFoundPage } from "@/components/ui/404-page-not-found";
 import { testimonials, testimonialArt } from "@/data/testimonials";
 import { GradientMenuButton, type GradientMenuItem } from "@/components/ui/gradient-menu";
@@ -608,13 +616,24 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
    * view that is useless on the 44-question decks should not be one of the
    * things the button cycles you through on them.
    */
-  const VIEWS = useMemo(
-    () =>
-      (questions.length <= GALLERY_MAX
-        ? (["list", "carousel", "scroll", "stack", "gallery"] as const)
-        : (["list", "carousel", "scroll", "stack"] as const)) as readonly typeof view[],
-    [questions.length],
-  );
+  const VIEWS = useMemo(() => {
+    const offered = (deck.features?.views ?? ALL_DECK_VIEWS).filter(
+      // `table` belongs to the reference layout; a study deck without images has
+      // no rows to draw. Decks that do carry images get it back in step 5.
+      (v): v is typeof view => v !== "table",
+    );
+    const usable = offered.filter((v) => v !== "gallery" || questions.length <= GALLERY_MAX);
+    // A deck that switched everything off still has to render something, and
+    // list is the view that needs no controls to be useful.
+    return (usable.length ? usable : (["list"] as typeof usable)) as readonly typeof view[];
+  }, [deck.features, questions.length]);
+
+  // Whatever was selected has to be one of the offered views, or a deck that
+  // turned off the view it opens on renders nothing at all.
+  useEffect(() => {
+    if (!VIEWS.includes(view)) setView(VIEWS[0]!);
+  }, [VIEWS, view]);
+
   function cycleView() {
     setView((v) => VIEWS[(VIEWS.indexOf(v) + 1) % VIEWS.length]!);
   }
@@ -750,6 +769,7 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
     <QuestionCard
       key={qi}
       num={qi + 1}
+      showRating={deckAllows(deck.features, "ratings")}
       item={questions[qi]}
       status={status[qi + 1] ?? "none"}
       onRate={(color) => rate(qi + 1, color)}
@@ -1051,7 +1071,7 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
                 // reach: you turn it over. Left in, the pair sat there through a
                 // whole deck doing nothing, which is worse than a no-op button,
                 // because it looks like the flip is broken.
-                ...(cardStyle === "classic" && view !== "gallery"
+                ...(cardStyle === "classic" && view !== "gallery" && deckAllows(deck.features, "expandAll")
                   ? [
                       <GooeyTogglePair
                         key="expand-collapse"
@@ -1090,50 +1110,65 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
                       />,
                     ]
                   : []),
-                <GradientMenuButton
-                  key="card-style"
-                  title={CARD_STYLE_LABEL[cardStyle]}
-                  icon={<RefreshCw />}
-                  onClick={() => {
-                    setCardStyle(
-                      (s) => CARD_STYLES[(CARD_STYLES.indexOf(s) + 1) % CARD_STYLES.length],
-                    );
-                    // Every card starts question-side up in the new style;
-                    // carrying flips across reads as cards already answered.
-                    setFlippedMap({});
-                  }}
-                  gradientFrom="#be123c"
-                  gradientTo="#e11d48"
-                  active={cardStyle !== "classic"}
-                />,
+                ...(deckAllows(deck.features, "flip")
+                  ? [
+                      <GradientMenuButton
+                        key="card-style"
+                        title={CARD_STYLE_LABEL[cardStyle]}
+                        icon={<RefreshCw />}
+                        onClick={() => {
+                          setCardStyle(
+                            (s) => CARD_STYLES[(CARD_STYLES.indexOf(s) + 1) % CARD_STYLES.length],
+                          );
+                          // Every card starts question-side up in the new style;
+                          // carrying flips across reads as cards already answered.
+                          setFlippedMap({});
+                        }}
+                        gradientFrom="#be123c"
+                        gradientTo="#e11d48"
+                        active={cardStyle !== "classic"}
+                      />,
+                    ]
+                  : []),
                 ...([
-                  {
-                    title: shuffled ? "Unshuffle" : "Shuffle",
-                    icon: <Shuffle />,
-                    onClick: toggleShuffle,
-                    gradientFrom: "#0f766e",
-                    gradientTo: "#0e7490",
-                    active: shuffled,
-                  },
+                  ...(deckAllows(deck.features, "shuffle")
+                    ? [
+                        {
+                          title: shuffled ? "Unshuffle" : "Shuffle",
+                          icon: <Shuffle />,
+                          onClick: toggleShuffle,
+                          gradientFrom: "#0f766e",
+                          gradientTo: "#0e7490",
+                          active: shuffled,
+                        },
+                      ]
+                    : []),
                   // One control cycles List -> Carousel -> Scroll.
                   // Keeps its violet gradient on hover and when active, like
                   // the others. What changed is the resting state: an amber
                   // tint plus a spark every few seconds, because this is the
                   // least guessable control in the toolbar and a plain white
                   // pill gave no hint that it did anything.
-                  {
-                    title: VIEW_LABEL[view],
-                    icon: VIEW_ICON[view],
-                    onClick: cycleView,
-                    gradientFrom: "#7c3aed",
-                    gradientTo: "#a855f7",
-                    restClassName:
-                      "!bg-amber-100 !border-amber-300 dark:!bg-amber-400/15 dark:!border-amber-500/40",
-                    active: view !== "list",
-                    particles: true,
-                    particleClassName: "bg-yellow-200 dark:bg-yellow-200",
-                    idleBurstMs: 6000,
-                  },
+                  // Only worth showing when there is somewhere to cycle to. A
+                  // deck offering one view had a button that relabelled itself
+                  // to the view it was already in.
+                  ...(VIEWS.length > 1
+                    ? [
+                        {
+                          title: VIEW_LABEL[view],
+                          icon: VIEW_ICON[view],
+                          onClick: cycleView,
+                          gradientFrom: "#7c3aed",
+                          gradientTo: "#a855f7",
+                          restClassName:
+                            "!bg-amber-100 !border-amber-300 dark:!bg-amber-400/15 dark:!border-amber-500/40",
+                          active: view !== "list",
+                          particles: true,
+                          particleClassName: "bg-yellow-200 dark:bg-yellow-200",
+                          idleBurstMs: 6000,
+                        },
+                      ]
+                    : []),
                   {
                     title: "To Bottom",
                     // A plain arrow. The one with a line under it is what every
@@ -1154,14 +1189,18 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
                   // state before it could render.
                   <GradientMenuButton key={i} {...item} />
                 )),
-                <ButtonHoldAndRelease
-                  key="reset"
-                  onConfirm={doReset}
-                  holdDuration={1200}
-                  label="Reset"
-                  holdingLabel="Hold…"
-                  className="min-w-0 h-9 px-3"
-                />,
+                ...(deckAllows(deck.features, "reset")
+                  ? [
+                      <ButtonHoldAndRelease
+                        key="reset"
+                        onConfirm={doReset}
+                        holdDuration={1200}
+                        label="Reset"
+                        holdingLabel="Hold…"
+                        className="min-w-0 h-9 px-3"
+                      />,
+                    ]
+                  : []),
               ]}
             </AnimatedActionCluster>
             </div>
@@ -1389,7 +1428,7 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
 
       <ToastQueue toasts={toasts} onDismiss={dismissToast} />
 
-      <StickyNote value={note} onChange={setNote} />
+      {deckAllows(deck.features, "notes") && <StickyNote value={note} onChange={setNote} />}
       <Confetti trigger={confettiTrigger} />
     </div>
   );

@@ -1,10 +1,25 @@
 import type { ArtMotif } from "@/data/testimonialArt";
 
-/** A plain question with a written answer. */
+/**
+ * A plain question with a written answer.
+ *
+ * `image`, `badge` and `heading` are what let a picture be a flashcard. The
+ * carbonyl decks were reference decks purely because their cards are drawings,
+ * which cost them ratings, progress and every view mode for no reason — being an
+ * image does not stop a card being a card. With these three a study deck can
+ * carry a scheme, the short answer that goes on the back, and the group it
+ * belongs to, which is also everything the table view needs to render itself.
+ */
 export interface QAItem {
   mc?: false;
   q: string;
   a: string;
+  /** A file in `public/cards`, with its extension. */
+  image?: string;
+  /** The short answer, when there is one worth showing apart from `a`. */
+  badge?: string;
+  /** The section this card belongs to, used to group the table view. */
+  heading?: string;
 }
 
 /**
@@ -41,6 +56,54 @@ export interface DeckItem {
 export interface DeckGroup {
   heading?: string;
   items: DeckItem[];
+}
+
+/** The containers a deck's cards can be shown in. */
+export type DeckView = "list" | "carousel" | "scroll" | "stack" | "gallery" | "table";
+
+export const ALL_DECK_VIEWS: DeckView[] = [
+  "list",
+  "carousel",
+  "scroll",
+  "stack",
+  "gallery",
+  "table",
+];
+
+/**
+ * Which of the deck page's controls a deck offers.
+ *
+ * **Absent means all of them**, which is the only reason this could be added
+ * without migrating anything: every existing deck keeps exactly the page it had.
+ *
+ * It exists because a deck someone builds is not always a deck that wants forty
+ * controls. A ten-card definitions deck has no use for hard-first ordering or a
+ * laser pointer, and offering them makes the page look like it does more than it
+ * does. The builder writes this; nothing else needs to.
+ */
+export type DeckFeatures = {
+  /** Which views the cycle button walks through. At least one, or you get list. */
+  views?: DeckView[];
+  /** Flip cards, i.e. question on the front and answer on the back. */
+  flip?: boolean;
+  /** Red / yellow / green self-rating, and the progress that comes with it. */
+  ratings?: boolean;
+  /** The sticky note. */
+  notes?: boolean;
+  /** Draw over the page. */
+  laser?: boolean;
+  shuffle?: boolean;
+  /** Expand and collapse every answer at once. */
+  expandAll?: boolean;
+  reset?: boolean;
+};
+
+/** One toggle's value, defaulting to on when `features` says nothing. */
+export function deckAllows(
+  features: DeckFeatures | undefined,
+  key: Exclude<keyof DeckFeatures, "views">,
+): boolean {
+  return features?.[key] ?? true;
 }
 
 /**
@@ -116,6 +179,19 @@ type DeckCommon = {
   /** Gradient for the hub card's artwork well. */
   from: string;
   to: string;
+  /**
+   * Which controls this deck's page offers. Absent means all of them, so no
+   * existing deck changes.
+   */
+  features?: DeckFeatures;
+  /**
+   * A cover image under `public/cards`, used instead of drawing `motif`.
+   *
+   * For decks whose subject has a picture worth showing: a carbonyl deck is
+   * better introduced by the reaction it drills than by an abstract mark. Decks
+   * without one fall back to the motif, which is every deck that came before.
+   */
+  art?: string;
 };
 
 export type DeckGroupId = "lab" | "reference" | "carbonyls" | "uploaded";

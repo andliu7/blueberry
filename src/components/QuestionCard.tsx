@@ -30,12 +30,15 @@ export function QuestionCard({
   submitted: submittedProp,
   onSubmit,
   onRetry,
+  showRating = true,
 }: {
   num: number;
   item: Question;
   status: Status;
   onRate: (color: Status) => void;
   isActive?: boolean;
+  /** Off for a deck whose `features.ratings` is false. */
+  showRating?: boolean;
   /** Supply with onOpenChange to let a parent drive expand/collapse all. */
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -208,6 +211,9 @@ export function QuestionCard({
             <MathHtml html={item.a} className="text-gray-800 dark:text-stone-300 leading-relaxed" />
           )}
 
+          {/* A deck can turn rating off. Then there is no row here at all,
+              rather than a row of buttons that record nothing. */}
+          {showRating && (
           <div className="mt-4 pt-4 border-t border-indigo-100 dark:border-stone-800 flex flex-wrap gap-2 items-center">
             <span className="text-xs text-gray-400 dark:text-stone-500 font-medium uppercase tracking-wider mr-auto">
               Rate your recall:
@@ -234,6 +240,7 @@ export function QuestionCard({
               Got It
             </PressDepth>
           </div>
+          )}
         </div>
       )}
     </div>

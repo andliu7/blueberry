@@ -1,10 +1,10 @@
 import { useEffect, useRef } from "react";
-import { Search, X, FileText, Layers, Rows3 } from "lucide-react";
-import { deckHref } from "@/data/types";
+import { Search, X, FileText, Folder, Layers, Rows3 } from "lucide-react";
 import { type SearchHit } from "@/lib/searchDecks";
 import { cn } from "@/lib/utils";
 
 const KIND_ICON = {
+  folder: <Folder className="h-3.5 w-3.5" />,
   deck: <Layers className="h-3.5 w-3.5" />,
   question: <FileText className="h-3.5 w-3.5" />,
   row: <Rows3 className="h-3.5 w-3.5" />,
@@ -129,15 +129,15 @@ export function SearchResults({
       </p>
       <ul className="divide-y divide-slate-200 overflow-hidden rounded-xl border border-slate-200 bg-white dark:divide-stone-800 dark:border-stone-800 dark:bg-stone-900">
         {hits.map((hit, i) => (
-          <li key={`${hit.deck.id}-${hit.kind}-${i}`}>
+          <li key={`${hit.href}-${hit.kind}-${i}`}>
             <a
-              href={deckHref(hit.deck)}
+              href={hit.href}
               onClick={onPick}
               className="block px-4 py-3 transition-colors hover:bg-indigo-50 dark:hover:bg-indigo-400/10"
             >
               <div className="flex items-center gap-1.5 font-mono text-[0.65rem] text-indigo-600 dark:text-indigo-300">
                 {KIND_ICON[hit.kind]}
-                {hit.deck.short ?? hit.deck.title}
+                {hit.label}
               </div>
               <p className="mt-0.5 line-clamp-2 text-sm font-semibold text-slate-800 dark:text-stone-100">
                 {hit.title}

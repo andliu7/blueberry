@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { ArrowLeft } from "lucide-react";
 import { ShaderAnimation } from "@/components/ui/shader-animation";
 import { BlueberryMark } from "@/components/ui/blueberry-mark";
-import { useGoogleAuth } from "@/lib/useGoogleAuth";
+import { DEV_LOGIN, useGoogleAuth } from "@/lib/useGoogleAuth";
 import { WorkspacePage } from "@/components/WorkspacePage";
 import { PassphraseGate } from "@/components/ui/passphrase-gate";
 import { SITE_NAME } from "@/data/site";
@@ -22,12 +22,15 @@ import { SITE_NAME } from "@/data/site";
  * you already signed in.
  */
 export function SignInPage() {
-  const { configured, ready, user, error, signIn, signOut, renderButton } = useGoogleAuth();
+  const auth = useGoogleAuth();
 
   // Signed in, so this is no longer a door. The shader page has done its job and
   // the workspace takes over the route rather than sitting behind another click.
-  if (user) return <WorkspacePage user={user} />;
-  return <SignInDoor {...{ configured, ready, user, error, signIn, signOut, renderButton }} />;
+  if (auth.user) return <WorkspacePage user={auth.user} />;
+  // Spread whole rather than re-listing every field: the list had to be edited
+  // in three places to add one, and forgetting the third is a type error at the
+  // call site rather than where the field was added.
+  return <SignInDoor {...auth} />;
 }
 
 /**
@@ -43,6 +46,7 @@ function SignInDoor({
   error,
   signIn,
   renderButton,
+  devSignIn,
 }: ReturnType<typeof useGoogleAuth>) {
 
   // The shader is white bands on black and the panel is built for that, so this
@@ -121,6 +125,33 @@ function SignInDoor({
                   {ready ? "Or use the one-tap prompt" : "Loading sign-in…"}
                 </button>
                 {error && <p className="text-xs text-red-300">{error}</p>}
+              </div>
+            )}
+
+            {/*
+              The local door. Google cannot complete a sign-in against localhost
+              here, so without this the entire staff side is unreachable while it
+              is being built.
+
+              `DEV_LOGIN` is `import.meta.env.DEV`, which Vite replaces with a
+              literal at build time — so on the deployed site this is `false &&`
+              and the button is not in the bundle at all. It also grants nothing:
+              the token it sets is a marker string, so every write is still
+              refused by the allowlist on the server.
+            */}
+            {DEV_LOGIN && (
+              <div className="mt-6 border-t border-white/10 pt-5">
+                <button
+                  onClick={devSignIn}
+                  className="w-full cursor-pointer rounded-xl border border-amber-400/30 bg-amber-400/10 px-4 py-2.5 text-sm font-bold text-amber-200 transition hover:bg-amber-400/20"
+                >
+                  Sign in as dev
+                </button>
+                <p className="mt-2 text-[0.7rem] leading-relaxed text-white/40">
+                  Local build only, and never in the deployed bundle. Opens the
+                  staff screens; anything that writes to the sheet is still
+                  refused by the server.
+                </p>
               </div>
             )}
             </PassphraseGate>
