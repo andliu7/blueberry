@@ -97,6 +97,14 @@ type DeckCommon = {
    */
   group?: DeckGroupId;
   /**
+   * Sits on the hub on its own, outside every folder.
+   *
+   * Needed because a missing `group` does not mean "no folder": the hub reads
+   * `d.group ?? "lab"`, so an untagged deck quietly lands in the LCTA folder.
+   * This says loose and means it.
+   */
+  standalone?: boolean;
+  /**
    * A sub-folder inside Uploaded, by name. Only uploaded decks use this: the
    * built-in groups are fixed and are not something anyone reorganises.
    *

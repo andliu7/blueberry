@@ -7,6 +7,7 @@ import { pkaDeck } from "./pka";
 import { irDeck } from "./ir";
 import { nmrDeck } from "./nmr";
 import { resonanceDeck } from "./resonance";
+import { carbonylsDeck } from "./carbonyls";
 
 /**
  * The registry. Every deck listed here appears on the hub and in the navigation
@@ -27,6 +28,8 @@ export const DECKS: Deck[] = [
   irDeck,
   nmrDeck,
   resonanceDeck,
+  // No group, so it sits on its own rather than inside a folder.
+  carbonylsDeck,
 ];
 
 export function findDeck(id: string): Deck | undefined {

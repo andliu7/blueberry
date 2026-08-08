@@ -237,12 +237,42 @@ export function HomePage() {
 
         <DeckSearch decks={allDecks} onResults={handleResults} />
 
+        {/* Decks that belong to no folder, above the folders rather than in
+            one. Only the carbonyl deck so far, which spans a whole course
+            rather than a single lab and would be miscategorised anywhere. */}
+        {(() => {
+          const loose = allDecks.filter(
+            (d) => d.standalone && (!matched || matched.has(d.id)),
+          );
+          if (!loose.length) return null;
+          return (
+            <div className="grid gap-7 sm:grid-cols-2">
+              {loose.map((deck) => (
+                <DeckFolder
+                  key={deck.id}
+                  group={{
+                    id: "lab",
+                    title: deck.title,
+                    blurb: deck.blurb,
+                    from: deck.from,
+                    to: deck.to,
+                  }}
+                  decks={[deck]}
+                />
+              ))}
+            </div>
+          );
+        })()}
+
         {/* Folders first, then the lab decks themselves below, since those are
             what most people are here for. */}
         <div className="grid gap-7 sm:grid-cols-2">
           {DECK_GROUPS.map((group) => {
             const decks = allDecks.filter(
-              (d) => (d.group ?? "lab") === group.id && (!matched || matched.has(d.id)),
+              (d) =>
+                !d.standalone &&
+                (d.group ?? "lab") === group.id &&
+                (!matched || matched.has(d.id)),
             );
             // Uploaded keeps its folder even with nothing in it, so there is
             // somewhere for a published deck to land and somewhere to look for
