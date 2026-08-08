@@ -165,6 +165,15 @@ function Berry() {
   // nothing about the React tree depends on them, so re-rendering would be waste.
   const eyeMode = useRef<EyeMode>("open");
   const hovered = useRef(false);
+  /**
+   * How much of the hover shake is running, 0 to 1.
+   *
+   * An amplitude that eases in and out, rather than switching the shake on and
+   * off. Driving the angle straight from `hovered` starts and stops mid-swing,
+   * which reads as a glitch; ramping the amplitude means it always begins and
+   * ends at rest however briefly the cursor passes over.
+   */
+  const shake = useRef(0);
   const blush = useRef<THREE.Group>(null);
   const mouth = useRef<THREE.Mesh>(null);
   const smile = useRef<THREE.Mesh>(null);
@@ -201,15 +210,20 @@ function Berry() {
       // look-at on a sphere with a face reads as the head spinning off.
       // Flustered, it stops following and holds still.
       //
-      // It used to squirm here. Two passes on the speed and amplitude and it
-      // still read as a shiver rather than embarrassment, so the whole thing is
-      // gone: the squeezed eyes, the blush and the lift already say it, and the
-      // stillness makes them easier to read rather than harder.
+      // A squirm lived here before and was taken out, because at the amplitudes
+      // tried it read as a shiver rather than as embarrassment. This is that
+      // idea again but smaller and only while hovered: a head-tilt wobble on z,
+      // with the lean held still underneath it so there is one movement to read
+      // rather than two competing.
       const ty = hovered.current ? 0 : pointer.x * 0.62;
       const tx = hovered.current ? -0.12 : -pointer.y * 0.34;
       head.current.rotation.y = THREE.MathUtils.lerp(head.current.rotation.y, ty, 9 * dt);
       head.current.rotation.x = THREE.MathUtils.lerp(head.current.rotation.x, tx, 7 * dt);
-      head.current.rotation.z = THREE.MathUtils.lerp(head.current.rotation.z, 0, 9 * dt);
+
+      shake.current = THREE.MathUtils.lerp(shake.current, hovered.current ? 1 : 0, 8 * dt);
+      // Set rather than lerped: the amplitude is already eased, so lerping the
+      // angle as well would drag the wobble behind itself and flatten it.
+      head.current.rotation.z = Math.sin(t * 23) * 0.055 * shake.current;
       // Lifts a little, the way a face does when it is caught out.
       head.current.position.y = THREE.MathUtils.lerp(
         head.current.position.y,

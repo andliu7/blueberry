@@ -1,7 +1,15 @@
 ﻿import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion, useInView, useReducedMotion } from "motion/react";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
-import { deckCount, deckHref, DECK_GROUPS, type Deck } from "@/data/types";
+import {
+  COURSES,
+  deckCount,
+  deckHref,
+  DECK_GROUPS,
+  foldersUnder,
+  type Deck,
+} from "@/data/types";
+import { CourseTree } from "@/components/ui/course-tree";
 import { DECKS } from "@/data/decks";
 import { REPO_URL } from "@/data/site";
 import { useDecks } from "@/lib/useDecks";
@@ -214,7 +222,19 @@ export function HomePage() {
           </div>
         </div>
 
-        <header className="mt-16 mb-12 max-w-2xl">
+        {/*
+          The header holds for a beat as you come out of the opening.
+
+          `sticky` rather than a scroll-driven animation: the heading, the blurb
+          and the blueberry beside them are the first thing under the intro, and
+          letting them pin while the decks slide up underneath gives the descent
+          somewhere to land. Without it the opening ends and the hub simply
+          begins, with nothing marking the join.
+
+          `top-6` clears the nav pill above it, and the z-index keeps it over the
+          folder grid it is holding in front of rather than under it.
+        */}
+        <header className="sticky top-6 z-20 mt-16 mb-12 max-w-2xl">
           <StudyDecksHeading replayKey={headingReplay} />
           {/* One sentence by default. The full version ran to two paragraphs
               and pushed the decks themselves below the fold. */}
@@ -237,65 +257,70 @@ export function HomePage() {
 
         <DeckSearch decks={allDecks} onResults={handleResults} />
 
-        {/* Decks that belong to no folder, above the folders rather than in
-            one. Only the carbonyl deck so far, which spans a whole course
-            rather than a single lab and would be miscategorised anywhere. */}
-        {(() => {
-          const loose = allDecks.filter(
-            (d) => d.standalone && (!matched || matched.has(d.id)),
-          );
-          if (!loose.length) return null;
-          return (
-            <div className="grid gap-7 sm:grid-cols-2">
-              {loose.map((deck) => (
-                <DeckFolder
-                  key={deck.id}
-                  group={{
-                    id: "lab",
-                    title: deck.title,
-                    blurb: deck.blurb,
-                    from: deck.from,
-                    to: deck.to,
-                  }}
-                  decks={[deck]}
-                />
-              ))}
-            </div>
-          );
-        })()}
+        {/*
+          Folders grouped by the course they belong to, three to a row.
 
-        {/* Folders first, then the lab decks themselves below, since those are
-            what most people are here for. */}
-        <div className="grid gap-7 sm:grid-cols-2">
-          {DECK_GROUPS.map((group) => {
-            const decks = allDecks.filter(
-              (d) =>
-                !d.standalone &&
-                (d.group ?? "lab") === group.id &&
-                (!matched || matched.has(d.id)),
-            );
-            // Uploaded keeps its folder even with nothing in it, so there is
-            // somewhere for a published deck to land and somewhere to look for
-            // one. Every other folder hides when empty, since a course folder
-            // with no decks in it is just a dead end.
-            //
-            // A search is the exception: with a query typed, an Uploaded folder
-            // showing zero decks is a result, not a placeholder, and leaving it
-            // on screen would look like it matched.
-            if (decks.length === 0 && (group.id !== "uploaded" || matched)) return null;
-            return (
-              <DeckFolder
-                key={group.id}
-                group={group}
-                decks={decks}
-                emptyNote={
-                  group.id === "uploaded"
-                    ? "Nothing here yet. Decks published from a .txt file land in this folder."
-                    : undefined
-                }
-              />
-            );
-          })}
+          Three rather than two because the folders themselves are smaller now:
+          at two-up they were wide enough that a fourth folder pushed everything
+          below the fold, and the Carbonyls deck landing loose on the hub was
+          what made that visible. Smaller cards with space around them leave room
+          to grow on hover instead of colliding.
+        */}
+        <div className="mt-2 grid gap-8 lg:grid-cols-[1fr_18rem]">
+          <div className="space-y-9">
+            {COURSES.map((course) => {
+              const leaves = foldersUnder(course);
+              const groups = DECK_GROUPS.filter((g) => leaves.includes(g.id));
+              const visible = groups
+                .map((group) => ({
+                  group,
+                  decks: allDecks.filter(
+                    (d) => (d.group ?? "lab") === group.id && (!matched || matched.has(d.id)),
+                  ),
+                }))
+                // Uploaded keeps its folder even when empty, so a published deck
+                // has somewhere to land and somewhere to be looked for. With a
+                // query typed it hides like the rest, because an empty folder
+                // then reads as a result rather than a placeholder.
+                .filter(({ group, decks }) => decks.length > 0 || (group.id === "uploaded" && !matched));
+
+              // An empty course is still part of the site. It says so, quietly,
+              // rather than vanishing and looking like an oversight.
+              const bare = leaves.length === 0;
+              if (!visible.length && !bare) return null;
+
+              return (
+                <section key={course.id}>
+                  <h2 className="mb-3 text-xs font-semibold tracking-[0.18em] text-slate-400 uppercase dark:text-stone-500">
+                    {course.title}
+                  </h2>
+                  {bare ? (
+                    <p className="rounded-xl border border-dashed border-slate-200 px-4 py-6 text-sm text-slate-400 dark:border-stone-700 dark:text-stone-500">
+                      Nothing here yet.
+                    </p>
+                  ) : (
+                    <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                      {visible.map(({ group, decks }) => (
+                        <DeckFolder
+                          key={group.id}
+                          group={group}
+                          decks={decks}
+                          emptyNote={
+                            group.id === "uploaded"
+                              ? "Nothing here yet. Decks published from a .txt file land in this folder."
+                              : undefined
+                          }
+                        />
+                      ))}
+                    </div>
+                  )}
+                </section>
+              );
+            })}
+          </div>
+
+          {/* The same thing as a list, for when you know where you are going. */}
+          <CourseTree decks={allDecks} className="hidden self-start lg:block" />
         </div>
 
         {recentUploads.length > 0 && (

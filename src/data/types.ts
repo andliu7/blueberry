@@ -97,14 +97,6 @@ type DeckCommon = {
    */
   group?: DeckGroupId;
   /**
-   * Sits on the hub on its own, outside every folder.
-   *
-   * Needed because a missing `group` does not mean "no folder": the hub reads
-   * `d.group ?? "lab"`, so an untagged deck quietly lands in the LCTA folder.
-   * This says loose and means it.
-   */
-  standalone?: boolean;
-  /**
    * A sub-folder inside Uploaded, by name. Only uploaded decks use this: the
    * built-in groups are fixed and are not something anyone reorganises.
    *
@@ -126,7 +118,7 @@ type DeckCommon = {
   to: string;
 };
 
-export type DeckGroupId = "lab" | "reference" | "uploaded";
+export type DeckGroupId = "lab" | "reference" | "carbonyls" | "uploaded";
 
 /**
  * Folder headings, in the order the hub shows them.
@@ -151,17 +143,26 @@ export const DECK_GROUPS: {
 }[] = [
   {
     id: "lab",
-    title: "[CHEM 242] LCTA",
+    // The course prefix moved up to the course folder, where it belongs now
+    // that there is more than one course on the site.
+    title: "LCTA",
     blurb: "One deck per experiment, written for the lab critical thinking assessment.",
     from: "#4338ca",
     to: "#6d28d9",
   },
   {
     id: "reference",
-    title: "[CHEM 241] Reference sheets",
+    title: "Reference sheets",
     blurb: "The charts you look up mid-problem. Hover any row for the diagram.",
     from: "#7c3aed",
     to: "#9333ea",
+  },
+  {
+    id: "carbonyls",
+    title: "Carbonyls",
+    blurb: "Every mechanism from the trainer, one card each, with its conditions.",
+    from: "#8b5cf6",
+    to: "#a855f7",
   },
   {
     id: "uploaded",
@@ -173,6 +174,53 @@ export const DECK_GROUPS: {
     to: "#c026d3",
   },
 ];
+
+/**
+ * The course hierarchy, sitting over the flat folders rather than replacing them.
+ *
+ * `DECK_GROUPS` stays a flat list of leaves because six other places read it
+ * that way: the router turns `#/folder/<id>` into one, the nav pill lists them,
+ * ContactPage links them and FolderPage renders one. Turning that array into a
+ * tree would have meant touching all of it to gain nothing, since a deck still
+ * belongs to exactly one folder.
+ *
+ * So this is the shape *above* the folders: which course a folder sits in, and
+ * whether it is lecture or lab. A branch with no `folders` and no `children` is
+ * a real, empty part of the course rather than an oversight, and the hub says so
+ * instead of hiding it.
+ */
+export type CourseNode = {
+  id: string;
+  title: string;
+  /** Leaf folders that live directly under this node. */
+  folders?: DeckGroupId[];
+  children?: CourseNode[];
+};
+
+export const COURSES: CourseNode[] = [
+  { id: "ochem1", title: "Organic Chemistry I" },
+  {
+    id: "ochem2",
+    title: "Organic Chemistry II",
+    children: [
+      { id: "ochem2-lessons", title: "Lessons" },
+      {
+        id: "ochem2-lab",
+        title: "Lab",
+        folders: ["lab", "reference", "carbonyls"],
+      },
+    ],
+  },
+  { id: "uploads", title: "Uploaded", folders: ["uploaded"] },
+];
+
+/** Every leaf folder under a node, however deep. */
+export function foldersUnder(node: CourseNode): DeckGroupId[] {
+  return [
+    ...(node.folders ?? []),
+    ...(node.children ?? []).flatMap(foldersUnder),
+  ];
+}
 
 /**
  * A deck of questions: expandable answers, self-rating, four reading modes.

@@ -87,7 +87,9 @@ export const Contact2 = ({
       <div className="mx-auto flex max-w-5xl flex-col justify-between gap-12 lg:flex-row lg:gap-16">
         <div className="flex max-w-md flex-col gap-8">
           <div>
-            <h1 className="title-face mb-3 text-4xl leading-[1.05] text-slate-900 sm:text-5xl dark:text-stone-100">
+            {/* no-pointer: the name reacts to hover for the flourish, not because it
+                goes anywhere, and a pointer would promise a click that does nothing. */}
+            <h1 className="no-pointer title-face mb-3 text-4xl leading-[1.05] text-slate-900 sm:text-5xl dark:text-stone-100">
               {title}
             </h1>
             {/* The one block of real body copy that was set in handwriting. It

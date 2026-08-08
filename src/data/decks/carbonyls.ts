@@ -24,8 +24,9 @@ export const carbonylsDeck: ReferenceDeck = {
   id: "carbonyls",
   title: "Carbonyls",
   short: "Carbonyls",
-  // Outside every folder. A missing group would silently mean the LCTA one.
-  standalone: true,
+  // Lives under Organic Chemistry II > Lab, in its own folder alongside the
+  // LCTA and the reference sheets.
+  group: "carbonyls",
   titleLines: ["CARBONYL", "REACTIONS"],
   subtitle:
     "Every mechanism from the trainer, one card each. Reactants and reagents on the front, product on the back, with the conditions on every card.",

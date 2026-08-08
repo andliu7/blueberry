@@ -626,3 +626,36 @@ button:hover .bb-eye-kind,
     transition: none;
   }
 }
+
+/*
+ * A pointer on anything you can click.
+ *
+ * Tailwind v4 stopped giving buttons `cursor: pointer`, which is correct by the
+ * spec and wrong for this site: half the hub is buttons that look like cards,
+ * and without the cursor changing they read as decoration. Links already get it
+ * from the browser; this covers the rest.
+ *
+ * Scoped to things that are genuinely activatable. A disabled control keeps the
+ * not-allowed cursor, and `.no-pointer` opts out anything that is interactive
+ * for a flourish rather than because it goes somewhere, which is what the name
+ * on the About page is.
+ */
+button:not(:disabled),
+summary,
+[role="button"]:not([aria-disabled="true"]),
+[role="tab"],
+[role="option"],
+label[for],
+a[href] {
+  cursor: pointer;
+}
+
+button:disabled,
+[aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
+.no-pointer,
+.no-pointer * {
+  cursor: default;
+}

@@ -260,13 +260,28 @@ function IntroStage({
           isDark ? "text-white/70" : "text-slate-500",
         )}
       >
-        <span className="playful-face text-sm">scroll</span>
+        {/* The serif the site already loads, not the handwriting one. At this
+            size the script face reads as a doodle rather than an instruction,
+            and this is the only thing on screen telling you what to do. */}
+        <span className="title-face text-xl tracking-[0.3em] uppercase sm:text-2xl">
+          scroll
+        </span>
         <motion.span
-          animate={reduce ? undefined : { y: [0, 7, 0] }}
+          animate={reduce ? undefined : { y: [0, 9, 0] }}
           transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
         >
-          <ChevronDown className="h-5 w-5" />
+          <ChevronDown className="h-7 w-7 sm:h-8 sm:w-8" />
         </motion.span>
+        {/* Says the keys exist. Dimmer than the cue above it, because it is the
+            way out rather than the way on. */}
+        <span
+          className={cn(
+            "mt-1 font-mono text-[0.7rem] tracking-wide",
+            isDark ? "text-white/40" : "text-slate-400",
+          )}
+        >
+          space or esc to skip
+        </span>
       </motion.div>
 
       <button
@@ -305,6 +320,32 @@ export function HomeIntro({
   settled?: boolean;
 }) {
   const reduce = useReducedMotion();
+
+  /**
+   * Escape or space leaves the opening, the same way the Skip button does.
+   *
+   * Bound to `onSkip` rather than to its own exit so there is one way out and
+   * one place it can go wrong. Space is included because it is what people press
+   * to move a page down, and on this screen that does nothing useful: the
+   * opening is a fixed sticky stage, so a page-down lands you somewhere the
+   * scroll sequence has not reached.
+   *
+   * Guarded on the target, or typing a space into the deck search underneath
+   * would dismiss the opening from a field the visitor is looking at.
+   */
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement | null;
+      if (el?.closest("input, textarea, [contenteditable='true']")) return;
+      if (e.key === "Escape" || e.key === " " || e.key === "Spacebar") {
+        e.preventDefault();
+        onSkip();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onSkip]);
+
   // Nothing to wait for when the sequence is not going to run.
   const [ready, setReady] = useState(settled);
 
