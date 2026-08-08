@@ -66,7 +66,7 @@ export function ExpandableText({
           scramble ? (
             <>
               {head}{" "}
-              <ScrambleReveal text={rest} duration={5.5} tick={0.055} />
+              <ScrambleReveal text={rest} duration={1.8} tick={0.04} />
             </>
           ) : (
             text
@@ -83,7 +83,12 @@ export function ExpandableText({
           }
           aria-expanded={open}
           className={cn(
-            "cursor-pointer font-medium text-slate-400 underline decoration-dotted underline-offset-4 transition-colors hover:text-slate-600 dark:text-stone-500 dark:hover:text-stone-300",
+            // `align-baseline` is the fix for the toggle riding above the copy:
+            // a button defaults to `vertical-align: middle`, which centres it on
+            // the x-height rather than sitting it on the same line the sentence
+            // is written on. Everything else here is inherited on purpose, so it
+            // reads as the last two words of the paragraph rather than a control.
+            "cursor-pointer align-baseline font-medium text-slate-400 underline decoration-dotted underline-offset-4 transition-colors hover:text-slate-600 dark:text-stone-500 dark:hover:text-stone-300",
             buttonClassName,
           )}
         >

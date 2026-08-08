@@ -1,13 +1,8 @@
 ﻿import { ArrowLeft, ArrowUpRight } from "lucide-react";
-import { DECKS } from "@/data/decks";
-import { DECK_GROUPS } from "@/data/types";
-import { NavPill, type NavPillItem } from "@/components/ui/nav-pill";
-import { BlueberryMark } from "@/components/ui/blueberry-mark";
-import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { Contact2 } from "@/components/ui/contact-2";
 import { GradientMenuButton } from "@/components/ui/gradient-menu";
 import { GithubMark, LinkedinMark } from "@/components/ui/brand-marks";
-import { SiteActions } from "@/components/SiteActions";
+import { SiteHeader } from "@/components/ui/site-header";
 import { FeedbackButton } from "@/components/FeedbackButton";
 import { EMAIL, GITHUB_URL, LINKEDIN_URL, REPO_URL } from "@/data/site";
 import { SURFACE } from "@/lib/hubSurface";
@@ -27,18 +22,9 @@ export function ContactPage() {
   const isDark = useIsDark();
   const surface = isDark ? SURFACE.dark : SURFACE.light;
 
-  const navItems: NavPillItem[] = [
-    { id: "home", label: "Home", href: "#/home", icon: <BlueberryMark eyes className="h-[2.6rem] w-[2.6rem]" /> },
-    ...DECK_GROUPS.filter((g) => DECKS.some((d) => (d.group ?? "lab") === g.id)).map((g) => ({
-      id: g.id,
-      label: g.title.replace(/\[[^\]]*\]\s*/, ""),
-      href: `#/folder/${g.id}`,
-    })),
-  ];
-
   return (
     <main
-      className="relative min-h-screen px-6 py-8"
+      className="relative min-h-screen pb-8"
       style={{ backgroundColor: surface.base, backgroundImage: surface.gradient }}
     >
       {/* No spotlight here, deliberately. The hub and the folder pages are
@@ -46,19 +32,14 @@ export function ContactPage() {
           something to follow. This one is a form you sit and fill in, and the
           card carries its own border shine as feedback, so a second moving light
           was one too many. */}
-      <div className="relative z-10 mx-auto flex max-w-5xl flex-col">
-        <div className="flex items-start justify-between gap-4">
-          <NavPill items={navItems} activeId="home" />
-          <div className="flex items-center gap-2">
-            {/* No Contact button here: it would link to this page. */}
-            <SiteActions showContact={false} />
-            <AnimatedThemeToggler />
-          </div>
-        </div>
+      {/* No Browse here: this page has no course tree beside it. No Contact
+          button either, since it would link to the page you are on. */}
+      <SiteHeader showContact={false} />
 
+      <div className="relative z-10 mx-auto flex max-w-5xl flex-col px-6">
         <a
           href="#/home"
-          className="group mt-10 inline-flex w-fit items-center gap-1.5 text-sm font-semibold text-slate-500 transition-colors hover:text-slate-800 dark:text-stone-400 dark:hover:text-stone-100"
+          className="group mt-8 inline-flex w-fit items-center gap-1.5 text-sm font-semibold text-slate-500 transition-colors hover:text-slate-800 dark:text-stone-400 dark:hover:text-stone-100"
         >
           <ArrowLeft className="h-3.5 w-3.5 transition-transform duration-300 group-hover:-translate-x-0.5" />
           All decks

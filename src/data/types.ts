@@ -160,7 +160,7 @@ export const DECK_GROUPS: {
   {
     id: "carbonyls",
     title: "Carbonyls",
-    blurb: "Every mechanism from the trainer, one card each, with its conditions.",
+    blurb: "One deck per reaction type, plus the same reactions asked backwards.",
     from: "#8b5cf6",
     to: "#a855f7",
   },

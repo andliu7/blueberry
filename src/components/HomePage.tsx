@@ -9,7 +9,8 @@ import {
   foldersUnder,
   type Deck,
 } from "@/data/types";
-import { CourseTree } from "@/components/ui/course-tree";
+import { CourseTreeSidebar } from "@/components/ui/course-tree";
+import { SiteHeader } from "@/components/ui/site-header";
 import { DECKS } from "@/data/decks";
 import { REPO_URL } from "@/data/site";
 import { useDecks } from "@/lib/useDecks";
@@ -27,16 +28,12 @@ import { reviewedCount } from "@/lib/progress";
 import { ExpandableText } from "@/components/ui/expandable-text";
 import { DeckSearch } from "@/components/ui/deck-search";
 import { FolderDeckFan } from "@/components/ui/folder-deck-fan";
-import { matchedDeckIds, type SearchHit } from "@/lib/searchDecks";
+import { matchedDeckIds, searchDecks } from "@/lib/searchDecks";
 import { DeckUploadTicket } from "@/components/DeckUploadTicket";
 import { HomeIntro } from "@/components/HomeIntro";
 import { FeedbackButton } from "@/components/FeedbackButton";
-import { SiteActions } from "@/components/SiteActions";
 import { TiltCard } from "@/components/ui/be-ui-tilt-card";
 import { useIsDark } from "@/lib/useIsDark";
-import { NavPill, type NavPillItem } from "@/components/ui/nav-pill";
-import { BlueberryMark } from "@/components/ui/blueberry-mark";
-import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { TextScramble } from "@/components/ui/text-scramble";
 import BoldOnHover from "@/components/ui/bold-on-hover";
 import { SpotlightCursor } from "@/components/ui/spotlight-cursor";
@@ -103,6 +100,40 @@ export function HomePage() {
   const isDark = useIsDark();
   const surface = isDark ? SURFACE.dark : SURFACE.light;
 
+  /** The left-hand list of everything. Closed until asked for. */
+  const [browseOpen, setBrowseOpen] = useState(false);
+  const toggleBrowse = useCallback(() => setBrowseOpen((o) => !o), []);
+
+  /**
+   * When the bar carries "Study Decks", which is a question with two halves.
+   *
+   * The title moves up to the bar once its own big heading has left the screen,
+   * and lets go again at the end of the section it names. Two observers rather
+   * than a scroll threshold, because the second one is what makes this a
+   * *category* label instead of a permanent one: a future section passes its own
+   * name and gets the same behaviour for free.
+   */
+  const categoryRef = useRef<HTMLElement>(null);
+  const bigHeadingRef = useRef<HTMLDivElement>(null);
+  /**
+   * `amount: "all"` and a margin the height of the bar, so the handover happens
+   * the moment the heading starts sliding under the bar rather than once the
+   * whole thing has cleared the screen. Watching the whole header block with
+   * "some" meant scrolling past the title, the blurb and Show more before the bar
+   * admitted what you were looking at.
+   */
+  const bigHeadingInView = useInView(bigHeadingRef, {
+    amount: "all",
+    margin: "-76px 0px 0px 0px",
+  });
+  const categoryInView = useInView(categoryRef, { amount: "some" });
+  const showCategoryTitle = !bigHeadingInView && categoryInView;
+
+  /** Home, from the hub, means the top of the decks rather than the opening. */
+  const goHome = useCallback(() => {
+    decksRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, []);
+
   /**
    * Whether the opening has been scrolled clear of the screen.
    *
@@ -124,15 +155,26 @@ export function HomePage() {
   const reduce = useReducedMotion();
   // Bumped to restage the heading; see StudyDecksHeading.
   const [headingReplay, setHeadingReplay] = useState(0);
-  const [hits, setHits] = useState<SearchHit[] | null>(null);
-  // Stable identity: DeckSearch reports through an effect, so a fresh callback
-  // every render would re-fire it on every keystroke's re-render.
-  const handleResults = useCallback((next: SearchHit[] | null) => setHits(next), []);
-  const matched = useMemo(() => (hits ? matchedDeckIds(hits) : null), [hits]);
-
   // Built-ins plus anything that has been published. Search covers both, so a
   // deck someone uploaded is findable the same way the rest are.
   const { decks: allDecks, published } = useDecks();
+
+  /**
+   * One query, shared by the box in the page and the one in the sticky bar.
+   *
+   * The search used to live inside `DeckSearch`, which held the query and pushed
+   * matches back up through a callback fired from an effect. Two boxes cannot
+   * share that: each would keep its own idea of what was typed and both would
+   * race to drive the same filter. `searchDecks` is a pure function, so the page
+   * runs it and hands both boxes the answer.
+   */
+  const [query, setQuery] = useState("");
+  const hits = useMemo(() => searchDecks(allDecks, query), [allDecks, query]);
+  const searching = query.trim().length >= 2;
+  const matched = useMemo(
+    () => (searching ? matchedDeckIds(hits) : null),
+    [searching, hits],
+  );
 
   /**
    * The newest uploads, shown under the folders.
@@ -164,31 +206,17 @@ export function HomePage() {
     [published, matched],
   );
 
-  // The pill mirrors the page: this one lists folders, and each folder page
-  // lists the decks inside it. Listing every deck here would contradict the
-  // decision to move them off the hub.
-  //
-  // Uploaded is always listed, even with nothing in it, because it is where a
-  // deck you have just published goes and it should be somewhere you can look
-  // before there is anything to see.
-  const navItems: NavPillItem[] = [
-    { id: "home", label: "Home", href: "#/home", icon: <BlueberryMark eyes className="h-[2.6rem] w-[2.6rem]" /> },
-    ...DECK_GROUPS.filter(
-      (g) => g.id === "uploaded" || allDecks.some((d) => (d.group ?? "lab") === g.id),
-    ).map((g) => ({
-      id: g.id,
-      label: g.title.replace(/\[[^\]]*\]\s*/, ""),
-      href: `#/folder/${g.id}`,
-    })),
-  ];
-
   return (
     <>
       {showIntro && <HomeIntro onSkip={dismissIntro} settled={seenIntro} />}
 
       <main
         ref={decksRef}
-        className="relative z-10 min-h-screen px-6 py-8"
+        // No horizontal padding here any more. The sticky bar has to span the
+        // full width or a 24px channel runs down each side of it with content
+        // visibly sliding through, so the padding moved onto the bar and the
+        // content column separately.
+        className="relative z-10 min-h-screen pb-8"
         style={{ backgroundColor: surface.base, backgroundImage: surface.gradient }}
       >
         {/* The seam.
@@ -213,29 +241,44 @@ export function HomePage() {
             between the cards without washing over the text on them. */}
         {pastIntro && <SpotlightCursor className="z-0" config={spotlightFor(isDark)} />}
 
-      <div className="relative z-10 mx-auto flex max-w-5xl flex-col">
-        <div className="flex items-start justify-between gap-4">
-          <NavPill items={navItems} activeId="home" />
-          <div className="flex items-center gap-2">
-            <SiteActions />
-            <AnimatedThemeToggler />
-          </div>
-        </div>
+      {/* Outside the padded column so its banner reaches both edges. */}
+      <SiteHeader
+        category={showCategoryTitle ? "Study Decks" : null}
+        browse={{ open: browseOpen, onToggle: toggleBrowse }}
+        onHome={goHome}
+        search={{ value: query, onChange: setQuery, hits }}
+      />
 
+      <div className="relative z-10 mx-auto flex max-w-5xl flex-col px-6">
         {/*
-          The header holds for a beat as you come out of the opening.
+          Everything that is about decks, in one section.
 
-          `sticky` rather than a scroll-driven animation: the heading, the blurb
-          and the blueberry beside them are the first thing under the intro, and
-          letting them pin while the decks slide up underneath gives the descent
-          somewhere to land. Without it the opening ends and the hub simply
-          begins, with nothing marking the join.
+          This exists so the category title knows where to stop. A sticky element
+          is bounded by its containing block, and the same is true of the
+          observer driving the title: once this section has scrolled past, the
+          bar drops "Study Decks" on its own with no scroll arithmetic to get
+          wrong. The bot, the upload ticket and the footer sit outside it,
+          because they are page furniture rather than part of the category.
 
-          `top-6` clears the nav pill above it, and the z-index keeps it over the
-          folder grid it is holding in front of rather than under it.
+          Study decks are the whole site today and will not be for long. The next
+          feature is another section like this one with another name.
         */}
-        <header className="sticky top-6 z-20 mt-16 mb-12 max-w-2xl">
-          <StudyDecksHeading replayKey={headingReplay} />
+        <section ref={categoryRef}>
+        {/*
+          The heading, in flow.
+
+          This used to be pinned, along with the blurb and Show more, which meant
+          three paragraphs of introduction followed you down the page and printed
+          over the folder cards. The bar carries the title now; the words that
+          introduce it are read once and left behind.
+        */}
+        <header className="mt-14 mb-12 max-w-2xl">
+          {/* The observer watches the words alone, not the block. The blurb
+              underneath is three sentences tall, and including it meant the bar
+              stayed empty until all of it had gone. */}
+          <div ref={bigHeadingRef} className="w-fit">
+            <StudyDecksHeading replayKey={headingReplay} />
+          </div>
           {/* One sentence by default. The full version ran to two paragraphs
               and pushed the decks themselves below the fold. */}
           <ExpandableText
@@ -255,7 +298,14 @@ export function HomePage() {
           />
         </header>
 
-        <DeckSearch decks={allDecks} onResults={handleResults} />
+        {/* The bar takes the shortcut once it has a search of its own on
+            screen, so `/` never lands on the box you cannot see. */}
+        <DeckSearch
+          value={query}
+          onChange={setQuery}
+          hits={hits}
+          shortcut={!showCategoryTitle}
+        />
 
         {/*
           Folders grouped by the course they belong to, three to a row.
@@ -266,7 +316,7 @@ export function HomePage() {
           what made that visible. Smaller cards with space around them leave room
           to grow on hover instead of colliding.
         */}
-        <div className="mt-2 grid gap-8 lg:grid-cols-[1fr_18rem]">
+        <div className="mt-2">
           <div className="space-y-9">
             {COURSES.map((course) => {
               const leaves = foldersUnder(course);
@@ -318,9 +368,6 @@ export function HomePage() {
               );
             })}
           </div>
-
-          {/* The same thing as a list, for when you know where you are going. */}
-          <CourseTree decks={allDecks} className="hidden self-start lg:block" />
         </div>
 
         {recentUploads.length > 0 && (
@@ -372,6 +419,7 @@ export function HomePage() {
             </div>
           </section>
         )}
+        </section>
 
         {/* The bot, under the decks rather than over them: the hub is somewhere
             people arrive to find a deck quickly, and a toy above the fold would
@@ -413,6 +461,11 @@ export function HomePage() {
 
       <FeedbackButton />
       </main>
+
+      {/* Outside `main` on purpose: `main` is a `relative z-10` stacking
+          context, and a fixed panel inside it can never rise above anything
+          that context is under. */}
+      <CourseTreeSidebar decks={allDecks} open={browseOpen} onToggle={toggleBrowse} />
     </>
   );
 }
@@ -554,12 +607,21 @@ function DeckFolder({
     >
       <InfoCardContent>
         <InfoCardTitle className="text-base !text-white">
+          {/* Same sweep as "Open folder" below. The two go to the same place, so
+              a fade on one and an underline on the other said they were
+              different kinds of link. */}
           <a
             href={`#/folder/${group.id}`}
-            className="inline-flex items-center gap-1 transition-opacity hover:opacity-80"
+            className="group/title inline-flex items-center gap-1 outline-none"
           >
-            {group.title}
-            <ArrowRight className="h-3.5 w-3.5" />
+            <span className="relative">
+              {group.title}
+              <span
+                aria-hidden
+                className="absolute -bottom-0.5 left-0 h-[2px] w-full origin-left scale-x-0 rounded-full bg-white/80 transition-transform duration-300 ease-out group-hover/title:scale-x-100"
+              />
+            </span>
+            <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover/title:translate-x-1" />
           </a>
         </InfoCardTitle>
         <InfoCardDescription className="!text-white/75">{group.blurb}</InfoCardDescription>

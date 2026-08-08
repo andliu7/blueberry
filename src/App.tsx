@@ -31,6 +31,7 @@ import { StickyNote } from "@/components/StickyNote";
 import { Confetti } from "@/components/Confetti";
 import { FeedbackButton } from "@/components/FeedbackButton";
 import { DeckAbout } from "@/components/ui/deck-about";
+import { DrillBanner } from "@/components/ui/drill-banner";
 import { REPO_URL, SITE_NAME } from "@/data/site";
 import { progressKey, loadSaved } from "@/lib/progress";
 import { cn } from "@/lib/utils";
@@ -468,49 +469,16 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
   const needsWork = counts.red + counts.yellow;
 
   /**
-   * The one-time nudge toward the way this is actually meant to be used.
+   * All three at once: flip cards, one at a time, filling the screen.
    *
-   * Flip, carousel and focus mode were built separately and are three separate
-   * controls, so nothing tells you they are one thing: a card at a time, filling
-   * the screen, turned over with the space bar. People find Flip and then drill
-   * a two-column grid of small cards, which is the worst of both.
-   *
-   * Fires once per visit, on arriving at Flip, and only when you are not already
-   * there. The action does all three switches, because the point is that it is
-   * one decision rather than three.
+   * This used to be a toast that fired the first time you switched to Flip. See
+   * `DrillBanner` for why offering it up front beats interrupting.
    */
-  const nudgedFlip = useRef(false);
-  useEffect(() => {
-    if (cardStyle !== "flip" || nudgedFlip.current) return;
-    if (carouselMode && focusMode) return;
-    nudgedFlip.current = true;
-    const id = `${deck.id}:flip-nudge`;
-    pushToast({
-      id,
-      tone: "encourage",
-      glyph: PARTY,
-      title: "Try it one card at a time.",
-      message:
-        "Flip cards drill best in the carousel with focus mode on: one card filling the screen, arrows to move, space to turn it over.",
-      actions: (
-        <>
-          <PixelFireButton
-            onClick={() => {
-              setView("carousel");
-              setFocusMode(true);
-              dismissToast(id);
-            }}
-          >
-            Set it up
-          </PixelFireButton>
-          <PixelFireButton variant="ghost" onClick={() => dismissToast(id)}>
-            No thanks
-          </PixelFireButton>
-        </>
-      ),
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cardStyle, carouselMode, focusMode, deck.id]);
+  const startDrilling = useCallback(() => {
+    setCardStyle("flip");
+    setView("carousel");
+    setFocusMode(true);
+  }, []);
 
   /**
    * Halfway, then finished. Two notices, and the second one blocks.
@@ -1233,6 +1201,13 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
             repeated the same eight props, so a change to any of them had to be
             made in three places. */}
         <DeckAbout text={deck.about} purpose={deck.purpose} funFact={deck.funFact} />
+
+        {/* Above the cards rather than in the toolbar: it is the thing to read
+            before you start, and once you have started it is in the way. */}
+        <DrillBanner
+          active={cardStyle === "flip" && carouselMode && focusMode}
+          onStart={startDrilling}
+        />
 
         {/* Container and card style are independent: every branch below calls
             the same renderAnyCard, so Flip works inside the carousel, the

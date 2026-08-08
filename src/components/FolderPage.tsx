@@ -10,18 +10,16 @@ import {
   type DeckGroupId,
 } from "@/data/types";
 import { MOTIF_VIEWBOX, motifMarkup } from "@/data/testimonialArt";
-import { NavPill, type NavPillItem } from "@/components/ui/nav-pill";
-import { BlueberryMark } from "@/components/ui/blueberry-mark";
-import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { GlassCard } from "@/components/ui/glass-card";
 import { DeckSearch } from "@/components/ui/deck-search";
 import { DeckUploadTicket } from "@/components/DeckUploadTicket";
 import { UploadedFolderView } from "@/components/UploadedFolderView";
 import { BlueberryBot2D } from "@/components/ui/blueberry-bot-2d";
 import { FeedbackButton } from "@/components/FeedbackButton";
-import { SiteActions } from "@/components/SiteActions";
-import { matchedDeckIds, type SearchHit } from "@/lib/searchDecks";
+import { matchedDeckIds, searchDecks } from "@/lib/searchDecks";
 import { reviewedCount } from "@/lib/progress";
+import { CourseTreeSidebar } from "@/components/ui/course-tree";
+import { SiteHeader } from "@/components/ui/site-header";
 import { SpotlightCursor } from "@/components/ui/spotlight-cursor";
 import { SURFACE, spotlightFor } from "@/lib/hubSurface";
 import { useIsDark } from "@/lib/useIsDark";
@@ -37,9 +35,12 @@ export function FolderPage({ groupId }: { groupId: DeckGroupId }) {
   const reduce = useReducedMotion();
   const isDark = useIsDark();
   const surface = isDark ? SURFACE.dark : SURFACE.light;
-  const [hits, setHits] = useState<SearchHit[] | null>(null);
-  const handleResults = useCallback((next: SearchHit[] | null) => setHits(next), []);
-  const matched = useMemo(() => (hits ? matchedDeckIds(hits) : null), [hits]);
+  // Same shape as the hub: the page owns the query and runs the search, so the
+  // box is only a box. See `DeckSearch` for why it stopped doing this itself.
+  const [query, setQuery] = useState("");
+
+  const [browseOpen, setBrowseOpen] = useState(false);
+  const toggleBrowse = useCallback(() => setBrowseOpen((o) => !o), []);
 
   const group = DECK_GROUPS.find((g) => g.id === groupId);
   const { decks: allDecks, shelves } = useDecks();
@@ -47,12 +48,13 @@ export function FolderPage({ groupId }: { groupId: DeckGroupId }) {
     () => allDecks.filter((d) => (d.group ?? "lab") === groupId),
     [allDecks, groupId],
   );
+  const hits = useMemo(() => searchDecks(all, query), [all, query]);
+  const searching = query.trim().length >= 2;
+  const matched = useMemo(
+    () => (searching ? matchedDeckIds(hits) : null),
+    [searching, hits],
+  );
   const decks = matched ? all.filter((d) => matched.has(d.id)) : all;
-
-  const navItems: NavPillItem[] = [
-    { id: "home", label: "Home", href: "#/home", icon: <BlueberryMark eyes className="h-[2.6rem] w-[2.6rem]" /> },
-    ...all.map((d) => ({ id: d.id, label: d.short ?? d.title, href: deckHref(d) })),
-  ];
 
   if (!group) return null;
 
@@ -62,20 +64,13 @@ export function FolderPage({ groupId }: { groupId: DeckGroupId }) {
     // Same surface and same spotlight as the hub: a folder is the hub with one
     // group open, so it should not look like a different site.
     <main
-      className="relative min-h-screen px-6 py-8"
+      className="relative min-h-screen pb-8"
       style={{ backgroundColor: surface.base, backgroundImage: surface.gradient }}
     >
       <SpotlightCursor className="z-0" config={spotlightFor(isDark)} />
-      <div className="relative z-10 mx-auto flex max-w-5xl flex-col">
-        <div className="flex items-start justify-between gap-4">
-          <NavPill items={navItems} activeId="home" />
-          <div className="flex items-center gap-2">
-            <SiteActions />
-            <AnimatedThemeToggler />
-          </div>
-        </div>
-
-        <header className="mt-16 mb-10 max-w-2xl">
+      <SiteHeader browse={{ open: browseOpen, onToggle: toggleBrowse }} />
+      <div className="relative z-10 mx-auto flex max-w-5xl flex-col px-6">
+        <header className="mt-12 mb-10 max-w-2xl">
           <a
             href="#/home"
             className="group inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500 transition-colors hover:text-slate-800 dark:text-stone-400 dark:hover:text-stone-100"
@@ -94,7 +89,7 @@ export function FolderPage({ groupId }: { groupId: DeckGroupId }) {
           </p>
         </header>
 
-        <DeckSearch decks={all} onResults={handleResults} />
+        <DeckSearch value={query} onChange={setQuery} hits={hits} />
 
         {/* Uploaded is the one group anyone can rearrange, so it draws itself:
             sub-folders, and the controls to manage them when signed in. The
@@ -163,6 +158,7 @@ export function FolderPage({ groupId }: { groupId: DeckGroupId }) {
       </div>
 
       <FeedbackButton />
+      <CourseTreeSidebar decks={allDecks} open={browseOpen} onToggle={toggleBrowse} />
     </main>
   );
 }

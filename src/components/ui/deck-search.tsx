@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { Search, X, FileText, Layers, Rows3 } from "lucide-react";
-import { deckHref, type Deck } from "@/data/types";
-import { searchDecks, type SearchHit } from "@/lib/searchDecks";
+import { deckHref } from "@/data/types";
+import { type SearchHit } from "@/lib/searchDecks";
 import { cn } from "@/lib/utils";
 
 const KIND_ICON = {
@@ -11,33 +11,40 @@ const KIND_ICON = {
 } as const;
 
 /**
- * Hub search. Reports matches upward so the deck grid can filter itself, and
- * lists the individual questions and rows that matched underneath, because
- * knowing *which* card mentions a phenoxide is more useful than knowing the
- * deck does.
+ * Hub search, in the page.
+ *
+ * **Controlled, and it no longer does the searching.** It used to hold the query
+ * itself, run `searchDecks` internally and report matches back up through a
+ * callback fired from an effect. That was fine while there was one box, and
+ * impossible once the sticky bar grew a second one: two boxes each holding their
+ * own query, each firing the same callback, would disagree about what was typed
+ * and race to drive one filter. The page owns the query now and hands both boxes
+ * the same one, so they cannot come apart.
  */
 export function DeckSearch({
-  decks,
-  onResults,
+  value,
+  onChange,
+  hits,
+  /**
+   * Whether this box answers to `/`.
+   *
+   * Two boxes both binding the shortcut would both grab focus. Whichever one is
+   * actually on screen claims it.
+   */
+  shortcut = true,
 }: {
-  decks: Deck[];
-  onResults: (hits: SearchHit[] | null) => void;
+  value: string;
+  onChange: (next: string) => void;
+  hits: SearchHit[];
+  shortcut?: boolean;
 }) {
-  const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
-
-  const hits = useMemo(() => searchDecks(decks, query), [decks, query]);
-  const active = query.trim().length >= 2;
-
-  // Reporting during render would set state on the parent mid-render, so the
-  // handoff waits for the effect.
-  useEffect(() => {
-    onResults(active ? hits : null);
-  }, [active, hits, onResults]);
+  const active = value.trim().length >= 2;
 
   // `/` to focus, the convention everywhere else that has a search box. Ignored
   // while typing into something, or it would be impossible to type a slash.
   useEffect(() => {
+    if (!shortcut) return;
     const onKey = (e: KeyboardEvent) => {
       const el = document.activeElement;
       const typing = el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement;
@@ -46,13 +53,13 @@ export function DeckSearch({
         inputRef.current?.focus();
       }
       if (e.key === "Escape" && typing) {
-        setQuery("");
+        onChange("");
         inputRef.current?.blur();
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  }, [shortcut, onChange]);
 
   return (
     <div className="mb-10">
@@ -61,17 +68,17 @@ export function DeckSearch({
         <input
           ref={inputRef}
           type="search"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
           placeholder="Search every deck…  (press /)"
           aria-label="Search decks"
           className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pr-10 pl-10 text-sm text-slate-800 shadow-sm outline-none placeholder:text-slate-400 focus-visible:border-indigo-400 focus-visible:ring-2 focus-visible:ring-indigo-400/40 dark:border-stone-800 dark:bg-stone-900 dark:text-stone-200 dark:placeholder:text-stone-500"
         />
-        {query && (
+        {value && (
           <button
-            onClick={() => setQuery("")}
+            onClick={() => onChange("")}
             aria-label="Clear search"
-            className="absolute top-1/2 right-3 -translate-y-1/2 rounded-full p-1 text-slate-400 transition-colors hover:text-slate-700 dark:text-stone-500 dark:hover:text-stone-200"
+            className="absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer rounded-full p-1 text-slate-400 transition-colors hover:text-slate-700 dark:text-stone-500 dark:hover:text-stone-200"
           >
             <X className="h-4 w-4" />
           </button>
@@ -80,45 +87,68 @@ export function DeckSearch({
 
       {active && (
         <div className="mt-4 max-w-xl">
-          {hits.length === 0 ? (
-            <p className="text-sm text-slate-500 dark:text-stone-400">
-              Nothing matches “{query.trim()}”.
-            </p>
-          ) : (
-            <>
-              <p className="mb-2 font-mono text-xs text-slate-400 dark:text-stone-500">
-                {hits.length} match{hits.length === 1 ? "" : "es"}
-              </p>
-              <ul className="divide-y divide-slate-200 overflow-hidden rounded-xl border border-slate-200 bg-white dark:divide-stone-800 dark:border-stone-800 dark:bg-stone-900">
-                {hits.map((hit, i) => (
-                  <li key={`${hit.deck.id}-${hit.kind}-${i}`}>
-                    <a
-                      href={deckHref(hit.deck)}
-                      className="block px-4 py-3 transition-colors hover:bg-indigo-50 dark:hover:bg-indigo-400/10"
-                    >
-                      <div className="flex items-center gap-1.5 font-mono text-[0.65rem] text-indigo-600 dark:text-indigo-300">
-                        {KIND_ICON[hit.kind]}
-                        {hit.deck.short ?? hit.deck.title}
-                      </div>
-                      <p
-                        className={cn(
-                          "mt-0.5 text-sm font-semibold text-slate-800 dark:text-stone-100",
-                          "line-clamp-2",
-                        )}
-                      >
-                        {hit.title}
-                      </p>
-                      <p className="line-clamp-1 text-xs text-slate-500 dark:text-stone-400">
-                        {hit.detail}
-                      </p>
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
+          <SearchResults hits={hits} query={value} />
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * The matches, listed.
+ *
+ * Split out so the bar's dropdown and the page's inline list are one piece of
+ * markup rather than two that drift. Which questions and rows matched is the
+ * useful part: knowing *which* card mentions a phenoxide beats knowing the deck
+ * does.
+ */
+export function SearchResults({
+  hits,
+  query,
+  onPick,
+  className,
+}: {
+  hits: SearchHit[];
+  query: string;
+  /** Fired after a result is followed, so a dropdown can shut behind it. */
+  onPick?: () => void;
+  className?: string;
+}) {
+  if (hits.length === 0) {
+    return (
+      <p className={cn("text-sm text-slate-500 dark:text-stone-400", className)}>
+        Nothing matches “{query.trim()}”.
+      </p>
+    );
+  }
+
+  return (
+    <div className={className}>
+      <p className="mb-2 font-mono text-xs text-slate-400 dark:text-stone-500">
+        {hits.length} match{hits.length === 1 ? "" : "es"}
+      </p>
+      <ul className="divide-y divide-slate-200 overflow-hidden rounded-xl border border-slate-200 bg-white dark:divide-stone-800 dark:border-stone-800 dark:bg-stone-900">
+        {hits.map((hit, i) => (
+          <li key={`${hit.deck.id}-${hit.kind}-${i}`}>
+            <a
+              href={deckHref(hit.deck)}
+              onClick={onPick}
+              className="block px-4 py-3 transition-colors hover:bg-indigo-50 dark:hover:bg-indigo-400/10"
+            >
+              <div className="flex items-center gap-1.5 font-mono text-[0.65rem] text-indigo-600 dark:text-indigo-300">
+                {KIND_ICON[hit.kind]}
+                {hit.deck.short ?? hit.deck.title}
+              </div>
+              <p className="mt-0.5 line-clamp-2 text-sm font-semibold text-slate-800 dark:text-stone-100">
+                {hit.title}
+              </p>
+              <p className="line-clamp-1 text-xs text-slate-500 dark:text-stone-400">
+                {hit.detail}
+              </p>
+            </a>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

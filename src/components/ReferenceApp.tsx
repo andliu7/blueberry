@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { Eye, EyeOff, GitBranch, ArrowUpRight, MousePointerClick, ImageOff, Highlighter, List, RefreshCw, GalleryHorizontalEnd, Orbit } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Eye, EyeOff, GitBranch, ArrowUpRight, MousePointerClick, ImageOff, Highlighter, List, RefreshCw, GalleryHorizontalEnd, Orbit, Maximize2, Minimize2 } from "lucide-react";
 import { HeroTitle } from "@/components/ui/hero-title";
 import { HomeBlueberry } from "@/components/ui/home-blueberry";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
@@ -9,6 +9,7 @@ import { ReferenceCards } from "@/components/ui/reference-cards";
 import { LaserPointer } from "@/components/ui/laser-pointer";
 import { deckCount, type ReferenceDeck } from "@/data/types";
 import { DeckAbout } from "@/components/ui/deck-about";
+import { DrillBanner, REFERENCE_STEPS } from "@/components/ui/drill-banner";
 import { CardGallery3D, GALLERY_MAX, type GalleryItem } from "@/components/ui/card-gallery-3d";
 import { cn } from "@/lib/utils";
 import { REPO_URL } from "@/data/site";
@@ -76,6 +77,35 @@ export function ReferenceApp({ deck }: { deck: ReferenceDeck }) {
   const [laser, setLaser] = useState(false);
   const [view, setView] = useState<ReferenceView>("table");
   const total = deckCount(deck);
+
+  /**
+   * The carousel with everything else taken away, exactly as on a study deck.
+   *
+   * Only offered in the carousel, because it is the only view here that shows
+   * one card at a time. Full-screening the table would just be the table.
+   */
+  const [focusMode, setFocusMode] = useState(false);
+  useEffect(() => {
+    if (view !== "carousel") setFocusMode(false);
+  }, [view]);
+  useEffect(() => {
+    if (!focusMode) return;
+    const esc = (e: KeyboardEvent) => e.key === "Escape" && setFocusMode(false);
+    window.addEventListener("keydown", esc);
+    // The page behind must not scroll while this is up.
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", esc);
+      document.body.style.overflow = prev;
+    };
+  }, [focusMode]);
+
+  /** Carousel and focus in one go, for the banner's button. */
+  const startDrilling = useCallback(() => {
+    setView("carousel");
+    setFocusMode(true);
+  }, []);
 
   /**
    * The button names the view it will switch you to, not the one you are in.
@@ -165,6 +195,19 @@ export function ReferenceApp({ deck }: { deck: ReferenceDeck }) {
                 </>
               )}
 
+              {/* Only in the carousel, for the same reason the study deck only
+                  offers it there: it is the one view showing a single card. */}
+              {view === "carousel" && (
+                <button
+                  onClick={() => setFocusMode(true)}
+                  title="One card, full screen. Escape leaves it."
+                  className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 dark:border-stone-800 dark:bg-stone-900 dark:text-stone-300 dark:hover:bg-white/5"
+                >
+                  <Maximize2 className="h-4 w-4" />
+                  Focus
+                </button>
+              )}
+
               <button
                 onClick={() => setLaser((l) => !l)}
                 title="Draw on the page. Hold to draw, Esc to stop."
@@ -205,6 +248,13 @@ export function ReferenceApp({ deck }: { deck: ReferenceDeck }) {
           <div className="mx-auto max-w-3xl">
             <DeckAbout text={deck.about} purpose={deck.purpose} funFact={deck.funFact} />
 
+            <DrillBanner
+              active={view === "carousel" && focusMode}
+              onStart={startDrilling}
+              steps={REFERENCE_STEPS}
+              lead="These drill best as real flashcards: one card filling the screen, arrows to move between them, space to turn one over."
+            />
+
             {view === "table" ? (
               <HoverDeck
                 groups={deck.groups}
@@ -214,6 +264,40 @@ export function ReferenceApp({ deck }: { deck: ReferenceDeck }) {
               />
             ) : view === "gallery" ? (
               <CardGallery3D items={galleryItems} label={`${deck.title} rows`} />
+            ) : view === "carousel" && focusMode ? (
+              // Fixed and full screen rather than raised with a z-index: this
+              // page has a sticky hero, a sticky toolbar and a floating feedback
+              // button, and lifting one element above all of them is a fight
+              // that taking it out of flow avoids entirely.
+              <div className="fixed inset-0 z-[110] flex flex-col bg-[#f6f4ef] px-4 py-5 dark:bg-[#0c0a09]">
+                <div className="mx-auto flex w-full max-w-3xl items-center gap-3">
+                  <HomeBlueberry />
+                  <span className="font-mono text-xs text-slate-400 dark:text-stone-500">
+                    {total} rows
+                  </span>
+                  <button
+                    onClick={() => setFocusMode(false)}
+                    className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-500 transition hover:text-slate-900 dark:border-stone-700 dark:text-stone-400 dark:hover:text-stone-100"
+                  >
+                    <Minimize2 className="h-3.5 w-3.5" />
+                    Exit focus
+                  </button>
+                </div>
+
+                <div className="mx-auto flex w-full max-w-3xl flex-1 items-center">
+                  <div className="w-full">
+                    <ReferenceCards
+                      groups={deck.groups}
+                      preview={deck.preview}
+                      layout="carousel"
+                    />
+                  </div>
+                </div>
+
+                <p className="text-center font-mono text-[0.7rem] text-slate-400 dark:text-stone-500">
+                  arrow keys to move &middot; space to flip &middot; esc to leave
+                </p>
+              </div>
             ) : (
               <ReferenceCards groups={deck.groups} preview={deck.preview} layout={view} />
             )}

@@ -7,7 +7,7 @@ import { pkaDeck } from "./pka";
 import { irDeck } from "./ir";
 import { nmrDeck } from "./nmr";
 import { resonanceDeck } from "./resonance";
-import { carbonylsDeck } from "./carbonyls";
+import { carbonylDecks } from "./carbonyls";
 
 /**
  * The registry. Every deck listed here appears on the hub and in the navigation
@@ -28,8 +28,10 @@ export const DECKS: Deck[] = [
   irDeck,
   nmrDeck,
   resonanceDeck,
-  // No group, so it sits on its own rather than inside a folder.
-  carbonylsDeck,
+  // The Carbonyls folder, generated next door. Nine decks rather than one entry
+  // here, so a new reaction family in the trainer appears on the hub without
+  // this file being touched.
+  ...carbonylDecks,
 ];
 
 export function findDeck(id: string): Deck | undefined {
