@@ -237,6 +237,23 @@ const MOTIFS: Record<ArtMotif, string> = {
 
       <text x="146" y="76" font-family="Georgia, serif" font-size="22" fill="#fff" text-anchor="middle" opacity=".9">O</text>
 
+      <!--
+        The two arrows of the Weitz-Scheffer epoxidation, which is what the
+        enone is here to set up. Hydroperoxide goes for the far end of the
+        alkene, not the carbonyl carbon: that is the whole point of a conjugate
+        addition, and drawing the arrow at the carbonyl would teach the wrong
+        reaction. The second arrow runs the alkene electrons up onto the
+        carbonyl oxygen, which is what leaves an enolate to close onto the O-O.
+      -->
+      <g stroke="#fff" fill="none" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" opacity=".62">
+        <text x="46" y="158" font-family="Georgia, serif" font-size="19" fill="#fff" stroke="none" text-anchor="middle" opacity=".95">HOO&#8315;</text>
+        <path d="M62 146 Q80 140 100 118"/>
+        <path d="M96 128 100 118 90 122"/>
+
+        <path d="M117 102 Q132 78 143 82"/>
+        <path d="M132 85 143 82 135 75"/>
+      </g>
+
       <g opacity=".8">
         <text x="120" y="252" font-family="Georgia, serif" font-size="19" fill="#fff" text-anchor="middle">the enone</text>
         <path d="M120 262 120 276" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".55"/>
@@ -253,9 +270,23 @@ const MOTIFS: Record<ArtMotif, string> = {
       </g>
       <text x="157" y="90" font-family="Georgia, serif" font-size="36" fill="#fff" text-anchor="middle" opacity=".92">O</text>
     </g>
+    <!--
+      Written BrMg-CH3 rather than MgBr, so magnesium sits between the bromine
+      and the carbon it is bonded to. That order is the reason the reagent
+      works: the bond being drawn is the polar Mg-C one, and the carbon on the
+      end of it is the nucleophile. "MgBr" with the methyl left off put the
+      halide where the carbon should be and named nothing that attacks.
+    -->
     <g transform="rotate(-15 86 206)">
-      <path d="M66 206 106 206" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".92"/>
-      <text x="60" y="215" font-family="Georgia, serif" font-size="26" fill="#fff" text-anchor="end" opacity=".9">MgBr</text>
+      <path d="M66 206 112 206" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".92"/>
+      <text x="60" y="215" font-family="Georgia, serif" font-size="26" fill="#fff" text-anchor="end" opacity=".9">BrMg</text>
+      <text x="120" y="215" font-family="Georgia, serif" font-size="26" fill="#fff" text-anchor="start" opacity=".9">CH3</text>
+    </g>
+
+    <!-- From the Mg-C bond to the carbonyl carbon: the carbanion attacking. -->
+    <g stroke="#fff" fill="none" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" opacity=".6">
+      <path d="M89 202 Q100 156 146 150"/>
+      <path d="M136 147 146 150 137 155"/>
     </g>`,
 
   /** Friendly flask, for when the page should not take itself too seriously. */
