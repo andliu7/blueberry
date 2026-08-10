@@ -1,4 +1,4 @@
-﻿import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { motion, useInView, useReducedMotion } from "motion/react";
 import { ArrowLeft } from "lucide-react";
 import { useDecks } from "@/lib/useDecks";
@@ -18,7 +18,7 @@ import { BlueberryBot2D } from "@/components/ui/blueberry-bot-2d";
 import { FeedbackButton } from "@/components/FeedbackButton";
 import { matchedDeckIds, searchDecks } from "@/lib/searchDecks";
 import { reviewedCount } from "@/lib/progress";
-import { CourseTreeSidebar } from "@/components/ui/course-tree";
+import { Dashboard, useDashboard } from "@/components/Dashboard";
 import { SiteHeader } from "@/components/ui/site-header";
 import { SpotlightCursor } from "@/components/ui/spotlight-cursor";
 import { SURFACE, spotlightFor } from "@/lib/hubSurface";
@@ -39,8 +39,8 @@ export function FolderPage({ groupId }: { groupId: DeckGroupId }) {
   // box is only a box. See `DeckSearch` for why it stopped doing this itself.
   const [query, setQuery] = useState("");
 
-  const [browseOpen, setBrowseOpen] = useState(false);
-  const toggleBrowse = useCallback(() => setBrowseOpen((o) => !o), []);
+  const dash = useDashboard();
+  const toggleBrowse = useCallback(() => dash.toggle("home"), [dash]);
 
   // Same rule as the hub's: hand over as the heading starts sliding under the
   // bar rather than once it has fully cleared the screen.
@@ -83,8 +83,9 @@ export function FolderPage({ groupId }: { groupId: DeckGroupId }) {
           the category and the title never has to let go. */}
       <SiteHeader
         category={pastHeading ? group.title : null}
-        browse={{ open: browseOpen, onToggle: toggleBrowse }}
-        search={{ value: query, onChange: setQuery, hits }}
+        browse={{ open: dash.isOpen, onToggle: toggleBrowse }}
+        onCategoryClick={() => dash.open("decks")}
+        onSearch={() => dash.open("decks", { focusSearch: true })}
       />
       <div className="relative z-10 mx-auto flex max-w-5xl flex-col px-6">
         <header ref={headingRef} className="mt-12 mb-10 max-w-2xl">
@@ -175,7 +176,7 @@ export function FolderPage({ groupId }: { groupId: DeckGroupId }) {
       </div>
 
       <FeedbackButton />
-      <CourseTreeSidebar decks={allDecks} open={browseOpen} onToggle={toggleBrowse} />
+      <Dashboard dash={dash} seedQuery={query} />
     </main>
   );
 }

@@ -122,32 +122,6 @@ function initGis(): Promise<void> {
   return initPromise;
 }
 
-/**
- * The local development door, and why it is safe.
- *
- * Google sign-in cannot complete against localhost here, which meant the whole
- * staff side — the workspace, the upload ticket, anything behind the door — could
- * not be looked at while it was being built.
- *
- * `import.meta.env.DEV` is a literal Vite substitutes at build time, so in a
- * production build this whole branch reads `if (false)` and is eliminated. The
- * button below cannot ship, which is why this is preferable to a password we
- * would have to remember to remove.
- *
- * **It grants a screen, never a permission.** The token below is a marker string
- * rather than a Google-signed JWT, so every write still fails on the server, and
- * that is correct: authorisation lives in the Apps Script allowlist and must not
- * be reachable from a browser. Anything you need to *test* rather than look at
- * has to work without the server, which is why the deck builder exports a file.
- */
-export const DEV_LOGIN = import.meta.env.DEV;
-
-export const DEV_USER: GoogleUser = {
-  email: "dev@localhost",
-  name: "Local dev",
-  idToken: "dev-local-not-a-real-token",
-};
-
 export function useGoogleAuth() {
   const configured = Boolean(CLIENT_ID);
   const [ready, setReady] = useState(false);
@@ -178,11 +152,6 @@ export function useGoogleAuth() {
     setCurrentUser(null);
   }, []);
 
-  /** See `DEV_LOGIN`. A no-op in any build that is not `npm run dev`. */
-  const devSignIn = useCallback(() => {
-    if (!DEV_LOGIN) return;
-    setCurrentUser(DEV_USER);
-  }, []);
 
   /**
    * Renders Google's own button, which the prompt flow needs as a fallback.
@@ -204,5 +173,5 @@ export function useGoogleAuth() {
     [ready],
   );
 
-  return { configured, ready, user, error, signIn, signOut, renderButton, devSignIn };
+  return { configured, ready, user, error, signIn, signOut, renderButton };
 }

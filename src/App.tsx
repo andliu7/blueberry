@@ -27,6 +27,7 @@ import { ScrollTiltedGrid } from "@/components/ui/scroll-tilted-grid";
 import { StackedCards } from "@/components/ui/stacked-cards";
 import { GooeyTogglePair, type ToggleVisibility } from "@/components/ui/gooey-toggle-pair";
 import { HomePage } from "@/components/HomePage";
+import { StudyDecksPage } from "@/components/StudyDecksPage";
 import { useHashRoute } from "@/lib/useHashRoute";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
 import { SnapCarousel } from "@/components/ui/snap-carousel";
@@ -243,11 +244,14 @@ export default function App() {
    * `#/home` still works, so nothing that links to it breaks.
    */
   if (route === "" || route === "home") return <HomePage />;
+  if (route === "study-decks") return <StudyDecksPage />;
   // `about` is the old address for what is now the contact page. About itself is
   // a card opened over whatever you were looking at, so it has no route at all.
   if (route === "contact" || route === "about") return withBoundary(<ContactPage />);
   // Unlinked from the nav on purpose; reached from the name on the About card.
-  if (route === "signin") return withBoundary(<SignInPage />);
+  if (route === "signin") return withBoundary(<SignInPage mode="signin" />);
+  if (route === "signup") return withBoundary(<SignInPage mode="signup" />);
+  if (route === "staff") return withBoundary(<SignInPage mode="staff" />);
 
   if (route.startsWith("folder/")) {
     const gid = route.slice(7) as DeckGroupId;
@@ -742,7 +746,7 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
           <div className="flex h-full w-full flex-col p-5">
             <span className="font-mono text-sm font-bold text-indigo-600 dark:text-indigo-400">
               Question {num}
-              {item.mc ? " · MC" : ""}
+              {item.mc ? " Ã‚Â· MC" : ""}
             </span>
             <div className={cn("flex min-h-0", item.mc ? "flex-col" : "flex-1 items-center")}>
               <MathHtml
@@ -814,7 +818,7 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
     () =>
       testimonials.map((t) => ({
         imgUrl: testimonialArt(t),
-        alt: `${t.name} — ${t.role}`,
+        alt: `${t.name} Ã¢â‚¬â€ ${t.role}`,
         title: t.name,
         subtitle: t.role,
       })),
@@ -1210,7 +1214,7 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
                         onConfirm={doReset}
                         holdDuration={1200}
                         label="Reset"
-                        holdingLabel="Hold…"
+                        holdingLabel="HoldÃ¢â‚¬Â¦"
                         className="min-w-0 h-9 px-3"
                       />,
                     ]
@@ -1343,7 +1347,7 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
 
         {reviewed === questions.length && (
           <div className="mt-6 text-center bg-indigo-50 dark:bg-indigo-400/10 border border-indigo-200 dark:border-indigo-500/30 rounded-lg p-6">
-            <p className="text-5xl mb-2">👍</p>
+            <p className="text-5xl mb-2">Ã°Å¸â€˜Â</p>
             <p className="font-bold text-indigo-900 dark:text-indigo-200 text-lg">You've reviewed every question.</p>
             <p className="text-indigo-700 dark:text-indigo-300 text-sm mt-1">
               Use "Needs Review" to double-check anything marked red or yellow before the LCTA.

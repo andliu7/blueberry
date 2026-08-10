@@ -131,7 +131,7 @@ function IntroStage({
   const cueOpacity = useTransform(progress, [0, 0.12], [1, 0]);
 
   return (
-    <ContainerSticky className={cn("overflow-hidden", isDark ? "bg-[#08060f]" : "bg-[#f7eaff]")}>
+    <ContainerSticky className={cn("overflow-hidden", isDark ? "bg-[#171327]" : "bg-[#f7eaff]")}>
       <motion.div className="absolute inset-0" style={reduce ? undefined : { opacity }}>
         {/* The pastel wash, under everything, in light mode only. The dark
             opening is built on near-black and every layer above it adds light;
@@ -280,7 +280,7 @@ function IntroStage({
             isDark ? "text-white/40" : "text-slate-400",
           )}
         >
-          space or esc to skip
+          Press Space or Esc to skip the intro
         </span>
       </motion.div>
 
@@ -304,6 +304,7 @@ export function HomeIntro({
   onSkip,
   onComplete,
   settled = false,
+  autoAdvanceMs = 1200,
 }: {
   onSkip: () => void;
   /**
@@ -312,6 +313,8 @@ export function HomeIntro({
    * motion, where the page is left where the visitor put it.
    */
   onComplete?: () => void;
+  /** Time to wait after the opening settles before advancing automatically. */
+  autoAdvanceMs?: number;
   /**
    * Already seen this visit, so show the finished picture rather than replaying
    * the sequence. The opening stays mounted either way, since the hub puts you
@@ -358,9 +361,9 @@ export function HomeIntro({
     if (!ready || reduce || settled) return;
     // Long enough for the shader's 1.1s fade to finish, so the descent starts
     // from the finished picture rather than interrupting it.
-    const t = setTimeout(() => onCompleteRef.current?.(), 1200);
+    const t = setTimeout(() => onCompleteRef.current?.(), autoAdvanceMs);
     return () => clearTimeout(t);
-  }, [ready, reduce, settled]);
+  }, [ready, reduce, settled, autoAdvanceMs]);
 
   // The page must not scroll while the black screen is playing, or a flick of
   // the wheel lands you in the middle of an empty 220vh column.

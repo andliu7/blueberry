@@ -1,15 +1,13 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { Search, X } from "lucide-react";
+import { Search } from "lucide-react";
 import { BlueberryMark } from "@/components/ui/blueberry-mark";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
-import { CourseTreeButton } from "@/components/ui/course-tree";
-import { SearchResults } from "@/components/ui/deck-search";
+import { DashboardButton } from "@/components/Dashboard";
 import { SiteActions } from "@/components/SiteActions";
 import { SURFACE } from "@/lib/hubSurface";
 import { useIsDark } from "@/lib/useIsDark";
 import { cn } from "@/lib/utils";
-import type { SearchHit } from "@/lib/searchDecks";
 
 /**
  * The bar at the top of every page, and the one thing on the site that stays put.
@@ -34,7 +32,16 @@ import type { SearchHit } from "@/lib/searchDecks";
 export function SiteHeader({
   /** The section you are inside, shown once its own heading is off screen. */
   category,
-  /** Browse opens the course tree. Omitted on pages that have no drawer. */
+  /**
+   * What the category name does when clicked.
+   *
+   * Given one, the label becomes a button into that category's dashboard panel.
+   * The name of the thing you are looking at is the most direct way to ask for
+   * more of it, and it was previously the one piece of the bar that could not be
+   * pressed.
+   */
+  onCategoryClick,
+  /** Browse opens the dashboard. Omitted on pages that have no dashboard. */
   browse,
   /** Contact links to itself, so that page turns its own button off. */
   showContact = true,
@@ -49,32 +56,26 @@ export function SiteHeader({
    */
   onHome,
   /**
-   * The category's search, in the middle of the bar. Bound to the same query as
-   * the box in the page, so the two can never hold different text.
+   * The search, in the middle of the bar. A button now, not a box.
+   *
+   * It used to expand into a real input with a dropdown of results hanging off
+   * it. That worked, and it was the wrong place for it: the bar has a mark, a
+   * category, a button and three actions to fit, so the input had to hide every
+   * one of them below `lg` to have room to be typed into — and the results then
+   * had nowhere to go but a floating panel with its own scroll. Search is the
+   * dashboard's job, and this is the way in.
    */
-  search,
+  onSearch,
   className,
 }: {
   category?: string | null;
+  onCategoryClick?: () => void;
   browse?: { open: boolean; onToggle: () => void };
   showContact?: boolean;
   onHome?: () => void;
-  search?: {
-    value: string;
-    onChange: (next: string) => void;
-    hits: SearchHit[];
-  };
+  onSearch?: () => void;
   className?: string;
 }) {
-  /**
-   * Expanding the search takes the row over on a narrow screen.
-   *
-   * A breakpoint rather than a measurement. The bar has a mark, a category, a
-   * button, three actions and a text box to fit, and below `lg` there is simply
-   * not room for a usable input alongside all of it — so the input takes the row
-   * and gives it back on Escape, on the ✕, or on a click outside.
-   */
-  const [searchOpen, setSearchOpen] = useState(false);
   const isDark = useIsDark();
   const reduce = useReducedMotion();
   const surface = isDark ? SURFACE.dark : SURFACE.light;
@@ -139,15 +140,8 @@ export function SiteHeader({
 
         {/* The category, once its own heading has gone, and Browse beside it.
             Width is not animated: the row is a flex line and easing a width here
-            shoves everything else along with it. It fades and lifts instead.
-
-            Hidden while the search has taken the row on a narrow screen. */}
-        <div
-          className={cn(
-            "flex min-w-0 shrink-0 items-center gap-3",
-            searchOpen && "hidden lg:flex",
-          )}
-        >
+            shoves everything else along with it. It fades and lifts instead. */}
+        <div className="flex min-w-0 shrink-0 items-center gap-3">
           <AnimatePresence mode="wait">
             {category && (
               <motion.span
@@ -156,35 +150,42 @@ export function SiteHeader({
                 animate={{ opacity: 1, y: 0 }}
                 exit={reduce ? undefined : { opacity: 0, y: -6 }}
                 transition={{ duration: 0.22, ease: "easeOut" }}
-                className="title-face min-w-0 truncate text-lg text-slate-900 sm:text-xl dark:text-stone-100"
+                className="min-w-0"
               >
-                {category}
+                {onCategoryClick ? (
+                  <button
+                    type="button"
+                    onClick={onCategoryClick}
+                    title={`Open ${category} in the dashboard`}
+                    className="group/cat title-face relative block max-w-full cursor-pointer truncate text-lg text-slate-900 outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 sm:text-xl dark:text-stone-100"
+                  >
+                    {category}
+                    {/* The same sweep every other link on the site uses, so a
+                        pressable heading is discoverable without being drawn as
+                        a button and cluttering a row that is already full. */}
+                    <span
+                      aria-hidden
+                      className="absolute -bottom-0.5 left-0 h-[2px] w-full origin-left scale-x-0 rounded-full bg-gradient-to-r from-indigo-500 to-fuchsia-500 transition-transform duration-300 ease-out group-hover/cat:scale-x-100 group-focus-visible/cat:scale-x-100"
+                    />
+                  </button>
+                ) : (
+                  <span className="title-face block truncate text-lg text-slate-900 sm:text-xl dark:text-stone-100">
+                    {category}
+                  </span>
+                )}
               </motion.span>
             )}
           </AnimatePresence>
 
-          {browse && (
-            <CourseTreeButton collapsible open={browse.open} onToggle={browse.onToggle} />
-          )}
+          {browse && <DashboardButton open={browse.open} onToggle={browse.onToggle} />}
         </div>
 
-        {/* The search, centred in what is left. `flex-1` on both this and nothing
+        {/* The search, centred in what is left. `flex-1` on this and nothing
             else is what keeps it in the middle rather than pushed against the
             cluster that happens to be wider. */}
-        {search && category && (
-          <HeaderSearch
-            {...search}
-            open={searchOpen}
-            onOpenChange={setSearchOpen}
-          />
-        )}
+        {onSearch && category && <HeaderSearchButton onOpen={onSearch} />}
 
-        <div
-          className={cn(
-            "ml-auto flex shrink-0 items-center gap-2",
-            searchOpen && "hidden lg:flex",
-          )}
-        >
+        <div className="ml-auto flex shrink-0 items-center gap-2">
           <SiteActions showContact={showContact} />
           <AnimatedThemeToggler />
         </div>
@@ -194,144 +195,55 @@ export function SiteHeader({
 }
 
 /**
- * The bar's search: a magnifier you click, which becomes a real text box.
+ * The bar's search: a pill that opens the dashboard on its search panel.
  *
- * Collapsed it is the same pill as the Browse button beside it, so the two read
- * as a pair of tools rather than a button and a form. Expanded it grows into
- * whatever room the bar has, and on a narrow screen the header hides the clusters
- * either side so the input is not squeezed into eighty pixels.
+ * It was an input that expanded in place, with the results hanging under the bar
+ * in a floating panel. The panel was the problem. A bar is a row — there is no
+ * height in it for a list of matches — so the results had to be a dropdown with
+ * its own scroll, sitting over the page, closing on any stray click. The
+ * dashboard has a whole column to put them in, and searching is now the thing
+ * you were going to do next anyway.
  *
- * The results cannot live in the bar — there is no height for a list — so they
- * hang underneath it in a panel, using the same `SearchResults` the page uses.
+ * Still the same pill as the Browse button beside it, so the two read as a pair
+ * of tools rather than as a button and a form.
  */
-function HeaderSearch({
-  value,
-  onChange,
-  hits,
-  open,
-  onOpenChange,
-}: {
-  value: string;
-  onChange: (next: string) => void;
-  hits: SearchHit[];
-  open: boolean;
-  onOpenChange: (next: boolean) => void;
-}) {
-  const wrapRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const active = value.trim().length >= 2;
-
-  const close = () => {
-    onOpenChange(false);
-    inputRef.current?.blur();
-  };
-
-  // Focus on open, so clicking the magnifier lets you type immediately.
-  useEffect(() => {
-    if (open) inputRef.current?.focus();
-  }, [open]);
-
-  /**
-   * Escape closes, and so does a click anywhere else.
-   *
-   * `pointerdown` rather than `click`: a click on a result fires after the link
-   * has already been followed, and closing on that would tear the panel down
-   * mid-navigation. Clicks inside the wrapper are ignored, which is what keeps
-   * the panel usable — it is inside the wrapper for exactly this reason.
-   */
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") close();
-    };
-    const onDown = (e: PointerEvent) => {
-      if (!wrapRef.current?.contains(e.target as Node)) close();
-    };
-    window.addEventListener("keydown", onKey);
-    document.addEventListener("pointerdown", onDown);
-    return () => {
-      window.removeEventListener("keydown", onKey);
-      document.removeEventListener("pointerdown", onDown);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
-
-  // `/` opens it, matching the box in the page. Only while the bar is the search
-  // on screen, which is the only time this is mounted.
+function HeaderSearchButton({ onOpen }: { onOpen: () => void }) {
+  // `/` is the convention everywhere else that has a search box, and this is the
+  // search on screen whenever it is mounted. Ignored while typing, or a slash
+  // could not be typed at all.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const el = document.activeElement;
       const typing = el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement;
       if (e.key === "/" && !typing) {
         e.preventDefault();
-        onOpenChange(true);
+        onOpen();
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onOpenChange]);
+  }, [onOpen]);
 
   return (
-    <div
-      ref={wrapRef}
-      className={cn(
-        "relative flex min-w-0 justify-center",
-        // Takes the row when open, and stays out of the way when not: a
-        // permanently greedy flex child would push the actions off a phone.
-        open ? "flex-1" : "flex-1 lg:flex-1",
-      )}
-    >
-      {!open ? (
-        <button
-          type="button"
-          onClick={() => onOpenChange(true)}
-          aria-label="Search decks"
-          className="inline-flex max-w-full cursor-pointer items-center gap-1.5 truncate rounded-full border border-slate-200 bg-white/70 px-3 py-1.5 text-xs font-semibold text-slate-500 backdrop-blur transition hover:bg-white hover:text-slate-800 dark:border-stone-700 dark:bg-stone-900/60 dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-stone-100"
-        >
-          <Search className="size-3.5 shrink-0" />
-          <span className="truncate">
-            Search decks
-            {/* The ellipsis only when there is room; a phone gets the words. */}
-            <span className="hidden sm:inline">…</span>
-          </span>
-          {/* Says the query survived closing, rather than looking like it was
-              thrown away. */}
-          {active && (
-            <span className="shrink-0 rounded-full bg-indigo-500/15 px-1.5 font-mono text-[0.65rem] text-indigo-600 dark:text-indigo-300">
-              {hits.length}
-            </span>
-          )}
-        </button>
-      ) : (
-        <div className="relative w-full max-w-md">
-          <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400 dark:text-stone-500" />
-          <input
-            ref={inputRef}
-            type="text"
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            placeholder="Search every deck…"
-            aria-label="Search decks"
-            className="w-full rounded-full border border-slate-200 bg-white py-1.5 pr-9 pl-9 text-sm text-slate-800 shadow-sm outline-none placeholder:text-slate-400 focus-visible:border-indigo-400 focus-visible:ring-2 focus-visible:ring-indigo-400/40 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-200 dark:placeholder:text-stone-500"
-          />
-          <button
-            type="button"
-            // Clears first, closes second. A box with text in it should give the
-            // text back before it gives the row back.
-            onClick={() => (value ? onChange("") : close())}
-            aria-label={value ? "Clear search" : "Close search"}
-            className="absolute top-1/2 right-2.5 -translate-y-1/2 cursor-pointer rounded-full p-1 text-slate-400 transition-colors hover:text-slate-700 dark:text-stone-500 dark:hover:text-stone-200"
-          >
-            <X className="size-4" />
-          </button>
-
-          {active && (
-            <div className="absolute top-full right-0 left-0 mt-2 max-h-[60vh] overflow-y-auto rounded-xl">
-              <SearchResults hits={hits} query={value} onPick={close} />
-            </div>
-          )}
-        </div>
-      )}
+    <div className="flex min-w-0 flex-1 justify-center">
+      <button
+        type="button"
+        onClick={onOpen}
+        aria-label="Search decks"
+        className="group/search inline-flex max-w-full cursor-pointer items-center gap-1.5 truncate rounded-full border border-slate-200 bg-white/70 px-3 py-1.5 text-xs font-semibold text-slate-500 backdrop-blur transition hover:bg-white hover:text-slate-800 dark:border-stone-700 dark:bg-stone-900/60 dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-stone-100"
+      >
+        <Search className="size-3.5 shrink-0" />
+        <span className="truncate">
+          Search decks
+          {/* The ellipsis only when there is room; a phone gets the words. */}
+          <span className="hidden sm:inline">…</span>
+        </span>
+        {/* The shortcut, once there is room to print it. Not on a phone, which
+            has no key to press. */}
+        <kbd className="hidden shrink-0 rounded border border-slate-300 px-1 font-mono text-[0.6rem] text-slate-400 sm:inline dark:border-stone-600 dark:text-stone-500">
+          /
+        </kbd>
+      </button>
     </div>
   );
 }

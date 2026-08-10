@@ -16,6 +16,7 @@
  * `font-display: swap` is already set by fontsource, which is what we want:
  * text is readable in the fallback immediately rather than invisible while the
  * font arrives. */
+@import "@fontsource-variable/inter/wght.css";
 @import "@fontsource-variable/fraunces/wght.css";
 @import "@fontsource-variable/caveat/wght.css";
 
@@ -24,6 +25,7 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 body {
+  font-family: "Inter Variable", Inter, ui-sans-serif, system-ui, sans-serif;
   background: #f6f4ef;
   background-image:
     linear-gradient(rgba(15,23,42,0.025) 1px, transparent 1px),
@@ -91,9 +93,10 @@ body {
  * measure and the same colour; they just do not ask you to decode a script
  * face to read a paragraph about hydride chemistry.
  *
- * Short accents — "scroll", the click hint, a one-line subtitle — keep
+ * Short accents â€” "scroll", the click hint, a one-line subtitle â€” keep
  * `.playful-face`. That is where the character was doing work. */
 .playful-body {
+  font-family: "Inter Variable", Inter, ui-sans-serif, system-ui, sans-serif;
   letter-spacing: 0.01em;
   line-height: 1.7;
 }
@@ -340,6 +343,7 @@ input:-webkit-autofill:active {
 /* Warm near-black, so the dark theme reads as a dimmed version of the cream
    paper rather than a different product. */
 .dark body {
+  font-family: "Inter Variable", Inter, ui-sans-serif, system-ui, sans-serif;
   background: #0c0a09;
   background-image:
     linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
@@ -432,6 +436,7 @@ input:-webkit-autofill:active {
   transform-origin: bottom center;
 }
 .mb-body {
+  font-family: "Inter Variable", Inter, ui-sans-serif, system-ui, sans-serif;
   transform-origin: bottom center;
   transform: rotateX(-90deg);
 }
@@ -455,6 +460,7 @@ input:-webkit-autofill:active {
   animation: mb-lid-screen 9s ease-in-out infinite;
 }
 .mb-anim-lid-body {
+  font-family: "Inter Variable", Inter, ui-sans-serif, system-ui, sans-serif;
   animation: mb-lid-body 9s ease-in-out infinite;
 }
 .mb-anim-deck {
@@ -519,6 +525,7 @@ input:-webkit-autofill:active {
 }
 
 @keyframes mb-lid-body {
+  font-family: "Inter Variable", Inter, ui-sans-serif, system-ui, sans-serif;
   0%, 100% { transform: rotateX(-90deg); }
 }
 
