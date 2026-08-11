@@ -481,6 +481,21 @@ export function DashboardButton({
 }) {
   const label = open ? "Close" : "Dashboard";
 
+  /**
+   * The label is written, not revealed.
+   *
+   * This used to keep the word in a `max-w-0` box that opened on hover, which
+   * made it an unlabelled square everywhere hover does not exist — every phone
+   * and tablet — and this is the only way into search, categories and settings.
+   * A control that is the way in to most of the site cannot be a mystery icon.
+   *
+   * The word is hidden below `sm` rather than never shown, because on a phone
+   * the row already carries a mark, a category and two actions; there the
+   * `aria-label` and the 44px target do the work.
+   *
+   * `min-h-11` is 44px. It was 30x28 with the icon at `size-3.5`, which is
+   * under the minimum on both axes.
+   */
   return (
     <button
       type="button"
@@ -489,14 +504,15 @@ export function DashboardButton({
       aria-label={open ? "Close the dashboard" : "Open the dashboard"}
       aria-expanded={open}
       className={cn(
-        "group/dash inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-slate-200 bg-white/70 px-2 py-1.5 text-xs font-semibold text-slate-600 backdrop-blur transition-[background-color,color,padding] hover:bg-white hover:px-3 focus-visible:px-3 dark:border-stone-700 dark:bg-stone-900/60 dark:text-stone-300 dark:hover:bg-stone-800",
+        "group/dash inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full border px-3 text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:outline-none",
+        open
+          ? "border-indigo-300 bg-indigo-50 text-indigo-700 dark:border-indigo-400/40 dark:bg-indigo-500/15 dark:text-indigo-200"
+          : "border-slate-200 bg-white/70 text-slate-600 hover:border-indigo-300 hover:bg-white hover:text-indigo-700 dark:border-stone-700 dark:bg-stone-900/60 dark:text-stone-300 dark:hover:border-indigo-400/50 dark:hover:bg-stone-800 dark:hover:text-indigo-200",
         className,
       )}
     >
-      <LayoutGrid className="size-3.5 shrink-0" />
-      <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-[max-width,opacity] duration-300 ease-out group-hover/dash:max-w-[7rem] group-hover/dash:opacity-100 group-focus-visible/dash:max-w-[7rem] group-focus-visible/dash:opacity-100">
-        {label}
-      </span>
+      {open ? <X className="size-4 shrink-0" /> : <LayoutGrid className="size-4 shrink-0" />}
+      <span className="hidden whitespace-nowrap sm:inline">{label}</span>
     </button>
   );
 }

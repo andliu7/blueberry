@@ -734,3 +734,113 @@ button:disabled,
     border-radius: 62% 38% 46% 54% / 60% 55% 45% 40%;
   }
 }
+
+/* ── the berry's moods, on the flat mark ───────────────────────────────────
+
+   Without `data-mood` the mark is reactive: eyes open at rest, kind eyes and
+   blush while an interactive ancestor is hovered. With it the page sets the
+   face and hover stops changing it, which is what lets the flat berry stand in
+   for the three-dimensional one without the expression jumping at the moment
+   the chunk lands and the two swap.
+
+   These beat the hover rules on specificity — a class plus an attribute plus a
+   class is three, against the hover selectors' two — so they need no
+   `!important`. The mood-specific rules sit after the shared ones because they
+   tie on specificity and source order is what separates them. */
+.bb-eyes[data-mood] .bb-eye-open {
+  opacity: 0;
+}
+.bb-eyes[data-mood] .bb-eye-kind {
+  opacity: 1;
+}
+.bb-eyes[data-mood] .bb-blush {
+  opacity: 0;
+}
+
+/* Eyes open: the moods that are looking at something. */
+.bb-eyes[data-mood="curious"] .bb-eye-open,
+.bb-eyes[data-mood="focused"] .bb-eye-open,
+.bb-eyes[data-mood="reading"] .bb-eye-open,
+.bb-eyes[data-mood="thinking"] .bb-eye-open {
+  opacity: 1;
+}
+.bb-eyes[data-mood="curious"] .bb-eye-kind,
+.bb-eyes[data-mood="focused"] .bb-eye-kind,
+.bb-eyes[data-mood="reading"] .bb-eye-kind,
+.bb-eyes[data-mood="thinking"] .bb-eye-kind {
+  opacity: 0;
+}
+
+/* Blush is a dial rather than a switch: full when caught out, a trace when
+   merely pleased. A berry that is always at full blush has nowhere to go. */
+.bb-eyes[data-mood="shy"] .bb-blush {
+  opacity: 1;
+}
+.bb-eyes[data-mood="cheer"] .bb-blush {
+  opacity: 0.85;
+}
+.bb-eyes[data-mood="happy"] .bb-blush {
+  opacity: 0.45;
+}
+.bb-eyes[data-mood="proud"] .bb-blush {
+  opacity: 0.3;
+}
+
+/* The smile is one path scaled about its own centre. `transform-box: fill-box`
+   is what makes `center` mean the middle of the curve rather than the middle of
+   the whole 64x64 canvas, which would swing it across the face. */
+.bb-smile,
+.bb-eye-kind {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition:
+    transform 220ms ease,
+    opacity 200ms ease;
+}
+.bb-eyes[data-mood="cheer"] .bb-smile {
+  transform: scaleY(1.75);
+}
+.bb-eyes[data-mood="happy"] .bb-smile {
+  transform: scaleY(1.2);
+}
+.bb-eyes[data-mood="focused"] .bb-smile,
+.bb-eyes[data-mood="thinking"] .bb-smile {
+  transform: scaleY(0.3);
+}
+.bb-eyes[data-mood="reading"] .bb-smile,
+.bb-eyes[data-mood="sleepy"] .bb-smile {
+  transform: scaleY(0.55);
+}
+
+/* Sleepy borrows the kind arcs and flattens them, so the lids droop rather than
+   beam. Same two strokes, a different amount of curve. */
+.bb-eyes[data-mood="sleepy"] .bb-eye-kind {
+  transform: scaleY(0.4);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bb-smile,
+  .bb-eye-kind {
+    transition: none;
+  }
+}
+
+/* The three-dimensional berry arriving over the flat one. A short fade with a
+   little scale, so the upgrade reads as the same object gaining depth rather
+   than as a second berry appearing on top of the first. */
+@keyframes berry-arrive {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-\[berry-arrive_600ms_ease-out_both\] {
+    animation: none;
+  }
+}

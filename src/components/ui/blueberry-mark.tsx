@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import type { BerryMood } from "@/lib/berryMood";
 
 /**
  * The site's logo, drawn inline.
@@ -17,8 +18,20 @@ export function BlueberryMark({
   className,
   eyes = false,
   loved = false,
+  mood,
 }: {
   className?: string;
+  /**
+   * A fixed expression, instead of the hover-driven one.
+   *
+   * Without this the mark is reactive: eyes open at rest, kind eyes and blush
+   * while an interactive ancestor is hovered. With it the face is set by the
+   * page, which is what lets the flat berry stand in for the three-dimensional
+   * one while its chunk is still arriving without the swap changing expression
+   * halfway. See `lib/berryMood`; the CSS lives in `index.css` under
+   * `[data-mood]`.
+   */
+  mood?: BerryMood;
   /**
    * Two blinking eyes on the berry, borrowed from the robot: rounded brackets
    * rather than dots, which is what makes them read as a face without turning
@@ -85,7 +98,7 @@ export function BlueberryMark({
           The blink is a scaleY on the pair, which is what an eyelid does; fading
           them out instead reads as the face disappearing. */}
       {eyes && (
-        <g className={cn("bb-eyes", loved && "bb-eyes-loved")}>
+        <g className={cn("bb-eyes", loved && "bb-eyes-loved")} data-mood={mood}>
           {/* Blush, under everything else so the face sits on top of it. Only
               visible on hover, which is also when the eyes close: the two
               together read as one expression rather than two effects. */}

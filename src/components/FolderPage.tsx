@@ -14,7 +14,7 @@ import { GlassCard } from "@/components/ui/glass-card";
 import { DeckSearch } from "@/components/ui/deck-search";
 import { DeckUploadTicket } from "@/components/DeckUploadTicket";
 import { UploadedFolderView } from "@/components/UploadedFolderView";
-import { BlueberryBot2D } from "@/components/ui/blueberry-bot-2d";
+import { Blueberry } from "@/components/ui/blueberry";
 import { FeedbackButton } from "@/components/FeedbackButton";
 import { matchedDeckIds, searchDecks } from "@/lib/searchDecks";
 import { reviewedCount } from "@/lib/progress";
@@ -162,14 +162,18 @@ export function FolderPage({ groupId }: { groupId: DeckGroupId }) {
           </span>
         </a>
 
-        {/* The flat bot here rather than the three.js one. A folder page is a
-            step on the way to a deck, and it should not pull 600 kB to decorate
-            a page nobody stays on. */}
-        <div className="mt-14 flex justify-center">
-          <BlueberryBot2D
-            className="w-full max-w-lg"
-            says="Hello! How are you enjoying Blueberry today? Give us some feedback at the bottom right!"
-          />
+        {/* A folder is a step on the way to a deck, so the berry here is small
+            and is not asking for attention. `Blueberry` decides for itself
+            whether that is worth a canvas: near the viewport with WebGL to hand
+            it upgrades, and otherwise it stays the flat mark, which is what this
+            page used unconditionally before. Either way it is the same
+            character wearing the same mood. */}
+        <div className="mt-14 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+          <Blueberry mood="happy" className="h-40 w-40 shrink-0" />
+          <p className="max-w-[15rem] rounded-2xl rounded-bl-sm border border-slate-200 bg-white px-4 py-3 text-sm leading-relaxed text-slate-600 shadow-sm sm:rounded-tl-sm sm:rounded-bl-2xl dark:border-stone-700 dark:bg-stone-900 dark:text-stone-300">
+            Hello! How are you enjoying Blueberry today? Give us some feedback at the bottom
+            right!
+          </p>
         </div>
 
         <DeckUploadTicket />

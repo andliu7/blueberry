@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
+import { BlueberryMark } from "@/components/ui/blueberry-mark";
 import { SURFACE } from "@/lib/hubSurface";
 import { useIsDark } from "@/lib/useIsDark";
 import { SITE_NAME } from "@/data/site";
@@ -56,7 +57,23 @@ export function useLoaderHold(minMs = 600) {
   return held;
 }
 
-export function BlueberryLoader({ className }: { className?: string }) {
+export function BlueberryLoader({
+  className,
+  resolved = false,
+}: {
+  className?: string;
+  /**
+   * The wait is over: settle the blob into the berry before leaving.
+   *
+   * This is the join between the three things that used to be separate objects
+   * — a loading shape, an opening animation and a mascot. The blob is not a
+   * spinner that gets replaced by a berry; it *is* the berry, before it has
+   * decided on an outline. Holding that beat for a moment before the exit is
+   * what makes the intro's swarm read as the same character arriving rather
+   * than a third unrelated thing.
+   */
+  resolved?: boolean;
+}) {
   const isDark = useIsDark();
   const surface = isDark ? SURFACE.dark : SURFACE.light;
 
@@ -88,18 +105,33 @@ export function BlueberryLoader({ className }: { className?: string }) {
         {SITE_WORD}
       </span>
 
-      <div
-        aria-hidden
-        className="berry-blob relative h-16 w-16 sm:h-20 sm:w-20"
-        style={{
-          // The ramp the rest of the site uses on links and card edges, so the
-          // loader arrives in the palette the opening is about to continue in.
-          backgroundImage: "linear-gradient(135deg, #6366f1 0%, #d946ef 100%)",
-          boxShadow: isDark
-            ? "0 18px 50px -12px rgba(99,102,241,0.55)"
-            : "0 18px 50px -14px rgba(99,102,241,0.45)",
-        }}
-      />
+      {/* The blob and the berry occupy exactly the same box, and trade places.
+          Same size, same centre, so the crossfade reads as one shape resolving
+          rather than two shapes swapping. */}
+      <div aria-hidden className="relative h-20 w-20 sm:h-24 sm:w-24">
+        <div
+          className={cn(
+            "berry-blob absolute inset-0 transition-opacity duration-500",
+            resolved ? "opacity-0" : "opacity-100",
+          )}
+          style={{
+            // The ramp the rest of the site uses on links and card edges, so the
+            // loader arrives in the palette the opening is about to continue in.
+            backgroundImage: "linear-gradient(135deg, #6366f1 0%, #d946ef 100%)",
+            boxShadow: isDark
+              ? "0 18px 50px -12px rgba(99,102,241,0.55)"
+              : "0 18px 50px -14px rgba(99,102,241,0.45)",
+          }}
+        />
+        <BlueberryMark
+          eyes
+          mood="sleepy"
+          className={cn(
+            "absolute inset-0 h-full w-full drop-shadow-xl transition-opacity duration-500",
+            resolved ? "opacity-100" : "opacity-0",
+          )}
+        />
+      </div>
 
       <span className="sr-only">Loading {SITE_NAME}</span>
     </motion.div>

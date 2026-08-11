@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion, useInView, useReducedMotion } from "motion/react";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import {
@@ -37,23 +37,8 @@ import { TextScramble } from "@/components/ui/text-scramble";
 import BoldOnHover from "@/components/ui/bold-on-hover";
 import { SpotlightCursor } from "@/components/ui/spotlight-cursor";
 import { SURFACE, spotlightFor } from "@/lib/hubSurface";
-import { BlueberryBot2D } from "@/components/ui/blueberry-bot-2d";
-
-/**
- * three, fiber and drei are around 600 kB and the hub is where most people
- * land, so none of it is in the first paint. The flat bot renders immediately
- * and is the Suspense fallback, which means the placeholder is the finished
- * article rather than a spinner: if the chunk never arrives, or WebGL is
- * unavailable, what is on screen is already the folder pages' version.
- *
- * Splitting the chunk is only half of it. `lazy` fetches as soon as the element
- * renders, so this is also gated on being near the viewport — see `botNearby`
- * below. Without that the download starts on page load anyway and the split
- * buys nothing but a second request.
- */
-const BlueberryBot3D = lazy(() =>
-  import("@/components/ui/blueberry-bot-3d").then((m) => ({ default: m.BlueberryBot3D })),
-);
+import { Blueberry } from "@/components/ui/blueberry";
+import { moodForProgress } from "@/lib/berryMood";
 
 /**
  * The hub: one card per deck, with room to grow.
@@ -118,22 +103,6 @@ export function StudyDecksPage() {
   const categoryInView = useInView(categoryRef, { amount: "some" });
   const showCategoryTitle = !bigHeadingInView && categoryInView;
 
-  /**
-   * The 3D bot waits until it is nearly on screen.
-   *
-   * `lazy` only splits the chunk; it still fetches the moment the element is
-   * rendered, and the bot sits below every deck on a page that is also the
-   * first thing anyone loads. So 890 kB of three, fiber and drei and a WebGL
-   * scene were booting during the opening animation, which is most of why the
-   * hub used to stutter on arrival.
-   *
-   * `once` because the download does not want undoing, and a 400px margin so
-   * the chunk is already in flight by the time the section is scrolled to and
-   * the flat bot is not sitting there visibly waiting to be replaced.
-   */
-  const botRef = useRef<HTMLElement>(null);
-  const botNearby = useInView(botRef, { once: true, margin: "400px" });
-
   /** Home, from the hub, means the top of the decks rather than the opening. */
   const goHome = useCallback(() => {
     decksRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -145,6 +114,19 @@ export function StudyDecksPage() {
   // Built-ins plus anything that has been published. Search covers both, so a
   // deck someone uploaded is findable the same way the rest are.
   const { decks: allDecks, published } = useDecks();
+
+  /**
+   * The mood the whole library is in, summed across every deck with progress.
+   *
+   * Summed rather than taken from the best deck, or the berry would look proud
+   * of the one you finished while ignoring the four you abandoned.
+   */
+  const libraryMood = useMemo(() => {
+    const rows = allDecks.map((d) => ({ reviewed: reviewedCount(d.id), total: deckCount(d) }));
+    const reviewed = rows.reduce((n, r) => n + r.reviewed, 0);
+    const total = rows.reduce((n, r) => n + r.total, 0);
+    return moodForProgress(reviewed, total);
+  }, [allDecks]);
 
   /**
    * One query, shared by the box in the page and the one in the sticky bar.
@@ -391,17 +373,21 @@ export function StudyDecksPage() {
 
         {/* The bot, under the decks rather than over them: the hub is somewhere
             people arrive to find a deck quickly, and a toy above the fold would
-            be in the way of that. */}
-        <section ref={botRef} className="mt-16 flex flex-col items-center">
-          {botNearby ? (
-            <Suspense fallback={<BlueberryBot2D className="h-72 w-72" />}>
-              <BlueberryBot3D className="h-72 w-72" />
-            </Suspense>
-          ) : (
-            <BlueberryBot2D className="h-72 w-72" />
-          )}
+            be in the way of that.
+
+            The lazy import, the visibility gate and the flat stand-in all moved
+            into `Blueberry`, because every page wants the same three things and
+            three pages had started writing their own. It wears the mood the
+            library is in: proud once most of it is reviewed, focused in the
+            middle of the work, curious before any of it is started. */}
+        <section className="mt-16 flex flex-col items-center">
+          <Blueberry
+            mood={libraryMood}
+            className="h-72 w-72"
+            label="Blueberry, the site's mascot. Drag to spin, click to poke."
+          />
           <p className="mt-1 text-center text-xs text-slate-400 dark:text-stone-500">
-            Move your cursor around and see what he does.
+            Move your cursor around, give him a poke, or drag to spin him.
           </p>
         </section>
 

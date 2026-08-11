@@ -5,6 +5,8 @@ import { HomeIntro } from "@/components/HomeIntro";
 import { Dashboard, useDashboard } from "@/components/Dashboard";
 import { SiteHeader } from "@/components/ui/site-header";
 import { BlueberryLoader, useLoaderHold } from "@/components/ui/blueberry-loader";
+import { Blueberry } from "@/components/ui/blueberry";
+import { moodForProgress } from "@/lib/berryMood";
 import { SURFACE } from "@/lib/hubSurface";
 import { useIsDark } from "@/lib/useIsDark";
 import { useDecks } from "@/lib/useDecks";
@@ -44,7 +46,21 @@ export function HomePage() {
   const reduce = useReducedMotion();
 
   /** Fonts are in and the floor has passed; fair to start animating. */
-  const loaded = useLoaderHold();
+  const ready = useLoaderHold();
+
+  /**
+   * The loader stays a beat past being ready, to settle the blob into the berry.
+   *
+   * Without the gap the shape would resolve and be gone in the same frame,
+   * which is no resolve at all — the join between the loader and the opening is
+   * the whole point of holding at all.
+   */
+  const [loaded, setLoaded] = useState(false);
+  useEffect(() => {
+    if (!ready) return;
+    const t = setTimeout(() => setLoaded(true), 620);
+    return () => clearTimeout(t);
+  }, [ready]);
 
   /**
    * Read once on mount, before the mark below is set, so a first arrival still
@@ -68,7 +84,9 @@ export function HomePage() {
       className="relative min-h-screen text-slate-900 dark:text-stone-100"
       style={{ backgroundColor: surface.base, backgroundImage: surface.gradient }}
     >
-      <AnimatePresence>{!loaded && <BlueberryLoader key="loader" />}</AnimatePresence>
+      <AnimatePresence>
+        {!loaded && <BlueberryLoader key="loader" resolved={ready} />}
+      </AnimatePresence>
 
       {loaded && !entered && (
         <HomeIntro
@@ -112,6 +130,21 @@ function Landing({ reduce }: { reduce: boolean }) {
         .slice(0, 3),
     [decks],
   );
+
+  /**
+   * The berry's face, taken from how the studying is actually going.
+   *
+   * Summed across every started deck rather than read off the best one, or it
+   * would congratulate you on the deck you finished while ignoring the four you
+   * abandoned. A first visit has nothing to sum and gets `curious`, which is the
+   * mood that looks at you rather than at your record.
+   */
+  const heroMood = useMemo(() => {
+    if (started.length === 0) return "curious" as const;
+    const reviewed = started.reduce((n, r) => n + r.reviewed, 0);
+    const total = started.reduce((n, r) => n + r.total, 0);
+    return moodForProgress(reviewed, total);
+  }, [started]);
 
   /**
    * The doors, in the order they are worth trying.
@@ -165,20 +198,41 @@ function Landing({ reduce }: { reduce: boolean }) {
       />
 
       <main className="relative z-10 mx-auto max-w-5xl px-6 pb-24">
-        <motion.header className="pt-14 sm:pt-20" {...rise(0)}>
-          <p className="font-mono text-xs font-semibold tracking-[.18em] text-indigo-600 uppercase dark:text-indigo-300">
-            {SITE_NAME}
-          </p>
-          <h1 className="title-face mt-4 text-5xl leading-[1.05] sm:text-6xl">
-            Organic chemistry,
-            <br />
-            one card at a time.
-          </h1>
-          <p className="playful-face mt-6 max-w-2xl text-lg text-slate-500 dark:text-stone-400">
-            Flashcards, written lessons and mechanism practice for University of Maryland
-            organic chemistry. I built it while taking the course, which is why it covers
-            what actually gets asked.
-          </p>
+        {/*
+          The berry is the hero, and the words get out of its way.
+
+          There were three sentences of prose here explaining what the site is
+          for. They were doing the mascot's job badly: the berry says "this is
+          friendly, it is about chemistry, someone made it on purpose" in one
+          glance, and a paragraph saying the same thing in words is just the
+          reader's toll for reaching the doors underneath.
+
+          What is left is the name and one line of fact — which course, what is
+          in it. Anyone who wants more can press a door.
+        */}
+        <motion.header
+          className="grid items-center gap-6 pt-10 sm:pt-14 lg:grid-cols-[1fr_auto] lg:gap-10"
+          {...rise(0)}
+        >
+          <div>
+            <h1 className="title-face text-6xl leading-[0.95] sm:text-7xl">{SITE_NAME}</h1>
+            <div
+              aria-hidden
+              className="mt-5 h-px w-16 bg-gradient-to-r from-indigo-500 to-fuchsia-500"
+            />
+            <p className="mt-5 max-w-md text-lg leading-relaxed text-slate-600 dark:text-stone-300">
+              Organic chemistry for CHEM 241 and 242, at Maryland.
+              <br className="hidden sm:block" /> Flashcards, lessons, and mechanisms.
+            </p>
+          </div>
+
+          {/* Sized in rem rather than by aspect, so it holds its place before
+              the canvas arrives and nothing reflows underneath it. */}
+          <Blueberry
+            mood={heroMood}
+            className="mx-auto h-56 w-56 sm:h-72 sm:w-72 lg:mx-0"
+            label={`Blueberry, the site's mascot. Drag to spin, click to poke.`}
+          />
         </motion.header>
 
         <motion.section className="mt-12 grid gap-4 sm:grid-cols-3" {...rise(0.08)}>

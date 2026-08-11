@@ -3,6 +3,7 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { ContactShadows } from "@react-three/drei";
 import * as THREE from "three";
 import { cn } from "@/lib/utils";
+import { MOOD_SHAPE, type BerryMood } from "@/lib/berryMood";
 
 /**
  * The blueberry, in three dimensions, watching the cursor.
@@ -157,7 +158,20 @@ function Calyx() {
 const BLINK_CYCLE = 5.4;
 const BLINK_SHUT = 0.22;
 
-function Berry() {
+function Berry({
+  mood,
+  interactive,
+  spin,
+  dragging,
+}: {
+  mood: BerryMood;
+  interactive: boolean;
+  /** Extra yaw from a drag, in radians, owned by the wrapper. */
+  spin: React.RefObject<number>;
+  /** Whether a drag is in progress. Owned by the wrapper, which sees the
+      pointer even when it leaves the berry's silhouette mid-swing. */
+  dragging: React.RefObject<boolean>;
+}) {
   const head = useRef<THREE.Group>(null);
   // A ref rather than state: this changes on a clock and nothing about the
   // React tree depends on it, so re-rendering for it would be waste.
@@ -174,6 +188,8 @@ function Berry() {
    * ends at rest however briefly the cursor passes over.
    */
   const shake = useRef(0);
+  /** 1 the instant it is clicked, decaying to 0 over about a second. */
+  const poke = useRef(0);
   const blush = useRef<THREE.Group>(null);
   const mouth = useRef<THREE.Mesh>(null);
   const smile = useRef<THREE.Mesh>(null);
@@ -192,69 +208,129 @@ function Berry() {
 
   useFrame(({ pointer, clock }, delta) => {
     const dt = Math.min(delta, 0.1);
-
     const t = clock.getElapsedTime();
+
+    const shape = MOOD_SHAPE[mood];
+
     /**
-     * Flustered while you are pointing at it, otherwise open with a blink.
+     * A poke decays rather than being switched off.
      *
-     * The blink is a fifth of a second every five and a half: much longer and it
-     * stops reading as a blink and starts reading as a berry falling asleep. The
-     * fluster still blinks, briefly showing the ordinary shut eye, which is what
-     * keeps the squeezed pair from looking like a painted-on expression.
+     * Clicking sets this to 1 and it falls back to 0 over about a second, which
+     * is what makes the reaction a thing that happens and then is over. A
+     * boolean would need a timer to clear it and would snap at both ends.
      */
-    const blinking = t % BLINK_CYCLE > BLINK_CYCLE - BLINK_SHUT;
-    eyeMode.current = hovered.current ? (blinking ? "shut" : "fluster") : blinking ? "shut" : "open";
+    poke.current = Math.max(0, poke.current - dt * 1.1);
+    const poked = poke.current;
+
+    /**
+     * Whether the face is currently reacting to you rather than wearing its
+     * page's mood. Hovering an interactive berry makes it shy; poking it makes
+     * it cheer. Both outrank the mood underneath, and both are temporary.
+     */
+    const shy = interactive && hovered.current && !dragging.current;
+    const cheering = poked > 0.05;
+
+    /**
+     * The blink is a fifth of a second every five and a half: much longer and it
+     * stops reading as a blink and starts reading as a berry falling asleep. It
+     * runs under every mood except the ones whose eyes are already closed, where
+     * there is nothing to blink.
+     */
+    const lidsDown = shape.eyes === "shut" || shape.eyes === "kind";
+    const blinking = !lidsDown && t % BLINK_CYCLE > BLINK_CYCLE - BLINK_SHUT;
+
+    if (blinking) eyeMode.current = "shut";
+    else if (shy) eyeMode.current = "fluster";
+    else if (cheering) eyeMode.current = "shut";
+    else if (shape.eyes === "fluster") eyeMode.current = "fluster";
+    else if (shape.eyes === "open") eyeMode.current = "open";
+    else eyeMode.current = "shut";
 
     if (head.current) {
-      // Leans toward the cursor rather than looking straight at it: a true
-      // look-at on a sphere with a face reads as the head spinning off.
-      // Flustered, it stops following and holds still.
-      //
-      // A squirm lived here before and was taken out, because at the amplitudes
-      // tried it read as a shiver rather than as embarrassment. This is that
-      // idea again but smaller and only while hovered: a head-tilt wobble on z,
-      // with the lean held still underneath it so there is one movement to read
-      // rather than two competing.
-      const ty = hovered.current ? 0 : pointer.x * 0.62;
-      const tx = hovered.current ? -0.12 : -pointer.y * 0.34;
-      head.current.rotation.y = THREE.MathUtils.lerp(head.current.rotation.y, ty, 9 * dt);
+      /**
+       * Where the head points, in order of who is allowed to decide.
+       *
+       * A drag wins outright, because the hand is on it. Otherwise a tracking
+       * mood leans toward the cursor — a lean, not a look-at, since a true
+       * look-at on a sphere with a face painted on one side reads as the head
+       * spinning off. A mood that does not track sits at its own resting angle,
+       * which is what makes `thinking` look away and `reading` look down.
+       */
+      const tracking = shape.tracks && !shy && !dragging.current;
+      const ty = dragging.current
+        ? spin.current
+        : tracking
+          ? pointer.x * 0.62
+          : shape.lookY + spin.current;
+      const tx = shy ? -0.12 : tracking ? -pointer.y * 0.34 : shape.lookX;
+
+      // Snappier under the hand so the berry keeps up with a drag, softer
+      // otherwise so idle movement stays lazy.
+      const follow = dragging.current ? 18 : 9;
+      head.current.rotation.y = THREE.MathUtils.lerp(head.current.rotation.y, ty, follow * dt);
       head.current.rotation.x = THREE.MathUtils.lerp(head.current.rotation.x, tx, 7 * dt);
 
-      shake.current = THREE.MathUtils.lerp(shake.current, hovered.current ? 1 : 0, 8 * dt);
+      shake.current = THREE.MathUtils.lerp(shake.current, shy ? 1 : 0, 8 * dt);
       // Set rather than lerped: the amplitude is already eased, so lerping the
       // angle as well would drag the wobble behind itself and flatten it.
-      head.current.rotation.z = Math.sin(t * 23) * 0.055 * shake.current;
-      // Lifts a little, the way a face does when it is caught out.
+      // The idle sway underneath is per-mood, so a focused berry barely moves
+      // and a cheering one rolls.
+      const idle = Math.sin(t * 1.1) * 0.035 * shape.sway;
+      head.current.rotation.z = Math.sin(t * 23) * 0.055 * shake.current + idle;
+
+      // Lifts when caught out, and hops when poked. The hop is a half sine over
+      // the life of the poke, so it goes up and comes back down once.
+      const hop = Math.sin(poked * Math.PI) * 0.3;
       head.current.position.y = THREE.MathUtils.lerp(
         head.current.position.y,
-        hovered.current ? 0.12 : 0,
+        (shy ? 0.12 : 0) + hop + Math.sin(t * 1.7) * 0.02 * shape.sway,
         6 * dt,
       );
     }
 
     if (blush.current) {
+      const want = shy ? 0.62 : Math.max(shape.blush, cheering ? 0.7 : 0);
       blush.current.children.forEach((c) => {
         const m = (c as THREE.Mesh).material as THREE.MeshBasicMaterial;
-        m.opacity = THREE.MathUtils.lerp(m.opacity, hovered.current ? 0.62 : 0, 7 * dt);
+        m.opacity = THREE.MathUtils.lerp(m.opacity, want, 7 * dt);
       });
     }
 
     /**
-     * The gawk. How far the cursor sits from dead centre decides how far the jaw
-     * drops, so it is most startled when you are furthest away and settles back
-     * into a smile when you come to rest in front of it.
+     * The gawk, which only `curious` does.
+     *
+     * How far the cursor sits from dead centre decides how far the jaw drops, so
+     * it is most startled when you are furthest away and settles back into a
+     * smile when you come to rest in front of it. Every other mood sets its
+     * mouth from the mood table instead, and a poke opens it regardless.
      */
-    const reach = hovered.current ? 0 : Math.min(1, Math.hypot(pointer.x, pointer.y));
-    const openness = Math.min(1, reach * 2.2);
+    const reach =
+      shape.tracks && !shy && !dragging.current ? Math.min(1, Math.hypot(pointer.x, pointer.y)) : 0;
+    const gawk = Math.min(1, reach * 2.2);
+    const openness = Math.max(gawk, cheering ? poked : 0, shape.mouth > 1.4 ? shape.mouth - 1.4 : 0);
 
     if (mouth.current) {
-      mouth.current.scale.y = THREE.MathUtils.lerp(mouth.current.scale.y, 0.1 + reach * 0.5, 8 * dt);
-      mouth.current.scale.x = THREE.MathUtils.lerp(mouth.current.scale.x, 0.5 + reach * 0.22, 8 * dt);
+      mouth.current.scale.y = THREE.MathUtils.lerp(
+        mouth.current.scale.y,
+        0.1 + Math.max(reach, openness * 0.8) * 0.5,
+        8 * dt,
+      );
+      mouth.current.scale.x = THREE.MathUtils.lerp(
+        mouth.current.scale.x,
+        0.5 + Math.max(reach, openness * 0.8) * 0.22,
+        8 * dt,
+      );
       const m = mouth.current.material as THREE.MeshBasicMaterial;
       m.opacity = THREE.MathUtils.lerp(m.opacity, openness, 8 * dt);
     }
     if (smile.current) {
       // The two trade places, so there is never a smile inside an open mouth.
+      //
+      // The smile is not scaled to suit the mood, though it was for a moment.
+      // Its curve is written in head coordinates around y = -0.42, so scaling
+      // the mesh on y walks the whole mouth up toward the middle of the face
+      // rather than flattening it in place. Mood changes the mouth by how far
+      // it opens, which is the part that happens at the origin.
       const m = smile.current.material as THREE.MeshBasicMaterial;
       m.opacity = THREE.MathUtils.lerp(m.opacity, 1 - openness, 8 * dt);
     }
@@ -274,8 +350,15 @@ function Berry() {
         when raycasting, so hiding it would stop it being hoverable at all.
       */}
       <mesh
-        onPointerOver={() => (hovered.current = true)}
-        onPointerOut={() => (hovered.current = false)}
+        onPointerOver={() => interactive && (hovered.current = true)}
+        onPointerOut={() => interactive && (hovered.current = false)}
+        // A click is a poke: it hops, shuts its eyes and grins for a second.
+        // Guarded on not having just been dragged, or letting go at the end of a
+        // spin would also register as a prod.
+        onClick={() => {
+          if (!interactive || dragging.current) return;
+          poke.current = 1;
+        }}
       >
         <sphereGeometry args={[0.5, 16, 16]} />
         <meshBasicMaterial transparent opacity={0} depthWrite={false} />
@@ -316,12 +399,77 @@ function Berry() {
   );
 }
 
-export function BlueberryBot3D({ className }: { className?: string }) {
+export function BlueberryBot3D({
+  className,
+  mood = "curious",
+  interactive = true,
+}: {
+  className?: string;
+  /** Which face to wear. See `lib/berryMood`. */
+  mood?: BerryMood;
+  /** Whether it answers the pointer at all. Off makes it a still portrait. */
+  interactive?: boolean;
+}) {
+  const spin = useRef(0);
+  const dragging = useRef(false);
+  const lastX = useRef(0);
+  const moved = useRef(0);
+
+  /**
+   * Drag to spin, handled on the wrapper rather than in the scene.
+   *
+   * A drag that starts on the berry regularly leaves its silhouette halfway
+   * through, and three's pointer events end the moment it does — so a spin
+   * begun on the fruit would stop dead the instant the cursor cleared it. The
+   * div sees the whole gesture. `setPointerCapture` is what keeps it arriving
+   * after the pointer leaves the element entirely.
+   *
+   * `moved` accumulates distance so a click can be told from a drag: a press
+   * that travelled less than a few pixels is a poke, and the scene's own click
+   * handler is left to deal with it.
+   */
+  const onDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!interactive) return;
+    dragging.current = true;
+    moved.current = 0;
+    lastX.current = e.clientX;
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+
+  const onMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!dragging.current) return;
+    const dx = e.clientX - lastX.current;
+    lastX.current = e.clientX;
+    moved.current += Math.abs(dx);
+    // Half a turn across a 300px drag: enough that a flick spins him round,
+    // little enough that a careless one does not.
+    spin.current += (dx / 300) * Math.PI;
+  };
+
+  const onUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!dragging.current) return;
+    // Cleared on the next frame rather than now, so the click that follows this
+    // pointerup still sees the drag and does not also fire a poke.
+    const wasDrag = moved.current > 4;
+    e.currentTarget.releasePointerCapture(e.pointerId);
+    if (wasDrag) requestAnimationFrame(() => (dragging.current = false));
+    else dragging.current = false;
+  };
+
   return (
     // `relative` with the canvas filling it absolutely. Left to size itself
     // against a flex parent, the renderer measured before the column had
     // settled, kept a stale aspect, and drew the scene off to one side.
-    <div className={cn("relative", className)}>
+    <div
+      className={cn("relative", interactive && "cursor-grab active:cursor-grabbing", className)}
+      onPointerDown={onDown}
+      onPointerMove={onMove}
+      onPointerUp={onUp}
+      onPointerCancel={onUp}
+      // Vertical scrolling still belongs to the page; only the horizontal axis
+      // is claimed, so dragging the berry on a phone does not trap the scroll.
+      style={{ touchAction: interactive ? "pan-y" : undefined }}
+    >
       <Canvas
         shadows
         // Raised to match: with a fuller calyx the silhouette's centre is above
@@ -334,7 +482,7 @@ export function BlueberryBot3D({ className }: { className?: string }) {
           <ambientLight intensity={0.9} />
           <directionalLight position={[3, 5, 4]} intensity={1.1} castShadow />
           <directionalLight position={[-4, 1, -3]} intensity={0.35} color="#c4b5fd" />
-          <Berry />
+          <Berry mood={mood} interactive={interactive} spin={spin} dragging={dragging} />
           <ContactShadows position={[0, -1.45, 0]} opacity={0.35} scale={7} blur={2.6} far={3} />
         </Suspense>
       </Canvas>

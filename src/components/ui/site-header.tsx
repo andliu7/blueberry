@@ -182,8 +182,15 @@ export function SiteHeader({
 
         {/* The search, centred in what is left. `flex-1` on this and nothing
             else is what keeps it in the middle rather than pushed against the
-            cluster that happens to be wider. */}
-        {onSearch && category && <HeaderSearchButton onOpen={onSearch} />}
+            cluster that happens to be wider.
+
+            It used to require a category as well, which was a rule about the
+            deck hub written into a component every page uses: on the home
+            landing, which has no category, the bar lost its search and was left
+            with a mark and one unlabelled button beside it. Whether there is a
+            search is the caller's decision, and the caller says so by passing
+            `onSearch`. */}
+        {onSearch && <HeaderSearchButton onOpen={onSearch} />}
 
         <div className="ml-auto flex shrink-0 items-center gap-2">
           <SiteActions showContact={showContact} />
