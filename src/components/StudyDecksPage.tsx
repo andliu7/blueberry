@@ -61,7 +61,7 @@ const BlueberryBot3D = lazy(() =>
  * mid-revision. That was right while there was one deck. With eight, a front
  * door that opens onto one arbitrary experiment is the worse introduction.
  */
-export function StudyDecksPage() {
+export function StudyDecksPage({ openDashboard = false }: { openDashboard?: boolean }) {
   const [showIntro, setShowIntro] = useState(false);
 
   // Read once on mount, before the mark below is set, so a first arrival still
@@ -113,6 +113,18 @@ export function StudyDecksPage() {
    * would be one more click to get back to what you asked for.
    */
   const dash = useDashboard();
+
+  /**
+   * The home route hands off from the intro by asking for the dashboard, so
+   * arriving through the opening animation lands on the nav rather than on a
+   * bare hub. Keyed on the flag rather than on mount, so `#/study-decks`
+   * reached directly still opens quiet.
+   */
+  const { open: openDash } = dash;
+  useEffect(() => {
+    if (openDashboard) openDash("home");
+  }, [openDashboard, openDash]);
+
   const toggleBrowse = useCallback(() => dash.toggle("home"), [dash]);
 
   /**

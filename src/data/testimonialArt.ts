@@ -215,6 +215,14 @@ const MOTIFS: Record<ArtMotif, string> = {
    * it. The second one used to start at (164,108), which is not on the carbonyl
    * carbon at all — it hung in the air beside the chain and read as a stray line
    * rather than as half of a double bond.
+   *
+   * The carbonyl carbon sits at (156,112) and is sp², so its three bonds are
+   * drawn 120° apart. The oxygen was never the problem: it leaves at −30°, which
+   * is already 120° off the alpha carbon at −150°. It was the bond down to the
+   * second ring that sat at 78.5° instead of 90°, and 11.5° is enough to make
+   * the whole group read as tilted. Ring B moved by (−5.5,+0.5) to put its ipso
+   * carbon at (156,139.5); measure any two of the three bonds now and they are
+   * 120° apart. The arrows are untouched — where they land is the chemistry.
    */
   chalcone: `
     <g transform="translate(6,14) scale(0.95)">
@@ -222,8 +230,8 @@ const MOTIFS: Record<ArtMotif, string> = {
         <path d="M56 58 78.5 71 78.5 97 56 110 33.5 97 33.5 71Z"/>
         <path d="M59.4 68.6 73 76.4M73 91.6 59.4 99.4M39.5 91.6 39.5 76.4" stroke-width="4.5" opacity=".7"/>
 
-        <path d="M184 126 206.5 139 206.5 165 184 178 161.5 165 161.5 139Z"/>
-        <path d="M187.4 136.6 201 144.4M201 159.6 187.4 167.4M167.5 159.6 167.5 144.4" stroke-width="4.5" opacity=".7"/>
+        <path d="M178.5 126.5 201 139.5 201 165.5 178.5 178.5 156 165.5 156 139.5Z"/>
+        <path d="M181.9 137.1 195.5 144.9M195.5 160.1 181.9 167.9M162 160.1 162 144.9" stroke-width="4.5" opacity=".7"/>
       </g>
 
       <g stroke="#fff" fill="none" stroke-width="5" stroke-linecap="round" opacity=".92">
@@ -231,11 +239,11 @@ const MOTIFS: Record<ArtMotif, string> = {
         <path d="M104 112 130 97"/>
         <path d="M106 120 130 105" stroke-width="4.5" opacity=".85"/>
         <path d="M130 97 156 112"/>
-        <path d="M156 112 161.5 139"/>
-        <path d="M159.3 109.8 143.3 85.8M152.7 114.2 136.7 90.2"/>
+        <path d="M156 112 156 139.5"/>
+        <path d="M157.5 114.6 183.5 99.6M154.5 109.4 180.5 94.4"/>
       </g>
 
-      <text x="146" y="76" font-family="Georgia, serif" font-size="22" fill="#fff" text-anchor="middle" opacity=".9">O</text>
+      <text x="194" y="90" font-family="Georgia, serif" font-size="22" fill="#fff" text-anchor="middle" opacity=".9">O</text>
 
       <!--
         The two arrows of the Weitz-Scheffer epoxidation, which is what the

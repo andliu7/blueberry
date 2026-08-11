@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
  * sections that fold, and the hamburger that turns into a cross.
  *
  * Adapted from a HextaUI sidebar rather than pasted. What was kept is the shape
- * worth keeping â€” the profile / nav / footer column, the height animation on a
+ * worth keeping — the profile / nav / footer column, the height animation on a
  * collapsible section, and the path-morphing menu toggle. What was dropped is
  * everything that made the original a demo instead of a component: it hardcoded
  * one person's name and email, one fixed list of four buttons, its own copy of

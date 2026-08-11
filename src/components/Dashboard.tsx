@@ -46,14 +46,14 @@ import { cn } from "@/lib/utils";
  *
  * It replaces the Browse drawer, which was a course tree and nothing else. That
  * was the right size while study decks *were* the site. They are not going to
- * be â€” lessons and mechanism practice are coming, subscriptions are coming, and
- * accounts are coming â€” and none of that fits in a drawer whose only idea is a
+ * be — lessons and mechanism practice are coming, subscriptions are coming, and
+ * accounts are coming — and none of that fits in a drawer whose only idea is a
  * list of folders.
  *
  * **A panel over the page rather than a route.** You reach this by clicking
  * search, which happens in the middle of reading a deck; navigating away from
  * what you were reading in order to search it would be the wrong trade. Escape,
- * the backdrop and the âœ• all put you back exactly where you were. When Settings
+ * the backdrop and the ✕ all put you back exactly where you were. When Settings
  * and Notifications grow into pages worth linking to, they can graduate to
  * routes of their own without this having to change shape.
  *
@@ -158,8 +158,8 @@ export function Dashboard({
    * What the page's own search box currently holds.
    *
    * Copied in when the panel opens rather than shared. The two searches have
-   * different scopes on purpose â€” a folder page filters its own folder, this
-   * one covers the whole site â€” so binding them to one string would mean
+   * different scopes on purpose — a folder page filters its own folder, this
+   * one covers the whole site — so binding them to one string would mean
    * opening the dashboard from inside Carbonyls silently widened the filter you
    * were already using. Seeding is the useful half of sharing without that.
    */
@@ -236,10 +236,20 @@ export function Dashboard({
   // Picking a destination on a phone should put the nav away behind you.
   const go = useCallback(
     (next: DashboardView) => {
+      // Lessons is a page of its own rather than a panel, so this is the one
+      // destination that leaves the dashboard. Doing it from the click that
+      // asked for it keeps the hash change out of render, where React is not
+      // allowed to see a component navigate or close its own parent.
+      if (next === "lessons") {
+        close();
+        setMobileNav(false);
+        window.location.hash = "#/lessons";
+        return;
+      }
       open(next);
       setMobileNav(false);
     },
-    [open],
+    [open, close],
   );
 
   const nav = (
@@ -493,7 +503,7 @@ export function DashboardButton({
   );
 }
 
-/* â”€â”€ the panels â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── the panels ─────────────────────────────────────────────────────────── */
 
 type Update = ReturnType<typeof useUpdates>[number];
 
@@ -539,16 +549,23 @@ function Panel({
       return <AppearancePanel />;
     case "profile":
       return <ProfilePanel />;
+    // `go` sends Lessons to its own page, so this panel is only reached if the
+    // view is set straight to "lessons" from elsewhere. It stays a real panel
+    // rather than a redirect, because a redirect fired from render is the bug
+    // this replaced.
     case "lessons":
       return (
-        <Unbuilt
-          title="Lessons"
-          lead="Written notes for each topic, to read before the cards make sense."
-        >
+        <Unbuilt title="Lessons" lead="Written notes for each topic, to read before the cards make sense.">
           <p>
-            Organic Chemistry II already has a Lessons branch in the course tree and it is
-            deliberately empty rather than hidden â€” the shape of the course is real even where the
-            content is not written yet.
+            The carbonyl lessons have a page of their own now.{" "}
+            <a
+              href="#/lessons"
+              onClick={onClose}
+              className="font-bold text-indigo-600 underline-offset-4 hover:underline dark:text-indigo-300"
+            >
+              Open Lessons
+            </a>
+            .
           </p>
         </Unbuilt>
       );
@@ -597,7 +614,7 @@ function Panel({
       return (
         <Unbuilt title="Imports" lead="Bringing your own material in.">
           <p>
-            Decks already import from a text file â€” that is the ticket at the foot of the hub, and
+            Decks already import from a text file — that is the ticket at the foot of the hub, and
             it works today. What is not built is the rest: images of your own notes, and a syllabus,
             so the site knows when your exams are.
           </p>
@@ -730,7 +747,7 @@ function DecksPanel({
           type="text"
           value={query}
           onChange={(e) => onQuery(e.target.value)}
-          placeholder="Search every deck, card and rowâ€¦"
+          placeholder="Search every deck, card and row…"
           aria-label="Search decks"
           className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pr-10 pl-10 text-sm text-slate-800 shadow-sm outline-none placeholder:text-slate-400 focus-visible:border-indigo-400 focus-visible:ring-2 focus-visible:ring-indigo-400/40 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-200 dark:placeholder:text-stone-500"
         />
@@ -790,7 +807,7 @@ function CategoriesPanel({ decks, go }: { decks: Deck[]; go: (view: DashboardVie
       icon: <Layers className="size-4" />,
       title: "Study Decks",
       blurb: "Flashcards and reference sheets, grouped by course and folder.",
-      meta: `${decks.length} decks Â· ${cards} cards`,
+      meta: `${decks.length} decks · ${cards} cards`,
       ready: true,
     },
   ];
@@ -867,7 +884,7 @@ function NotificationsPanel({ updates, onClose }: { updates: Update[]; onClose: 
                 {u.deck.title}
               </p>
               <p className="mt-0.5 text-xs text-slate-500 dark:text-stone-400">
-                {u.at ? timeAgo(`${u.at}T12:00:00Z`) : "Published deck"} Â·{" "}
+                {u.at ? timeAgo(`${u.at}T12:00:00Z`) : "Published deck"} ·{" "}
                 {deckCount(u.deck)} cards
               </p>
             </a>
@@ -946,7 +963,7 @@ function AppearancePanel() {
         <p className="text-sm font-semibold text-slate-800 dark:text-stone-100">Motion</p>
         <p className="text-xs text-slate-500 dark:text-stone-400">
           Follows your system's "reduce motion" setting. Every animation on the site checks it, so
-          turning it on in the OS is enough â€” there is nothing to switch here.
+          turning it on in the OS is enough — there is nothing to switch here.
         </p>
       </div>
     </div>
@@ -976,7 +993,7 @@ function ProfilePanel() {
         </div>
         <p className="mt-6 max-w-xl text-sm leading-relaxed text-slate-500 dark:text-stone-400">
           This is the Google sign-in that proves who is publishing a deck. It is not an account on
-          the site yet â€” nothing here holds your progress, which still lives in this browser.
+          the site yet — nothing here holds your progress, which still lives in this browser.
         </p>
       </div>
     );
@@ -1015,7 +1032,7 @@ function ProfilePanel() {
   );
 }
 
-/* â”€â”€ small parts â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── small parts ────────────────────────────────────────────────────────── */
 
 function ProfileButton({ onClick }: { onClick: () => void }) {
   const { user } = useGoogleAuth();
@@ -1082,8 +1099,8 @@ function SettingStub({ title, blurb }: { title: string; blurb: string }) {
 /**
  * A section that exists in the nav but not yet on the site.
  *
- * Deliberately plain and deliberately honest. The alternative â€” a page of
- * skeleton cards and a spinner â€” looks like something that is loading, and
+ * Deliberately plain and deliberately honest. The alternative — a page of
+ * skeleton cards and a spinner — looks like something that is loading, and
  * being told a thing is coming beats being left to work out that it is broken.
  */
 function Unbuilt({

@@ -70,6 +70,7 @@ const ContactPage = lazy(() =>
 const SignInPage = lazy(() =>
   import("@/components/SignInPage").then((m) => ({ default: m.SignInPage })),
 );
+const LessonsPage = lazy(() => import("@/components/LessonsPage").then((m) => ({ default: m.LessonsPage })));
 
 
 const VIEW_LABEL = {
@@ -245,6 +246,7 @@ export default function App() {
    */
   if (route === "" || route === "home") return <HomePage />;
   if (route === "study-decks") return <StudyDecksPage />;
+  if (route === "lessons") return withBoundary(<LessonsPage />);
   // `about` is the old address for what is now the contact page. About itself is
   // a card opened over whatever you were looking at, so it has no route at all.
   if (route === "contact" || route === "about") return withBoundary(<ContactPage />);
@@ -746,7 +748,7 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
           <div className="flex h-full w-full flex-col p-5">
             <span className="font-mono text-sm font-bold text-indigo-600 dark:text-indigo-400">
               Question {num}
-              {item.mc ? " Ã‚Â· MC" : ""}
+              {item.mc ? " · MC" : ""}
             </span>
             <div className={cn("flex min-h-0", item.mc ? "flex-col" : "flex-1 items-center")}>
               <MathHtml
@@ -818,7 +820,7 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
     () =>
       testimonials.map((t) => ({
         imgUrl: testimonialArt(t),
-        alt: `${t.name} Ã¢â‚¬â€ ${t.role}`,
+        alt: `${t.name} — ${t.role}`,
         title: t.name,
         subtitle: t.role,
       })),
@@ -1214,7 +1216,7 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
                         onConfirm={doReset}
                         holdDuration={1200}
                         label="Reset"
-                        holdingLabel="HoldÃ¢â‚¬Â¦"
+                        holdingLabel="Hold…"
                         className="min-w-0 h-9 px-3"
                       />,
                     ]
@@ -1347,7 +1349,7 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
 
         {reviewed === questions.length && (
           <div className="mt-6 text-center bg-indigo-50 dark:bg-indigo-400/10 border border-indigo-200 dark:border-indigo-500/30 rounded-lg p-6">
-            <p className="text-5xl mb-2">Ã°Å¸â€˜Â</p>
+            <p className="text-5xl mb-2">👍</p>
             <p className="font-bold text-indigo-900 dark:text-indigo-200 text-lg">You've reviewed every question.</p>
             <p className="text-indigo-700 dark:text-indigo-300 text-sm mt-1">
               Use "Needs Review" to double-check anything marked red or yellow before the LCTA.

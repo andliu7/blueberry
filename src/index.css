@@ -93,7 +93,7 @@ body {
  * measure and the same colour; they just do not ask you to decode a script
  * face to read a paragraph about hydride chemistry.
  *
- * Short accents â€” "scroll", the click hint, a one-line subtitle â€” keep
+ * Short accents — "scroll", the click hint, a one-line subtitle — keep
  * `.playful-face`. That is where the character was doing work. */
 .playful-body {
   font-family: "Inter Variable", Inter, ui-sans-serif, system-ui, sans-serif;
