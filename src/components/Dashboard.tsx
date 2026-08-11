@@ -39,6 +39,7 @@ import { useDecks } from "@/lib/useDecks";
 import { useGoogleAuth } from "@/lib/useGoogleAuth";
 import { useIsDark } from "@/lib/useIsDark";
 import { SURFACE } from "@/lib/hubSurface";
+import { TRAINER_URL } from "@/data/site";
 import { cn } from "@/lib/utils";
 
 /**
@@ -88,9 +89,6 @@ const VIEW_TITLE: Record<DashboardView, string> = {
   imports: "Imports",
   profile: "Profile",
 };
-
-/** The mechanism trainer, which is its own app until Concepts absorbs it. */
-const TRAINER_URL = "https://andliu7.github.io/mechanism_trainer/";
 
 /**
  * Open state, held by the page so the header can drive it.
@@ -791,8 +789,8 @@ function CategoriesPanel({ decks, go }: { decks: Deck[]; go: (view: DashboardVie
       icon: <BookOpen className="size-4" />,
       title: "Lessons",
       blurb: "Written notes for each topic, to read before the cards make sense.",
-      meta: "Not written yet",
-      ready: false,
+      meta: "Carbonyls, in seven parts",
+      ready: true,
     },
     {
       view: "concepts" as const,

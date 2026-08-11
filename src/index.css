@@ -666,3 +666,71 @@ button:disabled,
 .no-pointer * {
   cursor: default;
 }
+
+/* ── the loading blob ─────────────────────────────────────────────────────
+
+   A blueberry that has not settled on its outline yet.
+
+   Pure CSS on purpose. This is the thing that covers the load, so it has to be
+   in the first paint and cost nothing: a canvas or a WebGL blob would be one
+   more thing to boot at exactly the moment there is already too much booting.
+   Four border-radius states on a loop is enough to read as organic, and the
+   browser interpolates the corners for free.
+
+   The morph and the breath run at different periods so they drift in and out of
+   phase rather than pulsing together, which is what stops it looking like a
+   loading spinner with rounded corners. */
+.berry-blob {
+  animation:
+    berry-blob-morph 3.2s ease-in-out infinite,
+    berry-blob-breathe 2.5s ease-in-out infinite;
+}
+
+@keyframes berry-blob-morph {
+  0%,
+  100% {
+    border-radius: 62% 38% 46% 54% / 60% 55% 45% 40%;
+  }
+  25% {
+    border-radius: 44% 56% 62% 38% / 48% 62% 38% 52%;
+  }
+  50% {
+    border-radius: 56% 44% 38% 62% / 42% 46% 54% 58%;
+  }
+  75% {
+    border-radius: 38% 62% 54% 46% / 58% 38% 62% 42%;
+  }
+}
+
+@keyframes berry-blob-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.07);
+  }
+}
+
+/* The highlight sits where the light does on the mark itself: upper left, small,
+   and soft enough that it reads as a sheen rather than a second shape. It rides
+   the parent's morph, so it does not need an animation of its own. */
+.berry-blob::after {
+  content: "";
+  position: absolute;
+  top: 18%;
+  left: 20%;
+  width: 26%;
+  height: 22%;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.55);
+  filter: blur(2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .berry-blob {
+    animation: none;
+    /* Still a berry rather than a square, just one that holds still. */
+    border-radius: 62% 38% 46% 54% / 60% 55% 45% 40%;
+  }
+}

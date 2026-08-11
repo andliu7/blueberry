@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { motion, useReducedMotion, useTransform } from "motion/react";
-import { ChevronDown, X } from "lucide-react";
+import { motion, useReducedMotion } from "motion/react";
+import { X } from "lucide-react";
 import { ShaderAnimation } from "@/components/ui/shader-animation";
 import { AuroraBackground } from "@/components/ui/aurora-background";
 import { BackgroundGradientGlow } from "@/components/ui/background-gradient-glow";
@@ -11,35 +11,39 @@ import {
   ParticleTextEffect,
   type ParticleWord,
 } from "@/components/ui/particle-text-effect";
-import {
-  ContainerInset,
-  ContainerScroll,
-  ContainerSticky,
-  useScrollProgress,
-} from "@/components/ui/animated-video-on-scroll";
 
 /**
- * The animated opening on the hub.
+ * The animated opening on the home page.
  *
- * A black screen, and a swarm of particles that flies in from off screen to
- * spell WELCOME, scatters into TO, and gathers again into the site's name. Only
- * once that last word is standing still does the shader fade up behind it and
- * the scroll cue appear, and a beat after that the page carries itself down to
- * the decks.
+ * A swarm of particles flies in from off screen, gathers into the site's name,
+ * scatters, and comes back as the mark itself. Three beats, about two and a
+ * half seconds, and then it hands the page over.
+ *
+ * It used to open on WELCOME and TO before reaching the name. Those two were
+ * cut because neither carried anything: they were throat-clearing in front of
+ * the one word that identifies the site, on a page people reload constantly.
+ * What is left is the part worth watching, which is the swarm re-forming.
  *
  * The words used to be a scrambling `<h1>`. Particles replace it because the
- * hand-off between words is the whole point of the opening: the same cloud
- * re-forms into the next word, so the three read as one thing changing rather
- * than three headings swapped in and out.
+ * hand-off between beats is the whole point: the same cloud becomes the next
+ * thing, so it reads as one object changing rather than as headings swapped in
+ * and out.
  *
  * Timing comes from the particle canvas rather than a chain of `setTimeout`s.
  * Both run off the same clock that way, so a tab left in the background pauses
  * the whole opening instead of letting the phase timers race ahead of an
  * animation that Chrome has stopped giving frames to.
  *
- * The hub is where someone goes to find a deck quickly, so this cannot become a
- * toll gate. Skip is on screen the whole time, including during the black
- * screen, and any scroll or key press cancels the automatic descent.
+ * **This is not driven by scroll, and used not to be honest about that.** The
+ * opening was built on `ContainerScroll` and read `scrollYProgress` for its
+ * fades and for the panel that opens behind the mark. Once it moved inside a
+ * fixed overlay the document stopped scrolling, so that value was pinned at 0:
+ * the panel never opened and the cue said "scroll" about a gesture that did
+ * nothing. Everything now runs off the same `ready` flag the canvas raises.
+ *
+ * Home is where someone goes to find a deck quickly, so this cannot become a
+ * toll gate. The way out is on screen from the first frame, before any of the
+ * animation has started, and Escape and Space both take it.
  */
 
 /** The last word is the site's name, uppercased for the particle canvas. */
@@ -51,8 +55,6 @@ const SITE_WORD = SITE_NAME.toUpperCase();
  * opening arrives in the same palette rather than the demo's random RGB.
  */
 const INTRO_WORDS: ParticleWord[] = [
-  { text: "WELCOME", from: "#6366f1", to: "#d946ef" },
-  { text: "TO", from: "#d946ef", to: "#f59e0b" },
   { text: SITE_WORD, from: "#818cf8", to: "#f0abfc" },
   // The name scatters one last time and comes back as the mark itself. The
   // swarm carries the logo's own shading rather than the gradient the words
@@ -79,8 +81,6 @@ const INTRO_WORDS: ParticleWord[] = [
  * would restart the sequence on every frame.
  */
 const INTRO_WORDS_LIGHT: ParticleWord[] = [
-  { text: "WELCOME", from: "#818cf8", to: "#f0abfc" },
-  { text: "TO", from: "#f0abfc", to: "#fbbf24" },
   { text: SITE_WORD, from: "#a5b4fc", to: "#f5d0fe" },
   // Saturation up, brightness barely down. Darkening alone walked every channel
   // toward black, which is what had taken the life out of it: the berry needs to
@@ -110,8 +110,8 @@ const INTRO_WORDS_LIGHT: ParticleWord[] = [
  * `words` is an effect dependency on the canvas, and a fresh array on every
  * render would restart the sequence continuously.
  */
-const SETTLED_WORDS: ParticleWord[] = [INTRO_WORDS[2]!];
-const SETTLED_WORDS_LIGHT: ParticleWord[] = [INTRO_WORDS_LIGHT[2]!];
+const SETTLED_WORDS: ParticleWord[] = [INTRO_WORDS[0]!];
+const SETTLED_WORDS_LIGHT: ParticleWord[] = [INTRO_WORDS_LIGHT[0]!];
 
 function IntroStage({
   ready,
@@ -124,15 +124,17 @@ function IntroStage({
   onSkip: () => void;
   settled: boolean;
 }) {
-  const progress = useScrollProgress();
   const reduce = useReducedMotion();
   const isDark = useIsDark();
-  const opacity = useTransform(progress, [0, 0.75, 1], [1, 1, 0]);
-  const cueOpacity = useTransform(progress, [0, 0.12], [1, 0]);
 
   return (
-    <ContainerSticky className={cn("overflow-hidden", isDark ? "bg-[#171327]" : "bg-[#f7eaff]")}>
-      <motion.div className="absolute inset-0" style={reduce ? undefined : { opacity }}>
+    <div
+      className={cn(
+        "relative h-svh w-full overflow-hidden",
+        isDark ? "bg-[#171327]" : "bg-[#f7eaff]",
+      )}
+    >
+      <div className="absolute inset-0">
         {/* The pastel wash, under everything, in light mode only. The dark
             opening is built on near-black and every layer above it adds light;
             laying those over cream would wash the whole screen out. */}
@@ -176,11 +178,22 @@ function IntroStage({
           animate={{ opacity: ready ? 1 : 0 }}
           transition={{ duration: 1.1, ease: "easeOut" }}
         >
-          <ContainerInset
-            className="absolute inset-0"
-            insetYRange={[18, 0]}
-            insetXRange={[12, 0]}
-            roundednessRange={[420, 0]}
+          {/* The panel opens on the same beat the shader fades up.
+
+              This used to interpolate against scroll position and so never
+              moved once the opening became a fixed overlay. Driving the clip
+              path off `ready` restores the beat and ties it to the thing it
+              was always describing: the mark has landed, so the window behind
+              it opens out to full bleed. */}
+          <motion.div
+            className="pointer-events-none absolute inset-0 overflow-hidden"
+            initial={{ clipPath: "inset(18% 12% 18% 12% round 420px)" }}
+            animate={{
+              clipPath: ready
+                ? "inset(0% 0% 0% 0% round 0px)"
+                : "inset(18% 12% 18% 12% round 420px)",
+            }}
+            transition={reduce ? { duration: 0 } : { duration: 1.4, ease: [0.22, 1, 0.36, 1] }}
           >
             {/* The same shader in both themes, inverted for the pastel one.
                 It draws white bands on black, so on a light background it can
@@ -205,7 +218,7 @@ function IntroStage({
                   "opacity-80 [filter:invert(1)_hue-rotate(180deg)_saturate(1.6)_contrast(1.35)] mix-blend-multiply",
               )}
             />
-          </ContainerInset>
+          </motion.div>
           {/* The shader runs to near-white in places, so the title needs
               something behind it. Strongest in the middle where the copy sits,
               clearing toward the edges so the animation is still the star. */}
@@ -219,15 +232,12 @@ function IntroStage({
             }}
           />
         </motion.div>
-      </motion.div>
+      </div>
 
       {/* Above the shader, not inside it: the canvas clears itself to
           transparent rather than painting a black background, which is what
           lets the last word keep standing there once the shader comes up. */}
-      <motion.div
-        className="absolute inset-0 z-10"
-        style={reduce ? undefined : { opacity }}
-      >
+      <div className="absolute inset-0 z-10">
         <ParticleTextEffect
           words={
             isDark
@@ -238,51 +248,34 @@ function IntroStage({
                 ? SETTLED_WORDS_LIGHT
                 : INTRO_WORDS_LIGHT
           }
-          // Trimmed again now there are five beats rather than four. The two
-          // berry beats are the same silhouette, so the second scatter reads as
-          // a change of expression rather than a new arrival, and it does not
-          // need as long to land as a word does.
+          // The two berry beats are the same silhouette, so the second scatter
+          // reads as a change of expression rather than a new arrival, and it
+          // does not need as long to land as a word does.
           wordMs={1150}
           settleMs={settled ? 600 : 1000}
           onFinished={onSettled}
           label={settled ? SITE_WORD : `Welcome to ${SITE_WORD}`}
         />
-      </motion.div>
+      </div>
 
-      {/* Sits below the middle of the canvas, where the word is drawn. */}
-      <motion.div
-        initial={false}
-        animate={{ opacity: ready ? 1 : 0 }}
-        transition={{ duration: 0.6, delay: ready ? 0.3 : 0 }}
-        style={reduce ? undefined : { opacity: ready ? cueOpacity : 0 }}
+      {/* The way out, and it does not wait for anything.
+
+          This used to live inside the block gated on `ready`, which meant the
+          one instruction on screen appeared only after the animation it offered
+          to skip had already played. Now it is up from the first frame, so the
+          keys are known about while they are still worth pressing. No entrance
+          animation for the same reason: a cue that fades in is a cue that is
+          absent when it is most wanted. */}
+      <div
         className={cn(
-          "pointer-events-none absolute inset-x-0 top-[64%] z-10 flex flex-col items-center gap-1",
-          isDark ? "text-white/70" : "text-slate-500",
+          "pointer-events-none absolute inset-x-0 bottom-8 z-20 flex justify-center",
+          isDark ? "text-white/45" : "text-slate-500/85",
         )}
       >
-        {/* The serif the site already loads, not the handwriting one. At this
-            size the script face reads as a doodle rather than an instruction,
-            and this is the only thing on screen telling you what to do. */}
-        <span className="title-face text-xl tracking-[0.3em] uppercase sm:text-2xl">
-          scroll
+        <span className="font-mono text-[0.7rem] tracking-wide">
+          Press Space or Esc to skip
         </span>
-        <motion.span
-          animate={reduce ? undefined : { y: [0, 9, 0] }}
-          transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
-        >
-          <ChevronDown className="h-7 w-7 sm:h-8 sm:w-8" />
-        </motion.span>
-        {/* Says the keys exist. Dimmer than the cue above it, because it is the
-            way out rather than the way on. */}
-        <span
-          className={cn(
-            "mt-1 font-mono text-[0.7rem] tracking-wide",
-            isDark ? "text-white/40" : "text-slate-400",
-          )}
-        >
-          Press Space or Esc to skip the intro
-        </span>
-      </motion.div>
+      </div>
 
       <button
         onClick={onSkip}
@@ -296,7 +289,7 @@ function IntroStage({
         <X className="h-3.5 w-3.5" />
         Skip
       </button>
-    </ContainerSticky>
+    </div>
   );
 }
 
@@ -356,17 +349,19 @@ export function HomeIntro({
   onCompleteRef.current = onComplete;
 
   useEffect(() => {
-    // Nothing to hand off when the sequence did not play: the hub has already
-    // put the visitor at the decks.
+    // Nothing to hand off when the sequence did not play: the visitor is
+    // already looking at the finished picture.
     if (!ready || reduce || settled) return;
-    // Long enough for the shader's 1.1s fade to finish, so the descent starts
-    // from the finished picture rather than interrupting it.
+    // Long enough for the shader's fade and the panel opening behind the mark
+    // to finish, so the hand-off leaves from a settled frame rather than
+    // cutting one short.
     const t = setTimeout(() => onCompleteRef.current?.(), autoAdvanceMs);
     return () => clearTimeout(t);
   }, [ready, reduce, settled, autoAdvanceMs]);
 
-  // The page must not scroll while the black screen is playing, or a flick of
-  // the wheel lands you in the middle of an empty 220vh column.
+  // Nothing behind the opening should scroll while it plays. It is a full
+  // viewport stage now rather than a tall column, so this is only guarding the
+  // page underneath it.
   useEffect(() => {
     if (ready) return;
     const prev = document.body.style.overflow;
@@ -377,16 +372,12 @@ export function HomeIntro({
   }, [ready]);
 
   return (
-    // Tall enough that the reveal has room to play, short enough that two
-    // flicks of a trackpad clear it.
-    <ContainerScroll className="h-[220vh]">
-      <IntroStage
-        ready={ready}
-        settled={settled}
-        onSettled={() => setReady(true)}
-        onSkip={onSkip}
-      />
-    </ContainerScroll>
+    <IntroStage
+      ready={ready}
+      settled={settled}
+      onSettled={() => setReady(true)}
+      onSkip={onSkip}
+    />
   );
 }
 

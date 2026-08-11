@@ -30,7 +30,6 @@ import { DeckSearch } from "@/components/ui/deck-search";
 import { FolderDeckFan } from "@/components/ui/folder-deck-fan";
 import { matchedDeckIds, searchDecks } from "@/lib/searchDecks";
 import { DeckUploadTicket } from "@/components/DeckUploadTicket";
-import { HomeIntro } from "@/components/HomeIntro";
 import { FeedbackButton } from "@/components/FeedbackButton";
 import { TiltCard } from "@/components/ui/be-ui-tilt-card";
 import { useIsDark } from "@/lib/useIsDark";
@@ -38,7 +37,6 @@ import { TextScramble } from "@/components/ui/text-scramble";
 import BoldOnHover from "@/components/ui/bold-on-hover";
 import { SpotlightCursor } from "@/components/ui/spotlight-cursor";
 import { SURFACE, spotlightFor } from "@/lib/hubSurface";
-import { hasSeenIntro, markIntroSeen } from "@/lib/intro";
 import { BlueberryBot2D } from "@/components/ui/blueberry-bot-2d";
 
 /**
@@ -47,6 +45,11 @@ import { BlueberryBot2D } from "@/components/ui/blueberry-bot-2d";
  * and is the Suspense fallback, which means the placeholder is the finished
  * article rather than a spinner: if the chunk never arrives, or WebGL is
  * unavailable, what is on screen is already the folder pages' version.
+ *
+ * Splitting the chunk is only half of it. `lazy` fetches as soon as the element
+ * renders, so this is also gated on being near the viewport — see `botNearby`
+ * below. Without that the download starts on page load anyway and the split
+ * buys nothing but a second request.
  */
 const BlueberryBot3D = lazy(() =>
   import("@/components/ui/blueberry-bot-3d").then((m) => ({ default: m.BlueberryBot3D })),
@@ -61,44 +64,19 @@ const BlueberryBot3D = lazy(() =>
  * mid-revision. That was right while there was one deck. With eight, a front
  * door that opens onto one arbitrary experiment is the worse introduction.
  */
-export function StudyDecksPage({ openDashboard = false }: { openDashboard?: boolean }) {
-  const [showIntro, setShowIntro] = useState(false);
-
-  // Read once on mount, before the mark below is set, so a first arrival still
-  // sees the opening. See `lib/intro` for which arrivals count as first.
-  const [seenIntro] = useState(hasSeenIntro);
-  useEffect(markIntroSeen, []);
-
-  const dismissIntro = useCallback(() => {
-    setShowIntro(false);
-    window.scrollTo({ top: 0 });
-  }, []);
-
+export function StudyDecksPage() {
   /**
-   * The opening does not move the page. It resolves the words, brings the
-   * shader up behind them, shows the cue, and then waits.
+   * The opening lives on the home page now, not here.
    *
-   * It did carry you down to the decks on its own for a while, which turned the
-   * last beat of the sequence into being thrown somewhere you had not asked to
-   * go. Landing on it and leaving is a fair thing to want to do with a front
-   * door, so the descent is the visitor's.
+   * This used to carry it, because the hub *was* home. Once home became a
+   * landing with three doors, the hub became one of the three, and a deck
+   * library that replays a title sequence every time you open it is in the way
+   * of the one thing it is for. What is left of the machinery — a `showIntro`
+   * that was only ever `false`, a seam that faded a page below an opening that
+   * is no longer above it, and a scroll that moved the visitor to a section
+   * that now starts at the top — came out with it.
    */
   const decksRef = useRef<HTMLElement>(null);
-  const autoAdvance = useCallback(() => {
-    if (window.scrollY <= 8) decksRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, []);
-
-  /**
-   * Already seen: start at the decks rather than at the top of a 220vh column.
-   *
-   * The opening stays mounted above rather than being torn out, so it is still
-   * there to scroll up to. Jumping rather than gliding, because this is where
-   * the page should have opened, not somewhere it is taking you.
-   */
-  useEffect(() => {
-    if (!seenIntro || !showIntro) return;
-    decksRef.current?.scrollIntoView({ block: "start" });
-  }, [seenIntro, showIntro]);
 
   const isDark = useIsDark();
   const surface = isDark ? SURFACE.dark : SURFACE.light;
@@ -113,18 +91,6 @@ export function StudyDecksPage({ openDashboard = false }: { openDashboard?: bool
    * would be one more click to get back to what you asked for.
    */
   const dash = useDashboard();
-
-  /**
-   * The home route hands off from the intro by asking for the dashboard, so
-   * arriving through the opening animation lands on the nav rather than on a
-   * bare hub. Keyed on the flag rather than on mount, so `#/study-decks`
-   * reached directly still opens quiet.
-   */
-  const { open: openDash } = dash;
-  useEffect(() => {
-    if (openDashboard) openDash("home");
-  }, [openDashboard, openDash]);
-
   const toggleBrowse = useCallback(() => dash.toggle("home"), [dash]);
 
   /**
@@ -152,28 +118,26 @@ export function StudyDecksPage({ openDashboard = false }: { openDashboard?: bool
   const categoryInView = useInView(categoryRef, { amount: "some" });
   const showCategoryTitle = !bigHeadingInView && categoryInView;
 
+  /**
+   * The 3D bot waits until it is nearly on screen.
+   *
+   * `lazy` only splits the chunk; it still fetches the moment the element is
+   * rendered, and the bot sits below every deck on a page that is also the
+   * first thing anyone loads. So 890 kB of three, fiber and drei and a WebGL
+   * scene were booting during the opening animation, which is most of why the
+   * hub used to stutter on arrival.
+   *
+   * `once` because the download does not want undoing, and a 400px margin so
+   * the chunk is already in flight by the time the section is scrolled to and
+   * the flat bot is not sitting there visibly waiting to be replaced.
+   */
+  const botRef = useRef<HTMLElement>(null);
+  const botNearby = useInView(botRef, { once: true, margin: "400px" });
+
   /** Home, from the hub, means the top of the decks rather than the opening. */
   const goHome = useCallback(() => {
     decksRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, []);
-
-  /**
-   * Whether the opening has been scrolled clear of the screen.
-   *
-   * The spotlight canvas is fixed to the viewport, so it would sit over the
-   * intro if it mounted with the page.
-   */
-  const [pastIntro, setPastIntro] = useState(!showIntro || seenIntro);
-  useEffect(() => {
-    if (!showIntro) {
-      setPastIntro(true);
-      return;
-    }
-    const check = () => setPastIntro(window.scrollY > window.innerHeight * 1.05);
-    check();
-    window.addEventListener("scroll", check, { passive: true });
-    return () => window.removeEventListener("scroll", check);
-  }, [showIntro]);
 
   const reduce = useReducedMotion();
   // Bumped to restage the heading; see StudyDecksHeading.
@@ -231,8 +195,6 @@ export function StudyDecksPage({ openDashboard = false }: { openDashboard?: bool
 
   return (
     <>
-      {showIntro && <HomeIntro onSkip={dismissIntro} onComplete={autoAdvance} autoAdvanceMs={30000} settled={seenIntro} />}
-
       <main
         ref={decksRef}
         // No horizontal padding here any more. The sticky bar has to span the
@@ -242,27 +204,9 @@ export function StudyDecksPage({ openDashboard = false }: { openDashboard?: bool
         className="relative z-10 min-h-screen pb-8"
         style={{ backgroundColor: surface.base, backgroundImage: surface.gradient }}
       >
-        {/* The seam.
-
-            This used to be a rounded, shadowed edge that slid up over the intro
-            as a hard line: one page ending and another starting on the same
-            frame. Instead the surface fades in over the 220px above its own top
-            edge, so the aurora underneath dissolves into the deck background
-            rather than being covered by it. The strip sits outside the element's
-            box, which is also why it is gone by the time you are actually
-            reading the decks: at rest the top of `main` is the top of the
-            screen and the strip is above it. */}
-        {showIntro && (
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-x-0 -top-56 h-56"
-            style={{ backgroundImage: `linear-gradient(180deg, transparent, ${surface.base})` }}
-          />
-        )}
-
         {/* Behind the content, above the surface, so it lights the background
             between the cards without washing over the text on them. */}
-        {pastIntro && <SpotlightCursor className="z-0" config={spotlightFor(isDark)} />}
+        <SpotlightCursor className="z-0" config={spotlightFor(isDark)} />
 
       {/* Outside the padded column so its banner reaches both edges. */}
       <SiteHeader
@@ -448,10 +392,14 @@ export function StudyDecksPage({ openDashboard = false }: { openDashboard?: bool
         {/* The bot, under the decks rather than over them: the hub is somewhere
             people arrive to find a deck quickly, and a toy above the fold would
             be in the way of that. */}
-        <section className="mt-16 flex flex-col items-center">
-          <Suspense fallback={<BlueberryBot2D className="h-72 w-72" />}>
-            <BlueberryBot3D className="h-72 w-72" />
-          </Suspense>
+        <section ref={botRef} className="mt-16 flex flex-col items-center">
+          {botNearby ? (
+            <Suspense fallback={<BlueberryBot2D className="h-72 w-72" />}>
+              <BlueberryBot3D className="h-72 w-72" />
+            </Suspense>
+          ) : (
+            <BlueberryBot2D className="h-72 w-72" />
+          )}
           <p className="mt-1 text-center text-xs text-slate-400 dark:text-stone-500">
             Move your cursor around and see what he does.
           </p>

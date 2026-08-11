@@ -21,6 +21,15 @@ export const EMAIL = "andliu@terpmail.umd.edu";
 /** The project's own repository, which is not the same link as the profile. */
 export const REPO_URL = "https://github.com/andliu7/blueberry";
 
+/**
+ * The mechanism trainer, which is still its own app.
+ *
+ * Named here rather than in whichever component happened to link it first: the
+ * dashboard's Concepts panel and the home page's third door both point at it,
+ * and the day it moves in there should be one line to change.
+ */
+export const TRAINER_URL = "https://andliu7.github.io/mechanism_trainer/";
+
 /** Where the about card's two tags point: the college, and the advising programme. */
 export const CMNS_URL = "https://cmns.umd.edu/";
 export const PREHEALTH_URL =
