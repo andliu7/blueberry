@@ -410,17 +410,28 @@ export function HomeIntro({
     return () => clearTimeout(t);
   }, [ready, reduce, settled, autoAdvanceMs]);
 
-  // Nothing behind the opening should scroll while it plays. It is a full
-  // viewport stage now rather than a tall column, so this is only guarding the
-  // page underneath it.
-  useEffect(() => {
-    if (ready) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, [ready]);
+  /**
+   * The opening does not lock the page any more, and must not.
+   *
+   * It used to set `body { overflow: hidden }` while the sequence played, which
+   * was right when it was an overlay covering everything: a flick of the wheel
+   * then landed you in the middle of an empty column. It is a section of a
+   * scrolling page now, and the lock had two problems.
+   *
+   * The small one is that it is wrong on principle — the opening is something
+   * to scroll past, so taking scrolling away is taking away the way past it.
+   *
+   * The large one is that it did not come back. The cleanup restored whatever
+   * `overflow` was when the effect ran, and with the intro permanently mounted
+   * that value could be a `hidden` an earlier pass had set, so the page latched
+   * shut and stayed shut. Measured: twenty seconds after the opening had
+   * finished and handed over, `body.style.overflow` was still `hidden` and the
+   * wheel did nothing.
+   *
+   * There is nothing to replace it with. Scrolling away early is a legitimate
+   * thing to want, and Escape, Space and the Skip button are all still there
+   * for anyone who would rather jump.
+   */
 
   return (
     <IntroStage

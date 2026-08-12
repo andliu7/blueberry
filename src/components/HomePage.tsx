@@ -16,7 +16,7 @@ import { SiteHeader } from "@/components/ui/site-header";
 import { BlueberryLoader, useLoaderHold } from "@/components/ui/blueberry-loader";
 import { Blueberry } from "@/components/ui/blueberry";
 import { BentoTile } from "@/components/ui/bento-tile";
-import { ConfidenceLights } from "@/components/ui/confidence-lights";
+import { WindowChrome } from "@/components/ui/window-chrome";
 import { SiteFooter } from "@/components/ui/site-footer";
 import { usePageCurtain } from "@/components/ui/page-flip";
 import { moodForProgress } from "@/lib/berryMood";
@@ -179,6 +179,19 @@ function Body({
           The wrapper exists only to fade it in once the opening has played;
           `pointer-events-none` while invisible so it cannot be clicked from
           over the intro. */}
+      {/* The window's top edge, above the bar and not sticky: you see it on
+          arrival, you scroll, it leaves, and the site bar takes over as the
+          thing pinned to the top. Two pieces of furniture doing one job in
+          sequence rather than both at once. */}
+      <motion.div
+        className="mx-auto max-w-5xl px-6"
+        initial={false}
+        animate={{ opacity: past ? 1 : 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <WindowChrome decks={decks} />
+      </motion.div>
+
       <motion.div
         className={cn("sticky top-0 z-40", !past && "pointer-events-none")}
         initial={false}
@@ -198,16 +211,6 @@ function Body({
         className="relative mx-auto flex min-h-svh max-w-5xl flex-col justify-center px-6 pb-16"
         style={{ scrollMarginTop: 0 }}
       >
-        {/* Top left of the screen the opening hands to.
-
-            `top-24` rather than `top-6`: the site bar is sticky and about 69px
-            tall, so anything less puts this underneath it the moment the hero
-            reaches the top of the window — present in the DOM, invisible on the
-            screen, which is the most annoying kind of missing.
-
-            First in reading order on this screen, which is right for a status
-            you glance at before deciding what to open. */}
-        <ConfidenceLights decks={decks} className="absolute top-24 left-6 z-10" />
         <div className="grid items-center gap-8 lg:grid-cols-[1fr_auto] lg:gap-12">
           <div>
             {/*
@@ -223,14 +226,13 @@ function Body({
               Lowercase with a full stop, matching what the swarm spells one
               screen above. The opening whispers it, the page repeats it.
             */}
-            <a
-              href="#top"
-              onClick={(e) => {
-                if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
-                e.preventDefault();
-                window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
-              }}
-              className="group/mark inline-block rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+            <button
+              type="button"
+              onClick={() => dash.open("home")}
+              aria-haspopup="dialog"
+              aria-expanded={dash.isOpen}
+              title="Open the dashboard"
+              className="group/mark inline-block cursor-pointer rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
             >
               <h1 className="title-face relative text-6xl leading-[0.9] tracking-tight lowercase sm:text-8xl">
                 {SITE_NAME.toLowerCase()}.
@@ -239,7 +241,7 @@ function Body({
                   className="absolute -bottom-1 left-0 h-[3px] w-full origin-left scale-x-0 rounded-full bg-gradient-to-r from-indigo-500 to-fuchsia-500 transition-transform duration-500 ease-out group-hover/mark:scale-x-100 group-focus-visible/mark:scale-x-100"
                 />
               </h1>
-            </a>
+            </button>
 
           </div>
 
