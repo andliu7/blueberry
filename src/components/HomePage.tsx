@@ -183,16 +183,29 @@ function Body({
       <WindowChrome decks={decks} visible={past}>
         <SiteHeader
           bare
+          // Not "decks": on this page the dashboard opens onto everything the
+          // site has, and the deck library is one of the three things in it.
+          searchLabel="Search features"
           browse={{ open: dash.isOpen, onToggle: () => dash.toggle("home") }}
-          onSearch={() => dash.open("decks", { focusSearch: true })}
+          onSearch={() => dash.open("home")}
         />
       </WindowChrome>
 
       {/* Screen two: the hero, one viewport tall, mostly empty on purpose. */}
+      {/* The hero holds still.
+
+          It used to scroll away like any other block, which meant the one
+          screen with something to play with on it — the berry follows the
+          cursor, you can poke it and spin it — slid out from under you the
+          moment you touched the wheel. A short column with a sticky screen
+          inside gives it somewhere to stay: scrolling within the column moves
+          the page behind it while the hero itself sits put, and the way onward
+          is the button at the foot rather than more wheel. */}
+      <div className="relative h-[150vh]">
       <section
         ref={heroRef}
         aria-label={SITE_NAME}
-        className="relative mx-auto flex min-h-svh max-w-5xl flex-col justify-center px-6 pb-16"
+        className="sticky top-0 mx-auto flex h-svh max-w-5xl flex-col justify-center px-6 pb-16"
         style={{ scrollMarginTop: 0 }}
       >
         {/*
@@ -274,17 +287,18 @@ function Body({
               boardRef.current?.scrollIntoView({ behavior: "auto", block: "start" }),
             )
           }
-          className="group absolute inset-x-0 bottom-8 mx-auto flex w-fit cursor-pointer flex-col items-center gap-1 rounded-full px-4 py-2 text-slate-500 transition-colors hover:text-indigo-600 focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:outline-none dark:text-stone-400 dark:hover:text-indigo-300"
+          className="group absolute inset-x-0 bottom-10 mx-auto flex min-h-11 w-fit cursor-pointer flex-col items-center gap-0.5 rounded-full border border-slate-200/70 bg-white/60 px-5 py-2 text-slate-600 backdrop-blur transition-colors hover:border-indigo-300 hover:bg-white hover:text-indigo-700 focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:outline-none dark:border-stone-700/70 dark:bg-stone-950/50 dark:text-stone-300 dark:hover:border-indigo-400/50 dark:hover:bg-stone-900 dark:hover:text-indigo-200"
         >
-          <span className="font-mono text-[0.7rem] tracking-widest uppercase">Everything else</span>
+          <span className="text-sm font-semibold">Everything else</span>
           <motion.span
-            animate={reduce ? undefined : { y: [0, 5, 0] }}
+            animate={reduce ? undefined : { y: [0, 4, 0] }}
             transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
           >
-            <ChevronDown className="size-5" />
+            <ChevronDown className="size-4" />
           </motion.span>
         </button>
       </section>
+      </div>
 
       {/* Screen three: the board. */}
       <Board ref={boardRef} deckCountLabel={`${decks.length} decks · ${cards} cards`} />

@@ -66,6 +66,7 @@ export function SiteHeader({
    * dashboard's job, and this is the way in.
    */
   onSearch,
+  searchLabel = "Search decks",
   className,
   bare = false,
 }: {
@@ -75,6 +76,14 @@ export function SiteHeader({
   showContact?: boolean;
   onHome?: () => void;
   onSearch?: () => void;
+  /**
+   * What the search says it will search.
+   *
+   * The bar is on every page now, and "Search decks" is a lie on most of them:
+   * on home the dashboard opens onto everything the site has, not the deck
+   * library. The word follows the page rather than the component.
+   */
+  searchLabel?: string;
   className?: string;
   /**
    * Render the row only, with no sticky shell, background or border.
@@ -205,7 +214,7 @@ export function SiteHeader({
             with a mark and one unlabelled button beside it. Whether there is a
             search is the caller's decision, and the caller says so by passing
             `onSearch`. */}
-        {onSearch && <HeaderSearchButton onOpen={onSearch} />}
+        {onSearch && <HeaderSearchButton onOpen={onSearch} label={searchLabel} />}
 
         <div className="ml-auto flex shrink-0 items-center gap-2">
           <SiteActions showContact={showContact} />
@@ -229,7 +238,7 @@ export function SiteHeader({
  * Still the same pill as the Browse button beside it, so the two read as a pair
  * of tools rather than as a button and a form.
  */
-function HeaderSearchButton({ onOpen }: { onOpen: () => void }) {
+function HeaderSearchButton({ onOpen, label }: { onOpen: () => void; label: string }) {
   // `/` is the convention everywhere else that has a search box, and this is the
   // search on screen whenever it is mounted. Ignored while typing, or a slash
   // could not be typed at all.
@@ -251,12 +260,12 @@ function HeaderSearchButton({ onOpen }: { onOpen: () => void }) {
       <button
         type="button"
         onClick={onOpen}
-        aria-label="Search decks"
+        aria-label={label}
         className="group/search inline-flex max-w-full cursor-pointer items-center gap-1.5 truncate rounded-full border border-slate-200 bg-white/70 px-3 py-1.5 text-xs font-semibold text-slate-500 backdrop-blur transition hover:bg-white hover:text-slate-800 dark:border-stone-700 dark:bg-stone-900/60 dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-stone-100"
       >
         <Search className="size-3.5 shrink-0" />
         <span className="truncate">
-          Search decks
+          {label}
           {/* The ellipsis only when there is room; a phone gets the words. */}
           <span className="hidden sm:inline">…</span>
         </span>

@@ -4,7 +4,6 @@ import { ChevronDown } from "lucide-react";
 import { usePageFlip } from "@/components/ui/page-flip";
 import { ratingTally, type RatingTally } from "@/lib/progress";
 import { deckHref, type Deck } from "@/data/types";
-import { SITE_NAME } from "@/data/site";
 import { cn } from "@/lib/utils";
 
 /**
@@ -229,26 +228,20 @@ export function WindowChrome({
               })}
             </div>
 
-            {/* The name at rest, the bar's own controls once stuck. They
-                cross-fade in the same box so the swap happens inside a shape
-                that is already moving, rather than as a second event. */}
-            <div className="relative min-w-0 flex-1">
-              <span
-                aria-hidden={stuck}
-                style={{ opacity: 1 - Math.min(1, morph * 1.6) }}
-                className="pointer-events-none absolute inset-0 flex items-center justify-center font-mono text-[0.7rem] tracking-widest text-slate-400 uppercase dark:text-stone-500"
-              >
-                {open && active
-                  ? `${active.label} — ${rows.length} deck${rows.length === 1 ? "" : "s"}`
-                  : SITE_NAME}
-              </span>
-              <div
-                style={{ opacity: Math.max(0, (morph - 0.45) / 0.55) }}
-                className={cn("min-w-0", !stuck && "pointer-events-none")}
-              >
-                {children}
-              </div>
-            </div>
+            {/* One row, always present and always clickable.
+
+                The name used to sit here at rest and cross-fade into the bar's
+                controls as the tab widened, with the controls held at
+                `pointer-events-none` until the morph finished. That made the
+                mark, the search and the actions unreachable for the whole of
+                the hero — which is most of the time anyone spends on this page.
+                A bar you cannot press is a picture of a bar.
+
+                So the contents never change. The shape does: a rounded tab
+                inset from the edges at rest, a square full-width bar once
+                stuck, and the lights ride along in the same row throughout
+                rather than being a separate thing that hands over. */}
+            <div className="min-w-0 flex-1">{children}</div>
           </div>
 
           {/* What is behind the light. Rows rather than a number: the count
