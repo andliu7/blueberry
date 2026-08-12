@@ -132,10 +132,11 @@ export function AboutOverlay({ open, onClose }: { open: boolean; onClose: () => 
               <p>
                 {/* The staff door. Styled as nothing: no underline, no colour, no
                     pointer cursor, so it reads as the word it already was. It
-                    leads to a sign-in that refuses everyone not on the
-                    allowlist, which is a poor thing to invite people to try. */}
+                    leads to the workspace, which shows a sign-in card to anyone
+                    not already signed in — a poor thing to invite people to
+                    try, hence the invisibility. */}
                 I'm{" "}
-                <a href="#/signin" className="cursor-text text-inherit no-underline outline-none">
+                <a href="#/workspace" className="cursor-text text-inherit no-underline outline-none">
                   Andrew
                 </a>
                 ! Thanks for checking us out. I'm a final-year Computer Science major on

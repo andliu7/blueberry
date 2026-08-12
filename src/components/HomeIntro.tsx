@@ -101,7 +101,13 @@ const INTRO_WORDS: ParticleWord[] = [
  * would restart the sequence on every frame.
  */
 const INTRO_WORDS_LIGHT: ParticleWord[] = [
-  { text: INTRO_WORDMARK, from: "#a5b4fc", to: "#f5d0fe", holdMs: 2400 },
+  // Indigo-700 to fuchsia-700, not the -300s this used to be. `#a5b4fc` and
+  // `#f5d0fe` are pastels, and the opening's light background is `#f7eaff`,
+  // which is also a pastel: the wordmark was one pale lilac on another and the
+  // name was barely there. Reading the site's own name should not require
+  // squinting, so the particles are now dark enough to carry the contrast
+  // themselves rather than relying on the vignette behind them.
+  { text: INTRO_WORDMARK, from: "#4338ca", to: "#a21caf", holdMs: 2400 },
   // Saturation up, brightness barely down. Darkening alone walked every channel
   // toward black, which is what had taken the life out of it: the berry needs to
   // be more itself against the cream, not dimmer.
@@ -199,7 +205,10 @@ function IntroStage({
                 // upper left and its own highlight is near-white, so a white
                 // centre was hiding exactly the part that gives it form. Tinted
                 // rather than grey so it still belongs to the pastel around it.
-                "radial-gradient(64% 52% at 50% 48%, rgba(49,29,94,0.60) 0%, rgba(76,45,130,0.34) 58%, rgba(124,58,237,0) 100%)",
+                // Lighter than it was, now that the particles carry their own
+                // contrast. A dark wash behind dark type is two things fighting
+                // for the same job and leaves the frame muddy.
+                "radial-gradient(64% 52% at 50% 48%, rgba(49,29,94,0.34) 0%, rgba(76,45,130,0.18) 58%, rgba(124,58,237,0) 100%)",
           }}
         />
 
@@ -275,7 +284,7 @@ function IntroStage({
             style={{
               background: isDark
                 ? "radial-gradient(58% 46% at 50% 46%, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.45) 55%, rgba(0,0,0,0) 100%)"
-                : "radial-gradient(58% 46% at 50% 46%, rgba(49,29,94,0.52) 0%, rgba(76,45,130,0.28) 55%, rgba(124,58,237,0) 100%)",
+                : "radial-gradient(58% 46% at 50% 46%, rgba(49,29,94,0.30) 0%, rgba(76,45,130,0.16) 55%, rgba(124,58,237,0) 100%)",
             }}
           />
         </motion.div>
@@ -316,7 +325,7 @@ function IntroStage({
       <div
         className={cn(
           "pointer-events-none absolute inset-x-0 bottom-8 z-20 flex justify-center",
-          isDark ? "text-white/45" : "text-slate-500/85",
+          isDark ? "text-white/45" : "text-slate-700",
         )}
       >
         <span className="font-mono text-[0.7rem] tracking-wide">

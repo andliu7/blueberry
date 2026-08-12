@@ -202,7 +202,7 @@ export function StudyDecksPage() {
         category={showCategoryTitle ? "Study Decks" : null}
         browse={{ open: dash.isOpen, onToggle: toggleBrowse }}
         onCategoryClick={() => dash.open("decks")}
-        onSearch={() => dash.open("decks", { focusSearch: true })}
+        onSearch={() => window.dispatchEvent(new CustomEvent("blueberry:open-search"))}
       />
 
       <div className="relative z-10 mx-auto flex max-w-5xl flex-col px-6">
@@ -387,17 +387,20 @@ export function StudyDecksPage() {
             library is in: proud once most of it is reviewed, focused in the
             middle of the work, curious before any of it is started. */}
         <section className="mt-16 flex flex-col items-center">
-          <a
-            href="#/home"
-            aria-label="Home"
-            className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
-          >
-            <Blueberry
-              mood={libraryMood}
-              className="h-72 w-72"
-              label="Blueberry, the site's mascot. Press to go home."
-            />
-          </a>
+          {/* Not wrapped in a link any more. An `<a>` made every pointerup a
+              click, so dragging to spin him ended on the home page, and the
+              browser's own link-drag put a ghost image under the cursor. The
+              berry decides for itself now: a press goes home, a drag spins. */}
+          <Blueberry
+            mood={libraryMood}
+            interactive
+            trackWindow
+            onActivate={() => {
+              window.location.hash = "#/home";
+            }}
+            className="h-72 w-72"
+            label="Blueberry, the site's mascot. Press to go home, drag to spin."
+          />
           <p className="mt-1 text-center text-xs text-slate-400 dark:text-stone-500">
             Move your cursor around, give him a poke, or drag to spin him.
           </p>

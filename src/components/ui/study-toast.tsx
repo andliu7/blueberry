@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { CheckCircle2, Info, AlertTriangle, PartyPopper, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { DockSlot, DOCK } from "@/components/ui/corner-dock";
 
 /**
  * A toast that shows up, says one thing and leaves.
@@ -85,14 +86,15 @@ export function StudyToast({
   }, [open, autoCloseMs]);
 
   return (
-    <AnimatePresence>
-      {open && (
+    // Docked rather than pinned. Its own `fixed bottom-5 right-5` put it exactly
+    // where the focus timer and the feedback button already were.
+    <DockSlot order={DOCK.toast}>
+      <AnimatePresence>
+        {open && (
         <motion.div
           role="status"
           aria-live="polite"
-          // Above the deck furniture but below the About overlay at z-100, so a
-          // toast can never sit on top of a dialog someone opened.
-          className="fixed right-5 bottom-5 z-[90] w-[min(24rem,calc(100vw-2.5rem))]"
+          className="w-[min(24rem,calc(100vw-2.5rem))]"
           initial={reduce ? false : { opacity: 0, y: 28 }}
           animate={{ opacity: 1, y: 0 }}
           exit={reduce ? { opacity: 0 } : { opacity: 0, y: 12 }}
@@ -133,7 +135,8 @@ export function StudyToast({
           </div>
         </motion.div>
       )}
-    </AnimatePresence>
+      </AnimatePresence>
+    </DockSlot>
   );
 }
 

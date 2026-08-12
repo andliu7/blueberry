@@ -4,6 +4,7 @@ import './index.css'
 import App from './App.tsx'
 import { PageFlipProvider } from '@/components/ui/page-flip'
 import { FocusTimer } from '@/components/FocusTimer'
+import { GlobalSearch } from '@/components/GlobalSearch'
 import { installClickSound } from '@/lib/clickSound'
 
 // One delegated listener for the whole site rather than a prop on every button.
@@ -22,6 +23,9 @@ createRoot(document.getElementById('root')!).render(
     <PageFlipProvider>
       <App />
       <FocusTimer />
+      {/* Out here for the same reason: `/` should open the search on any page,
+          including ones whose header does not draw a search pill. */}
+      <GlobalSearch />
     </PageFlipProvider>
   </StrictMode>,
 )

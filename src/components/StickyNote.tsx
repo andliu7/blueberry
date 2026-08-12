@@ -1,4 +1,5 @@
 import { motion, useMotionValue } from "motion/react";
+import { DockSlot, DOCK } from "@/components/ui/corner-dock";
 import { useEffect, useRef, useState } from "react";
 
 /**
@@ -78,12 +79,14 @@ export function StickyNote({
     // The notes panel stays quiet: it is a place to write, and a click sound on
     // the way in and out of typing is noise around the thing you came to do.
     <div data-click-silent className="contents">
-      <button
-        onClick={toggle}
-        className="fixed bottom-5 right-5 z-40 flex items-center gap-2 rounded-full bg-yellow-400 px-4 py-2 font-bold text-yellow-900 shadow-lg transition hover:bg-yellow-300"
-      >
-        📝 Notes
-      </button>
+      <DockSlot order={DOCK.notes}>
+        <button
+          onClick={toggle}
+          className="flex items-center gap-2 rounded-full bg-yellow-400 px-4 py-2 font-bold text-yellow-900 shadow-lg transition hover:bg-yellow-300"
+        >
+          📝 Notes
+        </button>
+      </DockSlot>
 
       {/* Drag bounds. Motion measures dragConstraints from the element's own
           position, so the previous all-positive numeric constraints let a pad

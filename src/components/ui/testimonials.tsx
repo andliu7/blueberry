@@ -48,7 +48,7 @@ export function Testimonials({ className }: { className?: string }) {
     () =>
       testimonials.map((t) => ({
         imgUrl: testimonialArt(t),
-        alt: `${t.name} — ${t.role}`,
+        alt: `${t.name}, ${t.role}`,
         title: t.name,
         subtitle: t.role,
       })),

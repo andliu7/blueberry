@@ -227,28 +227,59 @@ export function Dashboard({
     };
   }, [isOpen, close]);
 
+  /**
+   * The search opens panels, and the search is mounted outside the router.
+   *
+   * Same shape as the focus timer's open event, and for the same reason: the
+   * palette has no way to reach into this component's state, and passing a
+   * setter out to `main.tsx` would mean the whole app carrying a prop about a
+   * dashboard it does not own.
+   */
+  useEffect(() => {
+    const onAsk = (e: Event) => {
+      const view = (e as CustomEvent<{ view?: string }>).detail?.view;
+      if (view) open(view as DashboardView);
+    };
+    window.addEventListener("blueberry:open-dashboard", onAsk);
+    return () => window.removeEventListener("blueberry:open-dashboard", onAsk);
+  }, [open]);
+
   // Only once the search view is actually mounted, or the ref is still null.
   useEffect(() => {
     if (isOpen && focusSearch && view === "decks") searchRef.current?.focus();
   }, [isOpen, focusSearch, view]);
 
   // Picking a destination on a phone should put the nav away behind you.
+  /**
+   * One click shows the section here; it never navigates.
+   *
+   * Lessons and Study Decks used to leave the dashboard the moment you touched
+   * them, which made the sidebar a menu of exits rather than a place you could
+   * look around in: there was no way to see what a section held without landing
+   * on it and having to come back.
+   */
   const go = useCallback(
     (next: DashboardView) => {
-      // Lessons is a page of its own rather than a panel, so this is the one
-      // destination that leaves the dashboard. Doing it from the click that
-      // asked for it keeps the hash change out of render, where React is not
-      // allowed to see a component navigate or close its own parent.
-      if (next === "lessons") {
-        close();
-        setMobileNav(false);
-        window.location.hash = "#/lessons";
-        return;
-      }
       open(next);
       setMobileNav(false);
     },
-    [open, close],
+    [open],
+  );
+
+  /**
+   * The second click, which leaves.
+   *
+   * Kept out of `go` and off render: React must not watch a component navigate
+   * away or close its own parent mid-render, so the hash change happens in the
+   * handler that asked for it.
+   */
+  const goTo = useCallback(
+    (hash: string) => {
+      close();
+      setMobileNav(false);
+      window.location.hash = hash;
+    },
+    [close],
   );
 
   const nav = (
@@ -265,26 +296,19 @@ export function Dashboard({
       }
     >
       <div className="space-y-0.5">
-        {/* Two different places that both wanted the word "Home".
+        {/* One row, not two.
 
-            This opened the panel's own overview and called itself Home, so the
-            dashboard had no route to the site's front page — you could open the
-            nav from anywhere and still not get out of it. The overview keeps
-            the panel and takes the name it already had at the top of it; Home
-            leaves. */}
+            Home and Dashboard were separate rows that had ended up meaning
+            almost the same thing, and the split was the problem: one showed the
+            overview without leaving, the other left without showing you
+            anything. They are the same place seen at two distances now. A click
+            gives you the overview here; a double-click takes you to the page. */}
         <SidebarNavItem
           icon={<House className="size-4" />}
           label="Home"
-          onClick={() => {
-            close();
-            window.location.hash = "#/home";
-          }}
-        />
-        <SidebarNavItem
-          icon={<LayoutGrid className="size-4" />}
-          label="Dashboard"
           active={view === "home"}
           onClick={() => go("home")}
+          onDoubleClick={() => goTo("#/home")}
         />
         <SidebarNavItem
           icon={<Bell className="size-4" />}
@@ -328,6 +352,7 @@ export function Dashboard({
             label="Lessons"
             active={view === "lessons"}
             onClick={() => go("lessons")}
+            onDoubleClick={() => goTo("#/lessons")}
           />
           <SidebarNavItem
             icon={<Atom className="size-4" />}
@@ -340,7 +365,8 @@ export function Dashboard({
             icon={<Layers className="size-4" />}
             label="Study Decks"
             active={view === "decks"}
-            onClick={() => { window.location.hash = "#/study-decks"; }}
+            onClick={() => go("decks")}
+            onDoubleClick={() => goTo("#/study-decks")}
           />
         </CollapsibleSection>
 

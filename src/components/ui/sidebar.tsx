@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { ChevronDown } from "lucide-react";
+import { ArrowUpRight, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
@@ -176,6 +176,7 @@ export function SidebarNavItem({
   badge,
   muted,
   onClick,
+  onDoubleClick,
   className,
 }: {
   icon?: React.ReactNode;
@@ -186,12 +187,22 @@ export function SidebarNavItem({
   /** Present but not built yet: still selectable, drawn as unfinished. */
   muted?: boolean;
   onClick: () => void;
+  /**
+   * Where the row goes when it is opened properly.
+   *
+   * One click previews the section inside the dashboard; two opens the page it
+   * belongs to. The rows that have somewhere to go say so on hover, because a
+   * double-click affordance that is never mentioned is one nobody finds.
+   */
+  onDoubleClick?: () => void;
   className?: string;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
+      onDoubleClick={onDoubleClick}
+      title={onDoubleClick ? `${label} — double-click to open the page` : undefined}
       aria-current={active ? "page" : undefined}
       className={cn(
         "group relative flex w-full cursor-pointer items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
@@ -220,6 +231,12 @@ export function SidebarNavItem({
         <span className="shrink-0 rounded-full bg-fuchsia-500 px-1.5 py-px font-mono text-[0.65rem] font-bold text-white">
           {badge > 99 ? "99+" : badge}
         </span>
+      )}
+      {/* The hint, on hover only. It has to be discoverable without being a
+          permanent label on every row: five rows each shouting "double-click"
+          is louder than the nav itself. */}
+      {onDoubleClick && (
+        <ArrowUpRight className="size-3.5 shrink-0 opacity-0 transition-opacity group-hover:opacity-60" />
       )}
     </button>
   );

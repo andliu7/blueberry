@@ -3,10 +3,16 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Check, ChevronDown, Eye, Pause, Play, Plus, RotateCcw, Timer, X } from "lucide-react";
 import { Confetti } from "@/components/Confetti";
 import { Blueberry } from "@/components/ui/blueberry";
+import { AnimateDigits } from "@/components/ui/animate-digits";
+import { DialMinutes } from "@/components/ui/dial-minutes";
+import { BreakRoom } from "@/components/ui/break-room";
+import { useAmbience } from "@/lib/useAmbience";
 import { useFocusTimer, formatClock, type TimerPhase } from "@/lib/useFocusTimer";
 import { useDecks } from "@/lib/useDecks";
 import { deckHref } from "@/data/types";
 import { cn } from "@/lib/utils";
+import { DockSlot, DOCK } from "@/components/ui/corner-dock";
+import { NotificationsTab, useTimerNotices } from "@/components/ui/notifications";
 
 /**
  * The study timer, as a tab in the corner of every page.
@@ -35,6 +41,10 @@ export function FocusTimer() {
   const t = useFocusTimer();
   const reduce = useReducedMotion();
   const { decks } = useDecks();
+  const ambience = useAmbience();
+  // The timer already knows every event worth logging, so the log is derived
+  // from it here rather than pushed from a dozen call sites.
+  const notices = useTimerNotices(t);
 
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState("");
@@ -91,7 +101,9 @@ export function FocusTimer() {
     <>
       <Confetti trigger={cheer} />
 
-      <div className="fixed right-4 bottom-4 z-[90] flex flex-col items-end gap-2 print:hidden">
+      <NotificationsTab {...notices} />
+
+      <DockSlot order={DOCK.focus} className="flex flex-col items-end gap-2">
         <AnimatePresence initial={false}>
           {open && (
             <motion.div
@@ -100,7 +112,23 @@ export function FocusTimer() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={reduce ? undefined : { opacity: 0, y: 12, scale: 0.97 }}
               transition={{ duration: 0.22, ease: "easeOut" }}
-              className="w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-slate-200 bg-white/95 shadow-2xl backdrop-blur dark:border-stone-800 dark:bg-stone-950/95"
+              // The colour is set here rather than inherited.
+              //
+              // This is mounted in `main.tsx`, outside `App`, so it is a child
+              // of `<body>` and never sees the `text-slate-900
+              // dark:text-stone-100` that each page root sets. Inheriting gave
+              // it the browser default — near-black — on a near-black card, so
+              // in dark mode the clock, the labels and the task list were all
+              // invisible. Anything mounted outside the page tree has to state
+              // its own colours.
+              //
+              // Height is capped and the card scrolls inside itself. With
+              // Tetris open the contents are taller than a laptop viewport in
+              // landscape, and since the card is anchored to the bottom of the
+              // screen the overflow ran off the *top*, taking the clock with
+              // it. `dvh` rather than `vh` so a mobile browser's collapsing
+              // address bar does not leave it hanging off the screen either.
+              className="scrollbar-none max-h-[calc(100dvh-5.5rem)] w-[min(22rem,calc(100vw-2rem))] overflow-x-hidden overflow-y-auto rounded-2xl border border-slate-200 bg-white/95 text-slate-900 shadow-2xl backdrop-blur dark:border-stone-800 dark:bg-stone-950/95 dark:text-stone-100"
             >
               {/* The eye rest owns the whole card while it runs. It is the one
                   thing here that is asking you to stop looking at the screen,
@@ -116,7 +144,9 @@ export function FocusTimer() {
                       className="size-7 shrink-0"
                       label=""
                     />
-                    <span className="flex-1 text-sm font-semibold">{PHASE_LABEL[t.phase]}</span>
+                    <span className="flex-1 text-sm font-semibold text-slate-900 dark:text-stone-100">
+                      {PHASE_LABEL[t.phase]}
+                    </span>
                     <button
                       type="button"
                       onClick={() => setOpen(false)}
@@ -129,9 +159,17 @@ export function FocusTimer() {
 
                   <div className="px-4 pt-4 pb-3">
                     <div className="flex items-end justify-between">
-                      <span className="font-mono text-4xl tabular-nums">
-                        {formatClock(t.remainingMs)}
-                      </span>
+                      {/* Rolls rather than redraws. The clock is the thing you
+                          glance at to see whether it is still running, and a
+                          number that moves answers that without you having to
+                          watch it for a second to be sure. */}
+                      <AnimateDigits
+                        value={formatClock(t.remainingMs)}
+                        reduce={!!reduce}
+                        direction="down"
+                        enterY={22}
+                        className="font-mono text-4xl font-semibold text-slate-900 dark:text-stone-50"
+                      />
                       <div className="flex items-center gap-1.5">
                         {running ? (
                           <IconButton onClick={t.pause} label="Pause">
@@ -160,37 +198,56 @@ export function FocusTimer() {
                       />
                     </div>
 
-                    {/* Both lengths, adjustable in place. Steppers rather than a
-                        text field: these are always a small number of minutes,
-                        and a field you can type 900 into needs validation that
-                        two buttons do not. */}
-                    <div className="mt-4 grid grid-cols-2 gap-2">
-                      <Stepper
+                    {/* Three lengths, each a dial you can spin, nudge or type
+                        into. The eye-rest interval is here rather than buried in
+                        a settings page because twenty minutes is a rule of
+                        thumb, not a law, and someone reading dense mechanisms
+                        may well want it sooner. */}
+                    <div className="mt-4 grid grid-cols-3 gap-2">
+                      <DialMinutes
                         label="Focus"
                         value={t.settings.focusMinutes}
                         onChange={(v) => t.setSettings({ focusMinutes: v })}
-                        min={5}
-                        max={90}
-                        step={5}
+                        min={1}
+                        max={180}
                       />
-                      <Stepper
+                      <DialMinutes
                         label="Break"
                         value={t.settings.breakMinutes}
                         onChange={(v) => t.setSettings({ breakMinutes: v })}
                         min={1}
-                        max={30}
-                        step={1}
+                        max={60}
+                      />
+                      <DialMinutes
+                        label="Eyes"
+                        value={t.settings.eyeEveryMinutes}
+                        onChange={(v) => t.setSettings({ eyeEveryMinutes: v })}
+                        min={5}
+                        max={60}
                       />
                     </div>
 
+                    {/* The 20-20-20 clock, running in the open.
+
+                        It used to fire out of nowhere at twenty minutes with
+                        nothing beforehand to say it was coming, which makes a
+                        health rule feel like an interruption. Now you can watch
+                        it approach, and take it early if you would rather. */}
                     {running && t.phase === "focus" && (
                       <button
                         type="button"
                         onClick={t.beginEyeRest}
                         className="mt-3 flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-200 py-2 text-xs font-semibold text-slate-600 transition-colors hover:border-indigo-300 hover:text-indigo-700 dark:border-stone-800 dark:text-stone-300 dark:hover:border-indigo-400/50 dark:hover:text-indigo-200"
                       >
-                        <Eye className="size-3.5" />
-                        Rest my eyes now
+                        <Eye className="size-3.5 shrink-0" />
+                        <span>Eyes rest in</span>
+                        <AnimateDigits
+                          value={formatClock(t.untilEyeRestMs)}
+                          reduce={!!reduce}
+                          direction="down"
+                          enterY={10}
+                          className="font-mono text-xs"
+                        />
                       </button>
                     )}
                   </div>
@@ -202,6 +259,19 @@ export function FocusTimer() {
                     setDraft={setDraft}
                     picking={picking}
                     setPicking={setPicking}
+                  />
+
+                  {/* Sound always; the game only on a break, and only once the
+                      look-away is behind you. `eyeRestDue` is checked as well as
+                      the phase because a rest that is owed takes over the whole
+                      card anyway, and offering Tetris underneath it would be
+                      arguing with itself. */}
+                  <BreakRoom
+                    scene={ambience.scene}
+                    volume={ambience.volume}
+                    setVolume={ambience.setVolume}
+                    onScene={ambience.play}
+                    showGame={t.phase === "break" && !t.eyeRestDue}
                   />
                 </>
               )}
@@ -227,7 +297,13 @@ export function FocusTimer() {
         >
           <Timer className="size-4 shrink-0" />
           {running ? (
-            <span className="font-mono text-sm tabular-nums">{formatClock(t.remainingMs)}</span>
+            <AnimateDigits
+              value={formatClock(t.remainingMs)}
+              reduce={!!reduce}
+              direction="down"
+              enterY={12}
+              className="font-mono text-sm"
+            />
           ) : (
             <span className="text-sm font-semibold">Focus</span>
           )}
@@ -237,7 +313,7 @@ export function FocusTimer() {
             </span>
           )}
         </button>
-      </div>
+      </DockSlot>
     </>
   );
 }
@@ -257,27 +333,32 @@ function EyeRest({
   timer: ReturnType<typeof useFocusTimer>;
   onClose: () => void;
 }) {
+  const reduce = useReducedMotion();
   const resting = timer.phase === "eyeRest";
   return (
     <div className="px-5 py-6 text-center">
       <Eye className="mx-auto size-6 text-indigo-600 dark:text-indigo-300" />
-      <p className="mt-3 text-base font-semibold">Look 20 ft away</p>
+      <p className="mt-3 text-base font-semibold text-slate-900 dark:text-stone-100">Look 20 ft away</p>
       <p className="mt-1 text-sm text-slate-500 dark:text-stone-400">
-        For twenty seconds. Out of a window if there is one — the point is to let your eyes
+        For twenty seconds. Out of a window if there is one. The point is to let your eyes
         focus on something that is not eighteen inches from your face.
       </p>
 
       {resting ? (
         <>
-          <p className="mt-4 font-mono text-5xl tabular-nums text-indigo-600 dark:text-indigo-300">
-            {Math.ceil(timer.remainingMs / 1000)}
-          </p>
+          <AnimateDigits
+            value={String(Math.ceil(timer.remainingMs / 1000)).padStart(2, "0")}
+            reduce={!!reduce}
+            direction="down"
+            enterY={26}
+            className="mt-4 justify-center font-mono text-5xl font-semibold text-indigo-600 dark:text-indigo-300"
+          />
           <button
             type="button"
             onClick={timer.endEyeRest}
             className="mt-4 min-h-11 w-full cursor-pointer rounded-xl bg-slate-100 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-200 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700"
           >
-            I looked — back to it
+            I looked. Back to it
           </button>
         </>
       ) : (
@@ -365,7 +446,7 @@ function Tasks({
                 <a
                   href={task.href}
                   className={cn(
-                    "min-w-0 flex-1 truncate text-sm hover:underline",
+                    "min-w-0 flex-1 truncate text-sm text-slate-800 hover:underline dark:text-stone-200",
                     task.done && "text-slate-400 line-through dark:text-stone-600",
                   )}
                 >
@@ -374,7 +455,7 @@ function Tasks({
               ) : (
                 <span
                   className={cn(
-                    "min-w-0 flex-1 truncate text-sm",
+                    "min-w-0 flex-1 truncate text-sm text-slate-800 dark:text-stone-200",
                     task.done && "text-slate-400 line-through dark:text-stone-600",
                   )}
                 >
@@ -408,7 +489,7 @@ function Tasks({
           onChange={(e) => setDraft(e.target.value)}
           placeholder="Add a task…"
           aria-label="Add a task"
-          className="min-w-0 flex-1 rounded-lg border border-transparent bg-slate-100 px-2.5 py-1.5 text-sm outline-none placeholder:text-slate-400 focus-visible:border-indigo-400 dark:bg-stone-900 dark:placeholder:text-stone-600"
+          className="min-w-0 flex-1 rounded-lg border border-transparent bg-slate-100 px-2.5 py-1.5 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus-visible:border-indigo-400 dark:bg-stone-900 dark:text-stone-100 dark:placeholder:text-stone-600"
         />
         <button
           type="button"
@@ -430,7 +511,21 @@ function Tasks({
             transition={{ duration: 0.2 }}
             className="overflow-hidden border-t border-slate-100 dark:border-stone-900"
           >
-            <ul className="max-h-44 overflow-y-auto py-1">
+            {/* Listed vertically, scrolled horizontally.
+
+                Not a single row of chips, and not a tall scrolling column
+                either. Items run top to bottom as a list should, four to a
+                column, and then continue in the next column across. What
+                overflows is the *width*, so the scrollbar is horizontal and the
+                panel's height never changes however many decks exist.
+
+                `grid-flow-col` with a fixed row count is the whole mechanism:
+                the browser fills the rows of one column before starting the
+                next, which is exactly the reading order wanted. */}
+            <ul
+              className="grid snap-x grid-flow-col grid-rows-4 gap-x-3 gap-y-0.5 overflow-x-auto px-3 py-2"
+              style={{ gridAutoColumns: "minmax(9rem, max-content)" }}
+            >
               <PickRow
                 label="Carbonyl lessons"
                 onPick={() => {
@@ -456,13 +551,21 @@ function Tasks({
   );
 }
 
+/**
+ * One thing you could work on, as a row in the list.
+ *
+ * Truncated with the full title on hover, because deck names run to
+ * "[CHEM 242] Lab 3: Epoxidation of Chalcone" and one of those sets the width
+ * of its whole column.
+ */
 function PickRow({ label, onPick }: { label: string; onPick: () => void }) {
   return (
-    <li>
+    <li className="snap-start">
       <button
         type="button"
         onClick={onPick}
-        className="w-full cursor-pointer truncate px-4 py-1.5 text-left text-sm text-slate-600 transition-colors hover:bg-slate-50 hover:text-indigo-700 dark:text-stone-300 dark:hover:bg-stone-900 dark:hover:text-indigo-200"
+        title={label}
+        className="w-full cursor-pointer truncate rounded-md px-2 py-1 text-left text-sm text-slate-600 transition-colors hover:bg-slate-50 hover:text-indigo-700 dark:text-stone-300 dark:hover:bg-stone-900 dark:hover:text-indigo-200"
       >
         {label}
       </button>
@@ -496,49 +599,6 @@ function IconButton({
     >
       {children}
     </button>
-  );
-}
-
-function Stepper({
-  label,
-  value,
-  onChange,
-  min,
-  max,
-  step,
-}: {
-  label: string;
-  value: number;
-  onChange: (v: number) => void;
-  min: number;
-  max: number;
-  step: number;
-}) {
-  return (
-    <div className="rounded-xl border border-slate-200 px-2.5 py-1.5 dark:border-stone-800">
-      <span className="block font-mono text-[0.6rem] tracking-widest text-slate-400 uppercase dark:text-stone-500">
-        {label}
-      </span>
-      <div className="mt-0.5 flex items-center justify-between">
-        <button
-          type="button"
-          onClick={() => onChange(Math.max(min, value - step))}
-          aria-label={`Less ${label.toLowerCase()}`}
-          className="cursor-pointer px-1 text-slate-400 hover:text-slate-800 dark:hover:text-stone-100"
-        >
-          −
-        </button>
-        <span className="font-mono text-sm tabular-nums">{value}m</span>
-        <button
-          type="button"
-          onClick={() => onChange(Math.min(max, value + step))}
-          aria-label={`More ${label.toLowerCase()}`}
-          className="cursor-pointer px-1 text-slate-400 hover:text-slate-800 dark:hover:text-stone-100"
-        >
-          +
-        </button>
-      </div>
-    </div>
   );
 }
 

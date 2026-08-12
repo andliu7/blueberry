@@ -50,6 +50,7 @@ export function Blueberry({
   mood = "curious",
   className,
   interactive = true,
+  onActivate,
   trackWindow = false,
   flat = false,
   label,
@@ -59,6 +60,16 @@ export function Blueberry({
   className?: string;
   /** Whether it answers the pointer: hover, poke, drag to spin. */
   interactive?: boolean;
+  /**
+   * What a press does, when it was a press and not a drag.
+   *
+   * Given as a callback rather than by wrapping the berry in an `<a>`. An
+   * anchor treats every release as a click, so a drag to spin him ended in a
+   * navigation, and browsers add their own ghost-image drag to a link's
+   * contents on top of that. Both quietly undid the interactivity the pages
+   * were advertising underneath him.
+   */
+  onActivate?: () => void;
   /**
    * Follow the cursor anywhere on the page rather than only over its own box.
    *
@@ -96,8 +107,25 @@ export function Blueberry({
   return (
     <div
       ref={ref}
-      className={cn("relative", className)}
-      role="img"
+      role={onActivate ? "button" : "img"}
+      tabIndex={onActivate ? 0 : undefined}
+      // The keyboard needs the same door. A canvas is not focusable and a
+      // pointer gesture is not a key press, so the wrapper carries the role and
+      // Enter/Space do what a press does.
+      onKeyDown={
+        onActivate
+          ? (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onActivate();
+              }
+            }
+          : undefined
+      }
+      // Only when there is no live canvas underneath: while the 3-D berry is up
+      // it owns the press, and handling it here as well would fire twice.
+      onClick={onActivate && !live ? onActivate : undefined}
+      className={cn("relative", onActivate && "cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 rounded-full", className)}
       aria-label={label ?? `Blueberry, looking ${mood}`}
     >
       {/*
@@ -125,6 +153,7 @@ export function Blueberry({
             <BlueberryBot3D
               mood={mood}
               interactive={interactive}
+              onActivate={onActivate}
               trackWindow={trackWindow}
               className="h-full w-full"
             />

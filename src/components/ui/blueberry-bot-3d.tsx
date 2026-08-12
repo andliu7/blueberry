@@ -416,6 +416,7 @@ export function BlueberryBot3D({
   className,
   mood = "curious",
   interactive = true,
+  onActivate,
   trackWindow = false,
 }: {
   className?: string;
@@ -423,6 +424,8 @@ export function BlueberryBot3D({
   mood?: BerryMood;
   /** Whether it answers the pointer at all. Off makes it a still portrait. */
   interactive?: boolean;
+  /** Fired by a press that was not a drag. */
+  onActivate?: () => void;
   /**
    * Follow the cursor anywhere on the page rather than only over the canvas.
    *
@@ -500,6 +503,10 @@ export function BlueberryBot3D({
     e.currentTarget.releasePointerCapture(e.pointerId);
     if (wasDrag) requestAnimationFrame(() => (dragging.current = false));
     else dragging.current = false;
+    // A press that did not travel is a press, and only then does the berry act
+    // as a link. This is what an `<a>` wrapper cannot do: to an anchor every
+    // pointerup is a click, so spinning him navigated away mid-drag.
+    if (!wasDrag) onActivate?.();
   };
 
   return (

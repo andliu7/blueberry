@@ -56,6 +56,11 @@ interface Persisted {
   focusedMs: number;
   /** Eye rests already taken this focus session. */
   restsTaken: number;
+  /**
+   * Focused milliseconds banked at the last eye rest, which is where the next
+   * twenty minutes counts from.
+   */
+  eyeBaseMs: number;
   settings: TimerSettings;
   tasks: FocusTask[];
 }
@@ -69,6 +74,7 @@ function load(): Persisted {
     resumeTo: "focus",
     focusedMs: 0,
     restsTaken: 0,
+    eyeBaseMs: 0,
     settings: DEFAULT_SETTINGS,
     tasks: [],
   };
@@ -97,8 +103,21 @@ function save(state: Persisted) {
 
 export function useFocusTimer() {
   const [state, setState] = useState<Persisted>(load);
-  // Re-render tick. The value is unused; the clock is computed from Date.now().
-  const [, setNow] = useState(Date.now());
+  /**
+   * The tick.
+   *
+   * This value is *used*, and that is the whole point. It began life as a
+   * throwaway `const [, setNow]` whose only job was to force a re-render, on the
+   * reasoning that the clock reads `Date.now()` itself and so does not need the
+   * number. That was wrong, and it froze the clock completely: `derived` below
+   * is a `useMemo`, and a re-render does not recompute a memo — only a changed
+   * dependency does. Ticking a value nothing depended on re-rendered the card
+   * every 250ms and painted the same cached numbers each time, so the countdown
+   * sat at its starting value for the entire session.
+   *
+   * So `now` is a real dependency now, and the memo recomputes on every tick.
+   */
+  const [now, setNow] = useState(() => Date.now());
   const stateRef = useRef(state);
   stateRef.current = state;
 
@@ -108,6 +127,7 @@ export function useFocusTimer() {
   // is a page that never goes quiet.
   useEffect(() => {
     if (state.phase === "idle") return;
+    setNow(Date.now());
     const id = setInterval(() => setNow(Date.now()), 250);
     return () => clearInterval(id);
   }, [state.phase]);
@@ -115,7 +135,6 @@ export function useFocusTimer() {
   const settings = state.settings;
 
   const derived = useMemo(() => {
-    const now = Date.now();
     const elapsed = state.phase === "idle" ? 0 : now - state.startedAt;
 
     if (state.phase === "eyeRest") {
@@ -132,7 +151,7 @@ export function useFocusTimer() {
       return { remainingMs: Math.max(0, total - focusedMs), totalMs: total, focusedMs };
     }
     return { remainingMs: settings.focusMinutes * 60_000, totalMs: settings.focusMinutes * 60_000, focusedMs: 0 };
-  }, [state, settings]);
+  }, [state, settings, now]);
 
   /**
    * Whether an eye rest is due.
@@ -141,9 +160,31 @@ export function useFocusTimer() {
    * so pausing for a break and coming back cannot reset the twenty minutes your
    * eyes have actually been working.
    */
-  const eyeRestDue =
-    state.phase === "focus" &&
-    derived.focusedMs >= (state.restsTaken + 1) * settings.eyeEveryMinutes * 60_000;
+  /**
+   * The rest interval restarts; it does not accumulate.
+   *
+   * This used to be `(restsTaken + 1) * eyeEveryMinutes`, counted against total
+   * focused time. That is only equivalent while the interval never changes and
+   * every rest is taken exactly on time, and it breaks the moment either is
+   * untrue: change the dial from 20 to 30 mid-session and the target jumps by an
+   * hour, and the card reads "eyes rest in 32:37" when twenty minutes is the
+   * entire rule. Counting from the last rest instead means the answer is always
+   * somewhere between zero and the interval, whatever you do to the dial.
+   */
+  const nextRestAtMs = state.eyeBaseMs + settings.eyeEveryMinutes * 60_000;
+
+  const eyeRestDue = state.phase === "focus" && derived.focusedMs >= nextRestAtMs;
+
+  /**
+   * How long until the eyes are due a rest.
+   *
+   * The rule was enforced silently before: it fired at twenty minutes and until
+   * then there was no sign it existed, which makes it feel like an interruption
+   * rather than something you were counting down to. Reported from banked focus
+   * time, so it holds still during a break instead of running down while you are
+   * away from the screen.
+   */
+  const untilEyeRestMs = Math.max(0, nextRestAtMs - derived.focusedMs);
 
   const start = useCallback((phase: TimerPhase = "focus") => {
     setState((s) => ({
@@ -152,11 +193,19 @@ export function useFocusTimer() {
       startedAt: Date.now(),
       focusedMs: phase === "focus" ? s.focusedMs : 0,
       restsTaken: phase === "focus" ? s.restsTaken : 0,
+      eyeBaseMs: phase === "focus" ? s.eyeBaseMs : 0,
     }));
   }, []);
 
   const stop = useCallback(() => {
-    setState((s) => ({ ...s, phase: "idle", startedAt: 0, focusedMs: 0, restsTaken: 0 }));
+    setState((s) => ({
+      ...s,
+      phase: "idle",
+      startedAt: 0,
+      focusedMs: 0,
+      restsTaken: 0,
+      eyeBaseMs: 0,
+    }));
   }, []);
 
   /** Bank the focus done so far and hold. */
@@ -168,16 +217,24 @@ export function useFocusTimer() {
   }, []);
 
   const beginEyeRest = useCallback(() => {
-    setState((s) => ({
-      ...s,
+    setState((s) => {
       // Bank focus up to this instant, so the twenty seconds of looking away do
       // not count as study time.
-      focusedMs: s.phase === "focus" ? s.focusedMs + (Date.now() - s.startedAt) : s.focusedMs,
-      resumeTo: s.phase === "focus" ? "focus" : s.resumeTo,
-      phase: "eyeRest",
-      startedAt: Date.now(),
-      restsTaken: s.restsTaken + 1,
-    }));
+      const banked =
+        s.phase === "focus" ? s.focusedMs + (Date.now() - s.startedAt) : s.focusedMs;
+      return {
+        ...s,
+        focusedMs: banked,
+        // The clock starts again from here, whether the rest was due or you
+        // took it early. Taking one early and still being interrupted two
+        // minutes later would teach you not to take them early.
+        eyeBaseMs: banked,
+        resumeTo: s.phase === "focus" ? "focus" : s.resumeTo,
+        phase: "eyeRest",
+        startedAt: Date.now(),
+        restsTaken: s.restsTaken + 1,
+      };
+    });
   }, []);
 
   const endEyeRest = useCallback(() => {
@@ -241,6 +298,7 @@ export function useFocusTimer() {
     totalMs: derived.totalMs,
     focusedMs: derived.focusedMs,
     eyeRestDue,
+    untilEyeRestMs,
     restsTaken: state.restsTaken,
     start,
     stop,

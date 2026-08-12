@@ -33,7 +33,13 @@ import { cn } from "@/lib/utils";
 
 interface BackgroundEntry {
   file: string;
-  kind: "landscape" | "berry";
+  /**
+   * `forest` is a landscape that happens to be trees, water or mist. It is a
+   * separate kind only so the picker can favour it: those photographs sit
+   * closest to what a blueberry actually grows in, and a site named after the
+   * fruit looks more like itself behind them than behind a castle.
+   */
+  kind: "landscape" | "forest" | "berry";
   label: string;
   w: number;
   h: number;
@@ -41,34 +47,60 @@ interface BackgroundEntry {
   blur: string;
 }
 
+/** How many times a forest photograph is entered into the draw. */
+const FOREST_WEIGHT = 3;
+
 /**
- * Which landscape, decided by the clock.
+ * Which photograph, decided by the clock.
  *
  * A stand-in for the weather lookup, and deliberately the same shape: one
  * function from the world to a filename, so swapping "what time is it" for
  * "what is it doing outside" later is a change in one place rather than a new
- * system. See the note in the README on Open-Meteo — one fetch, no key.
+ * system. See the note in the README on Open-Meteo, one fetch and no key.
+ *
+ * Weighting is done by **repeating entries in the pool** rather than by sorting
+ * or by rolling a random number. The choice has to stay stable within the hour
+ * or the background changes every time React re-renders, so it has to be a pure
+ * function of the hour; putting a forest in three times and indexing by the hour
+ * is the whole of the trick.
  */
 function pickForHour(entries: BackgroundEntry[], hour: number): BackgroundEntry | undefined {
-  const landscapes = entries.filter((e) => e.kind === "landscape");
-  if (landscapes.length === 0) return undefined;
+  const scenes = entries.filter((e) => e.kind === "landscape" || e.kind === "forest");
+  if (scenes.length === 0) return undefined;
 
   const wants = (...words: string[]) =>
-    landscapes.filter((e) => words.some((w) => e.label.includes(w)));
+    scenes.filter((e) => words.some((w) => e.label.includes(w)));
 
-  const pool =
+  const matched =
     hour < 5 || hour >= 21
       ? wants("stars", "milky", "constellations", "aurora", "purple")
       : hour < 9
-        ? wants("morning", "sunrise", "misty", "cloudy")
+        ? // Mist and low cloud belong to the early hours, so the new forest
+          // frames carry most of this bucket rather than sitting out the morning.
+          wants("morning", "sunrise", "misty", "cloudy", "clouds", "dripping", "river")
         : hour < 17
-          ? wants("meadow", "field", "valley", "mountains", "beach", "waves", "tree")
-          : wants("sunset", "autumn", "dusk", "purple");
+          ? wants(
+              "meadow",
+              "field",
+              "valley",
+              "mountains",
+              "beach",
+              "waves",
+              "tree",
+              "forest",
+              "nature",
+              "rainforest",
+              "waterfall",
+            )
+          : wants("sunset", "autumn", "dusk", "purple", "grassy");
 
-  const from = pool.length > 0 ? pool : landscapes;
-  // Stable within the hour rather than random per render, or the background
-  // would change every time React felt like it.
-  return from[hour % from.length];
+  const from = matched.length > 0 ? matched : scenes;
+
+  const pool = from.flatMap((e) =>
+    e.kind === "forest" ? (Array(FOREST_WEIGHT).fill(e) as BackgroundEntry[]) : [e],
+  );
+
+  return pool[hour % pool.length];
 }
 
 export function PageBackground({ className }: { className?: string }) {

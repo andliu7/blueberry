@@ -4,6 +4,7 @@ import { MessageSquare } from "lucide-react";
 import { FeedbackWidget } from "@/components/ui/feedback-widget";
 import { GlassFilter, LiquidGlassLayers } from "@/components/ui/liquid-glass-button";
 import { postToAppsScript } from "@/lib/appsScript";
+import { DockSlot, DOCK } from "@/components/ui/corner-dock";
 import { cn } from "@/lib/utils";
 
 /**
@@ -55,23 +56,29 @@ export function FeedbackButton({
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        // No `relative` here: `fixed` already establishes the containing block
-        // for the glass layers, and setting both lets the cascade decide which
-        // position wins, which previously threw this button off screen.
-        className={cn(
-          "fixed bottom-5 z-40 flex cursor-pointer items-center gap-2 overflow-hidden rounded-full bg-white/60 px-4 py-2 font-bold text-slate-700 shadow-lg transition-transform hover:scale-105 dark:bg-stone-900/50 dark:text-stone-200",
-          className ?? "right-5",
-        )}
-      >
-        <LiquidGlassLayers />
-        <span className="relative z-10 flex items-center gap-2">
-          <MessageSquare className="h-4 w-4" />
-          Feedback
-        </span>
-      </button>
+      {/* The corner, and it keeps it. `DOCK.feedback` is 0, the lowest slot, so
+          everything else in the dock stacks above rather than over it: someone
+          hunting for this button is already having trouble, and finding it in a
+          different place on each page is the last thing that should happen. */}
+      <DockSlot order={DOCK.feedback}>
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          // No `relative` here: the dock slot is the containing block for the
+          // glass layers, and adding one lets the cascade decide which position
+          // wins, which previously threw this button off screen.
+          className={cn(
+            "flex cursor-pointer items-center gap-2 overflow-hidden rounded-full bg-white/60 px-4 py-2 font-bold text-slate-700 shadow-lg transition-transform hover:scale-105 dark:bg-stone-900/50 dark:text-stone-200",
+            className,
+          )}
+        >
+          <LiquidGlassLayers />
+          <span className="relative z-10 flex items-center gap-2">
+            <MessageSquare className="h-4 w-4" />
+            Feedback
+          </span>
+        </button>
+      </DockSlot>
 
       {/* One instance supplies the filter the glass layers reference. */}
       <GlassFilter />

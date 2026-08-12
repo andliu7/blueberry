@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { DockSlot, DOCK } from "@/components/ui/corner-dock";
 
 /**
  * A stack of notices in the bottom right, newest lowest, growing upward.
@@ -105,7 +106,7 @@ export function ToastQueue({
 
       {/* `flex-col` with the newest last puts it nearest the corner, and the
           stack grows upward as older ones are pushed off the bottom. */}
-      <div className="pointer-events-none fixed right-5 bottom-5 z-[95] flex w-[min(24rem,calc(100vw-2.5rem))] flex-col gap-2.5">
+      <DockSlot order={DOCK.toast} className="pointer-events-none flex w-[min(24rem,calc(100vw-2.5rem))] flex-col gap-2.5">
         <AnimatePresence initial={false}>
           {toasts.map((t) => (
             <motion.div
@@ -153,7 +154,7 @@ export function ToastQueue({
             </motion.div>
           ))}
         </AnimatePresence>
-      </div>
+      </DockSlot>
     </>
   );
 }

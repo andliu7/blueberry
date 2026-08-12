@@ -920,3 +920,14 @@ button:disabled,
     opacity: 0.7;
   }
 }
+
+/* A rail you drag rather than one you aim a scrollbar at. The bar is hidden
+   because the row is plainly horizontal and a 4px track under six chips is more
+   chrome than content. Keyboard and wheel scrolling are untouched. */
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}

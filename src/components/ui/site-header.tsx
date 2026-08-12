@@ -239,21 +239,9 @@ export function SiteHeader({
  * of tools rather than as a button and a form.
  */
 function HeaderSearchButton({ onOpen, label }: { onOpen: () => void; label: string }) {
-  // `/` is the convention everywhere else that has a search box, and this is the
-  // search on screen whenever it is mounted. Ignored while typing, or a slash
-  // could not be typed at all.
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      const el = document.activeElement;
-      const typing = el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement;
-      if (e.key === "/" && !typing) {
-        e.preventDefault();
-        onOpen();
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onOpen]);
+  // `/` is handled by GlobalSearch, which is mounted once for the whole site.
+  // Binding it here as well meant two listeners racing to open two different
+  // things off one keypress.
 
   return (
     <div className="flex min-w-0 flex-1 justify-center">

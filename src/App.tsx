@@ -67,6 +67,9 @@ const SignInPage = lazy(() =>
   import("@/components/SignInPage").then((m) => ({ default: m.SignInPage })),
 );
 const LessonsPage = lazy(() => import("@/components/LessonsPage").then((m) => ({ default: m.LessonsPage })));
+const WorkspaceRoute = lazy(() =>
+  import("@/components/WorkspaceRoute").then((m) => ({ default: m.WorkspaceRoute })),
+);
 
 
 const VIEW_LABEL = {
@@ -228,7 +231,10 @@ export default function App() {
   // `about` is the old address for what is now the contact page. About itself is
   // a card opened over whatever you were looking at, so it has no route at all.
   if (route === "contact" || route === "about") return withBoundary(<ContactPage />);
-  // Unlinked from the nav on purpose; reached from the name on the About card.
+  // Unlinked from the nav on purpose; reached from the name on the About card,
+  // which now points at the workspace and gets the sign-in card only if there
+  // is nobody signed in.
+  if (route === "workspace") return withBoundary(<WorkspaceRoute />);
   if (route === "signin") return withBoundary(<SignInPage mode="signin" />);
   if (route === "signup") return withBoundary(<SignInPage mode="signup" />);
   if (route === "staff") return withBoundary(<SignInPage mode="staff" />);

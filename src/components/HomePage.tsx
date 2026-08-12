@@ -187,7 +187,7 @@ function Body({
           // site has, and the deck library is one of the three things in it.
           searchLabel="Search features"
           browse={{ open: dash.isOpen, onToggle: () => dash.toggle("home") }}
-          onSearch={() => dash.open("home")}
+          onSearch={() => window.dispatchEvent(new CustomEvent("blueberry:open-search"))}
         />
       </WindowChrome>
 
@@ -399,15 +399,23 @@ const Board = ({
         </span>
       </BentoTile>
 
-      <BentoTile disabled berry="berry-full.webp">
-        <Gamepad2 className="size-5 text-slate-400" />
-        <span className="mt-4 text-xl font-semibold text-slate-500 dark:text-stone-400">Break</span>
+      <BentoTile
+        berry="berry-full.webp"
+        // Same card as Focus. The break lives inside the timer rather than on a
+        // page of its own, because a break you have to navigate to is one you
+        // take instead of coming back from.
+        onClick={() => window.dispatchEvent(new CustomEvent("blueberry:open-focus"))}
+      >
+        <Gamepad2 className="size-5 text-indigo-600 dark:text-indigo-300" />
+        <span className="mt-4 flex items-center gap-1.5 text-xl font-semibold">
+          Break <ArrowRight className="size-4 text-slate-400" />
+        </span>
         <span className="mt-2 text-sm text-slate-500 dark:text-stone-400">
-          A game, and something to listen to. Unlocked on your breaks — after you have actually
+          Tetris and a sound bed. The game unlocks on your breaks, once you have actually
           looked out of the window.
         </span>
         <span className="mt-auto pt-4 font-mono text-xs text-slate-400 dark:text-stone-500">
-          Being built
+          In the same card
         </span>
       </BentoTile>
     </div>

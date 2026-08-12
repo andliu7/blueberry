@@ -88,7 +88,7 @@ export function FolderPage({ groupId }: { groupId: DeckGroupId }) {
         category={pastHeading ? group.title : null}
         browse={{ open: dash.isOpen, onToggle: toggleBrowse }}
         onCategoryClick={() => dash.open("decks")}
-        onSearch={() => dash.open("decks", { focusSearch: true })}
+        onSearch={() => window.dispatchEvent(new CustomEvent("blueberry:open-search"))}
       />
       <div className="relative z-10 mx-auto flex max-w-5xl flex-col px-6">
         <header ref={headingRef} className="mt-12 mb-10 max-w-2xl">
@@ -175,10 +175,22 @@ export function FolderPage({ groupId }: { groupId: DeckGroupId }) {
           <a
             href="#/home"
             aria-label="Home"
-            className="shrink-0 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+            className="sr-only"
           >
-            <Blueberry mood="happy" className="h-40 w-40" />
+            Home
           </a>
+          {/* See the note in StudyDecksPage: the anchor is now a screen-reader
+              link beside him rather than a wrapper around him, which was
+              swallowing every drag. */}
+          <Blueberry
+            mood="happy"
+            interactive
+            onActivate={() => {
+              window.location.hash = "#/home";
+            }}
+            className="h-40 w-40 shrink-0"
+            label="Blueberry. Press to go home, drag to spin."
+          />
           <p className="max-w-[15rem] rounded-2xl rounded-bl-sm border border-slate-200 bg-white px-4 py-3 text-sm leading-relaxed text-slate-600 shadow-sm sm:rounded-tl-sm sm:rounded-bl-2xl dark:border-stone-700 dark:bg-stone-900 dark:text-stone-300">
             Hello! How are you enjoying Blueberry today? Give us some feedback at the bottom
             right!

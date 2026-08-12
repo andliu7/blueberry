@@ -5,9 +5,8 @@ import { GithubMark, LinkedinMark } from "@/components/ui/brand-marks";
 import { SiteHeader } from "@/components/ui/site-header";
 import { FeedbackButton } from "@/components/FeedbackButton";
 import { SiteFooter } from "@/components/ui/site-footer";
+import { PageBackground } from "@/components/ui/page-background";
 import { EMAIL, GITHUB_URL, LINKEDIN_URL, REPO_URL } from "@/data/site";
-import { SURFACE } from "@/lib/hubSurface";
-import { useIsDark } from "@/lib/useIsDark";
 
 /**
  * Contact, at `#/contact`.
@@ -20,14 +19,13 @@ import { useIsDark } from "@/lib/useIsDark";
  * and it is the closest thing to what an old link was asking for.
  */
 export function ContactPage() {
-  const isDark = useIsDark();
-  const surface = isDark ? SURFACE.dark : SURFACE.light;
-
   return (
-    <main
-      className="relative min-h-screen pb-8"
-      style={{ backgroundColor: surface.base, backgroundImage: surface.gradient }}
-    >
+    <main className="relative min-h-screen pb-8">
+      {/* The photograph replaces the flat surface colour rather than sitting
+          on top of it: `PageBackground` paints `surface.base` underneath the
+          image itself, so keeping the old inline background here would have
+          hidden it entirely. */}
+      <PageBackground />
       {/* No spotlight here, deliberately. The hub and the folder pages are
           things you scan, where a light tracking the cursor gives the eye
           something to follow. This one is a form you sit and fill in, and the

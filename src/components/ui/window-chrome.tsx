@@ -209,7 +209,7 @@ export function WindowChrome({
                     aria-expanded={isOpen}
                     title={
                       live
-                        ? `${count} ${light.label.toLowerCase()} — click to see which decks`
+                        ? `${count} ${light.label.toLowerCase()}. Click to see which decks`
                         : `No ${light.label.toLowerCase()} cards yet`
                     }
                     aria-label={

@@ -7,6 +7,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useDecks } from "@/lib/useDecks";
 import { deckHref } from "@/data/types";
 import { cn } from "@/lib/utils";
+import { DockSlot, DOCK } from "@/components/ui/corner-dock";
 
 type TimerKind = "focus" | "break";
 type TaskKind = "text" | "deck" | "mindmap";
@@ -212,7 +213,7 @@ export function StudyTimer() {
         </motion.div>}
       </AnimatePresence>
       <AnimatePresence>
-        {shouldShowBanner && <motion.aside role="status" aria-live="polite" className="fixed bottom-5 right-5 z-[130] flex w-[min(92vw,360px)] items-center gap-3 rounded-2xl border border-indigo-200/25 bg-[#171327]/95 p-3.5 text-white shadow-2xl backdrop-blur" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 18 }}><div className="grid size-9 shrink-0 place-items-center rounded-xl bg-indigo-400 text-slate-950"><Clock3 className="size-4" /></div><button type="button" onClick={() => setDialogOpen(true)} className="min-w-0 flex-1 text-left"><p className="truncate text-xs font-semibold">{title}</p><p className="mt-0.5 font-mono text-lg font-bold tabular-nums">{formatTime(remaining)}</p></button><button type="button" onClick={() => setBannerDismissed(true)} aria-label="Dismiss timer banner" className="grid size-8 place-items-center rounded-lg text-stone-300 hover:bg-white/10 hover:text-white"><X className="size-4" /></button></motion.aside>}
+        {shouldShowBanner && <DockSlot order={DOCK.banner}><motion.aside role="status" aria-live="polite" className="flex w-[min(92vw,360px)] items-center gap-3 rounded-2xl border border-indigo-200/25 bg-[#171327]/95 p-3.5 text-white shadow-2xl backdrop-blur" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 18 }}><div className="grid size-9 shrink-0 place-items-center rounded-xl bg-indigo-400 text-slate-950"><Clock3 className="size-4" /></div><button type="button" onClick={() => setDialogOpen(true)} className="min-w-0 flex-1 text-left"><p className="truncate text-xs font-semibold">{title}</p><p className="mt-0.5 font-mono text-lg font-bold tabular-nums">{formatTime(remaining)}</p></button><button type="button" onClick={() => setBannerDismissed(true)} aria-label="Dismiss timer banner" className="grid size-8 place-items-center rounded-lg text-stone-300 hover:bg-white/10 hover:text-white"><X className="size-4" /></button></motion.aside></DockSlot>}
       </AnimatePresence>
     </>, document.body)}
   </>;
