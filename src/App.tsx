@@ -17,7 +17,6 @@ import {
 } from "@/data/types";
 import { HoverDeck } from "@/components/ui/hover-deck";
 import { NotFoundPage } from "@/components/ui/404-page-not-found";
-import { testimonials, testimonialArt } from "@/data/testimonials";
 import { GradientMenuButton, type GradientMenuItem } from "@/components/ui/gradient-menu";
 import { AnimatedActionCluster } from "@/components/ui/floating-action-button";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
@@ -31,14 +30,11 @@ import { StudyDecksPage } from "@/components/StudyDecksPage";
 import { useHashRoute } from "@/lib/useHashRoute";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
 import { SnapCarousel } from "@/components/ui/snap-carousel";
-import { TiltCard } from "@/components/ui/be-ui-tilt-card";
-import { useIsDark } from "@/lib/useIsDark";
 import { QuestionCard, type Status } from "@/components/QuestionCard";
 import { CardGallery3D, GALLERY_MAX, type GalleryItem } from "@/components/ui/card-gallery-3d";
 import { ToastQueue, useToastQueue } from "@/components/ui/toast-queue";
 import { PixelFireButton } from "@/components/ui/pixel-fire-button";
 import { ButtonHoldAndRelease } from "@/components/ui/hold-and-release-button";
-import SocialCards from "@/components/ui/card-fan-carousel";
 import { StickyNote } from "@/components/StickyNote";
 import { Confetti } from "@/components/Confetti";
 import { FeedbackButton } from "@/components/FeedbackButton";
@@ -183,24 +179,6 @@ const CARD_STYLE_LABEL: Record<CardStyle, string> = {
   flip: "Flip",
 };
 
-
-/**
- * The quote card tilts in both themes. Only the glare changes: white reads as a
- * sheen on a dark card but washes out a pale one, so light mode gets an indigo
- * tint instead.
- */
-function QuoteSurface({ children }: { children: React.ReactNode }) {
-  const isDark = useIsDark();
-  return (
-    <TiltCard
-      max={6}
-      glareColor={isDark ? "rgba(255,255,255,0.9)" : "rgba(99,102,241,0.7)"}
-      className="rounded-2xl"
-    >
-      {children}
-    </TiltCard>
-  );
-}
 
 /** Wraps a split route so its chunk can arrive without a blank frame. */
 function withBoundary(node: React.ReactNode) {
@@ -406,7 +384,6 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
       cardsTopRef.current?.scrollIntoView({ behavior: "auto", block: "start" }),
     );
   };
-  const [tIndex, setTIndex] = useState(0);
   // Question number -> expanded. Absent means collapsed.
   const [openMap, setOpenMap] = useState<Record<number, boolean>>({});
   // Question number -> chosen multiple choice option. Lifted out of the card for
@@ -813,19 +790,6 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
     />
   );
 
-  const active = testimonials[tIndex];
-  // Stable identity: a fresh array here would restart the fan's entry animation
-  // on every render of this component.
-  const testimonialCards = useMemo(
-    () =>
-      testimonials.map((t) => ({
-        imgUrl: testimonialArt(t),
-        alt: `${t.name} — ${t.role}`,
-        title: t.name,
-        subtitle: t.role,
-      })),
-    [],
-  );
   const carouselTotal = visibleIdx.length;
   const safeCarouselIndex = carouselTotal ? ((carouselIndex % carouselTotal) + carouselTotal) % carouselTotal : 0;
 
@@ -1359,58 +1323,6 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
           </div>
         )}
 
-        <div className="mt-12">
-          <h2 className="playful-face text-center text-2xl font-bold text-slate-800 dark:text-stone-200 mb-4">
-            What Orgo Students Are Saying
-          </h2>
-          <SocialCards
-            cards={testimonialCards}
-            activeIndex={tIndex}
-            onActiveIndexChange={setTIndex}
-            spread={0.65}
-            autoPlayInterval={4500}
-          />
-
-          {active && (
-            <div className="relative max-w-xl mx-auto mt-8">
-            <QuoteSurface>
-            <figure className="bg-white dark:bg-stone-900 border border-slate-200 dark:border-stone-800 rounded-2xl shadow-sm px-6 py-5 relative">
-              <blockquote className="text-slate-700 dark:text-stone-300 text-base leading-relaxed text-center">
-                {active.quote}
-              </blockquote>
-              <figcaption className="flex items-center justify-center gap-3 mt-4 pt-4 border-t border-slate-100 dark:border-stone-800">
-                <span
-                  className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
-                  style={{ background: `linear-gradient(135deg, ${active.from}, ${active.to})` }}
-                >
-                  {active.initials}
-                </span>
-                <span className="text-left">
-                  <span className="block font-bold text-slate-900 dark:text-stone-100 text-sm leading-tight">{active.name}</span>
-                  <span className="block text-xs text-slate-400 dark:text-stone-500 font-mono leading-tight">{active.role}</span>
-                </span>
-              </figcaption>
-            </figure>
-            </QuoteSurface>
-            {/* Sibling of the tilt wrapper, not a child: that wrapper clips with
-                overflow-hidden, so anything hanging over the top edge would be
-                cut off.
-
-                The offset is deliberately not -50%. A quote mark's ink sits high
-                in its line box (measured: rows 7 to 26 of a 72px box), so
-                centring the box left the whole glyph floating a good 19px clear
-                of the card. 0.23em is where the ink itself straddles the border,
-                which is what makes it read as popping out of the edge. */}
-            <span
-              aria-hidden
-              className="pointer-events-none absolute left-7 top-0 z-20 -translate-y-[0.23em] text-7xl leading-none font-serif text-indigo-300 dark:text-indigo-400/60 select-none"
-            >
-              &ldquo;
-            </span>
-            </div>
-          )}
-          <p className="text-center text-xs text-slate-400 dark:text-stone-500 mt-3">(these are fake testimonials)</p>
-        </div>
 
 
         {/* The ticket lives on the hub and the folder pages only; see the note

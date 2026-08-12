@@ -18,6 +18,7 @@ import { Blueberry } from "@/components/ui/blueberry";
 import { BentoTile } from "@/components/ui/bento-tile";
 import { WindowChrome } from "@/components/ui/window-chrome";
 import { SiteFooter } from "@/components/ui/site-footer";
+import { Testimonials } from "@/components/ui/testimonials";
 import { usePageCurtain } from "@/components/ui/page-flip";
 import { moodForProgress } from "@/lib/berryMood";
 import { SURFACE } from "@/lib/hubSurface";
@@ -286,6 +287,11 @@ function Body({
 
       {/* Screen three: the board. */}
       <Board ref={boardRef} deckCountLabel={`${decks.length} decks · ${cards} cards`} />
+
+      {/* Above the footer, and off the deck pages. A carousel of people
+          praising the site belongs where someone is deciding whether to use
+          it, not under the cards while they are mid-revision. */}
+      <Testimonials className="pb-20" />
 
       <SiteFooter />
 
