@@ -287,7 +287,7 @@ function Body({
               boardRef.current?.scrollIntoView({ behavior: "auto", block: "start" }),
             )
           }
-          className="group absolute inset-x-0 bottom-10 mx-auto flex min-h-11 w-fit cursor-pointer flex-col items-center gap-1 px-4 text-slate-500 transition-colors hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:outline-none dark:text-stone-400 dark:hover:text-white"
+          className="group absolute inset-x-0 bottom-10 mx-auto flex min-h-11 w-fit cursor-pointer flex-col items-center gap-1 px-4 text-slate-700 transition-colors hover:text-slate-950 focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:outline-none dark:text-stone-300 dark:hover:text-white"
         >
           <span className="font-mono text-[0.7rem] tracking-[0.2em] uppercase">Everything else</span>
           <motion.span

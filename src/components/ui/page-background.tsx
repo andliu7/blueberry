@@ -121,14 +121,22 @@ export function PageBackground({ className }: { className?: string }) {
         <div
           className={cn(
             "absolute inset-0",
+            // Light mode needs the opposite correction to dark mode, which is
+            // why these are not the same numbers with one value flipped. On
+            // near-black, a photograph is the brightest thing on screen and has
+            // to be held back. On near-white it is competing with a page that
+            // is already brighter than it, so lifting opacity is not enough —
+            // it has to be *darkened* and pushed on contrast, or it dissolves
+            // into the paper. Measured: at brightness 1.02 the image was
+            // effectively invisible in light mode.
             isDark
-              ? "opacity-[0.55] saturate-[1.15] brightness-[0.78] contrast-[1.12]"
-              : "opacity-[0.55] saturate-[1.1] brightness-[1.02] contrast-[1.06]",
+              ? "opacity-[0.7] saturate-[1.3] brightness-[0.95] contrast-[1.25]"
+              : "opacity-[0.78] saturate-[1.25] brightness-[0.88] contrast-[1.22]",
           )}
         >
           {!ready && (
             <div
-              className="absolute inset-0 bg-cover bg-center blur-[1px]"
+              className="absolute inset-0 bg-cover bg-center blur-[2px]"
               style={{ backgroundImage: `url(${scene.blur})` }}
             />
           )}
@@ -139,7 +147,7 @@ export function PageBackground({ className }: { className?: string }) {
             decoding="async"
             onLoad={() => setReady(true)}
             className={cn(
-              "absolute inset-0 h-full w-full object-cover blur-[1px] transition-opacity duration-700",
+              "absolute inset-0 h-full w-full object-cover blur-[2px] transition-opacity duration-700",
               ready ? "opacity-100" : "opacity-0",
             )}
           />
@@ -186,8 +194,8 @@ export function PageBackground({ className }: { className?: string }) {
       <div
         className="absolute inset-0"
         style={{
-          backgroundImage: `linear-gradient(to bottom, ${surface.base} 0%, transparent 22%, transparent 72%, ${surface.base} 100%)`,
-          opacity: 0.9,
+          backgroundImage: `linear-gradient(to bottom, ${surface.base} 0%, transparent 18%, transparent 76%, ${surface.base} 100%)`,
+          opacity: isDark ? 0.9 : 0.72,
         }}
       />
 
@@ -199,7 +207,7 @@ export function PageBackground({ className }: { className?: string }) {
         style={{
           background: isDark
             ? "radial-gradient(78% 62% at 50% 45%, transparent 30%, rgba(8,6,16,0.55) 100%)"
-            : "radial-gradient(78% 62% at 50% 45%, transparent 30%, rgba(250,249,255,0.6) 100%)",
+            : "radial-gradient(82% 66% at 50% 45%, transparent 40%, rgba(250,249,255,0.42) 100%)",
         }}
       />
     </div>

@@ -854,3 +854,69 @@ button:disabled,
     transform: translateX(3em);
   }
 }
+
+/* ── the light that runs around a hovered tile ─────────────────────────────
+
+   A conic gradient spun behind the card and masked to a one-pixel ring, so the
+   bright arc travels the border rather than sweeping across the face. The mask
+   is the trick: `padding-box` minus `content-box` composited with `xor` leaves
+   exactly the frame, which is why this needs no second element and no SVG.
+
+   `@property` is what makes it animate at all. A conic gradient's angle is not
+   an interpolatable value to CSS unless the custom property it comes from is
+   declared with a type, so without this the arc would jump from 0 to 360 with
+   nothing in between. */
+@property --tile-spin {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+.tile-sheen::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: conic-gradient(
+    from var(--tile-spin),
+    transparent 0deg,
+    transparent 250deg,
+    rgba(99, 102, 241, 0.9) 300deg,
+    rgba(217, 70, 239, 0.95) 330deg,
+    transparent 360deg
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 260ms ease;
+  pointer-events: none;
+}
+
+.tile-sheen:hover::before,
+.tile-sheen:focus-visible::before {
+  opacity: 1;
+  animation: tile-spin 2.4s linear infinite;
+}
+
+@keyframes tile-spin {
+  to {
+    --tile-spin: 360deg;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tile-sheen:hover::before,
+  .tile-sheen:focus-visible::before {
+    animation: none;
+    /* Still lit, just not travelling: the ring is the hover feedback and
+       removing it entirely would leave nothing in its place. */
+    opacity: 0.7;
+  }
+}

@@ -45,10 +45,14 @@ export function BentoTile({
       const rect = el.getBoundingClientRect();
       const px = (e.clientX - rect.left) / rect.width - 0.5;
       const py = (e.clientY - rect.top) / rect.height - 0.5;
-      el.style.transform = `perspective(900px) rotateX(${-py * MAX_ROTATION}deg) rotateY(${px * MAX_ROTATION}deg) scale3d(1.02,1.02,1.02)`;
+      // Lifts as well as tilts. The scale is what makes a hovered tile read as
+      // coming forward rather than merely leaning, and the translate keeps its
+      // centre where it was so the row does not appear to shuffle.
+      el.style.transform = `perspective(900px) translateY(-6px) rotateX(${-py * MAX_ROTATION}deg) rotateY(${px * MAX_ROTATION}deg) scale3d(1.045,1.045,1.045)`;
     };
     const onLeave = () => {
-      el.style.transform = "perspective(900px) rotateX(0deg) rotateY(0deg) scale3d(1,1,1)";
+      el.style.transform =
+        "perspective(900px) translateY(0px) rotateX(0deg) rotateY(0deg) scale3d(1,1,1)";
     };
 
     el.addEventListener("pointermove", onMove);
@@ -60,7 +64,7 @@ export function BentoTile({
   }, [reduce, disabled]);
 
   const shared = cn(
-    "group relative flex flex-col overflow-hidden rounded-2xl border p-5 text-left transition-[border-color,background-color] duration-200 [transform:perspective(900px)] will-change-transform",
+    "tile-sheen group relative isolate flex flex-col rounded-2xl border p-5 text-left transition-[border-color,background-color,box-shadow,transform] duration-200 [transform:perspective(900px)] will-change-transform hover:z-10 hover:shadow-xl",
     disabled
       ? "cursor-not-allowed border-dashed border-slate-300 bg-white/40 dark:border-stone-700 dark:bg-stone-950/40"
       : "cursor-pointer border-slate-200 bg-white/70 hover:border-indigo-300 focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:outline-none dark:border-stone-800 dark:bg-stone-950/60 dark:hover:border-indigo-400/50",
