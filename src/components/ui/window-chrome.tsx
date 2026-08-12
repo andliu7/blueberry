@@ -138,7 +138,6 @@ export function WindowChrome({
   }, [open, perDeck]);
 
   const active = LIGHTS.find((l) => l.key === open);
-  const stuck = morph > 0.98;
 
   return (
     /**
@@ -160,24 +159,25 @@ export function WindowChrome({
         <div
           className="mx-auto transition-none"
           style={{
-            // Inset at rest, full bleed once stuck. Interpolated rather than
-            // switched, so the widening is the animation.
-            maxWidth: `calc(64rem + (100vw - 64rem) * ${morph})`,
-            paddingLeft: `${1.5 * (1 - morph)}rem`,
-            paddingRight: `${1.5 * (1 - morph)}rem`,
+            // Widens toward the edges but never reaches them. It stays a bar
+            // floating on the page rather than becoming a slab welded to the
+            // top of it — which is the difference between one line and a block.
+            maxWidth: `calc(64rem + (100vw - 64rem - 3rem) * ${morph})`,
+            paddingLeft: `${1.5 - 0.75 * morph}rem`,
+            paddingRight: `${1.5 - 0.75 * morph}rem`,
+            paddingTop: `${0.5 * morph}rem`,
           }}
         >
           <div
             className={cn(
-              "flex h-12 items-center gap-3 border-x border-t px-4 backdrop-blur",
-              "border-slate-200 bg-white/75 dark:border-stone-800 dark:bg-stone-950/70",
-              stuck && "border-b",
+              // Bordered on all four sides and rounded on all four corners,
+              // whatever the morph is doing. It was a tab — open at the bottom,
+              // square once expanded — which made the widened state read as the
+              // page growing a header slab. Keeping it closed and rounded keeps
+              // it a single line that happens to get longer.
+              "flex h-12 items-center gap-3 rounded-2xl border px-4 backdrop-blur",
+              "border-slate-200 bg-white/75 shadow-sm dark:border-stone-800 dark:bg-stone-950/70",
             )}
-            style={{
-              // Rounded as a tab, square as a bar.
-              borderTopLeftRadius: `${16 * (1 - morph)}px`,
-              borderTopRightRadius: `${16 * (1 - morph)}px`,
-            }}
           >
             <div className="flex shrink-0 items-center gap-2" role="group" aria-label="Your card ratings">
               {LIGHTS.map((light) => {
@@ -253,7 +253,7 @@ export function WindowChrome({
                 animate={{ height: "auto", opacity: 1 }}
                 exit={reduce ? undefined : { height: 0, opacity: 0 }}
                 transition={{ duration: 0.24, ease: "easeOut" }}
-                className="overflow-hidden border-x border-b border-slate-200 bg-white/75 backdrop-blur dark:border-stone-800 dark:bg-stone-950/70"
+                className="mt-1.5 overflow-hidden rounded-2xl border border-slate-200 bg-white/75 backdrop-blur dark:border-stone-800 dark:bg-stone-950/70"
               >
                 <ul className="divide-y divide-slate-100 dark:divide-stone-900">
                   {rows.map(({ deck, tally }) => {

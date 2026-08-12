@@ -69,6 +69,8 @@ export function PageBackground({ className }: { className?: string }) {
   const isDark = useIsDark();
   const surface = isDark ? SURFACE.dark : SURFACE.light;
   const [entries, setEntries] = useState<BackgroundEntry[]>([]);
+  /** The real file has decoded; the placeholder can go. */
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -101,29 +103,47 @@ export function PageBackground({ className }: { className?: string }) {
       <div className="absolute inset-0" style={{ backgroundColor: surface.base }} />
 
       {scene && (
-        <>
-          {/* The blurred thumbnail, painted immediately. The full image fades
-              over it, so there is never a frame of flat colour. */}
-          <div
-            className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: `url(${scene.blur})` }}
-          />
+        /**
+         * The treatment lives on the wrapper, not on the photograph.
+         *
+         * It was on the `img`, which meant the 55% transparent full-size image
+         * was composited over a fully opaque 20px thumbnail — so most of what
+         * you saw was the thumbnail, and the background looked like a smear
+         * whatever the real picture was. The placeholder is now underneath a
+         * shared filter and is removed the moment the real file decodes, so
+         * exactly one image is ever visible.
+         *
+         * Saturation sits above 1 because this is seen through a scrim, and a
+         * scrim eats colour: the image has to start louder than it ends. One
+         * pixel of blur keeps fine detail from competing with type without
+         * erasing the features in the frame.
+         */
+        <div
+          className={cn(
+            "absolute inset-0",
+            isDark
+              ? "opacity-[0.55] saturate-[1.15] brightness-[0.78] contrast-[1.12]"
+              : "opacity-[0.55] saturate-[1.1] brightness-[1.02] contrast-[1.06]",
+          )}
+        >
+          {!ready && (
+            <div
+              className="absolute inset-0 bg-cover bg-center blur-[1px]"
+              style={{ backgroundImage: `url(${scene.blur})` }}
+            />
+          )}
           <img
             src={base + scene.file}
             alt=""
             loading="eager"
             decoding="async"
+            onLoad={() => setReady(true)}
             className={cn(
-              "absolute inset-0 h-full w-full object-cover transition-opacity duration-700",
-              // The treatment. Heavier in dark mode, where the page is nearly
-              // black and any photograph is by definition the brightest thing
-              // on it.
-              isDark
-                ? "opacity-[0.22] saturate-[0.55] brightness-[0.55] blur-[2px]"
-                : "opacity-[0.30] saturate-[0.7] brightness-[1.05] blur-[2px]",
+              "absolute inset-0 h-full w-full object-cover blur-[1px] transition-opacity duration-700",
+              ready ? "opacity-100" : "opacity-0",
             )}
           />
-        </>
+        </div>
       )}
 
       {/* The berry, blended rather than pasted. `screen` keeps the lit fruit and
@@ -156,10 +176,32 @@ export function PageBackground({ className }: { className?: string }) {
         }}
       />
 
-      {/* The page's gradient last, holding the middle of the screen for the
-          type. Same values `SURFACE` gives every other page, so the photograph
-          is added underneath the site rather than replacing its surface. */}
-      <div className="absolute inset-0" style={{ backgroundImage: surface.gradient, opacity: 0.72 }} />
+      {/* Legibility, spent where it is needed rather than everywhere.
+ 
+          A flat sheet of surface colour over the whole image was what made the
+          photograph disappear: it protected the type by hiding the picture.
+          These two bands darken only the top and the bottom — where the bar and
+          the button sit — and leave the middle of the frame, which is the part
+          worth looking at, almost untouched. */}
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage: `linear-gradient(to bottom, ${surface.base} 0%, transparent 22%, transparent 72%, ${surface.base} 100%)`,
+          opacity: 0.9,
+        }}
+      />
+
+      {/* A soft vignette, which does the rest of the work a flat scrim was
+          doing: it pulls the eye to the middle and takes the edge off the
+          corners without flattening anything. */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background: isDark
+            ? "radial-gradient(78% 62% at 50% 45%, transparent 30%, rgba(8,6,16,0.55) 100%)"
+            : "radial-gradient(78% 62% at 50% 45%, transparent 30%, rgba(250,249,255,0.6) 100%)",
+        }}
+      />
     </div>
   );
 }

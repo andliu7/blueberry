@@ -287,9 +287,9 @@ function Body({
               boardRef.current?.scrollIntoView({ behavior: "auto", block: "start" }),
             )
           }
-          className="group absolute inset-x-0 bottom-10 mx-auto flex min-h-11 w-fit cursor-pointer flex-col items-center gap-0.5 rounded-full border border-slate-200/70 bg-white/60 px-5 py-2 text-slate-600 backdrop-blur transition-colors hover:border-indigo-300 hover:bg-white hover:text-indigo-700 focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:outline-none dark:border-stone-700/70 dark:bg-stone-950/50 dark:text-stone-300 dark:hover:border-indigo-400/50 dark:hover:bg-stone-900 dark:hover:text-indigo-200"
+          className="group absolute inset-x-0 bottom-10 mx-auto flex min-h-11 w-fit cursor-pointer flex-col items-center gap-1 px-4 text-slate-500 transition-colors hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:outline-none dark:text-stone-400 dark:hover:text-white"
         >
-          <span className="text-sm font-semibold">Everything else</span>
+          <span className="font-mono text-[0.7rem] tracking-[0.2em] uppercase">Everything else</span>
           <motion.span
             animate={reduce ? undefined : { y: [0, 4, 0] }}
             transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
