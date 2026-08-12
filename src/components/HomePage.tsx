@@ -115,13 +115,14 @@ export function HomePage() {
       {/* Screen one, and it stays. */}
       {loaded && (
         <section aria-label="Opening">
+          {/* `onComplete` reveals the bar and nothing else. The opening does
+              not move the page any more: scrolling through it opens the panel
+              behind the mark, and scrolling past it is how you leave. Skip is
+              the only thing that jumps. */}
           <HomeIntro
             onSkip={() => goToHero(false)}
-            onComplete={() => goToHero(true)}
+            onComplete={() => setPast(true)}
             settled={seenIntro}
-            // Long enough to see the berry finish blushing and the panel open
-            // behind it, short enough that nobody reaches for the skip.
-            autoAdvanceMs={1400}
           />
         </section>
       )}

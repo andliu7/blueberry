@@ -58,6 +58,15 @@ interface Rgb {
 export interface ParticleWord {
   /** Also the accessible label, including for a shape. */
   text: string;
+  /**
+   * How long this beat holds, overriding the sequence's `wordMs`.
+   *
+   * For the beat that is worth looking at longer than the ones around it. The
+   * name resolving out of the swarm is the whole reason the opening exists, and
+   * it was getting exactly as long as the two expression changes that follow
+   * it, which are variations on a silhouette you have already read.
+   */
+  holdMs?: number;
   /** Gradient endpoints, read left to right across the word. */
   from: string;
   to: string;
@@ -491,8 +500,37 @@ export function ParticleTextEffect({
     let wordIndex = -1;
     let announcedFinish = false;
 
-    const wordSteps = Math.max(1, Math.round(wordMs / SIM_STEP_MS));
     const settleSteps = Math.max(1, Math.round(settleMs / SIM_STEP_MS));
+
+    /**
+     * Where each beat starts, in simulation steps.
+     *
+     * Beats used to share one duration, so `wordMs` divided into `step` gave
+     * the current index directly. They do not have to any more: a word can ask
+     * for longer with `holdMs`, which is how the name gets to stand still for a
+     * moment while the expressions after it stay quick. Cumulative boundaries
+     * rather than division, and a lookup that walks them.
+     */
+    const starts: number[] = [];
+    {
+      let at = 0;
+      for (const w of words) {
+        starts.push(at);
+        at += Math.max(1, Math.round((w.holdMs ?? wordMs) / SIM_STEP_MS));
+      }
+    }
+
+    /** The index whose window contains `s`, or `words.length` once past the end. */
+    const indexAt = (s: number) => {
+      let i = starts.length - 1;
+      while (i > 0 && s < starts[i]!) i--;
+      const lastHold = Math.max(
+        1,
+        Math.round((words[words.length - 1]!.holdMs ?? wordMs) / SIM_STEP_MS),
+      );
+      if (s >= starts[starts.length - 1]! + lastHold) return words.length;
+      return i;
+    };
 
     /**
      * Rasterises a word off screen and hands every particle a pixel of it.
@@ -672,7 +710,7 @@ export function ParticleTextEffect({
       while (carry >= SIM_STEP_MS) {
         carry -= SIM_STEP_MS;
 
-        const due = Math.floor(step / wordSteps);
+        const due = indexAt(step);
         if (due !== wordIndex) {
           if (due < words.length) {
             wordIndex = due;
@@ -684,7 +722,7 @@ export function ParticleTextEffect({
           }
         }
 
-        const lastStart = (words.length - 1) * wordSteps;
+        const lastStart = starts[starts.length - 1] ?? 0;
         if (!loop && !announcedFinish && step >= lastStart + settleSteps) {
           announcedFinish = true;
           onFinishedRef.current?.();

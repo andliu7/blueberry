@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { motion, useReducedMotion } from "motion/react";
+import { motion } from "motion/react";
 import { X } from "lucide-react";
 import { ShaderAnimation } from "@/components/ui/shader-animation";
 import { AuroraBackground } from "@/components/ui/aurora-background";
@@ -35,12 +35,14 @@ import {
  * the whole opening instead of letting the phase timers race ahead of an
  * animation that Chrome has stopped giving frames to.
  *
- * **This is not driven by scroll, and used not to be honest about that.** The
- * opening was built on `ContainerScroll` and read `scrollYProgress` for its
- * fades and for the panel that opens behind the mark. Once it moved inside a
- * fixed overlay the document stopped scrolling, so that value was pinned at 0:
- * the panel never opened and the cue said "scroll" about a gesture that did
- * nothing. Everything now runs off the same `ready` flag the canvas raises.
+ * **The panel behind the mark is yours to open.** Scroll and it expands,
+ * scroll back and it closes, stop and it waits. That was the original design,
+ * it broke when the opening briefly lived inside a `fixed` overlay where
+ * `scrollYProgress` was pinned at 0, and it was then replaced by a loop on a
+ * timer that also threw the visitor at the next screen — which fixed the
+ * symptom by deleting the interaction. The opening is an in-flow section of a
+ * scrolling page again, so scroll position is a real number and the beat is
+ * back in the visitor's hands. Nothing here moves the page on its own.
  *
  * Home is where someone goes to find a deck quickly, so this cannot become a
  * toll gate. The way out is on screen from the first frame, before any of the
@@ -68,7 +70,7 @@ const INTRO_WORDMARK = `${SITE_NAME.toLowerCase()}.`;
  * opening arrives in the same palette rather than the demo's random RGB.
  */
 const INTRO_WORDS: ParticleWord[] = [
-  { text: INTRO_WORDMARK, from: "#818cf8", to: "#f0abfc" },
+  { text: INTRO_WORDMARK, from: "#818cf8", to: "#f0abfc", holdMs: 2400 },
   // The name scatters one last time and comes back as the mark itself. The
   // swarm carries the logo's own shading rather than the gradient the words
   // wear, so the berry arrives lit rather than flat.
@@ -94,7 +96,7 @@ const INTRO_WORDS: ParticleWord[] = [
  * would restart the sequence on every frame.
  */
 const INTRO_WORDS_LIGHT: ParticleWord[] = [
-  { text: INTRO_WORDMARK, from: "#a5b4fc", to: "#f5d0fe" },
+  { text: INTRO_WORDMARK, from: "#a5b4fc", to: "#f5d0fe", holdMs: 2400 },
   // Saturation up, brightness barely down. Darkening alone walked every channel
   // toward black, which is what had taken the life out of it: the berry needs to
   // be more itself against the cream, not dimmer.
@@ -137,14 +139,104 @@ function IntroStage({
   onSkip: () => void;
   settled: boolean;
 }) {
-  const reduce = useReducedMotion();
   const isDark = useIsDark();
   const surface = isDark ? SURFACE.dark : SURFACE.light;
 
+  /**
+   * How far through the opening's own scroll column you are, 0 to 1.
+   *
+   * The column is `h-[210vh]` and the stage inside it is `sticky`, so the stage
+   * holds still on screen while the page scrolls past it — which is what turns
+   * a scroll into a scrubber rather than into leaving.
+   */
+  const columnRef = useRef<HTMLDivElement>(null);
+
+  /**
+   * Progress, measured by hand rather than by `useScroll`.
+   *
+   * `useScroll({ target })` measures the element once and caches its offsets.
+   * This column is mounted about six hundred milliseconds after the page —
+   * the loader holds the door while fonts settle — so by the time the opening
+   * exists, the measurement it took has already been invalidated by everything
+   * that laid out around it. Observed: the value sat at 0 through the entire
+   * column and the panel never moved, which is the same symptom as the fixed
+   * overlay it was blamed on the first time.
+   *
+   * Reading `getBoundingClientRect` on each scroll is a cheap, boring answer
+   * that cannot go stale: `top` is where the column starts relative to the
+   * viewport, so `-top / (height - viewport)` is exactly how far through it we
+   * are. Passive listener, and a `rAF` gate so a fast wheel does not queue a
+   * layout read per event.
+   */
+  const panelRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    /**
+     * Asked of the browser directly rather than through `useReducedMotion`.
+     *
+     * Measured, on a machine whose `matchMedia('(prefers-reduced-motion:
+     * reduce)').matches` is plainly `false`: the hook returned truthy, this
+     * effect took its early return, no scroll listener was ever attached, and
+     * the panel sat wide open through the whole column. The media query is the
+     * actual question being asked, so it is the thing to ask.
+     */
+    const wantsLessMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (wantsLessMotion) {
+      if (panelRef.current) panelRef.current.style.clipPath = "inset(0% 0% 0% 0% round 0px)";
+      return;
+    }
+
+    /**
+     * Measured every frame rather than on the scroll event.
+     *
+     * A `scroll` listener is the obvious way to do this and it did not work
+     * here: attached to `window`, passive, and it simply never ran — the panel
+     * held whatever value the first measurement gave it while the page scrolled
+     * underneath. Rather than keep guessing at why, this reads the position on
+     * a frame loop, which asks no questions about who dispatches what.
+     *
+     * The cost is one `getBoundingClientRect` per frame, which is a read of
+     * values the compositor already has, on a page that is running a particle
+     * canvas at sixty frames a second regardless. The write is skipped when the
+     * string has not changed, so the style attribute is only touched when the
+     * clip actually moves.
+     */
+    let frame = 0;
+    let last = "";
+
+    const tick = () => {
+      frame = requestAnimationFrame(tick);
+
+      const col = columnRef.current;
+      const panel = panelRef.current;
+      if (!col || !panel) return;
+
+      const { top, height } = col.getBoundingClientRect();
+      const travel = height - window.innerHeight;
+      if (travel <= 0) return;
+
+      // Opens over the first two thirds; the last third is scrolling away, and
+      // an animation still finishing while you leave reads as the page lagging.
+      const p = Math.min(1, Math.max(0, -top / travel / 0.66));
+      const inY = (18 - 18 * p).toFixed(2);
+      const inX = (12 - 12 * p).toFixed(2);
+      const r = (420 - 420 * p).toFixed(1);
+      const next = `inset(${inY}% ${inX}% ${inY}% ${inX}% round ${r}px)`;
+      if (next === last) return;
+      last = next;
+      panel.style.clipPath = next;
+    };
+
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, []);
+
+
   return (
+    <div ref={columnRef} className="relative h-[210vh] w-full">
     <div
       className={cn(
-        "relative h-svh w-full overflow-hidden",
+        "sticky top-0 h-svh w-full overflow-hidden",
         isDark ? "bg-[#171327]" : "bg-[#f7eaff]",
       )}
     >
@@ -199,46 +291,28 @@ function IntroStage({
               path off `ready` restores the beat and ties it to the thing it
               was always describing: the mark has landed, so the window behind
               it opens out to full bleed. */}
-          {/* It opens, holds, closes, holds, and does it again.
+          {/* You open it. That is the point.
 
-              A single expansion was a beat you saw once and then the opening
-              was a still picture for as long as you left it there — which
-              matters more now that the opening is a section you can scroll back
-              to rather than something that unmounts when it is done. Looping
-              gives it a heartbeat.
+              This was scroll-driven originally, and I broke it: the opening
+              moved inside a `fixed` overlay, `scrollYProgress` was pinned at 0
+              because the document underneath had stopped scrolling, and the
+              panel never moved. I replaced it with a loop and an auto-advance,
+              which fixed the symptom by removing the interaction — the panel
+              opened and shut on a timer and then threw you at the next screen
+              whether or not you had finished looking.
 
-              Four keyframes rather than two so the open and shut states are
-              each held: `times` puts the two extremes on plateaus and spends
-              the rest of the cycle travelling between them. Reduced motion gets
-              the open state and no animation at all. */}
-          <motion.div
+              The original reason it was broken is gone: the opening is an
+              in-flow section of a scrolling page now, so scroll position is a
+              real number again. Driving the clip path from it puts the beat
+              back in the visitor's hands — scroll and it opens, scroll back and
+              it closes, stop and it waits.
+
+              Reduced motion gets it open and still, since the whole gesture is
+              motion. */}
+          <div
+            ref={panelRef}
             className="pointer-events-none absolute inset-0 overflow-hidden"
-            initial={{ clipPath: "inset(18% 12% 18% 12% round 420px)" }}
-            animate={
-              reduce
-                ? { clipPath: "inset(0% 0% 0% 0% round 0px)" }
-                : ready
-                  ? {
-                      clipPath: [
-                        "inset(18% 12% 18% 12% round 420px)",
-                        "inset(0% 0% 0% 0% round 0px)",
-                        "inset(0% 0% 0% 0% round 0px)",
-                        "inset(18% 12% 18% 12% round 420px)",
-                        "inset(18% 12% 18% 12% round 420px)",
-                      ],
-                    }
-                  : { clipPath: "inset(18% 12% 18% 12% round 420px)" }
-            }
-            transition={
-              reduce
-                ? { duration: 0 }
-                : {
-                    duration: 7.2,
-                    times: [0, 0.22, 0.5, 0.72, 1],
-                    ease: [0.22, 1, 0.36, 1],
-                    repeat: Infinity,
-                  }
-            }
+            style={{ clipPath: "inset(18% 12% 18% 12% round 420px)" }}
           >
             {/* The same shader in both themes, inverted for the pastel one.
                 It draws white bands on black, so on a light background it can
@@ -263,7 +337,7 @@ function IntroStage({
                   "opacity-80 [filter:invert(1)_hue-rotate(180deg)_saturate(1.6)_contrast(1.35)] mix-blend-multiply",
               )}
             />
-          </motion.div>
+          </div>
           {/* The shader runs to near-white in places, so the title needs
               something behind it. Strongest in the middle where the copy sits,
               clearing toward the edges so the animation is still the star. */}
@@ -355,6 +429,7 @@ function IntroStage({
         Skip
       </button>
     </div>
+    </div>
   );
 }
 
@@ -362,7 +437,6 @@ export function HomeIntro({
   onSkip,
   onComplete,
   settled = false,
-  autoAdvanceMs = 1200,
 }: {
   onSkip: () => void;
   /**
@@ -371,8 +445,6 @@ export function HomeIntro({
    * motion, where the page is left where the visitor put it.
    */
   onComplete?: () => void;
-  /** Time to wait after the opening settles before advancing automatically. */
-  autoAdvanceMs?: number;
   /**
    * Already seen this visit, so show the finished picture rather than replaying
    * the sequence. The opening stays mounted either way, since the hub puts you
@@ -380,7 +452,6 @@ export function HomeIntro({
    */
   settled?: boolean;
 }) {
-  const reduce = useReducedMotion();
 
   /**
    * Escape or space leaves the opening, the same way the Skip button does.
@@ -421,16 +492,21 @@ export function HomeIntro({
   const onCompleteRef = useRef(onComplete);
   onCompleteRef.current = onComplete;
 
+  /**
+   * `onComplete` fires when the words have settled, and moves nothing.
+   *
+   * It used to start a timer and then scroll the page to the next screen on its
+   * own. That is the behaviour that made the opening un-enjoyable: it opened,
+   * shut and left while you were still watching it, and no amount of holding
+   * still would keep you there. The page now says only that the sequence has
+   * finished — the header may fade in, the panel is yours to open by scrolling
+   * — and going onward is a scroll or the Skip button, both of which are the
+   * visitor's to press.
+   */
   useEffect(() => {
-    // Nothing to hand off when the sequence did not play: the visitor is
-    // already looking at the finished picture.
-    if (!ready || reduce || settled) return;
-    // Long enough for the shader's fade and the panel opening behind the mark
-    // to finish, so the hand-off leaves from a settled frame rather than
-    // cutting one short.
-    const t = setTimeout(() => onCompleteRef.current?.(), autoAdvanceMs);
-    return () => clearTimeout(t);
-  }, [ready, reduce, settled, autoAdvanceMs]);
+    if (!ready || settled) return;
+    onCompleteRef.current?.();
+  }, [ready, settled]);
 
   /**
    * The opening does not lock the page any more, and must not.
