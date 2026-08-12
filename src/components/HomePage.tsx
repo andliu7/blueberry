@@ -200,20 +200,29 @@ function Landing({ reduce }: { reduce: boolean }) {
           What is left is the name and one line of fact — which course, what is
           in it. Anyone who wants more can press a door.
         */}
+        {/*
+          The hero holds one screen and says one thing.
+
+          There was a paragraph here explaining the site — which course, what is
+          in it — and it read as an apology for the wordmark above it. The berry
+          and the name do that work between them, and everything a paragraph
+          would have said is one scroll away on the features board. The
+          wordmark is shouted here and whispered in the opening: the swarm
+          spells `blueberry.` in lowercase, and the page it hands to answers in
+          capitals.
+        */}
         <motion.header
-          className="grid items-center gap-6 pt-10 sm:pt-14 lg:grid-cols-[1fr_auto] lg:gap-10"
+          className="grid items-center gap-8 lg:grid-cols-[1fr_auto] lg:gap-12"
           {...rise(0)}
         >
           <div>
-            <h1 className="title-face text-6xl leading-[0.95] sm:text-7xl">{SITE_NAME}</h1>
+            <h1 className="title-face text-6xl leading-[0.9] tracking-tight uppercase sm:text-8xl">
+              {SITE_NAME}
+            </h1>
             <div
               aria-hidden
-              className="mt-5 h-px w-16 bg-gradient-to-r from-indigo-500 to-fuchsia-500"
+              className="mt-6 h-px w-24 bg-gradient-to-r from-indigo-500 to-fuchsia-500"
             />
-            <p className="mt-5 max-w-md text-lg leading-relaxed text-slate-600 dark:text-stone-300">
-              Organic chemistry for CHEM 241 and 242, at Maryland.
-              <br className="hidden sm:block" /> Flashcards, lessons, and mechanisms.
-            </p>
           </div>
 
           {/* Sized in rem rather than by aspect, so it holds its place before

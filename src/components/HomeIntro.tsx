@@ -46,8 +46,20 @@ import {
  * animation has started, and Escape and Space both take it.
  */
 
-/** The last word is the site's name, uppercased for the particle canvas. */
+/** The name, uppercased, for the accessible label and the settled state. */
 const SITE_WORD = SITE_NAME.toUpperCase();
+
+/**
+ * What the swarm actually spells: lowercase, with a full stop.
+ *
+ * The particle canvas rasterises whatever string it is given, so case is a
+ * typographic decision rather than a technical one. Lowercase reads quieter and
+ * more deliberate at this size than the shouted version, and the full stop
+ * gives the swarm somewhere to land — a single dense dot after a long word,
+ * which is the last thing to resolve and the thing that makes it read as a
+ * statement rather than a label.
+ */
+const INTRO_WORDMARK = `${SITE_NAME.toLowerCase()}.`;
 
 /**
  * Colour reads left to right across each word. Indigo into fuchsia is the
@@ -55,7 +67,7 @@ const SITE_WORD = SITE_NAME.toUpperCase();
  * opening arrives in the same palette rather than the demo's random RGB.
  */
 const INTRO_WORDS: ParticleWord[] = [
-  { text: SITE_WORD, from: "#818cf8", to: "#f0abfc" },
+  { text: INTRO_WORDMARK, from: "#818cf8", to: "#f0abfc" },
   // The name scatters one last time and comes back as the mark itself. The
   // swarm carries the logo's own shading rather than the gradient the words
   // wear, so the berry arrives lit rather than flat.
@@ -81,7 +93,7 @@ const INTRO_WORDS: ParticleWord[] = [
  * would restart the sequence on every frame.
  */
 const INTRO_WORDS_LIGHT: ParticleWord[] = [
-  { text: SITE_WORD, from: "#a5b4fc", to: "#f5d0fe" },
+  { text: INTRO_WORDMARK, from: "#a5b4fc", to: "#f5d0fe" },
   // Saturation up, brightness barely down. Darkening alone walked every channel
   // toward black, which is what had taken the life out of it: the berry needs to
   // be more itself against the cream, not dimmer.

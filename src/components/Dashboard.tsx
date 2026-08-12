@@ -13,6 +13,7 @@ import {
   LayoutGrid,
   Layers,
   LogIn,
+  Menu,
   Palette,
   Search,
   Settings,
@@ -511,7 +512,10 @@ export function DashboardButton({
         className,
       )}
     >
-      {open ? <X className="size-4 shrink-0" /> : <LayoutGrid className="size-4 shrink-0" />}
+      {/* A burger rather than the four squares. The squares read as "grid view",
+          which is a thing this button does not do; three stacked lines are the
+          one icon everybody already reads as "the menu is behind here". */}
+      {open ? <X className="size-4 shrink-0" /> : <Menu className="size-4 shrink-0" />}
       <span className="hidden whitespace-nowrap sm:inline">{label}</span>
     </button>
   );
