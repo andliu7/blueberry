@@ -16,13 +16,16 @@ import { SiteHeader } from "@/components/ui/site-header";
 import { BlueberryLoader, useLoaderHold } from "@/components/ui/blueberry-loader";
 import { Blueberry } from "@/components/ui/blueberry";
 import { BentoTile } from "@/components/ui/bento-tile";
+import { ConfidenceLights } from "@/components/ui/confidence-lights";
+import { SiteFooter } from "@/components/ui/site-footer";
+import { usePageCurtain } from "@/components/ui/page-flip";
 import { moodForProgress } from "@/lib/berryMood";
 import { SURFACE } from "@/lib/hubSurface";
 import { useIsDark } from "@/lib/useIsDark";
 import { useDecks } from "@/lib/useDecks";
 import { reviewedCount } from "@/lib/progress";
 import { hasSeenIntro, markIntroSeen } from "@/lib/intro";
-import { deckCount, deckHref, type Deck } from "@/data/types";
+import { deckCount } from "@/data/types";
 import { SITE_NAME, TRAINER_URL } from "@/data/site";
 import { cn } from "@/lib/utils";
 
@@ -147,36 +150,26 @@ function Body({
   const dash = useDashboard();
   const { decks } = useDecks();
   const boardRef = useRef<HTMLElement>(null);
+  const curtain = usePageCurtain();
 
   const cards = useMemo(() => decks.reduce((n, d) => n + deckCount(d), 0), [decks]);
 
   /**
-   * Decks with something already on them, best-progressed first.
-   *
-   * Reading progress touches localStorage once per deck, so it is computed here
-   * and handed down rather than read inside each row.
-   */
-  const started = useMemo(
-    () =>
-      decks
-        .map((deck) => ({ deck, reviewed: reviewedCount(deck.id), total: deckCount(deck) }))
-        .filter((row) => row.reviewed > 0)
-        .sort((a, b) => b.reviewed / b.total - a.reviewed / a.total),
-    [decks],
-  );
-
-  /**
-   * The berry's face, summed across every started deck.
+   * The berry's face, summed across every deck with progress on it.
    *
    * Summed rather than taken from the best one, or it would be proud of the
-   * deck you finished while ignoring the four you abandoned.
+   * deck you finished while ignoring the four you abandoned. One localStorage
+   * read per deck, so it is memoised on the list rather than done per render.
    */
   const heroMood = useMemo(() => {
-    if (started.length === 0) return "curious" as const;
-    const reviewed = started.reduce((n, r) => n + r.reviewed, 0);
-    const total = started.reduce((n, r) => n + r.total, 0);
+    const rows = decks
+      .map((deck) => ({ reviewed: reviewedCount(deck.id), total: deckCount(deck) }))
+      .filter((row) => row.reviewed > 0);
+    if (rows.length === 0) return "curious" as const;
+    const reviewed = rows.reduce((n, r) => n + r.reviewed, 0);
+    const total = rows.reduce((n, r) => n + r.total, 0);
     return moodForProgress(reviewed, total);
-  }, [started]);
+  }, [decks]);
 
   return (
     <>
@@ -207,35 +200,68 @@ function Body({
       >
         <div className="grid items-center gap-8 lg:grid-cols-[1fr_auto] lg:gap-12">
           <div>
-            <h1 className="title-face text-6xl leading-[0.9] tracking-tight uppercase sm:text-8xl">
-              {SITE_NAME}
-            </h1>
-            <div
-              aria-hidden
-              className="mt-6 h-px w-24 bg-gradient-to-r from-indigo-500 to-fuchsia-500"
-            />
+            {/*
+              The title is a link, and it goes back to the opening.
+
+              It is drawn like one on purpose — the site's own gradient sweep,
+              the same underline every other link here grows on hover — because
+              a wordmark that reacts and does nothing is a worse lie than one
+              that never reacted. What it does is the one thing anybody would
+              want from pressing the name at the top of a page: it takes you
+              back to the front of it.
+
+              Lowercase with a full stop, matching what the swarm spells one
+              screen above. The opening whispers it, the page repeats it.
+            */}
+            <a
+              href="#top"
+              onClick={(e) => {
+                if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+                e.preventDefault();
+                window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
+              }}
+              className="group/mark inline-block rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+            >
+              <h1 className="title-face relative text-6xl leading-[0.9] tracking-tight lowercase sm:text-8xl">
+                {SITE_NAME.toLowerCase()}.
+                <span
+                  aria-hidden
+                  className="absolute -bottom-1 left-0 h-[3px] w-full origin-left scale-x-0 rounded-full bg-gradient-to-r from-indigo-500 to-fuchsia-500 transition-transform duration-500 ease-out group-hover/mark:scale-x-100 group-focus-visible/mark:scale-x-100"
+                />
+              </h1>
+            </a>
+
+            {/* The lights, under the name: the first thing worth deciding when
+                you arrive is which deck to open, and these answer that from
+                ratings you have already given. */}
+            <ConfidenceLights decks={decks} className="mt-8" />
           </div>
 
           {/* Sized in rem rather than by aspect, so it holds its place before
-              the canvas arrives and nothing reflows underneath it. */}
+              the canvas arrives and nothing reflows underneath it. It tracks
+              the cursor across the whole window here, because on this screen it
+              is the subject rather than an ornament in a corner. */}
           <Blueberry
             mood={heroMood}
+            trackWindow
             className="mx-auto h-52 w-52 sm:h-64 sm:w-64 lg:mx-0"
             label="Blueberry, the site's mascot. Drag to spin, click to poke."
           />
         </div>
-
-        {started.length > 0 && <ProgressCard started={started} reduce={reduce} />}
 
         {/* The cue says there is more, and takes you there when pressed. A
             chevron alone is decoration; a chevron you can click is navigation. */}
         <button
           type="button"
           onClick={() =>
-            boardRef.current?.scrollIntoView({
-              behavior: reduce ? "auto" : "smooth",
-              block: "start",
-            })
+            // The sheet turns over the jump, the same way it does over a real
+            // navigation. Moving a whole screen inside one route is as large a
+            // change as changing route, and a plain smooth-scroll of that
+            // distance reads as the page having lurched rather than as having
+            // gone somewhere.
+            curtain(() =>
+              boardRef.current?.scrollIntoView({ behavior: "auto", block: "start" }),
+            )
           }
           className="group absolute inset-x-0 bottom-8 mx-auto flex w-fit cursor-pointer flex-col items-center gap-1 rounded-full px-4 py-2 text-slate-500 transition-colors hover:text-indigo-600 focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:outline-none dark:text-stone-400 dark:hover:text-indigo-300"
         >
@@ -252,96 +278,10 @@ function Body({
       {/* Screen three: the board. */}
       <Board ref={boardRef} deckCountLabel={`${decks.length} decks · ${cards} cards`} />
 
+      <SiteFooter />
+
       <Dashboard dash={dash} />
     </>
-  );
-}
-
-/**
- * What you had already started, as one card that opens.
- *
- * Closed it is a single line — the deck you are furthest through and how many
- * others are waiting — because the hero is meant to hold one screen and a list
- * of eight decks is not that. Open it is the whole list. A disclosure rather
- * than a link to somewhere else, since the answer is three rows long and
- * sending someone to another page to read three rows is the worse trade.
- */
-function ProgressCard({
-  started,
-  reduce,
-}: {
-  started: { deck: Deck; reviewed: number; total: number }[];
-  reduce: boolean;
-}) {
-  const [open, setOpen] = useState(false);
-  const top = started[0]!;
-  const rest = started.length - 1;
-
-  return (
-    <div className="mt-12 max-w-xl overflow-hidden rounded-2xl border border-slate-200 bg-white/60 dark:border-stone-800 dark:bg-stone-950/50">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-        className="flex w-full cursor-pointer items-center gap-4 px-4 py-3 text-left transition-colors hover:bg-white focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:outline-none dark:hover:bg-stone-900"
-      >
-        <span className="min-w-0 flex-1">
-          <span className="block font-mono text-[0.65rem] tracking-widest text-slate-400 uppercase dark:text-stone-500">
-            Pick up where you left off
-          </span>
-          <span className="mt-0.5 block truncate text-sm font-semibold">{top.deck.title}</span>
-        </span>
-        <span className="shrink-0 font-mono text-xs text-slate-400 dark:text-stone-500">
-          {top.reviewed} of {top.total}
-        </span>
-        {rest > 0 && (
-          <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 font-mono text-[0.65rem] text-slate-500 dark:bg-stone-800 dark:text-stone-400">
-            +{rest}
-          </span>
-        )}
-        <ChevronDown
-          className={cn(
-            "size-4 shrink-0 text-slate-400 transition-transform duration-200",
-            open && "rotate-180",
-          )}
-        />
-      </button>
-
-      <AnimatePresence initial={false}>
-        {open && (
-          <motion.ul
-            initial={reduce ? false : { height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={reduce ? undefined : { height: 0, opacity: 0 }}
-            transition={{ duration: 0.25, ease: "easeOut" }}
-            className="overflow-hidden border-t border-slate-200 dark:border-stone-800"
-          >
-            {started.map(({ deck, reviewed, total }) => (
-              <li key={deck.id}>
-                <a
-                  href={deckHref(deck)}
-                  className="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:bg-white dark:hover:bg-stone-900"
-                >
-                  <span className="min-w-0 flex-1 truncate">{deck.title}</span>
-                  <span className="shrink-0 font-mono text-xs text-slate-400 dark:text-stone-500">
-                    {reviewed}/{total}
-                  </span>
-                  <span
-                    aria-hidden
-                    className="hidden h-1.5 w-20 shrink-0 overflow-hidden rounded-full bg-slate-200 sm:block dark:bg-stone-800"
-                  >
-                    <span
-                      className="block h-full rounded-full bg-gradient-to-r from-indigo-500 to-fuchsia-500"
-                      style={{ width: `${Math.round((reviewed / total) * 100)}%` }}
-                    />
-                  </span>
-                </a>
-              </li>
-            ))}
-          </motion.ul>
-        )}
-      </AnimatePresence>
-    </div>
   );
 }
 

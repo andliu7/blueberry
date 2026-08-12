@@ -1,4 +1,4 @@
-import { Suspense, useMemo, useRef } from "react";
+import { Suspense, useEffect, useMemo, useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { ContactShadows } from "@react-three/drei";
 import * as THREE from "three";
@@ -163,6 +163,7 @@ function Berry({
   interactive,
   spin,
   dragging,
+  windowPointer,
 }: {
   mood: BerryMood;
   interactive: boolean;
@@ -171,6 +172,16 @@ function Berry({
   /** Whether a drag is in progress. Owned by the wrapper, which sees the
       pointer even when it leaves the berry's silhouette mid-swing. */
   dragging: React.RefObject<boolean>;
+  /**
+   * The cursor anywhere on the page, in the same -1..1 space r3f uses.
+   *
+   * three's own `pointer` is measured against the canvas and stops updating the
+   * moment the cursor leaves it, so a berry in a 288px box only ever saw a
+   * 288px world and went still whenever you were anywhere else on the screen —
+   * which is nearly always. Null means "not tracking"; then the canvas-local
+   * pointer is used, which is right for a berry that is only a decoration.
+   */
+  windowPointer: React.RefObject<{ x: number; y: number } | null>;
 }) {
   const head = useRef<THREE.Group>(null);
   // A ref rather than state: this changes on a clock and nothing about the
@@ -206,9 +217,12 @@ function Berry({
     [],
   );
 
-  useFrame(({ pointer, clock }, delta) => {
+  useFrame(({ pointer: canvasPointer, clock }, delta) => {
     const dt = Math.min(delta, 0.1);
     const t = clock.getElapsedTime();
+
+    // The whole window when it is being tracked, the canvas otherwise.
+    const pointer = windowPointer.current ?? canvasPointer;
 
     const shape = MOOD_SHAPE[mood];
 
@@ -403,17 +417,50 @@ export function BlueberryBot3D({
   className,
   mood = "curious",
   interactive = true,
+  trackWindow = false,
 }: {
   className?: string;
   /** Which face to wear. See `lib/berryMood`. */
   mood?: BerryMood;
   /** Whether it answers the pointer at all. Off makes it a still portrait. */
   interactive?: boolean;
+  /**
+   * Follow the cursor anywhere on the page rather than only over the canvas.
+   *
+   * Off by default. A berry tucked into a corner of a folder page that swivels
+   * to watch you type somewhere else is a distraction; the one that is the
+   * subject of its screen should do exactly that.
+   */
+  trackWindow?: boolean;
 }) {
   const spin = useRef(0);
   const dragging = useRef(false);
   const lastX = useRef(0);
   const moved = useRef(0);
+
+  /**
+   * The cursor in -1..1 across the viewport, updated outside React.
+   *
+   * A ref rather than state because this changes on every mouse move and the
+   * scene reads it once a frame; putting it in state would re-render the tree
+   * a hundred times a second to hand the same number to a canvas.
+   */
+  const windowPointer = useRef<{ x: number; y: number } | null>(null);
+  useEffect(() => {
+    if (!trackWindow) {
+      windowPointer.current = null;
+      return;
+    }
+    const onMove = (e: PointerEvent) => {
+      windowPointer.current = {
+        x: (e.clientX / window.innerWidth) * 2 - 1,
+        // Negated to match three's convention, where up the screen is positive.
+        y: -((e.clientY / window.innerHeight) * 2 - 1),
+      };
+    };
+    window.addEventListener("pointermove", onMove, { passive: true });
+    return () => window.removeEventListener("pointermove", onMove);
+  }, [trackWindow]);
 
   /**
    * Drag to spin, handled on the wrapper rather than in the scene.
@@ -482,7 +529,13 @@ export function BlueberryBot3D({
           <ambientLight intensity={0.9} />
           <directionalLight position={[3, 5, 4]} intensity={1.1} castShadow />
           <directionalLight position={[-4, 1, -3]} intensity={0.35} color="#c4b5fd" />
-          <Berry mood={mood} interactive={interactive} spin={spin} dragging={dragging} />
+          <Berry
+            mood={mood}
+            interactive={interactive}
+            spin={spin}
+            dragging={dragging}
+            windowPointer={windowPointer}
+          />
           <ContactShadows position={[0, -1.45, 0]} opacity={0.35} scale={7} blur={2.6} far={3} />
         </Suspense>
       </Canvas>

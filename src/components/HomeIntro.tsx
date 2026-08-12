@@ -197,15 +197,46 @@ function IntroStage({
               path off `ready` restores the beat and ties it to the thing it
               was always describing: the mark has landed, so the window behind
               it opens out to full bleed. */}
+          {/* It opens, holds, closes, holds, and does it again.
+
+              A single expansion was a beat you saw once and then the opening
+              was a still picture for as long as you left it there — which
+              matters more now that the opening is a section you can scroll back
+              to rather than something that unmounts when it is done. Looping
+              gives it a heartbeat.
+
+              Four keyframes rather than two so the open and shut states are
+              each held: `times` puts the two extremes on plateaus and spends
+              the rest of the cycle travelling between them. Reduced motion gets
+              the open state and no animation at all. */}
           <motion.div
             className="pointer-events-none absolute inset-0 overflow-hidden"
             initial={{ clipPath: "inset(18% 12% 18% 12% round 420px)" }}
-            animate={{
-              clipPath: ready
-                ? "inset(0% 0% 0% 0% round 0px)"
-                : "inset(18% 12% 18% 12% round 420px)",
-            }}
-            transition={reduce ? { duration: 0 } : { duration: 1.4, ease: [0.22, 1, 0.36, 1] }}
+            animate={
+              reduce
+                ? { clipPath: "inset(0% 0% 0% 0% round 0px)" }
+                : ready
+                  ? {
+                      clipPath: [
+                        "inset(18% 12% 18% 12% round 420px)",
+                        "inset(0% 0% 0% 0% round 0px)",
+                        "inset(0% 0% 0% 0% round 0px)",
+                        "inset(18% 12% 18% 12% round 420px)",
+                        "inset(18% 12% 18% 12% round 420px)",
+                      ],
+                    }
+                  : { clipPath: "inset(18% 12% 18% 12% round 420px)" }
+            }
+            transition={
+              reduce
+                ? { duration: 0 }
+                : {
+                    duration: 7.2,
+                    times: [0, 0.22, 0.5, 0.72, 1],
+                    ease: [0.22, 1, 0.36, 1],
+                    repeat: Infinity,
+                  }
+            }
           >
             {/* The same shader in both themes, inverted for the pastel one.
                 It draws white bands on black, so on a light background it can

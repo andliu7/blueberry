@@ -29,13 +29,36 @@ import { SURFACE } from "@/lib/hubSurface";
  */
 
 type FlipTo = (href: string) => void;
+/** Turn the sheet over an arbitrary move rather than over a route change. */
+type FlipWith = (act: () => void) => void;
 
-const PageFlipContext = createContext<FlipTo>((href) => {
-  window.location.hash = href.replace(/^#/, "");
+interface PageFlipApi {
+  flipTo: FlipTo;
+  flipWith: FlipWith;
+}
+
+const PageFlipContext = createContext<PageFlipApi>({
+  flipTo: (href) => {
+    window.location.hash = href.replace(/^#/, "");
+  },
+  flipWith: (act) => act(),
 });
 
+/** The route-changing half, which is what most callers want. */
 export function usePageFlip(): FlipTo {
-  return useContext(PageFlipContext);
+  return useContext(PageFlipContext).flipTo;
+}
+
+/**
+ * The sheet, over something that is not a navigation.
+ *
+ * Home is one route with three screens on it, so moving from the hero to the
+ * board changes no URL and `flipTo` has nothing to do. A jump that large inside
+ * a page needs to be as obvious as a page turn or it reads as the page having
+ * lurched — so the same sheet covers it, and the scroll happens behind it.
+ */
+export function usePageCurtain(): FlipWith {
+  return useContext(PageFlipContext).flipWith;
 }
 
 export function PageFlipProvider({ children }: { children: ReactNode }) {
@@ -57,7 +80,19 @@ export function PageFlipProvider({ children }: { children: ReactNode }) {
     [reduce],
   );
 
-  const value = useMemo(() => flipTo, [flipTo]);
+  const flipWith = useCallback<FlipWith>(
+    (act) => {
+      // The move happens first, behind the sheet, for the same reason the route
+      // change does: timing it to the frame where the sheet is edge on means
+      // being a frame early shows the seam.
+      act();
+      if (reduce) return;
+      setFlipping(true);
+    },
+    [reduce],
+  );
+
+  const value = useMemo(() => ({ flipTo, flipWith }), [flipTo, flipWith]);
 
   return (
     <PageFlipContext.Provider value={value}>

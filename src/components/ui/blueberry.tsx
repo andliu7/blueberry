@@ -50,6 +50,7 @@ export function Blueberry({
   mood = "curious",
   className,
   interactive = true,
+  trackWindow = false,
   flat = false,
   label,
 }: {
@@ -58,6 +59,14 @@ export function Blueberry({
   className?: string;
   /** Whether it answers the pointer: hover, poke, drag to spin. */
   interactive?: boolean;
+  /**
+   * Follow the cursor anywhere on the page rather than only over its own box.
+   *
+   * For the berry that is the subject of its screen. A berry tucked into the
+   * corner of a folder page that swivels to watch you type elsewhere is a
+   * distraction, so this is off by default.
+   */
+  trackWindow?: boolean;
   /** Force the flat mark, for places too small or too busy for a canvas. */
   flat?: boolean;
   /** Announced to screen readers in place of the drawing. */
@@ -113,7 +122,12 @@ export function Blueberry({
             aria-hidden
             className="absolute inset-0 animate-[berry-arrive_600ms_ease-out_both]"
           >
-            <BlueberryBot3D mood={mood} interactive={interactive} className="h-full w-full" />
+            <BlueberryBot3D
+              mood={mood}
+              interactive={interactive}
+              trackWindow={trackWindow}
+              className="h-full w-full"
+            />
           </div>
         </Suspense>
       )}
