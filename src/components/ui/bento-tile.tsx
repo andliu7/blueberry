@@ -24,6 +24,7 @@ export function BentoTile({
   children,
   href,
   onClick,
+  berry,
   disabled = false,
 }: {
   className?: string;
@@ -31,6 +32,16 @@ export function BentoTile({
   /** Renders as a link when given, a button when `onClick` is given instead. */
   href?: string;
   onClick?: () => void;
+  /**
+   * A berry photograph bled into the corner of the tile.
+   *
+   * Same treatment as the page background, for the same reason: these are
+   * photographs rather than cut-outs, so a radial mask and `screen` keep the
+   * lit fruit and drop the table it was shot on. Behind the text and low
+   * enough in opacity that it is a tint with a shape rather than a picture
+   * competing with the words on top of it.
+   */
+  berry?: string;
   /** Present but not yet available: dimmed, dashed and not interactive. */
   disabled?: boolean;
 }) {
@@ -71,9 +82,24 @@ export function BentoTile({
     className,
   );
 
+  const art = berry ? (
+    <span
+      aria-hidden
+      className="pointer-events-none absolute -right-6 -bottom-8 -z-10 h-40 w-40 opacity-[0.28] mix-blend-screen saturate-150 transition-opacity duration-300 group-hover:opacity-45"
+      style={{
+        backgroundImage: `url(${import.meta.env.BASE_URL}backgrounds/${berry})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        maskImage: "radial-gradient(closest-side, black 30%, transparent 76%)",
+        WebkitMaskImage: "radial-gradient(closest-side, black 30%, transparent 76%)",
+      }}
+    />
+  ) : null;
+
   if (href && !disabled) {
     return (
       <a ref={ref as React.RefObject<HTMLAnchorElement>} href={href} className={shared}>
+        {art}
         {children}
       </a>
     );
@@ -88,6 +114,7 @@ export function BentoTile({
       aria-disabled={disabled}
       className={shared}
     >
+      {art}
       {children}
     </button>
   );

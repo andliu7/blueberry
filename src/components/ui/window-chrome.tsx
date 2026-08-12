@@ -4,6 +4,7 @@ import { ChevronDown } from "lucide-react";
 import { usePageFlip } from "@/components/ui/page-flip";
 import { ratingTally, type RatingTally } from "@/lib/progress";
 import { deckHref, type Deck } from "@/data/types";
+import { useFocusTimer } from "@/lib/useFocusTimer";
 import { cn } from "@/lib/utils";
 
 /**
@@ -82,6 +83,16 @@ export function WindowChrome({
   const [open, setOpen] = useState<LightKey | null>(null);
 
   /**
+   * Ticked-off tasks count toward the green light.
+   *
+   * The lights were only ever about card ratings, which meant a session spent
+   * reading a lesson or working through a task list registered as nothing at
+   * all. A finished task is a thing you finished; it belongs in the same number
+   * as a card you marked solid.
+   */
+  const { tasksDone } = useFocusTimer();
+
+  /**
    * 0 while the tab is at rest, 1 once it has become the bar.
    *
    * A plain scroll listener, which is what the rest of this codebase uses and
@@ -130,6 +141,11 @@ export function WindowChrome({
         { red: 0, yellow: 0, green: 0 },
       ),
     [perDeck],
+  );
+
+  const counts = useMemo(
+    () => ({ ...total, green: total.green + tasksDone }),
+    [total, tasksDone],
   );
 
   const rows = useMemo(() => {
@@ -181,7 +197,7 @@ export function WindowChrome({
           >
             <div className="flex shrink-0 items-center gap-2" role="group" aria-label="Your card ratings">
               {LIGHTS.map((light) => {
-                const count = total[light.key];
+                const count = counts[light.key];
                 const live = count > 0;
                 const isOpen = open === light.key;
                 return (

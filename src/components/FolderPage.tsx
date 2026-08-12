@@ -22,6 +22,7 @@ import { Dashboard, useDashboard } from "@/components/Dashboard";
 import { SiteHeader } from "@/components/ui/site-header";
 import { SpotlightCursor } from "@/components/ui/spotlight-cursor";
 import { SiteFooter } from "@/components/ui/site-footer";
+import { PageBackground } from "@/components/ui/page-background";
 import { SURFACE, spotlightFor } from "@/lib/hubSurface";
 import { useIsDark } from "@/lib/useIsDark";
 
@@ -77,6 +78,7 @@ export function FolderPage({ groupId }: { groupId: DeckGroupId }) {
       className="relative min-h-screen pb-8"
       style={{ backgroundColor: surface.base, backgroundImage: surface.gradient }}
     >
+      <PageBackground />
       <SpotlightCursor className="z-0" config={spotlightFor(isDark)} />
       {/* Same handover as the hub: the folder's name moves up to the bar once
           its own heading has scrolled under it, so you always know which folder

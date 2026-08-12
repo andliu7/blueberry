@@ -39,6 +39,7 @@ import { SpotlightCursor } from "@/components/ui/spotlight-cursor";
 import { SURFACE, spotlightFor } from "@/lib/hubSurface";
 import { Blueberry } from "@/components/ui/blueberry";
 import { SiteFooter } from "@/components/ui/site-footer";
+import { PageBackground } from "@/components/ui/page-background";
 import { moodForProgress } from "@/lib/berryMood";
 
 /**
@@ -104,10 +105,14 @@ export function StudyDecksPage() {
   const categoryInView = useInView(categoryRef, { amount: "some" });
   const showCategoryTitle = !bigHeadingInView && categoryInView;
 
-  /** Home, from the hub, means the top of the decks rather than the opening. */
-  const goHome = useCallback(() => {
-    decksRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, []);
+  /**
+   * The mark goes home, and is no longer intercepted.
+   *
+   * It used to be handed an `onHome` that scrolled to the top of the deck list
+   * instead of navigating — which was right when this page *was* home and the
+   * only thing above it was the opening. Home is its own page now, so
+   * overriding the link left the hub with no way back to it at all.
+   */
 
   const reduce = useReducedMotion();
   // Bumped to restage the heading; see StudyDecksHeading.
@@ -189,6 +194,7 @@ export function StudyDecksPage() {
       >
         {/* Behind the content, above the surface, so it lights the background
             between the cards without washing over the text on them. */}
+        <PageBackground />
         <SpotlightCursor className="z-0" config={spotlightFor(isDark)} />
 
       {/* Outside the padded column so its banner reaches both edges. */}
@@ -196,7 +202,6 @@ export function StudyDecksPage() {
         category={showCategoryTitle ? "Study Decks" : null}
         browse={{ open: dash.isOpen, onToggle: toggleBrowse }}
         onCategoryClick={() => dash.open("decks")}
-        onHome={goHome}
         onSearch={() => dash.open("decks", { focusSearch: true })}
       />
 

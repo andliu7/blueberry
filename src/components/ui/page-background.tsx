@@ -21,6 +21,12 @@ import { cn } from "@/lib/utils";
  * survives having no alpha channel to work with. Small and low, because a berry
  * the size of a mountain is a poster, not a background.
  *
+ * **No blur.** There was one, on the theory that softening the picture would
+ * protect the type. At 4K it was throwing away exactly the detail the
+ * resolution was bought for, and the legibility it bought could be had instead
+ * from the bands and the vignette below, which cost the middle of the frame
+ * nothing. The photograph is sharp; the contrast work happens around it.
+ *
  * Nothing here is fetched from anywhere. The images live in `public/backgrounds`
  * and ship with the site: no key, no quota, no request that can fail.
  */
@@ -136,7 +142,7 @@ export function PageBackground({ className }: { className?: string }) {
         >
           {!ready && (
             <div
-              className="absolute inset-0 bg-cover bg-center blur-[2px]"
+              className="absolute inset-0 bg-cover bg-center"
               style={{ backgroundImage: `url(${scene.blur})` }}
             />
           )}
@@ -147,7 +153,7 @@ export function PageBackground({ className }: { className?: string }) {
             decoding="async"
             onLoad={() => setReady(true)}
             className={cn(
-              "absolute inset-0 h-full w-full object-cover blur-[2px] transition-opacity duration-700",
+              "absolute inset-0 h-full w-full object-cover transition-opacity duration-700",
               ready ? "opacity-100" : "opacity-0",
             )}
           />

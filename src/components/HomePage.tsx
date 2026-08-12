@@ -341,7 +341,7 @@ const Board = ({
     </p>
 
     <div className="mt-8 grid auto-rows-[minmax(11rem,auto)] gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      <BentoTile href="#/study-decks" className="sm:col-span-2">
+      <BentoTile href="#/study-decks" className="sm:col-span-2" berry="berry-triple.webp">
         <Layers className="size-5 text-indigo-600 dark:text-indigo-300" />
         <span className="mt-4 flex items-center gap-1.5 text-xl font-semibold">
           Study Decks <ArrowRight className="size-4 text-slate-400" />
@@ -354,7 +354,7 @@ const Board = ({
         </span>
       </BentoTile>
 
-      <BentoTile href="#/lessons">
+      <BentoTile href="#/lessons" berry="berry-with-leaves.webp">
         <BookOpen className="size-5 text-indigo-600 dark:text-indigo-300" />
         <span className="mt-4 flex items-center gap-1.5 text-xl font-semibold">
           Lessons <ArrowRight className="size-4 text-slate-400" />
@@ -367,7 +367,7 @@ const Board = ({
         </span>
       </BentoTile>
 
-      <BentoTile href={TRAINER_URL}>
+      <BentoTile href={TRAINER_URL} berry="berry-purple.webp">
         <Atom className="size-5 text-indigo-600 dark:text-indigo-300" />
         <span className="mt-4 flex items-center gap-1.5 text-xl font-semibold">
           Concepts <ArrowUpRight className="size-4 text-slate-400" />
@@ -380,18 +380,26 @@ const Board = ({
         </span>
       </BentoTile>
 
-      <BentoTile disabled>
-        <Timer className="size-5 text-slate-400" />
-        <span className="mt-4 text-xl font-semibold text-slate-500 dark:text-stone-400">Focus</span>
+      <BentoTile
+        berry="berry-wet.webp"
+        // The timer lives in the corner of every page, so this does not navigate
+        // anywhere — it opens the thing that is already there.
+        onClick={() => window.dispatchEvent(new CustomEvent("blueberry:open-focus"))}
+      >
+        <Timer className="size-5 text-indigo-600 dark:text-indigo-300" />
+        <span className="mt-4 flex items-center gap-1.5 text-xl font-semibold">
+          Focus <ArrowRight className="size-4 text-slate-400" />
+        </span>
         <span className="mt-2 text-sm text-slate-500 dark:text-stone-400">
-          A study timer that makes you look 20 ft away every 20 minutes, for 20 seconds.
+          Set your session and break, keep a task list, and get told to look 20 ft away every
+          20 minutes for 20 seconds.
         </span>
         <span className="mt-auto pt-4 font-mono text-xs text-slate-400 dark:text-stone-500">
-          Being built
+          Opens in the corner
         </span>
       </BentoTile>
 
-      <BentoTile disabled>
+      <BentoTile disabled berry="berry-full.webp">
         <Gamepad2 className="size-5 text-slate-400" />
         <span className="mt-4 text-xl font-semibold text-slate-500 dark:text-stone-400">Break</span>
         <span className="mt-2 text-sm text-slate-500 dark:text-stone-400">

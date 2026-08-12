@@ -265,9 +265,24 @@ export function Dashboard({
       }
     >
       <div className="space-y-0.5">
+        {/* Two different places that both wanted the word "Home".
+
+            This opened the panel's own overview and called itself Home, so the
+            dashboard had no route to the site's front page — you could open the
+            nav from anywhere and still not get out of it. The overview keeps
+            the panel and takes the name it already had at the top of it; Home
+            leaves. */}
         <SidebarNavItem
           icon={<House className="size-4" />}
           label="Home"
+          onClick={() => {
+            close();
+            window.location.hash = "#/home";
+          }}
+        />
+        <SidebarNavItem
+          icon={<LayoutGrid className="size-4" />}
+          label="Dashboard"
           active={view === "home"}
           onClick={() => go("home")}
         />
