@@ -382,11 +382,17 @@ export function StudyDecksPage() {
             library is in: proud once most of it is reviewed, focused in the
             middle of the work, curious before any of it is started. */}
         <section className="mt-16 flex flex-col items-center">
-          <Blueberry
-            mood={libraryMood}
-            className="h-72 w-72"
-            label="Blueberry, the site's mascot. Drag to spin, click to poke."
-          />
+          <a
+            href="#/home"
+            aria-label="Home"
+            className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+          >
+            <Blueberry
+              mood={libraryMood}
+              className="h-72 w-72"
+              label="Blueberry, the site's mascot. Press to go home."
+            />
+          </a>
           <p className="mt-1 text-center text-xs text-slate-400 dark:text-stone-500">
             Move your cursor around, give him a poke, or drag to spin him.
           </p>

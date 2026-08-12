@@ -170,7 +170,13 @@ export function FolderPage({ groupId }: { groupId: DeckGroupId }) {
             page used unconditionally before. Either way it is the same
             character wearing the same mood. */}
         <div className="mt-14 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-          <Blueberry mood="happy" className="h-40 w-40 shrink-0" />
+          <a
+            href="#/home"
+            aria-label="Home"
+            className="shrink-0 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+          >
+            <Blueberry mood="happy" className="h-40 w-40" />
+          </a>
           <p className="max-w-[15rem] rounded-2xl rounded-bl-sm border border-slate-200 bg-white px-4 py-3 text-sm leading-relaxed text-slate-600 shadow-sm sm:rounded-tl-sm sm:rounded-bl-2xl dark:border-stone-700 dark:bg-stone-900 dark:text-stone-300">
             Hello! How are you enjoying Blueberry today? Give us some feedback at the bottom
             right!

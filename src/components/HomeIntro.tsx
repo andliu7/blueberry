@@ -12,6 +12,11 @@ import {
   ParticleTextEffect,
   type ParticleWord,
 } from "@/components/ui/particle-text-effect";
+import {
+  ContainerInset,
+  ContainerScroll,
+  ContainerSticky,
+} from "@/components/ui/animated-video-on-scroll";
 
 /**
  * The animated opening on the home page.
@@ -142,104 +147,26 @@ function IntroStage({
   const isDark = useIsDark();
   const surface = isDark ? SURFACE.dark : SURFACE.light;
 
-  /**
-   * How far through the opening's own scroll column you are, 0 to 1.
-   *
-   * The column is `h-[210vh]` and the stage inside it is `sticky`, so the stage
-   * holds still on screen while the page scrolls past it — which is what turns
-   * a scroll into a scrubber rather than into leaving.
-   */
-  const columnRef = useRef<HTMLDivElement>(null);
-
-  /**
-   * Progress, measured by hand rather than by `useScroll`.
-   *
-   * `useScroll({ target })` measures the element once and caches its offsets.
-   * This column is mounted about six hundred milliseconds after the page —
-   * the loader holds the door while fonts settle — so by the time the opening
-   * exists, the measurement it took has already been invalidated by everything
-   * that laid out around it. Observed: the value sat at 0 through the entire
-   * column and the panel never moved, which is the same symptom as the fixed
-   * overlay it was blamed on the first time.
-   *
-   * Reading `getBoundingClientRect` on each scroll is a cheap, boring answer
-   * that cannot go stale: `top` is where the column starts relative to the
-   * viewport, so `-top / (height - viewport)` is exactly how far through it we
-   * are. Passive listener, and a `rAF` gate so a fast wheel does not queue a
-   * layout read per event.
-   */
-  const panelRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    /**
-     * Asked of the browser directly rather than through `useReducedMotion`.
-     *
-     * Measured, on a machine whose `matchMedia('(prefers-reduced-motion:
-     * reduce)').matches` is plainly `false`: the hook returned truthy, this
-     * effect took its early return, no scroll listener was ever attached, and
-     * the panel sat wide open through the whole column. The media query is the
-     * actual question being asked, so it is the thing to ask.
-     */
-    const wantsLessMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    if (wantsLessMotion) {
-      if (panelRef.current) panelRef.current.style.clipPath = "inset(0% 0% 0% 0% round 0px)";
-      return;
-    }
-
-    /**
-     * Measured every frame rather than on the scroll event.
-     *
-     * A `scroll` listener is the obvious way to do this and it did not work
-     * here: attached to `window`, passive, and it simply never ran — the panel
-     * held whatever value the first measurement gave it while the page scrolled
-     * underneath. Rather than keep guessing at why, this reads the position on
-     * a frame loop, which asks no questions about who dispatches what.
-     *
-     * The cost is one `getBoundingClientRect` per frame, which is a read of
-     * values the compositor already has, on a page that is running a particle
-     * canvas at sixty frames a second regardless. The write is skipped when the
-     * string has not changed, so the style attribute is only touched when the
-     * clip actually moves.
-     */
-    let frame = 0;
-    let last = "";
-
-    const tick = () => {
-      frame = requestAnimationFrame(tick);
-
-      const col = columnRef.current;
-      const panel = panelRef.current;
-      if (!col || !panel) return;
-
-      const { top, height } = col.getBoundingClientRect();
-      const travel = height - window.innerHeight;
-      if (travel <= 0) return;
-
-      // Opens over the first two thirds; the last third is scrolling away, and
-      // an animation still finishing while you leave reads as the page lagging.
-      const p = Math.min(1, Math.max(0, -top / travel / 0.66));
-      const inY = (18 - 18 * p).toFixed(2);
-      const inX = (12 - 12 * p).toFixed(2);
-      const r = (420 - 420 * p).toFixed(1);
-      const next = `inset(${inY}% ${inX}% ${inY}% ${inX}% round ${r}px)`;
-      if (next === last) return;
-      last = next;
-      panel.style.clipPath = next;
-    };
-
-    frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
-  }, []);
 
 
   return (
-    <div ref={columnRef} className="relative h-[210vh] w-full">
-    <div
-      className={cn(
-        "sticky top-0 h-svh w-full overflow-hidden",
-        isDark ? "bg-[#171327]" : "bg-[#f7eaff]",
-      )}
-    >
+    /**
+     * `ContainerScroll` + `ContainerInset`, which is what this used before I
+     * broke it and what it uses again.
+     *
+     * The pair is `useScroll({ target, offset })` feeding a `clipPath`, and it
+     * worked for months. It stopped when the opening was moved inside a `fixed`
+     * overlay, because the document underneath had stopped scrolling and the
+     * progress value was pinned at 0 — a fault in where the component was put,
+     * not in the component. I diagnosed that correctly and then, instead of
+     * putting it back once the opening returned to the flow, replaced it with a
+     * timer, then a scroll listener, then a frame loop, none of which worked.
+     * The original does.
+     */
+    <ContainerScroll className="h-[210vh]">
+      <ContainerSticky
+        className={cn("overflow-hidden", isDark ? "bg-[#171327]" : "bg-[#f7eaff]")}
+      >
       <div className="absolute inset-0">
         {/* The pastel wash, under everything, in light mode only. The dark
             opening is built on near-black and every layer above it adds light;
@@ -309,10 +236,11 @@ function IntroStage({
 
               Reduced motion gets it open and still, since the whole gesture is
               motion. */}
-          <div
-            ref={panelRef}
-            className="pointer-events-none absolute inset-0 overflow-hidden"
-            style={{ clipPath: "inset(18% 12% 18% 12% round 420px)" }}
+          <ContainerInset
+            className="absolute inset-0"
+            insetYRange={[18, 0]}
+            insetXRange={[12, 0]}
+            roundednessRange={[420, 0]}
           >
             {/* The same shader in both themes, inverted for the pastel one.
                 It draws white bands on black, so on a light background it can
@@ -337,7 +265,7 @@ function IntroStage({
                   "opacity-80 [filter:invert(1)_hue-rotate(180deg)_saturate(1.6)_contrast(1.35)] mix-blend-multiply",
               )}
             />
-          </div>
+          </ContainerInset>
           {/* The shader runs to near-white in places, so the title needs
               something behind it. Strongest in the middle where the copy sits,
               clearing toward the edges so the animation is still the star. */}
@@ -428,8 +356,8 @@ function IntroStage({
         <X className="h-3.5 w-3.5" />
         Skip
       </button>
-    </div>
-    </div>
+      </ContainerSticky>
+    </ContainerScroll>
   );
 }
 

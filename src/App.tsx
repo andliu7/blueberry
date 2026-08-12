@@ -998,7 +998,9 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
         subtitle={deck.subtitle}
         ghostWord={deck.titleLines[0]}
         motif={deck.motif}
-        topLeft={<HomeBlueberry />}
+        // Up one level to the library rather than all the way home: leaving a
+        // deck almost always means picking a different one.
+        topLeft={<HomeBlueberry to="#/study-decks" label="All study decks" />}
       />
 
       {/* The curtain: rides over the hero on its own background, with a rounded
@@ -1295,7 +1297,7 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
             // taking it out of flow avoids entirely.
             <div className="fixed inset-0 z-[110] flex flex-col bg-[#f6f4ef] px-4 py-5 dark:bg-[#0c0a09]">
               <div className="mx-auto flex w-full max-w-3xl items-center gap-3">
-                <HomeBlueberry />
+                <HomeBlueberry to="#/study-decks" label="All study decks" />
                 <span className="font-mono text-xs text-slate-400 dark:text-stone-500">
                   {safeCarouselIndex + 1} / {carouselTotal}
                 </span>

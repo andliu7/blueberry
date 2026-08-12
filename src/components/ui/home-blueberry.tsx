@@ -36,13 +36,30 @@ function alreadyUsed(): boolean {
   }
 }
 
-export function HomeBlueberry({ className }: { className?: string }) {
+export function HomeBlueberry({
+  className,
+  to = "#/home",
+  label = "Home",
+}: {
+  className?: string;
+  /**
+   * Where the mark goes.
+   *
+   * Home from most places, but the deck pages send you up one level to the deck
+   * library instead. Leaving a deck almost always means picking a different
+   * one, and a mark that returns you to the front door makes that two
+   * navigations and a scroll past an opening you have already watched. Back is
+   * more useful than home when home is three screens above where you want to be.
+   */
+  to?: string;
+  label?: string;
+}) {
   const [used, setUsed] = useState(alreadyUsed);
 
   return (
     <span className="inline-flex items-center gap-2">
       <a
-        href="#/home"
+        href={to}
         onClick={() => {
           try {
             localStorage.setItem(USED_KEY, "1");
@@ -50,9 +67,11 @@ export function HomeBlueberry({ className }: { className?: string }) {
             /* ignore */
           }
           setUsed(true);
-          requestIntroReplay();
+          // Only the front door replays the opening; there is no opening on the
+          // deck library to replay.
+          if (to === "#/home") requestIntroReplay();
         }}
-        aria-label="Home"
+        aria-label={label}
         data-click-silent
         className={cn(
           "blueberry-glow-art group inline-flex rounded-full outline-none",
