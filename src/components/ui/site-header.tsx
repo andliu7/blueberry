@@ -67,6 +67,7 @@ export function SiteHeader({
    */
   onSearch,
   className,
+  bare = false,
 }: {
   category?: string | null;
   onCategoryClick?: () => void;
@@ -75,6 +76,15 @@ export function SiteHeader({
   onHome?: () => void;
   onSearch?: () => void;
   className?: string;
+  /**
+   * Render the row only, with no sticky shell, background or border.
+   *
+   * For when something else already owns the bar. `WindowChrome` morphs from a
+   * tab into the bar and hands this in as its contents; two stickies nested
+   * inside each other would pin the inner one to the outer one and the row
+   * would never move.
+   */
+  bare?: boolean;
 }) {
   const isDark = useIsDark();
   const reduce = useReducedMotion();
@@ -97,8 +107,8 @@ export function SiteHeader({
 
   return (
     <div
-      className={cn("sticky top-0 z-30 w-full", className)}
-      style={{
+      className={cn(bare ? "w-full" : "sticky top-0 z-30 w-full", className)}
+      style={bare ? undefined : {
         // Tinted from the page's own surface rather than a colour of its own, so
         // the bar reads as the page thickening rather than as a panel laid over
         // it. `color-mix` keeps `SURFACE` the single source for both.
@@ -111,7 +121,12 @@ export function SiteHeader({
         transition: "background 220ms ease-out, border-color 220ms ease-out",
       }}
     >
-      <div className="mx-auto flex max-w-5xl items-center gap-3 px-6 py-3">
+      <div
+        className={cn(
+          "mx-auto flex max-w-5xl items-center gap-3",
+          bare ? "px-0 py-0" : "px-6 py-3",
+        )}
+      >
         {/* Just a link home. This was a pill that sprang open into a row of
             destinations on hover; the Browse drawer covers that ground properly
             now, and a logo that runs away when you point at it was in the way of

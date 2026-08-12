@@ -27,7 +27,7 @@ import { reviewedCount } from "@/lib/progress";
 import { hasSeenIntro, markIntroSeen } from "@/lib/intro";
 import { deckCount } from "@/data/types";
 import { SITE_NAME, TRAINER_URL } from "@/data/site";
-import { cn } from "@/lib/utils";
+
 
 /**
  * The front door: three screens on one route, stacked and scrolled.
@@ -174,36 +174,17 @@ function Body({
 
   return (
     <>
-      {/* `SiteHeader` is already `sticky top-0`, and it sits after the opening
-          in the document — so it pins itself the moment the hero reaches the
-          top and is simply absent above that. No scroll arithmetic needed.
-          The wrapper exists only to fade it in once the opening has played;
-          `pointer-events-none` while invisible so it cannot be clicked from
-          over the intro. */}
-      {/* The window's top edge, above the bar and not sticky: you see it on
-          arrival, you scroll, it leaves, and the site bar takes over as the
-          thing pinned to the top. Two pieces of furniture doing one job in
-          sequence rather than both at once. */}
-      <motion.div
-        className="mx-auto max-w-5xl px-6"
-        initial={false}
-        animate={{ opacity: past ? 1 : 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <WindowChrome decks={decks} />
-      </motion.div>
-
-      <motion.div
-        className={cn("sticky top-0 z-40", !past && "pointer-events-none")}
-        initial={false}
-        animate={{ opacity: past ? 1 : 0 }}
-        transition={{ duration: 0.5 }}
-      >
+      {/* One object in two states: a tab at rest, the bar once stuck. The
+          morph is what makes them read as continuous rather than as one piece
+          of furniture replacing another at a visible seam. `SiteHeader` is
+          handed in as the bar's contents and fades up as the tab widens. */}
+      <WindowChrome decks={decks} visible={past}>
         <SiteHeader
+          bare
           browse={{ open: dash.isOpen, onToggle: () => dash.toggle("home") }}
           onSearch={() => dash.open("decks", { focusSearch: true })}
         />
-      </motion.div>
+      </WindowChrome>
 
       {/* Screen two: the hero, one viewport tall, mostly empty on purpose. */}
       <section

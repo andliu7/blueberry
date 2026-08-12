@@ -1,37 +1,38 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { ChevronDown } from "lucide-react";
 import { usePageFlip } from "@/components/ui/page-flip";
 import { ratingTally, type RatingTally } from "@/lib/progress";
 import { deckHref, type Deck } from "@/data/types";
+import { SITE_NAME } from "@/data/site";
 import { cn } from "@/lib/utils";
 
 /**
- * The top of the window, with the three lights in the corner.
+ * The window's top edge, which becomes the site's bar.
  *
- * It is a frame rather than a decoration. The page below it is a document that
- * scrolls forever; this says where the document *starts*, the way the title bar
- * of a window does, and it takes the corners with it — rounded at the top,
- * square everywhere else, so the edge is exact rather than a gradient fading
- * into the browser chrome.
+ * One object in two states rather than two objects handing over. At rest it is
+ * a tab: inset from the edges, rounded at the top, carrying the three lights
+ * and the site's name. As you scroll it widens to the full width, squares its
+ * corners, and its contents change to the bar's — search, the dashboard, the
+ * actions. Stuck, it is simply the bar.
  *
- * It is not sticky and is not meant to be. You see it on arrival, you scroll,
- * it leaves, and the site bar underneath takes over as the thing pinned to the
- * top. Two pieces of furniture doing one job in sequence rather than both at
- * once.
+ * The morph is what makes the two read as continuous. The previous version had
+ * a tab that scrolled away and a separate bar that pinned itself underneath,
+ * which is honest but reads as one piece of furniture being replaced by
+ * another at a seam you can see.
  *
- * **The lights are the site's own three.** Every card gets rated red, yellow or
- * green while you study, and those ratings used to exist only inside the deck
- * that produced them. Here they are counted across everything and — this is the
- * part that makes them worth having rather than a joke about macOS — the row
- * opens, and shows you which decks the flagged cards are actually in.
+ * **The lights are the site's own three**, not a macOS joke that happens to be
+ * three circles. Every card gets rated red, yellow or green while you study,
+ * and those ratings used to exist only inside the deck that produced them.
+ * Here they are counted across everything, and pressing one opens the row to
+ * show which decks the flagged cards are actually in.
  */
 
 const LIGHTS = [
   {
     key: "red" as const,
     label: "Shaky",
-    // The real macOS colours, because a near-miss on these reads as a mistake.
+    // The real macOS colours: a near miss on these reads as a mistake.
     dot: "#ff5f57",
     text: "text-rose-600 dark:text-rose-300",
     bar: "bg-rose-500",
@@ -54,18 +55,66 @@ const LIGHTS = [
 
 type LightKey = (typeof LIGHTS)[number]["key"];
 
-export function WindowChrome({ decks, className }: { decks: Deck[]; className?: string }) {
+/** How much scroll turns the tab into the bar. */
+const MORPH_DISTANCE = 140;
+
+export function WindowChrome({
+  decks,
+  children,
+  visible = true,
+  className,
+}: {
+  decks: Deck[];
+  /**
+   * Faded in once the opening has played.
+   *
+   * Taken as a prop rather than handled by a wrapper outside, because a
+   * wrapper is a box and this contains a `sticky` — which can only stick
+   * within its parent's box. Any element put around this to fade it would be
+   * as tall as the bar itself and the bar would scroll away inside it.
+   */
+  visible?: boolean;
+  /** The bar's own contents, revealed as the tab widens into it. */
+  children?: ReactNode;
+  className?: string;
+}) {
   const reduce = useReducedMotion();
   const flipTo = usePageFlip();
   const [open, setOpen] = useState<LightKey | null>(null);
 
   /**
-   * Every deck's ratings, read once.
+   * 0 while the tab is at rest, 1 once it has become the bar.
    *
-   * One localStorage hit per deck, so it is done here rather than inside the
-   * rows, and memoised on the list rather than recomputed whenever the panel
-   * opens and closes.
+   * A plain scroll listener, which is what the rest of this codebase uses and
+   * what demonstrably works here — `site-header` has driven its own background
+   * off one for months. Held in state rather than a motion value because the
+   * contents genuinely swap at the ends, which is a render rather than a style.
    */
+  const anchorRef = useRef<HTMLDivElement>(null);
+  const [morph, setMorph] = useState(0);
+
+  useEffect(() => {
+    if (reduce) {
+      setMorph(1);
+      return;
+    }
+    const read = () => {
+      const el = anchorRef.current;
+      if (!el) return;
+      // How far past its resting place the tab has been pushed. `top` goes
+      // negative as the anchor leaves; the sticky child stays put.
+      const past = -el.getBoundingClientRect().top;
+      setMorph(Math.min(1, Math.max(0, past / MORPH_DISTANCE)));
+    };
+    read();
+    window.addEventListener("scroll", read, { passive: true });
+    window.addEventListener("resize", read, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", read);
+      window.removeEventListener("resize", read);
+    };
+  }, [reduce]);
+
   const perDeck = useMemo(
     () => decks.map((deck) => ({ deck, tally: ratingTally(deck.id) })),
     [decks],
@@ -84,126 +133,175 @@ export function WindowChrome({ decks, className }: { decks: Deck[]; className?: 
     [perDeck],
   );
 
-  // Only the decks that actually hold cards of the open colour, worst first.
   const rows = useMemo(() => {
     if (!open) return [];
-    return perDeck
-      .filter((row) => row.tally[open] > 0)
-      .sort((a, b) => b.tally[open] - a.tally[open]);
+    return perDeck.filter((r) => r.tally[open] > 0).sort((a, b) => b.tally[open] - a.tally[open]);
   }, [open, perDeck]);
 
   const active = LIGHTS.find((l) => l.key === open);
+  const stuck = morph > 0.98;
 
   return (
-    <div className={cn("relative", className)}>
-      {/* The bar. Rounded at the top only: this is the top edge of a window,
-          not a floating card, so the bottom has to meet the page squarely. */}
-      <div className="flex h-11 items-center gap-2 rounded-t-2xl border-x border-t border-slate-200 bg-white/70 px-4 backdrop-blur dark:border-stone-800 dark:bg-stone-950/60">
-        <div className="flex items-center gap-2" role="group" aria-label="Your card ratings">
-          {LIGHTS.map((light) => {
-            const count = total[light.key];
-            const live = count > 0;
-            const isOpen = open === light.key;
-
-            return (
-              <button
-                key={light.key}
-                type="button"
-                disabled={!live}
-                onClick={() => setOpen(isOpen ? null : light.key)}
-                aria-expanded={isOpen}
-                title={
-                  live
-                    ? `${count} ${light.label.toLowerCase()} — click to see which decks`
-                    : `No ${light.label.toLowerCase()} cards yet`
-                }
-                aria-label={
-                  live
-                    ? `${count} ${light.label} cards. Show which decks they are in.`
-                    : `No ${light.label} cards yet`
-                }
-                className={cn(
-                  "group flex items-center gap-1.5 rounded-full transition-opacity focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:outline-none",
-                  live ? "cursor-pointer" : "cursor-default opacity-40",
-                )}
-              >
-                <span
-                  aria-hidden
-                  className={cn(
-                    "size-3 rounded-full ring-1 ring-black/10 transition-transform",
-                    live && "group-hover:scale-110",
-                    isOpen && "scale-110",
-                  )}
-                  style={{ backgroundColor: light.dot }}
-                />
-                <span
-                  className={cn(
-                    "font-mono text-[0.7rem] tabular-nums",
-                    live ? light.text : "text-slate-400 dark:text-stone-600",
-                  )}
-                >
-                  {count}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* The title, centred the way a window's is, and absolutely positioned
-            so the lights on the left cannot push it off centre. */}
-        <span className="pointer-events-none absolute inset-x-0 text-center font-mono text-[0.7rem] tracking-widest text-slate-400 uppercase dark:text-stone-500">
-          {open && active ? `${active.label} — ${rows.length} deck${rows.length === 1 ? "" : "s"}` : "blueberry"}
-        </span>
-      </div>
-
-      {/* What is behind the light. Rows rather than a number: the count says
-          you have work, this says where it is. */}
-      <AnimatePresence initial={false}>
-        {open && active && (
-          <motion.div
-            initial={reduce ? false : { height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={reduce ? undefined : { height: 0, opacity: 0 }}
-            transition={{ duration: 0.24, ease: "easeOut" }}
-            className="overflow-hidden border-x border-slate-200 bg-white/70 backdrop-blur dark:border-stone-800 dark:bg-stone-950/60"
+    /**
+     * The marker and the bar are siblings, not parent and child.
+     *
+     * They were nested, with the sticky bar inside a zero-height anchor, and
+     * the bar vanished the moment you scrolled past the hero. A sticky element
+     * can only stick *within its parent's box*: given a parent zero pixels
+     * tall, there is nowhere to stick to and it simply leaves with the scroll.
+     * As siblings the bar's parent is the page itself, which is as tall as the
+     * document, so it pins for the whole of it.
+     */
+    <>
+      <div ref={anchorRef} aria-hidden className={cn("h-0", className)} />
+      <div
+        className="sticky top-0 z-40 transition-opacity duration-500"
+        style={{ opacity: visible ? 1 : 0, pointerEvents: visible ? undefined : "none" }}
+      >
+        <div
+          className="mx-auto transition-none"
+          style={{
+            // Inset at rest, full bleed once stuck. Interpolated rather than
+            // switched, so the widening is the animation.
+            maxWidth: `calc(64rem + (100vw - 64rem) * ${morph})`,
+            paddingLeft: `${1.5 * (1 - morph)}rem`,
+            paddingRight: `${1.5 * (1 - morph)}rem`,
+          }}
+        >
+          <div
+            className={cn(
+              "flex h-12 items-center gap-3 border-x border-t px-4 backdrop-blur",
+              "border-slate-200 bg-white/75 dark:border-stone-800 dark:bg-stone-950/70",
+              stuck && "border-b",
+            )}
+            style={{
+              // Rounded as a tab, square as a bar.
+              borderTopLeftRadius: `${16 * (1 - morph)}px`,
+              borderTopRightRadius: `${16 * (1 - morph)}px`,
+            }}
           >
-            <ul className="divide-y divide-slate-100 dark:divide-stone-900">
-              {rows.map(({ deck, tally }) => {
-                const rated = tally.red + tally.yellow + tally.green;
-                const share = rated > 0 ? Math.round((tally[active.key] / rated) * 100) : 0;
+            <div className="flex shrink-0 items-center gap-2" role="group" aria-label="Your card ratings">
+              {LIGHTS.map((light) => {
+                const count = total[light.key];
+                const live = count > 0;
+                const isOpen = open === light.key;
                 return (
-                  <li key={deck.id}>
-                    <button
-                      type="button"
-                      onClick={() => flipTo(deckHref(deck))}
-                      className="flex w-full cursor-pointer items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors hover:bg-slate-50 dark:hover:bg-stone-900"
+                  <button
+                    key={light.key}
+                    type="button"
+                    disabled={!live}
+                    onClick={() => setOpen(isOpen ? null : light.key)}
+                    aria-expanded={isOpen}
+                    title={
+                      live
+                        ? `${count} ${light.label.toLowerCase()} — click to see which decks`
+                        : `No ${light.label.toLowerCase()} cards yet`
+                    }
+                    aria-label={
+                      live
+                        ? `${count} ${light.label} cards. Show which decks they are in.`
+                        : `No ${light.label} cards yet`
+                    }
+                    className={cn(
+                      "group flex items-center gap-1.5 rounded-full focus-visible:ring-2 focus-visible:outline-none",
+                      live ? "cursor-pointer" : "cursor-default opacity-40",
+                    )}
+                  >
+                    <span
+                      aria-hidden
+                      className={cn(
+                        "size-3 rounded-full ring-1 ring-black/10 transition-transform",
+                        live && "group-hover:scale-110",
+                        isOpen && "scale-110",
+                      )}
+                      style={{ backgroundColor: light.dot }}
+                    />
+                    <span
+                      className={cn(
+                        "font-mono text-[0.7rem] tabular-nums",
+                        live ? light.text : "text-slate-400 dark:text-stone-600",
+                      )}
                     >
-                      <span className="min-w-0 flex-1 truncate">{deck.title}</span>
-                      <span className={cn("shrink-0 font-mono text-xs tabular-nums", active.text)}>
-                        {tally[active.key]}
-                      </span>
-                      {/* The share of this deck's rated cards wearing this
-                          colour, so a deck with 4 of 6 red reads as worse than
-                          one with 6 of 60. */}
-                      <span
-                        aria-hidden
-                        className="hidden h-1.5 w-16 shrink-0 overflow-hidden rounded-full bg-slate-200 sm:block dark:bg-stone-800"
-                      >
-                        <span
-                          className={cn("block h-full rounded-full", active.bar)}
-                          style={{ width: `${share}%` }}
-                        />
-                      </span>
-                      <ChevronDown className="size-3.5 shrink-0 -rotate-90 text-slate-400" />
-                    </button>
-                  </li>
+                      {count}
+                    </span>
+                  </button>
                 );
               })}
-            </ul>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+            </div>
+
+            {/* The name at rest, the bar's own controls once stuck. They
+                cross-fade in the same box so the swap happens inside a shape
+                that is already moving, rather than as a second event. */}
+            <div className="relative min-w-0 flex-1">
+              <span
+                aria-hidden={stuck}
+                style={{ opacity: 1 - Math.min(1, morph * 1.6) }}
+                className="pointer-events-none absolute inset-0 flex items-center justify-center font-mono text-[0.7rem] tracking-widest text-slate-400 uppercase dark:text-stone-500"
+              >
+                {open && active
+                  ? `${active.label} — ${rows.length} deck${rows.length === 1 ? "" : "s"}`
+                  : SITE_NAME}
+              </span>
+              <div
+                style={{ opacity: Math.max(0, (morph - 0.45) / 0.55) }}
+                className={cn("min-w-0", !stuck && "pointer-events-none")}
+              >
+                {children}
+              </div>
+            </div>
+          </div>
+
+          {/* What is behind the light. Rows rather than a number: the count
+              says you have work, this says where it is. */}
+          <AnimatePresence initial={false}>
+            {open && active && (
+              <motion.div
+                initial={reduce ? false : { height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={reduce ? undefined : { height: 0, opacity: 0 }}
+                transition={{ duration: 0.24, ease: "easeOut" }}
+                className="overflow-hidden border-x border-b border-slate-200 bg-white/75 backdrop-blur dark:border-stone-800 dark:bg-stone-950/70"
+              >
+                <ul className="divide-y divide-slate-100 dark:divide-stone-900">
+                  {rows.map(({ deck, tally }) => {
+                    const rated = tally.red + tally.yellow + tally.green;
+                    const share = rated > 0 ? Math.round((tally[active.key] / rated) * 100) : 0;
+                    return (
+                      <li key={deck.id}>
+                        <button
+                          type="button"
+                          onClick={() => flipTo(deckHref(deck))}
+                          className="flex w-full cursor-pointer items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors hover:bg-slate-50 dark:hover:bg-stone-900"
+                        >
+                          <span className="min-w-0 flex-1 truncate">{deck.title}</span>
+                          <span
+                            className={cn("shrink-0 font-mono text-xs tabular-nums", active.text)}
+                          >
+                            {tally[active.key]}
+                          </span>
+                          {/* This deck's share of the colour, so 4 of 6 red
+                              reads as worse than 6 of 60. */}
+                          <span
+                            aria-hidden
+                            className="hidden h-1.5 w-16 shrink-0 overflow-hidden rounded-full bg-slate-200 sm:block dark:bg-stone-800"
+                          >
+                            <span
+                              className={cn("block h-full rounded-full", active.bar)}
+                              style={{ width: `${share}%` }}
+                            />
+                          </span>
+                          <ChevronDown className="size-3.5 shrink-0 -rotate-90 text-slate-400" />
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+    </>
   );
 }
 
