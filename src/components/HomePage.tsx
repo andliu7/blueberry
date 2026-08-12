@@ -198,6 +198,16 @@ function Body({
         className="relative mx-auto flex min-h-svh max-w-5xl flex-col justify-center px-6 pb-16"
         style={{ scrollMarginTop: 0 }}
       >
+        {/* Top left of the screen the opening hands to.
+
+            `top-24` rather than `top-6`: the site bar is sticky and about 69px
+            tall, so anything less puts this underneath it the moment the hero
+            reaches the top of the window — present in the DOM, invisible on the
+            screen, which is the most annoying kind of missing.
+
+            First in reading order on this screen, which is right for a status
+            you glance at before deciding what to open. */}
+        <ConfidenceLights decks={decks} className="absolute top-24 left-6 z-10" />
         <div className="grid items-center gap-8 lg:grid-cols-[1fr_auto] lg:gap-12">
           <div>
             {/*
@@ -231,10 +241,6 @@ function Body({
               </h1>
             </a>
 
-            {/* The lights, under the name: the first thing worth deciding when
-                you arrive is which deck to open, and these answer that from
-                ratings you have already given. */}
-            <ConfidenceLights decks={decks} className="mt-8" />
           </div>
 
           {/* Sized in rem rather than by aspect, so it holds its place before

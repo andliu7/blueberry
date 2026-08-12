@@ -27,8 +27,6 @@ import { cn } from "@/lib/utils";
  * dependency: the thing that covers the load must not be part of the load.
  */
 
-/** The wordmark, uppercased, the same way the opening spells it. */
-const SITE_WORD = SITE_NAME.toUpperCase();
 
 /**
  * True once it is fair to start the opening.
@@ -71,7 +69,7 @@ export function BlueberryLoader({ className }: { className?: string }) {
     <motion.div
       // Its own surface rather than a transparent overlay, so there is never a
       // frame where the page underneath shows through half-built.
-      className={cn("fixed inset-0 z-[60] flex flex-col items-center justify-center gap-9", className)}
+      className={cn("fixed inset-0 z-[60] flex items-center justify-center", className)}
       style={{ backgroundColor: surface.base, backgroundImage: surface.gradient }}
       role="status"
       aria-live="polite"
@@ -83,19 +81,15 @@ export function BlueberryLoader({ className }: { className?: string }) {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.45, ease: "easeOut" }}
     >
-      <span
-        className={cn(
-          // Letter-spacing adds the gap after the last letter too, which walks
-          // the word off centre by half a space. The negative margin takes it
-          // back rather than leaving the wordmark visibly left of the blob.
-          "title-face -mr-[0.42em] text-3xl tracking-[0.42em] uppercase sm:text-4xl",
-          isDark ? "text-white/85" : "text-slate-700",
-        )}
-      >
-        {SITE_WORD}
-      </span>
+      {/* The blob, centred, and nothing else.
 
-      {/* The site's own ramp rather than the component's shadcn defaults, so
+          The name used to sit above it. It was saying the same word the
+          opening was about to spell out in particles two seconds later, so the
+          loading screen was a spoiler for the thing it was covering. A shape
+          with no text is also the only version that says nothing at all in any
+          language, which is the honest content of a wait.
+
+          The site's own ramp rather than the component's shadcn defaults, so
           the loader is already wearing the palette the opening continues in.
           The line is dimmer on the dark surface, where a light rule reads as a
           bright bar across the screen rather than as a track. */}
@@ -107,6 +101,8 @@ export function BlueberryLoader({ className }: { className?: string }) {
         className="text-base sm:text-lg"
       />
 
+      {/* The only text, and only for screen readers, which get nothing at all
+          from a blob. */}
       <span className="sr-only">Loading {SITE_NAME}</span>
     </motion.div>
   );

@@ -59,8 +59,24 @@ export function ConfidenceLights({ decks, className }: { decks: Deck[]; classNam
   const byId = useMemo(() => new Map(decks.map((d) => [d.id, d])), [decks]);
   const rated = total.red + total.yellow + total.green;
 
+  /**
+   * One pill, three segments.
+   *
+   * They were three separate pills with their names written out, which took a
+   * whole line under the title and competed with it. Compacted into a single
+   * control the row reads as one instrument — three lights on a panel — and the
+   * words move into the tooltip and the accessible name, where they are still
+   * available to anyone who needs them and out of the way of everyone else.
+   */
   return (
-    <div className={cn("flex flex-wrap items-center gap-2", className)}>
+    <div
+      className={cn(
+        "inline-flex items-center gap-0.5 rounded-full border border-slate-200 bg-white/70 p-1 backdrop-blur dark:border-stone-800 dark:bg-stone-950/60",
+        className,
+      )}
+      role="group"
+      aria-label="Your card ratings across every deck"
+    >
       {LIGHTS.map((light) => {
         const count = total[light.key];
         const targetId = worst[light.key];
@@ -73,34 +89,37 @@ export function ConfidenceLights({ decks, className }: { decks: Deck[]; classNam
             type="button"
             disabled={!live}
             onClick={() => target && flipTo(deckHref(target))}
-            title={live ? `${light.hint}: ${target!.title}` : "Nothing rated this colour yet"}
+            title={
+              live
+                ? `${count} ${light.label.toLowerCase()} — ${light.hint}: ${target!.title}`
+                : `No ${light.label.toLowerCase()} cards yet`
+            }
             aria-label={
               live
                 ? `${count} ${light.label} cards. ${light.hint}: ${target!.title}`
                 : `No ${light.label} cards yet`
             }
             className={cn(
-              "group inline-flex min-h-11 items-center gap-2.5 rounded-full border px-4 transition-colors focus-visible:ring-2 focus-visible:outline-none",
+              "group inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 transition-colors focus-visible:ring-2 focus-visible:outline-none",
               live
-                ? cn(
-                    "cursor-pointer border-slate-200 bg-white/70 dark:border-stone-800 dark:bg-stone-950/60",
-                    light.ring,
-                  )
-                : "cursor-not-allowed border-dashed border-slate-200 opacity-50 dark:border-stone-800",
+                ? "cursor-pointer hover:bg-slate-100 dark:hover:bg-stone-800"
+                : "cursor-not-allowed",
+              light.ring,
             )}
           >
             <span
               aria-hidden
               className={cn(
-                "size-2.5 shrink-0 rounded-full transition-transform",
+                "size-2 shrink-0 rounded-full transition-transform",
                 light.dot,
-                live && "group-hover:scale-125",
-                !live && "opacity-50",
+                live ? "group-hover:scale-125" : "opacity-40",
               )}
             />
-            <span className="text-sm font-semibold">{light.label}</span>
             <span
-              className={cn("font-mono text-xs tabular-nums", live ? light.text : "text-slate-400")}
+              className={cn(
+                "font-mono text-xs tabular-nums",
+                live ? light.text : "text-slate-400 dark:text-stone-600",
+              )}
             >
               {count}
             </span>
@@ -109,9 +128,9 @@ export function ConfidenceLights({ decks, className }: { decks: Deck[]; classNam
       })}
 
       {rated === 0 && (
-        <p className="ml-1 text-sm text-slate-500 dark:text-stone-400">
-          Rate a few cards and these become shortcuts.
-        </p>
+        <span className="px-2 font-mono text-[0.65rem] text-slate-400 dark:text-stone-500">
+          rate cards to fill these
+        </span>
       )}
     </div>
   );
