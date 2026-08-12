@@ -18,11 +18,10 @@ import { Blueberry } from "@/components/ui/blueberry";
 import { BentoTile } from "@/components/ui/bento-tile";
 import { WindowChrome } from "@/components/ui/window-chrome";
 import { SiteFooter } from "@/components/ui/site-footer";
+import { PageBackground } from "@/components/ui/page-background";
 import { Testimonials } from "@/components/ui/testimonials";
 import { usePageCurtain } from "@/components/ui/page-flip";
 import { moodForProgress } from "@/lib/berryMood";
-import { SURFACE } from "@/lib/hubSurface";
-import { useIsDark } from "@/lib/useIsDark";
 import { useDecks } from "@/lib/useDecks";
 import { reviewedCount } from "@/lib/progress";
 import { hasSeenIntro, markIntroSeen } from "@/lib/intro";
@@ -51,8 +50,6 @@ import { SITE_NAME, TRAINER_URL } from "@/data/site";
  * putting it here would mean every visit to home loads the whole library.
  */
 export function HomePage() {
-  const isDark = useIsDark();
-  const surface = isDark ? SURFACE.dark : SURFACE.light;
   const reduce = useReducedMotion();
 
   /** Fonts are in and the floor has passed; fair to start animating. */
@@ -109,8 +106,12 @@ export function HomePage() {
       // whether it is light or dark, and a heading with no colour of its own
       // inherits near-black onto near-black.
       className="relative text-slate-900 dark:text-stone-100"
-      style={{ backgroundColor: surface.base, backgroundImage: surface.gradient }}
+      // No surface colour here any more: `PageBackground` paints the photograph
+      // and lays the same `SURFACE` gradient over it, so setting one here as
+      // well would put an opaque sheet between the two.
     >
+      <PageBackground />
+
       <AnimatePresence>{!loaded && <BlueberryLoader key="loader" />}</AnimatePresence>
 
       {/* Screen one, and it stays. */}

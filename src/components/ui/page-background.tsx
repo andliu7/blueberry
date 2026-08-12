@@ -1,0 +1,167 @@
+import { useEffect, useMemo, useState } from "react";
+import { useIsDark } from "@/lib/useIsDark";
+import { SURFACE } from "@/lib/hubSurface";
+import { cn } from "@/lib/utils";
+
+/**
+ * A photograph behind the page, treated until it is atmosphere.
+ *
+ * The rule this is built around: **an untreated photograph and a page of text
+ * cannot both be the subject.** A landscape at full contrast behind
+ * `blueberry.` would win, and the site would become a picture with some words
+ * on it. So every image is desaturated, darkened and blurred before it is shown
+ * — enough that it reads as weather rather than as a view, and the type sits on
+ * it without a scrim fighting for the same job.
+ *
+ * **The blueberries are blended, not pasted.** The berry photographs are
+ * photographs, not cut-outs: dropping one on a landscape gives you a rectangle
+ * of someone else's kitchen table. Instead a berry frame is masked to a soft
+ * radial and composited with `screen`, which keeps its highlights and discards
+ * its background — the double-exposure trick, and the one compositing move that
+ * survives having no alpha channel to work with. Small and low, because a berry
+ * the size of a mountain is a poster, not a background.
+ *
+ * Nothing here is fetched from anywhere. The images live in `public/backgrounds`
+ * and ship with the site: no key, no quota, no request that can fail.
+ */
+
+interface BackgroundEntry {
+  file: string;
+  kind: "landscape" | "berry";
+  label: string;
+  w: number;
+  h: number;
+  /** A 20px blurred copy, inlined, so something paints on the first frame. */
+  blur: string;
+}
+
+/**
+ * Which landscape, decided by the clock.
+ *
+ * A stand-in for the weather lookup, and deliberately the same shape: one
+ * function from the world to a filename, so swapping "what time is it" for
+ * "what is it doing outside" later is a change in one place rather than a new
+ * system. See the note in the README on Open-Meteo — one fetch, no key.
+ */
+function pickForHour(entries: BackgroundEntry[], hour: number): BackgroundEntry | undefined {
+  const landscapes = entries.filter((e) => e.kind === "landscape");
+  if (landscapes.length === 0) return undefined;
+
+  const wants = (...words: string[]) =>
+    landscapes.filter((e) => words.some((w) => e.label.includes(w)));
+
+  const pool =
+    hour < 5 || hour >= 21
+      ? wants("stars", "milky", "constellations", "aurora", "purple")
+      : hour < 9
+        ? wants("morning", "sunrise", "misty", "cloudy")
+        : hour < 17
+          ? wants("meadow", "field", "valley", "mountains", "beach", "waves", "tree")
+          : wants("sunset", "autumn", "dusk", "purple");
+
+  const from = pool.length > 0 ? pool : landscapes;
+  // Stable within the hour rather than random per render, or the background
+  // would change every time React felt like it.
+  return from[hour % from.length];
+}
+
+export function PageBackground({ className }: { className?: string }) {
+  const isDark = useIsDark();
+  const surface = isDark ? SURFACE.dark : SURFACE.light;
+  const [entries, setEntries] = useState<BackgroundEntry[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void fetch(`${import.meta.env.BASE_URL}backgrounds/manifest.json`)
+      .then((r) => (r.ok ? r.json() : []))
+      .then((data: BackgroundEntry[]) => {
+        if (!cancelled && Array.isArray(data)) setEntries(data);
+      })
+      // A background is decoration: if the manifest is missing, the page keeps
+      // its plain surface and nobody is told about it.
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const scene = useMemo(() => pickForHour(entries, new Date().getHours()), [entries]);
+  const berry = useMemo(() => {
+    const berries = entries.filter((e) => e.kind === "berry");
+    if (berries.length === 0) return undefined;
+    return berries[new Date().getHours() % berries.length];
+  }, [entries]);
+
+  const base = `${import.meta.env.BASE_URL}backgrounds/`;
+
+  return (
+    <div aria-hidden className={cn("pointer-events-none fixed inset-0 -z-10", className)}>
+      {/* The page's own colour underneath everything, so the treated photo has
+          something to sit on and the surface still shows through it. */}
+      <div className="absolute inset-0" style={{ backgroundColor: surface.base }} />
+
+      {scene && (
+        <>
+          {/* The blurred thumbnail, painted immediately. The full image fades
+              over it, so there is never a frame of flat colour. */}
+          <div
+            className="absolute inset-0 bg-cover bg-center"
+            style={{ backgroundImage: `url(${scene.blur})` }}
+          />
+          <img
+            src={base + scene.file}
+            alt=""
+            loading="eager"
+            decoding="async"
+            className={cn(
+              "absolute inset-0 h-full w-full object-cover transition-opacity duration-700",
+              // The treatment. Heavier in dark mode, where the page is nearly
+              // black and any photograph is by definition the brightest thing
+              // on it.
+              isDark
+                ? "opacity-[0.22] saturate-[0.55] brightness-[0.55] blur-[2px]"
+                : "opacity-[0.30] saturate-[0.7] brightness-[1.05] blur-[2px]",
+            )}
+          />
+        </>
+      )}
+
+      {/* The berry, blended rather than pasted. `screen` keeps the lit fruit and
+          drops the dark ground it was photographed against; the radial mask
+          feathers the frame's edges so there is no rectangle. Small, low, and
+          off to one side — it is a note in the corner of the picture. */}
+      {berry && (
+        <img
+          src={base + berry.file}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          className="absolute bottom-[-6%] left-[-4%] h-[42vh] w-[42vh] object-cover opacity-40 mix-blend-screen saturate-150"
+          style={{
+            maskImage: "radial-gradient(closest-side, black 35%, transparent 78%)",
+            WebkitMaskImage: "radial-gradient(closest-side, black 35%, transparent 78%)",
+          }}
+        />
+      )}
+
+      {/* Grain over everything, so the photograph and the page share one noise
+          field. Without it the type looks pasted onto the picture rather than
+          printed on the same paper. An inline SVG turbulence: no image request,
+          and it tiles for free. */}
+      <div
+        className="absolute inset-0 opacity-[0.14] mix-blend-overlay"
+        style={{
+          backgroundImage:
+            "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E\")",
+        }}
+      />
+
+      {/* The page's gradient last, holding the middle of the screen for the
+          type. Same values `SURFACE` gives every other page, so the photograph
+          is added underneath the site rather than replacing its surface. */}
+      <div className="absolute inset-0" style={{ backgroundImage: surface.gradient, opacity: 0.72 }} />
+    </div>
+  );
+}
+
+export default PageBackground;
