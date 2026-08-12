@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
-import { BlueberryMark } from "@/components/ui/blueberry-mark";
+import { GooeyLoader } from "@/components/ui/loader-10";
 import { SURFACE } from "@/lib/hubSurface";
 import { useIsDark } from "@/lib/useIsDark";
 import { SITE_NAME } from "@/data/site";
@@ -9,16 +9,22 @@ import { cn } from "@/lib/utils";
 /**
  * The screen that holds the door shut while the opening gets itself ready.
  *
- * The name, and a blueberry that has not settled on its outline yet. It exists
- * because the hub used to arrive mid-stutter: the particle canvas, a WebGL
- * shader and an aurora all start on the same frame as the first paint, and the
- * opening's first beat was landing while the browser was still busy. A held
- * frame that is deliberately simple is better than an animated one that is
- * visibly late.
+ * The name, and two blobs running along a line. It exists because the hub used
+ * to arrive mid-stutter: the particle canvas, a WebGL shader and an aurora all
+ * start on the same frame as the first paint, and the opening's first beat was
+ * landing while the browser was still busy. A held frame that is deliberately
+ * simple is better than an animated one that is visibly late.
  *
- * Everything here is CSS and one div. No canvas, no WebGL, no dependency: the
- * thing that covers the load must not be part of the load. See `.berry-blob` in
- * `index.css` for the morph.
+ * **It does not turn into the berry.** It did for a while — the blob settled
+ * into the mark before leaving, on the theory that the loader, the opening and
+ * the mascot should read as one object arriving. It was a nice idea and it did
+ * not feel right: the resolve asked the eye to watch a second small event
+ * immediately before the real one, and the opening's swarm forming the berry is
+ * a far better version of the same beat. The loader now does one thing and
+ * hands over.
+ *
+ * Everything here is CSS and one SVG filter. No canvas, no WebGL, no new
+ * dependency: the thing that covers the load must not be part of the load.
  */
 
 /** The wordmark, uppercased, the same way the opening spells it. */
@@ -57,23 +63,7 @@ export function useLoaderHold(minMs = 600) {
   return held;
 }
 
-export function BlueberryLoader({
-  className,
-  resolved = false,
-}: {
-  className?: string;
-  /**
-   * The wait is over: settle the blob into the berry before leaving.
-   *
-   * This is the join between the three things that used to be separate objects
-   * — a loading shape, an opening animation and a mascot. The blob is not a
-   * spinner that gets replaced by a berry; it *is* the berry, before it has
-   * decided on an outline. Holding that beat for a moment before the exit is
-   * what makes the intro's swarm read as the same character arriving rather
-   * than a third unrelated thing.
-   */
-  resolved?: boolean;
-}) {
+export function BlueberryLoader({ className }: { className?: string }) {
   const isDark = useIsDark();
   const surface = isDark ? SURFACE.dark : SURFACE.light;
 
@@ -105,33 +95,17 @@ export function BlueberryLoader({
         {SITE_WORD}
       </span>
 
-      {/* The blob and the berry occupy exactly the same box, and trade places.
-          Same size, same centre, so the crossfade reads as one shape resolving
-          rather than two shapes swapping. */}
-      <div aria-hidden className="relative h-20 w-20 sm:h-24 sm:w-24">
-        <div
-          className={cn(
-            "berry-blob absolute inset-0 transition-opacity duration-500",
-            resolved ? "opacity-0" : "opacity-100",
-          )}
-          style={{
-            // The ramp the rest of the site uses on links and card edges, so the
-            // loader arrives in the palette the opening is about to continue in.
-            backgroundImage: "linear-gradient(135deg, #6366f1 0%, #d946ef 100%)",
-            boxShadow: isDark
-              ? "0 18px 50px -12px rgba(99,102,241,0.55)"
-              : "0 18px 50px -14px rgba(99,102,241,0.45)",
-          }}
-        />
-        <BlueberryMark
-          eyes
-          mood="sleepy"
-          className={cn(
-            "absolute inset-0 h-full w-full drop-shadow-xl transition-opacity duration-500",
-            resolved ? "opacity-100" : "opacity-0",
-          )}
-        />
-      </div>
+      {/* The site's own ramp rather than the component's shadcn defaults, so
+          the loader is already wearing the palette the opening continues in.
+          The line is dimmer on the dark surface, where a light rule reads as a
+          bright bar across the screen rather than as a track. */}
+      <GooeyLoader
+        aria-hidden
+        primaryColor="#6366f1"
+        secondaryColor="#d946ef"
+        borderColor={isDark ? "rgba(226, 232, 240, 0.18)" : "rgba(100, 116, 139, 0.28)"}
+        className="text-base sm:text-lg"
+      />
 
       <span className="sr-only">Loading {SITE_NAME}</span>
     </motion.div>

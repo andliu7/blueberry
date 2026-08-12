@@ -45,22 +45,14 @@ export function HomePage() {
   const surface = isDark ? SURFACE.dark : SURFACE.light;
   const reduce = useReducedMotion();
 
-  /** Fonts are in and the floor has passed; fair to start animating. */
-  const ready = useLoaderHold();
-
   /**
-   * The loader stays a beat past being ready, to settle the blob into the berry.
+   * Fonts are in and the floor has passed; fair to start animating.
    *
-   * Without the gap the shape would resolve and be gone in the same frame,
-   * which is no resolve at all — the join between the loader and the opening is
-   * the whole point of holding at all.
+   * There used to be a second, longer hold stacked on this one so the blob had
+   * time to settle into the berry before leaving. The blob does not become the
+   * berry any more, so the extra wait was buying nothing but a slower door.
    */
-  const [loaded, setLoaded] = useState(false);
-  useEffect(() => {
-    if (!ready) return;
-    const t = setTimeout(() => setLoaded(true), 620);
-    return () => clearTimeout(t);
-  }, [ready]);
+  const loaded = useLoaderHold();
 
   /**
    * Read once on mount, before the mark below is set, so a first arrival still
@@ -84,9 +76,7 @@ export function HomePage() {
       className="relative min-h-screen text-slate-900 dark:text-stone-100"
       style={{ backgroundColor: surface.base, backgroundImage: surface.gradient }}
     >
-      <AnimatePresence>
-        {!loaded && <BlueberryLoader key="loader" resolved={ready} />}
-      </AnimatePresence>
+      <AnimatePresence>{!loaded && <BlueberryLoader key="loader" />}</AnimatePresence>
 
       {loaded && !entered && (
         <HomeIntro
