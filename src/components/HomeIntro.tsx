@@ -341,7 +341,18 @@ export function HomeIntro({
    * Guarded on the target, or typing a space into the deck search underneath
    * would dismiss the opening from a field the visitor is looking at.
    */
+  // Nothing to wait for when the sequence is not going to run.
+  const [ready, setReady] = useState(settled);
+
   useEffect(() => {
+    // Only while there is something to skip.
+    //
+    // The opening is a section of the home page now rather than an overlay that
+    // unmounts, so this listener would otherwise stay bound for as long as the
+    // page is open — and Space is how people scroll. Pressing it halfway down
+    // the board would have thrown them back to the top.
+    if (ready) return;
+
     const onKey = (e: KeyboardEvent) => {
       const el = e.target as HTMLElement | null;
       if (el?.closest("input, textarea, [contenteditable='true']")) return;
@@ -352,10 +363,7 @@ export function HomeIntro({
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onSkip]);
-
-  // Nothing to wait for when the sequence is not going to run.
-  const [ready, setReady] = useState(settled);
+  }, [onSkip, ready]);
 
   const onCompleteRef = useRef(onComplete);
   onCompleteRef.current = onComplete;

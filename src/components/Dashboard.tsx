@@ -305,10 +305,12 @@ export function Dashboard({
           active={view === "categories"}
           onHeaderClick={() => go("categories")}
         >
+          {/* Not muted any more: the carbonyl lessons are written and have a
+              page. A nav that still says "soon" about something you can open is
+              worse than one that never mentioned it. */}
           <SidebarNavItem
             icon={<BookOpen className="size-4" />}
             label="Lessons"
-            muted
             active={view === "lessons"}
             onClick={() => go("lessons")}
           />
