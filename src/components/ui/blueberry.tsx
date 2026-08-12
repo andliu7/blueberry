@@ -109,7 +109,7 @@ export function Blueberry({
       <div
         aria-hidden
         className={cn(
-          "absolute inset-0 flex items-center justify-center transition-opacity duration-500",
+          "pointer-events-none absolute inset-0 flex items-center justify-center transition-opacity duration-500",
           live ? "opacity-0" : "opacity-100",
         )}
       >

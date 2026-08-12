@@ -4,6 +4,7 @@ import { GradientMenuButton } from "@/components/ui/gradient-menu";
 import { GithubMark, LinkedinMark } from "@/components/ui/brand-marks";
 import { SiteHeader } from "@/components/ui/site-header";
 import { FeedbackButton } from "@/components/FeedbackButton";
+import { SiteFooter } from "@/components/ui/site-footer";
 import { EMAIL, GITHUB_URL, LINKEDIN_URL, REPO_URL } from "@/data/site";
 import { SURFACE } from "@/lib/hubSurface";
 import { useIsDark } from "@/lib/useIsDark";
@@ -102,6 +103,8 @@ export function ContactPage() {
       </div>
 
       <FeedbackButton />
+    
+      <SiteFooter />
     </main>
   );
 }

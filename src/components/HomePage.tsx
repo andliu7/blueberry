@@ -211,8 +211,26 @@ function Body({
         className="relative mx-auto flex min-h-svh max-w-5xl flex-col justify-center px-6 pb-16"
         style={{ scrollMarginTop: 0 }}
       >
-        <div className="grid items-center gap-8 lg:grid-cols-[1fr_auto] lg:gap-12">
-          <div>
+        {/*
+          Framed on thirds rather than centred.
+
+          A twelve-column grid read as thirds: the wordmark occupies the left
+          two thirds and sits on the lower-third line, the berry occupies the
+          right third and sits on the upper-third line. That puts the two on
+          opposite intersections of the same frame, which is what stops a
+          left-aligned title beside a right-aligned object from reading as two
+          things that merely failed to collide.
+
+          The berry is above the eye line and the word below it on purpose: the
+          subject looks down into the frame and the type sits under it, so the
+          space between them belongs to the composition rather than being
+          leftover margin.
+
+          It collapses to a single centred column below `lg`, where there is no
+          horizontal room for thirds and the two would simply squash.
+        */}
+        <div className="grid items-center gap-8 lg:min-h-[58vh] lg:grid-cols-12 lg:gap-6">
+          <div className="lg:col-span-8 lg:self-end lg:pb-[8vh]">
             {/*
               The title is a link, and it goes back to the opening.
 
@@ -252,7 +270,8 @@ function Body({
           <Blueberry
             mood={heroMood}
             trackWindow
-            className="mx-auto h-52 w-52 sm:h-64 sm:w-64 lg:mx-0"
+            interactive
+            className="mx-auto h-52 w-52 sm:h-64 sm:w-64 lg:col-span-4 lg:mx-0 lg:self-start lg:justify-self-center lg:pt-[6vh]"
             label="Blueberry, the site's mascot. Drag to spin, click to poke."
           />
         </div>

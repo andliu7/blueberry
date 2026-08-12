@@ -21,6 +21,7 @@ import { reviewedCount } from "@/lib/progress";
 import { Dashboard, useDashboard } from "@/components/Dashboard";
 import { SiteHeader } from "@/components/ui/site-header";
 import { SpotlightCursor } from "@/components/ui/spotlight-cursor";
+import { SiteFooter } from "@/components/ui/site-footer";
 import { SURFACE, spotlightFor } from "@/lib/hubSurface";
 import { useIsDark } from "@/lib/useIsDark";
 
@@ -181,6 +182,8 @@ export function FolderPage({ groupId }: { groupId: DeckGroupId }) {
 
       <FeedbackButton />
       <Dashboard dash={dash} seedQuery={query} />
+    
+      <SiteFooter />
     </main>
   );
 }

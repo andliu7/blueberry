@@ -5,6 +5,7 @@ import { ShaderAnimation } from "@/components/ui/shader-animation";
 import { AuroraBackground } from "@/components/ui/aurora-background";
 import { BackgroundGradientGlow } from "@/components/ui/background-gradient-glow";
 import { useIsDark } from "@/lib/useIsDark";
+import { SURFACE } from "@/lib/hubSurface";
 import { cn } from "@/lib/utils";
 import { SITE_NAME } from "@/data/site";
 import {
@@ -138,6 +139,7 @@ function IntroStage({
 }) {
   const reduce = useReducedMotion();
   const isDark = useIsDark();
+  const surface = isDark ? SURFACE.dark : SURFACE.light;
 
   return (
     <div
@@ -319,6 +321,26 @@ function IntroStage({
           Press Space or Esc to skip
         </span>
       </div>
+
+      {/* The seam.
+
+          The opening's base colour is the page's base colour, so in theory the
+          two meet invisibly. In practice they do not: the aurora, the shader
+          and two radial washes all run to the opening's bottom edge and stop
+          dead there, so the join reads as a bright line ruled across the screen
+          — the lit half of the opening ending against the unlit page.
+
+          This dissolves the decoration into the surface over the last 160px
+          rather than cutting it. `to bottom` from nothing to the page's own
+          base, which is why it is an inline style: the colour has to be the
+          same value `SURFACE` hands the page, not an approximation of it. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-30 h-40"
+        style={{
+          backgroundImage: `linear-gradient(to bottom, transparent 0%, ${surface.base} 92%)`,
+        }}
+      />
 
       <button
         onClick={onSkip}

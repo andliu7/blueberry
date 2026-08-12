@@ -38,6 +38,7 @@ import BoldOnHover from "@/components/ui/bold-on-hover";
 import { SpotlightCursor } from "@/components/ui/spotlight-cursor";
 import { SURFACE, spotlightFor } from "@/lib/hubSurface";
 import { Blueberry } from "@/components/ui/blueberry";
+import { SiteFooter } from "@/components/ui/site-footer";
 import { moodForProgress } from "@/lib/berryMood";
 
 /**
@@ -418,7 +419,9 @@ export function StudyDecksPage() {
       </div>
 
       <FeedbackButton />
-      </main>
+      
+      <SiteFooter />
+    </main>
 
       {/* Outside `main` on purpose: `main` is a `relative z-10` stacking
           context, and a fixed panel inside it can never rise above anything

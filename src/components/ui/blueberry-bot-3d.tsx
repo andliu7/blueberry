@@ -1,6 +1,5 @@
 import { Suspense, useEffect, useMemo, useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { ContactShadows } from "@react-three/drei";
 import * as THREE from "three";
 import { cn } from "@/lib/utils";
 import { MOOD_SHAPE, type BerryMood } from "@/lib/berryMood";
@@ -518,7 +517,6 @@ export function BlueberryBot3D({
       style={{ touchAction: interactive ? "pan-y" : undefined }}
     >
       <Canvas
-        shadows
         // Raised to match: with a fuller calyx the silhouette's centre is above
         // the sphere's, and a camera on the equator framed him low.
         camera={{ position: [0, 0.22, 4.6], fov: 42 }}
@@ -536,7 +534,14 @@ export function BlueberryBot3D({
             dragging={dragging}
             windowPointer={windowPointer}
           />
-          <ContactShadows position={[0, -1.45, 0]} opacity={0.35} scale={7} blur={2.6} far={3} />
+          {/* No contact shadow.
+
+              `ContactShadows` put a soft dark ellipse on an invisible floor
+              under the berry. On a page with a real floor that sells the weight
+              of an object; on a flat coloured surface it reads as a grey circle
+              drawn around the fruit, which is the one thing a floating mascot
+              must not have. The berry is lit from its own texture and needs no
+              ground to sit on. */}
         </Suspense>
       </Canvas>
     </div>
