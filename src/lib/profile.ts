@@ -32,6 +32,15 @@ export interface Profile {
   /** A display handle. Not a login: nothing authenticates against this. */
   username: string;
   level: StudentLevel | "";
+  /**
+   * A picture, as a data URL.
+   *
+   * Downscaled to 256px before it is stored, because localStorage is a handful
+   * of megabytes for the whole origin and a phone photo is several on its own.
+   * Storing the original would evict the decks and the timer to hold one
+   * avatar nobody sees above 96px.
+   */
+  avatar?: string;
 }
 
 export const EMPTY_PROFILE: Profile = {
@@ -53,6 +62,7 @@ function read(): Profile {
       level: STUDENT_LEVELS.some((l) => l.id === parsed.level)
         ? (parsed.level as StudentLevel)
         : "",
+      avatar: typeof parsed.avatar === "string" ? parsed.avatar : undefined,
     };
   } catch {
     // A corrupt or unreadable entry is not worth taking the page down for.

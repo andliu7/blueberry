@@ -34,6 +34,9 @@ import { SearchResults } from "@/components/ui/deck-search";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { SubscriptionPlans } from "@/components/ui/subscription-plans";
 import { VerifyChecklist } from "@/components/ui/verify-checklist";
+import { AvatarPicker } from "@/components/ui/avatar-picker";
+import { useAccountRole } from "@/lib/account";
+import { useProfile } from "@/lib/profile";
 import { deckCount, deckHref, type Deck } from "@/data/types";
 import { searchDecks } from "@/lib/searchDecks";
 import { reviewedCount } from "@/lib/progress";
@@ -101,6 +104,12 @@ const VIEW_TITLE: Record<DashboardView, string> = {
  * open-on-nothing, and a separate boolean is how you end up with a panel that
  * opens onto whatever you were looking at three clicks ago.
  */
+/**
+ * Set just before navigating when the dashboard should be open on arrival.
+ * Exported so the sign-in page sets the same string this reads.
+ */
+export const OPEN_ON_ARRIVAL = "blueberry_open_dashboard_on_arrival";
+
 export function useDashboard() {
   const [view, setView] = useState<DashboardView | null>(null);
   const [focusSearch, setFocusSearch] = useState(false);
@@ -244,6 +253,26 @@ export function Dashboard({
     };
     window.addEventListener("blueberry:open-dashboard", onAsk);
     return () => window.removeEventListener("blueberry:open-dashboard", onAsk);
+  }, [open]);
+
+  /**
+   * Asked for from a page that no longer exists by the time this can answer.
+   *
+   * The sign-in page offers staff the dashboard, but dispatching the event
+   * from there would fire before this listener is mounted: the dashboard lives
+   * inside the router, so it does not exist until the destination page does. A
+   * one-shot flag survives the navigation that the event cannot, and is cleared
+   * as it is read so a later reload does not reopen it.
+   */
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem(OPEN_ON_ARRIVAL) === "1") {
+        sessionStorage.removeItem(OPEN_ON_ARRIVAL);
+        open("home");
+      }
+    } catch {
+      // Private browsing refuses sessionStorage. Nothing to recover.
+    }
   }, [open]);
 
   // Only once the search view is actually mounted, or the ref is still null.
@@ -1042,118 +1071,193 @@ function AppearancePanel() {
  * Andrew asked for the tiers to be the first thing on this page, so the
  * identity block that used to open it now sits underneath.
  */
+/**
+ * Who you are, and nothing else.
+ *
+ * The three pricing cards that opened this panel are gone. A profile page is
+ * where you check what you are, not where you shop: the tier is one line now,
+ * with an upgrade link for the people it applies to, and Subscriptions is
+ * still a section of its own for the rest.
+ */
 function ProfilePanel({ onClose }: { onClose: () => void }) {
+  const { user, configured, signOut } = useGoogleAuth();
+  const role = useAccountRole(user);
+  const profile = useProfile();
+  const name = [profile.firstName, profile.lastName].filter(Boolean).join(" ");
+
   return (
-    <div>
-      <SubscriptionPlans onNavigate={onClose} />
-      <div className="mt-10 border-t border-slate-200 pt-8 dark:border-stone-700">
-        <ProfileIdentity onClose={onClose} />
+    <div className="max-w-xl">
+      <AvatarPicker fallback={user?.picture} />
+
+      <div className="mt-5">
+        <p className="title-face text-2xl text-slate-900 dark:text-stone-100">
+          {name || user?.name || "Guest"}
+        </p>
+        <p className="truncate text-sm text-slate-500 dark:text-stone-400">
+          {user?.email ?? "Not signed in"}
+        </p>
+      </div>
+
+      <StatusRow role={user ? role : null} onNavigate={onClose} />
+
+      <div className="mt-6 flex flex-wrap items-center gap-3">
+        {user ? (
+          <button
+            type="button"
+            onClick={signOut}
+            className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full border border-slate-200 px-5 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 dark:border-stone-700 dark:text-stone-300 dark:hover:bg-stone-800 dark:hover:text-stone-100"
+          >
+            <LogIn className="size-4 rotate-180" />
+            Sign out
+          </button>
+        ) : (
+          configured && (
+            <>
+              <a
+                href="#/signin"
+                onClick={onClose}
+                className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full bg-gradient-to-r from-indigo-500 to-fuchsia-500 px-5 text-sm font-semibold text-white transition hover:brightness-110"
+              >
+                <LogIn className="size-4" />
+                Sign in
+              </a>
+              <a
+                href="#/signup"
+                onClick={onClose}
+                className="inline-flex min-h-11 cursor-pointer items-center rounded-full border border-slate-200 px-5 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 dark:border-stone-700 dark:text-stone-300 dark:hover:bg-stone-800 dark:hover:text-stone-100"
+              >
+                Create an account
+              </a>
+            </>
+          )
+        )}
+      </div>
+
+      {!configured && (
+        <p className="mt-6 flex items-start gap-2 rounded-xl border border-dashed border-slate-300 px-4 py-3 text-xs text-slate-500 dark:border-stone-700 dark:text-stone-400">
+          <LogIn className="mt-0.5 size-3.5 shrink-0" />
+          Sign-in is switched off in this build.
+        </p>
+      )}
+
+      <div className="mt-8 border-t border-slate-200 pt-6 dark:border-stone-700">
+        <ProfileIdentity />
       </div>
     </div>
   );
 }
 
-function ProfileIdentity({ onClose }: { onClose: () => void }) {
-  const { user, configured } = useGoogleAuth();
-
-  if (user) {
-    return (
-      <div>
-        <div className="flex items-center gap-4">
-          <span className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-indigo-500 to-fuchsia-500 text-white">
-            {user.picture ? (
-              <img src={user.picture} alt="" className="size-full object-cover" />
-            ) : (
-              <User className="size-6" />
-            )}
-          </span>
-          <div className="min-w-0">
-            <p className="title-face text-xl text-slate-900 dark:text-stone-100">
-              {user.name ?? "Signed in"}
-            </p>
-            <p className="truncate text-sm text-slate-500 dark:text-stone-400">{user.email}</p>
-          </div>
-        </div>
-        <p className="mt-6 max-w-xl text-sm leading-relaxed text-slate-500 dark:text-stone-400">
-          This is the Google sign-in that proves who is publishing a deck. It is not an account on
-          the site yet — nothing here holds your progress, which still lives in this browser.
-        </p>
-      </div>
-    );
-  }
+/**
+ * One line for what you are.
+ *
+ * Upgrade is only offered to the people it means something for. Showing an
+ * owner a button to become Pro would be asking them to buy what they already
+ * outrank.
+ */
+function StatusRow({
+  role,
+  onNavigate,
+}: {
+  role: "member" | "admin" | "owner" | null;
+  onNavigate: () => void;
+}) {
+  const tone =
+    role === "owner"
+      ? "bg-amber-400/15 text-amber-600 dark:text-amber-300"
+      : role === "admin"
+        ? "bg-indigo-500/10 text-indigo-600 dark:text-indigo-300"
+        : "bg-slate-500/10 text-slate-500 dark:text-stone-400";
 
   return (
-    <div>
-      <div className="flex items-center gap-4">
-        <span className="flex size-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-fuchsia-500 text-white">
-          <User className="size-6" />
-        </span>
-        <div>
-          <p className="title-face text-xl text-slate-900 dark:text-stone-100">Guest</p>
-          <p className="text-sm text-slate-500 dark:text-stone-400">Not signed in</p>
-        </div>
-      </div>
-
-      <div className="mt-6 max-w-xl space-y-3 text-sm leading-relaxed text-slate-500 dark:text-stone-400">
-        <p>
-          There are no accounts yet, and everything on the site works without one. Your ratings,
-          your notes and which cards you have reviewed are all held in this browser.
-        </p>
-        <p>
-          Accounts are what will move that off one machine: a username and a password, an
-          onboarding quiz that sets the site up around the course you are taking, and after that
-          the choice of whether to subscribe.
-        </p>
-        {!configured && (
-          <p className="flex items-start gap-2 rounded-xl border border-dashed border-slate-300 px-4 py-3 text-xs dark:border-stone-700">
-            <LogIn className="mt-0.5 size-3.5 shrink-0" />
-            Sign-in is switched off in this build.
-          </p>
-        )}
-      </div>
-
-      {/* Signing in is a page, not something that happens behind this panel.
-          `onClose` goes with the link so you are not left reading the dashboard
-          over the top of the page you just asked for. */}
-      {configured && (
-        <div className="mt-6 flex flex-wrap items-center gap-3">
-          <a
-            href="#/signin"
-            onClick={onClose}
-            className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full bg-gradient-to-r from-indigo-500 to-fuchsia-500 px-5 text-sm font-semibold text-white transition hover:brightness-110 focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:outline-none"
-          >
-            <LogIn className="size-4" />
-            Sign in
-          </a>
-          <a
-            href="#/signup"
-            onClick={onClose}
-            className="inline-flex min-h-11 cursor-pointer items-center rounded-full border border-slate-200 px-5 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 dark:border-stone-700 dark:text-stone-300 dark:hover:bg-stone-800 dark:hover:text-stone-100"
-          >
-            Create an account
-          </a>
-        </div>
+    <div className="mt-5 flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-white/70 px-4 py-3 dark:border-stone-700 dark:bg-stone-900/50">
+      <span className="text-xs text-slate-500 dark:text-stone-400">Status</span>
+      <span
+        className={cn("rounded-full px-2.5 py-0.5 text-xs font-bold uppercase", tone)}
+      >
+        {role ?? "Guest"}
+      </span>
+      {(role === null || role === "member") && (
+        <button
+          type="button"
+          onClick={() => {
+            onNavigate();
+            window.dispatchEvent(
+              new CustomEvent("blueberry:open-dashboard", { detail: { view: "subscriptions" } }),
+            );
+          }}
+          className="ml-auto cursor-pointer text-xs font-semibold text-indigo-600 underline-offset-4 hover:underline dark:text-indigo-300"
+        >
+          Upgrade
+        </button>
       )}
     </div>
   );
 }
 
+/**
+ * The one paragraph of context, under the identity rather than beside it.
+ *
+ * Everything that used to be here (avatar, name, buttons) is now the panel's
+ * own job, so this is only what the state actually means.
+ */
+function ProfileIdentity() {
+  const { user } = useGoogleAuth();
+
+  return (
+    <p className="text-sm leading-relaxed text-slate-500 dark:text-stone-400">
+      {user
+        ? "Signing in proves who is publishing a deck. Your ratings, notes and progress still live in this browser rather than on the server."
+        : "Everything on the site works without an account. Your ratings, notes and which cards you have reviewed are all held in this browser, which is what an account will eventually move them off."}
+    </p>
+  );
+}
+
 /* ── small parts ────────────────────────────────────────────────────────── */
 
+/**
+ * The foot of the sidebar: sign out when there is someone to sign out.
+ *
+ * It used to open the Profile panel, which the sidebar already has a row for,
+ * so the same click was available twice and the one thing you might want at
+ * the bottom of a nav was missing. Signed out it still opens Profile, because
+ * there is nothing to sign out of and that is where signing in lives.
+ */
 function ProfileButton({ onClick }: { onClick: () => void }) {
-  const { user } = useGoogleAuth();
+  const { user, signOut } = useGoogleAuth();
+
+  if (user) {
+    return (
+      <button
+        type="button"
+        onClick={signOut}
+        className="group flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-slate-100 dark:hover:bg-stone-800"
+      >
+        <span className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-indigo-500 to-fuchsia-500 text-white">
+          {user.picture ? (
+            <img src={user.picture} alt="" className="size-full object-cover" />
+          ) : (
+            <User className="size-4" />
+          )}
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-semibold text-slate-800 dark:text-stone-100">
+            Sign out
+          </span>
+          <span className="block truncate text-xs text-slate-500 dark:text-stone-400">
+            {user.email}
+          </span>
+        </span>
+        <LogIn className="size-4 shrink-0 rotate-180 text-slate-400 dark:text-stone-500" />
+      </button>
+    );
+  }
+
   return (
     <SidebarProfile
       onClick={onClick}
-      name={user?.name ?? "Guest"}
-      detail={user?.email ?? "Not signed in"}
-      avatar={
-        user?.picture ? (
-          <img src={user.picture} alt="" className="size-full object-cover" />
-        ) : (
-          <User className="size-5" />
-        )
-      }
+      name="Guest"
+      detail="Not signed in"
+      avatar={<User className="size-5" />}
     />
   );
 }

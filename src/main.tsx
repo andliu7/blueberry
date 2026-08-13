@@ -8,6 +8,7 @@ import { FocusTimer } from '@/components/FocusTimer'
 import { GlobalSearch } from '@/components/GlobalSearch'
 import { installClickSound } from '@/lib/clickSound'
 import { CLERK_PUBLISHABLE_KEY, clerkConfigured } from '@/lib/clerk'
+import { ClerkBoundary } from '@/components/ui/clerk-boundary'
 
 // One delegated listener for the whole site rather than a prop on every button.
 // Controls opt out with `data-click-silent`; see lib/clickSound.
@@ -39,9 +40,11 @@ createRoot(document.getElementById('root')!).render(
         than a site with a feature switched off. Every other optional service
         here works the same way: see `clerkConfigured` and `useGoogleAuth`. */}
     {clerkConfigured ? (
-      <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY!} afterSignOutUrl="#/home">
-        {tree}
-      </ClerkProvider>
+      <ClerkBoundary fallback={tree}>
+        <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY!} afterSignOutUrl="#/home">
+          {tree}
+        </ClerkProvider>
+      </ClerkBoundary>
     ) : (
       tree
     )}

@@ -4,6 +4,8 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { ArrowRight, Check, ShieldCheck } from "lucide-react";
 import { BlueberryMark } from "@/components/ui/blueberry-mark";
 import { ProfileFields } from "@/components/ui/profile-fields";
+import { ClerkProfileGate, ClerkSignIn, ClerkSignUp } from "@/components/ui/clerk-auth";
+import { clerkConfigured } from "@/lib/clerk";
 import { cn } from "@/lib/utils";
 
 /**
@@ -117,28 +119,33 @@ export function AuthCard({
             ) : (
               <>
                 {/*
-                  One Google button, not two.
+                  Clerk owns the member sign-in when it is configured: it is
+                  what brings email-and-password and Google under one flow,
+                  and which of those appear is set in the Clerk dashboard.
 
-                  There was a styled button calling `signIn()` and, under an
-                  "or", Google's own rendered button. Both start the same flow,
-                  so the "or" was offering a choice between a thing and itself.
-                  Google's is the one kept: it is the button their branding
-                  guidelines describe, and it does not depend on the prompt,
-                  which is the part that gets suppressed by browser settings.
+                  Google's own button is the fallback for a build with no Clerk
+                  key. Both are never shown at once, which is the mistake this
+                  card already made once with two Google buttons.
                 */}
-                <div className="flex justify-center" ref={googleButtonRef} />
-
-                {/* The fallback, and only while Google's script is still
-                    arriving. Once it has rendered, the button above is live. */}
-                {!ready && (
-                  <button
-                    type="button"
-                    onClick={onSignIn}
-                    disabled
-                    className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-white/10 px-4 text-sm font-semibold text-white/50"
-                  >
-                    Loading Google sign-in…
-                  </button>
+                {clerkConfigured ? (
+                  <>
+                    {signup ? <ClerkSignUp /> : <ClerkSignIn />}
+                    <ClerkProfileGate />
+                  </>
+                ) : (
+                  <>
+                    <div className="flex justify-center" ref={googleButtonRef} />
+                    {!ready && (
+                      <button
+                        type="button"
+                        onClick={onSignIn}
+                        disabled
+                        className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-white/10 px-4 text-sm font-semibold text-white/50"
+                      >
+                        Loading Google sign-in…
+                      </button>
+                    )}
+                  </>
                 )}
               </>
             )}

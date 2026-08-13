@@ -1,5 +1,8 @@
 import { useEffect } from "react";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, Gauge, LayoutGrid } from "lucide-react";
+import { OPEN_ON_ARRIVAL } from "@/components/Dashboard";
+import { ClerkSessionRow } from "@/components/ui/clerk-auth";
+import { clerkConfigured } from "@/lib/clerk";
 import { ShaderAnimation } from "@/components/ui/shader-animation";
 import { ExpandingCircle } from "@/components/ui/expanding-circle";
 import { BlueberryMark } from "@/components/ui/blueberry-mark";
@@ -62,12 +65,51 @@ export function SignInPage({ mode = "signin" }: { mode?: AuthCardMode }) {
             </p>
             <h1 className="title-face mt-2 text-3xl text-white">You&apos;re signed in</h1>
             <p className="mt-3 text-sm leading-6 text-white/60">{auth.user.email}</p>
-            <a
-              href="#/home"
-              className="mt-7 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-white px-4 text-sm font-semibold text-[#171327] transition hover:bg-white/90 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
-            >
-              Continue to Blueberry <ArrowRight className="size-4" />
-            </a>
+
+            {/*
+              Staff arrive here with two places to be, so they are asked rather
+              than sent. A member has only one, and offering a choice of one is
+              not a choice.
+            */}
+            {role === "admin" || role === "owner" ? (
+              <div className="mt-7 space-y-2.5">
+                <a
+                  href="#/workspace"
+                  className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-white px-4 text-sm font-semibold text-[#171327] transition hover:bg-white/90 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
+                >
+                  <LayoutGrid className="size-4" /> Open the workspace
+                </a>
+                <button
+                  type="button"
+                  onClick={() => {
+                    // Set before the hash changes, read by `useDashboard` once
+                    // the destination page has mounted it.
+                    try {
+                      sessionStorage.setItem(OPEN_ON_ARRIVAL, "1");
+                    } catch {
+                      /* private browsing; the link below still works */
+                    }
+                    window.location.hash = "#/home";
+                  }}
+                  className="flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-white/25 px-4 text-sm font-semibold text-white transition hover:border-white/60 hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
+                >
+                  <Gauge className="size-4" /> Go to the dashboard
+                </button>
+                <a
+                  href="#/home"
+                  className="block pt-1 text-sm font-semibold text-white/60 underline decoration-white/25 underline-offset-4 transition hover:text-white"
+                >
+                  Just take me to the site
+                </a>
+              </div>
+            ) : (
+              <a
+                href="#/home"
+                className="mt-7 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-white px-4 text-sm font-semibold text-[#171327] transition hover:bg-white/90 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
+              >
+                Continue to Blueberry <ArrowRight className="size-4" />
+              </a>
+            )}
             {staff && (
               <p className="mt-4 text-xs leading-5 text-white/45">
                 Staff access is checked again by the server when you open staff tools.
@@ -77,8 +119,13 @@ export function SignInPage({ mode = "signin" }: { mode?: AuthCardMode }) {
               onClick={auth.signOut}
               className="mt-4 cursor-pointer text-sm font-semibold text-white/60 underline decoration-white/25 underline-offset-4 transition hover:text-white"
             >
-              Sign out
+              Sign out of Google
             </button>
+
+            {/* Two sessions run side by side until staff move to Clerk, so this
+                panel has to admit both exist and let you end either. Without it
+                a leftover Google session hides the Clerk form completely. */}
+            {clerkConfigured && <ClerkSessionRow />}
           </section>
         ) : staff ? (
           <SignInCard

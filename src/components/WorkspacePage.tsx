@@ -11,6 +11,8 @@ import {
   X,
   ChevronDown,
   BarChart3,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from "lucide-react";
 import { BlueberryMark } from "@/components/ui/blueberry-mark";
 import { NotificationBell } from "@/components/ui/notification-bell";
@@ -247,6 +249,8 @@ export function WorkspacePage({ user }: { user: GoogleUser }) {
   const [inboxOpen, setInboxOpen] = useState(false);
   /** Which rail row is lit. Only ever "board" today; the rest are actions. */
   const [navId, setNavId] = useState("board");
+  /** The rail collapses so the board can have the whole width back. */
+  const [railOpen, setRailOpen] = useState(true);
   /**
    * One scroll container per column, so each gets its own progress bar.
    *
@@ -419,6 +423,26 @@ export function WorkspacePage({ user }: { user: GoogleUser }) {
             Back to site
           </a>
 
+          {/* Only staff have a rail, so only staff get the control for it. It
+              sits beside the back link rather than on the rail itself, because
+              a toggle that collapses with the thing it collapses cannot bring
+              it back. */}
+          {role && (
+            <button
+              type="button"
+              onClick={() => setRailOpen((o) => !o)}
+              aria-expanded={railOpen}
+              aria-label={railOpen ? "Collapse the sidebar" : "Expand the sidebar"}
+              className="hidden cursor-pointer rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 lg:inline-flex dark:text-stone-400 dark:hover:bg-white/10 dark:hover:text-stone-100"
+            >
+              {railOpen ? (
+                <PanelLeftClose className="size-[18px]" strokeWidth={1.5} />
+              ) : (
+                <PanelLeftOpen className="size-[18px]" strokeWidth={1.5} />
+              )}
+            </button>
+          )}
+
           <div className="ml-auto flex items-center gap-2">
             <button
               onClick={() => void refresh()}
@@ -468,7 +492,10 @@ export function WorkspacePage({ user }: { user: GoogleUser }) {
                 aria-expanded={adminOpen}
                 className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 font-mono text-xs text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-stone-400 dark:hover:bg-white/10 dark:hover:text-stone-100"
               >
-                <span className="hidden sm:inline">{user.email}</span>
+                {/* Truncated rather than shown whole. A long address was
+                    taking a third of the toolbar for something you already
+                    know, and the panel it opens says it in full. */}
+                <span className="hidden max-w-[9rem] truncate sm:inline">{user.email}</span>
                 <span className="sm:hidden">Account</span>
                 <ChevronDown
                   className={cn("h-3 w-3 transition-transform", adminOpen && "rotate-180")}
@@ -509,7 +536,13 @@ export function WorkspacePage({ user }: { user: GoogleUser }) {
             to scroll back up to reach is one you stop using. */}
         <div className="flex gap-6">
           {role && (
-            <aside className="sticky top-8 hidden h-[calc(100vh-6rem)] w-[248px] shrink-0 self-start lg:block">
+            <aside
+              className={cn(
+                "sticky top-8 hidden h-[calc(100vh-6rem)] shrink-0 self-start overflow-hidden transition-[width,opacity] duration-300 ease-in-out lg:block",
+                railOpen ? "w-[248px] opacity-100" : "w-0 opacity-0",
+              )}
+              aria-hidden={!railOpen}
+            >
               <WorkspaceSidebar
                 email={user.email}
                 role={role}
