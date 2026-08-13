@@ -36,6 +36,7 @@ import { SubscriptionPlans } from "@/components/ui/subscription-plans";
 import { VerifyChecklist } from "@/components/ui/verify-checklist";
 import { AvatarPicker } from "@/components/ui/avatar-picker";
 import { HoldToConfirm } from "@/components/ui/hold-to-confirm";
+import { BlueberryMark } from "@/components/ui/blueberry-mark";
 import { useProfile } from "@/lib/profile";
 import { useSession } from "@/lib/useSession";
 import { deckCount, deckHref, type Deck } from "@/data/types";
@@ -930,8 +931,19 @@ function CategoriesPanel({ decks, go }: { decks: Deck[]; go: (view: DashboardVie
                   : "border-dashed border-slate-300 hover:bg-slate-100/60 dark:border-stone-700 dark:hover:bg-stone-900/40",
               )}
             >
-              <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-fuchsia-500 text-white">
-                {row.icon}
+              {/* The berry itself behind the icon, rather than the gradient it
+                  was borrowing. Same mark the home cards carry, so the three
+                  ways in are recognisably the same family. The icon keeps a
+                  drop shadow because it now sits on a rounded shape with light
+                  and dark areas rather than a flat fill. */}
+              <span className="relative mt-0.5 flex size-8 shrink-0 items-center justify-center">
+                <BlueberryMark
+                  aria-hidden
+                  className="blueberry-glow-art absolute inset-0 size-full"
+                />
+                <span className="relative text-white [filter:drop-shadow(0_1px_2px_rgba(0,0,0,0.55))]">
+                  {row.icon}
+                </span>
               </span>
               <span className="min-w-0 flex-1">
                 <span className="flex items-center gap-1.5 text-sm font-semibold text-slate-800 dark:text-stone-100">
