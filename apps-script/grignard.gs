@@ -1,32 +1,21 @@
 /**
- * One Apps Script backend for the whole study site.
+ * Blueberry — the whole Apps Script backend.
  *
- *   POST { type: "feedback", rating, comment }          -> feedback tab
- *   POST { type: "contact",  firstname, ..., message }  -> messages tab, emails you
- *   POST { type: "deck",     idToken, deck }            -> decks tab, allowlist only
- *   GET  ?type=decks                                    -> published decks as JSON
+ * PASTE THIS INTO script.google.com. This file is the tracked copy; the code
+ * that runs lives in Google's editor. After pasting:
+ *   Deploy -> Manage deployments -> edit -> Version: New version -> Deploy
+ * Saving alone does not update the live web app.
  *
- * A web app exports one doPost. A second definition does not add an endpoint,
- * it silently replaces the first, so everything routes through one entry point
- * on a `type` field. No `type` is treated as feedback, so a browser running an
- * older cached bundle keeps working after a redeploy.
+ * Script Properties used:
+ *   SHEET_ID           the spreadsheet this writes to
+ *   CLIENT_ID          the Google OAuth client id (same as VITE_GOOGLE_CLIENT_ID)
+ *   ALLOWLIST          comma separated owner emails
+ *   NOTIFY_TO          where contact messages are emailed (optional)
+ *   ANTHROPIC_API_KEY  sk-ant-... for Ask Blueberry
  *
- * SETUP
- * 1. Script Properties: SHEET_ID, NOTIFY_TO. CLIENT_ID and ALLOWLIST may go
- *    there too, or be left as the constants below.
- * 2. Run any function once from the editor and accept the consent screen. The
- *    mail permission is only requested at that point, and without it the
- *    contact route fails in a way the browser reports as a network error.
- * 3. Deploy > Manage deployments > edit the existing one > New version. That
- *    keeps the same /exec URL. A new deployment would hand you a different one.
+ * ANTHROPIC_API_KEY must never be a VITE_ value: those are inlined into the
+ * public bundle at build time, which would publish the key.
  */
-
-// One OAuth client id covers every site that uses it. Add both origins to it
-// in Google Cloud rather than creating a client id per origin:
-//   http://localhost:5173
-//   https://andliu7.github.io
-var CLIENT_ID = '971212739983-b8equevo7r4injk7jhmo2kpchi40cadj.apps.googleusercontent.com';
-var ALLOWLIST = 'andliu@terpmail.umd.edu, zeus.andrewliu@gmail.com';
 
 var TABS = {
   feedback: 'feedback',
@@ -47,12 +36,16 @@ var MAX_LEN = 5000;
  * through this function, so declaring them only as variables at the top would
  * leave every deck upload refused with "Sign-in could not be verified", since
  * the audience check would be comparing against an empty string.
+ *
+ * `typeof` guards the fallback. Referencing a bare undeclared identifier is a
+ * ReferenceError, so without this a missing Script Property took the whole
+ * request down instead of failing the one check that needed the value.
  */
 function props_(key) {
   var fromProps = PropertiesService.getScriptProperties().getProperty(key);
   if (fromProps) return fromProps;
-  if (key === 'CLIENT_ID') return CLIENT_ID;
-  if (key === 'ALLOWLIST') return ALLOWLIST;
+  if (key === 'CLIENT_ID') return typeof CLIENT_ID !== 'undefined' ? CLIENT_ID : '';
+  if (key === 'ALLOWLIST') return typeof ALLOWLIST !== 'undefined' ? ALLOWLIST : '';
   return '';
 }
 
@@ -81,6 +74,95 @@ function tab_(name, headers) {
 
 function clean_(v) {
   return String(v == null ? '' : v).slice(0, MAX_LEN);
+}
+
+// ------------------------------------------------------------ ask blueberry
+
+var CLAUDE_MODEL = 'claude-opus-5';
+var CLAUDE_URL = 'https://api.anthropic.com/v1/messages';
+
+/** What Blueberry is, and what it must not do. */
+var CHAT_SYSTEM = [
+  'You are Blueberry, a study assistant for University of Maryland organic chemistry.',
+  'Explain mechanisms, reagents and why a step happens. Prefer the reasoning over the answer.',
+  'If you are not sure, say so plainly rather than inventing a mechanism.',
+  'You are not the course staff and cannot speak for the syllabus, deadlines or grades.',
+  'Keep answers short unless asked to go deeper.',
+].join(' ');
+
+/**
+ * Ask Blueberry.
+ *
+ * Gated on `verify_`, not `staff_`: students are the point, so any verified
+ * Google account may ask. Swap in `staff_` to restrict it while testing.
+ *
+ * Returns a plain object; `handleChat` wraps it. Every other route returns
+ * `json_(...)` directly, and a bare object handed back from doPost is not a
+ * ContentService output, so the browser gets nothing it can parse.
+ */
+function chat_(payload) {
+  var key = PropertiesService.getScriptProperties().getProperty('ANTHROPIC_API_KEY');
+  if (!key) return { ok: false, error: 'ANTHROPIC_API_KEY is not set on this script.' };
+
+  // The gate. The client sends a token, but a browser can send anything, so the
+  // check happens here. Without it anyone who finds this URL spends the credits.
+  var email = verify_(payload && payload.idToken);
+  if (!email) return { ok: false, error: 'Sign in to ask Blueberry.' };
+
+  var messages = (payload && payload.messages) || [];
+  if (!messages.length) return { ok: false, error: 'No messages.' };
+
+  // Trimmed rather than sent whole: an unbounded history is an unbounded bill.
+  messages = messages.slice(-20);
+
+  var body = {
+    model: CLAUDE_MODEL,
+    max_tokens: 4096,
+    system: CHAT_SYSTEM,
+    // Effort is the cost lever. Thinking is on by default on this model, and
+    // max_tokens caps thinking plus reply together, so low effort keeps the
+    // budget on the answer for what are mostly short questions.
+    output_config: { effort: 'low' },
+    messages: messages,
+  };
+
+  var res = UrlFetchApp.fetch(CLAUDE_URL, {
+    method: 'post',
+    contentType: 'application/json',
+    headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01' },
+    payload: JSON.stringify(body),
+    // Without this a non-200 throws and the caller sees a generic failure
+    // instead of the message the API actually sent.
+    muteHttpExceptions: true,
+  });
+
+  var parsed;
+  try {
+    parsed = JSON.parse(res.getContentText());
+  } catch (e) {
+    return { ok: false, error: 'The model returned something unreadable.' };
+  }
+
+  if (res.getResponseCode() !== 200) {
+    return { ok: false, error: (parsed.error && parsed.error.message) || 'Request failed.' };
+  }
+
+  // Safety classifiers can decline with a normal 200 and no content, so check
+  // stop_reason before reading content — indexing content[0] would throw here.
+  if (parsed.stop_reason === 'refusal') {
+    return { ok: false, error: 'Blueberry declined that one.' };
+  }
+
+  var text = '';
+  for (var i = 0; i < parsed.content.length; i++) {
+    if (parsed.content[i].type === 'text') text += parsed.content[i].text;
+  }
+
+  return { ok: true, text: text };
+}
+
+function handleChat_(data) {
+  return json_(chat_(data));
 }
 
 // ---------------------------------------------------------------- feedback
@@ -219,6 +301,14 @@ function allowed_(email) {
   if (!email) return false;
   var who = String(email).toLowerCase();
   return owners_().indexOf(who) !== -1 || invited_().indexOf(who) !== -1;
+}
+
+/** Verifies and authorises in one step, since every writer below needs both. */
+function staff_(data) {
+  var email = verify_(data.idToken);
+  if (!email) return { error: 'Sign-in could not be verified.' };
+  if (!allowed_(email)) return { error: 'That account is not authorised.' };
+  return { email: email };
 }
 
 // -------------------------------------------------------------------- admins
@@ -395,14 +485,6 @@ function listShelves_() {
       return String(r[0] == null ? '' : r[0]).trim();
     })
     .filter(Boolean);
-}
-
-/** Verifies and authorises in one step, since every writer below needs both. */
-function staff_(data) {
-  var email = verify_(data.idToken);
-  if (!email) return { error: 'Sign-in could not be verified.' };
-  if (!allowed_(email)) return { error: 'That account is not authorised.' };
-  return { email: email };
 }
 
 function handleAddShelf_(data) {
@@ -802,6 +884,13 @@ function doPost(e) {
   try {
     var data = JSON.parse(e.postData.contents);
     switch (data.type) {
+      // Inside the switch, after `data` exists. A copy of this sitting above
+      // the try block read two identifiers that had not been assigned yet, so
+      // every POST threw a ReferenceError before reaching the parse — and,
+      // being outside the try, took feedback, contact, decks and the workspace
+      // down with it while never releasing the lock.
+      case 'chat':
+        return handleChat_(data);
       case 'contact':
         return handleContact_(data);
       case 'deck':
@@ -884,4 +973,10 @@ function doGet(e) {
   } catch (err) {
     return json_({ decks: [], shelves: [], error: String(err) });
   }
+}
+
+/** Run once in the editor to grant the sheet and mail scopes. */
+function triggerAuth() {
+  SpreadsheetApp.getActiveSpreadsheet();
+  MailApp.getRemainingDailyQuota();
 }
