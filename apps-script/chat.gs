@@ -6,10 +6,12 @@
  *   Deploy -> Manage deployments -> edit -> Version: New version -> Deploy
  * Saving alone does not update the live web app.
  *
- * BEFORE IT WILL WORK: Project Settings -> Script Properties -> add
- *   ANTHROPIC_API_KEY = sk-ant-...
- * Script Properties are server side. The key must never be a VITE_ value: those
- * are inlined into the public bundle at build time, which would publish it.
+ * Two Script Properties are required (Project Settings -> Script Properties):
+ *   ANTHROPIC_API_KEY  sk-ant-...
+ *   GOOGLE_CLIENT_ID   the same value as VITE_GOOGLE_CLIENT_ID
+ *
+ * Both are server side. Neither may be a VITE_ value: those are inlined into
+ * the public bundle at build time, which would publish them.
  */
 
 var CLAUDE_MODEL = 'claude-opus-5';
@@ -25,32 +27,56 @@ var CHAT_SYSTEM = [
 ].join(' ');
 
 /**
+ * Who is asking, or null.
+ *
+ * Self-contained rather than borrowing the workspace verifier, so this route
+ * works whatever that one is called. Google's tokeninfo endpoint checks the
+ * signature and expiry for us; the `aud` comparison is the part that matters
+ * and is easy to leave out — without it any valid Google token from any app in
+ * the world would be accepted here.
+ */
+function chatCaller_(idToken) {
+  if (!idToken) return null;
+  var clientId = PropertiesService.getScriptProperties().getProperty('GOOGLE_CLIENT_ID');
+  if (!clientId) return null;
+
+  var res = UrlFetchApp.fetch(
+    'https://oauth2.googleapis.com/tokeninfo?id_token=' + encodeURIComponent(idToken),
+    { muteHttpExceptions: true },
+  );
+  if (res.getResponseCode() !== 200) return null;
+
+  var info;
+  try {
+    info = JSON.parse(res.getContentText());
+  } catch (e) {
+    return null;
+  }
+
+  if (info.aud !== clientId) return null;
+  if (info.email_verified !== 'true' && info.email_verified !== true) return null;
+  return info.email || null;
+}
+
+/**
  * Route this from your existing doPost switch:
  *   if (type === 'chat') return handleChat(payload);
- *
- * `payload.messages` is the conversation so far, as [{role, content}].
  */
 function handleChat(payload) {
-  var key = PropertiesService.getScriptProperties().getProperty('ANTHROPIC_API_KEY');
+  var props = PropertiesService.getScriptProperties();
+  var key = props.getProperty('ANTHROPIC_API_KEY');
   if (!key) return { ok: false, error: 'ANTHROPIC_API_KEY is not set on this script.' };
 
-  /**
-   * THE GATE. Uncomment once you point it at this script's existing verifier —
-   * the same function the workspace routes already use on `payload.idToken`.
-   *
-   * Without it this endpoint is open: anyone who finds the URL spends your
-   * Anthropic credits. The client sends the token already, but a browser can
-   * send anything, so the check has to happen here.
-   *
-   *   var email = verifyIdToken_(payload && payload.idToken);   // <- your verifier's name
-   *   if (!email) return { ok: false, error: 'Sign in to ask Blueberry.' };
-   */
+  // The gate. The client sends a token, but a browser can send anything, so
+  // the check happens here. Without it anyone who finds this URL spends the
+  // credits.
+  var email = chatCaller_(payload && payload.idToken);
+  if (!email) return { ok: false, error: 'Sign in to ask Blueberry.' };
 
   var messages = (payload && payload.messages) || [];
   if (!messages.length) return { ok: false, error: 'No messages.' };
 
-  // Trimmed rather than sent whole: the browser decides what to keep, and an
-  // unbounded history is an unbounded bill.
+  // Trimmed rather than sent whole: an unbounded history is an unbounded bill.
   messages = messages.slice(-20);
 
   var body = {
@@ -67,17 +93,13 @@ function handleChat(payload) {
   var res = UrlFetchApp.fetch(CLAUDE_URL, {
     method: 'post',
     contentType: 'application/json',
-    headers: {
-      'x-api-key': key,
-      'anthropic-version': '2023-06-01',
-    },
+    headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01' },
     payload: JSON.stringify(body),
     // Without this a non-200 throws and the caller sees a generic failure
     // instead of the message the API actually sent.
     muteHttpExceptions: true,
   });
 
-  var code = res.getResponseCode();
   var parsed;
   try {
     parsed = JSON.parse(res.getContentText());
@@ -85,8 +107,8 @@ function handleChat(payload) {
     return { ok: false, error: 'The model returned something unreadable.' };
   }
 
-  if (code !== 200) {
-    return { ok: false, error: (parsed.error && parsed.error.message) || ('HTTP ' + code) };
+  if (res.getResponseCode() !== 200) {
+    return { ok: false, error: (parsed.error && parsed.error.message) || 'Request failed.' };
   }
 
   // Safety classifiers can decline with a normal 200 and no content, so check
@@ -100,5 +122,5 @@ function handleChat(payload) {
     if (parsed.content[i].type === 'text') text += parsed.content[i].text;
   }
 
-  return { ok: true, text: text, usage: parsed.usage };
+  return { ok: true, text: text };
 }
