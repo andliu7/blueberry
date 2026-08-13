@@ -1,6 +1,7 @@
 import { Check, Circle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useGoogleAuth } from "@/lib/useGoogleAuth";
+import { useSession } from "@/lib/useSession";
 import { profileComplete, useProfile } from "@/lib/profile";
 
 /**
@@ -29,7 +30,10 @@ export function VerifyChecklist({
   onNavigate?: () => void;
   className?: string;
 }) {
-  const { user, configured } = useGoogleAuth();
+  const { configured } = useGoogleAuth();
+  // Either provider counts as signed in. Reading Google alone meant a Clerk
+  // member stared at an unticked box they had already done.
+  const user = useSession();
   const profile = useProfile();
 
   const steps: Step[] = [

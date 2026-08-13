@@ -12,7 +12,7 @@ import { useDecks } from "@/lib/useDecks";
 import { deckHref } from "@/data/types";
 import { cn } from "@/lib/utils";
 import { DockSlot, DOCK } from "@/components/ui/corner-dock";
-import { NotificationsTab, useTimerNotices } from "@/components/ui/notifications";
+import { useTimerNotices } from "@/components/ui/notifications";
 
 /**
  * The study timer, as a tab in the corner of every page.
@@ -44,7 +44,10 @@ export function FocusTimer() {
   const ambience = useAmbience();
   // The timer already knows every event worth logging, so the log is derived
   // from it here rather than pushed from a dozen call sites.
-  const notices = useTimerNotices(t);
+  //
+  // Called for its side effect of keeping that log current while nothing
+  // displays it, so re-attaching a reader later needs no rewiring here.
+  useTimerNotices(t);
 
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState("");
@@ -101,7 +104,16 @@ export function FocusTimer() {
     <>
       <Confetti trigger={cheer} />
 
-      <NotificationsTab {...notices} />
+      {/*
+        The notifications tab is gone from the corner.
+
+        It logged timer phases and eye rests, which are things you are told
+        about as they happen by the timer itself, so the tab was a second copy
+        of a notice you had already read. It also took the corner on any page
+        where feedback was not mounted, sitting translucent over the controls
+        that do have something to say. `useTimerNotices` stays wired below in
+        case the log is wanted somewhere it can be read deliberately.
+      */}
 
       <DockSlot order={DOCK.focus} className="flex flex-col items-end gap-2">
         <AnimatePresence initial={false}>

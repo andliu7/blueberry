@@ -35,8 +35,8 @@ import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { SubscriptionPlans } from "@/components/ui/subscription-plans";
 import { VerifyChecklist } from "@/components/ui/verify-checklist";
 import { AvatarPicker } from "@/components/ui/avatar-picker";
-import { useAccountRole } from "@/lib/account";
 import { useProfile } from "@/lib/profile";
+import { useSession } from "@/lib/useSession";
 import { deckCount, deckHref, type Deck } from "@/data/types";
 import { searchDecks } from "@/lib/searchDecks";
 import { reviewedCount } from "@/lib/progress";
@@ -1080,14 +1080,18 @@ function AppearancePanel() {
  * still a section of its own for the rest.
  */
 function ProfilePanel({ onClose }: { onClose: () => void }) {
-  const { user, configured, signOut } = useGoogleAuth();
-  const role = useAccountRole(user);
+  const { configured } = useGoogleAuth();
+  // Either provider. A Clerk member used to read as "Guest" here.
+  const session = useSession();
+  const user = session;
+  const signOut = session?.signOut ?? (() => {});
+  const role = session?.role ?? "member";
   const profile = useProfile();
   const name = [profile.firstName, profile.lastName].filter(Boolean).join(" ");
 
   return (
     <div className="max-w-xl">
-      <AvatarPicker fallback={user?.picture} />
+      <AvatarPicker fallback={user?.picture ?? undefined} />
 
       <div className="mt-5">
         <p className="title-face text-2xl text-slate-900 dark:text-stone-100">

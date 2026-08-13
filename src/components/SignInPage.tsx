@@ -1,15 +1,14 @@
 import { useEffect } from "react";
 import { ArrowLeft, ArrowRight, Gauge, LayoutGrid } from "lucide-react";
 import { OPEN_ON_ARRIVAL } from "@/components/Dashboard";
-import { ClerkSessionRow } from "@/components/ui/clerk-auth";
-import { clerkConfigured } from "@/lib/clerk";
+import { useSession } from "@/lib/useSession";
 import { ShaderAnimation } from "@/components/ui/shader-animation";
 import { ExpandingCircle } from "@/components/ui/expanding-circle";
 import { BlueberryMark } from "@/components/ui/blueberry-mark";
 import { AuthCard } from "@/components/ui/auth-card";
 import { SignInCard, type AuthCardMode } from "@/components/ui/sign-in-card-2";
 import { useGoogleAuth } from "@/lib/useGoogleAuth";
-import { roleLabel, useAccountRole } from "@/lib/account";
+import { roleLabel } from "@/lib/account";
 import { SITE_NAME } from "@/data/site";
 
 /**
@@ -25,7 +24,11 @@ import { SITE_NAME } from "@/data/site";
  */
 export function SignInPage({ mode = "signin" }: { mode?: AuthCardMode }) {
   const auth = useGoogleAuth();
-  const role = useAccountRole(auth.user);
+  // One session across both providers. Reading `useGoogleAuth` alone meant a
+  // signed-in Clerk member was shown the sign-in form as though they were a
+  // stranger, and a stale Google session hid that form from everyone else.
+  const session = useSession();
+  const role = session?.role ?? "member";
   const staff = mode === "staff";
 
   useEffect(() => {
@@ -54,17 +57,20 @@ export function SignInPage({ mode = "signin" }: { mode?: AuthCardMode }) {
         {SITE_NAME}
       </a>
 
-      <div
-        className={cnWidth(staff || Boolean(auth.user))}
-      >
-        {auth.user ? (
+      <div className={cnWidth(staff || Boolean(session))}>
+        {session ? (
           <section className="rounded-3xl border border-white/12 bg-[#171327]/80 p-7 text-center shadow-[0_28px_90px_rgba(0,0,0,0.48)] backdrop-blur-xl">
             <BlueberryMark eyes className="blueberry-glow-art mx-auto size-12" />
             <p className="mt-5 text-xs font-semibold tracking-[0.18em] text-blue-200/70 uppercase">
               {roleLabel(role)} account
             </p>
-            <h1 className="title-face mt-2 text-3xl text-white">You&apos;re signed in</h1>
-            <p className="mt-3 text-sm leading-6 text-white/60">{auth.user.email}</p>
+            <h1 className="title-face mt-2 text-3xl text-white">
+              {session.name ? `Hello, ${session.name}` : "You're signed in"}
+            </h1>
+            <p className="mt-3 text-sm leading-6 text-white/60">{session.email}</p>
+            <p className="mt-1 font-mono text-[0.65rem] tracking-wider text-white/35 uppercase">
+              via {session.provider}
+            </p>
 
             {/*
               Staff arrive here with two places to be, so they are asked rather
@@ -115,17 +121,15 @@ export function SignInPage({ mode = "signin" }: { mode?: AuthCardMode }) {
                 Staff access is checked again by the server when you open staff tools.
               </p>
             )}
+            {/* Ends both providers, not whichever one happens to be showing.
+                Signing out of one and being handed straight back in by the
+                other is the bug this replaces. */}
             <button
-              onClick={auth.signOut}
+              onClick={session.signOut}
               className="mt-4 cursor-pointer text-sm font-semibold text-white/60 underline decoration-white/25 underline-offset-4 transition hover:text-white"
             >
-              Sign out of Google
+              Sign out
             </button>
-
-            {/* Two sessions run side by side until staff move to Clerk, so this
-                panel has to admit both exist and let you end either. Without it
-                a leftover Google session hides the Clerk form completely. */}
-            {clerkConfigured && <ClerkSessionRow />}
           </section>
         ) : staff ? (
           <SignInCard
