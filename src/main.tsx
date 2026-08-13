@@ -9,6 +9,7 @@ import { GlobalSearch } from '@/components/GlobalSearch'
 import { installClickSound } from '@/lib/clickSound'
 import { CLERK_PUBLISHABLE_KEY, clerkConfigured } from '@/lib/clerk'
 import { ClerkBoundary } from '@/components/ui/clerk-boundary'
+import { BlueberryBot } from '@/components/ui/blueberry-bot'
 
 // One delegated listener for the whole site rather than a prop on every button.
 // Controls opt out with `data-click-silent`; see lib/clickSound.
@@ -28,6 +29,9 @@ const tree = (
     {/* Out here for the same reason: `/` should open the search on any page,
         including ones whose header does not draw a search pill. */}
     <GlobalSearch />
+    {/* Beside the timer for the same reason: it docks into the shared corner
+        column and has to survive the route change, not remount with a page. */}
+    <BlueberryBot />
   </PageFlipProvider>
 )
 

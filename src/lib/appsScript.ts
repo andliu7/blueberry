@@ -31,7 +31,13 @@ type DeckWriteFeature =
   | "addAdmin"
   | "removeAdmin"
   | "setFeedbackState"
-  | "promoteFeedback";
+  | "promoteFeedback"
+  /**
+   * Ask Blueberry. Routed to the shared web app like the rest, because the
+   * Anthropic key lives in that script's properties and must never be a
+   * `VITE_` value — those are inlined into the public bundle at build time.
+   */
+  | "chat";
 
 export type AppsScriptFeature = keyof typeof OVERRIDES | DeckWriteFeature;
 
