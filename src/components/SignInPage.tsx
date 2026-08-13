@@ -31,6 +31,19 @@ export function SignInPage({ mode = "signin" }: { mode?: AuthCardMode }) {
   const role = session?.role ?? "member";
   const staff = mode === "staff";
 
+  /**
+   * Whether the session in hand is the one this page was asked for.
+   *
+   * Staff sign-in is not satisfied by a Clerk session. Apps Script verifies a
+   * *Google* ID token on every privileged call, and Clerk cannot produce one,
+   * so a Clerk owner is still a stranger to the workspace. Treating any session
+   * as good enough sent them to a card offering "Open the workspace", which
+   * returned them here: a loop between two screens both convinced the other
+   * should handle it.
+   */
+  const satisfied = staff ? session?.provider === "google" : Boolean(session);
+  const wrongProvider = staff && session != null && session.provider !== "google";
+
   useEffect(() => {
     const root = document.documentElement;
     const hadDark = root.classList.contains("dark");
@@ -57,8 +70,8 @@ export function SignInPage({ mode = "signin" }: { mode?: AuthCardMode }) {
         {SITE_NAME}
       </a>
 
-      <div className={cnWidth(staff || Boolean(session))}>
-        {session ? (
+      <div className={cnWidth(staff || Boolean(satisfied))}>
+        {satisfied && session ? (
           <section className="rounded-3xl border border-white/12 bg-[#171327]/80 p-7 text-center shadow-[0_28px_90px_rgba(0,0,0,0.48)] backdrop-blur-xl">
             <BlueberryMark eyes className="blueberry-glow-art mx-auto size-12" />
             <p className="mt-5 text-xs font-semibold tracking-[0.18em] text-blue-200/70 uppercase">
@@ -79,12 +92,24 @@ export function SignInPage({ mode = "signin" }: { mode?: AuthCardMode }) {
             */}
             {role === "admin" || role === "owner" ? (
               <div className="mt-7 space-y-2.5">
-                <a
-                  href="#/workspace"
-                  className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-white px-4 text-sm font-semibold text-[#171327] transition hover:bg-white/90 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
-                >
-                  <LayoutGrid className="size-4" /> Open the workspace
-                </a>
+                {/* Offered only to a Google session, because that is the only
+                    one Apps Script will honour. Showing it to a Clerk owner was
+                    a button that could not do what it said. */}
+                {session.provider === "google" ? (
+                  <a
+                    href="#/workspace"
+                    className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-white px-4 text-sm font-semibold text-[#171327] transition hover:bg-white/90 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
+                  >
+                    <LayoutGrid className="size-4" /> Open the workspace
+                  </a>
+                ) : (
+                  <a
+                    href="#/staff"
+                    className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-white/25 px-4 text-sm font-semibold text-white transition hover:border-white/60 hover:bg-white/10"
+                  >
+                    <LayoutGrid className="size-4" /> Workspace needs Google sign-in
+                  </a>
+                )}
                 <button
                   type="button"
                   onClick={() => {
@@ -132,14 +157,24 @@ export function SignInPage({ mode = "signin" }: { mode?: AuthCardMode }) {
             </button>
           </section>
         ) : staff ? (
-          <SignInCard
-            mode={mode}
-            configured={auth.configured}
-            ready={auth.ready}
-            error={auth.error}
-            onSignIn={auth.signIn}
-            googleButtonRef={auth.renderButton}
-          />
+          <>
+            {/* Says why a signed-in person is being asked to sign in again,
+                which is otherwise the most confusing screen on the site. */}
+            {wrongProvider && (
+              <p className="mb-3 rounded-xl border border-amber-300/20 bg-amber-200/10 px-4 py-3 text-sm leading-5 text-amber-100/85">
+                You are signed in as {session?.email} with Clerk. The workspace is checked by
+                Blueberry&apos;s server against a Google account, so staff tools need that one.
+              </p>
+            )}
+            <SignInCard
+              mode={mode}
+              configured={auth.configured}
+              ready={auth.ready}
+              error={auth.error}
+              onSignIn={auth.signIn}
+              googleButtonRef={auth.renderButton}
+            />
+          </>
         ) : (
           <AuthCard
             side={mode}

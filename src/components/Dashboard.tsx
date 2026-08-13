@@ -35,6 +35,7 @@ import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { SubscriptionPlans } from "@/components/ui/subscription-plans";
 import { VerifyChecklist } from "@/components/ui/verify-checklist";
 import { AvatarPicker } from "@/components/ui/avatar-picker";
+import { HoldToConfirm } from "@/components/ui/hold-to-confirm";
 import { useProfile } from "@/lib/profile";
 import { useSession } from "@/lib/useSession";
 import { deckCount, deckHref, type Deck } from "@/data/types";
@@ -45,6 +46,7 @@ import { useDecks } from "@/lib/useDecks";
 import { useGoogleAuth } from "@/lib/useGoogleAuth";
 import { useIsDark } from "@/lib/useIsDark";
 import { SURFACE } from "@/lib/hubSurface";
+import { DASHBOARD_SCENE, PageBackground } from "@/components/ui/page-background";
 import { TRAINER_URL } from "@/data/site";
 import { cn } from "@/lib/utils";
 
@@ -315,16 +317,8 @@ export function Dashboard({
 
   const nav = (
     <Sidebar
-      profile={<ProfileButton onClick={() => go("profile")} />}
-      footer={
-        <button
-          type="button"
-          onClick={() => go("profile")}
-          className="w-full cursor-pointer rounded-xl bg-gradient-to-r from-indigo-500 to-fuchsia-500 px-3 py-2 text-center text-sm font-semibold text-white transition hover:brightness-110 focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:outline-none"
-        >
-          View profile
-        </button>
-      }
+      profile={<ProfileRow onClick={() => go("profile")} />}
+      footer={<ProfileButton onClick={() => go("profile")} />}
     >
       <div className="space-y-0.5">
         {/* One row, not two.
@@ -456,10 +450,29 @@ export function Dashboard({
             style={{ backgroundColor: surface.base }}
             className="relative flex h-full w-full max-w-6xl overflow-hidden border-slate-200 shadow-2xl outline-none sm:h-[min(88vh,880px)] sm:rounded-3xl sm:border dark:border-stone-700"
           >
+            {/* The dashboard's own photograph, pinned rather than drawn by the
+                hour, and held back from every other page. `absolute`, not the
+                component's usual `fixed`, so it is bounded by the panel's
+                rounded corners instead of covering the screen behind it. */}
+            {/* No `-z-10` here. The panel paints `surface.base` on *itself*, so
+                a child sent behind the stacking context goes behind that opaque
+                fill and is never seen. At the default depth it sits on the fill
+                and under every sibling that follows it, which is what was
+                wanted. */}
+            {/* `z-0`, explicitly. The component's own base class carries
+                `-z-10`, which merges through and drops it behind the panel's
+                opaque fill, so the photograph was only visible in the scrim
+                *around* the dashboard rather than inside it. */}
+            <PageBackground scene={DASHBOARD_SCENE} className="absolute inset-0 z-0" />
+
             {/* The column, permanent from `md` up. Below that it comes over the
                 content instead, because a 256px rail and a readable panel do
                 not both fit on a phone. */}
-            <aside className="hidden w-64 shrink-0 border-r border-slate-200/80 md:block dark:border-stone-700/70">
+            {/* `relative z-10` on both this and the content column: the
+                photograph sits at `z-0` inside the panel, and a sibling with no
+                depth of its own does not reliably paint above a positioned one.
+                Without it the forest covered the whole dashboard. */}
+            <aside className="relative z-10 hidden w-64 shrink-0 border-r border-slate-200/80 md:block dark:border-stone-700/70">
               {nav}
             </aside>
 
@@ -488,7 +501,7 @@ export function Dashboard({
               )}
             </AnimatePresence>
 
-            <div className="flex min-w-0 flex-1 flex-col">
+            <div className="relative z-10 flex min-w-0 flex-1 flex-col">
               <header className="flex shrink-0 items-center gap-2 border-b border-slate-200/80 px-4 py-3 sm:px-6 dark:border-stone-700/70">
                 <AnimatedMenuToggle
                   isOpen={mobileNav}
@@ -582,7 +595,7 @@ export function DashboardButton({
         "group/dash inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full border px-3 text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:outline-none",
         open
           ? "border-indigo-300 bg-indigo-50 text-indigo-700 dark:border-indigo-400/40 dark:bg-indigo-500/15 dark:text-indigo-200"
-          : "border-slate-200 bg-white/70 text-slate-600 hover:border-indigo-300 hover:bg-white hover:text-indigo-700 dark:border-stone-700 dark:bg-stone-900/60 dark:text-stone-300 dark:hover:border-indigo-400/50 dark:hover:bg-stone-800 dark:hover:text-indigo-200",
+          : "border-slate-200 bg-white/85 text-slate-600 hover:border-indigo-300 hover:bg-white hover:text-indigo-700 dark:border-stone-700 dark:bg-stone-900/60 dark:text-stone-300 dark:hover:border-indigo-400/50 dark:hover:bg-stone-800 dark:hover:text-indigo-200",
         className,
       )}
     >
@@ -767,7 +780,7 @@ function HomePanel({
               <a
                 href={deckHref(deck)}
                 onClick={onClose}
-                className="group block rounded-xl border border-slate-200 bg-white/70 px-4 py-3 transition-colors hover:border-indigo-300 hover:bg-white dark:border-stone-700 dark:bg-stone-900/50 dark:hover:border-indigo-400/50 dark:hover:bg-stone-900"
+                className="group block rounded-xl border border-slate-200 bg-white/85 px-4 py-3 transition-colors hover:border-indigo-300 hover:bg-white dark:border-stone-700 dark:bg-stone-900/75 dark:hover:border-indigo-400/50 dark:hover:bg-stone-900"
               >
                 <div className="flex items-baseline justify-between gap-3">
                   <p className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-800 dark:text-stone-100">
@@ -913,7 +926,7 @@ function CategoriesPanel({ decks, go }: { decks: Deck[]; go: (view: DashboardVie
               className={cn(
                 "group flex w-full cursor-pointer items-start gap-3 rounded-xl border px-4 py-3.5 text-left transition-colors",
                 row.ready
-                  ? "border-slate-200 bg-white/70 hover:border-indigo-300 hover:bg-white dark:border-stone-700 dark:bg-stone-900/50 dark:hover:border-indigo-400/50 dark:hover:bg-stone-900"
+                  ? "border-slate-200 bg-white/85 hover:border-indigo-300 hover:bg-white dark:border-stone-700 dark:bg-stone-900/75 dark:hover:border-indigo-400/50 dark:hover:bg-stone-900"
                   : "border-dashed border-slate-300 hover:bg-slate-100/60 dark:border-stone-700 dark:hover:bg-stone-900/40",
               )}
             >
@@ -961,7 +974,7 @@ function NotificationsPanel({ updates, onClose }: { updates: Update[]; onClose: 
             <a
               href={deckHref(u.deck)}
               onClick={onClose}
-              className="block rounded-xl border border-slate-200 bg-white/70 px-4 py-3 transition-colors hover:border-indigo-300 hover:bg-white dark:border-stone-700 dark:bg-stone-900/50 dark:hover:border-indigo-400/50 dark:hover:bg-stone-900"
+              className="block rounded-xl border border-slate-200 bg-white/85 px-4 py-3 transition-colors hover:border-indigo-300 hover:bg-white dark:border-stone-700 dark:bg-stone-900/75 dark:hover:border-indigo-400/50 dark:hover:bg-stone-900"
             >
               <div className="flex items-center gap-1.5 font-mono text-[0.65rem] text-indigo-600 dark:text-indigo-300">
                 <Sparkles className="size-3" />
@@ -1001,7 +1014,7 @@ function SettingsPanel({
         <button
           type="button"
           onClick={() => go("appearance")}
-          className="group flex w-full cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-white/70 px-4 py-3.5 text-left transition-colors hover:border-indigo-300 hover:bg-white dark:border-stone-700 dark:bg-stone-900/50 dark:hover:border-indigo-400/50 dark:hover:bg-stone-900"
+          className="group flex w-full cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-white/85 px-4 py-3.5 text-left transition-colors hover:border-indigo-300 hover:bg-white dark:border-stone-700 dark:bg-stone-900/75 dark:hover:border-indigo-400/50 dark:hover:bg-stone-900"
         >
           <Palette className="size-4 shrink-0 text-indigo-500 dark:text-indigo-300" />
           <span className="min-w-0 flex-1">
@@ -1041,7 +1054,7 @@ function AppearancePanel() {
         A subsection of Settings, and the one part of it that is real today.
       </p>
 
-      <div className="mt-6 flex items-center gap-4 rounded-xl border border-slate-200 bg-white/70 px-4 py-3 dark:border-stone-700 dark:bg-stone-900/50">
+      <div className="mt-6 flex items-center gap-4 rounded-xl border border-slate-200 bg-white/85 px-4 py-3 dark:border-stone-700 dark:bg-stone-900/75">
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold text-slate-800 dark:text-stone-100">Theme</p>
           <p className="text-xs text-slate-500 dark:text-stone-400">
@@ -1054,7 +1067,7 @@ function AppearancePanel() {
         <AnimatedThemeToggler />
       </div>
 
-      <div className="mt-3 rounded-xl border border-slate-200 bg-white/70 px-4 py-3 dark:border-stone-700 dark:bg-stone-900/50">
+      <div className="mt-3 rounded-xl border border-slate-200 bg-white/85 px-4 py-3 dark:border-stone-700 dark:bg-stone-900/75">
         <p className="text-sm font-semibold text-slate-800 dark:text-stone-100">Motion</p>
         <p className="text-xs text-slate-500 dark:text-stone-400">
           Follows your system's "reduce motion" setting. Every animation on the site checks it, so
@@ -1173,7 +1186,7 @@ function StatusRow({
         : "bg-slate-500/10 text-slate-500 dark:text-stone-400";
 
   return (
-    <div className="mt-5 flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-white/70 px-4 py-3 dark:border-stone-700 dark:bg-stone-900/50">
+    <div className="mt-5 flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-white/85 px-4 py-3 dark:border-stone-700 dark:bg-stone-900/75">
       <span className="text-xs text-slate-500 dark:text-stone-400">Status</span>
       <span
         className={cn("rounded-full px-2.5 py-0.5 text-xs font-bold uppercase", tone)}
@@ -1226,49 +1239,81 @@ function ProfileIdentity() {
  * the bottom of a nav was missing. Signed out it still opens Profile, because
  * there is nothing to sign out of and that is where signing in lives.
  */
-function ProfileButton({ onClick }: { onClick: () => void }) {
-  const { user, signOut } = useGoogleAuth();
-
-  if (user) {
-    return (
-      <button
-        type="button"
-        onClick={signOut}
-        className="group flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-slate-100 dark:hover:bg-stone-800"
-      >
-        <span className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-indigo-500 to-fuchsia-500 text-white">
-          {user.picture ? (
-            <img src={user.picture} alt="" className="size-full object-cover" />
-          ) : (
-            <User className="size-4" />
-          )}
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="block text-sm font-semibold text-slate-800 dark:text-stone-100">
-            Sign out
-          </span>
-          <span className="block truncate text-xs text-slate-500 dark:text-stone-400">
-            {user.email}
-          </span>
-        </span>
-        <LogIn className="size-4 shrink-0 rotate-180 text-slate-400 dark:text-stone-500" />
-      </button>
-    );
-  }
+/**
+ * The foot of the sidebar: one verb, on its own surface.
+ *
+ * It was a gradient avatar row that opened the Profile panel, which the nav
+ * already lists two rows above, so the same click existed twice and the
+ * indigo-to-fuchsia fill made a piece of chrome shout louder than the content.
+ * Now it is a plain bordered control that signs you in when you are out and
+ * signs you out when you are in, on a surface of its own rather than a colour.
+ */
+/**
+ * The identity at the top of the column, which opens the Profile panel.
+ *
+ * Kept separate from the control at the foot on purpose: this one says who you
+ * are and takes you to your page, that one is a single verb. Rolling them into
+ * one button is what left the same click in two places.
+ */
+function ProfileRow({ onClick }: { onClick: () => void }) {
+  const session = useSession();
+  const profile = useProfile();
+  const name = [profile.firstName, profile.lastName].filter(Boolean).join(" ");
 
   return (
     <SidebarProfile
       onClick={onClick}
-      name="Guest"
-      detail="Not signed in"
-      avatar={<User className="size-5" />}
+      name={name || session?.name || "Guest"}
+      detail={session?.email ?? "Not signed in"}
+      avatar={
+        profile.avatar || session?.picture ? (
+          <img src={profile.avatar ?? session?.picture ?? ""} alt="" className="size-full object-cover" />
+        ) : (
+          <User className="size-5" />
+        )
+      }
     />
+  );
+}
+
+function ProfileButton({ onClick }: { onClick: () => void }) {
+  const session = useSession();
+
+  const shell =
+    "flex w-full cursor-pointer items-center gap-2.5 rounded-xl border px-3 py-2.5 text-left text-sm font-semibold transition-colors " +
+    "border-slate-200 bg-white/80 text-slate-700 hover:bg-slate-100 hover:text-slate-900 " +
+    "dark:border-stone-700 dark:bg-stone-900/70 dark:text-stone-200 dark:hover:bg-stone-800 dark:hover:text-stone-100";
+
+  if (session) {
+    return (
+      <HoldToConfirm onConfirm={session.signOut} holdMs={1500} className={shell}>
+        <LogIn className="size-4 shrink-0 rotate-180 opacity-70" />
+        <span className="min-w-0 flex-1 text-left">
+          <span className="block">Hold to sign out</span>
+          <span className="block truncate text-xs font-normal text-slate-500 dark:text-stone-400">
+            {session.email}
+          </span>
+        </span>
+      </HoldToConfirm>
+    );
+  }
+
+  return (
+    <a href="#/signin" onClick={onClick} className={shell}>
+      <LogIn className="size-4 shrink-0 opacity-70" />
+      <span className="min-w-0 flex-1">
+        <span className="block">Sign in</span>
+        <span className="block truncate text-xs font-normal text-slate-500 dark:text-stone-400">
+          Keep your progress
+        </span>
+      </span>
+    </a>
   );
 }
 
 function Stat({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white/70 px-4 py-3 dark:border-stone-700 dark:bg-stone-900/50">
+    <div className="rounded-xl border border-slate-200 bg-white/85 px-4 py-3 dark:border-stone-700 dark:bg-stone-900/75">
       <p className="title-face text-2xl text-slate-900 dark:text-stone-100">{value}</p>
       <p className="mt-0.5 text-xs text-slate-500 dark:text-stone-400">{label}</p>
     </div>
@@ -1288,7 +1333,7 @@ function QuickLink({
     <button
       type="button"
       onClick={onClick}
-      className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-slate-200 bg-white/70 px-3 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:bg-white hover:text-slate-900 dark:border-stone-700 dark:bg-stone-900/50 dark:text-stone-300 dark:hover:bg-stone-800 dark:hover:text-stone-100"
+      className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-slate-200 bg-white/85 px-3 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:bg-white hover:text-slate-900 dark:border-stone-700 dark:bg-stone-900/75 dark:text-stone-300 dark:hover:bg-stone-800 dark:hover:text-stone-100"
     >
       {icon}
       {children}

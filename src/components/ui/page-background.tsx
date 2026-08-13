@@ -51,6 +51,18 @@ interface BackgroundEntry {
 const FOREST_WEIGHT = 3;
 
 /**
+ * The dashboard's own photograph, and only the dashboard's.
+ *
+ * Pinned rather than drawn, because the dashboard is a place you return to
+ * many times in a sitting and a background that changed underneath you each
+ * time would make the same panel feel like a different one. It is then
+ * *withheld* from `pickForHour`, so no other page can show it: the point of
+ * giving one room its own picture is lost the moment the picture turns up
+ * elsewhere.
+ */
+export const DASHBOARD_SCENE = "forest-misty-forest.webp";
+
+/**
  * Which photograph, decided by the clock.
  *
  * A stand-in for the weather lookup, and deliberately the same shape: one
@@ -65,7 +77,9 @@ const FOREST_WEIGHT = 3;
  * is the whole of the trick.
  */
 function pickForHour(entries: BackgroundEntry[], hour: number): BackgroundEntry | undefined {
-  const scenes = entries.filter((e) => e.kind === "landscape" || e.kind === "forest");
+  const scenes = entries.filter(
+    (e) => (e.kind === "landscape" || e.kind === "forest") && e.file !== DASHBOARD_SCENE,
+  );
   if (scenes.length === 0) return undefined;
 
   const wants = (...words: string[]) =>
@@ -103,7 +117,14 @@ function pickForHour(entries: BackgroundEntry[], hour: number): BackgroundEntry 
   return pool[hour % pool.length];
 }
 
-export function PageBackground({ className }: { className?: string }) {
+export function PageBackground({
+  className,
+  /** Name a file to pin it, instead of letting the hour choose. */
+  scene: pinned,
+}: {
+  className?: string;
+  scene?: string;
+}) {
   const isDark = useIsDark();
   const surface = isDark ? SURFACE.dark : SURFACE.light;
   const [entries, setEntries] = useState<BackgroundEntry[]>([]);
@@ -125,7 +146,15 @@ export function PageBackground({ className }: { className?: string }) {
     };
   }, []);
 
-  const scene = useMemo(() => pickForHour(entries, new Date().getHours()), [entries]);
+  const scene = useMemo(() => {
+    if (pinned) {
+      // Falls through to the hourly pick if the named file is not in the
+      // manifest, so a rename shows the wrong photograph rather than none.
+      const found = entries.find((e) => e.file === pinned);
+      if (found) return found;
+    }
+    return pickForHour(entries, new Date().getHours());
+  }, [entries, pinned]);
   const berry = useMemo(() => {
     const berries = entries.filter((e) => e.kind === "berry");
     if (berries.length === 0) return undefined;
