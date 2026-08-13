@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -24,6 +24,8 @@ export function NotificationBell({
   children,
   onOpen,
   className,
+  open: controlledOpen,
+  onOpenChange,
 }: {
   /** Unread count. Zero hides the badge rather than showing a nought. */
   count: number;
@@ -31,8 +33,28 @@ export function NotificationBell({
   children: ReactNode;
   onOpen?: () => void;
   className?: string;
+  /** Supply with `onOpenChange` to drive the panel from outside. */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
-  const [open, setOpen] = useState(false);
+  /**
+   * Uncontrolled by default, controllable when someone outside needs to open it.
+   *
+   * The workspace rail has a Feedback row, and the panel it should open lives in
+   * here. Rather than give the page a second copy of the inbox, `open` and
+   * `onOpenChange` let an owner drive this one. Both are optional and the
+   * internal state is still the fallback, so every existing use is untouched.
+   */
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const open = controlledOpen ?? uncontrolledOpen;
+  const setOpen = useCallback(
+    (next: boolean | ((o: boolean) => boolean)) => {
+      const value = typeof next === "function" ? next(open) : next;
+      if (controlledOpen === undefined) setUncontrolledOpen(value);
+      onOpenChange?.(value);
+    },
+    [open, controlledOpen, onOpenChange],
+  );
   const wrap = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -50,7 +72,7 @@ export function NotificationBell({
       window.removeEventListener("keydown", onKey);
       window.removeEventListener("pointerdown", onDown);
     };
-  }, [open]);
+  }, [open, setOpen]);
 
   return (
     <div ref={wrap} className={cn("relative", className)}>

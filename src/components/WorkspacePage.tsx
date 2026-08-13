@@ -14,6 +14,10 @@ import {
 } from "lucide-react";
 import { BlueberryMark } from "@/components/ui/blueberry-mark";
 import { NotificationBell } from "@/components/ui/notification-bell";
+import {
+  WorkspaceSidebar,
+  type WorkspaceRole,
+} from "@/components/ui/workspace-sidebar";
 import { AdminPanel } from "@/components/AdminPanel";
 import { WorkspaceActivity } from "@/components/WorkspaceActivity";
 import { ScrollProgress } from "@/components/ui/scroll-progress";
@@ -240,6 +244,9 @@ export function WorkspacePage({ user }: { user: GoogleUser }) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [adminOpen, setAdminOpen] = useState(false);
   const [activityOpen, setActivityOpen] = useState(false);
+  const [inboxOpen, setInboxOpen] = useState(false);
+  /** Which rail row is lit. Only ever "board" today; the rest are actions. */
+  const [navId, setNavId] = useState("board");
   /**
    * One scroll container per column, so each gets its own progress bar.
    *
@@ -280,6 +287,21 @@ export function WorkspacePage({ user }: { user: GoogleUser }) {
     setSeen(new Set(ids));
     saveSeen(ids);
   }, [feedback]);
+
+  /**
+   * Your role, read off the allowlist the page already fetched.
+   *
+   * Deliberately not `useAccountRole`, which would fire a second `fetchWorkspace`
+   * for an answer that is sitting in `owners` and `admins` right here. Anyone
+   * who is neither gets no rail: the page still works, it just has no admin
+   * furniture on it.
+   */
+  const role = useMemo<WorkspaceRole | null>(() => {
+    const me = user.email.trim().toLowerCase();
+    if (owners.some((o) => o.trim().toLowerCase() === me)) return "owner";
+    if (admins.some((a) => a.email.trim().toLowerCase() === me)) return "admin";
+    return null;
+  }, [owners, admins, user.email]);
 
   const tally = useMemo(() => {
     const counts = { good: 0, bad: 0, neutral: 0 };
@@ -337,6 +359,43 @@ export function WorkspacePage({ user }: { user: GoogleUser }) {
     );
   };
 
+  /**
+   * The rail drives the controls that already exist rather than owning copies.
+   *
+   * Most rows are verbs, not destinations: Refresh and Sign out do a thing,
+   * Activity and the allowlist open what the toolbar opens. Only Board is a
+   * place, so only Board changes what is lit.
+   */
+  const onNavSelect = (id: string) => {
+    switch (id) {
+      case "board":
+        setNavId("board");
+        setActivityOpen(false);
+        setInboxOpen(false);
+        setAdminOpen(false);
+        return;
+      case "feedback":
+        setInboxOpen(true);
+        markAllSeen();
+        return;
+      case "activity":
+        setActivityOpen(true);
+        return;
+      case "refresh":
+        void refresh();
+        return;
+      case "allowlist":
+        setAdminOpen(true);
+        return;
+      case "back":
+        window.location.hash = "#/home";
+        return;
+      case "signout":
+        signOut();
+        return;
+    }
+  };
+
   const moveTodo = (id: string, column: TodoColumn) => {
     const current = todos.find((t) => t.id === id);
     if (!current || current.column === column) return;
@@ -382,7 +441,13 @@ export function WorkspacePage({ user }: { user: GoogleUser }) {
               Activity
             </button>
 
-            <NotificationBell count={unread.length} label="Feedback" onOpen={markAllSeen}>
+            <NotificationBell
+              count={unread.length}
+              label="Feedback"
+              onOpen={markAllSeen}
+              open={inboxOpen}
+              onOpenChange={setInboxOpen}
+            >
               <FeedbackInbox
                 feedback={feedback}
                 state={fbState}
@@ -437,6 +502,28 @@ export function WorkspacePage({ user }: { user: GoogleUser }) {
           </div>
         </header>
 
+        {/* The rail is staff furniture, so it is rendered only for admins and
+            owners, and only where there is room. Below `lg` the board needs the
+            whole width and the toolbar in the header already reaches all of
+            this. It sticks rather than scrolling away, because a nav you have
+            to scroll back up to reach is one you stop using. */}
+        <div className="flex gap-6">
+          {role && (
+            <aside className="sticky top-8 hidden h-[calc(100vh-6rem)] w-[248px] shrink-0 self-start lg:block">
+              <WorkspaceSidebar
+                email={user.email}
+                role={role}
+                unread={unread.length}
+                taskCount={todos.length}
+                memberCount={owners.length + admins.length}
+                loading={loading}
+                activeId={navId}
+                onSelect={onNavSelect}
+              />
+            </aside>
+          )}
+
+          <div className="min-w-0 flex-1">
         <div className="mb-8">
           <div>
             <h1 className="title-face text-3xl text-slate-900 dark:text-stone-100">Workspace</h1>
@@ -664,6 +751,8 @@ export function WorkspacePage({ user }: { user: GoogleUser }) {
           Hold the bin on a card to delete it. Feedback is read-only here; it comes from the widget
           on the study pages.
         </p>
+          </div>
+        </div>
       </div>
     </main>
   );

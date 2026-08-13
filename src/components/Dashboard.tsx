@@ -32,6 +32,8 @@ import {
 import { CourseTree } from "@/components/ui/course-tree";
 import { SearchResults } from "@/components/ui/deck-search";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
+import { SubscriptionPlans } from "@/components/ui/subscription-plans";
+import { VerifyChecklist } from "@/components/ui/verify-checklist";
 import { deckCount, deckHref, type Deck } from "@/data/types";
 import { searchDecks } from "@/lib/searchDecks";
 import { reviewedCount } from "@/lib/progress";
@@ -605,11 +607,11 @@ function Panel({
     case "notifications":
       return <NotificationsPanel updates={updates} onClose={onClose} />;
     case "settings":
-      return <SettingsPanel go={go} />;
+      return <SettingsPanel go={go} onClose={onClose} />;
     case "appearance":
       return <AppearancePanel />;
     case "profile":
-      return <ProfilePanel />;
+      return <ProfilePanel onClose={onClose} />;
     // `go` sends Lessons to its own page, so this panel is only reached if the
     // view is set straight to "lessons" from elsewhere. It stays a real panel
     // rather than a redirect, because a redirect fired from render is the bug
@@ -659,17 +661,12 @@ function Panel({
       );
     case "subscriptions":
       return (
-        <Unbuilt title="Subscriptions" lead="Nothing is paid for yet, and nothing is being charged.">
-          <p>
-            The plan is two tiers above the open site: a member account, which is what holds your
-            progress somewhere other than this one browser, and a pro tier for the parts that cost
-            something to run.
+        <div>
+          <p className="playful-face mb-5 max-w-xl text-lg text-slate-500 dark:text-stone-400">
+            Two tiers above the open site, and which side of the line each feature sits on.
           </p>
-          <p className="mt-3">
-            Everything on the site today stays free. When this is built it will say plainly which
-            side of the line each feature is on.
-          </p>
-        </Unbuilt>
+          <SubscriptionPlans onNavigate={onClose} />
+        </div>
       );
     case "imports":
       return (
@@ -956,12 +953,20 @@ function NotificationsPanel({ updates, onClose }: { updates: Update[]; onClose: 
   );
 }
 
-function SettingsPanel({ go }: { go: (view: DashboardView) => void }) {
+function SettingsPanel({
+  go,
+  onClose,
+}: {
+  go: (view: DashboardView) => void;
+  onClose: () => void;
+}) {
   return (
     <div>
       <p className="playful-face max-w-xl text-lg text-slate-500 dark:text-stone-400">
         One of these works. The rest arrive with accounts.
       </p>
+
+      <VerifyChecklist className="mt-6 max-w-xl" onNavigate={onClose} />
 
       <div className="mt-6 space-y-3">
         <button
@@ -1031,7 +1036,24 @@ function AppearancePanel() {
   );
 }
 
-function ProfilePanel() {
+/**
+ * Plans first, then who you are.
+ *
+ * Andrew asked for the tiers to be the first thing on this page, so the
+ * identity block that used to open it now sits underneath.
+ */
+function ProfilePanel({ onClose }: { onClose: () => void }) {
+  return (
+    <div>
+      <SubscriptionPlans onNavigate={onClose} />
+      <div className="mt-10 border-t border-slate-200 pt-8 dark:border-stone-700">
+        <ProfileIdentity onClose={onClose} />
+      </div>
+    </div>
+  );
+}
+
+function ProfileIdentity({ onClose }: { onClose: () => void }) {
   const { user, configured } = useGoogleAuth();
 
   if (user) {
@@ -1089,6 +1111,29 @@ function ProfilePanel() {
           </p>
         )}
       </div>
+
+      {/* Signing in is a page, not something that happens behind this panel.
+          `onClose` goes with the link so you are not left reading the dashboard
+          over the top of the page you just asked for. */}
+      {configured && (
+        <div className="mt-6 flex flex-wrap items-center gap-3">
+          <a
+            href="#/signin"
+            onClick={onClose}
+            className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full bg-gradient-to-r from-indigo-500 to-fuchsia-500 px-5 text-sm font-semibold text-white transition hover:brightness-110 focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:outline-none"
+          >
+            <LogIn className="size-4" />
+            Sign in
+          </a>
+          <a
+            href="#/signup"
+            onClick={onClose}
+            className="inline-flex min-h-11 cursor-pointer items-center rounded-full border border-slate-200 px-5 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 dark:border-stone-700 dark:text-stone-300 dark:hover:bg-stone-800 dark:hover:text-stone-100"
+          >
+            Create an account
+          </a>
+        </div>
+      )}
     </div>
   );
 }

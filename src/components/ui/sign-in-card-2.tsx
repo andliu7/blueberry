@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
-import { ArrowRight, ShieldCheck } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 import { BlueberryMark } from "@/components/ui/blueberry-mark";
 
 export type AuthCardMode = "signin" | "signup" | "staff";
@@ -51,16 +51,20 @@ export function SignInCard({
           </p>
         ) : (
           <>
-            <button
-              type="button"
-              onClick={onSignIn}
-              disabled={!ready}
-              className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-white px-4 text-sm font-semibold text-[#171327] transition duration-200 hover:bg-white/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#171327] disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              Continue with Google <ArrowRight className="size-4" />
-            </button>
-            <div className="flex items-center gap-3 text-xs text-white/35"><span className="h-px flex-1 bg-white/10" />or<span className="h-px flex-1 bg-white/10" /></div>
+            {/* One Google button. This card used to show a styled one and
+                Google's own under an "or", which offered a choice between the
+                same flow and itself. */}
             <div className="flex justify-center" ref={googleButtonRef} />
+            {!ready && (
+              <button
+                type="button"
+                onClick={onSignIn}
+                disabled
+                className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-white/10 px-4 text-sm font-semibold text-white/50"
+              >
+                Loading Google sign-in…
+              </button>
+            )}
           </>
         )}
         {error && <p className="text-center text-sm text-red-200">{error}</p>}
