@@ -4,18 +4,20 @@ import { useCallback, useEffect, useRef, useState } from "react";
  * Background sound for a study session, synthesised rather than played back.
  *
  * This started as a request to loop two Spotify tracks seamlessly: a three-hour
- * white noise piece and a rainforest bed. That cannot be done, and it is worth
- * writing down why, because the reason is not a missing feature we can wait for.
- * A Spotify embed is a cross-origin iframe. It reports no playback position and
- * fires no end-of-track event, so there is nothing to restart on; the audio is
- * unreachable from script, so there is no buffer to find a splice point in or
- * crossfade across; and a listener who is not signed in hears a thirty-second
- * preview. Taking the audio out of Spotify to loop it locally means breaking
- * their DRM.
+ * white noise piece and a rainforest bed.
  *
- * Synthesis answers the actual want better than a loop could. **There is no
- * loop point, so there is no seam to hide.** It also costs nothing to download,
- * where a three-hour recording is tens of megabytes, and it needs no library.
+ * I first said that could not be done. That was right about a bare `<iframe>`,
+ * which reports nothing and exposes no audio, and wrong in general: Spotify
+ * publishes an IFrame API that reports playback position and can seek, which is
+ * enough to loop. That path exists now, in `ui/spotify-loop.tsx`, and it is what
+ * the playlist option uses.
+ *
+ * These beds are still synthesised, because for *noise* synthesis is better
+ * than any loop rather than a substitute for one. **There is no loop point, so
+ * there is no seam to hide** — where a seek back to zero always leaves a small
+ * gap while the player rebuffers. It also costs nothing to download, where a
+ * three-hour recording is tens of megabytes, and it needs no library and no
+ * account.
  *
  * The one place a repeat could creep in is the noise buffers, since generating
  * white noise per sample in JavaScript is wasteful. So each bed runs *two*
@@ -25,11 +27,21 @@ import { useCallback, useEffect, useRef, useState } from "react";
  * Nothing in it lines up twice inside a study session.
  */
 
-export type AmbienceScene = "off" | "white" | "rain";
+export type AmbienceScene = "off" | "white" | "rain" | "spotify";
+
+/**
+ * The playlist Andrew listens to, looped by seeking rather than synthesised.
+ *
+ * Handled outside this hook: it is an iframe Spotify owns, not a graph we
+ * build, so `play("spotify")` only tears the synthesised voices down and records
+ * the choice. See `ui/spotify-loop.tsx`.
+ */
+export const SPOTIFY_PLAYLIST_URI = "spotify:playlist:2g12iEeRtAGWuHGcLZGL8X";
 
 export const SCENE_LABEL: Record<Exclude<AmbienceScene, "off">, string> = {
   white: "White noise",
   rain: "Rainforest",
+  spotify: "Your playlist",
 };
 
 /** Coprime, so the two layers do not come round together for over seven minutes. */
@@ -229,9 +241,11 @@ export function useAmbience() {
 
   const play = useCallback(
     (next: AmbienceScene) => {
-      if (next === "off") {
+      if (next === "off" || next === "spotify") {
+        // Spotify plays through its own iframe, so all this has to do is get
+        // the synthesised voices out of the way. Two beds at once is noise.
         teardown();
-        setScene("off");
+        setScene(next);
         return;
       }
 

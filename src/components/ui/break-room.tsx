@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { createPortal } from "react-dom";
-import { CloudRain, Gamepad2, Volume2, VolumeX, Waves, X } from "lucide-react";
+import { Check, ChevronDown, CloudRain, Gamepad2, Music, Volume2, VolumeX, Waves, X } from "lucide-react";
 import { Tetris } from "@/components/ui/tetris";
-import { SCENE_LABEL, type AmbienceScene } from "@/lib/useAmbience";
+import { SCENE_LABEL, SPOTIFY_PLAYLIST_URI, type AmbienceScene } from "@/lib/useAmbience";
+import { SpotifyLoop } from "@/components/ui/spotify-loop";
 import { cn } from "@/lib/utils";
 
 /**
@@ -20,6 +21,12 @@ import { cn } from "@/lib/utils";
  * playing across the phase change instead of stopping and starting every
  * twenty-five minutes.
  */
+const SCENE_ICON = {
+  white: Waves,
+  rain: CloudRain,
+  spotify: Music,
+} as const;
+
 export function BreakRoom({
   scene,
   volume,
@@ -54,28 +61,13 @@ export function BreakRoom({
           {scene === "off" ? <VolumeX className="size-4" /> : <Volume2 className="size-4" />}
         </button>
 
-        {(["white", "rain"] as const).map((s) => {
-          // An icon each, so the two are told apart at a glance rather than by
-          // reading. Waves for the broadband hiss, rain for the forest.
-          const Icon = s === "white" ? Waves : CloudRain;
-          return (
-            <button
-              key={s}
-              type="button"
-              onClick={() => onScene(scene === s ? "off" : s)}
-              aria-pressed={scene === s}
-              className={cn(
-                "flex cursor-pointer items-center gap-1.5 rounded-full border px-2.5 py-1 text-[0.7rem] font-semibold transition-colors",
-                scene === s
-                  ? "border-indigo-400 bg-indigo-50 text-indigo-700 dark:border-indigo-400/50 dark:bg-indigo-500/15 dark:text-indigo-200"
-                  : "border-slate-200 text-slate-600 hover:border-indigo-300 dark:border-stone-800 dark:text-stone-300",
-              )}
-            >
-              <Icon className="size-3.5 shrink-0" />
-              {SCENE_LABEL[s]}
-            </button>
-          );
-        })}
+        {/* One dropdown rather than a pill each.
+
+            Three options is where a row of pills stops working: they wrap onto
+            a second line inside a 22rem card, and adding a fourth would push the
+            game button off the end. A menu shows the current choice in the space
+            of one pill and has room for however many beds get added. */}
+        <SceneMenu scene={scene} onScene={onScene} />
 
         {showGame && (
           <button
@@ -95,7 +87,10 @@ export function BreakRoom({
         )}
       </div>
 
-      {scene !== "off" && (
+      {/* Spotify has its own volume, on its own player, and this slider cannot
+          reach inside their iframe to move it. Showing a control that does
+          nothing is worse than not showing one. */}
+      {scene !== "off" && scene !== "spotify" && (
         <div className="px-3 pb-2">
           <input
             type="range"
@@ -110,9 +105,113 @@ export function BreakRoom({
         </div>
       )}
 
+      {/* Spotify draws its own player, so unlike the synthesised beds this
+          option has something to show. Mounted only when chosen: it pulls a
+          script from Spotify, the one third-party request on the site. */}
+      <SpotifyLoop uri={SPOTIFY_PLAYLIST_URI} playing={scene === "spotify"} />
+
       {showGame && playing && (
         <TetrisScreen onClose={() => setPlaying(false)} />
       )}
+    </div>
+  );
+}
+
+/**
+ * Which bed is playing, as a menu.
+ *
+ * Closes on Escape and on any click outside itself. The check mark rather than
+ * a highlight marks the current one, because "off" is a real choice here and a
+ * highlighted "off" reads as an error state.
+ */
+function SceneMenu({
+  scene,
+  onScene,
+}: {
+  scene: AmbienceScene;
+  onScene: (s: AmbienceScene) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: PointerEvent) => {
+      if (!ref.current?.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    // Deferred a frame, or the press that opened it closes it again.
+    const id = setTimeout(() => window.addEventListener("pointerdown", onDown), 0);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      clearTimeout(id);
+      window.removeEventListener("pointerdown", onDown);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  const Icon = scene === "off" ? VolumeX : SCENE_ICON[scene];
+
+  return (
+    <div ref={ref} className="relative flex-1">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        aria-haspopup="menu"
+        className={cn(
+          "flex w-full cursor-pointer items-center gap-1.5 rounded-full border px-2.5 py-1 text-[0.7rem] font-semibold transition-colors",
+          scene === "off"
+            ? "border-slate-200 text-slate-600 hover:border-indigo-300 dark:border-stone-800 dark:text-stone-300"
+            : "border-indigo-400 bg-indigo-50 text-indigo-700 dark:border-indigo-400/50 dark:bg-indigo-500/15 dark:text-indigo-200",
+        )}
+      >
+        <Icon className="size-3.5 shrink-0" />
+        <span className="min-w-0 flex-1 truncate text-left">
+          {scene === "off" ? "Sound off" : SCENE_LABEL[scene]}
+        </span>
+        <ChevronDown
+          className={cn("size-3 shrink-0 transition-transform", open && "rotate-180")}
+        />
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.ul
+            role="menu"
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.14 }}
+            // Upward: the card is anchored to the bottom of the screen, so a
+            // menu dropping down would open off the edge of it.
+            className="absolute bottom-full left-0 z-10 mb-1 w-full overflow-hidden rounded-xl border border-slate-200 bg-white p-1 shadow-xl dark:border-stone-800 dark:bg-stone-950"
+          >
+            {(["off", "white", "rain", "spotify"] as const).map((s) => {
+              const RowIcon = s === "off" ? VolumeX : SCENE_ICON[s];
+              return (
+                <li key={s}>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      onScene(s);
+                      setOpen(false);
+                    }}
+                    className="flex w-full cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 text-left text-xs transition-colors hover:bg-slate-50 dark:hover:bg-stone-900"
+                  >
+                    <RowIcon className="size-3.5 shrink-0 text-slate-400" />
+                    <span className="min-w-0 flex-1 truncate">
+                      {s === "off" ? "Sound off" : SCENE_LABEL[s]}
+                    </span>
+                    {scene === s && <Check className="size-3 shrink-0 text-indigo-500" />}
+                  </button>
+                </li>
+              );
+            })}
+          </motion.ul>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
