@@ -231,9 +231,19 @@ export const DECK_GROUPS: {
   /** Folder card wash: one step along the site's indigo-to-fuchsia ramp. */
   from: string;
   to: string;
+  /**
+   * A photograph behind the wash, under BASE_URL.
+   *
+   * The gradient stays and becomes the scrim over it. White text on an
+   * arbitrary photograph is a contrast bet you lose on the bright ones, and
+   * keeping the ramp means a folder with no picture yet still reads as itself
+   * rather than as a broken card.
+   */
+  photo?: string;
 }[] = [
   {
     id: "lab",
+    photo: "backgrounds/folder-blueberry.webp",
     // The course prefix moved up to the course folder, where it belongs now
     // that there is more than one course on the site.
     title: "LCTA",
@@ -243,6 +253,7 @@ export const DECK_GROUPS: {
   },
   {
     id: "reference",
+    photo: "backgrounds/folder-cool-dark-blueberry.webp",
     title: "Reference sheets",
     blurb: "The charts you look up mid-problem. Hover any row for the diagram.",
     from: "#7c3aed",
@@ -250,6 +261,7 @@ export const DECK_GROUPS: {
   },
   {
     id: "carbonyls",
+    photo: "backgrounds/folder-tart-blueberry.webp",
     title: "Carbonyls",
     blurb: "One deck per reaction type, plus the same reactions asked backwards.",
     from: "#8b5cf6",
@@ -257,6 +269,7 @@ export const DECK_GROUPS: {
   },
   {
     id: "uploaded",
+    photo: "backgrounds/folder-pancake-blueberry.webp",
     // No course prefix. The other two are tied to a specific course; this one
     // holds whatever anyone uploads, which may well not be CHEM 242 at all.
     title: "Uploaded",

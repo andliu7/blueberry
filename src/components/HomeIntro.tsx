@@ -263,8 +263,34 @@ function IntroStage({
                 the background behind it, so the beat played and nothing
                 appeared to happen. Keeping the real shader keeps the timing and
                 the movement rather than approximating them. */}
+            {/* A photograph under the shader, one per theme.
+
+                Two files rather than one dimmed image: the light and dark
+                openings were shot to be different pictures, and tinting one to
+                stand in for the other is how you get a dark mode that looks
+                like a light mode with the lights off. Both are in the markup
+                and CSS picks, because reading the theme in JS gives a
+                wrong-coloured flash on first paint.
+
+                `aria-hidden` and an empty alt: this is the backdrop to a title
+                that already says what the page is. */}
+            <img
+              src={`${import.meta.env.BASE_URL}backgrounds/intro-light.webp`}
+              alt=""
+              aria-hidden
+              className="absolute inset-0 size-full object-cover dark:hidden"
+            />
+            <img
+              src={`${import.meta.env.BASE_URL}backgrounds/intro-dark.webp`}
+              alt=""
+              aria-hidden
+              className="absolute inset-0 hidden size-full object-cover dark:block"
+            />
             <ShaderAnimation
               className={cn(
+                // Over the photograph now, so it reads as light moving across
+                // the picture rather than as the whole surface.
+                "opacity-70",
                 // Measured by looking at it: at full strength the inverted bands
                 // go grey and muddy against the pastel, because multiply darkens
                 // every channel of a background that is already pale. Half

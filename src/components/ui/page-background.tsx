@@ -39,7 +39,15 @@ interface BackgroundEntry {
    * closest to what a blueberry actually grows in, and a site named after the
    * fruit looks more like itself behind them than behind a castle.
    */
-  kind: "landscape" | "forest" | "berry";
+  /**
+   * `landscape` and `forest` are the only kinds `pickForHour` will draw. The
+   * rest are catalogued in the same manifest but claimed by a specific place:
+   * `folder` art belongs to a study-deck folder card, `intro-*` to the opening
+   * screen, `diagram` to a lesson banner. Keeping them here rather than in a
+   * second list means one script fills one manifest, and the picker excludes
+   * them by asking for what it wants instead of listing what it does not.
+   */
+  kind: "landscape" | "forest" | "berry" | "folder" | "diagram" | "intro-light" | "intro-dark";
   label: string;
   w: number;
   h: number;

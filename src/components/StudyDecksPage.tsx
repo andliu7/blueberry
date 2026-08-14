@@ -573,13 +573,34 @@ function DeckFolder({
     >
     <InfoCard
       onClick={openFolder}
-      className="!border-transparent cursor-pointer"
+      className="!border-transparent relative cursor-pointer overflow-hidden"
       style={{
         // A tinted wash rather than plain white, so the two folders read as
-        // different places at a glance instead of two identical panels.
+        // different places at a glance instead of two identical panels. With a
+        // photograph behind it the same ramp becomes the scrim that keeps the
+        // white text legible, which is why it stays rather than being replaced.
         backgroundImage: `linear-gradient(140deg, ${group.from}, ${group.to})`,
       }}
     >
+      {group.photo && (
+        <>
+          <img
+            src={import.meta.env.BASE_URL + group.photo}
+            alt=""
+            aria-hidden
+            loading="lazy"
+            className="absolute inset-0 -z-10 size-full object-cover"
+          />
+          {/* The wash again, over the photograph this time. Two layers rather
+              than one translucent image, so the gradient's own colour still
+              tells the folders apart. */}
+          <div
+            aria-hidden
+            className="absolute inset-0 -z-10 opacity-80"
+            style={{ backgroundImage: `linear-gradient(140deg, ${group.from}, ${group.to})` }}
+          />
+        </>
+      )}
       <InfoCardContent>
         <InfoCardTitle className="text-base !text-white">
           {/* Same sweep as "Open folder" below. The two go to the same place, so

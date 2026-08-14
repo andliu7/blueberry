@@ -10,6 +10,7 @@ import { LessonBlockEditor } from "@/components/ui/lesson-block-editor";
 import { RichText } from "@/components/ui/rich-text";
 import { defaultBlocksFor, parseBlocks, type LessonBlock } from "@/data/lessonBlocks";
 import { parseTaReactions, toStagedReaction } from "@/data/taReactions";
+import { TopicBanner } from "@/components/ui/topic-banner";
 import { cn } from "@/lib/utils";
 import { Pencil, Plus } from "lucide-react";
 import { REACTIONS } from "@/data/reactions";
@@ -60,6 +61,32 @@ type T={id:string;label:string;title:string;lead:string;mechanism:string;differe
  * is work that gets thrown away.
  */
 const POSTERS:Record<string,string>={overview:"forest-misty-forest.webp",addition:"forest-river-through-dense-forest.webp",substitution:"forest-rainforest-waterfall.webp",oxidation:"forest-clouds-through-the-forest.webp",reduction:"forest-little-forest.webp",protection:"forest-water-dripping-from-leaves.webp",enolate:"forest-nature.webp"};
+/**
+ * A photograph per section, for the banner wall.
+ *
+ * Chosen to rhyme with the chemistry rather than to be literal: frost for the
+ * hydride reductions that live at -78 C, a sunset for oxidation, ice
+ * crystallising on a window for the cyclic section. The overview gets the
+ * cyclohexane drawing, which is the one image in the set that is actually
+ * chemistry.
+ *
+ * A missing entry is fine -- the banner falls back to the indigo-to-fuchsia
+ * wash the folder cards use.
+ */
+const BANNERS:Record<string,string>={
+overview:"backgrounds/diagram-cyclohexane-molecule.webp",
+alcohols:"backgrounds/landscape-light-blue-waters.webp",
+dienes:"backgrounds/landscape-lightning.webp",
+aromatics:"backgrounds/forest-pink-trees.webp",
+addition:"backgrounds/landscape-cool-blue-mountains-and-lake.webp",
+substitution:"backgrounds/forest-rain-on-a-river.webp",
+reduction:"backgrounds/landscape-frosted-tips.webp",
+oxidation:"backgrounds/landscape-colorful-red-sunset-over-mountains.webp",
+nitrogen:"backgrounds/landscape-desert-moon.webp",
+cycles:"backgrounds/landscape-crystallization-of-ice-on-window.webp",
+enolate:"backgrounds/landscape-plains-and-beginning-of-sunrise.webp",
+amines:"backgrounds/forest-post-rain-fog.webp",
+};
 const topics:T[]=[
 {id:"overview",label:"Overview",title:"Read the carbonyl before choosing a reagent.",lead:"A nucleophile attacks the electron-poor carbonyl carbon and the pi electrons move to oxygen.",mechanism:"Aldehydes and ketones add and stop because nothing can leave. Acid derivatives add, then eliminate a leaving group through a tetrahedral intermediate.",difference:"Ask first: add and stop, or add then eliminate?",deck:"carbonyl-all",examples:[["NaBH4 on acetophenone","MeOH | 0 C to room temperature","1-Phenylethanol","carbonyl_nabh4-ketone.svg"],["Gilman on benzoyl chloride","Me2CuLi | Et2O | -78 C","Acetophenone","carbonyl_gilman.svg"]]},
 {id:"alcohols",label:"Alcohols & ethers",title:"Turn a bad leaving group into a good one.",lead:"OH will not leave. Almost everything in Chapters 17 and 18 is a way of changing that, either by protonating it into water or by converting it into something that goes willingly.",mechanism:"Protonation gives water as the leaving group and an SN1 or E1 path. PBr3 and SOCl2 avoid the carbocation entirely, which matters for a primary alcohol that would otherwise rearrange. Epoxides are the exception: a three-membered ring is strained enough to open without any of the help.",difference:"Ask whether a carbocation is allowed to form. If it is not, you need the reagent that skips it.",deck:"carbonyl-all",examples:[]},
@@ -135,5 +162,10 @@ return <main className="relative min-h-screen text-slate-900 dark:text-stone-100
     would fail. Renders nothing for anyone else. */}
 <StaffSignInNotice session={session} action="Editing this page" className="mt-6"/>
 {canEdit&&<div className="mt-6 border-t border-slate-200 pt-4 dark:border-stone-800"><button type="button" aria-label={`Edit the ${t.label} page`} onClick={()=>setEditingPage(true)} className="group flex min-h-11 cursor-pointer items-center gap-0 rounded-xl border border-slate-200 px-3 text-sm font-semibold text-slate-600 transition-colors hover:border-indigo-300 hover:text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:border-stone-700 dark:text-stone-300 dark:hover:border-indigo-700 dark:hover:text-indigo-300"><Pencil className="size-4 shrink-0"/><span className="grid grid-cols-[0fr] transition-[grid-template-columns] duration-300 ease-out group-hover:grid-cols-[1fr] group-focus-visible:grid-cols-[1fr] motion-reduce:transition-none"><span className="overflow-hidden whitespace-nowrap"><span className="pl-2">Edit this page</span></span></span></button><a href="#/new-reaction" className="group ml-2 inline-flex min-h-11 items-center gap-0 rounded-xl border border-slate-200 px-3 text-sm font-semibold text-slate-600 transition-colors hover:border-indigo-300 hover:text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:border-stone-700 dark:text-stone-300 dark:hover:border-indigo-700 dark:hover:text-indigo-300" aria-label="Add a reaction by drawing it"><Plus className="size-4 shrink-0"/><span className="grid grid-cols-[0fr] transition-[grid-template-columns] duration-300 ease-out group-hover:grid-cols-[1fr] group-focus-visible:grid-cols-[1fr] motion-reduce:transition-none"><span className="overflow-hidden whitespace-nowrap"><span className="pl-2">Add a reaction</span></span></span></a></div>}
-</article><aside className="rounded-3xl border border-slate-200 bg-white/80 p-5 shadow-sm dark:border-stone-800 dark:bg-stone-950/70"><BookOpen className="size-5 text-indigo-600 dark:text-indigo-300"/><h3 className="mt-3 font-semibold">Practice this section</h3><p className="mt-2 text-sm leading-6 text-slate-600 dark:text-stone-300">The matching deck uses these examples as flashcards.</p><a href={"#/deck/"+t.deck} className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-fuchsia-600 px-4 text-sm font-semibold text-white"><Layers className="size-4"/>Open study deck <ArrowRight className="size-4"/></a></aside></section>{t.examples.length>0&&<section className="mt-5"><p className="font-mono text-xs font-semibold uppercase tracking-[.16em] text-slate-500 dark:text-stone-400">Worked examples</p><h2 className="title-face mt-1 text-2xl">Products and conditions</h2><div className="mt-3 grid gap-4 md:grid-cols-2 xl:grid-cols-3">{t.examples.map(([a,b,c,d])=><article key={a} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-stone-800 dark:bg-stone-950"><div className="flex h-36 items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-fuchsia-50 p-3 dark:from-indigo-950/35 dark:via-stone-950 dark:to-fuchsia-950/20"><img src={`${import.meta.env.BASE_URL}cards/${d}`} alt={"Product: "+c} className="h-full w-full object-contain" loading="lazy"/></div><div className="p-4"><h3 className="text-sm font-semibold">{a}</h3><p className="mt-1 font-mono text-[.7rem] leading-5 text-indigo-700 dark:text-indigo-300">{b}</p><p className="mt-3 text-sm text-slate-600 dark:text-stone-300"><b>Product:</b> {c}</p></div></article>)}</div></section>}</>}</div></div></div><SiteFooter/></main>}
+</article><aside className="rounded-3xl border border-slate-200 bg-white/80 p-5 shadow-sm dark:border-stone-800 dark:bg-stone-950/70"><BookOpen className="size-5 text-indigo-600 dark:text-indigo-300"/><h3 className="mt-3 font-semibold">Practice this section</h3><p className="mt-2 text-sm leading-6 text-slate-600 dark:text-stone-300">The matching deck uses these examples as flashcards.</p><a href={"#/deck/"+t.deck} className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-fuchsia-600 px-4 text-sm font-semibold text-white"><Layers className="size-4"/>Open study deck <ArrowRight className="size-4"/></a></aside></section>
+{/* The wall. A sidebar is a good index and a poor front door: twelve words
+    in a column say the course has twelve sections and nothing about any of
+    them. Shown on the overview, which is where you land. */}
+{active==="overview"&&!child&&<section className="mt-6"><h3 className="font-mono text-xs font-semibold uppercase tracking-[.16em] text-slate-500 dark:text-stone-400">The course</h3><p className="mt-1 text-sm text-slate-600 dark:text-stone-300">Twelve sections, in the order CHEM241 takes them.</p><div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{topics.filter(x=>x.id!=="overview").map(x=><TopicBanner key={x.id} id={x.id} label={x.label} blurb={x.title} image={BANNERS[x.id]} count={allReactions.filter(r=>(SECTION_FAMILIES[x.id]??[]).includes(r.family)).length} onSelect={(id)=>{setActive(id);setChild(null);}}/>)}</div></section>}
+{t.examples.length>0&&<section className="mt-5"><p className="font-mono text-xs font-semibold uppercase tracking-[.16em] text-slate-500 dark:text-stone-400">Worked examples</p><h2 className="title-face mt-1 text-2xl">Products and conditions</h2><div className="mt-3 grid gap-4 md:grid-cols-2 xl:grid-cols-3">{t.examples.map(([a,b,c,d])=><article key={a} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-stone-800 dark:bg-stone-950"><div className="flex h-36 items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-fuchsia-50 p-3 dark:from-indigo-950/35 dark:via-stone-950 dark:to-fuchsia-950/20"><img src={`${import.meta.env.BASE_URL}cards/${d}`} alt={"Product: "+c} className="h-full w-full object-contain" loading="lazy"/></div><div className="p-4"><h3 className="text-sm font-semibold">{a}</h3><p className="mt-1 font-mono text-[.7rem] leading-5 text-indigo-700 dark:text-indigo-300">{b}</p><p className="mt-3 text-sm text-slate-600 dark:text-stone-300"><b>Product:</b> {c}</p></div></article>)}</div></section>}</>}</div></div></div><SiteFooter/></main>}
 function Info({title,icon,children}:{title:string;icon:React.ReactNode;children:React.ReactNode}){return <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4 dark:border-stone-800 dark:bg-stone-900/70"><div className="flex items-center gap-2 text-sm font-semibold text-indigo-700 dark:text-indigo-300">{icon}{title}</div><div className="mt-2 text-sm leading-6 text-slate-600 dark:text-stone-300">{children}</div></div>}
