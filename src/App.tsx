@@ -66,6 +66,18 @@ const SignInPage = lazy(() =>
   import("@/components/SignInPage").then((m) => ({ default: m.SignInPage })),
 );
 const LessonsPage = lazy(() => import("@/components/LessonsPage").then((m) => ({ default: m.LessonsPage })));
+/* Split like the rest: the calendar pulls in the syllabus importer and the
+   Radix dialog, and none of that should be in the bundle someone downloads to
+   read a deck. */
+const CalendarPage = lazy(() => import("@/components/CalendarPage"));
+const ReactionsPage = lazy(() =>
+  import("@/components/ReactionsPage").then((m) => ({ default: m.ReactionsPage })),
+);
+/* Lazy, and it matters more here than anywhere else on the site: this route
+   pulls in Ketcher, which is roughly 19MB of WASM. Behind a page the student
+   chooses to open, it stays out of the download for everyone who came to read
+   a deck. */
+const ReactionDrawPage = lazy(() => import("@/components/ReactionDrawPage"));
 const WorkspaceRoute = lazy(() =>
   import("@/components/WorkspaceRoute").then((m) => ({ default: m.WorkspaceRoute })),
 );
@@ -227,6 +239,11 @@ export default function App() {
   if (route === "" || route === "home") return <HomePage />;
   if (route === "study-decks") return <StudyDecksPage />;
   if (route === "lessons") return withBoundary(<LessonsPage />);
+  if (route === "calendar") return withBoundary(<CalendarPage />);
+  if (route === "reactions") return withBoundary(<ReactionsPage />);
+  if (route.startsWith("draw/")) {
+    return withBoundary(<ReactionDrawPage reactionId={route.slice(5)} />);
+  }
   // `about` is the old address for what is now the contact page. About itself is
   // a card opened over whatever you were looking at, so it has no route at all.
   if (route === "contact" || route === "about") return withBoundary(<ContactPage />);

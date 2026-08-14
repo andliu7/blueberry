@@ -27,3 +27,12 @@ dist-ssr
 .env
 .env.local
 .env.*.local
+
+# Python bytecode from the curriculum build scripts
+__pycache__/
+*.pyc
+
+# Agent tooling state, not project source
+.agents/
+.claude/
+skills-lock.json

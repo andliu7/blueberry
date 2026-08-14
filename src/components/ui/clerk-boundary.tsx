@@ -33,6 +33,9 @@ export class ClerkBoundary extends Component<
   }
 
   render() {
+    // The fallback is the same tree without `ClerkProvider` and without
+    // `ClerkUserBridge`, so `useSession` reads the bridge context's signed-out
+    // default instead of calling Clerk hooks that have no provider above them.
     return this.state.failed ? this.props.fallback : this.props.children;
   }
 }

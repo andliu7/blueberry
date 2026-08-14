@@ -1,6 +1,5 @@
-import { useClerk, useUser } from "@clerk/clerk-react";
 import { useGoogleAuth } from "@/lib/useGoogleAuth";
-import { clerkConfigured } from "@/lib/clerk";
+import { useClerkSession } from "@/lib/clerk-session";
 import type { AccountRole } from "@/lib/account";
 
 /**
@@ -48,38 +47,19 @@ function roleFor(email: string, clerkRole?: unknown): AccountRole {
   return "member";
 }
 
-/**
- * Two implementations, chosen once at module load.
- *
- * `clerkConfigured` is a build-time constant, so this branch never changes
- * between renders and the hook order stays stable. Calling Clerk's hooks with
- * no provider above them would throw, which is why they cannot simply be called
- * and ignored.
- */
-function useClerkSide() {
-  const { isLoaded, isSignedIn, user } = useUser();
-  const clerk = useClerk();
-  if (!isLoaded || !isSignedIn || !user) {
-    return { email: null, name: null, picture: null, role: undefined, signOut: () => clerk.signOut() };
-  }
-  return {
-    email: user.primaryEmailAddress?.emailAddress ?? null,
-    name: user.fullName ?? user.username ?? null,
-    picture: user.imageUrl ?? null,
-    role: (user.publicMetadata as { role?: unknown } | undefined)?.role,
-    signOut: () => void clerk.signOut(),
-  };
-}
-
-function useNoClerkSide() {
-  return { email: null, name: null, picture: null, role: undefined, signOut: () => {} };
-}
-
-const useClerkUser = clerkConfigured ? useClerkSide : useNoClerkSide;
-
 export function useSession(): Session | null {
   const google = useGoogleAuth();
-  const clerk = useClerkUser();
+  /**
+   * One hook, always, whether or not Clerk is mounted.
+   *
+   * This used to pick between a Clerk implementation and a stub based on
+   * `clerkConfigured`, which reports whether a key existed at build time, not
+   * whether a provider is above you now. When clerk.js failed to load and
+   * `ClerkBoundary` re-rendered the site without the provider, the Clerk hooks
+   * were still being called and threw hard enough to blank the page. The
+   * branch now lives in the tree instead: see `ClerkUserBridge`.
+   */
+  const clerk = useClerkSession();
 
   const signOutBoth = () => {
     clerk.signOut();

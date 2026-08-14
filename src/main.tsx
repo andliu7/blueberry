@@ -9,6 +9,7 @@ import { GlobalSearch } from '@/components/GlobalSearch'
 import { installClickSound } from '@/lib/clickSound'
 import { CLERK_PUBLISHABLE_KEY, clerkConfigured } from '@/lib/clerk'
 import { ClerkBoundary } from '@/components/ui/clerk-boundary'
+import { ClerkUserBridge } from '@/lib/clerk-session'
 import { BlueberryBot } from '@/components/ui/blueberry-bot'
 
 // One delegated listener for the whole site rather than a prop on every button.
@@ -46,7 +47,11 @@ createRoot(document.getElementById('root')!).render(
     {clerkConfigured ? (
       <ClerkBoundary fallback={tree}>
         <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY!} afterSignOutUrl="#/home">
-          {tree}
+          {/* Inside the provider, and only here. The bridge is what calls
+              Clerk's hooks; everything else reads the result from context, so
+              the fallback tree above can render with no provider at all
+              without a single component throwing. */}
+          <ClerkUserBridge>{tree}</ClerkUserBridge>
         </ClerkProvider>
       </ClerkBoundary>
     ) : (

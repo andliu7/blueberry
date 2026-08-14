@@ -876,6 +876,457 @@ function handleDeleteTodo_(data) {
 
 // ------------------------------------------------------------------ routing
 
+// ---------------------------------------------------------------- course edits
+
+/**
+ * Staff corrections to the built-in lessons.
+ *
+ * Overrides, not content. The site ships the topics and reactions in
+ * `src/data/topics.ts`, and this tab holds only what someone changed — one row
+ * per edited field-set, merged over the built-in by id at load. That means a
+ * bad edit degrades to the shipped text rather than to an empty page, and the
+ * TA can never delete a topic out from under a class mid-term.
+ *
+ * Reading is open. There is nothing private in a course outline, and gating it
+ * would mean a signed-out visitor sees a lessons page with the TA's
+ * corrections silently missing rather than plainly there.
+ */
+var COURSE_HEADERS = ['kind', 'id', 'field', 'value', 'editedBy', 'editedAt'];
+var COURSE_FIELDS = {
+  topic: ['name', 'blurb'],
+  reaction: ['name', 'summary', 'whyThisReagent', 'videoUrl', 'deckId'],
+};
+
+function courseTab_() {
+  return tab_('course', COURSE_HEADERS);
+}
+
+function readCourse_() {
+  var sh = courseTab_();
+  var last = sh.getLastRow();
+  if (last < 2) return { topics: [], reactions: [] };
+
+  var rows = sh.getRange(2, 1, last - 1, COURSE_HEADERS.length).getValues();
+  var byKind = { topic: {}, reaction: {} };
+
+  for (var i = 0; i < rows.length; i++) {
+    var kind = String(rows[i][0] || '');
+    var id = String(rows[i][1] || '').trim();
+    var field = String(rows[i][2] || '');
+    if (!byKind[kind] || !id) continue;
+    if (COURSE_FIELDS[kind].indexOf(field) === -1) continue;
+
+    if (!byKind[kind][id]) byKind[kind][id] = { id: id };
+    byKind[kind][id][field] = String(rows[i][3] == null ? '' : rows[i][3]);
+  }
+
+  var flatten = function (map) {
+    return Object.keys(map).map(function (id) {
+      return map[id];
+    });
+  };
+  return { topics: flatten(byKind.topic), reactions: flatten(byKind.reaction) };
+}
+
+function handleCourse_(data) {
+  return json_({ ok: true, overrides: readCourse_() });
+}
+
+/**
+ * One field at a time, upserted by (kind, id, field).
+ *
+ * Field-level rather than whole-record so two people editing different parts
+ * of the same reaction do not overwrite each other, and so clearing one field
+ * back to the shipped text is just deleting its row.
+ */
+function handleSetCourse_(data) {
+  var who = staff_(data);
+  if (who.error) return json_({ ok: false, error: who.error });
+
+  var kind = String((data && data.kind) || '');
+  var id = String((data && data.id) || '').trim();
+  var field = String((data && data.field) || '');
+  if (!COURSE_FIELDS[kind]) return json_({ ok: false, error: 'Unknown kind.' });
+  if (!id) return json_({ ok: false, error: 'No id.' });
+  if (COURSE_FIELDS[kind].indexOf(field) === -1) {
+    return json_({ ok: false, error: 'That field cannot be edited.' });
+  }
+
+  var value = clean_(data.value);
+  var sh = courseTab_();
+  var last = sh.getLastRow();
+  var rows = last < 2 ? [] : sh.getRange(2, 1, last - 1, 3).getValues();
+
+  var at = -1;
+  for (var i = 0; i < rows.length; i++) {
+    if (
+      String(rows[i][0]) === kind &&
+      String(rows[i][1]).trim() === id &&
+      String(rows[i][2]) === field
+    ) {
+      at = i + 2;
+      break;
+    }
+  }
+
+  // An empty value clears the override, putting the shipped text back rather
+  // than pinning a blank string over it.
+  if (!value.trim()) {
+    if (at !== -1) sh.deleteRow(at);
+    return json_({ ok: true, overrides: readCourse_() });
+  }
+
+  var row = [kind, id, field, value, who.email, new Date().toISOString()];
+  if (at === -1) sh.appendRow(row);
+  else sh.getRange(at, 1, 1, COURSE_HEADERS.length).setValues([row]);
+
+  return json_({ ok: true, overrides: readCourse_() });
+}
+
+// -------------------------------------------------------------------- calendar
+
+var DATE_HEADERS = ['id', 'title', 'kind', 'start', 'end', 'detail', 'addedBy', 'addedAt'];
+var DATE_KINDS = ['exam', 'quiz', 'assignment', 'lecture', 'lab', 'office-hours'];
+
+function datesTab_() {
+  return tab_('dates', DATE_HEADERS);
+}
+
+function readDates_() {
+  var sh = datesTab_();
+  var last = sh.getLastRow();
+  if (last < 2) return [];
+  var rows = sh.getRange(2, 1, last - 1, DATE_HEADERS.length).getValues();
+  var out = [];
+  for (var i = 0; i < rows.length; i++) {
+    var r = rows[i];
+    if (!String(r[0] || '').trim()) continue;
+    out.push({
+      id: String(r[0]),
+      title: String(r[1] || ''),
+      kind: String(r[2] || 'assignment'),
+      start: String(r[3] || ''),
+      end: String(r[4] || ''),
+      detail: String(r[5] || ''),
+    });
+  }
+  return out;
+}
+
+/**
+ * Reading is gated on `verify_`, not `staff_`.
+ *
+ * The calendar is the thing students came for. Writing is staff-only, which is
+ * the distinction that matters — nobody should be able to move an exam.
+ */
+function handleListDates_(data) {
+  var email = verify_(data && data.idToken);
+  if (!email) return json_({ ok: false, error: 'Sign in to see the calendar.' });
+  return json_({ ok: true, dates: readDates_() });
+}
+
+/**
+ * Upsert by id, so the same call covers "add these five from a syllabus" and
+ * "the TA corrected one row". A blank id means a new row.
+ */
+function handleSaveDates_(data) {
+  var who = staff_(data);
+  if (who.error) return json_({ ok: false, error: who.error });
+
+  var incoming = (data && data.dates) || [];
+  if (!incoming.length) return json_({ ok: false, error: 'Nothing to save.' });
+  if (incoming.length > 200) return json_({ ok: false, error: 'Too many rows in one go.' });
+
+  var sh = datesTab_();
+  var last = sh.getLastRow();
+  var existing = last < 2 ? [] : sh.getRange(2, 1, last - 1, 1).getValues();
+
+  var stamp = new Date().toISOString();
+  var saved = [];
+
+  for (var i = 0; i < incoming.length; i++) {
+    var d = incoming[i] || {};
+    var title = clean_(d.title).trim();
+    var start = clean_(d.start).trim();
+    if (!title || !start) continue;
+
+    var kind = String(d.kind || 'assignment');
+    if (DATE_KINDS.indexOf(kind) === -1) kind = 'assignment';
+
+    var id = String(d.id || '').trim() || Utilities.getUuid();
+    var row = [id, title, kind, start, clean_(d.end), clean_(d.detail), who.email, stamp];
+
+    // Find the existing row for this id, if there is one.
+    var at = -1;
+    for (var j = 0; j < existing.length; j++) {
+      if (String(existing[j][0]) === id) {
+        at = j + 2;
+        break;
+      }
+    }
+
+    if (at === -1) sh.appendRow(row);
+    else sh.getRange(at, 1, 1, DATE_HEADERS.length).setValues([row]);
+
+    saved.push(id);
+  }
+
+  return json_({ ok: true, saved: saved.length, dates: readDates_() });
+}
+
+function handleDeleteDate_(data) {
+  var who = staff_(data);
+  if (who.error) return json_({ ok: false, error: who.error });
+
+  var id = String((data && data.id) || '').trim();
+  if (!id) return json_({ ok: false, error: 'No id.' });
+
+  var sh = datesTab_();
+  var last = sh.getLastRow();
+  if (last < 2) return json_({ ok: true, dates: [] });
+
+  var ids = sh.getRange(2, 1, last - 1, 1).getValues();
+  for (var i = ids.length - 1; i >= 0; i--) {
+    if (String(ids[i][0]) === id) sh.deleteRow(i + 2);
+  }
+  return json_({ ok: true, dates: readDates_() });
+}
+
+/**
+ * A syllabus PDF in, a list of dates out. Nothing is saved here.
+ *
+ * The extraction is a guess, and a guess that silently writes the wrong exam
+ * date into a student's calendar is worse than no feature at all. So this
+ * returns rows for a human to look at, and `saveDates` is a separate,
+ * deliberate second call.
+ *
+ * Forced tool use rather than "reply in JSON": `tool_choice` pins the model to
+ * one tool whose `input_schema` is the shape below, so the reply is structured
+ * by construction instead of being prose that usually parses.
+ */
+var IMPORT_SYSTEM = [
+  'You read a university course syllabus and extract every dated item.',
+  'Include exams, quizzes, assignment deadlines, labs, lectures and office hours.',
+  'Do not invent dates. If the document does not give a date for something, leave it out.',
+  'If a date has no year, use the academic year implied by the document.',
+  'If a date has no time, use 09:00 for daytime items and note the uncertainty in detail.',
+].join(' ');
+
+/**
+ * Which model reads the PDF, and how much that costs.
+ *
+ * Chat and extraction are billed the same way but are nothing like the same
+ * job. Explaining a mechanism is what the expensive model is for; pulling
+ * fifteen dates out of a syllabus is not, and running it on Opus is paying
+ * frontier prices to read a table.
+ *
+ * Two Script Properties control this, so switching costs a page reload rather
+ * than a redeploy:
+ *
+ *   PDF_PROVIDER   'claude' (default) or 'gemini'
+ *   IMPORT_MODEL   overrides the default model for whichever provider
+ *
+ * Gemini needs GEMINI_API_KEY as well, from aistudio.google.com. Its free tier
+ * is the reason to bother: syllabus imports stop costing anything at all.
+ *
+ * Rough cost per 10-page syllabus, for choosing between them:
+ *   claude-opus-5      ~12c     what this used to do
+ *   claude-haiku-4-5   ~2c      the default now
+ *   gemini flash       free, within the free tier's limits
+ */
+function handleImportPdf_(data) {
+  var who = staff_(data);
+  if (who.error) return json_({ ok: false, error: who.error });
+
+  var b64 = String((data && data.pdf) || '');
+  if (!b64) return json_({ ok: false, error: 'No file received.' });
+  // ~4MB of base64 is about a 3MB PDF. Well past any syllabus, and short of the
+  // point where the request times out.
+  if (b64.length > 4500000) return json_({ ok: false, error: 'That PDF is too large. Try one under 3MB.' });
+
+  var schema = {
+    type: 'object',
+    properties: {
+      dates: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            title: { type: 'string', description: 'Short name, e.g. "Midterm 2".' },
+            kind: { type: 'string', enum: DATE_KINDS },
+            start: { type: 'string', description: 'Local time, ISO 8601, no zone. e.g. 2026-09-14T09:00' },
+            end: { type: 'string', description: 'Same format, or empty for a deadline.' },
+            detail: { type: 'string', description: 'Room, coverage, or a note about anything uncertain.' },
+          },
+          required: ['title', 'kind', 'start'],
+        },
+      },
+    },
+    required: ['dates'],
+  };
+
+  var prompt =
+    'Extract every dated item from this syllabus. Today is ' +
+    new Date().toISOString().slice(0, 10) +
+    ', so resolve any bare month/day to the academic year this document covers.';
+
+  var out =
+    (props_('PDF_PROVIDER') || 'claude').toLowerCase() === 'gemini'
+      ? extractGemini_(b64, prompt)
+      : extractClaude_(b64, prompt, schema);
+
+  if (out.error) return json_({ ok: false, error: out.error });
+  if (!out.dates || !out.dates.length) {
+    return json_({ ok: false, error: 'No dates could be read from that PDF.' });
+  }
+  return json_({ ok: true, dates: out.dates });
+}
+
+/**
+ * Forced tool use rather than "reply in JSON": `tool_choice` pins the model to
+ * one tool whose `input_schema` is the shape we want, so the reply is
+ * structured by construction instead of prose that usually parses.
+ */
+function extractClaude_(b64, prompt, schema) {
+  var key = props_('ANTHROPIC_API_KEY');
+  if (!key) return { error: 'ANTHROPIC_API_KEY is not set on this script.' };
+
+  var body = {
+    model: props_('IMPORT_MODEL') || 'claude-haiku-4-5',
+    max_tokens: 8192,
+    system: IMPORT_SYSTEM,
+    tools: [
+      {
+        name: 'record_dates',
+        description: 'Record every dated item found in the syllabus.',
+        input_schema: schema,
+      },
+    ],
+    tool_choice: { type: 'tool', name: 'record_dates' },
+    messages: [
+      {
+        role: 'user',
+        content: [
+          { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: b64 } },
+          { type: 'text', text: prompt },
+        ],
+      },
+    ],
+  };
+
+  var res = UrlFetchApp.fetch(CLAUDE_URL, {
+    method: 'post',
+    contentType: 'application/json',
+    headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01' },
+    payload: JSON.stringify(body),
+    muteHttpExceptions: true,
+  });
+
+  var parsed;
+  try {
+    parsed = JSON.parse(res.getContentText());
+  } catch (e) {
+    return { error: 'The model returned something unreadable.' };
+  }
+  if (res.getResponseCode() !== 200) {
+    return { error: (parsed.error && parsed.error.message) || 'Request failed.' };
+  }
+  if (parsed.stop_reason === 'refusal') return { error: 'That document was declined.' };
+
+  for (var i = 0; i < parsed.content.length; i++) {
+    if (parsed.content[i].type === 'tool_use' && parsed.content[i].name === 'record_dates') {
+      return { dates: parsed.content[i].input.dates };
+    }
+  }
+  return { error: 'The model did not return any dates.' };
+}
+
+/**
+ * The free option.
+ *
+ * Gemini has no tool-forcing equivalent, so structure comes from
+ * `responseSchema` with a JSON mime type — the reply is a JSON string in a text
+ * part, which still has to be parsed. Its schema dialect wants uppercase type
+ * names, which is why this does not simply reuse the Claude one.
+ *
+ * GEMINI_MODEL is a Script Property because Google renames these often; if the
+ * call comes back saying the model was not found, put a current id from
+ * aistudio.google.com in that property.
+ */
+function extractGemini_(b64, prompt) {
+  var key = props_('GEMINI_API_KEY');
+  if (!key) return { error: 'GEMINI_API_KEY is not set on this script.' };
+
+  var model = props_('IMPORT_MODEL') || props_('GEMINI_MODEL') || 'gemini-2.5-flash';
+
+  var body = {
+    system_instruction: { parts: [{ text: IMPORT_SYSTEM }] },
+    contents: [
+      {
+        parts: [
+          { inline_data: { mime_type: 'application/pdf', data: b64 } },
+          { text: prompt },
+        ],
+      },
+    ],
+    generationConfig: {
+      response_mime_type: 'application/json',
+      response_schema: {
+        type: 'OBJECT',
+        properties: {
+          dates: {
+            type: 'ARRAY',
+            items: {
+              type: 'OBJECT',
+              properties: {
+                title: { type: 'STRING' },
+                kind: { type: 'STRING', enum: DATE_KINDS },
+                start: { type: 'STRING', description: 'Local ISO 8601, no zone, e.g. 2026-09-14T09:00' },
+                end: { type: 'STRING' },
+                detail: { type: 'STRING' },
+              },
+              required: ['title', 'kind', 'start'],
+            },
+          },
+        },
+        required: ['dates'],
+      },
+    },
+  };
+
+  var url =
+    'https://generativelanguage.googleapis.com/v1beta/models/' +
+    encodeURIComponent(model) +
+    ':generateContent';
+
+  // The key goes in a header, not the query string: Apps Script logs request
+  // URLs on failure, and a key in a URL is a key in a log.
+  var res = UrlFetchApp.fetch(url, {
+    method: 'post',
+    contentType: 'application/json',
+    headers: { 'x-goog-api-key': key },
+    payload: JSON.stringify(body),
+    muteHttpExceptions: true,
+  });
+
+  var parsed;
+  try {
+    parsed = JSON.parse(res.getContentText());
+  } catch (e) {
+    return { error: 'Gemini returned something unreadable.' };
+  }
+  if (res.getResponseCode() !== 200) {
+    return { error: (parsed.error && parsed.error.message) || 'Gemini request failed.' };
+  }
+
+  try {
+    var text = parsed.candidates[0].content.parts[0].text;
+    return { dates: JSON.parse(text).dates };
+  } catch (e) {
+    return { error: 'Gemini did not return readable dates.' };
+  }
+}
+
 function doPost(e) {
   // One lock for every write. Two people submitting at the same moment would
   // otherwise both read the same last row and one would overwrite the other.
@@ -891,6 +1342,18 @@ function doPost(e) {
       // down with it while never releasing the lock.
       case 'chat':
         return handleChat_(data);
+      case 'course':
+        return handleCourse_(data);
+      case 'setCourse':
+        return handleSetCourse_(data);
+      case 'listDates':
+        return handleListDates_(data);
+      case 'saveDates':
+        return handleSaveDates_(data);
+      case 'deleteDate':
+        return handleDeleteDate_(data);
+      case 'importPdf':
+        return handleImportPdf_(data);
       case 'contact':
         return handleContact_(data);
       case 'deck':

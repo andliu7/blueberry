@@ -37,7 +37,15 @@ type DeckWriteFeature =
    * Anthropic key lives in that script's properties and must never be a
    * `VITE_` value — those are inlined into the public bundle at build time.
    */
-  | "chat";
+  | "chat"
+  /** The course calendar, and the syllabus import that fills it. */
+  | "listDates"
+  | "saveDates"
+  | "deleteDate"
+  | "importPdf"
+  /** Staff corrections to the built-in lessons. */
+  | "course"
+  | "setCourse";
 
 export type AppsScriptFeature = keyof typeof OVERRIDES | DeckWriteFeature;
 
@@ -55,6 +63,12 @@ const DECK_WRITES: DeckWriteFeature[] = [
   "removeAdmin",
   "setFeedbackState",
   "promoteFeedback",
+  "listDates",
+  "saveDates",
+  "deleteDate",
+  "importPdf",
+  "course",
+  "setCourse",
 ];
 
 /**

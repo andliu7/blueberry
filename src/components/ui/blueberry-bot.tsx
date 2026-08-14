@@ -5,8 +5,9 @@ import { createPortal } from "react-dom";
 import { postToAppsScript } from "@/lib/appsScript";
 import { useSession } from "@/lib/useSession";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { ArrowUp, X } from "lucide-react";
+import { X } from "lucide-react";
 import { BlueberryMark } from "@/components/ui/blueberry-mark";
+import { PromptInput } from "@/components/ui/ai-chat-input";
 import { DockSlot, DOCK } from "@/components/ui/corner-dock";
 import { cn } from "@/lib/utils";
 
@@ -175,35 +176,28 @@ export function BlueberryBot() {
               )}
             </div>
 
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                void send(draft);
-                setDraft("");
-              }}
-              className="flex items-center gap-2 border-t border-slate-200 p-2.5 dark:border-stone-700"
-            >
-              <input
-                /* Focused on open. A dialog that appears without moving focus
-                   into it leaves a keyboard or screen-reader user still on the
-                   button behind the scrim, and everyone else reaching for the
-                   mouse to click a field that is already the only thing to do. */
-                autoFocus
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                aria-label="Ask Blueberry a question"
-                placeholder="Ask about a mechanism…"
-                className="min-h-10 min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-800 outline-none focus:border-indigo-400 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-200"
-              />
-              <button
-                type="submit"
-                disabled={thinking || !draft.trim()}
-                aria-label="Send"
-                className="flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-xl bg-slate-900 text-white transition hover:bg-slate-700 dark:bg-stone-100 dark:text-stone-900 dark:hover:bg-white"
-              >
-                <ArrowUp className="size-4" />
-                </button>
-              </form>
+              {/* The composer grows with the question instead of scrolling one
+                  line sideways. A mechanism question is two sentences more
+                  often than it is five words, and a field that hides the start
+                  of what you typed is a field you cannot proofread.
+
+                  `collapsible` off: inside a dialog opened for this one
+                  purpose, a pill that has to be clicked open is a step that
+                  buys nothing. `autoFocus` moves focus into the card, so a
+                  keyboard or screen-reader user is not left on the button
+                  behind the scrim. */}
+              <div className="border-t border-slate-200 p-2.5 dark:border-stone-700">
+                <PromptInput
+                  value={draft}
+                  onChange={setDraft}
+                  onSubmit={(text) => void send(text)}
+                  busy={thinking}
+                  collapsible={false}
+                  autoFocus
+                  label="Ask Blueberry a question"
+                  placeholder="Ask about a mechanism…"
+                />
+              </div>
               </motion.div>
             </motion.div>
           )}

@@ -24,6 +24,272 @@
    switch toggles a class instead, so point the variant at it. */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* ---------------------------------------------------------------------------
+   shadcn semantic tokens.
+ *
+ * Every value below is an existing colour from this site, not a new palette:
+ * light is the slate ramp over the cream body, dark is the stone ramp. So
+ * `bg-card` resolves to the same white that `bg-white dark:bg-stone-900`
+ * already produced, and nothing that shipped before today changes appearance.
+ *
+ * The point is future pastes. shadcn components arrive written against these
+ * names, and until now each one had to be hand-repainted before it would
+ * render anything but transparent-on-transparent.
+ *
+ * `--muted-foreground` is deliberately slate-500 rather than slate-400: 400 on
+ * white is about 3:1, under the 4.5:1 body-text floor, and it is the token
+ * every shadcn component reaches for to render secondary text.
+ * --------------------------------------------------------------------------- */
+:root {
+  --background: #f6f4ef; /* the cream body */
+  --foreground: #1e293b; /* slate-800 */
+  --card: #ffffff;
+  --card-foreground: #0f172a; /* slate-900 */
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+  --primary: #0f172a; /* slate-900 */
+  --primary-foreground: #ffffff;
+  --secondary: #f1f5f9; /* slate-100 */
+  --secondary-foreground: #0f172a;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b; /* slate-500, ~4.8:1 on white */
+  --accent: #f1f5f9;
+  --accent-foreground: #0f172a;
+  --destructive: #e11d48; /* rose-600 */
+  --destructive-foreground: #ffffff;
+  --border: #e2e8f0; /* slate-200 */
+  --input: #e2e8f0;
+  --ring: #818cf8; /* indigo-400, the focus colour used everywhere here */
+}
+
+.dark {
+  --background: #0c0a09; /* stone-950 */
+  --foreground: #e7e5e4; /* stone-200 */
+  --card: #1c1917; /* stone-900 */
+  --card-foreground: #f5f5f4; /* stone-100 */
+  --popover: #1c1917;
+  --popover-foreground: #f5f5f4;
+  --primary: #f5f5f4;
+  --primary-foreground: #1c1917;
+  --secondary: #292524; /* stone-800 */
+  --secondary-foreground: #f5f5f4;
+  --muted: #292524;
+  --muted-foreground: #a8a29e; /* stone-400, ~6.9:1 on stone-900 */
+  --accent: #292524;
+  --accent-foreground: #f5f5f4;
+  --destructive: #f43f5e; /* rose-500 */
+  --destructive-foreground: #0c0a09;
+  --border: #44403c; /* stone-700 */
+  --input: #44403c;
+  --ring: #818cf8;
+}
+
+/* Registering them here is what turns them into utilities — without this,
+   `bg-card` and `text-muted-foreground` are simply unknown class names that
+   Tailwind drops. The radius scale is deliberately NOT overridden: changing
+   `--radius-md` would reshape every existing `rounded-md` on the site, so the
+   primitives carry the house `rounded-xl` in their own class strings instead. */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+}
+
+/* Open/close animations for the Radix primitives.
+ *
+ * shadcn ships classes from `tailwindcss-animate` (`animate-in`, `fade-in-0`,
+ * `zoom-in-95`). That package is not installed, and those class names silently
+ * resolve to nothing — which matters more than it sounds: Radix keeps a closing
+ * element mounted only while a CSS *animation* is running, so without real
+ * keyframes the exit is not merely un-animated, it is instant. Six keyframes
+ * cover every case the primitives here need. */
+@keyframes ui-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes ui-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes ui-pop-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.96);
+  }
+}
+@keyframes ui-pop-out {
+  to {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.96);
+  }
+}
+@keyframes ui-menu-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+@keyframes ui-menu-out {
+  to {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+/* Honour the system setting. Cut to almost nothing rather than to zero, so
+   Radix still gets the `animationend` it waits for before unmounting. */
+@media (prefers-reduced-motion: reduce) {
+  [data-state="open"],
+  [data-state="closed"] {
+    animation-duration: 1ms !important;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Loader keyframes, for `components/ui/loader.tsx`.
+ *
+ * The `shimmer-text` keyframe that came with these is dropped: nothing
+ * referenced it, and `shimmer` below does the same job. `text-blink` reads
+ * `--primary` and `--muted-foreground`, which only became real colours when
+ * the token block above landed — before that it would have blinked between
+ * two nothings.
+ * --------------------------------------------------------------------------- */
+@keyframes spinner-fade {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes thin-pulse {
+  0%,
+  100% {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.4;
+  }
+}
+@keyframes pulse-dot {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.5);
+    opacity: 1;
+  }
+}
+@keyframes bounce-dots {
+  0%,
+  100% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+}
+@keyframes typing {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translateY(-2px);
+    opacity: 1;
+  }
+}
+@keyframes wave {
+  0%,
+  100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(0.6);
+  }
+}
+@keyframes wave-bars {
+  0%,
+  100% {
+    transform: scaleY(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scaleY(0.6);
+    opacity: 1;
+  }
+}
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+@keyframes text-blink {
+  0%,
+  100% {
+    color: var(--primary);
+  }
+  50% {
+    color: var(--muted-foreground);
+  }
+}
+@keyframes loading-dots {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@keyframes shimmer {
+  0% {
+    background-position: 200% 50%;
+  }
+  100% {
+    background-position: -200% 50%;
+  }
+}
+
+/* A spinner that respects reduced motion cannot simply stop — a frozen spinner
+   says "hung", which is the opposite of what it is for. Slowing it right down
+   keeps the "still working" signal without the motion. */
+@media (prefers-reduced-motion: reduce) {
+  [data-loader] *,
+  [data-loader] {
+    animation-duration: 3s !important;
+  }
+}
+
 body {
   font-family: "Inter Variable", Inter, ui-sans-serif, system-ui, sans-serif;
   background: #f6f4ef;

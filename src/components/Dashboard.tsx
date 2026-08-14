@@ -6,7 +6,9 @@ import {
   Atom,
   Bell,
   BookOpen,
+  CalendarDays,
   CreditCard,
+  FlaskConical,
   ExternalLink,
   House,
   Info,
@@ -393,6 +395,19 @@ export function Dashboard({
             active={view === "decks"}
             onClick={() => go("decks")}
             onDoubleClick={() => goTo("#/study-decks")}
+          />
+          {/* Straight to the route on a single click, unlike its neighbours:
+              the calendar has no panel inside the dashboard to open, so an
+              in-place view would only be a page telling you where the page is. */}
+          <SidebarNavItem
+            icon={<CalendarDays className="size-4" />}
+            label="Calendar"
+            onClick={() => goTo("#/calendar")}
+          />
+          <SidebarNavItem
+            icon={<FlaskConical className="size-4" />}
+            label="Reactions"
+            onClick={() => goTo("#/reactions")}
           />
         </CollapsibleSection>
 

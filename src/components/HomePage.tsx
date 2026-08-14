@@ -5,8 +5,8 @@ import {
   ArrowUpRight,
   Atom,
   BookOpen,
+  CalendarDays,
   ChevronDown,
-  Gamepad2,
   Layers,
   Timer,
 } from "lucide-react";
@@ -16,6 +16,8 @@ import { SiteHeader } from "@/components/ui/site-header";
 import { BlueberryLoader, useLoaderHold } from "@/components/ui/blueberry-loader";
 import { Blueberry } from "@/components/ui/blueberry";
 import { BentoTile } from "@/components/ui/bento-tile";
+import { courseSummary } from "@/data/topics";
+import { REACTIONS } from "@/data/reactions";
 import { WindowChrome } from "@/components/ui/window-chrome";
 import { SiteFooter } from "@/components/ui/site-footer";
 import { PageBackground } from "@/components/ui/page-background";
@@ -341,7 +343,32 @@ const Board = ({
     </p>
 
     <div className="mt-8 grid auto-rows-[minmax(11rem,auto)] gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      <BentoTile href="#/study-decks" className="sm:col-span-2" berry="berry-triple.webp">
+      {/* Lessons leads and takes the wide tile.
+
+          It used to sit in the narrow slot beside Study Decks, which had the
+          bento saying the cards were the product and the reading was a
+          footnote. That is backwards: the cards are drill, and drilling
+          something you have not understood yet is how people spend an evening
+          and learn nothing. The reading is the part that has to come first, so
+          it is the part that reads first. */}
+      <BentoTile href="#/lessons" className="sm:col-span-2" berry="berry-with-leaves.webp">
+        <BookOpen className="size-5 text-indigo-600 dark:text-indigo-300" />
+        <span className="mt-4 flex items-center gap-1.5 text-xl font-semibold">
+          Lessons <ArrowRight className="size-4 text-slate-400" />
+        </span>
+        <span className="mt-2 text-sm text-slate-500 dark:text-stone-400">
+          The ideas behind the cards, and every reaction underneath them with its reagents,
+          conditions and product.
+        </span>
+        {/* Reactions used to be a tile of its own. They are inside Lessons now,
+            nested under the section they belong to, because a reaction split
+            from the writing that explains it is a lookup table. */}
+        <span className="mt-auto pt-4 font-mono text-xs text-slate-400 dark:text-stone-500">
+          {courseSummary()} &middot; {REACTIONS.length} checked reactions
+        </span>
+      </BentoTile>
+
+      <BentoTile href="#/study-decks" berry="berry-triple.webp">
         <Layers className="size-5 text-indigo-600 dark:text-indigo-300" />
         <span className="mt-4 flex items-center gap-1.5 text-xl font-semibold">
           Study Decks <ArrowRight className="size-4 text-slate-400" />
@@ -354,16 +381,16 @@ const Board = ({
         </span>
       </BentoTile>
 
-      <BentoTile href="#/lessons" berry="berry-with-leaves.webp">
-        <BookOpen className="size-5 text-indigo-600 dark:text-indigo-300" />
+      <BentoTile href="#/calendar" berry="berry-triple.webp">
+        <CalendarDays className="size-5 text-indigo-600 dark:text-indigo-300" />
         <span className="mt-4 flex items-center gap-1.5 text-xl font-semibold">
-          Lessons <ArrowRight className="size-4 text-slate-400" />
+          Calendar <ArrowRight className="size-4 text-slate-400" />
         </span>
         <span className="mt-2 text-sm text-slate-500 dark:text-stone-400">
-          The ideas behind the cards, written out before you start drilling them.
+          Exams, deadlines and labs for the term.
         </span>
         <span className="mt-auto pt-4 font-mono text-xs text-slate-400 dark:text-stone-500">
-          Carbonyls, in seven parts
+          CHEM241, Summer II
         </span>
       </BentoTile>
 
@@ -399,25 +426,12 @@ const Board = ({
         </span>
       </BentoTile>
 
-      <BentoTile
-        berry="berry-full.webp"
-        // Same card as Focus. The break lives inside the timer rather than on a
-        // page of its own, because a break you have to navigate to is one you
-        // take instead of coming back from.
-        onClick={() => window.dispatchEvent(new CustomEvent("blueberry:open-focus"))}
-      >
-        <Gamepad2 className="size-5 text-indigo-600 dark:text-indigo-300" />
-        <span className="mt-4 flex items-center gap-1.5 text-xl font-semibold">
-          Break <ArrowRight className="size-4 text-slate-400" />
-        </span>
-        <span className="mt-2 text-sm text-slate-500 dark:text-stone-400">
-          Tetris and a sound bed. The game unlocks on your breaks, once you have actually
-          looked out of the window.
-        </span>
-        <span className="mt-auto pt-4 font-mono text-xs text-slate-400 dark:text-stone-500">
-          In the same card
-        </span>
-      </BentoTile>
+      {/* The Break tile is gone. It only dispatched the event that opens the
+          Focus card, which the Focus control in the corner already does from
+          every page, so it was a tile spending a grid cell to duplicate a
+          button. The break itself is untouched: it still lives inside the
+          timer, which is where you come back from one rather than navigate to
+          one. */}
     </div>
   </section>
 );

@@ -1,0 +1,18 @@
+[
+  {
+    "id": "nitrile-acidic-hydrolysis",
+    "name": "Acidic nitrile hydrolysis",
+    "validation": {
+      "checks": {
+        "parse": "ok",
+        "conservation": "BALANCED",
+        "classification": "MISMATCH"
+      },
+      "classifier_label": "Oxidation of nitrile to carboxylic acid",
+      "status": "flagged",
+      "problems": [
+        "classifier says 'Oxidation of nitrile to carboxylic acid', author claimed 'hydrolysis'"
+      ]
+    }
+  }
+]
