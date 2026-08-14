@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { postToAppsScript } from "@/lib/appsScript";
 import { useSession } from "@/lib/useSession";
@@ -41,6 +41,20 @@ export function BlueberryBot() {
   const [turns, setTurns] = useState<{ role: "user" | "assistant"; content: string }[]>([]);
   const session = useSession();
   const reduced = useReducedMotion();
+
+  /**
+   * Escape closes it.
+   *
+   * On `document`, not as `onKeyDown` on the scrim: a plain `div` is not
+   * focusable, so it never receives a key event and the handler that used to
+   * sit there could not have fired once.
+   */
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
 
   const thinking = state === "thinking";
 
@@ -93,16 +107,22 @@ export function BlueberryBot() {
           reading through a slot. Centred, it gets the room a conversation
           needs, and the dimmed scrim behind it is what says the rest of the
           page is waiting rather than merely covered. */}
-      <AnimatePresence>
-        {open &&
-          createPortal(
+      {/* Portal outside, AnimatePresence inside. The other way round renders
+          nothing at all: AnimatePresence filters its children through
+          `isValidElement`, and a portal is `REACT_PORTAL_TYPE` rather than
+          `REACT_ELEMENT_TYPE`, so it was dropped silently and the card never
+          mounted however many times you clicked. `break-room.tsx` already
+          does it in this order. */}
+      {createPortal(
+        <AnimatePresence>
+          {open && (
             <motion.div
+              key="ask-blueberry"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: reduced ? 0 : 0.18 }}
               onClick={() => setOpen(false)}
-              onKeyDown={(e) => e.key === "Escape" && setOpen(false)}
               role="presentation"
               className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm dark:bg-black/60"
             >
@@ -179,22 +199,32 @@ export function BlueberryBot() {
                 </button>
               </form>
               </motion.div>
-            </motion.div>,
-            document.body,
+            </motion.div>
           )}
-      </AnimatePresence>
+        </AnimatePresence>,
+        document.body,
+      )}
 
       <motion.button
         type="button"
         aria-label={open ? "Close Blueberry" : "Ask Blueberry"}
         aria-expanded={open}
-        onHoverStart={() => !thinking && setState("hover")}
-        onHoverEnd={() => !thinking && setState("idle")}
-        onTapStart={() => !thinking && setState("active")}
-        onTap={() => {
+        /* Opening is a plain `onClick`, not motion's `onTap`.
+
+           `onTap` resolves from a pointerdown/pointerup pair on the element
+           itself, which is fragile for a control sitting inside a portal that
+           other things overlap: a sequence motion does not recognise leaves
+           the button looking pressed and doing nothing. `onClick` is the
+           browser's own definition of activation and comes with keyboard
+           support for free. The motion handlers stay, but only for how the
+           button looks while it is being pressed. */
+        onClick={() => {
           setState("idle");
           setOpen((o) => !o);
         }}
+        onHoverStart={() => !thinking && setState("hover")}
+        onHoverEnd={() => !thinking && setState("idle")}
+        onTapStart={() => !thinking && setState("active")}
         onTapCancel={() => !thinking && setState("idle")}
         animate={{ scale }}
         transition={SPRING}
