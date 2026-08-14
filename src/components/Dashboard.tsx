@@ -466,6 +466,23 @@ export function Dashboard({
                 *around* the dashboard rather than inside it. */}
             <PageBackground scene={DASHBOARD_SCENE} className="absolute inset-0 z-0" />
 
+            {/* A scrim between the photograph and the content.
+
+                Raising the opacity of individual cards was the wrong lever: it
+                only helped text that happened to sit inside a card, and the
+                headings, section labels and body copy that sit directly on the
+                panel had nothing behind them at all. One veil over the whole
+                photograph fixes every one of them at once.
+
+                Light and dark take opposite corrections rather than one value
+                flipped. On the pale surface the photograph is the darker thing
+                and is veiled with white; on the near-black one it is the
+                brighter thing and is veiled with the surface colour. */}
+            <div
+              aria-hidden
+              className="absolute inset-0 z-0 bg-white/72 dark:bg-[#171327]/78"
+            />
+
             {/* The column, permanent from `md` up. Below that it comes over the
                 content instead, because a 256px rail and a readable panel do
                 not both fit on a phone. */}

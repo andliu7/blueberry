@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { postToAppsScript } from "@/lib/appsScript";
 import { useSession } from "@/lib/useSession";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
@@ -85,18 +86,37 @@ export function BlueberryBot() {
 
   return (
     <DockSlot order={DOCK.focus + 5} className="flex flex-col items-end gap-2">
+      {/* A card in the middle of the screen, like About.
+
+          It used to hang off the button as a 22rem panel wedged into a corner
+          that already holds three other controls, which left a conversation
+          reading through a slot. Centred, it gets the room a conversation
+          needs, and the dimmed scrim behind it is what says the rest of the
+          page is waiting rather than merely covered. */}
       <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={reduced ? { opacity: 0 } : { opacity: 0, y: 12, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={reduced ? { opacity: 0 } : { opacity: 0, y: 8, scale: 0.97 }}
-            transition={SPRING}
-            /* Anchored bottom-right so it grows *out of* the button rather than
-               appearing beside it. */
-            style={{ transformOrigin: "bottom right" }}
-            className="w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-slate-200 bg-white/95 shadow-2xl backdrop-blur-xl dark:border-stone-700 dark:bg-stone-900/95"
-          >
+        {open &&
+          createPortal(
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: reduced ? 0 : 0.18 }}
+              onClick={() => setOpen(false)}
+              onKeyDown={(e) => e.key === "Escape" && setOpen(false)}
+              role="presentation"
+              className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm dark:bg-black/60"
+            >
+              <motion.div
+                role="dialog"
+                aria-modal
+                aria-label="Ask Blueberry"
+                onClick={(e) => e.stopPropagation()}
+                initial={reduced ? { opacity: 0 } : { opacity: 0, y: 14, scale: 0.97 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={reduced ? { opacity: 0 } : { opacity: 0, y: 10, scale: 0.98 }}
+                transition={SPRING}
+                className="w-[min(34rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-stone-700 dark:bg-stone-900"
+              >
             <div className="flex items-center gap-2.5 border-b border-slate-200 px-4 py-3 dark:border-stone-700">
               <BlueberryMark eyes className="size-6 shrink-0" />
               <span className="flex-1 text-sm font-semibold text-slate-900 dark:text-stone-100">
@@ -156,10 +176,12 @@ export function BlueberryBot() {
                 className="flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-xl bg-slate-900 text-white transition hover:bg-slate-700 dark:bg-stone-100 dark:text-stone-900 dark:hover:bg-white"
               >
                 <ArrowUp className="size-4" />
-              </button>
-            </form>
-          </motion.div>
-        )}
+                </button>
+              </form>
+              </motion.div>
+            </motion.div>,
+            document.body,
+          )}
       </AnimatePresence>
 
       <motion.button
