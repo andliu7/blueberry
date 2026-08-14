@@ -9,9 +9,9 @@ import { ReactionPanel } from "@/components/ui/reaction-panel";
 import { LessonBlockEditor } from "@/components/ui/lesson-block-editor";
 import { RichText } from "@/components/ui/rich-text";
 import { defaultBlocksFor, parseBlocks, type LessonBlock } from "@/data/lessonBlocks";
-import { Button } from "@/components/ui/button";
+import { parseTaReactions, toStagedReaction } from "@/data/taReactions";
 import { cn } from "@/lib/utils";
-import { Pencil } from "lucide-react";
+import { Pencil, Plus } from "lucide-react";
 import { REACTIONS } from "@/data/reactions";
 import { useCourse } from "@/lib/useCourse";
 import { useSession } from "@/lib/useSession";
@@ -80,8 +80,14 @@ const t=topics.find(x=>x.id===active)||topics[0];
 const session=useSession();
 const canEdit=session?.role==="admin"||session?.role==="owner";
 const {overrides,refresh}=useCourse();
-const sections:NavSection[]=topics.map(x=>({id:x.id,label:x.label,children:REACTIONS.filter(r=>(SECTION_FAMILIES[x.id]??[]).includes(r.family)).map(r=>({id:r.id,label:r.name,hint:r.validation.status==="ok"?undefined:"flagged"}))}));
-const openReaction=child?REACTIONS.find(r=>r.id===child)??null:null;
+/* Staff-added reactions, merged in beside the generated ones so a TA's work
+   appears where it belongs rather than in a separate list nobody opens. They
+   carry an "unchecked" hint in the sidebar and the amber validation box in the
+   panel, because they have not been through the conservation pipeline. */
+const taReactions=parseTaReactions(overrides?.topics?.find(x=>x.id==="__ta_reactions__")?.blocks).map(toStagedReaction);
+const allReactions=[...REACTIONS,...taReactions];
+const sections:NavSection[]=topics.map(x=>({id:x.id,label:x.label,children:allReactions.filter(r=>(SECTION_FAMILIES[x.id]??[]).includes(r.family)).map(r=>({id:r.id,label:r.name,hint:r.provenance==="ta-verified"?"unchecked":r.validation.status==="ok"?undefined:"flagged"}))}));
+const openReaction=child?allReactions.find(r=>r.id===child)??null:null;
 // Staff edits arrive as overrides keyed by the same reaction id, so a note or a
 // video saved against `nabh4-reduction` finds it whichever section it sits in.
 const override=openReaction?overrides?.reactions?.find(r=>r.id===openReaction.id):undefined;
@@ -116,6 +122,11 @@ return <main className="relative min-h-screen text-slate-900 dark:text-stone-100
     away. */}
 {shown.map((b,i)=>b.heading?null:<RichText key={b.id} text={b.body} className={cn("max-w-3xl text-slate-600 dark:text-stone-300",i===0?"mt-5":"mt-4")}/>)}
 {shown.some(b=>b.heading)&&<div className="mt-6 grid gap-4 md:grid-cols-2">{shown.filter(b=>b.heading).map((b,i)=><Info key={b.id} title={b.heading!} icon={i===0?<FlaskConical className="size-4"/>:<Sparkles className="size-4"/>}><RichText text={b.body}/></Info>)}</div>}
-{canEdit&&<div className="mt-6 border-t border-slate-200 pt-4 dark:border-stone-800"><Button variant="outline" onClick={()=>setEditingPage(true)}><Pencil className="size-4"/>Edit this page</Button></div>}
+{/* A pencil that grows its label on hover, the same way the Focus pill does.
+    `grid-template-columns` from 0fr to 1fr animates to the label's real width
+    without anyone guessing a max-width, and `group-focus-visible` opens it for
+    a keyboard user too, who never hovers anything. `aria-label` carries the
+    full meaning at all times, since the visible word is decoration. */}
+{canEdit&&<div className="mt-6 border-t border-slate-200 pt-4 dark:border-stone-800"><button type="button" aria-label={`Edit the ${t.label} page`} onClick={()=>setEditingPage(true)} className="group flex min-h-11 cursor-pointer items-center gap-0 rounded-xl border border-slate-200 px-3 text-sm font-semibold text-slate-600 transition-colors hover:border-indigo-300 hover:text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:border-stone-700 dark:text-stone-300 dark:hover:border-indigo-700 dark:hover:text-indigo-300"><Pencil className="size-4 shrink-0"/><span className="grid grid-cols-[0fr] transition-[grid-template-columns] duration-300 ease-out group-hover:grid-cols-[1fr] group-focus-visible:grid-cols-[1fr] motion-reduce:transition-none"><span className="overflow-hidden whitespace-nowrap"><span className="pl-2">Edit this page</span></span></span></button><a href="#/new-reaction" className="group ml-2 inline-flex min-h-11 items-center gap-0 rounded-xl border border-slate-200 px-3 text-sm font-semibold text-slate-600 transition-colors hover:border-indigo-300 hover:text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:border-stone-700 dark:text-stone-300 dark:hover:border-indigo-700 dark:hover:text-indigo-300" aria-label="Add a reaction by drawing it"><Plus className="size-4 shrink-0"/><span className="grid grid-cols-[0fr] transition-[grid-template-columns] duration-300 ease-out group-hover:grid-cols-[1fr] group-focus-visible:grid-cols-[1fr] motion-reduce:transition-none"><span className="overflow-hidden whitespace-nowrap"><span className="pl-2">Add a reaction</span></span></span></a></div>}
 </article><aside className="rounded-3xl border border-slate-200 bg-white/80 p-5 shadow-sm dark:border-stone-800 dark:bg-stone-950/70"><BookOpen className="size-5 text-indigo-600 dark:text-indigo-300"/><h3 className="mt-3 font-semibold">Practice this section</h3><p className="mt-2 text-sm leading-6 text-slate-600 dark:text-stone-300">The matching deck uses these examples as flashcards.</p><a href={"#/deck/"+t.deck} className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-fuchsia-600 px-4 text-sm font-semibold text-white"><Layers className="size-4"/>Open study deck <ArrowRight className="size-4"/></a></aside></section>{t.examples.length>0&&<section className="mt-5"><p className="font-mono text-xs font-semibold uppercase tracking-[.16em] text-slate-500 dark:text-stone-400">Worked examples</p><h2 className="title-face mt-1 text-2xl">Products and conditions</h2><div className="mt-3 grid gap-4 md:grid-cols-2 xl:grid-cols-3">{t.examples.map(([a,b,c,d])=><article key={a} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-stone-800 dark:bg-stone-950"><div className="flex h-36 items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-fuchsia-50 p-3 dark:from-indigo-950/35 dark:via-stone-950 dark:to-fuchsia-950/20"><img src={`${import.meta.env.BASE_URL}cards/${d}`} alt={"Product: "+c} className="h-full w-full object-contain" loading="lazy"/></div><div className="p-4"><h3 className="text-sm font-semibold">{a}</h3><p className="mt-1 font-mono text-[.7rem] leading-5 text-indigo-700 dark:text-indigo-300">{b}</p><p className="mt-3 text-sm text-slate-600 dark:text-stone-300"><b>Product:</b> {c}</p></div></article>)}</div></section>}</>}</div></div></div><SiteFooter/></main>}
 function Info({title,icon,children}:{title:string;icon:React.ReactNode;children:React.ReactNode}){return <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4 dark:border-stone-800 dark:bg-stone-900/70"><div className="flex items-center gap-2 text-sm font-semibold text-indigo-700 dark:text-indigo-300">{icon}{title}</div><div className="mt-2 text-sm leading-6 text-slate-600 dark:text-stone-300">{children}</div></div>}

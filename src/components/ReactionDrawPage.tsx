@@ -7,6 +7,7 @@ import {
   ChevronLeft,
   CircleCheck,
   Eye,
+  FlaskConical,
   RotateCcw,
   TriangleAlert,
 } from "lucide-react";
@@ -218,6 +219,21 @@ export default function ReactionDrawPage({ reactionId }: { reactionId: string })
                     Check my answer
                   </>
                 )}
+              </Button>
+              {/* Draw the product by modifying the starting material, which is
+                  how it is done on paper. Offered rather than pre-loaded: the
+                  exercise is to produce the product, and handing someone the
+                  substrate already on the canvas decides for them whether they
+                  are recalling a structure or transforming one. */}
+              <Button
+                variant="outline"
+                onClick={() => {
+                  void ketcherRef.current?.setMolecule(reaction.reactants.join("."));
+                  setVerdict({ kind: "idle" });
+                }}
+              >
+                <FlaskConical className="size-4" />
+                Load starting material
               </Button>
               <Button
                 variant="outline"

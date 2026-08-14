@@ -78,6 +78,8 @@ const ReactionsPage = lazy(() =>
    chooses to open, it stays out of the download for everyone who came to read
    a deck. */
 const ReactionDrawPage = lazy(() => import("@/components/ReactionDrawPage"));
+/* Also Ketcher, also lazy, for the same reason. */
+const ReactionComposerPage = lazy(() => import("@/components/ReactionComposerPage"));
 const WorkspaceRoute = lazy(() =>
   import("@/components/WorkspaceRoute").then((m) => ({ default: m.WorkspaceRoute })),
 );
@@ -241,6 +243,7 @@ export default function App() {
   if (route === "lessons") return withBoundary(<LessonsPage />);
   if (route === "calendar") return withBoundary(<CalendarPage />);
   if (route === "reactions") return withBoundary(<ReactionsPage />);
+  if (route === "new-reaction") return withBoundary(<ReactionComposerPage />);
   if (route.startsWith("draw/")) {
     return withBoundary(<ReactionDrawPage reactionId={route.slice(5)} />);
   }
