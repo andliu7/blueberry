@@ -27,6 +27,22 @@ export interface Session {
   signOut: () => void;
   /** Google's raw token, for Apps Script. Absent for Clerk members. */
   idToken: string | null;
+  /**
+   * Whether this session can actually perform a privileged write.
+   *
+   * Not the same question as `role`, and conflating the two shipped a real bug:
+   * an owner signed in through Clerk saw every editing control, because the
+   * role resolved from their address, and then every save was refused because
+   * there was no credential to send. `verify_` in Apps Script only understands
+   * Google ID tokens, and a Clerk session has none.
+   *
+   * So the UI asks this instead. Deciding it here means no page has to
+   * rediscover the reasoning, and when the backend learns to verify Clerk this
+   * becomes true for both providers in one edit.
+   *
+   * Still presentation only. The server re-verifies on every call regardless.
+   */
+  canWrite: boolean;
 }
 
 /**
@@ -75,6 +91,8 @@ export function useSession(): Session | null {
       provider: "clerk",
       signOut: signOutBoth,
       idToken: null,
+      // Nothing the server can check. See `canWrite` above.
+      canWrite: false,
     };
   }
 
@@ -87,6 +105,7 @@ export function useSession(): Session | null {
       provider: "google",
       signOut: signOutBoth,
       idToken: google.user.idToken,
+      canWrite: Boolean(google.user.idToken),
     };
   }
 

@@ -34,6 +34,7 @@ import {
 } from "@/data/taReactions";
 import { setCourseField, useCourse } from "@/lib/useCourse";
 import { useSession } from "@/lib/useSession";
+import { StaffSignInNotice } from "@/components/ui/staff-signin-notice";
 import { cn } from "@/lib/utils";
 
 /**
@@ -56,7 +57,10 @@ type Slot = "substrate" | "product";
 
 export default function ReactionComposerPage() {
   const session = useSession();
-  const canEdit = session?.role === "admin" || session?.role === "owner";
+  const isStaff = session?.role === "admin" || session?.role === "owner";
+  // Role alone is not enough: a Clerk session resolves an owner from their
+  // address but carries no token the server can verify. See `canWrite`.
+  const canEdit = isStaff && Boolean(session?.canWrite);
   const idToken = session?.idToken ?? null;
   const { overrides, refresh } = useCourse();
 
@@ -131,13 +135,19 @@ export default function ReactionComposerPage() {
     return (
       <main className="relative min-h-screen text-slate-900 dark:text-stone-100">
         <PageBackground />
-        <div className="mx-auto max-w-3xl px-4 py-16">
-          <p className="rounded-2xl border border-dashed border-slate-300 p-8 text-center text-slate-600 dark:border-stone-700 dark:text-stone-300">
-            Adding reactions is for course staff.{" "}
-            <a href="#/lessons" className="font-semibold underline">
-              Back to lessons
-            </a>
-          </p>
+        <div className="mx-auto flex max-w-3xl flex-col gap-4 px-4 py-16">
+          {/* Two different reasons to be here, and they need different answers.
+              Staff who simply signed in the wrong way get told which one works;
+              everyone else gets the plain message. */}
+          <StaffSignInNotice session={session} action="Adding a reaction" />
+          {!isStaff && (
+            <p className="rounded-2xl border border-dashed border-slate-300 p-8 text-center text-slate-600 dark:border-stone-700 dark:text-stone-300">
+              Adding reactions is for course staff.{" "}
+              <a href="#/lessons" className="font-semibold underline">
+                Back to lessons
+              </a>
+            </p>
+          )}
         </div>
       </main>
     );

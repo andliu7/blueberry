@@ -9,6 +9,7 @@ import { SiteFooter } from "@/components/ui/site-footer";
 import { PageBackground } from "@/components/ui/page-background";
 import { SyllabusImportTicket } from "@/components/ui/syllabus-import-ticket";
 import { useSession } from "@/lib/useSession";
+import { StaffSignInNotice } from "@/components/ui/staff-signin-notice";
 import { deleteDate, loadDates, saveDates } from "@/lib/calendar";
 import { cn } from "@/lib/utils";
 
@@ -27,7 +28,10 @@ import { cn } from "@/lib/utils";
  */
 export default function CalendarPage() {
   const session = useSession();
-  const canEdit = session?.role === "admin" || session?.role === "owner";
+  const isStaff = session?.role === "admin" || session?.role === "owner";
+  // Role alone is not enough: a Clerk session resolves an owner from their
+  // address but carries no token the server can verify. See `canWrite`.
+  const canEdit = isStaff && Boolean(session?.canWrite);
 
   /**
    * The token, not the session.
@@ -38,6 +42,7 @@ export default function CalendarPage() {
    * loop, from the moment the page opened. A string dependency is stable.
    */
   const idToken = session?.idToken ?? null;
+  const signedIn = Boolean(session);
 
   const [dates, setDates] = useState<CourseDate[]>([]);
   const [loading, setLoading] = useState(false);
@@ -45,13 +50,23 @@ export default function CalendarPage() {
   const [busy, setBusy] = useState(false);
 
   const refresh = useCallback(async () => {
-    if (!idToken) return;
+    // Signed in, but with nothing the server can check. This used to return
+    // silently, which left the calendar empty with no explanation and looking
+    // broken. Say it instead.
+    if (!idToken) {
+      setError(
+        signedIn
+          ? "Dates load for Google accounts only — the server cannot verify a Clerk sign-in yet."
+          : null,
+      );
+      return;
+    }
     setLoading(true);
     const { dates: rows, error: err } = await loadDates(idToken);
     setDates(rows);
     setError(err ?? null);
     setLoading(false);
-  }, [idToken]);
+  }, [idToken, signedIn]);
 
   useEffect(() => {
     void refresh();
@@ -139,6 +154,7 @@ export default function CalendarPage() {
         {/* A status line, not a gate. Whatever it says, the calendar below is
             already on screen. */}
         <div className="mt-5 flex flex-col gap-5">
+          <StaffSignInNotice session={session} action="Importing a syllabus" />
           <StatusLine session={!!session} loading={loading} busy={busy} error={error} />
 
           <div className="rounded-3xl border border-slate-200 bg-white/80 p-5 shadow-sm dark:border-stone-800 dark:bg-stone-950/70 sm:p-6">

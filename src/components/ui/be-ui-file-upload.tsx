@@ -89,6 +89,46 @@ function formatBytes(bytes: number) {
   return `${value >= 10 || exp === 0 ? value.toFixed(0) : value.toFixed(1)} ${units[exp]}`;
 }
 
+/**
+ * Does this file satisfy an `accept` string?
+ *
+ * Extensions are matched on the filename, not the MIME type, because Windows
+ * reports `.txt` as `text/plain` and some tools report it as an empty string,
+ * and an empty string is indistinguishable from a file the browser simply could
+ * not identify. MIME entries in `accept` are still honoured, including the
+ * `image/*` wildcard form, for callers that want them.
+ *
+ * No `accept` means accept anything, which is what the attribute means on the
+ * input itself.
+ */
+function matchesAccept(file: File, accept?: string): boolean {
+  const rules = (accept ?? "")
+    .split(",")
+    .map((r) => r.trim().toLowerCase())
+    .filter(Boolean);
+  if (rules.length === 0) return true;
+
+  const name = file.name.toLowerCase();
+  const type = file.type.toLowerCase();
+
+  return rules.some((rule) => {
+    if (rule.startsWith(".")) return name.endsWith(rule);
+    if (rule.endsWith("/*")) return type.startsWith(rule.slice(0, -1));
+    return type === rule;
+  });
+}
+
+/** "a .pdf file", "a .txt file", "an accepted file type" — for the message. */
+function describeAccept(accept?: string): string {
+  const extensions = (accept ?? "")
+    .split(",")
+    .map((r) => r.trim())
+    .filter((r) => r.startsWith("."));
+  if (extensions.length === 0) return "an accepted file type";
+  if (extensions.length === 1) return `a ${extensions[0]} file`;
+  return `one of ${extensions.join(", ")}`;
+}
+
 export function createFileUploadItem(file: File, index = 0): FileUploadItem {
   return {
     id: `${Date.now()}-${index}-${file.name}`,
@@ -149,24 +189,23 @@ export function FileUpload({
       if (disabled || incoming.length === 0) return;
 
       /**
-       * The real check on the file type.
+       * The real check on the file type, taken from `accept`.
        *
        * `accept` on the input is only a hint to the file picker's filter, and it
        * does nothing at all for a drag and drop: the browser hands over whatever
-       * was dragged, `.docx` and `.pdf` included. Without this the file reached
-       * the parser, which found no `Q:` lines in the binary and reported "No
-       * questions found", which is true and completely unhelpful.
+       * was dragged, `.docx` and `.pdf` included. Without a check here the file
+       * reached the parser, which found no `Q:` lines in the binary and reported
+       * "No questions found", which is true and completely unhelpful.
        *
-       * Checked on the extension rather than the MIME type, because Windows
-       * reports `.txt` as `text/plain` and some tools report it as an empty
-       * string, and an empty string is indistinguishable from a file the browser
-       * simply could not identify.
+       * This used to hardcode `.txt`, because the component was written for deck
+       * uploads and its one rule was never wired to its one prop. That made
+       * `accept` a lie: the syllabus importer asked for `.pdf`, the picker
+       * offered PDFs, and the dropzone then refused every one of them for not
+       * being a text file. The rule now follows the prop.
        */
-      const bad = incoming.find((f) => !/\.txt$/i.test(f.name));
+      const bad = incoming.find((f) => !matchesAccept(f, accept));
       if (bad) {
-        setRejected(
-          `${bad.name} is not a .txt file. Save the deck as plain text and try again.`,
-        );
+        setRejected(`${bad.name} is not ${describeAccept(accept)}. Try a different file.`);
         return;
       }
       setRejected(null);

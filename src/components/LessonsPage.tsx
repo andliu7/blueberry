@@ -15,6 +15,7 @@ import { Pencil, Plus } from "lucide-react";
 import { REACTIONS } from "@/data/reactions";
 import { useCourse } from "@/lib/useCourse";
 import { useSession } from "@/lib/useSession";
+import { StaffSignInNotice } from "@/components/ui/staff-signin-notice";
 
 /**
  * Which validated reactions belong under which written section.
@@ -78,7 +79,10 @@ export function LessonsPage(){const [active,setActive]=useState("overview");
 const [child,setChild]=useState<string|null>(null);
 const t=topics.find(x=>x.id===active)||topics[0];
 const session=useSession();
-const canEdit=session?.role==="admin"||session?.role==="owner";
+const isStaff=session?.role==="admin"||session?.role==="owner";
+/* Role alone is not enough: a Clerk session resolves an owner from their address
+   but carries no token the server can verify. See `canWrite` in useSession. */
+const canEdit=isStaff&&Boolean(session?.canWrite);
 const {overrides,refresh}=useCourse();
 /* Staff-added reactions, merged in beside the generated ones so a TA's work
    appears where it belongs rather than in a separate list nobody opens. They
@@ -127,6 +131,9 @@ return <main className="relative min-h-screen text-slate-900 dark:text-stone-100
     without anyone guessing a max-width, and `group-focus-visible` opens it for
     a keyboard user too, who never hovers anything. `aria-label` carries the
     full meaning at all times, since the visible word is decoration. */}
+{/* Staff whose sign-in cannot write get the reason instead of a button that
+    would fail. Renders nothing for anyone else. */}
+<StaffSignInNotice session={session} action="Editing this page" className="mt-6"/>
 {canEdit&&<div className="mt-6 border-t border-slate-200 pt-4 dark:border-stone-800"><button type="button" aria-label={`Edit the ${t.label} page`} onClick={()=>setEditingPage(true)} className="group flex min-h-11 cursor-pointer items-center gap-0 rounded-xl border border-slate-200 px-3 text-sm font-semibold text-slate-600 transition-colors hover:border-indigo-300 hover:text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:border-stone-700 dark:text-stone-300 dark:hover:border-indigo-700 dark:hover:text-indigo-300"><Pencil className="size-4 shrink-0"/><span className="grid grid-cols-[0fr] transition-[grid-template-columns] duration-300 ease-out group-hover:grid-cols-[1fr] group-focus-visible:grid-cols-[1fr] motion-reduce:transition-none"><span className="overflow-hidden whitespace-nowrap"><span className="pl-2">Edit this page</span></span></span></button><a href="#/new-reaction" className="group ml-2 inline-flex min-h-11 items-center gap-0 rounded-xl border border-slate-200 px-3 text-sm font-semibold text-slate-600 transition-colors hover:border-indigo-300 hover:text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:border-stone-700 dark:text-stone-300 dark:hover:border-indigo-700 dark:hover:text-indigo-300" aria-label="Add a reaction by drawing it"><Plus className="size-4 shrink-0"/><span className="grid grid-cols-[0fr] transition-[grid-template-columns] duration-300 ease-out group-hover:grid-cols-[1fr] group-focus-visible:grid-cols-[1fr] motion-reduce:transition-none"><span className="overflow-hidden whitespace-nowrap"><span className="pl-2">Add a reaction</span></span></span></a></div>}
 </article><aside className="rounded-3xl border border-slate-200 bg-white/80 p-5 shadow-sm dark:border-stone-800 dark:bg-stone-950/70"><BookOpen className="size-5 text-indigo-600 dark:text-indigo-300"/><h3 className="mt-3 font-semibold">Practice this section</h3><p className="mt-2 text-sm leading-6 text-slate-600 dark:text-stone-300">The matching deck uses these examples as flashcards.</p><a href={"#/deck/"+t.deck} className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-fuchsia-600 px-4 text-sm font-semibold text-white"><Layers className="size-4"/>Open study deck <ArrowRight className="size-4"/></a></aside></section>{t.examples.length>0&&<section className="mt-5"><p className="font-mono text-xs font-semibold uppercase tracking-[.16em] text-slate-500 dark:text-stone-400">Worked examples</p><h2 className="title-face mt-1 text-2xl">Products and conditions</h2><div className="mt-3 grid gap-4 md:grid-cols-2 xl:grid-cols-3">{t.examples.map(([a,b,c,d])=><article key={a} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-stone-800 dark:bg-stone-950"><div className="flex h-36 items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-fuchsia-50 p-3 dark:from-indigo-950/35 dark:via-stone-950 dark:to-fuchsia-950/20"><img src={`${import.meta.env.BASE_URL}cards/${d}`} alt={"Product: "+c} className="h-full w-full object-contain" loading="lazy"/></div><div className="p-4"><h3 className="text-sm font-semibold">{a}</h3><p className="mt-1 font-mono text-[.7rem] leading-5 text-indigo-700 dark:text-indigo-300">{b}</p><p className="mt-3 text-sm text-slate-600 dark:text-stone-300"><b>Product:</b> {c}</p></div></article>)}</div></section>}</>}</div></div></div><SiteFooter/></main>}
 function Info({title,icon,children}:{title:string;icon:React.ReactNode;children:React.ReactNode}){return <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4 dark:border-stone-800 dark:bg-stone-900/70"><div className="flex items-center gap-2 text-sm font-semibold text-indigo-700 dark:text-indigo-300">{icon}{title}</div><div className="mt-2 text-sm leading-6 text-slate-600 dark:text-stone-300">{children}</div></div>}
