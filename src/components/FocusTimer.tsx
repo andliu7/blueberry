@@ -308,7 +308,12 @@ export function FocusTimer() {
              exists, and hiding it behind a hover would make you point at the
              corner to find out how long is left. */
           className={cn(
-            "group flex min-h-11 cursor-pointer items-center gap-2 rounded-full border px-4 shadow-lg backdrop-blur transition-colors",
+            /* No `gap` on the row. A flex gap is charged even when the item
+               beside it has collapsed to zero width, so the icon sat half a
+               gap left of centre in the closed pill. The spacing lives inside
+               each collapsible track instead, where it disappears with the
+               thing it is spacing. */
+            "group flex min-h-11 cursor-pointer items-center rounded-full border px-4 shadow-lg backdrop-blur transition-colors",
             t.phase === "break"
               ? "border-emerald-300 bg-emerald-50/90 text-emerald-800 dark:border-emerald-400/40 dark:bg-emerald-500/15 dark:text-emerald-200"
               : running
@@ -323,17 +328,17 @@ export function FocusTimer() {
               reduce={!!reduce}
               direction="down"
               enterY={12}
-              className="font-mono text-sm"
+              className="ml-2 font-mono text-sm"
             />
           ) : (
             <span className="grid grid-cols-[0fr] transition-[grid-template-columns] duration-300 ease-out group-hover:grid-cols-[1fr] group-focus-visible:grid-cols-[1fr]">
               <span className="overflow-hidden">
-                <span className="block pr-0.5 text-sm font-semibold whitespace-nowrap">Focus</span>
+                <span className="block pl-2 text-sm font-semibold whitespace-nowrap">Focus</span>
               </span>
             </span>
           )}
           {t.tasks.length > 0 && (
-            <span className="rounded-full bg-black/5 px-1.5 font-mono text-[0.65rem] dark:bg-white/10">
+            <span className="ml-2 rounded-full bg-black/5 px-1.5 font-mono text-[0.65rem] dark:bg-white/10">
               {t.tasksDone}/{t.tasks.length}
             </span>
           )}

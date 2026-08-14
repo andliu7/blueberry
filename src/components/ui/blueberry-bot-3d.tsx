@@ -1,4 +1,5 @@
 import { Suspense, useEffect, useMemo, useRef } from "react";
+import { useInView } from "motion/react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { cn } from "@/lib/utils";
@@ -365,15 +366,31 @@ function Berry({
       <mesh
         onPointerOver={() => interactive && (hovered.current = true)}
         onPointerOut={() => interactive && (hovered.current = false)}
-        // A click is a poke: it hops, shuts its eyes and grins for a second.
-        // Guarded on not having just been dragged, or letting go at the end of a
-        // spin would also register as a prod.
+      >
+        <sphereGeometry args={[0.5, 16, 16]} />
+        <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+      </mesh>
+
+      {/* The poke target, at his full size.
+
+          Hovering and poking were the same half-radius sphere, which is right
+          for one and wrong for the other. The small sphere exists so he keeps
+          following you until the cursor is really on him rather than flustering
+          the moment it crosses his outline. Clicking has no such subtlety: the
+          outer two-thirds of his visible area simply did nothing when pressed,
+          which is most of the berry, and is why poking him felt broken.
+
+          Slightly proud of the skin so the press lands on this rather than on
+          the berry behind it. */}
+      <mesh
         onClick={() => {
+          // Guarded on not having just been dragged, or letting go at the end
+          // of a spin would also register as a prod.
           if (!interactive || dragging.current) return;
           poke.current = 1;
         }}
       >
-        <sphereGeometry args={[0.5, 16, 16]} />
+        <sphereGeometry args={[1.02, 24, 24]} />
         <meshBasicMaterial transparent opacity={0} depthWrite={false} />
       </mesh>
 
@@ -435,6 +452,23 @@ export function BlueberryBot3D({
    */
   trackWindow?: boolean;
 }) {
+  /**
+   * Whether this berry is worth spending frames on.
+   *
+   * Every berry runs its own WebGL context and, by default, its own render loop
+   * at sixty frames a second whether or not it is on screen. Two or three of
+   * them on a long page kept the main thread busy enough that pointer events and
+   * even IntersectionObserver callbacks arrived late or not at all: the berry
+   * looked unresponsive because the page was too busy to answer, not because
+   * nothing was listening.
+   *
+   * `frameloop="never"` parks the loop entirely when it scrolls away. No margin
+   * here, unlike the lazy-load check in `Blueberry`: that one wants to be early,
+   * this one wants to be exact.
+   */
+  const shell = useRef<HTMLDivElement>(null);
+  const visible = useInView(shell);
+
   const spin = useRef(0);
   const dragging = useRef(false);
   const lastX = useRef(0);
@@ -514,6 +548,7 @@ export function BlueberryBot3D({
     // against a flex parent, the renderer measured before the column had
     // settled, kept a stale aspect, and drew the scene off to one side.
     <div
+      ref={shell}
       className={cn("relative", interactive && "cursor-grab active:cursor-grabbing", className)}
       onPointerDown={onDown}
       onPointerMove={onMove}
@@ -527,7 +562,11 @@ export function BlueberryBot3D({
         // Raised to match: with a fuller calyx the silhouette's centre is above
         // the sphere's, and a camera on the equator framed him low.
         camera={{ position: [0, 0.22, 4.6], fov: 42 }}
-        dpr={[1, 2]}
+        frameloop={visible ? "always" : "never"}
+        // Capped at 1.5 rather than 2. A retina screen was rendering this at
+        // four times the pixels for a berry a few hundred pixels wide, which is
+        // most of its cost for a difference nobody can see on a sphere.
+        dpr={[1, 1.5]}
         style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
       >
         <Suspense fallback={null}>
