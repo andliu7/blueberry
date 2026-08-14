@@ -48,14 +48,25 @@ export function BlueberryMark({
     <svg viewBox="0 0 64 64" role="img" aria-label="Blueberry" className={cn("block", className)}>
       <defs>
         <radialGradient id="bb-berry" cx="33%" cy="27%" r="84%">
-          <stop offset="0%" stopColor="#7dd3fc" />
-          <stop offset="28%" stopColor="#4f86f7" />
-          <stop offset="66%" stopColor="#6d3fe0" />
-          <stop offset="100%" stopColor="#3b1d8f" />
+          {/* Blue the whole way down, rather than blue into purple.
+
+              The old ramp spent its lower two thirds in purple and then in a
+              near-black indigo, which is what made the mark muddy on white and
+              almost invisible on black: most of its area was a dark, low
+              saturation colour that neither background threw into relief. The
+              shading still darkens toward the base so it reads as a sphere,
+              but it stays saturated instead of draining to grey. */}
+          <stop offset="0%" stopColor="#bdefff" />
+          <stop offset="28%" stopColor="#3fa9ff" />
+          <stop offset="66%" stopColor="#3d63f5" />
+          <stop offset="100%" stopColor="#2b2fb0" />
         </radialGradient>
         <linearGradient id="bb-calyx" x1="0.3" y1="0" x2="0.7" y2="1">
-          <stop offset="0%" stopColor="#3350d8" />
-          <stop offset="100%" stopColor="#1c1668" />
+          {/* Lifted to match. The calyx sits on top of the lightest part of
+              the berry, so leaving it near-black made a dark cap on a bright
+              sphere. */}
+          <stop offset="0%" stopColor="#4a6cff" />
+          <stop offset="100%" stopColor="#2a2496" />
         </linearGradient>
       </defs>
 
