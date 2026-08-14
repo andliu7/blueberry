@@ -198,16 +198,44 @@ export function ClerkSignUp() {
     setBusy(true);
     setError("");
     try {
+      /*
+        Email and password only.
+
+        Sending `username` here is rejected outright ("username is not a valid
+        parameter for this request") unless the instance has usernames switched
+        on, and it does not. It does not belong in sign-up regardless: a
+        username is a display name you change whenever you like, not a
+        credential, so it lives on the profile with the name and study level.
+      */
       const result = await signUp.create({ emailAddress: email, password });
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId });
         window.location.hash = "#/home";
         return;
       }
-      // `missing_requirements` is the ordinary path when email verification is
-      // switched on in the Clerk dashboard.
-      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
-      setVerifying(true);
+      /*
+        Only send a code when Clerk actually wants one.
+
+        `missing_requirements` does not mean "verify your email" — it means
+        something is outstanding, which might be a username. Treating every
+        such status as a verification step mailed a code for a sign-up that
+        needed a username instead, so the code could never complete anything
+        and the account was left half-made.
+
+        With "verify at sign-up" switched off in the dashboard, this branch is
+        skipped entirely and creating an account is one step.
+      */
+      const needsEmailCode = (result.unverifiedFields ?? []).includes("email_address");
+      if (needsEmailCode) {
+        await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+        setVerifying(true);
+        return;
+      }
+
+      const missing = (result.missingFields ?? []).join(", ");
+      setError(
+        missing ? `Clerk still needs: ${missing}.` : `Sign-up is not finished (${result.status}).`,
+      );
     } catch (err) {
       setError(messageOf(err));
     } finally {
@@ -225,9 +253,24 @@ export function ClerkSignUp() {
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId });
         window.location.hash = "#/home";
-      } else {
-        setError("That code was not accepted.");
+        return;
       }
+
+      /*
+        A correct code that does not finish the sign-up.
+
+        This said "That code was not accepted", which was a lie: the code was
+        accepted and the email verified, but the instance requires a field the
+        form had not sent, so the status stayed `missing_requirements` and no
+        user was created. Resending then failed with "already verified" and the
+        account was never sign-in-able. Say which field is missing instead.
+      */
+      const missing = (result.missingFields ?? []).join(", ");
+      setError(
+        missing
+          ? `Your email is verified. Clerk still needs: ${missing}.`
+          : `Sign-up is not finished yet (${result.status}).`,
+      );
     } catch (err) {
       setError(messageOf(err));
     } finally {
