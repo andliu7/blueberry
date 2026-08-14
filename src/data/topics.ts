@@ -254,6 +254,17 @@ export interface TopicOverride {
   id: string;
   name?: string;
   blurb?: string;
+  /** The section heading on the lessons page. */
+  title?: string;
+  /**
+   * The TA's rewritten text boxes, as serialised `LessonBlock[]`.
+   *
+   * Kept as the raw string rather than a parsed array: it arrives from a sheet
+   * cell and may be truncated, hand-edited or left over from an older shape, so
+   * parsing belongs at the point of use where a failure can fall back to the
+   * built-in writing. See `parseBlocks` in `src/data/lessonBlocks.ts`.
+   */
+  blocks?: string;
 }
 
 export interface ReactionOverride {

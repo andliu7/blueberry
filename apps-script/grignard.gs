@@ -893,9 +893,21 @@ function handleDeleteTodo_(data) {
  */
 var COURSE_HEADERS = ['kind', 'id', 'field', 'value', 'editedBy', 'editedAt'];
 var COURSE_FIELDS = {
-  topic: ['name', 'blurb'],
+  // `blocks` is the lessons page's text boxes, serialised. Everything else here
+  // is a plain string.
+  topic: ['name', 'blurb', 'title', 'blocks'],
   reaction: ['name', 'summary', 'whyThisReagent', 'videoUrl', 'deckId'],
 };
+
+/**
+ * Fields whose value is serialised rather than prose.
+ *
+ * These must be rejected when over-length, never truncated. `clean_` cuts at
+ * MAX_LEN silently, which costs a plain field its last sentence but costs a
+ * JSON field everything: the value stops parsing, the page falls back to its
+ * built-in writing, and the TA's work is gone with nothing on screen to say so.
+ */
+var COURSE_STRUCTURED_FIELDS = ['blocks'];
 
 function courseTab_() {
   return tab_('course', COURSE_HEADERS);
@@ -950,6 +962,16 @@ function handleSetCourse_(data) {
   if (!id) return json_({ ok: false, error: 'No id.' });
   if (COURSE_FIELDS[kind].indexOf(field) === -1) {
     return json_({ ok: false, error: 'That field cannot be edited.' });
+  }
+
+  // Checked before `clean_` gets near it, because clean_ is the thing that
+  // would quietly do the damage.
+  if (COURSE_STRUCTURED_FIELDS.indexOf(field) !== -1 &&
+      String(data.value == null ? '' : data.value).length > MAX_LEN) {
+    return json_({
+      ok: false,
+      error: 'That page is too long to save. Shorten a box, or move some of it into its own section.',
+    });
   }
 
   var value = clean_(data.value);
