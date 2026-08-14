@@ -74,7 +74,11 @@ export function FeedbackButton({
              for when something is already wrong should be the most legible
              thing in the corner, not the least. */
           className={cn(
-            "flex cursor-pointer items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-lg ring-1 ring-slate-900/10 transition-transform hover:scale-105 dark:bg-stone-800 dark:text-stone-100 dark:ring-white/10",
+            /* `min-h-11` is 44px, the minimum touch target. At `py-2` with
+               `text-sm` this came out around 36px, which is under the bar on
+               every mobile guideline and is the one control someone reaches
+               for when they are already having trouble. */
+            "flex min-h-11 cursor-pointer items-center gap-2 rounded-full bg-white px-4 text-sm font-semibold text-slate-800 shadow-lg ring-1 ring-slate-900/10 transition-transform hover:scale-105 dark:bg-stone-800 dark:text-stone-100 dark:ring-white/10",
             className,
           )}
         >

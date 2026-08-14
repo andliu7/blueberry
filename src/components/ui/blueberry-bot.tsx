@@ -184,8 +184,14 @@ export function BlueberryBot() {
               className="flex items-center gap-2 border-t border-slate-200 p-2.5 dark:border-stone-700"
             >
               <input
+                /* Focused on open. A dialog that appears without moving focus
+                   into it leaves a keyboard or screen-reader user still on the
+                   button behind the scrim, and everyone else reaching for the
+                   mouse to click a field that is already the only thing to do. */
+                autoFocus
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
+                aria-label="Ask Blueberry a question"
                 placeholder="Ask about a mechanism…"
                 className="min-h-10 min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-800 outline-none focus:border-indigo-400 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-200"
               />
