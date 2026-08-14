@@ -45,7 +45,12 @@ type DeckWriteFeature =
   | "importPdf"
   /** Staff corrections to the built-in lessons. */
   | "course"
-  | "setCourse";
+  | "setCourse"
+  /** TA office hours and student bookings. */
+  | "tutoring"
+  | "setAvailability"
+  | "bookSlot"
+  | "cancelBooking";
 
 export type AppsScriptFeature = keyof typeof OVERRIDES | DeckWriteFeature;
 
@@ -69,6 +74,10 @@ const DECK_WRITES: DeckWriteFeature[] = [
   "importPdf",
   "course",
   "setCourse",
+  "tutoring",
+  "setAvailability",
+  "bookSlot",
+  "cancelBooking",
 ];
 
 /**

@@ -54,9 +54,24 @@ export interface Session {
  */
 const OWNER_EMAILS = new Set(["zeus.andrewliu@gmail.com", "andliu@terpmail.umd.edu"]);
 
+/**
+ * The course TAs, from the CHEM241 syllabus.
+ *
+ * `admin`, not `owner`. Owners are the hardcoded floor that cannot be removed
+ * through a web page; a TA should be able to run tutoring and edit lessons
+ * without also being able to change who has access.
+ *
+ * These are UMD Google Workspace addresses, which is the point: the backend
+ * verifies Google ID tokens, so a TA signing in with their university account
+ * already has a credential the server accepts. No Clerk work is needed for them
+ * to work today.
+ */
+const ADMIN_EMAILS = new Set(["kaiwalsh@umd.edu", "vwedekin@umd.edu"]);
+
 function roleFor(email: string, clerkRole?: unknown): AccountRole {
   const at = email.trim().toLowerCase();
   if (OWNER_EMAILS.has(at)) return "owner";
+  if (ADMIN_EMAILS.has(at)) return "admin";
   // `publicMetadata` is server-written, so it can be trusted for display in a
   // way `unsafeMetadata` never could.
   if (clerkRole === "admin" || clerkRole === "owner") return clerkRole;

@@ -6,6 +6,7 @@ import {
   Atom,
   Bell,
   BookOpen,
+  CalendarClock,
   CalendarDays,
   CreditCard,
   FlaskConical,
@@ -408,6 +409,11 @@ export function Dashboard({
             icon={<FlaskConical className="size-4" />}
             label="Reactions"
             onClick={() => goTo("#/reactions")}
+          />
+          <SidebarNavItem
+            icon={<CalendarClock className="size-4" />}
+            label="Tutoring"
+            onClick={() => goTo("#/tutoring")}
           />
         </CollapsibleSection>
 

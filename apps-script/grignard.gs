@@ -876,6 +876,178 @@ function handleDeleteTodo_(data) {
 
 // ------------------------------------------------------------------ routing
 
+// -------------------------------------------------------------------- tutoring
+
+/**
+ * TA office hours: when a tutor is free, and who has taken a slot.
+ *
+ * Two tabs rather than one, because they have different owners and different
+ * gates. `availability` is written by staff only and says when someone could
+ * meet. `bookings` is written by any signed-in student and says when someone
+ * has. Keeping them apart means a student booking a slot cannot touch the
+ * availability that produced it.
+ */
+var AVAIL_HEADERS = ['tutorEmail', 'tutorName', 'slot', 'location', 'setAt'];
+var BOOKING_HEADERS = ['id', 'tutorEmail', 'slot', 'studentEmail', 'studentName', 'note', 'bookedAt'];
+
+function availTab_() {
+  return tab_('availability', AVAIL_HEADERS);
+}
+function bookingTab_() {
+  return tab_('bookings', BOOKING_HEADERS);
+}
+
+function readTutoring_() {
+  var av = availTab_();
+  var avLast = av.getLastRow();
+  var slots = [];
+  if (avLast >= 2) {
+    var rows = av.getRange(2, 1, avLast - 1, AVAIL_HEADERS.length).getValues();
+    for (var i = 0; i < rows.length; i++) {
+      if (!String(rows[i][2] || '').trim()) continue;
+      slots.push({
+        tutorEmail: String(rows[i][0] || ''),
+        tutorName: String(rows[i][1] || ''),
+        slot: String(rows[i][2]),
+        location: String(rows[i][3] || ''),
+      });
+    }
+  }
+
+  var bk = bookingTab_();
+  var bkLast = bk.getLastRow();
+  var bookings = [];
+  if (bkLast >= 2) {
+    var brows = bk.getRange(2, 1, bkLast - 1, BOOKING_HEADERS.length).getValues();
+    for (var j = 0; j < brows.length; j++) {
+      if (!String(brows[j][0] || '').trim()) continue;
+      bookings.push({
+        id: String(brows[j][0]),
+        tutorEmail: String(brows[j][1] || ''),
+        slot: String(brows[j][2] || ''),
+        studentEmail: String(brows[j][3] || ''),
+        studentName: String(brows[j][4] || ''),
+        note: String(brows[j][5] || ''),
+      });
+    }
+  }
+  return { slots: slots, bookings: bookings };
+}
+
+/** Any signed-in account may look. Students need to see what is free. */
+function handleTutoring_(data) {
+  var email = verify_(data && data.idToken);
+  if (!email) return json_({ ok: false, error: 'Sign in to see tutoring times.' });
+  var out = readTutoring_();
+  out.ok = true;
+  out.you = email;
+  return json_(out);
+}
+
+/**
+ * A tutor replaces their own week of availability in one call.
+ *
+ * Scoped to the caller's own address on purpose: `who.email` comes from the
+ * verified token, never from the payload, so one tutor cannot clear another's
+ * hours by sending a different `tutorEmail`.
+ */
+function handleSetAvailability_(data) {
+  var who = staff_(data);
+  if (who.error) return json_({ ok: false, error: who.error });
+
+  var slots = (data && data.slots) || [];
+  if (slots.length > 400) return json_({ ok: false, error: 'Too many slots in one go.' });
+
+  var sh = availTab_();
+  var last = sh.getLastRow();
+  // Delete this tutor's rows, bottom up so the indices stay valid.
+  if (last >= 2) {
+    var owners = sh.getRange(2, 1, last - 1, 1).getValues();
+    for (var i = owners.length - 1; i >= 0; i--) {
+      if (String(owners[i][0]).toLowerCase() === who.email) sh.deleteRow(i + 2);
+    }
+  }
+
+  var stamp = new Date().toISOString();
+  var name = clean_(data.tutorName);
+  var location = clean_(data.location);
+  for (var j = 0; j < slots.length; j++) {
+    var slot = clean_(slots[j]).trim();
+    if (slot) sh.appendRow([who.email, name, slot, location, stamp]);
+  }
+  return json_({ ok: true, slots: readTutoring_().slots });
+}
+
+/**
+ * A student takes a slot.
+ *
+ * Gated on `verify_` rather than `staff_`: booking is the one write a student
+ * makes. The slot must actually be on offer and must not already be taken, and
+ * both are checked here rather than in the browser, because a browser can send
+ * anything.
+ */
+function handleBookSlot_(data) {
+  var email = verify_(data && data.idToken);
+  if (!email) return json_({ ok: false, error: 'Sign in to book a time.' });
+
+  var tutor = String((data && data.tutorEmail) || '').toLowerCase().trim();
+  var slot = clean_(data && data.slot).trim();
+  if (!tutor || !slot) return json_({ ok: false, error: 'Pick a time first.' });
+
+  var state = readTutoring_();
+
+  var offered = false;
+  for (var i = 0; i < state.slots.length; i++) {
+    if (state.slots[i].tutorEmail.toLowerCase() === tutor && state.slots[i].slot === slot) {
+      offered = true;
+      break;
+    }
+  }
+  if (!offered) return json_({ ok: false, error: 'That time is no longer offered.' });
+
+  for (var j = 0; j < state.bookings.length; j++) {
+    if (state.bookings[j].tutorEmail.toLowerCase() === tutor && state.bookings[j].slot === slot) {
+      return json_({ ok: false, error: 'Somebody just took that time. Pick another.' });
+    }
+  }
+
+  bookingTab_().appendRow([
+    Utilities.getUuid(),
+    tutor,
+    slot,
+    email,
+    clean_(data.studentName),
+    clean_(data.note),
+    new Date().toISOString(),
+  ]);
+  return json_({ ok: true, bookings: readTutoring_().bookings });
+}
+
+/** Cancel: the student who booked it, or the tutor whose slot it is. */
+function handleCancelBooking_(data) {
+  var email = verify_(data && data.idToken);
+  if (!email) return json_({ ok: false, error: 'Sign in first.' });
+
+  var id = String((data && data.id) || '').trim();
+  if (!id) return json_({ ok: false, error: 'No booking id.' });
+
+  var sh = bookingTab_();
+  var last = sh.getLastRow();
+  if (last < 2) return json_({ ok: true, bookings: [] });
+
+  var rows = sh.getRange(2, 1, last - 1, BOOKING_HEADERS.length).getValues();
+  for (var i = rows.length - 1; i >= 0; i--) {
+    if (String(rows[i][0]) !== id) continue;
+    var isStudent = String(rows[i][3]).toLowerCase() === email;
+    var isTutor = String(rows[i][1]).toLowerCase() === email;
+    if (!isStudent && !isTutor) {
+      return json_({ ok: false, error: 'That is not your booking.' });
+    }
+    sh.deleteRow(i + 2);
+  }
+  return json_({ ok: true, bookings: readTutoring_().bookings });
+}
+
 // ---------------------------------------------------------------- course edits
 
 /**
@@ -1364,6 +1536,14 @@ function doPost(e) {
       // down with it while never releasing the lock.
       case 'chat':
         return handleChat_(data);
+      case 'tutoring':
+        return handleTutoring_(data);
+      case 'setAvailability':
+        return handleSetAvailability_(data);
+      case 'bookSlot':
+        return handleBookSlot_(data);
+      case 'cancelBooking':
+        return handleCancelBooking_(data);
       case 'course':
         return handleCourse_(data);
       case 'setCourse':

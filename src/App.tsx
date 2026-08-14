@@ -70,6 +70,7 @@ const LessonsPage = lazy(() => import("@/components/LessonsPage").then((m) => ({
    Radix dialog, and none of that should be in the bundle someone downloads to
    read a deck. */
 const CalendarPage = lazy(() => import("@/components/CalendarPage"));
+const TutoringPage = lazy(() => import("@/components/TutoringPage"));
 const ReactionsPage = lazy(() =>
   import("@/components/ReactionsPage").then((m) => ({ default: m.ReactionsPage })),
 );
@@ -242,6 +243,7 @@ export default function App() {
   if (route === "study-decks") return <StudyDecksPage />;
   if (route === "lessons") return withBoundary(<LessonsPage />);
   if (route === "calendar") return withBoundary(<CalendarPage />);
+  if (route === "tutoring") return withBoundary(<TutoringPage />);
   if (route === "reactions") return withBoundary(<ReactionsPage />);
   if (route === "new-reaction") return withBoundary(<ReactionComposerPage />);
   if (route.startsWith("draw/")) {
