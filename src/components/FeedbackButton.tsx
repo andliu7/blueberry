@@ -2,7 +2,6 @@ import { useState } from "react";
 import { AnimatePresence } from "motion/react";
 import { MessageSquare } from "lucide-react";
 import { FeedbackWidget } from "@/components/ui/feedback-widget";
-import { GlassFilter, LiquidGlassLayers } from "@/components/ui/liquid-glass-button";
 import { postToAppsScript } from "@/lib/appsScript";
 import { DockSlot, DOCK } from "@/components/ui/corner-dock";
 import { cn } from "@/lib/utils";
@@ -67,21 +66,22 @@ export function FeedbackButton({
           // No `relative` here: the dock slot is the containing block for the
           // glass layers, and adding one lets the cascade decide which position
           // wins, which previously threw this button off screen.
+          /* A plain, solid pill.
+
+             It used to carry `LiquidGlassLayers` over a 60% white fill, which
+             read as a large pane of frosted glass rather than a button, and
+             put whatever was behind it through the text. A control you reach
+             for when something is already wrong should be the most legible
+             thing in the corner, not the least. */
           className={cn(
-            "flex cursor-pointer items-center gap-2 overflow-hidden rounded-full bg-white/60 px-4 py-2 font-bold text-slate-700 shadow-lg transition-transform hover:scale-105 dark:bg-stone-900/50 dark:text-stone-200",
+            "flex cursor-pointer items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-lg ring-1 ring-slate-900/10 transition-transform hover:scale-105 dark:bg-stone-800 dark:text-stone-100 dark:ring-white/10",
             className,
           )}
         >
-          <LiquidGlassLayers />
-          <span className="relative z-10 flex items-center gap-2">
-            <MessageSquare className="h-4 w-4" />
-            Feedback
-          </span>
+          <MessageSquare className="h-4 w-4" />
+          Feedback
         </button>
       </DockSlot>
-
-      {/* One instance supplies the filter the glass layers reference. */}
-      <GlassFilter />
 
       <AnimatePresence>
         {open && (

@@ -298,8 +298,17 @@ export function FocusTimer() {
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
           aria-label={running ? `${PHASE_LABEL[t.phase]}, ${formatClock(t.remainingMs)}` : "Open the focus timer"}
+          /* Collapses to the icon and opens on hover, like the buttons on the
+             deck pages. `grid-template-columns` animates from 0fr to 1fr,
+             which is the one way to transition to a width you have not
+             measured; the label sits in an `overflow-hidden` track and is
+             clipped rather than reflowed, so nothing in the dock jumps.
+
+             A running timer keeps its label: the number is the reason the tab
+             exists, and hiding it behind a hover would make you point at the
+             corner to find out how long is left. */
           className={cn(
-            "flex min-h-11 cursor-pointer items-center gap-2 rounded-full border px-4 shadow-lg backdrop-blur transition-colors",
+            "group flex min-h-11 cursor-pointer items-center gap-2 rounded-full border px-4 shadow-lg backdrop-blur transition-colors",
             t.phase === "break"
               ? "border-emerald-300 bg-emerald-50/90 text-emerald-800 dark:border-emerald-400/40 dark:bg-emerald-500/15 dark:text-emerald-200"
               : running
@@ -317,7 +326,11 @@ export function FocusTimer() {
               className="font-mono text-sm"
             />
           ) : (
-            <span className="text-sm font-semibold">Focus</span>
+            <span className="grid grid-cols-[0fr] transition-[grid-template-columns] duration-300 ease-out group-hover:grid-cols-[1fr] group-focus-visible:grid-cols-[1fr]">
+              <span className="overflow-hidden">
+                <span className="block pr-0.5 text-sm font-semibold whitespace-nowrap">Focus</span>
+              </span>
+            </span>
           )}
           {t.tasks.length > 0 && (
             <span className="rounded-full bg-black/5 px-1.5 font-mono text-[0.65rem] dark:bg-white/10">

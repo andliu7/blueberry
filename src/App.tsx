@@ -35,7 +35,6 @@ import { CardGallery3D, GALLERY_MAX, type GalleryItem } from "@/components/ui/ca
 import { ToastQueue, useToastQueue } from "@/components/ui/toast-queue";
 import { PixelFireButton } from "@/components/ui/pixel-fire-button";
 import { ButtonHoldAndRelease } from "@/components/ui/hold-and-release-button";
-import { StickyNote } from "@/components/StickyNote";
 import { Confetti } from "@/components/Confetti";
 import { FeedbackButton } from "@/components/FeedbackButton";
 import { DeckAbout } from "@/components/ui/deck-about";
@@ -1373,7 +1372,13 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
 
       <ToastQueue toasts={toasts} onDismiss={dismissToast} />
 
-      {deckAllows(deck.features, "notes") && <StickyNote value={note} onChange={setNote} />}
+      {/* The sticky note is out of the corner.
+
+          It was a yellow disc in a stack that already holds feedback, focus and
+          the assistant, and it was the one of the four nobody reached for.
+          `note` is still read and written, so nothing saved is lost and putting
+          it back is a question of mounting it somewhere that is not competing
+          for the same corner. */}
       <Confetti trigger={confettiTrigger} />
     </div>
   );
