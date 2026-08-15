@@ -59,6 +59,9 @@ const ReferenceApp = lazy(() =>
 const FolderPage = lazy(() =>
   import("@/components/FolderPage").then((m) => ({ default: m.FolderPage })),
 );
+const TermsPage = lazy(() =>
+  import("@/components/TermsPage").then((m) => ({ default: m.TermsPage })),
+);
 const ContactPage = lazy(() =>
   import("@/components/ContactPage").then((m) => ({ default: m.ContactPage })),
 );
@@ -257,6 +260,7 @@ export default function App() {
   // `about` is the old address for what is now the contact page. About itself is
   // a card opened over whatever you were looking at, so it has no route at all.
   if (route === "contact" || route === "about") return withBoundary(<ContactPage />);
+  if (route === "terms") return withBoundary(<TermsPage />);
   // Unlinked from the nav on purpose; reached from the name on the About card,
   // which now points at the workspace and gets the sign-in card only if there
   // is nobody signed in.

@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { CornerDownLeft, Layers, LayoutGrid, Search, Sparkles, SquareArrowOutUpRight } from "lucide-react";
+import { BlueberryMark } from "@/components/ui/blueberry-mark";
 import { searchFeatures, type Feature } from "@/lib/featureIndex";
 import { useDecks } from "@/lib/useDecks";
 import { deckHref } from "@/data/types";
@@ -34,6 +35,69 @@ const KIND_LABEL = {
   action: "Action",
   deck: "Deck",
 } as const;
+
+/**
+ * The berry arriving, and becoming the magnifying glass.
+ *
+ * In the bar the mark sits in the middle, on top of the search track. Opening
+ * search is meant to read as that berry moving to the left-hand end and turning
+ * into the magnifier — so it slides in from the right, then hands over to the
+ * icon in place.
+ *
+ * **Both ends of the movement live in here on purpose.** The obvious
+ * implementation is a `layoutId` shared with the header's mark, letting motion
+ * fly the real element across. It was tried and it fails: this overlay renders
+ * through a portal into a `fixed` container, so the two boxes are measured in
+ * different coordinate spaces and the berry ends up scaled huge and stranded
+ * mid-page. Animating within one container cannot mismeasure, and the page
+ * behind is dimmed by the scrim anyway, so the berry left up in the bar reads as
+ * having gone dark rather than as a duplicate.
+ *
+ * Reduced motion gets the magnifier, immediately and without the journey.
+ */
+function SearchMark() {
+  const reduce = useReducedMotion();
+
+  if (reduce) {
+    return (
+      <span className="flex size-4 shrink-0 items-center justify-center">
+        <Search className="size-4 text-slate-400" />
+      </span>
+    );
+  }
+
+  return (
+    <span className="relative flex size-4 shrink-0 items-center justify-center">
+      {/* The traveller. Bigger than the slot and shrinking into it, so it
+          arrives rather than simply appears. */}
+      <motion.span
+        aria-hidden
+        initial={{ x: 34, scale: 2.1, opacity: 1 }}
+        animate={{ x: 0, scale: 1, opacity: 0 }}
+        transition={{
+          x: { duration: 0.34, ease: [0.22, 1, 0.36, 1] },
+          scale: { duration: 0.34, ease: [0.22, 1, 0.36, 1] },
+          // Hands over only at the end of the journey, so it is a berry for
+          // most of the trip and a magnifier once it has landed.
+          opacity: { duration: 0.12, delay: 0.24 },
+        }}
+        className="absolute inset-0 flex items-center justify-center"
+      >
+        <BlueberryMark eyes className="size-full" />
+      </motion.span>
+
+      <motion.span
+        aria-hidden
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.16, delay: 0.26 }}
+        className="absolute inset-0 flex items-center justify-center"
+      >
+        <Search className="size-4 text-slate-400" />
+      </motion.span>
+    </span>
+  );
+}
 
 export function FeatureSearch({
   open,
@@ -131,7 +195,7 @@ export function FeatureSearch({
             className="w-full max-w-xl overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-2xl dark:border-stone-800 dark:bg-stone-950 dark:text-stone-100"
           >
             <div className="flex items-center gap-2.5 border-b border-slate-100 px-4 dark:border-stone-900">
-              <Search className="size-4 shrink-0 text-slate-400" />
+              <SearchMark />
               <input
                 ref={inputRef}
                 value={query}

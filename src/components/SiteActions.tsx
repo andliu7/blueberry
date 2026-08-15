@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { Mail, User, X } from "lucide-react";
+import { ChevronDown, Mail, User, X } from "lucide-react";
 import { ProfileCard } from "@/components/ui/profile-card";
 import { GradientMenuButton } from "@/components/ui/gradient-menu";
 import { GithubMark, LinkedinMark } from "@/components/ui/brand-marks";
@@ -158,10 +158,21 @@ export function AboutOverlay({ open, onClose }: { open: boolean; onClose: () => 
 }
 
 /**
- * About and Contact side by side, plus the theme switch.
+ * Contact, with About folded inside it.
+ *
+ * These were two buttons in a row that had to animate into each other on the
+ * way out, because leaving the page turned a pair into a single thing and a
+ * button simply vanishing reads as a bug. Andrew asked for About to live inside
+ * Contact instead, which removes the pair and with it the whole merge: there is
+ * one control, and the chevron beside it opens the About card.
+ *
+ * The card itself is unchanged. `AboutOverlay` still holds the writing, so
+ * folding the button away did not fork the text into a second copy that would
+ * drift.
  *
  * `showContact` is for the contact page itself, which has no reason to offer a
- * link to where you already are.
+ * link to where you already are — there, this collapses to the About control
+ * alone rather than disappearing, since About is not where you are.
  */
 export function SiteActions({
   className,
@@ -175,94 +186,55 @@ export function SiteActions({
   const flipTo = usePageFlip();
   const reduce = useReducedMotion();
 
-  /**
-   * Contact leaves to the right and About slides right into the space it was
-   * using, the way Expand All dissolves into Collapse All when it has nothing
-   * left to do.
-   *
-   * It is leaving the page, so the pair is about to stop being a pair. Letting
-   * it vanish would read as the button having been removed; letting the row
-   * close up behind it reads as the two becoming one thing again, which is what
-   * they are once you have arrived.
-   */
-  const [merging, setMerging] = useState(false);
-
-  /**
-   * How far the pair moves, measured rather than guessed.
-   *
-   * This was a hardcoded 96px, which was only ever right for the word "Contact"
-   * at the padding it had on the day it was written. Relabelling either button,
-   * or changing `buttonClass`, would silently leave About sliding to the wrong
-   * place.
-   *
-   * The distance between the two left edges, rather than either button's width.
-   * Measured live: About sits at x=913 and Contact at x=1006, so About has to
-   * travel 93px to land exactly where Contact started. Reaching for Contact's
-   * own width (95) or About's (85) gets a number that looks about right and is
-   * wrong by the size of the gap, in opposite directions.
-   */
-  const aboutRef = useRef<HTMLButtonElement>(null);
-  const contactRef = useRef<HTMLAnchorElement>(null);
-  const [shift, setShift] = useState(0);
-
   const goToContact = (e: React.MouseEvent) => {
     e.preventDefault();
-    if (reduce) {
-      flipTo("#/contact");
-      return;
-    }
-    // Measured at the moment of the click rather than on mount, so a font that
-    // swaps in late or a zoom change cannot leave a stale number behind.
-    const a = aboutRef.current?.getBoundingClientRect();
-    const c = contactRef.current?.getBoundingClientRect();
-    setShift(a && c ? c.left - a.left : 93);
-    setMerging(true);
-    // Long enough for the row to close up, short enough that the sheet starts
-    // turning while the merge still reads as one movement.
-    window.setTimeout(() => flipTo("#/contact"), 260);
+    flipTo("#/contact");
   };
 
   return (
-    <div className={cn("relative flex items-center gap-2", className)}>
-      <motion.button
-        ref={aboutRef}
-        type="button"
-        onClick={() => setAboutOpen(true)}
-        className={buttonClass}
-        // Slides right into the space Contact is vacating, so the row closes up
-        // rather than leaving a hole where a button used to be.
-        animate={merging ? { x: shift } : { x: 0 }}
-        transition={{ type: "spring", stiffness: 320, damping: 26 }}
-      >
-        <User className="h-3.5 w-3.5" />
-        About
-      </motion.button>
+    <div className={cn("relative flex items-center", className)}>
+      {/* One control, two halves. The label goes to the page and the chevron
+          opens the card, so the common action stays a single click and the
+          secondary one is visibly attached to it rather than hidden behind it.
 
-      {showContact && (
-        <motion.a
-          ref={contactRef}
-          href="#/contact"
-          onClick={goToContact}
-          className={buttonClass}
-          animate={
-            merging
-              ? // Out to the right, shrinking as it goes. The theme switch sits
-                // just beyond it and is not ours to move, so the fade is front
-                // loaded: gone by roughly the time it would reach it.
-                { x: shift, scale: 0.55, opacity: 0 }
-              : { x: 0, scale: 1, opacity: 1 }
-          }
-          transition={{
-            type: "spring",
-            stiffness: 320,
-            damping: 26,
-            opacity: { duration: 0.16, ease: "easeIn" },
-          }}
+          Split into two real buttons rather than one button with a nested
+          second: a button inside a button is invalid, and in practice the outer
+          one swallows the click. Same trap the folder cards keep setting. */}
+      <div className={cn(buttonClass, "gap-0 px-0 py-0")}>
+        {showContact && (
+          <a
+            href="#/contact"
+            onClick={goToContact}
+            className="inline-flex min-h-9 items-center gap-1.5 rounded-l-full py-1.5 pr-2 pl-3"
+          >
+            <Mail className="h-3.5 w-3.5 transition-transform duration-300 group-hover:-translate-y-0.5" />
+            Contact
+          </a>
+        )}
+
+        <button
+          type="button"
+          onClick={() => setAboutOpen((v) => !v)}
+          aria-expanded={aboutOpen}
+          aria-label={aboutOpen ? "Close About" : "About this site"}
+          className={cn(
+            "inline-flex min-h-9 cursor-pointer items-center gap-1 py-1.5",
+            showContact
+              ? "rounded-r-full border-l border-slate-300/60 pr-3 pl-2 dark:border-stone-700/60"
+              : "gap-1.5 rounded-full px-3",
+          )}
         >
-          <Mail className="h-3.5 w-3.5 transition-transform duration-300 group-hover:-translate-y-0.5" />
-          Contact
-        </motion.a>
-      )}
+          {!showContact && <User className="h-3.5 w-3.5" />}
+          {!showContact && "About"}
+          <motion.span
+            animate={reduce ? undefined : { rotate: aboutOpen ? 180 : 0 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="inline-flex"
+          >
+            <ChevronDown className="h-3.5 w-3.5" />
+          </motion.span>
+        </button>
+      </div>
 
       <AboutOverlay open={aboutOpen} onClose={close} />
     </div>

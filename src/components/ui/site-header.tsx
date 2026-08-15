@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { Search } from "lucide-react";
 import { BlueberryMark } from "@/components/ui/blueberry-mark";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
+import { ProfileDropdown } from "@/components/ui/profile-dropdown";
 import { DashboardButton } from "@/components/Dashboard";
 import { SiteActions } from "@/components/SiteActions";
 import { SURFACE } from "@/lib/hubSurface";
@@ -136,32 +136,6 @@ export function SiteHeader({
           bare ? "px-0 py-0" : "px-6 py-3",
         )}
       >
-        {/* Just a link home. This was a pill that sprang open into a row of
-            destinations on hover; the Browse drawer covers that ground properly
-            now, and a logo that runs away when you point at it was in the way of
-            the one thing everyone wants it to do. */}
-        <a
-          href="#/home"
-          aria-label="Home"
-          onClick={
-            onHome
-              ? (e) => {
-                  // Left click only, so ctrl-click and middle-click still open
-                  // the hub in a new tab like any other link.
-                  if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
-                  e.preventDefault();
-                  onHome();
-                }
-              : undefined
-          }
-          className="group/mark shrink-0 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
-        >
-          <BlueberryMark
-            eyes
-            className="blueberry-glow-art h-[2.6rem] w-[2.6rem] transition-[filter] duration-300"
-          />
-        </a>
-
         {/* The category, once its own heading has gone, and Browse beside it.
             Width is not animated: the row is a flex line and easing a width here
             shoves everything else along with it. It fades and lifts instead. */}
@@ -214,11 +188,18 @@ export function SiteHeader({
             with a mark and one unlabelled button beside it. Whether there is a
             search is the caller's decision, and the caller says so by passing
             `onSearch`. */}
-        {onSearch && <HeaderSearchButton onOpen={onSearch} label={searchLabel} />}
+        {onSearch && (
+          <HeaderSearchButton onOpen={onSearch} label={searchLabel} onHome={onHome} />
+        )}
 
+        {/* Theme sits between Contact and the avatar rather than at the end.
+            Andrew asked for it to shift out to make room, and the account is the
+            thing that belongs hard against the edge: it is the one control whose
+            position people learn rather than read. */}
         <div className="ml-auto flex shrink-0 items-center gap-2">
           <SiteActions showContact={showContact} />
           <AnimatedThemeToggler />
+          <ProfileDropdown />
         </div>
       </div>
     </div>
@@ -238,31 +219,93 @@ export function SiteHeader({
  * Still the same pill as the Browse button beside it, so the two read as a pair
  * of tools rather than as a button and a form.
  */
-function HeaderSearchButton({ onOpen, label }: { onOpen: () => void; label: string }) {
+function HeaderSearchButton({
+  onOpen,
+  label,
+  onHome,
+}: {
+  onOpen: () => void;
+  label: string;
+  onHome?: () => void;
+}) {
   // `/` is handled by GlobalSearch, which is mounted once for the whole site.
   // Binding it here as well meant two listeners racing to open two different
   // things off one keypress.
 
   return (
     <div className="flex min-w-0 flex-1 justify-center">
-      <button
-        type="button"
-        onClick={onOpen}
-        aria-label={label}
-        className="group/search inline-flex max-w-full cursor-pointer items-center gap-1.5 truncate rounded-full border border-slate-200 bg-white/70 px-3 py-1.5 text-xs font-semibold text-slate-500 backdrop-blur transition hover:bg-white hover:text-slate-800 dark:border-stone-700 dark:bg-stone-900/60 dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-stone-100"
-      >
-        <Search className="size-3.5 shrink-0" />
-        <span className="truncate">
-          {label}
-          {/* The ellipsis only when there is room; a phone gets the words. */}
-          <span className="hidden sm:inline">…</span>
-        </span>
-        {/* The shortcut, once there is room to print it. Not on a phone, which
-            has no key to press. */}
-        <kbd className="hidden shrink-0 rounded border border-slate-300 px-1 font-mono text-[0.6rem] text-slate-400 sm:inline dark:border-stone-600 dark:text-stone-500">
-          /
-        </kbd>
-      </button>
+      {/*
+        The berry and the track, as one object.
+
+        Anchored to the pill rather than to the middle of the bar. Positioning
+        the berry at the *container's* centre looked right in the markup and was
+        wrong on screen: the pill is sized to its own text and centred, so its
+        left padding is nowhere near the centre line, and the berry landed on
+        top of the words instead of in the space left for it. Anchoring both to
+        the same box means the gap and the fruit cannot drift apart when the
+        label changes length.
+      */}
+      <div className="relative inline-flex min-w-0 max-w-full items-center">
+        <button
+          type="button"
+          onClick={onOpen}
+          aria-label={label}
+          // Left padding is the berry's seat. The pill runs underneath it, so
+          // the track reads as passing behind the fruit rather than starting
+          // after it.
+          className="group/search inline-flex max-w-full cursor-pointer items-center gap-1.5 truncate rounded-full border border-slate-200 bg-white/70 py-1.5 pr-3 pl-10 text-xs font-semibold text-slate-500 backdrop-blur transition hover:bg-white hover:text-slate-800 dark:border-stone-700 dark:bg-stone-900/60 dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-stone-100"
+        >
+          <span className="truncate">
+            {label}
+            {/* The ellipsis only when there is room; a phone gets the words. */}
+            <span className="hidden sm:inline">…</span>
+          </span>
+          {/* The shortcut, once there is room to print it. Not on a phone, which
+              has no key to press. */}
+          <kbd className="hidden shrink-0 rounded border border-slate-300 px-1 font-mono text-[0.6rem] text-slate-400 sm:inline dark:border-stone-600 dark:text-stone-500">
+            /
+          </kbd>
+        </button>
+
+        {/*
+          The berry, sitting on the search rather than beside it.
+
+          It used to be the leftmost thing in the bar, a plain link home. Andrew
+          asked for it in the middle of the bar with the search wrapping behind
+          it; it overlaps the pill's left end and stands taller than the pill, so
+          the track visibly runs behind it.
+
+          **This deliberately does not use `layoutId`.** Sharing an id with the
+          overlay's magnifying glass is the obvious way to fly the berry across,
+          and it does not work here: the overlay renders through `createPortal`
+          into a `fixed` container, so motion measures the two boxes in different
+          coordinate spaces, and the berry lands enormous and stranded halfway
+          down the page rather than in the icon slot. The arrival is animated
+          inside the overlay instead, where both ends of the movement are in one
+          coordinate space and it cannot mismeasure.
+        */}
+        <motion.button
+          type="button"
+          onClick={onOpen}
+          // Right-click still goes home, so moving the mark onto the search did
+          // not take away the one thing a logo is always expected to do.
+          onContextMenu={
+            onHome
+              ? (e) => {
+                  e.preventDefault();
+                  onHome();
+                }
+              : undefined
+          }
+          aria-label={`${label}. Right click to go home.`}
+          className="group/mark absolute top-1/2 -left-1.5 -translate-y-1/2 cursor-pointer rounded-full outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+        >
+          <BlueberryMark
+            eyes
+            className="blueberry-glow-art h-[2.1rem] w-[2.1rem] transition-transform duration-300 group-hover/mark:scale-110 motion-reduce:transition-none"
+          />
+        </motion.button>
+      </div>
     </div>
   );
 }
