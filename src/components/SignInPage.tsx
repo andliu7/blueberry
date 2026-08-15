@@ -8,6 +8,7 @@ import { BlueberryMark } from "@/components/ui/blueberry-mark";
 import { AuthCard } from "@/components/ui/auth-card";
 import { SignInCard, type AuthCardMode } from "@/components/ui/sign-in-card-2";
 import { useGoogleAuth } from "@/lib/useGoogleAuth";
+import { supabaseConfigured } from "@/lib/supabase";
 import { roleLabel } from "@/lib/account";
 import { SITE_NAME } from "@/data/site";
 
@@ -41,8 +42,23 @@ export function SignInPage({ mode = "signin" }: { mode?: AuthCardMode }) {
    * returned them here: a loop between two screens both convinced the other
    * should handle it.
    */
-  const satisfied = staff ? session?.provider === "google" : Boolean(session);
-  const wrongProvider = staff && session != null && session.provider !== "google";
+  /**
+   * Any session will do now, staff or not.
+   *
+   * This used to require `provider === "google"`, because Apps Script verified
+   * Google ID tokens and had never seen a Clerk one, so a Clerk owner was a
+   * stranger to the workspace and bounced between two screens each convinced
+   * the other should handle it. Supabase issues one credential that the
+   * database checks itself, and the role comes from `profiles`, so there is no
+   * longer a provider that can sign you in but not vouch for you.
+   *
+   * Google survives only for the Apps Script routes that have not moved yet;
+   * `wrongProvider` therefore now means "signed in with the old provider while
+   * Supabase is available", which is a nudge rather than a wall.
+   */
+  const satisfied = Boolean(session);
+  const wrongProvider =
+    staff && session != null && session.provider === "google" && supabaseConfigured;
 
   useEffect(() => {
     const root = document.documentElement;

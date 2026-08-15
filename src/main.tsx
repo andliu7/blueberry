@@ -1,15 +1,12 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { ClerkProvider } from '@clerk/clerk-react'
 import './index.css'
 import App from './App.tsx'
 import { PageFlipProvider } from '@/components/ui/page-flip'
 import { FocusTimer } from '@/components/FocusTimer'
 import { GlobalSearch } from '@/components/GlobalSearch'
 import { installClickSound } from '@/lib/clickSound'
-import { CLERK_PUBLISHABLE_KEY, clerkConfigured } from '@/lib/clerk'
-import { ClerkBoundary } from '@/components/ui/clerk-boundary'
-import { ClerkUserBridge } from '@/lib/clerk-session'
+import { AuthProvider } from '@/lib/AuthContext'
 import { BlueberryBot } from '@/components/ui/blueberry-bot'
 
 // One delegated listener for the whole site rather than a prop on every button.
@@ -38,24 +35,17 @@ const tree = (
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    {/* Wrapped only when there is a key to wrap it with.
+    {/* One auth provider, subscribing once for the whole app.
 
-        `ClerkProvider` throws when handed no publishable key, so mounting it
-        unconditionally would turn a build without one into a white page rather
-        than a site with a feature switched off. Every other optional service
-        here works the same way: see `clerkConfigured` and `useGoogleAuth`. */}
-    {clerkConfigured ? (
-      <ClerkBoundary fallback={tree}>
-        <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY!} afterSignOutUrl="#/home">
-          {/* Inside the provider, and only here. The bridge is what calls
-              Clerk's hooks; everything else reads the result from context, so
-              the fallback tree above can render with no provider at all
-              without a single component throwing. */}
-          <ClerkUserBridge>{tree}</ClerkUserBridge>
-        </ClerkProvider>
-      </ClerkBoundary>
-    ) : (
-      tree
-    )}
+        This replaced ClerkProvider and its boundary. Clerk could hold a session
+        that nothing on the server could verify, so an owner saw every editing
+        control and could save none of them. Supabase's JWT is the credential
+        the database checks, and roles come from `profiles`, so there is no
+        second system to disagree with.
+
+        No `supabaseConfigured` branch is needed here: `AuthProvider` handles a
+        missing client itself and renders its children either way, unlike
+        ClerkProvider which threw when handed no key. */}
+    <AuthProvider>{tree}</AuthProvider>
   </StrictMode>,
 )

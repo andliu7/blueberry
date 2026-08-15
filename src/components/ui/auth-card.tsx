@@ -4,8 +4,8 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { ArrowRight, Check, ShieldCheck } from "lucide-react";
 import { BlueberryMark } from "@/components/ui/blueberry-mark";
 import { ProfileFields } from "@/components/ui/profile-fields";
-import { ClerkProfileGate, ClerkSignIn, ClerkSignUp } from "@/components/ui/clerk-auth";
-import { clerkConfigured } from "@/lib/clerk";
+import { SupabaseAuth } from "@/components/ui/supabase-auth";
+import { supabaseConfigured } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 
 /**
@@ -119,19 +119,17 @@ export function AuthCard({
             ) : (
               <>
                 {/*
-                  Clerk owns the member sign-in when it is configured: it is
-                  what brings email-and-password and Google under one flow,
-                  and which of those appear is set in the Clerk dashboard.
+                  Supabase owns sign-in now. It brings Google and
+                  email-and-password under one flow, and its JWT is the
+                  credential the database itself checks, so a session can no
+                  longer exist that the server refuses to believe.
 
-                  Google's own button is the fallback for a build with no Clerk
-                  key. Both are never shown at once, which is the mistake this
-                  card already made once with two Google buttons.
+                  Google's own button remains the fallback for a build with no
+                  Supabase key. Both are never shown at once, which is the
+                  mistake this card already made once with two Google buttons.
                 */}
-                {clerkConfigured ? (
-                  <>
-                    {signup ? <ClerkSignUp /> : <ClerkSignIn />}
-                    <ClerkProfileGate />
-                  </>
+                {supabaseConfigured ? (
+                  <SupabaseAuth signup={signup} />
                 ) : (
                   <>
                     <div className="flex justify-center" ref={googleButtonRef} />

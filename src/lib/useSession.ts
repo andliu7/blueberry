@@ -1,21 +1,25 @@
 import { useGoogleAuth } from "@/lib/useGoogleAuth";
-import { useClerkSession } from "@/lib/clerk-session";
+import { useSupabaseSession } from "@/lib/useSupabaseSession";
+import { supabaseConfigured } from "@/lib/supabase";
 import type { AccountRole } from "@/lib/account";
 
 /**
- * One answer to "who is signed in", from two providers.
+ * One answer to "who is signed in".
  *
- * Clerk holds member accounts and Google still holds staff, because Apps Script
- * verifies Google ID tokens itself and has never seen a Clerk one. Both are live
- * at once, and every screen that asked only Google was blind to half the users:
- * a Clerk member looked signed out, and a stale Google session hid the Clerk
- * form entirely.
+ * Supabase is now the answer. It used to be Google Identity Services and Clerk
+ * at once, which is what produced this week's worst bug: Clerk could hold a
+ * session while Apps Script could only verify Google ID tokens, so an owner saw
+ * every editing control and could save none of them.
  *
- * Clerk wins when both are present. It is the newer, deliberate sign-in, and the
- * Google session is usually a leftover from before.
+ * The shape is unchanged on purpose. Twenty-odd components read this and none
+ * of them had to be touched; only where the answer comes from is different.
+ *
+ * Google is kept as a fallback for as long as Apps Script still serves decks
+ * and the workspace, since those verify a Google ID token and nothing else. It
+ * is second, not first, and goes when they do.
  */
 
-export type SessionProvider = "clerk" | "google";
+export type SessionProvider = "supabase" | "google";
 
 export interface Session {
   email: string;
@@ -52,62 +56,54 @@ export interface Session {
  * never what the server allows. Apps Script checks the token itself on every
  * privileged call and does not care what the browser believes.
  */
-const OWNER_EMAILS = new Set(["zeus.andrewliu@gmail.com", "andliu@terpmail.umd.edu"]);
-
 /**
- * The course TAs, from the CHEM241 syllabus.
+ * The last hardcoded role list, kept only for the Google fallback.
  *
- * `admin`, not `owner`. Owners are the hardcoded floor that cannot be removed
- * through a web page; a TA should be able to run tutoring and edit lessons
- * without also being able to change who has access.
+ * Supabase reads roles from `profiles`, filled by the signup trigger from
+ * `staff_roster`, so adding a TA there is an insert rather than a code change.
+ * This set survives only because Apps Script still serves decks and the
+ * workspace and knows nothing about that table. It goes when they do.
  *
- * These are UMD Google Workspace addresses, which is the point: the backend
- * verifies Google ID tokens, so a TA signing in with their university account
- * already has a credential the server accepts. No Clerk work is needed for them
- * to work today.
+ * Presentation only either way: the server checks the credential itself on
+ * every privileged call and does not care what the browser believes.
  */
-const ADMIN_EMAILS = new Set(["kaiwalsh@umd.edu", "vwedekin@umd.edu"]);
+const FALLBACK_ROLES: Record<string, AccountRole> = {
+  "zeus.andrewliu@gmail.com": "owner",
+  "andliu@terpmail.umd.edu": "owner",
+  "kaiwalsh@umd.edu": "admin",
+  "kwalshfb0416@gmail.com": "admin",
+  "vwedekin@umd.edu": "admin",
+};
 
-function roleFor(email: string, clerkRole?: unknown): AccountRole {
-  const at = email.trim().toLowerCase();
-  if (OWNER_EMAILS.has(at)) return "owner";
-  if (ADMIN_EMAILS.has(at)) return "admin";
-  // `publicMetadata` is server-written, so it can be trusted for display in a
-  // way `unsafeMetadata` never could.
-  if (clerkRole === "admin" || clerkRole === "owner") return clerkRole;
-  return "member";
-}
+const fallbackRoleFor = (email: string): AccountRole =>
+  FALLBACK_ROLES[email.trim().toLowerCase()] ?? "member";
 
 export function useSession(): Session | null {
+  const { session: supa } = useSupabaseSession();
   const google = useGoogleAuth();
-  /**
-   * One hook, always, whether or not Clerk is mounted.
-   *
-   * This used to pick between a Clerk implementation and a stub based on
-   * `clerkConfigured`, which reports whether a key existed at build time, not
-   * whether a provider is above you now. When clerk.js failed to load and
-   * `ClerkBoundary` re-rendered the site without the provider, the Clerk hooks
-   * were still being called and threw hard enough to blank the page. The
-   * branch now lives in the tree instead: see `ClerkUserBridge`.
-   */
-  const clerk = useClerkSession();
 
   const signOutBoth = () => {
-    clerk.signOut();
+    supa?.signOut();
     google.signOut();
   };
 
-  if (clerk.email) {
+  // Supabase first. It is the one that can write, and a leftover Google session
+  // should never shadow a deliberate sign-in.
+  if (supabaseConfigured && supa) {
     return {
-      email: clerk.email,
-      name: clerk.name,
-      picture: clerk.picture,
-      role: roleFor(clerk.email, clerk.role),
-      provider: "clerk",
+      email: supa.email,
+      name: supa.name,
+      picture: supa.picture,
+      // From `profiles`, not from a list in this file.
+      role: supa.role,
+      provider: "supabase",
       signOut: signOutBoth,
+      // Apps Script cannot verify a Supabase token, so anything still routed
+      // there stays unauthenticated until it moves. Deliberately null rather
+      // than the access token, so nothing sends a credential the other end
+      // will silently fail to check.
       idToken: null,
-      // Nothing the server can check. See `canWrite` above.
-      canWrite: false,
+      canWrite: true,
     };
   }
 
@@ -116,7 +112,7 @@ export function useSession(): Session | null {
       email: google.user.email,
       name: google.user.name ?? null,
       picture: google.user.picture ?? null,
-      role: roleFor(google.user.email),
+      role: fallbackRoleFor(google.user.email),
       provider: "google",
       signOut: signOutBoth,
       idToken: google.user.idToken,
