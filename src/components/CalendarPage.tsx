@@ -29,10 +29,10 @@ import { cn } from "@/lib/utils";
 export default function CalendarPage() {
   const session = useSession();
   const isStaff = session?.role === "admin" || session?.role === "owner";
-  // Role alone is not enough. The calendar still saves through Apps Script,
-  // which verifies a Google ID token, so a Supabase session can be staff
-  // without being able to write here yet.
-  const canEdit = isStaff && Boolean(session?.canWrite);
+  // Dates live in Supabase now, so staff can write with the session they
+  // already have and the role is the whole question. Presentation only: the
+  // policy on `course_dates` re-checks every write regardless.
+  const canEdit = isStaff;
 
   /**
    * The token, not the session.
@@ -41,33 +41,32 @@ export default function CalendarPage() {
    * on `session` got a new identity each time, which re-fired the effect that
    * depended on it, which re-rendered — "Maximum update depth exceeded", on
    * loop, from the moment the page opened. A string dependency is stable.
+   *
+   * Still read for the syllabus import, which is the one thing on this page
+   * that is genuinely still Apps Script.
    */
   const idToken = session?.idToken ?? null;
-  const signedIn = Boolean(session);
 
   const [dates, setDates] = useState<CourseDate[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
+  /**
+   * Loads for everyone, signed in or not.
+   *
+   * It used to refuse without a Google ID token and leave the grid blank with a
+   * paragraph about which backend it wanted. The dates are course information,
+   * the same as the lessons: `course_dates` allows `anon` to select, so a
+   * student who has never signed in sees the exam dates.
+   */
   const refresh = useCallback(async () => {
-    // Signed in, but with nothing the server can check. This used to return
-    // silently, which left the calendar empty with no explanation and looking
-    // broken. Say it instead.
-    if (!idToken) {
-      setError(
-        signedIn
-          ? "Dates still come from the Apps Script backend, which only accepts a Google sign-in. Sign in with Google to see them."
-          : null,
-      );
-      return;
-    }
     setLoading(true);
-    const { dates: rows, error: err } = await loadDates(idToken);
+    const { dates: rows, error: err } = await loadDates();
     setDates(rows);
     setError(err ?? null);
     setLoading(false);
-  }, [idToken, signedIn]);
+  }, []);
 
   useEffect(() => {
     void refresh();

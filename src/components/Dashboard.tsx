@@ -8,6 +8,7 @@ import {
   BookOpen,
   CalendarClock,
   CalendarDays,
+  ChevronDown,
   CreditCard,
   FlaskConical,
   ExternalLink,
@@ -42,6 +43,7 @@ import { HoldToConfirm } from "@/components/ui/hold-to-confirm";
 import { BlueberryMark } from "@/components/ui/blueberry-mark";
 import { useProfile } from "@/lib/profile";
 import { useSession } from "@/lib/useSession";
+import { LESSON_TOPICS } from "@/data/lessonTopics";
 import { deckCount, deckHref, type Deck } from "@/data/types";
 import { searchDecks } from "@/lib/searchDecks";
 import { reviewedCount } from "@/lib/progress";
@@ -693,26 +695,10 @@ function Panel({
       return <AppearancePanel />;
     case "profile":
       return <ProfilePanel onClose={onClose} />;
-    // `go` sends Lessons to its own page, so this panel is only reached if the
-    // view is set straight to "lessons" from elsewhere. It stays a real panel
-    // rather than a redirect, because a redirect fired from render is the bug
-    // this replaced.
+    // A real panel rather than a redirect: a redirect fired from render is the
+    // bug this replaced.
     case "lessons":
-      return (
-        <Unbuilt title="Lessons" lead="Written notes for each topic, to read before the cards make sense.">
-          <p>
-            The carbonyl lessons have a page of their own now.{" "}
-            <a
-              href="#/lessons"
-              onClick={onClose}
-              className="font-bold text-indigo-600 underline-offset-4 hover:underline dark:text-indigo-300"
-            >
-              Open Lessons
-            </a>
-            .
-          </p>
-        </Unbuilt>
-      );
+      return <LessonsPanel onClose={onClose} />;
     case "concepts":
       return (
         <Unbuilt
@@ -1401,6 +1387,110 @@ function SettingStub({ title, blurb }: { title: string; blurb: string }) {
         </span>
       </p>
       <p className="mt-0.5 text-xs text-slate-400 dark:text-stone-500">{blurb}</p>
+    </div>
+  );
+}
+
+/**
+ * The way into the lessons, from the hub.
+ *
+ * This used to be an `Unbuilt` box headed "Lessons is not built yet", sitting
+ * above a sentence explaining that actually it is built and here is the link.
+ * Two clicks and a contradiction to reach a page that has been finished for
+ * weeks.
+ *
+ * One card, the whole surface of it clickable, saying what the thing actually
+ * is. The dropdown underneath is the table of contents: twelve sections is
+ * enough that seeing them is what tells you whether the page has what you came
+ * for, and each one links straight to itself rather than to the top of the page.
+ *
+ * The toggle is a sibling of the card, never a child of it. Nesting a button
+ * inside an anchor is invalid, and in practice the outer link swallows the
+ * click — the same layering trap the folder cards keep setting.
+ */
+function LessonsPanel({ onClose }: { onClose: () => void }) {
+  const [open, setOpen] = useState(false);
+  const reduced = useReducedMotion();
+  // The overview is the card itself, so listing it again inside would be the
+  // contents pointing at their own cover.
+  const sections = LESSON_TOPICS.filter((t) => t.id !== "overview");
+
+  return (
+    <div className="max-w-2xl">
+      <a
+        href="#/lessons"
+        onClick={onClose}
+        className="group flex items-start gap-4 rounded-2xl border border-slate-200 bg-white/85 p-5 transition-colors hover:border-indigo-300 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:border-stone-700 dark:bg-stone-900/75 dark:hover:border-indigo-400/50 dark:hover:bg-stone-900"
+      >
+        <span className="relative mt-0.5 flex size-10 shrink-0 items-center justify-center">
+          <BlueberryMark aria-hidden className="blueberry-glow-art absolute inset-0 size-full" />
+          <span className="relative text-white [filter:drop-shadow(0_1px_2px_rgba(0,0,0,0.55))]">
+            <BookOpen className="size-5" />
+          </span>
+        </span>
+
+        <span className="min-w-0 flex-1">
+          <span className="flex items-center gap-2 font-semibold">
+            Organic Chemistry 2 Lessons
+            <ArrowUpRight className="size-4 shrink-0 text-slate-400 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-indigo-600 motion-reduce:transition-none dark:text-stone-500 dark:group-hover:text-indigo-300" />
+          </span>
+          <span className="mt-1 block text-sm leading-6 text-slate-600 dark:text-stone-300">
+            The ideas behind the cards, in the order CHEM241 takes them. Written notes
+            first, then every reaction underneath with its reagents and conditions.
+          </span>
+          <span className="mt-2 block font-mono text-[0.7rem] tracking-wide text-slate-400 uppercase dark:text-stone-500">
+            {sections.length} sections · CHEM241
+          </span>
+        </span>
+      </a>
+
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        aria-controls="lesson-contents"
+        className="mt-2 flex min-h-11 w-full cursor-pointer items-center justify-between rounded-xl px-3 text-sm font-semibold text-slate-500 transition-colors hover:bg-slate-100/70 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:text-stone-400 dark:hover:bg-stone-900/60 dark:hover:text-stone-200"
+      >
+        {open ? "Hide the sections" : `Show all ${sections.length} sections`}
+        <ChevronDown
+          className={cn(
+            "size-4 transition-transform duration-200 motion-reduce:transition-none",
+            open && "rotate-180",
+          )}
+        />
+      </button>
+
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.ul
+            id="lesson-contents"
+            // Height to `auto` so the list is never clipped and never needs a
+            // guessed max-height, which is what breaks the moment a title wraps.
+            initial={reduced ? { opacity: 0 } : { height: 0, opacity: 0 }}
+            animate={reduced ? { opacity: 1 } : { height: "auto", opacity: 1 }}
+            exit={reduced ? { opacity: 0 } : { height: 0, opacity: 0 }}
+            transition={{ duration: reduced ? 0 : 0.22, ease: "easeOut" }}
+            className="overflow-hidden"
+          >
+            <div className="mt-1 grid gap-1 sm:grid-cols-2">
+              {sections.map((t) => (
+                <li key={t.id}>
+                  <a
+                    href={`#/lessons/${t.id}`}
+                    onClick={onClose}
+                    className="flex min-h-11 flex-col justify-center rounded-xl px-3 py-2 transition-colors hover:bg-indigo-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:hover:bg-indigo-950/40"
+                  >
+                    <span className="text-sm font-semibold">{t.label}</span>
+                    <span className="mt-0.5 line-clamp-1 text-xs text-slate-500 dark:text-stone-400">
+                      {t.title}
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </div>
+          </motion.ul>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -1,4 +1,6 @@
 import { postToAppsScript } from "@/lib/appsScript";
+import { supabase } from "@/lib/supabase";
+import { describeWrite } from "@/lib/useCourse";
 import type { CourseDate, CourseDateKind } from "@/components/ui/event-manager";
 
 /**
@@ -8,6 +10,11 @@ import type { CourseDate, CourseDateKind } from "@/components/ui/event-manager";
  * place. Doing it at each call site is how you end up with a component that
  * works until someone hands it a row straight from the sheet and it tries to
  * call `.getTime()` on a string.
+ *
+ * Reading and writing dates is Supabase now, so staff signed in here can
+ * actually save. Importing a syllabus is still Apps Script, because that call
+ * is really a call to Claude with the API key in Script Properties, and moving
+ * it needs an Edge Function rather than a table.
  */
 
 const KINDS: CourseDateKind[] = [
@@ -84,34 +91,96 @@ function parseAll(rows: unknown): CourseDate[] {
     .sort((a, b) => a.start.getTime() - b.start.getTime());
 }
 
-export async function loadDates(idToken: string | null): Promise<{
+/** A `course_dates` row, which is `WireDate` under Postgres' column names. */
+interface DateRow {
+  id: string;
+  title: string;
+  kind: string;
+  start_at: string;
+  end_at: string | null;
+  detail: string | null;
+}
+
+const rowToWire = (r: DateRow): WireDate => ({
+  id: r.id,
+  title: r.title,
+  kind: r.kind,
+  start: r.start_at,
+  end: r.end_at ?? undefined,
+  detail: r.detail ?? undefined,
+});
+
+/** Draft rows are keyed `draft-0`; saved ones are uuids. Only the latter exist. */
+const isUuid = (v: string | undefined): v is string =>
+  typeof v === "string" &&
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
+
+/** Reads every date. Signed out is fine: the policy allows `anon` to select. */
+export async function loadDates(_idToken?: string | null): Promise<{
   dates: CourseDate[];
   error?: string;
 }> {
-  const body = await postToAppsScript("listDates", { idToken });
-  if (!body.ok) return { dates: [], error: describe(body.error) };
-  return { dates: parseAll(body.dates) };
+  if (!supabase) return { dates: [], error: "The calendar backend is not set up yet." };
+
+  const { data, error } = await supabase
+    .from("course_dates")
+    .select("id, title, kind, start_at, end_at, detail")
+    .order("start_at");
+
+  if (error) return { dates: [], error: describeWrite(error) };
+  return { dates: parseAll((data ?? []).map((r) => rowToWire(r as DateRow))) };
 }
 
+/**
+ * Adds or updates the dates it is given, and touches nothing else.
+ *
+ * **Additive on purpose.** The name reads like "make the calendar be this", and
+ * an earlier version of this function obliged: it upserted the list and then
+ * deleted every row not in it. The editor calls this with a *single* date when
+ * you save one event, so that version would have wiped the entire calendar on
+ * the first edit and reported success. Removal has its own function, which is
+ * the only thing that should ever delete.
+ *
+ * Rows that already carry a uuid are updated in place; rows without one are new
+ * and let the column default generate the id.
+ */
 export async function saveDates(
   dates: CourseDate[],
-  idToken: string | null,
+  _idToken?: string | null,
 ): Promise<{ dates: CourseDate[]; error?: string }> {
-  const body = await postToAppsScript("saveDates", {
-    idToken,
-    dates: dates.map(toWire),
+  if (!supabase) return { dates: [], error: "The calendar backend is not set up yet." };
+  if (!dates.length) return loadDates();
+
+  const rows = dates.map((d) => {
+    const wire = toWire(d);
+    return {
+      // A draft row carries a placeholder id like `draft-0`, which is not a
+      // uuid and would be rejected by the column type.
+      ...(isUuid(wire.id) ? { id: wire.id } : {}),
+      title: wire.title,
+      kind: wire.kind,
+      start_at: wire.start,
+      end_at: wire.end || null,
+      detail: wire.detail || null,
+      updated_at: new Date().toISOString(),
+    };
   });
-  if (!body.ok) return { dates: [], error: describe(body.error) };
-  return { dates: parseAll(body.dates) };
+
+  const { error } = await supabase.from("course_dates").upsert(rows);
+  if (error) return { dates: [], error: describeWrite(error) };
+
+  return loadDates();
 }
 
 export async function deleteDate(
   id: string,
-  idToken: string | null,
+  _idToken?: string | null,
 ): Promise<{ dates: CourseDate[]; error?: string }> {
-  const body = await postToAppsScript("deleteDate", { idToken, id });
-  if (!body.ok) return { dates: [], error: describe(body.error) };
-  return { dates: parseAll(body.dates) };
+  if (!supabase) return { dates: [], error: "The calendar backend is not set up yet." };
+
+  const { error } = await supabase.from("course_dates").delete().eq("id", id);
+  if (error) return { dates: [], error: describeWrite(error) };
+  return loadDates();
 }
 
 /**

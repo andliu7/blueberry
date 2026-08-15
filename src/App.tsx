@@ -242,6 +242,11 @@ export default function App() {
   if (route === "" || route === "home") return <HomePage />;
   if (route === "study-decks") return <StudyDecksPage />;
   if (route === "lessons") return withBoundary(<LessonsPage />);
+  // `#/lessons/aromatics` opens that section directly, so the hub's topic list
+  // can link to a section rather than to the top of the page and a hunt.
+  if (route.startsWith("lessons/")) {
+    return withBoundary(<LessonsPage section={route.slice(8)} />);
+  }
   if (route === "calendar") return withBoundary(<CalendarPage />);
   if (route === "tutoring") return withBoundary(<TutoringPage />);
   if (route === "reactions") return withBoundary(<ReactionsPage />);

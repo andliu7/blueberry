@@ -254,7 +254,7 @@ function SignedIn({ session }: { session: NonNullable<ReturnType<typeof useSessi
         {staff && ". Editing controls appear on the lessons, calendar and tutoring pages."}
       </p>
 
-      <StaffSignInNotice session={session} action="Editing" />
+      <StaffSignInNotice session={session} action="Importing a syllabus, the decks and Ask Blueberry" />
 
       <div className="flex flex-col gap-2">
         <a
