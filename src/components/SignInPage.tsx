@@ -1,65 +1,65 @@
-import { useEffect } from "react";
-import { ArrowLeft, ArrowRight, Gauge, LayoutGrid } from "lucide-react";
-import { OPEN_ON_ARRIVAL } from "@/components/Dashboard";
-import { useSession } from "@/lib/useSession";
-import { ShaderAnimation } from "@/components/ui/shader-animation";
-import { ExpandingCircle } from "@/components/ui/expanding-circle";
+"use client";
+
+import { useEffect, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { ArrowLeft, CalendarDays, CircleCheck, PencilLine, Sparkles, Users } from "lucide-react";
 import { BlueberryMark } from "@/components/ui/blueberry-mark";
-import { AuthCard } from "@/components/ui/auth-card";
-import { SignInCard, type AuthCardMode } from "@/components/ui/sign-in-card-2";
-import { useGoogleAuth } from "@/lib/useGoogleAuth";
+import { SupabaseAuth } from "@/components/ui/supabase-auth";
+import { StaffSignInNotice } from "@/components/ui/staff-signin-notice";
+import { useSession } from "@/lib/useSession";
 import { supabaseConfigured } from "@/lib/supabase";
-import { roleLabel } from "@/lib/account";
-import { SITE_NAME } from "@/data/site";
+import { cn } from "@/lib/utils";
 
 /**
- * Sign in, sign up and staff sign-in, on one page in three modes.
+ * One sign-in page, two modes.
  *
- * Members get the wide two-sided card; staff keep the narrow one. That is not
- * an oversight. Staff sign-in has nothing to switch to, so half of a card
- * inviting you to the other side would be half a card advertising nothing.
+ * It used to be three — sign in, sign up, and a separate staff route with its
+ * own narrower card — because two auth systems disagreed about who could write,
+ * so staff genuinely had to come in through a different door. One provider
+ * removed the reason: everyone signs in the same way and the role is read from
+ * `profiles`. `#/staff` still resolves here so old links keep working, but it
+ * is the same screen.
  *
- * The background is the intro's aurora with a circle opening behind the card,
- * rather than the shader that was here before, so arriving at sign-in looks
- * like arriving at Blueberry.
+ * Google is the large button and the password fields are folded away, because
+ * for almost everyone here the honest answer is that they do not need a
+ * password at all. Presenting a form first and Google as an afterthought asks
+ * people to invent a credential they will forget, to reach an account they
+ * could have had in one click.
  */
-export function SignInPage({ mode = "signin" }: { mode?: AuthCardMode }) {
-  const auth = useGoogleAuth();
-  // One session across both providers. Reading `useGoogleAuth` alone meant a
-  // signed-in Clerk member was shown the sign-in form as though they were a
-  // stranger, and a stale Google session hid that form from everyone else.
+
+/** What signing in is actually for. Concrete, not "unlock your experience". */
+const WHAT_YOU_GET = [
+  {
+    Icon: CalendarDays,
+    title: "The course calendar",
+    body: "Exams, deadlines and labs for CHEM241, in one place.",
+  },
+  {
+    Icon: Users,
+    title: "Book office hours",
+    body: "Pick a thirty-minute slot with a TA when they are free.",
+  },
+  {
+    Icon: Sparkles,
+    title: "Your own saved work",
+    body: "Cards you make and mechanisms you have drawn, kept to your account.",
+  },
+  {
+    Icon: PencilLine,
+    title: "Editing, if you are staff",
+    body: "Lesson pages, reactions and office hours. Granted by role, not by asking.",
+    staffOnly: true,
+  },
+] as const;
+
+export function SignInPage({ mode = "signin" }: { mode?: "signin" | "signup" | "staff" }) {
+  // `staff` is an alias for signing in, kept so existing links do not break.
+  const [signup, setSignup] = useState(mode === "signup");
   const session = useSession();
-  const role = session?.role ?? "member";
-  const staff = mode === "staff";
+  const reduced = useReducedMotion();
 
-  /**
-   * Whether the session in hand is the one this page was asked for.
-   *
-   * Staff sign-in is not satisfied by a Clerk session. Apps Script verifies a
-   * *Google* ID token on every privileged call, and Clerk cannot produce one,
-   * so a Clerk owner is still a stranger to the workspace. Treating any session
-   * as good enough sent them to a card offering "Open the workspace", which
-   * returned them here: a loop between two screens both convinced the other
-   * should handle it.
-   */
-  /**
-   * Any session will do now, staff or not.
-   *
-   * This used to require `provider === "google"`, because Apps Script verified
-   * Google ID tokens and had never seen a Clerk one, so a Clerk owner was a
-   * stranger to the workspace and bounced between two screens each convinced
-   * the other should handle it. Supabase issues one credential that the
-   * database checks itself, and the role comes from `profiles`, so there is no
-   * longer a provider that can sign you in but not vouch for you.
-   *
-   * Google survives only for the Apps Script routes that have not moved yet;
-   * `wrongProvider` therefore now means "signed in with the old provider while
-   * Supabase is available", which is a nudge rather than a wall.
-   */
-  const satisfied = Boolean(session);
-  const wrongProvider =
-    staff && session != null && session.provider === "google" && supabaseConfigured;
-
+  // This page paints its own dark surface, so it forces the theme while it is
+  // open and puts it back on the way out.
   useEffect(() => {
     const root = document.documentElement;
     const hadDark = root.classList.contains("dark");
@@ -69,148 +69,218 @@ export function SignInPage({ mode = "signin" }: { mode?: AuthCardMode }) {
     };
   }, []);
 
-  // `h-dvh` with overflow hidden, not `min-h`: this page is meant to sit still
-  // on one screen, and `min-h` lets a tall card push the whole thing into a
-  // scroll. The card is what shrinks to fit instead.
   return (
-    <main className="relative flex h-dvh items-center justify-center overflow-hidden bg-[#171327] px-4 py-6 sm:px-5">
-      <ShaderAnimation className="absolute inset-0" cycleSeconds={4.6} />
-      <div className="absolute inset-0 bg-[#171327]/55" aria-hidden />
-      <ExpandingCircle />
+    <main className="relative min-h-dvh overflow-hidden bg-[#171327] text-white">
+      {/* The intro photograph, dimmed. Same image the opening screen uses, so
+          arriving here does not feel like leaving the site. */}
+      <img
+        src={`${import.meta.env.BASE_URL}backgrounds/intro-dark.webp`}
+        alt=""
+        aria-hidden
+        className="absolute inset-0 size-full object-cover opacity-25"
+      />
+      <div
+        aria-hidden
+        className="absolute inset-0 bg-gradient-to-br from-[#171327]/90 via-[#171327]/70 to-indigo-950/80"
+      />
 
-      <a
-        href="#/home"
-        className="group absolute top-6 left-5 z-10 inline-flex items-center gap-2 text-sm font-semibold text-white/65 transition hover:text-white sm:left-8"
-      >
-        <ArrowLeft className="size-4 transition-transform group-hover:-translate-x-0.5" /> Back to{" "}
-        {SITE_NAME}
-      </a>
+      <div className="relative mx-auto flex min-h-dvh w-full max-w-5xl flex-col px-4 py-6 sm:px-6">
+        <a
+          href="#/home"
+          className="inline-flex min-h-11 w-fit items-center gap-2 text-sm font-semibold text-white/60 transition hover:text-white"
+        >
+          <ArrowLeft className="size-4" />
+          Back to Blueberry
+        </a>
 
-      <div className={cnWidth(staff || Boolean(satisfied))}>
-        {satisfied && session ? (
-          <section className="rounded-3xl border border-white/12 bg-[#171327]/80 p-7 text-center shadow-[0_28px_90px_rgba(0,0,0,0.48)] backdrop-blur-xl">
-            <BlueberryMark eyes className="blueberry-glow-art mx-auto size-12" />
-            <p className="mt-5 text-xs font-semibold tracking-[0.18em] text-blue-200/70 uppercase">
-              {roleLabel(role)} account
-            </p>
-            <h1 className="title-face mt-2 text-3xl text-white">
-              {session.name ? `Hello, ${session.name}` : "You're signed in"}
-            </h1>
-            <p className="mt-3 text-sm leading-6 text-white/60">{session.email}</p>
-            <p className="mt-1 font-mono text-[0.65rem] tracking-wider text-white/35 uppercase">
-              via {session.provider}
-            </p>
-
-            {/*
-              Staff arrive here with two places to be, so they are asked rather
-              than sent. A member has only one, and offering a choice of one is
-              not a choice.
-            */}
-            {role === "admin" || role === "owner" ? (
-              <div className="mt-7 space-y-2.5">
-                {/* Offered only to a Google session, because that is the only
-                    one Apps Script will honour. Showing it to a Clerk owner was
-                    a button that could not do what it said. */}
-                {session.provider === "google" ? (
-                  <a
-                    href="#/workspace"
-                    className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-white px-4 text-sm font-semibold text-[#171327] transition hover:bg-white/90 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
-                  >
-                    <LayoutGrid className="size-4" /> Open the workspace
-                  </a>
-                ) : (
-                  <a
-                    href="#/staff"
-                    className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-white/25 px-4 text-sm font-semibold text-white transition hover:border-white/60 hover:bg-white/10"
-                  >
-                    <LayoutGrid className="size-4" /> Workspace needs Google sign-in
-                  </a>
-                )}
-                <button
-                  type="button"
-                  onClick={() => {
-                    // Set before the hash changes, read by `useDashboard` once
-                    // the destination page has mounted it.
-                    try {
-                      sessionStorage.setItem(OPEN_ON_ARRIVAL, "1");
-                    } catch {
-                      /* private browsing; the link below still works */
-                    }
-                    window.location.hash = "#/home";
-                  }}
-                  className="flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-white/25 px-4 text-sm font-semibold text-white transition hover:border-white/60 hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
-                >
-                  <Gauge className="size-4" /> Go to the dashboard
-                </button>
-                <a
-                  href="#/home"
-                  className="block pt-1 text-sm font-semibold text-white/60 underline decoration-white/25 underline-offset-4 transition hover:text-white"
-                >
-                  Just take me to the site
-                </a>
+        <div className="grid flex-1 items-center gap-8 py-6 lg:grid-cols-[1fr_400px] lg:gap-12">
+          {/* ---------------------------- what it is for --------------------------- */}
+          <div className="order-2 lg:order-1">
+            <div className="flex items-center gap-3">
+              <BlueberryMark eyes className="size-10 shrink-0" />
+              <div>
+                <h1 className="title-face text-3xl leading-none sm:text-4xl">Blueberry</h1>
+                <p className="text-sm text-white/50">Organic chemistry, University of Maryland</p>
               </div>
-            ) : (
-              <a
-                href="#/home"
-                className="mt-7 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-white px-4 text-sm font-semibold text-[#171327] transition hover:bg-white/90 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
-              >
-                Continue to Blueberry <ArrowRight className="size-4" />
-              </a>
-            )}
-            {staff && (
-              <p className="mt-4 text-xs leading-5 text-white/45">
-                Staff access is checked again by the server when you open staff tools.
+            </div>
+
+            <ul className="mt-7 flex flex-col gap-4">
+              {WHAT_YOU_GET.map(({ Icon, title, body, ...rest }) => (
+                <li key={title} className="flex gap-3">
+                  <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl bg-white/10">
+                    <Icon className="size-4 text-indigo-300" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="flex flex-wrap items-center gap-2 text-sm font-semibold">
+                      {title}
+                      {"staffOnly" in rest && rest.staffOnly && (
+                        <span className="rounded-md bg-indigo-500/20 px-1.5 py-0.5 text-[.65rem] font-semibold uppercase tracking-wide text-indigo-200">
+                          Staff
+                        </span>
+                      )}
+                    </p>
+                    <p className="mt-0.5 text-sm leading-6 text-white/55">{body}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+
+            <p className="mt-7 text-sm leading-6 text-white/40">
+              Decks and lessons are readable without an account. Signing in is for the things
+              that belong to you.
+            </p>
+          </div>
+
+          {/* ------------------------------- the card ------------------------------ */}
+          <div className="order-1 lg:order-2">
+            <div className="rounded-3xl border border-white/10 bg-white/[0.06] p-5 shadow-2xl backdrop-blur-xl sm:p-6">
+              {session ? (
+                <SignedIn session={session} />
+              ) : !supabaseConfigured ? (
+                <p className="rounded-xl border border-amber-300/20 bg-amber-200/10 px-4 py-3 text-sm leading-5 text-amber-100/80">
+                  Sign-in is not configured for this build yet.
+                </p>
+              ) : (
+                <>
+                  {/* Two tabs with a sliding indicator rather than two routes.
+                      Switching used to be a navigation, which threw away
+                      anything typed and made a decision feel like a commitment.
+                      Nothing is lost now, so trying the other one is free. */}
+                  <div
+                    role="tablist"
+                    aria-label="Sign in or create an account"
+                    className="relative mb-5 grid grid-cols-2 rounded-xl bg-white/5 p-1"
+                  >
+                    {(["signin", "signup"] as const).map((tab) => {
+                      const active = (tab === "signup") === signup;
+                      return (
+                        <button
+                          key={tab}
+                          role="tab"
+                          aria-selected={active}
+                          onClick={() => setSignup(tab === "signup")}
+                          className={cn(
+                            "relative z-10 min-h-11 cursor-pointer rounded-lg text-sm font-semibold transition-colors",
+                            active ? "text-white" : "text-white/50 hover:text-white/75",
+                          )}
+                        >
+                          {active && (
+                            <motion.span
+                              layoutId="auth-tab"
+                              transition={
+                                reduced
+                                  ? { duration: 0 }
+                                  : { type: "spring", stiffness: 400, damping: 32 }
+                              }
+                              className="absolute inset-0 -z-10 rounded-lg bg-white/12"
+                            />
+                          )}
+                          {tab === "signin" ? "Sign in" : "Create account"}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Said plainly, above the buttons rather than below them.
+                      The single most common thing to get wrong here is assuming
+                      a password is required. */}
+                  <p className="mb-4 text-sm leading-6 text-white/60">
+                    <span className="font-semibold text-white">
+                      You do not need a password.
+                    </span>{" "}
+                    Continue with Google and you are done — most people should use that. An
+                    email and password is there if you would rather.
+                  </p>
+
+                  {/* Crossfade rather than a hard swap, so the card does not
+                      appear to reload when the two forms are mostly the same. */}
+                  <AnimatePresence mode="wait" initial={false}>
+                    <motion.div
+                      key={signup ? "signup" : "signin"}
+                      initial={reduced ? { opacity: 0 } : { opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={reduced ? { opacity: 0 } : { opacity: 0, y: -6 }}
+                      transition={{ duration: reduced ? 0 : 0.16 }}
+                    >
+                      <SupabaseAuth signup={signup} />
+                    </motion.div>
+                  </AnimatePresence>
+                </>
+              )}
+            </div>
+
+            {!session && (
+              <p className="mt-4 px-1 text-xs leading-5 text-white/35">
+                Staff access is decided by the server from your account, not by anything this
+                page can be told. Signing in with a university address is enough.
               </p>
             )}
-            {/* Ends both providers, not whichever one happens to be showing.
-                Signing out of one and being handed straight back in by the
-                other is the bug this replaces. */}
-            <button
-              onClick={session.signOut}
-              className="mt-4 cursor-pointer text-sm font-semibold text-white/60 underline decoration-white/25 underline-offset-4 transition hover:text-white"
-            >
-              Sign out
-            </button>
-          </section>
-        ) : staff ? (
-          <>
-            {/* Says why a signed-in person is being asked to sign in again,
-                which is otherwise the most confusing screen on the site. */}
-            {wrongProvider && (
-              <p className="mb-3 rounded-xl border border-amber-300/20 bg-amber-200/10 px-4 py-3 text-sm leading-5 text-amber-100/85">
-                You are signed in as {session?.email} with Clerk. The workspace is checked by
-                Blueberry&apos;s server against a Google account, so staff tools need that one.
-              </p>
-            )}
-            <SignInCard
-              mode={mode}
-              configured={auth.configured}
-              ready={auth.ready}
-              error={auth.error}
-              onSignIn={auth.signIn}
-              googleButtonRef={auth.renderButton}
-            />
-          </>
-        ) : (
-          <AuthCard
-            side={mode}
-            configured={auth.configured}
-            ready={auth.ready}
-            error={auth.error}
-            onSignIn={auth.signIn}
-            googleButtonRef={auth.renderButton}
-          />
-        )}
+          </div>
+        </div>
       </div>
     </main>
   );
 }
 
-/** The wide card needs the room; the narrow ones would look lost in it. */
-function cnWidth(narrow: boolean) {
-  return narrow
-    ? "relative z-10 w-full max-w-sm"
-    : "relative z-10 flex w-full max-w-4xl justify-center";
+/** Already signed in: say who, say what that gets you, and get out of the way. */
+function SignedIn({ session }: { session: NonNullable<ReturnType<typeof useSession>> }) {
+  const staff = session.role === "admin" || session.role === "owner";
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center gap-3">
+        {session.picture ? (
+          <img
+            src={session.picture}
+            alt=""
+            aria-hidden
+            className="size-11 shrink-0 rounded-full object-cover"
+          />
+        ) : (
+          <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-white/10">
+            <CircleCheck className="size-5 text-emerald-300" />
+          </span>
+        )}
+        <div className="min-w-0">
+          <p className="truncate font-semibold">{session.name ?? session.email}</p>
+          <p className="truncate text-sm text-white/50">{session.email}</p>
+        </div>
+      </div>
+
+      <p className="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white/70">
+        Signed in as{" "}
+        <span className="font-semibold text-white">
+          {staff ? (session.role === "owner" ? "an owner" : "course staff") : "a student"}
+        </span>
+        {staff && ". Editing controls appear on the lessons, calendar and tutoring pages."}
+      </p>
+
+      <StaffSignInNotice session={session} action="Editing" />
+
+      <div className="flex flex-col gap-2">
+        <a
+          href="#/home"
+          className="flex min-h-11 items-center justify-center rounded-xl bg-gradient-to-r from-indigo-500 to-fuchsia-500 px-4 text-sm font-semibold text-white transition hover:brightness-110"
+        >
+          Go to Blueberry
+        </a>
+        {staff && (
+          <a
+            href="#/lessons"
+            className="flex min-h-11 items-center justify-center rounded-xl border border-white/15 px-4 text-sm font-semibold text-white/80 transition hover:bg-white/5"
+          >
+            Open the lessons editor
+          </a>
+        )}
+        <button
+          type="button"
+          onClick={session.signOut}
+          className="min-h-11 cursor-pointer text-sm text-white/45 transition hover:text-white/75"
+        >
+          Sign out
+        </button>
+      </div>
+    </div>
+  );
 }
 
 export default SignInPage;

@@ -1,0 +1,21 @@
+<!--
+  A six-digit code, not a link.
+
+  A link has to land on a real URL. GitHub Pages serves this repo from a
+  subpath, there is no server to rewrite anything, and Blueberry routes on the
+  hash -- so a confirmation link carrying its own token and a router that owns
+  the hash are two things competing for one field. Get the Site URL slightly
+  wrong and every new user lands on a 404, with nothing in the app to say why.
+
+  A code sidesteps the category entirely: nothing redirects, the six digits are
+  typed into the page the user is already on, and Pages routing stops being part
+  of the auth story.
+
+  {{ .Token }} is what makes it a code. {{ .ConfirmationURL }} is what makes it
+  a link. The hosted project needs the same change under
+  Authentication > Emails > Magic Link.
+-->
+<h2>Your Blueberry sign-in code</h2>
+<p>Enter this code on the sign-in page:</p>
+<p style="font-size:28px;font-weight:700;letter-spacing:6px;font-family:monospace">{{ .Token }}</p>
+<p>It expires shortly and can only be used once. If you did not ask for it, ignore this email.</p>

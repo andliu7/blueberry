@@ -6,8 +6,8 @@ import type { AccountRole } from "@/lib/account";
 /**
  * One answer to "who is signed in".
  *
- * Supabase is now the answer. It used to be Google Identity Services and Clerk
- * at once, which is what produced this week's worst bug: Clerk could hold a
+ * Supabase is now the answer. It used to be two providers at once, which is what
+ * produced this week's worst bug: one of them could hold a
  * session while Apps Script could only verify Google ID tokens, so an owner saw
  * every editing control and could save none of them.
  *
@@ -29,19 +29,19 @@ export interface Session {
   provider: SessionProvider;
   /** Ends every session, not just the one that is showing. */
   signOut: () => void;
-  /** Google's raw token, for Apps Script. Absent for Clerk members. */
+  /** Google's raw token, for Apps Script. Null for a Supabase session. */
   idToken: string | null;
   /**
    * Whether this session can actually perform a privileged write.
    *
    * Not the same question as `role`, and conflating the two shipped a real bug:
-   * an owner signed in through Clerk saw every editing control, because the
+   * an owner signed in through the wrong one saw every editing control, because the
    * role resolved from their address, and then every save was refused because
    * there was no credential to send. `verify_` in Apps Script only understands
-   * Google ID tokens, and a Clerk session has none.
+   * Google ID tokens, and a Supabase session has none.
    *
    * So the UI asks this instead. Deciding it here means no page has to
-   * rediscover the reasoning, and when the backend learns to verify Clerk this
+   * rediscover the reasoning, and when those routes move to Supabase this
    * becomes true for both providers in one edit.
    *
    * Still presentation only. The server re-verifies on every call regardless.

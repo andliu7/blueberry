@@ -156,11 +156,21 @@ max_indexes = 5
 enabled = true
 # The base URL of your website. Used as an allow-list for redirects and for constructing URLs used
 # in emails.
-site_url = "http://127.0.0.1:3000"
+# Vite serves on 5173, not 3000. The default here is what confirmation emails
+# and OAuth returns are measured against, so leaving it wrong sends every local
+# test to a port with nothing on it.
+site_url = "http://localhost:5173"
 # The public URL that Auth serves on. Defaults to the API external URL with `/auth/v1` appended.
 # external_url = ""
 # A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
-additional_redirect_urls = ["https://127.0.0.1:3000"]
+# Both hosts, with a wildcard, because a redirect that is not on this list is
+# silently refused. GitHub Pages serves this repo from a subpath --
+# andliu7.github.io/blueberry/ -- not from a domain root, and a Site URL missing
+# that subpath is what drops confirmation links on a 404.
+additional_redirect_urls = [
+  "http://localhost:5173/**",
+  "https://andliu7.github.io/blueberry/**",
+]
 # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 (1 week).
 jwt_expiry = 3600
 # JWT issuer URL. If not set, defaults to auth.external_url.
@@ -412,3 +422,15 @@ enabled = true
 # declarative_schema_path = "./database"
 # JSON string passed through to pg-delta SQL formatting.
 # format_options = "{\"keywordCase\":\"upper\",\"indent\":2,\"maxWidth\":80,\"commaStyle\":\"trailing\"}"
+
+
+# Codes rather than links, for both the first confirmation and later sign-ins.
+# See the comment at the top of each template for why this site cannot use
+# link-based flows.
+[auth.email.template.magic_link]
+subject = "Your Blueberry sign-in code"
+content_path = "./supabase/templates/magic_link.html"
+
+[auth.email.template.confirmation]
+subject = "Confirm your Blueberry account"
+content_path = "./supabase/templates/confirmation.html"

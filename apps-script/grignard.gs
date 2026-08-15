@@ -1,11 +1,6 @@
 /**
  * Blueberry — the whole Apps Script backend.
  *
- * PASTE THIS INTO script.google.com. This file is the tracked copy; the code
- * that runs lives in Google's editor. After pasting:
- *   Deploy -> Manage deployments -> edit -> Version: New version -> Deploy
- * Saving alone does not update the live web app.
- *
  * Script Properties used:
  *   SHEET_ID           the spreadsheet this writes to
  *   CLIENT_ID          the Google OAuth client id (same as VITE_GOOGLE_CLIENT_ID)

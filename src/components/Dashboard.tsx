@@ -1144,7 +1144,7 @@ function AppearancePanel() {
  */
 function ProfilePanel({ onClose }: { onClose: () => void }) {
   const { configured } = useGoogleAuth();
-  // Either provider. A Clerk member used to read as "Guest" here.
+  // Either provider, so a signed-in member never reads as "Guest".
   const session = useSession();
   const user = session;
   const signOut = session?.signOut ?? (() => {});

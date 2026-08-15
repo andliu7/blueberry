@@ -107,8 +107,9 @@ const [child,setChild]=useState<string|null>(null);
 const t=topics.find(x=>x.id===active)||topics[0];
 const session=useSession();
 const isStaff=session?.role==="admin"||session?.role==="owner";
-/* Role alone is not enough: a Clerk session resolves an owner from their address
-   but carries no token the server can verify. See `canWrite` in useSession. */
+/* Role alone is not enough. Lesson edits still save through Apps Script, which
+   verifies a Google ID token, so a Supabase session is staff without being able
+   to write here yet. See `canWrite` in useSession. */
 const canEdit=isStaff&&Boolean(session?.canWrite);
 const {overrides,refresh}=useCourse();
 /* Staff-added reactions, merged in beside the generated ones so a TA's work

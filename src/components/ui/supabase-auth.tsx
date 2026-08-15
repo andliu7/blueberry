@@ -3,19 +3,21 @@
 import { useState } from "react";
 import { CircleCheck, Loader2, TriangleAlert } from "lucide-react";
 import {
+  sendEmailCode,
   signInWithEmail,
   signInWithGoogle,
   signUpWithEmail,
+  verifyEmailCode,
 } from "@/lib/useSupabaseSession";
 import { cn } from "@/lib/utils";
 
 /**
  * Sign in, or sign up, through Supabase.
  *
- * Replaces the Clerk flows and the Google Identity button that sat beside them.
- * One provider now rather than two, which is what fixes the bug underneath all
- * of this: Clerk could hold a session that nothing on the server could verify,
- * so an owner saw every editing control and could save none of them.
+ * One provider, replacing the two that sat beside each other before. That is
+ * what fixes the bug underneath all of this: the old member sign-in could hold
+ * a session nothing on the server could verify, so an owner saw every editing
+ * control and could save none of them.
  *
  * Google first, then email. A UMD account is what staff and most students
  * already have, and it is the route with no password to invent or forget.
@@ -33,9 +35,12 @@ export function SupabaseAuth({ signup }: { signup: boolean }) {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [institution, setInstitution] = useState("University of Maryland");
-  const [busy, setBusy] = useState<"google" | "email" | null>(null);
+  const [busy, setBusy] = useState<"google" | "email" | "code" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
+  /** Waiting on a six-digit code, rather than on a link in an inbox. */
+  const [awaitingCode, setAwaitingCode] = useState(false);
+  const [code, setCode] = useState("");
 
   const google = async () => {
     setBusy("google");
@@ -65,6 +70,80 @@ export function SupabaseAuth({ signup }: { signup: boolean }) {
       setSent(true);
     }
   };
+
+  /**
+   * The code screen. Nothing redirects, so GitHub Pages routing never enters
+   * into it -- which is the point. A confirmation link has to land on a real
+   * URL, and this site is served from a subpath with no server to rewrite
+   * anything and a router that already owns the hash.
+   */
+  if (awaitingCode) {
+    return (
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          void (async () => {
+            setBusy("code");
+            setError(null);
+            const { error: err } = await verifyEmailCode(email, code);
+            setBusy(null);
+            if (err) setError(err);
+          })();
+        }}
+        className="flex flex-col gap-3"
+      >
+        <p className="text-sm leading-6 text-white/70">
+          We sent a six-digit code to <span className="font-semibold text-white">{email}</span>.
+        </p>
+        <label className="sr-only" htmlFor="auth-code">
+          Six-digit code
+        </label>
+        <input
+          id="auth-code"
+          value={code}
+          onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+          /* `inputMode` rather than `type="number"`: a numeric keypad on a
+             phone, without the spinner arrows and scroll-to-change behaviour a
+             number input brings on a desktop. `one-time-code` is what lets iOS
+             and Android offer the code straight from the notification. */
+          inputMode="numeric"
+          autoComplete="one-time-code"
+          autoFocus
+          placeholder="000000"
+          required
+          className={cn(FIELD, "text-center font-mono text-lg tracking-[0.4em]")}
+        />
+        {error && (
+          <p
+            role="alert"
+            className="flex items-start gap-2 rounded-xl border border-rose-400/25 bg-rose-400/10 p-2.5 text-sm text-rose-100"
+          >
+            <TriangleAlert className="mt-0.5 size-4 shrink-0" />
+            <span>{error}</span>
+          </p>
+        )}
+        <button
+          type="submit"
+          disabled={busy !== null || code.length < 6}
+          className="flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-fuchsia-500 px-4 text-sm font-semibold text-white transition hover:brightness-110 disabled:opacity-60"
+        >
+          {busy === "code" && <Loader2 className="size-4 animate-spin" />}
+          Verify and continue
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setAwaitingCode(false);
+            setCode("");
+            setError(null);
+          }}
+          className="min-h-11 text-sm text-white/50 hover:text-white/80"
+        >
+          Use a different email
+        </button>
+      </form>
+    );
+  }
 
   if (sent) {
     return (
@@ -187,6 +266,30 @@ export function SupabaseAuth({ signup }: { signup: boolean }) {
         >
           {busy === "email" && <Loader2 className="size-4 animate-spin" />}
           {signup ? "Create account" : "Sign in"}
+        </button>
+
+        {/* No password, no redirect. Useful for anyone who has forgotten one
+            and for every account created before this form existed. */}
+        <button
+          type="button"
+          disabled={busy !== null || !email}
+          onClick={() => {
+            void (async () => {
+              setBusy("code");
+              setError(null);
+              const { error: err } = await sendEmailCode(email, {
+                createIfMissing: signup,
+                fullName: signup ? fullName : undefined,
+                institution: signup ? institution : undefined,
+              });
+              setBusy(null);
+              if (err) setError(err);
+              else setAwaitingCode(true);
+            })();
+          }}
+          className="min-h-11 text-sm text-white/50 transition hover:text-white/80 disabled:opacity-40"
+        >
+          Email me a six-digit code instead
         </button>
       </form>
     </div>

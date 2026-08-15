@@ -29,8 +29,9 @@ import { cn } from "@/lib/utils";
 export default function CalendarPage() {
   const session = useSession();
   const isStaff = session?.role === "admin" || session?.role === "owner";
-  // Role alone is not enough: a Clerk session resolves an owner from their
-  // address but carries no token the server can verify. See `canWrite`.
+  // Role alone is not enough. The calendar still saves through Apps Script,
+  // which verifies a Google ID token, so a Supabase session can be staff
+  // without being able to write here yet.
   const canEdit = isStaff && Boolean(session?.canWrite);
 
   /**
@@ -56,7 +57,7 @@ export default function CalendarPage() {
     if (!idToken) {
       setError(
         signedIn
-          ? "Dates load for Google accounts only — the server cannot verify a Clerk sign-in yet."
+          ? "Dates still come from the Apps Script backend, which only accepts a Google sign-in. Sign in with Google to see them."
           : null,
       );
       return;

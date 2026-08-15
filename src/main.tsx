@@ -37,15 +37,12 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     {/* One auth provider, subscribing once for the whole app.
 
-        This replaced ClerkProvider and its boundary. Clerk could hold a session
-        that nothing on the server could verify, so an owner saw every editing
-        control and could save none of them. Supabase's JWT is the credential
-        the database checks, and roles come from `profiles`, so there is no
-        second system to disagree with.
+        One provider, subscribing once. Roles come from `profiles` and the JWT
+        is the credential the database checks itself, so there is no second
+        system that can disagree about who you are.
 
-        No `supabaseConfigured` branch is needed here: `AuthProvider` handles a
-        missing client itself and renders its children either way, unlike
-        ClerkProvider which threw when handed no key. */}
+        No `supabaseConfigured` branch: `AuthProvider` handles a missing client
+        and renders its children either way. */}
     <AuthProvider>{tree}</AuthProvider>
   </StrictMode>,
 )

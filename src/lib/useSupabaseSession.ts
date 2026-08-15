@@ -91,8 +91,8 @@ export async function signInWithEmail(
  * `raw_user_meta_data`. The signup trigger reads exactly those two keys back
  * out, so the names have to match the migration or the profile arrives blank.
  *
- * This is the piece Clerk made awkward: arbitrary signup fields reaching your
- * own table without a webhook in between.
+ * This is the piece a separate auth vendor makes awkward: arbitrary signup
+ * fields reaching your own table with no webhook in between.
  */
 export async function signUpWithEmail(args: {
   email: string;
@@ -112,4 +112,55 @@ export async function signUpWithEmail(args: {
   if (error) return { error: error.message };
   // A user with no session means confirmation is on and the email has gone.
   return { needsConfirmation: !data.session };
+}
+
+/**
+ * A six-digit code instead of a link, which is the right shape for this site.
+ *
+ * A confirmation *link* has to land somewhere. GitHub Pages serves this repo
+ * from a subpath and there is no server to rewrite anything, and Blueberry
+ * routes on the hash — so a link carrying its own `#access_token=...` and a
+ * router that owns the hash are two things fighting over one field. Getting the
+ * Site URL even slightly wrong drops every new user on a 404, and it is not
+ * obvious from the app that anything is misconfigured.
+ *
+ * A code sidesteps the whole category: nothing redirects, the user types six
+ * digits into the page they are already on, and Pages routing stops being part
+ * of the auth story at all.
+ *
+ * Requires the email template to send `{{ .Token }}` rather than
+ * `{{ .ConfirmationURL }}` — see the note in the README.
+ */
+export async function sendEmailCode(
+  email: string,
+  options?: { fullName?: string; institution?: string; createIfMissing?: boolean },
+): Promise<{ error?: string }> {
+  if (!supabase) return { error: "Sign-in is not configured." };
+  const { error } = await supabase.auth.signInWithOtp({
+    email,
+    options: {
+      shouldCreateUser: options?.createIfMissing ?? false,
+      // Same keys the signup trigger reads, so a first sign-in through a code
+      // fills the profile exactly as the password form would.
+      data: options?.fullName
+        ? { full_name: options.fullName, institution: options.institution ?? "" }
+        : undefined,
+    },
+  });
+  return error ? { error: error.message } : {};
+}
+
+export async function verifyEmailCode(
+  email: string,
+  token: string,
+): Promise<{ error?: string }> {
+  if (!supabase) return { error: "Sign-in is not configured." };
+  const { error } = await supabase.auth.verifyOtp({
+    email,
+    token: token.trim(),
+    // `email` covers both a first confirmation and a later sign-in; `signup`
+    // would reject a code sent to somebody who already exists.
+    type: "email",
+  });
+  return error ? { error: error.message } : {};
 }

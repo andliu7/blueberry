@@ -5,11 +5,10 @@ import type { Session } from "@/lib/useSession";
 /**
  * Why the editing controls are not there.
  *
- * Shown to someone whose role says staff but whose session cannot write. That
- * combination is real and was invisible: signing in through Clerk resolves an
- * owner from their address, so every editing control appeared, and every save
- * was refused because Apps Script only verifies Google ID tokens and a Clerk
- * session has none.
+ * Shown to someone whose role says staff but whose session cannot write *here*.
+ * That combination is real and was invisible: the role resolves correctly, so
+ * every editing control appeared, and every save was refused because Apps
+ * Script verifies Google ID tokens and nothing else.
  *
  * A control that silently vanishes teaches nothing, and one that appears and
  * then fails teaches the wrong thing. This says which sign-in is needed and
@@ -29,7 +28,11 @@ export function StaffSignInNotice({
   className?: string;
 }) {
   const isStaff = session?.role === "admin" || session?.role === "owner";
-  if (!session || !isStaff || session.canWrite) return null;
+  // Keyed on the Google token, not on `canWrite`. A Supabase session can write
+  // to Supabase perfectly well; what it cannot do is satisfy Apps Script, which
+  // verifies a Google ID token and has never heard of Supabase. Until the
+  // remaining routes move, those two facts are both true at once.
+  if (!session || !isStaff || session.idToken) return null;
 
   return (
     <p
@@ -41,12 +44,12 @@ export function StaffSignInNotice({
     >
       <KeyRound className="mt-0.5 size-4 shrink-0" />
       <span>
-        {action} needs a Google sign-in. You are signed in through Clerk, which the server
-        cannot verify yet, so saving would be refused.{" "}
+        {action} still saves through the older Google Apps Script backend, which cannot
+        verify a Supabase sign-in. Until that moves across,{" "}
         <a href="#/staff" className="font-semibold underline">
-          Sign in with Google
+          sign in with Google
         </a>{" "}
-        to make changes.
+        to make changes here.
       </span>
     </p>
   );

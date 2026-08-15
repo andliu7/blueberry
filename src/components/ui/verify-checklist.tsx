@@ -31,7 +31,7 @@ export function VerifyChecklist({
   className?: string;
 }) {
   const { configured } = useGoogleAuth();
-  // Either provider counts as signed in. Reading Google alone meant a Clerk
+  // Either provider counts as signed in. Reading Google alone meant a
   // member stared at an unticked box they had already done.
   const user = useSession();
   const profile = useProfile();

@@ -1,0 +1,83 @@
+name: Deploy to GitHub Pages
+
+# Build in CI and publish from the artifact, rather than committing a built
+# copy of the site into the repository.
+#
+# `docs/` used to hold that copy. Every publish rewrote roughly 28MB of freshly
+# hashed asset filenames, git kept each version forever, and the folder reached
+# 132MB -- large enough that a single HTTPS push failed outright with
+# `curl 55: Recv failure: Connection was reset`. The site could not be updated
+# because the thing being pushed was too big to push.
+#
+# Building here makes that impossible rather than merely smaller: the repository
+# holds source, and the built site never enters git history at all.
+#
+# One manual step goes with this file: Settings > Pages > Source must be set to
+# "GitHub Actions". While it still says "Deploy from a branch", this workflow
+# runs and its output is ignored.
+
+on:
+  push:
+    branches: [main]
+  # So a deploy can be re-run without an empty commit.
+  workflow_dispatch:
+
+# Least privilege: read the code, write a Pages deployment, nothing else.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Let a running deploy finish rather than cancelling it half-published, but
+# queue at most one behind it.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          # Caches ~/.npm keyed on the lockfile. Ketcher and three.js make a
+          # cold install slow enough to be worth avoiding.
+          cache: npm
+
+      # `ci` rather than `install`: installs exactly the lockfile, and fails
+      # instead of quietly resolving something newer.
+      - run: npm ci
+
+      - name: Build
+        run: npm run build
+        env:
+          # Vite inlines these at build time, so they have to exist here or the
+          # bundle ships with `undefined` and Supabase never initialises.
+          #
+          # Secrets for hygiene rather than secrecy: the publishable key is in
+          # the public bundle either way, and RLS is what actually authorises.
+          # The point is that the value is not in git history, so it can be
+          # rotated without a commit.
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
+          VITE_APPS_SCRIPT_ENDPOINT: ${{ secrets.VITE_APPS_SCRIPT_ENDPOINT }}
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

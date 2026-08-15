@@ -58,8 +58,8 @@ type Slot = "substrate" | "product";
 export default function ReactionComposerPage() {
   const session = useSession();
   const isStaff = session?.role === "admin" || session?.role === "owner";
-  // Role alone is not enough: a Clerk session resolves an owner from their
-  // address but carries no token the server can verify. See `canWrite`.
+  // Role alone is not enough. Reactions still save through Apps Script, which
+  // verifies a Google ID token and cannot check a Supabase session.
   const canEdit = isStaff && Boolean(session?.canWrite);
   const idToken = session?.idToken ?? null;
   const { overrides, refresh } = useCourse();

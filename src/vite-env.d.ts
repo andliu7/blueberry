@@ -16,13 +16,12 @@
  *
  * All optional: every one of these services degrades to "switched off" rather
  * than to a white page when its variable is absent. See `supabaseConfigured`
- * and `clerkConfigured` for the pattern.
+ * for the pattern.
  */
 interface ImportMetaEnv {
   readonly VITE_SUPABASE_URL?: string;
   readonly VITE_SUPABASE_PUBLISHABLE_KEY?: string;
   readonly VITE_GOOGLE_CLIENT_ID?: string;
-  readonly VITE_CLERK_PUBLISHABLE_KEY?: string;
   readonly VITE_APPS_SCRIPT_ENDPOINT?: string;
   readonly VITE_FEEDBACK_ENDPOINT?: string;
   readonly VITE_CONTACT_ENDPOINT?: string;

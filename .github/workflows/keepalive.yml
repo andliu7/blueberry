@@ -1,0 +1,58 @@
+name: Keep Supabase awake
+
+# Free Supabase projects are paused after 7 days with no API requests. The data
+# survives, but the project goes offline until somebody restores it by hand from
+# the dashboard, and the restore is a slow cold start.
+#
+# That is a bad fit for a study site. Traffic here follows an exam calendar, so
+# the quiet fortnight between exams is exactly long enough to trip it, and the
+# person who finds out is a student opening Blueberry the night before a
+# midterm.
+#
+# One trivial query every three days costs nothing and removes the failure. Set
+# up before there are real users rather than after, which is the only time it is
+# cheap to discover.
+
+on:
+  schedule:
+    # 07:00 UTC, every third day. Well inside the 7-day window with room for a
+    # missed run: GitHub drops scheduled jobs under load, so a cadence that only
+    # just fits is one skipped run away from not fitting.
+    - cron: "0 7 */3 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Touch the API
+        env:
+          URL: ${{ secrets.VITE_SUPABASE_URL }}
+          KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          if [ -z "$URL" ] || [ -z "$KEY" ]; then
+            echo "Supabase secrets are not set; nothing to ping."
+            exit 1
+          fi
+
+          # `/auth/v1/settings` on purpose: it is a real API request, so it
+          # counts against the inactivity timer, and it needs no table and no
+          # policy. A `select 1` against a health-check table would work too,
+          # but it means creating a table whose only job is to be selected from,
+          # and then remembering it exists when auditing RLS.
+          code=$(curl -s -o /dev/null -w "%{http_code}" \
+                 -H "apikey: $KEY" \
+                 --max-time 30 \
+                 "$URL/auth/v1/settings")
+
+          echo "HTTP $code"
+
+          # Fail loudly. A keepalive that silently stops working is worse than
+          # none, because it buys false confidence that the project is awake.
+          if [ "$code" != "200" ]; then
+            echo "::error::Supabase did not answer with 200. The project may already be paused."
+            exit 1
+          fi

@@ -28,8 +28,7 @@ const PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string 
  * Configured at build time, like every other optional service here.
  *
  * `createClient` throws when handed an empty URL, so a build without these
- * would be a white page rather than a site with a feature switched off. Same
- * reasoning as `clerkConfigured`.
+ * would be a white page rather than a site with a feature switched off.
  */
 export const supabaseConfigured = Boolean(URL && PUBLISHABLE_KEY);
 

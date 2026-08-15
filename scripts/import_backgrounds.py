@@ -41,8 +41,13 @@ SOURCE = ROOT.parent / "unsplash images"
 OUT = ROOT / "public" / "backgrounds"
 MANIFEST = OUT / "manifest.json"
 
-MAX_WIDTH = 3840
-QUALITY = 72
+# 2560, not 3840. These are backgrounds behind a scrim, not photographs anyone
+# inspects: at 3840 the set came to 97MB, which is a third of what made a git
+# push of docs/ fail outright with `curl 55`. 2560 still exceeds the physical
+# width of most laptop screens, and every one of these is under a gradient
+# overlay before it reaches an eye.
+MAX_WIDTH = 2560
+QUALITY = 68
 BLUR_WIDTH = 20
 
 
