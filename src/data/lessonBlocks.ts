@@ -12,12 +12,40 @@
  * legible to a person who opens the sheet; as a Slate tree it does not.
  */
 
+/**
+ * What a box holds. Text unless it says otherwise, so every block written
+ * before this field existed still parses as exactly what it was.
+ */
+export type LessonBlockKind = "text" | "image" | "video";
+
+/**
+ * How wide the box sits.
+ *
+ * `half` is what makes two boxes sit side by side: the page lays blocks out in
+ * a two column grid and a `full` block spans both. Kai asked to arrange boxes
+ * beside each other or below each other, and this is that choice, per box,
+ * rather than a layout mode for the whole page.
+ */
+export type LessonBlockWidth = "full" | "half";
+
 export interface LessonBlock {
   id: string;
   /** Optional. A block with no heading renders as body text alone. */
   heading?: string;
   /** `**bold**`, `*italic*`, `` `code` ``, `[text](url)`. */
   body: string;
+  /** Defaults to `text`. */
+  kind?: LessonBlockKind;
+  /**
+   * For an image or video block: where the file is.
+   *
+   * Either a public URL from the `lesson-media` bucket, or for video a YouTube
+   * or Vimeo link. `body` stays the caption in both cases, so a picture can
+   * carry a sentence without needing a second block underneath it.
+   */
+  src?: string;
+  /** Defaults to `full`. */
+  width?: LessonBlockWidth;
 }
 
 /** The shape `LessonsPage` already holds for a section. */
@@ -88,30 +116,61 @@ export function parseBlocks(raw: unknown): LessonBlock[] | null {
     const row = item as Record<string, unknown>;
     const body = typeof row.body === "string" ? row.body : "";
     const heading = typeof row.heading === "string" ? row.heading.trim() : "";
-    // A block with neither heading nor body is an empty box; drop it rather
-    // than render a gap somebody has to work out how to delete.
-    if (!body.trim() && !heading) continue;
+    const kind: LessonBlockKind =
+      row.kind === "image" || row.kind === "video" ? row.kind : "text";
+    const src = typeof row.src === "string" ? row.src.trim() : "";
+
+    // A block with nothing in it is an empty box; drop it rather than render a
+    // gap somebody has to work out how to delete. A media block counts as full
+    // when it has a source, even with no caption and no heading, because the
+    // picture is the content.
+    const empty = kind === "text" ? !body.trim() && !heading : !src;
+    if (empty) continue;
+
     blocks.push({
       id: typeof row.id === "string" && row.id ? row.id : newBlockId(),
       heading: heading || undefined,
       body,
+      kind,
+      src: src || undefined,
+      width: row.width === "half" ? "half" : "full",
     });
   }
   return blocks.length > 0 ? blocks : null;
 }
 
-/** What goes in the sheet. */
+/** What goes in the `course_overrides` row. */
 export const serialiseBlocks = (blocks: LessonBlock[]) =>
   JSON.stringify(
     blocks
-      .filter((b) => b.body.trim() !== "" || (b.heading ?? "").trim() !== "")
-      .map((b) => ({ id: b.id, heading: b.heading || undefined, body: b.body })),
+      .filter((b) =>
+        (b.kind ?? "text") === "text"
+          ? b.body.trim() !== "" || (b.heading ?? "").trim() !== ""
+          : Boolean(b.src?.trim()),
+      )
+      .map((b) => ({
+        id: b.id,
+        heading: b.heading || undefined,
+        body: b.body,
+        // Omitted when they are the defaults, so a page of plain text
+        // serialises to exactly what it did before these fields existed.
+        kind: (b.kind ?? "text") === "text" ? undefined : b.kind,
+        src: b.src || undefined,
+        width: (b.width ?? "full") === "full" ? undefined : b.width,
+      })),
   );
 
 /**
- * The server caps a stored value at 5000 characters and truncates silently.
- * Truncating serialised JSON destroys the whole list rather than the tail of a
- * sentence, so the editor checks before sending and the server rejects rather
- * than trims. Kept here so both sides agree on the number.
+ * A sanity ceiling on one section's JSON.
+ *
+ * This was 5000 because Apps Script silently truncated a sheet cell at that
+ * length, and truncating serialised JSON destroys the whole list rather than
+ * the tail of a sentence. The store is a Postgres `text` column now, which has
+ * no such limit, but a cap is still worth keeping: it is the difference between
+ * a TA pasting an entire textbook chapter and finding out later.
+ *
+ * Raised because image and video blocks carry URLs, and a bucket URL is around
+ * 120 characters. Ten pictures in a section is 1200 characters of nothing but
+ * addresses, which the old ceiling did not allow for.
  */
-export const MAX_BLOCKS_LENGTH = 5000;
+export const MAX_BLOCKS_LENGTH = 20000;

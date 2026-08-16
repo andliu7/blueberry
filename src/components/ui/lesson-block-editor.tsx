@@ -7,17 +7,24 @@ import {
   ChevronUp,
   CircleCheck,
   Code,
+  Columns2,
+  Film,
+  GripVertical,
+  Image as ImageIcon,
   Italic,
   Link as LinkIcon,
   Plus,
+  RectangleHorizontal,
   Trash2,
   TriangleAlert,
+  Upload,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader } from "@/components/ui/loader";
 import { RichText } from "@/components/ui/rich-text";
+import { LessonBlocks } from "@/components/ui/lesson-blocks";
 import {
   Tooltip,
   TooltipContent,
@@ -29,7 +36,9 @@ import {
   newBlockId,
   serialiseBlocks,
   type LessonBlock,
+  type LessonBlockKind,
 } from "@/data/lessonBlocks";
+import { isImage, isVideo, uploadLessonMedia } from "@/lib/lessonMedia";
 import { setCourseField } from "@/lib/useCourse";
 import { cn } from "@/lib/utils";
 
@@ -107,6 +116,86 @@ export function LessonBlockEditor({
     });
 
   /**
+   * Reordering by drag, with the buttons kept.
+   *
+   * The arrows are not redundant: dragging is unavailable to a keyboard user and
+   * awkward on a phone, and this editor has to work on both. The handle is the
+   * fast path, not the only one.
+   */
+  const [dragId, setDragId] = useState<string | null>(null);
+
+  const dropOn = (targetId: string) => {
+    if (!dragId || dragId === targetId) return;
+    setDraft((prev) => {
+      const from = prev.findIndex((b) => b.id === dragId);
+      const to = prev.findIndex((b) => b.id === targetId);
+      if (from < 0 || to < 0) return prev;
+      const next = [...prev];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      return next;
+    });
+    setDragId(null);
+  };
+
+  /** Files in flight, by block id, so each box can say it is working. */
+  const [uploading, setUploading] = useState<Set<string>>(new Set());
+
+  const markUploading = (id: string, on: boolean) =>
+    setUploading((prev) => {
+      const next = new Set(prev);
+      if (on) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+
+  /** Send one file to the bucket and point an existing block at it. */
+  const uploadInto = async (blockId: string, file: File) => {
+    setError(null);
+    markUploading(blockId, true);
+    const res = await uploadLessonMedia(file, topicId);
+    markUploading(blockId, false);
+    if (res.error) {
+      setError(res.error);
+      return;
+    }
+    patch(blockId, {
+      src: res.url,
+      kind: isVideo(file) ? "video" : "image",
+    });
+  };
+
+  /**
+   * Files dropped anywhere on the editor become new boxes at the end.
+   *
+   * Dropping several at once is the common case - a TA has a folder of
+   * mechanism screenshots - so each file gets its own box rather than the first
+   * winning and the rest being discarded silently.
+   */
+  const onDropFiles = async (files: FileList) => {
+    const list = [...files].filter((f) => isImage(f) || isVideo(f));
+    if (!list.length) return;
+
+    const created = list.map((file) => ({
+      id: newBlockId(),
+      heading: "",
+      body: "",
+      kind: (isVideo(file) ? "video" : "image") as LessonBlockKind,
+      width: "half" as const,
+      src: "",
+    }));
+    setDraft((prev) => [...prev, ...created]);
+
+    // Sequential rather than parallel: a handful of 10 MB files uploaded at once
+    // on university wifi is how you get four timeouts instead of four pictures.
+    for (let i = 0; i < list.length; i++) {
+      await uploadInto(created[i].id, list[i]);
+    }
+  };
+
+  const [dropActive, setDropActive] = useState(false);
+
+  /**
    * Wrap whatever is selected in the textarea.
    *
    * With nothing selected this inserts the markers and drops the caret between
@@ -171,7 +260,33 @@ export function LessonBlockEditor({
 
   return (
     <TooltipProvider delayDuration={300}>
-      <section className="rounded-3xl border-2 border-indigo-300 bg-indigo-50/50 p-5 dark:border-indigo-800 dark:bg-indigo-950/30 sm:p-6">
+      <section
+        onDragOver={(e) => {
+          // Only for files. Without this check, dragging a box's own handle
+          // over the editor lights the whole thing up as a drop zone.
+          if (!e.dataTransfer.types.includes("Files")) return;
+          e.preventDefault();
+          setDropActive(true);
+        }}
+        onDragLeave={(e) => {
+          // `relatedTarget` outside the section, rather than any leave event:
+          // moving between two children fires leave on the parent as well.
+          if (e.currentTarget.contains(e.relatedTarget as Node | null)) return;
+          setDropActive(false);
+        }}
+        onDrop={(e) => {
+          if (!e.dataTransfer.files.length) return;
+          e.preventDefault();
+          setDropActive(false);
+          void onDropFiles(e.dataTransfer.files);
+        }}
+        className={cn(
+          "rounded-3xl border-2 bg-indigo-50/50 p-5 transition-colors dark:bg-indigo-950/30 sm:p-6",
+          dropActive
+            ? "border-dashed border-fuchsia-500 bg-fuchsia-50/60 dark:bg-fuchsia-950/30"
+            : "border-indigo-300 dark:border-indigo-800",
+        )}
+      >
         <header className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h2 className="text-lg font-semibold text-indigo-900 dark:text-indigo-100">
@@ -227,13 +342,77 @@ export function LessonBlockEditor({
           {draft.map((block, index) => (
             <li
               key={block.id}
-              className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-stone-700 dark:bg-stone-900"
+              onDragOver={(e) => {
+                if (!dragId) return;
+                e.preventDefault();
+              }}
+              onDrop={(e) => {
+                if (!dragId) return;
+                e.preventDefault();
+                e.stopPropagation();
+                dropOn(block.id);
+              }}
+              className={cn(
+                "rounded-2xl border bg-white p-4 transition-opacity dark:bg-stone-900",
+                dragId === block.id
+                  ? "border-indigo-400 opacity-50"
+                  : "border-slate-200 dark:border-stone-700",
+              )}
             >
-              <div className="flex items-center justify-between gap-2">
-                <span className="font-mono text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-stone-500">
-                  Box {index + 1}
+              {uploading.has(block.id) && (
+                <p className="mb-2 text-xs font-semibold text-indigo-700 dark:text-indigo-300">
+                  Uploading…
+                </p>
+              )}
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="flex items-center gap-2 font-mono text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-stone-400">
+                  {/* The grab handle. Only this is draggable, not the whole box:
+                      making the card draggable means selecting text inside a
+                      textarea starts a drag instead. */}
+                  <span
+                    draggable
+                    onDragStart={() => setDragId(block.id)}
+                    onDragEnd={() => setDragId(null)}
+                    aria-hidden
+                    className="cursor-grab rounded p-1 text-slate-400 hover:bg-slate-100 active:cursor-grabbing dark:text-stone-500 dark:hover:bg-stone-800"
+                    title="Drag to reorder"
+                  >
+                    <GripVertical className="size-4" />
+                  </span>
+                  {(block.kind ?? "text") === "image"
+                    ? "Picture"
+                    : (block.kind ?? "text") === "video"
+                      ? "Video"
+                      : "Text"}{" "}
+                  {index + 1}
                 </span>
+
                 <div className="flex items-center gap-1">
+                  {/* Beside each other, or below. This is the whole of Kai's
+                      layout request: a half box shares its row with the next
+                      half box, a full box takes the row to itself. */}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      patch(block.id, {
+                        width: (block.width ?? "full") === "full" ? "half" : "full",
+                      })
+                    }
+                    className="mr-1 inline-flex min-h-9 cursor-pointer items-center gap-1.5 rounded-lg border border-slate-300 px-2.5 text-xs font-semibold text-slate-700 transition-colors hover:border-indigo-400 hover:text-indigo-700 dark:border-stone-700 dark:text-stone-200 dark:hover:border-indigo-500 dark:hover:text-indigo-300"
+                    title="Full width, or half so another box can sit beside it"
+                  >
+                    {(block.width ?? "full") === "full" ? (
+                      <>
+                        <RectangleHorizontal className="size-3.5" />
+                        Full width
+                      </>
+                    ) : (
+                      <>
+                        <Columns2 className="size-3.5" />
+                        Half
+                      </>
+                    )}
+                  </button>
                   <IconAction
                     label="Move up"
                     Icon={ChevronUp}
@@ -254,6 +433,52 @@ export function LessonBlockEditor({
                   />
                 </div>
               </div>
+
+              {/* Where the picture or the clip lives.
+                  Shown only for media boxes, and it takes either a link or a
+                  file, because the two ways a TA will reach for this are "I
+                  have a YouTube URL" and "I have a file on my desktop". */}
+              {(block.kind ?? "text") !== "text" && (
+                <div className="mt-3 flex flex-col gap-1.5">
+                  <Label htmlFor={`s-${block.id}`}>
+                    {block.kind === "video" ? "YouTube link, or a video file" : "Picture"}
+                  </Label>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Input
+                      id={`s-${block.id}`}
+                      value={block.src ?? ""}
+                      onChange={(e) => patch(block.id, { src: e.target.value })}
+                      placeholder={
+                        block.kind === "video"
+                          ? "https://www.youtube.com/watch?v=..."
+                          : "Drop a file anywhere, or paste a link"
+                      }
+                      className="min-w-0 flex-1"
+                    />
+                    <label className="inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-xl border border-slate-300 px-3 text-sm font-semibold text-slate-700 transition-colors hover:border-indigo-400 hover:text-indigo-700 dark:border-stone-700 dark:text-stone-200 dark:hover:border-indigo-500">
+                      <Upload className="size-4" />
+                      Choose file
+                      <input
+                        type="file"
+                        accept={block.kind === "video" ? "video/*" : "image/*"}
+                        className="sr-only"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          // Cleared so choosing the same file twice still fires.
+                          e.target.value = "";
+                          if (file) void uploadInto(block.id, file);
+                        }}
+                      />
+                    </label>
+                  </div>
+
+                  {block.src && (
+                    <div className="mt-2 overflow-hidden rounded-xl border border-slate-200 dark:border-stone-700">
+                      <LessonBlocks blocks={[{ ...block, heading: undefined, body: "" }]} />
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div className="mt-3 flex flex-col gap-1.5">
                 <Label htmlFor={`h-${block.id}`}>Heading (optional)</Label>
@@ -316,16 +541,48 @@ export function LessonBlockEditor({
           ))}
         </ol>
 
-        <Button
-          variant="outline"
-          className="mt-4"
-          onClick={() =>
-            setDraft((prev) => [...prev, { id: newBlockId(), heading: "", body: "" }])
-          }
-        >
-          <Plus className="size-4" />
-          Add a text box
-        </Button>
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() =>
+              setDraft((prev) => [...prev, { id: newBlockId(), heading: "", body: "" }])
+            }
+          >
+            <Plus className="size-4" />
+            Add a text box
+          </Button>
+          {/* Pictures and clips default to half width, because the reason to add
+              one is usually to put it beside something. */}
+          <Button
+            variant="outline"
+            onClick={() =>
+              setDraft((prev) => [
+                ...prev,
+                { id: newBlockId(), heading: "", body: "", kind: "image", width: "half", src: "" },
+              ])
+            }
+          >
+            <ImageIcon className="size-4" />
+            Add a picture
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() =>
+              setDraft((prev) => [
+                ...prev,
+                { id: newBlockId(), heading: "", body: "", kind: "video", width: "half", src: "" },
+              ])
+            }
+          >
+            <Film className="size-4" />
+            Add a video
+          </Button>
+        </div>
+
+        <p className="mt-3 text-xs leading-5 text-slate-600 dark:text-stone-300">
+          Drop pictures or short clips anywhere on this panel and they become boxes. For a long
+          video, paste a YouTube link rather than uploading the file.
+        </p>
       </section>
     </TooltipProvider>
   );

@@ -1,5 +1,5 @@
 ﻿import { useEffect, useState } from "react";
-import { ArrowRight, BookOpen, ChevronLeft, FlaskConical, Layers, Sparkles } from "lucide-react";
+import { ArrowRight, BookOpen, ChevronLeft, Layers } from "lucide-react";
 import { Blueberry } from "@/components/ui/blueberry";
 import { SiteFooter } from "@/components/ui/site-footer";
 import { PageBackground } from "@/components/ui/page-background";
@@ -7,11 +7,10 @@ import { LessonVideo } from "@/components/ui/lesson-video";
 import { LessonNav, type NavSection } from "@/components/ui/lesson-nav";
 import { ReactionPanel } from "@/components/ui/reaction-panel";
 import { LessonBlockEditor } from "@/components/ui/lesson-block-editor";
-import { RichText } from "@/components/ui/rich-text";
+import { LessonBlocks } from "@/components/ui/lesson-blocks";
 import { defaultBlocksFor, parseBlocks, type LessonBlock } from "@/data/lessonBlocks";
 import { parseTaReactions, toStagedReaction } from "@/data/taReactions";
 import { TopicBanner } from "@/components/ui/topic-banner";
-import { cn } from "@/lib/utils";
 import { Pencil, Plus } from "lucide-react";
 import { REACTIONS } from "@/data/reactions";
 import { useCourse } from "@/lib/useCourse";
@@ -154,8 +153,12 @@ return <main className="relative min-h-screen text-slate-900 dark:text-stone-100
     the rest as titled cards, which is the layout this page already had; the
     difference is that a TA can now add a fourth, reorder them, or take one
     away. */}
-{shown.map((b,i)=>b.heading?null:<RichText key={b.id} text={b.body} className={cn("max-w-3xl text-slate-700 dark:text-stone-200",i===0?"mt-5":"mt-4")}/>)}
-{shown.some(b=>b.heading)&&<div className="mt-6 grid gap-4 md:grid-cols-2">{shown.filter(b=>b.heading).map((b,i)=><Info key={b.id} title={b.heading!} icon={i===0?<FlaskConical className="size-4"/>:<Sparkles className="size-4"/>}><RichText text={b.body}/></Info>)}</div>}
+{/* One pass, in the TA's order, each box carrying its own width.
+    This was two passes - bodies without headings as paragraphs, then every
+    heading block as a card - which meant whether a box sat beside another was
+    decided by whether it happened to have a heading rather than by anyone
+    choosing. See `LessonBlocks`. */}
+<LessonBlocks blocks={shown} className="mt-5"/>
 {/* Staff whose sign-in cannot write get the reason instead of a button that
     would fail. Renders nothing for anyone else. The controls themselves moved
     to the top right of this card. */}
@@ -170,9 +173,3 @@ return <main className="relative min-h-screen text-slate-900 dark:text-stone-100
     somewhere on the image, and this one lands on a bright aurora. */}
 {active==="overview"&&!child&&<section className="mt-6 rounded-3xl border border-slate-200 bg-white/95 p-6 shadow-sm backdrop-blur-sm dark:border-stone-800 dark:bg-stone-950/92"><h3 className="font-mono text-xs font-semibold uppercase tracking-[.16em] text-slate-600 dark:text-stone-300">The course</h3><p className="mt-1 text-sm text-slate-700 dark:text-stone-200">Twelve sections, in the order CHEM241 takes them.</p><div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{topics.filter(x=>x.id!=="overview").map(x=><TopicBanner key={x.id} id={x.id} label={x.label} blurb={x.title} image={BANNERS[x.id]} count={allReactions.filter(r=>(SECTION_FAMILIES[x.id]??[]).includes(r.family)).length} onSelect={(id)=>{setActive(id);setChild(null);}}/>)}</div></section>}
 {t.examples.length>0&&<section className="mt-5"><p className="font-mono text-xs font-semibold uppercase tracking-[.16em] text-slate-600 dark:text-stone-300">Worked examples</p><h2 className="title-face mt-1 text-2xl">Products and conditions</h2><div className="mt-3 grid gap-4 md:grid-cols-2 xl:grid-cols-3">{t.examples.map(([a,b,c,d])=><article key={a} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-stone-800 dark:bg-stone-950"><div className="flex h-36 items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-fuchsia-50 p-3 dark:from-indigo-950/35 dark:via-stone-950 dark:to-fuchsia-950/20"><img src={`${import.meta.env.BASE_URL}cards/${d}`} alt={"Product: "+c} className="h-full w-full object-contain" loading="lazy"/></div><div className="p-4"><h3 className="text-sm font-semibold">{a}</h3><p className="mt-1 font-mono text-[.7rem] leading-5 text-indigo-700 dark:text-indigo-300">{b}</p><p className="mt-3 text-sm text-slate-700 dark:text-stone-200"><b>Product:</b> {c}</p></div></article>)}</div></section>}</>}</div></div></div><SiteFooter/></main>}
-/* A solid tint rather than a whisper of one.
-   `bg-slate-50/80` was almost the same colour as the card it sits on and 80%
-   transparent over a photograph on top of that, so the box read as a faint
-   rectangle around text with no ground of its own. A card has to be a surface
-   to be worth having. */
-function Info({title,icon,children}:{title:string;icon:React.ReactNode;children:React.ReactNode}){return <div className="rounded-2xl border border-slate-300 bg-slate-100 p-4 dark:border-stone-700 dark:bg-stone-900"><div className="flex items-center gap-2 text-sm font-semibold text-indigo-700 dark:text-indigo-300">{icon}{title}</div><div className="mt-2 text-sm leading-6 text-slate-700 dark:text-stone-200">{children}</div></div>}
