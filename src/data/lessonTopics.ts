@@ -1,4 +1,55 @@
 /**
+ * Which validated reactions belong under which written section.
+ *
+ * The lessons were written first and the reaction data generated later, so the
+ * join lives here rather than in either file. A section with no families is
+ * prose only, which is right for the overview: it is the page that explains why
+ * the others are grouped as they are.
+ */
+export const SECTION_FAMILIES: Record<string, string[]> = {
+  overview: [],
+  addition: ["carbonyls/addition"],
+  substitution: ["derivatives/substitution"],
+  reduction: ["carbonyls/reduction", "derivatives/reduction"],
+  oxidation: ["alcohols-ethers/oxidation"],
+  nitrogen: ["carbonyls/imine-enamine", "nitriles/formation", "nitriles/hydrolysis", "nitriles/reduction"],
+  cycles: ["carbonyls/protecting-groups", "derivatives/hydrolysis"],
+  alcohols: [
+    "alcohols-ethers/substitution",
+    "alkenes/elimination",
+    "alkenes/epoxidation",
+    "alkenes/epoxide-opening",
+  ],
+  dienes: ["dienes/conjugate-addition", "dienes/diels-alder", "alkenes/substitution"],
+  aromatics: ["aromaticity/eas", "aromaticity/nas", "aromaticity/huckel"],
+  amines: ["amines/diazonium", "amines/substitution", "carbohydrates/oxidation"],
+  enolate: [
+    "enolates/aldol",
+    "enolates/claisen",
+    "enolates/michael",
+    "enolates/halogenation",
+    "enolates/decarboxylation",
+    "enolates/annulation",
+  ],
+};
+
+/**
+ * Which written section a reaction family belongs under.
+ *
+ * The reverse of the map above, built once. The search index needs it to turn
+ * a reaction into a link, and computing it per query would be rebuilding the
+ * same eleven entries on every keystroke.
+ */
+const FAMILY_SECTION = new Map<string, string>(
+  Object.entries(SECTION_FAMILIES).flatMap(([section, families]) =>
+    families.map((family) => [family, section] as const),
+  ),
+);
+
+/** The section a reaction should open under, or the overview if it has none. */
+export const sectionForFamily = (family: string) => FAMILY_SECTION.get(family) ?? "overview";
+
+/**
  * The written sections of the CHEM241 lessons, in course order.
  *
  * Lifted out of `LessonsPage` when the dashboard needed the same list. Two

@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { CornerDownLeft, Layers, LayoutGrid, Search, Sparkles, SquareArrowOutUpRight } from "lucide-react";
+import { CornerDownLeft, FlaskConical, Layers, LayoutGrid, Search, Sparkles, SquareArrowOutUpRight } from "lucide-react";
 import { BlueberryMark } from "@/components/ui/blueberry-mark";
 import { searchFeatures, type Feature } from "@/lib/featureIndex";
+import { reactionFeatures } from "@/lib/reactionSearch";
 import { useDecks } from "@/lib/useDecks";
 import { deckHref } from "@/data/types";
 import { cn } from "@/lib/utils";
@@ -22,11 +23,14 @@ import { cn } from "@/lib/utils";
  * would be stale the first time one is added.
  */
 
+const REACTION_FEATURES = reactionFeatures();
+
 const KIND_ICON = {
   page: SquareArrowOutUpRight,
   panel: LayoutGrid,
   action: Sparkles,
   deck: Layers,
+  reaction: FlaskConical,
 } as const;
 
 const KIND_LABEL = {
@@ -34,6 +38,7 @@ const KIND_LABEL = {
   panel: "Dashboard",
   action: "Action",
   deck: "Deck",
+  reaction: "Reaction",
 } as const;
 
 /**
@@ -129,7 +134,10 @@ export function FeatureSearch({
     [decks],
   );
 
-  const results = useMemo(() => searchFeatures(query, deckFeatures), [query, deckFeatures]);
+  // Reactions are generated at build time and never change, so this is built
+  // once for the life of the module rather than on every keystroke.
+  const extra = useMemo(() => [...REACTION_FEATURES, ...deckFeatures], [deckFeatures]);
+  const results = useMemo(() => searchFeatures(query, extra), [query, extra]);
 
   useEffect(() => setCursor(0), [query]);
 
@@ -201,8 +209,8 @@ export function FeatureSearch({
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={onKeyDown}
-                placeholder="Search features, pages and decks…"
-                aria-label="Search features, pages and decks"
+                placeholder="Search reactions, pages and decks…"
+                aria-label="Search reactions, pages and decks"
                 className="min-w-0 flex-1 bg-transparent py-3.5 text-sm outline-none placeholder:text-slate-400 dark:placeholder:text-stone-600"
               />
               <kbd className="hidden shrink-0 rounded border border-slate-200 px-1.5 py-0.5 font-mono text-[0.6rem] text-slate-400 sm:block dark:border-stone-800 dark:text-stone-500">

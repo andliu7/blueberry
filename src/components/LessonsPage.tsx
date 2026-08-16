@@ -16,42 +16,9 @@ import { REACTIONS } from "@/data/reactions";
 import { useCourse } from "@/lib/useCourse";
 import { useSession } from "@/lib/useSession";
 import { StaffSignInNotice } from "@/components/ui/staff-signin-notice";
-import { LESSON_TOPICS, type LessonTopic } from "@/data/lessonTopics";
+import { LESSON_TOPICS, SECTION_FAMILIES, type LessonTopic } from "@/data/lessonTopics";
 
-/**
- * Which validated reactions belong under which written section.
- *
- * The lessons were written first and the reaction data generated later, so the
- * join lives here rather than in either file. A section with no families is
- * prose only, which is right for the overview: it is the page that explains why
- * the others are grouped as they are.
- */
-const SECTION_FAMILIES: Record<string, string[]> = {
-  overview: [],
-  addition: ["carbonyls/addition"],
-  substitution: ["derivatives/substitution"],
-  reduction: ["carbonyls/reduction", "derivatives/reduction"],
-  oxidation: ["alcohols-ethers/oxidation"],
-  nitrogen: ["carbonyls/imine-enamine", "nitriles/formation", "nitriles/hydrolysis", "nitriles/reduction"],
-  cycles: ["carbonyls/protecting-groups", "derivatives/hydrolysis"],
-  alcohols: [
-    "alcohols-ethers/substitution",
-    "alkenes/elimination",
-    "alkenes/epoxidation",
-    "alkenes/epoxide-opening",
-  ],
-  dienes: ["dienes/conjugate-addition", "dienes/diels-alder", "alkenes/substitution"],
-  aromatics: ["aromaticity/eas", "aromaticity/nas", "aromaticity/huckel"],
-  amines: ["amines/diazonium", "amines/substitution", "carbohydrates/oxidation"],
-  enolate: [
-    "enolates/aldol",
-    "enolates/claisen",
-    "enolates/michael",
-    "enolates/halogenation",
-    "enolates/decarboxylation",
-    "enolates/annulation",
-  ],
-};
+
 type T=LessonTopic;
 /**
  * Stand-in thumbnails for the template video, one per section.
@@ -88,13 +55,13 @@ enolate:"backgrounds/landscape-plains-and-beginning-of-sunrise.webp",
 amines:"backgrounds/forest-post-rain-fog.webp",
 };
 const topics:T[]=LESSON_TOPICS;
-export function LessonsPage({section}:{section?:string}={}){
+export function LessonsPage({section,reaction}:{section?:string;reaction?:string}={}){
 /* `#/lessons/<id>` opens that section. An id that does not exist falls back to
    the overview rather than rendering an empty page, since a stale link from
    somebody's notes should land somewhere useful. */
 const [active,setActive]=useState(()=>section&&LESSON_TOPICS.some(x=>x.id===section)?section:"overview");
 /** Null while the written section is being read; a reaction id once one is picked. */
-const [child,setChild]=useState<string|null>(null);
+const [child,setChild]=useState<string|null>(reaction??null);
 const t=topics.find(x=>x.id===active)||topics[0];
 const session=useSession();
 const isStaff=session?.role==="admin"||session?.role==="owner";
@@ -129,6 +96,13 @@ const [editingPage,setEditingPage]=useState(false);
 const [justSaved,setJustSaved]=useState<{id:string;blocks:LessonBlock[]}|null>(null);
 const shown=justSaved&&justSaved.id===t.id?justSaved.blocks:blocks;
 useEffect(()=>{setEditingPage(false);setJustSaved(null);},[active]);
+/* Follow the URL after the first render too.
+   `useState` reads its initial value once, so a deep link worked on a cold
+   load and did nothing when the hash changed while the page was already
+   mounted - which is every click from search. The failure is quiet: the
+   address bar updates and the page does not, so it reads as a dead link. */
+useEffect(()=>{if(section&&LESSON_TOPICS.some(x=>x.id===section))setActive(section);},[section]);
+useEffect(()=>{setChild(reaction??null);},[reaction]);
 return <main className="relative min-h-screen text-slate-900 dark:text-stone-100"><PageBackground /><div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8"><a href="#/home" className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-slate-600 hover:text-indigo-700 dark:text-stone-300"><ChevronLeft className="size-4"/>Home</a><header className="mt-5 grid gap-5 rounded-3xl border border-indigo-200/80 bg-white/95 p-6 shadow-sm backdrop-blur-sm dark:border-indigo-400/20 dark:bg-stone-950/92 lg:grid-cols-[1fr_270px]"><div><p className="font-mono text-xs font-semibold uppercase tracking-[.18em] text-indigo-600 dark:text-indigo-300">Lessons / Organic chemistry II</p><h1 className="title-face mt-3 text-5xl leading-none">CHEM241</h1><p className="mt-4 max-w-2xl leading-7 text-slate-700 dark:text-stone-200">The ideas behind the cards, in the order the course takes them. Open a section for the writing, or expand it for every reaction underneath with its reagents, conditions and product.</p></div>{/* The berry reads along with you. `reading` looks down at the page rather
     than out at the room, which is the difference between a mascot that is
     keeping you company and one that is watching you. */}

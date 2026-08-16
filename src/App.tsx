@@ -251,7 +251,10 @@ export default function App() {
   // `#/lessons/aromatics` opens that section directly, so the hub's topic list
   // can link to a section rather than to the top of the page and a hunt.
   if (route.startsWith("lessons/")) {
-    return withBoundary(<LessonsPage section={route.slice(8)} />);
+    // `#/lessons/enolate` opens a section; `#/lessons/enolate/aldol-addition`
+    // opens that reaction's panel inside it, which is where search sends you.
+    const [section, reaction] = route.slice(8).split("/");
+    return withBoundary(<LessonsPage section={section} reaction={reaction} />);
   }
   if (route === "calendar") return withBoundary(<CalendarPage />);
   if (route === "tutoring") return withBoundary(<TutoringPage />);

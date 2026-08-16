@@ -15,7 +15,7 @@
  * label. Nobody searches for "Appearance" when they want dark mode.
  */
 
-export type FeatureKind = "page" | "panel" | "action" | "deck";
+export type FeatureKind = "page" | "panel" | "action" | "deck" | "reaction";
 
 export interface Feature {
   id: string;
@@ -167,6 +167,11 @@ export function searchFeatures(query: string, extra: Feature[] = []): Feature[] 
       // A deck matching only weakly should not outrank a feature that matches
       // well: there are far more decks than features, and they would flood it.
       if (f.kind === "deck") score -= 5;
+      // Reactions get the opposite nudge. Typing a reaction name is one of the
+      // most specific things anybody does here - "aldol" means the aldol, not
+      // the lessons page that happens to mention it - so a named reaction
+      // should sit above the page it lives on.
+      if (f.kind === "reaction" && score >= 60) score += 10;
       return { f, score };
     })
     .filter((x) => x.score > 0)
