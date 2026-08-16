@@ -47,7 +47,7 @@ const SECTIONS: { label: string; links: FooterLink[] }[] = [
     ],
   },
   {
-    label: "Elsewhere",
+    label: "Find me",
     links: [
       { title: "GitHub", href: GITHUB_URL, icon: GithubMark, external: true },
       { title: "LinkedIn", href: LINKEDIN_URL, icon: LinkedinMark, external: true },

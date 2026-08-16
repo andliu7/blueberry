@@ -12,7 +12,6 @@ import {
   CreditCard,
   FlaskConical,
   ExternalLink,
-  House,
   Info,
   LayoutGrid,
   Layers,
@@ -327,19 +326,22 @@ export function Dashboard({
       footer={<ProfileButton onClick={() => go("profile")} />}
     >
       <div className="space-y-0.5">
-        {/* One row, not two.
+        {/* Profile, where Home used to be.
 
-            Home and Dashboard were separate rows that had ended up meaning
-            almost the same thing, and the split was the problem: one showed the
-            overview without leaving, the other left without showing you
-            anything. They are the same place seen at two distances now. A click
-            gives you the overview here; a double-click takes you to the page. */}
+            Home was a row that needed explaining: one click showed an overview
+            panel, a double click left for the page. Nobody double-clicks a nav
+            item, so in practice it was a button that appeared to do nothing —
+            and it did nothing most visibly on the home page itself, where the
+            overview it opened was a smaller copy of what was already behind it.
+
+            Profile is what that slot is actually for. It was reachable only by
+            the identity block at the top of the column and the button at the
+            foot, both of which are easy to read as decoration. */}
         <SidebarNavItem
-          icon={<House className="size-4" />}
-          label="Home"
-          active={view === "home"}
-          onClick={() => go("home")}
-          onDoubleClick={() => goTo("#/home")}
+          icon={<User className="size-4" />}
+          label="Profile"
+          active={view === "profile"}
+          onClick={() => go("profile")}
         />
         <SidebarNavItem
           icon={<Bell className="size-4" />}
@@ -347,6 +349,23 @@ export function Dashboard({
           badge={unread}
           active={view === "notifications"}
           onClick={() => go("notifications")}
+        />
+        {/* Out of Categories, where they never belonged.
+
+            Categories are kinds of study material — lessons, concepts, decks.
+            The calendar and office hours are neither: they are the two places
+            you go for a date and a person, and burying them under a heading
+            about content is why they were three clicks deep. Straight to the
+            route on a single click, since neither has a panel to open. */}
+        <SidebarNavItem
+          icon={<CalendarDays className="size-4" />}
+          label="Calendar"
+          onClick={() => goTo("#/calendar")}
+        />
+        <SidebarNavItem
+          icon={<CalendarClock className="size-4" />}
+          label="Tutoring"
+          onClick={() => goTo("#/tutoring")}
         />
       </div>
 
@@ -399,23 +418,12 @@ export function Dashboard({
             onClick={() => go("decks")}
             onDoubleClick={() => goTo("#/study-decks")}
           />
-          {/* Straight to the route on a single click, unlike its neighbours:
-              the calendar has no panel inside the dashboard to open, so an
-              in-place view would only be a page telling you where the page is. */}
-          <SidebarNavItem
-            icon={<CalendarDays className="size-4" />}
-            label="Calendar"
-            onClick={() => goTo("#/calendar")}
-          />
+          {/* Reactions stays: it is study material, which is what this heading
+              is for. Calendar and Tutoring moved up to the top group. */}
           <SidebarNavItem
             icon={<FlaskConical className="size-4" />}
             label="Reactions"
             onClick={() => goTo("#/reactions")}
-          />
-          <SidebarNavItem
-            icon={<CalendarClock className="size-4" />}
-            label="Tutoring"
-            onClick={() => goTo("#/tutoring")}
           />
         </CollapsibleSection>
 
@@ -729,7 +737,7 @@ function Panel({
     case "subscriptions":
       return (
         <div>
-          <p className="playful-face mb-5 max-w-xl text-lg text-slate-500 dark:text-stone-400">
+          <p className="playful-body mb-5 max-w-xl text-[0.95rem] leading-7 text-slate-600 dark:text-stone-300">
             Two tiers above the open site, and which side of the line each feature sits on.
           </p>
           <SubscriptionPlans onNavigate={onClose} />
@@ -783,7 +791,7 @@ function HomePanel({
 
   return (
     <div>
-      <p className="playful-face max-w-xl text-lg text-slate-500 dark:text-stone-400">
+      <p className="playful-body max-w-xl text-[0.95rem] leading-7 text-slate-600 dark:text-stone-300">
         Everything on the site, in one place. Pick a category on the left, or start from where you
         left off.
       </p>
@@ -939,7 +947,7 @@ function CategoriesPanel({ decks, go }: { decks: Deck[]; go: (view: DashboardVie
 
   return (
     <div>
-      <p className="playful-face max-w-xl text-lg text-slate-500 dark:text-stone-400">
+      <p className="playful-body max-w-xl text-[0.95rem] leading-7 text-slate-600 dark:text-stone-300">
         Three ways into the same chemistry. Only one of them is built.
       </p>
       <ul className="mt-6 space-y-3">
@@ -1001,7 +1009,7 @@ function NotificationsPanel({ updates, onClose }: { updates: Update[]; onClose: 
 
   return (
     <div>
-      <p className="playful-face mb-5 text-lg text-slate-500 dark:text-stone-400">
+      <p className="playful-body mb-5 text-[0.95rem] leading-7 text-slate-600 dark:text-stone-300">
         What has changed on the site.
       </p>
       <ul className="space-y-2">
@@ -1040,7 +1048,7 @@ function SettingsPanel({
 }) {
   return (
     <div>
-      <p className="playful-face max-w-xl text-lg text-slate-500 dark:text-stone-400">
+      <p className="playful-body max-w-xl text-[0.95rem] leading-7 text-slate-600 dark:text-stone-300">
         One of these works. The rest arrive with accounts.
       </p>
 
@@ -1086,7 +1094,7 @@ function AppearancePanel() {
 
   return (
     <div>
-      <p className="playful-face max-w-xl text-lg text-slate-500 dark:text-stone-400">
+      <p className="playful-body max-w-xl text-[0.95rem] leading-7 text-slate-600 dark:text-stone-300">
         A subsection of Settings, and the one part of it that is real today.
       </p>
 
@@ -1513,7 +1521,7 @@ function Unbuilt({
 }) {
   return (
     <div className="max-w-xl">
-      <p className="playful-face text-lg text-slate-500 dark:text-stone-400">{lead}</p>
+      <p className="playful-body text-[0.95rem] leading-7 text-slate-600 dark:text-stone-300">{lead}</p>
       <div className="mt-5 rounded-xl border border-dashed border-slate-300 px-5 py-5 text-sm leading-relaxed text-slate-500 dark:border-stone-700 dark:text-stone-400">
         <p className="mb-3 flex items-center gap-2 font-mono text-[0.65rem] tracking-wider text-slate-400 uppercase dark:text-stone-500">
           <Sparkles className="size-3" />

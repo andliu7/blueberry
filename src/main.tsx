@@ -8,6 +8,7 @@ import { GlobalSearch } from '@/components/GlobalSearch'
 import { installClickSound } from '@/lib/clickSound'
 import { AuthProvider } from '@/lib/AuthContext'
 import { BlueberryBot } from '@/components/ui/blueberry-bot'
+import { AccountCorner } from '@/components/ui/account-corner'
 
 // One delegated listener for the whole site rather than a prop on every button.
 // Controls opt out with `data-click-silent`; see lib/clickSound.
@@ -30,6 +31,10 @@ const tree = (
     {/* Beside the timer for the same reason: it docks into the shared corner
         column and has to survive the route change, not remount with a page. */}
     <BlueberryBot />
+    {/* The avatar, on every page whose own header does not already carry one.
+        Out here rather than inside App because App is a router of early
+        returns with no single place that wraps every page. */}
+    <AccountCorner />
   </PageFlipProvider>
 )
 
