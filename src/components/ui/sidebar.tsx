@@ -175,6 +175,7 @@ export function SidebarNavItem({
   active,
   badge,
   muted,
+  href,
   onClick,
   onDoubleClick,
   className,
@@ -186,7 +187,16 @@ export function SidebarNavItem({
   badge?: number;
   /** Present but not built yet: still selectable, drawn as unfinished. */
   muted?: boolean;
-  onClick: () => void;
+  /**
+   * Where the row goes, when the row is a destination.
+   *
+   * Given one, this renders an anchor rather than a button. That is not
+   * cosmetic: a section that is a page should be middle-clickable into a new
+   * tab, reachable with the browser's back button, and linkable — none of which
+   * a `<button>` with a click handler gives you, however correctly it navigates.
+   */
+  href?: string;
+  onClick?: () => void;
   /**
    * Where the row goes when it is opened properly.
    *
@@ -197,9 +207,12 @@ export function SidebarNavItem({
   onDoubleClick?: () => void;
   className?: string;
 }) {
+  // One element, chosen by whether there is somewhere to go. Everything below
+  // is identical either way, so the two cannot drift apart visually.
+  const Tag = href ? "a" : "button";
   return (
-    <button
-      type="button"
+    <Tag
+      {...(href ? { href } : { type: "button" as const })}
       onClick={onClick}
       onDoubleClick={onDoubleClick}
       title={onDoubleClick ? `${label} — double-click to open the page` : undefined}
@@ -238,7 +251,7 @@ export function SidebarNavItem({
       {onDoubleClick && (
         <ArrowUpRight className="size-3.5 shrink-0 opacity-0 transition-opacity group-hover:opacity-60" />
       )}
-    </button>
+    </Tag>
   );
 }
 
@@ -253,17 +266,21 @@ export function SidebarProfile({
   name,
   detail,
   avatar,
+  href,
   onClick,
 }: {
   name: string;
   detail: string;
   /** A picture when there is one; the fallback is a monogram on the site ramp. */
   avatar?: React.ReactNode;
+  /** Renders an anchor when the identity block is a link to a page. */
+  href?: string;
   onClick?: () => void;
 }) {
+  const Tag = href ? "a" : "button";
   return (
-    <button
-      type="button"
+    <Tag
+      {...(href ? { href } : { type: "button" as const })}
       onClick={onClick}
       className="flex w-full cursor-pointer items-center gap-3 rounded-xl p-2 text-left transition-colors outline-none hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-indigo-400 dark:hover:bg-stone-800"
     >
@@ -274,9 +291,9 @@ export function SidebarProfile({
         <span className="block truncate text-sm font-semibold text-slate-900 dark:text-stone-100">
           {name}
         </span>
-        <span className="block truncate text-xs text-slate-500 dark:text-stone-400">{detail}</span>
+        <span className="block truncate text-xs text-slate-600 dark:text-stone-300">{detail}</span>
       </span>
-    </button>
+    </Tag>
   );
 }
 
