@@ -4,41 +4,25 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import {
   ArrowUpRight,
   Atom,
-  Bell,
   BookOpen,
-  CalendarClock,
-  CalendarDays,
   ChevronDown,
-  CreditCard,
-  FlaskConical,
   ExternalLink,
-  Info,
   LayoutGrid,
   Layers,
   LogIn,
   Menu,
   Palette,
   Search,
-  Settings,
   Sparkles,
-  Upload,
-  User,
   X,
 } from "lucide-react";
-import {
-  Sidebar,
-  SidebarNavItem,
-  SidebarProfile,
-  CollapsibleSection,
-  AnimatedMenuToggle,
-} from "@/components/ui/sidebar";
+import { DashboardNav, type DashboardView } from "@/components/ui/dashboard-nav";
 import { CourseTree } from "@/components/ui/course-tree";
 import { SearchResults } from "@/components/ui/deck-search";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { SubscriptionPlans } from "@/components/ui/subscription-plans";
 import { VerifyChecklist } from "@/components/ui/verify-checklist";
 import { AvatarPicker } from "@/components/ui/avatar-picker";
-import { HoldToConfirm } from "@/components/ui/hold-to-confirm";
 import { BlueberryMark } from "@/components/ui/blueberry-mark";
 import { useProfile } from "@/lib/profile";
 import { useSession } from "@/lib/useSession";
@@ -51,7 +35,6 @@ import { useDecks } from "@/lib/useDecks";
 import { useGoogleAuth } from "@/lib/useGoogleAuth";
 import { useIsDark } from "@/lib/useIsDark";
 import { SURFACE } from "@/lib/hubSurface";
-import { DASHBOARD_SCENE, PageBackground } from "@/components/ui/page-background";
 import { TRAINER_URL } from "@/data/site";
 import { cn } from "@/lib/utils";
 
@@ -76,32 +59,7 @@ import { cn } from "@/lib/utils";
  * empty page is a bug report waiting to happen.
  */
 
-export type DashboardView =
-  | "home"
-  | "notifications"
-  | "settings"
-  | "appearance"
-  | "categories"
-  | "lessons"
-  | "concepts"
-  | "decks"
-  | "subscriptions"
-  | "imports"
-  | "profile";
 
-const VIEW_TITLE: Record<DashboardView, string> = {
-  home: "Dashboard",
-  notifications: "Notifications",
-  settings: "Settings",
-  appearance: "Appearance",
-  categories: "Categories",
-  lessons: "Lessons",
-  concepts: "Concepts",
-  decks: "Study Decks",
-  subscriptions: "Subscriptions",
-  imports: "Imports",
-  profile: "Profile",
-};
 
 /**
  * Open state, held by the page so the header can drive it.
@@ -116,6 +74,8 @@ const VIEW_TITLE: Record<DashboardView, string> = {
  * Exported so the sign-in page sets the same string this reads.
  */
 export const OPEN_ON_ARRIVAL = "blueberry_open_dashboard_on_arrival";
+
+export type { DashboardView };
 
 export function useDashboard() {
   const [view, setView] = useState<DashboardView | null>(null);
@@ -142,7 +102,7 @@ export function useDashboard() {
 export type DashboardState = ReturnType<typeof useDashboard>;
 
 /** Decks added recently enough to be worth announcing, newest first. */
-function useUpdates() {
+export function useUpdates() {
   const { decks, published } = useDecks();
   return useMemo(() => {
     const fromBuiltins = decks
@@ -158,9 +118,9 @@ function useUpdates() {
   }, [decks, published]);
 }
 
-const SEEN_KEY = "blueberry_seen_updates";
+export const SEEN_KEY = "blueberry_seen_updates";
 
-function loadSeen(): Set<string> {
+export function loadSeen(): Set<string> {
   try {
     const raw = localStorage.getItem(SEEN_KEY);
     return new Set(raw ? (JSON.parse(raw) as string[]) : []);
@@ -169,58 +129,34 @@ function loadSeen(): Set<string> {
   }
 }
 
+/**
+ * The menu the hub's burger opens.
+ *
+ * It no longer takes a seed query. That existed because the modal contained a
+ * search box and the page's own filter had to be copied into it; the drawer is
+ * a list of destinations, and searching is the job of the overlay that `/`
+ * opens. Callers still pass `seedQuery` harmlessly, since it is ignored rather
+ * than required.
+ */
 export function Dashboard({
   dash,
-  /**
-   * What the page's own search box currently holds.
-   *
-   * Copied in when the panel opens rather than shared. The two searches have
-   * different scopes on purpose — a folder page filters its own folder, this
-   * one covers the whole site — so binding them to one string would mean
-   * opening the dashboard from inside Carbonyls silently widened the filter you
-   * were already using. Seeding is the useful half of sharing without that.
-   */
-  seedQuery = "",
 }: {
   dash: DashboardState;
+  /** Accepted and unused, so existing callers do not have to change. */
   seedQuery?: string;
 }) {
-  const { view, focusSearch, open, close, isOpen } = dash;
+  const { close, isOpen } = dash;
   const isDark = useIsDark();
   const reduce = useReducedMotion();
   const surface = isDark ? SURFACE.dark : SURFACE.light;
-  const { decks } = useDecks();
   const updates = useUpdates();
-
-  const [query, setQuery] = useState(seedQuery);
-  const [mobileNav, setMobileNav] = useState(false);
-  const [seen, setSeen] = useState<Set<string>>(loadSeen);
+  const [seen] = useState<Set<string>>(loadSeen);
 
   const panelRef = useRef<HTMLDivElement>(null);
-  const searchRef = useRef<HTMLInputElement>(null);
   const returnFocusTo = useRef<Element | null>(null);
 
+  // Only the badge is drawn here now.
   const unread = updates.filter((u) => !seen.has(u.id)).length;
-
-  // Opening is what re-seeds the query, not every keystroke in the page's box.
-  useEffect(() => {
-    if (isOpen) setQuery(seedQuery);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen]);
-
-  // Arriving at Notifications is what marks them read. Not the badge being
-  // rendered, and not opening the dashboard at all: a count you never looked at
-  // should still be there next time.
-  useEffect(() => {
-    if (view !== "notifications" || updates.length === 0) return;
-    const ids = updates.map((u) => u.id);
-    setSeen(new Set(ids));
-    try {
-      localStorage.setItem(SEEN_KEY, JSON.stringify(ids));
-    } catch {
-      /* a browser refusing storage just means the badge comes back */
-    }
-  }, [view, updates]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -245,346 +181,72 @@ export function Dashboard({
     };
   }, [isOpen, close]);
 
-  /**
-   * The search opens panels, and the search is mounted outside the router.
-   *
-   * Same shape as the focus timer's open event, and for the same reason: the
-   * palette has no way to reach into this component's state, and passing a
-   * setter out to `main.tsx` would mean the whole app carrying a prop about a
-   * dashboard it does not own.
-   */
-  useEffect(() => {
-    const onAsk = (e: Event) => {
-      const view = (e as CustomEvent<{ view?: string }>).detail?.view;
-      if (view) open(view as DashboardView);
-    };
-    window.addEventListener("blueberry:open-dashboard", onAsk);
-    return () => window.removeEventListener("blueberry:open-dashboard", onAsk);
-  }, [open]);
+
+
 
   /**
-   * Asked for from a page that no longer exists by the time this can answer.
+   * The drawer, which is only the column.
    *
-   * The sign-in page offers staff the dashboard, but dispatching the event
-   * from there would fire before this listener is mounted: the dashboard lives
-   * inside the router, so it does not exist until the destination page does. A
-   * one-shot flag survives the navigation that the event cannot, and is cleared
-   * as it is read so a later reload does not reopen it.
-   */
-  useEffect(() => {
-    try {
-      if (sessionStorage.getItem(OPEN_ON_ARRIVAL) === "1") {
-        sessionStorage.removeItem(OPEN_ON_ARRIVAL);
-        open("home");
-      }
-    } catch {
-      // Private browsing refuses sessionStorage. Nothing to recover.
-    }
-  }, [open]);
-
-  // Only once the search view is actually mounted, or the ref is still null.
-  useEffect(() => {
-    if (isOpen && focusSearch && view === "decks") searchRef.current?.focus();
-  }, [isOpen, focusSearch, view]);
-
-  // Picking a destination on a phone should put the nav away behind you.
-  /**
-   * One click shows the section here; it never navigates.
+   * This used to be the whole dashboard: a centred card holding the column and
+   * a panel beside it. Everything about that fought being a place. You could not
+   * link to Settings, the browser's back button closed the lot rather than
+   * stepping back one section, and a full page of content had to live inside
+   * `min(88vh, 880px)` and scroll within its own box.
    *
-   * Lessons and Study Decks used to leave the dashboard the moment you touched
-   * them, which made the sidebar a menu of exits rather than a place you could
-   * look around in: there was no way to see what a section held without landing
-   * on it and having to come back.
+   * So the sections became pages at `#/d/<view>` and this became what the
+   * burger on the hub actually implies: a panel that slides in from the edge,
+   * shows you where you can go, and closes when you go there.
    */
-  const go = useCallback(
-    (next: DashboardView) => {
-      open(next);
-      setMobileNav(false);
-    },
-    [open],
-  );
-
-  /**
-   * The second click, which leaves.
-   *
-   * Kept out of `go` and off render: React must not watch a component navigate
-   * away or close its own parent mid-render, so the hash change happens in the
-   * handler that asked for it.
-   */
-  const goTo = useCallback(
-    (hash: string) => {
-      close();
-      setMobileNav(false);
-      window.location.hash = hash;
-    },
-    [close],
-  );
-
-  const nav = (
-    <Sidebar
-      profile={<ProfileRow onClick={() => go("profile")} />}
-      footer={<ProfileButton onClick={() => go("profile")} />}
-    >
-      <div className="space-y-0.5">
-        {/* Profile, where Home used to be.
-
-            Home was a row that needed explaining: one click showed an overview
-            panel, a double click left for the page. Nobody double-clicks a nav
-            item, so in practice it was a button that appeared to do nothing —
-            and it did nothing most visibly on the home page itself, where the
-            overview it opened was a smaller copy of what was already behind it.
-
-            Profile is what that slot is actually for. It was reachable only by
-            the identity block at the top of the column and the button at the
-            foot, both of which are easy to read as decoration. */}
-        <SidebarNavItem
-          icon={<User className="size-4" />}
-          label="Profile"
-          active={view === "profile"}
-          onClick={() => go("profile")}
-        />
-        <SidebarNavItem
-          icon={<Bell className="size-4" />}
-          label="Notifications"
-          badge={unread}
-          active={view === "notifications"}
-          onClick={() => go("notifications")}
-        />
-        {/* Out of Categories, where they never belonged.
-
-            Categories are kinds of study material — lessons, concepts, decks.
-            The calendar and office hours are neither: they are the two places
-            you go for a date and a person, and burying them under a heading
-            about content is why they were three clicks deep. Straight to the
-            route on a single click, since neither has a panel to open. */}
-        <SidebarNavItem
-          icon={<CalendarDays className="size-4" />}
-          label="Calendar"
-          onClick={() => goTo("#/calendar")}
-        />
-        <SidebarNavItem
-          icon={<CalendarClock className="size-4" />}
-          label="Tutoring"
-          onClick={() => goTo("#/tutoring")}
-        />
-      </div>
-
-      <div className="mt-2">
-        {/* Appearance sits under Settings rather than beside Subscriptions.
-            Which theme the site is in is a setting; what you are paying for is
-            not, and the two only shared a heading because both were leftovers. */}
-        <CollapsibleSection
-          title="Settings"
-          icon={<Settings className="size-4" />}
-          active={view === "settings"}
-          onHeaderClick={() => go("settings")}
-        >
-          <SidebarNavItem
-            icon={<Palette className="size-4" />}
-            label="Appearance"
-            active={view === "appearance"}
-            onClick={() => go("appearance")}
-          />
-        </CollapsibleSection>
-
-        <CollapsibleSection
-          title="Categories"
-          icon={<LayoutGrid className="size-4" />}
-          defaultOpen
-          active={view === "categories"}
-          onHeaderClick={() => go("categories")}
-        >
-          {/* Not muted any more: the carbonyl lessons are written and have a
-              page. A nav that still says "soon" about something you can open is
-              worse than one that never mentioned it. */}
-          <SidebarNavItem
-            icon={<BookOpen className="size-4" />}
-            label="Lessons"
-            active={view === "lessons"}
-            onClick={() => go("lessons")}
-            onDoubleClick={() => goTo("#/lessons")}
-          />
-          <SidebarNavItem
-            icon={<Atom className="size-4" />}
-            label="Concepts"
-            muted
-            active={view === "concepts"}
-            onClick={() => go("concepts")}
-          />
-          <SidebarNavItem
-            icon={<Layers className="size-4" />}
-            label="Study Decks"
-            active={view === "decks"}
-            onClick={() => go("decks")}
-            onDoubleClick={() => goTo("#/study-decks")}
-          />
-          {/* Reactions stays: it is study material, which is what this heading
-              is for. Calendar and Tutoring moved up to the top group. */}
-          <SidebarNavItem
-            icon={<FlaskConical className="size-4" />}
-            label="Reactions"
-            onClick={() => goTo("#/reactions")}
-          />
-        </CollapsibleSection>
-
-        <CollapsibleSection title="Extra Options" icon={<Sparkles className="size-4" />}>
-          <SidebarNavItem
-            icon={<CreditCard className="size-4" />}
-            label="Subscriptions"
-            muted
-            active={view === "subscriptions"}
-            onClick={() => go("subscriptions")}
-          />
-          <SidebarNavItem
-            icon={<Upload className="size-4" />}
-            label="Imports"
-            muted
-            active={view === "imports"}
-            onClick={() => go("imports")}
-          />
-        </CollapsibleSection>
-
-        <CollapsibleSection title="More info" icon={<Info className="size-4" />}>
-          <p className="px-3 py-2 text-xs leading-relaxed text-slate-500 dark:text-stone-400">
-            Blueberry is a study site for University of Maryland organic chemistry, built by a
-            student who was revising for the same assessments. Progress and ratings are kept in
-            this browser only.
-          </p>
-        </CollapsibleSection>
-      </div>
-    </Sidebar>
-  );
-
   return createPortal(
     <AnimatePresence>
-      {isOpen && view && (
-        <div className="fixed inset-0 z-[60] flex items-stretch justify-center sm:items-center sm:p-6">
+      {isOpen && (
+        <>
           <motion.div
             initial={reduce ? false : { opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={reduce ? undefined : { opacity: 0 }}
             transition={{ duration: 0.18 }}
             onClick={close}
-            className="absolute inset-0 bg-slate-950/45 backdrop-blur-[2px]"
+            className="fixed inset-0 z-[60] bg-slate-950/45 backdrop-blur-[2px]"
             aria-hidden
           />
 
-          <motion.div
+          <motion.aside
             ref={panelRef}
             tabIndex={-1}
             role="dialog"
             aria-modal="true"
-            aria-label="Blueberry dashboard"
-            initial={reduce ? false : { opacity: 0, y: 18, scale: 0.985 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={reduce ? undefined : { opacity: 0, y: 10, scale: 0.99 }}
-            transition={{ type: "spring", stiffness: 220, damping: 26, mass: 0.7 }}
+            aria-label="Blueberry menu"
+            initial={reduce ? false : { x: "-100%" }}
+            animate={{ x: 0 }}
+            exit={reduce ? undefined : { x: "-100%" }}
+            transition={{ type: "spring", stiffness: 260, damping: 30, mass: 0.7 }}
             style={{ backgroundColor: surface.base }}
-            className="relative flex h-full w-full max-w-6xl overflow-hidden border-slate-200 shadow-2xl outline-none sm:h-[min(88vh,880px)] sm:rounded-3xl sm:border dark:border-stone-700"
+            className="fixed inset-y-0 left-0 z-[61] flex w-72 max-w-[85vw] flex-col border-r border-slate-200 shadow-2xl outline-none dark:border-stone-700"
           >
-            {/* The dashboard's own photograph, pinned rather than drawn by the
-                hour, and held back from every other page. `absolute`, not the
-                component's usual `fixed`, so it is bounded by the panel's
-                rounded corners instead of covering the screen behind it. */}
-            {/* No `-z-10` here. The panel paints `surface.base` on *itself*, so
-                a child sent behind the stacking context goes behind that opaque
-                fill and is never seen. At the default depth it sits on the fill
-                and under every sibling that follows it, which is what was
-                wanted. */}
-            {/* `z-0`, explicitly. The component's own base class carries
-                `-z-10`, which merges through and drops it behind the panel's
-                opaque fill, so the photograph was only visible in the scrim
-                *around* the dashboard rather than inside it. */}
-            <PageBackground scene={DASHBOARD_SCENE} className="absolute inset-0 z-0" />
-
-            {/* A scrim between the photograph and the content.
-
-                Raising the opacity of individual cards was the wrong lever: it
-                only helped text that happened to sit inside a card, and the
-                headings, section labels and body copy that sit directly on the
-                panel had nothing behind them at all. One veil over the whole
-                photograph fixes every one of them at once.
-
-                Light and dark take opposite corrections rather than one value
-                flipped. On the pale surface the photograph is the darker thing
-                and is veiled with white; on the near-black one it is the
-                brighter thing and is veiled with the surface colour. */}
-            <div
-              aria-hidden
-              className="absolute inset-0 z-0 bg-white/72 dark:bg-[#171327]/78"
-            />
-
-            {/* The column, permanent from `md` up. Below that it comes over the
-                content instead, because a 256px rail and a readable panel do
-                not both fit on a phone. */}
-            {/* `relative z-10` on both this and the content column: the
-                photograph sits at `z-0` inside the panel, and a sibling with no
-                depth of its own does not reliably paint above a positioned one.
-                Without it the forest covered the whole dashboard. */}
-            <aside className="relative z-10 hidden w-64 shrink-0 border-r border-slate-200/80 md:block dark:border-stone-700/70">
-              {nav}
-            </aside>
-
-            <AnimatePresence>
-              {mobileNav && (
-                <>
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    onClick={() => setMobileNav(false)}
-                    className="absolute inset-0 z-20 bg-slate-950/40 md:hidden"
-                    aria-hidden
-                  />
-                  <motion.aside
-                    initial={reduce ? false : { x: "-100%" }}
-                    animate={{ x: 0 }}
-                    exit={reduce ? undefined : { x: "-100%" }}
-                    transition={{ duration: 0.25, ease: "easeOut" }}
-                    style={{ backgroundColor: surface.base }}
-                    className="absolute inset-y-0 left-0 z-30 w-72 max-w-[85vw] border-r border-slate-200 md:hidden dark:border-stone-700"
-                  >
-                    {nav}
-                  </motion.aside>
-                </>
-              )}
-            </AnimatePresence>
-
-            <div className="relative z-10 flex min-w-0 flex-1 flex-col">
-              <header className="flex shrink-0 items-center gap-2 border-b border-slate-200/80 px-4 py-3 sm:px-6 dark:border-stone-700/70">
-                <AnimatedMenuToggle
-                  isOpen={mobileNav}
-                  toggle={() => setMobileNav((o) => !o)}
-                  className="md:hidden"
-                />
-                <h2 className="title-face min-w-0 flex-1 truncate text-lg text-slate-900 sm:text-xl dark:text-stone-100">
-                  {VIEW_TITLE[view]}
-                </h2>
-                <button
-                  type="button"
-                  onClick={close}
-                  aria-label="Close the dashboard"
-                  className="cursor-pointer rounded-full p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:outline-none dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-stone-100"
-                >
-                  <X className="size-4" />
-                </button>
-              </header>
-
-              <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-6">
-                <Panel
-                  view={view}
-                  decks={decks}
-                  query={query}
-                  onQuery={setQuery}
-                  searchRef={searchRef}
-                  updates={updates}
-                  go={go}
-                  onClose={close}
-                />
-              </div>
+            <div className="flex shrink-0 items-center justify-between px-3 pt-3">
+              <a
+                href="#/d"
+                onClick={close}
+                className="inline-flex min-h-9 items-center rounded-lg px-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:text-stone-200 dark:hover:bg-stone-800"
+              >
+                Open the dashboard
+              </a>
+              <button
+                type="button"
+                onClick={close}
+                aria-label="Close the menu"
+                className="cursor-pointer rounded-full p-1.5 text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:outline-none dark:text-stone-300 dark:hover:bg-stone-800"
+              >
+                <X className="size-4" />
+              </button>
             </div>
-          </motion.div>
-        </div>
+
+            <div className="min-h-0 flex-1">
+              <DashboardNav unread={unread} onNavigate={close} />
+            </div>
+          </motion.aside>
+        </>
       )}
     </AnimatePresence>,
     document.body,
@@ -661,7 +323,7 @@ export function DashboardButton({
 
 type Update = ReturnType<typeof useUpdates>[number];
 
-function Panel({
+export function Panel({
   view,
   decks,
   query,
@@ -1237,19 +899,16 @@ function StatusRow({
       >
         {role ?? "Guest"}
       </span>
+      {/* A link now that Subscriptions is a page. The event this used to
+          dispatch asked the modal to swap its panel, and there is no modal. */}
       {(role === null || role === "member") && (
-        <button
-          type="button"
-          onClick={() => {
-            onNavigate();
-            window.dispatchEvent(
-              new CustomEvent("blueberry:open-dashboard", { detail: { view: "subscriptions" } }),
-            );
-          }}
+        <a
+          href="#/d/subscriptions"
+          onClick={onNavigate}
           className="ml-auto cursor-pointer text-xs font-semibold text-indigo-600 underline-offset-4 hover:underline dark:text-indigo-300"
         >
           Upgrade
-        </button>
+        </a>
       )}
     </div>
   );
@@ -1292,68 +951,7 @@ function ProfileIdentity() {
  * Now it is a plain bordered control that signs you in when you are out and
  * signs you out when you are in, on a surface of its own rather than a colour.
  */
-/**
- * The identity at the top of the column, which opens the Profile panel.
- *
- * Kept separate from the control at the foot on purpose: this one says who you
- * are and takes you to your page, that one is a single verb. Rolling them into
- * one button is what left the same click in two places.
- */
-function ProfileRow({ onClick }: { onClick: () => void }) {
-  const session = useSession();
-  const profile = useProfile();
-  const name = [profile.firstName, profile.lastName].filter(Boolean).join(" ");
 
-  return (
-    <SidebarProfile
-      onClick={onClick}
-      name={name || session?.name || "Guest"}
-      detail={session?.email ?? "Not signed in"}
-      avatar={
-        profile.avatar || session?.picture ? (
-          <img src={profile.avatar ?? session?.picture ?? ""} alt="" className="size-full object-cover" />
-        ) : (
-          <User className="size-5" />
-        )
-      }
-    />
-  );
-}
-
-function ProfileButton({ onClick }: { onClick: () => void }) {
-  const session = useSession();
-
-  const shell =
-    "flex w-full cursor-pointer items-center gap-2.5 rounded-xl border px-3 py-2.5 text-left text-sm font-semibold transition-colors " +
-    "border-slate-200 bg-white/80 text-slate-700 hover:bg-slate-100 hover:text-slate-900 " +
-    "dark:border-stone-700 dark:bg-stone-900/70 dark:text-stone-200 dark:hover:bg-stone-800 dark:hover:text-stone-100";
-
-  if (session) {
-    return (
-      <HoldToConfirm onConfirm={session.signOut} holdMs={1500} className={shell}>
-        <LogIn className="size-4 shrink-0 rotate-180 opacity-70" />
-        <span className="min-w-0 flex-1 text-left">
-          <span className="block">Hold to sign out</span>
-          <span className="block truncate text-xs font-normal text-slate-500 dark:text-stone-400">
-            {session.email}
-          </span>
-        </span>
-      </HoldToConfirm>
-    );
-  }
-
-  return (
-    <a href="#/signin" onClick={onClick} className={shell}>
-      <LogIn className="size-4 shrink-0 opacity-70" />
-      <span className="min-w-0 flex-1">
-        <span className="block">Sign in</span>
-        <span className="block truncate text-xs font-normal text-slate-500 dark:text-stone-400">
-          Keep your progress
-        </span>
-      </span>
-    </a>
-  );
-}
 
 function Stat({ label, value }: { label: string; value: number }) {
   return (

@@ -4,6 +4,7 @@ import * as React from "react";
 import {
   CalendarDays,
   CreditCard,
+  LayoutGrid,
   FileText,
   LogIn,
   LogOut,
@@ -88,7 +89,10 @@ export function ProfileDropdown({
   const staff = session.role === "admin" || session.role === "owner";
 
   const menuItems: MenuItem[] = [
-    { label: "Profile", href: "#/home", icon: <User className="size-4" /> },
+    // The way into the dashboard. The burger on the hub opens the column now,
+    // which is a menu of destinations; this is the destination itself.
+    { label: "Dashboard", href: "#/d", icon: <LayoutGrid className="size-4" /> },
+    { label: "Profile", href: "#/d/profile", icon: <User className="size-4" /> },
     {
       label: "Role",
       // `member` is the internal word; "Student" is what the person is.
@@ -102,11 +106,11 @@ export function ProfileDropdown({
     {
       label: "Subscription",
       value: "Free",
-      href: "#/home",
+      href: "#/d/subscriptions",
       icon: <CreditCard className="size-4" />,
       tone: "plan",
     },
-    { label: "Settings", href: "#/home", icon: <Settings className="size-4" /> },
+    { label: "Settings", href: "#/d/settings", icon: <Settings className="size-4" /> },
     { label: "Terms & Policies", href: "#/terms", icon: <FileText className="size-4" /> },
   ];
 

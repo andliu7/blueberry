@@ -55,7 +55,7 @@ export function GlobalSearch() {
   const openDashboard = useCallback((view: string) => {
     // The dashboard is a panel inside the router, so it is asked by event
     // rather than reached from out here.
-    window.dispatchEvent(new CustomEvent("blueberry:open-dashboard", { detail: { view } }));
+    window.location.hash = view === "home" ? "#/d" : `#/d/${view}`;
   }, []);
 
   return (

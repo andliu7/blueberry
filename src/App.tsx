@@ -59,6 +59,9 @@ const ReferenceApp = lazy(() =>
 const FolderPage = lazy(() =>
   import("@/components/FolderPage").then((m) => ({ default: m.FolderPage })),
 );
+const DashboardPage = lazy(() =>
+  import("@/components/DashboardPage").then((m) => ({ default: m.DashboardPage })),
+);
 const TermsPage = lazy(() =>
   import("@/components/TermsPage").then((m) => ({ default: m.TermsPage })),
 );
@@ -261,6 +264,11 @@ export default function App() {
   // a card opened over whatever you were looking at, so it has no route at all.
   if (route === "contact" || route === "about") return withBoundary(<ContactPage />);
   if (route === "terms") return withBoundary(<TermsPage />);
+  // The dashboard is pages now, not a card over the hub. `#/d` is its front
+  // page and `#/d/settings` and friends are the sections.
+  if (route === "d" || route.startsWith("d/")) {
+    return withBoundary(<DashboardPage route={route} />);
+  }
   // Unlinked from the nav on purpose; reached from the name on the About card,
   // which now points at the workspace and gets the sign-in card only if there
   // is nobody signed in.
