@@ -72,7 +72,24 @@ export async function signInWithGoogle(): Promise<{ error?: string }> {
   if (!supabase) return { error: "Sign-in is not configured." };
   const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",
-    options: { redirectTo: authRedirectTo() },
+    options: {
+      redirectTo: authRedirectTo(),
+      /**
+       * Always ask which Google account, rather than reusing the one the
+       * browser happens to be signed into.
+       *
+       * Without this, Google silently returns whichever account is already
+       * active and the sign-in appears to work while giving you somebody else.
+       * That cost a real afternoon: an owner kept resolving as a student
+       * because Chrome was signed into a family member's account, and there
+       * was no way to say otherwise from inside the app - signing out and back
+       * in returned the same account every time.
+       *
+       * The cost is one extra click for people with a single account. That is
+       * a good trade against silently being the wrong person.
+       */
+      queryParams: { prompt: "select_account" },
+    },
   });
   return error ? { error: error.message } : {};
 }
