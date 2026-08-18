@@ -139,8 +139,11 @@ export function ReactionPanel({
             alt={`Structure of ${reaction.reactant_labels.join(" and ")}`}
             className="mx-auto h-auto w-full max-w-[340px]"
           />
+          {/* Name, then formula. The formula is computed by RDKit from the same
+              structure the drawing came from, so the two cannot disagree. */}
           <figcaption className="mt-1 text-center text-sm font-semibold">
             {reaction.reactant_labels.join(" + ")}
+            <Formulas list={reaction.reactant_formulas} join=" + " />
           </figcaption>
         </figure>
 
@@ -170,7 +173,10 @@ export function ReactionPanel({
           <figcaption className="mt-1 flex items-center justify-center gap-2 text-center text-sm font-semibold">
             {showProduct ? (
               <>
-                {reaction.product_label}
+                <span>
+                  {reaction.product_label}
+                  <Formulas list={[reaction.product_formula]} />
+                </span>
                 <button
                   type="button"
                   onClick={() => setShowProduct(false)}
@@ -521,5 +527,35 @@ function Info({
       </div>
       <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-stone-300">{children}</p>
     </div>
+  );
+}
+
+/**
+ * A molecular formula, with the digits set as subscripts.
+ *
+ * RDKit hands back a flat string like `C4H8O2`, and printing that as-is next to
+ * a name reads as a part number. Splitting on digit runs is safe here because a
+ * formula is only ever element symbols and counts, and charges arrive as a
+ * trailing `+`/`-` which is left alone.
+ *
+ * Renders nothing when there is no formula. `formula_of` returns an empty
+ * string for anything RDKit will not parse, so a gap in the data shows as a
+ * missing line rather than as a confident wrong one.
+ */
+function Formulas({ list, join = " + " }: { list?: string[]; join?: string }) {
+  const shown = (list ?? []).filter(Boolean);
+  if (!shown.length) return null;
+
+  return (
+    <span className="mt-0.5 block font-mono text-xs font-normal text-slate-600 dark:text-stone-300">
+      {shown.map((f, i) => (
+        <span key={`${f}-${i}`}>
+          {i > 0 && join}
+          {f.split(/(\d+)/).map((part, j) =>
+            /^\d+$/.test(part) ? <sub key={j}>{part}</sub> : <span key={j}>{part}</span>,
+          )}
+        </span>
+      ))}
+    </span>
   );
 }

@@ -26,6 +26,7 @@ Do not use em dashes in output.
 """
 
 from rdkit import Chem
+from rdkit.Chem.rdMolDescriptors import CalcMolFormula
 from collections import Counter
 
 
@@ -92,6 +93,24 @@ def conservation(lhs, rhs, redox=False):
 
 def canonical(smiles):
     return Chem.CanonSmiles(smiles)
+
+
+def formula_of(smiles):
+    """The molecular formula, in Hill order, derived from the structure.
+
+    Beside `canonical` because it answers the same kind of question and has to
+    come from the same parsed molecule. The site shows a name and a formula in
+    place of a SMILES string, and a formula written by hand is exactly the sort
+    of thing that looks right and is not: implicit hydrogens are easy to
+    miscount and nobody proofreads a subscript.
+
+    Returns an empty string for anything RDKit will not parse, so a caller ends
+    up with a missing formula rather than a confident wrong one.
+    """
+    mol = Chem.MolFromSmiles(smiles)
+    if mol is None:
+        return ""
+    return CalcMolFormula(mol)
 
 
 # Staged reactions: (name, lhs, rhs, is_redox). lhs and rhs are the FULLY declared

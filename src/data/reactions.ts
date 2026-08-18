@@ -52,6 +52,20 @@ export interface StagedReaction {
   balance_lhs: string[];
   balance_rhs: string[];
   redox: boolean;
+  /**
+   * Molecular formulas, computed by RDKit from the same structures the
+   * conservation check passed.
+   *
+   * The pages show a name and a formula rather than a SMILES string,
+   * because a SMILES is a serialisation format and not something a student
+   * reads. Derived rather than written down: implicit hydrogens are easy to
+   * miscount by hand and nobody proofreads a subscript.
+   *
+   * Empty string for anything unparseable, so a missing formula is missing
+   * rather than wrong. Index-aligned with `reactants` / `reactant_labels`.
+   */
+  reactant_formulas: string[];
+  product_formula: string;
   /** Paths under BASE_URL. Rendered by RDKit from the canonical SMILES. */
   art: {
     start_light?: string;
@@ -125,6 +139,10 @@ const DATA: { pkaLeavingGroupCutoff: number; reactions: StagedReaction[] } =
         "CC(C)(O)c1ccccc1"
       ],
       "redox": false,
+      "reactant_formulas": [
+        "C8H8O"
+      ],
+      "product_formula": "C9H12O",
       "validation": {
         "checks": {
           "parse": "ok",
@@ -184,6 +202,10 @@ const DATA: { pkaLeavingGroupCutoff: number; reactions: StagedReaction[] } =
         "N#CC(O)c1ccccc1"
       ],
       "redox": false,
+      "reactant_formulas": [
+        "C7H6O"
+      ],
+      "product_formula": "C8H7NO",
       "validation": {
         "checks": {
           "parse": "ok",
@@ -259,6 +281,10 @@ const DATA: { pkaLeavingGroupCutoff: number; reactions: StagedReaction[] } =
         "CC#CC(O)c1ccccc1"
       ],
       "redox": false,
+      "reactant_formulas": [
+        "C7H6O"
+      ],
+      "product_formula": "C10H10O",
       "validation": {
         "checks": {
           "parse": "ok",
@@ -320,6 +346,10 @@ const DATA: { pkaLeavingGroupCutoff: number; reactions: StagedReaction[] } =
         "O=P(c1ccccc1)(c1ccccc1)c1ccccc1"
       ],
       "redox": false,
+      "reactant_formulas": [
+        "C8H8O"
+      ],
+      "product_formula": "C9H10",
       "validation": {
         "checks": {
           "parse": "ok",
@@ -381,6 +411,10 @@ const DATA: { pkaLeavingGroupCutoff: number; reactions: StagedReaction[] } =
         "O"
       ],
       "redox": false,
+      "reactant_formulas": [
+        "C8H8O"
+      ],
+      "product_formula": "C9H11N",
       "validation": {
         "checks": {
           "parse": "ok",
@@ -443,6 +477,10 @@ const DATA: { pkaLeavingGroupCutoff: number; reactions: StagedReaction[] } =
         "O"
       ],
       "redox": false,
+      "reactant_formulas": [
+        "C8H8O"
+      ],
+      "product_formula": "C10H12O2",
       "validation": {
         "checks": {
           "parse": "ok",
@@ -517,6 +555,10 @@ const DATA: { pkaLeavingGroupCutoff: number; reactions: StagedReaction[] } =
         "CC(O)c1ccccc1"
       ],
       "redox": true,
+      "reactant_formulas": [
+        "C8H8O"
+      ],
+      "product_formula": "C8H10O",
       "validation": {
         "checks": {
           "parse": "ok",
@@ -593,6 +635,10 @@ const DATA: { pkaLeavingGroupCutoff: number; reactions: StagedReaction[] } =
         "CO"
       ],
       "redox": true,
+      "reactant_formulas": [
+        "C8H8O2"
+      ],
+      "product_formula": "C7H8O",
       "validation": {
         "checks": {
           "parse": "ok",
@@ -657,6 +703,10 @@ const DATA: { pkaLeavingGroupCutoff: number; reactions: StagedReaction[] } =
         "O"
       ],
       "redox": false,
+      "reactant_formulas": [
+        "C8H8O"
+      ],
+      "product_formula": "C8H10",
       "validation": {
         "checks": {
           "parse": "ok",
@@ -738,6 +788,10 @@ const DATA: { pkaLeavingGroupCutoff: number; reactions: StagedReaction[] } =
         "O"
       ],
       "redox": false,
+      "reactant_formulas": [
+        "C8H8O"
+      ],
+      "product_formula": "C8H10",
       "validation": {
         "checks": {
           "parse": "ok",
@@ -798,6 +852,10 @@ const DATA: { pkaLeavingGroupCutoff: number; reactions: StagedReaction[] } =
         "OC(=O)c1ccccc1"
       ],
       "redox": true,
+      "reactant_formulas": [
+        "C7H8O"
+      ],
+      "product_formula": "C7H6O2",
       "validation": {
         "checks": {
           "parse": "ok",
@@ -862,6 +920,10 @@ const DATA: { pkaLeavingGroupCutoff: number; reactions: StagedReaction[] } =
         "Cl"
       ],
       "redox": false,
+      "reactant_formulas": [
+        "C7H6O2"
+      ],
+      "product_formula": "C7H5ClO",
       "validation": {
         "checks": {
           "parse": "ok",
@@ -926,6 +988,11 @@ const DATA: { pkaLeavingGroupCutoff: number; reactions: StagedReaction[] } =
         "O"
       ],
       "redox": false,
+      "reactant_formulas": [
+        "C7H6O2",
+        "CH4O"
+      ],
+      "product_formula": "C8H8O2",
       "validation": {
         "checks": {
           "parse": "ok",
@@ -990,6 +1057,11 @@ const DATA: { pkaLeavingGroupCutoff: number; reactions: StagedReaction[] } =
         "Cl"
       ],
       "redox": false,
+      "reactant_formulas": [
+        "C7H5ClO",
+        "CH5N"
+      ],
+      "product_formula": "C8H9NO",
       "validation": {
         "checks": {
           "parse": "ok",
@@ -1054,6 +1126,11 @@ const DATA: { pkaLeavingGroupCutoff: number; reactions: StagedReaction[] } =
         "CO"
       ],
       "redox": false,
+      "reactant_formulas": [
+        "C8H8O2",
+        "H2O"
+      ],
+      "product_formula": "C7H6O2",
       "validation": {
         "checks": {
           "parse": "ok",
@@ -1131,6 +1208,10 @@ const DATA: { pkaLeavingGroupCutoff: number; reactions: StagedReaction[] } =
         "[Cl-]"
       ],
       "redox": false,
+      "reactant_formulas": [
+        "C7H5ClO"
+      ],
+      "product_formula": "C8H8O",
       "validation": {
         "checks": {
           "parse": "ok",
@@ -1205,6 +1286,10 @@ const DATA: { pkaLeavingGroupCutoff: number; reactions: StagedReaction[] } =
         "CO"
       ],
       "redox": true,
+      "reactant_formulas": [
+        "C8H8O2"
+      ],
+      "product_formula": "C7H6O",
       "validation": {
         "checks": {
           "parse": "ok",
@@ -1270,6 +1355,10 @@ const DATA: { pkaLeavingGroupCutoff: number; reactions: StagedReaction[] } =
         "Cl"
       ],
       "redox": false,
+      "reactant_formulas": [
+        "C7H7NO"
+      ],
+      "product_formula": "C7H5N",
       "validation": {
         "checks": {
           "parse": "ok",
@@ -1335,6 +1424,10 @@ const DATA: { pkaLeavingGroupCutoff: number; reactions: StagedReaction[] } =
         "N"
       ],
       "redox": false,
+      "reactant_formulas": [
+        "C7H5N"
+      ],
+      "product_formula": "C7H5O2-",
       "validation": {
         "checks": {
           "parse": "ok",
@@ -1407,6 +1500,10 @@ const DATA: { pkaLeavingGroupCutoff: number; reactions: StagedReaction[] } =
         "NCc1ccccc1"
       ],
       "redox": true,
+      "reactant_formulas": [
+        "C7H5N"
+      ],
+      "product_formula": "C7H9N",
       "validation": {
         "checks": {
           "parse": "ok",
@@ -1471,6 +1568,11 @@ const DATA: { pkaLeavingGroupCutoff: number; reactions: StagedReaction[] } =
         "CC(O)CC=O"
       ],
       "redox": false,
+      "reactant_formulas": [
+        "C2H4O",
+        "C2H4O"
+      ],
+      "product_formula": "C4H8O2",
       "validation": {
         "checks": {
           "parse": "ok",
@@ -1551,6 +1653,11 @@ const DATA: { pkaLeavingGroupCutoff: number; reactions: StagedReaction[] } =
         "O"
       ],
       "redox": false,
+      "reactant_formulas": [
+        "C2H4O",
+        "C2H4O"
+      ],
+      "product_formula": "C4H6O",
       "validation": {
         "checks": {
           "parse": "ok",
@@ -1629,6 +1736,11 @@ const DATA: { pkaLeavingGroupCutoff: number; reactions: StagedReaction[] } =
         "CCO"
       ],
       "redox": false,
+      "reactant_formulas": [
+        "C4H8O2",
+        "C4H8O2"
+      ],
+      "product_formula": "C6H10O3",
       "validation": {
         "checks": {
           "parse": "ok",
@@ -1689,6 +1801,11 @@ const DATA: { pkaLeavingGroupCutoff: number; reactions: StagedReaction[] } =
         "CC(=O)CCCC(C)=O"
       ],
       "redox": false,
+      "reactant_formulas": [
+        "C4H6O",
+        "C3H6O"
+      ],
+      "product_formula": "C7H12O2",
       "validation": {
         "checks": {
           "parse": "ok",
@@ -1753,6 +1870,10 @@ const DATA: { pkaLeavingGroupCutoff: number; reactions: StagedReaction[] } =
         "Br"
       ],
       "redox": false,
+      "reactant_formulas": [
+        "C8H8O"
+      ],
+      "product_formula": "C8H7BrO",
       "validation": {
         "checks": {
           "parse": "ok",
@@ -1857,6 +1978,10 @@ const DATA: { pkaLeavingGroupCutoff: number; reactions: StagedReaction[] } =
         "I"
       ],
       "redox": false,
+      "reactant_formulas": [
+        "C7H12O4"
+      ],
+      "product_formula": "C3H6O2",
       "validation": {
         "checks": {
           "parse": "ok",
@@ -1936,6 +2061,11 @@ const DATA: { pkaLeavingGroupCutoff: number; reactions: StagedReaction[] } =
         "O"
       ],
       "redox": false,
+      "reactant_formulas": [
+        "C6H10O",
+        "C4H6O"
+      ],
+      "product_formula": "C10H14O",
       "validation": {
         "checks": {
           "parse": "ok",
@@ -2000,6 +2130,10 @@ const DATA: { pkaLeavingGroupCutoff: number; reactions: StagedReaction[] } =
         "O"
       ],
       "redox": false,
+      "reactant_formulas": [
+        "C4H10O"
+      ],
+      "product_formula": "C4H9Br",
       "validation": {
         "checks": {
           "parse": "ok",
@@ -2067,6 +2201,10 @@ const DATA: { pkaLeavingGroupCutoff: number; reactions: StagedReaction[] } =
         "OP(O)O"
       ],
       "redox": false,
+      "reactant_formulas": [
+        "C4H10O"
+      ],
+      "product_formula": "C4H9Br",
       "validation": {
         "checks": {
           "parse": "ok",
@@ -2131,6 +2269,10 @@ const DATA: { pkaLeavingGroupCutoff: number; reactions: StagedReaction[] } =
         "O"
       ],
       "redox": false,
+      "reactant_formulas": [
+        "C4H10O"
+      ],
+      "product_formula": "C4H8",
       "validation": {
         "checks": {
           "parse": "ok",
@@ -2188,6 +2330,10 @@ const DATA: { pkaLeavingGroupCutoff: number; reactions: StagedReaction[] } =
         "CCCC=O"
       ],
       "redox": true,
+      "reactant_formulas": [
+        "C4H10O"
+      ],
+      "product_formula": "C4H8O",
       "validation": {
         "checks": {
           "parse": "ok",
@@ -2249,6 +2395,10 @@ const DATA: { pkaLeavingGroupCutoff: number; reactions: StagedReaction[] } =
         "CC(C)(C)Br"
       ],
       "redox": false,
+      "reactant_formulas": [
+        "C6H14O"
+      ],
+      "product_formula": "C2H6O",
       "validation": {
         "checks": {
           "parse": "ok",
@@ -2312,6 +2462,10 @@ const DATA: { pkaLeavingGroupCutoff: number; reactions: StagedReaction[] } =
         "OC(=O)c1cccc(Cl)c1"
       ],
       "redox": false,
+      "reactant_formulas": [
+        "C4H8"
+      ],
+      "product_formula": "C4H8O",
       "validation": {
         "checks": {
           "parse": "ok",
@@ -2385,6 +2539,10 @@ const DATA: { pkaLeavingGroupCutoff: number; reactions: StagedReaction[] } =
         "CC(C)(O)COC"
       ],
       "redox": false,
+      "reactant_formulas": [
+        "C4H8O"
+      ],
+      "product_formula": "C5H12O2",
       "validation": {
         "checks": {
           "parse": "ok",
@@ -2447,6 +2605,10 @@ const DATA: { pkaLeavingGroupCutoff: number; reactions: StagedReaction[] } =
         "O=C1CCC(=O)N1"
       ],
       "redox": false,
+      "reactant_formulas": [
+        "C4H8"
+      ],
+      "product_formula": "C4H7Br",
       "validation": {
         "checks": {
           "parse": "ok",
@@ -2509,6 +2671,10 @@ const DATA: { pkaLeavingGroupCutoff: number; reactions: StagedReaction[] } =
         "CC=CCBr"
       ],
       "redox": false,
+      "reactant_formulas": [
+        "C4H6"
+      ],
+      "product_formula": "C4H7Br",
       "validation": {
         "checks": {
           "parse": "ok",
@@ -2569,6 +2735,11 @@ const DATA: { pkaLeavingGroupCutoff: number; reactions: StagedReaction[] } =
         "O=CC1CCC=CC1"
       ],
       "redox": false,
+      "reactant_formulas": [
+        "C4H6",
+        "C3H4O"
+      ],
+      "product_formula": "C7H10O",
       "validation": {
         "checks": {
           "parse": "ok",
@@ -2634,6 +2805,10 @@ const DATA: { pkaLeavingGroupCutoff: number; reactions: StagedReaction[] } =
         "Br"
       ],
       "redox": false,
+      "reactant_formulas": [
+        "C6H6"
+      ],
+      "product_formula": "C6H5Br",
       "validation": {
         "checks": {
           "parse": "ok",
@@ -2699,6 +2874,10 @@ const DATA: { pkaLeavingGroupCutoff: number; reactions: StagedReaction[] } =
         "Cl"
       ],
       "redox": false,
+      "reactant_formulas": [
+        "C6H6"
+      ],
+      "product_formula": "C8H8O",
       "validation": {
         "checks": {
           "parse": "ok",
@@ -2764,6 +2943,10 @@ const DATA: { pkaLeavingGroupCutoff: number; reactions: StagedReaction[] } =
         "O"
       ],
       "redox": false,
+      "reactant_formulas": [
+        "C6H6"
+      ],
+      "product_formula": "C6H5NO2",
       "validation": {
         "checks": {
           "parse": "ok",
@@ -2832,6 +3015,10 @@ const DATA: { pkaLeavingGroupCutoff: number; reactions: StagedReaction[] } =
         "[Cl-]"
       ],
       "redox": false,
+      "reactant_formulas": [
+        "C6H7N"
+      ],
+      "product_formula": "C6H5N2+",
       "validation": {
         "checks": {
           "parse": "ok",
@@ -2894,6 +3081,10 @@ const DATA: { pkaLeavingGroupCutoff: number; reactions: StagedReaction[] } =
         "N#N"
       ],
       "redox": false,
+      "reactant_formulas": [
+        "C6H5N2+"
+      ],
+      "product_formula": "C6H5Br",
       "validation": {
         "checks": {
           "parse": "ok",
@@ -2959,6 +3150,10 @@ const DATA: { pkaLeavingGroupCutoff: number; reactions: StagedReaction[] } =
         "O"
       ],
       "redox": false,
+      "reactant_formulas": [
+        "C2H6O2"
+      ],
+      "product_formula": "CH2O",
       "validation": {
         "checks": {
           "parse": "ok",

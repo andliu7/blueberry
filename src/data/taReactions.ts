@@ -94,6 +94,18 @@ export function toStagedReaction(ta: TaReaction): StagedReaction {
     tier: 0,
     reactants: ta.substrate ? [ta.substrate] : [],
     reactant_labels: [ta.substrateLabel],
+    /**
+     * No formulas, on purpose.
+     *
+     * The generated set gets these from RDKit, which parses the structure and
+     * counts the atoms. Nothing in the browser does that, and a formula worked
+     * out from a hand-typed SMILES by string manipulation would be wrong in
+     * exactly the cases that matter: rings, aromatic systems, implicit
+     * hydrogens. Empty means the panel prints no formula, which is honest.
+     * These reactions already carry the amber "not machine checked" box.
+     */
+    reactant_formulas: [],
+    product_formula: "",
     stages: [
       {
         order: 1,

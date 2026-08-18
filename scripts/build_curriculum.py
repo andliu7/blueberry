@@ -32,6 +32,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from conservation_check import (  # noqa: E402
     DEFAULT_LEAVING_GROUP_PKA_CUTOFF,
     canonical,
+    formula_of,
     run_regression,
     validate_staged,
 )
@@ -1297,6 +1298,17 @@ def main() -> int:
             rxn[key] = [canonical(s) for s in rxn.get(key, [])]
         rxn["product"] = canonical(rxn["product"])
 
+        # Molecular formulas, computed rather than written down.
+        #
+        # The site shows students a name and a formula instead of a SMILES
+        # string, and a formula is exactly the kind of thing that looks right
+        # while being wrong: implicit hydrogens are easy to miscount by hand and
+        # nobody checks a subscript. RDKit derives it from the same structure
+        # the conservation check already passed, so the formula on the page and
+        # the structure in the data cannot disagree.
+        rxn["reactant_formulas"] = [formula_of(s) for s in rxn["reactants"]]
+        rxn["product_formula"] = formula_of(rxn["product"])
+
         record = rxn["validation"] = validate_staged(rxn)
         cons = record["checks"].get("conservation", "?")
         cls = record["checks"].get("classification", "?")
@@ -1365,6 +1377,19 @@ def main() -> int:
         '  provenance: "syllabus" | "professor-slide" | "ta-verified" | "ai-proposed";\n'
         "  validation: Validation;\n"
         "  balance_lhs: string[];\n  balance_rhs: string[];\n  redox: boolean;\n"
+        "  /**\n"
+        "   * Molecular formulas, computed by RDKit from the same structures the\n"
+        "   * conservation check passed.\n"
+        "   *\n"
+        "   * The pages show a name and a formula rather than a SMILES string,\n"
+        "   * because a SMILES is a serialisation format and not something a student\n"
+        "   * reads. Derived rather than written down: implicit hydrogens are easy to\n"
+        "   * miscount by hand and nobody proofreads a subscript.\n"
+        "   *\n"
+        "   * Empty string for anything unparseable, so a missing formula is missing\n"
+        "   * rather than wrong. Index-aligned with `reactants` / `reactant_labels`.\n"
+        "   */\n"
+        "  reactant_formulas: string[];\n  product_formula: string;\n"
         "  /** Paths under BASE_URL. Rendered by RDKit from the canonical SMILES. */\n"
         "  art: {\n"
         "    start_light?: string;\n    start_dark?: string;\n"
