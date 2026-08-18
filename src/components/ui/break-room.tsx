@@ -3,7 +3,12 @@ import { AnimatePresence, motion } from "motion/react";
 import { createPortal } from "react-dom";
 import { Check, ChevronDown, CloudRain, Gamepad2, Music, Volume2, VolumeX, Waves, X } from "lucide-react";
 import { Tetris } from "@/components/ui/tetris";
-import { SCENE_LABEL, SPOTIFY_PLAYLIST_URI, type AmbienceScene } from "@/lib/useAmbience";
+import {
+  SCENE_LABEL,
+  SPOTIFY_PLAYLISTS,
+  playlistUri,
+  type AmbienceScene,
+} from "@/lib/useAmbience";
 import { SpotifyLoop } from "@/components/ui/spotify-loop";
 import { cn } from "@/lib/utils";
 
@@ -42,6 +47,13 @@ export function BreakRoom({
   showGame: boolean;
 }) {
   const [playing, setPlaying] = useState(false);
+  /**
+   * Which playlist, remembered for the session.
+   *
+   * Not persisted: the volume beside it is not either, and a sound bed is
+   * a choice you make for the sitting you are in rather than a setting.
+   */
+  const [playlist, setPlaylist] = useState(SPOTIFY_PLAYLISTS[0].id);
 
   return (
     <div className="border-t border-slate-100 dark:border-stone-900">
@@ -108,7 +120,43 @@ export function BreakRoom({
       {/* Spotify draws its own player, so unlike the synthesised beds this
           option has something to show. Mounted only when chosen: it pulls a
           script from Spotify, the one third-party request on the site. */}
-      <SpotifyLoop uri={SPOTIFY_PLAYLIST_URI} playing={scene === "spotify"} />
+      {scene === "spotify" && (
+        <div className="mt-3">
+          {/* Which playlist, when there is more than one.
+
+              A row of small buttons rather than a second dropdown: there are
+              three, they all fit, and the menu above is already how you get to
+              Spotify at all. Nesting a picker inside the thing the picker
+              chose reads as two decisions for one choice. */}
+          <div className="flex flex-wrap gap-1.5">
+            {SPOTIFY_PLAYLISTS.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => setPlaylist(p.id)}
+                aria-pressed={playlist === p.id}
+                className={cn(
+                  "min-h-9 cursor-pointer rounded-lg border px-2.5 text-xs font-semibold transition-colors",
+                  playlist === p.id
+                    ? "border-indigo-400 bg-indigo-50 text-indigo-700 dark:border-indigo-500 dark:bg-indigo-950/50 dark:text-indigo-200"
+                    : "border-slate-300 text-slate-600 hover:border-indigo-300 hover:text-indigo-700 dark:border-stone-700 dark:text-stone-300 dark:hover:border-indigo-600",
+                )}
+              >
+                {p.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+      {/* Keyed on the playlist so switching rebuilds the controller. The
+          Spotify controller is created once for a uri and has no way to be
+          pointed at another one, so reusing it would leave the previous
+          playlist playing under a new label. */}
+      <SpotifyLoop
+        key={playlist}
+        uri={playlistUri(playlist)}
+        playing={scene === "spotify"}
+      />
 
       {showGame && playing && (
         <TetrisScreen onClose={() => setPlaying(false)} />

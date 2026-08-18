@@ -30,13 +30,38 @@ import { useCallback, useEffect, useRef, useState } from "react";
 export type AmbienceScene = "off" | "white" | "rain" | "spotify";
 
 /**
- * The playlist Andrew listens to, looped by seeking rather than synthesised.
+ * The playlists, looped by seeking rather than synthesised.
  *
- * Handled outside this hook: it is an iframe Spotify owns, not a graph we
+ * Handled outside this hook: these are iframes Spotify owns, not graphs we
  * build, so `play("spotify")` only tears the synthesised voices down and records
  * the choice. See `ui/spotify-loop.tsx`.
+ *
+ * **The names are Spotify's own, read from its oEmbed endpoint rather than
+ * typed from memory.** A playlist id is opaque, and a label invented for one is
+ * wrong the moment the playlist is renamed or the wrong id is pasted. These were
+ * fetched and checked at the time they were added.
+ *
+ * Note the overlap worth knowing about: "Rainforest Sounds" is a recording and
+ * the `rain` scene above is synthesised. They are different things that sound
+ * similar, which is why the menu groups the playlists under Spotify rather than
+ * mixing them in with the beds.
  */
-export const SPOTIFY_PLAYLIST_URI = "spotify:playlist:2g12iEeRtAGWuHGcLZGL8X";
+export interface SpotifyPlaylist {
+  id: string;
+  /** Spotify's own title for the playlist. */
+  name: string;
+}
+
+export const SPOTIFY_PLAYLISTS: SpotifyPlaylist[] = [
+  { id: "2g12iEeRtAGWuHGcLZGL8X", name: "Brown Noise | 12 hrs" },
+  { id: "37i9dQZF1DXaw68inx4UiN", name: "Rainforest Sounds" },
+  { id: "37i9dQZF1DXaa8UmWJHYTU", name: "Fire Sounds" },
+];
+
+export const playlistUri = (id: string) => `spotify:playlist:${id}`;
+
+/** Kept so anything still importing the single-playlist name keeps working. */
+export const SPOTIFY_PLAYLIST_URI = playlistUri(SPOTIFY_PLAYLISTS[0].id);
 
 export const SCENE_LABEL: Record<Exclude<AmbienceScene, "off">, string> = {
   white: "White noise",
