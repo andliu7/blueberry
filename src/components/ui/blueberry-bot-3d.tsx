@@ -63,6 +63,15 @@ function useBlushMap() {
   }, []);
 }
 
+/**
+ * Forward tilt on the body, radians.
+ *
+ * Only the body carries it. The face is placed against the untilted
+ * surface solution, so tilting the whole head would take the eyes and
+ * mouth off the curve they were solved for.
+ */
+const BODY_PITCH = 0.21;
+
 type EyeMode = "open" | "shut" | "fluster";
 
 function Eye({ side, modeRef }: { side: number; modeRef: React.RefObject<EyeMode> }) {
@@ -104,8 +113,8 @@ function Eye({ side, modeRef }: { side: number; modeRef: React.RefObject<EyeMode
 
   return (
     <group
-      position={[side * 0.335 * OBLATE, 0.12, surfaceZ(side * 0.335 * OBLATE, 0.12, 0.0)]}
-      rotation={[0, surfaceYaw(side * 0.335 * OBLATE, 0.12), 0]}
+      position={[side * 0.38 * OBLATE, 0.12, surfaceZ(side * 0.38 * OBLATE, 0.12, 0.0)]}
+      rotation={[0, surfaceYaw(side * 0.38 * OBLATE, 0.12), 0]}
     >
       <group ref={open}>
         <mesh scale={[0.13, 0.2, 0.08]}>
@@ -187,6 +196,12 @@ function Berry({
   const poke = useRef(0);
   const blush = useRef<THREE.Group>(null);
   const blushMap = useBlushMap();
+  /** Spring velocity for the head, and how much of the awe reaction is on. */
+  const velY = useRef(0);
+  const velX = useRef(0);
+  const awe = useRef(0);
+  /** Wraps both eyes so they can lead the head without moving it. */
+  const gaze = useRef<THREE.Group>(null);
   const mouth = useRef<THREE.Mesh>(null);
   const smile = useRef<THREE.Mesh>(null);
   // Built once per mount. The bloom patches MeshStandardMaterial rather than
@@ -212,9 +227,9 @@ function Berry({
   const smileCurve = useMemo(
     () =>
       new THREE.QuadraticBezierCurve3(
-        new THREE.Vector3(-0.26 * OBLATE, -0.35, surfaceZ(-0.26 * OBLATE, -0.35, 0.01)),
-        new THREE.Vector3(0, -0.53, surfaceZ(0, -0.53, 0.03)),
-        new THREE.Vector3(0.26 * OBLATE, -0.35, surfaceZ(0.26 * OBLATE, -0.35, 0.01)),
+        new THREE.Vector3(-0.28 * OBLATE, -0.30, surfaceZ(-0.28 * OBLATE, -0.30, 0.01)),
+        new THREE.Vector3(0, -0.62, surfaceZ(0, -0.62, 0.03)),
+        new THREE.Vector3(0.28 * OBLATE, -0.30, surfaceZ(0.28 * OBLATE, -0.30, 0.01)),
       ),
     [],
   );
@@ -280,11 +295,53 @@ function Berry({
           : shape.lookY + spin.current;
       const tx = shy ? -0.12 : tracking ? -pointer.y * 0.34 : shape.lookX;
 
-      // Snappier under the hand so the berry keeps up with a drag, softer
-      // otherwise so idle movement stays lazy.
-      const follow = dragging.current ? 18 : 9;
-      head.current.rotation.y = THREE.MathUtils.lerp(head.current.rotation.y, ty, follow * dt);
-      head.current.rotation.x = THREE.MathUtils.lerp(head.current.rotation.x, tx, 7 * dt);
+      /**
+       * A spring, not a lerp.
+       *
+       * A lerp only ever decelerates into its target, which reads as machinery
+       * arriving on a schedule. A light spring overshoots a few degrees and
+       * settles, and that overshoot is the whole difference between a head that
+       * turns and a head that is eager to see what you are doing.
+       *
+       * Underdamped on purpose: `damp` below the critical value for this
+       * stiffness is what leaves the overshoot in. Dragging stiffens it and
+       * damps it hard, because under the hand you want it to keep up rather
+       * than to wobble.
+       */
+      const stiff = dragging.current ? 210 : 120;
+      const damp = dragging.current ? 26 : 13;
+      velY.current += (ty - head.current.rotation.y) * stiff * dt - velY.current * damp * dt;
+      velX.current += (tx - head.current.rotation.x) * stiff * dt - velX.current * damp * dt;
+      head.current.rotation.y += velY.current * dt;
+      head.current.rotation.x += velX.current * dt;
+
+      /**
+       * The eyes arrive before the head does.
+       *
+       * This is most of what "in awe" means: the character notices first and
+       * turns second. They lead by a fraction of the remaining angle, so the
+       * offset is largest mid-turn and zero once the head catches up, and it is
+       * clamped so the pupils never leave the whites.
+       */
+      if (gaze.current) {
+        const leadY = THREE.MathUtils.clamp((ty - head.current.rotation.y) * 0.55, -0.09, 0.09);
+        const leadX = THREE.MathUtils.clamp((tx - head.current.rotation.x) * 0.55, -0.06, 0.06);
+        gaze.current.position.x = leadY * 0.42;
+        gaze.current.position.y = -leadX * 0.42;
+
+        /**
+         * Widening on approach.
+         *
+         * Driven by how fast the target is moving rather than by pointer speed
+         * in screen space, so it fires when the berry is being approached and
+         * not when the cursor crosses a far corner. Small: a few percent is a
+         * reaction, twenty percent is a cartoon take.
+         */
+        const chase = Math.min(1, Math.hypot(velY.current, velX.current) * 0.45);
+        awe.current = THREE.MathUtils.lerp(awe.current, chase, 6 * dt);
+        const widen = 1 + awe.current * 0.16;
+        gaze.current.scale.set(widen, widen, 1);
+      }
 
       shake.current = THREE.MathUtils.lerp(shake.current, shy ? 1 : 0, 8 * dt);
       // Set rather than lerped: the amplitude is already eased, so lerping the
@@ -404,9 +461,26 @@ function Berry({
           `mesh.scale` is left alone: resting oblateness is baked into the
           BufferGeometry, because scale belongs to the volume-preservation
           system and a non-unit rest state there would break 1/sqrt(scaleY). */}
-      <mesh castShadow geometry={bodyGeo} material={bodyMat} />
-      <Eye side={-1} modeRef={eyeMode} />
-      <Eye side={1} modeRef={eyeMode} />
+      {/* Pitched forward, and this is what finally makes the crown visible.
+          The camera sits at y = 0.22, essentially level with the berry, so a
+          depression on the top pole is seen edge-on and hides behind the
+          silhouette. Widening it three times and darkening it in the shader
+          could never have worked: the geometry was not in view. Twelve degrees
+          tips the cap into frame while the face still reads front-on. */}
+      <mesh
+        castShadow
+        geometry={bodyGeo}
+        material={bodyMat}
+        rotation={[BODY_PITCH, 0, 0]}
+      />
+
+      {/* Both eyes in one group so they can lead the head. The group only ever
+          takes a small offset and a scale, so the eyes stay glued to the
+          surface positions each one solved for itself. */}
+      <group ref={gaze}>
+        <Eye side={-1} modeRef={eyeMode} />
+        <Eye side={1} modeRef={eyeMode} />
+      </group>
 
       {/* Blush, out on the cheeks and clear of the eyes. Flattened onto the
           surface so it reads as colour on the skin rather than two balls. */}
