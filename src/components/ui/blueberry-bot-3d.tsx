@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useMemo, useRef } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useInView } from "motion/react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
@@ -9,6 +9,7 @@ import {
   surfaceYaw,
   surfaceZ,
 } from "@/components/ui/berry-geometry";
+import { HeartBurst } from "@/components/ui/heart-burst";
 import { cn } from "@/lib/utils";
 import { MOOD_SHAPE, type BerryMood } from "@/lib/berryMood";
 
@@ -111,13 +112,19 @@ function Eye({ side, modeRef }: { side: number; modeRef: React.RefObject<EyeMode
     if (cross.current) cross.current.visible = m === "fluster";
   });
 
+  // Closer together, and upright. Two things were making them look splayed:
+  // 0.38 of the radius is wider than the flat mark uses, and the full
+  // surfaceYaw turned each eye to face along the surface, which on an
+  // ellipsoid taller than it is wide reads as the tops tipping outward. The
+  // mark keeps its eyes vertical and front-facing, so this takes 45 percent
+  // of the yaw: enough to sit on the curve, not enough to splay.
   return (
     <group
-      position={[side * 0.38 * OBLATE, 0.12, surfaceZ(side * 0.38 * OBLATE, 0.12, 0.0)]}
-      rotation={[0, surfaceYaw(side * 0.38 * OBLATE, 0.12), 0]}
+      position={[side * 0.31 * OBLATE, 0.13, surfaceZ(side * 0.31 * OBLATE, 0.13, 0.0)]}
+      rotation={[0, surfaceYaw(side * 0.31 * OBLATE, 0.13) * 0.45, 0]}
     >
       <group ref={open}>
-        <mesh scale={[0.13, 0.2, 0.08]}>
+        <mesh scale={[0.115, 0.205, 0.075]}>
           <sphereGeometry args={[1, 20, 20]} />
           <meshBasicMaterial color="#0b0b14" toneMapped={false} />
         </mesh>
@@ -561,6 +568,8 @@ export function BlueberryBot3D({
    */
   trackWindow?: boolean;
 }) {
+  /** Hovered, for the hearts. Kept in state because the DOM layer rerenders. */
+  const [fond, setFond] = useState(false);
   /**
    * Whether this berry is worth spending frames on.
    *
@@ -663,10 +672,20 @@ export function BlueberryBot3D({
       onPointerMove={onMove}
       onPointerUp={onUp}
       onPointerCancel={onUp}
+      // Hover is tracked out here as well as inside the scene. The 3-D hit test
+      // drives the squeeze and the blush; this drives the hearts, which are DOM
+      // and need a React state change rather than a ref the render loop reads.
+      onPointerEnter={() => interactive && setFond(true)}
+      onPointerLeave={() => interactive && setFond(false)}
       // Vertical scrolling still belongs to the page; only the horizontal axis
       // is claimed, so dragging the berry on a phone does not trap the scroll.
       style={{ touchAction: interactive ? "pan-y" : undefined }}
     >
+      {/* Over the canvas, not in it. Emoji hearts are cheaper and crisper as
+          DOM than as textured quads in the scene, and they need to escape the
+          canvas bounds as they drift, which a WebGL layer cannot do. */}
+      <HeartBurst active={fond} />
+
       <Canvas
         // Raised to match: with a fuller calyx the silhouette's centre is above
         // the sphere's, and a camera on the equator framed him low.
