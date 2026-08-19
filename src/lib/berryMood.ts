@@ -29,7 +29,15 @@ export type BerryMood =
   /** Nothing to do. Slow bob, eyes shut. Empty states. */
   | "sleepy"
   /** Caught looking. Blush and squeezed eyes. What hover produces. */
-  | "shy";
+  | "shy"
+  /** Down about something. Eyes level, mouth turned down, head low. */
+  | "sad"
+  /** Sustained enthusiasm, unlike `cheer` which is a burst on finishing. */
+  | "excited"
+  /** Under it. Wide eyes, flat mouth, jittery. Deadlines and full inboxes. */
+  | "stressed"
+  /** Settled and unhurried. Kind eyes, slow drift, chin level. */
+  | "calm";
 
 export const BERRY_MOODS: BerryMood[] = [
   "curious",
@@ -41,6 +49,10 @@ export const BERRY_MOODS: BerryMood[] = [
   "thinking",
   "sleepy",
   "shy",
+  "sad",
+  "excited",
+  "stressed",
+  "calm",
 ];
 
 /**
@@ -76,6 +88,29 @@ export const MOOD_SHAPE: Record<BerryMood, MoodShape> = {
   thinking: { eyes: "open", blush: 0, mouth: 0.3, sway: 0.35, lookX: -0.16, lookY: 0.42, tracks: false },
   sleepy: { eyes: "shut", blush: 0, mouth: 0.4, sway: 0.3, lookX: 0.14, lookY: 0, tracks: false },
   shy: { eyes: "fluster", blush: 1, mouth: 0.6, sway: 0.8, lookX: -0.12, lookY: 0, tracks: false },
+
+  // The four added later. Each one has to differ from its nearest neighbour
+  // in more than one number, or the two read as the same face drawn twice.
+
+  // Head down and mouth turned down. The only negative `mouth` in the set,
+  // which is what makes it unmistakable at 24px where a subtle frown is not.
+  sad: { eyes: "open", blush: 0, mouth: -0.7, sway: 0.15, lookX: 0.3, lookY: 0, tracks: false },
+
+  // Beside `cheer` deliberately. Cheer is a burst you get for finishing and
+  // carries the biggest mouth and blush in the set; excited is a state a page
+  // can sit in, so it is livelier in movement and calmer in face. It also
+  // tracks the pointer, which cheer does not: sustained enthusiasm looks at
+  // you, a celebration looks up.
+  excited: { eyes: "open", blush: 0.45, mouth: 1.5, sway: 1, lookX: -0.1, lookY: 0, tracks: true },
+
+  // Wide open eyes and a flat mouth, with the fastest sway in the set. The
+  // difference from `focused` is exactly that: same open eyes and level
+  // mouth, opposite amount of movement.
+  stressed: { eyes: "open", blush: 0.2, mouth: 0.05, sway: 0.95, lookX: -0.06, lookY: 0.18, tracks: true },
+
+  // Slower than `sleepy` but awake, which is the distinction that matters:
+  // sleepy has its eyes shut and belongs to empty states, calm is present.
+  calm: { eyes: "kind", blush: 0.1, mouth: 0.8, sway: 0.18, lookX: 0, lookY: 0, tracks: false },
 };
 
 /**

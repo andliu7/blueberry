@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
 import { X } from "lucide-react";
+import { BlobReveal } from "@/components/BlobReveal/BlobReveal";
 import { ShaderAnimation } from "@/components/ui/shader-animation";
 import { AuroraBackground } from "@/components/ui/aurora-background";
 import { BackgroundGradientGlow } from "@/components/ui/background-gradient-glow";
@@ -274,17 +275,22 @@ function IntroStage({
 
                 `aria-hidden` and an empty alt: this is the backdrop to a title
                 that already says what the page is. */}
-            <img
-              src={`${import.meta.env.BASE_URL}backgrounds/intro-light.webp`}
-              alt=""
-              aria-hidden
-              className="absolute inset-0 size-full object-cover dark:hidden"
-            />
-            <img
-              src={`${import.meta.env.BASE_URL}backgrounds/intro-dark.webp`}
-              alt=""
-              aria-hidden
-              className="absolute inset-0 hidden size-full object-cover dark:block"
+            {/* The backdrop follows the pointer now.
+
+                Two berry photographs stacked, with a blobby mask that reveals
+                the lower one through the upper. Deliberately not the two intro
+                photographs that used to be here: those are light and dark
+                variants of the same shot, so in dark mode the blob would have
+                revealed the picture already on screen and the effect would
+                vanish. These two are theme-independent.
+
+                It declines to run on touch, without WebGL2, and on a lost
+                context, and shows the top image instead. See BlobReveal. */}
+            <BlobReveal
+              topSrc={`${import.meta.env.BASE_URL}backgrounds/berry-wet.webp`}
+              bottomSrc={`${import.meta.env.BASE_URL}backgrounds/berry-purple.webp`}
+              alt="Blueberries, close up."
+              className="absolute inset-0 size-full"
             />
             <ShaderAnimation
               className={cn(
