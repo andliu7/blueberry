@@ -83,7 +83,7 @@ export function DashboardPage({ route }: { route: string }) {
       {/* The same veil the modal used. The photograph is the darker thing on a
           pale surface and the brighter thing on a near-black one, so the two
           take opposite corrections rather than one value flipped. */}
-      <div aria-hidden className="fixed inset-0 bg-white/78 dark:bg-[#171327]/82" />
+      <div aria-hidden className="fixed inset-0 bg-white/78 dark:bg-[#171327]/62" />
 
       <div className="relative mx-auto flex w-full max-w-7xl gap-6 px-4 py-5 sm:px-6">
         {/* The column, permanent from `md` up. Sticky rather than fixed so it

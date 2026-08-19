@@ -24,16 +24,21 @@ export const OBLATE = 1.12;
 /**
  * How far down from the top pole the calyx depression reaches, in radians.
  *
- * Widened again, 0.62 to 0.72 to 0.84. The crown already scales with the body, because it is cut
+ * Pulled back in to 0.58 after 0.72 and 0.84 both went the wrong way. Widening
+ * it made the depression broad and shallow, which stopped reading as a
+ * five-pointed scar and started reading as a flat dark top. What makes a calyx
+ * legible is the contrast between lobe and notch, not its diameter, so this is
+ * tighter, deeper, and the lobe term now swings 0.12 to 1.00 instead of 0.35 to
+ * 1.00. The crown already scales with the body, because it is cut
  * into the same mesh before the oblate scale is applied, so it was never
  * proportionally wrong. It just read too small: the berry docks at around 56px,
  * and a depression this shallow needs to cover more of the cap to be legible at
  * that size rather than disappearing into the shading.
  */
-const CALYX_REACH = 0.84;
+const CALYX_REACH = 0.58;
 
 /** Depth of the depression, as a fraction of radius. Deepened with the reach. */
-const CALYX_DEPTH = 0.19;
+const CALYX_DEPTH = 0.24;
 
 /** Depth of the small dimple at the very centre. */
 const DIMPLE_DEPTH = 0.05;
@@ -88,7 +93,7 @@ export function makeBerryBody(segments = 48): THREE.BufferGeometry {
 
     // The lobed ring, plus a small dimple that is strongest dead centre. The
     // ring term is zeroed at the pole itself so the two do not fight.
-    const ring = falloff * (0.35 + 0.65 * lobes) * smoothstep(0, 0.22, theta);
+    const ring = falloff * (0.12 + 0.88 * lobes) * smoothstep(0, 0.18, theta);
     const dimple = DIMPLE_DEPTH * (1 - smoothstep(0, 0.2, theta));
 
     const inward = 1 - (CALYX_DEPTH * ring + dimple);

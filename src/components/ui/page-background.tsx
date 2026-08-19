@@ -204,8 +204,16 @@ export function PageBackground({
             // it has to be *darkened* and pushed on contrast, or it dissolves
             // into the paper. Measured: at brightness 1.02 the image was
             // effectively invisible in light mode.
+            //
+            // Dark was then held back too far in the other direction: at 0.7
+            // opacity and 0.95 brightness the berries and the trees were being
+            // swallowed by the panel behind them, which is the opposite of the
+            // problem the light numbers solve. Lifted to 0.88 and 1.06 with more
+            // saturation, and contrast eased slightly, since pushing contrast on
+            // an already dark photograph crushes the shadows rather than
+            // separating anything.
             isDark
-              ? "opacity-[0.7] saturate-[1.3] brightness-[0.95] contrast-[1.25]"
+              ? "opacity-[0.88] saturate-[1.55] brightness-[1.06] contrast-[1.18]"
               : "opacity-[0.78] saturate-[1.25] brightness-[0.88] contrast-[1.22]",
           )}
         >

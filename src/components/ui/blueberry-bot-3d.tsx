@@ -97,7 +97,7 @@ function Eye({ side, modeRef }: { side: number; modeRef: React.RefObject<EyeMode
   });
 
   return (
-    <group position={[side * 0.38 * OBLATE, 0.12, 0.9 * OBLATE]}>
+    <group position={[side * 0.335 * OBLATE, 0.12, 0.9 * OBLATE]}>
       <group ref={open}>
         <mesh scale={[0.13, 0.2, 0.08]}>
           <sphereGeometry args={[1, 20, 20]} />
@@ -403,7 +403,18 @@ function Berry({
           surface so it reads as colour on the skin rather than two balls. */}
       <group ref={blush}>
         {[-1, 1].map((side) => (
-          <mesh key={side} position={[side * 0.44 * OBLATE, -0.14, 0.86 * OBLATE]} scale={[0.2, 0.13, 1]}>
+          <mesh
+            key={side}
+            // Solved rather than eyeballed. On the oblate body the surface at
+            // this cheek sits at z = 0.9935, and the blush was parked at
+            // 0.9632, which is 0.03 *inside* the fruit, so the body clipped it
+            // and it read as cut off. Placed just proud of the surface and
+            // turned to face along the outward normal there, 26.4 degrees, so
+            // a flat card sits on the curve instead of intersecting it.
+            position={[side * 0.44 * OBLATE, -0.14, 1.024]}
+            rotation={[0, side * 0.46, 0]}
+            scale={[0.17, 0.12, 1]}
+          >
             <planeGeometry args={[2, 2]} />
             <meshBasicMaterial
               color="#e11d48"
