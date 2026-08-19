@@ -2,64 +2,11 @@ import { Suspense, useEffect, useMemo, useRef } from "react";
 import { useInView } from "motion/react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
+import { makeBerryBody, makeBloomMaterial } from "@/components/ui/berry-geometry";
 import { cn } from "@/lib/utils";
 import { MOOD_SHAPE, type BerryMood } from "@/lib/berryMood";
 
-/**
- * The blueberry, in three dimensions, watching the cursor.
- *
- * A berry with its calyx, the kind eyes, and a mouth that drops open as it
- * follows you. There is no pot and nothing gets swallowed: that was a lot of
- * geometry and timing in service of a gag you see once, and what people
- * actually do with this is move the mouse and watch it look back.
- *
- * Adapted from the supplied robot hero rather than taken from it:
- *
- * 1. **The head is a blueberry**, which is the whole point, so the machined
- *    sphere, the ears and the antennae are gone.
- * 2. **No `Environment` preset.** drei's presets fetch an HDR from pmndrs' CDN
- *    at runtime, which would make the hub depend on a third-party asset host to
- *    finish rendering. Three lights ship with the page and do the job.
- * 3. **No `react-icons`, no `framer-motion`.** The first duplicates lucide; the
- *    second *is* `motion` under its former name, so it would ship the same
- *    library twice.
- * 4. **No procedural PBR textures.** The original draws ten thousand circles
- *    onto two 512px canvases on the main thread to give a plastic shell grain.
- *    A berry is smooth.
- *
- * Loaded lazily. three, fiber and drei are around 600 kB and the hub is the most
- * common landing page; paying that before first paint would undo the split that
- * took the main bundle from 756 kB to 545 kB.
- */
 
-const BERRY_STOPS: [number, string][] = [
-  [0.0, "#7dd3fc"],
-  [0.28, "#4f86f7"],
-  [0.66, "#6d3fe0"],
-  [1.0, "#3b1d8f"],
-];
-
-/**
- * The berry's shading, painted into a texture rather than lit for.
- *
- * The mark is a radial gradient offset to the upper left, and no arrangement of
- * lights reproduces that exactly. Wrapping the sphere in the same gradient keeps
- * the 3-D head recognisably the same object as the flat one.
- */
-function useBerryTexture() {
-  return useMemo(() => {
-    const c = document.createElement("canvas");
-    c.width = c.height = 256;
-    const ctx = c.getContext("2d")!;
-    const g = ctx.createRadialGradient(90, 80, 10, 128, 128, 190);
-    for (const [at, colour] of BERRY_STOPS) g.addColorStop(at, colour);
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, 256, 256);
-    const tex = new THREE.CanvasTexture(c);
-    tex.colorSpace = THREE.SRGBColorSpace;
-    return tex;
-  }, []);
-}
 
 /**
  * One eye, in three states: open, blinked shut, and flustered.
@@ -130,29 +77,6 @@ function Eye({ side, modeRef }: { side: number; modeRef: React.RefObject<EyeMode
   );
 }
 
-function Calyx() {
-  const lobes = useMemo(() => [0, 1, 2, 3, 4].map((i) => (i * 72 * Math.PI) / 180), []);
-  return (
-    // Higher and much less squashed than it was. Laid almost flat at 0.55 it
-    // vanished the moment the head tipped back to look up, which is exactly when
-    // you are looking at the top of him.
-    <group position={[0, 1.02, 0]} scale={[1, 0.92, 1]}>
-      {lobes.map((rot, i) => (
-        // Laid outward at roughly sixty degrees and lengthened. Standing more
-        // upright they read as spikes out of the crown of the head rather than
-        // as a calyx lying on it.
-        <mesh key={i} rotation={[0, rot, 0.82]} position={[0.3, 0.08, 0]}>
-          <coneGeometry args={[0.16, 0.72, 5]} />
-          <meshStandardMaterial color="#2c3fb0" roughness={0.55} flatShading />
-        </mesh>
-      ))}
-      <mesh scale={[1, 1.3, 1]}>
-        <sphereGeometry args={[0.2, 20, 20]} />
-        <meshStandardMaterial color="#241f7a" roughness={0.5} />
-      </mesh>
-    </group>
-  );
-}
 
 /** Seconds per blink cycle, and how much of it the eyes are shut. */
 const BLINK_CYCLE = 5.4;
@@ -204,7 +128,18 @@ function Berry({
   const blush = useRef<THREE.Group>(null);
   const mouth = useRef<THREE.Mesh>(null);
   const smile = useRef<THREE.Mesh>(null);
-  const tex = useBerryTexture();
+  // Built once per mount. The bloom patches MeshStandardMaterial rather than
+  // replacing it, so the berry keeps three's own lighting, shadows and tone
+  // mapping instead of a hand-rolled shader that would reimplement all of it.
+  const bodyGeo = useMemo(() => makeBerryBody(48), []);
+  const bodyMat = useMemo(() => makeBloomMaterial(), []);
+  useEffect(
+    () => () => {
+      bodyGeo.dispose();
+      bodyMat.dispose();
+    },
+    [bodyGeo, bodyMat],
+  );
 
   /** The resting smile: shallow and wide, matching the flat mark. */
   const smileCurve = useMemo(
@@ -394,11 +329,15 @@ function Berry({
         <meshBasicMaterial transparent opacity={0} depthWrite={false} />
       </mesh>
 
-      <mesh castShadow>
-        <sphereGeometry args={[1, 48, 48]} />
-        <meshStandardMaterial map={tex} roughness={0.42} metalness={0.05} />
-      </mesh>
-      <Calyx />
+      {/* One mesh for body and calyx. The calyx is a depression cut into the
+          top pole of this same geometry rather than a second mesh, so there is
+          no seam at the pole for the normal-driven bloom to catch on, and the
+          crown squashes with the body instead of sitting on it like a hat.
+
+          `mesh.scale` is left alone: resting oblateness is baked into the
+          BufferGeometry, because scale belongs to the volume-preservation
+          system and a non-unit rest state there would break 1/sqrt(scaleY). */}
+      <mesh castShadow geometry={bodyGeo} material={bodyMat} />
       <Eye side={-1} modeRef={eyeMode} />
       <Eye side={1} modeRef={eyeMode} />
 
