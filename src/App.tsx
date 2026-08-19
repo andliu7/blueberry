@@ -28,6 +28,7 @@ import { GooeyTogglePair, type ToggleVisibility } from "@/components/ui/gooey-to
 import { HomePage } from "@/components/HomePage";
 import { StudyDecksPage } from "@/components/StudyDecksPage";
 import { useHashRoute } from "@/lib/useHashRoute";
+import { useDocumentTitle } from "@/lib/useDocumentTitle";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
 import { SnapCarousel } from "@/components/ui/snap-carousel";
 import { QuestionCard, type Status } from "@/components/QuestionCard";
@@ -216,6 +217,7 @@ function withBoundary(node: React.ReactNode) {
  */
 export default function App() {
   const route = useHashRoute();
+  useDocumentTitle(route);
   // Includes the published decks, which arrive a moment after the page does.
   // The router is what makes an uploaded deck reachable at its own URL rather
   // than only visible as a card on the hub.
