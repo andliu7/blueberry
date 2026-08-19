@@ -2,7 +2,13 @@ import { Suspense, useEffect, useMemo, useRef } from "react";
 import { useInView } from "motion/react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { makeBerryBody, makeBloomMaterial, OBLATE } from "@/components/ui/berry-geometry";
+import {
+  makeBerryBody,
+  makeBloomMaterial,
+  OBLATE,
+  surfaceYaw,
+  surfaceZ,
+} from "@/components/ui/berry-geometry";
 import { cn } from "@/lib/utils";
 import { MOOD_SHAPE, type BerryMood } from "@/lib/berryMood";
 
@@ -97,7 +103,10 @@ function Eye({ side, modeRef }: { side: number; modeRef: React.RefObject<EyeMode
   });
 
   return (
-    <group position={[side * 0.335 * OBLATE, 0.12, 0.9 * OBLATE]}>
+    <group
+      position={[side * 0.335 * OBLATE, 0.12, surfaceZ(side * 0.335 * OBLATE, 0.12, 0.0)]}
+      rotation={[0, surfaceYaw(side * 0.335 * OBLATE, 0.12), 0]}
+    >
       <group ref={open}>
         <mesh scale={[0.13, 0.2, 0.08]}>
           <sphereGeometry args={[1, 20, 20]} />
@@ -203,9 +212,9 @@ function Berry({
   const smileCurve = useMemo(
     () =>
       new THREE.QuadraticBezierCurve3(
-        new THREE.Vector3(-0.26 * OBLATE, -0.35, 0.86 * OBLATE),
-        new THREE.Vector3(0, -0.53, 0.95 * OBLATE),
-        new THREE.Vector3(0.26 * OBLATE, -0.35, 0.86 * OBLATE),
+        new THREE.Vector3(-0.26 * OBLATE, -0.35, surfaceZ(-0.26 * OBLATE, -0.35, 0.01)),
+        new THREE.Vector3(0, -0.53, surfaceZ(0, -0.53, 0.03)),
+        new THREE.Vector3(0.26 * OBLATE, -0.35, surfaceZ(0.26 * OBLATE, -0.35, 0.01)),
       ),
     [],
   );
@@ -411,8 +420,8 @@ function Berry({
             // and it read as cut off. Placed just proud of the surface and
             // turned to face along the outward normal there, 26.4 degrees, so
             // a flat card sits on the curve instead of intersecting it.
-            position={[side * 0.44 * OBLATE, -0.14, 1.024]}
-            rotation={[0, side * 0.46, 0]}
+            position={[side * 0.44 * OBLATE, -0.14, surfaceZ(side * 0.44 * OBLATE, -0.14)]}
+            rotation={[0, surfaceYaw(side * 0.44 * OBLATE, -0.14), 0]}
             scale={[0.17, 0.12, 1]}
           >
             <planeGeometry args={[2, 2]} />
@@ -443,7 +452,11 @@ function Berry({
           height, so they punched through and showed as a lip once the berry
           turned. Narrower and shallower keeps the whole shape inside the
           silhouette through the rotation range we actually use. */}
-      <mesh ref={mouth} position={[0, -0.37, 0.76 * OBLATE]} scale={[0.42, 0.095, 0.34]}>
+      {/* Sunk by its own half-depth so only the front of the ellipsoid shows,
+          plus a little, so the visible cap sits proud of the surface. The
+          geometry radius is 0.42 and the Z scale 0.34, so half-depth is 0.143;
+          -0.16 put the whole thing back inside the fruit. */}
+      <mesh ref={mouth} position={[0, -0.37, surfaceZ(0, -0.37, -0.11)]} scale={[0.42, 0.095, 0.34]}>
         <sphereGeometry args={[0.42, 24, 24]} />
         <meshBasicMaterial color="#0b0b14" toneMapped={false} transparent opacity={0} />
       </mesh>

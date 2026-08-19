@@ -108,6 +108,27 @@ export function makeBerryBody(segments = 48): THREE.BufferGeometry {
   return geo;
 }
 
+
+/**
+ * Where the body's surface is, for a point on the face.
+ *
+ * Every face element had been placed by hand against a remembered radius, and
+ * every one of them was wrong once the body went oblate. Measured: the eyes were
+ * 0.039 inside, the mouth 0.189 inside, and the smile curve managed both at once
+ * with its ends buried 0.045 and its middle poking out 0.114.
+ *
+ * Solving the ellipsoid for z removes the whole class of mistake. `proud` lifts
+ * the result clear of the surface so a flat decal cannot z-fight with the fruit
+ * it sits on.
+ */
+export function surfaceZ(x: number, y: number, proud = 0.02): number {
+  const inner = 1 - (x / OBLATE) ** 2 - y ** 2;
+  return (inner > 0 ? OBLATE * Math.sqrt(inner) : 0) + proud;
+}
+
+/** The outward tilt at that point, so a card lies along the curve. */
+export const surfaceYaw = (x: number, y: number) => Math.atan2(x, surfaceZ(x, y, 0));
+
 /** Triangles in a geometry, for the honest count this ships with. */
 export const triangleCount = (geo: THREE.BufferGeometry) =>
   geo.index ? geo.index.count / 3 : geo.attributes.position.count / 3;
@@ -136,8 +157,8 @@ export function makeBloomMaterial(): THREE.MeshStandardMaterial {
   });
 
   mat.onBeforeCompile = (shader) => {
-    shader.uniforms.uDeep = { value: new THREE.Color("#3f2f9c") };
-    shader.uniforms.uBloom = { value: new THREE.Color("#a9c4ff") };
+    shader.uniforms.uDeep = { value: new THREE.Color("#4a5cc8") };
+    shader.uniforms.uBloom = { value: new THREE.Color("#8fb2f5") };
 
     shader.vertexShader = shader.vertexShader.replace(
       "#include <common>",
@@ -196,6 +217,21 @@ export function makeBloomMaterial(): THREE.MeshStandardMaterial {
          float fres = pow(1.0 - abs(dot(nWorld, vec3(0.0, 0.0, 1.0))), 3.0) * 0.06;
 
          vec3 skin = mix(uDeep, uBloom, bloom);
+
+         // The calyx, darkened explicitly.
+         //
+         // Relying on the normal-driven bloom to reveal it was not enough:
+         // the depression is shallow, so its faces barely turn away from up
+         // and it kept reading as a slightly flat top rather than a
+         // five-pointed scar. This shades the same region the geometry
+         // deforms, using the same five-fold term, so the drawn star and the
+         // sculpted one are the same shape by construction.
+         vec3 nObj = normalize(vObjPos);
+         float cap = smoothstep(0.62, 0.95, nObj.y);
+         float star = (cos(5.0 * atan(nObj.z, nObj.x)) + 1.0) * 0.5;
+         float calyx = cap * (0.30 + 0.70 * star);
+         skin = mix(skin, skin * 0.42, calyx);
+
          diffuseColor.rgb = skin + speck + fres;
        }`,
     );
