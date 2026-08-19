@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { CalendarClock, ChevronLeft, Save, TriangleAlert, Users } from "lucide-react";
-import { Blueberry } from "@/components/ui/blueberry";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -153,34 +152,29 @@ export default function TutoringPage() {
           Home
         </a>
 
-        <header className="mt-5 grid gap-5 rounded-3xl border border-indigo-200/80 bg-white/75 p-6 shadow-sm dark:border-indigo-400/20 dark:bg-stone-950/70 lg:grid-cols-[1fr_270px]">
-          <div>
-            <p className="font-mono text-xs font-semibold uppercase tracking-[.18em] text-indigo-600 dark:text-indigo-300">
+        {/* The same compaction as the calendar, and for the same reason: the
+            grid is the page. The instruction line survives because it changes
+            with who is looking, and a TA painting hours and a student booking
+            one need different sentences. The berry moved to the corner dock. */}
+        <header className="mt-4 flex flex-wrap items-baseline gap-x-4 gap-y-1">
+          <div className="min-w-0">
+            <p className="font-mono text-[0.7rem] font-semibold tracking-[.18em] text-indigo-600 uppercase dark:text-indigo-300">
               Tutoring / CHEM241
             </p>
-            <h1 className="title-face mt-3 text-5xl leading-none">Office hours</h1>
-            <p className="mt-4 max-w-2xl leading-7 text-slate-600 dark:text-stone-300">
-              {iAmTutor
-                ? "Paint the hours you are free and students can book them. Anything already booked is listed below."
-                : "Pick a time with a TA. Sessions are thirty minutes and free."}
-            </p>
+            <h1 className="title-face mt-1 text-3xl leading-none sm:text-4xl">Office hours</h1>
           </div>
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-indigo-300 bg-indigo-50/70 p-4 dark:border-indigo-400/30 dark:bg-indigo-950/25">
-            <Blueberry
-              mood="reading"
-              interactive
-              onActivate={() => {
-                window.location.hash = "#/home";
-              }}
-              className="h-40 w-40"
-              label="Blueberry. Press to go home, drag to spin."
-            />
-            <p className="mt-2 text-center text-sm text-indigo-900/75 dark:text-indigo-100/75">
-              {tutorSlots.length > 0
-                ? `${tutorSlots.length} slots offered this term.`
-                : "No hours posted yet."}
-            </p>
-          </div>
+
+          <p className="min-w-0 flex-1 text-sm leading-6 text-slate-600 dark:text-stone-300">
+            {iAmTutor
+              ? "Paint the hours you are free and students can book them."
+              : "Pick a time with a TA. Sessions are thirty minutes and free."}
+          </p>
+
+          <p className="shrink-0 text-sm text-slate-600 dark:text-stone-300">
+            {tutorSlots.length > 0
+              ? `${tutorSlots.length} ${tutorSlots.length === 1 ? "slot" : "slots"}`
+              : "No hours posted"}
+          </p>
         </header>
 
         <div className="mt-5 flex flex-col gap-5">

@@ -319,8 +319,12 @@ export function CourseCalendar({
     setEditing(null);
   };
 
+  // `min-h-0` on the root as well as on the grid. A flex child defaults to
+  // `min-height: auto`, so it will not shrink below its content no matter what
+  // its own children are told. Without it the chain broke one level above the
+  // grid: the card measured 358px and its children still measured 654px.
   return (
-    <div className={cn("flex flex-col gap-4", className)}>
+    <div className={cn("flex min-h-0 flex-1 flex-col gap-3", className)}>
       <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
           <h2 className="min-w-44 text-lg font-semibold text-slate-900 dark:text-stone-100">
@@ -429,8 +433,13 @@ export function CourseCalendar({
 
       {view === "month" ? (
         <>
-          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-stone-700 dark:bg-stone-900">
-            <div className="grid grid-cols-7 border-b border-slate-200 dark:border-stone-700">
+          {/* A flex column so the grid can take the height that is left.
+              It was a plain box whose cells each carried `sm:min-h-24`, which
+              is 96px times six rows of grid before the month nav, the search
+              and the six filter chips are counted. That is why the page ran
+              879px past the viewport on a laptop. */}
+          <div className="flex min-h-72 flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-stone-700 dark:bg-stone-900">
+            <div className="grid shrink-0 grid-cols-7 border-b border-slate-200 dark:border-stone-700">
               {WEEKDAYS.map((day) => (
                 <div
                   key={day}
@@ -445,7 +454,16 @@ export function CourseCalendar({
               ))}
             </div>
 
-            <div ref={gridRef} onKeyDown={onGridKeyDown} className="grid grid-cols-7">
+            {/* Six equal rows that divide the remaining height between them,
+                rather than six rows each at least 96px tall. `min-h-0` is the
+                part people leave off: without it a grid child refuses to
+                shrink below its content and the whole column overflows
+                anyway. */}
+            <div
+              ref={gridRef}
+              onKeyDown={onGridKeyDown}
+              className="grid min-h-72 flex-1 grid-cols-7 grid-rows-6"
+            >
               {monthGrid(anchor).map((day) => {
                 const key = startOfDay(day).getTime();
                 const items = byDay.get(key) ?? [];
@@ -468,7 +486,7 @@ export function CourseCalendar({
                       month: "long",
                     })}, ${items.length === 0 ? "nothing scheduled" : `${items.length} scheduled`}`}
                     className={cn(
-                      "flex min-h-16 cursor-pointer flex-col items-center gap-1 border-b border-r border-slate-100 p-1.5 text-left outline-none transition sm:min-h-24 sm:items-stretch dark:border-stone-800",
+                      "flex min-h-0 cursor-pointer flex-col items-center gap-1 overflow-hidden border-b border-r border-slate-100 p-1.5 text-left outline-none transition sm:items-stretch dark:border-stone-800",
                       "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-inset",
                       !inMonth && "bg-slate-50/60 dark:bg-stone-950/40",
                       isSelected && "bg-indigo-50 dark:bg-indigo-950/40",
@@ -524,7 +542,11 @@ export function CourseCalendar({
             </div>
           </div>
 
-          <section aria-live="polite">
+          {/* The day's agenda scrolls inside its own box rather than growing
+              the page. A day with eight things on it is a real scroll, and it
+              should not push the month grid off the screen the calendar is
+              supposed to fit on. */}
+          <section aria-live="polite" className="max-h-40 shrink-0 overflow-y-auto">
             <h3 className="mb-2 text-sm font-semibold text-slate-700 dark:text-stone-300">
               {selectedDay.toLocaleDateString(undefined, {
                 weekday: "long",

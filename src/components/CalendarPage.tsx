@@ -3,9 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { ChevronLeft, TriangleAlert } from "lucide-react";
 import { CourseCalendar, type CourseDate } from "@/components/ui/event-manager";
-import { Blueberry } from "@/components/ui/blueberry";
 import { Loader } from "@/components/ui/loader";
-import { SiteFooter } from "@/components/ui/site-footer";
 import { PageBackground } from "@/components/ui/page-background";
 import { SyllabusImportTicket } from "@/components/ui/syllabus-import-ticket";
 import { useSession } from "@/lib/useSession";
@@ -95,14 +93,16 @@ export default function CalendarPage() {
   };
 
   return (
-    // Same shell as Lessons and Reactions: background, back link, header card
-    // with the berry, then the content. This page used to be a bare centred
-    // column on the site's default background, which made it look like it
-    // belonged to a different product.
+    // Same shell as Lessons and Reactions: background, back link, a compact
+    // header bar, then the content.
     <main className="relative min-h-screen text-slate-900 dark:text-stone-100">
       <PageBackground />
 
-      <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
+      {/* The page is exactly one screen tall, and the calendar takes what the
+          header and the status line leave. `dvh` rather than `vh` because on a
+          phone the address bar changes the viewport and `vh` does not follow it,
+          which puts the last grid row under the browser chrome. */}
+      <div className="mx-auto flex h-dvh max-w-7xl flex-col px-4 py-5 sm:px-6 lg:px-8">
         <a
           href="#/home"
           className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-slate-600 hover:text-indigo-700 dark:text-stone-300"
@@ -111,53 +111,49 @@ export default function CalendarPage() {
           Home
         </a>
 
-        <header className="mt-5 grid gap-5 rounded-3xl border border-indigo-200/80 bg-white/75 p-6 shadow-sm dark:border-indigo-400/20 dark:bg-stone-950/70 lg:grid-cols-[1fr_270px]">
-          <div>
-            <p className="font-mono text-xs font-semibold uppercase tracking-[.18em] text-indigo-600 dark:text-indigo-300">
+        {/* One bar, not a title card.
+
+            This was a `text-5xl` heading, a paragraph, the whole import
+            interface inline, and a 160px berry in a bordered box: roughly 450px
+            of furniture above a month grid that then could not be seen without
+            scrolling. On a calendar the grid *is* the page, so the chrome around
+            it earns its height or goes.
+
+            What survived: the breadcrumb, the name, and the count, because the
+            count is the one number worth reading before the grid. The berry
+            moved to the corner dock, where it already lives on other pages. */}
+        <header className="mt-4 flex flex-wrap items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="font-mono text-[0.7rem] font-semibold tracking-[.18em] text-indigo-600 uppercase dark:text-indigo-300">
               Calendar / CHEM241
             </p>
-            <h1 className="title-face mt-3 text-5xl leading-none">Course calendar</h1>
-            <p className="mt-4 max-w-2xl leading-7 text-slate-600 dark:text-stone-300">
-              Exams, deadlines and labs for the term.
-              {canEdit && " Upload a syllabus and it fills itself in."}
-            </p>
-            {canEdit && (
-              <div className="mt-5">
-                <SyllabusImportTicket
-                  idToken={idToken}
-                  onSaved={(rows) => {
-                    setDates(rows);
-                    setError(null);
-                  }}
-                />
-              </div>
-            )}
+            <h1 className="title-face mt-1 text-3xl leading-none sm:text-4xl">Course calendar</h1>
           </div>
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-indigo-300 bg-indigo-50/70 p-4 dark:border-indigo-400/30 dark:bg-indigo-950/25">
-            <Blueberry
-              mood="reading"
-              interactive
-              onActivate={() => {
-                window.location.hash = "#/home";
+
+          <p className="shrink-0 text-sm text-slate-600 dark:text-stone-300">
+            {dates.length > 0
+              ? `${dates.length} ${dates.length === 1 ? "date" : "dates"}`
+              : "Nothing scheduled yet"}
+          </p>
+
+          {canEdit && (
+            <SyllabusImportTicket
+              idToken={idToken}
+              onSaved={(rows) => {
+                setDates(rows);
+                setError(null);
               }}
-              className="h-40 w-40"
-              label="Blueberry, keeping track. Press to go home, drag to spin."
             />
-            <p className="mt-2 text-center text-sm text-indigo-900/75 dark:text-indigo-100/75">
-              {dates.length > 0
-                ? `${dates.length} dates on the calendar.`
-                : "Nothing on the calendar yet."}
-            </p>
-          </div>
+          )}
         </header>
 
         {/* A status line, not a gate. Whatever it says, the calendar below is
             already on screen. */}
-        <div className="mt-5 flex flex-col gap-5">
+        <div className="mt-4 flex min-h-0 flex-1 flex-col gap-3">
           <StaffSignInNotice session={session} action="Importing a syllabus" />
           <StatusLine session={!!session} loading={loading} busy={busy} error={error} />
 
-          <div className="rounded-3xl border border-slate-200 bg-white/80 p-5 shadow-sm dark:border-stone-800 dark:bg-stone-950/70 sm:p-6">
+          <div className="flex min-h-0 flex-1 flex-col rounded-3xl border border-slate-200 bg-white/80 p-4 shadow-sm sm:p-5 dark:border-stone-800 dark:bg-stone-950/70">
             <CourseCalendar
               dates={dates}
               canEdit={canEdit}
@@ -169,7 +165,6 @@ export default function CalendarPage() {
         </div>
       </div>
 
-      <SiteFooter />
     </main>
   );
 }

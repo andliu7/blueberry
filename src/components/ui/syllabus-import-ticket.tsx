@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/select";
 import type { CourseDate } from "@/components/ui/event-manager";
 import { importSyllabus, saveDates } from "@/lib/calendar";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { HoverExpandAction } from "@/components/ui/hover-expand-action";
 import { cn } from "@/lib/utils";
 
 /**
@@ -114,25 +116,46 @@ export function SyllabusImportTicket({
       return next;
     });
 
+  // Collapsed: an icon that grows its label when reached for. Safe to hide the
+  // word here in a way it would not be on the burger, because importing is a
+  // secondary staff-only action on a page whose heading already says what it is.
   if (!open) {
     return (
-      <Button variant="outline" onClick={() => setOpen(true)} className={className}>
-        <FileUp className="size-4" />
-        Import a syllabus
-      </Button>
+      <HoverExpandAction
+        icon={<FileUp className="size-4" />}
+        label="Import file"
+        labelAt="hover"
+        aria-haspopup="dialog"
+        onClick={() => setOpen(true)}
+        className={className}
+      />
     );
   }
 
   const keeping = draft ? draft.length - dropped.size : 0;
 
+  /**
+   * Open: a card over the page, not a panel that grows inside it.
+   *
+   * Inline, this pushed the calendar down by its own height and by the review
+   * table once a PDF was read, which is most of why the page could not be seen
+   * at once. A dialog also gives the review step somewhere to be tall: forty
+   * extracted dates is a real scroll, and it belongs in its own surface rather
+   * than between the heading and the month grid.
+   *
+   * `DialogContent` already handles the scrim, Escape, focus trapping and
+   * returning focus to the trigger.
+   */
   return (
-    <section
-      className={cn(
-        "rounded-2xl border border-border bg-card p-4",
-        draft && "border-2 border-indigo-300 dark:border-indigo-800",
-        className,
-      )}
-    >
+    <Dialog open onOpenChange={(next) => { if (!next) { reset(); setOpen(false); } }}>
+      <DialogContent className="max-h-[88vh] w-full max-w-2xl overflow-y-auto">
+        <div
+          className={cn(
+            "rounded-2xl",
+            draft && "ring-2 ring-indigo-300 dark:ring-indigo-800",
+            className,
+          )}
+        >
       <div className="flex items-start justify-between gap-3">
         <div>
           <h2 className="text-sm font-semibold text-card-foreground">
@@ -271,7 +294,9 @@ export function SyllabusImportTicket({
           </div>
         </>
       )}
-    </section>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
