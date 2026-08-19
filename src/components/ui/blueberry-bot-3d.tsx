@@ -133,13 +133,19 @@ function Berry({
   // mapping instead of a hand-rolled shader that would reimplement all of it.
   const bodyGeo = useMemo(() => makeBerryBody(48), []);
   const bodyMat = useMemo(() => makeBloomMaterial(), []);
-  useEffect(
-    () => () => {
-      bodyGeo.dispose();
-      bodyMat.dispose();
-    },
-    [bodyGeo, bodyMat],
-  );
+  /**
+   * No dispose-on-unmount here, deliberately.
+   *
+   * This is the same StrictMode trap the context teardown below already carries
+   * a note about, and I walked into it anyway. In development React mounts,
+   * unmounts and mounts again. `useMemo` with an empty dep array does NOT re-run
+   * on that second mount, so a cleanup that disposes the geometry and material
+   * hands the remount a disposed pair: the GPU buffers are gone, the material
+   * will not compile, and the berry renders as nothing.
+   *
+   * A geometry and a material per component instance is a bounded, tiny leak.
+   * An invisible mascot is not.
+   */
 
   /** The resting smile: shallow and wide, matching the flat mark. */
   const smileCurve = useMemo(

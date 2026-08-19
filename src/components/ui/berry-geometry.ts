@@ -150,9 +150,12 @@ export function makeBloomMaterial(): THREE.MeshStandardMaterial {
       "#include <color_fragment>",
       `#include <color_fragment>
        {
-         // Back to world space: normal is view space here, and the bloom has to
-         // be anchored to world up rather than to the camera.
-         vec3 nWorld = normalize(mat3(viewMatrix) * normal);
+         // vNormal, not normal. three declares the local 'normal' inside
+         // normal_fragment_begin, which runs AFTER this chunk, so naming it
+         // here is a GLSL compile error: the program fails to link and the
+         // mesh renders as nothing at all. vNormal is the view-space varying
+         // and is already declared for us by normal_pars_fragment.
+         vec3 nWorld = normalize(mat3(viewMatrix) * normalize(vNormal));
 
          // Wide falloff. A narrow one is exactly what produces the seam this
          // material exists to remove, so this deliberately spans most of the
@@ -180,7 +183,7 @@ export function makeBloomMaterial(): THREE.MeshStandardMaterial {
       "#include <roughnessmap_fragment>",
       `#include <roughnessmap_fragment>
        {
-         vec3 nW = normalize(mat3(viewMatrix) * normal);
+         vec3 nW = normalize(mat3(viewMatrix) * normalize(vNormal));
          float upR = nW.y * 0.5 + 0.5;
          roughnessFactor = mix(0.46, 0.86, smoothstep(0.34, 0.92, upR));
        }`,
