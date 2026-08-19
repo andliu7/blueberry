@@ -1197,3 +1197,15 @@ button:disabled,
 .scrollbar-none::-webkit-scrollbar {
   display: none;
 }
+
+/* Supplied with `loading-state.tsx`. The grid pulses and the label shimmers;
+   both freeze under reduced motion because they are the only movement. */
+@keyframes pixel-on {
+  0%, 100% { opacity: 0.12; }
+  50% { opacity: 1; }
+}
+
+@keyframes shimmer-text {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
