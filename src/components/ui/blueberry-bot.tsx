@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { postToAppsScript } from "@/lib/appsScript";
-import { useSession } from "@/lib/useSession";
+import { askBlueberry } from "@/lib/askBlueberry";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { X } from "lucide-react";
 import { BlueberryMark } from "@/components/ui/blueberry-mark";
@@ -40,7 +39,6 @@ export function BlueberryBot() {
   const [draft, setDraft] = useState("");
   /** Full history, sent each turn: the API is stateless. */
   const [turns, setTurns] = useState<{ role: "user" | "assistant"; content: string }[]>([]);
-  const session = useSession();
   const reduced = useReducedMotion();
 
   /**
@@ -76,23 +74,26 @@ export function BlueberryBot() {
     const next = [...turns, { role: "user" as const, content: question }];
     setTurns(next);
 
-    // The token goes with every turn. This is not the gate — a browser can send
-    // anything — it is what lets the script verify who is asking. The gate is
-    // the check on the other end.
-    const body = await postToAppsScript("chat", {
-      messages: next,
-      idToken: session?.idToken ?? null,
-    });
+    // The Edge Function, not Apps Script. Apps Script verified Google ID tokens
+    // and nothing else, so a Supabase session had nothing to send it and was
+    // refused however genuinely signed in it was. supabase-js attaches the
+    // caller's JWT here, and Supabase verifies it before the function runs.
+    const body = await askBlueberry(next);
     setState("idle");
 
     if (body.ok && typeof body.text === "string") {
       setThought(body.text);
       setTurns([...next, { role: "assistant", content: body.text }]);
     } else {
+      // Auth is named rather than swallowed. The old branch printed "that did
+      // not work" for a refusal and offered no way to fix it, which is why the
+      // sign-out looked like a mystery.
       setThought(
-        body.error === "unreachable"
-          ? "Could not reach Blueberry. Check the connection and try again."
-          : ((body.error as string) ?? "That did not work."),
+        body.error === "not-signed-in"
+          ? "Ask Blueberry needs you signed in. Open #/signin and try again."
+          : body.error === "unreachable"
+            ? "Could not reach Blueberry. Check the connection and try again."
+            : ((body.error as string) ?? "That did not work."),
       );
     }
   };
