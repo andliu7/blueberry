@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { FileUp, TriangleAlert, X } from "lucide-react";
+import { FileUp, TriangleAlert } from "lucide-react";
 import { FileUpload, type FileUploadItem } from "@/components/ui/be-ui-file-upload";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -148,17 +148,11 @@ export function SyllabusImportTicket({
    */
   return (
     <Dialog open onOpenChange={(next) => { if (!next) { reset(); setOpen(false); } }}>
-      <DialogContent className="max-h-[88vh] w-full max-w-2xl overflow-y-auto">
-        <div
-          className={cn(
-            "rounded-2xl",
-            draft && "ring-2 ring-indigo-300 dark:ring-indigo-800",
-            className,
-          )}
-        >
-      <div className="flex items-start justify-between gap-3">
+      <DialogContent className="max-h-[88vh] w-full max-w-2xl overflow-y-auto p-5 sm:p-6">
+        <div className={cn(draft && "rounded-2xl ring-2 ring-indigo-300 dark:ring-indigo-800", className)}>
+      <div className="flex items-start justify-between gap-3 pr-12">
         <div>
-          <h2 className="text-sm font-semibold text-card-foreground">
+          <h2 className="text-base font-semibold text-card-foreground">
             {draft ? `Found ${draft.length} ${draft.length === 1 ? "date" : "dates"}` : "Import a syllabus"}
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -167,18 +161,9 @@ export function SyllabusImportTicket({
               : "A PDF under 3MB. Nothing is saved until you have looked at what it found."}
           </p>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => {
-            reset();
-            setOpen(false);
-          }}
-          aria-label="Close"
-          className="-mr-1 -mt-1 shrink-0 text-muted-foreground"
-        >
-          <X className="size-4" />
-        </Button>
+        {/* No close button here. `DialogContent` draws its own, and this panel
+            used to be inline where it needed one of its own - keeping both gave
+            the card two Xs in the same corner. */}
       </div>
 
       {!draft && (
