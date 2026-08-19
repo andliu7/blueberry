@@ -2,7 +2,7 @@ import { Suspense, useEffect, useMemo, useRef } from "react";
 import { useInView } from "motion/react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { makeBerryBody, makeBloomMaterial } from "@/components/ui/berry-geometry";
+import { makeBerryBody, makeBloomMaterial, OBLATE } from "@/components/ui/berry-geometry";
 import { cn } from "@/lib/utils";
 import { MOOD_SHAPE, type BerryMood } from "@/lib/berryMood";
 
@@ -21,6 +21,42 @@ import { MOOD_SHAPE, type BerryMood } from "@/lib/berryMood";
  * squashed. A scaled sphere flattening to nothing passes through shapes that
  * are neither an eye nor a lid, and at this size that reads as a glitch.
  */
+/**
+ * A soft round falloff, drawn once and shared by both cheeks.
+ *
+ * The blush was a flat-shaded ellipsoid, which gives a hard silhouette by
+ * construction: `meshBasicMaterial` is unlit, so the edge is exactly as opaque
+ * as the middle and it reads as a sticker. A radial alpha ramp on a plane fades
+ * to nothing at the rim, which is what makes it sit on the cheek rather than on
+ * top of it, and it costs one 64px canvas for the life of the page.
+ *
+ * A plane rather than a sphere because it only ever faces the camera within the
+ * rotation range this character uses, and a flat card cannot punch through the
+ * curved surface it is sitting on.
+ */
+function useBlushMap() {
+  return useMemo(() => {
+    const size = 64;
+    const c = document.createElement("canvas");
+    c.width = size;
+    c.height = size;
+    const ctx = c.getContext("2d");
+    if (ctx) {
+      const g = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+      // Holds near-solid through the middle, then falls away over the outer
+      // third. A linear ramp from the centre looks like a smudge instead.
+      g.addColorStop(0, "rgba(255,255,255,1)");
+      g.addColorStop(0.55, "rgba(255,255,255,0.92)");
+      g.addColorStop(1, "rgba(255,255,255,0)");
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, size, size);
+    }
+    const tex = new THREE.CanvasTexture(c);
+    tex.needsUpdate = true;
+    return tex;
+  }, []);
+}
+
 type EyeMode = "open" | "shut" | "fluster";
 
 function Eye({ side, modeRef }: { side: number; modeRef: React.RefObject<EyeMode> }) {
@@ -28,11 +64,26 @@ function Eye({ side, modeRef }: { side: number; modeRef: React.RefObject<EyeMode
   const shut = useRef<THREE.Group>(null);
   const cross = useRef<THREE.Group>(null);
 
+  /**
+   * The closed eye: a shorter, taller, thinner arc than it was.
+   *
+   * It read as a soft blob rather than a drawn line. Three things were doing
+   * that, and all three are cheap to fix: the apex was shallow at 0.2 so the
+   * curve barely turned, the tube was 0.035 thick against a 0.13 wide open eye
+   * so it looked swollen, and 20 tubular segments faceted visibly on a curve
+   * this short once the berry is anywhere near the camera.
+   *
+   * Sharper does not mean smaller. The span stays at the original 0.15 so the
+   * closed eye is as wide as the open one; what changed is the apex, which is
+   * higher, and the tube, which is thinner and no longer faceted. A short
+   * thick arc reads as a bean; a wide thin one with a real curve reads as a
+   * drawn line.
+   */
   const arc = useMemo(
     () =>
       new THREE.QuadraticBezierCurve3(
         new THREE.Vector3(-0.15, 0.0, 0.0),
-        new THREE.Vector3(0, 0.2, 0.05),
+        new THREE.Vector3(0, 0.27, 0.05),
         new THREE.Vector3(0.15, 0.0, 0.0),
       ),
     [],
@@ -46,7 +97,7 @@ function Eye({ side, modeRef }: { side: number; modeRef: React.RefObject<EyeMode
   });
 
   return (
-    <group position={[side * 0.38, 0.12, 0.9]}>
+    <group position={[side * 0.38 * OBLATE, 0.12, 0.9 * OBLATE]}>
       <group ref={open}>
         <mesh scale={[0.13, 0.2, 0.08]}>
           <sphereGeometry args={[1, 20, 20]} />
@@ -61,7 +112,7 @@ function Eye({ side, modeRef }: { side: number; modeRef: React.RefObject<EyeMode
 
       <group ref={shut} visible={false}>
         <mesh>
-          <tubeGeometry args={[arc, 20, 0.035, 8, false]} />
+          <tubeGeometry args={[arc, 32, 0.031, 12, false]} />
           <meshBasicMaterial color="#0b0b14" toneMapped={false} />
         </mesh>
       </group>
@@ -69,7 +120,7 @@ function Eye({ side, modeRef }: { side: number; modeRef: React.RefObject<EyeMode
       {/* A quarter turn inward, so the apex faces the middle of the face. */}
       <group ref={cross} visible={false} rotation={[0, 0, side * Math.PI * 0.5]}>
         <mesh>
-          <tubeGeometry args={[arc, 20, 0.035, 8, false]} />
+          <tubeGeometry args={[arc, 32, 0.031, 12, false]} />
           <meshBasicMaterial color="#0b0b14" toneMapped={false} />
         </mesh>
       </group>
@@ -126,6 +177,7 @@ function Berry({
   /** 1 the instant it is clicked, decaying to 0 over about a second. */
   const poke = useRef(0);
   const blush = useRef<THREE.Group>(null);
+  const blushMap = useBlushMap();
   const mouth = useRef<THREE.Mesh>(null);
   const smile = useRef<THREE.Mesh>(null);
   // Built once per mount. The bloom patches MeshStandardMaterial rather than
@@ -151,9 +203,9 @@ function Berry({
   const smileCurve = useMemo(
     () =>
       new THREE.QuadraticBezierCurve3(
-        new THREE.Vector3(-0.3, -0.42, 0.9),
-        new THREE.Vector3(0, -0.62, 1.0),
-        new THREE.Vector3(0.3, -0.42, 0.9),
+        new THREE.Vector3(-0.26 * OBLATE, -0.35, 0.86 * OBLATE),
+        new THREE.Vector3(0, -0.53, 0.95 * OBLATE),
+        new THREE.Vector3(0.26 * OBLATE, -0.35, 0.86 * OBLATE),
       ),
     [],
   );
@@ -351,9 +403,16 @@ function Berry({
           surface so it reads as colour on the skin rather than two balls. */}
       <group ref={blush}>
         {[-1, 1].map((side) => (
-          <mesh key={side} position={[side * 0.44, -0.14, 0.84]} scale={[0.17, 0.11, 0.05]}>
-            <sphereGeometry args={[1, 18, 18]} />
-            <meshBasicMaterial color="#fb7185" toneMapped={false} transparent opacity={0} />
+          <mesh key={side} position={[side * 0.44 * OBLATE, -0.14, 0.86 * OBLATE]} scale={[0.2, 0.13, 1]}>
+            <planeGeometry args={[2, 2]} />
+            <meshBasicMaterial
+              color="#e11d48"
+              map={blushMap}
+              toneMapped={false}
+              transparent
+              depthWrite={false}
+              opacity={0}
+            />
           </mesh>
         ))}
       </group>
@@ -365,8 +424,15 @@ function Berry({
       </mesh>
 
       {/* The open mouth: a flattened sphere pushed just proud of the surface so
-          it cannot z-fight with the berry it sits on. */}
-      <mesh ref={mouth} position={[0, -0.44, 0.82]} scale={[0.5, 0.1, 0.4]}>
+          it cannot z-fight with the berry it sits on.
+
+          Raised and narrowed, and pulled back in Z. It used to sit at 0.82 of
+          the radius with a half-width of 0.5, which on a sphere means the outer
+          ends of it were further from the centre than the surface is at that
+          height, so they punched through and showed as a lip once the berry
+          turned. Narrower and shallower keeps the whole shape inside the
+          silhouette through the rotation range we actually use. */}
+      <mesh ref={mouth} position={[0, -0.37, 0.76 * OBLATE]} scale={[0.42, 0.095, 0.34]}>
         <sphereGeometry args={[0.42, 24, 24]} />
         <meshBasicMaterial color="#0b0b14" toneMapped={false} transparent opacity={0} />
       </mesh>

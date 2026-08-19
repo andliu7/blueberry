@@ -10,14 +10,30 @@ import * as THREE from "three";
 
 /* ---------------------------------------------------------------- geometry -- */
 
-/** Real blueberries are a little wider than tall. Softly squashed, not an egg. */
-const OBLATE = 1.12;
+/**
+ * Real blueberries are a little wider than tall. Softly squashed, not an egg.
+ *
+ * **Exported because the face has to follow it.** The body is widened on X and Z
+ * in geometry space, so the front surface moves from z = 1 out to z = 1.12 and
+ * the equator from x = 1 to x = 1.12. Anything placed on the surface by hand
+ * against the old unit sphere ends up buried inside the fruit. Reading the same
+ * constant is what stops the face and the body drifting apart again.
+ */
+export const OBLATE = 1.12;
 
-/** How far down from the top pole the calyx depression reaches, in radians. */
-const CALYX_REACH = 0.62;
+/**
+ * How far down from the top pole the calyx depression reaches, in radians.
+ *
+ * Widened again, 0.62 to 0.72 to 0.84. The crown already scales with the body, because it is cut
+ * into the same mesh before the oblate scale is applied, so it was never
+ * proportionally wrong. It just read too small: the berry docks at around 56px,
+ * and a depression this shallow needs to cover more of the cap to be legible at
+ * that size rather than disappearing into the shading.
+ */
+const CALYX_REACH = 0.84;
 
-/** Depth of the depression, as a fraction of radius. */
-const CALYX_DEPTH = 0.13;
+/** Depth of the depression, as a fraction of radius. Deepened with the reach. */
+const CALYX_DEPTH = 0.19;
 
 /** Depth of the small dimple at the very centre. */
 const DIMPLE_DEPTH = 0.05;
@@ -115,8 +131,8 @@ export function makeBloomMaterial(): THREE.MeshStandardMaterial {
   });
 
   mat.onBeforeCompile = (shader) => {
-    shader.uniforms.uDeep = { value: new THREE.Color("#2a1e6e") };
-    shader.uniforms.uBloom = { value: new THREE.Color("#9fb6e8") };
+    shader.uniforms.uDeep = { value: new THREE.Color("#3f2f9c") };
+    shader.uniforms.uBloom = { value: new THREE.Color("#a9c4ff") };
 
     shader.vertexShader = shader.vertexShader.replace(
       "#include <common>",
@@ -158,10 +174,12 @@ export function makeBloomMaterial(): THREE.MeshStandardMaterial {
          vec3 nWorld = normalize(mat3(viewMatrix) * normalize(vNormal));
 
          // Wide falloff. A narrow one is exactly what produces the seam this
-         // material exists to remove, so this deliberately spans most of the
-         // upper hemisphere rather than hugging the top.
+         // material exists to remove, so this spans nearly the whole sphere.
+         // Widened again from 0.34..0.92 so the ramp is longer and gentler,
+         // which also lifts the base: the underside was dark enough to eat
+         // the mouth, and the mouth is drawn flat dark on top of it.
          float up = nWorld.y * 0.5 + 0.5;
-         float bloom = smoothstep(0.34, 0.92, up);
+         float bloom = smoothstep(0.26, 0.98, up);
 
          // A handful of slightly lighter points, a few percent at most. If a
          // speckle is individually identifiable at normal size it is too strong.
@@ -185,7 +203,7 @@ export function makeBloomMaterial(): THREE.MeshStandardMaterial {
        {
          vec3 nW = normalize(mat3(viewMatrix) * normalize(vNormal));
          float upR = nW.y * 0.5 + 0.5;
-         roughnessFactor = mix(0.46, 0.86, smoothstep(0.34, 0.92, upR));
+         roughnessFactor = mix(0.46, 0.86, smoothstep(0.26, 0.98, upR));
        }`,
     );
   };
