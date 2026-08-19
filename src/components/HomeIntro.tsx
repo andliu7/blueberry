@@ -178,7 +178,11 @@ function IntroStage({
         {/* The pastel wash, under everything, in light mode only. The dark
             opening is built on near-black and every layer above it adds light;
             laying those over cream would wash the whole screen out. */}
-        {!isDark && <BackgroundGradientGlow />}
+        {/* Both themes now. This was `!isDark`, so dark mode had no gradient
+            at all and fell back to the flat panel colour. The light variants
+            bottom out in near-white and washed the dark opening out, which is
+            why it was excluded; the fix is a dark variant, not an exclusion. */}
+        <BackgroundGradientGlow variant={isDark ? "midnight-berry" : "aurora-dream"} />
 
         {/* Running from the first frame, under everything else. A flat opening
             gives a scroll nothing to move against, so the descent past the words

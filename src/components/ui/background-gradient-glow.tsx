@@ -41,9 +41,30 @@ export const PEACHY_SUNRISE = `
   radial-gradient(circle at 60% 60%, rgba(252,165,165,0.3) 0%, transparent 45%)
 `;
 
+/**
+ * The dark-mode counterpart, and the reason this exists.
+ *
+ * Both variants above bottom out in near-white, so on the dark opening they
+ * washed the whole panel out. The page dealt with that by not rendering the
+ * glow at all in dark mode, which is why there was no gradient there: it was
+ * excluded rather than fixed.
+ *
+ * Built as tinted pools over a deep base rather than the light palette dimmed.
+ * Dimming a light gradient gives you grey; a dark gradient wants its own,
+ * more saturated hues at low alpha so the colour survives being dark.
+ */
+export const MIDNIGHT_BERRY = `
+  radial-gradient(ellipse 90% 70% at 12% 10%, rgba(124, 58, 237, 0.34), transparent 62%),
+  radial-gradient(ellipse 80% 62% at 82% 28%, rgba(56, 84, 214, 0.30), transparent 64%),
+  radial-gradient(ellipse 75% 62% at 22% 84%, rgba(190, 64, 190, 0.24), transparent 64%),
+  radial-gradient(ellipse 78% 64% at 92% 88%, rgba(38, 120, 200, 0.26), transparent 64%),
+  linear-gradient(180deg, #171327 0%, #120f20 100%)
+`;
+
 const VARIANTS = {
   "aurora-dream": AURORA_DREAM,
   "peachy-sunrise": PEACHY_SUNRISE,
+  "midnight-berry": MIDNIGHT_BERRY,
 } as const;
 
 export function BackgroundGradientGlow({

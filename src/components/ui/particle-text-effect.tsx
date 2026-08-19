@@ -434,6 +434,23 @@ function randomEdgePos(width: number, height: number): Vec {
   };
 }
 
+/**
+ * Radius 1 of three, and the smallest of them.
+ *
+ * This is the tight local displacement right at the cursor. It is a texture
+ * detail, not a feature: the two larger radii on this page, the bubble reveal
+ * and the drifting silhouettes, are the ones doing the work.
+ *
+ * Raised from 110 and 1.6, which was too subtle to notice. The ceiling is
+ * legibility: past roughly 190 the word stops reading as "blueberry." while the
+ * cursor is inside it, and a wordmark you have to move away from to read is a
+ * worse trade than a quiet effect. Particles ease back on their own the moment
+ * the cursor leaves, which is the existing seek behaviour and needs nothing
+ * here.
+ */
+const DISPERSE_RADIUS = 155;
+const DISPERSE_STRENGTH = 2.3;
+
 export interface ParticleTextEffectProps {
   /** The sequence to play. Must be referentially stable; see the note above. */
   words: ParticleWord[];
@@ -680,7 +697,7 @@ export function ParticleTextEffect({
       for (let i = particles.length - 1; i >= 0; i--) {
         const p = particles[i];
         if (interactive && pointer.active) {
-          p.push(pointer, 110 * scale, 1.6 * scale);
+          p.push(pointer, DISPERSE_RADIUS * scale, DISPERSE_STRENGTH * scale);
         }
         p.move();
         if (
