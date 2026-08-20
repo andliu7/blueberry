@@ -14,6 +14,36 @@
  */
 export const SITE_NAME = "Blueberry";
 
+/**
+ * The front door's copy, and it is Andrew's to rewrite.
+ *
+ * It lives here rather than inline in the hero for one reason: this is the
+ * paragraph that decides whether a stranger stays, so it is going to be edited
+ * far more often than the component around it, and hunting it down inside two
+ * hundred lines of layout every time is how copy stops getting edited.
+ *
+ * `sell` has one job, which is to say what you get, not what the site believes
+ * about learning. `motto` is the line beside the mascot and is allowed to be
+ * fun. `ctaNote` is the friction remover: every clause in it removes a reason
+ * to hesitate, so if a clause stops being true, cut it rather than soften it.
+ */
+export const HERO = {
+  sell: "Organic chemistry that actually sticks. Lessons that explain it properly, mechanisms you draw yourself, and flashcards that hunt down the one thing you keep getting wrong.",
+  motto: "Learn it once. Keep it for good.",
+  cta: "Get Started",
+  ctaNote: "Free to start. No card. About two minutes.",
+} as const;
+
+/**
+ * The founding cohort, and the number the counter on the front page is out of.
+ *
+ * A cap that is real: it is the number of people Andrew is willing to hand-hold
+ * through a first term. Raise it when that changes, and do not raise it merely
+ * because the bar filled up, because a scarcity claim that quietly resets is
+ * the one kind of dishonesty visitors reliably catch.
+ */
+export const FOUNDING_SEATS = 100;
+
 export const GITHUB_URL = "https://github.com/andliu7";
 export const LINKEDIN_URL = "https://www.linkedin.com/in/andrew-liu-06154225b/";
 export const EMAIL = "andliu@terpmail.umd.edu";

@@ -244,6 +244,55 @@ function drawBlueberry(
   ctx.stroke();
 }
 
+/**
+ * One thing the swarm draws, at a place and size of your choosing.
+ *
+ * A beat is a list of these rather than a single centred word, which is what
+ * lets the last beat of the opening land the wordmark and the mascot on the
+ * exact spots the real hero occupies. The swarm resolves *into* the page
+ * instead of into a picture the page then replaces.
+ *
+ * Coordinates are canvas-space CSS pixels. `placeFor` is handed the canvas's
+ * own rect so a caller can measure a DOM element and subtract.
+ */
+export type ParticleItem =
+  | {
+      kind: "text";
+      text: string;
+      x: number;
+      y: number;
+      fontSize: number;
+      align?: CanvasTextAlign;
+      baseline?: CanvasTextBaseline;
+      /** Defaults to the display face the rest of the sequence uses. */
+      family?: string;
+      weight?: string;
+      /**
+       * A CSS length, copied off the element being matched.
+       *
+       * The site's display face carries `letter-spacing: 0.02em`, which canvas
+       * does not apply on its own, so a swarm aiming at a real heading would
+       * land about a character narrow across a ten-letter word and the
+       * cross-fade would show a shuffle. Chrome and Firefox honour this;
+       * Safari ignores it and gets the slightly tight version, which is a
+       * fraction of a letter and only visible for the length of a fade.
+       */
+      letterSpacing?: string;
+    }
+  | {
+      kind: "blueberry";
+      x: number;
+      y: number;
+      /** The box the mark is drawn into. Centred beats use `fontSize * 1.15`. */
+      size: number;
+      eyes?: "open" | "shut";
+      blush?: boolean;
+    };
+
+export interface ParticlePlacement {
+  items: ParticleItem[];
+}
+
 const SIM_STEP_MS = 1000 / 60;
 /** Square drawn per particle, in CSS pixels. */
 const POINT_SIZE = 2;
@@ -277,8 +326,34 @@ function layoutFor(
 
   const targetWidth = Math.min(width * 0.8, 1100);
   const fontSize = Math.max(40, Math.min((probe * targetWidth) / widest, height * 0.3));
-  const gap = Math.max(2, Math.min(5, Math.round(fontSize / 40)));
-  return { fontSize, gap };
+  return { fontSize };
+}
+
+/**
+ * The sampling grid, chosen per drawing rather than once per sequence.
+ *
+ * It used to follow the sequence's single type size, which was right while
+ * every beat was the same height. The landing beat is not: the wordmark shrinks
+ * to the heading's own size on its way to the corner, and a gap tuned for
+ * 200px type sampled across a 96px heading gives four particles per letter and
+ * a word you cannot read.
+ */
+function gapFor(size: number) {
+  return Math.max(2, Math.min(5, Math.round(size / 40)));
+}
+
+/**
+ * Saturation and brightness correction, for a drawing that carries its own
+ * colours onto a background it was not lit for. See `vivid` and `shade`.
+ */
+function tone(raw: Rgb, vivid: number, shade: number): Rgb {
+  if (vivid === 1 && shade === 1) return raw;
+  // Rec. 601 luma, so pushing away from grey keeps the perceived lightness
+  // roughly where the drawing put it.
+  const grey = 0.299 * raw.r + 0.587 * raw.g + 0.114 * raw.b;
+  const push = (c: number) =>
+    Math.max(0, Math.min(255, Math.round((grey + (c - grey) * vivid) * shade)));
+  return { r: push(raw.r), g: push(raw.g), b: push(raw.b) };
 }
 
 function hexToRgb(hex: string): Rgb {
@@ -465,6 +540,18 @@ export interface ParticleTextEffectProps {
   onWordChange?: (index: number) => void;
   /** Fires once the final word has had `settleMs` to arrive and read. */
   onFinished?: () => void;
+  /**
+   * Draw a beat somewhere other than the middle, and as more than one thing.
+   *
+   * Read at the moment the beat starts rather than taken from `words`, and
+   * called again on every resize. That is deliberate: the coordinates the
+   * opening wants are measured off the hero's own DOM after it has laid out,
+   * and `words` is an effect dependency — a value that changed once the layout
+   * was known would restart the whole sequence from the first beat.
+   *
+   * Return `null` for the centred default.
+   */
+  placeFor?: (index: number, canvas: DOMRect) => ParticlePlacement | null;
   className?: string;
   /** Announced to screen readers, which get no canvas. */
   label?: string;
@@ -478,6 +565,7 @@ export function ParticleTextEffect({
   interactive = true,
   onWordChange,
   onFinished,
+  placeFor,
   className,
   label,
 }: ParticleTextEffectProps) {
@@ -489,8 +577,10 @@ export function ParticleTextEffect({
   // sequence on every parent render.
   const onWordChangeRef = useRef(onWordChange);
   const onFinishedRef = useRef(onFinished);
+  const placeForRef = useRef(placeFor);
   onWordChangeRef.current = onWordChange;
   onFinishedRef.current = onFinished;
+  placeForRef.current = placeFor;
 
   useEffect(() => {
     if (reduce) return;
@@ -506,7 +596,6 @@ export function ParticleTextEffect({
     let width = 0;
     let height = 0;
     let fontSize = 0;
-    let gap = 4;
     /** Canvas size relative to the 1000px box the original numbers were tuned on. */
     let scale = 1;
     let raf = 0;
@@ -565,41 +654,99 @@ export function ParticleTextEffect({
       const offCtx = off.getContext("2d", { willReadFrequently: true });
       if (!offCtx) return;
 
-      if (word.shape === "blueberry") {
-        // Sized off the type, so the mark lands about as tall as the words that
-        // preceded it rather than jumping scale on the last beat.
-        drawBlueberry(offCtx, width / 2, height / 2, fontSize * 1.15, {
-          eyes: word.eyes ?? "shut",
-          blush: word.blush ?? false,
-        });
-      } else {
-        offCtx.font = `bold ${fontSize}px ${FONT_FAMILY}`;
-        offCtx.fillStyle = "white";
-        offCtx.textAlign = "center";
-        offCtx.textBaseline = "middle";
-        offCtx.fillText(word.text, width / 2, height / 2);
-      }
+      /**
+       * What this beat is made of.
+       *
+       * The default is the one centred drawing this component has always done.
+       * A placement replaces it wholesale, which is how the opening's last beat
+       * puts the wordmark in the corner and the mascot on the right at the same
+       * moment, out of the one swarm.
+       */
+      const placement = placeForRef.current?.(index, canvas.getBoundingClientRect()) ?? null;
+      const items: ParticleItem[] =
+        placement && placement.items.length > 0
+          ? placement.items
+          : word.shape === "blueberry"
+            ? [
+                {
+                  kind: "blueberry",
+                  x: width / 2,
+                  y: height / 2,
+                  // Sized off the type, so the mark lands about as tall as the
+                  // words that preceded it rather than jumping scale.
+                  size: fontSize * 1.15,
+                  eyes: word.eyes ?? "shut",
+                  blush: word.blush ?? false,
+                },
+              ]
+            : [{ kind: "text", text: word.text, x: width / 2, y: height / 2, fontSize }];
 
-      const pixels = offCtx.getImageData(0, 0, width, height).data;
+      const from = hexToRgb(word.from);
+      const to = hexToRgb(word.to);
+      const shade = word.shade ?? 1;
+      const vivid = word.vivid ?? 1;
 
-      const coords: (Vec & { rgb?: Rgb })[] = [];
-      let minX = Infinity;
-      let maxX = -Infinity;
-      for (let y = 0; y < height; y += gap) {
-        for (let x = 0; x < width; x += gap) {
-          const at = (y * width + x) * 4;
-          if (pixels[at + 3]! > 128) {
-            // A shape carries its own shading, so each particle keeps the colour
-            // of the pixel it came from. Text is flat white and takes the
-            // gradient instead.
-            coords.push(
-              word.shape
-                ? { x, y, rgb: { r: pixels[at]!, g: pixels[at + 1]!, b: pixels[at + 2]! } }
-                : { x, y },
-            );
-            if (x < minX) minX = x;
-            if (x > maxX) maxX = x;
+      /**
+       * One item at a time, each rasterised alone and sampled alone.
+       *
+       * Drawing them together and deciding per pixel which colour rule applied
+       * is the obvious shortcut and it does not work: the rule would have to be
+       * "flat white means text", and the berry's specular highlight is near
+       * enough to white to be mistaken for it. Sampling separately also gives
+       * each text item a gradient across its own width rather than across
+       * whatever the widest thing on the canvas happened to be.
+       */
+      const coords: (Vec & { rgb: Rgb })[] = [];
+      for (const item of items) {
+        offCtx.clearRect(0, 0, width, height);
+        if (item.kind === "blueberry") {
+          drawBlueberry(offCtx, item.x, item.y, item.size, {
+            eyes: item.eyes ?? "shut",
+            blush: item.blush ?? false,
+          });
+        } else {
+          offCtx.font = `${item.weight ?? "bold"} ${item.fontSize}px ${item.family ?? FONT_FAMILY}`;
+          // Not in every engine's typings, and absent in Safari. Assigning an
+          // unknown property to a context is harmless where it is unsupported.
+          (offCtx as unknown as { letterSpacing: string }).letterSpacing =
+            item.letterSpacing ?? "0px";
+          offCtx.fillStyle = "white";
+          offCtx.textAlign = item.align ?? "center";
+          offCtx.textBaseline = item.baseline ?? "middle";
+          offCtx.fillText(item.text, item.x, item.y);
+        }
+
+        const pixels = offCtx.getImageData(0, 0, width, height).data;
+        const step = gapFor(item.kind === "blueberry" ? item.size / 1.15 : item.fontSize);
+
+        const hits: (Vec & { rgb?: Rgb })[] = [];
+        let minX = Infinity;
+        let maxX = -Infinity;
+        for (let y = 0; y < height; y += step) {
+          for (let x = 0; x < width; x += step) {
+            const at = (y * width + x) * 4;
+            if (pixels[at + 3]! > 128) {
+              // A shape carries its own shading, so each particle keeps the
+              // colour of the pixel it came from. Text is flat white and takes
+              // the gradient instead.
+              hits.push(
+                item.kind === "blueberry"
+                  ? { x, y, rgb: { r: pixels[at]!, g: pixels[at + 1]!, b: pixels[at + 2]! } }
+                  : { x, y },
+              );
+              if (x < minX) minX = x;
+              if (x > maxX) maxX = x;
+            }
           }
+        }
+
+        const span = Math.max(1, maxX - minX);
+        for (const hit of hits) {
+          coords.push({
+            x: hit.x,
+            y: hit.y,
+            rgb: tone(hit.rgb ?? mixRgb(from, to, (hit.x - minX) / span), vivid, shade),
+          });
         }
       }
       if (coords.length === 0) return;
@@ -611,12 +758,6 @@ export function ParticleTextEffect({
         [coords[i], coords[j]] = [coords[j], coords[i]];
       }
       const wanted = coords.slice(0, MAX_PARTICLES);
-
-      const from = hexToRgb(word.from);
-      const to = hexToRgb(word.to);
-      const shade = word.shade ?? 1;
-      const vivid = word.vivid ?? 1;
-      const span = Math.max(1, maxX - minX);
 
       wanted.forEach((coord, i) => {
         let p = particles[i];
@@ -642,16 +783,7 @@ export function ParticleTextEffect({
         p.closeEnoughTarget = 110 * scale;
         p.colorBlendRate = Math.random() * 0.028 + 0.008;
 
-        const raw = coord.rgb ?? mixRgb(from, to, (coord.x - minX) / span);
-        let colour: Rgb = raw;
-        if (vivid !== 1 || shade !== 1) {
-          // Rec. 601 luma, so pushing away from grey keeps the perceived
-          // lightness roughly where the drawing put it.
-          const grey = 0.299 * raw.r + 0.587 * raw.g + 0.114 * raw.b;
-          const push = (c: number) =>
-            Math.max(0, Math.min(255, Math.round((grey + (c - grey) * vivid) * shade)));
-          colour = { r: push(raw.r), g: push(raw.g), b: push(raw.b) };
-        }
+        const colour = coord.rgb;
         // A new particle arrives already the right colour. Blending it up from
         // the class default would mean flying in as a black dot, which is
         // invisible on the black opening and then a smudge over the shader.
@@ -688,7 +820,7 @@ export function ParticleTextEffect({
       // Everything below works in CSS pixels.
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      ({ fontSize, gap } = layoutFor(ctx, words, width, height));
+      ({ fontSize } = layoutFor(ctx, words, width, height));
 
       if (wordIndex >= 0) setWord(wordIndex, true);
     };
@@ -802,7 +934,6 @@ export function ParticleTextEffect({
       const next = layoutFor(ctx, words, width, height);
       if (Math.abs(next.fontSize - fontSize) < 0.5) return;
       fontSize = next.fontSize;
-      gap = next.gap;
       if (wordIndex >= 0) setWord(wordIndex, true);
     });
 

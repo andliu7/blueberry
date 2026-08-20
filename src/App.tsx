@@ -26,6 +26,7 @@ import { ScrollTiltedGrid } from "@/components/ui/scroll-tilted-grid";
 import { StackedCards } from "@/components/ui/stacked-cards";
 import { GooeyTogglePair, type ToggleVisibility } from "@/components/ui/gooey-toggle-pair";
 import { HomePage } from "@/components/HomePage";
+import { StartPage } from "@/components/StartPage";
 import { StudyDecksPage } from "@/components/StudyDecksPage";
 import { useHashRoute } from "@/lib/useHashRoute";
 import { useDocumentTitle } from "@/lib/useDocumentTitle";
@@ -248,6 +249,9 @@ export default function App() {
    * `#/home` still works, so nothing that links to it breaks.
    */
   if (route === "" || route === "home") return <HomePage />;
+  // Where "Get Started" lands. Step one of four, and deliberately not the price
+  // list: see the note at the top of `StartPage`.
+  if (route === "start") return withBoundary(<StartPage />);
   if (route === "study-decks") return <StudyDecksPage />;
   if (route === "lessons") return withBoundary(<LessonsPage />);
   // `#/lessons/aromatics` opens that section directly, so the hub's topic list

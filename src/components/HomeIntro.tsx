@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { motion } from "motion/react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { motion, useReducedMotion } from "motion/react";
 import { X } from "lucide-react";
 import { BlobReveal } from "@/components/BlobReveal/BlobReveal";
 import { ShaderAnimation } from "@/components/ui/shader-animation";
@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { SITE_NAME } from "@/data/site";
 import {
   ParticleTextEffect,
+  type ParticlePlacement,
   type ParticleWord,
 } from "@/components/ui/particle-text-effect";
 import {
@@ -76,17 +77,23 @@ const INTRO_WORDMARK = `${SITE_NAME.toLowerCase()}.`;
  * opening arrives in the same palette rather than the demo's random RGB.
  */
 const INTRO_WORDS: ParticleWord[] = [
-  { text: INTRO_WORDMARK, from: "#818cf8", to: "#f0abfc", holdMs: 2400 },
-  // The name scatters one last time and comes back as the mark itself. The
-  // swarm carries the logo's own shading rather than the gradient the words
-  // wear, so the berry arrives lit rather than flat.
+  { text: INTRO_WORDMARK, from: "#818cf8", to: "#f0abfc", holdMs: 1800 },
+  // The name scatters and comes back as the mark itself. The swarm carries the
+  // logo's own shading rather than the gradient the words wear, so the berry
+  // arrives lit rather than flat.
+  { text: SITE_NAME, from: "#818cf8", to: "#f0abfc", shape: "blueberry", eyes: "open", holdMs: 900 },
+  // **The landing, and it is the point of the whole rebuild.**
   //
-  // Then it scatters once more and comes back shy. Two beats rather than one,
-  // because the berry arriving and the panel opening behind it used to happen
-  // at the same instant and read as a single event; splitting them gives the
-  // berry a moment of looking at you before it reacts to being looked at.
-  { text: SITE_NAME, from: "#818cf8", to: "#f0abfc", shape: "blueberry", eyes: "open" },
-  { text: SITE_NAME, from: "#818cf8", to: "#f0abfc", shape: "blueberry", eyes: "shut", blush: true },
+  // The swarm scatters once more and comes back as the page: the wordmark in
+  // the top-left corner at the heading's own size, the berry over on the right
+  // where the mascot lives. Both at once, out of one swarm, because they are
+  // one swarm. `placeHero` supplies the coordinates by measuring the real hero,
+  // so what the particles form is not a picture of the hero, it is the hero.
+  //
+  // There used to be a third berry beat here, eyes shut and blushing, and it
+  // was charming. It cost a second and a half in front of the one button on the
+  // page that matters, which is a trade this screen can no longer make.
+  { text: INTRO_WORDMARK, from: "#818cf8", to: "#f0abfc", holdMs: 1400 },
 ];
 
 /**
@@ -108,11 +115,10 @@ const INTRO_WORDS_LIGHT: ParticleWord[] = [
   // name was barely there. Reading the site's own name should not require
   // squinting, so the particles are now dark enough to carry the contrast
   // themselves rather than relying on the vignette behind them.
-  { text: INTRO_WORDMARK, from: "#4338ca", to: "#a21caf", holdMs: 2400 },
+  { text: INTRO_WORDMARK, from: "#4338ca", to: "#a21caf", holdMs: 1800 },
   // Saturation up, brightness barely down. Darkening alone walked every channel
   // toward black, which is what had taken the life out of it: the berry needs to
   // be more itself against the cream, not dimmer.
-  { text: SITE_NAME, from: "#4f46e5", to: "#c026d3", shape: "blueberry", vivid: 1.25, shade: 1, eyes: "open" },
   {
     text: SITE_NAME,
     from: "#4f46e5",
@@ -120,39 +126,76 @@ const INTRO_WORDS_LIGHT: ParticleWord[] = [
     shape: "blueberry",
     vivid: 1.25,
     shade: 1,
-    eyes: "shut",
-    blush: true,
+    eyes: "open",
+    holdMs: 900,
   },
+  // The landing. `vivid` rides along on the text gradient here as well as on
+  // the berry, which is harmless: the light palette's endpoints are already the
+  // deep end of the ramp, so pushing them further from grey only helps them off
+  // the cream.
+  { text: INTRO_WORDMARK, from: "#4338ca", to: "#a21caf", vivid: 1.25, holdMs: 1400 },
 ];
 
 /**
  * What the opening shows once it has already been seen this visit.
  *
- * The name, and nothing else. Not the full greeting, which nobody wants to sit
- * through twice in a visit, and not the berry either: the word is the thing that
- * reads instantly at a glance, and the swarm resolving into it is the whole
- * reason the opening is worth having at all.
+ * The landing beat and nothing else, so the swarm assembles straight into the
+ * page in about half a second. It used to be the centred wordmark, which meant
+ * a returning visitor watched the name appear in the middle of the screen and
+ * then had to be moved somewhere else before anything could be clicked. Now the
+ * only beat is the one that puts the page together, and the whole thing is over
+ * before a second visit notices it started.
  *
  * Separate module-level arrays rather than slices computed in the component:
  * `words` is an effect dependency on the canvas, and a fresh array on every
  * render would restart the sequence continuously.
  */
-const SETTLED_WORDS: ParticleWord[] = [INTRO_WORDS[0]!];
-const SETTLED_WORDS_LIGHT: ParticleWord[] = [INTRO_WORDS_LIGHT[0]!];
+const SETTLED_WORDS: ParticleWord[] = [{ ...INTRO_WORDS[2]!, holdMs: 700 }];
+const SETTLED_WORDS_LIGHT: ParticleWord[] = [{ ...INTRO_WORDS_LIGHT[2]!, holdMs: 700 }];
 
 function IntroStage({
   ready,
   onSettled,
   onSkip,
   settled,
+  hero,
+  placeHero,
+  showCanvas,
 }: {
   ready: boolean;
   onSettled: () => void;
   onSkip: () => void;
   settled: boolean;
+  /**
+   * The hero itself, laid out inside the stage and measured by `placeHero`.
+   *
+   * It is in the document from the first frame, transparent, because the swarm
+   * needs somewhere to aim and `getBoundingClientRect` on a `display: none`
+   * element is a box of zeroes.
+   */
+  hero?: React.ReactNode;
+  /** Coordinates for the landing beat. See the note on the last `INTRO_WORDS`. */
+  placeHero?: (canvas: DOMRect) => ParticlePlacement | null;
+  /** Torn down once the hero has taken over; see `HomeIntro`. */
+  showCanvas: boolean;
 }) {
   const isDark = useIsDark();
   const surface = isDark ? SURFACE.dark : SURFACE.light;
+
+  /**
+   * The landing beat is always the last one, whichever sequence is playing.
+   *
+   * Keyed off the array rather than a hardcoded 2, because the settled sequence
+   * is one beat long and the full one is three, and an index that only holds
+   * for one of them is a bug waiting for a returning visitor.
+   */
+  const words = isDark
+    ? settled
+      ? SETTLED_WORDS
+      : INTRO_WORDS
+    : settled
+      ? SETTLED_WORDS_LIGHT
+      : INTRO_WORDS_LIGHT;
 
 
 
@@ -170,7 +213,18 @@ function IntroStage({
      * timer, then a scroll listener, then a frame loop, none of which worked.
      * The original does.
      */
-    <ContainerScroll className="h-[210vh]">
+    /**
+     * Shorter than it was, and that is the conversion change rather than a
+     * tidy-up.
+     *
+     * The opening was a 210vh column and the hero another 150vh below it, so
+     * three and a half screens of wheel stood between arriving and reaching
+     * anything you could press. They are one screen now. What is left of the
+     * column is the room the panel needs to open into as you scroll, which is
+     * the gesture worth keeping, and it is no longer the toll on the way to the
+     * button.
+     */
+    <ContainerScroll className="h-[165vh]">
       <ContainerSticky
         className={cn("overflow-hidden", isDark ? "bg-[#171327]" : "bg-[#f7eaff]")}
       >
@@ -199,10 +253,19 @@ function IntroStage({
         {/* Holds the middle of the screen away from whatever the aurora is doing
             under it, so the words never have to compete with a blob. It darkens
             on near-black and lightens on pastel: both are pulling the centre
-            away from the particle colours rather than toward them. */}
-        <div
+            away from the particle colours rather than toward them.
+
+            **And it leaves when the words do.** This wash guards the centred
+            swarm during the animation; the landed page has its CTA and the
+            mascot in exactly the space it darkens, and the measured verdict on
+            keeping it was "the berry has too much overlay". The veil is the
+            landed page's one legibility layer; this one is the animation's. */}
+        <motion.div
           aria-hidden
           className="pointer-events-none absolute inset-0"
+          initial={false}
+          animate={{ opacity: ready ? 0 : 1 }}
+          transition={{ duration: 1.1, ease: "easeOut" }}
           style={{
             background: isDark
               ? "radial-gradient(64% 52% at 50% 48%, rgba(6,5,14,0.78) 0%, rgba(6,5,14,0.42) 58%, rgba(6,5,14,0) 100%)"
@@ -311,44 +374,93 @@ function IntroStage({
               )}
             />
           </ContainerInset>
-          {/* The shader runs to near-white in places, so the title needs
-              something behind it. Strongest in the middle where the copy sits,
-              clearing toward the edges so the animation is still the star. */}
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0"
-            style={{
-              background: isDark
-                ? "radial-gradient(58% 46% at 50% 46%, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.45) 55%, rgba(0,0,0,0) 100%)"
-                : "radial-gradient(58% 46% at 50% 46%, rgba(49,29,94,0.30) 0%, rgba(76,45,130,0.16) 55%, rgba(124,58,237,0) 100%)",
-            }}
-          />
+          {/* A heavy black centre wash used to sit here, guarding a title that
+              lived mid-screen. This block only fades in once the page has
+              landed, and the landed page has the CTA in that exact spot — so
+              all the wash ever did in practice was smoke up the one button
+              that matters. The veil is the legibility layer now. */}
         </motion.div>
       </div>
 
+      {/* The veil that makes the text readable.
+
+          The backdrop under this is a photograph with a shader running over it,
+          which is the right amount of interest for a screen with three words on
+          it and far too much for one carrying a paragraph, a price promise and
+          a button. So it steps back the moment the hero lands.
+
+          Light and dark need opposite corrections, not one value flipped. On
+          near-black the photograph is the brightest thing on screen and is held
+          down with black. On the pale surface it is competing with a background
+          that is already bright, and adding more black would only make it
+          muddy, so it is lifted toward the page's own base colour instead. */}
+      <motion.div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 z-[9]"
+        initial={false}
+        // Keyed on `ready` rather than on the canvas coming down, so the
+        // backdrop steps back on the same beat the text arrives instead of a
+        // second after it.
+        animate={{ opacity: ready ? 1 : 0 }}
+        transition={{ duration: 0.9, ease: "easeOut" }}
+        style={{
+          // Softer than it launched at. With the two centre washes gone this
+          // is the only sheet between the photograph and the type, and at the
+          // old strength it was doing their job as well as its own — the
+          // verdict from looking at it was a berry sitting in smoke. If type
+          // legibility suffers on a bright frame, brighten the bands in
+          // `PageBackground`, do not thicken this back up.
+          backgroundColor: isDark ? "rgba(9,7,18,0.44)" : "rgba(250,249,255,0.55)",
+        }}
+      />
+
       {/* Above the shader, not inside it: the canvas clears itself to
           transparent rather than painting a black background, which is what
-          lets the last word keep standing there once the shader comes up. */}
-      <div className="absolute inset-0 z-10">
-        <ParticleTextEffect
-          words={
-            isDark
-              ? settled
-                ? SETTLED_WORDS
-                : INTRO_WORDS
-              : settled
-                ? SETTLED_WORDS_LIGHT
-                : INTRO_WORDS_LIGHT
-          }
-          // The two berry beats are the same silhouette, so the second scatter
-          // reads as a change of expression rather than a new arrival, and it
-          // does not need as long to land as a word does.
-          wordMs={1150}
-          settleMs={settled ? 600 : 1000}
-          onFinished={onSettled}
-          label={settled ? SITE_WORD : `Welcome to ${SITE_WORD}`}
-        />
-      </div>
+          lets the last word keep standing there once the shader comes up.
+
+          It unmounts once the hero has taken over, and that is a deliberate
+          change of character rather than housekeeping. The opening used to stay
+          mounted for the life of the page so you could scroll back up to it,
+          which cost 4,200 particles stepping forever while you read. There is
+          nothing to scroll back up to now: the swarm's last act is to become
+          the hero, so what it would be replaying is the screen you are already
+          looking at. */}
+      {showCanvas && (
+        /* The swarm fades, it does not vanish.
+
+           The canvas used to unmount on a timer with no exit of its own, so a
+           second after landing every particle disappeared in one frame while
+           the real text was still fading up — the seam this whole design
+           exists to hide, reintroduced at the last moment. Now the canvas
+           cross-fades out over the same beat the hero fades in: for that
+           second the particles and the type are both half-there, in the same
+           shape, and there is no frame where either edge shows. */
+        <motion.div
+          className="absolute inset-0 z-10"
+          initial={false}
+          animate={{ opacity: ready ? 0 : 1 }}
+          transition={{ duration: 0.9, ease: "easeInOut" }}
+        >
+          <ParticleTextEffect
+            words={words}
+            // The berry beat is a silhouette you have already read, so it does
+            // not need as long to land as a word does.
+            wordMs={1150}
+            settleMs={settled ? 400 : 700}
+            onFinished={onSettled}
+            // Only the last beat is placed. Keyed off the array so the settled
+            // sequence, which is one beat long, places its only beat.
+            placeFor={(index, rect) =>
+              index === words.length - 1 ? (placeHero?.(rect) ?? null) : null
+            }
+            label={settled ? SITE_WORD : `Welcome to ${SITE_WORD}`}
+          />
+        </motion.div>
+      )}
+
+      {/* The hero, in the document from the first frame and invisible until the
+          swarm has finished arriving on top of it. See the `hero` prop. */}
+      {hero}
 
       {/* The way out, and it does not wait for anything.
 
@@ -358,16 +470,21 @@ function IntroStage({
           keys are known about while they are still worth pressing. No entrance
           animation for the same reason: a cue that fades in is a cue that is
           absent when it is most wanted. */}
-      <div
-        className={cn(
-          "pointer-events-none absolute inset-x-0 bottom-8 z-20 flex justify-center",
-          isDark ? "text-white/45" : "text-slate-700",
-        )}
-      >
-        <span className="font-mono text-[0.7rem] tracking-wide">
-          Press Space or Esc to skip
-        </span>
-      </div>
+      {/* Gone the moment the hero lands, because the hero puts a button and a
+          social-proof line in exactly this space, and a leftover instruction to
+          skip an animation that has finished would be sitting on top of them. */}
+      {showCanvas && !ready && (
+        <div
+          className={cn(
+            "pointer-events-none absolute inset-x-0 bottom-8 z-40 flex justify-center",
+            isDark ? "text-white/45" : "text-slate-700",
+          )}
+        >
+          <span className="font-mono text-[0.7rem] tracking-wide">
+            Press Space or Esc to skip
+          </span>
+        </div>
+      )}
 
       {/* The seam.
 
@@ -383,47 +500,64 @@ function IntroStage({
           same value `SURFACE` hands the page, not an approximation of it. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 z-30 h-40"
+        // Under the hero, not over it. It used to be z-30 with nothing above it
+        // but the skip button, which was fine when the bottom of this screen
+        // was empty. The hero puts the founding-seats line and the scroll cue
+        // in exactly this 160px band, and a gradient ruled across them is not a
+        // seam, it is a smudge over the social proof.
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-[15] h-40"
         style={{
           backgroundImage: `linear-gradient(to bottom, transparent 0%, ${surface.base} 92%)`,
         }}
       />
 
-      <button
-        onClick={onSkip}
-        className={cn(
-          "absolute top-5 right-5 z-20 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold backdrop-blur transition-colors",
-          isDark
-            ? "border border-white/25 bg-black/30 text-white/90 hover:bg-black/50"
-            : "border border-slate-900/15 bg-white/60 text-slate-700 hover:bg-white/85",
-        )}
-      >
-        <X className="h-3.5 w-3.5" />
-        Skip
-      </button>
+      {/* Skip means "land now", not "leave".
+          There is nowhere to leave to any more: the thing on the other side of
+          the animation is this same screen with its contents up. So pressing it
+          puts the contents up, immediately, and takes the swarm away. */}
+      {showCanvas && !ready && (
+        <button
+          onClick={onSkip}
+          className={cn(
+            "absolute top-5 right-5 z-40 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold backdrop-blur transition-colors",
+            isDark
+              ? "border border-white/25 bg-black/30 text-white/90 hover:bg-black/50"
+              : "border border-slate-900/15 bg-white/60 text-slate-700 hover:bg-white/85",
+          )}
+        >
+          <X className="h-3.5 w-3.5" />
+          Skip
+        </button>
+      )}
       </ContainerSticky>
     </ContainerScroll>
   );
 }
 
 export function HomeIntro({
-  onSkip,
   onComplete,
   settled = false,
+  hero,
+  placeHero,
 }: {
-  onSkip: () => void;
   /**
-   * Fired once the last word has settled and the shader has come up. The hub
-   * uses it to start moving down to the decks; it never fires under reduced
-   * motion, where the page is left where the visitor put it.
+   * Fired once the swarm has landed and the hero owns the screen.
+   *
+   * The name is now literal: there is no second screen to be handed to, so
+   * this reports that the opening is over rather than starting a journey.
    */
   onComplete?: () => void;
   /**
-   * Already seen this visit, so show the finished picture rather than replaying
-   * the sequence. The opening stays mounted either way, since the hub puts you
-   * below it and it should still be there to scroll back up to.
+   * Already seen this visit, so play the one-beat landing rather than the full
+   * sequence. Not "show a still": the swarm assembling into the page is quick
+   * enough at 700ms to be worth having every time, and skipping it entirely
+   * would mean a repeat visit gets a hero that simply appears.
    */
   settled?: boolean;
+  /** The hero. See the note on `IntroStage`'s prop of the same name. */
+  hero?: React.ReactNode;
+  /** Coordinates for the landing beat. */
+  placeHero?: (canvas: DOMRect) => ParticlePlacement | null;
 }) {
 
   /**
@@ -438,13 +572,36 @@ export function HomeIntro({
    * Guarded on the target, or typing a space into the deck search underneath
    * would dismiss the opening from a field the visitor is looking at.
    */
-  // Nothing to wait for when the sequence is not going to run.
-  const [ready, setReady] = useState(settled);
+  const reduce = useReducedMotion();
+
+  const [ready, setReady] = useState(false);
+
+  /**
+   * Whether the canvas is still mounted.
+   *
+   * It comes down a beat after the hero has faded up, so the two overlap and
+   * the swap is a cross-fade rather than a blink. Under reduced motion it never
+   * goes up at all: the destination without the journey, which for this screen
+   * means the hero, immediately.
+   */
+  const [showCanvas, setShowCanvas] = useState(!reduce);
+
+  /** Skipping lands the hero at once and takes the swarm away with it. */
+  const skip = useCallback(() => {
+    setReady(true);
+    setShowCanvas(false);
+  }, []);
+
+  useEffect(() => {
+    if (!reduce) return;
+    setReady(true);
+    setShowCanvas(false);
+  }, [reduce]);
 
   useEffect(() => {
     // Only while there is something to skip.
     //
-    // The opening is a section of the home page now rather than an overlay that
+    // The opening is a section of the home page rather than an overlay that
     // unmounts, so this listener would otherwise stay bound for as long as the
     // page is open — and Space is how people scroll. Pressing it halfway down
     // the board would have thrown them back to the top.
@@ -455,12 +612,26 @@ export function HomeIntro({
       if (el?.closest("input, textarea, [contenteditable='true']")) return;
       if (e.key === "Escape" || e.key === " " || e.key === "Spacebar") {
         e.preventDefault();
-        onSkip();
+        skip();
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onSkip, ready]);
+  }, [skip, ready]);
+
+  /**
+   * The canvas is disposed a second after the hero is up.
+   *
+   * Long enough that the particles are still there while the real text fades in
+   * over them, which is what hides the seam between a swarm shaped like a
+   * heading and the heading itself. Short enough that the simulation is not
+   * still running while somebody reads.
+   */
+  useEffect(() => {
+    if (!ready || !showCanvas) return;
+    const t = setTimeout(() => setShowCanvas(false), 1000);
+    return () => clearTimeout(t);
+  }, [ready, showCanvas]);
 
   const onCompleteRef = useRef(onComplete);
   onCompleteRef.current = onComplete;
@@ -477,9 +648,9 @@ export function HomeIntro({
    * visitor's to press.
    */
   useEffect(() => {
-    if (!ready || settled) return;
+    if (!ready) return;
     onCompleteRef.current?.();
-  }, [ready, settled]);
+  }, [ready]);
 
   /**
    * The opening does not lock the page any more, and must not.
@@ -508,8 +679,11 @@ export function HomeIntro({
     <IntroStage
       ready={ready}
       settled={settled}
+      showCanvas={showCanvas}
+      hero={hero}
+      placeHero={placeHero}
       onSettled={() => setReady(true)}
-      onSkip={onSkip}
+      onSkip={skip}
     />
   );
 }

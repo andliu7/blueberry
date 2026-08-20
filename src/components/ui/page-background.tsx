@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useReducedMotion } from "motion/react";
 import { useIsDark } from "@/lib/useIsDark";
 import { SURFACE } from "@/lib/hubSurface";
 import { cn } from "@/lib/utils";
@@ -84,11 +85,11 @@ export const DASHBOARD_SCENE = "forest-misty-forest.webp";
  * function of the hour; putting a forest in three times and indexing by the hour
  * is the whole of the trick.
  */
-function pickForHour(entries: BackgroundEntry[], hour: number): BackgroundEntry | undefined {
+function scenePool(entries: BackgroundEntry[], hour: number): BackgroundEntry[] {
   const scenes = entries.filter(
     (e) => (e.kind === "landscape" || e.kind === "forest") && e.file !== DASHBOARD_SCENE,
   );
-  if (scenes.length === 0) return undefined;
+  if (scenes.length === 0) return [];
 
   const wants = (...words: string[]) =>
     scenes.filter((e) => words.some((w) => e.label.includes(w)));
@@ -118,12 +119,51 @@ function pickForHour(entries: BackgroundEntry[], hour: number): BackgroundEntry 
 
   const from = matched.length > 0 ? matched : scenes;
 
-  const pool = from.flatMap((e) =>
+  return from.flatMap((e) =>
     e.kind === "forest" ? (Array(FOREST_WEIGHT).fill(e) as BackgroundEntry[]) : [e],
   );
-
-  return pool[hour % pool.length];
 }
+
+/**
+ * The rotation: which photographs, in what order, starting where.
+ *
+ * The hour still decides what you arrive to, exactly as before — that is the
+ * whole value of `scenePool`'s time-of-day matching, and a rotation that
+ * ignored it would show you a starfield at noon. What is new is that the hour
+ * picks a *starting point* in an order rather than a single frame to sit on.
+ *
+ * **Consecutive duplicates are removed and this is not cosmetic.** The pool
+ * repeats each forest entry three times to weight the draw, and a cross-fade
+ * from a photograph to itself is a fade that plays for eight seconds and
+ * appears to do nothing at all. Weighting survives where it matters, in which
+ * frame comes up first; it is the sequence that has to be distinct.
+ */
+function sceneOrder(entries: BackgroundEntry[], hour: number): BackgroundEntry[] {
+  const pool = scenePool(entries, hour);
+  if (pool.length === 0) return [];
+
+  const start = hour % pool.length;
+  const rotated = [...pool.slice(start), ...pool.slice(0, start)];
+
+  const seen = new Set<string>();
+  const unique = rotated.filter((e) => {
+    if (seen.has(e.file)) return false;
+    seen.add(e.file);
+    return true;
+  });
+  return unique;
+}
+
+/** How long a photograph holds before it begins handing over. */
+const HOLD_MS = 40_000;
+/**
+ * How long the hand-over takes.
+ *
+ * Long enough that no single frame of it looks like a transition. This is a
+ * site people sit in front of for an hour, and a background that visibly
+ * changes is a background that keeps interrupting them.
+ */
+const FADE_MS = 8_000;
 
 export function PageBackground({
   className,
@@ -133,6 +173,7 @@ export function PageBackground({
   className?: string;
   scene?: string;
 }) {
+  const reduce = useReducedMotion();
   const isDark = useIsDark();
   const surface = isDark ? SURFACE.dark : SURFACE.light;
   const [entries, setEntries] = useState<BackgroundEntry[]>([]);
@@ -154,15 +195,73 @@ export function PageBackground({
     };
   }, []);
 
-  const scene = useMemo(() => {
+  /**
+   * The sequence, and whether there is one.
+   *
+   * A pinned scene does not rotate. The dashboard pins deliberately — it is a
+   * room you come back to many times in a sitting, and a background that had
+   * moved on while you were away would make the same panel feel like a
+   * different one. It still drifts; it just never hands over.
+   */
+  const order = useMemo(() => {
     if (pinned) {
-      // Falls through to the hourly pick if the named file is not in the
+      // Falls through to the hourly order if the named file is not in the
       // manifest, so a rename shows the wrong photograph rather than none.
       const found = entries.find((e) => e.file === pinned);
-      if (found) return found;
+      if (found) return [found];
     }
-    return pickForHour(entries, new Date().getHours());
+    return sceneOrder(entries, new Date().getHours());
   }, [entries, pinned]);
+
+  const rotates = !reduce && order.length > 1;
+
+  /**
+   * Two layers, and the back one is always the *next* photograph.
+   *
+   * That is what removes the preloader. The incoming frame has been mounted,
+   * fetched and decoded at `opacity: 0` for the whole forty seconds the
+   * outgoing one was on screen, so the cross-fade is a change of opacity on
+   * something already painted rather than a fade into a file that is still
+   * arriving over the network. A background that fades to white for two
+   * seconds on a slow connection is worse than one that never moved.
+   */
+  const [slots, setSlots] = useState<[BackgroundEntry | undefined, BackgroundEntry | undefined]>([
+    undefined,
+    undefined,
+  ]);
+  const [front, setFront] = useState(0);
+  const stepRef = useRef(0);
+
+  useEffect(() => {
+    if (order.length === 0) return;
+    stepRef.current = 0;
+    setFront(0);
+    setSlots([order[0], order[1] ?? order[0]]);
+  }, [order]);
+
+  useEffect(() => {
+    if (!rotates) return;
+
+    const id = window.setInterval(() => {
+      const n = stepRef.current + 1;
+      stepRef.current = n;
+      setFront(n % 2);
+
+      // The layer that just started fading *out* is the one to reload, and only
+      // once it is off screen. Swapping its source during the fade would change
+      // the picture the visitor is currently watching leave.
+      window.setTimeout(() => {
+        const back = (n + 1) % 2;
+        setSlots((current) => {
+          const next: [BackgroundEntry | undefined, BackgroundEntry | undefined] = [...current];
+          next[back] = order[(n + 1) % order.length];
+          return next;
+        });
+      }, FADE_MS + 600);
+    }, HOLD_MS);
+
+    return () => window.clearInterval(id);
+  }, [rotates, order]);
   const berry = useMemo(() => {
     const berries = entries.filter((e) => e.kind === "berry");
     if (berries.length === 0) return undefined;
@@ -177,7 +276,7 @@ export function PageBackground({
           something to sit on and the surface still shows through it. */}
       <div className="absolute inset-0" style={{ backgroundColor: surface.base }} />
 
-      {scene && (
+      {slots.some(Boolean) && (
         /**
          * The treatment lives on the wrapper, not on the photograph.
          *
@@ -217,23 +316,55 @@ export function PageBackground({
               : "opacity-[0.78] saturate-[1.25] brightness-[0.88] contrast-[1.22]",
           )}
         >
-          {!ready && (
+          {!ready && slots[front] && (
             <div
               className="absolute inset-0 bg-cover bg-center"
-              style={{ backgroundImage: `url(${scene.blur})` }}
+              style={{ backgroundImage: `url(${slots[front]!.blur})` }}
             />
           )}
-          <img
-            src={base + scene.file}
-            alt=""
-            loading="eager"
-            decoding="async"
-            onLoad={() => setReady(true)}
-            className={cn(
-              "absolute inset-0 h-full w-full object-cover transition-opacity duration-700",
-              ready ? "opacity-100" : "opacity-0",
-            )}
-          />
+
+          {/* The two layers.
+
+              Both are always mounted and both always carry a photograph; only
+              opacity distinguishes them. The Ken Burns class is fixed per slot
+              rather than per scene, so a layer keeps drifting through its own
+              swap and a new picture arrives already in motion instead of
+              starting from a dead stop. */}
+          {([0, 1] as const).map((k) => {
+            const entry = slots[k];
+            if (!entry) return null;
+            const isFront = front === k;
+            return (
+              <div
+                key={k}
+                className="absolute inset-0 overflow-hidden"
+                style={{
+                  // `ready` gates only the very first paint, so the opening
+                  // frame fades up from the blurred placeholder rather than
+                  // popping. After that it stays true and the front layer is
+                  // simply the visible one.
+                  opacity: isFront && ready ? 1 : 0,
+                  transition: `opacity ${FADE_MS}ms ease-in-out`,
+                }}
+              >
+                <img
+                  // Keyed on the file so React swaps the element rather than
+                  // mutating `src` on a live one, which would otherwise show the
+                  // old picture until the new one had decoded.
+                  key={entry.file}
+                  src={base + entry.file}
+                  alt=""
+                  loading="eager"
+                  decoding="async"
+                  onLoad={() => setReady(true)}
+                  className={cn(
+                    "absolute inset-0 h-full w-full object-cover",
+                    k === 0 ? "bb-ken-a" : "bb-ken-b",
+                  )}
+                />
+              </div>
+            );
+          })}
         </div>
       )}
 
@@ -254,6 +385,43 @@ export function PageBackground({
           }}
         />
       )}
+
+      {/* The wash: two colour fields breathing over the picture.
+
+          This is the part that makes a still photograph read as a place rather
+          than as wallpaper. The intro has had it since the beginning, as the
+          WebGL aurora; every page below the intro had nothing, so the site went
+          from alive to frozen the moment you scrolled.
+
+          Two `radial-gradient`s on transforms, not a second GL context. This
+          runs behind every route on the site, including a page of flashcards
+          somebody is mid-revision on, and two moving blobs do not justify a
+          canvas and a render loop per page. `screen` on dark so it adds light,
+          `multiply` on light so it tints instead — a wash that adds light to
+          near-white paper is a wash nobody can see. */}
+      <div
+        className={cn(
+          "absolute inset-0 overflow-hidden",
+          isDark ? "mix-blend-screen opacity-[0.5]" : "mix-blend-multiply opacity-[0.34]",
+        )}
+      >
+        <div
+          className="bb-wash-a absolute -inset-[25%]"
+          style={{
+            background: isDark
+              ? "radial-gradient(38% 42% at 32% 38%, rgba(99,102,241,0.55) 0%, transparent 70%)"
+              : "radial-gradient(38% 42% at 32% 38%, rgba(99,102,241,0.38) 0%, transparent 70%)",
+          }}
+        />
+        <div
+          className="bb-wash-b absolute -inset-[25%]"
+          style={{
+            background: isDark
+              ? "radial-gradient(40% 44% at 68% 64%, rgba(217,70,239,0.45) 0%, transparent 72%)"
+              : "radial-gradient(40% 44% at 68% 64%, rgba(217,70,239,0.30) 0%, transparent 72%)",
+          }}
+        />
+      </div>
 
       {/* Grain over everything, so the photograph and the page share one noise
           field. Without it the type looks pasted onto the picture rather than

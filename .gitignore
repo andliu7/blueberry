@@ -40,3 +40,6 @@ skills-lock.json
 # Built output. GitHub Actions builds and deploys to Pages, so a copy of the
 # site is no longer committed. It reached 132MB and broke `git push` outright.
 docs/
+
+.vercel
+.env*

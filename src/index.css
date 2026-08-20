@@ -1209,3 +1209,73 @@ button:disabled,
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
+
+/* ── The living photograph ─────────────────────────────────────────────────
+ *
+ * The background stopped being a still. Two photographs are stacked, each
+ * drifting on its own slow Ken Burns, and they cross-fade into one another
+ * every forty seconds. `PageBackground` owns the swap; these own the motion.
+ *
+ * **`alternate` is the whole trick.** A one-way keyframe has to get back to
+ * its start somehow, and every way of doing that is a jump: the picture
+ * snaps, and a background nobody was looking at suddenly demands attention.
+ * Running the same keyframe forwards and then backwards means there is no
+ * loop point at all — the drift arrives at the far end, turns around, and
+ * comes home, and the seam does not exist to be seen.
+ *
+ * The two durations are deliberately coprime-ish, 43 and 51 seconds. Equal
+ * durations would put both layers at the same phase forever, so every
+ * cross-fade would happen between two pictures framed identically, which
+ * reads as one photograph changing its mind rather than as two photographs.
+ *
+ * Transform only. Animating a filter or a background-position on a
+ * full-screen element repaints it every frame; a transform is handed to the
+ * compositor and costs nothing per frame after the first.
+ *
+ * Wrapped in `prefers-reduced-motion: no-preference`, so a visitor who has
+ * asked for stillness gets a still photograph and no JS has to be consulted.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .bb-ken-a {
+    animation: bb-ken-a 43s ease-in-out infinite alternate;
+    will-change: transform;
+  }
+  .bb-ken-b {
+    animation: bb-ken-b 51s ease-in-out infinite alternate;
+    will-change: transform;
+  }
+  .bb-wash-a {
+    animation: bb-wash-a 74s ease-in-out infinite alternate;
+    will-change: transform, opacity;
+  }
+  .bb-wash-b {
+    animation: bb-wash-b 96s ease-in-out infinite alternate;
+    will-change: transform, opacity;
+  }
+}
+
+/* Scale never returns to 1. The image is `object-fit: cover` at exactly the
+   viewport, so any pan at scale 1 would drag an edge into frame; starting at
+   1.06 buys the margin the pan spends. */
+@keyframes bb-ken-a {
+  from { transform: scale(1.06) translate3d(0, 0, 0); }
+  to   { transform: scale(1.16) translate3d(-2.2%, -1.6%, 0); }
+}
+@keyframes bb-ken-b {
+  from { transform: scale(1.15) translate3d(1.8%, 1.2%, 0); }
+  to   { transform: scale(1.05) translate3d(0, 0, 0); }
+}
+
+/* The wash: two soft colour fields breathing over the picture, which is what
+   the intro's aurora does and what every page below it was missing. Done in
+   CSS rather than by mounting the WebGL aurora on every route — this is a
+   study site, and a second GL context behind a page of flashcards is a real
+   cost for an effect that is two moving blobs. */
+@keyframes bb-wash-a {
+  from { transform: translate3d(-6%, -3%, 0) scale(1); opacity: 0.55; }
+  to   { transform: translate3d(7%, 5%, 0) scale(1.25); opacity: 0.85; }
+}
+@keyframes bb-wash-b {
+  from { transform: translate3d(5%, 6%, 0) scale(1.2); opacity: 0.8; }
+  to   { transform: translate3d(-7%, -4%, 0) scale(1); opacity: 0.5; }
+}
