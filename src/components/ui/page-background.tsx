@@ -78,6 +78,12 @@ export interface CuratedScene {
   water?: "waves" | "lake" | "river";
   /** First hour (0-23) this scene owns. Scenes must be sorted by this. */
   fromHour: number;
+  /**
+   * Extra brightness for photographs that are dark by nature. The treatment
+   * assumes a daylit frame; a night sky under the same numbers and the page
+   * veils reads as a background that failed to load. 1 is neutral.
+   */
+  lift?: number;
 }
 
 /**
@@ -114,7 +120,7 @@ export const HOME_SCENES: CuratedScene[] = [
     fromHour: 10,
   },
   { file: "landscape-sunset-on-lake.webp", title: "Sunset on the lake", water: "lake", fromHour: 17 },
-  { file: "landscape-desert-milky-way.webp", title: "The Milky Way, from the desert", fromHour: 21 },
+  { file: "landscape-desert-milky-way.webp", title: "The Milky Way, from the desert", fromHour: 21, lift: 1.4 },
 ];
 
 /** Which curated scene owns this hour. The set wraps: pre-dawn belongs to night. */
@@ -220,6 +226,30 @@ export function PageBackground({
   /** The real file has decoded; the placeholder can go. */
   const [ready, setReady] = useState(false);
 
+  /**
+   * The hour, as state rather than read inline.
+   *
+   * Inline reads inside memos froze the choice at mount: the memo deps were
+   * module constants, so a tab opened at 3am was still showing the Milky Way
+   * at 2pm - which, under the dark veils, reads as the background not having
+   * loaded at all. That was the bug report, verbatim. Re-read when the tab
+   * becomes visible again and on a slow interval; within one sitting nothing
+   * moves, and a return in a different hour is a new arrival.
+   */
+  const [hour, setHour] = useState(() => new Date().getHours());
+  useEffect(() => {
+    const update = () => setHour(new Date().getHours());
+    const onVisible = () => {
+      if (document.visibilityState === "visible") update();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    const iv = window.setInterval(update, 15 * 60 * 1000);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      window.clearInterval(iv);
+    };
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
     void fetch(`${import.meta.env.BASE_URL}backgrounds/manifest.json`)
@@ -237,8 +267,8 @@ export function PageBackground({
 
   /** The curated pick, when there is a set. Carries the caption and the water flag. */
   const curated = useMemo(
-    () => (scenes ? sceneForHour(scenes, new Date().getHours()) : undefined),
-    [scenes],
+    () => (scenes ? sceneForHour(scenes, hour) : undefined),
+    [scenes, hour],
   );
 
   const entry = useMemo(() => {
@@ -249,14 +279,14 @@ export function PageBackground({
       const found = entries.find((e) => e.file === wanted);
       if (found) return found;
     }
-    return pickForHour(entries, new Date().getHours());
-  }, [entries, curated, pinned]);
+    return pickForHour(entries, hour);
+  }, [entries, curated, pinned, hour]);
 
   const berry = useMemo(() => {
     const berries = entries.filter((e) => e.kind === "berry");
     if (berries.length === 0) return undefined;
-    return berries[new Date().getHours() % berries.length];
-  }, [entries]);
+    return berries[hour % berries.length];
+  }, [entries, hour]);
 
   const base = `${import.meta.env.BASE_URL}backgrounds/`;
 
@@ -302,6 +332,18 @@ export function PageBackground({
               ? "opacity-[0.95] saturate-[1.45] brightness-[1.08] contrast-[1.12]"
               : "opacity-[0.9] saturate-[1.3] brightness-[0.94] contrast-[1.12]",
           )}
+          // Inline `filter` replaces the class chain entirely, so the lifted
+          // night variant restates saturation and contrast around its own
+          // brightness instead of multiplying on top of them.
+          style={
+            curated?.lift
+              ? {
+                  filter: isDark
+                    ? `saturate(1.45) brightness(${curated.lift}) contrast(1.05)`
+                    : `saturate(1.3) brightness(${Math.max(1, curated.lift - 0.25)}) contrast(1.05)`,
+                }
+              : undefined
+          }
         >
           {!ready && (
             <div
