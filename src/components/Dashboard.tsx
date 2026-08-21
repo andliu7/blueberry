@@ -28,6 +28,7 @@ import { useProfile } from "@/lib/profile";
 import { useSession } from "@/lib/useSession";
 import { LESSON_TOPICS } from "@/data/lessonTopics";
 import { deckCount, deckHref, type Deck } from "@/data/types";
+import { recentChangelog } from "@/data/changelog";
 import { searchDecks } from "@/lib/searchDecks";
 import { reviewedCount } from "@/lib/progress";
 import { timeAgo } from "@/lib/workspace";
@@ -660,43 +661,112 @@ function CategoriesPanel({ decks, go }: { decks: Deck[]; go: (view: DashboardVie
 }
 
 function NotificationsPanel({ updates, onClose }: { updates: Update[]; onClose: () => void }) {
-  if (updates.length === 0) {
-    return (
-      <p className="rounded-xl border border-dashed border-slate-300 px-4 py-6 text-sm text-slate-500 dark:border-stone-700 dark:text-stone-400">
-        Nothing has changed since you were last here. New decks and anything published from a text
-        file will show up in this list.
-      </p>
-    );
-  }
+  /**
+   * Two tabs: the feed, and the week said plainly.
+   *
+   * The feed is generated from the deck data, so it can only ever talk about
+   * decks. The summary is the opposite: hand-written sentences from
+   * `data/changelog.ts` about whatever actually changed - the front page, the
+   * mascot, the assistant - which no generated feed could know to mention.
+   * Andrew asked for exactly this: click in, read a short plain-English
+   * account of the past week, done.
+   */
+  const [tab, setTab] = useState<"updates" | "week">("updates");
+  const week = recentChangelog(7);
+
+  const tabButton = (id: "updates" | "week", label: string) => (
+    <button
+      type="button"
+      onClick={() => setTab(id)}
+      aria-pressed={tab === id}
+      className={cn(
+        "min-h-11 cursor-pointer rounded-full px-4 text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:outline-none",
+        tab === id
+          ? "bg-slate-900 text-white dark:bg-stone-100 dark:text-stone-900"
+          : "text-slate-600 hover:bg-slate-100 dark:text-stone-300 dark:hover:bg-stone-800",
+      )}
+    >
+      {label}
+    </button>
+  );
 
   return (
     <div>
-      <p className="playful-body mb-5 text-[0.95rem] leading-7 text-slate-600 dark:text-stone-300">
-        What has changed on the site.
-      </p>
-      <ul className="space-y-2">
-        {updates.map((u) => (
-          <li key={u.id}>
-            <a
-              href={deckHref(u.deck)}
-              onClick={onClose}
-              className="block rounded-xl border border-slate-200 bg-white/85 px-4 py-3 transition-colors hover:border-indigo-300 hover:bg-white dark:border-stone-700 dark:bg-stone-900/75 dark:hover:border-indigo-400/50 dark:hover:bg-stone-900"
-            >
-              <div className="flex items-center gap-1.5 font-mono text-[0.65rem] text-indigo-600 dark:text-indigo-300">
-                <Sparkles className="size-3" />
-                {u.note}
-              </div>
-              <p className="mt-0.5 text-sm font-semibold text-slate-800 dark:text-stone-100">
-                {u.deck.title}
-              </p>
-              <p className="mt-0.5 text-xs text-slate-500 dark:text-stone-400">
-                {u.at ? timeAgo(`${u.at}T12:00:00Z`) : "Published deck"} ·{" "}
-                {deckCount(u.deck)} cards
-              </p>
-            </a>
-          </li>
-        ))}
-      </ul>
+      <div className="mb-5 flex items-center gap-1.5">
+        {tabButton("updates", "Updates")}
+        {tabButton("week", "This week")}
+      </div>
+
+      {tab === "week" ? (
+        week.length === 0 ? (
+          <p className="rounded-xl border border-dashed border-slate-300 px-4 py-6 text-sm text-slate-500 dark:border-stone-700 dark:text-stone-400">
+            A quiet week. When something on the site changes, the plain-English
+            version of it lands here.
+          </p>
+        ) : (
+          <div>
+            <p className="playful-body mb-5 text-[0.95rem] leading-7 text-slate-600 dark:text-stone-300">
+              The past week, in plain English.
+            </p>
+            <ul className="space-y-2">
+              {week.map((e) => (
+                <li
+                  key={`${e.date}:${e.title}`}
+                  className="rounded-xl border border-slate-200 bg-white/85 px-4 py-3 dark:border-stone-700 dark:bg-stone-900/75"
+                >
+                  <div className="flex items-center gap-1.5 font-mono text-[0.65rem] text-indigo-600 dark:text-indigo-300">
+                    <Sparkles className="size-3" />
+                    {new Date(`${e.date}T12:00:00Z`).toLocaleDateString(undefined, {
+                      month: "short",
+                      day: "numeric",
+                    })}
+                  </div>
+                  <p className="mt-0.5 text-sm font-semibold text-slate-800 dark:text-stone-100">
+                    {e.title}
+                  </p>
+                  <p className="mt-0.5 text-xs leading-5 text-slate-500 dark:text-stone-400">
+                    {e.body}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )
+      ) : updates.length === 0 ? (
+        <p className="rounded-xl border border-dashed border-slate-300 px-4 py-6 text-sm text-slate-500 dark:border-stone-700 dark:text-stone-400">
+          Nothing has changed since you were last here. New decks and anything published from a text
+          file will show up in this list.
+        </p>
+      ) : (
+        <div>
+          <p className="playful-body mb-5 text-[0.95rem] leading-7 text-slate-600 dark:text-stone-300">
+            What has changed on the site.
+          </p>
+          <ul className="space-y-2">
+            {updates.map((u) => (
+              <li key={u.id}>
+                <a
+                  href={deckHref(u.deck)}
+                  onClick={onClose}
+                  className="block rounded-xl border border-slate-200 bg-white/85 px-4 py-3 transition-colors hover:border-indigo-300 hover:bg-white dark:border-stone-700 dark:bg-stone-900/75 dark:hover:border-indigo-400/50 dark:hover:bg-stone-900"
+                >
+                  <div className="flex items-center gap-1.5 font-mono text-[0.65rem] text-indigo-600 dark:text-indigo-300">
+                    <Sparkles className="size-3" />
+                    {u.note}
+                  </div>
+                  <p className="mt-0.5 text-sm font-semibold text-slate-800 dark:text-stone-100">
+                    {u.deck.title}
+                  </p>
+                  <p className="mt-0.5 text-xs text-slate-500 dark:text-stone-400">
+                    {u.at ? timeAgo(`${u.at}T12:00:00Z`) : "Published deck"} ·{" "}
+                    {deckCount(u.deck)} cards
+                  </p>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
