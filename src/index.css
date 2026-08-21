@@ -1212,9 +1212,9 @@ button:disabled,
 
 /* ── The living photograph ─────────────────────────────────────────────────
  *
- * The background stopped being a still. Two photographs are stacked, each
- * drifting on its own slow Ken Burns, and they cross-fade into one another
- * every forty seconds. `PageBackground` owns the swap; these own the motion.
+ * The photograph itself holds still — a Ken Burns drift was tried and cut,
+ * because scaling a 2560px frame past 1:1 spends sharpness. What moves is the
+ * colour wash breathing over it, plus the weather layers further down.
  *
  * **`alternate` is the whole trick.** A one-way keyframe has to get back to
  * its start somehow, and every way of doing that is a jump: the picture
@@ -1223,10 +1223,8 @@ button:disabled,
  * loop point at all — the drift arrives at the far end, turns around, and
  * comes home, and the seam does not exist to be seen.
  *
- * The two durations are deliberately coprime-ish, 43 and 51 seconds. Equal
- * durations would put both layers at the same phase forever, so every
- * cross-fade would happen between two pictures framed identically, which
- * reads as one photograph changing its mind rather than as two photographs.
+ * The two durations are deliberately unequal, 74 and 96 seconds, so the two
+ * fields never fall into phase and the pattern never visibly repeats.
  *
  * Transform only. Animating a filter or a background-position on a
  * full-screen element repaints it every frame; a transform is handed to the
@@ -1236,14 +1234,6 @@ button:disabled,
  * asked for stillness gets a still photograph and no JS has to be consulted.
  */
 @media (prefers-reduced-motion: no-preference) {
-  .bb-ken-a {
-    animation: bb-ken-a 43s ease-in-out infinite alternate;
-    will-change: transform;
-  }
-  .bb-ken-b {
-    animation: bb-ken-b 51s ease-in-out infinite alternate;
-    will-change: transform;
-  }
   .bb-wash-a {
     animation: bb-wash-a 74s ease-in-out infinite alternate;
     will-change: transform, opacity;
@@ -1252,18 +1242,6 @@ button:disabled,
     animation: bb-wash-b 96s ease-in-out infinite alternate;
     will-change: transform, opacity;
   }
-}
-
-/* Scale never returns to 1. The image is `object-fit: cover` at exactly the
-   viewport, so any pan at scale 1 would drag an edge into frame; starting at
-   1.06 buys the margin the pan spends. */
-@keyframes bb-ken-a {
-  from { transform: scale(1.06) translate3d(0, 0, 0); }
-  to   { transform: scale(1.16) translate3d(-2.2%, -1.6%, 0); }
-}
-@keyframes bb-ken-b {
-  from { transform: scale(1.15) translate3d(1.8%, 1.2%, 0); }
-  to   { transform: scale(1.05) translate3d(0, 0, 0); }
 }
 
 /* The wash: two soft colour fields breathing over the picture, which is what
@@ -1278,4 +1256,185 @@ button:disabled,
 @keyframes bb-wash-b {
   from { transform: translate3d(5%, 6%, 0) scale(1.2); opacity: 0.8; }
   to   { transform: translate3d(-7%, -4%, 0) scale(1); opacity: 0.5; }
+}
+
+/* ── Weather over the photograph ───────────────────────────────────────────
+ *
+ * Clouds cross left to right on loops long enough that no two crossings feel
+ * related; the negative delays start each one mid-sky so the first paint is
+ * never an empty sky that suddenly grows clouds. `linear`, because wind does
+ * not ease. Transform-only, same as every moving layer back here.
+ *
+ * The water glints slide the other way and are `alternate`, so like the wash
+ * they have no loop point to catch. Speeds chosen so the two strips beat
+ * against each other rather than marching. */
+@media (prefers-reduced-motion: no-preference) {
+  .bb-cloud-a { animation: bb-cloud 120s linear -30s infinite; will-change: transform; }
+  .bb-cloud-b { animation: bb-cloud 165s linear -90s infinite; will-change: transform; }
+  .bb-cloud-c { animation: bb-cloud 210s linear -150s infinite; will-change: transform; }
+  .bb-water-a { animation: bb-water-a 17s ease-in-out infinite alternate; will-change: transform; }
+  .bb-water-b { animation: bb-water-b 23s ease-in-out infinite alternate; will-change: transform; }
+}
+
+/* From fully off the left edge to fully off the right. The element is up to
+   70vw wide, so the throw has to clear both sides with margin. */
+@keyframes bb-cloud {
+  from { transform: translate3d(-80vw, 0, 0); }
+  to   { transform: translate3d(110vw, 0, 0); }
+}
+
+/* The strips are 300% wide and start at -100%, so a third of the pattern is
+   always on screen and a small sideways drift never shows an edge. */
+@keyframes bb-water-a {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(6%, 0, 0); }
+}
+@keyframes bb-water-b {
+  from { transform: translate3d(4%, 0, 0); }
+  to   { transform: translate3d(-3%, 0, 0); }
+}
+
+/* ── The page behind the page ──────────────────────────────────────────────
+ *
+ * The photograph is a `fixed` layer, and a fixed layer does not follow the
+ * page into the rubber-band. Overscroll past the top showed the browser's
+ * default white behind everything — on the dark theme, a white flash ruled
+ * across the top of the screen that read as the dashboard being cut off.
+ * The root carries the surface colour itself so there is nothing behind the
+ * site that is not the site. */
+html {
+  background-color: #faf9ff;
+}
+html.dark {
+  background-color: #171327;
+}
+
+/* ── The loading slime ─────────────────────────────────────────────────────
+ *
+ * A ball that falls, squashes, and leaps back up. The shading does the work
+ * the old flat blobs could not: a radial gradient lit from the upper left, a
+ * specular dot, and a ground shadow that breathes opposite the bounce — the
+ * three cues the eye reads as volume. Squash and stretch are on the scale
+ * axes only, so the gradient deforms with the body like a real drop. */
+@media (prefers-reduced-motion: no-preference) {
+  .bb-slime { animation: bb-slime 1.15s cubic-bezier(0.28, 0, 0.55, 1) infinite; }
+  .bb-slime-shadow { animation: bb-slime-shadow 1.15s cubic-bezier(0.28, 0, 0.55, 1) infinite; }
+}
+@keyframes bb-slime {
+  0%   { transform: translateY(0) scale(1.18, 0.78); }
+  18%  { transform: translateY(-8px) scale(0.94, 1.08); }
+  45%  { transform: translateY(-46px) scale(0.96, 1.05); }
+  62%  { transform: translateY(-14px) scale(0.98, 1.02); }
+  82%  { transform: translateY(0) scale(1.06, 0.92); }
+  100% { transform: translateY(0) scale(1.18, 0.78); }
+}
+@keyframes bb-slime-shadow {
+  0%   { transform: scaleX(1.25); opacity: 0.4; }
+  45%  { transform: scaleX(0.62); opacity: 0.16; }
+  100% { transform: scaleX(1.25); opacity: 0.4; }
+}
+
+/* ── Waves and rivers ──────────────────────────────────────────────────────
+ *
+ * Waves: the swell drifts sideways while it bobs, `alternate` in both so
+ * there is no loop point. Two layers at different beats read as water; one
+ * reads as a machine.
+ *
+ * River: streaks slide one way and only one way — downstream — and the loop
+ * is seamless because the travel per cycle is an exact multiple of the
+ * pattern's period, so frame N and frame 0 are the same picture. */
+@media (prefers-reduced-motion: no-preference) {
+  .bb-wave-a { animation: bb-wave-a 9s ease-in-out infinite alternate; will-change: transform; }
+  .bb-wave-b { animation: bb-wave-b 13s ease-in-out infinite alternate; will-change: transform; }
+  .bb-river { animation: bb-river 7s linear infinite; }
+}
+@keyframes bb-wave-a {
+  from { transform: translate3d(-2%, 0, 0); }
+  to   { transform: translate3d(2%, 6px, 0); }
+}
+@keyframes bb-wave-b {
+  from { transform: translate3d(2%, 4px, 0); }
+  to   { transform: translate3d(-2%, 0, 0); }
+}
+@keyframes bb-river {
+  from { background-position: 0 0; }
+  to   { background-position: 480px 0; }
+}
+
+/* ── Buttons that are unmistakably buttons ─────────────────────────────────
+ *
+ * A ledge under the button — a hard shadow with no blur — is the one visual
+ * cue that says "this depresses" before anyone touches it, and pressing it
+ * collapses the ledge while the face travels down onto it. The travel is the
+ * ledge's height exactly, so the button lands on the ground it was standing
+ * on rather than sinking through it. Fast on the way down, slower back up:
+ * real buttons are sprung.
+ */
+.bb-press {
+  box-shadow:
+    0 5px 0 rgba(30, 15, 80, 0.55),
+    0 14px 34px -10px rgba(99, 102, 241, 0.65);
+  transition:
+    transform 0.09s ease-out,
+    box-shadow 0.09s ease-out,
+    filter 0.2s ease-out;
+}
+.bb-press:hover {
+  filter: brightness(1.08);
+}
+.bb-press:active {
+  transform: translateY(5px);
+  box-shadow:
+    0 0 0 rgba(30, 15, 80, 0.55),
+    0 6px 18px -8px rgba(99, 102, 241, 0.5);
+}
+
+/* The quiet version, for secondary buttons on cards and quiz options: less
+   ledge, same honesty. */
+.bb-press-soft {
+  box-shadow: 0 3px 0 rgba(30, 15, 80, 0.18);
+  transition:
+    transform 0.09s ease-out,
+    box-shadow 0.09s ease-out;
+}
+.dark .bb-press-soft {
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.45);
+}
+.bb-press-soft:active {
+  transform: translateY(3px);
+  box-shadow: 0 0 0 rgba(30, 15, 80, 0.18);
+}
+
+/* ── The skeleton shimmer ──────────────────────────────────────────────────
+ *
+ * Laid over a page that is actually already rendered, and fading out from the
+ * first frame. It is acknowledgement, not a wait: the click landed, something
+ * is visibly happening, and nothing is blocked — the real controls are
+ * interactive underneath the whole time (`pointer-events: none` on the
+ * overlay). Honest skeletons cover latency; this one covers the 300ms of
+ * perceptual gap between pressing a button and believing it worked. */
+@media (prefers-reduced-motion: no-preference) {
+  .bb-shimmer {
+    background: linear-gradient(
+      100deg,
+      transparent 30%,
+      rgba(255, 255, 255, 0.45) 50%,
+      transparent 70%
+    );
+    background-size: 200% 100%;
+    animation: bb-shimmer 1.1s ease-in-out infinite;
+  }
+  .dark .bb-shimmer {
+    background: linear-gradient(
+      100deg,
+      transparent 30%,
+      rgba(255, 255, 255, 0.1) 50%,
+      transparent 70%
+    );
+    background-size: 200% 100%;
+  }
+}
+@keyframes bb-shimmer {
+  from { background-position: 180% 0; }
+  to   { background-position: -80% 0; }
 }

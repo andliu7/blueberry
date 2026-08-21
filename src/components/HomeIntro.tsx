@@ -11,7 +11,6 @@ import { cn } from "@/lib/utils";
 import { SITE_NAME } from "@/data/site";
 import {
   ParticleTextEffect,
-  type ParticlePlacement,
   type ParticleWord,
 } from "@/components/ui/particle-text-effect";
 import {
@@ -60,40 +59,24 @@ import {
 const SITE_WORD = SITE_NAME.toUpperCase();
 
 /**
- * What the swarm actually spells: lowercase, with a full stop.
- *
- * The particle canvas rasterises whatever string it is given, so case is a
- * typographic decision rather than a technical one. Lowercase reads quieter and
- * more deliberate at this size than the shouted version, and the full stop
- * gives the swarm somewhere to land — a single dense dot after a long word,
- * which is the last thing to resolve and the thing that makes it read as a
- * statement rather than a label.
- */
-const INTRO_WORDMARK = `${SITE_NAME.toLowerCase()}.`;
-
-/**
  * Colour reads left to right across each word. Indigo into fuchsia is the
  * gradient the rest of the site already uses on links and card edges, so the
  * opening arrives in the same palette rather than the demo's random RGB.
  */
+/**
+ * One beat. The swarm flies in, becomes the berry, holds just long enough to
+ * be recognised — and pops. The title does not get spelled in particles any
+ * more: it fades in as itself, type from the first frame, while the burst is
+ * still in the air.
+ *
+ * This replaced a three-beat sequence (wordmark, berry, wordmark again landing
+ * into the page), which was the previous replacement for a different
+ * three-beat sequence. The verdict on both was the same: too long in front of
+ * the one button that matters. A commercial front door gets one flourish, and
+ * the flourish is the mascot arriving and bursting into the page.
+ */
 const INTRO_WORDS: ParticleWord[] = [
-  { text: INTRO_WORDMARK, from: "#818cf8", to: "#f0abfc", holdMs: 1800 },
-  // The name scatters and comes back as the mark itself. The swarm carries the
-  // logo's own shading rather than the gradient the words wear, so the berry
-  // arrives lit rather than flat.
-  { text: SITE_NAME, from: "#818cf8", to: "#f0abfc", shape: "blueberry", eyes: "open", holdMs: 900 },
-  // **The landing, and it is the point of the whole rebuild.**
-  //
-  // The swarm scatters once more and comes back as the page: the wordmark in
-  // the top-left corner at the heading's own size, the berry over on the right
-  // where the mascot lives. Both at once, out of one swarm, because they are
-  // one swarm. `placeHero` supplies the coordinates by measuring the real hero,
-  // so what the particles form is not a picture of the hero, it is the hero.
-  //
-  // There used to be a third berry beat here, eyes shut and blushing, and it
-  // was charming. It cost a second and a half in front of the one button on the
-  // page that matters, which is a trade this screen can no longer make.
-  { text: INTRO_WORDMARK, from: "#818cf8", to: "#f0abfc", holdMs: 1400 },
+  { text: SITE_NAME, from: "#818cf8", to: "#f0abfc", shape: "blueberry", eyes: "open", holdMs: 1250 },
 ];
 
 /**
@@ -115,7 +98,6 @@ const INTRO_WORDS_LIGHT: ParticleWord[] = [
   // name was barely there. Reading the site's own name should not require
   // squinting, so the particles are now dark enough to carry the contrast
   // themselves rather than relying on the vignette behind them.
-  { text: INTRO_WORDMARK, from: "#4338ca", to: "#a21caf", holdMs: 1800 },
   // Saturation up, brightness barely down. Darkening alone walked every channel
   // toward black, which is what had taken the life out of it: the berry needs to
   // be more itself against the cream, not dimmer.
@@ -127,13 +109,8 @@ const INTRO_WORDS_LIGHT: ParticleWord[] = [
     vivid: 1.25,
     shade: 1,
     eyes: "open",
-    holdMs: 900,
+    holdMs: 1250,
   },
-  // The landing. `vivid` rides along on the text gradient here as well as on
-  // the berry, which is harmless: the light palette's endpoints are already the
-  // deep end of the ramp, so pushing them further from grey only helps them off
-  // the cream.
-  { text: INTRO_WORDMARK, from: "#4338ca", to: "#a21caf", vivid: 1.25, holdMs: 1400 },
 ];
 
 /**
@@ -150,52 +127,40 @@ const INTRO_WORDS_LIGHT: ParticleWord[] = [
  * `words` is an effect dependency on the canvas, and a fresh array on every
  * render would restart the sequence continuously.
  */
-const SETTLED_WORDS: ParticleWord[] = [{ ...INTRO_WORDS[2]!, holdMs: 700 }];
-const SETTLED_WORDS_LIGHT: ParticleWord[] = [{ ...INTRO_WORDS_LIGHT[2]!, holdMs: 700 }];
+/**
+ * A returning visitor gets no animation at all: the hero, immediately.
+ *
+ * The earlier design replayed a short landing on every visit. Cut, because a
+ * repeat visitor is here to do something, and the professional read of a site
+ * you use daily is that it opens ready. The pop is a first impression; a first
+ * impression happens once a visit.
+ */
 
 function IntroStage({
   ready,
   onSettled,
   onSkip,
-  settled,
   hero,
-  placeHero,
   showCanvas,
 }: {
   ready: boolean;
   onSettled: () => void;
   onSkip: () => void;
-  settled: boolean;
   /**
-   * The hero itself, laid out inside the stage and measured by `placeHero`.
+   * The hero itself, laid out inside the stage from the first frame.
    *
    * It is in the document from the first frame, transparent, because the swarm
    * needs somewhere to aim and `getBoundingClientRect` on a `display: none`
    * element is a box of zeroes.
    */
   hero?: React.ReactNode;
-  /** Coordinates for the landing beat. See the note on the last `INTRO_WORDS`. */
-  placeHero?: (canvas: DOMRect) => ParticlePlacement | null;
   /** Torn down once the hero has taken over; see `HomeIntro`. */
   showCanvas: boolean;
 }) {
   const isDark = useIsDark();
   const surface = isDark ? SURFACE.dark : SURFACE.light;
 
-  /**
-   * The landing beat is always the last one, whichever sequence is playing.
-   *
-   * Keyed off the array rather than a hardcoded 2, because the settled sequence
-   * is one beat long and the full one is three, and an index that only holds
-   * for one of them is a bug waiting for a returning visitor.
-   */
-  const words = isDark
-    ? settled
-      ? SETTLED_WORDS
-      : INTRO_WORDS
-    : settled
-      ? SETTLED_WORDS_LIGHT
-      : INTRO_WORDS_LIGHT;
+  const words = isDark ? INTRO_WORDS : INTRO_WORDS_LIGHT;
 
 
 
@@ -226,7 +191,7 @@ function IntroStage({
      */
     <ContainerScroll className="h-[165vh]">
       <ContainerSticky
-        className={cn("overflow-hidden", isDark ? "bg-[#171327]" : "bg-[#f7eaff]")}
+        className={cn(isDark ? "bg-[#171327]" : "bg-[#f7eaff]")}
       >
       <div className="absolute inset-0">
         {/* The pastel wash, under everything, in light mode only. The dark
@@ -439,21 +404,21 @@ function IntroStage({
           className="absolute inset-0 z-10"
           initial={false}
           animate={{ opacity: ready ? 0 : 1 }}
-          transition={{ duration: 0.9, ease: "easeInOut" }}
+          // Slower than the burst's own alpha fade, so the canvas never
+          // visibly clips the flying pieces — they die on their own first.
+          transition={{ duration: 1.2, ease: "easeOut" }}
         >
           <ParticleTextEffect
             words={words}
-            // The berry beat is a silhouette you have already read, so it does
-            // not need as long to land as a word does.
             wordMs={1150}
-            settleMs={settled ? 400 : 700}
+            // `settleMs` is the time between the berry's hold expiring and the
+            // pop. Short: the pop is the transition, and the visitor should be
+            // reading the real page before curiosity about the animation runs
+            // out — measured taste, roughly 2.5s arrival to button.
+            settleMs={450}
+            burst
             onFinished={onSettled}
-            // Only the last beat is placed. Keyed off the array so the settled
-            // sequence, which is one beat long, places its only beat.
-            placeFor={(index, rect) =>
-              index === words.length - 1 ? (placeHero?.(rect) ?? null) : null
-            }
-            label={settled ? SITE_WORD : `Welcome to ${SITE_WORD}`}
+            label={`Welcome to ${SITE_WORD}`}
           />
         </motion.div>
       )}
@@ -538,26 +503,21 @@ export function HomeIntro({
   onComplete,
   settled = false,
   hero,
-  placeHero,
 }: {
   /**
-   * Fired once the swarm has landed and the hero owns the screen.
+   * Fired once the berry has popped and the hero owns the screen.
    *
-   * The name is now literal: there is no second screen to be handed to, so
-   * this reports that the opening is over rather than starting a journey.
+   * The name is literal: there is no second screen to be handed to, so this
+   * reports that the opening is over rather than starting a journey.
    */
   onComplete?: () => void;
   /**
-   * Already seen this visit, so play the one-beat landing rather than the full
-   * sequence. Not "show a still": the swarm assembling into the page is quick
-   * enough at 700ms to be worth having every time, and skipping it entirely
-   * would mean a repeat visit gets a hero that simply appears.
+   * Already seen this visit: no animation at all, the hero immediately. A
+   * repeat visitor is here to do something.
    */
   settled?: boolean;
   /** The hero. See the note on `IntroStage`'s prop of the same name. */
   hero?: React.ReactNode;
-  /** Coordinates for the landing beat. */
-  placeHero?: (canvas: DOMRect) => ParticlePlacement | null;
 }) {
 
   /**
@@ -574,17 +534,19 @@ export function HomeIntro({
    */
   const reduce = useReducedMotion();
 
-  const [ready, setReady] = useState(false);
+  // A repeat visitor, or one who asked for stillness, opens on the finished
+  // page: no swarm, no pop, nothing to wait through twice.
+  const instant = settled || Boolean(reduce);
+
+  const [ready, setReady] = useState(instant);
 
   /**
    * Whether the canvas is still mounted.
    *
-   * It comes down a beat after the hero has faded up, so the two overlap and
-   * the swap is a cross-fade rather than a blink. Under reduced motion it never
-   * goes up at all: the destination without the journey, which for this screen
-   * means the hero, immediately.
+   * It comes down after the burst has died, so the pop is never clipped by its
+   * own container disappearing.
    */
-  const [showCanvas, setShowCanvas] = useState(!reduce);
+  const [showCanvas, setShowCanvas] = useState(!instant);
 
   /** Skipping lands the hero at once and takes the swarm away with it. */
   const skip = useCallback(() => {
@@ -593,10 +555,10 @@ export function HomeIntro({
   }, []);
 
   useEffect(() => {
-    if (!reduce) return;
+    if (!instant) return;
     setReady(true);
     setShowCanvas(false);
-  }, [reduce]);
+  }, [instant]);
 
   useEffect(() => {
     // Only while there is something to skip.
@@ -629,7 +591,7 @@ export function HomeIntro({
    */
   useEffect(() => {
     if (!ready || !showCanvas) return;
-    const t = setTimeout(() => setShowCanvas(false), 1000);
+    const t = setTimeout(() => setShowCanvas(false), 1500);
     return () => clearTimeout(t);
   }, [ready, showCanvas]);
 
@@ -678,10 +640,8 @@ export function HomeIntro({
   return (
     <IntroStage
       ready={ready}
-      settled={settled}
       showCanvas={showCanvas}
       hero={hero}
-      placeHero={placeHero}
       onSettled={() => setReady(true)}
       onSkip={skip}
     />

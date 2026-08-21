@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
-import { GooeyLoader } from "@/components/ui/loader-10";
 import { SURFACE } from "@/lib/hubSurface";
 import { useIsDark } from "@/lib/useIsDark";
 import { SITE_NAME } from "@/data/site";
@@ -81,25 +80,48 @@ export function BlueberryLoader({ className }: { className?: string }) {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.45, ease: "easeOut" }}
     >
-      {/* The blob, centred, and nothing else.
+      {/* The slime, centred, and nothing else.
 
-          The name used to sit above it. It was saying the same word the
-          opening was about to spell out in particles two seconds later, so the
-          loading screen was a spoiler for the thing it was covering. A shape
-          with no text is also the only version that says nothing at all in any
-          language, which is the honest content of a wait.
+          The old version was two flat discs sliding along a rule — a diagram
+          of a bounce. What makes this one read as a thing with volume is three
+          cues, all cheap: a radial gradient lit from the upper left, a
+          specular dot riding where the light hits, and a ground shadow that
+          spreads when the ball lands and shrinks when it leaves. The squash
+          and stretch are on the scale axes, so the shading deforms with the
+          body the way a real drop deforms.
 
-          The site's own ramp rather than the component's shadcn defaults, so
-          the loader is already wearing the palette the opening continues in.
-          The line is dimmer on the dark surface, where a light rule reads as a
-          bright bar across the screen rather than as a track. */}
-      <GooeyLoader
-        aria-hidden
-        primaryColor="#6366f1"
-        secondaryColor="#d946ef"
-        borderColor={isDark ? "rgba(226, 232, 240, 0.18)" : "rgba(100, 116, 139, 0.28)"}
-        className="text-base sm:text-lg"
-      />
+          The palette is the berry's own — this is the mascot before it has a
+          face. Still no canvas, no WebGL, no dependency: the thing that covers
+          the load must not be part of the load. */}
+      <div aria-hidden className="relative flex h-28 w-24 items-end justify-center">
+        {/* The shadow, breathing opposite the bounce. */}
+        <div
+          className="bb-slime-shadow absolute bottom-0 h-2.5 w-14 rounded-[100%]"
+          style={{
+            background: isDark
+              ? "radial-gradient(50% 50% at 50% 50%, rgba(0,0,0,0.55) 0%, transparent 75%)"
+              : "radial-gradient(50% 50% at 50% 50%, rgba(49,29,94,0.35) 0%, transparent 75%)",
+          }}
+        />
+        {/* The body. `origin-bottom` so squash happens against the floor,
+            which is where a landing actually deforms a drop. */}
+        <div
+          className="bb-slime relative mb-1 h-14 w-14 origin-bottom rounded-full"
+          style={{
+            background:
+              "radial-gradient(circle at 32% 26%, #a5b4fc 0%, #6366f1 34%, #7c3aed 62%, #4c1d95 88%, #3b0d7a 100%)",
+            boxShadow: isDark
+              ? "inset -6px -8px 14px rgba(20,6,60,0.55), 0 4px 18px rgba(99,102,241,0.35)"
+              : "inset -6px -8px 14px rgba(49,29,94,0.4), 0 4px 18px rgba(99,102,241,0.3)",
+          }}
+        >
+          {/* The specular dot: the difference between a sphere and a circle. */}
+          <div
+            className="absolute top-[16%] left-[24%] h-3.5 w-2.5 -rotate-[24deg] rounded-full"
+            style={{ background: "rgba(255,255,255,0.75)", filter: "blur(1px)" }}
+          />
+        </div>
+      </div>
 
       {/* The only text, and only for screen readers, which get nothing at all
           from a blob. */}

@@ -18,8 +18,9 @@ import { courseSummary } from "@/data/topics";
 import { REACTIONS } from "@/data/reactions";
 import { WindowChrome } from "@/components/ui/window-chrome";
 import { SiteFooter } from "@/components/ui/site-footer";
-import { PageBackground } from "@/components/ui/page-background";
+import { HOME_SCENES, PageBackground } from "@/components/ui/page-background";
 import { Testimonials } from "@/components/ui/testimonials";
+import { SubscriptionPlans } from "@/components/ui/subscription-plans";
 import { usePageCurtain } from "@/components/ui/page-flip";
 import { useDecks } from "@/lib/useDecks";
 import { hasSeenIntro, markIntroSeen } from "@/lib/intro";
@@ -74,7 +75,9 @@ export function HomePage() {
       // and lays the same `SURFACE` gradient over it, so setting one here as
       // well would put an opaque sheet between the two.
     >
-      <PageBackground />
+      {/* Home's theme: one landscape per time of day, weather moving over it,
+          and a caption naming the place when the place is known. */}
+      <PageBackground scenes={HOME_SCENES} weather info />
 
       <AnimatePresence>{!loaded && <BlueberryLoader key="loader" />}</AnimatePresence>
 
@@ -152,6 +155,22 @@ function Body({ loaded, seenIntro }: { loaded: boolean; seenIntro: boolean }) {
           praising the site belongs where someone is deciding whether to use
           it, not under the cards while they are mid-revision. */}
       <Testimonials className="pb-20" />
+
+      {/* The plans, directly under the praise — the classic order, because it
+          is the order a decision actually happens in: what it is, what people
+          say, what it costs. Until now pricing only existed inside the
+          dashboard, which is exactly where somebody deciding whether to sign
+          up has never been. */}
+      <section aria-label="Plans" className="mx-auto max-w-5xl px-6 pb-24">
+        <h2 className="title-face text-3xl sm:text-4xl">Plans</h2>
+        <p className="mt-2 max-w-lg text-sm text-slate-500 dark:text-stone-400">
+          Everything on the site today is free. The paid tier is for the parts that cost
+          something to run.
+        </p>
+        <div className="mt-8">
+          <SubscriptionPlans />
+        </div>
+      </section>
 
       <SiteFooter />
 

@@ -23,13 +23,12 @@ export const SITE_NAME = "Blueberry";
  * hundred lines of layout every time is how copy stops getting edited.
  *
  * `sell` has one job, which is to say what you get, not what the site believes
- * about learning. `motto` is the line beside the mascot and is allowed to be
- * fun. `ctaNote` is the friction remover: every clause in it removes a reason
- * to hesitate, so if a clause stops being true, cut it rather than soften it.
+ * about learning. `ctaNote` is the friction remover: every clause in it removes
+ * a reason to hesitate, so if a clause stops being true, cut it rather than
+ * soften it. There was a `motto` here; Andrew cut it.
  */
 export const HERO = {
   sell: "Organic chemistry that actually sticks. Lessons that explain it properly, mechanisms you draw yourself, and flashcards that hunt down the one thing you keep getting wrong.",
-  motto: "Learn it once. Keep it for good.",
   cta: "Get Started",
   ctaNote: "Free to start. No card. About two minutes.",
 } as const;

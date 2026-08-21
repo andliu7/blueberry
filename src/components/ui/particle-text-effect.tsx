@@ -541,6 +541,15 @@ export interface ParticleTextEffectProps {
   /** Fires once the final word has had `settleMs` to arrive and read. */
   onFinished?: () => void;
   /**
+   * End with a pop instead of a hold.
+   *
+   * When the last beat's hold expires, every particle is thrown outward from
+   * the centre and fades as it flies — the swarm bursts like the thing it just
+   * drew was tapped. `onFinished` fires at the moment of the burst, so the
+   * page can bring its real content up while the pieces are still in the air.
+   */
+  burst?: boolean;
+  /**
    * Draw a beat somewhere other than the middle, and as more than one thing.
    *
    * Read at the moment the beat starts rather than taken from `words`, and
@@ -563,6 +572,7 @@ export function ParticleTextEffect({
   settleMs = 900,
   loop = false,
   interactive = true,
+  burst = false,
   onWordChange,
   onFinished,
   placeFor,
@@ -874,6 +884,38 @@ export function ParticleTextEffect({
         const lastStart = starts[starts.length - 1] ?? 0;
         if (!loop && !announcedFinish && step >= lastStart + settleSteps) {
           announcedFinish = true;
+          if (burst) {
+            // The pop. Each particle is flung along its own line from the
+            // centre — its current bearing, not a random one, so the burst
+            // reads as the drawing flying apart rather than as static. Speed
+            // and force are raised together; a fast particle on a weak
+            // steering force just orbits its own target.
+            const cx = width / 2;
+            const cy = height / 2;
+            for (const p of particles) {
+              let dx = p.pos.x - cx;
+              let dy = p.pos.y - cy;
+              const d = Math.hypot(dx, dy);
+              if (d < 1) {
+                const a = Math.random() * Math.PI * 2;
+                dx = Math.cos(a);
+                dy = Math.sin(a);
+              } else {
+                dx /= d;
+                dy /= d;
+              }
+              const throwDist = Math.hypot(width, height);
+              p.target.x = p.pos.x + dx * throwDist;
+              p.target.y = p.pos.y + dy * throwDist;
+              p.maxSpeed *= 2.6 + Math.random() * 1.4;
+              p.maxForce = p.maxSpeed * 0.3;
+              const c = mixRgb(p.startColor, p.targetColor, p.colorWeight);
+              p.startColor = c;
+              p.targetColor = c;
+              p.colorWeight = 1;
+              p.isKilled = true;
+            }
+          }
           onFinishedRef.current?.();
         }
 
@@ -945,7 +987,7 @@ export function ParticleTextEffect({
       host.removeEventListener("pointermove", onPointerMove);
       host.removeEventListener("pointerleave", onPointerLeave);
     };
-  }, [words, wordMs, settleMs, loop, interactive, reduce]);
+  }, [words, wordMs, settleMs, loop, interactive, burst, reduce]);
 
   // Reduced motion gets the destination without the journey: the last word,
   // held still, and the sequence reported as finished so the page moves on.

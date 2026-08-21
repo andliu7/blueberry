@@ -1,13 +1,13 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { ArrowRight, ChevronDown } from "lucide-react";
 import { HomeIntro } from "@/components/HomeIntro";
 import { Blueberry } from "@/components/ui/blueberry";
 import { FoundingSeats } from "@/components/ui/founding-seats";
-import type { ParticlePlacement } from "@/components/ui/particle-text-effect";
 import { moodForProgress, type BerryMood } from "@/lib/berryMood";
 import { reviewedCount } from "@/lib/progress";
 import { deckCount, type Deck } from "@/data/types";
+import { REACTIONS } from "@/data/reactions";
 import { HERO, SITE_NAME } from "@/data/site";
 import { cn } from "@/lib/utils";
 
@@ -46,8 +46,6 @@ export function HomeHero({
   onMore: () => void;
 }) {
   const reduce = useReducedMotion();
-  const markRef = useRef<HTMLHeadingElement>(null);
-  const berryRef = useRef<HTMLDivElement>(null);
 
   /** The hero is transparent until the particles finish landing on top of it. */
   const [landed, setLanded] = useState(false);
@@ -59,6 +57,8 @@ export function HomeHero({
    * deck you finished while ignoring the four you abandoned. One localStorage
    * read per deck, so it is memoised on the list rather than done per render.
    */
+  const cards = useMemo(() => decks.reduce((n, d) => n + deckCount(d), 0), [decks]);
+
   const heroMood = useMemo(() => {
     const rows = decks
       .map((deck) => ({ reviewed: reviewedCount(deck.id), total: deckCount(deck) }))
@@ -69,62 +69,10 @@ export function HomeHero({
     return moodForProgress(reviewed, total);
   }, [decks]);
 
-  /**
-   * Where the swarm lands, measured off the elements it is landing on.
-   *
-   * Read at the moment the beat starts and again on every resize, so a window
-   * dragged wider mid-animation re-aims rather than assembling the page in the
-   * shape the window used to be.
-   *
-   * Both drawings are anchored to the centre of their element's box rather than
-   * to a text baseline. A baseline is the correct anchor and it is not
-   * obtainable: the DOM will hand out a rect and computed styles, not the
-   * distance from the top of a line box to the baseline of the face inside it.
-   * The centre of a tight single line is within a few pixels of it, and a few
-   * pixels is invisible under a cross-fade.
-   */
-  const placeHero = useCallback((canvas: DOMRect): ParticlePlacement | null => {
-    const mark = markRef.current;
-    const berry = berryRef.current;
-    if (!mark || !berry) return null;
-
-    const m = mark.getBoundingClientRect();
-    const b = berry.getBoundingClientRect();
-    if (m.width === 0 || b.width === 0) return null;
-
-    const cs = getComputedStyle(mark);
-
-    return {
-      items: [
-        {
-          kind: "text",
-          text: `${SITE_NAME.toLowerCase()}.`,
-          x: m.left - canvas.left + m.width / 2,
-          y: m.top - canvas.top + m.height / 2,
-          fontSize: parseFloat(cs.fontSize),
-          family: cs.fontFamily,
-          weight: cs.fontWeight,
-          letterSpacing: cs.letterSpacing,
-        },
-        {
-          kind: "blueberry",
-          x: b.left - canvas.left + b.width / 2,
-          y: b.top - canvas.top + b.height / 2,
-          // A shade under the box, because the drawing puts the calyx above the
-          // body's centre and the 3-D mascot does not sit that high in its own
-          // frame. Matching the boxes exactly left the particle berry visibly
-          // taller than the thing it was becoming.
-          size: Math.min(b.width, b.height) * 0.9,
-          eyes: "open",
-        },
-      ],
-    };
-  }, []);
 
   return (
     <HomeIntro
       settled={settled}
-      placeHero={placeHero}
       onComplete={() => {
         setLanded(true);
         onReady();
@@ -133,9 +81,8 @@ export function HomeHero({
         <HeroContent
           landed={landed}
           reduce={Boolean(reduce)}
-          markRef={markRef}
-          berryRef={berryRef}
           mood={heroMood}
+          stats={`${decks.length} decks · ${cards} cards · ${REACTIONS.length} checked reactions`}
           onMore={onMore}
         />
       }
@@ -157,16 +104,15 @@ export function HomeHero({
 function HeroContent({
   landed,
   reduce,
-  markRef,
-  berryRef,
   mood,
+  stats,
   onMore,
 }: {
   landed: boolean;
   reduce: boolean;
-  markRef: React.RefObject<HTMLHeadingElement | null>;
-  berryRef: React.RefObject<HTMLDivElement | null>;
   mood: BerryMood;
+  /** The inventory line: decks, cards, checked reactions. Counted, not claimed. */
+  stats: string;
   onMore: () => void;
 }) {
   return (
@@ -197,12 +143,26 @@ function HeroContent({
               panel is a second action competing with the only action that
               matters here.
             */}
-            <h1
-              ref={markRef}
-              className="title-face text-6xl leading-[0.9] tracking-tight lowercase text-slate-900 sm:text-7xl lg:text-8xl dark:text-white"
+            {/* Interactive on purpose: it grows a touch and sweeps its
+                underline on hover. It goes somewhere real — back to the top of
+                the page — because a wordmark that reacts and does nothing is a
+                worse lie than one that never reacted. */}
+            <a
+              href="#/home"
+              onClick={(e) => {
+                e.preventDefault();
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+              className="group/mark inline-block rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
             >
-              {SITE_NAME.toLowerCase()}.
-            </h1>
+              <h1 className="title-face relative origin-left text-6xl leading-[0.9] tracking-tight lowercase text-slate-900 transition-transform duration-300 ease-out group-hover/mark:scale-[1.035] sm:text-7xl lg:text-8xl dark:text-white">
+                {SITE_NAME.toLowerCase()}.
+                <span
+                  aria-hidden
+                  className="absolute -bottom-2 left-0 h-[4px] w-full origin-left scale-x-0 rounded-full bg-gradient-to-r from-indigo-500 to-fuchsia-500 transition-transform duration-500 ease-out group-hover/mark:scale-x-100 group-focus-visible/mark:scale-x-100"
+                />
+              </h1>
+            </a>
 
             {/* What you get, in one breath. Held to a narrow measure so it
                 reads as a subtitle rather than as the start of an essay. */}
@@ -211,15 +171,18 @@ function HeroContent({
             </p>
           </div>
 
-          {/* The mascot, and the line that gives him something to say.
+          {/* The mascot, floating.
 
-              Sized in rem rather than by aspect ratio, so the box holds its
-              place before the canvas arrives and the swarm is not aiming at an
-              element that is about to resize under it. */}
-          <div className="flex flex-col items-center gap-2 lg:col-span-5 lg:items-end">
-            <div
-              ref={berryRef}
+              The float is the idle: a slow bob, like something buoyant, so the
+              berry reads as alive before you have touched it. The 3-D scene
+              adds its own breathing and blinking on top. The motto that used
+              to sit under him is gone — cut on request, and the frame is
+              calmer for it. */}
+          <div className="flex flex-col items-center lg:col-span-5 lg:items-end">
+            <motion.div
               className="h-40 w-40 sm:h-48 sm:w-48 lg:h-56 lg:w-56 lg:me-4"
+              animate={reduce ? undefined : { y: [0, -10, 0] }}
+              transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
             >
               <Blueberry
                 mood={mood}
@@ -228,10 +191,7 @@ function HeroContent({
                 className="h-full w-full"
                 label="Blueberry, the site's mascot. Drag to spin, click to poke."
               />
-            </div>
-            <p className="playful-face text-center text-2xl text-slate-800 sm:text-3xl lg:text-right dark:text-stone-100">
-              {HERO.motto}
-            </p>
+            </motion.div>
           </div>
         </div>
 
@@ -242,24 +202,27 @@ function HeroContent({
             the optical centre of a frame is above its geometric centre, and a
             button nailed to exactly 50% reads as having sagged. */}
         <div className="flex flex-1 flex-col items-center justify-center gap-3 pb-[6vh]">
-          <motion.a
-            href="#/start"
-            className={cn(
-              "group inline-flex items-center gap-2.5 rounded-full px-9 py-4",
-              "bg-gradient-to-r from-indigo-600 to-fuchsia-600 text-lg font-semibold text-white",
-              "shadow-[0_10px_40px_-8px_rgba(99,102,241,0.7)] transition-[filter,box-shadow] duration-300",
-              "hover:brightness-110 hover:shadow-[0_14px_50px_-6px_rgba(217,70,239,0.75)]",
-              "focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:outline-none",
-            )}
-            // A slow breath rather than a pulse. The button is already the
-            // brightest object on a quiet screen, so this only has to say it is
-            // alive; a bouncing CTA says the site is worried you missed it.
-            animate={reduce || !landed ? undefined : { scale: [1, 1.028, 1] }}
+          {/* Unmistakably a button: a hard ledge underneath that it presses
+              down onto when clicked. The breathing scale moved to a wrapper —
+              motion's `animate` owns `transform` on the element it animates,
+              and the press *is* a transform, so on one element the breath
+              would overwrite the press on the next frame. */}
+          <motion.div
+            animate={reduce || !landed ? undefined : { scale: [1, 1.025, 1] }}
             transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
           >
-            {HERO.cta}
-            <ArrowRight className="size-5 transition-transform duration-300 group-hover:translate-x-1" />
-          </motion.a>
+            <a
+              href="#/start"
+              className={cn(
+                "bb-press group inline-flex items-center gap-2.5 rounded-full px-9 py-4",
+                "bg-gradient-to-r from-indigo-600 to-fuchsia-600 text-lg font-semibold text-white",
+                "focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:outline-none",
+              )}
+            >
+              {HERO.cta}
+              <ArrowRight className="size-5 transition-transform duration-300 group-hover:translate-x-1" />
+            </a>
+          </motion.div>
 
           {/* Every clause removes one reason to hesitate. If a clause stops
               being true, it comes out rather than getting softened. */}
@@ -271,6 +234,14 @@ function HeroContent({
             `FoundingSeats` renders nothing until the number it would show is
             real, so on a pre-launch build this band is the cue alone. */}
         <div className="flex flex-col items-center gap-5">
+          {/* The proof that exists. There are no reviews yet, so what stands
+              in for them is the inventory, counted live from the data — which
+              has the advantage over a testimonial that nobody has to take it
+              on trust. The founding counter joins it the day the table has a
+              number worth showing. */}
+          <p className="font-mono text-[0.7rem] tracking-[0.14em] text-slate-600 uppercase dark:text-stone-400">
+            {stats}
+          </p>
           <FoundingSeats />
 
           <button

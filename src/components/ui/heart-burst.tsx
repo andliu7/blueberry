@@ -46,11 +46,12 @@ export function HeartBurst({ active }: { active: boolean }) {
       ...prev,
       {
         id,
-        // Up and to the right, in a fan. Biased off vertical so they read as
-        // drifting away from the berry rather than rising out of its head.
-        drift: 18 + Math.random() * 46,
+        // A steeper fan than before: mostly upward with a lean to the right,
+        // so the hearts rise off the berry's shoulder rather than sliding
+        // sideways out of his face.
+        drift: 48 + Math.random() * 44,
         rotate: Math.random() * 60 - 30,
-        scale: 0.85 + Math.random() * 0.5,
+        scale: 1 + Math.random() * 0.55,
         delay: Math.random() * 0.12,
       },
     ]);
@@ -84,8 +85,10 @@ export function HeartBurst({ active }: { active: boolean }) {
                 opacity: [0, 1, 1, 0],
                 // Polar, so drift angle actually sets the direction rather than
                 // x and y being picked independently and fighting each other.
-                x: Math.cos(rad) * 92,
-                y: -Math.sin(rad) * 104,
+                // Further than before: a bigger heart on a short leash reads
+                // as stuck to the berry rather than as leaving it.
+                x: Math.cos(rad) * 100,
+                y: -Math.sin(rad) * 140,
                 scale: h.scale,
                 rotate: h.rotate,
               }}
@@ -96,10 +99,12 @@ export function HeartBurst({ active }: { active: boolean }) {
                 ease: "easeOut",
                 opacity: { times: [0, 0.15, 0.6, 1], duration: LIFE_MS / 1000 },
               }}
-              // Starts at the berry's right shoulder rather than its centre.
-              className="absolute top-1/2 right-2 text-base select-none"
+              // From the berry's top-right, so the fan clears his head instead
+              // of crossing his face. Red and larger, on request — the blue
+              // ones read as bubbles.
+              className="absolute top-[16%] right-[8%] text-2xl select-none"
             >
-              💙
+              ❤️
             </motion.span>
           );
         })}
