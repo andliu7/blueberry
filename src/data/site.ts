@@ -28,7 +28,15 @@ export const SITE_NAME = "Blueberry";
  * soften it. There was a `motto` here; Andrew cut it.
  */
 export const HERO = {
-  sell: "Organic chemistry that actually sticks. Lessons that explain it properly, mechanisms you draw yourself, and flashcards that hunt down the one thing you keep getting wrong.",
+  /**
+   * One sentence, display size. The blind panel's finding was blunt: the
+   * largest text on the screen was the word "blueberry.", which tells a
+   * stranger nothing, while the answer to "what is this?" hid in body copy.
+   * The first sentence of the sell already said it best, so it is the
+   * headline now - same words, promoted, not rewritten.
+   */
+  headline: "Organic chemistry that actually sticks.",
+  sell: "Lessons that explain it properly, mechanisms you draw yourself, and flashcards that hunt down the one thing you keep getting wrong.",
   cta: "Get Started",
   ctaNote: "Free to start. No card. About two minutes.",
 } as const;

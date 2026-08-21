@@ -147,6 +147,11 @@ function HeroContent({
                 underline on hover. It goes somewhere real — back to the top of
                 the page — because a wordmark that reacts and does nothing is a
                 worse lie than one that never reacted. */}
+            {/* The brand, small. It was the 8xl display line, and the blind
+                panel's first-read verdict was that the largest text on the
+                screen told a stranger nothing. A wordmark is a signature, not
+                a pitch; it signs the corner now and the pitch gets the size.
+                Same serif, same lowercase, same swept underline. */}
             <a
               href="#/home"
               onClick={(e) => {
@@ -155,20 +160,52 @@ function HeroContent({
               }}
               className="group/mark inline-block rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
             >
-              <h1 className="title-face relative origin-left text-6xl leading-[0.9] tracking-tight lowercase text-slate-900 transition-transform duration-300 ease-out group-hover/mark:scale-[1.035] sm:text-7xl lg:text-8xl dark:text-white">
+              <span className="title-face relative inline-block text-2xl lowercase text-slate-900 transition-transform duration-300 ease-out group-hover/mark:scale-[1.05] sm:text-3xl dark:text-white">
                 {SITE_NAME.toLowerCase()}.
                 <span
                   aria-hidden
-                  className="absolute -bottom-2 left-0 h-[4px] w-full origin-left scale-x-0 rounded-full bg-gradient-to-r from-indigo-500 to-fuchsia-500 transition-transform duration-500 ease-out group-hover/mark:scale-x-100 group-focus-visible/mark:scale-x-100"
+                  className="absolute -bottom-1 left-0 h-[3px] w-full origin-left scale-x-0 rounded-full bg-gradient-to-r from-indigo-500 to-fuchsia-500 transition-transform duration-500 ease-out group-hover/mark:scale-x-100 group-focus-visible/mark:scale-x-100"
                 />
-              </h1>
+              </span>
             </a>
+
+            {/* The pitch, at the size the brand used to take. A stranger's
+                first fixation now contains the words "organic chemistry". */}
+            <h1 className="title-face mt-6 max-w-2xl text-5xl leading-[1.02] tracking-tight text-slate-900 sm:text-6xl lg:text-7xl dark:text-white">
+              {HERO.headline}
+            </h1>
 
             {/* What you get, in one breath. Held to a narrow measure so it
                 reads as a subtitle rather than as the start of an essay. */}
             <p className="mt-5 max-w-md text-base leading-relaxed font-medium text-slate-700 sm:text-lg dark:text-stone-200">
               {HERO.sell}
             </p>
+
+            {/* The ask, at the end of the drop. Both blind rounds said the
+                same thing about the old centred pill: the copy column and the
+                button belonged to two different layouts, and the eye finished
+                the paragraph and died. Headline, support, button - one spine,
+                one drop, and the eye lands on the action because there is
+                nowhere else for it to fall. */}
+            <div className="mt-9 flex flex-col items-start gap-3">
+              <motion.div
+                animate={reduce || !landed ? undefined : { scale: [1, 1.025, 1] }}
+                transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <a
+                  href="#/start"
+                  className={cn(
+                    "bb-press group inline-flex items-center gap-2.5 rounded-full px-9 py-4",
+                    "bg-gradient-to-r from-indigo-600 to-fuchsia-600 text-lg font-semibold text-white",
+                    "focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:outline-none",
+                  )}
+                >
+                  {HERO.cta}
+                  <ArrowRight className="size-5 transition-transform duration-300 group-hover:translate-x-1" />
+                </a>
+              </motion.div>
+              <p className="text-sm font-medium text-slate-600 dark:text-stone-300">{HERO.ctaNote}</p>
+            </div>
           </div>
 
           {/* The mascot, floating.
@@ -178,9 +215,9 @@ function HeroContent({
               adds its own breathing and blinking on top. The motto that used
               to sit under him is gone — cut on request, and the frame is
               calmer for it. */}
-          <div className="flex flex-col items-center lg:col-span-5 lg:items-end">
+          <div className="flex flex-col items-center justify-center lg:col-span-5 lg:items-end">
             <motion.div
-              className="h-40 w-40 sm:h-48 sm:w-48 lg:h-56 lg:w-56 lg:me-4"
+              className="h-44 w-44 sm:h-56 sm:w-56 lg:h-80 lg:w-80 lg:me-6"
               animate={reduce ? undefined : { y: [0, -10, 0] }}
               transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
             >
@@ -195,51 +232,17 @@ function HeroContent({
           </div>
         </div>
 
-        {/* Band two: the only thing being asked for.
-
-            `flex-1` with a centred content and a little bottom padding, which
-            puts the button a touch above the true middle. That is on purpose:
-            the optical centre of a frame is above its geometric centre, and a
-            button nailed to exactly 50% reads as having sagged. */}
-        <div className="flex flex-1 flex-col items-center justify-center gap-3 pb-[6vh]">
-          {/* Unmistakably a button: a hard ledge underneath that it presses
-              down onto when clicked. The breathing scale moved to a wrapper —
-              motion's `animate` owns `transform` on the element it animates,
-              and the press *is* a transform, so on one element the breath
-              would overwrite the press on the next frame. */}
-          <motion.div
-            animate={reduce || !landed ? undefined : { scale: [1, 1.025, 1] }}
-            transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
-          >
-            <a
-              href="#/start"
-              className={cn(
-                "bb-press group inline-flex items-center gap-2.5 rounded-full px-9 py-4",
-                "bg-gradient-to-r from-indigo-600 to-fuchsia-600 text-lg font-semibold text-white",
-                "focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:outline-none",
-              )}
-            >
-              {HERO.cta}
-              <ArrowRight className="size-5 transition-transform duration-300 group-hover:translate-x-1" />
-            </a>
-          </motion.div>
-
-          {/* Every clause removes one reason to hesitate. If a clause stops
-              being true, it comes out rather than getting softened. */}
-          <p className="text-sm font-medium text-slate-600 dark:text-stone-300">{HERO.ctaNote}</p>
-        </div>
-
         {/* Band three: the reason to believe it, and the way onward.
 
             `FoundingSeats` renders nothing until the number it would show is
             real, so on a pre-launch build this band is the cue alone. */}
-        <div className="flex flex-col items-center gap-5">
+        <div className="mt-auto flex flex-col items-center gap-5 pt-8">
           {/* The proof that exists. There are no reviews yet, so what stands
               in for them is the inventory, counted live from the data — which
               has the advantage over a testimonial that nobody has to take it
               on trust. The founding counter joins it the day the table has a
               number worth showing. */}
-          <p className="font-mono text-[0.7rem] tracking-[0.14em] text-slate-600 uppercase dark:text-stone-400">
+          <p className="font-mono text-xs tracking-[0.14em] text-slate-700 uppercase dark:text-stone-200">
             {stats}
           </p>
           <FoundingSeats />

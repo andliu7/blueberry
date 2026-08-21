@@ -64,6 +64,38 @@ export function HomePage() {
   const [seenIntro] = useState(hasSeenIntro);
   useEffect(markIntroSeen, []);
 
+  /**
+   * Past the first screen, by scroll. The app chrome - the morphing bar and
+   * the photo credit - hangs off this rather than off the opening's landing:
+   * a Dashboard button, a search field and a caption on the first paint had
+   * the blind panel reading the pitch as an app screen, and every one of
+   * those controls is for somebody who already knows what the site is.
+   * Half a viewport, so the bar is dressed by the time the board can be
+   * read, and scrolling back up undresses the pitch again.
+   */
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > window.innerHeight * 0.5);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  /**
+   * While the visitor is on the unscrolled hero, the corner dock steps out
+   * (see index.css). On <html> rather than component state because the dock
+   * mounts outside App on purpose - it survives route changes - so a class
+   * hook is the only line of communication that does not undo that.
+   */
+  useEffect(() => {
+    const el = document.documentElement;
+    if (scrolled) delete el.dataset.hero;
+    else el.dataset.hero = "";
+    return () => {
+      delete el.dataset.hero;
+    };
+  }, [scrolled]);
+
   return (
     <div
       // The text colours belong here rather than on each block: the surface is
@@ -77,11 +109,11 @@ export function HomePage() {
     >
       {/* Home's theme: one landscape per time of day, weather moving over it,
           and a caption naming the place when the place is known. */}
-      <PageBackground scenes={HOME_SCENES} weather info />
+      <PageBackground scenes={HOME_SCENES} weather info={scrolled} />
 
       <AnimatePresence>{!loaded && <BlueberryLoader key="loader" />}</AnimatePresence>
 
-      <Body loaded={loaded} seenIntro={seenIntro} />
+      <Body loaded={loaded} seenIntro={seenIntro} scrolled={scrolled} />
     </div>
   );
 }
@@ -92,7 +124,16 @@ export function HomePage() {
  * Split out so the hero and the board share one dashboard and one deck list
  * rather than each opening their own.
  */
-function Body({ loaded, seenIntro }: { loaded: boolean; seenIntro: boolean }) {
+function Body({
+  loaded,
+  seenIntro,
+  scrolled,
+}: {
+  loaded: boolean;
+  seenIntro: boolean;
+  /** Past the first screen; the chrome may dress the page. See HomePage. */
+  scrolled: boolean;
+}) {
   const dash = useDashboard();
   const { decks } = useDecks();
   const boardRef = useRef<HTMLElement>(null);
@@ -109,7 +150,7 @@ function Body({ loaded, seenIntro }: { loaded: boolean; seenIntro: boolean }) {
           morph is what makes them read as continuous rather than as one piece
           of furniture replacing another at a visible seam. `SiteHeader` is
           handed in as the bar's contents and fades up as the tab widens. */}
-      <WindowChrome decks={decks} visible={past}>
+      <WindowChrome decks={decks} visible={past && scrolled}>
         <SiteHeader
           bare
           // Not "decks": on this page the dashboard opens onto everything the

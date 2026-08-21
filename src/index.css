@@ -610,7 +610,12 @@ input:-webkit-autofill:active {
    paper rather than a different product. */
 .dark body {
   font-family: "Inter Variable", Inter, ui-sans-serif, system-ui, sans-serif;
-  background: #0c0a09;
+  /* The page surface, not stone-950. The header slot holds its layout space
+     while invisible, and whatever the body paints shows through that strip.
+     At #0c0a09 it was a dead black band across the top of every screenshot -
+     two blind critics called it an unfinished page. The ground and the page
+     are the same colour now, so an undressed slot reads as page, not absence. */
+  background: #171327;
   background-image:
     linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
@@ -1437,4 +1442,16 @@ html.dark {
 @keyframes bb-shimmer {
   from { background-position: 180% 0; }
   to   { background-position: -80% 0; }
+}
+
+
+/* The corner dock (timer, assistant) leaves the first screen of the home
+   page. A blind panel counted the floating chips among the things that made
+   the pitch read as an app screen; they are furniture for people already
+   inside. HomePage sets data-hero on <html> while the visitor is on the
+   unscrolled hero, and the dock sits out until they move. */
+html[data-hero] .bb-corner-dock {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
 }

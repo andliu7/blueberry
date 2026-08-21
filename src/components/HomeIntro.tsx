@@ -14,6 +14,7 @@ import {
   type ParticleWord,
 } from "@/components/ui/particle-text-effect";
 import {
+  ContainerFade,
   ContainerInset,
   ContainerScroll,
   ContainerSticky,
@@ -76,7 +77,7 @@ const SITE_WORD = SITE_NAME.toUpperCase();
  * the flourish is the mascot arriving and bursting into the page.
  */
 const INTRO_WORDS: ParticleWord[] = [
-  { text: SITE_NAME, from: "#818cf8", to: "#f0abfc", shape: "blueberry", eyes: "open", holdMs: 1250 },
+  { text: SITE_NAME, from: "#818cf8", to: "#f0abfc", shape: "blueberry", eyes: "open", holdMs: 900 },
 ];
 
 /**
@@ -109,7 +110,7 @@ const INTRO_WORDS_LIGHT: ParticleWord[] = [
     vivid: 1.25,
     shade: 1,
     eyes: "open",
-    holdMs: 1250,
+    holdMs: 900,
   },
 ];
 
@@ -280,9 +281,15 @@ function IntroStage({
               motion. */}
           <ContainerInset
             className="absolute inset-0"
-            insetYRange={[18, 0]}
-            insetXRange={[12, 0]}
-            roundednessRange={[420, 0]}
+            // Nearly full-bleed at rest. The 18/12/420 version parked a huge
+            // rounded slab in the middle of the first paint, and the blind
+            // panel read it as the loudest and least meaningful thing on the
+            // screen - three critics, two rounds. The scroll gesture survives
+            // untouched; it just starts from "window, almost open" instead of
+            // "capsule on a stage".
+            insetYRange={[7, 0]}
+            insetXRange={[5, 0]}
+            roundednessRange={[72, 0]}
           >
             {/* The same shader in both themes, inverted for the pastel one.
                 It draws white bands on black, so on a light background it can
@@ -318,6 +325,11 @@ function IntroStage({
 
                 It declines to run on touch, without WebGL2, and on a lost
                 context, and shows the top image instead. See BlobReveal. */}
+            {/* Almost dark at rest, full voice once the window is being
+                opened. Two blind rounds scored the art as the brightest and
+                least meaningful region of the first paint; the fade keeps the
+                first paint quiet without deleting the reveal it guards. */}
+            <ContainerFade className="absolute inset-0">
             <BlobReveal
               topSrc={`${import.meta.env.BASE_URL}backgrounds/berry-wet.webp`}
               bottomSrc={`${import.meta.env.BASE_URL}backgrounds/berry-purple.webp`}
@@ -338,6 +350,7 @@ function IntroStage({
                   "opacity-80 [filter:invert(1)_hue-rotate(180deg)_saturate(1.6)_contrast(1.35)] mix-blend-multiply",
               )}
             />
+            </ContainerFade>
           </ContainerInset>
           {/* A heavy black centre wash used to sit here, guarding a title that
               lived mid-screen. This block only fades in once the page has
@@ -379,6 +392,25 @@ function IntroStage({
         }}
       />
 
+      {/* The spine's own ground. The sheet above is deliberately thin - see
+          its comment - but the shader's silver bands still pass within pixels
+          of the support text, and thin-stroke white on a bright band is the
+          one line a blind panel had to work to read. So the correction is
+          shaped, not global: dark where the words are, gone by mid-frame, and
+          the window keeps its full voice on the side the mascot owns. */}
+      <motion.div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 z-[9]"
+        initial={false}
+        animate={{ opacity: ready ? 1 : 0 }}
+        transition={{ duration: 0.9, ease: "easeOut" }}
+        style={{
+          background: isDark
+            ? "linear-gradient(100deg, rgba(9,7,18,0.72) 0%, rgba(9,7,18,0.5) 42%, rgba(9,7,18,0) 68%)"
+            : "linear-gradient(100deg, rgba(250,249,255,0.8) 0%, rgba(250,249,255,0.5) 42%, rgba(250,249,255,0) 68%)",
+        }}
+      />
+
       {/* Above the shader, not inside it: the canvas clears itself to
           transparent rather than painting a black background, which is what
           lets the last word keep standing there once the shader comes up.
@@ -415,7 +447,7 @@ function IntroStage({
             // pop. Short: the pop is the transition, and the visitor should be
             // reading the real page before curiosity about the animation runs
             // out — measured taste, roughly 2.5s arrival to button.
-            settleMs={450}
+            settleMs={380}
             burst
             onFinished={onSettled}
             label={`Welcome to ${SITE_WORD}`}

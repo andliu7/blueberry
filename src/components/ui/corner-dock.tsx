@@ -51,7 +51,7 @@ function dockNode(): HTMLElement {
     // a tall strip of the screen and would otherwise swallow clicks meant for
     // the page behind it.
     el.className =
-      "pointer-events-none fixed right-4 bottom-4 z-[100] flex max-h-[calc(100dvh-2rem)] flex-col-reverse items-end gap-2 print:hidden";
+      "bb-corner-dock pointer-events-none fixed right-4 bottom-4 z-[100] flex max-h-[calc(100dvh-2rem)] flex-col-reverse items-end gap-2 print:hidden";
     document.body.appendChild(el);
   }
   return el;

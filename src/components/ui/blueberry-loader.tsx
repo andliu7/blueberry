@@ -46,7 +46,17 @@ export function useLoaderHold(minMs = 600) {
   useEffect(() => {
     let cancelled = false;
     const floor = new Promise<void>((resolve) => setTimeout(resolve, minMs));
-    const fonts = document.fonts?.ready ?? Promise.resolve();
+    /**
+     * Capped, because `document.fonts.ready` does not just wait for fonts: per
+     * spec it also waits out the document's `load` event, so one slow
+     * third-party script or image holds this screen hostage. Measured on the
+     * Vercel preview: nine seconds of loader on a page whose fonts are
+     * self-hosted and were long since decoded. The swarm re-measures itself
+     * when the real face arrives, so the worst case after the cap is one
+     * reflowed word, not a broken opening.
+     */
+    const cap = new Promise<void>((resolve) => setTimeout(resolve, 1200));
+    const fonts = Promise.race([document.fonts?.ready ?? Promise.resolve(), cap]);
 
     void Promise.all([floor, fonts]).then(() => {
       if (!cancelled) setHeld(true);

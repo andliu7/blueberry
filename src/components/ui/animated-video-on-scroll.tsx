@@ -106,6 +106,30 @@ export const ContainerAnimated = React.forwardRef<HTMLDivElement, ContainerAnima
 );
 ContainerAnimated.displayName = "ContainerAnimated";
 
+interface ContainerFadeProps extends HTMLMotionProps<"div"> {
+  inputRange?: number[];
+  outputRange?: number[];
+}
+
+/**
+ * Scroll-driven opacity, sibling to ContainerAnimated's scroll-driven y.
+ *
+ * Built for the hero window's interior: at rest the shader art was the
+ * loudest object on the screen and a blind panel scored it as decoration
+ * out-shouting the action, but killing it outright throws away the scroll
+ * gesture the window exists for. So the art starts almost extinguished and
+ * blooms as the visitor opens the window - the quiet first paint and the
+ * reveal both survive.
+ */
+export const ContainerFade = React.forwardRef<HTMLDivElement, ContainerFadeProps>(
+  ({ className, style, inputRange = [0, 0.5], outputRange = [0.12, 1], ...props }, ref) => {
+    const { scrollYProgress } = useContainerScrollContext();
+    const opacity = useTransform(scrollYProgress, inputRange, outputRange);
+    return <motion.div ref={ref} className={className} style={{ opacity, ...style }} {...props} />;
+  },
+);
+ContainerFade.displayName = "ContainerFade";
+
 export const ContainerSticky = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
     <div ref={ref} className={cn("sticky top-0 left-0 min-h-svh w-full", className)} {...props} />
