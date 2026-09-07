@@ -28,8 +28,16 @@ import { ProfileDropdown } from "@/components/ui/profile-dropdown";
 /** Routes whose page already draws `SiteHeader`, avatar included. */
 const HAS_HEADER = new Set(["", "home", "study-decks", "contact", "about"]);
 
-/** And the sign-in page, which is its own full-screen surface. */
-const NO_CORNER = new Set(["signin", "signup", "staff"]);
+/**
+ * And the full-screen surfaces that are their own thing: the sign-in pages,
+ * and the entry gate.
+ *
+ * The gate is on this list for a reason beyond tidiness. The funnel behind it
+ * does not mention signing in until the last screen, on purpose, and a Sign in
+ * pill floating over the one screen that introduces it would be the product
+ * making that offer anyway in the corner of the frame.
+ */
+const NO_CORNER = new Set(["signin", "signup", "staff", "enter"]);
 
 export function AccountCorner() {
   const route = useHashRoute();

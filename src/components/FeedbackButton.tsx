@@ -3,7 +3,7 @@ import { AnimatePresence } from "motion/react";
 import { MessageSquare } from "lucide-react";
 import { FeedbackWidget } from "@/components/ui/feedback-widget";
 import { postToAppsScript } from "@/lib/appsScript";
-import { DockSlot, DOCK } from "@/components/ui/corner-dock";
+import { RailSlot, RAIL } from "@/components/ui/corner-dock";
 import { cn } from "@/lib/utils";
 
 /**
@@ -48,44 +48,47 @@ export function FeedbackButton({
 }: {
   title?: string;
   placeholder?: string;
-  /** Position override. The study pages sit it left of the Notes button. */
+  /** Extra classes on the button itself. Position is the rail's job now. */
   className?: string;
 }) {
   const [open, setOpen] = useState(false);
 
   return (
     <>
-      {/* The corner, and it keeps it. `DOCK.feedback` is 0, the lowest slot, so
-          everything else in the dock stacks above rather than over it: someone
-          hunting for this button is already having trouble, and finding it in a
-          different place on each page is the last thing that should happen. */}
-      <DockSlot order={DOCK.feedback}>
+      {/* The corner, and it keeps it, but as a member of the shared rail rather
+          than as a pill of its own.
+
+          It had a solid white pill, its own shadow and the word "Feedback" on
+          it, which made a support control one of the two loudest things on a
+          phone screen whose actual job was to sell a chemistry trainer. A blind
+          read against the reference counted four chips of that weight in the
+          corner and could not rank them.
+
+          What it must not lose is the thing the old comment was protecting:
+          somebody hunting for this is already having trouble, so it stays in
+          the same square of screen on every page. It does. The rail is pinned
+          to the corner and this is the member next to the head. What it gives
+          up is the caption, which `aria-label` and `title` still carry, and its
+          own surface, which the rail now carries once for everybody. */}
+      <RailSlot order={RAIL.feedback}>
         <button
           type="button"
           onClick={() => setOpen(true)}
-          // No `relative` here: the dock slot is the containing block for the
-          // glass layers, and adding one lets the cascade decide which position
-          // wins, which previously threw this button off screen.
-          /* A plain, solid pill.
-
-             It used to carry `LiquidGlassLayers` over a 60% white fill, which
-             read as a large pane of frosted glass rather than a button, and
-             put whatever was behind it through the text. A control you reach
-             for when something is already wrong should be the most legible
-             thing in the corner, not the least. */
+          aria-label="Send feedback"
+          title="Send feedback"
+          // No `relative` here: the rail slot is the containing block, and
+          // adding one lets the cascade decide which position wins, which
+          // previously threw this button off screen.
           className={cn(
-            /* `min-h-11` is 44px, the minimum touch target. At `py-2` with
-               `text-sm` this came out around 36px, which is under the bar on
-               every mobile guideline and is the one control someone reaches
-               for when they are already having trouble. */
-            "flex min-h-11 cursor-pointer items-center gap-2 rounded-full bg-white px-4 text-sm font-semibold text-slate-800 shadow-lg ring-1 ring-slate-900/10 transition-transform hover:scale-105 dark:bg-stone-800 dark:text-stone-100 dark:ring-white/10",
+            /* `size-11` is 44px square, the minimum touch target, and the same
+               height every other member of the rail keeps. */
+            "flex size-11 cursor-pointer items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 active:scale-95 dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-white",
             className,
           )}
         >
           <MessageSquare className="h-4 w-4" />
-          Feedback
         </button>
-      </DockSlot>
+      </RailSlot>
 
       <AnimatePresence>
         {open && (

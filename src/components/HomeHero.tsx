@@ -192,8 +192,12 @@ function HeroContent({
                 animate={reduce || !landed ? undefined : { scale: [1, 1.025, 1] }}
                 transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
               >
+                {/* Not straight into the funnel: into the entry gate, which
+                    is one screen and one press. It says what the next two
+                    minutes contain before the first field appears, and it is
+                    where the two appearance settings live. See `EntryGate`. */}
                 <a
-                  href="#/start"
+                  href="#/enter"
                   className={cn(
                     "bb-press group inline-flex items-center gap-2.5 rounded-full px-9 py-4",
                     "bg-gradient-to-r from-indigo-600 to-fuchsia-600 text-lg font-semibold text-white",

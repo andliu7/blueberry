@@ -3,7 +3,6 @@ import { AnimatePresence } from "motion/react";
 import {
   ArrowRight,
   ArrowUpRight,
-  Atom,
   BookOpen,
   CalendarDays,
   Layers,
@@ -14,6 +13,7 @@ import { Dashboard, useDashboard } from "@/components/Dashboard";
 import { SiteHeader } from "@/components/ui/site-header";
 import { BlueberryLoader, useLoaderHold } from "@/components/ui/blueberry-loader";
 import { BentoTile } from "@/components/ui/bento-tile";
+import { MechanismBoard } from "@/components/ui/mechanism-board";
 import { courseSummary } from "@/data/topics";
 import { REACTIONS } from "@/data/reactions";
 import { WindowChrome } from "@/components/ui/window-chrome";
@@ -221,12 +221,30 @@ function Body({
 }
 
 /**
- * The board: every part of the site, including the parts about stopping.
+ * The board: the game first, then everything that supports it.
  *
- * The three doors moved here off the hero, which is why the hero can now be one
- * screen. Focus and Game are placeholders until the timer lands; they are drawn
- * as unavailable rather than hidden, because a board with a visible gap is a
- * roadmap and a board that quietly omits things is a smaller product.
+ * It used to be five tiles of equal weight, which said the site was five equal
+ * things, and the only tile pointing at the game was a five-line box captioned
+ * "A separate app, for now". That is the wrong emphasis for the one surface
+ * nothing else here can imitate: reading a mechanism is not knowing it, and the
+ * game is where a student stops reading and starts pushing electrons.
+ *
+ * So the game is the main box, two rows tall, and it does not describe itself
+ * with an icon. It draws a mechanism, marks it, and names the step, because a
+ * stranger who watches that for three seconds knows what this is in a way no
+ * caption was going to get them to.
+ *
+ * The Concepts tile is retired into it. It never went anywhere the game tile
+ * does not go, so keeping both would be two doors onto one room.
+ *
+ * Study Decks keeps a tile and loses no ground. Flashcards are what somebody
+ * actually reaches for the night before, and the board is not allowed to lose
+ * things. Lessons still reads before Study Decks for the reason it always did:
+ * the cards are drill, and drilling something you have not understood yet is
+ * how people spend an evening and learn nothing.
+ *
+ * Focus is the tile that is about stopping, and it is not a link: the timer
+ * already lives in the corner of every page.
  */
 const Board = ({
   ref,
@@ -241,20 +259,75 @@ const Board = ({
     className="mx-auto min-h-svh max-w-5xl px-6 pt-16 pb-24"
   >
     <h2 className="title-face text-3xl sm:text-4xl">Everything else</h2>
-    <p className="mt-2 max-w-lg text-sm text-slate-500 dark:text-stone-400">
-      The cards, the reading behind them, and the parts that tell you to stop for a minute.
+    <p className="mt-2 max-w-xl text-sm text-slate-500 dark:text-stone-400">
+      The part you draw yourself, the cards, the reading behind them, and the parts that tell
+      you to stop for a minute.
     </p>
 
+    {/* Three columns on a laptop, and the game takes four of the nine cells:
+        two wide, two tall. The rest fills exactly, so the board has no hole in
+        it. Lessons and Study Decks stack down the third column beside the game,
+        and Calendar and Focus close the last row. */}
     <div className="mt-8 grid auto-rows-[minmax(11rem,auto)] gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {/* Lessons leads and takes the wide tile.
+      {/* The game.
 
-          It used to sit in the narrow slot beside Study Decks, which had the
-          bento saying the cards were the product and the reading was a
-          footnote. That is backwards: the cards are drill, and drilling
-          something you have not understood yet is how people spend an evening
-          and learn nothing. The reading is the part that has to come first, so
-          it is the part that reads first. */}
-      <BentoTile href="#/lessons" className="sm:col-span-2" berry="berry-with-leaves.webp">
+          No berry in the corner, unlike every other tile: this is the one tile
+          whose art is its content, and a photograph bleeding under the arrows
+          would compete with the only picture on the board that a visitor is
+          meant to read rather than feel.
+
+          It opens in its own tab because the trainer is still a separate app,
+          and the caption says so rather than pretending otherwise. */}
+      <BentoTile href={TRAINER_URL} external className="p-6 sm:col-span-2 sm:p-7 lg:row-span-2">
+        {/* Reversed on a phone, so the drawing comes first and the words
+            follow it. That is the order the Duolingo landing uses on a phone
+            and it is the right one: a picture of the thing explains it faster
+            than a sentence about the thing, and on a narrow screen only one of
+            them can be on top. Side by side from the sm breakpoint up, text
+            leading, which is the same left-column drop the front page settled
+            on. */}
+        <div className="flex flex-1 flex-col-reverse gap-6 sm:flex-row sm:items-center sm:gap-7">
+          <div className="min-w-0 sm:flex-1">
+            <span className="font-mono text-[0.7rem] tracking-[0.18em] text-indigo-600 uppercase dark:text-indigo-300">
+              The game
+            </span>
+
+            {/* The tile's own headline, at the size the board can afford to
+                give exactly one of them. Two short sentences: what you do,
+                then what comes back. */}
+            <h3 className="title-face mt-3 text-3xl leading-[1.06] tracking-tight sm:text-4xl">
+              Draw the mechanism.
+              <br />
+              Get it marked.
+            </h3>
+
+            <p className="mt-4 max-w-sm text-sm leading-relaxed text-slate-600 dark:text-stone-300">
+              Not multiple choice. You push every arrow yourself, and each step comes back
+              named: right, right by another route, or the exact rule that broke.
+            </p>
+
+            {/* A span, not a button. The whole tile is already the link, and a
+                button inside an anchor is invalid markup that browsers resolve
+                by guessing. This is the affordance saying where the press
+                lands, not a second control. */}
+            <span className="bb-press mt-6 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-indigo-600 to-fuchsia-600 px-6 py-3 text-base font-semibold text-white">
+              Play a mechanism
+              <ArrowUpRight className="size-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            </span>
+
+            {/* Honest about where the press goes. The trainer has not moved
+                in yet, and a tile that hid that would be caught the moment a
+                new tab opened. */}
+            <span className="mt-5 block font-mono text-xs text-slate-400 dark:text-stone-500">
+              Opens the mechanism trainer &middot; a separate app, for now
+            </span>
+          </div>
+
+          <MechanismBoard className="w-full max-w-[15rem] shrink-0 self-center sm:w-[44%] sm:max-w-none lg:w-[46%]" />
+        </div>
+      </BentoTile>
+
+      <BentoTile href="#/lessons" berry="berry-with-leaves.webp">
         <BookOpen className="size-5 text-indigo-600 dark:text-indigo-300" />
         <span className="mt-4 flex items-center gap-1.5 text-xl font-semibold">
           Lessons <ArrowRight className="size-4 text-slate-400" />
@@ -284,12 +357,12 @@ const Board = ({
         </span>
       </BentoTile>
 
-      <BentoTile href="#/calendar" berry="berry-triple.webp">
+      <BentoTile href="#/calendar" berry="berry-triple.webp" className="lg:col-span-2">
         <CalendarDays className="size-5 text-indigo-600 dark:text-indigo-300" />
         <span className="mt-4 flex items-center gap-1.5 text-xl font-semibold">
           Calendar <ArrowRight className="size-4 text-slate-400" />
         </span>
-        <span className="mt-2 text-sm text-slate-500 dark:text-stone-400">
+        <span className="mt-2 max-w-md text-sm text-slate-500 dark:text-stone-400">
           Exams, deadlines and labs for the term.
         </span>
         <span className="mt-auto pt-4 font-mono text-xs text-slate-400 dark:text-stone-500">
@@ -297,23 +370,10 @@ const Board = ({
         </span>
       </BentoTile>
 
-      <BentoTile href={TRAINER_URL} berry="berry-purple.webp">
-        <Atom className="size-5 text-indigo-600 dark:text-indigo-300" />
-        <span className="mt-4 flex items-center gap-1.5 text-xl font-semibold">
-          Concepts <ArrowUpRight className="size-4 text-slate-400" />
-        </span>
-        <span className="mt-2 text-sm text-slate-500 dark:text-stone-400">
-          Draw the mechanism and push the electrons yourself.
-        </span>
-        <span className="mt-auto pt-4 font-mono text-xs text-slate-400 dark:text-stone-500">
-          A separate app, for now
-        </span>
-      </BentoTile>
-
       <BentoTile
         berry="berry-wet.webp"
         // The timer lives in the corner of every page, so this does not navigate
-        // anywhere — it opens the thing that is already there.
+        // anywhere, it opens the thing that is already there.
         onClick={() => window.dispatchEvent(new CustomEvent("blueberry:open-focus"))}
       >
         <Timer className="size-5 text-indigo-600 dark:text-indigo-300" />

@@ -30,10 +30,15 @@ const TITLES: Record<string, string> = {
   signup: "Create Account",
   staff: "Sign In",
   d: "Dashboard",
+  // The funnel. It is six addresses now rather than one, so without these
+  // every step of it titled itself "Not Found" while rendering perfectly.
+  enter: "Get Started",
+  start: "Get Started",
 };
 
 /** Prefixed routes, longest first so `lessons/x/y` does not match `lessons`. */
 const PREFIXES: [string, string][] = [
+  ["start/", "Get Started"],
   ["lessons/", "Lessons"],
   ["deck/", "Deck"],
   ["folder/", "Folder"],

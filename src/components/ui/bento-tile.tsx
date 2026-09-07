@@ -26,12 +26,22 @@ export function BentoTile({
   onClick,
   berry,
   disabled = false,
+  external = false,
 }: {
   className?: string;
   children: ReactNode;
   /** Renders as a link when given, a button when `onClick` is given instead. */
   href?: string;
   onClick?: () => void;
+  /**
+   * The link leaves the site, so it opens in its own tab.
+   *
+   * A prop rather than something the caller works around: the tile that points
+   * at the mechanism trainer is pointing at a separate app, and sending
+   * somebody there in the same tab loses whatever they were part-way through
+   * here.
+   */
+  external?: boolean;
   /**
    * A berry photograph bled into the corner of the tile.
    *
@@ -98,7 +108,13 @@ export function BentoTile({
 
   if (href && !disabled) {
     return (
-      <a ref={ref as React.RefObject<HTMLAnchorElement>} href={href} className={shared}>
+      <a
+        ref={ref as React.RefObject<HTMLAnchorElement>}
+        href={href}
+        target={external ? "_blank" : undefined}
+        rel={external ? "noreferrer" : undefined}
+        className={shared}
+      >
         {art}
         {children}
       </a>

@@ -11,8 +11,8 @@ import { useFocusTimer, formatClock, type TimerPhase } from "@/lib/useFocusTimer
 import { useDecks } from "@/lib/useDecks";
 import { deckHref } from "@/data/types";
 import { cn } from "@/lib/utils";
-import { DockSlot, DOCK } from "@/components/ui/corner-dock";
-import { useTimerNotices } from "@/components/ui/notifications";
+import { DockSlot, DOCK, RailSlot, RAIL } from "@/components/ui/corner-dock";
+import { NotificationsTab, useNotices } from "@/components/ui/notifications";
 
 /**
  * The study timer, as a tab in the corner of every page.
@@ -43,11 +43,14 @@ export function FocusTimer() {
   const { decks } = useDecks();
   const ambience = useAmbience();
   // The timer already knows every event worth logging, so the log is derived
-  // from it here rather than pushed from a dozen call sites.
+  // from it here rather than pushed from a dozen call sites. `useNotices`
+  // merges that log with the release descriptions and hands back one
+  // time-ordered list; the timer half of it is unchanged.
   //
-  // Called for its side effect of keeping that log current while nothing
-  // displays it, so re-attaching a reader later needs no rewiring here.
-  useTimerNotices(t);
+  // It is read here rather than anywhere else for the dull reason that this
+  // component owns `t`, and lifting timer state out to a provider so a bell
+  // could subscribe to it would be a lot of wiring to move one array.
+  const notices = useNotices(t);
 
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState("");
@@ -105,15 +108,21 @@ export function FocusTimer() {
       <Confetti trigger={cheer} />
 
       {/*
-        The notifications tab is gone from the corner.
+        The notifications tab, back in the corner, and now worth the space.
 
-        It logged timer phases and eye rests, which are things you are told
-        about as they happen by the timer itself, so the tab was a second copy
-        of a notice you had already read. It also took the corner on any page
-        where feedback was not mounted, sitting translucent over the controls
-        that do have something to say. `useTimerNotices` stays wired below in
-        case the log is wanted somewhere it can be read deliberately.
+        It was removed because everything in it was a phase change or an eye
+        rest, which the timer tells you about as it happens: the tab was a
+        second copy of a notice you had already read. It carries a second kind
+        of entry now, a plain description of what the mechanism trainer is,
+        which no other surface on the site says at that length and which the
+        timer could not have told you. That is a different objection answered,
+        not the old one waved off, and if the release source ever empties the
+        argument for removing it again is unchanged.
+
+        It docks rather than floats, so it stacks above the notes and below the
+        timer instead of sitting translucent over either.
       */}
+      <NotificationsTab {...notices} />
 
       <DockSlot order={DOCK.focus} className="flex flex-col items-end gap-2">
         <AnimatePresence initial={false}>
@@ -291,38 +300,44 @@ export function FocusTimer() {
           )}
         </AnimatePresence>
 
-        {/* The tab. Always there, and carrying the clock whenever one is
-            running, so the number is readable without opening anything. */}
+      </DockSlot>
+
+      {/* The tab, as a member of the shared rail.
+
+          It used to be a bordered pill with its own shadow, stacked above two
+          other bordered pills with their own shadows, and a blind read against
+          the reference said the corner had become four independent chips at one
+          weight with no rank between them. Idle, it is now a glyph like the
+          rest of the rail's subordinates.
+
+          Running, it still earns the room and takes it: the clock is the reason
+          this exists, and a number you have to open something to read is not a
+          timer. So the tint and the digits come back the moment a session is
+          going, and the rail is quiet again when it is not. */}
+      <RailSlot order={RAIL.timer}>
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
           aria-label={running ? `${PHASE_LABEL[t.phase]}, ${formatClock(t.remainingMs)}` : "Open the focus timer"}
-          /* Collapses to the icon and opens on hover, like the buttons on the
-             deck pages. `grid-template-columns` animates from 0fr to 1fr,
-             which is the one way to transition to a width you have not
-             measured; the label sits in an `overflow-hidden` track and is
-             clipped rather than reflowed, so nothing in the dock jumps.
-
-             A running timer keeps its label: the number is the reason the tab
-             exists, and hiding it behind a hover would make you point at the
-             corner to find out how long is left. */
+          title={running ? PHASE_LABEL[t.phase] : "Focus timer"}
           className={cn(
             /* No `gap` on the row. A flex gap is charged even when the item
                beside it has collapsed to zero width, so the icon sat half a
                gap left of centre in the closed pill. The spacing lives inside
                each collapsible track instead, where it disappears with the
                thing it is spacing. */
-            "group flex min-h-11 cursor-pointer items-center rounded-full border px-4 shadow-lg backdrop-blur transition-colors",
+            "flex min-h-11 cursor-pointer items-center rounded-full transition-colors active:scale-95",
+            running ? "px-3" : "size-11 justify-center",
             t.phase === "break"
-              ? "border-emerald-300 bg-emerald-50/90 text-emerald-800 dark:border-emerald-400/40 dark:bg-emerald-500/15 dark:text-emerald-200"
+              ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-200"
               : running
-                ? "border-indigo-300 bg-indigo-50/90 text-indigo-800 dark:border-indigo-400/40 dark:bg-indigo-500/15 dark:text-indigo-200"
-                : "border-slate-200 bg-white/85 text-slate-600 hover:text-slate-900 dark:border-stone-700 dark:bg-stone-950/85 dark:text-stone-300 dark:hover:text-white",
+                ? "bg-indigo-50 text-indigo-800 dark:bg-indigo-500/15 dark:text-indigo-200"
+                : "text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-white",
           )}
         >
           <Timer className="size-4 shrink-0" />
-          {running ? (
+          {running && (
             <AnimateDigits
               value={formatClock(t.remainingMs)}
               reduce={!!reduce}
@@ -330,20 +345,14 @@ export function FocusTimer() {
               enterY={12}
               className="ml-2 font-mono text-sm"
             />
-          ) : (
-            <span className="grid grid-cols-[0fr] transition-[grid-template-columns] duration-300 ease-out group-hover:grid-cols-[1fr] group-focus-visible:grid-cols-[1fr]">
-              <span className="overflow-hidden">
-                <span className="block pl-2 text-sm font-semibold whitespace-nowrap">Focus</span>
-              </span>
-            </span>
           )}
-          {t.tasks.length > 0 && (
-            <span className="ml-2 rounded-full bg-black/5 px-1.5 font-mono text-[0.65rem] dark:bg-white/10">
-              {t.tasksDone}/{t.tasks.length}
-            </span>
-          )}
+          {/* The task count does not come to the rail. It used to ride along
+              beside the clock, and at four members wide the rail has no room
+              for a second number: on a 393px screen a running timer carrying
+              both would push the head off the edge. It is in the card, which is
+              where you go to change it anyway. */}
         </button>
-      </DockSlot>
+      </RailSlot>
     </>
   );
 }
