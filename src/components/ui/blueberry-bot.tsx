@@ -276,11 +276,19 @@ export function BlueberryBot() {
           }}
         />
 
+        {/* Sized and lit like a subordinate, because that is what it is here.
+            At `size-9` with `blueberry-glow-art` it was a saturated orb next to
+            three 16px glyphs, so the next blind read still found no rank in the
+            row: the loudest thing in the corner was the mascot and the captioned
+            entry it sits beside came second. The mark is the same mark, at the
+            scale of the glyphs it shares the rail with, and it picks the glow
+            back up on hover where a glow means a pointer rather than a shout.
+            Everywhere else it keeps its full size; this is the rail only. */}
         <BlueberryMark
           eyes
           className={cn(
-            "blueberry-glow-art relative size-9 transition-[filter] duration-300",
-            state === "hover" && "brightness-110",
+            "relative size-7 transition-[filter] duration-300",
+            state === "hover" && "blueberry-glow-art brightness-110",
           )}
         />
       </motion.button>

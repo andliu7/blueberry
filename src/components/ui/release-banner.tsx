@@ -1,7 +1,6 @@
-import { useEffect } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { ArrowRight, ArrowUpRight, FlaskConical } from "lucide-react";
-import { announceHere, markReleasesRead, useUnreadRelease } from "@/components/ui/notifications";
+import { markReleasesRead, useUnreadRelease } from "@/components/ui/notifications";
 import { cn } from "@/lib/utils";
 
 /**
@@ -30,36 +29,26 @@ import { cn } from "@/lib/utils";
  *
  * **It goes away when it is read, and it is not the only door.** Acting on it
  * or dismissing it marks the release read through `markReleasesRead`, which is
- * the same record the notifications panel writes, so the bell's count clears in
- * the same instant. The entry itself stays in the panel forever: a banner is an
- * announcement, the panel is the archive, and the bell now carries the word
- * "Notifications" so the archive is findable without guessing.
+ * the same record the notifications panel writes. The entry itself stays in the
+ * panel forever: a banner is an announcement, the panel is the archive, and the
+ * corner carries the word "Notifications" so the archive is findable without
+ * guessing.
  *
- * **And while it is on screen, it is the ONLY announcement.** The read after
+ * **This is the ONLY announcement, on every page, read or not.** The read after
  * the one that put this here said the message had ended up in two competing
  * presentations at once, a full-width card in the column and a lit badge in the
- * corner, with nothing saying which was the real one. It calls `announceHere`
- * for as long as it is mounted, and the corner drops the release from its count
- * for exactly that long. Announcement here, archive there, and never both at
- * once.
+ * corner, with nothing saying which was the real one. The first answer was a
+ * mount registry that let the corner stand down while this was on screen, which
+ * only moved the collision to the pages this is not on: the badge came back,
+ * and which surface was the announcement depended on the route.
+ *
+ * So the choice is now made once and it is made here. This carries it. The
+ * corner never counts a release at all, on any page, and there is no registry
+ * left to keep the two of them in step. Announcement here, archive there.
  */
 export function ReleaseBanner({ className }: { className?: string }) {
   const release = useUnreadRelease();
   const reduce = useReducedMotion();
-
-  /**
-   * Tell the corner this page is carrying the announcement.
-   *
-   * Above the early return, because a hook cannot be called conditionally, and
-   * the effect body guards instead: with nothing unread there is nothing being
-   * announced, so nothing to register. `announceHere` hands back its own undo,
-   * which is what the effect returns, so the registration cannot outlive the
-   * component even if the route changes mid-animation.
-   */
-  useEffect(() => {
-    if (!release) return;
-    return announceHere();
-  }, [release]);
 
   // Nothing unread, nothing to announce. The panel still has it.
   if (!release) return null;

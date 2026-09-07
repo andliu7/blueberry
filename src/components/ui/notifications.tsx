@@ -96,7 +96,7 @@ import { cn } from "@/lib/utils";
  *   through `markReleasesRead`, which is why that lives in a module-level store
  *   rather than in either component.
  *
- * ## What the third blind read changed
+ * ## What the third and fourth blind reads changed
  *
  * Giving the entry a second home fixed the finding and created the next one.
  * The read that followed said the message now existed in two competing
@@ -106,20 +106,25 @@ import { cn } from "@/lib/utils";
  * floating chips at one weight, and that the widest and brightest control on
  * the phone was chrome rather than the action.
  *
- * Both halves are answered here, and they are one idea:
+ * The first answer to that was a mount registry: while a banner was on screen
+ * the corner dropped the release from its count, and put it back on any page
+ * without one. It was still two presentations. It just took a route change to
+ * see them both, and "which one is the announcement" now depended on which page
+ * you happened to be standing on, which is a worse answer than either.
  *
- * - **The banner announces. The panel archives.** While a `ReleaseBanner` is on
- *   screen, that release is being announced properly, in the reading column, at
- *   the page's own type scale, and the corner does not count it a second time.
- *   `useBannerPresent` is how the corner knows, and it is a mount registry
- *   rather than a prop because the two components are on opposite sides of the
- *   router with no parent in common. On a page with no banner the count comes
- *   back, because an unread thing that nothing announces is the bug this whole
- *   surface exists to avoid.
+ * So the choice is made once, in one direction, and the machinery is gone:
+ *
+ * - **The banner announces. The panel archives. Always, everywhere.** A release
+ *   is announced in the page's own reading column, at the page's type scale,
+ *   with the one thing to press inside it, and nowhere else. This corner never
+ *   counts one. Its badge is the session log and only the session log, so a
+ *   digit here always means the timer did something while you were away.
  * - **The corner is one entry, not four.** The control moved from a `DockSlot`
  *   of its own into `RailSlot`, the single shared pill, as its captioned head.
  *   It no longer carries a fill, a border or a shadow, because the rail carries
- *   those once for everybody. See `ui/corner-dock`.
+ *   those once for everybody, and a hairline divides it from the glyphs it
+ *   heads so the row reads as one entry with tools attached rather than as four
+ *   peers. See `ui/corner-dock`.
  */
 
 export type TimerEvent = "focus" | "break" | "eyes" | "done";
@@ -301,11 +306,17 @@ const RELEASE_NOTICES: ReleaseNotice[] = RELEASES.map((r) => ({
   at: Date.parse(r.at),
 }));
 
+/**
+ * The archive half: every release, always, in time order.
+ *
+ * No unread count and no subscription to the seen store, and that is the whole
+ * point rather than an omission. The panel lists every release whether or not
+ * it has been read, so read state changes nothing here and nothing has to
+ * re-render when it moves. Only the banner cares which are unread, and it asks
+ * `useUnreadRelease` below.
+ */
 export function useReleaseNotices() {
-  const seen = useSyncExternalStore(subscribeSeen, getSeen);
-  const unread = RELEASE_NOTICES.filter((n) => !seen.includes(n.id)).length;
-
-  return { notices: RELEASE_NOTICES, unread, markRead: markReleasesRead };
+  return { notices: RELEASE_NOTICES, markRead: markReleasesRead };
 }
 
 /**
@@ -322,56 +333,6 @@ export function useUnreadRelease(): ReleaseNotice | null {
   return unread.reduce((newest, n) => (n.at > newest.at ? n : newest));
 }
 
-/* Who is announcing.
- * ------------------------------------------------------------------------- */
-
-/**
- * How many `ReleaseBanner`s are currently on screen.
- *
- * The corner and the banner are mounted on opposite sides of the router: the
- * banner is inside a page, the corner control is portalled to the document from
- * `main.tsx`. There is no parent that holds both, so "is this already being
- * announced somewhere better" cannot travel as a prop and is a fact about the
- * document instead.
- *
- * A count rather than a boolean because a route change mounts the next page's
- * banner before unmounting the last one's, and a boolean would be set false by
- * the departing component a frame after the arriving one set it true, which is
- * a badge that blinks on every navigation.
- *
- * Same `useSyncExternalStore` shape as the seen-releases store above, including
- * the reason: the snapshot must be reference-stable, so it is a number and not
- * an object built inside `getSnapshot`.
- */
-let bannerCount = 0;
-const bannerListeners = new Set<() => void>();
-
-function subscribeBanner(fn: () => void) {
-  bannerListeners.add(fn);
-  return () => {
-    bannerListeners.delete(fn);
-  };
-}
-
-function getBannerCount() {
-  return bannerCount;
-}
-
-/** Called by `ReleaseBanner` for as long as it is mounted. Returns its undo. */
-export function announceHere(): () => void {
-  bannerCount += 1;
-  for (const fn of bannerListeners) fn();
-  return () => {
-    bannerCount = Math.max(0, bannerCount - 1);
-    for (const fn of bannerListeners) fn();
-  };
-}
-
-/** True while some banner is carrying the announcement in a page column. */
-export function useBannerPresent(): boolean {
-  return useSyncExternalStore(subscribeBanner, getBannerCount) > 0;
-}
-
 /* The merge.
  * ------------------------------------------------------------------------- */
 
@@ -385,22 +346,21 @@ export function useBannerPresent(): boolean {
 export function useNotices(t: ReturnType<typeof useFocusTimer>) {
   const timer = useTimerNotices(t);
   const releases = useReleaseNotices();
-  const announcedInPage = useBannerPresent();
 
   const notices = useMemo(
     () => [...timer.notices, ...releases.notices].sort((a, b) => b.at - a.at),
     [timer.notices, releases.notices],
   );
 
-  // The list is always the whole list. Only the badge defers: a release the
-  // page is already announcing at full width does not also need a corner
-  // holding up a number about it, and the entry is still right there in the
-  // panel for anyone who opens it.
-  const unread = timer.unread + (announcedInPage ? 0 : releases.unread);
+  // The list is the whole list. The count is not: it is the session log alone,
+  // because a release is announced by `ReleaseBanner` in the page's own column
+  // and a corner holding up a number about the same sentence is the second
+  // presentation this surface just spent a round deleting. The entry is still
+  // in the list below, which is what the panel is for.
 
   return {
     notices,
-    unread,
+    unread: timer.unread,
     markRead: () => {
       timer.markRead();
       releases.markRead();
@@ -517,9 +477,18 @@ export function NotificationsTab({
 
         The count is a chip rather than the label, because "1" is not a word and
         a control whose entire caption is a digit is asking to be guessed at. It
-        counts what nothing else is announcing; see `useNotices`.
+        counts the session log and nothing else; see `useNotices`.
+
+        The hairline is what turns four peers into one entry with three tools
+        attached to it. Rank cannot be carried by the caption alone: a row of
+        equal 44px targets reads as equal however one of them is labelled, and
+        a divider is the cheapest mark that says "these belong to that".
       */}
       <RailSlot order={RAIL.notifications}>
+        <span
+          aria-hidden
+          className="mr-1.5 ml-0.5 h-5 w-px shrink-0 bg-slate-200 dark:bg-stone-700"
+        />
         <button
           type="button"
           onClick={() => {
