@@ -85,6 +85,37 @@
    directive has to sit in Tailwind's entry and both halves declared the same
    one. The `.dark` rules below still work unchanged. */
 
+/* ---------------------------------------------------------------------------
+   Type scale and faces, as real custom properties.
+
+   These live in the @theme block in src/index.css as well, and they have to,
+   because that is what generates the `text-scale-*` utilities this app uses in
+   its markup. But @theme only EMITS a variable Tailwind can see a use for, and
+   in this repo it cannot see these ones: the game's stylesheets are imported
+   from TSX rather than @imported into Tailwind's entry, so the 45-odd raw
+   `var(--text-scale-*)` references in them are invisible to it and the tokens
+   were dropped from the build.
+
+   In the game's own repository the same @theme block worked, because theme.css
+   both declared the tokens AND @imported every stylesheet that used them, so
+   Tailwind saw the uses. That is the thing this move broke, and this block is
+   the repair: declared here, they are emitted whatever Tailwind decides.
+
+   Caught by src/game/test/nodeSheetSeam.test.ts, which came across with the
+   app's other 76 tests.
+   --------------------------------------------------------------------------- */
+:root {
+  --text-scale-xs: 0.75rem;
+  --text-scale-sm: 0.875rem;
+  --text-scale-base: 1rem;
+  --text-scale-lg: 1.125rem;
+  --text-scale-xl: 1.375rem;
+  --text-scale-2xl: 1.75rem;
+  --text-scale-display: 2.5rem;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", "Baloo 2", Quicksand, "Varela Round", ui-sans-serif, system-ui, sans-serif;
+}
+
 :root {
   /* THE GROUND. Warm cream paper, per DESIGN-GOALS. This hex was the lavender
      regime's CARD, the one light surface the goals keep. */
