@@ -382,8 +382,6 @@ export function Panel({
           </p>
           <a
             href={TRAINER_URL}
-            target="_blank"
-            rel="noreferrer"
             className="group mt-4 inline-flex items-center gap-1.5 text-sm font-bold text-indigo-600 outline-none dark:text-indigo-300"
           >
             <span className="relative">

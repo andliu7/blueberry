@@ -282,7 +282,7 @@ const Board = ({
 
           It opens in its own tab because the trainer is still a separate app,
           and the caption says so rather than pretending otherwise. */}
-      <BentoTile href={TRAINER_URL} external className="p-6 sm:col-span-2 sm:p-7 lg:row-span-2">
+      <BentoTile href={TRAINER_URL} className="p-6 sm:col-span-2 sm:p-7 lg:row-span-2">
         {/* Reversed on a phone, so the drawing comes first and the words
             follow it. That is the order the Duolingo landing uses on a phone
             and it is the right one: a picture of the thing explains it faster

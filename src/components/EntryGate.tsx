@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { TRAINER_URL } from "@/data/site";
 import { motion, useReducedMotion } from "motion/react";
 import { ArrowRight, SlidersHorizontal } from "lucide-react";
 import { SystemWindow } from "@/components/ui/system-window";
@@ -71,7 +72,16 @@ import { cn } from "@/lib/utils";
  */
 
 /** Where the primary goes: the funnel's first real question, not its welcome beat. */
-const FIRST_QUESTION = "#/start/course";
+/**
+ * Where the press goes.
+ *
+ * It used to be "#/start/course", the site's own funnel, which asked its own
+ * course and topic questions and then handed over to a game that asks them
+ * again. Owner direction: one placement quiz, not two. The game's onboarding
+ * already redirects a first visit with no stored progress into itself, so
+ * landing on the game IS landing on the first question.
+ */
+const FIRST_QUESTION = TRAINER_URL;
 
 /**
  * The promise, and the largest thing on the screen.

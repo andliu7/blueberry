@@ -59,13 +59,21 @@ export const EMAIL = "andliu@terpmail.umd.edu";
 export const REPO_URL = "https://github.com/andliu7/blueberry";
 
 /**
- * The mechanism trainer, which is still its own app.
+ * The game. It has moved in, so this is a route on this site rather than a link
+ * off it, and this is the one line that note promised.
  *
- * Named here rather than in whichever component happened to link it first: the
- * dashboard's Concepts panel and the home page's third door both point at it,
- * and the day it moves in there should be one line to change.
+ * It used to be https://andliu7.github.io/mechanism_trainer/, a separate deploy
+ * of an older app. The game now lives at src/game and renders at "#/app", so
+ * every entrance this constant feeds (the home page's hero tile, the
+ * dashboard's panel, the funnel's ending and the site footer) opens the real
+ * thing without leaving the page. The `external` and `target="_blank"` at those
+ * call sites went with it: an in-page hash route is not a new tab.
+ *
+ * The game namespaces its own routes under this prefix, so "#/app/pathway" and
+ * "#/app/lesson/<node>" are its addresses and neither router can shadow the
+ * other. See `GAME_HREF` in src/game/app/routes.ts.
  */
-export const TRAINER_URL = "https://andliu7.github.io/mechanism_trainer/";
+export const TRAINER_URL = "#/app";
 
 /** Where the about card's two tags point: the college, and the advising programme. */
 export const CMNS_URL = "https://cmns.umd.edu/";
