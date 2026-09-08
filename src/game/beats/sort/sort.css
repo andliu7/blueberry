@@ -1,0 +1,510 @@
+/*
+ * Sort the cards: the tactile half.
+ *
+ * THE OWNER REQUIREMENT, and it is not decoration. Cards POP in 3D on a chunky
+ * raised bottom edge, and the card being pressed SINKS IN: visually inset, and
+ * a step darker. The whole reason a sort is a good beat is that ranking is a
+ * physical act, and a flat rectangle sliding around does not feel like moving
+ * something.
+ *
+ * HOW THE 3D IS BUILT, and it is the same construction as pathway.css because
+ * it is the same product. Each card is two stacked layers. The EDGE is a real
+ * element, a darker slab of the same hue sitting `--bb-card-edge-h` lower than the
+ * face, painted as a FILL with zero blur, so there is a solid floor under every
+ * card. The FACE is the lighter slab on top, and it is the only thing that
+ * moves. On :active the face translates down by the edge height and lands on
+ * the floor, plus an inset shadow along its top lip and one step of darkening,
+ * which is what "sinks in" means. Round 4 of the pathway loop is the evidence
+ * for the numbers: a band under about 6px, or under three steps of colour
+ * difference, reads as a drop shadow rather than as a side wall, and two
+ * separate critics called it a gradient.
+ *
+ * WHY THE PRESS IS CSS AND NOT STATE. CLAUDE.md: every control acknowledges the
+ * press on pointer down, before any work happens, inside 100 ms. `:active` is
+ * painted by the browser the same frame the pointer lands, with no JavaScript
+ * in the path at all, so it cannot be late. A React state flag would be one
+ * render behind at best.
+ *
+ * WHERE THE COLOURS COME FROM. theme.css is the token set the app actually
+ * loads (main.tsx imports it; tokens.css v2 is not imported by anything yet, so
+ * `--bb-primary-edge` and the `--raise-*` family resolve to nothing at runtime).
+ * Every raised edge below is therefore written as
+ * `var(--bb-primary-edge, <fallback>)`: it uses the v2 token the moment tokens.css
+ * is wired in, and until then it falls back to a hand picked step of theme.css's
+ * own navy, chosen the same way pathway.css chose its own edge. That wiring is
+ * an integration edit in a file this module does not own.
+ */
+
+.sort-beat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4, 1rem);
+}
+
+/* THE COMMIT ROW IS PINNED, per both committed lesson frames, which fix the
+   action at the bottom of the frame with the content scrolling behind it.
+   The ladder is the tallest surface in the runner and its CHECK was landing
+   wherever the card pool happened to end. Sticky rather than fixed, so it is
+   bounded by the surface it belongs to and never floats over another one. */
+.sort-beat__actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+  background: linear-gradient(to top, var(--bb-background) 78%, transparent);
+}
+
+.sort-beat__prompt {
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--bb-foreground);
+  margin: 0;
+}
+
+.sort-beat__brief,
+.sort-beat__how {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--bb-muted-foreground);
+}
+
+/* -----------------------------------------------------------------------
+ * THE TRACK. Ranked rungs, above the pool, labelled at both ends.
+ *
+ * Both ends are labelled because an ordering with unlabelled ends is a coin
+ * flip: the curriculum package makes `criterion` a required field for that
+ * reason, and the opposite end is authored beside it. The rail down the left
+ * is a single gradient, so the direction of the ladder is visible without
+ * reading either label.
+ * --------------------------------------------------------------------- */
+
+.sort-track {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sort-track__end {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--bb-muted-foreground);
+}
+
+.sort-track__end::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--bb-border);
+}
+
+.sort-track__body {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.sort-track__rail {
+  width: 6px;
+  border-radius: 999px;
+  flex: 0 0 auto;
+  background: linear-gradient(
+    to bottom,
+    var(--bb-primary),
+    color-mix(in srgb, var(--bb-primary) 18%, transparent)
+  );
+}
+
+.sort-track__rungs {
+  flex: 1;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.sort-rung {
+  display: flex;
+  align-items: stretch;
+  gap: 0.75rem;
+}
+
+.sort-rung__number {
+  flex: 0 0 auto;
+  width: 1.75rem;
+  padding-top: 0.7rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--bb-muted-foreground);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.sort-rung__socket {
+  flex: 1;
+  min-height: var(--hit-min, 2.75rem);
+  display: flex;
+}
+
+/* The empty rung: a dashed well, so it reads as somewhere a card belongs
+   rather than as a disabled button. It is a real <button> so the keyboard and
+   a screen reader reach it exactly the way a pointer does. */
+.sort-slot-empty {
+  flex: 1;
+  min-height: var(--hit-min, 2.75rem);
+  border: 2px dashed var(--bb-border);
+  border-radius: 0.85rem;
+  background: color-mix(in srgb, var(--bb-muted) 55%, transparent);
+  color: var(--bb-muted-foreground);
+  font: inherit;
+  font-size: 0.8125rem;
+  text-align: left;
+  padding: 0.5rem 0.85rem;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color 140ms ease, background-color 140ms ease;
+}
+
+.sort-slot-empty:hover,
+.sort-slot-empty.is-armed {
+  border-color: var(--bb-primary);
+  background: color-mix(in srgb, var(--bb-primary) 10%, transparent);
+  color: var(--bb-foreground);
+}
+
+/* The drop preview while a card is in the air over this rung. */
+.sort-slot-empty.is-over {
+  border-style: solid;
+  border-color: var(--bb-primary);
+  background: color-mix(in srgb, var(--bb-primary) 16%, transparent);
+}
+
+.sort-slot-empty:active {
+  transform: translateY(2px);
+}
+
+/* -----------------------------------------------------------------------
+ * THE POOL. Cards not yet ranked.
+ * --------------------------------------------------------------------- */
+
+.sort-pool {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--bb-muted) 60%, transparent);
+  border: 1px solid var(--bb-border);
+  min-height: calc(var(--hit-min, 2.75rem) + 1.5rem);
+  align-content: flex-start;
+  transition: border-color 140ms ease;
+}
+
+.sort-pool.is-over {
+  border-color: var(--bb-primary);
+}
+
+.sort-pool__empty {
+  margin: 0;
+  padding: 0.6rem 0.25rem;
+  font-size: 0.8125rem;
+  color: var(--bb-muted-foreground);
+}
+
+/* -----------------------------------------------------------------------
+ * THE CARD. Two slabs: a floor that does not move, and a face that does.
+ * --------------------------------------------------------------------- */
+
+.sort-card {
+  /* 8px, not 6. The pathway loop's round 4 measured a band under about 6px as
+     unreadable: two critics in a row called a 4px band a drop shadow rather
+     than a side wall. Chunky is the requirement, so the band is 8 and every
+     edge colour below is at least three steps darker than its face. */
+  --bb-card-edge-h: 8px;
+  --bb-card-face: var(--bb-card);
+  --bb-card-edge: #cfc9c0;
+  --bb-card-ink: var(--bb-card-foreground);
+  --bb-card-shine: rgba(255, 255, 255, 0.5);
+
+  position: relative;
+  display: block;
+  flex: 1 1 auto;
+  min-width: 8rem;
+  min-height: calc(var(--hit-min, 2.75rem) + var(--bb-card-edge-h));
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+  color: var(--bb-card-ink);
+  cursor: grab;
+  /* The drag is ours, so the browser must not claim the gesture for scrolling.
+     The cost is that a page scroll started ON a card does not scroll, which is
+     why tap to place exists and is offered first in the instructions: the drag
+     is never the only way to answer. Same trade the trainer's DrawCanvas
+     already makes. */
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+/* The floor. A darker slab of the same hue, offset down, painted as a fill. */
+.sort-card__edge {
+  position: absolute;
+  inset: var(--bb-card-edge-h) 0 0 0;
+  border-radius: 0.85rem;
+  background: var(--bb-card-edge);
+}
+
+/* The face. The only layer that moves. */
+.sort-card__face {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: var(--hit-min, 2.75rem);
+  padding: 0.6rem 0.9rem;
+  border-radius: 0.85rem;
+  background: var(--bb-card-face);
+  box-shadow: inset 0 1px 0 var(--bb-card-shine);
+  transition:
+    transform var(--dur-instant, 80ms) cubic-bezier(0.2, 0.8, 0.3, 1),
+    filter var(--dur-instant, 80ms) linear,
+    box-shadow var(--dur-instant, 80ms) linear;
+}
+
+/* THE SINK. Pressed: the face drops the full edge height onto its floor, the
+   top lip inverts from a highlight to an inset shadow, and the whole face goes
+   one step darker. Painted on pointer down by the browser. */
+.sort-card:active .sort-card__face,
+.sort-card.is-dragging .sort-card__face {
+  transform: translateY(var(--bb-card-edge-h));
+  filter: brightness(0.94);
+  box-shadow:
+    inset 0 2px 3px rgba(0, 0, 0, 0.22),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.sort-card:focus-visible {
+  outline: none;
+}
+
+.sort-card:focus-visible .sort-card__face {
+  outline: 3px solid var(--bb-ring);
+  outline-offset: 2px;
+}
+
+.sort-card__label {
+  flex: 1;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+/* The grip. U+22EE twice, so it draws with any UI font rather than depending
+   on a braille block being present. Decorative: the aria-label carries the
+   card and its position. */
+.sort-card__grip {
+  flex: 0 0 auto;
+  font-size: 0.875rem;
+  letter-spacing: 0.15em;
+  line-height: 1;
+  color: var(--bb-muted-foreground);
+}
+
+/* Judged: the card is a labelled result rather than a control, so it loses the
+   grab cursor and the pressed state along with its button role. */
+div.sort-card {
+  cursor: default;
+  touch-action: auto;
+}
+
+.sort-card__pka {
+  flex: 0 0 auto;
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--bb-primary-ink);
+}
+
+/* Selected by a tap or by the keyboard: picked up and waiting for a rung. */
+.sort-card.is-selected {
+  --bb-card-face: color-mix(in srgb, var(--bb-primary) 16%, var(--bb-card));
+  --bb-card-edge: var(--bb-primary-edge, #2a2c5e);
+}
+
+.sort-card.is-selected .sort-card__face {
+  outline: 2px solid var(--bb-primary);
+  outline-offset: 1px;
+}
+
+/* On the track. The purple identity, so a filling ladder is visible at a glance. */
+.sort-card.is-ranked {
+  --bb-card-face: color-mix(in srgb, var(--bb-primary) 12%, var(--bb-card));
+  --bb-card-edge: var(--bb-primary-edge, #2a2c5e);
+  --bb-card-ink: var(--bb-foreground);
+}
+
+/* In the air. Follows the pointer through a transform set inline. */
+.sort-card.is-dragging {
+  position: fixed;
+  z-index: 40;
+  cursor: grabbing;
+  pointer-events: none;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.22);
+  border-radius: 0.85rem;
+}
+
+/* The hole a dragged card left, so the layout does not jump under the finger. */
+.sort-card-ghost {
+  flex: 1 1 auto;
+  min-width: 8rem;
+  min-height: calc(var(--hit-min, 2.75rem) + 8px);
+  border-radius: 0.85rem;
+  border: 2px dashed var(--bb-border);
+}
+
+/* After the check: which rungs held and which moved. Never red for a near miss,
+   per the design rule that error red is for errors. A misplaced card is amber. */
+.sort-card.is-correct {
+  --bb-card-face: var(--good-soft);
+  --bb-card-edge: var(--good);
+  --bb-card-ink: var(--bb-foreground);
+}
+
+.sort-card.is-misplaced {
+  --bb-card-face: var(--not-requested-soft);
+  --bb-card-edge: var(--not-requested);
+  --bb-card-ink: var(--bb-foreground);
+}
+
+.sort-card__why {
+  display: block;
+  padding: 0.15rem 0.9rem 0.6rem;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--bb-muted-foreground);
+}
+
+/* -----------------------------------------------------------------------
+ * FEEDBACK AND THE FLAG.
+ * --------------------------------------------------------------------- */
+
+.sort-feedback {
+  border-radius: 1rem;
+  border: 1px solid var(--bb-border);
+  background: var(--bb-card);
+  padding: 0.9rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sort-feedback.is-correct {
+  border-color: var(--good);
+  background: var(--good-soft);
+}
+
+.sort-feedback.is-sound {
+  border-color: var(--not-requested);
+  background: var(--not-requested-soft);
+}
+
+.sort-feedback__headline {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--bb-foreground);
+}
+
+.sort-feedback__field {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--bb-foreground);
+}
+
+.sort-feedback__field b {
+  color: var(--bb-muted-foreground);
+  font-weight: 700;
+}
+
+.sort-feedback__tier {
+  align-self: flex-start;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--bb-muted-foreground);
+}
+
+/* The professor adjustable pKa conflict. A warning, not an error: the app is
+   saying it will not teach either version rather than that something broke. */
+.sort-conflict {
+  border-radius: 0.85rem;
+  border: 1px solid var(--warn);
+  background: color-mix(in srgb, var(--warn) 12%, transparent);
+  padding: 0.7rem 0.9rem;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--bb-foreground);
+}
+
+.sort-beat__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+/* -----------------------------------------------------------------------
+ * DARK MODE. theme.css switches on the .dark class, so the neutral edge is
+ * the one value that has to move: a light warm grey floor under a dark face
+ * would read as a light leak rather than as a side wall.
+ * --------------------------------------------------------------------- */
+
+.dark .sort-card {
+  --bb-card-edge: #14100e;
+  --bb-card-shine: rgba(255, 255, 255, 0.08);
+}
+
+.dark .sort-card.is-selected,
+.dark .sort-card.is-ranked {
+  --bb-card-edge: var(--bb-primary-edge, #9195e4);
+}
+
+.dark .sort-card:active .sort-card__face,
+.dark .sort-card.is-dragging .sort-card__face {
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.55),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.04);
+}
+
+/* -----------------------------------------------------------------------
+ * REDUCED MOTION. The transitions go; the pressed transform stays.
+ *
+ * The drop is the acknowledgement of a press, not an animation of one, and
+ * removing it would remove the feedback rather than the motion. The travel is
+ * 6px and it is instantaneous here.
+ * --------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .sort-card__face,
+  .sort-slot-empty,
+  .sort-pool {
+    transition: none;
+  }
+}

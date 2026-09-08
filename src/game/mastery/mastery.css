@@ -1,0 +1,584 @@
+/* -------------------------------------------------------------------------
+   The mastery rank card, its badge, and the rank-up moment.
+
+   EVERY CLASS HERE IS PREFIXED `rank-`, NOT `mastery-`. cards/ui/cards.css
+   already owns `.mastery-bar` and `.mastery-dot` for the per-deck bars on the
+   Cards tab, and two files defining one class name is the sort of collision
+   that shows up as a bar changing height on an unrelated screen.
+
+   WHAT THE PICTURES SPECIFY, read off them rather than remembered:
+
+     the badge     `blueberry_r7-states-sheet_1788288485.png` and
+                   `units/unit07-path.jpg`. A disc SUNKEN into the page with a
+                   darker edge below it, and the motif cut into the face in a
+                   darker tone of the face's own colour. Completed is the goal
+                   green with a soft static glow; queued is the dashed
+                   treatment that still carries its mark.
+     the card      `blueberry_cards-landing_1788288831.png`. A cream card, fully
+                   rounded, sitting on a single dark slab along its bottom edge,
+                   with a thin fully rounded green-on-soft-green bar inside it.
+     the moment    `blueberry_r6-lesson-complete_1788286354.png` for the
+                   hierarchy only: one hero object, a headline UNDER it, one row
+                   of outlined reason pills, and one wide chip to leave on.
+
+   THE DEPTH IS A STACKED EDGE AND FACE, per
+   `docs/reference/design-goals/BUTTON-MECHANICS.md`: "an EDGE layer, the darker
+   slab that sits under the face and is the only thing visible at the bottom of
+   a resting chip", and a FACE on top of it. Here the edge is the CONTAINER's own
+   background and the face is its single child, so the darker slab is a parent
+   rather than a sibling. That is the mechanics note's own construction, and it
+   is also the one that does not restate the pathway node's known rule-3
+   fake-extrusion row on a second surface.
+
+   NO box-shadow ANYWHERE IN THIS FILE. Sticker rule 3 bans shadows on chrome,
+   and the sticker audit reads a 0-blur offset shadow as one, correctly.
+   ------------------------------------------------------------------------- */
+
+/* ------------------------------------------------------------- the badge -- */
+
+.rank-mark {
+  /* The two engrave tones, and they are the pathway node's own values rather
+     than new ones, because a rank badge and a lesson node are the same object
+     in the same vocabulary and a second pair would drift. tabs/pathway/
+     pathway.css measured them on these exact faces after the pixel verdict of
+     2026-09-04 asked for a bold mark rather than a legible one: #2f3a68 on the
+     light periwinkle face #a2b5fa is 5.46:1. The lip is the light on the far
+     wall of the groove, so it is white at low alpha and carries no meaning of
+     its own. */
+  --rank-engrave: #2f3a68;
+  --rank-lip: rgb(255 255 255 / 0.62);
+  --rank-face: var(--chip-face);
+  --rank-edge: var(--chip-edge);
+  /* THE EDGE SCALES WITH THE DISC, and that is a correction rather than a
+     flourish. A flat 5px looked right on the 34px ladder mark and vanished
+     under the 132px badge on the rank-up screen, which is half of the pixel
+     verdict of 2026-09-04's first complaint about our nodes: the reference's
+     depth is "a solid 14px darker lower rim" on a node of about 60 px, and a
+     rim that does not grow with its disc reads as a hairline at hero size.
+     12 percent puts the 132px badge at about 16px of rim and holds a visible
+     4px at ladder size. */
+  --rank-edge-size: max(4px, calc(var(--rank-mark-size) * 0.12));
+  --rank-line: transparent;
+  /* The current node's bloom, the same value tabs/pathway/pathway.css draws it
+     at, because it is the same state of the same object. Violet, because the
+     rank a student HOLDS is an identity object: DESIGN-GOALS, "Green says 'you
+     moved', violet says 'this is Blueberry'". */
+  --rank-glow: rgb(139 92 246 / 0.5);
+
+  position: relative;
+  display: inline-block;
+  flex: none;
+  width: var(--rank-mark-size);
+  /* The box is taller than the disc by exactly the edge, so the slab shows as a
+     crescent under it and every badge in a ladder still aligns on one baseline
+     whether or not its variant paints an edge. */
+  height: calc(var(--rank-mark-size) + var(--rank-edge-size));
+  border-radius: 999px;
+  background: var(--rank-edge);
+}
+
+.rank-mark__face {
+  position: absolute;
+  z-index: 1;
+  inset: 0 0 auto 0;
+  display: flex;
+  height: var(--rank-mark-size);
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--rank-face);
+  border: 2px solid var(--rank-line);
+}
+
+.rank-mark__motif {
+  width: 56%;
+  height: 56%;
+  overflow: visible;
+  fill: none;
+}
+.rank-mark__cut {
+  stroke: var(--rank-engrave);
+  fill: var(--rank-engrave);
+}
+.rank-mark__lip {
+  stroke: var(--rank-lip);
+  fill: var(--rank-lip);
+}
+
+/* THE THREE TONES ARE THE STATES SHEET'S OWN, AND WHICH RANK GETS WHICH IS
+   DESIGN-GOALS' ONE-LINE COLOUR RULE APPLIED LITERALLY: "Green says 'you
+   moved', violet says 'this is Blueberry'".
+
+   A rank BELOW the one you hold is a thing you moved past, so it is the sheet's
+   completed node: the goal green as a FILL with a dark mark cut into it.
+   FILL-ONLY, per the same file: the green never identifies the shape by itself,
+   so --progress-edge carries the boundary and --progress-ink #163a26 carries
+   the mark, which theme.css measures at 7.17:1 on the green in both themes.
+
+   The rank you HOLD is not a thing you moved past, it is who you are on this
+   course, so it keeps the identity periwinkle and takes the violet halo. That
+   is the default above; `.rank-mark--glow` adds the light.
+
+   ONE NAMED DIVERGENCE FROM THE STATES SHEET, and the clause wins over the
+   image because DESIGN-GOALS says it does. The sheet draws a WHITE check on the
+   completed node. theme.css measures white on the goal green at 1.76:1, under
+   the 3.0 floor a meaningful graphic needs, and records that --progress-deep is
+   the only green a white mark may sit on. So the mark cut into a completed rank
+   is the dark --progress-ink instead, which is the fill-only rule's own answer:
+   the green is the fill and the dark ink is the thing on it. */
+.rank-mark--earned {
+  --rank-face: var(--progress);
+  --rank-edge: var(--progress-edge);
+  --rank-engrave: var(--progress-ink);
+  --rank-lip: rgb(255 255 255 / 0.5);
+  --rank-glow: var(--progress-glow);
+}
+
+/* AHEAD is owner ruling 4's queued treatment: dashed, unfilled, and STILL
+   CARRYING ITS MOTIF, because "an empty chip reads as broken rather than as
+   unauthored" and a rank not yet reached is exactly an unauthored chip. The
+   edge goes transparent rather than away, so the row stays aligned. */
+.rank-mark--ahead {
+  --rank-face: transparent;
+  --rank-edge: transparent;
+  --rank-line: var(--bb-muted-foreground);
+  --rank-engrave: var(--bb-muted-foreground);
+  --rank-lip: transparent;
+}
+.rank-mark--ahead .rank-mark__face {
+  border-style: dashed;
+}
+
+/* The completed-state glow, and DESIGN-GOALS is explicit that it is STATIC:
+   "static soft glow on finished path segments, a pulsing halo ONLY on the
+   current node". Nothing pulses here, so there is nothing for reduced motion to
+   switch off. It is a blurred flat fill and deliberately not a box-shadow, the
+   same call charge/meter.css records for the meter's halo: a centred halo with
+   no offset implies no stack, which is what keeps it paint rather than
+   elevation. */
+.rank-mark--glow::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: -7px;
+  border-radius: 999px;
+  background: var(--rank-glow);
+  filter: blur(9px);
+  pointer-events: none;
+}
+
+/* --------------------------------------------------------------- the card - */
+
+.rank-card {
+  /* The slab under the card, the same object streak.css puts under the reward
+     chips: a single dark band along the bottom edge and nothing on the other
+     three beyond the structural border. A border, not a shadow and not a
+     sibling block. */
+  --rank-slab: var(--bb-foreground);
+
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 1.05rem 1.05rem 0.95rem;
+  border: 2px solid var(--bb-border);
+  /* White card on cream ground is 1.10:1, so the border is structural rather
+     than decorative. docs/DESIGN-TOKENS.md, the warm cream regime. */
+  border-bottom: 8px solid var(--rank-slab);
+  border-radius: 1.5rem;
+  background: var(--bb-card);
+}
+
+.rank-card__head {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+/* THE NAME IS THE CAPTION, THE BADGE IS THE PICTURE. Owner ruling 2 of
+   2026-09-04 is written about molecules, and it generalises exactly: the mark
+   is the thing and the word is a label on it. So the eyebrow is small and
+   muted, the rank name reads at display size in the chrome face, and neither of
+   them is what the eye lands on first. */
+.rank-card__eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--bb-muted-foreground);
+}
+
+.rank-card__name {
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--bb-foreground);
+}
+
+/* THE SENTENCE LEADS THE NUMBER. docs/ECONOMY.md's first presentation rule, in
+   the owner's own words: "'You can now predict E2 products' first, 34 second."
+   So the claim is body-sized and sits above the bar; the score never appears
+   larger than it. */
+.rank-card__claim {
+  font-size: 1rem;
+  line-height: 1.35;
+  color: var(--bb-foreground);
+}
+
+/* The one sentence the permanent floor ever needs. It appears only when the
+   visible score has sagged below the badge's own band, and it explains rather
+   than apologises: nothing here draws the gap, and nothing here is red. */
+.rank-card__held {
+  font-size: 0.8125rem;
+  color: var(--bb-muted-foreground);
+}
+
+/* ---------------------------------------------------------------- the bar - */
+
+/*
+   TWO FILLS AND NO OUTLINE, the same construction cards/ui/cards.css settled on
+   for the per-deck bars, and the same reason: blueberry_cards-landing draws a
+   thin SOFT GREEN track carrying a green fill with no dark ring of any kind.
+   The fill-only rule is satisfied by both halves being fills; an outline around
+   an empty bar would be a green hairline around nothing, which is the one thing
+   the rule forbids outright.
+
+   The track value is this file's own rather than a var() into cards.css,
+   because that token is scoped to the Cards tab's own wrapper. Same hex, and
+   the duplication is named here so it is a copy on purpose rather than a
+   coincidence.
+*/
+.rank-bar {
+  --rank-track: #d8f0c6;
+  height: 10px;
+  border-radius: 9999px;
+  background: var(--rank-track);
+  overflow: hidden;
+}
+
+.rank-bar__fill {
+  height: 100%;
+  border-radius: 9999px;
+  background: var(--progress);
+  transition: width 320ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.rank-bar__caption {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--bb-muted-foreground);
+}
+
+/* The number, and it is deliberately a reading rather than a hero: one step
+   over body size and nothing like the claim above it, tabular so it cannot
+   jiggle as it climbs.
+
+   18px RATHER THAN INHERITING THE CAPTION'S 13px, and that is a rule rather
+   than a preference: this carries the rounded CHROME face, and the sticker
+   audit's rule 8 arms a 16px floor on that face because "a rounded display
+   glyph below that is body copy wearing a costume". A 13px display glyph is a
+   violation, so the number is sized up to where the face is legitimately doing
+   its chrome job. */
+.rank-bar__score {
+  font-size: 1.125rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--bb-foreground);
+}
+
+/* ------------------------------------------------------------ the restore - */
+
+/*
+   DECAY IS NEVER RENDERED AS A LOSS. docs/ECONOMY.md: not "you dropped 3
+   points", but "4 reactions are cracking, review to restore, with a one-tap fix".
+   So this block is the only thing decay produces on this card, it names a count
+   of things to do rather than a number that fell, and it carries the action.
+
+   IT IS THE CALM RAMP AND NOT THE ALARM ONE, and the ground is --tab-active
+   rather than anything from the warn or destructive families. DESIGN-TOKENS is
+   explicit that a mastery surface "never uses the critical or error ramp", and
+   an amber band would have said "something is wrong" about a student doing
+   exactly what the scheduler expects. --tab-active is the app's flat "this is
+   an object" tint and it is already the ground under every tinted disc in the
+   shell.
+
+   Computed on the token values in theme.css, and the contrast audit on the
+   BUILT app is still the arbiter rather than this comment: --bb-foreground #2a2a42
+   on --tab-active #e3e1f4 is about 11.9:1, --bb-muted-foreground #394153 on it
+   about 7.6:1, and at night --bb-muted-foreground #a8a7c4 on #2f3557 about 5.1:1.
+   All three clear the 4.5 body floor.
+*/
+.rank-restore {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.7rem 0.8rem;
+  border: 2px solid var(--bb-border);
+  border-radius: 1rem;
+  background: var(--tab-active);
+}
+
+.rank-restore__text {
+  flex: 1 1 12rem;
+  min-width: 0;
+  font-size: 0.875rem;
+  color: var(--bb-foreground);
+}
+
+.rank-restore__promise {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.75rem;
+  color: var(--bb-muted-foreground);
+}
+
+/* THE ONE-TAP FIX IS A LINK, NOT A BUTTON, because it goes to a route: a
+   student's back button has to work, and beats/ChipPress renders a <button>.
+   The taxonomy sheet's REVIEW chip is the right object either way, so the chip
+   classes are worn by an anchor and only the underline has to go. Scoped to
+   this row so nothing else's chip-press is touched from this file. */
+.rank-restore a.chip-press {
+  text-decoration: none;
+}
+
+/* ------------------------------------------------------------- the ladder - */
+
+/*
+   THE LADDER IS THE REASON THE BADGE MEANS ANYTHING. Duolingo is the bar for
+   the reward moment and CLAUDE.md takes from it "a tiered badge that means
+   something because it was scarce"; scarcity is only visible when the tiers
+   are. So the six ranks are listed with what each one claims, and the row a
+   student holds is the one that is filled.
+
+   A VERTICAL LIST RATHER THAN A SIX-ACROSS STRIP, decided on the pixel verdict
+   of 2026-09-04: "Truncated labels appear nowhere in the reference". Six names
+   across a phone means "Retrosynthesist" ellipsised, and an ellipsis is the
+   defect that verdict names. Down the page every name is whole.
+*/
+.rank-ladder {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rank-ladder__row {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+/* 16px, the sticker audit's rule 8 floor for the rounded chrome face, and it is
+   the smallest size at which that face is doing its own job rather than
+   dressing up body copy. A rank name is a name and it belongs in the chrome
+   face; 15px with `.title-face` on it would be a rule 8 row. */
+.rank-ladder__name {
+  display: block;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--bb-foreground);
+}
+
+.rank-ladder__claim {
+  font-size: 0.75rem;
+  line-height: 1.3;
+  color: var(--bb-muted-foreground);
+}
+
+/* A rank not yet reached recedes: the mark is already dashed, and the words go
+   quiet with it. It is never struck through and never greyed to unreadable;
+   ahead is not the same as unavailable. */
+.rank-ladder__row--ahead .rank-ladder__name {
+  color: var(--bb-muted-foreground);
+}
+
+/* -------------------------------------------------------------- the moment */
+
+/*
+   ONE HERO THING, REASONS BENEATH, NO SECOND COPY OF THE NUMBER. The P2
+   celebration hierarchy, and on this screen the hero is the BADGE rather than a
+   figure: the reward moment already spent the big number on XP, and a second
+   enormous number one screen later would be two heroes in one sequence. The
+   rank name is the badge's caption, the claim is the reason, the pills are what
+   it paid, and there is no score anywhere on the screen.
+*/
+.rankup-stage {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.85rem;
+  padding: 1.5rem 1.25rem calc(1.5rem + env(safe-area-inset-bottom, 0px));
+  /* The product's own paper, not a special celebration ground: the S3 round
+     already made that call for the reward moment and there is one cream. */
+  background: var(--bb-background);
+  text-align: center;
+}
+
+/*
+   THE HERO IS THE BADGE ALONE, AND THE MASCOT IS DELIBERATELY ABSENT.
+
+   The pixel verdict of 2026-09-04 named a mascot "reduced from a 95px
+   full-body character standing on the ground to a 26px head floating and
+   clipped by the viewport edge" as one of the three things that make a screen
+   look broken rather than off-style. `Berry` draws the head; the full-length
+   celebration staging, the limbs, the leaf, the cast shadow and the visor, is
+   `CelebrationBloom`, a component local to lesson/RewardMoment.tsx and not
+   exported. Putting a head-only berry beside a 132px badge on bare paper is
+   that same defect at a smaller size, and drawing a second set of limbs in
+   this folder would duplicate the exact thing RewardMoment's own header says
+   belongs in the mascot package instead.
+
+   So this screen has no mascot this round, and it is reported rather than
+   quietly shipped. When those limbs move into the mascot package the character
+   belongs here, standing on the ground beside the badge.
+*/
+.rankup-hero {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.rankup-eyebrow {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--bb-muted-foreground);
+}
+
+.rankup-name {
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1.05;
+  color: var(--bb-foreground);
+}
+
+.rankup-claim {
+  max-width: 22rem;
+  font-size: 1.0625rem;
+  line-height: 1.35;
+  color: var(--bb-foreground);
+}
+
+/* The one line looking forward, and it is NOT the eyebrow style. Two uppercase
+   tracked lines on one screen read as two labels of equal weight, and only
+   "NEW RANK" is a label: this is a sentence. */
+.rankup-next {
+  font-size: 0.875rem;
+  color: var(--bb-muted-foreground);
+}
+
+.rankup-pills {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+/* The reward moment's reason pills, in the same object: uniform, outlined, and
+   unfilled, so none of them competes with the badge above them. */
+.rankup-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.8rem;
+  border: 2px solid var(--bb-border);
+  border-radius: 999px;
+  background: transparent;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--bb-foreground);
+}
+
+.rankup-pill__mark {
+  width: 1rem;
+  height: 1rem;
+  flex: none;
+  color: var(--diamond-ink);
+}
+
+.rankup-actions {
+  margin-top: 0.4rem;
+  width: min(22rem, 100%);
+}
+
+/* The reveal. Opacity and transform only, so nothing here paints on a frame,
+   and every element's final state is its resting state: reduced motion renders
+   the last frame at once rather than removing the content. */
+/* NOTHING INVISIBLE IS CLICKABLE. An element at opacity 0 still takes a tap,
+   and a Continue button that answers a press it has not offered yet is worse
+   than one that arrives late. The pointer comes back with the pixels. */
+.rankup-in:not(.is-in) {
+  pointer-events: none;
+}
+
+.rankup-in {
+  opacity: 0;
+  transform: translateY(10px);
+  transition:
+    opacity 260ms cubic-bezier(0.4, 0, 0.2, 1),
+    transform 260ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.rankup-in.is-in {
+  opacity: 1;
+  transform: none;
+}
+
+.rankup-badge {
+  transform: scale(0.7);
+  opacity: 0;
+  transition:
+    opacity 320ms cubic-bezier(0.2, 0.8, 0.3, 1),
+    transform 320ms cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+.rankup-badge.is-in {
+  transform: none;
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rank-bar__fill,
+  .rankup-in,
+  .rankup-badge {
+    transition-duration: 1ms;
+  }
+}
+
+/* ----------------------------------------------------------------- dark --- */
+
+.dark .rank-mark {
+  /* The dark theme's periwinkle face is #9ba8f5 and pathway.css measured the
+     deeper cut against it at 5.83:1. Same pair, same reason. The halo follows
+     the same file's night value. */
+  --rank-engrave: #242c52;
+  --rank-lip: rgb(255 255 255 / 0.5);
+  --rank-glow: rgb(143 147 224 / 0.5);
+}
+
+.dark .rank-mark--earned {
+  --rank-engrave: var(--progress-ink);
+  --rank-glow: var(--progress-glow);
+}
+
+.dark .rank-card {
+  /* streak.css records the same substitution and the same argument: --bb-foreground
+     is a LIGHT ink at night, so a slab drawn in it would be a bright band under
+     a dark card. A slab is a depth cue with no text on it, and depth is dark on
+     a dark page too. */
+  --rank-slab: #0b0e1e;
+}
+
+.dark .rank-bar {
+  --rank-track: rgba(126, 217, 87, 0.2);
+}

@@ -1,0 +1,336 @@
+/* -------------------------------------------------------------------------
+   The Charge sheet, piece P5. Three states plus the free one, in one panel.
+
+   THE LANGUAGE. Flat fills, no gradients anywhere, a visible border on every
+   control, nothing sharper than 12px, and colour used as a SURFACE rather than
+   as an accent: the promise band is a full width green field and the exam band
+   is a full width purple one, which is what stops the sheet reading as a
+   settings dialog with a coloured word in it.
+
+   NO SHADOW ANYWHERE, including on the panel. The sticker language carves out
+   a shadow where stacking IS the meaning, and a sheet lifted over the pathway
+   is the textbook case, so the first pass took that carve out and gave the
+   panel a drop shadow. It is withdrawn, for two reasons that are not the
+   rule's. The scrim already does the whole job: the pathway behind is dimmed
+   52 percent and the panel is the only lit thing on screen, so a shadow adds
+   no separation to something nothing competes with. And the bar's own sheet at
+   this exact moment, duolingo-live/2026-08-27-run2/p27, is a flat rounded
+   rectangle on a dimmed page with no shadow at all. A carve out taken where it
+   buys nothing is just a shadow.
+
+   NO LEDGE ON THE PRIMARY EITHER. A darker offset block under a button is a
+   fake extrusion, which is the same rule wearing a different property. .press
+   travels by scale and brightness, so nothing needs somewhere to fall into.
+
+   THE METER IS NOT IN THIS FILE ANY MORE. It is charge/ChargeMeter.tsx and
+   charge/meter.css, built to the committed states sheet
+   `docs/reference/design-goals/blueberry_spec-meter-states_1788291102.png` and
+   shared with the header, which is why it stopped being a private part of the
+   sheet. What this file still owns is the panel, the copy and the controls.
+
+   The superseded treatment was thirty pips, and the property that made it good
+   is carried into the capsule rather than lost: outline against solid is the
+   one distinction that survives greyscale, so the stretch about to be spent is
+   an outlined ghost beyond a solid fill.
+
+   Timings here are the visual half of what ChargeGate.tsx's commit does; the
+   block at the bottom collapses every one of them under reduced motion, where
+   the component renders the settled frame instead.
+   ------------------------------------------------------------------------- */
+
+/* The dialog is the whole viewport so the panel can sit on the bottom edge of
+   the phone and in the middle of a desktop window from one element. */
+.charge-sheet {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  max-width: 100vw;
+  height: 100dvh;
+  max-height: 100dvh;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  color: var(--bb-foreground);
+}
+.charge-sheet:not([open]) {
+  display: none;
+}
+.charge-sheet::backdrop {
+  background: rgb(0 0 0 / 0.52);
+}
+.charge-sheet[open]::backdrop {
+  animation: charge-scrim-in 220ms ease-out;
+}
+@keyframes charge-scrim-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* ------------------------------------------------------------- the panel -- */
+/*
+   Phone: a bottom sheet, flush to the bottom edge, rounded on top only. mobile
+   ui's rule for an in-context choice, and the reason the pathway is still
+   visible behind it.
+
+   Desktop: the same panel centred, because a 1280px window has no bottom edge
+   worth anchoring a 26rem card to, and a sheet stuck to the foot of a wide
+   screen is a phone layout that was never re-decided.
+*/
+.charge-panel {
+  display: flex;
+  /* FOUR ROUNDED CORNERS, and a gap under the sheet so they are real.
+     The first pass ran the sheet flush to the bottom edge with the bottom two
+     corners square, which is the standard phone sheet and it measured as a card
+     at 0px radius against a 12px floor. A sticker has four corners; the gap is
+     what lets it have them, and the pathway is still visible above and beside
+     it, which is the only thing anchoring to the bottom edge was buying. */
+  width: min(27rem, calc(100% - 1rem));
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.625rem;
+  margin-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
+  padding: 0.75rem 1.25rem 1.25rem;
+  text-align: center;
+  border: 1px solid var(--bb-border);
+  border-radius: 1.5rem;
+  background: var(--bb-card);
+}
+@media (min-width: 768px) {
+  .charge-sheet {
+    align-items: center;
+  }
+  .charge-panel {
+    margin-bottom: 0;
+    padding: 1rem 1.5rem 1.5rem;
+  }
+}
+.charge-sheet[open] .charge-panel {
+  animation: charge-panel-in 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes charge-panel-in {
+  from {
+    transform: translateY(2rem);
+    opacity: 0;
+  }
+}
+
+/* The grab handle. It is what says "this came up from the bottom and can go
+   back down", which is the one affordance a sheet needs and a dialog does not
+   have on its own. Hidden on desktop, where the panel is not a sheet. */
+.charge-grabber {
+  display: block;
+  width: 2.5rem;
+  height: 0.25rem;
+  border-radius: 999px;
+  background: var(--hud-track);
+}
+@media (min-width: 768px) {
+  .charge-grabber {
+    display: none;
+  }
+}
+
+/* -------------------------------------------------------------- the hero -- */
+.charge-hero {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.25rem 0 0.125rem;
+}
+
+/* Bloom's halo IS the meter (berryState.ts: "thickness is the Charge meter"),
+   so the commit has to thin it rather than cut to the new width. The halo is a
+   border whose width and colour resolve from --berry-halo, so a transition on
+   the resolved values interpolates when the level changes. Scoped to this sheet
+   deliberately: the header's chip should keep snapping to whatever the last
+   derivation said. */
+.charge-sheet .berry-origin[data-halo="static"] .berry-halo {
+  transition:
+    border-width 620ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 620ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Bloom, drained.
+ *
+ * berryState.ts already takes the HALO flat grey at zero charge, because a
+ * meter that vanishes at zero stops being a meter. Bloom himself does not
+ * change, and the piece asks for him flat grey and sleepy: the mood is sleepy
+ * from the component, and the colour is this, one filter on the shell's own
+ * side of the boundary. Nothing in src/mascot is touched, which matters
+ * because berryMood and berryBehaviour are imported and frozen.
+ *
+ * Not 100 percent. A hair of hue left in is the difference between asleep and
+ * switched off, and the sentence beside him says the charge is coming back. */
+.charge-sheet[data-charge-state="empty"] .berry-origin {
+  filter: grayscale(0.92);
+}
+
+/* --------------------------------------------------------------- the copy -- */
+/* The kind, as a bordered chip rather than a naked eyebrow. It never repeats a
+   word from the headline: the headline is the node's own name in the ready and
+   free states, and a rule in the other two. */
+.charge-kind {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid var(--bb-border);
+  padding: 0.1875rem 0.625rem;
+  font-size: var(--text-scale-xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--bb-muted-foreground);
+}
+/* The node's own name. Deliberately quiet: it is confirmation of what was
+   pressed, and the price underneath is the news.
+
+   WEIGHT, NOT COLOUR, carries the emphasis. It is body sized, and the sticker
+   language's rule 7 is that body sized text recedes so the coloured and display
+   marks own the page; --bb-foreground at 16px measured as a violation of exactly
+   that. 700 on --bb-muted-foreground is emphatic and still recessive, and it is
+   the same pair the pathway's own node titles use. */
+.charge-title {
+  font-size: var(--text-scale-base);
+  font-weight: 700;
+  line-height: 1.25;
+  text-wrap: balance;
+  color: var(--bb-muted-foreground);
+}
+.charge-headline {
+  font-size: var(--text-scale-2xl);
+  font-weight: 800;
+  line-height: 1.12;
+  text-wrap: balance;
+  color: var(--bb-foreground);
+}
+.charge-line {
+  font-size: var(--text-scale-sm);
+  line-height: 1.55;
+  color: var(--bb-muted-foreground);
+}
+
+/* The promise. docs/ECONOMY.md's Charge rule 2, as a full colour field rather
+   than a line of small print, because it is the single sentence that separates
+   this limiter from the one it is a correction of.
+
+   THE FIELD IS GREEN AND THE SENTENCE IS NOT. The first pass set the whole
+   band in --good-ink, and the sticker audit scored it: rule 7 is "no saturated
+   hue on body-sized text", and a 14px sentence in --good-ink is exactly that.
+   It was the only finding on this sheet that the audit attributed to an
+   element of ours, so it is fixed rather than argued with. The split is also
+   the language's own: rule 5 wants the colour as a SURFACE, which the fill
+   already is, and rule 6 wants the body to recede so the surface leads. The
+   tick keeps the hue because it is a mark rather than a sentence, and it is
+   what carries "this is true" at a glance. */
+.charge-promise {
+  display: flex;
+  width: 100%;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-top: 0.125rem;
+  padding: 0.625rem 0.75rem;
+  text-align: left;
+  border-radius: 0.875rem;
+  border: 1px solid color-mix(in srgb, var(--good) 40%, transparent);
+  background: var(--good-soft);
+  color: var(--bb-foreground);
+  font-size: var(--text-scale-sm);
+  font-weight: 600;
+  line-height: 1.45;
+}
+.charge-promise-mark {
+  width: 1.125rem;
+  height: 1.125rem;
+  flex-shrink: 0;
+  margin-top: 0.0625rem;
+  color: var(--good-ink);
+}
+
+/* ------------------------------------------------------------ the controls -- */
+/* One large primary, and it carries a visible border like every other control
+   here. NO LEDGE UNDER IT: a darker offset block beneath a button is a fake
+   extrusion, which is the shadow rule wearing a different property, and the
+   sticker audit scores it as one. .press travels by scale and brightness, so
+   there is nothing for the button to fall into and nothing missing when it
+   does not. */
+.charge-cta {
+  display: flex;
+  width: 100%;
+  min-height: 3rem;
+  align-items: center;
+  justify-content: center;
+  margin-top: 0.25rem;
+  padding: 0 1rem;
+  border-radius: 0.875rem;
+  border: 1px solid color-mix(in srgb, var(--bb-primary) 70%, #000);
+  background: var(--bb-primary);
+  color: var(--bb-primary-foreground);
+  font-size: var(--text-scale-base);
+  font-weight: 700;
+  text-wrap: balance;
+}
+.charge-second {
+  display: flex;
+  width: 100%;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.875rem;
+  border: 1px solid var(--bb-border);
+  background: var(--bb-card);
+  color: var(--bb-foreground);
+  font-size: var(--text-scale-sm);
+  font-weight: 700;
+}
+.charge-second:disabled {
+  color: var(--bb-muted-foreground);
+  opacity: 1;
+}
+.charge-note {
+  font-size: var(--text-scale-xs);
+  line-height: 1.4;
+  color: var(--bb-muted-foreground);
+}
+/* The way out. A REAL border, not a transparent one holding the width: the
+   language's rule 4 is that an outline is what makes a control read as a
+   cut-out, and a 1px transparent edge satisfies a width check while drawing
+   nothing. It is the quietest control on the sheet and it is still a sticker. */
+.charge-dismiss {
+  display: flex;
+  min-height: 2.75rem;
+  min-width: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1rem;
+  border-radius: 0.875rem;
+  border: 1px solid var(--bb-border);
+  background: transparent;
+  color: var(--bb-muted-foreground);
+  font-size: var(--text-scale-sm);
+  font-weight: 700;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Reduced motion: the settled frame, at once. Nothing here is load bearing
+   while it moves; the commit's own hold is skipped in the component, which
+   navigates immediately instead of waiting out an animation nobody sees. */
+@media (prefers-reduced-motion: reduce) {
+  .charge-sheet[open]::backdrop,
+  .charge-sheet[open] .charge-panel {
+    animation: none;
+  }
+  .charge-sheet .berry-origin[data-halo="static"] .berry-halo {
+    transition: none;
+  }
+}

@@ -1,0 +1,194 @@
+/*
+ * The tab bar. Five items at the bottom edge on a phone, five items in a left
+ * rail above 768px, one component and two layouts.
+ *
+ * WHY FIVE, AND WHY FIVE IS THE END OF IT. mobile-ui: "Five is the hard limit",
+ * and "tabs are DESTINATIONS. Tools you reach for mid-task belong in the header
+ * or a sheet, not a tab." The eight this bar used to carry failed both halves;
+ * the four it then carried was one under the ceiling and the calibration gate
+ * of 2026-09-01 spent that one on Feed. See routes.ts for the amendment and
+ * app/ui/ToolRail.tsx for where the periodic table and the reaction search
+ * went. A sixth is not a decision this file gets to make: it costs one of the
+ * five its place.
+ *
+ * THE SHAPE, AND WHERE IT COMES FROM. The reference bar's move is that the
+ * active tab is not a coloured icon, it is an OBJECT: a rounded rectangle in a
+ * tint of the app's one colour with a hard 2px border of that colour around it,
+ * with the icon sitting inside. The inactive tabs carry no box at all. That
+ * reads at arm's length in a way a coloured-icon-versus-grey-icon bar does not,
+ * because the eye finds a filled shape before it finds a hue.
+ *
+ * What we take is that construction, and one more thing round one of this piece
+ * missed: the reference's icons are chunky centre-filled cut-outs, each holding
+ * its OWN colour whether or not it is the selected item, so the bar at rest is
+ * a row of coloured objects rather than a row of grey ones with one lit. Ours
+ * was four hairline glyphs in a single grey, which is the shape of a settings
+ * menu. See TabIcon.tsx and the --tab-hue-* tokens in theme.css.
+ *
+ * What we do not take is the colour itself: the chip here is Blueberry purple,
+ * per sticker-ui's loudest rule, that a reference brand's dominant colour is
+ * its equity and copying it produces a clone. And we add the label the
+ * reference cannot afford, because it labels nothing and we label all five.
+ * That is what the short labels in routes.ts are sized for: at 390px five
+ * columns are 74px each, and `short` is capped at six characters so no word in
+ * the bar ever wraps or truncates.
+ *
+ * NO BACKDROP BLUR, and that is a change from the eight-tab bar. Sticker rule 2
+ * and 3: flat fills, no gradients, no glass. A translucent blurred bar is glass,
+ * and the language it belongs to is not this one. The bar is a flat sheet of the
+ * card colour with a 2px rule along its top edge, which is the same rule weight
+ * every other outlined thing in the app carries.
+ *
+ * NO SHADOW EITHER. Rule 3 allows a shadow only where stacking is the meaning,
+ * and a navigation bar is chrome. The top border is what separates it from the
+ * page.
+ *
+ * THE TARGET. --hit-min is 44px, the floor in CLAUDE.md's Budgets table. The
+ * item is 56px tall before the label, so the target clears the floor by a
+ * margin at every viewport, and `padding-bottom: env(safe-area-inset-bottom)`
+ * keeps it clear of the home indicator rather than under it.
+ */
+
+.tabbar {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 20;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  align-items: stretch;
+  gap: 0.25rem;
+  padding: 0.375rem 0.5rem;
+  padding-bottom: max(0.375rem, env(safe-area-inset-bottom));
+  border-top: 2px solid var(--bb-border);
+  background: var(--bb-card);
+}
+
+.tabbar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.125rem;
+  min-height: var(--hit-min, 2.75rem);
+  padding: 0.375rem 0.25rem 0.3125rem;
+  /* Two pixels of transparent border on the inactive item, so nothing shifts
+     by 2px when it becomes the active one. A bar that jumps on every tap is a
+     bar a student notices. */
+  border: 2px solid transparent;
+  border-radius: 1rem;
+  color: var(--bb-muted-foreground);
+  font-size: var(--text-scale-xs);
+  font-weight: 600;
+  line-height: 1.1;
+  text-decoration: none;
+}
+
+.tabbar-icon {
+  /* 32px, and it stayed 32 when the bar went from four columns to five. The
+     reference's items are 48 square with the sticker filling most of that and
+     no label under it; ours carries a label, so the icon takes 32 of the item's
+     58 and the word takes the rest. At 28, which is what round one shipped, a
+     two-tone cut-out has no room to be two tones.
+
+     A first pass at the five-tab bar dropped this to 28 on the phone and it was
+     wrong twice over. The fifth column costs WIDTH, not height: at 390px five
+     columns are 74px each and a 32px icon over a six character label is not
+     close to either edge. And the height is load bearing elsewhere: the node
+     sheet pins its bottom edge to this bar with --ns-bottom-inset, so 4px off
+     the icon is 4px of seam between the sheet and the bar, which
+     test/nodeSheetSeam.test.ts measures against a live 76.19px capture and
+     caught within the hour. */
+  width: 2rem;
+  height: 2rem;
+}
+
+/* The active object. Tint, hard border, same hue. */
+.tabbar-item[aria-current="page"] {
+  border-color: var(--bb-primary-ink);
+  background: var(--tab-active);
+  color: var(--bb-primary-ink);
+  /* The sticker's body is a mix with the ground it sits on, and on this item
+     the ground is the chip rather than the bar. Re-mixing against the chip, and
+     one step stronger, is what keeps the Path sticker from dissolving into the
+     purple it is standing on. The other three never sit on this chip while they
+     are their own colour, and they are written out anyway so the rule holds if
+     the bar ever lights a different tab. */
+  --tab-tint-path: color-mix(in srgb, var(--tab-hue-path) 34%, var(--tab-active));
+  --tab-tint-train: color-mix(in srgb, var(--tab-hue-train) 34%, var(--tab-active));
+  --tab-tint-cards: color-mix(in srgb, var(--tab-hue-cards) 34%, var(--tab-active));
+  --tab-tint-feed: color-mix(in srgb, var(--tab-hue-feed) 34%, var(--tab-active));
+  --tab-tint-me: color-mix(in srgb, var(--tab-hue-me) 34%, var(--tab-active));
+}
+
+/* The rail, above 768px. Same object, laid on its side, with the long label. */
+@media (min-width: 48rem) {
+  .tabbar {
+    position: static;
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    width: 15rem;
+    padding: 0.75rem;
+    border-top: 0;
+    border-right: 2px solid var(--bb-border);
+  }
+
+  .tabbar-item {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 0.75rem;
+    padding: 0.625rem 0.875rem;
+    font-size: var(--text-scale-sm);
+  }
+
+  .tabbar-icon {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+}
+
+/*
+ * THE BAR GETS OUT OF THE WAY. mobile-ui: "The bar is contextual: entering an
+ * editor may replace or hide it entirely." A running review session is an
+ * editor by that definition, a full screen task with one job and its own way
+ * out, and the tab bar under it is only an invitation to abandon it.
+ *
+ * `display: none` and not an opacity, because a bar a thumb can still hit while
+ * it is invisible is worse than either state. The rail on the wide layout keeps
+ * standing: there is no thumb reach argument at 1280px and the sidebar is where
+ * a desktop student expects to find their way out.
+ */
+.tabbar--away {
+  display: none;
+}
+
+@media (min-width: 48rem) {
+  .tabbar--away {
+    display: flex;
+  }
+}
+
+/*
+ * The wordmark above the rail. It does not exist on the phone at all: the
+ * bottom bar is thumb space, the header's 390px is worth more to the course
+ * chip than to a logo, and the bar itself already says which app this is. It is
+ * a label and not a link; Shell.tsx records why.
+ */
+.tabbar-brand {
+  display: none;
+}
+
+@media (min-width: 48rem) {
+  .tabbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: var(--hit-min, 2.75rem);
+    margin-bottom: 0.5rem;
+    padding-inline: 0.875rem;
+    color: var(--bb-foreground);
+    text-decoration: none;
+  }
+}
