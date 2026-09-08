@@ -125,7 +125,7 @@ export function SupabaseAuth({ signup }: { signup: boolean }) {
         <button
           type="submit"
           disabled={busy !== null || code.length < 6}
-          className="flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-fuchsia-500 px-4 text-sm font-semibold text-white transition hover:brightness-110 disabled:opacity-60"
+          className="flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-from to-brand-to px-4 text-sm font-semibold text-white transition hover:brightness-110 disabled:opacity-60"
         >
           {busy === "code" && <Loader2 className="size-4 animate-spin" />}
           Verify and continue
@@ -260,7 +260,7 @@ export function SupabaseAuth({ signup }: { signup: boolean }) {
           disabled={busy !== null}
           className={cn(
             "flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl",
-            "bg-gradient-to-r from-indigo-500 to-fuchsia-500 px-4 text-sm font-semibold text-white",
+            "bg-gradient-to-r from-brand-from to-brand-to px-4 text-sm font-semibold text-white",
             "transition hover:brightness-110 disabled:opacity-60",
           )}
         >

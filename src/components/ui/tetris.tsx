@@ -92,7 +92,7 @@ const COLOURS = [
   "",
   "bg-cyan-400",
   "bg-amber-300",
-  "bg-fuchsia-400",
+  "bg-blue-400",
   "bg-emerald-400",
   "bg-rose-400",
   "bg-indigo-400",
@@ -319,7 +319,7 @@ export function Tetris({ className }: { className?: string }) {
                 <button
                   type="button"
                   onClick={reset}
-                  className="mt-2 cursor-pointer rounded-lg bg-gradient-to-r from-indigo-600 to-fuchsia-600 px-3 py-1.5 text-xs font-semibold text-white hover:brightness-110"
+                  className="mt-2 cursor-pointer rounded-lg bg-gradient-to-r from-brand-from to-brand-to px-3 py-1.5 text-xs font-semibold text-white hover:brightness-110"
                 >
                   Again
                 </button>

@@ -228,7 +228,7 @@ export function SidebarNavItem({
       {active && (
         <motion.span
           layoutId="sidebar-active"
-          className="absolute top-1.5 bottom-1.5 -left-0.5 w-[3px] rounded-full bg-gradient-to-b from-indigo-500 to-fuchsia-500"
+          className="absolute top-1.5 bottom-1.5 -left-0.5 w-[3px] rounded-full bg-gradient-to-b from-brand-from to-brand-to"
         />
       )}
       {icon && (
@@ -241,7 +241,7 @@ export function SidebarNavItem({
         </span>
       )}
       {badge !== undefined && badge > 0 && (
-        <span className="shrink-0 rounded-full bg-fuchsia-500 px-1.5 py-px font-mono text-[0.65rem] font-bold text-white">
+        <span className="shrink-0 rounded-full bg-blue-500 px-1.5 py-px font-mono text-[0.65rem] font-bold text-white">
           {badge > 99 ? "99+" : badge}
         </span>
       )}
@@ -284,7 +284,7 @@ export function SidebarProfile({
       onClick={onClick}
       className="flex w-full cursor-pointer items-center gap-3 rounded-xl p-2 text-left transition-colors outline-none hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-indigo-400 dark:hover:bg-stone-800"
     >
-      <span className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-indigo-500 to-fuchsia-500 text-white">
+      <span className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-brand-from to-brand-to text-white">
         {avatar}
       </span>
       <span className="min-w-0 flex-1">

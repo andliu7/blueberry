@@ -101,7 +101,7 @@ export function ReactionPanel({
     <article className="rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-sm dark:border-stone-800 dark:bg-stone-950/70 sm:p-8">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="font-mono text-xs font-semibold uppercase tracking-[.16em] text-fuchsia-700 dark:text-fuchsia-300">
+          <p className="font-mono text-xs font-semibold uppercase tracking-[.16em] text-blue-700 dark:text-blue-300">
             {reaction.family.replace("/", " / ").replace(/-/g, " ")}
           </p>
           <h2 className="title-face mt-2 text-3xl leading-tight sm:text-4xl">{reaction.name}</h2>

@@ -213,7 +213,7 @@ export function FocusTimer() {
                           "h-full rounded-full transition-[width] duration-500",
                           t.phase === "break"
                             ? "bg-emerald-500"
-                            : "bg-gradient-to-r from-indigo-500 to-fuchsia-500",
+                            : "bg-gradient-to-r from-brand-from to-brand-to",
                         )}
                         style={{ width: `${Math.min(100, Math.max(0, pct * 100))}%` }}
                       />
@@ -405,7 +405,7 @@ function EyeRest({
           <button
             type="button"
             onClick={timer.beginEyeRest}
-            className="min-h-11 flex-1 cursor-pointer rounded-xl bg-gradient-to-r from-indigo-600 to-fuchsia-600 text-sm font-semibold text-white transition hover:brightness-110"
+            className="min-h-11 flex-1 cursor-pointer rounded-xl bg-gradient-to-r from-brand-from to-brand-to text-sm font-semibold text-white transition hover:brightness-110"
           >
             Start the 20 seconds
           </button>
@@ -632,7 +632,7 @@ function IconButton({
       className={cn(
         "flex size-9 cursor-pointer items-center justify-center rounded-full transition",
         primary
-          ? "bg-gradient-to-r from-indigo-600 to-fuchsia-600 text-white hover:brightness-110"
+          ? "bg-gradient-to-r from-brand-from to-brand-to text-white hover:brightness-110"
           : "border border-slate-200 text-slate-600 hover:border-slate-300 hover:text-slate-900 dark:border-stone-800 dark:text-stone-300 dark:hover:text-white",
       )}
     >

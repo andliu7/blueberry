@@ -75,7 +75,7 @@ export function ReleaseBanner({ className }: { className?: string }) {
             is the loud thing, and only the button. */}
         <span
           aria-hidden
-          className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-indigo-500 to-fuchsia-500"
+          className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-brand-from to-brand-to"
         />
 
         {/* Top-aligned, not centred. Centred against a three-line body left the
@@ -123,7 +123,7 @@ export function ReleaseBanner({ className }: { className?: string }) {
               href={action.href}
               {...(action.external ? { target: "_blank", rel: "noreferrer" } : {})}
               onClick={markReleasesRead}
-              className="bb-press flex min-h-12 cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-fuchsia-600 px-5 text-sm font-semibold text-white"
+              className="bb-press flex min-h-12 cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-brand-from to-brand-to px-5 text-sm font-semibold text-white"
             >
               {action.label}
               {action.external ? (

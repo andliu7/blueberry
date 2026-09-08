@@ -65,7 +65,7 @@ export function TopicBanner({
           className="absolute inset-0 size-full object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
         />
       ) : (
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-fuchsia-600" />
+        <div className="absolute inset-0 bg-gradient-to-br from-brand-from to-brand-to" />
       )}
 
       {/* A scrim, not a tint. White text over an arbitrary photograph is a

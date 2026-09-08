@@ -126,7 +126,7 @@ export function ProfileDropdown({
             {/* The gradient ring is the original's, kept because it reads as an
                 avatar even before the picture loads, and shrunk to match the
                 other controls in the bar rather than the 40px of a sidebar. */}
-            <span className="block size-9 rounded-full bg-gradient-to-br from-indigo-500 via-fuchsia-500 to-amber-400 p-0.5 transition-transform hover:scale-105 motion-reduce:transition-none">
+            <span className="block size-9 rounded-full bg-gradient-to-br from-brand-from via-brand-to to-amber-400 p-0.5 transition-transform hover:scale-105 motion-reduce:transition-none">
               <span className="flex size-full items-center justify-center overflow-hidden rounded-full bg-white dark:bg-stone-900">
                 {avatar ? (
                   <img src={avatar} alt="" aria-hidden className="size-full object-cover" />

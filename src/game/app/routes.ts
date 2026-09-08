@@ -158,6 +158,24 @@ export type Route =
 const TAB_IDS = new Set<string>(ALL_TABS.map((tab) => tab.id));
 
 /** "#/courses/orgo_2/aromaticity" gives tab courses, rest [orgo_2, aromaticity]. */
+/**
+ * The segment the whole game sits under inside the site: "#/app/pathway", not
+ * "#/pathway".
+ *
+ * The site and the game each own a hash router, and before this they both read
+ * the same string. Sharing it would have worked right up until the site grew a
+ * route whose name matched a tab, and then one would have shadowed the other
+ * silently, which is the kind of bug that surfaces months later in somebody
+ * else's session. A prefix makes the split explicit and costs one hop here.
+ *
+ * It is stripped on the way in and added on the way out, so nothing else in the
+ * game knows about it: every `hrefFor*` below still reads as the route it names.
+ */
+const BASE = "app";
+
+/** The site's address for the game, for anything outside it that wants to link in. */
+export const GAME_HREF = `#/${BASE}`;
+
 export function parseHash(hash: string): Route {
   const parts = hash
     .replace(/^#\/?/, "")
@@ -165,6 +183,9 @@ export function parseHash(hash: string): Route {
     .split("/")
     .filter((part) => part.length > 0)
     .map(decodeURIComponent);
+
+  // Drop the mount prefix, so everything below matches the routes it always did.
+  if (parts[0] === BASE) parts.shift();
 
   const head = parts[0];
   if (head === "start") return { kind: "onboarding", step: parts[1] ?? "welcome" };
@@ -215,11 +236,11 @@ export function hashParam(name: string): string | null {
 }
 
 export function hrefForTab(tab: TabId, ...rest: readonly string[]): string {
-  return `#/${[tab, ...rest].map(encodeURIComponent).join("/")}`;
+  return `#/${BASE}/${[tab, ...rest].map(encodeURIComponent).join("/")}`;
 }
 
 export function hrefForLesson(node: string): string {
-  return `#/lesson/${encodeURIComponent(node)}`;
+  return `#/${BASE}/lesson/${encodeURIComponent(node)}`;
 }
 
 /** The review deck. The Charge sheet's free way out points here. */
@@ -228,12 +249,12 @@ export function hrefForReview(): string {
 }
 
 export function hrefForOnboarding(step: string): string {
-  return `#/start/${encodeURIComponent(step)}`;
+  return `#/${BASE}/start/${encodeURIComponent(step)}`;
 }
 
 /** Development only. Nothing in the shell renders this; it is typed by hand. */
 export function hrefForGallery(name: string): string {
-  return `#/gallery/${encodeURIComponent(name)}`;
+  return `#/${BASE}/gallery/${encodeURIComponent(name)}`;
 }
 
 export function tabDefinition(id: TabId): TabDefinition {

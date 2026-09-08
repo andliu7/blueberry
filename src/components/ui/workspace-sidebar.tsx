@@ -213,7 +213,7 @@ export function SidebarNav({
       )}
     >
       <div className="mb-3 flex items-center gap-2.5 rounded-lg px-1 py-1.5">
-        <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-indigo-500 to-fuchsia-500 text-[13px] font-bold text-white">
+        <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-brand-from to-brand-to text-[13px] font-bold text-white">
           {email.charAt(0).toUpperCase()}
         </span>
         <div className="flex min-w-0 flex-col gap-1">

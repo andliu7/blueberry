@@ -17,6 +17,9 @@ import { MOOD_SHAPE, type BerryMood } from "@/lib/berryMood";
 /** The smile's tube radius, shared with the round caps that close its ends. */
 const SMILE_R = 0.045;
 
+/** How far off the skin the smile floats, the same at every point along it. */
+const SMILE_PROUD = 0.012;
+
 /**
  * The X on his back, low down where a butt would be. Owner request, and it is
  * a joke that only pays off if you flick him round, which you can: the drag
@@ -250,16 +253,40 @@ function Berry({
    * An invisible mascot is not.
    */
 
-  /** The resting smile: shallow and wide, matching the flat mark. */
-  const smileCurve = useMemo(
-    () =>
-      new THREE.QuadraticBezierCurve3(
-        new THREE.Vector3(-0.28 * OBLATE, -0.30, surfaceZ(-0.28 * OBLATE, -0.30, 0.01)),
-        new THREE.Vector3(0, -0.62, surfaceZ(0, -0.62, 0.03)),
-        new THREE.Vector3(0.28 * OBLATE, -0.30, surfaceZ(0.28 * OBLATE, -0.30, 0.01)),
-      ),
-    [],
-  );
+  /**
+   * The resting smile: shallow and wide, matching the flat mark.
+   *
+   * **It follows the surface rather than cutting across it, and that is what
+   * makes it one thickness.** It used to be a quadratic Bezier through three
+   * points, each solved onto the skin separately. A Bezier does not bend the
+   * way a sphere does, so between its ends it sagged inside the fruit: measured
+   * along the old curve, the ends stood 0.010 proud while the middle sat 0.024
+   * INSIDE the surface, and the tube's radius is only 0.045. Over half the
+   * thickness was buried at the centre, so the smile read fat at the corners
+   * and thin in the middle. Not a lighting or a cap problem, a burial one.
+   *
+   * So the Bezier now only decides the SHAPE of the mouth, in the flat plane of
+   * the face. Depth is solved per point, `surfaceZ` at a fixed offset, and the
+   * samples are strung together with a Catmull-Rom spline. Every point along it
+   * stands the same distance off the skin, so the same amount of tube shows the
+   * whole way across.
+   */
+  const smileCurve = useMemo(() => {
+    const [ax, ay] = [-0.28 * OBLATE, -0.3];
+    const [bx, by] = [0, -0.62];
+    const [cx, cy] = [0.28 * OBLATE, -0.3];
+    const SAMPLES = 24;
+    const points = Array.from({ length: SAMPLES + 1 }, (_, i) => {
+      const t = i / SAMPLES;
+      const u = 1 - t;
+      const x = u * u * ax + 2 * u * t * bx + t * t * cx;
+      const y = u * u * ay + 2 * u * t * by + t * t * cy;
+      return new THREE.Vector3(x, y, surfaceZ(x, y, SMILE_PROUD));
+    });
+    // "centripetal" because a uniform Catmull-Rom can loop on itself where the
+    // spacing between samples changes, which at the corners it does.
+    return new THREE.CatmullRomCurve3(points, false, "centripetal");
+  }, []);
 
   /**
    * The smile, with its ends closed.
@@ -341,10 +368,27 @@ function Berry({
        * which is what makes `thinking` look away and `reading` look down.
        */
       const tracking = shape.tracks && !shy && !dragging.current;
+      /**
+       * The spin is kept after the drag ends, not thrown away.
+       *
+       * `tracking` used to return `pointer.x * 0.62` on its own here, which
+       * dropped everything the drag had accumulated. Let go after a couple of
+       * turns and the target fell from twenty-odd radians to well under one,
+       * and the spring underneath is deliberately underdamped, so it unwound
+       * the whole way at speed and overshot: the berry span wildly in both
+       * directions instead of settling. The further you turned him, the worse
+       * it was.
+       *
+       * Carrying `spin.current` into every branch makes release continuous:
+       * the head is already at `spin` when the hand lets go, so tracking picks
+       * up from there and the only movement left is the small one the cursor
+       * asks for. It also means a turn stays turned, which is what dragging
+       * something round is supposed to do.
+       */
       const ty = dragging.current
         ? spin.current
         : tracking
-          ? pointer.x * 0.62
+          ? pointer.x * 0.62 + spin.current
           : shape.lookY + spin.current;
       const tx = shy ? -0.12 : tracking ? -pointer.y * 0.34 : shape.lookX;
 

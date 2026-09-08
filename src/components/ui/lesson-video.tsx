@@ -110,7 +110,7 @@ export function LessonVideo({
             <span className="font-mono text-[0.65rem] tabular-nums text-white/80">{clock(at)}</span>
             <div className="h-1 flex-1 overflow-hidden rounded-full bg-white/25">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-indigo-400 to-fuchsia-400"
+                className="h-full rounded-full bg-gradient-to-r from-brand-from to-brand-to"
                 style={{ width: `${pct}%` }}
               />
             </div>

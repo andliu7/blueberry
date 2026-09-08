@@ -164,7 +164,7 @@ function HeroContent({
                 {SITE_NAME.toLowerCase()}.
                 <span
                   aria-hidden
-                  className="absolute -bottom-1 left-0 h-[3px] w-full origin-left scale-x-0 rounded-full bg-gradient-to-r from-indigo-500 to-fuchsia-500 transition-transform duration-500 ease-out group-hover/mark:scale-x-100 group-focus-visible/mark:scale-x-100"
+                  className="absolute -bottom-1 left-0 h-[3px] w-full origin-left scale-x-0 rounded-full bg-gradient-to-r from-brand-from to-brand-to transition-transform duration-500 ease-out group-hover/mark:scale-x-100 group-focus-visible/mark:scale-x-100"
                 />
               </span>
             </a>
@@ -200,7 +200,7 @@ function HeroContent({
                   href="#/enter"
                   className={cn(
                     "bb-press group inline-flex items-center gap-2.5 rounded-full px-9 py-4",
-                    "bg-gradient-to-r from-indigo-600 to-fuchsia-600 text-lg font-semibold text-white",
+                    "bg-gradient-to-r from-brand-from to-brand-to text-lg font-semibold text-white",
                     "focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:outline-none",
                   )}
                 >

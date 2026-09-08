@@ -50,7 +50,7 @@ import {
 } from "@blueberry/curriculum";
 import { Card } from "../../app/ui/Card";
 import { Press } from "../../app/ui/Press";
-import { hrefForTab } from "../../app/routes";
+import { hrefForTab, hrefForOnboarding } from "../../app/routes";
 import { navigate } from "../../app/useHashRoute";
 import { useProgress } from "../../app/hooks";
 import { lessonNodeId, progress, type ProgressSnapshot } from "../../app/progress";
@@ -887,7 +887,7 @@ function CoursePicker() {
         <p className="text-scale-sm text-bb-muted-foreground">
           The placement quiz picks one for you in under three minutes, or choose a course directly.
         </p>
-        <Press onPointerDown={() => navigate("#/start/quiz")}>Take the placement quiz</Press>
+        <Press onPointerDown={() => navigate(hrefForOnboarding("quiz"))}>Take the placement quiz</Press>
         <div className="mt-2 grid w-full grid-cols-2 gap-2">
           {(Object.keys(COURSE_LABEL) as CourseId[]).map((course) => (
             <Press key={course} variant="secondary" className="text-scale-sm" onPointerDown={() => progress.setCourse(course, [])}>

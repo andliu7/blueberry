@@ -67,7 +67,7 @@ export function AvatarPicker({
   return (
     <div className={cn("flex items-center gap-4", className)}>
       <div className="relative">
-        <span className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-indigo-500 to-fuchsia-500 text-white">
+        <span className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-brand-from to-brand-to text-white">
           {shown ? (
             <img src={shown} alt="" className="size-full object-cover" />
           ) : (

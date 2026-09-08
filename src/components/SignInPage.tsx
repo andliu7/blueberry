@@ -259,7 +259,7 @@ function SignedIn({ session }: { session: NonNullable<ReturnType<typeof useSessi
       <div className="flex flex-col gap-2">
         <a
           href="#/home"
-          className="flex min-h-11 items-center justify-center rounded-xl bg-gradient-to-r from-indigo-500 to-fuchsia-500 px-4 text-sm font-semibold text-white transition hover:brightness-110"
+          className="flex min-h-11 items-center justify-center rounded-xl bg-gradient-to-r from-brand-from to-brand-to px-4 text-sm font-semibold text-white transition hover:brightness-110"
         >
           Go to Blueberry
         </a>

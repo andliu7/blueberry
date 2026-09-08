@@ -314,7 +314,7 @@ const Board = ({
                 button inside an anchor is invalid markup that browsers resolve
                 by guessing. This is the affordance saying where the press
                 lands, not a second control. */}
-            <span className="bb-press mt-6 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-indigo-600 to-fuchsia-600 px-6 py-3 text-base font-semibold text-white">
+            <span className="bb-press mt-6 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-brand-from to-brand-to px-6 py-3 text-base font-semibold text-white">
               Play a mechanism
               <ArrowUpRight className="size-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
             </span>

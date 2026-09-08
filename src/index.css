@@ -90,6 +90,23 @@
    `--radius-md` would reshape every existing `rounded-md` on the site, so the
    primitives carry the house `rounded-xl` in their own class strings instead. */
 @theme inline {
+  /* THE ACCENT, IN ONE PLACE.
+     It was written out as `from-brand-from to-brand-to` and friends in 88
+     places across 36 files, so changing it meant a sweep and missing one meant
+     a stray purple. Owner direction 2026-09-08: blue, not purple, and sampled
+     toward the mascot's own body so the accent and the character agree.
+     Change these two lines and every gradient on the site follows.
+
+     NOT `accent`: the game's own @theme, further down this file, already claims
+     --color-accent-from and --color-accent-to and backs them with
+     --accent-from: #5b2fc0, a purple. Being later it won, so the CTA rendered
+     transparent until the game's stylesheet loaded and purple after it. The
+     game also claims --color-good, --color-diamond, --color-streak-*,
+     --color-chip-*, --color-progress-* and --color-hud-* unprefixed. Check that
+     block before naming a new site token. */
+  --color-brand-from: #1d4ed8;
+  --color-brand-to: #3b82f6;
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);

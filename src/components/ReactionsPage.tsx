@@ -163,7 +163,7 @@ function ReactionDetail({ reaction }: { reaction: StagedReaction }) {
       <section className="grid gap-5 xl:grid-cols-[1fr_290px]">
         <article className="rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-sm dark:border-stone-800 dark:bg-stone-950/70 sm:p-8">
           <div className="flex flex-wrap items-center gap-2">
-            <p className="font-mono text-xs font-semibold uppercase tracking-[.16em] text-fuchsia-700 dark:text-fuchsia-300">
+            <p className="font-mono text-xs font-semibold uppercase tracking-[.16em] text-blue-700 dark:text-blue-300">
               {prettyFamily(reaction.family)}
             </p>
             <span className="rounded-md bg-slate-100 px-1.5 py-0.5 font-mono text-[.7rem] font-semibold text-slate-600 dark:bg-stone-800 dark:text-stone-300">
@@ -287,7 +287,7 @@ function ReactionDetail({ reaction }: { reaction: StagedReaction }) {
             </p>
             <a
               href="#/deck/carbonyl-all"
-              className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-fuchsia-600 px-4 text-sm font-semibold text-white"
+              className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-xl bg-gradient-to-r from-brand-from to-brand-to px-4 text-sm font-semibold text-white"
             >
               <Layers className="size-4" />
               Open study deck <ArrowRight className="size-4" />

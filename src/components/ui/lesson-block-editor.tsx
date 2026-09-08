@@ -283,7 +283,7 @@ export function LessonBlockEditor({
         className={cn(
           "rounded-3xl border-2 bg-indigo-50/50 p-5 transition-colors dark:bg-indigo-950/30 sm:p-6",
           dropActive
-            ? "border-dashed border-fuchsia-500 bg-fuchsia-50/60 dark:bg-fuchsia-950/30"
+            ? "border-dashed border-blue-500 bg-blue-50/60 dark:bg-blue-950/30"
             : "border-indigo-300 dark:border-indigo-800",
         )}
       >

@@ -169,7 +169,7 @@ export function DrillBanner({
             A solid indigo panel here would outrank the deck's own title. */}
         <span
           aria-hidden
-          className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-indigo-500 to-fuchsia-500"
+          className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-brand-from to-brand-to"
         />
 
         <button
@@ -205,7 +205,7 @@ export function DrillBanner({
             <button
               type="button"
               onClick={onStart}
-              className="group/start inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-fuchsia-500 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-indigo-500/20 transition hover:brightness-110 sm:w-auto"
+              className="group/start inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-from to-brand-to px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-indigo-500/20 transition hover:brightness-110 sm:w-auto"
             >
               Set all three
               <span

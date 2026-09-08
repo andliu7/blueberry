@@ -390,7 +390,7 @@ export function Panel({
               Open the mechanism trainer
               <span
                 aria-hidden
-                className="absolute -bottom-0.5 left-0 h-[2px] w-full origin-left scale-x-0 rounded-full bg-gradient-to-r from-indigo-500 to-fuchsia-500 transition-transform duration-300 ease-out group-hover:scale-x-100"
+                className="absolute -bottom-0.5 left-0 h-[2px] w-full origin-left scale-x-0 rounded-full bg-gradient-to-r from-brand-from to-brand-to transition-transform duration-300 ease-out group-hover:scale-x-100"
               />
             </span>
             <ExternalLink className="size-3.5 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
@@ -488,7 +488,7 @@ function HomePanel({
                 </div>
                 <div className="mt-2 h-1 overflow-hidden rounded-full bg-slate-200 dark:bg-stone-800">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-fuchsia-500"
+                    className="h-full rounded-full bg-gradient-to-r from-brand-from to-brand-to"
                     style={{ width: `${Math.round((done / total) * 100)}%` }}
                   />
                 </div>
@@ -909,7 +909,7 @@ function ProfilePanel({ onClose }: { onClose: () => void }) {
               <a
                 href="#/signin"
                 onClick={onClose}
-                className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full bg-gradient-to-r from-indigo-500 to-fuchsia-500 px-5 text-sm font-semibold text-white transition hover:brightness-110"
+                className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full bg-gradient-to-r from-brand-from to-brand-to px-5 text-sm font-semibold text-white transition hover:brightness-110"
               >
                 <LogIn className="size-4" />
                 Sign in

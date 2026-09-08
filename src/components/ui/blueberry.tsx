@@ -96,13 +96,17 @@ export function Blueberry({
    * server there is no `document` at all. Deciding in an effect also means the
    * first paint is always the flat mark, which is the point.
    */
-  const [canUpgrade, setCanUpgrade] = useState(false);
+  const [mode, setMode] = useState<null | "3d" | "flat">(null);
   useEffect(() => {
-    if (!near || reduce) return;
-    setCanUpgrade(hasWebGL());
-  }, [near, reduce]);
+    if (flat || reduce) {
+      setMode("flat");
+      return;
+    }
+    if (!near) return;
+    setMode(hasWebGL() ? "3d" : "flat");
+  }, [near, reduce, flat]);
 
-  const live = canUpgrade && !flat && !reduce;
+  const live = mode === "3d";
 
   return (
     <div
@@ -129,20 +133,29 @@ export function Blueberry({
       aria-label={label ?? `Blueberry, looking ${mood}`}
     >
       {/*
-        Both are mounted while the 3-D one is arriving, with the flat one
-        underneath. The canvas fades in over it rather than replacing it, so
-        there is no frame where the berry is missing — which is what a plain
-        swap looks like on a slow connection.
+        ONE BERRY, NEVER TWO IN SUCCESSION.
+
+        Both used to be mounted at once, the flat mark underneath and the canvas
+        fading in over it, so nothing was ever missing on a slow connection. In
+        practice that meant every page opened on the drawing and then swapped to
+        the render a moment later, and the swap was the thing you noticed. Owner
+        direction: the 3-D berry should arrive as the 3-D berry.
+
+        So nothing paints until the question is settled. `mode` is null until the
+        effect above knows whether a canvas is possible, and only then does one
+        of the two mount. The flat mark is still the ANSWER wherever three
+        cannot or should not run, which is what keeps a no-WebGL or
+        reduced-motion visitor looking intended rather than broken. It is just
+        no longer a placeholder for a berry that is on its way.
       */}
-      <div
-        aria-hidden
-        className={cn(
-          "pointer-events-none absolute inset-0 flex items-center justify-center transition-opacity duration-500",
-          live ? "opacity-0" : "opacity-100",
-        )}
-      >
-        <BlueberryMark eyes mood={mood} className="h-full w-full drop-shadow-xl" />
-      </div>
+      {mode === "flat" && (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 flex items-center justify-center"
+        >
+          <BlueberryMark eyes mood={mood} className="h-full w-full drop-shadow-xl" />
+        </div>
+      )}
 
       {live && (
         <Suspense fallback={null}>
