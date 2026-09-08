@@ -2,6 +2,7 @@ import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useInView } from "motion/react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
+import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import {
   makeBerryBody,
   makeBloomMaterial,
@@ -12,6 +13,25 @@ import {
 import { HeartBurst } from "@/components/ui/heart-burst";
 import { cn } from "@/lib/utils";
 import { MOOD_SHAPE, type BerryMood } from "@/lib/berryMood";
+
+/** The smile's tube radius, shared with the round caps that close its ends. */
+const SMILE_R = 0.045;
+
+/**
+ * The X on his back, low down where a butt would be. Owner request, and it is
+ * a joke that only pays off if you flick him round, which you can: the drag
+ * handler accumulates `spin` without a clamp, half a turn per 300px.
+ *
+ * The body is an ellipsoid with semi-axes (OBLATE, 1, OBLATE), so at (0, y, z)
+ * its outward normal is proportional to (0, y, z / OBLATE**2). BUTT_PITCH is
+ * the rotation about X that turns the group's +Z onto that normal, which is
+ * what makes the cross lie along the curve instead of floating off it. Same
+ * problem the blush comment below describes, solved the same way.
+ */
+const BUTT_Y = -0.42;
+const BUTT_SURFACE_Z = surfaceZ(0, BUTT_Y, 0);
+const BUTT_Z = -(BUTT_SURFACE_Z + 0.012);
+const BUTT_PITCH = Math.atan2(-BUTT_Y, -BUTT_SURFACE_Z / (OBLATE * OBLATE));
 
 
 
@@ -240,6 +260,32 @@ function Berry({
       ),
     [],
   );
+
+  /**
+   * The smile, with its ends closed.
+   *
+   * `TubeGeometry` leaves the ends of an unclosed tube open, and at the corners
+   * of a smile the curve's tangent is steep, so that end cross-section projects
+   * about half again as wide as the tube reads along its length. That is the
+   * wider bit at each end. A sphere of the same radius projects the same width
+   * from every angle, so capping both closes the hole and makes the thickness
+   * read as one value the whole way across.
+   *
+   * Merged into one geometry rather than added as sibling meshes because the
+   * smile's opacity is animated through this mesh's own material when the mouth
+   * opens; separate meshes would keep their own materials and hang there at
+   * full strength after the smile had gone.
+   */
+  const smileGeo = useMemo(() => {
+    const tube = new THREE.TubeGeometry(smileCurve, 28, SMILE_R, 8, false);
+    const caps = [0, 1].map((t) => {
+      const at = smileCurve.getPoint(t);
+      const cap = new THREE.SphereGeometry(SMILE_R, 10, 10);
+      cap.translate(at.x, at.y, at.z);
+      return cap;
+    });
+    return mergeGeometries([tube, ...caps], false);
+  }, [smileCurve]);
 
   useFrame(({ pointer: canvasPointer, clock }, delta) => {
     const dt = Math.min(delta, 0.1);
@@ -518,11 +564,22 @@ function Berry({
         ))}
       </group>
 
-      {/* Resting smile */}
-      <mesh ref={smile}>
-        <tubeGeometry args={[smileCurve, 28, 0.045, 8, false]} />
+      {/* Resting smile, on the capped geometry solved above. */}
+      <mesh ref={smile} geometry={smileGeo}>
         <meshBasicMaterial color="#0b0b14" toneMapped={false} transparent opacity={1} />
       </mesh>
+
+      {/* The X on his back. Two bars crossed at right angles, in head
+          coordinates like the blush and the smile rather than inside the body's
+          pitch, so it sits on the surface the same solver placed those on. */}
+      <group position={[0, BUTT_Y, BUTT_Z]} rotation={[BUTT_PITCH, 0, 0]}>
+        {[1, -1].map((side) => (
+          <mesh key={side} rotation={[0, 0, (side * Math.PI) / 4]}>
+            <boxGeometry args={[0.026, 0.19, 0.02]} />
+            <meshBasicMaterial color="#0b0b14" toneMapped={false} />
+          </mesh>
+        ))}
+      </group>
 
       {/* The open mouth: a flattened sphere pushed just proud of the surface so
           it cannot z-fight with the berry it sits on.
