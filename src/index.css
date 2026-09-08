@@ -1857,3 +1857,82 @@ html[data-device-frame] #root::-webkit-scrollbar {
     }
   }
 }
+
+/* ---------------------------------------------------------------------------
+   System window glitch
+
+   A broadcast tear on the entry moment: the window jolts sideways, splits into
+   red and cyan for a few frames, and flashes torn bands, then settles. Owner
+   direction: every four seconds.
+
+   WHY CSS AND NOT THE WEBGL COMPONENT. The component this replaces post-
+   processes the page by rasterising the DOM through `drawElementImage` and
+   `canvas.requestPaint`, both of which are `undefined` in this project's own
+   Chrome 152. Unlike the hex effect, it carries no decorative fallback: its
+   content texture stays a single transparent pixel, `uploadContent` returns
+   early, and every sample comes back with an alpha of zero. It would have
+   drawn a completely transparent canvas over a WebGL context.
+
+   The chromatic split is a pair of drop-shadows rather than duplicated DOM.
+   Three stacked copies of this window would mean three copies of a real button
+   and a real settings drawer, which is a focus order and a screen reader
+   problem in exchange for a few frames of colour.
+   --------------------------------------------------------------------------- */
+
+@keyframes sysgate-glitch {
+  0%, 88% { transform: none; filter: none; }
+  88.6% {
+    transform: translate3d(-4px, 0, 0) skewX(-0.7deg);
+    filter: drop-shadow(4px 0 rgba(255, 40, 90, 0.5)) drop-shadow(-4px 0 rgba(40, 220, 255, 0.5));
+  }
+  89.4% { transform: translate3d(5px, 0, 0) skewX(0.9deg); }
+  90.2% {
+    transform: translate3d(-2px, 0, 0);
+    filter: drop-shadow(-6px 0 rgba(255, 40, 90, 0.45)) drop-shadow(6px 0 rgba(40, 220, 255, 0.45));
+  }
+  91% { transform: translate3d(3px, 0, 0) skewX(-0.4deg); }
+  92%, 100% { transform: none; filter: none; }
+}
+
+/* The torn bands. A hard-stopped repeating gradient is the tear; sliding its
+   position during the burst is what makes the slices look like they moved
+   independently of the window under them. */
+@keyframes sysgate-bands {
+  0%, 88% { opacity: 0; }
+  88.6% { opacity: 0.5; background-position-y: 0; }
+  89.6% { opacity: 0.32; background-position-y: -14px; }
+  90.6% { opacity: 0.45; background-position-y: 9px; }
+  92%, 100% { opacity: 0; }
+}
+
+@layer components {
+  .sysgate-glitch {
+    animation: sysgate-glitch 4s steps(1, end) infinite;
+    will-change: transform, filter;
+  }
+
+  .sysgate-glitch::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 40;
+    pointer-events: none;
+    border-radius: inherit;
+    background-image: repeating-linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.09) 0 2px,
+      transparent 2px 7px
+    );
+    animation: sysgate-bands 4s steps(1, end) infinite;
+    opacity: 0;
+  }
+
+  /* A window that lurches sideways every four seconds is exactly what this
+     query is for, and the screen still reads without it. */
+  @media (prefers-reduced-motion: reduce) {
+    .sysgate-glitch,
+    .sysgate-glitch::after {
+      animation: none;
+    }
+  }
+}

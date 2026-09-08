@@ -203,7 +203,11 @@ export function EntryGate() {
         /* Wide enough on a desktop that the window is the field rather than a
            card sitting in one. At `max-w-xl` it read as a dialog you would
            dismiss, which is the last thing a front door should look like. */
-        className="relative w-full max-w-xl @5xl:max-w-5xl"
+        /* `sysgate-glitch` is the four second broadcast tear. It sits on this
+           wrapper rather than on SystemWindow so the burst moves the frame and
+           its contents together, the way a signal fault would, instead of
+           sliding the chrome off the thing inside it. */
+        className="sysgate-glitch relative w-full max-w-xl @5xl:max-w-5xl"
         initial={reduce ? false : { opacity: 0, scaleY: 0.88, y: 8 }}
         animate={{ opacity: 1, scaleY: 1, y: 0 }}
         transition={{ duration: 0.34, ease: [0.16, 1, 0.3, 1] }}
