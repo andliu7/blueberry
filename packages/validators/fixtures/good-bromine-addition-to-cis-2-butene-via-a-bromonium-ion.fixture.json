@@ -1,0 +1,162 @@
+{
+  "schemaVersion": 2,
+  "id": "good-bromine-addition-to-cis-2-butene-via-a-bromonium-ion",
+  "title": "Bromine adds to cis-2-butene through a bridged bromonium ion that bromide then opens from the opposite face, giving the racemic 2,3-dibromobutane pair",
+  "expect": {
+    "kind": "good",
+    "note": "One of the two CLAUDE.md reference fixtures. This file carries the ELECTRON BOOKKEEPING half: three arrows to build the bridge, two to open it, and the bromonium rather than an open carbocation as the intermediate, which is what makes the addition anti. It does NOT carry the stereochemistry, and it cannot: the v1 conservation fixture schema deliberately has no stereo fields, which fixture-schema.ts states and gives its reason for. So this fixture and good-bromine-addition-to-trans-2-butene-via-a-bromonium-ion are identical at this level of description, and the racemic against meso distinction that CLAUDE.md calls the sign error detector is asserted in bromine-addition-to-2-butene-racemic-against-meso.oracle.json instead, against RDKit CIP labels and RDKit meso detection. The bromonium is drawn with the second C to Br bond made by a LONE PAIR on bromine, arrow a2, not by the alkene: the pi pair can only make one bond, and a drawing that makes both from it is short two electrons on bromine."
+  },
+  "pathway": {
+    "id": "bromine-addition-cis-2-butene",
+    "route": "electrophilic_addition_alkene",
+    "steps": [
+      {
+        "id": "step-1-bromonium-formation",
+        "identity": { "elementaryStep": "pi_bond_attack", "route": "electrophilic_addition_alkene", "reactionCenters": ["C2", "C3", "Br1"] },
+        "arrows": [
+          { "id": "a1", "electrons": 2, "source": { "kind": "bond", "bondId": "b2" }, "sink": { "kind": "betweenAtoms", "atomIds": ["C2", "Br1"] } },
+          { "id": "a2", "electrons": 2, "source": { "kind": "lonePair", "atomId": "Br1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["Br1", "C3"] } },
+          { "id": "a3", "electrons": 2, "source": { "kind": "bond", "bondId": "b4" }, "sink": { "kind": "atom", "atomId": "Br2" } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "cis-2-butene",
+                "label": "cis-2-butene",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 }
+                ],
+                "bonds": [
+                  { "id": "b1", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b2", "a": "C2", "b": "C3", "order": 2 },
+                  { "id": "b3", "a": "C3", "b": "C4", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "electrophile",
+              "species": {
+                "id": "bromine",
+                "label": "bromine",
+                "atoms": [
+                  { "id": "Br1", "element": "Br", "lonePairs": 3 },
+                  { "id": "Br2", "element": "Br", "lonePairs": 3 }
+                ],
+                "bonds": [{ "id": "b4", "a": "Br1", "b": "Br2", "order": 1 }]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "bromonium",
+                "label": "the bridged bromonium ion",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "Br1", "element": "Br", "formalCharge": 1, "lonePairs": 2 }
+                ],
+                "bonds": [
+                  { "id": "b5", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b6", "a": "C2", "b": "C3", "order": 1 },
+                  { "id": "b7", "a": "C3", "b": "C4", "order": 1 },
+                  { "id": "b8", "a": "C2", "b": "Br1", "order": 1 },
+                  { "id": "b9", "a": "C3", "b": "Br1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "nucleophile",
+              "species": {
+                "id": "bromide",
+                "label": "bromide",
+                "atoms": [{ "id": "Br2", "element": "Br", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "step-2-anti-opening",
+        "identity": { "elementaryStep": "ring_opening", "route": "electrophilic_addition_alkene", "reactionCenters": ["C3", "Br1", "Br2"] },
+        "arrows": [
+          { "id": "a4", "electrons": 2, "source": { "kind": "lonePair", "atomId": "Br2" }, "sink": { "kind": "betweenAtoms", "atomIds": ["Br2", "C3"] } },
+          { "id": "a5", "electrons": 2, "source": { "kind": "bond", "bondId": "b9" }, "sink": { "kind": "atom", "atomId": "Br1" } }
+        ],
+        "from": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "bromonium",
+                "label": "the bridged bromonium ion",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "Br1", "element": "Br", "formalCharge": 1, "lonePairs": 2 }
+                ],
+                "bonds": [
+                  { "id": "b5", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b6", "a": "C2", "b": "C3", "order": 1 },
+                  { "id": "b7", "a": "C3", "b": "C4", "order": 1 },
+                  { "id": "b8", "a": "C2", "b": "Br1", "order": 1 },
+                  { "id": "b9", "a": "C3", "b": "Br1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "nucleophile",
+              "species": {
+                "id": "bromide",
+                "label": "bromide",
+                "atoms": [{ "id": "Br2", "element": "Br", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s2",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "2-3-dibromobutane",
+                "label": "2,3-dibromobutane, formed with the two bromines anti",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "Br1", "element": "Br", "lonePairs": 3 },
+                  { "id": "Br2", "element": "Br", "lonePairs": 3 }
+                ],
+                "bonds": [
+                  { "id": "b10", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b11", "a": "C2", "b": "C3", "order": 1 },
+                  { "id": "b12", "a": "C3", "b": "C4", "order": 1 },
+                  { "id": "b13", "a": "C2", "b": "Br1", "order": 1 },
+                  { "id": "b14", "a": "C3", "b": "Br2", "order": 1 }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

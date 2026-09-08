@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 2,
+  "id": "good-anchimerically-assisted-methyl-shift-ionisation-of-neopentyl-bromide",
+  "title": "Neopentyl bromide ionises with a methyl group migrating in concert with bromide departure, giving the tertiary 2-methylbutan-2-yl cation directly",
+  "expect": {
+    "kind": "good",
+    "note": "The competing pathway the neopentyl SN2 fixture names, and the reason a boolean reject of neopentyl SN2 would delete the lesson. The methyl migrates as the leaving group leaves, so no primary carbocation is ever formed. Drawing a free neopentyl cation first and shifting afterwards would be two barriers where the chemistry has one, and chem-core routes.ts names that failure step_not_elementary. Arrow a1 pivots on the migrating carbon C4, which is the alkyl_shift shape listed in chem-core legality.ts."
+  },
+  "pathway": {
+    "id": "neopentyl-anchimeric-methyl-shift",
+    "route": "carbocation_rearrangement",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": { "elementaryStep": "alkyl_shift", "route": "carbocation_rearrangement", "reactionCenters": ["C1", "C4", "C5"] },
+        "arrows": [
+          { "id": "a1", "electrons": 2, "source": { "kind": "bond", "bondId": "b3" }, "sink": { "kind": "betweenAtoms", "atomIds": ["C5", "C4"] } },
+          { "id": "a2", "electrons": 2, "source": { "kind": "bond", "bondId": "b5" }, "sink": { "kind": "atom", "atomId": "Br1" } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "neopentyl-bromide",
+                "label": "1-bromo-2,2-dimethylpropane",
+                "atoms": [
+                  { "id": "C1", "element": "C" },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C5", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "Br1", "element": "Br", "lonePairs": 3 }
+                ],
+                "bonds": [
+                  { "id": "b1", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b2", "a": "C1", "b": "C3", "order": 1 },
+                  { "id": "b3", "a": "C1", "b": "C4", "order": 1 },
+                  { "id": "b4", "a": "C1", "b": "C5", "order": 1 },
+                  { "id": "b5", "a": "C5", "b": "Br1", "order": 1 }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "tert-amyl-cation",
+                "label": "2-methylbutan-2-yl cation",
+                "atoms": [
+                  { "id": "C1", "element": "C", "formalCharge": 1 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C5", "element": "C", "implicitHydrogens": 2 }
+                ],
+                "bonds": [
+                  { "id": "b6", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b7", "a": "C1", "b": "C3", "order": 1 },
+                  { "id": "b8", "a": "C1", "b": "C5", "order": 1 },
+                  { "id": "b9", "a": "C5", "b": "C4", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "bromide",
+                "label": "bromide",
+                "atoms": [{ "id": "Br1", "element": "Br", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

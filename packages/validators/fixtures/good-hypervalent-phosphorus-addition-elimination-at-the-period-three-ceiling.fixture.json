@@ -1,0 +1,175 @@
+{
+  "schemaVersion": 2,
+  "id": "good-hypervalent-phosphorus-addition-elimination-at-the-period-three-ceiling",
+  "title": "Chloride displaces one fluoride from PF5 by addition then elimination through a hexacoordinate PF5Cl- intermediate sitting exactly at phosphorus's twelve electron ceiling",
+  "expect": {
+    "kind": "good",
+    "note": "Every valence fixture in the corpus before this one is either an ordinary atom or the single negative control, broken-valence-nitromethane-drawn-with-pentavalent-nitrogen, which proves the period two ceiling of eight fires. Nothing proved the period three ceiling of twelve, elements.ts's whole reason for treating P, S, Cl, Si, Al, Br, and I differently from C, N, O, and F, was not itself a false positive waiting to fire on legitimate chemistry. This fixture is that positive control. Step 1 is addition: chloride's lone pair attacks pentacoordinate PF5 to give hexacoordinate PF5Cl-, where phosphorus carries exactly 12 valence electrons around it, bondOrderSumAt 6, the ceiling itself rather than comfortably under it, so a boundary error of one in either the ceiling constant or the counting arithmetic would be visible here and nowhere else in the corpus. Step 2 is elimination: one fluoride leaves with its bonding pair, returning phosphorus to a neutral pentacoordinate PF4Cl, which is itself already the same kind of expanded octet PF5 was in the first state, so both the six coordinate transition state and the five coordinate resting state are exercised. Every derived formal charge is checked by hand in the fixture's authoring note in the adversary report: P sits at 0, -1, 0 across the three states, matching a Lewis acid gaining a negative charge on coordination and losing it again on departure, and every fluorine and the chlorine is independently verified against derivedFormalCharge. route is nucleophilic_acyl_substitution because chem-core's MechanismRoute union has no member for ligand addition or addition-elimination at a hypervalent main group centre; this is the closest available label, chosen because pentacoordinate and hexacoordinate substitution at phosphorus, for instance in phosphate ester hydrolysis, is conventionally taught by direct analogy to the addition-elimination pattern of acyl substitution, and is flagged here rather than silently picked, since inventing a new route value is outside this pass's write scope."
+  },
+  "pathway": {
+    "id": "pf5-chloride-addition-elimination",
+    "route": "nucleophilic_acyl_substitution",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": {
+          "elementaryStep": "nucleophilic_attack",
+          "route": "nucleophilic_acyl_substitution",
+          "reactionCenters": ["P1"]
+        },
+        "arrows": [
+          {
+            "id": "a1",
+            "electrons": 2,
+            "source": { "kind": "lonePair", "atomId": "Cl1" },
+            "sink": { "kind": "betweenAtoms", "atomIds": ["P1", "Cl1"] }
+          }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "phosphorus-pentafluoride",
+                "label": "phosphorus pentafluoride",
+                "atoms": [
+                  { "id": "P1", "element": "P" },
+                  { "id": "F1", "element": "F", "lonePairs": 3 },
+                  { "id": "F2", "element": "F", "lonePairs": 3 },
+                  { "id": "F3", "element": "F", "lonePairs": 3 },
+                  { "id": "F4", "element": "F", "lonePairs": 3 },
+                  { "id": "F5", "element": "F", "lonePairs": 3 }
+                ],
+                "bonds": [
+                  { "id": "b1", "a": "P1", "b": "F1", "order": 1 },
+                  { "id": "b2", "a": "P1", "b": "F2", "order": 1 },
+                  { "id": "b3", "a": "P1", "b": "F3", "order": 1 },
+                  { "id": "b4", "a": "P1", "b": "F4", "order": 1 },
+                  { "id": "b5", "a": "P1", "b": "F5", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "nucleophile",
+              "species": {
+                "id": "chloride",
+                "label": "chloride",
+                "atoms": [{ "id": "Cl1", "element": "Cl", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "pf5cl-hexacoordinate",
+                "label": "hexacoordinate phosphate-like intermediate, PF5Cl-",
+                "atoms": [
+                  { "id": "P1", "element": "P", "formalCharge": -1 },
+                  { "id": "F1", "element": "F", "lonePairs": 3 },
+                  { "id": "F2", "element": "F", "lonePairs": 3 },
+                  { "id": "F3", "element": "F", "lonePairs": 3 },
+                  { "id": "F4", "element": "F", "lonePairs": 3 },
+                  { "id": "F5", "element": "F", "lonePairs": 3 },
+                  { "id": "Cl1", "element": "Cl", "lonePairs": 3 }
+                ],
+                "bonds": [
+                  { "id": "b1", "a": "P1", "b": "F1", "order": 1 },
+                  { "id": "b2", "a": "P1", "b": "F2", "order": 1 },
+                  { "id": "b3", "a": "P1", "b": "F3", "order": 1 },
+                  { "id": "b4", "a": "P1", "b": "F4", "order": 1 },
+                  { "id": "b5", "a": "P1", "b": "F5", "order": 1 },
+                  { "id": "b6", "a": "P1", "b": "Cl1", "order": 1 }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "step-2",
+        "identity": {
+          "elementaryStep": "leaving_group_departure",
+          "route": "nucleophilic_acyl_substitution",
+          "reactionCenters": ["P1"]
+        },
+        "arrows": [
+          {
+            "id": "a2",
+            "electrons": 2,
+            "source": { "kind": "bond", "bondId": "b5" },
+            "sink": { "kind": "atom", "atomId": "F5" }
+          }
+        ],
+        "from": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "pf5cl-hexacoordinate",
+                "label": "hexacoordinate phosphate-like intermediate, PF5Cl-",
+                "atoms": [
+                  { "id": "P1", "element": "P", "formalCharge": -1 },
+                  { "id": "F1", "element": "F", "lonePairs": 3 },
+                  { "id": "F2", "element": "F", "lonePairs": 3 },
+                  { "id": "F3", "element": "F", "lonePairs": 3 },
+                  { "id": "F4", "element": "F", "lonePairs": 3 },
+                  { "id": "F5", "element": "F", "lonePairs": 3 },
+                  { "id": "Cl1", "element": "Cl", "lonePairs": 3 }
+                ],
+                "bonds": [
+                  { "id": "b1", "a": "P1", "b": "F1", "order": 1 },
+                  { "id": "b2", "a": "P1", "b": "F2", "order": 1 },
+                  { "id": "b3", "a": "P1", "b": "F3", "order": 1 },
+                  { "id": "b4", "a": "P1", "b": "F4", "order": 1 },
+                  { "id": "b5", "a": "P1", "b": "F5", "order": 1 },
+                  { "id": "b6", "a": "P1", "b": "Cl1", "order": 1 }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s2",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "pf4cl",
+                "label": "PF4Cl, pentacoordinate phosphorus",
+                "atoms": [
+                  { "id": "P1", "element": "P" },
+                  { "id": "F1", "element": "F", "lonePairs": 3 },
+                  { "id": "F2", "element": "F", "lonePairs": 3 },
+                  { "id": "F3", "element": "F", "lonePairs": 3 },
+                  { "id": "F4", "element": "F", "lonePairs": 3 },
+                  { "id": "Cl1", "element": "Cl", "lonePairs": 3 }
+                ],
+                "bonds": [
+                  { "id": "b1", "a": "P1", "b": "F1", "order": 1 },
+                  { "id": "b2", "a": "P1", "b": "F2", "order": 1 },
+                  { "id": "b3", "a": "P1", "b": "F3", "order": 1 },
+                  { "id": "b4", "a": "P1", "b": "F4", "order": 1 },
+                  { "id": "b6", "a": "P1", "b": "Cl1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "fluoride",
+                "label": "fluoride",
+                "atoms": [{ "id": "F5", "element": "F", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

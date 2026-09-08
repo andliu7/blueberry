@@ -1,0 +1,23 @@
+{
+  // Type checking for the unit tests and the Vitest config.
+  //
+  // A separate project, not an addition to tsconfig.json's `include`, because that one
+  // emits dist/ with rootDir src and adding test/ would either move the output layout or
+  // ship the tests. This one emits nothing and only asks whether the tests compile.
+  //
+  // It exists because a test that does not type check is a test that can quietly stop
+  // asserting what it says it asserts, and `npm run typecheck` was not looking at any of
+  // them. Wired into the root typecheck script so it runs with the rest.
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "composite": true,
+    "tsBuildInfoFile": "dist/tsconfig.test.tsbuildinfo",
+    // The tests import "../src/atom.ts" by its real extension, because Vitest resolves
+    // the file on disk. That needs this flag, which in turn requires noEmit.
+    "allowImportingTsExtensions": true,
+    "types": ["node"]
+  },
+  "include": ["test/**/*.ts", "vitest.config.ts"],
+  "references": [{ "path": "./tsconfig.json" }]
+}

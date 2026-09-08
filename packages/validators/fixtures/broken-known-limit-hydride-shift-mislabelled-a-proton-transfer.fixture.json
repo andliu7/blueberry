@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 2,
+  "id": "broken-known-limit-hydride-shift-mislabelled-a-proton-transfer",
+  "title": "A hydrogen moves between two carbons carrying its own bonding electron pair, a genuine hydride transfer, mislabelled as a proton_transfer step, and nothing in the family notices",
+  "expect": {
+    "kind": "broken",
+    "mustFail": ["conservation-step-identity"],
+    "note": "Adversary pass, Phase 1, attack surface 5. The corpus builder's own finding, restated in the adversary brief: conservation-proton-transfer tracks attached hydrogen counts, implicitHydrogens plus explicit hydrogen bonds, and never asks whether the electrons that came with a moving hydrogen were the base's own lone pair or the departing bond's own pair. This fixture is the case where that conflation is not academic. THE CHEMISTRY. C1 starts as a neutral tetravalent carbon, three implicit hydrogens and one explicit bond to H1 (plain methane with one hydrogen drawn out for the arrow to act on). C2 starts as a genuine methyl cation, three implicit hydrogens, formal charge +1, zero lone pairs, an empty orbital and nothing else. The single arrow sources bond(b1, the C1-H1 bond) and sinks it as betweenAtoms(C2, H1): the hydrogen moves to C2 CARRYING the two electrons that used to bond it to C1. That is a hydride shift by definition, the same arrow shape as good-sn1-with-a-1-2-hydride-shift-from-2-bromo-3-methylbutane and the same shape legality.ts's own comment table names explicitly: 'bond(C2, H) -> between(C1, H), pivot H'. The result: C1 becomes a methyl cation itself, having lost a bond and gained nothing back, formal charge +1, derived 4 - 0 - 3 = 1; C2 becomes neutral methane, having gained a bond built from someone else's electrons, formal charge 0, derived 4 - 0 - 4 = 0. This step is labelled identity.elementaryStep: \"proton_transfer\" in the fixture below, which is wrong: nothing here is a bare proton, H+, moving between a base's lone pair and a leaving bond the way every other proton transfer fixture in this corpus is drawn, for instance good-deprotonation-of-methanol-by-hydroxide, where the base's OWN lone pair attacks H and the C-H bond's pair returns to carbon rather than travelling with the hydrogen. WHY NOTHING CATCHES THE MISLABELLING. conservation-proton-transfer's carriers() function counts implicitHydrogens plus bonded hydrogen atoms per non-hydrogen atom and nothing else: C1's attached count falls by one, C2's attached count rises by one, gained total equals lost total, both atoms are participating members, so the check is silent, exactly as it would be for a real acid-base proton transfer between these same two formal charges. conservation-electron-flow is silent too, and for a stronger reason than proton-transfer: declaredDeltas and observedDeltas both describe a bond of two electrons moving from C1-H1 to C2-H1, and they agree exactly, because this is genuinely correct electron bookkeeping for a hydride shift, just not for whatever a step literally named proton_transfer is supposed to mean. conservation-arrow-legality is silent because the arrow is exactly the documented hydride shift shape, H1 is the pivot shared between source {C1, H1} and sink {C2, H1}. conservation-mass and conservation-charge are silent because the same three atoms are present throughout and total charge is conserved, +1 before over the cation alone, +1 after over the other cation alone. THE GENERAL FINDING, WIDER THAN PROTON TRANSFER ALONE. Nothing in this validator package, not this family and not the schema parser, cross checks identity.elementaryStep against what the arrows and the two states actually describe. The field is graded shape only, an enum membership test in fixture-schema.ts, and used only to gate three schema v2 annotation checks by exact string match. A fixture, or a real student attempt routed through the same engine, can declare any ElementaryStepKind on any electron flow at all and every conservation check will grade the electron flow on its own terms, never the label. This fixture is filed GOOD, on purpose, the same way the arrow-legality known limit fixture is: it is the deliverable even though it is green, and it documents a gap wider than the one attack surface 5 named, because the same absence would let a hydride shift mislabelled as concerted_elimination, or a pi bond attack mislabelled as bond_homolysis, sail through identically. CLOSED BY conservation-step-identity, Phase 1 builder pass two. This fixture is now broken and is the negative control for the hydride against proton discrimination. arrow-facts.ts hydrogenMigrations sees that H1 changes heavy atom from C1 to C2, then asks which arrow forms the C2 to H1 bond and where that arrow starts. It starts on the C1 to H1 bond and pivots on H1, so the hydrogen carried its own bonding pair: mode carried, which is a hydride. A step declared proton_transfer requires mode donated, the acceptor supplying the pair, which is how every real proton transfer in this corpus is drawn. The general finding in the note above, that nothing cross validated identity.elementaryStep against the arrows, is closed only in part: see the WHAT IT CANNOT DISCRIMINATE section of step-identity.ts for the kinds the arrows genuinely do not separate, which are left unasserted rather than guessed."
+  },
+  "pathway": {
+    "id": "known-limit-hydride-shift-mislabelled-proton-transfer",
+    "route": "carbocation_rearrangement",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": { "elementaryStep": "proton_transfer", "reactionCenters": ["C1", "C2", "H1"] },
+        "arrows": [
+          { "id": "a1", "electrons": 2, "source": { "kind": "bond", "bondId": "b1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["C2", "H1"] } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "reagent",
+              "species": {
+                "id": "hydride-donor",
+                "label": "methane, the hydrogen that transfers drawn explicit",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [{ "id": "b1", "a": "C1", "b": "H1", "order": 1 }]
+              }
+            },
+            {
+              "role": "electrophile",
+              "species": {
+                "id": "hydride-acceptor",
+                "label": "methyl cation, the empty orbital that accepts the hydride",
+                "atoms": [{ "id": "C2", "element": "C", "formalCharge": 1, "implicitHydrogens": 3 }]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "hydride-donor",
+                "label": "the donor, now itself a methyl cation, having lost the C-H bond and its electrons",
+                "atoms": [{ "id": "C1", "element": "C", "formalCharge": 1, "implicitHydrogens": 3 }]
+              }
+            },
+            {
+              "role": "product",
+              "species": {
+                "id": "hydride-acceptor",
+                "label": "the acceptor, now neutral methane, having gained a bond built from the donor's own electrons",
+                "atoms": [
+                  { "id": "C2", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [{ "id": "b2", "a": "C2", "b": "H1", "order": 1 }]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

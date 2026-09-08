@@ -1,0 +1,140 @@
+{
+  "schemaVersion": 2,
+  "id": "good-e2-syn-periplanar-in-a-conformationally-locked-norbornane",
+  "title": "Methoxide eliminates 2-exo-bromonorbornane through the eclipsed exo hydrogen at C3, a syn periplanar E2 in a framework that cannot reach the anti geometry",
+  "expect": {
+    "kind": "good",
+    "note": "CLAUDE.md: syn periplanar E2 is real in conformationally locked systems and is FLAGGED as requiring an authored conformational justification, not rejected. Nothing in the conservation family rejects it, which is the intended behaviour; every arrow is drawable and every total balances, because the objection to syn E2 is a geometric preference and not a conservation law. The flag itself is now data rather than prose: the declared torsion below states the dihedral at 3 degrees and pathway.annotations carries the conformational_justification, so conservation-periplanarity-declaration can see the syn geometry and require the justification, and an adversary can attack either. This note keeps only what the data does not say, which is why this fixture is in the corpus: it is the syn half of the pair whose anti half is good-e2-anti-periplanar-ethoxide-and-2-bromobutane, and it is the case that makes the requirement to DECLARE a torsion load bearing rather than optional."
+  },
+  "pathway": {
+    "id": "e2-syn-periplanar-2-exo-bromonorbornane",
+    "route": "e2",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": { "elementaryStep": "concerted_elimination", "route": "e2", "reactionCenters": ["C2", "C3", "H1", "Br1"] },
+        "arrows": [
+          { "id": "a1", "electrons": 2, "source": { "kind": "lonePair", "atomId": "O1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["O1", "H1"] } },
+          { "id": "a2", "electrons": 2, "source": { "kind": "bond", "bondId": "b9" }, "sink": { "kind": "betweenAtoms", "atomIds": ["C3", "C2"] } },
+          { "id": "a3", "electrons": 2, "source": { "kind": "bond", "bondId": "b10" }, "sink": { "kind": "atom", "atomId": "Br1" } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "2-exo-bromonorbornane",
+                "label": "2-exo-bromobicyclo[2.2.1]heptane, C3 exo hydrogen drawn explicitly",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C5", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C6", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C7", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "Br1", "element": "Br", "lonePairs": 3 }
+                ],
+                "bonds": [
+                  { "id": "b1", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b2", "a": "C2", "b": "C3", "order": 1 },
+                  { "id": "b3", "a": "C3", "b": "C4", "order": 1 },
+                  { "id": "b4", "a": "C4", "b": "C5", "order": 1 },
+                  { "id": "b5", "a": "C5", "b": "C6", "order": 1 },
+                  { "id": "b6", "a": "C6", "b": "C1", "order": 1 },
+                  { "id": "b7", "a": "C1", "b": "C7", "order": 1 },
+                  { "id": "b8", "a": "C4", "b": "C7", "order": 1 },
+                  { "id": "b9", "a": "C3", "b": "H1", "order": 1 },
+                  { "id": "b10", "a": "C2", "b": "Br1", "order": 1 }
+                ],
+                "declaredTorsions": [
+                  {
+                    "atoms": ["H1", "C3", "C2", "Br1"],
+                    "degrees": 3,
+                    "justification": "The bicyclo[2.2.1]heptane cage fixes the C2 to C3 torsion, so this angle is a property of the framework and not of a conformer that could rotate away from it. The exo bromide at C2 and the exo hydrogen at C3 are eclipsed, a few degrees off exactly zero because the five membered bridge is slightly puckered. Stated as 3 rather than 0 for that reason: a fixture that claimed an exact 0 would be claiming more precision than the geometry has."
+                  }
+                ]
+              }
+            },
+            {
+              "role": "base",
+              "species": {
+                "id": "methoxide",
+                "label": "methoxide",
+                "atoms": [
+                  { "id": "O1", "element": "O", "formalCharge": -1, "lonePairs": 3 },
+                  { "id": "C8", "element": "C", "implicitHydrogens": 3 }
+                ],
+                "bonds": [{ "id": "b11", "a": "O1", "b": "C8", "order": 1 }]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "norbornene",
+                "label": "bicyclo[2.2.1]hept-2-ene",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C5", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C6", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C7", "element": "C", "implicitHydrogens": 2 }
+                ],
+                "bonds": [
+                  { "id": "b12", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b13", "a": "C2", "b": "C3", "order": 2 },
+                  { "id": "b14", "a": "C3", "b": "C4", "order": 1 },
+                  { "id": "b15", "a": "C4", "b": "C5", "order": 1 },
+                  { "id": "b16", "a": "C5", "b": "C6", "order": 1 },
+                  { "id": "b17", "a": "C6", "b": "C1", "order": 1 },
+                  { "id": "b18", "a": "C1", "b": "C7", "order": 1 },
+                  { "id": "b19", "a": "C4", "b": "C7", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "byproduct",
+              "species": {
+                "id": "methanol",
+                "label": "methanol",
+                "atoms": [
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "C8", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b20", "a": "O1", "b": "C8", "order": 1 },
+                  { "id": "b21", "a": "O1", "b": "H1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "bromide",
+                "label": "bromide",
+                "atoms": [{ "id": "Br1", "element": "Br", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "annotations": [
+      {
+        "kind": "conformational_justification",
+        "value": "The bicyclo[2.2.1]heptane cage holds the exo bromide at C2 and the exo hydrogen at C3 eclipsed, so this elimination can only go syn.",
+        "justification": "No hydrogen on C3 can reach the 180 degrees that anti periplanar E2 needs. The endo hydrogen at C3 sits near 120 degrees from the exo bromide, and the ring cannot rotate to supply a better one, because the C1 to C7 to C4 bridge fixes every torsion in the two fused five membered rings. Elimination therefore proceeds syn, which is why rigid bicyclics are the standard counterexample to the rule that E2 is always anti. This is an authored conformational claim about a named framework, not a computed one: nothing in the conservation fixture schema carries coordinates, and the checks that read this annotation do not read it for sense."
+      }
+    ]
+  }
+}

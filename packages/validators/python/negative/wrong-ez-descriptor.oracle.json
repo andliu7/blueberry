@@ -1,0 +1,101 @@
+{
+  "protocol": "blueberry-oracle-corpus",
+  "version": 1,
+  "name": "wrong-ez-descriptor",
+  "description": "cis-2-butene with both methyls on the same side, authored E.",
+  "sequences": [
+    {
+      "id": "cis-butene-authored-E",
+      "description": "Must fail oracle-stereo-descriptors.",
+      "aromaticityInvariantAtomIds": [],
+      "states": [
+        {
+          "id": "state-0",
+          "sanitizationMayFail": null,
+          "species": [
+            {
+              "id": "sp-1",
+              "label": "cis-2-butene authored E",
+              "expect": {
+                "meso": false
+              },
+              "atoms": [
+                {
+                  "id": "c1",
+                  "element": "C",
+                  "isotope": null,
+                  "formalCharge": 0,
+                  "lonePairs": 0,
+                  "unpairedElectrons": 0,
+                  "implicitHydrogens": 3,
+                  "stereo": null
+                },
+                {
+                  "id": "c2",
+                  "element": "C",
+                  "isotope": null,
+                  "formalCharge": 0,
+                  "lonePairs": 0,
+                  "unpairedElectrons": 0,
+                  "implicitHydrogens": 1,
+                  "stereo": null
+                },
+                {
+                  "id": "c3",
+                  "element": "C",
+                  "isotope": null,
+                  "formalCharge": 0,
+                  "lonePairs": 0,
+                  "unpairedElectrons": 0,
+                  "implicitHydrogens": 1,
+                  "stereo": null
+                },
+                {
+                  "id": "c4",
+                  "element": "C",
+                  "isotope": null,
+                  "formalCharge": 0,
+                  "lonePairs": 0,
+                  "unpairedElectrons": 0,
+                  "implicitHydrogens": 3,
+                  "stereo": null
+                }
+              ],
+              "bonds": [
+                {
+                  "id": "b1",
+                  "a": "c1",
+                  "b": "c2",
+                  "order": 1,
+                  "stereo": null
+                },
+                {
+                  "id": "b2",
+                  "a": "c2",
+                  "b": "c3",
+                  "order": 2,
+                  "stereo": {
+                    "kind": "doubleBond",
+                    "reference": [
+                      "c1",
+                      "c4"
+                    ],
+                    "arrangement": "cis",
+                    "authoredDescriptor": "E"
+                  }
+                },
+                {
+                  "id": "b3",
+                  "a": "c3",
+                  "b": "c4",
+                  "order": 1,
+                  "stereo": null
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

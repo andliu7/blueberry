@@ -1,0 +1,195 @@
+{
+  "schemaVersion": 2,
+  "id": "broken-known-limit-loader-refusal-exemption-lets-a-refused-fixture-name-a-second-check-that-is-never-verified",
+  "title": "A refused fixture whose mustFail names conservation-fixture-schema together with conservation-valence, where the valence claim is never checked at all because the pathway that would have exercised it never parses",
+  "expect": {
+    "kind": "broken",
+    "mustFail": [
+      "conservation-fixture-schema"
+    ],
+    "note": "ADVERSARY PASS FIVE, ATTACK SURFACE 0, SECOND VARIANT. `parseExpectation` in fixture-schema.ts places no restriction on which other check names may sit alongside `conservation-fixture-schema` in `expect.mustFail`, and nothing in `family.ts`'s loop over `corpus.loadErrors` reads the REST of `mustFail` once it has confirmed the loader name is present: `declaresLoaderRefusal` only asks whether the array `includes(LOADER_CHECK_NAME)`, and every check's `run` then `continue`s past this fixture entirely, loader check included, for every OTHER name that might also be listed.\n\nWHAT THIS FIXTURE DOES. It is refused, for the same unrelated reason as the sibling decoy fixture, an invalid `pathway.route` string, \"sn2z\". Its `mustFail` additionally names `conservation-valence`, as though it were ALSO the negative control proving that check catches something. It cannot be: the pathway never parses, so `conservation-valence`'s `find` function never runs against it, and `negativeControls` for the valence check is never incremented by this fixture (`family.ts`'s increment for a load error is gated `if (isLoaderCheck)`, which is only true while THIS check is being run as `conservation-fixture-schema` itself). Grep the printed report and confirm: `conservation-valence` still reports its negative control count from the corpus's genuine valence-breaking fixtures, exactly as before this file existed, and nothing anywhere complains that this fixture's OWN claim to be one of them is false.\n\nWHY THIS MATTERS AS A SEPARATE FINDING FROM THE SIBLING DECOY. The first decoy shows the exemption does not verify that the STATED REASON in `note` matches the ACTUAL reason for refusal. This one shows a second, structurally different gap one level up in the same field: `expect.mustFail` itself can name a check that is provably never exercised by this file at all, and the schema accepts it, and the family accepts it, and the run produces no complaint distinguishing 'this fixture proved conservation-valence fires' from 'this fixture never got anywhere near conservation-valence.' A reader skimming `mustFail: [\"conservation-fixture-schema\", \"conservation-valence\"]` on a fixture whose FILE NAME does not say known-limit would reasonably assume it proves both. It proves neither about valence; it is not a valence fixture at all, structurally.\n\nWHAT THIS DOES NOT PROVE. `conservation-valence` is not left unproven overall: other fixtures in the corpus are its genuine negative controls, and this file changes nothing about whether that check actually works. The gap is specifically that a refused fixture's `mustFail` array is not validated for INTERNAL CONSISTENCY, that every name in it beyond the loader name itself corresponds to a check the file could possibly have exercised. Reported as found, not fixed, per instruction: fixtures and tests only. A structural fix would restrict a fixture that declares `conservation-fixture-schema` in `mustFail` to declaring nothing else, enforced in `parseExpectation`, which is a change to `fixture-schema.ts` and is not made here. CLOSED. The parser now refuses an expect block that names the loader alongside any other check, because a refused fixture never becomes a pathway and no other check's find() can run against it, so the second name was a claim nothing verified. This fixture kept its original filing above and now names the loader alone, which is what it should always have been able to say. The rejection itself is proven in tests/loader-refusal-cannot-claim-a-second-check.test.ts, because a fixture demonstrating it on disk cannot parse far enough to declare anything."
+  },
+  "pathway": {
+    "id": "loader-exemption-decoy-second-check-name",
+    "route": "sn2z",
+    "steps": [
+      {
+        "id": "step-1-ordinary-sn2",
+        "identity": {
+          "elementaryStep": "concerted_substitution",
+          "route": "sn2",
+          "reactionCenters": [
+            "C1"
+          ]
+        },
+        "arrows": [
+          {
+            "id": "a1",
+            "electrons": 2,
+            "source": {
+              "kind": "lonePair",
+              "atomId": "O1"
+            },
+            "sink": {
+              "kind": "betweenAtoms",
+              "atomIds": [
+                "O1",
+                "C1"
+              ]
+            }
+          },
+          {
+            "id": "a2",
+            "electrons": 2,
+            "source": {
+              "kind": "bond",
+              "bondId": "b1"
+            },
+            "sink": {
+              "kind": "atom",
+              "atomId": "Br1"
+            }
+          }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "bromoethane",
+                "label": "bromoethane",
+                "atoms": [
+                  {
+                    "id": "C1",
+                    "element": "C",
+                    "implicitHydrogens": 2
+                  },
+                  {
+                    "id": "C2",
+                    "element": "C",
+                    "implicitHydrogens": 3
+                  },
+                  {
+                    "id": "Br1",
+                    "element": "Br",
+                    "lonePairs": 3
+                  }
+                ],
+                "bonds": [
+                  {
+                    "id": "b1",
+                    "a": "C1",
+                    "b": "Br1",
+                    "order": 1
+                  },
+                  {
+                    "id": "b2",
+                    "a": "C1",
+                    "b": "C2",
+                    "order": 1
+                  }
+                ]
+              }
+            },
+            {
+              "role": "nucleophile",
+              "species": {
+                "id": "hydroxide",
+                "label": "hydroxide",
+                "atoms": [
+                  {
+                    "id": "O1",
+                    "element": "O",
+                    "formalCharge": -1,
+                    "lonePairs": 3
+                  },
+                  {
+                    "id": "H1",
+                    "element": "H"
+                  }
+                ],
+                "bonds": [
+                  {
+                    "id": "b3",
+                    "a": "O1",
+                    "b": "H1",
+                    "order": 1
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "ethanol",
+                "label": "ethanol",
+                "atoms": [
+                  {
+                    "id": "C1",
+                    "element": "C",
+                    "implicitHydrogens": 2
+                  },
+                  {
+                    "id": "C2",
+                    "element": "C",
+                    "implicitHydrogens": 3
+                  },
+                  {
+                    "id": "O1",
+                    "element": "O",
+                    "lonePairs": 2
+                  },
+                  {
+                    "id": "H1",
+                    "element": "H"
+                  }
+                ],
+                "bonds": [
+                  {
+                    "id": "b4",
+                    "a": "C1",
+                    "b": "O1",
+                    "order": 1
+                  },
+                  {
+                    "id": "b5",
+                    "a": "C1",
+                    "b": "C2",
+                    "order": 1
+                  },
+                  {
+                    "id": "b6",
+                    "a": "O1",
+                    "b": "H1",
+                    "order": 1
+                  }
+                ]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "bromide",
+                "label": "bromide",
+                "atoms": [
+                  {
+                    "id": "Br1",
+                    "element": "Br",
+                    "formalCharge": -1,
+                    "lonePairs": 4
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

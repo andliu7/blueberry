@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 2,
+  "id": "broken-arrow-legality-sink-atom-not-in-state",
+  "title": "An arrow sinks onto an atom id that does not exist anywhere in the from state, sourced from a real lone pair",
+  "expect": {
+    "kind": "broken",
+    "mustFail": ["conservation-arrow-legality", "conservation-electron-flow"],
+    "note": "Adversary pass, Phase 1, attack surface 1. Rule sink_atom_not_in_state had no negative control anywhere in the corpus. A lone chloride anion sits alone in the from state. The arrow sources a real lone pair on Cl1, which does exist and does carry lone pairs, and sinks it onto atom id \"PhantomElectrophile\", which is not an atom of any species in this state. Source density therefore passes (Cl1 legitimately carries 4 lone pairs) and the failure is purely on the sink side, which is what isolates this rule from source_atom_not_in_state's sibling fixture: that one breaks resolution on the source, this one breaks it on the sink, and legality.ts checks both independently in the same pass. The to state is byte identical to the from state, same isolation pattern as the two sibling resolution fixtures. WHY BOTH CHECKS ARE NAMED. arrow-legality's RESOLUTION rule loops over sinkAtomIds(arrow.sink) and reports sink_atom_not_in_state for PhantomElectrophile; because sinkResolves is false the code takes the `if (!sourceResolves || !sinkResolves) continue;` branch and never reaches non degeneracy or adjacency for this arrow, so exactly one finding is produced. conservation-electron-flow's referencedAtomIds(arrow) includes sink atom ids as well as source atom ids, precisely because a bond forming arrow names two atoms that are not yet bonded, so PhantomElectrophile is reported there too and declaredDeltas is never attempted. Mass, charge, and valence pass because the to state is identical to the from state and Cl1 is self consistent (formal charge -1, 4 lone pairs, derived charge 7 - 8 - 0 = -1)."
+  },
+  "pathway": {
+    "id": "arrow-legality-sink-atom-not-in-state",
+    "route": "sn2",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": { "elementaryStep": "nucleophilic_attack", "reactionCenters": ["Cl1"] },
+        "arrows": [
+          { "id": "a1", "electrons": 2, "source": { "kind": "lonePair", "atomId": "Cl1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["Cl1", "PhantomElectrophile"] } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "nucleophile",
+              "species": {
+                "id": "chloride",
+                "label": "chloride, alone in the state",
+                "atoms": [{ "id": "Cl1", "element": "Cl", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "nucleophile",
+              "species": {
+                "id": "chloride",
+                "label": "chloride, alone in the state",
+                "atoms": [{ "id": "Cl1", "element": "Cl", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

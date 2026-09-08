@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 2,
+  "id": "good-hydroboration-of-propene-in-one-concerted-four-centre-step",
+  "title": "Borane adds across propene in a single concerted four centre step, boron to the terminal carbon and hydrogen to the internal one",
+  "expect": {
+    "kind": "good",
+    "note": "One barrier, two arrows, no intermediate and no charged species anywhere, which is what makes hydroboration syn and anti Markovnikov at the same time. Boron ends the step with six valence electrons around it and that is correct rather than a valence failure: chem-core elements.ts gives boron maxValenceElectrons 8 as a ceiling and not as an expectation, so an electron deficient boron passes. The transferred hydrogen is explicit because it moves; the other two on boron never leave and stay implicit."
+  },
+  "pathway": {
+    "id": "hydroboration-propene",
+    "route": "electrophilic_addition_alkene",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": { "elementaryStep": "pi_bond_attack", "route": "electrophilic_addition_alkene", "reactionCenters": ["C1", "C2", "B1", "H1"] },
+        "arrows": [
+          { "id": "a1", "electrons": 2, "source": { "kind": "bond", "bondId": "b1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["C1", "B1"] } },
+          { "id": "a2", "electrons": 2, "source": { "kind": "bond", "bondId": "b3" }, "sink": { "kind": "betweenAtoms", "atomIds": ["C2", "H1"] } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "propene",
+                "label": "propene",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 }
+                ],
+                "bonds": [
+                  { "id": "b1", "a": "C1", "b": "C2", "order": 2 },
+                  { "id": "b2", "a": "C2", "b": "C3", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "reagent",
+              "species": {
+                "id": "borane",
+                "label": "borane, the transferred hydride drawn explicitly",
+                "atoms": [
+                  { "id": "B1", "element": "B", "implicitHydrogens": 2 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [{ "id": "b3", "a": "B1", "b": "H1", "order": 1 }]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "propylborane",
+                "label": "propylborane, boron on the terminal carbon",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "B1", "element": "B", "implicitHydrogens": 2 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b4", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b5", "a": "C2", "b": "C3", "order": 1 },
+                  { "id": "b6", "a": "C1", "b": "B1", "order": 1 },
+                  { "id": "b7", "a": "C2", "b": "H1", "order": 1 }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

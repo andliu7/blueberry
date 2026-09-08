@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 2,
+  "id": "broken-arrow-legality-lone-pair-source-atom-not-in-state",
+  "title": "An arrow sources a lone pair from an atom id that does not exist anywhere in the from state",
+  "expect": {
+    "kind": "broken",
+    "mustFail": ["conservation-arrow-legality", "conservation-electron-flow"],
+    "note": "Adversary pass, Phase 1, attack surface 1. Rule source_atom_not_in_state had no negative control anywhere in the corpus: the only rule this family ever proved fires is endpoints_share_no_atom, via the swapped-arrows fixture. This closes that gap. A single chloride anion sits alone in the from state. The arrow claims a lonePair source on atom id \"PhantomNucleophile\", which is not an atom of any species in this state, and sinks it as a lone pair landing on the real chloride atom Cl1. The to state is authored byte identical to the from state, since arrow-legality's own docstring says it never reads the to state at all, so the cleanest isolation is a step that changes nothing structurally. WHY BOTH CHECKS ARE NAMED. arrow-legality reports source_atom_not_in_state directly: the arrow's source atom is not in the from state, so density and adjacency cannot even be evaluated and the code skips straight past them once resolution fails. conservation-electron-flow reports the identical unresolved reference through its own resolution pass, referencedAtomIds(arrow) includes PhantomNucleophile, findAtomInState fails, and everyReferenceResolves is set false before declaredDeltas is ever called. This is the unavoidable cascade the family README documents in prose but the corpus never previously carried a fixture for: 'An unresolvable arrow endpoint breaks arrow legality as well as electron flow... No fixture in the corpus currently has one.' Now one does. Mass, charge, and valence are all untouched, because the to state is identical to the from state and the from state is self consistent (Cl1 has formal charge -1 with 4 lone pairs, derived charge 7 - 8 - 0 = -1, matching). Proton transfer and spectator declaration have nothing to say about a step with no hydrogens and no declared spectators."
+  },
+  "pathway": {
+    "id": "arrow-legality-source-atom-not-in-state",
+    "route": "sn2",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": { "elementaryStep": "nucleophilic_attack", "reactionCenters": ["Cl1"] },
+        "arrows": [
+          { "id": "a1", "electrons": 2, "source": { "kind": "lonePair", "atomId": "PhantomNucleophile" }, "sink": { "kind": "atom", "atomId": "Cl1" } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "counterion",
+              "species": {
+                "id": "chloride",
+                "label": "chloride, alone in the state",
+                "atoms": [{ "id": "Cl1", "element": "Cl", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "counterion",
+              "species": {
+                "id": "chloride",
+                "label": "chloride, alone in the state",
+                "atoms": [{ "id": "Cl1", "element": "Cl", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,241 @@
+{
+  "schemaVersion": 2,
+  "id": "good-sn1-with-a-1-2-hydride-shift-from-2-bromo-3-methylbutane",
+  "title": "2-bromo-3-methylbutane ionises to a secondary cation, a 1,2 hydride shift converts it to the tertiary cation, and bromide returns at the rearranged carbon",
+  "expect": {
+    "kind": "good",
+    "note": "The rearrangement fixture, and the reason the product of an SN1 is not always the carbon the leaving group left from. The migrating hydrogen is drawn EXPLICITLY as H1 rather than folded into an implicit count, because arrows cannot express a change in undrawn hydrogens: written implicitly this step would appear to conservation-electron-flow as an implicit hydrogen change with no arrow, which is exactly the S5 shape the broken fixture broken-electron-flow-hidden-1-2-hydride-shift-with-globally-balanced-implicit-hydrogens exists to catch. Arrow a2 pivots on H1, which is the hydride_shift shape in chem-core legality.ts."
+  },
+  "pathway": {
+    "id": "sn1-hydride-shift-2-bromo-3-methylbutane",
+    "route": "sn1",
+    "steps": [
+      {
+        "id": "step-1-heterolysis",
+        "identity": { "elementaryStep": "bond_heterolysis", "route": "sn1", "reactionCenters": ["C2", "Br1"] },
+        "arrows": [
+          { "id": "a1", "electrons": 2, "source": { "kind": "bond", "bondId": "b6" }, "sink": { "kind": "atom", "atomId": "Br1" } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "2-bromo-3-methylbutane",
+                "label": "2-bromo-3-methylbutane",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C3", "element": "C" },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C5", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "Br1", "element": "Br", "lonePairs": 3 }
+                ],
+                "bonds": [
+                  { "id": "b1", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b2", "a": "C2", "b": "C3", "order": 1 },
+                  { "id": "b3", "a": "C3", "b": "C4", "order": 1 },
+                  { "id": "b4", "a": "C3", "b": "C5", "order": 1 },
+                  { "id": "b5", "a": "C3", "b": "H1", "order": 1 },
+                  { "id": "b6", "a": "C2", "b": "Br1", "order": 1 }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "3-methylbutan-2-yl-cation",
+                "label": "3-methylbutan-2-yl cation, secondary",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "formalCharge": 1, "implicitHydrogens": 1 },
+                  { "id": "C3", "element": "C" },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C5", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b7", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b8", "a": "C2", "b": "C3", "order": 1 },
+                  { "id": "b9", "a": "C3", "b": "C4", "order": 1 },
+                  { "id": "b10", "a": "C3", "b": "C5", "order": 1 },
+                  { "id": "b11", "a": "C3", "b": "H1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "bromide",
+                "label": "bromide",
+                "atoms": [{ "id": "Br1", "element": "Br", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "step-2-hydride-shift",
+        "identity": { "elementaryStep": "hydride_shift", "route": "carbocation_rearrangement", "reactionCenters": ["C2", "C3", "H1"] },
+        "arrows": [
+          { "id": "a2", "electrons": 2, "source": { "kind": "bond", "bondId": "b11" }, "sink": { "kind": "betweenAtoms", "atomIds": ["C2", "H1"] } }
+        ],
+        "from": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "3-methylbutan-2-yl-cation",
+                "label": "3-methylbutan-2-yl cation, secondary",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "formalCharge": 1, "implicitHydrogens": 1 },
+                  { "id": "C3", "element": "C" },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C5", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b7", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b8", "a": "C2", "b": "C3", "order": 1 },
+                  { "id": "b9", "a": "C3", "b": "C4", "order": 1 },
+                  { "id": "b10", "a": "C3", "b": "C5", "order": 1 },
+                  { "id": "b11", "a": "C3", "b": "H1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "bromide",
+                "label": "bromide",
+                "atoms": [{ "id": "Br1", "element": "Br", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s2",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "2-methylbutan-2-yl-cation",
+                "label": "2-methylbutan-2-yl cation, tertiary",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C3", "element": "C", "formalCharge": 1 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C5", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b12", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b13", "a": "C2", "b": "C3", "order": 1 },
+                  { "id": "b14", "a": "C3", "b": "C4", "order": 1 },
+                  { "id": "b15", "a": "C3", "b": "C5", "order": 1 },
+                  { "id": "b16", "a": "C2", "b": "H1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "bromide",
+                "label": "bromide",
+                "atoms": [{ "id": "Br1", "element": "Br", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "step-3-capture",
+        "identity": { "elementaryStep": "nucleophilic_attack", "route": "sn1", "reactionCenters": ["C3"] },
+        "arrows": [
+          { "id": "a3", "electrons": 2, "source": { "kind": "lonePair", "atomId": "Br1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["Br1", "C3"] } }
+        ],
+        "from": {
+          "id": "s2",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "2-methylbutan-2-yl-cation",
+                "label": "2-methylbutan-2-yl cation, tertiary",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C3", "element": "C", "formalCharge": 1 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C5", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b12", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b13", "a": "C2", "b": "C3", "order": 1 },
+                  { "id": "b14", "a": "C3", "b": "C4", "order": 1 },
+                  { "id": "b15", "a": "C3", "b": "C5", "order": 1 },
+                  { "id": "b16", "a": "C2", "b": "H1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "nucleophile",
+              "species": {
+                "id": "bromide",
+                "label": "bromide",
+                "atoms": [{ "id": "Br1", "element": "Br", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s3",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "2-bromo-2-methylbutane",
+                "label": "2-bromo-2-methylbutane, the rearranged product",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C3", "element": "C" },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C5", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "Br1", "element": "Br", "lonePairs": 3 }
+                ],
+                "bonds": [
+                  { "id": "b17", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b18", "a": "C2", "b": "C3", "order": 1 },
+                  { "id": "b19", "a": "C3", "b": "C4", "order": 1 },
+                  { "id": "b20", "a": "C3", "b": "C5", "order": 1 },
+                  { "id": "b21", "a": "C2", "b": "H1", "order": 1 },
+                  { "id": "b22", "a": "C3", "b": "Br1", "order": 1 }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "annotations": [
+      {
+        "kind": "racemisation_ratio",
+        "value": "Not applicable at the carbon the product forms at. After the 1,2 hydride shift the cation sits at C3, which carries two methyl groups and is not a stereocentre, so bromide returning to either face gives the same compound.",
+        "justification": "Authored as an explicit not applicable rather than left off, for the reason given in good-sn1-solvolysis-of-tert-butyl-bromide-in-water: nothing in this package can see chirality, so the claim has to come from a person. Worth stating twice over on this fixture because the carbon that LOST the leaving group, C2, was a stereocentre in the substrate and the carbon that gains the nucleophile is not the same carbon. The rearrangement is exactly why the stereochemical question moves, and a reader who assumed the product centre inherits the substrate's would get this wrong."
+      }
+    ]
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "composite": true,
+    "tsBuildInfoFile": "dist/tsconfig.test.tsbuildinfo",
+    "allowImportingTsExtensions": true,
+    "types": ["node"]
+  },
+  // Same shape as packages/interaction/tsconfig.test.json, minus its one extra
+  // include. This package's tests read the authored corpus from src/corpus/,
+  // which the project reference below already covers, so there is no second
+  // reader to list here and no coupling to packages/validators.
+  "include": ["test/**/*.ts", "vitest.config.ts"],
+  "references": [{ "path": "./tsconfig.json" }]
+}

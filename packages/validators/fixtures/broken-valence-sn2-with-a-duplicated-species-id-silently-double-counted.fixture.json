@@ -1,0 +1,120 @@
+{
+  "schemaVersion": 2,
+  "id": "broken-valence-sn2-with-a-duplicated-species-id-silently-double-counted",
+  "title": "The correct SN2 from good-sn2-with-spectator-counterion, with a second, physically distinct sodium counterion sharing the first one's species id rather than getting its own",
+  "expect": {
+    "kind": "broken",
+    "mustFail": ["conservation-valence"],
+    "note": "The negative control for the species id uniqueness precondition in conservation-valence. Filed by the Phase 0 adversary as kind \"good\" with the finding in this note, because the assertion it needed did not exist yet; it now does, and this is a broken fixture. The chemistry is unchanged. state.ts states the invariant in prose at the top of the file: 'Two equivalents of methanol are two members with two different SpeciesIds, not one member with count: 2... A count field makes the two indistinguishable.' Nothing enforced that sentence. duplicateAtomIds catches an atom id used in two species; it says nothing about a species id used twice with two disjoint atom ids underneath it, which is exactly the shape here. Both sides carry two counterion members with species id 'sodium-counterion': the original, atom Na1, and a second, physically distinct sodium cation with atom Na9, present unchanged on both sides and given the same species id by author mistake rather than 'sodium-counterion-2'. WHY EVERY OTHER CHECK PASSES. conservedTotals sums over state.members directly with no deduplication by species id, so mass and charge are counted for both copies on both sides. Because both copies are unchanged from s0 to s1 the extra contribution is identical on both sides and cancels in the comparison, so conservation-mass and conservation-charge report no difference, not because the duplication was noticed and excluded but because it happened to be symmetric this time. conservation-electron-flow's atom-id-keyed scan over every member of both states independently notices any atom that appears, disappears, or changes regardless of which species id wraps it, so a divergent second copy would still be caught there, which is why the stronger version of this attack could not be built. conservation-spectator-declaration never inspects state.members for duplicate ids; it only loops over declared spectator ids, and this fixture declares none. conservation-arrow-legality reads only arrows and the from state's atoms and bonds, and both arrows here are the correct SN2 pair. WHAT IT COSTS WHEN NOTHING FIRES. findSpecies(state, 'sodium-counterion') and findMember both resolve to whichever member Array.find reaches first and are permanently blind to the second, so the structural identity comparison in conservation-spectator-declaration and any future problem-authoring tool would silently read only one of the two, while conservedTotals counts both. Half the engine can see the second copy and half cannot."
+  },
+  "pathway": {
+    "id": "sn2-with-a-duplicated-species-id",
+    "route": "sn2",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": {
+          "elementaryStep": "concerted_substitution",
+          "route": "sn2",
+          "reactionCenters": ["C1"]
+        },
+        "arrows": [
+          {
+            "id": "a1",
+            "electrons": 2,
+            "source": { "kind": "lonePair", "atomId": "Br1" },
+            "sink": { "kind": "betweenAtoms", "atomIds": ["Br1", "C1"] }
+          },
+          {
+            "id": "a2",
+            "electrons": 2,
+            "source": { "kind": "bond", "bondId": "b1" },
+            "sink": { "kind": "atom", "atomId": "Cl1" }
+          }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "chloromethane",
+                "label": "chloromethane",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "Cl1", "element": "Cl", "lonePairs": 3 }
+                ],
+                "bonds": [{ "id": "b1", "a": "C1", "b": "Cl1", "order": 1 }]
+              }
+            },
+            {
+              "role": "nucleophile",
+              "species": {
+                "id": "bromide",
+                "label": "bromide",
+                "atoms": [{ "id": "Br1", "element": "Br", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            },
+            {
+              "role": "counterion",
+              "species": {
+                "id": "sodium-counterion",
+                "label": "sodium cation",
+                "atoms": [{ "id": "Na1", "element": "Na", "formalCharge": 1 }]
+              }
+            },
+            {
+              "role": "counterion",
+              "species": {
+                "id": "sodium-counterion",
+                "label": "a second, physically distinct sodium cation, wrongly sharing the first one's species id instead of being sodium-counterion-2",
+                "atoms": [{ "id": "Na9", "element": "Na", "formalCharge": 1 }]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "bromomethane",
+                "label": "bromomethane",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "Br1", "element": "Br", "lonePairs": 3 }
+                ],
+                "bonds": [{ "id": "b2", "a": "C1", "b": "Br1", "order": 1 }]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "chloride",
+                "label": "chloride",
+                "atoms": [{ "id": "Cl1", "element": "Cl", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            },
+            {
+              "role": "counterion",
+              "species": {
+                "id": "sodium-counterion",
+                "label": "sodium cation",
+                "atoms": [{ "id": "Na1", "element": "Na", "formalCharge": 1 }]
+              }
+            },
+            {
+              "role": "counterion",
+              "species": {
+                "id": "sodium-counterion",
+                "label": "a second, physically distinct sodium cation, wrongly sharing the first one's species id instead of being sodium-counterion-2",
+                "atoms": [{ "id": "Na9", "element": "Na", "formalCharge": 1 }]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

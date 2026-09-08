@@ -1,0 +1,201 @@
+{
+  "schemaVersion": 2,
+  "id": "good-cyanohydrin-formation-from-acetaldehyde",
+  "title": "Cyanide adds to the carbonyl carbon of acetaldehyde and the resulting alkoxide takes a proton from hydrogen cyanide",
+  "expect": {
+    "kind": "good",
+    "note": "Nucleophilic addition to a carbonyl in its plainest form: attack, then protonation, and the pi pair goes onto oxygen rather than anywhere else. The proton comes from HCN drawn as a member of the multiset, and the cyanide it leaves behind is the same nucleophile the reaction started with, which is what makes HCN and cyanide a buffer pair here rather than two unrelated reagents. Cyanide attacks through carbon; the nitrogen lone pair is present and untouched, so the arrow that was not drawn is visible."
+  },
+  "pathway": {
+    "id": "cyanohydrin-acetaldehyde",
+    "route": "nucleophilic_addition_carbonyl",
+    "steps": [
+      {
+        "id": "step-1-cyanide-attacks",
+        "identity": { "elementaryStep": "nucleophilic_attack", "route": "nucleophilic_addition_carbonyl", "reactionCenters": ["C2", "CN1"] },
+        "arrows": [
+          { "id": "a1", "electrons": 2, "source": { "kind": "lonePair", "atomId": "CN1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["CN1", "C2"] } },
+          { "id": "a2", "electrons": 2, "source": { "kind": "bond", "bondId": "b2" }, "sink": { "kind": "atom", "atomId": "O1" } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "acetaldehyde",
+                "label": "acetaldehyde",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "O1", "element": "O", "lonePairs": 2 }
+                ],
+                "bonds": [
+                  { "id": "b1", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b2", "a": "C2", "b": "O1", "order": 2 }
+                ]
+              }
+            },
+            {
+              "role": "nucleophile",
+              "species": {
+                "id": "cyanide",
+                "label": "cyanide",
+                "atoms": [
+                  { "id": "CN1", "element": "C", "formalCharge": -1, "lonePairs": 1 },
+                  { "id": "NN1", "element": "N", "lonePairs": 1 }
+                ],
+                "bonds": [{ "id": "b3", "a": "CN1", "b": "NN1", "order": 3 }]
+              }
+            },
+            {
+              "role": "acid",
+              "species": {
+                "id": "hydrogen-cyanide",
+                "label": "hydrogen cyanide",
+                "atoms": [
+                  { "id": "H1", "element": "H" },
+                  { "id": "CN2", "element": "C" },
+                  { "id": "NN2", "element": "N", "lonePairs": 1 }
+                ],
+                "bonds": [
+                  { "id": "b4", "a": "H1", "b": "CN2", "order": 1 },
+                  { "id": "b5", "a": "CN2", "b": "NN2", "order": 3 }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "cyanohydrin-alkoxide",
+                "label": "the alkoxide from cyanide addition",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "O1", "element": "O", "formalCharge": -1, "lonePairs": 3 },
+                  { "id": "CN1", "element": "C" },
+                  { "id": "NN1", "element": "N", "lonePairs": 1 }
+                ],
+                "bonds": [
+                  { "id": "b6", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b7", "a": "C2", "b": "O1", "order": 1 },
+                  { "id": "b8", "a": "C2", "b": "CN1", "order": 1 },
+                  { "id": "b9", "a": "CN1", "b": "NN1", "order": 3 }
+                ]
+              }
+            },
+            {
+              "role": "acid",
+              "species": {
+                "id": "hydrogen-cyanide",
+                "label": "hydrogen cyanide",
+                "atoms": [
+                  { "id": "H1", "element": "H" },
+                  { "id": "CN2", "element": "C" },
+                  { "id": "NN2", "element": "N", "lonePairs": 1 }
+                ],
+                "bonds": [
+                  { "id": "b4", "a": "H1", "b": "CN2", "order": 1 },
+                  { "id": "b5", "a": "CN2", "b": "NN2", "order": 3 }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "step-2-protonation-of-the-alkoxide",
+        "identity": { "elementaryStep": "proton_transfer", "route": "nucleophilic_addition_carbonyl", "reactionCenters": ["O1", "H1", "CN2"] },
+        "arrows": [
+          { "id": "a3", "electrons": 2, "source": { "kind": "lonePair", "atomId": "O1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["O1", "H1"] } },
+          { "id": "a4", "electrons": 2, "source": { "kind": "bond", "bondId": "b4" }, "sink": { "kind": "atom", "atomId": "CN2" } }
+        ],
+        "from": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "cyanohydrin-alkoxide",
+                "label": "the alkoxide from cyanide addition",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "O1", "element": "O", "formalCharge": -1, "lonePairs": 3 },
+                  { "id": "CN1", "element": "C" },
+                  { "id": "NN1", "element": "N", "lonePairs": 1 }
+                ],
+                "bonds": [
+                  { "id": "b6", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b7", "a": "C2", "b": "O1", "order": 1 },
+                  { "id": "b8", "a": "C2", "b": "CN1", "order": 1 },
+                  { "id": "b9", "a": "CN1", "b": "NN1", "order": 3 }
+                ]
+              }
+            },
+            {
+              "role": "acid",
+              "species": {
+                "id": "hydrogen-cyanide",
+                "label": "hydrogen cyanide",
+                "atoms": [
+                  { "id": "H1", "element": "H" },
+                  { "id": "CN2", "element": "C" },
+                  { "id": "NN2", "element": "N", "lonePairs": 1 }
+                ],
+                "bonds": [
+                  { "id": "b4", "a": "H1", "b": "CN2", "order": 1 },
+                  { "id": "b5", "a": "CN2", "b": "NN2", "order": 3 }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s2",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "acetaldehyde-cyanohydrin",
+                "label": "2-hydroxypropanenitrile",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "CN1", "element": "C" },
+                  { "id": "NN1", "element": "N", "lonePairs": 1 }
+                ],
+                "bonds": [
+                  { "id": "b10", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b11", "a": "C2", "b": "O1", "order": 1 },
+                  { "id": "b12", "a": "O1", "b": "H1", "order": 1 },
+                  { "id": "b13", "a": "C2", "b": "CN1", "order": 1 },
+                  { "id": "b14", "a": "CN1", "b": "NN1", "order": 3 }
+                ]
+              }
+            },
+            {
+              "role": "byproduct",
+              "species": {
+                "id": "cyanide-regenerated",
+                "label": "cyanide, handed back",
+                "atoms": [
+                  { "id": "CN2", "element": "C", "formalCharge": -1, "lonePairs": 1 },
+                  { "id": "NN2", "element": "N", "lonePairs": 1 }
+                ],
+                "bonds": [{ "id": "b15", "a": "CN2", "b": "NN2", "order": 3 }]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 2,
+  "id": "good-known-limit-carbonyl-addition-and-intramolecular-epoxide-closure-collapsed-into-one-step-not-caught-by-rule-c",
+  "title": "Hydroxide adds to the carbonyl of 2-chloroacetaldehyde and the resulting alkoxide immediately displaces the neighbouring chloride intramolecularly, closing an epoxide, drawn as one step instead of two",
+  "expect": {
+    "kind": "good",
+    "note": "ADVERSARY PASS FIVE, ATTACK SURFACE 1 (RULE C, THE SECOND HALF). Rule C in step-elementarity.ts closes exactly one shape: a pair localises on an atom (bond source, atom sink) and that same atom's lone pair then goes on to protonate a hydrogen belonging to a DIFFERENT species. Its own docstring lists what is still open: 'a collapse whose second half is not a protonation ... are all still missed', and this fixture is that gap, built with real chemistry rather than asserted.\n\nTHE MECHANISM, AND WHY IT IS TWO BARRIERS IN REALITY. Hydroxide attacks the carbonyl carbon C2 of 2-chloroacetaldehyde (a1: lone pair on O2 into the new O2-C2 bond). The C2=O1 pi bond breaks fully onto O1 (a2: bond b2 -> atom O1), which is exactly Rule C's condition 1, an intermediate BEING MADE: a real tetrahedral alkoxide, chemically ordinary and isolable in principle. In a genuine two step mechanism that alkoxide would be the end of step one. Here, in the same step, one of O1's own lone pairs is then used to attack C1 intramolecularly (a3: lone pair on O1 into the new O1-C1 bond), displacing the chloride sitting on C1 (a4: bond b3 -> atom Cl1), closing a three membered epoxide ring and ejecting chloride. That ring closure is an intramolecular backside displacement, exactly the geometry an SN2 needs, and it cannot happen until the alkoxide already exists to serve as the internal nucleophile: it is a second molecular event with its own transition state, not a continuation of the same one, in precisely the way the cyanohydrin protonation is.\n\nWHY RULE C IS CORRECTLY SILENT HERE, TRACED AGAINST ITS OWN FOUR CONDITIONS. Condition 1 is met: a2 pulls the pair out of bond b2 and localises it on O1 as a lone pair. Condition 2 is met: a3 is a different arrow, sourced on a lonePair at that same O1. Condition 3 is where this fixture leaves the shape: a3's sink is betweenAtoms [O1, C1], and C1 is carbon, not hydrogen, so `acid.atom.element !== \"H\"` is true and `collapsedProtonations` moves on without recording a match. This is not a bug in Rule C. Its docstring names exactly this limit and declines to reach past it, because the general question, what an intermediate is consumed BY, needs the barrier model chem-core does not have; guessing at every possible second act (attack on a second electrophile, an intramolecular substitution, a beta elimination) would be exactly the kind of general classifier the check's own design section rules out.\n\nWHY RULE B AND RULE A ARE ALSO CORRECTLY SILENT, FOR THE SAME REASONS THE CYANOHYDRIN FIXTURE ARGUES. Rule B looks for one pair of atoms both broken and reformed; here four distinct pairs are each touched exactly once (O2-C2 formed, C2=O1 pi component broken, O1-C1 formed, C1-Cl1 broken), so nothing round trips. Rule A looks for arrow groups that do not reach each other; these four arrows chain through shared atoms at every join, O2-C2 (a1) shares C2 with C2=O1 (a2), which shares O1 with O1-C1 (a3), which shares C1 with C1-Cl1 (a4), exactly the connectivity a genuinely concerted array has, so `arrowClusters` merges them into one group before the proximity test is ever reached.\n\nWHY THE STEP IS DECLARED `nucleophilic_attack`. Declaring `proton_transfer` would trip step-identity's departure rule for the unrelated reason that a heavy sigma bond (C1-Cl1) fully departs in a step labelled proton transfer, which would file this fixture broken for the wrong cause and hide the actual gap, exactly as the cyanohydrin known-limit fixture's note explains for the same reason. `nucleophilic_attack` is in POLAR_ONLY and every arrow here moves a pair, so step-identity's polarity rule is silent; PROTON_KINDS does not include it, so the departure rule never runs; and there is no hydrogen migration for the hydrogen rule to read.\n\nEVERY CONSERVATION TOTAL IS INTACT. Mass: every atom explicit, none appears or disappears, no implicit hydrogen count changes. Charge: substrate 0 plus hydroxide -1 equals product 0 (C1, C2, O1, O2 all neutral in the epoxide-alcohol) plus chloride -1. Electron flow: four arrows account for exactly the four bonding changes, one bond formed (a1), one pi component broken (a2), one bond formed (a3), one bond broken (a4). Valence: every atom's bond order sum plus lone pairs plus implicit hydrogens is a legal octet throughout, including the -1 alkoxide-like intermediate character O1 briefly carries between a2 and a3, which is never written down as its own state and is exactly the missing intermediate Rule C's protonation twin also never writes down.\n\nSTILL OPEN, STATED SO A GREEN RUN ON THIS FIXTURE IS NOT READ AS MORE. The general question, what closes an intermediate an addition arrow makes, remains unanswered for every consumer other than a proton from a separate species. This is one more concrete instance of exactly the gap step-elementarity.ts already documents, not a new one."
+  },
+  "pathway": {
+    "id": "chloroacetaldehyde-hydroxide-epoxide-collapsed",
+    "route": "nucleophilic_addition_carbonyl",
+    "steps": [
+      {
+        "id": "step-1-addition-and-ring-closure-collapsed",
+        "identity": { "elementaryStep": "nucleophilic_attack", "route": "nucleophilic_addition_carbonyl", "reactionCenters": ["O2", "C2", "O1", "C1", "Cl1"] },
+        "arrows": [
+          { "id": "a1", "electrons": 2, "source": { "kind": "lonePair", "atomId": "O2" }, "sink": { "kind": "betweenAtoms", "atomIds": ["O2", "C2"] } },
+          { "id": "a2", "electrons": 2, "source": { "kind": "bond", "bondId": "b2" }, "sink": { "kind": "atom", "atomId": "O1" } },
+          { "id": "a3", "electrons": 2, "source": { "kind": "lonePair", "atomId": "O1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["O1", "C1"] } },
+          { "id": "a4", "electrons": 2, "source": { "kind": "bond", "bondId": "b3" }, "sink": { "kind": "atom", "atomId": "Cl1" } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "chloroacetaldehyde",
+                "label": "2-chloroacetaldehyde",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "Cl1", "element": "Cl", "lonePairs": 3 }
+                ],
+                "bonds": [
+                  { "id": "b1", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b2", "a": "C2", "b": "O1", "order": 2 },
+                  { "id": "b3", "a": "C1", "b": "Cl1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "nucleophile",
+              "species": {
+                "id": "hydroxide",
+                "label": "hydroxide",
+                "atoms": [
+                  { "id": "O2", "element": "O", "formalCharge": -1, "lonePairs": 3 },
+                  { "id": "H2", "element": "H" }
+                ],
+                "bonds": [{ "id": "b4", "a": "O2", "b": "H2", "order": 1 }]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "epoxide-alcohol-product",
+                "label": "the epoxide alcohol closed intramolecularly from the alkoxide",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "O2", "element": "O", "lonePairs": 2 },
+                  { "id": "H2", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b5", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b6", "a": "C1", "b": "O1", "order": 1 },
+                  { "id": "b7", "a": "C2", "b": "O1", "order": 1 },
+                  { "id": "b8", "a": "C2", "b": "O2", "order": 1 },
+                  { "id": "b9", "a": "O2", "b": "H2", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "chloride",
+                "label": "chloride",
+                "atoms": [{ "id": "Cl1", "element": "Cl", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 2,
+  "id": "broken-step-identity-radical-abstraction-declared-a-proton-transfer",
+  "title": "A chlorine radical abstracts a hydrogen atom with three fishhooks, in a step declared proton_transfer",
+  "expect": {
+    "kind": "broken",
+    "mustFail": ["conservation-step-identity"],
+    "note": "The negative control for the polarity arm of conservation-step-identity, in the direction where a polar kind is drawn with fishhooks. THE CHEMISTRY IS THE FIRST PROPAGATION STEP OF good-radical-chlorination-of-methane-propagation, ATOM FOR ATOM AND ARROW FOR ARROW. A chlorine radical takes the explicit hydrogen off methane: its unpaired electron and one electron of the C1 to H1 bond pair up as the new Cl1 to H1 bond, and the other electron of that bond stays on carbon as the methyl radical. Three single electron arrows, mass conserved, charge conserved at zero, declared and observed deltas identical, every arrow drawable, and the hydrogen budget balances with C1 losing one attached hydrogen and Cl1 gaining one. Every other check in the family is silent, which is what makes this control isolate one rule. WHAT IS WRONG IS THE LABEL. identity.elementaryStep says proton_transfer, and a proton transfer is a two electron step: the base brings a pair, the hydrogen arrives as a bare nucleus, and no unpaired electron exists anywhere. What is drawn here is single electron flow and the products are two radicals. WHY THIS ONE HAS AN EXACT CAUSE WHEN THE OTHER STEP IDENTITY FIXTURES DO NOT. chem-core's registry already carries radical_arrow_used_in_polar_step, which is precisely this complaint, so this failure line names it rather than the placeholder the other mislabelling rules have to use. WHAT THIS FIXTURE DOES NOT PROVE. That the hydrogen moved as a proton or as a hydride. In a radical abstraction it is neither: one electron of the old bond travels with it and one does not, which arrow-facts.ts reports as mode mixed and refuses to arbitrate. The hydride against proton rule stands down here on purpose and its own control is broken-known-limit-hydride-shift-mislabelled-a-proton-transfer."
+  },
+  "pathway": {
+    "id": "broken-radical-abstraction-declared-proton-transfer",
+    "route": "radical_halogenation",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": { "elementaryStep": "proton_transfer", "route": "radical_halogenation", "reactionCenters": ["C1", "H1", "Cl1"] },
+        "arrows": [
+          { "id": "a1", "electrons": 1, "source": { "kind": "singleElectron", "atomId": "Cl1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["Cl1", "H1"] } },
+          { "id": "a2", "electrons": 1, "source": { "kind": "bond", "bondId": "b1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["Cl1", "H1"] } },
+          { "id": "a3", "electrons": 1, "source": { "kind": "bond", "bondId": "b1" }, "sink": { "kind": "atom", "atomId": "C1" } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "methane",
+                "label": "methane, the abstracted hydrogen drawn explicitly",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [{ "id": "b1", "a": "C1", "b": "H1", "order": 1 }]
+              }
+            },
+            {
+              "role": "reagent",
+              "species": {
+                "id": "chlorine-radical",
+                "label": "chlorine radical",
+                "atoms": [{ "id": "Cl1", "element": "Cl", "lonePairs": 3, "unpairedElectrons": 1 }]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "methyl-radical",
+                "label": "methyl radical",
+                "atoms": [{ "id": "C1", "element": "C", "implicitHydrogens": 3, "unpairedElectrons": 1 }]
+              }
+            },
+            {
+              "role": "byproduct",
+              "species": {
+                "id": "hydrogen-chloride",
+                "label": "hydrogen chloride",
+                "atoms": [
+                  { "id": "H1", "element": "H" },
+                  { "id": "Cl1", "element": "Cl", "lonePairs": 3 }
+                ],
+                "bonds": [{ "id": "b2", "a": "H1", "b": "Cl1", "order": 1 }]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,118 @@
+{
+  "schemaVersion": 2,
+  "id": "good-sn2-with-spectator-counterion",
+  "title": "Bromide displaces chloride from chloromethane by SN2, with sodium declared a spectator counterion",
+  "expect": {
+    "kind": "good"
+  },
+  "pathway": {
+    "id": "sn2-bromide-displaces-chloride",
+    "route": "sn2",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": {
+          "elementaryStep": "concerted_substitution",
+          "route": "sn2",
+          "reactionCenters": ["C1"]
+        },
+        "arrows": [
+          {
+            "id": "a1",
+            "electrons": 2,
+            "source": { "kind": "lonePair", "atomId": "Br1" },
+            "sink": { "kind": "betweenAtoms", "atomIds": ["Br1", "C1"] }
+          },
+          {
+            "id": "a2",
+            "electrons": 2,
+            "source": { "kind": "bond", "bondId": "b1" },
+            "sink": { "kind": "atom", "atomId": "Cl1" }
+          }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "chloromethane",
+                "label": "chloromethane",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "Cl1", "element": "Cl", "lonePairs": 3 }
+                ],
+                "bonds": [{ "id": "b1", "a": "C1", "b": "Cl1", "order": 1 }]
+              }
+            },
+            {
+              "role": "nucleophile",
+              "species": {
+                "id": "bromide",
+                "label": "bromide",
+                "atoms": [{ "id": "Br1", "element": "Br", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            },
+            {
+              "role": "counterion",
+              "species": {
+                "id": "sodium-counterion",
+                "label": "sodium cation",
+                "atoms": [{ "id": "Na1", "element": "Na", "formalCharge": 1 }]
+              }
+            }
+          ],
+          "spectators": [
+            {
+              "speciesId": "sodium-counterion",
+              "reason": "unreacting_counterion",
+              "justification": "Sodium balances the bromide charge and is not bonded to anything before or after the step. It is identical on both sides, so excluding it shifts neither total.",
+              "declaredBy": "phase-0-conservation-builder"
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "bromomethane",
+                "label": "bromomethane",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "Br1", "element": "Br", "lonePairs": 3 }
+                ],
+                "bonds": [{ "id": "b2", "a": "C1", "b": "Br1", "order": 1 }]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "chloride",
+                "label": "chloride",
+                "atoms": [{ "id": "Cl1", "element": "Cl", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            },
+            {
+              "role": "counterion",
+              "species": {
+                "id": "sodium-counterion",
+                "label": "sodium cation",
+                "atoms": [{ "id": "Na1", "element": "Na", "formalCharge": 1 }]
+              }
+            }
+          ],
+          "spectators": [
+            {
+              "speciesId": "sodium-counterion",
+              "reason": "unreacting_counterion",
+              "justification": "Sodium balances the bromide charge and is not bonded to anything before or after the step. It is identical on both sides, so excluding it shifts neither total.",
+              "declaredBy": "phase-0-conservation-builder"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

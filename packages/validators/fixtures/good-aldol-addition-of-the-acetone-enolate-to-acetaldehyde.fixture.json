@@ -1,0 +1,220 @@
+{
+  "schemaVersion": 2,
+  "id": "good-aldol-addition-of-the-acetone-enolate-to-acetaldehyde",
+  "title": "The acetone enolate attacks the carbonyl carbon of acetaldehyde through its alpha carbon, and water protonates the resulting alkoxide",
+  "expect": {
+    "kind": "good",
+    "note": "The carbon to carbon bond forming step, and the reason the enolate is drawn with its charge on oxygen: the nucleophilic atom is the alpha CARBON, so step 1 needs three arrows and not one. The oxygen lone pair pushes back into the C to O bond, the C to C pi pair makes the new bond to the aldehyde, and the aldehyde pi pair goes onto its own oxygen. Drawing only the middle arrow leaves the enolate oxygen with a charge it no longer has any reason to carry and the alpha carbon with five bonds. The enolate itself is made in good-enolate-formation-from-acetone-by-hydroxide and the condensation that follows is good-e1cb-elimination-of-a-beta-hydroxy-ketone-to-an-enone."
+  },
+  "pathway": {
+    "id": "aldol-addition-acetone-enolate-acetaldehyde",
+    "route": "nucleophilic_addition_carbonyl",
+    "steps": [
+      {
+        "id": "step-1-carbon-carbon-bond-formation",
+        "identity": { "elementaryStep": "nucleophilic_attack", "route": "nucleophilic_addition_carbonyl", "reactionCenters": ["C3", "C5"] },
+        "arrows": [
+          { "id": "a1", "electrons": 2, "source": { "kind": "lonePair", "atomId": "O1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["O1", "C2"] } },
+          { "id": "a2", "electrons": 2, "source": { "kind": "bond", "bondId": "b3" }, "sink": { "kind": "betweenAtoms", "atomIds": ["C3", "C5"] } },
+          { "id": "a3", "electrons": 2, "source": { "kind": "bond", "bondId": "b5" }, "sink": { "kind": "atom", "atomId": "O2" } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "nucleophile",
+              "species": {
+                "id": "acetone-enolate",
+                "label": "the acetone enolate",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C" },
+                  { "id": "O1", "element": "O", "formalCharge": -1, "lonePairs": 3 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 2 }
+                ],
+                "bonds": [
+                  { "id": "b1", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b2", "a": "C2", "b": "O1", "order": 1 },
+                  { "id": "b3", "a": "C2", "b": "C3", "order": 2 }
+                ]
+              }
+            },
+            {
+              "role": "electrophile",
+              "species": {
+                "id": "acetaldehyde",
+                "label": "acetaldehyde",
+                "atoms": [
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C5", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "O2", "element": "O", "lonePairs": 2 }
+                ],
+                "bonds": [
+                  { "id": "b4", "a": "C4", "b": "C5", "order": 1 },
+                  { "id": "b5", "a": "C5", "b": "O2", "order": 2 }
+                ]
+              }
+            },
+            {
+              "role": "solvent",
+              "species": {
+                "id": "water",
+                "label": "water",
+                "atoms": [
+                  { "id": "O3", "element": "O", "lonePairs": 2 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "H2", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b6", "a": "O3", "b": "H1", "order": 1 },
+                  { "id": "b7", "a": "O3", "b": "H2", "order": 1 }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "aldol-alkoxide",
+                "label": "the aldolate, alkoxide on the former aldehyde oxygen",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C" },
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C5", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "O2", "element": "O", "formalCharge": -1, "lonePairs": 3 }
+                ],
+                "bonds": [
+                  { "id": "b8", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b9", "a": "C2", "b": "O1", "order": 2 },
+                  { "id": "b10", "a": "C2", "b": "C3", "order": 1 },
+                  { "id": "b11", "a": "C3", "b": "C5", "order": 1 },
+                  { "id": "b12", "a": "C4", "b": "C5", "order": 1 },
+                  { "id": "b13", "a": "C5", "b": "O2", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "solvent",
+              "species": {
+                "id": "water",
+                "label": "water",
+                "atoms": [
+                  { "id": "O3", "element": "O", "lonePairs": 2 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "H2", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b6", "a": "O3", "b": "H1", "order": 1 },
+                  { "id": "b7", "a": "O3", "b": "H2", "order": 1 }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "step-2-protonation-of-the-alkoxide",
+        "identity": { "elementaryStep": "proton_transfer", "route": "nucleophilic_addition_carbonyl", "reactionCenters": ["O2", "H1", "O3"] },
+        "arrows": [
+          { "id": "a4", "electrons": 2, "source": { "kind": "lonePair", "atomId": "O2" }, "sink": { "kind": "betweenAtoms", "atomIds": ["O2", "H1"] } },
+          { "id": "a5", "electrons": 2, "source": { "kind": "bond", "bondId": "b6" }, "sink": { "kind": "atom", "atomId": "O3" } }
+        ],
+        "from": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "aldol-alkoxide",
+                "label": "the aldolate, alkoxide on the former aldehyde oxygen",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C" },
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C5", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "O2", "element": "O", "formalCharge": -1, "lonePairs": 3 }
+                ],
+                "bonds": [
+                  { "id": "b8", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b9", "a": "C2", "b": "O1", "order": 2 },
+                  { "id": "b10", "a": "C2", "b": "C3", "order": 1 },
+                  { "id": "b11", "a": "C3", "b": "C5", "order": 1 },
+                  { "id": "b12", "a": "C4", "b": "C5", "order": 1 },
+                  { "id": "b13", "a": "C5", "b": "O2", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "acid",
+              "species": {
+                "id": "water",
+                "label": "water",
+                "atoms": [
+                  { "id": "O3", "element": "O", "lonePairs": 2 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "H2", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b6", "a": "O3", "b": "H1", "order": 1 },
+                  { "id": "b7", "a": "O3", "b": "H2", "order": 1 }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s2",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "4-hydroxypentan-2-one",
+                "label": "4-hydroxypentan-2-one, the aldol",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C" },
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C5", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "O2", "element": "O", "lonePairs": 2 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b14", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b15", "a": "C2", "b": "O1", "order": 2 },
+                  { "id": "b16", "a": "C2", "b": "C3", "order": 1 },
+                  { "id": "b17", "a": "C3", "b": "C5", "order": 1 },
+                  { "id": "b18", "a": "C4", "b": "C5", "order": 1 },
+                  { "id": "b19", "a": "C5", "b": "O2", "order": 1 },
+                  { "id": "b20", "a": "O2", "b": "H1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "byproduct",
+              "species": {
+                "id": "hydroxide",
+                "label": "hydroxide, the catalyst handed back",
+                "atoms": [
+                  { "id": "O3", "element": "O", "formalCharge": -1, "lonePairs": 3 },
+                  { "id": "H2", "element": "H" }
+                ],
+                "bonds": [{ "id": "b21", "a": "O3", "b": "H2", "order": 1 }]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

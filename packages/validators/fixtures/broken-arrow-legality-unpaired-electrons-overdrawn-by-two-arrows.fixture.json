@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 2,
+  "id": "broken-arrow-legality-unpaired-electrons-overdrawn-by-two-arrows",
+  "title": "Two fishhook arrows each individually legal draw two electrons total from a nitrogen radical that carries only one unpaired electron",
+  "expect": {
+    "kind": "broken",
+    "mustFail": ["conservation-arrow-legality", "conservation-electron-flow"],
+    "note": "Adversary pass, Phase 1, attack surface 1. Rule unpaired_electrons_overdrawn had no negative control anywhere in the corpus, the third and last of the aggregate capacity rules alongside lone_pairs_overdrawn and source_bond_overdrawn. NRad carries exactly one unpaired electron and one lone pair, self consistent at formal charge +2, derived 5 - (2 + 1) - 0 = 2. Two fishhook arrows each source singleElectron(NRad) with electrons: 1, the only value a singleElectron source is allowed to carry, so single_electron_source_moved_a_pair does not fire on either arrow individually, and source_has_no_unpaired_electron does not fire either, NRad genuinely carries one. Each arrow alone is exactly the shape good-br2-homolysis-with-single-electron-fishhook-arrows proves is legal. Only together do they draw 2 electrons total from a pool of 1, and only the aggregate capacity pass at the end of arrowLegalityFindings sees the sum: unpairedElectronsDrawn[NRad] accumulates to 2, available is 1, and unpaired_electrons_overdrawn fires naming both arrow ids. The to state is byte identical to the from state, the same isolation pattern used across this attack surface. WHY ELECTRON-FLOW IS ALSO NAMED. declaredDeltas sums both arrows: NRad nonbonding falls by 2, an NRad-Na1 bond of 1 electron forms, an NRad-K1 bond of 1 electron forms. The unchanged to state shows none of that, so deltaMismatches reports all three. Mass, charge, and valence hold because every atom in both states is independently self consistent and the states are identical."
+  },
+  "pathway": {
+    "id": "arrow-legality-unpaired-electrons-overdrawn",
+    "route": "radical_addition",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": { "elementaryStep": "radical_recombination", "reactionCenters": ["NRad"] },
+        "arrows": [
+          { "id": "a1", "electrons": 1, "source": { "kind": "singleElectron", "atomId": "NRad" }, "sink": { "kind": "betweenAtoms", "atomIds": ["NRad", "Na1"] } },
+          { "id": "a2", "electrons": 1, "source": { "kind": "singleElectron", "atomId": "NRad" }, "sink": { "kind": "betweenAtoms", "atomIds": ["NRad", "K1"] } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "reagent",
+              "species": {
+                "id": "nitrogen-radical",
+                "label": "nitrogen carrying exactly one unpaired electron, a synthetic minimal atom chosen to make the one electron ceiling exact, not a realistic species",
+                "atoms": [{ "id": "NRad", "element": "N", "formalCharge": 2, "lonePairs": 1, "unpairedElectrons": 1 }]
+              }
+            },
+            {
+              "role": "counterion",
+              "species": {
+                "id": "sodium-cation",
+                "label": "sodium cation, one of the two sinks",
+                "atoms": [{ "id": "Na1", "element": "Na", "formalCharge": 1 }]
+              }
+            },
+            {
+              "role": "counterion",
+              "species": {
+                "id": "potassium-cation",
+                "label": "potassium cation, the other sink",
+                "atoms": [{ "id": "K1", "element": "K", "formalCharge": 1 }]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "reagent",
+              "species": {
+                "id": "nitrogen-radical",
+                "label": "nitrogen carrying exactly one unpaired electron, a synthetic minimal atom chosen to make the one electron ceiling exact, not a realistic species",
+                "atoms": [{ "id": "NRad", "element": "N", "formalCharge": 2, "lonePairs": 1, "unpairedElectrons": 1 }]
+              }
+            },
+            {
+              "role": "counterion",
+              "species": {
+                "id": "sodium-cation",
+                "label": "sodium cation, one of the two sinks",
+                "atoms": [{ "id": "Na1", "element": "Na", "formalCharge": 1 }]
+              }
+            },
+            {
+              "role": "counterion",
+              "species": {
+                "id": "potassium-cation",
+                "label": "potassium cation, the other sink",
+                "atoms": [{ "id": "K1", "element": "K", "formalCharge": 1 }]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,124 @@
+{
+  "schemaVersion": 2,
+  "id": "broken-annotation-e2-elimination-declared-at-a-gauche-dihedral",
+  "title": "The reference E2 with its dihedral declared at 60 degrees, gauche, which is neither syn nor anti periplanar",
+  "expect": {
+    "kind": "broken",
+    "mustFail": ["conservation-periplanarity-declaration"],
+    "note": "NEGATIVE CONTROL for conservation-periplanarity-declaration, periplanarity arm, cause e2_not_periplanar. CLAUDE.md: E2 requires periplanarity, dihedral near 0 or 180 degrees. 60 degrees is the gauche rotamer, which 2-bromobutane genuinely spends time in and genuinely does not eliminate from, because the C to H sigma bond and the C to Br sigma star are not aligned. Everything else in the file is the correct elimination, so this isolates the one geometric assertion this family makes about E2 from every arithmetic check around it. This is the one arm of the check that is a claim about chemistry rather than about whether somebody wrote something down."
+  },
+  "pathway": {
+    "id": "e2-ethoxide-2-bromobutane-gauche",
+    "route": "e2",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": { "elementaryStep": "concerted_elimination", "route": "e2", "reactionCenters": ["C2", "C3", "H1", "Br1"] },
+        "arrows": [
+          { "id": "a1", "electrons": 2, "source": { "kind": "lonePair", "atomId": "O1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["O1", "H1"] } },
+          { "id": "a2", "electrons": 2, "source": { "kind": "bond", "bondId": "b5" }, "sink": { "kind": "betweenAtoms", "atomIds": ["C3", "C2"] } },
+          { "id": "a3", "electrons": 2, "source": { "kind": "bond", "bondId": "b4" }, "sink": { "kind": "atom", "atomId": "Br1" } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "2-bromobutane",
+                "label": "2-bromobutane, C3 proton drawn explicitly",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "Br1", "element": "Br", "lonePairs": 3 }
+                ],
+                "bonds": [
+                  { "id": "b1", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b2", "a": "C2", "b": "C3", "order": 1 },
+                  { "id": "b3", "a": "C3", "b": "C4", "order": 1 },
+                  { "id": "b4", "a": "C2", "b": "Br1", "order": 1 },
+                  { "id": "b5", "a": "C3", "b": "H1", "order": 1 }
+                ],
+                "declaredTorsions": [
+                  {
+                    "atoms": ["H1", "C3", "C2", "Br1"],
+                    "degrees": 60,
+                    "justification": "The reacting conformer, not the only one. 2-bromobutane rotates freely about C2 to C3, and this fixture authors the rotamer the elimination happens in: H1 anti periplanar to bromide at 180 degrees, so the C to H sigma bond and the C to Br sigma star are aligned in one plane on opposite sides. That alignment is why anti is strongly preferred, and the rotation barrier is small enough that the substrate reaches this rotamer freely. Stated rather than computed, because this schema carries no coordinates and a conformer population is not something a fixture can derive."
+                  }
+                ]
+              }
+            },
+            {
+              "role": "base",
+              "species": {
+                "id": "ethoxide",
+                "label": "ethoxide",
+                "atoms": [
+                  { "id": "O1", "element": "O", "formalCharge": -1, "lonePairs": 3 },
+                  { "id": "C5", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C6", "element": "C", "implicitHydrogens": 3 }
+                ],
+                "bonds": [
+                  { "id": "b6", "a": "O1", "b": "C5", "order": 1 },
+                  { "id": "b7", "a": "C5", "b": "C6", "order": 1 }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "but-2-ene",
+                "label": "but-2-ene",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 }
+                ],
+                "bonds": [
+                  { "id": "b8", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b9", "a": "C2", "b": "C3", "order": 2 },
+                  { "id": "b10", "a": "C3", "b": "C4", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "byproduct",
+              "species": {
+                "id": "ethanol",
+                "label": "ethanol",
+                "atoms": [
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "C5", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C6", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b11", "a": "O1", "b": "C5", "order": 1 },
+                  { "id": "b12", "a": "C5", "b": "C6", "order": 1 },
+                  { "id": "b13", "a": "O1", "b": "H1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "bromide",
+                "label": "bromide",
+                "atoms": [{ "id": "Br1", "element": "Br", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

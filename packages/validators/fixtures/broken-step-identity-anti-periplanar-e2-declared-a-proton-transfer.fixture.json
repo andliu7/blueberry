@@ -1,0 +1,126 @@
+{
+  "schemaVersion": 2,
+  "id": "broken-step-identity-anti-periplanar-e2-declared-a-proton-transfer",
+  "title": "The reference anti periplanar E2, unchanged except that its step is declared proton_transfer while a bromide still departs in the same barrier",
+  "expect": {
+    "kind": "broken",
+    "mustFail": [
+      "conservation-step-identity"
+    ],
+    "note": "The negative control for the departure arm of conservation-step-identity, and the fixture that answers the adversary's own example of an E2 mislabelled proton_transfer. THE CHEMISTRY IS good-e2-anti-periplanar-ethoxide-and-2-bromobutane, ATOM FOR ATOM AND ARROW FOR ARROW. Ethoxide takes the C3 hydrogen, the C3 to H1 bonding pair becomes the C2 to C3 pi bond, and the C2 to Br1 pair leaves with bromide. Three arrows, one barrier, anti periplanar at 180 degrees with the torsion declared and justified. Mass, charge, valence, electron flow, arrow legality, proton budget and spectator declarations are all exactly as green as they are on the source fixture. The single edited field is identity.elementaryStep, which reads proton_transfer instead of concerted_elimination. WHY THE HYDRIDE RULE DOES NOT CATCH THIS, WHICH IS THE WHOLE REASON THE DEPARTURE RULE EXISTS. The hydrogen here really does move as a proton: ethoxide's own lone pair forms the O1 to H1 bond and the hydrogen arrives with nothing, so hydrogenMigrations reports mode donated and the proton against hydride arm is silent and correct to be. What gives the label away is arrow a3. The C2 to Br1 bond is a single bond between two heavy atoms, it breaks completely, and both of its electrons localise on Br1 as a lone pair. That is a leaving group departing in the same transition state as the deprotonation, and a step where a proton moves AND a leaving group departs is an elimination. A plain proton transfer breaks exactly one bond, the one to the hydrogen. WHAT THE RULE DELIBERATELY DOES NOT CATCH. An E1 beta deprotonation, good-e1-acid-catalysed-dehydration-of-tert-butanol step 3, also forms a pi bond while a proton leaves, and is correctly called a proton transfer, because nothing departs in that step: the leaving group went in the step before. The rule turns on the departure and not on the pi bond, which is why it stays silent there. WHAT SEPARATES THIS FROM A CONCERTED SUBSTITUTION IS NOT CHECKED EITHER: both have a departure, and telling an E2 from an SN2 by arrows alone is one of the discriminations step-identity.ts records that it does not attempt. The failure reports step_kind_disagrees_with_arrows, a cause added for exactly this and carrying its own authored copy. It accuses the label rather than the chemistry, because the arrows here are correct and only the name written on them is wrong."
+  },
+  "pathway": {
+    "id": "broken-e2-declared-proton-transfer",
+    "route": "e2",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": { "elementaryStep": "proton_transfer", "route": "e2", "reactionCenters": ["C2", "C3", "H1", "Br1"] },
+        "arrows": [
+          { "id": "a1", "electrons": 2, "source": { "kind": "lonePair", "atomId": "O1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["O1", "H1"] } },
+          { "id": "a2", "electrons": 2, "source": { "kind": "bond", "bondId": "b5" }, "sink": { "kind": "betweenAtoms", "atomIds": ["C3", "C2"] } },
+          { "id": "a3", "electrons": 2, "source": { "kind": "bond", "bondId": "b4" }, "sink": { "kind": "atom", "atomId": "Br1" } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "2-bromobutane",
+                "label": "2-bromobutane, C3 proton drawn explicitly",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "Br1", "element": "Br", "lonePairs": 3 }
+                ],
+                "bonds": [
+                  { "id": "b1", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b2", "a": "C2", "b": "C3", "order": 1 },
+                  { "id": "b3", "a": "C3", "b": "C4", "order": 1 },
+                  { "id": "b4", "a": "C2", "b": "Br1", "order": 1 },
+                  { "id": "b5", "a": "C3", "b": "H1", "order": 1 }
+                ],
+                "declaredTorsions": [
+                  {
+                    "atoms": ["H1", "C3", "C2", "Br1"],
+                    "degrees": 180,
+                    "justification": "The reacting conformer, not the only one. 2-bromobutane rotates freely about C2 to C3, and this fixture authors the rotamer the elimination happens in: H1 anti periplanar to bromide at 180 degrees, so the C to H sigma bond and the C to Br sigma star are aligned in one plane on opposite sides. That alignment is why anti is strongly preferred, and the rotation barrier is small enough that the substrate reaches this rotamer freely. Stated rather than computed, because this schema carries no coordinates and a conformer population is not something a fixture can derive."
+                  }
+                ]
+              }
+            },
+            {
+              "role": "base",
+              "species": {
+                "id": "ethoxide",
+                "label": "ethoxide",
+                "atoms": [
+                  { "id": "O1", "element": "O", "formalCharge": -1, "lonePairs": 3 },
+                  { "id": "C5", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C6", "element": "C", "implicitHydrogens": 3 }
+                ],
+                "bonds": [
+                  { "id": "b6", "a": "O1", "b": "C5", "order": 1 },
+                  { "id": "b7", "a": "C5", "b": "C6", "order": 1 }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "but-2-ene",
+                "label": "but-2-ene",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 }
+                ],
+                "bonds": [
+                  { "id": "b8", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b9", "a": "C2", "b": "C3", "order": 2 },
+                  { "id": "b10", "a": "C3", "b": "C4", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "byproduct",
+              "species": {
+                "id": "ethanol",
+                "label": "ethanol",
+                "atoms": [
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "C5", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C6", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b11", "a": "O1", "b": "C5", "order": 1 },
+                  { "id": "b12", "a": "C5", "b": "C6", "order": 1 },
+                  { "id": "b13", "a": "O1", "b": "H1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "bromide",
+                "label": "bromide",
+                "atoms": [{ "id": "Br1", "element": "Br", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

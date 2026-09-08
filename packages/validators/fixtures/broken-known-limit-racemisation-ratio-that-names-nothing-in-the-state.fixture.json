@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 2,
+  "id": "broken-known-limit-racemisation-ratio-that-names-nothing-in-the-state",
+  "title": "An SN1 capture carries a racemisation_ratio annotation whose value and justification are each one meaningless character, and conservation-stereorandom-annotation is satisfied",
+  "expect": {
+    "kind": "broken",
+    "mustFail": ["conservation-stereorandom-annotation"],
+    "note": "Adversary pass, Phase 1, attack surface 2. authoring.ts is explicit about what requiredAnnotationViolations asserts: 'Missing, duplicated, empty value, or empty justification. Nothing about content.' This fixture is that sentence made concrete. The pathway is the same SN1 capture shape as good-sn1-solvolysis-of-tert-butyl-bromide-in-water's step two, tert-butyl cation captured by water, correct arrows, correct structures, correct totals. The racemisation_ratio annotation carries value \"x\" and justification \"y\", one character each, non empty by the letter of trim() === \"\" and saying nothing whatsoever about ratios, ion pairing, or which configurations appear in the product set. conservation-stereorandom-annotation runs exactly two content-blind tests on it, found.length === 1 and both strings non empty after trim, and both pass. WHY THIS IS THE DESIGN, NOT A BUG, AND WHY IT IS FILED HERE ANYWAY. docs/VERIFICATION.md S1 and the check's own docstring are emphatic that grading the CONTENT of a racemisation ratio is the failure mode being prevented: 'A future edit that parses a number out of value and compares it against anything is the failure mode S1 was written to prevent.' So this is not proposed as something to fix. It is filed as the recorded boundary of what 'every SN1 capture carries a racemisation ratio' actually guarantees: that a human wrote SOME non empty string in the two fields, not that the string means anything, not that it is even about racemisation. A problem authored with this exact annotation would ship to a student with a claim that says nothing, and no check anywhere in this family would notice. CLOSED IN PART, Phase 1 builder pass two, and deliberately not closed the way the note above warns against. Nothing here parses the ratio, compares a number, or reads the claim for sense, because docs/VERIFICATION.md S1 is right that a check asserting a ratio fails on correct chemistry. The new rule is about REFERENCE rather than content: the value and justification together must name at least one atom id or species id from the capture step. Every honestly authored ratio in this corpus already does, including the two that say not applicable and then name the carbon they are not applicable at. The value x and the justification y name nothing at all, so the annotation is not even about this molecule. WHAT IS STILL NOT CHECKED, AND IS A HUMAN GATE: whether the stated range is right for this substrate, this solvent, and this leaving group. That is exactly the judgement S1 forbids a check from making."
+  },
+  "pathway": {
+    "id": "known-limit-stereorandom-one-character-ratio",
+    "route": "sn1",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": { "elementaryStep": "nucleophilic_attack", "route": "sn1", "reactionCenters": ["C1"] },
+        "arrows": [
+          { "id": "a1", "electrons": 2, "source": { "kind": "lonePair", "atomId": "O1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["O1", "C1"] } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "tert-butyl-cation",
+                "label": "tert-butyl cation",
+                "atoms": [
+                  { "id": "C1", "element": "C", "formalCharge": 1 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 }
+                ],
+                "bonds": [
+                  { "id": "b1", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b2", "a": "C1", "b": "C3", "order": 1 },
+                  { "id": "b3", "a": "C1", "b": "C4", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "solvent",
+              "species": {
+                "id": "water-nucleophile",
+                "label": "water",
+                "atoms": [
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "H2", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b4", "a": "O1", "b": "H1", "order": 1 },
+                  { "id": "b5", "a": "O1", "b": "H2", "order": 1 }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "tert-butyloxonium",
+                "label": "protonated tert-butanol",
+                "atoms": [
+                  { "id": "C1", "element": "C" },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "O1", "element": "O", "formalCharge": 1, "lonePairs": 1 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "H2", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b6", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b7", "a": "C1", "b": "C3", "order": 1 },
+                  { "id": "b8", "a": "C1", "b": "C4", "order": 1 },
+                  { "id": "b9", "a": "C1", "b": "O1", "order": 1 },
+                  { "id": "b10", "a": "O1", "b": "H1", "order": 1 },
+                  { "id": "b11", "a": "O1", "b": "H2", "order": 1 }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "annotations": [
+      {
+        "kind": "racemisation_ratio",
+        "value": "x",
+        "justification": "y"
+      }
+    ]
+  }
+}

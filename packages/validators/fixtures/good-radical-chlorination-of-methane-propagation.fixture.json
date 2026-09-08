@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 2,
+  "id": "good-radical-chlorination-of-methane-propagation",
+  "title": "The two propagation steps of methane chlorination: a chlorine radical abstracts hydrogen, and the methyl radical takes a chlorine from Cl2",
+  "expect": {
+    "kind": "good",
+    "note": "Six fishhooks and a chain that closes: the chlorine radical consumed in step 1 is regenerated in step 2, which is what makes this a chain rather than a reaction. Every step has one unpaired electron on each side, so nothing here is a proton transfer in the acid base sense even though a hydrogen moves; conservation-proton-transfer still tracks it as a hydrogen leaving one carrier for another, and it balances, which is the intended behaviour rather than an accident. Initiation and termination are not drawn, and that is an authored simplification: they are the steps with no regiochemistry in them."
+  },
+  "pathway": {
+    "id": "radical-chlorination-methane",
+    "route": "radical_halogenation",
+    "steps": [
+      {
+        "id": "step-1-hydrogen-abstraction",
+        "identity": { "elementaryStep": "radical_abstraction", "route": "radical_halogenation", "reactionCenters": ["C1", "H1", "Cl1"] },
+        "arrows": [
+          { "id": "a1", "electrons": 1, "source": { "kind": "singleElectron", "atomId": "Cl1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["Cl1", "H1"] } },
+          { "id": "a2", "electrons": 1, "source": { "kind": "bond", "bondId": "b1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["Cl1", "H1"] } },
+          { "id": "a3", "electrons": 1, "source": { "kind": "bond", "bondId": "b1" }, "sink": { "kind": "atom", "atomId": "C1" } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "methane",
+                "label": "methane, the abstracted hydrogen drawn explicitly",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [{ "id": "b1", "a": "C1", "b": "H1", "order": 1 }]
+              }
+            },
+            {
+              "role": "reagent",
+              "species": {
+                "id": "chlorine-radical",
+                "label": "chlorine radical",
+                "atoms": [{ "id": "Cl1", "element": "Cl", "lonePairs": 3, "unpairedElectrons": 1 }]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "methyl-radical",
+                "label": "methyl radical",
+                "atoms": [{ "id": "C1", "element": "C", "implicitHydrogens": 3, "unpairedElectrons": 1 }]
+              }
+            },
+            {
+              "role": "byproduct",
+              "species": {
+                "id": "hydrogen-chloride",
+                "label": "hydrogen chloride",
+                "atoms": [
+                  { "id": "H1", "element": "H" },
+                  { "id": "Cl1", "element": "Cl", "lonePairs": 3 }
+                ],
+                "bonds": [{ "id": "b2", "a": "H1", "b": "Cl1", "order": 1 }]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "step-2-chlorine-transfer",
+        "identity": { "elementaryStep": "radical_abstraction", "route": "radical_halogenation", "reactionCenters": ["C1", "Cl2", "Cl3"] },
+        "arrows": [
+          { "id": "a4", "electrons": 1, "source": { "kind": "singleElectron", "atomId": "C1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["C1", "Cl2"] } },
+          { "id": "a5", "electrons": 1, "source": { "kind": "bond", "bondId": "b3" }, "sink": { "kind": "betweenAtoms", "atomIds": ["C1", "Cl2"] } },
+          { "id": "a6", "electrons": 1, "source": { "kind": "bond", "bondId": "b3" }, "sink": { "kind": "atom", "atomId": "Cl3" } }
+        ],
+        "from": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "methyl-radical",
+                "label": "methyl radical",
+                "atoms": [{ "id": "C1", "element": "C", "implicitHydrogens": 3, "unpairedElectrons": 1 }]
+              }
+            },
+            {
+              "role": "reagent",
+              "species": {
+                "id": "chlorine",
+                "label": "chlorine",
+                "atoms": [
+                  { "id": "Cl2", "element": "Cl", "lonePairs": 3 },
+                  { "id": "Cl3", "element": "Cl", "lonePairs": 3 }
+                ],
+                "bonds": [{ "id": "b3", "a": "Cl2", "b": "Cl3", "order": 1 }]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s2",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "chloromethane",
+                "label": "chloromethane",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "Cl2", "element": "Cl", "lonePairs": 3 }
+                ],
+                "bonds": [{ "id": "b4", "a": "C1", "b": "Cl2", "order": 1 }]
+              }
+            },
+            {
+              "role": "byproduct",
+              "species": {
+                "id": "chlorine-radical-regenerated",
+                "label": "chlorine radical, handed back to the chain",
+                "atoms": [{ "id": "Cl3", "element": "Cl", "lonePairs": 3, "unpairedElectrons": 1 }]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

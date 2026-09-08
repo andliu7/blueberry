@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 2,
+  "id": "good-known-limit-arrow-legality-departing-bond-pair-handed-directly-to-a-non-donating-nucleophile",
+  "title": "Chloromethane's own C-Cl bonding pair is drawn moving directly into a new C-Br bond, with bromide contributing nothing and chloride keeping its full lone pair count on departure",
+  "expect": {
+    "kind": "good",
+    "note": "Adversary pass, Phase 1, attack surface 1, THE DOCUMENTED KNOWN LIMIT. legality.ts says so itself, and broken-arrow-legality-sn2-with-swapped-arrows-producing-identical-declared-deltas's own note names the exact gap and leaves it as adversary work for the next pass: arrow a1 in that fixture has the shape bond(A,B) -> between(A,C), sharing the pivot atom, 'exactly the shape of a legitimate pi bond attack and of a legitimate 1,2 shift... telling a1 apart from those needs to know that Br1 is an anion with a full octet rather than an electrophile, which is reactivity modelling and not arrow geometry... a fixture that isolates a1 with a2 removed would still pass this check, and building one is adversary work for the next pass.' This is that fixture, isolated to one arrow, and it is filed GOOD on purpose: it is the deliverable even though it is green, a permanent record of what a green arrow-legality run does not mean. THE CHEMISTRY, WHICH IS NONSENSE. One arrow: bond(b1, the C1-Cl1 bond) sources into betweenAtoms(C1, Br1), a new C1-Br1 bond. This says the leaving group's own bonding pair becomes the incoming anion's bond directly, with bromide never donating a lone pair of its own and chloride never receiving the pair it is owed for leaving. A chemist would reject this on sight: bromide already has a full octet and nothing to gain by accepting a bond built entirely from someone else's electrons, and a departing halide that keeps every one of its lone pairs while losing its bond becomes a chlorine cation, Cl+, which is not what heterolysis of an alkyl halide produces. WHY EVERY CHECK PASSES ANYWAY. Cl1 in the to state keeps its three lone pairs unchanged and its bond gone, so its declared formal charge is +1 to stay self consistent, derived 7 - 6 - 0 = 1: an unphysical Cl+ with 3 lone pairs, exactly what handing away a bond without receiving its electrons back produces on paper. Br1 keeps its four lone pairs unchanged and gains a bond, so its declared formal charge is -2, derived 7 - 8 - 1 = -2: an unphysical Br2- accepting a bond it paid nothing for. Individually absurd, and yet the multiset total charge is conserved exactly, -1 before over chloromethane (0) plus bromide (-1), and -1 after over Cl1 (+1) plus the C1-Br1 species (0 + -2), so conservation-charge is silent. Mass is untouched, the same three atoms are present both sides. conservation-electron-flow agrees because the to state was authored to be exactly what this one arrow declares: the C1-Cl1 bond's two electrons become the C1-Br1 bond's two electrons, nothing else moves, and declaredDeltas and observedDeltas agree bond for bond. conservation-valence passes because every atom's declared charge equals its structurally derived charge in both states, and every valence electron count sits under its element's ceiling, Br1's ten electrons around it in the to state sit under bromine's twelve electron ceiling, a period three atom, so no ceiling rule catches the absurdity either. conservation-arrow-legality itself passes because adjacency is a claim about which atom the electrons pivot around, not about which atom chemistry says should keep them: sources {C1, Cl1} and sink {C1, Br1} share C1, which is exactly the shape legality.ts documents as indistinguishable from a legitimate pi bond attack or 1,2 shift. Proton transfer and spectator declaration have nothing to say, there are no hydrogens and no declared spectators. THE LESSON. A green conservation-arrow-legality run proves every arrow is geometrically drawable. It does not and structurally cannot prove that the arrow describes a chemically sensible transfer of electron density from a real donor to a real acceptor, because that is reactivity modelling, and legality.ts is explicit that reactivity modelling is a different, unbuilt family. STILL OPEN AFTER THE PHASE 1 BUILDER PASS TWO, DELIBERATELY. That pass added conservation-step-identity, which derives what a step is from its arrows and contradicts the declared elementaryStep when the two disagree, and it does not close this. The label here is bond_heterolysis and a heterolysis is what the arrow describes: a two electron step in which one bond's pair moves as a unit. Every rule in the new check is satisfied. The reaction centre is touched by the arrow, no fishhook appears in a polar step, no hydrogen migrates at all, and the departure rule only ever runs on a step declared a proton transfer. WHAT WOULD CLOSE IT is unchanged from the note above and is unchanged by this pass: knowing that Br1 is a full octet anion with nothing to gain rather than an electrophile, which is reactivity modelling. Step identity reads electron flow and does not rank the chemical roles of the atoms at either end of it, and a rule that guessed at those roles would fail on the pi bond attacks and 1,2 shifts that share this arrow shape."
+  },
+  "pathway": {
+    "id": "known-limit-departing-bond-pair-to-non-donating-nucleophile",
+    "route": "sn2",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": { "elementaryStep": "bond_heterolysis", "route": "sn2", "reactionCenters": ["C1"] },
+        "arrows": [
+          { "id": "a1", "electrons": 2, "source": { "kind": "bond", "bondId": "b1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["C1", "Br1"] } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "chloromethane",
+                "label": "chloromethane",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "Cl1", "element": "Cl", "lonePairs": 3 }
+                ],
+                "bonds": [{ "id": "b1", "a": "C1", "b": "Cl1", "order": 1 }]
+              }
+            },
+            {
+              "role": "nucleophile",
+              "species": {
+                "id": "bromide",
+                "label": "bromide, a full octet anion that donates nothing here",
+                "atoms": [{ "id": "Br1", "element": "Br", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "methyl-bromide-built-from-a-borrowed-pair",
+                "label": "the C1-Br1 bond built entirely from chloromethane's own departing pair, bromide unchanged in electron count",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "Br1", "element": "Br", "formalCharge": -2, "lonePairs": 4 }
+                ],
+                "bonds": [{ "id": "b2", "a": "C1", "b": "Br1", "order": 1 }]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "unphysical-chlorine-cation",
+                "label": "chlorine that departed keeping every lone pair it had, an unphysical Cl+ rather than the chloride a real heterolysis produces",
+                "atoms": [{ "id": "Cl1", "element": "Cl", "formalCharge": 1, "lonePairs": 3 }]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

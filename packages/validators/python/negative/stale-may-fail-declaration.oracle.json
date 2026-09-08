@@ -1,0 +1,45 @@
+{
+  "protocol": "blueberry-oracle-corpus",
+  "version": 1,
+  "name": "stale-may-fail-declaration",
+  "description": "Methane, which sanitises perfectly, carrying a declaration that it might not. A stale escape hatch is how an escape hatch becomes a blanket one.",
+  "sequences": [
+    {
+      "id": "methane-with-stale-declaration",
+      "description": "Must fail oracle-sanitization.",
+      "aromaticityInvariantAtomIds": [],
+      "states": [
+        {
+          "id": "state-0",
+          "sanitizationMayFail": {
+            "expectedError": "AtomValenceException",
+            "justification": "Deliberately stale. Nothing in methane can fail sanitisation.",
+            "declaredBy": "packages/validators/python/negative/README.md"
+          },
+          "species": [
+            {
+              "id": "sp-1",
+              "label": "methane",
+              "expect": {
+                "meso": false
+              },
+              "atoms": [
+                {
+                  "id": "c1",
+                  "element": "C",
+                  "isotope": null,
+                  "formalCharge": 0,
+                  "lonePairs": 0,
+                  "unpairedElectrons": 0,
+                  "implicitHydrogens": 4,
+                  "stereo": null
+                }
+              ],
+              "bonds": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

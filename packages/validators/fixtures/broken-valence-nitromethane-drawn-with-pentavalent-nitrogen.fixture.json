@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 2,
+  "id": "broken-valence-nitromethane-drawn-with-pentavalent-nitrogen",
+  "title": "Hydroxide deprotonates nitromethane, but the nitro group is drawn with two N=O double bonds, putting ten valence electrons on a period two nitrogen",
+  "expect": {
+    "kind": "broken",
+    "mustFail": ["conservation-valence"],
+    "note": "The nitro group is drawn the way it is often drawn by hand, O=N=O, instead of the charge separated form with an N+ and an O-. Every atom's declared formal charge still agrees with its structure, so assertion 1 of conservation-valence is silent and only the octet ceiling fires: N1 carries a bond order sum of 5 and therefore 10 valence electrons, against a ceiling of 8 for period two. Nothing else in the step is wrong. Mass, charge, valence electron totals, the arrow to state comparison, and the proton budget all balance exactly, so this fixture isolates the octet assertion from the five other checks."
+  },
+  "pathway": {
+    "id": "nitromethane-deprotonation-pentavalent-nitrogen",
+    "route": "acid_base_proton_transfer",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": {
+          "elementaryStep": "proton_transfer",
+          "route": "acid_base_proton_transfer",
+          "reactionCenters": ["C1", "H1", "O3"]
+        },
+        "arrows": [
+          {
+            "id": "a1",
+            "electrons": 2,
+            "source": { "kind": "lonePair", "atomId": "O3" },
+            "sink": { "kind": "betweenAtoms", "atomIds": ["O3", "H1"] }
+          },
+          {
+            "id": "a2",
+            "electrons": 2,
+            "source": { "kind": "bond", "bondId": "b1" },
+            "sink": { "kind": "atom", "atomId": "C1" }
+          }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "nitromethane",
+                "label": "nitromethane, nitro group drawn with two double bonds",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "N1", "element": "N" },
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "O2", "element": "O", "lonePairs": 2 }
+                ],
+                "bonds": [
+                  { "id": "b1", "a": "C1", "b": "H1", "order": 1 },
+                  { "id": "b2", "a": "C1", "b": "N1", "order": 1 },
+                  { "id": "b3", "a": "N1", "b": "O1", "order": 2 },
+                  { "id": "b4", "a": "N1", "b": "O2", "order": 2 }
+                ]
+              }
+            },
+            {
+              "role": "base",
+              "species": {
+                "id": "hydroxide",
+                "label": "hydroxide",
+                "atoms": [
+                  { "id": "O3", "element": "O", "formalCharge": -1, "lonePairs": 3, "implicitHydrogens": 1 }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "nitromethanide",
+                "label": "nitromethanide carbanion, nitro group drawn with two double bonds",
+                "atoms": [
+                  { "id": "C1", "element": "C", "formalCharge": -1, "lonePairs": 1, "implicitHydrogens": 2 },
+                  { "id": "N1", "element": "N" },
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "O2", "element": "O", "lonePairs": 2 }
+                ],
+                "bonds": [
+                  { "id": "b5", "a": "C1", "b": "N1", "order": 1 },
+                  { "id": "b6", "a": "N1", "b": "O1", "order": 2 },
+                  { "id": "b7", "a": "N1", "b": "O2", "order": 2 }
+                ]
+              }
+            },
+            {
+              "role": "byproduct",
+              "species": {
+                "id": "water",
+                "label": "water",
+                "atoms": [
+                  { "id": "O3", "element": "O", "lonePairs": 2, "implicitHydrogens": 1 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [{ "id": "b8", "a": "O3", "b": "H1", "order": 1 }]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

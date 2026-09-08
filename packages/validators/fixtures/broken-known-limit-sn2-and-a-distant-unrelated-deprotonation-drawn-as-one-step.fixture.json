@@ -1,0 +1,364 @@
+{
+  "schemaVersion": 2,
+  "id": "broken-known-limit-sn2-and-a-distant-unrelated-deprotonation-drawn-as-one-step",
+  "title": "An SN2 at C1 and an unrelated hydroxide deprotonation of a distant alcohol at O1 are drawn as a single elementary step, and nothing in this family notices they are two barriers",
+  "expect": {
+    "kind": "broken",
+    "note": "Adversary pass two, Phase 1, item 4. chem-core carries a cause for exactly this, step_not_elementary: 'Several separate steps are drawn as one... Bond formation and an unrelated proton transfer are two barriers, so they are two steps, even when both are inevitable.' routes.ts states the same rule at the definition of ElementaryStepKind. Nothing in packages/validators emits it. This fixture is the case that would fail if such a check existed, filed good because it is not caught and cannot honestly be declared broken: family.ts fails a broken fixture whose mustFail names a check that reports zero violations, and every one of the eleven checks reports zero here. THE CHEMISTRY. 4-bromobutan-1-ol reacts with cyanide AND hydroxide at once. Cyanide performs an ordinary SN2 at C1, identical in shape to good-sn2-cyanide-displaces-iodide-from-iodomethane: lonePair(CN1) -> between(CN1, C1), bond(C1-Br1) -> atom(Br1). Simultaneously, in the SAME declared step, hydroxide deprotonates the unrelated, four-carbons-away hydroxyl at O1, identical in shape to good-deprotonation-of-methanol-by-hydroxide: lonePair(O2) -> between(O2, H1), bond(O1-H1) -> atom(O1). These are two independent bimolecular events at unrelated sites, involving two different reagents, that cannot physically share one transition state: nothing connects the developing negative charge at O1 to the developing bond at C1. It is textbook step_not_elementary. WHY EVERY CHECK IS SILENT. Each of the four arrows is, on its own, exactly the shape a real elementary step uses elsewhere in this corpus, so conservation-arrow-legality passes each one individually, the way it is designed to: it never asks whether the arrows belong together, only whether each is drawable. conservation-electron-flow sums declared deltas against observed deltas over the WHOLE multiset, and since both halves of this fixture are individually correct chemistry, the totals agree exactly, the same reason two individually-correct half-reactions summed together cannot trip an aggregate arithmetic check. conservation-mass, conservation-charge and conservation-valence are silent for the same reason: every atom, in both states, is internally consistent, and the multiset total is conserved (C5H10BrNO2, charge -2, on both sides). conservation-proton-transfer tracks total attached hydrogens gained against lost and asks only that donor and acceptor are participating members: O1 loses one attached hydrogen, O2 gains one, both are drawn, so it is silent. conservation-step-identity is the check that was built to catch a mislabelled step, and its own docstring lists 'concerted_substitution from a two step sequence drawn as one' under WHAT IT CANNOT DISCRIMINATE, so this is not an oversight so much as a documented edge of its four conditions: the reaction-centre rule only asks that every DECLARED centre is touched by some arrow, never that every touched atom is declared, so declaring reactionCenters as just [C1, O1] satisfies it; the polarity rule and the two hydrogen rules only fire for kinds and shapes this step does not present (concerted_substitution is polar-only and every arrow here moves a pair, so the fishhook rule is silent; PROTON_KINDS gates both hydrogen rules and concerted_substitution is not one, so the O1-H1 half of this step, which really is an ordinary proton transfer bolted onto an unrelated substitution, is never even examined by the rule that exists to examine proton transfers). WHAT WOULD CLOSE IT. A check that partitions a step's arrows into weakly connected components by shared atom and fails when more than one component exists and no single ElementaryStepKind in the schema is inherently multi centre (concerted eliminations and additions legitimately touch several atoms in one barrier, so the partition would have to be by REACHABILITY through bonds that are changing together, not by atom count). That is new engine logic, not a fixture, and it is out of this adversary's write scope. RECLASSIFIED BROKEN, PHASE 1 BUILDER, AFTER THE CHECK WAS BUILT. conservation-step-elementarity is that check and this file is its negative control. It groups a step's arrows so that two arrows are together whenever they share an atom, transitively, and then merges groups that come within three bonds of each other in the from state. Here a1 and a2 share C1 and a3 and a4 share H1, so there are two groups, {Br1, C1, CN1} and {H1, O1, O2}, and the closest approach between them is C1 to O1 at four bonds. That is one bond further than the three a six membered cyclic transition state spans, so nothing in this drawing connects the two events and the file claims one barrier where it has drawn two. It is emitted as step_not_elementary, which chem-core has carried since Phase 1 and which nothing could reach until now. The other eleven checks are still silent on this fixture, exactly as the analysis above says they must be, which is what makes it a clean single check negative control.",
+    "mustFail": [
+      "conservation-step-elementarity"
+    ]
+  },
+  "pathway": {
+    "id": "known-limit-sn2-and-distant-deprotonation-one-step",
+    "route": "sn2",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": {
+          "elementaryStep": "concerted_substitution",
+          "route": "sn2",
+          "reactionCenters": [
+            "C1",
+            "O1"
+          ]
+        },
+        "arrows": [
+          {
+            "id": "a1",
+            "electrons": 2,
+            "source": {
+              "kind": "lonePair",
+              "atomId": "CN1"
+            },
+            "sink": {
+              "kind": "betweenAtoms",
+              "atomIds": [
+                "CN1",
+                "C1"
+              ]
+            }
+          },
+          {
+            "id": "a2",
+            "electrons": 2,
+            "source": {
+              "kind": "bond",
+              "bondId": "b6"
+            },
+            "sink": {
+              "kind": "atom",
+              "atomId": "Br1"
+            }
+          },
+          {
+            "id": "a3",
+            "electrons": 2,
+            "source": {
+              "kind": "lonePair",
+              "atomId": "O2"
+            },
+            "sink": {
+              "kind": "betweenAtoms",
+              "atomIds": [
+                "O2",
+                "H1"
+              ]
+            }
+          },
+          {
+            "id": "a4",
+            "electrons": 2,
+            "source": {
+              "kind": "bond",
+              "bondId": "b5"
+            },
+            "sink": {
+              "kind": "atom",
+              "atomId": "O1"
+            }
+          }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "4-bromobutan-1-ol",
+                "label": "4-bromobutan-1-ol",
+                "atoms": [
+                  {
+                    "id": "C1",
+                    "element": "C",
+                    "implicitHydrogens": 2
+                  },
+                  {
+                    "id": "C2",
+                    "element": "C",
+                    "implicitHydrogens": 2
+                  },
+                  {
+                    "id": "C3",
+                    "element": "C",
+                    "implicitHydrogens": 2
+                  },
+                  {
+                    "id": "C4",
+                    "element": "C",
+                    "implicitHydrogens": 2
+                  },
+                  {
+                    "id": "O1",
+                    "element": "O",
+                    "lonePairs": 2
+                  },
+                  {
+                    "id": "H1",
+                    "element": "H"
+                  },
+                  {
+                    "id": "Br1",
+                    "element": "Br",
+                    "lonePairs": 3
+                  }
+                ],
+                "bonds": [
+                  {
+                    "id": "b1",
+                    "a": "C1",
+                    "b": "C2",
+                    "order": 1
+                  },
+                  {
+                    "id": "b2",
+                    "a": "C2",
+                    "b": "C3",
+                    "order": 1
+                  },
+                  {
+                    "id": "b3",
+                    "a": "C3",
+                    "b": "C4",
+                    "order": 1
+                  },
+                  {
+                    "id": "b4",
+                    "a": "C4",
+                    "b": "O1",
+                    "order": 1
+                  },
+                  {
+                    "id": "b5",
+                    "a": "O1",
+                    "b": "H1",
+                    "order": 1
+                  },
+                  {
+                    "id": "b6",
+                    "a": "C1",
+                    "b": "Br1",
+                    "order": 1
+                  }
+                ]
+              }
+            },
+            {
+              "role": "nucleophile",
+              "species": {
+                "id": "cyanide",
+                "label": "cyanide",
+                "atoms": [
+                  {
+                    "id": "CN1",
+                    "element": "C",
+                    "formalCharge": -1,
+                    "lonePairs": 1
+                  },
+                  {
+                    "id": "NN1",
+                    "element": "N",
+                    "lonePairs": 1
+                  }
+                ],
+                "bonds": [
+                  {
+                    "id": "b7",
+                    "a": "CN1",
+                    "b": "NN1",
+                    "order": 3
+                  }
+                ]
+              }
+            },
+            {
+              "role": "base",
+              "species": {
+                "id": "hydroxide",
+                "label": "hydroxide",
+                "atoms": [
+                  {
+                    "id": "O2",
+                    "element": "O",
+                    "formalCharge": -1,
+                    "lonePairs": 3
+                  },
+                  {
+                    "id": "H2",
+                    "element": "H"
+                  }
+                ],
+                "bonds": [
+                  {
+                    "id": "b8",
+                    "a": "O2",
+                    "b": "H2",
+                    "order": 1
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "4-cyanobutan-1-olate",
+                "label": "4-cyanobutan-1-olate",
+                "atoms": [
+                  {
+                    "id": "C1",
+                    "element": "C",
+                    "implicitHydrogens": 2
+                  },
+                  {
+                    "id": "C2",
+                    "element": "C",
+                    "implicitHydrogens": 2
+                  },
+                  {
+                    "id": "C3",
+                    "element": "C",
+                    "implicitHydrogens": 2
+                  },
+                  {
+                    "id": "C4",
+                    "element": "C",
+                    "implicitHydrogens": 2
+                  },
+                  {
+                    "id": "O1",
+                    "element": "O",
+                    "formalCharge": -1,
+                    "lonePairs": 3
+                  },
+                  {
+                    "id": "CN1",
+                    "element": "C"
+                  },
+                  {
+                    "id": "NN1",
+                    "element": "N",
+                    "lonePairs": 1
+                  }
+                ],
+                "bonds": [
+                  {
+                    "id": "b9",
+                    "a": "C1",
+                    "b": "C2",
+                    "order": 1
+                  },
+                  {
+                    "id": "b10",
+                    "a": "C2",
+                    "b": "C3",
+                    "order": 1
+                  },
+                  {
+                    "id": "b11",
+                    "a": "C3",
+                    "b": "C4",
+                    "order": 1
+                  },
+                  {
+                    "id": "b12",
+                    "a": "C4",
+                    "b": "O1",
+                    "order": 1
+                  },
+                  {
+                    "id": "b13",
+                    "a": "C1",
+                    "b": "CN1",
+                    "order": 1
+                  },
+                  {
+                    "id": "b14",
+                    "a": "CN1",
+                    "b": "NN1",
+                    "order": 3
+                  }
+                ]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "bromide",
+                "label": "bromide",
+                "atoms": [
+                  {
+                    "id": "Br1",
+                    "element": "Br",
+                    "formalCharge": -1,
+                    "lonePairs": 4
+                  }
+                ]
+              }
+            },
+            {
+              "role": "byproduct",
+              "species": {
+                "id": "water",
+                "label": "water",
+                "atoms": [
+                  {
+                    "id": "O2",
+                    "element": "O",
+                    "lonePairs": 2
+                  },
+                  {
+                    "id": "H1",
+                    "element": "H"
+                  },
+                  {
+                    "id": "H2",
+                    "element": "H"
+                  }
+                ],
+                "bonds": [
+                  {
+                    "id": "b15",
+                    "a": "O2",
+                    "b": "H1",
+                    "order": 1
+                  },
+                  {
+                    "id": "b16",
+                    "a": "O2",
+                    "b": "H2",
+                    "order": 1
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

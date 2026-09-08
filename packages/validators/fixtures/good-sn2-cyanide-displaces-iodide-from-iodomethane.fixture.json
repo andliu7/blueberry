@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 2,
+  "id": "good-sn2-cyanide-displaces-iodide-from-iodomethane",
+  "title": "Cyanide attacks iodomethane through carbon, not nitrogen, displacing iodide in one concerted SN2 step",
+  "expect": {
+    "kind": "good",
+    "note": "The ambident nucleophile case. Cyanide carries a lone pair on carbon and a lone pair on nitrogen and the arrow is drawn from carbon, which is the reactive end and which is why the product is a nitrile rather than an isonitrile. Nitrogen's lone pair is present in the state and untouched, so the arrow that was NOT drawn is visible in the fixture."
+  },
+  "pathway": {
+    "id": "sn2-cyanide-iodomethane",
+    "route": "sn2",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": { "elementaryStep": "concerted_substitution", "route": "sn2", "reactionCenters": ["C1"] },
+        "arrows": [
+          { "id": "a1", "electrons": 2, "source": { "kind": "lonePair", "atomId": "CN1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["CN1", "C1"] } },
+          { "id": "a2", "electrons": 2, "source": { "kind": "bond", "bondId": "b1" }, "sink": { "kind": "atom", "atomId": "I1" } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "iodomethane",
+                "label": "iodomethane",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "I1", "element": "I", "lonePairs": 3 }
+                ],
+                "bonds": [{ "id": "b1", "a": "C1", "b": "I1", "order": 1 }]
+              }
+            },
+            {
+              "role": "nucleophile",
+              "species": {
+                "id": "cyanide",
+                "label": "cyanide",
+                "atoms": [
+                  { "id": "CN1", "element": "C", "formalCharge": -1, "lonePairs": 1 },
+                  { "id": "NN1", "element": "N", "lonePairs": 1 }
+                ],
+                "bonds": [{ "id": "b2", "a": "CN1", "b": "NN1", "order": 3 }]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "acetonitrile",
+                "label": "acetonitrile",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "CN1", "element": "C" },
+                  { "id": "NN1", "element": "N", "lonePairs": 1 }
+                ],
+                "bonds": [
+                  { "id": "b3", "a": "C1", "b": "CN1", "order": 1 },
+                  { "id": "b4", "a": "CN1", "b": "NN1", "order": 3 }
+                ]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "iodide",
+                "label": "iodide",
+                "atoms": [{ "id": "I1", "element": "I", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

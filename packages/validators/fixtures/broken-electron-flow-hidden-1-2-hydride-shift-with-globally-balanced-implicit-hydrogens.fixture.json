@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 2,
+  "id": "broken-electron-flow-hidden-1-2-hydride-shift-with-globally-balanced-implicit-hydrogens",
+  "title": "The ethyl cation automerises, the hydride moving from C1 to C2 with no arrow drawn, and the implicit hydrogen counts happen to balance within the single species so mass, charge, valence, and proton transfer all read as conserved",
+  "expect": {
+    "kind": "broken",
+    "mustFail": ["conservation-electron-flow"],
+    "note": "A harder variant of docs/VERIFICATION.md S5. The existing S5 fixture, broken-mass-methane-loses-a-hydrogen-that-lives-only-in-the-implicit-count, loses a hydrogen to nowhere, so the nuclide multiset itself moves and conservation-mass fires alongside electron-flow and proton-transfer. This fixture never lets the multiset move at all: C1 loses one implicit hydrogen exactly as C2 gains one, inside a single species, with zero arrows. The two states are CH3-CH2(+) and (+)CH2-CH3, the same ethyl cation with the charge and the hydrogen relocated one carbon over, which is a real elementary step, a 1,2-hydride shift, and carbocation_rearrangement is a real route for it. But it is drawn as if it were free, an unexplained jump between two states with no hydride_shift arrow anywhere in the step. conservation-mass sees H5 C2 on both sides and is silent, not even the S5 diagnostic line fires, because the top level nuclide difference is empty before that diagnostic is ever reached. conservation-charge sees total charge +1 on both sides and is silent. conservation-valence is silent atom by atom: C1 is a neutral CH3 attached to a cation (derived formal charge 0, valence electrons around it 8) before, and a CH2+ (derived formal charge +1, 6 around it) after, and C2 is the mirror image, and every declared formalCharge matches what bondOrderSumAt and nonbondingElectrons imply, because implicitHydrogens counts fully into bondOrderSumAt on purpose. conservation-proton-transfer is silent because it only asks whether hydrogens gained equal hydrogens lost inside the step, with no requirement that an arrow explain the movement: C1 loses exactly the one hydrogen C2 gains, both atoms are in the one participating species, and the check has nothing left to say. The only check that cannot be satisfied is conservation-electron-flow, and only through the implicit hydrogen arm of assertion 3: implicit hydrogen deltas are always declared as zero because no arrow can express one, so C1's observed delta of -1 and C2's observed delta of +1 are each reported standing alone with cause implicit_hydrogen_changed_without_arrow, one violation per atom, even though every other quantity these two atoms carry, nonbonding electrons and bonding electrons, is unchanged and would pass on its own. This is worth having as its own fixture rather than folding into the existing S5 one, because it isolates a materially different claim: conservation-proton-transfer, the check named for hydrogen movement, provides no defence whatsoever against an unarrowed hydride shift the moment the source and the sink are two atoms in the same step that happen to balance each other, and the only backstop is electron-flow's blanket rule that any implicit hydrogen count that moves at all is automatically unaccounted for."
+  },
+  "pathway": {
+    "id": "ethyl-cation-automerization-without-an-arrow",
+    "route": "carbocation_rearrangement",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": {
+          "elementaryStep": "hydride_shift",
+          "route": "carbocation_rearrangement",
+          "reactionCenters": ["C1", "C2"]
+        },
+        "arrows": [],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "ethyl-cation",
+                "label": "ethyl cation, charge on C2",
+                "atoms": [
+                  { "id": "C1", "element": "C", "formalCharge": 0, "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "formalCharge": 1, "implicitHydrogens": 2 }
+                ],
+                "bonds": [{ "id": "b1", "a": "C1", "b": "C2", "order": 1 }]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "ethyl-cation",
+                "label": "ethyl cation, charge on C1",
+                "atoms": [
+                  { "id": "C1", "element": "C", "formalCharge": 1, "implicitHydrogens": 2 },
+                  { "id": "C2", "element": "C", "formalCharge": 0, "implicitHydrogens": 3 }
+                ],
+                "bonds": [{ "id": "b1", "a": "C1", "b": "C2", "order": 1 }]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

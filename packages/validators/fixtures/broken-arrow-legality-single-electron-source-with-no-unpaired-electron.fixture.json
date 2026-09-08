@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 2,
+  "id": "broken-arrow-legality-single-electron-source-with-no-unpaired-electron",
+  "title": "A fishhook arrow claims a single electron source on a closed shell chloride anion, which has no unpaired electron",
+  "expect": {
+    "kind": "broken",
+    "mustFail": ["conservation-arrow-legality", "conservation-electron-flow"],
+    "note": "Adversary pass, Phase 1, attack surface 1. Rule source_has_no_unpaired_electron had no negative control anywhere in the corpus. Chloride is a closed shell anion, four lone pairs, zero unpaired electrons, formal charge -1, derived 7 - 8 - 0 = -1, matching. The arrow claims a singleElectron source on Cl1 and sinks it as a new bond between Cl1 and a separate sodium cation. The to state is byte identical to the from state, the same isolation pattern used across this attack surface. WHY BOTH CHECKS ARE NAMED. arrow-legality's SOURCE DENSITY rule reads Cl1.unpairedElectrons, finds 0, and reports source_has_no_unpaired_electron; this arrow carries electrons: 1, which is the number a singleElectron source is required to carry, so single_electron_source_moved_a_pair does not also fire here, keeping this fixture isolated to one rule. Adjacency is otherwise legal: Cl1 is the pivot shared between the singleElectron source {Cl1} and the betweenAtoms sink {Cl1, Na1}, matching the radical recombination shape legality.ts documents, which is why a real closed shell anion was needed rather than a nonresolving id: the finding is that the arrow is drawable in shape while starting on electron density the atom does not have. conservation-electron-flow disagrees with the unchanged to state exactly as in the sibling fixtures: declaredDeltas reports Cl1 losing one nonbonding electron and a Cl1-Na1 bond of one electron forming, observedDeltas reports neither, and deltaMismatches reports both. Mass, charge, and valence hold because the to state equals the from state and both ions are independently self consistent, sodium cation formal charge +1 with zero lone pairs, derived 1 - 0 - 0 = 1."
+  },
+  "pathway": {
+    "id": "arrow-legality-source-has-no-unpaired-electron",
+    "route": "radical_addition",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": { "elementaryStep": "radical_recombination", "reactionCenters": ["Cl1"] },
+        "arrows": [
+          { "id": "a1", "electrons": 1, "source": { "kind": "singleElectron", "atomId": "Cl1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["Cl1", "Na1"] } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "reagent",
+              "species": {
+                "id": "chloride",
+                "label": "chloride, closed shell, zero unpaired electrons",
+                "atoms": [{ "id": "Cl1", "element": "Cl", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            },
+            {
+              "role": "counterion",
+              "species": {
+                "id": "sodium-cation",
+                "label": "sodium cation, unrelated to the claimed arrow",
+                "atoms": [{ "id": "Na1", "element": "Na", "formalCharge": 1 }]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "reagent",
+              "species": {
+                "id": "chloride",
+                "label": "chloride, closed shell, zero unpaired electrons",
+                "atoms": [{ "id": "Cl1", "element": "Cl", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            },
+            {
+              "role": "counterion",
+              "species": {
+                "id": "sodium-cation",
+                "label": "sodium cation, unrelated to the claimed arrow",
+                "atoms": [{ "id": "Na1", "element": "Na", "formalCharge": 1 }]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

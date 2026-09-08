@@ -1,0 +1,111 @@
+{
+  "schemaVersion": 2,
+  "id": "good-sn2-on-neopentyl-bromide-strongly-disfavoured-not-forbidden",
+  "title": "Hydroxide displaces bromide from neopentyl bromide by SN2, a real but strongly disfavoured pathway at roughly 10 to the minus 5 the rate of ethyl",
+  "expect": {
+    "kind": "good",
+    "note": "CLAUDE.md, graded chemistry not boolean chemistry: neopentyl SN2 is strongly disfavoured and is NOT blocked. A boolean reject here would delete the actual lesson. The rate statement and the competing pathway are now annotations rather than prose, and conservation-disfavoured-rate-comparison detects the neopentyl pattern from the structure of the from state rather than from anything the author flagged, which is what makes the annotation impossible to skip. What this note still adds: this fixture is the positive half of that check. It exists to prove the check permits the step. It is declared good, it names no check in mustFail, and if any check in this family ever starts reporting a violation on it then something has turned graded chemistry back into boolean chemistry."
+  },
+  "pathway": {
+    "id": "sn2-neopentyl-bromide-hydroxide",
+    "route": "sn2",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": { "elementaryStep": "concerted_substitution", "route": "sn2", "reactionCenters": ["C5"] },
+        "arrows": [
+          { "id": "a1", "electrons": 2, "source": { "kind": "lonePair", "atomId": "O1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["O1", "C5"] } },
+          { "id": "a2", "electrons": 2, "source": { "kind": "bond", "bondId": "b5" }, "sink": { "kind": "atom", "atomId": "Br1" } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "neopentyl-bromide",
+                "label": "1-bromo-2,2-dimethylpropane",
+                "atoms": [
+                  { "id": "C1", "element": "C" },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C5", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "Br1", "element": "Br", "lonePairs": 3 }
+                ],
+                "bonds": [
+                  { "id": "b1", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b2", "a": "C1", "b": "C3", "order": 1 },
+                  { "id": "b3", "a": "C1", "b": "C4", "order": 1 },
+                  { "id": "b4", "a": "C1", "b": "C5", "order": 1 },
+                  { "id": "b5", "a": "C5", "b": "Br1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "nucleophile",
+              "species": {
+                "id": "hydroxide",
+                "label": "hydroxide",
+                "atoms": [
+                  { "id": "O1", "element": "O", "formalCharge": -1, "lonePairs": 3 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [{ "id": "b6", "a": "O1", "b": "H1", "order": 1 }]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "neopentyl-alcohol",
+                "label": "2,2-dimethylpropan-1-ol",
+                "atoms": [
+                  { "id": "C1", "element": "C" },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C5", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b7", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b8", "a": "C1", "b": "C3", "order": 1 },
+                  { "id": "b9", "a": "C1", "b": "C4", "order": 1 },
+                  { "id": "b10", "a": "C1", "b": "C5", "order": 1 },
+                  { "id": "b11", "a": "C5", "b": "O1", "order": 1 },
+                  { "id": "b12", "a": "O1", "b": "H1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "bromide",
+                "label": "bromide",
+                "atoms": [{ "id": "Br1", "element": "Br", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "annotations": [
+      {
+        "kind": "rate_comparison",
+        "value": "About 10^-5 relative to ethyl bromide. Strongly disfavoured, competing pathway likely: carbocation_rearrangement, the anchimerically assisted methyl shift to the tertiary cation.",
+        "justification": "CLAUDE.md, graded chemistry not boolean chemistry: neopentyl SN2 is strongly disfavoured, roughly 10 to the minus 5 relative to ethyl, and is NOT blocked. The three beta methyls sit across the backside trajectory, which is a rate statement and not a legality statement, so every conservation check passes on this fixture and no check anywhere rejects it. The competing route is named by its chem-core MechanismRoute id so it can be looked up rather than only read, and it is authored in full as good-anchimerically-assisted-methyl-shift-ionisation-of-neopentyl-bromide. The rate figure is a textbook number an author is recording, not a quantity this repository computes or compares against."
+      },
+      {
+        "kind": "condition_note",
+        "value": "A strong nucleophile with no acid present. Under solvolysis conditions the methyl shift wins outright and this pathway is not seen at all.",
+        "justification": "Recorded because the rate comparison above is conditional on there being a nucleophile in the first place. No check reads this."
+      }
+    ]
+  }
+}

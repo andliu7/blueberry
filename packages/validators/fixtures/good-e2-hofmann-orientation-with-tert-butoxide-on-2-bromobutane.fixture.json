@@ -1,0 +1,138 @@
+{
+  "schemaVersion": 2,
+  "id": "good-e2-hofmann-orientation-with-tert-butoxide-on-2-bromobutane",
+  "title": "Bulky tert-butoxide takes the accessible C1 proton of 2-bromobutane rather than the C3 one, giving the less substituted but-1-ene",
+  "expect": {
+    "kind": "good",
+    "note": "The same substrate and the same three arrow E2 shape as good-e2-anti-periplanar-ethoxide-and-2-bromobutane, differing only in which beta hydrogen the base can reach. Both products are correct chemistry and neither arrow set violates anything, so a checker that hard codes the Zaitsev product as the answer marks this wrong. This is the substitution axis of the four result types: a student who builds this when the question asked for but-2-ene has produced a valid transformation that was not the one requested, not an invalid one. The dihedral requirement is unchanged and is now declared as data below at 180 degrees: the primary C1 to H bond simply has an anti periplanar rotamer that is sterically reachable and the C3 one does not. The condition that selects the product, a hindered base, is carried as a condition_note annotation rather than as prose here."
+  },
+  "pathway": {
+    "id": "e2-tert-butoxide-2-bromobutane-hofmann",
+    "route": "e2",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": { "elementaryStep": "concerted_elimination", "route": "e2", "reactionCenters": ["C1", "C2", "H1", "Br1"] },
+        "arrows": [
+          { "id": "a1", "electrons": 2, "source": { "kind": "lonePair", "atomId": "O1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["O1", "H1"] } },
+          { "id": "a2", "electrons": 2, "source": { "kind": "bond", "bondId": "b5" }, "sink": { "kind": "betweenAtoms", "atomIds": ["C1", "C2"] } },
+          { "id": "a3", "electrons": 2, "source": { "kind": "bond", "bondId": "b4" }, "sink": { "kind": "atom", "atomId": "Br1" } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "2-bromobutane",
+                "label": "2-bromobutane, C1 proton drawn explicitly",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "Br1", "element": "Br", "lonePairs": 3 }
+                ],
+                "bonds": [
+                  { "id": "b1", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b2", "a": "C2", "b": "C3", "order": 1 },
+                  { "id": "b3", "a": "C3", "b": "C4", "order": 1 },
+                  { "id": "b4", "a": "C2", "b": "Br1", "order": 1 },
+                  { "id": "b5", "a": "C1", "b": "H1", "order": 1 }
+                ],
+                "declaredTorsions": [
+                  {
+                    "atoms": ["H1", "C1", "C2", "Br1"],
+                    "degrees": 180,
+                    "justification": "The reacting conformer. The C1 methyl rotates freely, so one of its three hydrogens is anti periplanar to bromide at any moment and H1 is authored as that one. The Hofmann outcome here is about which beta hydrogen the bulky base can REACH, not about the dihedral, and this torsion is stated so that the geometric precondition is on record for the C1 elimination rather than left to be inferred from the C3 case in the sister fixture."
+                  }
+                ]
+              }
+            },
+            {
+              "role": "base",
+              "species": {
+                "id": "tert-butoxide",
+                "label": "tert-butoxide",
+                "atoms": [
+                  { "id": "O1", "element": "O", "formalCharge": -1, "lonePairs": 3 },
+                  { "id": "C5", "element": "C" },
+                  { "id": "C6", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C7", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C8", "element": "C", "implicitHydrogens": 3 }
+                ],
+                "bonds": [
+                  { "id": "b6", "a": "O1", "b": "C5", "order": 1 },
+                  { "id": "b7", "a": "C5", "b": "C6", "order": 1 },
+                  { "id": "b8", "a": "C5", "b": "C7", "order": 1 },
+                  { "id": "b9", "a": "C5", "b": "C8", "order": 1 }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "but-1-ene",
+                "label": "but-1-ene, the Hofmann product",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 }
+                ],
+                "bonds": [
+                  { "id": "b10", "a": "C1", "b": "C2", "order": 2 },
+                  { "id": "b11", "a": "C2", "b": "C3", "order": 1 },
+                  { "id": "b12", "a": "C3", "b": "C4", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "byproduct",
+              "species": {
+                "id": "tert-butanol",
+                "label": "2-methylpropan-2-ol",
+                "atoms": [
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "C5", "element": "C" },
+                  { "id": "C6", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C7", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C8", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b13", "a": "O1", "b": "C5", "order": 1 },
+                  { "id": "b14", "a": "C5", "b": "C6", "order": 1 },
+                  { "id": "b15", "a": "C5", "b": "C7", "order": 1 },
+                  { "id": "b16", "a": "C5", "b": "C8", "order": 1 },
+                  { "id": "b17", "a": "O1", "b": "H1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "bromide",
+                "label": "bromide",
+                "atoms": [{ "id": "Br1", "element": "Br", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "annotations": [
+      {
+        "kind": "condition_note",
+        "value": "Potassium tert-butoxide, a hindered base, which shifts the product ratio to the terminal alkene.",
+        "justification": "Base bulk is the only variable that differs from good-e2-anti-periplanar-ethoxide-and-2-bromobutane, and it is a condition rather than a property of the substrate, so it belongs on the pathway as a note and not in the structure. No check reads it. It is here so that a reader of the two fixtures can see why the same molecule gives two different alkenes without having to reconstruct the reason from the base's atom count."
+      }
+    ]
+  }
+}

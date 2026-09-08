@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 2,
+  "id": "good-deprotonation-of-methanol-by-hydroxide",
+  "title": "Hydroxide removes the hydroxyl proton from methanol, giving methoxide and water",
+  "expect": {
+    "kind": "good"
+  },
+  "pathway": {
+    "id": "methanol-deprotonation",
+    "route": "acid_base_proton_transfer",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": {
+          "elementaryStep": "proton_transfer",
+          "route": "acid_base_proton_transfer",
+          "reactionCenters": ["O1", "H1", "O2"]
+        },
+        "arrows": [
+          {
+            "id": "a1",
+            "electrons": 2,
+            "source": { "kind": "lonePair", "atomId": "O2" },
+            "sink": { "kind": "betweenAtoms", "atomIds": ["O2", "H1"] }
+          },
+          {
+            "id": "a2",
+            "electrons": 2,
+            "source": { "kind": "bond", "bondId": "b2" },
+            "sink": { "kind": "atom", "atomId": "O1" }
+          }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "methanol",
+                "label": "methanol",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b1", "a": "C1", "b": "O1", "order": 1 },
+                  { "id": "b2", "a": "O1", "b": "H1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "base",
+              "species": {
+                "id": "hydroxide",
+                "label": "hydroxide",
+                "atoms": [
+                  { "id": "O2", "element": "O", "formalCharge": -1, "lonePairs": 3, "implicitHydrogens": 1 }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "methoxide",
+                "label": "methoxide",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "O1", "element": "O", "formalCharge": -1, "lonePairs": 3 }
+                ],
+                "bonds": [{ "id": "b3", "a": "C1", "b": "O1", "order": 1 }]
+              }
+            },
+            {
+              "role": "byproduct",
+              "species": {
+                "id": "water",
+                "label": "water",
+                "atoms": [
+                  { "id": "O2", "element": "O", "lonePairs": 2, "implicitHydrogens": 1 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [{ "id": "b4", "a": "O2", "b": "H1", "order": 1 }]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 2,
+  "id": "broken-arrow-legality-single-electron-source-moved-a-pair",
+  "title": "A fishhook arrow off a real chlorine radical claims to move two electrons instead of the one a fishhook can carry",
+  "expect": {
+    "kind": "broken",
+    "mustFail": ["conservation-arrow-legality", "conservation-electron-flow"],
+    "note": "Adversary pass, Phase 1, attack surface 1. Rule single_electron_source_moved_a_pair had no negative control anywhere in the corpus. The chlorine radical is real and self consistent: three lone pairs, one unpaired electron, formal charge 0, derived 7 - (6 + 1) - 0 = 0, matching. So source_has_no_unpaired_electron does not fire here, isolating this fixture to the one rule it exists to prove: a singleElectron source is only allowed to carry exactly one electron, because a lone unpaired electron cannot supply a pair, and this arrow is authored with electrons: 2. The to state is byte identical to the from state, the same isolation pattern used across this attack surface. Adjacency is otherwise legal, ClRad is the pivot shared between the singleElectron source and the betweenAtoms sink to a separate sodium cation, the radical recombination shape. conservation-electron-flow disagrees with the unchanged to state exactly as the sibling fixtures: declaredDeltas moves 2 electrons off ClRad and into a new bond, observedDeltas shows neither, and deltaMismatches reports both. Mass, charge, and valence hold because the to state equals the from state and both species are independently self consistent."
+  },
+  "pathway": {
+    "id": "arrow-legality-single-electron-source-moved-a-pair",
+    "route": "radical_addition",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": { "elementaryStep": "radical_recombination", "reactionCenters": ["ClRad"] },
+        "arrows": [
+          { "id": "a1", "electrons": 2, "source": { "kind": "singleElectron", "atomId": "ClRad" }, "sink": { "kind": "betweenAtoms", "atomIds": ["ClRad", "Na1"] } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "reagent",
+              "species": {
+                "id": "chlorine-radical",
+                "label": "chlorine radical, genuinely carries one unpaired electron",
+                "atoms": [{ "id": "ClRad", "element": "Cl", "lonePairs": 3, "unpairedElectrons": 1 }]
+              }
+            },
+            {
+              "role": "counterion",
+              "species": {
+                "id": "sodium-cation",
+                "label": "sodium cation, unrelated to the claimed arrow",
+                "atoms": [{ "id": "Na1", "element": "Na", "formalCharge": 1 }]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "reagent",
+              "species": {
+                "id": "chlorine-radical",
+                "label": "chlorine radical, genuinely carries one unpaired electron",
+                "atoms": [{ "id": "ClRad", "element": "Cl", "lonePairs": 3, "unpairedElectrons": 1 }]
+              }
+            },
+            {
+              "role": "counterion",
+              "species": {
+                "id": "sodium-cation",
+                "label": "sodium cation, unrelated to the claimed arrow",
+                "atoms": [{ "id": "Na1", "element": "Na", "formalCharge": 1 }]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

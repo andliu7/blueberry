@@ -1,0 +1,141 @@
+{
+  "schemaVersion": 2,
+  "id": "broken-known-limit-conformational-justification-that-names-nothing-in-the-state",
+  "title": "The same syn periplanar norbornane E2 as the reference fixture, but its conformational_justification annotation is one meaningless character",
+  "expect": {
+    "kind": "broken",
+    "mustFail": ["conservation-periplanarity-declaration"],
+    "note": "Adversary pass, Phase 1, attack surface 2. periplanarity.ts's own docstring draws the line: 'This check never decides whether the stated conformational reason is a good one... It also does not read the conformational justification for sense. Whether a bicyclo[2.2.1] cage genuinely cannot reach 180 degrees is chemistry a human wrote down and a human reviews.' This fixture is that admission made concrete rather than left as prose. It is structurally identical to good-e2-syn-periplanar-in-a-conformationally-locked-norbornane, same substrate, same declared torsion at 3 degrees, same real syn periplanar elimination, correct arrows, correct totals. The only change is the conformational_justification annotation: value \"z\" and justification \"z\", one meaningless character each, non empty by the letter of trim() === \"\" and saying nothing about a cage, a dihedral, or why anti is unreachable. angleViolations calls requiredAnnotationViolations with kind conformational_justification, which checks found.length === 1 and both strings non empty after trim, and stops there. A student problem authored this way would flag a syn E2 as requiring a defence and then accept a defence that defends nothing. CLOSED IN PART, Phase 1 builder pass two, and the part that is not closed is stated here rather than left to be discovered. The new rule is grounding, not length: the value and justification together must name at least one atom id or species id that is really in this state. The honest annotation on good-e2-syn-periplanar-in-a-conformationally-locked-norbornane names C1, C2, C3, C4 and C7 while explaining what the bridge fixes, and passes. The value z and justification z name nothing, and fail. A minimum character count was considered and rejected, because two arbitrary words defeat it while making a report read as though content were being checked. WHAT IS STILL NOT CHECKED, AND IS A HUMAN GATE: whether the sentence is TRUE. An annotation reading only C3 would now pass, and whether a bicyclo[2.2.1] cage genuinely cannot reach 180 degrees is chemistry a person reads. This rule is a floor under that review, never a substitute for it."
+  },
+  "pathway": {
+    "id": "known-limit-periplanarity-one-character-justification",
+    "route": "e2",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": { "elementaryStep": "concerted_elimination", "route": "e2", "reactionCenters": ["C2", "C3", "H1", "Br1"] },
+        "arrows": [
+          { "id": "a1", "electrons": 2, "source": { "kind": "lonePair", "atomId": "O1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["O1", "H1"] } },
+          { "id": "a2", "electrons": 2, "source": { "kind": "bond", "bondId": "b9" }, "sink": { "kind": "betweenAtoms", "atomIds": ["C3", "C2"] } },
+          { "id": "a3", "electrons": 2, "source": { "kind": "bond", "bondId": "b10" }, "sink": { "kind": "atom", "atomId": "Br1" } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "2-exo-bromonorbornane",
+                "label": "2-exo-bromobicyclo[2.2.1]heptane, C3 exo hydrogen drawn explicitly",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C5", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C6", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C7", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "Br1", "element": "Br", "lonePairs": 3 }
+                ],
+                "bonds": [
+                  { "id": "b1", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b2", "a": "C2", "b": "C3", "order": 1 },
+                  { "id": "b3", "a": "C3", "b": "C4", "order": 1 },
+                  { "id": "b4", "a": "C4", "b": "C5", "order": 1 },
+                  { "id": "b5", "a": "C5", "b": "C6", "order": 1 },
+                  { "id": "b6", "a": "C6", "b": "C1", "order": 1 },
+                  { "id": "b7", "a": "C1", "b": "C7", "order": 1 },
+                  { "id": "b8", "a": "C4", "b": "C7", "order": 1 },
+                  { "id": "b9", "a": "C3", "b": "H1", "order": 1 },
+                  { "id": "b10", "a": "C2", "b": "Br1", "order": 1 }
+                ],
+                "declaredTorsions": [
+                  {
+                    "atoms": ["H1", "C3", "C2", "Br1"],
+                    "degrees": 3,
+                    "justification": "The bicyclo[2.2.1]heptane cage fixes the C2 to C3 torsion at a few degrees off eclipsed, the same real geometric claim as good-e2-syn-periplanar-in-a-conformationally-locked-norbornane, kept honest here even though the annotation below is not."
+                  }
+                ]
+              }
+            },
+            {
+              "role": "base",
+              "species": {
+                "id": "methoxide",
+                "label": "methoxide",
+                "atoms": [
+                  { "id": "O1", "element": "O", "formalCharge": -1, "lonePairs": 3 },
+                  { "id": "C8", "element": "C", "implicitHydrogens": 3 }
+                ],
+                "bonds": [{ "id": "b11", "a": "O1", "b": "C8", "order": 1 }]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "norbornene",
+                "label": "bicyclo[2.2.1]hept-2-ene",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C5", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C6", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C7", "element": "C", "implicitHydrogens": 2 }
+                ],
+                "bonds": [
+                  { "id": "b12", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b13", "a": "C2", "b": "C3", "order": 2 },
+                  { "id": "b14", "a": "C3", "b": "C4", "order": 1 },
+                  { "id": "b15", "a": "C4", "b": "C5", "order": 1 },
+                  { "id": "b16", "a": "C5", "b": "C6", "order": 1 },
+                  { "id": "b17", "a": "C6", "b": "C1", "order": 1 },
+                  { "id": "b18", "a": "C1", "b": "C7", "order": 1 },
+                  { "id": "b19", "a": "C4", "b": "C7", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "byproduct",
+              "species": {
+                "id": "methanol",
+                "label": "methanol",
+                "atoms": [
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "C8", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b20", "a": "O1", "b": "C8", "order": 1 },
+                  { "id": "b21", "a": "O1", "b": "H1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "bromide",
+                "label": "bromide",
+                "atoms": [{ "id": "Br1", "element": "Br", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "annotations": [
+      {
+        "kind": "conformational_justification",
+        "value": "z",
+        "justification": "z"
+      }
+    ]
+  }
+}

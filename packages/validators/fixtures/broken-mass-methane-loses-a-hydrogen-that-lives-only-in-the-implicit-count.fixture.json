@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 2,
+  "id": "broken-mass-methane-loses-a-hydrogen-that-lives-only-in-the-implicit-count",
+  "title": "Hydrogen abstraction from methane drawn without the bromine radical, so the lost hydrogen never appears in the explicit atom list",
+  "expect": {
+    "kind": "broken",
+    "mustFail": ["conservation-mass", "conservation-electron-flow", "conservation-proton-transfer"],
+    "note": "docs/VERIFICATION.md S5. This is the propagation step of radical bromination with the abstracting bromine radical left out of the state. The explicit atom list is exactly one carbon on both sides, so a mass check that walks explicit atoms reports conservation. The whole difference lives in methane's implicit hydrogen count, four before and three after, and only a count that folds implicit hydrogens in can see it. conservation-mass therefore emits two lines here: the nuclide difference, and the S5 diagnostic saying the naive walk balances. Charge and valence stay green on purpose: the carbon gains one unpaired electron as it loses one hydrogen, so its derived formal charge is zero on both sides and the total charge is unchanged. Electron flow and proton transfer are declared because they cannot avoid firing. Any implicit hydrogen change is a mismatch electron flow reports by construction, since no arrow can declare an implicit hydrogen delta, and a hydrogen leaving with no acceptor in the state is what proton transfer is for."
+  },
+  "pathway": {
+    "id": "methane-abstraction-missing-the-bromine-radical",
+    "route": "radical_halogenation",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": {
+          "elementaryStep": "radical_abstraction",
+          "route": "radical_halogenation",
+          "reactionCenters": ["C1"]
+        },
+        "arrows": [],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "methane",
+                "label": "methane",
+                "atoms": [{ "id": "C1", "element": "C", "implicitHydrogens": 4 }]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "methyl-radical",
+                "label": "methyl radical",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3, "unpairedElectrons": 1 }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

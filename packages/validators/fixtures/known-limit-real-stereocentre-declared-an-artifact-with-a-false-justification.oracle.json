@@ -1,0 +1,48 @@
+{
+  "protocol": "blueberry-oracle-corpus",
+  "version": 1,
+  "name": "known-limit-real-stereocentre-declared-an-artifact-with-a-false-justification",
+  "description": "Adversary pass, Phase 1, attack surface 3: the oracle boundary. stereo-descriptors.ts is careful about the five cases an unspecified stereo element can fall into, and its own comment names exactly one legitimate reason a declaration should exist: 'some potential stereo elements are artifacts of how the state is written rather than centres anybody could pin,' with the benzenonium sigma complex given as the real example, a centre that only looks stereogenic because the corpus draws one localised resonance structure of a delocalised ion. What the check never reads is WHETHER that reason is true. requiredAnnotationViolations-style presence checking is not what runs here, but the same shape of gap is: evaluateSpecies requires only that declaration.justification.trim() is not empty before it downgrades an unlabelled centre from a FAILURE to an ADJUDICATION. This file is bromochlorofluoromethane, the textbook four-different-substituents stereocentre already pinned correctly in python/corpus/stereocenters.oracle.json, with its stereo left null and a kind: \"atom\" declaration on c1 claiming the centre is an artifact of how the state is written. The justification is fluent, on topic, and false: bromochlorofluoromethane's central carbon is a static sp3 centre with four permanently different substituents, nothing about it interconverts in solution any faster than any other stereocentre in the corpus, and it is not written from one localised resonance structure of anything. THE RESULT. Expect ADJUDICATION, not a failure, identical in kind to bond-kind-unspecified-stereo-declaration.oracle.json's legitimate use of the same mechanism. A validator run cannot distinguish this file from a genuine artifact declaration: both produce exactly one line under 'ADJUDICATION oracle-stereo-descriptors [stereo-unspecified]', both wait on a human, and the only difference is that this one's reasoning does not survive being read. THE LESSON. The unlabelled stereocentre mechanism closes the loophole CLAUDE.md worried about, a declaration cannot be used to opt out silently, by requiring a human-readable justification. It does not and cannot close the loophole one step further in: a chemically false justification is exactly as effective at converting a hard failure into a queued adjudication as a true one, because the check's job is to make sure a claim was written down and put in front of a person, not to grade whether the claim is correct chemistry. That grading is deliberately left to the human at the other end of the adjudication queue, and this file is the reminder that the queue is trusted, not verified."
+  ,
+  "sequences": [
+    {
+      "id": "s-bromochlorofluoromethane-declared-artifact",
+      "description": "A genuine, static, non-resonating tetrahedral stereocentre, four different substituents, left unconfigured and declared an artifact with a fluent but chemically false justification. Expect ADJUDICATION.",
+      "aromaticityInvariantAtomIds": [],
+      "states": [
+        {
+          "id": "state-0",
+          "sanitizationMayFail": null,
+          "species": [
+            {
+              "id": "sp-1",
+              "label": "bromochlorofluoromethane, configuration left unpinned and declared an artifact",
+              "expect": {
+                "meso": false,
+                "unspecifiedStereoDeclared": [
+                  {
+                    "kind": "atom",
+                    "ref": "c1",
+                    "justification": "Adversary pass stand-in, attack surface 3: this centre is not a real stereocentre because the four substituents interconvert rapidly at room temperature, the same reasoning used for a fluxional or resonance-averaged structure. That claim is false for a static sp3 carbon bonded to F, Cl, Br, and H; nothing here interconverts, and this file is a genuine, unambiguous stereocentre with the same connectivity RDKit is asked to grade in python/corpus/stereocenters.oracle.json. The sentence is written to be fluent and on topic, not to be true, which is the point of this fixture.",
+                    "declaredBy": "adversary-pass-phase-1"
+                  }
+                ]
+              },
+              "atoms": [
+                { "id": "c1", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null },
+                { "id": "f1", "element": "F", "isotope": null, "formalCharge": 0, "lonePairs": 3, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null },
+                { "id": "cl1", "element": "Cl", "isotope": null, "formalCharge": 0, "lonePairs": 3, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null },
+                { "id": "br1", "element": "Br", "isotope": null, "formalCharge": 0, "lonePairs": 3, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null }
+              ],
+              "bonds": [
+                { "id": "b1", "a": "c1", "b": "f1", "order": 1, "stereo": null },
+                { "id": "b2", "a": "c1", "b": "cl1", "order": 1, "stereo": null },
+                { "id": "b3", "a": "c1", "b": "br1", "order": 1, "stereo": null }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

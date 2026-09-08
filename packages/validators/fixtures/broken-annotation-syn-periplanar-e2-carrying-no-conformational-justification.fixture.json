@@ -1,0 +1,134 @@
+{
+  "schemaVersion": 2,
+  "id": "broken-annotation-syn-periplanar-e2-carrying-no-conformational-justification",
+  "title": "The syn periplanar norbornane E2 with its conformational_justification annotation deleted, leaving a 3 degree dihedral nobody has defended",
+  "expect": {
+    "kind": "broken",
+    "mustFail": ["conservation-periplanarity-declaration"],
+    "note": "NEGATIVE CONTROL for conservation-periplanarity-declaration, syn flag arm, and the exact fixture CLAUDE.md's sentence is about: syn periplanar E2 is real in conformationally locked systems and is FLAGGED as requiring an authored conformational justification, NOT REJECTED. This file is byte for byte good-e2-syn-periplanar-in-a-conformationally-locked-norbornane with the annotations array removed. The declared torsion is untouched and still reads 3 degrees, so the check can still see that the geometry is syn; what it cannot find is any statement of why. Read the failure line next to the good fixture's pass to see the whole rule: the same chemistry, the same arrows, the same 3 degrees, and one authored sentence is the difference between the two verdicts. Nothing here rejects syn elimination."
+  },
+  "pathway": {
+    "id": "e2-syn-periplanar-norbornane-unjustified",
+    "route": "e2",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": { "elementaryStep": "concerted_elimination", "route": "e2", "reactionCenters": ["C2", "C3", "H1", "Br1"] },
+        "arrows": [
+          { "id": "a1", "electrons": 2, "source": { "kind": "lonePair", "atomId": "O1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["O1", "H1"] } },
+          { "id": "a2", "electrons": 2, "source": { "kind": "bond", "bondId": "b9" }, "sink": { "kind": "betweenAtoms", "atomIds": ["C3", "C2"] } },
+          { "id": "a3", "electrons": 2, "source": { "kind": "bond", "bondId": "b10" }, "sink": { "kind": "atom", "atomId": "Br1" } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "2-exo-bromonorbornane",
+                "label": "2-exo-bromobicyclo[2.2.1]heptane, C3 exo hydrogen drawn explicitly",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C5", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C6", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C7", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "Br1", "element": "Br", "lonePairs": 3 }
+                ],
+                "bonds": [
+                  { "id": "b1", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b2", "a": "C2", "b": "C3", "order": 1 },
+                  { "id": "b3", "a": "C3", "b": "C4", "order": 1 },
+                  { "id": "b4", "a": "C4", "b": "C5", "order": 1 },
+                  { "id": "b5", "a": "C5", "b": "C6", "order": 1 },
+                  { "id": "b6", "a": "C6", "b": "C1", "order": 1 },
+                  { "id": "b7", "a": "C1", "b": "C7", "order": 1 },
+                  { "id": "b8", "a": "C4", "b": "C7", "order": 1 },
+                  { "id": "b9", "a": "C3", "b": "H1", "order": 1 },
+                  { "id": "b10", "a": "C2", "b": "Br1", "order": 1 }
+                ],
+                "declaredTorsions": [
+                  {
+                    "atoms": ["H1", "C3", "C2", "Br1"],
+                    "degrees": 3,
+                    "justification": "The bicyclo[2.2.1]heptane cage fixes the C2 to C3 torsion, so this angle is a property of the framework and not of a conformer that could rotate away from it. The exo bromide at C2 and the exo hydrogen at C3 are eclipsed, a few degrees off exactly zero because the five membered bridge is slightly puckered. Stated as 3 rather than 0 for that reason: a fixture that claimed an exact 0 would be claiming more precision than the geometry has."
+                  }
+                ]
+              }
+            },
+            {
+              "role": "base",
+              "species": {
+                "id": "methoxide",
+                "label": "methoxide",
+                "atoms": [
+                  { "id": "O1", "element": "O", "formalCharge": -1, "lonePairs": 3 },
+                  { "id": "C8", "element": "C", "implicitHydrogens": 3 }
+                ],
+                "bonds": [{ "id": "b11", "a": "O1", "b": "C8", "order": 1 }]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "norbornene",
+                "label": "bicyclo[2.2.1]hept-2-ene",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C5", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C6", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C7", "element": "C", "implicitHydrogens": 2 }
+                ],
+                "bonds": [
+                  { "id": "b12", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b13", "a": "C2", "b": "C3", "order": 2 },
+                  { "id": "b14", "a": "C3", "b": "C4", "order": 1 },
+                  { "id": "b15", "a": "C4", "b": "C5", "order": 1 },
+                  { "id": "b16", "a": "C5", "b": "C6", "order": 1 },
+                  { "id": "b17", "a": "C6", "b": "C1", "order": 1 },
+                  { "id": "b18", "a": "C1", "b": "C7", "order": 1 },
+                  { "id": "b19", "a": "C4", "b": "C7", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "byproduct",
+              "species": {
+                "id": "methanol",
+                "label": "methanol",
+                "atoms": [
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "C8", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b20", "a": "O1", "b": "C8", "order": 1 },
+                  { "id": "b21", "a": "O1", "b": "H1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "bromide",
+                "label": "bromide",
+                "atoms": [{ "id": "Br1", "element": "Br", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

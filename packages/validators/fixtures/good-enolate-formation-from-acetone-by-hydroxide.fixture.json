@@ -1,0 +1,100 @@
+{
+  "schemaVersion": 2,
+  "id": "good-enolate-formation-from-acetone-by-hydroxide",
+  "title": "Hydroxide removes an alpha proton from acetone and the carbonyl pi bond takes the electrons onto oxygen, giving the enolate",
+  "expect": {
+    "kind": "good",
+    "note": "Three arrows for what students draw as one. The alpha carbon does not simply become a carbanion: the pair released by the C to H bond goes into the C to C bond and the carbonyl pi pair goes onto oxygen, which is why the enolate is stabilised and why an alpha proton is acidic at all. Drawing only the first two arrows leaves carbon with five bonds, and that is a valence failure rather than a stylistic one. The alpha proton is explicit because it moves."
+  },
+  "pathway": {
+    "id": "enolate-formation-acetone",
+    "route": "acid_base_proton_transfer",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": { "elementaryStep": "proton_transfer", "route": "acid_base_proton_transfer", "reactionCenters": ["C3", "H1", "O2"] },
+        "arrows": [
+          { "id": "a1", "electrons": 2, "source": { "kind": "lonePair", "atomId": "O2" }, "sink": { "kind": "betweenAtoms", "atomIds": ["O2", "H1"] } },
+          { "id": "a2", "electrons": 2, "source": { "kind": "bond", "bondId": "b4" }, "sink": { "kind": "betweenAtoms", "atomIds": ["C3", "C2"] } },
+          { "id": "a3", "electrons": 2, "source": { "kind": "bond", "bondId": "b2" }, "sink": { "kind": "atom", "atomId": "O1" } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "acetone",
+                "label": "acetone, one alpha proton drawn explicitly",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C" },
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b1", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b2", "a": "C2", "b": "O1", "order": 2 },
+                  { "id": "b3", "a": "C2", "b": "C3", "order": 1 },
+                  { "id": "b4", "a": "C3", "b": "H1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "base",
+              "species": {
+                "id": "hydroxide",
+                "label": "hydroxide",
+                "atoms": [
+                  { "id": "O2", "element": "O", "formalCharge": -1, "lonePairs": 3 },
+                  { "id": "H2", "element": "H" }
+                ],
+                "bonds": [{ "id": "b5", "a": "O2", "b": "H2", "order": 1 }]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "acetone-enolate",
+                "label": "the acetone enolate, charge on oxygen",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C" },
+                  { "id": "O1", "element": "O", "formalCharge": -1, "lonePairs": 3 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 2 }
+                ],
+                "bonds": [
+                  { "id": "b6", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b7", "a": "C2", "b": "O1", "order": 1 },
+                  { "id": "b8", "a": "C2", "b": "C3", "order": 2 }
+                ]
+              }
+            },
+            {
+              "role": "byproduct",
+              "species": {
+                "id": "water",
+                "label": "water",
+                "atoms": [
+                  { "id": "O2", "element": "O", "lonePairs": 2 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "H2", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b9", "a": "O2", "b": "H1", "order": 1 },
+                  { "id": "b10", "a": "O2", "b": "H2", "order": 1 }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

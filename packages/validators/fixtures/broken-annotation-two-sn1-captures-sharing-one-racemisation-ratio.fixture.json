@@ -1,0 +1,491 @@
+{
+  "schemaVersion": 2,
+  "id": "broken-annotation-two-sn1-captures-sharing-one-racemisation-ratio",
+  "title": "Two unrelated SN1 captures with one racemisation ratio between them, so the butan-2-yl centre, the one that actually has a configuration to lose, is the one left unannotated",
+  "expect": {
+    "kind": "broken",
+    "mustFail": [
+      "conservation-stereorandom-annotation"
+    ],
+    "note": "The negative control for the false negative that sat behind the false positive. This is good-sn1-two-independent-captures-in-one-pathway-each-correctly-annotated with the second racemisation_ratio deleted and nothing else changed. The surviving annotation is the tert-butyl one, which correctly says not applicable because that cation is not stereogenic, and which names step-1-capture-tert-butyl. Nothing on file says anything about the butan-2-yl capture at step-2-capture-butan-2-yl, which is the one where both configurations really do appear in the product set. Under the old pathway wide count this file passed: exactly one annotation of the required kind existed, non empty and grounded, so the check was satisfied and a real stereochemical outcome went unstated. CLAUDE.md makes the ratio an authoring annotation that has to be written down or it exists nowhere. With the requirement scoped per capture, the second capture reports that no annotation is a claim about it. Every other check is silent: both captures are verbatim from fixtures already proven good."
+  },
+  "pathway": {
+    "id": "sn1-two-independent-captures-one-annotation",
+    "route": "sn1",
+    "steps": [
+      {
+        "id": "step-1-capture-tert-butyl",
+        "identity": {
+          "elementaryStep": "nucleophilic_attack",
+          "route": "sn1",
+          "reactionCenters": [
+            "C1"
+          ]
+        },
+        "arrows": [
+          {
+            "id": "a1",
+            "electrons": 2,
+            "source": {
+              "kind": "lonePair",
+              "atomId": "O2"
+            },
+            "sink": {
+              "kind": "betweenAtoms",
+              "atomIds": [
+                "O2",
+                "C1"
+              ]
+            }
+          }
+        ],
+        "from": {
+          "id": "s1a",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "tert-butyl-cation",
+                "label": "tert-butyl cation",
+                "atoms": [
+                  {
+                    "id": "C1",
+                    "element": "C",
+                    "formalCharge": 1
+                  },
+                  {
+                    "id": "C2",
+                    "element": "C",
+                    "implicitHydrogens": 3
+                  },
+                  {
+                    "id": "C3",
+                    "element": "C",
+                    "implicitHydrogens": 3
+                  },
+                  {
+                    "id": "C4",
+                    "element": "C",
+                    "implicitHydrogens": 3
+                  }
+                ],
+                "bonds": [
+                  {
+                    "id": "b9",
+                    "a": "C1",
+                    "b": "C2",
+                    "order": 1
+                  },
+                  {
+                    "id": "b10",
+                    "a": "C1",
+                    "b": "C3",
+                    "order": 1
+                  },
+                  {
+                    "id": "b11",
+                    "a": "C1",
+                    "b": "C4",
+                    "order": 1
+                  }
+                ]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "bromide",
+                "label": "bromide",
+                "atoms": [
+                  {
+                    "id": "Br1",
+                    "element": "Br",
+                    "formalCharge": -1,
+                    "lonePairs": 4
+                  }
+                ]
+              }
+            },
+            {
+              "role": "solvent",
+              "species": {
+                "id": "water-nucleophile",
+                "label": "water, the one that attacks",
+                "atoms": [
+                  {
+                    "id": "O2",
+                    "element": "O",
+                    "lonePairs": 2
+                  },
+                  {
+                    "id": "H2",
+                    "element": "H"
+                  },
+                  {
+                    "id": "H3",
+                    "element": "H"
+                  }
+                ],
+                "bonds": [
+                  {
+                    "id": "b12",
+                    "a": "O2",
+                    "b": "H2",
+                    "order": 1
+                  },
+                  {
+                    "id": "b13",
+                    "a": "O2",
+                    "b": "H3",
+                    "order": 1
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1b",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "tert-butyloxonium",
+                "label": "protonated tert-butanol",
+                "atoms": [
+                  {
+                    "id": "C1",
+                    "element": "C"
+                  },
+                  {
+                    "id": "C2",
+                    "element": "C",
+                    "implicitHydrogens": 3
+                  },
+                  {
+                    "id": "C3",
+                    "element": "C",
+                    "implicitHydrogens": 3
+                  },
+                  {
+                    "id": "C4",
+                    "element": "C",
+                    "implicitHydrogens": 3
+                  },
+                  {
+                    "id": "O2",
+                    "element": "O",
+                    "formalCharge": 1,
+                    "lonePairs": 1
+                  },
+                  {
+                    "id": "H2",
+                    "element": "H"
+                  },
+                  {
+                    "id": "H3",
+                    "element": "H"
+                  }
+                ],
+                "bonds": [
+                  {
+                    "id": "b16",
+                    "a": "C1",
+                    "b": "C2",
+                    "order": 1
+                  },
+                  {
+                    "id": "b17",
+                    "a": "C1",
+                    "b": "C3",
+                    "order": 1
+                  },
+                  {
+                    "id": "b18",
+                    "a": "C1",
+                    "b": "C4",
+                    "order": 1
+                  },
+                  {
+                    "id": "b19",
+                    "a": "C1",
+                    "b": "O2",
+                    "order": 1
+                  },
+                  {
+                    "id": "b20",
+                    "a": "O2",
+                    "b": "H2",
+                    "order": 1
+                  },
+                  {
+                    "id": "b21",
+                    "a": "O2",
+                    "b": "H3",
+                    "order": 1
+                  }
+                ]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "bromide",
+                "label": "bromide",
+                "atoms": [
+                  {
+                    "id": "Br1",
+                    "element": "Br",
+                    "formalCharge": -1,
+                    "lonePairs": 4
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "step-2-capture-butan-2-yl",
+        "identity": {
+          "elementaryStep": "nucleophilic_attack",
+          "route": "sn1",
+          "reactionCenters": [
+            "C6"
+          ]
+        },
+        "arrows": [
+          {
+            "id": "a2",
+            "electrons": 2,
+            "source": {
+              "kind": "lonePair",
+              "atomId": "O5"
+            },
+            "sink": {
+              "kind": "betweenAtoms",
+              "atomIds": [
+                "O5",
+                "C6"
+              ]
+            }
+          }
+        ],
+        "from": {
+          "id": "s2a",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "butan-2-yl-cation",
+                "label": "butan-2-yl cation, planar at C2",
+                "atoms": [
+                  {
+                    "id": "C5",
+                    "element": "C",
+                    "implicitHydrogens": 3
+                  },
+                  {
+                    "id": "C6",
+                    "element": "C",
+                    "formalCharge": 1,
+                    "implicitHydrogens": 1
+                  },
+                  {
+                    "id": "C7",
+                    "element": "C",
+                    "implicitHydrogens": 2
+                  },
+                  {
+                    "id": "C8",
+                    "element": "C",
+                    "implicitHydrogens": 3
+                  }
+                ],
+                "bonds": [
+                  {
+                    "id": "b101",
+                    "a": "C5",
+                    "b": "C6",
+                    "order": 1
+                  },
+                  {
+                    "id": "b102",
+                    "a": "C6",
+                    "b": "C7",
+                    "order": 1
+                  },
+                  {
+                    "id": "b103",
+                    "a": "C7",
+                    "b": "C8",
+                    "order": 1
+                  }
+                ]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "bromide-2",
+                "label": "bromide",
+                "atoms": [
+                  {
+                    "id": "Br2",
+                    "element": "Br",
+                    "formalCharge": -1,
+                    "lonePairs": 4
+                  }
+                ]
+              }
+            },
+            {
+              "role": "solvent",
+              "species": {
+                "id": "water-nucleophile-2",
+                "label": "water, the one that attacks",
+                "atoms": [
+                  {
+                    "id": "O5",
+                    "element": "O",
+                    "lonePairs": 2
+                  },
+                  {
+                    "id": "H10",
+                    "element": "H"
+                  },
+                  {
+                    "id": "H11",
+                    "element": "H"
+                  }
+                ],
+                "bonds": [
+                  {
+                    "id": "b104",
+                    "a": "O5",
+                    "b": "H10",
+                    "order": 1
+                  },
+                  {
+                    "id": "b105",
+                    "a": "O5",
+                    "b": "H11",
+                    "order": 1
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s2b",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "butan-2-yl-oxonium",
+                "label": "protonated butan-2-ol",
+                "atoms": [
+                  {
+                    "id": "C5",
+                    "element": "C",
+                    "implicitHydrogens": 3
+                  },
+                  {
+                    "id": "C6",
+                    "element": "C",
+                    "implicitHydrogens": 1
+                  },
+                  {
+                    "id": "C7",
+                    "element": "C",
+                    "implicitHydrogens": 2
+                  },
+                  {
+                    "id": "C8",
+                    "element": "C",
+                    "implicitHydrogens": 3
+                  },
+                  {
+                    "id": "O5",
+                    "element": "O",
+                    "formalCharge": 1,
+                    "lonePairs": 1
+                  },
+                  {
+                    "id": "H10",
+                    "element": "H"
+                  },
+                  {
+                    "id": "H11",
+                    "element": "H"
+                  }
+                ],
+                "bonds": [
+                  {
+                    "id": "b106",
+                    "a": "C5",
+                    "b": "C6",
+                    "order": 1
+                  },
+                  {
+                    "id": "b107",
+                    "a": "C6",
+                    "b": "C7",
+                    "order": 1
+                  },
+                  {
+                    "id": "b108",
+                    "a": "C7",
+                    "b": "C8",
+                    "order": 1
+                  },
+                  {
+                    "id": "b109",
+                    "a": "C6",
+                    "b": "O5",
+                    "order": 1
+                  },
+                  {
+                    "id": "b110",
+                    "a": "O5",
+                    "b": "H10",
+                    "order": 1
+                  },
+                  {
+                    "id": "b111",
+                    "a": "O5",
+                    "b": "H11",
+                    "order": 1
+                  }
+                ]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "bromide-2",
+                "label": "bromide",
+                "atoms": [
+                  {
+                    "id": "Br2",
+                    "element": "Br",
+                    "formalCharge": -1,
+                    "lonePairs": 4
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "annotations": [
+      {
+        "kind": "racemisation_ratio",
+        "value": "Not applicable. The cationic carbon carries three identical methyl groups, so it is not a stereocentre and there are no configurations for the capture to choose between.",
+        "justification": "Authored as an explicit not applicable rather than left off. The conservation fixture schema carries no stereo configuration, so nothing in this package can compute that C1 is not stereogenic, and an exemption granted by a check that cannot see chirality would be an exemption granted by a guess. Stating it makes it a claim a human made and can be held to. This is the tert-butyl capture, step-1-capture-tert-butyl."
+      }
+    ]
+  }
+}

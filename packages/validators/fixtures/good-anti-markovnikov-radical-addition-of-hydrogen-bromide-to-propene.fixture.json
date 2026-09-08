@@ -1,0 +1,153 @@
+{
+  "schemaVersion": 2,
+  "id": "good-anti-markovnikov-radical-addition-of-hydrogen-bromide-to-propene",
+  "title": "The two propagation steps of radical HBr addition to propene: bromine adds to the terminal carbon, then the secondary radical abstracts hydrogen from HBr",
+  "expect": {
+    "kind": "good",
+    "note": "The anti Markovnikov outcome, and the reason it is anti Markovnikov: the regiochemistry is set by which radical is more stable rather than by which cation is, and the species that adds first is bromine rather than hydrogen. Six fishhook arrows, all single electron, and the capacity rule in chem-core legality.ts is what allows two of them out of one bond: a single bond holds two electrons and two fishhooks move exactly two. Initiation and termination are not drawn, which is an authored simplification and not an omission: propagation is the part with the regiochemistry in it."
+  },
+  "pathway": {
+    "id": "radical-hbr-addition-propene",
+    "route": "radical_addition",
+    "steps": [
+      {
+        "id": "step-1-bromine-radical-adds",
+        "identity": { "elementaryStep": "radical_addition_step", "route": "radical_addition", "reactionCenters": ["C1", "C2", "Br1"] },
+        "arrows": [
+          { "id": "a1", "electrons": 1, "source": { "kind": "singleElectron", "atomId": "Br1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["Br1", "C1"] } },
+          { "id": "a2", "electrons": 1, "source": { "kind": "bond", "bondId": "b1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["Br1", "C1"] } },
+          { "id": "a3", "electrons": 1, "source": { "kind": "bond", "bondId": "b1" }, "sink": { "kind": "atom", "atomId": "C2" } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "propene",
+                "label": "propene",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 }
+                ],
+                "bonds": [
+                  { "id": "b1", "a": "C1", "b": "C2", "order": 2 },
+                  { "id": "b2", "a": "C2", "b": "C3", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "reagent",
+              "species": {
+                "id": "bromine-radical",
+                "label": "bromine radical",
+                "atoms": [{ "id": "Br1", "element": "Br", "lonePairs": 3, "unpairedElectrons": 1 }]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "1-bromopropan-2-yl-radical",
+                "label": "1-bromopropan-2-yl radical, the secondary radical",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1, "unpairedElectrons": 1 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "Br1", "element": "Br", "lonePairs": 3 }
+                ],
+                "bonds": [
+                  { "id": "b3", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b4", "a": "C2", "b": "C3", "order": 1 },
+                  { "id": "b5", "a": "C1", "b": "Br1", "order": 1 }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "step-2-hydrogen-abstraction",
+        "identity": { "elementaryStep": "radical_abstraction", "route": "radical_addition", "reactionCenters": ["C2", "H1", "Br2"] },
+        "arrows": [
+          { "id": "a4", "electrons": 1, "source": { "kind": "singleElectron", "atomId": "C2" }, "sink": { "kind": "betweenAtoms", "atomIds": ["C2", "H1"] } },
+          { "id": "a5", "electrons": 1, "source": { "kind": "bond", "bondId": "b6" }, "sink": { "kind": "betweenAtoms", "atomIds": ["C2", "H1"] } },
+          { "id": "a6", "electrons": 1, "source": { "kind": "bond", "bondId": "b6" }, "sink": { "kind": "atom", "atomId": "Br2" } }
+        ],
+        "from": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "1-bromopropan-2-yl-radical",
+                "label": "1-bromopropan-2-yl radical, the secondary radical",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1, "unpairedElectrons": 1 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "Br1", "element": "Br", "lonePairs": 3 }
+                ],
+                "bonds": [
+                  { "id": "b3", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b4", "a": "C2", "b": "C3", "order": 1 },
+                  { "id": "b5", "a": "C1", "b": "Br1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "reagent",
+              "species": {
+                "id": "hydrogen-bromide",
+                "label": "hydrogen bromide",
+                "atoms": [
+                  { "id": "H1", "element": "H" },
+                  { "id": "Br2", "element": "Br", "lonePairs": 3 }
+                ],
+                "bonds": [{ "id": "b6", "a": "H1", "b": "Br2", "order": 1 }]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s2",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "1-bromopropane",
+                "label": "1-bromopropane, the anti Markovnikov product",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "Br1", "element": "Br", "lonePairs": 3 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b7", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b8", "a": "C2", "b": "C3", "order": 1 },
+                  { "id": "b9", "a": "C1", "b": "Br1", "order": 1 },
+                  { "id": "b10", "a": "C2", "b": "H1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "byproduct",
+              "species": {
+                "id": "bromine-radical-regenerated",
+                "label": "bromine radical, handed back to the chain",
+                "atoms": [{ "id": "Br2", "element": "Br", "lonePairs": 3, "unpairedElectrons": 1 }]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

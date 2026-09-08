@@ -1,0 +1,244 @@
+{
+  "schemaVersion": 2,
+  "id": "broken-known-limit-acyl-substitution-addition-and-elimination-collapsed-into-one-connected-step",
+  "title": "Hydroxide's nucleophilic addition to acetyl chloride and chloride's elimination from the resulting alkoxide are drawn as a single step, with no tetrahedral intermediate on record, and every arrow shares the carbonyl carbon so conservation-step-elementarity sees one connected group and says nothing",
+  "expect": {
+    "kind": "broken",
+    "note": "Adversary pass three, Phase 1, item 3 in the brief: 'Confirm that blind spot with a fixture ... an addition and elimination sharing a carbonyl carbon passes.' This is exactly that fixture, built by taking good-nucleophilic-acyl-substitution-of-acetyl-chloride-by-hydroxide, which correctly authors the addition (step-1, ending at a real tetrahedral intermediate species with O1 at formalCharge -1) and the elimination (step-2, starting from that same intermediate) as two separate steps with a real intermediate between them, and collapsing both into ONE step: from is step-1's original from (acetyl chloride plus hydroxide) and to is step-2's original to (acetic acid plus chloride) directly, with the intermediate species never appearing anywhere in this fixture. All four arrows from the two source steps are carried over unrenamed in meaning: a1 (O2 lone pair attacks C2), a2 (the C2=O1 pi bond pushes onto O1), a3 (O1's lone pair reforms the pi bond into C2), a4 (the C2-Cl1 bond pushes onto Cl1, expelling chloride). WHY THIS IS ONE CLUSTER. stepArrowFacts/arrowClusters group arrows that share an atom, transitively. a1's sink names C2. a2's source is bond b2, which is C2=O1, so it touches C2. a3's sink names C2. a4's source is bond b3, C2-Cl1, so it touches C2. Every arrow touches C2 directly, so arrowClusters returns exactly one cluster on the first pass, `clusters.length < 2` is true, and stepViolations returns [] before proximityComponents or the three-bond threshold are ever reached. This is condition 1 in the check's own docstring failing to be met at all, not condition 2's tolerance being exploited: the fixture never reaches the part of the check the pass two adversary's neopentyl style attack would have to fight with, which is the point of choosing addition-elimination at one centre rather than two centres apart. WHY EVERY OTHER CHECK IS ALSO SILENT. Mass, charge and electron flow are sums over the whole step and the four arrows are literally the union of two already-proven-balanced steps, so the aggregate totals match the true difference between acetyl chloride plus hydroxide and acetic acid plus chloride exactly as they did as two steps; nothing here is new arithmetic. Arrow legality is satisfied per arrow against the declared `from` state exactly as it is in the two-step original: a3's lone pair source reads O1's declared lonePairs field in `from`, which is 2, at least 1, and the check does not simulate a1/a2 firing before a3 to require O1 to already be an alkoxide, so nothing here fails on that either (confirmed by running the suite: only step-elementarity is silent, nothing else fires, which is what makes this an isolated demonstration of the one check's own documented blind spot rather than an accidental second defect). THE CHEMISTRY THIS ACTUALLY CLAIMS. That the tetrahedral intermediate never exists, not even for an instant: attack and departure in one continuous four-electron event at the same carbon, which is the SN2-at-a-carbonyl shape the two-step fixture's own note calls 'the most common wrong answer on this transformation' and specifically the shape correct authoring avoids by drawing the intermediate. This fixture is filed GOOD because that is what the suite currently says about it: the finding is that nothing here can tell the honestly two-barrier version from this one-barrier collapse of it when both halves happen to touch a common atom. WHAT WOULD CLOSE IT. The check's own docstring already names the cost precisely: 'closing it needs a model of how many barriers a given array of arrows crosses, which is a different and much harder claim than the one made here.' Nothing here proposes weakening condition 1 to catch this, since a genuinely concerted step also has one connected group by design and a rule that punished connectivity would reject the E2 and hydroboration fixtures the same file's docstring cites as the reason condition 1 alone is not enough. CLOSED BY THE BUILDER PASS THAT FOLLOWED, AND RECLASSIFIED broken, mustFail conservation-step-elementarity. Condition 1 was not weakened and was not touched, for exactly the reason this fixture's own note gives: connectivity is what a genuinely concerted step looks like, and punishing it would reject the E2 and hydroboration fixtures. What was added is an independent second rule in step-elementarity.ts, rule B, which asks a different question about the same arrows: does any PAIR OF ATOMS both lose bonding and gain bonding inside this one step. An arrow out of a bond says that bond is coming apart on the way to the transition state. An arrow into the space between two atoms says a bond there is coming together. One transition state is one continuous reorganisation, so each pair of atoms is doing one of those two things and not both. A pair that does both has gone out and come back, and the structure it came back from is an intermediate, which is by definition a second barrier. Here the pair is C2 and O1: a2 pushes the C2=O1 pi bond onto O1 and a3 pushes it straight back, and the state between those two arrows is the tetrahedral intermediate this file declines to write down. The violation is reported at step-1-addition-and-elimination-collapsed with cause step_not_elementary. WHY THIS DOES NOT REJECT CONCERTED CHEMISTRY. Every concerted step in the corpus moves electrons through a given pair once and in one direction: SN2 forms one bond and breaks a different one, E2 touches three pairs once each, the four centre hydroboration touches four pairs once each, a pericyclic step goes around a ring without touching a bond twice, and radical propagation abstracts and forms at different pairs. Two arrows out of ONE bond, which is how the corpus draws homolysis, is two breaks and no form, so nothing has come back and nothing fires. One arrow whose bond source and betweenAtoms sink are the same pair is an arrow that declares no change and belongs to conservation-arrow-legality, so the break and the form are required to come from different arrows before a word is said. WHAT IS STILL OPEN, WHICH IS MOST OF THE ORIGINAL BLIND SPOT. Rule B is one decidable signature of a round trip and not a barrier model. A collapsed two step sequence whose two halves happen to touch no common pair twice is still missed, and so is any collapse whose second half acts only on bonds the first half never touched. The general question, how many barriers a given array of arrows crosses, still needs a model of transition state energies that chem-core does not have, and nothing here guesses at one.",
+    "mustFail": [
+      "conservation-step-elementarity"
+    ]
+  },
+  "pathway": {
+    "id": "acyl-substitution-collapsed-into-one-step",
+    "route": "nucleophilic_acyl_substitution",
+    "steps": [
+      {
+        "id": "step-1-addition-and-elimination-collapsed",
+        "identity": {
+          "elementaryStep": "nucleophilic_attack",
+          "route": "nucleophilic_acyl_substitution",
+          "reactionCenters": [
+            "C2",
+            "O1",
+            "Cl1"
+          ]
+        },
+        "arrows": [
+          {
+            "id": "a1",
+            "electrons": 2,
+            "source": {
+              "kind": "lonePair",
+              "atomId": "O2"
+            },
+            "sink": {
+              "kind": "betweenAtoms",
+              "atomIds": [
+                "O2",
+                "C2"
+              ]
+            }
+          },
+          {
+            "id": "a2",
+            "electrons": 2,
+            "source": {
+              "kind": "bond",
+              "bondId": "b2"
+            },
+            "sink": {
+              "kind": "atom",
+              "atomId": "O1"
+            }
+          },
+          {
+            "id": "a3",
+            "electrons": 2,
+            "source": {
+              "kind": "lonePair",
+              "atomId": "O1"
+            },
+            "sink": {
+              "kind": "betweenAtoms",
+              "atomIds": [
+                "O1",
+                "C2"
+              ]
+            }
+          },
+          {
+            "id": "a4",
+            "electrons": 2,
+            "source": {
+              "kind": "bond",
+              "bondId": "b3"
+            },
+            "sink": {
+              "kind": "atom",
+              "atomId": "Cl1"
+            }
+          }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "acetyl-chloride",
+                "label": "acetyl chloride",
+                "atoms": [
+                  {
+                    "id": "C1",
+                    "element": "C",
+                    "implicitHydrogens": 3
+                  },
+                  {
+                    "id": "C2",
+                    "element": "C"
+                  },
+                  {
+                    "id": "O1",
+                    "element": "O",
+                    "lonePairs": 2
+                  },
+                  {
+                    "id": "Cl1",
+                    "element": "Cl",
+                    "lonePairs": 3
+                  }
+                ],
+                "bonds": [
+                  {
+                    "id": "b1",
+                    "a": "C1",
+                    "b": "C2",
+                    "order": 1
+                  },
+                  {
+                    "id": "b2",
+                    "a": "C2",
+                    "b": "O1",
+                    "order": 2
+                  },
+                  {
+                    "id": "b3",
+                    "a": "C2",
+                    "b": "Cl1",
+                    "order": 1
+                  }
+                ]
+              }
+            },
+            {
+              "role": "nucleophile",
+              "species": {
+                "id": "hydroxide",
+                "label": "hydroxide",
+                "atoms": [
+                  {
+                    "id": "O2",
+                    "element": "O",
+                    "formalCharge": -1,
+                    "lonePairs": 3
+                  },
+                  {
+                    "id": "H1",
+                    "element": "H"
+                  }
+                ],
+                "bonds": [
+                  {
+                    "id": "b4",
+                    "a": "O2",
+                    "b": "H1",
+                    "order": 1
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "acetic-acid",
+                "label": "acetic acid",
+                "atoms": [
+                  {
+                    "id": "C1",
+                    "element": "C",
+                    "implicitHydrogens": 3
+                  },
+                  {
+                    "id": "C2",
+                    "element": "C"
+                  },
+                  {
+                    "id": "O1",
+                    "element": "O",
+                    "lonePairs": 2
+                  },
+                  {
+                    "id": "O2",
+                    "element": "O",
+                    "lonePairs": 2
+                  },
+                  {
+                    "id": "H1",
+                    "element": "H"
+                  }
+                ],
+                "bonds": [
+                  {
+                    "id": "b10",
+                    "a": "C1",
+                    "b": "C2",
+                    "order": 1
+                  },
+                  {
+                    "id": "b11",
+                    "a": "C2",
+                    "b": "O1",
+                    "order": 2
+                  },
+                  {
+                    "id": "b12",
+                    "a": "C2",
+                    "b": "O2",
+                    "order": 1
+                  },
+                  {
+                    "id": "b13",
+                    "a": "O2",
+                    "b": "H1",
+                    "order": 1
+                  }
+                ]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "chloride",
+                "label": "chloride",
+                "atoms": [
+                  {
+                    "id": "Cl1",
+                    "element": "Cl",
+                    "formalCharge": -1,
+                    "lonePairs": 4
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

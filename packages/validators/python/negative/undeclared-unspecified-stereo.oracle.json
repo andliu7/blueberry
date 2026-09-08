@@ -1,0 +1,44 @@
+{
+  "protocol": "blueberry-oracle-corpus",
+  "version": 1,
+  "name": "undeclared-unspecified-stereo",
+  "description": "The arenium ion from corpus/aromaticity.oracle.json with its expect.unspecifiedStereoDeclared entry taken away. RDKit still reports the sp3 carbon c1 as a potential stereo element with no configuration on it, and with nothing declared that is a hard failure. This is the file that proves the declaration is doing work: the only difference between it and the passing corpus entry is the declaration.",
+  "sequences": [
+    {
+      "id": "arenium-with-nothing-declared",
+      "description": "One state. Copy this in and oracle-stereo-descriptors must go red naming atom c1.",
+      "aromaticityInvariantAtomIds": [],
+      "states": [
+        {
+          "id": "state-0",
+          "sanitizationMayFail": null,
+          "species": [
+            {
+              "id": "sp-arenium",
+              "label": "bromobenzenium, the Wheland intermediate, nothing declared",
+              "expect": { "meso": false },
+              "atoms": [
+                { "id": "c1", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null },
+                { "id": "c2", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null },
+                { "id": "c3", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null },
+                { "id": "c4", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null },
+                { "id": "c5", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null },
+                { "id": "c6", "element": "C", "isotope": null, "formalCharge": 1, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null },
+                { "id": "br1", "element": "Br", "isotope": null, "formalCharge": 0, "lonePairs": 3, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null }
+              ],
+              "bonds": [
+                { "id": "r1", "a": "c1", "b": "c2", "order": 1, "stereo": null },
+                { "id": "r2", "a": "c2", "b": "c3", "order": 2, "stereo": null },
+                { "id": "r3", "a": "c3", "b": "c4", "order": 1, "stereo": null },
+                { "id": "r4", "a": "c4", "b": "c5", "order": 2, "stereo": null },
+                { "id": "r5", "a": "c5", "b": "c6", "order": 1, "stereo": null },
+                { "id": "r6", "a": "c6", "b": "c1", "order": 1, "stereo": null },
+                { "id": "s1", "a": "c1", "b": "br1", "order": 1, "stereo": null }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

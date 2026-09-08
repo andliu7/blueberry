@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 2,
+  "id": "broken-arrow-legality-lone-pairs-overdrawn-by-two-arrows",
+  "title": "Two arrows each individually legal draw four electrons total from a nitrogen atom that carries only one lone pair, two available",
+  "expect": {
+    "kind": "broken",
+    "mustFail": ["conservation-arrow-legality", "conservation-electron-flow"],
+    "note": "Adversary pass, Phase 1, attack surface 1. Rule lone_pairs_overdrawn had no negative control anywhere in the corpus, and it is the aggregate half of the capacity family, checked ACROSS the whole step rather than per arrow, the same shape as good-br2-homolysis-with-single-electron-fishhook-arrows proves is sometimes legal: two fishhooks out of one bond exactly using what the bond holds. This fixture is the illegal mirror. N1 carries exactly one lone pair, self consistent at formal charge +3, derived 5 - 2 - 0 = 3, an unusual charge chosen deliberately so a single lone pair is exact rather than needing a second one for a more familiar neutral nitrogen: the point of this fixture is the arithmetic of the ceiling, not a realistic species. Two arrows each source lonePair(N1) with electrons: 2 and sink onto two different separate ions, Na1 and K1. EACH arrow individually passes source_has_no_lone_pair, N1 genuinely carries a lone pair, and each individually passes adjacency, N1 is the pivot shared with its own betweenAtoms sink. Only the aggregate capacity pass at the end of arrowLegalityFindings sees the two arrows together: lonePairElectronsDrawn[N1] accumulates to 4, available is 1 lone pair times 2 equals 2, and lone_pairs_overdrawn fires naming both arrow ids joined. The to state is byte identical to the from state, the same isolation pattern used across this attack surface. WHY ELECTRON-FLOW IS ALSO NAMED. declaredDeltas sums both arrows: N1 nonbonding falls by 4, an N1-Na1 bond of 2 electrons forms, an N1-K1 bond of 2 electrons forms. observedDeltas shows none of that, since the to state is unchanged, so deltaMismatches reports all three. Mass, charge, and valence hold because every atom in both states is independently self consistent and the states are identical."
+  },
+  "pathway": {
+    "id": "arrow-legality-lone-pairs-overdrawn",
+    "route": "nucleophilic_addition_carbonyl",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": { "elementaryStep": "nucleophilic_attack", "reactionCenters": ["N1"] },
+        "arrows": [
+          { "id": "a1", "electrons": 2, "source": { "kind": "lonePair", "atomId": "N1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["N1", "Na1"] } },
+          { "id": "a2", "electrons": 2, "source": { "kind": "lonePair", "atomId": "N1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["N1", "K1"] } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "reagent",
+              "species": {
+                "id": "nitrogen-one-lone-pair",
+                "label": "nitrogen carrying exactly one lone pair, a synthetic minimal atom chosen to make the two electron ceiling exact, not a realistic species",
+                "atoms": [{ "id": "N1", "element": "N", "formalCharge": 3, "lonePairs": 1 }]
+              }
+            },
+            {
+              "role": "counterion",
+              "species": {
+                "id": "sodium-cation",
+                "label": "sodium cation, one of the two sinks",
+                "atoms": [{ "id": "Na1", "element": "Na", "formalCharge": 1 }]
+              }
+            },
+            {
+              "role": "counterion",
+              "species": {
+                "id": "potassium-cation",
+                "label": "potassium cation, the other sink",
+                "atoms": [{ "id": "K1", "element": "K", "formalCharge": 1 }]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "reagent",
+              "species": {
+                "id": "nitrogen-one-lone-pair",
+                "label": "nitrogen carrying exactly one lone pair, a synthetic minimal atom chosen to make the two electron ceiling exact, not a realistic species",
+                "atoms": [{ "id": "N1", "element": "N", "formalCharge": 3, "lonePairs": 1 }]
+              }
+            },
+            {
+              "role": "counterion",
+              "species": {
+                "id": "sodium-cation",
+                "label": "sodium cation, one of the two sinks",
+                "atoms": [{ "id": "Na1", "element": "Na", "formalCharge": 1 }]
+              }
+            },
+            {
+              "role": "counterion",
+              "species": {
+                "id": "potassium-cation",
+                "label": "potassium cation, the other sink",
+                "atoms": [{ "id": "K1", "element": "K", "formalCharge": 1 }]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

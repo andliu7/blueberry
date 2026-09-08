@@ -1,0 +1,391 @@
+{
+  "schemaVersion": 2,
+  "id": "good-sn1-solvolysis-of-2-bromobutane-the-competing-route",
+  "title": "2-bromobutane solvolyses in water through the planar butan-2-yl cation, the SN1 route that competes with SN2 on the same secondary substrate",
+  "expect": {
+    "kind": "good",
+    "note": "The other half of the competing pair, on the same molecule as good-sn2-inversion-at-the-secondary-carbon-of-2-bromobutane. The intermediate at C2 is planar and sp2, so water reaches it from either face and both configurations appear in the product set. The racemisation claim is now an annotation rather than prose, and conservation-stereorandom-annotation requires it to be present on any pathway containing an SN1 capture while reading nothing at all of what it says. This is the fixture where that matters most: it is the only SN1 in the corpus with a genuinely stereogenic centre, so it is the one where an asserted 50:50 would be asserted against real chemistry."
+  },
+  "pathway": {
+    "id": "sn1-2-bromobutane-water",
+    "route": "sn1",
+    "steps": [
+      {
+        "id": "step-1-heterolysis",
+        "identity": { "elementaryStep": "bond_heterolysis", "route": "sn1", "reactionCenters": ["C2", "Br1"] },
+        "arrows": [
+          { "id": "a1", "electrons": 2, "source": { "kind": "bond", "bondId": "b4" }, "sink": { "kind": "atom", "atomId": "Br1" } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "2-bromobutane",
+                "label": "2-bromobutane",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "Br1", "element": "Br", "lonePairs": 3 }
+                ],
+                "bonds": [
+                  { "id": "b1", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b2", "a": "C2", "b": "C3", "order": 1 },
+                  { "id": "b3", "a": "C3", "b": "C4", "order": 1 },
+                  { "id": "b4", "a": "C2", "b": "Br1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "solvent",
+              "species": {
+                "id": "water-nucleophile",
+                "label": "water, the one that attacks",
+                "atoms": [
+                  { "id": "O2", "element": "O", "lonePairs": 2 },
+                  { "id": "H2", "element": "H" },
+                  { "id": "H3", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b5", "a": "O2", "b": "H2", "order": 1 },
+                  { "id": "b6", "a": "O2", "b": "H3", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "solvent",
+              "species": {
+                "id": "water-base",
+                "label": "water, the one that takes the proton in step 3",
+                "atoms": [
+                  { "id": "O3", "element": "O", "lonePairs": 2 },
+                  { "id": "H4", "element": "H" },
+                  { "id": "H5", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b7", "a": "O3", "b": "H4", "order": 1 },
+                  { "id": "b8", "a": "O3", "b": "H5", "order": 1 }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "butan-2-yl-cation",
+                "label": "butan-2-yl cation, planar at C2",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "formalCharge": 1, "implicitHydrogens": 1 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 }
+                ],
+                "bonds": [
+                  { "id": "b9", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b10", "a": "C2", "b": "C3", "order": 1 },
+                  { "id": "b11", "a": "C3", "b": "C4", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "bromide",
+                "label": "bromide",
+                "atoms": [{ "id": "Br1", "element": "Br", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            },
+            {
+              "role": "solvent",
+              "species": {
+                "id": "water-nucleophile",
+                "label": "water, the one that attacks",
+                "atoms": [
+                  { "id": "O2", "element": "O", "lonePairs": 2 },
+                  { "id": "H2", "element": "H" },
+                  { "id": "H3", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b12", "a": "O2", "b": "H2", "order": 1 },
+                  { "id": "b13", "a": "O2", "b": "H3", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "solvent",
+              "species": {
+                "id": "water-base",
+                "label": "water, the one that takes the proton in step 3",
+                "atoms": [
+                  { "id": "O3", "element": "O", "lonePairs": 2 },
+                  { "id": "H4", "element": "H" },
+                  { "id": "H5", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b14", "a": "O3", "b": "H4", "order": 1 },
+                  { "id": "b15", "a": "O3", "b": "H5", "order": 1 }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "step-2-capture",
+        "identity": { "elementaryStep": "nucleophilic_attack", "route": "sn1", "reactionCenters": ["C2"] },
+        "arrows": [
+          { "id": "a2", "electrons": 2, "source": { "kind": "lonePair", "atomId": "O2" }, "sink": { "kind": "betweenAtoms", "atomIds": ["O2", "C2"] } }
+        ],
+        "from": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "butan-2-yl-cation",
+                "label": "butan-2-yl cation, planar at C2",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "formalCharge": 1, "implicitHydrogens": 1 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 }
+                ],
+                "bonds": [
+                  { "id": "b9", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b10", "a": "C2", "b": "C3", "order": 1 },
+                  { "id": "b11", "a": "C3", "b": "C4", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "bromide",
+                "label": "bromide",
+                "atoms": [{ "id": "Br1", "element": "Br", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            },
+            {
+              "role": "solvent",
+              "species": {
+                "id": "water-nucleophile",
+                "label": "water, the one that attacks",
+                "atoms": [
+                  { "id": "O2", "element": "O", "lonePairs": 2 },
+                  { "id": "H2", "element": "H" },
+                  { "id": "H3", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b12", "a": "O2", "b": "H2", "order": 1 },
+                  { "id": "b13", "a": "O2", "b": "H3", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "solvent",
+              "species": {
+                "id": "water-base",
+                "label": "water, the one that takes the proton in step 3",
+                "atoms": [
+                  { "id": "O3", "element": "O", "lonePairs": 2 },
+                  { "id": "H4", "element": "H" },
+                  { "id": "H5", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b14", "a": "O3", "b": "H4", "order": 1 },
+                  { "id": "b15", "a": "O3", "b": "H5", "order": 1 }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s2",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "butan-2-yl-oxonium",
+                "label": "protonated butan-2-ol",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "O2", "element": "O", "formalCharge": 1, "lonePairs": 1 },
+                  { "id": "H2", "element": "H" },
+                  { "id": "H3", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b16", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b17", "a": "C2", "b": "C3", "order": 1 },
+                  { "id": "b18", "a": "C3", "b": "C4", "order": 1 },
+                  { "id": "b19", "a": "C2", "b": "O2", "order": 1 },
+                  { "id": "b20", "a": "O2", "b": "H2", "order": 1 },
+                  { "id": "b21", "a": "O2", "b": "H3", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "bromide",
+                "label": "bromide",
+                "atoms": [{ "id": "Br1", "element": "Br", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            },
+            {
+              "role": "solvent",
+              "species": {
+                "id": "water-base",
+                "label": "water, the one that takes the proton in step 3",
+                "atoms": [
+                  { "id": "O3", "element": "O", "lonePairs": 2 },
+                  { "id": "H4", "element": "H" },
+                  { "id": "H5", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b22", "a": "O3", "b": "H4", "order": 1 },
+                  { "id": "b23", "a": "O3", "b": "H5", "order": 1 }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "step-3-deprotonation",
+        "identity": { "elementaryStep": "proton_transfer", "route": "sn1", "reactionCenters": ["O2", "H3", "O3"] },
+        "arrows": [
+          { "id": "a3", "electrons": 2, "source": { "kind": "lonePair", "atomId": "O3" }, "sink": { "kind": "betweenAtoms", "atomIds": ["O3", "H3"] } },
+          { "id": "a4", "electrons": 2, "source": { "kind": "bond", "bondId": "b21" }, "sink": { "kind": "atom", "atomId": "O2" } }
+        ],
+        "from": {
+          "id": "s2",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "butan-2-yl-oxonium",
+                "label": "protonated butan-2-ol",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "O2", "element": "O", "formalCharge": 1, "lonePairs": 1 },
+                  { "id": "H2", "element": "H" },
+                  { "id": "H3", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b16", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b17", "a": "C2", "b": "C3", "order": 1 },
+                  { "id": "b18", "a": "C3", "b": "C4", "order": 1 },
+                  { "id": "b19", "a": "C2", "b": "O2", "order": 1 },
+                  { "id": "b20", "a": "O2", "b": "H2", "order": 1 },
+                  { "id": "b21", "a": "O2", "b": "H3", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "bromide",
+                "label": "bromide",
+                "atoms": [{ "id": "Br1", "element": "Br", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            },
+            {
+              "role": "base",
+              "species": {
+                "id": "water-base",
+                "label": "water, the one that takes the proton in step 3",
+                "atoms": [
+                  { "id": "O3", "element": "O", "lonePairs": 2 },
+                  { "id": "H4", "element": "H" },
+                  { "id": "H5", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b22", "a": "O3", "b": "H4", "order": 1 },
+                  { "id": "b23", "a": "O3", "b": "H5", "order": 1 }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s3",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "butan-2-ol",
+                "label": "butan-2-ol, formed at a planar centre so both configurations are in the product set",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "O2", "element": "O", "lonePairs": 2 },
+                  { "id": "H2", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b24", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b25", "a": "C2", "b": "C3", "order": 1 },
+                  { "id": "b26", "a": "C3", "b": "C4", "order": 1 },
+                  { "id": "b27", "a": "C2", "b": "O2", "order": 1 },
+                  { "id": "b28", "a": "O2", "b": "H2", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "bromide",
+                "label": "bromide",
+                "atoms": [{ "id": "Br1", "element": "Br", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            },
+            {
+              "role": "byproduct",
+              "species": {
+                "id": "hydronium",
+                "label": "hydronium",
+                "atoms": [
+                  { "id": "O3", "element": "O", "formalCharge": 1, "lonePairs": 1 },
+                  { "id": "H3", "element": "H" },
+                  { "id": "H4", "element": "H" },
+                  { "id": "H5", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b29", "a": "O3", "b": "H3", "order": 1 },
+                  { "id": "b30", "a": "O3", "b": "H4", "order": 1 },
+                  { "id": "b31", "a": "O3", "b": "H5", "order": 1 }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "annotations": [
+      {
+        "kind": "racemisation_ratio",
+        "value": "Not 50:50. Partial racemisation with a net inversion excess, commonly reported in the range of roughly 50 to 80 percent racemisation depending on substrate, solvent, and leaving group.",
+        "justification": "The butan-2-yl cation is planar and sp2, so water reaches C2 from either face and both configurations appear in the product set. The two faces are not equally available: the bromide that has just left is still associated as an ion pair and shields the front face for long enough to leave inversion in excess. CLAUDE.md and docs/VERIFICATION.md S1 both say the ratio is an authoring annotation and never a computed assertion, and a validator asserting 50:50 would fail on correct chemistry, so no check reads this value. What IS asserted, and asserted elsewhere in sn2-inversion-and-sn1-stereorandomness.oracle.json, is the weaker and checkable claim that both configurations are present in the product set."
+      },
+      {
+        "kind": "condition_note",
+        "value": "Water as both solvent and nucleophile, with no added strong nucleophile. A strong nucleophile in a polar aprotic solvent turns the same substrate over to the SN2 route.",
+        "justification": "Recorded because this fixture is one half of a competing pair on one molecule, and the other half is good-sn2-inversion-at-the-secondary-carbon-of-2-bromobutane. Which route runs is a condition, not a property of the substrate. No check reads this."
+      }
+    ]
+  }
+}

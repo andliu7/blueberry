@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 2,
+  "id": "broken-proton-transfer-acetone-protonated-with-no-acid-in-the-state",
+  "title": "Acetone is protonated on oxygen with the acid written above the arrow instead of drawn, so the proton arrives from a species that is not in the multiset",
+  "expect": {
+    "kind": "broken",
+    "mustFail": [
+      "conservation-mass",
+      "conservation-charge",
+      "conservation-electron-flow",
+      "conservation-proton-transfer"
+    ],
+    "note": "The system boundary rule in CLAUDE.md made concrete: a species not in the multiset cannot donate anything. The from state holds acetone and nothing else, the to state holds protonated acetone, and H1 exists only on the right. conservation-proton-transfer names it, one hydrogen gained by O1 and none released by any species present, cause proton_source_not_in_state. The other three are declared because a proton that arrives from outside the multiset cannot break one law on its own: it is a nucleus that appeared, so mass fires; it carries a charge nothing balances, so the multiset total goes from 0 to +1; and it is an atom in the to state with no counterpart in from with no arrow anchoring it, so electron flow fires on the added atom and on the two changes at oxygen that no arrow declares. proton-transfer.ts says this in its own header. The value of check 5 here is not independence, it is that mass says an atom appeared while this says which species should have been drawn holding it."
+  },
+  "pathway": {
+    "id": "acetone-protonation-with-the-acid-off-the-page",
+    "route": "acid_base_proton_transfer",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": {
+          "elementaryStep": "proton_transfer",
+          "route": "acid_base_proton_transfer",
+          "reactionCenters": ["O1"]
+        },
+        "arrows": [],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "acetone",
+                "label": "acetone",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C" },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "O1", "element": "O", "lonePairs": 2 }
+                ],
+                "bonds": [
+                  { "id": "b1", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b2", "a": "C2", "b": "C3", "order": 1 },
+                  { "id": "b3", "a": "C2", "b": "O1", "order": 2 }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "acetone-protonated",
+                "label": "protonated acetone",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C" },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "O1", "element": "O", "formalCharge": 1, "lonePairs": 1 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b4", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b5", "a": "C2", "b": "C3", "order": 1 },
+                  { "id": "b6", "a": "C2", "b": "O1", "order": 2 },
+                  { "id": "b7", "a": "O1", "b": "H1", "order": 1 }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

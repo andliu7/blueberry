@@ -1,0 +1,27 @@
+{
+  // Type checking for this package's tests.
+  //
+  // Same shape and same reason as packages/chem-core/tsconfig.test.json: a separate
+  // project rather than an addition to tsconfig.json's `include`, because that one emits
+  // with rootDir src and adding tests/ would either move the output layout or ship the
+  // tests. This emits nothing and only asks whether the tests compile.
+  //
+  // Added after a builder noticed that tests/ was never type checked and that
+  // step-identity-cause-precision.test.ts only compiled because of it: it calls `.find`
+  // on a value typed as `Check`, which carries no such member. A test that does not type
+  // check can quietly stop asserting what it says it asserts, which matters more here
+  // than anywhere, because these tests are the negative controls for checks whose own
+  // negative controls cannot live in fixtures/.
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "composite": true,
+    "tsBuildInfoFile": "dist/tsconfig.test.tsbuildinfo",
+    // The tests import "../src/x.ts" by its real extension, because Vitest resolves the
+    // file on disk. That needs this flag, which in turn requires noEmit.
+    "allowImportingTsExtensions": true,
+    "types": ["node"]
+  },
+  "include": ["tests/**/*.ts"],
+  "references": [{ "path": "./tsconfig.json" }]
+}

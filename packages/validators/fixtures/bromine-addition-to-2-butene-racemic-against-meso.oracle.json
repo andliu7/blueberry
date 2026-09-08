@@ -1,0 +1,277 @@
+{
+  "protocol": "blueberry-oracle-corpus",
+  "version": 1,
+  "name": "bromine-addition-to-2-butene-racemic-against-meso",
+  "description": "The two reference fixtures CLAUDE.md names by hand: Br2 addition to cis-2-butene gives the racemic 2,3-dibromobutane pair, Br2 addition to trans-2-butene gives the meso compound, and an implementation that swaps them has a sign error in the addition geometry. python/corpus/stereocenters.oracle.json already pins the two PRODUCT STRUCTURES in isolation. What was missing, and what this file adds, is the MECHANISM that connects each alkene to its product set, with the bromonium intermediate in between and its configuration pinned, because the bridged ion is where the sign error actually lives. The conservation half of the same two mechanisms, arrows and electron bookkeeping with no stereochemistry, is good-bromine-addition-to-cis-2-butene-via-a-bromonium-ion and good-bromine-addition-to-trans-2-butene-via-a-bromonium-ion; the v1 conservation fixture schema carries no stereo fields, so those two files cannot tell cis from trans and this one is where the distinction is asserted. HOW THE CONFIGURATIONS BELOW WERE DERIVED, AND IT WAS NOT BY COPYING THE ANSWER. Product and intermediate coordinates were built in 3D from the anti addition rule alone, bromine entering one face of the old alkene plane and bromide entering the opposite face, with every other substituent keeping the position it held in the alkene. RDKit was then handed those coordinates and asked, from geometry only, for CIP labels and for a meso verdict. The chem-core parity was computed independently from the same coordinates by the signed volume e dot (a cross b) over the vectors to neighbours 0, 1 and 2, and that formula was calibrated first against the (2R,3R) entry the suite already grades green in python/corpus/stereocenters.oracle.json, which it reproduced. THE RESULT, WHICH IS THE LESSON. The cis alkene gives an ACHIRAL, meso bromonium with a mirror plane swapping the two carbons; bromide opens it at C2 and at C3 with equal probability and those two openings give (2R,3R) and (2S,3S), enantiomers, hence a racemate. The trans alkene gives a CHIRAL, C2 symmetric bromonium; opening it at either carbon gives the same (2R,3S) meso compound. The symmetry of the intermediate and the symmetry of the product set are opposite in the two cases, which is why swapping them is a single sign flip and why it stays invisible without a fixture like this one.",
+  "sequences": [
+    {
+      "id": "cis-2-butene-bromonium-opened-at-c3",
+      "description": "cis-2-butene plus bromine, to the meso bromonium, to (2S,3S)-2,3-dibromobutane. Bromide attacks C3 anti to the bridging bromine, which stays on C2. Half of the racemate.",
+      "aromaticityInvariantAtomIds": [],
+      "states": [
+        {
+          "id": "state-0-cis-2-butene-and-bromine",
+          "sanitizationMayFail": null,
+          "species": [
+            {
+              "id": "sp-cis-2-butene",
+              "label": "cis-2-butene, the Z alkene",
+              "expect": { "meso": false },
+              "atoms": [
+                { "id": "c1", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 3, "stereo": null },
+                { "id": "c2", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null },
+                { "id": "c3", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null },
+                { "id": "c4", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 3, "stereo": null }
+              ],
+              "bonds": [
+                { "id": "e1", "a": "c1", "b": "c2", "order": 1, "stereo": null },
+                { "id": "e2", "a": "c2", "b": "c3", "order": 2, "stereo": { "kind": "doubleBond", "reference": ["c1", "c4"], "arrangement": "cis", "authoredDescriptor": "Z" } },
+                { "id": "e3", "a": "c3", "b": "c4", "order": 1, "stereo": null }
+              ]
+            },
+            {
+              "id": "sp-bromine",
+              "label": "bromine",
+              "expect": { "meso": false },
+              "atoms": [
+                { "id": "br1", "element": "Br", "isotope": null, "formalCharge": 0, "lonePairs": 3, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null },
+                { "id": "br2", "element": "Br", "isotope": null, "formalCharge": 0, "lonePairs": 3, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null }
+              ],
+              "bonds": [
+                { "id": "e4", "a": "br1", "b": "br2", "order": 1, "stereo": null }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "state-1-meso-bromonium-and-bromide",
+          "sanitizationMayFail": null,
+          "species": [
+            {
+              "id": "sp-bromonium-from-cis",
+              "label": "the bromonium ion from cis-2-butene, achiral, mirror plane through the bromine swapping C2 and C3",
+              "expect": { "meso": true },
+              "atoms": [
+                { "id": "c1", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 3, "stereo": null },
+                { "id": "c2", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": { "kind": "tetrahedral", "neighbors": ["c1", "c3", "br1", "@implicitH"], "parity": "clockwise", "authoredDescriptor": "S" } },
+                { "id": "c3", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": { "kind": "tetrahedral", "neighbors": ["c4", "c2", "br1", "@implicitH"], "parity": "counterclockwise", "authoredDescriptor": "R" } },
+                { "id": "c4", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 3, "stereo": null },
+                { "id": "br1", "element": "Br", "isotope": null, "formalCharge": 1, "lonePairs": 2, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null }
+              ],
+              "bonds": [
+                { "id": "f1", "a": "c1", "b": "c2", "order": 1, "stereo": null },
+                { "id": "f2", "a": "c2", "b": "c3", "order": 1, "stereo": null },
+                { "id": "f3", "a": "c3", "b": "c4", "order": 1, "stereo": null },
+                { "id": "f4", "a": "c2", "b": "br1", "order": 1, "stereo": null },
+                { "id": "f5", "a": "c3", "b": "br1", "order": 1, "stereo": null }
+              ]
+            },
+            {
+              "id": "sp-bromide",
+              "label": "bromide",
+              "expect": { "meso": false },
+              "atoms": [
+                { "id": "br2", "element": "Br", "isotope": null, "formalCharge": -1, "lonePairs": 4, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null }
+              ],
+              "bonds": []
+            }
+          ]
+        },
+        {
+          "id": "state-2-2S-3S-dibromobutane",
+          "sanitizationMayFail": null,
+          "species": [
+            {
+              "id": "sp-2S-3S-dibromobutane",
+              "label": "(2S,3S)-2,3-dibromobutane, one enantiomer of the racemate",
+              "expect": { "meso": false },
+              "atoms": [
+                { "id": "c1", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 3, "stereo": null },
+                { "id": "c2", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": { "kind": "tetrahedral", "neighbors": ["c1", "c3", "br1", "@implicitH"], "parity": "clockwise", "authoredDescriptor": "S" } },
+                { "id": "c3", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": { "kind": "tetrahedral", "neighbors": ["c4", "c2", "br2", "@implicitH"], "parity": "clockwise", "authoredDescriptor": "S" } },
+                { "id": "c4", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 3, "stereo": null },
+                { "id": "br1", "element": "Br", "isotope": null, "formalCharge": 0, "lonePairs": 3, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null },
+                { "id": "br2", "element": "Br", "isotope": null, "formalCharge": 0, "lonePairs": 3, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null }
+              ],
+              "bonds": [
+                { "id": "g1", "a": "c1", "b": "c2", "order": 1, "stereo": null },
+                { "id": "g2", "a": "c2", "b": "c3", "order": 1, "stereo": null },
+                { "id": "g3", "a": "c3", "b": "c4", "order": 1, "stereo": null },
+                { "id": "g4", "a": "c2", "b": "br1", "order": 1, "stereo": null },
+                { "id": "g5", "a": "c3", "b": "br2", "order": 1, "stereo": null }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cis-2-butene-bromonium-opened-at-c2",
+      "description": "The same meso bromonium from cis-2-butene, opened at the other carbon. Bromide attacks C2 anti to the bridging bromine, which stays on C3, and the product is (2R,3R). The two openings are related by the mirror plane of the intermediate, are equally probable, and together are the racemate.",
+      "aromaticityInvariantAtomIds": [],
+      "states": [
+        {
+          "id": "state-0-meso-bromonium-and-bromide",
+          "sanitizationMayFail": null,
+          "species": [
+            {
+              "id": "sp-bromonium-from-cis",
+              "label": "the bromonium ion from cis-2-butene, achiral, mirror plane through the bromine swapping C2 and C3",
+              "expect": { "meso": true },
+              "atoms": [
+                { "id": "c1", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 3, "stereo": null },
+                { "id": "c2", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": { "kind": "tetrahedral", "neighbors": ["c1", "c3", "br1", "@implicitH"], "parity": "clockwise", "authoredDescriptor": "S" } },
+                { "id": "c3", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": { "kind": "tetrahedral", "neighbors": ["c4", "c2", "br1", "@implicitH"], "parity": "counterclockwise", "authoredDescriptor": "R" } },
+                { "id": "c4", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 3, "stereo": null },
+                { "id": "br1", "element": "Br", "isotope": null, "formalCharge": 1, "lonePairs": 2, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null }
+              ],
+              "bonds": [
+                { "id": "f1", "a": "c1", "b": "c2", "order": 1, "stereo": null },
+                { "id": "f2", "a": "c2", "b": "c3", "order": 1, "stereo": null },
+                { "id": "f3", "a": "c3", "b": "c4", "order": 1, "stereo": null },
+                { "id": "f4", "a": "c2", "b": "br1", "order": 1, "stereo": null },
+                { "id": "f5", "a": "c3", "b": "br1", "order": 1, "stereo": null }
+              ]
+            },
+            {
+              "id": "sp-bromide",
+              "label": "bromide",
+              "expect": { "meso": false },
+              "atoms": [
+                { "id": "br2", "element": "Br", "isotope": null, "formalCharge": -1, "lonePairs": 4, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null }
+              ],
+              "bonds": []
+            }
+          ]
+        },
+        {
+          "id": "state-1-2R-3R-dibromobutane",
+          "sanitizationMayFail": null,
+          "species": [
+            {
+              "id": "sp-2R-3R-dibromobutane",
+              "label": "(2R,3R)-2,3-dibromobutane, the other enantiomer of the racemate",
+              "expect": { "meso": false },
+              "atoms": [
+                { "id": "c1", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 3, "stereo": null },
+                { "id": "c2", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": { "kind": "tetrahedral", "neighbors": ["c1", "c3", "br2", "@implicitH"], "parity": "counterclockwise", "authoredDescriptor": "R" } },
+                { "id": "c3", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": { "kind": "tetrahedral", "neighbors": ["c4", "c2", "br1", "@implicitH"], "parity": "counterclockwise", "authoredDescriptor": "R" } },
+                { "id": "c4", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 3, "stereo": null },
+                { "id": "br1", "element": "Br", "isotope": null, "formalCharge": 0, "lonePairs": 3, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null },
+                { "id": "br2", "element": "Br", "isotope": null, "formalCharge": 0, "lonePairs": 3, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null }
+              ],
+              "bonds": [
+                { "id": "h1", "a": "c1", "b": "c2", "order": 1, "stereo": null },
+                { "id": "h2", "a": "c2", "b": "c3", "order": 1, "stereo": null },
+                { "id": "h3", "a": "c3", "b": "c4", "order": 1, "stereo": null },
+                { "id": "h4", "a": "c2", "b": "br2", "order": 1, "stereo": null },
+                { "id": "h5", "a": "c3", "b": "br1", "order": 1, "stereo": null }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "trans-2-butene-bromonium-opened-to-the-meso-compound",
+      "description": "trans-2-butene plus bromine, to the chiral C2 symmetric bromonium, to meso-2,3-dibromobutane. This intermediate has no mirror plane, so the two carbons are not equivalent by symmetry, and yet opening at either one gives the SAME meso product. That is the exact inverse of the cis case and is the pair CLAUDE.md says an implementation must not swap.",
+      "aromaticityInvariantAtomIds": [],
+      "states": [
+        {
+          "id": "state-0-trans-2-butene-and-bromine",
+          "sanitizationMayFail": null,
+          "species": [
+            {
+              "id": "sp-trans-2-butene",
+              "label": "trans-2-butene, the E alkene",
+              "expect": { "meso": false },
+              "atoms": [
+                { "id": "c1", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 3, "stereo": null },
+                { "id": "c2", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null },
+                { "id": "c3", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null },
+                { "id": "c4", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 3, "stereo": null }
+              ],
+              "bonds": [
+                { "id": "e1", "a": "c1", "b": "c2", "order": 1, "stereo": null },
+                { "id": "e2", "a": "c2", "b": "c3", "order": 2, "stereo": { "kind": "doubleBond", "reference": ["c1", "c4"], "arrangement": "trans", "authoredDescriptor": "E" } },
+                { "id": "e3", "a": "c3", "b": "c4", "order": 1, "stereo": null }
+              ]
+            },
+            {
+              "id": "sp-bromine",
+              "label": "bromine",
+              "expect": { "meso": false },
+              "atoms": [
+                { "id": "br1", "element": "Br", "isotope": null, "formalCharge": 0, "lonePairs": 3, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null },
+                { "id": "br2", "element": "Br", "isotope": null, "formalCharge": 0, "lonePairs": 3, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null }
+              ],
+              "bonds": [
+                { "id": "e4", "a": "br1", "b": "br2", "order": 1, "stereo": null }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "state-1-chiral-bromonium-and-bromide",
+          "sanitizationMayFail": null,
+          "species": [
+            {
+              "id": "sp-bromonium-from-trans",
+              "label": "the bromonium ion from trans-2-butene, chiral, C2 axis rather than a mirror plane",
+              "expect": { "meso": false },
+              "atoms": [
+                { "id": "c1", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 3, "stereo": null },
+                { "id": "c2", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": { "kind": "tetrahedral", "neighbors": ["c1", "c3", "br1", "@implicitH"], "parity": "clockwise", "authoredDescriptor": "S" } },
+                { "id": "c3", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": { "kind": "tetrahedral", "neighbors": ["c4", "c2", "br1", "@implicitH"], "parity": "clockwise", "authoredDescriptor": "S" } },
+                { "id": "c4", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 3, "stereo": null },
+                { "id": "br1", "element": "Br", "isotope": null, "formalCharge": 1, "lonePairs": 2, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null }
+              ],
+              "bonds": [
+                { "id": "f1", "a": "c1", "b": "c2", "order": 1, "stereo": null },
+                { "id": "f2", "a": "c2", "b": "c3", "order": 1, "stereo": null },
+                { "id": "f3", "a": "c3", "b": "c4", "order": 1, "stereo": null },
+                { "id": "f4", "a": "c2", "b": "br1", "order": 1, "stereo": null },
+                { "id": "f5", "a": "c3", "b": "br1", "order": 1, "stereo": null }
+              ]
+            },
+            {
+              "id": "sp-bromide",
+              "label": "bromide",
+              "expect": { "meso": false },
+              "atoms": [
+                { "id": "br2", "element": "Br", "isotope": null, "formalCharge": -1, "lonePairs": 4, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null }
+              ],
+              "bonds": []
+            }
+          ]
+        },
+        {
+          "id": "state-2-meso-dibromobutane",
+          "sanitizationMayFail": null,
+          "species": [
+            {
+              "id": "sp-meso-dibromobutane",
+              "label": "meso-2,3-dibromobutane, the single product from either opening",
+              "expect": { "meso": true },
+              "atoms": [
+                { "id": "c1", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 3, "stereo": null },
+                { "id": "c2", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": { "kind": "tetrahedral", "neighbors": ["c1", "c3", "br1", "@implicitH"], "parity": "clockwise", "authoredDescriptor": "S" } },
+                { "id": "c3", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": { "kind": "tetrahedral", "neighbors": ["c4", "c2", "br2", "@implicitH"], "parity": "counterclockwise", "authoredDescriptor": "R" } },
+                { "id": "c4", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 3, "stereo": null },
+                { "id": "br1", "element": "Br", "isotope": null, "formalCharge": 0, "lonePairs": 3, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null },
+                { "id": "br2", "element": "Br", "isotope": null, "formalCharge": 0, "lonePairs": 3, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null }
+              ],
+              "bonds": [
+                { "id": "g1", "a": "c1", "b": "c2", "order": 1, "stereo": null },
+                { "id": "g2", "a": "c2", "b": "c3", "order": 1, "stereo": null },
+                { "id": "g3", "a": "c3", "b": "c4", "order": 1, "stereo": null },
+                { "id": "g4", "a": "c2", "b": "br1", "order": 1, "stereo": null },
+                { "id": "g5", "a": "c3", "b": "br2", "order": 1, "stereo": null }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

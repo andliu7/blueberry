@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 2,
+  "id": "broken-arrow-legality-lone-pair-source-with-no-lone-pairs",
+  "title": "An arrow claims a lone pair source on a methyl cation, which genuinely has none",
+  "expect": {
+    "kind": "broken",
+    "mustFail": ["conservation-arrow-legality", "conservation-electron-flow"],
+    "note": "Adversary pass, Phase 1, attack surface 1. Rule source_has_no_lone_pair had no negative control anywhere in the corpus. The methyl cation is the clean chemical example: it is drawn correctly, formal charge +1, zero lone pairs, three implicit hydrogens, derived charge 4 - 0 - 3 = 1, matching, and the whole point of a carbocation is that it has no lone pair to donate. The arrow nonetheless claims a lonePair source on Ccat and sinks it as a new bond between Ccat and a separate chloride ion. The to state is byte identical to the from state, the same isolation pattern used across this attack surface: arrow-legality never reads the to state, so a step that changes nothing keeps the finding isolated to what a single arrow claims about density it does not have. WHY BOTH CHECKS ARE NAMED. arrow-legality's SOURCE DENSITY rule reads Ccat.lonePairs, finds 0, and reports source_has_no_lone_pair; this does not stop the rest of the pass (unlike an unresolved reference), so adjacency is also evaluated and passes cleanly, since Ccat is the shared pivot between the lonePair source {Ccat} and the betweenAtoms sink {Ccat, Cl1}, which is exactly why this fixture needed a chemically real carbocation rather than a nonresolving id: the point is that a legally shaped arrow can still start on electron density that is not there. conservation-electron-flow disagrees with the to state precisely because the to state was authored unchanged: declaredDeltas says Ccat's nonbonding electrons fall by 2 and a Ccat-Cl1 bond forms, observedDeltas says neither happened, and deltaMismatches reports both. Mass, charge, and valence hold because the to state is identical to the from state and both species are independently self consistent."
+  },
+  "pathway": {
+    "id": "arrow-legality-source-has-no-lone-pair",
+    "route": "sn1",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": { "elementaryStep": "coordination", "reactionCenters": ["Ccat"] },
+        "arrows": [
+          { "id": "a1", "electrons": 2, "source": { "kind": "lonePair", "atomId": "Ccat" }, "sink": { "kind": "betweenAtoms", "atomIds": ["Ccat", "Cl1"] } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "methyl-cation",
+                "label": "methyl cation, no lone pair to give",
+                "atoms": [{ "id": "Ccat", "element": "C", "formalCharge": 1, "implicitHydrogens": 3 }]
+              }
+            },
+            {
+              "role": "counterion",
+              "species": {
+                "id": "chloride",
+                "label": "chloride, unrelated to the claimed arrow",
+                "atoms": [{ "id": "Cl1", "element": "Cl", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "methyl-cation",
+                "label": "methyl cation, no lone pair to give",
+                "atoms": [{ "id": "Ccat", "element": "C", "formalCharge": 1, "implicitHydrogens": 3 }]
+              }
+            },
+            {
+              "role": "counterion",
+              "species": {
+                "id": "chloride",
+                "label": "chloride, unrelated to the claimed arrow",
+                "atoms": [{ "id": "Cl1", "element": "Cl", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

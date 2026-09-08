@@ -1511,3 +1511,75 @@ html[data-device-frame] #root::-webkit-scrollbar {
   width: 0;
   height: 0;
 }
+
+/* ---------------------------------------------------------------------------
+   Marquee
+
+   Home of the animation for `components/ui/marquee.tsx`. It lives here rather
+   than in a `<style>` tag inside the component because the keyframes and the
+   track class are global names: injected per instance, a second marquee with a
+   different speed or direction silently retimes the first. Per-instance values
+   arrive as `--bb-marquee-duration` and `[data-direction]` instead.
+
+   The track is rendered twice and each copy translates a full 100% of itself,
+   so at the end of a pass the second copy sits exactly where the first started
+   and the loop has no seam.
+
+   Names carry the `bb-` prefix deliberately. A bare `@keyframes scroll` is the
+   kind of generic global that collides the moment another stylesheet arrives,
+   and several are about to.
+   --------------------------------------------------------------------------- */
+
+@keyframes bb-marquee-x {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-100%); }
+}
+@keyframes bb-marquee-x-reverse {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(0); }
+}
+@keyframes bb-marquee-y {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-100%); }
+}
+@keyframes bb-marquee-y-reverse {
+  from { transform: translateY(-100%); }
+  to   { transform: translateY(0); }
+}
+
+@layer components {
+  .bb-marquee {
+    display: flex;
+    width: 100%;
+    overflow: hidden;
+  }
+  .bb-marquee--vertical { flex-direction: column; }
+
+  .bb-marquee__track {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    animation: bb-marquee-x var(--bb-marquee-duration, 20s) linear infinite;
+  }
+  .bb-marquee--vertical .bb-marquee__track { flex-direction: column; }
+
+  .bb-marquee[data-direction="right"] .bb-marquee__track { animation-name: bb-marquee-x-reverse; }
+  .bb-marquee[data-direction="up"]    .bb-marquee__track { animation-name: bb-marquee-y; }
+  .bb-marquee[data-direction="down"]  .bb-marquee__track { animation-name: bb-marquee-y-reverse; }
+
+  .bb-marquee__item { flex-shrink: 0; }
+  .bb-marquee--vertical .bb-marquee__item { width: 100%; }
+
+  /* CSS rather than an isPaused state, which would re-render the subtree twice
+     per hover to do what this line does for free. */
+  .bb-marquee[data-pause-on-hover]:hover .bb-marquee__track { animation-play-state: paused; }
+
+  /* Stopping the animation would leave both copies stacked and the overflow
+     clipped, so the duplicate goes and the strip becomes an ordinary scroller
+     the reader drives. */
+  @media (prefers-reduced-motion: reduce) {
+    .bb-marquee { overflow-x: auto; }
+    .bb-marquee__track { animation: none; }
+    .bb-marquee__track[aria-hidden] { display: none; }
+  }
+}

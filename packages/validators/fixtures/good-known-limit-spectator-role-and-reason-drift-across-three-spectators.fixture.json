@@ -1,0 +1,145 @@
+{
+  "schemaVersion": 2,
+  "id": "good-known-limit-spectator-role-and-reason-drift-across-three-spectators",
+  "title": "Three declared spectators keep byte identical structure across a step while their member role and their spectator declaration reason are silently rotated among them",
+  "expect": {
+    "kind": "good",
+    "note": "Adversary pass, Phase 1, attack surface 4, second round. First, what was probed and found solid: assertion 6's canonicalise embeds the ATOM ID as the leading field of every atom substring, and ids.ts guarantees atom ids are unique within a state and stable across a step. That means a real electron or charge transfer among any number of declared spectators, however permuted, cyclic, or dressed up with swapped species ids, necessarily changes at least one atom's own canonical string, and no other atom's string can substitute for it, because no two atoms can ever produce the same string. A three way or larger redox laundering attack on assertion 6, the natural extension of broken-spectator-declaration-laundering-a-redox-transfer-through-two-swapped-counterions, was attempted by hand across several permutations and could not be constructed: every attempt produced count mismatches that assertion 6 caught, exactly as it is designed to. That surface is reported solid rather than forced into a weak fixture. WHAT IS NOT COVERED, AND WHAT THIS FIXTURE SHOWS. spectator.ts's stepViolations reads exactly two things about a declared spectator across a step: the isSpectator boolean and canonicalise(species), which covers atoms and bonds only. It never reads member.role, the SpeciesRole a state member carries, and it never compares declaration.reason or declaration.declaredBy across from and to at all, only their PRESENCE is checked once per state by hygieneViolations. This fixture declares three spectator ion pairs, byte identical atoms and bonds in from and to, so canonicalise agrees exactly and assertion 4, 5, and 6 are all silent. What changes, invisibly to every check in this family, is which ROLE each plays and which REASON justifies its exclusion: spectator-alpha moves from role counterion, reason unreacting_counterion, to role catalyst, reason authored_simplification; spectator-beta moves from catalyst, authored_simplification, to solvent, bulk_medium; spectator-gamma moves from solvent, bulk_medium, to counterion, unreacting_counterion, completing the rotation with all three roles and all three declared reasons present on both sides, just reassigned. Nothing about mass, charge, or electron count is at stake here, the atoms genuinely do not change, so this is not a conservation violation the way the redox laundering fixture was. It is a narrower, purely authoring-hygiene gap: a species classified as playing one role and excluded for one stated reason in the from state can be reclassified as playing an entirely different role for an entirely different stated reason in the to state, with the exact same physical structure, and nothing anywhere in the family notices or requires the classification to be consistent. Filed GOOD because nothing fires; the finding is the field, not a fixture that fails. STILL OPEN AFTER THE PHASE 1 BUILDER PASS TWO. That pass worked on step identity and on the three annotation checks and did not touch spectator declarations, so nothing about this fixture changed. The grounding rule added to the annotation checks, that a claim must name an atom id or a species id from the state, is the nearest relative of what this fixture is about and it was deliberately not extended to spectator justifications in this pass: a spectator declaration already carries speciesId as a structured field, so the drift here is between role, reason, and justification rather than a claim about nothing, and closing it needs a rule about agreement between those three."
+  },
+  "pathway": {
+    "id": "known-limit-spectator-role-and-reason-drift",
+    "route": "sn2",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": { "elementaryStep": "concerted_substitution", "route": "sn2", "reactionCenters": ["C2"] },
+        "arrows": [
+          { "id": "a1", "electrons": 2, "source": { "kind": "lonePair", "atomId": "O1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["O1", "C2"] } },
+          { "id": "a2", "electrons": 2, "source": { "kind": "bond", "bondId": "b2" }, "sink": { "kind": "atom", "atomId": "Br1" } }
+        ],
+        "from": {
+          "id": "s0",
+          "spectators": [
+            { "speciesId": "spectator-alpha", "reason": "unreacting_counterion", "justification": "A sodium counterion balancing the substrate's charge, not a participant in the substitution at C2.", "declaredBy": "adversary-pass-phase-1" },
+            { "speciesId": "spectator-beta", "reason": "authored_simplification", "justification": "A second sodium ion, carried only to keep the multiset formula tidy, not chemically distinguished from spectator-alpha.", "declaredBy": "adversary-pass-phase-1" },
+            { "speciesId": "spectator-gamma", "reason": "bulk_medium", "justification": "A third sodium ion, standing in for bulk ionic strength rather than a specific counterion.", "declaredBy": "adversary-pass-phase-1" }
+          ],
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "bromoethane",
+                "label": "bromoethane",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "Br1", "element": "Br", "lonePairs": 3 }
+                ],
+                "bonds": [
+                  { "id": "b1", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b2", "a": "C2", "b": "Br1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "nucleophile",
+              "species": {
+                "id": "hydroxide",
+                "label": "hydroxide",
+                "atoms": [
+                  { "id": "O1", "element": "O", "formalCharge": -1, "lonePairs": 3 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [{ "id": "b3", "a": "O1", "b": "H1", "order": 1 }]
+              }
+            },
+            {
+              "role": "counterion",
+              "species": {
+                "id": "spectator-alpha",
+                "label": "sodium ion, alpha",
+                "atoms": [{ "id": "NaA", "element": "Na", "formalCharge": 1 }]
+              }
+            },
+            {
+              "role": "catalyst",
+              "species": {
+                "id": "spectator-beta",
+                "label": "sodium ion, beta",
+                "atoms": [{ "id": "NaB", "element": "Na", "formalCharge": 1 }]
+              }
+            },
+            {
+              "role": "solvent",
+              "species": {
+                "id": "spectator-gamma",
+                "label": "sodium ion, gamma",
+                "atoms": [{ "id": "NaC", "element": "Na", "formalCharge": 1 }]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "spectators": [
+            { "speciesId": "spectator-alpha", "reason": "authored_simplification", "justification": "Reclassified: no longer described as a counterion, though the atom itself has not changed at all.", "declaredBy": "adversary-pass-phase-1" },
+            { "speciesId": "spectator-beta", "reason": "bulk_medium", "justification": "Reclassified again, rotated one step further, atom still unchanged.", "declaredBy": "adversary-pass-phase-1" },
+            { "speciesId": "spectator-gamma", "reason": "unreacting_counterion", "justification": "Completes the rotation: gamma now carries the reason alpha started with, atom still unchanged.", "declaredBy": "adversary-pass-phase-1" }
+          ],
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "ethanol",
+                "label": "ethanol",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b4", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b5", "a": "C2", "b": "O1", "order": 1 },
+                  { "id": "b6", "a": "O1", "b": "H1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "bromide",
+                "label": "bromide",
+                "atoms": [{ "id": "Br1", "element": "Br", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            },
+            {
+              "role": "catalyst",
+              "species": {
+                "id": "spectator-alpha",
+                "label": "sodium ion, alpha, structurally unchanged, role and reason both drifted",
+                "atoms": [{ "id": "NaA", "element": "Na", "formalCharge": 1 }]
+              }
+            },
+            {
+              "role": "solvent",
+              "species": {
+                "id": "spectator-beta",
+                "label": "sodium ion, beta, structurally unchanged, role and reason both drifted",
+                "atoms": [{ "id": "NaB", "element": "Na", "formalCharge": 1 }]
+              }
+            },
+            {
+              "role": "counterion",
+              "species": {
+                "id": "spectator-gamma",
+                "label": "sodium ion, gamma, structurally unchanged, role and reason both drifted",
+                "atoms": [{ "id": "NaC", "element": "Na", "formalCharge": 1 }]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

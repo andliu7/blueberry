@@ -1,0 +1,107 @@
+{
+  "schemaVersion": 2,
+  "id": "broken-known-limit-rate-comparison-naming-a-route-the-engine-does-not-name",
+  "title": "The neopentyl SN2 rate_comparison annotation names radical_halogenation as the competing pathway, a route with no initiator, no light, and no radical anywhere in this fixture",
+  "expect": {
+    "kind": "broken",
+    "mustFail": ["conservation-disfavoured-rate-comparison"],
+    "note": "Adversary pass, Phase 1, attack surface 2. rate-comparison.ts is explicit about the one content check it makes: 'The check looks for one of those ids as a whole word. That is not grading prose, it is requiring a name from a known list to be present.' It is equally explicit about what it does not check: 'It does not assert that the named competing route is the right one either, only that a route is named.' This fixture is that gap made concrete. It is structurally identical to good-sn2-on-neopentyl-bromide-strongly-disfavoured-not-forbidden, same neopentyl bromide, same hydroxide, same detector trigger, a primary carbon with exactly one carbon neighbour that itself carries three further carbons. The only change is the rate_comparison annotation's content: it names \"radical_halogenation\" as the competing pathway rather than the chemically correct \"carbocation_rearrangement\" the sibling fixture names. Radical halogenation needs a radical initiator, light or heat, and a halogen molecule; none of those are present or even chemically reachable from hydroxide attacking a bromide in solution, and it is not the reaction neopentyl systems are known for competing by. The competing pathway named is real, as a MechanismRoute id in chem-core's closed union, and that is all competingRouteViolations checks: routesNamedIn scans the annotation's value and justification for a whole word match against allMechanismRoutes(), finds \"radical_halogenation\", confirms it is not \"sn2\" itself, and stops, never asking whether a route named a hydroxide-and-alkyl-bromide system could ever actually take. THE LESSON. CLAUDE.md's requirement, 'names the competing pathway, because the methyl shift to a tertiary cation is the actual lesson,' is satisfied on paper by naming ANY other route in the closed union, including one with zero chemical availability from this substrate under these conditions. A problem authored this way would tell a student the wrong lesson with the checkbox still ticked. CLOSED BY AGREEMENT BETWEEN TWO RECORDS, Phase 1 builder pass two, which is a narrower claim than the note above asks for and is the one that can be defended. conservation-disfavoured-rate-comparison now requires every competing route named in a rate_comparison to be one the engine itself names for the same cause, in competingRoutesFor(sn2_center_strongly_hindered), which packages/feedback/src/copy/sterics.ts fills with carbocation_rearrangement, the anchimerically assisted methyl shift. radical_halogenation is not in it, so the fixture and the engine disagree about what outruns a neopentyl SN2 and one of the two teaches the wrong lesson. WHAT IS STILL NOT CHECKED: whether a named route is AVAILABLE FROM THIS SUBSTRATE, which is what the note above actually describes. Some of that is decidable from structure, a radical chain needs an unpaired electron or a homolysable bond to start from, and some of it is not in the fixture schema at all, since nothing here records light, heat, or solvent. That belongs to a reactivity family with its own fixtures, and building half of it inside this check would be a second model of reactivity living where nobody would look for it."
+  },
+  "pathway": {
+    "id": "known-limit-rate-comparison-unavailable-competing-pathway",
+    "route": "sn2",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": { "elementaryStep": "concerted_substitution", "route": "sn2", "reactionCenters": ["C5"] },
+        "arrows": [
+          { "id": "a1", "electrons": 2, "source": { "kind": "lonePair", "atomId": "O1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["O1", "C5"] } },
+          { "id": "a2", "electrons": 2, "source": { "kind": "bond", "bondId": "b5" }, "sink": { "kind": "atom", "atomId": "Br1" } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "neopentyl-bromide",
+                "label": "1-bromo-2,2-dimethylpropane",
+                "atoms": [
+                  { "id": "C1", "element": "C" },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C5", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "Br1", "element": "Br", "lonePairs": 3 }
+                ],
+                "bonds": [
+                  { "id": "b1", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b2", "a": "C1", "b": "C3", "order": 1 },
+                  { "id": "b3", "a": "C1", "b": "C4", "order": 1 },
+                  { "id": "b4", "a": "C1", "b": "C5", "order": 1 },
+                  { "id": "b5", "a": "C5", "b": "Br1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "nucleophile",
+              "species": {
+                "id": "hydroxide",
+                "label": "hydroxide",
+                "atoms": [
+                  { "id": "O1", "element": "O", "formalCharge": -1, "lonePairs": 3 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [{ "id": "b6", "a": "O1", "b": "H1", "order": 1 }]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "neopentyl-alcohol",
+                "label": "2,2-dimethylpropan-1-ol",
+                "atoms": [
+                  { "id": "C1", "element": "C" },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C5", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b7", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b8", "a": "C1", "b": "C3", "order": 1 },
+                  { "id": "b9", "a": "C1", "b": "C4", "order": 1 },
+                  { "id": "b10", "a": "C1", "b": "C5", "order": 1 },
+                  { "id": "b11", "a": "C5", "b": "O1", "order": 1 },
+                  { "id": "b12", "a": "O1", "b": "H1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "bromide",
+                "label": "bromide",
+                "atoms": [{ "id": "Br1", "element": "Br", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "annotations": [
+      {
+        "kind": "rate_comparison",
+        "value": "Strongly disfavoured, roughly 10^-5 relative to ethyl. Competing pathway: radical_halogenation.",
+        "justification": "Adversary pass stand-in, attack surface 2. radical_halogenation is a real MechanismRoute id in chem-core's closed union and is not \"sn2\", which is the entire content test rate-comparison.ts runs. It is not a chemically available competing pathway here: there is no radical initiator, no light or heat step, and no halogen molecule anywhere in this fixture, only hydroxide and an alkyl bromide in solution. The chemically correct competing pathway for neopentyl SN2 is carbocation_rearrangement, the anchimerically assisted methyl shift, authored honestly in good-sn2-on-neopentyl-bromide-strongly-disfavoured-not-forbidden and good-anchimerically-assisted-methyl-shift-ionisation-of-neopentyl-bromide. This fixture names the wrong route on purpose to show the check cannot tell the difference."
+      }
+    ]
+  }
+}

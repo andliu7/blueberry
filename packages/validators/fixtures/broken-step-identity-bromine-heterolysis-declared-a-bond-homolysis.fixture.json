@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 2,
+  "id": "broken-step-identity-bromine-heterolysis-declared-a-bond-homolysis",
+  "title": "Br2 breaks heterolytically, both electrons to one bromine, in a step declared bond_homolysis",
+  "expect": {
+    "kind": "broken",
+    "mustFail": ["conservation-step-identity"],
+    "note": "The negative control for the polarity arm of conservation-step-identity, in the direction where a radical step is drawn with pairs. THE CHEMISTRY IS INTERNALLY CORRECT AND THAT IS THE POINT. One two electron arrow takes the whole Br1 to Br2 bonding pair and puts it on Br1 as a fourth lone pair. Br1 becomes bromide, four lone pairs, derived formal charge 7 - 8 - 0 = -1. Br2 is left with the three lone pairs it already had and no bond, derived 7 - 6 - 0 = +1. Mass is conserved, charge is conserved at zero over the multiset, every atom's declared charge agrees with its own structure, the declared and observed deltas agree exactly, and the arrow is drawable: it sources two electrons from a bond that holds two, its source site Br1 and Br2 overlaps its sink site Br1, and it is not degenerate. Every other check in the family is therefore silent, which is what makes this control isolate one rule. WHAT IS WRONG IS THE LABEL. identity.elementaryStep says bond_homolysis, and homolysis is the step where a bond breaks with one electron going each way, which is drawn as two fishhooks and is exactly what good-br2-homolysis-with-single-electron-fishhook-arrows does. What is drawn here is heterolysis: the pair stays together, one atom becomes an anion and the other a cation, and no radical exists at any point. Compare the two files side by side and the only chemical difference is the arrows. conservation-step-identity fires because a kind that is radical by definition carries no single electron evidence: no arrow moves one electron and no arrow starts on an unpaired electron. The failure reports step_kind_disagrees_with_arrows, a cause added for exactly this and carrying its own authored copy. It accuses the label rather than the chemistry, because the arrows here are correct and only the name written on them is wrong."
+  },
+  "pathway": {
+    "id": "broken-bromine-heterolysis-declared-homolysis",
+    "route": "radical_halogenation",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": { "elementaryStep": "bond_homolysis", "route": "radical_halogenation", "reactionCenters": ["Br1", "Br2"] },
+        "arrows": [
+          { "id": "a1", "electrons": 2, "source": { "kind": "bond", "bondId": "b1" }, "sink": { "kind": "atom", "atomId": "Br1" } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "reagent",
+              "species": {
+                "id": "bromine",
+                "label": "molecular bromine",
+                "atoms": [
+                  { "id": "Br1", "element": "Br", "lonePairs": 3 },
+                  { "id": "Br2", "element": "Br", "lonePairs": 3 }
+                ],
+                "bonds": [{ "id": "b1", "a": "Br1", "b": "Br2", "order": 1 }]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "bromide",
+                "label": "bromide, holding both electrons of the old bond",
+                "atoms": [{ "id": "Br1", "element": "Br", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            },
+            {
+              "role": "product",
+              "species": {
+                "id": "bromenium",
+                "label": "bromine cation, left with no share of the bonding pair",
+                "atoms": [{ "id": "Br2", "element": "Br", "formalCharge": 1, "lonePairs": 3 }]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

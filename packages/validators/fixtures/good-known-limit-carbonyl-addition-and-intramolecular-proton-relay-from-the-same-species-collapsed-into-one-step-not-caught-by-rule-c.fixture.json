@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 2,
+  "id": "good-known-limit-carbonyl-addition-and-intramolecular-proton-relay-from-the-same-species-collapsed-into-one-step-not-caught-by-rule-c",
+  "title": "Hydroxide adds to the ketone carbonyl of 4-hydroxybutan-2-one and the resulting alkoxide is protonated by the substrate's own pendant hydroxyl in the same step, drawn as one step instead of two",
+  "expect": {
+    "kind": "good",
+    "note": "ADVERSARY PASS FIVE, ATTACK SURFACE 1 (RULE C, THE SECOND HALF, GAP TWO). Rule C's own docstring lists three things it still misses after closing the shape it was written for: 'a collapse whose second half is not a protonation, a protonation by an acid inside the same species, and any collapse that localises nothing anywhere.' This fixture is the middle one, built and hand traced against the actual condition rather than merely asserted.\n\nTHE MECHANISM. Hydroxide (a separate, external species) attacks the ketone carbon C2 of 4-hydroxybutan-2-one (a1: lone pair on O4 into the new O4-C2 bond). The C2=O2 pi bond breaks fully onto O2 (a2: bond, order 2, C2-O2 -> atom O2), Rule C's condition 1: a real tetrahedral alkoxide is made, chemically ordinary and the natural end of a first barrier. In the same step, instead of that alkoxide taking a proton from an external acid, one of O2's own lone pairs reaches across the same molecule and takes the proton off the substrate's own pendant hydroxyl, C4-O3-H1 (a3: lone pair on O2 into the new O2-H1 bond; a4: bond O3-H1 -> atom O3, the donor keeping the pair, exactly the donated proton transfer shape this corpus draws everywhere else). O3 is left an alkoxide. This is a second, distinct molecular event, an intramolecular general acid step, with its own transition state geometry (it needs the alkoxide already formed and the two ends of the same molecule oriented toward each other), not a continuation of the addition's transition state.\n\nWHY RULE C IS CORRECTLY SILENT, TRACED AGAINST ITS OWN FOUR CONDITIONS. Conditions 1 through 3 are met exactly as in the protonation-by-a-separate-acid case this rule was written for: a2 localises a pair on O2 (condition 1), a3 is a different arrow sourced on that same O2's lone pair (condition 2), and a3's sink is a hydrogen, H1 (condition 3). Condition 4 is where this fixture lands outside the shape: `acid.species.id === host.species.id` in `collapsedProtonations`, because in the `from` state both O2 (the host, part of substrate species '4-hydroxybutan-2-one') and H1 (the acid, the SAME substrate species, since it is the pendant hydroxyl's own hydrogen) belong to the identical species id, so the function's own same-species branch takes the `continue` and records no match. This is not a bug: the docstring is explicit that a same-species proton source 'may genuinely share one cyclic transition state' and is deliberately left to a human rather than guessed at.\n\nWHY RULES A AND B ARE ALSO CORRECTLY SILENT. Rule A: all four arrows chain through shared atoms, O4-C2 (a1) shares C2 with C2-O2 (a2), which shares O2 with O2-H1 (a3), which shares H1 with O3-H1 (a4); one connected cluster, proximity test never reached. Rule B: the four touched pairs are (O4,C2) formed, (C2,O2) broken (pi component only, never reformed by any betweenAtoms sink naming that pair), (O2,H1) formed, (O3,H1) broken; no pair is both broken and formed by two different arrows, so nothing round trips.\n\nWHY THE STEP IS DECLARED `nucleophilic_attack`, MATCHING THE PRECEDENT THE COMMITTED CYANOHYDRIN KNOWN-LIMIT FIXTURE SETS. `proton_transfer` and `tautomerisation` are the only kinds `PROTON_KINDS` gates in step-identity.ts, and `nucleophilic_attack` is in neither, so the hydrogen and departure rules there do not run on this label. It is in `POLAR_ONLY` and every arrow moves a pair, so the polarity rule is silent too. Declaring it `proton_transfer` instead would report nothing extra here (there is no heavy sigma departure for the departure rule to catch, since the only bond that fully breaks, O3-H1, has a hydrogen at one end and `heavySigmaDepartures` excludes that by its own second condition) but would still misdescribe a step whose defining event, for the purposes of this finding, is the addition rather than the proton move.\n\nEVERY CONSERVATION TOTAL IS INTACT. Mass: every atom explicit throughout, none created or destroyed, no implicit hydrogen count changes on any atom. Charge: substrate 0 plus hydroxide -1 totals -1 on both sides, since O4 gives up its own negative charge to form the new C2-O4 bond exactly as cyanide does in the reference cyanohydrin fixture, while O3 ends the step as the alkoxide carrying the same -1 the system started with. Electron flow: four arrows account for the four bonding changes with nothing left over. Valence: every atom's bonds plus lone pairs plus implicit hydrogens sum to a legal octet in both states, including O2's transient three-lone-pair alkoxide character between a2 and a3, a real intermediate this one step drawing never writes down as its own state, which is exactly Rule C's own complaint about the shape it does catch, now demonstrated for the shape it does not.\n\nSTILL OPEN, STATED SO A GREEN RUN ON THIS FIXTURE IS NOT READ AS MORE. The same-species exclusion in `collapsedProtonations` is a documented, deliberate boundary, not an oversight discovered here; this fixture is the concrete negative instance proving the boundary is real and reachable with legitimate structure rather than only asserted in prose."
+  },
+  "pathway": {
+    "id": "hydroxybutanone-hydroxide-intramolecular-proton-relay-collapsed",
+    "route": "nucleophilic_addition_carbonyl",
+    "steps": [
+      {
+        "id": "step-1-addition-and-intramolecular-proton-relay-collapsed",
+        "identity": { "elementaryStep": "nucleophilic_attack", "route": "nucleophilic_addition_carbonyl", "reactionCenters": ["O4", "C2", "O2", "H1", "O3"] },
+        "arrows": [
+          { "id": "a1", "electrons": 2, "source": { "kind": "lonePair", "atomId": "O4" }, "sink": { "kind": "betweenAtoms", "atomIds": ["O4", "C2"] } },
+          { "id": "a2", "electrons": 2, "source": { "kind": "bond", "bondId": "b2" }, "sink": { "kind": "atom", "atomId": "O2" } },
+          { "id": "a3", "electrons": 2, "source": { "kind": "lonePair", "atomId": "O2" }, "sink": { "kind": "betweenAtoms", "atomIds": ["O2", "H1"] } },
+          { "id": "a4", "electrons": 2, "source": { "kind": "bond", "bondId": "b5" }, "sink": { "kind": "atom", "atomId": "O3" } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "4-hydroxybutan-2-one",
+                "label": "4-hydroxybutan-2-one",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C" },
+                  { "id": "O2", "element": "O", "lonePairs": 2 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "O3", "element": "O", "lonePairs": 2 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b1", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b2", "a": "C2", "b": "O2", "order": 2 },
+                  { "id": "b3", "a": "C2", "b": "C3", "order": 1 },
+                  { "id": "b4", "a": "C3", "b": "C4", "order": 1 },
+                  { "id": "b5", "a": "O3", "b": "H1", "order": 1 },
+                  { "id": "b6", "a": "C4", "b": "O3", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "nucleophile",
+              "species": {
+                "id": "hydroxide",
+                "label": "hydroxide",
+                "atoms": [
+                  { "id": "O4", "element": "O", "formalCharge": -1, "lonePairs": 3 },
+                  { "id": "H2", "element": "H" }
+                ],
+                "bonds": [{ "id": "b7", "a": "O4", "b": "H2", "order": 1 }]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "gem-diol-alkoxide-product",
+                "label": "the gem-diol alkoxide closed by an intramolecular proton relay from the pendant hydroxyl",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C" },
+                  { "id": "O2", "element": "O", "lonePairs": 2 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "O3", "element": "O", "formalCharge": -1, "lonePairs": 3 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "O4", "element": "O", "lonePairs": 2 },
+                  { "id": "H2", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b8", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b9", "a": "C2", "b": "O2", "order": 1 },
+                  { "id": "b10", "a": "O2", "b": "H1", "order": 1 },
+                  { "id": "b11", "a": "C2", "b": "C3", "order": 1 },
+                  { "id": "b12", "a": "C3", "b": "C4", "order": 1 },
+                  { "id": "b13", "a": "C4", "b": "O3", "order": 1 },
+                  { "id": "b14", "a": "C2", "b": "O4", "order": 1 },
+                  { "id": "b15", "a": "O4", "b": "H2", "order": 1 }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

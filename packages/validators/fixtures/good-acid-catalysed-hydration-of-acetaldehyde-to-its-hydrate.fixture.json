@@ -1,0 +1,339 @@
+{
+  "schemaVersion": 2,
+  "id": "good-acid-catalysed-hydration-of-acetaldehyde-to-its-hydrate",
+  "title": "Acetaldehyde is protonated on oxygen, water adds to the activated carbonyl carbon, and the water left over from the acid takes the extra proton off",
+  "expect": {
+    "kind": "good",
+    "note": "Three steps, two of them proton transfers, and a catalytic cycle that closes. This is the fixture to compare against good-cyanohydrin-formation-from-acetaldehyde: same carbonyl, same kind of nucleophile, opposite order of events. Under acid the carbonyl is protonated before the nucleophile arrives, which is why a weak nucleophile like water can add at all; under neutral or basic conditions a strong nucleophile adds first and the oxygen is protonated afterwards. Getting that order backwards is a distinct wrong answer rather than a sloppy one and deserves its own named cause."
+  },
+  "pathway": {
+    "id": "acid-hydration-acetaldehyde",
+    "route": "nucleophilic_addition_carbonyl",
+    "steps": [
+      {
+        "id": "step-1-protonation-of-the-carbonyl",
+        "identity": { "elementaryStep": "proton_transfer", "route": "nucleophilic_addition_carbonyl", "reactionCenters": ["O1", "H1", "O2"] },
+        "arrows": [
+          { "id": "a1", "electrons": 2, "source": { "kind": "lonePair", "atomId": "O1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["O1", "H1"] } },
+          { "id": "a2", "electrons": 2, "source": { "kind": "bond", "bondId": "b3" }, "sink": { "kind": "atom", "atomId": "O2" } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "acetaldehyde",
+                "label": "acetaldehyde",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "O1", "element": "O", "lonePairs": 2 }
+                ],
+                "bonds": [
+                  { "id": "b1", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b2", "a": "C2", "b": "O1", "order": 2 }
+                ]
+              }
+            },
+            {
+              "role": "acid",
+              "species": {
+                "id": "hydronium",
+                "label": "hydronium",
+                "atoms": [
+                  { "id": "O2", "element": "O", "formalCharge": 1, "lonePairs": 1 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "H2", "element": "H" },
+                  { "id": "H3", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b3", "a": "O2", "b": "H1", "order": 1 },
+                  { "id": "b4", "a": "O2", "b": "H2", "order": 1 },
+                  { "id": "b5", "a": "O2", "b": "H3", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "solvent",
+              "species": {
+                "id": "water-nucleophile",
+                "label": "water, the one that adds in step 2",
+                "atoms": [
+                  { "id": "O3", "element": "O", "lonePairs": 2 },
+                  { "id": "H4", "element": "H" },
+                  { "id": "H5", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b6", "a": "O3", "b": "H4", "order": 1 },
+                  { "id": "b7", "a": "O3", "b": "H5", "order": 1 }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "protonated-acetaldehyde",
+                "label": "protonated acetaldehyde",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "O1", "element": "O", "formalCharge": 1, "lonePairs": 1 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b8", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b9", "a": "C2", "b": "O1", "order": 2 },
+                  { "id": "b10", "a": "O1", "b": "H1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "byproduct",
+              "species": {
+                "id": "water-from-acid",
+                "label": "water, left over from the hydronium",
+                "atoms": [
+                  { "id": "O2", "element": "O", "lonePairs": 2 },
+                  { "id": "H2", "element": "H" },
+                  { "id": "H3", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b11", "a": "O2", "b": "H2", "order": 1 },
+                  { "id": "b12", "a": "O2", "b": "H3", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "solvent",
+              "species": {
+                "id": "water-nucleophile",
+                "label": "water, the one that adds in step 2",
+                "atoms": [
+                  { "id": "O3", "element": "O", "lonePairs": 2 },
+                  { "id": "H4", "element": "H" },
+                  { "id": "H5", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b6", "a": "O3", "b": "H4", "order": 1 },
+                  { "id": "b7", "a": "O3", "b": "H5", "order": 1 }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "step-2-water-adds",
+        "identity": { "elementaryStep": "nucleophilic_attack", "route": "nucleophilic_addition_carbonyl", "reactionCenters": ["C2", "O3"] },
+        "arrows": [
+          { "id": "a3", "electrons": 2, "source": { "kind": "lonePair", "atomId": "O3" }, "sink": { "kind": "betweenAtoms", "atomIds": ["O3", "C2"] } },
+          { "id": "a4", "electrons": 2, "source": { "kind": "bond", "bondId": "b9" }, "sink": { "kind": "atom", "atomId": "O1" } }
+        ],
+        "from": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "protonated-acetaldehyde",
+                "label": "protonated acetaldehyde",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "O1", "element": "O", "formalCharge": 1, "lonePairs": 1 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b8", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b9", "a": "C2", "b": "O1", "order": 2 },
+                  { "id": "b10", "a": "O1", "b": "H1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "byproduct",
+              "species": {
+                "id": "water-from-acid",
+                "label": "water, left over from the hydronium",
+                "atoms": [
+                  { "id": "O2", "element": "O", "lonePairs": 2 },
+                  { "id": "H2", "element": "H" },
+                  { "id": "H3", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b11", "a": "O2", "b": "H2", "order": 1 },
+                  { "id": "b12", "a": "O2", "b": "H3", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "nucleophile",
+              "species": {
+                "id": "water-nucleophile",
+                "label": "water, the one that adds in step 2",
+                "atoms": [
+                  { "id": "O3", "element": "O", "lonePairs": 2 },
+                  { "id": "H4", "element": "H" },
+                  { "id": "H5", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b6", "a": "O3", "b": "H4", "order": 1 },
+                  { "id": "b7", "a": "O3", "b": "H5", "order": 1 }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s2",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "protonated-hydrate",
+                "label": "the protonated hydrate",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "O3", "element": "O", "formalCharge": 1, "lonePairs": 1 },
+                  { "id": "H4", "element": "H" },
+                  { "id": "H5", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b13", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b14", "a": "C2", "b": "O1", "order": 1 },
+                  { "id": "b15", "a": "O1", "b": "H1", "order": 1 },
+                  { "id": "b16", "a": "C2", "b": "O3", "order": 1 },
+                  { "id": "b17", "a": "O3", "b": "H4", "order": 1 },
+                  { "id": "b18", "a": "O3", "b": "H5", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "byproduct",
+              "species": {
+                "id": "water-from-acid",
+                "label": "water, left over from the hydronium",
+                "atoms": [
+                  { "id": "O2", "element": "O", "lonePairs": 2 },
+                  { "id": "H2", "element": "H" },
+                  { "id": "H3", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b11", "a": "O2", "b": "H2", "order": 1 },
+                  { "id": "b12", "a": "O2", "b": "H3", "order": 1 }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "step-3-deprotonation",
+        "identity": { "elementaryStep": "proton_transfer", "route": "nucleophilic_addition_carbonyl", "reactionCenters": ["O3", "H4", "O2"] },
+        "arrows": [
+          { "id": "a5", "electrons": 2, "source": { "kind": "lonePair", "atomId": "O2" }, "sink": { "kind": "betweenAtoms", "atomIds": ["O2", "H4"] } },
+          { "id": "a6", "electrons": 2, "source": { "kind": "bond", "bondId": "b17" }, "sink": { "kind": "atom", "atomId": "O3" } }
+        ],
+        "from": {
+          "id": "s2",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "protonated-hydrate",
+                "label": "the protonated hydrate",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "O3", "element": "O", "formalCharge": 1, "lonePairs": 1 },
+                  { "id": "H4", "element": "H" },
+                  { "id": "H5", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b13", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b14", "a": "C2", "b": "O1", "order": 1 },
+                  { "id": "b15", "a": "O1", "b": "H1", "order": 1 },
+                  { "id": "b16", "a": "C2", "b": "O3", "order": 1 },
+                  { "id": "b17", "a": "O3", "b": "H4", "order": 1 },
+                  { "id": "b18", "a": "O3", "b": "H5", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "base",
+              "species": {
+                "id": "water-from-acid",
+                "label": "water, left over from the hydronium, acting as the base",
+                "atoms": [
+                  { "id": "O2", "element": "O", "lonePairs": 2 },
+                  { "id": "H2", "element": "H" },
+                  { "id": "H3", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b11", "a": "O2", "b": "H2", "order": 1 },
+                  { "id": "b12", "a": "O2", "b": "H3", "order": 1 }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s3",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "acetaldehyde-hydrate",
+                "label": "ethane-1,1-diol, the hydrate",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "O3", "element": "O", "lonePairs": 2 },
+                  { "id": "H5", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b19", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b20", "a": "C2", "b": "O1", "order": 1 },
+                  { "id": "b21", "a": "O1", "b": "H1", "order": 1 },
+                  { "id": "b22", "a": "C2", "b": "O3", "order": 1 },
+                  { "id": "b23", "a": "O3", "b": "H5", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "byproduct",
+              "species": {
+                "id": "hydronium-regenerated",
+                "label": "hydronium, the catalyst handed back",
+                "atoms": [
+                  { "id": "O2", "element": "O", "formalCharge": 1, "lonePairs": 1 },
+                  { "id": "H2", "element": "H" },
+                  { "id": "H3", "element": "H" },
+                  { "id": "H4", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b24", "a": "O2", "b": "H2", "order": 1 },
+                  { "id": "b25", "a": "O2", "b": "H3", "order": 1 },
+                  { "id": "b26", "a": "O2", "b": "H4", "order": 1 }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

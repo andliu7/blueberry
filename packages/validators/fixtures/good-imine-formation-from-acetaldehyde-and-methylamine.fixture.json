@@ -1,0 +1,565 @@
+{
+  "schemaVersion": 2,
+  "id": "good-imine-formation-from-acetaldehyde-and-methylamine",
+  "title": "Methylamine adds to acetaldehyde, a proton moves from nitrogen to oxygen, acid protonates the hydroxyl, water leaves to the iminium, and water takes the last proton off nitrogen",
+  "expect": {
+    "kind": "good",
+    "note": "Five steps, four of which move a proton, and the longest pathway in the corpus. It is here because it is the mechanism where students most often skip the proton transfers and jump from the carbinolamine to the imine in one arrow. Step 2 is the one that is easiest to lose and hardest to justify losing: the nitrogen is positive and the oxygen is negative in the addition product, and nothing further happens until that is fixed. It is drawn as an intramolecular transfer within one species, which conservation-proton-transfer still tracks atom by atom and still balances. Step 4 is the other load bearing one: the nitrogen lone pair pushes in AS water leaves, so no carbocation is formed and the intermediate is an iminium with a full octet."
+  },
+  "pathway": {
+    "id": "imine-formation-acetaldehyde-methylamine",
+    "route": "nucleophilic_addition_carbonyl",
+    "steps": [
+      {
+        "id": "step-1-amine-adds",
+        "identity": { "elementaryStep": "nucleophilic_attack", "route": "nucleophilic_addition_carbonyl", "reactionCenters": ["C2", "N1"] },
+        "arrows": [
+          { "id": "a1", "electrons": 2, "source": { "kind": "lonePair", "atomId": "N1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["N1", "C2"] } },
+          { "id": "a2", "electrons": 2, "source": { "kind": "bond", "bondId": "b2" }, "sink": { "kind": "atom", "atomId": "O1" } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "acetaldehyde",
+                "label": "acetaldehyde",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "O1", "element": "O", "lonePairs": 2 }
+                ],
+                "bonds": [
+                  { "id": "b1", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b2", "a": "C2", "b": "O1", "order": 2 }
+                ]
+              }
+            },
+            {
+              "role": "nucleophile",
+              "species": {
+                "id": "methylamine",
+                "label": "methylamine, both N to H bonds drawn explicitly",
+                "atoms": [
+                  { "id": "N1", "element": "N", "lonePairs": 1 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "H2", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b3", "a": "N1", "b": "C3", "order": 1 },
+                  { "id": "b4", "a": "N1", "b": "H1", "order": 1 },
+                  { "id": "b5", "a": "N1", "b": "H2", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "acid",
+              "species": {
+                "id": "hydronium",
+                "label": "hydronium",
+                "atoms": [
+                  { "id": "O2", "element": "O", "formalCharge": 1, "lonePairs": 1 },
+                  { "id": "H3", "element": "H" },
+                  { "id": "H4", "element": "H" },
+                  { "id": "H5", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b6", "a": "O2", "b": "H3", "order": 1 },
+                  { "id": "b7", "a": "O2", "b": "H4", "order": 1 },
+                  { "id": "b8", "a": "O2", "b": "H5", "order": 1 }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "amine-addition-zwitterion",
+                "label": "the zwitterionic addition product, positive nitrogen and negative oxygen",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "O1", "element": "O", "formalCharge": -1, "lonePairs": 3 },
+                  { "id": "N1", "element": "N", "formalCharge": 1 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "H2", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b9", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b10", "a": "C2", "b": "O1", "order": 1 },
+                  { "id": "b11", "a": "C2", "b": "N1", "order": 1 },
+                  { "id": "b12", "a": "N1", "b": "C3", "order": 1 },
+                  { "id": "b13", "a": "N1", "b": "H1", "order": 1 },
+                  { "id": "b14", "a": "N1", "b": "H2", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "acid",
+              "species": {
+                "id": "hydronium",
+                "label": "hydronium",
+                "atoms": [
+                  { "id": "O2", "element": "O", "formalCharge": 1, "lonePairs": 1 },
+                  { "id": "H3", "element": "H" },
+                  { "id": "H4", "element": "H" },
+                  { "id": "H5", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b6", "a": "O2", "b": "H3", "order": 1 },
+                  { "id": "b7", "a": "O2", "b": "H4", "order": 1 },
+                  { "id": "b8", "a": "O2", "b": "H5", "order": 1 }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "step-2-proton-transfer-nitrogen-to-oxygen",
+        "identity": { "elementaryStep": "proton_transfer", "route": "nucleophilic_addition_carbonyl", "reactionCenters": ["N1", "H1", "O1"] },
+        "arrows": [
+          { "id": "a3", "electrons": 2, "source": { "kind": "lonePair", "atomId": "O1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["O1", "H1"] } },
+          { "id": "a4", "electrons": 2, "source": { "kind": "bond", "bondId": "b13" }, "sink": { "kind": "atom", "atomId": "N1" } }
+        ],
+        "from": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "amine-addition-zwitterion",
+                "label": "the zwitterionic addition product, positive nitrogen and negative oxygen",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "O1", "element": "O", "formalCharge": -1, "lonePairs": 3 },
+                  { "id": "N1", "element": "N", "formalCharge": 1 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "H2", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b9", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b10", "a": "C2", "b": "O1", "order": 1 },
+                  { "id": "b11", "a": "C2", "b": "N1", "order": 1 },
+                  { "id": "b12", "a": "N1", "b": "C3", "order": 1 },
+                  { "id": "b13", "a": "N1", "b": "H1", "order": 1 },
+                  { "id": "b14", "a": "N1", "b": "H2", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "acid",
+              "species": {
+                "id": "hydronium",
+                "label": "hydronium",
+                "atoms": [
+                  { "id": "O2", "element": "O", "formalCharge": 1, "lonePairs": 1 },
+                  { "id": "H3", "element": "H" },
+                  { "id": "H4", "element": "H" },
+                  { "id": "H5", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b6", "a": "O2", "b": "H3", "order": 1 },
+                  { "id": "b7", "a": "O2", "b": "H4", "order": 1 },
+                  { "id": "b8", "a": "O2", "b": "H5", "order": 1 }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s2",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "carbinolamine",
+                "label": "the neutral carbinolamine",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "N1", "element": "N", "lonePairs": 1 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "H2", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b15", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b16", "a": "C2", "b": "O1", "order": 1 },
+                  { "id": "b17", "a": "C2", "b": "N1", "order": 1 },
+                  { "id": "b18", "a": "N1", "b": "C3", "order": 1 },
+                  { "id": "b19", "a": "O1", "b": "H1", "order": 1 },
+                  { "id": "b20", "a": "N1", "b": "H2", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "acid",
+              "species": {
+                "id": "hydronium",
+                "label": "hydronium",
+                "atoms": [
+                  { "id": "O2", "element": "O", "formalCharge": 1, "lonePairs": 1 },
+                  { "id": "H3", "element": "H" },
+                  { "id": "H4", "element": "H" },
+                  { "id": "H5", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b6", "a": "O2", "b": "H3", "order": 1 },
+                  { "id": "b7", "a": "O2", "b": "H4", "order": 1 },
+                  { "id": "b8", "a": "O2", "b": "H5", "order": 1 }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "step-3-protonation-of-the-hydroxyl",
+        "identity": { "elementaryStep": "proton_transfer", "route": "nucleophilic_addition_carbonyl", "reactionCenters": ["O1", "H3", "O2"] },
+        "arrows": [
+          { "id": "a5", "electrons": 2, "source": { "kind": "lonePair", "atomId": "O1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["O1", "H3"] } },
+          { "id": "a6", "electrons": 2, "source": { "kind": "bond", "bondId": "b6" }, "sink": { "kind": "atom", "atomId": "O2" } }
+        ],
+        "from": {
+          "id": "s2",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "carbinolamine",
+                "label": "the neutral carbinolamine",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "N1", "element": "N", "lonePairs": 1 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "H2", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b15", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b16", "a": "C2", "b": "O1", "order": 1 },
+                  { "id": "b17", "a": "C2", "b": "N1", "order": 1 },
+                  { "id": "b18", "a": "N1", "b": "C3", "order": 1 },
+                  { "id": "b19", "a": "O1", "b": "H1", "order": 1 },
+                  { "id": "b20", "a": "N1", "b": "H2", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "acid",
+              "species": {
+                "id": "hydronium",
+                "label": "hydronium",
+                "atoms": [
+                  { "id": "O2", "element": "O", "formalCharge": 1, "lonePairs": 1 },
+                  { "id": "H3", "element": "H" },
+                  { "id": "H4", "element": "H" },
+                  { "id": "H5", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b6", "a": "O2", "b": "H3", "order": 1 },
+                  { "id": "b7", "a": "O2", "b": "H4", "order": 1 },
+                  { "id": "b8", "a": "O2", "b": "H5", "order": 1 }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s3",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "protonated-carbinolamine",
+                "label": "the carbinolamine protonated on oxygen",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "O1", "element": "O", "formalCharge": 1, "lonePairs": 1 },
+                  { "id": "N1", "element": "N", "lonePairs": 1 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "H2", "element": "H" },
+                  { "id": "H3", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b21", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b22", "a": "C2", "b": "O1", "order": 1 },
+                  { "id": "b23", "a": "C2", "b": "N1", "order": 1 },
+                  { "id": "b24", "a": "N1", "b": "C3", "order": 1 },
+                  { "id": "b25", "a": "O1", "b": "H1", "order": 1 },
+                  { "id": "b26", "a": "N1", "b": "H2", "order": 1 },
+                  { "id": "b27", "a": "O1", "b": "H3", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "solvent",
+              "species": {
+                "id": "water-from-acid",
+                "label": "water, left over from the hydronium",
+                "atoms": [
+                  { "id": "O2", "element": "O", "lonePairs": 2 },
+                  { "id": "H4", "element": "H" },
+                  { "id": "H5", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b28", "a": "O2", "b": "H4", "order": 1 },
+                  { "id": "b29", "a": "O2", "b": "H5", "order": 1 }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "step-4-loss-of-water-to-the-iminium",
+        "identity": { "elementaryStep": "leaving_group_departure", "route": "nucleophilic_addition_carbonyl", "reactionCenters": ["C2", "N1", "O1"] },
+        "arrows": [
+          { "id": "a7", "electrons": 2, "source": { "kind": "lonePair", "atomId": "N1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["N1", "C2"] } },
+          { "id": "a8", "electrons": 2, "source": { "kind": "bond", "bondId": "b22" }, "sink": { "kind": "atom", "atomId": "O1" } }
+        ],
+        "from": {
+          "id": "s3",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "protonated-carbinolamine",
+                "label": "the carbinolamine protonated on oxygen",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "O1", "element": "O", "formalCharge": 1, "lonePairs": 1 },
+                  { "id": "N1", "element": "N", "lonePairs": 1 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "H2", "element": "H" },
+                  { "id": "H3", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b21", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b22", "a": "C2", "b": "O1", "order": 1 },
+                  { "id": "b23", "a": "C2", "b": "N1", "order": 1 },
+                  { "id": "b24", "a": "N1", "b": "C3", "order": 1 },
+                  { "id": "b25", "a": "O1", "b": "H1", "order": 1 },
+                  { "id": "b26", "a": "N1", "b": "H2", "order": 1 },
+                  { "id": "b27", "a": "O1", "b": "H3", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "solvent",
+              "species": {
+                "id": "water-from-acid",
+                "label": "water, left over from the hydronium",
+                "atoms": [
+                  { "id": "O2", "element": "O", "lonePairs": 2 },
+                  { "id": "H4", "element": "H" },
+                  { "id": "H5", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b28", "a": "O2", "b": "H4", "order": 1 },
+                  { "id": "b29", "a": "O2", "b": "H5", "order": 1 }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s4",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "iminium",
+                "label": "the iminium ion",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "N1", "element": "N", "formalCharge": 1 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "H2", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b30", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b31", "a": "C2", "b": "N1", "order": 2 },
+                  { "id": "b32", "a": "N1", "b": "C3", "order": 1 },
+                  { "id": "b33", "a": "N1", "b": "H2", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "water-leaving-group",
+                "label": "water, the leaving group",
+                "atoms": [
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "H3", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b34", "a": "O1", "b": "H1", "order": 1 },
+                  { "id": "b35", "a": "O1", "b": "H3", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "solvent",
+              "species": {
+                "id": "water-from-acid",
+                "label": "water, left over from the hydronium",
+                "atoms": [
+                  { "id": "O2", "element": "O", "lonePairs": 2 },
+                  { "id": "H4", "element": "H" },
+                  { "id": "H5", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b28", "a": "O2", "b": "H4", "order": 1 },
+                  { "id": "b29", "a": "O2", "b": "H5", "order": 1 }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "step-5-deprotonation-of-nitrogen",
+        "identity": { "elementaryStep": "proton_transfer", "route": "nucleophilic_addition_carbonyl", "reactionCenters": ["N1", "H2", "O2"] },
+        "arrows": [
+          { "id": "a9", "electrons": 2, "source": { "kind": "lonePair", "atomId": "O2" }, "sink": { "kind": "betweenAtoms", "atomIds": ["O2", "H2"] } },
+          { "id": "a10", "electrons": 2, "source": { "kind": "bond", "bondId": "b33" }, "sink": { "kind": "atom", "atomId": "N1" } }
+        ],
+        "from": {
+          "id": "s4",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "iminium",
+                "label": "the iminium ion",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "N1", "element": "N", "formalCharge": 1 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "H2", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b30", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b31", "a": "C2", "b": "N1", "order": 2 },
+                  { "id": "b32", "a": "N1", "b": "C3", "order": 1 },
+                  { "id": "b33", "a": "N1", "b": "H2", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "byproduct",
+              "species": {
+                "id": "water-leaving-group",
+                "label": "water, the leaving group",
+                "atoms": [
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "H3", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b34", "a": "O1", "b": "H1", "order": 1 },
+                  { "id": "b35", "a": "O1", "b": "H3", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "base",
+              "species": {
+                "id": "water-from-acid",
+                "label": "water, left over from the hydronium, acting as the base",
+                "atoms": [
+                  { "id": "O2", "element": "O", "lonePairs": 2 },
+                  { "id": "H4", "element": "H" },
+                  { "id": "H5", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b28", "a": "O2", "b": "H4", "order": 1 },
+                  { "id": "b29", "a": "O2", "b": "H5", "order": 1 }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s5",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "n-methylethanimine",
+                "label": "N-methylethanimine, the imine",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "N1", "element": "N", "lonePairs": 1 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 }
+                ],
+                "bonds": [
+                  { "id": "b36", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b37", "a": "C2", "b": "N1", "order": 2 },
+                  { "id": "b38", "a": "N1", "b": "C3", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "byproduct",
+              "species": {
+                "id": "water-leaving-group",
+                "label": "water, the leaving group",
+                "atoms": [
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "H3", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b34", "a": "O1", "b": "H1", "order": 1 },
+                  { "id": "b35", "a": "O1", "b": "H3", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "byproduct",
+              "species": {
+                "id": "hydronium-regenerated",
+                "label": "hydronium, the catalyst handed back",
+                "atoms": [
+                  { "id": "O2", "element": "O", "formalCharge": 1, "lonePairs": 1 },
+                  { "id": "H2", "element": "H" },
+                  { "id": "H4", "element": "H" },
+                  { "id": "H5", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b39", "a": "O2", "b": "H2", "order": 1 },
+                  { "id": "b40", "a": "O2", "b": "H4", "order": 1 },
+                  { "id": "b41", "a": "O2", "b": "H5", "order": 1 }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
