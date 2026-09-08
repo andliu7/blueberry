@@ -1695,3 +1695,165 @@ html[data-device-frame] #root::-webkit-scrollbar {
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-display: ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", "Baloo 2", Quicksand, "Varela Round", ui-sans-serif, system-ui, sans-serif;
 }
+
+/* ---------------------------------------------------------------------------
+   Gradient button
+
+   The surface for `components/ui/gradient-button.tsx`. A radial gradient whose
+   focal point, spread and five stops all travel on hover, rather than one
+   background cross-fading into another.
+
+   `@property` is what makes that possible. Without a declared `syntax` a custom
+   property is an untyped string and `transition: --pos-x 0.5s` does nothing,
+   because there is no halfway point between two strings. Typing it as a
+   `<percentage>` or a `<color>` makes it interpolable. `--tile-spin` further up
+   this file already relies on the same thing, so the browser floor was accepted
+   here before this arrived.
+
+   NOT the palette this shipped with. The original was pink, magenta and orange;
+   these are the site's own blues, so the button belongs to the page it sits on.
+   The values are literals because `@property` initial-value cannot read a var,
+   but they are the `--color-brand-*` ramp: #1d4ed8 through #3b82f6.
+
+   The v3 `@tailwind base / components / utilities` directives that came with it
+   are deliberately absent. This stylesheet is Tailwind v4 and opens with a
+   single `@import "tailwindcss"`; re-declaring the layers would emit preflight
+   a second time.
+   --------------------------------------------------------------------------- */
+
+@property --gb-pos-x { syntax: "<percentage>"; initial-value: 11.14%; inherits: false; }
+@property --gb-pos-y { syntax: "<percentage>"; initial-value: 140%; inherits: false; }
+@property --gb-spread-x { syntax: "<percentage>"; initial-value: 150%; inherits: false; }
+@property --gb-spread-y { syntax: "<percentage>"; initial-value: 180.06%; inherits: false; }
+
+@property --gb-color-1 { syntax: "<color>"; initial-value: #060d20; inherits: false; }
+@property --gb-color-2 { syntax: "<color>"; initial-value: #0b1c42; inherits: false; }
+@property --gb-color-3 { syntax: "<color>"; initial-value: #14306b; inherits: false; }
+@property --gb-color-4 { syntax: "<color>"; initial-value: #1d4ed8; inherits: false; }
+@property --gb-color-5 { syntax: "<color>"; initial-value: #2563eb; inherits: false; }
+
+@property --gb-stop-1 { syntax: "<percentage>"; initial-value: 37.35%; inherits: false; }
+@property --gb-stop-2 { syntax: "<percentage>"; initial-value: 61.36%; inherits: false; }
+@property --gb-stop-3 { syntax: "<percentage>"; initial-value: 78.42%; inherits: false; }
+@property --gb-stop-4 { syntax: "<percentage>"; initial-value: 89.52%; inherits: false; }
+@property --gb-stop-5 { syntax: "<percentage>"; initial-value: 100%; inherits: false; }
+
+/* The rim. `inherits: true` because the pseudo-element reads them. */
+@property --gb-border-angle { syntax: "<angle>"; initial-value: 20deg; inherits: true; }
+@property --gb-border-1 { syntax: "<color>"; initial-value: hsla(217, 91%, 78%, 0.18); inherits: true; }
+@property --gb-border-2 { syntax: "<color>"; initial-value: hsla(217, 91%, 60%, 0.7); inherits: true; }
+
+@layer components {
+  .gradient-button {
+    background: radial-gradient(
+      var(--gb-spread-x) var(--gb-spread-y) at var(--gb-pos-x) var(--gb-pos-y),
+      var(--gb-color-1) var(--gb-stop-1),
+      var(--gb-color-2) var(--gb-stop-2),
+      var(--gb-color-3) var(--gb-stop-3),
+      var(--gb-color-4) var(--gb-stop-4),
+      var(--gb-color-5) var(--gb-stop-5)
+    );
+    transition:
+      --gb-pos-x 0.5s, --gb-pos-y 0.5s,
+      --gb-spread-x 0.5s, --gb-spread-y 0.5s,
+      --gb-color-1 0.5s, --gb-color-2 0.5s, --gb-color-3 0.5s,
+      --gb-color-4 0.5s, --gb-color-5 0.5s,
+      --gb-stop-1 0.5s, --gb-stop-2 0.5s, --gb-stop-3 0.5s,
+      --gb-stop-4 0.5s, --gb-stop-5 0.5s,
+      --gb-border-angle 0.5s, --gb-border-1 0.5s, --gb-border-2 0.5s;
+  }
+
+  /* A one pixel rim, drawn as a filled box masked down to its own border.
+     Two masks, one clipped to the content box and one to the whole element,
+     composited to exclude: what survives is the ring between them. A border
+     cannot do this because a border cannot carry a gradient. */
+  .gradient-button::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(var(--gb-border-angle), var(--gb-border-1), var(--gb-border-2));
+    /* ORDER MATTERS AND IT BIT. The `-webkit-mask` shorthand resets the
+       composite, so with it written after `mask-composite: exclude` the
+       computed value came back `add`: both layers kept, nothing subtracted, and
+       the rim filled the whole button with a light wash instead of a one pixel
+       ring. Caught by reading the computed style, not by looking, because a
+       pale button reads as a colour choice rather than a broken mask.
+       Legacy first, standard last, so the standard wins where it exists. */
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  .gradient-button:hover {
+    --gb-pos-x: 0%;
+    --gb-pos-y: 91.51%;
+    --gb-spread-x: 120.24%;
+    --gb-spread-y: 103.18%;
+    /* Brighter than rest, but every stop stays dark enough to carry white text.
+       The first pass swept to #60a5fa and #93c5fd, which looked good and
+       measured 1.56:1 behind the label against an AA floor of 4.5:1. The rim
+       below is still free to go light: it is one pixel of decoration, not
+       something a word sits on. */
+    --gb-color-1: #1d4ed8;
+    --gb-color-2: #2563eb;
+    --gb-color-3: #1e40af;
+    --gb-color-4: #172554;
+    --gb-color-5: #060d20;
+    --gb-stop-1: 0%;
+    --gb-stop-2: 8.8%;
+    --gb-stop-3: 21.44%;
+    --gb-stop-4: 71.34%;
+    --gb-stop-5: 85.76%;
+    --gb-border-angle: 190deg;
+    --gb-border-1: hsla(213, 94%, 92%, 0.14);
+    --gb-border-2: hsla(213, 94%, 88%, 0.65);
+  }
+
+  /* The cooler pitch, for a second action beside the primary one. */
+  .gradient-button-cool {
+    --gb-color-1: #041826;
+    --gb-color-2: #06364d;
+    --gb-color-3: #0e7490;
+    --gb-color-4: #0891b2;
+    --gb-color-5: #22d3ee;
+    --gb-border-angle: 200deg;
+    --gb-border-1: hsla(189, 94%, 88%, 0.5);
+    --gb-border-2: hsla(189, 60%, 88%, 0.14);
+  }
+
+  .gradient-button-cool:hover {
+    --gb-pos-x: 0%;
+    --gb-pos-y: 95.51%;
+    --gb-spread-x: 110.24%;
+    --gb-spread-y: 110.2%;
+    --gb-color-1: #041826;
+    --gb-color-2: #22d3ee;
+    --gb-color-3: #0891b2;
+    --gb-color-4: #06364d;
+    --gb-color-5: #010a12;
+    --gb-stop-1: 0%;
+    --gb-stop-2: 10%;
+    --gb-stop-3: 35.44%;
+    --gb-stop-4: 71.34%;
+    --gb-stop-5: 90.76%;
+    --gb-border-angle: 210deg;
+    --gb-border-1: hsla(189, 94%, 90%, 0.2);
+    --gb-border-2: hsla(189, 60%, 90%, 0.7);
+  }
+
+  /* Seventeen properties travelling at once is exactly the kind of thing this
+     query exists for. The hover still changes the colours, it just arrives. */
+  @media (prefers-reduced-motion: reduce) {
+    .gradient-button {
+      transition: none;
+    }
+  }
+}

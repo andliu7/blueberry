@@ -3,13 +3,14 @@ import { motion, useReducedMotion } from "motion/react";
 import { ArrowRight, ChevronDown } from "lucide-react";
 import { HomeIntro } from "@/components/HomeIntro";
 import { Blueberry } from "@/components/ui/blueberry";
+import { GradientButton } from "@/components/ui/gradient-button";
+import { TextRoll } from "@/components/ui/text-roll";
 import { FoundingSeats } from "@/components/ui/founding-seats";
 import { moodForProgress, type BerryMood } from "@/lib/berryMood";
 import { reviewedCount } from "@/lib/progress";
 import { deckCount, type Deck } from "@/data/types";
 import { REACTIONS } from "@/data/reactions";
 import { HERO, SITE_NAME } from "@/data/site";
-import { cn } from "@/lib/utils";
 
 /**
  * The front door, and now the whole of it.
@@ -196,17 +197,24 @@ function HeroContent({
                     is one screen and one press. It says what the next two
                     minutes contain before the first field appears, and it is
                     where the two appearance settings live. See `EntryGate`. */}
-                <a
-                  href="#/enter"
-                  className={cn(
-                    "bb-press group inline-flex items-center gap-2.5 rounded-full px-9 py-4",
-                    "bg-gradient-to-r from-brand-from to-brand-to text-lg font-semibold text-white",
-                    "focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:outline-none",
-                  )}
-                >
-                  {HERO.cta}
-                  <ArrowRight className="size-5 transition-transform duration-300 group-hover:translate-x-1" />
-                </a>
+                {/* `asChild` keeps this an anchor. It is a link, and a link that
+                    renders as a button still has to be one: middle click, copy
+                    address and open in a new tab all come from the element, not
+                    from the styling.
+
+                    `motion.a` rather than `a` because the label's roll is driven
+                    from here. TextRoll states the variants and animates nothing
+                    itself, so this element's hover propagates down to it, which
+                    means the whole control is the target rather than the eleven
+                    characters in the middle of it. */}
+                <GradientButton asChild className="bb-press group">
+                  <motion.a href="#/enter" initial="initial" whileHover="hovered">
+                    <TextRoll driven center>
+                      {HERO.cta}
+                    </TextRoll>
+                    <ArrowRight className="size-5 transition-transform duration-300 group-hover:translate-x-1" />
+                  </motion.a>
+                </GradientButton>
               </motion.div>
               <p className="text-sm font-medium text-slate-600 dark:text-stone-300">{HERO.ctaNote}</p>
             </div>
