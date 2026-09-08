@@ -105,8 +105,8 @@ export function ReviewSession({ cards, source = decks, onExit, onDone }: ReviewS
             allow whatever the shade: no goal image draws green type, and a
             second darker green existing so that a number can be green is a
             reinterpretation of the clause rather than a reading of it. */}
-        <p className="title-face text-scale-display font-bold text-bb-foreground">{summary.reviewed}</p>
-        <h1 className="title-face text-scale-2xl font-bold text-bb-foreground">{summaryHeadline(summary)}</h1>
+        <p className="bb-title-face text-scale-display font-bold text-bb-foreground">{summary.reviewed}</p>
+        <h1 className="bb-title-face text-scale-2xl font-bold text-bb-foreground">{summaryHeadline(summary)}</h1>
         <p className="text-scale-base leading-normal text-bb-muted-foreground">{summaryLine(summary)}</p>
         <p className="text-scale-base font-semibold text-[color:var(--diamond)]">
           {summary.diamonds} diamonds
@@ -125,7 +125,7 @@ export function ReviewSession({ cards, source = decks, onExit, onDone }: ReviewS
             becomes chip3d--go and says Claim, and not before. */}
         <button
           type="button"
-          className="chip3d press title-face min-h-14 w-full rounded-full text-scale-lg font-bold"
+          className="chip3d press bb-title-face min-h-14 w-full rounded-full text-scale-lg font-bold"
           onClick={() => {
             onDone?.(summary.diamonds);
             onExit();
@@ -242,7 +242,7 @@ export function ReviewSession({ cards, source = decks, onExit, onDone }: ReviewS
            down; the base .chip3d face IS the periwinkle, so no modifier. */
         <button
           type="button"
-          className="chip3d press title-face min-h-14 w-full rounded-full text-scale-lg font-bold"
+          className="chip3d press bb-title-face min-h-14 w-full rounded-full text-scale-lg font-bold"
           onClick={() => setState(reveal(state))}
         >
           Show the answer

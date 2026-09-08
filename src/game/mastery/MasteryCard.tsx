@@ -60,7 +60,7 @@ function LadderRung({ row }: { readonly row: LadderRow }) {
     <li className={`rank-ladder__row rank-ladder__row--${row.state}`}>
       <RankMark motif={row.motif} tone={tone} sizePx={34} glow={row.state === "current"} />
       <span className="min-w-0">
-        <span className="rank-ladder__name title-face">{row.name}</span>
+        <span className="rank-ladder__name bb-title-face">{row.name}</span>
         <span className="rank-ladder__claim block">{row.detail}</span>
       </span>
     </li>
@@ -92,7 +92,7 @@ export function MasteryCard({ economy, reviewHref = hrefForReview(), className =
         <RankMark motif={model.badge.motif} tone="current" sizePx={68} glow />
         <div className="min-w-0">
           <p className="rank-card__eyebrow">Mastery</p>
-          <h2 className="rank-card__name title-face">{model.badge.name}</h2>
+          <h2 className="rank-card__name bb-title-face">{model.badge.name}</h2>
         </div>
       </div>
 
@@ -128,7 +128,7 @@ export function MasteryCard({ economy, reviewHref = hrefForReview(), className =
         </div>
         <p className="rank-bar__caption" aria-hidden>
           <span>
-            <span className="rank-bar__score title-face">{model.score}</span> of 100
+            <span className="rank-bar__score bb-title-face">{model.score}</span> of 100
           </span>
           <span>{next === null ? "Top of the ladder" : `${model.toGo} to ${next.name}`}</span>
         </p>

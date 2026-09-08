@@ -59,7 +59,7 @@ export function NotOpenYet({ surface }: { readonly surface: FlagId }) {
       <span className="flex h-20 w-20 items-center justify-center rounded-full border-2 border-bb-border bg-[color:var(--tab-active)] text-bb-muted-foreground">
         <TabIcon tab={surface} className="h-9 w-9" />
       </span>
-      <h2 className="title-face text-scale-xl font-semibold text-bb-foreground">{notice.title}</h2>
+      <h2 className="bb-title-face text-scale-xl font-semibold text-bb-foreground">{notice.title}</h2>
       <p className="text-scale-base text-bb-muted-foreground">{notice.line}</p>
       <p className="text-scale-sm text-bb-muted-foreground">{notice.kept}</p>
       <a

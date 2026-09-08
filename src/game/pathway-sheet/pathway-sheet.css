@@ -959,7 +959,7 @@ button.ns-card--go .ns-chip__face {
 }
 
 /* Guidebook body is CONTENT, so it stays in the neutral content face: no
-   .title-face here and no font-family override, because --font-sans is the
+   .bb-title-face here and no font-family override, because --font-sans is the
    page's own default. The goals bind the body face, not the glyphs. */
 .gb-intro {
   color: var(--bb-foreground);

@@ -199,7 +199,7 @@ export function NodeSheet({ node, onClose, onStart, onChallenge, onGuidebook, re
                 <MoleculeGlyph />
               </span>
               <h2
-                className={`ns-head__title title-face font-bold leading-tight ${
+                className={`ns-head__title bb-title-face font-bold leading-tight ${
                   node.title.length > TITLE_STEP_DOWN ? "text-scale-lg" : "text-scale-xl"
                 }`}
                 title={node.title}
@@ -218,12 +218,12 @@ export function NodeSheet({ node, onClose, onStart, onChallenge, onGuidebook, re
                 not lost: it leads the guidebook's key-idea callout. */}
             <section className="ns-card" aria-label={`Practice. ${model.pips.label}.`}>
               <div className="ns-card__row">
-                <h3 className="title-face text-scale-lg font-bold">Practice</h3>
+                <h3 className="bb-title-face text-scale-lg font-bold">Practice</h3>
                 <Pips filled={model.pips.filled} total={model.pips.total} label={model.pips.label} />
               </div>
               {model.practice.enabled ? (
                 <button type="button" className="ns-chip ns-start" {...pressHandlers(() => onStart(node))}>
-                  <span className="ns-chip__face title-face text-scale-base">START</span>
+                  <span className="ns-chip__face bb-title-face text-scale-base">START</span>
                 </button>
               ) : (
                 <p className="ns-note text-scale-sm">{model.practice.note}</p>
@@ -256,7 +256,7 @@ export function NodeSheet({ node, onClose, onStart, onChallenge, onGuidebook, re
                   <span className="ns-card__row">
                     {/* A span, not an h3: a button's content model is phrasing
                         content, and the control's name is its aria-label. */}
-                    <span className="title-face text-scale-lg font-bold">Challenge</span>
+                    <span className="bb-title-face text-scale-lg font-bold">Challenge</span>
                     <span className="ns-go" aria-hidden>
                       <ChevronGlyph />
                     </span>
@@ -273,7 +273,7 @@ export function NodeSheet({ node, onClose, onStart, onChallenge, onGuidebook, re
                 aria-label={`Challenge. A timed run of ${node.title}. ${model.challenge.note}`}
               >
                 <div className="ns-card__row">
-                  <h3 className="title-face text-scale-lg font-bold">Challenge</h3>
+                  <h3 className="bb-title-face text-scale-lg font-bold">Challenge</h3>
                 </div>
                 <span className="ns-marks" aria-hidden>
                   <StopwatchGlyph />

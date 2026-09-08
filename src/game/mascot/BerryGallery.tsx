@@ -86,7 +86,7 @@ export default function BerryGallery({ reducedMotion }: { readonly reducedMotion
   return (
     <div className="min-h-dvh bg-bb-background p-4 md:p-8">
       <header className="mx-auto max-w-6xl">
-        <h1 className="title-face text-scale-2xl font-semibold text-bb-foreground">Bloom, all four axes</h1>
+        <h1 className="bb-title-face text-scale-2xl font-semibold text-bb-foreground">Bloom, all four axes</h1>
         <p className="mt-2 max-w-3xl text-scale-sm text-bb-muted-foreground">
           Mood is a face, behaviour is a motion, state is what the berry is made of, and a costume is
           what it is wearing. They compose. Development surface, not a tab: see docs/MASCOT.md.

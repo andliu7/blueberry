@@ -94,11 +94,11 @@ export function CardsLanding({
             as a light one. Nothing here names a colour: .hero-chip sets
             --cards-hero-ink and every line inherits it, so the measured pair
             is decided once, in cards.css, where the 4.94 is written down. */}
-        <h1 className="title-face text-scale-lg font-bold">{hero.title}</h1>
+        <h1 className="bb-title-face text-scale-lg font-bold">{hero.title}</h1>
         {/* THE ONE BIG NUMBER, at the committed image's weight: the largest
             glyph on the screen by a clear step, because it is the answer to
             the only question this tab opens with. See .hero-number. */}
-        <p className="hero-number title-face font-bold" aria-hidden="true">
+        <p className="hero-number bb-title-face font-bold" aria-hidden="true">
           {hero.due}
         </p>
         <p className="text-scale-sm font-semibold">
@@ -107,7 +107,7 @@ export function CardsLanding({
         </p>
         <button
           type="button"
-          className="chip3d chip3d--go press title-face mt-3 min-h-11 rounded-full px-10 text-scale-base font-bold uppercase tracking-wide"
+          className="chip3d chip3d--go press bb-title-face mt-3 min-h-11 rounded-full px-10 text-scale-base font-bold uppercase tracking-wide"
           disabled={hero.buttonDisabled}
           onClick={() => onReview(queue)}
         >
@@ -154,7 +154,7 @@ export function CardsLanding({
       {/* My decks: the authored grid, mistakes included as a full member. */}
       <section className="flex flex-col gap-3">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="title-face text-scale-xl font-bold text-bb-foreground">My decks</h2>
+          <h2 className="bb-title-face text-scale-xl font-bold text-bb-foreground">My decks</h2>
           <button
             type="button"
             className="press min-h-11 rounded-full border-2 border-[color:var(--bb-primary-edge)] px-4 text-scale-sm font-bold text-[color:var(--bb-primary-ink)]"
@@ -179,7 +179,7 @@ export function CardsLanding({
       {/* From your lessons: the auto-collected row, every tile bolted. */}
       {lessonRow.length > 0 && (
         <section className="flex flex-col gap-3">
-          <h2 className="title-face text-scale-xl font-bold text-bb-foreground">From your lessons</h2>
+          <h2 className="bb-title-face text-scale-xl font-bold text-bb-foreground">From your lessons</h2>
           <ul className="flex gap-3 overflow-x-auto pb-1">
             {lessonRow.map((tile, index) => (
               <li key={tile.deckId} className="w-44 shrink-0">

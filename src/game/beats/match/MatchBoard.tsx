@@ -290,7 +290,7 @@ function Board({
   return (
     <section className="match-board flex flex-col gap-3 sm:gap-4" ref={boardRef}>
       <header className="flex flex-col gap-1">
-        <h2 className="title-face text-scale-base font-semibold text-bb-foreground sm:text-scale-lg">
+        <h2 className="bb-title-face text-scale-base font-semibold text-bb-foreground sm:text-scale-lg">
           {spec.prompt}
         </h2>
         {spec.brief === undefined ? null : (

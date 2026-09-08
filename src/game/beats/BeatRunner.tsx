@@ -453,7 +453,7 @@ function RewardSlot({
     <div className="flex min-h-0 w-full flex-1 flex-col justify-center">
       <div className="flex flex-col items-center gap-3 rounded-2xl border-2 border-bb-border bg-bb-card p-6 text-center">
         <Berry mood="cheer" behaviour="celebrate" sizePx={96} reducedMotion={reducedMotion} />
-        <h2 className="title-face text-scale-2xl font-bold text-bb-foreground">Lesson complete</h2>
+        <h2 className="bb-title-face text-scale-2xl font-bold text-bb-foreground">Lesson complete</h2>
         <p className="text-scale-base text-bb-foreground">
           You cleared {cleared} of {played}
           {run.recycled

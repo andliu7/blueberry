@@ -358,7 +358,7 @@ export function Shell({ route, children }: { readonly route: Route; readonly chi
             something when it appears. Same argument as rule 3, where the bar's
             nodes are fake extrusions and ours are outlines. */}
         <span className="tabbar-brand" aria-hidden>
-          <span className="title-face text-scale-lg font-semibold">Blueberry</span>
+          <span className="bb-title-face text-scale-lg font-semibold">Blueberry</span>
         </span>
         {NAV_TABS.map((tab) => (
           <TabLink key={tab.id} tab={tab.id} active={tab.id === litTab} />

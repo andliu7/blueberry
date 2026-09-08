@@ -88,7 +88,7 @@ export function ComboInterstitial({ count, topicLabel, reaction, reactionKey, co
             7: body-sized text recedes so the colour leads, and the colour here
             is the 110px count, which is display size and owns the screen. */}
         <p className="text-scale-sm font-bold uppercase tracking-[0.2em] text-bb-muted-foreground">In a row</p>
-        <p className="combo-count title-face font-semibold leading-none text-bb-primary-ink tabular-nums" aria-hidden>
+        <p className="combo-count bb-title-face font-semibold leading-none text-bb-primary-ink tabular-nums" aria-hidden>
           {count}
         </p>
         <ol className="combo-track mt-4 flex items-center gap-3" aria-label="Combo milestones">

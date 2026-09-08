@@ -4,7 +4,7 @@
  * Reference: blueberry_r5-guidebook_1788286119.png. The format is locked by
  * docs/DESIGN-GOALS.md: a text-and-image explainer, a key-idea callout card,
  * and a numbered worked-example strip; body text in the neutral content face
- * (no .title-face on anything a student reads as content). The draft text in
+ * (no .bb-title-face on anything a student reads as content). The draft text in
  * the reference image is model gibberish; the layout is what binds.
  *
  * THE COPY IS PLACEHOLDER, and the page says so. Every GuidebookContent this
@@ -419,7 +419,7 @@ export function Guidebook({ content, onBack, reducedMotion }: GuidebookProps) {
         </aside>
       </div>
 
-      <h2 className="gb-section-head title-face text-scale-xl font-bold">
+      <h2 className="gb-section-head bb-title-face text-scale-xl font-bold">
         <SectionBerry mood="focused" reducedMotion={reducedMotion} />
         {worked.heading}
       </h2>
@@ -450,7 +450,7 @@ export function Guidebook({ content, onBack, reducedMotion }: GuidebookProps) {
             leafed berry beside its own heading with a line under it, and no
             card. The build ended on a fourth card, which is one part more
             than DESIGN-GOALS locks for this page. */}
-        <h2 className="gb-section-head title-face text-scale-xl font-bold">
+        <h2 className="gb-section-head bb-title-face text-scale-xl font-bold">
           <SectionBerry mood="curious" reducedMotion={reducedMotion} />
           {content.closing.heading}
         </h2>

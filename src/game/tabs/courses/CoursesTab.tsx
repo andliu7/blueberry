@@ -83,7 +83,7 @@ function CourseList() {
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6 p-4 pb-10 md:p-6">
       <div className="flex flex-col gap-1">
-        <h1 className="title-face text-scale-2xl font-bold text-bb-foreground">Courses</h1>
+        <h1 className="bb-title-face text-scale-2xl font-bold text-bb-foreground">Courses</h1>
         <p className="text-scale-sm text-bb-muted-foreground">
           One is open. The other five are scoped, and they arrive in the order below.
         </p>
@@ -127,7 +127,7 @@ function CourseList() {
                 >
                   {COURSE_MARK[course]}
                 </span>
-                <h2 className="title-face min-w-0 flex-1 text-scale-xl font-bold leading-tight text-bb-foreground">
+                <h2 className="bb-title-face min-w-0 flex-1 text-scale-xl font-bold leading-tight text-bb-foreground">
                   {COURSE_LABEL[course]}
                 </h2>
               </div>
@@ -179,7 +179,7 @@ function CourseList() {
                 contrast of everything under it, and a row that is quietly
                 below the floor is worse than a row that is loud. */}
             <div className="flex items-baseline justify-between gap-2">
-              <h3 className="title-face text-scale-base font-semibold text-bb-muted-foreground">{COURSE_LABEL[course]}</h3>
+              <h3 className="bb-title-face text-scale-base font-semibold text-bb-muted-foreground">{COURSE_LABEL[course]}</h3>
               <span className="shrink-0 text-scale-xs font-semibold text-bb-muted-foreground">Soon</span>
             </div>
             <p className="text-scale-xs text-bb-muted-foreground">{COURSE_COMING[course]}</p>
@@ -205,7 +205,7 @@ function CourseComingSoon({ course }: { readonly course: CourseId }) {
       <span className="rounded-full border-2 border-bb-border bg-bb-muted px-3 py-1 text-scale-xs font-bold text-bb-muted-foreground">
         Being authored
       </span>
-      <h1 className="title-face text-scale-2xl font-bold text-bb-foreground">{COURSE_LABEL[course]}</h1>
+      <h1 className="bb-title-face text-scale-2xl font-bold text-bb-foreground">{COURSE_LABEL[course]}</h1>
       <p className="text-scale-base text-bb-muted-foreground">{COURSE_BLURB[course]}</p>
       <p className="text-scale-sm font-medium text-bb-muted-foreground">{COURSE_COMING[course]}</p>
       <a
@@ -229,7 +229,7 @@ function TopicList({ course }: { readonly course: CourseId }) {
       <a href={hrefForTab("courses")} className="press inline-flex min-h-11 items-center text-scale-sm font-semibold text-bb-muted-foreground">
         ← All courses
       </a>
-      <h2 className="title-face text-scale-2xl font-semibold">{COURSE_LABEL[course]}</h2>
+      <h2 className="bb-title-face text-scale-2xl font-semibold">{COURSE_LABEL[course]}</h2>
       <p className="text-scale-sm text-bb-muted-foreground">{COURSE_BLURB[course]}</p>
       <ol className="flex flex-col gap-2">
         {topics.map((topic, index) => {

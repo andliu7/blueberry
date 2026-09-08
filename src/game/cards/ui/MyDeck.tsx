@@ -89,7 +89,7 @@ export function MyDeck({ source = defaultDecks, onStartReview, onChooseDecks }: 
       <section className="flex flex-col gap-4">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <h1 className="title-face text-scale-2xl font-bold leading-tight text-bb-foreground">
+            <h1 className="bb-title-face text-scale-2xl font-bold leading-tight text-bb-foreground">
               {hubHeadline(ready.length, totalCards)}
             </h1>
             <p className="mt-2 text-scale-base leading-normal text-bb-muted-foreground">

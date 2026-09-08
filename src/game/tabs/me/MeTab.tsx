@@ -122,7 +122,7 @@ export default function MeTab() {
   return (
     <div className="mx-auto flex w-full max-w-xl flex-col gap-5 p-4 pb-10 md:p-6">
       <section className="flex flex-col gap-3">
-        <h1 className="title-face text-scale-2xl font-bold leading-tight text-bb-foreground">{name}</h1>
+        <h1 className="bb-title-face text-scale-2xl font-bold leading-tight text-bb-foreground">{name}</h1>
         <p className="text-scale-sm text-bb-muted-foreground">
           {course === null
             ? "No course picked yet. The pathway will ask you once and then get out of the way."
@@ -144,7 +144,7 @@ export default function MeTab() {
           { label: "Active days", value: snapshot.activeDays.length },
         ].map((stat) => (
           <div key={stat.label} className="flex flex-col items-center gap-0.5">
-            <span className="title-face text-scale-2xl font-bold tabular-nums text-bb-primary-ink">{stat.value}</span>
+            <span className="bb-title-face text-scale-2xl font-bold tabular-nums text-bb-primary-ink">{stat.value}</span>
             <span className="text-center text-scale-xs font-semibold text-bb-muted-foreground">{stat.label}</span>
           </div>
         ))}

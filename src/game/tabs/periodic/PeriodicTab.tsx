@@ -94,10 +94,10 @@ function Detail({ element }: { readonly element: Element }) {
           style={{ background: CATEGORY_COLOUR[element.category], color: PERIODIC_INK }}
         >
           <span className="text-scale-xs">{element.number}</span>
-          <span className="title-face text-scale-2xl font-semibold leading-none">{element.symbol}</span>
+          <span className="bb-title-face text-scale-2xl font-semibold leading-none">{element.symbol}</span>
         </div>
         <div>
-          <h2 className="title-face text-scale-xl font-semibold">{element.name}</h2>
+          <h2 className="bb-title-face text-scale-xl font-semibold">{element.name}</h2>
           <Pill>{CATEGORY_LABEL[element.category]}</Pill>
         </div>
       </div>

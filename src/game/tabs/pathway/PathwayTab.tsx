@@ -883,7 +883,7 @@ function CoursePicker() {
     <div className="mx-auto flex max-w-xl flex-col gap-4 p-4 md:p-6">
       <Card className="flex flex-col items-center gap-3 text-center">
         <Berry mood="curious" behaviour="wave" reducedMotion={false} sizePx={88} />
-        <h2 className="title-face text-scale-xl font-semibold">Pick a track</h2>
+        <h2 className="bb-title-face text-scale-xl font-semibold">Pick a track</h2>
         <p className="text-scale-sm text-bb-muted-foreground">
           The placement quiz picks one for you in under three minutes, or choose a course directly.
         </p>

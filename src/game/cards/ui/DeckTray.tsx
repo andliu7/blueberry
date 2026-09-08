@@ -357,7 +357,7 @@ export function DeckTray({
                 )}
               </span>
             )}
-            <span className="tray-box__label title-face text-scale-lg font-bold">
+            <span className="tray-box__label bb-title-face text-scale-lg font-bold">
               {trayLabel(cards.length, title)}
             </span>
           </button>

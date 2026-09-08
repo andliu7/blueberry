@@ -175,7 +175,7 @@ export function McqRunner({
     const done = progress.total > 0;
     return (
       <div className="mx-auto flex w-full max-w-xl flex-col gap-4 p-4 md:p-6">
-        <h2 className="title-face text-scale-xl font-semibold text-bb-foreground">
+        <h2 className="bb-title-face text-scale-xl font-semibold text-bb-foreground">
           {done ? "That is the set." : "Nothing here yet"}
         </h2>
         <p className="text-scale-sm text-bb-muted-foreground">

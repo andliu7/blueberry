@@ -602,7 +602,7 @@ export function TrainerTab({ reducedMotion, tutorial = false, onSolved }: Traine
     <div className="mx-auto flex h-full max-w-4xl flex-col gap-4 p-4 md:p-6">
       <header className="flex items-center justify-between gap-3">
         <div>
-          <h2 className="title-face text-scale-xl font-semibold">{playable.title}</h2>
+          <h2 className="bb-title-face text-scale-xl font-semibold">{playable.title}</h2>
           <p className="text-scale-sm text-bb-muted-foreground">{playable.brief}</p>
           {!tutorial ? (
             <ProblemBrowser

@@ -1167,7 +1167,7 @@ export function RewardMoment({
           finishes a lesson, so this surface had never been measured; the audit
           now seeds the moment too.
         */}
-        <h2 className="reward-headline title-face mt-3 text-center text-scale-2xl font-semibold leading-none text-bb-foreground md:text-scale-display">
+        <h2 className="reward-headline bb-title-face mt-3 text-center text-scale-2xl font-semibold leading-none text-bb-foreground md:text-scale-display">
           Lesson complete!
         </h2>
 

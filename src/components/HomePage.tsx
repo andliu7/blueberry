@@ -26,6 +26,7 @@ import { useDecks } from "@/lib/useDecks";
 import { hasSeenIntro, markIntroSeen } from "@/lib/intro";
 import { deckCount } from "@/data/types";
 import { TRAINER_URL } from "@/data/site";
+import { RollingText } from "@/components/ui/rolling-text";
 
 
 /**
@@ -258,7 +259,10 @@ const Board = ({
     aria-label="Everything else"
     className="mx-auto min-h-svh max-w-5xl px-6 pt-16 pb-24"
   >
-    <h2 className="title-face text-3xl sm:text-4xl">Everything else</h2>
+    {/* The title rolls into place when the board scrolls into view. The class
+        stays `title-face` so it keeps the same serif as every other heading;
+        only the way it arrives is different. */}
+    <RollingText as="h2" text="Everything else" className="title-face text-3xl sm:text-4xl" />
     <p className="mt-2 max-w-xl text-sm text-slate-500 dark:text-stone-400">
       The part you draw yourself, the cards, the reading behind them, and the parts that tell
       you to stop for a minute.

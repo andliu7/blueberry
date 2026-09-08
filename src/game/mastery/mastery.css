@@ -376,7 +376,7 @@
 /* 16px, the sticker audit's rule 8 floor for the rounded chrome face, and it is
    the smallest size at which that face is doing its own job rather than
    dressing up body copy. A rank name is a name and it belongs in the chrome
-   face; 15px with `.title-face` on it would be a rule 8 row. */
+   face; 15px with `.bb-title-face` on it would be a rule 8 row. */
 .rank-ladder__name {
   display: block;
   font-size: 1rem;

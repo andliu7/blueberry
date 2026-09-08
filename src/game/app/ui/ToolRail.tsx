@@ -118,7 +118,7 @@ export function ToolSheet({ tool, onClose }: { readonly tool: ToolId | null; rea
         <div className="tool-panel">
           <span className="tool-grabber" aria-hidden />
           <div className="flex items-center justify-between gap-2 px-4 py-3">
-            <h2 className="title-face text-scale-lg font-semibold text-bb-foreground">{definition.label}</h2>
+            <h2 className="bb-title-face text-scale-lg font-semibold text-bb-foreground">{definition.label}</h2>
             <div className="flex items-center gap-1.5">
               <a
                 href={hrefForTab(tool)}

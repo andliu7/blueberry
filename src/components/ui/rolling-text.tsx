@@ -98,28 +98,68 @@ export function RollingText({
       return;
     }
 
-    // Each reel tweens a plain object rather than the node, so the only thing
-    // touched per frame is one custom property and the compositor does the rest.
-    const tweens = reels.map((reel) => {
-      const scroll = { k: 0 };
-      reel.style.setProperty("--k", "0");
-      return gsap.to(scroll, {
-        k: Number(reel.dataset.to),
-        duration: Number(reel.dataset.duration),
-        ease: "expo.out",
-        onUpdate: () => reel.style.setProperty("--k", String(scroll.k)),
+    reels.forEach((reel) => reel.style.setProperty("--k", "0"));
+    let tweens: gsap.core.Tween[] = [];
+
+    const roll = () => {
+      // Each reel tweens a plain object rather than the node, so the only thing
+      // touched per frame is one custom property and the compositor does the rest.
+      tweens = reels.map((reel) => {
+        const scroll = { k: 0 };
+        return gsap.to(scroll, {
+          k: Number(reel.dataset.to),
+          duration: Number(reel.dataset.duration),
+          ease: "expo.out",
+          onUpdate: () => reel.style.setProperty("--k", String(scroll.k)),
+          onComplete: () => {
+            // Once it has landed, only the last copy should be on screen. A cell
+            // is 0.8em and a glyph is taller than that, so the descenders of the
+            // copy directly above hang into the top of the visible one and read
+            // as specks over the word. They have to stay visible while the reel
+            // is moving, which is why this is on complete rather than in CSS.
+            const copies = Array.from(reel.children) as HTMLElement[];
+            copies.forEach((copy, i) => {
+              if (i !== copies.length - 1) copy.style.visibility = "hidden";
+            });
+          },
+        });
       });
-    });
+    };
+
+    // A reveal that has already finished is not a reveal. Headings like this one
+    // sit below the fold, so rolling on mount would spend the whole effect before
+    // anybody had scrolled to it and leave them the settled word.
+    const seen = new IntersectionObserver(
+      (entries, obs) => {
+        if (!entries.some((e) => e.isIntersecting)) return;
+        obs.disconnect();
+        roll();
+      },
+      { threshold: 0.25 },
+    );
+    seen.observe(root);
 
     // Unmounting mid-spin would otherwise leave tweens writing to dead nodes.
-    return () => tweens.forEach((t) => t.kill());
+    return () => {
+      seen.disconnect();
+      tweens.forEach((t) => t.kill());
+    };
   }, [text, minCycles, cycleVariance, duration, durationVariance]);
 
   return (
     <Heading
       ref={containerRef}
       aria-label={text}
-      style={textColor ? { color: textColor } : undefined}
+      /**
+       * `lineHeight` here is geometry, not styling, and it is inline because it
+       * must not lose. Each character cell is one reel item tall; if the line
+       * box is taller than an item, the clipper shows part of the copy above as
+       * well and the word reads with a ghost line over it. As a `leading-[0.8]`
+       * class it was beaten by the caller's `text-4xl`, because every Tailwind
+       * font-size utility ships its own line-height and stylesheet order, not
+       * the order of names in `cn`, decides which of two utilities wins.
+       */
+      style={{ lineHeight: LINE_HEIGHT, ...(textColor ? { color: textColor } : null) }}
       className={cn("m-0 whitespace-nowrap select-none", !textColor && "text-foreground", className)}
     >
       {text.split("").map((char, charIndex) => {
@@ -137,7 +177,9 @@ export function RollingText({
           <span key={charIndex} className="relative inline-block align-top" aria-hidden>
             {/* An invisible copy sets the cell box on its own, so the landed
                 word occupies exactly the space plain text would. */}
-            <span className="block invisible">{char}</span>
+            <span className="block invisible" style={{ height: `${LINE_HEIGHT}em` }}>
+              {char}
+            </span>
 
             <span className="absolute inset-0 overflow-hidden">
               <span

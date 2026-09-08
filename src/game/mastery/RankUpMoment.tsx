@@ -140,7 +140,7 @@ export function RankUpMoment({ receipt, reducedMotion, onContinue }: RankUpMomen
 
       <div className={`rankup-in${at(BEATS.name)}`}>
         <p className="rankup-eyebrow">New rank</p>
-        <h1 className="rankup-name title-face">{model.badge.name}</h1>
+        <h1 className="rankup-name bb-title-face">{model.badge.name}</h1>
       </div>
 
       {/* The reason the badge means anything, and ECONOMY.md's own words for

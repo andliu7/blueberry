@@ -74,7 +74,7 @@ export function DeckPicker({ source = defaultDecks, onStart, onBack }: DeckPicke
   if (rows.length === 0) {
     return (
       <div className="mx-auto flex max-w-2xl flex-col gap-3 p-4 md:p-6">
-        <h1 className="title-face text-scale-2xl font-bold text-bb-foreground">Your decks</h1>
+        <h1 className="bb-title-face text-scale-2xl font-bold text-bb-foreground">Your decks</h1>
         <p className="text-scale-base leading-normal text-bb-muted-foreground">
           Nothing here yet. Finish a lesson and its questions become a deck, or bring a deck you already
           study from.
@@ -87,7 +87,7 @@ export function DeckPicker({ source = defaultDecks, onStart, onBack }: DeckPicke
     <div className="mx-auto flex max-w-2xl flex-col gap-4 p-4 md:p-6">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="title-face text-scale-2xl font-bold text-bb-foreground">Your decks</h1>
+          <h1 className="bb-title-face text-scale-2xl font-bold text-bb-foreground">Your decks</h1>
           <p className="text-scale-sm text-bb-muted-foreground">Pick what to run through.</p>
         </div>
         {onBack !== undefined && (

@@ -271,7 +271,7 @@ export function Composer({ source = defaultDecks, onBack, now = () => new Date()
             <path d="M12 4 L5 10 L12 16" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
-        <h1 className="title-face flex-1 truncate text-scale-xl font-bold text-bb-foreground">Create card</h1>
+        <h1 className="bb-title-face flex-1 truncate text-scale-xl font-bold text-bb-foreground">Create card</h1>
         {/* THE HEADER'S RIGHT SLOT IS A PENCIL, which is what the committed
             composer image draws there. Round 2 put a violet outlined pill
             carrying the destination deck's name in that corner, and at 390px
@@ -298,7 +298,7 @@ export function Composer({ source = defaultDecks, onBack, now = () => new Date()
         >
           <PencilGlyph />
           {badge > 0 && (
-            <span className="deck-chip__badge title-face font-bold" aria-hidden="true">
+            <span className="deck-chip__badge bb-title-face font-bold" aria-hidden="true">
               +{badge}
             </span>
           )}
@@ -340,7 +340,7 @@ export function Composer({ source = defaultDecks, onBack, now = () => new Date()
             />
             <button
               type="button"
-              className="chip3d chip3d--bb-primary press title-face min-h-11 px-4 text-scale-sm font-bold"
+              className="chip3d chip3d--bb-primary press bb-title-face min-h-11 px-4 text-scale-sm font-bold"
               disabled={deckTitleProblem(newTitle) !== null}
               onClick={createDeck}
             >
@@ -476,7 +476,7 @@ export function Composer({ source = defaultDecks, onBack, now = () => new Date()
         type="button"
         /* The image draws Save to deck as a wide pill spanning about 72
             percent of the frame and centred, not edge to edge. */
-        className="chip3d chip3d--bb-primary press title-face mx-auto mt-auto min-h-14 w-[72%] shrink-0 text-scale-lg font-bold"
+        className="chip3d chip3d--bb-primary press bb-title-face mx-auto mt-auto min-h-14 w-[72%] shrink-0 text-scale-lg font-bold"
         disabled={blocked}
         onClick={save}
       >

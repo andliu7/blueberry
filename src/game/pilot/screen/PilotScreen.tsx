@@ -327,7 +327,7 @@ export function PilotScreen({ problem, onExit, reducedMotion = false }: PilotScr
           </div>
         </header>
 
-        <p className="title-face text-scale-lg font-semibold leading-snug text-bb-foreground">{problem.prompt}</p>
+        <p className="bb-title-face text-scale-lg font-semibold leading-snug text-bb-foreground">{problem.prompt}</p>
 
         {/* The workbench card is the frame's one white surface, per the locked
             shell reference (blueberry_r9-lesson-mechanism_1788289491); --bb-card

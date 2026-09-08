@@ -688,7 +688,7 @@
   min-height: 100vh;
 }
 
-.title-face {
+.bb-title-face {
   font-family: var(--font-display);
   letter-spacing: 0.02em;
 }
