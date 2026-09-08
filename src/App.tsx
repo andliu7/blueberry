@@ -27,6 +27,7 @@ import { StackedCards } from "@/components/ui/stacked-cards";
 import { GooeyTogglePair, type ToggleVisibility } from "@/components/ui/gooey-toggle-pair";
 import { HomePage } from "@/components/HomePage";
 import { StartPage } from "@/components/StartPage";
+import { EntryGate } from "@/components/EntryGate";
 import { StudyDecksPage } from "@/components/StudyDecksPage";
 import { useHashRoute } from "@/lib/useHashRoute";
 import { useDocumentTitle } from "@/lib/useDocumentTitle";
@@ -249,9 +250,20 @@ export default function App() {
    * `#/home` still works, so nothing that links to it breaks.
    */
   if (route === "" || route === "home") return <HomePage />;
-  // Where "Get Started" lands. Step one of four, and deliberately not the price
-  // list: see the note at the top of `StartPage`.
-  if (route === "start") return withBoundary(<StartPage />);
+  // The entry moment: the one screen between Get Started and the first
+  // question. Eager rather than lazy, like `HomePage` and for the same
+  // reason: it is the frame immediately after the most important press on
+  // the site, and a chunk fetch there buys a loading state nobody wants.
+  // See the note at the top of `EntryGate`.
+  if (route === "enter") return <EntryGate />;
+  // The funnel itself, and deliberately not the price list: see the note at
+  // the top of `StartPage`. Each step is its own address (`#/start/topics`),
+  // so the back button walks the flow and a deep link into the middle renders.
+  // `#/start` itself is the welcome beat; `EntryGate` skips it and lands on
+  // `#/start/course`.
+  if (route === "start" || route.startsWith("start/")) {
+    return withBoundary(<StartPage step={route.slice(6)} />);
+  }
   if (route === "study-decks") return <StudyDecksPage />;
   if (route === "lessons") return withBoundary(<LessonsPage />);
   // `#/lessons/aromatics` opens that section directly, so the hub's topic list
@@ -1412,11 +1424,9 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
       </div>
       </div>
 
-      {/* Sits left of the Notes button rather than on top of it. */}
-      <FeedbackButton
-        className="right-36"
-        placeholder="What would make this more useful before the LCTA?"
-      />
+      {/* Position is the corner rail's, not this call site's. `right-36` used
+          to push it clear of the Notes button, and Notes left the corner. */}
+      <FeedbackButton placeholder="What would make this more useful before the LCTA?" />
 
       <ToastQueue toasts={toasts} onDismiss={dismissToast} />
 

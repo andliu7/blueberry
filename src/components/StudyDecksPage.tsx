@@ -27,6 +27,7 @@ import { MOTIF_VIEWBOX, motifMarkup } from "@/data/testimonialArt";
 import { reviewedCount } from "@/lib/progress";
 import { ExpandableText } from "@/components/ui/expandable-text";
 import { DeckSearch } from "@/components/ui/deck-search";
+import { ReleaseBanner } from "@/components/ui/release-banner";
 import { FolderDeckFan } from "@/components/ui/folder-deck-fan";
 import { matchedDeckIds, searchDecks } from "@/lib/searchDecks";
 import { DeckUploadTicket } from "@/components/DeckUploadTicket";
@@ -253,6 +254,19 @@ export function StudyDecksPage() {
             }
           />
         </header>
+
+        {/*
+          What this site is, before anything asks you to search it.
+
+          The decks page is where a stranger lands, and everything above this
+          point is the name of the section they landed in. The one paragraph
+          that answers "what would I be doing here" used to live only behind
+          the notifications bell, which is a 44px unlabelled circle in the far
+          corner. It leads now, in the reading column, at full width. It marks
+          itself read on the first press either way and does not come back; the
+          entry keeps its permanent home in the panel. See `ui/release-banner`.
+        */}
+        <ReleaseBanner className="mb-10" />
 
         {/* The bar takes the shortcut once it has a search of its own on
             screen, so `/` never lands on the box you cannot see. */}

@@ -7,7 +7,7 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { X } from "lucide-react";
 import { BlueberryMark } from "@/components/ui/blueberry-mark";
 import { PromptInput } from "@/components/ui/ai-chat-input";
-import { DockSlot, DOCK } from "@/components/ui/corner-dock";
+import { RailSlot, RAIL } from "@/components/ui/corner-dock";
 import { cn } from "@/lib/utils";
 
 /**
@@ -101,7 +101,16 @@ export function BlueberryBot() {
   const scale = reduced ? 1 : thinking ? 1.04 : state === "hover" ? 1.08 : state === "active" ? 0.92 : 1;
 
   return (
-    <DockSlot order={DOCK.focus + 5} className="flex flex-col items-end gap-2">
+    /* A member of the shared corner rail, not a chip of its own.
+
+       It was a 56px berry with a breathing halo, floating above three other
+       corner controls of similar weight, and a blind read against the
+       reference counted them and could not rank them. It is the same berry at
+       the rail's own 44px now, first in the row, and the halo it breathes at
+       rest went with the pill: an idle glow is a control asking to be pressed,
+       and this one is not the thing the page is asking for. The working ring
+       stays, because that one is state rather than decoration. */
+    <RailSlot order={RAIL.assistant}>
       {/* A card in the middle of the screen, like About.
 
           It used to hang off the button as a 22rem panel wedged into a corner
@@ -229,22 +238,20 @@ export function BlueberryBot() {
         onTapCancel={() => !thinking && setState("idle")}
         animate={{ scale }}
         transition={SPRING}
-        className="relative flex size-14 cursor-pointer items-center justify-center rounded-full"
+        className="relative flex size-11 cursor-pointer items-center justify-center rounded-full"
       >
-        {/* Breathing halo. Slow and low-contrast at rest so it reads as alive
-            rather than as something demanding to be clicked. */}
-        <motion.span
-          aria-hidden
-          animate={
-            reduced
-              ? {}
-              : thinking
-                ? { scale: [1, 1.25, 1], opacity: [0.5, 0.15, 0.5] }
-                : { scale: [1, 1.12, 1], opacity: [0.35, 0.12, 0.35] }
-          }
-          transition={{ duration: thinking ? 1.1 : 3.4, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute inset-0 rounded-full bg-indigo-500/40 blur-md"
-        />
+        {/* The halo, while it is working and only then. It used to breathe at
+            rest too, which reads as alive when the control is alone on a page
+            and reads as a fourth thing competing when it is one of four in a
+            corner. Thinking is worth a glow; idling is not. */}
+        {thinking && (
+          <motion.span
+            aria-hidden
+            animate={reduced ? {} : { scale: [1, 1.25, 1], opacity: [0.5, 0.15, 0.5] }}
+            transition={{ duration: 1.1, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute inset-0 rounded-full bg-indigo-500/40 blur-md"
+          />
+        )}
 
         {/* The working ring: a conic sweep that only spins while thinking, so
             the state is legible without reading anything. */}
@@ -269,15 +276,23 @@ export function BlueberryBot() {
           }}
         />
 
+        {/* Sized and lit like a subordinate, because that is what it is here.
+            At `size-9` with `blueberry-glow-art` it was a saturated orb next to
+            three 16px glyphs, so the next blind read still found no rank in the
+            row: the loudest thing in the corner was the mascot and the captioned
+            entry it sits beside came second. The mark is the same mark, at the
+            scale of the glyphs it shares the rail with, and it picks the glow
+            back up on hover where a glow means a pointer rather than a shout.
+            Everywhere else it keeps its full size; this is the rail only. */}
         <BlueberryMark
           eyes
           className={cn(
-            "blueberry-glow-art relative size-11 transition-[filter] duration-300",
-            state === "hover" && "brightness-110",
+            "relative size-7 transition-[filter] duration-300",
+            state === "hover" && "blueberry-glow-art brightness-110",
           )}
         />
       </motion.button>
-    </DockSlot>
+    </RailSlot>
   );
 }
 

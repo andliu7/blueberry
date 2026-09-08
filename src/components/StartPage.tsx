@@ -1,13 +1,23 @@
 import { useMemo, useState } from "react";
 import { motion } from "motion/react";
-import { ArrowRight, ArrowUpRight, Check, ChevronLeft, Lock, X } from "lucide-react";
+import { ArrowUpRight, CalendarDays, Check, GraduationCap, X } from "lucide-react";
 import { PageBackground } from "@/components/ui/page-background";
-import { SiteFooter } from "@/components/ui/site-footer";
-import { Blueberry } from "@/components/ui/blueberry";
 import { TOPICS, REACTIONS as COURSE_REACTIONS } from "@/data/topics";
 import { TRAINER_URL } from "@/data/site";
 import { readGoals, writeGoals, daysUntil } from "@/lib/goals";
 import { cn } from "@/lib/utils";
+import { Action, Ask, Chip, ChipList, Frame, Hero, QuietAction } from "@/components/start/Frame";
+import {
+  canContinue,
+  nextStep,
+  normalizeStep,
+  prevStep,
+  progressPercent,
+  toggleTopic,
+  MAX_TOPICS,
+  type StartAnswers,
+  type StepId,
+} from "@/components/start/flow";
 
 /**
  * The funnel: goals, then a real first lesson, then the ask.
@@ -18,7 +28,7 @@ import { cn } from "@/lib/utils";
  * from "is this worth it" to "am I willing to walk away from what I just did".
  *
  * **The lesson runs on the course's own data.** Every question is assembled
- * from `data/topics` — names and one-line summaries a person wrote — with the
+ * from `data/topics` - names and one-line summaries a person wrote - with the
  * other reactions' real names as the distractors. Nothing is invented to fill
  * a quiz slot, which is the same rule the rest of the site's chemistry lives
  * under. When the mechanism-drawing trainer moves in, its drawing exercise
@@ -26,116 +36,23 @@ import { cn } from "@/lib/utils";
  *
  * **Nothing before the final screen mentions signing in.** An account offered
  * on arrival is an account offered to somebody with nothing to protect.
- */
-
-/** Four steps, and only the last one asks for anything. */
-const STEPS = [
-  { id: "goals", label: "Set your goals", note: "About a minute" },
-  { id: "lesson", label: "Your first lesson", note: "Free, no account" },
-  { id: "save", label: "Save what you built", note: "Now it is yours" },
-  { id: "plan", label: "Pick a plan", note: "Keep going" },
-] as const;
-
-/** The default course. Changeable, and never blank. See the note on `Goals`. */
-const DEFAULT_COURSE = "CHEM 241";
-
-export function StartPage() {
-  const [stage, setStage] = useState<"goals" | "lesson" | "done">("goals");
-  const [score, setScore] = useState(0);
-
-  return (
-    <div className="relative min-h-svh text-slate-900 dark:text-stone-100">
-      <PageBackground />
-
-      {/* No site header, and that is the point of a funnel page. A screen
-          whose job is to have one thing done on it should not offer eleven
-          ways to go and do something else. One back link. */}
-      <a
-        href="#/home"
-        className="mx-auto flex w-full max-w-3xl items-center gap-2 px-6 pt-5 text-sm font-semibold text-slate-600 hover:text-indigo-700 dark:text-stone-300 dark:hover:text-indigo-300"
-      >
-        <ChevronLeft className="size-4" />
-        Home
-      </a>
-
-      <main className="relative mx-auto w-full max-w-3xl px-6 pt-10 pb-24">
-        {/* The click's acknowledgement. Get Started lands here on the same
-            frame — the page is not actually slow — but a screen that simply
-            *is different* does not tell the hand that pressed the button it
-            was heard. A skeleton that shimmers once and dissolves does. It is
-            pointer-events-none from birth: the real form is interactive
-            underneath for its entire life. */}
-        <ArrivalSkeleton />
-
-        <Rail current={stage === "goals" ? 0 : stage === "lesson" ? 1 : 2} />
-
-        {stage === "goals" && <GoalsForm onDone={() => setStage("lesson")} />}
-        {stage === "lesson" && (
-          <MiniLesson
-            onDone={(right) => {
-              setScore(right);
-              setStage("done");
-            }}
-          />
-        )}
-        {stage === "done" && <Finish score={score} />}
-      </main>
-
-      <SiteFooter />
-    </div>
-  );
-}
-
-/**
- * A skeleton of the goals screen, shown for half a second over the real one.
  *
- * Rendered opaque on the first frame and fading from the second, so the
- * transition from the hero is: press → new page skeleton, instantly → content
- * resolves. The blocks match the real layout's bones (rail, heading, three
- * fields, button) so the resolve reads as the same page sharpening rather
- * than as one page replacing another.
+ * **The shape is blueberry_game's onboarding.** One question per screen on a
+ * shared frame, steps in the hash so the back button works, big option chips
+ * and a pinned action that is off until the screen is answered. See the note
+ * at the top of `start/Frame.tsx` for what was borrowed and what was not.
+ *
+ * **Answers live in React state, not in the hash.** The step is in the URL
+ * because back is a navigation gesture; the answers are not. Putting the picks
+ * in the query string would make every chip tap a history entry, and back
+ * would then walk pick by pick instead of screen by screen. The component
+ * stays mounted across a hash change because `App` renders one `<StartPage>`
+ * and passes the step down, so state survives a step; a reload starts from
+ * whatever is in `localStorage`, which is the honest fallback.
  */
-function ArrivalSkeleton() {
-  const [gone, setGone] = useState(false);
-  if (gone) return null;
 
-  return (
-    <motion.div
-      aria-hidden
-      className="pointer-events-none absolute inset-x-6 top-10 z-10"
-      initial={{ opacity: 1 }}
-      animate={{ opacity: 0 }}
-      transition={{ duration: 0.45, delay: 0.25, ease: "easeOut" }}
-      onAnimationComplete={() => setGone(true)}
-    >
-      <div className="rounded-xl bg-[#faf9ff] p-1 dark:bg-[#171327]">
-        {[
-          "h-2 w-40",
-          "mt-4 h-1.5 w-full",
-          "mt-10 h-10 w-4/5",
-          "mt-6 h-4 w-2/3",
-          "mt-10 h-11 w-64",
-          "mt-8 h-11 w-52",
-          "mt-8 h-9 w-full",
-          "mt-10 h-12 w-56",
-        ].map((c) => (
-          <div
-            key={c}
-            className={cn(
-              "bb-shimmer rounded-lg bg-slate-900/8 dark:bg-white/10",
-              c,
-            )}
-          />
-        ))}
-      </div>
-    </motion.div>
-  );
-}
-
-/* ── Step one: goals ─────────────────────────────────────────────────────── */
-
-function GoalsForm({ onDone }: { onDone: () => void }) {
-  const saved = useMemo(readGoals, []);
+export function StartPage({ step: rawStep }: { step: string }) {
+  const step = normalizeStep(rawStep);
 
   /**
    * Everything arrives filled in.
@@ -143,116 +60,235 @@ function GoalsForm({ onDone }: { onDone: () => void }) {
    * Never start a user at zero, and an empty form is zero: a list of work you
    * have not done, presented as the first thing you see. Every default is
    * wrong for somebody and every one is one tap to change, which is a smaller
-   * ask than three blank fields.
+   * ask than three blank screens.
    */
-  const [course, setCourse] = useState(saved?.course ?? DEFAULT_COURSE);
-  const [examOn, setExamOn] = useState(saved?.examOn ?? defaultExamDate());
-  const [topicIds, setTopicIds] = useState<string[]>(
-    saved?.topicIds.length ? saved.topicIds : TOPICS.slice(0, 1).map((t) => t.id),
-  );
+  const [answers, setAnswers] = useState<StartAnswers>(() => {
+    const saved = readGoals();
+    return {
+      course: saved?.course ?? DEFAULT_COURSE,
+      examOn: saved?.examOn ?? defaultExamDate(),
+      topicIds: saved?.topicIds.length ? saved.topicIds : TOPICS.slice(0, 1).map((t) => t.id),
+      right: 0,
+    };
+  });
 
-  const days = daysUntil(examOn);
-
-  const toggleTopic = (id: string) =>
-    setTopicIds((current) =>
-      current.includes(id)
-        ? current.length === 1
-          ? current // The last chip refuses to come off; an empty selection
-          : current.filter((t) => t !== id) // would strand the visitor here.
-        : current.length >= 3
-          ? current
-          : [...current, id],
-    );
-
-  const submit = (e: React.FormEvent) => {
-    e.preventDefault();
-    writeGoals({ course: course.trim() || DEFAULT_COURSE, examOn: examOn || null, topicIds });
-    onDone();
+  const go = (to: StepId) => {
+    window.location.hash = to === "welcome" ? "#/start" : `#/start/${to}`;
+  };
+  const back = () => {
+    const previous = prevStep(step);
+    if (previous !== null) go(previous);
+  };
+  const forward = () => {
+    const next = nextStep(step);
+    if (next !== null) go(next);
   };
 
+  const set = (patch: Partial<StartAnswers>) =>
+    setAnswers((current) => ({ ...current, ...patch }));
+
+  /**
+   * The goals are written after every goal screen, not once at the end.
+   *
+   * Three screens is three chances to reload, and the alternative is a visitor
+   * who typed their course code, got distracted, came back and found it gone.
+   * `writeGoals` is a single localStorage put and it swallows its own errors.
+   */
+  const commit = (next: StartAnswers) =>
+    writeGoals({
+      course: next.course.trim() || DEFAULT_COURSE,
+      examOn: next.examOn,
+      topicIds: next.topicIds,
+    });
+
+  const advance = () => {
+    commit(answers);
+    forward();
+  };
+
+  const onBack = prevStep(step) === null ? null : back;
+  const percent = progressPercent(step);
+  const gated = !canContinue(step, answers);
+
   return (
-    <>
-      <h1 className="title-face mt-10 text-4xl leading-tight sm:text-5xl">
-        Let's set this up around your exam.
-      </h1>
-      <p className="mt-3 max-w-xl text-base text-slate-700 dark:text-stone-300">
-        Three questions, and then you are straight into a lesson. No account, nothing to pay, and
-        what you do next is yours to keep.
-      </p>
+    <div className="relative text-slate-900 dark:text-stone-100">
+      <PageBackground />
+      {step === "welcome" && <Welcome percent={percent} onGo={forward} />}
 
-      <form onSubmit={submit} className="mt-10 space-y-8">
-        <Field label="What are you taking?" hint="Anything goes. It only decides what gets shown first.">
+      {step === "course" && (
+        <Frame
+          percent={percent}
+          onBack={onBack}
+          foot={<Action label="Continue" disabled={gated} onPress={advance} />}
+        >
+          <Ask>What are you taking?</Ask>
+          <p className="mt-4 text-sm text-slate-600 dark:text-stone-400">
+            Anything goes. It only decides what gets shown first.
+          </p>
           <input
-            value={course}
-            onChange={(e) => setCourse(e.target.value)}
-            className="w-full max-w-xs rounded-xl border border-slate-300 bg-white/80 px-4 py-2.5 text-base outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 dark:border-stone-700 dark:bg-stone-900/60 dark:focus:ring-indigo-900"
+            value={answers.course}
+            onChange={(e) => set({ course: e.target.value })}
+            aria-label="Course"
+            className="mt-3 w-full rounded-2xl border-2 border-slate-300 bg-white/80 px-4 py-3.5 text-lg font-semibold outline-none focus:border-indigo-500 dark:border-stone-700 dark:bg-stone-900/60 dark:focus:border-indigo-400"
           />
-        </Field>
+          <ChipList>
+            {COURSE_SUGGESTIONS.map((code) => (
+              <li key={code}>
+                <Chip
+                  picked={answers.course.trim() === code}
+                  label={code}
+                  icon={<GraduationCap className="size-5" />}
+                  onPick={() => set({ course: code })}
+                />
+              </li>
+            ))}
+          </ChipList>
+        </Frame>
+      )}
 
-        <Field
-          label="When is the next exam?"
-          hint={
-            days === null
-              ? "Leave it blank if you would rather not think about it."
-              : days === 0
-                ? "Today. Right, let's be quick."
-                : `${days} day${days === 1 ? "" : "s"} away.`
+      {step === "exam" && (
+        <Frame
+          percent={percent}
+          onBack={onBack}
+          foot={
+            <>
+              <Action label="Continue" onPress={advance} />
+              <QuietAction
+                label="Not sure yet"
+                onPress={() => {
+                  const next = { ...answers, examOn: null };
+                  setAnswers(next);
+                  commit(next);
+                  forward();
+                }}
+              />
+            </>
           }
         >
-          <input
-            type="date"
-            value={examOn ?? ""}
-            onChange={(e) => setExamOn(e.target.value)}
-            className="rounded-xl border border-slate-300 bg-white/80 px-4 py-2.5 text-base outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 dark:border-stone-700 dark:bg-stone-900/60 dark:focus:ring-indigo-900"
-          />
-        </Field>
+          <Ask>When is the next exam?</Ask>
+          <p className="mt-4 text-sm text-slate-600 dark:text-stone-400">
+            {examHint(answers.examOn)}
+          </p>
+          <label className="mt-3 flex cursor-pointer items-center gap-3 rounded-2xl border-2 border-slate-300 bg-white/80 px-4 py-3.5 focus-within:border-indigo-500 dark:border-stone-700 dark:bg-stone-900/60 dark:focus-within:border-indigo-400">
+            <CalendarDays className="size-5 shrink-0 text-slate-500 dark:text-stone-400" />
+            <input
+              type="date"
+              value={answers.examOn ?? ""}
+              onChange={(e) => set({ examOn: e.target.value || null })}
+              aria-label="Exam date"
+              className="w-full bg-transparent text-lg font-semibold outline-none"
+            />
+          </label>
+        </Frame>
+      )}
 
-        <Field
-          label="What do you want to nail first?"
-          hint={`Up to three. ${topicIds.length} picked.`}
+      {step === "topics" && (
+        <Frame
+          percent={percent}
+          onBack={onBack}
+          foot={<Action label="Start my first lesson" disabled={gated} onPress={advance} />}
         >
-          <div className="flex flex-wrap gap-2">
-            {TOPICS.map((topic) => {
-              const on = topicIds.includes(topic.id);
-              return (
-                <button
-                  key={topic.id}
-                  type="button"
-                  onClick={() => toggleTopic(topic.id)}
-                  aria-pressed={on}
-                  className={cn(
-                    "inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors",
-                    on
-                      ? "border-transparent bg-gradient-to-r from-indigo-600 to-fuchsia-600 text-white"
-                      : "border-slate-300 bg-white/70 text-slate-700 hover:border-slate-400 dark:border-stone-700 dark:bg-stone-900/50 dark:text-stone-300",
-                  )}
-                >
-                  {on && <Check className="size-3.5" />}
-                  {topic.name}
-                </button>
-              );
-            })}
-          </div>
-        </Field>
-
-        <div className="flex flex-wrap items-center gap-4 pt-2">
-          <button
-            type="submit"
-            className="bb-press group inline-flex cursor-pointer items-center gap-2 rounded-full bg-gradient-to-r from-indigo-600 to-fuchsia-600 px-7 py-3.5 text-base font-semibold text-white focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:outline-none"
-          >
-            Start my first lesson
-            <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
-          </button>
-          <span className="text-sm text-slate-600 dark:text-stone-400">
+          <Ask>What do you want to nail first?</Ask>
+          <p className="mt-4 text-sm text-slate-600 dark:text-stone-400">
+            Up to {MAX_TOPICS}. {answers.topicIds.length} picked.
+          </p>
+          <ChipList>
+            {TOPICS.map((topic) => (
+              <li key={topic.id}>
+                <Chip
+                  picked={answers.topicIds.includes(topic.id)}
+                  label={topic.name}
+                  onPick={() => set({ topicIds: toggleTopic(answers.topicIds, topic.id) })}
+                />
+              </li>
+            ))}
+          </ChipList>
+          <p className="mt-5 text-xs text-slate-500 dark:text-stone-500">
             Saved on this device. Nothing is sent anywhere yet.
-          </span>
-        </div>
-      </form>
-    </>
+          </p>
+        </Frame>
+      )}
+
+      {step === "lesson" && (
+        <MiniLesson
+          percent={percent}
+          onBack={onBack}
+          onDone={(right) => {
+            set({ right });
+            forward();
+          }}
+        />
+      )}
+
+      {step === "finish" && (
+        <Finish percent={percent} onBack={onBack} right={answers.right} course={answers.course} />
+      )}
+    </div>
   );
 }
 
-/* ── Step two: the first lesson ──────────────────────────────────────────── */
+/** The default course. Changeable, and never blank. */
+const DEFAULT_COURSE = "CHEM 241";
+
+/**
+ * One tap instead of typing, for the course this site was actually built for.
+ * The input stays above it: a course code the site has never heard of is still
+ * an answer, and a chip list that cannot express one would be a worse form.
+ */
+const COURSE_SUGGESTIONS = ["CHEM 241", "CHEM 231", "Organic chemistry II"];
+
+function examHint(examOn: string | null): string {
+  const days = daysUntil(examOn);
+  if (days === null) return "Leave it blank if you would rather not think about it.";
+  if (days === 0) return "Today. Right, let's be quick.";
+  return `${days} day${days === 1 ? "" : "s"} away.`;
+}
+
+/* Step one: the welcome beat */
+
+/**
+ * The screen that only bonds.
+ *
+ * It asks nothing, records nothing and branches on nothing: Berry is large, he
+ * says hello, and the only thing that happened is that they met him. It is the
+ * one moment in the funnel where the mascot is a relationship rather than a
+ * piece of chrome, and it is also the acknowledgement that the hero's button
+ * was pressed - a screen that is visibly a different screen, painting on the
+ * first frame, with nothing to wait for.
+ */
+function Welcome({ percent, onGo }: { percent: number; onGo: () => void }) {
+  return (
+    <Frame
+      percent={percent}
+      onBack={null}
+      leaveHref="#/home"
+      align="centre"
+      foot={
+        <>
+          <Action label="Get started" shape="stadium" onPress={onGo} />
+          <QuietAction
+            label="I already have an account"
+            onPress={() => {
+              window.location.hash = "#/signin";
+            }}
+          />
+        </>
+      }
+    >
+      <Hero line="Hi, I'm Blueberry." mood="happy">
+        <h1 className="title-face mt-2 text-3xl leading-tight sm:text-4xl">
+          Let's set this up around your exam.
+        </h1>
+        <p className="mt-3 max-w-md text-base text-slate-700 dark:text-stone-300">
+          Three questions, and then you are straight into a lesson. No account, nothing to pay, and
+          what you do next is yours to keep.
+        </p>
+      </Hero>
+    </Frame>
+  );
+}
+
+/* Step five: the first lesson */
 
 interface Quiz {
   prompt: string;
@@ -268,7 +304,7 @@ interface Quiz {
  *
  * Looked up by id and skipped if missing, so an edit to the course content
  * degrades this lesson rather than crashing it. The distractors are the other
- * reactions' real names — a wrong option that is a real thing you will meet
+ * reactions' real names - a wrong option that is a real thing you will meet
  * later is still teaching; an invented one is noise.
  */
 function buildQuiz(): Quiz[] {
@@ -280,7 +316,7 @@ function buildQuiz(): Quiz[] {
   const hydro = byId("hydroboration");
   if (hydro) {
     quiz.push({
-      prompt: `"${hydro.summary}" — which reaction is this?`,
+      prompt: `"${hydro.summary}" - which reaction is this?`,
       options: names("electrophilic-addition", "hydroboration", "halogenation", "epoxidation"),
       answer: 1,
       why: hydro.whyThisReagent,
@@ -290,7 +326,7 @@ function buildQuiz(): Quiz[] {
   const epox = byId("epoxidation");
   if (epox) {
     quiz.push({
-      prompt: `"${epox.summary}" — which reaction is this?`,
+      prompt: `"${epox.summary}" - which reaction is this?`,
       options: names("halogenation", "electrophilic-addition", "epoxidation", "hydroboration"),
       answer: 2,
       why: epox.whyThisReagent,
@@ -300,7 +336,7 @@ function buildQuiz(): Quiz[] {
   const halo = byId("halogenation");
   if (halo) {
     quiz.push({
-      prompt: `"${halo.summary}" — which reaction is this?`,
+      prompt: `"${halo.summary}" - which reaction is this?`,
       options: names("halogenation", "epoxidation", "hydroboration", "electrophilic-addition"),
       answer: 0,
       why: halo.whyThisReagent,
@@ -312,11 +348,24 @@ function buildQuiz(): Quiz[] {
 
 const QUIZ = buildQuiz();
 
-/** How long the feedback holds before the next card. Longer when wrong: there is reading to do. */
-const NEXT_RIGHT_MS = 900;
-const NEXT_WRONG_MS = 2600;
-
-function MiniLesson({ onDone }: { onDone: (right: number) => void }) {
+/**
+ * The lesson, on the same frame as every other step and owning its own foot.
+ *
+ * **Answering no longer advances on a timer.** The old version moved on 900ms
+ * after a right answer and 2600ms after a wrong one, which meant the one card
+ * with something to read was the one card you were hurried through. Pick,
+ * read, then press Continue: the pinned action holds exactly one control on
+ * every card, which is what the frame is for.
+ */
+function MiniLesson({
+  percent,
+  onBack,
+  onDone,
+}: {
+  percent: number;
+  onBack: (() => void) | null;
+  onDone: (right: number) => void;
+}) {
   const [at, setAt] = useState(0);
   const [picked, setPicked] = useState<number | null>(null);
   const [right, setRight] = useState(0);
@@ -329,33 +378,36 @@ function MiniLesson({ onDone }: { onDone: (right: number) => void }) {
   const pick = (i: number) => {
     if (picked !== null || !q) return;
     setPicked(i);
-    const wasRight = i === q.answer;
-    if (wasRight) setRight((n) => n + 1);
-    window.setTimeout(
-      () => {
-        setPicked(null);
-        setAt((n) => n + 1);
-      },
-      wasRight ? NEXT_RIGHT_MS : NEXT_WRONG_MS,
-    );
+    if (i === q.answer) setRight((n) => n + 1);
+  };
+
+  const next = () => {
+    setPicked(null);
+    setAt((n) => n + 1);
   };
 
   return (
-    <div className="mt-10">
-      {/* The lesson's own progress, separate from the funnel rail: cards done
-          out of cards total, filled from the first card — arriving here is
-          already progress. */}
-      <div className="flex items-center gap-3">
-        <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-900/10 dark:bg-white/12">
-          <div
-            className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-fuchsia-500 transition-[width] duration-500"
-            style={{ width: `${((at + 1) / total) * 100}%` }}
+    <Frame
+      percent={percent}
+      onBack={onBack}
+      foot={
+        onTeaser ? (
+          <Action label="Finish the lesson" onPress={() => onDone(right)} />
+        ) : (
+          <Action
+            label={picked === null ? "Pick an answer" : picked === q?.answer ? "Nice" : "Got it"}
+            disabled={picked === null}
+            onPress={next}
           />
-        </div>
-        <span className="font-mono text-xs text-slate-500 dark:text-stone-400">
-          {Math.min(at + 1, total)}/{total}
-        </span>
-      </div>
+        )
+      }
+    >
+      {/* The lesson's own count, separate from the funnel bar at the top:
+          cards done out of cards total, filled from the first card, because
+          arriving here is already progress. */}
+      <p className="text-center font-mono text-xs tracking-[0.18em] text-slate-500 uppercase dark:text-stone-400">
+        Card {Math.min(at + 1, total)} of {total}
+      </p>
 
       {!onTeaser && q && (
         <motion.div
@@ -363,11 +415,11 @@ function MiniLesson({ onDone }: { onDone: (right: number) => void }) {
           initial={{ opacity: 0, x: 24 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.3, ease: "easeOut" }}
-          className="mt-8"
+          className="mt-6"
         >
-          <h2 className="text-xl leading-relaxed font-semibold sm:text-2xl">{q.prompt}</h2>
+          <Ask>{q.prompt}</Ask>
 
-          <div className="mt-6 grid gap-3">
+          <div className="mt-6 grid gap-2.5">
             {q.options.map((option, i) => {
               const isAnswer = i === q.answer;
               const isPicked = picked === i;
@@ -379,9 +431,9 @@ function MiniLesson({ onDone }: { onDone: (right: number) => void }) {
                   onClick={() => pick(i)}
                   disabled={revealed}
                   className={cn(
-                    "flex items-center justify-between rounded-2xl border px-5 py-3.5 text-left text-base font-medium transition-all",
+                    "flex items-center justify-between rounded-2xl border-2 px-4 py-3.5 text-left text-base font-semibold transition-all",
                     !revealed &&
-                      "bb-press-soft cursor-pointer border-slate-300 bg-white/75 hover:border-indigo-400 dark:border-stone-700 dark:bg-stone-900/60 dark:hover:border-indigo-500",
+                      "bb-press-soft cursor-pointer border-slate-300 bg-white/80 hover:border-indigo-400 dark:border-stone-700 dark:bg-stone-900/60 dark:hover:border-indigo-500",
                     revealed &&
                       isAnswer &&
                       "border-emerald-500 bg-emerald-50 text-emerald-900 dark:bg-emerald-950/60 dark:text-emerald-200",
@@ -408,7 +460,7 @@ function MiniLesson({ onDone }: { onDone: (right: number) => void }) {
             <motion.p
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mt-5 rounded-xl border border-slate-200 bg-white/70 p-4 text-sm leading-relaxed text-slate-700 dark:border-stone-700 dark:bg-stone-900/60 dark:text-stone-300"
+              className="mt-5 rounded-2xl border border-slate-200 bg-white/70 p-4 text-sm leading-relaxed text-slate-700 dark:border-stone-700 dark:bg-stone-900/60 dark:text-stone-300"
             >
               {q.why}
             </motion.p>
@@ -421,172 +473,94 @@ function MiniLesson({ onDone }: { onDone: (right: number) => void }) {
           initial={{ opacity: 0, x: 24 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.3, ease: "easeOut" }}
-          className="mt-8"
+          className="mt-6"
         >
           {/* The last card sells the thing the site does that a textbook
               cannot: you will draw the mechanism yourself, and it gets marked
               as you draw. The trainer is still its own app, so this card is
-              honest about that — and when it moves in, this is the slot the
+              honest about that - and when it moves in, this is the slot the
               real drawing exercise takes over. */}
-          <h2 className="text-xl leading-relaxed font-semibold sm:text-2xl">
-            One more thing — the part you draw yourself.
-          </h2>
-          <p className="mt-3 max-w-xl text-base text-slate-700 dark:text-stone-300">
+          <Ask>One more thing. The part you draw yourself.</Ask>
+          <p className="mt-5 text-base text-slate-700 dark:text-stone-300">
             Reading a mechanism is not knowing it. On Blueberry you push the electrons yourself,
             arrow by arrow, and get told exactly where a wrong step went wrong. That part lives in
             our trainer while it moves in here.
           </p>
-          <div className="mt-6 flex flex-wrap items-center gap-4">
-            <a
-              href={TRAINER_URL}
-              target="_blank"
-              rel="noreferrer"
-              className="bb-press-soft inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white/80 px-6 py-3 text-base font-semibold text-slate-800 transition hover:border-indigo-400 hover:shadow-md dark:border-stone-600 dark:bg-stone-900/60 dark:text-stone-100"
-            >
-              Try the trainer
-              <ArrowUpRight className="size-4" />
-            </a>
-            <button
-              type="button"
-              onClick={() => onDone(right)}
-              className="bb-press group inline-flex cursor-pointer items-center gap-2 rounded-full bg-gradient-to-r from-indigo-600 to-fuchsia-600 px-7 py-3.5 text-base font-semibold text-white"
-            >
-              Finish the lesson
-              <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
-            </button>
-          </div>
+          <a
+            href={TRAINER_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="bb-press-soft mt-6 inline-flex items-center gap-2 rounded-2xl border-2 border-slate-300 bg-white/80 px-5 py-3 text-base font-semibold text-slate-800 transition hover:border-indigo-400 dark:border-stone-600 dark:bg-stone-900/60 dark:text-stone-100"
+          >
+            Try the trainer
+            <ArrowUpRight className="size-4" />
+          </a>
         </motion.div>
       )}
-    </div>
+    </Frame>
   );
 }
 
-/* ── Step three: the ask, now that there is something to lose ────────────── */
+/* Step six: the ask, now that there is something to lose */
 
-function Finish({ score }: { score: number }) {
+function Finish({
+  percent,
+  onBack,
+  right,
+  course,
+}: {
+  percent: number;
+  onBack: (() => void) | null;
+  right: number;
+  course: string;
+}) {
   const goals = useMemo(readGoals, []);
   const built = [
-    goals ? `goals for ${goals.course}` : null,
+    `goals for ${course || goals?.course || DEFAULT_COURSE}`,
     goals?.examOn ? "an exam countdown" : null,
-    `${score} of ${QUIZ.length} first-try answers`,
+    `${right} of ${QUIZ.length} first-try answers`,
   ].filter(Boolean) as string[];
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
-      className="mt-10"
+    <Frame
+      percent={percent}
+      onBack={onBack}
+      align="centre"
+      foot={
+        <>
+          <Action
+            label="Save my progress, free"
+            onPress={() => {
+              window.location.hash = "#/signup";
+            }}
+          />
+          <QuietAction
+            label="Keep going without one"
+            onPress={() => {
+              window.location.hash = "#/lessons";
+            }}
+          />
+        </>
+      }
     >
-      <div className="flex items-start gap-5">
-        <div className="hidden h-24 w-24 shrink-0 sm:block">
-          <Blueberry mood="proud" flat className="h-full w-full" label="Blueberry, proud of you." />
-        </div>
-        <div>
-          <h1 className="title-face text-4xl leading-tight sm:text-5xl">
-            That's a real start.
-          </h1>
-          <p className="mt-3 max-w-xl text-base text-slate-700 dark:text-stone-300">
-            You have {joinList(built)} — all of it sitting on this device, and only on this
-            device. An account is what makes it yours instead of this browser's.
-          </p>
-        </div>
-      </div>
-
-      <div className="mt-8 flex flex-wrap items-center gap-4">
-        <a
-          href="#/signup"
-          className="bb-press group inline-flex cursor-pointer items-center gap-2 rounded-full bg-gradient-to-r from-indigo-600 to-fuchsia-600 px-7 py-3.5 text-base font-semibold text-white"
-        >
-          Save my progress — free
-          <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
-        </a>
-        <a
-          href="#/lessons"
-          className="text-sm font-semibold text-slate-600 underline decoration-slate-300 underline-offset-4 hover:text-slate-900 dark:text-stone-300 dark:decoration-stone-600 dark:hover:text-white"
-        >
-          Keep going without one
-        </a>
-      </div>
-
-      <p className="mt-4 text-xs text-slate-500 dark:text-stone-500">
-        Free means free. The paid tier is for the parts that cost something to run, and it is
-        explained on the plans, not sprung on you.
-      </p>
-    </motion.div>
+      <Hero line="That's a real start." mood="proud">
+        <p className="mt-2 max-w-md text-base text-slate-700 dark:text-stone-300">
+          You have {joinList(built)}, all of it sitting on this device and only on this device. An
+          account is what makes it yours instead of this browser's.
+        </p>
+        <p className="mt-5 max-w-md text-xs text-slate-500 dark:text-stone-500">
+          Free means free. The paid tier is for the parts that cost something to run, and it is
+          explained on the plans, not sprung on you.
+        </p>
+      </Hero>
+    </Frame>
   );
 }
 
-/** "a, b and c" — an Oxford-free list, matching the site's voice. */
+/** "a, b and c" - an Oxford-free list, matching the site's voice. */
 function joinList(parts: string[]): string {
   if (parts.length <= 1) return parts[0] ?? "";
   return `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`;
-}
-
-/* ── Shared bits ─────────────────────────────────────────────────────────── */
-
-/**
- * The rail, and it never shows an empty bar.
- *
- * Step one is filled the moment you arrive, before you have typed anything,
- * because you have in fact done something: you decided to start. A progress
- * bar that reads zero on the screen you were just persuaded onto spends the
- * goodwill that got you there.
- */
-function Rail({ current }: { current: number }) {
-  const done = current + 1;
-  return (
-    <div>
-      <div className="flex items-baseline justify-between">
-        <p className="font-mono text-[0.7rem] tracking-[0.18em] text-slate-500 uppercase dark:text-stone-400">
-          Step {done} of {STEPS.length}
-        </p>
-        <p className="text-xs text-slate-500 dark:text-stone-400">{STEPS[current]?.note}</p>
-      </div>
-
-      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-900/10 dark:bg-white/12">
-        <div
-          className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-fuchsia-500 transition-[width] duration-700"
-          style={{ width: `${(done / STEPS.length) * 100}%` }}
-        />
-      </div>
-
-      <ol className="mt-4 grid gap-2 sm:grid-cols-4">
-        {STEPS.map((step, i) => (
-          <li
-            key={step.id}
-            className={cn(
-              "flex items-center gap-1.5 text-sm",
-              i === current
-                ? "font-semibold text-slate-900 dark:text-white"
-                : "text-slate-500 dark:text-stone-500",
-            )}
-          >
-            {i > current && <Lock className="size-3 shrink-0" aria-hidden />}
-            {step.label}
-          </li>
-        ))}
-      </ol>
-    </div>
-  );
-}
-
-function Field({
-  label,
-  hint,
-  children,
-}: {
-  label: string;
-  hint?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div>
-      <p className="text-lg font-semibold">{label}</p>
-      {hint && <p className="mt-1 mb-3 text-sm text-slate-600 dark:text-stone-400">{hint}</p>}
-      {children}
-    </div>
-  );
 }
 
 /** A fortnight out: far enough to be plausible, close enough to feel like a deadline. */

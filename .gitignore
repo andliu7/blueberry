@@ -43,3 +43,6 @@ docs/
 
 .vercel
 .env*
+
+# Blind-judge screenshots. Regenerated per round, never reviewed as source.
+.gauntlet/

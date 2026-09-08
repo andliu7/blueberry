@@ -434,3 +434,28 @@ content_path = "./supabase/templates/magic_link.html"
 [auth.email.template.confirmation]
 subject = "Confirm your Blueberry account"
 content_path = "./supabase/templates/confirmation.html"
+
+# ── Billing functions ─────────────────────────────────────────────────────────
+#
+# Two of these turn Supabase's own JWT check off, for two different reasons,
+# and neither is a hole.
+#
+# `stripe-webhook` is called by Stripe, which has no Supabase session and
+# cannot send a bearer token. Its authentication is the `stripe-signature`
+# header, verified against the raw body inside the function. That check is
+# strictly stronger than a JWT check: it authenticates the body as well as the
+# caller.
+#
+# `stripe-prices` is a public price list. Requiring an account to find out what
+# something costs is the pattern the funnel exists to avoid, and the function
+# returns only what a Stripe payment page would show anybody anyway.
+#
+# `stripe-checkout` and `stripe-portal` keep the default check AND call
+# `auth.getUser` themselves, because a verified JWT tells you the request is
+# signed, not who it is for.
+
+[functions.stripe-webhook]
+verify_jwt = false
+
+[functions.stripe-prices]
+verify_jwt = false

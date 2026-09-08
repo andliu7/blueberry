@@ -1449,9 +1449,65 @@ html.dark {
    page. A blind panel counted the floating chips among the things that made
    the pitch read as an app screen; they are furniture for people already
    inside. HomePage sets data-hero on <html> while the visitor is on the
-   unscrolled hero, and the dock sits out until they move. */
-html[data-hero] .bb-corner-dock {
+   unscrolled hero, and the dock sits out until they move.
+
+   The entry gate sets data-gate for the same reason and a stronger one: it
+   is a single framed panel with one press to make, and three floating chips
+   over the corner of it are furniture from a room the visitor has not been
+   shown yet. */
+html[data-hero] .bb-corner-dock,
+html[data-gate] .bb-corner-dock {
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.4s ease;
+}
+/* ---------------------------------------------------------------------------
+   The device frame: one of the two settings the entry gate offers.
+
+   A rule on the document root rather than a React wrapper, because there is no
+   single element that wraps every page here: `App` is a router of early
+   returns, and the timer, the assistant and the avatar are mounted outside it
+   on purpose so they survive a route change. A component could not contain
+   those. This can. See `lib/deviceFrame`.
+
+   `transform` on the root is doing real work and is not a paint hint. It makes
+   #root the containing block for `position: fixed` descendants, which is what
+   keeps the corner dock and the search overlay inside the bezel instead of
+   pinned to the desktop behind it. The cost is that those overlays now scroll
+   with the page rather than staying put, and that they read window.scrollY as
+   zero, so scroll-driven chrome stays in its unscrolled state while framed.
+   That is the honest trade: everything stays inside the device, and a handful
+   of scroll effects go quiet. It is a preview mode, off by default.
+   --------------------------------------------------------------------------- */
+html[data-device-frame],
+html[data-device-frame] body {
+  background: #0a0d14;
+  background-image: none;
+}
+
+html[data-device-frame] body {
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  padding: clamp(10px, 2.5vh, 40px) 0;
+}
+
+html[data-device-frame] #root {
+  width: min(430px, 94vw);
+  height: min(920px, 92svh);
+  overflow-x: hidden;
+  overflow-y: auto;
+  border-radius: 42px;
+  border: 10px solid #14181c;
+  background: var(--background);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.14),
+    0 44px 90px -30px rgba(0, 0, 0, 0.85);
+  transform: translateZ(0);
+  scrollbar-width: none;
+}
+
+html[data-device-frame] #root::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }

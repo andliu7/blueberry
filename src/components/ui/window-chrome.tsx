@@ -5,6 +5,7 @@ import { usePageFlip } from "@/components/ui/page-flip";
 import { ratingTally, type RatingTally } from "@/lib/progress";
 import { deckHref, type Deck } from "@/data/types";
 import { useFocusTimer } from "@/lib/useFocusTimer";
+import { LIGHTS, type LightKey } from "@/components/ui/window-lights";
 import { cn } from "@/lib/utils";
 
 /**
@@ -28,32 +29,7 @@ import { cn } from "@/lib/utils";
  * show which decks the flagged cards are actually in.
  */
 
-const LIGHTS = [
-  {
-    key: "red" as const,
-    label: "Shaky",
-    // The real macOS colours: a near miss on these reads as a mistake.
-    dot: "#ff5f57",
-    text: "text-rose-600 dark:text-rose-300",
-    bar: "bg-rose-500",
-  },
-  {
-    key: "yellow" as const,
-    label: "Getting there",
-    dot: "#febc2e",
-    text: "text-amber-600 dark:text-amber-300",
-    bar: "bg-amber-400",
-  },
-  {
-    key: "green" as const,
-    label: "Solid",
-    dot: "#28c840",
-    text: "text-emerald-600 dark:text-emerald-300",
-    bar: "bg-emerald-500",
-  },
-];
-
-type LightKey = (typeof LIGHTS)[number]["key"];
+/* The three lights live in `window-lights`, shared with `system-window`. */
 
 /** How much scroll turns the tab into the bar. */
 const MORPH_DISTANCE = 140;

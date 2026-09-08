@@ -44,6 +44,11 @@
           // the same for everyone.
           var saved = localStorage.getItem('theme');
           document.documentElement.classList.toggle('dark', saved !== 'light');
+          // The entry gate's second setting, applied here for the same reason
+          // as the first: a framed visitor should never see one unframed paint.
+          if (localStorage.getItem('device-frame') === 'on') {
+            document.documentElement.setAttribute('data-device-frame', '');
+          }
         } catch (e) {}
       })();
     </script>
