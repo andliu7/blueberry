@@ -2,7 +2,13 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "dist",
-    "rootDir": "src"
+    "rootDir": "src",
+    // Inside dist/ so the incremental stamp is covered by the dist/ ignore rule,
+    // which is what packages/feedback and packages/validators already do. Left
+    // beside this file it is untracked build output sitting in the source tree,
+    // and one copy of it did get committed, which made CI skip the emit and
+    // fail every package that imports this one.
+    "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo"
   },
   "include": ["src/**/*.ts"]
 }

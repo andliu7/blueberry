@@ -10,6 +10,15 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+
+# TypeScript incremental build stamps. `dist` above does not catch these: most
+# packages point tsBuildInfoFile into dist/, but a tsconfig that does not lands
+# the stamp beside itself, where nothing was ignoring it. One got committed that
+# way and broke the deploy: CI read the stamp, decided chem-core was up to date,
+# emitted no dist/, and every package importing @blueberry/chem-core failed to
+# resolve it. The build was green locally the whole time, because locally the
+# dist/ it was describing actually existed.
+*.tsbuildinfo
 *.local
 
 # Editor directories and files
