@@ -78,6 +78,15 @@ const LessonsPage = lazy(() => import("@/components/LessonsPage").then((m) => ({
 /* Split like the rest: the calendar pulls in the syllabus importer and the
    Radix dialog, and none of that should be in the bundle someone downloads to
    read a deck. */
+/**
+ * The game, and the one route on this site that is a whole other application.
+ *
+ * Lazy, and it matters more here than anywhere else: this is 87,000 lines of
+ * app plus five engine packages, and a student who only ever reads the lessons
+ * should never download it. Everything the game needs, including its own
+ * stylesheet, arrives with this chunk.
+ */
+const GamePage = lazy(() => import("@/components/GamePage"));
 const CalendarPage = lazy(() => import("@/components/CalendarPage"));
 const TutoringPage = lazy(() => import("@/components/TutoringPage"));
 const ReactionsPage = lazy(() =>
@@ -264,6 +273,11 @@ export default function App() {
   if (route === "start" || route.startsWith("start/")) {
     return withBoundary(<StartPage step={route.slice(6)} />);
   }
+  // The game. It owns every hash under this prefix: "#/app" is the pathway,
+  // "#/app/lesson/<node>" a lesson, "#/app/start/welcome" its onboarding. The
+  // game parses the tail itself and this branch only decides whose router is
+  // in charge, which is why a site route can never shadow a tab of the game's.
+  if (route === "app" || route.startsWith("app/")) return withBoundary(<GamePage />);
   if (route === "study-decks") return <StudyDecksPage />;
   if (route === "lessons") return withBoundary(<LessonsPage />);
   // `#/lessons/aromatics` opens that section directly, so the hub's topic list
@@ -1414,7 +1428,7 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
               {/* Underline sweeps in from the left on hover. */}
               <span
                 aria-hidden
-                className="absolute left-0 -bottom-0.5 h-[2px] w-full origin-left scale-x-0 rounded-full bg-gradient-to-r from-indigo-500 to-fuchsia-500 transition-transform duration-300 ease-out group-hover:scale-x-100"
+                className="absolute left-0 -bottom-0.5 h-[2px] w-full origin-left scale-x-0 rounded-full bg-gradient-to-r from-brand-from to-brand-to transition-transform duration-300 ease-out group-hover:scale-x-100"
               />
             </span>
             <ArrowUpRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />

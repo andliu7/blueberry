@@ -1,0 +1,335 @@
+{
+  "protocol": "blueberry-oracle-corpus",
+  "version": 1,
+  "name": "broken-aromaticity-invariant",
+  "description": "An authored aromaticity invariance claim that the chemistry contradicts.",
+  "sequences": [
+    {
+      "id": "sigma-complex-with-false-invariant",
+      "description": "The ring carbons declared aromaticity invariant across the step that dearomatises them. The declaration is the thing that is wrong here, not RDKit.",
+      "aromaticityInvariantAtomIds": [
+        "c1",
+        "c2",
+        "c3",
+        "c4",
+        "c5",
+        "c6"
+      ],
+      "states": [
+        {
+          "id": "state-0",
+          "sanitizationMayFail": null,
+          "species": [
+            {
+              "id": "sp-benzene",
+              "label": "benzene",
+              "expect": {
+                "meso": false
+              },
+              "atoms": [
+                {
+                  "id": "c1",
+                  "element": "C",
+                  "isotope": null,
+                  "formalCharge": 0,
+                  "lonePairs": 0,
+                  "unpairedElectrons": 0,
+                  "implicitHydrogens": 1,
+                  "stereo": null
+                },
+                {
+                  "id": "c2",
+                  "element": "C",
+                  "isotope": null,
+                  "formalCharge": 0,
+                  "lonePairs": 0,
+                  "unpairedElectrons": 0,
+                  "implicitHydrogens": 1,
+                  "stereo": null
+                },
+                {
+                  "id": "c3",
+                  "element": "C",
+                  "isotope": null,
+                  "formalCharge": 0,
+                  "lonePairs": 0,
+                  "unpairedElectrons": 0,
+                  "implicitHydrogens": 1,
+                  "stereo": null
+                },
+                {
+                  "id": "c4",
+                  "element": "C",
+                  "isotope": null,
+                  "formalCharge": 0,
+                  "lonePairs": 0,
+                  "unpairedElectrons": 0,
+                  "implicitHydrogens": 1,
+                  "stereo": null
+                },
+                {
+                  "id": "c5",
+                  "element": "C",
+                  "isotope": null,
+                  "formalCharge": 0,
+                  "lonePairs": 0,
+                  "unpairedElectrons": 0,
+                  "implicitHydrogens": 1,
+                  "stereo": null
+                },
+                {
+                  "id": "c6",
+                  "element": "C",
+                  "isotope": null,
+                  "formalCharge": 0,
+                  "lonePairs": 0,
+                  "unpairedElectrons": 0,
+                  "implicitHydrogens": 1,
+                  "stereo": null
+                }
+              ],
+              "bonds": [
+                {
+                  "id": "r1",
+                  "a": "c1",
+                  "b": "c2",
+                  "order": 2,
+                  "stereo": null
+                },
+                {
+                  "id": "r2",
+                  "a": "c2",
+                  "b": "c3",
+                  "order": 1,
+                  "stereo": null
+                },
+                {
+                  "id": "r3",
+                  "a": "c3",
+                  "b": "c4",
+                  "order": 2,
+                  "stereo": null
+                },
+                {
+                  "id": "r4",
+                  "a": "c4",
+                  "b": "c5",
+                  "order": 1,
+                  "stereo": null
+                },
+                {
+                  "id": "r5",
+                  "a": "c5",
+                  "b": "c6",
+                  "order": 2,
+                  "stereo": null
+                },
+                {
+                  "id": "r6",
+                  "a": "c6",
+                  "b": "c1",
+                  "order": 1,
+                  "stereo": null
+                }
+              ]
+            },
+            {
+              "id": "sp-bromine",
+              "label": "bromine",
+              "expect": {
+                "meso": false
+              },
+              "atoms": [
+                {
+                  "id": "br1",
+                  "element": "Br",
+                  "isotope": null,
+                  "formalCharge": 0,
+                  "lonePairs": 3,
+                  "unpairedElectrons": 0,
+                  "implicitHydrogens": 0,
+                  "stereo": null
+                },
+                {
+                  "id": "br2",
+                  "element": "Br",
+                  "isotope": null,
+                  "formalCharge": 0,
+                  "lonePairs": 3,
+                  "unpairedElectrons": 0,
+                  "implicitHydrogens": 0,
+                  "stereo": null
+                }
+              ],
+              "bonds": [
+                {
+                  "id": "x1",
+                  "a": "br1",
+                  "b": "br2",
+                  "order": 1,
+                  "stereo": null
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "state-1",
+          "sanitizationMayFail": null,
+          "species": [
+            {
+              "id": "sp-arenium",
+              "label": "bromobenzenium, the Wheland intermediate",
+              "expect": {
+                "meso": false
+              },
+              "atoms": [
+                {
+                  "id": "c1",
+                  "element": "C",
+                  "isotope": null,
+                  "formalCharge": 0,
+                  "lonePairs": 0,
+                  "unpairedElectrons": 0,
+                  "implicitHydrogens": 1,
+                  "stereo": null
+                },
+                {
+                  "id": "c2",
+                  "element": "C",
+                  "isotope": null,
+                  "formalCharge": 0,
+                  "lonePairs": 0,
+                  "unpairedElectrons": 0,
+                  "implicitHydrogens": 1,
+                  "stereo": null
+                },
+                {
+                  "id": "c3",
+                  "element": "C",
+                  "isotope": null,
+                  "formalCharge": 0,
+                  "lonePairs": 0,
+                  "unpairedElectrons": 0,
+                  "implicitHydrogens": 1,
+                  "stereo": null
+                },
+                {
+                  "id": "c4",
+                  "element": "C",
+                  "isotope": null,
+                  "formalCharge": 0,
+                  "lonePairs": 0,
+                  "unpairedElectrons": 0,
+                  "implicitHydrogens": 1,
+                  "stereo": null
+                },
+                {
+                  "id": "c5",
+                  "element": "C",
+                  "isotope": null,
+                  "formalCharge": 0,
+                  "lonePairs": 0,
+                  "unpairedElectrons": 0,
+                  "implicitHydrogens": 1,
+                  "stereo": null
+                },
+                {
+                  "id": "c6",
+                  "element": "C",
+                  "isotope": null,
+                  "formalCharge": 1,
+                  "lonePairs": 0,
+                  "unpairedElectrons": 0,
+                  "implicitHydrogens": 1,
+                  "stereo": null
+                },
+                {
+                  "id": "br1",
+                  "element": "Br",
+                  "isotope": null,
+                  "formalCharge": 0,
+                  "lonePairs": 3,
+                  "unpairedElectrons": 0,
+                  "implicitHydrogens": 0,
+                  "stereo": null
+                }
+              ],
+              "bonds": [
+                {
+                  "id": "r1",
+                  "a": "c1",
+                  "b": "c2",
+                  "order": 1,
+                  "stereo": null
+                },
+                {
+                  "id": "r2",
+                  "a": "c2",
+                  "b": "c3",
+                  "order": 2,
+                  "stereo": null
+                },
+                {
+                  "id": "r3",
+                  "a": "c3",
+                  "b": "c4",
+                  "order": 1,
+                  "stereo": null
+                },
+                {
+                  "id": "r4",
+                  "a": "c4",
+                  "b": "c5",
+                  "order": 2,
+                  "stereo": null
+                },
+                {
+                  "id": "r5",
+                  "a": "c5",
+                  "b": "c6",
+                  "order": 1,
+                  "stereo": null
+                },
+                {
+                  "id": "r6",
+                  "a": "c6",
+                  "b": "c1",
+                  "order": 1,
+                  "stereo": null
+                },
+                {
+                  "id": "s1",
+                  "a": "c1",
+                  "b": "br1",
+                  "order": 1,
+                  "stereo": null
+                }
+              ]
+            },
+            {
+              "id": "sp-bromide",
+              "label": "bromide",
+              "expect": {
+                "meso": false
+              },
+              "atoms": [
+                {
+                  "id": "br2",
+                  "element": "Br",
+                  "isotope": null,
+                  "formalCharge": -1,
+                  "lonePairs": 4,
+                  "unpairedElectrons": 0,
+                  "implicitHydrogens": 0,
+                  "stereo": null
+                }
+              ],
+              "bonds": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,120 @@
+{
+  "protocol": "blueberry-oracle-corpus",
+  "version": 1,
+  "name": "stereo-slot-not-a-neighbour",
+  "description": "A tetrahedral slot list naming c2, which is two bonds away. A parity over a neighbour list that is not the neighbour list is a number with no meaning.",
+  "sequences": [
+    {
+      "id": "slot-two-bonds-away",
+      "description": "Must fail oracle-sanitization through buildErrors.",
+      "aromaticityInvariantAtomIds": [],
+      "states": [
+        {
+          "id": "state-0",
+          "sanitizationMayFail": null,
+          "species": [
+            {
+              "id": "sp-1",
+              "label": "stereo slot naming a distant atom",
+              "expect": {
+                "meso": false
+              },
+              "atoms": [
+                {
+                  "id": "c1",
+                  "element": "C",
+                  "isotope": null,
+                  "formalCharge": 0,
+                  "lonePairs": 0,
+                  "unpairedElectrons": 0,
+                  "implicitHydrogens": 1,
+                  "stereo": {
+                    "kind": "tetrahedral",
+                    "neighbors": [
+                      "f1",
+                      "cl1",
+                      "c2",
+                      "@implicitH"
+                    ],
+                    "parity": "clockwise",
+                    "authoredDescriptor": "S"
+                  }
+                },
+                {
+                  "id": "f1",
+                  "element": "F",
+                  "isotope": null,
+                  "formalCharge": 0,
+                  "lonePairs": 3,
+                  "unpairedElectrons": 0,
+                  "implicitHydrogens": 0,
+                  "stereo": null
+                },
+                {
+                  "id": "cl1",
+                  "element": "Cl",
+                  "isotope": null,
+                  "formalCharge": 0,
+                  "lonePairs": 3,
+                  "unpairedElectrons": 0,
+                  "implicitHydrogens": 0,
+                  "stereo": null
+                },
+                {
+                  "id": "br1",
+                  "element": "Br",
+                  "isotope": null,
+                  "formalCharge": 0,
+                  "lonePairs": 3,
+                  "unpairedElectrons": 0,
+                  "implicitHydrogens": 0,
+                  "stereo": null
+                },
+                {
+                  "id": "c2",
+                  "element": "C",
+                  "isotope": null,
+                  "formalCharge": 0,
+                  "lonePairs": 0,
+                  "unpairedElectrons": 0,
+                  "implicitHydrogens": 3,
+                  "stereo": null
+                }
+              ],
+              "bonds": [
+                {
+                  "id": "b1",
+                  "a": "c1",
+                  "b": "f1",
+                  "order": 1,
+                  "stereo": null
+                },
+                {
+                  "id": "b2",
+                  "a": "c1",
+                  "b": "cl1",
+                  "order": 1,
+                  "stereo": null
+                },
+                {
+                  "id": "b3",
+                  "a": "c1",
+                  "b": "br1",
+                  "order": 1,
+                  "stereo": null
+                },
+                {
+                  "id": "b4",
+                  "a": "br1",
+                  "b": "c2",
+                  "order": 1,
+                  "stereo": null
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -26,6 +26,7 @@ import { useDecks } from "@/lib/useDecks";
 import { hasSeenIntro, markIntroSeen } from "@/lib/intro";
 import { deckCount } from "@/data/types";
 import { TRAINER_URL } from "@/data/site";
+import { RollingText } from "@/components/ui/rolling-text";
 
 
 /**
@@ -258,7 +259,10 @@ const Board = ({
     aria-label="Everything else"
     className="mx-auto min-h-svh max-w-5xl px-6 pt-16 pb-24"
   >
-    <h2 className="title-face text-3xl sm:text-4xl">Everything else</h2>
+    {/* The title rolls into place when the board scrolls into view. The class
+        stays `title-face` so it keeps the same serif as every other heading;
+        only the way it arrives is different. */}
+    <RollingText as="h2" text="Everything else" className="title-face text-3xl sm:text-4xl" />
     <p className="mt-2 max-w-xl text-sm text-slate-500 dark:text-stone-400">
       The part you draw yourself, the cards, the reading behind them, and the parts that tell
       you to stop for a minute.
@@ -278,7 +282,7 @@ const Board = ({
 
           It opens in its own tab because the trainer is still a separate app,
           and the caption says so rather than pretending otherwise. */}
-      <BentoTile href={TRAINER_URL} external className="p-6 sm:col-span-2 sm:p-7 lg:row-span-2">
+      <BentoTile href={TRAINER_URL} className="p-6 sm:col-span-2 sm:p-7 lg:row-span-2">
         {/* Reversed on a phone, so the drawing comes first and the words
             follow it. That is the order the Duolingo landing uses on a phone
             and it is the right one: a picture of the thing explains it faster
@@ -310,7 +314,7 @@ const Board = ({
                 button inside an anchor is invalid markup that browsers resolve
                 by guessing. This is the affordance saying where the press
                 lands, not a second control. */}
-            <span className="bb-press mt-6 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-indigo-600 to-fuchsia-600 px-6 py-3 text-base font-semibold text-white">
+            <span className="bb-press mt-6 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-brand-from to-brand-to px-6 py-3 text-base font-semibold text-white">
               Play a mechanism
               <ArrowUpRight className="size-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
             </span>

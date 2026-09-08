@@ -1,0 +1,220 @@
+{
+  "schemaVersion": 2,
+  "id": "good-e1-dehydrohalogenation-of-tert-butyl-bromide-in-water",
+  "title": "Tert-butyl bromide ionises, then water removes a beta proton from the cation to give 2-methylpropene, the E1 route that shares its first step with SN1",
+  "expect": {
+    "kind": "good",
+    "note": "E1 and SN1 have the same rate determining step and diverge only at what the cation does next. Compare step-1 here with step-1 of good-sn1-solvolysis-of-tert-butyl-bromide-in-water: the arrows and the intermediate are identical. This is the clearest case in the corpus for the correct_alternative_route result type, because a student who eliminates when substitution was requested has not made an error of chemistry."
+  },
+  "pathway": {
+    "id": "e1-tert-butyl-bromide-water",
+    "route": "e1",
+    "steps": [
+      {
+        "id": "step-1-heterolysis",
+        "identity": { "elementaryStep": "bond_heterolysis", "route": "e1", "reactionCenters": ["C1", "Br1"] },
+        "arrows": [
+          { "id": "a1", "electrons": 2, "source": { "kind": "bond", "bondId": "b5" }, "sink": { "kind": "atom", "atomId": "Br1" } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "tert-butyl-bromide",
+                "label": "2-bromo-2-methylpropane, one beta proton drawn explicitly",
+                "atoms": [
+                  { "id": "C1", "element": "C" },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "Br1", "element": "Br", "lonePairs": 3 }
+                ],
+                "bonds": [
+                  { "id": "b1", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b2", "a": "C1", "b": "C3", "order": 1 },
+                  { "id": "b3", "a": "C1", "b": "C4", "order": 1 },
+                  { "id": "b4", "a": "C2", "b": "H1", "order": 1 },
+                  { "id": "b5", "a": "C1", "b": "Br1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "solvent",
+              "species": {
+                "id": "water",
+                "label": "water",
+                "atoms": [
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "H2", "element": "H" },
+                  { "id": "H3", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b6", "a": "O1", "b": "H2", "order": 1 },
+                  { "id": "b7", "a": "O1", "b": "H3", "order": 1 }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "tert-butyl-cation",
+                "label": "tert-butyl cation",
+                "atoms": [
+                  { "id": "C1", "element": "C", "formalCharge": 1 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b8", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b9", "a": "C1", "b": "C3", "order": 1 },
+                  { "id": "b10", "a": "C1", "b": "C4", "order": 1 },
+                  { "id": "b11", "a": "C2", "b": "H1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "bromide",
+                "label": "bromide",
+                "atoms": [{ "id": "Br1", "element": "Br", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            },
+            {
+              "role": "solvent",
+              "species": {
+                "id": "water",
+                "label": "water",
+                "atoms": [
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "H2", "element": "H" },
+                  { "id": "H3", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b12", "a": "O1", "b": "H2", "order": 1 },
+                  { "id": "b13", "a": "O1", "b": "H3", "order": 1 }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "step-2-beta-deprotonation",
+        "identity": { "elementaryStep": "proton_transfer", "route": "e1", "reactionCenters": ["C1", "C2", "H1"] },
+        "arrows": [
+          { "id": "a2", "electrons": 2, "source": { "kind": "lonePair", "atomId": "O1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["O1", "H1"] } },
+          { "id": "a3", "electrons": 2, "source": { "kind": "bond", "bondId": "b11" }, "sink": { "kind": "betweenAtoms", "atomIds": ["C2", "C1"] } }
+        ],
+        "from": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "tert-butyl-cation",
+                "label": "tert-butyl cation",
+                "atoms": [
+                  { "id": "C1", "element": "C", "formalCharge": 1 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b8", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b9", "a": "C1", "b": "C3", "order": 1 },
+                  { "id": "b10", "a": "C1", "b": "C4", "order": 1 },
+                  { "id": "b11", "a": "C2", "b": "H1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "bromide",
+                "label": "bromide",
+                "atoms": [{ "id": "Br1", "element": "Br", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            },
+            {
+              "role": "base",
+              "species": {
+                "id": "water",
+                "label": "water",
+                "atoms": [
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "H2", "element": "H" },
+                  { "id": "H3", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b12", "a": "O1", "b": "H2", "order": 1 },
+                  { "id": "b13", "a": "O1", "b": "H3", "order": 1 }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s2",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "2-methylpropene",
+                "label": "2-methylpropene",
+                "atoms": [
+                  { "id": "C1", "element": "C" },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 }
+                ],
+                "bonds": [
+                  { "id": "b14", "a": "C1", "b": "C2", "order": 2 },
+                  { "id": "b15", "a": "C1", "b": "C3", "order": 1 },
+                  { "id": "b16", "a": "C1", "b": "C4", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "bromide",
+                "label": "bromide",
+                "atoms": [{ "id": "Br1", "element": "Br", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            },
+            {
+              "role": "byproduct",
+              "species": {
+                "id": "hydronium",
+                "label": "hydronium",
+                "atoms": [
+                  { "id": "O1", "element": "O", "formalCharge": 1, "lonePairs": 1 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "H2", "element": "H" },
+                  { "id": "H3", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b17", "a": "O1", "b": "H1", "order": 1 },
+                  { "id": "b18", "a": "O1", "b": "H2", "order": 1 },
+                  { "id": "b19", "a": "O1", "b": "H3", "order": 1 }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

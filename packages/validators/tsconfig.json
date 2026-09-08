@@ -1,0 +1,23 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    // Keep the incremental build stamp inside dist/. By default it lands next to this
+    // file, where it is build output that is neither gitignored nor excluded from the
+    // integrity lock, so every `npm run typecheck` would report the suite as MODIFIED.
+    "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo",
+    // The package.json scripts run the sources directly with
+    // `node --experimental-strip-types`, and Node's type stripping does not rewrite a
+    // ".js" specifier to a ".ts" file on disk. So the imports here carry a ".ts"
+    // extension, and this option lets tsc still emit by rewriting those specifiers to
+    // ".js" in the output. TypeScript 5.7 or newer.
+    "rewriteRelativeImportExtensions": true
+  },
+  "include": ["src/**/*.ts"],
+  "references": [
+    { "path": "../chem-core" },
+    { "path": "../curriculum" },
+    { "path": "../feedback" }
+  ]
+}

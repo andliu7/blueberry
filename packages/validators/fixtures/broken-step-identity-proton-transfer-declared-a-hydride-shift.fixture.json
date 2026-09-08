@@ -1,0 +1,100 @@
+{
+  "schemaVersion": 2,
+  "id": "broken-step-identity-proton-transfer-declared-a-hydride-shift",
+  "title": "Hydroxide deprotonates methanol with its own lone pair, in a step declared hydride_shift",
+  "expect": {
+    "kind": "broken",
+    "mustFail": [
+      "conservation-step-identity"
+    ],
+    "note": "The negative control for the hydride against proton rule read in the other direction, and the mirror of broken-known-limit-hydride-shift-mislabelled-a-proton-transfer. THE CHEMISTRY IS good-deprotonation-of-methanol-by-hydroxide, ATOM FOR ATOM AND ARROW FOR ARROW. Hydroxide's oxygen O2 brings one of its own lone pairs to H1, and the O1 to H1 bonding pair goes back to O1 as a new lone pair on methoxide. Mass, charge, valence, electron flow, arrow legality and the proton budget are all as green as they are on the source fixture, and the hydrogen budget balances exactly: O1 loses one attached hydrogen and O2 gains one, which is why conservation-proton-transfer cannot see anything wrong here either. The single edited field is identity.elementaryStep, which reads hydride_shift instead of proton_transfer. WHAT GIVES IT AWAY. hydrogenMigrations finds that H1 changed heavy atom from O1 to O2, then reads the arrow that forms the O2 to H1 bond: it starts on a lone pair of O2 and pivots on O2, so the acceptor supplied both electrons and the hydrogen moved as a bare proton. Mode donated. A hydride is the opposite case by definition, the hydrogen carrying its own bonding pair, which is what good-sn1-with-a-1-2-hydride-shift-from-2-bromo-3-methylbutane step 2 draws with the arrow sourced from the C3 to H1 bond and pivoting on H1. Together the two controls prove the rule fires in both directions and is not simply a test for the word hydride. WHAT IS STILL NOT ASSERTED. That a carried hydride is a hydride_shift rather than an intermolecular delivery. good-hydride-transfer-from-borohydride-to-acetone is a carried hydride correctly declared nucleophilic_attack, so only the two contradictions are reported and never the positive classification. The failure reports step_kind_disagrees_with_arrows, a cause added for exactly this and carrying its own authored copy. It accuses the label rather than the chemistry, because the arrows here are correct and only the name written on them is wrong."
+  },
+  "pathway": {
+    "id": "broken-proton-transfer-declared-hydride-shift",
+    "route": "acid_base_proton_transfer",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": {
+          "elementaryStep": "hydride_shift",
+          "route": "acid_base_proton_transfer",
+          "reactionCenters": ["O1", "H1", "O2"]
+        },
+        "arrows": [
+          {
+            "id": "a1",
+            "electrons": 2,
+            "source": { "kind": "lonePair", "atomId": "O2" },
+            "sink": { "kind": "betweenAtoms", "atomIds": ["O2", "H1"] }
+          },
+          {
+            "id": "a2",
+            "electrons": 2,
+            "source": { "kind": "bond", "bondId": "b2" },
+            "sink": { "kind": "atom", "atomId": "O1" }
+          }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "methanol",
+                "label": "methanol",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b1", "a": "C1", "b": "O1", "order": 1 },
+                  { "id": "b2", "a": "O1", "b": "H1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "base",
+              "species": {
+                "id": "hydroxide",
+                "label": "hydroxide",
+                "atoms": [
+                  { "id": "O2", "element": "O", "formalCharge": -1, "lonePairs": 3, "implicitHydrogens": 1 }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "methoxide",
+                "label": "methoxide",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "O1", "element": "O", "formalCharge": -1, "lonePairs": 3 }
+                ],
+                "bonds": [{ "id": "b3", "a": "C1", "b": "O1", "order": 1 }]
+              }
+            },
+            {
+              "role": "byproduct",
+              "species": {
+                "id": "water",
+                "label": "water",
+                "atoms": [
+                  { "id": "O2", "element": "O", "lonePairs": 2, "implicitHydrogens": 1 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [{ "id": "b4", "a": "O2", "b": "H1", "order": 1 }]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

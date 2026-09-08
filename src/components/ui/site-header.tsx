@@ -163,7 +163,7 @@ export function SiteHeader({
                         a button and cluttering a row that is already full. */}
                     <span
                       aria-hidden
-                      className="absolute -bottom-0.5 left-0 h-[2px] w-full origin-left scale-x-0 rounded-full bg-gradient-to-r from-indigo-500 to-fuchsia-500 transition-transform duration-300 ease-out group-hover/cat:scale-x-100 group-focus-visible/cat:scale-x-100"
+                      className="absolute -bottom-0.5 left-0 h-[2px] w-full origin-left scale-x-0 rounded-full bg-gradient-to-r from-brand-from to-brand-to transition-transform duration-300 ease-out group-hover/cat:scale-x-100 group-focus-visible/cat:scale-x-100"
                     />
                   </button>
                 ) : (

@@ -1,0 +1,103 @@
+{
+  "protocol": "blueberry-oracle-corpus",
+  "version": 1,
+  "name": "wrong-cip-descriptor",
+  "description": "The passing corpus entry s-bromochlorofluoromethane with its descriptor changed from S to R and nothing else touched.",
+  "sequences": [
+    {
+      "id": "chfclbr-authored-R-is-wrong",
+      "description": "Must fail oracle-stereo-descriptors.",
+      "aromaticityInvariantAtomIds": [],
+      "states": [
+        {
+          "id": "state-0",
+          "sanitizationMayFail": null,
+          "species": [
+            {
+              "id": "sp-1",
+              "label": "bromochlorofluoromethane, authored wrong",
+              "expect": {
+                "meso": false
+              },
+              "atoms": [
+                {
+                  "id": "c1",
+                  "element": "C",
+                  "isotope": null,
+                  "formalCharge": 0,
+                  "lonePairs": 0,
+                  "unpairedElectrons": 0,
+                  "implicitHydrogens": 1,
+                  "stereo": {
+                    "kind": "tetrahedral",
+                    "neighbors": [
+                      "f1",
+                      "cl1",
+                      "br1",
+                      "@implicitH"
+                    ],
+                    "parity": "clockwise",
+                    "authoredDescriptor": "R"
+                  }
+                },
+                {
+                  "id": "f1",
+                  "element": "F",
+                  "isotope": null,
+                  "formalCharge": 0,
+                  "lonePairs": 3,
+                  "unpairedElectrons": 0,
+                  "implicitHydrogens": 0,
+                  "stereo": null
+                },
+                {
+                  "id": "cl1",
+                  "element": "Cl",
+                  "isotope": null,
+                  "formalCharge": 0,
+                  "lonePairs": 3,
+                  "unpairedElectrons": 0,
+                  "implicitHydrogens": 0,
+                  "stereo": null
+                },
+                {
+                  "id": "br1",
+                  "element": "Br",
+                  "isotope": null,
+                  "formalCharge": 0,
+                  "lonePairs": 3,
+                  "unpairedElectrons": 0,
+                  "implicitHydrogens": 0,
+                  "stereo": null
+                }
+              ],
+              "bonds": [
+                {
+                  "id": "b1",
+                  "a": "c1",
+                  "b": "f1",
+                  "order": 1,
+                  "stereo": null
+                },
+                {
+                  "id": "b2",
+                  "a": "c1",
+                  "b": "cl1",
+                  "order": 1,
+                  "stereo": null
+                },
+                {
+                  "id": "b3",
+                  "a": "c1",
+                  "b": "br1",
+                  "order": 1,
+                  "stereo": null
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

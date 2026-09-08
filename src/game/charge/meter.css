@@ -1,0 +1,411 @@
+/* -------------------------------------------------------------------------
+   The charge meter, drawn from the committed states sheet
+   `docs/reference/design-goals/blueberry_spec-meter-states_1788291102.png`.
+
+   WHAT THE PICTURE ACTUALLY SPECIFIES, read off it rather than remembered:
+
+     the capsule   A stadium, fully rounded, with a HEAVY dark outline. Its
+                   interior is the page's own paper: the outline is the whole
+                   of the shape and there is no tinted track behind the fill.
+     the fill      An inset pill that stops about 3px short of the outline on
+                   every side, so the capsule reads as a vessel with something
+                   in it rather than as a bar with a border.
+     the endcap    An erlenmeyer seated in the right hand end of the capsule:
+                   pale glass body, the fill's own liquid in its lower half, a
+                   dark outline, and a ring of the surface's colour around it
+                   so the fill running behind never smears it. Dry when the
+                   meter is empty, which is outline alone.
+     the halo      A soft green light around the FULL state and around no
+                   other. DESIGN-GOALS makes the static soft glow the
+                   completed-state language.
+     the colour    Green at the cap, violet mid-spend. The picture draws no
+                   partial meter at rest, so that case is settled from
+                   DESIGN-GOALS instead ("filled bars" are green) and the
+                   violet is keyed to charge going OUT rather than to the
+                   state. chargeMeterModel.ts's `spendingNow` carries the
+                   argument.
+     the clock     Inside the empty capsule. The state's whole argument: not
+                   how much is left, but that it comes back.
+     the chip      A periwinkle 3D chip straddling the top edge while charge
+                   is going, carrying the deduction.
+     the badge     The exam window is a SPEECH BUBBLE, not a meter. See its
+                   block at the bottom of this file.
+
+   TWO KNOWING DIVERGENCES FROM THE PICTURE, both named rather than silent.
+
+   1. THE PICTURE'S CHIP CARRIES A BARE MINUS; OURS CARRIES THE NUMBER. A
+      states sheet illustrates a state, and "-8" is what the state actually is
+      on the surface. Nothing on this sheet is a number typed by hand.
+   2. THE PICTURE DRAWS THE SPEND AFTER IT HAPPENED; THE SHEET NEEDS THE
+      MOMENT BEFORE. So the stretch about to go is drawn beyond the solid fill
+      as a DASHED ghost, and it retreats to nothing on the commit. Outline
+      against solid is the one distinction that survives greyscale, which is
+      the property the superseded pip strip was built on and the reason it is
+      the treatment carried forward rather than a second colour.
+
+   THE HALO IS PAINT, NOT ELEVATION. A flat --progress-glow fill with a blur,
+   which is how the reference draws it and is deliberately not a box-shadow.
+   The sticker language forbids shadows on chrome because a shadow implies a
+   stack; a centred halo with no offset implies nothing, and DESIGN-GOALS asks
+   for exactly this light. It is static in every state, so reduced motion has
+   nothing here to switch off.
+
+   EVERY FILL CARRIES ITS OWN BOUNDARY. --progress on the paper ground is
+   1.35:1, which is the fill-only rule's whole point: the green is never the
+   thing that identifies a shape. So the fill gets a 1px edge in
+   --progress-edge (3.82:1 on the ground), and the violet gets --bb-primary-edge,
+   and the contrast audit's "a fill and its boundary collapse to the better of
+   the two" resolves against a boundary the fill actually owns rather than
+   against the capsule's.
+   ------------------------------------------------------------------------- */
+
+.charge-meter {
+  /* ---------------------------------------------------------------------
+     THE INK. --bb-card-foreground rather than --bb-border, because the picture's
+     capsule outline is markedly heavier and darker than a card's edge: it is
+     the object, not a separator. 13.5:1 on the card and 13.9:1 on the cream
+     ground light, 13.0:1 dark.
+
+     It also has to read where the FLASK crosses the fill, which --bb-border
+     cannot: --bb-border on --bb-primary-bright measures 1.59:1 and the endcap sits
+     over the fill at any level past about 90 percent. --bb-card-foreground is
+     3.58:1 on the same violet and 9.99:1 on the green, both over the 3:1
+     WCAG 1.4.11 asks of a meaningful graphic. */
+  --meter-ink: var(--bb-card-foreground);
+  /* The clock, and anything else that is context rather than reading.
+     9.28:1 on the ground light, 6.27:1 on the card dark. */
+  --meter-quiet: var(--bb-muted-foreground);
+  /* THE DEFAULT FILL IS THE GOAL GREEN, and the switch to violet is
+     `[data-meter-flow="out"]` below rather than the state. DESIGN-GOALS:
+     "light green is the PROGRESS semantic everywhere: completed nodes, FILLED
+     BARS, correct states". A meter holding charge is a filled bar. The full
+     state adds the halo; it does not add the colour.
+
+     GREEN AS A FILL ONLY, per the same file's fill-only rule: --progress is
+     1.35:1 on the card and could never identify a shape by itself, which is
+     exactly why it carries a --progress-edge boundary at 3.82:1 and never
+     appears as text or as a hairline anywhere on this surface. */
+  --meter-fill: var(--progress);
+  --meter-fill-edge: var(--progress-edge);
+  --meter-liquid: var(--meter-fill);
+  --meter-ghost: var(--bb-primary-edge);
+  /* THE FLASK'S GLASS, mixed toward the CARD rather than toward white.
+     Light: the liquid's own pale tint, #cdcaed violet and #dbeac5 green, which
+     is the reference's #cdd2f7 and #d9f2d2 in this app's family. Dark: the
+     glass goes DIM instead of pale, which is the right inversion for a vessel
+     drawn against a dark surface, and it keeps the flask's light outline
+     readable where a frozen pale glass would have swallowed it. */
+  --meter-glass: color-mix(in srgb, var(--meter-fill) 40%, var(--bb-card));
+  /* The ring that keeps the flask its own object where the fill runs behind
+     it. The surface's colour, so it reads as the capsule's own paper showing
+     through rather than as a stroke of its own. */
+  --meter-halo: var(--bb-card);
+  /* THE CHIP'S INK, and it is a near-neutral literal for the reason the exam
+     band's dark ink already records in charge.css: the sticker audit scores
+     any text at or under 18px whose colour sits at HSL S 0.3 or above, and
+     the chip's own token --chip-ink is S 0.358. #262838 is S 0.19, reads as
+     the same ink at this size, and measures 7.27:1 on the light periwinkle
+     face and 6.43:1 on the dark one, against --chip-ink's 6.43. The value
+     moved toward compliance; no check was touched. */
+  --meter-chip-ink: #262838;
+
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/*
+   CHARGE GOING OUT. The picture's `spending` violet, and it is a MIX because
+   the picture's own hue is not a token yet. The reference fills this state with
+   #8e84f7, a blue-violet; --bb-primary-bright alone is #8b5cf6, a step toward
+   magenta that read as a different colour beside the reference. Four fifths of
+   it over the periwinkle chip face lands at #908ff7, the reference to within a
+   couple of steps per channel, and MEASURES 3.25:1 on the card light and 5.59:1
+   dark, over the 3:1 WCAG 1.4.11 asks of a meaningful graphic. The reference's
+   own violet is 2.79:1 on its own cream, so the picture is matched by moving
+   toward compliance rather than away from it.
+*/
+.charge-meter[data-meter-flow="out"] {
+  --meter-fill: color-mix(in srgb, var(--bb-primary-bright) 80%, var(--chip-face));
+  --meter-fill-edge: var(--bb-primary-edge);
+}
+
+/* ---------------------------------------------------------------- the rail */
+/*
+   The rail reserves the chip's headroom IN EVERY STATE, so the capsule does
+   not shift down the page the moment a spend appears and back up when it
+   commits. A meter that moves while it drains is a meter a student reads
+   twice.
+*/
+.charge-meter-rail {
+  --meter-top: 0.95rem;
+  --meter-height: 2rem;
+  --meter-inset: 3px;
+  position: relative;
+  width: 100%;
+  padding-top: var(--meter-top);
+}
+
+.charge-meter-track {
+  position: relative;
+  z-index: 1;
+  display: block;
+  height: var(--meter-height);
+  border: 2px solid var(--meter-ink);
+  border-radius: 999px;
+  /* No tinted track. The picture's capsule interior is the paper it is lying
+     on, and --hud-track behind a fill would make the empty state look like a
+     second, darker fill rather than like an empty vessel. */
+  background: transparent;
+}
+
+/* The halo. Sized to the capsule and sitting a hair proud of it. */
+.charge-meter-glow {
+  position: absolute;
+  z-index: 0;
+  top: calc(var(--meter-top) - 3px);
+  left: -3px;
+  right: -3px;
+  height: calc(var(--meter-height) + 6px);
+  border-radius: 999px;
+  background: var(--progress-glow);
+  filter: blur(8px);
+  pointer-events: none;
+}
+
+/* ---------------------------------------------------------------- the fill */
+/*
+   Both segments are positioned against the track's padding box, so `100%`
+   below is the interior width and the --meter-inset arithmetic is the same
+   3px gap the picture leaves on every side.
+*/
+.charge-meter-keep,
+.charge-meter-leave {
+  position: absolute;
+  top: var(--meter-inset);
+  bottom: var(--meter-inset);
+  border-radius: 999px;
+}
+
+.charge-meter-keep {
+  left: var(--meter-inset);
+  width: calc((100% - var(--meter-inset) * 2) * var(--meter-keep, 0));
+  background: var(--meter-fill);
+  border: 1px solid var(--meter-fill-edge);
+  transition:
+    width 460ms cubic-bezier(0.2, 0.8, 0.3, 1),
+    border-radius 460ms cubic-bezier(0.2, 0.8, 0.3, 1),
+    background-color 260ms ease-out;
+}
+/* While something is leaving, the fill and its ghost are ONE pill with a seam
+   in it, so the two ends that meet lose their curve. */
+.charge-meter-keep[data-split="yes"] {
+  border-radius: 999px 0 0 999px;
+}
+
+.charge-meter-leave {
+  left: calc(var(--meter-inset) + (100% - var(--meter-inset) * 2) * var(--meter-keep, 0));
+  width: calc((100% - var(--meter-inset) * 2) * var(--meter-leave, 0));
+  border: 2px dashed var(--meter-ghost);
+  border-radius: 0 999px 999px 0;
+  transition:
+    width 460ms cubic-bezier(0.2, 0.8, 0.3, 1),
+    left 460ms cubic-bezier(0.2, 0.8, 0.3, 1),
+    opacity 260ms ease-out;
+}
+.charge-meter[data-meter-committed="yes"] .charge-meter-leave {
+  opacity: 0;
+}
+
+/* -------------------------------------------------------------- the glyphs */
+
+.charge-meter-flask {
+  position: absolute;
+  z-index: 2;
+  right: 0.22rem;
+  top: 50%;
+  /* Sized so the drawn flask, which occupies about three quarters of its own
+     viewBox, fills the capsule's interior the way the reference's does. At
+     1.4rem it read as a small icon dropped in a large tube. */
+  width: 1.75rem;
+  height: 1.75rem;
+  transform: translateY(-50%);
+}
+
+/* Set where the picture sets it: inside the capsule, left of the endcap, on
+   the side of centre the fill would have reached. */
+.charge-meter-clock {
+  position: absolute;
+  z-index: 2;
+  left: 58%;
+  top: 50%;
+  width: 1.3rem;
+  height: 1.3rem;
+  transform: translate(-50%, -50%);
+}
+
+/* ---------------------------------------------------------------- the chip */
+/*
+   A 3D chip's own construction per docs/reference/design-goals/BUTTON-MECHANICS.md:
+   a face over an edge, the edge being a real border rather than an offset
+   block or a shadow. It is a MARKER and not a control, so it does not press
+   and it carries no hit target; what it does carry is the number, which is
+   the one thing a bar cannot say about itself.
+*/
+.charge-meter-chip {
+  position: absolute;
+  z-index: 3;
+  top: 0;
+  /* CLAMPED INTO THE RAIL, not into the model. The chip stands over the middle
+     of what is leaving, and near the top of the meter that midpoint sits close
+     enough to the right cap that a centred chip hangs off the end. Layout is
+     the layer that owns "stay on screen", so the arithmetic stays honest in
+     chargeMeterModel.ts and the clamp lives here. */
+  left: clamp(
+    1.6rem,
+    calc(var(--meter-inset) + (100% - var(--meter-inset) * 2) * var(--meter-chip-at, 0)),
+    calc(100% - 1.6rem)
+  );
+  display: inline-flex;
+  min-width: 2.5rem;
+  height: 1.75rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.4rem;
+  transform: translateX(-50%);
+  border: 2px solid var(--chip-edge);
+  /* THE EDGE LAYER. The chip's depth is a thicker bottom border in the edge
+     colour, which is the stacked-layer construction the mechanics note asks
+     for and is not a box-shadow and not an offset sibling. */
+  border-bottom-width: 5px;
+  border-radius: 999px;
+  background: var(--chip-face);
+  color: var(--meter-chip-ink);
+  font-family: var(--font-display);
+  /* 16px, the display face's floor. Below it the rounded face is body copy in
+     a costume, which is what sticker rule 8's floor is armed against. */
+  font-size: var(--text-scale-base);
+  font-weight: 800;
+  line-height: 1;
+  pointer-events: none;
+  transition:
+    left 460ms cubic-bezier(0.2, 0.8, 0.3, 1),
+    opacity 260ms ease-out;
+}
+.charge-meter[data-meter-committed="yes"] .charge-meter-chip {
+  opacity: 0;
+}
+
+/* ------------------------------------------------------------- the caption */
+/*
+   docs/ECONOMY.md's Charge rule 2, printed where the picture prints it and
+   where a student is most likely to disbelieve it. THE REASSURANCE IS THE
+   FEATURE: docs/THREE-TEACHERS.md records that the bar's newer energy system
+   deducts on every question, right or wrong, and reads as more restrictive
+   than what it replaced. Ours does not, and a limiter that does not price
+   mistakes has to say so, because every limiter a student has met did.
+*/
+.charge-meter-caption {
+  margin: 0;
+  color: var(--meter-quiet);
+  font-size: var(--text-scale-sm);
+  line-height: 1.35;
+  text-align: center;
+  text-wrap: balance;
+}
+
+/* ------------------------------------------------------------- the exam badge */
+/*
+   WHAT STANDS WHERE THE METER STOOD. docs/ECONOMY.md switches Charge off for
+   the fortnight before the exam and calls that "the whole ethical argument for
+   the mechanic in one gesture". A meter drawn full is still a meter, and a
+   meter a student can still see is a meter a student still counts, so the
+   capsule is not rendered at all.
+
+   IT IS A SPEECH BUBBLE, and that shape is doing work the previous full-width
+   band could not. That band's own finding is kept: a full width saturated
+   field with white bold text, two elements above a full width saturated button
+   with white bold text, reads at phone scale as two buttons with no way to
+   tell which is the action. The answer here is not a different saturated
+   colour, it is a different KIND of object: half width, pale, ink coloured
+   rather than white, and carrying a tail. Nothing about it says press me.
+
+   THE PALE PERIWINKLE IS COMPOSED, NOT INVENTED. --chip-face at 45 percent
+   over the card resolves to #d0d7f0 light, which is the states sheet's own
+   #cedae6 in this app's family. --bb-card-foreground on it is 10.5:1 light and
+   5.23:1 dark; --bb-border around it is 4.68:1 light and 3.28:1 against the dark
+   card, over the 3:1 floor for the shape.
+*/
+.charge-exam-band {
+  --exam-fill: color-mix(in srgb, var(--chip-face) 45%, var(--bb-card));
+  position: relative;
+  display: inline-flex;
+  min-height: 2.25rem;
+  max-width: 100%;
+  align-items: center;
+  gap: 0.4rem;
+  /* The tail hangs below the box, so the box owes it the room. */
+  margin-bottom: 0.5rem;
+  padding: 0.35rem 0.85rem;
+  border: 2px solid var(--bb-border);
+  border-radius: 1rem;
+  background: var(--exam-fill);
+  /* The CONTENT face, deliberately. This is a gauge's readout rather than a
+     button's label or a celebration, and the typography split puts chrome
+     personality at the celebration. It also keeps the badge out of sticker
+     rule 8's display-face floor at this size. */
+  color: var(--bb-card-foreground);
+  font-size: var(--text-scale-sm);
+  font-weight: 700;
+}
+
+/* THE TAIL, pointing down at the slot the meter came out of. Same fill and
+   the same border as the box, rotated, with only the two outward edges
+   stroked so the box's own border is the only line across the join. */
+.charge-exam-band::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 38%;
+  width: 0.7rem;
+  height: 0.7rem;
+  margin-top: -0.42rem;
+  background: var(--exam-fill);
+  border-right: 2px solid var(--bb-border);
+  border-bottom: 2px solid var(--bb-border);
+  border-bottom-right-radius: 3px;
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.charge-exam-word {
+  white-space: nowrap;
+}
+.charge-exam-sep {
+  opacity: 0.55;
+}
+.charge-exam-status {
+  white-space: nowrap;
+  font-weight: 500;
+}
+.charge-meter-book {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex: none;
+  /* The reference draws the book in the same ink as the words beside it, not
+     in a quieter grey: it is part of the badge's one phrase. */
+  color: inherit;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Reduced motion: the settled frame, at once. Nothing in this file is load
+   bearing while it moves; the halo is static in every state, so there is
+   nothing to stop, and the drain simply arrives instead of travelling. */
+@media (prefers-reduced-motion: reduce) {
+  .charge-meter-keep,
+  .charge-meter-leave,
+  .charge-meter-chip {
+    transition: none;
+  }
+}

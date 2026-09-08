@@ -1,0 +1,28 @@
+{
+  "$schema": "../../node_modules/@stryker-mutator/core/schema/stryker-schema.json",
+  "_comment": "Mutation testing for chem-core. BUILD-PROMPT.md Phase 1 exit: at or above 80 percent killed. thresholds.break is that number and is not a tuning knob. Run it with `npm run mutate` from the repo root, which also records the score where the validator suite can read it.",
+  "packageManager": "npm",
+  "testRunner": "vitest",
+  "vitest": {
+    "configFile": "vitest.config.ts"
+  },
+  "mutate": ["src/**/*.ts"],
+  "coverageAnalysis": "perTest",
+  "tempDirName": ".stryker-tmp",
+  "cleanTempDir": true,
+  "timeoutMS": 20000,
+  "thresholds": {
+    "high": 90,
+    "low": 80,
+    "break": 80
+  },
+  "reporters": ["progress", "clear-text", "json"],
+  "jsonReporter": {
+    "fileName": "mutation/stryker-report.json"
+  },
+  "clearTextReporter": {
+    "allowColor": false,
+    "maxTestsToLog": 0
+  },
+  "disableTypeChecks": "src/**/*.ts"
+}

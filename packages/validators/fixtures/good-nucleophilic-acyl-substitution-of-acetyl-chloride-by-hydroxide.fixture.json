@@ -1,0 +1,153 @@
+{
+  "schemaVersion": 2,
+  "id": "good-nucleophilic-acyl-substitution-of-acetyl-chloride-by-hydroxide",
+  "title": "Hydroxide adds to acetyl chloride to give a tetrahedral intermediate, which then collapses and expels chloride",
+  "expect": {
+    "kind": "good",
+    "note": "Addition then elimination, two barriers and a real intermediate, which is what separates acyl substitution from SN2. Drawing this as a single concerted backside displacement at the carbonyl carbon would be the SN2 shape on an sp2 centre, and it is the most common wrong answer on this transformation. The tetrahedral intermediate in step-1.to is what makes the difference visible in the fixture rather than only in the prose."
+  },
+  "pathway": {
+    "id": "acyl-substitution-acetyl-chloride",
+    "route": "nucleophilic_acyl_substitution",
+    "steps": [
+      {
+        "id": "step-1-addition",
+        "identity": { "elementaryStep": "nucleophilic_attack", "route": "nucleophilic_acyl_substitution", "reactionCenters": ["C2", "O2"] },
+        "arrows": [
+          { "id": "a1", "electrons": 2, "source": { "kind": "lonePair", "atomId": "O2" }, "sink": { "kind": "betweenAtoms", "atomIds": ["O2", "C2"] } },
+          { "id": "a2", "electrons": 2, "source": { "kind": "bond", "bondId": "b2" }, "sink": { "kind": "atom", "atomId": "O1" } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "acetyl-chloride",
+                "label": "acetyl chloride",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C" },
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "Cl1", "element": "Cl", "lonePairs": 3 }
+                ],
+                "bonds": [
+                  { "id": "b1", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b2", "a": "C2", "b": "O1", "order": 2 },
+                  { "id": "b3", "a": "C2", "b": "Cl1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "nucleophile",
+              "species": {
+                "id": "hydroxide",
+                "label": "hydroxide",
+                "atoms": [
+                  { "id": "O2", "element": "O", "formalCharge": -1, "lonePairs": 3 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [{ "id": "b4", "a": "O2", "b": "H1", "order": 1 }]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "tetrahedral-intermediate",
+                "label": "the tetrahedral intermediate, alkoxide at the former carbonyl oxygen",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C" },
+                  { "id": "O1", "element": "O", "formalCharge": -1, "lonePairs": 3 },
+                  { "id": "Cl1", "element": "Cl", "lonePairs": 3 },
+                  { "id": "O2", "element": "O", "lonePairs": 2 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b5", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b6", "a": "C2", "b": "O1", "order": 1 },
+                  { "id": "b7", "a": "C2", "b": "Cl1", "order": 1 },
+                  { "id": "b8", "a": "C2", "b": "O2", "order": 1 },
+                  { "id": "b9", "a": "O2", "b": "H1", "order": 1 }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "step-2-collapse-and-loss-of-chloride",
+        "identity": { "elementaryStep": "leaving_group_departure", "route": "nucleophilic_acyl_substitution", "reactionCenters": ["C2", "O1", "Cl1"] },
+        "arrows": [
+          { "id": "a3", "electrons": 2, "source": { "kind": "lonePair", "atomId": "O1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["O1", "C2"] } },
+          { "id": "a4", "electrons": 2, "source": { "kind": "bond", "bondId": "b7" }, "sink": { "kind": "atom", "atomId": "Cl1" } }
+        ],
+        "from": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "tetrahedral-intermediate",
+                "label": "the tetrahedral intermediate, alkoxide at the former carbonyl oxygen",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C" },
+                  { "id": "O1", "element": "O", "formalCharge": -1, "lonePairs": 3 },
+                  { "id": "Cl1", "element": "Cl", "lonePairs": 3 },
+                  { "id": "O2", "element": "O", "lonePairs": 2 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b5", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b6", "a": "C2", "b": "O1", "order": 1 },
+                  { "id": "b7", "a": "C2", "b": "Cl1", "order": 1 },
+                  { "id": "b8", "a": "C2", "b": "O2", "order": 1 },
+                  { "id": "b9", "a": "O2", "b": "H1", "order": 1 }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s2",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "acetic-acid",
+                "label": "acetic acid",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C" },
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "O2", "element": "O", "lonePairs": 2 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b10", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b11", "a": "C2", "b": "O1", "order": 2 },
+                  { "id": "b12", "a": "C2", "b": "O2", "order": 1 },
+                  { "id": "b13", "a": "O2", "b": "H1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "chloride",
+                "label": "chloride",
+                "atoms": [{ "id": "Cl1", "element": "Cl", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

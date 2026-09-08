@@ -488,8 +488,6 @@ function MiniLesson({
           </p>
           <a
             href={TRAINER_URL}
-            target="_blank"
-            rel="noreferrer"
             className="bb-press-soft mt-6 inline-flex items-center gap-2 rounded-2xl border-2 border-slate-300 bg-white/80 px-5 py-3 text-base font-semibold text-slate-800 transition hover:border-indigo-400 dark:border-stone-600 dark:bg-stone-900/60 dark:text-stone-100"
           >
             Try the trainer

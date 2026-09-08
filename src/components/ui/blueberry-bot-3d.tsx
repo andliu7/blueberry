@@ -2,6 +2,7 @@ import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useInView } from "motion/react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
+import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import {
   makeBerryBody,
   makeBloomMaterial,
@@ -12,6 +13,28 @@ import {
 import { HeartBurst } from "@/components/ui/heart-burst";
 import { cn } from "@/lib/utils";
 import { MOOD_SHAPE, type BerryMood } from "@/lib/berryMood";
+
+/** The smile's tube radius, shared with the round caps that close its ends. */
+const SMILE_R = 0.045;
+
+/** How far off the skin the smile floats, the same at every point along it. */
+const SMILE_PROUD = 0.012;
+
+/**
+ * The X on his back, low down where a butt would be. Owner request, and it is
+ * a joke that only pays off if you flick him round, which you can: the drag
+ * handler accumulates `spin` without a clamp, half a turn per 300px.
+ *
+ * The body is an ellipsoid with semi-axes (OBLATE, 1, OBLATE), so at (0, y, z)
+ * its outward normal is proportional to (0, y, z / OBLATE**2). BUTT_PITCH is
+ * the rotation about X that turns the group's +Z onto that normal, which is
+ * what makes the cross lie along the curve instead of floating off it. Same
+ * problem the blush comment below describes, solved the same way.
+ */
+const BUTT_Y = -0.42;
+const BUTT_SURFACE_Z = surfaceZ(0, BUTT_Y, 0);
+const BUTT_Z = -(BUTT_SURFACE_Z + 0.012);
+const BUTT_PITCH = Math.atan2(-BUTT_Y, -BUTT_SURFACE_Z / (OBLATE * OBLATE));
 
 
 
@@ -230,16 +253,66 @@ function Berry({
    * An invisible mascot is not.
    */
 
-  /** The resting smile: shallow and wide, matching the flat mark. */
-  const smileCurve = useMemo(
-    () =>
-      new THREE.QuadraticBezierCurve3(
-        new THREE.Vector3(-0.28 * OBLATE, -0.30, surfaceZ(-0.28 * OBLATE, -0.30, 0.01)),
-        new THREE.Vector3(0, -0.62, surfaceZ(0, -0.62, 0.03)),
-        new THREE.Vector3(0.28 * OBLATE, -0.30, surfaceZ(0.28 * OBLATE, -0.30, 0.01)),
-      ),
-    [],
-  );
+  /**
+   * The resting smile: shallow and wide, matching the flat mark.
+   *
+   * **It follows the surface rather than cutting across it, and that is what
+   * makes it one thickness.** It used to be a quadratic Bezier through three
+   * points, each solved onto the skin separately. A Bezier does not bend the
+   * way a sphere does, so between its ends it sagged inside the fruit: measured
+   * along the old curve, the ends stood 0.010 proud while the middle sat 0.024
+   * INSIDE the surface, and the tube's radius is only 0.045. Over half the
+   * thickness was buried at the centre, so the smile read fat at the corners
+   * and thin in the middle. Not a lighting or a cap problem, a burial one.
+   *
+   * So the Bezier now only decides the SHAPE of the mouth, in the flat plane of
+   * the face. Depth is solved per point, `surfaceZ` at a fixed offset, and the
+   * samples are strung together with a Catmull-Rom spline. Every point along it
+   * stands the same distance off the skin, so the same amount of tube shows the
+   * whole way across.
+   */
+  const smileCurve = useMemo(() => {
+    const [ax, ay] = [-0.28 * OBLATE, -0.3];
+    const [bx, by] = [0, -0.62];
+    const [cx, cy] = [0.28 * OBLATE, -0.3];
+    const SAMPLES = 24;
+    const points = Array.from({ length: SAMPLES + 1 }, (_, i) => {
+      const t = i / SAMPLES;
+      const u = 1 - t;
+      const x = u * u * ax + 2 * u * t * bx + t * t * cx;
+      const y = u * u * ay + 2 * u * t * by + t * t * cy;
+      return new THREE.Vector3(x, y, surfaceZ(x, y, SMILE_PROUD));
+    });
+    // "centripetal" because a uniform Catmull-Rom can loop on itself where the
+    // spacing between samples changes, which at the corners it does.
+    return new THREE.CatmullRomCurve3(points, false, "centripetal");
+  }, []);
+
+  /**
+   * The smile, with its ends closed.
+   *
+   * `TubeGeometry` leaves the ends of an unclosed tube open, and at the corners
+   * of a smile the curve's tangent is steep, so that end cross-section projects
+   * about half again as wide as the tube reads along its length. That is the
+   * wider bit at each end. A sphere of the same radius projects the same width
+   * from every angle, so capping both closes the hole and makes the thickness
+   * read as one value the whole way across.
+   *
+   * Merged into one geometry rather than added as sibling meshes because the
+   * smile's opacity is animated through this mesh's own material when the mouth
+   * opens; separate meshes would keep their own materials and hang there at
+   * full strength after the smile had gone.
+   */
+  const smileGeo = useMemo(() => {
+    const tube = new THREE.TubeGeometry(smileCurve, 28, SMILE_R, 8, false);
+    const caps = [0, 1].map((t) => {
+      const at = smileCurve.getPoint(t);
+      const cap = new THREE.SphereGeometry(SMILE_R, 10, 10);
+      cap.translate(at.x, at.y, at.z);
+      return cap;
+    });
+    return mergeGeometries([tube, ...caps], false);
+  }, [smileCurve]);
 
   useFrame(({ pointer: canvasPointer, clock }, delta) => {
     const dt = Math.min(delta, 0.1);
@@ -295,10 +368,27 @@ function Berry({
        * which is what makes `thinking` look away and `reading` look down.
        */
       const tracking = shape.tracks && !shy && !dragging.current;
+      /**
+       * The spin is kept after the drag ends, not thrown away.
+       *
+       * `tracking` used to return `pointer.x * 0.62` on its own here, which
+       * dropped everything the drag had accumulated. Let go after a couple of
+       * turns and the target fell from twenty-odd radians to well under one,
+       * and the spring underneath is deliberately underdamped, so it unwound
+       * the whole way at speed and overshot: the berry span wildly in both
+       * directions instead of settling. The further you turned him, the worse
+       * it was.
+       *
+       * Carrying `spin.current` into every branch makes release continuous:
+       * the head is already at `spin` when the hand lets go, so tracking picks
+       * up from there and the only movement left is the small one the cursor
+       * asks for. It also means a turn stays turned, which is what dragging
+       * something round is supposed to do.
+       */
       const ty = dragging.current
         ? spin.current
         : tracking
-          ? pointer.x * 0.62
+          ? pointer.x * 0.62 + spin.current
           : shape.lookY + spin.current;
       const tx = shy ? -0.12 : tracking ? -pointer.y * 0.34 : shape.lookX;
 
@@ -518,11 +608,22 @@ function Berry({
         ))}
       </group>
 
-      {/* Resting smile */}
-      <mesh ref={smile}>
-        <tubeGeometry args={[smileCurve, 28, 0.045, 8, false]} />
+      {/* Resting smile, on the capped geometry solved above. */}
+      <mesh ref={smile} geometry={smileGeo}>
         <meshBasicMaterial color="#0b0b14" toneMapped={false} transparent opacity={1} />
       </mesh>
+
+      {/* The X on his back. Two bars crossed at right angles, in head
+          coordinates like the blush and the smile rather than inside the body's
+          pitch, so it sits on the surface the same solver placed those on. */}
+      <group position={[0, BUTT_Y, BUTT_Z]} rotation={[BUTT_PITCH, 0, 0]}>
+        {[1, -1].map((side) => (
+          <mesh key={side} rotation={[0, 0, (side * Math.PI) / 4]}>
+            <boxGeometry args={[0.026, 0.19, 0.02]} />
+            <meshBasicMaterial color="#0b0b14" toneMapped={false} />
+          </mesh>
+        ))}
+      </group>
 
       {/* The open mouth: a flattened sphere pushed just proud of the surface so
           it cannot z-fight with the berry it sits on.

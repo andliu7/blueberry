@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 2,
+  "id": "broken-arrow-legality-sn2-with-swapped-arrows-producing-identical-declared-deltas",
+  "title": "Bromide displaces chloride from chloromethane, drawn with two arrows that are individually chemically impossible but whose aggregate per atom and per bond declared deltas equal the correct mechanism's",
+  "expect": {
+    "kind": "broken",
+    "mustFail": ["conservation-arrow-legality"],
+    "note": "The negative control for conservation-arrow-legality, and the fixture that argued the check into existence. It was filed by the Phase 0 adversary as kind \"good\" with the finding written into this note, because at the time there was no check name in CONSERVATION_CHECK_NAMES it could declare. That name now exists and this is a broken fixture. Nothing about the chemistry changed; only the declaration did. THE STRUCTURES ARE THE CORRECT SN2. This is the substrate and product of good-sn2-with-spectator-counterion, minus the counterion. What is wrong is the two arrows, which are replaced by two different, individually nonsensical ones. Arrow a1 sources the breaking C-Cl bond directly into the forming C-Br bond, which draws the leaving group's own bonding pair becoming the incoming nucleophile's bond rather than the nucleophile donating its own lone pair. Arrow a2 sources bromide's lone pair and sinks it as a lone pair landing on chloride, which requires the electrons to cross from Br1 to Cl1, two atoms that are never bonded to each other at any point in the step and never share an atom with each other. Neither arrow is one a chemistry teacher would accept. WHY THE SIX EARLIER CHECKS ALL PASS ON IT, which is the reason it exists. declaredDeltas accumulates a running total keyed by atom id and by unordered atom pair. The two wrong arrows were chosen so that their combined declared total, Br1 nonbonding -2, Cl1 nonbonding +2, bond(C1,Br1) +2, bond(C1,Cl1) -2, is bit for bit identical to what the correct pair of arrows declares. conservation-electron-flow compares only that aggregate against observedDeltas and cannot tell the two mechanisms apart. Summation destroys the per arrow information before the comparison runs, so no amount of work inside deltas.ts could close this. Mass, charge, valence, proton transfer, and the spectator boundary are all untouched by which arrows were drawn, and all pass. WHAT CATCHES IT NOW, AND WHAT STILL DOES NOT. conservation-arrow-legality fires on a2 under rule endpoints_share_no_atom: the source site {Br1} and the sink site {Cl1} share no atom and are not even joined by a bond, so the arrow describes a teleport. Cause arrow_endpoints_not_adjacent. It does NOT fire on a1, and that is recorded here rather than hidden. a1 has the shape bond(A,B) -> between(A,C), sharing the pivot atom C1, which is exactly the shape of a legitimate pi bond attack and of a legitimate 1,2 shift. Telling a1 apart from those needs to know that Br1 is an anion with a full octet rather than an electrophile, which is reactivity modelling and not arrow geometry. legality.ts says so at the point where it stops. A fixture that isolates a1 with a2 removed would still pass this check, and building one is adversary work for the next pass."
+  },
+  "pathway": {
+    "id": "sn2-with-swapped-arrows",
+    "route": "sn2",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": {
+          "elementaryStep": "concerted_substitution",
+          "route": "sn2",
+          "reactionCenters": ["C1"]
+        },
+        "arrows": [
+          {
+            "id": "a1",
+            "electrons": 2,
+            "source": { "kind": "bond", "bondId": "b1" },
+            "sink": { "kind": "betweenAtoms", "atomIds": ["C1", "Br1"] }
+          },
+          {
+            "id": "a2",
+            "electrons": 2,
+            "source": { "kind": "lonePair", "atomId": "Br1" },
+            "sink": { "kind": "atom", "atomId": "Cl1" }
+          }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "chloromethane",
+                "label": "chloromethane",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "Cl1", "element": "Cl", "lonePairs": 3 }
+                ],
+                "bonds": [{ "id": "b1", "a": "C1", "b": "Cl1", "order": 1 }]
+              }
+            },
+            {
+              "role": "nucleophile",
+              "species": {
+                "id": "bromide",
+                "label": "bromide",
+                "atoms": [{ "id": "Br1", "element": "Br", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "bromomethane",
+                "label": "bromomethane",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "Br1", "element": "Br", "lonePairs": 3 }
+                ],
+                "bonds": [{ "id": "b2", "a": "C1", "b": "Br1", "order": 1 }]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "chloride",
+                "label": "chloride",
+                "atoms": [{ "id": "Cl1", "element": "Cl", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

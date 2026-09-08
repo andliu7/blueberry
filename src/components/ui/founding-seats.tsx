@@ -88,7 +88,7 @@ export function FoundingSeats({ className }: { className?: string }) {
         aria-label="Founding seats taken"
       >
         <div
-          className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-fuchsia-500"
+          className="h-full rounded-full bg-gradient-to-r from-brand-from to-brand-to"
           style={{ width: `${filled}%` }}
         />
       </div>

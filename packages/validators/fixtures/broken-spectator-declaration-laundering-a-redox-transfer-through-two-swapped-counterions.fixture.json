@@ -1,0 +1,148 @@
+{
+  "schemaVersion": 2,
+  "id": "broken-spectator-declaration-laundering-a-redox-transfer-through-two-swapped-counterions",
+  "title": "A genuine SN2 with a one electron transfer from a sodium counterion to a fluoride counterion hidden by declaring the before and after forms of each as two different spectator species",
+  "expect": {
+    "kind": "broken",
+    "mustFail": ["conservation-electron-flow", "conservation-spectator-declaration"],
+    "note": "CLOSED. This fixture was filed by the Phase 0 adversary with mustFail naming conservation-electron-flow only, and the note below records why conservation-spectator-declaration did not fire on it at the time. It fires now. Assertion 6 was added to that check in response to this fixture: the whole declared spectator POPULATION is compared across the step as a multiset of canonical structures, so a species declared a spectator on one side of a step and absent from the other is a finding whatever some other spectator did to compensate for it. Atom ids are part of the canonical form, which is what makes the id swap visible, since ids.ts guarantees atom ids are stable across a step. Assertion 6 catches all four of the swapped species here, naming each one and the side it appears on. The reason it is a sixth assertion rather than a better version of assertion 5 is that a sum over a set can never see a transfer within that set; that is a property of summation, not a fixable bug in the arithmetic. The original finding, kept verbatim: Two separate attacks on conservation-spectator-declaration, combined so that neither of its two defences fires. The real SN2 (bromide displacing chloride from chloromethane) is drawn correctly and would pass on its own, exactly as in good-sn2-with-spectator-counterion. Riding along: a neutral sodium radical, 'donor-before', sits in s0 as a declared spectator, and a completely different species id, 'donor-after', a sodium cation, sits in s1 as a declared spectator. Likewise a neutral fluorine radical, 'acceptor-before', sits in s0, and fluoride, 'acceptor-after', sits in s1. One electron moved from the sodium to the fluorine with no arrow drawn for it anywhere. Assertion 4 of conservation-spectator-declaration (structural identity across the step) never sees this, because it only compares a species id against itself in the two states, and 'donor-before' has no counterpart named 'donor-before' in s1 to compare against, nor does 'donor-after' have one in s0; the same is true for the acceptor pair. Assertion 5, the totals attack, recomputes charge and valence electrons with every declared spectator counted and compares the two sides in aggregate. It also passes, because the transfer is balanced: sodium's charge rises by 1 as it loses its radical electron, fluorine's charge falls by 1 as it gains one, so the included totals move by zero on both sides. Every individual spectator declaration here is independently defensible on paper: present, justified, owned, one declaration per species per state. The combination still hides a real reaction. What actually catches it is conservation-electron-flow, and only because it does not go through the spectator machinery at all: observedDeltas walks every member of both states regardless of role or spectator status and matches atoms by id, and 'donor-before' uses atom id Na1 while 'donor-after' uses atom id Na2, so Na1 is reported as an atom that disappeared with no sink and Na2 as one that appeared with no source, the same for F1 and F2. conservation-mass and conservation-charge do not fire, because both only total over participatingMembers, and every one of these four species is excluded from that total on the side it appears on. conservation-spectator-declaration does not fire for the reason above. conservation-valence and conservation-proton-transfer do not fire because every atom here is internally consistent and no hydrogen moves."
+  },
+  "pathway": {
+    "id": "sn2-with-a-laundered-redox-side-transfer",
+    "route": "sn2",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": {
+          "elementaryStep": "concerted_substitution",
+          "route": "sn2",
+          "reactionCenters": ["C1"]
+        },
+        "arrows": [
+          {
+            "id": "a1",
+            "electrons": 2,
+            "source": { "kind": "lonePair", "atomId": "Br1" },
+            "sink": { "kind": "betweenAtoms", "atomIds": ["Br1", "C1"] }
+          },
+          {
+            "id": "a2",
+            "electrons": 2,
+            "source": { "kind": "bond", "bondId": "b1" },
+            "sink": { "kind": "atom", "atomId": "Cl1" }
+          }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "chloromethane",
+                "label": "chloromethane",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "Cl1", "element": "Cl", "lonePairs": 3 }
+                ],
+                "bonds": [{ "id": "b1", "a": "C1", "b": "Cl1", "order": 1 }]
+              }
+            },
+            {
+              "role": "nucleophile",
+              "species": {
+                "id": "bromide",
+                "label": "bromide",
+                "atoms": [{ "id": "Br1", "element": "Br", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            },
+            {
+              "role": "counterion",
+              "species": {
+                "id": "donor-before",
+                "label": "sodium atom, drawn neutral with one unpaired electron",
+                "atoms": [{ "id": "Na1", "element": "Na", "unpairedElectrons": 1 }]
+              }
+            },
+            {
+              "role": "counterion",
+              "species": {
+                "id": "acceptor-before",
+                "label": "fluorine atom, drawn neutral with one unpaired electron",
+                "atoms": [{ "id": "F1", "element": "F", "lonePairs": 3, "unpairedElectrons": 1 }]
+              }
+            }
+          ],
+          "spectators": [
+            {
+              "speciesId": "donor-before",
+              "reason": "unreacting_counterion",
+              "justification": "Sodium is a spectator counterion, unrelated to the substitution at carbon.",
+              "declaredBy": "adversary-pass-phase-0"
+            },
+            {
+              "speciesId": "acceptor-before",
+              "reason": "unreacting_counterion",
+              "justification": "Fluorine is a spectator counterion, unrelated to the substitution at carbon.",
+              "declaredBy": "adversary-pass-phase-0"
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "bromomethane",
+                "label": "bromomethane",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "Br1", "element": "Br", "lonePairs": 3 }
+                ],
+                "bonds": [{ "id": "b2", "a": "C1", "b": "Br1", "order": 1 }]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "chloride",
+                "label": "chloride",
+                "atoms": [{ "id": "Cl1", "element": "Cl", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            },
+            {
+              "role": "counterion",
+              "species": {
+                "id": "donor-after",
+                "label": "sodium cation",
+                "atoms": [{ "id": "Na2", "element": "Na", "formalCharge": 1 }]
+              }
+            },
+            {
+              "role": "counterion",
+              "species": {
+                "id": "acceptor-after",
+                "label": "fluoride",
+                "atoms": [{ "id": "F2", "element": "F", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            }
+          ],
+          "spectators": [
+            {
+              "speciesId": "donor-after",
+              "reason": "unreacting_counterion",
+              "justification": "Sodium is a spectator counterion, unrelated to the substitution at carbon.",
+              "declaredBy": "adversary-pass-phase-0"
+            },
+            {
+              "speciesId": "acceptor-after",
+              "reason": "unreacting_counterion",
+              "justification": "Fluorine is a spectator counterion, unrelated to the substitution at carbon.",
+              "declaredBy": "adversary-pass-phase-0"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,363 @@
+/*
+ * The trainer canvas backdrop. See CanvasBackdrop.tsx for why the three modes
+ * look the way they do; this file is only how.
+ *
+ * Two rules run through all of it. Nothing here takes a pointer, because the
+ * arrow machine underneath needs every one of them. And nothing animates a
+ * layout property: the drift and the ripple are transform and opacity only, so
+ * they stay on the compositor and off the 60 fps budget row.
+ */
+
+.backdrop {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  border-radius: inherit;
+  /*
+   * BEHIND THE MOLECULES, and this line is the whole reason they are legible.
+   *
+   * A positioned element paints ABOVE non positioned in flow content whatever
+   * the DOM order says, and the molecule SVG is static. So an absolutely
+   * positioned backdrop with z-index auto sits ON TOP of the chemistry: the
+   * owner reported the resonance molecules as washed out and low contrast, and
+   * this was why. The carbons went from mid grey back to near black the moment
+   * this was set.
+   *
+   * Negative rather than 0: it has to land above the section's own background
+   * gradient and below everything drawn into it, and only a negative index does
+   * both.
+   */
+  z-index: -1;
+}
+
+/* ------------------------------------------------------------------ */
+/* The plate                                                           */
+/* ------------------------------------------------------------------ */
+
+.backdrop__plate {
+  position: absolute;
+  /* Oversized so the drift never exposes an edge. */
+  inset: -6% -10%;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  /* The molecules are the subject. This is wallpaper and should read as it.
+     Measured, not guessed: at 0.5 the plate flattened the canvas ground to a
+     dull grey and took contrast off the atoms, which is the one thing this
+     backdrop must never do. Soft light keeps the ground's own luminosity and
+     lets the plate tint it rather than cover it. */
+  opacity: 0.28;
+  mix-blend-mode: soft-light;
+}
+
+.backdrop--mechanism .backdrop__plate,
+.backdrop--hybrid .backdrop__plate {
+  background-image: url("/backdrops/mechanism-light.webp");
+}
+
+.backdrop--hybrid .backdrop__plate {
+  background-image: url("/backdrops/hybrid-light.webp");
+}
+
+/*
+ * Resonance is real water now.
+ *
+ * The first version was a flat violet wash and a pulsating circle where you
+ * tapped. Owner verdict 2026-08-28: it did not look like water at all, the
+ * purple was wrong, and the whole thing was too loud. So this is three
+ * photographs of the same still pool, pale blue and light grey, crossfading on
+ * a slow cycle. Nothing races: the drift is barely perceptible, which is the
+ * point, because a background a student notices is a background competing with
+ * the molecule.
+ *
+ * Three frames rather than one panning image because a pan slides the whole
+ * surface in a direction, and direction is the mechanism idea. Crossfading
+ * between near identical frames reads as water breathing in place, which is
+ * what still water actually does.
+ */
+.backdrop--resonance .backdrop__plate {
+  background: none;
+  opacity: 1;
+  mix-blend-mode: normal;
+}
+
+.backdrop__water {
+  position: absolute;
+  inset: -4%;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  /* Pale water under dark line art: strong enough to read as a surface, far too
+     quiet to compete. Measured against the molecules, not chosen by taste. */
+  animation: backdrop-water 33s ease-in-out infinite;
+}
+
+.backdrop__water--a { background-image: url("/backdrops/water-a.webp"); animation-delay: 0s; }
+.backdrop__water--b { background-image: url("/backdrops/water-b.webp"); animation-delay: -11s; }
+.backdrop__water--c { background-image: url("/backdrops/water-c.webp"); animation-delay: -22s; }
+
+@keyframes backdrop-water {
+  /* Each frame holds, then hands over. Three of them at a third of the cycle
+     apart means one is always arriving as another leaves. */
+  0%, 100% { opacity: 0; }
+  8%, 26% { opacity: 0.55; }
+  40% { opacity: 0; }
+}
+
+.dark .backdrop__water {
+  /* The same pool, dimmed and cooled rather than swapped: still water at night
+     is the same water. */
+  opacity: 0;
+  filter: brightness(0.32) saturate(0.7);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* One frame, held. Still water that is actually still. */
+  .backdrop__water { animation: none; opacity: 0; }
+  .backdrop__water--a { opacity: 0.55; }
+}
+
+/* Dark theme swaps the plate rather than dimming it: a dimmed light plate goes
+   grey and muddy, and the dark one was generated for this job.
+   
+   The selector is the .dark CLASS, which is what this app actually uses (see
+   the @custom-variant at the top of theme.css). It is deliberately NOT
+   prefers-color-scheme: the app lets a student choose a theme, so keying off
+   the operating system fires the dark plate behind a light canvas the moment
+   someone's laptop is in dark mode. That was a real bug here, caught in the
+   browser rather than in review. */
+.dark .backdrop--mechanism .backdrop__plate,
+.dark .backdrop--hybrid .backdrop__plate {
+  background-image: url("/backdrops/mechanism-dark.webp");
+  /* The dark plate is already dark, so it adds rather than tints. */
+  opacity: 0.45;
+  mix-blend-mode: lighten;
+}
+
+/* ------------------------------------------------------------------ */
+/* The drift: mechanism only, because only a mechanism goes somewhere  */
+/* ------------------------------------------------------------------ */
+
+.backdrop--mechanism .backdrop__plate--drift,
+.backdrop--hybrid .backdrop__plate--drift {
+  animation: backdrop-drift 38s linear infinite;
+}
+
+@keyframes backdrop-drift {
+  /* Deliberately slow and small. A background a student NOTICES moving is a
+     background competing with the arrow they are trying to draw. */
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(3.5%, 0, 0); }
+}
+
+/* ------------------------------------------------------------------ */
+/* The ripple: resonance only, and only where a finger lands           */
+/* ------------------------------------------------------------------ */
+
+/*
+ * A disturbance in the surface, not a pulsating disc.
+ *
+ * Rebuilt against canvas-ui's Ripple, read for technique and reimplemented
+ * rather than copied: its licence is MIT plus a Commons Clause that forbids
+ * redistributing the components themselves, and this is a paid product.
+ *
+ * Two ideas from its parameter model changed this:
+ *
+ *   rings      it exposes 1 to 8 crests per wave train, and the reason is that
+ *              ONE ring reads as a UI pulse while three read as water. The old
+ *              version had one ring and an echo, which is why the owner said it
+ *              did not look like water.
+ *   decay      crests lose energy as they travel, so the outer ones are fainter
+ *              and slower to arrive rather than being copies.
+ *
+ * What was deliberately NOT taken: refraction and dispersion. Both bend the
+ * content behind the wave, and the content behind this wave is the molecule the
+ * student is reading. Bending it would trade legibility for prettiness.
+ */
+.backdrop__ripple {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border-radius: 50%;
+  /* The lens: a bright crest with a soft trough just inside it. */
+  background: radial-gradient(
+    circle,
+    transparent 52%,
+    var(--backdrop-ripple-trough) 62%,
+    var(--backdrop-ripple) 74%,
+    transparent 88%
+  );
+  transform: scale(0);
+  opacity: 0;
+  /*
+   * REFRACTION, the part canvas-ui gets from a shader and this gets for free.
+   *
+   * backdrop-filter bends what is painted BEHIND this element. Because the
+   * whole backdrop sits at z-index -1, "behind" here means the water plate and
+   * nothing else: the molecule is painted above and is not touched. So the
+   * wave genuinely distorts the surface it is travelling across, which is the
+   * owner's ask, without putting a lens over the chemistry.
+   *
+   * blur plus a hair of saturate reads as a water lens. Kept small because the
+   * filter is per pixel and there can be four of these at once.
+   */
+  backdrop-filter: blur(1.4px) saturate(1.15);
+  -webkit-backdrop-filter: blur(1.4px) saturate(1.15);
+  animation: backdrop-ripple 2600ms cubic-bezier(0.16, 0.72, 0.3, 1) forwards;
+}
+
+/* Crests two and three. Later, wider, fainter: that is what decay looks like. */
+.backdrop__ripple::before,
+.backdrop__ripple::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: inherit;
+}
+
+.backdrop__ripple::before {
+  animation: backdrop-ripple-2 2600ms cubic-bezier(0.16, 0.72, 0.3, 1) 200ms forwards;
+}
+
+.backdrop__ripple::after {
+  animation: backdrop-ripple-3 2600ms cubic-bezier(0.16, 0.72, 0.3, 1) 420ms forwards;
+}
+
+@keyframes backdrop-ripple {
+  /* Peaks early and low. The whole gesture should be felt more than seen. */
+  0% { transform: scale(0.2); opacity: 0; }
+  12% { opacity: 0.5; }
+  100% { transform: scale(11); opacity: 0; }
+}
+
+@keyframes backdrop-ripple-2 {
+  0% { transform: scale(0.3); opacity: 0; }
+  14% { opacity: 0.3; }
+  100% { transform: scale(1.9); opacity: 0; }
+}
+
+@keyframes backdrop-ripple-3 {
+  0% { transform: scale(0.4); opacity: 0; }
+  16% { opacity: 0.16; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+
+/*
+ * THE AMBIENT DROP, which is the other borrowed idea and the one that matters
+ * most here. canvas-ui's Ripple takes an `interval`: seconds between ripples
+ * that nobody asked for. Still water that only ever moves when touched reads as
+ * dead, and dead is the opposite of the tranquil the owner wants. So a single
+ * faint drop lands every so often at a fixed offset, slow enough that a student
+ * concentrating on a molecule will not be pulled away from it.
+ */
+.backdrop__drop {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  margin: -9px 0 0 -9px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    transparent 55%,
+    var(--backdrop-ripple-trough) 66%,
+    var(--backdrop-ripple) 78%,
+    transparent 90%
+  );
+  opacity: 0;
+  /* The ambient drop bends the water too, at about half the strength: it is a
+     drop, not a finger. */
+  backdrop-filter: blur(0.8px);
+  -webkit-backdrop-filter: blur(0.8px);
+  animation: backdrop-drop 19s ease-out infinite;
+}
+
+.backdrop__drop--1 { left: 22%; top: 31%; animation-delay: 0s; }
+.backdrop__drop--2 { left: 71%; top: 66%; animation-delay: -7.5s; }
+.backdrop__drop--3 { left: 47%; top: 82%; animation-delay: -14s; }
+
+@keyframes backdrop-drop {
+  /* Fainter than a tap, and gone most of the time. */
+  0% { transform: scale(0.3); opacity: 0; }
+  3% { opacity: 0.24; }
+  22% { transform: scale(7); opacity: 0; }
+  100% { transform: scale(7); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The component already stops making ripples and drops the drift class.
+     This is the belt to that pair of braces. */
+  .backdrop__plate--drift,
+  .backdrop__ripple,
+  .backdrop__ripple::before,
+  .backdrop__ripple::after,
+  .backdrop__drop {
+    animation: none;
+    opacity: 0;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* The wave crossing the molecule                                      */
+/*                                                                      */
+/* Owner ask: the wave should touch the molecule too, here and there,   */
+/* subtly. This is the layer that does it, and it sits ABOVE the        */
+/* chemistry rather than behind it.                                     */
+/*                                                                      */
+/* WHY IT IS LIGHT AND NOT DISPLACEMENT. A displacement map really      */
+/* would bend the drawing, and it was the first thing tried. It is the  */
+/* wrong tool twice over. The trainer hit tests atoms by coordinate, so  */
+/* moving an atom visually makes what a student SEES and what they can   */
+/* TAP drift apart, which is the phantom site bug wearing a nicer coat.  */
+/* And an animated SVG filter is per pixel work off the compositor,      */
+/* which is the 60 fps row in the budgets table.                        */
+/*                                                                      */
+/* A crest passing over glass lifts the light on it. That is what this   */
+/* does: soft-light at a very low alpha, so the molecule brightens for   */
+/* a moment as the wave crosses and never moves a pixel.                 */
+/* ------------------------------------------------------------------ */
+
+.backdrop-overlay {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  border-radius: inherit;
+  /* Above the molecules. The backdrop proper is at -1, behind them. */
+  z-index: 2;
+}
+
+.backdrop-overlay__crest {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    transparent 60%,
+    var(--backdrop-crest) 74%,
+    transparent 86%
+  );
+  /* Soft light brightens what is under it without tinting it, so a black
+     carbon stays black and simply catches the crest. */
+  mix-blend-mode: soft-light;
+  transform: scale(0);
+  opacity: 0;
+  animation: backdrop-crest 2600ms cubic-bezier(0.16, 0.72, 0.3, 1) forwards;
+}
+
+@keyframes backdrop-crest {
+  /* Half the reach of the water ripple and a fraction of its strength: the
+     wave is mostly in the water, and only grazes the molecule. */
+  0% { transform: scale(0.4); opacity: 0; }
+  18% { opacity: 0.5; }
+  100% { transform: scale(6.5); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .backdrop-overlay__crest { animation: none; opacity: 0; }
+}

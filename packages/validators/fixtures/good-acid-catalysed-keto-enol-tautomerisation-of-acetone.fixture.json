@@ -1,0 +1,204 @@
+{
+  "schemaVersion": 2,
+  "id": "good-acid-catalysed-keto-enol-tautomerisation-of-acetone",
+  "title": "Acetone is protonated on oxygen, then water removes an alpha proton to give prop-1-en-2-ol",
+  "expect": {
+    "kind": "good",
+    "note": "Two steps and both of them are proton transfers, which is the case CLAUDE.md's system boundary rule exists for. The order matters and is the content of the mechanism: under acid the carbonyl is protonated FIRST, which is what makes the alpha proton acidic enough to leave. Doing it the other way round is the base catalysed route and goes through the enolate, which is good-enolate-formation-from-acetone-by-hydroxide. Same substrate, same product family, two different intermediates, and the intermediates are the whole answer."
+  },
+  "pathway": {
+    "id": "keto-enol-tautomerisation-acetone-acid",
+    "route": "acid_base_proton_transfer",
+    "steps": [
+      {
+        "id": "step-1-protonation-of-the-carbonyl",
+        "identity": { "elementaryStep": "proton_transfer", "route": "acid_base_proton_transfer", "reactionCenters": ["O1", "H2", "O2"] },
+        "arrows": [
+          { "id": "a1", "electrons": 2, "source": { "kind": "lonePair", "atomId": "O1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["O1", "H2"] } },
+          { "id": "a2", "electrons": 2, "source": { "kind": "bond", "bondId": "b5" }, "sink": { "kind": "atom", "atomId": "O2" } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "acetone",
+                "label": "acetone, one alpha proton drawn explicitly",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C" },
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b1", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b2", "a": "C2", "b": "O1", "order": 2 },
+                  { "id": "b3", "a": "C2", "b": "C3", "order": 1 },
+                  { "id": "b4", "a": "C3", "b": "H1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "acid",
+              "species": {
+                "id": "hydronium",
+                "label": "hydronium",
+                "atoms": [
+                  { "id": "O2", "element": "O", "formalCharge": 1, "lonePairs": 1 },
+                  { "id": "H2", "element": "H" },
+                  { "id": "H3", "element": "H" },
+                  { "id": "H4", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b5", "a": "O2", "b": "H2", "order": 1 },
+                  { "id": "b6", "a": "O2", "b": "H3", "order": 1 },
+                  { "id": "b7", "a": "O2", "b": "H4", "order": 1 }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "protonated-acetone",
+                "label": "protonated acetone",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C" },
+                  { "id": "O1", "element": "O", "formalCharge": 1, "lonePairs": 1 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "H2", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b8", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b9", "a": "C2", "b": "O1", "order": 2 },
+                  { "id": "b10", "a": "C2", "b": "C3", "order": 1 },
+                  { "id": "b11", "a": "C3", "b": "H1", "order": 1 },
+                  { "id": "b12", "a": "O1", "b": "H2", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "byproduct",
+              "species": {
+                "id": "water",
+                "label": "water, left over from the hydronium",
+                "atoms": [
+                  { "id": "O2", "element": "O", "lonePairs": 2 },
+                  { "id": "H3", "element": "H" },
+                  { "id": "H4", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b13", "a": "O2", "b": "H3", "order": 1 },
+                  { "id": "b14", "a": "O2", "b": "H4", "order": 1 }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "step-2-loss-of-the-alpha-proton",
+        "identity": { "elementaryStep": "tautomerisation", "route": "acid_base_proton_transfer", "reactionCenters": ["C2", "C3", "H1", "O1"] },
+        "arrows": [
+          { "id": "a3", "electrons": 2, "source": { "kind": "lonePair", "atomId": "O2" }, "sink": { "kind": "betweenAtoms", "atomIds": ["O2", "H1"] } },
+          { "id": "a4", "electrons": 2, "source": { "kind": "bond", "bondId": "b11" }, "sink": { "kind": "betweenAtoms", "atomIds": ["C3", "C2"] } },
+          { "id": "a5", "electrons": 2, "source": { "kind": "bond", "bondId": "b9" }, "sink": { "kind": "atom", "atomId": "O1" } }
+        ],
+        "from": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "protonated-acetone",
+                "label": "protonated acetone",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C" },
+                  { "id": "O1", "element": "O", "formalCharge": 1, "lonePairs": 1 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "H2", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b8", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b9", "a": "C2", "b": "O1", "order": 2 },
+                  { "id": "b10", "a": "C2", "b": "C3", "order": 1 },
+                  { "id": "b11", "a": "C3", "b": "H1", "order": 1 },
+                  { "id": "b12", "a": "O1", "b": "H2", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "base",
+              "species": {
+                "id": "water",
+                "label": "water, acting as the base",
+                "atoms": [
+                  { "id": "O2", "element": "O", "lonePairs": 2 },
+                  { "id": "H3", "element": "H" },
+                  { "id": "H4", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b13", "a": "O2", "b": "H3", "order": 1 },
+                  { "id": "b14", "a": "O2", "b": "H4", "order": 1 }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s2",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "prop-1-en-2-ol",
+                "label": "prop-1-en-2-ol, the enol",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C" },
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "H2", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b15", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b16", "a": "C2", "b": "O1", "order": 1 },
+                  { "id": "b17", "a": "C2", "b": "C3", "order": 2 },
+                  { "id": "b18", "a": "O1", "b": "H2", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "byproduct",
+              "species": {
+                "id": "hydronium-regenerated",
+                "label": "hydronium, the catalyst handed back",
+                "atoms": [
+                  { "id": "O2", "element": "O", "formalCharge": 1, "lonePairs": 1 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "H3", "element": "H" },
+                  { "id": "H4", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b19", "a": "O2", "b": "H1", "order": 1 },
+                  { "id": "b20", "a": "O2", "b": "H3", "order": 1 },
+                  { "id": "b21", "a": "O2", "b": "H4", "order": 1 }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,247 @@
+{
+  "protocol": "blueberry-oracle-corpus",
+  "version": 1,
+  "name": "sn2-inversion-and-sn1-stereorandomness",
+  "description": "The stereochemical half of the substitution corpus, which the v1 conservation fixture schema cannot carry because it has no stereo fields. CLAUDE.md draws a sharp line between these two and this file is that line made executable. SN2 INVERTS, and CLAUDE.md calls that a hard assertion: sequence 1 pins (R)-2-bromobutane going to (S)-butan-2-ol and RDKit grades both labels, so an implementation that retains configuration fails here rather than passing quietly. SN1 IS STEREORANDOM AT THE REACTION CENTRE, meaning both configurations appear in the product set, and CLAUDE.md is equally explicit that it is NOT asserted as 50:50: sequences 2 and 3 run the same planar butan-2-yl cation to the inversion product and to the retention product, and the only claim made is that both exist. NO RATIO IS ASSERTED ANYWHERE IN THIS FILE, and there is deliberately no field in which one could be. Ion pairing with the bromide that has just left leaves a net inversion excess, commonly 50 to 80 percent racemisation depending on substrate, solvent, and leaving group; that is an authoring annotation on a problem and never something a check computes. HOW THE CONFIGURATIONS WERE DERIVED. The chem-core parities below were computed from 3D coordinates by the signed volume e dot (a cross b) over the vectors to neighbours 0, 1 and 2, with the formula calibrated first against the (2R,3R)-2,3-dibromobutane entry in python/corpus/stereocenters.oracle.json that the suite already grades green. Inversion was applied as geometry, the nucleophile arriving on the far side of the carbon and the three spectator substituents umbrella-ing through, not by flipping a letter. The descriptors are then RDKit's answer and this file asserts them. The conservation half of the same two mechanisms is good-sn2-inversion-at-the-secondary-carbon-of-2-bromobutane and good-sn1-solvolysis-of-2-bromobutane-the-competing-route.",
+  "sequences": [
+    {
+      "id": "sn2-at-the-secondary-carbon-inverts",
+      "description": "(R)-2-bromobutane plus hydroxide gives (S)-butan-2-ol. One step, backside attack, and the descriptor flips because the incoming oxygen keeps the same CIP rank the departing bromine held. That last clause matters: inversion is a statement about geometry, and the letter only flips as well when the priority order survives the substitution, which it does here.",
+      "aromaticityInvariantAtomIds": [],
+      "states": [
+        {
+          "id": "state-0-R-2-bromobutane-and-hydroxide",
+          "sanitizationMayFail": null,
+          "species": [
+            {
+              "id": "sp-R-2-bromobutane",
+              "label": "(R)-2-bromobutane",
+              "expect": { "meso": false },
+              "atoms": [
+                { "id": "c1", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 3, "stereo": null },
+                { "id": "c2", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": { "kind": "tetrahedral", "neighbors": ["c1", "c3", "br1", "@implicitH"], "parity": "counterclockwise", "authoredDescriptor": "R" } },
+                { "id": "c3", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 2, "stereo": null },
+                { "id": "c4", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 3, "stereo": null },
+                { "id": "br1", "element": "Br", "isotope": null, "formalCharge": 0, "lonePairs": 3, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null }
+              ],
+              "bonds": [
+                { "id": "p1", "a": "c1", "b": "c2", "order": 1, "stereo": null },
+                { "id": "p2", "a": "c2", "b": "c3", "order": 1, "stereo": null },
+                { "id": "p3", "a": "c3", "b": "c4", "order": 1, "stereo": null },
+                { "id": "p4", "a": "c2", "b": "br1", "order": 1, "stereo": null }
+              ]
+            },
+            {
+              "id": "sp-hydroxide",
+              "label": "hydroxide",
+              "expect": { "meso": false },
+              "atoms": [
+                { "id": "o1", "element": "O", "isotope": null, "formalCharge": -1, "lonePairs": 3, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null }
+              ],
+              "bonds": []
+            }
+          ]
+        },
+        {
+          "id": "state-1-S-butan-2-ol-and-bromide",
+          "sanitizationMayFail": null,
+          "species": [
+            {
+              "id": "sp-S-butan-2-ol",
+              "label": "(S)-butan-2-ol, the inversion product",
+              "expect": { "meso": false },
+              "atoms": [
+                { "id": "c1", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 3, "stereo": null },
+                { "id": "c2", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": { "kind": "tetrahedral", "neighbors": ["c1", "c3", "o1", "@implicitH"], "parity": "clockwise", "authoredDescriptor": "S" } },
+                { "id": "c3", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 2, "stereo": null },
+                { "id": "c4", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 3, "stereo": null },
+                { "id": "o1", "element": "O", "isotope": null, "formalCharge": 0, "lonePairs": 2, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null }
+              ],
+              "bonds": [
+                { "id": "q1", "a": "c1", "b": "c2", "order": 1, "stereo": null },
+                { "id": "q2", "a": "c2", "b": "c3", "order": 1, "stereo": null },
+                { "id": "q3", "a": "c3", "b": "c4", "order": 1, "stereo": null },
+                { "id": "q4", "a": "c2", "b": "o1", "order": 1, "stereo": null }
+              ]
+            },
+            {
+              "id": "sp-bromide",
+              "label": "bromide",
+              "expect": { "meso": false },
+              "atoms": [
+                { "id": "br1", "element": "Br", "isotope": null, "formalCharge": -1, "lonePairs": 4, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null }
+              ],
+              "bonds": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sn1-through-the-planar-cation-to-the-inversion-product",
+      "description": "(R)-2-bromobutane ionises to the planar butan-2-yl cation, which has no configuration at all, and water delivered to the face the bromide left from gives (S)-butan-2-ol. The middle state is the point: the cation carbon carries three connections and no stereo block, because there is nothing there to pin.",
+      "aromaticityInvariantAtomIds": [],
+      "states": [
+        {
+          "id": "state-0-R-2-bromobutane",
+          "sanitizationMayFail": null,
+          "species": [
+            {
+              "id": "sp-R-2-bromobutane",
+              "label": "(R)-2-bromobutane",
+              "expect": { "meso": false },
+              "atoms": [
+                { "id": "c1", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 3, "stereo": null },
+                { "id": "c2", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": { "kind": "tetrahedral", "neighbors": ["c1", "c3", "br1", "@implicitH"], "parity": "counterclockwise", "authoredDescriptor": "R" } },
+                { "id": "c3", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 2, "stereo": null },
+                { "id": "c4", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 3, "stereo": null },
+                { "id": "br1", "element": "Br", "isotope": null, "formalCharge": 0, "lonePairs": 3, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null }
+              ],
+              "bonds": [
+                { "id": "p1", "a": "c1", "b": "c2", "order": 1, "stereo": null },
+                { "id": "p2", "a": "c2", "b": "c3", "order": 1, "stereo": null },
+                { "id": "p3", "a": "c3", "b": "c4", "order": 1, "stereo": null },
+                { "id": "p4", "a": "c2", "b": "br1", "order": 1, "stereo": null }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "state-1-planar-cation-and-bromide",
+          "sanitizationMayFail": null,
+          "species": [
+            {
+              "id": "sp-butan-2-yl-cation",
+              "label": "butan-2-yl cation, planar at c2 and carrying no configuration",
+              "expect": { "meso": false },
+              "atoms": [
+                { "id": "c1", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 3, "stereo": null },
+                { "id": "c2", "element": "C", "isotope": null, "formalCharge": 1, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null },
+                { "id": "c3", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 2, "stereo": null },
+                { "id": "c4", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 3, "stereo": null }
+              ],
+              "bonds": [
+                { "id": "r1", "a": "c1", "b": "c2", "order": 1, "stereo": null },
+                { "id": "r2", "a": "c2", "b": "c3", "order": 1, "stereo": null },
+                { "id": "r3", "a": "c3", "b": "c4", "order": 1, "stereo": null }
+              ]
+            },
+            {
+              "id": "sp-bromide",
+              "label": "bromide",
+              "expect": { "meso": false },
+              "atoms": [
+                { "id": "br1", "element": "Br", "isotope": null, "formalCharge": -1, "lonePairs": 4, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null }
+              ],
+              "bonds": []
+            }
+          ]
+        },
+        {
+          "id": "state-2-S-butan-2-ol-and-bromide",
+          "sanitizationMayFail": null,
+          "species": [
+            {
+              "id": "sp-S-butan-2-ol",
+              "label": "(S)-butan-2-ol, from attack on the face the bromide vacated",
+              "expect": { "meso": false },
+              "atoms": [
+                { "id": "c1", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 3, "stereo": null },
+                { "id": "c2", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": { "kind": "tetrahedral", "neighbors": ["c1", "c3", "o1", "@implicitH"], "parity": "clockwise", "authoredDescriptor": "S" } },
+                { "id": "c3", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 2, "stereo": null },
+                { "id": "c4", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 3, "stereo": null },
+                { "id": "o1", "element": "O", "isotope": null, "formalCharge": 0, "lonePairs": 2, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null }
+              ],
+              "bonds": [
+                { "id": "q1", "a": "c1", "b": "c2", "order": 1, "stereo": null },
+                { "id": "q2", "a": "c2", "b": "c3", "order": 1, "stereo": null },
+                { "id": "q3", "a": "c3", "b": "c4", "order": 1, "stereo": null },
+                { "id": "q4", "a": "c2", "b": "o1", "order": 1, "stereo": null }
+              ]
+            },
+            {
+              "id": "sp-bromide",
+              "label": "bromide",
+              "expect": { "meso": false },
+              "atoms": [
+                { "id": "br1", "element": "Br", "isotope": null, "formalCharge": -1, "lonePairs": 4, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null }
+              ],
+              "bonds": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sn1-through-the-planar-cation-to-the-retention-product",
+      "description": "The same planar butan-2-yl cation, attacked on the other face, giving (R)-butan-2-ol. Together with the sequence above this is the whole of the claim CLAUDE.md permits: both configurations are in the product set. Which of the two is in excess, and by how much, is an authoring annotation about ion pairing and is not stated here or anywhere else in this corpus.",
+      "aromaticityInvariantAtomIds": [],
+      "states": [
+        {
+          "id": "state-0-planar-cation-and-bromide",
+          "sanitizationMayFail": null,
+          "species": [
+            {
+              "id": "sp-butan-2-yl-cation",
+              "label": "butan-2-yl cation, planar at c2 and carrying no configuration",
+              "expect": { "meso": false },
+              "atoms": [
+                { "id": "c1", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 3, "stereo": null },
+                { "id": "c2", "element": "C", "isotope": null, "formalCharge": 1, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null },
+                { "id": "c3", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 2, "stereo": null },
+                { "id": "c4", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 3, "stereo": null }
+              ],
+              "bonds": [
+                { "id": "r1", "a": "c1", "b": "c2", "order": 1, "stereo": null },
+                { "id": "r2", "a": "c2", "b": "c3", "order": 1, "stereo": null },
+                { "id": "r3", "a": "c3", "b": "c4", "order": 1, "stereo": null }
+              ]
+            },
+            {
+              "id": "sp-bromide",
+              "label": "bromide",
+              "expect": { "meso": false },
+              "atoms": [
+                { "id": "br1", "element": "Br", "isotope": null, "formalCharge": -1, "lonePairs": 4, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null }
+              ],
+              "bonds": []
+            }
+          ]
+        },
+        {
+          "id": "state-1-R-butan-2-ol-and-bromide",
+          "sanitizationMayFail": null,
+          "species": [
+            {
+              "id": "sp-R-butan-2-ol",
+              "label": "(R)-butan-2-ol, from attack on the other face of the same cation",
+              "expect": { "meso": false },
+              "atoms": [
+                { "id": "c1", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 3, "stereo": null },
+                { "id": "c2", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": { "kind": "tetrahedral", "neighbors": ["c1", "c3", "o1", "@implicitH"], "parity": "counterclockwise", "authoredDescriptor": "R" } },
+                { "id": "c3", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 2, "stereo": null },
+                { "id": "c4", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 3, "stereo": null },
+                { "id": "o1", "element": "O", "isotope": null, "formalCharge": 0, "lonePairs": 2, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null }
+              ],
+              "bonds": [
+                { "id": "s1", "a": "c1", "b": "c2", "order": 1, "stereo": null },
+                { "id": "s2", "a": "c2", "b": "c3", "order": 1, "stereo": null },
+                { "id": "s3", "a": "c3", "b": "c4", "order": 1, "stereo": null },
+                { "id": "s4", "a": "c2", "b": "o1", "order": 1, "stereo": null }
+              ]
+            },
+            {
+              "id": "sp-bromide",
+              "label": "bromide",
+              "expect": { "meso": false },
+              "atoms": [
+                { "id": "br1", "element": "Br", "isotope": null, "formalCharge": -1, "lonePairs": 4, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null }
+              ],
+              "bonds": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

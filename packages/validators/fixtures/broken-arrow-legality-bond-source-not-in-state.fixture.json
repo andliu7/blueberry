@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 2,
+  "id": "broken-arrow-legality-bond-source-not-in-state",
+  "title": "An arrow sources a bond id that does not exist in the from state, on a species that has no bonds at all",
+  "expect": {
+    "kind": "broken",
+    "mustFail": ["conservation-arrow-legality", "conservation-electron-flow"],
+    "note": "Adversary pass, Phase 1, attack surface 1. Rule source_bond_not_in_state had no negative control anywhere in the corpus. A lone sodium cation sits alone in the from state, with no bonds. The arrow claims a bond source with bondId \"phantom-bond\", which resolves against no species here, and sinks it as a lone pair landing on the real atom Na1. The to state is byte identical to the from state, following the same isolation pattern as the sibling fixture for source_atom_not_in_state: arrow-legality never reads the to state, so a step that changes nothing is the cleanest way to isolate the resolution rule from every check that does read it. WHY BOTH CHECKS ARE NAMED, and only these two. arrow-legality's RESOLUTION rule fires source_bond_not_in_state directly and, because the source does not resolve, the code skips every later rule for this arrow, including density and adjacency, exactly as legality.ts documents: 'a broken reference rather than a chemistry error, and a silent zero here would hide it'. conservation-electron-flow's own resolution pass walks referencedBondIds(arrow), finds \"phantom-bond\" absent from knownBondIds, and reports the identical unresolved reference before ever attempting declaredDeltas, matching the documented unavoidable cascade in fixtures/README.md: 'Bond sources are resolved BEFORE calling declaredDeltas, which throws on a bond id it cannot find... the unresolved reference has already been recorded as a violation of this same check.' Mass, charge, and valence pass because the to state is identical to the from state and Na1 is self consistent (formal charge +1, zero lone pairs, zero bonds, derived charge 1 - 0 - 0 = 1, matching)."
+  },
+  "pathway": {
+    "id": "arrow-legality-source-bond-not-in-state",
+    "route": "sn1",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": { "elementaryStep": "bond_heterolysis", "reactionCenters": ["Na1"] },
+        "arrows": [
+          { "id": "a1", "electrons": 2, "source": { "kind": "bond", "bondId": "phantom-bond" }, "sink": { "kind": "atom", "atomId": "Na1" } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "counterion",
+              "species": {
+                "id": "sodium-cation",
+                "label": "sodium cation, alone in the state, no bonds",
+                "atoms": [{ "id": "Na1", "element": "Na", "formalCharge": 1 }]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "counterion",
+              "species": {
+                "id": "sodium-cation",
+                "label": "sodium cation, alone in the state, no bonds",
+                "atoms": [{ "id": "Na1", "element": "Na", "formalCharge": 1 }]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

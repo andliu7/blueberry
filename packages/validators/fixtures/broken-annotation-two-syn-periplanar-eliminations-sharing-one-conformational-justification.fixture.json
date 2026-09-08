@@ -1,0 +1,761 @@
+{
+  "schemaVersion": 2,
+  "id": "broken-annotation-two-syn-periplanar-eliminations-sharing-one-conformational-justification",
+  "title": "Two unrelated syn periplanar E2 eliminations with one conformational justification between them, so the second cage is defended by nothing",
+  "expect": {
+    "kind": "broken",
+    "mustFail": [
+      "conservation-periplanarity-declaration"
+    ],
+    "note": "The negative control for the other half of the twin, and the half that used to PASS. This is good-e2-two-independent-syn-periplanar-eliminations-each-with-its-own-conformational-justification with the second annotation deleted and nothing else changed. Two syn periplanar eliminations, in two unconnected cages, and one conformational_justification between them, which names step-1-syn-elimination-in-the-first-cage and says nothing about the second. Under the old pathway wide count this file was clean: one annotation of the required kind existed, it was non empty, and it named atoms in the state, so both steps were treated as satisfied by it and the second cage's syn geometry stood undefended. CLAUDE.md says a syn periplanar E2 is flagged as requiring an authored conformational justification, and this file supplies one for one of the two. The check now reports that step-2-syn-elimination-in-the-second-cage carries no claim about it. Every other check is silent here: the chemistry is the proven good norbornane elimination twice over, and only the annotation is missing."
+  },
+  "pathway": {
+    "id": "e2-two-independent-syn-periplanar-eliminations-one-annotation",
+    "route": "e2",
+    "annotations": [
+      {
+        "kind": "conformational_justification",
+        "value": "The bicyclo[2.2.1]heptane cage holds the exo bromide at C2 and the exo hydrogen at C3 eclipsed, so this elimination can only go syn.",
+        "justification": "No hydrogen on C3 can reach the 180 degrees that anti periplanar E2 needs. The endo hydrogen at C3 sits near 120 degrees from the exo bromide, and the ring cannot rotate to supply a better one, because the C1 to C7 to C4 bridge fixes every torsion in the two fused five membered rings. Elimination therefore proceeds syn, which is why rigid bicyclics are the standard counterexample to the rule that E2 is always anti. This is an authored conformational claim about a named framework, not a computed one: nothing in the conservation fixture schema carries coordinates, and the checks that read this annotation do not read it for sense. This annotation is the claim about step-1-syn-elimination-in-the-first-cage and about no other step: the two eliminations in this pathway happen in two separate, unconnected molecules, and neither annotation is a claim about the other one's cage. chem-core's AuthoredAnnotation carries no pointer to a step, so the step id written here is what binds this claim to that elimination."
+      }
+    ],
+    "steps": [
+      {
+        "id": "step-1-syn-elimination-in-the-first-cage",
+        "identity": {
+          "elementaryStep": "concerted_elimination",
+          "route": "e2",
+          "reactionCenters": [
+            "C2",
+            "C3",
+            "H1",
+            "Br1"
+          ]
+        },
+        "arrows": [
+          {
+            "id": "a1",
+            "electrons": 2,
+            "source": {
+              "kind": "lonePair",
+              "atomId": "O1"
+            },
+            "sink": {
+              "kind": "betweenAtoms",
+              "atomIds": [
+                "O1",
+                "H1"
+              ]
+            }
+          },
+          {
+            "id": "a2",
+            "electrons": 2,
+            "source": {
+              "kind": "bond",
+              "bondId": "b9"
+            },
+            "sink": {
+              "kind": "betweenAtoms",
+              "atomIds": [
+                "C3",
+                "C2"
+              ]
+            }
+          },
+          {
+            "id": "a3",
+            "electrons": 2,
+            "source": {
+              "kind": "bond",
+              "bondId": "b10"
+            },
+            "sink": {
+              "kind": "atom",
+              "atomId": "Br1"
+            }
+          }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "2-exo-bromonorbornane",
+                "label": "2-exo-bromobicyclo[2.2.1]heptane, C3 exo hydrogen drawn explicitly",
+                "atoms": [
+                  {
+                    "id": "C1",
+                    "element": "C",
+                    "implicitHydrogens": 1
+                  },
+                  {
+                    "id": "C2",
+                    "element": "C",
+                    "implicitHydrogens": 1
+                  },
+                  {
+                    "id": "C3",
+                    "element": "C",
+                    "implicitHydrogens": 1
+                  },
+                  {
+                    "id": "C4",
+                    "element": "C",
+                    "implicitHydrogens": 1
+                  },
+                  {
+                    "id": "C5",
+                    "element": "C",
+                    "implicitHydrogens": 2
+                  },
+                  {
+                    "id": "C6",
+                    "element": "C",
+                    "implicitHydrogens": 2
+                  },
+                  {
+                    "id": "C7",
+                    "element": "C",
+                    "implicitHydrogens": 2
+                  },
+                  {
+                    "id": "H1",
+                    "element": "H"
+                  },
+                  {
+                    "id": "Br1",
+                    "element": "Br",
+                    "lonePairs": 3
+                  }
+                ],
+                "bonds": [
+                  {
+                    "id": "b1",
+                    "a": "C1",
+                    "b": "C2",
+                    "order": 1
+                  },
+                  {
+                    "id": "b2",
+                    "a": "C2",
+                    "b": "C3",
+                    "order": 1
+                  },
+                  {
+                    "id": "b3",
+                    "a": "C3",
+                    "b": "C4",
+                    "order": 1
+                  },
+                  {
+                    "id": "b4",
+                    "a": "C4",
+                    "b": "C5",
+                    "order": 1
+                  },
+                  {
+                    "id": "b5",
+                    "a": "C5",
+                    "b": "C6",
+                    "order": 1
+                  },
+                  {
+                    "id": "b6",
+                    "a": "C6",
+                    "b": "C1",
+                    "order": 1
+                  },
+                  {
+                    "id": "b7",
+                    "a": "C1",
+                    "b": "C7",
+                    "order": 1
+                  },
+                  {
+                    "id": "b8",
+                    "a": "C4",
+                    "b": "C7",
+                    "order": 1
+                  },
+                  {
+                    "id": "b9",
+                    "a": "C3",
+                    "b": "H1",
+                    "order": 1
+                  },
+                  {
+                    "id": "b10",
+                    "a": "C2",
+                    "b": "Br1",
+                    "order": 1
+                  }
+                ],
+                "declaredTorsions": [
+                  {
+                    "atoms": [
+                      "H1",
+                      "C3",
+                      "C2",
+                      "Br1"
+                    ],
+                    "degrees": 3,
+                    "justification": "The bicyclo[2.2.1]heptane cage fixes the C2 to C3 torsion, so this angle is a property of the framework and not of a conformer that could rotate away from it. The exo bromide at C2 and the exo hydrogen at C3 are eclipsed, a few degrees off exactly zero because the five membered bridge is slightly puckered. Stated as 3 rather than 0 for that reason: a fixture that claimed an exact 0 would be claiming more precision than the geometry has."
+                  }
+                ]
+              }
+            },
+            {
+              "role": "base",
+              "species": {
+                "id": "methoxide",
+                "label": "methoxide",
+                "atoms": [
+                  {
+                    "id": "O1",
+                    "element": "O",
+                    "formalCharge": -1,
+                    "lonePairs": 3
+                  },
+                  {
+                    "id": "C8",
+                    "element": "C",
+                    "implicitHydrogens": 3
+                  }
+                ],
+                "bonds": [
+                  {
+                    "id": "b11",
+                    "a": "O1",
+                    "b": "C8",
+                    "order": 1
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "norbornene",
+                "label": "bicyclo[2.2.1]hept-2-ene",
+                "atoms": [
+                  {
+                    "id": "C1",
+                    "element": "C",
+                    "implicitHydrogens": 1
+                  },
+                  {
+                    "id": "C2",
+                    "element": "C",
+                    "implicitHydrogens": 1
+                  },
+                  {
+                    "id": "C3",
+                    "element": "C",
+                    "implicitHydrogens": 1
+                  },
+                  {
+                    "id": "C4",
+                    "element": "C",
+                    "implicitHydrogens": 1
+                  },
+                  {
+                    "id": "C5",
+                    "element": "C",
+                    "implicitHydrogens": 2
+                  },
+                  {
+                    "id": "C6",
+                    "element": "C",
+                    "implicitHydrogens": 2
+                  },
+                  {
+                    "id": "C7",
+                    "element": "C",
+                    "implicitHydrogens": 2
+                  }
+                ],
+                "bonds": [
+                  {
+                    "id": "b12",
+                    "a": "C1",
+                    "b": "C2",
+                    "order": 1
+                  },
+                  {
+                    "id": "b13",
+                    "a": "C2",
+                    "b": "C3",
+                    "order": 2
+                  },
+                  {
+                    "id": "b14",
+                    "a": "C3",
+                    "b": "C4",
+                    "order": 1
+                  },
+                  {
+                    "id": "b15",
+                    "a": "C4",
+                    "b": "C5",
+                    "order": 1
+                  },
+                  {
+                    "id": "b16",
+                    "a": "C5",
+                    "b": "C6",
+                    "order": 1
+                  },
+                  {
+                    "id": "b17",
+                    "a": "C6",
+                    "b": "C1",
+                    "order": 1
+                  },
+                  {
+                    "id": "b18",
+                    "a": "C1",
+                    "b": "C7",
+                    "order": 1
+                  },
+                  {
+                    "id": "b19",
+                    "a": "C4",
+                    "b": "C7",
+                    "order": 1
+                  }
+                ]
+              }
+            },
+            {
+              "role": "byproduct",
+              "species": {
+                "id": "methanol",
+                "label": "methanol",
+                "atoms": [
+                  {
+                    "id": "O1",
+                    "element": "O",
+                    "lonePairs": 2
+                  },
+                  {
+                    "id": "C8",
+                    "element": "C",
+                    "implicitHydrogens": 3
+                  },
+                  {
+                    "id": "H1",
+                    "element": "H"
+                  }
+                ],
+                "bonds": [
+                  {
+                    "id": "b20",
+                    "a": "O1",
+                    "b": "C8",
+                    "order": 1
+                  },
+                  {
+                    "id": "b21",
+                    "a": "O1",
+                    "b": "H1",
+                    "order": 1
+                  }
+                ]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "bromide",
+                "label": "bromide",
+                "atoms": [
+                  {
+                    "id": "Br1",
+                    "element": "Br",
+                    "formalCharge": -1,
+                    "lonePairs": 4
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "step-2-syn-elimination-in-the-second-cage",
+        "identity": {
+          "elementaryStep": "concerted_elimination",
+          "route": "e2",
+          "reactionCenters": [
+            "DC2",
+            "DC3",
+            "DH1",
+            "DBr1"
+          ]
+        },
+        "arrows": [
+          {
+            "id": "a1",
+            "electrons": 2,
+            "source": {
+              "kind": "lonePair",
+              "atomId": "DO1"
+            },
+            "sink": {
+              "kind": "betweenAtoms",
+              "atomIds": [
+                "DO1",
+                "DH1"
+              ]
+            }
+          },
+          {
+            "id": "a2",
+            "electrons": 2,
+            "source": {
+              "kind": "bond",
+              "bondId": "Db9"
+            },
+            "sink": {
+              "kind": "betweenAtoms",
+              "atomIds": [
+                "DC3",
+                "DC2"
+              ]
+            }
+          },
+          {
+            "id": "a3",
+            "electrons": 2,
+            "source": {
+              "kind": "bond",
+              "bondId": "Db10"
+            },
+            "sink": {
+              "kind": "atom",
+              "atomId": "DBr1"
+            }
+          }
+        ],
+        "from": {
+          "id": "s2",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "second-2-exo-bromonorbornane",
+                "label": "2-exo-bromobicyclo[2.2.1]heptane, DC3 exo hydrogen drawn explicitly",
+                "atoms": [
+                  {
+                    "id": "DC1",
+                    "element": "C",
+                    "implicitHydrogens": 1
+                  },
+                  {
+                    "id": "DC2",
+                    "element": "C",
+                    "implicitHydrogens": 1
+                  },
+                  {
+                    "id": "DC3",
+                    "element": "C",
+                    "implicitHydrogens": 1
+                  },
+                  {
+                    "id": "DC4",
+                    "element": "C",
+                    "implicitHydrogens": 1
+                  },
+                  {
+                    "id": "DC5",
+                    "element": "C",
+                    "implicitHydrogens": 2
+                  },
+                  {
+                    "id": "DC6",
+                    "element": "C",
+                    "implicitHydrogens": 2
+                  },
+                  {
+                    "id": "DC7",
+                    "element": "C",
+                    "implicitHydrogens": 2
+                  },
+                  {
+                    "id": "DH1",
+                    "element": "H"
+                  },
+                  {
+                    "id": "DBr1",
+                    "element": "Br",
+                    "lonePairs": 3
+                  }
+                ],
+                "bonds": [
+                  {
+                    "id": "Db1",
+                    "a": "DC1",
+                    "b": "DC2",
+                    "order": 1
+                  },
+                  {
+                    "id": "Db2",
+                    "a": "DC2",
+                    "b": "DC3",
+                    "order": 1
+                  },
+                  {
+                    "id": "Db3",
+                    "a": "DC3",
+                    "b": "DC4",
+                    "order": 1
+                  },
+                  {
+                    "id": "Db4",
+                    "a": "DC4",
+                    "b": "DC5",
+                    "order": 1
+                  },
+                  {
+                    "id": "Db5",
+                    "a": "DC5",
+                    "b": "DC6",
+                    "order": 1
+                  },
+                  {
+                    "id": "Db6",
+                    "a": "DC6",
+                    "b": "DC1",
+                    "order": 1
+                  },
+                  {
+                    "id": "Db7",
+                    "a": "DC1",
+                    "b": "DC7",
+                    "order": 1
+                  },
+                  {
+                    "id": "Db8",
+                    "a": "DC4",
+                    "b": "DC7",
+                    "order": 1
+                  },
+                  {
+                    "id": "Db9",
+                    "a": "DC3",
+                    "b": "DH1",
+                    "order": 1
+                  },
+                  {
+                    "id": "Db10",
+                    "a": "DC2",
+                    "b": "DBr1",
+                    "order": 1
+                  }
+                ],
+                "declaredTorsions": [
+                  {
+                    "atoms": [
+                      "DH1",
+                      "DC3",
+                      "DC2",
+                      "DBr1"
+                    ],
+                    "degrees": 3,
+                    "justification": "The bicyclo[2.2.1]heptane cage fixes the DC2 to DC3 torsion, so this angle is a property of the framework and not of a conformer that could rotate away from it. The exo second-bromide at DC2 and the exo hydrogen at DC3 are eclipsed, a few degrees off exactly zero because the five membered bridge is slightly puckered. Stated as 3 rather than 0 for that reason: a fixture that claimed an exact 0 would be claiming more precision than the geometry has."
+                  }
+                ]
+              }
+            },
+            {
+              "role": "base",
+              "species": {
+                "id": "second-methoxide",
+                "label": "second-methoxide",
+                "atoms": [
+                  {
+                    "id": "DO1",
+                    "element": "O",
+                    "formalCharge": -1,
+                    "lonePairs": 3
+                  },
+                  {
+                    "id": "DC8",
+                    "element": "C",
+                    "implicitHydrogens": 3
+                  }
+                ],
+                "bonds": [
+                  {
+                    "id": "Db11",
+                    "a": "DO1",
+                    "b": "DC8",
+                    "order": 1
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s3",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "second-norbornene",
+                "label": "bicyclo[2.2.1]hept-2-ene",
+                "atoms": [
+                  {
+                    "id": "DC1",
+                    "element": "C",
+                    "implicitHydrogens": 1
+                  },
+                  {
+                    "id": "DC2",
+                    "element": "C",
+                    "implicitHydrogens": 1
+                  },
+                  {
+                    "id": "DC3",
+                    "element": "C",
+                    "implicitHydrogens": 1
+                  },
+                  {
+                    "id": "DC4",
+                    "element": "C",
+                    "implicitHydrogens": 1
+                  },
+                  {
+                    "id": "DC5",
+                    "element": "C",
+                    "implicitHydrogens": 2
+                  },
+                  {
+                    "id": "DC6",
+                    "element": "C",
+                    "implicitHydrogens": 2
+                  },
+                  {
+                    "id": "DC7",
+                    "element": "C",
+                    "implicitHydrogens": 2
+                  }
+                ],
+                "bonds": [
+                  {
+                    "id": "Db12",
+                    "a": "DC1",
+                    "b": "DC2",
+                    "order": 1
+                  },
+                  {
+                    "id": "Db13",
+                    "a": "DC2",
+                    "b": "DC3",
+                    "order": 2
+                  },
+                  {
+                    "id": "Db14",
+                    "a": "DC3",
+                    "b": "DC4",
+                    "order": 1
+                  },
+                  {
+                    "id": "Db15",
+                    "a": "DC4",
+                    "b": "DC5",
+                    "order": 1
+                  },
+                  {
+                    "id": "Db16",
+                    "a": "DC5",
+                    "b": "DC6",
+                    "order": 1
+                  },
+                  {
+                    "id": "Db17",
+                    "a": "DC6",
+                    "b": "DC1",
+                    "order": 1
+                  },
+                  {
+                    "id": "Db18",
+                    "a": "DC1",
+                    "b": "DC7",
+                    "order": 1
+                  },
+                  {
+                    "id": "Db19",
+                    "a": "DC4",
+                    "b": "DC7",
+                    "order": 1
+                  }
+                ]
+              }
+            },
+            {
+              "role": "byproduct",
+              "species": {
+                "id": "second-methanol",
+                "label": "second-methanol",
+                "atoms": [
+                  {
+                    "id": "DO1",
+                    "element": "O",
+                    "lonePairs": 2
+                  },
+                  {
+                    "id": "DC8",
+                    "element": "C",
+                    "implicitHydrogens": 3
+                  },
+                  {
+                    "id": "DH1",
+                    "element": "H"
+                  }
+                ],
+                "bonds": [
+                  {
+                    "id": "Db20",
+                    "a": "DO1",
+                    "b": "DC8",
+                    "order": 1
+                  },
+                  {
+                    "id": "Db21",
+                    "a": "DO1",
+                    "b": "DH1",
+                    "order": 1
+                  }
+                ]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "second-bromide",
+                "label": "second-bromide",
+                "atoms": [
+                  {
+                    "id": "DBr1",
+                    "element": "Br",
+                    "formalCharge": -1,
+                    "lonePairs": 4
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

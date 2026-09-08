@@ -1,0 +1,217 @@
+{
+  "schemaVersion": 2,
+  "id": "good-e1cb-elimination-of-a-beta-hydroxy-ketone-to-an-enone",
+  "title": "Hydroxide removes the alpha proton of 4-hydroxybutan-2-one, and the carbanion expels hydroxide from the beta carbon to give but-3-en-2-one",
+  "expect": {
+    "kind": "good",
+    "note": "E1cb, the third elimination route: the conjugate base forms first and the leaving group goes second, which is the reverse of E1 and neither half of E2. It is available here and not on a simple alkyl halide because the carbonyl at C2 stabilises the carbanion at C3. The intermediate is drawn as the localised carbanion rather than as the enolate; the two are resonance forms of the same species and the carbanion is the form the name E1cb refers to. Also the second half of the aldol condensation, whose addition half is good-aldol-addition-of-the-acetone-enolate-to-acetaldehyde."
+  },
+  "pathway": {
+    "id": "e1cb-4-hydroxybutan-2-one",
+    "route": "e1cb",
+    "steps": [
+      {
+        "id": "step-1-alpha-deprotonation",
+        "identity": { "elementaryStep": "proton_transfer", "route": "e1cb", "reactionCenters": ["C3", "H1", "O3"] },
+        "arrows": [
+          { "id": "a1", "electrons": 2, "source": { "kind": "lonePair", "atomId": "O3" }, "sink": { "kind": "betweenAtoms", "atomIds": ["O3", "H1"] } },
+          { "id": "a2", "electrons": 2, "source": { "kind": "bond", "bondId": "b7" }, "sink": { "kind": "atom", "atomId": "C3" } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "4-hydroxybutan-2-one",
+                "label": "4-hydroxybutan-2-one, one alpha proton drawn explicitly",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C" },
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "O2", "element": "O", "lonePairs": 2 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "H2", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b1", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b2", "a": "C2", "b": "O1", "order": 2 },
+                  { "id": "b3", "a": "C2", "b": "C3", "order": 1 },
+                  { "id": "b4", "a": "C3", "b": "C4", "order": 1 },
+                  { "id": "b5", "a": "C4", "b": "O2", "order": 1 },
+                  { "id": "b6", "a": "O2", "b": "H2", "order": 1 },
+                  { "id": "b7", "a": "C3", "b": "H1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "base",
+              "species": {
+                "id": "hydroxide",
+                "label": "hydroxide",
+                "atoms": [
+                  { "id": "O3", "element": "O", "formalCharge": -1, "lonePairs": 3 },
+                  { "id": "H3", "element": "H" }
+                ],
+                "bonds": [{ "id": "b8", "a": "O3", "b": "H3", "order": 1 }]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "beta-hydroxy-carbanion",
+                "label": "the conjugate base, carbanion at C3",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C" },
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "C3", "element": "C", "formalCharge": -1, "lonePairs": 1, "implicitHydrogens": 1 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "O2", "element": "O", "lonePairs": 2 },
+                  { "id": "H2", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b9", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b10", "a": "C2", "b": "O1", "order": 2 },
+                  { "id": "b11", "a": "C2", "b": "C3", "order": 1 },
+                  { "id": "b12", "a": "C3", "b": "C4", "order": 1 },
+                  { "id": "b13", "a": "C4", "b": "O2", "order": 1 },
+                  { "id": "b14", "a": "O2", "b": "H2", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "byproduct",
+              "species": {
+                "id": "water",
+                "label": "water",
+                "atoms": [
+                  { "id": "O3", "element": "O", "lonePairs": 2 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "H3", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b15", "a": "O3", "b": "H1", "order": 1 },
+                  { "id": "b16", "a": "O3", "b": "H3", "order": 1 }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "step-2-expulsion-of-hydroxide",
+        "identity": { "elementaryStep": "leaving_group_departure", "route": "e1cb", "reactionCenters": ["C3", "C4", "O2"] },
+        "arrows": [
+          { "id": "a3", "electrons": 2, "source": { "kind": "lonePair", "atomId": "C3" }, "sink": { "kind": "betweenAtoms", "atomIds": ["C3", "C4"] } },
+          { "id": "a4", "electrons": 2, "source": { "kind": "bond", "bondId": "b13" }, "sink": { "kind": "atom", "atomId": "O2" } }
+        ],
+        "from": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "beta-hydroxy-carbanion",
+                "label": "the conjugate base, carbanion at C3",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C" },
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "C3", "element": "C", "formalCharge": -1, "lonePairs": 1, "implicitHydrogens": 1 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "O2", "element": "O", "lonePairs": 2 },
+                  { "id": "H2", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b9", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b10", "a": "C2", "b": "O1", "order": 2 },
+                  { "id": "b11", "a": "C2", "b": "C3", "order": 1 },
+                  { "id": "b12", "a": "C3", "b": "C4", "order": 1 },
+                  { "id": "b13", "a": "C4", "b": "O2", "order": 1 },
+                  { "id": "b14", "a": "O2", "b": "H2", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "byproduct",
+              "species": {
+                "id": "water",
+                "label": "water",
+                "atoms": [
+                  { "id": "O3", "element": "O", "lonePairs": 2 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "H3", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b15", "a": "O3", "b": "H1", "order": 1 },
+                  { "id": "b16", "a": "O3", "b": "H3", "order": 1 }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s2",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "but-3-en-2-one",
+                "label": "but-3-en-2-one, the conjugated enone",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C" },
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 2 }
+                ],
+                "bonds": [
+                  { "id": "b17", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b18", "a": "C2", "b": "O1", "order": 2 },
+                  { "id": "b19", "a": "C2", "b": "C3", "order": 1 },
+                  { "id": "b20", "a": "C3", "b": "C4", "order": 2 }
+                ]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "hydroxide-expelled",
+                "label": "hydroxide",
+                "atoms": [
+                  { "id": "O2", "element": "O", "formalCharge": -1, "lonePairs": 3 },
+                  { "id": "H2", "element": "H" }
+                ],
+                "bonds": [{ "id": "b21", "a": "O2", "b": "H2", "order": 1 }]
+              }
+            },
+            {
+              "role": "byproduct",
+              "species": {
+                "id": "water",
+                "label": "water",
+                "atoms": [
+                  { "id": "O3", "element": "O", "lonePairs": 2 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "H3", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b15", "a": "O3", "b": "H1", "order": 1 },
+                  { "id": "b16", "a": "O3", "b": "H3", "order": 1 }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

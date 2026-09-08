@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 2,
+  "id": "good-sn2-inversion-at-the-secondary-carbon-of-2-bromobutane",
+  "title": "Ethoxide displaces bromide from 2-bromobutane by SN2 at the secondary carbon, the substrate on which SN1 and SN2 compete",
+  "expect": {
+    "kind": "good",
+    "note": "Half of the competing pair. The same substrate is run through SN1 in good-sn1-solvolysis-of-2-bromobutane-the-competing-route, and the two fixtures differ in the conditions rather than in the molecule: a strong nucleophile in a polar aprotic medium gives this one step displacement, while a weakly nucleophilic ionising solvent gives the three step route. AUTHORING ANNOTATION the fixture schema cannot carry, in prose: kind rate_comparison, value: secondary carbon, both routes are accessible and the observed product ratio is a condition effect and not a property of the substrate. CLAUDE.md makes SN2 inversion a hard assertion. Configuration is not in the v1 conservation fixture schema, so the inversion at C2 is asserted in sn2-inversion-and-sn1-stereorandomness.oracle.json against RDKit CIP labels rather than claimed here."
+  },
+  "pathway": {
+    "id": "sn2-ethoxide-2-bromobutane",
+    "route": "sn2",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": { "elementaryStep": "concerted_substitution", "route": "sn2", "reactionCenters": ["C2"] },
+        "arrows": [
+          { "id": "a1", "electrons": 2, "source": { "kind": "lonePair", "atomId": "O1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["O1", "C2"] } },
+          { "id": "a2", "electrons": 2, "source": { "kind": "bond", "bondId": "b4" }, "sink": { "kind": "atom", "atomId": "Br1" } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "2-bromobutane",
+                "label": "2-bromobutane",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "Br1", "element": "Br", "lonePairs": 3 }
+                ],
+                "bonds": [
+                  { "id": "b1", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b2", "a": "C2", "b": "C3", "order": 1 },
+                  { "id": "b3", "a": "C3", "b": "C4", "order": 1 },
+                  { "id": "b4", "a": "C2", "b": "Br1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "nucleophile",
+              "species": {
+                "id": "ethoxide",
+                "label": "ethoxide",
+                "atoms": [
+                  { "id": "O1", "element": "O", "formalCharge": -1, "lonePairs": 3 },
+                  { "id": "C5", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C6", "element": "C", "implicitHydrogens": 3 }
+                ],
+                "bonds": [
+                  { "id": "b5", "a": "O1", "b": "C5", "order": 1 },
+                  { "id": "b6", "a": "C5", "b": "C6", "order": 1 }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "2-ethoxybutane",
+                "label": "2-ethoxybutane",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "C5", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C6", "element": "C", "implicitHydrogens": 3 }
+                ],
+                "bonds": [
+                  { "id": "b7", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b8", "a": "C2", "b": "C3", "order": 1 },
+                  { "id": "b9", "a": "C3", "b": "C4", "order": 1 },
+                  { "id": "b10", "a": "C2", "b": "O1", "order": 1 },
+                  { "id": "b11", "a": "O1", "b": "C5", "order": 1 },
+                  { "id": "b12", "a": "C5", "b": "C6", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "bromide",
+                "label": "bromide",
+                "atoms": [{ "id": "Br1", "element": "Br", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,189 @@
+{
+  "protocol": "blueberry-oracle-corpus",
+  "version": 1,
+  "name": "aromaticity",
+  "description": "Two sequences that pull in opposite directions. In the first the ring must not care what happens to the side chain, and the author says so with aromaticityInvariantAtomIds. In the second the ring genuinely stops being aromatic, nothing is declared invariant, and the change is reported for human adjudication rather than failed, per CLAUDE.md: RDKit aromaticity perception is a model, not ground truth. Rings are written in Kekule form because chem-core has no aromatic bond order.",
+  "sequences": [
+    {
+      "id": "benzyl-alcohol-protonation",
+      "description": "Protonation of the alcohol oxygen by hydronium. Nothing happens inside the ring, so every ring carbon is declared aromaticity invariant. If RDKit's perception moves here, a human needs to know before any problem is authored on top of it.",
+      "aromaticityInvariantAtomIds": ["c1", "c2", "c3", "c4", "c5", "c6"],
+      "states": [
+        {
+          "id": "state-0",
+          "sanitizationMayFail": null,
+          "species": [
+            {
+              "id": "sp-benzyl-alcohol",
+              "label": "benzyl alcohol",
+              "expect": { "meso": false },
+              "atoms": [
+                { "id": "c1", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null },
+                { "id": "c2", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null },
+                { "id": "c3", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null },
+                { "id": "c4", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null },
+                { "id": "c5", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null },
+                { "id": "c6", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null },
+                { "id": "c7", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 2, "stereo": null },
+                { "id": "o1", "element": "O", "isotope": null, "formalCharge": 0, "lonePairs": 2, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null }
+              ],
+              "bonds": [
+                { "id": "r1", "a": "c1", "b": "c2", "order": 2, "stereo": null },
+                { "id": "r2", "a": "c2", "b": "c3", "order": 1, "stereo": null },
+                { "id": "r3", "a": "c3", "b": "c4", "order": 2, "stereo": null },
+                { "id": "r4", "a": "c4", "b": "c5", "order": 1, "stereo": null },
+                { "id": "r5", "a": "c5", "b": "c6", "order": 2, "stereo": null },
+                { "id": "r6", "a": "c6", "b": "c1", "order": 1, "stereo": null },
+                { "id": "s1", "a": "c1", "b": "c7", "order": 1, "stereo": null },
+                { "id": "s2", "a": "c7", "b": "o1", "order": 1, "stereo": null }
+              ]
+            },
+            {
+              "id": "sp-hydronium",
+              "label": "hydronium",
+              "expect": { "meso": false },
+              "atoms": [
+                { "id": "o2", "element": "O", "isotope": null, "formalCharge": 1, "lonePairs": 1, "unpairedElectrons": 0, "implicitHydrogens": 3, "stereo": null }
+              ],
+              "bonds": []
+            }
+          ]
+        },
+        {
+          "id": "state-1",
+          "sanitizationMayFail": null,
+          "species": [
+            {
+              "id": "sp-protonated-benzyl-alcohol",
+              "label": "protonated benzyl alcohol",
+              "expect": { "meso": false },
+              "atoms": [
+                { "id": "c1", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null },
+                { "id": "c2", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null },
+                { "id": "c3", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null },
+                { "id": "c4", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null },
+                { "id": "c5", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null },
+                { "id": "c6", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null },
+                { "id": "c7", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 2, "stereo": null },
+                { "id": "o1", "element": "O", "isotope": null, "formalCharge": 1, "lonePairs": 1, "unpairedElectrons": 0, "implicitHydrogens": 2, "stereo": null }
+              ],
+              "bonds": [
+                { "id": "r1", "a": "c1", "b": "c2", "order": 2, "stereo": null },
+                { "id": "r2", "a": "c2", "b": "c3", "order": 1, "stereo": null },
+                { "id": "r3", "a": "c3", "b": "c4", "order": 2, "stereo": null },
+                { "id": "r4", "a": "c4", "b": "c5", "order": 1, "stereo": null },
+                { "id": "r5", "a": "c5", "b": "c6", "order": 2, "stereo": null },
+                { "id": "r6", "a": "c6", "b": "c1", "order": 1, "stereo": null },
+                { "id": "s1", "a": "c1", "b": "c7", "order": 1, "stereo": null },
+                { "id": "s2", "a": "c7", "b": "o1", "order": 1, "stereo": null }
+              ]
+            },
+            {
+              "id": "sp-water",
+              "label": "water",
+              "expect": { "meso": false },
+              "atoms": [
+                { "id": "o2", "element": "O", "isotope": null, "formalCharge": 0, "lonePairs": 2, "unpairedElectrons": 0, "implicitHydrogens": 2, "stereo": null }
+              ],
+              "bonds": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "benzene-bromination-sigma-complex",
+      "description": "Benzene plus bromine going to the Wheland intermediate and bromide. The ring really does stop being aromatic at the second state, so nothing is declared invariant and the perception change is an adjudication item rather than a failure. This sequence exists to prove the adjudication channel carries something, not to assert a chemistry result.",
+      "aromaticityInvariantAtomIds": [],
+      "states": [
+        {
+          "id": "state-0",
+          "sanitizationMayFail": null,
+          "species": [
+            {
+              "id": "sp-benzene",
+              "label": "benzene",
+              "expect": { "meso": false },
+              "atoms": [
+                { "id": "c1", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null },
+                { "id": "c2", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null },
+                { "id": "c3", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null },
+                { "id": "c4", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null },
+                { "id": "c5", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null },
+                { "id": "c6", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null }
+              ],
+              "bonds": [
+                { "id": "r1", "a": "c1", "b": "c2", "order": 2, "stereo": null },
+                { "id": "r2", "a": "c2", "b": "c3", "order": 1, "stereo": null },
+                { "id": "r3", "a": "c3", "b": "c4", "order": 2, "stereo": null },
+                { "id": "r4", "a": "c4", "b": "c5", "order": 1, "stereo": null },
+                { "id": "r5", "a": "c5", "b": "c6", "order": 2, "stereo": null },
+                { "id": "r6", "a": "c6", "b": "c1", "order": 1, "stereo": null }
+              ]
+            },
+            {
+              "id": "sp-bromine",
+              "label": "bromine",
+              "expect": { "meso": false },
+              "atoms": [
+                { "id": "br1", "element": "Br", "isotope": null, "formalCharge": 0, "lonePairs": 3, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null },
+                { "id": "br2", "element": "Br", "isotope": null, "formalCharge": 0, "lonePairs": 3, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null }
+              ],
+              "bonds": [
+                { "id": "x1", "a": "br1", "b": "br2", "order": 1, "stereo": null }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "state-1",
+          "sanitizationMayFail": null,
+          "species": [
+            {
+              "id": "sp-arenium",
+              "label": "bromobenzenium, the Wheland intermediate",
+              "expect": {
+                "meso": false,
+                "unspecifiedStereoDeclared": [
+                  {
+                    "kind": "atom",
+                    "ref": "c1",
+                    "justification": "c1 is not a stereocentre. It looks like one to RDKit only because this state writes a single localised resonance structure of the sigma complex, which makes the two ring branches leaving c1 different from each other: going one way you meet the double bond at r2 first, going the other way you meet the positive charge at c6. The real ion is a delocalised pentadienyl cation with the positive charge shared over c2, c4 and c6 and a mirror plane through c1 and c4, so the two branches are equivalent and c1 has two identical substituents. Confirmed against RDKit's own CIP ranking, which ranks the ring atoms 5,4,3,2,1,0 purely by where this file happens to put the charge; rewriting the same ion with the charge on c2 moves the ranking with it. Pinning R or S here would invent a configuration the molecule does not have, and every product of this mechanism is achiral at c1 whichever resonance structure is drawn.",
+                    "declaredBy": "benzene-bromination-sigma-complex"
+                  }
+                ]
+              },
+              "atoms": [
+                { "id": "c1", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null },
+                { "id": "c2", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null },
+                { "id": "c3", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null },
+                { "id": "c4", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null },
+                { "id": "c5", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null },
+                { "id": "c6", "element": "C", "isotope": null, "formalCharge": 1, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null },
+                { "id": "br1", "element": "Br", "isotope": null, "formalCharge": 0, "lonePairs": 3, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null }
+              ],
+              "bonds": [
+                { "id": "r1", "a": "c1", "b": "c2", "order": 1, "stereo": null },
+                { "id": "r2", "a": "c2", "b": "c3", "order": 2, "stereo": null },
+                { "id": "r3", "a": "c3", "b": "c4", "order": 1, "stereo": null },
+                { "id": "r4", "a": "c4", "b": "c5", "order": 2, "stereo": null },
+                { "id": "r5", "a": "c5", "b": "c6", "order": 1, "stereo": null },
+                { "id": "r6", "a": "c6", "b": "c1", "order": 1, "stereo": null },
+                { "id": "s1", "a": "c1", "b": "br1", "order": 1, "stereo": null }
+              ]
+            },
+            {
+              "id": "sp-bromide",
+              "label": "bromide",
+              "expect": { "meso": false },
+              "atoms": [
+                { "id": "br2", "element": "Br", "isotope": null, "formalCharge": -1, "lonePairs": 4, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null }
+              ],
+              "bonds": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

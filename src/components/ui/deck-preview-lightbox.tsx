@@ -252,7 +252,7 @@ export function DeckPreviewLightbox({
                 </div>
                 <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-stone-800">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-fuchsia-500 transition-[width] duration-500"
+                    className="h-full rounded-full bg-gradient-to-r from-brand-from to-brand-to transition-[width] duration-500"
                     style={{ width: `${(reviewed / total) * 100}%` }}
                   />
                 </div>
@@ -294,7 +294,7 @@ export function DeckPreviewLightbox({
               <a
                 href={deckHref(deck)}
                 onClick={handleClose}
-                className="group/go inline-flex shrink-0 items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-fuchsia-500 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-indigo-500/20 transition hover:brightness-110"
+                className="group/go inline-flex shrink-0 items-center gap-2 rounded-xl bg-gradient-to-r from-brand-from to-brand-to px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-indigo-500/20 transition hover:brightness-110"
               >
                 {isReference(deck) ? "Open reference" : "Start studying"}
                 <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover/go:translate-x-0.5" />

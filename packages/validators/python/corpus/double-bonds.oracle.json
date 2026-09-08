@@ -1,0 +1,160 @@
+{
+  "protocol": "blueberry-oracle-corpus",
+  "version": 1,
+  "name": "double-bonds",
+  "description": "Double bond geometry, and the point that cis is not Z. chem-core stores a geometric arrangement between two named reference atoms, per chem-core/src/bond.ts, and E or Z needs the CIP priority ranking on top of it. The last two entries are the same geometry described from different reference atoms and they carry different descriptors.",
+  "sequences": [
+    {
+      "id": "cis-2-butene-is-Z",
+      "description": "Both reference atoms are the higher priority substituent on their end, so same side reads straight through to Z.",
+      "aromaticityInvariantAtomIds": [],
+      "states": [
+        {
+          "id": "state-0",
+          "sanitizationMayFail": null,
+          "species": [
+            {
+              "id": "sp-1",
+              "label": "cis-2-butene",
+              "expect": { "meso": false },
+              "atoms": [
+                { "id": "c1", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 3, "stereo": null },
+                { "id": "c2", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null },
+                { "id": "c3", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null },
+                { "id": "c4", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 3, "stereo": null }
+              ],
+              "bonds": [
+                { "id": "b1", "a": "c1", "b": "c2", "order": 1, "stereo": null },
+                {
+                  "id": "b2", "a": "c2", "b": "c3", "order": 2,
+                  "stereo": {
+                    "kind": "doubleBond",
+                    "reference": ["c1", "c4"],
+                    "arrangement": "cis",
+                    "authoredDescriptor": "Z"
+                  }
+                },
+                { "id": "b3", "a": "c3", "b": "c4", "order": 1, "stereo": null }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "trans-2-butene-is-E",
+      "description": "The geometric isomer of the above.",
+      "aromaticityInvariantAtomIds": [],
+      "states": [
+        {
+          "id": "state-0",
+          "sanitizationMayFail": null,
+          "species": [
+            {
+              "id": "sp-1",
+              "label": "trans-2-butene",
+              "expect": { "meso": false },
+              "atoms": [
+                { "id": "c1", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 3, "stereo": null },
+                { "id": "c2", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null },
+                { "id": "c3", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null },
+                { "id": "c4", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 3, "stereo": null }
+              ],
+              "bonds": [
+                { "id": "b1", "a": "c1", "b": "c2", "order": 1, "stereo": null },
+                {
+                  "id": "b2", "a": "c2", "b": "c3", "order": 2,
+                  "stereo": {
+                    "kind": "doubleBond",
+                    "reference": ["c1", "c4"],
+                    "arrangement": "trans",
+                    "authoredDescriptor": "E"
+                  }
+                },
+                { "id": "b3", "a": "c3", "b": "c4", "order": 1, "stereo": null }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "z-from-high-priority-references",
+      "description": "1-bromo-1-chloropropene with Br and the methyl named as the reference pair, cis. Br outranks Cl and the methyl outranks H, so same side is Z.",
+      "aromaticityInvariantAtomIds": [],
+      "states": [
+        {
+          "id": "state-0",
+          "sanitizationMayFail": null,
+          "species": [
+            {
+              "id": "sp-1",
+              "label": "(Z)-1-bromo-1-chloroprop-1-ene",
+              "expect": { "meso": false },
+              "atoms": [
+                { "id": "c1", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null },
+                { "id": "c2", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null },
+                { "id": "c3", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 3, "stereo": null },
+                { "id": "br1", "element": "Br", "isotope": null, "formalCharge": 0, "lonePairs": 3, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null },
+                { "id": "cl1", "element": "Cl", "isotope": null, "formalCharge": 0, "lonePairs": 3, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null }
+              ],
+              "bonds": [
+                { "id": "b1", "a": "c1", "b": "br1", "order": 1, "stereo": null },
+                { "id": "b2", "a": "c1", "b": "cl1", "order": 1, "stereo": null },
+                {
+                  "id": "b3", "a": "c1", "b": "c2", "order": 2,
+                  "stereo": {
+                    "kind": "doubleBond",
+                    "reference": ["br1", "c3"],
+                    "arrangement": "cis",
+                    "authoredDescriptor": "Z"
+                  }
+                },
+                { "id": "b4", "a": "c2", "b": "c3", "order": 1, "stereo": null }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "e-from-low-priority-reference",
+      "description": "The same class of molecule described the other way round: Cl, the lower priority substituent on C1, is the named reference and it is cis to the methyl. Br is therefore trans to the methyl and the descriptor is E. An implementation that treats arrangement as the descriptor answers Z here and passes the three entries above.",
+      "aromaticityInvariantAtomIds": [],
+      "states": [
+        {
+          "id": "state-0",
+          "sanitizationMayFail": null,
+          "species": [
+            {
+              "id": "sp-1",
+              "label": "(E)-1-bromo-1-chloroprop-1-ene",
+              "expect": { "meso": false },
+              "atoms": [
+                { "id": "c1", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null },
+                { "id": "c2", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null },
+                { "id": "c3", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 3, "stereo": null },
+                { "id": "br1", "element": "Br", "isotope": null, "formalCharge": 0, "lonePairs": 3, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null },
+                { "id": "cl1", "element": "Cl", "isotope": null, "formalCharge": 0, "lonePairs": 3, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null }
+              ],
+              "bonds": [
+                { "id": "b1", "a": "c1", "b": "br1", "order": 1, "stereo": null },
+                { "id": "b2", "a": "c1", "b": "cl1", "order": 1, "stereo": null },
+                {
+                  "id": "b3", "a": "c1", "b": "c2", "order": 2,
+                  "stereo": {
+                    "kind": "doubleBond",
+                    "reference": ["cl1", "c3"],
+                    "arrangement": "cis",
+                    "authoredDescriptor": "E"
+                  }
+                },
+                { "id": "b4", "a": "c2", "b": "c3", "order": 1, "stereo": null }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

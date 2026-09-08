@@ -1,0 +1,112 @@
+/*
+ * The four things the matching board animates, and nothing else.
+ *
+ * WHY THERE IS A CSS FILE AT ALL when the rest of the shell is Tailwind
+ * utilities. Keyframes are not a utility, and the two motions this board needs
+ * are keyframes: a matched pair travelling toward each other before it clears,
+ * and a rejected pair shaking and staying put. Colour, spacing and type stay in
+ * utilities over the tokens in src/theme.css, so nothing here hardcodes a
+ * colour that would then be wrong in one theme.
+ *
+ * REDUCED MOTION IS A REAL BRANCH, not a shorter duration. Under
+ * prefers-reduced-motion the landed pair simply stops being drawn and the
+ * rejected pair does not move at all. The information those animations carry is
+ * carried anyway by things that are not motion: the landed pair is green and
+ * the counter moves, the rejected pair keeps an amber outline, and both are
+ * described in the live region. A student who cannot use motion is not being
+ * asked to infer anything from it.
+ *
+ * The durations are custom properties on the board rather than literals, so the
+ * component can read the same numbers it schedules its settle timer against.
+ * They live here because a timing that the CSS and the JS disagree about is a
+ * card that vanishes mid animation, and that bug is invisible in review.
+ */
+
+.match-board {
+  --match-land-ms: 340ms;
+  --match-shake-ms: 400ms;
+  --match-ease: cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+@keyframes match-land-left {
+  0% {
+    transform: none;
+    opacity: 1;
+  }
+  40% {
+    transform: translateX(10px) scale(1.03);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(22px) scale(0.94);
+    opacity: 0;
+  }
+}
+
+@keyframes match-land-right {
+  0% {
+    transform: none;
+    opacity: 1;
+  }
+  40% {
+    transform: translateX(-10px) scale(1.03);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-22px) scale(0.94);
+    opacity: 0;
+  }
+}
+
+/* Small, quick, and symmetric. A shake that travels far reads as an error
+   sound; this one reads as the card refusing to sit down. */
+@keyframes match-shake {
+  0%,
+  100% {
+    transform: none;
+  }
+  20% {
+    transform: translateX(-5px);
+  }
+  40% {
+    transform: translateX(5px);
+  }
+  60% {
+    transform: translateX(-3px);
+  }
+  80% {
+    transform: translateX(3px);
+  }
+}
+
+.match-landing-left {
+  animation: match-land-left var(--match-land-ms) var(--match-ease) forwards;
+}
+
+.match-landing-right {
+  animation: match-land-right var(--match-land-ms) var(--match-ease) forwards;
+}
+
+.match-rejected {
+  animation: match-shake var(--match-shake-ms) ease-in-out;
+}
+
+/* The progress track. The width is set inline from the landed count, so the
+   transition is the only thing that belongs here. */
+.match-track-fill {
+  transition: width var(--match-land-ms) var(--match-ease);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .match-landing-left,
+  .match-landing-right {
+    animation: none;
+    opacity: 0;
+  }
+  .match-rejected {
+    animation: none;
+  }
+  .match-track-fill {
+    transition: none;
+  }
+}

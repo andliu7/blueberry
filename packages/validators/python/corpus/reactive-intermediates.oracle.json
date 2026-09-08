@@ -1,0 +1,324 @@
+{
+  "protocol": "blueberry-oracle-corpus",
+  "version": 1,
+  "name": "reactive-intermediates",
+  "description": "Charged and strained species that a mechanism corpus is full of and that a naive valence model rejects. CLAUDE.md warns that legitimate reactive intermediates can fail RDKit sanitisation. Every one of these was measured, not assumed, and every one sanitises, so none of them carries a sanitizationMayFail declaration. See README.md for the ones that were probed and what happened.",
+  "sequences": [
+    {
+      "id": "bridged-bromonium",
+      "description": "The bridged bromonium ion from Br2 addition to trans-2-butene. Three membered ring, positive bromine with two lone pairs. Both ring carbons are pinned R, which is the chiral C2 ion rather than the meso cis one, consistent with expect.meso false. CLAUDE.md names trans-2-butene as the substrate that gives the meso dibromide, and these two centres are where a sign error in the addition geometry would hide.",
+      "aromaticityInvariantAtomIds": [],
+      "states": [
+        {
+          "id": "state-0",
+          "sanitizationMayFail": null,
+          "species": [
+            {
+              "id": "sp-1",
+              "label": "2,3-dimethylbromiranium",
+              "expect": {
+                "meso": false
+              },
+              "atoms": [
+                {
+                  "id": "c1",
+                  "element": "C",
+                  "isotope": null,
+                  "formalCharge": 0,
+                  "lonePairs": 0,
+                  "unpairedElectrons": 0,
+                  "implicitHydrogens": 3,
+                  "stereo": null
+                },
+                {
+                  "id": "c2",
+                  "element": "C",
+                  "isotope": null,
+                  "formalCharge": 0,
+                  "lonePairs": 0,
+                  "unpairedElectrons": 0,
+                  "implicitHydrogens": 1,
+                  "stereo": {
+                    "kind": "tetrahedral",
+                    "neighbors": [
+                      "c1",
+                      "c3",
+                      "br1",
+                      "@implicitH"
+                    ],
+                    "parity": "clockwise",
+                    "authoredDescriptor": "S"
+                  }
+                },
+                {
+                  "id": "c3",
+                  "element": "C",
+                  "isotope": null,
+                  "formalCharge": 0,
+                  "lonePairs": 0,
+                  "unpairedElectrons": 0,
+                  "implicitHydrogens": 1,
+                  "stereo": {
+                    "kind": "tetrahedral",
+                    "neighbors": [
+                      "c4",
+                      "c2",
+                      "br1",
+                      "@implicitH"
+                    ],
+                    "parity": "clockwise",
+                    "authoredDescriptor": "S"
+                  }
+                },
+                {
+                  "id": "c4",
+                  "element": "C",
+                  "isotope": null,
+                  "formalCharge": 0,
+                  "lonePairs": 0,
+                  "unpairedElectrons": 0,
+                  "implicitHydrogens": 3,
+                  "stereo": null
+                },
+                {
+                  "id": "br1",
+                  "element": "Br",
+                  "isotope": null,
+                  "formalCharge": 1,
+                  "lonePairs": 2,
+                  "unpairedElectrons": 0,
+                  "implicitHydrogens": 0,
+                  "stereo": null
+                }
+              ],
+              "bonds": [
+                {
+                  "id": "b1",
+                  "a": "c1",
+                  "b": "c2",
+                  "order": 1,
+                  "stereo": null
+                },
+                {
+                  "id": "b2",
+                  "a": "c2",
+                  "b": "c3",
+                  "order": 1,
+                  "stereo": null
+                },
+                {
+                  "id": "b3",
+                  "a": "c3",
+                  "b": "c4",
+                  "order": 1,
+                  "stereo": null
+                },
+                {
+                  "id": "b4",
+                  "a": "c2",
+                  "b": "br1",
+                  "order": 1,
+                  "stereo": null
+                },
+                {
+                  "id": "b5",
+                  "a": "c3",
+                  "b": "br1",
+                  "order": 1,
+                  "stereo": null
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tert-butyl-cation",
+      "description": "A tertiary carbocation. Three bonds, no lone pair, formal charge plus one.",
+      "aromaticityInvariantAtomIds": [],
+      "states": [
+        {
+          "id": "state-0",
+          "sanitizationMayFail": null,
+          "species": [
+            {
+              "id": "sp-1",
+              "label": "tert-butyl cation",
+              "expect": {
+                "meso": false
+              },
+              "atoms": [
+                {
+                  "id": "c1",
+                  "element": "C",
+                  "isotope": null,
+                  "formalCharge": 1,
+                  "lonePairs": 0,
+                  "unpairedElectrons": 0,
+                  "implicitHydrogens": 0,
+                  "stereo": null
+                },
+                {
+                  "id": "c2",
+                  "element": "C",
+                  "isotope": null,
+                  "formalCharge": 0,
+                  "lonePairs": 0,
+                  "unpairedElectrons": 0,
+                  "implicitHydrogens": 3,
+                  "stereo": null
+                },
+                {
+                  "id": "c3",
+                  "element": "C",
+                  "isotope": null,
+                  "formalCharge": 0,
+                  "lonePairs": 0,
+                  "unpairedElectrons": 0,
+                  "implicitHydrogens": 3,
+                  "stereo": null
+                },
+                {
+                  "id": "c4",
+                  "element": "C",
+                  "isotope": null,
+                  "formalCharge": 0,
+                  "lonePairs": 0,
+                  "unpairedElectrons": 0,
+                  "implicitHydrogens": 3,
+                  "stereo": null
+                }
+              ],
+              "bonds": [
+                {
+                  "id": "b1",
+                  "a": "c1",
+                  "b": "c2",
+                  "order": 1,
+                  "stereo": null
+                },
+                {
+                  "id": "b2",
+                  "a": "c1",
+                  "b": "c3",
+                  "order": 1,
+                  "stereo": null
+                },
+                {
+                  "id": "b3",
+                  "a": "c1",
+                  "b": "c4",
+                  "order": 1,
+                  "stereo": null
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "deuterium-label",
+      "description": "An isotopically labelled substrate. Deuterium is hydrogen with isotope 2 per chem-core/src/atom.ts, not a separate element, and it must survive the round trip as a distinct nuclide.",
+      "aromaticityInvariantAtomIds": [],
+      "states": [
+        {
+          "id": "state-0",
+          "sanitizationMayFail": null,
+          "species": [
+            {
+              "id": "sp-1",
+              "label": "2-deuterio-2-bromopropane",
+              "expect": {
+                "meso": false
+              },
+              "atoms": [
+                {
+                  "id": "c1",
+                  "element": "C",
+                  "isotope": null,
+                  "formalCharge": 0,
+                  "lonePairs": 0,
+                  "unpairedElectrons": 0,
+                  "implicitHydrogens": 3,
+                  "stereo": null
+                },
+                {
+                  "id": "c2",
+                  "element": "C",
+                  "isotope": null,
+                  "formalCharge": 0,
+                  "lonePairs": 0,
+                  "unpairedElectrons": 0,
+                  "implicitHydrogens": 0,
+                  "stereo": null
+                },
+                {
+                  "id": "c3",
+                  "element": "C",
+                  "isotope": null,
+                  "formalCharge": 0,
+                  "lonePairs": 0,
+                  "unpairedElectrons": 0,
+                  "implicitHydrogens": 3,
+                  "stereo": null
+                },
+                {
+                  "id": "br1",
+                  "element": "Br",
+                  "isotope": null,
+                  "formalCharge": 0,
+                  "lonePairs": 3,
+                  "unpairedElectrons": 0,
+                  "implicitHydrogens": 0,
+                  "stereo": null
+                },
+                {
+                  "id": "d1",
+                  "element": "H",
+                  "isotope": 2,
+                  "formalCharge": 0,
+                  "lonePairs": 0,
+                  "unpairedElectrons": 0,
+                  "implicitHydrogens": 0,
+                  "stereo": null
+                }
+              ],
+              "bonds": [
+                {
+                  "id": "b1",
+                  "a": "c1",
+                  "b": "c2",
+                  "order": 1,
+                  "stereo": null
+                },
+                {
+                  "id": "b2",
+                  "a": "c2",
+                  "b": "c3",
+                  "order": 1,
+                  "stereo": null
+                },
+                {
+                  "id": "b3",
+                  "a": "c2",
+                  "b": "br1",
+                  "order": 1,
+                  "stereo": null
+                },
+                {
+                  "id": "b4",
+                  "a": "c2",
+                  "b": "d1",
+                  "order": 1,
+                  "stereo": null
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

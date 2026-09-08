@@ -1,0 +1,578 @@
+/*
+ * The mistake toast, the deck icon, and the save flight between them.
+ *
+ * All three are here because they are one animation. The card leaves the toast,
+ * travels, and lands on the icon, and splitting the two ends across two
+ * stylesheets is how the first version shipped with a flight that landed on
+ * nothing.
+ *
+ * WHY THIS IS ITS OWN STYLESHEET. The save is a four phase choreography with
+ * exact owner specified timings, and the phases have to be readable in one
+ * place next to each other. Spread across a component's inline styles they are
+ * four numbers nobody can check against the spec.
+ *
+ * A TOKEN CONFLICT, reported rather than papered over. The task says to use
+ * apps/web/src/tokens.css. That file is NOT imported by the app: main.tsx
+ * imports theme.css only, and theme.css carries no motion tokens at all. So
+ * every duration and easing below is written as var(--token, literal): the
+ * literal is what actually paints today, and the token wins the moment tokens
+ * .css is imported or the motion rows are mirrored into theme.css. Colours use
+ * theme.css's live tokens (--bb-card, --bb-foreground, --bb-muted-foreground, --bb-border,
+ * --bb-primary, --bb-primary-foreground), which flip under the .dark class, so both
+ * themes work without a second colour block here.
+ *
+ * WHICH TOKEN EACH PHASE IS, against tokens.css and docs/DESIGN-TOKENS.md:
+ *
+ *   press   80ms   --dur-instant   exists. Inside CLAUDE.md's 100ms budget.
+ *   lift   180ms   --dur-lift      DOES NOT EXIST. Reported as an integration edit.
+ *   fly    380ms   --dur-slow      exists, and is exactly the owner's 180 to 560.
+ *   bounce 160ms   --dur-bounce    DOES NOT EXIST. Reported as an integration edit.
+ *   ease   cubic-bezier(.3,.7,.3,1)  --ease-fly  DOES NOT EXIST. The owner named
+ *          this curve for the flight; tokens.css's --ease-out is (.2,.8,.3,1),
+ *          which is close and is not the same, so it is not quietly substituted.
+ *
+ * ONE TOKEN NAME IS OCCUPIED, and this was measured in the built CSS rather
+ * than assumed. `@import "tailwindcss"` in src/index.css ships Tailwind v4's own
+ * default theme, which already defines --ease-out, as cubic-bezier(0,0,.2,1).
+ * That is a DIFFERENT curve from the (.2,.8,.3,1) tokens.css intends, and it
+ * means a var(--ease-out, <our literal>) never reaches its fallback: the name
+ * resolves, to somebody else's value. So this file reads --sa-ease, a local
+ * alias defined once below, and every rule here gets the curve DESIGN-TOKENS.md
+ * asks for whether or not tokens.css is ever imported. --ease-fly, --ease-spring
+ * and the --dur-* names are free (nothing in the built CSS defines them), so
+ * those stay as var(name, literal) and the token wins the day it lands.
+ *
+ * The --sa-* properties are written onto the element by Recommendation.tsx from
+ * its SAVE_PHASES table, so the JS timers and these keyframes cannot drift.
+ * The bounce is the one phase that cannot use them, because it plays on the
+ * shell's deck icon, which is not inside this element and therefore does not
+ * inherit them. It reads --dur-bounce with the same literal fallback instead.
+ *
+ * TRANSFORM AND OPACITY ONLY. No layout property is animated anywhere below.
+ * The growing shadow of the lift is a pseudo element whose OPACITY rises, not a
+ * box-shadow interpolation, so the whole sequence stays on the compositor.
+ */
+
+/* ------------------------------------------------------------------ */
+/* The frame                                                            */
+/* ------------------------------------------------------------------ */
+
+/*
+ * pointer-events: none on the frame and auto on the card is how "never blocking
+ * the next question" is enforced rather than promised: the toast occupies a
+ * full width strip, and every pixel of that strip except the card itself passes
+ * taps through to the canvas underneath.
+ */
+/*
+ * The local easing alias. See the header: --ease-out is already taken by
+ * Tailwind's default theme at a different value, so reading it would silently
+ * change the curve of every press and lift in this file.
+ */
+.mistake-toast, .deck-icon {
+  --sa-ease: cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+.mistake-toast {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  z-index: 40;
+  display: flex;
+  justify-content: center;
+  padding: 0 1rem;
+  pointer-events: none;
+}
+
+.mistake-toast__card {
+  pointer-events: auto;
+  position: relative;
+  width: 100%;
+  max-width: 26rem;
+  box-sizing: border-box;
+  padding: 0.875rem 1rem 1rem;
+  border: 1px solid var(--bb-border);
+  border-radius: 1rem;
+  background: var(--bb-card);
+  color: var(--bb-card-foreground);
+  box-shadow: 0 2px 4px rgb(0 0 0 / 0.06), 0 8px 24px rgb(0 0 0 / 0.08);
+  transform-origin: center;
+}
+
+/*
+ * The lift's shadow. It sits under the card at zero opacity and fades in, so
+ * "shadow grows" costs one composited opacity change instead of a box-shadow
+ * the browser has to repaint every frame.
+ */
+.mistake-toast__card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 12px 32px rgb(0 0 0 / 0.22), 0 4px 10px rgb(0 0 0 / 0.14);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ------------------------------------------------------------------ */
+/* The contents                                                         */
+/* ------------------------------------------------------------------ */
+
+/* The authored "what you did" sentence. The specific line, so it leads. */
+.mistake-toast__reason {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--bb-foreground);
+}
+
+.mistake-toast__front {
+  margin: 0 0 0.875rem;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--bb-muted-foreground);
+}
+
+.mistake-toast__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/*
+ * The batch line. Quiet on purpose: the specific sentence above it is the
+ * teaching, and this is the way out of deciding about one wrong arrow at all.
+ * Full width and 44px tall, because a "quiet" control is still a hit target.
+ */
+.mistake-toast__review {
+  display: block;
+  width: 100%;
+  min-height: 2.75rem;
+  margin: 0.625rem 0 0;
+  padding: 0.5rem 0.75rem;
+  border: 0;
+  border-top: 1px solid var(--bb-border);
+  border-radius: 0 0 0.5rem 0.5rem;
+  background: transparent;
+  color: var(--bb-muted-foreground);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: color var(--sa-press, var(--dur-instant, 80ms)) linear,
+    transform var(--sa-press, var(--dur-instant, 80ms)) linear;
+}
+
+.mistake-toast__review:hover {
+  color: var(--bb-foreground);
+}
+
+.mistake-toast__review:active {
+  transform: scale(0.98);
+}
+
+.mistake-toast__review:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--bb-ring, var(--bb-primary)) 45%, transparent);
+}
+
+/*
+ * The raised primary button. Four states, per the tokens file's contract: rest,
+ * hover, pressed, and a focus ring. The solid bottom edge is what makes it read
+ * as a physical control, and the press travels exactly that far so the edge
+ * disappears under it.
+ */
+.mistake-toast__save {
+  flex: 1 1 auto;
+  min-height: 2.75rem; /* 44px, CLAUDE.md's minimum hit target */
+  padding: 0.625rem 1.25rem;
+  border: 0;
+  border-radius: 0.75rem;
+  background: var(--bb-primary);
+  color: var(--bb-primary-foreground);
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+  box-shadow: 0 4px 0 color-mix(in srgb, var(--bb-primary) 72%, black);
+  transition: transform var(--sa-press, var(--dur-instant, 80ms)) var(--sa-ease),
+    box-shadow var(--sa-press, var(--dur-instant, 80ms)) var(--sa-ease),
+    filter var(--sa-press, var(--dur-instant, 80ms)) linear;
+}
+
+.mistake-toast__save:hover {
+  filter: brightness(1.06);
+}
+
+/* Paints on pointer down, in the same frame, before any JS has run. */
+.mistake-toast__save:active {
+  transform: translateY(4px);
+  box-shadow: 0 0 0 color-mix(in srgb, var(--bb-primary) 72%, black);
+}
+
+.mistake-toast__save:focus-visible,
+.mistake-toast__dismiss:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--bb-ring, var(--bb-primary)) 45%, transparent);
+}
+
+.mistake-toast__dismiss {
+  flex: 0 0 auto;
+  min-height: 2.75rem;
+  padding: 0.625rem 0.75rem;
+  border: 0;
+  border-radius: 0.75rem;
+  background: transparent;
+  color: var(--bb-muted-foreground);
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background-color var(--sa-press, var(--dur-instant, 80ms)) linear, transform var(--sa-press, var(--dur-instant, 80ms)) linear;
+}
+
+.mistake-toast__dismiss:hover {
+  background: var(--bb-muted);
+}
+
+.mistake-toast__dismiss:active {
+  transform: scale(0.96);
+}
+
+/* ------------------------------------------------------------------ */
+/* Phase 0, the press. Owner: "card scales to 0.92, rendered on pointer  */
+/* down, under 100ms, always first."                                     */
+/* ------------------------------------------------------------------ */
+
+/*
+ * :has() rather than a JS phase, deliberately. A React state set on pointerdown
+ * costs a render before it can paint; a CSS selector paints in the frame the
+ * pointer went down, which is the only way the "always first" half of the
+ * requirement is guaranteed rather than usually true. The animation is
+ * cancelled in the same rule so an entering card can still acknowledge a press.
+ */
+.mistake-toast__card:has(.mistake-toast__save:active) {
+  animation: none;
+  transform: scale(0.92);
+  transition: transform var(--sa-press, var(--dur-instant, 80ms)) var(--sa-ease);
+}
+
+/* ------------------------------------------------------------------ */
+/* Arrival                                                              */
+/* ------------------------------------------------------------------ */
+
+.mistake-toast[data-phase="offered"] .mistake-toast__card {
+  animation: sa-enter var(--dur-base, 220ms) var(--sa-ease) both;
+}
+
+@keyframes sa-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Phase 1, 0 to 180ms. Toast dismisses, card lifts 0.92 to 1.02,        */
+/* shadow grows.                                                         */
+/* ------------------------------------------------------------------ */
+
+.mistake-toast[data-phase="lifting"] .mistake-toast__card,
+.mistake-toast[data-phase="flying"] .mistake-toast__card,
+.mistake-toast[data-phase="landing"] .mistake-toast__card {
+  will-change: transform, opacity;
+}
+
+.mistake-toast[data-phase="lifting"] .mistake-toast__card {
+  animation: sa-lift var(--sa-lift, 180ms) var(--sa-ease) both;
+}
+
+.mistake-toast[data-phase="lifting"] .mistake-toast__card::after {
+  animation: sa-shadow-grow var(--sa-lift, 180ms) var(--sa-ease) both;
+}
+
+/* The toast dismissing: the controls go, the card stays a card. */
+.mistake-toast[data-phase="lifting"] .mistake-toast__actions,
+.mistake-toast[data-phase="flying"] .mistake-toast__actions,
+.mistake-toast[data-phase="landing"] .mistake-toast__actions {
+  animation: sa-controls-out var(--sa-lift, 180ms) linear both;
+  pointer-events: none;
+}
+
+@keyframes sa-lift {
+  from {
+    transform: scale(0.92);
+  }
+  to {
+    transform: scale(1.02);
+  }
+}
+
+@keyframes sa-shadow-grow {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes sa-controls-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Phase 2, 180 to 560ms. The flight to the deck icon in the top left:   */
+/* curved path, slight rotation, scaling to about 0.16.                  */
+/* ------------------------------------------------------------------ */
+
+/*
+ * The curve is made by the two middle keyframes, and it is worth saying how.
+ * A straight line puts 50 percent of the travel at 50 percent of the time on
+ * both axes. These stops spend the first third of the flight mostly climbing
+ * (12 percent across, 42 percent up) and the last third mostly sweeping across,
+ * which is the arc of something thrown rather than dragged. The rotation grows
+ * with the sweep so the card banks into the turn.
+ *
+ * The card fades out over the last stretch: at 0.16 scale it is a chip sitting
+ * on top of the deck icon, and leaving it there under the bounce reads as two
+ * objects instead of one arriving.
+ */
+.mistake-toast[data-phase="flying"] .mistake-toast__card,
+.mistake-toast[data-phase="landing"] .mistake-toast__card {
+  animation: sa-fly var(--sa-fly, 380ms) var(--ease-fly, cubic-bezier(0.3, 0.7, 0.3, 1)) both;
+}
+
+.mistake-toast[data-phase="flying"] .mistake-toast__card::after,
+.mistake-toast[data-phase="landing"] .mistake-toast__card::after {
+  opacity: 1;
+}
+
+@keyframes sa-fly {
+  from {
+    transform: translate3d(0, 0, 0) scale(1.02) rotate(0deg);
+    opacity: 1;
+  }
+  35% {
+    transform: translate3d(calc(var(--sa-dx, 0px) * 0.12), calc(var(--sa-dy, 0px) * 0.42), 0)
+      scale(0.72) rotate(-2.5deg);
+    opacity: 1;
+  }
+  70% {
+    transform: translate3d(calc(var(--sa-dx, 0px) * 0.55), calc(var(--sa-dy, 0px) * 0.82), 0)
+      scale(0.38) rotate(-5.5deg);
+    opacity: 1;
+  }
+  92% {
+    opacity: 1;
+  }
+  to {
+    transform: translate3d(var(--sa-dx, 0px), var(--sa-dy, 0px), 0) scale(var(--sa-scale, 0.16))
+      rotate(-8deg);
+    opacity: 0;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Phase 3, 560 to 720ms. The deck icon squashes and stretches and its   */
+/* badge pops.                                                           */
+/* ------------------------------------------------------------------ */
+
+/*
+ * The icon itself, which Recommendation.tsx exports as <DeckIcon>. It is drawn
+ * here rather than in the shell because it is one half of the animation: the
+ * first version of this file declared .deck-icon--catching and [data-deck-badge]
+ * as "a contract with the shell", nothing in the shell honoured it, and the card
+ * flew to an empty corner. A contract with one signatory is a comment.
+ *
+ * --floating fixes it to the top left, which is where the owner put it, above
+ * the toast's z-index so the card lands in front of nothing. A shell that wants
+ * it inside its own header renders <DeckIcon floating={false} /> and places it.
+ */
+.deck-icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.75rem; /* 44px, CLAUDE.md's minimum hit target */
+  min-height: 2.75rem;
+  padding: 0.375rem;
+  border: 1px solid var(--bb-border);
+  border-radius: 0.875rem;
+  background: var(--bb-card);
+  color: var(--bb-foreground);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform var(--dur-instant, 80ms) var(--sa-ease);
+}
+
+.deck-icon--floating {
+  position: fixed;
+  top: calc(0.75rem + env(safe-area-inset-top, 0px));
+  left: calc(0.75rem + env(safe-area-inset-left, 0px));
+  z-index: 41; /* above .mistake-toast, so the card lands in front of nothing */
+}
+
+/* Acknowledges its own press, like every control in the product. */
+.deck-icon:active {
+  transform: scale(0.94);
+}
+
+.deck-icon:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--bb-ring, var(--bb-primary)) 45%, transparent);
+}
+
+.deck-icon__glyph {
+  display: inline-flex;
+}
+
+/*
+ * The badge. It is positioned relative to the icon's own corner rather than
+ * laid out in flow, so incrementing 9 to 10 cannot nudge the icon sideways in
+ * the same frame the icon is squashing.
+ */
+.deck-icon__badge {
+  position: absolute;
+  top: -0.25rem;
+  right: -0.25rem;
+  min-width: 1.25rem;
+  padding: 0 0.25rem;
+  border-radius: 999px;
+  background: var(--bb-primary);
+  color: var(--bb-primary-foreground);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1.25rem;
+  text-align: center;
+}
+
+/*
+ * These two selectors are what the flight lands on. Recommendation.tsx adds
+ * .deck-icon--catching to whatever element deckIcon() returns and takes it off
+ * again 160ms later, so a shell drawing its own icon gets the same catch as
+ * long as it carries data-deck-icon and puts data-deck-badge on the count.
+ *
+ * Squash and stretch means the two axes are out of phase: the icon widens as it
+ * flattens, then overshoots tall and narrow, then settles. Equal scaling on
+ * both axes is a pulse, not a catch.
+ */
+.deck-icon--catching {
+  animation: sa-catch var(--dur-bounce, 160ms) var(--ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1)) both;
+  transform-origin: center bottom;
+}
+
+.deck-icon--catching [data-deck-badge] {
+  animation: sa-badge-pop var(--dur-bounce, 160ms) var(--ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1)) both;
+  transform-origin: center;
+}
+
+@keyframes sa-catch {
+  from {
+    transform: scale(1, 1);
+  }
+  40% {
+    transform: scale(1.18, 0.82);
+  }
+  75% {
+    transform: scale(0.94, 1.1);
+  }
+  to {
+    transform: scale(1, 1);
+  }
+}
+
+@keyframes sa-badge-pop {
+  from {
+    transform: scale(0.7);
+    opacity: 0.6;
+  }
+  55% {
+    transform: scale(1.28);
+    opacity: 1;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Reduced motion. Owner: "the card fades in place and the badge          */
+/* increments. No flight."                                               */
+/* ------------------------------------------------------------------ */
+
+/*
+ * The fade rule lives OUTSIDE the media query because Recommendation.tsx drives
+ * the reduced motion path by state (it goes straight to data-phase="fading"),
+ * and a rule that only existed inside the query would leave a test or a
+ * tutorial that passes reducedMotion explicitly with a card that never leaves.
+ */
+.mistake-toast[data-phase="fading"] .mistake-toast__card {
+  animation: sa-fade-in-place var(--sa-fade, 140ms) linear both;
+}
+
+@keyframes sa-fade-in-place {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Belt and braces: even if a phase is reached, nothing travels. */
+  .mistake-toast[data-phase="offered"] .mistake-toast__card,
+  .mistake-toast[data-phase="lifting"] .mistake-toast__card,
+  .mistake-toast[data-phase="flying"] .mistake-toast__card,
+  .mistake-toast[data-phase="landing"] .mistake-toast__card {
+    animation: none;
+    transform: none;
+    opacity: 1;
+  }
+
+  .mistake-toast[data-phase="lifting"] .mistake-toast__card::after,
+  .mistake-toast[data-phase="flying"] .mistake-toast__card::after,
+  .mistake-toast[data-phase="landing"] .mistake-toast__card::after {
+    animation: none;
+  }
+
+  .mistake-toast[data-phase="lifting"] .mistake-toast__actions,
+  .mistake-toast[data-phase="flying"] .mistake-toast__actions,
+  .mistake-toast[data-phase="landing"] .mistake-toast__actions {
+    animation: none;
+    opacity: 0;
+  }
+
+  /* The badge still increments: that is the deck store, not this file. What
+     stops is the squash and the pop. */
+  .deck-icon--catching,
+  .deck-icon--catching [data-deck-badge] {
+    animation: none;
+  }
+
+  /* The press acknowledgement stays. It is feedback, not decoration, and
+     CLAUDE.md's 100ms row does not have a reduced motion exemption. */
+  .mistake-toast__save {
+    transition-duration: 1ms;
+  }
+
+  .mistake-toast__card:has(.mistake-toast__save:active) {
+    transition-duration: 1ms;
+  }
+}

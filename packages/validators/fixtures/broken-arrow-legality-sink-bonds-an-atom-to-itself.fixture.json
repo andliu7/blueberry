@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 2,
+  "id": "broken-arrow-legality-sink-bonds-an-atom-to-itself",
+  "title": "A bond breaking arrow sinks as a new bond named between one atom and itself",
+  "expect": {
+    "kind": "broken",
+    "mustFail": ["conservation-arrow-legality", "conservation-electron-flow", "conservation-step-identity"],
+    "note": "Adversary pass, Phase 1, attack surface 1. Rule sink_bonds_an_atom_to_itself had no negative control anywhere in the corpus. The source is the real Cl-Cl bond of a chlorine molecule, order 1, two electrons available. The sink is authored as betweenAtoms with both slots naming Na1, the same atom twice, which claims a bond forming between an atom and itself. legality.ts checks this before non degeneracy or adjacency are ever reached for the arrow and `continue`s past both once it fires, which is why this fixture needed no separate isolation of adjacency: the self bond check runs unconditionally on any betweenAtoms sink whose two names are equal, regardless of what the source is or whether it would otherwise be a legal pivot. The to state is byte identical to the from state, the same isolation pattern used across this attack surface. WHY BOTH CHECKS ARE NAMED. conservation-electron-flow disagrees with the unchanged to state: declaredDeltas records the Cl-Cl bond losing 2 electrons and a phantom Na1-Na1 self pair gaining 2, observedDeltas shows neither change, and deltaMismatches reports both. Mass, charge, and valence hold because the to state equals the from state and both species are independently self consistent: each chlorine in Cl2 carries three lone pairs and one bond, derived 7 - 6 - 1 = 0, and the sodium cation is formal charge +1 with zero lone pairs and zero bonds, derived 1 - 0 - 0 = 1. CASCADE ADDED IN PHASE 1 BUILDER PASS TWO. conservation-step-identity is now declared here as well. The step is declared bond_homolysis and its single arrow moves a pair, so the label contradicts the electron flow whatever the sink does. That is a separate finding from the sink naming one atom twice, and the isolated control for it is broken-step-identity-bromine-heterolysis-declared-a-bond-homolysis."
+  },
+  "pathway": {
+    "id": "arrow-legality-sink-bonds-an-atom-to-itself",
+    "route": "radical_addition",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": { "elementaryStep": "bond_homolysis", "reactionCenters": ["ClA", "ClB"] },
+        "arrows": [
+          { "id": "a1", "electrons": 2, "source": { "kind": "bond", "bondId": "b1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["Na1", "Na1"] } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "reagent",
+              "species": {
+                "id": "chlorine",
+                "label": "chlorine, the real bond source",
+                "atoms": [
+                  { "id": "ClA", "element": "Cl", "lonePairs": 3 },
+                  { "id": "ClB", "element": "Cl", "lonePairs": 3 }
+                ],
+                "bonds": [{ "id": "b1", "a": "ClA", "b": "ClB", "order": 1 }]
+              }
+            },
+            {
+              "role": "counterion",
+              "species": {
+                "id": "sodium-cation",
+                "label": "sodium cation, unrelated to the claimed arrow",
+                "atoms": [{ "id": "Na1", "element": "Na", "formalCharge": 1 }]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "reagent",
+              "species": {
+                "id": "chlorine",
+                "label": "chlorine, the real bond source",
+                "atoms": [
+                  { "id": "ClA", "element": "Cl", "lonePairs": 3 },
+                  { "id": "ClB", "element": "Cl", "lonePairs": 3 }
+                ],
+                "bonds": [{ "id": "b1", "a": "ClA", "b": "ClB", "order": 1 }]
+              }
+            },
+            {
+              "role": "counterion",
+              "species": {
+                "id": "sodium-cation",
+                "label": "sodium cation, unrelated to the claimed arrow",
+                "atoms": [{ "id": "Na1", "element": "Na", "formalCharge": 1 }]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

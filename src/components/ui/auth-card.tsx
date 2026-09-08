@@ -167,7 +167,7 @@ export function AuthCard({
           transition={transition}
           className={cn(
             "relative flex w-full flex-col justify-center overflow-hidden p-6 sm:p-8 md:w-1/2",
-            "bg-gradient-to-br from-indigo-500/22 via-fuchsia-500/12 to-transparent",
+            "bg-gradient-to-br from-brand-from/22 via-brand-to/12 to-transparent",
             signup ? "md:order-1" : "md:order-2",
           )}
         >

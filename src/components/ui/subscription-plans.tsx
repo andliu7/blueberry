@@ -223,7 +223,7 @@ function PlanAction({
 
   const base =
     "mt-1 block w-full rounded-full px-3 py-2 text-center text-xs font-semibold transition-colors";
-  const filled = `${base} cursor-pointer bg-gradient-to-r from-indigo-500 to-fuchsia-500 text-white hover:brightness-110`;
+  const filled = `${base} cursor-pointer bg-gradient-to-r from-brand-from to-brand-to text-white hover:brightness-110`;
   const quiet = `${base} border border-dashed border-slate-300 text-slate-400 dark:border-stone-700 dark:text-stone-500`;
 
   if (isCurrent) {

@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 2,
+  "id": "broken-known-limit-loader-refusal-exemption-accepts-a-refusal-for-a-different-reason-than-the-note-claims",
+  "title": "A fixture whose note claims it is a duplicate-step-id negative control, but whose actual on-disk defect is an unrelated invalid route name, still reads as the loader-refusal control firing",
+  "expect": {
+    "kind": "broken",
+    "mustFail": ["conservation-fixture-schema"],
+    "note": "ADVERSARY PASS FIVE, ATTACK SURFACE 0 (THE LOADER REFUSAL EXEMPTION ITSELF). The pass four builder flagged, in his own words in family.ts, that `declaresLoaderRefusal` 'accepts ANY refusal, not only the refusal its note describes,' and that 'if such a fixture later rots into a different schema error, it still reads as the control firing.' This fixture is that scenario, constructed rather than only predicted, and it is filed as the negative control it actually is: a demonstration that the exemption is exactly as loose as documented, not tighter.\n\nTHE LIE, STATED PLAINLY SO IT DOES NOT ACCIDENTALLY BECOME TRUE. This note is written as though the fixture below tests the same shape as `broken-known-limit-two-sn1-captures-sharing-an-accidental-duplicate-step-id-cannot-be-annotated-at-all`, two steps sharing an id. It does not. The pathway below has exactly one step with a perfectly ordinary, unique id, unremarkable chemistry, and every field correct, EXCEPT `pathway.route`, which is the string \"sn2z\", not a member of chem-core's `MechanismRoute` union. `parseRoute` throws `<root>.pathway.route: \"sn2z\" is not a MechanismRoute...`, a refusal with nothing whatsoever to do with step id uniqueness, annotation binding, or anything this note's own prose describes.\n\nWHAT THIS PROVES. `family.ts`'s loop reads `declaresLoaderRefusal(error)`, which is `error.expect?.mustFail.includes(LOADER_CHECK_NAME) === true`. It does not read `error.message` and does not compare it against `expect.note` in any way. So a load error is accepted as the fired control purely because THIS FIXTURE'S OWN `expect.mustFail` names `conservation-fixture-schema`, regardless of what actually caused the refusal. Every check in the conservation family will read this fixture's refusal as its negative control firing cleanly, print the REAL refusal message (about the route, not about step ids) in NOT MEASURABLE, and move on. A reviewer who reads only the fixture's file name and the first sentence of its note, and not the printed refusal message against it on every run, would believe this proves the step-id-uniqueness rule works. It proves nothing about that rule. The step-id-uniqueness rule is separately and correctly proven by the fixture named above; this one proves only that the exemption does not check its own homework.\n\nWHAT THIS DOES NOT PROVE, SO THIS IS NOT OVERSTATED. It does not mean a wrong fixture silently passes as green in the ordinary sense: the loader still visibly refuses this file, the refusal message is printed on every run under NOT MEASURABLE with the exact text, and nothing about mass, charge, or valence is misjudged, because a refused fixture is examined by nothing, which is `parsePathway`'s own documented and deliberate cost. The gap is narrower and still real: the CONTENT of `expect.note` on a loader-refusal fixture is never verified against the ACTUAL refusal reason, so a fixture can claim to be evidence for one schema rule while actually being evidence for a completely different one, or for nothing durable at all if the file rots. Tightening this the way `family.ts`'s own comment says would mean matching message text, which the same comment already rejects as fragile to rewording; the mitigation on file today is the printed message, which is a human read, not a mechanical check. Reported as found rather than fixed, per instruction: fixtures and tests only.\n\nHOW TO READ THIS FIXTURE'S PASS. `conservation-fixture-schema`'s negative control count is now satisfied twice over, once by this file and once by the duplicate-step-id file, and the suite has no way to tell them apart as different reasons for a refusal. That is the residual the pass four builder named, made concrete."
+  },
+  "pathway": {
+    "id": "loader-exemption-decoy-invalid-route",
+    "route": "sn2z",
+    "steps": [
+      {
+        "id": "step-1-ordinary-sn2",
+        "identity": { "elementaryStep": "concerted_substitution", "route": "sn2", "reactionCenters": ["C1"] },
+        "arrows": [
+          { "id": "a1", "electrons": 2, "source": { "kind": "lonePair", "atomId": "O1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["O1", "C1"] } },
+          { "id": "a2", "electrons": 2, "source": { "kind": "bond", "bondId": "b1" }, "sink": { "kind": "atom", "atomId": "Br1" } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "bromoethane",
+                "label": "bromoethane",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "Br1", "element": "Br", "lonePairs": 3 }
+                ],
+                "bonds": [
+                  { "id": "b1", "a": "C1", "b": "Br1", "order": 1 },
+                  { "id": "b2", "a": "C1", "b": "C2", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "nucleophile",
+              "species": {
+                "id": "hydroxide",
+                "label": "hydroxide",
+                "atoms": [
+                  { "id": "O1", "element": "O", "formalCharge": -1, "lonePairs": 3 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [{ "id": "b3", "a": "O1", "b": "H1", "order": 1 }]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "ethanol",
+                "label": "ethanol",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b4", "a": "C1", "b": "O1", "order": 1 },
+                  { "id": "b5", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b6", "a": "O1", "b": "H1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "bromide",
+                "label": "bromide",
+                "atoms": [{ "id": "Br1", "element": "Br", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 2,
+  "id": "good-heterolysis-of-protonated-tert-butanol",
+  "title": "Protonated tert-butanol ionises, giving the tert-butyl cation and water as the leaving group",
+  "expect": {
+    "kind": "good"
+  },
+  "pathway": {
+    "id": "tert-butyl-ionisation",
+    "route": "sn1",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": {
+          "elementaryStep": "leaving_group_departure",
+          "route": "sn1",
+          "reactionCenters": ["C1", "O1"]
+        },
+        "arrows": [
+          {
+            "id": "a1",
+            "electrons": 2,
+            "source": { "kind": "bond", "bondId": "b4" },
+            "sink": { "kind": "atom", "atomId": "O1" }
+          }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "tert-butyloxonium",
+                "label": "protonated tert-butanol",
+                "atoms": [
+                  { "id": "C1", "element": "C" },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "O1", "element": "O", "formalCharge": 1, "lonePairs": 1, "implicitHydrogens": 2 }
+                ],
+                "bonds": [
+                  { "id": "b1", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b2", "a": "C1", "b": "C3", "order": 1 },
+                  { "id": "b3", "a": "C1", "b": "C4", "order": 1 },
+                  { "id": "b4", "a": "C1", "b": "O1", "order": 1 }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "tert-butyl-cation",
+                "label": "tert-butyl cation",
+                "atoms": [
+                  { "id": "C1", "element": "C", "formalCharge": 1 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 }
+                ],
+                "bonds": [
+                  { "id": "b5", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b6", "a": "C1", "b": "C3", "order": 1 },
+                  { "id": "b7", "a": "C1", "b": "C4", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "water",
+                "label": "water",
+                "atoms": [{ "id": "O1", "element": "O", "lonePairs": 2, "implicitHydrogens": 2 }]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

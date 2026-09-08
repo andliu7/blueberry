@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 2,
+  "id": "broken-proton-transfer-isobutylene-protonated-by-an-acid-declared-a-spectator",
+  "title": "Markovnikov protonation of isobutylene where the hydronium that supplies the proton is declared bulk medium and excluded from the multiset",
+  "expect": {
+    "kind": "broken",
+    "mustFail": [
+      "conservation-mass",
+      "conservation-charge",
+      "conservation-proton-transfer",
+      "conservation-spectator-declaration"
+    ],
+    "note": "The same system boundary rule as the acetone fixture, reached from the other side. Here the acid IS drawn, and the chemistry is right: hydronium protonates the alkene at the less substituted carbon and the tert-butyl cation forms. What is wrong is the declaration. Someone marked the acid bulk_medium, which excludes it from the multiset, and CLAUDE.md is explicit that a species not in the multiset cannot donate anything. This exercises the branch of conservation-proton-transfer that the acetone fixture cannot reach: hydrogens gained and hydrogens released balance exactly, one and one, so the imbalance arm stays silent and the spectator arm is what fires. It also shows electron flow can stay green while the boundary is violated. The arrows and the two states agree in every place, and total valence electrons over the participating members are 24 either side, because the proton that arrives brings one valence electron and one unit of positive charge and those cancel in valenceElectronCount. Mass and charge still fire, since the participating members gain a hydrogen and a charge from a species that was declared not to be taking part. conservation-spectator-declaration USED TO stay green here, because the acid is a member on the left, its conjugate base is a member on the right, both declarations are justified and owned, and neither species is present on both sides for the id keyed structural comparison to catch. That last clause turned out to describe a hole rather than a property. broken-spectator-declaration-laundering-a-redox-transfer-through-two-swapped-counterions is the same evasion used on purpose, and closing it added assertion 6 to that check: the declared spectator population is compared across the step as a multiset of canonical structures, so a spectator present on one side and gone from the other is a finding whether or not its id appears twice. Hydronium is declared a spectator in s0 and is not in s1, and water is declared a spectator in s1 and is not in s0, so assertion 6 fires twice here. That is correct and not collateral: this fixture's own title is that an acid which takes part is declared a spectator, and a check about spectator declarations SHOULD have something to say about it. mustFail was extended rather than the assertion narrowed, because narrowing it to spare this fixture would reopen the laundering hole it was written to close."
+  },
+  "pathway": {
+    "id": "isobutylene-protonation-by-a-declared-spectator-acid",
+    "route": "electrophilic_addition_alkene",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": {
+          "elementaryStep": "pi_bond_attack",
+          "route": "electrophilic_addition_alkene",
+          "reactionCenters": ["C1", "C2", "H1"]
+        },
+        "arrows": [
+          {
+            "id": "a1",
+            "electrons": 2,
+            "source": { "kind": "bond", "bondId": "b1" },
+            "sink": { "kind": "betweenAtoms", "atomIds": ["C2", "H1"] }
+          },
+          {
+            "id": "a2",
+            "electrons": 2,
+            "source": { "kind": "bond", "bondId": "b4" },
+            "sink": { "kind": "atom", "atomId": "O1" }
+          }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "isobutylene",
+                "label": "2-methylpropene",
+                "atoms": [
+                  { "id": "C1", "element": "C" },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 }
+                ],
+                "bonds": [
+                  { "id": "b1", "a": "C1", "b": "C2", "order": 2 },
+                  { "id": "b2", "a": "C1", "b": "C3", "order": 1 },
+                  { "id": "b3", "a": "C1", "b": "C4", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "acid",
+              "species": {
+                "id": "hydronium",
+                "label": "hydronium",
+                "atoms": [
+                  { "id": "O1", "element": "O", "formalCharge": 1, "lonePairs": 1, "implicitHydrogens": 2 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [{ "id": "b4", "a": "O1", "b": "H1", "order": 1 }]
+              }
+            }
+          ],
+          "spectators": [
+            {
+              "speciesId": "hydronium",
+              "reason": "bulk_medium",
+              "justification": "The reaction is run in aqueous acid, so the acid was treated as part of the bulk medium rather than as a species taking part. This is the mistake the fixture exists to catch: the proton that ends up on C2 comes from this species.",
+              "declaredBy": "phase-0-conservation-builder"
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "tert-butyl-cation",
+                "label": "tert-butyl cation",
+                "atoms": [
+                  { "id": "C1", "element": "C", "formalCharge": 1 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b5", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b6", "a": "C1", "b": "C3", "order": 1 },
+                  { "id": "b7", "a": "C1", "b": "C4", "order": 1 },
+                  { "id": "b8", "a": "C2", "b": "H1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "solvent",
+              "species": {
+                "id": "water",
+                "label": "water",
+                "atoms": [{ "id": "O1", "element": "O", "lonePairs": 2, "implicitHydrogens": 2 }]
+              }
+            }
+          ],
+          "spectators": [
+            {
+              "speciesId": "water",
+              "reason": "bulk_medium",
+              "justification": "Carried over from the from state, where the same oxygen was declared bulk medium as hydronium. The declaration is the error under test, not the chemistry.",
+              "declaredBy": "phase-0-conservation-builder"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

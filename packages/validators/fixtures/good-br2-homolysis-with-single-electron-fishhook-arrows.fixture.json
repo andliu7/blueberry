@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 2,
+  "id": "good-br2-homolysis-with-single-electron-fishhook-arrows",
+  "title": "Br2 undergoes homolytic bond cleavage into two bromine radicals, drawn with two single electron fishhook arrows off the same bond",
+  "expect": {
+    "kind": "good",
+    "note": "The corpus's only radical fixture before this one, broken-mass-methane-loses-a-hydrogen-that-lives-only-in-the-implicit-count, draws zero arrows; nothing anywhere in the corpus exercised a singleElectron source or an electrons: 1 arrow, the whole 1-electron half of ElectronFlowArrow's declared electron count, before this fixture. That half is exactly what homolysis and every radical propagation step needs: two fishhooks off one bond, one electron to each departing atom, rather than one arrow moving both. This is the positive control proving that arithmetic is right rather than merely untested. Two arrows both source bond b1, each moving one electron, and declaredDeltas sums bond deltas rather than replacing them, so the two -1 contributions combine into the same -2 bonding electron change a single 2-electron arrow would declare, matching observedDeltas exactly, order 1 to order 0 on the pair. Each arrow's atom sink adds one nonbonding electron at its own bromine, which observedDeltas shows as lonePairs unchanged and unpairedElectrons 0 to 1 on each atom, one new radical apiece. Charge is 0 throughout because homolysis moves no charge, only unpaired electrons, which is the case a heterolysis fixture like good-heterolysis-of-protonated-tert-butanol cannot exercise."
+  },
+  "pathway": {
+    "id": "br2-homolysis",
+    "route": "radical_halogenation",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": {
+          "elementaryStep": "bond_homolysis",
+          "route": "radical_halogenation",
+          "reactionCenters": ["Br1", "Br2"]
+        },
+        "arrows": [
+          {
+            "id": "a1",
+            "electrons": 1,
+            "source": { "kind": "bond", "bondId": "b1" },
+            "sink": { "kind": "atom", "atomId": "Br1" }
+          },
+          {
+            "id": "a2",
+            "electrons": 1,
+            "source": { "kind": "bond", "bondId": "b1" },
+            "sink": { "kind": "atom", "atomId": "Br2" }
+          }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "reagent",
+              "species": {
+                "id": "bromine",
+                "label": "Br2",
+                "atoms": [
+                  { "id": "Br1", "element": "Br", "lonePairs": 3 },
+                  { "id": "Br2", "element": "Br", "lonePairs": 3 }
+                ],
+                "bonds": [{ "id": "b1", "a": "Br1", "b": "Br2", "order": 1 }]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "bromine-radical-1",
+                "label": "bromine radical",
+                "atoms": [{ "id": "Br1", "element": "Br", "lonePairs": 3, "unpairedElectrons": 1 }]
+              }
+            },
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "bromine-radical-2",
+                "label": "bromine radical",
+                "atoms": [{ "id": "Br2", "element": "Br", "lonePairs": 3, "unpairedElectrons": 1 }]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

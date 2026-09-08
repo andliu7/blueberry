@@ -1,0 +1,131 @@
+{
+  "protocol": "blueberry-oracle-corpus",
+  "version": 1,
+  "name": "declared-sanitization-failure",
+  "description": "The same impossible molecule with a sanitizationMayFail declaration naming the exception RDKit actually raises. Must NOT fail the suite. Must produce an ADJUDICATION line.",
+  "sequences": [
+    {
+      "id": "pentavalent-carbon-declared",
+      "description": "The declaration is deliberately thin so an adversary reading it has something to argue with.",
+      "aromaticityInvariantAtomIds": [],
+      "states": [
+        {
+          "id": "state-0",
+          "sanitizationMayFail": {
+            "expectedError": "AtomValenceException",
+            "justification": "Placeholder declaration used only to exercise the adjudication path. This molecule is not a legitimate reactive intermediate and no problem should ever be authored on it.",
+            "declaredBy": "packages/validators/python/negative/README.md"
+          },
+          "species": [
+            {
+              "id": "sp-1",
+              "label": "pentavalent carbon, which is not a molecule",
+              "expect": {
+                "meso": false
+              },
+              "atoms": [
+                {
+                  "id": "c0",
+                  "element": "C",
+                  "isotope": null,
+                  "formalCharge": 0,
+                  "lonePairs": 0,
+                  "unpairedElectrons": 0,
+                  "implicitHydrogens": 0,
+                  "stereo": null
+                },
+                {
+                  "id": "c1",
+                  "element": "C",
+                  "isotope": null,
+                  "formalCharge": 0,
+                  "lonePairs": 0,
+                  "unpairedElectrons": 0,
+                  "implicitHydrogens": 3,
+                  "stereo": null
+                },
+                {
+                  "id": "c2",
+                  "element": "C",
+                  "isotope": null,
+                  "formalCharge": 0,
+                  "lonePairs": 0,
+                  "unpairedElectrons": 0,
+                  "implicitHydrogens": 3,
+                  "stereo": null
+                },
+                {
+                  "id": "c3",
+                  "element": "C",
+                  "isotope": null,
+                  "formalCharge": 0,
+                  "lonePairs": 0,
+                  "unpairedElectrons": 0,
+                  "implicitHydrogens": 3,
+                  "stereo": null
+                },
+                {
+                  "id": "c4",
+                  "element": "C",
+                  "isotope": null,
+                  "formalCharge": 0,
+                  "lonePairs": 0,
+                  "unpairedElectrons": 0,
+                  "implicitHydrogens": 3,
+                  "stereo": null
+                },
+                {
+                  "id": "c5",
+                  "element": "C",
+                  "isotope": null,
+                  "formalCharge": 0,
+                  "lonePairs": 0,
+                  "unpairedElectrons": 0,
+                  "implicitHydrogens": 3,
+                  "stereo": null
+                }
+              ],
+              "bonds": [
+                {
+                  "id": "b1",
+                  "a": "c0",
+                  "b": "c1",
+                  "order": 1,
+                  "stereo": null
+                },
+                {
+                  "id": "b2",
+                  "a": "c0",
+                  "b": "c2",
+                  "order": 1,
+                  "stereo": null
+                },
+                {
+                  "id": "b3",
+                  "a": "c0",
+                  "b": "c3",
+                  "order": 1,
+                  "stereo": null
+                },
+                {
+                  "id": "b4",
+                  "a": "c0",
+                  "b": "c4",
+                  "order": 1,
+                  "stereo": null
+                },
+                {
+                  "id": "b5",
+                  "a": "c0",
+                  "b": "c5",
+                  "order": 1,
+                  "stereo": null
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

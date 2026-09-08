@@ -1,0 +1,25 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // cli.ts uses `process`, a Node global. TypeScript 5.9 (which the
+    // blueberry_game repo runs) picked @types/node up automatically from
+    // node_modules/@types; TypeScript 6.0, which this repo runs, does not.
+    // Naming it is the honest fix either way: this package really does need
+    // Node types, and relying on the compiler to guess was always implicit.
+    "types": ["node"],
+    "outDir": "dist",
+    "rootDir": "src",
+    // Same reasoning as packages/validators: keep the incremental build stamp inside
+    // dist/ so it is covered by the dist/ gitignore rule rather than sitting next to
+    // this file as untracked build output.
+    "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo",
+    // The review CLI runs the sources directly with `node --experimental-strip-types`,
+    // and Node's type stripping does not rewrite a ".js" specifier to a ".ts" file on
+    // disk. So relative imports here carry a ".ts" extension and this option lets tsc
+    // still emit by rewriting them to ".js" in dist/. TypeScript 5.7 or newer.
+    // packages/validators uses the same pair of settings for the same reason.
+    "rewriteRelativeImportExtensions": true
+  },
+  "include": ["src/**/*.ts"],
+  "references": [{ "path": "../chem-core" }]
+}

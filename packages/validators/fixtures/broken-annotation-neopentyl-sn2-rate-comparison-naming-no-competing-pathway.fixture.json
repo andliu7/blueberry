@@ -1,0 +1,107 @@
+{
+  "schemaVersion": 2,
+  "id": "broken-annotation-neopentyl-sn2-rate-comparison-naming-no-competing-pathway",
+  "title": "The neopentyl SN2 whose rate_comparison says how slow it is and never says what happens instead",
+  "expect": {
+    "kind": "broken",
+    "mustFail": ["conservation-disfavoured-rate-comparison"],
+    "note": "NEGATIVE CONTROL for conservation-disfavoured-rate-comparison, named competing pathway arm. The annotation is present, non empty, justified, and states the rate honestly. It names no MechanismRoute, and that is the half CLAUDE.md is specifically about: the engine says strongly disfavored, competing pathway likely AND NAMES THE COMPETING PATHWAY, because the methyl shift to a tertiary cation is the actual lesson. A student told only that this is slow has been told the boring half. The check looks for a chem-core route id as a whole word, which is why this file can say the words methyl migration in prose and still fail: prose is for the reader, and the id is what another tool can look up. Nothing in the text below is chemically wrong, which is what makes this control worth having."
+  },
+  "pathway": {
+    "id": "sn2-neopentyl-bromide-hydroxide-unnamed-competitor",
+    "route": "sn2",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": { "elementaryStep": "concerted_substitution", "route": "sn2", "reactionCenters": ["C5"] },
+        "arrows": [
+          { "id": "a1", "electrons": 2, "source": { "kind": "lonePair", "atomId": "O1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["O1", "C5"] } },
+          { "id": "a2", "electrons": 2, "source": { "kind": "bond", "bondId": "b5" }, "sink": { "kind": "atom", "atomId": "Br1" } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "neopentyl-bromide",
+                "label": "1-bromo-2,2-dimethylpropane",
+                "atoms": [
+                  { "id": "C1", "element": "C" },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C5", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "Br1", "element": "Br", "lonePairs": 3 }
+                ],
+                "bonds": [
+                  { "id": "b1", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b2", "a": "C1", "b": "C3", "order": 1 },
+                  { "id": "b3", "a": "C1", "b": "C4", "order": 1 },
+                  { "id": "b4", "a": "C1", "b": "C5", "order": 1 },
+                  { "id": "b5", "a": "C5", "b": "Br1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "nucleophile",
+              "species": {
+                "id": "hydroxide",
+                "label": "hydroxide",
+                "atoms": [
+                  { "id": "O1", "element": "O", "formalCharge": -1, "lonePairs": 3 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [{ "id": "b6", "a": "O1", "b": "H1", "order": 1 }]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "neopentyl-alcohol",
+                "label": "2,2-dimethylpropan-1-ol",
+                "atoms": [
+                  { "id": "C1", "element": "C" },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C5", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b7", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b8", "a": "C1", "b": "C3", "order": 1 },
+                  { "id": "b9", "a": "C1", "b": "C4", "order": 1 },
+                  { "id": "b10", "a": "C1", "b": "C5", "order": 1 },
+                  { "id": "b11", "a": "C5", "b": "O1", "order": 1 },
+                  { "id": "b12", "a": "O1", "b": "H1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "bromide",
+                "label": "bromide",
+                "atoms": [{ "id": "Br1", "element": "Br", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "annotations": [
+      {
+        "kind": "rate_comparison",
+        "value": "About 10^-5 relative to ethyl bromide. Strongly disfavoured.",
+        "justification": "The three beta methyls sit across the backside trajectory, so the transition state is very high in energy and the step is very slow. True as far as it goes, and it deliberately stops there: no route id appears anywhere in this annotation, so nothing tells a reader or a tool what outruns it."
+      }
+    ]
+  }
+}

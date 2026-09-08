@@ -1,0 +1,3 @@
+# The integrity lock hashes raw file bytes, so a checkout that rewrote line endings
+# would report every text file as MODIFIED on a different machine. Pin them.
+* text=auto eol=lf

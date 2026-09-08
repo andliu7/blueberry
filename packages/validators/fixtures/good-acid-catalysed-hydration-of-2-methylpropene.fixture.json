@@ -1,0 +1,350 @@
+{
+  "schemaVersion": 2,
+  "id": "good-acid-catalysed-hydration-of-2-methylpropene",
+  "title": "2-methylpropene is protonated by hydronium, water captures the tertiary cation, and the water left over from the acid takes the proton back off",
+  "expect": {
+    "kind": "good",
+    "note": "Three steps and a closed catalytic cycle: the hydronium spent in step 1 becomes the water that acts as base in step 3, and a hydronium comes back out. Every proton in the mechanism has a drawn donor and a drawn acceptor in the same state. This is the exact reverse of good-e1-acid-catalysed-dehydration-of-tert-butanol, step for step and arrow for arrow, which is the equilibrium a student is expected to be able to push either way."
+  },
+  "pathway": {
+    "id": "hydration-2-methylpropene",
+    "route": "electrophilic_addition_alkene",
+    "steps": [
+      {
+        "id": "step-1-protonation-of-the-alkene",
+        "identity": { "elementaryStep": "pi_bond_attack", "route": "electrophilic_addition_alkene", "reactionCenters": ["C1", "C2", "H1"] },
+        "arrows": [
+          { "id": "a1", "electrons": 2, "source": { "kind": "bond", "bondId": "b1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["C2", "H1"] } },
+          { "id": "a2", "electrons": 2, "source": { "kind": "bond", "bondId": "b4" }, "sink": { "kind": "atom", "atomId": "O1" } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "2-methylpropene",
+                "label": "2-methylpropene",
+                "atoms": [
+                  { "id": "C1", "element": "C" },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 }
+                ],
+                "bonds": [
+                  { "id": "b1", "a": "C1", "b": "C2", "order": 2 },
+                  { "id": "b2", "a": "C1", "b": "C3", "order": 1 },
+                  { "id": "b3", "a": "C1", "b": "C4", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "acid",
+              "species": {
+                "id": "hydronium",
+                "label": "hydronium",
+                "atoms": [
+                  { "id": "O1", "element": "O", "formalCharge": 1, "lonePairs": 1 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "H2", "element": "H" },
+                  { "id": "H3", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b4", "a": "O1", "b": "H1", "order": 1 },
+                  { "id": "b5", "a": "O1", "b": "H2", "order": 1 },
+                  { "id": "b6", "a": "O1", "b": "H3", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "solvent",
+              "species": {
+                "id": "water-nucleophile",
+                "label": "water, the one that attacks in step 2",
+                "atoms": [
+                  { "id": "O2", "element": "O", "lonePairs": 2 },
+                  { "id": "H4", "element": "H" },
+                  { "id": "H5", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b7", "a": "O2", "b": "H4", "order": 1 },
+                  { "id": "b8", "a": "O2", "b": "H5", "order": 1 }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "tert-butyl-cation",
+                "label": "tert-butyl cation",
+                "atoms": [
+                  { "id": "C1", "element": "C", "formalCharge": 1 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b9", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b10", "a": "C1", "b": "C3", "order": 1 },
+                  { "id": "b11", "a": "C1", "b": "C4", "order": 1 },
+                  { "id": "b12", "a": "C2", "b": "H1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "byproduct",
+              "species": {
+                "id": "water-from-acid",
+                "label": "water, left over from the hydronium",
+                "atoms": [
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "H2", "element": "H" },
+                  { "id": "H3", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b13", "a": "O1", "b": "H2", "order": 1 },
+                  { "id": "b14", "a": "O1", "b": "H3", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "solvent",
+              "species": {
+                "id": "water-nucleophile",
+                "label": "water, the one that attacks in step 2",
+                "atoms": [
+                  { "id": "O2", "element": "O", "lonePairs": 2 },
+                  { "id": "H4", "element": "H" },
+                  { "id": "H5", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b7", "a": "O2", "b": "H4", "order": 1 },
+                  { "id": "b8", "a": "O2", "b": "H5", "order": 1 }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "step-2-capture-by-water",
+        "identity": { "elementaryStep": "nucleophilic_attack", "route": "electrophilic_addition_alkene", "reactionCenters": ["C1", "O2"] },
+        "arrows": [
+          { "id": "a3", "electrons": 2, "source": { "kind": "lonePair", "atomId": "O2" }, "sink": { "kind": "betweenAtoms", "atomIds": ["O2", "C1"] } }
+        ],
+        "from": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "tert-butyl-cation",
+                "label": "tert-butyl cation",
+                "atoms": [
+                  { "id": "C1", "element": "C", "formalCharge": 1 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b9", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b10", "a": "C1", "b": "C3", "order": 1 },
+                  { "id": "b11", "a": "C1", "b": "C4", "order": 1 },
+                  { "id": "b12", "a": "C2", "b": "H1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "byproduct",
+              "species": {
+                "id": "water-from-acid",
+                "label": "water, left over from the hydronium",
+                "atoms": [
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "H2", "element": "H" },
+                  { "id": "H3", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b13", "a": "O1", "b": "H2", "order": 1 },
+                  { "id": "b14", "a": "O1", "b": "H3", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "nucleophile",
+              "species": {
+                "id": "water-nucleophile",
+                "label": "water, the one that attacks in step 2",
+                "atoms": [
+                  { "id": "O2", "element": "O", "lonePairs": 2 },
+                  { "id": "H4", "element": "H" },
+                  { "id": "H5", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b7", "a": "O2", "b": "H4", "order": 1 },
+                  { "id": "b8", "a": "O2", "b": "H5", "order": 1 }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s2",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "tert-butyloxonium",
+                "label": "protonated tert-butanol",
+                "atoms": [
+                  { "id": "C1", "element": "C" },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "O2", "element": "O", "formalCharge": 1, "lonePairs": 1 },
+                  { "id": "H4", "element": "H" },
+                  { "id": "H5", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b15", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b16", "a": "C1", "b": "C3", "order": 1 },
+                  { "id": "b17", "a": "C1", "b": "C4", "order": 1 },
+                  { "id": "b18", "a": "C2", "b": "H1", "order": 1 },
+                  { "id": "b19", "a": "C1", "b": "O2", "order": 1 },
+                  { "id": "b20", "a": "O2", "b": "H4", "order": 1 },
+                  { "id": "b21", "a": "O2", "b": "H5", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "byproduct",
+              "species": {
+                "id": "water-from-acid",
+                "label": "water, left over from the hydronium",
+                "atoms": [
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "H2", "element": "H" },
+                  { "id": "H3", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b13", "a": "O1", "b": "H2", "order": 1 },
+                  { "id": "b14", "a": "O1", "b": "H3", "order": 1 }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "step-3-deprotonation",
+        "identity": { "elementaryStep": "proton_transfer", "route": "electrophilic_addition_alkene", "reactionCenters": ["O1", "H4", "O2"] },
+        "arrows": [
+          { "id": "a4", "electrons": 2, "source": { "kind": "lonePair", "atomId": "O1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["O1", "H4"] } },
+          { "id": "a5", "electrons": 2, "source": { "kind": "bond", "bondId": "b20" }, "sink": { "kind": "atom", "atomId": "O2" } }
+        ],
+        "from": {
+          "id": "s2",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "tert-butyloxonium",
+                "label": "protonated tert-butanol",
+                "atoms": [
+                  { "id": "C1", "element": "C" },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "O2", "element": "O", "formalCharge": 1, "lonePairs": 1 },
+                  { "id": "H4", "element": "H" },
+                  { "id": "H5", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b15", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b16", "a": "C1", "b": "C3", "order": 1 },
+                  { "id": "b17", "a": "C1", "b": "C4", "order": 1 },
+                  { "id": "b18", "a": "C2", "b": "H1", "order": 1 },
+                  { "id": "b19", "a": "C1", "b": "O2", "order": 1 },
+                  { "id": "b20", "a": "O2", "b": "H4", "order": 1 },
+                  { "id": "b21", "a": "O2", "b": "H5", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "base",
+              "species": {
+                "id": "water-from-acid",
+                "label": "water, left over from the hydronium, acting as the base",
+                "atoms": [
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "H2", "element": "H" },
+                  { "id": "H3", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b13", "a": "O1", "b": "H2", "order": 1 },
+                  { "id": "b14", "a": "O1", "b": "H3", "order": 1 }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s3",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "tert-butanol",
+                "label": "2-methylpropan-2-ol",
+                "atoms": [
+                  { "id": "C1", "element": "C" },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "O2", "element": "O", "lonePairs": 2 },
+                  { "id": "H5", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b22", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b23", "a": "C1", "b": "C3", "order": 1 },
+                  { "id": "b24", "a": "C1", "b": "C4", "order": 1 },
+                  { "id": "b25", "a": "C2", "b": "H1", "order": 1 },
+                  { "id": "b26", "a": "C1", "b": "O2", "order": 1 },
+                  { "id": "b27", "a": "O2", "b": "H5", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "byproduct",
+              "species": {
+                "id": "hydronium-regenerated",
+                "label": "hydronium, the catalyst handed back",
+                "atoms": [
+                  { "id": "O1", "element": "O", "formalCharge": 1, "lonePairs": 1 },
+                  { "id": "H2", "element": "H" },
+                  { "id": "H3", "element": "H" },
+                  { "id": "H4", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b28", "a": "O1", "b": "H2", "order": 1 },
+                  { "id": "b29", "a": "O1", "b": "H3", "order": 1 },
+                  { "id": "b30", "a": "O1", "b": "H4", "order": 1 }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

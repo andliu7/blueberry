@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 2,
+  "id": "broken-arrow-legality-arrow-declares-no-change",
+  "title": "An arrow takes a lone pair off an atom and puts it straight back onto the same atom, declaring a change of zero everywhere",
+  "expect": {
+    "kind": "broken",
+    "mustFail": ["conservation-arrow-legality"],
+    "note": "Adversary pass, Phase 1, attack surface 1. Rule arrow_declares_no_change had no negative control anywhere in the corpus, and this fixture is the one clean case in this attack surface that isolates to arrow-legality ALONE with no electron-flow cascade, which is worth explaining since every sibling fixture for this surface needed both checks named. Cl1 is a real chloride anion, four lone pairs, formal charge -1, so source_has_no_lone_pair does not fire, it genuinely has electrons to give. The arrow sources a lonePair on Cl1 and sinks it as an atom sink also naming Cl1: the electrons are declared taken off Cl1 and handed straight back to Cl1. legality.ts's NON DEGENERACY rule runs before adjacency and fires here because sources and sinks are the identical singleton set {Cl1}, and the code `continue`s immediately after, so adjacency is never separately evaluated for this arrow. WHY ELECTRON-FLOW STAYS GREEN, which is the reason this fixture is the isolated negative control the family README asks for. declaredDeltas for this arrow computes atomDeltaFor(Cl1).nonbondingElectrons -= 2 for the source and then atomDeltaFor(Cl1).nonbondingElectrons += 2 for the sink, the SAME map entry for the SAME atom, so the two operations net to exactly zero. The to state is authored byte identical to the from state, so observedDeltas is also zero everywhere, and deltaMismatches has nothing to report: a genuinely no-op arrow produces a genuinely no-op declared delta, which is the one case in this whole attack surface where the to==from isolation trick needs no cascade declaration at all. The capacity pass at the end of arrowLegalityFindings still runs, lonePairElectronsDrawn[Cl1] = 2, available = 4 lone pairs * 2 = 8, well under, so lone_pairs_overdrawn does not also fire. Mass, charge, proton transfer, and spectator declaration have nothing to say about an unchanged, spectator-free state."
+  },
+  "pathway": {
+    "id": "arrow-legality-arrow-declares-no-change",
+    "route": "sn1",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": { "elementaryStep": "coordination", "reactionCenters": ["Cl1"] },
+        "arrows": [
+          { "id": "a1", "electrons": 2, "source": { "kind": "lonePair", "atomId": "Cl1" }, "sink": { "kind": "atom", "atomId": "Cl1" } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "counterion",
+              "species": {
+                "id": "chloride",
+                "label": "chloride, alone in the state",
+                "atoms": [{ "id": "Cl1", "element": "Cl", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "counterion",
+              "species": {
+                "id": "chloride",
+                "label": "chloride, alone in the state",
+                "atoms": [{ "id": "Cl1", "element": "Cl", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

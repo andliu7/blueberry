@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 2,
+  "id": "broken-arrow-legality-bond-overdrawn-by-two-arrows",
+  "title": "Two arrows each individually legal draw four electrons total from a single Cl-Cl bond that holds only two",
+  "expect": {
+    "kind": "broken",
+    "mustFail": ["conservation-arrow-legality", "conservation-electron-flow", "conservation-step-identity"],
+    "note": "Adversary pass, Phase 1, attack surface 1. Rule source_bond_overdrawn had no negative control anywhere in the corpus, and reading legality.ts closely shows why: the PER ARROW arm of this rule, arrow.electrons > order * 2, can never fire on a schema valid fixture, because the parser bounds electrons to 1 or 2 and bond order to 1, 2, or 3, so order * 2 is never smaller than 2. This rule is only reachable through the AGGREGATE capacity pass at the end of arrowLegalityFindings, the same shape as lone_pairs_overdrawn and unpaired_electrons_overdrawn. This fixture is the one that reaches it. b1 is a real Cl-Cl bond, order 1, two electrons available, the same bond good-br2-homolysis-with-single-electron-fishhook-arrows draws exactly two electrons from legally. Here two arrows each source bond(b1) with electrons: 2 and sink onto two different separate ions, Na1 and K1. Each arrow alone passes the per arrow check, 2 does not exceed order 1 times 2, and each passes adjacency, the shared atom of the bond it sources from is the pivot for its own sink. Only the aggregate sees bondElectronsDrawn[b1] accumulate to 4 against an available 2, and source_bond_overdrawn fires naming both arrow ids. The to state is byte identical to the from state, the same isolation pattern used across this attack surface. WHY ELECTRON-FLOW IS ALSO NAMED. declaredDeltas sums both arrows: the Cl-Cl bond loses 4 electrons overall, an ClA-Na1 bond of 2 electrons forms, a ClB-K1 bond of 2 electrons forms. The unchanged to state shows none of that, so deltaMismatches reports all three. Mass, charge, and valence hold because every atom in both states is independently self consistent and the states are identical. CASCADE ADDED IN PHASE 1 BUILDER PASS TWO. conservation-step-identity is now declared here as well, and it is a real second defect rather than a duplicate report of the first. This step is declared bond_homolysis and both of its arrows move a pair. Homolysis is the step where a bond breaks one electron each way, which is two fishhooks; nothing here moves a single electron and nothing here starts on an unpaired one, so the label contradicts the arrows independently of the fact that the two arrows together drain four electrons out of a bond that holds two. The isolated control for that rule, with no other defect at all, is broken-step-identity-bromine-heterolysis-declared-a-bond-homolysis."
+  },
+  "pathway": {
+    "id": "arrow-legality-bond-overdrawn",
+    "route": "radical_addition",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": { "elementaryStep": "bond_homolysis", "reactionCenters": ["ClA", "ClB"] },
+        "arrows": [
+          { "id": "a1", "electrons": 2, "source": { "kind": "bond", "bondId": "b1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["ClA", "Na1"] } },
+          { "id": "a2", "electrons": 2, "source": { "kind": "bond", "bondId": "b1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["ClB", "K1"] } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "reagent",
+              "species": {
+                "id": "chlorine",
+                "label": "chlorine, the single bond drawn from twice",
+                "atoms": [
+                  { "id": "ClA", "element": "Cl", "lonePairs": 3 },
+                  { "id": "ClB", "element": "Cl", "lonePairs": 3 }
+                ],
+                "bonds": [{ "id": "b1", "a": "ClA", "b": "ClB", "order": 1 }]
+              }
+            },
+            {
+              "role": "counterion",
+              "species": {
+                "id": "sodium-cation",
+                "label": "sodium cation, one of the two sinks",
+                "atoms": [{ "id": "Na1", "element": "Na", "formalCharge": 1 }]
+              }
+            },
+            {
+              "role": "counterion",
+              "species": {
+                "id": "potassium-cation",
+                "label": "potassium cation, the other sink",
+                "atoms": [{ "id": "K1", "element": "K", "formalCharge": 1 }]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "reagent",
+              "species": {
+                "id": "chlorine",
+                "label": "chlorine, the single bond drawn from twice",
+                "atoms": [
+                  { "id": "ClA", "element": "Cl", "lonePairs": 3 },
+                  { "id": "ClB", "element": "Cl", "lonePairs": 3 }
+                ],
+                "bonds": [{ "id": "b1", "a": "ClA", "b": "ClB", "order": 1 }]
+              }
+            },
+            {
+              "role": "counterion",
+              "species": {
+                "id": "sodium-cation",
+                "label": "sodium cation, one of the two sinks",
+                "atoms": [{ "id": "Na1", "element": "Na", "formalCharge": 1 }]
+              }
+            },
+            {
+              "role": "counterion",
+              "species": {
+                "id": "potassium-cation",
+                "label": "potassium cation, the other sink",
+                "atoms": [{ "id": "K1", "element": "K", "formalCharge": 1 }]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

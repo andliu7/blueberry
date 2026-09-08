@@ -1,0 +1,1481 @@
+/*
+ * Blueberry Mechanisms design tokens.
+ *
+ * THE WARM CREAM REGIME, owner direction 2026-09-01, from docs/DESIGN-GOALS.md.
+ * It supersedes the lavender turn of 2026-08-29 (ground #a3aee2, card cream),
+ * whose header stood here until this edit; the dated supersession is recorded
+ * in docs/DESIGN-TOKENS.md. The goals file is the owner's newer word, given
+ * twice: "warm tech ground: cream paper" and the calibration-gate amendment.
+ * The lavender turn's provenance (five concept images never committed to
+ * docs/reference/) was already flagged as unverifiable; DESIGN-GOALS has a
+ * committed reference set in docs/reference/design-goals/.
+ *
+ * The regime: WARM CREAM PAPER is the ground, cards are white and lift off it,
+ * ink stays the near-neutral deep navy. Violet returns as the identity hue
+ * (brand, primary buttons, current items), periwinkle carries the lesson-node
+ * and button chips, and light green #7ed957 is the progress semantic, FILL
+ * ONLY. Re-measured here rather than inherited:
+ *
+ *   ink #2a2a42 on the cream ground #fbf3e6   12.6:1   passes AA
+ *   white card on the cream ground             1.10:1  FAILS the 3:1 a boundary needs
+ *   border #55597f                             6.11:1 on the ground, 6.73:1 on the card
+ *
+ * THE SECOND LINE IS STILL THE LOAD BEARING ONE. A white card on cream is
+ * 1.10:1, so the card edge is not visible on its own and EVERY CARD CARRIES A
+ * BORDER, the same sticker-rule-3-by-arithmetic the lavender regime had.
+ * --bb-border #55597f survives unchanged because it was derived to clear both
+ * surfaces it separates and it clears these two by more.
+ *
+ * WHY THE GROUND IS #fbf3e6. It is the warm cream this file already shipped as
+ * the CARD, the one surface of the lavender regime the goals keep ("cream
+ * paper"). Promoting it to the ground and lifting the card to white preserves
+ * every ink-on-cream measurement in this file: everything that was derived to
+ * clear the cream card now also has to clear the cream ground, and does, while
+ * everything that had to clear the darker lavender ground (the worse surface)
+ * now clears an easier one. No dark-ink token got worse in this turn.
+ *
+ * WHY THE PRIMARY IS #6d3fd4 AND NOT #7c3aed. DESIGN-GOALS returns violet to
+ * identity ("violet says this is Blueberry"), but #7c3aed is the mascot's
+ * costume cape in MASCOT_PALETTE and #5b21b6 its fold, and sticker rule 9
+ * (character palette stays out of chrome) failed 247 rows on that collision
+ * once already. #6d3fd4 is the same violet family, is in neither palette,
+ * carries white at 6.34:1, and clears 5.76:1 as a shape on the cream ground.
+ *
+ * THE INK STAYS #2a2a42. Near-neutral by the sticker audit's own measure
+ * (HSL S 0.222); the reasoning from the lavender turn holds unchanged.
+ *
+ * THE DARK THEME IS UNCHANGED. It was derived, not inverted, so it never
+ * depended on which light surface was which: deep indigo night ground
+ * #171a2e, card lifts to #232741, border #6f74a3 clears both. Every dark
+ * value below carries its original measurement.
+ *
+ * NEW IN THIS TURN, per DESIGN-GOALS:
+ *
+ *   --chip-* : the periwinkle 3D pressable chip (working centre #9ba8f5),
+ *     thick darker bottom edge, pressed-state values. The fill is 2.05:1 on
+ *     cream, so the EDGE is what identifies the shape (4.57:1 on the ground);
+ *     the audit's shape rule (fill and boundary collapse to the better) is
+ *     what makes that compliant, and the ink on the face is 6.43:1.
+ *   --progress-* : the goal green #7ed957, FILL ONLY. 1.60:1 as text on
+ *     cream, so it is never text and never a hairline; --progress-ink
+ *     #163a26 sits on it at 7.17:1. WHITE ON #7ed957 MEASURES 1.76:1, UNDER
+ *     THE 3.0 GRAPHICS FLOOR, so a white mark may not sit on the goal green
+ *     either: --progress-deep #43a047 (white at 3.30:1) is the only green a
+ *     white mark may sit on, and that adjustment toward compliance is
+ *     recorded here rather than assumed away.
+ *   The typography split: --font-sans is the SYSTEM STACK (content face:
+ *     stems, options, card faces, guidebook body, chemical labels), and
+ *     --font-display is the ROUNDED display stack (chrome: buttons,
+ *     celebration numbers, streak counts, mascot speech). No webfont files
+ *     ship; Helvetica Neue appears only as a platform-native fallback, per
+ *     the licence note in DESIGN-GOALS.
+ *
+ * The divergences that survive from earlier regimes:
+ *
+ *   --bb-muted-foreground is #394153, not slate-600 #475569: derived once to
+ *   clear the worst ground it composes on, it is 9.28:1 on the cream ground
+ *   and 10.22:1 on the white card here.
+ */
+@import "./mascot/mascot.css";
+@import "./app/ui/hud.css";
+@import "./lesson/streak.css";
+
+/* Class based dark mode. The `@custom-variant dark` declaration this file used
+   to carry now lives in src/index.css, byte-identical, because a build-time
+   directive has to sit in Tailwind's entry and both halves declared the same
+   one. The `.dark` rules below still work unchanged. */
+
+/* ---------------------------------------------------------------------------
+   Type scale and faces, as real custom properties.
+
+   These live in the @theme block in src/index.css as well, and they have to,
+   because that is what generates the `text-scale-*` utilities this app uses in
+   its markup. But @theme only EMITS a variable Tailwind can see a use for, and
+   in this repo it cannot see these ones: the game's stylesheets are imported
+   from TSX rather than @imported into Tailwind's entry, so the 45-odd raw
+   `var(--text-scale-*)` references in them are invisible to it and the tokens
+   were dropped from the build.
+
+   In the game's own repository the same @theme block worked, because theme.css
+   both declared the tokens AND @imported every stylesheet that used them, so
+   Tailwind saw the uses. That is the thing this move broke, and this block is
+   the repair: declared here, they are emitted whatever Tailwind decides.
+
+   Caught by src/game/test/nodeSheetSeam.test.ts, which came across with the
+   app's other 76 tests.
+   --------------------------------------------------------------------------- */
+:root {
+  --text-scale-xs: 0.75rem;
+  --text-scale-sm: 0.875rem;
+  --text-scale-base: 1rem;
+  --text-scale-lg: 1.125rem;
+  --text-scale-xl: 1.375rem;
+  --text-scale-2xl: 1.75rem;
+  --text-scale-display: 2.5rem;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", "Baloo 2", Quicksand, "Varela Round", ui-sans-serif, system-ui, sans-serif;
+}
+
+:root {
+  /* THE GROUND. Warm cream paper, per DESIGN-GOALS. This hex was the lavender
+     regime's CARD, the one light surface the goals keep. */
+  /* Sampled from the approved mockup blueberry_r7-compiled-v2 (owner, 2026-09-03:
+     "change the colors to match the generated images"). The previous #fbf3e6 was
+     near-white, so a white card lifted off it by 1.10:1 and the whole screen read
+     as one pale field. This is the mockup's actual ground and it carries 1.23:1
+     under the card, which is still a border's job, not a value's. */
+  --bb-background: #f1ede2;
+  /* Deep navy, near-neutral by measurement (S 0.222). 12.6:1 on the ground,
+     13.9:1 on the card. See the file header. */
+  --bb-foreground: #2a2a42;
+  /* THE CARD. White, lifting off the cream. 1.10:1 against the ground, so it
+     always carries a border; --bb-border below is derived for exactly that. */
+  /* Sampled from unit02, the adopted design. Card and ground are 1.05:1, so the
+     border is not decoration, it is the only thing that makes a card a shape.
+     That is sticker rule 3 arriving by arithmetic rather than by taste. */
+  --bb-card: #f6f2e7;
+  --bb-card-foreground: #24243c;
+  /* THE WORKBENCH. The pilot canvas card is pure white, per the locked shell
+     reference (blueberry_r9-lesson-mechanism_1788289491): a white bench
+     stepping off the cream page, where --bb-card at 1.05:1 against the ground
+     reads as an outline on the same paper. Inks re-checked on white:
+     --bb-foreground 13.9:1, --bb-border 6.73:1, --bb-muted-foreground 10.22:1, and
+     --scene-faint composites to about rgb(88,99,116) at 6.0:1, all clear of
+     their AA floors. */
+  --workbench: #ffffff;
+  /* THE IDENTITY VIOLET, per DESIGN-GOALS: "violet says this is Blueberry".
+     Not #7c3aed (the mascot's cape, sticker rule 9) and not #5b21b6 (the
+     fold). White on it is 6.34:1, and it clears 5.76:1 as a shape sitting on
+     the cream ground, over the 3:1 WCAG 1.4.11 asks of an interface
+     component. */
+  --bb-primary: #6d3fd4;
+  --bb-primary-bright: #8b5cf6;
+  --bb-primary-foreground: #ffffff;
+  /* The ink/surface split survives the turn: violet as TEXT is held to the
+     4.5 body floor on the worst ground it composes on. --bb-primary-ink is
+     7.30:1 on the cream ground and 8.04:1 on the white card. */
+  --bb-primary-ink: #5b2fc0;
+  /* Warm steps of the cream family, so a muted surface reads as paper. */
+  /* One warm step DOWN from the ground, not up: on #ede7d9 the old #f1e8d7 was
+     1.10:1 and disappeared. */
+  --bb-secondary: #e0d7c3;
+  --bb-muted: #e0d7c3;
+  /* Derived once to clear the worst ground it composes on: 9.28:1 on the
+     cream ground, 10.22:1 on the white card. */
+  --bb-muted-foreground: #394153;
+  /* 5.24:1 on the card. Error copy lives on a card, never on the bare ground. */
+  --bb-destructive: #a4123c;
+  /* THE BORDER IS STRUCTURAL: white card on cream ground is 1.10:1, so the
+     border is the card's edge. 6.73:1 on the white card and 6.11:1 on the
+     cream ground, so the cut edge of a sticker reads from both sides. */
+  --bb-border: #55597f;
+  --bb-input: #55597f;
+  --bb-ring: #6d3fd4;
+  /* THE CUT EDGE OF A FILLED STICKER. A primary button is a saturated fill and
+     its outline cannot be --bb-border, which is derived against the card and the
+     ground rather than against a violet fill. One step down the same family,
+     not the mascot's #5b21b6: 8.82:1 on the cream ground, so the shape's
+     outline reads from either side of it. */
+  --bb-primary-edge: #4c2ba0;
+  /* Kept as tokens because two beats still name them. Neither is painted as a
+     gradient on chrome any more; sticker rule 2 is a hard rule and the reward
+     button is a flat fill. */
+  --accent-from: #5b2fc0;
+  --accent-to: #8b5cf6;
+  /* -------------------------------------------------------------------
+     THE 3D PRESSABLE CHIP, per DESIGN-GOALS "The buttons": every node and
+     button is a chip with a thick darker bottom edge that visibly presses
+     down on pointer down, inside the 100 ms budget. Periwinkle working
+     centre #9ba8f5, between light blue and lavender.
+
+     THE EDGE IS WHAT IDENTIFIES THE SHAPE. The periwinkle fill is 2.05:1 on
+     the cream ground, under the 3:1 an interface component needs, and the
+     contrast audit's own shape rule (a fill and its boundary collapse to
+     the better of the two) is why the chip is compliant: --chip-edge is
+     4.57:1 on the ground and the edge is structural, not decorative, the
+     same argument --bb-border carries for cards. A chip with its edge removed
+     is a chip the audit will fail, and it should.
+
+     Ink on the face is dark, never white: white on #9ba8f5 is 2.26:1.
+     --chip-ink #23264a is 6.43:1 on the face, over the 4.5 body floor.
+
+     The pressed state: face darkens one step and the button travels down by
+     --chip-press-travel while the edge compresses. Both are transforms plus
+     a one-step colour swap, no transitions through midpoints. */
+  /* SAMPLED FROM unit02, WITH ONE VALUE MOVED AND THE REASON RECORDED.
+     The face is the design's own periwinkle. The edge in the image measures
+     #8594bf, which is 2.57:1 on the ground: under the 3.0 WCAG 1.4.11 asks of
+     an interface component, and the edge IS the node's outline, so the shape
+     itself would be the thing failing. Deepened until it carries 5.09:1 on the
+     ground and 2.98:1 against its own face, which keeps the sunken-key read the
+     owner adopted while making the button a shape a person can see. The value
+     moved toward compliance; the check was not touched. */
+  --chip-face: #a2b5fa;
+  --chip-face-press: #8fa3ee;
+  --chip-edge: #55628f;
+  --chip-ink: #23264a;
+  --chip-edge-size: 4px;
+  --chip-press-travel: 3px;
+  /* -------------------------------------------------------------------
+     THE PROGRESS GREEN, per DESIGN-GOALS: #7ed957 means forward motion
+     everywhere (completed nodes, filled bars, correct states, checkmarks).
+     FILL ONLY, on measured contrast: 1.60:1 as text or hairline on cream,
+     failing every floor, and 7.17:1 with --progress-ink on top of it. So
+     the green appears only as a fill carrying dark ink or a dark mark.
+
+     WHITE ON #7ed957 MEASURES 1.76:1, UNDER THE 3.0 GRAPHICS FLOOR, so the
+     goals' "white check on a large shape" fails on the goal green itself;
+     measured, not assumed, exactly as the goals ask. The value adjusted
+     toward compliance rather than the check: --progress-deep #43a047 is
+     the ONLY green a white mark may sit on (white at 3.30:1, graphics
+     floor; still not white text, which needs 4.5).
+
+     --progress-edge is the completed chip's bottom edge and the only member
+     dark enough to identify the shape on the cream ground: 3.82:1. The
+     glow is the completed-state language (static soft glow, pulsing halo
+     only on the current node, no pulse under reduced motion); a glow
+     carries no floor because it is never the only thing identifying a
+     state. */
+  /* SAMPLED: the adopted design's completed node is #b3df92, a softer sage than
+     the #7ed957 the goals name, and the softer one is what the owner approved on
+     screen. It ships as the FILL. Its white check measures 1.51:1 and does not,
+     so a completed node wears the dark mark below, not a white one, and
+     --progress-deep stays the only green a white mark may sit on. */
+  --progress: #b3df92;
+  --progress-mark: #12300a;
+  --progress-ink: #163a26;
+  --progress-edge: #3f8c28;
+  --progress-deep: #43a047;
+  --progress-soft: #e6f7da;
+  --progress-glow: rgba(126, 217, 87, 0.45);
+  /* The spring every celebratory pop in this file names. It was defined only
+     in tokens.css, which nothing imports, so var(--ease-spring) resolved to
+     nothing and every animation shorthand naming it was invalid. Defined
+     where it is used. --ease-out is NOT defined here: Tailwind's default
+     theme already emits it and a second definition would silently repoint
+     every utility that names it. */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* Mechanism canvas strokes. Slate-600-ish clears the 3:1 graphics contrast
+     floor on the cream ground; the faint variant is for the hydrogen arc. */
+  /* Lighter than every atom it joins, per the video-frame critic: the bar's
+     rods are the LIGHT layer so they read as connectors you act on, and ours
+     inverted that figure-ground. The joint is lighter still: it is the grab
+     handle. */
+  /* #8e9aab measured 2.37:1 on the scene ground's lower stop, under the 3:1
+     WCAG 1.4.11 floor for an interface component, and a bond is the object a
+     student grabs. Darkened one step to 3.19:1 on the lower stop and 3.68:1 on
+     the upper. Still lighter than every atom it joins, so the figure-ground
+     call the video-frame critic made is intact. */
+  /* #75839a measured 3.10:1 on the cream plate's lower stop, a hair over the
+     3:1 floor and under it once the plate warmed. #5f6d85 is 4.75:1 on the
+     upper stop and 4.23:1 on the lower, and it is still lighter than every atom
+     it joins, which is the figure-ground call this token exists to hold. */
+  --bond-stroke: #5f6d85;
+  /* The joint stays LIGHTER than the rod, which is the whole point of it, and
+     that is exactly why no fill value works here: nothing lighter than the rod
+     also clears 3:1 against a near white ground. So the fill is not what
+     identifies it. --bond-joint-ring is a hairline in the rod's own colour, and
+     the ring is the boundary that carries the contrast. A border, rather than
+     fighting the fill, is the standard answer to this shape of conflict. */
+  --bond-joint: #f6efe2;
+  --bond-joint-ring: #5f6d85;
+  /* The lone pair ring and dots. Raised from 0.5 alpha slate, which a blind
+     critic measured as under any reasonable contrast floor on the warm off
+     white ground: pale grey dots in a pale ring, and the lone pair is the one
+     object a student has to find and grab before the gesture can begin at all.
+     The Budgets table's WCAG AA row covers it. */
+  --scene-faint: rgba(51, 65, 85, 0.82);
+  /* The canvas GROUND, distinct from --bb-card. Atoms are modelled objects and a
+     modelled object needs a surface to sit on: the reference canvas is a lit
+     gradient, and against a flat ground the darkest atom (carbon) loses its
+     lower edge, which a blind critic caught. Two stops, a few percent apart,
+     lighter at the top like the light on the spheres. */
+  /* THE CANVAS PLATE. It steps off the CARD now rather than off a near-white
+     page: the trainer's scene is a cream plate sitting on the lavender ground,
+     so its two stops are the card and one step down from it. The bond stroke
+     below is re-measured against the lower stop. */
+  --scene-ground-top: #fbf3e6;
+  --scene-ground-bottom: #efe4d0;
+  /* The canvas backdrop. Resonance is STILL water, so it is a wash rather than
+     a photograph: the only thing that moves is the ripple the student makes,
+     because in resonance nothing actually moves. Violet, against the aqua the
+     mechanism plate uses, so the two modes differ before a word is read. */
+  --backdrop-still-centre: #f4f8fb;
+  --backdrop-still-edge: #e3ebf1;
+  /* Owner direction 2026-08-28: light blue with light grey, tranquil. The
+     violet read as a UI pulse rather than as water. The crest is what catches
+     the light and the trough is the shadow just inside it. */
+  --backdrop-ripple: rgba(255, 255, 255, 0.95);
+  --backdrop-ripple-trough: rgba(120, 152, 178, 0.22);
+  /* The crest that passes OVER the molecule. Soft-light means this brightens
+     rather than tints, so it never recolours an atom. */
+  --backdrop-crest: rgba(255, 255, 255, 0.85);
+  /* The electrons in flight. Per the owner ruling of 2026-08-25 the dragged
+     mark is the electrons themselves, not an arrowhead, so they need their own
+     pair: a warm halo and a bright core. Warm on purpose, because the arrow,
+     the forming bond and every drop site are all --bb-primary, and a second
+     purple mark in the same gesture would be one more thing to disambiguate.
+     Amber is the only warm hue on this canvas, so the electrons are the only
+     warm thing on it. */
+  --electron-glow: #f5b93d;
+  --electron-core: #fffdf6;
+  /* The formal charge chip. Its own pair, because a chip that borrows a surface
+     it is not drawn on is wrong in one theme by construction: --bb-card is near
+     white here and near black in dark, and the canvas ground is the opposite
+     both times. Light chip, dark sign, both themes. */
+  /* Filled dark disc, white sign: the bar's own chip. Round 9's light-chip
+     choice fixed dark mode and was then judged in light mode as "a
+     notification bubble"; the theme split below keeps both lessons. */
+  --charge-chip: #403c38;
+  --charge-ink: #ffffff;
+  --charge-ring: rgba(255, 255, 255, 0.35);
+  /* The rejection triangle. Solid fill, not the translucent --warn-soft: it
+     sits ON atoms of every colour and a translucent wash would change hue per
+     atom behind it. */
+  --warn-soft-solid: #fef3c7;
+  --warn-ink-strong: #92400e;
+  /* The warning STROKE, for the rejected arrow and its head. Referenced by the
+     canvas before this existed, and an unset var() in an SVG attribute falls
+     back to black, which is how the first r11 capture grew a black arrowhead. */
+  /* amber-700, not amber-600. #d97706 measured 2.89:1 on the cream card and
+     2.53:1 on the canvas plate, both under the 3:1 a meaningful graphic carries;
+     the rejected arrow and its head are drawn in this, and an arrow a student
+     cannot see is the one mark on that canvas that has to be seen. */
+  --warn: #b45309;
+  /* The gap docs/DESIGN-TOKENS.md names: success and the two non-binary
+     outcomes need tokens of their own, and none of them is red. --good is
+     emerald-700 (4.6:1 on white, 4.4:1 on cream for large text only, so body
+     copy on cream uses --good-ink). --alt-route is the teal of "right answer,
+     other road"; --not-requested is the amber-800 of "sound, but elsewhere". */
+  /* MOVED BY THE TURN, and the mascot's own test is what caught it. --good is
+     Bloom's charged halo as well as this app's success hue, and berryState's
+     "every meaning-bearing state mark is 3:1 clear of the page" measured
+     emerald-700 #047857 at 2.54:1 on the lavender ground. #065f46 is 3.55:1 on
+     the ground, 6.98:1 on the cream card, and carries white at 7.68:1.
+     --good-ink is one step darker again because a NUMBER is text and text is
+     held to 4.5: 4.49:1 on the ground and 8.82:1 on the card. */
+  --good: #065f46;
+  --good-ink: #064e3b;
+  --good-soft: #d1fae5;
+  --alt-route: #0f766e;
+  --alt-route-soft: #ccfbf1;
+  --not-requested: #92400e;
+  --not-requested-soft: #fef3c7;
+  /* sky-500 measured 2.77:1 on a white card, under the 3:1 floor for an icon
+     that carries meaning. sky-600 is 4.10:1 on white and 3.73:1 on cream, and
+     is still recognisably the same blue. */
+  --diamond: #0284c7;
+  /* The reward moment's text inks. --diamond at 4.10:1 on white clears the
+     graphic floor and not the body text one, so a diamond COUNT reads in its
+     own darker ink; the amber count reads in the same amber-800 the rejection
+     triangle uses. The shine is a translucent white over the diamond fill,
+     never a literal white on a card.
+
+     MOVED BY THE TURN, and the audit is what caught it. sky-700 #0369a1 was
+     derived against a white card and measures 2.74:1 on the lavender ground,
+     which is where the MCQ beat's diamond count actually composes: that header
+     row sits on the bare page, not on a card. One token serving two grounds has
+     to clear the worse one, the same argument --bb-muted-foreground already
+     carries. #0b4566 is 4.72:1 on the ground and 9.27:1 on the cream card, and
+     it is still the sky family --diamond is drawn from. */
+  --diamond-ink: #0b4566;
+  --warn-ink: #92400e;
+  --reward-shine: rgba(255, 255, 255, 0.28);
+  /* THE CELEBRATION FIELD IS A CREAM SHEET, not a deeper lavender.
+     It was mixed into --bb-background, and the contrast audit failed six pairs
+     because of it: the diamond glyph measured 1.89:1 on that ground, the flame
+     1.97:1, and the freeze button's price 2.74:1, all far under their floors.
+     Every accent hue in this palette is derived against a cream surface, which
+     is where coloured ink lives here; mixing them onto a saturated ground is
+     the same mistake the header made before it became a sheet.
+     It is still a different world from the working state, though the warm
+     cream regime narrowed the gap: the working state is white cards on cream,
+     and this is one warm sheet with no header, no bar and no cards. What
+     separates the stages now is structure, not hue distance. */
+  /* A LITERAL, NOT A color-mix, AND THAT IS A MEASUREMENT DECISION.
+     Chrome computes color-mix() to `color(srgb ...)`, and contrast-audit.mjs's
+     colour parser reads `rgb()` and `rgba()` only. A stage painted with a mix
+     therefore resolves to null, the audit's backdrop climb walks straight past
+     it, and every mark on this screen gets measured against the PAGE instead.
+     That was invisible while the page was cream and the stage was a cream tint;
+     the lavender turn made the two grounds far apart and six pairs failed
+     against a backdrop that is not the one on screen. The value below is the
+     same colour the mix produced, written so the tooling and the browser agree.
+     THE PARSER GAP IS REAL AND IS REPORTED RATHER THAN WORKED AROUND
+     EVERYWHERE: several other tokens in this file are still mixes, and the
+     marks on them are being resolved against the wrong ancestor today. */
+  --reward-ground: #eee7df;
+  /* The header HUD. One hue per economy system, so two numbers never answer the
+     same question in the same colour: XP is --bb-primary, diamonds are --diamond,
+     charge is --good (Bloom's charged halo already uses it), and only the
+     streak needed a hue of its own.
+     THE GROUND HERE IS THE HEADER, NOT THE PAGE, and the lavender turn made
+     that distinction stronger rather than weaker. The header used to be
+     background/85 with a blur, so whatever scrolled under it composed through
+     and the ground had to be measured at rgb(240,239,234). It is a flat sheet
+     of --bb-card now, and it had to become one: on the lavender ground the flame
+     measures 1.97:1 and the diamond 1.89:1, both far under any floor, while on
+     the cream card they are 3.87:1 and 3.72:1 as graphics. Coloured ink lives
+     on a card in this palette. The core sits ON the flame, never on a ground,
+     so it carries no floor of its own.
+     --streak-ink is orange-800, 6.63:1 on the cream card, because a NUMBER is
+     text and text is held to 4.5:1: the fill/ink split --good and --bb-primary
+     already carry, for the same reason. */
+  --streak: #d94a06;
+  --streak-core: #fbbf24;
+  --streak-ink: #9a3412;
+  /* The ink that sits ON the streak fill. GRAPHICS ONLY: white on #d94a06
+     measures 4.26:1, which clears the 3:1 floor WCAG 1.4.11 sets for a
+     meaningful graphic (a counted day's check) and does NOT clear the 4.5:1
+     floor for text. The milestone band is 12px uppercase TEXT, so it has its
+     own pair below rather than borrowing this one; the audit caught the first
+     draft doing exactly that, at 4.26:1 against a 4.5 floor. */
+  --streak-on: #ffffff;
+  /* The milestone band: a stamp, so it is the darkest step of the hue with
+     white on it. 7.3:1 light. The dark theme inverts, because there --streak
+     is a light orange and the near black card colour is what reads on it. */
+  --streak-band: #9a3412;
+  --streak-band-ink: #ffffff;
+  /* The streak screen's full bleed ground, the warm counterpart of
+     --reward-ground: the same page with this system's own hue mixed in, so the
+     two stages that play back to back are visibly two stages. */
+  /* The same, and see --reward-ground for why it is a literal. */
+  --streak-ground: #f9e7d6;
+  /* The unlit flame and the empty half of every HUD gauge. --hud-out is the
+     body colour of a guttering flame and has to READ as a shape, so it is the
+     text-grade muted foreground rather than a wash. --hud-track is the empty
+     half of a gauge and is context, not information, so it sits at the border
+     value: the FILL is what carries the meaning and it has its own row. */
+  --hud-out: #475569;
+  /* A gauge's empty half. color-mix over whatever it is drawn on, because the
+     ring sits on the cream page in the header and on a white card in the coach
+     mark, and a flat value that reads on one is invisible on the other.
+     65 percent, not 26: at 26 the track measured 1.07:1 light and 1.81:1 dark,
+     which is not "context, not information", it is invisible. A track you
+     cannot see means the ring reads as a closed circle at every value, so the
+     goal always looks met. The FILL still carries the meaning; the track has to
+     carry the EXTENT. */
+  --hud-track: color-mix(in srgb, var(--bb-muted-foreground) 65%, transparent);
+
+  /* THE SELECTED OBJECT. The tab bar's active chip, the theme segment's chosen
+     half, the tinted disc behind a tool glyph. One token, because a student who
+     learns that this tint means "you are here" should not have to learn it
+     twice.
+
+     A flat value and not an alpha over whatever is behind it: the chip sits on
+     the white bar and on the cream page, and an alpha composites to two
+     different colours in those two places, which is two different measured
+     contrasts for one token. Sticker rule 2 wants flat fills anyway.
+
+     Measured, because the label inside it is 12px and 12px is body text under
+     WCAG AA. --bb-primary-ink #5b2fc0 on #e3e1f4 is 6.26:1, over the 4.5 floor,
+     and the 2px border of --bb-primary #6d3fd4 on the bar's white is 6.34:1, over
+     the 3:1 floor a WCAG 1.4.11 interface component needs. */
+  --tab-active: #e3e1f4;
+
+  /* ONE HUE PER BAR TAB, AND WHY A GREY BAR LOST.
+     The reference bar is a row of chunky coloured objects, and ours was four
+     hairline glyphs in one ink. The eye finds a filled shape before it finds a
+     hue, and it finds four different shapes faster than four tints of the same
+     one, so each of the four destinations gets a colour it keeps whether or not
+     it is the active tab, exactly as the reference does. The ACTIVE state is
+     still the chip and only the chip; colour here is identity, not selection.
+
+     None of these is the reference's green, per sticker-ui's loudest rule. Path
+     is the identity violet's ink because the pathway is where the brand lives
+     (DESIGN-GOALS: violet says "this is Blueberry"); the other three are the
+     families already in this file, warm for the arrow the trainer pushes, teal
+     for the deck, blue for the person.
+
+     PATH IS NOT #7c3aed. That hex is the mascot's costume cape, and rule 9 of
+     the sticker language counts every place the two palettes touch. It was 80
+     of the 247 rows on its own before the navy interlude; the violet that
+     returns here is the family, not that hex.
+
+     Measured on the bar's ground, which is --bb-card #ffffff, against the 3:1 that
+     WCAG 1.4.11 asks of a graphical object: violet 8.04, orange 5.19, teal
+     5.48, blue 6.70. The tint each sticker's body is filled with is the same
+     hue at 22 percent over that ground, so the shape reads as a cut-out with a
+     lighter body inside it rather than as a blob. */
+  /* THE TAB HUES ARE THE REFERENCE'S OWN, owner 2026-09-04: "the icons I want
+     basically exactly what we have in the reference images". Sampled from the
+     tab bar of unit02-path.jpg and then each deepened along its own hue until
+     it clears 3.0 against the cream bar, because an icon is a graphic and
+     WCAG 1.4.11 asks 3.0 of one. The sampled values sit between 1.67 and 2.23,
+     which is why they are not used raw: the reference is a picture and does not
+     have to be legible to someone with low vision. Hue kept, value moved, and
+     the arithmetic is the reason.
+
+       path  sampled #80b07e 2.23 -> #4d7a49 4.47   the green trail
+       train sampled #70756f 4.21 -> #5d6360 5.49   the flask's cool grey
+       cards sampled #ffab5a 1.67 -> #c06f1f 3.39   the orange card fan
+       feed  sampled #8ebdf1 1.75 -> #3a71b0 4.50   the blue newspaper
+       me    sampled #dcb278 1.76 -> #9c6f31 3.97   the warm avatar */
+  --tab-hue-path: #4d7a49;
+  --tab-hue-train: #5d6360;
+  --tab-hue-cards: #c06f1f;
+  --tab-hue-feed: #3a71b0;
+  --tab-hue-me: #9c6f31;
+  --tab-tint-path: color-mix(in srgb, var(--tab-hue-path) 22%, var(--bb-card));
+  --tab-tint-train: color-mix(in srgb, var(--tab-hue-train) 22%, var(--bb-card));
+  --tab-tint-cards: color-mix(in srgb, var(--tab-hue-cards) 22%, var(--bb-card));
+  --tab-tint-feed: color-mix(in srgb, var(--tab-hue-feed) 22%, var(--bb-card));
+  --tab-tint-me: color-mix(in srgb, var(--tab-hue-me) 22%, var(--bb-card));
+}
+
+/*
+ * DARK, DERIVED RATHER THAN INVERTED.
+ *
+ * A mechanical inversion of the lavender turn would put cream on a dark page,
+ * and cream at night is glare. What actually transfers is the RELATIONSHIP: a
+ * ground the eye reads as the room, a card that is the surface content sits on,
+ * and a border because the two are too close to separate themselves. So the
+ * ground becomes a deep indigo night and the card LIFTS out of it rather than
+ * dropping further, which is the same figure-ground reached from the other end.
+ *
+ *   card #232741 on ground #171a2e   1.18:1   so the border rule holds here too
+ *   border #6f74a3                   3.27:1 on the card, 3.84:1 on the ground
+ *   ink #e8e6f2                      11.84:1 on the card, 13.92:1 on the ground
+ *
+ * The hue is the same indigo family the light theme's primary is, so the two
+ * themes are one product at night rather than two.
+ */
+.dark {
+  --bb-background: #171a2e;
+  --bb-foreground: #e8e6f2;
+  --bb-card: #232741;
+  --bb-card-foreground: #f2f0f8;
+  /* The reference locking the white workbench is a light-theme capture; at
+     night the bench is the card, so every dark ink keeps the surface it was
+     derived against. */
+  --workbench: #232741;
+  /* TWO ROLES, and one value cannot serve both. As a SURFACE white sits on it,
+     and #5b60c8 gives white 5.31:1, over the 4.5 body floor. As INK it sits on
+     the night page, and fixing the surface by darkening makes the ink worse:
+     the two requirements pull in opposite directions, which is why this is a
+     split and not a compromise value that fails both. */
+  --bb-primary: #5b60c8;
+  --bb-primary-bright: #8f93e0;
+  --bb-primary-foreground: #ffffff;
+  /* Primary coloured TEXT and canvas marks. 7.57:1 on the card, 8.90:1 on the
+     page. Same shape as --good and --good-ink below, for the same reason. */
+  --bb-primary-ink: #b3b6f2;
+  --bb-secondary: #2c3151;
+  --bb-muted: #2c3151;
+  /* 6.25:1 on the card, 7.35:1 on the page, and HSL S 0.197 so it is a neutral
+     by the same measurement the light half uses. */
+  --bb-muted-foreground: #a8a7c4;
+  --bb-destructive: #fb7185;
+  /* Structural, and derived against BOTH surfaces it separates, exactly as the
+     light half is: 3.27:1 on the card and 3.84:1 on the ground. */
+  --bb-border: #6f74a3;
+  --bb-input: #6f74a3;
+  --bb-ring: #8f93e0;
+  /* Lighter than the fill here rather than darker, because an outline reads
+     against the ground it sits on and the ground at night is dark: 5.30:1 on
+     the card and 6.23:1 on the page. Same job, opposite direction, which is
+     what deriving a dark theme rather than inverting one looks like. */
+  --bb-primary-edge: #9195e4;
+  --bond-stroke: #aab0cc;
+  --bond-joint: #d6d9ea;
+  --bond-joint-ring: #aab0cc;
+  /* 0.55 alpha composited to 2.80:1 on the scene ground, under the 3:1
+     graphics floor. 0.72 gives 3.4:1. The light variant was already raised to
+     0.82 for the same reason, by hand, one theme at a time; measuring both
+     themes in one run is what caught the half that was missed. */
+  --scene-faint: rgba(196, 199, 222, 0.72);
+  /* Lifted well clear of the page's #171a2e, or a dark carbon has nothing to
+     be seen against. Two indigo steps, lighter at the top like the light on
+     the spheres, the same shape the light half uses on cream. */
+  --scene-ground-top: #333858;
+  --scene-ground-bottom: #262a45;
+  /* Deep still water. The ripple has to carry on a dark ground, so it brightens
+     rather than darkens. */
+  --backdrop-still-centre: #1b2430;
+  --backdrop-still-edge: #131a23;
+  --backdrop-ripple: rgba(190, 225, 245, 0.7);
+  --backdrop-ripple-trough: rgba(8, 14, 20, 0.35);
+  --backdrop-crest: rgba(200, 230, 250, 0.5);
+  /* Brighter core on the dark ground: the halo carries on a light page but a
+     #fffdf6 core against #1a1817 needs no help, while the halo does. */
+  --electron-glow: #ffc756;
+  --electron-core: #ffffff;
+  /* Still a LIGHT chip with a DARK sign. Inverting it here is what produced the
+     bug: a near black disc on the near black canvas ground read as a hole. */
+  --charge-chip: #e4e2f2;
+  --charge-ink: #1b1e33;
+  --charge-ring: #868bb0;
+  --warn-soft-solid: #453a12;
+  --warn-ink-strong: #fcd34d;
+  --warn: #f59e0b;
+  --good: #34d399;
+  --good-ink: #6ee7b7;
+  --good-soft: rgba(52, 211, 153, 0.16);
+  --alt-route: #5eead4;
+  --alt-route-soft: rgba(94, 234, 212, 0.16);
+  --not-requested: #fbbf24;
+  --not-requested-soft: rgba(251, 191, 36, 0.16);
+  --diamond: #38bdf8;
+  --diamond-ink: #7dd3fc;
+  --warn-ink: #fcd34d;
+  --reward-shine: rgba(255, 255, 255, 0.22);
+  --reward-ground: #2a2e51;
+  /* orange-400 #fb923c is 8.42:1 on the near black page; orange-300 #fdba74 is
+     10.94:1 as the number. Both are comfortably clear, which is the usual shape
+     of this pair: the dark half of a warm hue is the easy half. */
+  --streak: #fb923c;
+  --streak-core: #fcd34d;
+  --streak-ink: #fdba74;
+  /* orange-400 is a light fill on the dark theme, so what sits on it is the
+     card's own near black rather than white: #1c1917 on #fb923c is 9.1:1. That
+     clears the text floor as well as the graphic one, so the band can use the
+     same pair here where the light theme needs its own. */
+  --streak-on: #201d1a;
+  --streak-band: #fb923c;
+  --streak-band-ink: #201d1a;
+  --streak-ground: #3d3440;
+  --hud-out: #a8a7c4;
+  /* See the light half: 65 percent so the gauge's extent is visible. */
+  --hud-track: color-mix(in srgb, var(--bb-muted-foreground) 65%, transparent);
+  /* The dark half of the selected object. Not the light value darkened: the
+     dark theme's --bb-primary-ink is #b3b6f2, a different ink, so the tint under
+     it is derived against that ink and not against the light one. #b3b6f2 on
+     #2f3557 is 6.16:1, and the border of the same ink on the bar's #232741 is
+     7.57:1. */
+  --tab-active: #2f3557;
+
+  /* The same four, lifted for the night bar. Each is the light value's family
+     two or three steps brighter, measured on --bb-card #232741: navy 7.57, orange
+     6.45, teal 9.87, blue 8.10. The tint is again the hue at 22 percent over
+     the same ground, which on this theme darkens rather than lightens the body;
+     what the shape needs is contrast between body and outline, not a particular
+     direction. */
+  /* Dark lifts the same five hues rather than substituting different ones, so
+     the bar is recognisably the same bar in either theme. */
+  --tab-hue-path: #8fc98a;
+  --tab-hue-train: #b7bdb8;
+  --tab-hue-cards: #f0a659;
+  --tab-hue-feed: #8ebdf1;
+  --tab-hue-me: #e0b478;
+
+  /* The chip at night. The periwinkle face carries itself here: 7.5:1 as a
+     shape on the night ground, so the fill identifies the chip and the edge
+     is free to be the 3D bottom rather than the boundary. The ink on the
+     face is the same dark pair (6.43:1 on the face, theme-independent). */
+  --chip-face: #9ba8f5;
+  --chip-face-press: #8794ea;
+  --chip-edge: #4a54ab;
+  --chip-ink: #23264a;
+
+  /* The progress green at night. The fill reads on its own (7.6:1 as a shape
+     on the card), the ink pair is theme-independent, and the soft wash goes
+     translucent the way --good-soft does. --progress-deep is unchanged: the
+     white-mark rule is about what sits ON the green, not what is behind it. */
+  --progress: #7ed957;
+  --progress-ink: #163a26;
+  --progress-edge: #55a838;
+  --progress-deep: #43a047;
+  --progress-soft: rgba(126, 217, 87, 0.16);
+  --progress-glow: rgba(126, 217, 87, 0.35);
+  --tab-tint-path: color-mix(in srgb, var(--tab-hue-path) 22%, var(--bb-card));
+  --tab-tint-train: color-mix(in srgb, var(--tab-hue-train) 22%, var(--bb-card));
+  --tab-tint-cards: color-mix(in srgb, var(--tab-hue-cards) 22%, var(--bb-card));
+  /* Feed's tint was the one missing from this block while its hue was here.
+     It happened to render correctly anyway, because a custom property holding
+     a color-mix() is substituted at USE time and both of its terms are
+     themselves tokens the dark block redefines. That is a fact about CSS, not
+     a decision, and a list of five hues with four tints is a list the next
+     reader has to work that out from. Written out, like its four neighbours. */
+  --tab-tint-feed: color-mix(in srgb, var(--tab-hue-feed) 22%, var(--bb-card));
+  --tab-tint-me: color-mix(in srgb, var(--tab-hue-me) 22%, var(--bb-card));
+}
+
+/* Map the tokens into Tailwind v4 utility names (bg-bb-background, text-bb-foreground,
+   border-bb-border, bg-bb-primary, ...). @theme inline reads the var at use time, so
+   the .dark override above keeps working through the utilities. */
+/*
+ * THE GROUND IS FLAT AND IT IS PAINTED TWICE.
+ *
+ * The 28px hairline grid inherited from the sibling repo is gone. It was two
+ * linear-gradients on the page, which sticker rule 2 forbids outright, and the
+ * audit could only report it as unresolved because it is on body rather than on
+ * a chrome element. On a near-white page it was a texture; on the lavender
+ * ground it would be a texture nobody can see. Flat paper, per the language.
+ *
+ * body carries the ground so overscroll and the browser's own canvas are the
+ * right colour, and Shell.tsx's root element carries it too so the ground is a
+ * real painted surface inside the document. That duplicate is the same shape as
+ * the boot layer's: an audit that climbs ancestors stops at the first opaque
+ * one, and body is the one place outside every such climb.
+ */
+/* Was `body`. Scoped to the game's own wrapper because this stylesheet now
+   loads inside a larger site: as a body rule it repainted every page, including
+   the ones the game has nothing to do with. The wrapper is the game's route
+   container, so min-height still fills the screen the way it used to. */
+.bb-game {
+  background-color: var(--bb-background);
+  color: var(--bb-foreground);
+  font-family: var(--font-sans);
+  min-height: 100vh;
+}
+
+.bb-title-face {
+  font-family: var(--font-display);
+  letter-spacing: 0.02em;
+}
+
+/* Pressed state contract (CLAUDE.md: every control acknowledges the press).
+   :active paints on pointer down, the same frame, before any JS runs. The
+   transform plus the darkening is the acknowledgement; anything async that
+   follows continues from here as a loading affordance. */
+.press {
+  /* TRANSFORM ONLY.
+     Two reasons and they agree. layered-motion's one rule is that only
+     transform, opacity, clip-path and mask are animated, because everything
+     else paints on every frame. And the contrast audit caught the second: a
+     120ms background-color transition from --bb-primary to --bb-muted passes through
+     rgb(140,138,169) on its way, where the label measured 3.08:1 against a 4.5
+     floor. A colour that is only ever a midpoint is still a colour a reader
+     sees, and the honest fix is for the surface to change in one step while the
+     press itself carries the motion. */
+  transition: transform 120ms cubic-bezier(0.4, 0, 0.2, 1);
+  touch-action: manipulation;
+}
+.press:active {
+  transform: scale(0.96);
+  filter: brightness(0.92);
+}
+
+/* Loading skeleton: a visible shimmer, never a blank rectangle. */
+.skeleton {
+  background: linear-gradient(
+    100deg,
+    var(--bb-muted) 40%,
+    color-mix(in srgb, var(--bb-muted) 60%, var(--bb-card)) 50%,
+    var(--bb-muted) 60%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+}
+@keyframes skeleton-shimmer {
+  from {
+    background-position: 120% 0;
+  }
+  to {
+    background-position: -80% 0;
+  }
+}
+
+/* The loading continuation of a press: a dot that pulses inside the button,
+   so the acknowledgement never stops while the action runs. */
+.press.is-busy {
+  transform: scale(0.98);
+  filter: brightness(0.95);
+}
+.busy-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background: currentColor;
+  animation: busy-pulse 0.9s ease-in-out infinite;
+}
+@keyframes busy-pulse {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Failure animations, per BUILD-PROMPT.md Phase 5. None of them is red.
+   snap-back: an incorrect arrow returns elastically to where it started.
+   wobble: a leaving group that will not leave shakes and stays put.
+   Both are transforms only, so they run on the compositor. */
+@keyframes snap-back {
+  0% {
+    transform: translate(var(--snap-dx, 0px), var(--snap-dy, 0px));
+    opacity: 1;
+  }
+  60% {
+    transform: translate(calc(var(--snap-dx, 0px) * -0.12), calc(var(--snap-dy, 0px) * -0.12));
+  }
+  80% {
+    transform: translate(calc(var(--snap-dx, 0px) * 0.05), calc(var(--snap-dy, 0px) * 0.05));
+  }
+  100% {
+    transform: translate(0, 0);
+    opacity: 0.35;
+  }
+}
+.snap-back {
+  animation: snap-back 420ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+/* The reaction centre's resting halo breathes, slowly: present enough to
+   answer "where is the question", quiet enough to never compete with an
+   armed source or a drop ring. */
+@keyframes centre-breathe {
+  0%, 100% { opacity: 0.12; transform: scale(1); }
+  50% { opacity: 0.42; transform: scale(1.06); }
+}
+.centre-breathe {
+  animation: centre-breathe 2.6s ease-in-out infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+@keyframes wobble {
+  0%,
+  100% {
+    transform: translateX(0) rotate(0);
+  }
+  20% {
+    transform: translateX(-4px) rotate(-3deg);
+  }
+  40% {
+    transform: translateX(4px) rotate(3deg);
+  }
+  60% {
+    transform: translateX(-3px) rotate(-2deg);
+  }
+  80% {
+    transform: translateX(2px) rotate(1deg);
+  }
+}
+.wobble {
+  animation: wobble 480ms ease-in-out both;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* The reward moment: full bleed, distinct from the working state. The number
+   counts up in JS; the panel itself rises and the badge pops. */
+@keyframes reward-rise {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.reward-rise {
+  animation: reward-rise 420ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+@keyframes badge-pop {
+  0% {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.12);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.badge-pop {
+  animation: badge-pop 520ms cubic-bezier(0.34, 1.56, 0.64, 1) 200ms both;
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.fade-in {
+  animation: fade-in 250ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+/* Safe area for the bottom tab bar on notched phones. */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* AND THE TOP ONE, owner 2026-09-04: the header's controls sat under the
+   status bar and the dynamic island on a real iPhone. Shrinking them was the
+   suggested fix and it is the wrong one: the island is a fixed 37px tall
+   regardless of how small a button is, so anything in that band is covered no
+   matter its size, and every phone has a different band. env() is the number
+   the DEVICE reports, so this is correct on an island, on a notch, and on a
+   flat-top Android where it resolves to zero and costs nothing. The header
+   keeps its own 0.5rem of breathing room on top of whatever the device asks
+   for, so the row never sits flush against the cutout either. */
+.pt-safe {
+  /* --safe-top lets a HARNESS tell the truth. env() only reports a real inset
+     on a device in a fullscreen or standalone context; inside the device.html
+     iframe it resolves to 0, so the frame drew an island sitting on top of a
+     header that the harness swore was clear. A harness that lies about the one
+     thing it exists to check is worse than no harness. device.html now injects
+     --safe-top per model, real devices still fall through to env(), and a
+     desktop browser gets neither and pays nothing. */
+  padding-top: calc(var(--safe-top, env(safe-area-inset-top, 0px)) + 0.5rem);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Freeze, do not vanish: the skeleton stays visible as a static frame. */
+  .skeleton {
+    animation: none;
+  }
+  .press {
+    transition-duration: 1ms;
+  }
+  .busy-dot {
+    animation: none;
+    opacity: 1;
+  }
+  /* Failure animations drop to their END frame, which still carries the state:
+     the snapped arrow is faint, the wobbled group is where it was. */
+  .snap-back {
+    animation-duration: 1ms;
+  }
+  .wobble {
+    animation: none;
+  }
+  .reward-rise,
+  .badge-pop,
+  .fade-in {
+    animation-duration: 1ms;
+    animation-delay: 0ms;
+  }
+}
+
+
+/* -------------------------------------------------------------------------
+   The pathway's clouds. Owner direction 2026-08-26: side quests sit behind
+   light clouds like a world map's unexplored edge, inviting rather than
+   hiding; the page gains gentle motion as you scroll. Pure CSS: two soft
+   white puffs drift slowly across the side-quest group and thin to nothing
+   on hover or tap-focus within, so looking at the quests parts the clouds.
+   Reduced motion pins the puffs still. */
+.cloud-veil {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1rem;
+  padding: 0.5rem 0.75rem 0.75rem;
+}
+.cloud-puff {
+  position: absolute;
+  pointer-events: none;
+  width: 55%;
+  height: 130%;
+  top: -15%;
+  border-radius: 999px;
+  background: radial-gradient(closest-side, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.55) 60%, transparent 100%);
+  filter: blur(6px);
+  transition: opacity 400ms ease;
+  animation: cloud-drift 14s ease-in-out infinite alternate;
+}
+:root:not([data-theme="light"]) .cloud-puff {
+  background: radial-gradient(closest-side, rgba(200, 205, 215, 0.5), rgba(200, 205, 215, 0.28) 60%, transparent 100%);
+}
+.cloud-puff--a { left: -10%; }
+.cloud-puff--b { right: -10%; animation-delay: -7s; animation-duration: 18s; }
+.cloud-veil:hover .cloud-puff,
+.cloud-veil:focus-within .cloud-puff,
+.cloud-veil:active .cloud-puff {
+  opacity: 0.15;
+}
+@keyframes cloud-drift {
+  from { transform: translateX(-6%); }
+  to { transform: translateX(14%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cloud-puff { animation: none; }
+}
+
+/* -------------------------------------------------------------------------
+   The lesson's reaction strip and the combo interstitial. Piece P1,
+   2026-08-27. The strip is the band the bar draws under a graded answer:
+   one colour for the moment, the character inside it, the Continue at the
+   end. The interstitial is the character rising from the bottom edge with
+   one line. Both animate on transform and opacity only, and both pin to a
+   representative frame under reduced motion rather than vanishing. */
+
+.reaction-strip {
+  animation: reaction-strip-in 260ms cubic-bezier(0.2, 0.8, 0.3, 1) both;
+}
+@keyframes reaction-strip-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.reaction-strip[data-reaction="correct"] {
+  --strip-bg: var(--good-soft);
+  --strip-ink: var(--good-ink);
+  --strip-rule: color-mix(in srgb, var(--good) 40%, transparent);
+}
+.reaction-strip[data-reaction="wrong"] {
+  --strip-bg: color-mix(in srgb, var(--bb-primary) 9%, var(--bb-card));
+  --strip-ink: var(--bb-foreground);
+  --strip-rule: color-mix(in srgb, var(--bb-primary) 30%, transparent);
+}
+.reaction-strip[data-reaction="nearMiss"] {
+  --strip-bg: var(--warn-soft-solid);
+  --strip-ink: var(--warn-ink-strong);
+  --strip-rule: color-mix(in srgb, var(--warn) 45%, transparent);
+}
+
+/* The stage itself never animates opacity: the ground is opaque on its first
+   frame so nothing from the lesson bleeds through. Only its contents move. */
+/* THE GLOW LAYER IS GONE, in all three celebration screens.
+   It was a radial gradient over the stage, which sticker rule 2 forbids on
+   chrome outright, and the audit counted 24 rows of it. The language's own
+   answer to "warm the top of the screen" is a FLAT SURFACE rather than a soft
+   one: rule 5, "colour is a surface, not an accent. The colour appears as a
+   full band". So the stage's own ground carries the hue and there is no second
+   layer over it. --reward-ground and --streak-ground already were that colour;
+   they are simply the only thing painting it now. */
+.combo-count {
+  font-size: clamp(7rem, 30vw, 11rem);
+  letter-spacing: -0.02em;
+  animation: combo-count 420ms var(--ease-spring) both;
+}
+@keyframes combo-count {
+  from {
+    transform: scale(0.78);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+.combo-pip {
+  background: var(--bb-muted);
+  color: var(--bb-muted-foreground);
+  transition: background-color 200ms var(--ease-out), color 200ms var(--ease-out);
+}
+.combo-pip[data-lit="true"] {
+  background: var(--bb-primary);
+  color: var(--bb-primary-foreground);
+}
+.combo-rise {
+  animation: combo-rise 560ms cubic-bezier(0.34, 1.56, 0.64, 1) 60ms both;
+}
+@keyframes combo-rise {
+  from {
+    transform: translateY(70%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+.combo-bubble {
+  position: relative;
+  animation: combo-bubble 320ms cubic-bezier(0.2, 0.8, 0.3, 1) 380ms both;
+}
+.combo-bubble::before {
+  content: "";
+  position: absolute;
+  left: -9px;
+  top: 26px;
+  width: 16px;
+  height: 16px;
+  background: inherit;
+  border-left: inherit;
+  border-bottom: inherit;
+  transform: rotate(45deg);
+}
+@keyframes combo-bubble {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .reaction-strip,
+  .combo-count,
+  .combo-rise,
+  .combo-bubble {
+    animation-duration: 1ms;
+    animation-delay: 0ms;
+  }
+}
+
+/* -------------------------------------------------------------------------
+   The reward moment, piece P2. One full bleed stage, opaque from its first
+   frame (the same lesson ComboInterstitial learned in its round 2), tinted
+   away from the working ground so the state change is visible before any
+   text is read. Everything on it moves on transform and opacity only, and
+   every timing is driven by the component's one clock; the classes below are
+   the visual halves of beats the component decides. Under reduced motion the
+   component renders the final frame at once and these collapse to 1 ms. */
+.reward-stage {
+  background: var(--reward-ground);
+  touch-action: manipulation;
+}
+.reward-headline {
+  animation: badge-pop 520ms var(--ease-spring) 60ms both;
+}
+/* THE one large number. It is allowed to be this big because it is the only
+   number on the screen at this weight: the round 2 ruling cut the XP tile and
+   the accuracy tile that were repeating it, so nothing competes and the size
+   is free. Three and four digit totals still fit a 390 px phone. */
+.reward-xp {
+  font-size: clamp(4.5rem, 22vw, 7rem);
+  letter-spacing: -0.03em;
+}
+/* The unit rides the number's baseline rather than a fixed offset, or it
+   drifts as the clamp resizes the digits. */
+.reward-xp-unit {
+  font-size: clamp(1.25rem, 5vw, 1.75rem);
+  line-height: 1;
+  padding-bottom: 0.55em;
+  letter-spacing: 0.06em;
+}
+/* The landing. One pop, on the same beat as Bloom's pose change, so the
+   number and the character react to the same instant. */
+.reward-xp-row[data-landed="true"] {
+  animation: reward-land 460ms var(--ease-spring) both;
+}
+.reward-bloom[data-landed="true"] {
+  animation: reward-land 460ms var(--ease-spring) both;
+}
+@keyframes reward-land {
+  0% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.07);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+/* The receipt lines. A tinted wash and no border: they are a caption to the
+   number above, and a bordered pill row reads as a second scoreboard, which
+   is the hierarchy fault round 2 was called on. The wash is 12 percent of the
+   warn hue over the card, so --bb-foreground keeps its card contrast. */
+.reward-line {
+  background: color-mix(in srgb, var(--warn) 12%, var(--bb-card));
+  color: var(--bb-foreground);
+}
+/* The diamond count-up's shine pass, ECONOMY.md "The moment": a translucent
+   light sweeps the number while it counts. The colour under it is the ink
+   itself, so the count stays AA at every frame; only the highlight moves. */
+.reward-shine {
+  background-image: linear-gradient(100deg, transparent 20%, var(--reward-shine) 50%, transparent 80%);
+  background-size: 200% 100%;
+  background-repeat: no-repeat;
+  animation: reward-shine 700ms linear infinite;
+}
+@keyframes reward-shine {
+  from {
+    background-position: 120% 0;
+  }
+  to {
+    background-position: -120% 0;
+  }
+}
+.reward-hidden {
+  opacity: 0;
+  transform: translateY(10px);
+}
+.reward-reveal {
+  animation: reward-reveal 320ms var(--ease-out) both;
+}
+/* Reveal without the rise, for the two elements whose POSITION is load
+   bearing while they appear: the cards, one of which is the diamond's flight
+   target and is measured mid-reveal, and the hero number, which is measured
+   by nothing but would visibly shift under a rise it shares with a pop. */
+.reward-fade-out {
+  opacity: 0;
+}
+.reward-fade-in {
+  animation: reward-fade 320ms var(--ease-out) both;
+}
+@keyframes reward-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+/* badge-pop without its 200 ms delay: the component's clock already decided when. */
+.reward-pop {
+  animation: badge-pop 420ms var(--ease-spring) both;
+}
+@keyframes reward-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+/* FLAWLESS. The pill is the colour and the word on it is the page's ink; see
+   the rule 7 note in streak.css for why every small coloured word in this app
+   moved the same way. */
+.reward-badge {
+  background: var(--good-soft);
+  color: var(--bb-foreground);
+  border: 1.5px solid color-mix(in srgb, var(--good) 45%, transparent);
+}
+
+/* The cards, the bar's shape: an outlined card whose header band carries the
+   accent, the body carrying an icon and a number. The band is the SOFT tint
+   with the strong ink, because a filled band in the accent itself fails AA
+   for the label in one theme or the other. */
+.reward-card {
+  --bb-card-accent: var(--bb-primary);
+  --bb-card-band: var(--bb-muted);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 1rem;
+  border: 2px solid var(--bb-card-accent);
+  background: var(--bb-card);
+}
+/* AN INSET PILL, NOT A FULL BLEED BAND.
+   Two things pushed it: the sticker audit read a square, borderless, full width
+   strip as a card with no cut edge and no radius (rules 4 and 5), and the
+   approved concept images draw exactly this element as an inset pill sitting
+   inside the card rather than as a stripe welded across its top. The ink is
+   --bb-foreground in every variant now, because a 12px uppercase label is body
+   sized text and rule 7 holds it to a neutral; the hue lives in the fill and
+   the outline, which is where the language wants colour to live anyway. */
+.reward-card__band {
+  margin: 0.5rem 0.5rem 0;
+  border: 1px solid var(--bb-card-accent);
+  border-radius: 999px;
+  background: var(--bb-card-band);
+  color: var(--bb-foreground);
+  padding: 0.3rem 0.6rem;
+  text-align: center;
+  font-size: var(--text-scale-xs);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+/* flex: 1 so a card stretched by a taller neighbour centres its number in the
+   space rather than parking it under the band with a white gap below. The two
+   cards are grid siblings and only one of them carries a milestone line. */
+.reward-card__body {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 0.5rem;
+  min-height: 3.25rem;
+}
+.reward-card--streak {
+  --bb-card-accent: var(--warn);
+  --bb-card-band: var(--warn-soft-solid);
+}
+.reward-card--diamond {
+  --bb-card-accent: var(--diamond);
+  --bb-card-band: color-mix(in srgb, var(--diamond) 14%, var(--bb-card));
+}
+/* A milestone does not get a card of its own, because a third card is the
+   dashboard the reward moment is not allowed to become. It takes over the
+   streak card: same slot, louder. This is the scarce badge CLAUDE.md asks the
+   moment to take from the bar, and it is scarce because it exists at 7, 14,
+   30, 60, 100, 180 and 365 and on no other day.
+
+   It is louder by its RING and its band label, never by recolouring the card
+   surface or filling the band in the accent itself. Both of those were tried
+   and both fail AA in one theme: the note above this block records that a
+   filled band loses the label, and a warn washed card body loses the muted
+   "days" beside the count. A halo carries no text, so it can be as loud as it
+   likes. */
+/* THE MILESTONE CARD IS A STREAK CARD, NOT A WARNING, and that is what fixes
+   the last rule 9 row rather than a ruling. It drew its accent from --warn,
+   which is amber-700 #b45309, which is also the mascot's costume pack: the two
+   palettes were not disjoint, and the mascot's half is frozen per D4 so the
+   theme's half is the one that moves. --streak-ink is the streak family's own
+   ink, it is not in MASCOT_PALETTE, and it is 6.63:1 on the cream card against
+   #b45309's 4.56, so the outline reads harder as well as reading as itself. */
+.reward-card--milestone {
+  --bb-card-accent: var(--streak-ink);
+  --bb-card-band: var(--warn-soft-solid);
+  /* An outline, not a spread-and-drop pair. The 4px spread was an outline
+     drawn with the shadow property and the 18px drop was a shadow on chrome,
+     which rule 3 does not allow on a card. */
+  outline: 4px solid color-mix(in srgb, var(--streak-ink) 34%, transparent);
+  outline-offset: 0;
+}
+/* The slot the diamond flies into. Empty and dim while the diamond is still
+   beside Bloom, so the card reads as a socket waiting rather than as a card
+   that already has its diamond and is counting to zero. */
+.reward-slot > svg {
+  opacity: 0.22;
+  transition: opacity 160ms var(--ease-out);
+}
+.reward-slot[data-landed="true"] > svg {
+  opacity: 1;
+}
+.reward-slot[data-landed="true"] {
+  animation: reward-land 420ms var(--ease-spring) both;
+}
+
+/* The diamond catch. Five positions on the component's clock: waiting (above
+   the frame), falling (to a spot BESIDE Bloom), held (a beat, longer for the
+   first diamond ever), flying (to the slot in the Diamonds card), landed
+   (gone; the slot has it).
+
+   WHERE "BESIDE" IS. The catch point is derived from --bloom-size, which the
+   component sets on the wrapper from the same number it hands the mascot, so
+   the diamond clears the sphere at any size. Round 2's judge caught the round
+   1 version landing the diamond ON Bloom's face at 900 ms, which is exactly
+   what a catch centred on a circle does: 0.62 of the size is just outside the
+   0.5 radius, and the y puts it at about chest height rather than at the
+   eyes. Nothing here is a magic number that has to be retuned when the mascot
+   grows. */
+.reward-diamond {
+  --catch-x: calc(var(--bloom-size, 200px) * 0.62);
+  --catch-y: calc(1rem + var(--bloom-size, 200px) * 0.44);
+  margin-left: -1.5rem;
+  transform: translateY(-140px);
+  opacity: 0;
+  will-change: transform;
+  filter: drop-shadow(0 4px 8px color-mix(in srgb, var(--diamond) 45%, transparent));
+}
+.reward-diamond[data-stage="falling"] {
+  animation: reward-diamond-fall 300ms cubic-bezier(0.4, 0, 0.6, 1) both;
+}
+.reward-stage[data-reward-first="true"] .reward-diamond[data-stage="falling"] {
+  animation-duration: 520ms;
+}
+.reward-diamond[data-stage="held"] {
+  opacity: 1;
+  transform: translate(var(--catch-x), var(--catch-y)) scale(1.08);
+  animation: reward-diamond-held 500ms var(--ease-spring) both;
+}
+/* The fly delta is measured from the diamond's rect while it is HELD, which
+   is already offset by the catch, so it is added to the catch rather than
+   replacing it. See the matching note in RewardMoment.tsx. */
+.reward-diamond[data-stage="flying"] {
+  opacity: 1;
+  transform: translate(calc(var(--catch-x) + var(--fly-dx, 0px)), calc(var(--catch-y) + var(--fly-dy, 240px))) scale(0.5);
+  transition: transform 320ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.reward-diamond[data-stage="landed"] {
+  opacity: 0;
+  transform: translate(calc(var(--catch-x) + var(--fly-dx, 0px)), calc(var(--catch-y) + var(--fly-dy, 240px))) scale(0.35);
+}
+@keyframes reward-diamond-fall {
+  from {
+    opacity: 0;
+    transform: translate(var(--catch-x), -140px) rotate(-18deg);
+  }
+  20% {
+    opacity: 1;
+  }
+  to {
+    opacity: 1;
+    transform: translate(var(--catch-x), var(--catch-y)) rotate(0deg);
+  }
+}
+@keyframes reward-diamond-held {
+  from {
+    transform: translate(var(--catch-x), var(--catch-y)) scale(0.9);
+  }
+  to {
+    transform: translate(var(--catch-x), var(--catch-y)) scale(1.08);
+  }
+}
+
+/* The flame. Grey and small until the beat lights it, then the outer tongue
+   flickers on its own clock. Two fills, both tokens, no image. */
+.reward-flame__outer {
+  fill: var(--bb-muted-foreground);
+  transition: fill 260ms var(--ease-out);
+}
+.reward-flame__inner {
+  fill: var(--bb-muted);
+  transition: fill 260ms var(--ease-out);
+}
+.reward-flame[data-lit="true"] .reward-flame__outer {
+  fill: var(--warn);
+  transform-origin: 50% 90%;
+  animation: reward-flame-flicker 1.1s ease-in-out infinite;
+}
+.reward-flame[data-lit="true"] .reward-flame__inner {
+  fill: var(--warn-soft-solid);
+}
+@keyframes reward-flame-flicker {
+  0%,
+  100% {
+    transform: scaleY(1) scaleX(1);
+  }
+  50% {
+    transform: scaleY(1.06) scaleX(0.96);
+  }
+}
+
+/* The burst: sixteen token coloured pieces thrown outward from behind Bloom,
+   fading as they fall. CSS only; no particle engine. */
+.reward-spark {
+  position: absolute;
+  left: 50%;
+  top: 40%;
+  width: 6px;
+  height: 14px;
+  border-radius: 3px;
+  opacity: 0;
+  animation: reward-spark 900ms cubic-bezier(0.2, 0.8, 0.3, 1) var(--delay, 0ms) both;
+}
+.reward-spark--round {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+}
+.reward-spark--bb-primary { background: var(--bb-primary); }
+.reward-spark--warn { background: var(--warn); }
+.reward-spark--good { background: var(--good); }
+.reward-spark--diamond { background: var(--diamond); }
+@keyframes reward-spark {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) rotate(0deg) scale(0.6);
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--dx), calc(var(--dy) + 60px)) rotate(200deg) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reward-headline,
+  .reward-reveal,
+  .reward-fade-in,
+  .reward-pop,
+  .reward-diamond[data-stage="falling"],
+  .reward-diamond[data-stage="held"],
+  .reward-xp-row[data-landed="true"],
+  .reward-bloom[data-landed="true"],
+  .reward-slot[data-landed="true"],
+  .reward-spark {
+    animation-duration: 1ms;
+    animation-delay: 0ms;
+  }
+  .reward-diamond[data-stage="flying"] {
+    transition-duration: 1ms;
+  }
+  .reward-flame[data-lit="true"] .reward-flame__outer {
+    animation: none;
+  }
+  .reward-shine {
+    animation: none;
+  }
+}

@@ -1,0 +1,555 @@
+{
+  "schemaVersion": 2,
+  "id": "good-acetal-formation-from-a-hemiacetal-via-an-oxocarbenium",
+  "title": "Under acid the hemiacetal of acetaldehyde is protonated, loses water to an oxocarbenium, is attacked by methanol, and is deprotonated to the dimethyl acetal",
+  "expect": {
+    "kind": "good",
+    "note": "The proton transfer heavy fixture. Four steps, three of them move a proton, and every one of those protons has a drawn donor and a drawn acceptor in the same state. This is the case CLAUDE.md's system boundary rule was written for: none of these steps conserves charge on the substrate alone, and a substrate only charge check reports a violation on all three. The load bearing chemistry is step 2. Water does not simply fall off to leave a carbocation; the neighbouring ether oxygen pushes in as it goes, which is why the intermediate is an oxocarbenium with a full octet on carbon rather than an unstabilised primary cation, and why acetal formation needs acid but not a strong one. Drawing step 2 with a single arrow off the C to O bond is the common wrong answer and it is wrong by one arrow, not by one concept."
+  },
+  "pathway": {
+    "id": "acetal-formation-from-hemiacetal",
+    "route": "nucleophilic_addition_carbonyl",
+    "steps": [
+      {
+        "id": "step-1-protonation-of-the-hydroxyl",
+        "identity": { "elementaryStep": "proton_transfer", "route": "nucleophilic_addition_carbonyl", "reactionCenters": ["O1", "H2", "O3"] },
+        "arrows": [
+          { "id": "a1", "electrons": 2, "source": { "kind": "lonePair", "atomId": "O1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["O1", "H2"] } },
+          { "id": "a2", "electrons": 2, "source": { "kind": "bond", "bondId": "b6" }, "sink": { "kind": "atom", "atomId": "O3" } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "hemiacetal",
+                "label": "1-methoxyethanol, the hemiacetal of acetaldehyde and methanol",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "O2", "element": "O", "lonePairs": 2 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 }
+                ],
+                "bonds": [
+                  { "id": "b1", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b2", "a": "C2", "b": "O1", "order": 1 },
+                  { "id": "b3", "a": "O1", "b": "H1", "order": 1 },
+                  { "id": "b4", "a": "C2", "b": "O2", "order": 1 },
+                  { "id": "b5", "a": "O2", "b": "C3", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "acid",
+              "species": {
+                "id": "hydronium",
+                "label": "hydronium",
+                "atoms": [
+                  { "id": "O3", "element": "O", "formalCharge": 1, "lonePairs": 1 },
+                  { "id": "H2", "element": "H" },
+                  { "id": "H3", "element": "H" },
+                  { "id": "H4", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b6", "a": "O3", "b": "H2", "order": 1 },
+                  { "id": "b7", "a": "O3", "b": "H3", "order": 1 },
+                  { "id": "b8", "a": "O3", "b": "H4", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "nucleophile",
+              "species": {
+                "id": "methanol",
+                "label": "methanol, the nucleophile for step 3",
+                "atoms": [
+                  { "id": "O4", "element": "O", "lonePairs": 2 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "H5", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b9", "a": "O4", "b": "C4", "order": 1 },
+                  { "id": "b10", "a": "O4", "b": "H5", "order": 1 }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "protonated-hemiacetal",
+                "label": "the hemiacetal protonated on its hydroxyl oxygen",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "O1", "element": "O", "formalCharge": 1, "lonePairs": 1 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "H2", "element": "H" },
+                  { "id": "O2", "element": "O", "lonePairs": 2 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 }
+                ],
+                "bonds": [
+                  { "id": "b11", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b12", "a": "C2", "b": "O1", "order": 1 },
+                  { "id": "b13", "a": "O1", "b": "H1", "order": 1 },
+                  { "id": "b14", "a": "O1", "b": "H2", "order": 1 },
+                  { "id": "b15", "a": "C2", "b": "O2", "order": 1 },
+                  { "id": "b16", "a": "O2", "b": "C3", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "solvent",
+              "species": {
+                "id": "water-from-acid",
+                "label": "water, left over from the hydronium",
+                "atoms": [
+                  { "id": "O3", "element": "O", "lonePairs": 2 },
+                  { "id": "H3", "element": "H" },
+                  { "id": "H4", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b17", "a": "O3", "b": "H3", "order": 1 },
+                  { "id": "b18", "a": "O3", "b": "H4", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "nucleophile",
+              "species": {
+                "id": "methanol",
+                "label": "methanol, the nucleophile for step 3",
+                "atoms": [
+                  { "id": "O4", "element": "O", "lonePairs": 2 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "H5", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b9", "a": "O4", "b": "C4", "order": 1 },
+                  { "id": "b10", "a": "O4", "b": "H5", "order": 1 }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "step-2-loss-of-water-to-the-oxocarbenium",
+        "identity": { "elementaryStep": "leaving_group_departure", "route": "nucleophilic_addition_carbonyl", "reactionCenters": ["C2", "O1", "O2"] },
+        "arrows": [
+          { "id": "a3", "electrons": 2, "source": { "kind": "lonePair", "atomId": "O2" }, "sink": { "kind": "betweenAtoms", "atomIds": ["O2", "C2"] } },
+          { "id": "a4", "electrons": 2, "source": { "kind": "bond", "bondId": "b12" }, "sink": { "kind": "atom", "atomId": "O1" } }
+        ],
+        "from": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "protonated-hemiacetal",
+                "label": "the hemiacetal protonated on its hydroxyl oxygen",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "O1", "element": "O", "formalCharge": 1, "lonePairs": 1 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "H2", "element": "H" },
+                  { "id": "O2", "element": "O", "lonePairs": 2 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 }
+                ],
+                "bonds": [
+                  { "id": "b11", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b12", "a": "C2", "b": "O1", "order": 1 },
+                  { "id": "b13", "a": "O1", "b": "H1", "order": 1 },
+                  { "id": "b14", "a": "O1", "b": "H2", "order": 1 },
+                  { "id": "b15", "a": "C2", "b": "O2", "order": 1 },
+                  { "id": "b16", "a": "O2", "b": "C3", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "solvent",
+              "species": {
+                "id": "water-from-acid",
+                "label": "water, left over from the hydronium",
+                "atoms": [
+                  { "id": "O3", "element": "O", "lonePairs": 2 },
+                  { "id": "H3", "element": "H" },
+                  { "id": "H4", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b17", "a": "O3", "b": "H3", "order": 1 },
+                  { "id": "b18", "a": "O3", "b": "H4", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "nucleophile",
+              "species": {
+                "id": "methanol",
+                "label": "methanol, the nucleophile for step 3",
+                "atoms": [
+                  { "id": "O4", "element": "O", "lonePairs": 2 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "H5", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b9", "a": "O4", "b": "C4", "order": 1 },
+                  { "id": "b10", "a": "O4", "b": "H5", "order": 1 }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s2",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "oxocarbenium",
+                "label": "the methoxy stabilised oxocarbenium, carbon keeps its octet",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "O2", "element": "O", "formalCharge": 1, "lonePairs": 1 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 }
+                ],
+                "bonds": [
+                  { "id": "b19", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b20", "a": "C2", "b": "O2", "order": 2 },
+                  { "id": "b21", "a": "O2", "b": "C3", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "water-leaving-group",
+                "label": "water, the leaving group",
+                "atoms": [
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "H2", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b22", "a": "O1", "b": "H1", "order": 1 },
+                  { "id": "b23", "a": "O1", "b": "H2", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "solvent",
+              "species": {
+                "id": "water-from-acid",
+                "label": "water, left over from the hydronium",
+                "atoms": [
+                  { "id": "O3", "element": "O", "lonePairs": 2 },
+                  { "id": "H3", "element": "H" },
+                  { "id": "H4", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b17", "a": "O3", "b": "H3", "order": 1 },
+                  { "id": "b18", "a": "O3", "b": "H4", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "nucleophile",
+              "species": {
+                "id": "methanol",
+                "label": "methanol, the nucleophile for step 3",
+                "atoms": [
+                  { "id": "O4", "element": "O", "lonePairs": 2 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "H5", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b9", "a": "O4", "b": "C4", "order": 1 },
+                  { "id": "b10", "a": "O4", "b": "H5", "order": 1 }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "step-3-methanol-attacks",
+        "identity": { "elementaryStep": "nucleophilic_attack", "route": "nucleophilic_addition_carbonyl", "reactionCenters": ["C2", "O4"] },
+        "arrows": [
+          { "id": "a5", "electrons": 2, "source": { "kind": "lonePair", "atomId": "O4" }, "sink": { "kind": "betweenAtoms", "atomIds": ["O4", "C2"] } },
+          { "id": "a6", "electrons": 2, "source": { "kind": "bond", "bondId": "b20" }, "sink": { "kind": "atom", "atomId": "O2" } }
+        ],
+        "from": {
+          "id": "s2",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "oxocarbenium",
+                "label": "the methoxy stabilised oxocarbenium, carbon keeps its octet",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "O2", "element": "O", "formalCharge": 1, "lonePairs": 1 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 }
+                ],
+                "bonds": [
+                  { "id": "b19", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b20", "a": "C2", "b": "O2", "order": 2 },
+                  { "id": "b21", "a": "O2", "b": "C3", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "byproduct",
+              "species": {
+                "id": "water-leaving-group",
+                "label": "water, the leaving group",
+                "atoms": [
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "H2", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b22", "a": "O1", "b": "H1", "order": 1 },
+                  { "id": "b23", "a": "O1", "b": "H2", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "solvent",
+              "species": {
+                "id": "water-from-acid",
+                "label": "water, left over from the hydronium",
+                "atoms": [
+                  { "id": "O3", "element": "O", "lonePairs": 2 },
+                  { "id": "H3", "element": "H" },
+                  { "id": "H4", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b17", "a": "O3", "b": "H3", "order": 1 },
+                  { "id": "b18", "a": "O3", "b": "H4", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "nucleophile",
+              "species": {
+                "id": "methanol",
+                "label": "methanol, the nucleophile",
+                "atoms": [
+                  { "id": "O4", "element": "O", "lonePairs": 2 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "H5", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b9", "a": "O4", "b": "C4", "order": 1 },
+                  { "id": "b10", "a": "O4", "b": "H5", "order": 1 }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s3",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "protonated-acetal",
+                "label": "the acetal, still protonated on the newly arrived oxygen",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "O2", "element": "O", "lonePairs": 2 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "O4", "element": "O", "formalCharge": 1, "lonePairs": 1 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "H5", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b24", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b25", "a": "C2", "b": "O2", "order": 1 },
+                  { "id": "b26", "a": "O2", "b": "C3", "order": 1 },
+                  { "id": "b27", "a": "C2", "b": "O4", "order": 1 },
+                  { "id": "b28", "a": "O4", "b": "C4", "order": 1 },
+                  { "id": "b29", "a": "O4", "b": "H5", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "byproduct",
+              "species": {
+                "id": "water-leaving-group",
+                "label": "water, the leaving group",
+                "atoms": [
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "H2", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b22", "a": "O1", "b": "H1", "order": 1 },
+                  { "id": "b23", "a": "O1", "b": "H2", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "solvent",
+              "species": {
+                "id": "water-from-acid",
+                "label": "water, left over from the hydronium",
+                "atoms": [
+                  { "id": "O3", "element": "O", "lonePairs": 2 },
+                  { "id": "H3", "element": "H" },
+                  { "id": "H4", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b17", "a": "O3", "b": "H3", "order": 1 },
+                  { "id": "b18", "a": "O3", "b": "H4", "order": 1 }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "step-4-deprotonation",
+        "identity": { "elementaryStep": "proton_transfer", "route": "nucleophilic_addition_carbonyl", "reactionCenters": ["O4", "H5", "O3"] },
+        "arrows": [
+          { "id": "a7", "electrons": 2, "source": { "kind": "lonePair", "atomId": "O3" }, "sink": { "kind": "betweenAtoms", "atomIds": ["O3", "H5"] } },
+          { "id": "a8", "electrons": 2, "source": { "kind": "bond", "bondId": "b29" }, "sink": { "kind": "atom", "atomId": "O4" } }
+        ],
+        "from": {
+          "id": "s3",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "protonated-acetal",
+                "label": "the acetal, still protonated on the newly arrived oxygen",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "O2", "element": "O", "lonePairs": 2 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "O4", "element": "O", "formalCharge": 1, "lonePairs": 1 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "H5", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b24", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b25", "a": "C2", "b": "O2", "order": 1 },
+                  { "id": "b26", "a": "O2", "b": "C3", "order": 1 },
+                  { "id": "b27", "a": "C2", "b": "O4", "order": 1 },
+                  { "id": "b28", "a": "O4", "b": "C4", "order": 1 },
+                  { "id": "b29", "a": "O4", "b": "H5", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "byproduct",
+              "species": {
+                "id": "water-leaving-group",
+                "label": "water, the leaving group",
+                "atoms": [
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "H2", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b22", "a": "O1", "b": "H1", "order": 1 },
+                  { "id": "b23", "a": "O1", "b": "H2", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "base",
+              "species": {
+                "id": "water-from-acid",
+                "label": "water, left over from the hydronium, acting as the base",
+                "atoms": [
+                  { "id": "O3", "element": "O", "lonePairs": 2 },
+                  { "id": "H3", "element": "H" },
+                  { "id": "H4", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b17", "a": "O3", "b": "H3", "order": 1 },
+                  { "id": "b18", "a": "O3", "b": "H4", "order": 1 }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s4",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "dimethyl-acetal",
+                "label": "1,1-dimethoxyethane, the acetal",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "O2", "element": "O", "lonePairs": 2 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "O4", "element": "O", "lonePairs": 2 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 }
+                ],
+                "bonds": [
+                  { "id": "b30", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b31", "a": "C2", "b": "O2", "order": 1 },
+                  { "id": "b32", "a": "O2", "b": "C3", "order": 1 },
+                  { "id": "b33", "a": "C2", "b": "O4", "order": 1 },
+                  { "id": "b34", "a": "O4", "b": "C4", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "byproduct",
+              "species": {
+                "id": "water-leaving-group",
+                "label": "water, the leaving group",
+                "atoms": [
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "H2", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b22", "a": "O1", "b": "H1", "order": 1 },
+                  { "id": "b23", "a": "O1", "b": "H2", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "byproduct",
+              "species": {
+                "id": "hydronium-regenerated",
+                "label": "hydronium, the catalyst handed back",
+                "atoms": [
+                  { "id": "O3", "element": "O", "formalCharge": 1, "lonePairs": 1 },
+                  { "id": "H3", "element": "H" },
+                  { "id": "H4", "element": "H" },
+                  { "id": "H5", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b35", "a": "O3", "b": "H3", "order": 1 },
+                  { "id": "b36", "a": "O3", "b": "H4", "order": 1 },
+                  { "id": "b37", "a": "O3", "b": "H5", "order": 1 }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

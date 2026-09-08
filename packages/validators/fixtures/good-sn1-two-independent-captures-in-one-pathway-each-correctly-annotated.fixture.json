@@ -1,0 +1,209 @@
+{
+  "schemaVersion": 2,
+  "id": "good-sn1-two-independent-captures-in-one-pathway-each-correctly-annotated",
+  "title": "Two unrelated SN1 captures, the tert-butyl cation and the butan-2-yl cation, authored as the two steps of one pathway, each carrying its own correctly grounded racemisation_ratio annotation",
+  "expect": {
+    "kind": "good",
+    "note": "Adversary pass two, Phase 1, item 2: 'look for whether grounding plus the E2 quartet rule together still leave a meaningful annotation gap.' The gap found is not in the E2 quartet rule, it is the same shaped bug one check over, in conservation-stereorandom-annotation, and it is a false positive rather than a false negative: a pathway that is completely correct chemistry, correctly and individually annotated, is rejected. THE CONSTRUCTION. Both steps here are copied verbatim, states and arrows unchanged, from two fixtures already proven good elsewhere in this corpus: step-1-capture-tert-butyl is step-2-capture of good-sn1-solvolysis-of-tert-butyl-bromide-in-water, and step-2-capture-butan-2-yl is step-2-capture of good-sn1-solvolysis-of-2-bromobutane-the-competing-route. Nothing in this family requires steps[n].to to equal steps[n+1].from (see shared.ts, 'states are not deduplicated by id... step.ts stores them as separate objects so a fixture can deliberately break the chain'), so packaging two genuinely independent SN1 captures as one two-step pathway is not itself a defect this suite catches, and it is exactly the shape a pathway authoring two competing or two unrelated captures for economy would take. Each step declares nucleophilic_attack on route sn1, so isSn1Capture(step, pathway) is true for both, and pathway.annotations carries BOTH racemisation_ratio annotations verbatim from the two source fixtures: the tert-butyl one, correctly stating not applicable and grounded on C1 ('nothing in this package can compute that C1 is not stereogenic'), and the butan-2-yl one, correctly stating net inversion excess and grounded on C6, the renamed attacked carbon in this fixture's second species ('water reaches C6 from either face'). Both are non empty, both are individually true, and both are individually well grounded. THE BUG. stereorandom-annotation.ts's find() calls requiredAnnotationViolations exactly ONCE per PATHWAY, not once per capture step: 'const captures = pathway.steps.filter(...); ... requiredAnnotationViolations(pathway, { kind: \"racemisation_ratio\", where: pathway ${id} / SN1 capture at ${captures.map(id).join(\", \")}, ... })'. requiredAnnotationViolations treats more than one annotation of the required kind as an error unconditionally: 'if (found.length > 1) { ... Two authored claims about the same thing cannot both be the one on file, and nothing downstream can pick between them ... }'. That sentence is true when two annotations both claim to be the ratio for the SAME centre. It is false here: these are two claims about two DIFFERENT centres in two DIFFERENT, unrelated cations, and nothing downstream needs to pick between them because nothing downstream ever reads either value in the first place, which the same file's own docstring states three times over. THE CONSEQUENCE. As authored, with one annotation per capture, this fixture is rejected by conservation-stereorandom-annotation today, on chemistry that is not wrong in any of the ways CLAUDE.md or docs/VERIFICATION.md S1 describes: it is the textbook single-SN1-capture case, twice. The only way to make the check pass as currently written is to delete one of the two annotations, which means one of the two captures ships with NO stated stereochemical outcome, exactly the silent single-product claim S1 exists to prevent, and the check itself cannot tell that state apart from a pathway that never needed two centres addressed. Filed GOOD because that is what the chemistry is: every one of the eleven checks except conservation-stereorandom-annotation reports nothing on this fixture (confirmed by running it), and conservation-stereorandom-annotation's rejection is the finding, not a chemistry defect to declare in mustFail. Declaring conservation-stereorandom-annotation in mustFail would misrepresent this as intentionally broken chemistry, which it is not. WHAT WOULD CLOSE IT. Scope the annotation requirement, and the 'exactly one' cardinality rule, to the SPECIFIC capture step (or the specific reaction centre) it is about, the same unit deriveE2Quartet and the periplanarity checks already reason in, rather than to the whole pathway. That is new engine logic and out of this adversary's write scope."
+  },
+  "pathway": {
+    "id": "sn1-two-independent-captures-one-pathway",
+    "route": "sn1",
+    "steps": [
+      {
+        "id": "step-1-capture-tert-butyl",
+        "identity": { "elementaryStep": "nucleophilic_attack", "route": "sn1", "reactionCenters": ["C1"] },
+        "arrows": [
+          { "id": "a1", "electrons": 2, "source": { "kind": "lonePair", "atomId": "O2" }, "sink": { "kind": "betweenAtoms", "atomIds": ["O2", "C1"] } }
+        ],
+        "from": {
+          "id": "s1a",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "tert-butyl-cation",
+                "label": "tert-butyl cation",
+                "atoms": [
+                  { "id": "C1", "element": "C", "formalCharge": 1 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 }
+                ],
+                "bonds": [
+                  { "id": "b9", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b10", "a": "C1", "b": "C3", "order": 1 },
+                  { "id": "b11", "a": "C1", "b": "C4", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "bromide",
+                "label": "bromide",
+                "atoms": [{ "id": "Br1", "element": "Br", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            },
+            {
+              "role": "solvent",
+              "species": {
+                "id": "water-nucleophile",
+                "label": "water, the one that attacks",
+                "atoms": [
+                  { "id": "O2", "element": "O", "lonePairs": 2 },
+                  { "id": "H2", "element": "H" },
+                  { "id": "H3", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b12", "a": "O2", "b": "H2", "order": 1 },
+                  { "id": "b13", "a": "O2", "b": "H3", "order": 1 }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1b",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "tert-butyloxonium",
+                "label": "protonated tert-butanol",
+                "atoms": [
+                  { "id": "C1", "element": "C" },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "O2", "element": "O", "formalCharge": 1, "lonePairs": 1 },
+                  { "id": "H2", "element": "H" },
+                  { "id": "H3", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b16", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b17", "a": "C1", "b": "C3", "order": 1 },
+                  { "id": "b18", "a": "C1", "b": "C4", "order": 1 },
+                  { "id": "b19", "a": "C1", "b": "O2", "order": 1 },
+                  { "id": "b20", "a": "O2", "b": "H2", "order": 1 },
+                  { "id": "b21", "a": "O2", "b": "H3", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "bromide",
+                "label": "bromide",
+                "atoms": [{ "id": "Br1", "element": "Br", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "step-2-capture-butan-2-yl",
+        "identity": { "elementaryStep": "nucleophilic_attack", "route": "sn1", "reactionCenters": ["C6"] },
+        "arrows": [
+          { "id": "a2", "electrons": 2, "source": { "kind": "lonePair", "atomId": "O5" }, "sink": { "kind": "betweenAtoms", "atomIds": ["O5", "C6"] } }
+        ],
+        "from": {
+          "id": "s2a",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "butan-2-yl-cation",
+                "label": "butan-2-yl cation, planar at C2",
+                "atoms": [
+                  { "id": "C5", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C6", "element": "C", "formalCharge": 1, "implicitHydrogens": 1 },
+                  { "id": "C7", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C8", "element": "C", "implicitHydrogens": 3 }
+                ],
+                "bonds": [
+                  { "id": "b101", "a": "C5", "b": "C6", "order": 1 },
+                  { "id": "b102", "a": "C6", "b": "C7", "order": 1 },
+                  { "id": "b103", "a": "C7", "b": "C8", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "bromide-2",
+                "label": "bromide",
+                "atoms": [{ "id": "Br2", "element": "Br", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            },
+            {
+              "role": "solvent",
+              "species": {
+                "id": "water-nucleophile-2",
+                "label": "water, the one that attacks",
+                "atoms": [
+                  { "id": "O5", "element": "O", "lonePairs": 2 },
+                  { "id": "H10", "element": "H" },
+                  { "id": "H11", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b104", "a": "O5", "b": "H10", "order": 1 },
+                  { "id": "b105", "a": "O5", "b": "H11", "order": 1 }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s2b",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "butan-2-yl-oxonium",
+                "label": "protonated butan-2-ol",
+                "atoms": [
+                  { "id": "C5", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C6", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C7", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C8", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "O5", "element": "O", "formalCharge": 1, "lonePairs": 1 },
+                  { "id": "H10", "element": "H" },
+                  { "id": "H11", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b106", "a": "C5", "b": "C6", "order": 1 },
+                  { "id": "b107", "a": "C6", "b": "C7", "order": 1 },
+                  { "id": "b108", "a": "C7", "b": "C8", "order": 1 },
+                  { "id": "b109", "a": "C6", "b": "O5", "order": 1 },
+                  { "id": "b110", "a": "O5", "b": "H10", "order": 1 },
+                  { "id": "b111", "a": "O5", "b": "H11", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "bromide-2",
+                "label": "bromide",
+                "atoms": [{ "id": "Br2", "element": "Br", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "annotations": [
+      {
+        "kind": "racemisation_ratio",
+        "value": "Not applicable. The cationic carbon carries three identical methyl groups, so it is not a stereocentre and there are no configurations for the capture to choose between.",
+        "justification": "Authored as an explicit not applicable rather than left off. The conservation fixture schema carries no stereo configuration, so nothing in this package can compute that C1 is not stereogenic, and an exemption granted by a check that cannot see chirality would be an exemption granted by a guess. Stating it makes it a claim a human made and can be held to. This is the tert-butyl capture, step-1-capture-tert-butyl."
+      },
+      {
+        "kind": "racemisation_ratio",
+        "value": "Not 50:50. Partial racemisation with a net inversion excess, commonly reported in the range of roughly 50 to 80 percent racemisation depending on substrate, solvent, and leaving group.",
+        "justification": "The butan-2-yl cation is planar and sp2, so water reaches C6 from either face and both configurations appear in the product set. The two faces are not equally available: the bromide that has just left is still associated as an ion pair and shields the front face for long enough to leave inversion in excess. CLAUDE.md and docs/VERIFICATION.md S1 both say the ratio is an authoring annotation and never a computed assertion, and a validator asserting 50:50 would fail on correct chemistry, so no check reads this value. This is the butan-2-yl capture, step-2-capture-butan-2-yl, an entirely separate cation from the tert-butyl one above; the annotation above it is not a claim about this centre and this one is not a claim about that one."
+      }
+    ]
+  }
+}

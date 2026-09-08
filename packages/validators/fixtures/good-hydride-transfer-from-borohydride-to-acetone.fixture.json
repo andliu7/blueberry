@@ -1,0 +1,227 @@
+{
+  "schemaVersion": 2,
+  "id": "good-hydride-transfer-from-borohydride-to-acetone",
+  "title": "Borohydride delivers a hydride to the carbonyl carbon of acetone, and water protonates the alkoxide to propan-2-ol",
+  "expect": {
+    "kind": "good",
+    "note": "The reduction case. The arrow starts on the boron to hydrogen BOND, not on a lone pair, because the hydride is a bonding pair being handed over and the hydrogen has no lone pair to give. The arrow pivots on the migrating hydrogen, which is the same shape as a 1,2 hydride shift in chem-core legality.ts. The transferred hydrogen is explicit and the other three on boron stay implicit, because only one of the four moves and no arrow can express a change in an implicit count. Boron ends the first step neutral with six valence electrons, which is borane, and that is correct rather than a valence failure."
+  },
+  "pathway": {
+    "id": "borohydride-reduction-acetone",
+    "route": "reduction",
+    "steps": [
+      {
+        "id": "step-1-hydride-delivery",
+        "identity": { "elementaryStep": "nucleophilic_attack", "route": "reduction", "reactionCenters": ["C2", "H1", "B1"] },
+        "arrows": [
+          { "id": "a1", "electrons": 2, "source": { "kind": "bond", "bondId": "b4" }, "sink": { "kind": "betweenAtoms", "atomIds": ["C2", "H1"] } },
+          { "id": "a2", "electrons": 2, "source": { "kind": "bond", "bondId": "b2" }, "sink": { "kind": "atom", "atomId": "O1" } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "acetone",
+                "label": "acetone",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C" },
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 }
+                ],
+                "bonds": [
+                  { "id": "b1", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b2", "a": "C2", "b": "O1", "order": 2 },
+                  { "id": "b3", "a": "C2", "b": "C3", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "reagent",
+              "species": {
+                "id": "borohydride",
+                "label": "borohydride, the delivered hydride drawn explicitly",
+                "atoms": [
+                  { "id": "B1", "element": "B", "formalCharge": -1, "implicitHydrogens": 3 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [{ "id": "b4", "a": "B1", "b": "H1", "order": 1 }]
+              }
+            },
+            {
+              "role": "solvent",
+              "species": {
+                "id": "water",
+                "label": "water",
+                "atoms": [
+                  { "id": "O2", "element": "O", "lonePairs": 2 },
+                  { "id": "H2", "element": "H" },
+                  { "id": "H3", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b5", "a": "O2", "b": "H2", "order": 1 },
+                  { "id": "b6", "a": "O2", "b": "H3", "order": 1 }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "isopropoxide",
+                "label": "propan-2-olate",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C" },
+                  { "id": "O1", "element": "O", "formalCharge": -1, "lonePairs": 3 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b7", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b8", "a": "C2", "b": "O1", "order": 1 },
+                  { "id": "b9", "a": "C2", "b": "C3", "order": 1 },
+                  { "id": "b10", "a": "C2", "b": "H1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "byproduct",
+              "species": {
+                "id": "borane",
+                "label": "borane",
+                "atoms": [{ "id": "B1", "element": "B", "implicitHydrogens": 3 }]
+              }
+            },
+            {
+              "role": "solvent",
+              "species": {
+                "id": "water",
+                "label": "water",
+                "atoms": [
+                  { "id": "O2", "element": "O", "lonePairs": 2 },
+                  { "id": "H2", "element": "H" },
+                  { "id": "H3", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b5", "a": "O2", "b": "H2", "order": 1 },
+                  { "id": "b6", "a": "O2", "b": "H3", "order": 1 }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "step-2-protonation",
+        "identity": { "elementaryStep": "proton_transfer", "route": "reduction", "reactionCenters": ["O1", "H2", "O2"] },
+        "arrows": [
+          { "id": "a3", "electrons": 2, "source": { "kind": "lonePair", "atomId": "O1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["O1", "H2"] } },
+          { "id": "a4", "electrons": 2, "source": { "kind": "bond", "bondId": "b5" }, "sink": { "kind": "atom", "atomId": "O2" } }
+        ],
+        "from": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "isopropoxide",
+                "label": "propan-2-olate",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C" },
+                  { "id": "O1", "element": "O", "formalCharge": -1, "lonePairs": 3 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b7", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b8", "a": "C2", "b": "O1", "order": 1 },
+                  { "id": "b9", "a": "C2", "b": "C3", "order": 1 },
+                  { "id": "b10", "a": "C2", "b": "H1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "byproduct",
+              "species": {
+                "id": "borane",
+                "label": "borane",
+                "atoms": [{ "id": "B1", "element": "B", "implicitHydrogens": 3 }]
+              }
+            },
+            {
+              "role": "acid",
+              "species": {
+                "id": "water",
+                "label": "water",
+                "atoms": [
+                  { "id": "O2", "element": "O", "lonePairs": 2 },
+                  { "id": "H2", "element": "H" },
+                  { "id": "H3", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b5", "a": "O2", "b": "H2", "order": 1 },
+                  { "id": "b6", "a": "O2", "b": "H3", "order": 1 }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s2",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "propan-2-ol",
+                "label": "propan-2-ol",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C" },
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "H2", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b11", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b12", "a": "C2", "b": "O1", "order": 1 },
+                  { "id": "b13", "a": "C2", "b": "C3", "order": 1 },
+                  { "id": "b14", "a": "C2", "b": "H1", "order": 1 },
+                  { "id": "b15", "a": "O1", "b": "H2", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "byproduct",
+              "species": {
+                "id": "borane",
+                "label": "borane",
+                "atoms": [{ "id": "B1", "element": "B", "implicitHydrogens": 3 }]
+              }
+            },
+            {
+              "role": "byproduct",
+              "species": {
+                "id": "hydroxide",
+                "label": "hydroxide",
+                "atoms": [
+                  { "id": "O2", "element": "O", "formalCharge": -1, "lonePairs": 3 },
+                  { "id": "H3", "element": "H" }
+                ],
+                "bonds": [{ "id": "b16", "a": "O2", "b": "H3", "order": 1 }]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

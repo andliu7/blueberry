@@ -35,7 +35,7 @@ const SECTIONS: { label: string; links: FooterLink[] }[] = [
     links: [
       { title: "Study Decks", href: "#/study-decks" },
       { title: "Lessons", href: "#/lessons" },
-      { title: "Concepts", href: TRAINER_URL, external: true },
+      { title: "The game", href: TRAINER_URL },
     ],
   },
   {

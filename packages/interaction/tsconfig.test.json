@@ -1,0 +1,25 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true, "composite": true,
+    "tsBuildInfoFile": "dist/tsconfig.test.tsbuildinfo",
+    "allowImportingTsExtensions": true, "types": ["node"]
+  },
+  // packages/validators/src is in here for exactly one import: `parseFixture` in
+  // test/corpus.ts, which is the only thing in this repository that turns fixture
+  // bytes into chem-core objects. The tap only corpus harness has to read the real
+  // corpus through the real parser, and a second reader written here would be a
+  // second opinion on what a fixture says.
+  //
+  // It is listed rather than referenced because packages/validators publishes no
+  // entry point: it is a dev only package whose scripts run its sources directly
+  // with node --experimental-strip-types, so there is no built specifier to import
+  // and a project reference has nothing to hand over. A composite project must
+  // list every file it compiles, and TS6307 is the error when it does not.
+  //
+  // The cost, recorded rather than discovered: a type error anywhere in
+  // packages/validators/src will now also surface here. That is real coupling and
+  // it is the price of the harness reading the corpus honestly.
+  "include": ["test/**/*.ts", "vitest.config.ts", "../validators/src/**/*.ts"],
+  "references": [{ "path": "./tsconfig.json" }]
+}

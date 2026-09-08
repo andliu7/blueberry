@@ -1,0 +1,311 @@
+/* The header course chip and the sheet it opens.
+
+   Every colour here is a token. No hex literal reaches this file, because the
+   contrast gate measures tokens and a literal is a colour nothing checks. */
+
+/* ---------------------------------------------------------------- the chip */
+
+.course-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 44px; /* mobile-ui's hard floor, and it is a floor not a target */
+  padding: 0.25rem 0.5rem 0.25rem 0.3rem;
+  border-radius: 0.75rem;
+  /* THE BORDER IS ALWAYS THERE AND USUALLY TRANSPARENT. Reserving the ring in
+     the resting state is what stops the chip shifting its neighbours by 2px
+     when a pointer crosses it: a border that appears on hover is a layout
+     change, and a layout change under the pointer is the jitter every design
+     system bans. Transparent at rest, coloured on hover, same box either way. */
+  border: 2px solid transparent;
+  background: transparent;
+  color: var(--bb-foreground);
+  cursor: pointer;
+  transition:
+    border-color var(--motion-fast, 120ms) ease,
+    background-color var(--motion-fast, 120ms) ease;
+}
+
+@media (hover: hover) {
+  .course-chip:hover {
+    border-color: var(--chip-edge);
+    background: var(--chip-face);
+  }
+}
+
+/* Focus is NOT hover. A keyboard user never triggers the hover rule above, so
+   without this the chip is the one control in the header with no visible focus,
+   which is a WCAG 2.4.7 failure rather than a style gap. */
+.course-chip:focus-visible {
+  border-color: var(--chip-edge);
+  background: var(--chip-face);
+  outline: 2px solid var(--bb-ring, var(--chip-edge));
+  outline-offset: 2px;
+}
+
+/* THE FLASK IS BARE, no tinted square behind it. The goal images draw a sticker
+   sitting on the header sheet, and a coloured tile under a coloured object is
+   the palette twice and the object never. The tile is still used by the SHEET's
+   rows below, where six courses are being told apart by their initials. */
+.course-chip__flask {
+  display: block;
+  flex: none;
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+.course-chip__mark {
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 0.5rem;
+  background: var(--chip-face);
+  color: var(--chip-edge);
+  font-size: var(--text-scale-xs);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.course-chip__name {
+  font-size: var(--text-scale-sm);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.course-chip__caret {
+  color: var(--bb-muted-foreground);
+  flex: none;
+}
+
+/* THE NAME IS BACK ON THE PHONE, 2026-09-05, and the superseded reasoning is
+   kept below rather than deleted so the next round does not re-hide it.
+
+   WHAT CHANGED IS THE MEASUREMENT, not the principle. The old rule was forced
+   by arithmetic: at 393px the row wanted 107px of chip, 94px of tool rail and
+   245px of HUD, which is 450px in a 393px row, and the probe found the search
+   button painted 33px under the diamond readout. Shrinking a control below
+   44px was not available then and is not now; mobile-ui states it as a hard
+   floor. So the chip shed the only thing on the row that was not load bearing,
+   its own label, and kept "O2" as the identity.
+
+   The same pass that put the flask here removed 44px of tool button and the
+   whole charge pill from the row, and the flask cannot carry an identity the
+   way initials could: one generic flask is the same mark for all six courses.
+   So the label is load bearing now and the width exists to pay for it. The
+   chip is ~118px, the tool control 44 and the three readouts ~164, which is
+   ~332 in a 378px content row.
+
+   The caret still goes. It is the one part that is purely additive: the chip
+   is already announced as a dialog opener by aria-haspopup, and a 10px
+   chevron at 390px is the first thing to spend. */
+@media (width < 40rem) {
+  .course-chip {
+    padding: 0.25rem 0.375rem 0.25rem 0.25rem;
+  }
+
+  .course-chip__caret {
+    display: none;
+  }
+
+  .course-chip__flask {
+    width: 1.875rem;
+    height: 1.875rem;
+  }
+}
+
+/* --------------------------------------------------------------- the sheet */
+
+/* A BOTTOM SHEET, not a centred card. The chip is at the top of the screen but
+   the thumb is at the bottom, and a list of six choices that a thumb has to
+   reach is a list that opens from the bottom. Same call the node sheet made. */
+.course-sheet {
+  /* POSITIONED EXPLICITLY, not left to `margin: auto` on the UA's inset box.
+     The shorthand version put the sheet 24px right of the viewport and pushed
+     its right edge off screen, because 100vw counts a scrollbar the layout
+     viewport does not have. Naming both axes removes the guess: full width up
+     to 30rem, centred, pinned to the bottom edge. */
+  position: fixed;
+  inset-inline: 0;
+  inset-block: auto 0;
+  width: 100%;
+  max-width: 30rem;
+  max-height: 78dvh;
+  margin: 0 auto;
+  padding: 0;
+  border: 0;
+  border-radius: 1.25rem 1.25rem 0 0;
+  background: var(--bb-card);
+  color: var(--bb-card-foreground);
+  box-shadow: 0 -8px 40px rgb(0 0 0 / 0.18);
+  /* NOT `display: flex` here. The UA sheet hides a closed dialog with
+     `dialog:not([open]) { display: none }`, and a bare `display` on the element
+     outranks it, so declaring flex unconditionally paints the sheet over every
+     screen in the app. It did exactly that, and a capture is what caught it.
+     The layout belongs on the open state; the closed state keeps the UA's. */
+  flex-direction: column;
+  /* The home indicator sits under this sheet on every modern iPhone. */
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.course-sheet[open] {
+  display: flex;
+}
+
+.course-sheet::backdrop {
+  background: rgb(0 0 0 / 0.4);
+}
+
+.course-sheet__grip {
+  flex: none;
+  width: 2.25rem;
+  height: 0.25rem;
+  margin: 0.5rem auto 0.25rem;
+  border-radius: 999px;
+  background: var(--bb-border);
+}
+
+/* THE SCROLL CONTAINER IS THE GESTURE. See CourseChip.tsx's header: the search
+   field is the first child and the list opens scrolled past it, so pulling down
+   reveals it with the platform's own scrolling. overscroll-behavior contain
+   stops that pull from chaining to the page underneath the dialog. */
+.course-sheet__scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 0.75rem;
+}
+
+.course-sheet__search {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 40px;
+  margin-bottom: 0.75rem;
+  padding: 0 0.625rem;
+  border-radius: 0.625rem;
+  background: var(--bb-muted);
+  color: var(--bb-muted-foreground);
+}
+
+.course-sheet__search input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--bb-foreground);
+  font-size: var(--text-scale-sm);
+  outline: none;
+}
+
+.course-sheet__title {
+  margin: 0 0 0.5rem;
+  font-size: var(--text-scale-lg);
+  font-weight: 700;
+}
+
+.course-sheet__list {
+  margin: 0;
+  /* The bottom padding is what makes PULL TO SEARCH possible. The gesture is
+     real scrolling, so it needs real overflow, and six courses in a 78dvh
+     sheet came 22px short of being able to scroll the field out of sight at
+     all: the probe measured scrollTop capped at 31 against a 52px field. This
+     guarantees the field can always be scrolled away, and under the last row
+     it reads as breathing room rather than as a spacer. */
+  padding: 0 0 4.5rem;
+  list-style: none;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.course-row {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 56px;
+  padding: 0.625rem 0.75rem;
+  border: 2px solid var(--bb-border);
+  border-radius: 0.875rem;
+  background: var(--bb-background);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.course-row--current {
+  border-color: var(--chip-edge);
+  background: var(--chip-face);
+}
+
+/* A course that is not authored yet is DIMMED AND STILL READABLE, never hidden
+   and never a dead end. CLAUDE.md: "Non-Orgo courses render greyed with an
+   honest coming treatment." 0.55 opacity would put the note under the 4.5:1
+   text floor, so the row keeps full-strength ink and loses only its pointer. */
+.course-row:disabled {
+  cursor: default;
+  background: var(--bb-muted);
+  border-color: transparent;
+}
+
+.course-row__mark {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.625rem;
+  background: var(--chip-face);
+  color: var(--chip-edge);
+  font-size: var(--text-scale-sm);
+  font-weight: 700;
+}
+
+.course-row:disabled .course-row__mark {
+  background: var(--bb-card);
+  color: var(--bb-muted-foreground);
+}
+
+.course-row__text {
+  display: grid;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.course-row__name {
+  font-size: var(--text-scale-sm);
+  font-weight: 650;
+}
+
+.course-row__note {
+  font-size: var(--text-scale-xs);
+  color: var(--bb-muted-foreground);
+  line-height: 1.35;
+}
+
+.course-row__tick {
+  margin-left: auto;
+  color: var(--chip-edge);
+  font-weight: 700;
+}
+
+.course-sheet__empty {
+  padding: 1rem 0.25rem;
+  color: var(--bb-muted-foreground);
+  font-size: var(--text-scale-sm);
+}
+
+.course-sheet__done {
+  flex: none;
+  margin: 0.25rem 0.75rem 0.75rem;
+  min-height: 48px;
+  border: 0;
+  border-radius: 0.875rem;
+  background: var(--bb-primary);
+  color: var(--bb-primary-foreground);
+  font-size: var(--text-scale-sm);
+  font-weight: 650;
+  cursor: pointer;
+}

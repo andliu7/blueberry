@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 2,
+  "id": "broken-electron-flow-br2-homolysis-with-only-one-fishhook-arrow",
+  "title": "Br2 homolysis drawn with only one of the two required single electron fishhook arrows, leaving the second bromine's new radical electron unexplained",
+  "expect": {
+    "kind": "broken",
+    "mustFail": ["conservation-electron-flow"],
+    "note": "The negative control for good-br2-homolysis-with-single-electron-fishhook-arrows, closing the loop on the electrons: 1 arrow path the same way broken-electron-flow-sn2-drawn-without-the-leaving-group-arrow closes it for ordinary 2-electron arrows. Only arrow a1 is drawn, one fishhook from bond b1 to Br1. The states are identical to the good fixture: Br2 splits into two bromine radicals. declaredDeltas from the single arrow says bond(Br1,Br2) moves by -1 and Br1 nonbonding moves by +1; observedDeltas says the bond moves by -2 and BOTH Br1 and Br2 gain one nonbonding electron. deltaMismatches disagrees at the bond, declared -1 against observed -2, and at Br2, declared 0 against observed +1, cause arrow_count_disagrees_with_deltas at the bond and bond_change_without_arrow at Br2 since its declared value there is exactly 0. Mass and charge stay conserved, since both atoms and the total charge, zero throughout, are untouched by which arrows were drawn; conservation-valence stays green too, because each bromine's own atoms are still internally consistent given its own formalCharge and unpairedElectrons, the missing arrow is a bookkeeping gap between states, not a structural defect in either state on its own."
+  },
+  "pathway": {
+    "id": "br2-homolysis-missing-one-fishhook",
+    "route": "radical_halogenation",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": {
+          "elementaryStep": "bond_homolysis",
+          "route": "radical_halogenation",
+          "reactionCenters": ["Br1", "Br2"]
+        },
+        "arrows": [
+          {
+            "id": "a1",
+            "electrons": 1,
+            "source": { "kind": "bond", "bondId": "b1" },
+            "sink": { "kind": "atom", "atomId": "Br1" }
+          }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "reagent",
+              "species": {
+                "id": "bromine",
+                "label": "Br2",
+                "atoms": [
+                  { "id": "Br1", "element": "Br", "lonePairs": 3 },
+                  { "id": "Br2", "element": "Br", "lonePairs": 3 }
+                ],
+                "bonds": [{ "id": "b1", "a": "Br1", "b": "Br2", "order": 1 }]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "bromine-radical-1",
+                "label": "bromine radical",
+                "atoms": [{ "id": "Br1", "element": "Br", "lonePairs": 3, "unpairedElectrons": 1 }]
+              }
+            },
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "bromine-radical-2",
+                "label": "bromine radical",
+                "atoms": [{ "id": "Br2", "element": "Br", "lonePairs": 3, "unpairedElectrons": 1 }]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

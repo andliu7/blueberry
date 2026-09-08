@@ -5,10 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "npm run build:packages && tsc -b && vite build",
     "publish:site": "npm run build && node scripts/publish.mjs",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:packages": "npm run test --workspaces --if-present",
+    "build:packages": "tsc -b packages/chem-core packages/interaction packages/curriculum packages/economy packages/feedback"
   },
   "dependencies": {
     "@fontsource-variable/caveat": "^5.3.0",
@@ -50,6 +53,10 @@
     "supabase": "^2.114.0",
     "tailwindcss": "^4.3.3",
     "typescript": "~6.0.2",
-    "vite": "^8.2.0"
-  }
+    "vite": "^8.2.0",
+    "vitest": "^3.2.4"
+  },
+  "workspaces": [
+    "packages/*"
+  ]
 }

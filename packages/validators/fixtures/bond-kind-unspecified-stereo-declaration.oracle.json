@@ -1,0 +1,47 @@
+{
+  "protocol": "blueberry-oracle-corpus",
+  "version": 1,
+  "name": "bond-kind-unspecified-stereo-declaration",
+  "description": "Adversary pass, Phase 0, attack surface 4, and a live reproduction of a second finding reported separately: adding any file under packages/validators/fixtures/ that ends .oracle.json, exactly the extension mechanism corpus.ts and CONTRACT.md document as sanctioned, currently fails all six conservation-* checks, because NON_FIXTURE_FILES in packages/validators/src/fixtures.ts lists only README.md and was never updated for the .oracle.json suffix. That failure is expected here and is not a defect in this fixture; see the adversary report for the full finding. What this file itself is for: gate-self-test.ts's synthetic negative controls for the unspecified stereo declaration mechanism are all kind: \"atom\"; STEREO_DECLARATION is hardcoded to kind: \"atom\" and no assertion in ASSERTIONS ever builds a kind: \"bond\" case, so the bond arm of the declaration mechanism was untested against real RDKit output before this file existed. This is 2-butene, a genuine stereogenic C2=C3 double bond left undrawn and declared an artifact with a kind: \"bond\" entry. Expect ADJUDICATION, never a plain pass and never a failure, the bond-kind mirror of declaredUnspecifiedStereo in gate-self-test.ts. The stand-in justification below is not a claim that 2-butene's E/Z is genuinely unpinnable chemistry, only a mechanical exercise of the bond-kind path end to end against real RDKit output. The three failure arms of the same mechanism, undeclared, stale, and a ref naming nothing, were also exercised for kind: \"bond\" against real RDKit and all three failed exactly as the atom-kind self test assertions predict; they are not kept here as a live fixture because the oracle corpus format has no mechanism, unlike a conservation fixture's mustFail, to declare a state expected to fail without leaving the suite permanently red, so they are reported as pure unit tests instead. See packages/validators/tests/stereo-descriptors-bond-kind.test.ts.",
+  "sequences": [
+    {
+      "id": "2-butene-declared-double-bond-stereo-artifact",
+      "description": "2-butene with bond b2 (C2=C3) carrying stereo: null and a kind: \"bond\" declaration naming it, non empty justification. Expect ADJUDICATION.",
+      "aromaticityInvariantAtomIds": [],
+      "states": [
+        {
+          "id": "state-0",
+          "sanitizationMayFail": null,
+          "species": [
+            {
+              "id": "sp-2-butene",
+              "label": "2-butene, double bond stereochemistry undrawn and declared an artifact",
+              "expect": {
+                "meso": false,
+                "unspecifiedStereoDeclared": [
+                  {
+                    "kind": "bond",
+                    "ref": "b2",
+                    "justification": "Adversary pass stand-in: exercising the bond-kind declaration path end to end against real RDKit output, mirroring the atom-kind coverage gate-self-test.ts already has. Not a claim that 2-butene's E/Z is genuinely unpinnable chemistry.",
+                    "declaredBy": "adversary-pass-phase-0"
+                  }
+                ]
+              },
+              "atoms": [
+                { "id": "c1", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 3, "stereo": null },
+                { "id": "c2", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null },
+                { "id": "c3", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null },
+                { "id": "c4", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 3, "stereo": null }
+              ],
+              "bonds": [
+                { "id": "b1", "a": "c1", "b": "c2", "order": 1, "stereo": null },
+                { "id": "b2", "a": "c2", "b": "c3", "order": 2, "stereo": null },
+                { "id": "b3", "a": "c3", "b": "c4", "order": 1, "stereo": null }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

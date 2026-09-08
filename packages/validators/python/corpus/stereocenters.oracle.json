@@ -1,0 +1,264 @@
+{
+  "protocol": "blueberry-oracle-corpus",
+  "version": 1,
+  "name": "stereocenters",
+  "description": "Tetrahedral stereocentres whose CIP descriptor was derived by hand from the parity convention in chem-core/src/atom.ts, then handed to RDKit to grade. The descriptors here are the authored claim. They were not copied out of RDKit, because a corpus read off the oracle grades nothing.",
+  "sequences": [
+    {
+      "id": "s-bromochlorofluoromethane",
+      "description": "Neighbour list [F, Cl, Br, H] read clockwise. Reversing to [H, Br, Cl, F] is an even permutation, so it is clockwise too, and standing at H, the lowest priority, reading Br > Cl > F clockwise is S.",
+      "aromaticityInvariantAtomIds": [],
+      "states": [
+        {
+          "id": "state-0",
+          "sanitizationMayFail": null,
+          "species": [
+            {
+              "id": "sp-1",
+              "label": "(S)-bromochlorofluoromethane",
+              "expect": { "meso": false },
+              "atoms": [
+                {
+                  "id": "c1", "element": "C", "isotope": null, "formalCharge": 0,
+                  "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1,
+                  "stereo": {
+                    "kind": "tetrahedral",
+                    "neighbors": ["f1", "cl1", "br1", "@implicitH"],
+                    "parity": "clockwise",
+                    "authoredDescriptor": "S"
+                  }
+                },
+                { "id": "f1", "element": "F", "isotope": null, "formalCharge": 0, "lonePairs": 3, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null },
+                { "id": "cl1", "element": "Cl", "isotope": null, "formalCharge": 0, "lonePairs": 3, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null },
+                { "id": "br1", "element": "Br", "isotope": null, "formalCharge": 0, "lonePairs": 3, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null }
+              ],
+              "bonds": [
+                { "id": "b1", "a": "c1", "b": "f1", "order": 1, "stereo": null },
+                { "id": "b2", "a": "c1", "b": "cl1", "order": 1, "stereo": null },
+                { "id": "b3", "a": "c1", "b": "br1", "order": 1, "stereo": null }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "r-bromochlorofluoromethane",
+      "description": "The enantiomer of the above. Inverting the parity must invert the descriptor.",
+      "aromaticityInvariantAtomIds": [],
+      "states": [
+        {
+          "id": "state-0",
+          "sanitizationMayFail": null,
+          "species": [
+            {
+              "id": "sp-1",
+              "label": "(R)-bromochlorofluoromethane",
+              "expect": { "meso": false },
+              "atoms": [
+                {
+                  "id": "c1", "element": "C", "isotope": null, "formalCharge": 0,
+                  "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1,
+                  "stereo": {
+                    "kind": "tetrahedral",
+                    "neighbors": ["f1", "cl1", "br1", "@implicitH"],
+                    "parity": "counterclockwise",
+                    "authoredDescriptor": "R"
+                  }
+                },
+                { "id": "f1", "element": "F", "isotope": null, "formalCharge": 0, "lonePairs": 3, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null },
+                { "id": "cl1", "element": "Cl", "isotope": null, "formalCharge": 0, "lonePairs": 3, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null },
+                { "id": "br1", "element": "Br", "isotope": null, "formalCharge": 0, "lonePairs": 3, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null }
+              ],
+              "bonds": [
+                { "id": "b1", "a": "c1", "b": "f1", "order": 1, "stereo": null },
+                { "id": "b2", "a": "c1", "b": "cl1", "order": 1, "stereo": null },
+                { "id": "b3", "a": "c1", "b": "br1", "order": 1, "stereo": null }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "neighbour-list-permutation",
+      "description": "Same molecule, same parity word, one transposition in the neighbour list. Swapping two slots flips the centre, so this is R. A bridge that ignores the neighbour ordering and reads only the parity word answers S here and passes every other case in this file.",
+      "aromaticityInvariantAtomIds": [],
+      "states": [
+        {
+          "id": "state-0",
+          "sanitizationMayFail": null,
+          "species": [
+            {
+              "id": "sp-1",
+              "label": "(R)-bromochlorofluoromethane, slots written Cl and Br the other way round",
+              "expect": { "meso": false },
+              "atoms": [
+                {
+                  "id": "c1", "element": "C", "isotope": null, "formalCharge": 0,
+                  "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1,
+                  "stereo": {
+                    "kind": "tetrahedral",
+                    "neighbors": ["f1", "br1", "cl1", "@implicitH"],
+                    "parity": "clockwise",
+                    "authoredDescriptor": "R"
+                  }
+                },
+                { "id": "f1", "element": "F", "isotope": null, "formalCharge": 0, "lonePairs": 3, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null },
+                { "id": "cl1", "element": "Cl", "isotope": null, "formalCharge": 0, "lonePairs": 3, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null },
+                { "id": "br1", "element": "Br", "isotope": null, "formalCharge": 0, "lonePairs": 3, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null }
+              ],
+              "bonds": [
+                { "id": "b1", "a": "c1", "b": "f1", "order": 1, "stereo": null },
+                { "id": "b2", "a": "c1", "b": "cl1", "order": 1, "stereo": null },
+                { "id": "b3", "a": "c1", "b": "br1", "order": 1, "stereo": null }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sulfoxide-stereogenic-lone-pair",
+      "description": "A three coordinate centre that is stereogenic because of its lone pair, which is the case the @lonePair sentinel in chem-core/src/ids.ts exists for. Priorities O > CH2CH3 > CH3 > lone pair. [O, CH3, Et, LP] clockwise rearranges by an even permutation to [LP, O, Et, CH3], so standing at the lone pair and reading O > Et > CH3 clockwise is S.",
+      "aromaticityInvariantAtomIds": [],
+      "states": [
+        {
+          "id": "state-0",
+          "sanitizationMayFail": null,
+          "species": [
+            {
+              "id": "sp-1",
+              "label": "(S)-ethyl methyl sulfoxide",
+              "expect": { "meso": false },
+              "atoms": [
+                {
+                  "id": "s1", "element": "S", "isotope": null, "formalCharge": 0,
+                  "lonePairs": 1, "unpairedElectrons": 0, "implicitHydrogens": 0,
+                  "stereo": {
+                    "kind": "tetrahedral",
+                    "neighbors": ["o1", "c1", "c2", "@lonePair"],
+                    "parity": "clockwise",
+                    "authoredDescriptor": "S"
+                  }
+                },
+                { "id": "o1", "element": "O", "isotope": null, "formalCharge": 0, "lonePairs": 2, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null },
+                { "id": "c1", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 3, "stereo": null },
+                { "id": "c2", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 2, "stereo": null },
+                { "id": "c3", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 3, "stereo": null }
+              ],
+              "bonds": [
+                { "id": "b1", "a": "s1", "b": "o1", "order": 2, "stereo": null },
+                { "id": "b2", "a": "s1", "b": "c1", "order": 1, "stereo": null },
+                { "id": "b3", "a": "s1", "b": "c2", "order": 1, "stereo": null },
+                { "id": "b4", "a": "c2", "b": "c3", "order": 1, "stereo": null }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dibromobutane-2R-3R",
+      "description": "CLAUDE.md reference fixture, chiral half. Br2 addition to cis-2-butene gives the racemic (2R,3R) and (2S,3S) pair. At C2 the priorities are Br > C3 > C1 > H; the list [C1, C3, Br, H] reverses by an even permutation to [H, Br, C3, C1], so counterclockwise there is R. C3 is the same pattern by symmetry.",
+      "aromaticityInvariantAtomIds": [],
+      "states": [
+        {
+          "id": "state-0",
+          "sanitizationMayFail": null,
+          "species": [
+            {
+              "id": "sp-1",
+              "label": "(2R,3R)-2,3-dibromobutane",
+              "expect": { "meso": false },
+              "atoms": [
+                { "id": "c1", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 3, "stereo": null },
+                {
+                  "id": "c2", "element": "C", "isotope": null, "formalCharge": 0,
+                  "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1,
+                  "stereo": {
+                    "kind": "tetrahedral",
+                    "neighbors": ["c1", "c3", "br2", "@implicitH"],
+                    "parity": "counterclockwise",
+                    "authoredDescriptor": "R"
+                  }
+                },
+                {
+                  "id": "c3", "element": "C", "isotope": null, "formalCharge": 0,
+                  "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1,
+                  "stereo": {
+                    "kind": "tetrahedral",
+                    "neighbors": ["c4", "c2", "br3", "@implicitH"],
+                    "parity": "counterclockwise",
+                    "authoredDescriptor": "R"
+                  }
+                },
+                { "id": "c4", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 3, "stereo": null },
+                { "id": "br2", "element": "Br", "isotope": null, "formalCharge": 0, "lonePairs": 3, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null },
+                { "id": "br3", "element": "Br", "isotope": null, "formalCharge": 0, "lonePairs": 3, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null }
+              ],
+              "bonds": [
+                { "id": "b1", "a": "c1", "b": "c2", "order": 1, "stereo": null },
+                { "id": "b2", "a": "c2", "b": "c3", "order": 1, "stereo": null },
+                { "id": "b3", "a": "c3", "b": "c4", "order": 1, "stereo": null },
+                { "id": "b4", "a": "c2", "b": "br2", "order": 1, "stereo": null },
+                { "id": "b5", "a": "c3", "b": "br3", "order": 1, "stereo": null }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dibromobutane-2R-3S-meso",
+      "description": "CLAUDE.md reference fixture, meso half. Br2 addition to trans-2-butene gives the meso compound. Identical to the entry above except that C3 is inverted. If an implementation swaps these two entries it has a sign error in the addition geometry, which is the failure CLAUDE.md names by hand.",
+      "aromaticityInvariantAtomIds": [],
+      "states": [
+        {
+          "id": "state-0",
+          "sanitizationMayFail": null,
+          "species": [
+            {
+              "id": "sp-1",
+              "label": "meso-2,3-dibromobutane",
+              "expect": { "meso": true },
+              "atoms": [
+                { "id": "c1", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 3, "stereo": null },
+                {
+                  "id": "c2", "element": "C", "isotope": null, "formalCharge": 0,
+                  "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1,
+                  "stereo": {
+                    "kind": "tetrahedral",
+                    "neighbors": ["c1", "c3", "br2", "@implicitH"],
+                    "parity": "counterclockwise",
+                    "authoredDescriptor": "R"
+                  }
+                },
+                {
+                  "id": "c3", "element": "C", "isotope": null, "formalCharge": 0,
+                  "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1,
+                  "stereo": {
+                    "kind": "tetrahedral",
+                    "neighbors": ["c4", "c2", "br3", "@implicitH"],
+                    "parity": "clockwise",
+                    "authoredDescriptor": "S"
+                  }
+                },
+                { "id": "c4", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 3, "stereo": null },
+                { "id": "br2", "element": "Br", "isotope": null, "formalCharge": 0, "lonePairs": 3, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null },
+                { "id": "br3", "element": "Br", "isotope": null, "formalCharge": 0, "lonePairs": 3, "unpairedElectrons": 0, "implicitHydrogens": 0, "stereo": null }
+              ],
+              "bonds": [
+                { "id": "b1", "a": "c1", "b": "c2", "order": 1, "stereo": null },
+                { "id": "b2", "a": "c2", "b": "c3", "order": 1, "stereo": null },
+                { "id": "b3", "a": "c3", "b": "c4", "order": 1, "stereo": null },
+                { "id": "b4", "a": "c2", "b": "br2", "order": 1, "stereo": null },
+                { "id": "b5", "a": "c3", "b": "br3", "order": 1, "stereo": null }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -96,7 +96,7 @@ export function MechanismBoard({ className }: { className?: string }) {
 
         {/* The two arrows, and the only things that move. */}
         <g
-          className="text-fuchsia-500 dark:text-fuchsia-400"
+          className="text-blue-500 dark:text-blue-400"
           stroke="currentColor"
           strokeWidth={2.4}
           strokeLinecap="round"

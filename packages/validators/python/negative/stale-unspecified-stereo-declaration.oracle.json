@@ -1,0 +1,52 @@
+{
+  "protocol": "blueberry-oracle-corpus",
+  "version": 1,
+  "name": "stale-unspecified-stereo-declaration",
+  "description": "Benzene, which has no stereo elements of any kind, carrying an expect.unspecifiedStereoDeclared entry on ring carbon c1. The atom exists and RDKit reports nothing unspecified about it, so the declaration is stale. This is the rule that keeps the declaration honest: without it, a declaration written once outlives the chemistry it was written about and quietly covers whatever turns up at that id later.",
+  "sequences": [
+    {
+      "id": "benzene-with-a-stale-declaration",
+      "description": "One state. Copy this in and oracle-stereo-descriptors must go red naming atom c1 as stale.",
+      "aromaticityInvariantAtomIds": [],
+      "states": [
+        {
+          "id": "state-0",
+          "sanitizationMayFail": null,
+          "species": [
+            {
+              "id": "sp-benzene",
+              "label": "benzene, carrying a declaration about nothing",
+              "expect": {
+                "meso": false,
+                "unspecifiedStereoDeclared": [
+                  {
+                    "kind": "atom",
+                    "ref": "c1",
+                    "justification": "Deliberately stale. The justification reads well and is still wrong, because benzene has no unspecified stereo element at c1 for it to be about. A declaration is checked against what RDKit actually reported, not against how convincing it sounds.",
+                    "declaredBy": "negative/stale-unspecified-stereo-declaration.oracle.json"
+                  }
+                ]
+              },
+              "atoms": [
+                { "id": "c1", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null },
+                { "id": "c2", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null },
+                { "id": "c3", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null },
+                { "id": "c4", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null },
+                { "id": "c5", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null },
+                { "id": "c6", "element": "C", "isotope": null, "formalCharge": 0, "lonePairs": 0, "unpairedElectrons": 0, "implicitHydrogens": 1, "stereo": null }
+              ],
+              "bonds": [
+                { "id": "r1", "a": "c1", "b": "c2", "order": 2, "stereo": null },
+                { "id": "r2", "a": "c2", "b": "c3", "order": 1, "stereo": null },
+                { "id": "r3", "a": "c3", "b": "c4", "order": 2, "stereo": null },
+                { "id": "r4", "a": "c4", "b": "c5", "order": 1, "stereo": null },
+                { "id": "r5", "a": "c5", "b": "c6", "order": 2, "stereo": null },
+                { "id": "r6", "a": "c6", "b": "c1", "order": 1, "stereo": null }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

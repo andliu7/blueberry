@@ -1,0 +1,236 @@
+{
+  "schemaVersion": 2,
+  "id": "good-known-limit-spectator-justification-contradicts-its-own-declared-reason",
+  "title": "A single, genuinely inert sodium counterion is declared a spectator with reason unreacting_counterion, and its justification prose flatly contradicts that reason by describing the species as the nucleophile that attacks the substrate",
+  "expect": {
+    "kind": "good",
+    "note": "Adversary pass two, Phase 1: widening good-known-limit-spectator-role-and-reason-drift-across-three-spectators without refiling it. That fixture needed three spectators and a rotation across a step to show role and reason are unchecked; this one needs neither. One spectator, present unchanged on both sides, same declared reason both sides, satisfying every rule spectator.ts states in its own docstring: 1) speciesId names a real member (Na1, present both sides), 2) declared exactly once per state, 3) justification and declaredBy are both non empty, 4) the species is structurally byte identical in from and to, so assertion 4's equality check is silent, 5) putting the spectator back into the conservation totals changes nothing at all, because it genuinely never reacts, the C2-Br1 bond breaking and the O1-C2 bond forming are exactly and only what the arrows already declare, so assertion 5's attack finds no load bearing exclusion, and 6) the declared spectator population, canonicalised, is the identical multiset on both sides, so assertion 6 is silent too. What is never read is whether `justification`, a free string, is a sentence that could actually justify `reason`, a closed SpectatorReason enum value. Here reason is unreacting_counterion and justification is the opposite claim: 'This sodium ion is the actual nucleophile in this step, attacking the electrophilic carbon and displacing bromide; it is declared a spectator only for bookkeeping convenience.' That sentence describes chemistry this fixture's own arrows do not draw (no arrow sources from Na1, nothing bonds to it, hydroxide does all the real work exactly as in every other SN2 fixture in this corpus) and directly contradicts the enum value sitting right next to it in the same object. Nothing in assertion 3 reads past `.trim() === \"\"`, so a string that is non empty and self contradictory passes exactly as cleanly as a true one. Filed GOOD because every one of the eleven checks is silent on this fixture; the finding is the field spectator.ts's own docstring already named as open ('closing it needs a rule about agreement between those three'), demonstrated here in its smallest possible form, one spectator, one state pair, no rotation required, so the gap cannot be dismissed as an artefact of the three way construction in the fixture it widens. WHAT WOULD CLOSE IT. A rule inside spectator.ts, sibling to the existing hygiene assertions, that at minimum checks the reason enum value is named as a whole word somewhere in its own justification, the same grounding-by-reference technique authoring.ts already applies to annotations, so 'unreacting_counterion' or an equivalent could be machine-checked as present even though the human sentence around it stays unread for truth. That is new engine logic and out of this adversary's write scope. ADJUDICATED BY THE PHASE 1 BUILDER: THIS STAYS GOOD, AND THE GAP IS A HUMAN REVIEW GATE. The question this fixture asks is whether a free prose justification contradicts the closed enum value sitting next to it. That is not mechanically decidable, and the two mechanical rules available both fail for the same reason. FIRST, the structural consequences of unreacting_counterion ARE checkable, and they are all already true here: Na1 is a monatomic counterion, no arrow sources from it, no arrow lands on it, it is byte identical in both states, and putting it back into the totals changes nothing. Structure says spectator. Only the prose says otherwise, so no structural rule can reach this file. SECOND, the rule the adversary proposed, that the reason enum value appear as a whole word inside its own justification, does not detect the contradiction. It detects the absence of a token. An author who wrote the identical false sentence with the words unreacting_counterion pasted into it would pass, and every honestly authored spectator justification in the corpus, none of which quote their own enum, would newly fail and have to be edited to say a machine readable magic word. That trades a real gap for a ritual, and it is a keyword rule in the direction of an allowlist, which this task was explicitly told not to build. WHAT THE HUMAN GATE IS, STATED SO IT CAN BE RUN. A reviewer reads each SpectatorDeclaration and asks one question: does this justification describe the species doing nothing, and is that the same claim the reason enum makes. A justification that describes the species reacting, attacking, donating, accepting, or being consumed contradicts every one of the four reasons, because all four mean it sat out. npm run review -w packages/feedback is the existing precedent for rendering authored prose for a person, and spectator justifications belong in the same review. WHAT WOULD ACTUALLY CLOSE IT MECHANICALLY, if it is ever worth the cost: not prose analysis, but making the prose unnecessary. Split `justification` into the structured claims the four reasons each imply, so that the machine checkable part is data and the human part is genuinely only commentary. That is a chem-core schema change, it is a large one, and it is not obviously worth it for a field that is already backed by five structural assertions in spectator.ts. Filed as a decision for a person rather than as work."
+  },
+  "pathway": {
+    "id": "known-limit-spectator-justification-contradicts-reason",
+    "route": "sn2",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": {
+          "elementaryStep": "concerted_substitution",
+          "route": "sn2",
+          "reactionCenters": [
+            "C2"
+          ]
+        },
+        "arrows": [
+          {
+            "id": "a1",
+            "electrons": 2,
+            "source": {
+              "kind": "lonePair",
+              "atomId": "O1"
+            },
+            "sink": {
+              "kind": "betweenAtoms",
+              "atomIds": [
+                "O1",
+                "C2"
+              ]
+            }
+          },
+          {
+            "id": "a2",
+            "electrons": 2,
+            "source": {
+              "kind": "bond",
+              "bondId": "b2"
+            },
+            "sink": {
+              "kind": "atom",
+              "atomId": "Br1"
+            }
+          }
+        ],
+        "from": {
+          "id": "s0",
+          "spectators": [
+            {
+              "speciesId": "sodium",
+              "reason": "unreacting_counterion",
+              "justification": "This sodium ion is the actual nucleophile in this step, attacking the electrophilic carbon and displacing bromide; it is declared a spectator only for bookkeeping convenience.",
+              "declaredBy": "adversary-pass-2"
+            }
+          ],
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "bromoethane",
+                "label": "bromoethane",
+                "atoms": [
+                  {
+                    "id": "C1",
+                    "element": "C",
+                    "implicitHydrogens": 3
+                  },
+                  {
+                    "id": "C2",
+                    "element": "C",
+                    "implicitHydrogens": 2
+                  },
+                  {
+                    "id": "Br1",
+                    "element": "Br",
+                    "lonePairs": 3
+                  }
+                ],
+                "bonds": [
+                  {
+                    "id": "b1",
+                    "a": "C1",
+                    "b": "C2",
+                    "order": 1
+                  },
+                  {
+                    "id": "b2",
+                    "a": "C2",
+                    "b": "Br1",
+                    "order": 1
+                  }
+                ]
+              }
+            },
+            {
+              "role": "nucleophile",
+              "species": {
+                "id": "hydroxide",
+                "label": "hydroxide",
+                "atoms": [
+                  {
+                    "id": "O1",
+                    "element": "O",
+                    "formalCharge": -1,
+                    "lonePairs": 3
+                  },
+                  {
+                    "id": "H1",
+                    "element": "H"
+                  }
+                ],
+                "bonds": [
+                  {
+                    "id": "b3",
+                    "a": "O1",
+                    "b": "H1",
+                    "order": 1
+                  }
+                ]
+              }
+            },
+            {
+              "role": "counterion",
+              "species": {
+                "id": "sodium",
+                "label": "sodium ion, genuinely inert throughout",
+                "atoms": [
+                  {
+                    "id": "Na1",
+                    "element": "Na",
+                    "formalCharge": 1
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "spectators": [
+            {
+              "speciesId": "sodium",
+              "reason": "unreacting_counterion",
+              "justification": "This sodium ion is the actual nucleophile in this step, attacking the electrophilic carbon and displacing bromide; it is declared a spectator only for bookkeeping convenience.",
+              "declaredBy": "adversary-pass-2"
+            }
+          ],
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "ethanol",
+                "label": "ethanol",
+                "atoms": [
+                  {
+                    "id": "C1",
+                    "element": "C",
+                    "implicitHydrogens": 3
+                  },
+                  {
+                    "id": "C2",
+                    "element": "C",
+                    "implicitHydrogens": 2
+                  },
+                  {
+                    "id": "O1",
+                    "element": "O",
+                    "lonePairs": 2
+                  },
+                  {
+                    "id": "H1",
+                    "element": "H"
+                  }
+                ],
+                "bonds": [
+                  {
+                    "id": "b4",
+                    "a": "C1",
+                    "b": "C2",
+                    "order": 1
+                  },
+                  {
+                    "id": "b5",
+                    "a": "C2",
+                    "b": "O1",
+                    "order": 1
+                  },
+                  {
+                    "id": "b6",
+                    "a": "O1",
+                    "b": "H1",
+                    "order": 1
+                  }
+                ]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "bromide",
+                "label": "bromide",
+                "atoms": [
+                  {
+                    "id": "Br1",
+                    "element": "Br",
+                    "formalCharge": -1,
+                    "lonePairs": 4
+                  }
+                ]
+              }
+            },
+            {
+              "role": "counterion",
+              "species": {
+                "id": "sodium",
+                "label": "sodium ion, genuinely inert throughout",
+                "atoms": [
+                  {
+                    "id": "Na1",
+                    "element": "Na",
+                    "formalCharge": 1
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

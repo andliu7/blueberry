@@ -1,0 +1,114 @@
+{
+  "schemaVersion": 2,
+  "id": "broken-known-limit-cyanohydrin-addition-and-a-separate-acids-protonation-collapsed-into-one-connected-step",
+  "title": "Cyanide addition to acetaldehyde and a separate protonation of the resulting alkoxide by hydrogen cyanide, drawn as one step instead of two",
+  "expect": {
+    "kind": "broken",
+    "mustFail": ["conservation-step-elementarity"],
+    "note": "RECLASSIFIED. Filed by the fourth pass adversary as kind \"good\" because rules A and B could not see it and the general fix needs a barrier model chem-core does not have. It is now caught by a third rule that is not a barrier model either, and this is a broken fixture. The arrows and both states are unchanged.\n\nWHAT CLOSED IT. Rule C in step-elementarity.ts, named to exactly this shape and no wider: an arrow pulls a pair OUT OF A BOND and localises it on an atom (sink kind `atom`, which means the electrons stop there), and a DIFFERENT arrow then pushes a lone pair off that same atom into a bond with a HYDROGEN that belongs to a DIFFERENT SPECIES in the from state. Here a2 localises the C2=O1 pi pair on O1 and a3 pushes an O1 lone pair onto H1, a hydrogen of hydrogen-cyanide rather than of acetaldehyde. All four conditions are load bearing: the bond source makes it an intermediate being MADE, the hydrogen makes the consumption a protonation, and the separate species makes it a second molecular encounter and therefore a second barrier.\n\nWHY THIS IS NOT A THIRD FALSE POSITIVE. An `atom` sink says the electrons STOP. A genuinely concerted general acid catalysed addition never stops them: the proton arrives as the pi bond moves, which is drawn `bond(C=O) -> betweenAtoms(O, H)`, one arrow, nothing localised, and rule C is silent on it. Hand traced against every single transition state mechanism in this corpus: anti periplanar E2 and SN2 localise a pair on the leaving group and it donates nothing; hydroboration and every pericyclic step have no `atom` sink at all; bromonium formation localises on the departing bromide while a DIFFERENT bromine donates, and it donates to carbon, not to a proton; radical propagation sinks to atoms but sources single electrons, not lone pairs; a concerted proton relay through water sources a lone pair and a bond and is never an `atom` sink. Measured as well as traced: across the whole committed corpus the signature matches this one step and zero others.\n\nWHAT IS STILL OPEN, WHICH IS MOST OF THE GENERAL QUESTION. A collapse whose second half is not a protonation, a protonation by an acid inside the same species, and any collapse that localises nothing anywhere are all still missed, and rule A still cannot see any collapse whose halves chain through a shared atom. Those need the barrier model, and inventing one under time pressure is what this rule deliberately does not do.\n\nTHE ORIGINAL FILING FOLLOWS, UNCHANGED.\n\nThis is the specific gap `step-elementarity.ts` predicts and leaves open, demonstrated with real chemistry rather than a synthetic example: 'a collapsed two step sequence whose two halves touch no common pair twice is still missed.' Every arrow here is copied unchanged from `good-cyanohydrin-formation-from-acetaldehyde`, which draws this as two barriers with a real, chemically ordinary tetrahedral alkoxide intermediate between them. Here the two steps are merged: from is that fixture's s0, to is its s2, and all four arrows (a1-a4) sit in one step.\n\nRule B does not fire because no atom pair is both broken and formed. a1 forms CN1-C2, a2 breaks C2=O1's pi component (localising it on O1, not reforming anything), a3 forms O1-H1, a4 breaks H1-CN2. Four distinct pairs, each touched exactly once: nothing round trips, unlike the acyl substitution known-limit fixture where the same pi bond was pushed onto oxygen and pulled straight back.\n\nRule A does not fire either, and for a more interesting reason than a two-atom gap: the four arrows chain through shared atoms every step of the way, CN1-C2 (a1) shares C2 with C2=O1 (a2), which shares O1 with O1-H1 (a3), which shares H1 with H1-CN2 (a4). `arrowClusters` merges all four into one group before the proximity test is ever reached, because a real addition-then-protonation sequence through the same molecule chains through the reacting atom exactly the way a genuinely concerted array does. This is not the `broken-known-limit-sn2-and-a-distant-unrelated-deprotonation-drawn-as-one-step` shape, where the two halves are unconnected and Rule A's proximity fallback is what is being exercised; here connectivity alone hides it and the proximity test never runs.\n\nElementaryStep is declared `nucleophilic_attack` because none of step-identity's four conditions apply to it: POLAR_ONLY forbids fishhooks and there are none, PROTON_KINDS gates both the hydride-migration rule and the departure rule and `nucleophilic_attack` is not in that set, so the donated proton (H1 migrates from CN2 to O1, mode 'donated') and the heavy sigma departure (C2=O1 losing its pi bond) are both invisible to step-identity under this label. Declaring it `proton_transfer` instead would trip the departure rule for an unrelated reason (the C=O pi bond breaking would read as an elimination), which would file this fixture broken for the wrong cause and hide the actual gap. Every conservation total is intact, since the arrows and the two endpoint states are exactly the ones the two-step version already proves conserve mass, charge and electron count; this fixture isolates the elementarity question alone.\n\nSTILL OPEN. The general question, how many barriers a given array of arrows crosses, is unclosed. A structural signature that would catch this specific shape without weakening Rule A on genuine concerted chemistry has not been proposed: the addition and the protonation here share an atom for the same reason E2's three arrows do, so any rule punishing that connectivity would reject real one-barrier mechanisms alongside this collapsed one."
+  },
+  "pathway": {
+    "id": "cyanohydrin-acetaldehyde-collapsed",
+    "route": "nucleophilic_addition_carbonyl",
+    "steps": [
+      {
+        "id": "step-1-attack-and-protonation-collapsed",
+        "identity": { "elementaryStep": "nucleophilic_attack", "route": "nucleophilic_addition_carbonyl", "reactionCenters": ["C2", "CN1", "O1"] },
+        "arrows": [
+          { "id": "a1", "electrons": 2, "source": { "kind": "lonePair", "atomId": "CN1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["CN1", "C2"] } },
+          { "id": "a2", "electrons": 2, "source": { "kind": "bond", "bondId": "b2" }, "sink": { "kind": "atom", "atomId": "O1" } },
+          { "id": "a3", "electrons": 2, "source": { "kind": "lonePair", "atomId": "O1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["O1", "H1"] } },
+          { "id": "a4", "electrons": 2, "source": { "kind": "bond", "bondId": "b4" }, "sink": { "kind": "atom", "atomId": "CN2" } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "acetaldehyde",
+                "label": "acetaldehyde",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "O1", "element": "O", "lonePairs": 2 }
+                ],
+                "bonds": [
+                  { "id": "b1", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b2", "a": "C2", "b": "O1", "order": 2 }
+                ]
+              }
+            },
+            {
+              "role": "nucleophile",
+              "species": {
+                "id": "cyanide",
+                "label": "cyanide",
+                "atoms": [
+                  { "id": "CN1", "element": "C", "formalCharge": -1, "lonePairs": 1 },
+                  { "id": "NN1", "element": "N", "lonePairs": 1 }
+                ],
+                "bonds": [{ "id": "b3", "a": "CN1", "b": "NN1", "order": 3 }]
+              }
+            },
+            {
+              "role": "acid",
+              "species": {
+                "id": "hydrogen-cyanide",
+                "label": "hydrogen cyanide",
+                "atoms": [
+                  { "id": "H1", "element": "H" },
+                  { "id": "CN2", "element": "C" },
+                  { "id": "NN2", "element": "N", "lonePairs": 1 }
+                ],
+                "bonds": [
+                  { "id": "b4", "a": "H1", "b": "CN2", "order": 1 },
+                  { "id": "b5", "a": "CN2", "b": "NN2", "order": 3 }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s2",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "acetaldehyde-cyanohydrin",
+                "label": "2-hydroxypropanenitrile",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "CN1", "element": "C" },
+                  { "id": "NN1", "element": "N", "lonePairs": 1 }
+                ],
+                "bonds": [
+                  { "id": "b10", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b11", "a": "C2", "b": "O1", "order": 1 },
+                  { "id": "b12", "a": "O1", "b": "H1", "order": 1 },
+                  { "id": "b13", "a": "C2", "b": "CN1", "order": 1 },
+                  { "id": "b14", "a": "CN1", "b": "NN1", "order": 3 }
+                ]
+              }
+            },
+            {
+              "role": "byproduct",
+              "species": {
+                "id": "cyanide-regenerated",
+                "label": "cyanide, handed back",
+                "atoms": [
+                  { "id": "CN2", "element": "C", "formalCharge": -1, "lonePairs": 1 },
+                  { "id": "NN2", "element": "N", "lonePairs": 1 }
+                ],
+                "bonds": [{ "id": "b15", "a": "CN2", "b": "NN2", "order": 3 }]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

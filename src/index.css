@@ -90,6 +90,23 @@
    `--radius-md` would reshape every existing `rounded-md` on the site, so the
    primitives carry the house `rounded-xl` in their own class strings instead. */
 @theme inline {
+  /* THE ACCENT, IN ONE PLACE.
+     It was written out as `from-brand-from to-brand-to` and friends in 88
+     places across 36 files, so changing it meant a sweep and missing one meant
+     a stray purple. Owner direction 2026-09-08: blue, not purple, and sampled
+     toward the mascot's own body so the accent and the character agree.
+     Change these two lines and every gradient on the site follows.
+
+     NOT `accent`: the game's own @theme, further down this file, already claims
+     --color-accent-from and --color-accent-to and backs them with
+     --accent-from: #5b2fc0, a purple. Being later it won, so the CTA rendered
+     transparent until the game's stylesheet loaded and purple after it. The
+     game also claims --color-good, --color-diamond, --color-streak-*,
+     --color-chip-*, --color-progress-* and --color-hud-* unprefixed. Check that
+     block before naming a new site token. */
+  --color-brand-from: #1d4ed8;
+  --color-brand-to: #3b82f6;
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -1510,4 +1527,171 @@ html[data-device-frame] #root {
 html[data-device-frame] #root::-webkit-scrollbar {
   width: 0;
   height: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   Marquee
+
+   Home of the animation for `components/ui/marquee.tsx`. It lives here rather
+   than in a `<style>` tag inside the component because the keyframes and the
+   track class are global names: injected per instance, a second marquee with a
+   different speed or direction silently retimes the first. Per-instance values
+   arrive as `--bb-marquee-duration` and `[data-direction]` instead.
+
+   The track is rendered twice and each copy translates a full 100% of itself,
+   so at the end of a pass the second copy sits exactly where the first started
+   and the loop has no seam.
+
+   Names carry the `bb-` prefix deliberately. A bare `@keyframes scroll` is the
+   kind of generic global that collides the moment another stylesheet arrives,
+   and several are about to.
+   --------------------------------------------------------------------------- */
+
+@keyframes bb-marquee-x {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-100%); }
+}
+@keyframes bb-marquee-x-reverse {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(0); }
+}
+@keyframes bb-marquee-y {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-100%); }
+}
+@keyframes bb-marquee-y-reverse {
+  from { transform: translateY(-100%); }
+  to   { transform: translateY(0); }
+}
+
+@layer components {
+  .bb-marquee {
+    display: flex;
+    width: 100%;
+    overflow: hidden;
+  }
+  .bb-marquee--vertical { flex-direction: column; }
+
+  .bb-marquee__track {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    animation: bb-marquee-x var(--bb-marquee-duration, 20s) linear infinite;
+  }
+  .bb-marquee--vertical .bb-marquee__track { flex-direction: column; }
+
+  .bb-marquee[data-direction="right"] .bb-marquee__track { animation-name: bb-marquee-x-reverse; }
+  .bb-marquee[data-direction="up"]    .bb-marquee__track { animation-name: bb-marquee-y; }
+  .bb-marquee[data-direction="down"]  .bb-marquee__track { animation-name: bb-marquee-y-reverse; }
+
+  .bb-marquee__item { flex-shrink: 0; }
+  .bb-marquee--vertical .bb-marquee__item { width: 100%; }
+
+  /* CSS rather than an isPaused state, which would re-render the subtree twice
+     per hover to do what this line does for free. */
+  .bb-marquee[data-pause-on-hover]:hover .bb-marquee__track { animation-play-state: paused; }
+
+  /* Stopping the animation would leave both copies stacked and the overflow
+     clipped, so the duplicate goes and the strip becomes an ordinary scroller
+     the reader drives. */
+  @media (prefers-reduced-motion: reduce) {
+    .bb-marquee { overflow-x: auto; }
+    .bb-marquee__track { animation: none; }
+    .bb-marquee__track[aria-hidden] { display: none; }
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Blueberry game token layer
+
+   Lifted out of src/game/theme.css. `@theme` is a build-time directive and only
+   takes effect in Tailwind's entry stylesheet, which is this file, so the game's
+   utilities would simply not be generated if it stayed where it was.
+
+   Every name carries a bb- prefix. Both halves of this repo are shadcn-shaped and
+   independently defined the same 13 names (--color-background, --color-primary,
+   --color-border and friends). `@theme` is a global layer that no wrapper class
+   can scope, so whichever block loaded last would have silently repainted the
+   other half of the app.
+
+   `inline` means the var resolves where it is used, so bg-bb-card compiles to
+   var(--bb-card), which src/game/theme.css defines and which arrives with the
+   game's chunk.
+   --------------------------------------------------------------------------- */
+
+@theme inline {
+  --color-bb-background: var(--bb-background);
+  --color-bb-foreground: var(--bb-foreground);
+  --color-bb-card: var(--bb-card);
+  --color-bb-card-foreground: var(--bb-card-foreground);
+  --color-bb-primary: var(--bb-primary);
+  --color-bb-primary-bright: var(--bb-primary-bright);
+  --color-bb-primary-ink: var(--bb-primary-ink);
+  --color-bb-primary-foreground: var(--bb-primary-foreground);
+  --color-bb-secondary: var(--bb-secondary);
+  --color-bb-muted: var(--bb-muted);
+  --color-bb-muted-foreground: var(--bb-muted-foreground);
+  --color-bb-destructive: var(--bb-destructive);
+  --color-bb-border: var(--bb-border);
+  --color-bb-input: var(--bb-input);
+  --color-bb-ring: var(--bb-ring);
+  --color-accent-from: var(--accent-from);
+  --color-accent-to: var(--accent-to);
+  --color-good: var(--good);
+  --color-good-ink: var(--good-ink);
+  --color-good-soft: var(--good-soft);
+  --color-alt-route: var(--alt-route);
+  --color-alt-route-soft: var(--alt-route-soft);
+  --color-not-requested: var(--not-requested);
+  --color-not-requested-soft: var(--not-requested-soft);
+  --color-diamond: var(--diamond);
+  --color-diamond-ink: var(--diamond-ink);
+  --color-warn-ink: var(--warn-ink);
+  --color-streak: var(--streak);
+  --color-streak-core: var(--streak-core);
+  --color-streak-ink: var(--streak-ink);
+  --color-streak-on: var(--streak-on);
+  --color-streak-band: var(--streak-band);
+  --color-streak-band-ink: var(--streak-band-ink);
+  --color-hud-out: var(--hud-out);
+  --color-hud-track: var(--hud-track);
+  --color-chip-face: var(--chip-face);
+  --color-chip-face-press: var(--chip-face-press);
+  --color-chip-edge: var(--chip-edge);
+  --color-chip-ink: var(--chip-ink);
+  --color-progress: var(--progress);
+  --color-progress-ink: var(--progress-ink);
+  --color-progress-edge: var(--progress-edge);
+  --color-progress-deep: var(--progress-deep);
+  --color-progress-soft: var(--progress-soft);
+
+  /* Type scale, defined once per the note in docs/DESIGN-TOKENS.md that the
+     sibling repo never defined one. Seven steps, 1.25 ratio-ish, snapped to
+     whole pixels. */
+  --text-scale-xs: 0.75rem;
+  --text-scale-sm: 0.875rem;
+  --text-scale-base: 1rem;
+  --text-scale-lg: 1.125rem;
+  --text-scale-xl: 1.375rem;
+  --text-scale-2xl: 1.75rem;
+  --text-scale-display: 2.5rem;
+
+  /* THE TYPOGRAPHY SPLIT, per DESIGN-GOALS (decided 2026-09-01).
+
+     CONTENT is the system stack: question stems, answer options, flashcard
+     faces, guidebook body, chemical labels. SF on iOS, Roboto on Android,
+     Segoe on Windows. Helvetica Neue is not licensed and appears only where
+     a platform ships it natively, which is exactly what a fallback stack is.
+
+     CHROME is the rounded display face: buttons, celebration numbers, streak
+     counts, mascot speech, reached through .title-face and font-display
+     utilities. No webfont ships in this phase, so the stack reaches for the
+     platform's own rounded face (ui-rounded resolves to SF Pro Rounded on
+     Apple platforms) and falls back to the content stack where none exists.
+     Personality lives at the celebration, not between the student and the
+     chemistry. Sticker rule 8's needles point at this stack; change the
+     faces here and re-point the needles in the same turn or the audit
+     audits ghosts. */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", "Baloo 2", Quicksand, "Varela Round", ui-sans-serif, system-ui, sans-serif;
 }

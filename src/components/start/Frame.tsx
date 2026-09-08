@@ -107,7 +107,7 @@ export function Frame({
           className="h-3.5 flex-1 overflow-hidden rounded-full bg-slate-900/10 dark:bg-white/12"
         >
           <div
-            className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-fuchsia-500 transition-[width] duration-500 ease-out"
+            className="h-full rounded-full bg-gradient-to-r from-brand-from to-brand-to transition-[width] duration-500 ease-out"
             style={{ width: `${clamped}%` }}
           />
         </div>
@@ -269,7 +269,7 @@ export function Action({ label, disabled = false, shape = "rect", onPress }: Act
         // specificity tie; not applying the class at all is the honest fix.
         disabled
           ? "cursor-not-allowed bg-slate-900/10 text-slate-400 dark:bg-white/10 dark:text-stone-500"
-          : "bb-press cursor-pointer bg-gradient-to-r from-indigo-600 to-fuchsia-600 text-white",
+          : "bb-press cursor-pointer bg-gradient-to-r from-brand-from to-brand-to text-white",
       )}
     >
       {label}

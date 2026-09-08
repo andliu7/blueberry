@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 2,
+  "id": "broken-charge-tert-butyl-chloride-ionises-without-giving-the-pair-to-chlorine",
+  "title": "tert-Butyl chloride ionises, but the departing chlorine is drawn with three lone pairs instead of four, so the bonding pair is simply lost",
+  "expect": {
+    "kind": "broken",
+    "mustFail": ["conservation-charge", "conservation-electron-flow"],
+    "note": "The classic hand drawing error in an SN1 first step: the C to Cl bond is broken and the leaving group is drawn with the lone pairs it started with rather than with the bonding pair added. Chlorine is left with three lone pairs and no bond, which is a chlorine cation, and the total formal charge over the multiset goes from 0 to +2. Mass is untouched, every atom's declared formal charge still agrees with its own structure so conservation-valence stays silent, and no hydrogen moves. Electron flow is declared alongside charge for the reason written at the top of charge.ts: under a conserved nuclide multiset, total valence electrons are total charge seen from the other side, so a charge break is always an electron count break. Here electron flow reports it twice, once because the arrow claims chlorine gains a pair and the two states show it gaining nothing, and once on the total, which falls from 32 to 30."
+  },
+  "pathway": {
+    "id": "tert-butyl-chloride-ionisation-losing-the-bonding-pair",
+    "route": "sn1",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": {
+          "elementaryStep": "bond_heterolysis",
+          "route": "sn1",
+          "reactionCenters": ["C1", "Cl1"]
+        },
+        "arrows": [
+          {
+            "id": "a1",
+            "electrons": 2,
+            "source": { "kind": "bond", "bondId": "b4" },
+            "sink": { "kind": "atom", "atomId": "Cl1" }
+          }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "tert-butyl-chloride",
+                "label": "2-chloro-2-methylpropane",
+                "atoms": [
+                  { "id": "C1", "element": "C" },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "Cl1", "element": "Cl", "lonePairs": 3 }
+                ],
+                "bonds": [
+                  { "id": "b1", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b2", "a": "C1", "b": "C3", "order": 1 },
+                  { "id": "b3", "a": "C1", "b": "C4", "order": 1 },
+                  { "id": "b4", "a": "C1", "b": "Cl1", "order": 1 }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "tert-butyl-cation",
+                "label": "tert-butyl cation",
+                "atoms": [
+                  { "id": "C1", "element": "C", "formalCharge": 1 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 }
+                ],
+                "bonds": [
+                  { "id": "b5", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b6", "a": "C1", "b": "C3", "order": 1 },
+                  { "id": "b7", "a": "C1", "b": "C4", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "chlorine-drawn-without-the-bonding-pair",
+                "label": "chlorine drawn with three lone pairs, which is a chlorine cation",
+                "atoms": [{ "id": "Cl1", "element": "Cl", "formalCharge": 1, "lonePairs": 3 }]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

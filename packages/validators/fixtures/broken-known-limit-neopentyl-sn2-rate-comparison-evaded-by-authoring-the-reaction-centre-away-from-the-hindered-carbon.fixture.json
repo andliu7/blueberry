@@ -1,0 +1,259 @@
+{
+  "schemaVersion": 2,
+  "id": "broken-known-limit-neopentyl-sn2-rate-comparison-evaded-by-authoring-the-reaction-centre-away-from-the-hindered-carbon",
+  "title": "The exact chemistry of good-sn2-on-neopentyl-bromide-strongly-disfavoured-not-forbidden, with identity.reactionCenters authored as the leaving group instead of the hindered carbon, and the required rate_comparison annotation dropped entirely with nothing noticing",
+  "expect": {
+    "kind": "broken",
+    "note": "Adversary pass two, Phase 1, item 1 (the boundary of what conservation-step-identity's reaction-centre rule claims), argued together with conservation-disfavoured-rate-comparison. conservation-disfavoured-rate-comparison detects a strongly hindered SN2 centre by walking step.identity.reactionCenters and testing each named atom for the neopentyl pattern (hinderedCentres in rate-comparison.ts): 'for (const atomId of step.identity.reactionCenters) { ... if (findAtom(species, atomId)?.element !== \"C\") continue; ... }'. That field is AUTHORED, not derived from the arrows, which is the exact hole periplanarity.ts rule 1b was built to close for the E2 torsion quartet one check over. Here the same authored field is trusted by a different check with no equivalent rule 1b. This fixture is bit for bit the same chemistry as good-sn2-on-neopentyl-bromide-strongly-disfavoured-not-forbidden, same substrate, same arrows, same product, same leaving group, differing only in identity.reactionCenters, which names [\"Br1\"] (the leaving group, which the arrows genuinely do touch) instead of [\"C5\"] (the neopentyl carbon under attack), and in carrying no rate_comparison annotation at all. THE RESULT. hinderedCentres iterates [\"Br1\"], finds it is bromine rather than carbon, and returns no hindered centres, so conservation-disfavoured-rate-comparison's find() returns before it ever asks for an annotation: the whole requirement CLAUDE.md states in the neopentyl paragraph is skipped as if the step were an ordinary unhindered SN2. WHY conservation-step-identity DOES NOT CATCH IT EITHER. Its own reaction-centre rule, reactionCentreViolations in step-identity.ts, asks only that every DECLARED centre is touched by some arrow: 'const ungrounded = step.identity.reactionCenters.filter((atomId) => !facts.touchedAtomIds.has(atomId))'. Br1 is genuinely touched by arrow a2 (bond(C5-Br1) -> atom(Br1)), so the declared set passes cleanly. The rule is one directional, declared subset of touched, and has no rule asking whether every atom a downstream annotation check actually needs is among the declared centres, because it does not know what any downstream check needs. Nothing in this family checks the OTHER direction: that identity.reactionCenters is a superset of the atoms an author-facing requirement depends on. WHY THIS IS THE SAME SHAPE OF BUG AS THE BACKBONE E2 FIXTURE THAT MOTIVATED RULE 1B. periplanarity.ts's own docstring names the danger precisely: an authored field can satisfy every rule that reads it while saying nothing true about the geometry, because both halves of the comparison came from the same authored field. rate-comparison.ts has no independent, arrow-derived way to find the attacked carbon the way arrow-facts.ts derives the E2 quartet, so there is no rule 1b here to close the circle. Every other check stays silent for the reason every check in this family stays silent on the real neopentyl fixture: the chemistry is completely correct, mass, charge, valence and electron flow all balance, arrow legality is clean, and no spectator or proton is involved. This fixture is filed good rather than broken because zero checks report a violation on it: family.ts fails a broken fixture whose mustFail names a check that finds nothing, and every one of the eleven checks finds nothing here. WHAT WOULD CLOSE IT. A rule inside conservation-disfavoured-rate-comparison, or a shared helper next to arrow-facts.ts, that derives the attacked carbon of a concerted_substitution from the arrows themselves the way deriveE2Quartet derives the E2 quartet, rather than trusting identity.reactionCenters. That is new engine logic, out of this adversary's write scope. RECLASSIFIED BROKEN, PHASE 1 BUILDER, AFTER THE HOLE WAS CLOSED. The finding above is fixed and this file is now the negative control that proves it. hinderedCentres in rate-comparison.ts no longer takes its candidate carbons from identity.reactionCenters alone: it unions that authored list with the carbons the arrows name, derived by heavySigmaDepartures in arrow-facts.ts as the retained end of a full heavy atom sigma bond breaking with its pair localising on the other end. In this step arrow a2 breaks b5, C5 to Br1, with the pair localising on Br1, so C5 is derived as the carbon under attack whatever identity.reactionCenters says, the neopentyl pattern is found there exactly as it is in good-sn2-on-neopentyl-bromide-strongly-disfavoured-not-forbidden, and the missing rate_comparison annotation is reported. Nothing about the chemistry in this file changed and nothing was weakened to reach it: the file is still bit for bit the proven good neopentyl fixture apart from the two evasions, and it is still not blocked, only required to state how disfavoured it is. The declared centre Br1 is still legal for conservation-step-identity, which asks only that a declared centre be touched by an arrow, and that remains true and remains the right rule.",
+    "mustFail": [
+      "conservation-disfavoured-rate-comparison"
+    ]
+  },
+  "pathway": {
+    "id": "known-limit-neopentyl-reaction-centre-evasion",
+    "route": "sn2",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": {
+          "elementaryStep": "concerted_substitution",
+          "route": "sn2",
+          "reactionCenters": [
+            "Br1"
+          ]
+        },
+        "arrows": [
+          {
+            "id": "a1",
+            "electrons": 2,
+            "source": {
+              "kind": "lonePair",
+              "atomId": "O1"
+            },
+            "sink": {
+              "kind": "betweenAtoms",
+              "atomIds": [
+                "O1",
+                "C5"
+              ]
+            }
+          },
+          {
+            "id": "a2",
+            "electrons": 2,
+            "source": {
+              "kind": "bond",
+              "bondId": "b5"
+            },
+            "sink": {
+              "kind": "atom",
+              "atomId": "Br1"
+            }
+          }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "neopentyl-bromide",
+                "label": "1-bromo-2,2-dimethylpropane",
+                "atoms": [
+                  {
+                    "id": "C1",
+                    "element": "C"
+                  },
+                  {
+                    "id": "C2",
+                    "element": "C",
+                    "implicitHydrogens": 3
+                  },
+                  {
+                    "id": "C3",
+                    "element": "C",
+                    "implicitHydrogens": 3
+                  },
+                  {
+                    "id": "C4",
+                    "element": "C",
+                    "implicitHydrogens": 3
+                  },
+                  {
+                    "id": "C5",
+                    "element": "C",
+                    "implicitHydrogens": 2
+                  },
+                  {
+                    "id": "Br1",
+                    "element": "Br",
+                    "lonePairs": 3
+                  }
+                ],
+                "bonds": [
+                  {
+                    "id": "b1",
+                    "a": "C1",
+                    "b": "C2",
+                    "order": 1
+                  },
+                  {
+                    "id": "b2",
+                    "a": "C1",
+                    "b": "C3",
+                    "order": 1
+                  },
+                  {
+                    "id": "b3",
+                    "a": "C1",
+                    "b": "C4",
+                    "order": 1
+                  },
+                  {
+                    "id": "b4",
+                    "a": "C1",
+                    "b": "C5",
+                    "order": 1
+                  },
+                  {
+                    "id": "b5",
+                    "a": "C5",
+                    "b": "Br1",
+                    "order": 1
+                  }
+                ]
+              }
+            },
+            {
+              "role": "nucleophile",
+              "species": {
+                "id": "hydroxide",
+                "label": "hydroxide",
+                "atoms": [
+                  {
+                    "id": "O1",
+                    "element": "O",
+                    "formalCharge": -1,
+                    "lonePairs": 3
+                  },
+                  {
+                    "id": "H1",
+                    "element": "H"
+                  }
+                ],
+                "bonds": [
+                  {
+                    "id": "b6",
+                    "a": "O1",
+                    "b": "H1",
+                    "order": 1
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "neopentyl-alcohol",
+                "label": "2,2-dimethylpropan-1-ol",
+                "atoms": [
+                  {
+                    "id": "C1",
+                    "element": "C"
+                  },
+                  {
+                    "id": "C2",
+                    "element": "C",
+                    "implicitHydrogens": 3
+                  },
+                  {
+                    "id": "C3",
+                    "element": "C",
+                    "implicitHydrogens": 3
+                  },
+                  {
+                    "id": "C4",
+                    "element": "C",
+                    "implicitHydrogens": 3
+                  },
+                  {
+                    "id": "C5",
+                    "element": "C",
+                    "implicitHydrogens": 2
+                  },
+                  {
+                    "id": "O1",
+                    "element": "O",
+                    "lonePairs": 2
+                  },
+                  {
+                    "id": "H1",
+                    "element": "H"
+                  }
+                ],
+                "bonds": [
+                  {
+                    "id": "b7",
+                    "a": "C1",
+                    "b": "C2",
+                    "order": 1
+                  },
+                  {
+                    "id": "b8",
+                    "a": "C1",
+                    "b": "C3",
+                    "order": 1
+                  },
+                  {
+                    "id": "b9",
+                    "a": "C1",
+                    "b": "C4",
+                    "order": 1
+                  },
+                  {
+                    "id": "b10",
+                    "a": "C1",
+                    "b": "C5",
+                    "order": 1
+                  },
+                  {
+                    "id": "b11",
+                    "a": "C5",
+                    "b": "O1",
+                    "order": 1
+                  },
+                  {
+                    "id": "b12",
+                    "a": "O1",
+                    "b": "H1",
+                    "order": 1
+                  }
+                ]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "bromide",
+                "label": "bromide",
+                "atoms": [
+                  {
+                    "id": "Br1",
+                    "element": "Br",
+                    "formalCharge": -1,
+                    "lonePairs": 4
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

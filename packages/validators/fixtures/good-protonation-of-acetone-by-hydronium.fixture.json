@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 2,
+  "id": "good-protonation-of-acetone-by-hydronium",
+  "title": "Acetone is protonated on oxygen by hydronium, giving the protonated ketone and water",
+  "expect": {
+    "kind": "good"
+  },
+  "pathway": {
+    "id": "acetone-protonation",
+    "route": "acid_base_proton_transfer",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": {
+          "elementaryStep": "proton_transfer",
+          "route": "acid_base_proton_transfer",
+          "reactionCenters": ["O1", "H1", "O2"]
+        },
+        "arrows": [
+          {
+            "id": "a1",
+            "electrons": 2,
+            "source": { "kind": "lonePair", "atomId": "O1" },
+            "sink": { "kind": "betweenAtoms", "atomIds": ["O1", "H1"] }
+          },
+          {
+            "id": "a2",
+            "electrons": 2,
+            "source": { "kind": "bond", "bondId": "b4" },
+            "sink": { "kind": "atom", "atomId": "O2" }
+          }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "acetone",
+                "label": "acetone",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C" },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "O1", "element": "O", "lonePairs": 2 }
+                ],
+                "bonds": [
+                  { "id": "b1", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b2", "a": "C2", "b": "C3", "order": 1 },
+                  { "id": "b3", "a": "C2", "b": "O1", "order": 2 }
+                ]
+              }
+            },
+            {
+              "role": "acid",
+              "species": {
+                "id": "hydronium",
+                "label": "hydronium",
+                "atoms": [
+                  { "id": "O2", "element": "O", "formalCharge": 1, "lonePairs": 1, "implicitHydrogens": 2 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [{ "id": "b4", "a": "O2", "b": "H1", "order": 1 }]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "acetone-protonated",
+                "label": "protonated acetone",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C" },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "O1", "element": "O", "formalCharge": 1, "lonePairs": 1 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b5", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b6", "a": "C2", "b": "C3", "order": 1 },
+                  { "id": "b7", "a": "C2", "b": "O1", "order": 2 },
+                  { "id": "b8", "a": "O1", "b": "H1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "byproduct",
+              "species": {
+                "id": "water",
+                "label": "water",
+                "atoms": [{ "id": "O2", "element": "O", "lonePairs": 2, "implicitHydrogens": 2 }]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

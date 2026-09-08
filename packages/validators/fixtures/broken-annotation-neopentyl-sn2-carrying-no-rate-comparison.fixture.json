@@ -1,0 +1,107 @@
+{
+  "schemaVersion": 2,
+  "id": "broken-annotation-neopentyl-sn2-carrying-no-rate-comparison",
+  "title": "The neopentyl SN2 with its rate_comparison annotation deleted, so a step that runs at 10 to the minus 5 the rate of ethyl is presented as an ordinary substitution",
+  "expect": {
+    "kind": "broken",
+    "mustFail": ["conservation-disfavoured-rate-comparison"],
+    "note": "NEGATIVE CONTROL for conservation-disfavoured-rate-comparison, presence arm. The condition_note is left in place so that the fixture still carries annotations and the failure is specifically about the missing kind rather than about an empty annotations array. Worth being precise about what fires here, because it is the opposite of what a boolean engine would do: the check does not object to the neopentyl SN2, it objects to the neopentyl SN2 being drawn with nothing said about how disfavoured it is. The step itself is legal, every conservation check passes on it, and the good fixture this was copied from passes the whole suite. The hindered centre is detected from the graph of the from state, a primary carbon whose one carbon neighbour carries three more carbons, so deleting the annotation cannot also delete the trigger."
+  },
+  "pathway": {
+    "id": "sn2-neopentyl-bromide-hydroxide-unannotated",
+    "route": "sn2",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": { "elementaryStep": "concerted_substitution", "route": "sn2", "reactionCenters": ["C5"] },
+        "arrows": [
+          { "id": "a1", "electrons": 2, "source": { "kind": "lonePair", "atomId": "O1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["O1", "C5"] } },
+          { "id": "a2", "electrons": 2, "source": { "kind": "bond", "bondId": "b5" }, "sink": { "kind": "atom", "atomId": "Br1" } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "neopentyl-bromide",
+                "label": "1-bromo-2,2-dimethylpropane",
+                "atoms": [
+                  { "id": "C1", "element": "C" },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C5", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "Br1", "element": "Br", "lonePairs": 3 }
+                ],
+                "bonds": [
+                  { "id": "b1", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b2", "a": "C1", "b": "C3", "order": 1 },
+                  { "id": "b3", "a": "C1", "b": "C4", "order": 1 },
+                  { "id": "b4", "a": "C1", "b": "C5", "order": 1 },
+                  { "id": "b5", "a": "C5", "b": "Br1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "nucleophile",
+              "species": {
+                "id": "hydroxide",
+                "label": "hydroxide",
+                "atoms": [
+                  { "id": "O1", "element": "O", "formalCharge": -1, "lonePairs": 3 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [{ "id": "b6", "a": "O1", "b": "H1", "order": 1 }]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "neopentyl-alcohol",
+                "label": "2,2-dimethylpropan-1-ol",
+                "atoms": [
+                  { "id": "C1", "element": "C" },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C5", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b7", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b8", "a": "C1", "b": "C3", "order": 1 },
+                  { "id": "b9", "a": "C1", "b": "C4", "order": 1 },
+                  { "id": "b10", "a": "C1", "b": "C5", "order": 1 },
+                  { "id": "b11", "a": "C5", "b": "O1", "order": 1 },
+                  { "id": "b12", "a": "O1", "b": "H1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "bromide",
+                "label": "bromide",
+                "atoms": [{ "id": "Br1", "element": "Br", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "annotations": [
+      {
+        "kind": "condition_note",
+        "value": "A strong nucleophile with no acid present. Under solvolysis conditions the methyl shift wins outright and this pathway is not seen at all.",
+        "justification": "Left in place so this control differs from its source by one annotation rather than by the whole array."
+      }
+    ]
+  }
+}

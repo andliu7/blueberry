@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 2,
+  "id": "broken-known-limit-sn2-prime-allylic-attack-at-a-quaternary-flanked-carbon-not-recognised-as-hindered",
+  "title": "Hydroxide performs an SN2' allylic substitution, attacking the far end of the alkene where a tert-butyl group blocks the backside exactly as it does in neopentyl bromide, while bromide leaves from the near, unhindered carbon",
+  "expect": {
+    "kind": "broken",
+    "mustFail": ["conservation-disfavoured-rate-comparison"],
+    "note": "RECLASSIFIED. Filed by the fourth pass adversary as kind \"good\" because the assertion that ought to catch it did not exist yet. It now does, and this is a broken fixture. The chemistry is unchanged, byte for byte: this is still a real, honest, correctly drawn SN2' whose attacked carbon Cc carries a tert-butyl quaternary carbon Cq directly behind it, and what is WRONG with it is the thing the note below predicted would go unreported, namely that it carries no rate_comparison annotation while being at least as sterically blocked at the point of attack as the corpus's own neopentyl fixture. `conservation-disfavoured-rate-comparison` now reports it and names atom Cc.\n\nWHAT CLOSED IT. `arrowDerivedCentres` in rate-comparison.ts derived the atom under attack from the leaving group's departure alone, so it named Ca, the carbon bromide left, three atoms away across the alkene from where hydroxide actually bonds. It now derives it from the arrow that FORMS the new bond as well: `bondFormations` in arrow-facts.ts returns the acceptor end of every `betweenAtoms` sink, the end the arrow is not pivoting on, which is the atom the electrons are being pushed at. Arrow a1 pivots on O1 and pushes at Cc, so Cc is now a candidate and the tert-butyl wall behind it is seen. The departure derivation is KEPT alongside it rather than replaced, because in an ordinary substitution it is a second independent record of the same atom.\n\nWHAT THE NOTE BELOW PREDICTED AS THE COST, AND WHY IT IS NOT PAID. It predicted that widening the derivation to every formed bond would also test \"atoms new bonds form to in ordinary addition chemistry\". It does not, because `find` only ever hands this function steps that `isSn2Substitution` accepts, which is `concerted_substitution` on route `sn2`. No addition step reaches it. Measured over the whole corpus, the widening adds exactly two atoms anywhere: a bromide in an arrow legality negative control and a hydrogen in an elementarity negative control, and `hinderedCentres` drops both at its element test.\n\nIT ALSO IMPROVED ORDINARY SN2, WHICH WAS CHECKED RATHER THAN ASSUMED. The two derivations name the same atom in every ordinary SN2 fixture in the corpus, so no verdict moved on that account. What moved is the case where the departure cannot be read at all: `broken-electron-flow-sn2-drawn-without-the-leaving-group-arrow` draws no arrow for the leaving group, so the derived candidate set used to be EMPTY there and the steric test fell back entirely to `identity.reactionCenters`, the authored field this derivation exists to stop an author hiding behind. The forming arrow still names the attacked carbon on that drawing.\n\nTHE ORIGINAL FILING FOLLOWS, UNCHANGED.\n\nThe generalised steric model's own docstring states the assumption it is built on as settled fact: `arrowDerivedCentres` 'is the retained end of every full heavy atom sigma bond that breaks with its pair localising on the other end. In a substitution that is the carbon the leaving group left, which is the carbon a nucleophile has to reach.' That sentence is true for every SN2 fixture in this corpus and false for SN2', the allylic shift where the carbon the leaving group departs from and the carbon the nucleophile actually bonds to are two different atoms joined by the alkene between them. Nothing in `MechanismRoute` or `ElementaryStepKind` gives SN2' a route of its own (`allMechanismRoutes()` has `sn2` and nothing else an allylic shift could honestly be called), so a real SN2' is authored, correctly, as `concerted_substitution` on route `sn2`, and `isSn2Substitution` waves it straight into this check on that basis alone.\n\nTHE MOLECULE. Br-CH2-CH=CH-C(CH3)3 (Ca-Cb=Cc-Cq, Cq the tert-butyl quaternary carbon). Hydroxide attacks Cc, the far alkene terminus, which sits directly against the same tert-butyl wall that makes neopentyl bromide strongly disfavoured: Cc's carbon neighbours in the from state are Cb and Cq, and Cq carries three further carbons (Cm1, Cm2, Cm3), the exact geometry `hinderedCentres` exists to catch. Bromide leaves from Ca, three atoms away across the alkene, which is an unhindered primary carbon with a single, unbranched vinyl neighbour. Three arrows, one connected group, one transition state: a1 is the hydroxide lone pair attacking Cc, a2 is the Cb=Cc pi bond sliding down to Ca=Cb, a3 is the Ca-Br sigma bond breaking as bromide leaves. Every conservation check in this family passes: mass, charge and valence hold at every atom (confirmed by running the suite), electron flow is exactly the three declared arrows against the exact three bond changes, arrow legality is clean, step identity is clean (concerted_substitution moves only pairs, no hydrogen migrates, and no proton kind rule applies), and step elementarity is clean in both directions: rule A's clusters merge into one group through the shared atoms Cc and Ca, and rule B finds no pair both broken and formed, since the bond that breaks (Ca-Br) and the bond that forms (O1-Cc) are not the same pair and the pi bond that breaks (Cb=Cc) and the pi bond that forms (Ca=Cb) are not the same pair either. This is genuinely one honest concerted step.\n\nTHE MISS. `arrowDerivedCentres` reads `heavySigmaDepartures`, which names the RETAINED end of the breaking Ca-Br bond, Ca, not the atom the nucleophile attacks. Declaring `reactionCenters: [\"Ca\", \"O1\"]`, which is exactly the pattern every ordinary SN2 fixture in this corpus uses, the leaving group's carbon plus the nucleophile, adds nothing to the derived set: Ca is already in it. `candidates` therefore never contains Cc, the one atom this check would need to look at to see the tert-butyl wall, and `hinderedCentres` returns empty. No rate_comparison annotation is required and none is authored, and the suite reports nothing wrong with a step that is, at the actual point of attack, at least as sterically blocked as the corpus's own neopentyl fixture.\n\nWHY THIS IS NOT THE ALREADY CLOSED HOLE. `broken-known-limit-neopentyl-sn2-rate-comparison-evaded-by-authoring-the-reaction-centre-away-from-the-hindered-carbon` was closed by deriving candidates from the arrows so an author could not simply omit the hindered carbon from `identity.reactionCenters`. That fix assumes the arrows themselves name the hindered carbon somewhere, via the leaving group's departure. In an SN2' they do not: the leaving group's departure names the WRONG carbon, and the attacked carbon is only reachable through the nucleophile's attack arrow's sink, which `arrowDerivedCentres` never reads. Widening it to also derive candidates from every `betweenAtoms` sink a lone pair or bond source attacks would close this, at the cost of also testing atoms new bonds form to in ordinary addition chemistry where that carbon is never a backside-attack trajectory question at all, so it is reported here rather than made.\n\nSTILL OPEN. Whether a wider derivation rule can be written that catches SN2' without also firing on unrelated addition steps is not answered here. What is established is that the current derivation's own stated assumption, leaving group carbon equals attacked carbon, is false for a real, nameable class of concerted substitution this schema can already express."
+  },
+  "pathway": {
+    "id": "sn2-prime-allylic-bromide-hydroxide",
+    "route": "sn2",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": { "elementaryStep": "concerted_substitution", "route": "sn2", "reactionCenters": ["Ca", "O1"] },
+        "arrows": [
+          { "id": "a1", "electrons": 2, "source": { "kind": "lonePair", "atomId": "O1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["O1", "Cc"] } },
+          { "id": "a2", "electrons": 2, "source": { "kind": "bond", "bondId": "b3" }, "sink": { "kind": "betweenAtoms", "atomIds": ["Ca", "Cb"] } },
+          { "id": "a3", "electrons": 2, "source": { "kind": "bond", "bondId": "b1" }, "sink": { "kind": "atom", "atomId": "Br1" } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "allylic-neopentyl-bromide",
+                "label": "1-bromo-4,4-dimethylpent-2-ene",
+                "atoms": [
+                  { "id": "Ca", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "Cb", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "Cc", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "Cq", "element": "C" },
+                  { "id": "Cm1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "Cm2", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "Cm3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "Br1", "element": "Br", "lonePairs": 3 }
+                ],
+                "bonds": [
+                  { "id": "b1", "a": "Ca", "b": "Br1", "order": 1 },
+                  { "id": "b2", "a": "Ca", "b": "Cb", "order": 1 },
+                  { "id": "b3", "a": "Cb", "b": "Cc", "order": 2 },
+                  { "id": "b4", "a": "Cc", "b": "Cq", "order": 1 },
+                  { "id": "b5", "a": "Cq", "b": "Cm1", "order": 1 },
+                  { "id": "b6", "a": "Cq", "b": "Cm2", "order": 1 },
+                  { "id": "b7", "a": "Cq", "b": "Cm3", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "nucleophile",
+              "species": {
+                "id": "hydroxide",
+                "label": "hydroxide",
+                "atoms": [
+                  { "id": "O1", "element": "O", "formalCharge": -1, "lonePairs": 3 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [{ "id": "b8", "a": "O1", "b": "H1", "order": 1 }]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "sn2-prime-alcohol",
+                "label": "5,5-dimethylhex-3-en-1-... rearranged: 1-hydroxy-4,4-dimethylpent-2-ene, the SN2' alcohol",
+                "atoms": [
+                  { "id": "Ca", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "Cb", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "Cc", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "Cq", "element": "C" },
+                  { "id": "Cm1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "Cm2", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "Cm3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b9", "a": "Ca", "b": "Cb", "order": 2 },
+                  { "id": "b10", "a": "Cb", "b": "Cc", "order": 1 },
+                  { "id": "b11", "a": "Cc", "b": "Cq", "order": 1 },
+                  { "id": "b12", "a": "Cq", "b": "Cm1", "order": 1 },
+                  { "id": "b13", "a": "Cq", "b": "Cm2", "order": 1 },
+                  { "id": "b14", "a": "Cq", "b": "Cm3", "order": 1 },
+                  { "id": "b15", "a": "Cc", "b": "O1", "order": 1 },
+                  { "id": "b16", "a": "O1", "b": "H1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "bromide",
+                "label": "bromide",
+                "atoms": [{ "id": "Br1", "element": "Br", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

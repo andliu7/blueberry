@@ -1,0 +1,158 @@
+{
+  "schemaVersion": 2,
+  "id": "good-markovnikov-addition-of-hydrogen-chloride-to-2-methylpropene",
+  "title": "Hydrogen chloride adds to 2-methylpropene, the proton going to the carbon that already carries more hydrogens so the cation forms at the tertiary carbon",
+  "expect": {
+    "kind": "good",
+    "note": "The Markovnikov rule as a mechanism rather than as a rule. Nothing in the conservation family prefers this regiochemistry: the opposite addition, giving the primary cation, breaks no conservation law and would pass every check here. What decides it is the stability of the intermediate, which is a reactivity model and belongs to a different family. That is worth stating plainly so a green run on this file is not read as the suite having endorsed the regiochemistry."
+  },
+  "pathway": {
+    "id": "hydrochlorination-2-methylpropene",
+    "route": "electrophilic_addition_alkene",
+    "steps": [
+      {
+        "id": "step-1-protonation-of-the-alkene",
+        "identity": { "elementaryStep": "pi_bond_attack", "route": "electrophilic_addition_alkene", "reactionCenters": ["C1", "C2", "H1"] },
+        "arrows": [
+          { "id": "a1", "electrons": 2, "source": { "kind": "bond", "bondId": "b1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["C2", "H1"] } },
+          { "id": "a2", "electrons": 2, "source": { "kind": "bond", "bondId": "b4" }, "sink": { "kind": "atom", "atomId": "Cl1" } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "2-methylpropene",
+                "label": "2-methylpropene",
+                "atoms": [
+                  { "id": "C1", "element": "C" },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 }
+                ],
+                "bonds": [
+                  { "id": "b1", "a": "C1", "b": "C2", "order": 2 },
+                  { "id": "b2", "a": "C1", "b": "C3", "order": 1 },
+                  { "id": "b3", "a": "C1", "b": "C4", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "acid",
+              "species": {
+                "id": "hydrogen-chloride",
+                "label": "hydrogen chloride",
+                "atoms": [
+                  { "id": "H1", "element": "H" },
+                  { "id": "Cl1", "element": "Cl", "lonePairs": 3 }
+                ],
+                "bonds": [{ "id": "b4", "a": "H1", "b": "Cl1", "order": 1 }]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "tert-butyl-cation",
+                "label": "tert-butyl cation",
+                "atoms": [
+                  { "id": "C1", "element": "C", "formalCharge": 1 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b5", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b6", "a": "C1", "b": "C3", "order": 1 },
+                  { "id": "b7", "a": "C1", "b": "C4", "order": 1 },
+                  { "id": "b8", "a": "C2", "b": "H1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "nucleophile",
+              "species": {
+                "id": "chloride",
+                "label": "chloride",
+                "atoms": [{ "id": "Cl1", "element": "Cl", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "step-2-capture-by-chloride",
+        "identity": { "elementaryStep": "nucleophilic_attack", "route": "electrophilic_addition_alkene", "reactionCenters": ["C1", "Cl1"] },
+        "arrows": [
+          { "id": "a3", "electrons": 2, "source": { "kind": "lonePair", "atomId": "Cl1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["Cl1", "C1"] } }
+        ],
+        "from": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "intermediate",
+              "species": {
+                "id": "tert-butyl-cation",
+                "label": "tert-butyl cation",
+                "atoms": [
+                  { "id": "C1", "element": "C", "formalCharge": 1 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b5", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b6", "a": "C1", "b": "C3", "order": 1 },
+                  { "id": "b7", "a": "C1", "b": "C4", "order": 1 },
+                  { "id": "b8", "a": "C2", "b": "H1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "nucleophile",
+              "species": {
+                "id": "chloride",
+                "label": "chloride",
+                "atoms": [{ "id": "Cl1", "element": "Cl", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s2",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "2-chloro-2-methylpropane",
+                "label": "2-chloro-2-methylpropane",
+                "atoms": [
+                  { "id": "C1", "element": "C" },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "Cl1", "element": "Cl", "lonePairs": 3 }
+                ],
+                "bonds": [
+                  { "id": "b9", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b10", "a": "C1", "b": "C3", "order": 1 },
+                  { "id": "b11", "a": "C1", "b": "C4", "order": 1 },
+                  { "id": "b12", "a": "C2", "b": "H1", "order": 1 },
+                  { "id": "b13", "a": "C1", "b": "Cl1", "order": 1 }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

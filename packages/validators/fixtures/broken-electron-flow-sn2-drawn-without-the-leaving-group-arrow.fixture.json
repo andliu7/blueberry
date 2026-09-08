@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 2,
+  "id": "broken-electron-flow-sn2-drawn-without-the-leaving-group-arrow",
+  "title": "Bromide displaces chloride from chloromethane, drawn with only the nucleophile arrow, so the chloride keeps a pair no arrow ever gave it",
+  "expect": {
+    "kind": "broken",
+    "mustFail": ["conservation-electron-flow"],
+    "note": "This is the fixture BUILD-PROMPT asks for: a step that balances on mass and charge while violating electron bookkeeping. The product multiset is the correct one, so the nuclide multiset is identical either side, the total formal charge is -1 either side, total valence electrons are 22 either side, every atom passes valence, and no hydrogen moves. Only the arrows are wrong. One arrow is drawn, bromide's lone pair into the new C to Br bond, and the second arrow that sends the C to Cl pair onto chlorine is missing. declaredDeltas therefore claims nothing happens at chlorine while observedDeltas shows the C to Cl bond losing two electrons and chlorine gaining two nonbonding ones, and the two disagree in exactly two places. This is the only fixture in the corpus that fails one check and one check alone while every conservation total is intact."
+  },
+  "pathway": {
+    "id": "sn2-bromide-displaces-chloride-missing-an-arrow",
+    "route": "sn2",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": {
+          "elementaryStep": "concerted_substitution",
+          "route": "sn2",
+          "reactionCenters": ["C1"]
+        },
+        "arrows": [
+          {
+            "id": "a1",
+            "electrons": 2,
+            "source": { "kind": "lonePair", "atomId": "Br1" },
+            "sink": { "kind": "betweenAtoms", "atomIds": ["Br1", "C1"] }
+          }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "chloromethane",
+                "label": "chloromethane",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "Cl1", "element": "Cl", "lonePairs": 3 }
+                ],
+                "bonds": [{ "id": "b1", "a": "C1", "b": "Cl1", "order": 1 }]
+              }
+            },
+            {
+              "role": "nucleophile",
+              "species": {
+                "id": "bromide",
+                "label": "bromide",
+                "atoms": [{ "id": "Br1", "element": "Br", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "bromomethane",
+                "label": "bromomethane",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "Br1", "element": "Br", "lonePairs": 3 }
+                ],
+                "bonds": [{ "id": "b2", "a": "C1", "b": "Br1", "order": 1 }]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "chloride",
+                "label": "chloride",
+                "atoms": [{ "id": "Cl1", "element": "Cl", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

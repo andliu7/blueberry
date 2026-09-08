@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 2,
+  "id": "good-sn2-hydroxide-displaces-bromide-from-bromoethane",
+  "title": "Hydroxide displaces bromide from bromoethane in one concerted SN2 step, backside attack at the primary carbon",
+  "expect": {
+    "kind": "good",
+    "note": "The textbook primary SN2. Two arrows, one barrier, no intermediate. AUTHORING ANNOTATION, not machine readable because the fixture schema carries no annotations block: SN2 inverts configuration at C2, which CLAUDE.md makes a hard assertion. Bromoethane's C2 is not a stereocentre so there is nothing here to invert; the inversion assertion is carried by the stereo corpus, not by this file. See sn2-inversion-and-sn1-stereorandomness.oracle.json."
+  },
+  "pathway": {
+    "id": "sn2-hydroxide-bromoethane",
+    "route": "sn2",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": { "elementaryStep": "concerted_substitution", "route": "sn2", "reactionCenters": ["C2"] },
+        "arrows": [
+          { "id": "a1", "electrons": 2, "source": { "kind": "lonePair", "atomId": "O1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["O1", "C2"] } },
+          { "id": "a2", "electrons": 2, "source": { "kind": "bond", "bondId": "b2" }, "sink": { "kind": "atom", "atomId": "Br1" } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "bromoethane",
+                "label": "bromoethane",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "Br1", "element": "Br", "lonePairs": 3 }
+                ],
+                "bonds": [
+                  { "id": "b1", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b2", "a": "C2", "b": "Br1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "nucleophile",
+              "species": {
+                "id": "hydroxide",
+                "label": "hydroxide",
+                "atoms": [
+                  { "id": "O1", "element": "O", "formalCharge": -1, "lonePairs": 3 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [{ "id": "b3", "a": "O1", "b": "H1", "order": 1 }]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "ethanol",
+                "label": "ethanol",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b4", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b5", "a": "C2", "b": "O1", "order": 1 },
+                  { "id": "b6", "a": "O1", "b": "H1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "bromide",
+                "label": "bromide",
+                "atoms": [{ "id": "Br1", "element": "Br", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

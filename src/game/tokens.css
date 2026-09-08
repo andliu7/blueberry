@@ -1,0 +1,390 @@
+/* Blueberry design tokens, v2.
+ *
+ * Written to the rules in the owner's framework section 7, 2026-08-25, BEFORE any component is
+ * styled. Every rule in that section is a rejection criterion in review, so each one is named in a
+ * comment beside the tokens that satisfy it.
+ *
+ * This file REPLACES the palette half of docs/DESIGN-TOKENS.md, which made purple the led colour.
+ * Section 7 makes blue the trust colour and demotes purple to an accent. That is a real conflict
+ * with a committed doc and it is flagged as question 8 rather than resolved silently.
+ *
+ * Nothing here is a gradient on a button. See the anti-requirements.
+ */
+
+:root {
+  /* ---------------------------------------------------------------------
+   * TYPE. Exactly six sizes. Not five, not seven.
+   *
+   * Rule: "Exactly 6 font sizes. No more."
+   * Rule: "Dashboard text never exceeds 24px" -> --text-display is the ONLY size above 24,
+   *       and it is reserved for the full-bleed reward moment. A dashboard that uses it has
+   *       broken the rule, so it is named for where it is allowed, not for how big it is.
+   * Rule: "Fraunces for display, Inter for UI text." SUPERSEDED 2026-09-01
+   *       by docs/DESIGN-GOALS.md typography: the SYSTEM STACK is the content
+   *       face and a ROUNDED display face carries chrome. This file is not
+   *       imported by the app (theme.css is live), but a stale token file is
+   *       a stale pointer, so the two lines below moved with the decision.
+   * ------------------------------------------------------------------- */
+  --font-display: ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", "Baloo 2", Quicksand, "Varela Round", ui-sans-serif, system-ui, sans-serif;
+  --font-ui: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, monospace;
+
+  --text-display: 2rem;    /* 32px. Reward moment only. Fraunces. Never on a dashboard. */
+  --text-title: 1.5rem;    /* 24px. The dashboard ceiling. */
+  --text-heading: 1.25rem; /* 20px */
+  --text-body: 1rem;       /* 16px */
+  --text-label: 0.875rem;  /* 14px */
+  --text-caption: 0.75rem; /* 12px */
+
+  --leading-tight: 1.15;
+  --leading-snug: 1.35;
+  --leading-normal: 1.55;
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  /* Icons render at the same size as adjacent text. Use the matching pair. */
+  --icon-display: 2rem;
+  --icon-title: 1.5rem;
+  --icon-heading: 1.25rem;
+  --icon-body: 1rem;
+  --icon-label: 0.875rem;
+  --icon-caption: 0.75rem;
+
+  /* ---------------------------------------------------------------------
+   * SPACE. 4px grid. Everything.
+   * ------------------------------------------------------------------- */
+  --space-1: 0.25rem;  /*  4px */
+  --space-2: 0.5rem;   /*  8px */
+  --space-3: 0.75rem;  /* 12px */
+  --space-4: 1rem;     /* 16px */
+  --space-5: 1.25rem;  /* 20px */
+  --space-6: 1.5rem;   /* 24px */
+  --space-8: 2rem;     /* 32px */
+  --space-10: 2.5rem;  /* 40px */
+  --space-12: 3rem;    /* 48px */
+  --space-16: 4rem;    /* 64px */
+
+  /* Rule: "Horizontal padding is roughly double the vertical padding on buttons and chips."
+   * These are paired so a component cannot pick one without the other. */
+  --pad-button: var(--space-3) var(--space-6);  /* 12 / 24 */
+  --pad-button-sm: var(--space-2) var(--space-4); /* 8 / 16 */
+  --pad-chip: var(--space-1) var(--space-2);    /*  4 /  8 */
+  --pad-chip-lg: var(--space-2) var(--space-4); /*  8 / 16 */
+  --pad-card: var(--space-4) var(--space-4);    /* cards are not buttons; square padding is fine */
+
+  --radius-chip: 999px;
+  --radius-button: 0.75rem;
+  --radius-card: 1rem;
+  --radius-sheet: 1.5rem;
+
+  /* Minimum hit target, per CLAUDE.md budgets. 44 by 44 points. */
+  --hit-min: 2.75rem;
+
+  /* ---------------------------------------------------------------------
+   * COLOUR RAMP. Committed before any component is styled.
+   *
+   * Blue is the trust colour and carries primary actions.
+   * Deep purple, red and green are the accent set.
+   * Yellow is for warnings that are NOT errors.
+   * ------------------------------------------------------------------- */
+
+  /* Primary: blue. Trust. Primary actions only. */
+  --blue-50:  #eff6ff;
+  --blue-100: #dbeafe;
+  --blue-200: #bfdbfe;
+  --blue-300: #93c5fd;
+  --blue-400: #60a5fa;
+  --blue-500: #3b82f6;
+  --blue-600: #2563eb;  /* primary rest */
+  --blue-700: #1d4ed8;  /* primary hover */
+  --blue-800: #1e40af;  /* primary pressed / the raised edge */
+  --blue-900: #1e3a8a;
+
+  /* Accent: deep purple. Mechanisms, and the Blueberry identity. NEVER a gradient on a button. */
+  --purple-50:  #f5f3ff;
+  --purple-100: #ede9fe;
+  --purple-300: #c4b5fd;
+  --purple-500: #8b5cf6;
+  --purple-600: #7c3aed;
+  --purple-700: #6d28d9;
+  --purple-800: #5b21b6;
+
+  /* Accent: green. Correct, and progress. */
+  --green-50:  #ecfdf5;
+  --green-100: #d1fae5;
+  --green-300: #6ee7b7;
+  --green-500: #10b981;
+  --green-600: #059669;
+  --green-700: #047857;
+  --green-800: #065f46;
+
+  /* Accent: red. ERRORS ONLY. Rule: "No error-red for non-error states." */
+  --red-50:  #fef2f2;
+  --red-100: #fee2e2;
+  --red-300: #fca5a5;
+  --red-500: #ef4444;
+  --red-600: #dc2626;
+  --red-700: #b91c1c;
+
+  /* Warning, not error. "This email already exists" is this colour, not red. */
+  --yellow-50:  #fffbeb;
+  --yellow-100: #fef3c7;
+  --yellow-300: #fcd34d;
+  --yellow-500: #f59e0b;
+  --yellow-600: #d97706;
+  --yellow-700: #b45309;
+
+  /* Neutrals. Warm, so the ground never reads as cold grey. */
+  --n-0:   #ffffff;
+  --n-25:  #fdfcfb;
+  --n-50:  #faf9f7;
+  --n-100: #f5f4f1;
+  --n-200: #e7e5e1;
+  --n-300: #d6d3cd;
+  --n-400: #a8a29a;
+  --n-500: #79736b;
+  --n-600: #57534e;
+  --n-700: #403c38;
+  --n-800: #2a2724;
+  --n-900: #1a1817;
+  --n-950: #0c0a09;
+
+  /* ---------------------------------------------------------------------
+   * SEMANTIC. Components reference these, never the ramp above.
+   * ------------------------------------------------------------------- */
+  --ground: var(--n-50);
+  --surface: var(--n-0);
+  --surface-raised: var(--n-0);
+  --surface-sunken: var(--n-100);
+  --bb-border: var(--n-200);
+  --bb-border-strong: var(--n-300);
+
+  --ink: var(--n-900);
+  --ink-muted: var(--n-600);
+  --ink-faint: var(--n-400);
+  --ink-inverse: var(--n-0);
+
+  --bb-primary: var(--blue-600);
+  --bb-primary-hover: var(--blue-700);
+  --bb-primary-pressed: var(--blue-800);
+  --bb-primary-edge: var(--blue-800);      /* the raised button's bottom edge */
+  --bb-primary-soft: var(--blue-50);
+  --bb-primary-ink: var(--n-0);
+
+  --accent-mechanism: var(--purple-600);
+  --accent-mechanism-soft: var(--purple-50);
+
+  --good: var(--green-600);
+  --good-soft: var(--green-50);
+  --good-edge: var(--green-800);
+
+  --warn: var(--yellow-600);
+  --warn-soft: var(--yellow-50);
+  --warn-ink: var(--yellow-700);
+
+  --error: var(--red-600);
+  --error-soft: var(--red-50);
+
+  /* ---------------------------------------------------------------------
+   * ELEVATION, LIGHT MODE.
+   *
+   * Rule: "Light mode: real shadows. Reduce opacity, increase blur. Cards that sit in front of
+   *        other cards get more shadow, not just more offset."
+   *
+   * So opacity FALLS and blur RISES as the level goes up. Offset barely moves.
+   * ------------------------------------------------------------------- */
+  --shadow-1: 0 1px 2px rgba(26, 24, 23, 0.08),
+              0 1px 3px rgba(26, 24, 23, 0.06);
+  --shadow-2: 0 2px 4px rgba(26, 24, 23, 0.06),
+              0 4px 12px rgba(26, 24, 23, 0.05);
+  --shadow-3: 0 2px 6px rgba(26, 24, 23, 0.05),
+              0 8px 28px rgba(26, 24, 23, 0.045);
+  --shadow-4: 0 4px 10px rgba(26, 24, 23, 0.04),
+              0 16px 48px rgba(26, 24, 23, 0.04);
+
+  /* Rule: "Raised tactile buttons use paired inner and outer shadows."
+   * Inner highlight along the top lip, solid colour edge below, soft outer shadow under that. */
+  --raise-inset: inset 0 1px 0 rgba(255, 255, 255, 0.22),
+                 inset 0 -1px 0 rgba(0, 0, 0, 0.08);
+  --raise-edge: 0 4px 0;   /* pair with a colour: box-shadow: var(--raise-edge) var(--bb-primary-edge) */
+  --raise-drop: 0 5px 10px rgba(26, 24, 23, 0.10);
+  --raise-travel: 4px;     /* how far the button drops on press. Matches --raise-edge. */
+
+  /* ---------------------------------------------------------------------
+   * MOTION. Conformance is measured, per CLAUDE.md's visual modernity axis.
+   * ------------------------------------------------------------------- */
+  --dur-instant: 80ms;   /* the pressed state. Must land inside the 100ms interaction budget. */
+  --dur-fast: 140ms;
+  --dur-base: 220ms;
+  --dur-slow: 380ms;
+  --dur-celebrate: 900ms;
+
+  --ease-out: cubic-bezier(0.2, 0.8, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Rule: "Linear gradient overlay plus progressive blur where content runs under chrome." */
+  --chrome-scrim-top: linear-gradient(to bottom,
+                        var(--ground) 0%,
+                        color-mix(in srgb, var(--ground) 70%, transparent) 55%,
+                        transparent 100%);
+  --chrome-scrim-bottom: linear-gradient(to top,
+                        var(--ground) 0%,
+                        color-mix(in srgb, var(--ground) 70%, transparent) 55%,
+                        transparent 100%);
+  --chrome-blur: 12px;
+
+  /* The canvas ground. An atom is a modelled object and needs a surface to sit on. */
+  --scene-ground-top: #fbfaf7;
+  --scene-ground-bottom: #eceae3;
+}
+
+/* -----------------------------------------------------------------------
+ * DARK MODE.
+ *
+ * Rule: "Dark mode: lighter card backgrounds rather than shadows. Dim chip brightness and
+ *        saturate text."
+ *
+ * So the shadow scale collapses to almost nothing and surfaces step UP in lightness instead.
+ * Chips lose brightness; ink gains saturation.
+ * --------------------------------------------------------------------- */
+:root:not([data-theme="light"]) {
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: var(--n-950);
+    --surface: var(--n-900);
+    --surface-raised: var(--n-800);   /* lighter, not shadowed */
+    --surface-sunken: #131110;
+    --bb-border: #2f2c29;
+    --bb-border-strong: #423e3a;
+
+    --ink: #f5f4f1;
+    --ink-muted: #b8b2aa;
+    --ink-faint: #7a746c;
+    --ink-inverse: var(--n-950);
+
+    /* Saturate text: the ink-bearing accents move UP the ramp so they stay legible on dark. */
+    --bb-primary: var(--blue-400);
+    --bb-primary-hover: var(--blue-300);
+    --bb-primary-pressed: var(--blue-500);
+    --bb-primary-edge: #12306b;
+    --bb-primary-soft: rgba(96, 165, 250, 0.14);
+    --bb-primary-ink: var(--n-950);
+
+    --accent-mechanism: var(--purple-300);
+    --accent-mechanism-soft: rgba(196, 181, 253, 0.13);
+
+    --good: var(--green-300);
+    --good-soft: rgba(110, 231, 183, 0.14);
+    --good-edge: #044a37;
+
+    --warn: var(--yellow-300);
+    --warn-soft: rgba(252, 211, 77, 0.13);
+    --warn-ink: var(--yellow-300);
+
+    --error: var(--red-300);
+    --error-soft: rgba(252, 165, 165, 0.13);
+
+    /* Shadows nearly vanish. Depth comes from the surface steps above. */
+    --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.35);
+    --shadow-2: 0 2px 6px rgba(0, 0, 0, 0.38);
+    --shadow-3: 0 4px 14px rgba(0, 0, 0, 0.42);
+    --shadow-4: 0 8px 28px rgba(0, 0, 0, 0.45);
+
+    --raise-inset: inset 0 1px 0 rgba(255, 255, 255, 0.10),
+                   inset 0 -1px 0 rgba(0, 0, 0, 0.30);
+    --raise-drop: 0 4px 8px rgba(0, 0, 0, 0.40);
+
+    --scene-ground-top: #2a2724;
+    --scene-ground-bottom: #1a1817;
+
+    /* Dim chip brightness. Applied by the chip component, not globally. */
+    --chip-brightness: 0.86;
+  }
+}
+
+:root[data-theme="dark"] {
+  --ground: var(--n-950);
+  --surface: var(--n-900);
+  --surface-raised: var(--n-800);
+  --surface-sunken: #131110;
+  --bb-border: #2f2c29;
+  --bb-border-strong: #423e3a;
+
+  --ink: #f5f4f1;
+  --ink-muted: #b8b2aa;
+  --ink-faint: #7a746c;
+  --ink-inverse: var(--n-950);
+
+  --bb-primary: var(--blue-400);
+  --bb-primary-hover: var(--blue-300);
+  --bb-primary-pressed: var(--blue-500);
+  --bb-primary-edge: #12306b;
+  --bb-primary-soft: rgba(96, 165, 250, 0.14);
+  --bb-primary-ink: var(--n-950);
+
+  --accent-mechanism: var(--purple-300);
+  --accent-mechanism-soft: rgba(196, 181, 253, 0.13);
+
+  --good: var(--green-300);
+  --good-soft: rgba(110, 231, 183, 0.14);
+  --good-edge: #044a37;
+
+  --warn: var(--yellow-300);
+  --warn-soft: rgba(252, 211, 77, 0.13);
+  --warn-ink: var(--yellow-300);
+
+  --error: var(--red-300);
+  --error-soft: rgba(252, 165, 165, 0.13);
+
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-2: 0 2px 6px rgba(0, 0, 0, 0.38);
+  --shadow-3: 0 4px 14px rgba(0, 0, 0, 0.42);
+  --shadow-4: 0 8px 28px rgba(0, 0, 0, 0.45);
+
+  --raise-inset: inset 0 1px 0 rgba(255, 255, 255, 0.10),
+                 inset 0 -1px 0 rgba(0, 0, 0, 0.30);
+  --raise-drop: 0 4px 8px rgba(0, 0, 0, 0.40);
+
+  --scene-ground-top: #2a2724;
+  --scene-ground-bottom: #1a1817;
+
+  --chip-brightness: 0.86;
+}
+
+/* -----------------------------------------------------------------------
+ * FOUR BUTTON STATES. Every button implements all four.
+ *
+ * These are the contract, written as tokens so a component cannot ship three of them.
+ * A component that omits :active has failed review.
+ * --------------------------------------------------------------------- */
+:root {
+  --state-hover-lift: -1px;
+  --state-pressed-drop: var(--raise-travel);
+  --state-inactive-opacity: 0.42;
+  --state-inactive-saturate: 0.35;
+
+  /* Ghost buttons stay isolated until hover: no border, no fill, at rest. */
+  --ghost-rest-bg: transparent;
+  --ghost-rest-border: transparent;
+  --ghost-hover-bg: var(--surface-sunken);
+  --ghost-hover-border: var(--bb-border);
+
+  --focus-ring: 0 0 0 3px color-mix(in srgb, var(--bb-primary) 45%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-instant: 0ms;
+    --dur-fast: 0ms;
+    --dur-base: 0ms;
+    --dur-slow: 0ms;
+    --dur-celebrate: 0ms;
+  }
+}

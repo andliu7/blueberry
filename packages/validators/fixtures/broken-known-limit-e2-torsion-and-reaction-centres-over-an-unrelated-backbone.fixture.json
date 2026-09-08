@@ -1,0 +1,124 @@
+{
+  "schemaVersion": 2,
+  "id": "broken-known-limit-e2-torsion-and-reaction-centres-over-an-unrelated-backbone",
+  "title": "A real anti periplanar E2 on 2-bromobutane, declaring a torsion over the C1-C2-C3-C4 backbone instead of the H-C-C-Br chain that actually leaves",
+  "expect": {
+    "kind": "broken",
+    "mustFail": ["conservation-periplanarity-declaration", "conservation-step-identity"],
+    "note": "Adversary pass, Phase 1, attack surface 2. This fixture reuses the exact substrate, exact arrows, and exact real anti periplanar chemistry of good-e2-anti-periplanar-ethoxide-and-2-bromobutane, correct mass, charge, electron flow, and valence throughout. The only change is what the periplanarity declaration claims to be about. identity.reactionCenters is authored as [C1, C2, C3, C4], the plain carbon backbone, rather than [C2, C3, H1, Br1], the atoms that actually break a bond and form a pi bond in this step. The declared torsion is authored over those same four backbone atoms, [C1, C2, C3, C4], at 180 degrees with a real bonded chain, C1-C2, C2-C3, C3-C4 are all real bonds in the substrate. WHY THE CHECK CANNOT TELL THE DIFFERENCE. periplanarity.ts's own stepViolations function reads coversTheStep, which asks only whether every atom of a declared torsion is a member of step.identity.reactionCenters, a field the author writes. It never asks whether reactionCenters names the atoms that are actually the reaction centres of the drawn arrows, and no check anywhere in this family cross validates reactionCenters against the arrows at all. shapeViolations then confirms the four backbone atoms really are a bonded chain, which they are, just not the chain E2 periplanarity is about. angleViolations reads 180 degrees, periplanar, no conformational_justification required. Every requirement in the docstring, 'exactly one declared torsion whose four atoms are all reaction centres of this step... a real dihedral... periplanar,' is satisfied by a claim about an entirely different rotatable bond in the same molecule, the ordinary C2-C3 backbone conformation of butane, which has nothing to do with whether H1 and Br1 are anti to each other. THE LESSON. A green conservation-periplanarity-declaration run proves a torsion was declared, that it is a real bonded chain, and that its angle is periplanar. It does not and structurally cannot prove that the declared torsion is the one E2 actually turns on, because the field naming which atoms count as the reaction centres is authored, not derived from the arrows, and nothing checks the two against each other. CLOSED BY TWO CHECKS, Phase 1 builder pass two, and it takes two because the fixture breaks the same circle twice. conservation-step-identity asks that every declared reaction centre be an atom some arrow touches: the arrows here touch Br1, C2, C3, H1 and O1, while C1 and C4 are named as reaction centres without being touched by anything, which is the authored field drifting away from the drawing. conservation-periplanarity-declaration then derives the four atoms an E2 dihedral has to be measured over from the arrows rather than from that field, by deriveE2Quartet: H1 the hydrogen the base takes, C3 the carbon it leaves, C2 the carbon holding the leaving group, Br1 the leaving group. No declared torsion covers that set, so the backbone claim no longer satisfies the requirement. Both checks are declared because both fire and, as fixtures/README.md says, a cascade that is written down is a cascade an adversary can argue with."
+  },
+  "pathway": {
+    "id": "known-limit-periplanarity-unrelated-torsion",
+    "route": "e2",
+    "steps": [
+      {
+        "id": "step-1",
+        "identity": { "elementaryStep": "concerted_elimination", "route": "e2", "reactionCenters": ["C1", "C2", "C3", "C4"] },
+        "arrows": [
+          { "id": "a1", "electrons": 2, "source": { "kind": "lonePair", "atomId": "O1" }, "sink": { "kind": "betweenAtoms", "atomIds": ["O1", "H1"] } },
+          { "id": "a2", "electrons": 2, "source": { "kind": "bond", "bondId": "b5" }, "sink": { "kind": "betweenAtoms", "atomIds": ["C3", "C2"] } },
+          { "id": "a3", "electrons": 2, "source": { "kind": "bond", "bondId": "b4" }, "sink": { "kind": "atom", "atomId": "Br1" } }
+        ],
+        "from": {
+          "id": "s0",
+          "members": [
+            {
+              "role": "substrate",
+              "species": {
+                "id": "2-bromobutane",
+                "label": "2-bromobutane, C3 proton drawn explicitly, the real reaction is anti periplanar at H1-C3-C2-Br1",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "H1", "element": "H" },
+                  { "id": "Br1", "element": "Br", "lonePairs": 3 }
+                ],
+                "bonds": [
+                  { "id": "b1", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b2", "a": "C2", "b": "C3", "order": 1 },
+                  { "id": "b3", "a": "C3", "b": "C4", "order": 1 },
+                  { "id": "b4", "a": "C2", "b": "Br1", "order": 1 },
+                  { "id": "b5", "a": "C3", "b": "H1", "order": 1 }
+                ],
+                "declaredTorsions": [
+                  {
+                    "atoms": ["C1", "C2", "C3", "C4"],
+                    "degrees": 180,
+                    "justification": "Adversary pass stand-in, attack surface 2: this is the ordinary carbon backbone dihedral of 2-bromobutane, C1-C2-C3-C4, authored anti purely so it passes the periplanarity arithmetic. It says nothing about whether H1 and Br1, the atoms that actually leave, are anti to each other. That claim is never declared anywhere in this fixture."
+                  }
+                ]
+              }
+            },
+            {
+              "role": "base",
+              "species": {
+                "id": "ethoxide",
+                "label": "ethoxide",
+                "atoms": [
+                  { "id": "O1", "element": "O", "formalCharge": -1, "lonePairs": 3 },
+                  { "id": "C5", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C6", "element": "C", "implicitHydrogens": 3 }
+                ],
+                "bonds": [
+                  { "id": "b6", "a": "O1", "b": "C5", "order": 1 },
+                  { "id": "b7", "a": "C5", "b": "C6", "order": 1 }
+                ]
+              }
+            }
+          ]
+        },
+        "to": {
+          "id": "s1",
+          "members": [
+            {
+              "role": "product",
+              "species": {
+                "id": "but-2-ene",
+                "label": "but-2-ene",
+                "atoms": [
+                  { "id": "C1", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "C2", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C3", "element": "C", "implicitHydrogens": 1 },
+                  { "id": "C4", "element": "C", "implicitHydrogens": 3 }
+                ],
+                "bonds": [
+                  { "id": "b8", "a": "C1", "b": "C2", "order": 1 },
+                  { "id": "b9", "a": "C2", "b": "C3", "order": 2 },
+                  { "id": "b10", "a": "C3", "b": "C4", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "byproduct",
+              "species": {
+                "id": "ethanol",
+                "label": "ethanol",
+                "atoms": [
+                  { "id": "O1", "element": "O", "lonePairs": 2 },
+                  { "id": "C5", "element": "C", "implicitHydrogens": 2 },
+                  { "id": "C6", "element": "C", "implicitHydrogens": 3 },
+                  { "id": "H1", "element": "H" }
+                ],
+                "bonds": [
+                  { "id": "b11", "a": "O1", "b": "C5", "order": 1 },
+                  { "id": "b12", "a": "C5", "b": "C6", "order": 1 },
+                  { "id": "b13", "a": "O1", "b": "H1", "order": 1 }
+                ]
+              }
+            },
+            {
+              "role": "leaving_group",
+              "species": {
+                "id": "bromide",
+                "label": "bromide",
+                "atoms": [{ "id": "Br1", "element": "Br", "formalCharge": -1, "lonePairs": 4 }]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
