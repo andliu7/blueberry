@@ -269,7 +269,7 @@ export function Action({ label, disabled = false, shape = "rect", onPress }: Act
         // specificity tie; not applying the class at all is the honest fix.
         disabled
           ? "cursor-not-allowed bg-slate-900/10 text-slate-400 dark:bg-white/10 dark:text-stone-500"
-          : "bb-press cursor-pointer bg-gradient-to-r from-brand-from to-brand-to text-white",
+          : "bb-press cursor-pointer gradient-button text-white",
       )}
     >
       {label}

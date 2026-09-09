@@ -319,7 +319,7 @@ export function Tetris({ className }: { className?: string }) {
                 <button
                   type="button"
                   onClick={reset}
-                  className="mt-2 cursor-pointer rounded-lg bg-gradient-to-r from-brand-from to-brand-to px-3 py-1.5 text-xs font-semibold text-white hover:brightness-110"
+                  className="mt-2 cursor-pointer rounded-lg gradient-button px-3 py-1.5 text-xs font-semibold text-white hover:brightness-110"
                 >
                   Again
                 </button>

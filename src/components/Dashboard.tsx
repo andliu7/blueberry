@@ -907,7 +907,7 @@ function ProfilePanel({ onClose }: { onClose: () => void }) {
               <a
                 href="#/signin"
                 onClick={onClose}
-                className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full bg-gradient-to-r from-brand-from to-brand-to px-5 text-sm font-semibold text-white transition hover:brightness-110"
+                className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full gradient-button px-5 text-sm font-semibold text-white transition hover:brightness-110"
               >
                 <LogIn className="size-4" />
                 Sign in

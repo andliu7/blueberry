@@ -287,7 +287,7 @@ function ReactionDetail({ reaction }: { reaction: StagedReaction }) {
             </p>
             <a
               href="#/deck/carbonyl-all"
-              className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-xl bg-gradient-to-r from-brand-from to-brand-to px-4 text-sm font-semibold text-white"
+              className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-xl gradient-button px-4 text-sm font-semibold text-white"
             >
               <Layers className="size-4" />
               Open study deck <ArrowRight className="size-4" />

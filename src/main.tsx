@@ -5,11 +5,16 @@ import App from './App.tsx'
 import { SiteChrome } from '@/components/SiteChrome'
 import { PageFlipProvider } from '@/components/ui/page-flip'
 import { installClickSound } from '@/lib/clickSound'
+import { installGradientCursor } from '@/lib/gradientCursor'
 import { AuthProvider } from '@/lib/AuthContext'
 
 // One delegated listener for the whole site rather than a prop on every button.
 // Controls opt out with `data-click-silent`; see lib/clickSound.
 installClickSound()
+
+// Same shape and the same reason: one delegated listener for every
+// `.gradient-button` on the page, rather than a handler per button.
+installGradientCursor()
 
 // Outside App on purpose. The turning sheet has to survive the route change it
 // is covering, and anything inside App unmounts with the page it belongs to.

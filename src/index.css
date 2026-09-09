@@ -1745,6 +1745,11 @@ html[data-device-frame] #root::-webkit-scrollbar {
 
 @layer components {
   .gradient-button {
+    /* Self-contained, because this class is applied to call sites that were
+       plain backgrounds and have no reason to know the rim needs a containing
+       block. Without it the ::before escapes to the nearest positioned
+       ancestor and draws a rim around the wrong element. */
+    position: relative;
     background: radial-gradient(
       var(--gb-spread-x) var(--gb-spread-y) at var(--gb-pos-x) var(--gb-pos-y),
       var(--gb-color-1) var(--gb-stop-1),
@@ -1754,7 +1759,10 @@ html[data-device-frame] #root::-webkit-scrollbar {
       var(--gb-color-5) var(--gb-stop-5)
     );
     transition:
-      --gb-pos-x 0.5s, --gb-pos-y 0.5s,
+      /* Fast, because these two follow the cursor. Half a second here means the
+         light trails the hand across the button, which reads as lag rather than
+         as smoothness. Everything below still eases. */
+      --gb-pos-x 0.12s linear, --gb-pos-y 0.12s linear,
       --gb-spread-x 0.5s, --gb-spread-y 0.5s,
       --gb-color-1 0.5s, --gb-color-2 0.5s, --gb-color-3 0.5s,
       --gb-color-4 0.5s, --gb-color-5 0.5s,

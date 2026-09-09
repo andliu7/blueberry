@@ -639,7 +639,7 @@ function NoticeRow({ notice, onAct }: { notice: Notice; onAct: () => void }) {
             href={notice.action.href}
             {...(notice.action.external ? { target: "_blank", rel: "noreferrer" } : {})}
             onClick={onAct}
-            className="bb-press mt-3 mb-1 flex min-h-11 w-full cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-brand-from to-brand-to px-4 text-sm font-semibold text-white"
+            className="bb-press mt-3 mb-1 flex min-h-11 w-full cursor-pointer items-center justify-center gap-1.5 rounded-xl gradient-button px-4 text-sm font-semibold text-white"
           >
             {notice.action.label}
             {notice.action.external ? (
