@@ -9,6 +9,7 @@ import {
   Timer,
 } from "lucide-react";
 import { HomeHero } from "@/components/HomeHero";
+import { Marquee } from "@/components/ui/marquee";
 import { Dashboard, useDashboard } from "@/components/Dashboard";
 import { SiteHeader } from "@/components/ui/site-header";
 import { BlueberryLoader, useLoaderHold } from "@/components/ui/blueberry-loader";
@@ -53,6 +54,26 @@ import { RollingText } from "@/components/ui/rolling-text";
  * The deck hub is still its own route. It is the heaviest page on the site and
  * putting it here would mean every visit to home loads the whole library.
  */
+/**
+ * The course's spine, in the order it is taught. Owner's list, 2026-09-07.
+ *
+ * Named here rather than inline because the marquee renders its children twice
+ * to make the loop seamless, and a list written in the JSX would read as though
+ * the duplication were the content rather than the mechanism.
+ */
+const TOPIC_SPINE = [
+  // Written in the case they are displayed in, because the band's `uppercase`
+  // turned the pi into a capital Pi. A pi bond is lowercase; the capital is a
+  // different symbol and the wrong notation, which is a chemistry error rather
+  // than a typographic preference.
+  "ALKENES AND π BONDS",
+  "DIENES AND CONJUGATION",
+  "DIENOPHILES AND THE DIELS-ALDER",
+  "HOMO AND LUMO",
+  "AROMATICITY",
+  "CARBONYLS",
+] as const;
+
 export function HomePage() {
   /** Fonts are in and the floor has passed; fair to start animating. */
   const loaded = useLoaderHold();
@@ -189,6 +210,30 @@ function Body({
         />
       )}
 
+
+      {/* THE SEAM. A band of the course's own spine, rolling, sitting exactly
+          where the opening screen ends and the board begins. It is the join
+          between the two, so it belongs to neither: full bleed, no padding of
+          its own, and the only thing on the page that moves on its own.
+
+          The topics are the six the course is actually built around rather than
+          decoration, so a stranger scrolling past reads what is inside before
+          they reach the tiles that link to it. */}
+      <div
+        aria-hidden
+        className="relative border-y border-white/5 bg-white/[0.02] py-5 select-none"
+      >
+        <Marquee duration={38} pauseOnHover fadeAmount={14}>
+          {TOPIC_SPINE.map((topic) => (
+            <span
+              key={topic}
+              className="mx-7 font-mono text-[0.68rem] tracking-[0.28em] whitespace-nowrap text-slate-400 dark:text-stone-400"
+            >
+              {topic}
+            </span>
+          ))}
+        </Marquee>
+      </div>
 
       {/* Screen two: the board. */}
       <Board ref={boardRef} deckCountLabel={`${decks.length} decks · ${cards} cards`} />

@@ -37,15 +37,20 @@ interface Layer {
 }
 
 const LAYERS: Layer[] = [
-  { src: "berry-purple.webp", depth: 0.010, top: "8%", left: "4%", size: 190, opacity: 0.14, blur: 5 },
-  { src: "berry-triple.webp", depth: 0.016, top: "62%", left: "10%", size: 150, opacity: 0.16, blur: 4 },
-  // Nothing sits in the band from roughly 60% to 88% across and 15% to 60% down:
-  // that is where the mascot is, and a photographed berry behind the drawn one
-  // reads as a mistake rather than as depth.
-  { src: "berry-blueberry.webp", depth: 0.024, top: "72%", left: "86%", size: 240, opacity: 0.16, blur: 3 },
-  { src: "berry-with-leaves.webp", depth: 0.034, top: "76%", left: "58%", size: 280, opacity: 0.18, blur: 2 },
-  { src: "berry-wet.webp", depth: 0.048, top: "6%", left: "34%", size: 320, opacity: 0.16, blur: 2 },
-  { src: "berry-5.webp", depth: 0.062, top: "78%", left: "30%", size: 420, opacity: 0.2, blur: 0 },
+  // Cut out, not cropped. The source photographs are berries on bushes, so a
+  // masked rectangle of one is mostly out-of-focus leaf, which is why the first
+  // pass read as green haze rather than as fruit. These are keyed and clipped
+  // to the berries themselves: see scripts beside the assets in
+  // public/backgrounds, `cut-berry-*`.
+  { src: "cut-berry-cluster-a.webp", depth: 0.010, top: "6%", left: "3%", size: 170, opacity: 0.34, blur: 3 },
+  { src: "cut-berry-bunch.webp", depth: 0.017, top: "64%", left: "8%", size: 200, opacity: 0.38, blur: 2 },
+  { src: "cut-berry-cluster-b.webp", depth: 0.026, top: "74%", left: "88%", size: 190, opacity: 0.4, blur: 2 },
+  // Clear of the band from 60 to 88 percent across and 15 to 60 down: that is
+  // the mascot, and a photographed berry behind the drawn one reads as a
+  // mistake rather than as depth.
+  { src: "cut-berry-wet.webp", depth: 0.038, top: "80%", left: "56%", size: 230, opacity: 0.42, blur: 1 },
+  { src: "cut-berry-triple.webp", depth: 0.052, top: "2%", left: "90%", size: 240, opacity: 0.44, blur: 0 },
+  { src: "cut-berry-triple.webp", depth: 0.068, top: "86%", left: "22%", size: 300, opacity: 0.5, blur: 0 },
 ];
 
 export function BerryParallax({ className }: { className?: string }) {
@@ -119,7 +124,7 @@ export function BerryParallax({ className }: { className?: string }) {
     >
       {LAYERS.map((layer) => (
         <img
-          key={layer.src}
+          key={`${layer.src}-${layer.top}-${layer.left}`}
           data-depth={layer.depth}
           src={`${import.meta.env.BASE_URL}backgrounds/${layer.src}`}
           alt=""
@@ -131,10 +136,13 @@ export function BerryParallax({ className }: { className?: string }) {
             left: layer.left,
             width: layer.size,
             opacity: layer.opacity,
-            filter: layer.blur ? `blur(${layer.blur}px)` : undefined,
-            // Round, so a square photograph reads as fruit rather than a tile.
-            maskImage: "radial-gradient(closest-side, black 58%, transparent 82%)",
-            WebkitMaskImage: "radial-gradient(closest-side, black 58%, transparent 82%)",
+            // Lifted, because these sit on a dark ground and a flat photograph
+            // on it reads as a smudge. Saturation and contrast are what make
+            // them look like fruit sitting in the scene rather than a texture.
+            filter: [
+              layer.blur ? `blur(${layer.blur}px)` : "",
+              "saturate(1.45) contrast(1.25) brightness(1.12)",
+            ].filter(Boolean).join(" "),
           }}
         />
       ))}
