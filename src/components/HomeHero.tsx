@@ -3,6 +3,7 @@ import { motion, useReducedMotion } from "motion/react";
 import { ArrowRight, ChevronDown } from "lucide-react";
 import { HomeIntro } from "@/components/HomeIntro";
 import { Blueberry } from "@/components/ui/blueberry";
+import { BerryParallax } from "@/components/ui/berry-parallax";
 import { GradientButton } from "@/components/ui/gradient-button";
 import { TextRoll } from "@/components/ui/text-roll";
 import { FoundingSeats } from "@/components/ui/founding-seats";
@@ -130,7 +131,13 @@ function HeroContent({
       // impatient enough to try.
       style={{ pointerEvents: landed ? "auto" : "none" }}
     >
-      <div className="mx-auto flex w-full max-w-6xl flex-col px-6 pt-[7vh] pb-8 sm:px-10">
+      {/* The berry field, behind everything. `z-0` against the content's `z-10`
+          because a positioned element paints over a static one regardless of
+          document order, so without the pair the parallax would sit on top of
+          the headline rather than behind it. */}
+      <BerryParallax className="z-0" />
+
+      <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col px-6 pt-[7vh] pb-8 sm:px-10">
         {/* Band one: what we sell, and who is selling it. */}
         <div className="grid gap-8 lg:grid-cols-12 lg:items-start lg:gap-6">
           <div className="lg:col-span-7">
