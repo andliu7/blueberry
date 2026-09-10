@@ -191,7 +191,19 @@ describe("the pathway's trainer deep link", () => {
   );
 
   it("puts the query inside the hash, not before it", () => {
-    expect(pathway).toMatch(/`#\/trainer\?\$\{param\}=/);
+    // The construction moved once already and the old assertion pinned its
+    // exact spelling. What this guards is the SHAPE: the query joins a hash
+    // built by hrefForTab, whose result starts "#/", so the parameter still
+    // travels inside the hash. Asserting the helper call rather than the
+    // literal also guards the 2026-09-09 regression, where a hand-built
+    // "#/trainer" missed the "#/app" mount prefix and the charge gate's
+    // Start landed a paying student on the site's 404.
+    expect(pathway).toMatch(/`\$\{hrefForTab\("trainer"\)\}\?\$\{param\}=/);
+  });
+
+  it("builds the lesson href through routes.ts, so it carries the mount prefix", () => {
+    expect(pathway).toMatch(/return hrefForLesson\(link\.id\)/);
+    expect(pathway).not.toMatch(/`#\/lesson\//);
   });
 
   it("no longer builds a link whose query precedes the hash", () => {
@@ -201,5 +213,8 @@ describe("the pathway's trainer deep link", () => {
   it("parseHash reads a tab through a hash query, which is what makes that safe", () => {
     expect(parseHash("#/trainer?reaction=williamson")).toEqual({ kind: "tab", tab: "trainer", rest: [] });
     expect(parseHash("#/lesson/u1-kvt?x=1")).toEqual({ kind: "lesson", node: "u1-kvt" });
+    // And through the mount prefix, which is what the links actually carry now.
+    expect(parseHash("#/app/trainer?reaction=williamson")).toEqual({ kind: "tab", tab: "trainer", rest: [] });
+    expect(parseHash("#/app/lesson/u1-kvt")).toEqual({ kind: "lesson", node: "u1-kvt" });
   });
 });

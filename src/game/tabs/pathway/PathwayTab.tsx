@@ -50,7 +50,7 @@ import {
 } from "@blueberry/curriculum";
 import { Card } from "../../app/ui/Card";
 import { Press } from "../../app/ui/Press";
-import { hrefForTab, hrefForOnboarding } from "../../app/routes";
+import { hrefForTab, hrefForOnboarding, hrefForLesson } from "../../app/routes";
 import { navigate } from "../../app/useHashRoute";
 import { useProgress } from "../../app/hooks";
 import { lessonNodeId, progress, type ProgressSnapshot } from "../../app/progress";
@@ -931,15 +931,23 @@ function economyKindFor(mapKind: string, link: MapPlayableLink): EconomyNodeKind
 
 /** The trainer deep link for one map node's playable entry. */
 function hrefForPlayable(link: MapPlayableLink): string {
+  // THROUGH routes.ts, NOT BUILT BY HAND. These two hrefs were the only ones
+  // in the game still assembled locally, so they were the only ones that
+  // missed the "#/app" mount prefix when the game moved into the site. The
+  // node sheet still opened, because the map intercepts the click, but the
+  // charge gate's Start then navigated to the raw href: a student paid five
+  // charge and landed on the site's 404. routes.ts owns the prefix precisely
+  // so no call site has to know it exists.
+  //
   // A beat is not a mechanism and does not belong in the trainer: it gets its
   // own route, and BeatRunner picks the surface once the node id arrives.
-  if (link.kind === "beat") return `#/lesson/${encodeURIComponent(link.id)}`;
+  if (link.kind === "beat") return hrefForLesson(link.id);
   const param = link.kind === "reaction" ? "reaction" : link.kind === "sequence" ? "sequence" : "hunt";
   // INSIDE the hash, not before it. "?reaction=x#/trainer" changes
   // location.search, which is a document navigation: the whole app reloaded and
   // replayed its front-door loader for about two seconds every time a student
   // opened a mechanism. See hashParam in app/routes.ts for the measurement.
-  return `#/trainer?${param}=${encodeURIComponent(link.id)}`;
+  return `${hrefForTab("trainer")}?${param}=${encodeURIComponent(link.id)}`;
 }
 
 /**
