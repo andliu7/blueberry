@@ -87,6 +87,12 @@ const LessonsPage = lazy(() => import("@/components/LessonsPage").then((m) => ({
  * stylesheet, arrives with this chunk.
  */
 const GamePage = lazy(() => import("@/components/GamePage"));
+/**
+ * One page per unit of Organic Chemistry II. Lazy because a visitor who never
+ * opens a unit should not download fifteen of them, and the unit data is 283
+ * nodes of prose.
+ */
+const UnitPage = lazy(() => import("@/components/UnitPage"));
 const CalendarPage = lazy(() => import("@/components/CalendarPage"));
 const TutoringPage = lazy(() => import("@/components/TutoringPage"));
 const ReactionsPage = lazy(() =>
@@ -278,6 +284,12 @@ export default function App() {
   // game parses the tail itself and this branch only decides whose router is
   // in charge, which is why a site route can never shadow a tab of the game's.
   if (route === "app" || route.startsWith("app/")) return withBoundary(<GamePage />);
+  // "#/unit/u7" opens Aldehydes and Ketones. Bare "#/unit" falls to the first,
+  // and so does an id that does not exist, because a stale link in somebody's
+  // notes should land on the course rather than on nothing.
+  if (route === "unit" || route.startsWith("unit/")) {
+    return withBoundary(<UnitPage unitId={route.slice(5)} />);
+  }
   if (route === "study-decks") return <StudyDecksPage />;
   if (route === "lessons") return withBoundary(<LessonsPage />);
   // `#/lessons/aromatics` opens that section directly, so the hub's topic list
