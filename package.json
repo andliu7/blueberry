@@ -48,6 +48,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.4",
     "autoprefixer": "^10.5.4",
+    "jsdom": "^25.0.1",
     "oxlint": "^1.75.0",
     "postcss": "^8.5.25",
     "supabase": "^2.114.0",
