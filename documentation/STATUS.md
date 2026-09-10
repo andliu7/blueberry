@@ -1,104 +1,77 @@
 # Status
 
-Updated 2026-09-05. This file is a thin live index: current state and pointers, no detail
-that has a better home. The parent CLAUDE.md names this file the live source. Keep it thin
-and keep it current.
+Updated 2026-09-10. This file is a thin live index: current state and pointers,
+no detail that has a better home. Keep it thin and keep it current.
+
+The 2026-09-05 status this file replaced described the game's OLD repository,
+branch `phase-5` at `b83bceb`, and travelled here verbatim in the merge. Its
+gauntlet record and owner decisions still matter and still live where they
+always did: `blueberry_game/apps/web/measurements/` and
+`blueberry_game/STATUS.md` (marked historical). Nothing in that record is
+re-stated here, because a copy is a thing that goes stale.
 
 ## Where things stand right now
 
-- Branch `phase-5`, HEAD `b83bceb`. **Uncommitted work is in the tree and it is real**:
-  `src/charge/ChargeMeter.tsx` and its model, `src/mastery/`, `beats/LessonGems.tsx`,
-  `app/ui/CourseFlask.tsx`, four new test files, and the integrator's Shell, routes and
-  theme edits. It is green and it is not in a commit. Commit it before anything else
-- The Economy and Bloom gauntlet is CLOSED with nine verdicts: F, P1, P2, P3, P4, S1, S2,
-  S3 (0.66) and S4 (0.93, the highest). Full record:
-  `apps/web/measurements/gauntlet-economy/LOG.md`
-- **The R rebuild is in flight** and it judges differently: the exit is CONFORMANCE against
-  a named image in `docs/reference/design-goals/`, not a blind pick against Duolingo. This
-  run finished four pieces and got one verdict. celebration-feed and onboarding were built
-  over two rounds each and NOT judged. P5's charge meter was rebuilt against the states
-  sheet and NOT judged. lesson-flow ran three rounds, 105 minutes, was judged, and **DOES
-  NOT CONFORM**. Integration landed: the bar is five tabs and the header carries the flask
-  course chip
-- The design direction is LAW: `docs/DESIGN-GOALS.md` plus 29 committed reference images.
-  Four owner rulings of 2026-09-04 bind every surface: every question is visual first, the
-  image before the name, fill in the blank scratched, every node carries its motif.
-  `docs/THREE-TEACHERS.md` carries the borrowable qualities as testable sentences
-- The lavender-versus-cream conflict is CLOSED. `docs/DESIGN-TOKENS.md` records the dated
-  supersession and `theme.css` ships the warm cream ground (`--background` `#f1ede2` light)
-- Feature roadmap in `docs/ROADMAP-FEATURES.md`. Every place a student answers something is
-  inventoried in `docs/TRAINER-INVENTORY.md`
+- **The game lives HERE, at `src/game/`, and ships from this repository.**
+  Live at https://andliu7.github.io/blueberry/ under `#/app`, deployed by
+  GitHub Actions on every push to `main`. blueberry_game is frozen: reference
+  images and the measurement harness stay there, code does not. Its README
+  says the same thing from the other side
+- The engine is `packages/` (chem-core, curriculum, economy, feedback,
+  interaction, validators), consumed through npm workspaces. All six match the
+  old repository file for file as of the move; **from now on they are edited
+  here and only here**
+- The site around the game: decks, lessons, calendar, tutoring, the `#/start`
+  funnel, the dashboard. `#/unit/<id>` gives each of the fifteen units its own
+  address
+- Billing is built and dormant: four Stripe Edge Functions, two tables, the
+  plans panel. Nothing charges until the secrets are set. The walkthrough is
+  `documentation/STRIPE.md`, and the thing to settle before a live charge is at the
+  foot of it
 
-## The sticker gate runs again, and its recorded cause was wrong
+## Test baseline, 2026-09-10
 
-Both gates had been dark since 2026-09-02. The sticker audit completes as of
-2026-09-05: **30 routes, 94,224 elements, 0 drive retries, 512 violations**, and
-`sticker-audit.json` is this tree rather than one four days old.
+`npm test`: 144 files, 143 green, roughly 2,850 tests. One file is red **on
+purpose**: `src/game/test/bootLoader.test.ts` guards a contract that genuinely
+changed when the game stopped owning its own document. The decision it is
+waiting on is written in `documentation/BOOT-LOADER-BLOCKER.md`. Do not edit
+that assertion to make it pass.
 
-**The diagnosis this file carried for two days was wrong.** It said the audit
-crashed because the fill-in-the-blank scratch moved an input the driver types
-into. The input never moved. `LESSON_HASH` read `?serveAll=1#/start/lesson`, and
-`start` is the ONBOARDING head in `app/routes.ts`, so the URL never opened a
-lesson at all: it landed on the welcome screen and the driver waited ten seconds
-for a numeric field that was never coming. Disproving it took one browser and
-four minutes, against a record that had stood since 2026-09-03.
+`jsdom` is a devDependency again: `pilotScreenWiring.test.ts` declares a jsdom
+environment and the move dropped the package, so that file errored instead of
+running.
 
-Fourteen assumptions in the instrument had to be corrected, and every one of
-them was TRUE WHEN WRITTEN. A lesson is a composition of beats now, not a run of
-three numerics; a choice beat submits on pick; ordering and matching carry the
-app's own Skip; the combo interstitial fires mid-lesson; the lesson ends itself
-into the reward; the reward's control is CLAIM; the node sheet sits between a
-node and the charge gate; the pip strip is a capsule with three authored label
-forms; the exam band says "Exam window / paused"; the bar is FIVE tabs; the tool
-rail is one menu; and `textContent` doubled the tab labels in a second place.
-The build moved and nothing noticed, because the gate had not run in four days.
+## Known issues, reproduced in a browser 2026-09-10
 
-**Two findings are owner decisions and are NOT resolved:**
+- **FIXED, same day: the pathway's node links missed the `#/app` prefix.**
+  `hrefForPlayable` in `PathwayTab.tsx` built `#/lesson/...` and
+  `#/trainer?...` by hand instead of through `app/routes.ts`, so the charge
+  gate's Start took five charge and landed on the site's 404.
+  `shellRoutes.test.ts` now asserts the hrefs go through the helpers
+- **The game's onboarding is placeholder copy on the live site.** Every line
+  under `#/app/start` renders "[HUMAN GATE] ... pending owner review". The
+  words are Andrew's to write; the flow itself works end to end
+- **Two onboardings coexist.** The site's funnel at `#/start` (indigo, goals
+  then a lesson then the ask) and the game's at `#/app/start` (cream, the
+  Duolingo-shaped capture). Which one greets a stranger is a product decision
+  nobody has made yet
+- **The palette changes at the handoff.** The site is indigo-to-fuchsia on
+  cream-white; the game keeps its own purple on warm cream. Deliberate at
+  merge time, jarring at the seam
+- **The boot front door does not render** (see the blocker doc). The game
+  still loads correctly behind the site's Suspense fallback
 
-- Of the 196 `3-no-shadows` groups, **52 are zero-blur offsets**: the 3D button
-  lip asked for by name ("make them more 3d and clickable that actually would
-  press down"). The other 144 carry a real blur. Rule 3 now contradicts a
-  standing instruction and cannot tell an extrusion from a shadow:
-  `3-fake-extrusion` scored 0 while 52 extrusions were counted as shadows.
-  Reclassifying them to improve the number is what CLAUDE.md forbids
-- **72 `8-display-floor`**, text under the 16px floor: `path-signpost__tag` at
-  10.9px and `path-node__counter` at 11.2px. Both legitimately use
-  `--font-display` by that token's own definition, so raising them or moving
-  them to the system face changes how the pathway reads
+## What did not move, and where it is
 
-`contrast-audit.json` on disk is still a probe's output rather than a full walk.
-The audit is being re-run on the repaired instrument.
-
-## Phases
-
-| Phase | Mode | State |
-|---|---|---|
-| 0 Contracts and validators | Gauntlet loop | DONE |
-| 1 Mechanism core | Gauntlet loop | DONE, merged to main |
-| 2 Interaction layer | Gauntlet loop | DONE, merged to main |
-| 3 Curriculum engine and placement | Gauntlet loop | DONE, merged to main |
-| 4 Rendering | Single pass, human gate | DONE, merged to main |
-| 5 App shell, economy, design | Gauntlet run on `phase-5` | Economy gauntlet closed. R rebuild in flight: lesson-flow re-round, three pieces unjudged, then the team runthrough gate |
-| 6 Auth, data, free tier | Gauntlet loop | Not started |
-| 7 AI chat as the Tier 3 tail | Gauntlet loop | Not started |
-| 8 Tutor messaging | Gauntlet loop | Not started |
-| 9 Scale hardening | Single pass | Not started |
-
-## Environments
-
-| Thing | Value |
-|---|---|
-| Git remote | `https://github.com/andliu7/blueberry_game.git` |
-| Supabase production, read only reference | `kwoqzfvssoxxuvlzzhrp` (`blueberry`). Do not attack |
-| Supabase test environment | `gvixhlhzuqcjzvahozfc` (`blueberry-mechanisms-test`), us-east-1 |
-| Blueberry sibling repo | `C:\Users\zeusa\Downloads\Projects\grignard\grignard-app-source` |
-| Phone harness | `npm run dev` opens `device.html`; `/` still serves the app |
-
-## The gates, last full measurement
-
-Typecheck clean. 1488 web tests in 67 files, 2753 across every workspace, none failing.
-Validator suite 30 of 30, integrity unmodified, 101 fixtures. Hit targets 0 under 44 by 44
-over 1902 controls. **Payload 351.8 KB gzipped against the 400 ceiling**, up from 191.9 and
-the number to watch: 48.2 KB of headroom is left for every R piece not yet built, and the
-authored figure sets are the growth. Contrast and sticker are the two dark gates above.
-Numbers move; LOG.md and the measurement JSONs are authoritative.
+- `blueberry_game/docs/reference/`: 833MB, 2,022 files of captures,
+  competitor screenshots and Mobbin sets. Critics read from there. A newly
+  downloaded Duolingo Mobbin set (324MB zip + extraction) sits there
+  **untracked**; if it is ever committed, commit the extracted folder only.
+  The zip alone is over GitHub's 100MB hard limit and would wedge every push
+- `blueberry_game/apps/web/measurements/`: the gauntlet and audit harness.
+  Its drive scripts still target the game's OLD addresses (`#/start/lesson`
+  and friends); repointing them at `#/app/...` is the price of running an
+  audit against this repository, and it has not been paid yet
+- The design law (`documentation/DESIGN-GOALS.md` and friends) is here, but
+  the images it judges against are in `blueberry_game/docs/reference/`. Where
+  the two repositories' copies of a spec disagree, this one is the live one

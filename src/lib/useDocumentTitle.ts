@@ -34,11 +34,17 @@ const TITLES: Record<string, string> = {
   // every step of it titled itself "Not Found" while rendering perfectly.
   enter: "Get Started",
   start: "Get Started",
+  // The game and the unit pages. Both rendered fine while titling themselves
+  // "Not Found", because a route added in a merge does not add itself here.
+  app: "Course",
+  unit: "Units",
 };
 
 /** Prefixed routes, longest first so `lessons/x/y` does not match `lessons`. */
 const PREFIXES: [string, string][] = [
   ["start/", "Get Started"],
+  ["app/", "Course"],
+  ["unit/", "Units"],
   ["lessons/", "Lessons"],
   ["deck/", "Deck"],
   ["folder/", "Folder"],

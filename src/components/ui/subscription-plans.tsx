@@ -18,7 +18,7 @@ import {
  * these cards comes from `stripe-prices`, which asks Stripe. A plan Stripe has
  * no price for is absent from that answer and its card says so, which today is
  * all of the paid ones. That is the correct output until Andrew creates the
- * products; see `docs/STRIPE.md`. Typing "$6" in here would make this file the
+ * products; see `documentation/STRIPE.md`. Typing "$6" in here would make this file the
  * one place on the site that can be out of date about money.
  *
  * Which card is marked current comes from the Supabase session and from the
