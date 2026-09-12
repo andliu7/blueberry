@@ -9,7 +9,7 @@ import {
   placeAnnotations,
   type AnnotationPlacement,
   type AnnotationSlot,
-} from "../pilot/annotations/placement";
+} from "../tabs/trainer/engine/annotations/placement";
 
 const TAU = Math.PI * 2;
 const deg = (d: number): number => (d * Math.PI) / 180;

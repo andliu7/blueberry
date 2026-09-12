@@ -1,6 +1,6 @@
 /**
- * The pilot gameplay screen's state machine, held apart from React so the
- * suite can hold it without a DOM.
+ * The trainer screen's state machine, held apart from React so the suite
+ * can hold it without a DOM.
  *
  * FIVE PIECES, ONE MACHINE. The screen's shell, undo, replay scrubbing,
  * draw-it-again and completion are not five features, they are five doors
@@ -43,7 +43,7 @@
  */
 
 import type { ElectronFlowArrow } from "@blueberry/chem-core";
-import type { DrawVerdict } from "../../tabs/trainer/grade";
+import type { DrawVerdict } from "../grade";
 
 export type PilotPhase = "drawing" | "won";
 

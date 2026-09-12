@@ -25,7 +25,7 @@ import {
   toggleReplay,
   type PilotScreenState,
   type RecordedStep,
-} from "../pilot/screen/screenModel";
+} from "../tabs/trainer/engine/screenModel";
 
 const step = SN2_DEMO_STEP;
 const attack = step.arrows[0] as ElectronFlowArrow;

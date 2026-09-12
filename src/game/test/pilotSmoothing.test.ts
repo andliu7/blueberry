@@ -21,8 +21,8 @@ import {
   bowMagnitude,
   createDragSmoother,
   trailAtSpeed,
-} from "../pilot/drag/smoothing";
-import type { SmoothedArrow } from "../pilot/drag/smoothing";
+} from "../tabs/trainer/engine/drag/smoothing";
+import type { SmoothedArrow } from "../tabs/trainer/engine/drag/smoothing";
 import type { Point2 } from "@blueberry/interaction";
 
 const FRAME_MS = 1000 / 60;

@@ -15,6 +15,13 @@ Amended 2026-09-07: instance 17, the pilot trainer screen, was added after the p
 it; section 17 states what it is. Only that section and the counts around it were re-verified on
 that date; everything else stands at its original verification.
 
+Amended 2026-09-11: instances 1, 2 and 3 now mount the engine that instance 17 became
+(`tabs/trainer/engine/`), so every one of them has the engine's undo, replay scrubber, redraw,
+full-screen shell and completion moment by construction; the Train tab at rest is the pathway-map
+list. Instances 4 (the tutorial variant, dead code) and 14 (the scratchpaper) were deleted with the
+old canvas, and their rows are gone; their prose sections below describe the surface as audited and
+are kept as the record of what was removed. A lesson can now schedule a `mechanism` or `resonance`
+beat for any map node that carries a trainer playable, and the runner mounts the same engine for it.
 **The honest qualifier on that promise, because a concurrent session is editing this tree.** Line
 numbers were checked against `5b4f10b` plus the working tree at the time of writing. Files that were
 DIRTY while this was written can have moved since, and Part 9 lists them by name. The two whose
@@ -38,10 +45,9 @@ SURFACES. Detail for every cell is in Part 2, one section per row, in this order
 
 | # | Instance | Entry file | Route | Reached from | Question kind | Undo | Step replay | Redraw | Curved arrows | Graded by |
 |---|---|---|---|---|---|---|---|---|---|---|
-| 1 | Trainer, reaction mode (TRUE ARROW-PUSHING) | `apps/web/src/tabs/trainer/TrainerTab.tsx` | `#/trainer` plus `?reaction=<id>#/trainer` | Tab bar, pathway node, in-tab picker | Single-step mechanism | Automatic only, no button | Yes, after a correct grade | Yes | Yes, constant width | `gradeDrawing`, `apps/web/src/tabs/trainer/grade.ts:72` |
-| 2 | Trainer, sequence mode (TRUE ARROW-PUSHING, arrowless glyphs) | `apps/web/src/tabs/trainer/TrainerTab.tsx` | `?sequence=<id>#/trainer` | Pathway node, in-tab picker | Multi-step mechanism | Automatic only | Yes, plus Next step | Yes | No, electron dots | `gradeDrawing`, `apps/web/src/tabs/trainer/grade.ts:72` |
-| 3 | Trainer, resonance hunt (TRUE ARROW-PUSHING, arrows forced) | `apps/web/src/tabs/trainer/TrainerTab.tsx` | `?hunt=<id>#/trainer` | Pathway node, in-tab picker | Resonance, one species | Automatic only | Yes | Yes | Yes, forced on | `gradeDrawing`, `apps/web/src/tabs/trainer/grade.ts:72` |
-| 4 | Trainer, tutorial variant (TRUE ARROW-PUSHING, DEAD CODE) | `apps/web/src/tabs/trainer/TrainerTab.tsx` | None | Nothing, no caller passes `tutorial` | Single-step mechanism, pinned to SN2 | Automatic only | Yes | Yes | Yes | `gradeDrawing`, `apps/web/src/tabs/trainer/grade.ts:72` |
+| 1 | Trainer, reaction mode (TRUE ARROW-PUSHING) | `apps/web/src/tabs/trainer/TrainerTab.tsx`, mounting `tabs/trainer/engine/TrainerScreen.tsx` | `#/trainer` plus `?reaction=<id>#/trainer` | Tab bar, pathway node, in-tab picker | Single-step mechanism | Yes, the engine's UNDO chip | Yes, the engine's scrubber | Yes, the engine's REDRAW chip, absent on the won screen | Yes, constant width | `gradeDrawing`, `apps/web/src/tabs/trainer/grade.ts:72` |
+| 2 | Trainer, sequence mode (TRUE ARROW-PUSHING, arrowless glyphs) | `apps/web/src/tabs/trainer/TrainerTab.tsx`, mounting `tabs/trainer/engine/TrainerScreen.tsx` | `?sequence=<id>#/trainer` | Pathway node, in-tab picker | Multi-step mechanism | Yes, the engine's UNDO chip | Yes, the engine's scrubber; CONTINUE advances the step | Yes, the engine's REDRAW chip, absent on the won screen | No, electron dots | `gradeDrawing`, `apps/web/src/tabs/trainer/grade.ts:72` |
+| 3 | Trainer, resonance hunt (TRUE ARROW-PUSHING, arrows forced) | `apps/web/src/tabs/trainer/TrainerTab.tsx`, mounting `tabs/trainer/engine/TrainerScreen.tsx` | `?hunt=<id>#/trainer` | Pathway node, in-tab picker | Resonance, one species | Yes, the engine's UNDO chip | Yes, the engine's scrubber | Yes, the engine's REDRAW chip, absent on the won screen | Yes, forced on | `gradeDrawing`, `apps/web/src/tabs/trainer/grade.ts:72` |
 | 5 | MCQ beat (ADJACENT SURFACE) | `apps/web/src/beats/mcq/McqRunner.tsx` | `#/lesson/<node>` | Pathway START via ChargeGate, trainer picker | Pick one, then Check | No, pick is free until Check | No | No | No | `gradeMcq`, `apps/web/src/beats/mcq/grade.ts:117` |
 | 6 | Match board beat (ADJACENT SURFACE) | `apps/web/src/beats/match/MatchBoard.tsx` | `#/lesson/<node>` | Same as row 5 | Pair prompt to target | No | No | No, wrong pairs bounce | No | `beatResultFor`, `apps/web/src/beats/match/board.ts:402` |
 | 7 | Sort ladder beat (ADJACENT SURFACE) | `apps/web/src/beats/sort/SortBeatView.tsx` | `#/lesson/<node>` | Same as row 5 | Rank cards on a ladder | No | No | Yes, Adjust the ladder | No | `judgeSort`, `apps/web/src/beats/sort/judge.ts:127` |
@@ -51,10 +57,9 @@ SURFACES. Detail for every cell is in Part 2, one section per row, in this order
 | 11 | Courses lesson player (ADJACENT SURFACE) | `apps/web/src/lesson/LessonPlayer.tsx` | `#/courses/<courseId>/<topicId>` | Courses tab topic list | Seven curriculum kinds, three stubbed | No | No | No, locks on grade | No | `gradeAttempt`, `packages/curriculum/src/grading.ts:134` |
 | 12 | Onboarding placement quiz (ADJACENT SURFACE) | `apps/web/src/onboarding/PlacementStep.tsx` | `#/start/placement` | Onboarding flow, legacy `#/start/quiz` | Real chemistry, reuses `ProblemView` | No | No | No, one shot per question | No | `reduceQuiz`, `packages/curriculum/src/quiz/machine.ts:287` |
 | 13 | Cards review session (ADJACENT SURFACE) | `apps/web/src/cards/ui/ReviewSession.tsx` | `#/cards`, legacy `#/review` | Cards tab | Recall, then self-rate | No | No | No | No | Nothing, self-graded |
-| 14 | Trainer scratchpaper (ADJACENT SURFACE, ungraded) | `apps/web/src/tabs/trainer/TrainerTools.tsx` | None, a modal over `#/trainer` | The trainer's plus-menu | Free ink, no question | Yes, its own Undo and Clear | No | Yes, Clear | No | Nothing, it is a napkin |
 | 15 | Flashcard composer (ADJACENT SURFACE, ungraded) | `apps/web/src/cards/ui/CardComposer.tsx` | `#/cards` | The Cards landing's compose control | Write a three-sided reaction card | No | No | Yes, per side, until Save | No | Nothing, the student authors it |
 | 16 | pKa settings editor (ADJACENT SURFACE, UNREACHABLE) | `apps/web/src/settings/PkaSettings.tsx` | None | Nothing, the component has zero importers | Edit the pKa ladder to match a professor | No, but a Clear my changes reset | No | Yes, per value | No | Nothing itself, but it FEEDS `judgeSort` |
-| 17 | Pilot trainer screen (TRUE ARROW-PUSHING, DEV ROUTE) | `apps/web/src/pilot/screen/PilotScreen.tsx` | `#/gallery/pilot-trainer`, dev only | Typed by hand, nothing links to it, per the gallery-route rule | Resonance with tapered arrows, reaction with the arrowless electron gesture | Yes, an UNDO chip wired to the machine | Yes, a scrubber over the student's own recorded steps | Yes, a REDRAW chip, absent on the won screen | Yes on resonance only, tapered filled outline | `gradeDrawing`, `apps/web/src/tabs/trainer/grade.ts:72`, unchanged |
+| 17 | Pilot trainer screen (TRUE ARROW-PUSHING, DEV ROUTE) | `apps/web/src/tabs/trainer/engine/TrainerScreen.tsx` | `#/gallery/pilot-trainer`, dev only | Typed by hand, nothing links to it, per the gallery-route rule | Resonance with tapered arrows, reaction with the arrowless electron gesture | Yes, an UNDO chip wired to the machine | Yes, a scrubber over the student's own recorded steps | Yes, a REDRAW chip, absent on the won screen | Yes on resonance only, tapered filled outline | `gradeDrawing`, `apps/web/src/tabs/trainer/grade.ts:72`, unchanged |
 
 Seventeen instances (sixteen as originally audited, plus the pilot added 2026-09-07 after the pilot
 gauntlet; see section 17 for what it is and is not). Four of the original sixteen are true
@@ -68,6 +73,8 @@ that is a pattern, and it is D18. Two more are ungraded by design, rows 14 and 1
 ## Part 2 - One section per instance
 
 ### 1. Trainer, reaction mode
+
+Re-homed on the engine 2026-09-11. The audit below describes the surface as it was.
 
 The default thing a student sees when they open the Train tab: one authored mechanism step, answered
 by pushing curved arrows between atoms, lone pairs and bonds. It is the only surface in the product
@@ -246,6 +253,8 @@ draws stops matching the arrow they are shown afterwards.
 
 ### 2. Trainer, sequence mode
 
+Re-homed on the engine 2026-09-11. The audit below describes the surface as it was.
+
 The same component pointed at a multi-step chain: the student walks the steps of one reaction in
 order, one screen per step, with a Next step button between them. Sequences run ARROWLESS on purpose,
 because the electron gesture carries the answer and no arrow glyph is drawn at all.
@@ -281,6 +290,8 @@ Question kind: multi-step reaction-and-mechanism completion. Not resonance.
 
 ### 3. Trainer, resonance hunt
 
+Re-homed on the engine 2026-09-11. The audit below describes the surface as it was.
+
 One species, nothing reacting, and the student's job is to move the electrons that show a
 contributing structure. Arrows are FORCED on here even when the global primitive flag says otherwise,
 because the hunt is where the arrow itself is the lesson.
@@ -315,6 +326,8 @@ canvas backdrop switches to the resonance mode at `TrainerTab.tsx:236-240`.
   two names.
 
 ### 4. Trainer, tutorial variant (DEAD CODE)
+
+Deleted 2026-09-11 with the old canvas. The audit below is the record of what was removed.
 
 A guided five-step checklist over the SN2 step, with a Continue button that reports the first correct
 answer to a caller. It is fully built and nothing calls it.
@@ -753,6 +766,8 @@ Question kind: recall. Not resonance, not a structure completion, not engine-gra
 
 ### 14. Trainer scratchpaper
 
+Deleted 2026-09-11 with the old canvas. The audit below is the record of what was removed.
+
 A full-screen ink canvas the student can open over the trainer to work something out by hand. It is
 listed here because it sits inside a question surface and because it owns the only Undo button in the
 Train tab, which is a control a reader will otherwise hunt for in the wrong file.
@@ -907,21 +922,29 @@ surface on the other side of it was never given a route.
 
 Added 2026-09-07, after the pilot gauntlet, and NOT part of the original sixteen-instance audit: it
 is the reference screen the other trainer instances are intended to be rebuilt from, built new and
-judged blind against the Alchemie bar piece by piece until every piece won. It deliberately does not
-replace anything yet.
+judged blind against the Alchemie bar piece by piece until every piece won. Moved whole into the
+trainer folder on 2026-09-10 as the engine, with the question made data; it still replaces nothing
+until the later pieces re-home the other instances onto it.
 
 Entry file:
 
-- `apps/web/src/pilot/screen/PilotScreen.tsx`, a self-contained full-viewport component taking
-  `{ problem, onExit }` props, so re-homing `#/trainer` or `#/lesson` onto it later is a mount-point
-  change. The integration note lives in its header.
+- `apps/web/src/tabs/trainer/engine/TrainerScreen.tsx`, a self-contained full-viewport component
+  taking `{ question, stepIndex?, onExit, onSolved? }` props, so re-homing `#/trainer` or `#/lesson`
+  onto it later is a mount-point change. The integration note lives in its header. A multi-step
+  question advances on CONTINUE inside the same shell and calls `onSolved` then `onExit` from the
+  last step.
 
-Supporting files, all under `apps/web/src/pilot/`:
+Supporting files, all under `apps/web/src/tabs/trainer/engine/`:
 
-- `screen/screenModel.ts`, the pure state machine (phases, recorded steps, `availableControls()`)
-- `screen/pilotLayout.ts`, layout constants
-- `screen/PilotCanvas.tsx`, the canvas over the interaction store
-- `screen/PilotTrainerGallery.tsx`, the dev wrapper with the Resonance / Reaction switcher
+- `question.ts`, the question as data: `TrainerQuestion` and the three adapters from the authored
+  registries (`questionFromReaction`, `questionFromSequence`, `questionFromResonance`, plus
+  `findQuestion`). The arrow rule is derived from the question's kind here and nowhere else
+- `screenModel.ts`, the pure state machine (phases, recorded steps, `availableControls()`)
+- `screenLayout.ts`, layout constants
+- `TrainerCanvas.tsx`, the canvas over the interaction store
+- `TrainerGallery.tsx`, the dev wrapper with the Resonance / Reaction switcher; `?sequence=<id>`
+  in the query mounts that sequence instead, for driving the multi-step advance
+- `ArrowGallery.tsx`, the tapered arrow workbench at `#/gallery/pilot-arrow`
 - `arrow/taperedArrow.ts` and `arrow/TaperedArrowSvg.tsx`, the tapered curved arrow as a closed
   filled outline (an SVG stroke cannot vary width, so this is a different construction), chord floor
   34 px with rim swing
@@ -945,7 +968,9 @@ chemistry left on screen, the full-bleed celebration staying at the lesson level
 - REDRAW: **yes**, and deliberately absent from the won layout so a stray press cannot destroy a
   correct solve; `availableControls()` in `screenModel.ts` rules the chip set.
 - CURVED ARROWS: **yes on resonance only**, the tapered outline; a reaction draws none at any point.
-- GRADING: `gradeDrawing`, `apps/web/src/tabs/trainer/grade.ts:72`, deliberately unchanged.
+- GRADING: `gradeDrawing`, `apps/web/src/tabs/trainer/grade.ts:72`, deliberately unchanged. An
+  `invalid` or `not_requested` check also writes the mistake journal and plays the wrong sound,
+  exactly as instance 1 does.
 
 Tests: `apps/web/test/pilotTaperedArrow.test.ts`, `pilotSmoothing.test.ts`, `pilotPlacement.test.ts`,
 `pilotScreen.test.ts`, `pilotScreenWiring.test.ts`. The suites are mutation-pinned: the judged

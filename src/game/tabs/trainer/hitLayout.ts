@@ -20,11 +20,35 @@
  */
 
 import type { AtomId } from "@blueberry/chem-core";
-import type { HitTarget, HitTestOutcome, HitTestQuery, HitTester, PointerKind, Point2 } from "@blueberry/interaction";
+import type { HitTarget, HitTestOutcome, HitTestQuery, HitTester, PointerInput, PointerKind, Point2 } from "@blueberry/interaction";
 import type { MechanismStep } from "@blueberry/chem-core";
 import type { StepScene } from "../../render/layout/stepScene";
 import { add, fromAngle } from "../../render/layout/vec";
 import type { Vec } from "../../render/layout/vec";
+
+/** The fields a PointerInput is built from. React's synthetic event and the DOM's both fit. */
+type PointerEventLike = Pick<PointerEvent, "clientX" | "clientY" | "pointerId" | "pointerType" | "timeStamp" | "pressure" | "button" | "buttons">;
+
+/**
+ * A pointer event as the machine's PointerInput, in the SVG's own pixel
+ * space: getScreenCTM keeps the pointer and the hit geometry in one frame.
+ * Null before the SVG has mounted or laid out. Shared by every canvas that
+ * feeds an interaction store, so they cannot disagree about a press.
+ */
+export function pointerInputFrom(svg: SVGSVGElement | null, event: PointerEventLike): PointerInput | null {
+  const ctm = svg?.getScreenCTM() ?? null;
+  if (ctm === null) return null;
+  const point = new DOMPoint(event.clientX, event.clientY).matrixTransform(ctm.inverse());
+  const pointerType: PointerKind = event.pointerType === "pen" ? "pen" : event.pointerType === "touch" ? "touch" : "mouse";
+  return {
+    pointerId: event.pointerId,
+    pointerType,
+    point: { x: point.x, y: point.y },
+    timestampMs: event.timeStamp,
+    ...(pointerType === "pen" ? { pressure: event.pressure } : {}),
+    ...(pointerType === "mouse" ? { buttonIsPrimary: event.button === 0 || event.buttons === 1 } : {}),
+  };
+}
 
 /** Linear interpolation in pixel space. Vec's lerp carries z, which pixels lack. */
 export function mix(a: Point2, b: Point2, t: number): Point2 {

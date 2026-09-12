@@ -1,23 +1,24 @@
 /**
- * The pilot screen's canvas: the molecules, the annotations, the gesture,
+ * The trainer screen's canvas: the molecules, the annotations, the gesture,
  * the records, the replay, and the win's bond change. One SVG, no pan, no
- * zoom, no carry; the pilot's job is the five-piece loop, and every gesture
+ * zoom, no carry; the screen's job is the five-piece loop, and every gesture
  * this canvas takes goes straight into the interaction machine.
  *
- * WHAT DRAWS WHAT, mode by mode, per the owner's rules for this screen:
+ * WHAT DRAWS WHAT. The canvas never learns the question's kind; it takes
+ * `curvedArrows`, which question.ts derives once from the kind:
  *
- *   resonance   The record of a committed push is the tapered curved arrow
- *               (pilot/arrow). In flight the drag is the SMOOTHED arc from
- *               pilot/drag/smoothing, drawn with no head, electrons at the
+ *   curved      The record of a committed push is the tapered curved arrow
+ *               (engine/arrow). In flight the drag is the SMOOTHED arc from
+ *               engine/drag/smoothing, drawn with no head, electrons at the
  *               tip; the ribbon with its head appears at the commit, per the
  *               owner ruling the trainer already carries (no head in flight).
- *   reaction    NO arrow glyph at any point. In flight: the bar's dashed
+ *   arrowless   NO arrow glyph at any point. In flight: the bar's dashed
  *               guide from the grabbed electrons to the pointer (capture
  *               x01), Blueberry-styled. A committed push rests as twin
  *               electron dots on the landing plus the forming bond's
  *               segmented stub; the WIN plays the actual bond change.
  *
- * Lone pairs and hydrogens both come from pilot/annotations/placement, one
+ * Lone pairs and hydrogens both come from engine/annotations/placement, one
  * allocation per atom, so nothing here renders bond-side and the hit target
  * for a lone pair is the dot the student can see.
  *
@@ -36,36 +37,28 @@ import {
   type InteractionEvent,
   type MechanismDraft,
   type Point2,
-  type PointerInput,
-  type PointerKind,
 } from "@blueberry/interaction";
-import type { StepScene, SceneAtom } from "../../render/layout/stepScene";
-import type { Vec } from "../../render/layout/vec";
-import { AtomSphere, BondCapsule, ChargeBadge, DepthDefs, SHADOW_FILTER_ID } from "../../render/svg/depth";
-import { atomRadius, toPx, type DrawTarget } from "../../tabs/trainer/hitLayout";
-import { TaperedArrow } from "../arrow/TaperedArrowSvg";
-import { createDragSmoother, type DragSmoother, type SmoothedArrow } from "../drag/smoothing";
+import type { StepScene, SceneAtom } from "../../../render/layout/stepScene";
+import { lerp, smoothstep } from "../../../render/layout/vec";
+import { AtomSphere, BondCapsule, ChargeBadge, DepthDefs, SHADOW_FILTER_ID } from "../../../render/svg/depth";
+import { atomRadius, mix as mixPx, pointerInputFrom, sceneCentroid, toPx, type DrawTarget } from "../hitLayout";
+import { TaperedArrow } from "./arrow/TaperedArrowSvg";
+import { createDragSmoother, type DragSmoother, type SmoothedArrow } from "./drag/smoothing";
 import { replayArrows, type RecordedStep } from "./screenModel";
-import {
-  committedArrowGeometry,
-  pilotAnchor,
-  pilotCentroid,
-  type PilotAtomAnnotations,
-} from "./pilotLayout";
+import { committedArrowGeometry, targetAnchorPx, type AtomAnnotations } from "./screenLayout";
 
-export type PilotMode = "resonance" | "reaction";
-
-export interface PilotCanvasProps {
+export interface TrainerCanvasProps {
   readonly step: MechanismStep;
   readonly scene: StepScene;
-  readonly mode: PilotMode;
+  /** Draw committed pushes as the tapered curved arrow; false is the arrowless electron gesture. */
+  readonly curvedArrows: boolean;
   readonly draft: MechanismDraft;
   readonly guide: InFlightGuide | null;
   readonly targets: readonly DrawTarget[];
   /** Placement-module annotations for the from state (the drawing surface). */
-  readonly annotations: ReadonlyMap<AtomId, PilotAtomAnnotations>;
+  readonly annotations: ReadonlyMap<AtomId, AtomAnnotations>;
   /** And for the to state, which is what the win rests on. */
-  readonly toAnnotations: ReadonlyMap<AtomId, PilotAtomAnnotations>;
+  readonly toAnnotations: ReadonlyMap<AtomId, AtomAnnotations>;
   readonly dispatch: (event: InteractionEvent) => void;
   /** False once the stage is won or a replay is open: render only, take nothing. */
   readonly interactive: boolean;
@@ -87,27 +80,10 @@ declare global {
   }
 }
 
-function pointerKind(type: string): PointerKind {
-  return type === "touch" ? "touch" : type === "pen" ? "pen" : "mouse";
-}
-
-function smoothstep(a: number, b: number, t: number): number {
-  const k = Math.min(1, Math.max(0, (t - a) / (b - a)));
-  return k * k * (3 - 2 * k);
-}
-
-function lerpVec(a: Vec, b: Vec, t: number): Vec {
-  return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t, z: 0 };
-}
-
-function mixPx(a: Point2, b: Point2, t: number): Point2 {
-  return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t };
-}
-
-export function PilotCanvas({
+export function TrainerCanvas({
   step,
   scene,
-  mode,
+  curvedArrows,
   draft,
   guide,
   targets,
@@ -118,16 +94,16 @@ export function PilotCanvas({
   winT,
   replay,
   reducedMotion,
-}: PilotCanvasProps) {
+}: TrainerCanvasProps) {
   const svgRef = useRef<SVGSVGElement>(null);
-  const centroid = useMemo(() => pilotCentroid(scene), [scene]);
+  const centroid = useMemo(() => sceneCentroid(scene), [scene]);
 
   // Replay looks at the from state; the win tween owns t otherwise.
   const t = replay !== null ? 0 : winT;
   const glide = smoothstep(0.15, 0.85, t);
 
   const posOf = useCallback(
-    (atom: SceneAtom): Point2 => toPx(glide <= 0 ? atom.from.pos : lerpVec(atom.from.pos, atom.to.pos, glide)),
+    (atom: SceneAtom): Point2 => toPx(glide <= 0 ? atom.from.pos : lerp(atom.from.pos, atom.to.pos, glide)),
     [glide],
   );
   const atomById = useMemo(() => new Map(scene.atoms.map((atom) => [atom.id, atom])), [scene]);
@@ -141,31 +117,17 @@ export function PilotCanvas({
 
   /* ---------------- pointer adapter ---------------- */
 
-  const toInput = useCallback((event: ReactPointerEvent<SVGSVGElement>): PointerInput | null => {
-    const svg = svgRef.current;
-    if (svg === null) return null;
-    const ctm = svg.getScreenCTM();
-    if (ctm === null) return null;
-    const point = new DOMPoint(event.clientX, event.clientY).matrixTransform(ctm.inverse());
-    return {
-      pointerId: event.pointerId,
-      pointerType: pointerKind(event.pointerType),
-      point: { x: point.x, y: point.y },
-      timestampMs: event.timeStamp,
-      ...(event.pointerType === "pen" ? { pressure: event.pressure } : {}),
-      ...(event.pointerType === "mouse" ? { buttonIsPrimary: event.button === 0 || event.buttons === 1 } : {}),
-    };
-  }, []);
+  const toInput = (event: ReactPointerEvent<SVGSVGElement>) => pointerInputFrom(svgRef.current, event);
 
-  /* ---------------- the drag smoother (resonance only) ---------------- */
+  /* ---------------- the drag smoother (curved arrows only) ---------------- */
 
   const smootherRef = useRef<DragSmoother | null>(null);
   const smoothedRef = useRef<SmoothedArrow | null>(null);
-  const guideAnchorPx = guide === null ? null : (pilotAnchor(step, scene, annotations, guide.anchor) ?? guide.from);
+  const guideAnchorPx = guide === null ? null : (targetAnchorPx(step, scene, annotations, guide.anchor) ?? guide.from);
   const guideKey = guide === null ? null : targetKey(guide.anchor);
   const smootherKeyRef = useRef<string | null>(null);
   useEffect(() => {
-    if (mode !== "resonance" || guide === null || guideAnchorPx === null) {
+    if (!curvedArrows || guide === null || guideAnchorPx === null) {
       smootherRef.current = null;
       smoothedRef.current = null;
       smootherKeyRef.current = null;
@@ -179,7 +141,7 @@ export function PilotCanvas({
     }
     // The guide object changes identity every move; the smoother must not.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, guideKey, guideAnchorPx?.x, guideAnchorPx?.y]);
+  }, [curvedArrows, guideKey, guideAnchorPx?.x, guideAnchorPx?.y]);
 
   const onPointerDown = (event: ReactPointerEvent<SVGSVGElement>) => {
     const pointer = toInput(event);
@@ -194,7 +156,7 @@ export function PilotCanvas({
   const onPointerMove = (event: ReactPointerEvent<SVGSVGElement>) => {
     const pointer = toInput(event);
     if (pointer === null) return;
-    if (mode === "resonance" && smootherRef.current !== null) {
+    if (curvedArrows && smootherRef.current !== null) {
       // Pushed BEFORE the dispatch so the render the dispatch triggers reads
       // this frame's arc, not last frame's.
       smoothedRef.current = smootherRef.current.push({
@@ -255,7 +217,7 @@ export function PilotCanvas({
     annotationSide === "from" ? Math.max(0, 1 - t * 4) : annotationSide === "to" ? Math.min(1, (t - 0.75) * 4) : 0;
   const liveAnnotations = annotationSide === "to" ? toAnnotations : annotations;
 
-  const recordFade = mode === "reaction" ? Math.max(0, 1 - t * 1.6) : 1;
+  const recordFade = curvedArrows ? 1 : Math.max(0, 1 - t * 1.6);
 
   /* ---------------- render ---------------- */
 
@@ -376,7 +338,7 @@ export function PilotCanvas({
             const revealed = draft.revealedLonePairs.includes(atom.id);
             return (
               <g key={`ann-${atom.id}`}>
-                <PilotHydrogens centre={c} slots={entry.hydrogens} />
+                <Hydrogens centre={c} slots={entry.hydrogens} />
                 {revealed
                   ? entry.lonePairs.map((slot, slotIndex) => {
                       const isArmed =
@@ -438,26 +400,26 @@ export function PilotCanvas({
       {/* The records: full, then any the scrubber is animating in. */}
       <g style={{ pointerEvents: "none" }} opacity={recordFade}>
         {shown.full.map((arrow) => (
-          <PilotRecord
+          <Record
             key={arrow.id}
             step={step}
             scene={scene}
             annotations={annotations}
             arrow={arrow}
             away={centroid}
-            mode={mode}
+            curved={curvedArrows}
             t={1}
           />
         ))}
         {shown.animating.map((entry) => (
-          <PilotRecord
+          <Record
             key={`anim-${entry.arrow.id}`}
             step={step}
             scene={scene}
             annotations={annotations}
             arrow={entry.arrow}
             away={centroid}
-            mode={mode}
+            curved={curvedArrows}
             t={entry.t}
           />
         ))}
@@ -467,10 +429,10 @@ export function PilotCanvas({
       {interactive && guide !== null && guideAnchorPx !== null ? (
         <g style={{ pointerEvents: "none" }}>
           <SnapRing guide={guide} anchorAtom={armedAnchorAtom} centreOf={centreOf} atomById={atomById} />
-          {mode === "resonance" ? (
-            <InFlightResonance from={guideAnchorPx} smoothed={smoothedRef.current} fallbackTo={guide.to} />
+          {curvedArrows ? (
+            <InFlightCurved from={guideAnchorPx} smoothed={smoothedRef.current} fallbackTo={guide.to} />
           ) : (
-            <InFlightReaction from={guideAnchorPx} to={guide.to} />
+            <InFlightArrowless from={guideAnchorPx} to={guide.to} />
           )}
         </g>
       ) : null}
@@ -481,7 +443,7 @@ export function PilotCanvas({
 /* ------------------------------------------------------------------ */
 
 /** Quiet hydrogen glyphs on the placement ring: a letter over a short tick. */
-function PilotHydrogens({ centre, slots }: { readonly centre: Point2; readonly slots: readonly { readonly posPx: Point2; readonly angleSceneRad: number }[] }) {
+function Hydrogens({ centre, slots }: { readonly centre: Point2; readonly slots: readonly { readonly posPx: Point2; readonly angleSceneRad: number }[] }) {
   if (slots.length === 0) return null;
   return (
     <g>
@@ -520,34 +482,35 @@ function PilotHydrogens({ centre, slots }: { readonly centre: Point2; readonly s
 }
 
 /**
- * One committed push, at replay progress t (1 is fully drawn). Resonance
- * records are the tapered ribbon; reaction records are resting electrons and
- * the forming bond's stub, no arrow glyph anywhere.
+ * One committed push, at replay progress t (1 is fully drawn). Curved
+ * records are the tapered ribbon; arrowless records are resting electrons
+ * and the forming bond's stub, no arrow glyph anywhere.
  */
-function PilotRecord({
+function Record({
   step,
   scene,
   annotations,
   arrow,
   away,
-  mode,
+  curved,
   t,
 }: {
   readonly step: MechanismStep;
   readonly scene: StepScene;
-  readonly annotations: ReadonlyMap<AtomId, PilotAtomAnnotations>;
+  readonly annotations: ReadonlyMap<AtomId, AtomAnnotations>;
   readonly arrow: ElectronFlowArrow;
   readonly away: Point2;
-  readonly mode: PilotMode;
+  readonly curved: boolean;
   readonly t: number;
 }) {
   const geometry = committedArrowGeometry(step, scene, annotations, arrow, away);
   const eased = t >= 1 ? 1 : t * (2 - t);
-  if (mode === "resonance") {
+  const stub = geometry.stub !== null ? <BondCapsule a={geometry.stub.a} b={geometry.stub.b} rA={0} rB={0} opacity={0.75} forming /> : null;
+  if (curved) {
     if (t >= 1) {
       return (
         <g>
-          {geometry.stub !== null ? <BondCapsule a={geometry.stub.a} b={geometry.stub.b} rA={0} rB={0} opacity={0.75} forming /> : null}
+          {stub}
           <TaperedArrow from={geometry.from} to={geometry.to} away={away} sinkRadiusPx={geometry.sinkRadiusPx} />
         </g>
       );
@@ -559,7 +522,7 @@ function PilotRecord({
   if (t >= 1) {
     return (
       <g>
-        {geometry.stub !== null ? <BondCapsule a={geometry.stub.a} b={geometry.stub.b} rA={0} rB={0} opacity={0.75} forming /> : null}
+        {stub}
         <circle cx={geometry.landing.x - 3.2} cy={geometry.landing.y} r={2.6} fill="var(--electron-glow)" />
         <circle cx={geometry.landing.x + 3.2} cy={geometry.landing.y} r={2.6} fill="var(--electron-glow)" />
       </g>
@@ -593,9 +556,8 @@ function SnapRing({
   const snappedAtom = targetAtomId(snapped);
   if (snappedAtom !== null && snappedAtom === anchorAtom) return null;
   if (snapped.kind === "atom" || snapped.kind === "bondEndHandle") {
-    const id = snapped.kind === "atom" ? snapped.atomId : snapped.atomId;
-    const c = centreOf(id);
-    const r = atomRadius(atomById.get(id)?.element ?? "C");
+    const c = centreOf(snapped.atomId);
+    const r = atomRadius(atomById.get(snapped.atomId)?.element ?? "C");
     return <circle cx={c.x} cy={c.y} r={r + 6} fill="none" stroke="var(--bb-primary)" strokeWidth={2.5} opacity={0.8} />;
   }
   if (snapped.kind === "betweenAtomsSite") {
@@ -608,10 +570,10 @@ function SnapRing({
 }
 
 /**
- * The resonance drag: the smoothed arc, no head (a sphere has no orientation
+ * The curved drag: the smoothed arc, no head (a sphere has no orientation
  * to get wrong, the ruling the trainer records), electrons riding the tip.
  */
-function InFlightResonance({
+function InFlightCurved({
   from,
   smoothed,
   fallbackTo,
@@ -628,26 +590,32 @@ function InFlightResonance({
       {/* The casing blends into the surface behind, which is the workbench now, not --bb-card. */}
       <path d={d} fill="none" stroke="var(--workbench)" strokeWidth={8} strokeLinecap="round" opacity={0.9} />
       <path d={d} fill="none" stroke="var(--bb-primary)" strokeWidth={3.5} strokeDasharray="7 6" strokeLinecap="round" />
-      <circle cx={tip.x} cy={tip.y} r={13} fill="var(--electron-glow)" opacity={0.55} />
-      <circle cx={tip.x} cy={tip.y} r={8.5} fill="var(--electron-glow)" opacity={0.85} />
-      <circle cx={tip.x} cy={tip.y} r={5} fill="var(--electron-core)" />
+      <HeldElectrons from={from} at={tip} />
+    </g>
+  );
+}
+
+/** The pair riding the drag, glow and core, over the dot they left from. */
+function HeldElectrons({ from, at }: { readonly from: Point2; readonly at: Point2 }) {
+  return (
+    <g>
+      <circle cx={at.x} cy={at.y} r={13} fill="var(--electron-glow)" opacity={0.55} />
+      <circle cx={at.x} cy={at.y} r={8.5} fill="var(--electron-glow)" opacity={0.85} />
+      <circle cx={at.x} cy={at.y} r={5} fill="var(--electron-core)" />
       <circle cx={from.x} cy={from.y} r={3} fill="var(--bb-primary)" />
     </g>
   );
 }
 
-/** The reaction drag: the bar's straight dashed guide, electrons at the finger. */
-function InFlightReaction({ from, to }: { readonly from: Point2; readonly to: Point2 }) {
+/** The arrowless drag: the bar's straight dashed guide, electrons at the finger. */
+function InFlightArrowless({ from, to }: { readonly from: Point2; readonly to: Point2 }) {
   return (
     <g>
-      {/* Casing blends into the workbench, same as InFlightResonance: on the
+      {/* Casing blends into the workbench, same as InFlightCurved: on the
           white bench a cream casing read as a faint warm halo (rejudge note). */}
       <line x1={from.x} y1={from.y} x2={to.x} y2={to.y} stroke="var(--workbench)" strokeWidth={8} strokeLinecap="round" opacity={0.9} />
       <line x1={from.x} y1={from.y} x2={to.x} y2={to.y} stroke="var(--bb-primary)" strokeWidth={3.5} strokeDasharray="7 6" strokeLinecap="round" />
-      <circle cx={to.x} cy={to.y} r={13} fill="var(--electron-glow)" opacity={0.55} />
-      <circle cx={to.x} cy={to.y} r={8.5} fill="var(--electron-glow)" opacity={0.85} />
-      <circle cx={to.x} cy={to.y} r={5} fill="var(--electron-core)" />
-      <circle cx={from.x} cy={from.y} r={3} fill="var(--bb-primary)" />
+      <HeldElectrons from={from} at={to} />
     </g>
   );
 }

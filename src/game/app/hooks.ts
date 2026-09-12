@@ -3,7 +3,8 @@
  * composes React hooks so the same subscription logic is written once.
  */
 
-import { useSyncExternalStore } from "react";
+import { useEffect, useSyncExternalStore } from "react";
+import type { InteractionStore } from "@blueberry/interaction";
 import { progress, type ProgressSnapshot } from "./progress";
 import { languageStore } from "./i18n";
 
@@ -25,6 +26,24 @@ export function useReducedMotion(): boolean {
 /** The progress snapshot. Re-renders the caller when the store commits. */
 export function useProgress(): ProgressSnapshot {
   return useSyncExternalStore(progress.subscribe, progress.getSnapshot);
+}
+
+/**
+ * Backgrounding ends any gesture in flight, per the interaction machine's own
+ * event for it. Every surface that mounts an interaction store wires this.
+ */
+export function useEndGestureOnBackground(store: Pick<InteractionStore, "dispatch">): void {
+  useEffect(() => {
+    const onHidden = () => {
+      if (document.visibilityState === "hidden") store.dispatch({ kind: "appBackgrounded", timestampMs: performance.now() });
+    };
+    document.addEventListener("visibilitychange", onHidden);
+    window.addEventListener("blur", onHidden);
+    return () => {
+      document.removeEventListener("visibilitychange", onHidden);
+      window.removeEventListener("blur", onHidden);
+    };
+  }, [store]);
 }
 
 /** The chosen language code. See i18n.ts for what it does and does not cover. */

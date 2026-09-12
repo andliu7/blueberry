@@ -60,6 +60,8 @@
 import { Suspense, lazy, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { clearsBeat, type BeatResult, type MasteryLevel } from "./types";
+import { CORRECT_CAUSE } from "./mcq/grade";
+import { questionForBeat } from "../tabs/trainer/engine/question";
 import { mcqBeatsForNode } from "./mcq";
 import { MATCH_BOARDS } from "./match";
 import { sortContentById } from "./sort";
@@ -85,6 +87,7 @@ import "./beat-chrome.css";
 // The resolution API lives in template.ts now: one table and one ordering
 // for the plan, the pathway and the tests. Re-exported to keep import paths.
 export { LADDER_FOR_NODE, nodeHasBeat, resolveBeat, type ResolvedBeat } from "./template";
+import type { ResolvedBeat } from "./template";
 
 /** The match boards authored for one pathway node. None gives an empty list. */
 function matchBoardsForNode(node: string) {
@@ -106,6 +109,10 @@ const SynthesisGapBeat = lazy(() =>
   import("./synthesis/SynthesisGapBeat").then((m) => ({ default: m.SynthesisGapBeat })),
 );
 const LessonGems = lazy(() => import("./LessonGems"));
+// The trainer engine, the same screen the Train tab mounts. Fixed and
+// full-viewport by construction, so inside a lesson it covers the header and
+// the strip exactly as it covers the tab bar: one screen, wherever it opens.
+const TrainerScreen = lazy(() => import("../tabs/trainer/engine/TrainerScreen").then((m) => ({ default: m.TrainerScreen })));
 
 export interface BeatRunnerProps {
   /** The pathway node the student tapped, for example "u3-directing". */
@@ -233,6 +240,11 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false }: B
   // (progressSlot), so each screen keeps exactly one bar and one exit, in
   // the committed lesson frame's shape: X, the recipe strip, the counters.
   const inMcq = step?.beat.kind === "mcq" || run.phase === "recycle";
+  // The trainer engine is a fixed full-viewport screen with its own exit, so
+  // while it plays the lesson chrome underneath is covered but still in the
+  // accessibility tree. inert takes the tool rail out of the tab order and
+  // the header is not drawn at all: one exit on screen, one exit reachable.
+  const inEngine = step?.beat.kind === "mechanism" || step?.beat.kind === "resonance";
   // The header's counter. LAZY, and LessonGems.tsx's header records the
   // measured reason: its balance comes from app/progress, whose import chain
   // touches `document` at module scope, and the web suite runs in node with
@@ -266,7 +278,7 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false }: B
           decision they then had to reverse. The rail opens a sheet over this
           screen instead, so the lesson is still underneath it. See
           app/ui/ToolRail.tsx for why these two stopped being tabs. */}
-      <header className="beat-runner-tools">
+      <header className="beat-runner-tools" inert={inEngine}>
         <ToolRail />
       </header>
 
@@ -281,7 +293,7 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false }: B
           The MCQ surfaces render this row themselves, because their sheet
           scrolls internally and the row has to sit above that scroller
           rather than above the sheet; they are handed the same strip. */}
-      {!inMcq ? (
+      {!inMcq && !inEngine ? (
         <LessonHeader onExit={onExit} strip={strip} currency={currency} />
       ) : null}
 
@@ -350,6 +362,19 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false }: B
           />
         ) : null}
 
+        {step?.beat.kind === "mechanism" || step?.beat.kind === "resonance" ? (
+          <TrainerBeat
+            beat={step.beat}
+            level={level}
+            reducedMotion={reducedMotion}
+            onResult={(result) => {
+              stepResult.current = result;
+            }}
+            onContinue={advanceSingle}
+            onExit={onExit}
+          />
+        ) : null}
+
         {run.phase === "recycle" ? (
           // The recycle slot: the missed quick questions come back, once.
           // Same surface, same rules, only the ones that got away.
@@ -377,6 +402,58 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false }: B
       </Suspense>
       </div>
     </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* The mechanism beat                                                   */
+/* ------------------------------------------------------------------ */
+
+/**
+ * The engine's contract is one question and one exit; CONTINUE on the last
+ * step's win fires onSolved and then onExit. A lesson needs those two exits
+ * told apart: a solve advances the plan, the X leaves the lesson. So the
+ * result is recorded on onSolved and onExit reads it: recorded means the
+ * student pressed CONTINUE, nothing recorded means they left.
+ */
+function TrainerBeat({
+  beat,
+  level,
+  reducedMotion,
+  onResult,
+  onContinue,
+  onExit,
+}: {
+  readonly beat: Extract<ResolvedBeat, { kind: "mechanism" | "resonance" }>;
+  readonly level: MasteryLevel;
+  readonly reducedMotion: boolean;
+  readonly onResult: (result: BeatResult) => void;
+  readonly onContinue: () => void;
+  readonly onExit: () => void;
+}) {
+  const question = useMemo(() => questionForBeat(beat), [beat]);
+  const startedAt = useRef(performance.now());
+  const solved = useRef(false);
+  if (question === null) {
+    return <p role="status">This mechanism is not authored yet. Pick another node and come back.</p>;
+  }
+  return (
+    <TrainerScreen
+      question={question}
+      reducedMotion={reducedMotion}
+      onSolved={() => {
+        solved.current = true;
+        onResult({
+          kind: "correct",
+          beatId: question.id,
+          level,
+          cause: CORRECT_CAUSE,
+          elapsedMs: Math.round(performance.now() - startedAt.current),
+          at: new Date().toISOString(),
+        });
+      }}
+      onExit={() => (solved.current ? onContinue() : onExit())}
+    />
   );
 }
 

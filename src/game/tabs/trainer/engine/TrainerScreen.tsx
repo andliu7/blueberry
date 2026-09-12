@@ -1,5 +1,7 @@
 /**
- * The pilot gameplay screen: one mechanism stage, full screen, end to end.
+ * The trainer engine's screen: one question, full screen, end to end. Built
+ * as the pilot screen in the gauntlet and moved here whole; a question is
+ * data (question.ts) and this file owns everything else.
  *
  * THE SHELL, top to bottom, per the locked design reference
  * (docs/reference/design-goals/blueberry_r9-lesson-mechanism_1788289491.png):
@@ -17,23 +19,31 @@
  * is self-contained and full-viewport, so re-homing it is a mount-point
  * change and nothing else.
  *
- *   <PilotScreen problem={problem} onExit={() => navigate(...)} reducedMotion={rm} />
+ *   <TrainerScreen question={findQuestion(ref)} onExit={() => navigate(...)} reducedMotion={rm} />
  *
  * Today it mounts at "#/gallery/pilot-trainer" (dev only, via App.tsx's
  * gallery branch); pointing "#/trainer" or a lesson node at it later means
- * building a PilotProblem from that surface's entry and rendering this
+ * resolving that surface's entry through question.ts and rendering this
  * component instead of that surface's canvas. Nothing here reads the route.
  *
+ * MULTI-STEP. The screen holds the current step index. CONTINUE on a won
+ * step that is not the last advances: a fresh interaction document and a
+ * fresh screen model over the next step, the same shell and the same
+ * mascot. On the last step it reports the solve and exits. A single-step
+ * question never sees any of this.
+ *
  * WHO DECIDES WHAT. The interaction machine (packages/interaction) owns
- * every gesture; gradeDrawing (tabs/trainer/grade.ts) owns the verdict;
- * packages/feedback owns the named-cause copy; screenModel.ts owns the
- * five-piece state machine (phases, records, replay, redraw, the
- * exactly-once win). This file only wires them and renders.
+ * every gesture; gradeDrawing (grade.ts) owns the verdict; packages/feedback
+ * owns the named-cause copy; screenModel.ts owns the five-piece state
+ * machine (phases, records, replay, redraw, the exactly-once win); the
+ * mistake journal and wrong sound fire on the same verdicts they do in
+ * TrainerTab.tsx. This file only wires them and renders.
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useStepProgress } from "../../../demo/useStepProgress";
+import { useEndGestureOnBackground } from "../../../app/hooks";
 import { causeCopyEntry } from "@blueberry/feedback";
-import type { MechanismStep } from "@blueberry/chem-core";
 import {
   canUndo,
   createInteractionStore,
@@ -43,19 +53,21 @@ import {
   type InteractionEvent,
   type MechanismDraft,
 } from "@blueberry/interaction";
-import { layoutState, type LayoutHints } from "../../render/layout/layout";
-import { buildStepScene } from "../../render/layout/stepScene";
-import { createHitTester, type DrawTarget } from "../../tabs/trainer/hitLayout";
-import { gradeDrawing, type DrawVerdict } from "../../tabs/trainer/grade";
-import { ChipPress } from "../../beats/ChipPress";
-import { ExitMark } from "../../beats/chromeIcons";
-import { Berry } from "../../mascot/Berry";
-import type { BerryBehaviour } from "../../mascot/berryBehaviour";
-import type { BerryMood } from "../../mascot/berryMood";
-import { costumeForSurface } from "../../mascot/berryCostume";
-import { reactionFor, SETTLED_AFTER_MISS, type ReactionOutcome } from "../../mascot/berryReaction";
-import { PilotCanvas, type PilotMode } from "./PilotCanvas";
-import { annotateScene, pilotTargets } from "./pilotLayout";
+import { layoutState } from "../../../render/layout/layout";
+import { buildStepScene } from "../../../render/layout/stepScene";
+import { createHitTester, type DrawTarget } from "../hitLayout";
+import { arrowKey, gradeDrawing, type DrawVerdict } from "../grade";
+import { matchDistractor } from "../distractors";
+import { playWrongSound } from "../feedbackSound";
+import { saveMistake } from "../mistakes";
+import { ChipPress } from "../../../beats/ChipPress";
+import { ExitMark } from "../../../beats/chromeIcons";
+import { Berry } from "../../../mascot/Berry";
+import { costumeForSurface } from "../../../mascot/berryCostume";
+import { useBerryReactions } from "../../../mascot/useBerryReactions";
+import { TrainerCanvas } from "./TrainerCanvas";
+import { curvedArrowsFor, type TrainerQuestion } from "./question";
+import { annotateScene, sceneTargets } from "./screenLayout";
 import {
   availableControls,
   checkGraded,
@@ -69,7 +81,7 @@ import {
 
 /**
  * Expose the live interaction store for the wiring test and capture scripts,
- * the same query-flag family as PilotCanvas's __pilotTargets.
+ * the same query-flag family as TrainerCanvas's __pilotTargets.
  */
 const EXPOSE_STORE = new URLSearchParams(window.location.search).get("store") === "1";
 
@@ -79,35 +91,29 @@ declare global {
   }
 }
 
-export interface PilotProblem {
-  readonly step: MechanismStep;
-  readonly fromHints: LayoutHints;
-  readonly toHints: LayoutHints;
-  /** Curved arrows appear ONLY in resonance mode. Owner rule for this screen. */
-  readonly mode: PilotMode;
-  readonly title: string;
-  /** The line above the canvas: the task, in the imperative. */
-  readonly prompt: string;
-  /** The pill under the canvas. */
-  readonly hint: string;
-  /** The win treatment's one line of chemistry. */
-  readonly successLine: string;
-}
-
-export interface PilotScreenProps {
-  readonly problem: PilotProblem;
+export interface TrainerScreenProps {
+  readonly question: TrainerQuestion;
+  /** Where to start in a multi-step question. Clamped to the last step. */
+  readonly stepIndex?: number;
   readonly onExit: () => void;
+  /** Fires once, on CONTINUE from the last step's win, before onExit. */
+  readonly onSolved?: () => void;
   readonly reducedMotion?: boolean;
 }
 
 const WIN_TWEEN_MS = 1400;
 
-export function PilotScreen({ problem, onExit, reducedMotion = false }: PilotScreenProps) {
-  const { step, mode } = problem;
+export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onSolved, reducedMotion = false }: TrainerScreenProps) {
+  const lastIndex = question.steps.length - 1;
+  const [stepIndex, setStepIndex] = useState(() => Math.min(Math.max(0, startIndex), lastIndex));
+  const current = question.steps[stepIndex];
+  if (current === undefined) throw new Error(`question ${question.id} has no step ${stepIndex}`);
+  const { step } = current;
+  const curvedArrows = curvedArrowsFor(question.kind);
 
   const scene = useMemo(
-    () => buildStepScene(step, layoutState(step.from, problem.fromHints), layoutState(step.to, problem.toHints)),
-    [step, problem.fromHints, problem.toHints],
+    () => buildStepScene(step, layoutState(step.from, current.fromHints), layoutState(step.to, current.toHints)),
+    [step, current.fromHints, current.toHints],
   );
   const annotations = useMemo(() => annotateScene(scene, "from"), [scene]);
   const toAnnotations = useMemo(() => annotateScene(scene, "to"), [scene]);
@@ -133,7 +139,7 @@ export function PilotScreen({ problem, onExit, reducedMotion = false }: PilotScr
   );
   const machine = useSyncExternalStore(store.subscribe, store.getSnapshot);
   const draft = currentDraft(machine);
-  if (draft.shape !== "mechanism") throw new Error("the pilot screen only holds a mechanism draft");
+  if (draft.shape !== "mechanism") throw new Error("the trainer screen only holds a mechanism draft");
   const mechanism: MechanismDraft = draft;
   const armedAtom =
     mechanism.armed === null
@@ -142,7 +148,7 @@ export function PilotScreen({ problem, onExit, reducedMotion = false }: PilotScr
         ? mechanism.armed.target.atomId
         : null;
   const targets = useMemo(
-    () => pilotTargets(step, scene, annotations, mechanism.revealedLonePairs, armedAtom),
+    () => sceneTargets(step, scene, annotations, mechanism.revealedLonePairs, armedAtom),
     [step, scene, annotations, mechanism.revealedLonePairs, armedAtom],
   );
   targetsRef.current = targets;
@@ -153,24 +159,12 @@ export function PilotScreen({ problem, onExit, reducedMotion = false }: PilotScr
     if (EXPOSE_STORE) window.__pilotStore = store;
   }, [store]);
 
-  // Backgrounding ends any gesture, per the machine's own event for it.
-  useEffect(() => {
-    const onHidden = () => {
-      if (document.visibilityState === "hidden") store.dispatch({ kind: "appBackgrounded", timestampMs: performance.now() });
-    };
-    document.addEventListener("visibilitychange", onHidden);
-    window.addEventListener("blur", onHidden);
-    return () => {
-      document.removeEventListener("visibilitychange", onHidden);
-      window.removeEventListener("blur", onHidden);
-    };
-  }, [store]);
+  useEndGestureOnBackground(store);
 
   /* ---------------- the screen's own machine ---------------- */
 
   const [model, setModel] = useState(createScreenState);
   const [verdict, setVerdict] = useState<DrawVerdict | null>(null);
-  const [winT, setWinT] = useState(0);
   const won = model.phase === "won";
 
   // The record follows the drawing. A falling arrow count is an undo or a
@@ -187,75 +181,13 @@ export function PilotScreen({ problem, onExit, reducedMotion = false }: PilotScr
 
   /* ---------------- the mascot ---------------- */
 
-  const [behaviour, setBehaviour] = useState<BerryBehaviour>("leanIn");
-  const [behaviourKey, setBehaviourKey] = useState(0);
-  const [berryMood, setBerryMood] = useState<BerryMood | undefined>(undefined);
-  const [berryChain, setBerryChain] = useState<readonly BerryBehaviour[]>([]);
-  const [sparkleKey, setSparkleKey] = useState(0);
-  const [flashKey, setFlashKey] = useState(0);
-  const [charred, setCharred] = useState(false);
-  const runRef = useRef({ correctRun: 0, missRun: 0 });
-  const settleTimerRef = useRef<number | null>(null);
-  useEffect(
-    () => () => {
-      if (settleTimerRef.current !== null) window.clearTimeout(settleTimerRef.current);
-    },
-    [],
-  );
-  const bump = (next: BerryBehaviour, mood?: BerryMood, chain: readonly BerryBehaviour[] = []) => {
-    setBehaviour(next);
-    setBehaviourKey((k) => k + 1);
-    setBerryMood(mood);
-    setBerryChain(chain);
-  };
-  const react = (outcome: ReactionOutcome) => {
-    if (settleTimerRef.current !== null) window.clearTimeout(settleTimerRef.current);
-    const run = runRef.current;
-    if (outcome === "correct") {
-      run.correctRun += 1;
-      run.missRun = 0;
-      if (charred) {
-        setCharred(false);
-        setFlashKey((k) => k + 1);
-      }
-    } else if (outcome === "wrong") {
-      run.correctRun = 0;
-      run.missRun += 1;
-    }
-    const reaction = reactionFor(outcome, run);
-    if (reaction.state === "charred") setCharred(true);
-    if (reaction.sparkles) setSparkleKey((k) => k + 1);
-    bump(reaction.behaviour, reaction.mood, reaction.chain);
-    if (reaction.holdMs !== null) {
-      settleTimerRef.current = window.setTimeout(
-        () => bump(SETTLED_AFTER_MISS.behaviour, SETTLED_AFTER_MISS.mood),
-        reducedMotion ? 1 : reaction.holdMs,
-      );
-    }
-  };
+  const { berry, bump, react } = useBerryReactions(reducedMotion, "leanIn");
 
   /* ---------------- the win's bond change ---------------- */
 
-  const winRafRef = useRef<number | null>(null);
-  useEffect(
-    () => () => {
-      if (winRafRef.current !== null) cancelAnimationFrame(winRafRef.current);
-    },
-    [],
-  );
-  const startWinTween = useCallback(() => {
-    if (reducedMotion) {
-      setWinT(1);
-      return;
-    }
-    const startedAt = performance.now();
-    const tick = (now: number) => {
-      const k = Math.min(1, (now - startedAt) / WIN_TWEEN_MS);
-      setWinT(k);
-      winRafRef.current = k < 1 ? requestAnimationFrame(tick) : null;
-    };
-    winRafRef.current = requestAnimationFrame(tick);
-  }, [reducedMotion]);
+  // The same frame driver the trainer's playback uses: 0 while drawing,
+  // driven once to 1 on the win, scrubbed straight to 1 under reduced motion.
+  const win = useStepProgress(WIN_TWEEN_MS, false);
 
   /* ---------------- the controls ---------------- */
 
@@ -266,14 +198,27 @@ export function PilotScreen({ problem, onExit, reducedMotion = false }: PilotScr
     if (outcome.justWon) {
       setVerdict(null);
       react("correct");
-      startWinTween();
+      if (reducedMotion) win.scrub(1);
+      else win.play();
       return;
     }
     setVerdict(result);
+    // The mistake journal and the wrong sound, on the same verdicts and with
+    // the same record TrainerTab.tsx writes: the journal keys on the step's
+    // own id, and the last arrow is the one the grader found wanting.
+    const last = mechanism.arrows[mechanism.arrows.length - 1];
     if (result.kind === "invalid") {
+      if (last !== undefined) {
+        saveMistake({ reactionId: step.id, arrowKey: arrowKey(last), verdict: "invalid", causeId: result.cause, distractorMatched: false, at: new Date().toISOString() });
+      }
+      playWrongSound();
       react("wrong");
       if (typeof navigator.vibrate === "function") navigator.vibrate([24, 60, 24]);
     } else if (result.kind === "not_requested") {
+      if (last !== undefined) {
+        saveMistake({ reactionId: step.id, arrowKey: arrowKey(last), verdict: "not_requested", causeId: null, distractorMatched: matchDistractor(step, last) !== null, at: new Date().toISOString() });
+      }
+      playWrongSound();
       react("nearMiss");
       if (typeof navigator.vibrate === "function") navigator.vibrate([24, 60, 24]);
     } else {
@@ -288,21 +233,36 @@ export function PilotScreen({ problem, onExit, reducedMotion = false }: PilotScr
     store.dispatch({ kind: "command", command: { kind: "undo" } });
   };
 
-  const onRedraw = () => {
+  // A clean screen over whichever step comes next: redraw pairs it with a
+  // fresh document over the SAME step, advancing with the next step's own.
+  const resetStage = () => {
     setModel(redraw(model));
     setVerdict(null);
-    setWinT(0);
-    if (winRafRef.current !== null) cancelAnimationFrame(winRafRef.current);
-    winRafRef.current = null;
+    win.scrub(0);
     bump("leanIn");
+  };
+
+  const onRedraw = () => {
+    resetStage();
     setEpoch((n) => n + 1);
+  };
+
+  const onContinue = () => {
+    if (stepIndex < lastIndex) {
+      resetStage();
+      setStepIndex(stepIndex + 1);
+      return;
+    }
+    onSolved?.();
+    onExit();
   };
 
   const interactive = !won && !model.replayOpen;
   const controls = availableControls(model, mechanism.arrows.length > 0);
   const undoDisabled = !interactive || !canUndo(machine);
   const checkDisabled = !interactive || mechanism.arrows.length === 0;
-  const fraction = progressFraction(model, mechanism.arrows.length, step.arrows.length);
+  // The strip spans the whole question: a single step reads its own fraction.
+  const fraction = (stepIndex + progressFraction(model, mechanism.arrows.length, step.arrows.length)) / question.steps.length;
 
   return (
     <div className="fixed inset-0 z-40 overflow-hidden" style={{ background: "var(--bb-background)" }} data-pilot-screen>
@@ -327,7 +287,7 @@ export function PilotScreen({ problem, onExit, reducedMotion = false }: PilotScr
           </div>
         </header>
 
-        <p className="bb-title-face text-scale-lg font-semibold leading-snug text-bb-foreground">{problem.prompt}</p>
+        <p className="bb-title-face text-scale-lg font-semibold leading-snug text-bb-foreground">{current.prompt}</p>
 
         {/* The workbench card is the frame's one white surface, per the locked
             shell reference (blueberry_r9-lesson-mechanism_1788289491); --bb-card
@@ -336,11 +296,11 @@ export function PilotScreen({ problem, onExit, reducedMotion = false }: PilotScr
           className="relative min-h-0 flex-1 overflow-hidden rounded-2xl border-2 border-bb-border"
           style={{ background: "var(--workbench)" }}
         >
-          <PilotCanvas
-            key={epoch}
+          <TrainerCanvas
+            key={`${stepIndex}-${epoch}`}
             step={step}
             scene={scene}
-            mode={mode}
+            curvedArrows={curvedArrows}
             draft={mechanism}
             guide={guide}
             targets={targets}
@@ -348,7 +308,7 @@ export function PilotScreen({ problem, onExit, reducedMotion = false }: PilotScr
             toAnnotations={toAnnotations}
             dispatch={dispatch}
             interactive={interactive}
-            winT={winT}
+            winT={win.progress}
             replay={model.replayOpen ? { recorded: model.recorded, scrub: model.scrub } : null}
             reducedMotion={reducedMotion}
           />
@@ -356,7 +316,7 @@ export function PilotScreen({ problem, onExit, reducedMotion = false }: PilotScr
           {verdict !== null && !won && !model.replayOpen ? (
             <div className="pointer-events-none absolute bottom-3 left-3 right-24">
               <div className="pointer-events-auto max-w-sm">
-                <PilotVerdictCard verdict={verdict} onClose={() => setVerdict(null)} />
+                <VerdictCard verdict={verdict} onClose={() => setVerdict(null)} />
               </div>
             </div>
           ) : null}
@@ -367,21 +327,15 @@ export function PilotScreen({ problem, onExit, reducedMotion = false }: PilotScr
                 className="inline-flex items-center gap-1.5 rounded-full border-2 bg-bb-card px-4 py-1.5 text-scale-sm font-bold"
                 style={{ borderColor: "var(--good)", color: "var(--good-ink)" }}
               >
-                ✦ {mode === "resonance" ? "Structure found" : "Goal achieved"}
+                ✦ {question.wonPill}
               </span>
-              <p className="max-w-sm text-scale-sm leading-snug text-bb-foreground">{problem.successLine}</p>
+              <p className="max-w-sm text-scale-sm leading-snug text-bb-foreground">{stepIndex === lastIndex ? question.successLine : current.prompt}</p>
             </div>
           ) : null}
 
           <div className="pointer-events-none absolute bottom-2 right-2">
             <Berry
-              behaviour={behaviour}
-              behaviourKey={behaviourKey}
-              mood={berryMood}
-              chain={berryChain}
-              sparkleKey={sparkleKey}
-              flashKey={flashKey}
-              state={charred ? "charred" : "neutral"}
+              {...berry}
               costume={costumeForSurface("trainer")}
               working={interactive}
               reducedMotion={reducedMotion}
@@ -422,7 +376,7 @@ export function PilotScreen({ problem, onExit, reducedMotion = false }: PilotScr
           // the completed action, and the in-canvas pill plus success line
           // already say the honest thing about the win.
           <div className="rounded-full border-2 border-bb-border bg-bb-card px-5 py-2.5 text-center text-scale-sm font-medium text-bb-foreground">
-            {problem.hint}
+            {current.hint}
           </div>
         )}
 
@@ -447,7 +401,7 @@ export function PilotScreen({ problem, onExit, reducedMotion = false }: PilotScr
 
         <div className="flex items-center gap-3">
           {controls.includes("continue") ? (
-            <ChipPress className="flex-1" onClick={onExit}>
+            <ChipPress className="flex-1" onClick={onContinue}>
               Continue
             </ChipPress>
           ) : (
@@ -474,7 +428,7 @@ export function PilotScreen({ problem, onExit, reducedMotion = false }: PilotScr
  * honest sentences for the rest, no red anywhere, and the subject is always
  * the arrow, never the student.
  */
-function PilotVerdictCard({ verdict, onClose }: { readonly verdict: DrawVerdict; readonly onClose: () => void }) {
+function VerdictCard({ verdict, onClose }: { readonly verdict: DrawVerdict; readonly onClose: () => void }) {
   const close = (
     <button
       type="button"
@@ -536,4 +490,4 @@ function PilotVerdictCard({ verdict, onClose }: { readonly verdict: DrawVerdict;
   }
 }
 
-export default PilotScreen;
+export default TrainerScreen;

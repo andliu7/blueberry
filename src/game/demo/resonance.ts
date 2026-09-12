@@ -36,6 +36,10 @@ export interface ResonanceEntry {
   readonly brief: string;
   /** The celebration line: this mode's success is a FIND. */
   readonly foundLine: string;
+  /** The engine screen's line above the canvas, the task in the imperative. The brief when absent. */
+  readonly prompt?: string;
+  /** The engine screen's pill under the canvas: one nudge toward the first move. Title when absent. */
+  readonly hint?: string;
   readonly step: MechanismStep;
   readonly fromHints: LayoutHints;
   readonly toHints: LayoutHints;
@@ -141,6 +145,8 @@ export const RESONANCE_HUNT: readonly ResonanceEntry[] = [
     title: "Allyl cation",
     brief: "Move only electrons. Find the other contributing structure.",
     foundLine: "You found a resonance structure! The π bond slid over and the charge moved with it: same atoms, same skeleton, electrons delocalised.",
+    prompt: "Find the allyl cation's other resonance structure.",
+    hint: "Grab the π bond by a handle and send it toward the empty carbon.",
     step: ALLYL_A_TO_B,
     fromHints: ALLYL_HINTS,
     toHints: ALLYL_HINTS,

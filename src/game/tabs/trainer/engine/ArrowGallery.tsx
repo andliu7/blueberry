@@ -8,9 +8,9 @@
  * commit first.
  *
  * Deliberately styled with inline styles rather than the app's Tailwind tokens.
- * The point of the pilot is that the arrow module stands alone, and a gallery
- * that only renders correctly inside the app's stylesheet would hide a
- * dependency the module is supposed not to have.
+ * The point is that the arrow module stands alone, and a gallery that only
+ * renders correctly inside the app's stylesheet would hide a dependency the
+ * module is supposed not to have.
  */
 
 import { useState, type CSSProperties } from "react";
@@ -136,7 +136,7 @@ const PROFILES: readonly { readonly label: string; readonly profile: ArrowWidthP
   { label: "No taper, for contrast", profile: { tailPx: 10, shoulderPx: 10, headPx: 24, headLengthPx: 20 } },
 ];
 
-export default function PilotGallery() {
+export default function ArrowGallery() {
   // One switch, because the only thing a critic reliably wants to toggle is
   // whether the construction is visible under the finished shape.
   const [showSkeleton, setShowSkeleton] = useState(false);

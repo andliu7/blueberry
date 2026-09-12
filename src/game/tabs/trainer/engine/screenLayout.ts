@@ -1,12 +1,12 @@
 /**
- * The pilot screen's geometry: where annotations sit, what can be touched,
+ * The trainer screen's geometry: where annotations sit, what can be touched,
  * and where an arrow starts and lands. Pure TypeScript, no React, no DOM.
  *
  * WHY THIS FILE EXISTS BESIDE hitLayout.ts RATHER THAN INSTEAD OF IT. The
  * trainer's hitLayout is imported for everything it gets right (targets,
  * rim landings, the hit tester, the px conversion), but its lone pair fan
- * carries the bond-side bug that pilot/annotations/placement.ts documents in
- * its header: consumers fan from `openAngle + Math.PI`, which points BACK
+ * carries the bond-side bug that engine/annotations/placement.ts documents
+ * in its header: consumers fan from `openAngle + Math.PI`, which points BACK
  * along the bonds. The pilot's rule 4 is that lone pairs and hydrogens come
  * from the placement module, so this file recomputes exactly the two things
  * that depend on those positions, the lone pair TARGETS and the lone pair
@@ -16,8 +16,8 @@
 
 import type { AtomId, ElectronFlowArrow, MechanismStep } from "@blueberry/chem-core";
 import type { HitTarget, Point2 } from "@blueberry/interaction";
-import { placeAnnotations } from "../annotations/placement";
-import type { StepScene } from "../../render/layout/stepScene";
+import { placeAnnotations } from "./annotations/placement";
+import type { StepScene } from "../../../render/layout/stepScene";
 import {
   atomCentre,
   atomRadius,
@@ -28,22 +28,21 @@ import {
   mix,
   PX,
   rimPoint,
-  sceneCentroid,
   targetAnchor,
   toPx,
   type DrawTarget,
-} from "../../tabs/trainer/hitLayout";
+} from "../hitLayout";
 
 /** One placed annotation, in the canvas's pixel space. */
-export interface PilotSlot {
+export interface AnnotationSlotPx {
   readonly posPx: Point2;
   /** Scene radians (y up). Negate for screen-space trigonometry. */
   readonly angleSceneRad: number;
 }
 
-export interface PilotAtomAnnotations {
-  readonly lonePairs: readonly PilotSlot[];
-  readonly hydrogens: readonly PilotSlot[];
+export interface AtomAnnotations {
+  readonly lonePairs: readonly AnnotationSlotPx[];
+  readonly hydrogens: readonly AnnotationSlotPx[];
   readonly crowded: boolean;
 }
 
@@ -60,8 +59,8 @@ export type SceneSide = "from" | "to";
  * ring further out (+13 px, where HydrogenArc puts its letters), so the two
  * kinds never share a circle.
  */
-export function annotateScene(scene: StepScene, side: SceneSide): ReadonlyMap<AtomId, PilotAtomAnnotations> {
-  const out = new Map<AtomId, PilotAtomAnnotations>();
+export function annotateScene(scene: StepScene, side: SceneSide): ReadonlyMap<AtomId, AtomAnnotations> {
+  const out = new Map<AtomId, AtomAnnotations>();
   const posOf = (id: AtomId) => {
     const atom = scene.atoms.find((candidate) => candidate.id === id);
     if (atom === undefined) return null;
@@ -95,7 +94,7 @@ export function annotateScene(scene: StepScene, side: SceneSide): ReadonlyMap<At
       radius: (r + 7) / PX,
       hydrogenRadius: (r + 13) / PX,
     });
-    const toSlot = (slot: { readonly pos: { readonly x: number; readonly y: number }; readonly angle: number }): PilotSlot => ({
+    const toSlot = (slot: { readonly pos: { readonly x: number; readonly y: number }; readonly angle: number }): AnnotationSlotPx => ({
       posPx: toPx({ x: slot.pos.x, y: slot.pos.y, z: 0 }),
       angleSceneRad: slot.angle,
     });
@@ -115,10 +114,10 @@ export function annotateScene(scene: StepScene, side: SceneSide): ReadonlyMap<At
  * positions. The 12 px drawn radius matches the drawn halo; the hit tester
  * widens it per pointer kind.
  */
-export function pilotTargets(
+export function sceneTargets(
   step: MechanismStep,
   scene: StepScene,
-  annotations: ReadonlyMap<AtomId, PilotAtomAnnotations>,
+  annotations: ReadonlyMap<AtomId, AtomAnnotations>,
   revealedLonePairs: readonly AtomId[],
   armedAtom: AtomId | null,
 ): readonly DrawTarget[] {
@@ -141,10 +140,10 @@ export function pilotTargets(
  * thing the student touched. Lone pairs resolve through the placement slots;
  * everything else is hitLayout's own answer.
  */
-export function pilotAnchor(
+export function targetAnchorPx(
   step: MechanismStep,
   scene: StepScene,
-  annotations: ReadonlyMap<AtomId, PilotAtomAnnotations>,
+  annotations: ReadonlyMap<AtomId, AtomAnnotations>,
   target: HitTarget,
 ): Point2 | null {
   if (target.kind === "lonePair") {
@@ -159,7 +158,7 @@ export function pilotAnchor(
 const LAND_GAP = 6;
 
 /** How a committed push is drawn: the ribbon's endpoints and the bond it makes. */
-export interface PilotArrowGeometry {
+export interface CommittedArrowGeometry {
   /** Where the electrons left: a lone pair slot or a bond midpoint. */
   readonly from: Point2;
   /** What the tapered module is aimed at. Its own sink trim does the landing. */
@@ -181,10 +180,10 @@ export interface PilotArrowGeometry {
 export function committedArrowGeometry(
   step: MechanismStep,
   scene: StepScene,
-  annotations: ReadonlyMap<AtomId, PilotAtomAnnotations>,
+  annotations: ReadonlyMap<AtomId, AtomAnnotations>,
   arrow: ElectronFlowArrow,
   away: Point2,
-): PilotArrowGeometry {
+): CommittedArrowGeometry {
   const sink = arrow.sink;
   const elementOf = (atomId: AtomId): string => scene.atoms.find((atom) => atom.id === atomId)?.element ?? "C";
 
@@ -247,7 +246,3 @@ export function committedArrowGeometry(
   return { from, to, sinkRadiusPx, landing, stub };
 }
 
-/** Centroid of every drawn atom, re-exported so the canvas has one import. */
-export function pilotCentroid(scene: StepScene): Point2 {
-  return sceneCentroid(scene);
-}

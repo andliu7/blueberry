@@ -41,6 +41,8 @@ import { mcqBeatsForNode } from "./mcq";
 import { MATCH_BOARDS } from "./match";
 import { sortContentById } from "./sort";
 import { synthesisGapsForNode } from "./synthesis";
+import { pathwayNode } from "../demo/pathwayMap";
+import type { TrainerRef } from "./types";
 
 /* ------------------------------------------------------------------ */
 /* The slots                                                            */
@@ -115,13 +117,18 @@ export type ResolvedBeat =
   | { readonly kind: "mcq"; readonly node: string }
   | { readonly kind: "match"; readonly node: string }
   | { readonly kind: "sort"; readonly ladderId: string }
-  | { readonly kind: "synthesis"; readonly node: string };
+  | { readonly kind: "synthesis"; readonly node: string }
+  /** The trainer engine inside a lesson: the node's own mechanism, the same full screen. */
+  | { readonly kind: "mechanism"; readonly play: TrainerRef }
+  | { readonly kind: "resonance"; readonly resonanceId: string };
 
 export const SLOT_FOR_KIND: Readonly<Record<ResolvedBeat["kind"], ContentSlot>> = Object.freeze({
   mcq: "recognise",
   match: "connect",
   sort: "order",
   synthesis: "produce",
+  mechanism: "produce",
+  resonance: "produce",
 });
 
 export interface PlanStep {
@@ -167,6 +174,16 @@ export function planLesson(node: string): LessonPlan | null {
   }
   if (synthesisGapsForNode(node).length > 0) {
     steps.push({ slot: "produce", beat: { kind: "synthesis", node } });
+  }
+  // produce, the mechanism itself: a node the map plays in the trainer
+  // embeds that same question here, on the same engine screen. The link is
+  // the map's own, so the lesson and the Train tab can never disagree about
+  // which mechanism a node is.
+  const link = pathwayNode(node)?.playable;
+  if (link?.kind === "reaction" || link?.kind === "sequence") {
+    steps.push({ slot: "produce", beat: { kind: "mechanism", play: link } });
+  } else if (link?.kind === "resonance") {
+    steps.push({ slot: "produce", beat: { kind: "resonance", resonanceId: link.id } });
   }
 
   return steps.length === 0 ? null : { node, steps };
@@ -339,6 +356,8 @@ export const BADGE_LABEL: Readonly<Record<BadgeKind, string>> = Object.freeze({
   match: "Match the pairs",
   sort: "Put them in order",
   synthesis: "Build the synthesis",
+  mechanism: "Push the electrons",
+  resonance: "Find the resonance form",
   recycle: "The ones that got away",
   reward: "Collect the lesson",
   reagents: "Supply the reagents",
@@ -365,6 +384,8 @@ export const SLOT_FOR_BADGE: Readonly<Record<BadgeKind, LessonSlot>> = Object.fr
   match: "connect",
   sort: "order",
   synthesis: "produce",
+  mechanism: "produce",
+  resonance: "produce",
   reagents: "produce",
   product: "produce",
   numeric: "produce",

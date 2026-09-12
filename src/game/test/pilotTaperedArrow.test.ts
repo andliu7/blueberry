@@ -21,7 +21,7 @@ import {
   taperedArrowGeometry,
   type Point2,
   type TaperedArrowGeometry,
-} from "../pilot/arrow/taperedArrow";
+} from "../tabs/trainer/engine/arrow/taperedArrow";
 
 /** Every number in a path's data, so a test can look for NaN or Infinity. */
 function numbersIn(path: string): readonly number[] {

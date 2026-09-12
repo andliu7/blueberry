@@ -35,6 +35,8 @@ export interface TrainerSequence {
   readonly steps: readonly {
     readonly step: MechanismStep;
     readonly stepBrief: string;
+    /** The engine screen's pill under the canvas for this step. The sequence title when absent. */
+    readonly hint?: string;
     readonly fromHints: LayoutHints;
     readonly toHints: LayoutHints;
   }[];

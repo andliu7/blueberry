@@ -102,6 +102,23 @@ const GLYPH: Readonly<Record<BadgeKind, ReactNode>> = {
       <rect x="6.5" y="5" width="7" height="9" rx="1.5" />
     </g>
   ),
+  // A lone pair pushed along a curved arrow: the mechanism badge, the
+  // trainer's own electron push in miniature.
+  mechanism: (
+    <g {...STROKE}>
+      <circle cx="3.5" cy="11.5" r="1.2" fill="currentColor" stroke="none" />
+      <path d="M3.5 11.5c1-5 6-7 9-4.5" />
+      <path d="M11 4.5l1.8 2.4-2.9.6" />
+    </g>
+  ),
+  // The double-headed resonance arrow: two forms of one thing.
+  resonance: (
+    <g {...STROKE}>
+      <path d="M3 8h10" />
+      <path d="M5.2 5.8 3 8l2.2 2.2" />
+      <path d="M10.8 5.8 13 8l-2.2 2.2" />
+    </g>
+  ),
   // Bars of falling length with the swap arrow: the sort badge.
   sort: (
     <g {...STROKE}>

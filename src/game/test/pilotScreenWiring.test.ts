@@ -3,7 +3,7 @@
 
 /**
  * The wiring test the undo judge demanded: everything in pilotScreen.test.ts
- * holds the pure machine, so deleting the onUndo dispatch in PilotScreen.tsx
+ * holds the pure machine, so deleting the onUndo dispatch in TrainerScreen.tsx
  * left the whole suite green, which is the exact shape of the old trainer's
  * undo-that-exists-but-is-not-wired sin. This file mounts the REAL screen
  * over the real SN2 demo step, commits arrows through the component's own
@@ -20,19 +20,25 @@ import { createElement, act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { currentDraft, type InteractionStore, type Point2 } from "@blueberry/interaction";
 import { SN2_DEMO_STEP, SN2_FROM_HINTS, SN2_TO_HINTS } from "../demo/sn2Step";
-import { PilotScreen, type PilotProblem } from "../pilot/screen/PilotScreen";
+import { TrainerScreen } from "../tabs/trainer/engine/TrainerScreen";
+import type { TrainerQuestion } from "../tabs/trainer/engine/question";
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
-const problem: PilotProblem = {
+const problem = {
   step: SN2_DEMO_STEP,
   fromHints: SN2_FROM_HINTS,
   toHints: SN2_TO_HINTS,
-  mode: "reaction",
-  title: "SN2 at bromomethane",
   prompt: "Push the electrons for this SN2 in one step.",
   hint: "Tap the oxygen to open its lone pairs, and remember the bromide has to let go.",
+};
+const question: TrainerQuestion = {
+  id: "sn2",
+  kind: "reaction",
+  title: "SN2 at bromomethane",
+  steps: [problem],
   successLine: "Back-side attack: the hydroxide lone pair forms the new C-O bond as the bromide leaves.",
+  wonPill: "Goal achieved",
 };
 
 let mounted: { root: Root; container: HTMLElement } | null = null;
@@ -43,7 +49,7 @@ function mount(): { container: HTMLElement; store: InteractionStore } {
   const root = createRoot(container);
   mounted = { root, container };
   act(() => {
-    root.render(createElement(PilotScreen, { problem, onExit: () => undefined, reducedMotion: true }));
+    root.render(createElement(TrainerScreen, { question, onExit: () => undefined, reducedMotion: true }));
   });
   const store = window.__pilotStore;
   if (store === undefined) throw new Error("the ?store=1 debug hook did not expose the interaction store");

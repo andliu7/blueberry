@@ -38,6 +38,10 @@ export interface TrainerReaction {
   readonly brief: string;
   /** The success card's headline, this reaction's own chemistry in one line. */
   readonly successLine: string;
+  /** The engine screen's line above the canvas, the task in the imperative. The brief when absent. */
+  readonly prompt?: string;
+  /** The engine screen's pill under the canvas: one nudge toward the first move. Title when absent. */
+  readonly hint?: string;
   readonly step: MechanismStep;
   readonly fromHints: LayoutHints;
   readonly toHints: LayoutHints;
@@ -1939,6 +1943,8 @@ export const TRAINER_REACTIONS: readonly TrainerReaction[] = [
     title: "Sₙ2 at bromomethane",
     brief: "Hydroxide attacks, bromide leaves. Draw both arrows.",
     successLine: "Back-side attack: the hydroxide lone pair forms the new C–O bond as the bromide leaves.",
+    prompt: "Push the electrons for this Sₙ2 in one step.",
+    hint: "Tap the oxygen to open its lone pairs, and remember the bromide has to let go.",
     step: SN2_DEMO_STEP,
     fromHints: SN2_FROM_HINTS,
     toHints: SN2_TO_HINTS,

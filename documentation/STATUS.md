@@ -10,6 +10,14 @@ always did: `blueberry_game/apps/web/measurements/` and
 `blueberry_game/STATUS.md` (marked historical). Nothing in that record is
 re-stated here, because a copy is a thing that goes stale.
 
+## The trainer surface is one engine, 2026-09-11
+
+Instances 1, 2, 3 and the lesson runner all mount `src/game/tabs/trainer/engine/TrainerScreen.tsx`
+with a question as data; the old `DrawCanvas`, `TrainerTools`, the tutorial variant and `Scene3D`
+are gone. Trainer surface 8,269 raw lines to 5,900. Detail and the blind evidence:
+`documentation/TRAINER-INVENTORY.md`, amendment of 2026-09-11. Uncommitted on
+`ui/cta-and-background` alongside someone else's six dirty site files.
+
 ## Where things stand right now
 
 - **The game lives HERE, at `src/game/`, and ships from this repository.**

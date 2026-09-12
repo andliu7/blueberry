@@ -36,19 +36,19 @@ const BeatRunner = lazy(() => import("./beats/BeatRunner").then((m) => ({ defaul
 const BerryGallery = lazy(() => import("./mascot/BerryGallery"));
 
 /**
- * The pilot arrow workbench, at #/gallery/pilot-arrow. Same reasoning as the
- * mascot gallery above: a development surface, lazy so it never lands in a
- * student's payload.
+ * The tapered arrow workbench, at #/gallery/pilot-arrow. Same reasoning as
+ * the mascot gallery above: a development surface, lazy so it never lands in
+ * a student's payload.
  */
-const PilotArrowGallery = lazy(() => import("./pilot/PilotGallery"));
+const PilotArrowGallery = lazy(() => import("./tabs/trainer/engine/ArrowGallery"));
 
 /**
- * The pilot gameplay screen's workbench, at #/gallery/pilot-trainer. The
- * screen itself is a self-contained { problem, onExit } component, so this
- * route is a mount point and nothing else; re-homing "#/trainer" or a lesson
- * onto it later is another mount point. See pilot/screen/PilotScreen.tsx.
+ * The trainer engine's workbench, at #/gallery/pilot-trainer. The screen
+ * itself is a self-contained { question, onExit } component, so this route
+ * is a mount point and nothing else; re-homing "#/trainer" or a lesson onto
+ * it later is another mount point. See tabs/trainer/engine/TrainerScreen.tsx.
  */
-const PilotTrainerGallery = lazy(() => import("./pilot/screen/PilotTrainerGallery"));
+const PilotTrainerGallery = lazy(() => import("./tabs/trainer/engine/TrainerGallery"));
 
 const params = new URLSearchParams(window.location.search);
 /** The measurement scripts need the canvas with no onboarding in front of it. */
