@@ -978,6 +978,25 @@ rounds repeatedly deleted each feature and verified a test went red.
 
 ---
 
+Amended 2026-09-12: the engine grew two things on top of the one-screen contract, and no instance forks it
+for them. A multistep question renders a step strip in the header row, where the progress bar was
+(`engine/StepStrip.tsx`): one node per step and a product node, drawn in the unit trail's ribbon
+language, scrubbable by tap, drag and arrow keys back through completed steps, never ahead; a
+completed step replays read-only in the same canvas (`HistoryCanvas` in `TrainerScreen.tsx`). A step
+may carry a decision point (`fork` on `TrainerQuestionStep`, `engine/question.ts`): the canvas
+darkens, the Alchemie moment, and `engine/ForkChooser.tsx` draws the routes out of the intermediate
+as a fork; the chosen route's own step is what the canvas then plays. Grading is two-stage
+(`engine/forkModel.ts`): the arrows through `gradeDrawing` as always, then, only on a correct drawing,
+whether the route is favoured under the fork's stated conditions; a wrong branch earns an advisory
+cause from the registry (six were added to chem-core for this: elimination or substitution not
+favoured under the conditions, kinetic under thermodynamic control, thermodynamic under kinetic
+control, the acid-base step outrunning addition, and conjugate addition favoured for a soft
+nucleophile). Authored forks live on the sequence entries in `demo/sequences.ts` (the diene warm and cold
+pair, SN1 in water) and one module per exam-key problem under `demo/forks/` (cuprate on an enone,
+Grignard on a carboxylic acid, the benzylic alcohol under heat and in the cold), registered into
+`TRAINER_SEQUENCES`. `pilotFork.test.ts` holds every fork to one favoured route, a cause on the rest,
+and self-grading arrows.
+
 ## Part 3 - Routes and entry points
 
 The parser is `parseHash` at `apps/web/src/app/routes.ts:140-162`. The dispatchers are

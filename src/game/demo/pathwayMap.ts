@@ -232,7 +232,7 @@ export const PATHWAY_UNITS: readonly PathwayUnit[] = [
       { id: "u9-malonic", kind: "spine", title: "9c · Malonic ester synthesis", blurb: "Alkylate, hydrolyze, decarboxylate.", playable: { kind: "sequence", id: "seq-malonic" } },
       { id: "u9-acetoacetic", kind: "spine", title: "9c · Acetoacetic ester synthesis", blurb: "Same three-step logic; methyl ketone out.", playable: { kind: "reaction", id: "decarboxylation" } },
       { id: "u9-michael", kind: "spine", title: "9c · Michael addition", blurb: "Soft nucleophile, 1,4.", playable: { kind: "reaction", id: "michael-addition" } },
-      { id: "u9-cuprate", kind: "spine", title: "9c · Conjugate organocuprate", blurb: "Unstabilized alkyl delivered 1,4.", playable: { kind: "reaction", id: "cuprate-conjugate" } },
+      { id: "u9-cuprate", kind: "spine", title: "9c · Conjugate organocuprate", blurb: "Unstabilized alkyl delivered 1,4.", playable: { kind: "sequence", id: "seq-gilman-enone" } },
       { id: "u9-robinson", kind: "spine", title: "9c · Robinson annulation", blurb: "Michael then intramolecular aldol condensation.", playable: { kind: "sequence", id: "seq-robinson" } },
       { id: "u9-retro", kind: "spine", title: "9c · Retrosynthetic C–C disconnection", blurb: "The skill the whole unit builds.", playable: { kind: "beat", id: "u9-retro" } },
       { id: "u9-haloform", kind: "branch", title: "Haloform reaction", blurb: "Iodoform and its yellow precipitate." },

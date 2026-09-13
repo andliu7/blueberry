@@ -26,6 +26,10 @@ import {
   type MechanismStep,
 } from "@blueberry/chem-core";
 import type { LayoutHints } from "../render/layout/layout";
+import type { StepFork } from "../tabs/trainer/engine/question";
+import { GILMAN_SEQUENCES } from "./forks/gilman";
+import { GRIGNARD_ACID_SEQUENCES } from "./forks/grignardAcid";
+import { BENZYLIC_SEQUENCES } from "./forks/benzylic";
 
 export interface TrainerSequence {
   readonly id: string;
@@ -39,6 +43,12 @@ export interface TrainerSequence {
     readonly hint?: string;
     readonly fromHints: LayoutHints;
     readonly toHints: LayoutHints;
+    /**
+     * A decision point at this step's intermediate. The step's own arrows are
+     * the favoured route; the fork lists every route, favoured one included,
+     * so the chooser draws them all from one list.
+     */
+    readonly fork?: StepFork;
   }[];
 }
 
@@ -260,6 +270,149 @@ const CAPTURE: MechanismStep = createStep({
   identity: { elementaryStep: "nucleophilic_attack", route: "sn1", reactionCenters: ["c0"] },
   arrows: [createArrow({ id: "a-capture", source: fromLonePair("ow"), sink: toBondBetween("ow", "c0") })],
 });
+
+/* The other exit from the tert-butyl cation: water acts as a base instead of
+   a nucleophile and takes a beta hydrogen, the C-H electrons fold in to make
+   the alkene. Real, and not what cold water does. The beta hydrogen is
+   explicit, as in the E2 entry, because it is the atom the base takes. */
+const tButylCationE1 = createSpecies({
+  id: "sp-tbu-cation-e1",
+  atoms: [
+    createAtom({ id: "c0", element: "C", formalCharge: 1 }),
+    createAtom({ id: "c1", element: "C", implicitHydrogens: 2 }),
+    createAtom({ id: "hb", element: "H" }),
+    createAtom({ id: "c2", element: "C", implicitHydrogens: 3 }),
+    createAtom({ id: "c3", element: "C", implicitHydrogens: 3 }),
+  ],
+  bonds: [
+    createBond({ id: "b-01", a: "c0", b: "c1" }),
+    createBond({ id: "b-1hb", a: "c1", b: "hb" }),
+    createBond({ id: "b-02", a: "c0", b: "c2" }),
+    createBond({ id: "b-03", a: "c0", b: "c3" }),
+  ],
+});
+
+const isobutene = createSpecies({
+  id: "sp-isobutene",
+  atoms: [
+    createAtom({ id: "c0", element: "C" }),
+    createAtom({ id: "c1", element: "C", implicitHydrogens: 2 }),
+    createAtom({ id: "c2", element: "C", implicitHydrogens: 3 }),
+    createAtom({ id: "c3", element: "C", implicitHydrogens: 3 }),
+  ],
+  bonds: [
+    createBond({ id: "b-01", a: "c0", b: "c1", order: 2 }),
+    createBond({ id: "b-02", a: "c0", b: "c2" }),
+    createBond({ id: "b-03", a: "c0", b: "c3" }),
+  ],
+});
+
+const hydroniumE1 = createSpecies({
+  id: "sp-hydronium-e1",
+  atoms: [
+    createAtom({ id: "ow", element: "O", formalCharge: 1, lonePairs: 1 }),
+    createAtom({ id: "hw1", element: "H" }),
+    createAtom({ id: "hw2", element: "H" }),
+    createAtom({ id: "hb", element: "H" }),
+  ],
+  bonds: [
+    createBond({ id: "b-ow1", a: "ow", b: "hw1" }),
+    createBond({ id: "b-ow2", a: "ow", b: "hw2" }),
+    createBond({ id: "b-owb", a: "ow", b: "hb" }),
+  ],
+});
+
+const SN1_E1: MechanismStep = createStep({
+  id: "sn1-e1-branch",
+  from: createState({
+    id: "sn1e1-before",
+    members: [
+      { species: tButylCationE1, role: "intermediate" },
+      { species: waterNu, role: "base" },
+    ],
+  }),
+  to: createState({
+    id: "sn1e1-after",
+    members: [
+      { species: isobutene, role: "product" },
+      { species: hydroniumE1, role: "byproduct" },
+    ],
+  }),
+  identity: { elementaryStep: "proton_transfer", route: "e1", reactionCenters: ["hb", "c0"] },
+  arrows: [
+    createArrow({ id: "a-take-h", source: fromLonePair("ow"), sink: toBondBetween("ow", "hb") }),
+    createArrow({ id: "a-fold-pi", source: fromBond("b-1hb"), sink: toBondBetween("c0", "c1") }),
+  ],
+});
+
+const SN1_CAPTURE_FROM_HINTS: LayoutHints = {
+  c0: { x: 0, y: 0 },
+  c1: { x: -0.55, y: 0.9 },
+  c2: { x: -0.85, y: -0.5 },
+  c3: { x: 0.2, y: -1.05 },
+  ow: { x: 1.35, y: 0.45 },
+  hw1: { x: 2.1, y: 1.0 },
+  hw2: { x: 1.85, y: -0.35 },
+};
+const SN1_CAPTURE_TO_HINTS: LayoutHints = {
+  c0: { x: 0, y: 0 },
+  c1: { x: -0.55, y: 0.9 },
+  c2: { x: -0.85, y: -0.5 },
+  c3: { x: 0.2, y: -1.05 },
+  ow: { x: 1.05, y: 0.4 },
+  hw1: { x: 1.8, y: 0.95 },
+  hw2: { x: 1.55, y: -0.4 },
+};
+const SN1_E1_FROM_HINTS: LayoutHints = {
+  c0: { x: 0, y: 0 },
+  c1: { x: -0.55, y: 0.9 },
+  hb: { x: -0.35, y: 1.8 },
+  c2: { x: -0.85, y: -0.5 },
+  c3: { x: 0.2, y: -1.05 },
+  ow: { x: 0.85, y: 1.85 },
+  hw1: { x: 1.55, y: 2.35 },
+  hw2: { x: 1.4, y: 1.3 },
+};
+const SN1_E1_TO_HINTS: LayoutHints = {
+  c0: { x: 0, y: 0 },
+  c1: { x: -0.55, y: 0.9 },
+  c2: { x: -0.85, y: -0.5 },
+  c3: { x: 0.2, y: -1.05 },
+  ow: { x: 1.45, y: 1.95 },
+  hb: { x: 0.7, y: 2.35 },
+  hw1: { x: 2.15, y: 2.45 },
+  hw2: { x: 1.95, y: 1.4 },
+};
+
+/** Water without heat: the cation is captured. Standard chemistry; the key's Q3 is the benzylic analogue, substitution both times. */
+const SN1_FORK_WATER: StepFork = {
+  prompt: "Step 2 · The cation has two ways out. Which one does water take here?",
+  conditions: "H2O, 0 to 25 °C, no added base",
+  routes: [
+    {
+      id: "route-capture",
+      label: "Capture by water",
+      route: "sn1",
+      step: CAPTURE,
+      fromHints: SN1_CAPTURE_FROM_HINTS,
+      toHints: SN1_CAPTURE_TO_HINTS,
+      favoured: true,
+      why: "Water is a weak base and a willing nucleophile, and without heat it reaches the empty carbon faster than it takes a proton.",
+    },
+    {
+      id: "route-e1",
+      label: "Lose a proton, E1",
+      route: "e1",
+      step: SN1_E1,
+      fromHints: SN1_E1_FROM_HINTS,
+      toHints: SN1_E1_TO_HINTS,
+      favoured: false,
+      cause: "elimination_not_favoured_under_conditions",
+      why: "A real exit, and the one heat pushes toward. Without heat, water captures faster than it takes a proton.",
+    },
+  ],
+};
+
 
 /* ================= Acyl substitution: add, then collapse ================= */
 
@@ -939,6 +1092,114 @@ const DIENE_CAPTURE_14: MechanismStep = createStep({
     createArrow({ id: "a-allyl-shift", source: fromBond("b-34"), sink: toBondBetween("c2", "c3") }),
   ],
 });
+
+/* The 1,2 branch of the same allyl cation: bromide lands on C2, where the
+   charge first appeared, and the C3=C4 pi bond stays where it was. The
+   faster product. Which branch wins is the temperature's call, so the two
+   entries below share step 1 and fork on the capture. */
+const product12 = createSpecies({
+  id: "sp-12-product",
+  atoms: [
+    createAtom({ id: "c1", element: "C", implicitHydrogens: 2 }),
+    createAtom({ id: "hd", element: "H" }),
+    createAtom({ id: "c2", element: "C", implicitHydrogens: 1 }),
+    createAtom({ id: "c3", element: "C", implicitHydrogens: 1 }),
+    createAtom({ id: "c4", element: "C", implicitHydrogens: 2 }),
+    createAtom({ id: "brd", element: "Br", lonePairs: 3 }),
+  ],
+  bonds: [
+    createBond({ id: "b-1h", a: "c1", b: "hd" }),
+    createBond({ id: "b-12", a: "c1", b: "c2" }),
+    createBond({ id: "b-2br", a: "c2", b: "brd" }),
+    createBond({ id: "b-23", a: "c2", b: "c3" }),
+    createBond({ id: "b-34", a: "c3", b: "c4", order: 2 }),
+  ],
+});
+
+const DIENE_CAPTURE_12: MechanismStep = createStep({
+  id: "diene-capture-12",
+  from: createState({
+    id: "dc12-before",
+    members: [
+      { species: allylCation2, role: "intermediate" },
+      { species: bromide14, role: "nucleophile" },
+    ],
+  }),
+  to: createState({ id: "dc12-after", members: [{ species: product12, role: "product" }] }),
+  identity: { elementaryStep: "nucleophilic_attack", route: "electrophilic_addition_alkene", reactionCenters: ["c2"] },
+  arrows: [createArrow({ id: "a-capture-12", source: fromLonePair("brd"), sink: toBondBetween("brd", "c2") })],
+});
+
+const DIENE_14_FROM_HINTS: LayoutHints = {
+  c1: { x: -1.9, y: 0.35 },
+  hd: { x: -2.5, y: 1.15 },
+  c2: { x: -0.95, y: -0.15 },
+  c3: { x: 0.0, y: 0.35 },
+  c4: { x: 0.95, y: -0.15 },
+  brd: { x: 2.15, y: 0.5 },
+};
+const DIENE_14_TO_HINTS: LayoutHints = {
+  c1: { x: -1.9, y: 0.35 },
+  hd: { x: -2.5, y: 1.15 },
+  c2: { x: -0.95, y: -0.15 },
+  c3: { x: 0.0, y: 0.35 },
+  c4: { x: 0.95, y: -0.15 },
+  brd: { x: 1.75, y: 0.5 },
+};
+const DIENE_12_FROM_HINTS: LayoutHints = {
+  c1: { x: -1.9, y: 0.35 },
+  hd: { x: -2.5, y: 1.15 },
+  c2: { x: -0.95, y: -0.15 },
+  c3: { x: 0.0, y: 0.35 },
+  c4: { x: 0.95, y: -0.15 },
+  brd: { x: -0.6, y: 1.75 },
+};
+const DIENE_12_TO_HINTS: LayoutHints = {
+  c1: { x: -1.9, y: 0.35 },
+  hd: { x: -2.5, y: 1.15 },
+  c2: { x: -0.95, y: -0.15 },
+  c3: { x: 0.0, y: 0.35 },
+  c4: { x: 0.95, y: -0.15 },
+  brd: { x: -0.95, y: 1.05 },
+};
+
+const DIENE_ROUTE_14 = {
+  id: "route-14",
+  label: "1,4-addition",
+  route: "electrophilic_addition_alkene",
+  step: DIENE_CAPTURE_14,
+  fromHints: DIENE_14_FROM_HINTS,
+  toHints: DIENE_14_TO_HINTS,
+} as const;
+const DIENE_ROUTE_12 = {
+  id: "route-12",
+  label: "1,2-addition",
+  route: "electrophilic_addition_alkene",
+  step: DIENE_CAPTURE_12,
+  fromHints: DIENE_12_FROM_HINTS,
+  toHints: DIENE_12_TO_HINTS,
+} as const;
+
+/** Warm and equilibrating: the thermodynamic product. The key draws 1,4 whenever no low temperature is stated. */
+const DIENE_FORK_WARM: StepFork = {
+  prompt: "Step 2 · Bromide has two carbons to choose from. Which one, at 40 °C?",
+  conditions: "HBr, 1 equivalent, 40 °C, allowed to equilibrate",
+  routes: [
+    { ...DIENE_ROUTE_14, favoured: true, why: "Warm and given time, the first product reverts and the more substituted alkene accumulates: the thermodynamic product." },
+    { ...DIENE_ROUTE_12, favoured: false, cause: "kinetic_product_under_thermodynamic_control", why: "Forms fastest, and at 40 °C it goes back to the cation, so it ends as the minor product." },
+  ],
+};
+
+/** Cold: the kinetic product. The key's own words: "the kinetic (1,2-product) is the major product under low temperatures." */
+const DIENE_FORK_COLD: StepFork = {
+  prompt: "Step 2 · Bromide has two carbons to choose from. Which one, at minus 78 °C?",
+  conditions: "HBr, 1 equivalent, minus 78 °C",
+  routes: [
+    { ...DIENE_ROUTE_12, favoured: true, why: "In the cold nothing reverts, so the product that forms fastest, bromide on the carbon where the charge first sat, is the one you keep." },
+    { ...DIENE_ROUTE_14, favoured: false, cause: "thermodynamic_product_under_kinetic_control", why: "More stable, but at minus 78 °C the 1,2 product cannot revert to the cation, so the 1,4 product stays the minor one." },
+  ],
+};
+
 
 /* ================= SNAr: the Meisenheimer, then the expulsion ================= */
 /* 1-fluoro-4-nitrobenzene + methoxide. The charge relay INTO the para nitro
@@ -5336,8 +5597,8 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
   },
   {
     id: "seq-diene",
-    title: "HBr + butadiene, 1,4 · 2 steps",
-    brief: "Protonate the diene, then the bromide arrives at the FAR end through the allyl system.",
+    title: "HBr + butadiene, warm · 2 steps",
+    brief: "Protonate the diene, then decide where bromide lands at 40 °C.",
     successLine: "1,4-addition whole: the proton makes the allyl cation, and bromide captures the far end as the π slides over: the thermodynamic product, and Unit 1's whole argument about control.",
     steps: [
       {
@@ -5363,13 +5624,28 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
       {
         step: DIENE_CAPTURE_14,
         stepBrief: "Step 2 · Bromide takes C4 as the allyl π slides to the middle.",
+        fromHints: DIENE_14_FROM_HINTS,
+        toHints: DIENE_14_TO_HINTS,
+        fork: DIENE_FORK_WARM,
+      },
+    ],
+  },
+  {
+    id: "seq-diene-cold",
+    title: "HBr + butadiene, cold · 2 steps",
+    brief: "Protonate the diene, then decide where bromide lands at minus 78 °C.",
+    successLine: "1,2-addition whole: the proton makes the allyl cation, and in the cold bromide lands where the charge first sat. The kinetic product, because nothing can revert.",
+    steps: [
+      {
+        step: DIENE_PROTONATION,
+        stepBrief: "Step 1 · The terminal π grabs the proton; the allyl cation is born.",
         fromHints: {
           c1: { x: -1.9, y: 0.35 },
-          hd: { x: -2.5, y: 1.15 },
           c2: { x: -0.95, y: -0.15 },
           c3: { x: 0.0, y: 0.35 },
           c4: { x: 0.95, y: -0.15 },
-          brd: { x: 2.15, y: 0.5 },
+          hd: { x: -1.75, y: 1.6 },
+          brd: { x: -0.75, y: 2.1 },
         },
         toHints: {
           c1: { x: -1.9, y: 0.35 },
@@ -5377,8 +5653,15 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
           c2: { x: -0.95, y: -0.15 },
           c3: { x: 0.0, y: 0.35 },
           c4: { x: 0.95, y: -0.15 },
-          brd: { x: 1.75, y: 0.5 },
+          brd: { x: 0.1, y: 2.3 },
         },
+      },
+      {
+        step: DIENE_CAPTURE_12,
+        stepBrief: "Step 2 · Bromide takes C2, where the charge first appeared.",
+        fromHints: DIENE_12_FROM_HINTS,
+        toHints: DIENE_12_TO_HINTS,
+        fork: DIENE_FORK_COLD,
       },
     ],
   },
@@ -5453,9 +5736,9 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
   },
   {
     id: "seq-sn1",
-    title: "SN1 solvolysis · 2 steps",
-    brief: "The bromide leaves on its own, then water captures the cation.",
-    successLine: "That is SN1 whole: ionisation makes the flat tertiary cation, and water arrives on either face, which is why SN1 scrambles stereochemistry where SN2 inverts it.",
+    title: "tert-Butyl bromide in water · 2 steps",
+    brief: "The bromide leaves on its own; then decide what water does with the cation.",
+    successLine: "That is the heart of SN1: ionisation makes the flat tertiary cation, and water arrives on either face, which is why SN1 scrambles stereochemistry where SN2 inverts it. One last proton transfer to water gives tert-butanol.",
     steps: [
       {
         step: IONISATION,
@@ -5478,24 +5761,9 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
       {
         step: CAPTURE,
         stepBrief: "Step 2 · Water's lone pair takes the empty carbon.",
-        fromHints: {
-          c0: { x: 0, y: 0 },
-          c1: { x: -0.55, y: 0.9 },
-          c2: { x: -0.85, y: -0.5 },
-          c3: { x: 0.2, y: -1.05 },
-          ow: { x: 1.35, y: 0.45 },
-          hw1: { x: 2.1, y: 1.0 },
-          hw2: { x: 1.85, y: -0.35 },
-        },
-        toHints: {
-          c0: { x: 0, y: 0 },
-          c1: { x: -0.55, y: 0.9 },
-          c2: { x: -0.85, y: -0.5 },
-          c3: { x: 0.2, y: -1.05 },
-          ow: { x: 1.05, y: 0.4 },
-          hw1: { x: 1.8, y: 0.95 },
-          hw2: { x: 1.55, y: -0.4 },
-        },
+        fromHints: SN1_CAPTURE_FROM_HINTS,
+        toHints: SN1_CAPTURE_TO_HINTS,
+        fork: SN1_FORK_WATER,
       },
     ],
   },
@@ -7104,4 +7372,8 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
       },
     ],
   },
+  // Decision-point problems authored from the course keys, one module each under forks/.
+  ...GILMAN_SEQUENCES,
+  ...GRIGNARD_ACID_SEQUENCES,
+  ...BENZYLIC_SEQUENCES,
 ];

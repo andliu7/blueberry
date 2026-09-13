@@ -10,6 +10,31 @@ always did: `blueberry_game/apps/web/measurements/` and
 `blueberry_game/STATUS.md` (marked historical). Nothing in that record is
 re-stated here, because a copy is a thing that goes stale.
 
+## Multistep strip and decision points, 2026-09-12
+
+The engine now carries a step strip for multistep questions (header row, in place of the progress bar),
+a look-back replay of completed steps with its own scrubber, and decision points as data: a step may
+carry a `fork` with two or three routes, the chooser marks the decision point the way Alchemie does
+by darkening the screen (light theme: a tint over the canvas; dark theme: the ground under the
+molecule, because a tint there drops the small H labels under 4.5:1) plus an accent frame, and
+grading is two-stage (arrows through `gradeDrawing`, then whether the route is
+favoured, with an advisory cause from the registry on a miss). Six causes added to chem-core for it.
+Seven forks authored from the course keys: diene warm and cold, SN1 in water, cuprate on an enone,
+Grignard on a carboxylic acid, the benzylic alcohol under heat and in the cold. The map's cuprate node
+now plays the fork; the other new sequences are reachable by deep link only until nodes are assigned.
+Detail: `documentation/TRAINER-INVENTORY.md`, amendment of 2026-09-12.
+
+Judged 11 to 12 Sep by fresh critics: the strip passed blind in round five, the fork won blind in both
+themes in round nine, and a chemistry checker signed off all seven problems and six causes against the
+course keys. Still open, not blocking: `packages/validators/validators.lock.json` does not yet record
+the two new `competingRoutes` entries (elimination and substitution not favoured), so
+`npm run lock:check -w packages/validators` reports MODIFIED; regenerating it is the owner's
+deliberate, separate commit per `CLAUDE-blueberry-game.md`. The same check also flags
+`src/checks/conservation/fixture-schema.ts`, unchanged since the packages came in and not this work.
+The validators package's own tests live in `tests/`, which no vitest config picks up, so
+`npm run test:packages` stops there. Named design gap for later: the fork does not mark the atoms it
+acts on, which Alchemie's lit bonds do.
+
 ## The trainer surface is one engine, 2026-09-11
 
 Instances 1, 2, 3 and the lesson runner all mount `src/game/tabs/trainer/engine/TrainerScreen.tsx`

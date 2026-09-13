@@ -15,13 +15,49 @@
  * screen reads it exactly once. There is no free "mode" flag to set wrong.
  */
 
-import type { MechanismStep } from "@blueberry/chem-core";
+import type { CauseId, MechanismRoute, MechanismStep } from "@blueberry/chem-core";
 import type { LayoutHints } from "../../../render/layout/layout";
 import { TRAINER_REACTIONS, type TrainerReaction } from "../../../demo/reactions";
 import { TRAINER_SEQUENCES, type TrainerSequence } from "../../../demo/sequences";
 import { RESONANCE_HUNT, type ResonanceEntry } from "../../../demo/resonance";
 
 export type QuestionKind = "reaction" | "sequence" | "resonance";
+
+/**
+ * One arm of a decision point. A route is a complete step of its own: from
+ * the intermediate the fork sits on, through its own arrows, to its own
+ * product, laid out with its own hints. Exactly one route on a fork is
+ * favoured under the fork's stated conditions; every other route names the
+ * cause a student earns for choosing it, so a wrong branch is graded through
+ * the same registry a wrong arrow is.
+ */
+export interface ForkRoute {
+  readonly id: string;
+  /** The arm's label: "Substitution", "Elimination", "1,2-addition". */
+  readonly label: string;
+  readonly route: MechanismRoute;
+  readonly step: MechanismStep;
+  readonly fromHints: LayoutHints;
+  readonly toHints: LayoutHints;
+  readonly favoured: boolean;
+  /** Required when the route is not favoured: the advisory cause for picking it here. */
+  readonly cause?: CauseId;
+  /** One line under the arm: why this branch wins or loses under the conditions. */
+  readonly why: string;
+}
+
+/** A decision point on a step: the conditions the student reads, and the routes out of the intermediate. */
+export interface StepFork {
+  /**
+   * The line above the canvas while the fork is open and while a route is
+   * being drawn. It asks the question without answering it: the step's own
+   * prompt names the favoured route and must not show until the win.
+   */
+  readonly prompt: string;
+  /** The stated conditions, in the exam's own words: "H2O, 25 C" or "warm, 40 C, allowed to equilibrate". */
+  readonly conditions: string;
+  readonly routes: readonly ForkRoute[];
+}
 
 export interface TrainerQuestionStep {
   readonly step: MechanismStep;
@@ -31,6 +67,19 @@ export interface TrainerQuestionStep {
   readonly prompt: string;
   /** The pill under the canvas. Falls back to the entry's title so the layout never changes. */
   readonly hint: string;
+  /**
+   * Present when the chemistry genuinely forks here. `step` above is then the
+   * favoured route, so a linear read of the question (the strip, the record,
+   * a lesson's plan) always describes the mechanism that actually wins.
+   */
+  readonly fork?: StepFork;
+}
+
+/** The one favoured route on a fork. Authoring is held to exactly one by the registry test. */
+export function favouredRoute(fork: StepFork): ForkRoute {
+  const found = fork.routes.find((route) => route.favoured);
+  if (found === undefined) throw new Error("a fork must carry exactly one favoured route");
+  return found;
 }
 
 export interface TrainerQuestion {
@@ -76,7 +125,8 @@ export function questionFromSequence(entry: TrainerSequence): TrainerQuestion {
     id: entry.id,
     kind: "sequence",
     title: entry.title,
-    steps: entry.steps.map(({ step, fromHints, toHints, stepBrief, hint }) => ({ step, fromHints, toHints, prompt: stepBrief, hint: hint ?? entry.title })),
+    // A fork step never falls back to the title: a title can name a route, and the conditions are the honest hint there.
+    steps: entry.steps.map(({ step, fromHints, toHints, stepBrief, hint, fork }) => ({ step, fromHints, toHints, prompt: stepBrief, hint: hint ?? (fork !== undefined ? fork.conditions : entry.title), ...(fork !== undefined ? { fork } : {}) })),
     successLine: entry.successLine,
     wonPill: "Goal achieved",
   };

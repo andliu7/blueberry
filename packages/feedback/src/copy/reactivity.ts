@@ -26,6 +26,10 @@ type ReactivityCauseId = Extract<
   | "attacked_wrong_electrophilic_site"
   | "carbocation_on_destabilised_center"
   | "antiaromatic_intermediate_proposed"
+  | "kinetic_product_under_thermodynamic_control"
+  | "thermodynamic_product_under_kinetic_control"
+  | "acid_base_step_outruns_addition"
+  | "conjugate_addition_favoured_for_soft_nucleophile"
 >;
 
 export const REACTIVITY_COPY: Readonly<Record<ReactivityCauseId, CauseCopy>> = Object.freeze({
@@ -71,5 +75,25 @@ export const REACTIVITY_COPY: Readonly<Record<ReactivityCauseId, CauseCopy>> = O
     whatYouDid: "Your intermediate is a flat conjugated ring holding 4n pi electrons.",
     why: "A cyclic, planar, fully conjugated system with 4n pi electrons is destabilised relative to the open chain version rather than stabilised. Cyclobutadiene and the cyclopentadienyl cation are the standard examples.",
     lookAt: "Count the pi electrons going round the ring. If you get 4n, look for a route that never makes that ring flat and fully conjugated. Real systems escape this by twisting out of plane or by reacting through something else entirely.",
+  },
+  kinetic_product_under_thermodynamic_control: {
+    whatYouDid: "This branch makes the product that forms fastest, and the arrows for it are drawn correctly.",
+    why: "Two products compete here. One forms over the lower barrier and one sits in the deeper energy well. When the reaction is warm enough and given time, the fast product reverts and the stable one accumulates, so under equilibrating conditions the more stable product is the one you isolate.",
+    lookAt: "Read the conditions for warmth and time: a reaction run warm, or left to stand and equilibrate, is usually under thermodynamic control. Then compare the two products for stability, the more substituted double bond wins, and draw the branch that makes it.",
+  },
+  thermodynamic_product_under_kinetic_control: {
+    whatYouDid: "This branch makes the more stable product, and the arrows for it are drawn correctly.",
+    why: "In the cold the reaction cannot reverse, so whichever product forms fastest is the one you keep. The more stable product still forms, as the minor one; to become the major one it needs the fast product to fall apart again first, and at low temperature there is not enough energy for that.",
+    lookAt: "Read the conditions for a low temperature, minus 78 or minus 15 degrees is the usual tell. Then find the branch with the lower barrier. For a conjugated cation that is the carbon where the charge first appeared, next to the new bond; draw that one.",
+  },
+  acid_base_step_outruns_addition: {
+    whatYouDid: "This branch adds the carbanion to the carbonyl, and the arrows for it are drawn correctly.",
+    why: "There is an acidic O-H in the flask, and proton transfer to a carbanion is about as fast as a reaction gets. With a pKa gap of tens of units, every carbanion is spent taking that proton before any of it reaches the carbonyl carbon, and the anion left behind is deactivated toward addition.",
+    lookAt: "Look for an acidic hydrogen anywhere in the substrate: a carboxylic acid, an alcohol, a terminal alkyne. If one is there, the first equivalent of a Grignard or an organolithium is a base, not a nucleophile. Draw the proton transfer, and count how many equivalents the question gives you before any addition can start.",
+  },
+  conjugate_addition_favoured_for_soft_nucleophile: {
+    whatYouDid: "This branch adds the cuprate's carbon to the carbonyl carbon, and the arrows for it are drawn correctly.",
+    why: "An enone offers two electrophilic carbons. A cuprate is a soft, polarisable nucleophile, and soft nucleophiles bond to the soft site, the beta carbon, sending the pi electrons round to oxygen as an enolate. Direct attack on the carbonyl carbon is what a hard, strongly basic reagent such as an organolithium does.",
+    lookAt: "Read the reagent. R2CuLi is a cuprate: draw the new bond at the beta carbon, move the C=C electrons to the carbonyl carbon, and the C=O electrons onto oxygen. An organolithium is the reagent that goes to the carbonyl carbon instead; a Grignard mostly does too, unless copper is present.",
   },
 });

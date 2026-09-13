@@ -114,7 +114,14 @@ export type CauseId =
   | "step_not_elementary"
   | "step_kind_disagrees_with_arrows"
   | "reaction_center_not_touched_by_any_arrow"
-  | "route_requires_conditions_not_present";
+  | "route_requires_conditions_not_present"
+  // decision points: a real route out of the intermediate that the stated conditions do not favour
+  | "elimination_not_favoured_under_conditions"
+  | "substitution_not_favoured_under_conditions"
+  | "kinetic_product_under_thermodynamic_control"
+  | "thermodynamic_product_under_kinetic_control"
+  | "acid_base_step_outruns_addition"
+  | "conjugate_addition_favoured_for_soft_nucleophile";
 
 export interface CauseDefinition {
   readonly id: CauseId;
@@ -573,6 +580,54 @@ export const CAUSES: Readonly<Record<CauseId, CauseDefinition>> = Object.freeze(
     ANY_VALID,
     "This route needs conditions the question did not give.",
     "Route choice is set by the reagents and the solvent as much as by the substrate. A mechanism that would need heat, or a different solvent, is describing a different experiment.",
+  ),
+  elimination_not_favoured_under_conditions: define(
+    "elimination_not_favoured_under_conditions",
+    "route",
+    "advisory",
+    ANY_VALID,
+    "Elimination is a real exit from this cation, and these conditions favour capture.",
+    "A carbocation can lose a proton or be captured. With a weak base, a nucleophile present (the solvent or a halide) and no heat, capture outpaces proton loss; elimination needs heat to become the main exit, and a strong base would not go through the cation at all.",
+  ),
+  substitution_not_favoured_under_conditions: define(
+    "substitution_not_favoured_under_conditions",
+    "route",
+    "advisory",
+    ANY_VALID,
+    "Water really does capture this cation, but under these conditions that only loops back, and elimination is the exit.",
+    "Heat tips a carbocation toward losing a proton: capture by water only reforms the protonated alcohol, which ionises again, and the overall change, alcohol to alkene plus water, makes two molecules out of one, a gain in entropy that counts for more the hotter the flask. With no good nucleophile present, the alkene is what you isolate. A strong base does not wait for a cation, but only a substrate with a real leaving group, such as a tertiary bromide, eliminates directly by E2; an alcohol's OH is a poor one.",
+  ),
+  kinetic_product_under_thermodynamic_control: define(
+    "kinetic_product_under_thermodynamic_control",
+    "reactivity",
+    "advisory",
+    ANY_VALID,
+    "This is the faster product, and the conditions let the system equilibrate to the more stable one.",
+    "The kinetic product forms over the lower barrier and the thermodynamic product sits in the deeper well. Given warmth and time the first reverts and the second accumulates, so under equilibrating conditions stability decides, not speed.",
+  ),
+  thermodynamic_product_under_kinetic_control: define(
+    "thermodynamic_product_under_kinetic_control",
+    "reactivity",
+    "advisory",
+    ANY_VALID,
+    "This is the more stable product, and the conditions do not let the system equilibrate to it.",
+    "In the cold the reaction is irreversible and whichever product forms fastest is the one you keep. The more stable product still forms, as the minor one; becoming the major one needs the fast product to revert, and at low temperature there is not enough energy for that.",
+  ),
+  acid_base_step_outruns_addition: define(
+    "acid_base_step_outruns_addition",
+    "reactivity",
+    "advisory",
+    ANY_VALID,
+    "An acidic proton is taken long before any nucleophile could add.",
+    "Proton transfer between a strong base and an acidic O-H is about as fast as a reaction gets. With a pKa gap of tens of units the carbanion is spent as a base before it can act as a nucleophile, and the anion it leaves behind is deactivated toward addition.",
+  ),
+  conjugate_addition_favoured_for_soft_nucleophile: define(
+    "conjugate_addition_favoured_for_soft_nucleophile",
+    "reactivity",
+    "advisory",
+    ANY_VALID,
+    "A soft nucleophile adds to the beta carbon of an enone, not to the carbonyl carbon.",
+    "An enone has two electrophilic sites. The carbonyl carbon is the harder one and takes hard, strongly basic nucleophiles such as organolithiums; the beta carbon is the softer one and takes soft, polarisable nucleophiles such as cuprates. The 1,4 product is also the more stable one, since it keeps the strong C=O bond, but a cuprate picks the beta carbon on kinetics, not by equilibrating.",
   ),
 });
 

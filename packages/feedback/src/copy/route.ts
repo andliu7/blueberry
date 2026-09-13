@@ -1,11 +1,11 @@
 /**
- * Category: route. Five causes, four blocking and one advisory.
+ * Category: route. Seven causes, four blocking and three advisory.
  *
  * These are about the shape of the whole mechanism rather than about any single
  * arrow, so every `lookAt` sends the student back to the sequence, to the
  * reagent line, or to the arrows read as a set, rather than to one atom.
  *
- * Two of the five are about a declaration disagreeing with a drawing rather than
+ * Two of the seven are about a declaration disagreeing with a drawing rather than
  * about the drawing being wrong, and their copy has one extra job because of it.
  * A student whose arrows are correct and whose label is not must not be told
  * their chemistry is broken, so `whatYouDid` says the naming is what went wrong
@@ -23,6 +23,8 @@ type RouteCauseId = Extract<
   | "step_kind_disagrees_with_arrows"
   | "reaction_center_not_touched_by_any_arrow"
   | "route_requires_conditions_not_present"
+  | "elimination_not_favoured_under_conditions"
+  | "substitution_not_favoured_under_conditions"
 >;
 
 export const ROUTE_COPY: Readonly<Record<RouteCauseId, CauseCopy>> = Object.freeze({
@@ -50,5 +52,17 @@ export const ROUTE_COPY: Readonly<Record<RouteCauseId, CauseCopy>> = Object.free
     whatYouDid: "Your route needs conditions the question did not give you.",
     why: "Which pathway runs is set by the reagents, the solvent, and the temperature as much as by the substrate. A mechanism that needs heat, or a strong base, or a different solvent is describing a different experiment from the one on the page.",
     lookAt: "The reagent line lists what you have to work with: the nucleophile or base and how strong it is, the solvent and whether it is protic, and the temperature. The route those three support is the one that runs.",
+  },
+  elimination_not_favoured_under_conditions: {
+    whatYouDid: "This branch takes a proton off the cation, and the arrows for it are drawn correctly.",
+    why: "From a carbocation, losing a proton and being captured are both real exits, and the conditions pick between them. A weak base with a nucleophile in the flask, the solvent or a halide such as chloride, and no heat, captures the cation faster than it takes a proton, so the alkene stays minor. Elimination needs heat to become the main exit.",
+    lookAt: "Read the reagent line for three things: how strong the base is, what in the flask can attack the cation, and the temperature. A nucleophile present, no strong base, and room temperature or below is a capture. Then draw the branch where the nucleophile in the flask, the solvent or a halide such as chloride, puts its lone pair on the empty carbon.",
+    competingRoutes: ["sn1"],
+  },
+  substitution_not_favoured_under_conditions: {
+    whatYouDid: "This branch captures the cation, and the arrows for it are drawn correctly.",
+    why: "Water does capture this cation, but that only reforms the protonated alcohol, which under heat ionises again. Loss of a proton leads to the alkene, and heat keeps the equilibrium on that side, because the overall change, alcohol to alkene plus water, makes two molecules out of one. A strong base changes the question, but only on a substrate with a real leaving group such as a tertiary bromide: the base does not wait for a cation and the substrate eliminates directly, E2. An alcohol's OH is a poor leaving group, so a strong base cannot eliminate it; it just takes the O-H proton and makes the alkoxide.",
+    lookAt: "Read the reagent line for heat, for the base, and for anything that can hold on to the cation. Heat, a non-nucleophilic acid such as H2SO4, and only weak bases around is E1 from the cation: draw the branch where a weak base in the flask, the water that just left or HSO4-, takes a proton from the CH2 next to the cation and the electrons of that C-H bond fold in to make the double bond, which gives the trisubstituted alkene, the more substituted one. On a tertiary bromide, a base like tert-butoxide means the cation never forms and the route is E2; on this alcohol it would only make the alkoxide, which is why the acid is there.",
+    competingRoutes: ["e1"],
   },
 });

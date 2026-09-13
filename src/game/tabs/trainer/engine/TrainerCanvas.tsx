@@ -65,7 +65,17 @@ export interface TrainerCanvasProps {
   /** The win's bond change, 0 while drawing, driven once to 1 on completion. */
   readonly winT: number;
   /** Non-null while the replay is open: the canvas shows the recorded history. */
-  readonly replay: { readonly recorded: readonly RecordedStep[]; readonly scrub: number } | null;
+  readonly replay: {
+    readonly recorded: readonly RecordedStep[];
+    readonly scrub: number;
+    /**
+     * A look-back: the scrub runs one stretch PAST the record, and that last
+     * stretch plays the bond change from the from state (every push drawn)
+     * to the settled outcome. So scrub = recorded.length is the pushes, and
+     * scrub = recorded.length + 1 is the won picture.
+     */
+    readonly settledAtEnd?: boolean;
+  } | null;
   readonly reducedMotion: boolean;
 }
 
@@ -99,7 +109,12 @@ export function TrainerCanvas({
   const centroid = useMemo(() => sceneCentroid(scene), [scene]);
 
   // Replay looks at the from state; the win tween owns t otherwise.
-  const t = replay !== null ? 0 : winT;
+  const t =
+    replay !== null
+      ? replay.settledAtEnd === true
+        ? Math.min(1, Math.max(0, replay.scrub - replay.recorded.length))
+        : 0
+      : winT;
   const glide = smoothstep(0.15, 0.85, t);
 
   const posOf = useCallback(
@@ -204,7 +219,7 @@ export function TrainerCanvas({
   /* ---------------- what the records show right now ---------------- */
 
   const shown = useMemo(() => {
-    if (replay !== null) return replayArrows(replay.recorded, replay.scrub);
+    if (replay !== null) return replayArrows(replay.recorded, Math.min(replay.scrub, replay.recorded.length));
     return { full: draft.arrows, animating: [] as readonly { readonly arrow: ElectronFlowArrow; readonly t: number }[] };
   }, [replay, draft.arrows]);
 
@@ -212,7 +227,7 @@ export function TrainerCanvas({
   const armedAnchorAtom = guide === null ? null : targetAtomId(guide.anchor);
 
   const annotationSide: "from" | "to" | "none" =
-    replay !== null || t < 0.25 ? "from" : t > 0.75 ? "to" : "none";
+    (replay !== null && replay.settledAtEnd !== true) || t < 0.25 ? "from" : t > 0.75 ? "to" : "none";
   const annotationOpacity =
     annotationSide === "from" ? Math.max(0, 1 - t * 4) : annotationSide === "to" ? Math.min(1, (t - 0.75) * 4) : 0;
   const liveAnnotations = annotationSide === "to" ? toAnnotations : annotations;
