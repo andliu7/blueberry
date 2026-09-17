@@ -40,11 +40,9 @@
  * TrainerTab.tsx. This file only wires them and renders.
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
-import type { SyntheticEvent } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { useStepProgress } from "../../../demo/useStepProgress";
 import { useEndGestureOnBackground, useTheme } from "../../../app/hooks";
-import { causeCopyEntry } from "@blueberry/feedback";
 import {
   canUndo,
   createInteractionStore,
@@ -69,6 +67,8 @@ import { costumeForSurface } from "../../../mascot/berryCostume";
 import { useBerryReactions } from "../../../mascot/useBerryReactions";
 import { TrainerCanvas } from "./TrainerCanvas";
 import { ForkChooser } from "./ForkChooser";
+import { FeedbackSheet, RISE_MS } from "./FeedbackSheet";
+import { branchSheet, describeArrowInState, missSheet, winSheet, type SheetContent } from "./sheetCopy";
 import { StepStrip } from "./StepStrip";
 import { gradeBranch, stripNodes, type BranchVerdict } from "./forkModel";
 import type { RecordedStep } from "./screenModel";
@@ -201,6 +201,33 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
 
   const [model, setModel] = useState(createScreenState);
   const [verdict, setVerdict] = useState<DrawVerdict | null>(null);
+  const [checks, setChecks] = useState(0);
+
+  // The answer sheet slides up BEHIND the button rows, so it needs their
+  // height to pad its own text clear of them. Measured after each render and
+  // stored only when it changes, which settles in one extra pass.
+  // The next step pushes in the way Duolingo's next challenge does (BAR.md,
+  // phase 4): from 75 px to the right and transparent, 400 ms ease-out. The
+  // first mount does not animate; only a change of step does.
+  const stageRef = useRef<HTMLDivElement>(null);
+  // Keyed on step AND epoch, so Choose another route (a fresh epoch over the
+  // same step) pushes in the same way Continue does instead of hard-cutting.
+  const shownStep = useRef(`${stepIndex}:${epoch}`);
+  useLayoutEffect(() => {
+    const shown = `${stepIndex}:${epoch}`;
+    if (shownStep.current === shown) return;
+    shownStep.current = shown;
+    const stage = stageRef.current;
+    if (stage === null || reducedMotion || typeof stage.animate !== "function") return;
+    stage.animate([{ transform: "translateX(75px)", opacity: 0 }, { transform: "translateX(0)", opacity: 1 }], { duration: 400, easing: "ease-out" });
+  }, [stepIndex, epoch, reducedMotion]);
+
+  const rowsRef = useRef<HTMLDivElement>(null);
+  const [rowsHeight, setRowsHeight] = useState(0);
+  useLayoutEffect(() => {
+    const rows = rowsRef.current;
+    if (rows !== null && rows.offsetHeight !== rowsHeight) setRowsHeight(rows.offsetHeight);
+  });
   const won = model.phase === "won";
 
   // The record follows the drawing. A falling arrow count is an undo or a
@@ -225,10 +252,17 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
   // The same frame driver the trainer's playback uses: 0 while drawing,
   // driven once to 1 on the win, scrubbed straight to 1 under reduced motion.
   const win = useStepProgress(WIN_TWEEN_MS, false);
+  // The win tween's deferred start (see onCheck); cleared if the screen
+  // unmounts inside the sheet's rise.
+  const winTimer = useRef<number | null>(null);
+  useEffect(() => () => {
+    if (winTimer.current !== null) window.clearTimeout(winTimer.current);
+  }, []);
 
   /* ---------------- the controls ---------------- */
 
   const onCheck = () => {
+    setChecks((n) => n + 1);
     const result = gradeDrawing(step, mechanism.arrows);
     if (fork !== undefined && route !== null) {
       // The second grade. Right arrows on a route the conditions do not
@@ -250,9 +284,19 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
     setModel(outcome.state);
     if (outcome.justWon) {
       setVerdict(null);
-      react("correct");
-      if (reducedMotion) win.scrub(1);
-      else win.play();
+      if (reducedMotion) {
+        react("correct");
+        win.scrub(1);
+      } else {
+        // The sheet's rise owns the main thread for its 200 ms: the win
+        // tween and the mascot's reaction start once it lands, which is
+        // what keeps the launch painted instead of starved by the win
+        // frame's work (round two motion critic, claim 1).
+        winTimer.current = window.setTimeout(() => {
+          react("correct");
+          win.play();
+        }, RISE_MS);
+      }
       return;
     }
     setVerdict(result);
@@ -262,7 +306,7 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
     const last = mechanism.arrows[mechanism.arrows.length - 1];
     if (result.kind === "invalid") {
       if (last !== undefined) {
-        saveMistake({ reactionId: step.id, arrowKey: arrowKey(last), verdict: "invalid", causeId: result.cause, distractorMatched: false, at: new Date().toISOString() });
+        saveMistake({ reactionId: step.id, arrowKey: arrowKey(last), verdict: "invalid", causeId: result.cause, distractorMatched: matchDistractor(step, last) !== null, at: new Date().toISOString() });
       }
       playWrongSound();
       react("wrong");
@@ -336,6 +380,28 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
   // molecule while it is; ForkChooser's comment says why the themes differ.
   const chooserOpen = choosing && viewing === null && !won;
   const controls = availableControls(model, mechanism.arrows.length > 0);
+
+  // What the answer sheet says, if anything. sheetCopy.ts decides the words;
+  // this only picks the outcome. A distractor is looked up on the arrow the
+  // grader flagged, or on the last arrow when every arrow was legal.
+  const flagged = verdict?.kind === "invalid" ? mechanism.arrows.find((arrow) => arrow.id === verdict.finding.arrowId) : mechanism.arrows[mechanism.arrows.length - 1];
+  const winExplanation = stepIndex === lastIndex ? (route !== null ? `${route.why} ${question.successLine}` : question.successLine) : (route?.why ?? null);
+  const sheet: SheetContent | null =
+    viewing !== null || model.replayOpen
+      ? null
+      : won
+        ? winSheet(stepIndex === lastIndex ? question.wonPill : (current.wonLine ?? question.wonPill), winExplanation, route?.label ?? null)
+        : branchVerdict !== null && branchVerdict.kind === "not_favoured"
+          ? branchSheet(branchVerdict)
+          : verdict !== null && verdict.kind !== "correct"
+            ? missSheet(
+                verdict,
+                verdict.kind === "incomplete" || flagged === undefined ? null : matchDistractor(step, flagged),
+                verdict.kind === "not_requested"
+                  ? verdict.extras.map((arrow) => describeArrowInState(step.from, arrow)).filter((line): line is string => line !== null)
+                  : undefined,
+              )
+            : null;
   const undoDisabled = !interactive || !canUndo(machine);
   const checkDisabled = !interactive || mechanism.arrows.length === 0;
   // The strip spans the whole question: a single step reads its own fraction.
@@ -377,6 +443,7 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
           )}
         </header>
 
+        <div ref={stageRef} className="flex min-h-0 flex-1 flex-col gap-3">
         <p className="bb-title-face text-scale-lg font-semibold leading-snug text-bb-foreground">
           {viewed !== undefined ? viewed.prompt : fork !== undefined && !won ? (route !== null ? `${route.label}. Draw the arrows for this route.` : fork.prompt) : current.prompt}
         </p>
@@ -444,32 +511,8 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
           ) : null}
 
 
-          {verdict !== null && !won && !model.replayOpen && viewing === null ? (
-            <div className="pointer-events-none absolute bottom-3 left-3 right-24">
-              <div className="pointer-events-auto max-w-sm">
-                <VerdictCard verdict={verdict} onClose={() => setVerdict(null)} />
-              </div>
-            </div>
-          ) : null}
 
-          {won && !model.replayOpen && viewing === null ? (
-            <div className="pointer-events-none absolute bottom-3 left-3 right-24 flex flex-col items-start gap-1.5" aria-live="polite">
-              <span
-                className="inline-flex items-center gap-1.5 rounded-full border-2 bg-bb-card px-4 py-1.5 text-scale-sm font-bold"
-                style={{ borderColor: "var(--good)", color: "var(--good-ink)" }}
-              >
-                ✦ {question.wonPill}
-              </span>
-              <p className="max-w-sm text-scale-sm leading-snug text-bb-foreground">{stepIndex === lastIndex ? question.successLine : current.prompt}</p>
-              {route !== null ? (
-                <p className="max-w-sm text-scale-xs leading-snug text-bb-muted-foreground">
-                  Route: {route.label}. {route.why}
-                </p>
-              ) : null}
-            </div>
-          ) : null}
-
-          {choosing || branchVerdict !== null ? null : (
+          {choosing || branchVerdict !== null || sheet !== null ? null : (
           <div className="pointer-events-none absolute bottom-2 right-2">
             <Berry
               {...berry}
@@ -481,6 +524,19 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
           </div>
           )}
         </section>
+        </div>
+
+        <div className="relative flex flex-col gap-3">
+        {sheet !== null ? (
+          <FeedbackSheet
+            key={`${stepIndex}-${checks}`}
+            content={sheet}
+            bottomInset={rowsHeight}
+            reducedMotion={reducedMotion}
+            dataAttributes={branchVerdict !== null ? { "data-branch-verdict": "" } : undefined}
+            companion={<Berry {...berry} costume={costumeForSurface("trainer")} working={false} reducedMotion={reducedMotion} sizePx={48} />}
+          />
+        ) : null}
 
         {model.replayOpen ? (
           <label className="flex min-h-11 items-center gap-3">
@@ -541,8 +597,6 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
             </datalist>
             <span className="text-scale-xs font-semibold text-bb-muted-foreground">outcome</span>
           </label>
-        ) : branchVerdict !== null && branchVerdict.kind === "not_favoured" && !won ? (
-          <BranchCard verdict={branchVerdict} onChooseAgain={onChooseAgain} />
         ) : won || fork !== undefined ? null : (
           // On the win the hint disappears rather than rewords: it commands
           // the completed action, and the in-canvas pill plus success line
@@ -554,16 +608,17 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
           </div>
         )}
 
+        <div ref={rowsRef} className="relative z-10 flex flex-col gap-3">
         {/* Which chips exist per phase is availableControls' ruling, pinned in
             pilotScreen.test.ts: the won rows are REPLAY and CONTINUE only. */}
-        {viewing === null && branchVerdict === null && (controls.includes("replay") || controls.includes("redraw") || (route !== null && !won)) ? (
+        {viewing === null && branchVerdict === null && ((controls.includes("replay") && !controls.includes("continue")) || controls.includes("redraw") || (route !== null && !won)) ? (
           <div className="flex items-center justify-center gap-3">
             {route !== null && !won && !controls.includes("redraw") ? (
               <ChipPress variant="quiet" className="flex-1" onClick={onChooseAgain}>
                 Change route
               </ChipPress>
             ) : null}
-            {controls.includes("replay") ? (
+            {controls.includes("replay") && !controls.includes("continue") ? (
               <ChipPress variant="quiet" className="flex-1" onClick={() => setModel(toggleReplay(model))}>
                 {model.replayOpen ? "Close replay" : "Replay"}
               </ChipPress>
@@ -584,19 +639,41 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
               Back to step {stepIndex + 1}
             </ChipPress>
           ) : controls.includes("continue") ? (
-            <ChipPress className="flex-1" onClick={onContinue}>
-              Continue
+            // The primary keeps Check's rect on a win: Replay takes Undo's
+            // slot and Continue lands where Check was, so the button the
+            // student is about to press never jumps (the bar's rule).
+            <>
+              {controls.includes("replay") ? (
+                <ChipPress variant="quiet" className="flex-1" onClick={() => setModel(toggleReplay(model))}>
+                  {model.replayOpen ? "Close replay" : "Replay"}
+                </ChipPress>
+              ) : null}
+              <ChipPress className="flex-1" onClick={onContinue}>
+                Continue
+              </ChipPress>
+            </>
+          ) : branchVerdict !== null ? (
+            <ChipPress className="flex-1" onClick={onChooseAgain}>
+              Choose another route
             </ChipPress>
-          ) : choosing || branchVerdict !== null ? null : (
+          ) : choosing ? null : (
             <>
               <ChipPress variant="quiet" className="flex-1" disabled={undoDisabled} onClick={onUndo}>
                 Undo
               </ChipPress>
-              <ChipPress className="flex-1" disabled={checkDisabled} onClick={onCheck}>
-                Check
-              </ChipPress>
+              {sheet !== null ? (
+                <ChipPress className="flex-1" onClick={() => setVerdict(null)}>
+                  Got it
+                </ChipPress>
+              ) : (
+                <ChipPress className="flex-1" disabled={checkDisabled} onClick={onCheck}>
+                  Check
+                </ChipPress>
+              )}
             </>
           )}
+        </div>
+        </div>
         </div>
       </div>
     </div>
@@ -660,150 +737,6 @@ function HistoryCanvas({
       reducedMotion={reducedMotion}
     />
   );
-}
-
-/**
- * The second grade's card. The arrows were right; the route was not the one
- * the conditions favour. Same registry copy a wrong arrow gets, and one way
- * out: back to the fork.
- */
-/** Height of the branch card's top fade, 1.5rem, matching its h-6 class. */
-const FADE_PX = 24;
-
-function BranchCard({ verdict, onChooseAgain }: { readonly verdict: Extract<BranchVerdict, { kind: "not_favoured" }>; readonly onChooseAgain: () => void }) {
-  const copy = causeCopyEntry(verdict.cause);
-  // The text block is capped so the exit chip never leaves the screen, which
-  // means text can sit below its edge. `more` is true while it does, and
-  // drives the fade that tells the student to scroll.
-  const textBox = useRef<HTMLDivElement>(null);
-  const [more, setMore] = useState(false);
-  const [above, setAbove] = useState(false);
-  const measure = () => {
-    const box = textBox.current;
-    if (box === null) return;
-    setMore(box.scrollHeight - box.scrollTop - box.clientHeight > 1);
-    setAbove(box.scrollTop > 1);
-  };
-  useEffect(measure, []);
-  // Opening the disclosure adds text at the bottom of a capped box, where a
-  // small screen would hide all of it. Scroll the summary to just under the
-  // top fade (FADE_PX, the h-6 below) so the tap visibly does something and
-  // the label the student tapped is not itself washed out.
-  const onToggle = (event: SyntheticEvent<HTMLDetailsElement>) => {
-    const box = textBox.current;
-    const details = event.currentTarget;
-    if (box !== null && details.open) {
-      // Floored: the box can sit at a fractional y, and a rounded-up scroll
-      // would lift the summary half a pixel into the fade.
-      box.scrollTop = Math.floor(box.scrollTop + details.getBoundingClientRect().top - box.getBoundingClientRect().top - FADE_PX - 1);
-    }
-    measure();
-  };
-  return (
-    <section className="fade-in rounded-2xl border-2 border-bb-border bg-bb-card p-3" aria-live="polite" data-branch-verdict>
-      <p className="text-scale-xs font-semibold leading-snug" style={{ color: "var(--good-ink)" }}>
-        Arrows right. These conditions favour: {verdict.favoured.label}.
-      </p>
-      <div className="relative mt-1">
-      <div ref={textBox} className="max-h-[26vh] overflow-y-auto" onScroll={measure} data-branch-text>
-      <p className="text-scale-sm font-semibold leading-snug text-bb-foreground">{copy.whatYouDid}</p>
-      <p className="mt-1 text-scale-xs leading-snug text-bb-foreground">{verdict.route.why}</p>
-      <details className="mt-1 text-scale-xs leading-snug text-bb-muted-foreground" onToggle={onToggle}>
-        <summary className="cursor-pointer font-semibold text-bb-foreground">Why, and what to look at</summary>
-        <p className="mt-1">{copy.why}</p>
-        <p className="mt-1">{copy.lookAt}</p>
-      </details>
-      </div>
-      {above ? (
-        <div
-          className="pointer-events-none absolute inset-x-0 top-0 h-6"
-          style={{ background: "linear-gradient(to top, transparent, var(--bb-card))" }}
-          aria-hidden
-          data-branch-above
-        />
-      ) : null}
-      {more ? (
-        <div
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-8"
-          style={{ background: "linear-gradient(to bottom, transparent, var(--bb-card))" }}
-          aria-hidden
-          data-branch-more
-        />
-      ) : null}
-      </div>
-      <ChipPress variant="quiet" className="mt-2 w-full" onClick={onChooseAgain}>
-        Choose another route
-      </ChipPress>
-    </section>
-  );
-}
-
-/**
- * The verdict, in the canvas corner. Tier 1 all the way down: the named
- * cause's authored copy from packages/feedback for anything invalid, plain
- * honest sentences for the rest, no red anywhere, and the subject is always
- * the arrow, never the student.
- */
-function VerdictCard({ verdict, onClose }: { readonly verdict: DrawVerdict; readonly onClose: () => void }) {
-  const close = (
-    <button
-      type="button"
-      aria-label="Dismiss feedback"
-      className="press absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full text-scale-sm font-semibold text-bb-muted-foreground"
-      onClick={onClose}
-    >
-      ×
-    </button>
-  );
-  switch (verdict.kind) {
-    case "correct": {
-      // Reached only through the win treatment, which replaces this card, but
-      // the union says it exists so it renders honestly rather than throwing.
-      const copy = causeCopyEntry(verdict.cause);
-      return (
-        <section className="fade-in relative rounded-2xl border-2 bg-good-soft p-3 pr-9 text-scale-sm" style={{ borderColor: "var(--good)" }} data-arrow-verdict aria-live="polite">
-          {close}
-          <p className="font-semibold text-good-ink">{copy.whatYouDid}</p>
-        </section>
-      );
-    }
-    case "invalid": {
-      const copy = causeCopyEntry(verdict.cause);
-      return (
-        <section className="fade-in relative rounded-2xl border-2 border-bb-border bg-bb-card p-3 pr-9" data-arrow-verdict aria-live="polite">
-          {close}
-          <p className="text-scale-sm font-semibold leading-snug text-bb-foreground">{copy.whatYouDid}</p>
-          <p className="mt-1 text-scale-xs leading-snug text-bb-muted-foreground">{copy.why}</p>
-        </section>
-      );
-    }
-    case "not_requested":
-      return (
-        <section className="fade-in relative rounded-2xl border-2 bg-not-requested-soft p-3 pr-9" style={{ borderColor: "var(--not-requested)" }} data-arrow-verdict aria-live="polite">
-          {close}
-          <p className="text-scale-sm font-semibold leading-snug" style={{ color: "var(--not-requested)" }}>
-            Every push you drew is legal, and together they describe a different change than this step asks for.
-          </p>
-          <p className="mt-1 text-scale-xs leading-snug text-bb-foreground">
-            {verdict.missing > 0 ? `${verdict.missing} of the pushes this step needs ${verdict.missing === 1 ? "has" : "have"} not been drawn. ` : ""}
-            {verdict.extra > 0 ? `${verdict.extra} push${verdict.extra === 1 ? " goes" : "es go"} somewhere this step does not.` : ""}
-          </p>
-        </section>
-      );
-    case "incomplete":
-      return (
-        <section className="fade-in relative rounded-2xl border-2 border-bb-border bg-bb-muted p-3 pr-9" data-arrow-verdict aria-live="polite">
-          {close}
-          <p className="text-scale-sm font-semibold leading-snug text-bb-foreground">
-            {verdict.drawn} of {verdict.needed} pushes in, and everything drawn holds up. Something still has to move.
-          </p>
-        </section>
-      );
-    default: {
-      const unreachable: never = verdict;
-      return <>{unreachable}</>;
-    }
-  }
 }
 
 export default TrainerScreen;

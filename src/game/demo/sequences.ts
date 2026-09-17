@@ -41,6 +41,13 @@ export interface TrainerSequence {
     readonly stepBrief: string;
     /** The engine screen's pill under the canvas for this step. The sequence title when absent. */
     readonly hint?: string;
+    /**
+     * The answer sheet's headline when this step is won and it is not the
+     * last: what just happened, in the register of the resonance find. The
+     * last step's win keeps the question's own wonPill. Absent, the sheet
+     * falls back to that pill.
+     */
+    readonly wonLine?: string;
     readonly fromHints: LayoutHints;
     readonly toHints: LayoutHints;
     /**
@@ -408,7 +415,7 @@ const SN1_FORK_WATER: StepFork = {
       toHints: SN1_E1_TO_HINTS,
       favoured: false,
       cause: "elimination_not_favoured_under_conditions",
-      why: "A real exit, and the one heat pushes toward. Without heat, water captures faster than it takes a proton.",
+      why: "Losing a proton is a real exit, and the one heat pushes toward. Without heat, water captures faster than it takes a proton.",
     },
   ],
 };
@@ -5278,6 +5285,7 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
         // carbonyl attack, never a fork of it.
         step: carbonyl.step,
         stepBrief: "Step 1 · Hydroxide attacks the carbonyl carbon.",
+        wonLine: "The alkoxide is made.",
         fromHints: carbonyl.fromHints,
         toHints: carbonyl.toHints,
       },
@@ -5298,6 +5306,7 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
       {
         step: TAU_DEPROTONATE,
         stepBrief: "Step 1 · The base takes the α-hydrogen; three arrows to the enolate.",
+        wonLine: "The enolate is made.",
         fromHints: {
           ob: { x: -2.55, y: 1.0 },
           hb: { x: -3.3, y: 1.55 },
@@ -5350,6 +5359,7 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
       {
         step: COND_DEPROTONATE,
         stepBrief: "Step 1 · Base takes the α-H between the carbonyl and the alcohol arm.",
+        wonLine: "The enolate is made.",
         fromHints: {
           ob: { x: -2.75, y: 1.15 },
           hb: { x: -3.5, y: 1.7 },
@@ -5408,6 +5418,7 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
       {
         step: SNAR_ADDITION,
         stepBrief: "Step 1 · Methoxide adds; the charge relays through the ring onto the nitro oxygen. Four arrows.",
+        wonLine: "The charge sits on the nitro.",
         fromHints: {
           om: { x: -2.2, y: 1.55 },
           cm: { x: -3.15, y: 1.95 },
@@ -5480,6 +5491,7 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
       {
         step: CLAISEN_ATTACK,
         stepBrief: "Step 1 · The enolate carbon attacks the other ester's carbonyl. Three arrows.",
+        wonLine: "The new C-C bond is made.",
         fromHints: {
           c1: { x: -1.3, y: 0.2 },
           c2: { x: -2.25, y: -0.3 },
@@ -5544,6 +5556,7 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
       {
         step: WITTIG_ATTACK,
         stepBrief: "Step 1 · The ylide's carbanion attacks the carbonyl.",
+        wonLine: "The betaine is built.",
         fromHints: {
           cy: { x: -1.15, y: 0.15 },
           p1: { x: -2.25, y: -0.25 },
@@ -5604,6 +5617,7 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
       {
         step: DIENE_PROTONATION,
         stepBrief: "Step 1 · The terminal π grabs the proton; the allyl cation is born.",
+        wonLine: "The allyl cation is here.",
         fromHints: {
           c1: { x: -1.9, y: 0.35 },
           c2: { x: -0.95, y: -0.15 },
@@ -5639,6 +5653,7 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
       {
         step: DIENE_PROTONATION,
         stepBrief: "Step 1 · The terminal π grabs the proton; the allyl cation is born.",
+        wonLine: "The allyl cation is here.",
         fromHints: {
           c1: { x: -1.9, y: 0.35 },
           c2: { x: -0.95, y: -0.15 },
@@ -5674,6 +5689,7 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
       {
         step: EAS_ATTACK,
         stepBrief: "Step 1 · A ring π bond attacks the nitronium; one N=O relieves onto oxygen.",
+        wonLine: "The arenium ion is made.",
         fromHints: {
           c1: { x: 0.0, y: 1.0 },
           c2: { x: 0.87, y: 0.5 },
@@ -5743,6 +5759,7 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
       {
         step: IONISATION,
         stepBrief: "Step 1 · Send the C–Br electrons onto bromine. Nothing pushes them; the cation's stability pulls.",
+        wonLine: "Bromine left with the pair.",
         fromHints: {
           c0: { x: 0, y: 0 },
           c1: { x: -0.55, y: 0.9 },
@@ -5776,6 +5793,7 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
       {
         step: ACYL_ADDITION,
         stepBrief: "Step 1 · Hydroxide attacks the acyl carbon; the π electrons step onto oxygen.",
+        wonLine: "Carbon is tetrahedral now.",
         fromHints: {
           o2: { x: -1.7, y: -0.55 },
           h1: { x: -2.45, y: -1.15 },
@@ -5819,11 +5837,12 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
     id: "seq-aldol",
     title: "Aldol addition · 2 steps",
     brief: "Make the enolate, then let its carbon attack the other carbonyl.",
-    successLine: "The aldol, start to finish: base pulls the α-proton to make the enolate, and the enolate's CARBON attacks the second carbonyl: one new C–C bond, the skeleton grown.",
+    successLine: "The aldol, start to finish: base pulls the α-proton to make the enolate, and the enolate's carbon attacks the second carbonyl: one new C–C bond, the skeleton grown.",
     steps: [
       {
         step: ENOLATE_FORMATION,
         stepBrief: "Step 1 · The base takes the α-hydrogen; three arrows land at once.",
+        wonLine: "The enolate is made.",
         fromHints: {
           ob: { x: -2.55, y: 1.0 },
           hb: { x: -3.3, y: 1.55 },
@@ -5878,6 +5897,7 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
       {
         step: SAPON_ATTACK,
         stepBrief: "Step 1 · Hydroxide attacks the ester's carbonyl carbon.",
+        wonLine: "Hydroxide is on the carbon.",
         fromHints: {
           oh1: { x: -1.6, y: 0.5 },
           hh1: { x: -2.35, y: 0.15 },
@@ -5900,6 +5920,7 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
       {
         step: SAPON_COLLAPSE,
         stepBrief: "Step 2 · The alkoxide collapses and pushes methoxide out.",
+        wonLine: "Methoxide has left.",
         fromHints: {
           oh1: { x: -0.75, y: 0.65 },
           hh1: { x: -1.5, y: 0.95 },
@@ -5952,6 +5973,7 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
       {
         step: TRANS_ATTACK,
         stepBrief: "Step 1 · Ethoxide attacks the carbonyl carbon.",
+        wonLine: "Ethoxide is on the carbon.",
         fromHints: {
           oe: { x: -1.5, y: 0.55 },
           ce1: { x: -2.45, y: 0.9 },
@@ -6008,6 +6030,7 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
       {
         step: GILMAN_ATTACK,
         stepBrief: "Step 1 · The cuprate's methyl carbanion attacks the acyl carbon.",
+        wonLine: "The methyl is on the carbon.",
         fromHints: {
           cg: { x: -1.45, y: 0.35 },
           cga: { x: -0.95, y: -0.85 },
@@ -6052,6 +6075,7 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
       {
         step: ANHYDRIDE_ATTACK,
         stepBrief: "Step 1 · The amine's lone pair attacks one carbonyl of the anhydride.",
+        wonLine: "The N-C bond is made.",
         fromHints: {
           na: { x: -1.5, y: 0.45 },
           hna1: { x: -2.1, y: 1.05 },
@@ -6082,6 +6106,7 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
       {
         step: ANHYDRIDE_COLLAPSE,
         stepBrief: "Step 2 · The collapse pushes acetate out: the better leaving group of the two arms.",
+        wonLine: "Acetate has left.",
         fromHints: {
           na: { x: -0.8, y: 0.55 },
           hna1: { x: -1.4, y: 1.15 },
@@ -6145,11 +6170,12 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
     id: "seq-halo-acid",
     title: "Acid α-bromination · 2 steps",
     brief: "The ENOL attacks bromine, and bromide comes back for the proton. Acid-side halogenation stops at one Br.",
-    successLine: "The enol's alkene took bromine, the oxygen relayed the charge, and bromide collected the proton. Under acid the product ketone is LESS reactive than the starting one, so it stops at a single bromine; under base it would run away to the haloform. Same reagent, opposite endings.",
+    successLine: "The enol's alkene took bromine, the oxygen relayed the charge, and bromide collected the proton. Under acid the product ketone is less reactive than the starting one, so it stops at a single bromine; under base it would run away to the haloform. Same reagent, opposite endings.",
     steps: [
       {
         step: HALO_ACID_ATTACK,
         stepBrief: "Step 1 · The enol attacks bromine, oxygen backs it up.",
+        wonLine: "The C-Br bond is made.",
         fromHints: {
           ecm: { x: -2.55, y: -0.15 },
           ece: { x: -1.55, y: 0.3 },
@@ -6202,6 +6228,7 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
       {
         step: CROSSED_ATTACK,
         stepBrief: "Step 1 · The enolate's carbon attacks the partner carbonyl.",
+        wonLine: "The alkoxide holds the new bond.",
         fromHints: {
           ka: { x: -1.05, y: 0.35 },
           kb: { x: -2.0, y: -0.25 },
@@ -6256,6 +6283,7 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
       {
         step: DIECKMANN_ATTACK,
         stepBrief: "Step 1 · The ester enolate attacks its own far carbonyl. Ring closed.",
+        wonLine: "The ring is closed.",
         fromHints: {
           dm1: { x: -3.9, y: -0.5 },
           dm1o: { x: -3.15, y: 0.25 },
@@ -6328,6 +6356,7 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
       {
         step: MALONIC_DEPROT,
         stepBrief: "Step 1 · Ethoxide takes the proton BETWEEN the two esters.",
+        wonLine: "The carbanion is made.",
         fromHints: {
           moe: { x: -1.15, y: 1.7 },
           mce1: { x: -2.15, y: 2.15 },
@@ -6400,6 +6429,7 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
       {
         step: ROBINSON_MICHAEL,
         stepBrief: "Step 1 · Michael: the enolate adds 1,4 to the enone.",
+        wonLine: "The Michael bond is made.",
         fromHints: {
           ra: { x: -1.15, y: 0.35 },
           rb: { x: -2.1, y: -0.25 },
@@ -6426,6 +6456,7 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
       {
         step: ROBINSON_CLOSE,
         stepBrief: "Step 2 · The new enolate reaches around and closes the six-ring.",
+        wonLine: "The six-ring is closed.",
         fromHints: {
           h1: { x: -1.35, y: 1.1 },
           h2: { x: -1.95, y: 0.15 },
@@ -6488,6 +6519,7 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
       {
         step: FISCHER_PROTONATE,
         stepBrief: "Step 1 · Hydronium protonates the carbonyl oxygen. Now the carbon is hungry.",
+        wonLine: "Oxygen holds the proton.",
         fromHints: {
           fca: { x: -0.95, y: -0.6 },
           fc1: { x: 0, y: 0 },
@@ -6514,6 +6546,7 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
       {
         step: FISCHER_ATTACK,
         stepBrief: "Step 2 · Methanol attacks the protonated carbonyl.",
+        wonLine: "Methanol is on the carbon.",
         fromHints: {
           fom: { x: -1.55, y: 0.6 },
           fhm: { x: -2.3, y: 0.25 },
@@ -6574,6 +6607,7 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
       {
         step: SOCL2_ACTIVATE,
         stepBrief: "Step 1 · The acid's OH oxygen attacks sulfur; a chloride is pushed off.",
+        wonLine: "Oxygen is bonded to sulfur.",
         fromHints: {
           sca: { x: -3.3, y: -0.6 },
           sc1: { x: -2.35, y: 0.0 },
@@ -6600,6 +6634,7 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
       {
         step: SOCL2_ATTACK,
         stepBrief: "Step 2 · Chloride attacks the carbonyl carbon of the (now deprotonated) chlorosulfite ester.",
+        wonLine: "Chloride is on the carbon.",
         fromHints: {
           sclx: { x: -3.5, y: 1.05 },
           sca: { x: -3.3, y: -0.6 },
@@ -6651,11 +6686,12 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
     id: "seq-anhydride-make",
     title: "Acid → anhydride · 2 steps",
     brief: "Carboxylate meets the acyl chloride you just made. Attack, collapse, and the middle oxygen is born.",
-    successLine: "The carboxylate attacked the acyl chloride and chloride left: an anhydride from the ladder's most reactive rung. Notice the direction: you always climb DOWN the reactivity ladder, which is why the acyl chloride had to be made first.",
+    successLine: "The carboxylate attacked the acyl chloride and chloride left: an anhydride from the ladder's most reactive rung. Notice the direction: you always climb down the reactivity ladder, which is why the acyl chloride had to be made first.",
     steps: [
       {
         step: ANHMAKE_ATTACK,
         stepBrief: "Step 1 · The carboxylate oxygen attacks the acyl chloride's carbonyl.",
+        wonLine: "Carboxylate is on the carbon.",
         fromHints: {
           nb: { x: -1.5, y: 0.5 },
           nc2: { x: -2.5, y: 0.05 },
@@ -6707,11 +6743,12 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
     id: "seq-lialh4",
     title: "LiAlH4 on an ester · 3 steps",
     brief: "Two hydrides, straight to the primary alcohol. The aldehyde in the middle never survives the flask.",
-    successLine: "First hydride, collapse to the aldehyde, second hydride: down two rungs to the alkoxide, alcohol at workup. The aldehyde is MORE reactive than the ester that made it, so with LiAlH4 there is no stopping halfway. That is exactly the job DIBAL exists to do differently.",
+    successLine: "First hydride, collapse to the aldehyde, second hydride: down two rungs to the alkoxide, alcohol at workup. The aldehyde is more reactive than the ester that made it, so with LiAlH4 there is no stopping halfway. That is exactly the job DIBAL exists to do differently.",
     steps: [
       {
         step: LIALH_FIRST,
         stepBrief: "Step 1 · The first hydride attacks the ester carbonyl.",
+        wonLine: "Hydride landed on the carbon.",
         fromHints: {
           lh1: { x: -1.4, y: 0.35 },
           lca: { x: -0.95, y: -0.75 },
@@ -6732,6 +6769,7 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
       {
         step: LIALH_COLLAPSE,
         stepBrief: "Step 2 · The alkoxide collapses; methoxide leaves; an aldehyde appears.",
+        wonLine: "The aldehyde is here.",
         fromHints: {
           lh1: { x: -0.8, y: 0.5 },
           lca: { x: -0.95, y: -0.75 },
@@ -6778,6 +6816,7 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
       {
         step: GRIGNARD_E_FIRST,
         stepBrief: "Step 1 · The first carbanion attacks the ester carbonyl.",
+        wonLine: "The carbanion is on the carbon.",
         fromHints: {
           ge1: { x: -1.45, y: 0.35 },
           gca: { x: -0.95, y: -0.75 },
@@ -6798,6 +6837,7 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
       {
         step: GRIGNARD_E_COLLAPSE,
         stepBrief: "Step 2 · Collapse. Methoxide out, and a ketone stands exposed.",
+        wonLine: "The ketone is here.",
         fromHints: {
           ge1: { x: -0.85, y: 0.55 },
           gca: { x: -0.95, y: -0.75 },
@@ -6844,6 +6884,7 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
       {
         step: AMIDE_ATTACK,
         stepBrief: "Step 1 · Hydroxide attacks the amide carbonyl. Slowly. Resonance fights back.",
+        wonLine: "Hydroxide is on the carbon.",
         fromHints: {
           xoh: { x: -1.6, y: 0.5 },
           xhh: { x: -2.35, y: 0.15 },
@@ -6868,6 +6909,7 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
       {
         step: AMIDE_COLLAPSE,
         stepBrief: "Step 2 · The collapse pushes out the amide anion, the worst leaving group you will ever draw.",
+        wonLine: "Nitrogen left with the pair.",
         fromHints: {
           xoh: { x: -0.75, y: 0.65 },
           xhh: { x: -1.5, y: 0.95 },
@@ -6924,6 +6966,7 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
       {
         step: EASBR_ATTACK,
         stepBrief: "Step 1 · The ring's pi bond attacks Br2. Aromaticity spent, on purpose.",
+        wonLine: "The ring is bonded to bromine.",
         fromHints: {
           bc1: { x: -1.15, y: 0.15 },
           bc2: { x: -1.85, y: 1.0 },
@@ -6983,6 +7026,7 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
       {
         step: SULFO_ATTACK,
         stepBrief: "Step 1 · The ring attacks SO3's sulfur; an S=O relieves the strain.",
+        wonLine: "The ring is bonded to sulfur.",
         fromHints: {
           uc1: { x: -1.15, y: 0.15 },
           uc2: { x: -1.85, y: 1.0 },
@@ -7050,6 +7094,7 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
       {
         step: FC_ATTACK,
         stepBrief: "Step 1 · The ring attacks the acylium carbon; the triple bond relaxes to C=O.",
+        wonLine: "The ring took the acylium.",
         fromHints: {
           rc1: { x: -1.15, y: 0.15 },
           rc2: { x: -1.85, y: 1.0 },
@@ -7110,11 +7155,12 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
     id: "seq-diene-br2",
     title: "Br2 + butadiene, 1,4 · 2 steps",
     brief: "Bromine makes an allyl cation, and the cation wears two costumes. Warm conditions pick the far seat.",
-    successLine: "Bromine went on at C1 and made an allyl cation that lives at C2 AND C4 at once. Bromide chose the far end: 1,4-addition, the thermodynamic product, with the internal alkene as its prize. Cold it, and the same bromide grabs the near seat instead.",
+    successLine: "Bromine went on at C1 and made an allyl cation that lives at C2 and C4 at once. Bromide chose the far end: 1,4-addition, the thermodynamic product, with the internal alkene as its prize. Cold it, and the same bromide grabs the near seat instead.",
     steps: [
       {
         step: DIENE_BR_ATTACK,
         stepBrief: "Step 1 · The terminal alkene attacks Br2. An allyl cation is born.",
+        wonLine: "The allyl cation is here.",
         fromHints: {
           d1: { x: -2.3, y: 0.35 },
           d2: { x: -1.35, y: -0.25 },
@@ -7158,11 +7204,12 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
     id: "seq-roh-hbr",
     title: "Alcohol → alkyl halide · 2 steps",
     brief: "OH is a terrible leaving group. Protonate it and it is water, which leaves happily. Then SN2.",
-    successLine: "HBr's proton turned the hydroxyl into water, and the bromide it left behind did the SN2. Every alcohol activation in the course is a variation on this: make the oxygen WANT to leave, then push.",
+    successLine: "HBr's proton turned the hydroxyl into water, and the bromide it left behind did the SN2. Every alcohol activation in the course is a variation on this: make the oxygen want to leave, then push.",
     steps: [
       {
         step: ROH_PROTONATE,
         stepBrief: "Step 1 · The alcohol oxygen takes HBr's proton.",
+        wonLine: "Oxygen holds the proton.",
         fromHints: {
           olo: { x: -0.6, y: 0.55 },
           olh: { x: -1.35, y: 1.1 },
@@ -7211,6 +7258,7 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
       {
         step: MESYL_ATTACK,
         stepBrief: "Step 1 · The alcohol oxygen attacks sulfur; chloride is pushed out.",
+        wonLine: "Oxygen is bonded to sulfur.",
         fromHints: {
           vso: { x: -1.15, y: 0.45 },
           vsh: { x: -1.9, y: 1.0 },
@@ -7271,6 +7319,7 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
       {
         step: HEMI_PROTONATE,
         stepBrief: "Step 1 · Hydronium protonates the aldehyde oxygen.",
+        wonLine: "Oxygen holds the proton.",
         fromHints: {
           heca: { x: -1.05, y: -0.7 },
           hec1: { x: 0, y: 0 },
@@ -7323,6 +7372,7 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
       {
         step: DIAZO_LOSS,
         stepBrief: "Step 1 · N2 leaves. Nothing pushed it; it just left.",
+        wonLine: "N2 left; the cation is here.",
         fromHints: {
           gc1: { x: -0.9, y: 0.15 },
           gc2: { x: -1.6, y: 1.0 },

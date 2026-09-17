@@ -41,7 +41,7 @@ import { canonicalArrowKey } from "./equivalence";
 export type DrawVerdict =
   | { readonly kind: "correct"; readonly cause: CauseId }
   | { readonly kind: "invalid"; readonly cause: CauseId; readonly finding: ArrowLegalityFinding }
-  | { readonly kind: "not_requested"; readonly missing: number; readonly extra: number }
+  | { readonly kind: "not_requested"; readonly missing: number; readonly extra: number; readonly extras: readonly ElectronFlowArrow[] }
   | { readonly kind: "incomplete"; readonly drawn: number; readonly needed: number };
 
 function sourceKey(source: ElectronSource): string {
@@ -98,7 +98,18 @@ export function gradeDrawing(step: MechanismStep, drawn: readonly ElectronFlowAr
   if (extra === 0 && drawn.length < step.arrows.length) {
     return { kind: "incomplete", drawn: drawn.length, needed: step.arrows.length };
   }
-  return { kind: "not_requested", missing, extra };
+  // The drawn arrows that fill no slot in the authored set, in draw order.
+  // The sheet names these back to the student, so the verdict carries the
+  // arrows themselves, not only the count.
+  const slots = new Map(wanted);
+  const extras: ElectronFlowArrow[] = [];
+  for (const arrow of drawn) {
+    const key = canonicalArrowKey(step.from, arrow);
+    const left = slots.get(key) ?? 0;
+    if (left > 0) slots.set(key, left - 1);
+    else extras.push(arrow);
+  }
+  return { kind: "not_requested", missing, extra, extras };
 }
 
 /** The authored arrows this drawing is still missing. Used to pick what wobbles. */

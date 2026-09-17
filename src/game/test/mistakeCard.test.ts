@@ -107,6 +107,7 @@ function mistake(overrides: Partial<SavedMistake> = {}): SavedMistake {
 }
 
 const DISTRACTOR: TrainerDistractor = {
+  headline: "Bromine won't take that pair.",
   what: "You sent the oxygen's lone pair at bromine.",
   why: "Both ends of that arrow are electron rich.",
   lookAt: "The carbon between them.",

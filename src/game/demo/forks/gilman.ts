@@ -282,7 +282,7 @@ const GILMAN_FORK: StepFork = {
       toHints: DIRECT_TO_HINTS,
       favoured: false,
       cause: "conjugate_addition_favoured_for_soft_nucleophile",
-      why: "This is what an organolithium does, and a Grignard usually does: the hard carbanion hits the hard carbonyl carbon. A cuprate is not that reagent.",
+      why: "This is the organolithium's move, and the Grignard's: straight onto the carbonyl carbon. The reagent in this flask is neither.",
     },
   ],
 };
@@ -300,6 +300,7 @@ export const GILMAN_SEQUENCES: readonly TrainerSequence[] = [
       {
         step: GILMAN_CONJUGATE,
         stepBrief: "Add the cuprate's methyl to the enone. Two sites are open; choose the one a cuprate picks.",
+        wonLine: "Methyl is on the beta carbon.",
         hint: "A cuprate and an enone.",
         fromHints: CONJUGATE_FROM_HINTS,
         toHints: CONJUGATE_TO_HINTS,

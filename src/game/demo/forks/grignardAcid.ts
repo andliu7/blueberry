@@ -195,7 +195,7 @@ const GRIGNARD_ACID_FORK: StepFork = {
       toHints: GA_ADDITION_TO_HINTS,
       favoured: false,
       cause: "acid_base_step_outruns_addition",
-      why: "An acid base step with a 45 unit pKa gap is over before any addition can start, and the carboxylate it leaves is deactivated toward nucleophiles.",
+      why: "The proton transfer wins the race outright: it is over before any addition starts, and it spends the carbanion that would have attacked.",
     },
   ],
 };

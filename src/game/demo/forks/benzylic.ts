@@ -510,7 +510,7 @@ const HCL_FORK: StepFork = {
       fromHints: HCL_CAPTURE_FROM,
       toHints: HCL_CAPTURE_TO,
       favoured: true,
-      why: "Cold, and a good nucleophile sitting right there: chloride reaches the flat cation from either face, so the chloride is racemic.",
+      why: "Cold, and a good nucleophile sitting right there: chloride reaches the flat cation from either face, so the alkyl chloride is racemic.",
     },
     {
       id: "route-e1-cl",
@@ -521,7 +521,7 @@ const HCL_FORK: StepFork = {
       toHints: HCL_E1_TO,
       favoured: false,
       cause: "elimination_not_favoured_under_conditions",
-      why: "Chloride is a poor base and there is no heat to drive the alkene out. Same cation as the H2SO4 problem, but cold HCl captures it.",
+      why: "Chloride is a poor base and there is no heat to drive the alkene out. Cold HCl captures the cation instead.",
     },
   ],
 };
@@ -538,6 +538,7 @@ export const BENZYLIC_SEQUENCES: readonly TrainerSequence[] = [
       {
         step: DEHYDRATION_PROTONATE,
         stepBrief: "Step 1 · The alcohol oxygen takes a proton from hydronium; the O-H electrons stay on that oxygen.",
+        wonLine: "Oxygen holds the proton.",
         hint: "Hydroxide is a poor leaving group. Make it water first.",
         fromHints: DEHYDRATION_PROTONATE_FROM,
         toHints: DEHYDRATION_PROTONATE_TO,
@@ -545,6 +546,7 @@ export const BENZYLIC_SEQUENCES: readonly TrainerSequence[] = [
       {
         step: DEHYDRATION_IONISE,
         stepBrief: "Step 2 · Send the C-O electrons onto oxygen. Water leaves and the benzylic cation is left behind.",
+        wonLine: "Water left; the cation is here.",
         hint: "Tertiary and benzylic: the cation is happy to form on its own.",
         fromHints: DEHYDRATION_IONISE_FROM,
         toHints: DEHYDRATION_IONISE_TO,
@@ -563,11 +565,12 @@ export const BENZYLIC_SEQUENCES: readonly TrainerSequence[] = [
     id: "seq-benzylic-hcl",
     title: "2-Phenylbutan-2-ol in cold HCl · 3 steps",
     brief: "Protonate the OH with HCl, lose water, then decide what the cation does in the cold.",
-    successLine: "SN1 whole: HCl turns the OH into water, water leaves, and chloride lands on the flat cation from either face, so the chloride is racemic. The key's acetate is one more SN1 away, in acetic acid.",
+    successLine: "SN1 whole: HCl turns the OH into water, water leaves, and chloride lands on the flat cation from either face, so the alkyl chloride is racemic. The key's acetate is one more SN1 away, in acetic acid.",
     steps: [
       {
         step: HCL_PROTONATE,
         stepBrief: "Step 1 · The alcohol oxygen takes the proton from HCl; the H-Cl electrons become chloride.",
+        wonLine: "Oxygen holds the proton.",
         hint: "Hydroxide is a poor leaving group. Make it water first.",
         fromHints: HCL_PROTONATE_FROM,
         toHints: HCL_PROTONATE_TO,
@@ -575,6 +578,7 @@ export const BENZYLIC_SEQUENCES: readonly TrainerSequence[] = [
       {
         step: HCL_IONISE,
         stepBrief: "Step 2 · Send the C-O electrons onto oxygen. Water leaves and the benzylic cation is left behind.",
+        wonLine: "Water left; the cation is here.",
         hint: "Tertiary and benzylic: the cation is happy to form on its own.",
         fromHints: HCL_IONISE_FROM,
         toHints: HCL_IONISE_TO,

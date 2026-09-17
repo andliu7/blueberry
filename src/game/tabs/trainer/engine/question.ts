@@ -67,6 +67,8 @@ export interface TrainerQuestionStep {
   readonly prompt: string;
   /** The pill under the canvas. Falls back to the entry's title so the layout never changes. */
   readonly hint: string;
+  /** The answer sheet's headline when this step is won before the last. Absent, the sheet falls back to the question's wonPill. */
+  readonly wonLine?: string;
   /**
    * Present when the chemistry genuinely forks here. `step` above is then the
    * favoured route, so a linear read of the question (the strip, the record,
@@ -117,7 +119,7 @@ export function questionFromReaction(entry: TrainerReaction): TrainerQuestion {
 }
 
 export function questionFromResonance(entry: ResonanceEntry): TrainerQuestion {
-  return singleStep("resonance", entry, entry.foundLine, "Structure found");
+  return singleStep("resonance", entry, entry.foundLine, "You found a resonance structure!");
 }
 
 export function questionFromSequence(entry: TrainerSequence): TrainerQuestion {
@@ -126,7 +128,7 @@ export function questionFromSequence(entry: TrainerSequence): TrainerQuestion {
     kind: "sequence",
     title: entry.title,
     // A fork step never falls back to the title: a title can name a route, and the conditions are the honest hint there.
-    steps: entry.steps.map(({ step, fromHints, toHints, stepBrief, hint, fork }) => ({ step, fromHints, toHints, prompt: stepBrief, hint: hint ?? (fork !== undefined ? fork.conditions : entry.title), ...(fork !== undefined ? { fork } : {}) })),
+    steps: entry.steps.map(({ step, fromHints, toHints, stepBrief, hint, wonLine, fork }) => ({ step, fromHints, toHints, prompt: stepBrief, hint: hint ?? (fork !== undefined ? fork.conditions : entry.title), ...(wonLine !== undefined ? { wonLine } : {}), ...(fork !== undefined ? { fork } : {}) })),
     successLine: entry.successLine,
     wonPill: "Goal achieved",
   };
