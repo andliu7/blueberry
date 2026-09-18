@@ -68,7 +68,7 @@ import { useBerryReactions } from "../../../mascot/useBerryReactions";
 import { TrainerCanvas } from "./TrainerCanvas";
 import { ForkChooser } from "./ForkChooser";
 import { FeedbackSheet, RISE_MS } from "./FeedbackSheet";
-import { branchSheet, describeArrowInState, missSheet, winSheet, type SheetContent } from "./sheetCopy";
+import { branchSheet, describeStrays, missSheet, winSheet, type SheetContent } from "./sheetCopy";
 import { StepStrip } from "./StepStrip";
 import { gradeBranch, stripNodes, type BranchVerdict } from "./forkModel";
 import type { RecordedStep } from "./screenModel";
@@ -397,9 +397,7 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
             ? missSheet(
                 verdict,
                 verdict.kind === "incomplete" || flagged === undefined ? null : matchDistractor(step, flagged),
-                verdict.kind === "not_requested"
-                  ? verdict.extras.map((arrow) => describeArrowInState(step.from, arrow)).filter((line): line is string => line !== null)
-                  : undefined,
+                verdict.kind === "not_requested" ? (describeStrays(step, verdict.extras) ?? undefined) : undefined,
               )
             : null;
   const undoDisabled = !interactive || !canUndo(machine);

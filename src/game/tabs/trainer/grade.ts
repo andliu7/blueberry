@@ -41,7 +41,7 @@ import { canonicalArrowKey } from "./equivalence";
 export type DrawVerdict =
   | { readonly kind: "correct"; readonly cause: CauseId }
   | { readonly kind: "invalid"; readonly cause: CauseId; readonly finding: ArrowLegalityFinding }
-  | { readonly kind: "not_requested"; readonly missing: number; readonly extra: number; readonly extras: readonly ElectronFlowArrow[] }
+  | { readonly kind: "not_requested"; readonly missing: number; readonly extra: number; readonly drawn: number; readonly extras: readonly ElectronFlowArrow[] }
   | { readonly kind: "incomplete"; readonly drawn: number; readonly needed: number };
 
 function sourceKey(source: ElectronSource): string {
@@ -109,7 +109,7 @@ export function gradeDrawing(step: MechanismStep, drawn: readonly ElectronFlowAr
     if (left > 0) slots.set(key, left - 1);
     else extras.push(arrow);
   }
-  return { kind: "not_requested", missing, extra, extras };
+  return { kind: "not_requested", missing, extra, drawn: drawn.length, extras };
 }
 
 /** The authored arrows this drawing is still missing. Used to pick what wobbles. */

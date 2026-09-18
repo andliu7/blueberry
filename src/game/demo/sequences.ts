@@ -5491,7 +5491,7 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
       {
         step: CLAISEN_ATTACK,
         stepBrief: "Step 1 · The enolate carbon attacks the other ester's carbonyl. Three arrows.",
-        wonLine: "The new C-C bond is made.",
+        wonLine: "The new C–C bond is made.",
         fromHints: {
           c1: { x: -1.3, y: 0.2 },
           c2: { x: -2.25, y: -0.3 },
@@ -6075,7 +6075,7 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
       {
         step: ANHYDRIDE_ATTACK,
         stepBrief: "Step 1 · The amine's lone pair attacks one carbonyl of the anhydride.",
-        wonLine: "The N-C bond is made.",
+        wonLine: "The N–C bond is made.",
         fromHints: {
           na: { x: -1.5, y: 0.45 },
           hna1: { x: -2.1, y: 1.05 },
@@ -6175,7 +6175,7 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
       {
         step: HALO_ACID_ATTACK,
         stepBrief: "Step 1 · The enol attacks bromine, oxygen backs it up.",
-        wonLine: "The C-Br bond is made.",
+        wonLine: "The C–Br bond is made.",
         fromHints: {
           ecm: { x: -2.55, y: -0.15 },
           ece: { x: -1.55, y: 0.3 },
@@ -6228,7 +6228,7 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
       {
         step: CROSSED_ATTACK,
         stepBrief: "Step 1 · The enolate's carbon attacks the partner carbonyl.",
-        wonLine: "The alkoxide holds the new bond.",
+        wonLine: "The enolate took formaldehyde.",
         fromHints: {
           ka: { x: -1.05, y: 0.35 },
           kb: { x: -2.0, y: -0.25 },

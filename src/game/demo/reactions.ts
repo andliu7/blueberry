@@ -2105,7 +2105,7 @@ export const TRAINER_REACTIONS: readonly TrainerReaction[] = [
     id: "epoxide-basic",
     title: "Epoxide, basic opening",
     brief: "Strong nucleophile, no acid: which carbon does it hit?",
-    successLine: "Under basic conditions the nucleophile attacks the LESS hindered carbon: clean SN2, backside, and the ring strain does the leaving group's job.",
+    successLine: "Under basic conditions the nucleophile attacks the less hindered carbon: clean SN2, backside, and the ring strain does the leaving group's job.",
     step: EPOXIDE_BASIC,
     fromHints: {
       om: { x: -1.85, y: -0.35 },
@@ -2128,7 +2128,7 @@ export const TRAINER_REACTIONS: readonly TrainerReaction[] = [
     id: "epoxide-acidic",
     title: "Epoxide, acidic opening",
     brief: "The ring is protonated now. Same question: which carbon?",
-    successLine: "Under acid the ring is activated and the MORE substituted carbon takes the hit: it carries the greater share of positive charge, so the weak nucleophile goes there.",
+    successLine: "Under acid the ring is activated and the more substituted carbon takes the hit: it carries the greater share of positive charge, so the weak nucleophile goes there.",
     step: EPOXIDE_ACIDIC,
     fromHints: {
       ow: { x: 1.95, y: -0.5 },
@@ -2318,7 +2318,7 @@ export const TRAINER_REACTIONS: readonly TrainerReaction[] = [
     id: "iminium-reduction",
     title: "Iminium reduction",
     brief: "The heart of reductive amination: hydride picks the C=N carbon.",
-    successLine: "The hydride lands on the iminium carbon and the π electrons settle onto nitrogen: the amine is made, and NaBH₃CN's whole trick is that it reduces THIS species and leaves the plain carbonyl alone.",
+    successLine: "The hydride lands on the iminium carbon and the π electrons settle onto nitrogen: the amine is made, and NaBH₃CN's whole trick is that it reduces this species and leaves the plain carbonyl alone.",
     step: IMINIUM_REDUCTION,
     fromHints: {
       h9: { x: -1.35, y: -0.35 },

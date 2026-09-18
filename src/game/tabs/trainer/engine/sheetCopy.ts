@@ -27,7 +27,7 @@
  */
 
 import { causeCopyEntry } from "@blueberry/feedback";
-import type { ArrowLegalityRuleId, ElectronFlowArrow, MechanismState } from "@blueberry/chem-core";
+import type { ArrowLegalityRuleId, ElectronFlowArrow, MechanismState, MechanismStep } from "@blueberry/chem-core";
 import type { DrawVerdict } from "../grade";
 import type { TrainerDistractor } from "../distractors";
 import type { BranchVerdict } from "./forkModel";
@@ -147,83 +147,136 @@ const ELEMENT_NAMES: Readonly<Record<string, string>> = {
   H: "hydrogen", C: "carbon", N: "nitrogen", O: "oxygen", F: "fluorine", P: "phosphorus",
   S: "sulfur", Cl: "chlorine", Br: "bromine", I: "iodine", Li: "lithium", Mg: "magnesium", Cu: "copper",
 };
+const SUBSCRIPTS = ["", "", "₂", "₃", "₄"] as const;
+const ORDER_MARK = ["", "–", "=", "≡"] as const;
+
+/** "an oxygen", "a carbon"; a label read as letters takes its article from the letter's sound ("an O–H bond", "an N–H bond"). */
+function withArticle(phrase: string, spelledAsLetters: boolean): string {
+  const first = phrase.charAt(0).toUpperCase();
+  const vowelSound = spelledAsLetters ? "AEFHILMNORSX".includes(first) : "AEIOU".includes(first);
+  return `${vowelSound ? "an" : "a"} ${phrase}`;
+}
 
 /**
- * The student's own arrow, in words: "from bromine's lone pair onto a carbon".
- * Element names come from the step's state, never from recall; null when the
- * arrow touches something the state cannot name, and the caller drops it.
+ * A describer over one state. Everything it says is read off the state's own
+ * atoms and bonds, never recalled: an atom is named by the first fact that
+ * singles it out among its element (its charge, a heteroatom it is bonded to,
+ * its hydrogen count), and falls back to the indefinite ("a CH₃ carbon") when
+ * several atoms share even that. describeStrays below refuses any sentence
+ * that ends up reading the same as a correct arrow's.
  */
-export function describeArrowInState(state: MechanismState, arrow: ElectronFlowArrow): string | null {
-  const elements = new Map<string, string>();
-  const bondEnds = new Map<string, readonly [string, string]>();
-  const counts = new Map<string, number>();
+function stateDescriber(state: MechanismState) {
+  const atoms = new Map<string, { element: string; charge: number; hydrogens: number; neighbours: string[] }>();
+  const bonds: { id: string; a: string; b: string; order: number }[] = [];
   for (const member of state.members) {
-    for (const atom of member.species.atoms) {
-      elements.set(atom.id, atom.element);
-      counts.set(atom.element, (counts.get(atom.element) ?? 0) + 1);
-    }
-    for (const bond of member.species.bonds) bondEnds.set(bond.id, [bond.a, bond.b]);
+    for (const atom of member.species.atoms) atoms.set(atom.id, { element: atom.element, charge: atom.formalCharge, hydrogens: atom.implicitHydrogens, neighbours: [] });
+    for (const bond of member.species.bonds) bonds.push({ id: bond.id, a: bond.a, b: bond.b, order: bond.order });
   }
-  // "bromine's lone pair" when the state holds one bromine, "a carbon" when it holds several.
-  const spoken = (atomId: string, possessive: boolean): string | null => {
-    const element = elements.get(atomId);
-    if (element === undefined) return null;
-    const name = ELEMENT_NAMES[element] ?? element;
-    const unique = (counts.get(element) ?? 0) === 1;
-    return unique ? name + (possessive ? "'s" : "") : `a ${name}${possessive ? "'s" : ""}`;
+  for (const bond of bonds) {
+    const [a, b] = [atoms.get(bond.a), atoms.get(bond.b)];
+    if (a === undefined || b === undefined) continue;
+    if (b.element === "H") a.hydrogens += 1;
+    else a.neighbours.push(b.element);
+    if (a.element === "H") b.hydrogens += 1;
+    else b.neighbours.push(a.element);
+  }
+  const sameElement = (element: string) => [...atoms.values()].filter((other) => other.element === element);
+
+  const atomPhrase = (atomId: string): string | null => {
+    const atom = atoms.get(atomId);
+    if (atom === undefined) return null;
+    const name = ELEMENT_NAMES[atom.element] ?? atom.element;
+    const peers = sameElement(atom.element);
+    if (peers.length === 1) return atom.element === "C" || atom.element === "H" ? `the ${name}` : name;
+    if (atom.charge !== 0 && peers.filter((peer) => Math.sign(peer.charge) === Math.sign(atom.charge)).length === 1) {
+      return `the ${atom.charge > 0 ? "positive" : "negative"} ${name}`;
+    }
+    for (const partner of [...new Set(atom.neighbours)].filter((element) => element !== "C").sort()) {
+      if (peers.filter((peer) => peer.neighbours.includes(partner)).length === 1) return `the ${name} bonded to ${ELEMENT_NAMES[partner] ?? partner}`;
+    }
+    const group = atom.hydrogens === 0 ? null : `${atom.element}H${SUBSCRIPTS[atom.hydrogens] ?? atom.hydrogens}`;
+    if (group === null) return null;
+    const sharing = peers.filter((peer) => peer.hydrogens === atom.hydrogens).length;
+    return sharing === 1 ? `the ${group} ${name}` : `${withArticle(group, true)} ${name}`;
   };
+
   // Bonds read the way a chemist writes them: carbon first, hydrogen last,
-  // otherwise alphabetical, so the pair is "C–Br" and "O–H" whichever end
-  // the data lists first.
+  // otherwise alphabetical, with the order showing ("C=O", never "C–O" for a
+  // carbonyl). "the" only when no other bond in the state reads the same.
   const rank = (element: string): string => (element === "C" ? "0" : element === "H" ? "2" : `1${element}`);
-  const pairLabel = (first: string | undefined, second: string | undefined): string | null => {
-    if (first === undefined || second === undefined) return null;
-    const [a, b] = rank(first) <= rank(second) ? [first, second] : [second, first];
-    return `${a}–${b}`;
+  const label = (a: string, b: string, order: number): string | null => {
+    const [first, second] = [atoms.get(a)?.element, atoms.get(b)?.element];
+    const mark = ORDER_MARK[order];
+    if (first === undefined || second === undefined || mark === undefined) return null;
+    const [left, right] = rank(first) <= rank(second) ? [first, second] : [second, first];
+    return `${left}${mark}${right}`;
   };
-  const bondLabel = (bondId: string): string | null => {
-    const ends = bondEnds.get(bondId);
-    return ends === undefined ? null : pairLabel(elements.get(ends[0]), elements.get(ends[1]));
+  const bondPhrase = (bond: { a: string; b: string; order: number }): string | null => {
+    const own = label(bond.a, bond.b, bond.order);
+    if (own === null) return null;
+    const alike = bonds.filter((other) => label(other.a, other.b, other.order) === own).length;
+    return alike === 1 ? `the ${own} bond` : `${withArticle(own, true)} bond`;
   };
-  let from: string | null;
-  switch (arrow.source.kind) {
-    case "lonePair": {
-      const owner = spoken(arrow.source.atomId, true);
-      from = owner === null ? null : `from ${owner} lone pair`;
-      break;
+
+  return (arrow: ElectronFlowArrow): string | null => {
+    let from: string | null = null;
+    if (arrow.source.kind === "bond") {
+      const bondId = arrow.source.bondId;
+      const bond = bonds.find((candidate) => candidate.id === bondId);
+      const phrase = bond === undefined ? null : bondPhrase(bond);
+      from = phrase === null ? null : `from ${phrase}`;
+    } else {
+      const owner = atomPhrase(arrow.source.atomId);
+      from = owner === null ? null : `from ${arrow.source.kind === "lonePair" ? "a lone pair" : "the unpaired electron"} on ${owner}`;
     }
-    case "bond": {
-      const label = bondLabel(arrow.source.bondId);
-      from = label === null ? null : `from the ${label} bond`;
-      break;
-    }
-    case "singleElectron": {
-      const owner = spoken(arrow.source.atomId, true);
-      from = owner === null ? null : `from ${owner} lone electron`;
-      break;
-    }
-  }
-  let to: string | null;
-  switch (arrow.sink.kind) {
-    case "atom": {
-      const target = spoken(arrow.sink.atomId, false);
+    let to: string | null = null;
+    if (arrow.sink.kind === "atom") {
+      const target = atomPhrase(arrow.sink.atomId);
       to = target === null ? null : `onto ${target}`;
-      break;
+    } else {
+      const [a, b] = arrow.sink.atomIds;
+      const existing = bonds.find((bond) => (bond.a === a && bond.b === b) || (bond.a === b && bond.b === a));
+      if (existing !== undefined) {
+        // No new connection forms here: the pair raises a bond that already exists.
+        const phrase = bondPhrase(existing);
+        const raised = label(existing.a, existing.b, existing.order + 1);
+        to = phrase === null || raised === null ? null : `into ${phrase}, making it ${raised}`;
+      } else {
+        // The pair's own atom first, so the sentence reads the way the push was drawn.
+        const ownerFirst = arrow.source.kind !== "bond" && arrow.source.atomId === b;
+        const [near, far] = [atomPhrase(ownerFirst ? b : a), atomPhrase(ownerFirst ? a : b)];
+        to = near === null || far === null ? null : `into a new bond between ${near} and ${far}`;
+      }
     }
-    case "betweenAtoms": {
-      const label = pairLabel(elements.get(arrow.sink.atomIds[0]), elements.get(arrow.sink.atomIds[1]));
-      to = label === null ? null : `into a new ${label} bond`;
-      break;
-    }
+    return from === null || to === null ? null : `${from} ${to}`;
+  };
+}
+
+/**
+ * The student's own extra arrows, in words, or null when they cannot be named
+ * honestly. All or nothing: if any one of them has no clean description, or
+ * reads the same as one of the step's CORRECT arrows (two attacks that differ
+ * only in which of several like atoms they land on), nothing is named, because
+ * a sentence that describes the right answer as the stray is worse than the
+ * count alone.
+ */
+export function describeStrays(step: MechanismStep, extras: readonly ElectronFlowArrow[]): readonly string[] | null {
+  const describe = stateDescriber(step.from);
+  const correct = new Set(step.arrows.map(describe));
+  const named: string[] = [];
+  for (const arrow of extras) {
+    const phrase = describe(arrow);
+    if (phrase === null || correct.has(phrase)) return null;
+    named.push(phrase);
   }
-  return from === null || to === null ? null : `${from} ${to}`;
+  return named.length > 0 ? named : null;
 }
 
 /**
  * The sheet for a drawing the grader did not accept. `distractor` is the
  * authored copy for the arrow the grader flagged, when an instructor wrote
  * one. `strays` are the student's own extra arrows already put into words
- * (describeArrowInState), so the near-miss sheet can point at them by name.
+ * (describeStrays), so the near-miss sheet can point at them by name.
  */
 export function missSheet(verdict: Exclude<DrawVerdict, { kind: "correct" }>, distractor: TrainerDistractor | null, strays?: readonly string[]): SheetContent {
   if (distractor !== null) return distractorSheet(distractor);
@@ -246,16 +299,25 @@ export function missSheet(verdict: Exclude<DrawVerdict, { kind: "correct" }>, di
       if (verdict.extra > 0) parts.push(`${capitalise(spell(verdict.extra))} of yours ${verdict.extra === 1 ? "goes" : "go"} somewhere this step does not.`);
       // Name the student's own stray arrows, never the missing ones: naming a
       // missing push would hand over the answer the incomplete copy is
-      // careful not to spoil.
-      if (strays !== undefined && strays.length === 1) parts.push(`The stray one is your push ${strays[0]}.`);
-      else if (strays !== undefined && strays.length > 1) parts.push(`The stray ones are your pushes ${strays.join(", and ")}.`);
+      // careful not to spoil. It leads the layer, because it is the only
+      // sentence about THIS drawing and a stressed student reads one.
+      let named = "";
+      if (strays !== undefined && strays.length > 0) {
+        const list = strays.length === 1 ? strays[0] : `${strays.slice(0, -1).join(", ")} and ${strays[strays.length - 1]}`;
+        named =
+          verdict.drawn === 1
+            ? `Your push, ${list}, is not one this step makes. `
+            : strays.length === 1
+              ? `The stray one is your push ${list}. `
+              : `The stray ones are your pushes ${list}. `;
+      }
       return {
         tone: "nearMiss",
         headline: "Legal, but a different change.",
         layers: [
           {
             label: "What's off",
-            text: `Every arrow you drew is legal on its own: each starts on real electrons and ends on an atom or bond that touches where it started. Together they describe a different change from the one this step asks for. ${parts.join(" ")}`.trim(),
+            text: `${named}Every arrow you drew is legal on its own: each starts on real electrons and ends on an atom or bond that touches where it started. Together they describe a different change from the one this step asks for. ${parts.join(" ")}`.trim(),
           },
           {
             label: "Where to look",

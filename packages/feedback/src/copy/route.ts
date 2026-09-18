@@ -55,7 +55,7 @@ export const ROUTE_COPY: Readonly<Record<RouteCauseId, CauseCopy>> = Object.free
   },
   elimination_not_favoured_under_conditions: {
     whatYouDid: "This branch takes a proton off the cation, and the arrows for it are drawn correctly.",
-    why: "From a carbocation every exit is a race, and the racers are whatever the flask holds: a nucleophile attacks with a lone pair it already carries, while a weak base has to find and take a proton. Cold conditions hand the race to the nucleophile. Heat changes the finish line, because the alkene elimination makes can leave the equilibrium for good, while a captured product can always ionise again.",
+    why: "From a carbocation every exit is a race, and here one species runs both lanes: the same lone pair can drop straight onto the empty carbon, which breaks nothing, or pull off a neighbouring hydrogen, which also breaks a C-H bond. In the cold the direct route wins. Heat changes the finish line, because elimination turns one particle into two, and that counts for more the hotter the flask, while a captured product can ionise again for as long as the acid is there.",
     lookAt: "Read the reagent line for three things: how strong the base is, what in the flask can attack the cation, and the temperature. A nucleophile present, no strong base, and room temperature or below means capture: draw the branch where that nucleophile puts its lone pair on the empty carbon.",
     competingRoutes: ["sn1"],
   },

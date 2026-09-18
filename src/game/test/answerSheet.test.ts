@@ -13,14 +13,15 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { createElement, act } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import type { ArrowLegalityRuleId, CauseId } from "@blueberry/chem-core";
+import type { ArrowLegalityRuleId, CauseId, ElectronFlowArrow } from "@blueberry/chem-core";
 import { voiceViolations } from "@blueberry/curriculum";
 import type { InteractionStore, Point2 } from "@blueberry/interaction";
 import { TRAINER_SEQUENCES } from "../demo/sequences";
 import { TRAINER_REACTIONS } from "../demo/reactions";
+import { RESONANCE_HUNT } from "../demo/resonance";
 import { questionFromReaction, questionFromSequence, type TrainerQuestion } from "../tabs/trainer/engine/question";
 import { TrainerScreen } from "../tabs/trainer/engine/TrainerScreen";
-import { HEADLINE_MAX, RULE_COPY, branchSheet, missSheet, winSheet, type SheetContent } from "../tabs/trainer/engine/sheetCopy";
+import { HEADLINE_MAX, RULE_COPY, branchSheet, describeStrays, missSheet, winSheet, type SheetContent } from "../tabs/trainer/engine/sheetCopy";
 import { authoredDistractors } from "../tabs/trainer/distractors";
 import type { DrawVerdict } from "../tabs/trainer/grade";
 
@@ -80,7 +81,7 @@ describe("every sentence the sheet can say", () => {
   });
 
   it("says in words what is missing and what is extra when every push is legal but the change is different", () => {
-    const sheet = missSheet({ kind: "not_requested", missing: 1, extra: 2, extras: [] }, null);
+    const sheet = missSheet({ kind: "not_requested", missing: 1, extra: 2, drawn: 3, extras: [] }, null);
     expect(sheet.headline.length).toBeLessThanOrEqual(HEADLINE_MAX);
     expect(sheet.layers[0]?.text).toContain("One of the pushes this step needs is not drawn yet.");
     expect(sheet.layers[0]?.text).toContain("Two of yours go somewhere this step does not.");
@@ -207,7 +208,7 @@ describe("the sheet on the screen", () => {
     // The stray arrow is named back in the student's own terms, from the
     // step's state: the canvas records the drop onto c2 as a forming bond,
     // so the words name that gesture, bromine by name because it is unique.
-    expect(container.querySelector("[data-sheet-layers]")?.textContent).toContain("The stray one is your push from bromine's lone pair into a new C–Br bond.");
+    expect(container.querySelector("[data-sheet-layers]")?.textContent).toContain("Your push, from a lone pair on bromine into a new bond between bromine and");
     press(container, "Where to look");
     expect(openedLayers(container)).toBe(2);
     expect(buttonLabelled(container, "Hide")).toBeDefined();
@@ -263,6 +264,45 @@ describe("the sheet on the screen", () => {
   });
 });
 
+describe("naming the student's own stray arrow", () => {
+  const sn2 = TRAINER_REACTIONS.find((entry) => entry.id === "sn2");
+  const epoxide = TRAINER_REACTIONS.find((entry) => entry.id === "epoxide-basic");
+  if (sn2 === undefined || epoxide === undefined) throw new Error("the demo reactions moved");
+
+  /** The arrow a student draws, built from the step's own ids. */
+  function arrow(source: ElectronFlowArrow["source"], sink: ElectronFlowArrow["sink"]): ElectronFlowArrow {
+    return { id: "stray" as ElectronFlowArrow["id"], electrons: 2, source, sink };
+  }
+
+  it("says which push is the stray one, in the student's own terms", () => {
+    // Bromine's lone pair sent at a carbon: bromine is the only bromine here,
+    // so it is named outright, and the carbon takes the descriptor that
+    // separates it from the others.
+    const strays = describeStrays(sn2.step, [arrow({ kind: "lonePair", atomId: "br1" }, { kind: "atom", atomId: "c1" })]);
+    expect(strays).not.toBeNull();
+    expect(strays?.[0]).toContain("from a lone pair on bromine onto ");
+    expect(strays?.[0]).not.toContain(" a oxygen");
+    expect(strays?.[0]).not.toContain(" a iodine");
+  });
+
+  it("says a bond is being raised rather than newly made when the two atoms already touch", () => {
+    const strays = describeStrays(sn2.step, [arrow({ kind: "lonePair", atomId: "br1" }, { kind: "betweenAtoms", atomIds: ["c1", "br1"] })]);
+    expect(strays?.[0]).toContain("making it");
+    expect(strays?.[0]).not.toContain("a new bond");
+  });
+
+  it("stays silent rather than describing the stray in the same words as the right answer", () => {
+    // The guard is all or nothing: if any stray would be described in the
+    // same words as one of the step's own arrows, the student would read
+    // the right answer labelled as their mistake, so nothing is named. An
+    // authored arrow standing in as the stray is the sharpest case of it.
+    const key = epoxide.step.arrows[0];
+    if (key === undefined) throw new Error("epoxide-basic lost its authored arrow");
+    const sameWords = describeStrays(epoxide.step, [{ ...key, id: "stray" as ElectronFlowArrow["id"] }]);
+    expect(sameWords).toBeNull();
+  });
+});
+
 describe("the per-step win lines", () => {
   it("keeps shouting out of every sheet-visible line: no all-caps words in wonLines or successLines", () => {
     // Real acronyms and formulas stay; emphasis caps (MORE, DOWN, WANT) do
@@ -275,6 +315,10 @@ describe("the per-step win lines", () => {
         if (step.wonLine !== undefined) expect(shouting(step.wonLine), `${entry.id} step ${index + 1}`).toEqual([]);
       }
     }
+    // Every other line the sheet can speak: a single-step reaction's success
+    // line and a resonance find both reach the win sheet's Why?.
+    for (const entry of TRAINER_REACTIONS) expect(shouting(entry.successLine), `${entry.id} successLine`).toEqual([]);
+    for (const entry of RESONANCE_HUNT) expect(shouting(entry.foundLine), `${entry.id} foundLine`).toEqual([]);
   });
 
   it("gives every non-final sequence step a wonLine that holds one line and passes the voice lint", () => {

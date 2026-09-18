@@ -70,7 +70,7 @@ describe("gradeBranch", () => {
 
   it("says nothing until the arrows are right", () => {
     expect(gradeBranch(fork, loser, { kind: "incomplete", drawn: 1, needed: 2 })).toBeNull();
-    expect(gradeBranch(fork, loser, { kind: "not_requested", missing: 1, extra: 0, extras: [] })).toBeNull();
+    expect(gradeBranch(fork, loser, { kind: "not_requested", missing: 1, extra: 0, drawn: 1, extras: [] })).toBeNull();
   });
 
   it("passes the favoured route", () => {
