@@ -2214,7 +2214,17 @@ export default function PathwayTab({ reducedMotion }: { readonly reducedMotion: 
         reducedMotion={reducedMotion}
       />
       {guidebook === null ? null : (
-        <div className="gb-overlay">
+        /*
+         * A MODAL, AND IT SAYS SO. The pager's arrow keys stand down for
+         * anything carrying dialog ARIA, which is how an open node sheet
+         * stopped the page turning underneath it. This overlay is the same
+         * shape and was missing the same two attributes, so Right paged the
+         * unit behind an open guidebook. Unlike NodeSheet, which mounts once
+         * and lives closed, this one only exists while it is open, so the
+         * attributes are unconditional and cannot claim a modal is up when
+         * none is. pathwayUnlock.test.ts pins both overlays carrying them.
+         */
+        <div className="gb-overlay" role="dialog" aria-modal="true" aria-label="Guidebook">
           <Guidebook content={guidebookFor(guidebook)} onBack={() => setGuidebook(null)} reducedMotion={reducedMotion} />
         </div>
       )}

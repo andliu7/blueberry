@@ -26,6 +26,9 @@
  * instruments that only worked before dark").
  */
 
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import type { EconomyEvent } from "@blueberry/economy";
 import { PATHWAY_UNITS } from "../demo/pathwayMap";
@@ -267,5 +270,44 @@ describe("the diamond fork, derived", () => {
         expect(statusOf(status, node.id).state).not.toBe("locked");
       }
     }
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/* Every modal on the tab says it is one                                */
+/* ------------------------------------------------------------------ */
+
+describe("the pager's arrow keys stand down for every overlay, not just the first one found", () => {
+  /*
+   * The pager pages on ArrowLeft and ArrowRight, and bails when anything on
+   * the page carries dialog ARIA. That guard was written for the node sheet,
+   * which meant the guidebook overlay, a plain div at the time, let Right
+   * turn the unit behind an open guidebook: the same bug in the second of
+   * two places. The guard is generic, so the pin belongs on the overlays.
+   *
+   * Source text rather than a render, because the two overlays carry the
+   * attributes differently and both ways are correct: the guidebook mounts
+   * only while open, so its ARIA is unconditional; NodeSheet mounts once and
+   * lives closed, so its ARIA is conditional on a node being open, and an
+   * unconditional one there would tell the guard a modal is always up.
+   */
+  const read = (relative: string) => readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), relative), "utf8");
+
+  it("gives the guidebook overlay the dialog ARIA the guard reads", () => {
+    const tab = read("../tabs/pathway/PathwayTab.tsx");
+    const overlay = tab.slice(tab.indexOf('className="gb-overlay"'));
+    expect(overlay.slice(0, 200)).toContain('role="dialog"');
+    expect(overlay.slice(0, 200)).toContain('aria-modal="true"');
+  });
+
+  it("keeps the node sheet's dialog ARIA conditional, so a closed sheet never claims the keys", () => {
+    const sheet = read("../pathway-sheet/NodeSheet.tsx");
+    expect(sheet).toContain('role={node === null ? undefined : "dialog"}');
+    expect(sheet).toContain('aria-modal={node === null ? undefined : "true"}');
+  });
+
+  it("still guards on the ARIA state rather than on a class name", () => {
+    const tab = read("../tabs/pathway/PathwayTab.tsx");
+    expect(tab).toContain('dialog[open], [role="dialog"][aria-modal="true"]');
   });
 });
