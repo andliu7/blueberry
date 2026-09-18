@@ -65,9 +65,10 @@
 
 import { useMemo, useRef, useState } from "react";
 import type { DeckId, DeckSource, ReactionSide, ReactionSides } from "../types";
-import { REVEAL_LABELS, REVEAL_ORDER } from "../types";
+import { REVEAL_LABELS } from "../types";
 import { decks as defaultDecks } from "../store";
 import {
+  COMPOSER_REVEAL_FIELDS,
   EMPTY_EXTRAS,
   EMPTY_SIDES,
   SIDE_HINTS,
@@ -503,7 +504,7 @@ export function Composer({ source = defaultDecks, onBack, now = () => new Date()
               onChange={(event) => editExtra("temperature", event.target.value)}
             />
           </label>
-          {REVEAL_ORDER.map((field) => (
+          {COMPOSER_REVEAL_FIELDS.map((field) => (
             <label
               key={field}
               className="flex flex-col gap-1 text-scale-xs font-semibold text-bb-muted-foreground"

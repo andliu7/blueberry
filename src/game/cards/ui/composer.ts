@@ -34,7 +34,6 @@ import type {
   ReactionSide,
   ReactionSides,
 } from "../types";
-import { REVEAL_ORDER } from "../types";
 
 /** The pill's order, left to right, exactly as the committed composer image. */
 export const SIDE_ORDER: readonly ReactionSide[] = Object.freeze([
@@ -129,7 +128,25 @@ export function composedCardId(sides: ReactionSides, now: Date): CardId {
  * carries at least one becomes a reaction-faced card, so the three-sided
  * pill face stays the default the committed composer image draws.
  */
-export interface DraftExtras extends Record<ReactionRevealField, string> {
+/**
+ * The reveal fields the COMPOSER offers, which is a subset of REVEAL_ORDER
+ * and is deliberately the owner's original five. The reveal also carries
+ * solvent, acid/base and notes now, but those are read off data/reactions.ts
+ * for a card built from the registry; asking a student to type them into
+ * their own card would be three more empty boxes in a form that already has
+ * five, so the authoring form stays as the committed composer image draws it.
+ */
+export const COMPOSER_REVEAL_FIELDS = [
+  "keq",
+  "pka",
+  "selectivity",
+  "electronegativity",
+  "resonance",
+] as const satisfies readonly ReactionRevealField[];
+
+export type ComposerRevealField = (typeof COMPOSER_REVEAL_FIELDS)[number];
+
+export interface DraftExtras extends Record<ComposerRevealField, string> {
   readonly temperature: string;
 }
 
@@ -158,7 +175,7 @@ export function hasExtras(extras: DraftExtras): boolean {
 /** The reveal the draft's extras amount to: trimmed, and absent when blank. */
 export function revealFromExtras(extras: DraftExtras): ReactionReveal {
   const reveal: Record<string, string> = {};
-  for (const field of REVEAL_ORDER) {
+  for (const field of COMPOSER_REVEAL_FIELDS) {
     const value = extras[field].trim();
     if (value.length > 0) reveal[field] = value;
   }

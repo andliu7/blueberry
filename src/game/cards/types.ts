@@ -187,8 +187,26 @@ export interface ReactionCardData {
   readonly products: string;
   /** The chip on the face, already formatted, e.g. "-78 °C". Absent when unstated. */
   readonly temperature?: string;
+  /**
+   * The drawn structures, when the card came from the authored registry.
+   * Absent for a card a student wrote, because there is no drawing of it.
+   */
+  readonly art?: ReactionCardArt;
   /** The extras behind the tap. Each optional: absent renders nothing. */
   readonly reveal: ReactionReveal;
+}
+
+/**
+ * Paths under BASE_URL, carried verbatim from data/reactions.ts, which RDKit
+ * rendered from the same canonical SMILES the conservation check passed. A
+ * pair per side because the two themes get two drawings; either may be absent
+ * and the face then draws the one it has.
+ */
+export interface ReactionCardArt {
+  readonly startLight?: string;
+  readonly startDark?: string;
+  readonly productLight?: string;
+  readonly productDark?: string;
 }
 
 /**
@@ -204,6 +222,17 @@ export interface ReactionReveal {
   readonly selectivity?: string;
   readonly electronegativity?: string;
   readonly resonance?: string;
+  /**
+   * THE THREE THE REGISTRY ACTUALLY CARRIES, added because the five above are
+   * the composer's fields and only two of the 43 authored reactions state any
+   * of them: 41 cards had a tap that paid nothing. Every stage in
+   * data/reactions.ts carries a solvent, an acid/base reading and an authored
+   * note, so those are what the reveal shows for a card built from it. They
+   * stay optional and stay verbatim like the rest.
+   */
+  readonly solvent?: string;
+  readonly acidBase?: string;
+  readonly notes?: string;
 }
 
 export type ReactionRevealField = keyof ReactionReveal;
@@ -215,6 +244,9 @@ export const REVEAL_ORDER: readonly ReactionRevealField[] = Object.freeze([
   "selectivity",
   "electronegativity",
   "resonance",
+  "solvent",
+  "acidBase",
+  "notes",
 ]);
 
 /** The label each reveal field wears. Owner-named field names, not chemistry. */
@@ -224,6 +256,9 @@ export const REVEAL_LABELS: Readonly<Record<ReactionRevealField, string>> = Obje
   selectivity: "1,2 vs 1,4 selectivity",
   electronegativity: "Electronegativity",
   resonance: "Resonance",
+  solvent: "Solvent",
+  acidBase: "Acid or base",
+  notes: "What matters here",
 });
 
 export interface RevealEntry {

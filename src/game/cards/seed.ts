@@ -10,10 +10,18 @@
  * DERIVED, NEVER INVENTED. Every card comes out of data/reactions.ts through
  * reactionCardFromStaged: RDKit-checked, syllabus-sourced, carried verbatim.
  * The six ids below are a curation, not chemistry: tier 1 and 2 reactions a
- * CHEM241 student meets early, including the two whose stages state a
- * temperature (so the face chip is exercised) and the one whose authored
- * notes speak to 1,2 against 1,4 selectivity (so the reveal is exercised).
- * A field the data does not carry stays absent on the card.
+ * CHEM241 student meets early. A field the data does not carry stays absent
+ * on the card.
+ *
+ * SIX DISTINCT SUBSTRATES, which round 4 is where they became distinct. The
+ * first curation took four of its six from acetophenone, so the deck tray
+ * dealt a hand labelled "acetophe…" four times and a student flicking through
+ * it could not tell one card from another. The six now start from
+ * acetophenone, benzaldehyde, benzoic acid, benzoyl chloride, methyl benzoate
+ * and buta-1,3-diene, one each, and they still exercise the face: two state a
+ * temperature (gilman at -78, the diene addition at 40) and the diene
+ * addition's authored notes speak to 1,2 against 1,4, which is the one reveal
+ * field the composer and the registry share.
  *
  * EXACTLY ONCE. A flag in localStorage marks the seeding done, and the seed
  * also refuses when the store already holds cards, so a returning student
@@ -35,12 +43,12 @@ export const SEED_FLAG_KEY = "blueberry.cards.seeded.v1";
 
 /** The curated ids. See the header for why these six. */
 export const STARTER_REACTION_IDS: readonly string[] = Object.freeze([
-  "grignard-addition-ketone",
-  "nabh4-reduction",
   "imine-formation",
-  "wolff-kishner",
+  "acetylide-addition",
+  "socl2-acid-to-chloride",
   "gilman-to-ketone",
-  "michael-addition",
+  "lialh4-reduction",
+  "diene-1-4-addition",
 ]);
 
 /** The starter cards, built fresh from the registry. Missing ids are skipped. */

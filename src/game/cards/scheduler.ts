@@ -18,7 +18,9 @@
  *   hard   the interval grows by HARD_FACTOR, about 1.2. Growth SLOWS. It
  *          never resets, because a card you half remembered is not a card you
  *          never saw, and throwing away three weeks of interval for a slow
- *          recall is the single most demoralising thing Anki does.
+ *          recall is the single most demoralising thing Anki does. On a card
+ *          still in learning it is its own half-hour step, not again's ten
+ *          minutes: see HARD_MINUTES.
  *   good   the default path: the interval grows by the card's own ease, 2.5 at
  *          the start.
  *   easy   about 3.5 at the starting ease (ease times EASY_BONUS), which gets
@@ -81,6 +83,19 @@ export const EASE_DELTA: Readonly<Record<Rating, number>> = Object.freeze({
 /** "Inside the same session" made a number. */
 export const AGAIN_MINUTES = 10;
 export const AGAIN_INTERVAL_DAYS = AGAIN_MINUTES / (24 * 60);
+
+/**
+ * HARD'S OWN LEARNING STEP, and it exists because without it the four buttons
+ * were three. On a brand new card `again` and `hard` both landed on ten
+ * minutes, so the row read 10m / 10m / 1d / 4d and the first two choices had
+ * the same consequence; Anki's new-card row is four distinct intervals and the
+ * whole reason the buttons carry their intervals is that the choice is
+ * visible. Half an hour is still inside the session's tail rather than a real
+ * interval, which is what `hard` means on a card you have just met: slower
+ * than forgotten, not yet retained.
+ */
+export const HARD_MINUTES = 30;
+export const HARD_LEARNING_INTERVAL_DAYS = HARD_MINUTES / (24 * 60);
 
 /** Below this is learning; at or above it is a real interval. */
 export const GRADUATING_INTERVAL_DAYS = 1;
@@ -169,9 +184,11 @@ export function nextInterval(state: ReviewState, rating: Rating): number {
     switch (rating) {
       case "hard":
         // Still learning: another short step, slightly longer than the last.
-        // The floor matters because a brand new card has interval zero, and
-        // zero times anything is a card that never leaves the queue.
-        return Math.max(state.interval * HARD_FACTOR, AGAIN_INTERVAL_DAYS);
+        // The floor is HARD's own step, not AGAIN's: a brand new card has
+        // interval zero, zero times anything is a card that never leaves the
+        // queue, and floating it onto the again step made the two buttons
+        // identical on every new card. See HARD_MINUTES.
+        return Math.max(state.interval * HARD_FACTOR, HARD_LEARNING_INTERVAL_DAYS);
       case "good":
         return GRADUATING_INTERVAL_DAYS;
       case "easy":

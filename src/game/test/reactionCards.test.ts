@@ -26,6 +26,7 @@ import {
   drawCardFor,
   reactionCardFromStaged,
   reactionCardId,
+  REAGENT_LABELS,
   stagedReagentLine,
 } from "../cards/reactionCard";
 import {
@@ -105,7 +106,10 @@ describe("a reaction card built from the registry", () => {
     const reaction = registryEntry("grignard-addition-ketone");
     const card = reactionCardFromStaged(reaction, NOON);
     expect(card.reaction?.reactants).toBe("acetophenone");
-    expect(card.reaction?.reagents).toBe("CH3MgBr; then [H3O+]");
+    // "[H3O+]" is the data's SMILES for the workup; the card wears the bottle
+    // label REAGENT_LABELS gives it. See reactionCard.ts for each label's
+    // justification in the data.
+    expect(card.reaction?.reagents).toBe("CH3MgBr; then H3O+");
     expect(card.reaction?.products).toBe("2-phenylpropan-2-ol");
     // The classic triple stays populated, so every older surface renders
     // the card whole: front asks, back answers, why carries the conditions.
@@ -155,7 +159,45 @@ describe("a reaction card built from the registry", () => {
   });
 
   it("reads each stage's display reagent, the bottle label the data lists last", () => {
-    expect(stagedReagentLine(registryEntry("nabh4-reduction"))).toBe("NaBH4; then [H3O+]");
+    expect(stagedReagentLine(registryEntry("nabh4-reduction"))).toBe("NaBH4; then H3O+");
+  });
+
+  it("never shows a student a SMILES string where a bottle label belongs", () => {
+    /* THE CHEMISTRY-TRUTH PIN, and it is held over all 43 authored reactions
+       rather than the seeded six. Before REAGENT_LABELS, 18 of the 43 reagent
+       lines came out as raw structure strings: imine formation read "CN",
+       which a sophomore reads as cyanide when it is methylamine, and
+       Wolff-Kishner read "NN" for hydrazine. A square bracket in a reagent
+       line is that bug returning. */
+    const labels = Object.values(REAGENT_LABELS);
+    for (const reaction of REACTIONS) {
+      const line = stagedReagentLine(reaction);
+      expect(/[[\]]/.test(line), `${reaction.id}: ${line}`).toBe(false);
+      // And nothing is invented at the call site: every piece is either a
+      // label this module states with its justification, or the data's own
+      // word for the species, carried verbatim.
+      for (const piece of line.split("; then ")) {
+        const authored =
+          labels.includes(piece) ||
+          reaction.stages.some((stage) => stage.reagents.includes(piece));
+        expect(authored, `${reaction.id}: ${piece}`).toBe(true);
+      }
+    }
+  });
+
+  it("labels the named species the way the data itself names them", () => {
+    // Each of these is justified by the reaction's own id, notes or
+    // reactant_labels. reactionCard.ts's table header cites which, per entry.
+    expect(stagedReagentLine(registryEntry("imine-formation"))).toBe("CH3NH2");
+    expect(stagedReagentLine(registryEntry("wolff-kishner"))).toBe("H2NNH2; then KOH");
+    expect(stagedReagentLine(registryEntry("socl2-acid-to-chloride"))).toBe("SOCl2");
+    expect(stagedReagentLine(registryEntry("wittig-olefination"))).toBe("Ph3P=CH2");
+    expect(stagedReagentLine(registryEntry("diels-alder"))).toBe("acrolein");
+    expect(stagedReagentLine(registryEntry("fischer-esterification"))).toBe("CH3OH");
+    expect(stagedReagentLine(registryEntry("acetylide-addition"))).toBe("acetylide; then H3O+");
+    // A stage that already lists a bottle label keeps it, counterion and all,
+    // rather than being flattened onto the ion's generic name.
+    expect(stagedReagentLine(registryEntry("aldol-addition"))).toBe("NaOH");
   });
 });
 
@@ -449,13 +491,52 @@ describe("every chemistry string on a built card is authored", () => {
       expect(face.reactants).toBe(entry.reactant_labels.join(" + "));
       expect(face.products).toBe(entry.product_label);
       for (const piece of face.reagents.split("; then ")) {
-        const listed = entry.stages.some((stage) => stage.reagents.includes(piece));
+        const listed =
+          Object.values(REAGENT_LABELS).includes(piece) ||
+          entry.stages.some((stage) => stage.reagents.includes(piece));
         expect(listed, `${id}: ${piece}`).toBe(true);
       }
+
+      /* THE REVEAL IS THE DATA'S OWN WORDS TOO. Each field is checked against
+         the stage field it was read off, so a value that came from anywhere
+         else fails here rather than reaching a student. */
       const notes = entry.stages.map((stage) => stage.conditions.notes);
-      for (const value of Object.values(face.reveal)) {
-        expect(notes.includes(value), `${id}: ${value}`).toBe(true);
+      if (face.reveal.selectivity !== undefined) {
+        expect(notes.includes(face.reveal.selectivity), id).toBe(true);
       }
+      for (const sentence of (face.reveal.notes ?? "").split("\n")) {
+        const stripped = sentence.replace(/^\d+\. /, "");
+        if (stripped.length > 0) expect(notes.includes(stripped), `${id}: ${stripped}`).toBe(true);
+      }
+      for (const piece of (face.reveal.solvent ?? "").split(", then ")) {
+        if (piece.length > 0) {
+          const stated = entry.stages.some((stage) => stage.conditions.solvent === piece);
+          expect(stated, `${id}: ${piece}`).toBe(true);
+        }
+      }
+      for (const piece of (face.reveal.acidBase ?? "").split(", then ")) {
+        if (piece.length > 0) {
+          const stated = entry.stages.some((stage) => stage.conditions.acid_base === piece);
+          expect(stated, `${id}: ${piece}`).toBe(true);
+        }
+      }
+
+      // And the drawings are the registry's paths, not built ones.
+      expect(face.art?.startLight).toBe(entry.art.start_light);
+      expect(face.art?.productDark).toBe(entry.art.product_dark);
+    }
+  });
+
+  it("gives every authored reaction a reveal that pays for the tap", () => {
+    /* WHY THIS IS HELD OVER ALL 43. Round 3's reveal could only ever emit
+       `selectivity`, and exactly 2 of the 43 reactions carry a note that
+       mentions 1,2 or 1,4, so the headline feature was empty on 41 of them.
+       Every stage states a note, so every card now has something behind the
+       tap; a card that does not is the regression. */
+    for (const reaction of REACTIONS) {
+      const card = reactionCardFromStaged(reaction, NOON);
+      const shown = presentReveal(card.reaction?.reveal ?? {});
+      expect(shown.length, reaction.id).toBeGreaterThan(0);
     }
   });
 });

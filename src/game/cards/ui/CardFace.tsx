@@ -49,6 +49,7 @@
 
 import { useState } from "react";
 import type { Card, CardId, ReactionSide } from "../types";
+import { presentReveal } from "../types";
 import { MoleculeSvg } from "../../render/svg/MoleculeSvg";
 import { ReactionScheme } from "./ReactionCardFace";
 import { ReactionRevealPanel } from "./ReactionRevealPanel";
@@ -217,13 +218,28 @@ export function CardFace({ card, revealed, onReveal, schedulerState }: CardFaceP
      touching this file's shell. */
   if (card.reaction !== undefined) {
     const reaction = card.reaction;
+    /* THE BACK IS NEVER HALF A CARD. `presentReveal` is the only thing that
+       decides which labelled extras exist, and a card whose author supplied
+       none of them would otherwise reveal a product and a blank space below
+       it. `why` is always populated ("Conditions: ..."), so it is what the
+       back falls back to: the card still teaches, and nothing is invented to
+       fill the gap. */
+    const revealRows = presentReveal(reaction.reveal);
     const body = (
       <>
         {header}
         <ReactionScheme reaction={reaction} revealed={revealed} />
         {tagRow}
         {revealed ? (
-          <ReactionRevealPanel reveal={reaction.reveal} />
+          revealRows.length > 0 ? (
+            <ReactionRevealPanel reveal={reaction.reveal} />
+          ) : (
+            card.why.trim().length > 0 && (
+              <p className="whitespace-pre-line border-t border-bb-border pt-4 text-scale-sm leading-normal text-bb-muted-foreground">
+                {card.why}
+              </p>
+            )
+          )
         ) : (
           <p className="mt-auto text-right text-scale-sm text-bb-muted-foreground">
             Tap to reveal the answer
@@ -245,6 +261,11 @@ export function CardFace({ card, revealed, onReveal, schedulerState }: CardFaceP
         className={`press ${shell} mb-1.5`}
         onClick={onReveal}
         aria-label="Reveal the answer"
+        /* The desktop cursor chip holds two words, so it read "Reveal the"
+           off the accessible name above. HoverLabel.tsx documents this
+           attribute as the escape hatch for exactly that case: a label that
+           is a phrase, and a chip that wants its verb. */
+        data-hover-label="Reveal"
       >
         {badge}
         {body}
@@ -344,6 +365,7 @@ export function CardFace({ card, revealed, onReveal, schedulerState }: CardFaceP
       className={`press ${shell} mb-1.5`}
       onClick={onReveal}
       aria-label="Reveal the answer"
+      data-hover-label="Reveal"
     >
       {badge}
       {body}

@@ -22,8 +22,8 @@
  * The store and the surfaces sit on the other side of this file.
  */
 
-import { REACTIONS, type StagedReaction } from "../../data/reactions";
-import type { Card, CardId, ReactionReveal } from "./types";
+import { REACTIONS, type Stage, type StagedReaction } from "../../data/reactions";
+import type { Card, CardId, ReactionCardArt, ReactionReveal } from "./types";
 
 // The reveal vocabulary (REVEAL_ORDER, REVEAL_LABELS, presentReveal) lives in
 // types.ts with the shapes it describes, so the composer can reach it without
@@ -44,16 +44,79 @@ export function temperatureLabel(celsius: number): string {
 }
 
 /**
- * "CH3MgBr; then H3O+" from the staged reagents. Each stage's DISPLAY name is
- * its last reagent entry (the data lists the mechanistic species first and
- * the bottle label last), which is the same read ReactionDrawPage used for
- * its card fronts before this module took the job over.
+ * BOTTLE LABELS FOR THE STRUCTURE STRINGS, and this table is a chemistry-truth
+ * fix, not a cosmetic one. The data lists a stage's mechanistic species first
+ * and its bottle label last, so the last entry is usually already a label
+ * ("NaBH4", "LiAlH4", "PBr3"). For eleven species there is no second entry and
+ * the last one IS the SMILES, which the face then printed raw: imine formation
+ * showed "CN", and a sophomore reads that as cyanide when it is methylamine.
+ * Wolff-Kishner showed "NN" for hydrazine, Fischer esterification "CO" for
+ * methanol.
+ *
+ * EVERY LABEL IS JUSTIFIED BY WHAT THE REPO DATA ALREADY SAYS THE SPECIES IS,
+ * per the derive-never-recall rule. The justification for each, in the data:
+ *
+ *   [H3O+]      brackets stripped. Aqueous acid; every stage carrying it has
+ *               solvent "water" and acid_base "acidic"
+ *   [OH-]       brackets stripped and named. NOT "NaOH": aldol-condensation
+ *               lists ["[OH-]","NaOH"] and wolff-kishner lists ["[OH-]","KOH"],
+ *               so the counterion is a thing the data states per stage, and
+ *               michael-addition and robinson-annulation state none at all
+ *   NN          wolff-kishner, whose own notes say "Hydrazone forms first"
+ *   CN          acidchloride-to-amide names this reactant "methylamine" in
+ *               reactant_labels; imine-formation's product is "N-methyl imine"
+ *   CO          fischer-esterification names this reactant "methanol"
+ *   OCCO        transcribed from the structure, no name added
+ *   BrBr        transcribed from the structure, no name added
+ *   CC#[C-]     acetylide-addition's notes say "Acetylide from terminal alkyne"
+ *   O=S(Cl)Cl   the reaction's own id is socl2-acid-to-chloride
+ *   the ylide   wittig-olefination's notes say "Ylide from CH3-PPh3+"
+ *   C=CC=O      diels-alder names this reactant "acrolein" in reactant_labels
+ *
+ * A structure string with no entry here falls back to the stage's FIRST
+ * reagent rather than shipping brackets to a student.
+ */
+export const REAGENT_LABELS: Readonly<Record<string, string>> = Object.freeze({
+  "[H3O+]": "H3O+",
+  "[OH-]": "hydroxide",
+  NN: "H2NNH2",
+  CN: "CH3NH2",
+  CO: "CH3OH",
+  OCCO: "HOCH2CH2OH",
+  BrBr: "Br2",
+  "CC#[C-]": "acetylide",
+  "O=S(Cl)Cl": "SOCl2",
+  "[CH2-][P+](c1ccccc1)(c1ccccc1)c1ccccc1": "Ph3P=CH2",
+  "C=CC=O": "acrolein",
+});
+
+/**
+ * Whether a token is a structure string rather than a bottle label. Brackets
+ * and bond symbols are the honest test: they cannot appear in a formula a
+ * bottle wears, and every other SMILES in this registry ("CN", "CO") is
+ * letter-for-letter indistinguishable from a formula, which is exactly why
+ * those need the table above rather than a heuristic.
+ */
+function isSmilesShaped(token: string): boolean {
+  return /[[\]=#]/.test(token);
+}
+
+/** One stage's bottle label. See REAGENT_LABELS for the rule and the table. */
+export function stageReagentLabel(stage: Stage): string {
+  const reagents = stage.reagents;
+  const last = reagents[reagents.length - 1] ?? "";
+  const labelled = REAGENT_LABELS[last];
+  if (labelled !== undefined) return labelled;
+  if (!isSmilesShaped(last)) return last;
+  return reagents[0] ?? last;
+}
+
+/**
+ * "CH3MgBr; then H3O+" from the staged reagents, each stage named by
+ * `stageReagentLabel`.
  */
 export function stagedReagentLine(reaction: StagedReaction): string {
-  return reaction.stages
-    .map((s) => s.reagents[s.reagents.length - 1] ?? s.reagents[0] ?? "")
-    .filter(Boolean)
-    .join("; then ");
+  return reaction.stages.map(stageReagentLabel).filter(Boolean).join("; then ");
 }
 
 /** The first stated temperature across the stages, or null when none is. */
@@ -80,9 +143,64 @@ export function stagedSelectivityNote(reaction: StagedReaction): string | null {
 }
 
 /**
+ * Distinct values across the stages, in stage order, joined the way the
+ * sequence reads: "THF, then water". Distinct rather than one per stage
+ * because a two stage reaction run in one solvent should say it once.
+ */
+function acrossStages(values: readonly string[]): string {
+  const seen: string[] = [];
+  for (const value of values) {
+    const trimmed = value.trim();
+    if (trimmed.length > 0 && !seen.includes(trimmed)) seen.push(trimmed);
+  }
+  return seen.join(", then ");
+}
+
+/** "THF, then water", from the solvents the stages state. Empty when none do. */
+export function stagedSolvent(reaction: StagedReaction): string {
+  return acrossStages(reaction.stages.map((stage) => stage.conditions.solvent));
+}
+
+/** "basic, then acidic", from the acid_base reading each stage carries. */
+export function stagedAcidBase(reaction: StagedReaction): string {
+  return acrossStages(reaction.stages.map((stage) => stage.conditions.acid_base));
+}
+
+/**
+ * The authored notes, which are real teaching sentences and exist on every
+ * one of the 43 reactions. Numbered when there is more than one, so a two
+ * stage reaction's two sentences do not read as one paragraph; the panel
+ * renders them with pre-line, so the newline is the break the student sees.
+ *
+ * `skip` drops a note that already went out under its own label, so the
+ * michael-addition selectivity sentence is not printed twice.
+ */
+export function stagedNotes(reaction: StagedReaction, skip: string | null): string {
+  const notes: string[] = [];
+  for (const stage of reaction.stages) {
+    const note = stage.conditions.notes.trim();
+    if (note.length > 0 && note !== skip && !notes.includes(note)) notes.push(note);
+  }
+  if (notes.length <= 1) return notes[0] ?? "";
+  return notes.map((note, index) => `${index + 1}. ${note}`).join("\n");
+}
+
+/** The registry's drawing paths, renamed into the card's own casing. */
+function artFrom(reaction: StagedReaction): ReactionCardArt {
+  const { start_light, start_dark, product_light, product_dark } = reaction.art;
+  return {
+    ...(start_light === undefined ? {} : { startLight: start_light }),
+    ...(start_dark === undefined ? {} : { startDark: start_dark }),
+    ...(product_light === undefined ? {} : { productLight: product_light }),
+    ...(product_dark === undefined ? {} : { productDark: product_dark }),
+  };
+}
+
+/**
  * One authored reaction becomes one reaction card. Every string is the
- * data's own; the reveal carries only what the data states (today that is
- * the selectivity note, where one exists), and front/back/why are populated
+ * data's own; the reveal carries only what the data states (the selectivity
+ * note where one exists, plus the solvent, the acid/base reading and the
+ * authored notes, which every reaction has), and front/back/why are populated
  * too so every surface that predates reaction cards renders the card whole,
  * with the same mapping composer.ts already uses: front asks with the
  * starting side, back answers with the product, why carries the conditions.
@@ -93,10 +211,18 @@ export function reactionCardFromStaged(reaction: StagedReaction, now: Date): Car
   const celsius = stagedTemperature(reaction);
   const selectivity = stagedSelectivityNote(reaction);
 
+  const solvent = stagedSolvent(reaction);
+  const acidBase = stagedAcidBase(reaction);
+  const notes = stagedNotes(reaction, selectivity);
+
   const reveal: ReactionReveal = {
     ...(selectivity !== null ? { selectivity } : {}),
+    ...(solvent.length > 0 ? { solvent } : {}),
+    ...(acidBase.length > 0 ? { acidBase } : {}),
+    ...(notes.length > 0 ? { notes } : {}),
   };
   const temperature = celsius === null ? null : temperatureLabel(celsius);
+  const art = artFrom(reaction);
 
   return {
     id: reactionCardId(reaction.id),
@@ -110,6 +236,7 @@ export function reactionCardFromStaged(reaction: StagedReaction, now: Date): Car
       reagents,
       products: reaction.product_label,
       ...(temperature === null ? {} : { temperature }),
+      ...(Object.keys(art).length === 0 ? {} : { art }),
       reveal,
     },
   };

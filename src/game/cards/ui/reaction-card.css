@@ -31,11 +31,35 @@
   width: 100%;
 }
 
+/* A column: the drawn structure, then its name under it. `overflow-wrap`
+   is the round 4 fix. Without it a product name is one unbreakable token
+   ("1-methoxy-2-methylpropan-2-ol") and it painted straight out of its
+   column, measured at scrollWidth 108 against clientWidth 84. .rxn-reagents
+   below already carried the rule; this is the same rule on the selector
+   that needed it. */
 .rxn-side {
+  display: flex;
   flex: 1 1 0;
   min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  margin: 0;
   text-align: center;
   white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+/* The RDKit drawing. A student reads a structure in 200 ms and a name like
+   "1-methoxy-2-methylpropan-2-ol" in three seconds, which is the whole
+   reason it is here. Capped in height so the two sides stay the same shape
+   whatever the molecule, and so the scheme does not push the tag row and the
+   reveal off a 390px phone. */
+.rxn-side__art {
+  width: 100%;
+  height: auto;
+  max-height: 4.5rem;
+  object-fit: contain;
 }
 
 /* The withheld product side: a dashed box holding the question mark, so the

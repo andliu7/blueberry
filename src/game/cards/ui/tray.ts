@@ -385,6 +385,21 @@ export function fanCards(
 }
 
 /**
+ * The name a card wears in a list, UNCUT. A reaction card is named by what it
+ * turns into, not by what it starts from: `front` alone is the starting
+ * material, so four starter cards off one substrate all read "acetophenone"
+ * and a student cannot tell them apart. The arrow is the whole card in one
+ * line. Every string is the card's own, so nothing here is chemistry.
+ */
+export function cardTitle(card: Card): string {
+  const reaction = card.reaction;
+  if (reaction !== undefined && reaction.products.trim().length > 0) {
+    return `${reaction.reactants} → ${reaction.products}`;
+  }
+  return card.sides !== undefined ? card.sides.setup : card.front;
+}
+
+/**
  * The one-line name a fanned card carries, cut to FAN_NAME_STRIP. See the
  * header for whose text it takes, and GLYPH_PX for why the cut is by width
  * rather than by character count.
@@ -394,7 +409,7 @@ export function fanCards(
  * while a long single word is cut mid-word rather than thrown away entirely.
  */
 export function trayTitle(card: Card): string {
-  const name = (card.sides !== undefined ? card.sides.setup : card.front).trim();
+  const name = cardTitle(card).trim();
   if (nameWidthPx(name) <= FAN_NAME_STRIP) return name;
 
   const budget = FAN_NAME_STRIP - nameWidthPx(ELLIPSIS);

@@ -102,11 +102,24 @@ export function HoverLabel() {
 
     const onLeave = () => setLabel(null);
 
+    /*
+      A PRESS CLEARS THE CHIP, and this is a real bug rather than tidiness. The
+      label is recomputed on pointermove and nowhere else, so a control that
+      unmounts or renames itself on click left its old name floating over the
+      screen until the pointer happened to move again: pressing a card's
+      "Reveal" showed "Reveal" over the revealed card, which by then has no
+      such control on it. Clearing on press is the honest state, and the next
+      pointermove re-establishes whatever is actually under the cursor.
+    */
+    const onPress = () => setLabel(null);
+
     document.addEventListener("pointermove", onMove, { passive: true });
+    document.addEventListener("pointerdown", onPress, { passive: true });
     document.addEventListener("pointerleave", onLeave);
     window.addEventListener("blur", onLeave);
     return () => {
       document.removeEventListener("pointermove", onMove);
+      document.removeEventListener("pointerdown", onPress);
       document.removeEventListener("pointerleave", onLeave);
       window.removeEventListener("blur", onLeave);
       if (frame.current !== 0) cancelAnimationFrame(frame.current);

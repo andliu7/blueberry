@@ -16,6 +16,7 @@ import {
   DAY_MS,
   EASY_GRADUATING_INTERVAL_DAYS,
   GRADUATING_INTERVAL_DAYS,
+  HARD_LEARNING_INTERVAL_DAYS,
   MAX_INTERVAL_DAYS,
   MIN_EASE,
   STARTING_EASE,
@@ -27,7 +28,7 @@ import {
   startCard,
 } from "../cards/scheduler";
 import type { Rating, ReviewState } from "../cards/types";
-import { isDue } from "../cards/types";
+import { isDue, RATINGS } from "../cards/types";
 
 /** A fixed instant, local noon, so no case sits on a day boundary by accident. */
 const NOON = new Date(2026, 7, 27, 12, 0, 0, 0);
@@ -113,8 +114,20 @@ describe("hard, which slows growth and never resets it", () => {
   it("keeps a brand new card in learning rather than at zero", () => {
     // Zero times 1.2 is zero: without the floor this card never leaves the queue.
     const state = rateCard(startCard("card-1", NOON), "hard", NOON);
-    expect(state.interval).toBe(AGAIN_INTERVAL_DAYS);
+    expect(state.interval).toBe(HARD_LEARNING_INTERVAL_DAYS);
     expect(isLearning(state)).toBe(true);
+  });
+
+  it("is its own step on a new card, so the four buttons are four choices", () => {
+    /* The floor used to be AGAIN_INTERVAL_DAYS, which made again and hard
+       land on the same ten minutes: the new-card row read 10m / 10m / 1d / 4d
+       and the first two presses had identical consequences, on a screen whose
+       whole point is that the consequence is visible. */
+    const fresh = startCard("card-1", NOON);
+    const intervals = RATINGS.map((rating) => nextInterval(fresh, rating));
+    expect(new Set(intervals).size).toBe(RATINGS.length);
+    expect(nextInterval(fresh, "hard")).toBeGreaterThan(nextInterval(fresh, "again"));
+    expect(nextInterval(fresh, "hard")).toBeLessThan(nextInterval(fresh, "good"));
   });
 
   it("lowers the ease, so future good ratings grow more slowly", () => {

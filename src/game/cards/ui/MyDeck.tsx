@@ -36,6 +36,7 @@ import type { Card, DeckSource } from "../types";
 import { cardsIn, dueEverywhere } from "../types";
 import { decks as defaultDecks } from "../store";
 import { deckRowSubtitle, deckRows } from "./picker";
+import { cardTitle } from "./tray";
 import { reviewDiamonds } from "./session";
 import {
   APKG_EXPORT_NOTE,
@@ -134,7 +135,7 @@ export function MyDeck({ source = defaultDecks, onStartReview, onChooseDecks }: 
                 <span className="min-w-0 flex-1">
                   <span className="block text-scale-sm text-bb-muted-foreground">{itemLabel(card)}</span>
                   <span className="mt-0.5 block truncate text-scale-base font-semibold text-bb-card-foreground">
-                    {card.front}
+                    {cardTitle(card)}
                   </span>
                 </span>
                 {/* The reference's dot. Ours is the fading colour, not error red:
