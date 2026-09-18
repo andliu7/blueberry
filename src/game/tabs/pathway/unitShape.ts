@@ -53,6 +53,17 @@
 import type { PathwayNode, PathwayUnit } from "../../demo/pathwayMap";
 import { HUB_PLANS, type HubPlan } from "./hubPlan";
 
+/**
+ * A checkpoint unit is one whose track nodes are all gates. It lived in
+ * terrain.ts while the generated landscape priced barriers off it; the
+ * landscape was dropped outright (owner, 2026-09-17) and this is a statement
+ * about the unit's own shape, so it moved here with the other shape rules.
+ */
+export function isCheckpointUnit(unit: PathwayUnit): boolean {
+  const track = unit.nodes.filter((node) => node.kind !== "branch");
+  return track.length > 0 && track.every((node) => node.kind === "gate");
+}
+
 /** The smallest spine a diamond can be cut from: a concept and two arms. */
 export const MIN_DIAMOND_SPINE = 3;
 

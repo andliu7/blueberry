@@ -830,7 +830,7 @@
   margin: 0;
   padding: 0.18rem 0.7rem;
   border-radius: 999px;
-  background: var(--path-terrace-0);
+  background: var(--bb-background);
   color: var(--bb-primary-ink);
   font-family: var(--font-display);
   font-size: 0.68rem;
@@ -1031,7 +1031,7 @@
   min-width: 44px;
   min-height: 44px;
   border-radius: 999px;
-  background: var(--path-terrace-0);
+  background: var(--bb-background);
   color: var(--bb-primary-ink);
 }
 
@@ -1045,199 +1045,173 @@
 }
 
 /* ------------------------------------------------------------------------- */
-/* The landscape. PathScene.tsx draws it; terrain.ts derives every number.    */
+/* The pager. ONE UNIT PER PAGE, owner decision 2026-09-17: the generated    */
+/* landscape (PathScene.tsx, terrain.ts, sceneProps.ts) is deleted outright, */
+/* and with it the sticky scene, the 38px rail gutter and the 94 percent     */
+/* column that existed only to clear it. The column is simply centred now.   */
 /* ------------------------------------------------------------------------- */
 
-.path-stage {
+.path-pager {
   position: relative;
-  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
+
 /*
- * The track column, and it is deliberately narrower than the stage.
- *
- * The channel the landscape leaves open is never narrower than this column, so
- * the gap between the two is the only place a hillside can appear. At full stage
- * width that gap is zero and the whole backdrop sits off screen on a phone,
- * which is exactly what the first pass shipped. 88 percent costs a phone about
- * 43px of track width and buys the landscape back.
+ * THE RAIL: the whole course in one strip, one step per unit, always above
+ * the page. Show the whole mountain, unlock one step. States ride tokens the
+ * tab already owns: done is the progress green over its own edge (the
+ * fill-only idiom), the working unit is the trail periwinkle with the halo
+ * ring, locked is the dimmed dashed treatment and never a padlock. It
+ * scrolls sideways on a phone rather than wrapping, so it stays one line
+ * tall and reads as a course rather than a grid.
  */
-/* 94 percent, up from 88. The old flanks were a painted body of land either
-   side of the column and the column had to leave room for them; the shade that
-   replaced them is a wash the labels can sit over the edge of. The 6 percent is
-   43px of label width on a 390pt phone, which is where the node titles were
-   wrapping. */
+.path-rail {
+  display: flex;
+  gap: 0.4rem;
+  padding: 0.35rem 0.25rem 0.55rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.path-rail::-webkit-scrollbar {
+  display: none;
+}
+.path-rail__step {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+  border-radius: 999px;
+  border: 2px solid var(--path-trail-rest-edge);
+  background: var(--path-trail-rest);
+  color: var(--bb-primary-ink);
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+.path-rail__step--done {
+  border-color: var(--progress-edge);
+  background: var(--progress);
+  color: var(--progress-ink);
+}
+.path-rail__step--current {
+  box-shadow: 0 0 0 4px var(--path-halo-soft);
+}
+.path-rail__step--locked {
+  border-color: var(--bb-border);
+  border-style: dashed;
+  background: transparent;
+  color: var(--bb-muted-foreground);
+}
+/* The page being LOOKED AT, which is not always the unit being worked in:
+   an outline ring, so it composes with any of the three states above. */
+.path-rail__step[aria-current="page"] {
+  outline: 2px solid var(--bb-primary-ink);
+  outline-offset: 2px;
+}
+
 /*
- * THE RAIL GETS A RESERVED GUTTER, and the column pays for it only where
- * there is no landscape flank to put the rail in instead. The S3 critic
- * measured the track-map pill (x 10..50) sitting over the "Unit 1" banner
- * eyebrow and the first characters of "Allylic/resonance delocalization"
- * (label left edge x=27): a centred 94 percent column leaves ~12px beside
- * itself and the rail is 44, so overlap was guaranteed at every scroll. In
- * the committed reference (blueberry_r7-compiled-v2) the pill rides the
- * LEFT MARGIN over landscape, never over labels. So: below 768px the rail
- * hugs the viewport's left edge (its negative margin swallows the page
- * padding) and the column starts past it, which costs the column ~22px
- * against the centred 94 percent; at 768px and up the stage has a real
- * landscape flank outside itself, the rail moves out into it, and the
- * column takes its centred 94 percent back. The scene MEASURES the column
- * rect, so the channel follows whichever geometry is live and the S2 floor
- * (channel never narrower than the label column) holds by construction.
+ * THE BOTTOM BAR: the donor pattern's foot-of-content nav (see
+ * src/components/UnitPage.tsx) in this tab's vocabulary. Back is a small
+ * round press, the title says where you stand, Continue is the one primary
+ * control on the page. A gated Continue keeps its size and drops its
+ * invitation: the same aria-disabled treatment the locked chip carries.
  */
-.path-stage__content {
-  position: relative;
-  z-index: 1;
-  margin-left: 38px;
-  margin-right: 0;
-  max-width: calc(100% - 44px);
+.path-pager__bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+  padding: 0.6rem 0 0;
+  border-top: 2px solid var(--bb-border);
 }
-@media (min-width: 768px) {
-  .path-stage__content {
-    max-width: 94%;
-    margin-inline: auto;
-  }
+.path-pager__side {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 999px;
+  border: 2px solid var(--bb-border);
+  background: transparent;
+  color: var(--bb-muted-foreground);
 }
-/*
- * The scene is STICKY and viewport sized, not absolute and track sized.
- *
- * Drawing it at the track's own height was the first build and it was a real
- * bug rather than an inefficiency: the Orgo II track is about 14500px tall, and
- * a 390pt phone at 3x turns that into a 1170 by 43557 pixel layer, roughly
- * 200 MB, which killed the renderer outright. So the surface is one screen, it
- * sticks to the top of the viewport while the stage scrolls past it, and
- * PathScene slides the world inside it. The negative margin takes it back out
- * of layout, so it occupies no height of its own.
- *
- * Full bleed on purpose: the track column is only ~360px wide, and a landscape
- * confined to that is a stripe. The centreline is measured rather than assumed,
- * so an offset column (the desktop rail) still gets a centred valley.
- */
-.path-scene {
-  position: sticky;
-  top: 0;
-  z-index: 0;
-  /* The BOX comes from CSS and the viewBox from the measurement, never the other
-     way round. Sizing the element from its own measured width is a deadlock: a
-     zero width element measures zero and never grows. */
-  width: 100vw;
-  height: 100vh;
-  /* margin-left is written by PathScene from the measured stage offset; see the
-     comment in measure() for why calc(50%% - 50vw) is wrong beside a rail. */
-  margin-left: 0;
-  margin-bottom: -100vh;
-  overflow: hidden;
-  pointer-events: none;
+.path-pager__side--blank {
+  border-color: transparent;
 }
-/* Track coordinates. One transform carries the whole world under the window. */
-.path-world {
-  transform: translate3d(0, var(--world-y, 0px), 0);
+.path-pager__title {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.path-pager__eyebrow {
+  font-family: var(--font-display);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--bb-muted-foreground);
+}
+.path-pager__name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--bb-foreground);
+}
+.path-pager__next {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 1.1rem;
+  border-radius: 999px;
+  border: 0;
+  background: var(--bb-primary);
+  color: var(--bb-primary-foreground);
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+}
+.path-pager__next[aria-disabled="true"] {
+  background: var(--bb-muted);
+  color: var(--bb-muted-foreground);
+  cursor: not-allowed;
+}
+/* The gate's reason, said in words beside the control that declines. */
+.path-pager__reason {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--bb-muted-foreground);
+  text-align: right;
+}
+.path-pager__hint {
+  margin: 0.2rem 0 0;
+  font-family: var(--font-display);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--bb-muted-foreground);
 }
 
 :root {
-  /* A warm ground and a soft curve, kept close in lightness to the paper it
-     sits on. That is deliberate and it is a contrast decision: labels sit in
-     the channel between the two hillsides, and a ground that reads as a
-     different surface underneath text would change a pair the audit measured. */
-  /*
-   * THE GROUND CLEARS THE GRAPHICS FLOOR, and that is why it is this dark.
-   *
-   * The first pass drew a pale wash, #ece2d0 and a paler ridge behind it, on the
-   * belief that a backdrop should be nearly invisible. The contrast audit failed
-   * it: 1.05:1 for the ridge against the page, on a 3:1 floor that applies to
-   * every graphical object. Softening the audit for artwork would have been the
-   * quick way out and is exactly what CLAUDE.md forbids, so the design moved
-   * instead. One ground, dark enough to be a real shape, with the path running
-   * through a cream channel it never enters. It also answers the sticker audit's
-   * rule 6, which measures saturated fill at between 0.09 and 0.64 percent of
-   * the painted page across this app: colour is supposed to be a surface here.
-   */
-  /*
-   * THE FLANK IS THE PAGE'S OWN GROUND. There is no wash on it any more, and
-   * the token is kept at `transparent` so the layer that used to paint it is
-   * one value away from coming back.
-   *
-   * WHY IT WENT, measured rather than judged. The wash was a body of land,
-   * then a 0.1 alpha, then a 0.05 alpha, and at every value it had the same
-   * defect: the scene is a STICKY, viewport sized surface whose flow position
-   * is the top of the TRACK, so at scroll zero the page above it, the strip the
-   * course header card sits on, is unwashed and everything below it is washed.
-   * Sampled off the S3 round two capture at 2x, the flanks stepped from
-   * rgb(163,174,226) to rgb(157,167,218) on one hard horizontal line across the
-   * entire width, at y 205. Two and a half percent of lightness is nothing; a
-   * dead straight full width edge is not, and a straight seam across a
-   * landscape is exactly the "unfinished background asset" the S2 judge named.
-   *
-   * The choice was between a wash that recedes by 2.5 percent and a page with
-   * no seam in it. The seam loses. This is also what the bar does on the screen
-   * we are judged against: in t01-path-tabbar-0000ms.png the path canvas is
-   * plain edge to edge with no flank treatment at all, and the only saturated
-   * surface on it is the unit banner, which is an object you can read. Ours is
-   * now the same shape: page, one sheet of paper on it, objects on the paper.
-   */
-  --path-shade: transparent;
+  /* The landscape token families (--path-terrace-*, --path-ridge, --path-prop,
+     --path-boulder*, --path-shade) left with the generated scene, owner
+     decision 2026-09-17. What remains below is owned by drawn objects that
+     survive: the halo, the START tag, the badges, the hub, the gate arch and
+     the trail. */
   /* THE RIBBON'S PERMANENT EDGE. 6.11:1 on the cream it outlines and 3.11:1 on
      the lavender ground it sits against, so the shape is identifiable from
      either side. This is the same value --bb-border is, and for the same reason. */
   --path-edge: #55597f;
-  /* --path-line and --path-hump left with the two boundary curves and the
-     near-black crest they inked: the curves are gone (see the note where
-     .path-channel used to be) and the crest is drawn in the terrace ink now,
-     because a barrier in this landscape is a contour and not a rule. */
-  /* THE PROPS ARE TAN, per blueberry_artkit-env-backdrop: every prop in the
-     committed backdrop (flask, molecule skeleton, cloud outline) is drawn in
-     a warm low-contrast tan so it RECEDES behind the path. The build drew
-     them in the slate ink --path-edge, which advances and competes with the
-     periwinkle chips: the colour role was inverted and the background read as
-     chrome. The value below is 1.9:1 on the cream, which is deliberately
-     under the graphics floor because these are DECORATIVE watermarks and not
-     interface graphics. Nothing on this layer is a control, carries state, or
-     is needed to understand the page: WCAG 1.4.11 scopes to graphics required
-     for understanding, and a wallpaper flask is not one. The props that DO
-     carry meaning (chips, trail, gate, track map) all keep their floors.
-     Recorded here rather than left implicit, because a critic should be able
-     to see the exemption was reasoned. */
-  /*
-   * GHOSTED TO THE REFERENCE'S OWN DELTA, 2026-09-04, and this is a number
-   * rather than a preference.
-   *
-   * Pixel verdict: "the reference ghosts them at a luminance delta of about
-   * 33 against the ground; the build draws them at about 90, nearly 3x, so
-   * wallpaper reads as objects." Both halves were re-measured here rather
-   * than taken on trust. measurements/_probe-ref-ghost.mjs reads the adopted
-   * designs at their flask and molecule watermarks and reports deltas of
-   * 33.8, 40.0 and 22.9, so 33 is the middle of the real range. The build's
-   * #b09a6d has a channel luminance of 155 against plates at 218 to 243: a
-   * delta of 63 to 88.
-   *
-   * #ccbe9b is 190.5, which puts it 27 to 44 off the plates it actually
-   * lands on and about 33 off the two commonest. Still decoration, still
-   * deliberately under the 3.0 an INTERFACE component owes: nothing on this
-   * layer is a control, carries state, or is needed to understand the page,
-   * and WCAG 1.4.11 scopes to graphics required for understanding. The props
-   * that DO carry meaning (chips, trail, gate, track map) keep their floors
-   * and the contrast audit is what measures those.
-   *
-   * The 2026-09-03 note this replaces was right that #c9b993 "vanished", and
-   * it over-corrected: the answer to a watermark nobody can see is a bigger
-   * and more confident DRAWING, which is what the density and scale work in
-   * sceneProps did, not a darker ink.
-   */
-  --path-prop: #ccbe9b;
-  /*
-   * THE BOULDER, and it is the one landscape prop that is not a tan.
-   *
-   * Sampled off unit01-path.jpg with measurements/_probe-ref-boulder.mjs: the
-   * reference boulder is #a5a5a4 on an #e1d9ca ground, a channel-luminance
-   * delta of 53 and 1.76:1. It is a cool grey because a boulder is an OBJECT
-   * standing on the land and not a drawing on it, and the cool separates it
-   * from the warm plates without joining the periwinkle the controls own.
-   * The value IS the reference's, so ours measures the reference's ratio
-   * against the plate a boulder stands on: 1.76:1 on --path-terrace-3, which
-   * is the deep near ground the placement table puts it at (band y 0.94).
-   * The far pebble is one step lighter, which is the only depth cue the pair
-   * needs.
-   */
-  --path-boulder: #a5a5a4;
-  --path-boulder-far: #b7bcbc;
   /* The current node's bloom, per the states sheet's blurred violet halo.
      Two stops so the pulse is a swell rather than a flash. */
   --path-halo: rgb(139 92 246 / 0.5);
@@ -1291,92 +1265,6 @@
   --path-gate-mark: #33385c;
   --path-gate-mark-locked: #5b6188;
   --path-gate-lip: rgb(255 255 255 / 0.75);
-  /* THE TERRACES, the goals' "terraced hills stepping down". The fill is a
-     hair off the warm cream page on purpose (a watermark landscape is the
-     point) and the EDGE is what identifies the shape: fill and stroke live
-     on ONE path, so the audit collapses them to the better of the two, and
-     the stroke measures 3.80:1 on the cream ground. Warm, not the ink blue,
-     because a hillside is ground and not chrome. */
-  --path-terrace-fill: #ece0c6;
-  /* Kept for the crest and the cloud outline, which ARE drawn lines. The
-     terraces themselves no longer carry a stroke: see the ramp below. */
-  --path-terrace-line: #7d6c4c;
-  /*
-   * THE STEPS, and they are what makes the hills TERRACED rather than one
-   * hillside with hairlines ruled across it.
-   *
-   * The earlier build drew one band per unit in a single fill, each over the
-   * last, so every band's body was the same colour as its neighbour's and the
-   * only thing that survived was its top edge: fifteen thin brown curves on
-   * flat cream, which is a contour map, not a landscape. A terrace reads as a
-   * terrace because the plate BEHIND is a different value from the plate in
-   * front, so the ramp below is the whole mechanism, cycled by unit index.
-   *
-   * FOUR STEPS, and the darkest one is where it is because of a measurement,
-   * not a taste. Body ink (--bb-foreground #2a2a42) is 9.89:1 even on a fifth,
-   * darker step, so text was never the constraint; the terrace's own EDGE was.
-   * --path-terrace-line is 2.97:1 on #e6d8bc, under the 3.0 graphics floor
-   * that identifies the shape, and 3.20:1 on #ece0c8, so the ramp stops
-   * there. Measured, per the fill-only rule's own instruction to measure
-   * rather than assume.
-   *
-   * Step 0 IS the page, so a quarter of the landscape is untouched cream and
-   * the rhythm has somewhere to breathe.
-   */
-  /*
-   * THE RAMP, and the darkest step is where a measurement put it.
-   *
-   * The plates need real value separation to read as terraces at all (the
-   * previous ramp moved about 1.5 percent per step and was invisible). They
-   * cannot go further than the deepest ink drawn ON them stays legible, and
-   * the tightest pair is the CHIP'S OWN CUT EDGE: --chip-edge #5a67c4 is
-   * 3.10:1 on #dcc9a2 and drops under the 3.0 graphics floor on anything
-   * darker, so that is the floor of the ramp. Body ink is 7.9:1 there and the
-   * trail's rim 3.7:1, both comfortable, so the chip edge is genuinely the
-   * binding constraint and not the first one that came to hand.
-   */
-  /*
-   * LIGHTENED THIS ROUND, and the measurement moved with it in the safe
-   * direction. blueberry_artkit-env-backdrop and every per-unit reference in
-   * design-goals/units/ draw the terraces as a whisper off the cream: the
-   * darkest plate in the committed art is around #e5d9bd, and the build
-   * shipped #dcc9a2, which read as a tan desert under a periwinkle path
-   * rather than as warm paper with hills drawn on it. The four steps below
-   * are the committed art's own values.
-   *
-   * The binding constraint is unchanged and is still the CHIP'S OWN CUT EDGE:
-   * --chip-edge #5a67c4 measured 3.10:1 on the old #dcc9a2 and measures
-   * 3.59:1 on #e5d9bd, so lightening moves every ink drawn on the terrace
-   * FURTHER over its floor, not nearer it. --path-terrace-line is 3.64:1
-   * there, up from 3.20:1.
-   */
-  --path-terrace-0: #f9f3e6;
-  --path-terrace-1: #f3ebda;
-  --path-terrace-2: #ece2cb;
-  --path-terrace-3: #e5d9bd;
-  /*
-   * THE FAR RIDGE, AND IT IS THE FIX FOR A THIRD OF THE PHONE SCREEN.
-   *
-   * `.path-ridge` had NO RULE IN THIS FILE. PathScene draws it as a bare
-   * <path>, and an SVG shape with no fill declared takes the SVG initial
-   * value, which is BLACK. So the silhouette that is meant to be a hill
-   * behind the terraces painted #000000 over roughly 8 percent of every
-   * frame and 32 percent of the phone screen at some scroll positions.
-   * Measured before the fix: pure-black pixels were 8.11 percent of the
-   * scene at scroll 0 and 5.68 percent at scroll 1000, against zero in
-   * either committed reference.
-   *
-   * It is a fifth member of the terrace ramp rather than a colour of its
-   * own, because that is what it IS: the same land, one plate further
-   * back. Measured: #ded2b3 is 1.36:1 on --path-terrace-0, and the ramp
-   * plus one more plate of its own size is 1.39:1, so the ridge lands
-   * inside the family with a step to spare rather than beside it.
-   * Nothing in docs/reference/design-goals/units/ is darker than mid-tan,
-   * and test/pathwayScenePaint.test.ts derives that ceiling from these
-   * four tokens and fails on any landscape fill past it, which is what
-   * stops a bare fill returning silently.
-   */
-  --path-ridge: #ded2b3;
   /*
    * THE TRAIL IS GREEN, and this is the round's one deliberate palette move.
    *
@@ -1459,15 +1347,7 @@
   --path-trail-loop-edge: #6a719e;
 }
 .dark {
-  /* See the light half: the flank is the page, not a wash on it. */
-  --path-shade: transparent;
   --path-edge: #6f74a3;
-  /* The night half of the same ghosting. The night plates run 27 to 53 in
-     channel luminance and the ink is LIGHTER than the ground here, so 33
-     above the middle plate is about 75: #434c74 measures 76.4. */
-  --path-prop: #434c74;
-  --path-boulder: #454d55;
-  --path-boulder-far: #3a4149;
   --path-halo: rgb(143 147 224 / 0.5);
   --path-halo-soft: rgb(143 147 224 / 0.2);
   --path-start-fill: #2a2352;
@@ -1486,20 +1366,6 @@
   --path-gate-mark: #c6cbe8;
   --path-gate-mark-locked: #9aa0c4;
   --path-gate-lip: rgb(0 0 0 / 0.35);
-  /* The night terrace: a step up off the night ground, edge 3.84:1 on it. */
-  --path-terrace-fill: #1d2140;
-  --path-terrace-line: #6f74a3;
-  /* The night ramp, the same four steps read upward off the night ground
-     (--bb-background #171a2e) instead of downward off the cream. The edge ink
-     is 3.84:1 on the ground and rises against every step above it, so the
-     shape stays identifiable on all four. */
-  --path-terrace-0: #171a2e;
-  --path-terrace-1: #1d2139;
-  --path-terrace-2: #242a48;
-  --path-terrace-3: #2d3459;
-  /* The far ridge at night: one step further UP the night ramp, for the
-     same reason the light ramp steps down. See --path-ridge above. */
-  --path-ridge: #343c66;
   /* The night road: 4.58:1 on the night ground, same argument as the light
      half. It lifts OFF the ground rather than sinking into it, because at
      night the ground is the dark surface and the ribbon is the object. */
@@ -1515,165 +1381,6 @@
   --path-trail-loop-edge: #8f93e0;
 }
 
-.path-layer--ground {
-  transform: translate3d(0, var(--shift-ground, 0px), 0);
-}
-.path-layer--props {
-  transform: translate3d(0, var(--shift-props, 0px), 0);
-}
-.path-layer--paper {
-  transform: translate3d(0, var(--shift-ground, 0px), 0);
-}
-/* The margin doodles ride with the ground they are drawn on. */
-.path-layer--marks {
-  transform: translate3d(0, var(--shift-ground, 0px), 0);
-}
-
-/* The flank either side of the paper. It paints nothing today: see --path-shade
-   for the seam that took the wash off it. The layer, the geometry in
-   terrain.ts's groundPath and its tests all stay, because the shape is right
-   and it is the fill that was wrong. */
-.path-ground {
-  fill: var(--path-shade);
-}
-/*
- * .path-channel AND .path-curve ARE GONE, deliberately, and their absence is
- * the fix rather than an omission. See the long note in PathScene.tsx where
- * they used to be drawn: the channel resolved to a PURE WHITE sheet over the
- * cream page under the warm cream regime, and the two boundary curves were
- * the hard vertical rules either side of it. The committed reference has no
- * white and no vertical rules; the page is one cream ground with a landscape
- * on it and objects on the landscape.
- *
- * The terrain geometry that fed them stays in terrain.ts with its tests: the
- * channel's WIDTH is still what the hump is measured against, and the S2
- * floor (the channel is never narrower than the label column) still holds by
- * construction because the scene still measures the column and still derives
- * the basis from it. What changed is that nothing paints that width opaque.
- */
-/* An OUTLINED prop, not a filled silhouette. Sticker rule 3, and it is also
-   what lets it clear the 3:1 an interface graphic is held to on the ground it
-   is drawn on: a 0.18 alpha fill could not. */
-.path-prop {
-  fill: none;
-  stroke: var(--path-prop);
-  stroke-width: 2;
-  stroke-linejoin: round;
-}
-
-/* The crest a checkpoint sits on. Dashed, because it is a barrier rather than
-   ground, and it arcs high enough to pass over the chips instead of under them. */
-/* The crest at a checkpoint: a filled hill in the deepest terrace value, no
-   outline, per blueberry_artkit-env-backdrop. See PathScene for the dashed
-   contour line this replaces. */
-.path-hump {
-  fill: var(--path-terrace-3);
-  stroke: none;
-}
-
-/* The lens. Two holes in the shade: one following a pointer, one anchored on
-   the node the student is meant to tap next, because touch has no hover and a
-   hover-only reveal is invisible on the device this is mostly used on. */
-.path-lens {
-  transform-box: view-box;
-  transform-origin: 0 0;
-  transition: transform 220ms cubic-bezier(0.25, 1, 0.5, 1);
-}
-.path-lens--anchor {
-  transform: translate(var(--anchor-x, 50%), var(--anchor-y, 0px));
-}
-.path-lens--pointer {
-  transform: translate(var(--lens-x, 0px), var(--lens-y, 0px)) scale(var(--lens-r, 0));
-}
-
-/* The terrace bands PathScene draws from terracePath(). Fill and stroke on
-   one path, per the token comment above: the edge is the shape. */
-/*
- * THE TERRACES ARE FILLS, and the hairline they used to carry is deleted.
- *
- * blueberry_artkit-env-backdrop draws broad TAN PLATES with clearly separated
- * values, stepping down the page, with rounded hill silhouettes on their top
- * edges and no outline anywhere. The build drew four fills a hair apart
- * (#fbf3e6 / #f7efe0 / #f2e8d5 / #ece0c8, about 1.5 percent of lightness per
- * step) with a brown stroke on each, so at phone and desktop size the plates
- * were invisible and the only landscape on the page was a single brown
- * contour line. That is precisely the "contour map, not a landscape" failure
- * the previous comment in this file claimed to have fixed.
- *
- * The fix is to let the FILLS carry the shape, which is what the reference
- * does, and to give them enough separation to be seen: the ramp below spans
- * #f6efdf to #ded0ac, roughly four times the old step. With real value
- * separation the stroke has nothing left to do but ruin the read, so it goes.
- *
- * The floor question, answered rather than dodged: a terrace is DECORATIVE.
- * It carries no state, is not a control, and no information on this page is
- * lost if a reader cannot resolve one plate from the next. WCAG 1.4.11 scopes
- * to graphics required to understand content. Everything on this tab that
- * IS required (the chips, the trail, the gate, the track map) keeps its
- * measured floor, and the crest, which teaches the activation barrier, keeps
- * its stroke below.
- */
-.path-terrace {
-  stroke: none;
-}
-/*
- * THE FAR RIDGE. It had no rule at all, so it painted the SVG initial fill,
- * which is black; see --path-ridge for the measurement. It is the same land
- * as the plates, one value further back, with no outline, exactly as the
- * plates carry none.
- */
-.path-ridge {
-  fill: var(--path-ridge);
-  stroke: none;
-}
-.path-terrace[data-step="0"] {
-  fill: var(--path-terrace-0);
-}
-.path-terrace[data-step="1"] {
-  fill: var(--path-terrace-1);
-}
-.path-terrace[data-step="2"] {
-  fill: var(--path-terrace-2);
-}
-.path-terrace[data-step="3"] {
-  fill: var(--path-terrace-3);
-}
-/* Molecule line-art watermarks and clouds: outlined, never filled, in the
-   same ink as the flask prop (6.11:1 on cream), faint by WEIGHT (thin
-   strokes, sparse placement) rather than by a colour under the graphics
-   floor, which is the mistake the first ridge already paid for. */
-/*
- * The clouds, and they are the one FILLED prop in the landscape because the
- * committed backdrop draws them that way: white clouds over the cream ground,
- * not outlines of clouds. White on cream is 1.10:1, so the shape carries the
- * terrace ink as its boundary and the two live on ONE path, which is how the
- * contrast audit is asked to read it (a shape is one component; its fill and
- * its boundary collapse to the better of the two). At night the cloud takes
- * the terrace fill instead, because a white cloud on an indigo night is a
- * hole in the page rather than weather.
- */
-.path-cloud {
-  fill: #ffffff;
-  stroke: var(--path-terrace-line);
-  stroke-width: 2;
-  stroke-linejoin: round;
-}
-.dark .path-cloud {
-  fill: var(--path-terrace-fill);
-}
-/*
- * The boulders. Fill only and no outline, the way the reference draws them
- * and the way the clouds already are: a filled silhouette IS its own
- * boundary when it is 2:1 against what it stands on, which the measurement
- * in --path-boulder records. Two pebbles, the far one a step lighter.
- */
-.path-boulder {
-  fill: var(--path-boulder);
-  stroke: none;
-}
-.path-boulder--far {
-  fill: var(--path-boulder-far);
-}
 
 /*
  * THE TRAIL: the drawn winding ribbon connecting the nodes, derived by
@@ -1704,8 +1411,8 @@
  * which is why pathwayTrailLayer.test.ts asserts the position value.
  *
  * z-index -1 puts it under the chips and under the signpost plate while
- * staying inside .path-stage__content's stacking context, so it still paints
- * ABOVE the sticky landscape. `top` and `height` are written inline by
+ * staying inside .path-unit's own isolated stacking context, so it can never
+ * fall behind an ancestor's background. `top` and `height` are written inline by
  * UnitTrail: the box reaches up past the section's own edge to meet the
  * previous unit's gate, which is what keeps the road continuous across a unit
  * boundary. `overflow: visible` because a round line cap on the first or last
@@ -1713,6 +1420,10 @@
  */
 .path-unit {
   position: relative;
+  /* Its own stacking context: the trail below paints at z-index -1 and must
+     stay inside the unit rather than dropping behind the app's background,
+     a job .path-stage__content's z-index used to do before the scene went. */
+  isolation: isolate;
 }
 .path-unit-trail {
   position: absolute;
@@ -2163,19 +1874,5 @@
      box-shadow when the ring became the states sheet's soft bloom. */
   .path-node--current {
     animation: none;
-  }
-  /* A settled frame: the curve fully drawn, every layer at rest, the lens
-     parked on the current node. A real frame of the design, not an empty box. */
-  .path-layer--ground,
-  .path-layer--props,
-  .path-layer--paper,
-  .path-layer--marks {
-    transform: none;
-  }
-  .path-curve {
-    stroke-dashoffset: 0;
-  }
-  .path-lens {
-    transition: none;
   }
 }

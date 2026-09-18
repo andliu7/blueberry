@@ -32,7 +32,7 @@
  * geometry decisions are the thing worth pinning either way.
  */
 
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -44,9 +44,11 @@ const read = (file: string) => readFileSync(path.join(PATHWAY, file), "utf8");
    owner removed the scroll map on 2026-09-03 ("asked twice", recorded in
    PathwayTab.tsx), the render went with it, and the component then sat
    unreferenced for two days along with 264 lines of stylesheet for classes
-   nothing drew. Nothing is loosened by its going: every surviving component is
-   still scanned by the same rules. */
-const COMPONENTS = ["PathScene.tsx", "PathwayTab.tsx", "UnitTrail.tsx"] as const;
+   nothing drew. PathScene.tsx followed on 2026-09-17, when the owner dropped
+   the generated landscape outright and the pathway became a per-unit pager.
+   Nothing is loosened by either going: every surviving component is still
+   scanned by the same rules, and the test below pins the scene's absence. */
+const COMPONENTS = ["PathwayTab.tsx", "UnitTrail.tsx"] as const;
 
 /**
  * Does this module DRAW the trail, as opposed to merely mentioning it?
@@ -89,17 +91,16 @@ describe("the trail scrolls in the same layer as the buttons", () => {
     }
   });
 
-  it("keeps the sticky surface out of the trail business entirely", () => {
-    // PathScene is the one sticky, viewport-sized element on the tab, and it
-    // is allowed its scroll-linked parallax: a background may lag, a line
-    // between buttons may not. What it may not do is draw the line.
+  it("keeps sticky surfaces off the tab entirely, now that the scene is gone", () => {
+    // PathScene was the one sticky, viewport-sized element on the tab, and
+    // it was allowed its scroll-linked parallax because a background may lag.
+    // The owner dropped the generated landscape outright (2026-09-17), so the
+    // stronger property holds and is pinned: no component named PathScene
+    // exists, and nothing on the pathway is position: sticky or fixed at all.
+    expect(existsSync(path.join(PATHWAY, "PathScene.tsx"))).toBe(false);
     const css = readFileSync(path.join(PATHWAY, "pathway.css"), "utf8");
-    const scene = css.indexOf(".path-scene {");
-    expect(scene).toBeGreaterThan(-1);
-    expect(css.slice(scene, css.indexOf("}", scene))).toContain("position: sticky");
-    const source = read("PathScene.tsx");
-    expect(drawsTrail(source)).toBe(false);
-    expect(source).not.toContain("trailSegments");
+    expect(css).not.toContain("position: sticky");
+    expect(css).not.toContain("position: fixed");
   });
 
   it("puts the trail element inside the very section that holds the chips", () => {

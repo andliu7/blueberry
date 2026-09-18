@@ -1,9 +1,10 @@
 /**
- * The trail's arithmetic: the drawn ribbon, the diamond fork's geometry, the
- * F1 pill's miniature, and the terrace bands. All pure functions over points
- * and numbers, so the geometry the scene draws is testable without a
- * document, which is the same reason terrain.ts and pathwayLayout.ts are
- * tested and PathScene.tsx is not.
+ * The trail's arithmetic: the drawn ribbon, the diamond fork's geometry, and
+ * the F1 pill's miniature. All pure functions over points and numbers, so
+ * the geometry the ribbon draws is testable without a document, which is the
+ * same reason pathwayLayout.ts is tested and the components are not. The
+ * terrace-band block that used to close this file left with terrain.ts when
+ * the generated landscape was dropped (owner, 2026-09-17).
  *
  * The rules asserted here are the committed ones:
  *  - blueberry_branch-diamond_1788284291.png: the fork's arms leave the
@@ -20,7 +21,6 @@
 import { describe, expect, it } from "vitest";
 import { flowOrder, trailSegments, trackMapModel, type TrackMapNode, type TrailPoint } from "../tabs/pathway/trail";
 import { trackWind } from "../tabs/pathway/pathwayLayout";
-import { terracePath, terraceProfile } from "../tabs/pathway/terrain";
 
 function point(x: number, y: number, lane: TrailPoint["lane"], done = false): TrailPoint {
   return { x, y, lane, done };
@@ -323,59 +323,5 @@ describe("trackMapModel, the pill's miniature", () => {
     const model = trackMapModel(nodes, 32, 170);
     expect(model.segments.filter((segment) => segment.loop).every((segment) => !segment.done)).toBe(true);
     expect(model.segments.filter((segment) => segment.done)).toHaveLength(1);
-  });
-});
-
-describe("terracePath and terraceProfile, the rolling hills", () => {
-  /*
-   * THE STAIRCASE IS GONE, AND THESE TESTS FOLLOW IT.
-   *
-   * terracePath used to draw a four step staircase seeded by an integer, and
-   * the three tests here asserted exactly that: a fixed step count, every step
-   * lower than the last, and left/right alternation by seed parity. The scene
-   * round replaced it with a rolling hillside taking a TerraceProfile, and its
-   * own comment gives the reason: "a staircase has a first step and a last
-   * step, and a hillside does not". So the old assertions describe a design
-   * that was deliberately superseded, and re-pointing them is not weakening
-   * coverage; deleting them would be. What is still worth holding is below,
-   * and one of these is stronger than anything the staircase version had.
-   */
-
-  it("closes into a fillable band that starts at the given top", () => {
-    const d = terracePath(120, 300, 390, terraceProfile(2, 0));
-    expect(d.startsWith("M ")).toBe(true);
-    expect(d.trimEnd().endsWith("Z")).toBe(true);
-    const numbers = d.match(/-?\d+(?:\.\d+)?/g)!.map(Number);
-    expect(numbers[1]).toBe(120);
-  });
-
-  it("bleeds past both edges, so no plate shows a seam at the viewport", () => {
-    const d = terracePath(0, 100, 390, terraceProfile(0, 0));
-    const xs = d.match(/-?\d+(?:\.\d+)?/g)!.map(Number).filter((_, k) => k % 2 === 0);
-    expect(Math.min(...xs)).toBeLessThan(0);
-    expect(Math.max(...xs)).toBeGreaterThan(390);
-  });
-
-  it("gives each unit its own character, and gives the same unit the same one twice", () => {
-    // The per-unit variation the goals ask for, and the determinism a capture
-    // needs: unit 3 must be the same picture on every run or a blind judge is
-    // comparing two different scenes.
-    const a = terraceProfile(3, 0);
-    const b = terraceProfile(3, 0);
-    expect(a).toEqual(b);
-    const others = [0, 1, 2, 4, 5].map((u) => terraceProfile(u, 0));
-    expect(others.some((p) => p.crests !== a.crests || p.tilt !== a.tilt || p.phase !== a.phase)).toBe(true);
-  });
-
-  it("never inverts the land: relief and crest count stay in their stated range", () => {
-    for (let unit = 0; unit < 14; unit += 1) {
-      for (let band = 0; band < 4; band += 1) {
-        const p = terraceProfile(unit, band);
-        expect(p.crests).toBeGreaterThanOrEqual(1);
-        expect(p.crests).toBeLessThanOrEqual(3);
-        expect(p.relief).toBeGreaterThanOrEqual(0);
-        expect(Math.abs(p.tilt)).toBe(1);
-      }
-    }
   });
 });

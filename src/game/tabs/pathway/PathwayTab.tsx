@@ -22,7 +22,7 @@
  *
  * THE LOOK. Periwinkle 3D pressable chips (the --chip-* family), all one
  * size, five states per the committed sheet; a drawn winding trail that
- * PathScene derives from where the nodes actually landed; the DIAMOND FORK
+ * UnitTrail derives from where the nodes actually landed; the DIAMOND FORK
  * as the default unit shape, derived per unit in unitShape.ts, with the
  * concept above the split and the arms rejoining at that unit'''s OWN
  * double-dagger gate; enrichment on dimmed side loops flying the application
@@ -38,7 +38,7 @@
  * door; the door is the sheet.
  */
 
-import { useMemo, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import {
   ACTS,
   prerequisiteClosure,
@@ -50,7 +50,7 @@ import {
 } from "@blueberry/curriculum";
 import { Card } from "../../app/ui/Card";
 import { Press } from "../../app/ui/Press";
-import { hrefForTab, hrefForOnboarding, hrefForLesson } from "../../app/routes";
+import { hashParam, hrefForTab, hrefForOnboarding, hrefForLesson } from "../../app/routes";
 import { navigate } from "../../app/useHashRoute";
 import { useProgress } from "../../app/hooks";
 import { lessonNodeId, progress, type ProgressSnapshot } from "../../app/progress";
@@ -69,12 +69,11 @@ import {
   type PathwayUnit as MapUnit,
   type PlayableLink as MapPlayableLink,
 } from "../../demo/pathwayMap";
-import PathScene from "./PathScene";
 import UnitTrail from "./UnitTrail";
 import { deriveMapPathway, statusOf, unitPassed, type MapPathwayStatus } from "./pathwayState";
 import { deriveFreeOrderStates } from "./topicPathway";
 import { HUB_CENTRE, petalPositions } from "./hubPlan";
-import { unitShape, weaveLoops, type UnitShape } from "./unitShape";
+import { isCheckpointUnit, unitShape, weaveLoops, type UnitShape } from "./unitShape";
 import type { TrackMapNode } from "./trail";
 /*
  * THE NODE SHEET, wired here rather than left on the shelf. The attempt-2
@@ -91,7 +90,6 @@ import { NodeSheet, Guidebook, guidebookFor, type SheetNode } from "../../pathwa
 // Re-exported because callers and tests have always reached it through this file.
 import { loopWind, trackWind, withBreakHints } from "./pathwayLayout";
 export { trackWind, withBreakHints } from "./pathwayLayout";
-import { isCheckpointUnit } from "./terrain";
 
 export interface PathwayNode {
   readonly topic: TopicId;
@@ -478,7 +476,7 @@ function sheetNodeFor(node: MapNode, state: NodeState, practiceHref: string | nu
 }
 
 /**
- * The trail lane a node rides; PathScene reads these off the document. "off"
+ * The trail lane a node rides; UnitTrail reads these off the document. "off"
  * means the node carries NO trail anchor at all: a hub's petals hang off
  * their own drawn spokes, and handing their centres to the trail would fold
  * the spine's ribbon through the flower.
@@ -545,7 +543,7 @@ function Chip({
   */
   const isHub = badge === "hub";
   const chipClass = `path-node path-node--${state} ${isHub ? "path-node--hub" : ""} ${dimmed ? "path-node--dim" : ""} ${isQueued ? "path-node--queued" : ""} ${clickable ? "path-node--press" : ""}`;
-  // Petals carry no trail anchor: PathScene queries [data-trail], so the
+  // Petals carry no trail anchor: UnitTrail queries [data-trail], so the
   // attribute pair is simply absent rather than present with a null lane.
   const trailAttributes =
     lane === "off"
@@ -1486,16 +1484,17 @@ export function currentIndexFor(plan: UnitPlan, status: MapPathwayStatus): numbe
 }
 
 /**
- * The Duolingo shaped track, restructured onto the Orgo Pathway Map. Owner
- * direction 2026-08-26: the map's own inventory IS the game's track.
+ * The Duolingo shaped track, restructured onto the Orgo Pathway Map, ONE UNIT
+ * PER PAGE. Owner decisions 2026-09-17: the generated terrain background
+ * (PathScene, terrain.ts, sceneProps.ts) is dropped outright, and the pathway
+ * is a per-unit pager advanced by a bottom button and a left or right swipe,
+ * reusing the interaction pattern of the site's own per-unit page
+ * (src/components/UnitPage.tsx: 64px swipe, slope guard, arrow keys).
  *
- * THE UNIT IS ONE COMPOSITION, TOP TO BOTTOM, and its DOM order IS its visual
- * order, because PathScene reads trail anchors off the document in document
- * order and trail.ts never sorts. That is the whole of the attempt-2 rejoin
- * bug: the fork rendered at the bottom of a unit and its rejoin anchor was the
- * NEXT unit's gate, about 700px down the page, so the diamond closed across a
- * side-quest block and a banner. Every unit now carries its own gate, drawn
- * directly under its own arms:
+ * THE UNIT IS STILL ONE COMPOSITION, TOP TO BOTTOM, and its DOM order IS its
+ * visual order, because UnitTrail reads trail anchors off the document in
+ * document order and trail.ts never sorts. Every unit carries its own gate,
+ * drawn directly under its own arms:
  *
  *   banner
  *   hub flower              only on the two units the goals reserve it for
@@ -1507,7 +1506,35 @@ export function currentIndexFor(plan: UnitPlan, status: MapPathwayStatus): numbe
  *
  * State still comes from deriveMapPathway, where only unit gates lock, so
  * both arms and every loop are freely orderable the moment the unit opens.
+ *
+ * WHERE THE PAGE LIVES: in the hash, as "#/app/pathway?unit=u7", the same
+ * in-hash query the trainer's deep links ride (see hashParam in app/routes.ts
+ * for why the query goes inside the hash rather than location.search).
+ * Refresh lands on the same unit; with no parameter the page is the unit the
+ * student is standing in. The Shell re-renders on every hashchange, so
+ * reading the param during render is live, the contract TrainerTab already
+ * relies on.
+ *
+ * NAVIGATION STOPS AT THE GATE. The rail above the page lists all fifteen
+ * units with their locked, current and done states, the whole mountain, but
+ * the pager will not open a unit the gates have not: the Continue button
+ * disables and carries the gate's reason, a swipe past the frontier does
+ * nothing, and a deep link past it clamps. Unlock SEMANTICS are untouched
+ * (unit gates are still the only locks, pathwayState.ts, pinned by
+ * pathwayUnlock.test.ts); this is a navigation rule over them.
  */
+
+/** Horizontal travel, in pixels, before a drag counts as a swipe. The same
+    threshold as the site's per-unit page. */
+const SWIPE_PX = 64;
+/** How much steeper than horizontal a drag may be before it is a scroll. */
+const SWIPE_SLOPE = 1.2;
+
+/** The pager's deep link: one unit, addressed inside the hash. */
+function hrefForUnit(unitId: string): string {
+  return `${hrefForTab("pathway")}?unit=${encodeURIComponent(unitId)}`;
+}
+
 function OrgoMapTrack({
   onOpenNode,
   status,
@@ -1519,252 +1546,406 @@ function OrgoMapTrack({
 }) {
   const plans = useMemo(() => planUnits(PATHWAY_UNITS), []);
 
-  // THE SCROLL MAP IS GONE, owner 2026-09-03, asked twice. The F1 track-map
-  // pill, its berry thumb, its hover reveal and the fast-travel overlay it
-  // expanded into are all removed: the goals' scrollbar clause is superseded
-  // there with the reversal dated, so this is not an oversight to restore.
-  // planUnits stays because the unit sections below are drawn from it.
+  // The frontier: the last unit the gates have opened. `reachable` is a
+  // prefix property (pathwayState.ts flips it once, at the first unfinished
+  // unit), so the last reachable index is the frontier itself.
+  let frontier = 0;
+  PATHWAY_UNITS.forEach((entry, at) => {
+    if (status.units.get(entry.id)?.reachable === true) frontier = at;
+  });
+  const activeAt = PATHWAY_UNITS.findIndex((entry) => status.units.get(entry.id)?.active === true);
+  const requested = hashParam("unit");
+  const requestedAt = requested === null ? -1 : PATHWAY_UNITS.findIndex((entry) => entry.id === requested);
+  // The default page is the unit the student is standing in; a finished
+  // track lands on the frontier. A deep link past the frontier clamps to it.
+  const index = requestedAt === -1 ? (activeAt === -1 ? frontier : activeAt) : Math.min(requestedAt, frontier);
+
+  const plan = plans[index]!;
+  const { unit, shape } = plan;
+  const unitStatus = status.units.get(unit.id);
+  const gatePassed = unitStatusPassed(status, unit.id);
+  const gateLocked = unitStatus === undefined || !unitStatus.reachable;
+
+  const previous = index > 0 ? PATHWAY_UNITS[index - 1]! : null;
+  const next = index < PATHWAY_UNITS.length - 1 ? PATHWAY_UNITS[index + 1]! : null;
+  const nextOpen = next !== null && status.units.get(next.id)?.reachable === true;
+
+  const surfaceRef = useRef<HTMLDivElement | null>(null);
+  const railRef = useRef<HTMLElement | null>(null);
+
+  /*
+   * Swipe and arrow keys, the donor pattern from src/components/UnitPage.tsx:
+   * pointer events rather than touch so a trackpad drag and a finger take the
+   * same path, and two guards keep an ordinary scroll from navigating (it has
+   * to travel far enough, and be more horizontal than vertical).
+   */
+  useEffect(() => {
+    const el = surfaceRef.current;
+    if (el === null) return;
+
+    const go = (to: { readonly id: string } | null, open: boolean) => {
+      if (to !== null && open) navigate(hrefForUnit(to.id));
+    };
+    const forward = () => go(next, nextOpen);
+    const back = () => go(previous, previous !== null);
+
+    let startX = 0;
+    let startY = 0;
+    let tracking = false;
+    const onDown = (event: PointerEvent) => {
+      if (event.pointerType === "mouse" && event.button !== 0) return;
+      startX = event.clientX;
+      startY = event.clientY;
+      tracking = true;
+    };
+    const onUp = (event: PointerEvent) => {
+      if (!tracking) return;
+      tracking = false;
+      const dx = event.clientX - startX;
+      const dy = event.clientY - startY;
+      if (Math.abs(dx) < SWIPE_PX) return;
+      if (Math.abs(dx) < Math.abs(dy) * SWIPE_SLOPE) return;
+      // Dragging right pulls the previous unit in from the left, the
+      // direction every carousel and phone back gesture already means.
+      if (dx > 0) back();
+      else forward();
+    };
+    const onKey = (event: KeyboardEvent) => {
+      const target = event.target;
+      if (target instanceof HTMLElement && /INPUT|TEXTAREA|SELECT/.test(target.tagName)) return;
+      if (event.key === "ArrowRight") forward();
+      if (event.key === "ArrowLeft") back();
+    };
+
+    el.addEventListener("pointerdown", onDown, { passive: true });
+    window.addEventListener("pointerup", onUp, { passive: true });
+    window.addEventListener("keydown", onKey);
+    return () => {
+      el.removeEventListener("pointerdown", onDown);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [previous, next, nextOpen]);
+
+  // A new page starts at its top, and the rail keeps the shown unit in view.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    const step = railRef.current?.querySelector('[aria-current="page"]');
+    step?.scrollIntoView({ inline: "center", block: "nearest", behavior: reducedMotion ? "auto" : "smooth" });
+  }, [unit.id, reducedMotion]);
 
   return (
-    <div className="path-stage">
-      <PathScene
-        units={PATHWAY_UNITS}
-        reducedMotion={reducedMotion}
-        // The trail's done colouring is measured off the DOM, so the scene
-        // re-measures when progress moves, not only when layout does.
-        stamp={`${status.currentNodeId ?? "end"}:${status.doneCount}`}
-      />
-      <div className="path-stage__content flex flex-col gap-2" data-path-content role="region" aria-label="Orgo II pathway map">
-        {plans.map((plan) => {
-          const { unit, shape } = plan;
-          const unitStatus = status.units.get(unit.id);
-          const gatePassed = unitStatusPassed(status, unit.id);
-          const gateLocked = unitStatus === undefined || !unitStatus.reachable;
-          return (
-            <section
-              key={unit.id}
-              className="path-unit flex flex-col gap-3"
-              aria-label={unit.title}
-              data-unit-id={unit.id}
-              data-checkpoint={plan.checkpoint ? "true" : "false"}
+    <div ref={surfaceRef} className="path-pager touch-pan-y" role="region" aria-label="Orgo II pathway map">
+      {/*
+        THE WHOLE MOUNTAIN. One step per unit, every unit always listed, one
+        page open: the Duolingo/ALEKS principle the per-page cut must not
+        lose. A reachable step is a real link to its page; a locked step is a
+        real button that declines, the same pattern the locked Chip follows,
+        so the course's full length is visible and tabbable from every page.
+      */}
+      <nav ref={railRef} className="path-rail" aria-label="All units">
+        {PATHWAY_UNITS.map((entry, at) => {
+          const passed = unitStatusPassed(status, entry.id);
+          const reachable = status.units.get(entry.id)?.reachable === true;
+          const railState = passed ? "done" : !reachable ? "locked" : at === activeAt ? "current" : "open";
+          const name = `${unitNumber(entry.title)}, ${unitName(entry.title)}`;
+          return reachable ? (
+            <a
+              key={entry.id}
+              href={hrefForUnit(entry.id)}
+              className={`path-rail__step path-rail__step--${railState} press`}
+              aria-current={at === index ? "page" : undefined}
+              aria-label={passed ? `${name}. Done` : name}
             >
-              {/*
-                THE TRAIL IS INSIDE THE UNIT, and that is the fix for the lag
-                the owner reported twice. It used to be drawn by the sticky
-                PathScene and re-placed from a scroll listener, so it was one
-                frame behind the chips by construction. Here it is a child of
-                the same section as the chips, so the compositor moves both
-                together and there is nothing left to synchronise. UnitTrail's
-                header has the full reasoning; it must be the FIRST child,
-                because it measures its own parent and paints beneath its
-                siblings.
-              */}
-              <UnitTrail
-                stamp={`${unit.id}:${status.currentNodeId ?? "end"}:${status.doneCount}:${gatePassed ? "1" : "0"}`}
-                reducedMotion={reducedMotion}
-              />
-              {/*
-                THE UNIT SIGNPOST IS A THIN VIOLET RULE ACROSS THE ROAD with
-                one short caps line over it, which is what
-                blueberry_branch-diamond draws: a hairline the width of the
-                column, the word "EAS" small and violet above it, occupying
-                about four percent of the screen.
+              {at + 1}
+            </a>
+          ) : (
+            <button
+              key={entry.id}
+              type="button"
+              className="path-rail__step path-rail__step--locked press"
+              aria-disabled="true"
+              aria-label={`${name}. Opens when the unit before it is done`}
+              onClick={(event) => event.preventDefault()}
+            >
+              {at + 1}
+            </button>
+          );
+        })}
+      </nav>
+      <section
+        key={unit.id}
+        className="path-unit flex flex-col gap-3"
+        aria-label={unit.title}
+        data-unit-id={unit.id}
+        data-checkpoint={plan.checkpoint ? "true" : "false"}
+      >
+        {/*
+          THE TRAIL IS INSIDE THE UNIT, and that is the fix for the lag
+          the owner reported twice. It used to be drawn by the sticky
+          PathScene and re-placed from a scroll listener, so it was one
+          frame behind the chips by construction. Here it is a child of
+          the same section as the chips, so the compositor moves both
+          together and there is nothing left to synchronise. UnitTrail's
+          header has the full reasoning; it must be the FIRST child,
+          because it measures its own parent and paints beneath its
+          siblings.
+        */}
+        <UnitTrail
+          stamp={`${unit.id}:${status.currentNodeId ?? "end"}:${status.doneCount}:${gatePassed ? "1" : "0"}`}
+          reducedMotion={reducedMotion}
+        />
+        {/*
+          THE UNIT SIGNPOST IS A THIN VIOLET RULE ACROSS THE ROAD with
+          one short caps line over it, which is what
+          blueberry_branch-diamond draws: a hairline the width of the
+          column, the word "EAS" small and violet above it, occupying
+          about four percent of the screen.
 
-                What the build drew was the slab its own comment claimed it
-                had replaced: a full-width cream card with a 2px border and
-                two lines of 17px semibold text, about 150 CSS px tall, the
-                largest single element on the screen and larger than any node.
-                A critic measured it and named it, and the measurement is the
-                point: a chapter heading that out-weighs the button a student
-                is meant to press has inverted the composition.
+          What the build drew was the slab its own comment claimed it
+          had replaced: a full-width cream card with a 2px border and
+          two lines of 17px semibold text, about 150 CSS px tall, the
+          largest single element on the screen and larger than any node.
+          A critic measured it and named it, and the measurement is the
+          point: a chapter heading that out-weighs the button a student
+          is meant to press has inverted the composition.
 
-                THE NAMING SURVIVES THE SHRINK, and that matters because
-                naming is what the S3 judge picked this track for. The number
-                and the name still both render, in full, at every width; they
-                are one small letterspaced caps line now instead of two 17px
-                semibold ones. The unit's name is also carried at full size in
-                the fast-travel overlay, which is where a reader goes when
-                they are looking for a unit rather than walking past one.
+          THE NAMING SURVIVES THE SHRINK, and that matters because
+          naming is what the S3 judge picked this track for. The number
+          and the name still both render, in full, at every width; they
+          are one small letterspaced caps line now instead of two 17px
+          semibold ones. The unit's name is also carried at full size in
+          the fast-travel overlay, which is where a reader goes when
+          they are looking for a unit rather than walking past one.
 
-                The tag is PLATED and the rule deliberately is not: a road
-                crossing a signpost's rule is a junction and reads as one, and
-                a road crossing a letterform is damage.
-              */}
-              <header className="path-signpost mx-auto w-full max-w-md">
-                <span className="path-signpost__rule" aria-hidden />
-                <h3 className="path-signpost__tag">
-                  {unitNumber(unit.title)} &middot; {unitName(unit.title)}
-                </h3>
-              </header>
-              {shape.hub !== null ? (
-                <HubFlower
-                  hubNode={shape.hub}
-                  petals={shape.petals}
-                  videoHookId={shape.videoHookId}
-                  status={status}
-                  onOpenNode={onOpenNode}
-                />
-              ) : null}
+          The tag is PLATED and the rule deliberately is not: a road
+          crossing a signpost's rule is a junction and reads as one, and
+          a road crossing a letterform is damage.
+        */}
+        <header className="path-signpost mx-auto w-full max-w-md">
+          <span className="path-signpost__rule" aria-hidden />
+          <h3 className="path-signpost__tag">
+            {unitNumber(unit.title)} &middot; {unitName(unit.title)}
+          </h3>
+        </header>
+        {shape.hub !== null ? (
+          <HubFlower
+            hubNode={shape.hub}
+            petals={shape.petals}
+            videoHookId={shape.videoHookId}
+            status={status}
+            onOpenNode={onOpenNode}
+          />
+        ) : null}
 
-              <ol className="path-track mx-auto flex w-full max-w-md flex-col py-2">
-                {plan.rows.map((row) => {
-                  const nodeStatus = statusOf(status, row.node.id);
-                  const playable = row.node.playable;
-                  const clickable = playable !== undefined && nodeStatus.state !== "locked";
-                  return (
-                    <TrackSlab
-                      key={row.node.id}
-                      state={nodeStatus.state}
-                      label={row.node.title}
-                      detail={mapNodeDetail(row.node, nodeStatus.queued, nodeStatus.state === "locked")}
-                      href={clickable && playable !== undefined ? hrefForPlayable(playable) : null}
-                      wind={row.wind}
-                      lane={row.lane}
-                      badge={badgeForMapNode(row.node, shape.videoHookId, row.dim)}
-                      /*
-                        THE DIMMED SIDE LOOP, and the dim is AUTHORED TOKENS
-                        rather than a CSS filter, per the S2 floor: the
-                        contrast audit reads computed colours and a filter
-                        would make it measure a pair that is not on screen.
-                        Enrichment stays off the exam-weighted spine per
-                        CLAUDE.md, and dimming is how the track says so.
-                      */
-                      dim={row.dim}
-                      queued={nodeStatus.queued}
-                      reducedMotion={reducedMotion}
-                      onOpenNode={onOpenNode}
-                      sheetNode={sheetNodeFor(row.node, nodeStatus.state, clickable && playable !== undefined ? hrefForPlayable(playable) : null)}
-                      gateNode={mapGateNode(row.node, clickable)}
-                    />
-                  );
-                })}
-              </ol>
-
-              {shape.concept !== null ? (
+        <ol className="path-track mx-auto flex w-full max-w-md flex-col py-2">
+          {plan.rows.map((row) => {
+            const nodeStatus = statusOf(status, row.node.id);
+            const playable = row.node.playable;
+            const clickable = playable !== undefined && nodeStatus.state !== "locked";
+            return (
+              <TrackSlab
+                key={row.node.id}
+                state={nodeStatus.state}
+                label={row.node.title}
+                detail={mapNodeDetail(row.node, nodeStatus.queued, nodeStatus.state === "locked")}
+                href={clickable && playable !== undefined ? hrefForPlayable(playable) : null}
+                wind={row.wind}
+                lane={row.lane}
+                badge={badgeForMapNode(row.node, shape.videoHookId, row.dim)}
                 /*
-                  THE DIAMOND FORK, per blueberry_branch-diamond: the concept
-                  node centred above the split, one arm each side, and both
-                  arms rejoining at THIS unit's gate immediately below. Both
-                  arms are genuinely open at once, because within a unit every
-                  node is freely orderable; the fork is the unlock policy made
-                  visible, not a decoration over a chain.
+                  THE DIMMED SIDE LOOP, and the dim is AUTHORED TOKENS
+                  rather than a CSS filter, per the S2 floor: the
+                  contrast audit reads computed colours and a filter
+                  would make it measure a pair that is not on screen.
+                  Enrichment stays off the exam-weighted spine per
+                  CLAUDE.md, and dimming is how the track says so.
                 */
-                <div className="path-fork mx-auto w-full max-w-md" role="group" aria-label="Choose either branch; they rejoin at the unit gate">
-                  <div className="path-fork__concept">
+                dim={row.dim}
+                queued={nodeStatus.queued}
+                reducedMotion={reducedMotion}
+                onOpenNode={onOpenNode}
+                sheetNode={sheetNodeFor(row.node, nodeStatus.state, clickable && playable !== undefined ? hrefForPlayable(playable) : null)}
+                gateNode={mapGateNode(row.node, clickable)}
+              />
+            );
+          })}
+        </ol>
+
+        {shape.concept !== null ? (
+          /*
+            THE DIAMOND FORK, per blueberry_branch-diamond: the concept
+            node centred above the split, one arm each side, and both
+            arms rejoining at THIS unit's gate immediately below. Both
+            arms are genuinely open at once, because within a unit every
+            node is freely orderable; the fork is the unlock policy made
+            visible, not a decoration over a chain.
+          */
+          <div className="path-fork mx-auto w-full max-w-md" role="group" aria-label="Choose either branch; they rejoin at the unit gate">
+            <div className="path-fork__concept">
+              <ForkChip
+                node={shape.concept}
+                status={statusOf(status, shape.concept.id)}
+                lane="main"
+                badge={badgeForMapNode(shape.concept, shape.videoHookId) ?? "concept"}
+                dim={false}
+                reducedMotion={reducedMotion}
+                onOpenNode={onOpenNode}
+              />
+            </div>
+            <div className="path-fork__arms">
+              {([0, 1] as const).map((side) => (
+                <div className="path-fork__arm" key={side}>
+                  {shape.arms[side].map((node) => (
                     <ForkChip
-                      node={shape.concept}
-                      status={statusOf(status, shape.concept.id)}
-                      lane="main"
-                      badge={badgeForMapNode(shape.concept, shape.videoHookId) ?? "concept"}
+                      key={node.id}
+                      node={node}
+                      status={statusOf(status, node.id)}
+                      lane={side === 0 ? "left" : "right"}
+                      badge={badgeForMapNode(node, shape.videoHookId)}
                       dim={false}
                       reducedMotion={reducedMotion}
                       onOpenNode={onOpenNode}
                     />
-                  </div>
-                  <div className="path-fork__arms">
-                    {([0, 1] as const).map((side) => (
-                      <div className="path-fork__arm" key={side}>
-                        {shape.arms[side].map((node) => (
-                          <ForkChip
-                            key={node.id}
-                            node={node}
-                            status={statusOf(status, node.id)}
-                            lane={side === 0 ? "left" : "right"}
-                            badge={badgeForMapNode(node, shape.videoHookId)}
-                            dim={false}
-                            reducedMotion={reducedMotion}
-                            onOpenNode={onOpenNode}
-                          />
-                        ))}
-                      </div>
-                    ))}
-                  </div>
+                  ))}
                 </div>
-              ) : null}
+              ))}
+            </div>
+          </div>
+        ) : null}
 
-              {/*
-                THE UNIT GATE closes every unit, which is what makes it the
-                rejoin anchor the arms can actually reach. Where the unit
-                carries authored checkpoint questions they are plated beneath
-                it; where it does not, the arch alone is the boundary.
-              */}
-              {/*
-                THE CHECKPOINT IS CHIPS, and the outlined box it used to be is
-                deleted rather than restyled.
+        {/*
+          THE UNIT GATE closes every unit, which is what makes it the
+          rejoin anchor the arms can actually reach. Where the unit
+          carries authored checkpoint questions they are plated beneath
+          it; where it does not, the arch alone is the boundary.
+        */}
+        {/*
+          THE CHECKPOINT IS CHIPS, and the outlined box it used to be is
+          deleted rather than restyled.
 
-                No committed goal image contains a checkpoint block. The build
-                invented one: an outlined rectangle holding a dashed brown arc
-                and a stack of white 170-by-44 TEXT PILLS, beside 76-by-66
-                chips. That breaks the goals twice over, because the path
-                vocabulary has exactly one shape for an item on the path (the
-                periwinkle 3D chip) and because "all nodes the same size" is a
-                clause, not a preference, and a 170pt pill is not the size of a
-                66pt chip.
+          No committed goal image contains a checkpoint block. The build
+          invented one: an outlined rectangle holding a dashed brown arc
+          and a stack of white 170-by-44 TEXT PILLS, beside 76-by-66
+          chips. That breaks the goals twice over, because the path
+          vocabulary has exactly one shape for an item on the path (the
+          periwinkle 3D chip) and because "all nodes the same size" is a
+          clause, not a preference, and a 170pt pill is not the size of a
+          66pt chip.
 
-                A checkpoint question is a challenge, so it is drawn as the
-                CHALLENGE node type the spec sheet already has.
+          A checkpoint question is a challenge, so it is drawn as the
+          CHALLENGE node type the spec sheet already has.
 
-                AND IT IS ON THE ROAD. The chips used to sit in a flow-wrapped
-                block with `lane="off"`, so unit 2's five challenges rendered
-                as a 3-then-2 lattice and four of the five had no connector to
-                anything. That failed two clauses at once: a lattice is not
-                one of the three shapes the branch vocabulary has, and "THE
-                TRAIL IS CODE, ALWAYS ... a trail that visibly diverges from
-                its nodes is a failing bug". They are spine rows now, riding
-                the same wind cycle as every other node, so the road winds out
-                of the fork's rejoin, through the checkpoint, and into the
-                arch, and the trail reaches all of them by construction.
-              */}
-              {plan.gateRun.length > 0 ? (
-                <ol className="path-track mx-auto flex w-full max-w-md flex-col py-2" aria-label="Unit gate checkpoint">
-                  {plan.gateRun.map((row) => {
-                    const nodeStatus = statusOf(status, row.node.id);
-                    const playable = row.node.playable;
-                    const clickable = playable !== undefined && nodeStatus.state !== "locked";
-                    const href = clickable && playable !== undefined ? hrefForPlayable(playable) : null;
-                    return (
-                      <TrackSlab
-                        key={row.node.id}
-                        state={nodeStatus.state}
-                        label={row.node.title}
-                        detail={mapNodeDetail(row.node, nodeStatus.queued, nodeStatus.state === "locked")}
-                        href={href}
-                        wind={row.wind}
-                        lane="main"
-                        badge="challenge"
-                        dim={false}
-                        queued={nodeStatus.queued}
-                        reducedMotion={reducedMotion}
-                        onOpenNode={onOpenNode}
-                        sheetNode={sheetNodeFor(row.node, nodeStatus.state, href)}
-                        gateNode={mapGateNode(row.node, clickable)}
-                      />
-                    );
-                  })}
-                </ol>
-              ) : null}
-              <div className="path-gate mx-auto flex w-full max-w-md flex-col items-center" aria-label="Unit gate">
-                <UnitGateNode passed={gatePassed} locked={gateLocked} />
-                {/*
-                  NO CARD UNDER THE ARCH, pixel verdict of 2026-09-04: the
-                  gate is drawn "with a large dark glyph centred in the
-                  opening, straddling the trail, and NO TEXT LABEL UNDER IT".
-                  Neither adopted per-unit design names its gate.
+          AND IT IS ON THE ROAD. The chips used to sit in a flow-wrapped
+          block with `lane="off"`, so unit 2's five challenges rendered
+          as a 3-then-2 lattice and four of the five had no connector to
+          anything. That failed two clauses at once: a lattice is not
+          one of the three shapes the branch vocabulary has, and "THE
+          TRAIL IS CODE, ALWAYS ... a trail that visibly diverges from
+          its nodes is a failing bug". They are spine rows now, riding
+          the same wind cycle as every other node, so the road winds out
+          of the fork's rejoin, through the checkpoint, and into the
+          arch, and the trail reaches all of them by construction.
+        */}
+        {plan.gateRun.length > 0 ? (
+          <ol className="path-track mx-auto flex w-full max-w-md flex-col py-2" aria-label="Unit gate checkpoint">
+            {plan.gateRun.map((row) => {
+              const nodeStatus = statusOf(status, row.node.id);
+              const playable = row.node.playable;
+              const clickable = playable !== undefined && nodeStatus.state !== "locked";
+              const href = clickable && playable !== undefined ? hrefForPlayable(playable) : null;
+              return (
+                <TrackSlab
+                  key={row.node.id}
+                  state={nodeStatus.state}
+                  label={row.node.title}
+                  detail={mapNodeDetail(row.node, nodeStatus.queued, nodeStatus.state === "locked")}
+                  href={href}
+                  wind={row.wind}
+                  lane="main"
+                  badge="challenge"
+                  dim={false}
+                  queued={nodeStatus.queued}
+                  reducedMotion={reducedMotion}
+                  onOpenNode={onOpenNode}
+                  sheetNode={sheetNodeFor(row.node, nodeStatus.state, href)}
+                  gateNode={mapGateNode(row.node, clickable)}
+                />
+              );
+            })}
+          </ol>
+        ) : null}
+        <div className="path-gate mx-auto flex w-full max-w-md flex-col items-center" aria-label="Unit gate">
+          <UnitGateNode passed={gatePassed} locked={gateLocked} />
+          {/*
+            NO CARD UNDER THE ARCH, pixel verdict of 2026-09-04: the
+            gate is drawn "with a large dark glyph centred in the
+            opening, straddling the trail, and NO TEXT LABEL UNDER IT".
+            Neither adopted per-unit design names its gate.
 
-                  The name is not lost, it moved to where a name belongs on a
-                  graphic: the arch carries role="img" and an aria-label that
-                  says "Unit gate. Clear the checkpoint to open the next
-                  unit." A card said less and said it twice, because the
-                  cards beside it were reading as lesson names and this one
-                  was not a lesson. The older clause it replaces is
-                  blueberry_branch-diamond's "Unit test" caption; the
-                  per-unit designs are the newer adopted word.
-                */}
-              </div>
-            </section>
-          );
-        })}
-      </div>
+            The name is not lost, it moved to where a name belongs on a
+            graphic: the arch carries role="img" and an aria-label that
+            says "Unit gate. Clear the checkpoint to open the next
+            unit." A card said less and said it twice, because the
+            cards beside it were reading as lesson names and this one
+            was not a lesson. The older clause it replaces is
+            blueberry_branch-diamond's "Unit test" caption; the
+            per-unit designs are the newer adopted word.
+          */}
+        </div>
+      </section>
+      {/*
+        THE BOTTOM BAR, the donor's foot-of-page nav in this tab's vocabulary:
+        the unit's name, where it sits in the run of fifteen, and one primary
+        way onward. When the next unit is gated the button is a real control
+        that declines (aria-disabled, same pattern as a locked chip) and the
+        gate's reason is said in words beside it, never a dead end with no
+        sentence. Not sticky: the unit ends at its gate, and the way onward
+        sits just past the gate, which is where a student who walked the unit
+        is looking.
+      */}
+      <nav className="path-pager__bar mx-auto w-full max-w-md" aria-label="Unit pager">
+        {previous !== null ? (
+          <a className="path-pager__side press" href={hrefForUnit(previous.id)} aria-label={`Back to ${previous.title}`}>
+            <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden>
+              <path d="M14.5 5.5 8 12l6.5 6.5" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </a>
+        ) : (
+          <span className="path-pager__side path-pager__side--blank" aria-hidden />
+        )}
+        <div className="path-pager__title">
+          <span className="path-pager__eyebrow">
+            {unitNumber(unit.title)} of {PATHWAY_UNITS.length}
+          </span>
+          <span className="path-pager__name">{unitName(unit.title)}</span>
+        </div>
+        {next === null ? (
+          <span className="path-pager__side path-pager__side--blank" aria-hidden />
+        ) : nextOpen ? (
+          <a className="path-pager__next press" href={hrefForUnit(next.id)}>
+            Continue
+          </a>
+        ) : (
+          <button
+            type="button"
+            className="path-pager__next press"
+            aria-disabled="true"
+            aria-label={`Continue. Opens when ${unit.title} is done`}
+            onClick={(event) => event.preventDefault()}
+          >
+            Continue
+          </button>
+        )}
+      </nav>
+      {next !== null && !nextOpen ? (
+        <p className="path-pager__reason mx-auto w-full max-w-md" role="note">
+          {unitNumber(next.title)} opens when this unit is done.
+        </p>
+      ) : null}
+      <p className="path-pager__hint mx-auto w-full max-w-md" aria-hidden>
+        Swipe or use the arrow keys
+      </p>
     </div>
   );
 }
@@ -1841,8 +2022,8 @@ export default function PathwayTab({ reducedMotion }: { readonly reducedMotion: 
 
   return (
     /*
-      pb-16 on top of the shell's own pb-24: the last row of a 14000px track
-      needs room a reader can see is deliberate under a fixed tab bar. md:pb-6
+      pb-16 on top of the shell's own pb-24: the pager's bottom bar needs
+      room a reader can see is deliberate under a fixed tab bar. md:pb-6
       puts it back to the page padding on a desktop, where the bar is a rail.
     */
     <div className="mx-auto flex max-w-2xl flex-col gap-4 p-4 pb-16 md:p-6 md:pb-6">
