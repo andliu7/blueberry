@@ -83,6 +83,17 @@ export type CardSource =
       readonly at: string;
     }
   | {
+      /**
+       * Saved off a reaction page (#/draw) or seeded from the authored
+       * reaction data in data/reactions.ts. The id is derived from the
+       * reaction, so saving the same reaction twice updates one card.
+       */
+      readonly kind: "reaction";
+      readonly reactionId: string;
+      /** ISO 8601, when it was saved or seeded. */
+      readonly at: string;
+    }
+  | {
       readonly kind: "import";
       /** The deck name as the file gave it, kept so the student recognises it. */
       readonly deckName: string;
@@ -102,6 +113,7 @@ export const CARD_SOURCE_KINDS: readonly CardSourceKind[] = Object.freeze([
   "lesson",
   "mistake",
   "composed",
+  "reaction",
   "import",
 ]);
 
@@ -132,6 +144,16 @@ export interface Card {
    * writer. See ui/composer.ts for the mapping.
    */
   readonly sides?: ReactionSides;
+  /**
+   * The reaction-card face, when the card is one: reactants and reagents on
+   * one side of the arrow, products on the other, temperature on the face,
+   * and the optional labelled extras behind the tap. Optional so every
+   * existing card stays valid; front, back and why are always populated too,
+   * so a surface that does not know about it still renders the card whole.
+   * Every value is the card author's own data (the student, or the authored
+   * reaction registry); nothing here is recalled by a model.
+   */
+  readonly reaction?: ReactionCardData;
 }
 
 /**
@@ -147,6 +169,85 @@ export interface ReactionSides {
 }
 
 export type ReactionSide = keyof ReactionSides;
+
+/**
+ * A reaction card's face, the 17 Sep owner decision: the front is a scheme,
+ * reactants plus reagents on one side of the arrow and products on the other,
+ * with the temperature worn on the face; tapping reveals the labelled extras.
+ * Plain strings throughout, because these are authored data carried verbatim,
+ * whether the author is the student or data/reactions.ts. Nothing is graded
+ * and nothing goes near chem-core.
+ */
+export interface ReactionCardData {
+  /** Left of the arrow: the starting materials, in words. */
+  readonly reactants: string;
+  /** Over the arrow: reagents in order, e.g. "CH3MgBr; then H3O+". */
+  readonly reagents: string;
+  /** Right of the arrow. This is the answer, hidden until the reveal. */
+  readonly products: string;
+  /** The chip on the face, already formatted, e.g. "-78 °C". Absent when unstated. */
+  readonly temperature?: string;
+  /** The extras behind the tap. Each optional: absent renders nothing. */
+  readonly reveal: ReactionReveal;
+}
+
+/**
+ * The reveal fields the owner named, every one optional. The card renders
+ * whatever exists and hides the rest; a field the author did not supply is
+ * absent, never filled in from recall.
+ */
+export interface ReactionReveal {
+  /** Acid/base equilibrium constant, as the author wrote it. */
+  readonly keq?: string;
+  readonly pka?: string;
+  /** 1,2 against 1,4 addition, in the author's words. */
+  readonly selectivity?: string;
+  readonly electronegativity?: string;
+  readonly resonance?: string;
+}
+
+export type ReactionRevealField = keyof ReactionReveal;
+
+/** The order the reveal panel lists the fields in, fixed so cards read alike. */
+export const REVEAL_ORDER: readonly ReactionRevealField[] = Object.freeze([
+  "keq",
+  "pka",
+  "selectivity",
+  "electronegativity",
+  "resonance",
+]);
+
+/** The label each reveal field wears. Owner-named field names, not chemistry. */
+export const REVEAL_LABELS: Readonly<Record<ReactionRevealField, string>> = Object.freeze({
+  keq: "Acid/base Keq",
+  pka: "pKa",
+  selectivity: "1,2 vs 1,4 selectivity",
+  electronegativity: "Electronegativity",
+  resonance: "Resonance",
+});
+
+export interface RevealEntry {
+  readonly field: ReactionRevealField;
+  readonly label: string;
+  readonly value: string;
+}
+
+/**
+ * The fields a card can actually show, in display order. Absent and blank
+ * are the same thing: not shown. This is the one place presence is decided,
+ * so the reveal panel and the tests read the same answer, and a field the
+ * author left out can never be filled in downstream.
+ */
+export function presentReveal(reveal: ReactionReveal): readonly RevealEntry[] {
+  const entries: RevealEntry[] = [];
+  for (const field of REVEAL_ORDER) {
+    const value = reveal[field];
+    if (value !== undefined && value.trim().length > 0) {
+      entries.push({ field, label: REVEAL_LABELS[field], value });
+    }
+  }
+  return entries;
+}
 
 /**
  * `kind` separates the three decks a student can hold at once: the deck a

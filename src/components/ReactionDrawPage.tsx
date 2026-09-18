@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Ketcher } from "ketcher-core";
 import {
   BookmarkPlus,
@@ -17,9 +17,11 @@ import { Button } from "@/components/ui/button";
 import { Loader } from "@/components/ui/loader";
 import { SiteFooter } from "@/components/ui/site-footer";
 import { PageBackground } from "@/components/ui/page-background";
-import { REACTIONS, type StagedReaction } from "@/data/reactions";
+import { REACTIONS } from "@/data/reactions";
+import { drawCardFor } from "@/game/cards/reactionCard";
+import { migrateLegacySavedCards } from "@/game/cards/migrateSavedCards";
+import { decks, PERSONAL_DECK_ID } from "@/game/cards/store";
 import { sameStructure } from "@/lib/checkAnswer";
-import { saveCard } from "@/lib/savedCards";
 import { cn } from "@/lib/utils";
 
 /**
@@ -47,6 +49,13 @@ export default function ReactionDrawPage({ reactionId }: { reactionId: string })
   const [verdict, setVerdict] = useState<Verdict>({ kind: "idle" });
   const [peeked, setPeeked] = useState(false);
   const [saved, setSaved] = useState(false);
+
+  // Anything still under the dead savedCards.ts key walks into the game's
+  // personal deck, once, whichever surface the student reaches first. See
+  // migrateSavedCards.ts.
+  useEffect(() => {
+    migrateLegacySavedCards(decks, PERSONAL_DECK_ID);
+  }, []);
 
   if (!reaction) {
     return (
@@ -80,27 +89,16 @@ export default function ReactionDrawPage({ reactionId }: { reactionId: string })
     );
   };
 
-  const save = async () => {
-    const ketcher = ketcherRef.current;
-    if (!ketcher) return;
-    // Molfile as well as SMILES: SMILES loses the coordinates, and a card that
-    // reopens with the structure re-laid-out is not the card they drew.
-    let molfile: string | undefined;
-    let smiles: string | undefined;
-    try {
-      molfile = await ketcher.getMolfile();
-      smiles = await ketcher.getSmiles();
-    } catch {
-      /* save the card without the drawing rather than not at all */
-    }
-    saveCard({
-      reactionId: reaction.id,
-      front: `${reaction.reactant_labels.join(" + ")} — ${describeReagents(reaction)}`,
-      back: reaction.product_label,
-      molfile,
-      smiles,
-      correct: verdict.kind === "right",
-    });
+  // The save lands in the game's own deck system as a reaction card: it is
+  // due immediately, reviewed under the four grade chips, and synced when
+  // the Phase 6 DeckSource swap happens. The id is derived from the
+  // reaction, so saving twice keeps one card and its earned schedule. The
+  // card is built from the authored reaction data, not from the drawing;
+  // the drawing was never rendered anywhere and does not travel.
+  const save = () => {
+    const card = drawCardFor(reaction.id, new Date());
+    if (card === null) return;
+    decks.saveCard(card, PERSONAL_DECK_ID);
     setSaved(true);
     window.setTimeout(() => setSaved(false), 3000);
   };
@@ -171,9 +169,8 @@ export default function ReactionDrawPage({ reactionId }: { reactionId: string })
               </ol>
             </section>
 
-            {/* Peeking is allowed and recorded honestly: a saved card notes
-                whether the answer was reached or looked up. Hiding the option
-                would only mean opening the lessons page in another tab. */}
+            {/* Peeking is allowed. Hiding the option would only mean opening
+                the lessons page in another tab. */}
             <section className="rounded-3xl border border-slate-200 bg-white/80 p-5 shadow-sm dark:border-stone-800 dark:bg-stone-950/70">
               <h2 className="text-sm font-semibold">Stuck?</h2>
               {peeked ? (
@@ -245,7 +242,7 @@ export default function ReactionDrawPage({ reactionId }: { reactionId: string })
                 <RotateCcw className="size-4" />
                 Clear
               </Button>
-              <Button variant="outline" onClick={() => void save()}>
+              <Button variant="outline" onClick={save}>
                 <BookmarkPlus className="size-4" />
                 {saved ? "Saved" : "Save as card"}
               </Button>
@@ -313,12 +310,4 @@ function VerdictNote({ verdict, productLabel }: { verdict: Verdict; productLabel
       )}
     </div>
   );
-}
-
-/** "NaBH4, then H3O+" from the staged reagents, for a card front. */
-function describeReagents(reaction: StagedReaction): string {
-  return reaction.stages
-    .map((s) => s.reagents[s.reagents.length - 1] ?? s.reagents[0] ?? "")
-    .filter(Boolean)
-    .join("; then ");
 }

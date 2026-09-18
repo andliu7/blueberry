@@ -33,7 +33,9 @@
 import { useEffect, useMemo, useState } from "react";
 import type { Card, DeckId, DeckSource } from "../types";
 import { cardsIn } from "../types";
-import { decks as defaultDecks } from "../store";
+import { decks as defaultDecks, PERSONAL_DECK_ID } from "../store";
+import { migrateLegacySavedCards } from "../migrateSavedCards";
+import { seedStarterDeck } from "../seed";
 import { loadMistakes, type SavedMistake } from "../../tabs/trainer/mistakes";
 import { CardsLanding } from "./CardsLanding";
 import { Composer } from "./CardComposer";
@@ -76,6 +78,17 @@ export function CardsHome({ source = defaultDecks, mistakes, onImmersiveChange }
   const [face, setFace] = useState<Face>({ kind: "landing" });
   const snapshot = useDeckSnapshot(source);
   const journal = useMemo(() => mistakes ?? loadMistakes(), [mistakes, snapshot]);
+
+  // First mount housekeeping, in this order: the dead draw-page store's
+  // entries walk into the personal deck (once; the key is removed), and only
+  // then does the starter seed decide whether this is really a first run.
+  // Migrated cards count as cards, so a student with real saves is never
+  // handed a starter deck on top of them. Both are one storage read after
+  // their first pass. See migrateSavedCards.ts and seed.ts.
+  useEffect(() => {
+    migrateLegacySavedCards(source, PERSONAL_DECK_ID);
+    seedStarterDeck(source);
+  }, [source]);
 
   const immersive = face.kind === "review";
   useEffect(() => {

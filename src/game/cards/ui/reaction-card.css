@@ -1,0 +1,96 @@
+/**
+ * The reaction card's own styles: the scheme on the face and the reveal
+ * panel behind the tap. A separate sheet from cards.css on purpose, per the
+ * owner's note that either component may be swapped for a library one later:
+ * deleting this file and the two components that import it must leave the
+ * rest of the cards surface untouched.
+ *
+ * Every colour is an existing token from cards.css or the theme; nothing new
+ * is measured here. The tint pair on the temperature chip is the composer's
+ * own conditions tint (--tint-conditions under --tint-conditions-edge), used
+ * for the same job it already does there: marking condition information.
+ */
+
+/* ------------------------------------------------------------------ */
+/* The scheme                                                           */
+/* ------------------------------------------------------------------ */
+
+.rxn-scheme {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.rxn-scheme__row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  width: 100%;
+}
+
+.rxn-side {
+  flex: 1 1 0;
+  min-width: 0;
+  text-align: center;
+  white-space: pre-line;
+}
+
+/* The withheld product side: a dashed box holding the question mark, so the
+   face plainly has a hole in it rather than looking finished. */
+.rxn-side--hidden {
+  flex: 0 0 auto;
+  min-width: 3rem;
+  padding: 0.375rem 0.75rem;
+  border: 2px dashed var(--cards-paper-line);
+  border-radius: 0.75rem;
+  color: var(--bb-muted-foreground);
+}
+
+.rxn-arrow-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.125rem;
+  flex: 0 0 auto;
+  max-width: 40%;
+}
+
+.rxn-reagents {
+  text-align: center;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+/* The temperature chip on the face. The conditions tint pair from the
+   composer, ink kept as the card's own foreground per the measured pairs
+   cards.css records for that tint. */
+.rxn-temp {
+  align-self: flex-end;
+  padding: 0.125rem 0.625rem;
+  border: 2px solid var(--tint-conditions-edge);
+  border-radius: 9999px;
+  background: var(--tint-conditions);
+  color: var(--bb-card-foreground);
+}
+
+/* ------------------------------------------------------------------ */
+/* The reveal panel                                                     */
+/* ------------------------------------------------------------------ */
+
+.rxn-reveal {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  width: 100%;
+  border-top: 1px solid var(--bb-border);
+  padding-top: 0.875rem;
+}
+
+.rxn-reveal__row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}

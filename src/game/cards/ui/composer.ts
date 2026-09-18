@@ -25,7 +25,16 @@
  * Pure: no storage, no clock reads (now arrives as an argument), no React.
  */
 
-import type { Card, CardId, DeckId, ReactionSide, ReactionSides } from "../types";
+import type {
+  Card,
+  CardId,
+  DeckId,
+  ReactionReveal,
+  ReactionRevealField,
+  ReactionSide,
+  ReactionSides,
+} from "../types";
+import { REVEAL_ORDER } from "../types";
 
 /** The pill's order, left to right, exactly as the committed composer image. */
 export const SIDE_ORDER: readonly ReactionSide[] = Object.freeze([
@@ -108,11 +117,64 @@ export function composedCardId(sides: ReactionSides, now: Date): CardId {
   return `composed:${now.getTime()}:${slug}`;
 }
 
+/* ------------------------------------------------------------------ */
+/* The optional extras (owner decision, 17 Sep)                          */
+/* ------------------------------------------------------------------ */
+
+/**
+ * The reaction card's optional face-and-reveal fields, as draft strings: the
+ * temperature chip plus the five labelled reveal fields. All optional, all
+ * the student's own words, and a draft with none of them filled saves the
+ * same card it always did. `hasExtras` is the gate: only a draft that
+ * carries at least one becomes a reaction-faced card, so the three-sided
+ * pill face stays the default the committed composer image draws.
+ */
+export interface DraftExtras extends Record<ReactionRevealField, string> {
+  readonly temperature: string;
+}
+
+export const EMPTY_EXTRAS: DraftExtras = Object.freeze({
+  temperature: "",
+  keq: "",
+  pka: "",
+  selectivity: "",
+  electronegativity: "",
+  resonance: "",
+});
+
+/** Replace one extra. A new object every time, because this is React state. */
+export function setExtra(
+  extras: DraftExtras,
+  field: keyof DraftExtras,
+  text: string,
+): DraftExtras {
+  return { ...extras, [field]: text };
+}
+
+export function hasExtras(extras: DraftExtras): boolean {
+  return Object.values(extras).some((value) => value.trim().length > 0);
+}
+
+/** The reveal the draft's extras amount to: trimmed, and absent when blank. */
+export function revealFromExtras(extras: DraftExtras): ReactionReveal {
+  const reveal: Record<string, string> = {};
+  for (const field of REVEAL_ORDER) {
+    const value = extras[field].trim();
+    if (value.length > 0) reveal[field] = value;
+  }
+  return reveal as ReactionReveal;
+}
+
 /** The one place the three sides become a Card. See the header for the mapping. */
-export function cardFromDraft(sides: ReactionSides, now: Date): Card {
+export function cardFromDraft(
+  sides: ReactionSides,
+  now: Date,
+  extras: DraftExtras = EMPTY_EXTRAS,
+): Card {
   const setup = sides.setup.trim();
   const conditions = sides.conditions.trim();
   const product = sides.product.trim();
+  const temperature = extras.temperature.trim();
   return {
     id: composedCardId(sides, now),
     front: setup,
@@ -121,6 +183,21 @@ export function cardFromDraft(sides: ReactionSides, now: Date): Card {
     tags: ["composed"],
     source: { kind: "composed", at: now.toISOString() },
     sides: { setup, conditions, product },
+    // The reaction face rides along only when the student filled an extra:
+    // the sides map straight onto it (setup is the reactant side, conditions
+    // sit over the arrow, product is the withheld side), and the reveal
+    // carries exactly the fields they wrote. See cards/types.ts.
+    ...(hasExtras(extras)
+      ? {
+          reaction: {
+            reactants: setup,
+            reagents: conditions,
+            products: product,
+            ...(temperature.length > 0 ? { temperature } : {}),
+            reveal: revealFromExtras(extras),
+          },
+        }
+      : {}),
   };
 }
 

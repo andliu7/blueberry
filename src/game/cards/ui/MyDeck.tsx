@@ -168,6 +168,8 @@ function itemLabel(card: Card): string {
       return "You kept this after a miss";
     case "composed":
       return "Your own card";
+    case "reaction":
+      return "Saved from a reaction";
     case "import":
       return card.source.deckName;
     default: {

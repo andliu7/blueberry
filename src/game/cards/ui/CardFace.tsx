@@ -50,6 +50,8 @@
 import { useState } from "react";
 import type { Card, CardId, ReactionSide } from "../types";
 import { MoleculeSvg } from "../../render/svg/MoleculeSvg";
+import { ReactionScheme } from "./ReactionCardFace";
+import { ReactionRevealPanel } from "./ReactionRevealPanel";
 import { structureOnCard } from "./cardStructure";
 import { SIDE_LABELS, SIDE_ORDER } from "./composer";
 import { CARD_STATE_LABELS, type CardSchedulerState } from "./cardState";
@@ -65,6 +67,8 @@ function sourceLabel(card: Card): string {
       return "From a miss";
     case "composed":
       return "Your own card";
+    case "reaction":
+      return "From a reaction";
     case "import":
       return card.source.deckName;
     default: {
@@ -202,6 +206,51 @@ export function CardFace({ card, revealed, onReveal, schedulerState }: CardFaceP
         <StateMarker state={schedulerState} />
       </>
     );
+
+  /* THE REACTION CARD (owner decision, 17 Sep). The scheme is the body:
+     reactants and reagents over the arrow, the product side withheld, the
+     temperature on the face; the reveal fills the product in and shows the
+     labelled extras. The tap wiring is the unsided face's, unchanged, so the
+     reviewer's grade chips never know which face they sit under. The scheme
+     and the panel are their own components (ReactionCardFace.tsx,
+     ReactionRevealPanel.tsx) so either can be swapped out later without
+     touching this file's shell. */
+  if (card.reaction !== undefined) {
+    const reaction = card.reaction;
+    const body = (
+      <>
+        {header}
+        <ReactionScheme reaction={reaction} revealed={revealed} />
+        {tagRow}
+        {revealed ? (
+          <ReactionRevealPanel reveal={reaction.reveal} />
+        ) : (
+          <p className="mt-auto text-right text-scale-sm text-bb-muted-foreground">
+            Tap to reveal the answer
+          </p>
+        )}
+      </>
+    );
+    if (revealed) {
+      return (
+        <div className={`${shell} mb-1.5`}>
+          {badge}
+          {body}
+        </div>
+      );
+    }
+    return (
+      <button
+        type="button"
+        className={`press ${shell} mb-1.5`}
+        onClick={onReveal}
+        aria-label="Reveal the answer"
+      >
+        {badge}
+        {body}
+      </button>
+    );
+  }
 
   if (sides !== undefined) {
     return (

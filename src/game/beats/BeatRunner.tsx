@@ -57,9 +57,12 @@
  * here would redden every test that mounts a runner.
  */
 
-import { Suspense, lazy, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { clearsBeat, type BeatResult, type MasteryLevel } from "./types";
+import type { Card, Reco } from "../cards/types";
+import type { CardOffer } from "../cards/Recommendation";
+import { decks, PERSONAL_DECK_ID } from "../cards/store";
 import { CORRECT_CAUSE } from "./mcq/grade";
 import { questionForBeat } from "../tabs/trainer/engine/question";
 import { mcqBeatsForNode } from "./mcq";
@@ -113,6 +116,11 @@ const LessonGems = lazy(() => import("./LessonGems"));
 // full-viewport by construction, so inside a lesson it covers the header and
 // the strip exactly as it covers the tab bar: one screen, wherever it opens.
 const TrainerScreen = lazy(() => import("../tabs/trainer/engine/TrainerScreen").then((m) => ({ default: m.TrainerScreen })));
+// The mistake-to-card toast. Lazy for the same budget reason as the surfaces
+// above, and it only mounts once a run has actually produced an offer, so a
+// clean run never loads it at all. A null fallback is right here: the toast
+// is an overlay, and its honest loading state is absence.
+const Recommendation = lazy(() => import("../cards/Recommendation"));
 
 export interface BeatRunnerProps {
   /** The pathway node the student tapped, for example "u3-directing". */
@@ -155,6 +163,24 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false }: B
   /** Which node this runner has already banked, so a re-render cannot double pay. */
   const bankedFor = useRef<string | null>(null);
 
+  /**
+   * The mistake-to-card offer this run is currently showing, or null. The
+   * beat surfaces have emitted onOfferCard since they were built; this is
+   * the parent that finally passes it. The store's own offer() is the gate:
+   * it refuses a card the student already owns or already turned down, so a
+   * toast is raised only when the reco actually entered pendingRecos. Saving
+   * and dismissing go back through the same seam (saveCard retires the reco,
+   * dismissReco counts it), and the toast hides itself, so nothing here has
+   * to null the state: a stale offer cannot re-show, because the store
+   * refuses it on the next emit.
+   */
+  const [offer, setOffer] = useState<CardOffer | null>(null);
+  const handleOfferCard = useCallback((card: Card, reco: Reco) => {
+    decks.offer(reco);
+    const pending = decks.getSnapshot().pendingRecos.some((r) => r.cardId === reco.cardId);
+    if (pending) setOffer({ card, reco });
+  }, []);
+
   // See the header: adjust-state-during-render, so a swapped node never plays
   // the previous node's run.
   if (seenNode !== node) {
@@ -163,6 +189,7 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false }: B
     setMcqFraction(0);
     stepResult.current = null;
     setBanked(null);
+    setOffer(null);
   }
 
   /**
@@ -325,6 +352,7 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false }: B
             progressSlot={strip}
             currencySlot={currency}
             onProgress={(progress) => setMcqFraction(progress.clearedFraction)}
+            onOfferCard={handleOfferCard}
             onDone={(results) =>
               advanceStep(results.filter((r) => clearsBeat(r)).length, results.length, missedMcqIdsFrom(results))
             }
@@ -358,6 +386,7 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false }: B
             onResolved={(result) => {
               stepResult.current = result;
             }}
+            onOfferCard={(gapOffer) => handleOfferCard(gapOffer.card, gapOffer.reco)}
             onContinue={advanceSingle}
           />
         ) : null}
@@ -387,6 +416,7 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false }: B
             progressSlot={strip}
             currencySlot={currency}
             onProgress={(progress) => setMcqFraction(progress.clearedFraction)}
+            onOfferCard={handleOfferCard}
             onDone={(results) => {
               setMcqFraction(0);
               setRun((r) =>
@@ -401,6 +431,23 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false }: B
         ) : null}
       </Suspense>
       </div>
+
+      {/* The offer toast. Non-blocking by its own contract: no scrim, no
+          focus steal, and it leaves on its own if ignored. onSave commits on
+          the toast's landing frame through the seam, into the personal deck
+          the deck badge counts; onDismiss is counted so the same card is not
+          pushed twice. Both write through DeckSource, so Phase 6 syncs them
+          like any other save. */}
+      {offer !== null ? (
+        <Suspense fallback={null}>
+          <Recommendation
+            offer={offer}
+            reducedMotion={reducedMotion}
+            onSave={(card) => decks.saveCard(card, PERSONAL_DECK_ID)}
+            onDismiss={(card) => decks.dismissReco(card.id)}
+          />
+        </Suspense>
+      ) : null}
     </div>
   );
 }

@@ -65,8 +65,10 @@
 
 import { useMemo, useRef, useState } from "react";
 import type { DeckId, DeckSource, ReactionSide, ReactionSides } from "../types";
+import { REVEAL_LABELS, REVEAL_ORDER } from "../types";
 import { decks as defaultDecks } from "../store";
 import {
+  EMPTY_EXTRAS,
   EMPTY_SIDES,
   SIDE_HINTS,
   SIDE_LABELS,
@@ -76,7 +78,9 @@ import {
   deckTitleProblem,
   draftProblems,
   newDeckId,
+  setExtra,
   setSide,
+  type DraftExtras,
 } from "./composer";
 import { DeckDoodle } from "./Doodles";
 import { useDeckSnapshot } from "./useDeck";
@@ -147,6 +151,7 @@ export interface ComposerProps {
 export function Composer({ source = defaultDecks, onBack, now = () => new Date() }: ComposerProps) {
   const snapshot = useDeckSnapshot(source);
   const [sides, setSides] = useState<ReactionSides>(EMPTY_SIDES);
+  const [extras, setExtras] = useState<DraftExtras>(EMPTY_EXTRAS);
   const [active, setActive] = useState<ReactionSide>("setup");
   /** null means "the default target": the first personal deck, or My cards. */
   const [chosenDeck, setChosenDeck] = useState<DeckId | null>(null);
@@ -192,6 +197,10 @@ export function Composer({ source = defaultDecks, onBack, now = () => new Date()
     clearSaved();
     setSides(setSide(sides, side, text));
   };
+  const editExtra = (field: keyof DraftExtras, text: string): void => {
+    clearSaved();
+    setExtras(setExtra(extras, field, text));
+  };
 
   /** Measure both boxes and launch the ghost. Pure decoration; see the header. */
   const launchFlight = (): void => {
@@ -227,8 +236,9 @@ export function Composer({ source = defaultDecks, onBack, now = () => new Date()
       deckTitle = snapshot.decks[deckId]?.title ?? deckId;
     }
     launchFlight();
-    source.saveCard(cardFromDraft(sides, at), deckId);
+    source.saveCard(cardFromDraft(sides, at, extras), deckId);
     setSides(EMPTY_SIDES);
+    setExtras(EMPTY_EXTRAS);
     setActive("setup");
     setSavedInto(deckTitle);
     setChosenDeck(deckId);
@@ -471,6 +481,44 @@ export function Composer({ source = defaultDecks, onBack, now = () => new Date()
           <span key={side} className={`page-dot ${side === active ? "page-dot--on" : ""}`} />
         ))}
       </div>
+
+      {/* THE REVEAL EXTRAS (owner decision, 17 Sep): temperature for the face
+          chip and the five labelled reveal fields. Behind a disclosure rather
+          than on the face, because the committed composer image draws exactly
+          five elements and every field here is optional; a draft that leaves
+          them all blank saves the same three-sided card it always did. The
+          values are the student's own words, carried verbatim. */}
+      <details className="shrink-0 rounded-2xl border-2 border-bb-border bg-[color:var(--cards-paper)]">
+        <summary className="press min-h-11 cursor-pointer list-none px-4 py-2.5 text-scale-sm font-bold text-bb-card-foreground">
+          Extras for the reveal (optional)
+        </summary>
+        <div className="flex flex-col gap-2 px-4 pb-4">
+          <label className="flex flex-col gap-1 text-scale-xs font-semibold text-bb-muted-foreground">
+            Temperature, shown on the face
+            <input
+              type="text"
+              className="min-h-11 rounded-xl border border-bb-border bg-transparent px-3 text-scale-sm font-semibold text-bb-card-foreground"
+              placeholder="-78 °C"
+              value={extras.temperature}
+              onChange={(event) => editExtra("temperature", event.target.value)}
+            />
+          </label>
+          {REVEAL_ORDER.map((field) => (
+            <label
+              key={field}
+              className="flex flex-col gap-1 text-scale-xs font-semibold text-bb-muted-foreground"
+            >
+              {REVEAL_LABELS[field]}
+              <input
+                type="text"
+                className="min-h-11 rounded-xl border border-bb-border bg-transparent px-3 text-scale-sm font-semibold text-bb-card-foreground"
+                value={extras[field]}
+                onChange={(event) => editExtra(field, event.target.value)}
+              />
+            </label>
+          ))}
+        </div>
+      </details>
 
       <button
         type="button"
