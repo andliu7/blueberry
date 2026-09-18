@@ -244,9 +244,14 @@
   --chip-press-rim: var(--check-rim);
 }
 
-/* The sheet's `claim`, and the only green chip: the reward card collects
-   with it. FILL-ONLY green, dark ink on the fill, never green text. */
-.chip-press--claim {
+/* The green chip: the reward card collects with it, and the answer sheet's
+   primary wears it on a win, so the first painted frame of a verdict says
+   "right" before a word is read. One definition, two roles, because a second
+   green would be a second green. FILL-ONLY, dark ink on the fill, never
+   green text, and the rim goes through --claim-rim rather than naming the
+   token, which is the rule lessonProgress.test.ts holds this file to. */
+.chip-press--claim,
+.chip-press--won {
   --chip-press-face: var(--progress);
   --chip-press-ink: var(--progress-ink);
   --chip-press-edge: var(--progress-edge);
@@ -262,17 +267,9 @@
   --chip-press-rim: color-mix(in srgb, var(--chip-face) 55%, var(--bb-border));
 }
 
-/* The verdict, worn by the primary button while the answer sheet is up, so
-   the arrival reads as a colour before it reads as a sentence. `won` borrows
-   the completed chip's green rather than inventing a second one; `near` is
-   the sheet's own amber family, and there is no red anywhere. */
-.chip-press--won {
-  --chip-press-face: var(--progress);
-  --chip-press-ink: var(--progress-ink);
-  --chip-press-edge: var(--progress-edge);
-  --chip-press-rim: var(--progress-edge);
-}
-
+/* The near-miss amber, worn by the primary while that sheet is up. Same
+   job as the green above, and there is no red anywhere: a miss is never
+   scolded, per the header in sheetCopy.ts. */
 .chip-press--near {
   --chip-press-face: var(--not-requested);
   --chip-press-ink: var(--bb-primary-foreground);
