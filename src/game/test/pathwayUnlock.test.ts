@@ -172,6 +172,44 @@ describe("deriveMapPathway, the same policy on the Orgo map", () => {
     expect(status.currentNodeId).not.toBe("u1-da");
   });
 
+  it("marks EXACTLY ONE node current across the WHOLE map, at every frontier", () => {
+    /*
+     * The START pill, the halo, the berry and the rail's "current" step all
+     * hang off this one node, so two of them is two places a student is told
+     * they are standing and none is a page with no way in.
+     *
+     * A round-two critic counted two currents on unit 3 and, on a finished
+     * unit 1, one current chip carrying no START pill while the rail called
+     * unit 3 current. The DOM half of that was the legend's swatch wearing
+     * the chip's own state class, which PathwayTab.tsx has stopped doing.
+     * This is the DATA half, pinned so the rule cannot grow a second one
+     * later: the count is over every node the map holds, not per unit.
+     *
+     * Zero is correct in exactly one case, a track with every authored node
+     * cleared, which is the same shape the topic sweep above asserts.
+     */
+    for (let upTo = 0; upTo <= PATHWAY_UNITS.length; upTo += 1) {
+      const journal = AUTHORED_BY_UNIT.slice(0, upTo)
+        .flat()
+        .map((node) => cleared(node.id));
+      const status = deriveMapPathway(PATHWAY_UNITS, journal);
+      const currents = [...status.nodes.values()].filter((entry) => entry.state === "current");
+      // Zero is correct in exactly one case: nothing AUTHORED is left to
+      // stand on. That is not the same as "every unit cleared", because the
+      // last unit of the map is entirely unauthored today and a queued node
+      // is never current (a START tag over a node with no content is a
+      // promise the app cannot keep, pathwayState.ts).
+      const finished = AUTHORED_BY_UNIT.slice(upTo).flat().length === 0;
+      expect(currents.length, `currents with ${upTo} units cleared`).toBe(finished ? 0 : 1);
+      expect(status.currentNodeId === null, `currentNodeId with ${upTo} units cleared`).toBe(finished);
+      // And exactly one unit claims to be the one being worked in, because
+      // the rail draws its "current" step from that flag rather than from
+      // the node, and the two saying different things is the same defect.
+      const active = PATHWAY_UNITS.filter((unit) => status.units.get(unit.id)?.active === true);
+      expect(active.length, `active units with ${upTo} cleared`).toBe(currents.length);
+    }
+  });
+
   it("never hangs the START tag on a queued node, at any frontier", () => {
     for (let upTo = 0; upTo < PATHWAY_UNITS.length; upTo += 1) {
       const journal = AUTHORED_BY_UNIT.slice(0, upTo)

@@ -1535,6 +1535,11 @@ function hrefForUnit(unitId: string): string {
   return `${hrefForTab("pathway")}?unit=${encodeURIComponent(unitId)}`;
 }
 
+/** "all 4 lessons" / "1 lesson", for the gate sentence's count. */
+function countedLessons(playable: number): string {
+  return playable === 1 ? "1 lesson" : `all ${playable} lessons`;
+}
+
 function OrgoMapTrack({
   onOpenNode,
   status,
@@ -1557,8 +1562,21 @@ function OrgoMapTrack({
   const requested = hashParam("unit");
   const requestedAt = requested === null ? -1 : PATHWAY_UNITS.findIndex((entry) => entry.id === requested);
   // The default page is the unit the student is standing in; a finished
-  // track lands on the frontier. A deep link past the frontier clamps to it.
-  const index = requestedAt === -1 ? (activeAt === -1 ? frontier : activeAt) : Math.min(requestedAt, frontier);
+  // track lands on the frontier.
+  //
+  // THE RAIL BROWSES, THE SWIPE WALKS. Owner decision 2026-09-17, round two.
+  // The first cut of the pager clamped a deep link to the frontier and made
+  // every locked rail step a button that declined, which is strictly LESS
+  // than the scroll it replaced: a student could at least see the chips
+  // ahead of them there. So a rail step, or a deep link, now opens any unit
+  // READ ONLY. Every chip on a locked page is already dimmed and declining,
+  // because deriveMapPathway returns "locked" for every node of an
+  // unreachable unit; what the page loses is the way onward, and it says so.
+  // Looking is not continuing, so the swipe and the arrow keys still stop at
+  // the frontier (see nextOpen below) and the rail is the browse affordance.
+  // Unlock SEMANTICS are untouched: pathwayState.ts still decides what is
+  // locked, and pathwayUnlock.test.ts still pins it.
+  const index = requestedAt === -1 ? (activeAt === -1 ? frontier : activeAt) : requestedAt;
 
   const plan = plans[index]!;
   const { unit, shape } = plan;
@@ -1570,7 +1588,34 @@ function OrgoMapTrack({
   const next = index < PATHWAY_UNITS.length - 1 ? PATHWAY_UNITS[index + 1]! : null;
   const nextOpen = next !== null && status.units.get(next.id)?.reachable === true;
 
-  const surfaceRef = useRef<HTMLDivElement | null>(null);
+  /*
+    THE GATE SENTENCE IS COUNTABLE, and that is the round-two correction to a
+    line that was honest and useless. "Unit 2 opens when this unit is done"
+    names no number, so a student cannot tell from it whether they are one
+    lesson from the gate or nine, which is the single question the sentence
+    exists to answer.
+
+    The RULE it reports is pathwayState.ts's `finished`: every node in the
+    unit that HAS content cleared, or the unit's checkpoint passed. Both of
+    its terms are already on this page as unitStatus.done and .playable, so
+    the sentence says them rather than paraphrasing them. The "or pass the
+    checkpoint" clause is only said on the units that have one, because on
+    the other twelve it would be an instruction with nothing behind it.
+
+    On a locked page the sentence is a different one: the unit is not shut by
+    its own count but by the frontier's, so it names the unit to go finish.
+  */
+  const lessonsLeft = Math.max((unitStatus?.playable ?? 0) - (unitStatus?.done ?? 0), 0);
+  const gateReason = gateLocked
+    ? `Locked. Finish ${unitNumber(PATHWAY_UNITS[frontier]!.title)} to open this.`
+    : next === null || nextOpen
+      ? null
+      : unitStatus === undefined || unitStatus.playable === 0
+        ? `${unitNumber(next.title)} opens when this unit is done.`
+        : `${unitNumber(next.title)} opens when ${countedLessons(unitStatus.playable)} here ${unitStatus.playable === 1 ? "is" : "are"} done${plan.checkpoint ? ", or you pass the checkpoint" : ""}. ${lessonsLeft} left.`;
+
+  const pagerRef = useRef<HTMLDivElement | null>(null);
+  const surfaceRef = useRef<HTMLElement | null>(null);
   const railRef = useRef<HTMLElement | null>(null);
 
   /*
@@ -1578,6 +1623,14 @@ function OrgoMapTrack({
    * pointer events rather than touch so a trackpad drag and a finger take the
    * same path, and two guards keep an ordinary scroll from navigating (it has
    * to travel far enough, and be more horizontal than vertical).
+   *
+   * THE SURFACE IS THE UNIT, NOT THE PAGE, and that is a round-two fix rather
+   * than a tidy-up. The listener used to sit on the .path-pager root, which
+   * CONTAINS THE RAIL, and the rail is 637px of steps in a 358px window: a
+   * horizontal drag is its only interaction, and every one of them was also a
+   * page turn. A critic reproduced it four times out of four (drag the rail on
+   * u1, land on u2). The rail is a sibling of this surface now, so dragging it
+   * scrolls it and nothing else.
    */
   useEffect(() => {
     const el = surfaceRef.current;
@@ -1613,6 +1666,16 @@ function OrgoMapTrack({
     const onKey = (event: KeyboardEvent) => {
       const target = event.target;
       if (target instanceof HTMLElement && /INPUT|TEXTAREA|SELECT/.test(target.tagName)) return;
+      /*
+        A MODAL IS ON TOP: the arrow keys belong to it, not to the page behind
+        it. Without this, pressing Right with a node sheet open turned the page
+        underneath and left a Unit 1 sheet floating over Unit 2, which is a
+        sheet that now describes a node that is not on screen. The test is the
+        ARIA state and not a class name, so it holds for the node sheet, the
+        charge gate and anything else that opens modally later; NodeSheet.tsx
+        carries the role="dialog" and aria-modal this reads.
+      */
+      if (document.querySelector('dialog[open], [role="dialog"][aria-modal="true"]') !== null) return;
       if (event.key === "ArrowRight") forward();
       if (event.key === "ArrowLeft") back();
     };
@@ -1627,6 +1690,29 @@ function OrgoMapTrack({
     };
   }, [previous, next, nextOpen]);
 
+  /*
+   * THE RAIL STICKS UNDER THE HEADER, and the header's height is MEASURED
+   * rather than typed here. The rail used to be position: static, so it
+   * scrolled away at exactly the moment a student reaches the gate and wants
+   * to know what is next; at the bottom of unit 1 it sat 634px above the
+   * viewport. A sticky strip is only sticky if it lands under the app header
+   * rather than behind it, and that header carries a course chip and a HUD
+   * whose heights move with the type scale and the safe area, so a number
+   * copied into this file would be wrong on the first change to either.
+   * Shell.tsx marks the header with data-app-header; this publishes its
+   * height as --path-rail-top for pathway.css to stick against.
+   */
+  useEffect(() => {
+    const header = document.querySelector("[data-app-header]");
+    const el = pagerRef.current;
+    if (header === null || el === null || typeof ResizeObserver === "undefined") return;
+    const read = () => el.style.setProperty("--path-rail-top", `${Math.round(header.getBoundingClientRect().height)}px`);
+    read();
+    const observer = new ResizeObserver(read);
+    observer.observe(header);
+    return () => observer.disconnect();
+  }, []);
+
   // A new page starts at its top, and the rail keeps the shown unit in view.
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -1635,47 +1721,45 @@ function OrgoMapTrack({
   }, [unit.id, reducedMotion]);
 
   return (
-    <div ref={surfaceRef} className="path-pager touch-pan-y" role="region" aria-label="Orgo II pathway map">
+    <div ref={pagerRef} className="path-pager" role="region" aria-label="Orgo II pathway map">
       {/*
         THE WHOLE MOUNTAIN. One step per unit, every unit always listed, one
         page open: the Duolingo/ALEKS principle the per-page cut must not
-        lose. A reachable step is a real link to its page; a locked step is a
-        real button that declines, the same pattern the locked Chip follows,
-        so the course's full length is visible and tabbable from every page.
+        lose. EVERY step is a real link to its page now, locked ones included,
+        because a locked unit opens read only (owner decision, see `index`
+        above): the rail is how a student looks ahead, and the page it opens
+        is the one that says the unit is shut.
+
+        The wrapper is what sticks, not the nav: the nav is the horizontal
+        scroller, and a fade painted inside a scroller scrolls away with it.
+        See .path-railwrap in pathway.css for the fade over the clipped step.
       */}
-      <nav ref={railRef} className="path-rail" aria-label="All units">
-        {PATHWAY_UNITS.map((entry, at) => {
-          const passed = unitStatusPassed(status, entry.id);
-          const reachable = status.units.get(entry.id)?.reachable === true;
-          const railState = passed ? "done" : !reachable ? "locked" : at === activeAt ? "current" : "open";
-          const name = `${unitNumber(entry.title)}, ${unitName(entry.title)}`;
-          return reachable ? (
-            <a
-              key={entry.id}
-              href={hrefForUnit(entry.id)}
-              className={`path-rail__step path-rail__step--${railState} press`}
-              aria-current={at === index ? "page" : undefined}
-              aria-label={passed ? `${name}. Done` : name}
-            >
-              {at + 1}
-            </a>
-          ) : (
-            <button
-              key={entry.id}
-              type="button"
-              className="path-rail__step path-rail__step--locked press"
-              aria-disabled="true"
-              aria-label={`${name}. Opens when the unit before it is done`}
-              onClick={(event) => event.preventDefault()}
-            >
-              {at + 1}
-            </button>
-          );
-        })}
-      </nav>
+      <div className="path-railwrap">
+        <nav ref={railRef} className="path-rail" aria-label="All units">
+          {PATHWAY_UNITS.map((entry, at) => {
+            const passed = unitStatusPassed(status, entry.id);
+            const reachable = status.units.get(entry.id)?.reachable === true;
+            const railState = passed ? "done" : !reachable ? "locked" : at === activeAt ? "current" : "open";
+            const name = `${unitNumber(entry.title)}, ${unitName(entry.title)}`;
+            const said = passed ? `${name}. Done` : reachable ? name : `${name}. Locked, opens to look at only`;
+            return (
+              <a
+                key={entry.id}
+                href={hrefForUnit(entry.id)}
+                className={`path-rail__step path-rail__step--${railState} press`}
+                aria-current={at === index ? "page" : undefined}
+                aria-label={said}
+              >
+                {at + 1}
+              </a>
+            );
+          })}
+        </nav>
+      </div>
       <section
+        ref={surfaceRef}
         key={unit.id}
-        className="path-unit flex flex-col gap-3"
+        className="path-unit touch-pan-y flex flex-col gap-3"
         aria-label={unit.title}
         data-unit-id={unit.id}
         data-checkpoint={plan.checkpoint ? "true" : "false"}
@@ -1900,49 +1984,65 @@ function OrgoMapTrack({
         way onward. When the next unit is gated the button is a real control
         that declines (aria-disabled, same pattern as a locked chip) and the
         gate's reason is said in words beside it, never a dead end with no
-        sentence. Not sticky: the unit ends at its gate, and the way onward
-        sits just past the gate, which is where a student who walked the unit
-        is looking.
+        sentence.
+
+        IT IS STICKY NOW, and the argument it used to carry ("the unit ends at
+        its gate, and the way onward sits just past the gate") was measured and
+        lost. The bar sat 346 to 523px below the fold, which is about two
+        screens of scrolling before the page's PRIMARY CONTROL is on screen at
+        all, on a page whose whole job is to send a student into a lesson or
+        on to the next unit. So it rides above the tab bar instead, and the
+        offset is --tabbar-height out of app/ui/tabs.css rather than a second
+        copy of 76: test/nodeSheetSeam.test.ts recomputes that bar's real
+        height from its own declarations, and a hand-typed 76 went stale there
+        once already.
+
+        The foot holds the bar AND the gate's reason, because a sentence that
+        explains a disabled control has to be pinned with it; the swipe hint
+        stays in the flow, since it is decoration and the gestures work
+        whether or not it is on screen.
       */}
-      <nav className="path-pager__bar mx-auto w-full max-w-md" aria-label="Unit pager">
-        {previous !== null ? (
-          <a className="path-pager__side press" href={hrefForUnit(previous.id)} aria-label={`Back to ${previous.title}`}>
-            <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden>
-              <path d="M14.5 5.5 8 12l6.5 6.5" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </a>
-        ) : (
-          <span className="path-pager__side path-pager__side--blank" aria-hidden />
+      <div className="path-pager__foot mx-auto w-full max-w-md">
+        <nav className="path-pager__bar" aria-label="Unit pager">
+          {previous !== null ? (
+            <a className="path-pager__side press" href={hrefForUnit(previous.id)} aria-label={`Back to ${previous.title}`}>
+              <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden>
+                <path d="M14.5 5.5 8 12l6.5 6.5" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </a>
+          ) : (
+            <span className="path-pager__side path-pager__side--blank" aria-hidden />
+          )}
+          <div className="path-pager__title">
+            <span className="path-pager__eyebrow">
+              {unitNumber(unit.title)} of {PATHWAY_UNITS.length}
+            </span>
+            <span className="path-pager__name">{unitName(unit.title)}</span>
+          </div>
+          {next === null ? (
+            <span className="path-pager__side path-pager__side--blank" aria-hidden />
+          ) : nextOpen ? (
+            <a className="path-pager__next press" href={hrefForUnit(next.id)}>
+              Continue
+            </a>
+          ) : (
+            <button
+              type="button"
+              className="path-pager__next press"
+              aria-disabled="true"
+              aria-label={`Continue. ${gateReason ?? ""}`}
+              onClick={(event) => event.preventDefault()}
+            >
+              Continue
+            </button>
+          )}
+        </nav>
+        {gateReason === null ? null : (
+          <p className="path-pager__reason" role="note">
+            {gateReason}
+          </p>
         )}
-        <div className="path-pager__title">
-          <span className="path-pager__eyebrow">
-            {unitNumber(unit.title)} of {PATHWAY_UNITS.length}
-          </span>
-          <span className="path-pager__name">{unitName(unit.title)}</span>
-        </div>
-        {next === null ? (
-          <span className="path-pager__side path-pager__side--blank" aria-hidden />
-        ) : nextOpen ? (
-          <a className="path-pager__next press" href={hrefForUnit(next.id)}>
-            Continue
-          </a>
-        ) : (
-          <button
-            type="button"
-            className="path-pager__next press"
-            aria-disabled="true"
-            aria-label={`Continue. Opens when ${unit.title} is done`}
-            onClick={(event) => event.preventDefault()}
-          >
-            Continue
-          </button>
-        )}
-      </nav>
-      {next !== null && !nextOpen ? (
-        <p className="path-pager__reason mx-auto w-full max-w-md" role="note">
-          {unitNumber(next.title)} opens when this unit is done.
-        </p>
-      ) : null}
+      </div>
       <p className="path-pager__hint mx-auto w-full max-w-md" aria-hidden>
         Swipe or use the arrow keys
       </p>
@@ -2071,7 +2171,20 @@ export default function PathwayTab({ reducedMotion }: { readonly reducedMotion: 
       <ul className="flex flex-wrap gap-3 text-scale-xs text-bb-muted-foreground" aria-label="Legend">
         {LEGEND.map((entry) => (
           <li key={entry.state} className="flex items-center gap-1.5">
-            <span className={`path-node path-node--${entry.state} path-node--swatch`} aria-hidden>
+            {/*
+              THE KEY IS NOT THE MAP. This swatch used to wear
+              `path-node--${entry.state}`, so every page in the tab carried a
+              second .path-node--current: on unit 3 a critic counted two, and
+              on a finished unit 1 it counted a "current" node with no START
+              pill while the rail called unit 3 current. Nothing was wrong on
+              screen (the swatch suppresses the halo and the pulse), but the
+              class said something false about the map, and a class that lies
+              is a class the next probe, test or stylesheet will act on. The
+              geometry and the press reset still come from .path-node and
+              .path-node--swatch; only the STATE modifier is the legend's own,
+              and pathway.css hangs the same tokens on both names.
+            */}
+            <span className={`path-node path-node--swatch path-swatch--${entry.state}`} aria-hidden>
               <span className="path-node__face" />
             </span>
             {entry.label}

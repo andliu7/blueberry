@@ -49,6 +49,29 @@
  * keeps it clear of the home indicator rather than under it.
  */
 
+/*
+ * THE BAR'S HEIGHT, PUBLISHED ONCE. Anything that has to stop where the bar
+ * begins reads this instead of keeping its own copy of the number: the
+ * pathway pager's sticky foot does today. The value is the one derived in
+ * pathway-sheet.css from the declarations below (2 border + 6 padding + 62.2
+ * item + 6 padding = 76.2, and 76 is deliberately a fifth of a pixel under so
+ * the thing above overlaps the bar rather than floating off it), and
+ * test/nodeSheetSeam.test.ts recomputes the real height from this file and
+ * checks BOTH against it, so a change to the bar's padding or icon size fails
+ * a test rather than silently opening a seam.
+ *
+ * Above 48rem it is 0: the bar is a static side rail there, so nothing is
+ * below to clear.
+ */
+:root {
+  --tabbar-height: calc(4.75rem + env(safe-area-inset-bottom, 0px));
+}
+@media (min-width: 48rem) {
+  :root {
+    --tabbar-height: 0px;
+  }
+}
+
 .tabbar {
   position: fixed;
   inset-inline: 0;

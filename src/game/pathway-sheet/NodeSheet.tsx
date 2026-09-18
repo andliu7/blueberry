@@ -181,6 +181,25 @@ export function NodeSheet({ node, onClose, onStart, onChallenge, onGuidebook, re
     <dialog
       ref={ref}
       className="ns-sheet"
+      /*
+        role and aria-modal SPELT OUT, on an element that already has both
+        implicitly. Two reasons, and the second is the one that made it a
+        blocker. A native dialog opened with showModal() is modal to a screen
+        reader but says so only through the implicit role, and Safari's older
+        VoiceOver builds do not map it; and the pathway's pager has to be able
+        to ASK whether a modal is on top before it answers an arrow key, which
+        it does with a selector. An implicit role does not answer a selector,
+        so an arrow press with this sheet open turned the page behind it and
+        left a Unit 1 sheet floating over Unit 2.
+
+        BOTH ARE CONDITIONAL ON BEING OPEN, and that is not tidiness. The
+        element mounts once and lives in the tree closed, so a constant
+        aria-modal would have told every one of those callers that a modal
+        was always on top: the first build of this fix killed the arrow keys
+        outright, on a page with no sheet anywhere.
+      */
+      role={node === null ? undefined : "dialog"}
+      aria-modal={node === null ? undefined : "true"}
       // The kind and the cleared state left the head with the subtitle the
       // reference does not draw, so they are carried here, where a screen
       // reader still hears them and the picture costs no ink for them.

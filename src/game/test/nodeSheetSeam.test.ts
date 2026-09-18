@@ -120,6 +120,23 @@ describe("the sheet's bottom edge lands on the tab bar, with nothing between", (
     expect(bar - declared).toBeLessThan(2);
   });
 
+  it("--tabbar-height, the token everything above the bar reads, is the same bar", () => {
+    /*
+     * tabs.css publishes the height once so a second thing that has to stop
+     * where the bar begins does not keep its own copy of 76. The pathway
+     * pager's sticky foot is the first caller (tabs/pathway/pathway.css,
+     * .path-pager__foot). Both names are checked against the SAME
+     * recomputation here, so they cannot drift from the bar or from each
+     * other, which is the whole reason this file exists.
+     */
+    const token = decl(block(TABS, ":root"), "--tabbar-height");
+    const inset = decl(block(SHEET, "\\.ns-sheet"), "--ns-bottom-inset");
+    expect(token).toContain("env(safe-area-inset-bottom");
+    expect(px(token), `token ${token} vs sheet inset ${inset}`).toBe(px(inset));
+    expect(px(token)).toBeLessThanOrEqual(tabBarHeightPx());
+    expect(tabBarHeightPx() - px(token)).toBeLessThan(2);
+  });
+
   it("the inset carries the safe area the bar's own padding carries", () => {
     // .tabbar's padding-bottom is max(0.375rem, env(safe-area-inset-bottom)),
     // so on a device with a home indicator the bar grows and the sheet's edge

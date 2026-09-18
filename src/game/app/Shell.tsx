@@ -395,7 +395,12 @@ export function Shell({ route, children }: { readonly route: Route; readonly chi
             they are 3.87 and 3.72 as graphics with their ink variants over 4.5
             as text. Coloured ink lives on a card in this palette; the page is a
             ground, not a surface to write on. */}
-        <header className="pt-safe sticky top-0 z-10 flex items-center justify-between gap-1 bg-bb-card px-1.5 pb-5 sm:gap-3 sm:px-4 md:px-6">
+        {/* data-app-header is a HANDLE, not a style hook: a tab with its own
+            sticky strip has to land under this bar, and this bar's height
+            moves with the safe area, the type scale and whatever the HUD is
+            showing. Measuring it beats copying it. See OrgoMapTrack in
+            tabs/pathway/PathwayTab.tsx, which publishes --path-rail-top. */}
+        <header data-app-header className="pt-safe sticky top-0 z-10 flex items-center justify-between gap-1 bg-bb-card px-1.5 pb-5 sm:gap-3 sm:px-4 md:px-6">
           {/* TOOLS ON THE LEFT, SCORES ON THE RIGHT. The blind critic's finding
               on the P3 round was that the header's left half held chrome at the
               same size and weight as the readouts, so the row had seven equal

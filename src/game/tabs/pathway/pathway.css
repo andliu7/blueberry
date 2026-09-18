@@ -255,7 +255,8 @@
  * The glow stays --progress, the goal green, because a glow is not a mark.
  * It does not pulse: only the current node's halo does.
  */
-.path-node--done {
+.path-node--done,
+.path-swatch--done {
   --node-face: var(--progress);
   --node-face-press: var(--progress);
   --node-edge: var(--chip-edge);
@@ -278,7 +279,12 @@
  * is what the sheet draws them in and what "all nodes the same size" is
  * paired with: the mark is around the node, not inside it.
  */
-.path-node--current {
+/* The legend's key rides the same tokens under its own name. A key names a
+   state, it is not a node in one, and .path-node--current has to mean exactly
+   one chip on the page for the halo, the START pill and any probe counting
+   them to agree. See the LEGEND block in PathwayTab.tsx. */
+.path-node--current,
+.path-swatch--current {
   --node-face: var(--chip-face);
   --node-face-press: var(--chip-face-press);
   --node-edge: var(--chip-edge);
@@ -321,7 +327,8 @@
       0 0 30px 13px var(--path-halo-soft);
   }
 }
-.path-node--review {
+.path-node--review,
+.path-swatch--review {
   --node-face: #b45309;
   --node-face-press: #9a4708;
   --node-edge: #78350f;
@@ -331,7 +338,8 @@
 /* Open is rest: the same freely-orderable periwinkle chip. The tokens are
    restated rather than inherited so the legend swatch can render the state
    without riding on the base rule's defaults staying what they are. */
-.path-node--open {
+.path-node--open,
+.path-swatch--open {
   --node-face: var(--chip-face);
   --node-face-press: var(--chip-face-press);
   --node-edge: var(--chip-edge);
@@ -379,7 +387,8 @@
  * still identifies the chip, and the engrave tone below carries the motif at
  * 4.55:1 on the dim face.
  */
-.path-node--locked {
+.path-node--locked,
+.path-swatch--locked {
   --node-face: #8e95bf;
   --node-face-press: #8e95bf;
   --node-edge: #8e95bf;
@@ -444,7 +453,8 @@
 .dark .path-start {
   color: var(--bb-primary-ink);
 }
-.dark .path-node--review {
+.dark .path-node--review,
+.dark .path-swatch--review {
   --node-face: #b45309;
   --node-face-press: #9a4708;
   --node-edge: #7c3d0a;
@@ -465,7 +475,8 @@
  * padlock was meant to fix. #b0b7cf measures 4.16:1 on it, and the inversion
  * is the rule every other mark in dark already follows.
  */
-.dark .path-node--locked {
+.dark .path-node--locked,
+.dark .path-swatch--locked {
   --node-face: #3b4059;
   --node-face-press: #3b4059;
   --node-edge: #3b4059;
@@ -1067,17 +1078,63 @@
  * scrolls sideways on a phone rather than wrapping, so it stays one line
  * tall and reads as a course rather than a grid.
  */
+/*
+ * THE RAIL STAYS ON SCREEN. It used to be position: static, so it scrolled
+ * away after about 140px and was 634px above the viewport by the bottom of
+ * unit 1: gone at exactly the moment a student reaches the gate and wants to
+ * know what is on the other side of it. The WRAPPER is what sticks rather
+ * than the nav, because the nav is a horizontal scroller and a fade painted
+ * inside a scroller scrolls away with its content.
+ *
+ * --path-rail-top is the app header's measured height, published by
+ * OrgoMapTrack; the fallback is 0 so the rail still sticks (to the top of the
+ * viewport, behind the header) if the measurement has not landed yet, rather
+ * than falling back to scrolling away. z-index 5 is under the header's 10 and
+ * over the trail and the chips, which is the order the layers read in.
+ */
+.path-railwrap {
+  position: sticky;
+  top: var(--path-rail-top, 0px);
+  z-index: 5;
+  background: var(--bb-background);
+}
+/*
+ * THE CLIPPED STEP IS "THERE IS MORE", NOT A RENDERING FAULT. Fifteen steps
+ * are 637px of strip in a 358px window, so the ninth circle is cut by the
+ * right edge on every phone. A hard cut through a circle reads as damage; the
+ * same cut under a fade reads as a scroller, which is what it is. It is a
+ * painted overlay rather than a mask so the rail's own opaque background
+ * survives underneath and the page cannot show through the strip.
+ */
+.path-railwrap::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 2.25rem;
+  pointer-events: none;
+  background: linear-gradient(to right, transparent, var(--bb-background));
+}
 .path-rail {
   display: flex;
-  gap: 0.4rem;
+  /* 0.5rem, not 0.4: the steps carry a 44px hit area now (see below) and at
+     0.4rem two neighbouring targets overlapped by 1.6px. 36 + 8 = 44 puts
+     them edge to edge instead. */
+  gap: 0.5rem;
   padding: 0.35rem 0.25rem 0.55rem;
   overflow-x: auto;
+  /* The rail is the one thing in this tab that pans sideways, and the pager
+     above it declares pan-y for the swipe. Saying so here keeps a finger drag
+     on the rail scrolling the rail on a real phone. */
+  touch-action: pan-x;
   scrollbar-width: none;
 }
 .path-rail::-webkit-scrollbar {
   display: none;
 }
 .path-rail__step {
+  position: relative;
   flex: 0 0 auto;
   display: flex;
   align-items: center;
@@ -1091,6 +1148,30 @@
   font-family: var(--font-display);
   font-size: 0.8rem;
   font-weight: 800;
+  text-decoration: none;
+}
+/*
+ * 44px OF TARGET AROUND A 36px CIRCLE. CLAUDE.md's Budgets table puts the hit
+ * floor at 44, and .path-pager__side in this same stylesheet already spends
+ * it; the rail was shipping 36 square. Growing the circle to 44 would make
+ * fifteen of them 780px of strip and turn the course into a row of buttons,
+ * so the visual stays 36 and an inset pseudo element carries the target out
+ * to the floor. Four pixels each side is exactly 44.
+ */
+.path-rail__step::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  /* --hit-min is the 44px floor itself, the same token .tabbar-item spends,
+     rather than a number retyped here. Sized and centred rather than given a
+     negative `inset`: an absolutely positioned child sizes against the
+     PADDING box, so inset: -4px on a 36px step with a 2px border comes out at
+     40 and quietly misses the floor by four pixels. */
+  width: var(--hit-min, 2.75rem);
+  height: var(--hit-min, 2.75rem);
+  transform: translate(-50%, -50%);
+  border-radius: 999px;
 }
 .path-rail__step--done {
   border-color: var(--progress-edge);
@@ -1112,6 +1193,19 @@
   outline: 2px solid var(--bb-primary-ink);
   outline-offset: 2px;
 }
+/*
+ * A REAL FOCUS RING. The rail is the FIRST tab stop on the page, and what a
+ * keyboard user got there was Chrome's 1px default outline on a 36px circle
+ * against a lavender ground: a critic tabbed to it and could not tell it had
+ * focus. Same ring the chips wear (.path-node:focus-visible), so the tab has
+ * one focus treatment and not two. It is declared after the aria-current
+ * outline above, which has equal specificity, so focus wins on the step the
+ * page is already showing.
+ */
+.path-rail__step:focus-visible {
+  outline: 3px solid var(--bb-ring);
+  outline-offset: 3px;
+}
 
 /*
  * THE BOTTOM BAR: the donor pattern's foot-of-content nav (see
@@ -1120,6 +1214,25 @@
  * control on the page. A gated Continue keeps its size and drops its
  * invitation: the same aria-disabled treatment the locked chip carries.
  */
+/*
+ * THE FOOT IS STICKY, and the offset is DERIVED. The bar measured 346 to 523
+ * CSS px below the fold on the two reference phones, which is roughly two
+ * screens of scrolling before the page's primary control exists for the
+ * reader. --tabbar-height is published once by app/ui/tabs.css and is the
+ * same value the node sheet's bottom edge lands on; a second hand-typed 76
+ * here is exactly the mistake test/nodeSheetSeam.test.ts was written after.
+ * Above 48rem that token is 0, because there the bar is a side rail and the
+ * foot sits on the bottom of the window.
+ *
+ * It carries its own background, because content scrolls under it.
+ */
+.path-pager__foot {
+  position: sticky;
+  bottom: var(--tabbar-height, 0px);
+  z-index: 4;
+  padding-bottom: 0.4rem;
+  background: var(--bb-background);
+}
 .path-pager__bar {
   display: flex;
   align-items: center;
@@ -1149,9 +1262,13 @@
   display: flex;
   flex-direction: column;
 }
+/* 0.6875rem is 11px. It was 0.62rem, which computes to 9.92, and "UNIT 1 OF
+   15" is the sentence that answers "where am I": the smallest type on the
+   page should not be the line carrying the page's own address. 11px is the
+   floor CLAUDE.md's Budgets table allows for a caps micro-label. */
 .path-pager__eyebrow {
   font-family: var(--font-display);
-  font-size: 0.62rem;
+  font-size: 0.6875rem;
   font-weight: 800;
   letter-spacing: 0.09em;
   text-transform: uppercase;
@@ -1194,7 +1311,8 @@
 .path-pager__hint {
   margin: 0.2rem 0 0;
   font-family: var(--font-display);
-  font-size: 0.62rem;
+  /* 11px, same floor as the eyebrow above. */
+  font-size: 0.6875rem;
   font-weight: 800;
   letter-spacing: 0.14em;
   text-transform: uppercase;

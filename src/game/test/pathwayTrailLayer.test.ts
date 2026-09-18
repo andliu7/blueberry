@@ -91,16 +91,39 @@ describe("the trail scrolls in the same layer as the buttons", () => {
     }
   });
 
-  it("keeps sticky surfaces off the tab entirely, now that the scene is gone", () => {
-    // PathScene was the one sticky, viewport-sized element on the tab, and
-    // it was allowed its scroll-linked parallax because a background may lag.
-    // The owner dropped the generated landscape outright (2026-09-17), so the
-    // stronger property holds and is pinned: no component named PathScene
-    // exists, and nothing on the pathway is position: sticky or fixed at all.
+  it("keeps sticky surfaces off the trail, and lets only the two named chrome strips stick", () => {
+    /*
+     * PathScene was the one sticky, viewport-sized element on the tab, and it
+     * was allowed its scroll-linked parallax because a background may lag.
+     * The owner dropped the generated landscape outright (2026-09-17), and
+     * this test then pinned the BLUNT form of that: nothing in pathway.css
+     * was position: sticky at all.
+     *
+     * Round two of the pager overturned the blunt form, not the property it
+     * was defending. A critic drove the built page and found the unit rail
+     * 634px above the viewport at the bottom of unit 1, gone at exactly the
+     * moment a student reaches the gate, and the Continue bar 346 to 523px
+     * below the fold on the two reference phones. Both are CHROME. So the
+     * ban is narrowed to what it was always about rather than dropped:
+     *
+     *   - position: fixed stays banned outright
+     *   - sticky is allowed on exactly two selectors, both named here, so a
+     *     third one or a sticky scene coming back fails this test
+     *   - neither of them is the trail, and the trail's own layer is still
+     *     pinned absolute by the test below
+     *
+     * The two tests above are the rest of the original property and are
+     * untouched: no module that draws trail geometry may run on scroll, and
+     * the ribbon lives inside the very section that holds the chips.
+     */
     expect(existsSync(path.join(PATHWAY, "PathScene.tsx"))).toBe(false);
     const css = readFileSync(path.join(PATHWAY, "pathway.css"), "utf8");
-    expect(css).not.toContain("position: sticky");
     expect(css).not.toContain("position: fixed");
+    const sticky = [...css.matchAll(/([^{}]+)\{[^{}]*position:\s*sticky/g)].map((match) =>
+      String(match[1]).trim().split("\n").pop()!.trim(),
+    );
+    expect(sticky).toEqual([".path-railwrap", ".path-pager__foot"]);
+    for (const selector of sticky) expect(selector).not.toContain("trail");
   });
 
   it("puts the trail element inside the very section that holds the chips", () => {
