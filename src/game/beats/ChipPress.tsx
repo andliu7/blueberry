@@ -19,12 +19,22 @@
  *   check  the violet primary action (Check, Continue, Start)
  *   claim  the green collect action, dark ink on the fill per FILL-ONLY
  *   quiet  the secondary action (Undo, Skip): outlined, still pressable
+ *   won    the primary while a win is on screen, wearing the verdict's green
+ *   near   the same, in the near-miss amber
+ *
+ * WHY THE VERDICT COLOURS THE BUTTON. The bar's answer sheet turns its
+ * primary button the verdict colour the instant it arrives, so the first
+ * painted frame says right or not quite before a word is read. Ours kept the
+ * indigo primary and lost the blind call on exactly that (round four motion
+ * critic). The button is already on screen, so the cue costs no motion and no
+ * latency. Still no red: a miss wears the sheet's own amber, per the file
+ * header in sheetCopy.ts.
  */
 
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import "./beat-chrome.css";
 
-export type ChipVariant = "check" | "claim" | "quiet";
+export type ChipVariant = "check" | "claim" | "quiet" | "won" | "near";
 
 export interface ChipPressProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   readonly variant?: ChipVariant;

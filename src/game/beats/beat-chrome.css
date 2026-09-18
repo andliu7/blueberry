@@ -262,6 +262,24 @@
   --chip-press-rim: color-mix(in srgb, var(--chip-face) 55%, var(--bb-border));
 }
 
+/* The verdict, worn by the primary button while the answer sheet is up, so
+   the arrival reads as a colour before it reads as a sentence. `won` borrows
+   the completed chip's green rather than inventing a second one; `near` is
+   the sheet's own amber family, and there is no red anywhere. */
+.chip-press--won {
+  --chip-press-face: var(--progress);
+  --chip-press-ink: var(--progress-ink);
+  --chip-press-edge: var(--progress-edge);
+  --chip-press-rim: var(--progress-edge);
+}
+
+.chip-press--near {
+  --chip-press-face: var(--not-requested);
+  --chip-press-ink: var(--bb-primary-foreground);
+  --chip-press-edge: color-mix(in srgb, var(--not-requested) 70%, black);
+  --chip-press-rim: color-mix(in srgb, var(--not-requested) 70%, black);
+}
+
 /* The press itself is the first frame of feedback: :active paints on pointer
    down, the same frame, before any JS runs. The chip travels down and its
    edge compresses by the same distance, which is the goals' pressed state. */

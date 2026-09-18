@@ -252,11 +252,25 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
   // The same frame driver the trainer's playback uses: 0 while drawing,
   // driven once to 1 on the win, scrubbed straight to 1 under reduced motion.
   const win = useStepProgress(WIN_TWEEN_MS, false);
-  // The win tween's deferred start (see onCheck); cleared if the screen
-  // unmounts inside the sheet's rise.
-  const winTimer = useRef<number | null>(null);
+  // Everything a verdict does that is not the sheet itself waits for the
+  // sheet to land: the mascot, the sound, the buzz, the win tween. The rise
+  // owns those 200 ms, because a verdict commit heavy enough to stall the
+  // main thread is a verdict the student watches arrive late (round four
+  // motion critic: the miss took ~200 ms to change a pixel against the bar's
+  // 45). Cleared if the screen unmounts inside the rise.
+  const riseTimer = useRef<number | null>(null);
+  const afterRise = useCallback(
+    (work: () => void) => {
+      if (reducedMotion) {
+        work();
+        return;
+      }
+      riseTimer.current = window.setTimeout(work, RISE_MS);
+    },
+    [reducedMotion],
+  );
   useEffect(() => () => {
-    if (winTimer.current !== null) window.clearTimeout(winTimer.current);
+    if (riseTimer.current !== null) window.clearTimeout(riseTimer.current);
   }, []);
 
   /* ---------------- the controls ---------------- */
@@ -275,8 +289,10 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
         // Not journaled as an arrow mistake: the arrows were right. The
         // mistake journal has no branch kind yet; when it does, this is
         // where the record goes.
-        playWrongSound();
-        react("nearMiss");
+        afterRise(() => {
+          playWrongSound();
+          react("nearMiss");
+        });
         return;
       }
     }
@@ -288,14 +304,10 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
         react("correct");
         win.scrub(1);
       } else {
-        // The sheet's rise owns the main thread for its 200 ms: the win
-        // tween and the mascot's reaction start once it lands, which is
-        // what keeps the launch painted instead of starved by the win
-        // frame's work (round two motion critic, claim 1).
-        winTimer.current = window.setTimeout(() => {
+        afterRise(() => {
           react("correct");
           win.play();
-        }, RISE_MS);
+        });
       }
       return;
     }
@@ -308,16 +320,20 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
       if (last !== undefined) {
         saveMistake({ reactionId: step.id, arrowKey: arrowKey(last), verdict: "invalid", causeId: result.cause, distractorMatched: matchDistractor(step, last) !== null, at: new Date().toISOString() });
       }
-      playWrongSound();
-      react("wrong");
-      if (typeof navigator.vibrate === "function") navigator.vibrate([24, 60, 24]);
+      afterRise(() => {
+        playWrongSound();
+        react("wrong");
+        if (typeof navigator.vibrate === "function") navigator.vibrate([24, 60, 24]);
+      });
     } else if (result.kind === "not_requested") {
       if (last !== undefined) {
         saveMistake({ reactionId: step.id, arrowKey: arrowKey(last), verdict: "not_requested", causeId: null, distractorMatched: matchDistractor(step, last) !== null, at: new Date().toISOString() });
       }
-      playWrongSound();
-      react("nearMiss");
-      if (typeof navigator.vibrate === "function") navigator.vibrate([24, 60, 24]);
+      afterRise(() => {
+        playWrongSound();
+        react("nearMiss");
+        if (typeof navigator.vibrate === "function") navigator.vibrate([24, 60, 24]);
+      });
     } else {
       bump("leanIn");
     }
@@ -646,12 +662,12 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
                   {model.replayOpen ? "Close replay" : "Replay"}
                 </ChipPress>
               ) : null}
-              <ChipPress className="flex-1" onClick={onContinue}>
+              <ChipPress variant={sheet !== null ? "won" : "check"} className="flex-1" onClick={onContinue}>
                 Continue
               </ChipPress>
             </>
           ) : branchVerdict !== null ? (
-            <ChipPress className="flex-1" onClick={onChooseAgain}>
+            <ChipPress variant="near" className="flex-1" onClick={onChooseAgain}>
               Choose another route
             </ChipPress>
           ) : choosing ? null : (
@@ -660,7 +676,7 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
                 Undo
               </ChipPress>
               {sheet !== null ? (
-                <ChipPress className="flex-1" onClick={() => setVerdict(null)}>
+                <ChipPress variant={sheet.tone === "good" ? "won" : "near"} className="flex-1" onClick={() => setVerdict(null)}>
                   Got it
                 </ChipPress>
               ) : (

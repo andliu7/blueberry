@@ -204,11 +204,13 @@ describe("the sheet on the screen", () => {
 
     press(container, "What's off");
     expect(openedLayers(container)).toBe(1);
-    expect(container.querySelector("[data-sheet-layers]")?.textContent).toContain("somewhere this step does not.");
+    // Once the push itself is named, repeating the count of strays says the
+    // same thing twice, so that sentence stands down.
+    expect(container.querySelector("[data-sheet-layers]")?.textContent).not.toContain("somewhere this step does not.");
     // The stray arrow is named back in the student's own terms, from the
     // step's state: the canvas records the drop onto c2 as a forming bond,
     // so the words name that gesture, bromine by name because it is unique.
-    expect(container.querySelector("[data-sheet-layers]")?.textContent).toContain("Your push, from a lone pair on bromine into a new bond between bromine and");
+    expect(container.querySelector("[data-sheet-layers]")?.textContent).toContain("Your push, from a lone pair on bromine into a new bond to ");
     press(container, "Where to look");
     expect(openedLayers(container)).toBe(2);
     expect(buttonLabelled(container, "Hide")).toBeDefined();
@@ -286,9 +288,18 @@ describe("naming the student's own stray arrow", () => {
   });
 
   it("says a bond is being raised rather than newly made when the two atoms already touch", () => {
-    const strays = describeStrays(sn2.step, [arrow({ kind: "lonePair", atomId: "br1" }, { kind: "betweenAtoms", atomIds: ["c1", "br1"] })]);
-    expect(strays?.[0]).toContain("making it");
+    // Methoxide's pair into the epoxide's own C-O bond: that bond exists, so
+    // nothing new forms, and C-O can hold the extra pair.
+    const strays = describeStrays(epoxide.step, [arrow({ kind: "lonePair", atomId: "om" }, { kind: "betweenAtoms", atomIds: ["c1", "o1"] })]);
+    expect(strays?.[0]).toContain("making it C=O");
     expect(strays?.[0]).not.toContain("a new bond");
+  });
+
+  it("refuses to describe a raise the two elements could never hold", () => {
+    // The same gesture aimed at C-Br would read "making it C=Br", a structure
+    // that does not exist. Silence on that arrow beats asserting it.
+    const strays = describeStrays(sn2.step, [arrow({ kind: "lonePair", atomId: "br1" }, { kind: "betweenAtoms", atomIds: ["c1", "br1"] })]);
+    expect(strays).toBeNull();
   });
 
   it("stays silent rather than describing the stray in the same words as the right answer", () => {

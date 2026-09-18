@@ -149,80 +149,133 @@ const ELEMENT_NAMES: Readonly<Record<string, string>> = {
 };
 const SUBSCRIPTS = ["", "", "₂", "₃", "₄"] as const;
 const ORDER_MARK = ["", "–", "=", "≡"] as const;
+const HALOGENS = new Set(["F", "Cl", "Br", "I"]);
+/**
+ * The highest bond order each element reaches in this course. The sheet
+ * describes a pair landing in an existing bond as raising that bond, so
+ * without this it would cheerfully tell a student "making it N=H".
+ */
+const MAX_BOND_ORDER: Readonly<Record<string, number>> = { H: 1, F: 1, Cl: 1, Br: 1, I: 1, O: 2, S: 2, N: 3, C: 3, P: 3 };
 
-/** "an oxygen", "a carbon"; a label read as letters takes its article from the letter's sound ("an O–H bond", "an N–H bond"). */
+/** "an oxygen", "a carbon"; a label read as letters takes its article from the letter's sound ("an N–H bond"). */
 function withArticle(phrase: string, spelledAsLetters: boolean): string {
   const first = phrase.charAt(0).toUpperCase();
   const vowelSound = spelledAsLetters ? "AEFHILMNORSX".includes(first) : "AEIOU".includes(first);
   return `${vowelSound ? "an" : "a"} ${phrase}`;
 }
+const indefinite = (phrase: string): boolean => phrase.startsWith("a ") || phrase.startsWith("an ");
 
 /**
  * A describer over one state. Everything it says is read off the state's own
- * atoms and bonds, never recalled: an atom is named by the first fact that
- * singles it out among its element (its charge, a heteroatom it is bonded to,
- * its hydrogen count), and falls back to the indefinite ("a CH₃ carbon") when
- * several atoms share even that. describeStrays below refuses any sentence
- * that ends up reading the same as a correct arrow's.
+ * atoms and bonds, never recalled. An atom is named by the first fact that
+ * singles it out among its element: its charge, a heteroatom it is bonded to,
+ * its hydrogen count, then the company it keeps. A bond is named by its
+ * element pair when that pair is unique in the state, and by its two ends
+ * when it is not, because "a C–C bond" locates nothing on a chain. Anything
+ * that cannot be named this way returns null, and the caller drops that arrow
+ * rather than guessing.
  */
 function stateDescriber(state: MechanismState) {
-  const atoms = new Map<string, { element: string; charge: number; hydrogens: number; neighbours: string[] }>();
+  const atoms = new Map<string, { element: string; charge: number; hydrogens: number; heavy: string[] }>();
   const bonds: { id: string; a: string; b: string; order: number }[] = [];
   for (const member of state.members) {
-    for (const atom of member.species.atoms) atoms.set(atom.id, { element: atom.element, charge: atom.formalCharge, hydrogens: atom.implicitHydrogens, neighbours: [] });
+    for (const atom of member.species.atoms) atoms.set(atom.id, { element: atom.element, charge: atom.formalCharge, hydrogens: atom.implicitHydrogens, heavy: [] });
     for (const bond of member.species.bonds) bonds.push({ id: bond.id, a: bond.a, b: bond.b, order: bond.order });
   }
   for (const bond of bonds) {
-    const [a, b] = [atoms.get(bond.a), atoms.get(bond.b)];
+    const a = atoms.get(bond.a);
+    const b = atoms.get(bond.b);
     if (a === undefined || b === undefined) continue;
     if (b.element === "H") a.hydrogens += 1;
-    else a.neighbours.push(b.element);
+    else a.heavy.push(bond.b);
     if (a.element === "H") b.hydrogens += 1;
-    else b.neighbours.push(a.element);
+    else b.heavy.push(bond.a);
   }
-  const sameElement = (element: string) => [...atoms.values()].filter((other) => other.element === element);
+  const peersOf = (element: string) => [...atoms.entries()].filter(([, other]) => other.element === element);
 
-  const atomPhrase = (atomId: string): string | null => {
+  /** The atom on its own facts: unique element, charge, a heteroatom partner, then its hydrogens. */
+  const plainPhrase = (atomId: string): string | null => {
     const atom = atoms.get(atomId);
     if (atom === undefined) return null;
     const name = ELEMENT_NAMES[atom.element] ?? atom.element;
-    const peers = sameElement(atom.element);
+    const peers = peersOf(atom.element);
     if (peers.length === 1) return atom.element === "C" || atom.element === "H" ? `the ${name}` : name;
-    if (atom.charge !== 0 && peers.filter((peer) => Math.sign(peer.charge) === Math.sign(atom.charge)).length === 1) {
+    if (atom.charge !== 0 && peers.filter(([, peer]) => Math.sign(peer.charge) === Math.sign(atom.charge)).length === 1) {
       return `the ${atom.charge > 0 ? "positive" : "negative"} ${name}`;
     }
-    for (const partner of [...new Set(atom.neighbours)].filter((element) => element !== "C").sort()) {
-      if (peers.filter((peer) => peer.neighbours.includes(partner)).length === 1) return `the ${name} bonded to ${ELEMENT_NAMES[partner] ?? partner}`;
+    const partners = [...new Set(atom.heavy.map((id) => atoms.get(id)?.element ?? ""))].filter((element) => element !== "" && element !== "C").sort();
+    for (const partner of partners) {
+      const shares = peers.filter(([, peer]) => peer.heavy.some((id) => atoms.get(id)?.element === partner)).length;
+      if (shares === 1) return `the ${name} bonded to ${ELEMENT_NAMES[partner] ?? partner}`;
     }
     const group = atom.hydrogens === 0 ? null : `${atom.element}H${SUBSCRIPTS[atom.hydrogens] ?? atom.hydrogens}`;
     if (group === null) return null;
-    const sharing = peers.filter((peer) => peer.hydrogens === atom.hydrogens).length;
+    const sharing = peers.filter(([, peer]) => peer.hydrogens === atom.hydrogens).length;
     return sharing === 1 ? `the ${group} ${name}` : `${withArticle(group, true)} ${name}`;
   };
 
-  // Bonds read the way a chemist writes them: carbon first, hydrogen last,
-  // otherwise alphabetical, with the order showing ("C=O", never "C–O" for a
-  // carbonyl). "the" only when no other bond in the state reads the same.
+  /**
+   * An atom its own facts cannot single out, placed by the company it keeps.
+   * This is the rung that names a ring oxygen or a beta hydrogen at all, and
+   * it is taken only when no other atom of the same element answers to it.
+   */
+  const atomPhrase = (atomId: string): string | null => {
+    const plain = plainPhrase(atomId);
+    if (plain !== null && !indefinite(plain)) return plain;
+    const atom = atoms.get(atomId);
+    if (atom === undefined) return plain;
+    const name = ELEMENT_NAMES[atom.element] ?? atom.element;
+    const anchors = atom.heavy.map(plainPhrase).filter((phrase): phrase is string => phrase !== null && !indefinite(phrase));
+    if (anchors.length === 0) return plain;
+    const rivals = peersOf(atom.element).filter(([id]) => id !== atomId);
+    const shared = rivals.some(([id]) => {
+      const other = atoms.get(id);
+      if (other === undefined) return false;
+      const theirs = other.heavy.map(plainPhrase);
+      return anchors.every((anchor) => theirs.includes(anchor));
+    });
+    if (shared) return plain;
+    return anchors.length >= 2 ? `the ${name} between ${anchors[0]} and ${anchors[1]}` : `the ${name} on ${anchors[0]}`;
+  };
+
+  // Bonds read the way a chemist writes them: carbon first, hydrogen last
+  // except against a halogen (H–Br, never Br–H), otherwise alphabetical.
   const rank = (element: string): string => (element === "C" ? "0" : element === "H" ? "2" : `1${element}`);
+  const pairOrder = (first: string, second: string): readonly [string, string] => {
+    if (first === "H" && HALOGENS.has(second)) return [first, second];
+    if (second === "H" && HALOGENS.has(first)) return [second, first];
+    return rank(first) <= rank(second) ? [first, second] : [second, first];
+  };
   const label = (a: string, b: string, order: number): string | null => {
-    const [first, second] = [atoms.get(a)?.element, atoms.get(b)?.element];
+    const first = atoms.get(a)?.element;
+    const second = atoms.get(b)?.element;
     const mark = ORDER_MARK[order];
     if (first === undefined || second === undefined || mark === undefined) return null;
-    const [left, right] = rank(first) <= rank(second) ? [first, second] : [second, first];
+    const [left, right] = pairOrder(first, second);
     return `${left}${mark}${right}`;
+  };
+  /** True when a pair landing in this bond could really raise it. */
+  const canRaise = (bond: { a: string; b: string; order: number }): boolean => {
+    const first = atoms.get(bond.a)?.element;
+    const second = atoms.get(bond.b)?.element;
+    if (first === undefined || second === undefined) return false;
+    return bond.order + 1 <= Math.min(MAX_BOND_ORDER[first] ?? 3, MAX_BOND_ORDER[second] ?? 3);
   };
   const bondPhrase = (bond: { a: string; b: string; order: number }): string | null => {
     const own = label(bond.a, bond.b, bond.order);
     if (own === null) return null;
     const alike = bonds.filter((other) => label(other.a, other.b, other.order) === own).length;
-    return alike === 1 ? `the ${own} bond` : `${withArticle(own, true)} bond`;
+    if (alike === 1) return `the ${own} bond`;
+    const a = atomPhrase(bond.a);
+    const b = atomPhrase(bond.b);
+    return a === null || b === null || indefinite(a) || indefinite(b) ? null : `the bond between ${a} and ${b}`;
   };
 
   return (arrow: ElectronFlowArrow): string | null => {
     let from: string | null = null;
     if (arrow.source.kind === "bond") {
-      const bondId = arrow.source.bondId;
-      const bond = bonds.find((candidate) => candidate.id === bondId);
+      const sourceBondId = arrow.source.bondId;
+      const bond = bonds.find((candidate) => candidate.id === sourceBondId);
       const phrase = bond === undefined ? null : bondPhrase(bond);
       from = phrase === null ? null : `from ${phrase}`;
     } else {
@@ -237,15 +290,24 @@ function stateDescriber(state: MechanismState) {
       const [a, b] = arrow.sink.atomIds;
       const existing = bonds.find((bond) => (bond.a === a && bond.b === b) || (bond.a === b && bond.b === a));
       if (existing !== undefined) {
-        // No new connection forms here: the pair raises a bond that already exists.
+        // No new connection forms: the pair raises a bond already there, and
+        // only when that pair of elements can actually hold another one.
+        if (!canRaise(existing)) return null;
         const phrase = bondPhrase(existing);
         const raised = label(existing.a, existing.b, existing.order + 1);
         to = phrase === null || raised === null ? null : `into ${phrase}, making it ${raised}`;
       } else {
-        // The pair's own atom first, so the sentence reads the way the push was drawn.
-        const ownerFirst = arrow.source.kind !== "bond" && arrow.source.atomId === b;
-        const [near, far] = [atomPhrase(ownerFirst ? b : a), atomPhrase(ownerFirst ? a : b)];
-        to = near === null || far === null ? null : `into a new bond between ${near} and ${far}`;
+        const owner = arrow.source.kind === "bond" ? null : arrow.source.atomId;
+        const far = owner === a ? b : owner === b ? a : null;
+        if (far !== null) {
+          // The pair's own atom is already named in the first half.
+          const target = atomPhrase(far);
+          to = target === null ? null : `into a new bond to ${target}`;
+        } else {
+          const first = atomPhrase(a);
+          const second = atomPhrase(b);
+          to = first === null || second === null ? null : `into a new bond between ${first} and ${second}`;
+        }
       }
     }
     return from === null || to === null ? null : `${from} ${to}`;
@@ -253,20 +315,21 @@ function stateDescriber(state: MechanismState) {
 }
 
 /**
- * The student's own extra arrows, in words, or null when they cannot be named
- * honestly. All or nothing: if any one of them has no clean description, or
- * reads the same as one of the step's CORRECT arrows (two attacks that differ
- * only in which of several like atoms they land on), nothing is named, because
- * a sentence that describes the right answer as the stray is worse than the
- * count alone.
+ * The student's own extra arrows, in words. Per arrow, not all or nothing: an
+ * arrow the state cannot name cleanly is dropped and the rest are still
+ * named, because losing one sentence is no reason to lose them all. Two rules
+ * drop an arrow. A phrase reading the same as one of the step's own authored
+ * arrows would label the right answer as the mistake, and a phrase repeating
+ * another stray's would print the same sentence twice.
  */
 export function describeStrays(step: MechanismStep, extras: readonly ElectronFlowArrow[]): readonly string[] | null {
   const describe = stateDescriber(step.from);
-  const correct = new Set(step.arrows.map(describe));
+  const taken = new Set(step.arrows.map(describe).filter((phrase): phrase is string => phrase !== null));
   const named: string[] = [];
   for (const arrow of extras) {
     const phrase = describe(arrow);
-    if (phrase === null || correct.has(phrase)) return null;
+    if (phrase === null || taken.has(phrase)) continue;
+    taken.add(phrase);
     named.push(phrase);
   }
   return named.length > 0 ? named : null;
@@ -295,22 +358,23 @@ export function missSheet(verdict: Exclude<DrawVerdict, { kind: "correct" }>, di
     }
     case "not_requested": {
       const parts: string[] = [];
-      if (verdict.missing > 0) parts.push(`${capitalise(spell(verdict.missing))} of the pushes this step needs ${verdict.missing === 1 ? "is" : "are"} not drawn yet.`);
-      if (verdict.extra > 0) parts.push(`${capitalise(spell(verdict.extra))} of yours ${verdict.extra === 1 ? "goes" : "go"} somewhere this step does not.`);
       // Name the student's own stray arrows, never the missing ones: naming a
       // missing push would hand over the answer the incomplete copy is
       // careful not to spoil. It leads the layer, because it is the only
       // sentence about THIS drawing and a stressed student reads one.
       let named = "";
       if (strays !== undefined && strays.length > 0) {
-        const list = strays.length === 1 ? strays[0] : `${strays.slice(0, -1).join(", ")} and ${strays[strays.length - 1]}`;
+        const list = strays.join("; ");
+        const all = strays.length === verdict.extra;
         named =
           verdict.drawn === 1
             ? `Your push, ${list}, is not one this step makes. `
             : strays.length === 1
-              ? `The stray one is your push ${list}. `
-              : `The stray ones are your pushes ${list}. `;
+              ? `${all ? "The stray one is" : "One of the strays is"} your push ${list}. `
+              : `${all ? "The stray ones are" : "Among the strays are"} your pushes ${list}. `;
       }
+      if (verdict.missing > 0) parts.push(`${capitalise(spell(verdict.missing))} of the pushes this step needs ${verdict.missing === 1 ? "is" : "are"} not drawn yet.`);
+      if (verdict.extra > 0 && named === "") parts.push(`${capitalise(spell(verdict.extra))} of yours ${verdict.extra === 1 ? "goes" : "go"} somewhere this step does not.`);
       return {
         tone: "nearMiss",
         headline: "Legal, but a different change.",

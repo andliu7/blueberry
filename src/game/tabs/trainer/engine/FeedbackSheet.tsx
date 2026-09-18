@@ -102,7 +102,8 @@ export function FeedbackSheet({ content, bottomInset, reducedMotion, dataAttribu
   return (
     <section
       ref={sheetRef}
-      // The extra 40 px below the screen edge is the overshoot skirt: the
+      // The sheet hangs 40 px past the screen edge (the class less the
+      // parent's own padding), which is the overshoot skirt: the
       // spring lifts the sheet 11.1 percent past rest, which on the tallest
       // sheet (~280 px on a miss) is 31 px, so a 28 px skirt still let a
       // 2 px line of page show; 40 covers sheets to ~360 px (the bar paints
@@ -128,16 +129,18 @@ export function FeedbackSheet({ content, bottomInset, reducedMotion, dataAttribu
           // constant: a miss carries one more button row than a win, so its
           // bottomInset is a full row taller, and a flat 200 px cap left a
           // 45 px canvas strip at 375x667 while the copy said to look at
-          // the molecule. The 380 px term is the header, prompt, the
-          // sheet's own chrome and ~140 px of visible workbench; it only
-          // bites on the tall-inset miss at short heights, where it trades
-          // layer box for canvas. The top fade appears once anything has
+          // the molecule. The 418 px term is the header, prompt, the
+          // sheet's own chrome and the workbench a student must still be
+          // able to see: measured, it leaves ~120 px of canvas on a fully
+          // open miss at 375x667, where 380 left 82. It only bites on the
+          // tall-inset miss at short heights, where it trades layer box for
+          // canvas, and the layers scroll. The top fade appears once anything has
           // scrolled out above.
           className="flex flex-col gap-2 overflow-y-auto"
           style={{
             // The 96 px floor keeps the box readable on heights the budget
             // cannot serve; below that, scrolling beats vanishing.
-            maxHeight: `min(34vh, 200px, max(96px, calc(100dvh - ${bottomInset + 380}px)))`,
+            maxHeight: `min(34vh, 200px, max(96px, calc(100dvh - ${bottomInset + 418}px)))`,
             ...(scrolledPast ? { maskImage: "linear-gradient(to bottom, transparent 0, black 16px)", WebkitMaskImage: "linear-gradient(to bottom, transparent 0, black 16px)" } : {}),
           }}
           onScroll={(event) => setScrolledPast(event.currentTarget.scrollTop > 1)}
