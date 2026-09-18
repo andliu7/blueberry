@@ -238,15 +238,22 @@ export interface ReactionReveal {
 export type ReactionRevealField = keyof ReactionReveal;
 
 /** The order the reveal panel lists the fields in, fixed so cards read alike. */
+/*
+ * THE SENTENCE FIRST. "Acid or base" is one word on 32 of the 43 reactions
+ * and "Solvent" is absent on 20, so ordering them above `notes` opened every
+ * tap on two rows of lookup table with the one teaching sentence underneath.
+ * A student who taps wants the reason, not the conditions grid, and Anki's
+ * back side has no label rows at all.
+ */
 export const REVEAL_ORDER: readonly ReactionRevealField[] = Object.freeze([
+  "notes",
+  "selectivity",
   "keq",
   "pka",
-  "selectivity",
   "electronegativity",
   "resonance",
   "solvent",
   "acidBase",
-  "notes",
 ]);
 
 /** The label each reveal field wears. Owner-named field names, not chemistry. */

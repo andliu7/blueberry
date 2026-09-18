@@ -28,6 +28,7 @@ import {
   reactionCardId,
   REAGENT_LABELS,
   stagedReagentLine,
+  stageReagentLabel,
 } from "../cards/reactionCard";
 import {
   cardFromLegacyEntry,
@@ -41,6 +42,7 @@ import {
   STARTER_REACTION_IDS,
   starterCards,
 } from "../cards/seed";
+import { REVEAL_ORDER } from "../cards/types";
 import { createLocalDecks, PERSONAL_DECK_ID } from "../cards/store";
 import { cardsIn, dueInDeck, isDue, presentReveal, REVEAL_LABELS } from "../cards/types";
 import { CardFace } from "../cards/ui/CardFace";
@@ -162,6 +164,51 @@ describe("a reaction card built from the registry", () => {
     expect(stagedReagentLine(registryEntry("nabh4-reduction"))).toBe("NaBH4; then H3O+");
   });
 
+  it("goes quiet rather than reaching for the most structural token it has", () => {
+    /* THE OLD FALLBACK COULD NOT PROTECT. It returned reagents[0] when the
+       last token was unmapped, but every stage the table resolves holds ONE
+       reagent, so reagents[0] was the same token that just failed; and where
+       a stage holds two, the first is the mechanistic species ("[BH4-]"),
+       the MORE structural of the pair. The rule reached for the worst
+       candidate on the shelf. Now an unlabelled structure yields "" and the
+       line drops the stage, so a 44th reaction cannot ship brackets. */
+    const bracketed = { reagents: ["[BH4-]"], conditions: { solvent: "", acid_base: "", temperature_c: null, notes: "" } };
+    expect(stageReagentLabel(bracketed as never)).toBe("");
+    const twoTokens = { reagents: ["[CH3-]", "[AlH4-]"], conditions: { solvent: "", acid_base: "", temperature_c: null, notes: "" } };
+    expect(stageReagentLabel(twoTokens as never)).toBe("");
+  });
+
+  it("says one reagent once, however many stages lean on it", () => {
+    /* "NaOH; then hydroxide" named a second base that is not there, and
+       "hydroxide; then hydroxide" was noise: a later stage is often heat or
+       time rather than a new bottle. */
+    for (const reaction of REACTIONS) {
+      const parts = stagedReagentLine(reaction).split("; then ");
+      for (let i = 1; i < parts.length; i += 1) expect(parts[i], reaction.id).not.toBe(parts[i - 1]);
+    }
+  });
+
+  it("does not put a reactant in the flask twice under two spellings", () => {
+    /* The diene card read "buta-1,3-diene + acrolein" over a reagent line of
+       "acrolein", and the amide card "benzoyl chloride + methylamine" over
+       "CH3NH2": three species on a face the data says holds two. */
+    for (const reaction of REACTIONS) {
+      const card = reactionCardFromStaged(reaction, new Date("2026-01-01T00:00:00.000Z"));
+      const reagents = (card.reaction?.reagents ?? "").split("; then ").map((part) => part.trim().toLowerCase()).filter(Boolean);
+      const named = reaction.reactant_labels.map((label) => label.trim().toLowerCase());
+      for (const piece of reagents) expect(named, `${reaction.id}: ${piece}`).not.toContain(piece);
+    }
+  });
+
+  it("opens the reveal on the sentence, not on the conditions grid", () => {
+    /* "Acid or base" is one word on 32 of the 43 and "Solvent" is absent on
+       20, so ordering them first meant every tap opened on two rows of
+       lookup table above the one paragraph worth reading. */
+    expect(REVEAL_ORDER[0]).toBe("notes");
+    expect(REVEAL_ORDER.indexOf("notes")).toBeLessThan(REVEAL_ORDER.indexOf("solvent"));
+    expect(REVEAL_ORDER.indexOf("notes")).toBeLessThan(REVEAL_ORDER.indexOf("acidBase"));
+  });
+
   it("never shows a student a SMILES string where a bottle label belongs", () => {
     /* THE CHEMISTRY-TRUTH PIN, and it is held over all 43 authored reactions
        rather than the seeded six. Before REAGENT_LABELS, 18 of the 43 reagent
@@ -194,7 +241,11 @@ describe("a reaction card built from the registry", () => {
     expect(stagedReagentLine(registryEntry("wittig-olefination"))).toBe("Ph3P=CH2");
     expect(stagedReagentLine(registryEntry("diels-alder"))).toBe("acrolein");
     expect(stagedReagentLine(registryEntry("fischer-esterification"))).toBe("CH3OH");
-    expect(stagedReagentLine(registryEntry("acetylide-addition"))).toBe("acetylide; then H3O+");
+    // NOT "acetylide": CC#[C-] carries a methyl, so it is prop-1-ynyl, and the
+    // product is 1-phenyl-2-butyn-1-ol. A student who read "acetylide" would
+    // draw HC#C- and land on the wrong alcohol. A round-two critic caught the
+    // label throwing the carbon away; the structure never did.
+    expect(stagedReagentLine(registryEntry("acetylide-addition"))).toBe("CH3C#C-; then H3O+");
     // A stage that already lists a bottle label keeps it, counterion and all,
     // rather than being flattened onto the ion's generic name.
     expect(stagedReagentLine(registryEntry("aldol-addition"))).toBe("NaOH");

@@ -84,7 +84,10 @@ export const REAGENT_LABELS: Readonly<Record<string, string>> = Object.freeze({
   CO: "CH3OH",
   OCCO: "HOCH2CH2OH",
   BrBr: "Br2",
-  "CC#[C-]": "acetylide",
+  // Prop-1-ynyl, NOT acetylide: the methyl is in the structure and in the
+  // product ("1-phenyl-2-butyn-1-ol"), so a bare "acetylide" would have a
+  // student draw HC#C- and land on the wrong alcohol.
+  "CC#[C-]": "CH3C#C-",
   "O=S(Cl)Cl": "SOCl2",
   "[CH2-][P+](c1ccccc1)(c1ccccc1)c1ccccc1": "Ph3P=CH2",
   "C=CC=O": "acrolein",
@@ -101,14 +104,29 @@ function isSmilesShaped(token: string): boolean {
   return /[[\]=#]/.test(token);
 }
 
-/** One stage's bottle label. See REAGENT_LABELS for the rule and the table. */
+/**
+ * One stage's bottle label, or "" when the data has no label to give.
+ *
+ * THE FALLBACK USED TO BE reagents[0], AND IT COULD NOT PROTECT. On every
+ * stage this table resolves, the array holds ONE entry, so reagents[0] is the
+ * same token that just failed; and where a stage holds two, the first is the
+ * mechanistic species ("[BH4-]", "[CH3-]"), which is the MORE structural of
+ * the pair. The old rule therefore reached for the worst candidate available
+ * and shipped it. A 44th reaction with one bracketed reagent would have put
+ * "[BH4-]" in front of a student.
+ *
+ * So the last resort is silence: try the last token, then any earlier token
+ * that reads as a bottle label, then nothing. The reagent line drops empty
+ * stages, and a card with no reagent line says less rather than something
+ * false. See REAGENT_LABELS for the rule and the table.
+ */
 export function stageReagentLabel(stage: Stage): string {
-  const reagents = stage.reagents;
-  const last = reagents[reagents.length - 1] ?? "";
-  const labelled = REAGENT_LABELS[last];
-  if (labelled !== undefined) return labelled;
-  if (!isSmilesShaped(last)) return last;
-  return reagents[0] ?? last;
+  for (const token of [...stage.reagents].reverse()) {
+    const labelled = REAGENT_LABELS[token];
+    if (labelled !== undefined) return labelled;
+    if (!isSmilesShaped(token)) return token;
+  }
+  return "";
 }
 
 /**
@@ -116,7 +134,45 @@ export function stageReagentLabel(stage: Stage): string {
  * `stageReagentLabel`.
  */
 export function stagedReagentLine(reaction: StagedReaction): string {
-  return reaction.stages.map(stageReagentLabel).filter(Boolean).join("; then ");
+  // Consecutive stages that name the same reagent say it once. A second
+  // stage is often heat or time rather than a new bottle, and the line read
+  // "NaOH; then hydroxide" for one base and "hydroxide; then hydroxide" for
+  // none at all. acrossStages does the same for solvent and acid-base.
+  const labels: string[] = [];
+  for (const stage of reaction.stages) {
+    const label = stageReagentLabel(stage);
+    if (label.length > 0 && label !== labels[labels.length - 1]) labels.push(label);
+  }
+  return labels.join("; then ");
+}
+
+/**
+ * The reagent line with anything already named as a reactant taken out.
+ *
+ * Three cards printed one species twice in two spellings: the diene card read
+ * "buta-1,3-diene + acrolein" over "acrolein", and the amide card "benzoyl
+ * chloride + methylamine" over "CH3NH2". The face then shows three things in
+ * a flask the data says holds two, and the two spellings of one species are
+ * exactly what a tired reader mis-counts. Matching is on the label, loosely,
+ * because the two sides of a card name the same species in two registers by
+ * design (the bottle wears a formula, the reactant wears a name).
+ */
+function reagentsBesides(reaction: StagedReaction): string {
+  const named = reaction.reactant_labels.map((label) => label.trim().toLowerCase());
+  // The same species under its bottle spelling: the reactant SMILES run
+  // through the same table the reagent line uses, index-aligned with the
+  // labels above, so "methylamine" also catches "CH3NH2".
+  const formulae = reaction.reactants
+    .map((smiles) => (REAGENT_LABELS[smiles] ?? "").toLowerCase())
+    .filter((entry) => entry.length > 0);
+  const line = stagedReagentLine(reaction);
+  const kept = line
+    .split("; then ")
+    .filter((part) => {
+      const token = part.trim().toLowerCase();
+      return token.length > 0 && !named.includes(token) && !formulae.includes(token);
+    });
+  return kept.join("; then ");
 }
 
 /** The first stated temperature across the stages, or null when none is. */
@@ -207,7 +263,7 @@ function artFrom(reaction: StagedReaction): ReactionCardArt {
  */
 export function reactionCardFromStaged(reaction: StagedReaction, now: Date): Card {
   const reactants = reaction.reactant_labels.join(" + ");
-  const reagents = stagedReagentLine(reaction);
+  const reagents = reagentsBesides(reaction);
   const celsius = stagedTemperature(reaction);
   const selectivity = stagedSelectivityNote(reaction);
 
