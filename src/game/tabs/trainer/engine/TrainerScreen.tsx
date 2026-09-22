@@ -673,6 +673,20 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
           * between gestures rather than under a moving finger, and from
           * there to the verdict the row never changes shape again.
           */}
+        {viewing === null && branchVerdict === null && sheet === null && !won && choosing ? (
+          /*
+           * The chooser's stand-in. Nothing is drawable while a route is
+           * being picked, which pilotForkWiring.test.ts pins by asserting no
+           * Undo BUTTON exists, so this holds the row's height with a span
+           * that is not one. Without it the pick shrank the board 124 px and
+           * lifted the molecule 62 px, which a round eight critic measured:
+           * a tap rather than a drag, so nothing was lost, but the student
+           * still watched the board jump once per fork.
+           */
+          <div className="flex items-center justify-center gap-3" aria-hidden>
+            <span className="chip-press chip-press--quiet invisible flex-1">Undo</span>
+          </div>
+        ) : null}
         {viewing === null && branchVerdict === null && sheet === null && !won && !choosing ? (
           <div className="flex items-center justify-center gap-3">
             <ChipPress variant="quiet" className="flex-1" disabled={undoDisabled} onClick={onUndo}>

@@ -122,6 +122,12 @@ describe("the fork is wired to the screen", () => {
     expect(container.querySelectorAll("[data-fork-route]").length).toBe(question.steps[forkStep]!.fork!.routes.length);
     expect(buttonLabelled(container, "Check")).toBeUndefined();
     expect(buttonLabelled(container, "Undo")).toBeUndefined();
+    // Nothing drawable, and nothing that moves the board either. The control
+    // row holds its height behind the chooser with a span that is not a
+    // button, so picking a route does not shrink the canvas under the
+    // student: a round eight critic measured the jump this prevents at
+    // 124 px of board and 62 px of lift, once per fork.
+    expect(container.querySelector("span.chip-press")).not.toBeNull();
     // The prompt asks the question without answering it, and nothing else on
     // the screen names a route: not the step's own prompt, not the title,
     // not a hint pill. The conditions line is the whole question.
