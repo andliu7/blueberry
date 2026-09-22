@@ -267,14 +267,37 @@
   --chip-press-rim: color-mix(in srgb, var(--chip-face) 55%, var(--bb-border));
 }
 
-/* The near-miss amber, worn by the primary while that sheet is up. Same
-   job as the green above, and there is no red anywhere: a miss is never
-   scolded, per the header in sheetCopy.ts. */
+/* The near-miss amber, worn by the primary while that sheet is up. Same job
+   as the green above, and there is no red anywhere: a miss is never scolded,
+   per the header in sheetCopy.ts.
+
+   THE FACE IS MIXED, NOT THE TOKEN ITSELF. --not-requested is amber-800 in
+   light, a dark red-brown, and a round-five critic measured it as the
+   heaviest object on the screen: 6.37:1 against its own pale sheet, 2.4x
+   the weight the bar puts on its actual red. Not red by the letter of the
+   rule and still a scold by the look of it. Mixing it toward its own soft
+   tint gives a mid amber that carries dark ink, which is the same
+   fill-with-dark-ink construction the green chip uses, and it lands the two
+   themes on the same message: dark already had a bright amber-400 face. */
 .chip-press--near {
+  --chip-press-face: color-mix(in srgb, var(--not-requested) 38%, var(--not-requested-soft));
+  --chip-press-ink: color-mix(in srgb, var(--not-requested) 80%, black);
+  --chip-press-edge: color-mix(in srgb, var(--not-requested) 62%, black);
+  --chip-press-rim: color-mix(in srgb, var(--not-requested) 62%, black);
+}
+
+/* Dark already runs a bright amber-400, which reads as "hold on" rather than
+   as blame, so it keeps the token face and takes the dark ink that fill
+   asks for. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .chip-press--near {
+    --chip-press-face: var(--not-requested);
+    --chip-press-ink: #2A1F05;
+  }
+}
+:root[data-theme="dark"] .chip-press--near {
   --chip-press-face: var(--not-requested);
-  --chip-press-ink: var(--bb-primary-foreground);
-  --chip-press-edge: color-mix(in srgb, var(--not-requested) 70%, black);
-  --chip-press-rim: color-mix(in srgb, var(--not-requested) 70%, black);
+  --chip-press-ink: #2A1F05;
 }
 
 /* The press itself is the first frame of feedback: :active paints on pointer

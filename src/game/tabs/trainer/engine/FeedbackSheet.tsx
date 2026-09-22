@@ -53,9 +53,17 @@ export interface FeedbackSheetProps {
    * a mascot floated above the sheet would land on the molecule.
    */
   readonly companion?: ReactNode;
+  /**
+   * A quiet control that belongs to the verdict rather than to the drawing:
+   * Undo on a miss, because the copy tells the student their stray arrow
+   * "comes off with Undo" and the sentence has to be actionable. It sits in
+   * the layer row, at pill weight, so the action row below can be the single
+   * full-width verdict button the bar makes it.
+   */
+  readonly secondary?: ReactNode;
 }
 
-export function FeedbackSheet({ content, bottomInset, reducedMotion, dataAttributes, companion }: FeedbackSheetProps) {
+export function FeedbackSheet({ content, bottomInset, reducedMotion, dataAttributes, companion, secondary }: FeedbackSheetProps) {
   const sheetRef = useRef<HTMLElement>(null);
   const layersRef = useRef<HTMLDivElement>(null);
   const [opened, setOpened] = useState(0);
@@ -156,8 +164,9 @@ export function FeedbackSheet({ content, bottomInset, reducedMotion, dataAttribu
           ))}
         </div>
       ) : null}
-      {next !== undefined || opened > 0 || companion !== undefined ? (
+      {next !== undefined || opened > 0 || companion !== undefined || secondary !== undefined ? (
         <div className="flex items-end justify-between gap-3">
+          <div className="flex items-center gap-2">
           {next !== undefined || opened > 0 ? (
           <button
             type="button"
@@ -167,7 +176,9 @@ export function FeedbackSheet({ content, bottomInset, reducedMotion, dataAttribu
           >
             {next !== undefined ? next.label : "Hide"}
           </button>
-          ) : <span />}
+          ) : null}
+          {secondary}
+          </div>
           {companion !== undefined ? <div className="pointer-events-none -mb-1 shrink-0">{companion}</div> : null}
         </div>
       ) : null}

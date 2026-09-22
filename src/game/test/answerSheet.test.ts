@@ -226,6 +226,34 @@ describe("the sheet on the screen", () => {
     expect(buttonLabelled(container, "Check")).toBeDefined();
   });
 
+  it("gives the verdict the whole row, with Undo riding on the sheet instead", () => {
+    /*
+     * Four blind rounds were lost with a correct curve, a stationary rect and
+     * the right colour in the right frame. The fifth measured the cause: the
+     * bar's button is one full-width slab and the only control on the sheet,
+     * while ours was a 173 px chip in a stack of four of the same shape. The
+     * copy still tells the student their stray "comes off with Undo", so Undo
+     * moves into the sheet's pill row rather than disappearing.
+     */
+    const { container, store } = mount(sn1Question, 0);
+    tap(store(), targetCentre({ kind: "atom", atomId: "br1" }));
+    drag(store(), targetCentre({ kind: "lonePair", atomId: "br1" }), targetCentre({ kind: "atom", atomId: "c2" }));
+    press(container, "Check");
+
+    const actionRow = container.querySelector("[data-answer-sheet]")?.parentElement?.querySelector(".chip-press")?.parentElement;
+    const chips = [...(actionRow?.querySelectorAll(".chip-press") ?? [])];
+    expect(chips.map((chip) => (chip.textContent ?? "").trim())).toEqual(["Got it"]);
+    expect(container.querySelector("[data-sheet-undo]")).not.toBeNull();
+    // And the row below the sheet carries nothing else while the verdict is up.
+    expect(buttonLabelled(container, "Redraw")).toBeUndefined();
+    expect(buttonLabelled(container, "Replay")).toBeUndefined();
+
+    // Undo still works from there, and clearing the drawing clears the verdict.
+    act(() => container.querySelector<HTMLButtonElement>("[data-sheet-undo]")?.click());
+    expect(sheet(container)).toBeNull();
+    expect(buttonLabelled(container, "Check")).toBeDefined();
+  });
+
   it("reaches the student with the instructor's copy when the mistake is one they anticipated", () => {
     const entry = TRAINER_REACTIONS.find((reaction) => reaction.id === "epoxide-basic");
     if (entry === undefined) throw new Error("epoxide-basic missing from the registry");

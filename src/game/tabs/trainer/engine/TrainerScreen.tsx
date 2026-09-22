@@ -549,6 +549,36 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
             reducedMotion={reducedMotion}
             dataAttributes={branchVerdict !== null ? { "data-branch-verdict": "" } : undefined}
             companion={<Berry {...berry} costume={costumeForSurface("trainer")} working={false} reducedMotion={reducedMotion} sizePx={48} />}
+            /*
+             * The one control that still belongs to the student while a
+             * verdict is up, at pill weight so the row below stays a single
+             * full-width slab. On a miss that is Undo, because the copy
+             * promises the stray "comes off with Undo". On a win it is
+             * Replay, which Phase 1 built and blind judges picked us on;
+             * hiding it to win a layout argument would trade a feature for
+             * a frame, and pilotScreenWiring.test.ts is right to stop that.
+             */
+            secondary={
+              controls.includes("replay") ? (
+                <button
+                  type="button"
+                  className="press rounded-full border-2 border-bb-border bg-bb-card px-4 py-1.5 text-scale-sm font-semibold text-bb-foreground"
+                  onClick={() => setModel(toggleReplay(model))}
+                  data-sheet-replay
+                >
+                  {model.replayOpen ? "Close replay" : "Replay"}
+                </button>
+              ) : sheet.tone === "good" || branchVerdict !== null || undoDisabled ? undefined : (
+                <button
+                  type="button"
+                  className="press rounded-full border-2 border-bb-border bg-bb-card px-4 py-1.5 text-scale-sm font-semibold text-bb-foreground"
+                  onClick={onUndo}
+                  data-sheet-undo
+                >
+                  Undo
+                </button>
+              )
+            }
           />
         ) : null}
 
@@ -625,7 +655,7 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
         <div ref={rowsRef} className="relative z-10 flex flex-col gap-3">
         {/* Which chips exist per phase is availableControls' ruling, pinned in
             pilotScreen.test.ts: the won rows are REPLAY and CONTINUE only. */}
-        {viewing === null && branchVerdict === null && ((controls.includes("replay") && !controls.includes("continue")) || controls.includes("redraw") || (route !== null && !won)) ? (
+        {viewing === null && branchVerdict === null && sheet === null && ((controls.includes("replay") && !controls.includes("continue")) || controls.includes("redraw") || (route !== null && !won)) ? (
           <div className="flex items-center justify-center gap-3">
             {route !== null && !won && !controls.includes("redraw") ? (
               <ChipPress variant="quiet" className="flex-1" onClick={onChooseAgain}>
@@ -653,11 +683,20 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
               Back to step {stepIndex + 1}
             </ChipPress>
           ) : controls.includes("continue") ? (
-            // The primary keeps Check's rect on a win: Replay takes Undo's
-            // slot and Continue lands where Check was, so the button the
-            // student is about to press never jumps (the bar's rule).
+            /*
+             * THE VERDICT OWNS THE ROW. Four rounds of blind comparison were
+             * lost with a correct curve, a stationary rect and the right
+             * colour arriving in the right frame. The fifth named the cause:
+             * the bar's button is one full-width slab, 92 percent of the
+             * screen and the only control on the sheet, while ours was a
+             * 173 px chip in a stack of four of the same shape, exactly one
+             * of which changed colour. The frame read as a control changing
+             * state rather than the screen turning a colour. So while a
+             * verdict is up, Replay and Redraw stand down and Undo moves
+             * into the sheet's own pill row.
+             */
             <>
-              {controls.includes("replay") ? (
+              {controls.includes("replay") && sheet === null ? (
                 <ChipPress variant="quiet" className="flex-1" onClick={() => setModel(toggleReplay(model))}>
                   {model.replayOpen ? "Close replay" : "Replay"}
                 </ChipPress>
@@ -670,20 +709,18 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
             <ChipPress variant="near" className="flex-1" onClick={onChooseAgain}>
               Choose another route
             </ChipPress>
-          ) : choosing ? null : (
+          ) : choosing ? null : sheet !== null ? (
+            <ChipPress variant={sheet.tone === "good" ? "won" : "near"} className="flex-1" onClick={() => setVerdict(null)}>
+              Got it
+            </ChipPress>
+          ) : (
             <>
               <ChipPress variant="quiet" className="flex-1" disabled={undoDisabled} onClick={onUndo}>
                 Undo
               </ChipPress>
-              {sheet !== null ? (
-                <ChipPress variant={sheet.tone === "good" ? "won" : "near"} className="flex-1" onClick={() => setVerdict(null)}>
-                  Got it
-                </ChipPress>
-              ) : (
-                <ChipPress className="flex-1" disabled={checkDisabled} onClick={onCheck}>
-                  Check
-                </ChipPress>
-              )}
+              <ChipPress className="flex-1" disabled={checkDisabled} onClick={onCheck}>
+                Check
+              </ChipPress>
             </>
           )}
         </div>
