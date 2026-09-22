@@ -473,6 +473,9 @@ function auditInPage(rootSelector) {
   return merged;
 }
 
+/** Routes whose drive never reached the moment. Each one is a failure, reported below. */
+const unreached = [];
+
 const browser = await puppeteer.launch({ executablePath: findChrome(), headless: "new" });
 const all = [];
 
@@ -530,7 +533,25 @@ try {
               };
         const result = await route.drive(page, { onTrigger });
         if (!result.reached) {
-          throw new Error(`${route.name} (${theme}): the drive did not reach the moment, so whatever is on screen is not the surface under audit.`);
+          /*
+           * RECORD AND CARRY ON, rather than throwing here.
+           *
+           * Everything this script prints happens after the route loop, and
+           * this throw was inside it, so one unreachable route discarded
+           * every pair already measured and the only output was a stack
+           * trace. `boot` sits in the last route group, so the run walked
+           * most of the light theme, composed its pairs, threw them away and
+           * never started dark: Phase 6 asked for a contrast verdict and got
+           * nothing at all.
+           *
+           * This is not a softened check. An unreached route is still a
+           * failure, it still prints as one below, and the process still
+           * exits non-zero. What changes is that the other surfaces get
+           * reported instead of being destroyed by this one. STATUS.md's
+           * rule stands untouched: do not withdraw the route to get a run.
+           */
+          unreached.push(`${route.name} (${theme}): the drive did not reach the moment, so whatever is on screen is not the surface under audit.`);
+          continue;
         }
         await sleep(500);
         await collect(page, route.name, theme, route.root);
@@ -581,6 +602,12 @@ if (process.argv.includes("--json")) {
 }
 
 console.log(`measured ${all.length} composed pairs, ${rows.length} distinct, ${unresolved.length} unresolved`);
+if (unreached.length > 0) {
+  console.log(`
+UNREACHED, ${unreached.length}. These surfaces were NOT audited, which is a failure of`);
+  console.log(`the run and not a pass for the surface:`);
+  for (const line of unreached) console.log(`  ${line}`);
+}
 console.log(`FAILING: ${failing.length}`);
 for (const row of failing) {
   console.log(
@@ -612,4 +639,6 @@ if (tight.length > 0) {
   console.log(`\nPASSING but within 15 percent of the floor, worth knowing before a token moves:`);
   for (const row of tight) console.log(`  ${row.ratio.toFixed(2)}:1 (floor ${row.floor})  ${row.theme.padEnd(5)} ${row.kind.padEnd(14)} ${row.fg} on ${row.bg}  x${row.count}`);
 }
-if (failing.length > 0) process.exit(1);
+// An unreached surface is as much a failure as a failing pair: it means the
+// audit has no opinion about a screen it was asked to judge.
+if (failing.length > 0 || unreached.length > 0) process.exit(1);
