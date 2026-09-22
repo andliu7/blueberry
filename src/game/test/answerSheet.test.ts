@@ -282,6 +282,38 @@ describe("the sheet on the screen", () => {
     expect(actionRow).toBeDefined();
   });
 
+  it("carries the same control rows before the student's first edit as after it", () => {
+    /*
+     * THE ROW MAY NOT APPEAR UNDER A MOVING FINGER. When the quiet row
+     * rendered only once an edit existed, the Undo chip arrived on the first
+     * edit and reflowed the board mid-gesture: the canvas lost 68 px, every
+     * atom rose 34 px, and a drag released where the target had been landed
+     * on nothing. No arrow committed, Check stayed disabled, and the step
+     * could not be submitted at all.
+     *
+     * jsdom has no layout, so what is pinned here is the structural cause
+     * rather than the pixels: the same chips are mounted before and after
+     * the first edit, with Undo disabled rather than absent. The geometry
+     * itself is the critic's to measure in a real browser.
+     */
+    const { container, store } = mount(sn1Question, 0);
+    const chipLabels = () => [...container.querySelectorAll(".chip-press")].map((chip) => (chip.textContent ?? "").trim());
+    const undo = () => [...container.querySelectorAll<HTMLButtonElement>(".chip-press")].find((chip) => (chip.textContent ?? "").trim() === "Undo");
+
+    const before = chipLabels();
+    expect(before).toContain("Undo");
+    expect(undo()?.disabled).toBe(true);
+
+    // The first edit of the step, which is exactly when the row used to appear.
+    tap(store(), targetCentre({ kind: "atom", atomId: "br1" }));
+    drag(store(), targetCentre({ kind: "lonePair", atomId: "br1" }), targetCentre({ kind: "atom", atomId: "c2" }));
+
+    expect(chipLabels()).toContain("Undo");
+    expect(undo()?.disabled).toBe(false);
+    // And the arrow really committed, which is what the reflow used to break.
+    expect(buttonLabelled(container, "Check")?.disabled).toBe(false);
+  });
+
   it("reaches the student with the instructor's copy when the mistake is one they anticipated", () => {
     const entry = TRAINER_REACTIONS.find((reaction) => reaction.id === "epoxide-basic");
     if (entry === undefined) throw new Error("epoxide-basic missing from the registry");

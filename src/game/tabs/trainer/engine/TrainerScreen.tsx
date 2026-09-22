@@ -655,13 +655,29 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
         <div ref={rowsRef} className="relative z-10 flex flex-col gap-3">
         {/* Which chips exist per phase is availableControls' ruling, pinned in
             pilotScreen.test.ts: the won rows are REPLAY and CONTINUE only. */}
-        {viewing === null && branchVerdict === null && sheet === null && (!undoDisabled || (controls.includes("replay") && !controls.includes("continue")) || controls.includes("redraw") || (route !== null && !won)) ? (
+        {/*
+          * THIS ROW KEEPS ITS HEIGHT WHATEVER IS IN IT, and that is a
+          * correctness rule, not a tidiness one. When it rendered only once
+          * an edit existed, the Undo chip appeared on the student's FIRST
+          * edit and reflowed the board mid-gesture: the canvas lost 68 px,
+          * every atom rose 34 px, and a drag released where the target had
+          * been landed on nothing. No arrow committed, so Check stayed
+          * disabled and the step could not be submitted at all. A round
+          * seven critic reproduced it four times. So the row is present
+          * through the whole drawing phase and Undo is DISABLED rather than
+          * unmounted.
+          *
+          * The fork chooser is the one exception, because nothing is
+          * drawable while it is open and pilotForkWiring.test.ts pins that.
+          * It costs nothing: the chooser closes on a TAP, so the row arrives
+          * between gestures rather than under a moving finger, and from
+          * there to the verdict the row never changes shape again.
+          */}
+        {viewing === null && branchVerdict === null && sheet === null && !won && !choosing ? (
           <div className="flex items-center justify-center gap-3">
-            {!undoDisabled && !won ? (
-              <ChipPress variant="quiet" className="flex-1" onClick={onUndo}>
-                Undo
-              </ChipPress>
-            ) : null}
+            <ChipPress variant="quiet" className="flex-1" disabled={undoDisabled} onClick={onUndo}>
+              Undo
+            </ChipPress>
             {route !== null && !won && !controls.includes("redraw") ? (
               <ChipPress variant="quiet" className="flex-1" onClick={onChooseAgain}>
                 Change route
