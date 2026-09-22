@@ -150,12 +150,6 @@ const ELEMENT_NAMES: Readonly<Record<string, string>> = {
 const SUBSCRIPTS = ["", "", "₂", "₃", "₄"] as const;
 const ORDER_MARK = ["", "–", "=", "≡"] as const;
 const HALOGENS = new Set(["F", "Cl", "Br", "I"]);
-/**
- * The highest bond order each element reaches in this course. The sheet
- * describes a pair landing in an existing bond as raising that bond, so
- * without this it would cheerfully tell a student "making it N=H".
- */
-const MAX_BOND_ORDER: Readonly<Record<string, number>> = { H: 1, F: 1, Cl: 1, Br: 1, I: 1, O: 2, S: 2, N: 3, C: 3, P: 3 };
 
 /** "an oxygen", "a carbon"; a label read as letters takes its article from the letter's sound ("an N–H bond"). */
 function withArticle(phrase: string, spelledAsLetters: boolean): string {
@@ -163,37 +157,61 @@ function withArticle(phrase: string, spelledAsLetters: boolean): string {
   const vowelSound = spelledAsLetters ? "AEFHILMNORSX".includes(first) : "AEIOU".includes(first);
   return `${vowelSound ? "an" : "a"} ${phrase}`;
 }
+/** A phrase that names a class rather than a thing: useless for pointing at a canvas. */
 const indefinite = (phrase: string): boolean => phrase.startsWith("a ") || phrase.startsWith("an ");
 
 /**
  * A describer over one state. Everything it says is read off the state's own
- * atoms and bonds, never recalled. An atom is named by the first fact that
- * singles it out among its element: its charge, a heteroatom it is bonded to,
- * its hydrogen count, then the company it keeps. A bond is named by its
- * element pair when that pair is unique in the state, and by its two ends
- * when it is not, because "a C–C bond" locates nothing on a chain. Anything
- * that cannot be named this way returns null, and the caller drops that arrow
- * rather than guessing.
+ * atoms and bonds, never recalled, and it says nothing it cannot point at.
+ *
+ * AN ATOM is named by the first fact that singles it out among its own
+ * element: unique element, then the sign of its charge, then a heteroatom it
+ * is bonded to, then its hydrogen count, then the company it keeps. A BOND is
+ * named by its element pair when that pair is unique, and by its two ends when
+ * it is not, because "a C–C bond" locates nothing on a chain.
+ *
+ * WHAT IT REFUSES TO SAY, and why both refusals were bought the hard way:
+ *
+ *   An indefinite name anywhere. "into a new bond between a CH₂ carbon and a
+ *   CH₂ carbon" is two different atoms wearing one phrase; a critic generating
+ *   every legal arrow over sixteen steps found 26 percent of sentences naming
+ *   something that does not exist, because the bond half checked for this and
+ *   the sink half did not. Both halves check now, and an arrow that cannot be
+ *   named is dropped.
+ *
+ *   Any prediction of what a bond BECOMES. This used to close with ", making
+ *   it C=O", gated by a table of per-element bond-order ceilings. A ceiling
+ *   per element is not a valence: the same critic caught "making it N=O" on a
+ *   nitro nitrogen that already holds four bonds, and "making it C=N" on a
+ *   methyl carbon, which are the five-bonded structures the table existed to
+ *   prevent. The honest sentence is shorter. "Into the C–O bond" is true of
+ *   the gesture whatever the gesture would produce, and one arrow in isolation
+ *   does not determine a product anyway.
  */
 function stateDescriber(state: MechanismState) {
-  const atoms = new Map<string, { element: string; charge: number; hydrogens: number; heavy: string[] }>();
+  const atoms = new Map<string, { element: string; charge: number; implicit: number; heavy: string[] }>();
   const bonds: { id: string; a: string; b: string; order: number }[] = [];
   for (const member of state.members) {
-    for (const atom of member.species.atoms) atoms.set(atom.id, { element: atom.element, charge: atom.formalCharge, hydrogens: atom.implicitHydrogens, heavy: [] });
+    for (const atom of member.species.atoms) {
+      atoms.set(atom.id, { element: atom.element, charge: atom.formalCharge, implicit: atom.implicitHydrogens, heavy: [] });
+    }
     for (const bond of member.species.bonds) bonds.push({ id: bond.id, a: bond.a, b: bond.b, order: bond.order });
   }
   for (const bond of bonds) {
     const a = atoms.get(bond.a);
     const b = atoms.get(bond.b);
     if (a === undefined || b === undefined) continue;
-    if (b.element === "H") a.hydrogens += 1;
-    else a.heavy.push(bond.b);
-    if (a.element === "H") b.hydrogens += 1;
-    else b.heavy.push(bond.a);
+    if (b.element !== "H") a.heavy.push(bond.b);
+    if (a.element !== "H") b.heavy.push(bond.a);
   }
   const peersOf = (element: string) => [...atoms.entries()].filter(([, other]) => other.element === element);
 
-  /** The atom on its own facts: unique element, charge, a heteroatom partner, then its hydrogens. */
+  /**
+   * The atom on its own facts. The hydrogen count is the IMPLICIT one only:
+   * a drawn hydrogen is a thing on the canvas in its own right, and folding
+   * it into the label turned the one CH₂ on a deprotonation step into a third
+   * CH₃, so the carbon the student was reaching for could never be named.
+   */
   const plainPhrase = (atomId: string): string | null => {
     const atom = atoms.get(atomId);
     if (atom === undefined) return null;
@@ -203,21 +221,30 @@ function stateDescriber(state: MechanismState) {
     if (atom.charge !== 0 && peers.filter(([, peer]) => Math.sign(peer.charge) === Math.sign(atom.charge)).length === 1) {
       return `the ${atom.charge > 0 ? "positive" : "negative"} ${name}`;
     }
+    // Free water wears its own name: "the OH₂ oxygen" is not something a TA writes.
+    if (atom.element === "O" && atom.implicit === 2 && atom.heavy.length === 0) {
+      const waters = peersOf("O").filter(([, peer]) => peer.implicit === 2 && peer.heavy.length === 0).length;
+      if (waters === 1) return "the water oxygen";
+    }
     const partners = [...new Set(atom.heavy.map((id) => atoms.get(id)?.element ?? ""))].filter((element) => element !== "" && element !== "C").sort();
     for (const partner of partners) {
       const shares = peers.filter(([, peer]) => peer.heavy.some((id) => atoms.get(id)?.element === partner)).length;
       if (shares === 1) return `the ${name} bonded to ${ELEMENT_NAMES[partner] ?? partner}`;
     }
-    const group = atom.hydrogens === 0 ? null : `${atom.element}H${SUBSCRIPTS[atom.hydrogens] ?? atom.hydrogens}`;
+    const group = atom.implicit === 0 ? null : `${atom.element}H${SUBSCRIPTS[atom.implicit] ?? atom.implicit}`;
     if (group === null) return null;
-    const sharing = peers.filter(([, peer]) => peer.hydrogens === atom.hydrogens).length;
+    const sharing = peers.filter(([, peer]) => peer.implicit === atom.implicit).length;
     return sharing === 1 ? `the ${group} ${name}` : `${withArticle(group, true)} ${name}`;
   };
 
   /**
    * An atom its own facts cannot single out, placed by the company it keeps.
-   * This is the rung that names a ring oxygen or a beta hydrogen at all, and
-   * it is taken only when no other atom of the same element answers to it.
+   * The anchors are PLAIN phrases, never anchored ones, so a name can nest one
+   * level and no further: "the oxygen between the CH₂ carbon and the CH
+   * carbon" is a sentence, and the same rule applied twice produced a
+   * 254-character clause with four "between"s in it. An anchor of the same
+   * element is refused as well, because "the oxygen on the carbon bonded to
+   * oxygen" is circular and tells a student nothing.
    */
   const atomPhrase = (atomId: string): string | null => {
     const plain = plainPhrase(atomId);
@@ -225,7 +252,10 @@ function stateDescriber(state: MechanismState) {
     const atom = atoms.get(atomId);
     if (atom === undefined) return plain;
     const name = ELEMENT_NAMES[atom.element] ?? atom.element;
-    const anchors = atom.heavy.map(plainPhrase).filter((phrase): phrase is string => phrase !== null && !indefinite(phrase));
+    const anchors = atom.heavy
+      .filter((id) => atoms.get(id)?.element !== atom.element)
+      .map(plainPhrase)
+      .filter((phrase): phrase is string => phrase !== null && !indefinite(phrase));
     if (anchors.length === 0) return plain;
     const rivals = peersOf(atom.element).filter(([id]) => id !== atomId);
     const shared = rivals.some(([id]) => {
@@ -254,22 +284,20 @@ function stateDescriber(state: MechanismState) {
     const [left, right] = pairOrder(first, second);
     return `${left}${mark}${right}`;
   };
-  /** True when a pair landing in this bond could really raise it. */
-  const canRaise = (bond: { a: string; b: string; order: number }): boolean => {
-    const first = atoms.get(bond.a)?.element;
-    const second = atoms.get(bond.b)?.element;
-    if (first === undefined || second === undefined) return false;
-    return bond.order + 1 <= Math.min(MAX_BOND_ORDER[first] ?? 3, MAX_BOND_ORDER[second] ?? 3);
-  };
   const bondPhrase = (bond: { a: string; b: string; order: number }): string | null => {
     const own = label(bond.a, bond.b, bond.order);
     if (own === null) return null;
     const alike = bonds.filter((other) => label(other.a, other.b, other.order) === own).length;
     if (alike === 1) return `the ${own} bond`;
+    // Named by its ends instead. They may be anchored names; what keeps a
+    // sentence readable is the length cap below, not a ban on nesting, which
+    // cost a ring oxygen its only available name.
     const a = atomPhrase(bond.a);
     const b = atomPhrase(bond.b);
     return a === null || b === null || indefinite(a) || indefinite(b) ? null : `the bond between ${a} and ${b}`;
   };
+  /** Nothing indefinite reaches a sentence: the whole point is pointing at one thing. */
+  const definite = (phrase: string | null): string | null => (phrase === null || indefinite(phrase) ? null : phrase);
 
   return (arrow: ElectronFlowArrow): string | null => {
     let from: string | null = null;
@@ -279,40 +307,47 @@ function stateDescriber(state: MechanismState) {
       const phrase = bond === undefined ? null : bondPhrase(bond);
       from = phrase === null ? null : `from ${phrase}`;
     } else {
-      const owner = atomPhrase(arrow.source.atomId);
+      const owner = definite(atomPhrase(arrow.source.atomId));
       from = owner === null ? null : `from ${arrow.source.kind === "lonePair" ? "a lone pair" : "the unpaired electron"} on ${owner}`;
     }
     let to: string | null = null;
     if (arrow.sink.kind === "atom") {
-      const target = atomPhrase(arrow.sink.atomId);
+      const target = definite(atomPhrase(arrow.sink.atomId));
       to = target === null ? null : `onto ${target}`;
     } else {
       const [a, b] = arrow.sink.atomIds;
       const existing = bonds.find((bond) => (bond.a === a && bond.b === b) || (bond.a === b && bond.b === a));
       if (existing !== undefined) {
-        // No new connection forms: the pair raises a bond already there, and
-        // only when that pair of elements can actually hold another one.
-        if (!canRaise(existing)) return null;
+        // A bond that is already there: the pair lands in it. What that would
+        // MAKE is not claimed; see the header.
         const phrase = bondPhrase(existing);
-        const raised = label(existing.a, existing.b, existing.order + 1);
-        to = phrase === null || raised === null ? null : `into ${phrase}, making it ${raised}`;
+        to = phrase === null ? null : `into ${phrase}`;
       } else {
         const owner = arrow.source.kind === "bond" ? null : arrow.source.atomId;
         const far = owner === a ? b : owner === b ? a : null;
         if (far !== null) {
-          // The pair's own atom is already named in the first half.
-          const target = atomPhrase(far);
+          const target = definite(atomPhrase(far));
           to = target === null ? null : `into a new bond to ${target}`;
         } else {
-          const first = atomPhrase(a);
-          const second = atomPhrase(b);
+          const first = definite(atomPhrase(a));
+          const second = definite(atomPhrase(b));
           to = first === null || second === null ? null : `into a new bond between ${first} and ${second}`;
         }
       }
     }
-    return from === null || to === null ? null : `${from} ${to}`;
+    if (from === null || to === null) return null;
+    const sentence = `${from} ${to}`;
+    // A pointer nobody can parse is not a pointer. Anchored names can nest,
+    // and twice over they produced a 254-character clause carrying four
+    // "between"s, so a sentence past this length is dropped and the sheet
+    // falls back to the count. Measured against the real steps: every honest
+    // one-thing-to-one-thing phrase lands well under it.
+    return sentence.length > SENTENCE_MAX ? null : sentence;
   };
 }
+
+/** The longest stray description that still reads as one clause. */
+const SENTENCE_MAX = 120;
 
 /**
  * The student's own extra arrows, in words. Per arrow, not all or nothing: an

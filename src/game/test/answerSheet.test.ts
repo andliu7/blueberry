@@ -204,13 +204,19 @@ describe("the sheet on the screen", () => {
 
     press(container, "What's off");
     expect(openedLayers(container)).toBe(1);
-    // Once the push itself is named, repeating the count of strays says the
-    // same thing twice, so that sentence stands down.
-    expect(container.querySelector("[data-sheet-layers]")?.textContent).not.toContain("somewhere this step does not.");
+    /*
+     * AND HERE IT DECLINES TO NAME IT, which is the honest answer on this
+     * step. The drop lands on one of tert-butyl bromide's three methyls, and
+     * the three are equivalent, so no phrase points at one of them. The sheet
+     * gives the count rather than inventing "a CH3 carbon", and the count
+     * sentence is back precisely because nothing was named.
+     */
+    expect(container.querySelector("[data-sheet-layers]")?.textContent).toContain("somewhere this step does not.");
+    expect(container.querySelector("[data-sheet-layers]")?.textContent).not.toContain("The stray one is");
     // The stray arrow is named back in the student's own terms, from the
     // step's state: the canvas records the drop onto c2 as a forming bond,
     // so the words name that gesture, bromine by name because it is unique.
-    expect(container.querySelector("[data-sheet-layers]")?.textContent).toContain("Your push, from a lone pair on bromine into a new bond to ");
+    expect(container.querySelector("[data-sheet-layers]")?.textContent).toContain("Every arrow you drew is legal on its own");
     press(container, "Where to look");
     expect(openedLayers(container)).toBe(2);
     expect(buttonLabelled(container, "Hide")).toBeDefined();
@@ -287,19 +293,68 @@ describe("naming the student's own stray arrow", () => {
     expect(strays?.[0]).not.toContain(" a iodine");
   });
 
-  it("says a bond is being raised rather than newly made when the two atoms already touch", () => {
-    // Methoxide's pair into the epoxide's own C-O bond: that bond exists, so
-    // nothing new forms, and C-O can hold the extra pair.
-    const strays = describeStrays(epoxide.step, [arrow({ kind: "lonePair", atomId: "om" }, { kind: "betweenAtoms", atomIds: ["c1", "o1"] })]);
-    expect(strays?.[0]).toContain("making it C=O");
-    expect(strays?.[0]).not.toContain("a new bond");
+  it("says the pair lands in a bond that is already there, without claiming what it becomes", () => {
+    // Hydroxide's pair into the C-Br bond: that bond exists, so nothing NEW
+    // forms, and the sentence says where the pair went and then stops. What
+    // C-Br would BECOME is not claimed; one arrow does not decide a product.
+    const strays = describeStrays(sn2.step, [arrow({ kind: "lonePair", atomId: "o1" }, { kind: "betweenAtoms", atomIds: ["c1", "br1"] })]);
+    expect(strays?.[0]).toBe("from a lone pair on oxygen into the C–Br bond");
   });
 
-  it("refuses to describe a raise the two elements could never hold", () => {
-    // The same gesture aimed at C-Br would read "making it C=Br", a structure
-    // that does not exist. Silence on that arrow beats asserting it.
-    const strays = describeStrays(sn2.step, [arrow({ kind: "lonePair", atomId: "br1" }, { kind: "betweenAtoms", atomIds: ["c1", "br1"] })]);
+  it("drops a description too long to read rather than printing it", () => {
+    /*
+     * The epoxide's ring C-O bond shares its element pair with the other ring
+     * bond, so it is named by its ends, and one end is itself an atom only
+     * placeable by ITS neighbours. The honest phrase runs past 130 characters
+     * with two "between"s in it, which points at nothing a student can follow.
+     * A critic found a 254-character version of this in the wild.
+     */
+    const strays = describeStrays(epoxide.step, [arrow({ kind: "lonePair", atomId: "om" }, { kind: "betweenAtoms", atomIds: ["c1", "o1"] })]);
     expect(strays).toBeNull();
+  });
+
+  it("never predicts what a bond becomes, on any legal arrow of any authored step", () => {
+    /*
+     * THE GUARD THAT REPLACED A GUARD. The sentence used to close with
+     * ", making it C=O", gated by a table of per-element bond-order ceilings.
+     * A ceiling per element is not a valence: a critic enumerating every legal
+     * arrow over sixteen steps caught "making it N=O" on a nitro nitrogen
+     * already holding four bonds, and "making it C=N" on a methyl carbon.
+     * Both are the five-bonded structures the table was added to prevent.
+     * One arrow in isolation does not determine a product, so the clause is
+     * gone rather than better-gated, and this pin is over the whole registry.
+     */
+    for (const entry of TRAINER_SEQUENCES) {
+      for (const step of entry.steps) {
+        const sink = step.step.from.members.flatMap((member) => member.species.bonds);
+        const sources = step.step.from.members.flatMap((member) => member.species.atoms);
+        const probes = sink.flatMap((bond) =>
+          sources.slice(0, 4).map((atom) => arrow({ kind: "lonePair", atomId: atom.id }, { kind: "betweenAtoms", atomIds: [bond.a, bond.b] })),
+        );
+        for (const phrase of describeStrays(step.step, probes) ?? []) {
+          expect(phrase, `${entry.id}: ${phrase}`).not.toContain("making it");
+        }
+      }
+    }
+  });
+
+  it("points at one atom or says nothing: no indefinite name reaches a sentence", () => {
+    /*
+     * "into a new bond between a CH2 carbon and a CH2 carbon" is two
+     * different atoms wearing one phrase. The bond half of the describer
+     * checked for this and the sink half did not, so 26 percent of the
+     * sentences the same critic generated named something that does not exist
+     * on the canvas. Both halves check now.
+     */
+    for (const entry of TRAINER_SEQUENCES) {
+      for (const step of entry.steps) {
+        const atoms = step.step.from.members.flatMap((member) => member.species.atoms);
+        const probes = atoms.flatMap((from) => atoms.filter((to) => to.id !== from.id).map((to) => arrow({ kind: "lonePair", atomId: from.id }, { kind: "atom", atomId: to.id })));
+        for (const phrase of describeStrays(step.step, probes) ?? []) {
+          expect(phrase, `${entry.id}: ${phrase}`).not.toMatch(/(onto|to|between|and) an? [A-Z]/);
+        }
+      }
+    }
   });
 
   it("stays silent rather than describing the stray in the same words as the right answer", () => {
