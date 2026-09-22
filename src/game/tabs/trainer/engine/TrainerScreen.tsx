@@ -655,8 +655,13 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
         <div ref={rowsRef} className="relative z-10 flex flex-col gap-3">
         {/* Which chips exist per phase is availableControls' ruling, pinned in
             pilotScreen.test.ts: the won rows are REPLAY and CONTINUE only. */}
-        {viewing === null && branchVerdict === null && sheet === null && ((controls.includes("replay") && !controls.includes("continue")) || controls.includes("redraw") || (route !== null && !won)) ? (
+        {viewing === null && branchVerdict === null && sheet === null && (!undoDisabled || (controls.includes("replay") && !controls.includes("continue")) || controls.includes("redraw") || (route !== null && !won)) ? (
           <div className="flex items-center justify-center gap-3">
+            {!undoDisabled && !won ? (
+              <ChipPress variant="quiet" className="flex-1" onClick={onUndo}>
+                Undo
+              </ChipPress>
+            ) : null}
             {route !== null && !won && !controls.includes("redraw") ? (
               <ChipPress variant="quiet" className="flex-1" onClick={onChooseAgain}>
                 Change route
@@ -714,14 +719,19 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
               Got it
             </ChipPress>
           ) : (
-            <>
-              <ChipPress variant="quiet" className="flex-1" disabled={undoDisabled} onClick={onUndo}>
-                Undo
-              </ChipPress>
-              <ChipPress className="flex-1" disabled={checkDisabled} onClick={onCheck}>
-                Check
-              </ChipPress>
-            </>
+            /*
+             * CHECK OWNS THE ROW BEFORE THE ANSWER, TOO. Round six bought the
+             * bar's full-width slab by GROWING into it at the verdict: Check
+             * sat at x201 w173 and the verdict landed at x16 w358, so the
+             * control under the student's thumb jumped 185 px and doubled
+             * width in the mount frame. The bar's CHECK is x16 w358 from the
+             * start and only ever changes colour and label, which is what
+             * makes the arrival read as one object changing state. Undo moves
+             * up to the quiet row for the same reason Redraw lives there.
+             */
+            <ChipPress className="flex-1" disabled={checkDisabled} onClick={onCheck}>
+              Check
+            </ChipPress>
           )}
         </div>
         </div>

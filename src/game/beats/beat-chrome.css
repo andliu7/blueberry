@@ -288,14 +288,18 @@
 
 /* Dark already runs a bright amber-400, which reads as "hold on" rather than
    as blame, so it keeps the token face and takes the dark ink that fill
-   asks for. */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .chip-press--near {
-    --chip-press-face: var(--not-requested);
-    --chip-press-ink: #2A1F05;
-  }
-}
-:root[data-theme="dark"] .chip-press--near {
+   asks for.
+
+   THE SELECTOR IS `.dark`, WHICH IS THE ONE THIS APP ACTUALLY USES.
+   hooks.ts toggles a `dark` class on <html> and never writes data-theme, so
+   the first version of this block, guarded on
+   `:root:not([data-theme="light"])` inside a prefers-color-scheme query, was
+   true on any OS-dark machine no matter which theme the student had chosen.
+   Light theme therefore kept the amber-800 face and took the DARK ink meant
+   for the bright face, dropping the label to 2.28:1, and the whole point of
+   the change never shipped. theme.css at :544 is the precedent: a bare
+   `.dark` block, no media query, because the class is the source of truth. */
+.dark .chip-press--near {
   --chip-press-face: var(--not-requested);
   --chip-press-ink: #2A1F05;
 }

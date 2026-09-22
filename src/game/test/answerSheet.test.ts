@@ -254,6 +254,34 @@ describe("the sheet on the screen", () => {
     expect(buttonLabelled(container, "Check")).toBeDefined();
   });
 
+  it("keeps the primary the same slab before and after the answer", () => {
+    /*
+     * Round six won the blind call by giving the verdict the full row, but
+     * bought it by GROWING into place: Check sat beside Undo at half width
+     * and the verdict landed full width, so the control under the thumb
+     * jumped 185 px in the mount frame. The bar never moves that button, it
+     * only recolours it. Both are now the sole child of the action row, so
+     * the arrival is one object changing state. jsdom has no layout, so the
+     * structural claim is what is pinned here; the pixels are the critic's.
+     */
+    const { container, store } = mount(sn1Question, 0);
+    const actionRow = () => container.querySelector(".chip-press")?.parentElement;
+    const labelsIn = (row: Element | null | undefined) => [...(row?.querySelectorAll(".chip-press") ?? [])].map((chip) => (chip.textContent ?? "").trim());
+
+    tap(store(), targetCentre({ kind: "atom", atomId: "br1" }));
+    drag(store(), targetCentre({ kind: "lonePair", atomId: "br1" }), targetCentre({ kind: "atom", atomId: "c2" }));
+    // Before: Check alone on its row, with Undo in the quiet row above it.
+    const beforeRow = [...container.querySelectorAll(".chip-press")].find((chip) => (chip.textContent ?? "").trim() === "Check")?.parentElement;
+    expect(labelsIn(beforeRow)).toEqual(["Check"]);
+    expect(buttonLabelled(container, "Undo")).toBeDefined();
+
+    press(container, "Check");
+    // After: the verdict alone on that same row.
+    const afterRow = [...container.querySelectorAll(".chip-press")].find((chip) => (chip.textContent ?? "").trim() === "Got it")?.parentElement;
+    expect(labelsIn(afterRow)).toEqual(["Got it"]);
+    expect(actionRow).toBeDefined();
+  });
+
   it("reaches the student with the instructor's copy when the mistake is one they anticipated", () => {
     const entry = TRAINER_REACTIONS.find((reaction) => reaction.id === "epoxide-basic");
     if (entry === undefined) throw new Error("epoxide-basic missing from the registry");
