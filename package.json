@@ -11,7 +11,9 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:packages": "npm run test --workspaces --if-present",
-    "build:packages": "tsc -b packages/chem-core packages/interaction packages/curriculum packages/economy packages/feedback"
+    "build:packages": "tsc -b packages/chem-core packages/interaction packages/curriculum packages/economy packages/feedback",
+    "hit:targets": "node measurements/hit-targets.mjs",
+    "contrast:audit": "node measurements/contrast-audit.mjs"
   },
   "dependencies": {
     "@fontsource-variable/caveat": "^5.3.0",
@@ -51,6 +53,7 @@
     "jsdom": "^25.0.1",
     "oxlint": "^1.75.0",
     "postcss": "^8.5.25",
+    "puppeteer-core": "^25.10.0",
     "supabase": "^2.114.0",
     "tailwindcss": "^4.3.3",
     "typescript": "~6.0.2",

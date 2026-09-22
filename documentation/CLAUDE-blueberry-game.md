@@ -23,67 +23,51 @@ adjustable, something a student goes into and plays with, not watches.
 - **Tutor messaging.** Async, moderated, shipped last. Connects tutors to customers; the logistics
   are an owner decision recorded before Phase 8 builds them
 
-### The bar is four tabs, and the list above is a list of SURFACES, not of tabs
+### The bar is five tabs, and the list above is a list of SURFACES, not of tabs
 
-Owner amendment, 2026-08-28. The list above named ten things and the shell drew eight of them as
-tabs in a fixed order. That is what changed; nothing in the list is cancelled by it.
-
-> "Four tabs: Path, Train, Cards, Me. The periodic table and the reaction search are not
-> destinations, they are tools a student reaches for mid problem, so they live in the header
-> and are reachable from every tab and from inside a lesson. Courses collapses while there
-> is one course. Leaderboards, chat and tutor messages go behind a flag until their servers
-> exist. Nothing is deleted and no link 404s."
-
-So every surface above still exists and still has a route. What it has instead of a tab is a
-PLACEMENT, and `apps/web/src/app/routes.ts` is where the placements live:
+Every surface above still exists and still has a route. What it has instead of a tab is a
+PLACEMENT, and `src/game/app/routes.ts` is where the placements live:
 
 | Placement | Surfaces | What it means |
 |---|---|---|
-| `nav` | Path, Train, Cards, Me | The four in the bar, in that order |
+| `nav` | Path, Train, Cards, Feed, Me | The five in the bar, in that order |
 | `tool` | Periodic table, Reaction search | A header button on every screen and inside a lesson, opening a sheet over the current one. Still routes of their own |
 | `collapsed` | Courses | Reachable from Me and from the pathway. One course does not need a browsing tab |
-| `flagged` | Leaderboards, AI chat, Tutor messaging | Built, off by default, still routable. See `apps/web/src/app/flags.ts` |
+| `flagged` | Leaderboards, AI chat, Tutor messaging | Built, off by default, still routable. See `src/game/app/flags.ts` |
 
-Four, because mobile-ui's rule is that five is the hard limit and three or four is right, and
-because tabs are destinations: a lookup a student performs mid problem is a tool, and a tool in
-the bar costs a destination its place. **The periodic table's "always reachable" below is
-strengthened by this, not weakened.** As a tab it was not reachable from inside a lesson at all;
-as a header tool it is reachable from every screen in the product, which is what that phrase was
-always asking for.
+Five is mobile-ui's hard limit, so no sixth joins without removing one. Tabs are destinations:
+a lookup a student performs mid problem is a tool, and a tool in the bar costs a destination its
+place. **The periodic table's "always reachable" below is strengthened by this, not weakened:**
+as a header tool it is reachable from every screen and from inside a lesson. Feed's server-backed
+sections (friends activity) render an honest not-open state until their servers exist, per the
+flagged-surface rule below; its client-derivable sections (daily quests over the local journal)
+may ship live.
 
-**Amended 2026-09-01, owner ruling at the calibration gate: the bar is FIVE tabs.** Feed
-(daily quests, lab-mates activity) joins the bar: Path, Train, Cards, Feed, Me, in that
-order. This deliberately supersedes the four-tab count above after the concern was raised
-twice and reaffirmed; five is mobile-ui's hard limit and this sits exactly on it, so no
-sixth ever joins without removing one. Feed's server-backed sections (friends activity)
-render an honest not-open state until their servers exist, per the flagged-surface rule
-below; its client-derivable sections (daily quests over the local journal) may ship live.
-The placement table and `routes.ts` change land in the R rebuild, not before.
-Further owner direction, 2026-09-02: TRAIN eventually leaves the bar, trending back toward
-four tabs (Path, Cards, Feed, Me). Not this round: R ships five with Train, and Train's
-surfaces (Puzzle Sprint, practice modes, the Daily Mechanism) must have a named home
-before its tab is removed, because a surface without a destination is a deleted surface
-and nothing here gets deleted. The re-homing design is a future round's brief.
+**Open direction:** Train eventually leaves the bar, back to four (Path, Cards, Feed, Me), but
+only once its surfaces (Puzzle Sprint, practice modes, the Daily Mechanism) have a named home,
+because a surface without a destination is a deleted surface and nothing here gets deleted. The
+re-homing design is a future round's brief.
 
-Three rules travel with the amendment and are not a later round's to negotiate away:
+Three rules travel with the placements and are not a later round's to negotiate away:
 
 - **Every route resolves.** A hash in a student's history lands on a page. A flagged surface
   renders an honest "not open yet" screen naming what it waits on; `#/review` lands on Cards.
 - **Non-Orgo courses render greyed with an honest coming treatment**, never a dead end and never
   a broken link. `orgo_2` is the only selectable course today, and
-  `apps/web/src/app/courses.ts` is the single list that says so.
+  `src/game/app/courses.ts` is the single list that says so.
 - **A flag decides whether the app LINKS to a surface, never whether it renders**, and it is
   never an entitlement. Anything that gates access stays server side per the non-negotiables.
 
-The reasoning, the superseded five-tab mapping it replaces, and the one thing still open are in
-`docs/OPEN-QUESTIONS.md`, section 4 and the section at the end of that file.
+How the count moved (four on 2026-08-28, five on 2026-09-01, the Train direction on 2026-09-02),
+the reasoning at each step, and the one thing still open are in `documentation/OPEN-QUESTIONS.md`,
+section 4 and the two sections at the end of that file.
 
 ## Progression, rating, and economy
 
 Owner direction, recorded 2026-08-20. Three systems, and each has a server side rule.
 
 **The pathway.** Lessons grouped by topic in a visible track with unlock gates, the shape Duolingo
-and chess.com use. `docs/reference/competitors/orgosolver-03-skill-tree-progression.png` is a worked
+and chess.com use. `blueberry_game/docs/reference/competitors/orgosolver-03-skill-tree-progression.png` is a worked
 example already committed. Unlockables include mechanism cycles. Unlock state is progress, so it is
 enforced server side per the non-negotiables; the client renders it and never decides it.
 
@@ -94,7 +78,7 @@ and placement. Computed server side, from the append only attempt history, never
 
 **The currencies.** Five systems, one per question a student actually asks: XP for effort, mastery
 for ability, diamonds for spending, charge for pacing, streak for ritual. Full tables and the
-reasoning in `docs/ECONOMY.md`. An economy is an entitlement system, so every balance lives in
+reasoning in `documentation/ECONOMY.md`. An economy is an entitlement system, so every balance lives in
 Postgres behind RLS with the same column level GRANT discipline as roles: a client that can write
 its own balance has a free store. Nothing buys correctness, and no wrong answer costs anything;
 the retention loop ships with the mitigation set recorded in that file, amended 2026-08-27.
@@ -115,8 +99,8 @@ every phase is measured against that rather than against its own green suite.
 - **Android second, verified in an emulator.** The Android build targets SDK 35 (the Play Store's
   current minimum target API), and the app manifest carries the label "Blueberry" so the name lands
   on the launcher. Verification is a clean install and launch in an Android emulator, not a claim
-- **Web stays.** `apps/web` deploys on push through GitHub Actions, per D1, and is the surface the
-  gauntlet loops judge against the bars
+- **Web stays.** The site and game deploy on push to `main` through GitHub Actions, per D1, and
+  the web build is the surface the gauntlet loops judge against the bars
 - **Not Flutter.** A Flutter note (3.38.9, Dart 3.10) exists in the owner's notes; it is recorded
   here so the question is settled. Flutter cannot import the TypeScript engines this repo is built
   on, so a Flutter shell would mean rewriting chem-core, interaction and curriculum in Dart.
@@ -147,7 +131,7 @@ numeric and structure determination forms are needed the day the pathway opens. 
 spectroscopy into chem-core; it moves it up the schedule.
 
 Curriculum content scope: Organic Chemistry II exists as a full breakdown from the owner, now
-mined and synthesised into `docs/COURSE-OUTLINE-ORGO2.md`, which is the authoritative structure. Organic
+mined and synthesised into `documentation/COURSE-OUTLINE-ORGO2.md`, which is the authoritative structure. Organic
 Chemistry I is generated from the topic scope already recorded and reviewed at the same human gate
 as other authored content.
 
@@ -161,7 +145,7 @@ side and enrichment material on the pathway, never on the exam weighted spine, a
 same authored problem schema so they are graded and counted like everything else.
 
 **Learning science, owner direction recorded 2026-08-21.** Product decisions cite evidence where it
-exists. The reading list lives in `docs/LEARNING-SCIENCE.md` and grows; the starting entries are the
+exists. The reading list lives in `documentation/LEARNING-SCIENCE.md` and grows; the starting entries are the
 ChemRxiv study on mechanism learning the owner supplied and the AAMC Post-MCAT Questionnaire's
 2020 to 2024 self study data (flashcard use up from 67.4 to 71.4 percent, free online flashcard
 programs from 37.3 to 50.2 percent), which is evidence for the Anki style retention scheduler and
@@ -177,8 +161,9 @@ This file is the single source of truth. Where the build prompt, a subagent inst
 comment disagrees with this file, this file wins. If you find a conflict, report it rather than
 picking silently.
 
-Read `docs/INHERITED-DECISIONS.md` before Phase 0. It records decisions already made on evidence
-in the sibling repository. Reopening one costs time and, in two cases, costs a repository.
+Read `documentation/INHERITED-DECISIONS.md` before Phase 0. It records decisions already made on
+evidence in this repository before the game moved in. Reopening one costs time and, in two cases,
+costs a repository.
 
 ## Repository layout
 
@@ -186,29 +171,35 @@ in the sibling repository. Reopening one costs time and, in two cases, costs a r
 packages/chem-core     Mechanism engine. No React, no DOM, no rendering, no RDKit. Pure TS.
 packages/interaction   Pointer state machine and hit geometry. No React, no DOM. Pure TS.
 packages/curriculum    Authored problems, answer checking, placement, mastery. Pure TS.
+packages/economy       XP, mastery, diamonds, charge, streak, derived from a journal. Pure TS.
 packages/feedback      Authored student facing copy for the named causes in chem-core. Pure TS.
 packages/validators    Executable checks. Headless, exits nonzero on failure. Dev only.
-apps/web               React 19 + Vite + Tailwind v4. New app, not the Blueberry app.
-apps/mobile            Expo / React Native.
-docs/reference/        Reference artifacts for critics. Read only.
+src/game               The learning game. React 19 + Vite + Tailwind v4, mounted at #/app.
+src/                   The site around it: decks, lessons, calendar, tutoring, the funnel.
+documentation/         Written docs. docs/ is build output and gitignored.
 ```
+
+`apps/mobile`, the Expo / React Native shell, is planned and does not exist yet. The reference
+artifacts critics read stay in `blueberry_game/docs/reference/`, read only.
 
 `packages/curriculum` carries the two thirds of the syllabus that is not mechanisms. It has its own
 answer checking, its own problem schema, and its own validators. It may depend on `chem-core` for a
 structure question. `chem-core` must never depend on it.
 
-`apps/web` is a **new** application in this repository. It is not the existing Blueberry app and it
-does not live inside it. See `docs/INHERITED-DECISIONS.md` D1 for the two measured reasons, both of
-which are about repository size and neither of which is stylistic.
+The game and the site share one repository and one deploy since 2026-09-08. The game was built in
+`blueberry_game` first, for two measured reasons about repository size; both were settled before
+the move. It mounts under `#/app`, and its colours carry a `bb-` prefix so the game and the site
+can share one document without repainting each other. See `documentation/INHERITED-DECISIONS.md` D1.
 
 Anything that imports React does not belong in `chem-core`. If you find yourself wanting to, the
-abstraction is wrong. Stop and say so rather than working around it. `berryBehaviour.ts` in the
-sibling repo is the proof this constraint is holdable, by the same author, on a comparable problem.
+abstraction is wrong. Stop and say so rather than working around it. `src/lib/berryBehaviour.ts`
+is the proof this constraint is holdable, by the same author, on a comparable problem.
 
 ## Environment
 
-The shell, its PowerShell gotchas, and the package manager are stated once in `../CLAUDE.md`,
-which loads alongside this file. That is their only home. Two facts are Blueberry's own:
+The shell, its PowerShell gotchas, and the package manager are stated once in the root
+`Projects/CLAUDE.md`, which loads in every session. That is their only home. Two facts are
+Blueberry's own:
 
 - Python 3 with RDKit is required for the validator suite. Verify before Phase 0 and report if absent
 - `dist/` is in `.gitignore` from the first commit. Never commit build output
@@ -217,7 +208,7 @@ which loads alongside this file. That is their only home. Two facts are Blueberr
 
 The run does not start until these are real. A validator built on a placeholder checks nothing.
 
-- Alchemie reference images present in `docs/reference/alchemie/` and listed in `MANIFEST.md`: yes
+- Alchemie reference images present in `blueberry_game/docs/reference/alchemie/` and listed in `MANIFEST.md`: yes
 - Supabase project ref for the test environment: `gvixhlhzuqcjzvahozfc`
 - Two seeded test account emails for the RLS attack test: `zeus.andrewliu+rlstest1@gmail.com` and `zeus.andrewliu+rlstest2@gmail.com`
 - Blueberry repo available locally for import reference at: `C:\Users\zeusa\Downloads\Projects\grignard\grignard-app-source`
@@ -259,14 +250,14 @@ Four bars. Each owns one surface, so no critic has to guess which reference appl
 
 | Surface | Bar | How a critic reaches it |
 |---|---|---|
-| Mechanism Trainer interaction | Alchemie's Mechanisms | The committed captures in `docs/reference/alchemie/`, by filename |
+| Mechanism Trainer interaction | Alchemie's Mechanisms | The committed captures in `blueberry_game/docs/reference/alchemie/`, by filename |
 | Placement quiz, onboarding funnel, reward moment | Duolingo | The live product, in a browser |
 | Curriculum breadth, mastery mapping, explanation quality | Khan Academy chemistry | The live product, in a browser |
 | Interactive periodic table | ptable.com | The live site, in a browser |
 
 Critics compare against the artifact, never against the product name and never from memory. A critic
 that cannot open or reach its assigned reference reports that and stops. It does not reconstruct the
-reference from a description. `docs/reference/alchemie/OBSERVATIONS.md` records structured
+reference from a description. `blueberry_game/docs/reference/alchemie/OBSERVATIONS.md` records structured
 observations and is a supplement to the images, not a substitute for them.
 
 **Inspirations beyond the four bars, owner invited, recorded 2026-08-20.** The bars stay the bars:
@@ -289,22 +280,22 @@ specific mechanic fits, and each one carries what to take and what to leave:
 **Duolingo is the bar for the reward moment, and since 2026-08-27 for the retention loop too.**
 Take the large single number for a session result, the full bleed celebration distinct from the
 working state, and the tiered badge that means something because it was scarce. The mascot is
-already built and is imported, never rebuilt. See `docs/INHERITED-DECISIONS.md` D4 and
-`docs/MASCOT.md`.
+already built and is imported, never rebuilt. See `documentation/INHERITED-DECISIONS.md` D4 and
+`documentation/MASCOT.md`.
 
 **Amended 2026-08-27, superseding "do not take the streak loss anxiety loop."** A streak, a charge
 limiter and a decaying mastery score all ship. Owner direction: these mechanics work and the
 product should use what works. The original objection is not retracted, only answered, and it
 still reads true on its own terms: this is used before exams by people who are already stressed,
 and a mechanic built on fear of losing a number is the wrong tool for that audience. The answer is
-the mitigation set in `docs/ECONOMY.md`, namely weekly rest days, automatic freezes, an
+the mitigation set in `documentation/ECONOMY.md`, namely weekly rest days, automatic freezes, an
 exam-window pause on both charge and streak, charge that never prices a mistake, a capped visible
 mastery dip, and permanent rank floors. Those are load bearing, not decoration. Do not strip one
 without recording why in that file's Supersession section.
 
 Interaction patterns are fair reference. Alchemie's assets, visual design, problem sets, and
 authored content are theirs. Author your own content and keep the visual language recognizably
-Blueberry, per `docs/DESIGN-TOKENS.md`.
+Blueberry, per `documentation/DESIGN-TOKENS.md`.
 
 Four win axes. Each has a measured half the loop runs on and a judged half that is a human gate.
 
@@ -313,11 +304,11 @@ Four win axes. Each has a measured half the loop runs on and a judged half that 
 | Mobile touch ergonomics | Hit target geometry, mis-tap rate against a synthetic fingertip model at the tightest lone-pair and bond-handle spacing, time to first successful arrow, tap-only completion possible for every mechanism, pen pointer handled distinctly from touch | Whether it feels good in the hand |
 | Feedback specificity when wrong | Count of distinct named failure causes, percentage of wrong attempts resolving to a named cause rather than a generic failure. The bar's observed count is one, a yellow triangle | Whether the wording teaches |
 | Depth of correctness verification | Check count, fixture count, adversary findings per phase, mutation survival rate | None. Fully measurable |
-| Visual modernity | Contrast ratios, type scale consistency, motion timing conformance to `docs/DESIGN-TOKENS.md` | Whether it looks current |
+| Visual modernity | Contrast ratios, type scale consistency, motion timing conformance to `documentation/DESIGN-TOKENS.md` | Whether it looks current |
 
 ## Non-negotiables
 
-**Never weaken a check to make it pass.** Stated in full in `../CLAUDE.md`. Blueberry adds one
+**Never weaken a check to make it pass.** Stated in full in the root `Projects/CLAUDE.md`. Blueberry adds one
 clause: it applies to validators written in the same session, and a validator that fails repeatedly
 is reported as a blocker rather than adjusted.
 
@@ -332,7 +323,7 @@ suggestion, not a limit.
 
 **Row Level Security on every user scoped table**, written and attacked before any client code reads
 from it. RLS filters rows, not columns. Any table with an entitlement or progress column also needs
-a column level GRANT. See `docs/INHERITED-DECISIONS.md` D6 for the real escalation this prevented.
+a column level GRANT. See `documentation/INHERITED-DECISIONS.md` D6 for the real escalation this prevented.
 
 **Heavy imports are lazy.** Every multi-megabyte dependency sits behind `React.lazy` and `Suspense`
 with a real loading state, not a blank rectangle.
@@ -360,7 +351,7 @@ and the loop burns five iterations on a modelling error.
 
 The engine split, the CIP decision, and the five graded chemistry fixtures (neopentyl, E2
 periplanarity, SN1 stereorandomness, SN2 inversion, anti addition) are in
-`docs/CHEMISTRY-CORRECTNESS.md`. **Read it before writing or changing any code in `chem-core`
+`documentation/CHEMISTRY-CORRECTNESS.md`. **Read it before writing or changing any code in `chem-core`
 or `packages/curriculum`.** It is reference rather than always-loaded rule, and it does not
 override anything in this file.
 
@@ -385,7 +376,7 @@ A student attempt never resolves to a boolean. Four outcomes:
 Case 2 exists because students reach right answers by legitimate other paths, and grading that as
 "not the requested transformation" is unfair and generates support mail.
 
-The sibling repo's `checkAnswer.ts` returns `{ ok, mine, theirs }`, which is richer than a boolean
+The site's `src/lib/checkAnswer.ts` returns `{ ok, mine, theirs }`, which is richer than a boolean
 and still short of this. Treat it as a starting point, not the target.
 
 Every one of the four carries a named cause. The bar shows a yellow triangle and nothing else. That
@@ -520,8 +511,13 @@ converts."
 **Owner ruling, 2026-08-21, after reviewing the Phase 5 build:** four surfaces loop after all, on a
 blind comparison against a committed capture rather than on taste: the trainer's arrow drawing and
 feedback against the Alchemie captures, and the pathway, leaderboard tabs and language picker against
-`docs/reference/competitors/inspirations/`. The exit is a fresh-context critic picking ours blind,
-and the five iteration cap still applies per piece. The onboarding copy stays a human gate.
+`blueberry_game/docs/reference/competitors/inspirations/`. The exit is a fresh-context critic picking ours blind.
+The onboarding copy stays a human gate.
+
+**Owner ruling, 2026-09-13:** a blind-comparison piece has no round cap. It loops until the critic
+picks ours blind or the owner stops the run, which is how the gauntlet-loop skill runs it; the
+decision-point fork won in round nine on 2026-09-12. The five iteration cap above still holds for
+every loop with a numeric exit condition.
 
 ## Suite integrity
 
@@ -541,7 +537,7 @@ push. The orchestrator rejects any adversary run whose diff touches a path outsi
 ## Communication
 
 How to work with the author, including the React pattern rule and the no em dashes rule, is stated
-once in `../CLAUDE.md`. Two additions belong to this repository:
+once in the root `Projects/CLAUDE.md`. Two additions belong to this repository:
 
 - Report problems noticed in adjacent code rather than silently fixing them
 - State assumptions explicitly rather than picking silently

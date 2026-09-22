@@ -328,3 +328,35 @@ course that is not authored yet, because the recommender scores across all six. 
 courses surface catches that honestly and offers Organic Chemistry II. Whether the recommender
 itself should be restricted to open courses is an onboarding question, and onboarding copy is
 a human gate.
+
+## Five tabs, and Train's eventual exit
+
+Moved here word for word on 2026-09-13 from the rulebook, `CLAUDE-blueberry-game.md`, whose tab
+section now states only the current rule. The rulebook's reasoning for four, as written on
+2026-08-28:
+
+> Four, because mobile-ui's rule is that five is the hard limit and three or four is right, and
+> because tabs are destinations: a lookup a student performs mid problem is a tool, and a tool in
+> the bar costs a destination its place. **The periodic table's "always reachable" below is
+> strengthened by this, not weakened.** As a tab it was not reachable from inside a lesson at all;
+> as a header tool it is reachable from every screen in the product, which is what that phrase was
+> always asking for.
+
+The two rulings that followed:
+
+> **Amended 2026-09-01, owner ruling at the calibration gate: the bar is FIVE tabs.** Feed
+> (daily quests, lab-mates activity) joins the bar: Path, Train, Cards, Feed, Me, in that
+> order. This deliberately supersedes the four-tab count above after the concern was raised
+> twice and reaffirmed; five is mobile-ui's hard limit and this sits exactly on it, so no
+> sixth ever joins without removing one. Feed's server-backed sections (friends activity)
+> render an honest not-open state until their servers exist, per the flagged-surface rule
+> below; its client-derivable sections (daily quests over the local journal) may ship live.
+> The placement table and `routes.ts` change land in the R rebuild, not before.
+> Further owner direction, 2026-09-02: TRAIN eventually leaves the bar, trending back toward
+> four tabs (Path, Cards, Feed, Me). Not this round: R ships five with Train, and Train's
+> surfaces (Puzzle Sprint, practice modes, the Daily Mechanism) must have a named home
+> before its tab is removed, because a surface without a destination is a deleted surface
+> and nothing here gets deleted. The re-homing design is a future round's brief.
+
+`src/game/app/routes.ts` carries the five as `nav` placements; the rulebook's placement table
+still said four until this move corrected it.

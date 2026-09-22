@@ -9,26 +9,29 @@ Source for all of it: https://github.com/andliu7/blueberry
 
 ---
 
-## D1. This is a separate repository, and that is measured, not stylistic
+## D1. One repository since 2026-09-08, and the build output rules that made it safe
 
-`MECHANISM_TRAINER_PROMPT.md` in the Blueberry repo gives two numbers:
+The game was first built in its own repository, `andliu7/blueberry_game`, for two measured
+reasons that `MECHANISM_TRAINER_PROMPT.md` gives:
 
 - `ketcher-standalone/dist/main.js` is 15.5 MB and `ketcher-react` a further 3.1 MB, because
-  standalone mode inlines the entire Indigo WASM engine. Blueberry's heaviest existing chunk is
+  standalone mode inlines the entire Indigo WASM engine. Blueberry's heaviest existing chunk was
   890 kB and already had to be made lazy.
-- Blueberry commits its build output to git. `docs/` is not in `.gitignore`, 84 commits already
-  touch it, and Vite content-hashes filenames, so every build writes new blobs that never
-  delta-compress. Its `.git` is 34 MB against a packed size of 862 KiB.
+- Blueberry committed its build output to git. `docs/` was not in `.gitignore`, 84 commits
+  touched it, and Vite content-hashes filenames, so every build wrote new blobs that never
+  delta-compress. Its `.git` was 34 MB against a packed size of 862 KiB.
 
-Consequence for this repo, from the first commit:
+Both were settled before the move: Ketcher is route gated (D2), build output is gitignored, and
+GitHub Actions builds and deploys on push. On 2026-09-08 the game moved into this repository at
+`src/game/`, its engine at `packages/`. `blueberry_game` is now frozen reference: its design
+images and measurement harness are read from there, and code changes there are a bug.
 
-- `dist/` is in `.gitignore` on day one. Never commit build output.
-- Deploy through a GitHub Actions workflow that builds on push, not a committed folder.
+What still holds, and is why the move was safe:
+
+- Never commit build output. `dist/` and `docs/` are gitignored. `docs/` is where the publish
+  script writes the site and is wiped on every run, so written docs live in `documentation/`.
+- Deploy through the GitHub Actions workflow that builds on push, not a committed folder.
 - Every heavy import goes behind `React.lazy` plus `Suspense` with a real loading state.
-
-The earlier draft of the build prompt said `apps/web` was "the existing Blueberry app." That was
-wrong and is corrected. `apps/web` is a new app in this repository that shares Blueberry's visual
-language. Blueberry itself is a read-only reference.
 
 ## D2. Ketcher is the editor, and it is enormous, so it is route-gated
 

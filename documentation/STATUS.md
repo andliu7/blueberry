@@ -10,6 +10,29 @@ always did: `blueberry_game/apps/web/measurements/` and
 `blueberry_game/STATUS.md` (marked historical). Nothing in that record is
 re-stated here, because a copy is a thing that goes stale.
 
+## Two measured checks now run against this build, 2026-09-13
+
+`measurements/` holds two of the old harness's checks, pointed here: `npm run build`, then
+`npm run hit:targets` (the 44 by 44 floor) or `npm run contrast:audit` (WCAG AA). Their seeds
+and drives are `measurements/economy-moments.mjs`, copied from blueberry_game with the `#/app`
+prefix added where they navigate. The rest of the harness is still in blueberry_game.
+
+- **hit:targets passes:** 1,928 controls, 12 routes, two viewports, 0 under the floor
+- **contrast:audit stops at its `boot` moment, correctly.** The front door does not exist inside
+  the site, which is the decision `documentation/BOOT-LOADER-BLOCKER.md` waits on. Retiring the
+  front door removes that route in the same commit; re-homing it makes it reachable again. Do
+  not withdraw the route to get a run
+- A one-off diagnostic with boot withdrawn, not kept, found 32 distinct pairs under the floor
+  across the other 24 screens. Unjudged: that build carried uncommitted site edits, and many
+  rows are measured against the site's page ground `rgb(245,247,251)`, which may mean the
+  backdrop climb now reaches past the game to the site behind it
+- **The frame rate and interaction budgets have no working measurement.** `measure-headless`
+  and `capture-trainer` depend on `?auto=1` and `?primitive=`, which lived in the old
+  `TrainerTab` and `DrawCanvas`; the 2026-09-11 rebuild removed both. A hook in
+  `TrainerScreen` has to exist before they can be ported
+- Every game route titles itself "blueberry · Course", the trainer included; the
+  `useDocumentTitle` table may be missing rows. Seen, not investigated
+
 ## Multistep strip and decision points, 2026-09-12
 
 The engine now carries a step strip for multistep questions (header row, in place of the progress bar),
