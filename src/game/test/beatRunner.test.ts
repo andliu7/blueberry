@@ -36,11 +36,14 @@ describe("the ladder table", () => {
 
 describe("resolution", () => {
   it("gives nothing for a node with no authored content", () => {
-    // u1-nbs is a branch node with nothing authored for it. It replaced
-    // u3-blocking here the day u3-blocking got its MCQs: an example of "empty"
-    // has to be a node that is actually still empty, or the test proves nothing.
-    expect(resolveBeat("u1-nbs", 1)).toBeNull();
-    expect(nodeHasBeat("u1-nbs")).toBe(false);
+    // u1-poly is a branch node with nothing authored for it. It replaced
+    // u1-nbs here the day u1-nbs got its MCQ, which replaced u3-blocking the
+    // day that got its own: an example of "empty" has to be a node that is
+    // actually still empty, or the test proves nothing. u1-poly should hold
+    // longer than the other two did, because its own blurb reads "Conceptual
+    // mention" and it is deliberately not playable rather than queued.
+    expect(resolveBeat("u1-poly", 1)).toBeNull();
+    expect(nodeHasBeat("u1-poly")).toBe(false);
   });
 
   it("gives nothing for an id that is not a node at all", () => {

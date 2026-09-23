@@ -101,7 +101,9 @@ Supporting files:
   reaction, sequence and hunt look different before a word is read)
 - `src/game/tabs/trainer/ProblemBrowser.tsx` (the in-tab problem picker, component at `:22`)
 - `blueberry_game/apps/web/src/tabs/trainer/TrainerTools.tsx` (DELETED here by 291cd7c, the engine consolidation) (the plus-menu and the scratchpaper, instance 14)
-- `src/game/demo/reactions.ts` (28 entries, `TRAINER_REACTIONS` declared at `:1936`)
+- `src/game/demo/reactions.ts` (29 entries, `TRAINER_REACTIONS` declared at `:1941`)
+- `src/game/demo/dielsAlder.ts` (the Diels-Alder cycloaddition, spread into `TRAINER_REACTIONS`;
+  its own module for the reason `demo/forks/` modules are, so the header can carry the source)
 - `src/game/demo/pathwayMap.ts` (the node map the picker reads, 192 nodes across 15 units)
 - `src/game/render/layout/stepScene.ts` (one step precomputed as pure data for both renderers,
   and the home of the playback bow rule at `:245-255`)
@@ -387,8 +389,10 @@ Wired to a lesson node at `src/game/beats/template.ts:130-132` (`planLesson` pus
 pathway at `src/game/tabs/pathway/PathwayTab.tsx:936` (a `beat` link becomes `#/lesson/<id>`) and
 from the trainer's picker at `src/game/tabs/trainer/TrainerTab.tsx:527-529`.
 
-Nodes served, from the `node:` keys in `src/game/beats/mcq/content.ts`: `u1-kvt`, `u3-blocking`,
-`u3-directing`, `u3-nitro-red`, `u7-protect`, `u9-kvt-enolate`, `u10-nitro-red`, `u11-acidity`.
+Nodes served, from the `node:` keys in `src/game/beats/mcq/content.ts`: `u1-ied`, `u1-kvt`,
+`u1-nbs`, `u3-blocking`, `u3-directing`, `u3-nitro-red`, `u3-sequencing`, `u7-protect`,
+`u9-kvt-enolate`, `u9-pka`, `u10-nitro-red`, `u11-acidity`. (`u3-sequencing` and `u9-pka` were
+authored before this line was last updated and were missing from it.)
 
 Question kind: neither resonance nor a structure completion. It is a multiple choice recognition
 question with an authored line per option.

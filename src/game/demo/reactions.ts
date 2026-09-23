@@ -28,6 +28,7 @@ import {
   type MechanismStep,
 } from "@blueberry/chem-core";
 import type { LayoutHints } from "../render/layout/layout";
+import { DIELS_ALDER_REACTIONS } from "./dielsAlder";
 import { SN2_DEMO_STEP, SN2_FROM_HINTS, SN2_TO_HINTS } from "./sn2Step";
 
 export interface TrainerReaction {
@@ -2598,4 +2599,7 @@ export const TRAINER_REACTIONS: readonly TrainerReaction[] = [
       dzo: { x: 1.4, y: -0.45 },
     },
   },
+  // Concerted, so it is one entry here rather than a sequence. Own module for
+  // the same reason forks/ has its own: the header carries the source.
+  ...DIELS_ALDER_REACTIONS,
 ];

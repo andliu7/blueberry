@@ -166,13 +166,15 @@ describe("deriveMapPathway, the same policy on the Orgo map", () => {
     }
   });
 
-  it("marks the queued Diels-Alder side loop open-and-queued inside the active unit, never locked, never current", () => {
-    // The exact node the S3 critic caught wearing a padlock inside the
-    // active unit: u1-da has no playable link yet, so it is an authoring
-    // statement (queued), not a progress one.
+  it("marks a queued Unit 1 side loop open-and-queued inside the active unit, never locked, never current", () => {
+    // The S3 critic caught u1-da wearing a padlock inside the active unit:
+    // a node with no playable link is an authoring statement (queued), not a
+    // progress one. u1-da is playable now, so the pin moved to u1-poly, which
+    // is the unit's remaining node without a link and the one least likely to
+    // gain one: its own blurb reads "Conceptual mention".
     const status = deriveMapPathway(PATHWAY_UNITS, []);
-    expect(statusOf(status, "u1-da")).toEqual({ state: "open", queued: true });
-    expect(status.currentNodeId).not.toBe("u1-da");
+    expect(statusOf(status, "u1-poly")).toEqual({ state: "open", queued: true });
+    expect(status.currentNodeId).not.toBe("u1-poly");
   });
 
   it("marks EXACTLY ONE node current across the WHOLE map, at every frontier", () => {

@@ -18,6 +18,8 @@ import { gradeDrawing } from "../tabs/trainer/grade";
 import { TRAINER_REACTIONS } from "../demo/reactions";
 import { RESONANCE_HUNT } from "../demo/resonance";
 import { TRAINER_SEQUENCES } from "../demo/sequences";
+import { PATHWAY_UNITS } from "../demo/pathwayMap";
+import { nodeHasBeat } from "../beats/template";
 
 /** The tap sequence that enters one authored arrow, as HitTargets. */
 function tapsFor(step: MechanismStep, arrow: ElectronFlowArrow): HitTarget[] {
@@ -91,6 +93,61 @@ describe("every playable step goes through the machine", () => {
         `arrows committed for ${reaction.step.id}; notices: ${notices.join(", ")}`,
       ).toBe(reaction.step.arrows.length);
       expect(gradeDrawing(reaction.step, draft.arrows).kind).toBe("correct");
+    });
+  }
+});
+
+/* ------------------------------------------------------------------ */
+/* The map's own links                                                  */
+/* ------------------------------------------------------------------ */
+
+/**
+ * A `playable` link that names nothing is a card on the map that opens an
+ * empty screen, and the coverage number on the browser header counts it as
+ * done. The suite above proves that every AUTHORED step can be entered; this
+ * proves the other direction, that every node claiming to be playable has a
+ * step to enter.
+ *
+ * Scoped to Unit 1 because Unit 1 is the unit being burned down and a pin that
+ * fails for an unrelated wave is a pin that gets deleted. The helper takes a
+ * unit id, so widening it later is one line rather than a rewrite.
+ */
+const REACTION_IDS = new Set(TRAINER_REACTIONS.map((entry) => entry.id));
+const SEQUENCE_IDS = new Set(TRAINER_SEQUENCES.map((entry) => entry.id));
+const RESONANCE_IDS = new Set(RESONANCE_HUNT.map((entry) => entry.id));
+
+function nodesOf(unitId: string) {
+  const unit = PATHWAY_UNITS.find((candidate) => candidate.id === unitId);
+  if (unit === undefined) throw new Error(`no unit ${unitId} on the pathway map`);
+  return unit.nodes;
+}
+
+describe("every u1 playable link resolves to real content", () => {
+  it("has something to resolve, so this suite cannot pass vacuously", () => {
+    expect(nodesOf("u1").filter((node) => node.playable !== undefined).length).toBeGreaterThan(0);
+  });
+
+  for (const node of nodesOf("u1")) {
+    const link = node.playable;
+    if (link === undefined) continue;
+    it(`${node.id} resolves its ${link.kind} link "${link.id}"`, () => {
+      switch (link.kind) {
+        case "reaction":
+          expect(REACTION_IDS.has(link.id), `no TRAINER_REACTIONS entry ${link.id}`).toBe(true);
+          break;
+        case "sequence":
+          expect(SEQUENCE_IDS.has(link.id), `no TRAINER_SEQUENCES entry ${link.id}`).toBe(true);
+          break;
+        case "resonance":
+          expect(RESONANCE_IDS.has(link.id), `no RESONANCE_HUNT entry ${link.id}`).toBe(true);
+          break;
+        case "beat":
+          // A beat's id is the node's own, per PlayableLink's own comment, and
+          // the thing that has to exist is a lesson plan for it.
+          expect(link.id, "a beat link names its own node").toBe(node.id);
+          expect(nodeHasBeat(link.id), `nothing authored for beat node ${link.id}`).toBe(true);
+          break;
+      }
     });
   }
 });

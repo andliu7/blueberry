@@ -75,6 +75,8 @@ export const MCQ_NODES: readonly string[] = Object.freeze([
   "u7-protect",
   "u9-pka",
   "u3-sequencing",
+  "u1-nbs",
+  "u1-ied",
 ]);
 
 /* ------------------------------------------------------------------ */
@@ -915,6 +917,194 @@ const SEQUENCING: readonly McqBeat[] = Object.freeze([
   },
 ]);
 
+/* ------------------------------------------------------------------ */
+/* Allylic halogenation with NBS                                        */
+/*                                                                      */
+/* WHY u1-nbs IS A BEAT AND NOT A MECHANISM. Allylic bromination is a   */
+/* radical chain, and chem-core models radicals properly: fishhooks are */
+/* `electrons: 1`, `fromSingleElectron` exists, legality.ts has         */
+/* source-density and capacity rules written for Br2 homolysis, and     */
+/* sheetCopy.ts already has the four feedback lines for getting a       */
+/* fishhook wrong. The PACKAGE supports it. The GAME does not reach     */
+/* that support:                                                        */
+/*                                                                      */
+/*   - nothing under src/ ever dispatches `setElectronCount`, so a      */
+/*     mechanism draft's `electrons` is 2 for the whole of its life     */
+/*   - trainer/hitLayout.ts's `buildTargets` emits atom, lonePair,      */
+/*     bondEndHandle and betweenAtomsSite regions and no                */
+/*     `unpairedElectron` region, so a radical's single electron is not */
+/*     a thing a finger can touch, even though the HitTarget kind for   */
+/*     it exists in packages/interaction                                */
+/*   - trainer/grade.ts's arrowKey puts the electron count in the key,  */
+/*     so a two-electron arrow can never match a one-electron authored  */
+/*     one                                                              */
+/*                                                                      */
+/* So an authored radical chain would render and could not be solved:   */
+/* the exact failure test/playable.test.ts exists to catch, and that    */
+/* test's own `tapsFor` throws on a singleElectron source rather than   */
+/* knowing how to enter one. Building the fishhook affordance is a      */
+/* trainer change, not an authoring one, and CLAUDE.md's non negotiable */
+/* rules out the alternative of drawing the chain with polar arrows to  */
+/* make it enterable. This beat teaches the node's actual exam content  */
+/* meanwhile, and the node keeps its mechanism when the toggle ships.   */
+/*                                                                      */
+/* ONE QUESTION, NOT THE USUAL TWO OR THREE. The file's rule is that a  */
+/* wrong option is mined and never invented, and NBS has exactly two    */
+/* mistake patterns written down: "NBS mistaken for ring bromination"   */
+/* (COURSE-OUTLINE-ORGO2.md section 5, Act 1 weighting table, the       */
+/* `arene_side_chain_chemistry` row, and again as the near miss pair    */
+/* "NBS versus Br2 with a Lewis acid" in section 6, and again as the    */
+/* `allylic_halogenation` topic's own line "Contrast with ring          */
+/* bromination, which NBS does not do"), and ionic addition across the  */
+/* double bond, which src/data/reactions.ts's `nbs-allylic` entry names */
+/* in stages[0].conditions.notes as the outcome the low bromine         */
+/* concentration exists to suppress. Two sourced distractors is one     */
+/* three-option question. A second question would need a third wrong    */
+/* option and there is no third recorded pattern, so it is not written. */
+/*                                                                      */
+/* EVERY CHEMICAL CLAIM BELOW, AND WHERE IT CAME FROM. All of it is     */
+/* src/data/reactions.ts, entry `nbs-allylic`:                          */
+/*   reactants ["C=CCC"], reactant_labels ["but-1-ene"]  the substrate  */
+/*   reagents ["BrN1C(=O)CCC1=O", "NBS"]                 the reagent    */
+/*   product "C=CC(C)Br", product_label "3-bromobut-1-ene"              */
+/*   reaction_type "radical substitution"                               */
+/*   stages[0].conditions.notes, verbatim: "NBS rather than Br2 because */
+/*     it holds the bromine concentration very low, which favours the   */
+/*     radical allylic substitution over ionic addition across the      */
+/*     double bond."                                                    */
+/* The delocalised allylic radical in the correct option's `why` is the */
+/* `allylic_halogenation` topic's own second line in the course         */
+/* outline, "The allylic radical, and its delocalisation".              */
+/*                                                                      */
+/* THE SECOND PRODUCT IS NOT MENTIONED, deliberately. A delocalised     */
+/* allylic radical from but-1-ene can be trapped at either end, and the */
+/* registry entry records one product and one only. Naming the other    */
+/* would be recall, so the option text says where the bromine ends up   */
+/* on the recorded product and claims nothing about a mixture.          */
+/*                                                                      */
+/* ALL THREE RUNGS ON ONE BEAT. ../template.ts records the seam: the    */
+/* lesson plan asks whether a node has ANY mcq beat and the runner then */
+/* asks for one at the rung it is on, so a node with a single beat      */
+/* parked at one level plans a recognise step the runner cannot serve.  */
+/* With one beat authored, the only safe answer is the full mcq ladder. */
+/* ------------------------------------------------------------------ */
+
+const ALLYLIC_HALOGENATION: readonly McqBeat[] = Object.freeze([
+  {
+    kind: "mcq",
+    id: "mcq-nbs-position",
+    node: "u1-nbs",
+    conceptIds: ["resonance_delocalisation"],
+    levels: [0, 1, 2],
+    prompt: "Treat but-1-ene with NBS and light. Pick where the bromine ends up.",
+    brief: "NBS holds the bromine concentration very low, and that is the whole trick.",
+    diamonds: 6,
+    correctOptionId: "allylic",
+    // The correct option sits last here and second on the beat below, which is
+    // this file's positional-balance discipline: option order is fixed rather
+    // than shuffled, so authoring carries the whole burden and a test caps how
+    // often any one index holds the answer.
+    options: [
+      {
+        id: "addition",
+        text: "Across the double bond, one Br on each carbon",
+        why: "This is what a bottle of Br2 does to an alkene, and it is the exact outcome NBS is chosen to avoid. NBS releases bromine so slowly that the concentration never climbs high enough for the ionic addition, which leaves the slower radical substitution as the reaction that actually runs.",
+      },
+      {
+        id: "ring-only",
+        text: "Nothing happens, NBS only brominates rings",
+        why: "Backwards, and it is the commonest slip on this reagent. NBS is the one bromine source that does not touch a ring. It needs a radical position, allylic here and benzylic later in the course, plus light or an initiator to start the chain. Ring bromination is Br2 with a Lewis acid.",
+      },
+      {
+        id: "allylic",
+        text: "On the carbon next to the double bond",
+        why: "That carbon is C3, and the product is 3-bromobut-1-ene. The hydrogen that comes off first is the allylic one, because the radical left behind is spread across two carbons rather than stuck on one, and the cheapest radical to make is the one that is delocalised.",
+      },
+    ],
+  },
+]);
+
+/* ------------------------------------------------------------------ */
+/* Inverse electron demand                                              */
+/*                                                                      */
+/* WHY u1-ied IS A BEAT AND NOT A FOURTH CYCLOADDITION DRAWING. The     */
+/* arrows of an inverse demand Diels-Alder are the arrows of a normal   */
+/* one: same cycle, same three arrows, same ring. Authoring it as a     */
+/* mechanism would put a second copy of demo/dielsAlder.ts on the map   */
+/* and grade a student on the thing the node is NOT about. What the     */
+/* node is about is which partner donates, and that is a concept        */
+/* question with nothing to push.                                       */
+/*                                                                      */
+/* THE HETERO HALF IS NOT AUTHORED, and that is a refusal rather than   */
+/* an omission. The node's blurb reads "Carbonyl or imine in the        */
+/* cycloaddition" and the repository holds no data for it: no entry in  */
+/* src/data/reactions.ts, nothing in src/data/topics.ts, and            */
+/* documentation/COURSE-OUTLINE-ORGO2.md's `diels_alder` topic scopes   */
+/* itself to carbon dienophiles and defers the rest of the pericyclic   */
+/* unit. A question about an aza- or oxa-dienophile would have to be    */
+/* recalled, so it is not written. The node needs a second beat when    */
+/* that chemistry lands in the data.                                    */
+/*                                                                      */
+/* WHERE THE CORRECT ANSWER CAME FROM. src/data/topics.ts, REACTIONS,   */
+/* entry `electron-demand` ("Normal and inverse demand"):               */
+/*   summary          "Normally the diene donates and the dienophile    */
+/*                     accepts. Flip the substituents and the roles     */
+/*                     flip with them."                                 */
+/*   whyThisReagent   "Electron-donating groups raise the diene's HOMO; */
+/*                     electron-withdrawing groups lower the            */
+/*                     dienophile's LUMO. Both close the same gap from  */
+/*                     opposite sides."                                 */
+/* The `why` below is that pair of sentences and nothing beyond them.   */
+/*                                                                      */
+/* WHERE THE TWO WRONG OPTIONS CAME FROM. Both are on the recorded      */
+/* mistake list for this exact topic, COURSE-OUTLINE-ORGO2.md section   */
+/* 5, Act 1 weighting table, the `diene_addition` plus `diels_alder`    */
+/* row: "s-cis lockout ignored" and "Electronics reversed". The s-cis   */
+/* option's `why` is src/data/topics.ts's own `s-cis` entry, "The diene */
+/* has to reach s-cis for both ends to touch the dienophile. A diene    */
+/* locked s-trans simply does not react."                               */
+/*                                                                      */
+/* ONE CARE WITH THE COPY, BECAUSE THE RUBRIC CUTS BOTH WAYS. The same  */
+/* outline row lists "Electronics reversed" as a MISTAKE, which it is   */
+/* on every normal demand question the course sets, and this node is    */
+/* the one place where reversing them is the answer. So the wrong       */
+/* option's `why` defends the normal rule instead of undermining it: it */
+/* says the rule is about which way the gap closes rather than about    */
+/* which partner is allowed to carry a group. A student who reads it    */
+/* keeps the heuristic that earns marks and gains the exception.        */
+/* ------------------------------------------------------------------ */
+
+const ELECTRON_DEMAND: readonly McqBeat[] = Object.freeze([
+  {
+    kind: "mcq",
+    id: "mcq-ied-roles",
+    node: "u1-ied",
+    conceptIds: ["ewg_edg_rubric"],
+    levels: [0, 1, 2],
+    prompt: "A withdrawing group sits on the diene. Pick what that changes.",
+    brief: "Normally the diene donates and the dienophile accepts. These groups are swapped.",
+    diamonds: 7,
+    correctOptionId: "roles-flip",
+    options: [
+      {
+        id: "no-reaction",
+        text: "Nothing reacts, the groups are swapped",
+        why: "The normal rule is worth keeping, and it is right for almost every Diels-Alder in the course. What it describes is which direction the HOMO and LUMO gap is closed from, not a law about which partner may carry a group. Groups that close the gap the other way give a slower reaction, not no reaction.",
+      },
+      {
+        id: "roles-flip",
+        text: "The roles flip: the diene accepts now",
+        why: "Donating groups raise the diene's HOMO and withdrawing groups lower the dienophile's LUMO, so the two kinds of substituent close the same gap from opposite sides. Put each one on the other partner and the gap still closes, with the electron-rich alkene donating and the diene accepting. That is inverse demand.",
+      },
+      {
+        id: "no-s-cis",
+        text: "The diene no longer has to reach s-cis",
+        why: "Demand is about orbital energies and s-cis is about shape, so moving a substituent leaves the shape requirement exactly where it was. Both ends of the diene still have to touch the dienophile at the same moment, and a diene locked s-trans still does nothing at all.",
+      },
+    ],
+  },
+]);
+
 export const MCQ_BEATS: readonly McqBeat[] = Object.freeze([
   ...DIRECTING,
   ...KINETIC_VS_THERMO,
@@ -924,6 +1114,8 @@ export const MCQ_BEATS: readonly McqBeat[] = Object.freeze([
   ...ACETAL_PROTECTION,
   ...ALPHA_ACIDITY,
   ...SEQUENCING,
+  ...ALLYLIC_HALOGENATION,
+  ...ELECTRON_DEMAND,
 ]);
 
 /** Every beat authored for one pathway node, in authored order. */

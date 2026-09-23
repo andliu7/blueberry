@@ -172,6 +172,30 @@ function butadiene(): Figure {
   };
 }
 
+/**
+ * But-1-ene, on the same four-point zig-zag as `butadiene` above.
+ *
+ * Only bond 0 is doubled, so the chain reads CH2=CH-CH2-CH3 and the allylic
+ * carbon the question is about is the third vertex. Sharing the geometry with
+ * the diene is the same discipline the arene ring has: a student meeting both
+ * questions in Unit 1 compares the bond orders and not the drawings.
+ */
+function buteneOne(): Figure {
+  return {
+    bonds: [
+      ...link(
+        [
+          { x: 14, y: 58 },
+          { x: 42, y: 42 },
+          { x: 70, y: 58 },
+          { x: 98, y: 42 },
+        ],
+        { 0: 2 },
+      ),
+    ],
+  };
+}
+
 /* ------------------------------------------------------------------ */
 /* The table                                                            */
 /* ------------------------------------------------------------------ */
@@ -610,6 +634,64 @@ const VISUALS: Readonly<Record<string, McqVisual>> = Object.freeze({
       under: "heat",
       right: benzene(ARENE_CENTRE.x, ARENE_CENTRE.y),
       rightName: "the blocker off again",
+    },
+  },
+
+  /* --- allylic halogenation ---------------------------------------- */
+
+  // The reagents are given and the position is the question, so the product
+  // box asks. The substrate and both reagents are the ones
+  // src/data/reactions.ts's `nbs-allylic` entry records: but-1-ene, NBS, and
+  // light as the radical initiator the course outline's `allylic_halogenation`
+  // topic names beside it.
+  "mcq-nbs-position": {
+    kind: "scheme",
+    scheme: { left: buteneOne(), leftName: "but-1-ene", over: "NBS", under: "light" },
+  },
+
+  /* --- normal and inverse electron demand -------------------------- */
+
+  // A comparison, so a pair rather than a scheme: the question is which
+  // partner carries which kind of group, and drawing one of them teaches half
+  // of it. The groups are labelled EWG and EDG rather than drawn as a named
+  // substituent because src/data/topics.ts's `electron-demand` entry states
+  // the rule in exactly those terms and names no particular group, so picking
+  // one here would be a structure that came from nowhere.
+  "mcq-ied-roles": {
+    kind: "pair",
+    a: {
+      figure: {
+        bonds: [
+          ...link(
+            [
+              { x: 14, y: 50 },
+              { x: 42, y: 34 },
+              { x: 70, y: 50 },
+              { x: 98, y: 34 },
+            ],
+            { 0: 2, 2: 2 },
+          ),
+          stub({ x: 98, y: 34 }, 98, 16),
+        ],
+        labels: [{ x: 98, y: 11, t: "EWG", size: 12 }],
+      },
+      name: "the diene, carrying the withdrawing group",
+    },
+    b: {
+      figure: {
+        bonds: [
+          ...link(
+            [
+              { x: 34, y: 50 },
+              { x: 70, y: 34 },
+            ],
+            { 0: 2 },
+          ),
+          stub({ x: 70, y: 34 }, 70, 16),
+        ],
+        labels: [{ x: 70, y: 11, t: "EDG", size: 12 }],
+      },
+      name: "the alkene, electron rich",
     },
   },
 });
