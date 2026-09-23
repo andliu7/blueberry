@@ -43,7 +43,7 @@
  * door; the door is the sheet.
  */
 
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import {
   ACTS,
   prerequisiteClosure,
@@ -77,7 +77,7 @@ import {
 import { deriveMapPathway, statusOf, unitPassed, type MapPathwayStatus } from "./pathwayState";
 import { deriveFreeOrderStates } from "./topicPathway";
 import { HUB_CENTRE, petalPositions } from "./hubPlan";
-import { isCheckpointUnit, unitShape, weaveLoops, type UnitShape } from "./unitShape";
+import { isCheckpointUnit, nodePlaces, placeSaid, unitShape, weaveLoops, type NodePlace, type UnitShape } from "./unitShape";
 import type { TrackMapNode } from "./trail";
 /*
  * THE NODE SHEET, wired here rather than left on the shelf. The attempt-2
@@ -507,6 +507,7 @@ function Chip({
   dim,
   queued = false,
   counter = null,
+  place = null,
   onOpenNode,
   sheetNode,
   gateNode,
@@ -519,6 +520,13 @@ function Chip({
   readonly dim: boolean;
   /** Authoring queue, riding BESIDE state: dashed treatment, never a lock. */
   readonly queued?: boolean;
+  /**
+   * Where the node sits in its unit, from nodePlaces(). The DETAIL already
+   * carries it in words; this is what the chip draws, and it draws a mark for
+   * exactly one kind of place: a trunk step, which is the only place with a
+   * position to show. An arm has no number to draw, which is the point.
+   */
+  readonly place?: NodePlace | null;
   /**
    * The hub's own n-of-m, or null on every other node type. See HubCounter:
    * the hub is the only node that reports on the nodes around it.
@@ -569,6 +577,24 @@ function Chip({
         {stateGlyph !== null ? stateGlyph : badge !== null ? <MotifGlyph badge={badge} /> : null}
       </span>
       {counter !== null && counter !== undefined ? <HubCounter done={counter.done} total={counter.total} /> : null}
+      {/*
+        THE STEP MARK, and it is deliberately NOT in the face.
+
+        The face carries one mark and never two (see the note above it), so a
+        number there would have to evict the check or the motif. This is a
+        small sticker on the chip's lower left, the free corner: the hub's
+        n-of-m already owns the lower right and no chip carries both, because
+        a hub is never a trunk step.
+
+        It is aria-hidden because the accessible name already opens with
+        "Step 2 of 5", and a screen reader reading "2" again after it would be
+        the same fact twice in two vocabularies.
+      */}
+      {place !== null && place !== undefined && place.kind === "step" ? (
+        <span className="path-node__step" aria-hidden>
+          {place.index}
+        </span>
+      ) : null}
     </>
   );
   return clickable ? (
@@ -698,6 +724,7 @@ function TrackSlab({
   dim,
   lane = "main",
   queued = false,
+  place = null,
   reducedMotion = false,
   onOpenNode,
   sheetNode,
@@ -717,6 +744,8 @@ function TrackSlab({
    */
   readonly lane?: "main" | "loop";
   readonly queued?: boolean;
+  /** Where the row sits in its unit. See Chip's own note. */
+  readonly place?: NodePlace | null;
   readonly reducedMotion?: boolean;
   readonly onOpenNode: OpenNode;
   readonly sheetNode: SheetNode | null;
@@ -779,6 +808,7 @@ function TrackSlab({
           badge={badge}
           dim={dim}
           queued={queued}
+          place={place}
           onOpenNode={onOpenNode}
           sheetNode={sheetNode}
           gateNode={gateNode}
@@ -1018,11 +1048,19 @@ function badgeForMapNode(node: MapNode, videoHookId: string | null, _enrichment 
  * gate's, and "authoring queued" is only said where the student could
  * otherwise play the node.
  */
-function mapNodeDetail(node: MapNode, queued: boolean, locked: boolean): string {
-  if (locked) return "Opens when the unit before it is done";
-  if (queued) return "Authoring queued";
-  return node.blurb;
+/*
+  WHERE THE NODE SITS LEADS THE SENTENCE, even on a locked or queued chip: a
+  node's place is a fact about the unit's SHAPE, not about the student's
+  progress through it, so "Step 2 of 5. Opens when the unit before it is
+  done" is both halves of what that chip is, in the order they are useful.
+  The words themselves are placeSaid, in unitShape.ts beside the derivation.
+*/
+function mapNodeDetail(node: MapNode, queued: boolean, locked: boolean, place: NodePlace | null = null): string {
+  const said = placeSaid(place);
+  const base = locked ? "Opens when the unit before it is done" : queued ? "Authoring queued" : node.blurb;
+  return said === null ? base : `${said}. ${base}`;
 }
+
 
 /** The ChargeGate node for a playable map node, or null when unpressable. */
 function mapGateNode(node: MapNode, clickable: boolean): ChargeGateNode | null {
@@ -1053,6 +1091,7 @@ function ForkChip({
   badge,
   dim,
   counter = null,
+  place = null,
   reducedMotion = false,
   onOpenNode,
 }: {
@@ -1061,13 +1100,15 @@ function ForkChip({
   readonly lane: TrailLane;
   readonly badge: NodeBadge | null;
   readonly dim: boolean;
+  /** Where the cell sits in its unit. Null for a hub petal: see nodePlaces. */
+  readonly place?: NodePlace | null;
   readonly counter?: { readonly done: number; readonly total: number } | null;
   readonly reducedMotion?: boolean;
   readonly onOpenNode: OpenNode;
 }) {
   const locked = status.state === "locked";
   const clickable = node.playable !== undefined && !locked;
-  const detail = mapNodeDetail(node, status.queued, locked);
+  const detail = mapNodeDetail(node, status.queued, locked, place);
   return (
     <div className="path-fork__cell" data-node-state={status.state}>
       <div className="relative">
@@ -1096,6 +1137,7 @@ function ForkChip({
           dim={dim}
           queued={status.queued}
           counter={counter}
+          place={place}
           onOpenNode={onOpenNode}
           sheetNode={sheetNodeFor(node, status.state, clickable && node.playable !== undefined ? hrefForPlayable(node.playable) : null)}
           gateNode={mapGateNode(node, clickable)}
@@ -1649,6 +1691,13 @@ function OrgoMapTrack({
 
   const plan = plans[index]!;
   const { unit, shape } = plan;
+  /*
+    WHERE EVERY NODE SITS, derived once per unit from the shape this unit
+    already rendered from. One map, read by the column rows, the fork and the
+    checkpoint run, so the three blocks cannot describe the same unit
+    differently. See NodePlace in unitShape.ts.
+  */
+  const places = nodePlaces(shape);
   const unitStatus = status.units.get(unit.id);
   const gatePassed = unitStatusPassed(status, unit.id);
   const gateLocked = unitStatus === undefined || !unitStatus.reachable;
@@ -1875,7 +1924,8 @@ function OrgoMapTrack({
                 key={row.node.id}
                 state={nodeStatus.state}
                 label={row.node.title}
-                detail={mapNodeDetail(row.node, nodeStatus.queued, nodeStatus.state === "locked")}
+                detail={mapNodeDetail(row.node, nodeStatus.queued, nodeStatus.state === "locked", places.get(row.node.id) ?? null)}
+                place={places.get(row.node.id) ?? null}
                 href={clickable && playable !== undefined ? hrefForPlayable(playable) : null}
                 wind={row.wind}
                 lane={row.lane}
@@ -1916,26 +1966,48 @@ function OrgoMapTrack({
                 lane="main"
                 badge={badgeForMapNode(shape.concept, shape.videoHookId) ?? "concept"}
                 dim={false}
+                place={places.get(shape.concept.id) ?? null}
                 reducedMotion={reducedMotion}
                 onOpenNode={onOpenNode}
               />
             </div>
             <div className="path-fork__arms">
               {([0, 1] as const).map((side) => (
-                <div className="path-fork__arm" key={side}>
-                  {shape.arms[side].map((node) => (
-                    <ForkChip
-                      key={node.id}
-                      node={node}
-                      status={statusOf(status, node.id)}
-                      lane={side === 0 ? "left" : "right"}
-                      badge={badgeForMapNode(node, shape.videoHookId)}
-                      dim={false}
-                      reducedMotion={reducedMotion}
-                      onOpenNode={onOpenNode}
-                    />
-                  ))}
-                </div>
+                <Fragment key={side}>
+                  {/*
+                    THE FORK SAYS "OR" IN THE GAP BETWEEN ITS ARMS.
+
+                    Two chips at the same y with nothing between them read as
+                    a row, and a row reads as an order. The word is drawn
+                    once, between the two columns, so the parallel is visible
+                    before a tap rather than only in the accessible name.
+
+                    aria-hidden: the group around this fork already says
+                    "Choose either branch; they rejoin at the unit gate" and
+                    every arm chip says "either route may be taken first", so
+                    a third voice would be the same fact three times.
+                  */}
+                  {side === 1 ? (
+                    <span className="path-fork__or" aria-hidden>
+                      or
+                    </span>
+                  ) : null}
+                  <div className="path-fork__arm">
+                    {shape.arms[side].map((node) => (
+                      <ForkChip
+                        key={node.id}
+                        node={node}
+                        status={statusOf(status, node.id)}
+                        lane={side === 0 ? "left" : "right"}
+                        badge={badgeForMapNode(node, shape.videoHookId)}
+                        dim={false}
+                        place={places.get(node.id) ?? null}
+                        reducedMotion={reducedMotion}
+                        onOpenNode={onOpenNode}
+                      />
+                    ))}
+                  </div>
+                </Fragment>
               ))}
             </div>
           </div>
@@ -1986,7 +2058,8 @@ function OrgoMapTrack({
                   key={row.node.id}
                   state={nodeStatus.state}
                   label={row.node.title}
-                  detail={mapNodeDetail(row.node, nodeStatus.queued, nodeStatus.state === "locked")}
+                  detail={mapNodeDetail(row.node, nodeStatus.queued, nodeStatus.state === "locked", places.get(row.node.id) ?? null)}
+                  place={places.get(row.node.id) ?? null}
                   href={href}
                   wind={row.wind}
                   lane="main"

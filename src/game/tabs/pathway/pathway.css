@@ -398,6 +398,28 @@
     var(--node-cast),
     0 0 24px 8px var(--path-halo);
   animation: path-halo 1.9s ease-in-out infinite;
+  /*
+   * A SECOND CHANNEL, AND IT IS SIZE.
+   *
+   * A critic measured current and open as the SAME face, rgb(139,109,242) in
+   * light, separated only by glow alpha 0.498 against 0.34. That is real and
+   * it is by design: the states sheet draws the live chip on the open chip's
+   * own periwinkle, and repainting it would invent a sixth face this file has
+   * already been corrected for twice.
+   *
+   * So the channel added is not colour. It is not a RING either: the sheet
+   * bans that outright above ("two concentric rims read as a rendering
+   * error"). It is the chip standing a little PROUDER of the track, which is
+   * what the bloom is already trying to say and the one property nothing else
+   * in the node is using.
+   *
+   * 6 percent: about 4px on a 76px chip. Enough to read as different in a
+   * column of identical discs, small enough that "all nodes the same size"
+   * still describes the track. The transform is on the WELL and the press
+   * lives on the face, so the two can never fight, and it does not animate,
+   * so reduced motion has nothing to turn off.
+   */
+  transform: scale(1.06);
 }
 @keyframes path-halo {
   0%,
@@ -736,6 +758,44 @@
   font-size: 0.7rem;
   font-weight: 800;
   line-height: 1.4;
+  text-align: center;
+}
+
+/*
+ * THE STEP MARK: which node in the trunk this is, drawn small and quiet.
+ *
+ * WHY IT EXISTS. With the trail deleted the chips stopped saying what comes
+ * after what, and a critic measured the cost: nothing on the page carried a
+ * position, so order was legible for exactly one node. The accessible name
+ * carries "Step 2 of 5" now and this is the seeing student's half of it.
+ *
+ * WHY IT IS A CORNER STICKER AND NOT A FACE. The face carries ONE mark, the
+ * state glyph or the type motif, and that rule has been corrected for twice;
+ * a numeral in there would evict one of them. The lower LEFT is the corner
+ * the hub counter left free, and no chip can want both marks because a hub is
+ * never a trunk step.
+ *
+ * WHY ONLY THE INDEX AND NOT "2/5". It sits under a 68px chip beside a name
+ * card; two numerals and a slash at this size is a smudge. The total is in
+ * the name, where there is room to say it properly.
+ *
+ * It takes its ink from the chip's own state tokens, so it is one more thing
+ * that turns green with the node rather than a fixed grey sticker.
+ */
+.path-node__step {
+  position: absolute;
+  bottom: -4px;
+  left: -6px;
+  min-width: 20px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 2px solid var(--node-line);
+  color: var(--node-line);
+  font-family: var(--font-display);
+  font-size: 0.62rem;
+  font-weight: 800;
+  line-height: 1.5;
   text-align: center;
 }
 
@@ -1648,12 +1708,37 @@
   display: flex;
   justify-content: center;
 }
+/*
+ * THE ARMS, WITH THE WORD BETWEEN THEM. The middle track is the "or": two
+ * chips at one y with an empty gap between them read as a row, and a row
+ * reads as an order, which is the one thing this fork must not say. The
+ * column is `auto`, so it takes the word's own width and the two arms keep
+ * equal halves of what is left.
+ */
 .path-fork__arms {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr auto 1fr;
   gap: 12px;
   justify-items: center;
   align-items: start;
+}
+/*
+ * Quiet on purpose: it is a conjunction, not a control, and it sits between
+ * two pressable chips. Lowercase, small, the body ink at the tab's own muted
+ * weight, and pushed down to the vertical middle of a chip rather than to its
+ * label, so it reads as being BETWEEN the two buttons.
+ */
+.path-fork__or {
+  align-self: start;
+  /* Half the chip's 3.4rem face, less half a line of this text: the word
+     lands level with the middle of the two chips it sits between. */
+  margin-top: 1.15rem;
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--bb-muted-foreground);
+  text-transform: lowercase;
 }
 .path-fork__arm {
   display: flex;

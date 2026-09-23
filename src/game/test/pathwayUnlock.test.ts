@@ -312,4 +312,23 @@ describe("the pager's arrow keys stand down for every overlay, not just the firs
     const tab = read("../tabs/pathway/PathwayTab.tsx");
     expect(tab).toContain('dialog[open], [role="dialog"][aria-modal="true"]');
   });
+  /**
+   * THE TAB DERIVES A NODE'S PLACE, it never carries a table of positions.
+   *
+   * The sentences themselves are pinned by being run, in
+   * pathwayBranchDensity.test.ts, because placeSaid and nodePlaces are pure.
+   * What can only be checked in the source is the WIRING: that the tab reads
+   * the places off the shape it already rendered from, and that every chip's
+   * detail sentence is built with the place belonging to that chip.
+   *
+   * Source text for the same reason as the overlays above: PathwayTab.tsx
+   * imports the app's hooks and cannot load outside a document.
+   */
+  it("derives every chip's place from the unit's own shape rather than a table", () => {
+    const tab = read("../tabs/pathway/PathwayTab.tsx");
+    expect(tab).toContain("const places = nodePlaces(shape);");
+    const details = tab.match(/mapNodeDetail\([^)]*\)/g) ?? [];
+    expect(details.length).toBeGreaterThan(2);
+    for (const call of details) expect(call).toMatch(/place/);
+  });
 });

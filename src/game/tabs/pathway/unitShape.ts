@@ -223,6 +223,99 @@ export function unitShape(unit: PathwayUnit): UnitShape {
 }
 
 /**
+ * WHERE A NODE SITS IN THE UNIT, so the track can SAY it.
+ *
+ * WHY. With the drawn trail deleted (owner, 2026-09-23, "just give it a
+ * glow") the only thing left saying what comes after what was the geometry,
+ * and a critic measured that it says nothing: on unit 1 at 390 by 844 no chip
+ * carried an index in its text or its accessible name, two chips sat at the
+ * same y with nothing ordering them, and the column reversed direction four
+ * times across 226px of a 390px screen. Order was legible for exactly one
+ * node, the current one, because it was the only saturated face.
+ *
+ * WHY NOT 1..8. Because this unit is a DIAMOND and the numbering would be a
+ * lie. The two chips sharing a y are the two ARMS, both open at once (see the
+ * header: only unit gates lock), so they have no order and asserting one
+ * would be exactly the mistake the rest of this file exists to avoid. What
+ * the student cannot read is the STRUCTURE, not a sequence, so this says the
+ * structure: a trunk that is ordered, a fork that is not, enrichment that is
+ * skippable, and a check that closes the unit.
+ *
+ * THE TRUNK is the column plus the concept, because the concept is a single
+ * node every route passes through before the split: it is the last step, not
+ * a choice. The arms hang off the end of it, which is what `after` carries.
+ * Loops get no number at all: an optional detour that counted as a step would
+ * make the totals disagree with the spine.
+ *
+ * Derived from the shape and nothing else, so a unit that changes shape
+ * changes what its chips say in the same breath.
+ */
+export type NodePlace =
+  | { readonly kind: "step"; readonly index: number; readonly total: number }
+  | { readonly kind: "choice"; readonly route: number; readonly routes: number; readonly after: number }
+  | { readonly kind: "loop" }
+  | { readonly kind: "check"; readonly index: number; readonly total: number };
+
+/**
+ * WHAT A PLACE SAYS OUT LOUD. It opens the chip's accessible name, ahead of
+ * the blurb, because it is the thing the geometry stopped saying when the
+ * drawn trail was deleted.
+ *
+ * It lives HERE, beside the derivation, rather than in PathwayTab, for one
+ * reason: PathwayTab imports the app's hooks and cannot load outside a
+ * document, so a sentence written there can only ever be pinned by grepping
+ * the source. Here it is pinned by being run.
+ *
+ * AN ARM SAYS "EITHER", NEVER "NEXT". Both arms are open at once, so the
+ * sentence names the SIDE of the fork ("Route 1 of 2") and then says in words
+ * that the order is the student's. It anchors to the trunk's last step so the
+ * arm is still locatable, and it does not claim a step number of its own.
+ * Where the arms rejoin is left to the fork group's own label, which already
+ * says it: three voices on one fact is noise.
+ */
+export function placeSaid(place: NodePlace | null): string | null {
+  if (place === null) return null;
+  switch (place.kind) {
+    case "step":
+      return `Step ${place.index} of ${place.total}`;
+    case "choice":
+      return place.routes < 2
+        ? "After the concept, and the only route from it"
+        : `Route ${place.route} of ${place.routes}, after step ${place.after}. Either route may be taken first`;
+    case "loop":
+      return "Optional side quest, off the main path";
+    case "check":
+      return `Unit check, question ${place.index} of ${place.total}`;
+  }
+}
+
+/** The ordered run every route passes through: the column, then the concept. */
+export function trunkOf(shape: UnitShape): readonly PathwayNode[] {
+  return shape.concept === null ? shape.column : [...shape.column, shape.concept];
+}
+
+export function nodePlaces(shape: UnitShape): ReadonlyMap<string, NodePlace> {
+  const places = new Map<string, NodePlace>();
+  const trunk = trunkOf(shape);
+  trunk.forEach((node, i) => places.set(node.id, { kind: "step", index: i + 1, total: trunk.length }));
+  // How many routes there actually ARE, counted rather than assumed: a shape
+  // whose second arm came back empty must not announce a choice of two.
+  const routes = shape.arms.filter((arm) => arm.length > 0).length;
+  shape.arms.forEach((arm, side) => {
+    for (const node of arm) places.set(node.id, { kind: "choice", route: side + 1, routes, after: trunk.length });
+  });
+  for (const node of shape.loops) places.set(node.id, { kind: "loop" });
+  shape.checkpoint.forEach((node, i) =>
+    places.set(node.id, { kind: "check", index: i + 1, total: shape.checkpoint.length }),
+  );
+  // The hub and its petals are deliberately absent. A petal is a reaction
+  // FAMILY off a shared mechanism, and whether those are a choice of routes
+  // or a set to finish is not settled by the shape, so this says nothing
+  // rather than guessing. HubFlower passes null and the chip keeps its blurb.
+  return places;
+}
+
+/**
  * The column with its side loops woven in, in the order the DOM lays them.
  *
  * DOCUMENT ORDER IS THE TRAIL'S ORDER: PathScene reads [data-trail] anchors

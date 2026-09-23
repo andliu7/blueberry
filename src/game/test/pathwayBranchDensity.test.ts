@@ -39,7 +39,7 @@
 import { describe, expect, it } from "vitest";
 import { PATHWAY_UNITS } from "../demo/pathwayMap";
 import { LOOP_WIND, WIND_CYCLE, loopWind, trackWind } from "../tabs/pathway/pathwayLayout";
-import { RUN_GAP, RUN_MAX, unitShape, weaveLoops } from "../tabs/pathway/unitShape";
+import { RUN_GAP, RUN_MAX, nodePlaces, placeSaid, trunkOf, unitShape, weaveLoops } from "../tabs/pathway/unitShape";
 import { trailSegments, type TrailPoint } from "../tabs/pathway/trail";
 
 /* ------------------------------------------------------------------------- */
@@ -273,5 +273,101 @@ describe("the checkpoint run", () => {
 
   it("never parks a checkpoint chip on the centreline, so the road keeps winding", () => {
     for (let i = 0; i < 12; i += 1) expect(trackWind(i)).not.toBe(0);
+  });
+});
+
+/* ------------------------------------------------------------------------- */
+/* 4. The order the shape can be read off, now that no trail draws it.        */
+/* ------------------------------------------------------------------------- */
+
+/**
+ * ORDER IS LEGIBLE OR IT IS NOT THERE. The owner deleted the drawn trail
+ * (2026-09-23, "just give it a glow") and a critic measured what went with
+ * it on unit 1 at 390 by 844: no chip carried an index in its text or its
+ * accessible name, two chips sat at the same y with nothing ordering them,
+ * and the column reversed direction four times across 226px of a 390px
+ * screen.
+ *
+ * THE FIX IS NOT 1..8, and these assertions are what stops it becoming that.
+ * The unit is a DIAMOND: the two chips at one y are the two ARMS, both open
+ * at once because only unit gates lock, so numbering them would assert an
+ * order the data denies. What gets said is the STRUCTURE: the trunk is
+ * ordered and says so, the arms are parallel and say so, enrichment says it
+ * is optional and the checkpoint says it is the unit's check.
+ *
+ * Every claim below is about the DERIVATION, so a unit whose shape changes
+ * changes what its chips say in the same breath and no table can drift.
+ */
+describe("the order a unit's chips can be read off their names", () => {
+  it("gives every trunk node its position, counting the concept as the last step", () => {
+    for (const unit of PATHWAY_UNITS) {
+      const shape = unitShape(unit);
+      const trunk = trunkOf(shape);
+      const places = nodePlaces(shape);
+      // The concept is the trunk's LAST step: every route passes through it
+      // before the split, so it is a step and not a choice.
+      if (shape.concept !== null) expect(trunk[trunk.length - 1]!.id).toBe(shape.concept.id);
+      trunk.forEach((node, i) => {
+        const place = places.get(node.id);
+        expect(place, `${unit.id}/${node.id} must carry a place`).toBeDefined();
+        expect(place!.kind).toBe("step");
+        expect(place).toEqual({ kind: "step", index: i + 1, total: trunk.length });
+        expect(placeSaid(place!)).toBe(`Step ${i + 1} of ${trunk.length}`);
+      });
+    }
+  });
+
+  it("never lets an arm claim a step number, because both arms are open at once", () => {
+    for (const unit of PATHWAY_UNITS) {
+      const shape = unitShape(unit);
+      const places = nodePlaces(shape);
+      for (const arm of shape.arms) {
+        for (const node of arm) {
+          const said = placeSaid(places.get(node.id) ?? null);
+          expect(places.get(node.id)!.kind).toBe("choice");
+          // No "Step n of m" anywhere in what an arm says about itself.
+          expect(said).not.toMatch(/step \d+ of \d+/i);
+          expect(said).toContain("Either route may be taken first");
+        }
+      }
+    }
+  });
+
+  it("says optional on enrichment and check on the gate questions", () => {
+    for (const unit of PATHWAY_UNITS) {
+      const shape = unitShape(unit);
+      const places = nodePlaces(shape);
+      for (const node of shape.loops) {
+        expect(placeSaid(places.get(node.id) ?? null)).toBe("Optional side quest, off the main path");
+      }
+      shape.checkpoint.forEach((node, i) => {
+        expect(placeSaid(places.get(node.id) ?? null)).toBe(
+          `Unit check, question ${i + 1} of ${shape.checkpoint.length}`,
+        );
+      });
+    }
+  });
+
+  it("derives the places from the shape, so a different shape says something different", () => {
+    // Two units with different trunk lengths must report different totals,
+    // which a hand-typed table would have to be edited to keep true.
+    const totals = new Set(
+      PATHWAY_UNITS.map((unit) => trunkOf(unitShape(unit)).length).filter((length) => length > 0),
+    );
+    expect(totals.size).toBeGreaterThan(1);
+    // And the map places exactly the nodes the shape names: no node left
+    // silent, no id invented. The hub and its petals are deliberately absent
+    // (see nodePlaces), so they are excluded on both sides of the count.
+    for (const unit of PATHWAY_UNITS) {
+      const shape = unitShape(unit);
+      const named = [
+        ...trunkOf(shape),
+        ...shape.arms[0],
+        ...shape.arms[1],
+        ...shape.loops,
+        ...shape.checkpoint,
+      ].map((node) => node.id);
+      expect([...nodePlaces(shape).keys()].sort()).toEqual([...named].sort());
+    }
   });
 });
