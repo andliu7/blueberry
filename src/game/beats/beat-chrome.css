@@ -222,14 +222,59 @@
   cursor: pointer;
   touch-action: manipulation;
   transform: translateY(0);
+  /*
+   * THE WALL, AND WHY IT IS 6px AND ITS OWN TOKEN.
+   *
+   * Owner, 2026-09-23: "the button press does not look good." Three things
+   * were wrong and all three are geometry, not colour.
+   *
+   * 1. THE WALL WAS TOO SHALLOW. --chip-edge-size is 4px and it is shared
+   *    with the pathway node's rim, which is a 66px disc; on a 52px capsule
+   *    340px wide, 4px is a hairline under a slab and the button reads flat.
+   *    Duolingo's own primary is about 4px of wall on a 50px button at half
+   *    our width, so per unit of face it is roughly double ours. 6px, in a
+   *    LOCAL token, so deepening this button does not silently deepen every
+   *    node on the pathway.
+   *
+   * 2. THE PRESS DID NOT SEAT. --chip-press-travel is 3px against a 4px
+   *    wall, so pressing left a 1px ledge: the button moved and never
+   *    arrived. It seats FULLY now, wall to zero, which is what a key doing
+   *    its whole travel looks like and what both references draw.
+   *
+   * 3. THE DOWN STROKE WAS EASED. The transition ran 120ms in BOTH
+   *    directions, so pointer down began a 120ms animation rather than
+   *    painting the pressed state. CLAUDE.md's contract is that the
+   *    acknowledgement "renders on pointer down, not on completion", and
+   *    120ms of ease-out is the difference between a key and a sponge. The
+   *    :active rule below zeroes the duration, so DOWN is one frame and the
+   *    RELEASE keeps the ease: instant commit, soft return, which is the
+   *    asymmetry every good physical button has.
+   *
+   * None of this puts JavaScript in the path: it is still :active plus a
+   * transform and a box-shadow, so the first painted frame after pointer
+   * down is the pressed one.
+   */
+  --chip-press-lift: 6px;
   /* The edge is a box-shadow rather than a border so pressing can compress
-     it without reflowing the layout around the button. */
-  box-shadow: 0 var(--chip-edge-size) 0 var(--chip-press-edge);
-  /* Reserve the edge's room so a tight flex row does not clip it. */
-  margin-bottom: var(--chip-edge-size);
+     it without reflowing the layout around the button. The second stop is a
+     soft contact shadow on the ground, offset and blurred but NEVER spread:
+     a spread shadow is a ring, and this button already has a rim. It is what
+     makes the chip read as an object standing on the sheet rather than as a
+     slab with a bar under it.
+
+     ITS COLOUR IS THE BUTTON'S OWN WALL, thinned, and not a literal: this
+     file's header says there is not one hex below it and that is a rule, not
+     an observation. Deriving the shadow from --chip-press-edge also means
+     the green chip casts a green-black and the amber one an amber-black,
+     which is what a coloured object standing on paper actually does. */
+  box-shadow:
+    0 var(--chip-press-lift) 0 var(--chip-press-edge),
+    0 calc(var(--chip-press-lift) + 2px) 8px color-mix(in srgb, var(--chip-press-edge) 38%, transparent);
+  /* Reserve the wall's room so a tight flex row does not clip it. */
+  margin-bottom: var(--chip-press-lift);
   transition:
-    transform 120ms cubic-bezier(0.4, 0, 0.2, 1),
-    box-shadow 120ms cubic-bezier(0.4, 0, 0.2, 1);
+    transform 140ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 140ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 /* CHECK AND CONTINUE ARE THE SAME CHIP, which is what the button-types
@@ -305,11 +350,21 @@
 }
 
 /* The press itself is the first frame of feedback: :active paints on pointer
-   down, the same frame, before any JS runs. The chip travels down and its
-   edge compresses by the same distance, which is the goals' pressed state. */
+   down, the same frame, before any JS runs. The chip travels the WHOLE height
+   of its own wall and the wall goes to nothing, so the button is seated in
+   its socket rather than hovering one pixel above it.
+
+   transition-duration: 0s is what makes it the same frame. A transition is
+   driven by the property on the rule being transitioned TO, so zeroing it
+   here makes the press instant while the base rule's 140ms still governs the
+   RELEASE. That asymmetry is the whole feel: a key commits immediately and
+   springs back. */
 .chip-press:active:not(:disabled) {
-  transform: translateY(var(--chip-press-travel));
-  box-shadow: 0 calc(var(--chip-edge-size) - var(--chip-press-travel)) 0 var(--chip-press-edge);
+  transform: translateY(var(--chip-press-lift));
+  box-shadow:
+    0 0 0 var(--chip-press-edge),
+    0 1px 2px color-mix(in srgb, var(--chip-press-edge) 45%, transparent);
+  transition-duration: 0s;
 }
 
 /* UNMISTAKABLY DISABLED, the S3 judge's carry, now in the sheet's own

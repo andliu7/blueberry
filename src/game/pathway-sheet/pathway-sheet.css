@@ -652,7 +652,8 @@ button.ns-card--go .ns-chip__face {
   background: var(--ns-quiet-mark);
 }
 
-/* Challenge marks: the stopwatch and the transition-state double dagger, both
+/* Challenge marks: the transition-state double dagger (the stopwatch came out
+   with the timed-run promise it stood for; see NodeSheet.tsx),
    at the reference's 28 px, both traced SVG per DESIGN-GOALS. They ride their
    OWN row under the heading, left aligned at the card's padding, which is
    where the reference scans them (x 170..263, y 1000..1030). */
@@ -754,6 +755,142 @@ button.ns-card--go .ns-chip__face {
   bottom: 0;
   height: 1.75rem;
   z-index: 1;
+}
+
+/* --------------------------------------------------------- the unit list */
+
+/*
+ * THE UNIT PICKER'S LIST, and it lives HERE rather than in pathway.css for a
+ * reason a test enforces. pathwayTrailLayer.test.ts bans `position: fixed`
+ * outright in pathway.css, because a fixed element leaves the scrolling layer
+ * and that is the architecture of the trail-lag bug. A modal overlay is the
+ * one thing that is SUPPOSED to leave it, and this tab already has one built
+ * that way: .gb-overlay, directly below. Two overlays of one family in one
+ * file, and pathway.css keeps a ban that still means what it says.
+ *
+ * The control that opens this is .path-unitbar in pathway.css, which carries
+ * the argument for replacing the fifteen-numeral rail with a picker.
+ */
+/*
+ * THE LIST. A modal overlay, and the ARIA is load bearing rather than
+ * decorative: OrgoMapTrack's arrow-key handler stands down for
+ * `dialog[open], [role="dialog"][aria-modal="true"]`, so without these two
+ * attributes pressing Right with the picker open would turn the page behind
+ * it and leave the list describing a unit that is no longer on screen. That
+ * is the exact bug the node sheet and the guidebook were each fixed for.
+ */
+.path-unitmenu {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  background: var(--bb-background);
+}
+.path-unitmenu__head {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 2px solid var(--bb-border);
+  background: var(--bb-card);
+}
+.path-unitmenu__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--bb-foreground);
+}
+.path-unitmenu__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--hit-min, 2.75rem);
+  height: var(--hit-min, 2.75rem);
+  border: 2px solid var(--bb-border);
+  border-radius: 999px;
+  background: var(--bb-card);
+  color: var(--bb-foreground);
+  cursor: pointer;
+}
+.path-unitmenu__close:focus-visible,
+.path-unitmenu__row:focus-visible {
+  outline: 3px solid var(--bb-ring);
+  outline-offset: -3px;
+}
+.path-unitmenu__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.75rem 1rem calc(1.5rem + var(--tabbar-height, 0px));
+  overflow-y: auto;
+  list-style: none;
+}
+/* One row per unit: the number as a token, the name at reading size, the
+   state said in a word. State is never colour alone here either. */
+.path-unitmenu__row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: var(--hit-min, 2.75rem);
+  padding: 0.6rem 0.75rem;
+  border: 2px solid var(--bb-border);
+  border-radius: 1rem;
+  background: var(--bb-card);
+  color: var(--bb-foreground);
+  text-align: left;
+  text-decoration: none;
+}
+.path-unitmenu__num {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: 2px solid var(--path-open-line);
+  border-radius: 999px;
+  background: var(--path-open-face);
+  color: var(--path-open-ink);
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+.path-unitmenu__row--done .path-unitmenu__num {
+  border-color: var(--path-done-rim);
+  background: var(--path-done-face);
+  color: var(--path-done-ink);
+}
+.path-unitmenu__row--locked .path-unitmenu__num {
+  border-color: var(--bb-border);
+  border-style: dashed;
+  background: transparent;
+  color: var(--bb-muted-foreground);
+}
+.path-unitmenu__row--current {
+  border-color: var(--path-open-line);
+  box-shadow: 0 0 0 3px var(--path-halo-soft);
+}
+.path-unitmenu__name {
+  min-width: 0;
+  flex: 1 1 auto;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.path-unitmenu__state {
+  flex: none;
+  font-family: var(--font-display);
+  font-size: 0.625rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--bb-muted-foreground);
 }
 
 /* ----------------------------------------------------------- the guidebook */

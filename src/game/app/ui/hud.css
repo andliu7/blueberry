@@ -48,93 +48,51 @@
  * mark, never on the page, so they carry no floor of their own.
  * ====================================================================== */
 
-/* ------------------------------------------------- the daily goal edge ---- */
+/* ------------------------------------------------ the goal on the flame ---- */
 /*
- * The header's bottom border, replaced by the goal it was hiding.
+ * THE FULL-WIDTH EDGE METER IS DELETED, owner 2026-09-23: "i also dont like
+ * the bar for the daily goal charge, etc." Hud.tsx's round four block carries
+ * the whole argument and the reference it is measured against; the short
+ * version is that neither Duolingo nor Brilliant ships a progress bar in its
+ * permanent chrome, and two rounds here had been spent arguing about how to
+ * stop one being misread.
  *
- * Round one spent a 44px column of the row on a ring holding a two digit
- * number, and the critic counted it as one of seven identical chips. The
- * fraction is worth more than the column: as the header's own edge it is full
- * width, it is legible from across the room, and it gives the row back the
- * space the dominant chip needed. The track is the divider, so Shell.tsx drops
- * its `border-b` when this renders; a border and a track a pixel apart is a
- * seam, not a design.
- *
- * 4px, because 2px reads as a loading indicator and 6px reads as a second
- * toolbar.
+ * What is left is the arc itself, drawn AROUND the flame it feeds. The ring
+ * is the button's whole 28px mark and the flame sits inside it, so the cell
+ * costs the row exactly what a plain flame cost: no new column, which is what
+ * the 390px budget (measured, see Hud.tsx) required.
  */
-/* THE NAMED EDGE. Hud.tsx carries the reasoning: an unlabelled meter under the
-   header was being read as course progress by the line directly beneath it. The
-   strip is still the header's bottom edge and still costs the readout row no
-   horizontal space; what changed is that it says what it is. */
-.hud-goal-edge {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
+.hud-streak-mark {
+  position: relative;
+  display: inline-flex;
   align-items: center;
-  gap: 0.4375rem;
-  padding: 0 0.5rem 0.3125rem;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
 }
-@media (min-width: 40rem) {
-  .hud-goal-edge {
-    padding-inline: 1rem;
-  }
-}
-@media (min-width: 48rem) {
-  .hud-goal-edge {
-    padding-inline: 1.5rem;
-  }
-}
-.hud-goal-name {
-  flex: none;
-  font-size: 0.625rem;
-  font-weight: 700;
-  letter-spacing: 0.09em;
-  line-height: 1;
-  text-transform: uppercase;
-  white-space: nowrap;
-  color: var(--bb-muted-foreground);
+.hud-streak-ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
 }
 /*
- * THE TALLY. Ten ticks, not one bar, and the reason is in Hud.tsx: a labelled
- * 70 percent bar four pixels above a "0 of 86 lessons done" is still two
- * progress statements of the same kind, and a reader resolves kind before a
- * 10px caption. Ten countable units is a ration of a day and cannot be read as
- * a fraction of a course.
- *
- * The container carries no border and no fill of its own. Each tick is the
- * outlined pill, which is where the sticker language wants the cut edge anyway,
- * and it means the strip has no second box around it.
+ * A HAIRLINE ARC, NOT A DONUT. XpRing's own 4.5 units is drawn for the coach
+ * mark's 44px day square; at 32px in the header the same stroke is a 4px band
+ * and an empty goal reads as a loading spinner around the flame rather than
+ * as an empty track. 2.6 units is about 2.3px here: a line the arc runs
+ * along, which is what a ring wants to be when the thing inside it is the
+ * subject.
  */
-.hud-goal {
-  flex: 1 1 auto;
-  display: flex;
-  align-items: stretch;
-  gap: 0.1875rem;
-  height: 0.5rem;
+.hud-streak-ring circle {
+  stroke-width: 2.6;
 }
-.hud-goal-tick {
-  flex: 1 1 0;
-  min-width: 0;
-  display: block;
-  border: 1px solid var(--bb-border);
-  border-radius: 999px;
-  background: var(--bb-muted);
-  overflow: hidden;
-}
-.hud-goal-fill {
-  display: block;
-  height: 100%;
-  border-radius: 999px;
-  background: var(--bb-primary);
-  transition: width 620ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-/* Met is a state change, not a nudge: the whole edge turns, which is the only
-   moment in the header that changes colour on its own. */
-.hud-goal[data-met="true"] .hud-goal-fill {
-  background: var(--good);
+/* The flame sits inside the arc with clear air around it, so the ring never
+   crops it and the two never touch. */
+.hud-streak-flame {
+  position: relative;
+  width: 1.2rem;
+  height: 1.2rem;
 }
 
 /* ---------------------------------------------------------- the ring ---- */
@@ -486,7 +444,6 @@
    leaning, every pip is drawn, the spotlight is cut. Nothing here is
    animation-only information. */
 @media (prefers-reduced-motion: reduce) {
-  .hud-goal-fill,
   .hud-ring-arc {
     transition: none;
   }

@@ -8,8 +8,8 @@
  * grabber, a ONE ROW head (molecule mark, title, hamburger), a full width
  * Practice card holding exactly two rows (heading plus difficulty pips, then
  * the violet 3D START), a HALF WIDTH Challenge card in the SAME cream with
- * the SAME near-black heading, holding its heading and then the stopwatch and
- * double dagger on a second left aligned row, and the berry rising centred
+ * the SAME near-black heading, holding its heading and then the double
+ * dagger on a second left aligned row, and the berry rising centred
  * over the sheet's own bottom edge into the tab bar.
  *
  * THE 3D CHIPS ARE EDGE AND FACE LAYERS, per
@@ -87,22 +87,16 @@ function HamburgerGlyph() {
   );
 }
 
-/** The stopwatch: crown, side lugs, a swept wedge and the hand, as drawn. */
-function StopwatchGlyph() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden>
-      <path d="M12 14V6.6a7.4 7.4 0 0 1 6.4 3.7z" fill="currentColor" opacity="0.35" />
-      <circle cx="12" cy="14" r="7.4" fill="none" stroke="currentColor" strokeWidth="2" />
-      <path
-        d="M9.6 2.6h4.8M12 2.6v3.6M4.9 7.2L6.6 5.6M19.1 7.2l-1.7-1.6M12 14l3.6-2.4"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
+/*
+ * THE STOPWATCH IS GONE, DELIBERATELY. The reference draws one here and the
+ * card's accessible name said "a timed run", but nothing in this game times
+ * anything: Challenge re-enters the same node at the same href, priced
+ * through the charge gate as a unit quiz. A glyph promising a clock the
+ * product does not have is a control lying about itself, so the mark came
+ * out and the name below now says what pressing it does. The divergence from
+ * the picture is reported; when a real timed mode ships, the stopwatch comes
+ * back with it and not before.
+ */
 
 /**
  * The double dagger, the transition-state mark. A DELIBERATE divergence from
@@ -156,7 +150,7 @@ export interface NodeSheetProps {
   readonly onClose: () => void;
   /** Practice START. The integrator routes this into the Charge sheet. */
   readonly onStart: (node: SheetNode) => void;
-  /** The timed run. Enabled by the model only after a first clear. */
+  /** The second graded run. Enabled by the model only after a first clear. */
   readonly onChallenge: (node: SheetNode) => void;
   /** The hamburger. The integrator routes this to the Guidebook page. */
   readonly onGuidebook: (node: SheetNode) => void;
@@ -235,10 +229,13 @@ export function NodeSheet({ node, onClose, onStart, onChallenge, onGuidebook, re
                 the card 65 percent taller than the picture's 100 css px,
                 which changed the sheet's whole size hierarchy. The blurb is
                 not lost: it leads the guidebook's key-idea callout. */}
-            <section className="ns-card" aria-label={`Practice. ${model.pips.label}.`}>
+            <section className="ns-card" aria-label={`Practice.${model.pips === null ? "" : ` ${model.pips.label}.`}`}>
               <div className="ns-card__row">
                 <h3 className="bb-title-face text-scale-lg font-bold">Practice</h3>
-                <Pips filled={model.pips.filled} total={model.pips.total} label={model.pips.label} />
+                {/* NO ROW WHEN NOTHING MEASURED IT. A node with no authored
+                    content has no difficulty to report, and four empty dots
+                    would be a claim about it. See nodeSheetModel.difficultyFor. */}
+                {model.pips === null ? null : <Pips filled={model.pips.filled} total={model.pips.total} label={model.pips.label} />}
               </div>
               {model.practice.enabled ? (
                 <button type="button" className="ns-chip ns-start" {...pressHandlers(() => onStart(node))}>
@@ -268,7 +265,7 @@ export function NodeSheet({ node, onClose, onStart, onChallenge, onGuidebook, re
               <button
                 type="button"
                 className="ns-chip ns-card--go"
-                aria-label={`Challenge. A timed run of ${node.title}.`}
+                aria-label={`Challenge. Another graded run of ${node.title}, with your charge back if you pass.`}
                 {...pressHandlers(() => onChallenge(node))}
               >
                 <span className="ns-chip__face ns-card">
@@ -281,7 +278,6 @@ export function NodeSheet({ node, onClose, onStart, onChallenge, onGuidebook, re
                     </span>
                   </span>
                   <span className="ns-marks" aria-hidden>
-                    <StopwatchGlyph />
                     <DoubleDaggerGlyph />
                   </span>
                 </span>
@@ -289,13 +285,12 @@ export function NodeSheet({ node, onClose, onStart, onChallenge, onGuidebook, re
             ) : (
               <section
                 className="ns-card ns-card--half"
-                aria-label={`Challenge. A timed run of ${node.title}. ${model.challenge.note}`}
+                aria-label={`Challenge. Another graded run of ${node.title}, with your charge back if you pass. ${model.challenge.note}`}
               >
                 <div className="ns-card__row">
                   <h3 className="bb-title-face text-scale-lg font-bold">Challenge</h3>
                 </div>
                 <span className="ns-marks" aria-hidden>
-                  <StopwatchGlyph />
                   <DoubleDaggerGlyph />
                 </span>
               </section>

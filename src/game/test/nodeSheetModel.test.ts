@@ -82,26 +82,35 @@ describe("challenge availability", () => {
 });
 
 describe("difficulty pips", () => {
-  it("defaults by kind, with the boss at the ceiling", () => {
-    expect(difficultyFor(node({ kind: "spine" }))).toBe(2);
-    expect(difficultyFor(node({ kind: "branch" }))).toBe(2);
-    expect(difficultyFor(node({ kind: "gate" }))).toBe(3);
-    expect(difficultyFor(node({ kind: "boss" }))).toBe(PIP_COUNT);
+  /*
+   * THE OLD PIN, AND WHY IT IS GONE. This block used to assert the by-kind
+   * default (spine 2, branch 2, gate 3, boss 4). That default is the bug the
+   * owner reported: every spine and branch node showed the same two pips, so
+   * the row ranked nothing. The pin goes because the behaviour goes, not to
+   * make anything pass. What replaces it: the assertion below that an
+   * unmeasured node draws no row at all, and test/nodeDifficulty.test.ts,
+   * which recomputes the real numbers from the corpus and fails on drift.
+   */
+  it("has no default: an unmeasured node draws no difficulty row at all", () => {
+    for (const kind of KINDS) {
+      expect(difficultyFor(node({ kind })), kind).toBeNull();
+      expect(nodeSheetModel(node({ kind })).pips, kind).toBeNull();
+    }
   });
 
-  it("clamps an out-of-range authored value instead of blanking the sheet", () => {
+  it("clamps an out-of-range measured value instead of blanking the sheet", () => {
     expect(difficultyFor(node({ difficulty: 0 }))).toBe(1);
     expect(difficultyFor(node({ difficulty: 99 }))).toBe(PIP_COUNT);
     expect(difficultyFor(node({ difficulty: 2.4 }))).toBe(2);
   });
 
   it("fills within the row and labels the whole row once", () => {
-    for (const kind of KINDS) {
-      const model = nodeSheetModel(node({ kind }));
-      expect(model.pips.total, kind).toBe(PIP_COUNT);
-      expect(model.pips.filled, kind).toBeGreaterThanOrEqual(1);
-      expect(model.pips.filled, kind).toBeLessThanOrEqual(PIP_COUNT);
-      expect(model.pips.label, kind).toBe(`Difficulty ${model.pips.filled} of ${PIP_COUNT}`);
+    for (let measured = 1; measured <= PIP_COUNT; measured += 1) {
+      const pips = nodeSheetModel(node({ difficulty: measured })).pips;
+      expect(pips, `${measured}`).not.toBeNull();
+      expect(pips?.total, `${measured}`).toBe(PIP_COUNT);
+      expect(pips?.filled, `${measured}`).toBe(measured);
+      expect(pips?.label, `${measured}`).toBe(`Difficulty ${measured} of ${PIP_COUNT}`);
     }
   });
 });

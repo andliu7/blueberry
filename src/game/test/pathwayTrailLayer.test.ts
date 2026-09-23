@@ -48,17 +48,7 @@ const read = (file: string) => readFileSync(path.join(PATHWAY, file), "utf8");
    the generated landscape outright and the pathway became a per-unit pager.
    Nothing is loosened by either going: every surviving component is still
    scanned by the same rules, and the test below pins the scene's absence. */
-const COMPONENTS = ["PathwayTab.tsx", "UnitTrail.tsx"] as const;
-
-/**
- * Does this module DRAW the trail, as opposed to merely mentioning it?
- *
- * Two signatures, either of which is enough: it turns points into path
- * strings, or it emits the ribbon's own class onto an element.
- */
-function drawsTrail(source: string): boolean {
-  return source.includes("trailSegments(") || /className=("|`|\{`)path-trail/.test(source);
-}
+const COMPONENTS = ["PathwayTab.tsx"] as const;
 
 /**
  * Anything that makes a module's output depend on the scroll position.
@@ -76,16 +66,36 @@ const SCROLL_LINKED: readonly { readonly name: string; readonly pattern: RegExp 
   { name: "documentElement.scrollTop", pattern: /documentElement\.scrollTop\b/ },
 ];
 
-describe("the trail scrolls in the same layer as the buttons", () => {
-  it("has a module that actually draws the ribbon, so nothing below can pass vacuously", () => {
-    const drawing = COMPONENTS.filter((file) => drawsTrail(read(file)));
-    expect(drawing).toEqual(["UnitTrail.tsx"]);
-  });
-
-  it("never lets a module that draws trail geometry run on scroll", () => {
+describe("the pathway surface never runs on scroll", () => {
+  /*
+   * WHAT WENT AND WHY, 2026-09-23. The owner deleted the drawn trail outright
+   * ("even get rid of the path connections. just give it a glow"), so
+   * UnitTrail.tsx and every .path-trail rule are gone and four assertions
+   * went with them. Each one was about the RIBBON and nothing else:
+   *
+   *   "has a module that actually draws the ribbon"  -  the vacuity guard for
+   *       drawsTrail(). With no ribbon there is nothing to guard, and the scan
+   *       below no longer depends on the predicate at all.
+   *   "puts the trail element inside the very section"  -  the <UnitTrail>
+   *       clause only. The rest of that assertion is about the section's own
+   *       contents and is KEPT below, unchanged.
+   *   "draws one box per unit rather than one at track height"  -  the memory
+   *       argument for a per-unit SVG layer. There is no layer.
+   *   "pins the trail layer with position: absolute"  -  the .path-unit-trail
+   *       block's own position. The half of it that is about .path-unit
+   *       establishing a containing block is KEPT below, because the name
+   *       cards, the START pill and the mascot still depend on it.
+   *
+   * WHAT DID NOT GO. The lag bug this file was written for was architectural:
+   * nothing on the pathway may make its output depend on the scroll position.
+   * That property outlives the ribbon, because a chip that repositions on
+   * scroll lags exactly the way the ribbon did. So the scan below is now
+   * UNCONDITIONAL over every pathway component rather than gated on
+   * drawsTrail. That is a stronger check than the one it replaces.
+   */
+  it("never lets a pathway component run on scroll", () => {
     for (const file of COMPONENTS) {
       const source = read(file);
-      if (!drawsTrail(source)) continue;
       const offenders = SCROLL_LINKED.filter((entry) => entry.pattern.test(source)).map((entry) => entry.name);
       expect({ file, offenders }).toEqual({ file, offenders: [] });
     }
@@ -109,24 +119,31 @@ describe("the trail scrolls in the same layer as the buttons", () => {
      *   - position: fixed stays banned outright
      *   - sticky is allowed on exactly two selectors, both named here, so a
      *     third one or a sticky scene coming back fails this test
-     *   - neither of them is the trail, and the trail's own layer is still
-     *     pinned absolute by the test below
+     *   - neither of them is the trail
      *
-     * The two tests above are the rest of the original property and are
-     * untouched: no module that draws trail geometry may run on scroll, and
-     * the ribbon lives inside the very section that holds the chips.
+     * The ribbon itself went on 2026-09-23 (see the block at the top of this
+     * describe for which assertions went with it). What this one is about
+     * never was the ribbon: it is that nothing on the pathway may leave the
+     * scrolling layer except the two named chrome strips.
      */
     expect(existsSync(path.join(PATHWAY, "PathScene.tsx"))).toBe(false);
+    // And UnitTrail with it, 2026-09-23: the ribbon is deleted, not disabled.
+    expect(existsSync(path.join(PATHWAY, "UnitTrail.tsx"))).toBe(false);
     const css = readFileSync(path.join(PATHWAY, "pathway.css"), "utf8");
     expect(css).not.toContain("position: fixed");
     const sticky = [...css.matchAll(/([^{}]+)\{[^{}]*position:\s*sticky/g)].map((match) =>
       String(match[1]).trim().split("\n").pop()!.trim(),
     );
-    expect(sticky).toEqual([".path-railwrap", ".path-pager__foot"]);
+    /* .path-railwrap became .path-unitbar when the fifteen-numeral rail
+       became the unit picker (owner, 2026-09-23). Same strip, same sticky
+       argument, one name. The picker's modal list is a fixed overlay and for
+       that reason lives in pathway-sheet.css beside the guidebook's, so the
+       ban above still means what it says. */
+    expect(sticky).toEqual([".path-unitbar", ".path-pager__foot"]);
     for (const selector of sticky) expect(selector).not.toContain("trail");
   });
 
-  it("puts the trail element inside the very section that holds the chips", () => {
+  it("keeps one unit's chips and its gate inside one scrolling section", () => {
     const tab = read("PathwayTab.tsx");
     const open = tab.indexOf("<section");
     expect(open).toBeGreaterThan(-1);
@@ -134,38 +151,18 @@ describe("the trail scrolls in the same layer as the buttons", () => {
     expect(close).toBeGreaterThan(open);
     const section = tab.slice(open, close);
     // The section is the scrolling box: it carries the unit id the layout is
-    // keyed on, the chips, the unit gate, and now the ribbon between them.
+    // keyed on, the chips, and the unit gate they close on.
     expect(section).toContain("data-unit-id={unit.id}");
-    expect(section).toContain("<UnitTrail");
     expect(section).toContain("<TrackSlab");
     expect(section).toContain("<UnitGateNode");
   });
 
-  it("draws one box per unit rather than one box at track height", () => {
-    // The S2 round recorded what a full-height layer does: about 14500px of
-    // track becomes a ~200 MB layer on a 390pt phone at 3x and kills the
-    // renderer. The per-unit box is the reason this fix is affordable, so the
-    // component must size itself from ONE section and never from the stage.
-    const trail = read("UnitTrail.tsx");
-    expect(trail).toContain("svg.parentElement");
-    expect(trail).not.toContain(".path-stage");
-    expect(trail).not.toMatch(/document\.querySelectorAll/);
-  });
-
-  it("pins the trail layer with position: absolute, never sticky and never fixed", () => {
-    // A sticky or fixed trail would leave the scrolling layer again and
-    // reintroduce the exact bug this replaced, and it would do it silently,
-    // because it would still look correct in a screenshot taken at rest.
+  it("keeps the unit section as the containing block its absolute children need", () => {
+    // The name cards, the START pill and the mascot are all absolutely
+    // positioned inside a row. Without this the whole composition resolves
+    // against the page and lands in the wrong unit, which is the same class of
+    // bug the deleted trail layer was pinned against.
     const css = readFileSync(path.join(PATHWAY, "pathway.css"), "utf8");
-    const start = css.indexOf(".path-unit-trail {");
-    expect(start).toBeGreaterThan(-1);
-    const block = css.slice(start, css.indexOf("}", start));
-    expect(block).toContain("position: absolute");
-    expect(block).not.toContain("sticky");
-    expect(block).not.toContain("fixed");
-    // And its host section must establish the containing block, or "absolute"
-    // would resolve against the stage and the ribbon would land in the wrong
-    // unit entirely.
     const unit = css.indexOf(".path-unit {");
     expect(unit).toBeGreaterThan(-1);
     expect(css.slice(unit, css.indexOf("}", unit))).toContain("position: relative");

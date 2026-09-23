@@ -383,9 +383,12 @@ export function Shell({ route, children }: { readonly route: Route; readonly chi
             `overflow-x: clip` clips without creating a scroll container, which
             is the entire reason the value exists. */}
         <div className={`flex min-h-dvh min-w-0 flex-1 flex-col overflow-x-clip md:pb-0 ${immersive ? "pb-4" : "pb-24"}`}>
-        {/* No `border-b`. The header's bottom edge is the daily goal meter the
-            HUD draws, and a border a pixel above a track is a seam rather than
-            a design. See hud.css, "the daily goal edge". */}
+        {/* THE BORDER IS BACK, 2026-09-23. It was dropped because the header's
+            bottom edge WAS the daily goal meter, and a border a pixel above a
+            track is a seam rather than a design. The owner deleted that meter
+            ("i also dont like the bar for the daily goal charge, etc."), so
+            the header needs its own edge again or a cream sheet sits on a
+            cream page with nothing between them. See Hud.tsx, round four. */}
         {/* THE HEADER IS A CREAM SHEET, not a translucent blur of the page.
             Two reasons, and neither is taste. Sticker rule 2 and 3 forbid glass
             outright, and the eight-tab bar already dropped its blur for that.
@@ -400,7 +403,7 @@ export function Shell({ route, children }: { readonly route: Route; readonly chi
             moves with the safe area, the type scale and whatever the HUD is
             showing. Measuring it beats copying it. See OrgoMapTrack in
             tabs/pathway/PathwayTab.tsx, which publishes --path-rail-top. */}
-        <header data-app-header className="pt-safe sticky top-0 z-10 flex items-center justify-between gap-1 bg-bb-card px-1.5 pb-5 sm:gap-3 sm:px-4 md:px-6">
+        <header data-app-header className="pt-safe sticky top-0 z-10 flex items-center justify-between gap-1 border-b border-bb-border bg-bb-card px-1.5 pb-2 sm:gap-3 sm:px-4 md:px-6">
           {/* TOOLS ON THE LEFT, SCORES ON THE RIGHT. The blind critic's finding
               on the P3 round was that the header's left half held chrome at the
               same size and weight as the readouts, so the row had seven equal

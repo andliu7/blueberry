@@ -20,16 +20,21 @@
  * per-node prerequisite gates the earlier build drew are retired, and
  * test/pathwayUnlock.test.ts asserts the retirement positively.
  *
- * THE LOOK. Periwinkle 3D pressable chips (the --chip-* family), all one
- * size, five states per the committed sheet; a drawn winding trail that
- * UnitTrail derives from where the nodes actually landed; the DIAMOND FORK
- * as the default unit shape, derived per unit in unitShape.ts, with the
- * concept above the split and the arms rejoining at that unit'''s OWN
- * double-dagger gate; enrichment on dimmed side loops flying the application
- * flag; the petal hub on the two units the goals reserve it for; and the F1
- * track-map scrollbar riding its thin energy axis, drawing the unit'''s real
- * shape because it reads the same layout the track just drew. The button
- * styling and the pitch live in pathway.css beside this file.
+ * THE LOOK. 3D pressable chips, all one size, five states per the committed
+ * sheet, wearing the pathway's own ramp (--path-open-* to --path-done-*,
+ * pathway.css) rather than the app-wide --chip-* family: owner 2026-09-23,
+ * "the colors need to be a more fun blue-purple and turn into a fun green".
+ *
+ * THERE IS NO DRAWN TRAIL. Same owner, same sentence: "even get rid of the
+ * path connections. just give it a glow." UnitTrail.tsx and every
+ * .path-trail rule are deleted, the chips carry no trail anchors, and what
+ * says "this one is yours" is now the chip's own bloom (--node-glow, pulsing
+ * on the current node and static on the rest). The DIAMOND FORK survives as
+ * the default unit shape, derived per unit in unitShape.ts, with the concept
+ * above the split and the arms rejoining at that unit'''s OWN double-dagger
+ * gate; enrichment on dimmed side loops; and the petal hub on the two units
+ * the goals reserve it for, its drawn spokes gone with the rest of the
+ * connections. The button styling lives in pathway.css beside this file.
  *
  * WHERE A PRESS GOES. Node, then price, in that order: a chip opens the NODE
  * SHEET (src/pathway-sheet, Practice with its pips, Challenge with its
@@ -69,7 +74,6 @@ import {
   type PathwayUnit as MapUnit,
   type PlayableLink as MapPlayableLink,
 } from "../../demo/pathwayMap";
-import UnitTrail from "./UnitTrail";
 import { deriveMapPathway, statusOf, unitPassed, type MapPathwayStatus } from "./pathwayState";
 import { deriveFreeOrderStates } from "./topicPathway";
 import { HUB_CENTRE, petalPositions } from "./hubPlan";
@@ -86,6 +90,7 @@ import type { TrackMapNode } from "./trail";
  * entry, once).
  */
 import { NodeSheet, Guidebook, guidebookFor, type SheetNode } from "../../pathway-sheet";
+import { difficultyForNode } from "../../pathway-sheet/nodeDifficulty";
 // Pure label geometry, in its own module so it can be tested without a document.
 // Re-exported because callers and tests have always reached it through this file.
 import { loopWind, trackWind, withBreakHints } from "./pathwayLayout";
@@ -472,33 +477,32 @@ function enterHandlers(onOpenNode: OpenNode, sheet: SheetNode, charge: ChargeGat
 
 /** A map node described for the sheet. Pure over the node and its status. */
 function sheetNodeFor(node: MapNode, state: NodeState, practiceHref: string | null): SheetNode {
-  return { id: node.id, kind: node.kind, state, title: node.title, blurb: node.blurb, practiceHref };
+  const base = { id: node.id, kind: node.kind, state, title: node.title, blurb: node.blurb, practiceHref };
+  // The pips are a measurement of the node's own content, not a restatement of
+  // its kind. Null means nothing is authored behind it, and the sheet then
+  // draws no difficulty row at all. See pathway-sheet/nodeDifficulty.ts.
+  const difficulty = difficultyForNode(node.id);
+  return difficulty === null ? base : { ...base, difficulty };
 }
 
 /**
- * The trail lane a node rides; UnitTrail reads these off the document. "off"
- * means the node carries NO trail anchor at all: a hub's petals hang off
- * their own drawn spokes, and handing their centres to the trail would fold
- * the spine's ribbon through the flower.
+ * WHICH SIDE OF THE COLUMN A CHIP SITS ON. It used to be the trail LANE, read
+ * off `data-trail` by UnitTrail; with the ribbon deleted the only thing still
+ * asking is the mascot, which stands on the side the chip vacated. "off" is
+ * the hub's petals, which are placed by petalPositions and have no side.
  */
 type TrailLane = "main" | "left" | "right" | "loop" | "off";
 
-/** Whether the trail behind this node renders in the progress green. */
-function trailDone(state: NodeState): boolean {
-  return state === "done" || state === "review" || state === "current";
-}
-
 /**
- * The chip itself: face in its well, badge, and the data-trail attributes the
- * scene measures. One component whether the chip sits in a winding row, a
- * fork cell or a side loop, so the five states can never render two ways.
+ * The chip itself: face in its well, and its badge. One component whether the
+ * chip sits in a winding row, a fork cell or a side loop, so the five states
+ * can never render two ways.
  */
 function Chip({
   state,
   label,
   detail,
   href,
-  lane,
   badge,
   dim,
   queued = false,
@@ -511,7 +515,6 @@ function Chip({
   readonly label: string;
   readonly detail: string;
   readonly href: string | null;
-  readonly lane: TrailLane;
   readonly badge: NodeBadge | null;
   readonly dim: boolean;
   /** Authoring queue, riding BESIDE state: dashed treatment, never a lock. */
@@ -543,12 +546,6 @@ function Chip({
   */
   const isHub = badge === "hub";
   const chipClass = `path-node path-node--${state} ${isHub ? "path-node--hub" : ""} ${dimmed ? "path-node--dim" : ""} ${isQueued ? "path-node--queued" : ""} ${clickable ? "path-node--press" : ""}`;
-  // Petals carry no trail anchor: UnitTrail queries [data-trail], so the
-  // attribute pair is simply absent rather than present with a null lane.
-  const trailAttributes =
-    lane === "off"
-      ? {}
-      : { "data-trail": lane, "data-trail-done": trailDone(state) ? "true" : "false" };
   /*
     The TWO states that carry a mark of their own: done wears the check and
     review this app's own refresh. Rest, current and LOCKED carry no state
@@ -581,7 +578,6 @@ function Chip({
       aria-label={`${label}. ${detail}`}
       aria-haspopup="dialog"
       className={chipClass}
-      {...trailAttributes}
       {...enterHandlers(onOpenNode, sheetNode!, gateNode)}
     >
       {face}
@@ -610,7 +606,6 @@ function Chip({
       aria-disabled="true"
       aria-label={`${label}. ${detail}`}
       onClick={(event) => event.preventDefault()}
-      {...trailAttributes}
     >
       {face}
     </button>
@@ -781,7 +776,6 @@ function TrackSlab({
           label={label}
           detail={detail}
           href={href}
-          lane={lane}
           badge={badge}
           dim={dim}
           queued={queued}
@@ -1098,7 +1092,6 @@ function ForkChip({
           label={node.title}
           detail={detail}
           href={clickable && node.playable !== undefined ? hrefForPlayable(node.playable) : null}
-          lane={lane}
           badge={badge}
           dim={dim}
           queued={status.queued}
@@ -1146,30 +1139,12 @@ function HubFlower({
       role="group"
       aria-label={`${hubNode.title}, the shared mechanism, with its reaction families around it`}
     >
-      <svg className="path-hub__spokes" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden>
-        {/* Rim under fill, the way every other stretch of trail on this tab is
-            drawn, so a spoke reads as path rather than as wiring. */}
-        {positions.map((position, index) => (
-          <line
-            key={`edge-${petals[index]!.id}`}
-            className="path-hub__spoke-edge"
-            x1={HUB_CENTRE.x}
-            y1={HUB_CENTRE.y}
-            x2={position.x}
-            y2={position.y}
-          />
-        ))}
-        {positions.map((position, index) => (
-          <line
-            key={petals[index]!.id}
-            className="path-hub__spoke"
-            x1={HUB_CENTRE.x}
-            y1={HUB_CENTRE.y}
-            x2={position.x}
-            y2={position.y}
-          />
-        ))}
-      </svg>
+      {/*
+        THE SPOKES ARE GONE with the rest of the path connections (owner,
+        2026-09-23). The flower is still a flower: petalPositions places the
+        ring, the hub holds the centre and reports the ring's own n-of-m, and
+        the chips' glow is what says which of them is live.
+      */}
       <div
         className="path-hub__cell path-hub__cell--centre"
         style={{ left: `${HUB_CENTRE.x}%`, top: `${HUB_CENTRE.y}%` }}
@@ -1235,8 +1210,10 @@ function HubFlower({
  * says "you moved" and a boundary has not moved. `passed` changes the
  * accessible name, which is the honest place for a claim about progress.
  *
- * The arch keeps `data-trail="main"`: it IS the rejoin anchor a diamond's two
- * arms close on, which is the committed geometry in blueberry_branch-diamond.
+ * The arch carried `data-trail` anchors until 2026-09-23, when the drawn
+ * connections went. It is still the point the two arms of a diamond close on,
+ * which is the committed geometry in blueberry_branch-diamond; that is now a
+ * fact about the LAYOUT rather than about a ribbon.
  */
 function UnitGateNode({ passed, locked }: { readonly passed: boolean; readonly locked: boolean }) {
   /*
@@ -1293,17 +1270,6 @@ function UnitGateNode({ passed, locked }: { readonly passed: boolean; readonly l
       className={`path-gatenode ${locked ? "path-gatenode--locked" : ""}`}
       role="img"
       aria-label={passed ? "Unit gate, passed" : "Unit gate. Clear the checkpoint to open the next unit."}
-      data-trail="main"
-      data-trail-done={passed ? "true" : "false"}
-      /*
-        A GATE IS NEVER SKIPPABLE, and this attribute is how the ribbon knows.
-        DESIGN-GOALS 2026-09-04: "The flow can run through several lesson
-        nodes, never through a unit gate." UnitTrail reads it, trail.ts carries
-        it onto the stretches that touch this arch, and flowOrder refuses to
-        give one of those a travel rank: a gate's stretch changes colour where
-        it stands.
-      */
-      data-trail-gate="true"
     >
       <svg viewBox="0 0 100 58" className="path-gatenode__arch" aria-hidden>
         <path className="path-gatenode__arch-face" d={outerBand} />
@@ -1457,7 +1423,13 @@ export function trackMapNodesFor(
   status: MapPathwayStatus,
   gatePassed: boolean,
 ): readonly TrackMapNode[] {
-  const done = (node: MapNode) => trailDone(statusOf(status, node.id).state);
+  /* Behind the student, for the miniature's own colouring. This used to call
+     trailDone(), which the drawn ribbon shared; the ribbon is deleted and the
+     predicate lives here, where its one remaining caller is. */
+  const done = (node: MapNode) => {
+    const state = statusOf(status, node.id).state;
+    return state === "done" || state === "review" || state === "current";
+  };
   const nodes: TrackMapNode[] = plan.rows.map((row) => ({
     wind: row.wind,
     lane: row.lane === "loop" ? ("loop" as const) : ("main" as const),
@@ -1492,9 +1464,8 @@ export function currentIndexFor(plan: UnitPlan, status: MapPathwayStatus): numbe
  * (src/components/UnitPage.tsx: 64px swipe, slope guard, arrow keys).
  *
  * THE UNIT IS STILL ONE COMPOSITION, TOP TO BOTTOM, and its DOM order IS its
- * visual order, because UnitTrail reads trail anchors off the document in
- * document order and trail.ts never sorts. Every unit carries its own gate,
- * drawn directly under its own arms:
+ * visual order. Every unit carries its own gate, drawn directly under its own
+ * arms:
  *
  *   banner
  *   hub flower              only on the two units the goals reserve it for
@@ -1538,6 +1509,104 @@ function hrefForUnit(unitId: string): string {
 /** "all 4 lessons" / "1 lesson", for the gate sentence's count. */
 function countedLessons(playable: number): string {
   return playable === 1 ? "1 lesson" : `all ${playable} lessons`;
+}
+
+/**
+ * THE UNIT LIST, which is the third way into a unit and the one the owner
+ * asked for by name: "click on the course at the top left and select the
+ * unit."
+ *
+ * WHAT IT REPLACES. Fifteen bare numerals in a sticky horizontal scroller.
+ * They showed the whole course and named none of it, so the only question a
+ * browse control exists to answer ("which one is the carbonyls unit") could
+ * not be answered from them. Here every unit carries its real title and its
+ * state in a word, which is also why state is never colour alone in this
+ * list.
+ *
+ * IT IS MODAL, AND THE ARIA IS LOAD BEARING. OrgoMapTrack's arrow-key
+ * handler stands down for `dialog[open], [role="dialog"][aria-modal="true"]`.
+ * Without these two attributes, pressing Right with the list open would turn
+ * the page behind it and leave the list describing a unit that is no longer
+ * on screen: the same bug the node sheet and the guidebook were each fixed
+ * for. A plain <div> with the attributes rather than a real <dialog>, because
+ * the tab's other overlay (the guidebook) is built that way and one overlay
+ * shape per tab beats two.
+ *
+ * LOCKED UNITS ARE STILL LINKS. Owner decision 2026-09-17: a locked unit
+ * opens READ ONLY, so a student can look ahead; the page it opens is the one
+ * that says the unit is shut. Unlock semantics are untouched, pathwayState.ts
+ * still decides them, and the swipe and Continue still stop at the frontier.
+ */
+function UnitMenu({
+  status,
+  activeAt,
+  shownAt,
+  onClose,
+}: {
+  readonly status: MapPathwayStatus;
+  /** The unit the student is working in, which is not always the one shown. */
+  readonly activeAt: number;
+  readonly shownAt: number;
+  readonly onClose: () => void;
+}) {
+  const listRef = useRef<HTMLUListElement | null>(null);
+
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.stopPropagation();
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    // Focus lands on the row the page is already showing, so a keyboard user
+    // arrives where they are rather than at the top of fifteen.
+    listRef.current?.querySelector<HTMLElement>('[aria-current="page"]')?.focus();
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  return (
+    <div className="path-unitmenu" role="dialog" aria-modal="true" aria-label="Choose a unit">
+      <div className="path-unitmenu__head">
+        <h2 className="path-unitmenu__title">{COURSE_LABEL.orgo_2}</h2>
+        <button type="button" className="path-unitmenu__close" onClick={onClose} aria-label="Close">
+          <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden>
+            <path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" />
+          </svg>
+        </button>
+      </div>
+      <ul ref={listRef} className="path-unitmenu__list">
+        {PATHWAY_UNITS.map((entry, at) => {
+          const passed = unitStatusPassed(status, entry.id);
+          const reachable = status.units.get(entry.id)?.reachable === true;
+          const rowState = passed ? "done" : !reachable ? "locked" : at === activeAt ? "current" : "open";
+          const said = passed ? "Done" : !reachable ? "Locked" : at === activeAt ? "Up next" : "Open";
+          return (
+            <li key={entry.id}>
+              <a
+                href={hrefForUnit(entry.id)}
+                className={`path-unitmenu__row path-unitmenu__row--${rowState} press`}
+                aria-current={at === shownAt ? "page" : undefined}
+                /* The number is drawn as a token and hidden from the tree, so
+                   the row says it in words instead; without this a screen
+                   reader hears fifteen names and no positions. */
+                aria-label={`${unitNumber(entry.title)}, ${unitName(entry.title)}. ${said}`}
+                onClick={onClose}
+              >
+                <span className="path-unitmenu__num" aria-hidden>
+                  {at + 1}
+                </span>
+                <span className="path-unitmenu__name">{unitName(entry.title)}</span>
+                {/* The state in a word, not only in a colour, and it is the
+                    chip's own vocabulary so the list and the track agree. */}
+                <span className="path-unitmenu__state">{said}</span>
+              </a>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
 }
 
 function OrgoMapTrack({
@@ -1616,7 +1685,11 @@ function OrgoMapTrack({
 
   const pagerRef = useRef<HTMLDivElement | null>(null);
   const surfaceRef = useRef<HTMLElement | null>(null);
-  const railRef = useRef<HTMLElement | null>(null);
+  /* The picker, and the element focus RETURNS to when its list closes. A
+     modal that drops focus on the body sends the next Tab back to the top of
+     the document, which on this page is the app header. */
+  const pickRef = useRef<HTMLButtonElement | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   /*
    * Swipe and arrow keys, the donor pattern from src/components/UnitPage.tsx:
@@ -1713,49 +1786,52 @@ function OrgoMapTrack({
     return () => observer.disconnect();
   }, []);
 
-  // A new page starts at its top, and the rail keeps the shown unit in view.
+  // A new page starts at its top.
   useEffect(() => {
     window.scrollTo(0, 0);
-    const step = railRef.current?.querySelector('[aria-current="page"]');
-    step?.scrollIntoView({ inline: "center", block: "nearest", behavior: reducedMotion ? "auto" : "smooth" });
-  }, [unit.id, reducedMotion]);
+  }, [unit.id]);
 
   return (
     <div ref={pagerRef} className="path-pager" role="region" aria-label="Orgo II pathway map">
       {/*
-        THE WHOLE MOUNTAIN. One step per unit, every unit always listed, one
-        page open: the Duolingo/ALEKS principle the per-page cut must not
-        lose. EVERY step is a real link to its page now, locked ones included,
-        because a locked unit opens read only (owner decision, see `index`
-        above): the rail is how a student looks ahead, and the page it opens
-        is the one that says the unit is shut.
-
-        The wrapper is what sticks, not the nav: the nav is the horizontal
-        scroller, and a fade painted inside a scroller scrolls away with it.
-        See .path-railwrap in pathway.css for the fade over the clipped step.
+        THE WHOLE MOUNTAIN, BEHIND ONE CONTROL. One page open, every unit
+        always reachable: the Duolingo/ALEKS principle the per-page cut must
+        not lose. It used to be fifteen bare numerals across the top of every
+        page; it is the course and the unit, named, opening the list. See
+        .path-unitbar in pathway.css for why the strip became a button.
       */}
-      <div className="path-railwrap">
-        <nav ref={railRef} className="path-rail" aria-label="All units">
-          {PATHWAY_UNITS.map((entry, at) => {
-            const passed = unitStatusPassed(status, entry.id);
-            const reachable = status.units.get(entry.id)?.reachable === true;
-            const railState = passed ? "done" : !reachable ? "locked" : at === activeAt ? "current" : "open";
-            const name = `${unitNumber(entry.title)}, ${unitName(entry.title)}`;
-            const said = passed ? `${name}. Done` : reachable ? name : `${name}. Locked, opens to look at only`;
-            return (
-              <a
-                key={entry.id}
-                href={hrefForUnit(entry.id)}
-                className={`path-rail__step path-rail__step--${railState} press`}
-                aria-current={at === index ? "page" : undefined}
-                aria-label={said}
-              >
-                {at + 1}
-              </a>
-            );
-          })}
-        </nav>
+      <div className="path-unitbar">
+        <button
+          ref={pickRef}
+          type="button"
+          className="path-unitbar__pick"
+          aria-haspopup="dialog"
+          aria-expanded={menuOpen}
+          aria-label={`${COURSE_LABEL.orgo_2}, ${unitNumber(unit.title)}, ${unitName(unit.title)}. Choose a unit`}
+          onClick={() => setMenuOpen(true)}
+        >
+          <span className="path-unitbar__lines">
+            <span className="path-unitbar__course">{COURSE_LABEL.orgo_2}</span>
+            <span className="path-unitbar__unit">
+              {unitNumber(unit.title)} &middot; {unitName(unit.title)}
+            </span>
+          </span>
+          <svg viewBox="0 0 24 24" className="path-unitbar__caret" aria-hidden>
+            <path d="M6 9.5 12 15.5 18 9.5" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
       </div>
+      {menuOpen ? (
+        <UnitMenu
+          status={status}
+          activeAt={activeAt}
+          shownAt={index}
+          onClose={() => {
+            setMenuOpen(false);
+            pickRef.current?.focus();
+          }}
+        />
+      ) : null}
       <section
         ref={surfaceRef}
         key={unit.id}
@@ -1765,53 +1841,20 @@ function OrgoMapTrack({
         data-checkpoint={plan.checkpoint ? "true" : "false"}
       >
         {/*
-          THE TRAIL IS INSIDE THE UNIT, and that is the fix for the lag
-          the owner reported twice. It used to be drawn by the sticky
-          PathScene and re-placed from a scroll listener, so it was one
-          frame behind the chips by construction. Here it is a child of
-          the same section as the chips, so the compositor moves both
-          together and there is nothing left to synchronise. UnitTrail's
-          header has the full reasoning; it must be the FIRST child,
-          because it measures its own parent and paints beneath its
-          siblings.
+          THE SIGNPOST IS GONE FROM THIS TRACK, and only from this one.
+          The picker directly above it now says "ORGO II / Unit 1 -
+          Conjugation, Resonance & Dienes" in a control a student can
+          press, and the bottom bar says "UNIT 1 OF 15" with the same
+          name again. Three copies of one unit's name on a 390pt screen
+          is not emphasis, it is noise, and the reference this round is
+          measured against (bars/duolingo) draws the unit name exactly
+          once per page.
+
+          The signpost itself is NOT deleted: the generic course track
+          renders many units on one page and still needs a boundary
+          between them, so UnitBanner at the bottom of this file keeps
+          it and pathway.css keeps its rules.
         */}
-        <UnitTrail
-          stamp={`${unit.id}:${status.currentNodeId ?? "end"}:${status.doneCount}:${gatePassed ? "1" : "0"}`}
-          reducedMotion={reducedMotion}
-        />
-        {/*
-          THE UNIT SIGNPOST IS A THIN VIOLET RULE ACROSS THE ROAD with
-          one short caps line over it, which is what
-          blueberry_branch-diamond draws: a hairline the width of the
-          column, the word "EAS" small and violet above it, occupying
-          about four percent of the screen.
-
-          What the build drew was the slab its own comment claimed it
-          had replaced: a full-width cream card with a 2px border and
-          two lines of 17px semibold text, about 150 CSS px tall, the
-          largest single element on the screen and larger than any node.
-          A critic measured it and named it, and the measurement is the
-          point: a chapter heading that out-weighs the button a student
-          is meant to press has inverted the composition.
-
-          THE NAMING SURVIVES THE SHRINK, and that matters because
-          naming is what the S3 judge picked this track for. The number
-          and the name still both render, in full, at every width; they
-          are one small letterspaced caps line now instead of two 17px
-          semibold ones. The unit's name is also carried at full size in
-          the fast-travel overlay, which is where a reader goes when
-          they are looking for a unit rather than walking past one.
-
-          The tag is PLATED and the rule deliberately is not: a road
-          crossing a signpost's rule is a junction and reads as one, and
-          a road crossing a letterform is damage.
-        */}
-        <header className="path-signpost mx-auto w-full max-w-md">
-          <span className="path-signpost__rule" aria-hidden />
-          <h3 className="path-signpost__tag">
-            {unitNumber(unit.title)} &middot; {unitName(unit.title)}
-          </h3>
-        </header>
         {shape.hub !== null ? (
           <HubFlower
             hubNode={shape.hub}
@@ -2022,13 +2065,13 @@ function OrgoMapTrack({
           {next === null ? (
             <span className="path-pager__side path-pager__side--blank" aria-hidden />
           ) : nextOpen ? (
-            <a className="path-pager__next press" href={hrefForUnit(next.id)}>
+            <a className="path-pager__next" href={hrefForUnit(next.id)}>
               Continue
             </a>
           ) : (
             <button
               type="button"
-              className="path-pager__next press"
+              className="path-pager__next"
               aria-disabled="true"
               aria-label={`Continue. ${gateReason ?? ""}`}
               onClick={(event) => event.preventDefault()}

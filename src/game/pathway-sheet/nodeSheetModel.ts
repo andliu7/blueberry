@@ -11,8 +11,8 @@
  *
  * WHAT THIS SHEET IS, per docs/DESIGN-GOALS.md "The node sheet and the
  * guidebook": tap a node, a bottom sheet rises with a Practice card
- * (difficulty pips, violet 3D START), a Challenge card (stopwatch, double
- * dagger), and a hamburger in the corner that opens the guidebook. There is
+ * (difficulty pips when the node has measured content, violet 3D START), a
+ * Challenge card (double dagger), and a hamburger in the corner that opens the guidebook. There is
  * deliberately no separate Concept row; the guidebook is the concept surface.
  *
  * PROGRESS IS SERVER STATE. The caller hands in a state already derived by
@@ -41,8 +41,9 @@ export interface SheetNode {
   /** The authored one-liner from the map. Read aloud and shown small. */
   readonly blurb: string;
   /**
-   * Authored difficulty, 1..PIP_COUNT. Optional because the map does not
-   * carry one yet; absent, it defaults by kind (see difficultyFor).
+   * Measured difficulty, 1..PIP_COUNT, counted off the content this node
+   * actually launches by pathway-sheet/nodeDifficulty.ts. Absent means
+   * nothing is authored behind the node, and the sheet then draws NO pips.
    */
   readonly difficulty?: number;
   /**
@@ -90,7 +91,8 @@ export interface NodeSheetModel {
   readonly kindLabel: string;
   /** True on done and review: the student has cleared this node before. */
   readonly cleared: boolean;
-  readonly pips: PipReadout;
+  /** Null when the node has no measured difficulty: the row is not drawn. */
+  readonly pips: PipReadout | null;
   readonly practice: CardReadout;
   readonly challenge: CardReadout;
   /** The dialog's accessible name. */
@@ -107,20 +109,16 @@ const KIND_LABEL: Record<SheetNodeKind, string> = {
 };
 
 /**
- * Default difficulty by kind, used only when the map has not authored one.
- * Spine and branch sit at the middle, a checkpoint asks for more, the boss is
- * the ceiling. These are display defaults, not chemistry claims.
+ * THERE IS NO DEFAULT, and that is the fix. This used to fall back to a table
+ * keyed by node kind (spine 2, branch 2, gate 3, boss 4), so every spine and
+ * branch node in the product drew the same two pips: the chip's own kind
+ * restated as dots, ranking nothing. CLAUDE.md's rule is that what a student
+ * is shown is derived and never asserted, so the number now arrives measured
+ * off the node's content (pathway-sheet/nodeDifficulty.ts) or not at all.
  */
-const KIND_DIFFICULTY: Record<SheetNodeKind, number> = {
-  spine: 2,
-  branch: 2,
-  gate: 3,
-  boss: 4,
-};
-
-export function difficultyFor(node: SheetNode): number {
+export function difficultyFor(node: SheetNode): number | null {
   const authored = node.difficulty;
-  if (authored === undefined) return KIND_DIFFICULTY[node.kind];
+  if (authored === undefined) return null;
   // Clamp rather than throw: a bad authored value is a content bug to report,
   // not a reason to blank a student's sheet.
   return Math.min(PIP_COUNT, Math.max(1, Math.round(authored)));
@@ -141,7 +139,7 @@ export function nodeSheetModel(node: SheetNode): NodeSheetModel {
       ? "We are still writing this one. It opens with the next content drop."
       : "Opens when the unit before it is done.";
 
-  // The challenge is a timed re-run, so it asks for one clean clear first.
+  // The challenge is a second graded run, so it asks for one clean clear first.
   // Not a lock the server needs to know about: it re-reads the same derived
   // state, so a cleared node journalled by the server enables it everywhere.
   //
@@ -166,11 +164,7 @@ export function nodeSheetModel(node: SheetNode): NodeSheetModel {
     node,
     kindLabel: KIND_LABEL[node.kind],
     cleared,
-    pips: {
-      filled,
-      total: PIP_COUNT,
-      label: `Difficulty ${filled} of ${PIP_COUNT}`,
-    },
+    pips: filled === null ? null : { filled, total: PIP_COUNT, label: `Difficulty ${filled} of ${PIP_COUNT}` },
     practice: { enabled: practiceEnabled, note: practiceNote },
     challenge: { enabled: challengeEnabled, note: challengeNote },
     label: `${node.title}. ${KIND_LABEL[node.kind]}.`,

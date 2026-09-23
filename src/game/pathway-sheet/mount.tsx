@@ -33,7 +33,7 @@ import type { SheetNode } from "./nodeSheetModel";
 export interface NodeSheetHandlers {
   /** Practice START. Route this into the Charge sheet; the spend is not ours. */
   readonly onStart: (node: SheetNode) => void;
-  /** The timed run. Only reachable once the model says the node is cleared. */
+  /** The second graded run. Only reachable once the model says the node is cleared. */
   readonly onChallenge: (node: SheetNode) => void;
   /**
    * The hamburger. Omitted, the controller shows its own guidebook overlay

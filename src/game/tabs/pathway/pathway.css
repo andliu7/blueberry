@@ -107,11 +107,23 @@
    * which is how a real object meets a surface.
    */
   --node-cast: 0 2px 2px rgb(60 48 24 / 0.16), 0 7px 12px rgb(60 48 24 / 0.14);
-  --node-face: var(--chip-face);
-  --node-face-press: var(--chip-face-press);
-  --node-edge: var(--chip-edge);
-  --node-line: var(--chip-edge);
-  --node-ink: var(--chip-ink);
+  /*
+   * THE GLOW SLOT, and it is the thing that replaced the drawn trail.
+   *
+   * Owner, 2026-09-23: "even get rid of the path connections. just give it a
+   * glow." The ribbon is deleted (UnitTrail.tsx and every .path-trail rule
+   * went with it), so the only thing left saying "this one" is the chip
+   * itself. Every state declares its own glow through this one token, so a
+   * chip can never carry two blurred shadows fighting for the same property,
+   * and the states that must NOT bloom (locked, dim, the legend swatch) set
+   * it to transparent rather than restating the whole box-shadow.
+   */
+  --node-glow: var(--path-open-glow);
+  --node-face: var(--path-open-face);
+  --node-face-press: var(--path-open-face-press);
+  --node-edge: var(--path-open-wall);
+  --node-line: var(--path-open-line);
+  --node-ink: var(--path-open-ink);
   /* The engraved motif's two tones. See .path-node__motif: the cut is a
      darker tone of the chip's own colour and the lip is the light on the far
      wall of the groove. DEEPENED on the pixel verdict of 2026-09-04, which
@@ -119,8 +131,11 @@
      reference that "debosses a bold high-contrast mark into every face".
      Measured: #2f3a68 on the rest face #a2b5fa is 5.46:1, up from #4d5985's
      3.41:1, and still a tone of the chip's own colour rather than a fifth
-     ink, which is what keeps it a cut and not a decal. */
-  --node-engrave: #2f3a68;
+     ink, which is what keeps it a cut and not a decal.
+     RE-DERIVED 2026-09-23 against the new blue-purple face, where #2f3a68
+     falls to 2.89:1; the value now lives with the rest of the ramp as
+     --path-open-engrave. */
+  --node-engrave: var(--path-open-engrave);
   --node-lip-light: rgb(255 255 255 / 0.62);
   position: relative;
   display: block;
@@ -162,8 +177,14 @@
    * The shadow is offset DOWN and blurred, never spread, so it can never
    * become a ring by another name. Every state that sets its own box-shadow
    * restates this first.
+   *
+   * AND THE GLOW RIDES BESIDE IT, in --node-glow. One declaration, one place:
+   * a state changes the token, never this line, so no state can lose the cast
+   * shadow while reaching for a bloom.
    */
-  box-shadow: var(--node-cast);
+  box-shadow:
+    var(--node-cast),
+    0 0 18px 5px var(--node-glow);
 }
 
 /* The face: the button top, and the one thing that moves. It fills the well's
@@ -185,6 +206,24 @@
      as a key rather than as a blob, which is the same reason the reference's
      nodes have one. */
   border: 2px solid var(--node-line);
+  /*
+   * THE STATE CHANGE IS VISIBLE, because with the ribbon gone the node is the
+   * only place "you moved" can be said. The face cross-fades from the
+   * blue-purple to the green over 280ms rather than snapping.
+   *
+   * MEASURED, because theme.css's .press block bans colour transitions whose
+   * MIDPOINT fails a floor and it is right to: the midpoint of #8b6df2 and
+   * #7ed957 is about #85a3a5, and --progress-ink #163a26 on it is 4.9:1, over
+   * the 3.0 an identifiable graphic needs and over the 4.5 for text. No frame
+   * of this fade paints a pair that fails.
+   *
+   * The transform stays on its own 80ms curve below: the PRESS must not wait
+   * for a colour.
+   */
+  transition:
+    transform 80ms cubic-bezier(0.4, 0, 0.2, 1),
+    background-color 280ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 280ms cubic-bezier(0.22, 1, 0.36, 1);
   /* NO highlight band and no gloss. Two independent blind critics read an
      earlier inset white step as "a soft radial gradient" and called the nodes
      glossy marbles. The face is one uniform colour, and the only value break in
@@ -194,8 +233,14 @@
   align-items: center;
   justify-content: center;
   transform: translateY(0);
-  transition: transform 80ms cubic-bezier(0.4, 0, 0.2, 1);
   will-change: transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  /* The colour still CHANGES, it just does not travel: the same rule the
+     deleted trail's flow followed. */
+  .path-node__face {
+    transition: transform 80ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
 }
 
 /* The press: the face sinks the height of its own wall AND darkens to the
@@ -255,16 +300,40 @@
  * The glow stays --progress, the goal green, because a glow is not a mark.
  * It does not pulse: only the current node's halo does.
  */
+/*
+ * SUPERSEDED IN PART, 2026-09-23, and only in the two places the owner named.
+ *
+ * Owner: "the colors need to be a more fun blue-purple and turn into a fun
+ * green." Two things moved and the rest of the block above still governs.
+ *
+ *   THE FACE is --path-done-face #7ed957, the goals' own named goal green,
+ *   where the build shipped the softer sage #b3df92. #7ed957 is what
+ *   DESIGN-GOALS names and it is what dark mode was already using; the light
+ *   theme was the odd one out. The mark stays --progress-ink, measured at
+ *   7.17:1 on it in theme.css, so the fill-only rule is untouched.
+ *
+ *   THE WALL TURNS GREEN TOO. It used to stay --chip-edge, "green on top,
+ *   periwinkle underneath", which was the states sheet's drawing. The owner
+ *   asked for the chip to TURN INTO a green, and a green lid on a violet
+ *   body is not that: the Duolingo coin this is measured against is one hue
+ *   top to bottom. --path-done-wall #3f8c28 is 3.82:1 on the cream ground,
+ *   so the shape is still identifiable.
+ *
+ * THE RIM GOES THROUGH A NAMED TOKEN, --path-done-rim, exactly the way
+ * --claim-rim does in beat-chrome.css, and for the same reason:
+ * lessonProgress.test.ts reads stylesheets as TEXT and a line property
+ * naming --progress is the shape of the two hairlines that actually shipped.
+ * The token holds a literal, so no green token name appears in a border
+ * declaration anywhere.
+ */
 .path-node--done,
 .path-swatch--done {
-  --node-face: var(--progress);
-  --node-face-press: var(--progress);
-  --node-edge: var(--chip-edge);
-  --node-line: var(--progress-edge);
-  --node-ink: var(--progress-ink);
-  box-shadow:
-    var(--node-cast),
-    0 0 20px 6px var(--progress-glow);
+  --node-face: var(--path-done-face);
+  --node-face-press: var(--path-done-face);
+  --node-edge: var(--path-done-wall);
+  --node-line: var(--path-done-rim);
+  --node-ink: var(--path-done-ink);
+  --node-glow: var(--path-done-glow);
 }
 /*
  * The one target, and its FACE STAYS PERIWINKLE.
@@ -285,11 +354,11 @@
    them to agree. See the LEGEND block in PathwayTab.tsx. */
 .path-node--current,
 .path-swatch--current {
-  --node-face: var(--chip-face);
-  --node-face-press: var(--chip-face-press);
-  --node-edge: var(--chip-edge);
-  --node-line: var(--chip-edge);
-  --node-ink: var(--chip-ink);
+  --node-face: var(--path-open-face);
+  --node-face-press: var(--path-open-face-press);
+  --node-edge: var(--path-open-wall);
+  --node-line: var(--path-open-line);
+  --node-ink: var(--path-open-ink);
 }
 /*
  * THE HALO IS A SOFT GLOW, NOT A RING, and that is the states sheet's own
@@ -311,7 +380,7 @@
 .path-node--current {
   box-shadow:
     var(--node-cast),
-    0 0 22px 7px var(--path-halo);
+    0 0 24px 8px var(--path-halo);
   animation: path-halo 1.9s ease-in-out infinite;
 }
 @keyframes path-halo {
@@ -319,12 +388,21 @@
   100% {
     box-shadow:
       var(--node-cast),
-      0 0 22px 7px var(--path-halo);
+      0 0 24px 8px var(--path-halo);
   }
   50% {
     box-shadow:
       var(--node-cast),
-      0 0 30px 13px var(--path-halo-soft);
+      0 0 34px 15px var(--path-halo-soft);
+  }
+}
+/*
+ * NO PULSE UNDER REDUCED MOTION, which the file has always claimed and never
+ * declared. The bloom stays; only the swell stops.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .path-node--current {
+    animation: none;
   }
 }
 .path-node--review,
@@ -334,17 +412,22 @@
   --node-edge: #78350f;
   --node-line: #78350f;
   --node-ink: #ffffff;
+  /* Review IS your work, so it blooms, in its own amber rather than in the
+     open chip's violet. A violet bloom around an amber chip would be the
+     sixth face this file has been corrected for twice. */
+  --node-glow: rgb(180 83 9 / 0.34);
 }
 /* Open is rest: the same freely-orderable periwinkle chip. The tokens are
    restated rather than inherited so the legend swatch can render the state
    without riding on the base rule's defaults staying what they are. */
 .path-node--open,
 .path-swatch--open {
-  --node-face: var(--chip-face);
-  --node-face-press: var(--chip-face-press);
-  --node-edge: var(--chip-edge);
-  --node-line: var(--chip-edge);
-  --node-ink: var(--chip-ink);
+  --node-face: var(--path-open-face);
+  --node-face-press: var(--path-open-face-press);
+  --node-edge: var(--path-open-wall);
+  --node-line: var(--path-open-line);
+  --node-ink: var(--path-open-ink);
+  --node-glow: var(--path-open-glow);
 }
 /*
  * LOCKED IS THE SAME BUTTON, DIMMED. Rewritten on the pixel verdict of
@@ -396,6 +479,10 @@
   --node-ink: #23264a;
   --node-engrave: #262c52;
   --node-lip-light: rgb(255 255 255 / 0.5);
+  /* NO BLOOM. With the trail gone the glow is what says "this one is yours",
+     so a chip that is not yours must not carry it, or the one signal the
+     page has left would be on every node at once. */
+  --node-glow: transparent;
   /* NOT not-allowed. The chip is a real button that declines the action and
      explains why in its accessible name, so the cursor says "pressable" and
      the press acknowledgement says "heard you"; a barred cursor over a
@@ -432,17 +519,37 @@
  *   line  #4f5688 on the cream 5.95:1   the cut edge that identifies the chip
  *   cut   #3d4470 on #8e95bf   3.18:1   over the 3.0 graphics floor
  */
+/*
+ * RE-DERIVED 2026-09-23 AGAINST THE NEW RAMP, and this is the change that
+ * actually answers the owner rather than the accent one did.
+ *
+ * #8e95bf was a desaturated PERIWINKLE, sampled off the old #a2b5fa face. On
+ * the built page most chips are queued (their content is not authored yet),
+ * so the first screen the owner was looking at was eight grey-blue discs and
+ * one coloured one: changing the rest face alone would have moved a single
+ * chip. Dim is now a desaturated step of the SAME violet the ramp is in, so
+ * the page reads as one family at one temperature and dim still means "the
+ * colour came out", which is the clause this block exists for.
+ *
+ * Measured, and authored as real values rather than a CSS filter per the S2
+ * floor (the contrast audit reads computed colours; a filter would make it
+ * report a pair that is not on screen):
+ *
+ *   ink   #23264a on #9b8fc4     4.92:1   over the 4.5 body floor
+ *   line  #584a86 on the cream   6.55:1   the cut edge that identifies it
+ *   cut   #30265c on #9b8fc4     4.57:1   over the 3.0 graphics floor
+ */
 .path-node--dim,
 .path-node--queued {
-  --node-face: #8e95bf;
-  --node-face-press: #838ab4;
-  --node-edge: #4f5688;
-  --node-line: #4f5688;
+  --node-face: #9b8fc4;
+  --node-face-press: #8f83b8;
+  --node-edge: #584a86;
+  --node-line: #584a86;
   --node-ink: #23264a;
-  /* Deepened with the rest face, same clause: #262c52 on the dim face
-     #8e95bf is 4.55:1, up from #3d4470's 3.18:1. */
-  --node-engrave: #262c52;
+  --node-engrave: #30265c;
   --node-lip-light: rgb(255 255 255 / 0.5);
+  /* Optional work does not bloom. See the locked block above. */
+  --node-glow: transparent;
 }
 /* The dash is on the WELL only. Dashing the face too made the chip read as a
    dashed ring with nothing in it, which is a ghost a critic captured. */
@@ -461,11 +568,11 @@
   --node-line: #9a5410;
   --node-ink: #ffffff;
 }
-/* The dark theme's rest face is #9ba8f5, and the cut goes deeper here for the
-   same reason it did in light: the verdict asked for a bold mark, not a
-   legible one. #242c52 on #9ba8f5 measures 5.83:1. */
+/* The cut at night rides the ramp's own value, the same way the light theme
+   does: #2a1d63 on the night face #a98ffc measures 5.5:1. The hand-set
+   #242c52 here was derived against the retired periwinkle #9ba8f5. */
 .dark .path-node {
-  --node-engrave: #242c52;
+  --node-engrave: var(--path-open-engrave);
 }
 /*
  * Locked at night takes the same dim treatment as it does in daylight, and
@@ -1070,141 +1177,102 @@
 }
 
 /*
- * THE RAIL: the whole course in one strip, one step per unit, always above
- * the page. Show the whole mountain, unlock one step. States ride tokens the
- * tab already owns: done is the progress green over its own edge (the
- * fill-only idiom), the working unit is the trail periwinkle with the halo
- * ring, locked is the dimmed dashed treatment and never a padlock. It
- * scrolls sideways on a phone rather than wrapping, so it stays one line
- * tall and reads as a course rather than a grid.
- */
-/*
- * THE RAIL STAYS ON SCREEN. It used to be position: static, so it scrolled
- * away after about 140px and was 634px above the viewport by the bottom of
- * unit 1: gone at exactly the moment a student reaches the gate and wants to
- * know what is on the other side of it. The WRAPPER is what sticks rather
- * than the nav, because the nav is a horizontal scroller and a fade painted
- * inside a scroller scrolls away with its content.
+ * THE UNIT PICKER, AND WHY THE FIFTEEN NUMERALS ARE GONE.
  *
- * --path-rail-top is the app header's measured height, published by
- * OrgoMapTrack; the fallback is 0 so the rail still sticks (to the top of the
- * viewport, behind the header) if the measurement has not landed yet, rather
- * than falling back to scrolling away. z-index 5 is under the header's 10 and
- * over the trail and the chips, which is the order the layers read in.
+ * Owner, 2026-09-23: "click on the course at the top left and select the
+ * unit." What was here was a sticky strip of fifteen bare numerals: it showed
+ * the whole mountain, which is the Duolingo/ALEKS principle worth keeping,
+ * and it named nothing. A student looking for "the one about carbonyls"
+ * cannot find it in a row of digits, and the strip cost a 44px band of the
+ * top of every page to say so.
+ *
+ * SO THE STRIP BECOMES A CONTROL. One button on the left, the course over the
+ * unit, opening a real list of all fifteen with their TITLES and their done /
+ * current / open / locked state. That is the bar's own pattern: Duolingo's
+ * path carries one coloured header naming "SECTION 1, UNIT 1 / Use basic
+ * phrases" with a single button beside it, and no unit index anywhere on the
+ * page. Ours names the course as well, because ours has more than one.
+ *
+ * IT IS A THIRD WAY IN, NOT A REPLACEMENT. The swipe still walks, the bottom
+ * Continue still walks, and this browses. Nothing the rail could reach is now
+ * unreachable: a locked unit still opens read only, which is the owner's own
+ * 2026-09-17 decision and the reason the list draws locked rows as links.
+ *
+ * ONE HAZARD RETIRED FOR FREE. The rail was a horizontal scroller sitting
+ * inside a surface whose only other gesture is a horizontal swipe, and a
+ * critic reproduced the collision four times out of four. A button has no
+ * drag, so the page turn and the browse can no longer be the same gesture.
  */
-.path-railwrap {
+.path-unitbar {
   position: sticky;
+  /* --path-rail-top is the app header's MEASURED height, published by
+     OrgoMapTrack; the fallback is 0 so the bar still sticks (behind the
+     header) if the measurement has not landed, rather than scrolling away.
+     z-index 5 is under the header's 10 and over the chips. */
   top: var(--path-rail-top, 0px);
   z-index: 5;
-  background: var(--bb-background);
-}
-/*
- * THE CLIPPED STEP IS "THERE IS MORE", NOT A RENDERING FAULT. Fifteen steps
- * are 637px of strip in a 358px window, so the ninth circle is cut by the
- * right edge on every phone. A hard cut through a circle reads as damage; the
- * same cut under a fade reads as a scroller, which is what it is. It is a
- * painted overlay rather than a mask so the rail's own opaque background
- * survives underneath and the page cannot show through the strip.
- */
-.path-railwrap::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 2.25rem;
-  pointer-events: none;
-  background: linear-gradient(to right, transparent, var(--bb-background));
-}
-.path-rail {
-  display: flex;
-  /* 0.5rem, not 0.4: the steps carry a 44px hit area now (see below) and at
-     0.4rem two neighbouring targets overlapped by 1.6px. 36 + 8 = 44 puts
-     them edge to edge instead. */
-  gap: 0.5rem;
-  padding: 0.35rem 0.25rem 0.55rem;
-  overflow-x: auto;
-  /* The rail is the one thing in this tab that pans sideways, and the pager
-     above it declares pan-y for the swipe. Saying so here keeps a finger drag
-     on the rail scrolling the rail on a real phone. */
-  touch-action: pan-x;
-  scrollbar-width: none;
-}
-.path-rail::-webkit-scrollbar {
-  display: none;
-}
-.path-rail__step {
-  position: relative;
-  flex: 0 0 auto;
   display: flex;
   align-items: center;
-  justify-content: center;
-  min-width: 2.25rem;
-  min-height: 2.25rem;
+  gap: 0.5rem;
+  padding: 0.35rem 0 0.5rem;
+  background: var(--bb-background);
+}
+/* The control. Left aligned and left weighted: the owner said top LEFT, and a
+   picker that centres itself is a title rather than a control. */
+.path-unitbar__pick {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: var(--hit-min, 2.75rem);
+  max-width: 100%;
+  padding: 0.3rem 0.7rem 0.3rem 0.55rem;
+  border: 2px solid var(--path-open-line);
   border-radius: 999px;
-  border: 2px solid var(--path-trail-rest-edge);
-  background: var(--path-trail-rest);
-  color: var(--bb-primary-ink);
-  font-family: var(--font-display);
-  font-size: 0.8rem;
-  font-weight: 800;
-  text-decoration: none;
+  background: var(--path-open-face);
+  color: var(--path-open-ink);
+  text-align: left;
+  cursor: pointer;
+  /* The chip vocabulary's own bottom wall, so the picker is visibly the same
+     KIND of object as everything else on this tab. */
+  box-shadow: 0 3px 0 var(--path-open-wall);
+  margin-bottom: 3px;
 }
-/*
- * 44px OF TARGET AROUND A 36px CIRCLE. CLAUDE.md's Budgets table puts the hit
- * floor at 44, and .path-pager__side in this same stylesheet already spends
- * it; the rail was shipping 36 square. Growing the circle to 44 would make
- * fifteen of them 780px of strip and turn the course into a row of buttons,
- * so the visual stays 36 and an inset pseudo element carries the target out
- * to the floor. Four pixels each side is exactly 44.
- */
-.path-rail__step::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  /* --hit-min is the 44px floor itself, the same token .tabbar-item spends,
-     rather than a number retyped here. Sized and centred rather than given a
-     negative `inset`: an absolutely positioned child sizes against the
-     PADDING box, so inset: -4px on a 36px step with a 2px border comes out at
-     40 and quietly misses the floor by four pixels. */
-  width: var(--hit-min, 2.75rem);
-  height: var(--hit-min, 2.75rem);
-  transform: translate(-50%, -50%);
-  border-radius: 999px;
+.path-unitbar__pick:active {
+  transform: translateY(3px);
+  box-shadow: 0 0 0 var(--path-open-wall);
 }
-.path-rail__step--done {
-  border-color: var(--progress-edge);
-  background: var(--progress);
-  color: var(--progress-ink);
-}
-.path-rail__step--current {
-  box-shadow: 0 0 0 4px var(--path-halo-soft);
-}
-.path-rail__step--locked {
-  border-color: var(--bb-border);
-  border-style: dashed;
-  background: transparent;
-  color: var(--bb-muted-foreground);
-}
-/* The page being LOOKED AT, which is not always the unit being worked in:
-   an outline ring, so it composes with any of the three states above. */
-.path-rail__step[aria-current="page"] {
-  outline: 2px solid var(--bb-primary-ink);
-  outline-offset: 2px;
-}
-/*
- * A REAL FOCUS RING. The rail is the FIRST tab stop on the page, and what a
- * keyboard user got there was Chrome's 1px default outline on a 36px circle
- * against a lavender ground: a critic tabbed to it and could not tell it had
- * focus. Same ring the chips wear (.path-node:focus-visible), so the tab has
- * one focus treatment and not two. It is declared after the aria-current
- * outline above, which has equal specificity, so focus wins on the step the
- * page is already showing.
- */
-.path-rail__step:focus-visible {
+.path-unitbar__pick:focus-visible {
   outline: 3px solid var(--bb-ring);
   outline-offset: 3px;
+}
+.path-unitbar__lines {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.05rem;
+}
+.path-unitbar__course {
+  font-family: var(--font-display);
+  font-size: 0.625rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+.path-unitbar__unit {
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-size: 0.875rem;
+  font-weight: 800;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.path-unitbar__caret {
+  flex: none;
+  width: 1.1rem;
+  height: 1.1rem;
 }
 
 /*
@@ -1279,7 +1347,25 @@
   font-weight: 700;
   color: var(--bb-foreground);
 }
+/*
+ * CONTINUE IS A CHIP NOW, not a flat pill that shrinks.
+ *
+ * It is the page's primary control and it was the one button on this tab with
+ * no wall under it: a flat capsule whose whole press was .press's
+ * scale(0.96) plus a brightness filter, which is the generic acknowledgement
+ * this palette gives a text link. Owner, 2026-09-23: "the button press does
+ * not look good." Same answer as .chip-press in beat-chrome.css, same
+ * mechanics, stated once in each place because the two files own different
+ * buttons: a wall, a press that seats the whole wall, and a DOWN stroke with
+ * no easing on it so the acknowledgement is the first painted frame.
+ *
+ * The face is the brand violet at full strength rather than the chips' lifted
+ * #8b6df2, because a CTA that is the same colour as the things it is beside
+ * is not a CTA. White on #6d3fd4 is 6.34:1, over the 4.5 text floor, and the
+ * wall #3f2394 is 9.5:1 on the cream ground.
+ */
 .path-pager__next {
+  --pager-next-lift: 4px;
   flex: 0 0 auto;
   display: flex;
   align-items: center;
@@ -1288,18 +1374,33 @@
   padding: 0 1.1rem;
   border-radius: 999px;
   border: 0;
-  background: var(--bb-primary);
-  color: var(--bb-primary-foreground);
+  background: #6d3fd4;
+  color: #ffffff;
   font-family: var(--font-display);
   font-size: 0.85rem;
   font-weight: 800;
   letter-spacing: 0.04em;
   text-decoration: none;
+  box-shadow: 0 var(--pager-next-lift) 0 var(--path-open-line);
+  margin-bottom: var(--pager-next-lift);
+  transition: transform 140ms cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 140ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+/* Instant down, eased release. See .chip-press:active for why the duration is
+   zeroed HERE rather than removed from the rule above. */
+.path-pager__next:active:not([aria-disabled="true"]) {
+  transform: translateY(var(--pager-next-lift));
+  box-shadow: 0 0 0 var(--path-open-line);
+  transition-duration: 0s;
 }
 .path-pager__next[aria-disabled="true"] {
   background: var(--bb-muted);
   color: var(--bb-muted-foreground);
+  box-shadow: 0 var(--pager-next-lift) 0 var(--bb-border);
   cursor: not-allowed;
+}
+.path-pager__next:focus-visible {
+  outline: 3px solid var(--bb-ring);
+  outline-offset: 3px;
 }
 /* The gate's reason, said in words beside the control that declines. */
 .path-pager__reason {
@@ -1330,10 +1431,62 @@
      the lavender ground it sits against, so the shape is identifiable from
      either side. This is the same value --bb-border is, and for the same reason. */
   --path-edge: #55597f;
-  /* The current node's bloom, per the states sheet's blurred violet halo.
-     Two stops so the pulse is a swell rather than a flash. */
-  --path-halo: rgb(139 92 246 / 0.5);
-  --path-halo-soft: rgb(139 92 246 / 0.22);
+  /*
+   * THE RAMP: A FUN BLUE-PURPLE THAT TURNS INTO A FUN GREEN.
+   *
+   * Owner, 2026-09-23, on the built page: "the colors need to be a more fun
+   * blue-purple and turn into a fun green." The build's open chip was
+   * --chip-face #a2b5fa, a pale periwinkle that photographs as grey-blue, and
+   * its done chip was --progress #b3df92, a soft sage. Two quiet colours a
+   * step apart is not a ramp a student can see move.
+   *
+   * THE VIOLET IS THE OWNER'S OWN. #5b2fc0, chosen 2026-09-17 and living in
+   * theme.css only as --accent-from, is the brand anchor; #8b6df2 is that hue
+   * lifted to a face a dark mark can be cut into. Measured on the cream
+   * ground #f1ede2 and on the face itself:
+   *
+   *   --path-open-wall  #4a2aa8 on the cream    8.4:1   the shape's outline
+   *   --path-open-line  #3f2394 on the cream    9.5:1   the cut edge
+   *   --path-open-face  #8b6df2, engrave on it  3.8:1   over the 3.0 floor
+   *   --path-open-ink   #17103a on the face     4.8:1   over the 4.5 floor
+   *
+   * The FILL is not asked to clear a floor it cannot: the wall and the line
+   * carry it, which is the same pay-for-the-fill-with-an-edge argument
+   * --chip-edge and --bb-border already make everywhere in this palette.
+   *
+   * THE GREEN is --path-done-face #7ed957, the green DESIGN-GOALS names and
+   * the one dark mode was already using; only the light theme had drifted to
+   * the sage. Its ink is --progress-ink, measured 7.17:1 in theme.css.
+   *
+   * WHY THESE ARE PATHWAY TOKENS AND NOT A REPOINT OF --chip-* / --progress.
+   * Those two families are worn by the lesson chrome, the HUD and every
+   * button in the app, and the owner's sentence was about the PATH. Moving
+   * them would have changed forty surfaces to answer a complaint about one,
+   * and the contrast audit's measured pairs elsewhere would all have to be
+   * re-derived. This is the smaller, checkable change.
+   */
+  --path-open-face: #8b6df2;
+  --path-open-face-press: #7a5ae8;
+  --path-open-wall: #4a2aa8;
+  --path-open-line: #3f2394;
+  --path-open-ink: #17103a;
+  /* The cut. #2f3a68 was derived against the old periwinkle face and measures
+     2.89:1 on this one, under the 3.0 an identifiable graphic needs; #2a1d63
+     is 3.83:1 and is still a tone of the chip's own colour, which is what
+     keeps the motif a cut and not a decal. */
+  --path-open-engrave: #2a1d63;
+  --path-open-glow: rgb(139 109 242 / 0.34);
+  --path-done-face: #7ed957;
+  --path-done-wall: #3f8c28;
+  /* The rim, through a name, so no green TOKEN ever appears inside a border
+     declaration. See the .path-node--done block. 5.5:1 on the cream. */
+  --path-done-rim: #2f6b1e;
+  --path-done-ink: #163a26;
+  --path-done-glow: rgb(126 217 87 / 0.5);
+  /* The current node's bloom, in the ramp's own violet now that the ramp is
+     what the chip is wearing. Two stops so the pulse is a swell, not a flash. */
+  --path-halo: rgb(139 109 242 / 0.55);
+  --path-halo-soft: rgb(139 109 242 / 0.24);
   /* The START tag's pale fill. --bb-primary-ink is 6.85:1 on it. */
   --path-start-fill: #efeaff;
   /* The concept lightbulb sticker, and the challenge stopwatch's one warm
@@ -1384,90 +1537,48 @@
   --path-gate-mark-locked: #5b6188;
   --path-gate-lip: rgb(255 255 255 / 0.75);
   /*
-   * THE TRAIL IS GREEN, and this is the round's one deliberate palette move.
-   *
-   * blueberry_r7-compiled-v2's dominant line is a green ribbon running the
-   * whole screen, ahead of the student as well as behind. The build drew a
-   * PERIWINKLE road that turned green only between two adjacent completed
-   * nodes, so the opening screen carried no green at all until something was
-   * finished, and a critic put the choice plainly: "either the ribbon takes
-   * the image's green or this is recorded as a deliberate conflict with the
-   * fill-only progress semantic; today it is neither".
-   *
-   * IT TAKES THE IMAGE'S GREEN, and the progress semantic survives the move
-   * because the two stretches are still two different greens. Sampled off
-   * blueberry_r7-compiled-v2 with a canvas read (measurements/
-   * _probe-goal-ribbon.mjs), across five scan lines:
-   *
-   *   road ahead, y 900 and 980   #8dc16c, #90bc6d, #8ebb6a
-   *   walked stretch, the rail    #b4e687, #c5e79d
-   *   the enrichment detour       #c1d6ab
-   *
-   * So the image itself draws the road ahead as a deeper sage and the walked
-   * stretch as the bright goal green, which is the progress semantic already:
-   * green everywhere, and it BRIGHTENS behind you. --progress (#b3df92 light)
-   * is the walked value and it keeps its static glow; #8ec06e is the road
-   * ahead. "You moved" is still legible as a colour change and the screen is
-   * now green from the first frame, as the image is.
-   *
-   * ON THE FILL-ONLY RULE, because this is exactly the clause it governs. The
-   * rule is that #7ed957 "appears ONLY as a fill carrying dark ink or a white
-   * check on a large shape, never as text, never as a hairline", and that the
-   * contrast gate stays the arbiter. A ribbon is a fill on a large shape: it
-   * is 8px wide with an 11px rim under it, and the RIM is what carries the
-   * floor, exactly as the completed chip's does. Measured: --progress-edge
-   * #3f8c28 is 3.59:1 on the cream ground, over the 3.0 an identifiable
-   * graphic needs, and the loop's own #6f8f57 rim is 3.12:1. Neither green
-   * fill is asked to clear a floor it cannot, and no green is used as text.
+   * THE --path-trail-* FAMILY IS DELETED, owner 2026-09-23: "even get rid of
+   * the path connections. just give it a glow." Nothing draws a connective
+   * line on this tab any more, so the road's rest and detour colours, the
+   * long clause that argued the road from violet to green and back, and the
+   * hub's spokes all went together. The glow that replaced them is
+   * --path-open-glow / --path-done-glow / --path-halo above.
    */
-  /*
-   * SUPERSEDED 2026-09-04 BY THE OWNER, and the reasoning above is kept
-   * rather than deleted because it was right about the IMAGE it sampled.
-   *
-   * DESIGN-GOALS, "The trail: colour, flow, and why it lags today": "THE
-   * TRAIL CARRIES PROGRESS AS COLOUR. Completed stretches are green;
-   * everything ahead is the plain violet family. The join between them is
-   * where the student is."
-   *
-   * Green everywhere, brightening behind you, cannot say that. Two greens a
-   * step apart is a change a reader has to look for, and the whole point of
-   * the clause is that the join is READABLE AT A GLANCE as the place the
-   * student stands. Violet is also already the identity colour of the chips
-   * the road connects ("Violet stays identity ... Green says you moved"), so
-   * the road ahead is drawn in the chip's own family and the walked stretch
-   * is the one thing on the tab wearing the progress green.
-   *
-   * MEASURED, because the rim is what carries the graphics floor and the
-   * fill rides on it (the contrast audit collapses a fill and its stroke to
-   * the better of the two, and says so):
-   *
-   *   #55628f rim on the cream ground #f1ede2   5.09:1, over the 3.0 floor
-   *   #6a719e detour rim on the same ground     4.02:1
-   *
-   * And on the terraces, because the road crosses them and a plate is a
-   * lighter ground than the page: at the deepest step (#e5d9bd) the road rim
-   * is 4.25:1 and the detour rim 3.35:1, both still over the floor. The
-   * walked stretch is unchanged and its own rim bottoms out at exactly 3.00
-   * there, which is where it already was.
-   *
-   * Neither violet fill is asked to clear a floor it cannot, and no green is
-   * used as text or as a hairline, so the FILL-ONLY rule is untouched.
-   */
-  --path-trail-rest: #a2b5fa;
-  --path-trail-rest-edge: #55628f;
-  /* The detour's own thinner, quieter ribbon: a route one step back from the
-     road, in the same violet family so it reads as part of the same path
-     world, dimmed the same way the chips strung on it are. It was a pale
-     green, which under the clause above would have claimed progress for
-     enrichment, and enrichment is never progress. */
-  --path-trail-loop: #c3caea;
-  /* The detour's rim, which is what identifies it: 3.98:1 on the cream. */
-  --path-trail-loop-edge: #6a719e;
 }
+/*
+ * DARK GUARDS ON `.dark`, NEVER ON [data-theme]. The app switches themes with
+ * a CLASS on <html> and never writes the attribute, so a [data-theme="dark"]
+ * block is a block that never matches. theme.css:544 is the precedent.
+ */
 .dark {
   --path-edge: #6f74a3;
-  --path-halo: rgb(143 147 224 / 0.5);
-  --path-halo-soft: rgb(143 147 224 / 0.2);
+  /*
+   * THE RAMP AT NIGHT. In dark the FACE is what identifies the chip against
+   * the near-black ground and the wall stays a mid tone, which is the rule
+   * this file already follows and which an earlier round got backwards.
+   * Measured on the night ground #171a2e:
+   *
+   *   --path-open-face  #a98ffc   6.6:1   the shape
+   *   --path-done-face  #7ed957   9.8:1   the shape
+   *
+   * and the cut inverts nothing: #2a1d63 is 5.5:1 on the lighter night face,
+   * so the motif is still a dark groove in a lit button rather than a light
+   * scratch, which is what a groove looks like under any light.
+   */
+  --path-open-face: #a98ffc;
+  --path-open-face-press: #977bf3;
+  --path-open-wall: #4a2aa8;
+  --path-open-line: #6d4fd6;
+  --path-open-ink: #17103a;
+  --path-open-engrave: #2a1d63;
+  --path-open-glow: rgb(169 143 252 / 0.38);
+  --path-done-face: #7ed957;
+  --path-done-wall: #3d7d27;
+  --path-done-rim: #58a838;
+  --path-done-ink: #163a26;
+  --path-done-glow: rgb(126 217 87 / 0.42);
+  --path-halo: rgb(169 143 252 / 0.55);
+  --path-halo-soft: rgb(169 143 252 / 0.24);
   --path-start-fill: #2a2352;
   --path-badge-gold: #f5c451;
   --path-badge-hot: #ff8f78;
@@ -1484,213 +1595,19 @@
   --path-gate-mark: #c6cbe8;
   --path-gate-mark-locked: #9aa0c4;
   --path-gate-lip: rgb(0 0 0 / 0.35);
-  /* The night road: 4.58:1 on the night ground, same argument as the light
-     half. It lifts OFF the ground rather than sinking into it, because at
-     night the ground is the dark surface and the ribbon is the object. */
-  /* Dark takes the same violet road, one step deeper so the ribbon reads as a
-     road on the indigo night rather than as a glow strip. The rim inverts to
-     the LIGHTER side, which is the rule the chips already follow in dark, and
-     it is the stroke that carries the floor: #9ba8f5 is 7.61:1 on the night
-     ground #171a2e and 5.33:1 on the lightest night terrace, and the detour's
-     #8f93e0 is 6.06:1 and 4.25:1 on the same pair. */
-  --path-trail-rest: #4a54ab;
-  --path-trail-rest-edge: #9ba8f5;
-  --path-trail-loop: #3a4276;
-  --path-trail-loop-edge: #8f93e0;
 }
 
 
 /*
- * THE TRAIL: the drawn winding ribbon connecting the nodes, derived by
- * UnitTrail from where the chips actually landed (trail.ts is the
- * arithmetic). Two strokes per segment, and that is the fill-only rule made
- * drawable: the goal green is 1.60:1 as a line on cream, so a done stretch
- * is never a bare green stroke. It is a wide under-stroke in
- * --progress-edge (3.82:1 on cream) with the green riding on it as a
- * narrower fill, the same pay-for-the-fill-with-an-edge idiom the completed
- * chip uses. The road ahead is the same shape in the violet family, its own
- * rim carrying the graphics floor so its fill does not have to.
- */
-.path-trail {
-  pointer-events: none;
-  /* One leg of the progress flow. Duplicated as FLOW_LEG_MS in UnitTrail.tsx,
-     which owns only the timer that drops the class once the run has played;
-     see the note there for why a drift between the two is harmless. */
-  --flow-dur: 380ms;
-}
-
-/*
- * THE LAYER, and it is the whole fix for the lag the owner reported twice.
- *
- * This box belongs to ONE unit section and scrolls with it, so the compositor
- * moves the ribbon and the chips together and the trail cannot be a frame
- * behind. Absolute, never sticky and never fixed: a sticky trail would leave
- * the scrolling layer again and reintroduce exactly the bug this replaced,
- * which is why pathwayTrailLayer.test.ts asserts the position value.
- *
- * z-index -1 puts it under the chips and under the signpost plate while
- * staying inside .path-unit's own isolated stacking context, so it can never
- * fall behind an ancestor's background. `top` and `height` are written inline by
- * UnitTrail: the box reaches up past the section's own edge to meet the
- * previous unit's gate, which is what keeps the road continuous across a unit
- * boundary. `overflow: visible` because a round line cap on the first or last
- * stretch sits a few pixels outside the viewBox.
+ * THE UNIT SECTION. It used to host the trail layer at z-index -1, and the
+ * lag bug that layer existed to fix is recorded in pathwayTrailLayer.test.ts;
+ * the ribbon is gone and the box is still the containing block every
+ * absolutely positioned thing inside a row resolves against (the name cards,
+ * the START pill, the mascot), so both declarations stay.
  */
 .path-unit {
   position: relative;
-  /* Its own stacking context: the trail below paints at z-index -1 and must
-     stay inside the unit rather than dropping behind the app's background,
-     a job .path-stage__content's z-index used to do before the scene went. */
   isolation: isolate;
-}
-.path-unit-trail {
-  position: absolute;
-  left: 0;
-  width: 100%;
-  z-index: -1;
-  overflow: visible;
-  pointer-events: none;
-}
-/*
- * ONE RIBBON, WITH A RIM, AND IT IS A STEM RATHER THAN A ROAD.
- *
- * THE WIDTH IS MEASURED OFF THE ADOPTED DESIGN, not chosen. Scanned across
- * docs/reference/design-goals/units/unit02-path.jpg with
- * measurements/_probe-ref-trail.mjs: the drawn trail is a 13px run on a 594px
- * phone screen, which is 2.19 percent of screen width. That file is the clean
- * ruler of the two because its nodes are periwinkle, so every green run in it
- * is trail; unit01's completed nodes are green too and inflate the median.
- *
- * 8px on a 390pt phone is 2.05 percent, which lands on the reference with the
- * rim included. It was 11 (2.82 percent), and at that weight the ribbon read
- * as a road the chips were parked on rather than as a stem they are threaded
- * onto. The rim shows 1px either side: enough to be an edge, not enough to be
- * a second line.
- */
-.path-trail__edge {
-  fill: none;
-  stroke: var(--path-trail-rest-edge);
-  stroke-width: 8;
-  stroke-linecap: round;
-}
-.path-trail__edge--done {
-  stroke: var(--progress-edge);
-}
-.path-trail__fill {
-  fill: none;
-  stroke: var(--path-trail-rest);
-  stroke-width: 6;
-  stroke-linecap: round;
-}
-.path-trail__fill--done {
-  stroke-width: 6;
-  stroke: var(--progress);
-  /* The static soft glow on finished path segments: the completed-state
-     language, and it does not pulse. */
-  filter: drop-shadow(0 0 4px var(--progress-glow));
-}
-
-/*
- * THE FLOW: the green TRAVELS, it does not appear.
- *
- * DESIGN-GOALS, owner 2026-09-04: "On finishing a node the green does not
- * appear, it TRAVELS from the node just finished to the next one, along the
- * trail. If several nodes complete at once the flow runs through all of them
- * in sequence rather than snapping."
- *
- * HOW IT IS BUILT, and the choice is deliberate. The walked stretch is drawn
- * as a SECOND pair of strokes laid over the road ahead, on the same path
- * data. So revealing it is a dash offset running from one to zero, which is
- * the green sweeping along a road that is already there, rather than a colour
- * cross-fade that would light the whole stretch at once. The paths carry
- * pathLength="1", so the dash unit is a fraction of each stretch's own length
- * and a short leg and a long leg take the same time; a run of completions
- * therefore reads as even steps rather than as an accelerating one.
- *
- * THE SEQUENCE is --flow-index, stamped by UnitTrail in trail order: leg n
- * starts one duration after leg n-1, so several completions play as one
- * journey through them.
- *
- * WHY dash offset AND NOT a clip or a mask: both of those repaint a filtered
- * region every frame, and the done stroke carries a drop-shadow glow. The
- * glow is suspended for the duration of the travel (filter: none below) and
- * comes back when UnitTrail drops the class, so the animating frames paint a
- * plain 8-over-11 stroke and nothing else. Two strokes on one small per-unit
- * SVG is what keeps this inside the frame budget.
- *
- * THE PROPERTIES ARE ON THE GROUP, not on the two paths: stroke-dasharray and
- * stroke-dashoffset inherit in SVG, so one animation drives the rim and the
- * fill in lockstep and they cannot tear apart.
- */
-.path-trail__done--flow {
-  --flow-index: 0;
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  animation: path-trail-flow var(--flow-dur) cubic-bezier(0.4, 0, 0.2, 1) forwards;
-  animation-delay: calc(var(--flow-index) * var(--flow-dur));
-}
-.path-trail__done--flow .path-trail__fill--done {
-  filter: none;
-}
-@keyframes path-trail-flow {
-  from {
-    stroke-dashoffset: 1;
-  }
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-/*
- * UNDER REDUCED MOTION THE COLOUR CHANGES WITHOUT THE TRAVEL, which is the
- * goals' own wording. UnitTrail already withholds the flow ranks when the app
- * reports reduced motion, so this is the second belt: a viewer whose OS
- * preference is set gets the end state on the first frame even if the class
- * ever reached them. Not `animation: none` with the dash left at 1, which
- * would erase the stretch entirely.
- */
-@media (prefers-reduced-motion: reduce) {
-  .path-trail__done--flow {
-    stroke-dasharray: none;
-    stroke-dashoffset: 0;
-    animation: none;
-  }
-}
-/* The side loop's detour is DOTTED, not a road: an application lesson is
-   optional and off the exam-weighted spine, and a dotted line is the
-   vocabulary for "you may". It never renders in the progress green. */
-/*
- * THE SIDE LOOP'S TRAIL: SOLID, thin, dimmed.
- *
- * blueberry_r7-compiled-v2 draws the enrichment detour bottom right as a
- * SOLID thin trail that leaves the road and rejoins it. The build drew a
- * dotted stub (stroke-dasharray 0.5 10) running to a dead end, which reads as
- * a broken connection rather than as an optional route, and there was no loop
- * anywhere on the surface. trail.ts now emits the real closed detour; this
- * says what it is drawn in.
- *
- * Dimmed rather than dotted, because "dimmed SIDE LOOPS" is the goals' own
- * wording and because dimming is the same statement the chip at the end of it
- * is already making. It is the trail's rest colour at reduced weight, not a
- * filter, so the audit reads the pair that is actually on screen.
- */
-/* The detour is drawn the way the road is, rim then fill on one shape, so
-   its fill can be the pale periwinkle the references draw while the rim is
-   what clears the 3.0 an identifiable graphic needs. Thinner than the road
-   (4 over a 6 rim against the road's 6 over 8), because a detour is an
-   aside and must not out-weigh the spine it leaves. Both pairs came down
-   together when the spine was measured against unit02-path.jpg; the RATIO
-   between them is the thing this clause is about and it is unchanged. */
-.path-trail__loop-edge {
-  fill: none;
-  stroke: var(--path-trail-loop-edge);
-  stroke-width: 6;
-  stroke-linecap: round;
-}
-.path-trail__loop {
-  fill: none;
-  stroke: var(--path-trail-loop);
-  stroke-width: 4;
-  stroke-linecap: round;
 }
 
 /*
@@ -1933,29 +1850,12 @@
   height: 30rem;
   margin-top: 0.25rem;
 }
-.path-hub__spokes {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
-/* A spoke is a piece of TRAIL, so it is drawn as trail: the same pale
-   periwinkle fill on the same darker rim the road and the detour use, at
-   petal weight. It was a bare 3.5px slate hairline, which read as wiring
-   rather than as path and was the one place on the tab where two nodes were
-   joined by something that is not the trail's own vocabulary. */
-.path-hub__spoke-edge {
-  stroke: var(--path-trail-rest-edge);
-  stroke-width: 9;
-  stroke-linecap: round;
-  vector-effect: non-scaling-stroke;
-}
-.path-hub__spoke {
-  stroke: var(--path-trail-rest);
-  stroke-width: 6;
-  stroke-linecap: round;
-  vector-effect: non-scaling-stroke;
-}
+/* THE SPOKES WENT WITH THE TRAIL. A spoke was a piece of trail by its own
+   comment's argument, and the owner's "get rid of the path connections" is
+   about drawn connections, not about the ribbon's file name. The flower still
+   reads as a flower: the hub sits in the centre of the ring, carries its own
+   n-of-m counter, and the petals are placed by petalPositions exactly as
+   before. What is gone is the wiring between them. */
 .path-hub__cell {
   position: absolute;
   transform: translate(-50%, -50%);

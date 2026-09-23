@@ -50,14 +50,43 @@
  * exactly the anti-pattern docs/THREE-TEACHERS.md names in the bar's own energy
  * system. Shell.tsx carries the same note; the owner decides, not this file.
  *
- * WHERE THE DAILY GOAL WENT. Into the header's bottom edge, as a full width
- * meter in place of the divider. That is the bar's in-lesson header pattern:
- * one progress bar across the whole width and a single resource chip. It costs
- * the row no horizontal space, which is what pays for the dominant chip at
- * 390px, and it fixes the collision by removing the thing that was collided
- * with. The goal is still a DRAWN fraction, still never a written one; the
- * streak button opens its coach mark, because closing today's goal and keeping
- * the streak are one sentence in docs/ECONOMY.md.
+ * ROUND FOUR, 2026-09-23: THE EDGE METER IS DELETED AND THE GOAL MOVES ONTO
+ * THE FLAME.
+ *
+ * Owner, on the built page: "i also dont like the bar for the daily goal
+ * charge, etc." A site audit had already counted what he was looking at: "ten
+ * unlabeled TODAY'S GOAL segments" along the bottom of every screen in the
+ * app. Two rounds were spent on that strip. Round one made it a labelled bar
+ * and a judge read a 70 percent bar four pixels above "0 of 86 lessons done"
+ * as course progress; round two changed its KIND to ten ticks so it could not
+ * be read as a percentage of a course. Both were arguments about how to stop
+ * a meter being misread. The owner's answer is that the meter should not be
+ * there, and the bar agrees with him: Duolingo's header is FOUR PLAIN
+ * COUNTERS and holds no progress bar anywhere (bars/duolingo/
+ * path-section1-unit1-green.webp). Brilliant's is a streak count and a
+ * settings control. Neither ships a permanent meter across the chrome.
+ *
+ * SO THE GOAL GOES WHERE THIS FILE ALREADY SAID IT BELONGS. The paragraph
+ * this one replaces ended "the streak button opens its coach mark, because
+ * closing today's goal and keeping the streak are one sentence in
+ * docs/ECONOMY.md". That was true and the pixels did not say it: the arc was
+ * at the other end of the header from the flame it feeds. XpRing now draws
+ * AROUND the flame, so the fraction and the thing it buys are one object, the
+ * button's accessible name says both, and the coach mark behind it already
+ * carries "Hitting your daily goal is what keeps it lit."
+ *
+ * WHY NOT A FOURTH COUNTER, which is what the bar's row literally is. Because
+ * the row is budgeted and the budget is measured: the S3 capture caught six
+ * 44px controls overlapping by twelve pixels at 390px, and this row is
+ * already five objects (course chip, tool control, three readouts). A sixth
+ * would reintroduce the overlap, and shrinking one to fit would break the
+ * 44pt floor. The goal rides an existing chip instead of buying a new column.
+ *
+ * WHAT IS LOST, stated rather than hidden: the goal is a smaller drawn
+ * fraction than a full-width strip was, and it is now legible only to someone
+ * who looks at the flame. That is the trade the owner asked for. The header
+ * gets its `border-b` back in Shell.tsx, because the meter that was standing
+ * in for the divider is gone.
  *
  * All four numbers are still READ, never computed: every one comes out of
  * `deriveEconomy`, which is the same rule the reward moment follows.
@@ -186,77 +215,7 @@ function HudButton({ id, label, onOpen, className = "", children }: ItemProps) {
   );
 }
 
-/**
- * The daily goal, drawn along the bottom of the header, AS A TALLY OF TODAY.
- *
- * IT IS THE ONE DEFECT TWO BLIND JUDGES BOTH CAUGHT, and round one of this pass
- * only half answered it. The judge's sentence was about what the EYE does: "a
- * full width purple bar sits about 70 percent filled while the line immediately
- * below it reads 0 of 86 lessons done". Round one put a 10px "TODAY'S GOAL"
- * label at the left, which tells a reader what the bar is and does nothing at
- * all about the reading. A labelled 70 percent bar above a 0 percent sentence is
- * still two progress statements of the same KIND, four pixels apart, and the eye
- * resolves kind before it reads a 10px caption.
- *
- * SO THE KIND CHANGED. It is ten discrete ticks now, one per tenth of today,
- * inked from the left. A row of countable units is a tally, and a tally is a
- * ration of a day: it cannot be read as a percentage of a course, because a
- * course does not come in ten parts. That is the same move the coach mark
- * already makes for Charge, which draws thirty pips rather than a bar, and it is
- * the bar's own answer to scope read at header scale (its meters are one per
- * screen and bracketed by a control that names what they measure; ours cannot be
- * one per screen, because the header is global, so it is separated by kind
- * instead).
- *
- * THE FRACTION IS STILL EXACT AND STILL ONLY DRAWN. The tick the student is
- * inside is filled to its own fraction rather than snapped, so 14 of 20 XP is
- * seven whole ticks and nothing rounded; `aria-valuenow` carries the XP itself
- * for a screen reader. There is no written "14 / 20" anywhere, which is what P3
- * won on.
- *
- * WHAT THE FIX DID NOT UNDO. The strip is still the header's bottom edge, still
- * the divider Shell.tsx dropped its `border-b` for, and still costs the readout
- * row zero horizontal space. The row above is untouched.
- *
- * One measured side effect worth naming: the old single fill was 630 by 8 on a
- * desktop, which is over the sticker audit's 2500 square pixel card threshold,
- * so a bare filled block with no cut edge inside an outlined track was raising
- * 14 rows of rule 4. Ten ticks are ~88 by 8 each, which is a chip rather than a
- * card, and each one carries its own outline anyway.
- */
-const GOAL_TICKS = 10;
 
-function HudGoalBar({ model }: { readonly model: HudModel }) {
-  const { xp } = model;
-  // How many ticks are inked, as a real number: the whole part is full ticks and
-  // the remainder is how far into the current one today has got.
-  const inked = xp.fraction * GOAL_TICKS;
-  return (
-    <div className="hud-goal-edge">
-      <span className="hud-goal-name" aria-hidden>
-        Today&rsquo;s goal
-      </span>
-      <span
-        className="hud-goal"
-        role="progressbar"
-        aria-valuemin={0}
-        aria-valuemax={xp.goalXp}
-        aria-valuenow={xp.today}
-        aria-label={xp.label}
-        data-met={xp.met ? "true" : "false"}
-      >
-        {Array.from({ length: GOAL_TICKS }, (_, index) => (
-          <span key={index} className="hud-goal-tick" aria-hidden>
-            <span
-              className="hud-goal-fill"
-              style={{ width: `${(Math.min(1, Math.max(0, inked - index)) * 100).toFixed(1)}%` }}
-            />
-          </span>
-        ))}
-      </span>
-    </div>
-  );
-}
 
 /**
  * The charge readout. A mark and a number, in a tinted outlined cell.
@@ -304,7 +263,7 @@ export function Hud() {
   const model = useMemo(() => hudModel(economy), [economy]);
   const [open, setOpen] = useState<HudButtonId | null>(null);
   const [spot, setSpot] = useState<Spot | null>(null);
-  const { diamonds, streak, charge } = model;
+  const { xp, diamonds, streak, charge } = model;
 
   const openItem = (id: HudButtonId, at: Spot) => {
     setSpot(at);
@@ -319,8 +278,19 @@ export function Hud() {
           <span className="text-scale-sm font-bold leading-none tabular-nums text-diamond-ink">{diamonds.value}</span>
         </HudButton>
 
-        <HudButton id="streak" label={streak.label} onOpen={openItem} className="gap-0.5 px-1">
-          <FlameMark lit={streak.lit} className={`h-6 w-6 shrink-0 ${streak.lit ? "" : "hud-flame-out"}`} />
+        {/*
+          THE GOAL RING IS DRAWN AROUND THE FLAME. See the round four block at
+          the top of this file: the goal's arc and the streak it buys are one
+          object now rather than one at each end of the header, and this
+          button's accessible name says both. The ring is aria-hidden because
+          the name carries it; a screen reader hearing the fraction twice is
+          the defect that argument is avoiding.
+        */}
+        <HudButton id="streak" label={`${streak.label}. ${xp.label}`} onOpen={openItem} className="gap-0.5 px-1">
+          <span className="hud-streak-mark shrink-0">
+            <XpRing fraction={xp.fraction} met={xp.met} className="hud-streak-ring" />
+            <FlameMark lit={streak.lit} className={`hud-streak-flame ${streak.lit ? "" : "hud-flame-out"}`} />
+          </span>
           <span
             className={`text-scale-sm font-bold leading-none tabular-nums ${
               streak.lit ? "text-streak-ink" : "text-bb-muted-foreground"
@@ -334,8 +304,6 @@ export function Hud() {
           <ChargeReading charge={charge} />
         </HudButton>
       </div>
-
-      <HudGoalBar model={model} />
 
       <HudSheet
         model={model}
