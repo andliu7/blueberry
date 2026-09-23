@@ -117,10 +117,40 @@ mechanism currently costs the same as a wrong one: nothing.
 real authored note, and loses where it does not. The review face now draws the RDKit structures
 the app has had all along.
 
-**To Alchemie: not judged.** The blind screen-by-screen comparison was deferred three times for
-memory and has never run. Phase 1 beat it on smoothing, undo, replay, redraw, shell, completion
-and placement, with the tapered arrow splitting one win and one loss. That is the last real
-gap in this phase, and it is an absence of evidence rather than a loss.
+**To Alchemie: judged at last, and the answer is one sentence.** We beat them on instruction
+and we lose the canvas.
+
+The comparison ran blind from captures, key written first, no verdict changed on unblinding.
+Across all seven of their stills there is not one sentence: no goal, no diagnosis, no result.
+A student finishing our step knows something; a student finishing theirs solved a puzzle. We
+win the win outright, because theirs desaturates the whole canvas at success and offers no
+forward control, so a correct answer dead-ends, while ours names the chemistry and continues.
+We also tell a student more about a mistake, on their own count of two presentations carrying
+zero words.
+
+But their molecule advertises what can be grabbed, marks events where they happen, and changes
+state visibly everywhere. Ours does none of the three. Their bonds carry white sphere handles
+and their atoms are huge; our canvas has no grabbable-looking element at all and the molecule
+floats in a third of an inset card. Their failure is marked ON the offending bond; ours is
+described in a panel at the bottom with almost nothing changed on the canvas. They answer
+WHERE and not WHY. We answer WHY and not WHERE.
+
+**We built a better lesson around a weaker object**, which is the same defect Phase 1 found in
+the tapered arrow: present in the code, not legible in the pixels.
+
+The single highest-value change in the whole phase, and it is cheap: **on Check, paint the
+verdict on the molecule at the same instant and in the same colour as the panel.** On a miss,
+ring the exact bond or atom at fault in amber and hold it while the panel is up. On a win,
+pulse what actually changed in green before the badges settle. The grader already knows which
+element failed, or the sentence could not have been written. It is the root of three of the
+four losses, and it turns our one real advantage into a usable one: today "Legal, but a
+different change." has no antecedent on screen, so the student must re-derive which of their
+own arrows it means.
+
+Two limits on that verdict, stated rather than buried. Every artifact was a static still, so
+nothing there judges motion, drag feel or latency. And no capture exists of what is behind our
+own "What's off" control, so its value is assumed rather than shown; close that before anyone
+claims the feedback axis outright.
 
 **Carried, with numbers:**
 - The drawing canvas is permanently 68 px shorter, the price of a control row that holds its
