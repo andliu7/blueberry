@@ -99,7 +99,13 @@
    * and with the cream keyline deleted the rim is now the only thing saying
    * the chip is a physical object, so it carries the depth on its own.
    */
-  --node-lip: 14px;
+  /*
+   * SIX, NOT FOURTEEN. Fourteen was 26 percent of the 54px face, which a
+   * round ten critic measured and called a trapdoor: the bar's coin sinks
+   * four to six. The wall and the press both read this, so the chip still
+   * seats exactly on its own wall.
+   */
+  --node-lip: 6px;
   /*
    * THE CAST SHADOW ON THE GROUND. Offset down and blurred, never spread: a
    * spread shadow is a ring, and a ring around this chip is exactly what was
@@ -239,7 +245,9 @@
   /* The colour still CHANGES, it just does not travel: the same rule the
      deleted trail's flow followed. */
   .path-node__face {
-    transition: transform 80ms cubic-bezier(0.4, 0, 0.2, 1);
+    /* The RELEASE. A spring, the same one the pager button uses, so the
+       chip comes back up like a key rather than easing out of mud. */
+    transition: transform 140ms cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 }
 
@@ -249,6 +257,14 @@
 .path-node--press:active .path-node__face {
   transform: translateY(var(--node-lip));
   background: var(--node-face-press);
+  /*
+   * INSTANT DOWN, SPRUNG RELEASE, copied from .path-pager__next, which
+   * already had it. The regearing shipped last round landed on that button
+   * and missed this one, the chip a student presses eight times a unit.
+   * Zeroing the duration HERE rather than removing it above leaves the
+   * release governed by the spring on the base rule.
+   */
+  transition-duration: 0s;
 }
 
 .path-node:focus-visible {
@@ -597,12 +613,19 @@
    draw. The cut inverts with the ground, as every other mark in dark does. */
 .dark .path-node--dim,
 .dark .path-node--queued {
-  --node-face: #3b3f5e;
-  --node-face-press: #343855;
-  --node-edge: #2c3050;
-  --node-line: #7d85c4;
+  /*
+   * ON THE RAMP, AT h254. These measured h233 before, a 21 degree drift off
+   * the violet into indigo, and dim is half the chips on a page, so in dark
+   * the most common face was not the colour the whole round was about. Hue
+   * moved, saturation and lightness kept exactly, so every contrast pair the
+   * states sheet measured still holds.
+   */
+  --node-face: #433b5e;
+  --node-face-press: #3c3455;
+  --node-edge: #342b4f;
+  --node-line: #8e7dc5;
   --node-ink: #ccd1e9;
-  --node-engrave: #aab1dd;
+  --node-engrave: #b7abde;
   --node-lip-light: rgb(0 0 0 / 0.4);
 }
 

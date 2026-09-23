@@ -291,12 +291,27 @@ export function Hud() {
             <XpRing fraction={xp.fraction} met={xp.met} className="hud-streak-ring" />
             <FlameMark lit={streak.lit} className={`hud-streak-flame ${streak.lit ? "" : "hud-flame-out"}`} />
           </span>
-          <span
-            className={`text-scale-sm font-bold leading-none tabular-nums ${
-              streak.lit ? "text-streak-ink" : "text-bb-muted-foreground"
-            }`}
-          >
-            {streak.value}
+          {/*
+            TWO QUANTITIES, TWO READINGS. The ring alone left the goal
+            legible only to a screen reader: a round ten critic measured the
+            whole HUD's visible text as the single digit "0", which is the
+            STREAK, while the number 20, the word goal and the word XP lived
+            only in the accessible name. Deleting the ugly meter was asked
+            for; deleting the goal's legibility was not. The fraction rides
+            this button rather than becoming a sixth object, because the row
+            is five objects at 390px and that budget is measured.
+          */}
+          <span className="flex flex-col items-start leading-none">
+            <span
+              className={`text-scale-sm font-bold tabular-nums ${
+                streak.lit ? "text-streak-ink" : "text-bb-muted-foreground"
+              }`}
+            >
+              {streak.value}
+            </span>
+            <span className="text-scale-xs font-semibold tabular-nums text-bb-muted-foreground" data-hud-goal>
+              {xp.today}/{xp.goalXp}
+            </span>
           </span>
         </HudButton>
 
