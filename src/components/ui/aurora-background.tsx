@@ -60,8 +60,8 @@ const VARIANTS: Record<AuroraVariant, Layer[]> = {
     ["hsla(180, 65%, 80%, 0.35)", "transparent", "transparent"],
   ],
   lavender: [
-    ["hsla(270, 70%, 65%, 0.45)", "hsla(300, 60%, 55%, 0.25)", "transparent"],
-    ["hsla(240, 75%, 70%, 0.35)", "transparent", "transparent"],
+    ["hsla(263, 70%, 62%, 0.45)", "hsla(275, 60%, 52%, 0.25)", "transparent"],
+    ["hsla(252, 75%, 68%, 0.35)", "transparent", "transparent"],
   ],
   ocean: [
     ["hsla(195, 80%, 50%, 0.45)", "hsla(220, 70%, 45%, 0.25)", "transparent"],

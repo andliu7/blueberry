@@ -223,7 +223,31 @@ const CARD_STYLE_LABEL: Record<CardStyle, string> = {
 
 /** Wraps a split route so its chunk can arrive without a blank frame. */
 function withBoundary(node: React.ReactNode) {
-  return <Suspense fallback={<DeckLoading />}>{node}</Suspense>;
+  return <Suspense fallback={<RouteLoading />}>{node}</Suspense>;
+}
+
+/**
+ * The wait for a code-split chunk, which is NOT the wait for a deck.
+ *
+ * WHY THIS IS NOT DeckLoading. It used to be, and that was a real bug reported as
+ * "the server 404s when I click the first node of Unit 1". Nothing 404s: every
+ * hash link on the pathway resolves under `#/app`. What happens is that the game
+ * route is the largest chunk in the app, five engine packages behind it, so on a
+ * cold dev server the Suspense fallback holds for about fifteen seconds, and the
+ * fallback was reading "Looking for that deck…". A student clicks a chemistry
+ * node, waits, and is told the site is hunting for a deck it cannot find. Only
+ * one of the twenty routes behind withBoundary is a deck at all.
+ *
+ * A chunk that is still arriving has nothing to say about whether the thing
+ * exists, so this says the one true thing and no more. The deck lookup keeps
+ * DeckLoading, where the 404 that wording anticipates is a real outcome.
+ */
+function RouteLoading() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-[#f6f4ef] dark:bg-[#0c0a09]">
+      <p className="font-mono text-sm text-slate-400 dark:text-stone-500">Loading…</p>
+    </div>
+  );
 }
 
 /**
@@ -1157,8 +1181,8 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
                           title: "Expand All",
                           icon: <ChevronsUpDown />,
                           onClick: () => toggleAll(true),
-                          gradientFrom: "#4f46e5",
-                          gradientTo: "#6366f1",
+                          gradientFrom: "#6d37e5",
+                          gradientTo: "#7f5cf1",
                         }}
                         collapse={{
                           title: "Collapse All",
@@ -1235,8 +1259,8 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
                           title: VIEW_LABEL[view],
                           icon: VIEW_ICON[view],
                           onClick: cycleView,
-                          gradientFrom: "#7c3aed",
-                          gradientTo: "#a855f7",
+                          gradientFrom: "#7340ed",
+                          gradientTo: "#8767f7",
                           restClassName:
                             "!bg-amber-100 !border-amber-300 dark:!bg-amber-400/15 dark:!border-amber-500/40",
                           active: view !== "list",

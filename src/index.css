@@ -59,7 +59,7 @@
   --destructive-foreground: #ffffff;
   --border: #e2e8f0; /* slate-200 */
   --input: #e2e8f0;
-  --ring: #818cf8; /* indigo-400, the focus colour used everywhere here */
+  --ring: #5a3fd8; /* brand action blue-violet; matches the authoritative --ring set lower in this file */
 }
 
 .dark {
@@ -81,7 +81,7 @@
   --destructive-foreground: #0c0a09;
   --border: #44403c; /* stone-700 */
   --input: #44403c;
-  --ring: #818cf8;
+  --ring: #aac7ff;
 }
 
 /* Registering them here is what turns them into utilities — without this,
@@ -440,7 +440,7 @@ body {
   background-image: linear-gradient(
     225deg,
     transparent 30%,
-    #6366f1 44%,
+    #7f5cf1 44%,
     #d946ef 52%,
     transparent 68%
   );
@@ -1944,3 +1944,73 @@ html[data-device-frame] #root::-webkit-scrollbar {
     }
   }
 }
+
+/* Blueberry palette, 2026-09-10. Plain grounds, blue actions, cool neutrals.
+   Shared semantic colors also keep the legacy stone utility surfaces coherent. */
+@theme {
+  --color-stone-50: #f8faff;
+  --color-stone-100: #edf2fa;
+  --color-stone-200: #dce5f2;
+  --color-stone-300: #bdcbe0;
+  --color-stone-400: #a4b4ca;
+  --color-stone-500: #70839d;
+  --color-stone-600: #51627b;
+  --color-stone-700: #35465f;
+  --color-stone-800: #24334a;
+  --color-stone-900: #192438;
+  --color-stone-950: #101827;
+}
+:root {
+  --background: #f5f7fb;
+  --foreground: #18253d;
+  --card: #ffffff;
+  --card-foreground: #18253d;
+  --popover: #ffffff;
+  --popover-foreground: #18253d;
+  --primary: #5a3fd8;
+  --primary-foreground: #ffffff;
+  --secondary: #e8eef8;
+  --secondary-foreground: #243b60;
+  --muted: #e8eef8;
+  --muted-foreground: #51627b;
+  --accent: #e5edff;
+  --accent-foreground: #472ab4;
+  --border: #cbd6e7;
+  --input: #8b9db8;
+  --ring: #5a3fd8;
+  --color-brand-from: #5a3fd8;
+  --color-brand-to: #5a3fd8;
+}
+.dark {
+  --background: #101827;
+  --foreground: #edf2fa;
+  --card: #192438;
+  --card-foreground: #edf2fa;
+  --popover: #192438;
+  --popover-foreground: #edf2fa;
+  --primary: #5a3fd8;
+  --primary-foreground: #ffffff;
+  --secondary: #24334a;
+  --secondary-foreground: #dce5f2;
+  --muted: #24334a;
+  --muted-foreground: #a4b4ca;
+  --accent: #233b65;
+  --accent-foreground: #aac7ff;
+  --border: #35465f;
+  --input: #70839d;
+  --ring: #aac7ff;
+}
+html, html.dark, body, .dark body {
+  background-color: var(--background);
+  background-image: none;
+}
+/* Solid action faces keep the accent consistent at rest and on hover. */
+.gradient-button, .gradient-button-cool {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border: 1px solid #33208c;
+  box-shadow: 0 3px 0 #33208c;
+}
+.gradient-button:hover, .gradient-button-cool:hover { background: #472ab4; }
+.gradient-button::before { display: none; }
+.gradient-button:active { box-shadow: none; transform: translateY(2px); }

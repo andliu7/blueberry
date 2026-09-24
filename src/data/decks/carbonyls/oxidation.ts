@@ -18,7 +18,7 @@ export const carbonylOxidationDeck: StudyDeck = {
   about: "A secondary alcohol has one answer: the ketone, and it stops there because there is no second hydrogen on that carbon to remove.\n\nA primary alcohol has two, and the reagent picks. PCC is anhydrous and stops at the aldehyde. Jones is aqueous chromium, the aldehyde hydrates as soon as it forms, and the hydrate is oxidised again — so you get the carboxylic acid.\n\nAlmost every exam question on this topic is that one distinction, asked in a different molecule each time. Which is why the cards here are the same two reagents on a lot of different alcohols.",
   motif: "erlenmeyer",
   art: "cover_oxidation.svg",
-  from: "#9333ea",
+  from: "#7548ec",
   to: "#c026d3",
   questions: [
     { q: "PCC oxidation of a primary alcohol: Benzyl alcohol + PCC , CH₂Cl₂, anhydrous", a: "anhydrous  ·  irreversible  ·  Room temperature", badge: "Benzaldehyde", image: "carbonyl_pcc.svg", imageCrop: "37%", heading: "Oxidation · worked examples" },

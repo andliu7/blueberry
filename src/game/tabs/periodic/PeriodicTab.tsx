@@ -45,6 +45,12 @@ const CATEGORY_COLOUR: Record<Category, string> = {
   post_transition: "#bbf7d0",
   metalloid: "#a7f3d0",
   nonmetal: "#bfdbfe",
+  // LEFT AS IS, and measured rather than assumed: `#ddd6fe` is H 250.5, which is
+  // --bb-primary's own hue (H 250.6) at wash lightness, so it is already the
+  // blue-violet member of this scale and not a lavender straggler. It carries
+  // PERIODIC_INK at 10.03:1. Rotating it toward the primary would only push it
+  // into `nonmetal` (`#bfdbfe`, H 213.3) and cost the scale a distinguishable
+  // category, so the value stays.
   noble: "#ddd6fe",
   lanthanide: "#fbcfe8",
   actinide: "#f5d0fe",
@@ -56,8 +62,22 @@ const PHASE_COLOUR: Record<Element["phase"], string> = { solid: "#e7e5e4", liqui
 function electronegativityColour(value: number | null): string {
   if (value === null) return "#f5f5f4";
   // 0.7 to 4.0 mapped onto a light-to-saturated violet ramp.
+  //
+  // THE RAMP STOPS AT L72 AND THAT IS A CONTRAST FLOOR, NOT A TASTE CHOICE. The
+  // cell label is #2a2a42 (PERIODIC_INK) composed on this fill, so every step has
+  // to clear the 4.5 text floor. The old ramp ran to L50 and the dark end failed
+  // outright: L62 measured 3.03:1 and L50 measured 1.90:1, so fluorine, oxygen,
+  // nitrogen and chlorine, the four a student reads most, carried illegible
+  // labels. Rotating the hue does not help and makes it worse (hue 251 gives
+  // 2.78:1 and 1.69:1), because the problem is lightness.
+  //
+  // The span is COMPRESSED to 24 rather than clipped at the top, so all five
+  // steps stay distinguishable: clipping would flatten the whole high end and
+  // make those same four elements look identical, trading a contrast bug for an
+  // information one. Measured on the ink: L96 12.23:1, L90 9.92:1, L84 7.94:1,
+  // L78 6.23:1, L72 4.84:1. Do not lower this floor; L70 is already 4.43:1.
   const t = Math.max(0, Math.min(1, (value - 0.7) / 3.3));
-  const light = 96 - t * 46;
+  const light = 96 - t * 24;
   return `hsl(262 70% ${light}%)`;
 }
 

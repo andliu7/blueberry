@@ -801,7 +801,7 @@ export function BlueberryBot3D({
         <Suspense fallback={null}>
           <ambientLight intensity={0.9} />
           <directionalLight position={[3, 5, 4]} intensity={1.1} castShadow />
-          <directionalLight position={[-4, 1, -3]} intensity={0.35} color="#c4b5fd" />
+          <directionalLight position={[-4, 1, -3]} intensity={0.35} color="#bfb7fd" />
           <Berry
             mood={mood}
             interactive={interactive}

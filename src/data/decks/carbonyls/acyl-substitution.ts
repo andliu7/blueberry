@@ -18,8 +18,8 @@ export const carbonylAcylSubstitutionDeck: StudyDeck = {
   about: "Identical opening move to nucleophilic addition: nucleophile on, oxygen down. The difference is what is sitting on the carbonyl carbon.\n\nA chloride, an ester oxygen or an anhydride can leave, so the oxygen comes back down and throws it out, and you end up substituted rather than added to.\n\nWhich derivative is more reactive follows from how good that leaving group is, and that ordering — acid chloride, anhydride, ester, amide — is worth more marks than any single mechanism here.",
   motif: "vanillin",
   art: "cover_acyl-substitution.svg",
-  from: "#5b21b6",
-  to: "#7c3aed",
+  from: "#5622bb",
+  to: "#7340ed",
   questions: [
     { q: "Acetylation of vanillin: Vanillin + Ac₂O , NaOH , H₂O", a: "basic  ·  irreversible  ·  Room temperature", badge: "Vanillin acetate", image: "carbonyl_vanillin-acetylation.svg", imageCrop: "37%", heading: "Nucleophilic acyl substitution · worked examples" },
     { q: "Anhydride from an acid chloride: Acetyl chloride + CH₃CO₂⁻ , pyridine", a: "neutral  ·  irreversible  ·  Room temperature", badge: "Acetic anhydride", image: "carbonyl_anhydride.svg", imageCrop: "37%", heading: "Nucleophilic acyl substitution · worked examples" },

@@ -119,13 +119,25 @@
 /*
    CHARGE GOING OUT. The picture's `spending` violet, and it is a MIX because
    the picture's own hue is not a token yet. The reference fills this state with
-   #8e84f7, a blue-violet; --bb-primary-bright alone is #8b5cf6, a step toward
-   magenta that read as a different colour beside the reference. Four fifths of
-   it over the periwinkle chip face lands at #908ff7, the reference to within a
-   couple of steps per channel, and MEASURES 3.25:1 on the card light and 5.59:1
-   dark, over the 3:1 WCAG 1.4.11 asks of a meaningful graphic. The reference's
-   own violet is 2.79:1 on its own cream, so the picture is matched by moving
-   toward compliance rather than away from it.
+   #8e84f7, a blue-violet; --bb-primary-bright alone is #4779ee, H 222.0, a
+   cooler blue that read as a different colour beside the reference. Four fifths
+   of it over the periwinkle chip face (--chip-face #b8affa) lands at #5e84f0,
+   H 224.4, which MEASURES 3.48:1 on --bb-card light; dark, #78a5ff over #ada3f5
+   lands at #83a5fd and measures 6.49:1 on --bb-card #192438. Both clear the 3:1
+   WCAG 1.4.11 asks of a meaningful graphic. The reference's own violet is 2.79:1
+   on its own cream, so the picture is approached by moving toward compliance
+   rather than away from it.
+
+   --bb-primary-bright STAYS BLUE, deliberately, in the sweep that turned the
+   primary blue-violet (#5a3fd8, H 250.6). Three reasons, in order. It is not a
+   leaf: eight call sites read it (onboarding/icons.tsx, MoleculeSvg, streak.css,
+   TrainerScreen) and nodeSheetPicture.test.ts pins it by name, so re-hueing it
+   is a measured sweep of its own, not a colour swap. At 28 degrees off the
+   primary it is what makes the palette read as blue-PURPLE rather than one flat
+   violet, which is the brief. And every ratio recorded above and at the flask
+   note higher in this file was measured against #4779ee; changing the token
+   silently invalidates them. The prose above was the only thing wrong here: it
+   still named #8b5cf6, a value this token has not held.
 */
 .charge-meter[data-meter-flow="out"] {
   --meter-fill: color-mix(in srgb, var(--bb-primary-bright) 80%, var(--chip-face));

@@ -104,13 +104,13 @@
   --blue-900: #1e3a8a;
 
   /* Accent: deep purple. Mechanisms, and the Blueberry identity. NEVER a gradient on a button. */
-  --purple-50:  #f5f3ff;
-  --purple-100: #ede9fe;
-  --purple-300: #c4b5fd;
-  --purple-500: #8b5cf6;
-  --purple-600: #7c3aed;
-  --purple-700: #6d28d9;
-  --purple-800: #5b21b6;
+  --purple-50:  #f4f3ff;
+  --purple-100: #ebeafe;
+  --purple-300: #bfb7fd;
+  --purple-500: #8360f6;
+  --purple-600: #7340ed;
+  --purple-700: #6729df;
+  --purple-800: #5622bb;
 
   /* Accent: green. Correct, and progress. */
   --green-50:  #ecfdf5;
@@ -278,7 +278,7 @@
     --bb-primary-ink: var(--n-950);
 
     --accent-mechanism: var(--purple-300);
-    --accent-mechanism-soft: rgba(196, 181, 253, 0.13);
+    --accent-mechanism-soft: rgba(191, 183, 253, 0.13);
 
     --good: var(--green-300);
     --good-soft: rgba(110, 231, 183, 0.14);
@@ -330,7 +330,7 @@
   --bb-primary-ink: var(--n-950);
 
   --accent-mechanism: var(--purple-300);
-  --accent-mechanism-soft: rgba(196, 181, 253, 0.13);
+  --accent-mechanism-soft: rgba(191, 183, 253, 0.13);
 
   --good: var(--green-300);
   --good-soft: rgba(110, 231, 183, 0.14);

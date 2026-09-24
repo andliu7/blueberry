@@ -15,11 +15,15 @@ import {
  * The tiers, shown in Subscriptions and at the top of Profile.
  *
  * **The prices are still not invented, they are now read.** Every number on
- * these cards comes from `stripe-prices`, which asks Stripe. A plan Stripe has
- * no price for is absent from that answer and its card says so, which today is
- * all of the paid ones. That is the correct output until Andrew creates the
- * products; see `documentation/STRIPE.md`. Typing "$6" in here would make this file the
- * one place on the site that can be out of date about money.
+ * these cards comes from `stripe-prices`, which asks Stripe. Typing "$6" in
+ * here would make this file the one place on the site that can be out of date
+ * about money; see `documentation/STRIPE.md`.
+ *
+ * **A paid tier Stripe cannot quote gets no column.** It used to get one, with
+ * "TBD" where the price goes, sitting in the row next to tiers that can be
+ * bought. A card shaped like a product, priced "TBD", is a product the site is
+ * pretending to sell. Today Stripe has no products at all, so the row is the
+ * two free tiers plus one card that says work is coming and names no price.
  *
  * Which card is marked current comes from the Supabase session and from the
  * entitlements the Stripe webhook wrote, so the panel reflects the actual
@@ -29,14 +33,18 @@ import {
  */
 
 type Plan = {
-  id: "open" | "member" | "pro" | "pass";
+  id: "open" | "member" | "pro" | "pass" | "coming";
   /** The Stripe plan key, for the tiers that are bought. */
   buys?: PlanKey;
   icon: React.ReactNode;
   name: string;
   description: string;
-  /** Shown when Stripe has no price for this tier. Free tiers keep it always. */
-  fallbackPrice: string;
+  /**
+   * The price when Stripe is not the one saying it, which now only means "Free".
+   * A paid tier has none: without a Stripe price it is not shown at all, so
+   * there is nothing for it to fall back to.
+   */
+  fallbackPrice?: string;
   fallbackPeriod?: string;
   features: string[];
   /** Shown below the divider: what this tier adds that the one before it lacks. */
@@ -77,13 +85,20 @@ const PLANS: Plan[] = [
     icon: <Sparkles />,
     name: "Pro",
     description: "The parts that cost something to run.",
-    fallbackPrice: "TBD",
-    fallbackPeriod: "not on sale yet",
     features: ["Everything in Member"],
+    // EVERY LINE HERE IS A PROMISE THAT GOES LIVE THE MOMENT A STRIPE PRICE
+    // EXISTS. This card is filtered out today because Stripe cannot quote it, so
+    // the filter is the only thing keeping these off the page, and it stops
+    // protecting you the instant the price is created. Checked 2026-09-24 and
+    // trimmed to what actually ships: the mechanism trainer grades arrows as they
+    // are drawn, and importFile.ts brings in notes from our JSON and from
+    // delimited text. Removed "A syllabus, so the site knows when your exams
+    // are", which does not exist anywhere in src, and narrowed the import line
+    // from "notes and images" to notes, because no import path handles an image.
+    // Add a line back when the thing ships, not when it is planned.
     adds: [
       "Mechanism practice, marked as you draw it",
-      "Importing your own notes and images",
-      "A syllabus, so the site knows when your exams are",
+      "Importing your own notes",
     ],
   },
   {
@@ -92,12 +107,28 @@ const PLANS: Plan[] = [
     icon: <Ticket />,
     name: "Semester pass",
     description: "Everything in Pro, paid once, until the semester ends.",
-    fallbackPrice: "TBD",
-    fallbackPeriod: "not on sale yet",
     features: ["Everything in Pro"],
     adds: ["One payment, no renewal", "Nothing to remember to cancel"],
   },
 ];
+
+/**
+ * The single card that stands in for the paid tiers while Stripe can quote none
+ * of them.
+ *
+ * It has no `fallbackPrice`, so it renders no price element at all rather than a
+ * placeholder in the slot where a number belongs. It has no `features` either:
+ * a list of ticks under a tier nobody can buy reads as a list of things you get.
+ * The description is the whole claim, and the claim is that this is not for sale.
+ */
+const COMING: Plan = {
+  id: "coming",
+  icon: <Sparkles />,
+  name: "Paid tiers",
+  description:
+    "Not on sale. Mechanism practice, note imports and a syllabus are being built, and no price has been set for any of it.",
+  features: [],
+};
 
 export function SubscriptionPlans({ onNavigate }: { onNavigate?: () => void }) {
   const { user } = useAuth();
@@ -111,10 +142,22 @@ export function SubscriptionPlans({ onNavigate }: { onNavigate?: () => void }) {
    */
   const current: Plan["id"] = pro ? "pro" : user ? "member" : "open";
 
+  /**
+   * A paid tier earns a column only once Stripe can quote it, and when none can,
+   * one "coming" card stands in for all of them. Filtering rather than deleting
+   * the entries keeps the property `documentation/STRIPE.md` relies on: a real
+   * card appears the moment its price exists in Stripe, with no code change.
+   */
+  const sellable = PLANS.filter((plan) => !plan.buys || prices.some((p) => p.plan === plan.buys));
+  const shown = sellable.some((plan) => plan.buys) ? sellable : [...sellable, COMING];
+
+  // The column count follows the cards, so a shorter row does not leave a hole.
+  const columns = shown.length > 3 ? "lg:grid-cols-4" : "lg:grid-cols-3";
+
   return (
     <div>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {PLANS.map((plan) => {
+      <div className={`grid gap-3 sm:grid-cols-2 ${columns}`}>
+        {shown.map((plan) => {
           const price = plan.buys ? prices.find((p) => p.plan === plan.buys) : undefined;
           return (
             <PricingCard.Card key={plan.id}>
@@ -127,14 +170,18 @@ export function SubscriptionPlans({ onNavigate }: { onNavigate?: () => void }) {
                   {current === plan.id && <PricingCard.Badge>Current</PricingCard.Badge>}
                 </PricingCard.Plan>
 
-                <PricingCard.Price>
-                  <PricingCard.MainPrice>
-                    {price ? formatPrice(price.amount, price.currency) : plan.fallbackPrice}
-                  </PricingCard.MainPrice>
-                  {periodLabel(plan, price) && (
-                    <PricingCard.Period>{periodLabel(plan, price)}</PricingCard.Period>
-                  )}
-                </PricingCard.Price>
+                {/* No price element unless there is a price to put in it. An
+                    empty slot is honest; a slot holding a placeholder is not. */}
+                {(price || plan.fallbackPrice) && (
+                  <PricingCard.Price>
+                    <PricingCard.MainPrice>
+                      {price ? formatPrice(price.amount, price.currency) : plan.fallbackPrice}
+                    </PricingCard.MainPrice>
+                    {periodLabel(plan, price) && (
+                      <PricingCard.Period>{periodLabel(plan, price)}</PricingCard.Period>
+                    )}
+                  </PricingCard.Price>
+                )}
 
                 <PlanAction
                   plan={plan}
@@ -148,14 +195,16 @@ export function SubscriptionPlans({ onNavigate }: { onNavigate?: () => void }) {
               <PricingCard.Body>
                 <PricingCard.Description>{plan.description}</PricingCard.Description>
 
-                <PricingCard.List>
-                  {plan.features.map((item) => (
-                    <PricingCard.ListItem key={item}>
-                      <Check className="mt-0.5 size-3.5 shrink-0 text-slate-900 dark:text-stone-100" />
-                      <span>{item}</span>
-                    </PricingCard.ListItem>
-                  ))}
-                </PricingCard.List>
+                {plan.features.length > 0 && (
+                  <PricingCard.List>
+                    {plan.features.map((item) => (
+                      <PricingCard.ListItem key={item}>
+                        <Check className="mt-0.5 size-3.5 shrink-0 text-slate-900 dark:text-stone-100" />
+                        <span>{item}</span>
+                      </PricingCard.ListItem>
+                    ))}
+                  </PricingCard.List>
+                )}
 
                 {plan.adds && (
                   <>

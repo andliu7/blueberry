@@ -18,8 +18,8 @@ export const carbonylAdditionDeck: StudyDeck = {
   about: "The nucleophile goes onto the carbonyl carbon and the oxygen comes down to alkoxide. Then it stops, because there is nothing on that carbon that can leave.\n\nThat is the whole distinction between this deck and the acyl substitution one. Same first step, same tetrahedral intermediate, different second half.\n\nThe reagent decides what you end up with, so the cards vary the substrate and keep the reagent fixed: if you can only answer NaBH₄ on acetophenone, you have learned acetophenone rather than NaBH₄.",
   motif: "attack",
   art: "cover_addition.svg",
-  from: "#4338ca",
-  to: "#6366f1",
+  from: "#5b34bb",
+  to: "#7f5cf1",
   questions: [
     { q: "NaBH₄ on a ketone: Acetophenone + NaBH₄ , MeOH", a: "neutral  ·  irreversible  ·  0 °C to room temperature", badge: "1-Phenylethanol", image: "carbonyl_nabh4-ketone.svg", imageCrop: "37%", heading: "Nucleophilic addition · worked examples" },
     { q: "Cyanohydrin formation: Acetone + NaCN , H₂O, pH ≈ 10", a: "basic  ·  irreversible  ·  Room temperature", badge: "Acetone cyanohydrin", image: "carbonyl_cyanohydrin.svg", imageCrop: "37%", heading: "Nucleophilic addition · worked examples" },

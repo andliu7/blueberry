@@ -29,8 +29,8 @@ export const reductionDeck: Deck = {
   funFact:
     "The acetate protecting group is why this works at all: free vanillin's phenol would just get deprotonated and consume hydride. And less than about one percent of the world's vanillin comes from actual orchid pods. Most is synthesised from guaiacol or pulled out of lignin, a waste stream of paper pulping. Fittingly, borohydride chemistry is also used industrially to bleach that same wood pulp.",
   motif: "vanillin",
-  from: "#5b21b6",
-  to: "#7c3aed",
+  from: "#5622bb",
+  to: "#7340ed",
   questions: [
     // ---- Reduction fundamentals
     { q: "What is a reduction?", a: "Gain of electrons. In organic terms, an <strong class='text-indigo-700'>increase in C–H bonds</strong> and/or a decrease in C–heteroatom bonds. Here: aldehyde → primary alcohol." },

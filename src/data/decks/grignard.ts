@@ -26,8 +26,8 @@ export const grignardDeck: Deck = {
   about:
     "In this lab you make a Grignard reagent from an unknown alkyl bromide and magnesium, let that reagent attack an unknown carbonyl compound, and work the mixture up to isolate an alcohol. Neither starting material is named for you, and identifying them from the IR of your product and the NMR spectra is the point of the experiment.\n\nAlmost every piece of the apparatus exists for one reason: water destroys the reagent before it can react. Oven-dried glassware, greased joints, the $CaCl_2$ drying tube and anhydrous ether all serve that same purpose, which is why so many setup questions have the same answer. Refer to the prelab videos for the full explanation.\n\nThree operations happen in the same separatory funnel and it pays to keep them apart. The acidic workup protonates the magnesium alkoxide into the alcohol and dissolves the magnesium salts. An extraction moves your product between solvents, pulling the alcohol into the ether layer. A wash leaves the product where it is and removes something else instead: bicarbonate takes out leftover sulfuric acid, brine draws across dissolved water.\n\nThe chemistry to have ready is the carbon-magnesium bond. Magnesium is far less electronegative than carbon, so that bond is polarized enough to make the carbon both a strong nucleophile and a strong base, one fact doing two jobs. Carbonyls are electrophilic for the opposite reason. The IR at the end tells a finished alcohol from starting material you never converted.",
   motif: "attack",
-  from: "#4338ca",
-  to: "#6d28d9",
+  from: "#5b34bb",
+  to: "#6f30ed",
   questions: [
     { q: "Why are Grignard reagents strong nucleophiles?", a: "Mg is far less electronegative than carbon, so the $C-Mg$ bond is <strong class='text-indigo-700'>highly polarized</strong>, leaving carbon electron-rich ($\\delta^-$) and eager to attack electrophiles." },
     { q: "Why are Grignard reagents sensitive to moisture?", a: "They're extremely <strong class='text-indigo-700'>strong bases</strong>. Water gets deprotonated instantly, forming $R-H$ and $Mg(OH)X$ and destroying the reagent." },

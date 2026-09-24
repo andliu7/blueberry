@@ -31,7 +31,12 @@ import { cn } from "@/lib/utils";
  */
 
 const chartConfig = {
-  feedback: { label: "Feedback in", color: "#818cf8" },
+  // --bb-primary's hue (H 251.0) rather than the old indigo `#818cf8` (H 234.5).
+  // This value is both a line on the chart and the legend swatch, so it is a
+  // meaningful graphic on two grounds and needs 3:1 on each: it measures 4.24:1
+  // on the light card's white and 4.12:1 on stone-900. `#818cf8` was 2.98:1 on
+  // white, under the floor, so this fixes the light side as well as the hue.
+  feedback: { label: "Feedback in", color: "#7e67e4" },
   tasks: { label: "Tasks added", color: "#c084fc" },
 } satisfies ChartConfig;
 

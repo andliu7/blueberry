@@ -8,7 +8,11 @@ interface Piece {
   delay: number;
 }
 
-const COLORS = ["#6366F1", "#F59E0B", "#22C55E", "#EF4444", "#0EA5E9"];
+// The first stop is --bb-primary's hue (H 251.0 against the token's H 250.6),
+// lightened so one value works over both grounds a burst can land on: 3.85:1 on
+// the cream ground and 4.04:1 on the dark one, both over the 3:1 a meaningful
+// graphic asks for. The old `#6366F1` was indigo (H 238.7).
+const COLORS = ["#7e67e4", "#F59E0B", "#22C55E", "#EF4444", "#0EA5E9"];
 
 export function Confetti({ trigger }: { trigger: number }) {
   const [pieces, setPieces] = useState<Piece[]>([]);

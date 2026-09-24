@@ -17,7 +17,7 @@
  * is what the under-100ms acknowledgement budget asks of a stylesheet.
  *
  * CONTRAST, measured not assumed (WCAG 2.1 ratios, light / dark):
- *   chip ink #23264a on face #9ba8f5             6.43 both themes
+ *   chip ink #23264a on face #ada3f5             6.43 both themes
  *   progress ink #163a26 on fill #7ed957         7.17 both themes
  *   hero ink #ffffff on --cards-hero #5c6bb8     4.94 both themes (the goal
  *     image's own rgb(127,143,205) carries white at only 3.13, over the 3.0
@@ -158,13 +158,13 @@
      a MUTED INDIGO close to the periwinkle family, where the round 2 build
      used --bb-primary rgb(109,63,212), the loudest colour on the screen. The
      image's tray is a calm base the cards sit in.
-       --tray-ink #ffffff on --tray-face #55558f    6.73  (white on the panel)
+       --tray-ink #ffffff on --tray-face #5c548b    6.73  (white on the panel)
        --tray-face on the cream ground              3.55  (the shape's own
          boundary, over the 3.0 graphics floor, so the box needs no outline)
        --tray-face on the night ground              3.28 */
-  --tray-face: #55558f;
-  --tray-rim: #6f6faa;
-  --tray-inner: #37375f;
+  --tray-face: #5c548b;
+  --tray-rim: #756daa;
+  --tray-inner: #3c365c;
   --tray-edge: #2f2f55;
   --tray-ink: #ffffff;
   /* The cavity's wash: the continuous inner shadow the drawing gradients
@@ -232,9 +232,9 @@
   --chip-off: #3a4060;
   --chip-off-edge: #2b3050;
   --chip-off-ink: var(--bb-foreground);
-  --tray-face: #5c5c9c;
-  --tray-rim: #7a7ab8;
-  --tray-inner: #33335a;
+  --tray-face: #645a9a;
+  --tray-rim: #8078b8;
+  --tray-inner: #383258;
   --tray-edge: #8b8bd0;
   --tray-shade: #05050f;
   /* The night tints are the same hues held at the night card's luminance, so
@@ -760,7 +760,7 @@
   box-shadow: 0 var(--slab-size) 0 0 var(--chip-edge), 0 0 14px 2px var(--chip-glow);
 }
 
-/* At night --chip-edge is the chip's SHADOW side (#4a54ab), 2.19 on the
+/* At night --chip-edge is the chip's SHADOW side (#5f50a3), 2.19 on the
    night card, under the 3.0 shape floor; the chip FACE is what reads there
    (6.48). Same split theme.css's own --bb-primary / --bb-primary-ink pair uses:
    one role, two values, because no one value clears both grounds. */

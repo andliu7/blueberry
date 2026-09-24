@@ -1,6 +1,28 @@
 /**
  * The winding trail, as arithmetic. Pure: no React, no DOM.
  *
+ * NOTHING IN THE APP DRAWS THIS ANY MORE, 2026-09-23. The owner deleted the
+ * path connections ("even get rid of the path connections. just give it a
+ * glow"), UnitTrail.tsx went with them, and `trailSegments` and `flowOrder`
+ * now have no runtime caller. They are NAMED HERE RATHER THAN DELETED, which
+ * is a judgement call worth stating:
+ *
+ *   trailSegments is the probe three test files use to assert the NODE
+ *   LAYOUT that is still on screen - that a diamond's arms stay on their own
+ *   side of the centreline (pathwayGateGeometry), that a run of detours is
+ *   one closed loop reaching every chip rather than a stub per chip, and that
+ *   the checkpoint run keeps winding (pathwayBranchDensity). Deleting it
+ *   would force deleting roughly fifteen assertions about a layout that has
+ *   not changed, and layout is not what the owner removed.
+ *
+ *   flowOrder and trackMapModel are the genuinely unreferenced pair.
+ *   trackMapModel was already dead before this round (the F1 scrollbar it fed
+ *   went on 2026-09-05), so it is reported and left alone.
+ *
+ * The next person to touch this file should decide whether the layout
+ * assertions want their own probe; until then the honest statement is that
+ * this module is a test fixture, not a renderer.
+ *
  * The trail is the drawn ribbon that connects the nodes, the thing the
  * reference (blueberry_r7-compiled-v2) makes the backbone of the whole tab.
  * PathScene measures where the nodes actually landed and hands the centres

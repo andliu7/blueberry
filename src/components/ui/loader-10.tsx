@@ -24,7 +24,7 @@ import { cn } from "@/lib/utils";
  * two separate shapes appear to stretch and merge like liquid.
  */
 export interface GooeyLoaderProps extends React.HTMLAttributes<HTMLDivElement> {
-  /** The leading blob. Defaults to the indigo the site uses on links. */
+  /** The leading blob. Defaults to the blue-violet of --bb-primary's hue. */
   primaryColor?: string;
   /** The trailing blob. Defaults to the fuchsia end of the same ramp. */
   secondaryColor?: string;
@@ -38,7 +38,10 @@ const GooeyLoader = React.forwardRef<HTMLDivElement, GooeyLoaderProps>(
     const filterId = `gooey-${React.useId().replace(/:/g, "")}`;
 
     const style = {
-      "--gooey-primary-color": primaryColor ?? "#6366f1",
+      // --bb-primary's hue (H 251.0) lightened so the blob clears the 3:1 a
+      // meaningful graphic asks for on either ground a loader can sit on:
+      // 3.85:1 on cream, 4.04:1 on the dark ground. Was `#6366f1`, indigo.
+      "--gooey-primary-color": primaryColor ?? "#7e67e4",
       "--gooey-secondary-color": secondaryColor ?? "#d946ef",
       "--gooey-border-color": borderColor ?? "rgba(148, 163, 184, 0.35)",
       "--gooey-filter": `url(#${filterId})`,

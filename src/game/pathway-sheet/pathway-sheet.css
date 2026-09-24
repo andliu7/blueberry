@@ -636,6 +636,31 @@ button.ns-card--go .ns-chip__face {
    difficulty. The ring measures 3.24:1 light and 5.4:1 dark, and
    measurements/_probe-sheet-graphics.mjs re-takes both.
 */
+/*
+   THE DIFFICULTY GROUP: the word and the dots, read as one thing.
+
+   Owner, 2026-09-23: "the dots are meaningless." They were unlabelled, not
+   unmeasured, so the fix is a legend and not a new scale. The group is what
+   the card's row now balances against the "Practice" heading, so the dots
+   keep their place on the right and the word sits just inside them.
+
+   THE WORD IS --bb-muted-foreground, NOT --ns-quiet-mark. The pips' own
+   colour is measured for a SHAPE and only just: --ns-quiet-mark samples
+   #908a7a, which is 3.10:1 on the card's #f7f3e8 fill. That clears the 3.0
+   floor an identifiable graphic needs and FAILS the 4.5 a piece of text
+   needs, so the word cannot wear it. --bb-muted-foreground is the token
+   .ns-note already draws body copy with on this exact surface.
+*/
+.ns-difficulty {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.ns-difficulty__band {
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--bb-muted-foreground);
+}
 .ns-pips {
   display: inline-flex;
   gap: 0.625rem;

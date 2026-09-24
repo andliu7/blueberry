@@ -223,11 +223,27 @@
    * the 3.0 an identifiable graphic needs and over the 4.5 for text. No frame
    * of this fade paints a pair that fails.
    *
-   * The transform stays on its own 80ms curve below: the PRESS must not wait
-   * for a colour.
+   * The transform stays on its own curve below: the PRESS must not wait for a
+   * colour.
+   *
+   * THE RELEASE IS THE SPRING, and it lives HERE, on the base rule, which is
+   * the fix for the owner's "the button press does not look good" of
+   * 2026-09-23. The spring had been written into the
+   * prefers-reduced-motion block below, so it governed nothing a normal
+   * visitor ever saw: every release on this chip ran the 80ms
+   * cubic-bezier(0.4, 0, 0.2, 1) that the press shares, and that curve is
+   * ease-IN-out. An ease-in start means the face HANGS at the bottom of its
+   * well for the first frames and only then climbs, which is exactly the
+   * sticky, mud-like return the owner is describing. The :active rule below
+   * has said "the release is governed by the spring on the base rule" the
+   * whole time; this is the line it was talking about.
+   *
+   * 140ms with a 1.56 overshoot: the chip comes back up like a key. The
+   * overshoot is about 10 percent of the travel, so 0.6px past rest on a 6px
+   * lip, which is a pop rather than a bounce and cannot expose the well.
    */
   transition:
-    transform 80ms cubic-bezier(0.4, 0, 0.2, 1),
+    transform 140ms cubic-bezier(0.34, 1.56, 0.64, 1),
     background-color 280ms cubic-bezier(0.22, 1, 0.36, 1),
     border-color 280ms cubic-bezier(0.22, 1, 0.36, 1);
   /* NO highlight band and no gloss. Two independent blind critics read an
@@ -242,12 +258,21 @@
   will-change: transform;
 }
 @media (prefers-reduced-motion: reduce) {
-  /* The colour still CHANGES, it just does not travel: the same rule the
-     deleted trail's flow followed. */
+  /*
+   * THE ACKNOWLEDGEMENT SURVIVES, ONLY THE TWEEN IS REMOVED, which is the
+   * same shape pathway-sheet.css uses for .ns-chip and which
+   * pathwaySheetContract.test.ts pins there ("transition: none", and never
+   * "transform: none"). The face still sinks its full lip and the colour
+   * still changes; neither one travels over time.
+   *
+   * This block used to hold the spring RELEASE instead, which inverted it:
+   * a visitor who had asked for less motion got the one springy, overshooting
+   * curve in the file, plus the loss of the 280ms colour cross-fade, while
+   * everybody else got neither. The spring is now on the base rule where the
+   * :active rule below always claimed it was.
+   */
   .path-node__face {
-    /* The RELEASE. A spring, the same one the pager button uses, so the
-       chip comes back up like a key rather than easing out of mud. */
-    transition: transform 140ms cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition: none;
   }
 }
 

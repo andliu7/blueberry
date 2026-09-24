@@ -115,16 +115,16 @@ export const FEED_TAB_REQUEST = Object.freeze({
  * darkening a fill the image draws bright (see DESIGN-TOKENS.md).
  */
 /** The quest flask. Violet liquid in pale violet glass, per the image. */
-const GLASS_TINT = "#efe9ff";
-const LIQUID = "#9f75f5";
-const LIQUID_DEEP = "#6d43cf";
+const GLASS_TINT = "#eceaff";
+const LIQUID = "#917bf5";
+const LIQUID_DEEP = "#6944d2";
 /** The cartoon flame: bright body, the streak token as its boundary. */
 const FLAME_BODY = "#ffa60e";
 const FLAME_CORE = "#ffd166";
 /** The card fan. */
 const CARD_PINK = "#f6a7a0";
-const CARD_VIOLET = "#b39ef2";
-const CARD_PALE = "#f6efff";
+const CARD_VIOLET = "#aba1f2";
+const CARD_PALE = "#f1f0ff";
 
 const FLASK_BODY = "M10.6 4.5h2.8v5.1l4.9 8.1a1.6 1.6 0 0 1-1.4 2.4H7.1a1.6 1.6 0 0 1-1.4-2.4l4.9-8.1z";
 

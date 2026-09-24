@@ -36,17 +36,17 @@
  */
 
 /** Pale violet glass. Identical to FeedTab.tsx's GLASS_TINT. */
-const GLASS = "#efe9ff";
+const GLASS = "#eceaff";
 /** The liquid. Identical to FeedTab.tsx's LIQUID. */
-const LIQUID = "#9f75f5";
+const LIQUID = "#917bf5";
 /** The rim and the outline. Identical to FeedTab.tsx's LIQUID_DEEP. */
-const DEEP = "#6d43cf";
+const DEEP = "#6944d2";
 /**
  * The face. Deep enough on the liquid to be a face rather than a smudge: the
  * eyes and the mouth are the only marks on this object that have to READ at
  * 28px, and DEEP on LIQUID is 2.0:1, which is a shadow and not a feature.
  */
-const FACE = "#2f1b63";
+const FACE = "#2e1b63";
 
 /**
  * The silhouette. One path, used three times: as the glass fill, as the clip

@@ -131,15 +131,42 @@ function ChevronGlyph() {
   );
 }
 
-/** The difficulty row: one accessible label, never four unnamed dots. */
-function Pips({ filled, total, label }: { readonly filled: number; readonly total: number; readonly label: string }) {
+/**
+ * The difficulty row: one accessible label, never four unnamed dots, and now
+ * never four UNLABELLED ones either.
+ *
+ * Owner, 2026-09-23: "the dots are meaningless." The dots measure something
+ * real (nodeDifficulty.ts counts the graded moves behind the node), but they
+ * were the only thing on the card, so a student saw a four-dot scale with no
+ * legend and no way to tell which end was harder. The word is the same
+ * measurement said out loud; see PipReadout.band.
+ *
+ * The word is aria-hidden and the dots keep the label, so a screen reader
+ * hears the fact ONCE rather than in two vocabularies.
+ */
+function Pips({
+  filled,
+  total,
+  label,
+  band,
+}: {
+  readonly filled: number;
+  readonly total: number;
+  readonly label: string;
+  readonly band: string;
+}) {
   const dots = [];
   for (let i = 0; i < total; i += 1) {
     dots.push(<span key={i} className={`ns-pip${i < filled ? " is-filled" : ""}`} />);
   }
   return (
-    <span className="ns-pips" role="img" aria-label={label}>
-      {dots}
+    <span className="ns-difficulty">
+      <span className="ns-difficulty__band text-scale-xs" aria-hidden>
+        {band}
+      </span>
+      <span className="ns-pips" role="img" aria-label={label}>
+        {dots}
+      </span>
     </span>
   );
 }
@@ -235,7 +262,9 @@ export function NodeSheet({ node, onClose, onStart, onChallenge, onGuidebook, re
                 {/* NO ROW WHEN NOTHING MEASURED IT. A node with no authored
                     content has no difficulty to report, and four empty dots
                     would be a claim about it. See nodeSheetModel.difficultyFor. */}
-                {model.pips === null ? null : <Pips filled={model.pips.filled} total={model.pips.total} label={model.pips.label} />}
+                {model.pips === null ? null : (
+                  <Pips filled={model.pips.filled} total={model.pips.total} label={model.pips.label} band={model.pips.band} />
+                )}
               </div>
               {model.practice.enabled ? (
                 <button type="button" className="ns-chip ns-start" {...pressHandlers(() => onStart(node))}>

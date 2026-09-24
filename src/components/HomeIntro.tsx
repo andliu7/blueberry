@@ -77,7 +77,11 @@ const SITE_WORD = SITE_NAME.toUpperCase();
  * the flourish is the mascot arriving and bursting into the page.
  */
 const INTRO_WORDS: ParticleWord[] = [
-  { text: SITE_NAME, from: "#818cf8", to: "#f0abfc", shape: "blueberry", eyes: "open", holdMs: 900 },
+  // `#9d89f5` is --bb-primary's own hue (H 251.1 against the token's H 250.6) at
+  // the lightness the old `#818cf8` had (L 0.749 vs 0.739), so the swarm reads as
+  // the app's blue-violet rather than the indigo it used to be. 6.33:1 on this
+  // beat's dark ground `#171327`, where `#818cf8` measured 6.07:1.
+  { text: SITE_NAME, from: "#9d89f5", to: "#f0abfc", shape: "blueberry", eyes: "open", holdMs: 900 },
 ];
 
 /**
@@ -104,7 +108,12 @@ const INTRO_WORDS_LIGHT: ParticleWord[] = [
   // be more itself against the cream, not dimmer.
   {
     text: SITE_NAME,
-    from: "#4f46e5",
+    // --bb-primary itself. The old `#4f46e5` was indigo-600 (H 243.4); the token
+    // is H 250.6, and the name of the site should open in the app's own colour
+    // rather than a neighbour of it. 5.79:1 on the opening's light ground
+    // `#f7eaff`, where `#4f46e5` measured 5.44:1, so the swap also gains a
+    // little contrast rather than spending any.
+    from: "#5a3fd8",
     to: "#c026d3",
     shape: "blueberry",
     vivid: 1.25,

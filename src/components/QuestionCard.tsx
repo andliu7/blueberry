@@ -301,14 +301,16 @@ export function QuestionCard({
     </div>
   );
 
-  // Spotlight reads well on the pale cards; on the dark ones a soft indigo glow
+  // Spotlight reads well on the pale cards; on the dark ones a soft violet glow
   // barely registers, so those tilt instead.
+  // --bb-primary at 24% alpha, replacing indigo `#6366f13d`. Decorative: no text
+  // sits on the glow and it draws no boundary, so no contrast floor applies.
   return isDark ? (
     <TiltCard max={6} className={surfaceClass}>
       {body}
     </TiltCard>
   ) : (
-    <SpotlightCard spotlightColor="#6366f13d" className={surfaceClass}>
+    <SpotlightCard spotlightColor="#5a3fd83d" className={surfaceClass}>
       {body}
     </SpotlightCard>
   );

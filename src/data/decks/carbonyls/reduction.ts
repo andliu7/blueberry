@@ -18,8 +18,8 @@ export const carbonylReductionDeck: StudyDeck = {
   about: "Two different questions wearing the same word.\n\nHydride reagents add H⁻ to the carbonyl carbon, and which one you use decides how far it goes: NaBH₄ will not touch an ester, LiAlH₄ takes it all the way to the alcohol, and DIBAL-H at −78 °C stops at the aldehyde. The temperature is not decoration on that last one, it is the answer.\n\nClemmensen and Wolff–Kishner are the other kind: they do not add anything, they remove the oxygen and leave a CH₂. One is acidic and one is basic, which is how you choose between them when the rest of the molecule cannot survive both.",
   motif: "reflux",
   art: "cover_reduction.svg",
-  from: "#6d28d9",
-  to: "#8b5cf6",
+  from: "#6729df",
+  to: "#8360f6",
   questions: [
     { q: "LiAlH₄ on an ester: Methyl benzoate + LiAlH₄ (excess) , Et₂O; then H₃O⁺", a: "anhydrous  ·  irreversible  ·  0 °C to room temperature, then acidic workup", badge: "Benzyl alcohol", image: "carbonyl_lialh4-ester.svg", imageCrop: "37%", heading: "Reduction · worked examples" },
     { q: "DIBAL-H on an ester: Methyl benzoate + DIBAL-H (1 eq) , toluene, −78 °C; then H₃O⁺", a: "anhydrous  ·  irreversible  ·  −78 °C, then acidic workup", badge: "Benzaldehyde", image: "carbonyl_dibal.svg", imageCrop: "37%", heading: "Reduction · worked examples" },

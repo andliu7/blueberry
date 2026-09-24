@@ -15,12 +15,12 @@ filled in with it.
 | Piece | Where | What it does |
 |---|---|---|
 | `billing_customers`, `entitlements` | `supabase/migrations/20260907120000_billing.sql` | Two tables. Read-your-own only; **no write policy and no write grant for `authenticated`**, so the only writer is the webhook on the service role |
-| `stripe-prices` | `supabase/functions/stripe-prices/` | Public. Returns what the plans cost, read from Stripe. No price configured means no card, which is why the plans say "not on sale yet" today |
+| `stripe-prices` | `supabase/functions/stripe-prices/` | Public. Returns what the plans cost, read from Stripe. A plan with no price in Stripe is simply absent from the answer, which is why no paid card is on the page today |
 | `stripe-checkout` | `supabase/functions/stripe-checkout/` | Signed in only. Takes a plan key, returns a Checkout URL |
 | `stripe-webhook` | `supabase/functions/stripe-webhook/` | Stripe calls this. Signature-verified, and the only thing that grants access |
 | `stripe-portal` | `supabase/functions/stripe-portal/` | Signed in only. A link to Stripe's own page for changing a card or cancelling |
 | `src/lib/billing.ts` | client | `usePlanPrices`, `useEntitlements`, `startCheckout`, `openBillingPortal` |
-| Plans panel | `src/components/ui/subscription-plans.tsx` | Four cards, prices read from Stripe, buy button wired |
+| Plans panel | `src/components/ui/subscription-plans.tsx` | The two free cards, plus Pro and the semester pass, each appearing only once `stripe-prices` quotes it, with the number it quoted and a buy button. Quote neither and one "coming" card stands in for both, carrying no price and no buy button |
 
 Three plans, keyed by name and not by price id, because a price id changes when
 a price is archived and re-made:
@@ -28,12 +28,18 @@ a price is archived and re-made:
 - `pro_monthly` and `pro_yearly`: subscriptions
 - `semester_pass`: one payment, runs out on a date you set
 
+The panel has a card for `pro_monthly` and one for `semester_pass`. `pro_yearly`
+is a key the functions accept, not a third card, so creating that price alone
+changes nothing on the page.
+
 ## Three things worth knowing before you start
 
 **No number is typed anywhere in the site.** The cards ask `stripe-prices`,
-which asks Stripe. This is why they currently say "TBD, not on sale yet": that
-is the honest output of asking Stripe about a product that does not exist. It
-starts saying a number the moment you create one, with no code change.
+which asks Stripe. This is why there is currently no Pro card and no semester
+pass card at all: asking Stripe about a product that does not exist returns
+nothing, and a card that cannot say what it costs is not shown. In their place
+is one card that says the paid tiers are being built and names no price. Create
+a product and its real card appears, with a number on it, with no code change.
 
 **The semester pass has no default length and will not invent one.** It is sold
 only while `SEMESTER_PASS_ENDS_ON` is a future date. Unset or past, the pass is

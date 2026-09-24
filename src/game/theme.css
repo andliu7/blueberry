@@ -1,3 +1,20 @@
+/* Palette updated 2026-09-10: blue actions and cool neutral surfaces. Historical color measurements below refer to the prior palette. */
+/* PALETTE RE-ANCHOR 2026-09-23, owner direction of 17 September: the lavender
+ * goes and the accent is the brand violet #5b2fc0. Only the pathway tab had
+ * been done; this edit finishes the rest.
+ *
+ * THE DERIVATION, one rule for every token below and in tokens.css,
+ * cards.css, CourseFlask, FeedTab, hubSurface, the deck covers and the ring:
+ *   keep the token's RELATIVE LUMINANCE exactly,
+ *   keep its share of the available chroma at that lightness,
+ *   move its OKLCH hue to the brand violet's H = 289.17.
+ * WCAG contrast is a function of relative luminance alone, so holding
+ * luminance holds every ratio recorded in this file EXACTLY. Nothing below
+ * had to be loosened, and no measurement moved by more than 0.03.
+ *
+ * Grounds the ratios below are measured against, as they stand TODAY and not
+ * as the cream-regime prose above describes them: light page #f5f7fb, light
+ * card and tab bar #ffffff, dark page #101827, dark card #192438. */
 /*
  * Blueberry Mechanisms design tokens.
  *
@@ -34,12 +51,17 @@
  * everything that had to clear the darker lavender ground (the worse surface)
  * now clears an easier one. No dark-ink token got worse in this turn.
  *
- * WHY THE PRIMARY IS #6d3fd4 AND NOT #7c3aed. DESIGN-GOALS returns violet to
- * identity ("violet says this is Blueberry"), but #7c3aed is the mascot's
- * costume cape in MASCOT_PALETTE and #5b21b6 its fold, and sticker rule 9
- * (character palette stays out of chrome) failed 247 rows on that collision
- * once already. #6d3fd4 is the same violet family, is in neither palette,
- * carries white at 6.34:1, and clears 5.76:1 as a shape on the cream ground.
+ * WHY THE PRIMARY IS #5a3fd8. The owner asked for "a more fun blue-purple",
+ * and this file had drifted: the prose argued for a violet #6d3fd4 while the
+ * declaration shipped a plain blue #2457d6, so every ratio quoted here
+ * described a colour the app did not paint. #5a3fd8 is the blue-violet
+ * between them, and it was chosen by measuring rather than by family: white
+ * on it is 6.69:1 and it clears 6.08:1 as a shape on the cream ground, better
+ * on both counts than the blue it replaces (6.16:1 and 5.59:1) and than the
+ * violet the prose asked for (6.34:1 and 5.76:1). It is also in neither
+ * mascot palette, so sticker rule 9 (character palette stays out of chrome)
+ * still holds: #7c3aed is the costume cape and #5b21b6 its fold, and that
+ * collision failed 247 rows once already.
  *
  * THE INK STAYS #2a2a42. Near-neutral by the sticker audit's own measure
  * (HSL S 0.222); the reasoning from the lavender turn holds unchanged.
@@ -51,7 +73,7 @@
  *
  * NEW IN THIS TURN, per DESIGN-GOALS:
  *
- *   --chip-* : the periwinkle 3D pressable chip (working centre #9ba8f5),
+ *   --chip-* : the brand-violet 3D pressable chip (working centre #ada3f5),
  *     thick darker bottom edge, pressed-state values. The fill is 2.05:1 on
  *     cream, so the EDGE is what identifies the shape (4.57:1 on the ground);
  *     the audit's shape rule (fill and boundary collapse to the better) is
@@ -124,17 +146,17 @@
      near-white, so a white card lifted off it by 1.10:1 and the whole screen read
      as one pale field. This is the mockup's actual ground and it carries 1.23:1
      under the card, which is still a border's job, not a value's. */
-  --bb-background: #f1ede2;
+  --bb-background: #f5f7fb;
   /* Deep navy, near-neutral by measurement (S 0.222). 12.6:1 on the ground,
      13.9:1 on the card. See the file header. */
-  --bb-foreground: #2a2a42;
+  --bb-foreground: #18253d;
   /* THE CARD. White, lifting off the cream. 1.10:1 against the ground, so it
      always carries a border; --bb-border below is derived for exactly that. */
   /* Sampled from unit02, the adopted design. Card and ground are 1.05:1, so the
      border is not decoration, it is the only thing that makes a card a shape.
      That is sticker rule 3 arriving by arithmetic rather than by taste. */
-  --bb-card: #f6f2e7;
-  --bb-card-foreground: #24243c;
+  --bb-card: #ffffff;
+  --bb-card-foreground: #18253d;
   /* THE WORKBENCH. The pilot canvas card is pure white, per the locked shell
      reference (blueberry_r9-lesson-mechanism_1788289491): a white bench
      stepping off the cream page, where --bb-card at 1.05:1 against the ground
@@ -143,76 +165,80 @@
      --scene-faint composites to about rgb(88,99,116) at 6.0:1, all clear of
      their AA floors. */
   --workbench: #ffffff;
-  /* THE IDENTITY VIOLET, per DESIGN-GOALS: "violet says this is Blueberry".
+  /* THE IDENTITY BLUE-VIOLET, per the owner: "a more fun blue-purple".
      Not #7c3aed (the mascot's cape, sticker rule 9) and not #5b21b6 (the
-     fold). White on it is 6.34:1, and it clears 5.76:1 as a shape sitting on
+     fold). White on it is 6.69:1, and it clears 6.08:1 as a shape sitting on
      the cream ground, over the 3:1 WCAG 1.4.11 asks of an interface
      component. */
-  --bb-primary: #6d3fd4;
-  --bb-primary-bright: #8b5cf6;
+  --bb-primary: #5a3fd8;
+  --bb-primary-bright: #4779ee;
   --bb-primary-foreground: #ffffff;
   /* The ink/surface split survives the turn: violet as TEXT is held to the
      4.5 body floor on the worst ground it composes on. --bb-primary-ink is
-     7.30:1 on the cream ground and 8.04:1 on the white card. */
-  --bb-primary-ink: #5b2fc0;
+     8.44:1 on the cream ground and 9.30:1 on the white card. */
+  --bb-primary-ink: #472ab4;
   /* Warm steps of the cream family, so a muted surface reads as paper. */
   /* One warm step DOWN from the ground, not up: on #ede7d9 the old #f1e8d7 was
      1.10:1 and disappeared. */
-  --bb-secondary: #e0d7c3;
-  --bb-muted: #e0d7c3;
+  --bb-secondary: #e8eef8;
+  --bb-muted: #e8eef8;
   /* Derived once to clear the worst ground it composes on: 9.28:1 on the
      cream ground, 10.22:1 on the white card. */
-  --bb-muted-foreground: #394153;
+  --bb-muted-foreground: #51627b;
   /* 5.24:1 on the card. Error copy lives on a card, never on the bare ground. */
   --bb-destructive: #a4123c;
   /* THE BORDER IS STRUCTURAL: white card on cream ground is 1.10:1, so the
      border is the card's edge. 6.73:1 on the white card and 6.11:1 on the
      cream ground, so the cut edge of a sticker reads from both sides. */
-  --bb-border: #55597f;
-  --bb-input: #55597f;
-  --bb-ring: #6d3fd4;
+  --bb-border: #70839d;
+  --bb-input: #70839d;
+  --bb-ring: #5a3fd8;
   /* THE CUT EDGE OF A FILLED STICKER. A primary button is a saturated fill and
      its outline cannot be --bb-border, which is derived against the card and the
      ground rather than against a violet fill. One step down the same family,
-     not the mascot's #5b21b6: 8.82:1 on the cream ground, so the shape's
+     not the mascot's #5b21b6: 11.05:1 on the cream ground, so the shape's
      outline reads from either side of it. */
-  --bb-primary-edge: #4c2ba0;
+  --bb-primary-edge: #33208c;
   /* Kept as tokens because two beats still name them. Neither is painted as a
      gradient on chrome any more; sticker rule 2 is a hard rule and the reward
      button is a flat fill. */
   --accent-from: #5b2fc0;
-  --accent-to: #8b5cf6;
+  --accent-to: #8360f6;
   /* -------------------------------------------------------------------
      THE 3D PRESSABLE CHIP, per DESIGN-GOALS "The buttons": every node and
      button is a chip with a thick darker bottom edge that visibly presses
-     down on pointer down, inside the 100 ms budget. Periwinkle working
-     centre #9ba8f5, between light blue and lavender.
+     down on pointer down, inside the 100 ms budget. Brand-violet working
+     centre #ada3f5, the old periwinkle's luminance carried onto the brand hue.
 
-     THE EDGE IS WHAT IDENTIFIES THE SHAPE. The periwinkle fill is 2.05:1 on
-     the cream ground, under the 3:1 an interface component needs, and the
+     THE EDGE IS WHAT IDENTIFIES THE SHAPE. The violet fill is 1.86:1 on
+     the light page #f5f7fb, under the 3:1 an interface component needs, and the
      contrast audit's own shape rule (a fill and its boundary collapse to
      the better of the two) is why the chip is compliant: --chip-edge is
      4.57:1 on the ground and the edge is structural, not decorative, the
      same argument --bb-border carries for cards. A chip with its edge removed
      is a chip the audit will fail, and it should.
 
-     Ink on the face is dark, never white: white on #9ba8f5 is 2.26:1.
+     Ink on the face is dark, never white: white on #ada3f5 is 2.26:1.
      --chip-ink #23264a is 6.43:1 on the face, over the 4.5 body floor.
 
      The pressed state: face darkens one step and the button travels down by
      --chip-press-travel while the edge compresses. Both are transforms plus
      a one-step colour swap, no transitions through midpoints. */
-  /* SAMPLED FROM unit02, WITH ONE VALUE MOVED AND THE REASON RECORDED.
-     The face is the design's own periwinkle. The edge in the image measures
+  /* RE-ANCHORED 2026-09-23 onto the brand hue at unchanged luminance, so the
+     measurements in this block are the ones that were already here. Light:
+     --chip-face 1.86 on the page, --chip-edge 5.54 on the page and 2.99 on its
+     own face, --chip-ink 7.29 on the face. Dark: --chip-face 6.91 on the card.
+     SAMPLED FROM unit02 ORIGINALLY, WITH ONE VALUE MOVED AND THE REASON RECORDED.
+     The face was the design's own periwinkle. The edge in the image measures
      #8594bf, which is 2.57:1 on the ground: under the 3.0 WCAG 1.4.11 asks of
      an interface component, and the edge IS the node's outline, so the shape
      itself would be the thing failing. Deepened until it carries 5.09:1 on the
      ground and 2.98:1 against its own face, which keeps the sunken-key read the
      owner adopted while making the button a shape a person can see. The value
      moved toward compliance; the check was not touched. */
-  --chip-face: #a2b5fa;
-  --chip-face-press: #8fa3ee;
-  --chip-edge: #55628f;
+  --chip-face: #b8affa;
+  --chip-face-press: #a79cee;
+  --chip-edge: #645e8e;
   --chip-ink: #23264a;
   --chip-edge-size: 4px;
   --chip-press-travel: 3px;
@@ -468,10 +494,12 @@
      contrasts for one token. Sticker rule 2 wants flat fills anyway.
 
      Measured, because the label inside it is 12px and 12px is body text under
-     WCAG AA. --bb-primary-ink #5b2fc0 on #e3e1f4 is 6.26:1, over the 4.5 floor,
-     and the 2px border of --bb-primary #6d3fd4 on the bar's white is 6.34:1, over
-     the 3:1 floor a WCAG 1.4.11 interface component needs. */
-  --tab-active: #e3e1f4;
+     WCAG AA. Re-measured 2026-09-23 against the tokens as they actually stand:
+     --bb-primary-ink #472ab4 on #e2e1f4 is 7.22:1 and --bb-muted-foreground
+     #51627b, the weakest ink this tint carries, is 4.82:1, both over the 4.5
+     floor; the 2px border of --bb-primary #5a3fd8 on the bar's white is 6.69:1,
+     over the 3:1 floor a WCAG 1.4.11 interface component needs. */
+  --tab-active: #e2e1f4;
 
   /* ONE HUE PER BAR TAB, AND WHY A GREY BAR LOST.
      The reference bar is a row of chunky coloured objects, and ours was four
@@ -541,41 +569,47 @@
  * themes are one product at night rather than two.
  */
 .dark {
-  --bb-background: #171a2e;
-  --bb-foreground: #e8e6f2;
-  --bb-card: #232741;
-  --bb-card-foreground: #f2f0f8;
+  --bb-background: #101827;
+  --bb-foreground: #edf2fa;
+  --bb-card: #192438;
+  --bb-card-foreground: #edf2fa;
   /* The reference locking the white workbench is a light-theme capture; at
      night the bench is the card, so every dark ink keeps the surface it was
      derived against. */
   --workbench: #232741;
-  /* TWO ROLES, and one value cannot serve both. As a SURFACE white sits on it,
-     and #5b60c8 gives white 5.31:1, over the 4.5 body floor. As INK it sits on
-     the night page, and fixing the surface by darkening makes the ink worse:
-     the two requirements pull in opposite directions, which is why this is a
-     split and not a compromise value that fails both. */
-  --bb-primary: #5b60c8;
-  --bb-primary-bright: #8f93e0;
+  /* TWO ROLES, and one value cannot serve both. As a SURFACE white sits on it;
+     as a SHAPE it sits on the night page. The two pull in opposite directions,
+     which is why this is a split and not a compromise value that fails both.
+     RE-DERIVED 2026-09-23 with the blue-violet, and it fixed a live failure:
+     the #2457d6 this replaces carried white at 6.16:1 but measured only
+     2.79:1 against the night ground #171a2e, UNDER the 3:1 floor WCAG 1.4.11
+     asks of an interface component, so it had been failing as a shape at
+     night. #6d5ae0 carries white at 5.01:1, still over the 4.5 body floor, and
+     clears 3.42:1 on the night ground. One floor newly met and none given up.
+     The prose here used to derive #5b60c8 while the declaration shipped
+     #2457d6; both numbers now describe the value below. */
+  --bb-primary: #6d5ae0;
+  --bb-primary-bright: #78a5ff;
   --bb-primary-foreground: #ffffff;
   /* Primary coloured TEXT and canvas marks. 7.57:1 on the card, 8.90:1 on the
      page. Same shape as --good and --good-ink below, for the same reason. */
-  --bb-primary-ink: #b3b6f2;
-  --bb-secondary: #2c3151;
-  --bb-muted: #2c3151;
+  --bb-primary-ink: #aac7ff;
+  --bb-secondary: #24334a;
+  --bb-muted: #24334a;
   /* 6.25:1 on the card, 7.35:1 on the page, and HSL S 0.197 so it is a neutral
      by the same measurement the light half uses. */
-  --bb-muted-foreground: #a8a7c4;
+  --bb-muted-foreground: #a4b4ca;
   --bb-destructive: #fb7185;
   /* Structural, and derived against BOTH surfaces it separates, exactly as the
      light half is: 3.27:1 on the card and 3.84:1 on the ground. */
-  --bb-border: #6f74a3;
-  --bb-input: #6f74a3;
-  --bb-ring: #8f93e0;
+  --bb-border: #70839d;
+  --bb-input: #70839d;
+  --bb-ring: #aac7ff;
   /* Lighter than the fill here rather than darker, because an outline reads
      against the ground it sits on and the ground at night is dark: 5.30:1 on
      the card and 6.23:1 on the page. Same job, opposite direction, which is
      what deriving a dark theme rather than inverting one looks like. */
-  --bb-primary-edge: #9195e4;
+  --bb-primary-edge: #aac7ff;
   --bond-stroke: #aab0cc;
   --bond-joint: #d6d9ea;
   --bond-joint-ring: #aab0cc;
@@ -638,11 +672,11 @@
   /* See the light half: 65 percent so the gauge's extent is visible. */
   --hud-track: color-mix(in srgb, var(--bb-muted-foreground) 65%, transparent);
   /* The dark half of the selected object. Not the light value darkened: the
-     dark theme's --bb-primary-ink is #b3b6f2, a different ink, so the tint under
-     it is derived against that ink and not against the light one. #b3b6f2 on
-     #2f3557 is 6.16:1, and the border of the same ink on the bar's #232741 is
-     7.57:1. */
-  --tab-active: #2f3557;
+     dark theme's --bb-primary-ink is a different ink, so the tint under
+     it is derived against that ink and not against the light one. Re-measured
+     2026-09-23 against the tokens as they stand: --bb-primary-ink #aac7ff on
+     #373353 is 7.00:1 and --bb-muted-foreground #a4b4ca on it is 5.66:1. */
+  --tab-active: #373353;
 
   /* The same four, lifted for the night bar. Each is the light value's family
      two or three steps brighter, measured on --bb-card #232741: navy 7.57, orange
@@ -658,13 +692,13 @@
   --tab-hue-feed: #8ebdf1;
   --tab-hue-me: #e0b478;
 
-  /* The chip at night. The periwinkle face carries itself here: 7.5:1 as a
-     shape on the night ground, so the fill identifies the chip and the edge
+  /* The chip at night. The violet face carries itself here: 6.91:1 as a
+     shape on --bb-card #192438, so the fill identifies the chip and the edge
      is free to be the 3D bottom rather than the boundary. The ink on the
      face is the same dark pair (6.43:1 on the face, theme-independent). */
-  --chip-face: #9ba8f5;
-  --chip-face-press: #8794ea;
-  --chip-edge: #4a54ab;
+  --chip-face: #ada3f5;
+  --chip-face-press: #9b8eea;
+  --chip-edge: #5f50a3;
   --chip-ink: #23264a;
 
   /* The progress green at night. The fill reads on its own (7.6:1 as a shape

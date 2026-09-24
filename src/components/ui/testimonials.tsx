@@ -55,6 +55,12 @@ export function Testimonials({ className }: { className?: string }) {
     [],
   );
 
+  // No quotes, no section. The page it sits on imports this unconditionally, so
+  // the silence has to happen here rather than at the call site. It is below the
+  // hooks and not above them because a return before useState and useMemo would
+  // change the hook order the first time a real quote is added.
+  if (testimonials.length === 0) return null;
+
   return (
     <section aria-label="What people say" className={cn("mx-auto max-w-5xl px-6", className)}>
       <h2 className="playful-face mb-4 text-center text-2xl font-bold text-slate-800 dark:text-stone-200">
@@ -112,10 +118,6 @@ export function Testimonials({ className }: { className?: string }) {
           </span>
         </div>
       )}
-
-      <p className="mt-3 text-center text-xs text-slate-400 dark:text-stone-500">
-        (these are fake testimonials)
-      </p>
     </section>
   );
 }

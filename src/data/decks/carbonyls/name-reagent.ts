@@ -17,7 +17,7 @@ export const carbonylNameReagentDeck: StudyDeck = {
   blurb: "Both structures, an empty arrow. What goes over it?",
   about: "Both structures are given and the arrow is blank. The question is what turns one into the other, which is the form most exam questions actually take.\n\nThe conditions count as part of the answer. PCC and Jones on the same primary alcohol give different products, DIBAL-H at −78 °C and at room temperature give different products, and a decarboxylation without the heat does not happen at all.\n\nNo crop on this one: you need to see both ends to have a question.",
   motif: "sepfunnel",
-  from: "#6d28d9",
+  from: "#6729df",
   to: "#c026d3",
   questions: [
     { q: "What turns acetophenone into 1-phenylethanol, and under what conditions?", a: "neutral  ·  irreversible  ·  0 °C to room temperature", badge: "NaBH₄ , MeOH", image: "carbonyl_what_nabh4-ketone.svg", heading: "Both ends given. The arrow is the question" },

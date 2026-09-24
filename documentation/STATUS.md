@@ -1,7 +1,32 @@
 # Status
 
-Updated 2026-09-10. This file is a thin live index: current state and pointers,
+Updated 2026-09-23. This file is a thin live index: current state and pointers,
 no detail that has a better home. Keep it thin and keep it current.
+
+## The numbered gauntlet is finished, 2026-09-23
+
+Phase 6 closed; its record is `documentation/PHASE-6-VERDICT.md`, and its headline is
+not a win. Three times this month the product told a student something chemically
+untrue, and a critic measuring the running app caught every one while tests and review
+caught none. Two budget instruments turned out to be broken on their own terms and were
+repaired. The entry plus game route measures 527.7 KB gzipped against a 400 KB budget,
+which is an owner decision, not a bug. Phase 5 was overtaken by the 17 Sep order that
+dropped decorative backgrounds. What is still open is the 17 Sep product brief, tracked
+in the Seven Gauntlets artifact rather than here.
+
+## The palette is a measured blue-violet, 2026-09-23
+
+`--bb-primary` is `#5a3fd8` in light and `#6d5ae0` at night, with ink `#472ab4` and edge
+`#33208c`. Chosen by measuring, not by family: both beat the values they replace, and the
+night value fixed a live failure, since the `#2457d6` it replaces measured 2.79:1 against
+the night ground, under the 3:1 floor WCAG 1.4.11 asks of an interface component.
+
+**The trap this exposed, worth carrying:** `theme.css` had drifted into lying twice over.
+Its light block argued for a violet `#6d3fd4` and quoted that colour's ratios while
+shipping a plain blue; its dark block derived `#5b60c8` while shipping `#2457d6`;
+`meter.css` claimed `--bb-primary-bright` "alone is #8b5cf6" when the shipped value was
+`#4779ee`. In this repo a contrast ratio in a comment is a claim, not a fact. Re-measure
+before trusting one, and move the prose in the same edit as the colour.
 
 The 2026-09-05 status this file replaced described the game's OLD repository,
 branch `phase-5` at `b83bceb`, and travelled here verbatim in the merge. Its

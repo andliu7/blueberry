@@ -18,7 +18,14 @@ export default defineConfig({
     alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
   },
   test: {
-    include: ["src/game/test/**/*.test.ts", "packages/*/test/**/*.test.ts"],
+    // `src/test` is the site's own suite, as opposed to the game's. It holds
+    // assertions about the shipped site that do not need a DOM, such as reading
+    // a component's source and checking what its copy claims.
+    include: [
+      "src/test/**/*.test.ts",
+      "src/game/test/**/*.test.ts",
+      "packages/*/test/**/*.test.ts",
+    ],
     environment: "node",
   },
 });

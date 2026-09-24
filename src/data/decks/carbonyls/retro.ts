@@ -17,8 +17,8 @@ export const carbonylRetroDeck: StudyDeck = {
   blurb: "The product and the reagents. Name what you started from.",
   about: "Every reaction in this folder, asked from the other end.\n\nRunning a mechanism forwards and recognising what must have preceded a product are different skills, and only one of them is what a synthesis question asks for. A deck you can answer forwards and not backwards is a deck you have half learned.\n\nThe arrow is the open double-shafted one, which means “is made from” rather than “gives”. So the picture reads target on the left, precursor on the right, the same way a retrosynthesis is written on a board.",
   motif: "resonance",
-  from: "#4338ca",
-  to: "#9333ea",
+  from: "#5b34bb",
+  to: "#7548ec",
   questions: [
     { q: "What gives you 1-phenylethanol, made with NaBH₄ , MeOH?", a: "neutral  ·  irreversible  ·  0 °C to room temperature", badge: "Acetophenone", image: "carbonyl_retro_nabh4-ketone.svg", imageCrop: "37%", heading: "Every reaction in this folder, from the other end" },
     { q: "What gives you acetone cyanohydrin, made with NaCN , H₂O, pH ≈ 10?", a: "basic  ·  irreversible  ·  Room temperature", badge: "Acetone", image: "carbonyl_retro_cyanohydrin.svg", imageCrop: "37%", heading: "Every reaction in this folder, from the other end" },

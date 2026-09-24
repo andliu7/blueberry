@@ -18,8 +18,8 @@ export const carbonylAcidsDeck: StudyDeck = {
   about: "The OH is the problem. It is a terrible leaving group, and a nucleophile that approaches an acid is far more likely to just take the proton.\n\nSo every reaction here is a way of dealing with that: turn the OH into something that can leave (SOCl₂), push the equilibrium with excess alcohol and remove water (Fischer), or sidestep the carbonyl entirely by putting a second one β to it and heating (decarboxylation).\n\nFischer is the reversible one on this list, and that matters: it is the reaction where the conditions, not the reagents, decide which way you end up going.",
   motif: "pka",
   art: "cover_acids.svg",
-  from: "#7c3aed",
-  to: "#a855f7",
+  from: "#7340ed",
+  to: "#8767f7",
   questions: [
     { q: "Fischer esterification: Benzoic acid + CH₃OH , H₂SO₄ cat.", a: "acidic  ·  reversible  ·  Reflux", badge: "Methyl benzoate", image: "carbonyl_fischer.svg", imageCrop: "37%", heading: "Reactions of the acids · worked examples" },
     { q: "Acid chloride from a carboxylic acid: Benzoic acid + SOCl₂ , pyridine", a: "anhydrous  ·  irreversible  ·  Room temperature, sometimes warmed", badge: "Benzoyl chloride", image: "carbonyl_socl2.svg", imageCrop: "37%", heading: "Reactions of the acids · worked examples" },

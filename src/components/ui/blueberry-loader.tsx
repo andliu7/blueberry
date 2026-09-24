@@ -118,6 +118,18 @@ export function BlueberryLoader({ className }: { className?: string }) {
         <div
           className="bb-slime relative mb-1 h-14 w-14 origin-bottom rounded-full"
           style={{
+            // LEFT ALONE by the blue-violet chrome sweep, because this is a
+            // mascot surface and not chrome: #7c3aed is the mascot's cape, and
+            // #4c1d95 (H 263.5) and #3b0d7a (H 265.3) sit in the same cape-and-
+            // fold hue band as #5b21b6 (H 263.4). Sticker rule 9 keeps those out
+            // of chrome; it does not ask chrome's hue to be pushed into them.
+            // The sphere already reads as a shape on both loader grounds: the
+            // #6366f1 mid stop measures 4.16:1 on the light surface #f5f7fb and
+            // 3.98:1 on the dark #101827, over the 3:1 a meaningful graphic asks.
+            // WORTH KNOWING, not fixed here: these stops do not match the
+            // canonical berry in mascot/BlueberryMark.tsx, whose body ramp is
+            // blue (#bdefff, #3fa9ff, #3d63f5, #2b2fb0). That is a mascot
+            // consistency question for the owner, not a palette swap.
             background:
               "radial-gradient(circle at 32% 26%, #a5b4fc 0%, #6366f1 34%, #7c3aed 62%, #4c1d95 88%, #3b0d7a 100%)",
             boxShadow: isDark

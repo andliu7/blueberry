@@ -15,7 +15,12 @@ import { useRef, useState, type ReactNode } from "react";
 export const SpotlightCard = ({
   children,
   className = "",
-  spotlightColor = "#6366f133",
+  // --bb-primary at 20% alpha, replacing indigo `#6366f133`. No contrast floor
+  // applies: the glow carries no text and draws no boundary, and composited over
+  // a white card it lands at `#ded9f7`, 1.15:1 on white, which is the whole
+  // point of a spotlight. The base hex is the token so the tint reads as the
+  // app's blue-violet rather than a neighbouring hue.
+  spotlightColor = "#5a3fd833",
 }: {
   children: ReactNode;
   className?: string;

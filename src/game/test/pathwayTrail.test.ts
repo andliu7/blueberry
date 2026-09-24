@@ -161,8 +161,10 @@ describe("trailSegments", () => {
  * run through several lesson nodes, never through a unit gate."
  *
  * The sequencing is a pure diff between two done-sets, so it is asserted here
- * without a document, a browser or a clock. UnitTrail turns a rank into a CSS
- * animation delay and nothing else.
+ * without a document, a browser or a clock. UnitTrail turned a rank into a CSS
+ * animation delay and nothing else; it was deleted on 2026-09-23 with the rest
+ * of the drawn trail, so these assertions now describe a module with no
+ * renderer behind it. See trail.ts's header for why the module stayed.
  */
 function gate(x: number, y: number, done: boolean): TrailPoint {
   return { x, y, lane: "main", done, gate: true };

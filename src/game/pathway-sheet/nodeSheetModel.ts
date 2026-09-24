@@ -70,6 +70,22 @@ export interface PipReadout {
   readonly total: number;
   /** The accessible sentence for the whole row: one label, not four dots. */
   readonly label: string;
+  /**
+   * The SAME measurement in a student's words, drawn beside the dots.
+   *
+   * Owner, 2026-09-23: "the dots are meaningless." They were not measuring
+   * nothing (nodeDifficulty.ts counts the graded moves behind the node and
+   * test/nodeDifficulty.test.ts regenerates the table from the real content),
+   * but a sighted student got four dots and no legend, so nothing on the card
+   * said what was being counted or which way was harder. A scale with no
+   * legend is a decoration, and the whole reason the pips exist is that the
+   * previous ones ranked nothing.
+   *
+   * The screen reader has had `label` the whole time, which is why the word
+   * is drawn aria-hidden: this is the same fact in the other vocabulary, not
+   * a second one, and saying it twice to a screen reader is noise.
+   */
+  readonly band: string;
 }
 
 export interface CardReadout {
@@ -124,6 +140,24 @@ export function difficultyFor(node: SheetNode): number | null {
   return Math.min(PIP_COUNT, Math.max(1, Math.round(authored)));
 }
 
+/**
+ * What each pip count MEANS, in the words nodeDifficulty.ts already uses.
+ *
+ * Not a new judgement. That file's band comment is where the cuts were chosen
+ * and argued, and it describes them exactly this way: "one or two moves is a
+ * single idea, three or four is a short mechanism, five to seven is a
+ * mechanism with a decision in it, and eight or more is a sequence". A MOVE is
+ * one thing the node's content grades, so "step" is that unit said to a
+ * student. The dot count and the word are read off the same number, so the
+ * row can never draw three dots and call itself one step.
+ */
+const BAND_LABEL: Readonly<Record<number, string>> = Object.freeze({
+  1: "One step",
+  2: "A few steps",
+  3: "Multi-step",
+  4: "Full sequence",
+});
+
 export function nodeSheetModel(node: SheetNode): NodeSheetModel {
   const queued = node.practiceHref === null;
   const locked = node.state === "locked";
@@ -164,7 +198,15 @@ export function nodeSheetModel(node: SheetNode): NodeSheetModel {
     node,
     kindLabel: KIND_LABEL[node.kind],
     cleared,
-    pips: filled === null ? null : { filled, total: PIP_COUNT, label: `Difficulty ${filled} of ${PIP_COUNT}` },
+    pips:
+      filled === null
+        ? null
+        : {
+            filled,
+            total: PIP_COUNT,
+            label: `Difficulty ${filled} of ${PIP_COUNT}`,
+            band: BAND_LABEL[filled] ?? "",
+          },
     practice: { enabled: practiceEnabled, note: practiceNote },
     challenge: { enabled: challengeEnabled, note: challengeNote },
     label: `${node.title}. ${KIND_LABEL[node.kind]}.`,

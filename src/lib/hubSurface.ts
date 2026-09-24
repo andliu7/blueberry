@@ -18,14 +18,14 @@ import type { SpotlightConfig } from "@/components/ui/spotlight-cursor";
  */
 export const SURFACE = {
   light: {
-    base: "#faf9ff",
+    base: "#f5f7fb",
     gradient:
-      "linear-gradient(180deg, #faf9ff 0px, #f5f0fc 520px, #efe9f9 1200px, #ece5f7 2000px)",
+      "none",
   },
   dark: {
-    base: "#171327",
+    base: "#101827",
     gradient:
-      "linear-gradient(180deg, #171327 0px, #141020 520px, #110d1b 1200px, #0f0b18 2000px)",
+      "none",
   },
 } as const;
 
@@ -39,6 +39,6 @@ export const SURFACE = {
  */
 export function spotlightFor(isDark: boolean): SpotlightConfig {
   return isDark
-    ? { radius: 380, brightness: 0.14, color: "#a78bfa", smoothing: 0.11 }
-    : { radius: 340, brightness: 0.13, color: "#6366f1", smoothing: 0.11 };
+    ? { radius: 380, brightness: 0, color: "#9f8efa", smoothing: 0.11 }
+    : { radius: 340, brightness: 0, color: "#7f5cf1", smoothing: 0.11 };
 }
