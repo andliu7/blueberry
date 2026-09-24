@@ -2004,13 +2004,95 @@ html, html.dark, body, .dark body {
   background-color: var(--background);
   background-image: none;
 }
-/* Solid action faces keep the accent consistent at rest and on hover. */
+/* Solid action faces keep the accent consistent at rest and on hover.
+
+   THE SITE BUTTON IS THE SAME KEY AS THE GAME'S CHIP, owner 2026-09-24. This
+   block is unlayered, so it wins over the @layer components rules above (the
+   travelling radial gradient and the ::before rim are dead under it, and
+   gradientCursor.ts still feeds them; both pre-existing and left alone). It
+   shipped a 3px ledge with a 2px press and no transition: the button moved
+   and never arrived, and it snapped both ways. That is the pair of defects
+   src/game/beats/beat-chrome.css names on .chip-press, so the contract is the
+   same one, with the same numbers where the two buttons are the same size:
+
+     DOWN is one frame. :active zeroes the duration, so the first painted frame
+     after pointer down is the seated one; the base rule's 140ms spring governs
+     the RELEASE only. A key commits at once and springs back.
+     THE TRAVEL IS THE WALL. --gb-lift is both the ledge and the distance, so
+     the face lands on the ground it stood on with no ledge left showing.
+     4px, not the chip's 6: this face is 44px tall against the chip's 52 and
+     4-on-44 is Duolingo's own wall-to-face ratio (about 4 on 50, measured off
+     docs/reference/competitors/duolingo-live/2026-08-27/d22).
+     filter stays in the list because call sites wear Tailwind's
+     hover:brightness-110; an unlayered transition would otherwise snap it.
+
+   THE LED GLOW is the same two zero-spread layers pathway.css and
+   beat-chrome.css carry, in the button's own hue: a tight seam light and a
+   wide bloom, no spread, so it is a falloff with no boundary rather than a
+   ring. Centred while the contact shadow is offset down, which is what
+   separates the button's light from its shadow. On press the bloom pinches
+   to half its radius, same frame as the seat.
+
+   MEASURED against what index.css actually declares (page #f5f7fb / #101827,
+   card #ffffff / #192438), not against the older cream. Recorded, because a
+   glow carries no floor; the floors are on the face, the wall and the label:
+
+     white label on --primary #5a3fd8       6.69:1   floor 4.5
+     white label on the hover #472ab4       9.30:1
+     face #5a3fd8 as a shape on #f5f7fb     6.24:1   floor 3.0
+     wall #33208c as a boundary on #f5f7fb 11.34:1   (12.17 on the card)
+     LED --primary at .45, light page       seam 3.37   bloom 2.10
+     LED #a98ffc at .45, dark page          seam 3.95   bloom 2.39
+
+   THE DARK WALL IS LIGHTER THAN THE FACE, not darker, for the reason
+   theme.css gives on --bb-primary-edge: an edge reads against the ground it
+   sits on, and #33208c measured 1.46:1 on the night page, so the whole press
+   cue was invisible at night. #aac7ff is that file's own dark edge and this
+   file's dark --ring: 10.43:1 on #101827, 9.12:1 on the card, 3.93:1 against
+   the face. The dark LED is #a98ffc, the lit violet the pathway's open chip
+   wears at night (pathway.css --path-open-face); --primary itself at night
+   composites to 1.90:1 at the seam, too dim to read as a light source.
+
+   REPORTED, NOT FIXED HERE: the dark --primary above is #5a3fd8 and measures
+   2.65:1 as a shape on #101827, under the 3.0 floor. theme.css moved the
+   game to #6d5ae0 (3.54:1) for exactly this; the token is the palette
+   owner's, and the wall above is what carries the shape until it moves. */
 .gradient-button, .gradient-button-cool {
+  --gb-lift: 4px;
+  --gb-wall: #33208c;
+  --gb-led: color-mix(in srgb, var(--primary) 45%, transparent);
   background: var(--primary);
   color: var(--primary-foreground);
-  border: 1px solid #33208c;
-  box-shadow: 0 3px 0 #33208c;
+  border: 1px solid var(--gb-wall);
+  transform: translateY(0);
+  box-shadow:
+    0 var(--gb-lift) 0 var(--gb-wall),
+    0 calc(var(--gb-lift) + 2px) 8px color-mix(in srgb, var(--gb-wall) 38%, transparent),
+    0 0 6px var(--gb-led),
+    0 0 18px var(--gb-led);
+  transition:
+    transform 140ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 140ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    filter 200ms ease-out;
+}
+.dark .gradient-button, .dark .gradient-button-cool {
+  --gb-wall: #aac7ff;
+  --gb-led: color-mix(in srgb, #a98ffc 45%, transparent);
 }
 .gradient-button:hover, .gradient-button-cool:hover { background: #472ab4; }
 .gradient-button::before { display: none; }
-.gradient-button:active { box-shadow: none; transform: translateY(2px); }
+.gradient-button:active:not(:disabled), .gradient-button-cool:active:not(:disabled) {
+  transform: translateY(var(--gb-lift));
+  box-shadow:
+    0 0 0 var(--gb-wall),
+    0 1px 2px color-mix(in srgb, var(--gb-wall) 45%, transparent),
+    0 0 3px var(--gb-led),
+    0 0 8px var(--gb-led);
+  transition-duration: 0s;
+}
+@media (prefers-reduced-motion: reduce) {
+  /* The seated state still lands; it lands in one step instead of travelling.
+     Here and not only in the layered block above, because this rule is
+     unlayered and would otherwise outrank that one. */
+  .gradient-button, .gradient-button-cool { transition: none; }
+}

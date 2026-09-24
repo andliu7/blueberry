@@ -187,10 +187,47 @@
    * AND THE GLOW RIDES BESIDE IT, in --node-glow. One declaration, one place:
    * a state changes the token, never this line, so no state can lose the cast
    * shadow while reaching for a bloom.
+   *
+   * THE GLOW IS AN LED RING UNDER THE LIP, owner 2026-09-24: "a glow to them
+   * as if they have LEDs around them." It used to be one layer with a 5px
+   * SPREAD, which is the shape this file bans two comments up: a spread
+   * pushes the shadow's full-strength edge out past the shape, so the eye
+   * reads a band with a boundary, a ring. Light has no boundary. It is
+   * brightest where it escapes and falls off from there, so the glow is now
+   * TWO ZERO-SPREAD LAYERS OF THE SAME TOKEN: a tight one (6px blur) that is
+   * the seam light where the LEDs sit under the lip, and a wide one (20px)
+   * that is the bloom on the ground. Where they overlap at the seam the alpha
+   * compounds (0.34 twice is 0.56), which is the falloff of a real emitter
+   * without a second token or a gradient.
+   *
+   * WHY IT READS AS LIGHT AND NOT AS A SHADOW, on either ground: it is
+   * centred, and the cast shadow beside it is not. --node-cast is a warm
+   * grey offset DOWN, because the room's light comes from above; the glow is
+   * the chip's own saturated hue in every direction, because the chip is the
+   * source. Two different colours in two different geometries is what tells
+   * the eye "that is its shadow, and that is its light". On the near-white
+   * page the light can only TINT the paper, which is what a coloured LED does
+   * to white paper; at night it is brighter than the ground.
+   *
+   * MEASURED, composited at the seam (both layers) and in the bloom (one),
+   * against the grounds theme.css actually declares. A glow carries no floor
+   * (it is never the only thing identifying a state, per theme.css), so these
+   * are recorded, not claimed:
+   *
+   *   open  light #8b6df2 at .34  on the page #f5f7fb   seam 1.94  bloom 1.47
+   *   open  dark  #a98ffc at .38  on the page #101827   seam 3.34  bloom 2.04
+   *   done  light #7ed957 at .50  on the page #f5f7fb   seam 1.45  bloom 1.29
+   *   done  dark  #7ed957 at .42  on the page #101827   seam 5.08  bloom 2.78
+   *
+   * The transition is the release only: the :active rule below zeroes it,
+   * same shape as the face's press, so the light pinches the frame the
+   * pointer lands and relaxes on the same 140ms spring the face rises on.
    */
   box-shadow:
     var(--node-cast),
-    0 0 18px 5px var(--node-glow);
+    0 0 6px var(--node-glow),
+    0 0 20px var(--node-glow);
+  transition: box-shadow 140ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 /* The face: the button top, and the one thing that moves. It fills the well's
@@ -271,7 +308,8 @@
    * everybody else got neither. The spring is now on the base rule where the
    * :active rule below always claimed it was.
    */
-  .path-node__face {
+  .path-node__face,
+  .path-node {
     transition: none;
   }
 }
@@ -289,6 +327,22 @@
    * Zeroing the duration HERE rather than removing it above leaves the
    * release governed by the spring on the base rule.
    */
+  transition-duration: 0s;
+}
+
+/* THE LIGHT PINCHES WHEN THE FACE SEATS. With the lip closed the LEDs are
+   under a face that is flush with the well, so the light has nowhere to go
+   but out along the ground: the same two layers, at half their radius, the
+   same frame the face lands. The alpha does not change, so the same light in
+   a third of the area reads brighter at the seam, which is what a seated LED
+   button looks like. Same instant-down, sprung-release shape as the face.
+   The current node keeps its pulsing halo through a press: its animation
+   owns box-shadow, and the halo IS its light. */
+.path-node--press:active {
+  box-shadow:
+    var(--node-cast),
+    0 0 3px var(--node-glow),
+    0 0 9px var(--node-glow);
   transition-duration: 0s;
 }
 

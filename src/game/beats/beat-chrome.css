@@ -194,6 +194,35 @@
   --chip-press-ink: var(--bb-primary-foreground);
   --chip-press-edge: var(--check-edge);
   --chip-press-rim: var(--check-rim);
+  /*
+   * THE LED, owner 2026-09-24: "a glow to them as if they have LEDs around
+   * them." It is drawn as two zero-spread box-shadow layers of this one
+   * token (see the box-shadow below): a 6px seam light where the LEDs sit
+   * under the rim and an 18px bloom on the sheet, the alpha compounding where
+   * they overlap so the light is brightest at the seam and falls off with no
+   * boundary. NEVER a spread: a spread is a ring, and this button already has
+   * a rim. Centred while the contact shadow below is offset down, which is
+   * what tells the eye which one is the button's light and which its shadow.
+   *
+   * THE LED IS --chip-face, NOT --check-face. The check face is the family's
+   * periwinkle darkened until white clears 4.5 on it, and a darker-than-page
+   * bloom around a button on the light page is ambient occlusion, a shadow.
+   * An emitter has to be the family's BRIGHT member: on the page it tints
+   * the paper the chip's colour, at night it is lighter than the ground. Each
+   * variant below re-points it at its own bright member for the same reason.
+   *
+   * MEASURED, composited at the seam (both layers) and in the bloom (one),
+   * on the grounds theme.css declares. Recorded, not claimed: a glow carries
+   * no floor because it is never the only thing identifying a state.
+   *
+   *   check  #b8affa light, page #f5f7fb   seam 1.52  bloom 1.30
+   *          #ada3f5 dark,  page #101827   seam 4.49  bloom 2.62
+   *   claim  #b3df92 light, page #f5f7fb   seam 1.27  bloom 1.17
+   *          #7ed957 dark,  page #101827   seam 5.51  bloom 3.02
+   *   near   #d5af81 light, page #f5f7fb   seam 1.54  bloom 1.31
+   *          #fbbf24 dark,  page #101827   seam 5.68  bloom 3.08
+   */
+  --chip-press-glow: color-mix(in srgb, var(--chip-face) 45%, transparent);
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -269,7 +298,9 @@
      which is what a coloured object standing on paper actually does. */
   box-shadow:
     0 var(--chip-press-lift) 0 var(--chip-press-edge),
-    0 calc(var(--chip-press-lift) + 2px) 8px color-mix(in srgb, var(--chip-press-edge) 38%, transparent);
+    0 calc(var(--chip-press-lift) + 2px) 8px color-mix(in srgb, var(--chip-press-edge) 38%, transparent),
+    0 0 6px var(--chip-press-glow),
+    0 0 18px var(--chip-press-glow);
   /* Reserve the wall's room so a tight flex row does not clip it. */
   margin-bottom: var(--chip-press-lift);
   transition:
@@ -301,6 +332,10 @@
   --chip-press-ink: var(--progress-ink);
   --chip-press-edge: var(--progress-edge);
   --chip-press-rim: var(--claim-rim);
+  /* The green LED. A blurred shadow is neither text nor a hairline, so this
+     is outside what FILL-ONLY forbids and outside lessonProgress.test.ts's
+     line-property list on purpose, not by accident of naming. */
+  --chip-press-glow: color-mix(in srgb, var(--progress) 45%, transparent);
 }
 
 /* The sheet's `skip`: a cream face inside a violet-family outline, no fill
@@ -310,6 +345,9 @@
   --chip-press-ink: var(--bb-foreground);
   --chip-press-edge: var(--off-edge);
   --chip-press-rim: color-mix(in srgb, var(--chip-face) 55%, var(--bb-border));
+  /* Unlit. The primary is the one control on the row that is powered; a
+     glowing skip would compete with it for the same glance. */
+  --chip-press-glow: transparent;
 }
 
 /* The near-miss amber, worn by the primary while that sheet is up. Same job
@@ -329,6 +367,10 @@
   --chip-press-ink: color-mix(in srgb, var(--not-requested) 80%, black);
   --chip-press-edge: color-mix(in srgb, var(--not-requested) 62%, black);
   --chip-press-rim: color-mix(in srgb, var(--not-requested) 62%, black);
+  /* Its own face is already the family's bright member (the mix above, or
+     the amber-400 dark keeps), so the LED is the face. A violet light around
+     an amber chip would be the sixth face pathway.css was corrected for. */
+  --chip-press-glow: color-mix(in srgb, var(--chip-press-face) 45%, transparent);
 }
 
 /* Dark already runs a bright amber-400, which reads as "hold on" rather than
@@ -361,9 +403,16 @@
    springs back. */
 .chip-press:active:not(:disabled) {
   transform: translateY(var(--chip-press-lift));
+  /* THE LIGHT PINCHES AS THE CHIP SEATS: same two LED layers at half their
+     radius, same alpha, same frame. With the wall closed the light can only
+     escape along the sheet, so the same light in a third of the area reads
+     brighter at the seam, which is what a seated LED button looks like. It
+     relaxes on the release spring with everything else. */
   box-shadow:
     0 0 0 var(--chip-press-edge),
-    0 1px 2px color-mix(in srgb, var(--chip-press-edge) 45%, transparent);
+    0 1px 2px color-mix(in srgb, var(--chip-press-edge) 45%, transparent),
+    0 0 3px var(--chip-press-glow),
+    0 0 8px var(--chip-press-glow);
   transition-duration: 0s;
 }
 
@@ -379,6 +428,8 @@
   --chip-press-ink: var(--bb-muted-foreground);
   --chip-press-edge: var(--off-edge);
   --chip-press-rim: var(--off-edge);
+  /* Unpowered. A control that will not act on a press does not light. */
+  --chip-press-glow: transparent;
   transform: none;
   cursor: default;
 }

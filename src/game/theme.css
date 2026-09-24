@@ -56,9 +56,19 @@
  * declaration shipped a plain blue #2457d6, so every ratio quoted here
  * described a colour the app did not paint. #5a3fd8 is the blue-violet
  * between them, and it was chosen by measuring rather than by family: white
- * on it is 6.69:1 and it clears 6.08:1 as a shape on the cream ground, better
- * on both counts than the blue it replaces (6.16:1 and 5.59:1) and than the
- * violet the prose asked for (6.34:1 and 5.76:1). It is also in neither
+ * on it is 6.69:1 and it clears 6.24:1 as a shape on the PAGE GROUND
+ * --bb-background #f5f7fb, better on both counts than the blue it replaces
+ * (6.16:1 and 5.74:1) and than the violet the prose asked for (6.34:1 and
+ * 5.91:1).
+ *
+ * MEASURED AGAINST #f5f7fb, NOT THE CREAM, and that correction is the point.
+ * The first pass of this turn quoted these ratios against #fbf3e6, because the
+ * prose below still calls the ground cream. It is not: line 145 records the
+ * swap, #fbf3e6 survives only as --scene-ground-top, and the page has been
+ * #f5f7fb since. Quoting a ground this file no longer paints is the exact
+ * defect this paragraph complains about, committed again while fixing it. The
+ * stale "cream ground" prose above predates this turn and is left for its
+ * owner, but no number here depends on it any more. It is also in neither
  * mascot palette, so sticker rule 9 (character palette stays out of chrome)
  * still holds: #7c3aed is the costume cape and #5b21b6 its fold, and that
  * collision failed 247 rows once already.
@@ -167,15 +177,15 @@
   --workbench: #ffffff;
   /* THE IDENTITY BLUE-VIOLET, per the owner: "a more fun blue-purple".
      Not #7c3aed (the mascot's cape, sticker rule 9) and not #5b21b6 (the
-     fold). White on it is 6.69:1, and it clears 6.08:1 as a shape sitting on
-     the cream ground, over the 3:1 WCAG 1.4.11 asks of an interface
-     component. */
+     fold). White on it is 6.69:1, and it clears 6.24:1 as a shape sitting on
+     the page ground #f5f7fb (6.69:1 on the white card), over the 3:1 WCAG
+     1.4.11 asks of an interface component. */
   --bb-primary: #5a3fd8;
   --bb-primary-bright: #4779ee;
   --bb-primary-foreground: #ffffff;
   /* The ink/surface split survives the turn: violet as TEXT is held to the
      4.5 body floor on the worst ground it composes on. --bb-primary-ink is
-     8.44:1 on the cream ground and 9.30:1 on the white card. */
+     8.67:1 on the page ground #f5f7fb and 9.30:1 on the white card. */
   --bb-primary-ink: #472ab4;
   /* Warm steps of the cream family, so a muted surface reads as paper. */
   /* One warm step DOWN from the ground, not up: on #ede7d9 the old #f1e8d7 was
@@ -196,8 +206,8 @@
   /* THE CUT EDGE OF A FILLED STICKER. A primary button is a saturated fill and
      its outline cannot be --bb-border, which is derived against the card and the
      ground rather than against a violet fill. One step down the same family,
-     not the mascot's #5b21b6: 11.05:1 on the cream ground, so the shape's
-     outline reads from either side of it. */
+     not the mascot's #5b21b6: 11.34:1 on the page ground and 12.17:1 on the
+     card, so the shape's outline reads from either side of it. */
   --bb-primary-edge: #33208c;
   /* Kept as tokens because two beats still name them. Neither is painted as a
      gradient on chrome any more; sticker rule 2 is a hard rule and the reward
@@ -582,10 +592,14 @@
      which is why this is a split and not a compromise value that fails both.
      RE-DERIVED 2026-09-23 with the blue-violet, and it fixed a live failure:
      the #2457d6 this replaces carried white at 6.16:1 but measured only
-     2.79:1 against the night ground #171a2e, UNDER the 3:1 floor WCAG 1.4.11
-     asks of an interface component, so it had been failing as a shape at
-     night. #6d5ae0 carries white at 5.01:1, still over the 4.5 body floor, and
-     clears 3.42:1 on the night ground. One floor newly met and none given up.
+     2.88:1 against the DARK PAGE GROUND --bb-background #101827, UNDER the 3:1
+     floor WCAG 1.4.11 asks of an interface component, so it had been failing as
+     a shape at night. #6d5ae0 carries white at 5.01:1, still over the 4.5 body
+     floor, and clears 3.54:1 on that page ground. On the dark CARD #192438 it
+     is 3.10:1, over the floor with little room, so nothing may lighten that
+     card. One floor newly met and none given up. (Corrected 2026-09-24: the
+     first pass measured against #171a2e, which is the workbench and scene
+     token, not the page.)
      The prose here used to derive #5b60c8 while the declaration shipped
      #2457d6; both numbers now describe the value below. */
   --bb-primary: #6d5ae0;
