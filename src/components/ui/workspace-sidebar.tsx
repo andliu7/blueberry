@@ -125,7 +125,7 @@ function NavItem({
             </kbd>
           )}
           {item.badge !== undefined && item.badge !== 0 && (
-            <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-indigo-500/10 px-1.5 text-[10px] font-semibold text-indigo-600 dark:text-indigo-300">
+            <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#6b51dd]/10 px-1.5 text-[10px] font-semibold text-[#5a3fd8] dark:text-[#bbb1eb]">
               {item.badge}
             </span>
           )}
@@ -179,7 +179,7 @@ function RoleBadge({ role }: { role: WorkspaceRole }) {
         "inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide",
         role === "owner"
           ? "bg-amber-400/15 text-amber-600 dark:text-amber-300"
-          : "bg-indigo-500/10 text-indigo-600 dark:text-indigo-300",
+          : "bg-[#6b51dd]/10 text-[#5a3fd8] dark:text-[#bbb1eb]",
       )}
     >
       {role === "owner" && <Crown className="size-3" />}

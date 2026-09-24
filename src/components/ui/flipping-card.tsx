@@ -37,7 +37,9 @@ function Glare({ dark }: { dark: boolean }) {
       className="pointer-events-none absolute inset-0 rounded-[inherit] opacity-15"
       style={{
         background: `radial-gradient(circle at var(--gx, 50%) var(--gy, 50%), ${
-          dark ? "rgba(255,255,255,0.9)" : "rgba(99,102,241,0.7)"
+        // The brand ramp's 500 step #6b51dd, replacing indigo-500 `#6366f1`. The
+        // sheen is decorative at opacity-15, no floor; opaque 5.46:1 on white.
+          dark ? "rgba(255,255,255,0.9)" : "rgba(107,81,221,0.7)"
         }, transparent 50%)`,
       }}
     />
@@ -121,7 +123,7 @@ export function FlippingCard({
             !controlled && "group-hover/flipping-card:[transform:rotateY(180deg)]",
             controlled && flipped && "[transform:rotateY(180deg)]",
             onFlip &&
-              "cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+              "cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[#9989e2]",
             "h-[var(--height)] w-[var(--width)]",
             className,
           )}

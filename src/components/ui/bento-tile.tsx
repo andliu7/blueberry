@@ -88,7 +88,7 @@ export function BentoTile({
     "tile-sheen group relative isolate flex flex-col rounded-2xl border p-5 text-left transition-[border-color,background-color,box-shadow,transform] duration-200 [transform:perspective(900px)] will-change-transform hover:z-10 hover:shadow-xl",
     disabled
       ? "cursor-not-allowed border-dashed border-slate-300 bg-white/40 dark:border-stone-700 dark:bg-stone-950/40"
-      : "cursor-pointer border-slate-200 bg-white/70 hover:border-indigo-300 focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:outline-none dark:border-stone-800 dark:bg-stone-950/60 dark:hover:border-indigo-400/50",
+      : "cursor-pointer border-slate-200 bg-white/70 hover:border-[#bbb1eb] focus-visible:ring-2 focus-visible:ring-[#9989e2] focus-visible:outline-none dark:border-stone-800 dark:bg-stone-950/60 dark:hover:border-[#9989e2]/50",
     className,
   );
 

@@ -159,12 +159,12 @@ export function UploadedFolderView({
             onChange={(e) => setNewShelf(e.target.value)}
             placeholder="New folder name"
             maxLength={60}
-            className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-800 outline-none focus-visible:border-indigo-400 focus-visible:ring-2 focus-visible:ring-indigo-400/40 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-200"
+            className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-800 outline-none focus-visible:border-[#9989e2] focus-visible:ring-2 focus-visible:ring-[#9989e2]/40 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-200"
           />
           <button
             type="submit"
             disabled={busy === "add-shelf" || newShelf.trim() === ""}
-            className="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-bold text-white transition hover:bg-indigo-500 disabled:opacity-50"
+            className="rounded-lg bg-[#5a3fd8] px-3 py-1.5 text-sm font-bold text-white transition hover:bg-[#6b51dd] disabled:opacity-50"
           >
             {busy === "add-shelf" ? "Adding…" : "Add folder"}
           </button>

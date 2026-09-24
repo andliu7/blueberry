@@ -149,7 +149,7 @@ export function SyllabusImportTicket({
   return (
     <Dialog open onOpenChange={(next) => { if (!next) { reset(); setOpen(false); } }}>
       <DialogContent className="max-h-[88vh] w-full max-w-2xl overflow-y-auto p-5 sm:p-6">
-        <div className={cn(draft && "rounded-2xl ring-2 ring-indigo-300 dark:ring-indigo-800", className)}>
+        <div className={cn(draft && "rounded-2xl ring-2 ring-[#bbb1eb] dark:ring-[#3d2599]", className)}>
       <div className="flex items-start justify-between gap-3 pr-12">
         <div>
           <h2 className="text-base font-semibold text-card-foreground">
@@ -211,7 +211,7 @@ export function SyllabusImportTicket({
                       checked={!off}
                       onChange={() => toggle(d.id)}
                       aria-label={`Include ${d.title}`}
-                      className="mt-3 size-4 shrink-0 cursor-pointer accent-indigo-500"
+                      className="mt-3 size-4 shrink-0 cursor-pointer accent-[#6b51dd]"
                     />
                     <div className="grid min-w-0 flex-1 gap-3 sm:grid-cols-2">
                       <div className="flex flex-col gap-1.5 sm:col-span-2">

@@ -182,7 +182,7 @@ export function HoverDeck({
         return (
           <div key={gi} className="mb-2">
             {group.heading && (
-              <h2 className="mt-10 mb-3 text-xs font-semibold tracking-[0.14em] text-indigo-600 uppercase dark:text-indigo-300">
+              <h2 className="mt-10 mb-3 text-xs font-semibold tracking-[0.14em] text-[#5a3fd8] uppercase dark:text-[#bbb1eb]">
                 {group.heading}
               </h2>
             )}
@@ -202,11 +202,11 @@ export function HoverDeck({
                       type="button"
                       onClick={() => setPinnedIndex(pinned ? null : index)}
                       aria-expanded={pinned}
-                      className="relative w-full cursor-pointer border-t border-slate-200 py-4 text-left transition-all duration-300 ease-out outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 dark:border-stone-800"
+                      className="relative w-full cursor-pointer border-t border-slate-200 py-4 text-left transition-all duration-300 ease-out outline-none focus-visible:ring-2 focus-visible:ring-[#9989e2] dark:border-stone-800"
                     >
                       <div
                         className={cn(
-                          "absolute inset-0 -mx-3 rounded-lg bg-indigo-50 px-3 transition-all duration-300 ease-out dark:bg-indigo-400/10",
+                          "absolute inset-0 -mx-3 rounded-lg bg-[#f1f4fa] px-3 transition-all duration-300 ease-out dark:bg-[#9989e2]/10",
                           active ? "scale-100 opacity-100" : "scale-95 opacity-0",
                         )}
                       />
@@ -218,7 +218,7 @@ export function HoverDeck({
                                 {item.title}
                                 <span
                                   className={cn(
-                                    "absolute left-0 -bottom-0.5 h-px bg-indigo-500 transition-all duration-300 ease-out",
+                                    "absolute left-0 -bottom-0.5 h-px bg-[#6b51dd] transition-all duration-300 ease-out",
                                     active ? "w-full" : "w-0",
                                   )}
                                 />
@@ -227,7 +227,7 @@ export function HoverDeck({
                             {item.image && (
                               <Eye
                                 className={cn(
-                                  "h-3.5 w-3.5 shrink-0 text-indigo-500 transition-all duration-300 ease-out dark:text-indigo-400",
+                                  "h-3.5 w-3.5 shrink-0 text-[#6b51dd] transition-all duration-300 ease-out dark:text-[#9989e2]",
                                   active ? "translate-x-0 opacity-100" : "-translate-x-2 opacity-0",
                                 )}
                               />
@@ -252,7 +252,7 @@ export function HoverDeck({
                             // column is capped rather than unbounded.
                             "max-w-[9rem] text-right",
                             active
-                              ? "text-indigo-600 dark:text-indigo-300"
+                              ? "text-[#5a3fd8] dark:text-[#bbb1eb]"
                               : "text-slate-500 dark:text-stone-400",
                             (!quizMode || pinned) && "revealed",
                           )}

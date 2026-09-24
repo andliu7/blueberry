@@ -175,7 +175,7 @@ export function QuestionCard({
         className="w-full text-left p-5 flex justify-between items-start hover:bg-black/[0.02] dark:hover:bg-white/[0.03] transition"
       >
         <div className="flex-1 pr-4">
-          <span className="text-indigo-600 dark:text-indigo-400 font-bold text-sm block mb-1 font-mono">
+          <span className="text-[#5a3fd8] dark:text-[#9989e2] font-bold text-sm block mb-1 font-mono">
             Question {num}
             {item.mc ? (multi ? " · Select all that apply" : " · Multiple Choice") : ""}
           </span>
@@ -196,7 +196,7 @@ export function QuestionCard({
       </button>
 
       {open && (
-        <div className="p-5 border-t border-gray-100 dark:border-stone-800 bg-indigo-50/50 dark:bg-indigo-400/5">
+        <div className="p-5 border-t border-gray-100 dark:border-stone-800 bg-[#f1f4fa]/50 dark:bg-[#9989e2]/5">
           {item.mc ? (
             <>
               <div className="space-y-2">
@@ -210,7 +210,7 @@ export function QuestionCard({
                       !submitted && !picks.includes(i) && "border-slate-200 bg-slate-50 hover:bg-slate-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700",
                       // Ticked but not yet checked: neither right nor wrong, so
                       // indigo rather than either of the grading colours.
-                      !submitted && picks.includes(i) && "bg-indigo-100 border-indigo-400 text-indigo-900 dark:bg-indigo-400/20 dark:border-indigo-500 dark:text-indigo-100",
+                      !submitted && picks.includes(i) && "bg-[#e5eaf5] border-[#9989e2] text-[#33208c] dark:bg-[#9989e2]/20 dark:border-[#6b51dd] dark:text-[#e5eaf5]",
                       submitted && correct.has(i) && "bg-green-100 border-green-400 text-green-800 dark:bg-green-900/50 dark:border-green-700 dark:text-green-200",
                       submitted && picks.includes(i) && !correct.has(i) && "bg-red-100 border-red-300 text-red-800 dark:bg-red-900/50 dark:border-red-800 dark:text-red-200",
                       submitted && !picks.includes(i) && !correct.has(i) && "border-slate-200 bg-slate-50 opacity-60 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300",
@@ -232,7 +232,7 @@ export function QuestionCard({
                 <button
                   onClick={reveal}
                   disabled={picks.length === 0}
-                  className="mt-3 rounded-md bg-indigo-600 px-4 py-1.5 text-sm font-bold text-white transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="mt-3 rounded-md bg-[#5a3fd8] px-4 py-1.5 text-sm font-bold text-white transition hover:bg-[#6b51dd] disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Check answer
                 </button>
@@ -248,7 +248,7 @@ export function QuestionCard({
                   </button>
                   <MathHtml
                     html={item.a}
-                    className="text-gray-800 dark:text-stone-300 leading-relaxed mt-4 pt-4 border-t border-indigo-100 dark:border-stone-800"
+                    className="text-gray-800 dark:text-stone-300 leading-relaxed mt-4 pt-4 border-t border-[#e5eaf5] dark:border-stone-800"
                   />
                 </>
               )}
@@ -258,7 +258,7 @@ export function QuestionCard({
               {/* The short answer first, big, because on a reaction card it is
                   the whole answer and the prose underneath is the reasoning. */}
               {item.badge && (
-                <p className="mb-2 text-lg font-bold text-indigo-700 dark:text-indigo-300">
+                <p className="mb-2 text-lg font-bold text-[#472ab4] dark:text-[#bbb1eb]">
                   {item.badge}
                 </p>
               )}
@@ -269,7 +269,7 @@ export function QuestionCard({
           {/* A deck can turn rating off. Then there is no row here at all,
               rather than a row of buttons that record nothing. */}
           {showRating && (
-          <div className="mt-4 pt-4 border-t border-indigo-100 dark:border-stone-800 flex flex-wrap gap-2 items-center">
+          <div className="mt-4 pt-4 border-t border-[#e5eaf5] dark:border-stone-800 flex flex-wrap gap-2 items-center">
             <span className="text-xs text-gray-400 dark:text-stone-500 font-medium uppercase tracking-wider mr-auto">
               Rate your recall:
             </span>

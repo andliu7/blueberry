@@ -129,7 +129,7 @@ export function Blueberry({
       // Only when there is no live canvas underneath: while the 3-D berry is up
       // it owns the press, and handling it here as well would fire twice.
       onClick={onActivate && !live ? onActivate : undefined}
-      className={cn("relative", onActivate && "cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 rounded-full", className)}
+      className={cn("relative", onActivate && "cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[#9989e2] rounded-full", className)}
       aria-label={label ?? `Blueberry, looking ${mood}`}
     >
       {/*

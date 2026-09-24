@@ -110,14 +110,14 @@ export default function ReactionDrawPage({ reactionId }: { reactionId: string })
       <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
         <a
           href="#/lessons"
-          className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-slate-600 hover:text-indigo-700 dark:text-stone-300"
+          className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-slate-600 hover:text-[#472ab4] dark:text-stone-300"
         >
           <ChevronLeft className="size-4" />
           Lessons
         </a>
 
-        <header className="mt-5 rounded-3xl border border-indigo-200/80 bg-white/75 p-6 shadow-sm dark:border-indigo-400/20 dark:bg-stone-950/70">
-          <p className="font-mono text-xs font-semibold uppercase tracking-[.18em] text-indigo-600 dark:text-indigo-300">
+        <header className="mt-5 rounded-3xl border border-[#ccd5ea]/80 bg-white/75 p-6 shadow-sm dark:border-[#9989e2]/20 dark:bg-stone-950/70">
+          <p className="font-mono text-xs font-semibold uppercase tracking-[.18em] text-[#5a3fd8] dark:text-[#bbb1eb]">
             Draw the product
           </p>
           <h1 className="title-face mt-2 text-4xl leading-none">{reaction.name}</h1>
@@ -155,7 +155,7 @@ export default function ReactionDrawPage({ reactionId }: { reactionId: string })
                         {stage.role} &middot; {stage.conditions.acid_base}
                       </span>
                     </div>
-                    <p className="mt-1 font-mono text-sm text-indigo-700 dark:text-indigo-300">
+                    <p className="mt-1 font-mono text-sm text-[#472ab4] dark:text-[#bbb1eb]">
                       {stage.reagents.join("  |  ")}
                     </p>
                     {stage.conditions.temperature_c !== null && (

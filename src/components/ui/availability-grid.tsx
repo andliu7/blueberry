@@ -349,11 +349,24 @@ function Row({
               // The group's overlap is the background; your own answer is the
               // outline on top of it. Two signals in one cell without either
               // hiding the other.
-              backgroundColor: share > 0 ? `color-mix(in oklab, var(--color-indigo-500) ${Math.round(share * 70)}%, transparent)` : undefined,
+              //
+              // The fill is the brand ramp's 500 step #6b51dd. It replaces a reference
+              // to Tailwind's own indigo-500 theme variable, #6366f1, the last lavender
+              // in this file. That variable is named here without its `var()` spelling
+              // on purpose: Tailwind scans comments as well as code, so writing the
+              // reference out would keep emitting the lavender definition.
+              //
+              // A heatmap fill is not text and not the cell's boundary (border-border/60
+              // is), so the 3:1 shape floor is the one it answers to. At the strongest
+              // share this paints 70% of #6b51dd over the white card, compositing to
+              // #9785e7, which is 3.08:1 against the card: up from indigo-500's 2.70:1
+              // and over the floor for the first time. The outline on top of it stays
+              // ring-[#5a3fd8], --bb-primary.
+              backgroundColor: share > 0 ? `color-mix(in oklab, #6b51dd ${Math.round(share * 70)}%, transparent)` : undefined,
             }}
           >
             {on && !readOnly && (
-              <span className="absolute inset-0.5 rounded-[3px] bg-indigo-500/80 ring-1 ring-indigo-600" />
+              <span className="absolute inset-0.5 rounded-[3px] bg-[#6b51dd]/80 ring-1 ring-[#5a3fd8]" />
             )}
           </div>
         );

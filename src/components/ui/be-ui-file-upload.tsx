@@ -274,10 +274,10 @@ export function FileUpload({
           "group relative flex w-full items-center gap-4 overflow-hidden rounded-2xl p-5 text-left outline-none",
           "border border-dashed border-slate-300 bg-white/60 dark:border-stone-700 dark:bg-stone-900/50",
           "transition-[border-color,transform,background-color] duration-200 active:scale-[0.99]",
-          "hover:border-indigo-400 dark:hover:border-indigo-400",
-          "data-[dragging=true]:border-indigo-500 data-[dragging=true]:bg-indigo-50/70",
-          "dark:data-[dragging=true]:bg-indigo-400/10",
-          "focus-visible:ring-2 focus-visible:ring-indigo-400",
+          "hover:border-[#9989e2] dark:hover:border-[#9989e2]",
+          "data-[dragging=true]:border-[#6b51dd] data-[dragging=true]:bg-[#f1f4fa]/70",
+          "dark:data-[dragging=true]:bg-[#9989e2]/10",
+          "focus-visible:ring-2 focus-visible:ring-[#9989e2]",
           "disabled:pointer-events-none disabled:opacity-55",
         )}
       >
@@ -376,7 +376,7 @@ export function FileUpload({
                         <motion.div
                           className={cn(
                             "h-full origin-left rounded-full",
-                            status === "success" ? "bg-emerald-500" : "bg-indigo-500",
+                            status === "success" ? "bg-emerald-500" : "bg-[#6b51dd]",
                           )}
                           initial={false}
                           animate={{ scaleX: progress / 100 }}

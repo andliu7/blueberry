@@ -49,7 +49,7 @@ const textAreaVariants = {
 };
 
 const baseBtn =
-  "inline-flex items-center justify-center gap-2 rounded-lg px-3 h-9 text-sm font-semibold cursor-pointer outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-indigo-400";
+  "inline-flex items-center justify-center gap-2 rounded-lg px-3 h-9 text-sm font-semibold cursor-pointer outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-[#9989e2]";
 
 export const FeedbackWidget = ({
   title = "Help us improve",
@@ -86,7 +86,7 @@ export const FeedbackWidget = ({
         baseBtn,
         "border",
         rating === value
-          ? "bg-indigo-600 text-white border-indigo-600"
+          ? "bg-[#5a3fd8] text-white border-[#5a3fd8]"
           : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50 dark:bg-stone-800 dark:text-stone-200 dark:border-stone-700 dark:hover:bg-stone-700",
       )}
     >
@@ -113,7 +113,7 @@ export const FeedbackWidget = ({
             type="button"
             onClick={onClose}
             aria-label="Close feedback"
-            className="h-8 w-8 inline-flex items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 dark:text-stone-400 dark:hover:bg-stone-800 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+            className="h-8 w-8 inline-flex items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 dark:text-stone-400 dark:hover:bg-stone-800 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[#9989e2]"
           >
             <X className="h-4 w-4" />
           </button>
@@ -141,7 +141,7 @@ export const FeedbackWidget = ({
                   onChange={(e) => setComment(e.target.value)}
                   rows={3}
                   aria-label="Feedback comment"
-                  className="mt-4 flex min-h-[80px] w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-indigo-400 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 dark:placeholder:text-stone-500"
+                  className="mt-4 flex min-h-[80px] w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-[#9989e2] dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 dark:placeholder:text-stone-500"
                 />
               </motion.div>
             )}

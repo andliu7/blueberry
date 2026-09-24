@@ -66,8 +66,8 @@ export function LessonSidebar({
                 className={cn(
                   "flex w-full cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm transition-colors",
                   active === x.id
-                    ? "bg-indigo-600 font-semibold text-white"
-                    : "text-slate-600 hover:bg-slate-100 hover:text-indigo-700 dark:text-stone-300 dark:hover:bg-stone-900 dark:hover:text-indigo-200",
+                    ? "bg-[#5a3fd8] font-semibold text-white"
+                    : "text-slate-600 hover:bg-slate-100 hover:text-[#472ab4] dark:text-stone-300 dark:hover:bg-stone-900 dark:hover:text-[#ccd5ea]",
                 )}
               >
                 <Circle

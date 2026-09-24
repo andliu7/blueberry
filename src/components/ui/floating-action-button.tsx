@@ -107,7 +107,7 @@ export function AnimatedActionCluster({
           "h-9 w-9 shrink-0 rounded-full flex items-center justify-center cursor-pointer",
           "bg-slate-900 text-white dark:bg-stone-100 dark:text-stone-900",
           "shadow-sm outline-none transition-colors",
-          "focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2",
+          "focus-visible:ring-2 focus-visible:ring-[#9989e2] focus-visible:ring-offset-2",
           "focus-visible:ring-offset-[#f6f4ef] dark:focus-visible:ring-offset-[#0c0a09]",
         )}
         whileHover={{ scale: 1.08 }}

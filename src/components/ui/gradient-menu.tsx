@@ -160,7 +160,7 @@ export function GradientMenuButton({
               // rather than snapping on, and `width` stays first so the widening
               // is never lost.
               "transition-[width,box-shadow] duration-500 ease-out outline-none",
-              "focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#f6f4ef] dark:focus-visible:ring-offset-[#0c0a09]",
+              "focus-visible:ring-2 focus-visible:ring-[#9989e2] focus-visible:ring-offset-2 focus-visible:ring-offset-[#f6f4ef] dark:focus-visible:ring-offset-[#0c0a09]",
               active ? "w-auto px-3.5 border-transparent" : "w-9 hover:w-[8.5rem]",
               // Flashes with the idle burst so the eye is drawn to the button,
               // not only to the sparks leaving it.

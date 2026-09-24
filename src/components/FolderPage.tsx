@@ -153,7 +153,7 @@ export function FolderPage({ groupId }: { groupId: DeckGroupId }) {
             of cards, the link at the top is a long way back up. */}
         <a
           href="#/home"
-          className="group mt-12 inline-flex w-fit items-center gap-1.5 self-end text-sm font-bold text-indigo-600 outline-none dark:text-indigo-300"
+          className="group mt-12 inline-flex w-fit items-center gap-1.5 self-end text-sm font-bold text-[#5a3fd8] outline-none dark:text-[#bbb1eb]"
         >
           <ArrowLeft className="h-3.5 w-3.5 transition-transform duration-300 group-hover:-translate-x-1" />
           <span className="relative">

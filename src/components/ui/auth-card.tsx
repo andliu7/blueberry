@@ -175,8 +175,13 @@ export function AuthCard({
             aria-hidden
             className="pointer-events-none absolute inset-0 opacity-70"
             style={{
+              // The brand ramp's 400 step #9989e2 = rgb(153,137,226), replacing
+              // indigo-400 `#818cf8`. A corner glow is decoration: no text sits on
+              // it and it draws no boundary, so no floor applies. The two are at
+              // luminance parity by construction, so every ratio is unchanged:
+              // opaque, 2.99:1 on white against #818cf8's 2.98:1.
               background:
-                "radial-gradient(120% 90% at 80% 10%, rgba(129,140,248,0.28) 0%, transparent 60%)",
+                "radial-gradient(120% 90% at 80% 10%, rgba(153,137,226,0.28) 0%, transparent 60%)",
             }}
           />
 
@@ -220,7 +225,7 @@ export function AuthCard({
                   <ul className="mt-6 space-y-2.5">
                     {copy.points.map((point) => (
                       <li key={point} className="flex items-start gap-2.5 text-sm text-white/70">
-                        <Check className="mt-0.5 size-3.5 shrink-0 text-indigo-200" />
+                        <Check className="mt-0.5 size-3.5 shrink-0 text-[#ccd5ea]" />
                         <span>{point}</span>
                       </li>
                     ))}

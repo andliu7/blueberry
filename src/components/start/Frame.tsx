@@ -222,7 +222,7 @@ export function Chip({ picked, onPick, icon, label, meta = null }: ChipProps) {
       className={cn(
         "bb-press-soft flex w-full cursor-pointer items-center gap-3 rounded-2xl border-2 px-4 py-3.5 text-left transition-colors",
         picked
-          ? "border-indigo-500 bg-indigo-50/90 text-indigo-950 dark:border-indigo-400 dark:bg-indigo-950/50 dark:text-indigo-50"
+          ? "border-[#6b51dd] bg-[#f1f4fa]/90 text-[#1f1456] dark:border-[#9989e2] dark:bg-[#1f1456]/50 dark:text-[#f1f4fa]"
           : "border-slate-300 bg-white/80 text-slate-800 hover:border-slate-400 dark:border-stone-700 dark:bg-stone-900/60 dark:text-stone-100 dark:hover:border-stone-600",
       )}
     >
@@ -235,7 +235,7 @@ export function Chip({ picked, onPick, icon, label, meta = null }: ChipProps) {
           </span>
         )}
       </span>
-      {picked && <Check className="size-5 shrink-0 text-indigo-600 dark:text-indigo-300" />}
+      {picked && <Check className="size-5 shrink-0 text-[#5a3fd8] dark:text-[#bbb1eb]" />}
     </button>
   );
 }

@@ -99,7 +99,7 @@ export function CoachSchedulingCard({
           </p>
           {location && (
             <p className="mt-2 flex items-center gap-1.5 text-sm text-slate-600 dark:text-stone-300">
-              <MapPin className="size-4 shrink-0 text-indigo-600 dark:text-indigo-300" />
+              <MapPin className="size-4 shrink-0 text-[#5a3fd8] dark:text-[#bbb1eb]" />
               {location}
             </p>
           )}
@@ -191,12 +191,12 @@ export function CoachSchedulingCard({
                         }
                         className={cn(
                           "min-h-11 rounded-xl border px-3 text-sm font-medium transition",
-                          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
+                          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6b51dd]",
                           mine &&
                             "border-emerald-400 bg-emerald-50 text-emerald-800 dark:border-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-200",
                           !mine &&
                             !disabled &&
-                            "cursor-pointer border-slate-200 hover:border-indigo-400 hover:bg-indigo-50 dark:border-stone-700 dark:hover:border-indigo-600 dark:hover:bg-indigo-950/40",
+                            "cursor-pointer border-slate-200 hover:border-[#9989e2] hover:bg-[#f1f4fa] dark:border-stone-700 dark:hover:border-[#5a3fd8] dark:hover:bg-[#1f1456]/40",
                           disabled &&
                             "cursor-not-allowed border-slate-200 bg-slate-50 text-slate-400 line-through dark:border-stone-800 dark:bg-stone-900 dark:text-stone-600",
                         )}
@@ -237,18 +237,18 @@ export function CoachSchedulingCard({
             </div>
 
             <div className="flex-1 overflow-y-auto p-5">
-              <div className="rounded-2xl border border-indigo-200 bg-indigo-50/70 p-4 text-center dark:border-indigo-800 dark:bg-indigo-950/40">
-                <p className="text-sm text-indigo-900/75 dark:text-indigo-100/75">
+              <div className="rounded-2xl border border-[#ccd5ea] bg-[#f1f4fa]/70 p-4 text-center dark:border-[#3d2599] dark:bg-[#1f1456]/40">
+                <p className="text-sm text-[#33208c]/75 dark:text-[#e5eaf5]/75">
                   {chosenAt.toLocaleDateString(undefined, {
                     weekday: "long",
                     month: "long",
                     day: "numeric",
                   })}
                 </p>
-                <p className="mt-1 text-2xl font-bold text-indigo-800 dark:text-indigo-200">
+                <p className="mt-1 text-2xl font-bold text-[#3d2599] dark:text-[#ccd5ea]">
                   {formatSlotTime(chosenAt)}
                 </p>
-                <p className="mt-1 text-sm text-indigo-900/75 dark:text-indigo-100/75">
+                <p className="mt-1 text-sm text-[#33208c]/75 dark:text-[#e5eaf5]/75">
                   with {tutor.name} &middot; 30 minutes{location && ` · ${location}`}
                 </p>
               </div>
@@ -265,7 +265,7 @@ export function CoachSchedulingCard({
                 onChange={(e) => setNote(e.target.value)}
                 rows={3}
                 placeholder="Aldol condensations, exam 2 question 4..."
-                className="mt-1.5 min-h-20 w-full resize-y rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm leading-relaxed outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:border-stone-700 dark:bg-stone-900"
+                className="mt-1.5 min-h-20 w-full resize-y rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm leading-relaxed outline-none focus-visible:ring-2 focus-visible:ring-[#6b51dd] dark:border-stone-700 dark:bg-stone-900"
               />
               {/* Telling the TA what you are stuck on turns thirty minutes of
                   working out what you need into thirty minutes of helping. */}

@@ -139,7 +139,7 @@ export const distillationDeck: Deck = {
   to: "#0e7490",
   questions: [
     { q: "Why does the thermometer bulb sit level with the side arm?",
-      a: "So it reads the <strong class='text-indigo-700'>vapour</strong> temperature." },
+      a: "So it reads the <strong class='text-[#472ab4] dark:text-[#bbb1eb]'>vapour</strong> temperature." },
   ],
 };
 ```
@@ -160,7 +160,7 @@ with its own title screen, artwork and saved progress.
 A plain card, with inline HTML allowed in both fields:
 
 ```ts
-{ q: "Why does it work?", a: "Because <strong class='text-indigo-700'>this</strong> happens." }
+{ q: "Why does it work?", a: "Because <strong class='text-[#472ab4] dark:text-[#bbb1eb]'>this</strong> happens." }
 ```
 
 A card with maths. Wrap LaTeX in single dollar signs, and remember the string

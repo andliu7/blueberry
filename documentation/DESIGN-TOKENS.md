@@ -327,3 +327,77 @@ Structural notes that travel with it:
   app; sticker rule 8's needles were re-pointed in the same turn and its floor armed at
   16px, derived from this file's own type scale (the steps below scale-base are body and
   caption sizes, which belong to the content face)
+
+## Supersession, 2026-09-24: the site's indigo ramp becomes the brand ramp
+
+The owner asked to "drop the lavender completely" several times across weeks and it kept
+coming back, because every sweep before this one replaced hex literals and none of them
+touched the Tailwind utility classes. A hex grep cannot see a `text-` utility built on `indigo-700`,
+and there were 832 of those across 85 files, 208 of them inside deck answer markup.
+(The class names in this section are written with their utility prefix broken on
+purpose: Tailwind v4 scans markdown as well as code, so spelling one out in full
+puts its lavender rule straight back into the shipped CSS.)
+
+What ships now: a measured blue-violet ramp at the primary's own hue, H 250.6, anchored on
+the three locked tokens. Steps 600, 700 and 900 ARE `--bb-primary`, `--bb-primary-ink` and
+`--bb-primary-edge`, so the ramp cannot drift from the palette. `--bb-primary-bright`
+`#4779ee` is untouched at H 222; that 28 degree gap is what makes the palette read as
+blue-purple rather than one flat violet.
+
+Ratios below are computed, never quoted, by `src/test/lavender.test.ts`, which recomputes
+them from these exact hexes with the WCAG 2.x formula on every run. Grounds: cream
+`#fbf3e6`, white `#ffffff`, the live light ground `#f5f7fb`, night `#171a2e`, night card
+`#232741`, and `stone-900 #1c1917`, which is what QuestionCard actually paints in dark.
+
+| Step | Tailwind indigo it replaces | Brand value | The ground it meets, before -> after |
+|---|---|---|---|
+| 50 | `#eef2ff` | `#f1f4fa` | wash; night 15.35 -> 15.58 |
+| 100 | `#e0e7ff` | `#e5eaf5` | dark ink; night 13.93 -> 14.24 |
+| 200 | `#c7d2fe` | `#ccd5ea` | dark ink; night 11.51 -> 11.66 |
+| 300 | `#a5b4fc` | `#bbb1eb` | dark ink; night 8.61 -> 8.66, stone-900 8.83 |
+| 400 | `#818cf8` | `#9989e2` | ring both themes; white 2.98 -> 2.99, night 5.75 -> 5.75 |
+| 500 | `#6366f1` | `#6b51dd` | light ink; white 4.47 -> 5.46, over the body floor for the first time |
+| 600 | `#4f46e5` | `#5a3fd8` = `--bb-primary` | light ink; white 6.29 -> 6.69 |
+| 700 | `#4338ca` | `#472ab4` = `--bb-primary-ink` | light ink; white 7.90 -> 9.30 |
+| 800 | `#3730a3` | `#3d2599` | light ink; white 9.93 -> 10.92 |
+| 900 | `#312e81` | `#33208c` = `--bb-primary-edge` | light ink; white 11.42 -> 12.17 |
+| 950 | `#1e1b4b` | `#1f1456` | light ink; white 15.99 -> 16.25 |
+
+The light steps are the DARK theme's ink and the dark steps are the light theme's, which
+is the pairing the code already made: a `text-` utility on `indigo-700` with a
+`dark:text-` sibling on `indigo-300`. Each step is
+therefore compared on the grounds it actually meets; a dark step's ratio against a dark
+ground is a pairing nothing makes. Steps 50 to 200 also drop saturation into the cool
+blue-grey of `--bb-secondary #e8eef8`, because a pale VIOLET wash is the thing the owner
+has been pointing at, and a wash carries no text of its own.
+
+Three live failures were found while measuring, all pre-existing:
+
+- The deck answer emphasis had no dark sibling at all. The `indigo-700` ink measured 2.21:1 on
+  the night card while the prose around it was legible, so the emphasised word was the one
+  thing on the card a student could not read. It is now a pair, 9.30:1 light and 8.83:1
+  dark. Rotating the hue alone would have taken it to 1.88:1
+- The `indigo-500` ink was 4.47:1 on white, under the 4.5 body floor, on three underlined
+  links and two bold spans. Step 500 is 5.46:1
+- The availability heatmap's strongest cell was 2.70:1 against its card, under the 3.0 an
+  interface component needs. It is 3.08:1
+
+The electronegativity ramp moved too, `hsl(262 70% L)` to `hsl(250.6 55% L)`. Rotating to
+the brand hue alone costs contrast, because at equal lightness the brand hue is darker: the
+worst step fell from 4.84:1 to 4.58:1 at S 70. Taking saturation to 55 pays it back, so
+every one of the five steps is now better than the ramp it replaces rather than merely
+legal.
+
+Judged and kept, because none of these is chrome:
+
+- The mascot's `#7c3aed` cape and `#5b21b6` fold, and the berry gradient in
+  `blueberry-loader.tsx`. Sticker rule 9 keeps that palette out of chrome; it does not ask
+  the character to change
+- `PeriodicTab.tsx` `noble`/`gas` `#ddd6fe`, H 250.5, which is the primary's own hue at
+  wash lightness, carrying `PERIODIC_INK` at 10.03:1. A categorical scale where pushing
+  further collides with `nonmetal #bfdbfe`
+- Element colours, `depth.tsx` iodine `#6d28d9` and the rest: chemistry convention
+- `nmr.ts` `#7e22ce` into `#a21caf`, a deck's identity on the hub. Categorical, and five
+  neighbouring decks already sit in the 250 band
+- The quest flask in `CourseFlask.tsx` and `FeedTab.tsx`, `#eceaff` glass and `#917bf5`
+  liquid, sampled from a committed reference image. Pictures of objects, like the mascot

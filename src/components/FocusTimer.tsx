@@ -258,7 +258,7 @@ export function FocusTimer() {
                       <button
                         type="button"
                         onClick={t.beginEyeRest}
-                        className="mt-3 flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-200 py-2 text-xs font-semibold text-slate-600 transition-colors hover:border-indigo-300 hover:text-indigo-700 dark:border-stone-800 dark:text-stone-300 dark:hover:border-indigo-400/50 dark:hover:text-indigo-200"
+                        className="mt-3 flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-200 py-2 text-xs font-semibold text-slate-600 transition-colors hover:border-[#bbb1eb] hover:text-[#472ab4] dark:border-stone-800 dark:text-stone-300 dark:hover:border-[#9989e2]/50 dark:hover:text-[#ccd5ea]"
                       >
                         <Eye className="size-3.5 shrink-0" />
                         <span>Eyes rest in</span>
@@ -332,7 +332,7 @@ export function FocusTimer() {
             t.phase === "break"
               ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-200"
               : running
-                ? "bg-indigo-50 text-indigo-800 dark:bg-indigo-500/15 dark:text-indigo-200"
+                ? "bg-[#f1f4fa] text-[#3d2599] dark:bg-[#6b51dd]/15 dark:text-[#ccd5ea]"
                 : "text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-white",
           )}
         >
@@ -376,7 +376,7 @@ function EyeRest({
   const resting = timer.phase === "eyeRest";
   return (
     <div className="px-5 py-6 text-center">
-      <Eye className="mx-auto size-6 text-indigo-600 dark:text-indigo-300" />
+      <Eye className="mx-auto size-6 text-[#5a3fd8] dark:text-[#bbb1eb]" />
       <p className="mt-3 text-base font-semibold text-slate-900 dark:text-stone-100">Look 20 ft away</p>
       <p className="mt-1 text-sm text-slate-500 dark:text-stone-400">
         For twenty seconds. Out of a window if there is one. The point is to let your eyes
@@ -390,7 +390,7 @@ function EyeRest({
             reduce={!!reduce}
             direction="down"
             enterY={26}
-            className="mt-4 justify-center font-mono text-5xl font-semibold text-indigo-600 dark:text-indigo-300"
+            className="mt-4 justify-center font-mono text-5xl font-semibold text-[#5a3fd8] dark:text-[#bbb1eb]"
           />
           <button
             type="button"
@@ -528,14 +528,14 @@ function Tasks({
           onChange={(e) => setDraft(e.target.value)}
           placeholder="Add a task…"
           aria-label="Add a task"
-          className="min-w-0 flex-1 rounded-lg border border-transparent bg-slate-100 px-2.5 py-1.5 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus-visible:border-indigo-400 dark:bg-stone-900 dark:text-stone-100 dark:placeholder:text-stone-600"
+          className="min-w-0 flex-1 rounded-lg border border-transparent bg-slate-100 px-2.5 py-1.5 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus-visible:border-[#9989e2] dark:bg-stone-900 dark:text-stone-100 dark:placeholder:text-stone-600"
         />
         <button
           type="button"
           onClick={() => setPicking(!picking)}
           aria-expanded={picking}
           aria-label="Pick from the library"
-          className="cursor-pointer rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-indigo-600 dark:text-stone-400 dark:hover:bg-stone-900"
+          className="cursor-pointer rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-[#5a3fd8] dark:text-stone-400 dark:hover:bg-stone-900"
         >
           <Plus className="size-4" />
         </button>
@@ -604,7 +604,7 @@ function PickRow({ label, onPick }: { label: string; onPick: () => void }) {
         type="button"
         onClick={onPick}
         title={label}
-        className="w-full cursor-pointer truncate rounded-md px-2 py-1 text-left text-sm text-slate-600 transition-colors hover:bg-slate-50 hover:text-indigo-700 dark:text-stone-300 dark:hover:bg-stone-900 dark:hover:text-indigo-200"
+        className="w-full cursor-pointer truncate rounded-md px-2 py-1 text-left text-sm text-slate-600 transition-colors hover:bg-slate-50 hover:text-[#472ab4] dark:text-stone-300 dark:hover:bg-stone-900 dark:hover:text-[#ccd5ea]"
       >
         {label}
       </button>

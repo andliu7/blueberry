@@ -95,7 +95,7 @@ const COLOURS = [
   "bg-blue-400",
   "bg-emerald-400",
   "bg-rose-400",
-  "bg-indigo-400",
+  "bg-[#9989e2]",
   "bg-orange-400",
 ];
 
@@ -363,7 +363,7 @@ function PadButton({
       type="button"
       onClick={onClick}
       aria-label={label}
-      className="cursor-pointer rounded-lg border border-slate-200 py-1 text-sm text-slate-600 transition-colors hover:border-indigo-300 hover:text-indigo-700 dark:border-stone-800 dark:text-stone-300 dark:hover:border-indigo-400/50"
+      className="cursor-pointer rounded-lg border border-slate-200 py-1 text-sm text-slate-600 transition-colors hover:border-[#bbb1eb] hover:text-[#472ab4] dark:border-stone-800 dark:text-stone-300 dark:hover:border-[#9989e2]/50"
     >
       {children}
     </button>

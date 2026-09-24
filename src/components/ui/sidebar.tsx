@@ -58,7 +58,7 @@ export function AnimatedMenuToggle({
       aria-label={label ?? (isOpen ? "Close menu" : "Open menu")}
       aria-expanded={isOpen}
       className={cn(
-        "inline-flex cursor-pointer items-center justify-center rounded-full p-2 text-slate-600 transition-colors outline-none hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-indigo-400 dark:text-stone-300 dark:hover:bg-stone-800",
+        "inline-flex cursor-pointer items-center justify-center rounded-full p-2 text-slate-600 transition-colors outline-none hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-[#9989e2] dark:text-stone-300 dark:hover:bg-stone-800",
         className,
       )}
     >
@@ -128,9 +128,9 @@ export function CollapsibleSection({
         }}
         aria-expanded={open}
         className={cn(
-          "flex w-full cursor-pointer items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm font-semibold transition-colors outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+          "flex w-full cursor-pointer items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm font-semibold transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[#9989e2]",
           active
-            ? "bg-indigo-500/12 text-indigo-700 dark:bg-indigo-400/15 dark:text-indigo-200"
+            ? "bg-[#6b51dd]/12 text-[#472ab4] dark:bg-[#9989e2]/15 dark:text-[#ccd5ea]"
             : "text-slate-600 hover:bg-slate-100 dark:text-stone-300 dark:hover:bg-stone-800",
         )}
       >
@@ -218,9 +218,9 @@ export function SidebarNavItem({
       title={onDoubleClick ? `${label} — double-click to open the page` : undefined}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "group relative flex w-full cursor-pointer items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+        "group relative flex w-full cursor-pointer items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[#9989e2]",
         active
-          ? "bg-indigo-500/12 text-indigo-700 dark:bg-indigo-400/15 dark:text-indigo-200"
+          ? "bg-[#6b51dd]/12 text-[#472ab4] dark:bg-[#9989e2]/15 dark:text-[#ccd5ea]"
           : "text-slate-600 hover:bg-slate-100 dark:text-stone-300 dark:hover:bg-stone-800",
         className,
       )}
@@ -282,7 +282,7 @@ export function SidebarProfile({
     <Tag
       {...(href ? { href } : { type: "button" as const })}
       onClick={onClick}
-      className="flex w-full cursor-pointer items-center gap-3 rounded-xl p-2 text-left transition-colors outline-none hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-indigo-400 dark:hover:bg-stone-800"
+      className="flex w-full cursor-pointer items-center gap-3 rounded-xl p-2 text-left transition-colors outline-none hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-[#9989e2] dark:hover:bg-stone-800"
     >
       <span className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-brand-from to-brand-to text-white">
         {avatar}

@@ -121,7 +121,7 @@ export function ProfileDropdown({
           <button
             type="button"
             aria-label={`Account: ${name}`}
-            className="flex cursor-pointer items-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+            className="flex cursor-pointer items-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-[#9989e2]"
           >
             {/* The gradient ring is the original's, kept because it reads as an
                 avatar even before the picture loads, and shrunk to match the
@@ -173,7 +173,7 @@ export function ProfileDropdown({
                     className={cn(
                       "shrink-0 rounded-md border px-1.5 py-0.5 text-[0.65rem] font-semibold tracking-wide uppercase",
                       item.tone === "role" && staff
-                        ? "border-indigo-500/20 bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300"
+                        ? "border-[#6b51dd]/20 bg-[#f1f4fa] text-[#5a3fd8] dark:bg-[#6b51dd]/10 dark:text-[#bbb1eb]"
                         : "border-slate-500/15 bg-slate-100 text-slate-600 dark:bg-stone-800 dark:text-stone-300",
                     )}
                   >

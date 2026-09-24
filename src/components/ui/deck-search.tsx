@@ -72,7 +72,7 @@ export function DeckSearch({
           onChange={(e) => onChange(e.target.value)}
           placeholder="Search every deck…  (press /)"
           aria-label="Search decks"
-          className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pr-10 pl-10 text-sm text-slate-800 shadow-sm outline-none placeholder:text-slate-400 focus-visible:border-indigo-400 focus-visible:ring-2 focus-visible:ring-indigo-400/40 dark:border-stone-800 dark:bg-stone-900 dark:text-stone-200 dark:placeholder:text-stone-500"
+          className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pr-10 pl-10 text-sm text-slate-800 shadow-sm outline-none placeholder:text-slate-400 focus-visible:border-[#9989e2] focus-visible:ring-2 focus-visible:ring-[#9989e2]/40 dark:border-stone-800 dark:bg-stone-900 dark:text-stone-200 dark:placeholder:text-stone-500"
         />
         {value && (
           <button
@@ -133,9 +133,9 @@ export function SearchResults({
             <a
               href={hit.href}
               onClick={onPick}
-              className="block px-4 py-3 transition-colors hover:bg-indigo-50 dark:hover:bg-indigo-400/10"
+              className="block px-4 py-3 transition-colors hover:bg-[#f1f4fa] dark:hover:bg-[#9989e2]/10"
             >
-              <div className="flex items-center gap-1.5 font-mono text-[0.65rem] text-indigo-600 dark:text-indigo-300">
+              <div className="flex items-center gap-1.5 font-mono text-[0.65rem] text-[#5a3fd8] dark:text-[#bbb1eb]">
                 {KIND_ICON[hit.kind]}
                 {hit.label}
               </div>

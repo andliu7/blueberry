@@ -237,7 +237,7 @@ export function FeatureSearch({
                         className={cn(
                           "flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors",
                           i === cursor
-                            ? "bg-indigo-50 dark:bg-indigo-500/15"
+                            ? "bg-[#f1f4fa] dark:bg-[#6b51dd]/15"
                             : "hover:bg-slate-50 dark:hover:bg-stone-900",
                         )}
                       >
@@ -245,7 +245,7 @@ export function FeatureSearch({
                           className={cn(
                             "size-4 shrink-0",
                             i === cursor
-                              ? "text-indigo-600 dark:text-indigo-300"
+                              ? "text-[#5a3fd8] dark:text-[#bbb1eb]"
                               : "text-slate-400 dark:text-stone-500",
                           )}
                         />
@@ -259,7 +259,7 @@ export function FeatureSearch({
                           {KIND_LABEL[f.kind]}
                         </span>
                         {i === cursor && (
-                          <CornerDownLeft className="size-3.5 shrink-0 text-indigo-500" />
+                          <CornerDownLeft className="size-3.5 shrink-0 text-[#6b51dd]" />
                         )}
                       </button>
                     </li>

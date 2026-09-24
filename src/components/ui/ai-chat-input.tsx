@@ -301,7 +301,7 @@ export function PromptInput({
         }}
         className={cn(
           "relative w-full overflow-hidden rounded-2xl border border-slate-200 bg-white",
-          "focus-within:border-indigo-400 dark:border-stone-700 dark:bg-stone-900",
+          "focus-within:border-[#9989e2] dark:border-stone-700 dark:bg-stone-900",
           open ? "cursor-text" : "cursor-pointer",
         )}
       >
@@ -371,7 +371,7 @@ export function PromptInput({
           {bands.map((level, i) => (
             <span
               key={i}
-              className="w-1 rounded-full bg-indigo-500 transition-[height] duration-75 ease-out"
+              className="w-1 rounded-full bg-[#6b51dd] transition-[height] duration-75 ease-out"
               style={{ height: `${Math.max(4, level * 22)}px` }}
             />
           ))}

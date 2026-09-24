@@ -77,7 +77,7 @@ export function HomeBlueberry({
           "blueberry-glow-art group inline-flex rounded-full outline-none",
           // `filter` is listed so the halo fades in rather than appearing at once.
           "transition-[transform,filter] duration-500 ease-out hover:scale-110",
-          "focus-visible:ring-2 focus-visible:ring-indigo-400",
+          "focus-visible:ring-2 focus-visible:ring-[#9989e2]",
           className,
         )}
       >

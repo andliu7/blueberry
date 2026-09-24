@@ -53,7 +53,7 @@ function Step({
 }) {
   return (
     <li className="flex items-start gap-2">
-      <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-md bg-indigo-500/12 text-indigo-600 dark:bg-indigo-400/15 dark:text-indigo-300">
+      <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-md bg-[#6b51dd]/12 text-[#5a3fd8] dark:bg-[#9989e2]/15 dark:text-[#bbb1eb]">
         {icon}
       </span>
       <span className="text-xs leading-relaxed text-slate-600 dark:text-stone-400">
@@ -161,7 +161,7 @@ export function DrillBanner({
         exit={{ opacity: 0, y: -8 }}
         transition={{ duration: 0.25, ease: "easeOut" }}
         className={cn(
-          "relative mb-6 overflow-hidden rounded-2xl border border-indigo-200/70 bg-white/80 p-4 backdrop-blur sm:p-5 dark:border-indigo-400/25 dark:bg-stone-900/70",
+          "relative mb-6 overflow-hidden rounded-2xl border border-[#ccd5ea]/70 bg-white/80 p-4 backdrop-blur sm:p-5 dark:border-[#9989e2]/25 dark:bg-stone-900/70",
           className,
         )}
       >
@@ -187,7 +187,7 @@ export function DrillBanner({
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-6">
           <div className="min-w-0 flex-1">
             <h2 className="title-face flex items-center gap-2 pr-8 text-lg text-slate-900 dark:text-stone-100">
-              <Sparkles className="size-4 shrink-0 text-indigo-500 dark:text-indigo-300" />
+              <Sparkles className="size-4 shrink-0 text-[#6b51dd] dark:text-[#bbb1eb]" />
               Drill this one card at a time
             </h2>
             <p className="mt-1.5 text-sm leading-relaxed text-slate-500 dark:text-stone-400">
@@ -205,7 +205,7 @@ export function DrillBanner({
             <button
               type="button"
               onClick={onStart}
-              className="group/start inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl gradient-button px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-indigo-500/20 transition hover:brightness-110 sm:w-auto"
+              className="group/start inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl gradient-button px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-[#6b51dd]/20 transition hover:brightness-110 sm:w-auto"
             >
               Set all three
               <span

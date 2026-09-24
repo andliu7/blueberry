@@ -85,7 +85,7 @@ function getSlotConfig(totalCards: number, slot: number) {
 // as a dark rounded square hanging behind each circle in both themes. This
 // matches the plain bordered buttons used elsewhere in the app instead.
 const ARROW_CLASSES =
-  "relative flex items-center justify-center rounded-full border border-slate-200 dark:border-stone-800 bg-white dark:bg-stone-900 text-slate-600 dark:text-stone-300 cursor-pointer shrink-0 z-30 outline-none shadow-sm hover:border-slate-300 dark:hover:border-stone-700 hover:text-slate-900 dark:hover:text-white active:scale-95 transition-[color,border-color,transform] duration-200 focus-visible:ring-2 focus-visible:ring-indigo-400";
+  "relative flex items-center justify-center rounded-full border border-slate-200 dark:border-stone-800 bg-white dark:bg-stone-900 text-slate-600 dark:text-stone-300 cursor-pointer shrink-0 z-30 outline-none shadow-sm hover:border-slate-300 dark:hover:border-stone-700 hover:text-slate-900 dark:hover:text-white active:scale-95 transition-[color,border-color,transform] duration-200 focus-visible:ring-2 focus-visible:ring-[#9989e2]";
 
 export default function SocialCards({
   cards,

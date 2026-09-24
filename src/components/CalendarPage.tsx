@@ -105,7 +105,7 @@ export default function CalendarPage() {
       <div className="mx-auto flex h-dvh max-w-7xl flex-col px-4 py-5 sm:px-6 lg:px-8">
         <a
           href="#/home"
-          className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-slate-600 hover:text-indigo-700 dark:text-stone-300"
+          className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-slate-600 hover:text-[#472ab4] dark:text-stone-300"
         >
           <ChevronLeft className="size-4" />
           Home
@@ -124,7 +124,7 @@ export default function CalendarPage() {
             moved to the corner dock, where it already lives on other pages. */}
         <header className="mt-4 flex flex-wrap items-center gap-3">
           <div className="min-w-0 flex-1">
-            <p className="font-mono text-[0.7rem] font-semibold tracking-[.18em] text-indigo-600 uppercase dark:text-indigo-300">
+            <p className="font-mono text-[0.7rem] font-semibold tracking-[.18em] text-[#5a3fd8] uppercase dark:text-[#bbb1eb]">
               Calendar / CHEM241
             </p>
             <h1 className="title-face mt-1 text-3xl leading-none sm:text-4xl">Course calendar</h1>

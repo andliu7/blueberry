@@ -162,7 +162,7 @@ export function DialMinutes({
         type="button"
         onClick={() => setOpen(true)}
         className={cn(
-          "cursor-pointer rounded-xl border border-slate-200 px-2.5 py-1.5 text-left transition-colors hover:border-indigo-300 dark:border-stone-800 dark:hover:border-indigo-400/50",
+          "cursor-pointer rounded-xl border border-slate-200 px-2.5 py-1.5 text-left transition-colors hover:border-[#bbb1eb] dark:border-stone-800 dark:hover:border-[#9989e2]/50",
           className,
         )}
       >
@@ -189,7 +189,7 @@ export function DialMinutes({
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.18, ease: "easeOut" }}
       className={cn(
-        "rounded-xl border border-indigo-300 bg-white p-2 dark:border-indigo-400/50 dark:bg-stone-950",
+        "rounded-xl border border-[#bbb1eb] bg-white p-2 dark:border-[#9989e2]/50 dark:bg-stone-950",
         className,
       )}
     >
@@ -224,7 +224,7 @@ export function DialMinutes({
             strokeLinecap="round"
             strokeDasharray={CIRC}
             strokeDashoffset={CIRC * (1 - pct)}
-            className="stroke-indigo-500 transition-[stroke-dashoffset] duration-200"
+            className="stroke-[#6b51dd] transition-[stroke-dashoffset] duration-200"
           />
         </svg>
 

@@ -164,7 +164,7 @@ function FlipOptions({ item }: { item: Question }) {
     <ol className="mt-2 min-h-0 flex-1 space-y-1 overflow-y-auto pr-1 text-xs">
       {item.options.map((opt, i) => (
         <li key={i} className="flex gap-1.5 text-slate-600 dark:text-stone-300">
-          <span className="font-mono font-bold text-indigo-500 dark:text-indigo-400">
+          <span className="font-mono font-bold text-[#6b51dd] dark:text-[#9989e2]">
             {String.fromCharCode(65 + i)}
           </span>
           <MathHtml html={opt} className="leading-snug" />
@@ -838,7 +838,7 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
         )}
         frontContent={
           <div className="flex h-full w-full flex-col p-5">
-            <span className="font-mono text-sm font-bold text-indigo-600 dark:text-indigo-400">
+            <span className="font-mono text-sm font-bold text-[#5a3fd8] dark:text-[#9989e2]">
               Question {num}
               {item.mc ? " · MC" : ""}
             </span>
@@ -1117,7 +1117,7 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
                 <span className="text-[0.65rem] text-slate-400 dark:text-stone-500 font-semibold font-mono pl-1 pr-0.5">SHOW</span>
                 <button
                   onClick={() => setFilter("all")}
-                  className={cn("px-2.5 py-1 rounded-md text-sm font-semibold transition", filter === "all" ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-400/15 dark:text-indigo-300" : "text-slate-600 hover:bg-slate-50 dark:text-stone-300 dark:hover:bg-white/5")}
+                  className={cn("px-2.5 py-1 rounded-md text-sm font-semibold transition", filter === "all" ? "bg-[#f1f4fa] text-[#472ab4] dark:bg-[#9989e2]/15 dark:text-[#bbb1eb]" : "text-slate-600 hover:bg-slate-50 dark:text-stone-300 dark:hover:bg-white/5")}
                 >
                   All
                 </button>
@@ -1126,7 +1126,7 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
                   className={cn("px-2.5 py-1 rounded-md text-sm font-semibold transition",
                     // Lifted above the blur when the finish notice is pointing
                     // at it; inert otherwise. See `.toast-spotlight` in the CSS.
-                    completed && needsWork > 0 && "toast-spotlight", filter === "needs" ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-400/15 dark:text-indigo-300" : "text-slate-600 hover:bg-slate-50 dark:text-stone-300 dark:hover:bg-white/5")}
+                    completed && needsWork > 0 && "toast-spotlight", filter === "needs" ? "bg-[#f1f4fa] text-[#472ab4] dark:bg-[#9989e2]/15 dark:text-[#bbb1eb]" : "text-slate-600 hover:bg-slate-50 dark:text-stone-300 dark:hover:bg-white/5")}
                 >
                   Needs Review
                 </button>
@@ -1310,7 +1310,7 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
           </div>
 
           {filter === "needs" && (
-            <p className="text-xs text-indigo-600 dark:text-indigo-300 mt-2">
+            <p className="text-xs text-[#5a3fd8] dark:text-[#bbb1eb] mt-2">
               Showing only questions marked <span className="font-semibold">Review</span>,{" "}
               <span className="font-semibold">Almost</span>, or not yet rated.
             </p>
@@ -1327,7 +1327,7 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
 
           <div className="h-1.5 w-full bg-slate-200 dark:bg-stone-800 rounded mt-3 overflow-hidden">
             <div
-              className="h-full bg-indigo-500 transition-all duration-300"
+              className="h-full bg-[#6b51dd] transition-all duration-300"
               style={{ width: `${(reviewed / questions.length) * 100}%` }}
             />
           </div>
@@ -1429,10 +1429,10 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
         <ScrollToTop className="mt-6" />
 
         {reviewed === questions.length && (
-          <div className="mt-6 text-center bg-indigo-50 dark:bg-indigo-400/10 border border-indigo-200 dark:border-indigo-500/30 rounded-lg p-6">
+          <div className="mt-6 text-center bg-[#f1f4fa] dark:bg-[#9989e2]/10 border border-[#ccd5ea] dark:border-[#6b51dd]/30 rounded-lg p-6">
             <p className="text-5xl mb-2">👍</p>
-            <p className="font-bold text-indigo-900 dark:text-indigo-200 text-lg">You've reviewed every question.</p>
-            <p className="text-indigo-700 dark:text-indigo-300 text-sm mt-1">
+            <p className="font-bold text-[#33208c] dark:text-[#ccd5ea] text-lg">You've reviewed every question.</p>
+            <p className="text-[#472ab4] dark:text-[#bbb1eb] text-sm mt-1">
               Use "Needs Review" to double-check anything marked red or yellow before the LCTA.
             </p>
           </div>
@@ -1456,7 +1456,7 @@ function StudyApp({ deck }: { deck: StudyDeck }) {
             href={`${REPO_URL}/tree/gh-pages`}
             target="_blank"
             rel="noopener noreferrer"
-            className="group mt-2 inline-flex items-center gap-2 rounded-full px-3 py-1.5 font-semibold text-indigo-600 dark:text-indigo-300 outline-none transition-colors hover:text-indigo-700 dark:hover:text-indigo-200 focus-visible:ring-2 focus-visible:ring-indigo-400"
+            className="group mt-2 inline-flex items-center gap-2 rounded-full px-3 py-1.5 font-semibold text-[#5a3fd8] dark:text-[#bbb1eb] outline-none transition-colors hover:text-[#472ab4] dark:hover:text-[#ccd5ea] focus-visible:ring-2 focus-visible:ring-[#9989e2]"
           >
             <GitBranch className="w-4 h-4 transition-transform duration-300 group-hover:-rotate-12 group-hover:scale-110" />
             <span className="relative">

@@ -47,11 +47,11 @@ const STATE_CHIP: Record<Exclude<FeedbackState, "new">, { label: string; cls: st
   },
   idea: {
     label: "In Ideas",
-    cls: "bg-indigo-100 text-indigo-700 dark:bg-indigo-400/15 dark:text-indigo-300",
+    cls: "bg-[#e5eaf5] text-[#472ab4] dark:bg-[#9989e2]/15 dark:text-[#bbb1eb]",
   },
   todo: {
     label: "In To do",
-    cls: "bg-violet-100 text-violet-700 dark:bg-violet-400/15 dark:text-violet-300",
+    cls: "bg-[#e5eaf5] text-[#472ab4] dark:bg-[#a091e4]/15 dark:text-[#c2b8ed]",
   },
 };
 
@@ -104,12 +104,12 @@ export function FeedbackInbox({
           A workspace whose controls are all unlabelled icons needs to introduce
           itself once rather than be discovered by clicking things. */}
       {!welcomed && (
-        <div className="border-b border-indigo-100 bg-indigo-50/70 p-3 dark:border-indigo-400/20 dark:bg-indigo-400/10">
-          <p className="flex items-center gap-1.5 text-sm font-bold text-indigo-900 dark:text-indigo-200">
+        <div className="border-b border-[#e5eaf5] bg-[#f1f4fa]/70 p-3 dark:border-[#9989e2]/20 dark:bg-[#9989e2]/10">
+          <p className="flex items-center gap-1.5 text-sm font-bold text-[#33208c] dark:text-[#ccd5ea]">
             <Sparkles className="h-3.5 w-3.5" />
             Welcome to the workspace
           </p>
-          <ul className="mt-2 space-y-1 text-xs leading-relaxed text-indigo-900/80 dark:text-indigo-200/80">
+          <ul className="mt-2 space-y-1 text-xs leading-relaxed text-[#33208c]/80 dark:text-[#ccd5ea]/80">
             <li>
               <strong>This bell</strong> collects every piece of feedback from the study
               pages, labelled positive or needs-attention from the words in it.
@@ -140,7 +140,7 @@ export function FeedbackInbox({
               }
               setWelcomed(true);
             }}
-            className="mt-2 text-xs font-bold text-indigo-700 underline decoration-dotted underline-offset-4 dark:text-indigo-300"
+            className="mt-2 text-xs font-bold text-[#472ab4] underline decoration-dotted underline-offset-4 dark:text-[#bbb1eb]"
           >
             Got it
           </button>
@@ -229,7 +229,7 @@ export function FeedbackInbox({
                             }
                             disabled={busy === note.id}
                             aria-label="Add to Ideas"
-                            className="rounded p-1 text-slate-400 transition hover:bg-indigo-50 hover:text-indigo-600 disabled:opacity-40 dark:hover:bg-indigo-400/10 dark:hover:text-indigo-300"
+                            className="rounded p-1 text-slate-400 transition hover:bg-[#f1f4fa] hover:text-[#5a3fd8] disabled:opacity-40 dark:hover:bg-[#9989e2]/10 dark:hover:text-[#bbb1eb]"
                           >
                             <Lightbulb className="h-3.5 w-3.5" />
                           </button>
@@ -246,7 +246,7 @@ export function FeedbackInbox({
                             }
                             disabled={busy === note.id}
                             aria-label="Add to To do"
-                            className="rounded p-1 text-slate-400 transition hover:bg-violet-50 hover:text-violet-600 disabled:opacity-40 dark:hover:bg-violet-400/10 dark:hover:text-violet-300"
+                            className="rounded p-1 text-slate-400 transition hover:bg-[#f1f4fa] hover:text-[#5a3fd8] disabled:opacity-40 dark:hover:bg-[#a091e4]/10 dark:hover:text-[#c2b8ed]"
                           >
                             <ListTodo className="h-3.5 w-3.5" />
                           </button>

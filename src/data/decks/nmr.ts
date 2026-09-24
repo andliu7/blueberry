@@ -20,6 +20,14 @@ export const nmrDeck: ReferenceDeck = {
   about:
     "The proton and carbon shift charts.\n\nOne idea runs through both: pull electron density away from a nucleus and its signal moves downfield. A proton next to oxygen, nitrogen or a halogen shifts down, a proton on a benzene ring or an aldehyde shifts further still, and plain alkyl protons sit up at the quiet end.\n\nShift alone rarely finishes the job. It narrows a signal to a few options, and splitting and integration decide between them.",
   motif: "nmr",
+  // LEFT AS IS, and judged rather than swept. `#7e22ce` is H 272.1 and `#a21caf`
+  // is H 294.7: a magenta pair, and the deck's own identity on the hub. These are
+  // a CATEGORICAL scale, one colour per deck, and five of the neighbouring decks
+  // already sit in the brand's 250 band (#5b34bb, #5622bb, #6729df, #7340ed,
+  // #7548ec), so pulling this one in would collide with them and cost a student
+  // the only cue that tells two cards apart at a glance. Same call as the
+  // periodic table's noble-gas wash. The floor it owes is met: the deck title is
+  // painted white over this gradient and white on #7e22ce is 6.98:1.
   from: "#7e22ce",
   to: "#a21caf",
   // As with IR: a spectrum, where the answer is where a signal sits on the

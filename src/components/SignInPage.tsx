@@ -81,7 +81,7 @@ export function SignInPage({ mode = "signin" }: { mode?: "signin" | "signup" | "
       />
       <div
         aria-hidden
-        className="absolute inset-0 bg-gradient-to-br from-[#171327]/90 via-[#171327]/70 to-indigo-950/80"
+        className="absolute inset-0 bg-gradient-to-br from-[#171327]/90 via-[#171327]/70 to-[#1f1456]/80"
       />
 
       <div className="relative mx-auto flex min-h-dvh w-full max-w-5xl flex-col px-4 py-6 sm:px-6">
@@ -108,13 +108,13 @@ export function SignInPage({ mode = "signin" }: { mode?: "signin" | "signup" | "
               {WHAT_YOU_GET.map(({ Icon, title, body, ...rest }) => (
                 <li key={title} className="flex gap-3">
                   <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl bg-white/10">
-                    <Icon className="size-4 text-indigo-300" />
+                    <Icon className="size-4 text-[#bbb1eb]" />
                   </span>
                   <div className="min-w-0">
                     <p className="flex flex-wrap items-center gap-2 text-sm font-semibold">
                       {title}
                       {"staffOnly" in rest && rest.staffOnly && (
-                        <span className="rounded-md bg-indigo-500/20 px-1.5 py-0.5 text-[.65rem] font-semibold uppercase tracking-wide text-indigo-200">
+                        <span className="rounded-md bg-[#6b51dd]/20 px-1.5 py-0.5 text-[.65rem] font-semibold uppercase tracking-wide text-[#ccd5ea]">
                           Staff
                         </span>
                       )}

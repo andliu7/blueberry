@@ -91,7 +91,7 @@ export function PulseIconButton({
     spin && onSelf && "hover:rotate-12 hover:scale-110",
     spin && onGroup && "group-hover/card:scale-110",
     interactive &&
-      "cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2",
+      "cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[#9989e2] focus-visible:ring-offset-2",
     className,
   );
 

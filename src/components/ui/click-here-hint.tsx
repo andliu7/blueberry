@@ -35,7 +35,7 @@ export function ClickHereHint({
       transition={{ duration: 0.35 }}
       aria-hidden
     >
-      <span className="playful-face text-sm md:text-base font-bold text-indigo-500 dark:text-amber-300 whitespace-nowrap">
+      <span className="playful-face text-sm md:text-base font-bold text-[#6b51dd] dark:text-amber-300 whitespace-nowrap">
         click here!
       </span>
 
@@ -46,7 +46,7 @@ export function ClickHereHint({
         height="22"
         viewBox="0 0 34 22"
         fill="none"
-        className={cn("text-indigo-500 dark:text-amber-300 shrink-0", left && "-scale-x-100")}
+        className={cn("text-[#6b51dd] dark:text-amber-300 shrink-0", left && "-scale-x-100")}
         animate={reduce ? undefined : { x: left ? [0, -4, 0] : [0, 4, 0] }}
         transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
       >

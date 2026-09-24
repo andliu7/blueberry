@@ -90,7 +90,7 @@ export function BreakRoom({
             className={cn(
               "ml-auto cursor-pointer rounded-lg p-1.5 transition-colors",
               playing
-                ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-200"
+                ? "bg-[#f1f4fa] text-[#472ab4] dark:bg-[#6b51dd]/15 dark:text-[#ccd5ea]"
                 : "text-slate-400 hover:text-slate-700 dark:hover:text-stone-200",
             )}
           >
@@ -112,7 +112,7 @@ export function BreakRoom({
             value={volume}
             onChange={(e) => setVolume(Number(e.target.value))}
             aria-label="Sound volume"
-            className="h-1 w-full cursor-pointer accent-indigo-500"
+            className="h-1 w-full cursor-pointer accent-[#6b51dd]"
           />
         </div>
       )}
@@ -138,8 +138,8 @@ export function BreakRoom({
                 className={cn(
                   "min-h-9 cursor-pointer rounded-lg border px-2.5 text-xs font-semibold transition-colors",
                   playlist === p.id
-                    ? "border-indigo-400 bg-indigo-50 text-indigo-700 dark:border-indigo-500 dark:bg-indigo-950/50 dark:text-indigo-200"
-                    : "border-slate-300 text-slate-600 hover:border-indigo-300 hover:text-indigo-700 dark:border-stone-700 dark:text-stone-300 dark:hover:border-indigo-600",
+                    ? "border-[#9989e2] bg-[#f1f4fa] text-[#472ab4] dark:border-[#6b51dd] dark:bg-[#1f1456]/50 dark:text-[#ccd5ea]"
+                    : "border-slate-300 text-slate-600 hover:border-[#bbb1eb] hover:text-[#472ab4] dark:border-stone-700 dark:text-stone-300 dark:hover:border-[#5a3fd8]",
                 )}
               >
                 {p.name}
@@ -210,8 +210,8 @@ function SceneMenu({
         className={cn(
           "flex w-full cursor-pointer items-center gap-1.5 rounded-full border px-2.5 py-1 text-[0.7rem] font-semibold transition-colors",
           scene === "off"
-            ? "border-slate-200 text-slate-600 hover:border-indigo-300 dark:border-stone-800 dark:text-stone-300"
-            : "border-indigo-400 bg-indigo-50 text-indigo-700 dark:border-indigo-400/50 dark:bg-indigo-500/15 dark:text-indigo-200",
+            ? "border-slate-200 text-slate-600 hover:border-[#bbb1eb] dark:border-stone-800 dark:text-stone-300"
+            : "border-[#9989e2] bg-[#f1f4fa] text-[#472ab4] dark:border-[#9989e2]/50 dark:bg-[#6b51dd]/15 dark:text-[#ccd5ea]",
         )}
       >
         <Icon className="size-3.5 shrink-0" />
@@ -252,7 +252,7 @@ function SceneMenu({
                     <span className="min-w-0 flex-1 truncate">
                       {s === "off" ? "Sound off" : SCENE_LABEL[s]}
                     </span>
-                    {scene === s && <Check className="size-3 shrink-0 text-indigo-500" />}
+                    {scene === s && <Check className="size-3 shrink-0 text-[#6b51dd]" />}
                   </button>
                 </li>
               );
@@ -315,7 +315,7 @@ function TetrisScreen({ onClose }: { onClose: () => void }) {
           className="relative w-full max-w-[min(26rem,calc(100vh-8rem)*0.62)] rounded-2xl border border-slate-200 bg-white p-4 text-slate-900 shadow-2xl dark:border-stone-800 dark:bg-stone-950 dark:text-stone-100"
         >
           <div className="mb-2 flex items-center gap-2">
-            <Gamepad2 className="size-4 text-indigo-600 dark:text-indigo-300" />
+            <Gamepad2 className="size-4 text-[#5a3fd8] dark:text-[#bbb1eb]" />
             <span className="flex-1 text-sm font-semibold">Break</span>
             <button
               type="button"

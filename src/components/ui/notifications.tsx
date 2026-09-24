@@ -152,7 +152,7 @@ const ICON = {
 } as const;
 
 const TONE = {
-  focus: "text-indigo-600 dark:text-indigo-300",
+  focus: "text-[#5a3fd8] dark:text-[#bbb1eb]",
   break: "text-emerald-600 dark:text-emerald-300",
   eyes: "text-amber-600 dark:text-amber-300",
   done: "text-blue-600 dark:text-blue-300",
@@ -416,7 +416,7 @@ export function NotificationsTab({
                   weight, which put a destructive button and a dismissive one in
                   the same place looking the same. It is in the footer now. */}
               <header className="sticky top-0 z-10 flex items-center gap-2 border-b border-slate-100 bg-white px-4 py-3 dark:border-stone-900 dark:bg-stone-950">
-                <Bell className="size-4 text-indigo-600 dark:text-indigo-300" />
+                <Bell className="size-4 text-[#5a3fd8] dark:text-[#bbb1eb]" />
                 <span className="flex-1 text-sm font-semibold">Notifications</span>
                 <button
                   type="button"
@@ -507,7 +507,7 @@ export function NotificationsTab({
           <Bell className="size-4 shrink-0" />
           <span>Notifications</span>
           {unread > 0 && (
-            <span className="flex min-w-[1.125rem] items-center justify-center rounded-full bg-indigo-600 px-1 text-[0.6875rem] leading-[1.125rem] font-bold tabular-nums text-white dark:bg-indigo-500">
+            <span className="flex min-w-[1.125rem] items-center justify-center rounded-full bg-[#5a3fd8] px-1 text-[0.6875rem] leading-[1.125rem] font-bold tabular-nums text-white dark:bg-[#6b51dd]">
               {unread}
             </span>
           )}
@@ -562,10 +562,10 @@ function NoticeRow({ notice, onAct }: { notice: Notice; onAct: () => void }) {
   const bodyId = `notice-body-${notice.id}`;
 
   const Icon = notice.kind === "release" ? FlaskConical : ICON[notice.event];
-  const glyph = notice.kind === "release" ? "text-indigo-600 dark:text-indigo-300" : TONE[notice.event];
+  const glyph = notice.kind === "release" ? "text-[#5a3fd8] dark:text-[#bbb1eb]" : TONE[notice.event];
   const chip =
     notice.kind === "release"
-      ? "bg-indigo-50 dark:bg-indigo-500/15"
+      ? "bg-[#f1f4fa] dark:bg-[#6b51dd]/15"
       : "bg-slate-100 dark:bg-stone-900";
   const title = notice.kind === "release" ? notice.title : notice.text;
   // Dated to the day for a release, to the minute for a log line. The minute a

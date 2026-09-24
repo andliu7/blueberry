@@ -99,8 +99,8 @@ const KINDS: Record<
   assignment: {
     label: "Assignment",
     Icon: FileText,
-    dot: "bg-indigo-500",
-    chip: "bg-indigo-50 text-indigo-700 ring-indigo-200 dark:bg-indigo-950/60 dark:text-indigo-200 dark:ring-indigo-900",
+    dot: "bg-[#6b51dd]",
+    chip: "bg-[#f1f4fa] text-[#472ab4] ring-[#ccd5ea] dark:bg-[#1f1456]/60 dark:text-[#ccd5ea] dark:ring-[#33208c]",
   },
   lecture: {
     label: "Lecture",
@@ -487,9 +487,9 @@ export function CourseCalendar({
                     })}, ${items.length === 0 ? "nothing scheduled" : `${items.length} scheduled`}`}
                     className={cn(
                       "flex min-h-0 cursor-pointer flex-col items-center gap-1 overflow-hidden border-b border-r border-slate-100 p-1.5 text-left outline-none transition sm:items-stretch dark:border-stone-800",
-                      "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-inset",
+                      "focus-visible:ring-2 focus-visible:ring-[#6b51dd] focus-visible:ring-inset",
                       !inMonth && "bg-slate-50/60 dark:bg-stone-950/40",
-                      isSelected && "bg-indigo-50 dark:bg-indigo-950/40",
+                      isSelected && "bg-[#f1f4fa] dark:bg-[#1f1456]/40",
                       !isSelected && "hover:bg-slate-50 dark:hover:bg-stone-800/60",
                     )}
                   >

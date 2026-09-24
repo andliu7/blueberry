@@ -294,7 +294,7 @@ export function DeckPreviewLightbox({
               <a
                 href={deckHref(deck)}
                 onClick={handleClose}
-                className="group/go inline-flex shrink-0 items-center gap-2 rounded-xl gradient-button px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-indigo-500/20 transition hover:brightness-110"
+                className="group/go inline-flex shrink-0 items-center gap-2 rounded-xl gradient-button px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-[#6b51dd]/20 transition hover:brightness-110"
               >
                 {isReference(deck) ? "Open reference" : "Start studying"}
                 <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover/go:translate-x-0.5" />

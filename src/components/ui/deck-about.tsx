@@ -67,7 +67,7 @@ export function DeckAbout({
   const shown = content[active] ? active : available[0]!.id;
 
   return (
-    <section className="mb-6 rounded-2xl border border-indigo-100 bg-indigo-50/60 p-5 dark:border-indigo-500/20 dark:bg-indigo-400/5">
+    <section className="mb-6 rounded-2xl border border-[#e5eaf5] bg-[#f1f4fa]/60 p-5 dark:border-[#6b51dd]/20 dark:bg-[#9989e2]/5">
       {available.length > 1 && (
         <div role="tablist" aria-label="About this deck" className="mb-4 flex flex-wrap gap-1.5">
           {available.map(({ id, label, icon: Icon }) => {
@@ -81,10 +81,10 @@ export function DeckAbout({
                 onClick={() => setActive(id)}
                 className={cn(
                   "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 font-mono text-[0.7rem] font-bold tracking-wider uppercase transition-colors outline-none",
-                  "focus-visible:ring-2 focus-visible:ring-indigo-400",
+                  "focus-visible:ring-2 focus-visible:ring-[#9989e2]",
                   selected
-                    ? "bg-indigo-600 text-white dark:bg-indigo-500"
-                    : "text-indigo-600/70 hover:bg-indigo-100/70 hover:text-indigo-700 dark:text-indigo-300/70 dark:hover:bg-indigo-400/10 dark:hover:text-indigo-200",
+                    ? "bg-[#5a3fd8] text-white dark:bg-[#6b51dd]"
+                    : "text-[#5a3fd8]/70 hover:bg-[#e5eaf5]/70 hover:text-[#472ab4] dark:text-[#bbb1eb]/70 dark:hover:bg-[#9989e2]/10 dark:hover:text-[#ccd5ea]",
                 )}
               >
                 <Icon className="h-3.5 w-3.5" />

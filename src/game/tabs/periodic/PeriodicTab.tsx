@@ -68,17 +68,27 @@ function electronegativityColour(value: number | null): string {
   // to clear the 4.5 text floor. The old ramp ran to L50 and the dark end failed
   // outright: L62 measured 3.03:1 and L50 measured 1.90:1, so fluorine, oxygen,
   // nitrogen and chlorine, the four a student reads most, carried illegible
-  // labels. Rotating the hue does not help and makes it worse (hue 251 gives
-  // 2.78:1 and 1.69:1), because the problem is lightness.
+  // labels. The problem there was lightness, not hue.
+  //
+  // THE HUE IS 250.6, --bb-primary's own, and the saturation came down to 55 to
+  // pay for it. This was `hsl(262 70% L)`, whose pale end #f3eefc sat in the
+  // lavender wash family the palette is dropping. Rotating alone would have cost
+  // contrast, because at equal lightness the brand hue is slightly darker: at
+  // S70 the worst step fell from 4.84:1 to 4.58:1. Taking saturation to 55 gives
+  // it back and then some, so every step is now BETTER than the ramp it replaces
+  // rather than merely legal. Measured on PERIODIC_INK, before -> after:
+  //
+  //   L96  12.23 -> 12.24    L90  9.92 -> 9.99    L84  7.94 -> 8.10
+  //   L78   6.23 ->  6.40    L72  4.84 -> 4.98
   //
   // The span is COMPRESSED to 24 rather than clipped at the top, so all five
   // steps stay distinguishable: clipping would flatten the whole high end and
   // make those same four elements look identical, trading a contrast bug for an
-  // information one. Measured on the ink: L96 12.23:1, L90 9.92:1, L84 7.94:1,
-  // L78 6.23:1, L72 4.84:1. Do not lower this floor; L70 is already 4.43:1.
+  // information one. Do not lower this floor; L70 is 4.56:1 and the next step
+  // down leaves the 4.5 body floor for good.
   const t = Math.max(0, Math.min(1, (value - 0.7) / 3.3));
   const light = 96 - t * 24;
-  return `hsl(262 70% ${light}%)`;
+  return `hsl(250.6 55% ${light}%)`;
 }
 
 function cellColour(element: Element, colouring: Colouring): string {

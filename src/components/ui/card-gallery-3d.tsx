@@ -114,7 +114,7 @@ export function CardGallery3D({
         }}
         onPointerUp={() => (drag.current = null)}
         onPointerCancel={() => (drag.current = null)}
-        className="relative mx-auto h-[22rem] w-full cursor-grab touch-pan-y select-none outline-none active:cursor-grabbing focus-visible:ring-2 focus-visible:ring-indigo-400"
+        className="relative mx-auto h-[22rem] w-full cursor-grab touch-pan-y select-none outline-none active:cursor-grabbing focus-visible:ring-2 focus-visible:ring-[#9989e2]"
         style={{ perspective: "1100px" }}
       >
         <div
@@ -141,7 +141,7 @@ export function CardGallery3D({
                   setAngle(-i * step);
                   setOpen(item);
                 }}
-                className="absolute top-1/2 left-1/2 h-72 w-52 -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-xl border border-slate-200 bg-white p-3 text-left shadow-lg outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 dark:border-stone-700 dark:bg-stone-900"
+                className="absolute top-1/2 left-1/2 h-72 w-52 -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-xl border border-slate-200 bg-white p-3 text-left shadow-lg outline-none focus-visible:ring-2 focus-visible:ring-[#9989e2] dark:border-stone-700 dark:bg-stone-900"
                 style={{
                   transform: `rotateY(${i * step}deg) translateZ(${radius}px)`,
                   opacity: 0.35 + front * 0.65,
@@ -174,7 +174,7 @@ export function CardGallery3D({
                   {item.title}
                 </p>
                 {item.badge && (
-                  <p className="mt-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">
+                  <p className="mt-1 font-mono text-xs text-[#5a3fd8] dark:text-[#bbb1eb]">
                     {item.badge}
                   </p>
                 )}
@@ -237,7 +237,7 @@ export function CardGallery3D({
               className="pr-6 text-lg leading-snug font-bold text-slate-900 dark:text-stone-100"
             />
             {open.badge && (
-              <p className="mt-1 font-mono text-sm text-indigo-600 dark:text-indigo-300">
+              <p className="mt-1 font-mono text-sm text-[#5a3fd8] dark:text-[#bbb1eb]">
                 {open.badge}
               </p>
             )}

@@ -95,7 +95,7 @@ export function AdminPanel({
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="name@terpmail.umd.edu"
-          className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-800 outline-none focus-visible:border-indigo-400 focus-visible:ring-2 focus-visible:ring-indigo-400/40 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-200"
+          className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-800 outline-none focus-visible:border-[#9989e2] focus-visible:ring-2 focus-visible:ring-[#9989e2]/40 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-200"
         />
         {/* A tick rather than "Give access". The row is already an email field
             next to a person icon; the button only has to say yes, and a word

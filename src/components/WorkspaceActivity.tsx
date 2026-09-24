@@ -147,7 +147,7 @@ export function WorkspaceActivity({
         <select
           value={range}
           onChange={(e) => setRange(e.target.value as RangeKey)}
-          className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs text-slate-600 outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-300"
+          className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs text-slate-600 outline-none focus-visible:ring-2 focus-visible:ring-[#9989e2] dark:border-stone-700 dark:bg-stone-900 dark:text-stone-300"
         >
           {Object.entries(RANGES).map(([key, r]) => (
             <option key={key} value={key}>

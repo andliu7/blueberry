@@ -80,9 +80,9 @@ export function LessonNav({
                   aria-current={selected ? "page" : undefined}
                   className={cn(
                     "flex min-h-11 flex-1 items-center rounded-xl px-3 text-left text-sm font-semibold transition-colors",
-                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6b51dd]",
                     selected
-                      ? "bg-indigo-600 text-white"
+                      ? "bg-[#5a3fd8] text-white"
                       : "text-slate-700 hover:bg-slate-100 dark:text-stone-200 dark:hover:bg-stone-800",
                   )}
                 >
@@ -105,7 +105,7 @@ export function LessonNav({
                     }
                     aria-expanded={isOpen}
                     aria-label={`${isOpen ? "Collapse" : "Expand"} ${section.label}, ${section.children.length} reactions`}
-                    className="flex min-h-11 w-9 shrink-0 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:text-stone-500 dark:hover:bg-stone-800 dark:hover:text-stone-200"
+                    className="flex min-h-11 w-9 shrink-0 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6b51dd] dark:text-stone-500 dark:hover:bg-stone-800 dark:hover:text-stone-200"
                   >
                     <ChevronRight
                       className={cn(
@@ -142,9 +142,9 @@ export function LessonNav({
                               aria-current={on ? "page" : undefined}
                               className={cn(
                                 "flex min-h-11 w-full items-center gap-2 rounded-lg px-2.5 text-left text-sm transition-colors",
-                                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
+                                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6b51dd]",
                                 on
-                                  ? "bg-indigo-50 font-semibold text-indigo-800 dark:bg-indigo-950/50 dark:text-indigo-200"
+                                  ? "bg-[#f1f4fa] font-semibold text-[#3d2599] dark:bg-[#1f1456]/50 dark:text-[#ccd5ea]"
                                   : "text-slate-600 hover:bg-slate-100 dark:text-stone-300 dark:hover:bg-stone-800",
                               )}
                             >

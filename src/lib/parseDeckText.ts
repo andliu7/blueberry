@@ -140,8 +140,13 @@ export function parseDeckText(text: string): ParseResult {
       subtitle: `${questions.length} questions. Hide the answers, rate your recall, and drill until they stick.`,
       blurb: header.blurb?.trim() || `${questions.length} questions, uploaded from a text file.`,
       motif,
-      from: header.from?.trim() || "#4338ca",
-      to: header.to?.trim() || "#6d28d9",
+      // The fallback card gradient when an upload names no colours. --bb-primary-edge
+      // to --bb-primary-ink, replacing indigo-700 `#4338ca` and violet-700 `#6d28d9`.
+      // The deck title is painted WHITE over this art, so both stops owe 4.5:1:
+      // white on #33208c is 12.17:1 and on #472ab4 is 9.30:1, up from 7.90:1 and
+      // 7.10:1. Dark stop first, the direction every hand-written deck already uses.
+      from: header.from?.trim() || "#33208c",
+      to: header.to?.trim() || "#472ab4",
       questions,
     },
     errors,

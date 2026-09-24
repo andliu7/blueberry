@@ -237,7 +237,7 @@ export function Dashboard({
                 type="button"
                 onClick={close}
                 aria-label="Close the menu"
-                className="cursor-pointer rounded-full p-1.5 text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:outline-none dark:text-stone-300 dark:hover:bg-stone-800"
+                className="cursor-pointer rounded-full p-1.5 text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-[#9989e2] focus-visible:outline-none dark:text-stone-300 dark:hover:bg-stone-800"
               >
                 <X className="size-4" />
               </button>
@@ -304,10 +304,10 @@ export function DashboardButton({
       aria-label={open ? "Close the dashboard" : "Open the dashboard"}
       aria-expanded={open}
       className={cn(
-        "group/dash inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full border px-3 text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:outline-none",
+        "group/dash inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full border px-3 text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-[#9989e2] focus-visible:outline-none",
         open
-          ? "border-indigo-300 bg-indigo-50 text-indigo-700 dark:border-indigo-400/40 dark:bg-indigo-500/15 dark:text-indigo-200"
-          : "border-slate-200 bg-white/85 text-slate-600 hover:border-indigo-300 hover:bg-white hover:text-indigo-700 dark:border-stone-700 dark:bg-stone-900/60 dark:text-stone-300 dark:hover:border-indigo-400/50 dark:hover:bg-stone-800 dark:hover:text-indigo-200",
+          ? "border-[#bbb1eb] bg-[#f1f4fa] text-[#472ab4] dark:border-[#9989e2]/40 dark:bg-[#6b51dd]/15 dark:text-[#ccd5ea]"
+          : "border-slate-200 bg-white/85 text-slate-600 hover:border-[#bbb1eb] hover:bg-white hover:text-[#472ab4] dark:border-stone-700 dark:bg-stone-900/60 dark:text-stone-300 dark:hover:border-[#9989e2]/50 dark:hover:bg-stone-800 dark:hover:text-[#ccd5ea]",
         className,
       )}
     >
@@ -382,7 +382,7 @@ export function Panel({
           </p>
           <a
             href={TRAINER_URL}
-            className="group mt-4 inline-flex items-center gap-1.5 text-sm font-bold text-indigo-600 outline-none dark:text-indigo-300"
+            className="group mt-4 inline-flex items-center gap-1.5 text-sm font-bold text-[#5a3fd8] outline-none dark:text-[#bbb1eb]"
           >
             <span className="relative">
               Open the mechanism trainer
@@ -474,7 +474,7 @@ function HomePanel({
               <a
                 href={deckHref(deck)}
                 onClick={onClose}
-                className="group block rounded-xl border border-slate-200 bg-white/85 px-4 py-3 transition-colors hover:border-indigo-300 hover:bg-white dark:border-stone-700 dark:bg-stone-900/75 dark:hover:border-indigo-400/50 dark:hover:bg-stone-900"
+                className="group block rounded-xl border border-slate-200 bg-white/85 px-4 py-3 transition-colors hover:border-[#bbb1eb] hover:bg-white dark:border-stone-700 dark:bg-stone-900/75 dark:hover:border-[#9989e2]/50 dark:hover:bg-stone-900"
               >
                 <div className="flex items-baseline justify-between gap-3">
                   <p className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-800 dark:text-stone-100">
@@ -543,7 +543,7 @@ function DecksPanel({
           onChange={(e) => onQuery(e.target.value)}
           placeholder="Search every deck, card and row…"
           aria-label="Search decks"
-          className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pr-10 pl-10 text-sm text-slate-800 shadow-sm outline-none placeholder:text-slate-400 focus-visible:border-indigo-400 focus-visible:ring-2 focus-visible:ring-indigo-400/40 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-200 dark:placeholder:text-stone-500"
+          className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pr-10 pl-10 text-sm text-slate-800 shadow-sm outline-none placeholder:text-slate-400 focus-visible:border-[#9989e2] focus-visible:ring-2 focus-visible:ring-[#9989e2]/40 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-200 dark:placeholder:text-stone-500"
         />
         {query && (
           <button
@@ -620,7 +620,7 @@ function CategoriesPanel({ decks, go }: { decks: Deck[]; go: (view: DashboardVie
               className={cn(
                 "group flex w-full cursor-pointer items-start gap-3 rounded-xl border px-4 py-3.5 text-left transition-colors",
                 row.ready
-                  ? "border-slate-200 bg-white/85 hover:border-indigo-300 hover:bg-white dark:border-stone-700 dark:bg-stone-900/75 dark:hover:border-indigo-400/50 dark:hover:bg-stone-900"
+                  ? "border-slate-200 bg-white/85 hover:border-[#bbb1eb] hover:bg-white dark:border-stone-700 dark:bg-stone-900/75 dark:hover:border-[#9989e2]/50 dark:hover:bg-stone-900"
                   : "border-dashed border-slate-300 hover:bg-slate-100/60 dark:border-stone-700 dark:hover:bg-stone-900/40",
               )}
             >
@@ -678,7 +678,7 @@ function NotificationsPanel({ updates, onClose }: { updates: Update[]; onClose: 
       onClick={() => setTab(id)}
       aria-pressed={tab === id}
       className={cn(
-        "min-h-11 cursor-pointer rounded-full px-4 text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:outline-none",
+        "min-h-11 cursor-pointer rounded-full px-4 text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-[#9989e2] focus-visible:outline-none",
         tab === id
           ? "bg-slate-900 text-white dark:bg-stone-100 dark:text-stone-900"
           : "text-slate-600 hover:bg-slate-100 dark:text-stone-300 dark:hover:bg-stone-800",
@@ -712,7 +712,7 @@ function NotificationsPanel({ updates, onClose }: { updates: Update[]; onClose: 
                   key={`${e.date}:${e.title}`}
                   className="rounded-xl border border-slate-200 bg-white/85 px-4 py-3 dark:border-stone-700 dark:bg-stone-900/75"
                 >
-                  <div className="flex items-center gap-1.5 font-mono text-[0.65rem] text-indigo-600 dark:text-indigo-300">
+                  <div className="flex items-center gap-1.5 font-mono text-[0.65rem] text-[#5a3fd8] dark:text-[#bbb1eb]">
                     <Sparkles className="size-3" />
                     {new Date(`${e.date}T12:00:00Z`).toLocaleDateString(undefined, {
                       month: "short",
@@ -746,9 +746,9 @@ function NotificationsPanel({ updates, onClose }: { updates: Update[]; onClose: 
                 <a
                   href={deckHref(u.deck)}
                   onClick={onClose}
-                  className="block rounded-xl border border-slate-200 bg-white/85 px-4 py-3 transition-colors hover:border-indigo-300 hover:bg-white dark:border-stone-700 dark:bg-stone-900/75 dark:hover:border-indigo-400/50 dark:hover:bg-stone-900"
+                  className="block rounded-xl border border-slate-200 bg-white/85 px-4 py-3 transition-colors hover:border-[#bbb1eb] hover:bg-white dark:border-stone-700 dark:bg-stone-900/75 dark:hover:border-[#9989e2]/50 dark:hover:bg-stone-900"
                 >
-                  <div className="flex items-center gap-1.5 font-mono text-[0.65rem] text-indigo-600 dark:text-indigo-300">
+                  <div className="flex items-center gap-1.5 font-mono text-[0.65rem] text-[#5a3fd8] dark:text-[#bbb1eb]">
                     <Sparkles className="size-3" />
                     {u.note}
                   </div>
@@ -788,9 +788,9 @@ function SettingsPanel({
         <button
           type="button"
           onClick={() => go("appearance")}
-          className="group flex w-full cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-white/85 px-4 py-3.5 text-left transition-colors hover:border-indigo-300 hover:bg-white dark:border-stone-700 dark:bg-stone-900/75 dark:hover:border-indigo-400/50 dark:hover:bg-stone-900"
+          className="group flex w-full cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-white/85 px-4 py-3.5 text-left transition-colors hover:border-[#bbb1eb] hover:bg-white dark:border-stone-700 dark:bg-stone-900/75 dark:hover:border-[#9989e2]/50 dark:hover:bg-stone-900"
         >
-          <Palette className="size-4 shrink-0 text-indigo-500 dark:text-indigo-300" />
+          <Palette className="size-4 shrink-0 text-[#6b51dd] dark:text-[#bbb1eb]" />
           <span className="min-w-0 flex-1">
             <span className="block text-sm font-semibold text-slate-800 dark:text-stone-100">
               Appearance
@@ -956,7 +956,7 @@ function StatusRow({
     role === "owner"
       ? "bg-amber-400/15 text-amber-600 dark:text-amber-300"
       : role === "admin"
-        ? "bg-indigo-500/10 text-indigo-600 dark:text-indigo-300"
+        ? "bg-[#6b51dd]/10 text-[#5a3fd8] dark:text-[#bbb1eb]"
         : "bg-slate-500/10 text-slate-500 dark:text-stone-400";
 
   return (
@@ -973,7 +973,7 @@ function StatusRow({
         <a
           href="#/d/subscriptions"
           onClick={onNavigate}
-          className="ml-auto cursor-pointer text-xs font-semibold text-indigo-600 underline-offset-4 hover:underline dark:text-indigo-300"
+          className="ml-auto cursor-pointer text-xs font-semibold text-[#5a3fd8] underline-offset-4 hover:underline dark:text-[#bbb1eb]"
         >
           Upgrade
         </a>
@@ -1094,7 +1094,7 @@ function LessonsPanel({ onClose }: { onClose: () => void }) {
       <a
         href="#/lessons"
         onClick={onClose}
-        className="group flex items-start gap-4 rounded-2xl border border-slate-200 bg-white/85 p-5 transition-colors hover:border-indigo-300 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:border-stone-700 dark:bg-stone-900/75 dark:hover:border-indigo-400/50 dark:hover:bg-stone-900"
+        className="group flex items-start gap-4 rounded-2xl border border-slate-200 bg-white/85 p-5 transition-colors hover:border-[#bbb1eb] hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6b51dd] dark:border-stone-700 dark:bg-stone-900/75 dark:hover:border-[#9989e2]/50 dark:hover:bg-stone-900"
       >
         <span className="relative mt-0.5 flex size-10 shrink-0 items-center justify-center">
           <BlueberryMark aria-hidden className="blueberry-glow-art absolute inset-0 size-full" />
@@ -1106,7 +1106,7 @@ function LessonsPanel({ onClose }: { onClose: () => void }) {
         <span className="min-w-0 flex-1">
           <span className="flex items-center gap-2 font-semibold">
             Organic Chemistry 2 Lessons
-            <ArrowUpRight className="size-4 shrink-0 text-slate-400 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-indigo-600 motion-reduce:transition-none dark:text-stone-500 dark:group-hover:text-indigo-300" />
+            <ArrowUpRight className="size-4 shrink-0 text-slate-400 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-[#5a3fd8] motion-reduce:transition-none dark:text-stone-500 dark:group-hover:text-[#bbb1eb]" />
           </span>
           <span className="mt-1 block text-sm leading-6 text-slate-600 dark:text-stone-300">
             The ideas behind the cards, in the order CHEM241 takes them. Written notes
@@ -1123,7 +1123,7 @@ function LessonsPanel({ onClose }: { onClose: () => void }) {
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-controls="lesson-contents"
-        className="mt-2 flex min-h-11 w-full cursor-pointer items-center justify-between rounded-xl px-3 text-sm font-semibold text-slate-500 transition-colors hover:bg-slate-100/70 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:text-stone-400 dark:hover:bg-stone-900/60 dark:hover:text-stone-200"
+        className="mt-2 flex min-h-11 w-full cursor-pointer items-center justify-between rounded-xl px-3 text-sm font-semibold text-slate-500 transition-colors hover:bg-slate-100/70 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6b51dd] dark:text-stone-400 dark:hover:bg-stone-900/60 dark:hover:text-stone-200"
       >
         {open ? "Hide the sections" : `Show all ${sections.length} sections`}
         <ChevronDown
@@ -1152,7 +1152,7 @@ function LessonsPanel({ onClose }: { onClose: () => void }) {
                   <a
                     href={`#/lessons/${t.id}`}
                     onClick={onClose}
-                    className="flex min-h-11 flex-col justify-center rounded-xl px-3 py-2 transition-colors hover:bg-indigo-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:hover:bg-indigo-950/40"
+                    className="flex min-h-11 flex-col justify-center rounded-xl px-3 py-2 transition-colors hover:bg-[#f1f4fa] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6b51dd] dark:hover:bg-[#1f1456]/40"
                   >
                     <span className="text-sm font-semibold">{t.label}</span>
                     <span className="mt-0.5 line-clamp-1 text-xs text-slate-500 dark:text-stone-400">

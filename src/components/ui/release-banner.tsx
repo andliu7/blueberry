@@ -87,16 +87,16 @@ export function ReleaseBanner({ className }: { className?: string }) {
               thing, which is the job the glyph was helping with. */}
           <span
             aria-hidden
-            className="hidden size-11 shrink-0 items-center justify-center rounded-xl bg-indigo-50 sm:flex dark:bg-indigo-500/15"
+            className="hidden size-11 shrink-0 items-center justify-center rounded-xl bg-[#f1f4fa] sm:flex dark:bg-[#6b51dd]/15"
           >
-            <FlaskConical className="size-5 text-indigo-600 dark:text-indigo-300" />
+            <FlaskConical className="size-5 text-[#5a3fd8] dark:text-[#bbb1eb]" />
           </span>
 
           <div className="min-w-0 flex-1">
             {/* The name of the thing, small, above the sentence that sells it.
                 Reversing the two would put the biggest type on a noun phrase a
                 stranger has no use for yet. */}
-            <p className="text-xs font-semibold tracking-[0.14em] text-indigo-600 uppercase dark:text-indigo-300">
+            <p className="text-xs font-semibold tracking-[0.14em] text-[#5a3fd8] uppercase dark:text-[#bbb1eb]">
               {release.title}
             </p>
             <p className="mt-1.5 text-lg leading-snug font-semibold text-balance text-slate-900 sm:text-xl dark:text-stone-50">

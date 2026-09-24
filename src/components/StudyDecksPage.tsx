@@ -582,7 +582,10 @@ function DeckFolder({
     // TiltCard clips by default, which sliced the corner off it.
     <TiltCard
       max={6}
-      glareColor={isDark ? "rgba(255,255,255,0.9)" : "rgba(99,102,241,0.7)"}
+      // The brand ramp's 500 step #6b51dd, replacing indigo-500 `#6366f1`. A tilt
+      // glare is decorative: no text sits on it and it draws no boundary, so no
+      // floor applies. Opaque, it is 5.46:1 on white, up from indigo-500's 4.47.
+      glareColor={isDark ? "rgba(255,255,255,0.9)" : "rgba(107,81,221,0.7)"}
       className="rounded-lg !overflow-visible"
     >
     <InfoCard

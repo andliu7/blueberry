@@ -128,7 +128,7 @@ export function DeckUploadTicket() {
           href="deck-format.html"
           target="_blank"
           rel="noreferrer"
-          className="font-semibold text-indigo-500 underline decoration-dotted underline-offset-4 hover:text-indigo-600 dark:text-indigo-400 dark:hover:text-indigo-300"
+          className="font-semibold text-[#6b51dd] underline decoration-dotted underline-offset-4 hover:text-[#5a3fd8] dark:text-[#9989e2] dark:hover:text-[#bbb1eb]"
         >
           How to write one
         </a>
@@ -155,7 +155,7 @@ export function DeckUploadTicket() {
               <button
                 onClick={signIn}
                 disabled={!ready}
-                className="text-xs font-semibold text-indigo-600 underline decoration-dotted underline-offset-4 disabled:opacity-50 dark:text-indigo-300"
+                className="text-xs font-semibold text-[#5a3fd8] underline decoration-dotted underline-offset-4 disabled:opacity-50 dark:text-[#bbb1eb]"
               >
                 {ready ? "Or use the one-tap prompt" : "Loading sign-in…"}
               </button>
@@ -194,7 +194,7 @@ export function DeckUploadTicket() {
                   href="deck-format.html"
                   target="_blank"
                   rel="noreferrer"
-                  className="font-semibold text-indigo-500 underline decoration-dotted underline-offset-4"
+                  className="font-semibold text-[#6b51dd] underline decoration-dotted underline-offset-4"
                 >
                   Read the guide
                 </a>{" "}
@@ -202,7 +202,7 @@ export function DeckUploadTicket() {
                 <a
                   href="sample-deck.txt"
                   download
-                  className="font-semibold text-indigo-500 underline decoration-dotted underline-offset-4"
+                  className="font-semibold text-[#6b51dd] underline decoration-dotted underline-offset-4"
                 >
                   download a sample
                 </a>
@@ -289,7 +289,7 @@ export function DeckUploadTicket() {
                       >
                         <a
                           href={deckHref(deck)}
-                          className="min-w-0 flex-1 text-sm text-slate-700 hover:text-indigo-600 dark:text-stone-300 dark:hover:text-indigo-300"
+                          className="min-w-0 flex-1 text-sm text-slate-700 hover:text-[#5a3fd8] dark:text-stone-300 dark:hover:text-[#bbb1eb]"
                         >
                           <span className="block truncate font-semibold">{deck.title}</span>
                           <span className="font-mono text-[0.7rem] text-slate-400 dark:text-stone-500">
@@ -357,7 +357,7 @@ export function DeckUploadTicket() {
             Admin?{" "}
             <a
               href="#/signin"
-              className="font-semibold text-indigo-600 underline decoration-dotted underline-offset-4 hover:text-indigo-700 dark:text-indigo-300 dark:hover:text-indigo-200"
+              className="font-semibold text-[#5a3fd8] underline decoration-dotted underline-offset-4 hover:text-[#472ab4] dark:text-[#bbb1eb] dark:hover:text-[#ccd5ea]"
             >
               Click here to sign in to the workspace
             </a>{" "}

@@ -801,7 +801,12 @@ export function BlueberryBot3D({
         <Suspense fallback={null}>
           <ambientLight intensity={0.9} />
           <directionalLight position={[3, 5, 4]} intensity={1.1} castShadow />
-          <directionalLight position={[-4, 1, -3]} intensity={0.35} color="#bfb7fd" />
+          {/* The rim light is the brand ramp's 300 step #bbb1eb, replacing `#bfb7fd`,
+              H 246.9 S 95, the last pale lavender in this file. A light source in a
+              WebGL scene paints no text and draws no boundary, so no contrast floor
+              applies to the value itself; measured anyway, #bbb1eb is 8.66:1 on the
+              night ground against #bfb7fd's 9.32, and it is fill at 0.35 intensity. */}
+          <directionalLight position={[-4, 1, -3]} intensity={0.35} color="#bbb1eb" />
           <Berry
             mood={mood}
             interactive={interactive}

@@ -106,15 +106,15 @@ export function ReactionsPage() {
       <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
         <a
           href="#/home"
-          className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-slate-600 hover:text-indigo-700 dark:text-stone-300"
+          className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-slate-600 hover:text-[#472ab4] dark:text-stone-300"
         >
           <ChevronLeft className="size-4" />
           Home
         </a>
 
-        <header className="mt-5 grid gap-5 rounded-3xl border border-indigo-200/80 bg-white/75 p-6 shadow-sm dark:border-indigo-400/20 dark:bg-stone-950/70 lg:grid-cols-[1fr_270px]">
+        <header className="mt-5 grid gap-5 rounded-3xl border border-[#ccd5ea]/80 bg-white/75 p-6 shadow-sm dark:border-[#9989e2]/20 dark:bg-stone-950/70 lg:grid-cols-[1fr_270px]">
           <div>
-            <p className="font-mono text-xs font-semibold uppercase tracking-[.18em] text-indigo-600 dark:text-indigo-300">
+            <p className="font-mono text-xs font-semibold uppercase tracking-[.18em] text-[#5a3fd8] dark:text-[#bbb1eb]">
               Reactions / CHEM241
             </p>
             <h1 className="title-face mt-3 text-5xl leading-none">Reactions</h1>
@@ -124,7 +124,7 @@ export function ReactionsPage() {
               because a hydride reduction and its acid workup are two different things.
             </p>
           </div>
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-indigo-300 bg-indigo-50/70 p-4 dark:border-indigo-400/30 dark:bg-indigo-950/25">
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-[#bbb1eb] bg-[#f1f4fa]/70 p-4 dark:border-[#9989e2]/30 dark:bg-[#1f1456]/25">
             <Blueberry
               mood="reading"
               interactive
@@ -134,7 +134,7 @@ export function ReactionsPage() {
               className="h-40 w-40"
               label="Blueberry, reading along. Press to go home, drag to spin."
             />
-            <p className="mt-2 text-center text-sm text-indigo-900/75 dark:text-indigo-100/75">
+            <p className="mt-2 text-center text-sm text-[#33208c]/75 dark:text-[#e5eaf5]/75">
               {REACTIONS.length} validated. Start at tier 1 if the tetrahedral intermediate is
               still doing too much work.
             </p>
@@ -185,7 +185,7 @@ function ReactionDetail({ reaction }: { reaction: StagedReaction }) {
                 {reaction.reactants.join(" . ")}
               </p>
             </div>
-            <ArrowRight className="size-5 shrink-0 text-indigo-500" aria-label="gives" />
+            <ArrowRight className="size-5 shrink-0 text-[#6b51dd]" aria-label="gives" />
             <div className="min-w-0">
               <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-stone-400">
                 Product
@@ -237,7 +237,7 @@ function ReactionDetail({ reaction }: { reaction: StagedReaction }) {
 
         <aside className="flex flex-col gap-4">
           <div className="rounded-3xl border border-slate-200 bg-white/80 p-5 shadow-sm dark:border-stone-800 dark:bg-stone-950/70">
-            <ShieldCheck className="size-5 text-indigo-600 dark:text-indigo-300" />
+            <ShieldCheck className="size-5 text-[#5a3fd8] dark:text-[#bbb1eb]" />
             <h3 className="mt-3 font-semibold">How this was checked</h3>
             <dl className="mt-3 flex flex-col gap-2 text-sm">
               <Check label="Structures" value={reaction.validation.checks.parse ?? "not run"} />
@@ -280,7 +280,7 @@ function ReactionDetail({ reaction }: { reaction: StagedReaction }) {
           )}
 
           <div className="rounded-3xl border border-slate-200 bg-white/80 p-5 shadow-sm dark:border-stone-800 dark:bg-stone-950/70">
-            <Layers className="size-5 text-indigo-600 dark:text-indigo-300" />
+            <Layers className="size-5 text-[#5a3fd8] dark:text-[#bbb1eb]" />
             <h3 className="mt-3 font-semibold">Practice</h3>
             <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-stone-300">
               The carbonyl decks drill these as flashcards.
@@ -330,7 +330,7 @@ function StageRow({ stage, committed }: { stage: Stage; committed: boolean }) {
       className={cn(
         "rounded-2xl border p-4",
         committed
-          ? "border-indigo-300 bg-indigo-50/60 dark:border-indigo-700 dark:bg-indigo-950/30"
+          ? "border-[#bbb1eb] bg-[#f1f4fa]/60 dark:border-[#472ab4] dark:bg-[#1f1456]/30"
           : "border-slate-200 bg-slate-50/80 dark:border-stone-800 dark:bg-stone-900/70",
       )}
     >
@@ -361,14 +361,14 @@ function StageRow({ stage, committed }: { stage: Stage; committed: boolean }) {
           </span>
         )}
         {committed && (
-          <span className="ml-auto flex items-center gap-1 text-[.7rem] font-semibold text-indigo-700 dark:text-indigo-300">
+          <span className="ml-auto flex items-center gap-1 text-[.7rem] font-semibold text-[#472ab4] dark:text-[#bbb1eb]">
             <CircleDot className="size-3" />
             committed step
           </span>
         )}
       </div>
 
-      <p className="mt-2 font-mono text-sm text-indigo-700 dark:text-indigo-300">
+      <p className="mt-2 font-mono text-sm text-[#472ab4] dark:text-[#bbb1eb]">
         {stage.reagents.join("  |  ")}
       </p>
 
@@ -422,7 +422,7 @@ function Info({
 }) {
   return (
     <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4 dark:border-stone-800 dark:bg-stone-900/70">
-      <div className="flex items-center gap-2 text-sm font-semibold text-indigo-700 dark:text-indigo-300">
+      <div className="flex items-center gap-2 text-sm font-semibold text-[#472ab4] dark:text-[#bbb1eb]">
         {icon}
         {title}
       </div>

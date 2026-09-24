@@ -107,7 +107,7 @@ export function PassphraseGate({
             setWrong(false);
           }}
           className={cn(
-            "w-full rounded-lg border px-3 py-2 pr-10 text-sm outline-none focus-visible:border-indigo-400 focus-visible:ring-2 focus-visible:ring-indigo-400/40",
+            "w-full rounded-lg border px-3 py-2 pr-10 text-sm outline-none focus-visible:border-[#9989e2] focus-visible:ring-2 focus-visible:ring-[#9989e2]/40",
             dark
               ? "border-white/15 bg-white/10 text-white placeholder:text-white/30"
               : "border-slate-200 bg-white text-slate-800 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-200",
@@ -139,7 +139,7 @@ export function PassphraseGate({
 
       <button
         type="submit"
-        className="mt-3 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-indigo-500"
+        className="mt-3 rounded-lg bg-[#5a3fd8] px-4 py-2 text-sm font-bold text-white transition hover:bg-[#6b51dd]"
       >
         Unlock
       </button>

@@ -30,12 +30,12 @@ const artLayout = (motif: ArtMotif): { motif: ArtMotif; className: string; opaci
   {
     motif,
     className: "right-[-4%] md:right-[3%] top-1/2 -translate-y-1/2 w-72 md:w-[24rem]",
-    opacity: "text-indigo-500/20 dark:text-amber-200/15",
+    opacity: "text-[#6b51dd]/20 dark:text-amber-200/15",
   },
   {
     motif: "mascot",
     className: "left-[2%] bottom-[4%] w-24 md:w-32 -rotate-6",
-    opacity: "text-indigo-500/15 dark:text-amber-200/12",
+    opacity: "text-[#6b51dd]/15 dark:text-amber-200/12",
   },
 ];
 

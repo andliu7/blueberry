@@ -108,7 +108,12 @@ export function ProfileCard({
       const y = e.clientY - box.top;
       // Violet in both themes, lifted and slightly stronger on dark where the
       // card it sits on is much closer to the halo's own value.
-      const tint = isDark ? "rgba(167,139,250,0.20)" : "rgba(139,92,246,0.16)";
+      // The brand ramp's 400 and 500 steps, replacing violet-400 `#a78bfa` and
+      // violet-500 `#8b5cf6`. Decorative: a pointer halo carries no text and
+      // draws no boundary, so no contrast floor applies. Measured anyway, as
+      // opaque values: #a091e4 is 5.33:1 on the night card #232741 (was 5.37)
+      // and #6b51dd is 5.46:1 on white (was 4.47).
+      const tint = isDark ? "rgba(160,145,228,0.20)" : "rgba(107,81,221,0.16)";
       setHalo(`radial-gradient(240px circle at ${x}px ${y}px, ${tint}, transparent 72%)`);
     },
     [glow, isDark],
@@ -126,8 +131,13 @@ export function ProfileCard({
         // `shine-border` is the contact form's travelling rim, reused here so
         // the two cards behave the same way when you point at them.
         "group/card shine-border relative rounded-3xl bg-white p-5 transition-all duration-500",
-        "shadow-[12px_12px_24px_rgba(79,70,229,0.10),-12px_-12px_24px_rgba(255,255,255,0.9)]",
-        "hover:shadow-[20px_20px_40px_rgba(79,70,229,0.16),-20px_-20px_40px_rgba(255,255,255,1)]",
+        // Every soft shadow below is --bb-primary #5a3fd8 = rgb(90,63,216), replacing
+        // indigo-600 `#4f46e5`. A blurred drop shadow at 10 to 16 percent alpha is
+        // decorative: it carries no text and is not the card's boundary (the rounded
+        // white face on the page is), so no floor applies. The opaque token measures
+        // 6.69:1 on white and 6.08:1 on cream, both up from indigo-600's 6.29 and 5.71.
+        "shadow-[12px_12px_24px_rgba(90,63,216,0.10),-12px_-12px_24px_rgba(255,255,255,0.9)]",
+        "hover:shadow-[20px_20px_40px_rgba(90,63,216,0.16),-20px_-20px_40px_rgba(255,255,255,1)]",
         "dark:bg-[#1b1630]",
         "dark:shadow-[12px_12px_24px_rgba(0,0,0,0.45),-12px_-12px_24px_rgba(255,255,255,0.04)]",
         "dark:hover:shadow-[20px_20px_40px_rgba(0,0,0,0.6),-20px_-20px_40px_rgba(255,255,255,0.07)]",
@@ -141,7 +151,7 @@ export function ProfileCard({
           <div
             className={cn(
               "h-24 w-24 overflow-hidden rounded-full bg-white p-3 transition-all duration-500 group-hover/card:scale-110",
-              "shadow-[inset_6px_6px_12px_rgba(79,70,229,0.10),inset_-6px_-6px_12px_rgba(255,255,255,0.9)]",
+              "shadow-[inset_6px_6px_12px_rgba(90,63,216,0.10),inset_-6px_-6px_12px_rgba(255,255,255,0.9)]",
               "dark:bg-[#231c3c]",
               "dark:shadow-[inset_6px_6px_12px_rgba(0,0,0,0.5),inset_-6px_-6px_12px_rgba(255,255,255,0.05)]",
             )}
@@ -178,16 +188,16 @@ export function ProfileCard({
             className={cn(
               "border-transparent bg-none shadow-none",
               "bg-white dark:bg-[#231c3c]",
-              "shadow-[inset_6px_6px_12px_rgba(79,70,229,0.10),inset_-6px_-6px_12px_rgba(255,255,255,0.9)]",
+              "shadow-[inset_6px_6px_12px_rgba(90,63,216,0.10),inset_-6px_-6px_12px_rgba(255,255,255,0.9)]",
               "dark:shadow-[inset_6px_6px_12px_rgba(0,0,0,0.5),inset_-6px_-6px_12px_rgba(255,255,255,0.05)]",
             )}
-            ringClassName="border-indigo-400/45 dark:border-violet-400/40"
+            ringClassName="border-[#9989e2]/45 dark:border-[#a091e4]/40"
           />
         )}
       </div>
 
       <div className="text-center transition-transform duration-300 group-hover/card:-translate-y-1">
-        <h3 className="title-face text-xl text-slate-900 transition-colors duration-300 group-hover/card:text-indigo-600 dark:text-stone-100 dark:group-hover/card:text-violet-300">
+        <h3 className="title-face text-xl text-slate-900 transition-colors duration-300 group-hover/card:text-[#5a3fd8] dark:text-stone-100 dark:group-hover/card:text-[#c2b8ed]">
           {nameHref ? (
             // `cursor-text` rather than the default pointer, and no focus ring:
             // this is meant to look like the heading it replaced. Still reachable
@@ -211,13 +221,13 @@ export function ProfileCard({
             const tag = typeof raw === "string" ? { label: raw } : raw;
             const className = cn(
               "blueberry-glow inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1",
-              "text-[0.7rem] font-semibold text-indigo-600 outline-none",
+              "text-[0.7rem] font-semibold text-[#5a3fd8] outline-none",
               "transition-all duration-300 group-hover/card:scale-105",
               // Its own hover, on top of the card's, so pointing at one lifts it
               // out of the row rather than moving the pair together.
               "hover:!scale-110 hover:-translate-y-0.5",
-              "shadow-[2px_2px_4px_rgba(79,70,229,0.10),-2px_-2px_4px_rgba(255,255,255,0.9)]",
-              "dark:bg-[#231c3c] dark:text-violet-300",
+              "shadow-[2px_2px_4px_rgba(90,63,216,0.10),-2px_-2px_4px_rgba(255,255,255,0.9)]",
+              "dark:bg-[#231c3c] dark:text-[#c2b8ed]",
               "dark:shadow-[2px_2px_4px_rgba(0,0,0,0.4),-2px_-2px_4px_rgba(255,255,255,0.05)]",
             );
 
@@ -275,7 +285,7 @@ export function ProfileCard({
 
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 rounded-3xl border border-indigo-200 opacity-0 transition-opacity duration-500 group-hover/card:opacity-100 dark:border-violet-400/30"
+        className="pointer-events-none absolute inset-0 rounded-3xl border border-[#ccd5ea] opacity-0 transition-opacity duration-500 group-hover/card:opacity-100 dark:border-[#a091e4]/30"
       />
     </div>
   );
@@ -287,7 +297,9 @@ export function ProfileCard({
   return (
     <TiltCard
       max={7}
-      glareColor={isDark ? "rgba(255,255,255,0.55)" : "rgba(99,102,241,0.45)"}
+      // The brand ramp's 500 step #6b51dd, replacing indigo-500 `#6366f1`. A tilt
+      // glare is decorative, no floor; opaque it is 5.46:1 on white, was 4.47.
+      glareColor={isDark ? "rgba(255,255,255,0.55)" : "rgba(107,81,221,0.45)"}
       className="rounded-3xl !overflow-visible"
     >
       {card}

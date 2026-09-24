@@ -129,7 +129,7 @@ export function StartPage({ step: rawStep }: { step: string }) {
             value={answers.course}
             onChange={(e) => set({ course: e.target.value })}
             aria-label="Course"
-            className="mt-3 w-full rounded-2xl border-2 border-slate-300 bg-white/80 px-4 py-3.5 text-lg font-semibold outline-none focus:border-indigo-500 dark:border-stone-700 dark:bg-stone-900/60 dark:focus:border-indigo-400"
+            className="mt-3 w-full rounded-2xl border-2 border-slate-300 bg-white/80 px-4 py-3.5 text-lg font-semibold outline-none focus:border-[#6b51dd] dark:border-stone-700 dark:bg-stone-900/60 dark:focus:border-[#9989e2]"
           />
           <ChipList>
             {COURSE_SUGGESTIONS.map((code) => (
@@ -169,7 +169,7 @@ export function StartPage({ step: rawStep }: { step: string }) {
           <p className="mt-4 text-sm text-slate-600 dark:text-stone-400">
             {examHint(answers.examOn)}
           </p>
-          <label className="mt-3 flex cursor-pointer items-center gap-3 rounded-2xl border-2 border-slate-300 bg-white/80 px-4 py-3.5 focus-within:border-indigo-500 dark:border-stone-700 dark:bg-stone-900/60 dark:focus-within:border-indigo-400">
+          <label className="mt-3 flex cursor-pointer items-center gap-3 rounded-2xl border-2 border-slate-300 bg-white/80 px-4 py-3.5 focus-within:border-[#6b51dd] dark:border-stone-700 dark:bg-stone-900/60 dark:focus-within:border-[#9989e2]">
             <CalendarDays className="size-5 shrink-0 text-slate-500 dark:text-stone-400" />
             <input
               type="date"
@@ -433,7 +433,7 @@ function MiniLesson({
                   className={cn(
                     "flex items-center justify-between rounded-2xl border-2 px-4 py-3.5 text-left text-base font-semibold transition-all",
                     !revealed &&
-                      "bb-press-soft cursor-pointer border-slate-300 bg-white/80 hover:border-indigo-400 dark:border-stone-700 dark:bg-stone-900/60 dark:hover:border-indigo-500",
+                      "bb-press-soft cursor-pointer border-slate-300 bg-white/80 hover:border-[#9989e2] dark:border-stone-700 dark:bg-stone-900/60 dark:hover:border-[#6b51dd]",
                     revealed &&
                       isAnswer &&
                       "border-emerald-500 bg-emerald-50 text-emerald-900 dark:bg-emerald-950/60 dark:text-emerald-200",
@@ -488,7 +488,7 @@ function MiniLesson({
           </p>
           <a
             href={TRAINER_URL}
-            className="bb-press-soft mt-6 inline-flex items-center gap-2 rounded-2xl border-2 border-slate-300 bg-white/80 px-5 py-3 text-base font-semibold text-slate-800 transition hover:border-indigo-400 dark:border-stone-600 dark:bg-stone-900/60 dark:text-stone-100"
+            className="bb-press-soft mt-6 inline-flex items-center gap-2 rounded-2xl border-2 border-slate-300 bg-white/80 px-5 py-3 text-base font-semibold text-slate-800 transition hover:border-[#9989e2] dark:border-stone-600 dark:bg-stone-900/60 dark:text-stone-100"
           >
             Try the trainer
             <ArrowUpRight className="size-4" />

@@ -23,14 +23,14 @@ export function TermsPage() {
       <div className="mx-auto max-w-3xl px-4 py-5 sm:px-6">
         <a
           href="#/home"
-          className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-slate-600 hover:text-indigo-700 dark:text-stone-300"
+          className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-slate-600 hover:text-[#472ab4] dark:text-stone-300"
         >
           <ChevronLeft className="size-4" />
           Home
         </a>
 
-        <header className="mt-5 rounded-3xl border border-indigo-200/80 bg-white/75 p-6 shadow-sm dark:border-indigo-400/20 dark:bg-stone-950/70">
-          <p className="font-mono text-xs font-semibold tracking-[.18em] text-indigo-600 uppercase dark:text-indigo-300">
+        <header className="mt-5 rounded-3xl border border-[#ccd5ea]/80 bg-white/75 p-6 shadow-sm dark:border-[#9989e2]/20 dark:bg-stone-950/70">
+          <p className="font-mono text-xs font-semibold tracking-[.18em] text-[#5a3fd8] uppercase dark:text-[#bbb1eb]">
             {SITE_NAME}
           </p>
           <h1 className="title-face mt-3 text-4xl leading-none">Terms &amp; policies</h1>

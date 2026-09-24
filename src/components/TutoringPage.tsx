@@ -146,7 +146,7 @@ export default function TutoringPage() {
       <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
         <a
           href="#/home"
-          className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-slate-600 hover:text-indigo-700 dark:text-stone-300"
+          className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-slate-600 hover:text-[#472ab4] dark:text-stone-300"
         >
           <ChevronLeft className="size-4" />
           Home
@@ -158,7 +158,7 @@ export default function TutoringPage() {
             one need different sentences. The berry moved to the corner dock. */}
         <header className="mt-4 flex flex-wrap items-baseline gap-x-4 gap-y-1">
           <div className="min-w-0">
-            <p className="font-mono text-[0.7rem] font-semibold tracking-[.18em] text-indigo-600 uppercase dark:text-indigo-300">
+            <p className="font-mono text-[0.7rem] font-semibold tracking-[.18em] text-[#5a3fd8] uppercase dark:text-[#bbb1eb]">
               Tutoring / CHEM241
             </p>
             <h1 className="title-face mt-1 text-3xl leading-none sm:text-4xl">Office hours</h1>
@@ -207,7 +207,7 @@ export default function TutoringPage() {
             <section className="rounded-3xl border border-slate-200 bg-white/80 p-5 shadow-sm dark:border-stone-800 dark:bg-stone-950/70 sm:p-6">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <h2 className="flex items-center gap-2 text-lg font-semibold">
-                  <CalendarClock className="size-5 text-indigo-600 dark:text-indigo-300" />
+                  <CalendarClock className="size-5 text-[#5a3fd8] dark:text-[#bbb1eb]" />
                   Your hours
                 </h2>
                 <div className="flex items-center gap-2">
@@ -278,7 +278,7 @@ export default function TutoringPage() {
               {myBookings.length > 0 && (
                 <div className="mt-6 border-t border-slate-200 pt-4 dark:border-stone-800">
                   <h3 className="flex items-center gap-2 text-sm font-semibold">
-                    <Users className="size-4 text-indigo-600 dark:text-indigo-300" />
+                    <Users className="size-4 text-[#5a3fd8] dark:text-[#bbb1eb]" />
                     Booked with you ({myBookings.length})
                   </h3>
                   <ul className="mt-3 flex flex-col gap-2">
@@ -342,7 +342,7 @@ export default function TutoringPage() {
                     className={cn(
                       "min-h-11 cursor-pointer rounded-xl px-3 text-sm font-medium transition",
                       viewing === t.email
-                        ? "bg-indigo-600 text-white"
+                        ? "bg-[#5a3fd8] text-white"
                         : "text-slate-600 hover:bg-slate-100 dark:text-stone-300 dark:hover:bg-stone-800",
                     )}
                   >

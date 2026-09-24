@@ -334,7 +334,7 @@ export function SnapCarousel({
     "border border-slate-200 bg-white text-slate-600 shadow-sm",
     "dark:border-stone-800 dark:bg-stone-900 dark:text-stone-300",
     "outline-none transition-colors hover:text-slate-900 dark:hover:text-white",
-    "focus-visible:ring-2 focus-visible:ring-indigo-400 disabled:opacity-40",
+    "focus-visible:ring-2 focus-visible:ring-[#9989e2] disabled:opacity-40",
   );
 
   const slideKey = (slide: unknown, i: number) =>
@@ -358,7 +358,7 @@ export function SnapCarousel({
               onClick={() => car.goTo(i)}
               aria-label={`Go to question ${i + 1}`}
               aria-current={i === car.index ? "true" : undefined}
-              className="grid h-4 w-3 place-items-center rounded cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+              className="grid h-4 w-3 place-items-center rounded cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[#9989e2]"
             >
               <motion.span
                 initial={false}
@@ -385,7 +385,7 @@ export function SnapCarousel({
           WebkitMaskImage: `linear-gradient(to right, transparent 0, black ${peek}px, black calc(100% - ${peek}px), transparent 100%)`,
           maskImage: `linear-gradient(to right, transparent 0, black ${peek}px, black calc(100% - ${peek}px), transparent 100%)`,
         }}
-        className="relative overflow-hidden rounded-2xl py-1 outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+        className="relative overflow-hidden rounded-2xl py-1 outline-none focus-visible:ring-2 focus-visible:ring-[#9989e2]"
         {...car.viewportProps}
       >
         <motion.div

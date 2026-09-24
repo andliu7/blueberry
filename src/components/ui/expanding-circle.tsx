@@ -37,8 +37,12 @@ export function ExpandingCircle({
       style={{
         width: size,
         height: size,
+        // The brand ramp's 400 step #9989e2 = rgb(153,137,226), replacing
+        // indigo-400 `#818cf8`. The fuchsia and the dark fade are untouched. A
+        // ripple is decoration, no floor; the swap is luminance-neutral, so the
+        // measured ratios are unchanged at 2.99:1 on white and 5.75:1 on night.
         background:
-          "radial-gradient(circle, rgba(129,140,248,0.30) 0%, rgba(217,70,239,0.16) 42%, rgba(23,19,39,0) 70%)",
+          "radial-gradient(circle, rgba(153,137,226,0.30) 0%, rgba(217,70,239,0.16) 42%, rgba(23,19,39,0) 70%)",
       }}
       className={cn("pointer-events-none absolute top-1/2 left-1/2 rounded-full", className)}
     />

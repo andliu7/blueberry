@@ -56,7 +56,7 @@ export function SuccessParticles({
             className={cn(
               "pointer-events-none fixed z-[60] rounded-full",
               sizeClass,
-              "bg-indigo-500 dark:bg-amber-300 shadow-[0_0_8px_currentColor]",
+              "bg-[#6b51dd] dark:bg-amber-300 shadow-[0_0_8px_currentColor]",
               className,
             )}
             style={{ left: centerX - 4, top: centerY - 4 }}

@@ -249,7 +249,7 @@ export function BlueberryBot() {
             aria-hidden
             animate={reduced ? {} : { scale: [1, 1.25, 1], opacity: [0.5, 0.15, 0.5] }}
             transition={{ duration: 1.1, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute inset-0 rounded-full bg-indigo-500/40 blur-md"
+            className="absolute inset-0 rounded-full bg-[#6b51dd]/40 blur-md"
           />
         )}
 
@@ -268,8 +268,14 @@ export function BlueberryBot() {
             thinking ? "opacity-100" : "opacity-0",
           )}
           style={{
+            // The brand ramp's 400 step #9989e2 = rgb(153,137,226), replacing
+            // indigo-400 `#818cf8`. This sweep DOES carry meaning, it is the
+            // thinking state, so the 3:1 graphic floor is the one it answers to.
+            // The replacement is at luminance parity with what it replaces, so the
+            // ratio does not move: 5.75:1 on the night ground either way, and
+            // 2.99:1 against white where #818cf8 was 2.98:1.
             background:
-              "conic-gradient(from 0deg, transparent 0deg, rgba(129,140,248,0.9) 90deg, transparent 200deg)",
+              "conic-gradient(from 0deg, transparent 0deg, rgba(153,137,226,0.9) 90deg, transparent 200deg)",
             mask: "radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px))",
             WebkitMask:
               "radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px))",

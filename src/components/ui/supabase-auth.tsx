@@ -28,7 +28,7 @@ import { cn } from "@/lib/utils";
  */
 
 const FIELD =
-  "min-h-11 w-full rounded-xl border border-white/15 bg-white/5 px-3 text-sm text-white placeholder:text-white/35 outline-none focus-visible:border-indigo-400 focus-visible:ring-2 focus-visible:ring-indigo-500/40";
+  "min-h-11 w-full rounded-xl border border-white/15 bg-white/5 px-3 text-sm text-white placeholder:text-white/35 outline-none focus-visible:border-[#9989e2] focus-visible:ring-2 focus-visible:ring-[#6b51dd]/40";
 
 export function SupabaseAuth({ signup }: { signup: boolean }) {
   const [email, setEmail] = useState("");

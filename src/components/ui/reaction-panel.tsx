@@ -207,11 +207,11 @@ export function ReactionPanel({
       </ol>
 
       {overrides?.whyThisReagent && (
-        <div className="mt-5 rounded-2xl border border-indigo-200 bg-indigo-50/70 p-4 dark:border-indigo-900 dark:bg-indigo-950/30">
-          <h3 className="text-sm font-semibold text-indigo-800 dark:text-indigo-200">
+        <div className="mt-5 rounded-2xl border border-[#ccd5ea] bg-[#f1f4fa]/70 p-4 dark:border-[#33208c] dark:bg-[#1f1456]/30">
+          <h3 className="text-sm font-semibold text-[#3d2599] dark:text-[#ccd5ea]">
             Why this reagent
           </h3>
-          <p className="mt-1 text-sm leading-6 text-indigo-900/85 dark:text-indigo-100/85">
+          <p className="mt-1 text-sm leading-6 text-[#33208c]/85 dark:text-[#e5eaf5]/85">
             {overrides.whyThisReagent}
           </p>
         </div>
@@ -220,7 +220,7 @@ export function ReactionPanel({
       {overrides?.videoUrl && (
         <div className="mt-5">
           <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold">
-            <Video className="size-4 text-indigo-600 dark:text-indigo-300" />
+            <Video className="size-4 text-[#5a3fd8] dark:text-[#bbb1eb]" />
             Walkthrough
           </h3>
           <div className="aspect-video overflow-hidden rounded-2xl border border-slate-200 bg-black dark:border-stone-800">
@@ -313,12 +313,12 @@ function StaffEditor({
   };
 
   return (
-    <section className="mt-6 rounded-2xl border-2 border-indigo-300 bg-indigo-50/50 p-5 dark:border-indigo-800 dark:bg-indigo-950/30">
-      <h3 className="flex items-center gap-2 font-semibold text-indigo-900 dark:text-indigo-100">
+    <section className="mt-6 rounded-2xl border-2 border-[#bbb1eb] bg-[#f1f4fa]/50 p-5 dark:border-[#3d2599] dark:bg-[#1f1456]/30">
+      <h3 className="flex items-center gap-2 font-semibold text-[#33208c] dark:text-[#e5eaf5]">
         <Pencil className="size-4" />
         Staff edit
       </h3>
-      <p className="mt-1 text-sm text-indigo-900/80 dark:text-indigo-100/80">
+      <p className="mt-1 text-sm text-[#33208c]/80 dark:text-[#e5eaf5]/80">
         Saved as an override on top of the generated data. Clearing a field puts the original
         back. Structures and conditions are not editable here: those come from the checked
         pipeline, and a hand edit would go around the conservation checks.
@@ -399,7 +399,7 @@ function ChecksStrip({ reaction, flagged }: { reaction: StagedReaction; flagged:
         {flagged ? (
           <TriangleAlert className="size-4 text-amber-700 dark:text-amber-300" />
         ) : (
-          <ShieldCheck className="size-4 text-indigo-600 dark:text-indigo-300" />
+          <ShieldCheck className="size-4 text-[#5a3fd8] dark:text-[#bbb1eb]" />
         )}
         How this was checked
       </h3>
@@ -434,7 +434,7 @@ function StageRow({ stage, committed }: { stage: Stage; committed: boolean }) {
       className={cn(
         "rounded-2xl border p-4",
         committed
-          ? "border-indigo-300 bg-indigo-50/60 dark:border-indigo-700 dark:bg-indigo-950/30"
+          ? "border-[#bbb1eb] bg-[#f1f4fa]/60 dark:border-[#472ab4] dark:bg-[#1f1456]/30"
           : "border-slate-200 bg-slate-50/80 dark:border-stone-800 dark:bg-stone-900/70",
       )}
     >
@@ -463,14 +463,14 @@ function StageRow({ stage, committed }: { stage: Stage; committed: boolean }) {
           </span>
         )}
         {committed && (
-          <span className="ml-auto flex items-center gap-1 text-[.7rem] font-semibold text-indigo-700 dark:text-indigo-300">
+          <span className="ml-auto flex items-center gap-1 text-[.7rem] font-semibold text-[#472ab4] dark:text-[#bbb1eb]">
             <CircleDot className="size-3" />
             committed step
           </span>
         )}
       </div>
 
-      <p className="mt-2 font-mono text-sm text-indigo-700 dark:text-indigo-300">
+      <p className="mt-2 font-mono text-sm text-[#472ab4] dark:text-[#bbb1eb]">
         {stage.reagents.join("  |  ")}
       </p>
       {stage.conditions.notes && (
@@ -521,7 +521,7 @@ function Info({
 }) {
   return (
     <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4 dark:border-stone-800 dark:bg-stone-900/70">
-      <div className="flex items-center gap-2 text-sm font-semibold text-indigo-700 dark:text-indigo-300">
+      <div className="flex items-center gap-2 text-sm font-semibold text-[#472ab4] dark:text-[#bbb1eb]">
         {icon}
         {title}
       </div>

@@ -41,7 +41,7 @@ export interface QueuedToast {
 }
 
 const TONES = {
-  encourage: "border-indigo-200 dark:border-indigo-400/30",
+  encourage: "border-[#ccd5ea] dark:border-[#9989e2]/30",
   celebrate: "border-amber-200 dark:border-amber-400/30",
   info: "border-slate-200 dark:border-stone-700",
 } as const;

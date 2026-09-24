@@ -157,7 +157,7 @@ function TodoCard({
                 commit();
               }
             }}
-            className="min-w-0 flex-1 resize-y rounded-md border border-indigo-300 bg-white px-2 py-1 text-sm leading-snug text-slate-700 outline-none focus:border-indigo-500 dark:border-indigo-500/60 dark:bg-stone-900 dark:text-stone-200"
+            className="min-w-0 flex-1 resize-y rounded-md border border-[#bbb1eb] bg-white px-2 py-1 text-sm leading-snug text-slate-700 outline-none focus:border-[#6b51dd] dark:border-[#6b51dd]/60 dark:bg-stone-900 dark:text-stone-200"
           />
           <div className="flex shrink-0 flex-col gap-1">
             {/* Mousedown rather than click: blur fires first on a click and
@@ -599,7 +599,7 @@ export function WorkspacePage({ user }: { user: GoogleUser }) {
             onChange={(e) => setDraft(e.target.value)}
             placeholder="Something that would improve how people learn here…"
             maxLength={200}
-            className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-800 outline-none focus-visible:border-indigo-400 focus-visible:ring-2 focus-visible:ring-indigo-400/40 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-200"
+            className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-800 outline-none focus-visible:border-[#9989e2] focus-visible:ring-2 focus-visible:ring-[#9989e2]/40 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-200"
           />
           <select
             value={draftColumn}
@@ -615,7 +615,7 @@ export function WorkspacePage({ user }: { user: GoogleUser }) {
           <button
             type="submit"
             disabled={busy === "add" || draft.trim() === ""}
-            className="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-bold text-white transition hover:bg-indigo-500 disabled:opacity-50"
+            className="rounded-lg bg-[#5a3fd8] px-3 py-1.5 text-sm font-bold text-white transition hover:bg-[#6b51dd] disabled:opacity-50"
           >
             Add
           </button>
@@ -671,7 +671,7 @@ export function WorkspacePage({ user }: { user: GoogleUser }) {
                 <div className="relative mb-2 h-0.5 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-stone-800">
                   <ScrollProgress
                     containerRef={listRefs.current[col.id]}
-                    className="absolute inset-x-0 top-0 h-0.5 rounded-full bg-indigo-500 dark:bg-indigo-400"
+                    className="absolute inset-x-0 top-0 h-0.5 rounded-full bg-[#6b51dd] dark:bg-[#9989e2]"
                   />
                 </div>
 

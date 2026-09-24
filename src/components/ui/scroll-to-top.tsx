@@ -23,7 +23,7 @@ export function ScrollToTop({ className }: { className?: string }) {
             "dark:border-stone-800 dark:bg-stone-900",
             "text-sm font-semibold text-slate-600 dark:text-stone-300",
             "outline-none transition-colors hover:text-slate-900 dark:hover:text-white",
-            "focus-visible:ring-2 focus-visible:ring-indigo-400",
+            "focus-visible:ring-2 focus-visible:ring-[#9989e2]",
           )}
         >
           <ArrowUp className="h-4 w-4 transition-transform duration-300 group-hover:-translate-y-0.5" />

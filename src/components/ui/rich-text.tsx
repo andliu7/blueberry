@@ -36,7 +36,7 @@ function Anchor({ href, children }: { href: string; children: ReactNode }) {
     <a
       href={href}
       {...(internal ? {} : { target: "_blank", rel: "noreferrer noopener" })}
-      className="font-semibold text-indigo-700 underline decoration-indigo-400 underline-offset-2 hover:decoration-2 dark:text-indigo-300"
+      className="font-semibold text-[#472ab4] underline decoration-[#9989e2] underline-offset-2 hover:decoration-2 dark:text-[#bbb1eb]"
     >
       {children}
     </a>

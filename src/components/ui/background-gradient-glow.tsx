@@ -19,8 +19,14 @@ import { cn } from "@/lib/utils";
  */
 
 /** Violet, cream, pink and blue pooling into the four corners. */
+/* The first pool is the brand ramp's 400 step #9989e2 = rgb(153,137,226), replacing
+   `rgba(175, 109, 255)` = #af6dff, H 267.1. A corner pool in a background wash is
+   decoration: nothing reads on it and it draws no boundary, so no contrast floor
+   applies. Measured anyway, as opaque values: #9989e2 is 2.99:1 on white and 2.78:1
+   on the ground #f5f7fb, against #af6dff's 3.25 and 3.03. Both are below the 3:1 a
+   meaningful graphic needs and neither is one. */
 export const AURORA_DREAM = `
-  radial-gradient(ellipse 85% 65% at 8% 8%, rgba(175, 109, 255, 0.42), transparent 60%),
+  radial-gradient(ellipse 85% 65% at 8% 8%, rgba(153, 137, 226, 0.42), transparent 60%),
   radial-gradient(ellipse 75% 60% at 75% 35%, rgba(255, 235, 170, 0.55), transparent 62%),
   radial-gradient(ellipse 70% 60% at 15% 80%, rgba(255, 100, 180, 0.40), transparent 62%),
   radial-gradient(ellipse 70% 60% at 92% 92%, rgba(120, 190, 255, 0.45), transparent 62%),
@@ -53,8 +59,13 @@ export const PEACHY_SUNRISE = `
  * Dimming a light gradient gives you grey; a dark gradient wants its own,
  * more saturated hues at low alpha so the colour survives being dark.
  */
+/* The first pool is --bb-primary's night value #6d5ae0 = rgb(109,90,224), replacing
+   `rgba(124, 58, 237)` = #7c3aed. That hex is the mascot's costume cape, and sticker
+   rule 9 keeps the cape's palette out of CHROME; a full-bleed page wash is chrome.
+   Decorative, so no floor applies. Opaque: #6d5ae0 is 3.61:1 on this gradient's own
+   base #171327 and 3.42:1 on the night ground, against #7c3aed's 3.18 and 3.01. */
 export const MIDNIGHT_BERRY = `
-  radial-gradient(ellipse 90% 70% at 12% 10%, rgba(124, 58, 237, 0.34), transparent 62%),
+  radial-gradient(ellipse 90% 70% at 12% 10%, rgba(109, 90, 224, 0.34), transparent 62%),
   radial-gradient(ellipse 80% 62% at 82% 28%, rgba(56, 84, 214, 0.30), transparent 64%),
   radial-gradient(ellipse 75% 62% at 22% 84%, rgba(190, 64, 190, 0.24), transparent 64%),
   radial-gradient(ellipse 78% 64% at 92% 88%, rgba(38, 120, 200, 0.26), transparent 64%),

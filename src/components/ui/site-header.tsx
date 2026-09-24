@@ -155,7 +155,7 @@ export function SiteHeader({
                     type="button"
                     onClick={onCategoryClick}
                     title={`Open ${category} in the dashboard`}
-                    className="group/cat title-face relative block max-w-full cursor-pointer truncate text-lg text-slate-900 outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 sm:text-xl dark:text-stone-100"
+                    className="group/cat title-face relative block max-w-full cursor-pointer truncate text-lg text-slate-900 outline-none focus-visible:ring-2 focus-visible:ring-[#9989e2] sm:text-xl dark:text-stone-100"
                   >
                     {category}
                     {/* The same sweep every other link on the site uses, so a
@@ -298,7 +298,7 @@ function HeaderSearchButton({
               : undefined
           }
           aria-label={`${label}. Right click to go home.`}
-          className="group/mark absolute top-1/2 -left-1.5 -translate-y-1/2 cursor-pointer rounded-full outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+          className="group/mark absolute top-1/2 -left-1.5 -translate-y-1/2 cursor-pointer rounded-full outline-none focus-visible:ring-2 focus-visible:ring-[#9989e2]"
         >
           <BlueberryMark
             eyes

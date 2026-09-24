@@ -78,7 +78,7 @@ function RowCard({
       frontContent={
         <Face>
           {row.heading && (
-            <span className="font-mono text-[0.65rem] tracking-wider text-indigo-500 uppercase dark:text-indigo-300">
+            <span className="font-mono text-[0.65rem] tracking-wider text-[#6b51dd] uppercase dark:text-[#bbb1eb]">
               {row.heading}
             </span>
           )}
@@ -111,7 +111,7 @@ function RowCard({
           <span className="font-mono text-[0.65rem] tracking-wider text-slate-400 uppercase dark:text-stone-500">
             {row.title}
           </span>
-          <p className="mt-1 text-3xl leading-none font-bold text-indigo-600 dark:text-indigo-300">
+          <p className="mt-1 text-3xl leading-none font-bold text-[#5a3fd8] dark:text-[#bbb1eb]">
             {row.badge}
           </p>
 

@@ -61,10 +61,10 @@ export function HoverExpandAction({
       title={title ?? label}
       {...rest}
       className={cn(
-        "group/expand inline-flex min-h-11 cursor-pointer items-center gap-0 rounded-full border px-3 text-sm font-semibold transition-colors outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+        "group/expand inline-flex min-h-11 cursor-pointer items-center gap-0 rounded-full border px-3 text-sm font-semibold transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[#9989e2]",
         active
-          ? "border-indigo-300 bg-indigo-50 text-indigo-700 dark:border-indigo-400/40 dark:bg-indigo-500/15 dark:text-indigo-200"
-          : "border-slate-200 bg-white/85 text-slate-600 hover:border-indigo-300 hover:bg-white hover:text-indigo-700 dark:border-stone-700 dark:bg-stone-900/60 dark:text-stone-300 dark:hover:border-indigo-400/50 dark:hover:bg-stone-800 dark:hover:text-indigo-200",
+          ? "border-[#bbb1eb] bg-[#f1f4fa] text-[#472ab4] dark:border-[#9989e2]/40 dark:bg-[#6b51dd]/15 dark:text-[#ccd5ea]"
+          : "border-slate-200 bg-white/85 text-slate-600 hover:border-[#bbb1eb] hover:bg-white hover:text-[#472ab4] dark:border-stone-700 dark:bg-stone-900/60 dark:text-stone-300 dark:hover:border-[#9989e2]/50 dark:hover:bg-stone-800 dark:hover:text-[#ccd5ea]",
         className,
       )}
     >

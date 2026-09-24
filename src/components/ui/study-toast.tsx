@@ -48,9 +48,9 @@ const VARIANTS: Record<
   },
   encourage: {
     icon: PartyPopper,
-    ring: "border-indigo-200 dark:border-indigo-400/25",
-    disc: "bg-indigo-100 text-indigo-600 dark:bg-indigo-400/15 dark:text-indigo-300",
-    text: "text-indigo-700 dark:text-indigo-300",
+    ring: "border-[#ccd5ea] dark:border-[#9989e2]/25",
+    disc: "bg-[#e5eaf5] text-[#5a3fd8] dark:bg-[#9989e2]/15 dark:text-[#bbb1eb]",
+    text: "text-[#472ab4] dark:text-[#bbb1eb]",
   },
 };
 

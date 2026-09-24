@@ -108,7 +108,7 @@ export function DashboardPage({ route }: { route: string }) {
 
             <a
               href="#/home"
-              className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-slate-600 transition-colors hover:text-indigo-700 dark:text-stone-300"
+              className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-slate-600 transition-colors hover:text-[#472ab4] dark:text-stone-300"
             >
               <ChevronLeft className="size-4" />
               Home

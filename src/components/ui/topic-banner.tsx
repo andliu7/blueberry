@@ -45,7 +45,7 @@ export function TopicBanner({
       className={cn(
         "group relative flex min-h-40 w-full flex-col justify-end overflow-hidden rounded-2xl text-left",
         "border border-slate-200 dark:border-stone-800",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6b51dd] focus-visible:ring-offset-2",
         // Transform only, so hovering never reflows the grid around it.
         "transition-transform duration-200 hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:hover:translate-y-0",
         className,

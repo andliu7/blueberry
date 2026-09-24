@@ -26,7 +26,7 @@ import { cn } from "@/lib/utils";
 
 
 const fieldClass =
-  "w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm outline-none placeholder:text-slate-400 focus-visible:border-indigo-400 focus-visible:ring-2 focus-visible:ring-indigo-400/40 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-200 dark:placeholder:text-stone-500";
+  "w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm outline-none placeholder:text-slate-400 focus-visible:border-[#9989e2] focus-visible:ring-2 focus-visible:ring-[#9989e2]/40 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-200 dark:placeholder:text-stone-500";
 
 const labelClass = "text-sm font-semibold text-slate-700 dark:text-stone-300";
 
@@ -108,7 +108,7 @@ export const Contact2 = ({
                 make them read past first. */}
             {links && <div className="mb-6 flex flex-wrap items-center gap-2.5">{links}</div>}
 
-            <h2 className="mb-3 font-mono text-xs font-bold tracking-wider text-indigo-600 uppercase dark:text-indigo-300">
+            <h2 className="mb-3 font-mono text-xs font-bold tracking-wider text-[#5a3fd8] uppercase dark:text-[#bbb1eb]">
               Where to find me
             </h2>
             <ul className="space-y-2 text-sm text-slate-600 dark:text-stone-300">
@@ -116,7 +116,7 @@ export const Contact2 = ({
                 <Mail className="h-4 w-4 shrink-0 text-slate-400 dark:text-stone-500" />
                 <a
                   href={`mailto:${email}`}
-                  className="underline decoration-dotted underline-offset-4 hover:text-indigo-600 dark:hover:text-indigo-300"
+                  className="underline decoration-dotted underline-offset-4 hover:text-[#5a3fd8] dark:hover:text-[#bbb1eb]"
                 >
                   {email}
                 </a>
@@ -143,7 +143,9 @@ export const Contact2 = ({
           // card that leans hard while you are aiming at an input is a nuisance
           // rather than a flourish.
           max={4}
-          glareColor={isDark ? "rgba(255,255,255,0.5)" : "rgba(99,102,241,0.45)"}
+          // The brand ramp's 500 step #6b51dd, replacing indigo-500 `#6366f1`. A tilt
+          // glare is decorative, no floor; opaque it is 5.46:1 on white, was 4.47.
+          glareColor={isDark ? "rgba(255,255,255,0.5)" : "rgba(107,81,221,0.45)"}
           className="rounded-2xl !overflow-visible"
         >
         <form
@@ -195,7 +197,7 @@ export const Contact2 = ({
           <button
             type="submit"
             disabled={status === "sending"}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-indigo-500 disabled:opacity-60"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#5a3fd8] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#6b51dd] disabled:opacity-60"
           >
             <Send className="h-4 w-4" />
             {status === "sending" ? "Sending…" : "Send message"}

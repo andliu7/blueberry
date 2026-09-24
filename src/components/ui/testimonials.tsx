@@ -30,7 +30,10 @@ function QuoteSurface({ children }: { children: React.ReactNode }) {
   return (
     <TiltCard
       max={6}
-      glareColor={isDark ? "rgba(255,255,255,0.9)" : "rgba(99,102,241,0.7)"}
+      // The brand ramp's 500 step #6b51dd, replacing indigo-500 `#6366f1`. A tilt
+      // glare is decorative: no text sits on it and it draws no boundary, so no
+      // floor applies. Opaque, it is 5.46:1 on white, up from indigo-500's 4.47.
+      glareColor={isDark ? "rgba(255,255,255,0.9)" : "rgba(107,81,221,0.7)"}
       className="rounded-2xl"
     >
       {children}
@@ -112,7 +115,7 @@ export function Testimonials({ className }: { className?: string }) {
               what makes it read as popping out of the edge. */}
           <span
             aria-hidden
-            className="pointer-events-none absolute top-0 left-7 z-20 -translate-y-[0.23em] font-serif text-7xl leading-none text-indigo-300 select-none dark:text-indigo-400/60"
+            className="pointer-events-none absolute top-0 left-7 z-20 -translate-y-[0.23em] font-serif text-7xl leading-none text-[#bbb1eb] select-none dark:text-[#9989e2]/60"
           >
             &ldquo;
           </span>

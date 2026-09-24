@@ -163,7 +163,7 @@ export function ReferenceApp({ deck }: { deck: ReferenceDeck }) {
                 className={cn(
                   "flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-semibold transition",
                   quizMode
-                    ? "border-indigo-200 bg-indigo-50 text-indigo-700 dark:border-indigo-500/30 dark:bg-indigo-400/15 dark:text-indigo-300"
+                    ? "border-[#ccd5ea] bg-[#f1f4fa] text-[#472ab4] dark:border-[#6b51dd]/30 dark:bg-[#9989e2]/15 dark:text-[#bbb1eb]"
                     : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-stone-800 dark:bg-stone-900 dark:text-stone-300 dark:hover:bg-white/5",
                 )}
               >
@@ -181,7 +181,7 @@ export function ReferenceApp({ deck }: { deck: ReferenceDeck }) {
                 className={cn(
                   "flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-semibold transition",
                   hoverPreview
-                    ? "border-indigo-200 bg-indigo-50 text-indigo-700 dark:border-indigo-500/30 dark:bg-indigo-400/15 dark:text-indigo-300"
+                    ? "border-[#ccd5ea] bg-[#f1f4fa] text-[#472ab4] dark:border-[#6b51dd]/30 dark:bg-[#9989e2]/15 dark:text-[#bbb1eb]"
                     : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-stone-800 dark:bg-stone-900 dark:text-stone-300 dark:hover:bg-white/5",
                 )}
               >
@@ -322,7 +322,7 @@ export function ReferenceApp({ deck }: { deck: ReferenceDeck }) {
                 href={REPO_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group mt-2 inline-flex items-center gap-2 rounded-full px-3 py-1.5 font-semibold text-indigo-600 outline-none transition-colors hover:text-indigo-700 focus-visible:ring-2 focus-visible:ring-indigo-400 dark:text-indigo-300 dark:hover:text-indigo-200"
+                className="group mt-2 inline-flex items-center gap-2 rounded-full px-3 py-1.5 font-semibold text-[#5a3fd8] outline-none transition-colors hover:text-[#472ab4] focus-visible:ring-2 focus-visible:ring-[#9989e2] dark:text-[#bbb1eb] dark:hover:text-[#ccd5ea]"
               >
                 <GitBranch className="h-4 w-4 transition-transform duration-300 group-hover:-rotate-12 group-hover:scale-110" />
                 <span className="relative">

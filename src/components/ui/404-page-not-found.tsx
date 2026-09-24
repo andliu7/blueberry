@@ -38,7 +38,7 @@ export function NotFoundPage({
           <svg
             aria-hidden
             viewBox={MOTIF_VIEWBOX}
-            className="h-40 w-auto text-indigo-500/25 dark:text-amber-200/20"
+            className="h-40 w-auto text-[#6b51dd]/25 dark:text-amber-200/20"
             dangerouslySetInnerHTML={{ __html: motifMarkup("mascot") }}
           />
           <span
@@ -66,7 +66,7 @@ export function NotFoundPage({
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <a
             href="#/home"
-            className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:outline-none"
+            className="inline-flex items-center gap-2 rounded-lg bg-[#5a3fd8] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#6b51dd] focus-visible:ring-2 focus-visible:ring-[#9989e2] focus-visible:outline-none"
           >
             <Home className="h-4 w-4" />
             All decks

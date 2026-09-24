@@ -84,7 +84,7 @@ export function SiteFooter({ className }: { className?: string }) {
           did. It is the only decoration here and it costs one div. */}
       <div
         aria-hidden
-        className="absolute top-0 left-1/2 h-px w-1/3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-r from-transparent via-indigo-400/40 to-transparent blur-[1px]"
+        className="absolute top-0 left-1/2 h-px w-1/3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-r from-transparent via-[#9989e2]/40 to-transparent blur-[1px]"
       />
 
       <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.2fr_2fr]">
@@ -92,7 +92,7 @@ export function SiteFooter({ className }: { className?: string }) {
           <a
             href="#/home"
             aria-label={`${SITE_NAME}, home`}
-            className="inline-block rounded-full outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+            className="inline-block rounded-full outline-none focus-visible:ring-2 focus-visible:ring-[#9989e2]"
           >
             <BlueberryMark eyes className="size-9" />
           </a>
@@ -111,7 +111,7 @@ export function SiteFooter({ className }: { className?: string }) {
               href="https://unsplash.com"
               target="_blank"
               rel="noreferrer noopener"
-              className="underline decoration-slate-400 underline-offset-2 transition-colors hover:text-indigo-600 dark:hover:text-indigo-300"
+              className="underline decoration-slate-400 underline-offset-2 transition-colors hover:text-[#5a3fd8] dark:hover:text-[#bbb1eb]"
             >
               Unsplash
             </a>
@@ -130,7 +130,7 @@ export function SiteFooter({ className }: { className?: string }) {
                     <a
                       href={link.href}
                       {...(link.external ? { target: "_blank", rel: "noreferrer" } : {})}
-                      className="inline-flex items-center gap-1.5 text-slate-700 transition-colors hover:text-indigo-600 dark:text-stone-200 dark:hover:text-indigo-300"
+                      className="inline-flex items-center gap-1.5 text-slate-700 transition-colors hover:text-[#5a3fd8] dark:text-stone-200 dark:hover:text-[#bbb1eb]"
                     >
                       {link.icon && <link.icon className="size-3.5" />}
                       {link.title}

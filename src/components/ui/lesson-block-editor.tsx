@@ -281,18 +281,18 @@ export function LessonBlockEditor({
           void onDropFiles(e.dataTransfer.files);
         }}
         className={cn(
-          "rounded-3xl border-2 bg-indigo-50/50 p-5 transition-colors dark:bg-indigo-950/30 sm:p-6",
+          "rounded-3xl border-2 bg-[#f1f4fa]/50 p-5 transition-colors dark:bg-[#1f1456]/30 sm:p-6",
           dropActive
             ? "border-dashed border-blue-500 bg-blue-50/60 dark:bg-blue-950/30"
-            : "border-indigo-300 dark:border-indigo-800",
+            : "border-[#bbb1eb] dark:border-[#3d2599]",
         )}
       >
         <header className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h2 className="text-lg font-semibold text-indigo-900 dark:text-indigo-100">
+            <h2 className="text-lg font-semibold text-[#33208c] dark:text-[#e5eaf5]">
               Editing {topicLabel}
             </h2>
-            <p className="mt-1 max-w-prose text-sm text-indigo-900/80 dark:text-indigo-100/80">
+            <p className="mt-1 max-w-prose text-sm text-[#33208c]/80 dark:text-[#e5eaf5]/80">
               Saved on top of the built-in writing. Delete everything in a box to remove it;
               clear the whole page to put the original text back.
             </p>
@@ -355,12 +355,12 @@ export function LessonBlockEditor({
               className={cn(
                 "rounded-2xl border bg-white p-4 transition-opacity dark:bg-stone-900",
                 dragId === block.id
-                  ? "border-indigo-400 opacity-50"
+                  ? "border-[#9989e2] opacity-50"
                   : "border-slate-200 dark:border-stone-700",
               )}
             >
               {uploading.has(block.id) && (
-                <p className="mb-2 text-xs font-semibold text-indigo-700 dark:text-indigo-300">
+                <p className="mb-2 text-xs font-semibold text-[#472ab4] dark:text-[#bbb1eb]">
                   Uploading…
                 </p>
               )}
@@ -398,7 +398,7 @@ export function LessonBlockEditor({
                         width: (block.width ?? "full") === "full" ? "half" : "full",
                       })
                     }
-                    className="mr-1 inline-flex min-h-9 cursor-pointer items-center gap-1.5 rounded-lg border border-slate-300 px-2.5 text-xs font-semibold text-slate-700 transition-colors hover:border-indigo-400 hover:text-indigo-700 dark:border-stone-700 dark:text-stone-200 dark:hover:border-indigo-500 dark:hover:text-indigo-300"
+                    className="mr-1 inline-flex min-h-9 cursor-pointer items-center gap-1.5 rounded-lg border border-slate-300 px-2.5 text-xs font-semibold text-slate-700 transition-colors hover:border-[#9989e2] hover:text-[#472ab4] dark:border-stone-700 dark:text-stone-200 dark:hover:border-[#6b51dd] dark:hover:text-[#bbb1eb]"
                     title="Full width, or half so another box can sit beside it"
                   >
                     {(block.width ?? "full") === "full" ? (
@@ -455,7 +455,7 @@ export function LessonBlockEditor({
                       }
                       className="min-w-0 flex-1"
                     />
-                    <label className="inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-xl border border-slate-300 px-3 text-sm font-semibold text-slate-700 transition-colors hover:border-indigo-400 hover:text-indigo-700 dark:border-stone-700 dark:text-stone-200 dark:hover:border-indigo-500">
+                    <label className="inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-xl border border-slate-300 px-3 text-sm font-semibold text-slate-700 transition-colors hover:border-[#9989e2] hover:text-[#472ab4] dark:border-stone-700 dark:text-stone-200 dark:hover:border-[#6b51dd]">
                       <Upload className="size-4" />
                       Choose file
                       <input
@@ -527,7 +527,7 @@ export function LessonBlockEditor({
                     Preview
                   </p>
                   {block.heading && (
-                    <h3 className="text-sm font-semibold text-indigo-700 dark:text-indigo-300">
+                    <h3 className="text-sm font-semibold text-[#472ab4] dark:text-[#bbb1eb]">
                       {block.heading}
                     </h3>
                   )}
