@@ -106,6 +106,9 @@
    * seats exactly on its own wall.
    */
   --node-lip: 6px;
+  /* Named because the height sum below has to account for it; see that
+     comment. Kept in step with the `border` shorthand on this rule. */
+  --node-border: 2px;
   /*
    * THE CAST SHADOW ON THE GROUND. Offset down and blurred, never spread: a
    * spread shadow is a ring, and a ring around this chip is exactly what was
@@ -147,7 +150,25 @@
   display: block;
   box-sizing: border-box;
   width: var(--node-size);
-  height: calc(var(--node-face-h) + var(--node-lip));
+  /*
+   * THE BORDER HAS TO BE IN THIS SUM, and leaving it out was a real 2px bug.
+   *
+   * The face is `position: absolute; top: 0`, which resolves against the
+   * PADDING box, 2px inside this border, while `box-sizing: border-box` makes
+   * this height include the border. So a height of face + lip left a padding
+   * box of face + lip - 4, and the invariant this file states two comments up,
+   * that the face travels --node-lip and lands flush, was not what shipped.
+   * Measured live on all eight nodes of Unit 1 before the fix: the wall read
+   * 4px at rest rather than 6, and a full-lip press put the face 2px PAST the
+   * node's own bottom edge instead of seating on it.
+   *
+   * Adding the two borders back makes the padding box exactly face + lip, so
+   * --node-lip is once again the wall you see and a press of --node-lip seats
+   * the face flush against it. The chip grows 4px, which moves it toward the
+   * bar rather than away: Duolingo's lip measures 8 to 9 CSS px on a ~72px
+   * chip and ours was the shallower of the two.
+   */
+  height: calc(var(--node-face-h) + var(--node-lip) + var(--node-border) * 2);
   /* 50 percent, never 9999px: a pill would square the wall's ends off and
      the lip would read as a bar under the chip instead of as its side. */
   border-radius: 50%;
