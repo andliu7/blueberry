@@ -237,8 +237,18 @@
    *
    *   open  light #8b6df2 at .34  on the page #f5f7fb   seam 1.94  bloom 1.47
    *   open  dark  #a98ffc at .38  on the page #101827   seam 3.34  bloom 2.04
-   *   done  light #7ed957 at .50  on the page #f5f7fb   seam 1.45  bloom 1.29
-   *   done  dark  #7ed957 at .42  on the page #101827   seam 5.08  bloom 2.78
+   *   done  light #7ed957 at .30  on the page #f5f7fb   seam 1.29  bloom 1.17
+   *   done  dark  #7ed957 at .22  on the page #101827   seam 2.60  bloom 1.62
+   *
+   * THE ORDER OF LIGHT IS THE ORDER OF THE ROAD, 2026-09-24. Done used to
+   * carry .50 / .42, which composited to 5.08:1 at the seam in dark against
+   * the current node's halo band at 2.92:1: the chip the student had
+   * FINISHED was lit 1.7 times harder than the one they were meant to press,
+   * on top of a face (10.11:1) already brighter than the violet (6.79:1).
+   * The green face is the owner's and stays; the light is ordered so the
+   * frontier is brightest, then what is open, then what is behind you, then
+   * nothing: dark halo 4.13 > open seam 3.34 > done seam 2.60 > transparent.
+   * The halo's values are with the other tokens at the foot of this file.
    *
    * The transition is the release only: the :active rule below zeroes it,
    * same shape as the face's press, so the light pinches the frame the
@@ -677,10 +687,34 @@
  *   line  #584a86 on the cream   6.55:1   the cut edge that identifies it
  *   cut   #30265c on #9b8fc4     4.57:1   over the 3.0 graphics floor
  */
+/*
+ * RE-DERIVED AGAIN 2026-09-24, out of the mud. #9b8fc4 in daylight and
+ * #433b5e at night were the ramp's hue with so much drained that the night
+ * face sat at 1.71:1 on its page, a grey disc with a lit ring, and dim is
+ * four of the five chips on Unit 1's first screen. The owner's ramp is "a
+ * fun blue-purple"; dim has to be that colour with less of it, not a
+ * different mood. Same hue, more of it kept, still a clear step under the
+ * open face (#8b6df2 light, #a98ffc dark).
+ *
+ * Measured on the REAL page grounds (#f5f7fb light, #101827 dark), never
+ * on the retired cream, authored as values and never a filter per the S2
+ * floor:
+ *
+ *   ink   #23264a on #a695d8     5.47:1   over the 4.5 body floor
+ *   cut   #30265c on #a695d8     5.08:1   over the 3.0 graphics floor
+ *   line  #584a86 on the page    7.15:1   the cut edge that identifies it
+ *   face  #a695d8 on the page    2.47:1   recorded; the line carries the shape
+ *
+ * THE LEGEND'S TWO NEW SWATCHES ride the same tokens under their own names,
+ * the way every other swatch does: a key names a state, it is not a node in
+ * one. See LEGEND in PathwayTab.tsx.
+ */
 .path-node--dim,
-.path-node--queued {
-  --node-face: #9b8fc4;
-  --node-face-press: #8f83b8;
+.path-node--queued,
+.path-swatch--dim,
+.path-swatch--queued {
+  --node-face: #a695d8;
+  --node-face-press: #9a88cf;
   --node-edge: #584a86;
   --node-line: #584a86;
   --node-ink: #23264a;
@@ -691,7 +725,8 @@
 }
 /* The dash is on the WELL only. Dashing the face too made the chip read as a
    dashed ring with nothing in it, which is a ghost a critic captured. */
-.path-node--queued {
+.path-node--queued,
+.path-swatch--queued {
   border-style: dashed;
   cursor: default;
 }
@@ -734,16 +769,24 @@
    treatment, so they cannot compose into a face the states sheet does not
    draw. The cut inverts with the ground, as every other mark in dark does. */
 .dark .path-node--dim,
-.dark .path-node--queued {
+.dark .path-node--queued,
+.dark .path-swatch--dim,
+.dark .path-swatch--queued {
   /*
    * ON THE RAMP, AT h254. These measured h233 before, a 21 degree drift off
    * the violet into indigo, and dim is half the chips on a page, so in dark
    * the most common face was not the colour the whole round was about. Hue
    * moved, saturation and lightness kept exactly, so every contrast pair the
    * states sheet measured still holds.
+   *
+   * AND OUT OF THE MUD, 2026-09-24. #433b5e measured 1.71:1 on the night
+   * page #101827, the ground's own tone with a ring drawn on it. #5b4d85 is
+   * the same hue at 2.41:1, still well under the open face's 6.79:1 so it
+   * reads as drained, and no longer as unlit. Measured: ink #ccd1e9 on it
+   * 4.87:1, cut #b7abde 3.48:1, line #8e7dc5 on the page 4.98:1.
    */
-  --node-face: #433b5e;
-  --node-face-press: #3c3455;
+  --node-face: #5b4d85;
+  --node-face-press: #4f4276;
   --node-edge: #342b4f;
   --node-line: #8e7dc5;
   --node-ink: #ccd1e9;
@@ -1665,10 +1708,15 @@
      declaration. See the .path-node--done block. 5.5:1 on the cream. */
   --path-done-rim: #2f6b1e;
   --path-done-ink: #163a26;
-  --path-done-glow: rgb(126 217 87 / 0.5);
+  /* .30, down from .50. Done is behind the student; its light is a memory,
+     not a signpost. See the ORDER OF LIGHT note on .path-node: measured seam
+     1.29:1 on this page, under the open chip's 1.94 and the halo's 2.14. */
+  --path-done-glow: rgb(126 217 87 / 0.3);
   /* The current node's bloom, in the ramp's own violet now that the ramp is
-     what the chip is wearing. Two stops so the pulse is a swell, not a flash. */
-  --path-halo: rgb(139 109 242 / 0.55);
+     what the chip is wearing. Two stops so the pulse is a swell, not a flash.
+     .64, up from .55, so its band (2.14:1 on this page) is the brightest
+     light on the page: above the open seam at 1.94 and done at 1.29. */
+  --path-halo: rgb(139 109 242 / 0.64);
   --path-halo-soft: rgb(139 109 242 / 0.24);
   /* The START tag's pale fill. --bb-primary-ink is 6.85:1 on it. */
   --path-start-fill: #efeaff;
@@ -1759,8 +1807,14 @@
   --path-done-wall: #3d7d27;
   --path-done-rim: #58a838;
   --path-done-ink: #163a26;
-  --path-done-glow: rgb(126 217 87 / 0.42);
-  --path-halo: rgb(169 143 252 / 0.55);
+  /* .22, down from .42: seam 2.60:1 on the night page, under the open seam's
+     3.34 and the halo's 4.13. It was 5.08, the loudest light on the page on
+     the one chip the student was finished with. */
+  --path-done-glow: rgb(126 217 87 / 0.22);
+  /* .72, up from .55: the band composites to #7e6ec0, 4.13:1 on the night
+     page, the brightest light on it. It was 2.92, under the open chip's own
+     seam. Measured with the real WCAG formula, not quoted. */
+  --path-halo: rgb(169 143 252 / 0.72);
   --path-halo-soft: rgb(169 143 252 / 0.24);
   --path-start-fill: #2a2352;
   --path-badge-gold: #f5c451;

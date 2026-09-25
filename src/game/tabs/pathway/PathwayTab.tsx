@@ -43,7 +43,7 @@
  * door; the door is the sheet.
  */
 
-import { Fragment, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import {
   ACTS,
   prerequisiteClosure,
@@ -61,7 +61,6 @@ import { useProgress } from "../../app/hooks";
 import { lessonNodeId, progress, type ProgressSnapshot } from "../../app/progress";
 import { ChargeGate } from "../../charge/ChargeGate";
 import type { ChargeGateNode } from "../../charge/chargeGateModel";
-import type { NodeKind as EconomyNodeKind } from "@blueberry/economy";
 import { Berry } from "../../mascot/Berry";
 import { COURSE_LABEL, problemsForTopic } from "../courses/courseCopy";
 import "./pathway.css";
@@ -69,6 +68,7 @@ import "./pathway.css";
 export type NodeState = "done" | "current" | "open" | "review" | "locked";
 
 import {
+  economyKindFor,
   PATHWAY_UNITS,
   type PathwayNode as MapNode,
   type PathwayUnit as MapUnit,
@@ -196,12 +196,23 @@ export function groupIntoUnits(course: CourseId, nodes: readonly PathwayNode[]):
   return units;
 }
 
-const LEGEND: readonly { readonly state: NodeState; readonly label: string }[] = [
-  { state: "current", label: "Up next" },
-  { state: "done", label: "Done" },
-  { state: "review", label: "Review" },
-  { state: "open", label: "Open" },
-  { state: "locked", label: "Locked" },
+/*
+ * THE LEGEND NAMES WHAT THE MAP DRAWS. Two rows added 2026-09-24: the dimmed
+ * optional chip and the dashed unauthored one are the two most common faces
+ * on Unit 1 (four of the first five chips), and the legend had a row for
+ * Review and Locked, which that unit never draws, and none for either of
+ * them. A key that omits the commonest state on the page is the legend
+ * disagreeing with the map. "dim" and "queued" ride BESIDE state in the data
+ * (see pathwayState.ts), so they are swatch names here rather than states.
+ */
+const LEGEND: readonly { readonly swatch: NodeState | "dim" | "queued"; readonly label: string }[] = [
+  { swatch: "current", label: "Up next" },
+  { swatch: "done", label: "Done" },
+  { swatch: "review", label: "Review" },
+  { swatch: "open", label: "Open" },
+  { swatch: "dim", label: "Optional" },
+  { swatch: "queued", label: "Not yet built" },
+  { swatch: "locked", label: "Locked" },
 ];
 
 /**
@@ -922,34 +933,14 @@ function CoursePicker() {
   );
 }
 
-/**
- * What a map node costs, in the economy's own vocabulary.
- *
- * The map classifies nodes as spine, branch, gate or boss, and docs/ECONOMY.md
- * prices concept, reaction, branch, quiz, review, tutorial and intro. The two
- * lists are not the same list, so the mapping is written down once here rather
- * than guessed at each call site:
- *
- *   branch          -> branch. Same word, same 8, and the map's side quests are
- *                      exactly what that row is for.
- *   spine, a beat   -> concept. A beat is recognition and ranking work, which is
- *                      what the 5 charge concept row is priced against.
- *   spine, anything -> reaction. Arrow work: a reaction, a sequence, a
- *                      resonance hunt. The 8 charge row.
- *   boss            -> quiz. UNREACHABLE TODAY, and flagged rather than settled:
- *                      the map's one boss carries no `playable`, so no press can
- *                      arrive here. ECONOMY.md prices no boss, and quiz is the
- *                      closest priced row (an assessment, refunded on a pass).
- *                      An owner decision before a boss is authored.
- *
- * Gates never reach this function: they render as the unit gate and its
- * checkpoint strip and are not pressable.
- */
-function economyKindFor(mapKind: string, link: MapPlayableLink): EconomyNodeKind {
-  if (mapKind === "branch") return "branch";
-  if (mapKind === "boss") return "quiz";
-  return link.kind === "beat" ? "concept" : "reaction";
-}
+/*
+  WHAT A MAP NODE COSTS, in the economy's own vocabulary, is `economyKindFor` and
+  it is no longer here: it moved to demo/pathwayMap.ts, beside the node data,
+  with the whole spine/branch/gate/boss to concept/reaction/branch/quiz mapping
+  and the reasoning for each row. The Train tab has to bank a clear at the SAME
+  kind this gate charges, and two copies of that mapping is a student paying for
+  one row and clearing another.
+*/
 
 /** The trainer deep link for one map node's playable entry. */
 function hrefForPlayable(link: MapPlayableLink): string {
@@ -1348,6 +1339,12 @@ interface UnitPlan {
   /** The winding column with its detours woven in, in DOCUMENT order. */
   readonly rows: readonly UnitRow[];
   /**
+   * Enrichment drawn BELOW the fork: the trailing run of dimmed rows that
+   * would otherwise stand between the trunk and the concept. Empty on a unit
+   * with no fork, where the rows already end at the gate. See planUnits.
+   */
+  readonly tail: readonly UnitRow[];
+  /**
    * The spine's last stretch: the unit's checkpoint challenges, between the
    * fork's rejoin and the gate arch.
    *
@@ -1451,7 +1448,33 @@ export function planUnits(units: readonly MapUnit[]): readonly UnitPlan[] {
       lastWind = wind;
       return { node, lane: "main" as const, wind, dim: false };
     });
-    return { unit, shape, rows, gateRun, checkpoint: isCheckpointUnit(unit) };
+    /*
+     * ENRICHMENT NEVER STANDS BETWEEN THE TRUNK AND THE FORK, 2026-09-24.
+     *
+     * weaveLoops hangs detours off the column and appends what the column has
+     * no room for, and with a fork below, that overflow lands between the
+     * trunk's last step and the concept. Unit 1 is the worst case and the
+     * first one every student sees: a one-node column, so all four branches
+     * ride the main lane dimmed, and the fork holding the other three
+     * required lessons (one of them the current node) sat under a done chip
+     * and four optional ones. Measured on the round-1 capture: the frontier
+     * was two chips below a 609px fold, and the first screen was one green
+     * chip and four grey ones. No glow tuning fixes a frontier that is not on
+     * the screen.
+     *
+     * So the TRAILING run of enrichment moves below the fork: required work
+     * first, optional after, which is the reading order the dim already
+     * claims. Only the trailing run moves, because a detour woven mid-column
+     * already sits beside the road it leaves. weaveLoops never places a
+     * detour after the last column node (mouths come from [0, n-2]), so the
+     * trailing run is exactly the overflow plus the short-column case.
+     */
+    let cut = rows.length;
+    if (shape.concept !== null) {
+      while (cut > 0 && rows[cut - 1]!.dim) cut -= 1;
+    }
+    const tail = rows.splice(cut);
+    return { unit, shape, rows, tail, gateRun, checkpoint: isCheckpointUnit(unit) };
   });
 }
 
@@ -1482,6 +1505,7 @@ export function trackMapNodesFor(
     for (const node of plan.shape.arms[0]) nodes.push({ wind: -ARM_WIND, lane: "left", done: done(node) });
     for (const node of plan.shape.arms[1]) nodes.push({ wind: ARM_WIND, lane: "right", done: done(node) });
   }
+  for (const row of plan.tail) nodes.push({ wind: row.wind, lane: row.lane === "loop" ? "loop" : "main", done: done(row.node) });
   for (const row of plan.gateRun) nodes.push({ wind: row.wind, lane: "main", done: done(row.node) });
   nodes.push({ wind: 0, lane: "main", done: gatePassed });
   return nodes;
@@ -1492,6 +1516,7 @@ export function currentIndexFor(plan: UnitPlan, status: MapPathwayStatus): numbe
   const order: MapNode[] = [
     ...plan.rows.map((row) => row.node),
     ...(plan.shape.concept === null ? [] : [plan.shape.concept, ...plan.shape.arms[0], ...plan.shape.arms[1]]),
+    ...plan.tail.map((row) => row.node),
     ...plan.gateRun.map((row) => row.node),
   ];
   return order.findIndex((node) => node.id === status.currentNodeId);
@@ -1835,10 +1860,65 @@ function OrgoMapTrack({
     return () => observer.disconnect();
   }, []);
 
-  // A new page starts at its top.
-  useEffect(() => {
+  /*
+   * THE PAGE OPENS ON THE FRONTIER, 2026-09-24. It used to open at its top,
+   * and on Unit 1 the top is a finished chip: the current node sat two chips
+   * below a 609px fold, so the first screen answered "which one do I press"
+   * with nothing. The bar opens scrolled to its live node with the START tag
+   * over it, and so does this now: the one chip carrying aria-current="step"
+   * is centred in the viewport, which also keeps it clear of the sticky
+   * header and unit bar. A page with no current chip (any unit but the
+   * active one, or a finished track) still opens at its top.
+   *
+   * A layout effect, not an effect, so the jump lands before the first
+   * paint and there is no frame of the top of the page to flash. Instant,
+   * because there is nothing on screen yet to move from, so reduced motion
+   * has nothing to switch off. The typeof guard is for jsdom, which has no
+   * scrollIntoView.
+   */
+  useLayoutEffect(() => {
+    const current = surfaceRef.current?.querySelector<HTMLElement>('[aria-current="step"]') ?? null;
+    if (current !== null && typeof current.scrollIntoView === "function") {
+      current.scrollIntoView({ block: "center" });
+      return;
+    }
     window.scrollTo(0, 0);
   }, [unit.id]);
+
+  /* One winding row, for the column and for the enrichment tail below the
+     fork: the same call either side of the split, so the two lists cannot
+     draw one node two ways. */
+  const slab = (row: UnitRow) => {
+    const nodeStatus = statusOf(status, row.node.id);
+    const playable = row.node.playable;
+    const clickable = playable !== undefined && nodeStatus.state !== "locked";
+    return (
+      <TrackSlab
+        key={row.node.id}
+        state={nodeStatus.state}
+        label={row.node.title}
+        detail={mapNodeDetail(row.node, nodeStatus.queued, nodeStatus.state === "locked", places.get(row.node.id) ?? null)}
+        place={places.get(row.node.id) ?? null}
+        href={clickable && playable !== undefined ? hrefForPlayable(playable) : null}
+        wind={row.wind}
+        lane={row.lane}
+        badge={badgeForMapNode(row.node, shape.videoHookId, row.dim)}
+        /*
+          THE DIMMED SIDE LOOP, and the dim is AUTHORED TOKENS rather than
+          a CSS filter, per the S2 floor: the contrast audit reads computed
+          colours and a filter would make it measure a pair that is not on
+          screen. Enrichment stays off the exam-weighted spine per
+          CLAUDE.md, and dimming is how the track says so.
+        */
+        dim={row.dim}
+        queued={nodeStatus.queued}
+        reducedMotion={reducedMotion}
+        onOpenNode={onOpenNode}
+        sheetNode={sheetNodeFor(row.node, nodeStatus.state, clickable && playable !== undefined ? hrefForPlayable(playable) : null)}
+        gateNode={mapGateNode(row.node, clickable)}
+      />
+    );
+  };
 
   return (
     <div ref={pagerRef} className="path-pager" role="region" aria-label="Orgo II pathway map">
@@ -1914,40 +1994,9 @@ function OrgoMapTrack({
           />
         ) : null}
 
-        <ol className="path-track mx-auto flex w-full max-w-md flex-col py-2">
-          {plan.rows.map((row) => {
-            const nodeStatus = statusOf(status, row.node.id);
-            const playable = row.node.playable;
-            const clickable = playable !== undefined && nodeStatus.state !== "locked";
-            return (
-              <TrackSlab
-                key={row.node.id}
-                state={nodeStatus.state}
-                label={row.node.title}
-                detail={mapNodeDetail(row.node, nodeStatus.queued, nodeStatus.state === "locked", places.get(row.node.id) ?? null)}
-                place={places.get(row.node.id) ?? null}
-                href={clickable && playable !== undefined ? hrefForPlayable(playable) : null}
-                wind={row.wind}
-                lane={row.lane}
-                badge={badgeForMapNode(row.node, shape.videoHookId, row.dim)}
-                /*
-                  THE DIMMED SIDE LOOP, and the dim is AUTHORED TOKENS
-                  rather than a CSS filter, per the S2 floor: the
-                  contrast audit reads computed colours and a filter
-                  would make it measure a pair that is not on screen.
-                  Enrichment stays off the exam-weighted spine per
-                  CLAUDE.md, and dimming is how the track says so.
-                */
-                dim={row.dim}
-                queued={nodeStatus.queued}
-                reducedMotion={reducedMotion}
-                onOpenNode={onOpenNode}
-                sheetNode={sheetNodeFor(row.node, nodeStatus.state, clickable && playable !== undefined ? hrefForPlayable(playable) : null)}
-                gateNode={mapGateNode(row.node, clickable)}
-              />
-            );
-          })}
-        </ol>
+        {plan.rows.length > 0 ? (
+          <ol className="path-track mx-auto flex w-full max-w-md flex-col py-2">{plan.rows.map(slab)}</ol>
+        ) : null}
 
         {shape.concept !== null ? (
           /*
@@ -2011,6 +2060,19 @@ function OrgoMapTrack({
               ))}
             </div>
           </div>
+        ) : null}
+
+        {/*
+          THE OPTIONAL WORK, AFTER THE REQUIRED WORK. See planUnits: the
+          trailing run of dimmed enrichment is drawn under the fork rather
+          than between the trunk and the concept, so the road from the last
+          done chip to the next required one is never interrupted by four
+          things the student may skip.
+        */}
+        {plan.tail.length > 0 ? (
+          <ol className="path-track mx-auto flex w-full max-w-md flex-col py-2" aria-label="Optional side quests">
+            {plan.tail.map(slab)}
+          </ol>
         ) : null}
 
         {/*
@@ -2286,7 +2348,7 @@ export default function PathwayTab({ reducedMotion }: { readonly reducedMotion: 
 
       <ul className="flex flex-wrap gap-3 text-scale-xs text-bb-muted-foreground" aria-label="Legend">
         {LEGEND.map((entry) => (
-          <li key={entry.state} className="flex items-center gap-1.5">
+          <li key={entry.swatch} className="flex items-center gap-1.5">
             {/*
               THE KEY IS NOT THE MAP. This swatch used to wear
               `path-node--${entry.state}`, so every page in the tab carried a
@@ -2300,7 +2362,7 @@ export default function PathwayTab({ reducedMotion }: { readonly reducedMotion: 
               .path-node--swatch; only the STATE modifier is the legend's own,
               and pathway.css hangs the same tokens on both names.
             */}
-            <span className={`path-node path-node--swatch path-swatch--${entry.state}`} aria-hidden>
+            <span className={`path-node path-node--swatch path-swatch--${entry.swatch}`} aria-hidden>
               <span className="path-node__face" />
             </span>
             {entry.label}
