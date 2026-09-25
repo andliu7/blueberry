@@ -30,16 +30,75 @@
  * resonance beat plays a hunt entry, and questionForBeat resolves either.
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { hashParam, hrefForLesson, hrefForTab } from "../../app/routes";
 import { navigate } from "../../app/useHashRoute";
+import { progress } from "../../app/progress";
 import type { MechanismBeat, ResonanceBeat } from "../../beats/types";
-import type { PlayableLink } from "../../demo/pathwayMap";
+import { economyKindFor, pathwayNodeForPlayable, type PlayableLink } from "../../demo/pathwayMap";
+import type { NodeKind as EconomyNodeKind } from "@blueberry/economy";
 import { questionForBeat, type TrainerQuestion } from "./engine/question";
 import { TrainerScreen } from "./engine/TrainerScreen";
 import { ProblemBrowser } from "./ProblemBrowser";
 
 type Selection = Pick<MechanismBeat, "kind" | "play"> | Pick<ResonanceBeat, "kind" | "resonanceId">;
+
+/**
+ * What a win on the question in hand banks, or null when it banks nothing.
+ *
+ * DERIVED WHEN THE QUESTION IS PICKED, not when it is won, because that is the
+ * only moment this tab knows WHERE the question came from. The pathway spends
+ * charge against the map NODE ("u5-williamson") while the deep link carries the
+ * PLAYABLE ("williamson"), and `kind` is read from the same `economyKindFor` the
+ * charge gate priced the entry with, so the row paid and the row cleared cannot
+ * drift apart.
+ */
+interface ClearTarget {
+  readonly nodeId: string;
+  readonly kind: EconomyNodeKind;
+  readonly spine: boolean;
+}
+
+/** A question on screen, and the clear it may bank. */
+interface Picked {
+  readonly question: TrainerQuestion;
+  readonly clear: ClearTarget | null;
+}
+
+function pick(selection: Selection): TrainerQuestion | null {
+  return questionForBeat(selection);
+}
+
+/**
+ * A question from a pathway link, with the node it clears attached.
+ *
+ * The node lookup can come back empty and that is not an error: a hand-typed or
+ * bookmarked link can name an authored question that no map node points at. It
+ * plays; it just banks nothing, the same as free practice below.
+ */
+function fromPathway(selection: Selection, kind: PlayableLink["kind"], id: string): Picked | null {
+  const question = pick(selection);
+  if (question === null) return null;
+  const node = pathwayNodeForPlayable(kind, id);
+  const link = node?.playable;
+  if (node === null || link === undefined) return { question, clear: null };
+  return {
+    question,
+    clear: { nodeId: node.id, kind: economyKindFor(node.kind, link), spine: node.kind === "spine" },
+  };
+}
+
+/**
+ * A question picked in the browser below: FREE PRACTICE, which banks nothing.
+ *
+ * The browser lists the same map nodes, so a node could be found for it. It
+ * deliberately is not: a pick here never passed the charge gate, so nothing was
+ * spent, and paying a first clear out for it would mint diamonds and unlock the
+ * units downstream for free. Practice is free in both directions.
+ */
+function freePractice(question: TrainerQuestion | null): Picked | null {
+  return question === null ? null : { question, clear: null };
+}
 
 /**
  * The deep link, read WHEN ASKED rather than when this module loads, so a
@@ -48,17 +107,16 @@ type Selection = Pick<MechanismBeat, "kind" | "play"> | Pick<ResonanceBeat, "kin
  * string second, so links already in a student's history still resolve.
  * Null when the hash carries no link, or one that names nothing authored.
  */
-function pick(selection: Selection): TrainerQuestion | null {
-  return questionForBeat(selection);
-}
-
-function deepLinkQuestion(): TrainerQuestion | null {
+function deepLinkPick(): Picked | null {
   const reaction = hashParam("reaction");
-  if (reaction !== null) return pick({ kind: "mechanism", play: { kind: "reaction", id: reaction } });
+  if (reaction !== null) return fromPathway({ kind: "mechanism", play: { kind: "reaction", id: reaction } }, "reaction", reaction);
   const sequence = hashParam("sequence");
-  if (sequence !== null) return pick({ kind: "mechanism", play: { kind: "sequence", id: sequence } });
+  if (sequence !== null) return fromPathway({ kind: "mechanism", play: { kind: "sequence", id: sequence } }, "sequence", sequence);
+  // "hunt" in the URL, `resonance` in the data. Both ends have said so since the
+  // link was first built; PathwayTab.hrefForPlayable writes the one and
+  // questionForBeat reads the other.
   const hunt = hashParam("hunt");
-  if (hunt !== null) return pick({ kind: "resonance", resonanceId: hunt });
+  if (hunt !== null) return fromPathway({ kind: "resonance", resonanceId: hunt }, "resonance", hunt);
   return null;
 }
 
@@ -67,7 +125,16 @@ export interface TrainerTabProps {
 }
 
 export function TrainerTab({ reducedMotion }: TrainerTabProps) {
-  const [question, setQuestion] = useState<TrainerQuestion | null>(deepLinkQuestion);
+  const [picked, setPicked] = useState<Picked | null>(deepLinkPick);
+  /**
+   * Which node ids this mounted tab has already banked, so one finished run can
+   * never append twice. Copied from BeatRunner's `bankedFor` discipline and for
+   * its reason: the journal is append-only and every balance is derived from it,
+   * so `clearNode` returning 0 diamonds on a replay is not enough. A set rather
+   * than one id because a student can walk several nodes without this tab
+   * unmounting, and each of those first clears is real.
+   */
+  const banked = useRef<Set<string>>(new Set());
 
   /**
    * Follow a deep link that arrives while the trainer is ALREADY on screen.
@@ -84,15 +151,15 @@ export function TrainerTab({ reducedMotion }: TrainerTabProps) {
    */
   useEffect(() => {
     const follow = () => {
-      const next = deepLinkQuestion();
-      if (next !== null) setQuestion(next);
+      const next = deepLinkPick();
+      if (next !== null) setPicked(next);
     };
     window.addEventListener("hashchange", follow);
     return () => window.removeEventListener("hashchange", follow);
   }, []);
 
   const leave = () => {
-    setQuestion(null);
+    setPicked(null);
     // Replace, never push: navigate() assigns the hash and adds a history
     // entry, so a Back after leaving would land on the deep link and the
     // follower above would put the student straight back into the stage.
@@ -112,10 +179,10 @@ export function TrainerTab({ reducedMotion }: TrainerTabProps) {
     switch (link.kind) {
       case "reaction":
       case "sequence":
-        setQuestion(pick({ kind: "mechanism", play: link }));
+        setPicked(freePractice(pick({ kind: "mechanism", play: link })));
         return;
       case "resonance":
-        setQuestion(pick({ kind: "resonance", resonanceId: link.id }));
+        setPicked(freePractice(pick({ kind: "resonance", resonanceId: link.id })));
         return;
       case "beat":
         navigate(hrefForLesson(link.id));
@@ -127,10 +194,42 @@ export function TrainerTab({ reducedMotion }: TrainerTabProps) {
     }
   };
 
-  if (question !== null) {
+  /**
+   * THE WIN, BANKED. `onSolved` fires once, on Continue from the last step's
+   * win, before onExit, which is the trainer's equivalent of the reward phase
+   * BeatRunner banks on.
+   *
+   * `clear === null` is free practice and it deliberately records NOTHING. A
+   * question opened from the browser below never passed the charge gate, so a
+   * clear there would mint first-clear diamonds and unlock the nodes downstream
+   * for free. Same for a hand-typed link that no map node points at.
+   *
+   * `flawless` is NOT passed, and that is the honest answer rather than a
+   * missing feature: TrainerScreen grades every check but reports no miss
+   * upward, so this tab cannot tell a clean run from a fourth attempt. The
+   * store's default is false. `stepsInOneSitting` it can answer, because this
+   * tab always mounts the screen at step 0 and the student walks every step of
+   * the question before Continue reaches here.
+   */
+  const bank = (target: ClearTarget, steps: number) => {
+    if (banked.current.has(target.nodeId)) return;
+    banked.current.add(target.nodeId);
+    progress.clearNode(target.nodeId, target.kind, { stepsInOneSitting: steps, spine: target.spine });
+  };
+
+  if (picked !== null) {
+    const { question, clear } = picked;
     // Keyed on the question so a hashchange to another node builds a fresh
     // screen over the new step rather than carrying the old one's state.
-    return <TrainerScreen key={question.id} question={question} onExit={leave} reducedMotion={reducedMotion} />;
+    return (
+      <TrainerScreen
+        key={question.id}
+        question={question}
+        onSolved={clear === null ? undefined : () => bank(clear, question.steps.length)}
+        onExit={leave}
+        reducedMotion={reducedMotion}
+      />
+    );
   }
 
   return (

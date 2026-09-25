@@ -15,6 +15,8 @@
  * their `playable` link here, and the count on the browser header moves.
  */
 
+import type { NodeKind as EconomyNodeKind } from "@blueberry/economy";
+
 export type NodeKind = "spine" | "branch" | "gate" | "boss";
 
 export type PlayableLink =
@@ -379,4 +381,74 @@ export function pathwayNode(id: string): PathwayNode | null {
     }
   }
   return null;
+}
+
+/**
+ * The node a PLAYABLE belongs to. The reverse of the lookup above, and the
+ * reason it exists is the seam between the map and the trainer.
+ *
+ * A mechanism node's trainer link carries the playable's id ("williamson",
+ * "seq-diene", "res-allyl-1"), never the node's ("u5-williamson"), while the
+ * charge gate spent and the pathway's green derive from the NODE id. So a
+ * surface that only knows which question it is playing cannot bank a clear
+ * without coming back through here.
+ *
+ * MATCHED ON KIND AS WELL AS ID, because the three registries are separate id
+ * spaces and nothing stops a reaction and a sequence from sharing a name.
+ *
+ * FIRST MATCH IN TEACHING ORDER, and that is a real decision rather than an
+ * accident of the loop: ten of the map's playables are shared by two or three
+ * nodes (wolff-extrusion on u3-c-to-ch2 and u7-to-ch2, seq-snar on three Unit 4
+ * nodes, and eight more), because the same mechanism is genuinely taught twice.
+ * The link cannot say which of them was pressed. Every member of every one of
+ * those groups is a spine node, so the economy kind and the spine bonus are the
+ * same whichever is chosen and only WHICH node turns green differs; the earlier
+ * node is the one that introduces the mechanism, so it is the one a clear lands
+ * on. Making this exact means putting the node id in the href, which changes a
+ * URL students already have in their history: an owner decision, not a fix to
+ * smuggle in here.
+ */
+export function pathwayNodeForPlayable(kind: PlayableLink["kind"], id: string): PathwayNode | null {
+  for (const unit of PATHWAY_UNITS) {
+    for (const node of unit.nodes) {
+      const link = node.playable;
+      if (link !== undefined && link.kind === kind && link.id === id) return node;
+    }
+  }
+  return null;
+}
+
+/**
+ * The economy's NodeKind for a map node, which is what it is PRICED at.
+ *
+ * MOVED HERE FROM PathwayTab.tsx, where it was private, because two surfaces
+ * now need the same answer and they must not be able to disagree: ChargeGate
+ * spends against this kind on the way in (`startNode`) and the surface that
+ * banks the clear pays out against it on the way out (`clearNode`). Two copies
+ * of this mapping is a student paying for one row and clearing another.
+ *
+ * The pathway's vocabulary is spine/branch/gate/boss and the economy's is
+ * concept/reaction/branch/quiz/review/tutorial/intro. The two lists are not the
+ * same list, so the mapping is written down once here rather than guessed at
+ * each call site:
+ *
+ *   branch          -> branch. Same word, same 8, and the map's side quests are
+ *                      exactly what that row is for.
+ *   spine, a beat   -> concept. A beat is recognition and ranking work, which is
+ *                      what the 5 charge concept row is priced against.
+ *   spine, anything -> reaction. Arrow work: a reaction, a sequence, a
+ *                      resonance hunt. The 8 charge row.
+ *   boss            -> quiz. UNREACHABLE TODAY, and flagged rather than settled:
+ *                      the map's one boss carries no `playable`, so no press can
+ *                      arrive here. ECONOMY.md prices no boss, and quiz is the
+ *                      closest priced row (an assessment, refunded on a pass).
+ *                      An owner decision before a boss is authored.
+ *
+ * Gates never reach this function: they render as the unit gate and its
+ * checkpoint strip and are not pressable.
+ */
+export function economyKindFor(mapKind: NodeKind, link: PlayableLink): EconomyNodeKind {
+  if (mapKind === "branch") return "branch";
+  if (mapKind === "boss") return "quiz";
+  return link.kind === "beat" ? "concept" : "reaction";
 }
