@@ -202,7 +202,7 @@ function pickForHour(entries: BackgroundEntry[], hour: number): BackgroundEntry 
  */
 const SNOW_FOR_NOW = true;
 
-export function PageBackground({
+function AtmosphericPageBackground({
   className,
   /** Name a file to pin it, instead of letting the hour choose. */
   scene: pinned,
@@ -887,3 +887,18 @@ function LeafDrift({ isDark }: { isDark: boolean }) {
 }
 
 export default PageBackground;
+
+// Owner direction, 2026-09-10: rest the decorative background for now.
+// Keeping it unmounted also stops image fetches, timers, and weather effects.
+//
+// BACK ON, owner direction 2026-09-25: "change the background so it shows the
+// image". The rest is over for the SITE only. The game's own switch,
+// ATMOSPHERE_ENABLED in src/game/tabs/trainer/CanvasBackdrop.tsx, stays false:
+// the pathway's terrain was deleted outright on 17 Sep and the flat ground
+// there is the owner's standing preference, so this flag and that one are
+// deliberately not a pair. Turning this on resumes the image fetches, timers
+// and weather effects the note above records.
+const ATMOSPHERIC_BACKGROUND_ENABLED = true;
+export function PageBackground(props: Parameters<typeof AtmosphericPageBackground>[0]) {
+  return ATMOSPHERIC_BACKGROUND_ENABLED ? <AtmosphericPageBackground {...props} /> : null;
+}
