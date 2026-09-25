@@ -52,6 +52,28 @@
         } catch (e) {}
       })();
     </script>
+    <!-- THE DISPLAY FACE, loaded because it was never loaded before.
+         --font-display named ui-rounded, SF Pro Rounded, Arial Rounded MT Bold,
+         Baloo 2, Quicksand and Varela Round, and NOTHING in this repo fetched
+         any of them. The first two are Apple only, the last three are Google
+         Fonts nobody linked, so the stack fell through per machine: a visitor
+         with Office got Arial Rounded MT Bold, a bold-only family that ignores
+         font-weight, and everyone else got system-ui, which is the same face as
+         the body text. The wordmark therefore rendered differently for the
+         owner than for his users, and for most of them had no display face at
+         all. That is the bug; the typeface below is one token away from being
+         swapped if the choice is wrong.
+
+         Nunito: rounded terminals so it sits with a blueberry, a real weight
+         range unlike the bold-only Arial, and it reads as a study tool rather
+         than a children's app. display=swap so the text paints immediately in
+         the fallback and never blocks first render. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap"
+    />
   </head>
   <body>
     <div id="root"></div>

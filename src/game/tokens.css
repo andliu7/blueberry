@@ -25,7 +25,7 @@
    *       imported by the app (theme.css is live), but a stale token file is
    *       a stale pointer, so the two lines below moved with the decision.
    * ------------------------------------------------------------------- */
-  --font-display: ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", "Baloo 2", Quicksand, "Varela Round", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Nunito", ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", ui-sans-serif, system-ui, sans-serif;
   --font-ui: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, monospace;
 
