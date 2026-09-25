@@ -2000,7 +2000,24 @@ html[data-device-frame] #root::-webkit-scrollbar {
   --input: #70839d;
   --ring: #aac7ff;
 }
-html, html.dark, body, .dark body {
+/* THE ROOT CARRIES THE GROUND, AND BODY MUST NOT.
+ *
+ * This rule named `body` as well when it landed in a8b9392, and that silently
+ * broke the photographic background for fifteen days without anyone seeing it.
+ * `PageBackground` mounts `fixed inset-0 -z-10`, and a negative z-index child
+ * paints above the CANVAS background but below an in-flow ancestor's own
+ * background box. So body's opaque colour covered the photograph completely:
+ * every /backgrounds/*.webp still returned 200, the credit chip still rendered,
+ * and the picture was simply never visible. Turning the feature flag back on in
+ * bd2adbf therefore changed nothing a person could see.
+ *
+ * Setting it on the root alone gives the same painted ground, because the root
+ * element's background propagates to the canvas, while leaving body
+ * transparent so the fixed layer beneath the content can show through. Do not
+ * add `body` back to this selector. If a page needs an opaque ground it should
+ * paint its own surface, the way `.bb-game` does.
+ */
+html, html.dark {
   background-color: var(--background);
   background-image: none;
 }

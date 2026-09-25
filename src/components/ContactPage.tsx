@@ -5,7 +5,6 @@ import { GithubMark, LinkedinMark } from "@/components/ui/brand-marks";
 import { SiteHeader } from "@/components/ui/site-header";
 import { FeedbackButton } from "@/components/FeedbackButton";
 import { SiteFooter } from "@/components/ui/site-footer";
-import { PageBackground } from "@/components/ui/page-background";
 import { EMAIL, GITHUB_URL, LINKEDIN_URL, REPO_URL } from "@/data/site";
 
 /**
@@ -25,7 +24,14 @@ export function ContactPage() {
           on top of it: `PageBackground` paints `surface.base` underneath the
           image itself, so keeping the old inline background here would have
           hidden it entirely. */}
-      <PageBackground />
+      {/* NO PHOTOGRAPH HERE UNTIL THE TEXT SURVIVES IT. Measured 2026-09-25 with
+          the body occluder removed: this page's copy sits straight on the
+          picture with no panel under it and stops being readable. Dashboard is
+          the pattern that works, because its content rides translucent panels
+          over the scene; Home works because it is a hero with its own scrim.
+          This page is neither yet, so the mount comes out rather than shipping
+          unreadable text. Put it back in the same commit that gives this
+          content a surface. */}
       {/* No spotlight here, deliberately. The hub and the folder pages are
           things you scan, where a light tracking the cursor gives the eye
           something to follow. This one is a form you sit and fill in, and the

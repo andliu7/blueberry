@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState } from "react";
 import { ChevronLeft, TriangleAlert } from "lucide-react";
 import { CourseCalendar, type CourseDate } from "@/components/ui/event-manager";
 import { Loader } from "@/components/ui/loader";
-import { PageBackground } from "@/components/ui/page-background";
 import { SyllabusImportTicket } from "@/components/ui/syllabus-import-ticket";
 import { useSession } from "@/lib/useSession";
 import { StaffSignInNotice } from "@/components/ui/staff-signin-notice";
@@ -96,7 +95,14 @@ export default function CalendarPage() {
     // Same shell as Lessons and Reactions: background, back link, a compact
     // header bar, then the content.
     <main className="relative min-h-screen text-slate-900 dark:text-stone-100">
-      <PageBackground />
+      {/* NO PHOTOGRAPH HERE UNTIL THE TEXT SURVIVES IT. Measured 2026-09-25 with
+          the body occluder removed: this page's copy sits straight on the
+          picture with no panel under it and stops being readable. Dashboard is
+          the pattern that works, because its content rides translucent panels
+          over the scene; Home works because it is a hero with its own scrim.
+          This page is neither yet, so the mount comes out rather than shipping
+          unreadable text. Put it back in the same commit that gives this
+          content a surface. */}
 
       {/* The page is exactly one screen tall, and the calendar takes what the
           header and the status line leave. `dvh` rather than `vh` because on a
