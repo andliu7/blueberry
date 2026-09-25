@@ -280,6 +280,13 @@ export function reactionCardFromStaged(reaction: StagedReaction, now: Date): Car
   const temperature = celsius === null ? null : temperatureLabel(celsius);
   const art = artFrom(reaction);
 
+  // The formulas RDKit wrote beside each structure, and the registry's name.
+  // A blank formula (RDKit could not parse that structure) is dropped rather
+  // than printed, the same rule the lessons row applies.
+  const name = reaction.name.trim();
+  const reactantFormulas = reaction.reactant_formulas.filter((formula) => formula.trim().length > 0);
+  const productFormula = reaction.product_formula.trim();
+
   return {
     id: reactionCardId(reaction.id),
     front: reactants,
@@ -291,6 +298,9 @@ export function reactionCardFromStaged(reaction: StagedReaction, now: Date): Car
       reactants,
       reagents,
       products: reaction.product_label,
+      ...(name.length === 0 ? {} : { name }),
+      ...(reactantFormulas.length === 0 ? {} : { reactantFormulas }),
+      ...(productFormula.length === 0 ? {} : { productFormula }),
       ...(temperature === null ? {} : { temperature }),
       ...(Object.keys(art).length === 0 ? {} : { art }),
       reveal,

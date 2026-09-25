@@ -5,47 +5,96 @@
  * deleting this file and the two components that import it must leave the
  * rest of the cards surface untouched.
  *
- * Every colour is an existing token from cards.css or the theme; nothing new
- * is measured here. The tint pair on the temperature chip is the composer's
- * own conditions tint (--tint-conditions under --tint-conditions-edge), used
- * for the same job it already does there: marking condition information.
+ * THE REGISTER IS THE LESSONS ROW'S (owner, 25 Sep). Cool neutral surfaces,
+ * an inset wash for the scheme, hairlines rather than 2px edges, mono for
+ * anything that is a value (formula, reagent, chip) and the reading face for
+ * anything that is a sentence. See ReactionCardFace.tsx's header for the
+ * property-by-property list carried across from reaction-panel.tsx.
+ *
+ * MEASURED, NEVER QUOTED. Every pair below was computed with the WCAG 2.x
+ * formula against the grounds the app paints (scratchpad r3-cards-contrast
+ * .mjs, 25 Sep): the card --bb-card #ffffff / #192438 and the inset wash
+ * --bb-muted #e8eef8 / #24334a.
+ *   --bb-card-foreground on the wash      13.14 light   11.34 dark   (names, chip text)
+ *   --bb-muted-foreground on the wash      5.33 light    6.05 dark   (formula, caption, arrow)
+ *   --bb-primary-ink on the wash           7.98 light    7.48 dark   (reagents)
+ *   --bb-muted-foreground on the card      6.21 light    7.37 dark   (eyebrows)
+ * The four acid/base chip values are the lessons' own Tailwind pairs, the
+ * night ones composited flat over the night card the way the lessons
+ * composite theirs over stone-950, and each is measured beside its token.
  */
+
+:root {
+  /* acidic: rose-700 on rose-50, 5.72. basic: sky-700 on sky-50, 5.57. */
+  --rxn-acid: #fff1f2;
+  --rxn-acid-ink: #be123c;
+  --rxn-base: #f0f9ff;
+  --rxn-base-ink: #0369a1;
+}
+
+.dark {
+  /* acidic: rose-200 on rose-950 at .6 over #192438, 11.68.
+     basic: sky-200 on sky-950 at .6 over #192438, 10.96. */
+  --rxn-acid: #381125;
+  --rxn-acid-ink: #fecdd3;
+  --rxn-base: #0f2b42;
+  --rxn-base-ink: #bae6fd;
+}
 
 /* ------------------------------------------------------------------ */
 /* The scheme                                                           */
 /* ------------------------------------------------------------------ */
 
+/* The scheme is its own size container so the three-across / stacked
+   decision is made on the CARD's width, not the viewport's: a card in a
+   narrow review column on a wide screen still stacks. */
 .rxn-scheme {
   display: flex;
   flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+  container-type: inline-size;
+}
+
+/* The temperature line above the panel, right-aligned like a stage row's
+   trailing chips. */
+.rxn-conditions {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0;
+}
+
+/* THE INSET PANEL, the lessons scheme's own frame: a wash off the card with
+   a hairline rim. The rim is --bb-border at .35 (1.49 on white, 1.60 on the
+   night card), decorative grouping in the same role as the lessons' slate-200
+   line; the card's shape is still carried by its own --bb-border box. */
+.rxn-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   gap: 0.75rem;
   width: 100%;
+  padding: 0.875rem;
+  border-radius: 1rem;
+  background: var(--bb-muted);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--bb-border) 35%, transparent);
 }
 
-.rxn-scheme__row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.625rem;
-  width: 100%;
-}
-
-/* A column: the drawn structure, then its name under it. `overflow-wrap`
-   is the round 4 fix. Without it a product name is one unbreakable token
-   ("1-methoxy-2-methylpropan-2-ol") and it painted straight out of its
-   column, measured at scrollWidth 108 against clientWidth 84. .rxn-reagents
-   below already carried the rule; this is the same rule on the selector
-   that needed it. */
+/* A column: the drawn structure, then its name and formula under it.
+   `overflow-wrap: anywhere` stays as the last resort for a name longer than
+   a whole column; the stacking rule below is what stops it firing on a
+   phone, where three columns left "benzaldehyde" 84px to live in. */
 .rxn-side {
   display: flex;
-  flex: 1 1 0;
-  min-width: 0;
   flex-direction: column;
   align-items: center;
   gap: 0.25rem;
+  min-width: 0;
   margin: 0;
   text-align: center;
+}
+
+.rxn-side__caption {
   white-space: pre-line;
   overflow-wrap: anywhere;
 }
@@ -53,24 +102,34 @@
 /* The RDKit drawing. A student reads a structure in 200 ms and a name like
    "1-methoxy-2-methylpropan-2-ol" in three seconds, which is the whole
    reason it is here. Capped in height so the two sides stay the same shape
-   whatever the molecule, and so the scheme does not push the tag row and the
-   reveal off a 390px phone. */
+   whatever the molecule, and so the scheme does not push the reveal off a
+   390px phone. */
 .rxn-side__art {
   width: 100%;
   height: auto;
-  max-height: 4.5rem;
+  max-height: 5rem;
   object-fit: contain;
 }
 
-/* The withheld product side: a dashed box holding the question mark, so the
-   face plainly has a hole in it rather than looking finished. */
+/* THE WITHHELD PRODUCT: the lessons' blur, not a question mark. The drawing
+   is present and blurred well past reading, clipped to its own box so the
+   bloom does not wash into the arrow. A static filter, so reduced-motion has
+   nothing to switch off. */
+.rxn-side__veil {
+  width: 100%;
+  overflow: hidden;
+  border-radius: 0.5rem;
+  filter: blur(14px);
+  opacity: 0.55;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* A hidden side with no drawing (a student's own card) is just its caption;
+   keep it the height of a caption-plus-art side so the panel does not slump. */
 .rxn-side--hidden {
-  flex: 0 0 auto;
-  min-width: 3rem;
-  padding: 0.375rem 0.75rem;
-  border: 2px dashed var(--cards-paper-line);
-  border-radius: 0.75rem;
-  color: var(--bb-muted-foreground);
+  justify-content: center;
+  min-height: 3.5rem;
 }
 
 .rxn-arrow-cell {
@@ -78,26 +137,77 @@
   flex-direction: column;
   align-items: center;
   gap: 0.125rem;
-  flex: 0 0 auto;
-  max-width: 40%;
+  max-width: 11rem;
 }
 
+/* Reagents over the arrow in mono, the lessons' primary ink. */
 .rxn-reagents {
+  margin: 0;
+  color: var(--bb-primary-ink);
   text-align: center;
   white-space: pre-line;
   overflow-wrap: anywhere;
 }
 
-/* The temperature chip on the face. The conditions tint pair from the
-   composer, ink kept as the card's own foreground per the measured pairs
-   cards.css records for that tint. */
-.rxn-temp {
-  align-self: flex-end;
-  padding: 0.125rem 0.625rem;
-  border: 2px solid var(--tint-conditions-edge);
-  border-radius: 9999px;
-  background: var(--tint-conditions);
+/* The arrow is a quiet mark in the muted ink (5.33 / 6.05 on the wash, over
+   the 3.0 graphics floor), sized by its own viewBox: 4.5rem long, 0.75rem
+   tall. */
+.rxn-arrow {
+  width: 4.5rem;
+  height: 0.75rem;
+  color: var(--bb-muted-foreground);
+}
+
+/* STACKED, below the width where three columns can hold a real name. The
+   arrow turns to point down; its box is made square so the rotation does not
+   push the cells apart. 26rem is where "cyclohex-3-ene-1-carbaldehyde" at
+   text-scale-sm still fits a third of the panel. */
+@container (max-width: 26rem) {
+  .rxn-panel {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.5rem;
+  }
+  .rxn-arrow-cell {
+    max-width: none;
+  }
+  .rxn-arrow {
+    width: 2.5rem;
+    height: 2.5rem;
+    transform: rotate(90deg);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Chips: the lessons stage row's small mono tokens                     */
+/* ------------------------------------------------------------------ */
+
+/* Temperature, solvent, neutral: --bb-muted-foreground on --bb-muted, 5.33
+   light and 6.05 dark. The temperature chip is the strong one, in the card's
+   own ink at 13.14 / 11.34, because it is the one condition on the face. */
+.rxn-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.4rem;
+  border-radius: 0.375rem;
+  background: var(--bb-muted);
+  color: var(--bb-muted-foreground);
+  white-space: nowrap;
+}
+
+.rxn-chip--strong {
   color: var(--bb-card-foreground);
+}
+
+.rxn-chip--acidic {
+  background: var(--rxn-acid);
+  color: var(--rxn-acid-ink);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--rxn-acid-ink) 30%, transparent);
+}
+
+.rxn-chip--basic {
+  background: var(--rxn-base);
+  color: var(--rxn-base-ink);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--rxn-base-ink) 30%, transparent);
 }
 
 /* ------------------------------------------------------------------ */
@@ -107,14 +217,42 @@
 .rxn-reveal {
   display: flex;
   flex-direction: column;
-  gap: 0.625rem;
+  gap: 0.75rem;
   width: 100%;
-  border-top: 1px solid var(--bb-border);
+  border-top: 1px solid color-mix(in srgb, var(--bb-border) 50%, transparent);
   padding-top: 0.875rem;
+}
+
+.rxn-reveal__name {
+  margin: 0;
+}
+
+.rxn-reveal__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 0;
 }
 
 .rxn-reveal__row {
   display: flex;
   flex-direction: column;
-  gap: 0.125rem;
+  gap: 0.25rem;
+}
+
+/* The lessons' section label: mono, small, tracked, in the muted ink
+   (6.21 light, 7.37 dark on the card). */
+.rxn-eyebrow {
+  color: var(--bb-muted-foreground);
+}
+
+.rxn-reveal__value {
+  margin: 0;
+}
+
+.rxn-reveal__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin: 0;
 }

@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader } from "@/components/ui/loader";
+import { Formulas } from "@/components/ui/formula";
 import { MoleculeArt } from "@/components/ui/lesson-nav";
 import type { Stage, StagedReaction } from "@/data/reactions";
 import { setCourseField } from "@/lib/useCourse";
@@ -527,35 +528,5 @@ function Info({
       </div>
       <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-stone-300">{children}</p>
     </div>
-  );
-}
-
-/**
- * A molecular formula, with the digits set as subscripts.
- *
- * RDKit hands back a flat string like `C4H8O2`, and printing that as-is next to
- * a name reads as a part number. Splitting on digit runs is safe here because a
- * formula is only ever element symbols and counts, and charges arrive as a
- * trailing `+`/`-` which is left alone.
- *
- * Renders nothing when there is no formula. `formula_of` returns an empty
- * string for anything RDKit will not parse, so a gap in the data shows as a
- * missing line rather than as a confident wrong one.
- */
-function Formulas({ list, join = " + " }: { list?: string[]; join?: string }) {
-  const shown = (list ?? []).filter(Boolean);
-  if (!shown.length) return null;
-
-  return (
-    <span className="mt-0.5 block font-mono text-xs font-normal text-slate-600 dark:text-stone-300">
-      {shown.map((f, i) => (
-        <span key={`${f}-${i}`}>
-          {i > 0 && join}
-          {f.split(/(\d+)/).map((part, j) =>
-            /^\d+$/.test(part) ? <sub key={j}>{part}</sub> : <span key={j}>{part}</span>,
-          )}
-        </span>
-      ))}
-    </span>
   );
 }

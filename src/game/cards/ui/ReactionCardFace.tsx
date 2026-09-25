@@ -4,29 +4,49 @@
  *
  * THE OWNER'S SHAPE (17 Sep): reactants plus reagents on one side of the
  * arrow, products on the other, temperature worn on the face. Before the
- * reveal the product side is a drawn question mark, because a front that
- * shows the answer is not a card; the reveal fills that side in, in place,
- * so the student's eye never has to re-find the answer's position. The
- * labelled extras live in ReactionRevealPanel.tsx, deliberately a separate
- * component: the owner may swap either piece for a library component later,
- * so neither knows the other exists.
+ * reveal the product side is withheld; the reveal fills that side in, in
+ * place, so the student's eye never has to re-find the answer's position.
+ * The labelled extras live in ReactionRevealPanel.tsx, deliberately a
+ * separate component: the owner may swap either piece for a library
+ * component later, so neither knows the other exists.
+ *
+ * THE LOOK IS THE LESSONS ROW'S (owner, 25 Sep: "more like the reactions in
+ * the lessons page, more refined"). components/ui/reaction-panel.tsx is the
+ * reference and these are the properties carried across, by name:
+ *   1. the scheme sits in an INSET PANEL on the card, a quiet wash with a
+ *      hairline rim, not loose on the paper;
+ *   2. three columns [1fr auto 1fr] that STACK when the card is narrow, the
+ *      arrow turning to point down. The old face never stacked, and on a
+ *      390px phone the critic's capture shows "benzaldehy / de" broken
+ *      mid-word because three columns left each side 84px;
+ *   3. NAME THEN FORMULA under each drawing, the formula in mono and muted
+ *      with digits as subscripts, rendered by the same Formulas component
+ *      the lessons row uses so the two cannot drift;
+ *   4. the hidden product is the drawing BLURRED under a "Product hidden"
+ *      caption, not a dashed box holding a question mark;
+ *   5. reagents over the arrow in mono, in the primary ink;
+ *   6. the arrow is a muted mark, not the foreground;
+ *   7. the temperature is a small mono chip on a muted fill.
+ * Not carried: the lessons' "Show product" button inside the scheme. The
+ * whole card is already the reveal button (CardFace owns that gesture, and
+ * the four grade chips depend on it), and a button inside a button is
+ * invalid HTML.
  *
  * THE STRUCTURES ARE DRAWN, added in round 4. data/reactions.ts carries four
- * RDKit-rendered paths per reaction and the card face was showing none of
- * them, so a review face was three words of text. The drawing sits above the
- * name in each side's column, and the product's drawing is withheld with the
- * product, because the structure IS the answer.
+ * RDKit-rendered paths per reaction. The product's drawing is present but
+ * blurred and aria-hidden before the reveal, exactly as the lessons row does
+ * it; its alt is empty and the file is named by reaction id, so nothing
+ * readable about the product reaches the front's markup.
  *
- * WHAT THIS FILE DOES NOT DO. No tap handling: CardFace owns the reveal
- * gesture exactly as it does for every other card, so the four grade chips
- * and the whole reviewer loop stay untouched. No chemistry: every string and
- * every drawing here arrived on the card from authored data or the student's
- * own hand, and this file only places them.
+ * WHAT THIS FILE DOES NOT DO. No tap handling. No chemistry: every string
+ * and every drawing here arrived on the card from authored data or the
+ * student's own hand, and this file only places them.
  *
  * Styled by the .rxn-* family in reaction-card.css, its own sheet, so the
  * face can be restyled or replaced without disturbing cards.css.
  */
 
+import { Formulas } from "../../../components/ui/formula";
 import type { ReactionCardData } from "../types";
 import "./reaction-card.css";
 
@@ -36,43 +56,65 @@ export interface ReactionSchemeProps {
   readonly revealed: boolean;
 }
 
+/** The formula's ink on the card: the muted foreground, 5.33 on the wash. */
+const FORMULA_INK = "text-bb-muted-foreground";
+
 export function ReactionScheme({ reaction, revealed }: ReactionSchemeProps) {
   const art = reaction.art;
+  const productFormula = reaction.productFormula === undefined ? undefined : [reaction.productFormula];
   return (
     <div className="rxn-scheme">
       {reaction.temperature !== undefined && (
-        <span className="rxn-temp text-scale-xs font-bold">{reaction.temperature}</span>
+        <p className="rxn-conditions">
+          <span className="rxn-chip rxn-chip--strong font-mono text-scale-xs font-semibold">
+            {reaction.temperature}
+          </span>
+        </p>
       )}
-      <div className="rxn-scheme__row">
-        <figure className="rxn-side text-scale-base font-semibold text-bb-card-foreground">
+      <div className="rxn-panel">
+        <figure className="rxn-side">
           <StructureArt
             light={art?.startLight}
             dark={art?.startDark}
             alt={`Structure of ${reaction.reactants}`}
           />
-          <figcaption>{reaction.reactants}</figcaption>
+          <figcaption className="rxn-side__caption text-scale-sm font-semibold text-bb-card-foreground">
+            {reaction.reactants}
+            <Formulas list={reaction.reactantFormulas} className={FORMULA_INK} />
+          </figcaption>
         </figure>
+
         <div className="rxn-arrow-cell">
-          <p className="rxn-reagents text-scale-xs font-semibold text-bb-muted-foreground">
-            {reaction.reagents}
-          </p>
+          {reaction.reagents.trim().length > 0 && (
+            <p className="rxn-reagents font-mono text-scale-xs font-semibold">{reaction.reagents}</p>
+          )}
           <RxnArrow />
         </div>
+
         {revealed ? (
-          <figure className="rxn-side text-scale-base font-semibold text-bb-card-foreground">
+          <figure className="rxn-side">
             <StructureArt
               light={art?.productLight}
               dark={art?.productDark}
               alt={`Structure of ${reaction.products}`}
             />
-            <figcaption>{reaction.products}</figcaption>
+            <figcaption className="rxn-side__caption text-scale-sm font-semibold text-bb-card-foreground">
+              {reaction.products}
+              <Formulas list={productFormula} className={FORMULA_INK} />
+            </figcaption>
           </figure>
         ) : (
-          /* The withheld side. A drawn mark, aria-labelled so a screen
-             reader hears the question rather than punctuation. */
-          <p className="rxn-side rxn-side--hidden text-scale-lg font-bold" aria-label="Product, not shown yet">
-            ?
-          </p>
+          <figure className="rxn-side rxn-side--hidden">
+            {/* The withheld side. The drawing is there, blurred past reading
+                and hidden from assistive tech; the caption is what a screen
+                reader hears, so the question is spoken rather than punctuation. */}
+            <div className="rxn-side__veil" aria-hidden="true">
+              <StructureArt light={art?.productLight} dark={art?.productDark} alt="" />
+            </div>
+            <figcaption className="rxn-side__caption text-scale-sm font-semibold text-bb-muted-foreground">
+              Product hidden
+            </figcaption>
+          </figure>
         )}
       </div>
     </div>
@@ -127,10 +169,13 @@ function StructureArt({
   );
 }
 
-/** The reaction arrow the reagents sit over. Same drawing as the composer's. */
+/**
+ * The reaction arrow the reagents sit over. Same drawing as the composer's;
+ * reaction-card.css turns it to point down when the scheme stacks.
+ */
 function RxnArrow() {
   return (
-    <svg viewBox="0 0 72 12" className="h-3 w-[4.5rem] shrink-0 text-bb-foreground" aria-hidden="true">
+    <svg viewBox="0 0 72 12" className="rxn-arrow shrink-0" aria-hidden="true">
       <path
         d="M2 6 H64 M58 2 L66 6 L58 10"
         fill="none"

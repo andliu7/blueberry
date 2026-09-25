@@ -188,6 +188,20 @@ export interface ReactionCardData {
   /** The chip on the face, already formatted, e.g. "-78 °C". Absent when unstated. */
   readonly temperature?: string;
   /**
+   * WHAT THE LESSONS ROW SHOWS AND THE CARD DID NOT, carried across in the
+   * 25 Sep redesign. All three are already in data/reactions.ts and all three
+   * are derived: the formulas are RDKit's, computed from the same canonical
+   * SMILES the drawing was rendered from, so the picture and the formula
+   * cannot disagree; the name is the registry's own. Optional, and UNSET on a
+   * card a student composed: a hand-written card has no checked structure to
+   * compute a formula from, and inventing one would be the bug this whole
+   * file exists to prevent. The name is shown on the back only, because
+   * "Wolff-Kishner reduction" on the front is the answer.
+   */
+  readonly name?: string;
+  readonly reactantFormulas?: readonly string[];
+  readonly productFormula?: string;
+  /**
    * The drawn structures, when the card came from the authored registry.
    * Absent for a card a student wrote, because there is no drawing of it.
    */

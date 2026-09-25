@@ -304,6 +304,67 @@ describe("the reveal", () => {
     );
     expect(back).toContain("acetophenone");
   });
+
+  /* THE LESSONS ROW'S TWO EXTRAS, carried onto the card 25 Sep. Both are
+     read back through the rendered markup with its tags stripped, because
+     the formula is set with <sub> around every digit run. */
+  const text = (html: string) => html.replace(/<[^>]+>/g, "");
+
+  it("prints RDKit's formula under each name, the product's only after the reveal", () => {
+    const card = drawCardFor("gilman-to-ketone", NOON);
+    const reaction = REACTIONS.find((entry) => entry.id === "gilman-to-ketone");
+    expect(card).not.toBeNull();
+    expect(reaction).toBeDefined();
+    if (card === null || reaction === undefined) return;
+    // Benzoyl chloride and acetophenone have different formulas, so the two
+    // sides can be told apart in the markup.
+    const [reactantFormula] = reaction.reactant_formulas;
+    expect(reactantFormula).not.toBe(reaction.product_formula);
+
+    const front = text(
+      renderToStaticMarkup(createElement(CardFace, { card, revealed: false, onReveal: () => undefined })),
+    );
+    expect(front).toContain(reactantFormula);
+    expect(front.includes(reaction.product_formula)).toBe(false);
+    expect(front).toContain("Product hidden");
+
+    const back = text(
+      renderToStaticMarkup(createElement(CardFace, { card, revealed: true, onReveal: () => undefined })),
+    );
+    expect(back).toContain(reactantFormula);
+    expect(back).toContain(reaction.product_formula);
+  });
+
+  it("keeps the reaction's name for the back, because the name can be the answer", () => {
+    const card = drawCardFor("wolff-kishner", NOON);
+    expect(card).not.toBeNull();
+    if (card === null) return;
+    expect(card.reaction?.name).toBe("Wolff-Kishner reduction");
+
+    const front = renderToStaticMarkup(
+      createElement(CardFace, { card, revealed: false, onReveal: () => undefined }),
+    );
+    expect(front.includes("Wolff-Kishner reduction")).toBe(false);
+    const back = renderToStaticMarkup(
+      createElement(CardFace, { card, revealed: true, onReveal: () => undefined }),
+    );
+    expect(back).toContain("Wolff-Kishner reduction");
+  });
+
+  it("folds solvent and acid/base into one Conditions line of chips", () => {
+    const card = drawCardFor("lialh4-reduction", NOON);
+    expect(card).not.toBeNull();
+    if (card === null) return;
+    const back = renderToStaticMarkup(
+      createElement(CardFace, { card, revealed: true, onReveal: () => undefined }),
+    );
+    expect(back).toContain("Conditions");
+    expect(back).toContain("rxn-chip--basic");
+    expect(back).toContain("rxn-chip--acidic");
+    // The old labelled rows are gone; the words themselves are chips now.
+    expect(back.includes(REVEAL_LABELS.acidBase)).toBe(false);
+    expect(back.includes(REVEAL_LABELS.solvent)).toBe(false);
+  });
 });
 
 /* ------------------------------------------------------------------ */
@@ -576,6 +637,30 @@ describe("every chemistry string on a built card is authored", () => {
       expect(face.art?.startLight).toBe(entry.art.start_light);
       expect(face.art?.productDark).toBe(entry.art.product_dark);
     }
+  });
+
+  it("carries RDKit's formulas and the registry's name verbatim, or not at all", () => {
+    for (const reaction of REACTIONS) {
+      const face = reactionCardFromStaged(reaction, NOON).reaction;
+      expect(face, reaction.id).toBeDefined();
+      if (face === undefined) continue;
+      expect(face.name, reaction.id).toBe(reaction.name);
+      for (const formula of face.reactantFormulas ?? []) {
+        expect(reaction.reactant_formulas, reaction.id).toContain(formula);
+      }
+      if (face.productFormula !== undefined) {
+        expect(face.productFormula, reaction.id).toBe(reaction.product_formula);
+      }
+    }
+    // And a card a student composed carries none of the three.
+    const composed = cardFromDraft(
+      { setup: "a", conditions: "b", product: "c" },
+      NOON,
+      { ...EMPTY_EXTRAS, temperature: "25 °C" },
+    ).reaction;
+    expect(composed?.name).toBeUndefined();
+    expect(composed?.reactantFormulas).toBeUndefined();
+    expect(composed?.productFormula).toBeUndefined();
   });
 
   it("gives every authored reaction a reveal that pays for the tap", () => {

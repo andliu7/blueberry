@@ -77,30 +77,29 @@
    every one of them is a measured pairing rather than a picked colour; the
    numbers are on each rule.
 
-   THE PAPER. All five committed goal images draw a card face as WARM IVORY a
-   shade off the cream ground, so the whole screen reads as one paper
-   material. Sampled from the images themselves: the landing tile is
-   rgb(247,239,225) on a rgb(236,230,216) ground and the composer's editing
-   card is rgb(245,239,217) on rgb(241,233,220), both warmer and a touch
-   lighter than their ground. theme.css's --bb-card is #ffffff, which reads as a
-   web card printed on a beige page, which is the defect the round 2 critic
-   named on four surfaces at once. --cards-paper is that ivory; at night it
-   stays theme.css's own night card, because the finding was about the cream
-   regime and the night ground never had it.
+   THE PAPER IS THE THEME'S CARD, since 25 Sep. It was a warm ivory #fffbee
+   from round 3, chosen because the goal images drew a card face a shade off
+   a CREAM ground (#fbf3e6) and a white card read as web on beige. That cream
+   is retired: the live light ground is theme.css's cool #f5f7fb, and on it
+   the ivory measured 1.04:1 as a WARM card on a COOL page, the exact
+   material mismatch the ivory was chosen to avoid, turned around. The
+   lessons page the owner named as the reference paints its reaction rows on
+   --bb-card, so the cards do too, by day and by night alike. The hairline
+   follows: a cool --bb-border composited at .35 on white (#cdd4dd, 1.49,
+   decorative) in place of the warm tan.
 
-   THE PAPER STILL CARRIES A BOUNDARY. #fffbee on #fbf3e6 is 1.03:1, so
-   DESIGN-TOKENS' structural-border rule applies exactly as it did to white:
-   the shape is identified by something, and on the fanned cards the images
-   draw that something as a SOFT DROP SHADOW rather than an outline. So the
-   fan takes --cards-shadow and a warm hairline, and the tiles keep the 3D
-   slab they already had. Neither a shadow nor a border is scored by
-   contrast-audit.mjs (it records text nodes and SVG marks), so this is a
-   design choice made against the images, not a gate being dodged: the ink on
-   the paper is what the gate measures, and --bb-card-foreground on #fffbee is
-   12.9:1. */
+   THE PAPER STILL CARRIES A BOUNDARY. #ffffff on #f5f7fb is 1.07:1, so
+   DESIGN-TOKENS' structural-border rule applies: the shape is identified by
+   something, and on the fanned cards the images draw that something as a
+   SOFT DROP SHADOW rather than an outline. So the fan takes --cards-shadow
+   and the hairline, and the tiles keep the 3D slab they already had. Neither
+   a shadow nor a border is scored by contrast-audit.mjs (it records text
+   nodes and SVG marks), so this is a design choice made against the images,
+   not a gate being dodged: the ink on the paper is what the gate measures,
+   and --bb-card-foreground on #ffffff is 15.32:1 (13.83 on the night card). */
 :root {
-  --cards-paper: #fffbee;
-  --cards-paper-line: #cfc5ae;
+  --cards-paper: var(--bb-card);
+  --cards-paper-line: #cdd4dd;
   --cards-shadow: rgba(58, 46, 26, 0.16);
   --cards-shadow-deep: rgba(58, 46, 26, 0.26);
 
@@ -410,9 +409,9 @@
 /* THE PAPER TILE: a deck tile in the grid. The one chip that is a rounded
    rectangle rather than a pill, because the goal landing image draws it that
    way and because a tile holding a sketch, a name, a count and a bar is a
-   card, not a button-shaped thing. Face is the warm ivory paper; the slab is
+   card, not a button-shaped thing. Face is the card paper; the slab is
    the images' warm near-black rather than the slate the round 2 build used.
-   --bb-card-foreground on --cards-paper is 12.9 light and 12.7 dark. */
+   --bb-card-foreground on --cards-paper is 15.32 light and 13.83 dark. */
 .chip3d--bb-card {
   --c3-face: var(--cards-paper);
   --c3-face-press: var(--bb-muted);
@@ -699,7 +698,7 @@
      tall review face (.card-slab), which is the scale that sheet is drawn at.
 
      The shadow is the boundary, per the structural-border rule: --cards-paper
-     is 1.03 on the cream ground, so something has to say where the card ends,
+     is 1.07 on the light ground, so something has to say where the card ends,
      and the image's answer is a shadow rather than an outline. */
   background: var(--cards-paper);
   color: var(--bb-card-foreground);

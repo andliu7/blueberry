@@ -187,13 +187,14 @@ export function CardFace({ card, revealed, onReveal, schedulerState }: CardFaceP
   // from; the fan's absolute positioning rules key off .fan__card alone, so
   // none of that reaches this tall face.
   const stateEdge = schedulerState === undefined ? "" : `fan__card--${schedulerState}`;
-  // The face is WARM IVORY, not white. All five committed goal images draw a
-  // card face a shade off the cream ground so the whole screen reads as one
-  // paper material; --bb-card is #ffffff, which reads as a web card printed on a
-  // beige page. --cards-paper and its measured pairings are in cards.css. The
-  // 2px border stays: at 1.03:1 on the ground the paper cannot identify its
-  // own shape, which is the structural-border rule DESIGN-TOKENS already
-  // states, and the states sheet draws a border on every card it shows.
+  // The face is --cards-paper, which since 25 Sep is the theme's own card
+  // (#ffffff by day, #192438 at night): the ivory it used to be was chosen
+  // against a cream ground that has been retired, and on the live cool ground
+  // it read as a warm card on a cool page. cards.css carries the reasoning
+  // and the measured pairs. The 2px border stays: at 1.07:1 on the ground the
+  // paper cannot identify its own shape, which is the structural-border rule
+  // DESIGN-TOKENS already states, and the states sheet draws a border on
+  // every card it shows.
   const shell = `card-slab relative flex min-h-[18rem] w-full flex-col gap-4 rounded-2xl border-2 border-bb-border bg-[color:var(--cards-paper)] p-5 text-left ${stateEdge}`;
   /* TWO MARKS, ONE STATE, and only one of them ever draws. StateBadge.tsx's
      header carries the reasoning: the committed states sheet gives the corner
@@ -232,7 +233,7 @@ export function CardFace({ card, revealed, onReveal, schedulerState }: CardFaceP
         {tagRow}
         {revealed ? (
           revealRows.length > 0 ? (
-            <ReactionRevealPanel reveal={reaction.reveal} />
+            <ReactionRevealPanel reveal={reaction.reveal} name={reaction.name} />
           ) : (
             card.why.trim().length > 0 && (
               <p className="whitespace-pre-line border-t border-bb-border pt-4 text-scale-sm leading-normal text-bb-muted-foreground">
