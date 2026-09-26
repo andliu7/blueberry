@@ -55,3 +55,6 @@ docs/
 
 # Blind-judge screenshots. Regenerated per round, never reviewed as source.
 .gauntlet/
+
+# Screenshot cuts from scripts/imgcut.py. Scratch, regenerated on demand.
+.imgcut/
