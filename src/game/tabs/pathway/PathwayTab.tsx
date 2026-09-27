@@ -2070,9 +2070,26 @@ function OrgoMapTrack({
           things the student may skip.
         */}
         {plan.tail.length > 0 ? (
-          <ol className="path-track mx-auto flex w-full max-w-md flex-col py-2" aria-label="Optional side quests">
-            {plan.tail.map(slab)}
-          </ol>
+          <>
+            {/* THE HEADING IS VISIBLE NOW, and it was not before.
+                Moving these chips below the fork was the right call, but the
+                only thing that said why was an aria-label on the list. A
+                screen reader heard "Optional side quests"; a sighted student
+                saw four chips detach from the road with nothing explaining
+                that they are optional, which reads as the track breaking
+                rather than as a choice being offered. Confirmed absent in a
+                capture. It is an eyebrow rather than a plate because the label
+                cards beside these chips already outweigh the chips themselves,
+                and this must name the group without competing with it. The
+                list keeps its aria-label, so the group is still announced
+                once and only once: the heading is aria-hidden. */}
+            <p className="path-tail__eyebrow mx-auto w-full max-w-md" aria-hidden>
+              Optional side quests
+            </p>
+            <ol className="path-track mx-auto flex w-full max-w-md flex-col py-2" aria-label="Optional side quests">
+              {plan.tail.map(slab)}
+            </ol>
+          </>
         ) : null}
 
         {/*

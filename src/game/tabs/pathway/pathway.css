@@ -811,6 +811,30 @@
 }
 
 /*
+ * THE ONE SWATCH THAT KEEPS ITS BLOOM, and the exception is forced by the two
+ * rules above it rather than in spite of them.
+ *
+ * "Up next" and "Open" rendered as the SAME DOT, confirmed in a capture. That
+ * is not a mistake in either rule, it is the two of them meeting. The states
+ * sheet deliberately paints current on the open chip's own face, so colour is
+ * not a channel here, and the comment on .path-node--current says the second
+ * channel is SIZE at 6 percent. Six percent of a 76px chip is about 4px and
+ * reads. Six percent of the 1.05rem swatch is ABOUT ONE PIXEL. So at legend
+ * size the size channel cannot carry anything, and with box-shadow: none above
+ * killing the other one, the two rows were identical by construction and the
+ * legend was telling a student something untrue.
+ *
+ * For this one state the glow IS the state, so a legend that omits it is not
+ * naming the state at all. The bloom comes back here STATIC: no `animation`,
+ * so the rule above still holds where it matters. A legend may depict a state;
+ * it still does not perform one. Tighter than the map's 24px/8px because the
+ * dot is a fifth of the size and the map's spread would swamp the row.
+ */
+.path-swatch--current {
+  box-shadow: 0 0 7px 2px var(--path-halo);
+}
+
+/*
  * THE MOTIF IS ENGRAVED INTO THE FACE, and the corner sticker is deleted
  * rather than restyled.
  *
@@ -1567,6 +1591,19 @@
   letter-spacing: 0.09em;
   text-transform: uppercase;
   color: var(--bb-muted-foreground);
+}
+/* Names the enrichment group under the fork. Same eyebrow as the pager above,
+   so the two quiet labels on this page are one idiom rather than two. Muted
+   ink, which theme.css derives against the worst ground it composes on. */
+.path-tail__eyebrow {
+  font-family: var(--font-display);
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--bb-muted-foreground);
+  margin: 0.9rem 0 0.1rem;
+  padding-inline: 0.25rem;
 }
 .path-pager__name {
   font-size: 0.9rem;
