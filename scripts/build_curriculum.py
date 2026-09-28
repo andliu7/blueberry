@@ -23,6 +23,7 @@ Do not use em dashes in output.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -41,6 +42,7 @@ ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "src" / "data" / "reactions.ts"
 FLAGGED = ROOT / "src" / "data" / "flagged_reactions.json"
 ART = ROOT / "public" / "reactions"
+REAGENT_ART_DIR = ROOT / "public" / "reagents"
 
 
 # ==========================================================================
@@ -73,8 +75,16 @@ _DARK_HETERO = {
 }
 
 
-def render_svg(smiles: str, path: Path, dark: bool, width: int = 340, height: int = 210) -> bool:
-    """One structure to one SVG. False if RDKit will not draw it."""
+def render_svg(smiles: str, path: Path, dark: bool, width: int = 340, height: int = 210,
+               bond_length: float | None = None) -> bool:
+    """
+    One structure to one SVG. False if RDKit will not draw it.
+
+    `bond_length` pins the drawing scale instead of letting RDKit fill the
+    canvas. The reaction structures leave it None and keep the behaviour they
+    shipped with; the reagents set it, because a set of drawings that each fill
+    their own box shows HBr the size of mCPBA.
+    """
     from rdkit import Chem
     from rdkit.Chem.Draw import rdMolDraw2D
 
@@ -84,6 +94,8 @@ def render_svg(smiles: str, path: Path, dark: bool, width: int = 340, height: in
 
     drawer = rdMolDraw2D.MolDraw2DSVG(width, height)
     opts = drawer.drawOptions()
+    if bond_length is not None:
+        opts.fixedBondLength = bond_length
     # Transparent, so the card behind it shows through and one render works on
     # any surface colour.
     opts.clearBackground = False
@@ -121,6 +133,217 @@ def render_reaction_art(rxn) -> dict:
             if render_svg(smiles, ART / name, dark=(theme == "dark")):
                 art[f"{slot}_{theme}"] = f"reactions/{name}"
     return art
+
+
+# ==========================================================================
+# Reagent drawings
+# ==========================================================================
+#
+# THE OWNER'S RULE, stated twice in two days: "don't make a habit of making the
+# formula for the reagents. Always draw it out in the skeletal structure", and
+# "also draw out the reagents in the reactions - in the flashcards and in the
+# questions." So a reagent reaches a student as a DRAWING, and the formula
+# strings the pages used to print are the thing being replaced.
+#
+# WHY THIS IS A HAND-AUTHORED TABLE AND NOT A PARSER, which is the one decision
+# in this section and the reader deserves it first. A stage's reagents list is
+# the mechanistic species first and the bottle label last, but the two are not
+# distinguishable by shape and RDKit cannot arbitrate:
+#
+#   * "CN", "CO", "NN", "OCCO", "BrBr", "Br" and "CI" are valid SMILES that
+#     read exactly like formulas. A student shown "CN" reads cyanide; the data
+#     means methylamine. That bug already shipped once.
+#   * "PCC" parses as valid SMILES for phosphorus-carbon-carbon and "NBS" as
+#     nitrogen-boron-sulfur. So "try RDKit, draw it if it parses" would put a
+#     picture of P-C-C on a card under the label PCC, which is the exact class
+#     of plausible-and-false the derive rule exists to stop.
+#
+# The only safe registry is an explicit list, checked for completeness against
+# the authored reactions below (see check_reagent_coverage): a 44th reaction
+# with an unclassified reagent FAILS THE BUILD rather than quietly shipping a
+# formula string or a wrong drawing.
+#
+# WHAT EARNS A DRAWING. The token is a structure for the species the stage's
+# own label names: either it is the stage's only reagent, or it is the anion of
+# the salt the label names ("[OH-]" under NaOH, "[BH4-]" under NaBH4), or it is
+# that same compound written as a structure ("OS(=O)(=O)O" under H2SO4).
+#
+# WHAT DOES NOT, and this is the honest gap rather than a shortcut:
+#
+#   * "[CH3-]" is the mechanistic carbanion and the bottle holds CH3MgBr or
+#     (CH3)2CuLi, which are covalent organometallics the data carries NO
+#     structure for. Drawing a bare methyl anion under the label "CH3MgBr"
+#     would teach a student the wrong thing goes in the flask, so the Grignard
+#     and the Gilman keep their text until the data carries the reagent.
+#   * "Zn(Hg)", "H2CrO4", "DIBALH" and "PCC" are bottle labels with no
+#     structure anywhere in the data. Nothing here invents one.
+
+# One SMILES per drawable token, plus the reason it is drawable. The SMILES is
+# the token itself in every case but one, and that exception is spelled out.
+REAGENT_STRUCTURES: dict[str, tuple[str, str]] = {
+    # "[H3O+]" IS NOT VALID SMILES and RDKit rejects it, which is why the
+    # eleven workup stages used to print "H3O+" as text. The species the data
+    # names is hydronium (every stage carrying it states solvent water and
+    # acid_base acidic), and "[OH3+]" is that same species spelled the way the
+    # SMILES grammar requires. The authored data is left alone: correcting the
+    # token there would re-run classification on eleven reactions, and this
+    # table is the narrower place to hold the spelling.
+    "[H3O+]": ("[OH3+]", "hydronium, the aqueous acid workup"),
+    "[OH-]": ("[OH-]", "the hydroxide base itself; the counterion is stated per stage"),
+    "[C-]#N": ("[C-]#N", "the cyanide nucleophile, the anion of the NaCN the stage names"),
+    "CC#[C-]": ("CC#[C-]", "the stage's only reagent"),
+    "[CH2-][P+](c1ccccc1)(c1ccccc1)c1ccccc1": (
+        "[CH2-][P+](c1ccccc1)(c1ccccc1)c1ccccc1",
+        "the stage's only reagent, the Wittig ylide",
+    ),
+    "CN": ("CN", "the stage's only reagent; acidchloride-to-amide names it methylamine"),
+    "OCCO": ("OCCO", "the stage's only reagent"),
+    "[BH4-]": ("[BH4-]", "the borohydride anion of the NaBH4 the stage names"),
+    "[AlH4-]": ("[AlH4-]", "the aluminium hydride anion of the LiAlH4 the stage names"),
+    "NN": ("NN", "the stage's only reagent, hydrazine"),
+    "O=S(Cl)Cl": ("O=S(Cl)Cl", "the stage's only reagent; the reaction id is socl2-acid-to-chloride"),
+    "CO": ("CO", "the stage's only reagent; fischer-esterification names it methanol"),
+    "CC[O-]": ("CC[O-]", "the ethoxide anion of the NaOEt the stage names"),
+    "C[O-]": ("C[O-]", "the methoxide anion of the NaOMe the stage names"),
+    "BrBr": ("BrBr", "bromine; where FeBr3 is also named it is the catalyst and stays text"),
+    "CI": ("CI", "iodomethane, the structure of the CH3I the same stage names"),
+    "Br": ("Br", "hydrogen bromide, the structure of the HBr the same stage names"),
+    "BrP(Br)Br": ("BrP(Br)Br", "the structure of the PBr3 the same stage names"),
+    "OS(=O)(=O)O": ("OS(=O)(=O)O", "the structure of the H2SO4 the same stage names"),
+    "OOC(=O)c1cccc(Cl)c1": (
+        "OOC(=O)c1cccc(Cl)c1",
+        "the structure of the mCPBA the same stage names",
+    ),
+    "BrN1C(=O)CCC1=O": ("BrN1C(=O)CCC1=O", "the structure of the NBS the same stage names"),
+    "C=CC=O": ("C=CC=O", "the stage's only reagent; diels-alder names it acrolein"),
+    "CC(=O)Cl": ("CC(=O)Cl", "acetyl chloride; the AlCl3 beside it is the catalyst and stays text"),
+    "O[N+](=O)[O-]": ("O[N+](=O)[O-]", "the structure of the HNO3 the same stage names"),
+    "ON=O": ("ON=O", "nitrous acid, which the reaction's own balance_lhs lists as consumed"),
+    "[Br-]": ("[Br-]", "the bromide anion of the CuBr the stage names"),
+    "O[I](=O)(=O)=O": ("O[I](=O)(=O)=O", "the structure of the HIO4 the same stage names"),
+}
+
+# Bottle labels and the two mechanistic species with no reagent structure in
+# the data. Every one of these reaches a student as TEXT, on purpose.
+REAGENT_PROSE: dict[str, str] = {
+    "[CH3-]": "mechanistic carbanion; the bottle is CH3MgBr or (CH3)2CuLi, no structure in the data",
+    "Zn(Hg)": "no structure in the data",
+    "H2CrO4": "no structure in the data",
+    "DIBALH": "no structure in the data",
+    "PCC": "no structure in the data, and it parses as P-C-C",
+    "HCl": "bottle label",
+    "NaOH": "bottle label",
+    "KOH": "bottle label",
+    "NaCN": "bottle label",
+    "NaBH4": "bottle label",
+    "LiAlH4": "bottle label",
+    "CH3MgBr": "bottle label",
+    "(CH3)2CuLi": "bottle label",
+    "NaOEt": "bottle label",
+    "NaOMe": "bottle label",
+    "CH3I": "bottle label",
+    "HBr": "bottle label",
+    "PBr3": "bottle label",
+    "H2SO4": "bottle label",
+    "mCPBA": "bottle label",
+    "NBS": "bottle label, and it parses as N-B-S",
+    "FeBr3": "bottle label",
+    "AlCl3": "bottle label",
+    "HNO3": "bottle label",
+    "NaNO2": "bottle label",
+    "CuBr": "bottle label",
+    "HIO4": "bottle label",
+}
+
+# Smaller than a reaction structure, because a reagent sits over an arrow in a
+# column the grid gives `auto`. One fixed bond length across every reagent so
+# HBr and mCPBA are drawn at the same scale rather than each filling its own
+# canvas, which is what a textbook scheme does.
+REAGENT_WIDTH = 168
+REAGENT_HEIGHT = 104
+REAGENT_BOND_LENGTH = 21.0
+
+
+def reagent_slug(token: str) -> str:
+    """
+    A filesystem-safe name for one reagent token.
+
+    Transliterated rather than named: a filename like "socl2.svg" would be this
+    script claiming a name for a structure, and the point of the whole section
+    is that no name is claimed anywhere. The hash keeps "CO" and "Co" apart
+    after the lowercasing that Windows paths force on us anyway.
+    """
+    body = "".join(c if c.isalnum() else "-" for c in token).strip("-").lower()
+    while "--" in body:
+        body = body.replace("--", "-")
+    digest = hashlib.sha1(token.encode("utf-8")).hexdigest()[:6]
+    return f"{body[:32] or 'x'}-{digest}"
+
+
+def render_reagent_art() -> dict:
+    """
+    Every drawable reagent token, each in both themes.
+
+    Keyed by the TOKEN as the stages spell it, not by the drawn SMILES, so a
+    surface can look a stage's reagent up directly. A token RDKit will not draw
+    is left out of the map entirely, and the surfaces then show its text: a
+    missing drawing is missing, never a placeholder.
+    """
+    art = {}
+    for token in sorted(REAGENT_STRUCTURES):
+        smiles, _why = REAGENT_STRUCTURES[token]
+        slug = reagent_slug(token)
+        entry = {}
+        for theme in ("light", "dark"):
+            name = f"{slug}-{theme}.svg"
+            drawn = render_svg(
+                smiles,
+                REAGENT_ART_DIR / name,
+                dark=(theme == "dark"),
+                width=REAGENT_WIDTH,
+                height=REAGENT_HEIGHT,
+                bond_length=REAGENT_BOND_LENGTH,
+            )
+            if drawn:
+                entry[theme] = f"reagents/{name}"
+        if not entry:
+            print(f"  WARN    reagent {token!r} did not draw; it will show as text")
+            continue
+        # The formula is RDKit's, from the same structure that was just drawn,
+        # exactly as reactant_formulas are. Nothing types a subscript by hand.
+        entry["formula"] = formula_of(smiles)
+        art[token] = entry
+    return art
+
+
+def check_reagent_coverage(reactions) -> list[str]:
+    """
+    Every reagent token in every authored stage is classified, and nothing is
+    classified twice.
+
+    This is the check that keeps the table honest as the set grows. Without it
+    a new reaction's reagent would simply not be found in REAGENT_STRUCTURES
+    and would quietly print as a formula, which is the behaviour the owner
+    ruled out.
+    """
+    problems = []
+    both = sorted(set(REAGENT_STRUCTURES) & set(REAGENT_PROSE))
+    for token in both:
+        problems.append(f"reagent {token!r} is in both REAGENT_STRUCTURES and REAGENT_PROSE")
+    seen = set()
+    for rxn in reactions:
+        for st in rxn["stages"]:
+            for token in st["reagents"]:
+                seen.add(token)
+                if token in REAGENT_STRUCTURES or token in REAGENT_PROSE:
+                    continue
+                problems.append(
+                    f"{rxn['id']}: reagent {token!r} is classified neither drawable nor prose. "
+                    "Add it to REAGENT_STRUCTURES with its structure, or to REAGENT_PROSE."
+                )
+    for token in sorted((set(REAGENT_STRUCTURES) | set(REAGENT_PROSE)) - seen):
+        problems.append(f"reagent {token!r} is classified but no stage uses it")
+    return problems
 
 
 def stage(order, role, reagents, acid_base, solvent="", temperature_c=None,
@@ -1288,6 +1511,23 @@ def main() -> int:
         return 1
     print()
 
+    # Before anything is drawn: every reagent token is classified drawable or
+    # prose. An unclassified one is a reagent that would print as a formula, so
+    # it stops the build rather than reaching a student.
+    coverage = check_reagent_coverage(REACTIONS)
+    if coverage:
+        print("Reagent classification is incomplete. Refusing to go further:")
+        for problem in coverage:
+            print(f"  - {problem}")
+        return 1
+    print(
+        f"Reagents: {len(REAGENT_STRUCTURES)} drawable, {len(REAGENT_PROSE)} prose, "
+        "all classified."
+    )
+    reagent_art = render_reagent_art()
+    print(f"Drew {len(reagent_art)} reagents into {REAGENT_ART_DIR.name}/.")
+    print()
+
     print(f"Validating {len(REACTIONS)} staged reactions (sections 4 and 5):")
     published, flagged = [], []
 
@@ -1342,6 +1582,7 @@ def main() -> int:
     payload = {
         "pkaLeavingGroupCutoff": DEFAULT_LEAVING_GROUP_PKA_CUTOFF,
         "reactions": published,
+        "reagentArt": reagent_art,
     }
     OUT.write_text(
         "// GENERATED by scripts/build_curriculum.py. Do not edit by hand.\n"
@@ -1394,10 +1635,38 @@ def main() -> int:
         "  art: {\n"
         "    start_light?: string;\n    start_dark?: string;\n"
         "    product_light?: string;\n    product_dark?: string;\n  };\n}\n\n"
-        "const DATA: { pkaLeavingGroupCutoff: number; reactions: StagedReaction[] } =\n"
+        "/**\n"
+        " * One reagent's drawing, and the formula RDKit computed from the same\n"
+        " * structure it drew. Paths under BASE_URL. Either theme may be absent and\n"
+        " * a surface then draws the one it has.\n"
+        " */\n"
+        "export interface ReagentDrawing {\n"
+        "  light?: string;\n  dark?: string;\n  formula: string;\n}\n\n"
+        "const DATA: {\n"
+        "  pkaLeavingGroupCutoff: number;\n"
+        "  reactions: StagedReaction[];\n"
+        "  reagentArt: Record<string, ReagentDrawing>;\n} =\n"
         + json.dumps(payload, indent=2, ensure_ascii=False)
         + ";\n\n"
         "export const REACTIONS = DATA.reactions;\n\n"
+        "/**\n"
+        " * THE DRAWABILITY REGISTRY, and it is the only safe test for whether a\n"
+        " * reagent token is a structure.\n"
+        " *\n"
+        " * Keyed by the token as `Stage.reagents` spells it. A key here means the\n"
+        " * generator classified that token as a structure and RDKit drew it, so a\n"
+        " * surface can draw the reagent instead of printing it. A token that is\n"
+        " * ABSENT is a bottle label or a reagent the data carries no structure for,\n"
+        " * and it shows as text.\n"
+        " *\n"
+        " * WHY THIS REPLACES A SHAPE TEST. `CN`, `CO`, `NN`, `BrBr`, `OCCO`, `Br`\n"
+        " * and `CI` are valid SMILES that read like formulas, and `PCC` and `NBS`\n"
+        " * are formulas that parse as valid SMILES. Nothing about a token's\n"
+        " * characters separates the two. scripts/build_curriculum.py holds the\n"
+        " * classification with a justification per entry and fails the build on an\n"
+        " * unclassified reagent.\n"
+        " */\n"
+        "export const REAGENT_ART = DATA.reagentArt;\n\n"
         "/** Section 8: a class convention, not a law of nature. Instructor-configurable. */\n"
         "export const PKA_LEAVING_GROUP_CUTOFF = DATA.pkaLeavingGroupCutoff;\n\n"
         "export const byFamily = (family: string) =>\n"

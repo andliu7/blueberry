@@ -47,7 +47,7 @@
  */
 
 import { Formulas } from "../../../components/ui/formula";
-import type { ReactionCardData } from "../types";
+import type { ReactionCardData, ReagentStep } from "../types";
 import "./reaction-card.css";
 
 export interface ReactionSchemeProps {
@@ -85,9 +85,7 @@ export function ReactionScheme({ reaction, revealed }: ReactionSchemeProps) {
         </figure>
 
         <div className="rxn-arrow-cell">
-          {reaction.reagents.trim().length > 0 && (
-            <p className="rxn-reagents font-mono text-scale-xs font-semibold">{reaction.reagents}</p>
-          )}
+          <Reagents steps={reaction.reagentSteps} line={reaction.reagents} />
           <RxnArrow />
         </div>
 
@@ -118,6 +116,91 @@ export function ReactionScheme({ reaction, revealed }: ReactionSchemeProps) {
         )}
       </div>
     </div>
+  );
+}
+
+/**
+ * WHAT SITS OVER THE ARROW, and the owner ruled on it twice in two days:
+ * "always draw it out in the skeletal structure", then "also draw out the
+ * reagents in the reactions - in the flashcards and in the questions". So the
+ * mono formula string this used to print is now the CAPTION under a drawing,
+ * which is the same name-under-picture shape the two sides of the scheme
+ * already use (item 3 in this file's header).
+ *
+ * A STEP WITH NO DRAWING KEEPS ITS TEXT and keeps the primary ink, because that
+ * text is the whole of what the data has: `PCC`, `H2CrO4`, `DIBALH`, `Zn(Hg)`
+ * and the Grignard and Gilman organometallics have no structure in
+ * data/reactions.ts, and inventing one is the bug this card exists to avoid.
+ *
+ * `line` is the fallback for a card with no steps at all, which is every card a
+ * student composed: their own words, printed as they wrote them.
+ */
+function Reagents({
+  steps,
+  line,
+}: {
+  readonly steps?: readonly ReagentStep[];
+  readonly line: string;
+}) {
+  if (steps === undefined || steps.length === 0) {
+    if (line.trim().length === 0) return null;
+    return <p className="rxn-reagents font-mono text-scale-xs font-semibold">{line}</p>;
+  }
+  return (
+    <ol className="rxn-reagent-row">
+      {steps.map((step) => (
+        <li key={step.label} className="rxn-reagent">
+          {step.art === undefined ? (
+            <span className="rxn-reagents font-mono text-scale-xs font-semibold">{step.label}</span>
+          ) : (
+            <>
+              {/* The drawing carries the chemistry and the caption names the
+                  bottle, so the image's alt is empty: a screen reader gets the
+                  caption once rather than the same reagent twice. */}
+              <ReagentArt light={step.art.light} dark={step.art.dark} />
+              <span className={`rxn-reagent__label font-mono text-scale-xs ${FORMULA_INK}`}>
+                {step.label}
+              </span>
+            </>
+          )}
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+/**
+ * One reagent's drawing, the same two-image light/dark pair the sides use.
+ *
+ * 168x104 is what build_curriculum.py renders reagents at, declared so the
+ * arrow cell does not jump as each drawing decodes. Smaller than a side's
+ * 340x210 because a reagent shares its column with the arrow.
+ */
+function ReagentArt({ light, dark }: { readonly light?: string; readonly dark?: string }) {
+  if (light === undefined && dark === undefined) return null;
+  const base = import.meta.env.BASE_URL;
+  return (
+    <>
+      {light !== undefined && (
+        <img
+          src={base + light}
+          alt=""
+          width={168}
+          height={104}
+          className={`rxn-reagent__art ${dark === undefined ? "" : "dark:hidden"}`}
+        />
+      )}
+      {dark !== undefined && (
+        <img
+          src={base + dark}
+          alt=""
+          aria-hidden={light === undefined ? undefined : true}
+          width={168}
+          height={104}
+          className={`rxn-reagent__art ${light === undefined ? "" : "hidden dark:block"}`}
+        />
+      )}
+    </>
   );
 }
 

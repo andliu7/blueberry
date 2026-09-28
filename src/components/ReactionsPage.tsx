@@ -17,6 +17,7 @@ import { Blueberry } from "@/components/ui/blueberry";
 import { SiteFooter } from "@/components/ui/site-footer";
 import { PageBackground } from "@/components/ui/page-background";
 import { LessonSidebar } from "@/components/ui/lesson-sidebar";
+import { StageReagents } from "@/components/ui/reagent-line";
 import { REACTIONS, type Stage, type StagedReaction } from "@/data/reactions";
 import { cn } from "@/lib/utils";
 
@@ -368,9 +369,7 @@ function StageRow({ stage, committed }: { stage: Stage; committed: boolean }) {
         )}
       </div>
 
-      <p className="mt-2 font-mono text-sm text-[#472ab4] dark:text-[#bbb1eb]">
-        {stage.reagents.join("  |  ")}
-      </p>
+      <StageReagents stage={stage} />
 
       {stage.conditions.notes && (
         <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-stone-300">

@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Loader } from "@/components/ui/loader";
 import { SiteFooter } from "@/components/ui/site-footer";
 import { PageBackground } from "@/components/ui/page-background";
+import { StageReagents } from "@/components/ui/reagent-line";
 import { REACTIONS } from "@/data/reactions";
 import { drawCardFor } from "@/game/cards/reactionCard";
 import { migrateLegacySavedCards } from "@/game/cards/migrateSavedCards";
@@ -155,9 +156,7 @@ export default function ReactionDrawPage({ reactionId }: { reactionId: string })
                         {stage.role} &middot; {stage.conditions.acid_base}
                       </span>
                     </div>
-                    <p className="mt-1 font-mono text-sm text-[#472ab4] dark:text-[#bbb1eb]">
-                      {stage.reagents.join("  |  ")}
-                    </p>
+                    <StageReagents stage={stage} />
                     {stage.conditions.temperature_c !== null && (
                       <p className="mt-1 font-mono text-xs text-slate-500 dark:text-stone-400">
                         {stage.conditions.temperature_c} &deg;C

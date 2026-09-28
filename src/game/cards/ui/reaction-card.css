@@ -140,12 +140,52 @@
   max-width: 11rem;
 }
 
-/* Reagents over the arrow in mono, the lessons' primary ink. */
+/* A reagent with no drawing, in mono and the lessons' primary ink. Also the
+   whole of what a student's own card shows over its arrow. */
 .rxn-reagents {
   margin: 0;
   color: var(--bb-primary-ink);
   text-align: center;
   white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+/* THE DRAWN REAGENTS, one per stage, stacked because the arrow cell is the
+   narrow column of a three column grid and two reagents side by side there
+   would be 80px each. Stacked also reads as the sequence it is: the second
+   stage happens after the first. */
+.rxn-reagent-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rxn-reagent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.0625rem;
+}
+
+/* Smaller than a side's 5rem cap: the reagent is a condition on the arrow, not
+   one of the two things the card is about, and the visual order has to say so.
+   8.5rem wide inside an 11rem cell leaves the caption room to breathe. */
+.rxn-reagent__art {
+  width: 8.5rem;
+  max-width: 100%;
+  height: auto;
+  max-height: 3.25rem;
+  object-fit: contain;
+}
+
+/* The bottle's name under its structure, the muted ink at the small step, the
+   same name-under-picture shape the two sides use. */
+.rxn-reagent__label {
+  text-align: center;
   overflow-wrap: anywhere;
 }
 

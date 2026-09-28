@@ -17,17 +17,23 @@
  * paths are exactly where a persistence bug would hide behind a mock.
  */
 
+import { existsSync } from "node:fs";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { REACTIONS } from "../../data/reactions";
+import { REACTIONS, REAGENT_ART } from "../../data/reactions";
 import {
   drawCardFor,
   reactionCardFromStaged,
   reactionCardId,
   REAGENT_LABELS,
   stagedReagentLine,
+  stagedReagentSteps,
+  stageReagentArt,
   stageReagentLabel,
 } from "../cards/reactionCard";
 import {
@@ -249,6 +255,156 @@ describe("a reaction card built from the registry", () => {
     // A stage that already lists a bottle label keeps it, counterion and all,
     // rather than being flattened onto the ion's generic name.
     expect(stagedReagentLine(registryEntry("aldol-addition"))).toBe("NaOH");
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/* The reagents are DRAWN                                               */
+/* ------------------------------------------------------------------ */
+
+/**
+ * THE OWNER'S RULE, 27 and 28 Sep, stated twice: "always draw it out in the
+ * skeletal structure", then "also draw out the reagents in the reactions - in
+ * the flashcards and in the questions."
+ *
+ * These are the pins that keep it true as the reaction set grows. The generator
+ * holds the other half: scripts/build_curriculum.py fails the build on a reagent
+ * token it cannot classify as drawable or prose, so a 44th reaction cannot add a
+ * reagent that quietly prints as a formula.
+ */
+describe("the drawn reagents", () => {
+  /** Every reaction's steps, built the way the card face gets them. */
+  const stepsFor = (reaction: (typeof REACTIONS)[number]) => stagedReagentSteps(reaction);
+
+  it("draws from a registry, not from the shape of the token", () => {
+    /* `CN`, `CO`, `NN`, `BrBr`, `OCCO`, `Br` and `CI` are valid SMILES that
+       read like formulas, and `PCC` parses as phosphorus-carbon-carbon while
+       `NBS` parses as nitrogen-boron-sulfur. So "draw it if RDKit parses it"
+       would put a picture of P-C-C on a card labelled PCC. REAGENT_ART is the
+       generator's classification and it is the only thing that knows. */
+    for (const token of ["CN", "CO", "NN", "BrBr", "OCCO", "Br", "CI"]) {
+      expect(REAGENT_ART[token], token).toBeDefined();
+    }
+    for (const token of ["PCC", "NBS", "H2CrO4", "DIBALH", "Zn(Hg)", "NaOH", "CH3MgBr"]) {
+      expect(REAGENT_ART[token], token).toBeUndefined();
+    }
+  });
+
+  it("holds no drawing for a reagent no stage asks for", () => {
+    // A stale entry is a file shipped for nothing, and worse, a claim about a
+    // species the curriculum no longer teaches.
+    const used = new Set(
+      REACTIONS.flatMap((reaction) => reaction.stages.flatMap((stage) => stage.reagents)),
+    );
+    for (const token of Object.keys(REAGENT_ART)) expect(used.has(token), token).toBe(true);
+  });
+
+  it("draws every reagent whose structure the data carries, and only those", () => {
+    /* THE INVENTORY, pinned so it cannot quietly shrink. Six of the 43 have at
+       least one stage that still shows text, and each is a gap in the DATA
+       rather than in this code:
+
+         grignard-addition-ketone, gilman-to-ketone  stage 1 carries only the
+           mechanistic carbanion "[CH3-]". The bottle is CH3MgBr or (CH3)2CuLi,
+           covalent organometallics the data has no structure for. Drawing a
+           bare methyl anion under the label "CH3MgBr" would teach a student the
+           wrong thing goes in the flask.
+         clemmensen        "Zn(Hg)" and "HCl", no structure in the data
+         jones-oxidation   "H2CrO4", no structure in the data
+         dibalh-to-aldehyde  stage 1 is "DIBALH", no structure in the data
+         pcc-oxidation     "PCC", no structure in the data
+
+       If the owner adds a SMILES for any of these, this test fails and the list
+       above is what gets shortened. That is the point of pinning it. */
+    const textOnly = REACTIONS.filter((reaction) =>
+      stepsFor(reaction).some((step) => step.art === undefined),
+    ).map((reaction) => reaction.id);
+    expect(textOnly.sort()).toEqual(
+      [
+        "clemmensen",
+        "dibalh-to-aldehyde",
+        "gilman-to-ketone",
+        "grignard-addition-ketone",
+        "jones-oxidation",
+        "pcc-oxidation",
+      ].sort(),
+    );
+  });
+
+  it("never invents a drawing: every one is the registry's, for a token the stage lists", () => {
+    for (const reaction of REACTIONS) {
+      for (const stage of reaction.stages) {
+        const art = stageReagentArt(stage);
+        if (art === undefined) continue;
+        const source = stage.reagents
+          .map((token) => REAGENT_ART[token])
+          .find((entry) => entry !== undefined);
+        expect(source, `${reaction.id}: ${stage.reagents.join(" | ")}`).toBeDefined();
+        expect(art.light).toBe(source?.light);
+        expect(art.dark).toBe(source?.dark);
+        expect(art.formula).toBe(source?.formula);
+      }
+    }
+  });
+
+  it("ships the file it points at, in both themes", () => {
+    /* A path with no file behind it is a broken image on a card, which reads as
+       a reagent that does not exist. Checked on disk rather than mocked. */
+    const publicDir = fileURLToPath(new URL("../../../public/", import.meta.url));
+    for (const [token, drawing] of Object.entries(REAGENT_ART)) {
+      expect(drawing.light, token).toBeDefined();
+      expect(drawing.dark, token).toBeDefined();
+      for (const path of [drawing.light, drawing.dark]) {
+        expect(existsSync(join(publicDir, path as string)), `${token}: ${path}`).toBe(true);
+      }
+      expect(drawing.formula.length, token).toBeGreaterThan(0);
+    }
+  });
+
+  it("says the same reagents in the same order however it is rendered", () => {
+    /* The spoken line and the drawn row are built from ONE list. Two
+       assemblies could disagree about which stages appear, and the caption a
+       screen reader hears would then name a reagent the eye cannot find. */
+    for (const reaction of REACTIONS) {
+      const joined = stepsFor(reaction)
+        .map((step) => step.label)
+        .join("; then ");
+      expect(joined, reaction.id).toBe(stagedReagentLine(reaction));
+    }
+  });
+
+  it("puts the drawing on the card face and keeps the SMILES off it", () => {
+    const card = reactionCardFromStaged(registryEntry("wittig-olefination"), NOON);
+    const steps = card.reaction?.reagentSteps ?? [];
+    expect(steps.length).toBe(1);
+    expect(steps[0]?.art?.light).toBeDefined();
+
+    const markup = renderToStaticMarkup(
+      createElement(CardFace, { card, revealed: false, onReveal: () => undefined }),
+    );
+    // The drawing is there...
+    expect(markup).toContain(steps[0]?.art?.light as string);
+    // ...and the structure string that named it is not. "Ph3P=CH2" is the
+    // caption; "[CH2-][P+](c1ccccc1)..." is what the page used to print.
+    expect(markup).not.toContain("[CH2-][P+]");
+    expect(markup).toContain("Ph3P=CH2");
+  });
+
+  it("leaves a hand-written card's reagents exactly as the student typed them", () => {
+    /* A composed card has no stages, so it has no steps: nothing is drawn and
+       nothing is claimed. Its own words go over the arrow as written, which is
+       the fallback branch of the face's Reagents component. */
+    const own = cardFromDraft(
+      { setup: "my ketone", conditions: "NaBH4 then water", product: "my alcohol" },
+      NOON,
+      { ...EMPTY_EXTRAS, temperature: "0 °C" },
+    );
+    expect(own.reaction?.reagents).toBe("NaBH4 then water");
+    expect(own.reaction?.reagentSteps).toBeUndefined();
+    const markup = renderToStaticMarkup(
+      createElement(CardFace, { card: own, revealed: false, onReveal: () => undefined }),
+    );
+    expect(markup).toContain("NaBH4 then water");
   });
 });
 

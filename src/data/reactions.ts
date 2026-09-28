@@ -75,7 +75,22 @@ export interface StagedReaction {
   };
 }
 
-const DATA: { pkaLeavingGroupCutoff: number; reactions: StagedReaction[] } =
+/**
+ * One reagent's drawing, and the formula RDKit computed from the same
+ * structure it drew. Paths under BASE_URL. Either theme may be absent and
+ * a surface then draws the one it has.
+ */
+export interface ReagentDrawing {
+  light?: string;
+  dark?: string;
+  formula: string;
+}
+
+const DATA: {
+  pkaLeavingGroupCutoff: number;
+  reactions: StagedReaction[];
+  reagentArt: Record<string, ReagentDrawing>;
+} =
 {
   "pkaLeavingGroupCutoff": 20.0,
   "reactions": [
@@ -3170,10 +3185,166 @@ const DATA: { pkaLeavingGroupCutoff: number; reactions: StagedReaction[] } =
         "product_dark": "reactions/periodic-cleavage-product-dark.svg"
       }
     }
-  ]
+  ],
+  "reagentArt": {
+    "Br": {
+      "light": "reagents/br-a67736-light.svg",
+      "dark": "reagents/br-a67736-dark.svg",
+      "formula": "HBr"
+    },
+    "BrBr": {
+      "light": "reagents/brbr-3b7add-light.svg",
+      "dark": "reagents/brbr-3b7add-dark.svg",
+      "formula": "Br2"
+    },
+    "BrN1C(=O)CCC1=O": {
+      "light": "reagents/brn1c-o-ccc1-o-06437e-light.svg",
+      "dark": "reagents/brn1c-o-ccc1-o-06437e-dark.svg",
+      "formula": "C4H4BrNO2"
+    },
+    "BrP(Br)Br": {
+      "light": "reagents/brp-br-br-e5914e-light.svg",
+      "dark": "reagents/brp-br-br-e5914e-dark.svg",
+      "formula": "Br3P"
+    },
+    "C=CC=O": {
+      "light": "reagents/c-cc-o-0d8957-light.svg",
+      "dark": "reagents/c-cc-o-0d8957-dark.svg",
+      "formula": "C3H4O"
+    },
+    "CC#[C-]": {
+      "light": "reagents/cc-c-ff18f5-light.svg",
+      "dark": "reagents/cc-c-ff18f5-dark.svg",
+      "formula": "C3H3-"
+    },
+    "CC(=O)Cl": {
+      "light": "reagents/cc-o-cl-86fdcb-light.svg",
+      "dark": "reagents/cc-o-cl-86fdcb-dark.svg",
+      "formula": "C2H3ClO"
+    },
+    "CC[O-]": {
+      "light": "reagents/cc-o-845e66-light.svg",
+      "dark": "reagents/cc-o-845e66-dark.svg",
+      "formula": "C2H5O-"
+    },
+    "CI": {
+      "light": "reagents/ci-138442-light.svg",
+      "dark": "reagents/ci-138442-dark.svg",
+      "formula": "CH3I"
+    },
+    "CN": {
+      "light": "reagents/cn-5065f3-light.svg",
+      "dark": "reagents/cn-5065f3-dark.svg",
+      "formula": "CH5N"
+    },
+    "CO": {
+      "light": "reagents/co-550729-light.svg",
+      "dark": "reagents/co-550729-dark.svg",
+      "formula": "CH4O"
+    },
+    "C[O-]": {
+      "light": "reagents/c-o-0f51cb-light.svg",
+      "dark": "reagents/c-o-0f51cb-dark.svg",
+      "formula": "CH3O-"
+    },
+    "NN": {
+      "light": "reagents/nn-8ac00a-light.svg",
+      "dark": "reagents/nn-8ac00a-dark.svg",
+      "formula": "H4N2"
+    },
+    "O=S(Cl)Cl": {
+      "light": "reagents/o-s-cl-cl-51ef0f-light.svg",
+      "dark": "reagents/o-s-cl-cl-51ef0f-dark.svg",
+      "formula": "Cl2OS"
+    },
+    "OCCO": {
+      "light": "reagents/occo-b3a2f4-light.svg",
+      "dark": "reagents/occo-b3a2f4-dark.svg",
+      "formula": "C2H6O2"
+    },
+    "ON=O": {
+      "light": "reagents/on-o-a62363-light.svg",
+      "dark": "reagents/on-o-a62363-dark.svg",
+      "formula": "HNO2"
+    },
+    "OOC(=O)c1cccc(Cl)c1": {
+      "light": "reagents/ooc-o-c1cccc-cl-c1-3f7aca-light.svg",
+      "dark": "reagents/ooc-o-c1cccc-cl-c1-3f7aca-dark.svg",
+      "formula": "C7H5ClO3"
+    },
+    "OS(=O)(=O)O": {
+      "light": "reagents/os-o-o-o-bfea53-light.svg",
+      "dark": "reagents/os-o-o-o-bfea53-dark.svg",
+      "formula": "H2O4S"
+    },
+    "O[I](=O)(=O)=O": {
+      "light": "reagents/o-i-o-o-o-67a78e-light.svg",
+      "dark": "reagents/o-i-o-o-o-67a78e-dark.svg",
+      "formula": "HIO4"
+    },
+    "O[N+](=O)[O-]": {
+      "light": "reagents/o-n-o-o-3e4caf-light.svg",
+      "dark": "reagents/o-n-o-o-3e4caf-dark.svg",
+      "formula": "HNO3"
+    },
+    "[AlH4-]": {
+      "light": "reagents/alh4-b60fe5-light.svg",
+      "dark": "reagents/alh4-b60fe5-dark.svg",
+      "formula": "H4Al-"
+    },
+    "[BH4-]": {
+      "light": "reagents/bh4-cb6045-light.svg",
+      "dark": "reagents/bh4-cb6045-dark.svg",
+      "formula": "H4B-"
+    },
+    "[Br-]": {
+      "light": "reagents/br-4020a2-light.svg",
+      "dark": "reagents/br-4020a2-dark.svg",
+      "formula": "Br-"
+    },
+    "[C-]#N": {
+      "light": "reagents/c-n-838cef-light.svg",
+      "dark": "reagents/c-n-838cef-dark.svg",
+      "formula": "CN-"
+    },
+    "[CH2-][P+](c1ccccc1)(c1ccccc1)c1ccccc1": {
+      "light": "reagents/ch2-p-c1ccccc1-c1ccccc1-c1ccccc1-d7b2ae-light.svg",
+      "dark": "reagents/ch2-p-c1ccccc1-c1ccccc1-c1ccccc1-d7b2ae-dark.svg",
+      "formula": "C19H17P"
+    },
+    "[H3O+]": {
+      "light": "reagents/h3o-d4c3a4-light.svg",
+      "dark": "reagents/h3o-d4c3a4-dark.svg",
+      "formula": "H3O+"
+    },
+    "[OH-]": {
+      "light": "reagents/oh-5c7f96-light.svg",
+      "dark": "reagents/oh-5c7f96-dark.svg",
+      "formula": "HO-"
+    }
+  }
 };
 
 export const REACTIONS = DATA.reactions;
+
+/**
+ * THE DRAWABILITY REGISTRY, and it is the only safe test for whether a
+ * reagent token is a structure.
+ *
+ * Keyed by the token as `Stage.reagents` spells it. A key here means the
+ * generator classified that token as a structure and RDKit drew it, so a
+ * surface can draw the reagent instead of printing it. A token that is
+ * ABSENT is a bottle label or a reagent the data carries no structure for,
+ * and it shows as text.
+ *
+ * WHY THIS REPLACES A SHAPE TEST. `CN`, `CO`, `NN`, `BrBr`, `OCCO`, `Br`
+ * and `CI` are valid SMILES that read like formulas, and `PCC` and `NBS`
+ * are formulas that parse as valid SMILES. Nothing about a token's
+ * characters separates the two. scripts/build_curriculum.py holds the
+ * classification with a justification per entry and fails the build on an
+ * unclassified reagent.
+ */
+export const REAGENT_ART = DATA.reagentArt;
 
 /** Section 8: a class convention, not a law of nature. Instructor-configurable. */
 export const PKA_LEAVING_GROUP_CUTOFF = DATA.pkaLeavingGroupCutoff;

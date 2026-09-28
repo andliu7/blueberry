@@ -1,7 +1,30 @@
 # Status
 
-Updated 2026-09-23. This file is a thin live index: current state and pointers,
+Updated 2026-09-28. This file is a thin live index: current state and pointers,
 no detail that has a better home. Keep it thin and keep it current.
+
+## Reagents are drawn, not spelled, 2026-09-28
+
+Owner rule, stated twice: "always draw it out in the skeletal structure", and "also draw
+out the reagents in the reactions". `scripts/build_curriculum.py` now renders every
+drawable reagent to `public/reagents/` with RDKit and emits `REAGENT_ART` into
+`src/data/reactions.ts`, keyed by the token the stages spell. That map, not a shape test,
+is the registry of which reagent tokens are structures: `CN`, `CO`, `NN`, `BrBr`, `Br` and
+`CI` are SMILES that read like formulas, and `PCC` and `NBS` are formulas that parse as
+SMILES, so nothing about the characters can tell them apart. The generator fails the build
+on a reagent it cannot classify.
+
+37 of the 43 reactions now draw every reagent. The six that do not are data gaps, listed
+with their reasons in `src/game/test/reactionCards.test.ts` ("draws every reagent whose
+structure the data carries"). **Two open owner decisions live there:** `[H3O+]` is not
+valid SMILES, so the generator holds `[OH3+]` for it in one annotated line rather than
+editing 11 stages and re-running classification; and the Grignard and Gilman carry only
+`[CH3-]`, so their organometallic bottles have no structure to draw.
+
+Still text, and out of scope until the owner rules: the lesson and MCQ scheme cards
+(`src/game/lesson/lessonFigures.ts`, `src/game/beats/mcq/mcqFigures.ts`) show reagents as
+authored strings over the arrow, and their substrates are hand-authored geometry rather
+than RDKit renders. Drawing one side with RDKit would put two drawing styles in one scheme.
 
 ## The numbered gauntlet is finished, 2026-09-23
 

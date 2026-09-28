@@ -181,8 +181,28 @@ export type ReactionSide = keyof ReactionSides;
 export interface ReactionCardData {
   /** Left of the arrow: the starting materials, in words. */
   readonly reactants: string;
-  /** Over the arrow: reagents in order, e.g. "CH3MgBr; then H3O+". */
+  /**
+   * Over the arrow: reagents in order, e.g. "CH3MgBr; then H3O+".
+   *
+   * Still a string, and still the ACCESSIBLE text: `reagentSteps` below is what
+   * the face draws, and this is what a screen reader hears and what a surface
+   * that does not draw falls back to. The two are built from one list, so they
+   * name the same stages in the same order.
+   */
   readonly reagents: string;
+  /**
+   * The same reagents, one entry per stage, each with its drawing when the
+   * authored data carries a structure for it.
+   *
+   * THE OWNER'S RULE, twice in two days: a reagent is DRAWN in skeletal form,
+   * not printed as a formula. `art` is absent on a step whose reagent the data
+   * names but does not draw (`PCC`, `H2CrO4`, `DIBALH`, `Zn(Hg)`, and the
+   * organometallics behind `[CH3-]`), and that step shows its text alone. A
+   * missing structure is missing; nothing here draws a guess.
+   *
+   * Absent entirely on a card a student composed, which has no stages.
+   */
+  readonly reagentSteps?: readonly ReagentStep[];
   /** Right of the arrow. This is the answer, hidden until the reveal. */
   readonly products: string;
   /** The chip on the face, already formatted, e.g. "-78 °C". Absent when unstated. */
@@ -221,6 +241,25 @@ export interface ReactionCardArt {
   readonly startDark?: string;
   readonly productLight?: string;
   readonly productDark?: string;
+}
+
+/**
+ * One stage's reagent: what the bottle is called, and the structure of what is
+ * in it when the data carries one.
+ *
+ * `label` is always present, because a stage with nothing to say is dropped
+ * before it becomes a step. `art` carries paths under BASE_URL that RDKit
+ * rendered from the reagent's own SMILES, plus the formula RDKit computed from
+ * that same structure, so the picture and the formula cannot disagree. Either
+ * theme may be absent and the face draws the one it has.
+ */
+export interface ReagentStep {
+  readonly label: string;
+  readonly art?: {
+    readonly light?: string;
+    readonly dark?: string;
+    readonly formula: string;
+  };
 }
 
 /**

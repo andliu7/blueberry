@@ -25,6 +25,7 @@ import { Label } from "@/components/ui/label";
 import { Loader } from "@/components/ui/loader";
 import { Formulas } from "@/components/ui/formula";
 import { MoleculeArt } from "@/components/ui/lesson-nav";
+import { StageReagents } from "@/components/ui/reagent-line";
 import type { Stage, StagedReaction } from "@/data/reactions";
 import { setCourseField } from "@/lib/useCourse";
 import { cn } from "@/lib/utils";
@@ -471,9 +472,7 @@ function StageRow({ stage, committed }: { stage: Stage; committed: boolean }) {
         )}
       </div>
 
-      <p className="mt-2 font-mono text-sm text-[#472ab4] dark:text-[#bbb1eb]">
-        {stage.reagents.join("  |  ")}
-      </p>
+      <StageReagents stage={stage} />
       {stage.conditions.notes && (
         <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-stone-300">
           {stage.conditions.notes}
