@@ -2049,7 +2049,17 @@ html[data-device-frame] #root::-webkit-scrollbar {
   --card-foreground: #edf2fa;
   --popover: #192438;
   --popover-foreground: #edf2fa;
-  --primary: #5a3fd8;
+  /* #6d5ae0 AT NIGHT, NOT #5a3fd8, and this was a live failure across the whole
+     site rather than one component's problem. The light value measures 2.32:1
+     as a shape on the dark card #192438, under the 3.0 floor WCAG 1.4.11 asks
+     of an interface component, so EVERY default Button in dark mode was
+     shipping a face below the floor. The comment further down this file
+     recorded the fault and said "REPORTED, NOT FIXED HERE"; it is fixed here.
+     #6d5ae0 is the value src/game/theme.css already moved the game to for this
+     exact reason, so the two halves now agree rather than drifting. Measured:
+     3.10:1 on the card, 3.54:1 on the page, and white on it 5.01:1, over the
+     4.5 body floor. The light value is unchanged. */
+  --primary: #6d5ae0;
   --primary-foreground: #ffffff;
   --secondary: #24334a;
   --secondary-foreground: #dce5f2;
