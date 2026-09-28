@@ -659,15 +659,24 @@ input:-webkit-autofill:active {
   margin-left: -2.75rem;
   border-radius: 0.75rem;
   overflow: hidden;
-  background: #fff;
-  border: 4px solid #fff;
+  /* THE TOKEN, NOT A LITERAL. These were hardcoded #fff and, in dark, #1c1917,
+     which is a WARM near-black while every other card surface in the product is
+     the cool navy --card #192438. So the fan was the one card stack that did not
+     match the others, and it also sat outside the ivory-to-white pass that moved
+     --cards-paper, since a literal cannot be moved by changing a token.
+     Light is unchanged at #ffffff. Dark goes 1.02:1 to 1.14:1 against the page,
+     neither of which is a boundary the eye reads: the fan is separated by its
+     shadow, which is why these cards carry one and the flat surfaces do not. */
+  background: var(--card);
+  border: 4px solid var(--card);
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.18);
   will-change: transform;
   transform-origin: center bottom;
 }
 .dark .fan-card {
-  background: #1c1917;
-  border-color: #1c1917;
+  /* Colour comes from --card above, which the dark theme already redefines.
+     Only the shadow needs a dark variant, because a shadow tuned for a light
+     page disappears on a dark one. */
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
 }
 
