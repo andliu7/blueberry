@@ -103,7 +103,27 @@ export function BlueberryLoader({ className }: { className?: string }) {
           The palette is the berry's own — this is the mascot before it has a
           face. Still no canvas, no WebGL, no dependency: the thing that covers
           the load must not be part of the load. */}
-      <div aria-hidden className="relative flex h-28 w-24 items-end justify-center">
+      {/* THE RAIL THE BERRY RUNS ALONG, owner 2026-09-27.
+
+          The berry inside is untouched: it still falls, squashes and throws its
+          shadow exactly as before. What is new is that its FRAME travels, and a
+          bar fills behind it. Two animations on two elements rather than one
+          doing both, so the bounce never has to know where along the rail it is.
+
+          `--bb-travel` is the distance, derived from the track width minus the
+          berry's own box so it lands ON the end rather than past it. It is a
+          custom property rather than a number in the keyframe because the track
+          is a max-width that a narrow phone will shrink.
+
+          The rail keeps its full width at rest: a loading bar whose track is
+          invisible until it fills reads as a stray line, not as a measure of
+          how far there is to go. */}
+      <div
+        aria-hidden
+        className="relative flex w-full max-w-[min(18rem,70vw)] flex-col items-stretch"
+        style={{ ["--bb-travel" as string]: "calc(100% - 3.5rem)" }}
+      >
+        <div className="bb-slime-travel relative flex h-28 w-14 items-end justify-center">
         {/* The shadow, breathing opposite the bounce. */}
         <div
           className="bb-slime-shadow absolute bottom-0 h-2.5 w-14 rounded-[100%]"
@@ -141,6 +161,24 @@ export function BlueberryLoader({ className }: { className?: string }) {
           <div
             className="absolute top-[16%] left-[24%] h-3.5 w-2.5 -rotate-[24deg] rounded-full"
             style={{ background: "rgba(255,255,255,0.75)", filter: "blur(1px)" }}
+          />
+        </div>
+        </div>
+
+        {/* The rail. A hairline trough with the run painted into it.
+
+            Both live in the same 3px box, the fill on top, so the bar has a
+            measure at rest and a filled part that grows. The fill wears the
+            berry's own mid stop, which is measured in the comment above at
+            4.16:1 on the light surface and 3.98:1 on the dark, over the 3:1 a
+            meaningful graphic asks for. */}
+        <div
+          className="relative mt-1 h-[3px] w-full overflow-hidden rounded-full"
+          style={{ background: isDark ? "rgba(165,180,252,0.18)" : "rgba(76,29,149,0.14)" }}
+        >
+          <div
+            className="bb-slime-fill absolute inset-y-0 left-0 w-full origin-left rounded-full"
+            style={{ background: "linear-gradient(90deg, #6366f1, #7c3aed)" }}
           />
         </div>
       </div>

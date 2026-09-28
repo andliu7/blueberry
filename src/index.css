@@ -1341,6 +1341,32 @@ html.dark {
 @media (prefers-reduced-motion: no-preference) {
   .bb-slime { animation: bb-slime 1.15s cubic-bezier(0.28, 0, 0.55, 1) infinite; }
   .bb-slime-shadow { animation: bb-slime-shadow 1.15s cubic-bezier(0.28, 0, 0.55, 1) infinite; }
+  /*
+   * THE TRAVEL AND THE BAR, owner 2026-09-27: "the blueberry bounces on the
+   * left, and then it'll zoom right, making a bar somehow, like a loading bar."
+   *
+   * The bounce above is untouched, because it is already the right bounce and
+   * it sits on an inner element. Travel goes on a WRAPPER, so the two compose
+   * instead of fighting: the berry keeps falling and squashing in its own frame
+   * while that frame slides. One animation per axis is also why neither needs
+   * to know about the other.
+   *
+   * 4.6s is four bounces exactly, 4 x 1.15s. That is the whole reason for the
+   * number: it means the berry is ON THE FLOOR at both ends of the run and at
+   * every quarter of it, so the loop closes on a landing rather than catching
+   * the ball mid-air and snapping it back.
+   *
+   * The bar fills with scaleX from the left rather than by animating `width`,
+   * because this file's layered-motion rule is that only transform, opacity,
+   * clip-path and mask are animated. Width would lay out and paint every frame,
+   * on the one screen whose entire job is to be cheap while the app loads.
+   *
+   * `alternate` on both: the berry runs to the right edge, then bounces back.
+   * A one-way run has to teleport home, and the eye reads a teleport as a
+   * stutter, which on a loading screen reads as the load itself stalling.
+   */
+  .bb-slime-travel { animation: bb-slime-travel 4.6s cubic-bezier(0.37, 0, 0.63, 1) infinite alternate; }
+  .bb-slime-fill { animation: bb-slime-fill 4.6s cubic-bezier(0.37, 0, 0.63, 1) infinite alternate; }
 }
 @keyframes bb-slime {
   0%   { transform: translateY(0) scale(1.18, 0.78); }
@@ -1354,6 +1380,20 @@ html.dark {
   0%   { transform: scaleX(1.25); opacity: 0.4; }
   45%  { transform: scaleX(0.62); opacity: 0.16; }
   100% { transform: scaleX(1.25); opacity: 0.4; }
+}
+/* The run. `--bb-travel` is set on the element from the track's own width, so
+   the berry lands on the far end whatever that width turns out to be, rather
+   than on a hard-coded pixel count that is right at one size only. */
+@keyframes bb-slime-travel {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(var(--bb-travel, 0px)); }
+}
+/* Anchored left by transform-origin on the element, so the fill grows out from
+   the start of the rail and follows the berry rather than spreading from its
+   middle. */
+@keyframes bb-slime-fill {
+  0%   { transform: scaleX(0); }
+  100% { transform: scaleX(1); }
 }
 
 /* ── Waves and rivers ──────────────────────────────────────────────────────
