@@ -1,3 +1,22 @@
+/* THE DISPLAY FACE LOADS HERE, WITH THE GAME, AND NOT ON EVERY PAGE.
+ *
+ * `--font-display` is Nunito and only `src/game/**` ever paints it: beat-chrome,
+ * the charge meter, streak, and the shell's own `.bb-title-face`. The site's
+ * display face is a different thing entirely, `.title-face`, which is Fraunces.
+ * Measured on a fresh Home load that never touches the game: 0 elements using
+ * Nunito and 0 site selectors referencing --font-display.
+ *
+ * So it was moved off the Google Fonts link in index.html, which fetched it for
+ * every visitor to every marketing page to paint nothing. This file is imported
+ * by BlueberryGame.tsx, which is behind React.lazy, so the font now ships in the
+ * game chunk and arrives only when the game does.
+ *
+ * Self-hosted through fontsource because that is already this repo's convention:
+ * index.css imports Inter, Fraunces and Caveat the same way. It also drops two
+ * preconnects and a third-party request from the critical path.
+ */
+@import "@fontsource-variable/nunito/wght.css";
+
 /* Palette updated 2026-09-10: blue actions and cool neutral surfaces. Historical color measurements below refer to the prior palette. */
 /* PALETTE RE-ANCHOR 2026-09-23, owner direction of 17 September: the lavender
  * goes and the accent is the brand violet #5b2fc0. Only the pathway tab had
