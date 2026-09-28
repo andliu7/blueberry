@@ -110,10 +110,19 @@ export function BlueberryLoader({ className }: { className?: string }) {
           bar fills behind it. Two animations on two elements rather than one
           doing both, so the bounce never has to know where along the rail it is.
 
-          `--bb-travel` is the distance, derived from the track width minus the
-          berry's own box so it lands ON the end rather than past it. It is a
-          custom property rather than a number in the keyframe because the track
-          is a max-width that a narrow phone will shrink.
+          `--bb-travel` is the distance, the track's width minus the berry's own
+          box so it lands ON the end rather than past it.
+
+          IT MUST NOT BE A PERCENTAGE, and that is the whole reason this is
+          spelled out. It was `calc(100% - 3.5rem)`, and a percentage inside
+          `translateX` resolves against the TRANSLATED ELEMENT'S OWN WIDTH, not
+          its container's. The berry is 3.5rem wide, so the sum came to almost
+          exactly zero and it travelled -0.0057px across the entire run while the
+          bar filled beside it. Measured, not guessed: the transform at the end
+          of the run was matrix(1,0,0,1,-0.00568737,0).
+          Repeating the track's own `min(18rem, 70vw)` here keeps it responsive
+          without the percentage, because those units resolve against the
+          viewport rather than the element.
 
           The rail keeps its full width at rest: a loading bar whose track is
           invisible until it fills reads as a stray line, not as a measure of
@@ -121,7 +130,7 @@ export function BlueberryLoader({ className }: { className?: string }) {
       <div
         aria-hidden
         className="relative flex w-full max-w-[min(18rem,70vw)] flex-col items-stretch"
-        style={{ ["--bb-travel" as string]: "calc(100% - 3.5rem)" }}
+        style={{ ["--bb-travel" as string]: "calc(min(18rem, 70vw) - 3.5rem)" }}
       >
         <div className="bb-slime-travel relative flex h-28 w-14 items-end justify-center">
         {/* The shadow, breathing opposite the bounce. */}

@@ -309,7 +309,10 @@
 
 body {
   font-family: "Inter Variable", Inter, ui-sans-serif, system-ui, sans-serif;
-  background: #f6f4ef;
+  /* NO COLOUR HERE. The root paints the ground (html, further down); body stays
+     transparent so `PageBackground`, which mounts `fixed inset-0 -z-10`, is not
+     buried under body's own background box. The grid lines stay, because they
+     are texture rather than ground and they read over either. */
   background-image:
     linear-gradient(rgba(15,23,42,0.025) 1px, transparent 1px),
     linear-gradient(90deg, rgba(15,23,42,0.025) 1px, transparent 1px);
@@ -632,7 +635,8 @@ input:-webkit-autofill:active {
      At #0c0a09 it was a dead black band across the top of every screenshot -
      two blind critics called it an unfinished page. The ground and the page
      are the same colour now, so an undressed slot reads as page, not absence. */
-  background: #171327;
+  /* NO COLOUR HERE either, and html.dark above already paints this exact
+     #171327 as the root, so the ground a reader sees is unchanged. */
   background-image:
     linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
@@ -1365,8 +1369,15 @@ html.dark {
    * A one-way run has to teleport home, and the eye reads a teleport as a
    * stutter, which on a loading screen reads as the load itself stalling.
    */
-  .bb-slime-travel { animation: bb-slime-travel 4.6s cubic-bezier(0.37, 0, 0.63, 1) infinite alternate; }
-  .bb-slime-fill { animation: bb-slime-fill 4.6s cubic-bezier(0.37, 0, 0.63, 1) infinite alternate; }
+  /* LINEAR, and that is physics rather than taste. These were on an ease-in-out,
+     which accelerated and decelerated the berry HORIZONTALLY, including in
+     mid-air where nothing is pushing it sideways. Measured at 2.8x speed change
+     across the run. A thrown object keeps its horizontal velocity and only its
+     vertical motion is curved, which the bounce above already handles. The bar
+     is linear for the same reason: it is a measure of progress, and a progress
+     bar that speeds up and slows down is lying about the rate. */
+  .bb-slime-travel { animation: bb-slime-travel 4.6s linear infinite alternate; }
+  .bb-slime-fill { animation: bb-slime-fill 4.6s linear infinite alternate; }
 }
 @keyframes bb-slime {
   0%   { transform: translateY(0) scale(1.18, 0.78); }
@@ -1381,9 +1392,10 @@ html.dark {
   45%  { transform: scaleX(0.62); opacity: 0.16; }
   100% { transform: scaleX(1.25); opacity: 0.4; }
 }
-/* The run. `--bb-travel` is set on the element from the track's own width, so
-   the berry lands on the far end whatever that width turns out to be, rather
-   than on a hard-coded pixel count that is right at one size only. */
+/* The run. `--bb-travel` is set on the element in real length units, never a
+   percentage: a percentage inside translateX resolves against the translated
+   element's OWN width, which once made this travel 0.006px while looking
+   perfectly correct in the source. */
 @keyframes bb-slime-travel {
   0%   { transform: translateX(0); }
   100% { transform: translateX(var(--bb-travel, 0px)); }
@@ -2040,27 +2052,28 @@ html[data-device-frame] #root::-webkit-scrollbar {
   --input: #70839d;
   --ring: #aac7ff;
 }
-/* THE ROOT CARRIES THE GROUND, AND BODY MUST NOT.
+/* THE OCCLUDER WAS NEVER html, AND THIS RULE WAS A WRONG FIX FOR IT.
  *
- * This rule named `body` as well when it landed in a8b9392, and that silently
- * broke the photographic background for fifteen days without anyone seeing it.
- * `PageBackground` mounts `fixed inset-0 -z-10`, and a negative z-index child
- * paints above the CANVAS background but below an in-flow ancestor's own
- * background box. So body's opaque colour covered the photograph completely:
- * every /backgrounds/*.webp still returned 200, the credit chip still rendered,
- * and the picture was simply never visible. Turning the feature flag back on in
- * bd2adbf therefore changed nothing a person could see.
+ * A rule here used to set `html, html.dark { background-color: var(--background) }`
+ * to uncover the photograph. It did not uncover anything, and it broke two
+ * other things quietly:
  *
- * Setting it on the root alone gives the same painted ground, because the root
- * element's background propagates to the canvas, while leaving body
- * transparent so the fixed layer beneath the content can show through. Do not
- * add `body` back to this selector. If a page needs an opaque ground it should
- * paint its own surface, the way `.bb-game` does.
- */
-html, html.dark {
-  background-color: var(--background);
-  background-image: none;
-}
+ *   The thing painting over `PageBackground` was BODY, in two rules far above
+ *   this one, and both are now transparent with their grid images kept. A
+ *   negative z-index child paints above the canvas background but below an
+ *   in-flow ancestor's own background box, so body's colour buried the picture
+ *   whatever html did.
+ *
+ *   And html was already handled. `html` and `html.dark` at the top of this
+ *   file paint #faf9ff and #171327 with their reasons written beside them, the
+ *   dark one chosen so an undressed header slot reads as page rather than as
+ *   absence. Overriding both with var(--background) moved the dark ground to
+ *   #101827 and undid that, for no gain.
+ *
+ * So the rule is gone rather than corrected. Measured before removal: seven
+ * open-background boxes on Home and Dashboard sampled a flat rgb(17,23,39) with
+ * a standard deviation of exactly 0.00, which is body's own colour and not one
+ * pixel of photograph. */
 /* Solid action faces keep the accent consistent at rest and on hover.
 
    THE SITE BUTTON IS THE SAME KEY AS THE GAME'S CHIP, owner 2026-09-24. This
