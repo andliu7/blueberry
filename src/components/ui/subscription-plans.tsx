@@ -70,14 +70,29 @@ const PLANS: Plan[] = [
     id: "member",
     icon: <User />,
     name: "Member",
-    description: "An account, so your progress is not tied to one browser.",
+    description: "An account, so the site knows which course you are taking.",
     fallbackPrice: "Free",
     features: ["Everything in the open site"],
-    adds: [
-      "Progress that follows you between machines",
-      "Your ratings and notes backed up",
-      "An onboarding quiz that sets the site up around your course",
-    ],
+    // THESE TWO LINES CONTRADICTED THE TERMS PAGE, and Terms was the true one.
+    //
+    // Removed 2026-09-28: "Progress that follows you between machines" and
+    // "Your ratings and notes backed up". Nothing in the client writes progress
+    // anywhere. The Supabase tables built for it, mechanism_attempts, user_decks
+    // and user_cards, have no reads and no writes, and TermsPage states plainly
+    // that "Ratings, notes, the focus timer and your display picture are kept in
+    // your own browser and are not sent anywhere". So the same site promised
+    // sync on the page that takes money and denied it on the page that is
+    // legally binding.
+    //
+    // The description said "your progress is not tied to one browser", which is
+    // the same claim in other words, and it went too. What an account actually
+    // does today is create a row with an email, a name and a role, and carry the
+    // course you picked. That is what it now says.
+    //
+    // PUT THEM BACK IN THE COMMIT THAT SHIPS SYNC, not before. A promise that
+    // waits for the feature costs nothing; a promise that ships first is the
+    // kind of thing a student notices once and never trusts again.
+    adds: ["An onboarding quiz that sets the site up around your course"],
   },
   {
     id: "pro",
