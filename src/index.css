@@ -1563,6 +1563,23 @@ html[data-device-frame] body {
   background-image: none;
 }
 
+/* THE GEOMETRY IS ONE NUMBER, because a phone has one shape.
+ *
+ * It was `width: min(430px, 94vw)` against `height: min(920px, 92svh)`, two
+ * clamps that resolve INDEPENDENTLY. On a short or narrow window they stopped
+ * agreeing and the frame became a rectangle no phone has ever been, which is
+ * the one thing a device preview must not do. 920 was not a real device height
+ * either.
+ *
+ * 430 by 932 is the iPhone 15 and 16 Pro Max logical viewport. The height is
+ * clamped three ways, by the device, by the window, and by what the window's
+ * WIDTH allows at the correct ratio, and the width is then derived from it. So
+ * the frame only ever shrinks, never distorts. */
+html[data-device-frame] {
+  --frame-h: min(932px, 92svh, calc(94vw * 932 / 430));
+  --frame-w: calc(var(--frame-h) * 430 / 932);
+}
+
 html[data-device-frame] body {
   min-height: 100svh;
   display: grid;
@@ -1571,11 +1588,13 @@ html[data-device-frame] body {
 }
 
 html[data-device-frame] #root {
-  width: min(430px, 94vw);
-  height: min(920px, 92svh);
+  width: var(--frame-w);
+  height: var(--frame-h);
   overflow-x: hidden;
   overflow-y: auto;
-  border-radius: 42px;
+  /* 58 is the outer radius, so the screen inside the 10px bezel lands near the
+     48 an actual Pro Max corner turns. A 42 outer read as a tablet. */
+  border-radius: 58px;
   border: 10px solid #14181c;
   background: var(--background);
   box-shadow:
@@ -1583,6 +1602,48 @@ html[data-device-frame] #root {
     0 44px 90px -30px rgba(0, 0, 0, 0.85);
   transform: translateZ(0);
   scrollbar-width: none;
+}
+
+/* THE HARDWARE, and it is the reason the old frame read as a rounded div.
+ *
+ * Both pieces are FIXED and positioned off the frame's own --frame-h rather
+ * than being children of #root, for one reason: #root is the scroll container,
+ * so anything inside it scrolls away, and a Dynamic Island that scrolls is
+ * worse than no island. Fixed plus the shared custom property keeps them welded
+ * to the bezel at every size the frame shrinks through.
+ *
+ * `place-items: center` on a body with symmetric padding puts the frame's
+ * centre on the viewport's centre, so half the frame height off 50% is its
+ * edge. aria-hidden is not available on a pseudo-element, but neither carries
+ * text and both are decoration, so nothing is lost to a screen reader. */
+html[data-device-frame] body::before {
+  content: "";
+  position: fixed;
+  top: calc(50% - var(--frame-h) / 2 + 12px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 125px;
+  height: 36px;
+  border-radius: 18px;
+  background: #0a0d14;
+  pointer-events: none;
+  z-index: 2;
+}
+
+html[data-device-frame] body::after {
+  content: "";
+  position: fixed;
+  top: calc(50% + var(--frame-h) / 2 - 18px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 140px;
+  height: 5px;
+  border-radius: 3px;
+  /* Light on a dark page and dark on a light one, the way the real indicator
+     inverts against whatever is under it. */
+  background: rgb(120 120 130 / 0.9);
+  pointer-events: none;
+  z-index: 2;
 }
 
 html[data-device-frame] #root::-webkit-scrollbar {
