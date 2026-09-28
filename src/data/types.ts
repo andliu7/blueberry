@@ -307,11 +307,26 @@ export const COURSES: CourseNode[] = [
     id: "ochem2",
     title: "Organic Chemistry II",
     children: [
-      { id: "ochem2-lessons", title: "Lessons" },
+      /*
+       * REFERENCE SHEETS AND CARBONYLS ARE NOT LAB WORK, owner 2026-09-28:
+       * "Reference Sheets and Carbonyls go under Lessons, not Lab. That's not
+       * part of the labs."
+       *
+       * He is right on the content. The `lab` folder is the CHEM 242 experiment
+       * decks, the ones whose hub cards read "[CHEM 242] Lab 3: ...". Reference
+       * sheets are pKa, IR and NMR tables a student reaches for mid-problem,
+       * and the carbonyls set is nine generated decks covering the Chapter 17
+       * to 21 reaction classes. Neither belongs to an experiment, and filing
+       * them under Lab meant the only student who would ever find them is one
+       * already looking for a lab writeup.
+       *
+       * Lab keeps exactly what its name says.
+       */
+      { id: "ochem2-lessons", title: "Lessons", folders: ["reference", "carbonyls"] },
       {
         id: "ochem2-lab",
         title: "Lab",
-        folders: ["lab", "reference", "carbonyls"],
+        folders: ["lab"],
       },
     ],
   },
