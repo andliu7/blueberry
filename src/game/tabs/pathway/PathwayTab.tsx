@@ -1876,6 +1876,23 @@ function OrgoMapTrack({
    * has nothing to switch off. The typeof guard is for jsdom, which has no
    * scrollIntoView.
    */
+  /*
+   * IT DEPENDS ON `requested` AS WELL, and leaving that out was the bug.
+   *
+   * Keyed on unit.id alone, this never ran when the URL changed but resolved
+   * to the SAME unit: going from `?unit=u1` to the bare `#/app/pathway` leaves
+   * unit.id as "u1", so React saw no change and skipped the effect entirely.
+   * Instrumented in the page: the effect did not fire at all on that path,
+   * neither branch, so the query never ran and the fallback never ran either.
+   * The page simply kept whatever scroll it had, which was 0, leaving the
+   * current chip's bottom seven pixels behind the sticky unit foot.
+   *
+   * `requested` is the raw hash param, so it changes from "u1" to null across
+   * exactly that navigation while the resolved unit does not. Every other path
+   * already worked and was measured working: a programmatic hash change to a
+   * different unit, a click in the unit picker, a fragment navigation, and one
+   * from a page already scrolled to 600 all centred correctly.
+   */
   useLayoutEffect(() => {
     const current = surfaceRef.current?.querySelector<HTMLElement>('[aria-current="step"]') ?? null;
     if (current !== null && typeof current.scrollIntoView === "function") {
@@ -1883,7 +1900,7 @@ function OrgoMapTrack({
       return;
     }
     window.scrollTo(0, 0);
-  }, [unit.id]);
+  }, [unit.id, requested]);
 
   /* One winding row, for the column and for the enrichment tail below the
      fork: the same call either side of the split, so the two lists cannot
