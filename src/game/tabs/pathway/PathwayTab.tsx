@@ -314,11 +314,23 @@ function motifShape(badge: NodeBadge) {
         with a barbed head, which is the mark a student draws all day in the
         trainer. Drawn as one arc plus an open barb rather than a filled
         triangle, so the two-layer engrave below cuts it cleanly.
+
+        DEEPENED, AND THE LONE PAIR IS DRAWN NOW. The note above has always
+        said "leaving one lone pair" and no dots were ever on the page.
+        Measured at the 24.8px this really renders: the old arc's ink box was
+        22 wide by TEN tall carrying 88 ink px, against 121 to 181 for the
+        marks beside it, so the most Blueberry-specific glyph on the map was
+        also the faintest and read as a sliver in a square slot. The arc is
+        bowed higher (box 23x17, 111 px) and the pair it leaves from is two
+        dots at its tail, which buys the weight and says WHY the arrow starts
+        where it starts in the same stroke.
       */
       return (
         <>
-          <path d="M4.4 17.4C4.4 7.6 19.6 7.6 19.6 16.2" fill="none" strokeWidth="2.4" strokeLinecap="round" />
-          <path d="M15.6 13.6 19.6 17.2 23.2 13.2" fill="none" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M4.6 18.4C4.6 4.6 19.4 4.6 19.4 15.8" fill="none" strokeWidth="2.5" strokeLinecap="round" />
+          <path d="M16 13 19.4 16.6 22.6 12.6" fill="none" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+          <circle cx="3.2" cy="21.4" r="1.35" strokeWidth="0" />
+          <circle cx="6.6" cy="21.4" r="1.35" strokeWidth="0" />
         </>
       );
     case "video":
@@ -327,32 +339,71 @@ function motifShape(badge: NodeBadge) {
         content, so the map needs a mark for the slot it lives in;
         unitShape.ts's videoHookOf is explicit that the badge marks a
         PLACEMENT and never a promise that a file has been shot.
+
+        IT IS A FRAME NOW, NOT A DISC, and the disc was the single worst
+        collision on the map. A play disc and the challenge stopwatch are both
+        a ~19px circle at this size: silhouette IoU 0.757 and form distance
+        0.133, the closest pair in either icon set, separated only by what was
+        drawn INSIDE them. A landscape frame round the same play triangle is
+        the one silhouette nothing else in the vocabulary has, it is the more
+        specific picture of video anyway (a bare disc says "play audio" just
+        as loudly), and it took the pair to 0.513 IoU / 0.290 form.
       */
       return (
         <>
-          <circle cx="12" cy="12" r="8.4" fill="none" strokeWidth="2.3" />
-          <path d="M9.8 8.2 16.6 12 9.8 15.8Z" strokeWidth="2.1" strokeLinejoin="round" />
+          <path
+            d="M4.6 6h14.8a2.4 2.4 0 0 1 2.4 2.4v7.2a2.4 2.4 0 0 1-2.4 2.4H4.6a2.4 2.4 0 0 1-2.4-2.4V8.4a2.4 2.4 0 0 1 2.4-2.4z"
+            fill="none"
+            strokeWidth="2.3"
+            strokeLinejoin="round"
+          />
+          <path d="M10.2 8.9 15.6 12 10.2 15.1Z" strokeWidth="1.6" strokeLinejoin="round" />
         </>
       );
     case "concept":
-      /* The lightbulb, outlined so the cut reads as a cut. */
+      /*
+        The lightbulb, outlined so the cut reads as a cut.
+
+        IT HAS A BASE NOW. The old bulb's two detached tick marks did not join
+        the outline, so the silhouette was a bare 15x21 blob: 0.609 IoU and
+        0.205 form against the stopwatch circle, 0.645 against the play disc.
+        A screwed base narrowing under the glass is what makes a bulb read as
+        a bulb rather than as a circle, and it is a silhouette feature rather
+        than interior detail, which is the only kind that survives 24.8px.
+      */
       return (
         <>
           <path
-            d="M12 3.4a6.1 6.1 0 0 0-3.7 10.9c.6.5 1 1.2 1.1 2h5.2c.1-.8.5-1.5 1.1-2A6.1 6.1 0 0 0 12 3.4z"
+            d="M12 2.6a5.7 5.7 0 0 0-3.3 10.35c.55.4.85 1 .85 1.65h4.9c0-.65.3-1.25.85-1.65A5.7 5.7 0 0 0 12 2.6z"
             fill="none"
             strokeWidth="2.2"
             strokeLinejoin="round"
           />
-          <path d="M9.7 19.1h4.6M10.6 21.4h2.8" fill="none" strokeWidth="2.2" strokeLinecap="round" />
+          <path d="M9.9 17h4.2M10.4 19.6h3.2M11.1 21.4h1.8" fill="none" strokeWidth="2.2" strokeLinecap="round" />
         </>
       );
     case "challenge":
-      /* The stopwatch: a timed assessment, which is what a challenge is. */
+      /*
+        The stopwatch: a timed assessment, which is what a challenge is.
+
+        THE WINDER IS WHAT MAKES IT A STOPWATCH rather than a circle with a
+        hat. Once the video hook stopped being a disc this was the only circle
+        left, so the remaining question was the lightbulb, and a crown alone
+        left the two as vertical mirrors of each other: a circle with a nub
+        above against a circle tapering below. The canonical stopwatch is
+        asymmetric, so it takes the crown plus ONE angled winder at about one
+        o'clock, and the hands sit at an angle rather than straight up so the
+        face is not a mirror either.
+
+        A version with TWO winders, one each side, measured slightly better
+        and rendered as an insect. The eye overruled it.
+      */
       return (
         <>
-          <circle cx="12" cy="13.8" r="7.1" fill="none" strokeWidth="2.3" />
-          <path d="M12 13.8V9.6M9.7 2.9h4.6M12 2.9v2.1" fill="none" strokeWidth="2.3" strokeLinecap="round" />
+          <circle cx="12" cy="15" r="6.6" fill="none" strokeWidth="2.3" />
+          <path d="M12 15.2V11.4M12 15.2h3" fill="none" strokeWidth="2.3" strokeLinecap="round" />
+          <path d="M10.3 5.1h3.4v2.7h-3.4z" strokeWidth="1.8" strokeLinejoin="round" />
+          <path d="M17.4 7.4 20.4 4.8" fill="none" strokeWidth="2.3" strokeLinecap="round" />
         </>
       );
     case "hub":

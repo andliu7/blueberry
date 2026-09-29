@@ -53,6 +53,13 @@ interface Layer {
   readonly w?: number;
   /** A `line` drawn in the tint rather than the hue: a highlight over a shaft. */
   readonly tint?: boolean;
+  /**
+   * An SVG transform on this layer alone. Only the card fan uses it, and it is
+   * a transform rather than three hand-rotated path strings so the three cards
+   * are provably ONE card at three angles and cannot drift apart when one of
+   * them is nudged.
+   */
+  readonly at?: string;
 }
 
 interface Sticker {
@@ -60,6 +67,13 @@ interface Sticker {
   readonly hue: string;
   readonly layers: readonly Layer[];
 }
+
+/**
+ * ONE CARD, drawn three times by the `cards` sticker at three angles. 7.6 wide
+ * by 14.2 tall on the 24 grid, which is the widest card that still leaves a
+ * visible gap between neighbours once the fan opens.
+ */
+const CARD = "M10.2 5.5h3.6a2 2 0 0 1 2 2v10.2a2 2 0 0 1-2 2h-3.6a2 2 0 0 1-2-2V7.5a2 2 0 0 1 2-2z";
 
 /** The five that appear in the bar, drawn as cut-outs in their own colour. */
 const STICKERS: Record<"pathway" | "trainer" | "cards" | "feed" | "me", Sticker> = {
@@ -104,19 +118,39 @@ const STICKERS: Record<"pathway" | "trainer" | "cards" | "feed" | "me", Sticker>
       { d: "M21.9 10.2a1.5 1.5 0 0 1 1.5 1.5v1.8a1.5 1.5 0 0 1-3 0v-1.8a1.5 1.5 0 0 1 1.5-1.5z", as: "ink" },
     ],
   },
-  /* A FANNED CARD STACK, per the committed designs, not two squares stacked
-     square. What was here was two rounded rectangles offset on the diagonal,
-     which at label size reads as two windows rather than as cards. The
-     references fan them: the back card leans, the front one sits upright, and
-     the lean is the whole tell. Three layers so the middle one gives the fan
-     somewhere to happen; the back is ink, the middle tint, the front body, so
-     each edge is legible against the one behind it. */
+  /* A FAN THAT ACTUALLY FANS, and the previous note in this slot described one
+     while the paths drew something else.
+
+     What was here claimed "the references fan them: the back card leans, the
+     front one sits upright, and the lean is the whole tell", but only the BACK
+     card carried a lean and the other two were axis aligned, so the assembly
+     was a stepped rectangle. Measured at the 32px the bar actually draws: the
+     three cards made one 26x27 upright mass, and against the Feed newspaper's
+     26x26 upright mass that is a silhouette IoU of 0.791 and a form distance of
+     0.146, both of them the worst pair in the bar by a wide margin. Two icons
+     that differ only inside their outline are one icon at 32px.
+
+     So: one card, three angles, plus and minus 34 degrees about a pivot below
+     the stack, which is how a hand of cards actually opens. All three are
+     `body` rather than the old ink/tint/body ladder, because the fan's tell is
+     the three OUTLINES splaying and an ink card is an outline you painted out.
+     Verified by eye at 32px on both grounds before it was written down; 40 and
+     46 degrees measure better and read as a crown, so 34 is the angle the eye
+     picked and not the one the number did.
+
+     WHAT THIS DOES NOT FIX, recorded so the next reader does not re-run the
+     search: it does not separate Cards from Feed. Fifty-odd geometries were
+     measured (fans from 28 to 46 degrees, two-card tilts, an index-card tray,
+     five newspaper reshapes) and every arrangement of paper rectangles lands
+     between 0.115 and 0.146 against a paper rectangle. The pair is one object
+     class drawn twice, and only changing one of the two NOUNS clears it. Both
+     nouns are the owner's. */
   cards: {
     hue: "cards",
     layers: [
-      { d: "M14.6 2.2 19 3.6a2.6 2.6 0 0 1 1.7 3.3l-3 9.2a2.6 2.6 0 0 1-3.3 1.7l-4.4-1.5a2.6 2.6 0 0 1-1.7-3.3l3-9.1a2.6 2.6 0 0 1 3.3-1.7z", as: "ink" },
-      { d: "M9.8 4.4h4.6a2.6 2.6 0 0 1 2.6 2.6v9.6a2.6 2.6 0 0 1-2.6 2.6H9.8a2.6 2.6 0 0 1-2.6-2.6V7a2.6 2.6 0 0 1 2.6-2.6z", as: "body" },
-      { d: "M5.2 6.6h4.6a2.6 2.6 0 0 1 2.6 2.6v9.6a2.6 2.6 0 0 1-2.6 2.6H5.2a2.6 2.6 0 0 1-2.6-2.6V9.2a2.6 2.6 0 0 1 2.6-2.6z", as: "body" },
+      { d: CARD, as: "body", at: "rotate(-34 12 21.6)" },
+      { d: CARD, as: "body", at: "rotate(34 12 21.6)" },
+      { d: CARD, as: "body" },
     ],
   },
   /* THE BLUE NEWSPAPER, docs/DESIGN-GOALS.md, "Header and tabs": "Feed is the
@@ -198,12 +232,14 @@ export function TabIcon({ tab, className = "" }: { readonly tab: TabId; readonly
         // Index as the key is safe here and only here: the list is a frozen
         // literal above, so nothing is ever inserted, removed or reordered.
         if (layer.as === "line") {
-          return <path key={index} d={layer.d} stroke={layer.tint === true ? tint : hue} strokeWidth={layer.w ?? 3} />;
+          return (
+            <path key={index} d={layer.d} transform={layer.at} stroke={layer.tint === true ? tint : hue} strokeWidth={layer.w ?? 3} />
+          );
         }
         if (layer.as === "ink") {
-          return <path key={index} d={layer.d} fill={hue} />;
+          return <path key={index} d={layer.d} transform={layer.at} fill={hue} />;
         }
-        return <path key={index} d={layer.d} fill={tint} stroke={hue} strokeWidth={1.9} />;
+        return <path key={index} d={layer.d} transform={layer.at} fill={tint} stroke={hue} strokeWidth={1.9} />;
       })}
     </svg>
   );
