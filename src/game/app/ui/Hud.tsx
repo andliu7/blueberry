@@ -240,7 +240,12 @@ function HudButton({ id, label, onOpen, className = "", children }: ItemProps) {
 function ChargeReading({ charge }: { readonly charge: ChargeReadout }) {
   return (
     <>
-      <ChargeMark className="h-5 w-5 shrink-0" />
+      {/* The cell is drawn AT ITS LEVEL. `fraction` is the same number the
+          meter under the word already shows, so this adds no new fact and no
+          new source of truth: it puts the reading in the mark so the row can be
+          read at a glance without moving to the digits. It is 1 in the exam
+          window by the model's own rule, so the cell reads full there. */}
+      <ChargeMark fill={charge.fraction} className="h-5 w-5 shrink-0" />
       <span
         className={`text-scale-sm font-bold leading-none tabular-nums text-good-ink ${
           charge.examWindow ? "hud-charge-exam" : ""
@@ -289,7 +294,17 @@ export function Hud() {
         <HudButton id="streak" label={`${streak.label}. ${xp.label}`} onOpen={openItem} className="gap-0.5 px-1">
           <span className="hud-streak-mark shrink-0">
             <XpRing fraction={xp.fraction} met={xp.met} className="hud-streak-ring" />
-            <FlameMark lit={streak.lit} className={`hud-streak-flame ${streak.lit ? "" : "hud-flame-out"}`} />
+            {/* Lit at today's goal fraction, the same number the ring around it
+                draws. An unlit flame at --hud-out reads as DISABLED rather than
+                as "today is not counted yet", and colour cannot be the only
+                carrier of that. A silhouette that is part lit says it as a
+                shape instead: nothing disabled is forty percent of anything.
+                At 0 and at 1 it draws exactly what it drew before. */}
+            <FlameMark
+              lit={streak.lit}
+              fill={streak.lit ? 1 : xp.fraction}
+              className={`hud-streak-flame ${streak.lit ? "" : "hud-flame-out"}`}
+            />
           </span>
           {/*
             TWO QUANTITIES, TWO READINGS. The ring alone left the goal

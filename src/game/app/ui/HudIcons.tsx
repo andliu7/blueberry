@@ -1,6 +1,6 @@
 /**
  * The four drawn marks in the header HUD: the XP ring, the diamond, the streak
- * flame, and the charge cell. Bloom is the imported mascot, never redrawn
+ * flame, and the charge bolt. Bloom is the imported mascot, never redrawn
  * (CLAUDE.md, and docs/INHERITED-DECISIONS.md D4), and since the S3 design pass
  * he is no longer one of the header's marks: see ChargeMark below.
  *
@@ -19,7 +19,41 @@
  *
  * The one place a stroke is right is the ring, because a ring IS a stroke: the
  * arc's length is the number.
+ *
+ * THE TWO CAPPED MARKS FILL FROM THE BASE, 2026-09-29, owner: "the streaks and
+ * the energies just don't really look good. Maybe they can just show as fire
+ * and energy." So the header holds fire and energy, one plain metaphor each,
+ * and each one is drawn at its LEVEL: the silhouette in --hud-out, the same
+ * silhouette in its live token on top, clipped to a window that rises from the
+ * base with the fraction. `fillWindow` below is that window, and it is the
+ * reason the two marks are one component drawn twice rather than two.
+ *
+ * WHY A LEVEL AND NOT JUST TWO STATES. hud.css records that an unlit flame at
+ * --hud-out reads as disabled rather than as "today is not counted yet", and
+ * CLAUDE.md's rule is that colour is never the only carrier of meaning. A
+ * silhouette that is 40 percent lit carries the same fact as a SHAPE: nothing
+ * disabled is 40 percent of anything. At fill 1 and fill 0 both marks draw
+ * exactly what they drew before this change, which is what keeps StreakScreen's
+ * hero and the reward moment's unlit flame untouched.
  */
+
+import { useId } from "react";
+
+const clamp01 = (n: number): number => (n < 0 ? 0 : n > 1 ? 1 : n);
+
+/**
+ * The clip window for a mark drawn at a level: a rect whose top edge is the
+ * fill line, in the mark's own 24 unit box.
+ *
+ * `base` and `tip` are the drawn shape's own extremes rather than the box's, so
+ * fill 0 leaves NO sliver lit at the bottom and fill 1 covers the whole
+ * silhouette. It is a rect and not a geometry animation on purpose: the level
+ * moves when the model changes, on a commit or on the header's own minute tick,
+ * and there is nothing about it that a tween would make truer.
+ */
+function fillWindow(base: number, tip: number, fill: number): number {
+  return base - (base - tip) * clamp01(fill);
+}
 
 /**
  * The daily goal ring. The full circle is the goal, so the ring carries the
@@ -68,6 +102,13 @@ export function DiamondMark({ className = "" }: { readonly className?: string })
   );
 }
 
+/** The flame, written once: the body and the inner tongue, and the body's extremes. */
+const FLAME_BODY =
+  "M12.6 1.2c-.4 2.9-2 4.3-3.4 5.6C7.2 8.6 4.8 11 4.8 15.2 4.8 19.1 8 22.2 12 22.2s7.2-3.1 7.2-7c0-2.8-1.2-4.7-2.6-6.2-.2 1.5-1 2.6-2.1 3 1-3.6-.6-8.2-1.9-10.8z";
+const FLAME_CORE = "M12 10.4c1.9 1.9 3 3.4 3 5.1a3 3 0 0 1-6 0c0-1.6 1.1-3.2 3-5.1z";
+const FLAME_BASE = 22.2;
+const FLAME_TIP = 1.2;
+
 /**
  * The streak flame. Two shapes: the body, and the inner tongue.
  *
@@ -86,26 +127,46 @@ export function DiamondMark({ className = "" }: { readonly className?: string })
  * ECONOMY.md's whole mitigation set argues against rendering an unmet day as a
  * loss, so the unlit flame is still a flame and there is no red anywhere near
  * it.
+ *
+ * `fill` IS TODAY'S GOAL, and it defaults to the old two-state drawing so the
+ * two callers outside the header keep exactly the flame they had. The unlit
+ * drawing is painted first and the lit one over it, clipped to the level, so
+ * both extremes are byte for byte what shipped before: at 1 the lit body and
+ * the amber core cover the whole silhouette, at 0 neither is painted at all.
+ *
+ * THE DUPLICATE PAIR CARRIES THE SAME TWO CLASS NAMES ON PURPOSE.
+ * streak.css:48 animates `.hud-flame-body` and `.hud-flame-core` on the streak
+ * screen's 128px hero, and both copies of each are the same shape under the same
+ * animation, so they lick in register. The clip window does not move with them,
+ * which is right: a flame's tip wobbles and its level does not.
  */
-export function FlameMark({ lit, className = "" }: { readonly lit: boolean; readonly className?: string }) {
+export function FlameMark({
+  lit,
+  fill = lit ? 1 : 0,
+  className = "",
+}: {
+  readonly lit: boolean;
+  /** 0 to 1, how much of the flame is alight. Today's goal fraction in the HUD. */
+  readonly fill?: number;
+  readonly className?: string;
+}) {
+  const clip = `hud-flame-${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
   return (
     <svg viewBox="0 0 24 24" className={className} aria-hidden focusable="false">
-      <path
-        className="hud-flame-body"
-        d="M12.6 1.2c-.4 2.9-2 4.3-3.4 5.6C7.2 8.6 4.8 11 4.8 15.2 4.8 19.1 8 22.2 12 22.2s7.2-3.1 7.2-7c0-2.8-1.2-4.7-2.6-6.2-.2 1.5-1 2.6-2.1 3 1-3.6-.6-8.2-1.9-10.8z"
-        fill={lit ? "var(--streak)" : "var(--hud-out)"}
-      />
-      <path
-        className="hud-flame-core"
-        d="M12 10.4c1.9 1.9 3 3.4 3 5.1a3 3 0 0 1-6 0c0-1.6 1.1-3.2 3-5.1z"
-        // Lighter than the body in BOTH states, because that is what a hot core
-        // is. A first pass drew the unlit core in --hud-out at 0.42, which is
-        // the body's own colour over the body: opaque grey on opaque grey, so
-        // the flame lost its structure and the capture showed a raindrop. A
-        // white wash lightens either theme's mid grey.
-        fill={lit ? "var(--streak-core)" : "#ffffff"}
-        fillOpacity={lit ? 1 : 0.42}
-      />
+      <clipPath id={clip}>
+        <rect x="0" y={fillWindow(FLAME_BASE, FLAME_TIP, fill)} width="24" height="24" />
+      </clipPath>
+      <path className="hud-flame-body" d={FLAME_BODY} fill="var(--hud-out)" />
+      {/* Lighter than the body in BOTH states, because that is what a hot core
+          is. A first pass drew the unlit core in --hud-out at 0.42, which is
+          the body's own colour over the body: opaque grey on opaque grey, so
+          the flame lost its structure and the capture showed a raindrop. A
+          white wash lightens either theme's mid grey. */}
+      <path className="hud-flame-core" d={FLAME_CORE} fill="#ffffff" fillOpacity="0.42" />
+      <g clipPath={`url(#${clip})`}>
+        <path className="hud-flame-body" d={FLAME_BODY} fill="var(--streak)" />
+        <path className="hud-flame-core" d={FLAME_CORE} fill="var(--streak-core)" />
+      </g>
     </svg>
   );
 }
@@ -134,10 +195,39 @@ export function FlameMark({ lit, className = "" }: { readonly lit: boolean; read
  * family's own token, one lighter facet for volume, and the bolt cut out in the
  * card's colour so the shape is one component in both themes.
  */
-export function ChargeMark({ className = "" }: { readonly className?: string }) {
+/** The cell's own extremes, for the same reason the flame keeps its two. */
+const CELL_BASE = 22.5;
+const CELL_TIP = 1.5;
+
+export function ChargeMark({
+  fill = 1,
+  className = "",
+}: {
+  /**
+   * 0 to 1, how full the cell is. Charge over cap in the HUD.
+   *
+   * DEFAULTS TO 1 so every existing call site draws exactly what it drew
+   * before this change. The chip's own meter under the word is still the
+   * precise reading; this is the same fact in the mark, which is what lets the
+   * row be read at a glance without moving to the number.
+   */
+  readonly fill?: number;
+  readonly className?: string;
+}) {
+  const clip = `hud-cell-${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
   return (
     <svg viewBox="0 0 24 24" className={className} aria-hidden focusable="false">
-      <rect x="2.5" y="1.5" width="19" height="21" rx="6.5" fill="var(--good)" />
+      <clipPath id={clip}>
+        <rect x="0" y={fillWindow(CELL_BASE, CELL_TIP, fill)} width="24" height="24" />
+      </clipPath>
+      <rect x="2.5" y="1.5" width="19" height="21" rx="6.5" fill="var(--hud-out)" />
+      <g clipPath={`url(#${clip})`}>
+        <rect x="2.5" y="1.5" width="19" height="21" rx="6.5" fill="var(--good)" />
+      </g>
+      {/* The facet and the bolt sit ABOVE the clip, not inside it. The bolt is
+          a cut rather than a drawn mark: it is painted in the card's colour so
+          the shape reads as one object in both themes, and a bolt that filled
+          with the cell would stop being a hole and start being a stripe. */}
       <path d="M9 1.5h6a6.5 6.5 0 0 1 6.5 6.5v2.5h-19V8A6.5 6.5 0 0 1 9 1.5z" fill="#ffffff" fillOpacity="0.24" />
       <path d="M13.6 4.2 7.3 13h3.4l-.7 6.8 6.5-9.1h-3.6z" fill="var(--bb-card)" />
     </svg>
