@@ -37,7 +37,9 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { PATHWAY_UNITS } from "../demo/pathwayMap";
+import { PATHWAY_UNITS, checkpointNodeId, unitCheckpointNode, unitName } from "../demo/pathwayMap";
+import { planLesson } from "../beats/template";
+import { deriveMapPathway, statusOf } from "../tabs/pathway/pathwayState";
 import { LOOP_WIND, WIND_CYCLE, loopWind, trackWind } from "../tabs/pathway/pathwayLayout";
 import { RUN_GAP, RUN_MAX, nodePlaces, placeSaid, trunkOf, unitShape, weaveLoops } from "../tabs/pathway/unitShape";
 import { trailSegments, type TrailPoint } from "../tabs/pathway/trail";
@@ -273,6 +275,145 @@ describe("the checkpoint run", () => {
 
   it("never parks a checkpoint chip on the centreline, so the road keeps winding", () => {
     for (let i = 0; i < 12; i += 1) expect(trackWind(i)).not.toBe(0);
+  });
+});
+
+/* ------------------------------------------------------------------------- */
+/* 5. EVERY unit ends with a check, and the check runs the unit.              */
+/* ------------------------------------------------------------------------- */
+
+/**
+ * THE MISSING COMPONENT, pinned so it cannot go missing again.
+ *
+ * Ten of the map's nodes are authored `gate` questions and nine are in Unit 2,
+ * so thirteen of fifteen units used to end with their last lesson and an arch:
+ * nothing on the page asked a student to put the unit together. That is the one
+ * beat every bar this surface is measured against closes a unit with, and a
+ * missing component is a harder failure than a weak one.
+ *
+ * The fix is one more NODE, not a screen: unitCheckpointNode, drawn with the
+ * chip component the track already has, on the column's own wind cycle. These
+ * assertions are about the DERIVATION, so they hold for a unit that has not
+ * been authored yet and for one whose lessons are renamed.
+ */
+describe("every unit's own checkpoint", () => {
+  const checks = PATHWAY_UNITS.map((unit) => ({ unit, node: unitCheckpointNode(unit) }));
+
+  it("exists for every unit, with the unit's own name on it", () => {
+    expect(checks).toHaveLength(PATHWAY_UNITS.length);
+    for (const { unit, node } of checks) {
+      expect(node.id).toBe(checkpointNodeId(unit.id));
+      expect(node.title).toContain(unitName(unit.title));
+      // It is a check, which is what draws the challenge motif on its face.
+      expect(node.kind).toBe("gate");
+    }
+  });
+
+  it("is never one of the unit's own authored nodes, so it moves no unlock count", () => {
+    for (const { unit, node } of checks) {
+      expect(unit.nodes.some((entry) => entry.id === node.id)).toBe(false);
+    }
+  });
+
+  it("runs a real mixed set wherever the unit has authored lessons", () => {
+    // Not vacuous: the map has authored units today.
+    const withContent = checks.filter(({ unit }) => unit.nodes.some((entry) => entry.playable !== undefined));
+    expect(withContent.length).toBeGreaterThan(0);
+    let mixed = 0;
+    for (const { unit, node } of withContent) {
+      const plan = planLesson(node.id);
+      // A unit whose only authored content is enrichment has nothing a check
+      // may ask, because a check must not grade optional work.
+      const required = unit.nodes.filter((entry) => entry.kind !== "branch" && planLesson(entry.id) !== null);
+      if (required.length === 0) {
+        expect(plan, unit.id).toBeNull();
+        continue;
+      }
+      expect(plan, unit.id).not.toBeNull();
+      const slots = plan!.steps.map((step) => step.slot);
+      // One step per slot, which is what keeps the recipe strip describing the
+      // work rather than drawing the same badge four times.
+      expect(new Set(slots).size, unit.id).toBe(slots.length);
+      // Short by construction: at most one per content slot.
+      expect(slots.length, unit.id).toBeLessThanOrEqual(5);
+      if (slots.length > 1) mixed += 1;
+    }
+    // At least one unit's check is genuinely a MIX rather than a single question.
+    expect(mixed).toBeGreaterThan(0);
+  });
+
+  it("never wears the START tag, because a student is sent to a lesson and not to the exam", () => {
+    const status = deriveMapPathway(PATHWAY_UNITS, []);
+    for (const { node } of checks) expect(statusOf(status, node.id).state).not.toBe("current");
+    expect([...status.nodes.values()].filter((entry) => entry.state === "current")).toHaveLength(1);
+  });
+
+  /*
+   * CHANGED 2026-09-29, and the change is to the requirement, not a loosening.
+   * This used to assert the first unit's check was "open" on a fresh account.
+   * That was the behaviour, and it broke the owner's curriculum rule: a
+   * question may only combine skills the student has already cleared one at a
+   * time, and the check is a mix of the unit's lessons. The assertion now pins
+   * the stricter state, and the block below pins every step of the sequence.
+   */
+  it("stays shut on a fresh account, locks with its unit, and is counted in neither", () => {
+    const status = deriveMapPathway(PATHWAY_UNITS, []);
+    const first = checks[0]!;
+    const last = checks[checks.length - 1]!;
+    expect(statusOf(status, first.node.id).state).toBe("locked");
+    expect(statusOf(status, last.node.id).state).toBe("locked");
+    // The unit's own denominators never saw it.
+    const entry = status.units.get(first.unit.id)!;
+    expect(entry.total).toBe(first.unit.nodes.length);
+    expect(entry.playable).toBe(first.unit.nodes.filter((n) => n.kind !== "branch" && n.playable !== undefined).length);
+  });
+
+  /*
+   * THE CHECK OPENS ONLY ONCE EVERY LESSON IT CAN BORROW FROM IS CLEARED, and
+   * clearing it marks it done without moving any progress number. Walked over
+   * Unit 1's real required lessons, one clear at a time, so a unit that gains
+   * a lesson is still covered. `&flags=` is not needed: deriveMapPathway reads
+   * only the journal handed to it, never the DEV snapshot.
+   */
+  it("opens after the unit's last required lesson and not one clear sooner, and clears to done", () => {
+    const unit = PATHWAY_UNITS[0]!;
+    const checkId = checkpointNodeId(unit.id);
+    const required = unit.nodes.filter((node) => node.kind !== "branch" && node.playable !== undefined);
+    expect(required.length).toBeGreaterThan(1);
+    const clear = (nodeId: string) => ({
+      kind: "node_cleared" as const,
+      at: "2026-09-29T12:00:00.000Z",
+      tz: "UTC",
+      nodeId,
+      nodeKind: "concept" as const,
+      flawless: true,
+      stepsInOneSitting: 1,
+      spine: true,
+      difficulty: 3,
+    });
+    // Every lesson the check could borrow from is one of these, so all of them
+    // cleared is the earliest point the mix is made only of cleared skills.
+    for (const step of planLesson(checkId)?.steps ?? []) {
+      const source = step.beat.kind === "mcq" ? step.beat.node : null;
+      if (source !== null) expect(required.some((node) => node.id === source), source).toBe(true);
+    }
+    const journal = [];
+    for (const node of required.slice(0, -1)) {
+      journal.push(clear(node.id));
+      expect(statusOf(deriveMapPathway(PATHWAY_UNITS, journal), checkId).state, node.id).toBe("locked");
+    }
+    journal.push(clear(required[required.length - 1]!.id));
+    const ready = deriveMapPathway(PATHWAY_UNITS, journal);
+    expect(statusOf(ready, checkId).state).toBe("open");
+    expect([...ready.nodes.values()].filter((entry) => entry.state === "current")).toHaveLength(1);
+    // The unlock did not wait for the check: Unit 2 is open already.
+    expect(ready.units.get(PATHWAY_UNITS[1]!.id)?.reachable).toBe(true);
+    journal.push(clear(checkId));
+    const after = deriveMapPathway(PATHWAY_UNITS, journal);
+    expect(statusOf(after, checkId).state).toBe("done");
+    // Clearing the check moved no progress number and no current node.
+    expect(after.doneCount).toBe(ready.doneCount);
+    expect(after.currentNodeId).toBe(ready.currentNodeId);
   });
 });
 

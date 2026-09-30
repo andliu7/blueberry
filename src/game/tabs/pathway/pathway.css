@@ -452,8 +452,7 @@
  * The token holds a literal, so no green token name appears in a border
  * declaration anywhere.
  */
-.path-node--done,
-.path-swatch--done {
+.path-node--done {
   --node-face: var(--path-done-face);
   --node-face-press: var(--path-done-face);
   --node-edge: var(--path-done-wall);
@@ -474,12 +473,11 @@
  * is what the sheet draws them in and what "all nodes the same size" is
  * paired with: the mark is around the node, not inside it.
  */
-/* The legend's key rides the same tokens under its own name. A key names a
-   state, it is not a node in one, and .path-node--current has to mean exactly
-   one chip on the page for the halo, the START pill and any probe counting
-   them to agree. See the LEGEND block in PathwayTab.tsx. */
-.path-node--current,
-.path-swatch--current {
+/* .path-node--current has to mean exactly one chip on the page, for the halo,
+   the START tag and any probe counting them to agree. It used to be shared with
+   a legend swatch under a second name for exactly that reason; the legend is
+   deleted (see PathwayTab) and the second name went with it. */
+.path-node--current {
   --node-face: var(--path-open-face);
   --node-face-press: var(--path-open-face-press);
   --node-edge: var(--path-open-wall);
@@ -553,8 +551,7 @@
     animation: none;
   }
 }
-.path-node--review,
-.path-swatch--review {
+.path-node--review {
   --node-face: #b45309;
   --node-face-press: #9a4708;
   --node-edge: #78350f;
@@ -566,10 +563,9 @@
   --node-glow: rgb(180 83 9 / 0.34);
 }
 /* Open is rest: the same freely-orderable periwinkle chip. The tokens are
-   restated rather than inherited so the legend swatch can render the state
-   without riding on the base rule's defaults staying what they are. */
-.path-node--open,
-.path-swatch--open {
+   restated rather than inherited, so this state does not ride on the base rule's
+   defaults staying what they are. */
+.path-node--open {
   --node-face: var(--path-open-face);
   --node-face-press: var(--path-open-face-press);
   --node-edge: var(--path-open-wall);
@@ -618,8 +614,7 @@
  * still identifies the chip, and the engrave tone below carries the motif at
  * 4.55:1 on the dim face.
  */
-.path-node--locked,
-.path-swatch--locked {
+.path-node--locked {
   --node-face: #8e95bf;
   --node-face-press: #8e95bf;
   --node-edge: #8e95bf;
@@ -705,14 +700,9 @@
  *   line  #584a86 on the page    7.15:1   the cut edge that identifies it
  *   face  #a695d8 on the page    2.47:1   recorded; the line carries the shape
  *
- * THE LEGEND'S TWO NEW SWATCHES ride the same tokens under their own names,
- * the way every other swatch does: a key names a state, it is not a node in
- * one. See LEGEND in PathwayTab.tsx.
  */
 .path-node--dim,
-.path-node--queued,
-.path-swatch--dim,
-.path-swatch--queued {
+.path-node--queued {
   --node-face: #a695d8;
   --node-face-press: #9a88cf;
   --node-edge: #584a86;
@@ -725,16 +715,14 @@
 }
 /* The dash is on the WELL only. Dashing the face too made the chip read as a
    dashed ring with nothing in it, which is a ghost a critic captured. */
-.path-node--queued,
-.path-swatch--queued {
+.path-node--queued {
   border-style: dashed;
   cursor: default;
 }
 .dark .path-start {
   color: var(--bb-primary-ink);
 }
-.dark .path-node--review,
-.dark .path-swatch--review {
+.dark .path-node--review {
   --node-face: #b45309;
   --node-face-press: #9a4708;
   --node-edge: #7c3d0a;
@@ -755,8 +743,7 @@
  * padlock was meant to fix. #b0b7cf measures 4.16:1 on it, and the inversion
  * is the rule every other mark in dark already follows.
  */
-.dark .path-node--locked,
-.dark .path-swatch--locked {
+.dark .path-node--locked {
   --node-face: #3b4059;
   --node-face-press: #3b4059;
   --node-edge: #3b4059;
@@ -769,9 +756,7 @@
    treatment, so they cannot compose into a face the states sheet does not
    draw. The cut inverts with the ground, as every other mark in dark does. */
 .dark .path-node--dim,
-.dark .path-node--queued,
-.dark .path-swatch--dim,
-.dark .path-swatch--queued {
+.dark .path-node--queued {
   /*
    * ON THE RAMP, AT h254. These measured h233 before, a 21 degree drift off
    * the violet into indigo, and dim is half the chips on a page, so in dark
@@ -792,46 +777,6 @@
   --node-ink: #ccd1e9;
   --node-engrave: #b7abde;
   --node-lip-light: rgb(0 0 0 / 0.4);
-}
-
-/* The legend dot: the same shape at swatch size, no press, and neither the
-   halo nor the glow: a legend names states, it does not perform them. */
-.path-node--swatch {
-  --node-size: 1.05rem;
-  --node-face-h: 0.75rem;
-  --node-lip: 4px;
-  border-width: 1px;
-  cursor: default;
-  box-shadow: none;
-  /* A legend names states, it does not perform them: no glow, no pulse. */
-  animation: none;
-}
-.path-node--swatch::before {
-  content: none;
-}
-
-/*
- * THE ONE SWATCH THAT KEEPS ITS BLOOM, and the exception is forced by the two
- * rules above it rather than in spite of them.
- *
- * "Up next" and "Open" rendered as the SAME DOT, confirmed in a capture. That
- * is not a mistake in either rule, it is the two of them meeting. The states
- * sheet deliberately paints current on the open chip's own face, so colour is
- * not a channel here, and the comment on .path-node--current says the second
- * channel is SIZE at 6 percent. Six percent of a 76px chip is about 4px and
- * reads. Six percent of the 1.05rem swatch is ABOUT ONE PIXEL. So at legend
- * size the size channel cannot carry anything, and with box-shadow: none above
- * killing the other one, the two rows were identical by construction and the
- * legend was telling a student something untrue.
- *
- * For this one state the glow IS the state, so a legend that omits it is not
- * naming the state at all. The bloom comes back here STATIC: no `animation`,
- * so the rule above still holds where it matters. A legend may depict a state;
- * it still does not perform one. Tighter than the map's 24px/8px because the
- * dot is a fifth of the size and the map's spread would swamp the row.
- */
-.path-swatch--current {
-  box-shadow: 0 0 7px 2px var(--path-halo);
 }
 
 /*
@@ -975,12 +920,49 @@
  * both went together.
  */
 
-/* The floating START tag above the current node. A small bob, transform only. */
+/*
+ * THE START TAG, AND IT LEFT THE NODE LANE. Round three.
+ *
+ * It floated above the chip at `bottom: calc(100% + 16px)`, which is what the
+ * states sheet draws, and it charged the current row 46px of reserved headroom to
+ * do it: the pill's own 32px plus its 16px gap, against a row pitch that leaves
+ * 22px between two chips. That 46 is 35 of the current row's 86px of extra pitch.
+ *
+ * IT CANNOT SIMPLY BE DROPPED, and the arithmetic is why rather than a look. With
+ * the swing now bounded inside a 110px lane the cycle's steps are 8.5 and 17px
+ * off centre, so two consecutive chips are only 8.5px apart horizontally on half
+ * the transitions. A 76px pill reaching 24px above its own chip would land on the
+ * chip above it on those rows. Overlap, not clearance.
+ *
+ * So it moved into the NAME TRACK, stacked directly over the name, where the row
+ * already has the chip's 64px to spend and the pill costs nothing. In flow, no
+ * absolute positioning, no reserved headroom, and the pitch is 86 on every row.
+ *
+ * THE TAIL TURNS. It pointed down at the chip below it; it points LEFT at the
+ * chip beside it. Same job, same speech-tag reading, and it is the reported
+ * divergence from blueberry_r7-states-sheet: the sheet draws the tag over the
+ * node. Everything the sheet's own argument was about is kept, which is that the
+ * tag is a small outlined pill quieter than the button it points at, rather than
+ * the solid violet slab with white text that a round once put on top of the one
+ * chip the student is meant to press.
+ *
+ * MEASURED ON THE PAGE, because the page is its ground now and the old note
+ * measured it over cream: --bb-primary-ink on --path-start-fill is 7.92:1 in
+ * light and 8.44:1 in dark, over the 4.5 body floor, and the 2px --bb-primary
+ * border is 6.24:1 and 3.54:1 on --bb-background, over the 3.0 graphics floor.
+ * The fill itself is 1.09:1 and 1.24:1 against the page, so the border is what
+ * draws the pill's edge, which is what it was already doing over the cream.
+ *
+ * A small bob, transform only, and it is horizontal now: the tag leans toward its
+ * chip and back rather than rising, because a vertical bob would be the one
+ * motion that reintroduces the need for headroom above.
+ */
 .path-start {
-  position: absolute;
-  left: 50%;
-  bottom: calc(100% + 16px);
-  transform: translateX(-50%);
+  align-self: flex-start;
+  position: relative;
+  /* The tail's own width, so the pill's TEXT still starts on the name's left
+     edge and the fixed left edge the grid buys is not spent on a decoration. */
+  margin-left: 7px;
   padding: 0.3rem 0.85rem;
   /* A PILL, per the states sheet: fully round ends, not a 14px rounded box. */
   border-radius: 999px;
@@ -995,10 +977,7 @@
    * points at. Outlined, it reads as a speech tag pointing down at the chip,
    * which is what the sheet draws and what a tag is for.
    *
-   * --bb-primary-ink #5b2fc0 on --progress-soft-free ground: measured on the
-   * pale lavender fill below it at 7.4:1, over the 4.5 body floor, and the
-   * 2px --bb-primary border is 6.3:1 on the cream the pill floats over, over the
-   * 3.0 graphics floor. Both were derived rather than assumed.
+   * The ratios are in the block above this rule, re-derived against the page.
    */
   background: var(--path-start-fill);
   color: var(--bb-primary-ink);
@@ -1010,27 +989,81 @@
   animation: path-start-bob 1.6s ease-in-out infinite;
   pointer-events: none;
 }
+/* The tail, pointing LEFT at the chip beside the tag. A rotated square showing
+   two of its borders, the same construction the downward tail used; only which
+   two borders show has changed. */
 .path-start::after {
   content: "";
   position: absolute;
-  left: 50%;
-  top: 100%;
+  top: 50%;
+  right: 100%;
   width: 11px;
   height: 11px;
-  margin-left: -5.5px;
-  margin-top: -7px;
+  margin-top: -5.5px;
+  margin-right: -7px;
   background: var(--path-start-fill);
-  border-right: 2px solid var(--bb-primary);
   border-bottom: 2px solid var(--bb-primary);
+  border-left: 2px solid var(--bb-primary);
   transform: rotate(45deg);
 }
+/* Horizontal, so the tag leans at its chip rather than needing room above it. */
 @keyframes path-start-bob {
   0%,
   100% {
-    transform: translate(-50%, 0);
+    transform: translateX(0);
   }
   50% {
-    transform: translate(-50%, -6px);
+    transform: translateX(-4px);
+  }
+}
+
+/*
+ * IN A FORK CELL THE TAG KEEPS THE STATES SHEET'S OWN GEOMETRY: above the chip,
+ * centred, tail pointing down. And it MUST be out of flow there, which is the one
+ * thing this override exists for.
+ *
+ * A fork cell is a flex column, so an in-flow tag would add its own 32px to that
+ * ONE cell's height and the two arms of an either/or would sit 32px apart again.
+ * That is the stagger this round is fixing, arriving through a different door: the
+ * height has to be reserved on the container (--path-tag-room on
+ * .path-fork__arms) and the tag itself has to cost the cell nothing.
+ *
+ * So the spine gets the relocated tag and the fork keeps the drawn one, and the
+ * reason is the same reason the fork is the one exception for the NAME too: half a
+ * column wide, with its name underneath, so there is no flank to put either on.
+ * The divergence from blueberry_r7-states-sheet is therefore on the spine only.
+ *
+ * THE CENTRING USES `translate` AND THE BOB USES `transform`, deliberately. They
+ * are separate properties, so the animation cannot clobber the -50% the way it
+ * would if both rode `transform`; that is exactly the bug the old
+ * `translate(-50%, -6px)` keyframes existed to work around, and it does not need
+ * working around any more.
+ */
+.path-fork__cell .path-start {
+  position: absolute;
+  left: 50%;
+  /* The 2px of the 34px --path-tag-room that is not the pill itself. */
+  bottom: calc(100% + 2px);
+  translate: -50% 0;
+  margin-left: 0;
+  animation-name: path-start-bob-up;
+}
+.path-fork__cell .path-start::after {
+  top: 100%;
+  right: auto;
+  left: 50%;
+  margin: -7px 0 0 -5.5px;
+  border: 0;
+  border-right: 2px solid var(--bb-primary);
+  border-bottom: 2px solid var(--bb-primary);
+}
+@keyframes path-start-bob-up {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
   }
 }
 
@@ -1042,53 +1075,205 @@
    almost always sees one limb of the wave and nothing else, which is a monotonic
    diagonal drift; a blind critic read exactly that, an indented list rather than
    a path. At period four every screen contains a turn. See trackWind(). */
+/*
+ * ONE SEAM NUMBER FOR THE WHOLE COLUMN, and this is what replaces the seam zoo.
+ *
+ * The g1 capture reconstructed four different section seams, 12 / 27 / 14 / 12,
+ * plus a 108px gap between two spine chips that ought to have been 86:
+ *
+ *   86  = 11 + 64 + 11                    two rows inside one list
+ *   108 = 32 + 11 + 8 + 12 + 12 + 32      the SEAM: the row's own 11, the list's
+ *                                         py-2 (8), the flex gap (12), and the
+ *                                         fork's padding-top (12)
+ *
+ * None of those numbers was wrong on its own. What was wrong is that there were
+ * five of them, each authored by whichever block was being worked on that round,
+ * and they add up differently at every boundary. A reader does not see five
+ * decisions, they see a column whose rhythm stutters.
+ *
+ * So the pitch between any two chips on the spine is ONE number: a 64px chip plus
+ * two seams. 11px gives 86, which is the pitch the column already had inside a
+ * list, and is the tighter of the two measured values rather than a new one.
+ * Against the bar, and this is why 86 rather than the 164 the capture measured on
+ * Brilliant: pitch only means anything over node size. 86 / 64 is 1.34 and
+ * Brilliant's 164 / 134 is 1.22, so the rhythm is already the more generous of
+ * the two. Putting 164 on a 64px chip would be 2.56, twice the bar's ratio, and
+ * five nodes would no longer fit a viewport.
+ *
+ * Everything that sits between two chips reads this: the row's own padding, the
+ * lists' (their py-2 is gone), the unit section's (its gap-3 is gone), the fork's
+ * padding and gaps, and the gate's top. A block that wants more room than a seam
+ * says so in seams.
+ */
+:root {
+  --path-seam: 11px;
+  /*
+   * THE START TAG'S HEADROOM, and it is only ever spent in the FORK.
+   *
+   * On a spine row the tag lives in the name track and costs nothing. A fork cell
+   * is half a column wide and carries its name UNDER its chip, so it has nowhere
+   * sideways to put a tag and the tag stays above the chip: 32px of pill plus 2,
+   * the smallest gap that still reads as a tag over a chip rather than a label
+   * stuck to it.
+   *
+   * IT IS RESERVED UNCONDITIONALLY, on the fork's two containers, never on the
+   * cell that happens to be current. That is the whole fork-arm stagger fix: a
+   * per-cell reservation offset one arm of an either/or from the other by 52px and
+   * a capture agent read the result as a deliberate sequence. Equal padding cannot
+   * stagger anything. It costs 34px twice per fork, against the 52 + 62 it
+   * replaces.
+   */
+  --path-tag-room: 34px;
+}
+
+/*
+ * A ROW IS FOUR TRACKS, and that is round three's structural fix. It replaces a
+ * single centred cell with three pieces of furniture absolutely positioned over
+ * it, each choosing its own side per row.
+ *
+ *   [ mascot lane ][ node lane ][ gap ][ name ]
+ *         72     +      110    +  20  +  142   = 344 at 390pt
+ *         72     +      110    +  20  +  246   = 448 at max-w-md
+ *
+ * 344 is measured, not assumed: the g1 capture measured .path-gate at 344 on a
+ * 390pt phone and 448 at max-w-md, so the page reserves 23px a side.
+ *
+ * WHY, because the widths only make sense against the defect. Three things used
+ * to move from row to row: the name took one of three placements
+ * (left / right / under), the mascot took whichever flank the chip had vacated,
+ * and the chip swung 265px across the whole column. A critic named the
+ * consequence rather than the cause: "the label chip has NO FIXED RELATIONSHIP
+ * to its node ... fixing pitch will not make the column read as a line while the
+ * label moves every row." The three are ONE defect. A name can only take a fixed
+ * side once the node stops crossing the column, so the swing had to shrink
+ * first, and once the name has a column the current row stops needing the
+ * under-card that was 51 of its 86px of extra pitch.
+ *
+ * THE NODE LANE IS 110 = the chip's own 76 plus 34 of swing. The spine step is
+ * min(10px, 2.6vw), so the cycle's peak (1.7) is 17px and the total travel is 34.
+ * Against the bar, which is the only reason 34 is the number: Brilliant swings
+ * 59px on a 128px node, 0.46 node widths; this is 34 on 76, 0.45. Proportionally
+ * the same road at a fifth of the absolute travel, and the chip's outer edge at
+ * the peak lands at 17 + 38 = 55, exactly the lane's half width, so a chip can
+ * never leave its lane.
+ *
+ * THE GAP IS 20 and it is doing one job: absorbing the loop chips. A detour bows
+ * to 2.55 steps on the loop's own min(14px, 3.6vw), which is 35.7px, so its
+ * outer edge reaches 35.7 + 38 = 73.7 from the lane's centre against a 55px half
+ * lane. It overhangs 18.7px into this 20px gap and never reaches the name. Its
+ * narrowest chip, 0.72 * 2.55 * 14 = 25.7, is still outboard of the spine's
+ * widest 17, which is the property pathwayBranchDensity asserts about the pure
+ * function and which this CSS must not contradict.
+ *
+ * `column-gap` is 0 and the gap is its own track, because the mascot lane and
+ * the node lane have to be ADJACENT: the mascot is positioned off the node
+ * lane's left edge, so a gap between them would open a hole the arithmetic above
+ * does not account for.
+ */
 .path-row {
   --wind: 0;
-  /* THE WIND STEP GREW, because the label column that used to eat two thirds
-     of the row is gone. min(78px, 17vw) is 66px on a 390pt phone, so a 1.7
-     step swings the chip 112px off the centreline and the trail between two
-     rows is a genuine turn rather than the 40px kink it was. The chip is
-     4.75rem wide, so its outer edge lands 150px from centre against 195px of
-     half column: inside, at the tightest width in the product. */
-  --wind-step: min(78px, 17vw);
-  padding: 11px 0;
+  /* See the note above: 10px at 390pt, so the peak is 17 and the travel is 34. */
+  --wind-step: min(10px, 2.6vw);
+  /* 72px. The bound is the chip's leftmost position at any spine wind:
+     72 + 55 - 17 - 38 = 72, so a 72px box at the row's left edge abuts the chip
+     and never overlaps it. PathwayTab's MASCOT_PX is the same number and
+     pathwayRowLanes.test.ts pins the pair. */
+  --path-mascot-lane: 4.5rem;
+  --path-node-lane: 6.875rem;
+  --path-name-gap: 1.25rem;
+  display: grid;
+  grid-template-columns: var(--path-mascot-lane) var(--path-node-lane) var(--path-name-gap) 1fr;
+  column-gap: 0;
+  align-items: center;
+  /* ONE SEAM NUMBER, everywhere. Half the 22px a pitch of 86 leaves between two
+     64px chips, so two rows inside one list and two rows across a list boundary
+     are the same distance apart. See --path-seam. */
+  padding: var(--path-seam) 0;
+}
+/*
+ * THE NODE LANE, which is also the positioning context for the mascot.
+ *
+ * Putting the mascot here rather than in its own grid cell is what stops the
+ * chip's height being written down twice: `bottom: 0` against this box IS the
+ * chip's base line, whatever the chip's tokens add up to, and whatever the name
+ * beside it wraps to.
+ */
+.path-row__lane {
+  grid-column: 2;
+  position: relative;
   display: flex;
   justify-content: center;
 }
 /*
- * THE WIND MOVES THE NODE, NOT THE ROW/*
- * THE WIND MOVES THE NODE, NOT THE ROW, and that is round two's fix rather than
- * a tidy-up.
- *
- * Translating the whole row slid its label column off the side of the track
- * with it, and the label was clipped by `overflow: hidden` mid glyph:
- * "Allylic/resonance" lost its final letter with no ellipsis, on a phone, on
- * the first node of the first unit. Worse, the space the node VACATED on the
- * other side went to nothing, so the layout threw away up to 66px of room on
- * exactly the row that needed it.
- *
- * So the node carries the offset itself, the label keeps its column, and the
- * label is then allowed to grow BACK into the gap the node opened by the same
- * distance. A label opposite a node that swung 66px away is 66px wider than one
- * beside a node sitting on the centreline. Both margins below are negative in
- * the only case each is applied, because the label always sits on the side the
- * node swung away from.
+ * THE WIND MOVES THE NODE, NOT THE ROW, and that survives from round two: a
+ * translate on the row slid the name off the side of the track with it and the
+ * label was clipped mid glyph. Now the lane is fixed furniture and only the chip
+ * inside it moves, which is also why the swing can be bounded at all.
  */
 .path-row__slab {
   position: relative;
   transform: translateX(calc(var(--wind) * var(--wind-step)));
 }
-/* The START tag floats above the current node and Berry stands beside it at
-   full body, so that row alone gets the headroom for both; every other row
-   stays on the tight pitch. A 95px character standing on the chip's base
-   line rises about 27px past the chip's top, which is inside the 46 the
-   pill already reserves. The FOOT grew instead: the current row is the one
-   row whose name card hangs underneath (see NodeLabel's call site), and 44px
-   is a two-line card plus its gap. */
-.path-row--current {
-  padding-top: 46px;
-  padding-bottom: var(--path-label-drop);
+/*
+ * THE MASCOT'S LANE. It hangs off the node lane's left edge, so it occupies
+ * exactly the first grid track and nothing else, on every row, whether or not
+ * this row carries a mascot.
+ *
+ * ABSOLUTE, and deliberately: a 72px square in a 64px row would otherwise make
+ * the current row 8px taller than every other one, which is the pitch spread
+ * coming back in through a different door. Here it overflows UPWARD into the
+ * 22px seam above, and what is above it in this track is the previous row's
+ * mascot lane, which is empty on every row but this one. So the overflow is free
+ * by construction rather than by luck.
+ *
+ * `bottom: 0` puts the character's feet on the chip's own base line, which IS
+ * the ground in this landscape: the chip is a key pressed into the page and its
+ * lower rim is where it meets the paper.
+ */
+.path-row__mascot {
+  position: absolute;
+  bottom: 0;
+  right: 100%;
+  width: var(--path-mascot-lane);
+  line-height: 0;
+  pointer-events: none;
+  z-index: 3;
 }
+/*
+ * THE NAME TRACK. In flow, last track, every row, every state.
+ *
+ * The START tag stacks over the name rather than sitting beside it: a tag and a
+ * name on one line would push the name's first word a tag's width into the
+ * column on current rows only, which would throw away the fixed left edge this
+ * whole grid exists to buy.
+ *
+ * It costs the row no height. The tag is about 32px and one line of name is
+ * about 15, so a current row's name track is about 51px against the chip's 64.
+ */
+.path-row__name {
+  grid-column: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  min-width: 0;
+}
+/*
+ * THE CURRENT ROW IS ON THE SAME PITCH AS EVERY OTHER ROW, and this rule is
+ * what is left of the two paddings that made it 172px tall.
+ *
+ * It used to carry `padding-top: 46px` for the START pill floating above the
+ * chip and `padding-bottom: var(--path-label-drop)` (62px) for the name card
+ * hanging underneath. Both are gone because both pieces of furniture moved into
+ * the name track, where the row already has 64px of height to spend. That is the
+ * whole 86px of extra pitch: 51 from the under-card and 35 from the pill.
+ *
+ * So there is NO `.path-row--current` rule any more, and the class went with it:
+ * the row still carries `data-node-state="current"`, which is what the fork cell
+ * already selects on, and the chip's own halo plus the scroll target key off
+ * `aria-current`. A class with no declarations is a hook the next stylesheet
+ * writes a special case into.
+ */
 /*
  * THE DIMMED SIDE LOOP, docs/DESIGN-GOALS.md's third branch shape.
  *
@@ -1107,20 +1292,36 @@
 .path-row--loop {
   /*
    * THE DETOUR HAS TO CLEAR THE SPINE'S OWN PEAK, or it reads as another kink
-   * in the road. The spine peaks at wind 1.7 on a 78px step, which is 133px
-   * off centre; a detour bows between 1.84 and 2.55 on this 62px step, which
-   * is 114 to 158px, so its narrowest chip already sits outboard of the
-   * spine's widest and its outer edge (158 + the chip's own 38) stays inside
-   * the 195px half column at 390pt.
+   * in the road, AND IT MUST NOT REACH THE NAME. Both bounds, re-derived on the
+   * lane rather than on the column, because the spine step shrank from 78 to 10.
+   *
+   * On a 14px loop step at 390pt, loopWind bows a run between 1.84 and 2.55:
+   *
+   *   narrowest  0.72 * 2.55 * 14 = 25.7   outboard of the spine's peak of 17,
+   *                                        which is what pathwayBranchDensity
+   *                                        asserts about the pure function and
+   *                                        what this CSS must not contradict
+   *   widest          2.55 * 14   = 35.7   plus the chip's own 38 is 73.7 from
+   *                                        the lane's centre, against a 55px
+   *                                        half lane: it overhangs 18.7px into
+   *                                        the 20px name gap and stops there
+   *
+   * A loop row can never carry the mascot (a detour is always a `branch` node and
+   * deriveMapPathway never makes a branch current), so an overhang to the LEFT
+   * lands in an empty mascot lane and one to the RIGHT lands in the gap. Neither
+   * can touch anything.
    */
-  --wind-step: min(62px, 14vw);
+  --wind-step: min(14px, 3.6vw);
   /*
-   * 3px WAS THE BUG. A chip is 66px tall, so a 3px pad put consecutive
-   * detour chips 6px apart and the detour's own trail was drawn entirely
-   * underneath them: a critic looking at the built page saw a column of
-   * chips with no connector, which is the trail-is-code rule failing even
-   * though the geometry was right. 9px shows 18px of ribbon between chips,
-   * which is what makes the run read as strung on one loop.
+   * TIGHTER THAN A SPINE SEAM ON PURPOSE: a detour is an aside, so a run of them
+   * reads as one thing strung off the road rather than as more road. 9px against
+   * the spine's 11.
+   *
+   * 3px WAS THE BUG this replaced. A chip is 64px tall, so a 3px pad put
+   * consecutive detour chips 6px apart and the detour's own trail was drawn
+   * entirely underneath them: a critic looking at the built page saw a column of
+   * chips with no connector. The ribbon is deleted now, but the reason the gap
+   * has to be visible is the same one.
    */
   padding: 9px 0;
 }
@@ -1211,129 +1412,75 @@
 }
 
 /*
- * THE NODE NAME CARD. docs/DESIGN-GOALS.md, owner 2026-09-03: "NAME LABELS
- * ARE DEFAULT AND ALWAYS VISIBLE. Cream cards attached beside each node
- * carrying the real lesson name. Never on hover, never a reveal."
+ * THE NODE NAME, and round three made it NAKED TEXT.
  *
- * ABSOLUTE, so it costs the layout nothing. The previous label column took a
- * third of the row and squeezed the wind to a 40px kink; this card hangs off
- * the slab, which is the element the wind already moved, so the chip keeps
- * the full column to swing in and the name still lands on the side the chip
- * vacated. A card can therefore never move a node, shrink a hit target or
- * clip a title against the column edge, which were the three costs that made
- * the old column worth deleting.
+ * docs/DESIGN-GOALS.md, owner 2026-09-03: "NAME LABELS ARE DEFAULT AND ALWAYS
+ * VISIBLE ... carrying the real lesson name. Never on hover, never a reveal."
+ * That clause is intact and is the reason a name is here at all. What changed is
+ * everything the name used to be wrapped in.
  *
- * PLATED, and load bearing: the trail runs down the middle of the column, so
- * an unplated name would have a ribbon drawn through its glyphs. Cream card,
- * a real border like every card in this app (white on cream is 1.10:1, so the
- * structural-border rule in theme.css applies), body ink at 10.65:1 on it.
+ * IT IS IN FLOW, IN ITS OWN TRACK. It used to be absolutely positioned off the
+ * slab on whichever flank the chip had vacated, which is why it needed
+ * --label-room: a formula recomputing the available width from the wind on every
+ * single row, because the flank it hung on was a different size every time. With
+ * a name TRACK the width is the track (142px at 390pt, 246 at max-w-md), the same
+ * on every row, and the formula, the three placement classes and the
+ * --path-label-side sign all go with it.
  *
- * THE CLIP IS GONE, pixel verdict of 2026-09-04: "cards COLLIDE with node
- * bodies and truncate with an ellipsis. Truncated labels appear nowhere in
- * the reference." Measured on the built page before the change: 31 of 207
- * cards were clipping, and the clause is the right way round, because a
- * label that does not fit is a LAYOUT that is wrong rather than a label that
- * is too long. So the three-line clamp is deleted and the room is computed
- * instead: see --label-room below.
+ * THE PLATE IS GONE. It was load bearing exactly once: the drawn trail ran down
+ * the middle of the column and would have crossed the glyphs. The owner deleted
+ * the trail on 2026-09-23 ("even get rid of the path connections, just give it a
+ * glow") and nothing has run through this text since. What it still cost was a
+ * second rectangle on every row, and a critic counted exactly that. It was also
+ * a plate that could not draw its own edge: 1.05:1 against the page in light and
+ * 1.18:1 in dark, which is why it needed a two-stop shadow to be visible as a
+ * shape at all. No plate, no border, no shadow, no z-index, no corner radius.
  *
- * THE BORDER IS GONE TOO, and a soft shadow replaces it. The reference's card
- * (docs/reference/design-goals/units/unit02-path.jpg, the "Heterocycles" card
- * enlarged with measurements/_probe-ref-card.mjs) is a warm cream rounded
- * rectangle with NO stroke anywhere on it and a soft shadow below and right.
- * A 1.5px --bb-border on a near-white card is what made these read as boxes.
+ * MEASURED ON THE PAGE'S OWN GROUND, which is the ground it sits on now:
+ * --bb-foreground on --bb-background is 14.28:1 in light and 15.81:1 in dark,
+ * over the 4.5 body floor. Nothing here is a graphic, so 1.4.11 does not apply
+ * to it; the leading icon is measured separately below.
  *
- * The structural-border rule in theme.css is not being dodged: that rule
- * exists so a card is identifiable against the surface it sits on, and this
- * card now carries a cast shadow doing exactly that job. Measured, the same
- * way the chip's cast shadow is: --bb-card #f6f2e7 on the lightest plate
- * #f9f3e6 is 1.02:1, which is why the shape needs a boundary at all, and the
- * shadow is a real painted boundary rather than a hairline one.
- *
- * THE CORNER IS 12px, on a card that is about 25px tall on a phone. Measured
- * off the reference at 6x: its card is 38 image pixels tall with a 9 pixel
- * corner, a ratio of 0.24, which on our 25px card is 6px; 12 is the same
- * language a touch more generous, and it is what "fully rounded" reads as on
- * a card that is sometimes two lines. It is deliberately NOT a 999px pill:
- * the reference's own two-line cards are not stadiums.
+ * NOTHING TRUNCATES, which survives from the pixel verdict of 2026-09-04
+ * ("cards COLLIDE with node bodies and truncate with an ellipsis. Truncated
+ * labels appear nowhere in the reference"). No clamp, no ellipsis, no hidden
+ * overflow: a name that does not fit wraps, and the row grows if it has to. A
+ * name has to reach five lines before it is taller than the chip beside it, so
+ * in practice it never moves the pitch.
  */
 .path-label {
-  position: absolute;
-  top: 50%;
-  z-index: 2;
-  box-sizing: border-box;
-  /*
-   * HOW MUCH ROOM THERE ACTUALLY IS, rather than one number for every row.
-   *
-   * The chip swings --wind steps off the centreline, so the flank the card
-   * hangs on is a different width on every row: a chip at +1.7 leaves 240px
-   * to its left on a 390pt phone and a chip at +0.3 leaves 130. A single
-   * max-width has to be the SMALLEST of those to be safe, which is what made
-   * the wide rows clip a title they had room for.
-   *
-   * half the column, plus the swing, minus half a chip, minus the gap, minus
-   * the page's own edge padding. The floor is 8rem so a card is never a
-   * one-word-per-line ribbon; --path-label-side is +1 for a card on the left
-   * (which gains room as the chip swings right) and -1 for one on the right.
-   */
-  --label-room: max(
-    8rem,
-    calc(min(50vw, 14rem) + var(--path-label-side, 1) * var(--wind, 0) * var(--wind-step, 0px) - 2.375rem - 0.6rem - 0.5rem)
-  );
-  max-width: var(--label-room);
-  padding: 0.25rem 0.55rem;
-  border-radius: 12px;
-  background: var(--bb-card);
-  border: none;
-  /*
-   * THE SHADOW IS THE BOUNDARY, and it is measured rather than assumed.
-   *
-   * theme.css carries a structural-border rule ("white on cream is 1.10:1, so
-   * a card carries a border"), and this card is the one place in the tab that
-   * does not follow it. That is the pixel verdict's instruction in as many
-   * words: "warm cream, fully rounded, NO BORDER STROKE, soft shadow", and
-   * the enlarged reference card (measurements/_probe-ref-card.mjs on
-   * unit02-path.jpg) has no stroke on it anywhere and a clear shadow below.
-   *
-   * THE DIVERGENCE IS REPORTED WITH ITS NUMBERS rather than waved through.
-   * The card surface is 1.05:1 on the page in light and 1.18:1 in dark, so
-   * the plate does not separate itself and the shadow is what draws its
-   * edge. The alphas below are the strongest that still read as a shadow
-   * rather than as a smudge, measured by measurements/_probe-path-pairs.mjs.
-   *
-   * WHAT DOES NOT MOVE: the reading. --bb-foreground on --bb-card is 12.45:1 in
-   * light and 11.84:1 in dark, well over the 4.5 body floor, and the text is
-   * the content here. WCAG 1.4.11 scopes to interface components and to
-   * graphics required to understand content; a plate behind a fully legible
-   * label is neither, which is the same argument the terrace plates make.
-   */
-  box-shadow: 0 1px 2px rgb(52 41 18 / 0.18), 0 4px 10px rgb(52 41 18 / 0.2);
+  display: flex;
+  align-items: baseline;
+  gap: 0.3rem;
+  min-width: 0;
   color: var(--bb-foreground);
   font-size: 0.72rem;
   font-weight: 600;
   line-height: 1.25;
   text-align: left;
-  /* No clamp and no hidden overflow: nothing on this tab truncates. */
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
   pointer-events: none;
 }
 /*
  * THE LEADING ICON, where the reference has one. unit01-path.jpg puts a
  * stopwatch before "X2 addition to dienes", a lightbulb before "1,2- vs
  * 1,4--Addition", a play triangle before "Allylic halogenation" and the
- * mechanism arrow before "Kinetic vs thermodynamic control": the card
- * carries the same motif its chip does, so the kind is readable from the
- * name as well as from the face.
+ * mechanism arrow before "Kinetic vs thermodynamic control": the name carries
+ * the same motif its chip does, so the kind is readable from the name as well as
+ * from the face.
  *
- * It is the BODY ink rather than the engrave tone, because here it is a mark
- * on a card and not a cut in a chip: --bb-foreground on --bb-card is 10.65:1.
+ * RE-MEASURED on the page rather than on the deleted card. --bb-foreground at
+ * 0.75 opacity composites to #4f5a6d on the light page (6.49:1) and #b6bcc5 on
+ * the dark one (9.30:1), both over the 3.0 floor an identifiable graphic needs.
  */
 .path-label__icon {
   flex: 0 0 auto;
   width: 0.95rem;
   height: 0.95rem;
   overflow: visible;
+  /* A hair down, so the mark sits on the text's baseline rather than on its
+     ascender line. Baseline alignment on a flex box aligns the icon's bottom
+     edge, and an icon is drawn to its own box rather than to a font's metrics. */
+  transform: translateY(0.14rem);
   /* currentColor and NOT none, which is the same painting the engraved motif
      gets on the chip. Most motif paths carry `fill="none"` as an attribute and
      override this; the ones that do not are the shapes whose ATOMS are solid
@@ -1346,44 +1493,61 @@
 .path-label__text {
   min-width: 0;
 }
-/* At night a warm shadow disappears into an indigo page, so the card's edge
-   is drawn in black instead. Measured the same way; see the light rule. */
-.dark .path-label {
-  box-shadow: 0 1px 2px rgb(0 0 0 / 0.5), 0 4px 10px rgb(0 0 0 / 0.45);
-}
-/* Beside the chip, on the side it swung away from. The translate is what puts
-   the card's own middle on the chip's, without a flex context to do it. */
-/* The icon LEADS on both flanks, which is what unit01-path.jpg draws: the
-   stopwatch is at the head of "X2 addition to dienes" on the left flank and
-   the lightbulb at the head of "1,2- vs 1,4--Addition" on the right one. It
-   is a leading icon, not a mark on the side nearest the chip. */
-.path-label--left {
-  --path-label-side: 1;
-  right: calc(100% + 0.6rem);
-  transform: translateY(-50%);
-  text-align: left;
-}
-.path-label--right {
-  --path-label-side: -1;
-  left: calc(100% + 0.6rem);
-  transform: translateY(-50%);
-}
 /*
- * Under the chip and centred, for a fork cell, a hub petal and the unit gate.
- * blueberry_branch-diamond names the fork's parts over and under them rather
- * than beside them, because a fork cell is half a column wide and has no side
- * to hang a card on.
+ * THE ONE EXCEPTION, and it is the fork cell. Under the chip and centred,
+ * because a fork cell is half a column wide and genuinely has no flank to put a
+ * name on: blueberry_branch-diamond names the fork's parts over and under them
+ * for the same reason.
+ *
+ * IN FLOW HERE TOO, which is the fork's half of the pitch fix. It used to be
+ * absolutely positioned, so it cost the cell no height and the cell reserved a
+ * blanket 62px (--path-label-drop) underneath itself in case a three-line name
+ * turned up. That reservation was on EVERY fork cell whatever its name actually
+ * needed, and it is the 62 in the measured 148px seam. A cell whose name is one
+ * line now costs one line.
+ *
+ * It keeps the plate, and that is not an inconsistency with the spine. A fork
+ * cell's name sits UNDER its chip with the next row's chip below it, so it is
+ * the one name on this surface that has an object on both sides of it; the plate
+ * is what keeps it from reading as a caption belonging to the chip beneath.
+ * Measured: --bb-foreground on --bb-card is 15.32:1 in light and 13.83:1 in dark.
  */
 .path-label--under {
-  top: calc(100% + 0.4rem);
-  left: 50%;
-  transform: translateX(-50%);
-  /* A fork cell is half a column, so this card's room is the cell's own
-     width and not the flank's. It does not clamp either: nothing on this
-     tab truncates. */
-  max-width: min(9.5rem, 44vw);
-  text-align: center;
+  align-self: stretch;
   justify-content: center;
+  box-sizing: border-box;
+  /*
+   * A fork cell is half a column, so the name's room is that half and not the
+   * flank's. It does not clamp either: nothing on this tab truncates.
+   *
+   * THE SECOND TERM IS THE HALF COLUMN, computed, and it was 44vw, guessed. The
+   * width sweep (scratchpad/g2-widths.mjs, resolving the emitted stylesheet at
+   * nine viewport widths) caught it: the arms grid is `1fr auto 1fr` with a 12px
+   * gap and the "or" between them, so one cell's track is about
+   * `50vw - 23 - 21` = `50vw - 44px`. 44vw is WIDER than that at every width, by
+   * 1px at 390pt and by 25px at 320, so a long fork name could reach out of its
+   * own cell and across the word that makes the fork an either/or.
+   *
+   * This is a pre-existing overflow rather than something this round introduced,
+   * and it is fixed here rather than reported because this rule is one this round
+   * was rewriting anyway: the name moved from absolute to in flow, and a
+   * max-width that does not match the box is exactly the kind of thing that
+   * change would otherwise bake in.
+   */
+  max-width: min(9.5rem, calc(50vw - 44px));
+  padding: 0.25rem 0.55rem;
+  border-radius: 12px;
+  background: var(--bb-card);
+  /* The plate cannot draw its own edge (1.05:1 on the page in light, 1.18:1 in
+     dark), so the shadow is its boundary, which is what the pixel verdict asked
+     for by name: "warm cream, fully rounded, NO BORDER STROKE, soft shadow". */
+  box-shadow: 0 1px 2px rgb(52 41 18 / 0.18), 0 4px 10px rgb(52 41 18 / 0.2);
+  text-align: center;
+}
+/* At night a warm shadow disappears into a dark page, so the plate's edge is
+   drawn in black instead. Measured the same way; see the light rule. */
+.dark .path-label--under {
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.5), 0 4px 10px rgb(0 0 0 / 0.45);
 }
 /* The guidebook link on the generic track's signpost: a 44px round press,
    the touch floor, sitting at the rule's right end rather than inside the
@@ -1407,9 +1571,15 @@
  * The unit gate's own row. It paints nothing: the arch IS the marker, and the
  * outlined rectangle this used to draw around it was a box around nothing on
  * the twelve units with no authored checkpoint.
+ *
+ * ONE SEAM ABOVE, so the checkpoint chip that now precedes the arch on every unit
+ * is the same distance from it as any two chips are from each other. Slightly
+ * more below, because what follows is the next unit and a boundary may be wider
+ * than a step; it is stated in seams so it cannot drift into a fifth number.
  */
 .path-gate {
-  padding: 4px 0 10px;
+  padding-top: var(--path-seam);
+  padding-bottom: calc(var(--path-seam) * 2);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -1602,8 +1772,50 @@
   letter-spacing: 0.09em;
   text-transform: uppercase;
   color: var(--bb-muted-foreground);
-  margin: 0.9rem 0 0.1rem;
+  /* In seams: two above, because a heading is a break in the column and is
+     allowed to be, and one below so it sits with the rows it names rather than
+     floating between two groups. */
+  margin: calc(var(--path-seam) * 2) 0 var(--path-seam);
   padding-inline: 0.25rem;
+}
+/*
+ * A TOPIC THE COURSE ONLY MENTIONS, drawn as text and never as a chip. See the
+ * path-mention list in PathwayTab.tsx for why. Everything here is chosen to
+ * read as a footnote to the side quests rather than as a sixth one: no face, no
+ * well, no press, the muted ink, and a book mark rather than a node motif, so
+ * nothing about it borrows the vocabulary of something a student can start.
+ * Colours are the tab's own tokens, so both themes are already measured: the
+ * muted ink on the page is 5.79:1 in light and 8.43:1 in dark (g2-contrast).
+ */
+.path-mention {
+  display: flex;
+  flex-direction: column;
+  gap: var(--path-seam);
+  margin: var(--path-seam) 0 0;
+  padding: 0 0.25rem;
+  list-style: none;
+}
+.path-mention__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  color: var(--bb-muted-foreground);
+}
+.path-mention__icon {
+  flex: 0 0 auto;
+  width: 1.1rem;
+  height: 1.1rem;
+  margin-top: 0.05rem;
+}
+.path-mention__text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  font-size: 0.75rem;
+  line-height: 1.3;
+}
+.path-mention__name {
+  font-weight: 700;
 }
 .path-pager__name {
   font-size: 0.9rem;
@@ -1892,12 +2104,14 @@
 .path-fork {
   display: flex;
   flex-direction: column;
-  gap: 22px;
-  padding: 12px 0 18px;
-}
-.path-fork__concept {
-  display: flex;
-  justify-content: center;
+  /* The concept is the trunk's last ROW now (PathwayTab, 2026-09-29), so this
+     block holds only the arms: one seam below the concept row's own seam puts the
+     arms one pitch under it, on the column's rhythm. The concept's START tag
+     rides its row's name track like every other step, so the room this block
+     used to reserve above a centred concept (--path-tag-room on top of the seam)
+     went with the centred concept; the arms still reserve theirs, below. */
+  padding-top: var(--path-seam);
+  padding-bottom: var(--path-seam);
 }
 /*
  * THE ARMS, WITH THE WORD BETWEEN THEM. The middle track is the "or": two
@@ -1911,7 +2125,35 @@
   grid-template-columns: 1fr auto 1fr;
   gap: 12px;
   justify-items: center;
+  /*
+   * START, AND THE TWO ARMS MUST STAY LEVEL. `align-items: start` is what makes
+   * the stagger below visible, and it is also what makes the fix work: with both
+   * arms starting at the same y, the only thing that could offset one of them was
+   * a per-cell padding, and that is now gone. See .path-fork__cell.
+   */
   align-items: start;
+  /*
+   * THE PILL'S HEADROOM, RESERVED ON THE CONTAINER AND NOT ON THE CELL.
+   *
+   * A current fork ARM still carries the START tag, and inside a fork cell the tag
+   * has nowhere sideways to go: the cell is half a column wide and the name sits
+   * under the chip, so the tag stays above it. It therefore needs real headroom,
+   * and the previous build bought that with
+   * `.path-fork__cell[data-node-state="current"] { padding-top: 52px }`.
+   *
+   * THAT WAS THE WORST DEFECT ON THIS SURFACE and it was not the pitch. Unit 1's
+   * current node is a fork ARM, so one arm of an either/or got 52px of padding
+   * and the other got none: the two arms sat 52px apart vertically. A capture
+   * agent read that stagger as a deliberate "or" fork. It was not deliberate. Two
+   * options that are genuinely parallel (nothing mid-unit locks, so both arms are
+   * open at once) were drawn as a sequence, which is the single thing this fork
+   * exists not to say.
+   *
+   * Reserving it HERE costs 34px once, at the top of both arms, whichever of them
+   * is current and whether either is. Equal padding cannot stagger anything.
+   * The number itself is --path-tag-room, declared once beside --path-seam.
+   */
+  padding-top: var(--path-tag-room);
 }
 /*
  * Quiet on purpose: it is a conjunction, not a control, and it sits between
@@ -1935,44 +2177,39 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 18px;
+  /* Two seams, the same pitch the spine runs at, now that a cell's name takes
+     its own real height instead of the blanket 62 the cell used to reserve. */
+  gap: calc(var(--path-seam) * 2);
 }
 /*
- * ROOM FOR THE CARD THAT HANGS UNDERNEATH.
+ * THE FORK CELL, and the blanket reservation under it is DELETED.
  *
- * A .path-label--under is absolutely positioned, so it costs the layout
- * nothing and reaches as far down as its own text does. That is what the
- * pixel verdict measured as "cards COLLIDE with node bodies": on the built
- * page 27 cards met a chip, and every one of them was an under card reaching
- * into the block BELOW it, a fork cell or the unit gate. None of them was a
- * card meeting its own chip.
+ * It carried `padding-bottom: var(--path-label-drop)`, a flat 62px on EVERY cell,
+ * because the name under the chip was absolutely positioned and therefore cost
+ * the cell no height at all. 62 was the tallest a three-line name could ever be,
+ * so every cell paid for the worst case whatever its own name needed: that is the
+ * 62 in the 148px seam the g1 capture reconstructed, and it was the larger of the
+ * two causes of the 1.72x pitch spread.
  *
- * So the container reserves the card's height instead. --label-drop is that
- * height: 0.4rem of gap plus three lines of 0.72rem text at 1.25 leading plus
- * the card's own 0.5rem of padding, which is the tallest a card can be now
- * that nothing clamps. Declared once and used by both blocks that carry an
- * under card, so the two cannot drift.
+ *   148 = 62 + 22 + 64      the cell's blanket reservation, the fork's gap, and
+ *                           the chip itself
+ *
+ * The name is in flow now (see .path-label--under), so a one-line name costs one
+ * line and a two-line name costs two. Nothing is reserved and nothing overlaps,
+ * because the thing that used to overlap was an absolutely positioned card
+ * reaching into the block below it. --path-label-drop is gone with it: it had no
+ * other reader.
+ *
+ * The 52px current-state padding is gone too, and that is the fork-arm stagger.
+ * Its headroom moved to .path-fork__arms, where it applies to both arms equally;
+ * the full argument is there.
  */
-:root {
-  --path-label-drop: 62px;
-}
 .path-fork__cell {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
   max-width: 10rem;
-  padding-bottom: var(--path-label-drop);
-}
-/* The current-state headroom, the same 52px .path-row--current reserves.
-   The attempt-2 critic captured the START pill (bottom: calc(100% + 16px))
-   covering the concept label above a current fork-arm chip, because
-   TrackSlab reserved room for the pill and the fork cell reserved none.
-   Now the pill lands inside the cell's own padding instead of on the
-   neighbour above. In the hub the padding also happens to centre the chip
-   nearer its spoke anchor, so no exception is carved out for it. */
-.path-fork__cell[data-node-state="current"] {
-  padding-top: 52px;
 }
 /* The dimmed side loop: one detour off the spine, pushed to the flank so it
    reads as beside the road rather than on it. */
@@ -2172,6 +2409,20 @@
      vanishing under it. */
   z-index: 1;
 }
+/*
+ * THE HUB KEEPS THE TAG'S HEADROOM, on every cell and not on the current one.
+ *
+ * A hub cell holds the same ForkChip a fork arm does, so a current petal or a
+ * current hub carries the same tag above its chip and needs the same room. It used
+ * to come from `.path-fork__cell[data-node-state="current"]`, which is deleted:
+ * per-cell padding on an absolutely positioned, percent-placed ring would move one
+ * chip off the ring while its neighbours stayed on it, which is the fork-arm
+ * stagger with a different geometry. Applied to every cell it is a uniform shift
+ * of half the padding through the -50% centring, and the ring stays a ring.
+ */
+.path-hub__cell .path-fork__cell {
+  padding-top: var(--path-tag-room);
+}
 /* The centre chip still sits over its own spokes' meeting point; it shares
    the cells' z-index and precedes the petals in the DOM. */
 .path-hub__cell--centre {
@@ -2182,7 +2433,13 @@
   .path-node__face {
     transition-duration: 1ms;
   }
-  .path-start {
+  /* BOTH SELECTORS, and the second is not redundant. The fork's tag sets
+     `animation-name` under `.path-fork__cell .path-start`, which is a more
+     specific selector than `.path-start`, so the shorthand's implied
+     `animation-name: none` here loses to it and the fork's tag would keep
+     bobbing with reduced motion on. Matched specificity, so it does not. */
+  .path-start,
+  .path-fork__cell .path-start {
     animation: none;
   }
   /* No pulse under reduced motion, per the goals: the halo stays as a

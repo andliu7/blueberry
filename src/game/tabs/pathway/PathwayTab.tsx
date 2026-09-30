@@ -70,10 +70,17 @@ export type NodeState = "done" | "current" | "open" | "review" | "locked";
 import {
   economyKindFor,
   PATHWAY_UNITS,
+  unitCheckpointNode,
+  unitName,
+  unitNumber,
   type PathwayNode as MapNode,
   type PathwayUnit as MapUnit,
   type PlayableLink as MapPlayableLink,
 } from "../../demo/pathwayMap";
+/* The two title helpers moved to the data, with the checkpoint node that has to
+   name itself after its unit. Re-exported because they were exported from here
+   and the pathway's own callers read them off this module. */
+export { unitName, unitNumber } from "../../demo/pathwayMap";
 import { deriveMapPathway, statusOf, unitPassed, type MapPathwayStatus } from "./pathwayState";
 import { deriveFreeOrderStates } from "./topicPathway";
 import { HUB_CENTRE, petalPositions } from "./hubPlan";
@@ -194,44 +201,6 @@ export function groupIntoUnits(course: CourseId, nodes: readonly PathwayNode[]):
     });
   }
   return units;
-}
-
-/*
- * THE LEGEND NAMES WHAT THE MAP DRAWS. Two rows added 2026-09-24: the dimmed
- * optional chip and the dashed unauthored one are the two most common faces
- * on Unit 1 (four of the first five chips), and the legend had a row for
- * Review and Locked, which that unit never draws, and none for either of
- * them. A key that omits the commonest state on the page is the legend
- * disagreeing with the map. "dim" and "queued" ride BESIDE state in the data
- * (see pathwayState.ts), so they are swatch names here rather than states.
- */
-const LEGEND: readonly { readonly swatch: NodeState | "dim" | "queued"; readonly label: string }[] = [
-  { swatch: "current", label: "Up next" },
-  { swatch: "done", label: "Done" },
-  { swatch: "review", label: "Review" },
-  { swatch: "open", label: "Open" },
-  { swatch: "dim", label: "Optional" },
-  { swatch: "queued", label: "Not yet built" },
-  { swatch: "locked", label: "Locked" },
-];
-
-/**
- * A map unit's title is authored as "Unit 1 - Conjugation, Resonance & Dienes"
- * with a middot separator. The banner sets the number as its eyebrow and the
- * name as its headline, so the thing a student is looking for is the largest
- * text in the banner. A title with no separator has no number to lift, and
- * keeps the whole string as its name rather than inventing one.
- */
-const UNIT_TITLE_SEPARATOR = " · ";
-
-export function unitNumber(title: string): string {
-  const at = title.indexOf(UNIT_TITLE_SEPARATOR);
-  return at === -1 ? "Unit" : title.slice(0, at);
-}
-
-export function unitName(title: string): string {
-  const at = title.indexOf(UNIT_TITLE_SEPARATOR);
-  return at === -1 ? title : title.slice(at + UNIT_TITLE_SEPARATOR.length);
 }
 
 /**
@@ -537,9 +506,27 @@ function enterHandlers(onOpenNode: OpenNode, sheet: SheetNode, charge: ChargeGat
   };
 }
 
-/** A map node described for the sheet. Pure over the node and its status. */
-function sheetNodeFor(node: MapNode, state: NodeState, practiceHref: string | null): SheetNode {
-  const base = { id: node.id, kind: node.kind, state, title: node.title, blurb: node.blurb, practiceHref };
+/**
+ * A map node described for the sheet. Pure over the node and its status.
+ *
+ * THE HREF IS THE NODE'S OWN, LOCKED OR NOT. Callers used to pass null for a
+ * locked chip, and that was harmless only while a locked chip could not open
+ * the sheet. nodeSheetModel reads a null href as UNAUTHORED, so once locked
+ * chips opened it, every locked lesson would have said "We are still writing
+ * this one". The state already says it is locked, and the model disables START
+ * on that; the href only says whether there is content behind the node.
+ */
+function sheetNodeFor(node: MapNode, state: NodeState, lockedNote?: string): SheetNode {
+  const practiceHref = node.playable === undefined ? null : hrefForPlayable(node.playable);
+  const base = {
+    id: node.id,
+    kind: node.kind,
+    state,
+    title: node.title,
+    blurb: node.blurb,
+    practiceHref,
+    ...(lockedNote === undefined ? {} : { lockedNote }),
+  };
   // The pips are a measurement of the node's own content, not a restatement of
   // its kind. Null means nothing is authored behind it, and the sheet then
   // draws no difficulty row at all. See pathway-sheet/nodeDifficulty.ts.
@@ -687,13 +674,28 @@ function Chip({
       explain why it is shut. onClick does nothing on purpose: the accessible
       name already carries "Opens when the unit before it is done", and
       inventing a destination for a locked node would be the lie.
+
+      AND IT OPENS THE SHEET NOW, 2026-09-29, wherever there is a sheet to
+      open. The owner's "the page when you click on the buttons are
+      nonfunctional" was true of every locked and every unauthored chip: a
+      finger got a press and then nothing, and the reason lived only in the
+      accessible name. The sheet already words both cases (nodeSheetModel's
+      practice note: "Opens when the unit before it is done", "We are still
+      writing this one"), its START row is disabled for them, and the charge
+      node is null, so nothing can be spent. That is Duolingo's locked-node
+      tap, which answers with why rather than with silence. aria-disabled
+      stays only on a chip with no sheet behind it, the one case where the
+      press really does nothing.
     */
     <button
       type="button"
       className={`${chipClass} path-node--press`}
-      aria-disabled="true"
+      aria-disabled={sheetNode === null ? "true" : undefined}
+      aria-haspopup={sheetNode === null ? undefined : "dialog"}
       aria-label={`${label}. ${detail}`}
-      onClick={(event) => event.preventDefault()}
+      {...(sheetNode === null
+        ? { onClick: (event: { preventDefault: () => void }) => event.preventDefault() }
+        : enterHandlers(onOpenNode, sheetNode, null))}
     >
       {face}
     </button>
@@ -715,18 +717,39 @@ function Chip({
  * false for the other committed image and it deletes an owner ruling, so the
  * labels are restored.
  *
- * WHERE IT SITS. On the side the node swung AWAY from, which is the side with
- * room on it: a chip at wind +1.7 has 234px of clear column to its left on a
- * 390pt phone and 10px to its right. The card is absolutely positioned inside
- * the slab, so it takes no part in the row's layout and can never move a
- * chip or shrink the wind, which is the defect that made the previous label
- * column expensive.
+ * WHERE IT SITS, AND THIS IS ROUND THREE'S CORRECTION. It has a COLUMN, and
+ * the column never changes.
  *
- * IT IS PLATED, and the plate is load bearing rather than decorative: the
- * trail runs down the middle of the column and would otherwise draw straight
- * through the glyphs. Same rule as the signpost and the fork labels, so the
- * tab has one rule and not three: NO TEXT IN THIS TAB SHARES A PIXEL WITH THE
- * TRAIL.
+ * It used to be absolutely positioned inside the slab, on whichever side the
+ * node had swung away from: `state === "current" ? "under" : wind >= 0 ? "left"
+ * : "right"`, three placements, plus "under" again for every fork cell and hub
+ * petal. A critic put it better than the measurement did: "the label chip has NO
+ * FIXED RELATIONSHIP to its node ... fixing pitch will not make the column read
+ * as a line while the label moves every row." A reader cannot learn where to
+ * look for a name if the name is in a different place on every line, and the
+ * absolute positioning that made it free also made it lie about the row's size.
+ *
+ * So the ROW is a four-track grid now (see .path-row) and the name is simply
+ * its last track: in flow, one side, always, at every wind and in every state.
+ * The three placements collapse to one, and the swing shrinks to fit a lane
+ * rather than the whole column, which is what makes one side possible at all.
+ * "under" survives for exactly one caller, the fork cell, which is half a
+ * column wide and genuinely has no side to hang a name on.
+ *
+ * THE PLATE IS GONE, and that is the other half of the same fix. The plate
+ * existed because the drawn trail ran down the middle of the column and would
+ * have crossed the glyphs; the trail was deleted by the owner on 2026-09-23 and
+ * nothing has run through this text since. What the plate still cost was real:
+ * a second rectangle on every row, 1.05:1 against the page in light and 1.18:1
+ * in dark, so it never separated itself and needed a shadow to have an edge at
+ * all. A critic counted TWO boxes per node and was counting this one. With the
+ * name in its own track there is nothing behind it to hide from, so it is naked
+ * text: no plate, no border, no shadow.
+ *
+ * MEASURED, not assumed, on the page's own ground rather than on a card:
+ * --bb-foreground on --bb-background is 14.28:1 in light and 15.81:1 in dark,
+ * both far over the 4.5 body floor, and the leading icon at 0.75 opacity
+ * composites to 6.49:1 and 9.30:1 over the 3.0 graphics floor.
  *
  * `aria-hidden`, because the chip's own accessible name already carries the
  * title and the detail. A visible label that is also announced makes a screen
@@ -734,11 +757,16 @@ function Chip({
  */
 function NodeLabel({
   label,
-  side,
+  under = false,
   icon = null,
 }: {
   readonly label: string;
-  readonly side: "left" | "right" | "under";
+  /**
+   * The fork cell's one exception: centred beneath its chip rather than in a
+   * name track, because a fork cell is half a column and has no flank. Every
+   * spine row leaves this alone.
+   */
+  readonly under?: boolean;
   /**
    * The leading mark, where the reference draws one. unit01-path.jpg puts a
    * stopwatch, a lightbulb, a play triangle and the mechanism arrow at the
@@ -750,7 +778,7 @@ function NodeLabel({
   readonly icon?: NodeBadge | null;
 }) {
   return (
-    <span className={`path-label path-label--${side}`} aria-hidden>
+    <span className={`path-label ${under ? "path-label--under" : ""}`} aria-hidden>
       {icon === null ? null : (
         <svg viewBox="0 0 24 24" className="path-label__icon" aria-hidden>
           {motifShape(icon)}
@@ -761,7 +789,34 @@ function NodeLabel({
   );
 }
 
-
+/**
+ * THE START TAG, AND IT MOVED OUT OF THE NODE LANE.
+ *
+ * It used to float above the chip (`bottom: calc(100% + 16px)`), which is what
+ * the states sheet draws, and that cost the current row 46px of reserved
+ * headroom: the pill's own 32px plus its 16px gap, none of which fits in the
+ * 22px the row pitch leaves between two chips. That reservation was half of the
+ * 1.72x pitch spread, and it cannot be dropped while the pill is above the chip,
+ * because with the swing now inside a 110px lane two consecutive chips are only
+ * 8.5px apart horizontally on half the transitions: a 76px pill would land on
+ * the chip above it.
+ *
+ * So it sits in the NAME track, directly over the name, where the row already
+ * has 64px of height and the pill costs nothing. The tail turns from pointing
+ * DOWN to pointing LEFT, at the chip beside it, which is the same job.
+ *
+ * THE DIVERGENCE IS REPORTED. blueberry_r7-states-sheet draws the tag above the
+ * node with a downward tail. What is kept is everything the sheet's own argument
+ * was about: a small pill, a violet outline, a pale fill, violet text, a tail
+ * pointing at the chip, and the tag quieter than the button it points at. What
+ * changes is which side it points from, bought with the constant pitch.
+ *
+ * Measured on the page's ground, not a card, because it left the lane: the ink
+ * is 7.92:1 on its own fill in light and 8.44:1 in dark, and the 2px border is
+ * 6.24:1 and 3.54:1 on the page, over the 3.0 graphics floor. The fill is 1.09:1
+ * and 1.24:1 against the page, so the border is what draws its edge, which is
+ * what it was already doing over the cream.
+ */
 function StartTag() {
   return (
     <span className="path-start" aria-hidden>
@@ -769,6 +824,35 @@ function StartTag() {
     </span>
   );
 }
+
+/**
+ * THE MASCOT'S BOX, in pixels, and it is the SAME NUMBER as
+ * --path-mascot-lane in pathway.css (4.5rem).
+ *
+ * It has to be a number here because Berry's lean and bob arithmetic scales off
+ * sizePx, so it cannot be handed a CSS length. Two copies of one number is a
+ * drift waiting to happen, so pathwayRowLanes.test.ts reads --path-mascot-lane
+ * out of the stylesheet and asserts it against this constant.
+ *
+ * THE SIZE IS A REPORTED COST, not a preference. The 2026-09-04 pixel verdict
+ * raised this box from 44 to 95, because the reference "draws a 95px full-body
+ * character standing on the ground" and the build had shrunk it to "a 26px head
+ * floating and clipped by the viewport edge". The drawn character is about 0.72
+ * of the box, so 95 drew about 68px and 44 drew about 32.
+ *
+ * 95 was affordable only because the mascot was absolutely positioned on
+ * whichever flank the chip had vacated, which is the same freedom that let it
+ * jump across the column every time the wind changed sign. Once the mascot has a
+ * reserved LANE, the lane's width is bounded by the chip's leftmost position at
+ * any wind, and that is 4.5rem: 72 + (110 / 2) - 17 - 38 = 72, so a 72px box at
+ * the row's left edge abuts the chip and never overlaps it, with no pinning and
+ * no negative margin. 72 draws about a 52px character.
+ *
+ * So this is 52 where the verdict asked for 68. It is the one real price of the
+ * fixed lane and it is in the build report under its own heading rather than
+ * buried here.
+ */
+const MASCOT_PX = 72;
 
 /**
  * One slab on the winding track, in whatever state it is in. Shared by the
@@ -814,19 +898,31 @@ function TrackSlab({
   readonly gateNode: ChargeGateNode | null;
 }) {
   /*
-    THE NAME CARD RIDES OPPOSITE THE WIND. See NodeLabel: the card is
-    absolutely positioned inside the slab, so the row stays a single centred
-    cell and the wind keeps the full column width, and the name still lands on
-    the side the chip vacated.
+    A ROW IS THREE TRACKS, and nothing in it moves between rows.
+
+    [ mascot lane ][ node lane ][ gap ][ name ]. The mascot has a lane whether
+    or not this row carries one, the chip swings only inside its own lane, and
+    the name is always the last track: one column, at every wind, in every
+    state. See .path-row in pathway.css for the widths and the arithmetic that
+    picks them, and NodeLabel for why the three old placements collapsed to one.
+
+    The DOM order is the reading order, which is also the visual order, so a
+    screen reader walking the row meets the chip (which carries the whole
+    accessible name) and then nothing else: the mascot and the name are both
+    aria-hidden because both repeat what the chip already said.
   */
   return (
     <li
-      className={`path-row relative w-full ${state === "current" ? "path-row--current" : ""} ${lane === "loop" ? "path-row--loop" : ""}`}
+      className={`path-row w-full ${lane === "loop" ? "path-row--loop" : ""}`}
       style={{ "--wind": wind } as CSSProperties}
       data-node-state={state}
     >
-      <div className="path-row__slab relative">
-        {state === "current" ? <StartTag /> : null}
+      {/*
+        THE NODE LANE. It is the positioning context for both the chip's swing
+        and the mascot, which is what lets the mascot sit on the chip's own base
+        line without the row having to restate the chip's height anywhere.
+      */}
+      <div className="path-row__lane">
         {/*
           THE BERRY MARKS WHERE THE STUDENT LEFT OFF, in the world beside the
           current node. Every per-unit reference in design-goals/units/ and
@@ -836,54 +932,48 @@ function TrackSlab({
           where the marker survives. Decorative: aria-current="step" and the
           START pill already say the same thing in the accessibility tree, so
           a second announcement would be noise.
+
+          IT HAS A LANE NOW AND IT NO LONGER PICKS A SIDE. It used to stand on
+          whichever flank the chip had swung away from, which meant the mascot
+          jumped across the column every time the wind changed sign. The lane is
+          always the left one, reserved on every row, so the character stands in
+          the same place down the whole page and cannot collide with a chip at
+          any wind. See --path-mascot-lane for the clearance arithmetic.
+
+          THE SIZE IS THE COST OF THAT LANE and it is reported, not hidden: see
+          .path-row__mascot in pathway.css and the build report.
         */}
         {state === "current" ? (
-          /*
-            WHICH SIDE, and it is the same rule the name card follows: the
-            side the chip swung AWAY from is the side with room on it. At the
-            widest wind a 390pt phone leaves 45px beside the chip on the near
-            flank and 240 on the far one, so a 95px character has exactly one
-            place it can stand without being cut by the viewport, and that is
-            what the reference draws too (unit01-path.jpg's START chip sits
-            left of centre with Berry on its right).
-          */
-          <span className={`path-berry path-berry--${wind >= 0 ? "left" : "right"}`} aria-hidden>
-            {/*
-              95px, up from 44. Pixel verdict of 2026-09-04: the reference
-              draws "a 95px full-body character standing on the ground" and
-              the build had reduced it to "a 26px head floating and clipped by
-              the viewport edge". 44 was the box; the drawn berry inside it is
-              about 0.72 of that, which is where the critic's 26 came from.
-              At 95 the drawn character is about 68px, which is the reference.
-              The mascot itself is imported and never redrawn, per
-              docs/INHERITED-DECISIONS.md D4, so the size and where it stands
-              are the only things this file gets to decide.
-            */}
-            <Berry mood="happy" behaviour="leanIn" reducedMotion={reducedMotion} sizePx={95} />
+          <span className="path-row__mascot" aria-hidden>
+            <Berry mood="happy" behaviour="leanIn" reducedMotion={reducedMotion} sizePx={MASCOT_PX} />
           </span>
         ) : null}
-        <Chip
-          state={state}
-          label={label}
-          detail={detail}
-          href={href}
-          badge={badge}
-          dim={dim}
-          queued={queued}
-          place={place}
-          onOpenNode={onOpenNode}
-          sheetNode={sheetNode}
-          gateNode={gateNode}
-        />
-        {/*
-          THE CURRENT ROW NAMES ITSELF UNDERNEATH, because Berry is standing
-          where the card would go. unit01-path.jpg draws exactly this: every
-          other node carries its card beside it and the START node carries
-          "Kinetic vs thermodynamic control" UNDER it, with the mascot in the
-          space the card vacated. Berry stands on the chip's own ground line
-          and the card hangs below that line, so the two cannot meet.
-        */}
-        <NodeLabel label={label} side={state === "current" ? "under" : wind >= 0 ? "left" : "right"} icon={badge} />
+        <div className="path-row__slab">
+          <Chip
+            state={state}
+            label={label}
+            detail={detail}
+            href={href}
+            badge={badge}
+            dim={dim}
+            queued={queued}
+            place={place}
+            onOpenNode={onOpenNode}
+            sheetNode={sheetNode}
+            gateNode={gateNode}
+          />
+        </div>
+      </div>
+      {/*
+        THE NAME TRACK, which is also where the START tag lives now. Stacked
+        rather than beside, because a tag and a name on one line would put the
+        name's first word a tag's width in from the column every current row and
+        break the one thing this whole change buys: a fixed left edge for the
+        text down the page.
+      */}
+      <div className="path-row__name">
+        {state === "current" ? <StartTag /> : null}
+        <NodeLabel label={label} icon={badge} />
       </div>
     </li>
   );
@@ -1104,6 +1194,14 @@ function mapNodeDetail(node: MapNode, queued: boolean, locked: boolean, place: N
 }
 
 
+/**
+ * Why a unit's checkpoint is shut while its unit is open. pathwayState.ts
+ * locks it until every required lesson in the unit is cleared, because it is
+ * a mix of those lessons and a question may only combine skills a student has
+ * already cleared one at a time. Said on the chip and in the sheet.
+ */
+const CHECK_WAITS = "Opens when every lesson in this unit is done.";
+
 /** The ChargeGate node for a playable map node, or null when unpressable. */
 function mapGateNode(node: MapNode, clickable: boolean): ChargeGateNode | null {
   if (!clickable || node.playable === undefined) return null;
@@ -1163,11 +1261,16 @@ function ForkChip({
             A FORK CELL IS HALF A COLUMN, so the side with room is the side
             the cell opens onto rather than the side a wind step points at.
             Left cell, mascot on the left; right cell, mascot on the right;
-            the concept above the split is centred and takes the right. The
-            size is TrackSlab's 95 either way: one mascot, one scale.
+            the concept above the split is centred and takes the right.
+
+            THE SIZE IS MASCOT_PX, the same box the spine rows draw, because one
+            surface with two mascot scales on it is a surface where the character
+            changes size as a student scrolls. It used to be 95 here and 95 there;
+            the spine's lane bounded it to 72 and this follows rather than keeping
+            a second number alive.
           */
           <span className={`path-berry path-berry--${lane === "left" ? "left" : "right"}`} aria-hidden>
-            <Berry mood="happy" behaviour="leanIn" reducedMotion={reducedMotion} sizePx={95} />
+            <Berry mood="happy" behaviour="leanIn" reducedMotion={reducedMotion} sizePx={MASCOT_PX} />
           </span>
         ) : null}
         <Chip
@@ -1181,10 +1284,10 @@ function ForkChip({
           counter={counter}
           place={place}
           onOpenNode={onOpenNode}
-          sheetNode={sheetNodeFor(node, status.state, clickable && node.playable !== undefined ? hrefForPlayable(node.playable) : null)}
+          sheetNode={sheetNodeFor(node, status.state)}
           gateNode={mapGateNode(node, clickable)}
         />
-        <NodeLabel label={node.title} side="under" icon={badge} />
+        <NodeLabel label={node.title} under icon={badge} />
       </div>
 
     </div>
@@ -1409,6 +1512,16 @@ interface UnitPlan {
    * construction and the shape is the winding road it was always meant to be.
    */
   readonly gateRun: readonly UnitRow[];
+  /**
+   * THE UNIT'S OWN CHECKPOINT, the last chip before the arch.
+   *
+   * One row, always, on every unit. See unitCheckpointNode in
+   * demo/pathwayMap.ts for why it is synthetic and what it runs; here it is a
+   * UnitRow like any other, riding the same wind cycle the gateRun leaves off
+   * at, so the road winds into it and out of it into the arch and it is a named
+   * row on the column's rhythm rather than a block of its own.
+   */
+  readonly check: UnitRow;
   readonly checkpoint: boolean;
 }
 
@@ -1525,7 +1638,14 @@ export function planUnits(units: readonly MapUnit[]): readonly UnitPlan[] {
       while (cut > 0 && rows[cut - 1]!.dim) cut -= 1;
     }
     const tail = rows.splice(cut);
-    return { unit, shape, rows, tail, gateRun, checkpoint: isCheckpointUnit(unit) };
+    // The check closes the unit, so it takes the NEXT wind after the gateRun
+    // rather than restarting: the road leaving the last question keeps turning
+    // into the arch. trackWind never returns 0, so it never parks on the
+    // centreline (pathwayBranchDensity pins that for the same reason).
+    const checkWind = trackWind(index);
+    index += 1;
+    const check: UnitRow = { node: unitCheckpointNode(unit), lane: "main", wind: checkWind, dim: false };
+    return { unit, shape, rows, tail, gateRun, check, checkpoint: isCheckpointUnit(unit) };
   });
 }
 
@@ -1558,6 +1678,9 @@ export function trackMapNodesFor(
   }
   for (const row of plan.tail) nodes.push({ wind: row.wind, lane: row.lane === "loop" ? "loop" : "main", done: done(row.node) });
   for (const row of plan.gateRun) nodes.push({ wind: row.wind, lane: "main", done: done(row.node) });
+  // The unit's checkpoint is a row on the track, so it is a step in the
+  // miniature: the pill would otherwise be one chip shorter than the page.
+  nodes.push({ wind: plan.check.wind, lane: "main", done: done(plan.check.node) });
   nodes.push({ wind: 0, lane: "main", done: gatePassed });
   return nodes;
 }
@@ -1569,6 +1692,7 @@ export function currentIndexFor(plan: UnitPlan, status: MapPathwayStatus): numbe
     ...(plan.shape.concept === null ? [] : [plan.shape.concept, ...plan.shape.arms[0], ...plan.shape.arms[1]]),
     ...plan.tail.map((row) => row.node),
     ...plan.gateRun.map((row) => row.node),
+    plan.check.node,
   ];
   return order.findIndex((node) => node.id === status.currentNodeId);
 }
@@ -1585,13 +1709,14 @@ export function currentIndexFor(plan: UnitPlan, status: MapPathwayStatus): numbe
  * visual order. Every unit carries its own gate, drawn directly under its own
  * arms:
  *
- *   banner
  *   hub flower              only on the two units the goals reserve it for
- *   winding column          spine nodes, with dimmed side loops woven in
- *   concept                 centred above the split
+ *   winding column          spine nodes, with dimmed side loops woven in,
+ *                           ending on the concept as the trunk's last row
  *   arms                    two columns, both open at once
- *   unit gate               the double dagger the arms rejoin at, plus the
- *                           checkpoint chips where the unit has them
+ *   checkpoint              any authored gate questions, then the unit's
+ *                           own mixed check, where the arms rejoin
+ *   unit gate               the double dagger arch
+ *   side quests             the optional tail, then any mention-only topic
  *
  * State still comes from deriveMapPathway, where only unit gates lock, so
  * both arms and every loop are freely orderable the moment the unit opens.
@@ -1774,6 +1899,11 @@ function OrgoMapTrack({
     differently. See NodePlace in unitShape.ts.
   */
   const places = nodePlaces(shape);
+  // The optional tail without the topics the course only mentions, and those
+  // topics on their own. See the path-mention list below for why a mention is
+  // text and not a chip.
+  const tailRows = plan.tail.filter((row) => row.node.mentionOnly !== true);
+  const mentions = unit.nodes.filter((node) => node.mentionOnly === true);
   const unitStatus = status.units.get(unit.id);
   const gatePassed = unitStatusPassed(status, unit.id);
   const gateLocked = unitStatus === undefined || !unitStatus.reachable;
@@ -1982,7 +2112,7 @@ function OrgoMapTrack({
         queued={nodeStatus.queued}
         reducedMotion={reducedMotion}
         onOpenNode={onOpenNode}
-        sheetNode={sheetNodeFor(row.node, nodeStatus.state, clickable && playable !== undefined ? hrefForPlayable(playable) : null)}
+        sheetNode={sheetNodeFor(row.node, nodeStatus.state)}
         gateNode={mapGateNode(row.node, clickable)}
       />
     );
@@ -2032,7 +2162,7 @@ function OrgoMapTrack({
       <section
         ref={surfaceRef}
         key={unit.id}
-        className="path-unit touch-pan-y flex flex-col gap-3"
+        className="path-unit touch-pan-y flex flex-col"
         aria-label={unit.title}
         data-unit-id={unit.id}
         data-checkpoint={plan.checkpoint ? "true" : "false"}
@@ -2062,32 +2192,37 @@ function OrgoMapTrack({
           />
         ) : null}
 
-        {plan.rows.length > 0 ? (
-          <ol className="path-track mx-auto flex w-full max-w-md flex-col py-2">{plan.rows.map(slab)}</ol>
+        {/*
+          THE TRUNK, AND THE CONCEPT IS ITS LAST ROW, 2026-09-29.
+
+          The concept used to be a fork cell centred above the split, which
+          gave it the fork's under-the-chip name on a plate while the step
+          above it carried its name as text on the right: two placements and
+          two boxes for two consecutive steps, the exact pair of defects the g1
+          critic named ("the label has no fixed relationship to its node",
+          "every node carries two boxes"). nodePlaces already calls the concept
+          the trunk's LAST STEP, and a step is a row. Wind 0 puts its chip on
+          the lane's centre line, which is within a few pixels of the midpoint
+          between the two arms, so it still reads as the node the split hangs
+          from. Only the arms, which are half a column wide, keep a name under
+          the chip.
+        */}
+        {plan.rows.length > 0 || shape.concept !== null ? (
+          <ol className="path-track mx-auto flex w-full max-w-md flex-col">
+            {plan.rows.filter((row) => row.node.mentionOnly !== true).map(slab)}
+            {shape.concept !== null ? slab({ node: shape.concept, lane: "main", wind: 0, dim: false }) : null}
+          </ol>
         ) : null}
 
         {shape.concept !== null ? (
           /*
-            THE DIAMOND FORK, per blueberry_branch-diamond: the concept
-            node centred above the split, one arm each side, and both
-            arms rejoining at THIS unit's gate immediately below. Both
-            arms are genuinely open at once, because within a unit every
-            node is freely orderable; the fork is the unlock policy made
-            visible, not a decoration over a chain.
+            THE DIAMOND FORK, per blueberry_branch-diamond: one arm each side
+            under the concept row, both rejoining at this unit's checkpoint
+            immediately below. Both arms are genuinely open at once, because
+            within a unit every node is freely orderable; the fork is the
+            unlock policy made visible, not a decoration over a chain.
           */
-          <div className="path-fork mx-auto w-full max-w-md" role="group" aria-label="Choose either branch; they rejoin at the unit gate">
-            <div className="path-fork__concept">
-              <ForkChip
-                node={shape.concept}
-                status={statusOf(status, shape.concept.id)}
-                lane="main"
-                badge={badgeForMapNode(shape.concept, shape.videoHookId) ?? "concept"}
-                dim={false}
-                place={places.get(shape.concept.id) ?? null}
-                reducedMotion={reducedMotion}
-                onOpenNode={onOpenNode}
-              />
-            </div>
+          <div className="path-fork mx-auto w-full max-w-md" role="group" aria-label="Choose either branch; they rejoin at the unit checkpoint">
             <div className="path-fork__arms">
               {([0, 1] as const).map((side) => (
                 <Fragment key={side}>
@@ -2100,9 +2235,9 @@ function OrgoMapTrack({
                     before a tap rather than only in the accessible name.
 
                     aria-hidden: the group around this fork already says
-                    "Choose either branch; they rejoin at the unit gate" and
-                    every arm chip says "either route may be taken first", so
-                    a third voice would be the same fact three times.
+                    "Choose either branch" and every arm chip says "either
+                    route may be taken first", so a third voice would be the
+                    same fact three times.
                   */}
                   {side === 1 ? (
                     <span className="path-fork__or" aria-hidden>
@@ -2131,115 +2266,132 @@ function OrgoMapTrack({
         ) : null}
 
         {/*
-          THE OPTIONAL WORK, AFTER THE REQUIRED WORK. See planUnits: the
-          trailing run of dimmed enrichment is drawn under the fork rather
-          than between the trunk and the concept, so the road from the last
-          done chip to the next required one is never interrupted by four
-          things the student may skip.
+          THE CHECKPOINT COMES STRAIGHT AFTER THE REQUIRED WORK, 2026-09-29.
+
+          It used to be drawn after the optional side quests, in the same
+          column and the same rhythm, directly under four dimmed chips and the
+          "Optional side quests" eyebrow, so on Unit 1 it read as a fifth side
+          quest. It closes the REQUIRED road, so it sits where that road ends:
+          under the fork, which is also what makes the fork's "they rejoin at
+          the unit checkpoint" true on the page. The optional work moves below
+          the arch, where nothing required follows it.
+
+          THE CHIPS ARE CHALLENGE NODES ON THE ROAD. No committed goal image
+          contains a checkpoint block, so the outlined box this once was is
+          deleted rather than restyled; a check is drawn as the CHALLENGE node
+          type the spec sheet already has, on spine rows riding the same wind
+          cycle as every other node. ONE <ol> for the authored gate questions
+          and the unit's own mixed check, because it is one thing: the work
+          between the last lesson and the boundary.
+
+          ITS LOCKED SENTENCE IS ITS OWN. The check waits for this unit's
+          lessons (pathwayState.ts), not for the unit before, so the default
+          "Opens when the unit before it is done" would send a student
+          backwards. Inside a locked unit the unit's sentence is still the true
+          one and is kept.
         */}
-        {plan.tail.length > 0 ? (
-          <>
-            {/* THE HEADING IS VISIBLE NOW, and it was not before.
-                Moving these chips below the fork was the right call, but the
-                only thing that said why was an aria-label on the list. A
-                screen reader heard "Optional side quests"; a sighted student
-                saw four chips detach from the road with nothing explaining
-                that they are optional, which reads as the track breaking
-                rather than as a choice being offered. Confirmed absent in a
-                capture. It is an eyebrow rather than a plate because the label
-                cards beside these chips already outweigh the chips themselves,
-                and this must name the group without competing with it. The
-                list keeps its aria-label, so the group is still announced
-                once and only once: the heading is aria-hidden. */}
-            <p className="path-tail__eyebrow mx-auto w-full max-w-md" aria-hidden>
-              Optional side quests
-            </p>
-            <ol className="path-track mx-auto flex w-full max-w-md flex-col py-2" aria-label="Optional side quests">
-              {plan.tail.map(slab)}
-            </ol>
-          </>
-        ) : null}
-
-        {/*
-          THE UNIT GATE closes every unit, which is what makes it the
-          rejoin anchor the arms can actually reach. Where the unit
-          carries authored checkpoint questions they are plated beneath
-          it; where it does not, the arch alone is the boundary.
-        */}
-        {/*
-          THE CHECKPOINT IS CHIPS, and the outlined box it used to be is
-          deleted rather than restyled.
-
-          No committed goal image contains a checkpoint block. The build
-          invented one: an outlined rectangle holding a dashed brown arc
-          and a stack of white 170-by-44 TEXT PILLS, beside 76-by-66
-          chips. That breaks the goals twice over, because the path
-          vocabulary has exactly one shape for an item on the path (the
-          periwinkle 3D chip) and because "all nodes the same size" is a
-          clause, not a preference, and a 170pt pill is not the size of a
-          66pt chip.
-
-          A checkpoint question is a challenge, so it is drawn as the
-          CHALLENGE node type the spec sheet already has.
-
-          AND IT IS ON THE ROAD. The chips used to sit in a flow-wrapped
-          block with `lane="off"`, so unit 2's five challenges rendered
-          as a 3-then-2 lattice and four of the five had no connector to
-          anything. That failed two clauses at once: a lattice is not
-          one of the three shapes the branch vocabulary has, and "THE
-          TRAIL IS CODE, ALWAYS ... a trail that visibly diverges from
-          its nodes is a failing bug". They are spine rows now, riding
-          the same wind cycle as every other node, so the road winds out
-          of the fork's rejoin, through the checkpoint, and into the
-          arch, and the trail reaches all of them by construction.
-        */}
-        {plan.gateRun.length > 0 ? (
-          <ol className="path-track mx-auto flex w-full max-w-md flex-col py-2" aria-label="Unit gate checkpoint">
-            {plan.gateRun.map((row) => {
-              const nodeStatus = statusOf(status, row.node.id);
-              const playable = row.node.playable;
-              const clickable = playable !== undefined && nodeStatus.state !== "locked";
-              const href = clickable && playable !== undefined ? hrefForPlayable(playable) : null;
-              return (
-                <TrackSlab
-                  key={row.node.id}
-                  state={nodeStatus.state}
-                  label={row.node.title}
-                  detail={mapNodeDetail(row.node, nodeStatus.queued, nodeStatus.state === "locked", places.get(row.node.id) ?? null)}
-                  place={places.get(row.node.id) ?? null}
-                  href={href}
-                  wind={row.wind}
-                  lane="main"
-                  badge="challenge"
-                  dim={false}
-                  queued={nodeStatus.queued}
-                  reducedMotion={reducedMotion}
-                  onOpenNode={onOpenNode}
-                  sheetNode={sheetNodeFor(row.node, nodeStatus.state, href)}
-                  gateNode={mapGateNode(row.node, clickable)}
-                />
-              );
-            })}
-          </ol>
-        ) : null}
+        <ol className="path-track mx-auto flex w-full max-w-md flex-col" aria-label="Unit checkpoint">
+          {[...plan.gateRun, plan.check].map((row) => {
+            const nodeStatus = statusOf(status, row.node.id);
+            const playable = row.node.playable;
+            const locked = nodeStatus.state === "locked";
+            const clickable = playable !== undefined && !locked;
+            const href = clickable && playable !== undefined ? hrefForPlayable(playable) : null;
+            const waitsForLessons = row === plan.check && locked && !gateLocked;
+            const place = places.get(row.node.id) ?? null;
+            const detail = waitsForLessons
+              ? `${placeSaid(place) ?? "Unit checkpoint"}. ${CHECK_WAITS}`
+              : mapNodeDetail(row.node, nodeStatus.queued, locked, place);
+            return (
+              <TrackSlab
+                key={row.node.id}
+                state={nodeStatus.state}
+                label={row.node.title}
+                detail={detail}
+                place={place}
+                href={href}
+                wind={row.wind}
+                lane="main"
+                badge="challenge"
+                dim={false}
+                queued={nodeStatus.queued}
+                reducedMotion={reducedMotion}
+                onOpenNode={onOpenNode}
+                sheetNode={sheetNodeFor(row.node, nodeStatus.state, waitsForLessons ? CHECK_WAITS : undefined)}
+                gateNode={mapGateNode(row.node, clickable)}
+              />
+            );
+          })}
+        </ol>
         <div className="path-gate mx-auto flex w-full max-w-md flex-col items-center" aria-label="Unit gate">
           <UnitGateNode passed={gatePassed} locked={gateLocked} />
           {/*
             NO CARD UNDER THE ARCH, pixel verdict of 2026-09-04: the
             gate is drawn "with a large dark glyph centred in the
             opening, straddling the trail, and NO TEXT LABEL UNDER IT".
-            Neither adopted per-unit design names its gate.
-
-            The name is not lost, it moved to where a name belongs on a
-            graphic: the arch carries role="img" and an aria-label that
-            says "Unit gate. Clear the checkpoint to open the next
-            unit." A card said less and said it twice, because the
-            cards beside it were reading as lesson names and this one
-            was not a lesson. The older clause it replaces is
-            blueberry_branch-diamond's "Unit test" caption; the
-            per-unit designs are the newer adopted word.
+            Neither adopted per-unit design names its gate. The arch
+            carries role="img" and an aria-label instead.
           */}
         </div>
+
+        {/*
+          THE OPTIONAL WORK, AFTER EVERYTHING REQUIRED. See planUnits: the
+          trailing run of dimmed enrichment is drawn under the fork rather
+          than between the trunk and the concept, and since 2026-09-29 under
+          the arch as well, so nothing required ever follows a thing the
+          student may skip.
+
+          THE HEADING IS VISIBLE, because four chips detaching from the road
+          with nothing saying why reads as the track breaking rather than as a
+          choice being offered. It is aria-hidden: the list keeps its
+          aria-label, so the group is announced once and only once.
+        */}
+        {tailRows.length > 0 || mentions.length > 0 ? (
+          <>
+            <p className="path-tail__eyebrow mx-auto w-full max-w-md" aria-hidden>
+              Optional side quests
+            </p>
+            {tailRows.length > 0 ? (
+              <ol className="path-track mx-auto flex w-full max-w-md flex-col" aria-label="Optional side quests">
+                {tailRows.map(slab)}
+              </ol>
+            ) : null}
+            {/*
+              A TOPIC THE COURSE ONLY MENTIONS IS NOT A NODE, 2026-09-29.
+
+              Unit 1's "Radical polymerization of dienes" carries the blurb
+              "Conceptual mention." and no content, and commit 1e6fa07 left it
+              that way on purpose: nothing in the repository's data could
+              ground an exercise for it. As a chip it wore the arrow motif,
+              looked pressable, and its only message was "Authoring queued", a
+              promise of content nobody is writing. So it is drawn as what it
+              is, a line of text naming the topic and saying there is no
+              exercise, with no chip, no press and no sheet. Honest and
+              findable, and it cannot be mistaken for a lesson.
+            */}
+            {mentions.length > 0 ? (
+              <ul className="path-mention mx-auto w-full max-w-md" aria-label="Mentioned in this unit, with no exercise">
+                {mentions.map((node) => (
+                  <li key={node.id} className="path-mention__item">
+                    <svg viewBox="0 0 24 24" className="path-mention__icon" aria-hidden>
+                      <path
+                        d="M4 5.5h6a2 2 0 0 1 2 2V19a1.6 1.6 0 0 0-1.6-1.6H4zM20 5.5h-6a2 2 0 0 0-2 2V19a1.6 1.6 0 0 1 1.6-1.6H20z"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                    <span className="path-mention__text">
+                      <span className="path-mention__name">{node.title}</span>
+                      <span className="path-mention__note">Mentioned in the course. Reading only, no exercise.</span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </>
+        ) : null}
       </section>
       {/*
         THE BOTTOM BAR, the donor's foot-of-page nav in this tab's vocabulary:
@@ -2360,11 +2512,11 @@ export default function PathwayTab({ reducedMotion }: { readonly reducedMotion: 
   const [guidebook, setGuidebook] = useState<SheetNode | null>(null);
   const openNode: OpenNode = (node, charge) => setSheet({ node, charge });
   /*
-    START and CHALLENGE both leave the sheet and open the charge sheet, and
-    they are two calls rather than one because they are not the same spend:
-    a challenge is an assessment, which docs/ECONOMY.md prices as a quiz. A
-    node with no authored content has no charge node, so nothing opens and
-    the sheet's own disabled Practice row is the honest end of the press.
+    START and CHALLENGE both leave the sheet and open the charge sheet, at
+    the same price; see the note on onChallenge below for why they are no
+    longer two spends. A node with no authored content, or a locked one, has
+    no charge node, so nothing opens and the sheet's own disabled Practice
+    row is the honest end of the press.
   */
   const startFromSheet = (charge: ChargeGateNode | null) => {
     setSheet(null);
@@ -2420,7 +2572,7 @@ export default function PathwayTab({ reducedMotion }: { readonly reducedMotion: 
             return (
               <section key={unit.key} className="flex flex-col gap-3" aria-label={unit.title}>
                 <UnitBanner unit={unit} course={course} />
-                <ol className="path-track mx-auto flex w-full max-w-md flex-col py-2">
+                <ol className="path-track mx-auto flex w-full max-w-md flex-col">
                   {unit.nodes.map((node, i) => (
                     <TrackNode key={node.topic} node={node} index={first + i} course={course} onOpenNode={openNode} />
                   ))}
@@ -2431,29 +2583,30 @@ export default function PathwayTab({ reducedMotion }: { readonly reducedMotion: 
         </div>
       )}
 
-      <ul className="flex flex-wrap gap-3 text-scale-xs text-bb-muted-foreground" aria-label="Legend">
-        {LEGEND.map((entry) => (
-          <li key={entry.swatch} className="flex items-center gap-1.5">
-            {/*
-              THE KEY IS NOT THE MAP. This swatch used to wear
-              `path-node--${entry.state}`, so every page in the tab carried a
-              second .path-node--current: on unit 3 a critic counted two, and
-              on a finished unit 1 it counted a "current" node with no START
-              pill while the rail called unit 3 current. Nothing was wrong on
-              screen (the swatch suppresses the halo and the pulse), but the
-              class said something false about the map, and a class that lies
-              is a class the next probe, test or stylesheet will act on. The
-              geometry and the press reset still come from .path-node and
-              .path-node--swatch; only the STATE modifier is the legend's own,
-              and pathway.css hangs the same tokens on both names.
-            */}
-            <span className={`path-node path-node--swatch path-swatch--${entry.swatch}`} aria-hidden>
-              <span className="path-node__face" />
-            </span>
-            {entry.label}
-          </li>
-        ))}
-      </ul>
+      {/*
+        THE LEGEND IS GONE FROM THE END OF THIS TAB, and this is the critic's
+        object count rather than a tidy-up.
+
+        It was a seven-row key under the track, each row a small chip. What it
+        cost: seven more node-shaped objects on a page whose whole argument is
+        that a node is one shape, at 1.05rem against the real chips' 4.75, so
+        "all nodes the same size" read as false on the one screen that states
+        it. It also sat off the end of the scroll, which is the one place on a
+        pager a reader arrives at last and needs least.
+
+        NOTHING IT SAID IS LOST, and that is the test this had to pass before it
+        could go. State is never colour alone on this surface: done wears a
+        check and review a refresh, every other face carries its content motif,
+        the current chip carries the START tag AND aria-current="step", a locked
+        chip's accessible name is "Opens when the unit before it is done", an
+        unauthored one's is "Authoring queued", and a detour's is "Optional side
+        quest, off the main path". The legend was a second vocabulary for facts
+        the chips already say in words, and a key a student has to scroll past
+        the whole unit to read is not how they would have learned them anyway.
+
+        The swatch styles went with it in pathway.css: the legend was their only
+        renderer, so leaving them would leave a vocabulary nothing speaks.
+      */}
 
       <button
         type="button"
@@ -2467,9 +2620,17 @@ export default function PathwayTab({ reducedMotion }: { readonly reducedMotion: 
         node={sheet?.node ?? null}
         onClose={() => setSheet(null)}
         onStart={() => startFromSheet(sheet?.charge ?? null)}
-        onChallenge={() =>
-          startFromSheet(sheet?.charge === undefined || sheet.charge === null ? null : { ...sheet.charge, kind: "quiz" })
-        }
+        /*
+          CHALLENGE PAYS THE NODE'S OWN PRICE, 2026-09-29. It used to re-price
+          the door as a unit quiz, 10 charge "refunded in full on a pass". The
+          refund is paid only on a `quiz_passed` event, and nothing in the game
+          emits one, so the student paid double and the promise on the charge
+          sheet was never kept. What Challenge actually does is play the same
+          node again, so it costs what the node costs. A real challenge mode
+          (timed, a harder rung, no hints) is an owner decision; until one
+          exists this is the honest price of what the button does.
+        */
+        onChallenge={() => startFromSheet(sheet?.charge ?? null)}
         onGuidebook={(node) => {
           setSheet(null);
           setGuidebook(node);

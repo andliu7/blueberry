@@ -290,11 +290,24 @@ export function NodeSheet({ node, onClose, onStart, onChallenge, onGuidebook, re
 
                 The reason the card is not pressable is on its accessible
                 name, in full, where it costs the composition no ink. */}
+            {/* THE REASON IS DRAWN NOW, 2026-09-29. Owner: "the challenge
+                doesnt work". On every node a student has not cleared, which on
+                a fresh account is all of them, the card was a heading and a
+                glyph that did nothing when pressed, and the only place that
+                said why was the accessible name. A control that declines has
+                to say so where the finger is, so the note is a line on the
+                card; the reference's 100 px is traded for it knowingly.
+
+                THE REFUND CLAIM IS GONE. The label used to promise "your
+                charge back if you pass", and PathwayTab priced the door as a
+                unit quiz. Nothing in the game emits the quiz_passed event that
+                refund is paid on, so the promise was never kept. The card now
+                says what pressing it does: play the node again. */}
             {model.challenge.enabled ? (
               <button
                 type="button"
                 className="ns-chip ns-card--go"
-                aria-label={`Challenge. Another graded run of ${node.title}, with your charge back if you pass.`}
+                aria-label={`Challenge. Play ${node.title} again.`}
                 {...pressHandlers(() => onChallenge(node))}
               >
                 <span className="ns-chip__face ns-card">
@@ -312,15 +325,15 @@ export function NodeSheet({ node, onClose, onStart, onChallenge, onGuidebook, re
                 </span>
               </button>
             ) : (
-              <section
-                className="ns-card ns-card--half"
-                aria-label={`Challenge. Another graded run of ${node.title}, with your charge back if you pass. ${model.challenge.note}`}
-              >
+              <section className="ns-card ns-card--half" aria-label={`Challenge. ${model.challenge.note}`}>
                 <div className="ns-card__row">
                   <h3 className="bb-title-face text-scale-lg font-bold">Challenge</h3>
                 </div>
                 <span className="ns-marks" aria-hidden>
                   <DoubleDaggerGlyph />
+                  {/* aria-hidden with its row: the section's name already
+                      carries the note, and saying it twice is noise. */}
+                  <span className="ns-note text-scale-sm">{model.challenge.note}</span>
                 </span>
               </section>
             )}

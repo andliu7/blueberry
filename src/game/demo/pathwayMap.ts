@@ -37,6 +37,14 @@ export interface PathwayNode {
   readonly title: string;
   readonly blurb: string;
   readonly playable?: PlayableLink;
+  /**
+   * The course names this topic and teaches nothing to practise on it. Not
+   * the authoring queue: a queued node is waiting for content, a mention is
+   * not going to get any from this map. The pathway draws it as a line of
+   * text rather than a chip, so it cannot be mistaken for a lesson. Set by
+   * hand, only on a node whose own blurb already says "Conceptual mention."
+   */
+  readonly mentionOnly?: true;
 }
 
 export interface PathwayUnit {
@@ -59,7 +67,7 @@ export const PATHWAY_UNITS: readonly PathwayUnit[] = [
       { id: "u1-nbs", kind: "branch", title: "Allylic halogenation", blurb: "NBS, hν; low [Br₂] is the whole trick.", playable: { kind: "beat", id: "u1-nbs" } },
       { id: "u1-da", kind: "branch", title: "Diels–Alder", blurb: "s-cis diene + EWG dienophile; endo rule, stereospecific.", playable: { kind: "reaction", id: "diels-alder" } },
       { id: "u1-ied", kind: "branch", title: "Inverse/hetero Diels–Alder", blurb: "Carbonyl or imine in the cycloaddition.", playable: { kind: "beat", id: "u1-ied" } },
-      { id: "u1-poly", kind: "branch", title: "Radical polymerization of dienes", blurb: "Conceptual mention." },
+      { id: "u1-poly", kind: "branch", title: "Radical polymerization of dienes", blurb: "Conceptual mention.", mentionOnly: true },
     ],
   },
   {
@@ -346,6 +354,88 @@ export const PATHWAY_UNITS: readonly PathwayUnit[] = [
   },
 ];
 
+/**
+ * A map unit's title is authored as "Unit 1 - Conjugation, Resonance & Dienes"
+ * with a middot separator. Callers set the number as an eyebrow and the name as
+ * a headline, so the thing a student is looking for is the largest text. A
+ * title with no separator has no number to lift, and keeps the whole string as
+ * its name rather than inventing one.
+ *
+ * These lived in PathwayTab.tsx. They moved here, with the data, when the unit
+ * CHECKPOINT started naming itself after its unit: a synthetic node cannot be
+ * built inside a React component that half the callers cannot import, and the
+ * authored title format is this file's own convention. PathwayTab re-exports
+ * them, so nothing that already read them from there changed.
+ */
+export const UNIT_TITLE_SEPARATOR = " · ";
+
+export function unitNumber(title: string): string {
+  const at = title.indexOf(UNIT_TITLE_SEPARATOR);
+  return at === -1 ? "Unit" : title.slice(0, at);
+}
+
+export function unitName(title: string): string {
+  const at = title.indexOf(UNIT_TITLE_SEPARATOR);
+  return at === -1 ? title : title.slice(at + UNIT_TITLE_SEPARATOR.length);
+}
+
+/**
+ * THE UNIT CHECKPOINT, and it is a NODE rather than a screen.
+ *
+ * WHAT WAS MISSING. Ten of the map's 192 nodes are authored `gate` questions
+ * and nine of those are in Unit 2, so thirteen of fifteen units simply ended:
+ * last lesson, arch, next unit. The arch is a boundary and says so, but nothing
+ * on the page ever asked a student to put the unit together, which is the one
+ * thing every bar this surface is measured against closes a unit with. That is
+ * a missing component, not a weak one.
+ *
+ * WHAT IT IS NOT. Not an outlined box (PathwayTab records that one was
+ * deliberately deleted: the path vocabulary has exactly one shape for an item
+ * on the path), not a screen, and not an animation. It is one more chip on the
+ * column's own rhythm, wearing the challenge motif, named after the unit,
+ * carrying a `beat` link like any other lesson node.
+ *
+ * IT IS SYNTHETIC AND DELIBERATELY NOT IN `unit.nodes`. A unit's own node list
+ * is the coverage ledger and the unlock denominator (pathwayState.ts counts
+ * `done` over `playable` off it), so adding fifteen nodes to it would move
+ * every gate the student has already passed and change what "this unit is done"
+ * means. The checkpoint is derived from the unit instead, exactly as the unit's
+ * SHAPE is, and `deriveMapPathway` gives it a state without counting it.
+ *
+ * The id shares the unit's namespace, so a journal entry for it is readable
+ * beside the lessons it mixes.
+ */
+export function checkpointNodeId(unitId: string): string {
+  return `${unitId}-check`;
+}
+
+/**
+ * The unit a checkpoint id belongs to, or null for any other id. The reverse of
+ * checkpointNodeId, matched against the real unit list rather than by sniffing
+ * the id's spelling, so renaming the convention cannot leave a caller matching
+ * a suffix that no longer means anything.
+ */
+export function checkpointUnitFor(nodeId: string): PathwayUnit | null {
+  return PATHWAY_UNITS.find((unit) => checkpointNodeId(unit.id) === nodeId) ?? null;
+}
+
+export function unitCheckpointNode(unit: PathwayUnit): PathwayNode {
+  const id = checkpointNodeId(unit.id);
+  return {
+    id,
+    // `gate` is the map's own word for "no preparative reaction, a check", which
+    // is what this is, and it is what badgeForMapNode already reads to engrave
+    // the challenge motif. Nothing else in the product branches on the kind of a
+    // node that is not in the ledger.
+    kind: "gate",
+    title: `${unitName(unit.title)} checkpoint`,
+    blurb: "A short mixed set, one question from each kind of work in this unit.",
+    // A beat, so it plays on the lesson runner the rest of the map already uses.
+    // planLesson resolves this id to the mix; see checkpointPlan in beats/template.ts.
+    playable: { kind: "beat", id },
+  };
+}
+
 /** How much of the map is playable today, computed from the data itself. */
 export function coverage(): { readonly playable: number; readonly total: number; readonly spinePlayable: number; readonly spineTotal: number } {
   let playable = 0;
@@ -444,8 +534,21 @@ export function pathwayNodeForPlayable(kind: PlayableLink["kind"], id: string): 
  *                      closest priced row (an assessment, refunded on a pass).
  *                      An owner decision before a boss is authored.
  *
- * Gates never reach this function: they render as the unit gate and its
- * checkpoint strip and are not pressable.
+ *   gate            -> concept, and this row is NEW and is a reported
+ *                      divergence rather than a settled price. Gates used to be
+ *                      unreachable here ("they render as the unit gate and its
+ *                      checkpoint strip and are not pressable"), which stopped
+ *                      being true when the unit CHECKPOINT became a pressable
+ *                      node carrying a beat link. A checkpoint is an assessment
+ *                      and ECONOMY.md's closest priced row is `quiz`, refunded
+ *                      on a pass, which is arguably what it should cost. It is
+ *                      priced as a CONCEPT anyway, because BeatRunner banks
+ *                      every beat clear as "concept" with a literal, so pricing
+ *                      the door at quiz would make the student pay against one
+ *                      row and clear against another: the exact defect the note
+ *                      above this function exists to prevent. Moving both to
+ *                      quiz together is an owner decision about money, not a fix
+ *                      to smuggle in beside a layout change.
  */
 export function economyKindFor(mapKind: NodeKind, link: PlayableLink): EconomyNodeKind {
   if (mapKind === "branch") return "branch";

@@ -70,10 +70,12 @@
  * this one replaces ended "the streak button opens its coach mark, because
  * closing today's goal and keeping the streak are one sentence in
  * docs/ECONOMY.md". That was true and the pixels did not say it: the arc was
- * at the other end of the header from the flame it feeds. XpRing now draws
- * AROUND the flame, so the fraction and the thing it buys are one object, the
+ * at the other end of the header from the flame it feeds. The goal rides the
+ * streak cell now, so the fraction and the thing it buys are one object, the
  * button's accessible name says both, and the coach mark behind it already
- * carries "Hitting your daily goal is what keeps it lit."
+ * carries "Hitting your daily goal is what keeps it lit." Round four drew it
+ * as a ring around the flame; round five draws it as the flame's own level and
+ * the sub-line under the streak count, for the reason that block gives.
  *
  * WHY NOT A FOURTH COUNTER, which is what the bar's row literally is. Because
  * the row is budgeted and the budget is measured: the S3 capture caught six
@@ -100,6 +102,54 @@
  * mark has to be dismissable by Escape, trap focus while it is up, and sit
  * above everything. Hand rolling those is three bugs; `showModal()` is none.
  * Same call, and the same comment, as LanguagePicker.tsx.
+ *
+ * ROUND FIVE, 2026-09-29: ONE ANATOMY, AND THE WEIGHT RUNS THE RIGHT WAY.
+ *
+ * A blind critic measured the row against the bar's path header and found two
+ * things. First, the three cells were built three different ways: marks at 20,
+ * 32 and 20 px, edges at 1, 1 and 2 px, two on the card ground and one on a
+ * green tint. Three cells disagreeing on three properties read as three
+ * components that happened to land together. Second, and it called this the
+ * bigger defect, the emphasis ran BACKWARDS: diamonds, the counter a student
+ * cares least about, was the loudest object in the row, while the streak, which
+ * the whole retention model rests on, was two numbers in grey inside a ring
+ * inside a chip. Its sentence was "the one counter that matters looks switched
+ * off."
+ *
+ * THE BAR'S OWN ANSWER, read off the 2026-08-29 path capture rather than
+ * remembered: four readouts, and not one of them has a frame, a fill or a tint.
+ * Flag, then flame and a number, gem and a number, heart and a number, every
+ * mark about 20px, every number bold in its mark's own hue, one gap. Its
+ * limiter gets no extra weight at all. So the bar's answer to "which cell is
+ * special" is: none of them, at the cell level.
+ *
+ * SO THE CELLS ARE ONE ANATOMY AND THE LADDER IS A SEPARATE, SINGLE DIAL.
+ * Every cell is the same object: a 44px box, one hairline edge on the card
+ * ground, one square mark, one number. Nothing else. hud.css owns the geometry
+ * and names the three differences that survived and what each one now means.
+ * The only cell-level difference is `data-rank`, which scales the mark and the
+ * number together in two steps, and it is set from importance rather than from
+ * which readout it happens to be: the streak leads, the other two are peers.
+ *
+ * WHAT WENT, and each one closes one of the critic's counts:
+ *
+ *  - THE GOAL RING around the flame. Since the flame is drawn AT today's goal
+ *    fraction, the ring drew the same number a second time, and it was the
+ *    whole reason the streak mark measured 32 against its neighbours' 20. The
+ *    ring is still drawn at size where it belongs, around today's square in
+ *    the coach mark's week strip.
+ *  - THE "0/20" SUB-LINE. Round four added it because a critic measured the
+ *    whole HUD's visible text as the single digit "0" and the goal was then
+ *    legible only to a screen reader. That premise is gone: the flame's level
+ *    is the goal, drawn, which is exactly the move the bar gets credit for
+ *    when it draws five countable hearts instead of writing a number. The
+ *    exact fraction moved one press away, into the streak sheet under the week
+ *    strip, where `xp.headline` already says it in words.
+ *  - THE 2px COLOURED EDGE AND THE GREEN TINT on charge. They were the last
+ *    two survivors of a dominance argument from round two, and by round five
+ *    they were a difference with nothing left to mean: the pill they belonged
+ *    to was deleted in round three. The limiter is identified by its mark and
+ *    by its level, not by being the only cell wearing a different suit.
  *
  * PRESS. Each button carries `.press` and opens its sheet on `onPointerDown`,
  * so the acknowledgement and the action are the same frame. CLAUDE.md's rule is
@@ -167,37 +217,50 @@ interface Spot {
   readonly r: number;
 }
 
+/**
+ * Where a readout sits on the header's one ladder.
+ *
+ * NOT A SIZE AND NOT A COLOUR: a rank. hud.css turns it into a mark size and a
+ * number size, together, in one step, and that is the only property any cell is
+ * allowed to differ on. Writing it as a rank rather than as `big` is what stops
+ * the next round adding a third value because a particular chip looked thin.
+ */
+type HudRank = "lead" | "peer";
+
 interface ItemProps {
   readonly id: HudButtonId;
   readonly label: string;
+  readonly rank: HudRank;
   readonly onOpen: (id: HudButtonId, spot: Spot) => void;
-  readonly className?: string;
   readonly children: ReactNode;
 }
 
 /**
  * One readout. 44px minimum in both directions, pressed on pointer down.
  *
- * EVERY ONE OF THE THREE IS AN OUTLINED OBJECT, and the round two verdict
- * survives round three's trim. That verdict was that Charge has to be DOMINANT,
- * and it read the dominance off five things: a number at twice the neighbours'
- * size, a tinted fill, a coloured 2px edge, a word, and a meter. The sticker
- * language is explicit that a control without a cut edge is not in the language
- * at all (rule 3, and the audit was counting 80 rows), so all three get a cut
- * edge and Charge keeps a 2px coloured one over a tint where the other two get
- * a hairline. Those are the two signals that cost the row no width and they are
- * the two that stayed; the file header records what went and why.
+ * ALL THREE ARE THE SAME OBJECT, and after round five that is meant literally:
+ * one hairline edge on the card ground, one mark, one number, one gap, one
+ * padding, all of it declared once in hud.css. No cell carries a class of its
+ * own and none takes a `className`, because a per-cell hook is how the row grew
+ * three anatomies in the first place. The only thing that varies is `rank`.
+ *
+ * THE CUT EDGE STAYS ON ALL THREE. Sticker rule 3 is that a control without one
+ * is not in the language, and these are controls: each opens a modal coach
+ * mark. The bar draws its four readouts bare, and it can, because they are its
+ * own well known furniture. What was never the language is one cell wearing a
+ * heavier edge than the two beside it.
  *
  * It measures itself on the way into the sheet rather than letting the sheet go
  * looking for it, because the button is the only thing that knows for certain
  * which element was pressed, and the spotlight has to be cut around exactly
  * that one.
  */
-function HudButton({ id, label, onOpen, className = "", children }: ItemProps) {
+function HudButton({ id, label, rank, onOpen, children }: ItemProps) {
   return (
     <button
       type="button"
       data-hud={id}
+      data-rank={rank}
       onPointerDown={(event) => {
         const rect = event.currentTarget.getBoundingClientRect();
         onOpen(id, {
@@ -208,7 +271,7 @@ function HudButton({ id, label, onOpen, className = "", children }: ItemProps) {
       }}
       aria-label={label}
       aria-haspopup="dialog"
-      className={`press hud-item relative flex min-h-11 min-w-11 items-center justify-center ${className}`}
+      className="press hud-item relative flex min-h-11 min-w-11 items-center justify-center"
     >
       {children}
     </button>
@@ -240,17 +303,12 @@ function HudButton({ id, label, onOpen, className = "", children }: ItemProps) {
 function ChargeReading({ charge }: { readonly charge: ChargeReadout }) {
   return (
     <>
-      {/* The cell is drawn AT ITS LEVEL. `fraction` is the same number the
-          meter under the word already shows, so this adds no new fact and no
-          new source of truth: it puts the reading in the mark so the row can be
-          read at a glance without moving to the digits. It is 1 in the exam
-          window by the model's own rule, so the cell reads full there. */}
-      <ChargeMark fill={charge.fraction} className="h-5 w-5 shrink-0" />
-      <span
-        className={`text-scale-sm font-bold leading-none tabular-nums text-good-ink ${
-          charge.examWindow ? "hud-charge-exam" : ""
-        }`}
-      >
+      {/* The cell is drawn AT ITS LEVEL, which is one of the three differences
+          the row keeps: a capped resource is drawn part full, an uncapped one
+          is drawn solid. It is 1 in the exam window by the model's own rule, so
+          the cell reads full there. */}
+      <ChargeMark fill={charge.fraction} className="hud-mark" />
+      <span className={`hud-value text-good-ink ${charge.examWindow ? "hud-charge-exam" : ""}`}>
         {charge.value}
       </span>
     </>
@@ -278,59 +336,46 @@ export function Hud() {
   return (
     <>
       <div className="flex shrink-0 items-center gap-1 sm:gap-2" role="group" aria-label="Today's progress">
-        <HudButton id="diamonds" label={diamonds.label} onOpen={openItem} className="gap-1 px-1">
-          <DiamondMark className="h-5 w-5 shrink-0" />
-          <span className="text-scale-sm font-bold leading-none tabular-nums text-diamond-ink">{diamonds.value}</span>
+        <HudButton id="diamonds" label={diamonds.label} rank="peer" onOpen={openItem}>
+          {/* SOLID, ALWAYS. A balance has no cap, so there is no level to draw
+              and inventing one would be drawing a fraction that does not
+              exist. That is the second of the row's three differences. */}
+          <DiamondMark className="hud-mark" />
+          <span className="hud-value text-diamond-ink">{diamonds.value}</span>
         </HudButton>
 
         {/*
-          THE GOAL RING IS DRAWN AROUND THE FLAME. See the round four block at
-          the top of this file: the goal's arc and the streak it buys are one
-          object now rather than one at each end of the header, and this
-          button's accessible name says both. The ring is aria-hidden because
-          the name carries it; a screen reader hearing the fraction twice is
-          the defect that argument is avoiding.
+          THE LEAD READOUT. `rank="lead"` is the row's whole hierarchy: the
+          streak's mark and number step up one size together, and nothing else
+          about the cell changes. A critic measured the emphasis running
+          backwards, with diamonds loudest and the streak quietest, and named
+          it the bigger of its two findings. The header exists for the thing
+          the retention model rests on, so that thing is the biggest object in
+          it, and the two supporting balances are peers.
+
+          ONE NUMBER, like its neighbours. The goal is drawn as the flame's
+          level rather than written as a second line, and the exact fraction is
+          one press away in the sheet. The round four block at the top of this
+          file carries why that swap is a gain rather than a loss of the
+          legibility an earlier round bought.
         */}
-        <HudButton id="streak" label={`${streak.label}. ${xp.label}`} onOpen={openItem} className="gap-0.5 px-1">
-          <span className="hud-streak-mark shrink-0">
-            <XpRing fraction={xp.fraction} met={xp.met} className="hud-streak-ring" />
-            {/* Lit at today's goal fraction, the same number the ring around it
-                draws. An unlit flame at --hud-out reads as DISABLED rather than
-                as "today is not counted yet", and colour cannot be the only
-                carrier of that. A silhouette that is part lit says it as a
-                shape instead: nothing disabled is forty percent of anything.
-                At 0 and at 1 it draws exactly what it drew before. */}
-            <FlameMark
-              lit={streak.lit}
-              fill={streak.lit ? 1 : xp.fraction}
-              className={`hud-streak-flame ${streak.lit ? "" : "hud-flame-out"}`}
-            />
-          </span>
-          {/*
-            TWO QUANTITIES, TWO READINGS. The ring alone left the goal
-            legible only to a screen reader: a round ten critic measured the
-            whole HUD's visible text as the single digit "0", which is the
-            STREAK, while the number 20, the word goal and the word XP lived
-            only in the accessible name. Deleting the ugly meter was asked
-            for; deleting the goal's legibility was not. The fraction rides
-            this button rather than becoming a sixth object, because the row
-            is five objects at 390px and that budget is measured.
-          */}
-          <span className="flex flex-col items-start leading-none">
-            <span
-              className={`text-scale-sm font-bold tabular-nums ${
-                streak.lit ? "text-streak-ink" : "text-bb-muted-foreground"
-              }`}
-            >
-              {streak.value}
-            </span>
-            <span className="text-scale-xs font-semibold tabular-nums text-bb-muted-foreground" data-hud-goal>
-              {xp.today}/{xp.goalXp}
-            </span>
+        <HudButton id="streak" label={`${streak.label}. ${xp.label}`} rank="lead" onOpen={openItem}>
+          {/* Lit at today's goal fraction. An unlit flame at --hud-out reads as
+              DISABLED rather than as "today is not counted yet", and colour
+              cannot be the only carrier of that. A silhouette that is part lit
+              says it as a shape instead: nothing disabled is forty percent of
+              anything. At 0 and at 1 it draws exactly what it drew before. */}
+          <FlameMark
+            lit={streak.lit}
+            fill={streak.lit ? 1 : xp.fraction}
+            className={`hud-mark ${streak.lit ? "" : "hud-flame-out"}`}
+          />
+          <span className={`hud-value ${streak.lit ? "text-streak-ink" : "text-bb-muted-foreground"}`}>
+            {streak.value}
           </span>
         </HudButton>
 
-        <HudButton id="charge" label={charge.label} onOpen={openItem} className="gap-1 px-1">
+        <HudButton id="charge" label={charge.label} rank="peer" onOpen={openItem}>
           <ChargeReading charge={charge} />
         </HudButton>
       </div>
@@ -531,7 +576,20 @@ function HudSheetStrip({
         </span>
       );
     case "streak":
-      return <WeekStrip streak={model.streak} goalFraction={model.xp.fraction} goalMet={model.xp.met} />;
+      return (
+        <>
+          <WeekStrip streak={model.streak} goalFraction={model.xp.fraction} goalMet={model.xp.met} />
+          {/* WHERE "8 of 20 XP today" LIVES NOW. It was a sub-line in the
+              header cell until round five, where it made the streak the only
+              readout asking for two numbers to be parsed, nested two levels
+              deep, in the cell that had to be the easiest one to read. The
+              header draws the fraction as the flame's level and as the ring
+              around today's square directly above this line; the words are
+              here, one press away, and they are `xp.headline` rather than a
+              second copy of the sentence. */}
+          <span className="hud-week-goal">{model.xp.headline}</span>
+        </>
+      );
     case "charge":
       return (
         <span className="hud-panel-charge">

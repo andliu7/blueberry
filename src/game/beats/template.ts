@@ -41,7 +41,7 @@ import { mcqBeatsForNode } from "./mcq";
 import { MATCH_BOARDS } from "./match";
 import { sortContentById } from "./sort";
 import { synthesisGapsForNode } from "./synthesis";
-import { pathwayNode } from "../demo/pathwayMap";
+import { checkpointUnitFor, pathwayNode, type PathwayUnit } from "../demo/pathwayMap";
 import type { TrainerRef } from "./types";
 
 /* ------------------------------------------------------------------ */
@@ -155,7 +155,54 @@ function matchBoardsForNode(node: string) {
  * the old resolver carried ("the easy rung comes first") is now a consequence
  * of the template rather than a special case: recognise precedes produce.
  */
+/**
+ * THE UNIT CHECKPOINT'S MIXED SET, played on this same runner.
+ *
+ * A unit's checkpoint is a synthetic node (see unitCheckpointNode in
+ * demo/pathwayMap.ts), so it has no authored content of its own. What it has is
+ * the unit: it borrows ONE step from each SLOT the unit's own lessons fill, each
+ * from a different lesson, walking the unit in teaching order.
+ *
+ * ONE STEP PER SLOT, and that is a rule rather than a cap on length. Four MCQs
+ * in a row would all land in `recognise`, and the recipe strip draws one segment
+ * per step: a student would see the same badge four times and the strip would
+ * stop describing the work. Deduplicating by slot makes the mix a mix of KINDS
+ * of question, which is what "mixed" is worth on a checkpoint, and it keeps the
+ * template's one-step-per-slot invariant that lessonTemplate.test.ts pins for
+ * every other plan.
+ *
+ * It is short by construction: there are five content slots, so a checkpoint is
+ * at most five questions and in practice two or three.
+ *
+ * A unit with nothing authored gets null, which is the same honest answer any
+ * unauthored node gets: the chip renders queued and declines.
+ */
+function checkpointPlan(unit: PathwayUnit, node: string): LessonPlan | null {
+  const steps: PlanStep[] = [];
+  const taken = new Set<ContentSlot>();
+  for (const entry of unit.nodes) {
+    // Enrichment stays off the check, for the same reason it stays off the
+    // exam-weighted spine: a checkpoint that asked an optional side quest would
+    // be grading a student on work the track told them they could skip.
+    if (entry.kind === "branch") continue;
+    for (const step of planLesson(entry.id)?.steps ?? []) {
+      if (taken.has(step.slot)) continue;
+      taken.add(step.slot);
+      steps.push(step);
+    }
+  }
+  if (steps.length === 0) return null;
+  // Template order, not the order the units happened to yield them in.
+  return { node, steps: [...steps].sort((a, b) => LESSON_SLOTS.indexOf(a.slot) - LESSON_SLOTS.indexOf(b.slot)) };
+}
+
 export function planLesson(node: string): LessonPlan | null {
+  // A checkpoint id is not a map node, so the lookups below would all miss it.
+  // It resolves against the UNIT instead. No recursion: a real node's id is
+  // never a checkpoint id, so the call back into this function terminates.
+  const checkpointUnit = checkpointUnitFor(node);
+  if (checkpointUnit !== null) return checkpointPlan(checkpointUnit, node);
+
   const steps: PlanStep[] = [];
 
   // hook: an authored video open. No node carries one yet, and the free tier

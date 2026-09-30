@@ -52,6 +52,14 @@ export interface SheetNode {
    * pathwayState.ts's `queued` flag insists.
    */
   readonly practiceHref: string | null;
+  /**
+   * Why a LOCKED node is shut, when the reason is not the unit gate. Absent
+   * means the default, "Opens when the unit before it is done", which is the
+   * reason for every lesson. A unit's checkpoint is the one node locked inside
+   * an open unit (it waits for that unit's own lessons, pathwayState.ts), and
+   * telling a student to finish the unit before it would send them backwards.
+   */
+  readonly lockedNote?: string;
 }
 
 /** Four pips, per the committed reference blueberry_r5-node-sheet-v2. */
@@ -94,9 +102,8 @@ export interface CardReadout {
    * Why the card is not pressable, in the coach's voice, or an empty string
    * when it is. Never scolds and never asks a question; the tests hold that.
    *
-   * Practice draws this note as a line, because the reference's Practice card
-   * has a slot for it where START would be. Challenge does NOT: see the note
-   * in nodeSheetModel below and the composition note in NodeSheet.tsx.
+   * Practice draws this note as a line where START would be, and Challenge
+   * draws it beside its double dagger. See the note in nodeSheetModel below.
    */
   readonly note: string;
 }
@@ -171,25 +178,23 @@ export function nodeSheetModel(node: SheetNode): NodeSheetModel {
     ? ""
     : queued
       ? "We are still writing this one. It opens with the next content drop."
-      : "Opens when the unit before it is done.";
+      : (node.lockedNote ?? "Opens when the unit before it is done.");
 
   // The challenge is a second graded run, so it asks for one clean clear first.
   // Not a lock the server needs to know about: it re-reads the same derived
   // state, so a cleared node journalled by the server enables it everywhere.
   //
-  // THIS NOTE IS NEVER DRAWN ON THE CARD. It rides the card's accessible
-  // name and nothing else. The reference draws the resting Challenge card as
-  // the SAME cream card as Practice, 100 css px tall, with three visible
-  // things in it: the heading, the stopwatch and the double dagger. The
-  // fourth line the sheet used to render pushed the card to 121 px and
-  // dropped its heading to the muted ink, which made it a different surface
-  // family from the card beside it. So the wording below is written to be
-  // HEARD, in full sentences, rather than to fit a line of the card.
+  // THIS NOTE IS DRAWN ON THE CARD NOW, beside the double dagger, as well as
+  // riding the card's accessible name. It used to be heard only, to keep the
+  // resting card at the reference's 100 css px, and the owner's verdict on the
+  // result was "the challenge doesnt work": a card that declines a press with
+  // no visible reason reads as broken. So it is short enough for the half-width
+  // card's one line.
   const challengeEnabled = practiceEnabled && cleared;
   const challengeNote = challengeEnabled
     ? ""
     : practiceEnabled
-      ? "Opens after one clear."
+      ? "Opens after your first clear."
       : "Opens with Practice.";
 
   const filled = difficultyFor(node);
