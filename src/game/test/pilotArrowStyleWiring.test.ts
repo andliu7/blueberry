@@ -188,3 +188,56 @@ describe("the verdict is painted on the molecule", () => {
     expect(container.querySelectorAll('[data-push-mark="good"]').length).toBe(2);
   });
 });
+
+/* ---------------- round two: what is actually painted, and where ---------------- */
+
+/** The opacity the eye gets: the product of every opacity attribute from the element up to the canvas. */
+function effectiveOpacity(element: Element): number {
+  let opacity = 1;
+  for (let node: Element | null = element; node !== null && node.tagName.toLowerCase() !== "svg"; node = node.parentElement) {
+    const own = node.getAttribute("opacity");
+    if (own !== null) opacity *= Number(own);
+  }
+  return opacity;
+}
+
+function circleCentre(element: Element): Point2 {
+  return { x: Number(element.getAttribute("cx")), y: Number(element.getAttribute("cy")) };
+}
+
+const distance = (a: Point2, b: Point2) => Math.hypot(a.x - b.x, a.y - b.y);
+
+describe("the verdict is visible, not merely present", () => {
+  for (const style of ARROW_STYLES) {
+    it(`under reduced motion, a ${style} win holds both arrows green at full opacity`, () => {
+      const { container, store } = mount(style);
+      drawWin(store);
+      check(container);
+      const records = [...container.querySelectorAll("[data-push-record]")];
+      expect(records.length).toBe(2);
+      for (const record of records) {
+        expect(effectiveOpacity(record)).toBeGreaterThan(0.9);
+        // The arrow itself carries the win's colour, not only a ring beside it.
+        const painted = [...record.querySelectorAll("path, line")].filter(
+          (shape) => shape.getAttribute("fill") === "var(--good)" || shape.getAttribute("stroke") === "var(--good)",
+        );
+        expect(painted.length).toBeGreaterThan(0);
+      }
+    });
+  }
+
+  it("rings the atom the wrong arrow hit, and calmly marks where it should have gone", () => {
+    const { container, store } = mount("auto");
+    drawMiss(store);
+    const bromine = targetCentre({ kind: "atom", atomId: "br1" });
+    const carbon = targetCentre({ kind: "atom", atomId: "c1" });
+    check(container);
+    const ring = container.querySelector('[data-push-mark="near"]');
+    if (ring === null) throw new Error("no miss ring");
+    expect(distance(circleCentre(ring), bromine)).toBeLessThan(1);
+    expect(effectiveOpacity(ring)).toBeGreaterThan(0.9);
+    const hint = container.querySelector("[data-push-hint] circle");
+    if (hint === null) throw new Error("no hint on the right target");
+    expect(distance(circleCentre(hint), carbon)).toBeLessThan(1);
+  });
+});

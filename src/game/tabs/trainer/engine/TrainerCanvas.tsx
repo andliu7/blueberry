@@ -9,34 +9,31 @@
  * drag style setting (settings/arrowStyle.ts): `dragStyle` for what follows
  * the finger, `curvedArrows` for what a committed push rests as.
  *
- *   drag curved    The SMOOTHED arc from engine/drag/smoothing, drawn with
- *                  no head while it is free, electrons at the tip, per the
- *                  owner ruling (no head in flight: a free drag has no
- *                  direction to get wrong). Once the machine snaps it to a
- *                  target, the head's direction IS known, so the ribbon it
- *                  will commit as is previewed faintly, head and all.
- *   drag dashed    The bar's straight dashed guide (capture x01). Snapped, it
- *                  jumps to the landing like a magnet, the electrons with it,
- *                  and a hairline tether keeps the finger connected.
- *   record curved  The tapered curved arrow (engine/arrow).
- *   record arrow-  NO arrow glyph: twin electron dots on the landing plus the
- *          less    forming bond's segmented stub; the WIN plays the bond change.
+ *   drag curved    ONE solid tapered arrow, head included, from the grabbed
+ *                  electrons to the smoothed finger (engine/drag/smoothing),
+ *                  or to the target once the machine snaps. Owner ruling of
+ *                  30 Sep 2026: the head shows WHILE dragging; the earlier
+ *                  "no head in flight" ruling is retired.
+ *   drag dashed    The straight dashed guide WITH a head (owner ruling of
+ *                  30 Sep 2026), to the finger or, snapped, to the landing.
+ *   record         The arrow the student drew stays, full length, to the atom
+ *                  or bond it was dropped on: the tapered curved arrow, or the
+ *                  dashed arrow with its head. The WIN plays the bond change.
  *
  * THE FEEL, beat by beat, all presentation over what the machine and the
  * grader already decided (nothing here changes what commits or what grades):
- *   idle      unrevealed lone pairs show as quiet ghost dots on their atom
- *             (a tap on them lands on the atom and opens them); opened
- *             pairs breathe; bond ends carry the joint-coloured handle.
+ *   idle      every lone pair is drawn dark and is grabbable from the first
+ *             frame; bond ends carry the joint-coloured handle.
  *   dragging  the snapped target gets a filled halo that throbs, and the
- *             line previews exactly where the push will land.
+ *             arrow lands exactly where the push will.
  *   commit    the new record draws itself in (220 ms) and a ring leaves
  *             the landing. A push the chemistry refuses shakes off in amber.
- *   verdict   `marks`: on a miss the offending push turns the sheet's amber
- *             and is ringed, held while the sheet is up (PHASE-6-VERDICT's
- *             "answer WHERE"); on a win every push turns green, and while
- *             the bond change plays each pair travels its own arrow, in
- *             draw order, so the student watches the consequence happen.
- * Reduced motion: every beat renders its resting frame and nothing moves.
+ *   verdict   `marks`: on a miss the offending arrow turns the sheet's amber
+ *             and the atom it hit is ringed, with a calm green halo on where
+ *             those electrons belong; on a win every arrow turns green and
+ *             holds before the bond change, while each pair travels its arrow.
+ * Reduced motion: every beat renders its resting frame and nothing moves; a
+ * win holds the green arrows, then cuts to the product (TrainerScreen).
  *
  * Lone pairs and hydrogens both come from engine/annotations/placement, one
  * allocation per atom, so nothing here renders bond-side and the hit target
@@ -115,6 +112,8 @@ export interface TrainerCanvasProps {
 export interface CanvasMarks {
   readonly tone: "good" | "near";
   readonly arrowIds: readonly string[];
+  /** On a miss: authored arrows whose landing gets a calm halo, "these electrons go here". */
+  readonly hints?: readonly ElectronFlowArrow[];
 }
 
 const TONE_COLOUR: Record<CanvasMarks["tone"], string> = { good: "var(--good)", near: "var(--not-requested)" };
@@ -122,7 +121,14 @@ const TONE_COLOUR: Record<CanvasMarks["tone"], string> = { good: "var(--good)", 
 /** How long a fresh record takes to draw itself in. Under the 250 ms a commit may take to feel instant. */
 const COMMIT_MS = 220;
 
-const PAD = 64;
+/**
+ * Margin around the atoms in the view box. 44 rather than the old 64: the
+ * canvas is width-bound on a phone, so every unit here is molecule size
+ * lost, and round two measured ours at about a third of the reference's
+ * scale. 44 still clears an atom's lone pairs (radius + 7, plus the dot)
+ * and its charge badge at the edge; hit circles only grow with the scale.
+ */
+const PAD = 44;
 
 /** Expose drop sites for the capture script, same family as __blueberryTargets. */
 const EXPOSE_TARGETS = new URLSearchParams(window.location.search).get("targets") === "1";
@@ -366,7 +372,7 @@ export function TrainerCanvas({
       data-pilot-canvas
       viewBox={viewBox}
       role="application"
-      aria-label="Draw the electron pushes. Tap an atom to show its lone pairs, tap a lone pair or bond handle to pick the electrons up, then tap or drag to where they go."
+      aria-label="Draw the electron pushes. Tap or drag a lone pair or bond handle to pick the electrons up, then drop them where they go."
       className="h-full w-full select-none"
       style={{ touchAction: "none" }}
       onPointerDown={interactive ? onPointerDown : undefined}
@@ -478,63 +484,40 @@ export function TrainerCanvas({
             const entry = liveAnnotations.get(atom.id);
             if (entry === undefined) return null;
             const c = posOf(atom);
-            const revealed = draft.revealedLonePairs.includes(atom.id);
+            // Every lone pair is drawn, dark and at full contrast, and is
+            // grabbable from the first frame: no tap-to-open step. Round two's
+            // critic scored the old hidden pairs (and the grey ghost dots that
+            // replaced them) as the molecule never saying "drag from here".
             return (
               <g key={`ann-${atom.id}`}>
                 <Hydrogens centre={c} slots={entry.hydrogens} />
-                {revealed
-                  ? entry.lonePairs.map((slot, slotIndex) => {
-                      const isArmed =
-                        armedTarget?.kind === "lonePair" &&
-                        armedTarget.atomId === atom.id &&
-                        armedTarget.slotIndex === slotIndex;
-                      const anyArmedHere = armedTarget?.kind === "lonePair" && armedTarget.atomId === atom.id;
-                      const dimmed = anyArmedHere && !isArmed;
-                      const aScr = -slot.angleSceneRad;
-                      const ux = -Math.sin(aScr);
-                      const uy = Math.cos(aScr);
-                      const p = slot.posPx;
-                      // An open pair nobody is holding breathes: this is the
-                      // "glowing electrons" the student starts a push from.
-                      const invite = interactive && armedTarget === undefined && !reducedMotion;
-                      return (
-                        <g key={slotIndex} opacity={dimmed ? 0.3 : 1}>
-                          {invite ? (
-                            <circle cx={p.x} cy={p.y} r={14} fill="none" stroke="var(--bb-primary)" strokeWidth={2} className="push-grab-breathe" />
-                          ) : null}
-                          <circle
-                            cx={p.x}
-                            cy={p.y}
-                            r={12}
-                            fill={isArmed ? "var(--bb-primary)" : "var(--workbench)"}
-                            stroke="var(--bb-primary)"
-                            strokeWidth={isArmed ? 2.5 : 1.5}
-                            opacity={isArmed ? 0.95 : 0.5}
-                          />
-                          <circle cx={p.x - ux * 3.2} cy={p.y - uy * 3.2} r={2.4} fill={isArmed ? "#fff" : "var(--bond-stroke)"} />
-                          <circle cx={p.x + ux * 3.2} cy={p.y + uy * 3.2} r={2.4} fill={isArmed ? "#fff" : "var(--bond-stroke)"} />
-                        </g>
-                      );
-                    })
-                  : interactive && annotationSide === "from"
-                    ? // Not opened yet: the pairs are there, quietly, so the
-                      // molecule says where electrons are before it is touched.
-                      // On touch they sit inside the atom's own hit circle
-                      // (22 px floor plus slop), so a tap on them is a tap on
-                      // the atom, which opens them.
-                      entry.lonePairs.map((slot, slotIndex) => {
-                        const aScr = -slot.angleSceneRad;
-                        const ux = -Math.sin(aScr);
-                        const uy = Math.cos(aScr);
-                        const p = slot.posPx;
-                        return (
-                          <g key={`ghost-${slotIndex}`} opacity={0.55} data-ghost-pair>
-                            <circle cx={p.x - ux * 3.2} cy={p.y - uy * 3.2} r={2.2} fill="var(--bond-stroke)" />
-                            <circle cx={p.x + ux * 3.2} cy={p.y + uy * 3.2} r={2.2} fill="var(--bond-stroke)" />
-                          </g>
-                        );
-                      })
-                    : null}
+                {entry.lonePairs.map((slot, slotIndex) => {
+                  const isArmed =
+                    armedTarget?.kind === "lonePair" &&
+                    armedTarget.atomId === atom.id &&
+                    armedTarget.slotIndex === slotIndex;
+                  const anyArmedHere = armedTarget?.kind === "lonePair" && armedTarget.atomId === atom.id;
+                  const dimmed = anyArmedHere && !isArmed;
+                  const aScr = -slot.angleSceneRad;
+                  const ux = -Math.sin(aScr);
+                  const uy = Math.cos(aScr);
+                  const p = slot.posPx;
+                  return (
+                    <g key={slotIndex} opacity={dimmed ? 0.35 : 1} data-lone-pair>
+                      <circle
+                        cx={p.x}
+                        cy={p.y}
+                        r={11}
+                        fill={isArmed ? "var(--bb-primary)" : "none"}
+                        stroke="var(--bb-primary)"
+                        strokeWidth={isArmed ? 2.5 : 1.25}
+                        opacity={isArmed ? 0.95 : interactive ? 0.4 : 0}
+                      />
+                      <circle cx={p.x - ux * 3.4} cy={p.y - uy * 3.4} r={2.8} fill={isArmed ? "#fff" : "var(--bb-foreground)"} />
+                      <circle cx={p.x + ux * 3.4} cy={p.y + uy * 3.4} r={2.8} fill={isArmed ? "#fff" : "var(--bb-foreground)"} />
+                    </g>
+                  );
+                })}
               </g>
             );
           })}
@@ -593,6 +576,22 @@ export function TrainerCanvas({
           />
         ))}
       </g>
+
+      {/* On a miss, where the same electrons should have gone: a calm filled
+          halo in the win's green, quieter than the amber ring on what was hit. */}
+      {marks !== null && marks.tone === "near"
+        ? (marks.hints ?? []).map((hint) => {
+            const geometry = committedArrowGeometry(step, scene, annotations, hint, centroid);
+            const at = geometry.targetAtom !== null ? geometry.to : geometry.landing;
+            const r = geometry.targetAtom !== null ? geometry.sinkRadiusPx + 4 : 16;
+            return (
+              <g key={`hint-${hint.id}`} style={{ pointerEvents: "none" }} data-push-hint>
+                <circle cx={at.x} cy={at.y} r={r} fill="var(--good)" opacity={0.16} />
+                <circle cx={at.x} cy={at.y} r={r} fill="none" stroke="var(--good)" strokeWidth={2} strokeDasharray="5 4" opacity={0.7} />
+              </g>
+            );
+          })
+        : null}
 
       {/* The commit's ring, keyed on the push so each commit plays it once. */}
       {landed !== null && interactive && !reducedMotion ? (
@@ -696,11 +695,15 @@ function Hydrogens({ centre, slots }: { readonly centre: Point2; readonly slots:
 }
 
 /**
- * One committed push, at replay progress t (1 is fully drawn). Curved
- * records are the tapered ribbon; arrowless records are resting electrons
- * and the forming bond's stub, no arrow glyph anywhere. A `tone` is the
- * verdict painted on it: the ribbon takes the colour, and either kind gets
- * a ring on its landing so the mark points at WHERE, not only at which.
+ * One committed push, at progress t (1 is fully drawn). The record IS the
+ * arrow the student drew, full length, from the electrons to the atom or bond
+ * it was dropped on: the tapered curved arrow in the curved style, the
+ * straight dashed guide with a head in the dashed style. Round two's critic
+ * measured the old records (a 60 px hook, or two resting dots) as the
+ * student's arrow disappearing at the moment it should be rewarded.
+ *
+ * A `tone` is the verdict painted on it: the arrow itself takes the colour,
+ * and the atom it was dropped on is ringed, so the mark points at WHERE.
  */
 function Record({
   step,
@@ -726,34 +729,27 @@ function Record({
   const geometry = committedArrowGeometry(step, scene, annotations, arrow, away);
   const eased = t >= 1 ? 1 : t * (2 - t);
   const colour = tone === undefined ? undefined : TONE_COLOUR[tone];
-  const stub = geometry.stub !== null ? <BondCapsule a={geometry.stub.a} b={geometry.stub.b} rA={0} rB={0} opacity={0.75} forming /> : null;
-  // The mark: an underlay along the forming bond (it is the thing being
-  // judged when there is one) and a ring on the landing, one pop, then held.
   const mark =
     colour === undefined ? null : (
-      <g className={reducedMotion ? undefined : "push-mark-pop"} data-push-mark={tone}>
-        {geometry.stub !== null ? (
-          <line
-            x1={geometry.stub.a.x}
-            y1={geometry.stub.a.y}
-            x2={geometry.stub.b.x}
-            y2={geometry.stub.b.y}
-            stroke={colour}
-            strokeWidth={14}
-            strokeLinecap="round"
-            // 0.28 was measured invisible under the grey forming stub on the miss capture.
-            opacity={0.45}
-          />
-        ) : null}
-        <circle cx={geometry.landing.x} cy={geometry.landing.y} r={15} fill="none" stroke={colour} strokeWidth={3} />
-      </g>
+      <circle
+        className={reducedMotion ? undefined : "push-mark-pop"}
+        data-push-mark={tone}
+        cx={geometry.targetAtom !== null ? geometry.to.x : geometry.landing.x}
+        cy={geometry.targetAtom !== null ? geometry.to.y : geometry.landing.y}
+        r={geometry.targetAtom !== null ? geometry.sinkRadiusPx + 3 : 15}
+        fill="none"
+        stroke={colour}
+        strokeWidth={3.5}
+      />
     );
   if (curved) {
+    // No forming-bond stub under the ribbon: on a push to a far atom it ran
+    // straight through whatever sat between (O to Br through carbon), which
+    // read as carbon being the thing marked. The arrow alone says it.
     if (t >= 1) {
       return (
-        <g>
+        <g data-push-record="curved">
           {mark}
-          {stub}
           <TaperedArrow
             from={geometry.from}
             to={geometry.to}
@@ -764,26 +760,41 @@ function Record({
         </g>
       );
     }
-    // Growing in (the commit beat, or the scrubber): the ribbon reaches toward
-    // its landing, profile scaling with the chord, so a young arrow is small.
+    // Growing in (the commit beat, or the scrubber): the ribbon reaches
+    // toward its landing, so a young arrow is a short arrow.
     return <TaperedArrow from={geometry.from} to={mixPx(geometry.from, geometry.landing, eased)} away={away} glow={false} />;
   }
-  if (t >= 1) {
-    return (
-      <g>
-        {mark}
-        {stub}
-        <circle cx={geometry.landing.x - 3.2} cy={geometry.landing.y} r={2.6} fill={colour ?? "var(--electron-glow)"} />
-        <circle cx={geometry.landing.x + 3.2} cy={geometry.landing.y} r={2.6} fill={colour ?? "var(--electron-glow)"} />
-      </g>
-    );
-  }
-  // Re-performing the gesture: electrons travel the guide line.
-  const p = mixPx(geometry.from, geometry.landing, eased);
+  return (
+    <g data-push-record="dashed">
+      {t >= 1 ? mark : null}
+      <DashedArrow from={geometry.from} to={mixPx(geometry.from, geometry.landing, eased)} colour={colour ?? "var(--bb-primary)"} />
+    </g>
+  );
+}
+
+/**
+ * The straight dashed guide with a head: the dashed style's arrow, in flight
+ * and at rest. The head is a solid triangle so the direction reads at a
+ * glance; the dashes say "this bond is being made", the head says which way
+ * the electrons went.
+ */
+function DashedArrow({ from, to, colour }: { readonly from: Point2; readonly to: Point2; readonly colour: string }) {
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  const len = Math.hypot(dx, dy);
+  if (len < 4) return null;
+  const ux = dx / len;
+  const uy = dy / len;
+  const HEAD = 13;
+  const base = { x: to.x - ux * HEAD, y: to.y - uy * HEAD };
+  const wing = 6.5;
+  const head = `M ${to.x} ${to.y} L ${base.x - uy * wing} ${base.y + ux * wing} L ${base.x + uy * wing} ${base.y - ux * wing} Z`;
   return (
     <g>
-      <line x1={geometry.from.x} y1={geometry.from.y} x2={p.x} y2={p.y} stroke="var(--bb-primary)" strokeWidth={3} strokeDasharray="7 6" strokeLinecap="round" opacity={0.8} />
-      <ElectronPair at={p} />
+      {/* Casing blends into the workbench so the dashes read on any rod they cross. */}
+      <line x1={from.x} y1={from.y} x2={base.x} y2={base.y} stroke="var(--workbench)" strokeWidth={8} strokeLinecap="round" opacity={0.9} />
+      <line x1={from.x} y1={from.y} x2={base.x} y2={base.y} stroke={colour} strokeWidth={4} strokeDasharray="8 6" strokeLinecap="round" />
+      <path d={head} fill={colour} stroke="var(--workbench)" strokeWidth={1.5} strokeLinejoin="round" />
     </g>
   );
 }
@@ -863,11 +874,13 @@ function SnapHalo({ snap, reducedMotion }: { readonly snap: SnapPreview; readonl
 }
 
 /**
- * The curved drag: the smoothed arc, no head while it is free (a free drag
- * has no direction to get wrong, the ruling the trainer records), electrons
- * riding the tip. Snapped, the direction is known, so the ribbon the push
- * will commit as is previewed at part strength and the live arc thins to a
- * trace of where the finger is.
+ * The curved drag: ONE solid headed arrow from the grabbed electrons to the
+ * smoothed finger, the same tapered arrow the push commits as, so what the
+ * student drags is what they keep. Snapped, it lands on the target instead of
+ * the finger. Round two's critic read the old dashed line between a source
+ * disc and a cursor ring as "a lasso, not an arrow", and the snapped preview
+ * (a dashed line inside a pale ribbon) as unfinished. The head shows while
+ * dragging by owner ruling of 30 Sep 2026.
  */
 function InFlightCurved({
   from,
@@ -883,65 +896,18 @@ function InFlightCurved({
   readonly away: Point2;
 }) {
   const tip = smoothed?.tip ?? fallbackTo;
-  const control = smoothed?.control ?? mixPx(from, tip, 0.5);
-  const d = `M ${from.x} ${from.y} Q ${control.x} ${control.y} ${tip.x} ${tip.y}`;
-  if (snap !== null) {
-    return (
-      <g>
-        <path d={d} fill="none" stroke="var(--bb-primary)" strokeWidth={1.5} strokeDasharray="3 5" strokeLinecap="round" opacity={0.45} />
-        <TaperedArrow from={from} to={snap.aim} away={away} sinkRadiusPx={snap.sinkRadiusPx} glow={false} opacity={0.6} />
-        <circle cx={from.x} cy={from.y} r={3} fill="var(--bb-primary)" />
-      </g>
-    );
-  }
-  return (
-    <g>
-      {/* The casing blends into the surface behind, which is the workbench now, not --bb-card. */}
-      <path d={d} fill="none" stroke="var(--workbench)" strokeWidth={8} strokeLinecap="round" opacity={0.9} />
-      <path d={d} fill="none" stroke="var(--bb-primary)" strokeWidth={3.5} strokeDasharray="7 6" strokeLinecap="round" />
-      <HeldElectrons from={from} at={tip} />
-    </g>
-  );
-}
-
-/** The pair riding the drag, glow and core, over the dot they left from. */
-function HeldElectrons({ from, at }: { readonly from: Point2; readonly at: Point2 }) {
-  return (
-    <g>
-      <circle cx={at.x} cy={at.y} r={13} fill="var(--electron-glow)" opacity={0.55} />
-      <ElectronPair at={at} />
-      <circle cx={from.x} cy={from.y} r={3} fill="var(--bb-primary)" />
-    </g>
+  return snap !== null ? (
+    <TaperedArrow from={from} to={snap.aim} away={away} sinkRadiusPx={snap.sinkRadiusPx} glow={false} />
+  ) : (
+    <TaperedArrow from={from} to={tip} away={away} glow={false} />
   );
 }
 
 /**
- * The straight dashed drag, electrons at the finger. Snapped, the guide
- * jumps to the landing like a magnet and takes the electrons with it, so the
- * student sees the bond they are about to make; a hairline keeps the finger
- * attached so the jump never reads as the drag being lost.
+ * The straight dashed drag: the dashed guide with a head at the finger, or at
+ * the landing once snapped. No electron blob rides the tip any more, because
+ * on a snap it sat on the target's letter and hid it (round two critic).
  */
 function InFlightArrowless({ from, to, snap }: { readonly from: Point2; readonly to: Point2; readonly snap: SnapPreview | null }) {
-  const end = snap?.landing ?? to;
-  return (
-    <g>
-      {snap !== null ? (
-        <line x1={end.x} y1={end.y} x2={to.x} y2={to.y} stroke="var(--bb-primary)" strokeWidth={1.5} strokeLinecap="round" opacity={0.35} />
-      ) : null}
-      {/* Casing blends into the workbench, same as InFlightCurved: on the
-          white bench a cream casing read as a faint warm halo (rejudge note). */}
-      <line x1={from.x} y1={from.y} x2={end.x} y2={end.y} stroke="var(--workbench)" strokeWidth={8} strokeLinecap="round" opacity={0.9} />
-      <line
-        x1={from.x}
-        y1={from.y}
-        x2={end.x}
-        y2={end.y}
-        stroke="var(--bb-primary)"
-        strokeWidth={snap !== null ? 4.5 : 3.5}
-        strokeDasharray="7 6"
-        strokeLinecap="round"
-      />
-      <HeldElectrons from={from} at={end} />
-    </g>
-  );
+  return <DashedArrow from={from} to={snap?.landing ?? to} colour="var(--bb-primary)" />;
 }

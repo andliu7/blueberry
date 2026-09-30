@@ -54,7 +54,7 @@ import {
 } from "@blueberry/interaction";
 import { layoutState } from "../../../render/layout/layout";
 import { buildStepScene, type StepScene } from "../../../render/layout/stepScene";
-import type { MechanismStep } from "@blueberry/chem-core";
+import type { ElectronFlowArrow, MechanismStep } from "@blueberry/chem-core";
 import { createHitTester, type DrawTarget } from "../hitLayout";
 import { arrowKey, gradeDrawing, type DrawVerdict } from "../grade";
 import { matchDistractor } from "../distractors";
@@ -109,6 +109,10 @@ export interface TrainerScreenProps {
 }
 
 const WIN_TWEEN_MS = 1400;
+/** How long the green arrows hold at full before the bond change starts. */
+const WIN_HOLD_MS = 700;
+/** Under reduced motion: how long the green arrows hold before the cut to the product. */
+export const REDUCED_HOLD_MS = 1000;
 
 export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onSolved, reducedMotion = false }: TrainerScreenProps) {
   const lastIndex = question.steps.length - 1;
@@ -194,9 +198,15 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
       : mechanism.armed.target.kind === "lonePair" || mechanism.armed.target.kind === "bondEndHandle"
         ? mechanism.armed.target.atomId
         : null;
+  const pairedAtoms = useMemo(() => [...annotations].filter(([, entry]) => entry.lonePairs.length > 0).map(([id]) => id), [annotations]);
   const targets = useMemo(
-    () => sceneTargets(step, scene, annotations, mechanism.revealedLonePairs, armedAtom),
-    [step, scene, annotations, mechanism.revealedLonePairs, armedAtom],
+    // Every atom's lone pairs are targets from the first frame, not only the
+    // ones the machine has "revealed": the canvas draws them all (no
+    // tap-to-open step), so the student can grab what they can see. The
+    // machine's reveal toggle still runs on an atom tap; it just no longer
+    // hides anything.
+    () => sceneTargets(step, scene, annotations, pairedAtoms, armedAtom),
+    [step, scene, annotations, pairedAtoms, armedAtom],
   );
   targetsRef.current = targets;
   const guide = inFlightGuide(machine);
@@ -234,6 +244,9 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
   }, [stepIndex, epoch, reducedMotion]);
 
   const rowsRef = useRef<HTMLDivElement>(null);
+  const benchRef = useRef<HTMLElement>(null);
+  // The bench's height at rest, in px; a ref because reading it must not re-render.
+  const benchHeight = useRef<number | null>(null);
   const [rowsHeight, setRowsHeight] = useState(0);
   useLayoutEffect(() => {
     const rows = rowsRef.current;
@@ -261,7 +274,7 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
   /* ---------------- the win's bond change ---------------- */
 
   // The same frame driver the trainer's playback uses: 0 while drawing,
-  // driven once to 1 on the win, scrubbed straight to 1 under reduced motion.
+  // driven once to 1 on the win; under reduced motion it jumps to 1 after a hold (see onCheck).
   const win = useStepProgress(WIN_TWEEN_MS, false);
   // Everything a verdict does that is not the sheet itself waits for the
   // sheet to land: the mascot, the sound, the buzz, the win tween. The rise
@@ -280,8 +293,16 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
     },
     [reducedMotion],
   );
+  // The green hold before the bond change; cleared on unmount and whenever
+  // the stage resets, so a fast Continue cannot play the tween on the next step.
+  const holdTimer = useRef<number | null>(null);
+  const clearHold = () => {
+    if (holdTimer.current !== null) window.clearTimeout(holdTimer.current);
+    holdTimer.current = null;
+  };
   useEffect(() => () => {
     if (riseTimer.current !== null) window.clearTimeout(riseTimer.current);
+    if (holdTimer.current !== null) window.clearTimeout(holdTimer.current);
   }, []);
 
   /* ---------------- the controls ---------------- */
@@ -311,13 +332,20 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
     setModel(outcome.state);
     if (outcome.justWon) {
       setVerdict(null);
+      // The student's own arrows, green, are the win's first beat, held at
+      // full before the bond change plays: round two's critic found them
+      // readable for about 300 ms. Under reduced motion there is no tween:
+      // owner ruling of 30 Sep 2026, the green arrows hold about a second and
+      // then the screen CUTS to the product, so both are seen and nothing
+      // moves. (Scrubbing straight to the product painted zero green pixels,
+      // g4-arrows-verdict.md claim 1; holding forever never showed the product.)
       if (reducedMotion) {
         react("correct");
-        win.scrub(1);
+        holdTimer.current = window.setTimeout(() => win.scrub(1), REDUCED_HOLD_MS);
       } else {
         afterRise(() => {
           react("correct");
-          win.play();
+          holdTimer.current = window.setTimeout(() => win.play(), WIN_HOLD_MS);
         });
       }
       return;
@@ -360,6 +388,7 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
   // A clean screen over whichever step comes next: redraw pairs it with a
   // fresh document over the SAME step, advancing with the next step's own.
   const resetStage = () => {
+    clearHold();
     setModel(redraw(model));
     setVerdict(null);
     win.scrub(0);
@@ -429,6 +458,15 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
             : null;
   const undoDisabled = !interactive || !canUndo(machine);
   const checkDisabled = !interactive || mechanism.arrows.length === 0;
+  // A miss rings what the student hit, and calmly marks where the same
+  // electrons should have gone: the authored arrow that leaves from the same
+  // source. When no authored arrow shares the source, nothing is hinted,
+  // because any other choice would be a guess about what they meant.
+  const nearMarks = (arrowIds: readonly string[]): CanvasMarks => {
+    const flaggedArrows = mechanism.arrows.filter((arrow) => arrowIds.includes(arrow.id));
+    const hints = step.arrows.filter((authored) => flaggedArrows.some((drawn) => sameSource(drawn.source, authored.source)));
+    return { tone: "near", arrowIds, hints };
+  };
   // The verdict painted ON the molecule, the same instant and colour as the
   // sheet (PHASE-6-VERDICT: "we answer WHY and not WHERE"). It follows the
   // sheet's own life: a changed drawing clears the verdict, and so the mark.
@@ -437,13 +475,23 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
     : won
       ? { tone: "good", arrowIds: mechanism.arrows.map((arrow) => arrow.id) }
       : verdict?.kind === "invalid"
-        ? { tone: "near", arrowIds: [verdict.finding.arrowId] }
+        ? nearMarks([verdict.finding.arrowId])
         : verdict?.kind === "not_requested"
-          ? { tone: "near", arrowIds: verdict.extras.map((arrow) => arrow.id) }
+          ? nearMarks(verdict.extras.map((arrow) => arrow.id))
           : verdict?.kind === "incomplete"
             ? // Every push drawn is one the route asks for; the sheet says how many are left.
               { tone: "good", arrowIds: mechanism.arrows.map((arrow) => arrow.id) }
             : null;
+  // THE MOLECULE HOLDS STILL WHEN A VERDICT ARRIVES. The verdict takes over
+  // the control rows (Undo and the hint stand down), the bench grows, and the
+  // SVG, centred in a taller box, dropped ~70 px on a miss and ~150 px on a
+  // win under the student's eye (round two critic). So the bench's height is
+  // measured while no verdict is up, and while one is, the canvas keeps that
+  // height pinned to the top of the bench: the extra room stays empty.
+  const holdBench = sheet !== null || won;
+  useLayoutEffect(() => {
+    if (!holdBench && benchRef.current !== null) benchHeight.current = benchRef.current.clientHeight;
+  });
   // The strip spans the whole question: a single step reads its own fraction.
   const fraction = (stepIndex + progressFraction(model, mechanism.arrows.length, step.arrows.length)) / question.steps.length;
 
@@ -492,6 +540,7 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
             shell reference (blueberry_r9-lesson-mechanism_1788289491); --bb-card
             on the cream page measured 1.046:1 and read as an outline. */}
         <section
+          ref={benchRef}
           className="relative min-h-0 flex-1 overflow-hidden rounded-2xl border-2 border-bb-border"
           style={{
             background: chooserOpen && dark ? "color-mix(in srgb, black 50%, var(--workbench))" : "var(--workbench)",
@@ -522,6 +571,7 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
               </span>
             </>
           ) : (
+            <div className="w-full" style={{ height: holdBench ? benchHeight.current ?? "100%" : "100%" }} data-bench-hold={holdBench ? "" : undefined}>
             <TrainerCanvas
               key={`${stepIndex}-${chosenRoute ?? "step"}-${epoch}`}
               step={step}
@@ -542,6 +592,7 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
               replay={model.replayOpen ? { recorded: model.recorded, scrub: model.scrub } : null}
               reducedMotion={reducedMotion}
             />
+            </div>
           )}
 
           {chooserOpen ? (
@@ -802,6 +853,13 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
 }
 
 /* ------------------------------------------------------------------ */
+
+/** Do two arrows start from the same electrons? Kind plus the atom or bond they leave. */
+function sameSource(a: ElectronFlowArrow["source"], b: ElectronFlowArrow["source"]): boolean {
+  if (a.kind === "bond") return b.kind === "bond" && a.bondId === b.bondId;
+  if (b.kind === "bond") return false;
+  return a.kind === b.kind && a.atomId === b.atomId;
+}
 
 /**
  * A step already taken, read only: its state and the pushes that completed

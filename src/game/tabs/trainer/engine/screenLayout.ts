@@ -157,17 +157,22 @@ export function targetAnchorPx(
 /** Clearance kept between an arrowhead and the rim it lands beside. */
 const LAND_GAP = 6;
 
-/** How a committed push is drawn: the ribbon's endpoints and the bond it makes. */
+/** How a committed push is drawn: the arrow's endpoints and the atom it was dropped on. */
 export interface CommittedArrowGeometry {
   /** Where the electrons left: a lone pair slot or a bond midpoint. */
   readonly from: Point2;
   /** What the tapered module is aimed at. Its own sink trim does the landing. */
   readonly to: Point2;
   readonly sinkRadiusPx: number;
-  /** Where resting electrons sit in the arrowless mode. Already on the rim. */
+  /** Where the arrow lands: on the rim of the atom, or on the bond. The dashed arrow ends here. */
   readonly landing: Point2;
-  /** The forming bond, when the sink is a pair with no bond yet. Rim to rim. */
-  readonly stub: { readonly a: Point2; readonly b: Point2 } | null;
+  /**
+   * The atom the push was dropped on, when there is one: the sink atom, or
+   * for a new bond the end away from the source. Null for a push into an
+   * existing bond. A verdict rings this atom, because it is what the
+   * student aimed at.
+   */
+  readonly targetAtom: AtomId | null;
 }
 
 /**
@@ -230,19 +235,31 @@ export function committedArrowGeometry(
   // The landing, now that the start is known.
   let sinkRadiusPx: number;
   let landing: Point2;
+  let targetAtom: AtomId | null = null;
   if (sink.kind === "atom") {
     const r = atomRadius(elementOf(sink.atomId));
     sinkRadiusPx = r + LAND_GAP;
     landing = landingOnRim(atomCentre(scene, sink.atomId), r, from, away, LAND_GAP);
+    targetAtom = sink.atomId;
   } else if (stub !== null) {
-    sinkRadiusPx = 8;
-    landing = to;
+    // A new bond. The arrow runs the whole way to the atom the student
+    // dropped on, the end away from where the electrons left, because that
+    // is the arrow they drew. Ending it at the middle of the forming bond
+    // shrank an SN2 attack to a 60 px hook that stopped short of carbon
+    // (round two critic, g4-arrows-verdict.md).
+    const [a, b] = sink.atomIds;
+    const far = Math.hypot(atomCentre(scene, a).x - from.x, atomCentre(scene, a).y - from.y) >= Math.hypot(atomCentre(scene, b).x - from.x, atomCentre(scene, b).y - from.y) ? a : b;
+    const r = atomRadius(elementOf(far));
+    to = atomCentre(scene, far);
+    sinkRadiusPx = r + LAND_GAP;
+    landing = landingOnRim(to, r, from, away, LAND_GAP);
+    targetAtom = far;
   } else {
     // Into an existing bond: land on its midpoint, head held off the rod.
     sinkRadiusPx = 10;
     landing = to;
   }
 
-  return { from, to, sinkRadiusPx, landing, stub };
+  return { from, to, sinkRadiusPx, landing, targetAtom };
 }
 

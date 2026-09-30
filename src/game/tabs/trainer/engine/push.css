@@ -1,23 +1,12 @@
 /*
- * The push's one-shot beats on the trainer canvas: the grab points breathing,
- * the snapped target throbbing, the commit's landing ring, a refused push
- * shaking off, and the verdict mark arriving. TrainerCanvas.tsx says what
+ * The push's one-shot beats on the trainer canvas: the snapped target
+ * throbbing, the commit's landing ring, a refused push shaking off, and the verdict mark arriving. TrainerCanvas.tsx says what
  * each one is for; this file only times them.
  *
  * Every class here is added by the canvas only when reduced motion is off, and
  * the media query below is the belt to that braces: a still frame of each beat
  * is already its resting state, so dropping the animation loses no state.
  */
-
-.push-grab-breathe {
-  animation: push-grab-breathe 1.6s ease-in-out infinite;
-  transform-origin: center;
-  transform-box: fill-box;
-}
-@keyframes push-grab-breathe {
-  0%, 100% { transform: scale(1); opacity: 0.55; }
-  50% { transform: scale(1.18); opacity: 0.95; }
-}
 
 /* The target under the finger: a quick throb, fast enough to read as "live". */
 .push-snap-throb {
@@ -68,7 +57,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .push-grab-breathe,
   .push-snap-throb,
   .push-mark-pop {
     animation: none;
