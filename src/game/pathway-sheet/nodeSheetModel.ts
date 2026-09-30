@@ -60,6 +60,14 @@ export interface SheetNode {
    * telling a student to finish the unit before it would send them backwards.
    */
   readonly lockedNote?: string;
+  /**
+   * True when this node has NO Challenge run: its lesson has a step that
+   * cannot report a miss (a mechanism on the trainer engine), or it is not a
+   * map lesson at all. Absent means it has one; see challengeable() in
+   * beats/template.ts for the rule and PathwayTab's sheetNodeFor for where
+   * the map's nodes get it.
+   */
+  readonly noChallenge?: boolean;
 }
 
 /** Four pips, per the committed reference blueberry_r5-node-sheet-v2. */
@@ -102,9 +110,8 @@ export interface CardReadout {
    * Why the card is not pressable, in the coach's voice, or an empty string
    * when it is. Never scolds and never asks a question; the tests hold that.
    *
-   * Practice draws this note as a line where START would be. Challenge does
-   * NOT: it rides the card's accessible name. See the note in nodeSheetModel
-   * below and the open question in NodeSheet.tsx.
+   * Practice draws this note as a line where START would be, and the resting
+   * Challenge card draws it under its heading (owner, 2026-09-30).
    */
   readonly note: string;
 }
@@ -181,20 +188,24 @@ export function nodeSheetModel(node: SheetNode): NodeSheetModel {
       ? "We are still writing this one. It opens with the next content drop."
       : (node.lockedNote ?? "Opens when the unit before it is done.");
 
-  // The challenge is a second graded run, so it asks for one clean clear first.
-  // Not a lock the server needs to know about: it re-reads the same derived
-  // state, so a cleared node journalled by the server enables it everywhere.
+  // The challenge is a harder run of a node already cleared, so it asks for
+  // one clear first. Not a lock the server needs to know about: it re-reads
+  // the same derived state, so a cleared node journalled by the server
+  // enables it everywhere, and the economy refuses to pay a pass on a node
+  // with no clear whatever the button did (packages/economy derive.ts).
   //
-  // THIS NOTE RIDES THE CARD'S ACCESSIBLE NAME AND IS NOT DRAWN, which
-  // pathwaySheetContract.test.ts pins so the resting card stays at the
-  // reference's 100 css px. The owner's "the challenge doesnt work" argues for
-  // drawing it; see the open question recorded in NodeSheet.tsx.
-  const challengeEnabled = practiceEnabled && cleared;
+  // THE NOTE IS DRAWN ON THE RESTING CARD. Owner, 2026-09-30: a card that
+  // does nothing when pressed has to say why where it can be seen, which is
+  // what "the challenge doesnt work" was about.
+  const hasChallenge = node.noChallenge !== true;
+  const challengeEnabled = practiceEnabled && cleared && hasChallenge;
   const challengeNote = challengeEnabled
     ? ""
-    : practiceEnabled
-      ? "Opens after your first clear."
-      : "Opens with Practice.";
+    : !practiceEnabled
+      ? "Opens with Practice."
+      : !hasChallenge
+        ? "No Challenge for this lesson yet."
+        : "Clear this lesson first to unlock Challenge.";
 
   const filled = difficultyFor(node);
 

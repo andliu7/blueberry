@@ -44,6 +44,7 @@ leaderboard.
 | Daily goal met | +10 | Once per day, on top of whatever earned it |
 | Review drill cleared | 12 | The one repeatable earner. Re-practice is the one thing worth repeating |
 | Replay of a cleared node | 5 | Deliberately low. See the flat-rate constraint |
+| Challenge passed | 12 | PROPOSED 2026-09-30, owner to confirm. Priced as a review drill; see `XP_CHALLENGE_PASSED` in rules.ts |
 
 **Flat-rate constraint.** Keep XP per minute roughly level across node types. If concept nodes pay
 10 in three minutes and reaction nodes pay 15 in eight, students farm concept nodes and never draw
@@ -118,6 +119,7 @@ Scale unchanged from v1. Every diamond still traces to a learning event.
 | Unit cleared | 50 + unit badge | The big celebratory moment, full-bleed |
 | Boss, multistep synthesis | 200 | Gated on five units. The endgame paycheck |
 | Review drill cleared | 5 | Retention pays, lightly and repeatably |
+| Challenge passed | 5 | PROPOSED 2026-09-30, owner to confirm. Every pass, only on a cleared node; entry costs the node's own charge |
 | Streak milestone | 75 | At 7, 14, 30, 60, 100, 180, 365 |
 | Mastery rank | 125 to 250 | See the Mastery table |
 

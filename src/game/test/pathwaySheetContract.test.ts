@@ -120,20 +120,67 @@ describe("the challenge card's two states read at rest", () => {
     expect(CSS).not.toMatch(/\.ns-card[^{]*h3\s*\{[^}]*--bb-muted-foreground/);
   });
 
-  it("the resting card draws no explanatory line: the reason rides its name", () => {
-    // The picture's Challenge card holds a heading and two marks and nothing
-    // else, at the same 100 css px as Practice. Attempt 2 drew a fourth line
-    // and the card grew to 121. The wording still exists, on aria-label.
+  /*
+     REWRITTEN ON THE OWNER'S DECISION, 2026-09-30, and only this check. It
+     used to forbid a drawn line on the resting card, keeping the reason on
+     the accessible name only; the owner ruled that a card which does nothing
+     when pressed must SAY why where it can be seen. So it now requires the
+     reason drawn on the resting (not yet available) card and forbids it on
+     the enabled (cleared) card, which is the same number of assertions
+     pointing the other way, plus the enabled half the old check never held.
+     The 100 css px floor is kept exactly as it was.
+  */
+  it("the resting card draws its reason as a line, and the enabled card draws none", () => {
     const resting = TSX.slice(TSX.indexOf("ns-card ns-card--half"));
     const cardMarkup = resting.slice(0, resting.indexOf("</section>"));
-    // The wording exists EXACTLY once and only inside the accessible name.
-    expect((cardMarkup.match(/model\.challenge\.note/g) ?? [])).toHaveLength(1);
+    const body = cardMarkup.slice(cardMarkup.indexOf(">"));
+    // The wording is DRAWN exactly once, as a child of the card: a
+    // `{model.challenge.note}` expression between the tags, inside a note line.
+    expect((body.match(/\{model\.challenge\.note\}/g) ?? [])).toHaveLength(1);
+    expect(body).toMatch(/<p className="ns-note[^"]*">\{model\.challenge\.note\}<\/p>/);
+    // And it is not ALSO on the card's own attributes, which would read it
+    // twice to a screen reader: the drawn line is the one place it lives.
     const attrs = cardMarkup.slice(0, cardMarkup.indexOf(">"));
-    expect(attrs, "the note rides aria-label, not a drawn line").toContain("model.challenge.note");
-    // Nothing between the tags renders it: no `{model.challenge.note}` child.
-    expect(cardMarkup.slice(cardMarkup.indexOf(">"))).not.toContain("challenge.note");
-    // And the card the picture draws is 100 css px, not 121.
+    expect(attrs).not.toContain("challenge.note");
+
+    // The enabled card, the branch before the resting one, draws no reason.
+    const enabledAt = TSX.indexOf("model.challenge.enabled ?");
+    expect(enabledAt, "the enabled branch is present").toBeGreaterThanOrEqual(0);
+    const enabled = TSX.slice(enabledAt, TSX.indexOf("ns-card ns-card--half"));
+    expect(enabled).toContain("ns-card--go");
+    expect(enabled).not.toContain("challenge.note");
+    expect(enabled).not.toContain("ns-note");
+
+    // And the card the picture draws is still at least 100 css px, as before.
     expect(lengthPx(block(CSS, ".ns-card"), "min-height")).toBe(100);
+  });
+
+  it("the model gives an uncleared node a reason and a cleared one none", async () => {
+    // The markup check above says WHERE the reason is drawn; this says WHEN
+    // there is one. An uncleared node always carries a non-empty reason, and
+    // a cleared node with a Challenge carries none, so the enabled card has
+    // nothing to draw even if a later edit tried.
+    const { nodeSheetModel } = await import("../pathway-sheet/nodeSheetModel");
+    const base = {
+      id: "u1-kvt",
+      kind: "spine" as const,
+      title: "Kinetic vs thermodynamic control",
+      blurb: "",
+      practiceHref: "#/app/lesson/u1-kvt",
+    };
+    for (const state of ["current", "open", "locked"] as const) {
+      const model = nodeSheetModel({ ...base, state });
+      expect(model.challenge.enabled, state).toBe(false);
+      expect(model.challenge.note.length, state).toBeGreaterThan(0);
+    }
+    expect(nodeSheetModel({ ...base, state: "open" }).challenge.note).toBe(
+      "Clear this lesson first to unlock Challenge.",
+    );
+    for (const state of ["done", "review"] as const) {
+      const model = nodeSheetModel({ ...base, state });
+      expect(model.challenge.enabled, state).toBe(true);
+      expect(model.challenge.note, state).toBe("");
+    }
   });
 
   it("chip depth is an EDGE layer under a FACE layer, never a shadow offset on Y", () => {

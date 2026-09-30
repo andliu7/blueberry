@@ -259,8 +259,34 @@ export function nodeHasBeat(node: string): boolean {
 
 export type RunPhase = "content" | "recycle" | "reward";
 
+/**
+ * PRACTICE OR CHALLENGE. Owner, 2026-09-30: Challenge is a harder run of a
+ * node already cleared, and it pays on a pass.
+ *
+ * WHAT MAKES IT HARDER, and why this and not something else. Practice
+ * forgives: a missed quick question comes back in the recycle pass, and the
+ * run always reaches the reward. A Challenge plays the SAME questions with
+ * that safety net removed: no recycle pass, the first step with a miss ends
+ * the run, and a pass means every question right on the first try. That is
+ * retrieval with no second look, which is the part of learning a replay
+ * does not test and the exam does. Nothing new is asked: the content is the
+ * node's own plan, so no chemistry enters here that Practice did not show.
+ *
+ * WHY NOT A HIGHER RUNG OR A TIMER. The rungs are authored per question
+ * (`levels`), a first-meeting question may not be graded at all (canFail),
+ * and many nodes have nothing above rung 1, so "play it at rung 2" would be
+ * an empty run on most of the map. A timer would grade reading speed as
+ * much as chemistry, which is not the claim a pass should make.
+ *
+ * THE MISS ENDS THE RUN AT THE END OF ITS STEP, not mid-step: a step reports
+ * once, when its surface finishes (the MCQ step after its last question), so
+ * that is the first moment the runner knows about a miss.
+ */
+export type RunMode = "practice" | "challenge";
+
 export interface LessonRun {
   readonly plan: LessonPlan;
+  readonly mode: RunMode;
   readonly phase: RunPhase;
   /** The content step on screen. Equal to steps.length once content is done. */
   readonly index: number;
@@ -275,9 +301,10 @@ export interface LessonRun {
   readonly recycled: boolean;
 }
 
-export function startRun(plan: LessonPlan): LessonRun {
+export function startRun(plan: LessonPlan, mode: RunMode = "practice"): LessonRun {
   return {
     plan,
+    mode,
     phase: "content",
     index: 0,
     clearedBeats: 0,
@@ -318,6 +345,18 @@ export function reportStep(run: LessonRun, report: StepReport): LessonRun {
   }
   const index = run.index + 1;
   const contentDone = index >= run.plan.steps.length;
+  // A Challenge has no second pass: a miss ends the run here, and nothing is
+  // queued for a recycle that will never play. See RunMode.
+  if (run.mode === "challenge") {
+    const missedHere = report.cleared < report.total;
+    return {
+      ...run,
+      index,
+      clearedBeats: run.clearedBeats + report.cleared,
+      totalBeats: run.totalBeats + report.total,
+      phase: missedHere || contentDone ? "reward" : "content",
+    };
+  }
   return {
     ...run,
     index,
@@ -326,6 +365,38 @@ export function reportStep(run: LessonRun, report: StepReport): LessonRun {
     missedMcqIds: missed,
     phase: contentDone ? (missed.length > 0 ? "recycle" : "reward") : "content",
   };
+}
+
+/**
+ * How a Challenge run ended: null while it is still playing, and always null
+ * for a Practice run. Passed means every step was played AND every beat in
+ * it cleared, so a run the miss ended early can never read as a pass.
+ */
+export function challengeOutcome(run: LessonRun): "passed" | "failed" | null {
+  if (run.mode !== "challenge" || run.phase !== "reward") return null;
+  const everyStep = run.index >= run.plan.steps.length;
+  return everyStep && run.totalBeats > 0 && run.clearedBeats === run.totalBeats ? "passed" : "failed";
+}
+
+/**
+ * Whether a node can be played as a Challenge at all: it has a lesson plan,
+ * and every step in it REPORTS A MISS. The mechanism and resonance steps play
+ * on the trainer engine, which reports a solve and never a wrong arrow
+ * (TrainerTab.tsx says so where it banks), so a Challenge over one of them
+ * could not tell a clean run from a fourth attempt and would pay for both.
+ * Until the engine reports misses, those nodes have no Challenge, and the
+ * sheet says so rather than offering a door that cannot grade.
+ *
+ * A UNIT CHECKPOINT HAS NONE EITHER, whatever it borrows: it is already the
+ * unit's own check, a mix of its lessons, and a Challenge is a harder run of
+ * one LESSON. Two assessments stacked on one node would be two prices for
+ * one piece of work.
+ */
+export function challengeable(node: string): boolean {
+  if (checkpointUnitFor(node) !== null) return false;
+  const plan = planLesson(node);
+  if (plan === null) return false;
+  return plan.steps.every((step) => step.beat.kind !== "mechanism" && step.beat.kind !== "resonance");
 }
 
 /** The recycle pass finished. One pass only; the run moves to the reward. */

@@ -75,6 +75,8 @@ import { ChipPress } from "./ChipPress";
 import { ExitMark, GemMark } from "./chromeIcons";
 import { RecipeStrip } from "./RecipeStrip";
 import {
+  challengeable,
+  challengeOutcome,
   currentStep,
   missedMcqIdsFrom,
   planLesson,
@@ -129,6 +131,12 @@ export interface BeatRunnerProps {
   readonly onExit: () => void;
   /** Honours prefers-reduced-motion. The synthesis beat asks for it by name. */
   readonly reducedMotion?: boolean;
+  /**
+   * Play the node as its CHALLENGE run: no recycle pass, a miss ends the run,
+   * and a pass banks `challenge_passed` instead of a clear. See RunMode in
+   * template.ts for why that is what "harder" means here.
+   */
+  readonly challenge?: boolean;
 }
 
 /**
@@ -138,11 +146,12 @@ export interface BeatRunnerProps {
  * should be unreachable from the pathway, which only links nodes that pass
  * nodeHasBeat, but a deep link can still arrive by hand.
  */
-export function BeatRunner({ node, level = 1, onExit, reducedMotion = false }: BeatRunnerProps) {
+export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, challenge = false }: BeatRunnerProps) {
   const plan = useMemo(() => planLesson(node), [node]);
+  const mode = challenge ? "challenge" : "practice";
 
   const [seenNode, setSeenNode] = useState(node);
-  const [run, setRun] = useState<LessonRun | null>(() => (plan === null ? null : startRun(plan)));
+  const [run, setRun] = useState<LessonRun | null>(() => (plan === null ? null : startRun(plan, mode)));
   // The current MCQ step's within-step CLEARED fraction, for the strip's
   // green fill. Cleared and not answered: a miss moves the student on without
   // moving the green, because a green segment over a screen that says "Not
@@ -185,7 +194,7 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false }: B
   // the previous node's run.
   if (seenNode !== node) {
     setSeenNode(node);
-    setRun(plan === null ? null : startRun(plan));
+    setRun(plan === null ? null : startRun(plan, mode));
     setMcqFraction(0);
     stepResult.current = null;
     setBanked(null);
@@ -218,6 +227,25 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false }: B
     if (run?.phase !== "reward") return;
     if (bankedFor.current === node) return;
     bankedFor.current = node;
+    // A CHALLENGE NEVER BANKS A CLEAR. The node is already cleared, and a
+    // second node_cleared would pay the replay row on top of the pass. A pass
+    // journals `challenge_passed`, whose price the economy owns; a fail
+    // journals nothing, because the entry charge was spent at the gate and
+    // there is nothing else to record.
+    if (run.mode === "challenge") {
+      if (challengeOutcome(run) !== "passed") {
+        setBanked(0);
+        return;
+      }
+      let live = true;
+      void import("../app/progress").then(({ progress }) => {
+        const diamonds = progress.passChallenge(node);
+        if (live) setBanked(diamonds);
+      });
+      return () => {
+        live = false;
+      };
+    }
     const flawless = !run.recycled && run.clearedBeats === run.totalBeats;
     const spine = pathwayNode(node)?.kind === "spine";
     let live = true;
@@ -232,7 +260,20 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false }: B
     return () => {
       live = false;
     };
-  }, [run?.phase, run?.recycled, run?.clearedBeats, run?.totalBeats, node]);
+  }, [run, node]);
+
+  // A Challenge link typed by hand for a node whose steps cannot report a
+  // miss: say so, rather than playing a run that would pass on anything.
+  if (challenge && !challengeable(node)) {
+    return (
+      <div className="beat-runner beat-runner--empty" role="status">
+        <p>This lesson has no Challenge yet. Practice is open on the pathway.</p>
+        <button type="button" onClick={onExit}>
+          Back to the pathway
+        </button>
+      </div>
+    );
+  }
 
   if (plan === null || run === null) {
     return (
@@ -567,6 +608,50 @@ function RewardSlot({
   const cleared = run.clearedBeats + run.recycleCleared;
   const played = run.totalBeats;
   const stillRough = run.recycled ? run.recycleTotal - run.recycleCleared : 0;
+  const outcome = challengeOutcome(run);
+  if (outcome !== null) {
+    // The Challenge's own ending. Same card, same Continue; what differs is
+    // the claim. A fail says what happened and what is still open, never
+    // that something was lost: Practice stays open and the node stays done.
+    return (
+      <div className="flex min-h-0 w-full flex-1 flex-col justify-center">
+        <div className="flex flex-col items-center gap-3 rounded-2xl border-2 border-bb-border bg-bb-card p-6 text-center">
+          <Berry
+            mood={outcome === "passed" ? "cheer" : "focused"}
+            behaviour={outcome === "passed" ? "celebrate" : "idle"}
+            sizePx={96}
+            reducedMotion={reducedMotion}
+          />
+          <h2 className="bb-title-face text-scale-2xl font-bold text-bb-foreground">
+            {outcome === "passed" ? "Challenge passed" : "Not this time"}
+          </h2>
+          <p className="text-scale-base text-bb-foreground">
+            {outcome === "passed"
+              ? played === 1
+                ? "Right on the first try."
+                : `All ${played} right on the first try.`
+              : `A miss ends a Challenge. You had ${cleared} of ${played} right when it stopped.`}
+          </p>
+          {banked !== null && banked > 0 ? (
+            <p className="lesson-banked">
+              <GemMark />
+              <span>
+                +{banked} {banked === 1 ? "diamond" : "diamonds"}
+              </span>
+            </p>
+          ) : null}
+          {outcome === "failed" ? (
+            <p className="text-scale-sm text-bb-muted-foreground">
+              This node is still cleared, and Practice is open whenever you want another look.
+            </p>
+          ) : null}
+          <ChipPress className="mt-2 w-full" onClick={onExit}>
+            Continue
+          </ChipPress>
+        </div>
+      </div>
+    );
+  }
   return (
     // CENTRED, NOT BOTTOM-PINNED UNDER A HOLE. The previous build put the
     // strip at the top and pushed this card to the bottom with an `mt-auto`,

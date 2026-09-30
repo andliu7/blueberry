@@ -90,8 +90,8 @@ function HamburgerGlyph() {
 /*
  * THE STOPWATCH IS GONE, DELIBERATELY. The reference draws one here and the
  * card's accessible name said "a timed run", but nothing in this game times
- * anything: Challenge re-enters the same node at the same href, priced
- * through the charge gate as a unit quiz. A glyph promising a clock the
+ * anything: Challenge is the same node with no second chances (see RunMode
+ * in beats/template.ts), not a timed run. A glyph promising a clock the
  * product does not have is a control lying about itself, so the mark came
  * out and the name below now says what pressing it does. The divergence from
  * the picture is reported; when a real timed mode ships, the stopwatch comes
@@ -288,29 +288,20 @@ export function NodeSheet({ node, onClose, onStart, onChallenge, onGuidebook, re
                 chevron, and the resting one is flat. Depth and an affordance
                 mark, rather than a muted colour the picture does not have.
 
-                The reason the card is not pressable is on its accessible
-                name, in full, where it costs the composition no ink. */}
-            {/* AN OPEN QUESTION, NOT A FIX, 2026-09-29. Owner: "the challenge
-                doesnt work". On every node a student has not cleared, which on
-                a fresh account is all of them, the resting card is a heading
-                and a glyph that does nothing when pressed, and the only place
-                that says why is the accessible name. Drawing the note on the
-                card was built and taken back out, because
-                pathwaySheetContract.test.ts pins the opposite ("the resting
-                card draws no explanatory line", 100 css px as the reference
-                draws it), and a committed check is not edited to make a
-                change pass. The owner decides which of the two wins.
-
-                THE REFUND CLAIM IS GONE. The label used to promise "your
-                charge back if you pass", and PathwayTab priced the door as a
-                unit quiz. Nothing in the game emits the quiz_passed event that
-                refund is paid on, so the promise was never kept. The card now
-                says what pressing it does: play the node again. */}
+                THE RESTING CARD DRAWS ITS REASON, one line under the marks.
+                Owner, 2026-09-30, settling "the challenge doesnt work": on a
+                fresh account every card is resting, and a heading and a glyph
+                that do nothing when pressed, with the why only on the
+                accessible name, read as broken. The reference's picture had
+                no line here; the owner's decision wins over the picture, and
+                pathwaySheetContract.test.ts now pins the line instead of its
+                absence. The ENABLED card draws none: pressing it is the
+                explanation. */}
             {model.challenge.enabled ? (
               <button
                 type="button"
                 className="ns-chip ns-card--go"
-                aria-label={`Challenge. Play ${node.title} again.`}
+                aria-label={`Challenge. Play ${node.title} again with no second chances.`}
                 {...pressHandlers(() => onChallenge(node))}
               >
                 <span className="ns-chip__face ns-card">
@@ -328,13 +319,14 @@ export function NodeSheet({ node, onClose, onStart, onChallenge, onGuidebook, re
                 </span>
               </button>
             ) : (
-              <section className="ns-card ns-card--half" aria-label={`Challenge. ${model.challenge.note}`}>
+              <section className="ns-card ns-card--half" aria-label="Challenge">
                 <div className="ns-card__row">
                   <h3 className="bb-title-face text-scale-lg font-bold">Challenge</h3>
                 </div>
                 <span className="ns-marks" aria-hidden>
                   <DoubleDaggerGlyph />
                 </span>
+                <p className="ns-note text-scale-sm">{model.challenge.note}</p>
               </section>
             )}
           </div>

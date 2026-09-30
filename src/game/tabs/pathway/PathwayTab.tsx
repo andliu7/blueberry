@@ -55,7 +55,7 @@ import {
 } from "@blueberry/curriculum";
 import { Card } from "../../app/ui/Card";
 import { Press } from "../../app/ui/Press";
-import { hashParam, hrefForTab, hrefForOnboarding, hrefForLesson } from "../../app/routes";
+import { hashParam, hrefForChallenge, hrefForTab, hrefForOnboarding, hrefForLesson } from "../../app/routes";
 import { navigate } from "../../app/useHashRoute";
 import { useProgress } from "../../app/hooks";
 import { lessonNodeId, progress, type ProgressSnapshot } from "../../app/progress";
@@ -69,6 +69,7 @@ export type NodeState = "done" | "current" | "open" | "review" | "locked";
 
 import {
   economyKindFor,
+  hasChallengeRun,
   PATHWAY_UNITS,
   unitCheckpointNode,
   unitName,
@@ -526,6 +527,7 @@ function sheetNodeFor(node: MapNode, state: NodeState, lockedNote?: string): She
     blurb: node.blurb,
     practiceHref,
     ...(lockedNote === undefined ? {} : { lockedNote }),
+    ...(hasChallengeRun(node) ? {} : { noChallenge: true }),
   };
   // The pips are a measurement of the node's own content, not a restatement of
   // its kind. Null means nothing is authored behind it, and the sheet then
@@ -1031,6 +1033,8 @@ function TrackNode({
               title: node.label,
               blurb: detail,
               practiceHref: href,
+              // A topic plays in LessonPlayer, which has no Challenge run.
+              noChallenge: true,
             }
           : null
       }
@@ -2513,8 +2517,7 @@ export default function PathwayTab({ reducedMotion }: { readonly reducedMotion: 
   const openNode: OpenNode = (node, charge) => setSheet({ node, charge });
   /*
     START and CHALLENGE both leave the sheet and open the charge sheet, at
-    the same price; see the note on onChallenge below for why they are no
-    longer two spends. A node with no authored content, or a locked one, has
+    the same price, to two different runs; see the note on onChallenge below. A node with no authored content, or a locked one, has
     no charge node, so nothing opens and the sheet's own disabled Practice
     row is the honest end of the press.
   */
@@ -2621,16 +2624,19 @@ export default function PathwayTab({ reducedMotion }: { readonly reducedMotion: 
         onClose={() => setSheet(null)}
         onStart={() => startFromSheet(sheet?.charge ?? null)}
         /*
-          CHALLENGE PAYS THE NODE'S OWN PRICE, 2026-09-29. It used to re-price
-          the door as a unit quiz, 10 charge "refunded in full on a pass". The
-          refund is paid only on a `quiz_passed` event, and nothing in the game
-          emits one, so the student paid double and the promise on the charge
-          sheet was never kept. What Challenge actually does is play the same
-          node again, so it costs what the node costs. A real challenge mode
-          (timed, a harder rung, no hints) is an owner decision; until one
-          exists this is the honest price of what the button does.
+          CHALLENGE, 2026-09-30: the same node's charge gate, pointed at the
+          node's Challenge run instead of its Practice run. It costs what the
+          node costs, charged on entry by the same `node_started`, and a pass
+          pays through `challenge_passed`, whose price lives in
+          packages/economy and nowhere here. The old quiz price with its
+          "refunded on a pass" promise is gone for good: nothing ever paid it.
+          The sheet only enables this card on a cleared node that has a
+          Challenge run, so `charge` is never null when it is pressed.
         */
-        onChallenge={() => startFromSheet(sheet?.charge ?? null)}
+        onChallenge={(node) => {
+          const charge = sheet?.charge ?? null;
+          startFromSheet(charge === null ? null : { ...charge, href: hrefForChallenge(node.id), challenge: true });
+        }}
         onGuidebook={(node) => {
           setSheet(null);
           setGuidebook(node);

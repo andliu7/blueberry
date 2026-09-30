@@ -243,6 +243,19 @@ export function hrefForLesson(node: string): string {
   return `#/${BASE}/lesson/${encodeURIComponent(node)}`;
 }
 
+/**
+ * The same lesson, played as its CHALLENGE run (beats/template.ts says what
+ * makes it harder). A flag inside the hash rather than a route of its own,
+ * because it is the same screen on the same node: parseHash already drops
+ * everything after "?", so the lesson route matches unchanged and App.tsx
+ * reads the flag with hashParam.
+ */
+export const CHALLENGE_PARAM = "challenge";
+
+export function hrefForChallenge(node: string): string {
+  return `${hrefForLesson(node)}?${CHALLENGE_PARAM}=1`;
+}
+
 /** The review deck. The Charge sheet's free way out points here. */
 export function hrefForReview(): string {
   return hrefForTab("cards");

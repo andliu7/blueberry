@@ -34,7 +34,7 @@ import type { EconomyEvent } from "@blueberry/economy";
 import { PATHWAY_UNITS } from "../demo/pathwayMap";
 import { deriveMapPathway, statusOf } from "../tabs/pathway/pathwayState";
 import { deriveFreeOrderStates, type FreeOrderNode } from "../tabs/pathway/topicPathway";
-import { unitShape } from "../tabs/pathway/unitShape";
+import { trunkOf, unitShape } from "../tabs/pathway/unitShape";
 
 /* ------------------------------------------------------------------------- */
 /* The topic track's rule, swept exhaustively.                                */
@@ -247,11 +247,36 @@ describe("deriveMapPathway, the same policy on the Orgo map", () => {
 describe("the diamond fork, derived", () => {
   const shapes = PATHWAY_UNITS.map((unit) => unitShape(unit));
 
-  it("gives the first unit a fork whose concept is its concept beat", () => {
+  /*
+     REWRITTEN ON THE OWNER'S DECISION, 2026-09-30, and only this check. It
+     used to pin the concept as the unit's concept beat, which on u1 is
+     kinetic vs thermodynamic control, and kvt could only sit above the split
+     by drawing 1,2 vs 1,4 addition, whose products its questions are about,
+     BELOW it. The owner's rule is that a question may only combine skills
+     already cleared on their own, so 12v14 is drawn first. The check is as
+     exact as before: it names the concept, names where kvt goes, and still
+     requires two non-empty arms.
+  */
+  it("gives the first unit a fork whose concept is 1,2 vs 1,4 addition, with kvt drawn after it", () => {
     const first = shapes[0]!;
-    expect(first.concept?.playable?.kind).toBe("beat");
+    expect(first.concept?.id).toBe("u1-12v14");
+    const armIds = [...first.arms[0], ...first.arms[1]].map((node) => node.id);
+    expect(armIds).toContain("u1-kvt");
+    expect(first.column.map((node) => node.id)).not.toContain("u1-kvt");
     expect(first.arms[0].length).toBeGreaterThan(0);
     expect(first.arms[1].length).toBeGreaterThan(0);
+  });
+
+  it("never draws a trunk or arm node above one authored before it, in any unit", () => {
+    // The drawn order is column, then concept, then the arms (whose own order
+    // is the student's). Read in that order it must be authored order, or
+    // the map draws a prerequisite under the thing that depends on it.
+    PATHWAY_UNITS.forEach((unit, index) => {
+      const shape = shapes[index]!;
+      const drawn = [...trunkOf(shape), ...shape.arms[0], ...shape.arms[1]].map((node) => node.id);
+      const authored = unit.nodes.map((node) => node.id).filter((id) => drawn.includes(id));
+      expect(drawn, `drawn order of ${unit.id}`).toEqual(authored);
+    });
   });
 
   it("carries no lock of its own: on a fresh account the concept and BOTH arms are open at once", () => {

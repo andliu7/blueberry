@@ -555,3 +555,18 @@ export function economyKindFor(mapKind: NodeKind, link: PlayableLink): EconomyNo
   if (mapKind === "boss") return "quiz";
   return link.kind === "beat" ? "concept" : "reaction";
 }
+
+/**
+ * Whether a map node can be played as a CHALLENGE, read off the map alone.
+ *
+ * The rule itself is challengeable() in beats/template.ts: every step of the
+ * node's lesson must be able to report a miss. That function reads the whole
+ * authored content, which the pathway (entry chunk) must not import, so this
+ * is the same rule said in the map's vocabulary: a beat node's lesson is MCQ,
+ * match, ladder and synthesis steps only, while a trainer node carries an
+ * engine step, and a unit checkpoint is already the unit's check.
+ * test/challengeMode.test.ts holds the two equal over every node on the map.
+ */
+export function hasChallengeRun(node: PathwayNode): boolean {
+  return node.kind !== "gate" && node.playable?.kind === "beat";
+}

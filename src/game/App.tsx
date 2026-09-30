@@ -16,7 +16,7 @@
 import { lazy, Suspense, useEffect } from "react";
 import { Shell } from "./app/Shell";
 import { useHashRoute, navigate } from "./app/useHashRoute";
-import { hrefForTab, hrefForOnboarding, type Route } from "./app/routes";
+import { CHALLENGE_PARAM, hashParam, hrefForTab, hrefForOnboarding, type Route } from "./app/routes";
 import { useProgress, useReducedMotion } from "./app/hooks";
 import { TabSkeleton } from "./app/ui/Skeleton";
 import { BootReady, Loader } from "./app/Loader";
@@ -131,11 +131,17 @@ function Body({
   }
 
   if (route.kind === "lesson") {
+    const challenge = hashParam(CHALLENGE_PARAM) === "1";
     return (
       <Suspense fallback={<TabSkeleton label="the lesson" />}>
         <BootReady />
+        {/* Keyed on node AND mode: a key change makes React throw the old
+            runner away and mount a fresh one, so a Practice run can never
+            carry its progress into a Challenge on the same node. */}
         <BeatRunner
+          key={`${route.node}:${challenge ? "challenge" : "practice"}`}
           node={route.node}
+          challenge={challenge}
           reducedMotion={reducedMotion}
           onExit={() => navigate(hrefForTab("pathway"))}
         />

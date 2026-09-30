@@ -46,6 +46,7 @@ import {
   DAILY_GOAL_XP,
   DEFAULT_DAILY_GOAL,
   DIAMONDS_BOSS,
+  DIAMONDS_CHALLENGE_PASSED,
   DIAMONDS_FLAWLESS,
   DIAMONDS_NODE_FIRST_CLEAR,
   DIAMONDS_RESONANCE,
@@ -69,6 +70,7 @@ import {
   STREAK_MILESTONES,
   STREAK_REPAIR_PER_MONTH,
   STREAK_REPAIR_WINDOW_HOURS,
+  XP_CHALLENGE_PASSED,
   XP_DAILY_GOAL_MET,
   XP_FLAWLESS_BONUS,
   XP_NODE_FIRST_CLEAR,
@@ -430,6 +432,17 @@ function run(journal: readonly EconomyEvent[], now: string, options: DeriveOptio
         if (event.flawless) line.xp.push({ label: "Flawless quiz", amount: XP_QUIZ_FLAWLESS_BONUS });
         applyRegen(ms);
         charge = Math.min(CHARGE_CAP, charge + CHARGE_QUIZ_REFUND);
+        break;
+      }
+
+      case "challenge_passed": {
+        // Only a node already cleared can be challenged. The sheet enforces
+        // that for the button, but the rule belongs to the money: a journal
+        // carrying a pass for a node it never cleared pays nothing, so no
+        // hand-typed link or edited cache can mint a Challenge payout.
+        if (firstClears[event.nodeId] === undefined) break;
+        line.xp.push({ label: "Challenge passed", amount: XP_CHALLENGE_PASSED });
+        line.diamonds.push({ label: "Challenge passed", amount: DIAMONDS_CHALLENGE_PASSED });
         break;
       }
 

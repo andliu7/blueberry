@@ -70,6 +70,13 @@ export type EconomyEvent =
       readonly difficulty: Difficulty;
     })
   | (EventBase & { readonly kind: "quiz_passed"; readonly unitId: string; readonly flawless: boolean })
+  /**
+   * A Challenge run on a node the student has already cleared, passed. There
+   * is deliberately no `challenge_failed`: a fail pays nothing and changes
+   * nothing, and the entry charge was already spent by the run's own
+   * `node_started`, so a fail event would be a row nothing reads.
+   */
+  | (EventBase & { readonly kind: "challenge_passed"; readonly nodeId: string })
   | (EventBase & { readonly kind: "unit_cleared"; readonly unitId: string })
   | (EventBase & { readonly kind: "boss_cleared"; readonly bossId: string })
   | (EventBase & { readonly kind: "resonance_found"; readonly nodeId: string })
@@ -177,6 +184,8 @@ export function isEconomyEvent(x: unknown): x is EconomyEvent {
       );
     case "quiz_passed":
       return nonEmptyString(x["unitId"]) && typeof x["flawless"] === "boolean";
+    case "challenge_passed":
+      return nonEmptyString(x["nodeId"]);
     case "unit_cleared":
       return nonEmptyString(x["unitId"]);
     case "boss_cleared":

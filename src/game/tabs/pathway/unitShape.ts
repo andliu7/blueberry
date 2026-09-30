@@ -29,10 +29,10 @@
  *      which is what a concept node is. Failing that it is the third node
  *      from the end, which is the plain positional reading of the committed
  *      diamond. The arms are what follows the concept, and if only one node
- *      follows it the node BEFORE the concept is pulled up into the other
- *      arm: that is how u1 derives the fork a human would author for it
- *      (kinetic-vs-thermodynamic above, 1,2-vs-1,4 and X2 addition either
- *      side), without u1 being named anywhere in this file.
+ *      follows it the concept moves UP ONE and the beat joins the arms, so
+ *      the drawn order never puts a node above one authored before it. On u1
+ *      that draws 1,2-vs-1,4 above the split and kinetic-vs-thermodynamic and
+ *      X2 addition either side, without u1 being named anywhere in this file.
  *   3. SIDE LOOPS. Every `branch` node in the map is, in the map's own words,
  *      an "optional side quest", which is the goals' dimmed side loop. They
  *      are interleaved through the column so each detour carries one or two
@@ -197,16 +197,23 @@ export function unitShape(unit: PathwayUnit): UnitShape {
     };
   }
 
-  const concept = spine[at]!;
-  let armNodes = spine.slice(at + 1);
-  let column = spine.slice(0, at);
-  // Only one node follows the concept: pull the node before it up into the
-  // other arm, so the diamond is a diamond rather than a kink. This is what
-  // makes u1 derive the fork a human would author for it.
-  if (armNodes.length < 2 && at >= 1) {
-    armNodes = [spine[at - 1]!, ...armNodes];
-    column = spine.slice(0, at - 1);
-  }
+  // Only one node follows the concept: move the CONCEPT UP ONE, so the node
+  // before it becomes the node every route passes through and the beat joins
+  // the other arm. The diamond stays a diamond rather than a kink, and the
+  // drawn order stays the authored order.
+  //
+  // WHY NOT THE OLD RULE. It pulled the node before the concept DOWN into an
+  // arm, which drew a prerequisite after the thing that depends on it. On u1
+  // that drew kinetic vs thermodynamic control above 1,2 vs 1,4 addition,
+  // whose products kvt's questions are about, while the frontier (authored
+  // order, pathwayState.ts) sent START to the arm below it. Owner, 2026-09-30:
+  // a question may only combine skills already cleared on their own, so 1,2
+  // vs 1,4 is drawn first.
+  const pulled = spine.length - at - 1 < 2 && at >= 1;
+  const conceptAt = pulled ? at - 1 : at;
+  const concept = spine[conceptAt]!;
+  const armNodes = spine.slice(conceptAt + 1);
+  const column = spine.slice(0, conceptAt);
 
   return {
     unitId: unit.id,

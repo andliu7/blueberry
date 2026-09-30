@@ -89,6 +89,23 @@ export const DIAMONDS_UNIT_CLEARED = 50;
 export const DIAMONDS_BOSS = 200;
 /** Retention pays, lightly and repeatably. */
 export const DIAMONDS_REVIEW_CLEARED = 5;
+
+/**
+ * A passed CHALLENGE on a node already cleared: a second, harder run of the
+ * same content (BeatRunner: no second pass, a miss ends the run). It pays on
+ * every pass, like a review drill, and nothing on a fail.
+ *
+ * PRICED FROM THE REVIEW DRILL ROW, AND THAT IS A PROPOSAL, NOT AN OWNER
+ * DECISION. ECONOMY.md has no Challenge row. The closest documented row is
+ * "Review drill cleared, 12 XP and 5 diamonds, the one repeatable earner":
+ * both are re-practice of cleared work, and both must pay more than a plain
+ * replay (5 XP, 0 diamonds) or the harder run is a worse deal than the easy
+ * one. The difference that keeps it from being a farm is the entry: a review
+ * drill is free, a Challenge spends the node's own charge on `node_started`,
+ * so at most about six fit in a full meter. The owner sets the real numbers.
+ */
+export const XP_CHALLENGE_PASSED = XP_NODE_FIRST_CLEAR.review;
+export const DIAMONDS_CHALLENGE_PASSED = DIAMONDS_REVIEW_CLEARED;
 /** At 7, 14, 30, 60, 100, 180, 365. */
 export const DIAMONDS_STREAK_MILESTONE = 75;
 

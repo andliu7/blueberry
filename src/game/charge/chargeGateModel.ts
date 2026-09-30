@@ -57,6 +57,12 @@ export interface ChargeGateNode {
   readonly title: string;
   /** Where Start goes once the charge is committed. */
   readonly href: string;
+  /**
+   * The door is a CHALLENGE run of a cleared node. Priced the same, but the
+   * mistakes promise has to change: "take as many tries as you need" is the
+   * one thing a Challenge does not offer (a miss ends it, beats/template.ts).
+   */
+  readonly challenge?: boolean;
 }
 
 /** The refill picture, in the empty state. Null everywhere else. */
@@ -180,6 +186,9 @@ const FREE_REASON: Readonly<Record<NodeKind, string>> = Object.freeze({
 
 /** docs/ECONOMY.md, Charge rule 2. The one sentence this surface exists to carry. */
 const MISTAKES_PROMISE = "Wrong answers cost nothing. Take as many tries as you need.";
+
+/** Rule 2 still holds in a Challenge, but the retries do not. */
+const CHALLENGE_PROMISE = "Wrong answers cost nothing, but in a Challenge the first miss ends the run.";
 
 /**
  * The same rule, said where a student is most likely to suspect otherwise: they
@@ -314,7 +323,7 @@ export function chargeGateModel(snapshot: EconomySnapshot, node: ChargeGateNode)
       after: before,
       headline: FREE_HEADLINE[node.kind],
       line: FREE_REASON[node.kind],
-      promise: MISTAKES_PROMISE,
+      promise: node.challenge === true ? CHALLENGE_PROMISE : MISTAKES_PROMISE,
       primaryLabel: "Start",
       refill: null,
       topUp: null,
@@ -362,7 +371,7 @@ export function chargeGateModel(snapshot: EconomySnapshot, node: ChargeGateNode)
     line: base.refund
       ? `All ${cost} come back when you pass, so a clean run costs nothing.`
       : `You will have ${after} left, and it refills on its own.`,
-    promise: MISTAKES_PROMISE,
+    promise: node.challenge === true ? CHALLENGE_PROMISE : MISTAKES_PROMISE,
     primaryLabel: "Start",
     refill: null,
     topUp: null,

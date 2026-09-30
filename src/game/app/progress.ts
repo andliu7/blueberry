@@ -128,6 +128,12 @@ export interface ProgressSource {
   startNode(nodeId: string, kind: NodeKind): Receipt;
   /** Clearing a node. Returns the diamonds earned, which is 0 on a replay. */
   clearNode(nodeId: string, kind: NodeKind, options?: ClearNodeOptions): number;
+  /**
+   * A passed Challenge on a node already cleared. Returns the diamonds earned,
+   * which is 0 when the journal holds no clear of the node: the economy, not
+   * this store, decides whether a pass pays (packages/economy derive.ts).
+   */
+  passChallenge(nodeId: string): number;
   spend(sink: SpendSink, cost: number, ref?: string): Receipt;
   setSettings(fields: SettingsFields): Receipt;
 }
@@ -663,6 +669,10 @@ export function createLocalProgress(): ProgressSource {
         spine: options.spine ?? false,
         difficulty: options.difficulty ?? LESSON_DIFFICULTY,
       }));
+      return next.diamonds.reduce((sum, line) => sum + line.amount, 0);
+    },
+    passChallenge(nodeId) {
+      const next = appendOne((at, tz) => ({ kind: "challenge_passed", at, tz, nodeId }));
       return next.diamonds.reduce((sum, line) => sum + line.amount, 0);
     },
     spend(sink, cost, ref) {
