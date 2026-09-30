@@ -1,23 +1,20 @@
 /**
- * Mastery, the retention fraction the deck tiles and the fanned cards draw.
+ * Mastery, the retention fraction the deck tiles draw.
  *
  * THE PROPERTY THAT MATTERS: mastery is derived from the scheduler's own
  * interval and nothing else, so the thin green bar can never disagree with
  * the schedule it summarises. The ramp's two edges are pinned, the learning
  * boundary against the scheduler's own GRADUATING_INTERVAL_DAYS rather than
- * a copied literal, and the last dot is asserted unearned until maturity,
- * because 4.6 dots drawn as 5 is a promise the schedule has not kept.
+ * a copied literal.
  */
 
 import { describe, expect, it } from "vitest";
 
 import {
   LEARNING_MASTERY,
-  MASTERY_DOTS,
   MATURE_INTERVAL_DAYS,
   cardMastery,
   deckMastery,
-  masteryDots,
 } from "../cards/ui/mastery";
 import { GRADUATING_INTERVAL_DAYS } from "../cards/scheduler";
 import type { Card, DeckSnapshot, ReviewState } from "../cards/types";
@@ -76,24 +73,5 @@ describe("a deck's fraction", () => {
       review: { a: { ...state(MATURE_INTERVAL_DAYS), cardId: "a" } },
     };
     expect(deckMastery(snapshot, "d")).toBeCloseTo(0.5);
-  });
-});
-
-describe("the dots on a fanned card", () => {
-  it("zero for an unmet card, all five only at maturity", () => {
-    expect(masteryDots(undefined)).toBe(0);
-    expect(masteryDots(state(MATURE_INTERVAL_DAYS))).toBe(MASTERY_DOTS);
-  });
-
-  it("the last dot is unearned below maturity, however close", () => {
-    expect(masteryDots(state(MATURE_INTERVAL_DAYS - 1))).toBeLessThan(MASTERY_DOTS);
-  });
-
-  it("dots never exceed the row and never go negative", () => {
-    for (const interval of [0, 0.007, 1, 3, 8, 20, 21, 100]) {
-      const dots = masteryDots(state(interval));
-      expect(dots).toBeGreaterThanOrEqual(0);
-      expect(dots).toBeLessThanOrEqual(MASTERY_DOTS);
-    }
   });
 });
