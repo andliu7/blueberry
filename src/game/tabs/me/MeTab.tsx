@@ -33,6 +33,7 @@ import { TabIcon } from "../../app/ui/TabIcon";
 import { FLAGGED_TABS, hrefForTab, type TabId } from "../../app/routes";
 import { isFlagOn, type FlagId } from "../../app/flags";
 import { COURSE_LABEL } from "../courses/courseCopy";
+import { ArrowStyleSetting } from "../../settings/ArrowStyleSetting";
 
 /** When each flagged surface opens, in the student's words rather than ours. */
 const FLAG_WHEN: Record<FlagId, string> = {
@@ -181,6 +182,7 @@ export default function MeTab() {
           </span>
           <span className="shrink-0 text-scale-sm font-bold text-bb-primary-ink">{language.endonym}</span>
         </button>
+        <ArrowStyleSetting />
       </section>
 
       <section className="flex flex-col gap-2">

@@ -4,19 +4,39 @@
  * zoom, no carry; the screen's job is the five-piece loop, and every gesture
  * this canvas takes goes straight into the interaction machine.
  *
- * WHAT DRAWS WHAT. The canvas never learns the question's kind; it takes
- * `curvedArrows`, which question.ts derives once from the kind:
+ * WHAT DRAWS WHAT. The canvas never learns the question's kind. It takes two
+ * answers, which TrainerScreen resolves once from the kind and the student's
+ * drag style setting (settings/arrowStyle.ts): `dragStyle` for what follows
+ * the finger, `curvedArrows` for what a committed push rests as.
  *
- *   curved      The record of a committed push is the tapered curved arrow
- *               (engine/arrow). In flight the drag is the SMOOTHED arc from
- *               engine/drag/smoothing, drawn with no head, electrons at the
- *               tip; the ribbon with its head appears at the commit, per the
- *               owner ruling the trainer already carries (no head in flight).
- *   arrowless   NO arrow glyph at any point. In flight: the bar's dashed
- *               guide from the grabbed electrons to the pointer (capture
- *               x01), Blueberry-styled. A committed push rests as twin
- *               electron dots on the landing plus the forming bond's
- *               segmented stub; the WIN plays the actual bond change.
+ *   drag curved    The SMOOTHED arc from engine/drag/smoothing, drawn with
+ *                  no head while it is free, electrons at the tip, per the
+ *                  owner ruling (no head in flight: a free drag has no
+ *                  direction to get wrong). Once the machine snaps it to a
+ *                  target, the head's direction IS known, so the ribbon it
+ *                  will commit as is previewed faintly, head and all.
+ *   drag dashed    The bar's straight dashed guide (capture x01). Snapped, it
+ *                  jumps to the landing like a magnet, the electrons with it,
+ *                  and a hairline tether keeps the finger connected.
+ *   record curved  The tapered curved arrow (engine/arrow).
+ *   record arrow-  NO arrow glyph: twin electron dots on the landing plus the
+ *          less    forming bond's segmented stub; the WIN plays the bond change.
+ *
+ * THE FEEL, beat by beat, all presentation over what the machine and the
+ * grader already decided (nothing here changes what commits or what grades):
+ *   idle      unrevealed lone pairs show as quiet ghost dots on their atom
+ *             (a tap on them lands on the atom and opens them); opened
+ *             pairs breathe; bond ends carry the joint-coloured handle.
+ *   dragging  the snapped target gets a filled halo that throbs, and the
+ *             line previews exactly where the push will land.
+ *   commit    the new record draws itself in (220 ms) and a ring leaves
+ *             the landing. A push the chemistry refuses shakes off in amber.
+ *   verdict   `marks`: on a miss the offending push turns the sheet's amber
+ *             and is ringed, held while the sheet is up (PHASE-6-VERDICT's
+ *             "answer WHERE"); on a win every push turns green, and while
+ *             the bond change plays each pair travels its own arrow, in
+ *             draw order, so the student watches the consequence happen.
+ * Reduced motion: every beat renders its resting frame and nothing moves.
  *
  * Lone pairs and hydrogens both come from engine/annotations/placement, one
  * allocation per atom, so nothing here renders bond-side and the hit target
@@ -28,7 +48,7 @@
  * every decision about what a press means.
  */
 
-import { useCallback, useEffect, useMemo, useRef, type PointerEvent as ReactPointerEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import type { AtomId, ElectronFlowArrow, MechanismStep } from "@blueberry/chem-core";
 import {
   targetAtomId,
@@ -41,8 +61,9 @@ import {
 import type { StepScene, SceneAtom } from "../../../render/layout/stepScene";
 import { lerp, smoothstep } from "../../../render/layout/vec";
 import { AtomSphere, BondCapsule, ChargeBadge, DepthDefs, SHADOW_FILTER_ID } from "../../../render/svg/depth";
-import { atomRadius, mix as mixPx, pointerInputFrom, sceneCentroid, toPx, type DrawTarget } from "../hitLayout";
+import { atomRadius, bondMidpoint, bowAwayFrom, mix as mixPx, pointerInputFrom, rimPoint, sceneCentroid, toPx, type DrawTarget } from "../hitLayout";
 import { TaperedArrow } from "./arrow/TaperedArrowSvg";
+import "./push.css";
 import { createDragSmoother, type DragSmoother, type SmoothedArrow } from "./drag/smoothing";
 import { replayArrows, type RecordedStep } from "./screenModel";
 import { committedArrowGeometry, targetAnchorPx, type AtomAnnotations } from "./screenLayout";
@@ -50,8 +71,19 @@ import { committedArrowGeometry, targetAnchorPx, type AtomAnnotations } from "./
 export interface TrainerCanvasProps {
   readonly step: MechanismStep;
   readonly scene: StepScene;
-  /** Draw committed pushes as the tapered curved arrow; false is the arrowless electron gesture. */
+  /** Draw committed pushes as the tapered curved arrow; false is the arrowless record. */
   readonly curvedArrows: boolean;
+  /** What follows the finger: the smoothed curved arc, or the straight dashed guide. */
+  readonly dragStyle: "curved" | "dashed";
+  /** Keep the records drawn over the win (the question kind's own curved record). Defaults to `curvedArrows`. */
+  readonly keepRecordsOnWin?: boolean;
+  /**
+   * The verdict painted on the molecule, in the sheet's own colour: which
+   * pushes to mark and how. Null when no verdict is up.
+   */
+  readonly marks?: CanvasMarks | null;
+  /** Counts pushes the machine refused; each increment shakes one off where it was aimed. */
+  readonly refusals?: number;
   readonly draft: MechanismDraft;
   readonly guide: InFlightGuide | null;
   readonly targets: readonly DrawTarget[];
@@ -79,6 +111,17 @@ export interface TrainerCanvasProps {
   readonly reducedMotion: boolean;
 }
 
+/** A verdict on the molecule: `good` is the win's green, `near` the miss sheet's amber (never red). */
+export interface CanvasMarks {
+  readonly tone: "good" | "near";
+  readonly arrowIds: readonly string[];
+}
+
+const TONE_COLOUR: Record<CanvasMarks["tone"], string> = { good: "var(--good)", near: "var(--not-requested)" };
+
+/** How long a fresh record takes to draw itself in. Under the 250 ms a commit may take to feel instant. */
+const COMMIT_MS = 220;
+
 const PAD = 64;
 
 /** Expose drop sites for the capture script, same family as __blueberryTargets. */
@@ -94,6 +137,10 @@ export function TrainerCanvas({
   step,
   scene,
   curvedArrows,
+  dragStyle,
+  keepRecordsOnWin = curvedArrows,
+  marks = null,
+  refusals = 0,
   draft,
   guide,
   targets,
@@ -105,6 +152,7 @@ export function TrainerCanvas({
   replay,
   reducedMotion,
 }: TrainerCanvasProps) {
+  const curvedDrag = dragStyle === "curved";
   const svgRef = useRef<SVGSVGElement>(null);
   const centroid = useMemo(() => sceneCentroid(scene), [scene]);
 
@@ -142,7 +190,7 @@ export function TrainerCanvas({
   const guideKey = guide === null ? null : targetKey(guide.anchor);
   const smootherKeyRef = useRef<string | null>(null);
   useEffect(() => {
-    if (!curvedArrows || guide === null || guideAnchorPx === null) {
+    if (!curvedDrag || guide === null || guideAnchorPx === null) {
       smootherRef.current = null;
       smoothedRef.current = null;
       smootherKeyRef.current = null;
@@ -156,7 +204,7 @@ export function TrainerCanvas({
     }
     // The guide object changes identity every move; the smoother must not.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [curvedArrows, guideKey, guideAnchorPx?.x, guideAnchorPx?.y]);
+  }, [curvedDrag, guideKey, guideAnchorPx?.x, guideAnchorPx?.y]);
 
   const onPointerDown = (event: ReactPointerEvent<SVGSVGElement>) => {
     const pointer = toInput(event);
@@ -171,7 +219,7 @@ export function TrainerCanvas({
   const onPointerMove = (event: ReactPointerEvent<SVGSVGElement>) => {
     const pointer = toInput(event);
     if (pointer === null) return;
-    if (curvedArrows && smootherRef.current !== null) {
+    if (curvedDrag && smootherRef.current !== null) {
       // Pushed BEFORE the dispatch so the render the dispatch triggers reads
       // this frame's arc, not last frame's.
       smoothedRef.current = smootherRef.current.push({
@@ -224,7 +272,6 @@ export function TrainerCanvas({
   }, [replay, draft.arrows]);
 
   const armedTarget = draft.armed?.target;
-  const armedAnchorAtom = guide === null ? null : targetAtomId(guide.anchor);
 
   const annotationSide: "from" | "to" | "none" =
     (replay !== null && replay.settledAtEnd !== true) || t < 0.25 ? "from" : t > 0.75 ? "to" : "none";
@@ -232,7 +279,84 @@ export function TrainerCanvas({
     annotationSide === "from" ? Math.max(0, 1 - t * 4) : annotationSide === "to" ? Math.min(1, (t - 0.75) * 4) : 0;
   const liveAnnotations = annotationSide === "to" ? toAnnotations : annotations;
 
-  const recordFade = curvedArrows ? 1 : Math.max(0, 1 - t * 1.6);
+  // Records are drawn on the FROM geometry. A resonance find barely moves an
+  // atom, so its arrows stay over the win; a reaction's atoms travel, and an
+  // arrow left behind points into empty space (measured with the curved
+  // setting on the SN2: the arrow hung where the bromine had been). So only
+  // the kind's own curved record stays; every other record fades as the
+  // bond change plays and the travelling pairs carry the consequence.
+  const recordFade = curvedArrows && keepRecordsOnWin ? 1 : Math.max(0, 1 - t * 1.6);
+
+  /* ---------------- the commit beat ---------------- */
+
+  // A push that just committed draws itself in over COMMIT_MS instead of
+  // appearing whole, and a ring leaves its landing. The set of ids seen so
+  // far lives in a ref (a value that survives renders without causing one),
+  // so an undo or a fresh document does not replay the beat.
+  const [fresh, setFresh] = useState<{ readonly id: string; readonly t: number } | null>(null);
+  const [landed, setLanded] = useState<{ readonly id: string; readonly at: Point2 } | null>(null);
+  const seenIdsRef = useRef<ReadonlySet<string>>(new Set(draft.arrows.map((arrow) => arrow.id)));
+  useEffect(() => {
+    const seen = seenIdsRef.current;
+    const added = draft.arrows.find((arrow) => !seen.has(arrow.id));
+    seenIdsRef.current = new Set(draft.arrows.map((arrow) => arrow.id));
+    if (draft.arrows.length === 0) setLanded(null);
+    if (added === undefined || !interactive) return;
+    setLanded({ id: added.id, at: committedArrowGeometry(step, scene, annotations, added, centroid).landing });
+    if (reducedMotion) return;
+    let raf = 0;
+    const start = performance.now();
+    const tick = (now: number) => {
+      const progress = Math.min(1, (now - start) / COMMIT_MS);
+      setFresh(progress >= 1 ? null : { id: added.id, t: progress });
+      if (progress < 1) raf = requestAnimationFrame(tick);
+    };
+    setFresh({ id: added.id, t: 0 });
+    raf = requestAnimationFrame(tick);
+    // A frame loop that never gets frames (a background tab) must not leave
+    // the record half drawn, so a timer lands it whatever rAF does.
+    const settle = window.setTimeout(() => setFresh(null), COMMIT_MS + 80);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.clearTimeout(settle);
+      setFresh(null);
+    };
+    // Only a change in the arrow list is a commit; the geometry inputs are fixed per step.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draft.arrows]);
+
+  /* ---------------- the snap, and a refusal where it was aimed ---------------- */
+
+  const snap = guide !== null && guideAnchorPx !== null ? snapPreview(step, scene, guide, guideAnchorPx, centreOf, atomById) : null;
+  // Where the last snapped target was, read when the machine refuses a push:
+  // the refusal arrives on release, after the guide has already gone.
+  const lastSnapRef = useRef<SnapPreview | null>(null);
+  if (snap !== null) lastSnapRef.current = snap;
+  const [refused, setRefused] = useState<{ readonly n: number; readonly at: SnapPreview } | null>(null);
+  useEffect(() => {
+    const at = lastSnapRef.current;
+    if (refusals === 0 || at === null) return;
+    setRefused({ n: refusals, at });
+    const clear = window.setTimeout(() => setRefused(null), 600);
+    return () => window.clearTimeout(clear);
+  }, [refusals]);
+
+  /* ---------------- the win's consequence ---------------- */
+
+  // Each push's pair travels its own arrow while the bond change plays, one
+  // after another in draw order. Only on the live win: the replay scrubber
+  // already re-performs the gestures its own way.
+  const travelling =
+    replay === null && winT > 0 && winT < 1 && !reducedMotion
+      ? draft.arrows.map((arrow, index) => {
+          // Every pair has left by 0.3 and landed by 0.75, before the bonds settle at 0.8.
+          const startAt = draft.arrows.length <= 1 ? 0 : (index / (draft.arrows.length - 1)) * 0.3;
+          const local = Math.min(1, Math.max(0, (winT - startAt) / 0.45));
+          return { arrow, local };
+        })
+      : [];
+  const toneOf = (id: string): CanvasMarks["tone"] | undefined =>
+    marks !== null && marks.arrowIds.includes(id) ? marks.tone : undefined;
 
   /* ---------------- render ---------------- */
 
@@ -299,7 +423,11 @@ export function TrainerCanvas({
         })}
       </g>
 
-      {/* Bond end handles: the grab points for bond electrons (capture x02). */}
+      {/* Bond end handles: the grab points for bond electrons (capture x02).
+          A joint-coloured ball in the rod's colour ring, the Alchemie
+          handle PHASE-6-VERDICT measured us losing to: a grey dot the same
+          colour as the rod read as part of the rod, not as a thing to grab.
+          The hit circle is the tester's (22 px radius on touch), not this. */}
       {interactive
         ? targets
             .filter((entry) => entry.target.kind === "bondEndHandle")
@@ -310,10 +438,10 @@ export function TrainerCanvas({
                   key={targetKey(entry.target)}
                   cx={entry.centre.x}
                   cy={entry.centre.y}
-                  r={isArmed ? 8 : 6}
-                  fill={isArmed ? "var(--bb-primary)" : "var(--bond-stroke)"}
-                  stroke={isArmed ? "var(--bb-primary)" : "none"}
-                  strokeWidth={isArmed ? 3 : 0}
+                  r={isArmed ? 8 : 6.5}
+                  fill={isArmed ? "var(--bb-primary)" : "var(--bond-joint)"}
+                  stroke={isArmed ? "var(--bb-primary)" : "var(--bond-joint-ring)"}
+                  strokeWidth={isArmed ? 3 : 2}
                 />
               );
             })
@@ -366,8 +494,14 @@ export function TrainerCanvas({
                       const ux = -Math.sin(aScr);
                       const uy = Math.cos(aScr);
                       const p = slot.posPx;
+                      // An open pair nobody is holding breathes: this is the
+                      // "glowing electrons" the student starts a push from.
+                      const invite = interactive && armedTarget === undefined && !reducedMotion;
                       return (
                         <g key={slotIndex} opacity={dimmed ? 0.3 : 1}>
+                          {invite ? (
+                            <circle cx={p.x} cy={p.y} r={14} fill="none" stroke="var(--bb-primary)" strokeWidth={2} className="push-grab-breathe" />
+                          ) : null}
                           <circle
                             cx={p.x}
                             cy={p.y}
@@ -382,7 +516,25 @@ export function TrainerCanvas({
                         </g>
                       );
                     })
-                  : null}
+                  : interactive && annotationSide === "from"
+                    ? // Not opened yet: the pairs are there, quietly, so the
+                      // molecule says where electrons are before it is touched.
+                      // On touch they sit inside the atom's own hit circle
+                      // (22 px floor plus slop), so a tap on them is a tap on
+                      // the atom, which opens them.
+                      entry.lonePairs.map((slot, slotIndex) => {
+                        const aScr = -slot.angleSceneRad;
+                        const ux = -Math.sin(aScr);
+                        const uy = Math.cos(aScr);
+                        const p = slot.posPx;
+                        return (
+                          <g key={`ghost-${slotIndex}`} opacity={0.55} data-ghost-pair>
+                            <circle cx={p.x - ux * 3.2} cy={p.y - uy * 3.2} r={2.2} fill="var(--bond-stroke)" />
+                            <circle cx={p.x + ux * 3.2} cy={p.y + uy * 3.2} r={2.2} fill="var(--bond-stroke)" />
+                          </g>
+                        );
+                      })
+                    : null}
               </g>
             );
           })}
@@ -423,7 +575,9 @@ export function TrainerCanvas({
             arrow={arrow}
             away={centroid}
             curved={curvedArrows}
-            t={1}
+            t={fresh !== null && fresh.id === arrow.id ? fresh.t : 1}
+            tone={toneOf(arrow.id)}
+            reducedMotion={reducedMotion}
           />
         ))}
         {shown.animating.map((entry) => (
@@ -440,14 +594,59 @@ export function TrainerCanvas({
         ))}
       </g>
 
+      {/* The commit's ring, keyed on the push so each commit plays it once. */}
+      {landed !== null && interactive && !reducedMotion ? (
+        <circle
+          key={`land-${landed.id}`}
+          cx={landed.at.x}
+          cy={landed.at.y}
+          r={12}
+          fill="none"
+          stroke="var(--bb-primary)"
+          strokeWidth={3}
+          className="push-land-ring"
+          style={{ pointerEvents: "none" }}
+          data-push-landed
+        />
+      ) : null}
+
+      {/* The win's consequence: each pair travelling its own arrow. */}
+      {travelling.length > 0 ? (
+        <g style={{ pointerEvents: "none" }} data-push-travel>
+          {travelling.map(({ arrow, local }) => {
+            if (local <= 0 || local >= 1) return null;
+            const geometry = committedArrowGeometry(step, scene, annotations, arrow, centroid);
+            const eased = local * local * (3 - 2 * local);
+            const at = curvedArrows ? quadAt(geometry.from, bowAwayFrom(geometry.from, geometry.landing, centroid, 34), geometry.landing, eased) : mixPx(geometry.from, geometry.landing, eased);
+            return <ElectronPair key={`travel-${arrow.id}`} at={at} />;
+          })}
+        </g>
+      ) : null}
+
+      {/* A push the chemistry refused, shaken off where it was aimed. */}
+      {refused !== null ? (
+        <circle
+          key={`refused-${refused.n}`}
+          cx={refused.at.centre.x}
+          cy={refused.at.centre.y}
+          r={refused.at.r + 7}
+          fill="none"
+          stroke="var(--not-requested)"
+          strokeWidth={3}
+          className={reducedMotion ? undefined : "push-refuse"}
+          style={{ pointerEvents: "none" }}
+          data-push-refused
+        />
+      ) : null}
+
       {/* The gesture in flight. */}
       {interactive && guide !== null && guideAnchorPx !== null ? (
-        <g style={{ pointerEvents: "none" }}>
-          <SnapRing guide={guide} anchorAtom={armedAnchorAtom} centreOf={centreOf} atomById={atomById} />
-          {curvedArrows ? (
-            <InFlightCurved from={guideAnchorPx} smoothed={smoothedRef.current} fallbackTo={guide.to} />
+        <g style={{ pointerEvents: "none" }} data-drag-style={dragStyle} data-snapped={snap !== null ? "" : undefined}>
+          {snap !== null ? <SnapHalo snap={snap} reducedMotion={reducedMotion} /> : null}
+          {curvedDrag ? (
+            <InFlightCurved from={guideAnchorPx} smoothed={smoothedRef.current} fallbackTo={guide.to} snap={snap} away={centroid} />
           ) : (
-            <InFlightArrowless from={guideAnchorPx} to={guide.to} />
+            <InFlightArrowless from={guideAnchorPx} to={guide.to} snap={snap} />
           )}
         </g>
       ) : null}
@@ -499,7 +698,9 @@ function Hydrogens({ centre, slots }: { readonly centre: Point2; readonly slots:
 /**
  * One committed push, at replay progress t (1 is fully drawn). Curved
  * records are the tapered ribbon; arrowless records are resting electrons
- * and the forming bond's stub, no arrow glyph anywhere.
+ * and the forming bond's stub, no arrow glyph anywhere. A `tone` is the
+ * verdict painted on it: the ribbon takes the colour, and either kind gets
+ * a ring on its landing so the mark points at WHERE, not only at which.
  */
 function Record({
   step,
@@ -509,6 +710,8 @@ function Record({
   away,
   curved,
   t,
+  tone,
+  reducedMotion = true,
 }: {
   readonly step: MechanismStep;
   readonly scene: StepScene;
@@ -517,89 +720,180 @@ function Record({
   readonly away: Point2;
   readonly curved: boolean;
   readonly t: number;
+  readonly tone?: CanvasMarks["tone"];
+  readonly reducedMotion?: boolean;
 }) {
   const geometry = committedArrowGeometry(step, scene, annotations, arrow, away);
   const eased = t >= 1 ? 1 : t * (2 - t);
+  const colour = tone === undefined ? undefined : TONE_COLOUR[tone];
   const stub = geometry.stub !== null ? <BondCapsule a={geometry.stub.a} b={geometry.stub.b} rA={0} rB={0} opacity={0.75} forming /> : null;
+  // The mark: an underlay along the forming bond (it is the thing being
+  // judged when there is one) and a ring on the landing, one pop, then held.
+  const mark =
+    colour === undefined ? null : (
+      <g className={reducedMotion ? undefined : "push-mark-pop"} data-push-mark={tone}>
+        {geometry.stub !== null ? (
+          <line
+            x1={geometry.stub.a.x}
+            y1={geometry.stub.a.y}
+            x2={geometry.stub.b.x}
+            y2={geometry.stub.b.y}
+            stroke={colour}
+            strokeWidth={14}
+            strokeLinecap="round"
+            // 0.28 was measured invisible under the grey forming stub on the miss capture.
+            opacity={0.45}
+          />
+        ) : null}
+        <circle cx={geometry.landing.x} cy={geometry.landing.y} r={15} fill="none" stroke={colour} strokeWidth={3} />
+      </g>
+    );
   if (curved) {
     if (t >= 1) {
       return (
         <g>
+          {mark}
           {stub}
-          <TaperedArrow from={geometry.from} to={geometry.to} away={away} sinkRadiusPx={geometry.sinkRadiusPx} />
+          <TaperedArrow
+            from={geometry.from}
+            to={geometry.to}
+            away={away}
+            sinkRadiusPx={geometry.sinkRadiusPx}
+            {...(colour !== undefined ? { fill: colour } : {})}
+          />
         </g>
       );
     }
-    // Growing in under the scrubber: the ribbon reaches toward its landing,
-    // profile scaling with the chord, so a young arrow is a small arrow.
+    // Growing in (the commit beat, or the scrubber): the ribbon reaches toward
+    // its landing, profile scaling with the chord, so a young arrow is small.
     return <TaperedArrow from={geometry.from} to={mixPx(geometry.from, geometry.landing, eased)} away={away} glow={false} />;
   }
   if (t >= 1) {
     return (
       <g>
+        {mark}
         {stub}
-        <circle cx={geometry.landing.x - 3.2} cy={geometry.landing.y} r={2.6} fill="var(--electron-glow)" />
-        <circle cx={geometry.landing.x + 3.2} cy={geometry.landing.y} r={2.6} fill="var(--electron-glow)" />
+        <circle cx={geometry.landing.x - 3.2} cy={geometry.landing.y} r={2.6} fill={colour ?? "var(--electron-glow)"} />
+        <circle cx={geometry.landing.x + 3.2} cy={geometry.landing.y} r={2.6} fill={colour ?? "var(--electron-glow)"} />
       </g>
     );
   }
-  // The scrubber re-performs the gesture: electrons travel the guide line.
+  // Re-performing the gesture: electrons travel the guide line.
   const p = mixPx(geometry.from, geometry.landing, eased);
   return (
     <g>
       <line x1={geometry.from.x} y1={geometry.from.y} x2={p.x} y2={p.y} stroke="var(--bb-primary)" strokeWidth={3} strokeDasharray="7 6" strokeLinecap="round" opacity={0.8} />
-      <circle cx={p.x} cy={p.y} r={8.5} fill="var(--electron-glow)" opacity={0.85} />
-      <circle cx={p.x} cy={p.y} r={5} fill="var(--electron-core)" />
+      <ElectronPair at={p} />
     </g>
   );
 }
 
-/** The ring previewing where a release would land, read off the machine's snap. */
-function SnapRing({
-  guide,
-  anchorAtom,
-  centreOf,
-  atomById,
-}: {
-  readonly guide: InFlightGuide;
-  readonly anchorAtom: AtomId | null;
-  readonly centreOf: (id: AtomId) => Point2;
-  readonly atomById: ReadonlyMap<AtomId, SceneAtom>;
-}) {
+/** A travelling pair: glow and core, the same glyph the drag and the replay carry. */
+function ElectronPair({ at }: { readonly at: Point2 }) {
+  return (
+    <g>
+      <circle cx={at.x} cy={at.y} r={8.5} fill="var(--electron-glow)" opacity={0.85} />
+      <circle cx={at.x} cy={at.y} r={5} fill="var(--electron-core)" />
+    </g>
+  );
+}
+
+/** A point on the quadratic from a through control c to b. */
+function quadAt(a: Point2, c: Point2, b: Point2, t: number): Point2 {
+  const u = 1 - t;
+  return { x: u * u * a.x + 2 * u * t * c.x + t * t * b.x, y: u * u * a.y + 2 * u * t * c.y + t * t * b.y };
+}
+
+/**
+ * Where a release would land, read off the machine's own snap. The machine
+ * decides what is snapped (hit test, slop, margin); this only says where it
+ * is drawn, so the preview can never promise a landing the release misses.
+ */
+interface SnapPreview {
+  /** The thing to highlight: an atom, a bond's middle, or an open bond site. */
+  readonly centre: Point2;
+  readonly r: number;
+  /** Where the electrons would sit: on the rim facing the source, or on the bond. */
+  readonly landing: Point2;
+  /** What the committed ribbon would be aimed at, and the trim it lands with. */
+  readonly aim: Point2;
+  readonly sinkRadiusPx: number;
+}
+
+function snapPreview(
+  step: MechanismStep,
+  scene: StepScene,
+  guide: InFlightGuide,
+  from: Point2,
+  centreOf: (id: AtomId) => Point2,
+  atomById: ReadonlyMap<AtomId, SceneAtom>,
+): SnapPreview | null {
   const snapped = guide.snappedTo;
-  if (snapped.kind === "empty") return null;
-  const snappedAtom = targetAtomId(snapped);
-  if (snappedAtom !== null && snappedAtom === anchorAtom) return null;
-  if (snapped.kind === "atom" || snapped.kind === "bondEndHandle") {
-    const c = centreOf(snapped.atomId);
+  const anchor = guide.anchor;
+  if (snapped.kind === "empty" || targetKey(snapped) === targetKey(anchor)) return null;
+  // A lone pair onto its own atom is the no-op chem-core names on Check; it
+  // is not a landing worth advertising. A bond pair onto one of its own ends
+  // IS a landing (every leaving group), so only the lone pair case is skipped.
+  if (anchor.kind === "lonePair" && targetAtomId(snapped) === anchor.atomId) return null;
+  if (snapped.kind === "atom" || snapped.kind === "lonePair") {
+    const centre = centreOf(snapped.atomId);
     const r = atomRadius(atomById.get(snapped.atomId)?.element ?? "C");
-    return <circle cx={c.x} cy={c.y} r={r + 6} fill="none" stroke="var(--bb-primary)" strokeWidth={2.5} opacity={0.8} />;
+    return { centre, r, landing: rimPoint(centre, from, r + 6), aim: centre, sinkRadiusPx: r + 6 };
+  }
+  if (snapped.kind === "bondEndHandle") {
+    // "Into this bond": the landing is the bond's middle, as the record draws it.
+    const mid = bondMidpoint(step, scene, snapped.bondId) ?? centreOf(snapped.atomId);
+    return { centre: mid, r: 12, landing: mid, aim: mid, sinkRadiusPx: 10 };
   }
   if (snapped.kind === "betweenAtomsSite") {
-    const a = centreOf(snapped.atomIds[0]);
-    const b = centreOf(snapped.atomIds[1]);
-    const mid = mixPx(a, b, 0.5);
-    return <circle cx={mid.x} cy={mid.y} r={12} fill="none" stroke="var(--bb-primary)" strokeWidth={2.5} opacity={0.8} />;
+    const mid = mixPx(centreOf(snapped.atomIds[0]), centreOf(snapped.atomIds[1]), 0.5);
+    return { centre: mid, r: 12, landing: mid, aim: mid, sinkRadiusPx: 8 };
   }
   return null;
 }
 
+/** The target under the finger: a filled halo and a heavy ring that throbs. */
+function SnapHalo({ snap, reducedMotion }: { readonly snap: SnapPreview; readonly reducedMotion: boolean }) {
+  return (
+    <g className={reducedMotion ? undefined : "push-snap-throb"} data-snap-halo>
+      <circle cx={snap.centre.x} cy={snap.centre.y} r={snap.r + 9} fill="var(--bb-primary)" opacity={0.16} />
+      <circle cx={snap.centre.x} cy={snap.centre.y} r={snap.r + 7} fill="none" stroke="var(--bb-primary)" strokeWidth={3.5} />
+    </g>
+  );
+}
+
 /**
- * The curved drag: the smoothed arc, no head (a sphere has no orientation
- * to get wrong, the ruling the trainer records), electrons riding the tip.
+ * The curved drag: the smoothed arc, no head while it is free (a free drag
+ * has no direction to get wrong, the ruling the trainer records), electrons
+ * riding the tip. Snapped, the direction is known, so the ribbon the push
+ * will commit as is previewed at part strength and the live arc thins to a
+ * trace of where the finger is.
  */
 function InFlightCurved({
   from,
   smoothed,
   fallbackTo,
+  snap,
+  away,
 }: {
   readonly from: Point2;
   readonly smoothed: SmoothedArrow | null;
   readonly fallbackTo: Point2;
+  readonly snap: SnapPreview | null;
+  readonly away: Point2;
 }) {
   const tip = smoothed?.tip ?? fallbackTo;
   const control = smoothed?.control ?? mixPx(from, tip, 0.5);
   const d = `M ${from.x} ${from.y} Q ${control.x} ${control.y} ${tip.x} ${tip.y}`;
+  if (snap !== null) {
+    return (
+      <g>
+        <path d={d} fill="none" stroke="var(--bb-primary)" strokeWidth={1.5} strokeDasharray="3 5" strokeLinecap="round" opacity={0.45} />
+        <TaperedArrow from={from} to={snap.aim} away={away} sinkRadiusPx={snap.sinkRadiusPx} glow={false} opacity={0.6} />
+        <circle cx={from.x} cy={from.y} r={3} fill="var(--bb-primary)" />
+      </g>
+    );
+  }
   return (
     <g>
       {/* The casing blends into the surface behind, which is the workbench now, not --bb-card. */}
@@ -615,22 +909,39 @@ function HeldElectrons({ from, at }: { readonly from: Point2; readonly at: Point
   return (
     <g>
       <circle cx={at.x} cy={at.y} r={13} fill="var(--electron-glow)" opacity={0.55} />
-      <circle cx={at.x} cy={at.y} r={8.5} fill="var(--electron-glow)" opacity={0.85} />
-      <circle cx={at.x} cy={at.y} r={5} fill="var(--electron-core)" />
+      <ElectronPair at={at} />
       <circle cx={from.x} cy={from.y} r={3} fill="var(--bb-primary)" />
     </g>
   );
 }
 
-/** The arrowless drag: the bar's straight dashed guide, electrons at the finger. */
-function InFlightArrowless({ from, to }: { readonly from: Point2; readonly to: Point2 }) {
+/**
+ * The straight dashed drag, electrons at the finger. Snapped, the guide
+ * jumps to the landing like a magnet and takes the electrons with it, so the
+ * student sees the bond they are about to make; a hairline keeps the finger
+ * attached so the jump never reads as the drag being lost.
+ */
+function InFlightArrowless({ from, to, snap }: { readonly from: Point2; readonly to: Point2; readonly snap: SnapPreview | null }) {
+  const end = snap?.landing ?? to;
   return (
     <g>
+      {snap !== null ? (
+        <line x1={end.x} y1={end.y} x2={to.x} y2={to.y} stroke="var(--bb-primary)" strokeWidth={1.5} strokeLinecap="round" opacity={0.35} />
+      ) : null}
       {/* Casing blends into the workbench, same as InFlightCurved: on the
           white bench a cream casing read as a faint warm halo (rejudge note). */}
-      <line x1={from.x} y1={from.y} x2={to.x} y2={to.y} stroke="var(--workbench)" strokeWidth={8} strokeLinecap="round" opacity={0.9} />
-      <line x1={from.x} y1={from.y} x2={to.x} y2={to.y} stroke="var(--bb-primary)" strokeWidth={3.5} strokeDasharray="7 6" strokeLinecap="round" />
-      <HeldElectrons from={from} at={to} />
+      <line x1={from.x} y1={from.y} x2={end.x} y2={end.y} stroke="var(--workbench)" strokeWidth={8} strokeLinecap="round" opacity={0.9} />
+      <line
+        x1={from.x}
+        y1={from.y}
+        x2={end.x}
+        y2={end.y}
+        stroke="var(--bb-primary)"
+        strokeWidth={snap !== null ? 4.5 : 3.5}
+        strokeDasharray="7 6"
+        strokeLinecap="round"
+      />
+      <HeldElectrons from={from} at={end} />
     </g>
   );
 }

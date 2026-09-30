@@ -65,7 +65,8 @@ import { ExitMark } from "../../../beats/chromeIcons";
 import { Berry } from "../../../mascot/Berry";
 import { costumeForSurface } from "../../../mascot/berryCostume";
 import { useBerryReactions } from "../../../mascot/useBerryReactions";
-import { TrainerCanvas } from "./TrainerCanvas";
+import { TrainerCanvas, type CanvasMarks } from "./TrainerCanvas";
+import { arrowPresentation, arrowStyleSetting } from "../../../settings/arrowStyle";
 import { ForkChooser } from "./ForkChooser";
 import { FeedbackSheet, RISE_MS } from "./FeedbackSheet";
 import { branchSheet, describeStrays, missSheet, winSheet, type SheetContent } from "./sheetCopy";
@@ -141,7 +142,13 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
     setHistoryScrub(null);
     setViewIndex(index);
   };
-  const curvedArrows = curvedArrowsFor(question.kind);
+  // The student's drag style setting over the kind's own rule. Presentation
+  // only: nothing below hands it to the grader. useSyncExternalStore
+  // subscribes to the settings store, so a change on the Me tab reaches an
+  // open screen without a reload.
+  const arrowStyle = useSyncExternalStore(arrowStyleSetting.subscribe, arrowStyleSetting.getSnapshot, arrowStyleSetting.getSnapshot);
+  const presentation = arrowPresentation(arrowStyle, curvedArrowsFor(question.kind));
+  const curvedArrows = presentation.curvedRecord;
 
   const scene = useMemo(
     () => buildStepScene(step, layoutState(step.from, played.fromHints), layoutState(step.to, played.toHints)),
@@ -161,6 +168,9 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
   // new document rather than unwinding fifty entries.
   const [epoch, setEpoch] = useState(0);
   const targetsRef = useRef<readonly DrawTarget[]>([]);
+  // Pushes the machine refused (a legality failure on release). The canvas
+  // shakes one off where it was aimed on each increment.
+  const [refusals, setRefusals] = useState(0);
   const store = useMemo(
     () =>
       createInteractionStore({
@@ -168,6 +178,7 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
         environment: { hitTester: createHitTester(() => targetsRef.current) },
         onEffect: (effect) => {
           if (effect.kind === "haptic" && typeof navigator.vibrate === "function") navigator.vibrate(12);
+          if (effect.kind === "haptic" && effect.style === "refusal") setRefusals((n) => n + 1);
         },
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -418,6 +429,21 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
             : null;
   const undoDisabled = !interactive || !canUndo(machine);
   const checkDisabled = !interactive || mechanism.arrows.length === 0;
+  // The verdict painted ON the molecule, the same instant and colour as the
+  // sheet (PHASE-6-VERDICT: "we answer WHY and not WHERE"). It follows the
+  // sheet's own life: a changed drawing clears the verdict, and so the mark.
+  const marks: CanvasMarks | null = model.replayOpen
+    ? null
+    : won
+      ? { tone: "good", arrowIds: mechanism.arrows.map((arrow) => arrow.id) }
+      : verdict?.kind === "invalid"
+        ? { tone: "near", arrowIds: [verdict.finding.arrowId] }
+        : verdict?.kind === "not_requested"
+          ? { tone: "near", arrowIds: verdict.extras.map((arrow) => arrow.id) }
+          : verdict?.kind === "incomplete"
+            ? // Every push drawn is one the route asks for; the sheet says how many are left.
+              { tone: "good", arrowIds: mechanism.arrows.map((arrow) => arrow.id) }
+            : null;
   // The strip spans the whole question: a single step reads its own fraction.
   const fraction = (stepIndex + progressFraction(model, mechanism.arrows.length, step.arrows.length)) / question.steps.length;
 
@@ -501,6 +527,10 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
               step={step}
               scene={scene}
               curvedArrows={curvedArrows}
+              dragStyle={presentation.drag}
+              keepRecordsOnWin={curvedArrowsFor(question.kind)}
+              marks={marks}
+              refusals={refusals}
               draft={mechanism}
               guide={guide}
               targets={targets}
@@ -816,6 +846,7 @@ function HistoryCanvas({
       step={step}
       scene={scene}
       curvedArrows={curvedArrows}
+      dragStyle="dashed" /* read only: nothing is ever dragged here */
       draft={draft}
       guide={null}
       targets={[]}
