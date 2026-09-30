@@ -133,6 +133,25 @@ describe("hudModel, the streak flame", () => {
     expect(evening.line).toContain("rest day");
     expect(evening.line).not.toMatch(/should|lose|lost|don't|fail/i);
   });
+
+  // The header draws each of these as a different shape (hudAnatomy.test.ts
+  // pins the drawing); these pin that the model names the right one.
+  it("names the drawn state: pending, at risk, live, and zero", () => {
+    expect(model(fiveDays).streak.state).toBe("pending");
+    expect(model(fiveDays, "2026-08-28T23:30:00.000Z").streak.state).toBe("atRisk");
+    expect(model([...fiveDays, countedDay(0, "n0")]).streak.state).toBe("live");
+    expect(model([]).streak.state).toBe("zero");
+  });
+
+  it("never calls a missing run at risk, even in the evening", () => {
+    const empty = model([], "2026-08-28T23:30:00.000Z").streak;
+    expect(empty.atRisk).toBe(true);
+    expect(empty.state).toBe("zero");
+  });
+
+  it("stays live all evening once today counted", () => {
+    expect(model([...fiveDays, countedDay(0, "n0")], "2026-08-28T23:30:00.000Z").streak.state).toBe("live");
+  });
 });
 
 describe("hudModel, charge", () => {

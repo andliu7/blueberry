@@ -127,8 +127,8 @@
  * Every cell is the same object: a 44px box, one hairline edge on the card
  * ground, one square mark, one number. Nothing else. hud.css owns the geometry
  * and names the three differences that survived and what each one now means.
- * The only cell-level difference is `data-rank`, which scales the mark and the
- * number together in two steps, and it is set from importance rather than from
+ * The only cell-level difference is `data-rank`, which (since round six)
+ * scales the number alone in two steps, and it is set from importance rather than from
  * which readout it happens to be: the streak leads, the other two are peers.
  *
  * WHAT WENT, and each one closes one of the critic's counts:
@@ -150,6 +150,24 @@
  *    they were a difference with nothing left to mean: the pill they belonged
  *    to was deleted in round three. The limiter is identified by its mark and
  *    by its level, not by being the only cell wearing a different suit.
+ *
+ * ROUND SIX, 2026-09-30: THE FRAMES GO, AND THE STREAK SAYS ITS STATE.
+ *
+ * Round five unified the cells but left two things the same critic had
+ * named. The marks still disagreed (the lead step scaled the flame to 24
+ * against 20), and every cell still wore a frame the bar does not draw. And
+ * the streak was still grey in its commonest state: a run that exists while
+ * today is not yet counted, which is most of every day for a student who
+ * keeps one. That was the "switched off" sentence, still true.
+ *
+ *  - NO FRAME, NO GROUND, ON ANY CELL. Read off the bar's header again: four
+ *    readouts, bare. The cell is still a 44px button; its ground appears on
+ *    hover, focus and press, which is state and not identity. hud.css.
+ *  - ONE MARK SIZE, 24px, the bar's measured ~25. The lead step moves the
+ *    NUMBER only, because the number is the reading and the mark is the
+ *    identity, and identities that disagree in size are the finding.
+ *  - FOUR STREAK STATES, FOUR SHAPES. `streak.state` in hudModel; FlameMark
+ *    draws them. The number stays in the streak's ink whenever a run exists.
  *
  * PRESS. Each button carries `.press` and opens its sheet on `onPointerDown`,
  * so the acknowledgement and the action are the same frame. CLAUDE.md's rule is
@@ -220,9 +238,9 @@ interface Spot {
 /**
  * Where a readout sits on the header's one ladder.
  *
- * NOT A SIZE AND NOT A COLOUR: a rank. hud.css turns it into a mark size and a
- * number size, together, in one step, and that is the only property any cell is
- * allowed to differ on. Writing it as a rank rather than as `big` is what stops
+ * NOT A SIZE AND NOT A COLOUR: a rank. hud.css turns it into a number size, in
+ * one step, and that is the only property any cell is allowed to differ on. The
+ * mark is never on the ladder: round six measured that as the second anatomy. Writing it as a rank rather than as `big` is what stops
  * the next round adding a third value because a particular chip looked thin.
  */
 type HudRank = "lead" | "peer";
@@ -238,17 +256,18 @@ interface ItemProps {
 /**
  * One readout. 44px minimum in both directions, pressed on pointer down.
  *
- * ALL THREE ARE THE SAME OBJECT, and after round five that is meant literally:
- * one hairline edge on the card ground, one mark, one number, one gap, one
- * padding, all of it declared once in hud.css. No cell carries a class of its
+ * ALL THREE ARE THE SAME OBJECT, and after round six that is meant literally:
+ * no frame and no ground, one mark, one number, one gap, one padding, all of
+ * it declared once in hud.css. No cell carries a class of its
  * own and none takes a `className`, because a per-cell hook is how the row grew
  * three anatomies in the first place. The only thing that varies is `rank`.
  *
- * THE CUT EDGE STAYS ON ALL THREE. Sticker rule 3 is that a control without one
- * is not in the language, and these are controls: each opens a modal coach
- * mark. The bar draws its four readouts bare, and it can, because they are its
- * own well known furniture. What was never the language is one cell wearing a
- * heavier edge than the two beside it.
+ * THE CUT EDGE IS GONE FROM ALL THREE, round six, and that reverses round
+ * five's reading of sticker rule 3 on purpose. The rule is about objects that
+ * sit ON the page; these sit in the header's own band and are its furniture,
+ * which is exactly how the bar draws its four. A frame round each one is what
+ * made the streak "a number inside a chip". Pressability is still drawn: the
+ * ground appears under a pointer, under focus, and on press.
  *
  * It measures itself on the way into the sheet rather than letting the sheet go
  * looking for it, because the button is the only thing that knows for certain
@@ -281,7 +300,7 @@ function HudButton({ id, label, rank, onOpen, children }: ItemProps) {
 
 
 /**
- * The charge readout. A mark and a number, in a tinted outlined cell.
+ * The charge readout. A mark and a number, the same anatomy as its neighbours.
  *
  * WHERE THE METER WENT, and it is not lost. The 30 cap is still DRAWN and never
  * written: the coach mark behind this button draws all thirty pips with the one
@@ -345,9 +364,10 @@ export function Hud() {
         </HudButton>
 
         {/*
-          THE LEAD READOUT. `rank="lead"` is the row's whole hierarchy: the
-          streak's mark and number step up one size together, and nothing else
-          about the cell changes. A critic measured the emphasis running
+          THE LEAD READOUT. `rank="lead"` is the row's whole size hierarchy:
+          the streak's NUMBER steps up one size, and nothing else about the
+          cell changes. Round five stepped the mark too and that was the 20
+          against 24 a critic counted as two anatomies. A critic measured the emphasis running
           backwards, with diamonds loudest and the streak quietest, and named
           it the bigger of its two findings. The header exists for the thing
           the retention model rests on, so that thing is the biggest object in
@@ -360,17 +380,25 @@ export function Hud() {
           legibility an earlier round bought.
         */}
         <HudButton id="streak" label={`${streak.label}. ${xp.label}`} rank="lead" onOpen={openItem}>
-          {/* Lit at today's goal fraction. An unlit flame at --hud-out reads as
-              DISABLED rather than as "today is not counted yet", and colour
-              cannot be the only carrier of that. A silhouette that is part lit
-              says it as a shape instead: nothing disabled is forty percent of
-              anything. At 0 and at 1 it draws exactly what it drew before. */}
+          {/* THE FLAME SAYS WHICH OF FOUR STATES THE RUN IS IN, AS A SHAPE.
+              hudModel derives `streak.state` once; FlameMark draws each one
+              differently (outline, burning ember, ember with a clock, full).
+              The body is still lit to today's goal fraction, which is the
+              whole of what the header says about the goal. Only the evening
+              state leans, because a lean is the one motion that says "this
+              needs you tonight"; a run that is merely waiting stands still. */}
           <FlameMark
             lit={streak.lit}
             fill={streak.lit ? 1 : xp.fraction}
-            className={`hud-mark ${streak.lit ? "" : "hud-flame-out"}`}
+            state={streak.state}
+            className={`hud-mark ${streak.state === "atRisk" ? "hud-flame-risk" : ""}`}
           />
-          <span className={`hud-value ${streak.lit ? "text-streak-ink" : "text-bb-muted-foreground"}`}>
+          {/* THE NUMBER IS IN THE STREAK'S INK WHENEVER A RUN EXISTS. Round
+              five greyed it until today counted, so a student with a five day
+              run saw a grey 5 all morning: the "switched off" finding. Grey is
+              kept for the one state that really has nothing in it, zero,
+              which is also the bar's own drawing of that state. */}
+          <span className={`hud-value ${streak.state === "zero" ? "text-bb-muted-foreground" : "text-streak-ink"}`}>
             {streak.value}
           </span>
         </HudButton>

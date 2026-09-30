@@ -107,13 +107,33 @@ export interface StreakDay {
   readonly today: boolean;
 }
 
+/**
+ * The four things the header flame can be saying, as one value.
+ *
+ * WHY ONE VALUE AND NOT THE THREE BOOLEANS IT IS MADE OF. `days`, `lit` and
+ * `atRisk` combine into eight cases and only four of them are real, and the
+ * header has to draw each real one as a different SHAPE (hud.css and
+ * FlameMark carry what each looks like). Deriving the case once, here, is
+ * what stops the drawing code re-deriving it with a different precedence:
+ *
+ *  - "zero": no run exists. Nothing to keep, so nothing is at risk even in the
+ *    evening; the bar draws this state grey, and so does this header.
+ *  - "pending": a run exists and today is not counted yet. The run is ALIVE,
+ *    which is the state a returning student sees most of every day, and the
+ *    one a critic measured as "looks switched off".
+ *  - "atRisk": pending, and past the evening hour.
+ *  - "live": today is counted.
+ */
+export type StreakState = "zero" | "pending" | "atRisk" | "live";
+
 export interface StreakReadout extends HudReadout {
   readonly id: "streak";
   readonly days: number;
   /** Today's goal is met, so the day is counted. The flame is lit only for this. */
   readonly lit: boolean;
-  /** Unmet and past the evening hour. Copy changes; the flame does not. */
+  /** Unmet and past the evening hour. The raw flag; `state` is what gets drawn. */
   readonly atRisk: boolean;
+  readonly state: StreakState;
   /** Seven days ending today, oldest first. The coach mark's unit row. */
   readonly week: readonly StreakDay[];
 }
@@ -253,6 +273,7 @@ function streakReadout(snapshot: EconomySnapshot): StreakReadout {
       days: 0,
       lit: false,
       atRisk,
+      state: "zero",
       week,
     };
   }
@@ -275,6 +296,7 @@ function streakReadout(snapshot: EconomySnapshot): StreakReadout {
     days: current,
     lit: todayCounted,
     atRisk,
+    state: todayCounted ? "live" : atRisk ? "atRisk" : "pending",
     week,
   };
 }

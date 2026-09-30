@@ -38,6 +38,7 @@
  */
 
 import { useId } from "react";
+import type { StreakState } from "./hudModel";
 
 const clamp01 = (n: number): number => (n < 0 ? 0 : n > 1 ? 1 : n);
 
@@ -139,34 +140,71 @@ const FLAME_TIP = 1.2;
  * screen's 128px hero, and both copies of each are the same shape under the same
  * animation, so they lick in register. The clip window does not move with them,
  * which is right: a flame's tip wobbles and its level does not.
+ *
+ * `state` IS THE HEADER'S, and only the header passes it. Round five drew the
+ * no-run, run-waiting and evening cases as one identical grey flame, so the
+ * one counter that matters looked switched off for most of every day and the
+ * evening case looked like nothing at all. Each state is now a different
+ * SHAPE, so none of them rests on hue alone:
+ *
+ *  - "zero": the silhouette as an OUTLINE. No run exists; there is nothing in
+ *    the flame yet. The bar draws this state grey too.
+ *  - "pending" and "atRisk": the solid grey body with its core BURNING, an
+ *    ember in the core token cut out of the body by a card coloured ring. The
+ *    run is alive and today's part of it is the level rising behind it. The
+ *    ring is what keeps the ember a shape in dark, where the amber and the
+ *    grey body sit close in lightness.
+ *  - "atRisk" adds a clock notched into the lower right: the day has a
+ *    deadline now. A clock and not a warning sign, and no red, because
+ *    docs/ECONOMY.md forbids drawing an unmet day as a loss.
+ *  - "live": exactly the lit flame, drawn at fill 1 by the caller.
  */
 export function FlameMark({
   lit,
   fill = lit ? 1 : 0,
+  state,
   className = "",
 }: {
   readonly lit: boolean;
   /** 0 to 1, how much of the flame is alight. Today's goal fraction in the HUD. */
   readonly fill?: number;
+  /** The header's streak state. Left out, the mark is the plain two state flame. */
+  readonly state?: StreakState;
   readonly className?: string;
 }) {
   const clip = `hud-flame-${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
+  const hollow = state === "zero";
+  const ember = state === "pending" || state === "atRisk";
   return (
     <svg viewBox="0 0 24 24" className={className} aria-hidden focusable="false">
       <clipPath id={clip}>
         <rect x="0" y={fillWindow(FLAME_BASE, FLAME_TIP, fill)} width="24" height="24" />
       </clipPath>
-      <path className="hud-flame-body" d={FLAME_BODY} fill="var(--hud-out)" />
+      {hollow ? (
+        <path d={FLAME_BODY} fill="none" stroke="var(--hud-out)" strokeWidth="2" strokeLinejoin="round" />
+      ) : (
+        <path className="hud-flame-body" d={FLAME_BODY} fill="var(--hud-out)" />
+      )}
       {/* Lighter than the body in BOTH states, because that is what a hot core
           is. A first pass drew the unlit core in --hud-out at 0.42, which is
           the body's own colour over the body: opaque grey on opaque grey, so
           the flame lost its structure and the capture showed a raindrop. A
           white wash lightens either theme's mid grey. */}
-      <path className="hud-flame-core" d={FLAME_CORE} fill="#ffffff" fillOpacity="0.42" />
+      {hollow ? null : ember ? (
+        <path className="hud-flame-core" d={FLAME_CORE} fill="var(--streak-core)" stroke="var(--bb-card)" strokeWidth="1.25" />
+      ) : (
+        <path className="hud-flame-core" d={FLAME_CORE} fill="#ffffff" fillOpacity="0.42" />
+      )}
       <g clipPath={`url(#${clip})`}>
         <path className="hud-flame-body" d={FLAME_BODY} fill="var(--streak)" />
         <path className="hud-flame-core" d={FLAME_CORE} fill="var(--streak-core)" />
       </g>
+      {state === "atRisk" ? (
+        <g data-flame-clock>
+          <circle cx="18" cy="18" r="5.25" fill="var(--streak-ink)" stroke="var(--bb-card)" strokeWidth="1.5" />
+          <path d="M18 15.4V18l1.9 1.2" fill="none" stroke="var(--bb-card)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+        </g>
+      ) : null}
     </svg>
   );
 }
@@ -195,7 +233,19 @@ export function FlameMark({
  * family's own token, one lighter facet for volume, and the bolt cut out in the
  * card's colour so the shape is one component in both themes.
  */
-/** The cell's own extremes, for the same reason the flame keeps its two. */
+/**
+ * The cell's outline and its own extremes, for the same reason the flame keeps
+ * its two.
+ *
+ * A BATTERY 14 UNITS WIDE, round six. It was a 19 by 21 rounded square, and
+ * solid dark green at that footprint it was the heaviest object in the header,
+ * heavier than the flame beside it (14 wide) that the row exists for. Every
+ * mark in the row now spans the full 24 unit height and about the flame's
+ * width or the diamond's facets' width, so no identity outweighs another by
+ * area alone. The nub on top is what makes it read as energy, the owner's own
+ * word for this mark.
+ */
+const CELL = "M9.5 3.5h5A4.5 4.5 0 0 1 19 8v10a4.5 4.5 0 0 1-4.5 4.5h-5A4.5 4.5 0 0 1 5 18V8a4.5 4.5 0 0 1 4.5-4.5zM9.8 1.5h4.4a.8.8 0 0 1 .8.8v1.2H9V2.3a.8.8 0 0 1 .8-.8z";
 const CELL_BASE = 22.5;
 const CELL_TIP = 1.5;
 
@@ -220,16 +270,16 @@ export function ChargeMark({
       <clipPath id={clip}>
         <rect x="0" y={fillWindow(CELL_BASE, CELL_TIP, fill)} width="24" height="24" />
       </clipPath>
-      <rect x="2.5" y="1.5" width="19" height="21" rx="6.5" fill="var(--hud-out)" />
+      <path d={CELL} fill="var(--hud-out)" />
       <g clipPath={`url(#${clip})`}>
-        <rect x="2.5" y="1.5" width="19" height="21" rx="6.5" fill="var(--good)" />
+        <path d={CELL} fill="var(--good)" />
       </g>
       {/* The facet and the bolt sit ABOVE the clip, not inside it. The bolt is
           a cut rather than a drawn mark: it is painted in the card's colour so
           the shape reads as one object in both themes, and a bolt that filled
           with the cell would stop being a hole and start being a stripe. */}
-      <path d="M9 1.5h6a6.5 6.5 0 0 1 6.5 6.5v2.5h-19V8A6.5 6.5 0 0 1 9 1.5z" fill="#ffffff" fillOpacity="0.24" />
-      <path d="M13.6 4.2 7.3 13h3.4l-.7 6.8 6.5-9.1h-3.6z" fill="var(--bb-card)" />
+      <path d="M9.5 3.5h5A4.5 4.5 0 0 1 19 8v2.5H5V8a4.5 4.5 0 0 1 4.5-4.5z" fill="#ffffff" fillOpacity="0.24" />
+      <path d="M13.3 6.2 8.2 14h2.9l-.6 5.6 5.3-7.9h-3z" fill="var(--bb-card)" />
     </svg>
   );
 }
