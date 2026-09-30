@@ -16,10 +16,8 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
 import {
-  DOODLE_COUNT,
   MISTAKES_DECK_ID,
   MISTAKES_DECK_TITLE,
-  doodleFor,
   heroModel,
   lessonDeckTiles,
   mistakeDeckCards,
@@ -208,13 +206,10 @@ describe("the My-decks grid", () => {
     expect(zebra?.mastery).toBeCloseTo(LEARNING_MASTERY);
   });
 
-  it("every tile's doodle is stable and in range", () => {
-    for (const tile of myDeckTiles(snapshot, [])) {
-      expect(tile.doodle).toBe(doodleFor(tile.deckId));
-      expect(tile.doodle).toBeGreaterThanOrEqual(0);
-      expect(tile.doodle).toBeLessThan(DOODLE_COUNT);
-    }
-  });
+  /* The doodle pin that stood here went with Doodles.tsx in the 29 Sep
+     rebuild. A deck's art is now a real RDKit drawing from its own cards,
+     and cardsDeckView.test.ts pins that it is stable, belongs to the deck,
+     and stays distinct across rows. */
 });
 
 describe("the From-your-lessons row", () => {

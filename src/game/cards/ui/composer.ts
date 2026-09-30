@@ -219,6 +219,46 @@ export function cardFromDraft(
 }
 
 /* ------------------------------------------------------------------ */
+/* The plain question card                                              */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Not every card is a reaction. "Which proton is most acidic" or "why is
+ * the axial conformer higher in energy" is a question and an answer, and
+ * forcing it into Setup / Conditions / Product would put words in the wrong
+ * boxes. So the composer offers a second shape that maps straight onto the
+ * classic triple: front asks, back answers, why teaches (optional here,
+ * because it is the student's own card and a blank why is honest).
+ */
+export interface QuestionDraft {
+  readonly front: string;
+  readonly back: string;
+  readonly why: string;
+}
+
+export const EMPTY_QUESTION: QuestionDraft = Object.freeze({ front: "", back: "", why: "" });
+
+export function questionProblems(draft: QuestionDraft): readonly string[] {
+  const problems: string[] = [];
+  if (draft.front.trim().length === 0) problems.push("Write the question so the card can ask something.");
+  if (draft.back.trim().length === 0) problems.push("Add the answer so the card can check you.");
+  return problems;
+}
+
+/** Same id scheme as a reaction draft, keyed on the question's own words. */
+export function questionCardFromDraft(draft: QuestionDraft, now: Date): Card {
+  const front = draft.front.trim();
+  return {
+    id: composedCardId({ setup: front, conditions: "", product: "" }, now),
+    front,
+    back: draft.back.trim(),
+    why: draft.why.trim(),
+    tags: ["composed"],
+    source: { kind: "composed", at: now.toISOString() },
+  };
+}
+
+/* ------------------------------------------------------------------ */
 /* Where the card goes                                                  */
 /* ------------------------------------------------------------------ */
 

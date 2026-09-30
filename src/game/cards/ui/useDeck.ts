@@ -24,5 +24,8 @@ import { useSyncExternalStore } from "react";
 import type { DeckSnapshot, DeckSource } from "../types";
 
 export function useDeckSnapshot(source: DeckSource): DeckSnapshot {
-  return useSyncExternalStore(source.subscribe, source.getSnapshot);
+  // The third argument is the snapshot for a server render. The store is
+  // client only, so it is the same read; passing it lets the card tests render
+  // a screen with react-dom/server, which throws without one.
+  return useSyncExternalStore(source.subscribe, source.getSnapshot, source.getSnapshot);
 }

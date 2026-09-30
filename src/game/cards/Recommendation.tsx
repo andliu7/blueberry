@@ -495,7 +495,7 @@ export function deckIconElement(): HTMLElement | null {
 export interface DeckIconProps {
   /** How many cards are in the deck. Rendered on the badge that pops. */
   readonly count: number;
-  /** Opening the deck. The hub is cards/ui/MyDeck; this only says "go there". */
+  /** Opening the deck. The Cards tab (cards/ui/CardsHome) is the deck; this only says "go there". */
   readonly onClick?: () => void;
   /**
    * Fixed to the top left corner, which is where the owner put it. A shell that
@@ -513,7 +513,7 @@ export interface DeckIconProps {
  * animation contract: save-animation.css names .deck-icon--catching and
  * [data-deck-badge], and a hook declared in one folder and honoured in another
  * is how the first version of this shipped with a card flying to an empty
- * corner. The screens a student browses (the hub, the picker, the session) are
+ * corner. The screens a student browses (the shelf, a deck, the review run) are
  * cards/ui's; this is the 44 by 44 target the card lands on.
  */
 export function DeckIcon({ count, onClick, floating = true, label }: DeckIconProps) {

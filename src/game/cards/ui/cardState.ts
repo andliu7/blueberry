@@ -5,9 +5,9 @@
  * THE COMMITTED IMAGE IS blueberry_spec-card-states in docs/reference/
  * design-goals: "a card's edge and badge say where it is in the scheduler",
  * and it names five states: new, learning, due, mastered, suspended. This
- * file derives that word from ReviewState; the components (DeckTray's fanned
- * cards, CardFace in a review) own the edge and badge pixels, and cards.css
- * owns their colours, so the vocabulary is decided exactly once.
+ * file derives that word from ReviewState; the components (the mastery strip,
+ * the deck's card rows, CardFace) draw it, and cards.css owns the colours, so
+ * the vocabulary is decided exactly once.
  *
  * THE DERIVATIONS, one line each, and every one reads scheduler state rather
  * than restating scheduler policy:

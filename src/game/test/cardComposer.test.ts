@@ -22,6 +22,8 @@ import {
   deckTitleProblem,
   draftProblems,
   newDeckId,
+  questionCardFromDraft,
+  questionProblems,
   setSide,
 } from "../cards/ui/composer";
 import type { ReactionSides } from "../cards/types";
@@ -121,5 +123,27 @@ describe("where the card goes", () => {
     const problem = deckTitleProblem("  ");
     expect(problem).not.toBeNull();
     expect(problem).not.toMatch(/\?/);
+  });
+});
+
+/* The plain question shape, added with the 29 Sep rebuild so a card that is
+   not a reaction has boxes that fit it. */
+describe("a question card", () => {
+  it("maps straight onto front, back and why, as the student wrote them", () => {
+    const card = questionCardFromDraft({ front: " Most acidic proton? ", back: "The alpha one", why: "" }, AT);
+    expect(card.front).toBe("Most acidic proton?");
+    expect(card.back).toBe("The alpha one");
+    expect(card.why).toBe("");
+    expect(card.source).toEqual({ kind: "composed", at: AT.toISOString() });
+    expect(card.sides).toBeUndefined();
+    expect(card.reaction).toBeUndefined();
+    expect(card.id.startsWith("composed:")).toBe(true);
+  });
+
+  it("needs a question and an answer, and says so in the coach voice", () => {
+    expect(questionProblems({ front: "q", back: "a", why: "" })).toEqual([]);
+    const problems = questionProblems({ front: " ", back: "", why: "because" });
+    expect(problems).toHaveLength(2);
+    for (const problem of problems) expect(problem).not.toMatch(/\?|wrong|must/i);
   });
 });

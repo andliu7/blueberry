@@ -1,33 +1,22 @@
 /**
- * The Cards tab, all four faces behind one component. Read this header before
- * trusting anything in this file.
+ * The Cards tab: which screen is showing, and nothing any screen computes.
+ * Rebuilt 29 Sep with the interface; read this header before trusting it.
  *
- * THE FACES, and the design-goals clause each one implements:
+ * THE SCREENS. Home (today plus the shelf), a deck (DeckScreen), the composer,
+ * and the run, which is not a screen in the same sense: it is an overlay
+ * drawn OVER whichever screen started it, fixed across the whole app, so
+ * leaving a run lands the student exactly where they were.
  *
- *   landing   CardsLanding. The tab OPENS on the review decision: Due-today
- *             hero, My-decks grid, From-your-lessons row.
- *   review    ReviewSession. Structure on the card, four grade chips with
- *             the scheduler's own intervals on them.
- *   composer  Composer. Three-sided reaction cards, Setup / Conditions /
- *             Product on a segmented pill, Save to deck.
- *   tray      DeckTray. The fanned browser over the violet tray.
- *
- * This file owns exactly the transitions between them and nothing that any
- * face computes. It is the one component the shell needs to mount, so the
- * integrator's whole wiring job is rendering CardsHome where MyDeck was.
- *
- * WHY DRAFTS ARE ADOPTED BEFORE A SESSION. The mistakes deck is assembled at
+ * WHY DRAFTS ARE ADOPTED BEFORE A RUN. The mistakes deck is assembled at
  * render time from the trainer's journal (landing.ts), so a drafted card can
- * reach the REVIEW button without ever having been saved. The store's rate()
- * deliberately ignores ids it does not hold, which would silently drop the
- * rating; adopting the draft into the stored mistakes deck first gives the
- * rating somewhere to land, and the saved copy then wins every later
- * assembly, keeping the schedule it just earned. That is the "materialises
- * in the store the first time it is reviewed" moment landing.ts promises.
+ * reach a run without ever having been saved, and the store's rate() ignores
+ * ids it does not hold. Adopting the draft into the stored mistakes deck
+ * first gives the grade somewhere to land; the saved copy then wins every
+ * later assembly and keeps the schedule it just earned.
  *
- * The bar-hiding contract is CardsTab's: this component reports immersion
- * through onImmersiveChange from an effect, so leaving by any route restores
- * the bar, the same reasoning as the previous wiring.
+ * THE BAR. CardsTab's contract: immersion is reported from an effect, so
+ * leaving by any route (tab press, back button, deep link) restores the bar,
+ * not only the exits this file knows about.
  */
 
 import { useEffect, useMemo, useState } from "react";
@@ -37,24 +26,23 @@ import { decks as defaultDecks, PERSONAL_DECK_ID } from "../store";
 import { migrateLegacySavedCards } from "../migrateSavedCards";
 import { seedStarterDeck } from "../seed";
 import { loadMistakes, type SavedMistake } from "../../tabs/trainer/mistakes";
-import { CardsLanding } from "./CardsLanding";
-import { Composer } from "./CardComposer";
-import { DeckTray } from "./DeckTray";
-import { ReviewSession } from "./ReviewSession";
+import { ComposeScreen } from "./ComposeScreen";
+import { DeckScreen } from "./DeckScreen";
+import { Home } from "./Home";
+import { Run } from "./Run";
 import { useDeckSnapshot } from "./useDeck";
 import { MISTAKES_DECK_ID, MISTAKES_DECK_TITLE, mistakeDeckCards } from "./landing";
 
-type Face =
-  | { readonly kind: "landing" }
+type Screen =
+  | { readonly kind: "home" }
   | { readonly kind: "composer" }
-  | { readonly kind: "tray"; readonly deckId: DeckId }
-  | { readonly kind: "review"; readonly cards: readonly Card[] };
+  | { readonly kind: "deck"; readonly deckId: DeckId };
 
 /**
- * Save into the stored mistakes deck every card of this session the store
- * has never seen. Only journal drafts can be in that position, and their
- * source kind says so; anything else missing is a store trim, which adopting
- * would resurrect against the student's intent, so it is left alone.
+ * Save into the stored mistakes deck every card of this run the store has
+ * never seen. Only journal drafts can be in that position, and their source
+ * kind says so; anything else missing is a store trim, which adopting would
+ * resurrect against the student's intent, so it is left alone.
  */
 export function adoptMistakeDrafts(source: DeckSource, cards: readonly Card[]): void {
   const held = source.getSnapshot().cards;
@@ -68,94 +56,79 @@ export interface CardsHomeProps {
   readonly source?: DeckSource;
   /** Injected in tests. The default reads the journal the trainer writes. */
   readonly mistakes?: readonly SavedMistake[];
-  /** Told when a full screen session starts and ends, so the shell can hide
-      the bar. The explicit `| undefined` is for exactOptionalPropertyTypes:
-      CardsTab forwards its own optional prop, so undefined must be passable. */
+  /** Told when a run starts and ends, so the shell can hide the bar. The
+      explicit `| undefined` is for exactOptionalPropertyTypes: CardsTab
+      forwards its own optional prop, so undefined must be passable. */
   readonly onImmersiveChange?: ((immersive: boolean) => void) | undefined;
 }
 
 export function CardsHome({ source = defaultDecks, mistakes, onImmersiveChange }: CardsHomeProps) {
-  const [face, setFace] = useState<Face>({ kind: "landing" });
+  const [screen, setScreen] = useState<Screen>({ kind: "home" });
+  const [run, setRun] = useState<readonly Card[] | null>(null);
   const snapshot = useDeckSnapshot(source);
+  // Re-read the journal whenever the store changes: a save elsewhere in the
+  // game is the moment a mistake may have become a card.
   const journal = useMemo(() => mistakes ?? loadMistakes(), [mistakes, snapshot]);
 
   // First mount housekeeping, in this order: the dead draw-page store's
   // entries walk into the personal deck (once; the key is removed), and only
   // then does the starter seed decide whether this is really a first run.
-  // Migrated cards count as cards, so a student with real saves is never
-  // handed a starter deck on top of them. Both are one storage read after
-  // their first pass. See migrateSavedCards.ts and seed.ts.
   useEffect(() => {
     migrateLegacySavedCards(source, PERSONAL_DECK_ID);
     seedStarterDeck(source);
   }, [source]);
 
-  const immersive = face.kind === "review";
+  const immersive = run !== null;
   useEffect(() => {
     onImmersiveChange?.(immersive);
     return () => onImmersiveChange?.(false);
   }, [immersive, onImmersiveChange]);
 
-  const startReview = (cards: readonly Card[]): void => {
+  const startRun = (cards: readonly Card[]): void => {
     if (cards.length === 0) return;
     adoptMistakeDrafts(source, cards);
-    setFace({ kind: "review", cards });
+    setRun(cards);
   };
 
-  switch (face.kind) {
-    case "review":
-      return (
-        <ReviewSession
-          cards={face.cards}
-          source={source}
-          onExit={() => setFace({ kind: "landing" })}
-          onDone={() => setFace({ kind: "landing" })}
-        />
-      );
-
-    case "composer":
-      return <Composer source={source} onBack={() => setFace({ kind: "landing" })} />;
-
-    case "tray": {
-      const isMistakes = face.deckId === MISTAKES_DECK_ID;
-      const cards = isMistakes ? mistakeDeckCards(snapshot, journal) : cardsIn(snapshot, face.deckId);
-      const title = isMistakes
-        ? MISTAKES_DECK_TITLE
-        : snapshot.decks[face.deckId]?.title ?? face.deckId;
-      const trayKind = isMistakes
-        ? "mistakes"
-        : snapshot.decks[face.deckId]?.kind === "lesson"
-          ? "auto"
-          : "authored";
-      return (
-        <DeckTray
-          title={title}
-          kind={trayKind}
-          cards={cards}
-          snapshot={snapshot}
-          onBack={() => setFace({ kind: "landing" })}
-          onReview={startReview}
-          onOpenCard={(card) => startReview([card])}
-          onSetSuspended={(card, suspended) => {
-            // A journal draft has no stored state to hang the flag on, the
-            // same gap ratings have; adopting first gives the pause the same
-            // place to land, and the saved copy wins every later assembly.
-            adoptMistakeDrafts(source, [card]);
-            source.setSuspended(card.id, suspended);
-          }}
-        />
-      );
-    }
-
-    case "landing":
-      return (
-        <CardsLanding
-          source={source}
-          mistakes={journal}
-          onReview={startReview}
-          onOpenDeck={(deckId) => setFace({ kind: "tray", deckId })}
-          onCompose={() => setFace({ kind: "composer" })}
-        />
-      );
+  let body;
+  if (screen.kind === "composer") {
+    body = <ComposeScreen snapshot={snapshot} source={source} onBack={() => setScreen({ kind: "home" })} />;
+  } else if (screen.kind === "deck") {
+    const isMistakes = screen.deckId === MISTAKES_DECK_ID;
+    body = (
+      <DeckScreen
+        title={isMistakes ? MISTAKES_DECK_TITLE : (snapshot.decks[screen.deckId]?.title ?? screen.deckId)}
+        cards={isMistakes ? mistakeDeckCards(snapshot, journal) : cardsIn(snapshot, screen.deckId)}
+        snapshot={snapshot}
+        storedDeckId={isMistakes ? null : screen.deckId}
+        onBack={() => setScreen({ kind: "home" })}
+        onReview={startRun}
+        onSetSuspended={(card, suspended) => {
+          // A journal draft has no stored state to hang the flag on, the same
+          // gap grades have; adopting first gives the pause a place to land.
+          adoptMistakeDrafts(source, [card]);
+          source.setSuspended(card.id, suspended);
+        }}
+        onRemove={(card) => source.removeCard(card.id)}
+      />
+    );
+  } else {
+    body = (
+      <Home
+        snapshot={snapshot}
+        journal={journal}
+        source={source}
+        onStart={startRun}
+        onOpenDeck={(deckId) => setScreen({ kind: "deck", deckId })}
+        onCompose={() => setScreen({ kind: "composer" })}
+      />
+    );
   }
+
+  return (
+    <>
+      {body}
+      {run !== null && <Run cards={run} source={source} journal={journal} onExit={() => setRun(null)} />}
+    </>
+  );
 }

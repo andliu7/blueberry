@@ -135,50 +135,6 @@ export interface DeckTile {
   /** 0..1, the thin green bar. See mastery.ts for the ramp. */
   readonly mastery: number;
   readonly marker: TileMarker;
-  /** Which structure doodle the tile draws. Stable per deck id. */
-  readonly doodle: number;
-}
-
-/** How many sketches Doodles.tsx draws. Its DOODLE_VARIANTS must match. */
-export const DOODLE_COUNT = 8;
-
-/** A stable tiny hash, so a deck keeps its doodle across renders and visits. */
-export function doodleFor(deckId: DeckId): number {
-  let hash = 0;
-  for (let i = 0; i < deckId.length; i += 1) hash = (hash * 31 + deckId.charCodeAt(i)) | 0;
-  return Math.abs(hash) % DOODLE_COUNT;
-}
-
-/**
- * THE SKETCHES IN ONE RENDERED SET ARE ALL DIFFERENT, and this function is
- * the whole of that promise. `doodleFor` alone is a hash, and a hash
- * collides: the round 2 critic measured "EAS Reactions" and "My mistakes"
- * carrying the identical Br-branched sketch on the landing grid, and
- * "Grignard" and "Ozonolysis" carrying an identical one in the same fan.
- * Both committed images draw every visible structure distinct, so repeated
- * art where the reference is all-distinct makes the surface look templated,
- * which is exactly what the critic named.
- *
- * The rule is small and deterministic: walk the ids in the order they will be
- * drawn, keep each one's hashed sketch when it is still free, and otherwise
- * take the next free sketch cyclically from there. So a deck keeps its own
- * face wherever it can, the resolution depends only on the list and its
- * order (never on a clock, a random, or a render count), and a set larger
- * than DOODLE_COUNT wraps rather than throwing, because eight sketches
- * cannot colour nine tiles and pretending otherwise would be a crash on a
- * student's screen.
- */
-export function distinctDoodles(deckIds: readonly DeckId[]): readonly number[] {
-  const used = new Set<number>();
-  const out: number[] = [];
-  for (const id of deckIds) {
-    if (used.size >= DOODLE_COUNT) used.clear();
-    let pick = doodleFor(id);
-    while (used.has(pick)) pick = (pick + 1) % DOODLE_COUNT;
-    used.add(pick);
-    out.push(pick);
-  }
-  return out;
 }
 
 /**
@@ -203,7 +159,6 @@ export function myDeckTiles(
       count: deck.cardIds.length,
       mastery: deckMastery(snapshot, deck.id),
       marker: "none",
-      doodle: doodleFor(deck.id),
     });
   }
   tiles.sort((a, b) => a.title.localeCompare(b.title));
@@ -217,7 +172,6 @@ export function myDeckTiles(
     count: mistakeCards.length,
     mastery: mistakeCards.length === 0 ? 0 : sum / mistakeCards.length,
     marker: "mistakes",
-    doodle: doodleFor(MISTAKES_DECK_ID),
   });
   return tiles;
 }
@@ -233,7 +187,6 @@ export function lessonDeckTiles(snapshot: DeckSnapshot): readonly DeckTile[] {
       count: deck.cardIds.length,
       mastery: deckMastery(snapshot, deck.id),
       marker: "auto",
-      doodle: doodleFor(deck.id),
     });
   }
   tiles.sort((a, b) => a.title.localeCompare(b.title));
