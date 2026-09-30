@@ -351,6 +351,23 @@ export function missedMcqIdsFrom(results: readonly BeatResult[]): readonly strin
   return missed;
 }
 
+/**
+ * The beats the recycle pass replays: the missed ones, looked up on the node
+ * each MCQ STEP came from rather than on the lesson's own id.
+ *
+ * WHY, found walking Unit 1 on 2026-09-29. BeatRunner used to look the missed
+ * ids up with mcqBeatsForNode(lessonNode). That is the same thing for every
+ * ordinary lesson, whose MCQ step is its own node, and it is nothing at all
+ * for a unit checkpoint, whose MCQ step borrows another lesson's questions
+ * (checkpointPlan above): "u1-check" has no beats of its own. So one wrong
+ * answer in a checkpoint's quick questions dropped the student on "Nothing
+ * here yet" after the last step, with no way to finish the check.
+ */
+export function recycleBeatsFor(plan: LessonPlan, missedIds: readonly string[]) {
+  const sources = [...new Set(plan.steps.flatMap((step) => (step.beat.kind === "mcq" ? [step.beat.node] : [])))];
+  return sources.flatMap((source) => mcqBeatsForNode(source)).filter((beat) => missedIds.includes(beat.id));
+}
+
 /* ------------------------------------------------------------------ */
 /* The recipe strip's segments                                          */
 /* ------------------------------------------------------------------ */

@@ -37,8 +37,10 @@
  */
 
 import { describe, expect, it } from "vitest";
+import type { EconomyEvent } from "@blueberry/economy";
 import { PATHWAY_UNITS, checkpointNodeId, unitCheckpointNode, unitName } from "../demo/pathwayMap";
-import { planLesson } from "../beats/template";
+import { planLesson, recycleBeatsFor } from "../beats/template";
+import { mcqBeatsForNode } from "../beats/mcq";
 import { deriveMapPathway, statusOf } from "../tabs/pathway/pathwayState";
 import { LOOP_WIND, WIND_CYCLE, loopWind, trackWind } from "../tabs/pathway/pathwayLayout";
 import { RUN_GAP, RUN_MAX, nodePlaces, placeSaid, trunkOf, unitShape, weaveLoops } from "../tabs/pathway/unitShape";
@@ -356,6 +358,26 @@ describe("every unit's own checkpoint", () => {
    * time, and the check is a mix of the unit's lessons. The assertion now pins
    * the stricter state, and the block below pins every step of the sequence.
    */
+  /*
+   * A MISS IN THE CHECK'S QUICK QUESTIONS COMES BACK, and does not strand the
+   * student. Found in the browser: the recycle pass looked the missed ids up on
+   * the checkpoint's own id, which has no questions, and rendered "Nothing here
+   * yet" after the last step. Every missed id a checkpoint's MCQ step can
+   * produce must resolve to a beat through recycleBeatsFor.
+   */
+  it("brings every missed quick question back in the recycle pass, from the lesson it was borrowed from", () => {
+    let checked = 0;
+    for (const { node } of checks) {
+      const plan = planLesson(node.id);
+      if (plan === null) continue;
+      const ids = plan.steps.flatMap((step) => (step.beat.kind === "mcq" ? mcqBeatsForNode(step.beat.node).map((b) => b.id) : []));
+      if (ids.length === 0) continue;
+      checked += 1;
+      expect(recycleBeatsFor(plan, ids).map((b) => b.id).sort(), node.id).toEqual([...ids].sort());
+    }
+    expect(checked).toBeGreaterThan(0);
+  });
+
   it("stays shut on a fresh account, locks with its unit, and is counted in neither", () => {
     const status = deriveMapPathway(PATHWAY_UNITS, []);
     const first = checks[0]!;
@@ -389,7 +411,7 @@ describe("every unit's own checkpoint", () => {
       flawless: true,
       stepsInOneSitting: 1,
       spine: true,
-      difficulty: 3,
+      difficulty: 3 as const,
     });
     // Every lesson the check could borrow from is one of these, so all of them
     // cleared is the earliest point the mix is made only of cleared skills.
@@ -397,7 +419,7 @@ describe("every unit's own checkpoint", () => {
       const source = step.beat.kind === "mcq" ? step.beat.node : null;
       if (source !== null) expect(required.some((node) => node.id === source), source).toBe(true);
     }
-    const journal = [];
+    const journal: EconomyEvent[] = [];
     for (const node of required.slice(0, -1)) {
       journal.push(clear(node.id));
       expect(statusOf(deriveMapPathway(PATHWAY_UNITS, journal), checkId).state, node.id).toBe("locked");

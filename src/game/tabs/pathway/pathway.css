@@ -1506,11 +1506,15 @@
  * needed, and it is the 62 in the measured 148px seam. A cell whose name is one
  * line now costs one line.
  *
- * It keeps the plate, and that is not an inconsistency with the spine. A fork
- * cell's name sits UNDER its chip with the next row's chip below it, so it is
- * the one name on this surface that has an object on both sides of it; the plate
- * is what keeps it from reading as a caption belonging to the chip beneath.
- * Measured: --bb-foreground on --bb-card is 15.32:1 in light and 13.83:1 in dark.
+ * THE PLATE IS GONE HERE TOO, 2026-09-29. It was kept on the argument that a
+ * fork cell's name had the next row's chip right under it and needed a plate
+ * to belong to the chip above. With the concept moved up into the trunk and the
+ * checkpoint row below the arms, the name's nearest neighbour is its own chip
+ * (8px) and the next chip is a full seam plus the checkpoint row's own seam
+ * away, so proximity already says which chip it names. What the plate still
+ * cost was the g1 critic's "two boxes per node" on the two arms, the last two
+ * nodes on Unit 1 still carrying one. Naked text, centred, the spine's ink:
+ * --bb-foreground on --bb-background, 14.28:1 light and 15.81:1 dark.
  */
 .path-label--under {
   align-self: stretch;
@@ -1535,19 +1539,7 @@
    * change would otherwise bake in.
    */
   max-width: min(9.5rem, calc(50vw - 44px));
-  padding: 0.25rem 0.55rem;
-  border-radius: 12px;
-  background: var(--bb-card);
-  /* The plate cannot draw its own edge (1.05:1 on the page in light, 1.18:1 in
-     dark), so the shadow is its boundary, which is what the pixel verdict asked
-     for by name: "warm cream, fully rounded, NO BORDER STROKE, soft shadow". */
-  box-shadow: 0 1px 2px rgb(52 41 18 / 0.18), 0 4px 10px rgb(52 41 18 / 0.2);
   text-align: center;
-}
-/* At night a warm shadow disappears into a dark page, so the plate's edge is
-   drawn in black instead. Measured the same way; see the light rule. */
-.dark .path-label--under {
-  box-shadow: 0 1px 2px rgb(0 0 0 / 0.5), 0 4px 10px rgb(0 0 0 / 0.45);
 }
 /* The guidebook link on the generic track's signpost: a 44px round press,
    the touch floor, sitting at the rule's right end rather than inside the

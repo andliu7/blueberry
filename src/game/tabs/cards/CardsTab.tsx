@@ -10,18 +10,15 @@
  * works: routes.ts maps it onto this tab, because that link is in students'
  * history and in the Charge sheet's copy.
  *
- * WHAT THIS FILE MOUNTS: CardsHome, the design-goals surface, which owns all
- * four faces and the transitions between them: the landing that OPENS on the
- * review decision (Due-today hero, My-decks grid, From-your-lessons row, per
- * blueberry_cards-landing in docs/reference/design-goals), the three-sided
- * composer, the fanned deck tray, and the review session. The earlier hub
- * (MyDeck) and its CSV import surface remain exported from cards/ui for the
- * import flow and its tests, but the TAB is the committed landing now, and
- * this file shrank to a mount point on purpose: every decision it used to
- * make lives behind CardsHome's own seams, where the cards tests reach it
- * without a shell.
+ * WHAT THIS FILE MOUNTS: CardsHome, which owns every Cards screen and the
+ * moves between them: the home (today's number, the week's forecast, the
+ * shelf of decks with their mastery strips, import), a deck, the composer,
+ * and the review run, a full-screen overlay (rebuilt 29 Sep; see
+ * cards/ui/CardsHome.tsx). This file stays a mount point on purpose: every
+ * decision lives behind CardsHome's own seams, where the cards tests reach
+ * it without a shell.
  *
- * THE BAR HIDES DURING A SESSION, deliberately. mobile-ui: "The bar is
+ * THE BAR HIDES DURING A RUN, deliberately. mobile-ui: "The bar is
  * contextual: entering an editor may replace or hide it entirely", and a
  * review session is exactly that, a full screen task with one job and its
  * own way out. The wiring is LIFTING STATE UP: the bar lives in the shell,

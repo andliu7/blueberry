@@ -65,7 +65,6 @@ import type { CardOffer } from "../cards/Recommendation";
 import { decks, PERSONAL_DECK_ID } from "../cards/store";
 import { CORRECT_CAUSE } from "./mcq/grade";
 import { questionForBeat } from "../tabs/trainer/engine/question";
-import { mcqBeatsForNode } from "./mcq";
 import { MATCH_BOARDS } from "./match";
 import { sortContentById } from "./sort";
 import { synthesisGapsForNode } from "./synthesis";
@@ -80,6 +79,7 @@ import {
   missedMcqIdsFrom,
   planLesson,
   recipeSegments,
+  recycleBeatsFor,
   reportRecycle,
   reportStep,
   startRun,
@@ -410,7 +410,7 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false }: B
           <McqRunner
             node={node}
             level={level}
-            beats={mcqBeatsForNode(node).filter((beat) => run.missedMcqIds.includes(beat.id))}
+            beats={recycleBeatsFor(run.plan, run.missedMcqIds)}
             onExit={onExit}
             reducedMotion={reducedMotion}
             progressSlot={strip}

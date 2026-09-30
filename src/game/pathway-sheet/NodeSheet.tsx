@@ -290,13 +290,16 @@ export function NodeSheet({ node, onClose, onStart, onChallenge, onGuidebook, re
 
                 The reason the card is not pressable is on its accessible
                 name, in full, where it costs the composition no ink. */}
-            {/* THE REASON IS DRAWN NOW, 2026-09-29. Owner: "the challenge
+            {/* AN OPEN QUESTION, NOT A FIX, 2026-09-29. Owner: "the challenge
                 doesnt work". On every node a student has not cleared, which on
-                a fresh account is all of them, the card was a heading and a
-                glyph that did nothing when pressed, and the only place that
-                said why was the accessible name. A control that declines has
-                to say so where the finger is, so the note is a line on the
-                card; the reference's 100 px is traded for it knowingly.
+                a fresh account is all of them, the resting card is a heading
+                and a glyph that does nothing when pressed, and the only place
+                that says why is the accessible name. Drawing the note on the
+                card was built and taken back out, because
+                pathwaySheetContract.test.ts pins the opposite ("the resting
+                card draws no explanatory line", 100 css px as the reference
+                draws it), and a committed check is not edited to make a
+                change pass. The owner decides which of the two wins.
 
                 THE REFUND CLAIM IS GONE. The label used to promise "your
                 charge back if you pass", and PathwayTab priced the door as a
@@ -331,9 +334,6 @@ export function NodeSheet({ node, onClose, onStart, onChallenge, onGuidebook, re
                 </div>
                 <span className="ns-marks" aria-hidden>
                   <DoubleDaggerGlyph />
-                  {/* aria-hidden with its row: the section's name already
-                      carries the note, and saying it twice is noise. */}
-                  <span className="ns-note text-scale-sm">{model.challenge.note}</span>
                 </span>
               </section>
             )}

@@ -102,8 +102,9 @@ export interface CardReadout {
    * Why the card is not pressable, in the coach's voice, or an empty string
    * when it is. Never scolds and never asks a question; the tests hold that.
    *
-   * Practice draws this note as a line where START would be, and Challenge
-   * draws it beside its double dagger. See the note in nodeSheetModel below.
+   * Practice draws this note as a line where START would be. Challenge does
+   * NOT: it rides the card's accessible name. See the note in nodeSheetModel
+   * below and the open question in NodeSheet.tsx.
    */
   readonly note: string;
 }
@@ -184,12 +185,10 @@ export function nodeSheetModel(node: SheetNode): NodeSheetModel {
   // Not a lock the server needs to know about: it re-reads the same derived
   // state, so a cleared node journalled by the server enables it everywhere.
   //
-  // THIS NOTE IS DRAWN ON THE CARD NOW, beside the double dagger, as well as
-  // riding the card's accessible name. It used to be heard only, to keep the
-  // resting card at the reference's 100 css px, and the owner's verdict on the
-  // result was "the challenge doesnt work": a card that declines a press with
-  // no visible reason reads as broken. So it is short enough for the half-width
-  // card's one line.
+  // THIS NOTE RIDES THE CARD'S ACCESSIBLE NAME AND IS NOT DRAWN, which
+  // pathwaySheetContract.test.ts pins so the resting card stays at the
+  // reference's 100 css px. The owner's "the challenge doesnt work" argues for
+  // drawing it; see the open question recorded in NodeSheet.tsx.
   const challengeEnabled = practiceEnabled && cleared;
   const challengeNote = challengeEnabled
     ? ""
