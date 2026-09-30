@@ -87,6 +87,53 @@ describe.each(THEMES)("the $name theme", ({ name, cards, theme }) => {
   it("Good and the start button, green as a fill under dark ink, clear 4.5", () => {
     expect(ratio(token(theme, "--progress-ink"), token(theme, "--progress"))).toBeGreaterThanOrEqual(4.5);
   });
+
+  /* THE HOME, added round 2: the dark "6 due" pill measured 2.33:1 at 12px
+     and this file never looked at it. A token is resolved the way the browser
+     does: this theme's block first, then the light one, then theme.css, and a
+     var() is followed to the hex it names. */
+  const themeLight = THEMES[0].theme;
+  const resolve = (tokenName: string): string => {
+    for (const source of [cards, light, theme, themeLight]) {
+      const match = source.match(new RegExp(`${tokenName}:\\s*([^;]+);`));
+      if (match?.[1] === undefined) continue;
+      const value = match[1].trim();
+      const ref = value.match(/^var\((--[\w-]+)\)$/);
+      return ref?.[1] === undefined ? value : resolve(ref[1]);
+    }
+    throw new Error(`${tokenName} is not declared`);
+  };
+  const declared = (selector: string, property: string): string => {
+    const rule = block(CARDS, selector, property);
+    const match = rule.match(new RegExp(`(^|[;\\s])${property}:\\s*var\\((--[\\w-]+)\\)`));
+    if (match?.[2] === undefined) throw new Error(`${selector} ${property} is not a var()`);
+    return resolve(match[2]);
+  };
+
+  it("the deck's due pill reads at 4.5 or better", () => {
+    expect(ratio(declared(".due-pill", "color"), declared(".due-pill", "background"))).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it("the home's muted words read at 4.5 on the card and on the page", () => {
+    const muted = token(theme, "--bb-muted-foreground");
+    expect(ratio(muted, card)).toBeGreaterThanOrEqual(4.5);
+    expect(ratio(muted, token(theme, "--bb-background"))).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it("every forecast bar is visible on the card, by its fill or by its edge", () => {
+    for (const [fill, edge] of [
+      ["--chip-face", "--chip-edge"],
+      ["--progress", "--progress-edge"],
+    ] as const) {
+      const best = Math.max(ratio(resolve(fill), card), ratio(resolve(edge), card));
+      expect(best, `${name} ${fill}`).toBeGreaterThanOrEqual(3);
+    }
+  });
+
+  it("the after-pick badges read at 4.5 or better", () => {
+    expect(ratio(declared(".predict__badge--right", "color"), declared(".predict__badge--right", "background"))).toBeGreaterThanOrEqual(4.5);
+    expect(ratio(declared(".predict__badge--picked", "color"), declared(".predict__badge--picked", "background"))).toBeGreaterThanOrEqual(4.5);
+  });
 });
 
 it("never paints Again or a wrong call in the error ramp", () => {

@@ -3,10 +3,10 @@
  * swipe. Written with the 29 Sep rebuild; these are the run's promises.
  *
  * THE PINS THAT MATTER MOST:
- *   - Every option offered as a prediction is a real registry product, the
- *     answer is among them exactly once, and no wrong option is the same
- *     compound as the answer. A distractor that is secretly correct would
- *     teach the opposite of the truth.
+ *   - The answer is among the options exactly once, and no wrong option can
+ *     be told from it by counting atoms: each has the answer's elements and
+ *     carbon count (round 2; the options are derived with RDKit by
+ *     scripts/build_card_distractors.py).
  *   - Nothing about the answer reaches the front's markup: before the call,
  *     no option carries its product's name.
  *   - Every grade button carries the scheduler's own interval for that grade.
@@ -16,6 +16,8 @@
  * clicks and swipes are pure functions (runStats.ts) and are tested as such.
  */
 
+import { existsSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it } from "vitest";
@@ -27,11 +29,15 @@ import type { Card } from "../cards/types";
 import { RATING_LABELS, RATINGS } from "../cards/types";
 import { cardFromDraft } from "../cards/ui/composer";
 import { intervalLabel } from "../cards/ui/intervalLabel";
+import { PREDICT_DISTRACTORS, PREDICT_GAPS } from "../cards/predictDistractors.generated";
 import { predictionChoices, PREDICT_OPTIONS } from "../cards/ui/predict";
 import { GradeDock, Run } from "../cards/ui/Run";
+import { formulaParts, normaliseFormula } from "../cards/ui/formulaText";
+import { sessionSummary, startSession, rateCurrent } from "../cards/ui/session";
 import {
   calledLine,
   ratingForKey,
+  runHeadline,
   runStats,
   suggestedRating,
   SWIPE_MIN_PX,
@@ -72,43 +78,87 @@ function registryCard(id: string): Card {
   return reactionCardFromStaged(reaction!, NOON);
 }
 
+/** The elements a formula names, "C7H5ClO" -> C, H, Cl, O. Charge signs ignored. */
+function elements(formula: string): Set<string> {
+  return new Set(formula.match(/[A-Z][a-z]?/g) ?? []);
+}
+
+function carbons(formula: string): number {
+  const match = formula.match(/C(\d*)(?![a-z])/);
+  if (match === null) return 0;
+  return match[1] === undefined || match[1] === "" ? 1 : Number(match[1]);
+}
+
+const PREDICTED = REACTIONS.filter((reaction) => !PREDICT_GAPS.includes(reaction.id));
+
 describe("calling the product", () => {
-  it("offers every registry card three drawn options, the answer exactly once", () => {
-    for (const reaction of REACTIONS) {
-      const card = reactionCardFromStaged(reaction, NOON);
-      const options = predictionChoices(card, REACTIONS);
+  it("offers every reaction outside the named gaps three drawn options, the answer exactly once", () => {
+    expect(PREDICTED.length).toBeGreaterThanOrEqual(REACTIONS.length - PREDICT_GAPS.length);
+    for (const reaction of PREDICTED) {
+      const options = predictionChoices(reactionCardFromStaged(reaction, NOON), REACTIONS);
       expect(options, reaction.id).not.toBeNull();
       if (options === null) continue;
       expect(options).toHaveLength(PREDICT_OPTIONS);
-      expect(options.filter((option) => option.correct).map((option) => option.reactionId)).toEqual([reaction.id]);
+      expect(options.filter((option) => option.correct).map((option) => option.key)).toEqual([reaction.id]);
     }
   });
 
-  it("never offers a wrong option that is the same compound as the answer", () => {
-    for (const reaction of REACTIONS) {
+  /* THE ATOM-COUNTING PIN, round 2. A critic picked the answer on four of six
+     starter cards by finding the only option with the element the reagent
+     brought (the only N after methylamine, the only Br after HBr). This fails
+     whenever that is possible again, on any reaction. */
+  it("never makes the answer the only option carrying an element the reagent brings", () => {
+    for (const reaction of PREDICTED) {
       const options = predictionChoices(reactionCardFromStaged(reaction, NOON), REACTIONS) ?? [];
-      const products = options.map((option) => REACTIONS.find((entry) => entry.id === option.reactionId)?.product);
-      expect(new Set(products).size, reaction.id).toBe(products.length);
-    }
-  });
-
-  it("draws every option from the registry's own RDKit art, never anything else", () => {
-    for (const reaction of REACTIONS) {
-      for (const option of predictionChoices(reactionCardFromStaged(reaction, NOON), REACTIONS) ?? []) {
-        const source = REACTIONS.find((entry) => entry.id === option.reactionId);
-        expect(source).toBeDefined();
-        expect(option.light).toBe(source?.art.product_light);
-        expect(option.dark).toBe(source?.art.product_dark);
-        expect(option.label).toBe(source?.product_label);
+      const fromStart = new Set(reaction.reactant_formulas.flatMap((formula) => [...elements(formula)]));
+      const brought = [...elements(reaction.product_formula)].filter((element) => !fromStart.has(element));
+      for (const element of brought) {
+        const carriers = options.filter((option) => elements(option.formula).has(element));
+        expect(carriers.length, `${reaction.id}: ${element}`).toBeGreaterThan(1);
       }
     }
   });
 
-  it("prefers siblings: reactions that start from the same material", () => {
-    const options = predictionChoices(registryCard("nabh4-reduction"), REACTIONS) ?? [];
-    const start = REACTIONS.find((entry) => entry.id === "nabh4-reduction")?.reactants[0];
-    for (const option of options) {
-      expect(REACTIONS.find((entry) => entry.id === option.reactionId)?.reactants[0]).toBe(start);
+  it("gives every wrong option exactly the answer's elements and carbon count", () => {
+    for (const reaction of PREDICTED) {
+      const answer = elements(reaction.product_formula);
+      for (const option of predictionChoices(reactionCardFromStaged(reaction, NOON), REACTIONS) ?? []) {
+        if (option.correct) continue;
+        expect([...elements(option.formula)].sort(), `${reaction.id} ${option.label}`).toEqual([...answer].sort());
+        expect(carbons(option.formula), `${reaction.id} ${option.label}`).toBe(carbons(reaction.product_formula));
+      }
+    }
+  });
+
+  it("offers two different wrong structures, neither of them the answer", () => {
+    for (const reaction of PREDICTED) {
+      const wrong = PREDICT_DISTRACTORS[reaction.id] ?? [];
+      expect(new Set(wrong.map((d) => d.smiles)).size, reaction.id).toBe(wrong.length);
+      for (const distractor of wrong) expect(distractor.smiles, reaction.id).not.toBe(reaction.product);
+    }
+  });
+
+  it("ships every drawing it points at, in both themes", () => {
+    for (const reaction of PREDICTED) {
+      for (const option of predictionChoices(reactionCardFromStaged(reaction, NOON), REACTIONS) ?? []) {
+        for (const path of [option.light, option.dark]) {
+          expect(path, `${reaction.id} ${option.label}`).toBeDefined();
+          expect(existsSync(fileURLToPath(new URL(`../../../public/${path}`, import.meta.url))), path).toBe(true);
+        }
+      }
+    }
+  });
+
+  it("puts the 1,2 product beside the 1,4 answer on the diene card, derived rather than typed", () => {
+    const kinds = (PREDICT_DISTRACTORS["diene-1-4-addition"] ?? []).map((d) => d.kind);
+    expect(kinds).toContain("allylic");
+  });
+
+  it("gives a named gap no predict step rather than a weak one", () => {
+    for (const id of PREDICT_GAPS) {
+      const reaction = REACTIONS.find((entry) => entry.id === id);
+      expect(reaction, id).toBeDefined();
+      expect(predictionChoices(reactionCardFromStaged(reaction!, NOON), REACTIONS)).toBeNull();
     }
   });
 
@@ -116,7 +166,7 @@ describe("calling the product", () => {
     const card = registryCard("wolff-kishner");
     expect(predictionChoices(card, REACTIONS)).toEqual(predictionChoices(card, REACTIONS));
     const positions = new Set(
-      REACTIONS.map((reaction) =>
+      PREDICTED.map((reaction) =>
         (predictionChoices(reactionCardFromStaged(reaction, NOON), REACTIONS) ?? []).findIndex((option) => option.correct),
       ),
     );
@@ -130,16 +180,18 @@ describe("calling the product", () => {
 });
 
 describe("the run's first frame", () => {
-  it("asks for the call and names no product before it is made", () => {
+  it("asks for the call, names no option, and gives the card no flip of its own", () => {
     const card = registryCard("gilman-to-ketone");
     const source = createLocalDecks({ now: () => NOON });
     const html = renderToStaticMarkup(createElement(Run, { cards: [card], source, journal: [], onExit: () => undefined }));
     expect(html).toContain("Call the product");
-    expect(html).toContain("Just flip it");
+    expect(html).toContain("I don&#x27;t know yet");
     for (const option of predictionChoices(card, REACTIONS) ?? []) {
       expect(html.includes(option.label), option.label).toBe(false);
     }
-    // The run is the whole screen: its own exit, and a counter for the promise.
+    // The pick is the only way to the back: no reveal button, no flip button.
+    expect(html).not.toContain('aria-label="Reveal the answer"');
+    expect(html).not.toContain("Just flip");
     expect(html).toContain('aria-label="End review"');
     expect(html).toContain("1 of 1");
   });
@@ -150,6 +202,7 @@ describe("the run's first frame", () => {
       createElement(Run, { cards: [own], source: createLocalDecks({ now: () => NOON }), journal: [], onExit: () => undefined }),
     );
     expect(html).toContain("Show the answer");
+    expect(html).toContain('aria-label="Reveal the answer"');
     expect(html.includes("Call the product")).toBe(false);
   });
 });
@@ -223,5 +276,66 @@ describe("streaks, calls and swipes", () => {
   it("maps keys 1 to 4 onto the grades in button order, and nothing else", () => {
     expect(["1", "2", "3", "4"].map(ratingForKey)).toEqual([...RATINGS]);
     for (const key of ["0", "5", "12", "a", " ", "Enter"]) expect(ratingForKey(key), key).toBeNull();
+  });
+});
+
+describe("the summary hears the calls", () => {
+  function finished(ratings: readonly (typeof RATINGS)[number][]) {
+    let state = startSession(ratings.map((_, index) => ({
+      id: `c${index}`, front: "f", back: "b", why: "", tags: [], source: { kind: "composed" as const, at: "" },
+    })));
+    for (const rating of ratings) state = rateCurrent(state, rating)?.state ?? state;
+    return state;
+  }
+
+  it("never calls a run with a wrong call straight through, even graded Good", () => {
+    const state = finished(["good", "good"]);
+    const stats = runStats(state.ratings, [{ cardId: "c0", correct: false }, { cardId: "c1", correct: true }]);
+    expect(runHeadline(sessionSummary(state), stats)).toBe("One call to learn from");
+    expect(runHeadline(sessionSummary(state), stats)).not.toMatch(/straight through/i);
+  });
+
+  it("says so when every call was right, and falls back to the grades with no calls", () => {
+    const state = finished(["good", "easy"]);
+    expect(runHeadline(sessionSummary(state), runStats(state.ratings, [{ cardId: "c0", correct: true }]))).toBe(
+      "Every call right, straight through",
+    );
+    expect(runHeadline(sessionSummary(state), runStats(state.ratings, []))).toBe("Straight through, no repeats");
+  });
+});
+
+describe("reagents set as formulas, never as SMILES", () => {
+  const set = (text: string) => formulaParts(normaliseFormula(text));
+
+  it("subscripts counts and superscripts charges", () => {
+    expect(set("(CH3)2CuLi")).toEqual([
+      { text: "(CH", kind: "plain" },
+      { text: "3", kind: "sub" },
+      { text: ")", kind: "plain" },
+      { text: "2", kind: "sub" },
+      { text: "CuLi", kind: "plain" },
+    ]);
+    expect(set("H3O+").map((part) => part.kind)).toEqual(["plain", "sub", "plain", "sup"]);
+  });
+
+  it("writes a triple bond as a triple bond and a minus as a minus", () => {
+    expect(normaliseFormula("CH3C#C-")).toBe("CH3C≡C−");
+    expect(normaliseFormula("OH-")).toBe("OH−");
+  });
+
+  it("leaves names and prose alone", () => {
+    for (const text of ["buta-1,3-diene", "2-phenylpropan-2-ol", "pH 4 to 5", "N-methyl imine", "cyclopentene + NBS"]) {
+      expect(normaliseFormula(text)).toBe(text);
+      expect(set(text).every((part) => part.kind === "plain"), text).toBe(true);
+    }
+  });
+
+  it("puts no SMILES syntax on any registry card's reagent line", () => {
+    for (const reaction of REACTIONS) {
+      const card = reactionCardFromStaged(reaction, NOON);
+      for (const step of card.reaction?.reagentSteps ?? []) {
+        expect(normaliseFormula(step.label), `${reaction.id}: ${step.label}`).not.toMatch(/[#[\]@\\]/);
+      }
+    }
   });
 });

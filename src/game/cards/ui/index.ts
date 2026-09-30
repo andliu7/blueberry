@@ -37,6 +37,8 @@ export * from "./cardState";
 export * from "./deckView";
 export * from "./forecast";
 export * from "./predict";
+export * from "./formulaText";
+export { FormulaLabel } from "./FormulaLabel";
 export * from "./runStats";
 export * from "./exportDeck";
 export * from "./importCsv";

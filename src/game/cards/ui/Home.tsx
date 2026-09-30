@@ -171,7 +171,7 @@ function DeckRow({
           <span className="flex items-baseline justify-between gap-2">
             <span className="text-scale-base font-bold leading-snug">{title}</span>
             {due > 0 && (
-              <span className="shrink-0 rounded-full bg-[color:var(--cell-due-fill)] px-2 text-scale-xs font-bold text-[color:var(--chip-ink)] ring-2 ring-[color:var(--cell-due-edge)]">
+              <span className="due-pill">
                 {due} due
               </span>
             )}

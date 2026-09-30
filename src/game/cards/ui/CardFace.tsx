@@ -32,6 +32,7 @@ import type { Card, ReactionCardData, ReagentStep } from "../types";
 import { presentReveal, type ReactionRevealField } from "../types";
 import { CARD_STATE_LABELS, type CardSchedulerState } from "./cardState";
 import { structureOnCard } from "./cardStructure";
+import { FormulaLabel } from "./FormulaLabel";
 import "./cards.css";
 
 export interface CardFaceProps {
@@ -40,6 +41,13 @@ export interface CardFaceProps {
   readonly onReveal: () => void;
   /** Where the card sits in the scheduler. Optional: a preview has no state. */
   readonly schedulerState?: CardSchedulerState;
+  /**
+   * When set, the front is NOT a reveal button and shows this line instead
+   * of "Tap to reveal the answer". The run passes it on a card with a predict
+   * step, because a tap on the biggest thing on screen used to flip the card
+   * and skip the pick the whole step exists for (round 2 critic).
+   */
+  readonly frontPrompt?: string;
 }
 
 /** The small label top left. Says where this card came from. */
@@ -73,7 +81,7 @@ function schemeOf(card: Card): ReactionCardData | null {
 
 const EYEBROW = "font-mono text-scale-xs font-semibold uppercase tracking-[.14em] text-bb-muted-foreground";
 
-export function CardFace({ card, revealed, onReveal, schedulerState }: CardFaceProps) {
+export function CardFace({ card, revealed, onReveal, schedulerState, frontPrompt }: CardFaceProps) {
   const scheme = schemeOf(card);
   const tags = card.tags.filter((tag) => !tag.includes(":") && tag !== "composed").slice(0, 3);
 
@@ -109,12 +117,14 @@ export function CardFace({ card, revealed, onReveal, schedulerState }: CardFaceP
       {revealed ? (
         <Back card={card} scheme={scheme} />
       ) : (
-        <p className="mt-auto text-right text-scale-sm text-bb-muted-foreground">Tap to reveal the answer</p>
+        <p className="mt-auto text-right text-scale-sm text-bb-muted-foreground">
+          {frontPrompt ?? "Tap to reveal the answer"}
+        </p>
       )}
     </>
   );
 
-  if (revealed) return <div className="card-paper">{body}</div>;
+  if (revealed || frontPrompt !== undefined) return <div className="card-paper">{body}</div>;
   return (
     <button
       type="button"
@@ -205,14 +215,18 @@ function RevealPanel({ reveal, name }: { readonly reveal: ReactionCardData["reve
             <dd className="rxn-reveal__chips">
               {chips.map((entry) =>
                 /* "basic, then acidic" is reactionCard.ts's join across stages;
-                   each stage's reading becomes its own chip, in order. */
-                entry.value.split(", then ").map((value, index) => (
+                   each stage's reading becomes its own chip, in order, and
+                   carries its step number when there is more than one, so
+                   "basic" and "acidic" side by side read as a sequence and
+                   not as a contradiction (round 2 critic). */
+                entry.value.split(", then ").map((value, index, all) => (
                   <span
                     key={`${entry.field}-${index}`}
                     className={`rxn-chip font-mono text-scale-xs ${
                       entry.field === "acidBase" ? (ACID_BASE_TONE[value.trim()] ?? "") : ""
                     }`}
                   >
+                    {all.length > 1 && <span className="rxn-step">{index + 1}</span>}
                     {value.trim()}
                   </span>
                 )),
@@ -245,8 +259,16 @@ export function ReactionScheme({
           <span className="rxn-chip rxn-chip--strong font-mono text-scale-xs font-semibold">{reaction.temperature}</span>
         </p>
       )}
+      {/* THE REAGENTS HAVE THEIR OWN BAND over the arrow, and the start and
+          the product share one row under it. Round 1 stacked all three down
+          a phone, so a flipped card scrolled its own start off the top; a
+          textbook writes reagents above the arrow, which is this shape. */}
       <div className="rxn-panel">
-        <figure className="rxn-side">
+        <div className="rxn-reagent-band">
+          <Reagents steps={reaction.reagentSteps} line={reaction.reagents} />
+        </div>
+
+        <figure className="rxn-side rxn-side--start">
           <Drawing light={art?.startLight} dark={art?.startDark} alt={`Structure of ${reaction.reactants}`} />
           <figcaption className="rxn-side__caption text-scale-sm font-semibold">
             {reaction.reactants}
@@ -255,7 +277,6 @@ export function ReactionScheme({
         </figure>
 
         <div className="rxn-arrow-cell">
-          <Reagents steps={reaction.reagentSteps} line={reaction.reagents} />
           <svg viewBox="0 0 72 12" className="rxn-arrow shrink-0" aria-hidden="true">
             <path
               d="M2 6 H64 M58 2 L66 6 L58 10"
@@ -269,7 +290,7 @@ export function ReactionScheme({
         </div>
 
         {revealed ? (
-          <figure className="rxn-side rxn-side--shown">
+          <figure className="rxn-side rxn-side--product rxn-side--shown">
             <Drawing light={art?.productLight} dark={art?.productDark} alt={`Structure of ${reaction.products}`} />
             <figcaption className="rxn-side__caption text-scale-sm font-semibold">
               {reaction.products}
@@ -277,7 +298,7 @@ export function ReactionScheme({
             </figcaption>
           </figure>
         ) : (
-          <figure className="rxn-side rxn-side--hidden">
+          <figure className="rxn-side rxn-side--product rxn-side--hidden">
             {/* Blurred past reading and hidden from assistive tech; the file
                 is named by reaction id, so nothing about the product leaks. */}
             <div className="rxn-side__veil" aria-hidden="true">
@@ -299,23 +320,40 @@ export function ReactionScheme({
  * (PCC, DIBALH, the organometallics) shows its name alone, and a student's
  * own card shows their words as written.
  */
+/**
+ * Heavy atoms in an RDKit formula ("CH5N" is 2, "H3O+" is 1, "HBr" is 1).
+ * A species with ONE heavy atom has no skeleton: RDKit's "drawing" of H3O+ or
+ * HBr is the same letters as its name, set at 6px in a 168px canvas, which is
+ * what the round 2 critic could not read. Those show the formatted name alone;
+ * everything with a bond to draw keeps its drawing, per the owner's rule.
+ */
+function heavyAtoms(formula: string): number {
+  let count = 0;
+  for (const [, symbol, digits] of formula.matchAll(/([A-Z][a-z]?)(\d*)/g)) {
+    if (symbol !== "H") count += digits === undefined || digits === "" ? 1 : Number(digits);
+  }
+  return count;
+}
+
 function Reagents({ steps, line }: { readonly steps?: readonly ReagentStep[]; readonly line: string }) {
   if (steps === undefined || steps.length === 0) {
     if (line.trim().length === 0) return null;
-    return <p className="rxn-reagents font-mono text-scale-xs font-semibold">{line}</p>;
+    return <FormulaLabel text={line} className="rxn-reagents text-scale-sm font-semibold" />;
   }
+  // Numbered only when there is a sequence: "1 then 2" is the order the
+  // flask sees them, and an unnumbered pair reads as one mixture.
+  const numbered = steps.length > 1;
   return (
     <ol className="rxn-reagent-row">
-      {steps.map((step) => (
+      {steps.map((step, index) => (
         <li key={step.label} className="rxn-reagent">
-          {step.art === undefined ? (
-            <span className="rxn-reagents font-mono text-scale-xs font-semibold">{step.label}</span>
-          ) : (
-            <>
-              <Drawing light={step.art.light} dark={step.art.dark} alt="" small />
-              <span className="rxn-reagent__label font-mono text-scale-xs text-bb-muted-foreground">{step.label}</span>
-            </>
+          {step.art !== undefined && heavyAtoms(step.art.formula) > 1 && (
+            <Drawing light={step.art.light} dark={step.art.dark} alt="" small />
           )}
+          <span className="rxn-reagent__label text-scale-sm font-semibold">
+            {numbered && <span className="rxn-step">{index + 1}</span>}
+            <FormulaLabel text={step.label} />
+          </span>
         </li>
       ))}
     </ol>

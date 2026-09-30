@@ -19,7 +19,7 @@
 
 import type { CardId, Rating } from "../types";
 import { RATINGS } from "../types";
-import type { RatingRecord } from "./session";
+import { summaryHeadline, type RatingRecord, type SessionSummary } from "./session";
 
 export interface PredictionRecord {
   readonly cardId: CardId;
@@ -72,6 +72,22 @@ export function suggestedRating(correct: boolean | null): Rating | null {
 export function calledLine(stats: RunStats): string | null {
   if (stats.predicted === 0) return null;
   return `Called it ${stats.called} of ${stats.predicted}`;
+}
+
+/**
+ * The summary's headline, which now hears the calls. Round 1 headlined a run
+ * with a wrong call graded Good as "Straight through, no repeats", because the
+ * headline only read the grades; the prediction fed a small tile and nothing
+ * else. A missed call (a wrong pick, or "I don't know") now leads, since it is
+ * the most specific thing the run learned. A run with no misses falls back to
+ * session.ts's grade-based sentence, unchanged.
+ */
+export function runHeadline(summary: SessionSummary, stats: RunStats): string {
+  const missed = stats.predicted - stats.called;
+  if (missed === 1) return "One call to learn from";
+  if (missed > 1) return `${missed} calls to learn from`;
+  if (stats.predicted > 0 && summary.cameBack === 0 && summary.reviewed > 0) return "Every call right, straight through";
+  return summaryHeadline(summary);
 }
 
 /**

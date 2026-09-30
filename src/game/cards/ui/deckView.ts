@@ -30,6 +30,7 @@ import { DAY_MS, endOfLocalDay } from "../scheduler";
 import type { Card, DeckSnapshot, ReviewState } from "../types";
 import { isDue, isSuspended } from "../types";
 import { cardSchedulerState, type CardSchedulerState } from "./cardState";
+import { normaliseFormula } from "./formulaText";
 import { intervalLabel } from "./intervalLabel";
 
 /** Strip order for the legend and the count chips: the path a card walks. */
@@ -86,7 +87,9 @@ export function deckDueCards(snapshot: DeckSnapshot, cards: readonly Card[], now
  */
 export function cardTitle(card: Card): string {
   if (card.reaction !== undefined) {
-    const reagents = card.reaction.reagents.trim();
+    // Normalised so no SMILES syntax ("#") reaches a row; the row renders it
+    // through FormulaLabel for the subscripts.
+    const reagents = normaliseFormula(card.reaction.reagents.trim());
     return reagents.length > 0 ? `${card.reaction.reactants} with ${reagents}` : card.reaction.reactants;
   }
   if (card.sides !== undefined) return card.sides.setup;

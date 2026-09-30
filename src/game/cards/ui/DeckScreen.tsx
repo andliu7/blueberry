@@ -21,6 +21,7 @@ import { CardFace } from "./CardFace";
 import { CARD_STATE_LABELS, cardSchedulerState } from "./cardState";
 import { cardTitle, deckCells, deckDueCards, dueLabel, stateCounts, STATE_ORDER } from "./deckView";
 import { deckExport, downloadFile, safeFilename, toCsv, toJson } from "./exportDeck";
+import { FormulaLabel } from "./FormulaLabel";
 import { Strip } from "./Home";
 import "./cards.css";
 
@@ -129,7 +130,7 @@ export function DeckScreen({
               <button type="button" className="card-paper card-paper--row press" onClick={() => setOpenId(card.id)}>
                 <span className={`strip__cell cell--${state} shrink-0`} aria-hidden="true" />
                 <span className="flex min-w-0 flex-1 flex-col">
-                  <span className="text-scale-sm font-semibold leading-snug">{cardTitle(card)}</span>
+                  <span className="text-scale-sm font-semibold leading-snug"><FormulaLabel text={cardTitle(card)} /></span>
                   <span className="text-scale-xs text-bb-muted-foreground">
                     {CARD_STATE_LABELS[state]}. {dueLabel(snapshot.review[card.id], now)}
                   </span>

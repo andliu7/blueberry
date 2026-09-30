@@ -234,15 +234,36 @@
   margin: 0;
 }
 
+/* TWO ROWS AT EVERY WIDTH: the reagents in a band over the arrow, then the
+   start, the arrow and the product side by side. The old three-way stack
+   below 26rem put the start, the reagent and the product down a phone, so a
+   flipped card scrolled its own start off the top (round 2 critic). */
 .rxn-panel {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  grid-template-areas:
+    "band band band"
+    "start arrow product";
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
   width: 100%;
   padding: 0.75rem;
   border-radius: 1rem;
   background: var(--bb-muted);
+}
+
+.rxn-reagent-band {
+  grid-area: band;
+  display: flex;
+  justify-content: center;
+}
+
+.rxn-side--start {
+  grid-area: start;
+}
+
+.rxn-side--product {
+  grid-area: product;
 }
 
 .rxn-side {
@@ -302,11 +323,9 @@
 }
 
 .rxn-arrow-cell {
+  grid-area: arrow;
   display: flex;
-  max-width: 11rem;
-  flex-direction: column;
   align-items: center;
-  gap: 0.125rem;
 }
 
 .rxn-reagents {
@@ -317,11 +336,13 @@
   overflow-wrap: anywhere;
 }
 
+/* The steps side by side, in order, each a drawing over its name. */
 .rxn-reagent-row {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.25rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 0.25rem 1rem;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -333,38 +354,47 @@
   align-items: center;
 }
 
+/* Big enough that the drawing's own atom labels read: RDKit renders the
+   reagents at a fixed bond length on a 168 by 104 canvas, so 4rem tall is
+   close to its natural size, where round 1's 3rem cap left 6px labels. */
 .rxn-reagent__art {
-  width: 8rem;
-  max-width: 100%;
-  height: auto;
-  max-height: 3rem;
+  width: auto;
+  max-width: 9rem;
+  height: 4.5rem;
   object-fit: contain;
 }
 
 .rxn-reagent__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--bb-primary-ink);
   text-align: center;
   overflow-wrap: anywhere;
 }
 
-.rxn-arrow {
-  width: 4.5rem;
-  height: 0.75rem;
-  color: var(--bb-muted-foreground);
+/* A step number: a small disc in the card's own ink, text-first so the order
+   is never carried by position alone. */
+.rxn-step {
+  display: inline-flex;
+  width: 1.125rem;
+  height: 1.125rem;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.25rem;
+  border-radius: 9999px;
+  background: var(--bb-card-foreground);
+  color: var(--bb-card);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  font-family: var(--font-ui, sans-serif);
 }
 
-@container (max-width: 26rem) {
-  .rxn-panel {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 0.375rem;
-  }
-  .rxn-arrow-cell {
-    max-width: none;
-  }
-  .rxn-arrow {
-    width: 2rem;
-    height: 2rem;
-    transform: rotate(90deg);
-  }
+.rxn-arrow {
+  width: 2.75rem;
+  height: 0.75rem;
+  color: var(--bb-muted-foreground);
 }
 
 .rxn-chip {
@@ -456,6 +486,20 @@
   --cell-fill: var(--cell-suspended-fill);
   --cell-edge: var(--cell-suspended-edge);
   border-style: dashed;
+}
+
+/* A deck's "N due" pill. The amber face both themes share, under the chip
+   family's navy ink: 7.14:1. Round 1 used the dark theme's deep amber CELL
+   fill here, 2.33:1 at 12px, which cardsContrast.test now checks. */
+.due-pill {
+  flex: none;
+  border-radius: 9999px;
+  padding: 0 0.5rem;
+  background: var(--grade-hard);
+  color: var(--chip-ink);
+  box-shadow: 0 0 0 2px var(--grade-hard-edge);
+  font-size: 0.75rem;
+  font-weight: 700;
 }
 
 /* ------------------------------------------------------------------ */
@@ -609,7 +653,7 @@
 
 .predict__option {
   display: flex;
-  min-height: 5rem;
+  min-height: 6rem;
   align-items: center;
   justify-content: center;
   border-radius: 0.875rem;
@@ -619,34 +663,66 @@
   touch-action: manipulation;
 }
 
+/* The pick is the task, so its drawings are the biggest thing in the dock:
+   5rem tall, where round 1's 4.25rem left 6px atom labels on a phone. */
 .predict__option img {
   width: 100%;
-  max-height: 4.25rem;
+  max-height: 5rem;
   object-fit: contain;
 }
 
-/* Once the answer is showing, the tiles shrink: the card above now holds the
-   reveal the student wants to read, and the dock should not take its room. */
-.predict--revealed .predict__option {
-  min-height: 3.25rem;
-  padding: 0.125rem 0.25rem;
+/* AFTER THE PICK THE TILES KEEP THEIR SIZE. Round 1 shrank them to 32px
+   thumbnails at the one moment a student compares their call with the
+   answer. They now move up into the stage under the card, full size, each
+   with its caption, and each state is said in WORDS as well as colour:
+   "Product" with a check on the right one, "Your call" on the student's. */
+.predict--review {
+  gap: 0.5rem;
 }
 
-.predict--revealed .predict__option img {
-  max-height: 2rem;
+.predict--review .predict__option {
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 0.25rem;
+  padding: 0.375rem 0.25rem 0.5rem;
+  text-align: center;
 }
 
-/* After the pick: the right one is filled with the progress green closed by
-   its edge (fill-only), the student's miss keeps its outline and gains a
-   heavier one in the card ink. Neither is red: a wrong call is information. */
+.predict__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: 9999px;
+  padding: 0 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.25rem;
+}
+
+/* The right one: the progress green as a FILL under its dark ink (8.33:1),
+   closed by its edge, never as text. */
+.predict__badge--right {
+  background: var(--progress);
+  color: var(--progress-ink);
+}
+
+/* The student's call: the card's own ink, inverted. Not red: a wrong call is
+   information, and not the grade row's ring either, so the two marks never
+   share one look. */
+.predict__badge--picked {
+  background: var(--bb-card-foreground);
+  color: var(--bb-card);
+}
+
 .predict__option--right {
   border-color: var(--progress-edge);
-  background: color-mix(in srgb, var(--progress) 45%, var(--bb-card));
+  border-width: 3px;
+  background: color-mix(in srgb, var(--progress) 30%, var(--bb-card));
 }
 
 .predict__option--picked {
+  border-style: dashed;
   border-color: var(--bb-card-foreground);
-  border-width: 3px;
 }
 
 /* ------------------------------------------------------------------ */

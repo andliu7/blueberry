@@ -3,11 +3,11 @@
  * header before trusting anything in this file.
  *
  * THE LOOP. A card front. On a reaction card from the registry, the student
- * CALLS the product from three drawings (predict.ts) or just flips. The
- * answer lands in place, the grade dock lights the grade the call points at,
- * and the student grades with a button, a key (1 to 4) or a swipe (right is
- * Good, left is Again). Every grade goes through `source.rate` first, so a
- * student who closes the tab mid run keeps what they earned.
+ * CALLS the product from three drawings (predict.ts), or says "I don't know yet";
+ * the pick is the only way to the back. The answer lands in place, the dock
+ * lights the grade the call points at, and the student grades with a button,
+ * a key (1 to 4) or a swipe (right is Good, left is Again). Every grade goes
+ * through `source.rate` first, so closing the tab mid run keeps what was earned.
  *
  * WHY AN OVERLAY. The old session lived inside the tab under the HUD header,
  * and on a 390 by 844 phone its four grade chips sat below the fold on every
@@ -24,7 +24,7 @@
  * normal step, and the streak simply restarts without a falling number.
  */
 
-import { useEffect, useMemo, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { REACTIONS } from "../../../data/reactions";
 import type { SavedMistake } from "../../tabs/trainer/mistakes";
 import { nextInterval, startCard } from "../scheduler";
@@ -38,6 +38,7 @@ import { predictionChoices, type PredictOption } from "./predict";
 import {
   calledLine,
   ratingForKey,
+  runHeadline,
   runStats,
   suggestedRating,
   swipeRating,
@@ -52,7 +53,6 @@ import {
   sessionCounter,
   sessionSummary,
   startSession,
-  summaryHeadline,
   summaryLine,
   type ReviewSessionState,
 } from "./session";
@@ -83,7 +83,8 @@ const SEGMENT_LIMIT = 24;
 
 interface Call {
   readonly cardId: string;
-  readonly reactionId: string;
+  /** The option's key, or null for "I don't know". */
+  readonly key: string | null;
   readonly correct: boolean;
 }
 
@@ -113,13 +114,26 @@ export function Run({ cards, source, journal, onExit, onDone }: RunProps) {
 
   const flip = (): void => setState(reveal(state));
 
-  const callIt = (option: PredictOption): void => {
+  // The pick IS the flip on a predict card: there is no other way to the
+  // back, so the step cannot be skipped by a stray tap. "I don't know" is an
+  // honest call (null) and counts as a miss, which is what it is.
+  const callIt = (option: PredictOption | null): void => {
     if (card === null || state.revealed) return;
     // A card that came back after Again is called again, so the latest call
     // for a card replaces its earlier one rather than counting twice.
-    setCalls([...calls.filter((entry) => entry.cardId !== card.id), { cardId: card.id, reactionId: option.reactionId, correct: option.correct }]);
+    const entry: Call = { cardId: card.id, key: option?.key ?? null, correct: option?.correct === true };
+    setCalls([...calls.filter((previous) => previous.cardId !== card.id), entry]);
     flip();
   };
+
+  // useRef reaches the scrolling stage element so a new card, or a flip,
+  // starts at its top: round 2 found the back opened scrolled past its own
+  // start structure. The effect runs after React has drawn the new content.
+  const stage = useRef<HTMLDivElement | null>(null);
+  const cardId = card?.id ?? null;
+  useEffect(() => {
+    if (stage.current !== null) stage.current.scrollTop = 0;
+  }, [cardId, state.revealed]);
 
   // THE KEYBOARD PATH. An effect that subscribes a window listener and returns
   // its own cleanup, so the listener always sees this render's `press` and is
@@ -132,6 +146,13 @@ export function Run({ cards, source, journal, onExit, onDone }: RunProps) {
         return;
       }
       if (done) return;
+      if (!state.revealed && choices !== null) {
+        // Keys 1 to 3 call an option; nothing else flips a predict card.
+        const index = Number.parseInt(event.key, 10);
+        const option = event.key.length === 1 ? choices[index - 1] : undefined;
+        if (option !== undefined) callIt(option);
+        return;
+      }
       if (!state.revealed && (event.key === " " || event.key === "Enter")) {
         event.preventDefault();
         flip();
@@ -226,7 +247,7 @@ export function Run({ cards, source, journal, onExit, onDone }: RunProps) {
         )}
       </div>
 
-      <div className="run__stage">
+      <div className="run__stage" ref={stage}>
         <div
           className={`run__card relative ${drag === null ? "" : "run__card--dragging"}`}
           style={{ transform: dx === 0 ? undefined : `translateX(${dx}px) rotate(${dx / 30}deg)` }}
@@ -239,36 +260,52 @@ export function Run({ cards, source, journal, onExit, onDone }: RunProps) {
             <span className={`run__swipe-label run__swipe-label--${swipeHint}`}>{RATING_LABELS[swipeHint]}</span>
           )}
           {/* key={card.id} remounts the face per card, so no reveal animation
-              or scroll position carries over from the card before. */}
+              carries over from the card before. On a predict card the front
+              is not a button: the pick below is the only way to the back. */}
           <CardFace
             key={card.id}
             card={card}
             revealed={state.revealed}
             onReveal={flip}
             schedulerState={cardSchedulerState(snapshot.review[card.id], at)}
+            {...(choices === null ? {} : { frontPrompt: "Call the product below" })}
           />
         </div>
+        {/* After the pick, the three options move up here at full size, under
+            the card's own explanation, each saying in words what it is. */}
+        {state.revealed && choices !== null && <OptionsReview choices={choices} call={call} />}
       </div>
 
       <div className="run__dock">
-        {choices !== null && (!state.revealed || call !== undefined) && (
-          <Predict choices={choices} call={call} revealed={state.revealed} onCall={callIt} />
-        )}
         {state.revealed ? (
           <>
+            {choices !== null && (
+              <p className="m-0 text-scale-sm font-semibold" aria-live="polite">
+                {verdictLine(call)}
+              </p>
+            )}
             <GradeDock reviewState={reviewState} suggested={suggested} onPress={press} />
             <p className="m-0 text-center text-scale-xs text-bb-muted-foreground">
               Swipe the card right for Good, left for Again
             </p>
           </>
+        ) : choices !== null ? (
+          <PredictPick choices={choices} onCall={callIt} />
         ) : (
           <button type="button" className="chip3d press bb-title-face w-full text-scale-lg font-bold" onClick={flip}>
-            {choices === null ? "Show the answer" : "Just flip it"}
+            Show the answer
           </button>
         )}
       </div>
     </div>
   );
+}
+
+/** The one line over the grades after a pick. Coach voice, never a scold. */
+function verdictLine(call: Call | undefined): string {
+  if (call === undefined || call.key === null) return "No call this time. All three options are under the card.";
+  if (call.correct) return "You called it. The other two are under the card.";
+  return "Not this time. Your call and the product are marked under the card.";
 }
 
 /**
@@ -333,50 +370,69 @@ function Progress({ state }: { readonly state: ReviewSessionState }) {
 }
 
 /**
- * "Call the product": three drawings, one of them the answer. After the call
- * (or a flip) each tile names its product, so a wrong option still teaches
- * what those other conditions would have made.
+ * "Call the product": three drawings, one of them the answer, and an honest
+ * way out. Drawings only, because the names would give the answer away; keys
+ * 1 to 3 pick in the same order.
  */
-function Predict({
+function PredictPick({
   choices,
-  call,
-  revealed,
   onCall,
 }: {
   readonly choices: readonly PredictOption[];
-  readonly call: Call | undefined;
-  readonly revealed: boolean;
-  readonly onCall: (option: PredictOption) => void;
+  readonly onCall: (option: PredictOption | null) => void;
 }) {
   return (
     <div className="flex flex-col gap-2">
-      <p className="m-0 text-scale-sm font-semibold" aria-live="polite">
-        {!revealed
-          ? "Call the product"
-          : call?.correct === true
-            ? "You called it."
-            : "Not this time. The right product is filled in green."}
-      </p>
-      <div className={`predict ${revealed ? "predict--revealed" : ""}`}>
-        {choices.map((option, index) => {
-          const picked = call?.reactionId === option.reactionId;
-          const state = revealed ? `${option.correct ? "predict__option--right" : ""} ${picked ? "predict__option--picked" : ""}` : "";
+      <p className="m-0 text-scale-sm font-semibold">Call the product</p>
+      <div className="predict">
+        {choices.map((option, index) => (
+          <button
+            key={option.key}
+            type="button"
+            className="predict__option press"
+            aria-label={`Option ${index + 1}`}
+            aria-keyshortcuts={String(index + 1)}
+            onClick={() => onCall(option)}
+          >
+            <Drawing light={option.light} dark={option.dark} alt="" className="predict__art" />
+          </button>
+        ))}
+      </div>
+      <button type="button" className="cards-ghost press w-full text-scale-sm" onClick={() => onCall(null)}>
+        I don't know yet
+      </button>
+    </div>
+  );
+}
+
+/**
+ * The three options again after the pick, full size. Each says what it is:
+ * the product's name, or what the wrong one is relative to it ("the other end
+ * of the allyl system"), so a miss still teaches. State is carried in words
+ * (the "Product" and "Your call" badges) and in the border style, never in
+ * colour alone.
+ */
+function OptionsReview({ choices, call }: { readonly choices: readonly PredictOption[]; readonly call: Call | undefined }) {
+  return (
+    <section className="mt-4 flex flex-col gap-2" aria-label="The three options">
+      <h3 className="m-0 text-scale-sm font-semibold text-bb-muted-foreground">The three options</h3>
+      <ul className="predict predict--review m-0 list-none p-0">
+        {choices.map((option) => {
+          const picked = call?.key === option.key;
           return (
-            <button
-              key={option.reactionId}
-              type="button"
-              className={`predict__option press flex-col gap-1 ${state}`}
-              disabled={revealed}
-              aria-label={revealed ? `${option.label}${option.correct ? ", the product" : ""}${picked ? ", your call" : ""}` : `Option ${index + 1}`}
-              onClick={() => onCall(option)}
+            <li
+              key={option.key}
+              className={`predict__option ${option.correct ? "predict__option--right" : ""} ${picked ? "predict__option--picked" : ""}`}
             >
               <Drawing light={option.light} dark={option.dark} alt="" className="predict__art" />
-              {revealed && <span className="text-scale-xs leading-tight">{option.label}</span>}
-            </button>
+              {option.correct && <span className="predict__badge predict__badge--right">Product</span>}
+              {picked && <span className="predict__badge predict__badge--picked">Your call</span>}
+              <span className="text-scale-xs leading-tight">{option.label}</span>
+            </li>
           );
         })}
-      </div>
-    </div>
+      </ul>
+    </section>
   );
 }
 
@@ -408,7 +464,7 @@ function RunSummary({
         <p className="m-0 text-scale-sm font-semibold uppercase tracking-wide text-bb-muted-foreground">
           {summary.reviewed === 1 ? "card reviewed" : "cards reviewed"}
         </p>
-        <h1 className="bb-title-face m-0 mt-3 text-scale-2xl font-bold">{summaryHeadline(summary)}</h1>
+        <h1 className="bb-title-face m-0 mt-3 text-scale-2xl font-bold">{runHeadline(summary, stats)}</h1>
         <p className="m-0 text-scale-base leading-normal text-bb-muted-foreground">{summaryLine(summary)}</p>
       </div>
 
