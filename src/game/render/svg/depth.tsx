@@ -20,6 +20,7 @@
  */
 
 import type { Point2 } from "@blueberry/interaction";
+import "./depth.css";
 
 export const ELEMENT_FILL: Record<string, string> = {
   // Saturated enough to hold white glyphs at 4.5:1+ in both themes.
@@ -119,10 +120,10 @@ export function rimPoint(centre: Point2, toward: Point2, r: number): Point2 {
 export const BOND_WIDTH = 10;
 
 /**
- * A rounded capsule from the surface of atom A to the surface of atom B. Two
- * strokes make the cylinder: the body in the bond colour and a narrower pale
- * highlight pulled a little toward the light, which is up and left here, the
- * same side the sphere highlight sits on.
+ * A rounded capsule from the surface of atom A to the surface of atom B: a
+ * white rod with a soft white glow and, on the light theme, a thin dark edge
+ * (depth.css, owner order of 30 Sep 2026), plus a narrower pale highlight
+ * pulled a little toward the light, up and left, where the sphere's sits.
  */
 export function BondCapsule({
   a,
@@ -185,12 +186,37 @@ export function BondCapsule({
         const end = rimPoint(ob, oa, chordB + width / 2 - 1);
         return (
           <g key={off} opacity={rodIndex === 0 ? 1 : extraRodOpacity}>
+            {/* White rod, three strokes, widest first (depth.css has the
+                measured contrast): a soft glow, the edge that keeps a white
+                rod readable on a white bench, then the white body. Every one
+                carries the dash, so a forming bond stays segmented. */}
             <line
               x1={start.x}
               y1={start.y}
               x2={end.x}
               y2={end.y}
-              stroke="var(--bond-stroke)"
+              stroke="var(--bond-glow)"
+              strokeWidth={width + 7}
+              strokeLinecap="round"
+              strokeDasharray={forming ? "15 9" : undefined}
+              style={{ strokeOpacity: "var(--bond-glow-opacity)" }}
+            />
+            <line
+              x1={start.x}
+              y1={start.y}
+              x2={end.x}
+              y2={end.y}
+              stroke="var(--bond-edge)"
+              strokeWidth={width + 2}
+              strokeLinecap="round"
+              strokeDasharray={forming ? "15 9" : undefined}
+            />
+            <line
+              x1={start.x}
+              y1={start.y}
+              x2={end.x}
+              y2={end.y}
+              stroke="var(--bond-rod)"
               strokeWidth={width}
               strokeLinecap="round"
               strokeDasharray={forming ? "15 9" : undefined}

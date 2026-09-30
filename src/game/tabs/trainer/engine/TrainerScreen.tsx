@@ -112,7 +112,7 @@ const WIN_TWEEN_MS = 1400;
 /** How long the green arrows hold at full before the bond change starts. */
 const WIN_HOLD_MS = 700;
 /** Under reduced motion: how long the green arrows hold before the cut to the product. */
-export const REDUCED_HOLD_MS = 1000;
+const REDUCED_HOLD_MS = 1000;
 
 export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onSolved, reducedMotion = false }: TrainerScreenProps) {
   const lastIndex = question.steps.length - 1;

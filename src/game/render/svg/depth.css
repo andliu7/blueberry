@@ -1,0 +1,30 @@
+/*
+ * The bond rod's paint, per theme. Owner order of 30 Sep 2026: "Give the
+ * bonds a slight white glow and make them white, not gray."
+ *
+ * A white rod on the light theme's white bench is invisible, so light keeps a
+ * thin dark EDGE around the white body and the edge carries the 3:1 that WCAG
+ * 1.4.11 asks of a component (the --bond-joint precedent in DESIGN-TOKENS.md:
+ * the boundary, not the fill, identifies it). Measured against the grounds:
+ *
+ *   light  edge #64748b on the bench #ffffff        4.76:1
+ *   dark   rod  #ffffff on the bench #232741       14.6:1 (edge is the rod)
+ *
+ * The glow is one wider, soft, low-opacity white stroke under the rod: no
+ * filter, so it costs one extra line per rod and nothing per frame. On the
+ * white bench it is invisible by construction and that is fine; on dark it is
+ * the "slight white glow".
+ */
+
+:root {
+  --bond-rod: #ffffff;
+  --bond-edge: #64748b;
+  --bond-glow: #ffffff;
+  --bond-glow-opacity: 0.5;
+}
+
+/* `.dark` is the class this app toggles (see the note in beat-chrome.css). */
+.dark {
+  --bond-edge: #ffffff;
+  --bond-glow-opacity: 0.22;
+}

@@ -370,6 +370,7 @@ export function TrainerCanvas({
     <svg
       ref={svgRef}
       data-pilot-canvas
+      data-win-t={t.toFixed(2)}
       viewBox={viewBox}
       role="application"
       aria-label="Draw the electron pushes. Tap or drag a lone pair or bond handle to pick the electrons up, then drop them where they go."

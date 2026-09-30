@@ -13,7 +13,7 @@
  * drawing under the finger, and the verdict painted on the molecule.
  */
 
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { createElement, act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import type { InteractionStore, Point2 } from "@blueberry/interaction";
@@ -239,5 +239,33 @@ describe("the verdict is visible, not merely present", () => {
     const hint = container.querySelector("[data-push-hint] circle");
     if (hint === null) throw new Error("no hint on the right target");
     expect(distance(circleCentre(hint), carbon)).toBeLessThan(1);
+  });
+});
+
+describe("reduced motion on a win: hold the green arrows, then cut to the product", () => {
+  // Owner ruling, 30 Sep 2026: both are seen and nothing moves.
+  it("paints the green arrows first and the settled product after about a second", () => {
+    vi.useFakeTimers();
+    try {
+      const { container, store } = mount("dashed");
+      drawWin(store);
+      check(container);
+      const canvas = container.querySelector("[data-pilot-canvas]");
+      if (canvas === null) throw new Error("no canvas");
+      // Before the cut: the drawing frame, both arrows green and at full opacity.
+      expect(canvas.getAttribute("data-win-t")).toBe("0.00");
+      const before = [...container.querySelectorAll("[data-push-record]")];
+      expect(before.length).toBe(2);
+      for (const record of before) expect(effectiveOpacity(record)).toBeGreaterThan(0.9);
+      // Still held just short of the cut.
+      act(() => void vi.advanceTimersByTime(900));
+      expect(canvas.getAttribute("data-win-t")).toBe("0.00");
+      // After it: the settled product, in one step, and the arrows no longer painted.
+      act(() => void vi.advanceTimersByTime(200));
+      expect(canvas.getAttribute("data-win-t")).toBe("1.00");
+      for (const record of container.querySelectorAll("[data-push-record]")) expect(effectiveOpacity(record)).toBeLessThan(0.05);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
