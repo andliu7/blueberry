@@ -106,6 +106,25 @@ export const DIAMONDS_REVIEW_CLEARED = 5;
  */
 export const XP_CHALLENGE_PASSED = XP_NODE_FIRST_CLEAR.review;
 export const DIAMONDS_CHALLENGE_PASSED = DIAMONDS_REVIEW_CLEARED;
+
+/**
+ * A completed FLASHCARD REVIEW RUN pays the review drill rate. OWNER DECISION,
+ * 2026-10-01: "flashcard review runs pay 5 diamonds per completed run (the
+ * drill-review rate)". Diamonds only; the decision names no XP, so none.
+ *
+ * WHAT COUNTS AS COMPLETED is this file's call, flagged to the owner:
+ *   - the run reached its summary (the client journals nothing before), and
+ *   - at least CARD_RUN_MIN_GRADED distinct cards were graded in it, so
+ *     opening a run and grading one card on the way out pays nothing;
+ *   - at most CARD_RUNS_PAID_PER_DAY runs pay per local day, because a deck
+ *     can be re-run on demand (DeckScreen's Review), and a five card deck
+ *     run back to back would otherwise be a faucet. Fifteen a day sits
+ *     under one first clear plus its spine bonus (15), so cards never
+ *     out-earn the pathway.
+ */
+export const DIAMONDS_CARD_RUN = DIAMONDS_REVIEW_CLEARED;
+export const CARD_RUN_MIN_GRADED = 5;
+export const CARD_RUNS_PAID_PER_DAY = 3;
 /** At 7, 14, 30, 60, 100, 180, 365. */
 export const DIAMONDS_STREAK_MILESTONE = 75;
 

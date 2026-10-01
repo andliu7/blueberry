@@ -134,6 +134,12 @@ export interface ProgressSource {
    * this store, decides whether a pass pays (packages/economy derive.ts).
    */
   passChallenge(nodeId: string): number;
+  /**
+   * A flashcard review run reached its summary with `graded` distinct cards
+   * graded. Returns the diamonds credited, which is 0 for a short run or past
+   * the day's cap: the economy decides (packages/economy, DIAMONDS_CARD_RUN).
+   */
+  finishCardRun(graded: number): number;
   spend(sink: SpendSink, cost: number, ref?: string): Receipt;
   setSettings(fields: SettingsFields): Receipt;
 }
@@ -673,6 +679,11 @@ export function createLocalProgress(): ProgressSource {
     },
     passChallenge(nodeId) {
       const next = appendOne((at, tz) => ({ kind: "challenge_passed", at, tz, nodeId }));
+      return next.diamonds.reduce((sum, line) => sum + line.amount, 0);
+    },
+    finishCardRun(graded) {
+      if (!Number.isInteger(graded) || graded <= 0) return 0;
+      const next = appendOne((at, tz) => ({ kind: "cards_reviewed", at, tz, graded }));
       return next.diamonds.reduce((sum, line) => sum + line.amount, 0);
     },
     spend(sink, cost, ref) {

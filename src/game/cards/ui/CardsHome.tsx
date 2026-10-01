@@ -30,6 +30,7 @@ import { ComposeScreen } from "./ComposeScreen";
 import { DeckScreen } from "./DeckScreen";
 import { Home } from "./Home";
 import { Run } from "./Run";
+import { progress } from "../../app/progress";
 import { useDeckSnapshot } from "./useDeck";
 import { MISTAKES_DECK_ID, MISTAKES_DECK_TITLE, mistakeDeckCards } from "./landing";
 
@@ -128,7 +129,15 @@ export function CardsHome({ source = defaultDecks, mistakes, onImmersiveChange }
   return (
     <>
       {body}
-      {run !== null && <Run cards={run} source={source} journal={journal} onExit={() => setRun(null)} />}
+      {run !== null && (
+        <Run
+          cards={run}
+          source={source}
+          journal={journal}
+          onExit={() => setRun(null)}
+          credit={(graded) => progress.finishCardRun(graded)}
+        />
+      )}
     </>
   );
 }

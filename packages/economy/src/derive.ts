@@ -45,7 +45,10 @@ import {
   CHARGE_REGEN_PER_INTERVAL,
   DAILY_GOAL_XP,
   DEFAULT_DAILY_GOAL,
+  CARD_RUN_MIN_GRADED,
+  CARD_RUNS_PAID_PER_DAY,
   DIAMONDS_BOSS,
+  DIAMONDS_CARD_RUN,
   DIAMONDS_CHALLENGE_PASSED,
   DIAMONDS_FLAWLESS,
   DIAMONDS_NODE_FIRST_CLEAR,
@@ -319,6 +322,8 @@ function run(journal: readonly EconomyEvent[], now: string, options: DeriveOptio
 
   const firstClears: Record<string, true> = {};
   const resonanceSeen = new Set<string>();
+  // Paid card runs per local day, for CARD_RUNS_PAID_PER_DAY.
+  const cardRunsPaid = new Map<string, number>();
   const nodes = new Map<string, NodeMastery>();
   const xpByDay = new Map<string, number>();
   const dayHasEvent = new Set<string>();
@@ -443,6 +448,17 @@ function run(journal: readonly EconomyEvent[], now: string, options: DeriveOptio
         if (firstClears[event.nodeId] === undefined) break;
         line.xp.push({ label: "Challenge passed", amount: XP_CHALLENGE_PASSED });
         line.diamonds.push({ label: "Challenge passed", amount: DIAMONDS_CHALLENGE_PASSED });
+        break;
+      }
+
+      case "cards_reviewed": {
+        // A completed flashcard run (rules.ts, DIAMONDS_CARD_RUN): enough
+        // cards graded, and under the day's cap, counted in timestamp order so
+        // the same journal always pays the same runs.
+        const paid = cardRunsPaid.get(day) ?? 0;
+        if (event.graded < CARD_RUN_MIN_GRADED || paid >= CARD_RUNS_PAID_PER_DAY) break;
+        cardRunsPaid.set(day, paid + 1);
+        line.diamonds.push({ label: "Card review", amount: DIAMONDS_CARD_RUN });
         break;
       }
 

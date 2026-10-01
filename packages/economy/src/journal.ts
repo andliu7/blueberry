@@ -77,6 +77,13 @@ export type EconomyEvent =
    * `node_started`, so a fail event would be a row nothing reads.
    */
   | (EventBase & { readonly kind: "challenge_passed"; readonly nodeId: string })
+  /**
+   * A flashcard review run that reached its summary. `graded` is how many
+   * distinct cards the student graded in it; whether the run pays is the
+   * derivation's call (CARD_RUN_MIN_GRADED, CARD_RUNS_PAID_PER_DAY), so a
+   * run opened and closed early pays nothing however it is journalled.
+   */
+  | (EventBase & { readonly kind: "cards_reviewed"; readonly graded: number })
   | (EventBase & { readonly kind: "unit_cleared"; readonly unitId: string })
   | (EventBase & { readonly kind: "boss_cleared"; readonly bossId: string })
   | (EventBase & { readonly kind: "resonance_found"; readonly nodeId: string })
@@ -186,6 +193,8 @@ export function isEconomyEvent(x: unknown): x is EconomyEvent {
       return nonEmptyString(x["unitId"]) && typeof x["flawless"] === "boolean";
     case "challenge_passed":
       return nonEmptyString(x["nodeId"]);
+    case "cards_reviewed":
+      return isPositiveInt(x["graded"]);
     case "unit_cleared":
       return nonEmptyString(x["unitId"]);
     case "boss_cleared":

@@ -120,6 +120,7 @@ Scale unchanged from v1. Every diamond still traces to a learning event.
 | Boss, multistep synthesis | 200 | Gated on five units. The endgame paycheck |
 | Review drill cleared | 5 | Retention pays, lightly and repeatably |
 | Challenge passed | 5 | PROPOSED 2026-09-30, owner to confirm. Every pass, only on a cleared node; entry costs the node's own charge |
+| Flashcard review run completed | 5 | Owner decision 2026-10-01, the review drill rate; diamonds only, no XP. Completed means the run reached its summary with at least 5 distinct cards graded, and at most 3 runs pay per local day, so opening and closing a run, or re-running a small deck, pays nothing more. The 5 cards and the cap of 3 are the builder's choice, flagged for the owner. `cards_reviewed` event, `DIAMONDS_CARD_RUN` in rules.ts |
 | Streak milestone | 75 | At 7, 14, 30, 60, 100, 180, 365 |
 | Mastery rank | 125 to 250 | See the Mastery table |
 

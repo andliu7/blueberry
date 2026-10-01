@@ -25,6 +25,7 @@
  */
 
 import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { CARD_RUN_MIN_GRADED, CARD_RUNS_PAID_PER_DAY, DIAMONDS_CARD_RUN } from "@blueberry/economy";
 import { REACTIONS } from "../../../data/reactions";
 import type { SavedMistake } from "../../tabs/trainer/mistakes";
 import { nextInterval, startCard } from "../scheduler";
@@ -67,6 +68,12 @@ export interface RunProps {
   readonly journal: readonly SavedMistake[];
   /** Leaving, early or after the summary. Every grade is already committed. */
   readonly onExit: () => void;
+  /**
+   * Credits a finished run with `graded` distinct cards graded and returns
+   * the diamonds the economy actually paid (CardsHome passes the progress
+   * store's finishCardRun). Absent in tests and previews: nothing is paid.
+   */
+  readonly credit?: (graded: number) => number;
 }
 
 /** The chip family per grade. Again is periwinkle, never red: see cards.css. */
@@ -87,8 +94,10 @@ interface Call {
   readonly correct: boolean;
 }
 
-export function Run({ cards, source, journal, onExit }: RunProps) {
+export function Run({ cards, source, journal, onExit, credit }: RunProps) {
   const [state, setState] = useState<ReviewSessionState>(() => startSession(cards));
+  // What the economy paid for this run, set once, when the last grade lands.
+  const [credited, setCredited] = useState(0);
   const [calls, setCalls] = useState<readonly Call[]>([]);
   const [dx, setDx] = useState(0);
   // Where a swipe started and how wide the card was, or null when no finger
@@ -109,6 +118,9 @@ export function Run({ cards, source, journal, onExit }: RunProps) {
     const outcome = rateCurrent(state, rating);
     if (outcome === null) return;
     source.rate(outcome.cardId, outcome.rating);
+    // Paid from the event handler that finishes the run, not from an effect:
+    // a handler runs once per press, so the run cannot be credited twice.
+    if (isFinished(outcome.state)) setCredited(credit?.(sessionSummary(outcome.state).reviewed) ?? 0);
     setState(outcome.state);
     setDx(0);
   };
@@ -167,7 +179,13 @@ export function Run({ cards, source, journal, onExit }: RunProps) {
   if (done) {
     return (
       <div className="run" role="dialog" aria-modal="true" aria-label="Review finished">
-        <RunSummary state={state} stats={stats} forecast={dueForecast(snapshot, journal, new Date())} onDone={onExit} />
+        <RunSummary
+          state={state}
+          stats={stats}
+          credited={credited}
+          forecast={dueForecast(snapshot, journal, new Date())}
+          onDone={onExit}
+        />
       </div>
     );
   }
@@ -438,11 +456,13 @@ function PredictOptions({
 function RunSummary({
   state,
   stats,
+  credited,
   forecast,
   onDone,
 }: {
   readonly state: ReviewSessionState;
   readonly stats: RunStats;
+  readonly credited: number;
   readonly forecast: readonly { readonly label: string; readonly count: number }[];
   readonly onDone: () => void;
 }) {
@@ -462,16 +482,22 @@ function RunSummary({
         <p className="m-0 text-scale-base leading-normal text-bb-muted-foreground">{summaryLine(summary)}</p>
       </div>
 
-      {/* NO DIAMONDS TILE. It showed one per card reviewed, whatever the
-          calls, and nothing ever credited it: a flashcard run writes no
-          attempt to the journal, and ECONOMY.md lists no flashcard earner
-          ("not earners: anything a client could fabricate without an attempt
-          record"). A reward the economy does not pay is not shown. The best
-          streak counts right calls (runStats.ts). */}
-      <div className="grid grid-cols-2 gap-2 text-center">
+      {/* THE DIAMONDS TILE SHOWS WHAT WAS CREDITED. Round 2 showed one per
+          card that nothing ever paid. Since the owner's decision of 1 Oct the
+          run journals `cards_reviewed` and the economy decides the payout
+          (DIAMONDS_CARD_RUN), so this is the receipt's number, 0 included.
+          The best streak counts right calls (runStats.ts). */}
+      <div className="grid grid-cols-3 gap-2 text-center">
         <Stat value={called === null ? "None" : `${stats.called}/${stats.predicted}`} label="Called it" />
         <Stat value={String(stats.bestStreak)} label="Best streak of right calls" />
+        <Stat value={String(credited)} label="Diamonds" />
       </div>
+      {credited === 0 && (
+        <p className="m-0 text-center text-scale-xs text-bb-muted-foreground">
+          A run of {CARD_RUN_MIN_GRADED} or more cards earns {DIAMONDS_CARD_RUN} diamonds, up to {CARD_RUNS_PAID_PER_DAY} runs a
+          day.
+        </p>
+      )}
 
       {presses > 0 && (
         <div className="flex flex-col gap-2">

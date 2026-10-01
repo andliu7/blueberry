@@ -16,12 +16,14 @@
  * clicks and swipes are pure functions (runStats.ts) and are tested as such.
  */
 
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it } from "vitest";
+import { CARD_RUN_MIN_GRADED, DIAMONDS_CARD_RUN } from "@blueberry/economy";
 import { REACTIONS } from "../../data/reactions";
+import { createLocalProgress } from "../app/progress";
 import { reactionCardFromStaged } from "../cards/reactionCard";
 import { nextInterval, startCard } from "../cards/scheduler";
 import { createLocalDecks } from "../cards/store";
@@ -90,6 +92,29 @@ function carbons(formula: string): number {
   return match[1] === undefined || match[1] === "" ? 1 : Number(match[1]);
 }
 
+/** Carbons in a SMILES string, aliphatic and aromatic; Cl, Ca, Cu, Cr and Co are not carbon. */
+function smilesCarbons(smiles: string): number {
+  return (smiles.match(/Cl|Ca|Cu|Cr|Co|C|c/g) ?? []).filter((atom) => atom === "C" || atom === "c").length;
+}
+
+/** The same characters in another order: "OC(=O)c1ccccc1" is "O=C(O)c1ccccc1". */
+function sameSpecies(a: string, b: string): boolean {
+  return [...a].sort().join("") === [...b].sort().join("");
+}
+
+/**
+ * The test's own reading of rule 1's carbon allowance (the generator's is
+ * carbon_shift in scripts/build_card_distractors.py): 0 unless a consumed
+ * species that is not a start, or a released one that is not the product,
+ * carries carbon; then the carbons between the first start and the answer.
+ */
+function carbonShift(reaction: (typeof REACTIONS)[number]): number {
+  const consumed = reaction.balance_lhs.filter((s) => !reaction.reactants.some((r) => sameSpecies(r, s)));
+  const released = reaction.balance_rhs.filter((s) => !sameSpecies(s, reaction.product));
+  if (![...consumed, ...released].some((s) => smilesCarbons(s) > 0)) return 0;
+  return Math.abs(carbons(reaction.product_formula) - smilesCarbons(reaction.reactants[0] ?? ""));
+}
+
 const PREDICTED = REACTIONS.filter((reaction) => !PREDICT_GAPS.includes(reaction.id));
 
 describe("calling the product", () => {
@@ -120,15 +145,51 @@ describe("calling the product", () => {
     }
   });
 
-  it("gives every wrong option exactly the answer's elements and carbon count", () => {
+  /* ROUND 4, OWNER DECISION (1 Oct): the carbon half of this pin is relaxed
+     for a reaction that moves carbon, and only for one. The element half is
+     unchanged; the carbon half still holds exactly wherever the registry's
+     balance shows no carbon carried in by a reagent or out by a byproduct,
+     and where it does, the next test holds the count to the span the
+     reaction itself covers. */
+  it("gives every wrong option exactly the answer's elements, and its carbon count unless the reaction moves carbon", () => {
     for (const reaction of PREDICTED) {
       const answer = elements(reaction.product_formula);
       for (const option of predictionChoices(reactionCardFromStaged(reaction, NOON), REACTIONS) ?? []) {
         if (option.correct) continue;
         expect([...elements(option.formula)].sort(), `${reaction.id} ${option.label}`).toEqual([...answer].sort());
-        expect(carbons(option.formula), `${reaction.id} ${option.label}`).toBe(carbons(reaction.product_formula));
+        if (carbonShift(reaction) === 0) {
+          expect(carbons(option.formula), `${reaction.id} ${option.label}`).toBe(carbons(reaction.product_formula));
+        }
       }
     }
+  });
+
+  it("keeps a moved carbon count inside the span the reaction covers, read from the registry's balance", () => {
+    let relaxed = 0;
+    for (const reaction of PREDICTED) {
+      const shift = carbonShift(reaction);
+      const start = smilesCarbons(reaction.reactants[0] ?? "");
+      const answer = carbons(reaction.product_formula);
+      for (const option of predictionChoices(reactionCardFromStaged(reaction, NOON), REACTIONS) ?? []) {
+        const count = carbons(option.formula);
+        if (count !== answer) relaxed += 1;
+        expect(count, `${reaction.id} ${option.label}`).toBeGreaterThanOrEqual(Math.min(start, answer) - shift);
+        expect(count, `${reaction.id} ${option.label}`).toBeLessThanOrEqual(Math.max(start, answer) + shift);
+      }
+    }
+    // The rule is in use: the malonic ester card offers the methylated
+    // diester it passes through, eight carbons beside a three carbon acid.
+    expect(relaxed).toBeGreaterThan(0);
+    expect((PREDICT_DISTRACTORS["malonic-ester-synthesis"] ?? []).map((d) => d.smiles)).toContain("CCOC(=O)C(C)C(=O)OCC");
+  });
+
+  it("reads carbon moving from the balance: a reagent's carbon, a byproduct's, or none", () => {
+    const byId = (id: string) => REACTIONS.find((r) => r.id === id)!;
+    expect(carbonShift(byId("gilman-to-ketone"))).toBe(1); // CH3- from the cuprate
+    expect(carbonShift(byId("lialh4-reduction"))).toBe(1); // methanol leaves
+    expect(carbonShift(byId("malonic-ester-synthesis"))).toBe(4);
+    expect(carbonShift(byId("socl2-acid-to-chloride"))).toBe(0); // SOCl2 carries none
+    expect(carbonShift(byId("fischer-esterification"))).toBe(0); // methanol is a start
   });
 
   it("offers two different wrong structures, neither of them the answer", () => {
@@ -365,14 +426,35 @@ describe("streaks, calls and swipes", () => {
 });
 
 describe("the summary hears the calls", () => {
-  /* No reward the economy does not pay: the summary showed "7 Diamonds" that
-     nothing credited, and ECONOMY.md names no flashcard earner. */
-  it("shows no diamonds on the summary", () => {
+  /* ROUND 4, OWNER DECISION (1 Oct): a completed run pays 5 diamonds through
+     the economy (cards_reviewed, DIAMONDS_CARD_RUN). Round 3's pin that the
+     summary shows NO diamonds pinned the reverse decision; what holds now is
+     that the tile shows what was credited, never a number of its own. */
+  it("shows the diamonds credited, zero when nothing was, and the rule beside a zero", () => {
     const html = renderToStaticMarkup(
       createElement(Run, { cards: [], source: createLocalDecks({ now: () => NOON }), journal: [], onExit: () => undefined }),
     );
-    expect(html).toContain("Done");
-    expect(html).not.toMatch(/diamond/i);
+    expect(html).toContain("Diamonds");
+    expect(html).toMatch(/>0<\/span><span[^>]*>Diamonds/);
+    expect(html).toContain(`A run of ${CARD_RUN_MIN_GRADED} or more cards earns ${DIAMONDS_CARD_RUN} diamonds`);
+  });
+
+  it("credits a completed run through the store, and the economy decides the amount", () => {
+    const store = createLocalProgress();
+    store.reset();
+    expect(store.finishCardRun(CARD_RUN_MIN_GRADED - 1)).toBe(0);
+    const before = store.getSnapshot().economy.diamonds.balance;
+    const paid = store.finishCardRun(CARD_RUN_MIN_GRADED);
+    expect(paid).toBe(DIAMONDS_CARD_RUN);
+    expect(store.getSnapshot().economy.diamonds.balance - before).toBe(paid);
+    expect(store.getSnapshot().journal.at(-1)).toMatchObject({ kind: "cards_reviewed", graded: CARD_RUN_MIN_GRADED });
+    expect(store.finishCardRun(0)).toBe(0);
+  });
+
+  it("names no price in the run: the amount comes back from the store", () => {
+    const read = (rel: string) => readFileSync(fileURLToPath(new URL(rel, import.meta.url)), "utf8");
+    expect(read("../cards/ui/CardsHome.tsx")).toMatch(/finishCardRun\(/);
+    expect(read("../cards/ui/Run.tsx")).not.toMatch(/DIAMONDS_REVIEW_CLEARED|credited\s*=\s*\d|setCredited\(\d/);
   });
 
   function finished(ratings: readonly (typeof RATINGS)[number][]) {
