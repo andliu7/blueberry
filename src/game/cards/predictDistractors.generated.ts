@@ -14,6 +14,9 @@ export interface PredictDistractor {
   readonly source: string;
   /** Morgan (radius 2) Tanimoto to the closest start, the rule 4 measure. */
   readonly similarity: number;
+  /** Rule 5's classes, from RDKit: net formal charge, and enol/enamine form. */
+  readonly charge: number;
+  readonly enol: boolean;
   readonly light?: string;
   readonly dark?: string;
 }
@@ -21,6 +24,10 @@ export interface PredictDistractor {
 /** The answer, drawn in the options' own style, and its similarity to the start. */
 export interface PredictAnswer {
   readonly similarity: number;
+  readonly charge: number;
+  readonly enol: boolean;
+  /** Rule 6: what this card's own data or mechanism makes; never a wrong option. */
+  readonly ownProducts: readonly string[];
   readonly light?: string;
   readonly dark?: string;
 }
@@ -28,112 +35,54 @@ export interface PredictAnswer {
 export const PREDICT_DISTRACTORS: Readonly<Record<string, readonly PredictDistractor[]>> = {
   "acetylide-addition": [
     {
+      "smiles": "CC#COCc1ccccc1",
+      "formula": "C10H10O",
+      "caption": "The new group on the oxygen instead",
+      "kind": "on-oxygen",
+      "source": "derived",
+      "similarity": 0.2,
+      "charge": 0,
+      "enol": false,
+      "light": "cards/predict/b64a6c4867e2-light.svg",
+      "dark": "cards/predict/b64a6c4867e2-dark.svg"
+    },
+    {
       "smiles": "OCC#CCc1ccccc1",
       "formula": "C10H10O",
       "caption": "The same group on a different carbon",
       "kind": "regio",
       "source": "derived",
       "similarity": 0.214,
+      "charge": 0,
+      "enol": false,
       "light": "cards/predict/9d8b8bba1ce6-light.svg",
       "dark": "cards/predict/9d8b8bba1ce6-dark.svg"
-    },
-    {
-      "smiles": "CC=CC(O)c1ccccc1",
-      "formula": "C10H12O",
-      "caption": "One reduction too far",
-      "kind": "reduced",
-      "source": "derived",
-      "similarity": 0.25,
-      "light": "cards/predict/ceee7550c8e8-light.svg",
-      "dark": "cards/predict/ceee7550c8e8-dark.svg"
     }
   ],
   "aldol-addition": [
     {
-      "smiles": "CC=CC=O",
-      "formula": "C4H6O",
-      "caption": "What Aldol condensation gives",
-      "kind": "sibling:aldol condensation",
-      "source": "aldol-condensation",
-      "similarity": 0.417,
-      "light": "cards/predict/e73ae8c6477c-light.svg",
-      "dark": "cards/predict/e73ae8c6477c-dark.svg"
-    },
-    {
-      "smiles": "CC(O)=CC=O",
-      "formula": "C4H6O2",
-      "caption": "A double bond the conditions do not make",
-      "kind": "unsaturated",
-      "source": "derived",
-      "similarity": 0.267,
-      "light": "cards/predict/d3452ceff6ab-light.svg",
-      "dark": "cards/predict/d3452ceff6ab-dark.svg"
-    }
-  ],
-  "alpha-halogenation": [
-    {
-      "smiles": "CC(=O)c1ccccc1Br",
-      "formula": "C8H7BrO",
-      "caption": "On the ring instead, as in Electrophilic aromatic bromination",
-      "kind": "ring-site",
-      "source": "eas-bromination",
-      "similarity": 0.44,
-      "light": "cards/predict/e7ed9619cfdb-light.svg",
-      "dark": "cards/predict/e7ed9619cfdb-dark.svg"
-    },
-    {
-      "smiles": "OC(=CBr)c1ccccc1",
-      "formula": "C8H7BrO",
-      "caption": "A tautomer: the double bond on carbon instead",
-      "kind": "tautomer",
-      "source": "derived",
-      "similarity": 0.375,
-      "light": "cards/predict/8ced2e9b992b-light.svg",
-      "dark": "cards/predict/8ced2e9b992b-dark.svg"
-    }
-  ],
-  "claisen-condensation": [
-    {
-      "smiles": "CCC(=O)OCC(C)=O",
-      "formula": "C6H10O3",
-      "caption": "The same ester or amide written the other way round",
-      "kind": "reversed",
-      "source": "derived",
-      "similarity": 0.391,
-      "light": "cards/predict/98b04f1525c4-light.svg",
-      "dark": "cards/predict/98b04f1525c4-dark.svg"
-    },
-    {
-      "smiles": "CCOC(=O)C=C(C)O",
-      "formula": "C6H10O3",
-      "caption": "A tautomer: the double bond on carbon instead",
-      "kind": "tautomer",
-      "source": "derived",
-      "similarity": 0.478,
-      "light": "cards/predict/a5ed90385bd1-light.svg",
-      "dark": "cards/predict/a5ed90385bd1-dark.svg"
-    }
-  ],
-  "cyanohydrin": [
-    {
-      "smiles": "N#COCc1ccccc1",
-      "formula": "C8H7NO",
+      "smiles": "CCOCC=O",
+      "formula": "C4H8O2",
       "caption": "The new group on the oxygen instead",
       "kind": "on-oxygen",
       "source": "derived",
-      "similarity": 0.214,
-      "light": "cards/predict/3321dc9436d4-light.svg",
-      "dark": "cards/predict/3321dc9436d4-dark.svg"
+      "similarity": 0.235,
+      "charge": 0,
+      "enol": false,
+      "light": "cards/predict/e6c091254dcf-light.svg",
+      "dark": "cards/predict/e6c091254dcf-dark.svg"
     },
     {
-      "smiles": "N=CC(O)c1ccccc1",
-      "formula": "C8H9NO",
-      "caption": "One reduction too far",
-      "kind": "reduced",
+      "smiles": "CCC(O)C=O",
+      "formula": "C4H8O2",
+      "caption": "The same group on a different carbon",
+      "kind": "regio",
       "source": "derived",
-      "similarity": 0.269,
-      "light": "cards/predict/1b4a93e9124e-light.svg",
-      "dark": "cards/predict/1b4a93e9124e-dark.svg"
+      "similarity": 0.235,
+      "charge": 0,
+      "enol": false,
+      "light": "cards/predict/cf4680dfa822-light.svg",
+      "dark": "cards/predict/cf4680dfa822-dark.svg"
     }
   ],
   "dibalh-to-aldehyde": [
@@ -144,6 +93,8 @@ export const PREDICT_DISTRACTORS: Readonly<Record<string, readonly PredictDistra
       "kind": "sibling:nucleophilic acyl substitution",
       "source": "ester-acidic-hydrolysis",
       "similarity": 0.5,
+      "charge": 0,
+      "enol": false,
       "light": "cards/predict/aaba64840aca-light.svg",
       "dark": "cards/predict/aaba64840aca-dark.svg"
     },
@@ -154,30 +105,10 @@ export const PREDICT_DISTRACTORS: Readonly<Record<string, readonly PredictDistra
       "kind": "sibling:reduction",
       "source": "lialh4-reduction",
       "similarity": 0.269,
+      "charge": 0,
+      "enol": false,
       "light": "cards/predict/24703bb6824e-light.svg",
       "dark": "cards/predict/24703bb6824e-dark.svg"
-    }
-  ],
-  "diels-alder": [
-    {
-      "smiles": "O=CC1C=CCCC1",
-      "formula": "C7H10O",
-      "caption": "The double bond one carbon over",
-      "kind": "shifted",
-      "source": "derived",
-      "similarity": 0.12,
-      "light": "cards/predict/00a56c4f4367-light.svg",
-      "dark": "cards/predict/00a56c4f4367-dark.svg"
-    },
-    {
-      "smiles": "OC=C1CC=CCC1",
-      "formula": "C7H10O",
-      "caption": "A tautomer: the double bond on carbon instead",
-      "kind": "tautomer",
-      "source": "derived",
-      "similarity": 0.043,
-      "light": "cards/predict/767c975a3628-light.svg",
-      "dark": "cards/predict/767c975a3628-dark.svg"
     }
   ],
   "diene-1-4-addition": [
@@ -188,6 +119,8 @@ export const PREDICT_DISTRACTORS: Readonly<Record<string, readonly PredictDistra
       "kind": "allylic",
       "source": "derived",
       "similarity": 0.231,
+      "charge": 0,
+      "enol": false,
       "light": "cards/predict/d88f676c9931-light.svg",
       "dark": "cards/predict/d88f676c9931-dark.svg"
     },
@@ -198,52 +131,36 @@ export const PREDICT_DISTRACTORS: Readonly<Record<string, readonly PredictDistra
       "kind": "shifted",
       "source": "derived",
       "similarity": 0.214,
+      "charge": 0,
+      "enol": false,
       "light": "cards/predict/205eb25d97c8-light.svg",
       "dark": "cards/predict/205eb25d97c8-dark.svg"
     }
   ],
-  "friedel-crafts-acylation": [
-    {
-      "smiles": "C=C(O)c1ccccc1",
-      "formula": "C8H8O",
-      "caption": "A tautomer: the double bond on carbon instead",
-      "kind": "tautomer",
-      "source": "derived",
-      "similarity": 0.214,
-      "light": "cards/predict/2e6422b0d1a4-light.svg",
-      "dark": "cards/predict/2e6422b0d1a4-dark.svg"
-    },
-    {
-      "smiles": "CC(O)c1ccccc1",
-      "formula": "C8H10O",
-      "caption": "One reduction too far",
-      "kind": "reduced",
-      "source": "derived",
-      "similarity": 0.188,
-      "light": "cards/predict/574cee0172c2-light.svg",
-      "dark": "cards/predict/574cee0172c2-dark.svg"
-    }
-  ],
   "grignard-addition-ketone": [
     {
-      "smiles": "CC(C)([O-])c1ccccc1",
-      "formula": "C9H11O-",
-      "caption": "An intermediate: the reaction stops short",
-      "kind": "intermediate",
-      "source": "grignard-addition-ketone",
-      "similarity": 0.28,
-      "light": "cards/predict/3c4e8deecc4d-light.svg",
-      "dark": "cards/predict/3c4e8deecc4d-dark.svg"
+      "smiles": "COC(C)c1ccccc1",
+      "formula": "C9H12O",
+      "caption": "The new group on the oxygen instead",
+      "kind": "on-oxygen",
+      "source": "derived",
+      "similarity": 0.259,
+      "charge": 0,
+      "enol": false,
+      "light": "cards/predict/fdc25d91a890-light.svg",
+      "dark": "cards/predict/fdc25d91a890-dark.svg"
     },
     {
-      "smiles": "CC1(c2ccccc2)OCCO1",
-      "formula": "C10H12O2",
-      "caption": "What Acetal protection gives",
-      "kind": "sibling:protection",
-      "source": "acetal-protection",
-      "similarity": 0.286,
-      "light": "cards/predict/ae83f49021c6-light.svg",
-      "dark": "cards/predict/ae83f49021c6-dark.svg"
+      "smiles": "CC(CO)c1ccccc1",
+      "formula": "C9H12O",
+      "caption": "The same group on a different carbon",
+      "kind": "regio",
+      "source": "derived",
+      "similarity": 0.296,
+      "charge": 0,
+      "enol": false,
+      "light": "cards/predict/9054989f0091-light.svg",
+      "dark": "cards/predict/9054989f0091-dark.svg"
     }
   ],
   "lialh4-reduction": [
@@ -254,6 +171,8 @@ export const PREDICT_DISTRACTORS: Readonly<Record<string, readonly PredictDistra
       "kind": "sibling:reduction",
       "source": "dibalh-to-aldehyde",
       "similarity": 0.269,
+      "charge": 0,
+      "enol": false,
       "light": "cards/predict/da3341b60b14-light.svg",
       "dark": "cards/predict/da3341b60b14-dark.svg"
     },
@@ -264,6 +183,8 @@ export const PREDICT_DISTRACTORS: Readonly<Record<string, readonly PredictDistra
       "kind": "sibling:nucleophilic acyl substitution",
       "source": "ester-acidic-hydrolysis",
       "similarity": 0.5,
+      "charge": 0,
+      "enol": false,
       "light": "cards/predict/aaba64840aca-light.svg",
       "dark": "cards/predict/aaba64840aca-dark.svg"
     }
@@ -276,52 +197,36 @@ export const PREDICT_DISTRACTORS: Readonly<Record<string, readonly PredictDistra
       "kind": "intermediate",
       "source": "malonic-ester-synthesis",
       "similarity": 0.476,
+      "charge": 0,
+      "enol": false,
       "light": "cards/predict/55bd0b3366fa-light.svg",
       "dark": "cards/predict/55bd0b3366fa-dark.svg"
     },
     {
-      "smiles": "C=CC(=O)O",
-      "formula": "C3H4O2",
-      "caption": "A double bond the conditions do not make",
-      "kind": "unsaturated",
+      "smiles": "CC(C)C(=O)O",
+      "formula": "C4H8O2",
+      "caption": "The reagent adding a second time",
+      "kind": "over",
       "source": "derived",
-      "similarity": 0.136,
-      "light": "cards/predict/4e21c045dd2c-light.svg",
-      "dark": "cards/predict/4e21c045dd2c-dark.svg"
-    }
-  ],
-  "nabh4-reduction": [
-    {
-      "smiles": "CC([O-])c1ccccc1",
-      "formula": "C8H9O-",
-      "caption": "An intermediate: the reaction stops short",
-      "kind": "intermediate",
-      "source": "nabh4-reduction",
-      "similarity": 0.28,
-      "light": "cards/predict/c59927292e37-light.svg",
-      "dark": "cards/predict/c59927292e37-dark.svg"
-    },
-    {
-      "smiles": "C=C(O)c1ccccc1",
-      "formula": "C8H8O",
-      "caption": "A double bond the conditions do not make",
-      "kind": "unsaturated",
-      "source": "derived",
-      "similarity": 0.429,
-      "light": "cards/predict/2e6422b0d1a4-light.svg",
-      "dark": "cards/predict/2e6422b0d1a4-dark.svg"
+      "similarity": 0.19,
+      "charge": 0,
+      "enol": false,
+      "light": "cards/predict/c4e3082b583a-light.svg",
+      "dark": "cards/predict/c4e3082b583a-dark.svg"
     }
   ],
   "nbs-allylic": [
     {
-      "smiles": "CC=CCBr",
-      "formula": "C4H7Br",
-      "caption": "The other end of the allyl system",
-      "kind": "allylic",
+      "smiles": "CCC(Br)CBr",
+      "formula": "C4H8Br2",
+      "caption": "Br2 added across a double bond instead",
+      "kind": "addition",
       "source": "derived",
-      "similarity": 0.167,
-      "light": "cards/predict/605e1fdb876f-light.svg",
-      "dark": "cards/predict/605e1fdb876f-dark.svg"
+      "similarity": 0.158,
+      "charge": 0,
+      "enol": false,
+      "light": "cards/predict/2a9bc3da800c-light.svg",
+      "dark": "cards/predict/2a9bc3da800c-dark.svg"
     },
     {
       "smiles": "C=CCCBr",
@@ -330,20 +235,24 @@ export const PREDICT_DISTRACTORS: Readonly<Record<string, readonly PredictDistra
       "kind": "regio",
       "source": "derived",
       "similarity": 0.312,
+      "charge": 0,
+      "enol": false,
       "light": "cards/predict/205eb25d97c8-light.svg",
       "dark": "cards/predict/205eb25d97c8-dark.svg"
     }
   ],
   "pcc-oxidation": [
     {
-      "smiles": "CCC=CO",
-      "formula": "C4H8O",
-      "caption": "A tautomer: the double bond on carbon instead",
-      "kind": "tautomer",
+      "smiles": "CCCC(=O)O",
+      "formula": "C4H8O2",
+      "caption": "One oxidation too far",
+      "kind": "oxidised",
       "source": "derived",
-      "similarity": 0.211,
-      "light": "cards/predict/341e0749480b-light.svg",
-      "dark": "cards/predict/341e0749480b-dark.svg"
+      "similarity": 0.263,
+      "charge": 0,
+      "enol": false,
+      "light": "cards/predict/1f78679d2856-light.svg",
+      "dark": "cards/predict/1f78679d2856-dark.svg"
     },
     {
       "smiles": "CC=CC=O",
@@ -352,6 +261,8 @@ export const PREDICT_DISTRACTORS: Readonly<Record<string, readonly PredictDistra
       "kind": "unsaturated",
       "source": "derived",
       "similarity": 0.048,
+      "charge": 0,
+      "enol": false,
       "light": "cards/predict/e73ae8c6477c-light.svg",
       "dark": "cards/predict/e73ae8c6477c-dark.svg"
     }
@@ -364,6 +275,8 @@ export const PREDICT_DISTRACTORS: Readonly<Record<string, readonly PredictDistra
       "kind": "intermediate",
       "source": "robinson-annulation",
       "similarity": 0.226,
+      "charge": 0,
+      "enol": false,
       "light": "cards/predict/1623120b99b0-light.svg",
       "dark": "cards/predict/1623120b99b0-dark.svg"
     },
@@ -374,6 +287,8 @@ export const PREDICT_DISTRACTORS: Readonly<Record<string, readonly PredictDistra
       "kind": "shifted",
       "source": "derived",
       "similarity": 0.241,
+      "charge": 0,
+      "enol": false,
       "light": "cards/predict/c6d4383a91fe-light.svg",
       "dark": "cards/predict/c6d4383a91fe-dark.svg"
     }
@@ -383,85 +298,113 @@ export const PREDICT_DISTRACTORS: Readonly<Record<string, readonly PredictDistra
 export const PREDICT_ANSWERS: Readonly<Record<string, PredictAnswer>> = {
   "acetylide-addition": {
     "similarity": 0.207,
+    "charge": 0,
+    "enol": false,
+    "ownProducts": [
+      "CC#CC(O)c1ccccc1"
+    ],
     "light": "cards/predict/a26bb2613659-light.svg",
     "dark": "cards/predict/a26bb2613659-dark.svg"
   },
   "aldol-addition": {
     "similarity": 0.235,
+    "charge": 0,
+    "enol": false,
+    "ownProducts": [
+      "CC(O)CC=O"
+    ],
     "light": "cards/predict/2c3a972266b2-light.svg",
     "dark": "cards/predict/2c3a972266b2-dark.svg"
   },
-  "alpha-halogenation": {
-    "similarity": 0.458,
-    "light": "cards/predict/b14edd066dc6-light.svg",
-    "dark": "cards/predict/b14edd066dc6-dark.svg"
-  },
-  "claisen-condensation": {
-    "similarity": 0.524,
-    "light": "cards/predict/f416b88de813-light.svg",
-    "dark": "cards/predict/f416b88de813-dark.svg"
-  },
-  "cyanohydrin": {
-    "similarity": 0.222,
-    "light": "cards/predict/6798f0292753-light.svg",
-    "dark": "cards/predict/6798f0292753-dark.svg"
-  },
   "dibalh-to-aldehyde": {
     "similarity": 0.269,
+    "charge": 0,
+    "enol": false,
+    "ownProducts": [
+      "CO",
+      "O=Cc1ccccc1"
+    ],
     "light": "cards/predict/da3341b60b14-light.svg",
     "dark": "cards/predict/da3341b60b14-dark.svg"
   },
-  "diels-alder": {
-    "similarity": 0.125,
-    "light": "cards/predict/2a89a4ca21d8-light.svg",
-    "dark": "cards/predict/2a89a4ca21d8-dark.svg"
-  },
   "diene-1-4-addition": {
     "similarity": 0.062,
+    "charge": 0,
+    "enol": false,
+    "ownProducts": [
+      "CC=CCBr"
+    ],
     "light": "cards/predict/605e1fdb876f-light.svg",
     "dark": "cards/predict/605e1fdb876f-dark.svg"
   },
-  "friedel-crafts-acylation": {
-    "similarity": 0.188,
-    "light": "cards/predict/33134a8efc4b-light.svg",
-    "dark": "cards/predict/33134a8efc4b-dark.svg"
-  },
   "grignard-addition-ketone": {
     "similarity": 0.333,
+    "charge": 0,
+    "enol": false,
+    "ownProducts": [
+      "CC(C)(O)c1ccccc1"
+    ],
     "light": "cards/predict/4e2582d0e380-light.svg",
     "dark": "cards/predict/4e2582d0e380-dark.svg"
   },
   "lialh4-reduction": {
     "similarity": 0.269,
+    "charge": 0,
+    "enol": false,
+    "ownProducts": [
+      "CO",
+      "OCc1ccccc1"
+    ],
     "light": "cards/predict/24703bb6824e-light.svg",
     "dark": "cards/predict/24703bb6824e-dark.svg"
   },
   "malonic-ester-synthesis": {
     "similarity": 0.316,
+    "charge": 0,
+    "enol": false,
+    "ownProducts": [
+      "CCC(=O)O",
+      "CCO",
+      "I",
+      "O=C=O"
+    ],
     "light": "cards/predict/103f2657047a-light.svg",
     "dark": "cards/predict/103f2657047a-dark.svg"
   },
-  "nabh4-reduction": {
-    "similarity": 0.333,
-    "light": "cards/predict/574cee0172c2-light.svg",
-    "dark": "cards/predict/574cee0172c2-dark.svg"
-  },
   "nbs-allylic": {
     "similarity": 0.25,
+    "charge": 0,
+    "enol": false,
+    "ownProducts": [
+      "C=CC(C)Br",
+      "CC=CCBr",
+      "O=C1CCC(=O)N1"
+    ],
     "light": "cards/predict/d88f676c9931-light.svg",
     "dark": "cards/predict/d88f676c9931-dark.svg"
   },
   "pcc-oxidation": {
     "similarity": 0.211,
+    "charge": 0,
+    "enol": false,
+    "ownProducts": [
+      "CCCC=O"
+    ],
     "light": "cards/predict/8952c0b61fbf-light.svg",
     "dark": "cards/predict/8952c0b61fbf-dark.svg"
   },
   "robinson-annulation": {
     "similarity": 0.259,
+    "charge": 0,
+    "enol": false,
+    "ownProducts": [
+      "O",
+      "O=C1C=C2CCCCC2CC1"
+    ],
     "light": "cards/predict/043bf829dd01-light.svg",
     "dark": "cards/predict/043bf829dd01-dark.svg"
   }
 };
 
 /** Registry reactions with no honest predict step: no pair of wrong options meets the rules. */
-export const PREDICT_GAPS: readonly string[] = ["acetal-protection", "acidchloride-to-amide", "alcohol-dehydration", "alcohol-pbr3", "alcohol-to-halide", "aldol-condensation", "clemmensen", "diazonium-formation", "eas-bromination", "epoxidation-mcpba", "epoxide-opening-base", "ester-acidic-hydrolysis", "ether-cleavage", "fischer-esterification", "gilman-to-ketone", "imine-formation", "jones-oxidation", "michael-addition", "nitration", "nitrile-basic-hydrolysis", "nitrile-formation", "nitrile-reduction", "periodic-cleavage", "sandmeyer", "socl2-acid-to-chloride", "wittig-olefination", "wolff-kishner"];
+export const PREDICT_GAPS: readonly string[] = ["acetal-protection", "acidchloride-to-amide", "alcohol-dehydration", "alcohol-pbr3", "alcohol-to-halide", "aldol-condensation", "alpha-halogenation", "claisen-condensation", "clemmensen", "cyanohydrin", "diazonium-formation", "diels-alder", "eas-bromination", "epoxidation-mcpba", "epoxide-opening-base", "ester-acidic-hydrolysis", "ether-cleavage", "fischer-esterification", "friedel-crafts-acylation", "gilman-to-ketone", "imine-formation", "jones-oxidation", "michael-addition", "nabh4-reduction", "nitration", "nitrile-basic-hydrolysis", "nitrile-formation", "nitrile-reduction", "periodic-cleavage", "sandmeyer", "socl2-acid-to-chloride", "wittig-olefination", "wolff-kishner"];

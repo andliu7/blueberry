@@ -49,6 +49,7 @@
  */
 
 import type { CardId, Rating, ReviewState } from "./types";
+import { isDue } from "./types";
 
 /* ------------------------------------------------------------------ */
 /* The dials                                                            */
@@ -218,6 +219,40 @@ export function rateCard(state: ReviewState, rating: Rating, now: Date): ReviewS
     dueAt: new Date(now.getTime() + interval * DAY_MS).toISOString(),
     lastRating: rating,
   };
+}
+
+/**
+ * THE PRESS A STUDENT MAKES, which is not always an on-time review.
+ * `rateCard` prices a review at its due date: the worked line above rates one
+ * card again and again at one instant and gets 1, 3, 8, 20. Used for every
+ * press, that meant "Review all" a minute after a Good grew the interval as if
+ * a day had passed, and three taps in a minute sent a new card a week out
+ * without one real retrieval gap (round 3 critic).
+ *
+ * The rule, and why this one: a GRADUATED card that is not due yet keeps its
+ * schedule when it is passed. Anki's other answer, crediting only the elapsed
+ * time, needs a last-review time the state does not store and arithmetic that
+ * every button label would then have to repeat; "not due, not rescheduled"
+ * cannot inflate anything and is one comparison. Two exceptions, both on
+ * purpose:
+ *   again     still lapses. Forgetting a card early is still forgetting it.
+ *   learning  cards (under a day) still step. The run shows a card again
+ *             seconds after an Again, and graduating it then is the point.
+ */
+export function reviewCard(state: ReviewState, rating: Rating, now: Date): ReviewState {
+  if (isEarlyPass(state, rating, now)) return state;
+  return rateCard(state, rating, now);
+}
+
+/** What a press will really do, for the label on its button. */
+export function reviewInterval(state: ReviewState, rating: Rating, now: Date): number {
+  return isEarlyPass(state, rating, now) ? state.interval : nextInterval(state, rating);
+}
+
+// A paused card is never an early pass: rating it restarts its schedule on
+// purpose (the resume-on-rating rule in types.ts), so it goes to rateCard.
+function isEarlyPass(state: ReviewState, rating: Rating, now: Date): boolean {
+  return rating !== "again" && state.suspended !== true && !isLearning(state) && !isDue(state, now);
 }
 
 /* ------------------------------------------------------------------ */

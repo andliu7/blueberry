@@ -316,3 +316,18 @@ describe("storage that refuses to work", () => {
     expect(store.getSnapshot().cards["card-1"]).toBeDefined();
   });
 });
+
+describe("rating a card before it is due (round 5)", () => {
+  it("keeps the schedule, so Review all a minute after a Good cannot stretch it", () => {
+    const store = createLocalDecks({ now });
+    store.saveCard(lessonCard("card-1"), PERSONAL_DECK_ID);
+    store.rate("card-1", "good");
+    const graded = store.getSnapshot().review["card-1"];
+
+    clock.at = new Date(NOON.getTime() + 60 * 1000);
+    store.rate("card-1", "good");
+    store.rate("card-1", "easy");
+    expect(store.getSnapshot().review["card-1"]).toEqual(graded);
+    expect(store.getSnapshot().review["card-1"]?.interval).toBe(GRADUATING_INTERVAL_DAYS);
+  });
+});

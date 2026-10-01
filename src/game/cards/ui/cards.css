@@ -653,9 +653,10 @@
    with 6px atom labels, and after the pick the marked options moved under
    the card, below the fold. Now they are full-width rows that STAY where
    they were picked: the pick marks them in place, under the verdict line,
-   and the dock never scrolls, so the marking is on screen on every card.
-   Drawings only before the pick (the names would give the answer away); the
-   caption joins each row after it. */
+   and the dock never scrolls. Drawings only before the pick (the names would
+   give the answer away). Round 5: after the pick only the student's own call
+   stays, with its caption; the product is in the card, and the card's why
+   needs the height the other two rows took (Run.tsx YourCall). */
 .predict {
   /* The drawing's height is the label size: the generator draws on a 300
      by 128 canvas with 23-unit labels (scripts/build_card_distractors.py),
@@ -694,9 +695,9 @@
   -webkit-user-drag: none;
 }
 
-/* After the pick: the drawing keeps its size and moves to the row's start,
-   and the words fill the rest of the row. */
-.predict--review .predict__option {
+/* After the pick, the student's call: the drawing keeps its size and moves
+   to the row's start, and the words fill the rest of the row. */
+.predict__option--mine {
   justify-content: flex-start;
 }
 

@@ -25,10 +25,9 @@
  */
 
 import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
-import { CARD_RUN_MIN_GRADED, CARD_RUNS_PAID_PER_DAY, DIAMONDS_CARD_RUN } from "@blueberry/economy";
 import { REACTIONS } from "../../../data/reactions";
 import type { SavedMistake } from "../../tabs/trainer/mistakes";
-import { nextInterval, startCard } from "../scheduler";
+import { reviewInterval, startCard } from "../scheduler";
 import type { Card, DeckSource, Rating, ReviewState } from "../types";
 import { RATING_LABELS, RATINGS } from "../types";
 import { CardFace, Drawing } from "./CardFace";
@@ -39,8 +38,11 @@ import { intervalLabel } from "./intervalLabel";
 import { predictionChoices, type PredictOption } from "./predict";
 import {
   calledLine,
+  dueAtRunStart,
+  dueGraded,
   ratingForKey,
   runHeadline,
+  rewardLine,
   runStats,
   suggestedRating,
   swipeRating,
@@ -69,7 +71,8 @@ export interface RunProps {
   /** Leaving, early or after the summary. Every grade is already committed. */
   readonly onExit: () => void;
   /**
-   * Credits a finished run with `graded` distinct cards graded and returns
+   * Credits a finished run with `graded` distinct DUE cards graded (see
+   * runStats.dueAtRunStart: early re-reviews do not count) and returns
    * the diamonds the economy actually paid (CardsHome passes the progress
    * store's finishCardRun). Absent in tests and previews: nothing is paid.
    */
@@ -104,6 +107,9 @@ export function Run({ cards, source, journal, onExit, credit }: RunProps) {
   // is down. State rather than a ref because the card's class reads it.
   const [drag, setDrag] = useState<{ readonly x: number; readonly width: number } | null>(null);
   const snapshot = useDeckSnapshot(source);
+  // A useState initializer runs once, on the first render: the cards that were
+  // due as the run opened, before its own grades move any due date.
+  const [dueAtStart] = useState(() => dueAtRunStart(cards, source.getSnapshot(), new Date()));
 
   const card = currentCard(state);
   const done = isFinished(state);
@@ -120,7 +126,7 @@ export function Run({ cards, source, journal, onExit, credit }: RunProps) {
     source.rate(outcome.cardId, outcome.rating);
     // Paid from the event handler that finishes the run, not from an effect:
     // a handler runs once per press, so the run cannot be credited twice.
-    if (isFinished(outcome.state)) setCredited(credit?.(sessionSummary(outcome.state).reviewed) ?? 0);
+    if (isFinished(outcome.state)) setCredited(credit?.(dueGraded(outcome.state.finished, dueAtStart)) ?? 0);
     setState(outcome.state);
     setDx(0);
   };
@@ -183,6 +189,7 @@ export function Run({ cards, source, journal, onExit, credit }: RunProps) {
           state={state}
           stats={stats}
           credited={credited}
+          dueCount={dueGraded(state.finished, dueAtStart)}
           forecast={dueForecast(snapshot, journal, new Date())}
           onDone={onExit}
         />
@@ -245,6 +252,9 @@ export function Run({ cards, source, journal, onExit, credit }: RunProps) {
         </span>
       </div>
 
+      {/* After a pick the streak joins the verdict in the dock instead
+          (verdictLine), and this row's height goes to the card's why. */}
+      {!(state.revealed && choices !== null) && (
       <div className="flex min-h-7 items-center justify-center px-4" aria-live="polite">
         {stats.streak >= 2 && (
           <span className="rounded-full bg-[color:var(--progress)] px-3 py-0.5 text-scale-sm font-bold text-[color:var(--progress-ink)]">
@@ -255,6 +265,7 @@ export function Run({ cards, source, journal, onExit, credit }: RunProps) {
           <span className="text-scale-sm text-bb-muted-foreground">Second look at this one. Nothing is lost by that.</span>
         )}
       </div>
+      )}
 
       <div className="run__stage" ref={stage}>
         <div
@@ -285,18 +296,15 @@ export function Run({ cards, source, journal, onExit, credit }: RunProps) {
       <div className="run__dock">
         {state.revealed ? (
           <>
-            {choices !== null && (
-              <>
-                <p className="m-0 text-scale-sm font-semibold" aria-live="polite">
-                  {verdictLine(call)}
-                </p>
-                <PredictOptions choices={choices} call={call} />
-              </>
+            {choices !== null && <YourCall choices={choices} call={call} verdict={verdictLine(call, stats.streak)} />}
+            <GradeDock reviewState={reviewState} suggested={suggested} onPress={press} now={at} />
+            {/* The swipe hint only on a plain card: after a pick the dock's
+                height is the card's why, which must stay above the fold. */}
+            {choices === null && (
+              <p className="m-0 text-center text-scale-xs text-bb-muted-foreground">
+                Swipe the card right for Good, left for Again
+              </p>
             )}
-            <GradeDock reviewState={reviewState} suggested={suggested} onPress={press} />
-            <p className="m-0 text-center text-scale-xs text-bb-muted-foreground">
-              Swipe the card right for Good, left for Again
-            </p>
           </>
         ) : choices !== null ? (
           <PredictOptions choices={choices} onCall={callIt} />
@@ -311,11 +319,11 @@ export function Run({ cards, source, journal, onExit, credit }: RunProps) {
 }
 
 /** The one line over the grades after a pick. Coach voice, never a scold. */
-function verdictLine(call: Call | undefined): string {
-  // One line at 390px, so the marked rows under it start as high as they can.
-  if (call === undefined || call.key === null) return "No call this time. The product is marked.";
-  if (call.correct) return "You called it. Here is what each one is.";
-  return "Not this time. Both are marked below.";
+function verdictLine(call: Call | undefined, streak: number): string {
+  // Short: beside a drawing it has about 120px. The product is in the card.
+  if (call === undefined || call.key === null) return "No call this time. The product is in the card.";
+  if (call.correct) return streak >= 2 ? `You called it, ${streak} in a row.` : "You called it.";
+  return "Not this time.";
 }
 
 /**
@@ -328,15 +336,21 @@ export function GradeDock({
   reviewState,
   suggested,
   onPress,
+  now,
 }: {
   readonly reviewState: ReviewState;
   readonly suggested: Rating | null;
   readonly onPress: (rating: Rating) => void;
+  /** The clock read the run made this render; absent, the dock reads its own. */
+  readonly now?: Date;
 }) {
+  const at = now ?? new Date();
   return (
     <div className="grid grid-cols-4 gap-2" role="group" aria-label="How well did you know it">
       {RATINGS.map((rating, index) => {
-        const interval = nextInterval(reviewState, rating);
+        // reviewInterval, not nextInterval: a card passed before it is due
+        // keeps its schedule (scheduler.ts), and the label must say so.
+        const interval = reviewInterval(reviewState, rating, at);
         return (
           <button
             key={rating}
@@ -380,71 +394,88 @@ function Progress({ state }: { readonly state: ReviewSessionState }) {
 }
 
 /**
- * "Call the product": three drawings, one of them the answer, in rows that
- * stay put through the pick. Before it (`onCall` given) each row is a button
- * and shows its drawing only, because the names would give the answer away;
- * keys 1 to 3 pick in the same order, and "I don't know yet" is the honest
- * way out. After it (`call` given) the same rows are marked IN PLACE, the way
- * Quizlet marks its options, each with words saying what it is: the
- * product's name, or what the wrong one is relative to it ("the other end of
- * the allyl system"), so a miss still teaches. State is carried in words (the
- * "Product" and "Your call" badges) and in the border style, never in colour
- * alone. One component for both moments, so the rows cannot move between
- * them: round 2 moved them under the card and below the fold.
+ * "Call the product": three drawings, one of them the answer, as full-width
+ * rows in the dock. Each row shows its drawing only, because the names would
+ * give the answer away; keys 1 to 3 pick in the same order, and "I don't know
+ * yet" is the honest way out.
  */
 function PredictOptions({
   choices,
   onCall,
-  call,
 }: {
   readonly choices: readonly PredictOption[];
-  readonly onCall?: (option: PredictOption | null) => void;
-  readonly call?: Call | undefined;
+  readonly onCall: (option: PredictOption | null) => void;
 }) {
-  if (onCall !== undefined) {
-    return (
-      <div className="flex flex-col gap-2">
-        {/* No heading here: the card right above says "Call the product
-            below", and the line it would take is the card's last line. */}
-        <div className="predict" role="group" aria-label="Call the product">
-          {choices.map((option, index) => (
-            <button
-              key={option.key}
-              type="button"
-              className="predict__option press"
-              aria-label={`Option ${index + 1}`}
-              aria-keyshortcuts={String(index + 1)}
-              onClick={() => onCall(option)}
-            >
-              <Drawing light={option.light} dark={option.dark} alt="" className="predict__art" />
-            </button>
-          ))}
-        </div>
-        <button type="button" className="cards-ghost press w-full text-scale-sm" onClick={() => onCall(null)}>
-          I don't know yet
-        </button>
-      </div>
-    );
-  }
   return (
-    <ul className="predict predict--review" aria-label="The three options">
-      {choices.map((option) => {
-        const picked = call?.key === option.key;
-        return (
-          <li
+    <div className="flex flex-col gap-2">
+      {/* No heading here: the card right above says "Call the product
+          below", and the line it would take is the card's last line. */}
+      <div className="predict" role="group" aria-label="Call the product">
+        {choices.map((option, index) => (
+          <button
             key={option.key}
-            className={`predict__option ${option.correct ? "predict__option--right" : ""} ${picked ? "predict__option--picked" : ""}`}
+            type="button"
+            className="predict__option press"
+            aria-label={`Option ${index + 1}`}
+            aria-keyshortcuts={String(index + 1)}
+            onClick={() => onCall(option)}
           >
             <Drawing light={option.light} dark={option.dark} alt="" className="predict__art" />
-            <span className="predict__words">
-              {option.correct && <span className="predict__badge predict__badge--right">Product</span>}
-              {picked && <span className="predict__badge predict__badge--picked">Your call</span>}
-              <FormulaLabel text={option.label} prose className="text-scale-xs leading-tight" />
-            </span>
-          </li>
-        );
-      })}
-    </ul>
+          </button>
+        ))}
+      </div>
+      <button type="button" className="cards-ghost press w-full text-scale-sm" onClick={() => onCall(null)}>
+        I don't know yet
+      </button>
+    </div>
+  );
+}
+
+/**
+ * After the pick: the student's own call, in its row, with words saying what
+ * it is ("the other end of the allyl system", or "Product"). ROUND 5: the
+ * three rows used to stay in the dock, 456px of an 844px phone, and the
+ * card's why sat under them on every predict card (round 3 critic). The
+ * product is drawn in the card's own scheme once revealed, so the dock keeps
+ * only the one drawing the card cannot show, at its full size: its labels
+ * are sized by --predict-art-height (cardsContrast.test.ts), so it is not
+ * shrunk to make room. "I don't know yet" has no call to show.
+ */
+function YourCall({
+  choices,
+  call,
+  verdict,
+}: {
+  readonly choices: readonly PredictOption[];
+  readonly call: Call | undefined;
+  readonly verdict: string;
+}) {
+  const option = choices.find((choice) => choice.key === call?.key);
+  if (option === undefined) {
+    return (
+      <p className="m-0 text-scale-sm font-semibold" aria-live="polite">
+        {verdict}
+      </p>
+    );
+  }
+  // The verdict sits in the row's words, not on a line of its own: that line
+  // was the last 31px the acetylide card's why needed at 390 by 844.
+  return (
+    <div className="predict">
+      <div className={`predict__option predict__option--mine ${option.correct ? "predict__option--right" : "predict__option--picked"}`}>
+        <Drawing light={option.light} dark={option.dark} alt="" className="predict__art" />
+        <span className="predict__words">
+          <span className="text-scale-sm font-semibold leading-tight" aria-live="polite">
+            {verdict}
+          </span>
+          <span className="flex flex-wrap gap-1">
+            <span className="predict__badge predict__badge--picked">Your call</span>
+            {option.correct && <span className="predict__badge predict__badge--right">Product</span>}
+          </span>
+          {!option.correct && <FormulaLabel text={option.label} prose className="text-scale-xs leading-tight" />}
+        </span>
+      </div>
+    </div>
   );
 }
 
@@ -457,17 +488,21 @@ function RunSummary({
   state,
   stats,
   credited,
+  dueCount,
   forecast,
   onDone,
 }: {
   readonly state: ReviewSessionState;
   readonly stats: RunStats;
   readonly credited: number;
+  /** Graded cards that were due at the start: what the reward counted. */
+  readonly dueCount: number;
   readonly forecast: readonly { readonly label: string; readonly count: number }[];
   readonly onDone: () => void;
 }) {
   const summary = sessionSummary(state);
   const called = calledLine(stats);
+  const reward = rewardLine(dueCount, credited);
   const presses = RATINGS.reduce((sum, rating) => sum + stats.split[rating], 0);
   const tomorrow = forecast[1]?.count ?? 0;
   const week = forecast.slice(1).reduce((sum, day) => sum + day.count, 0);
@@ -492,12 +527,7 @@ function RunSummary({
         <Stat value={String(stats.bestStreak)} label="Best streak of right calls" />
         <Stat value={String(credited)} label="Diamonds" />
       </div>
-      {credited === 0 && (
-        <p className="m-0 text-center text-scale-xs text-bb-muted-foreground">
-          A run of {CARD_RUN_MIN_GRADED} or more cards earns {DIAMONDS_CARD_RUN} diamonds, up to {CARD_RUNS_PAID_PER_DAY} runs a
-          day.
-        </p>
-      )}
+      {reward !== null && <p className="m-0 text-center text-scale-xs text-bb-muted-foreground">{reward}</p>}
 
       {presses > 0 && (
         <div className="flex flex-col gap-2">

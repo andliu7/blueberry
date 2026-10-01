@@ -33,6 +33,15 @@ test/cardsRun.test.ts:
      proxy, with a tie band of TIE: inside it the difference is not a thing a
      student can see, and asking for strictly closer would make "never pick
      the closest" the new tell.
+  5. Each matches the answer's species class: its net charge, and whether it
+     is an enol, enolate or enamine. Across a deck, a class only wrong options
+     carry is a rule a student learns without chemistry (round 5).
+  6. Neither is a product this card's own data or mechanism makes: see
+     own_products() (the NBS card's other allyl end).
+  7. Neither needs a reagent the card does not carry: no more carbon than the
+     starts and consumed reagents supply, no reduction without a reductant and
+     no oxidation without an oxidant. See carbon_supply() and
+     needs_absent_reagent().
 
 WHERE THE WRONG OPTIONS COME FROM. Derived, never recalled. Each candidate is
 the answer or the start rewritten by one RDKit edit, or a structure the
@@ -136,6 +145,13 @@ TRANSFORMS: list[tuple[str, str, list[str]]] = [
         ["[C;!a:1]=[O,N,C;!a:2]>>[C:1]-[*:2]", "[C;!a:1]#[N,C;!a:2]>>[C:1]=[*:2]"],
     ),
     (
+        "oxidised",
+        "One oxidation too far",
+        # An aldehyde taken on to the acid: the PCC-against-chromic-acid
+        # question. Offered only where the card carries an oxidant (rule 7).
+        ["[CX3;H1;!a:1]=[O:2]>>[C:1](=[O:2])O"],
+    ),
+    (
         "reversed",
         "The same ester or amide written the other way round",
         # R-C(=O)-X-R'  ->  R-X-C(=O)-R' : which side carries the C=O, the
@@ -165,7 +181,7 @@ CAPTIONS = {
 # reacting), then plausible misplacements, then the rest.
 PRIORITY = [
     "allylic", "intermediate", "over", "half", "sibling", "addition", "ring-site", "on-oxygen",
-    "shifted", "reversed", "regio", "twice", "tautomer", "reduced", "branch", "unsaturated",
+    "shifted", "reversed", "regio", "twice", "tautomer", "reduced", "oxidised", "branch", "unsaturated",
 ]
 
 
@@ -540,13 +556,19 @@ def candidates(rxn: dict, registry: list[dict]) -> list[Candidate]:
         return []
     starts = {canonical(Chem.MolFromSmiles(s)) for s in rxn["reactants"]}
     found: list[Candidate] = []
-    seen = {answer_smiles} | starts
+    seen = {answer_smiles} | starts | own_products(rxn, registry)  # rule 6
+    answer_class = species_class(rxn["product"])
+    supply = carbon_supply(rxn)
 
     def keep(key: str, caption: str, smiles: str | None, source: str, check_stable: bool = True) -> None:
         if smiles is None or smiles in seen or not passes_rule_1(smiles, rxn):
             return
         if check_stable and not stable(smiles):
             return
+        if species_class(smiles) != answer_class:
+            return  # rule 5
+        if needs_absent_reagent(key, rxn) or (key != "over" and _carbons(smiles) > supply):
+            return  # rule 7
         seen.add(smiles)
         found.append((key, caption, smiles, source))
 
@@ -576,6 +598,17 @@ def candidates(rxn: dict, registry: list[dict]) -> list[Candidate]:
         theirs = {canonical(Chem.MolFromSmiles(s) or Chem.Mol()) for s in other.get("balance_lhs", []) if _carbons(s) > 0}
         if other["id"] != rxn["id"] and canonical(Chem.MolFromSmiles(other["reactants"][0])) == answer_smiles and (mine & theirs) - starts:
             keep("over", CAPTIONS["over"], canonical(Chem.MolFromSmiles(other["product"])), other["id"])
+    # An alkyl halide the card consumes, adding a second time at the answer's
+    # enolisable carbon: the dialkylation one equivalent of CH3I is there to
+    # avoid on the malonic ester card. Same kind as above: this card's own
+    # reagent acting again.
+    twice = AllChem.ReactionFromSmarts("[CX4;!H0:1]-[CX3:2]=[O:3].[CX4:4]-[Cl,Br,I]>>[C:4]-[C:1]-[C:2]=[O:3]")
+    for halide in rxn.get("balance_lhs", []):
+        reagent = Chem.MolFromSmiles(halide)
+        if reagent is None or canonical(Chem.Mol(reagent)) in starts:
+            continue
+        for products in twice.RunReactants((answer, reagent)):
+            keep("over", CAPTIONS["over"], canonical(Chem.Mol(products[0])), "derived")
     for smiles in half_acetal(rxn["product"]):
         keep("half", CAPTIONS["half"], smiles, "derived", False)
     for start in rxn["reactants"]:
@@ -604,6 +637,80 @@ def candidates(rxn: dict, registry: list[dict]) -> list[Candidate]:
         for smiles in group_edits(answer, "twice"):
             keep("twice", CAPTIONS["twice"], smiles, "derived")
     return sorted(found, key=lambda entry: rank(entry[0]))
+
+
+# RULE 5 (round 5): no option class that only wrong options carry. The round 3
+# critic found answers never charged and never enols while eight wrong options
+# were alkoxides or enols, so "never pick the charged one or the enol" beat
+# chance (0.45 against 0.33) with no chemistry. A wrong option must match the
+# answer on each class below. Rule 3 compared counts per card; this compares
+# what KIND of species the drawing is, which a student learns across a deck.
+# ENOL_FORM covers enols, enolates and enamines: C=C with O or N on it.
+ENOL_FORM = Chem.MolFromSmarts("[CX3]=[CX3]-[OX2H1,OX1-,NX3;H1,H2]")
+
+
+def species_class(smiles: str) -> dict[str, object]:
+    """The classes rule 5 compares: net formal charge and enol/enamine form."""
+    mol = Chem.MolFromSmiles(smiles)
+    return {"charge": Chem.GetFormalCharge(mol), "enol": mol.HasSubstructMatch(ENOL_FORM)}
+
+
+def own_products(rxn: dict, registry: list[dict]) -> set[str]:
+    """
+    RULE 6 (round 5): what this card's own data or mechanism makes, so never a
+    WRONG option. The round 3 critic found the NBS card marking 1-bromobut-2-ene
+    wrong, a product of the card's own allylic radical. Listed here:
+      - every species the balance releases, and the product;
+      - the product of any registry reaction from the same start with the same
+        reagents (the same experiment written twice);
+      - for a RADICAL substitution, the other end of the allyl system: the
+        radical the mechanism makes is delocalised over both ends and nothing on
+        the card picks one. The diene + HBr card is different on purpose: its
+        data records the cation AND names the condition that picks the end
+        (temperature), which is the question it asks.
+    """
+    out = {canonical(Chem.MolFromSmiles(s)) for s in [rxn["product"], *rxn.get("balance_rhs", [])]}
+    reagents = sorted(t for st in rxn["stages"] for t in st["reagents"])
+    for other in registry:
+        same = other["reactants"] == rxn["reactants"]
+        if same and sorted(t for st in other["stages"] for t in st["reagents"]) == reagents:
+            out.add(canonical(Chem.MolFromSmiles(other["product"])))
+    if "radical" in rxn["reaction_type"]:
+        answer = Chem.MolFromSmiles(rxn["product"])
+        for _key, _caption, smarts_list in (t for t in TRANSFORMS if t[0] == "allylic"):
+            for smarts in smarts_list:
+                out.update(smarts_products(answer, smarts))
+    out.discard(None)
+    return out
+
+
+def carbon_supply(rxn: dict) -> int:
+    """
+    RULE 7 (round 5): the most carbons a wrong option may hold, what the card's
+    starts and its consumed reagents supply between them, one equivalent each.
+    The Grignard card offered the ethylene ketal, two carbons from a diol the
+    card never shows; rule 1's window allowed it because CH3- moves ONE.
+    "over" is exempt: it is this card's own reagent adding a second time.
+    """
+    starts = {canonical(Chem.MolFromSmiles(s)) for s in rxn["reactants"]}
+    consumed = [s for s in rxn.get("balance_lhs", []) if canonical(Chem.MolFromSmiles(s) or Chem.Mol()) not in starts]
+    return sum(_carbons(s) for s in rxn["reactants"]) + sum(_carbons(s) for s in consumed)
+
+
+def needs_absent_reagent(kind: str, rxn: dict) -> bool:
+    """
+    RULE 7's other half: an edit that is itself a redox step needs that
+    reagent on the card. "One reduction too far" with no reductant (the
+    acetylide, cyanohydrin and Friedel-Crafts cards) and "a double bond the
+    conditions do not make", which is an oxidation, with no oxidant: the
+    registry's own redox flag and reaction type say which cards carry one.
+    "One oxidation too far" is the same gate the other way round.
+    """
+    if kind == "reduced":
+        return not (rxn["redox"] and "reduction" in rxn["reaction_type"])
+    if kind in ("unsaturated", "oxidised"):
+        return not (rxn["redox"] and "oxidation" in rxn["reaction_type"])
+    return False
 
 
 Pair = tuple[tuple[int, float], list[Candidate], dict[str, float]]
@@ -729,6 +836,9 @@ export interface PredictDistractor {
   readonly source: string;
   /** Morgan (radius 2) Tanimoto to the closest start, the rule 4 measure. */
   readonly similarity: number;
+  /** Rule 5's classes, from RDKit: net formal charge, and enol/enamine form. */
+  readonly charge: number;
+  readonly enol: boolean;
   readonly light?: string;
   readonly dark?: string;
 }
@@ -736,6 +846,10 @@ export interface PredictDistractor {
 /** The answer, drawn in the options' own style, and its similarity to the start. */
 export interface PredictAnswer {
   readonly similarity: number;
+  readonly charge: number;
+  readonly enol: boolean;
+  /** Rule 6: what this card's own data or mechanism makes; never a wrong option. */
+  readonly ownProducts: readonly string[];
   readonly light?: string;
   readonly dark?: string;
 }
@@ -769,11 +883,12 @@ def main() -> int:
         entries = []
         for key, caption, smiles, source in chosen:
             entry = {"smiles": smiles, "formula": formula(smiles), "caption": caption, "kind": key,
-                     "source": source, "similarity": sims[smiles], **draw_option(smiles)}
+                     "source": source, "similarity": sims[smiles], **species_class(smiles), **draw_option(smiles)}
             entries.append(entry)
             print(f"  {rxn['id']:<28} {key:<12} {sims[smiles]:.2f} {smiles}")
         table[rxn["id"]] = entries
-        answers[rxn["id"]] = {"similarity": sims["answer"], **draw_option(rxn["product"])}
+        answers[rxn["id"]] = {"similarity": sims["answer"], **species_class(rxn["product"]),
+                              "ownProducts": sorted(own_products(rxn, registry)), **draw_option(rxn["product"])}
         print(f"  {'':<28} {'answer':<12} {sims['answer']:.2f} {rxn['product']}")
 
     body = (

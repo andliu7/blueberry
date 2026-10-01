@@ -25,6 +25,8 @@ import {
   isLearning,
   nextInterval,
   rateCard,
+  reviewCard,
+  reviewInterval,
   startCard,
 } from "../cards/scheduler";
 import type { Rating, ReviewState } from "../cards/types";
@@ -219,5 +221,58 @@ describe("how many are due today", () => {
   it("is zero for an empty deck and ignores an unparseable date", () => {
     expect(dueTodayCount([], NOON)).toBe(0);
     expect(dueTodayCount([{ ...at(0), dueAt: "not a date" }], NOON)).toBe(0);
+  });
+});
+
+/* ROUND 5. rateCard prices an ON-TIME review: the worked line above rates one
+   card eight times at one instant and expects 1, 3, 8, 20. The round 3 critic
+   found the store used it for EVERY press, so "Review all" a minute after a
+   Good grew the interval as if a day had passed: three taps in a minute pushed
+   six new cards past a week. reviewCard is the press the store makes, and it
+   asks whether the card was due first. */
+describe("an early review, the cram case", () => {
+  const MINUTE = 60 * 1000;
+
+  it("leaves a graduated card that is not due yet exactly where it was", () => {
+    const graded = reviewCard(startCard("card-1", NOON), "good", NOON);
+    expect(graded.interval).toBe(GRADUATING_INTERVAL_DAYS);
+    const oneMinuteLater = new Date(NOON.getTime() + MINUTE);
+    for (const rating of ["hard", "good", "easy"] as const) {
+      expect(reviewCard(graded, rating, oneMinuteLater), rating).toEqual(graded);
+    }
+  });
+
+  it("does not let three Good taps inside a minute push a new card past a day", () => {
+    let state = startCard("card-1", NOON);
+    for (let i = 0; i < 3; i += 1) state = reviewCard(state, "good", new Date(NOON.getTime() + i * 20 * 1000));
+    expect(state.interval).toBe(GRADUATING_INTERVAL_DAYS);
+    expect(Date.parse(state.dueAt)).toBe(NOON.getTime() + DAY_MS);
+  });
+
+  it("still lapses on again: forgetting a card early is still forgetting it", () => {
+    const graded = reviewCard(startCard("card-1", NOON), "good", NOON);
+    const lapsed = reviewCard(graded, "again", new Date(NOON.getTime() + MINUTE));
+    expect(lapsed.interval).toBe(AGAIN_INTERVAL_DAYS);
+  });
+
+  it("still steps a learning card inside the session, where minutes are the point", () => {
+    const again = reviewCard(startCard("card-1", NOON), "again", NOON);
+    // Shown again thirty seconds later, before its ten minutes are up.
+    const back = reviewCard(again, "good", new Date(NOON.getTime() + 30 * 1000));
+    expect(back.interval).toBe(GRADUATING_INTERVAL_DAYS);
+  });
+
+  it("prices a due card exactly as rateCard does", () => {
+    const due = graduated(8);
+    for (const rating of RATINGS) expect(reviewCard(due, rating, NOON), rating).toEqual(rateCard(due, rating, NOON));
+    const tomorrow = new Date(NOON.getTime() + DAY_MS);
+    expect(reviewCard(due, "good", tomorrow)).toEqual(rateCard(due, "good", tomorrow));
+  });
+
+  it("shows the interval a press will really give, so the button cannot promise growth it will not deliver", () => {
+    const graded = reviewCard(startCard("card-1", NOON), "good", NOON);
+    const early = new Date(NOON.getTime() + MINUTE);
+    expect(reviewInterval(graded, "good", early)).toBe(GRADUATING_INTERVAL_DAYS);
+    expect(reviewInterval(graduated(8), "good", NOON)).toBe(nextInterval(graduated(8), "good"));
   });
 });

@@ -83,7 +83,9 @@ const EYEBROW = "font-mono text-scale-xs font-semibold uppercase tracking-[.14em
 
 export function CardFace({ card, revealed, onReveal, schedulerState, frontPrompt }: CardFaceProps) {
   const scheme = schemeOf(card);
-  const tags = card.tags.filter((tag) => !tag.includes(":") && tag !== "composed").slice(0, 3);
+  // A "/" tag is a registry family slug ("carbonyls/addition"): an id, not
+  // words, and on a phone its row cost the run card's why its last lines.
+  const tags = card.tags.filter((tag) => !tag.includes(":") && !tag.includes("/") && tag !== "composed").slice(0, 3);
 
   const body = (
     <>

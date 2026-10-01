@@ -45,7 +45,7 @@ import type {
   ReviewState,
 } from "./types";
 import { EMPTY_DECKS, externalKey } from "./types";
-import { rateCard, startCard } from "./scheduler";
+import { reviewCard, startCard } from "./scheduler";
 
 const STORAGE_KEY = "blueberry.cards.v1";
 
@@ -274,9 +274,13 @@ export function createLocalDecks(options: LocalDeckOptions = {}): LocalDeckSourc
       // flag on `current` does not survive it. That is the resume-on-rating
       // rule from types.ts holding by construction: a student who opens a
       // paused card and rates it has restarted its schedule on purpose.
+      // reviewCard is rateCard plus the early-review rule: a graduated card
+      // passed before it is due keeps its schedule (scheduler.ts).
+      const next = reviewCard(current, rating, at);
+      if (next === current) return;
       commitSnapshot({
         ...snapshot,
-        review: { ...snapshot.review, [cardId]: rateCard(current, rating, at) },
+        review: { ...snapshot.review, [cardId]: next },
       });
     },
 

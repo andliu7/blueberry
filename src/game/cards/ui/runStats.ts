@@ -22,8 +22,9 @@
  * Pure: no React, no clock.
  */
 
-import type { CardId, Rating } from "../types";
-import { RATINGS } from "../types";
+import { CARD_RUN_MIN_GRADED, CARD_RUNS_PAID_PER_DAY, DIAMONDS_CARD_RUN } from "@blueberry/economy";
+import type { Card, CardId, DeckSnapshot, Rating } from "../types";
+import { isDue, RATINGS } from "../types";
 import { summaryHeadline, type RatingRecord, type SessionSummary } from "./session";
 
 export interface PredictionRecord {
@@ -120,4 +121,45 @@ export function ratingForKey(key: string): Rating | null {
   const index = Number.parseInt(key, 10);
   if (!Number.isInteger(index) || index < 1 || index > RATINGS.length) return null;
   return RATINGS[index - 1] ?? null;
+}
+
+/* ------------------------------------------------------------------ */
+/* What the reward counts (round 5)                                     */
+/* ------------------------------------------------------------------ */
+
+/**
+ * The run's cards that were due when it started: never rated (a new card is
+ * due on arrival) or past their due time. Read ONCE, at the start, because the
+ * run's own grades move dueAt and a card graded mid run is not "not due".
+ * The owner's rule is "can't be farmed": "Review all" on cards graded a minute
+ * ago is the farm, so only these count toward the reward's minimum.
+ */
+export function dueAtRunStart(cards: readonly Card[], snapshot: DeckSnapshot, now: Date): ReadonlySet<CardId> {
+  const due = new Set<CardId>();
+  for (const card of cards) {
+    const state = snapshot.review[card.id];
+    if (state === undefined || isDue(state, now)) due.add(card.id);
+  }
+  return due;
+}
+
+/** Distinct finished cards that were due at the start: the number the economy is told. */
+export function dueGraded(finished: readonly CardId[], dueAtStart: ReadonlySet<CardId>): number {
+  return new Set(finished.filter((cardId) => dueAtStart.has(cardId))).size;
+}
+
+/**
+ * The line under a zero Diamonds tile, or null when the run paid. A run with
+ * enough due cards that paid nothing was stopped by the daily cap, and the
+ * line says so: the rule restated after a six card run read as a bug.
+ */
+export function rewardLine(dueCount: number, credited: number): string | null {
+  if (credited > 0) return null;
+  if (dueCount >= CARD_RUN_MIN_GRADED) {
+    return `Today's ${CARD_RUNS_PAID_PER_DAY} paid runs are done. Diamonds again tomorrow.`;
+  }
+  return (
+    `A run of ${CARD_RUN_MIN_GRADED} or more cards earns ${DIAMONDS_CARD_RUN} diamonds, up to ` +
+    `${CARD_RUNS_PAID_PER_DAY} runs a day. Only cards that were due count.`
+  );
 }
