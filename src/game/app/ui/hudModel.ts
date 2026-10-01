@@ -59,7 +59,12 @@ export const HUD_ITEM_IDS: readonly HudItemId[] = Object.freeze(["xp", "diamonds
  */
 export type HudButtonId = "diamonds" | "streak" | "charge";
 
-export const HUD_BUTTON_IDS: readonly HudButtonId[] = Object.freeze(["diamonds", "streak", "charge"]);
+/**
+ * IN HEADER ORDER, and the streak is FIRST since 2026-10-01. A critic read the
+ * row against the bar's path header (flag, streak, gems, hearts) and found our
+ * diamonds sitting where the eye lands first. Hud.tsx renders in this order.
+ */
+export const HUD_BUTTON_IDS: readonly HudButtonId[] = Object.freeze(["streak", "diamonds", "charge"]);
 
 /** What every item carries: the header glyph's number, its label, and its coach mark. */
 export interface HudReadout {
@@ -281,9 +286,14 @@ function streakReadout(snapshot: EconomySnapshot): StreakReadout {
   return {
     id: "streak",
     value: String(current),
+    // THREE NAMES FOR THE THREE LIVE STATES. At risk used to share pending's
+    // name, so the evening state existed only for a sighted reader. "Ends at
+    // midnight" is the fact, said without a verdict on the student.
     label: todayCounted
       ? `Streak, ${plural(current, "day", "days")}, today counted`
-      : `Streak, ${plural(current, "day", "days")}, today not counted yet`,
+      : atRisk
+        ? `Streak, ${plural(current, "day", "days")}, at risk, ends at midnight unless today counts`
+        : `Streak, ${plural(current, "day", "days")}, today not counted yet`,
     eyebrow: "Streak",
     headline,
     // ECONOMY.md, Rest days: "the release valve". A student who is told about it

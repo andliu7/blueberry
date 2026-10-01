@@ -143,6 +143,17 @@ describe("hudModel, the streak flame", () => {
     expect(model([]).streak.state).toBe("zero");
   });
 
+  it("gives each live state its own accessible name", () => {
+    const names = [
+      model(fiveDays).streak.label,
+      model(fiveDays, "2026-08-28T23:30:00.000Z").streak.label,
+      model([...fiveDays, countedDay(0, "n0")]).streak.label,
+      model([]).streak.label,
+    ];
+    expect(new Set(names).size).toBe(4);
+    expect(names[1]).toContain("at risk");
+  });
+
   it("never calls a missing run at risk, even in the evening", () => {
     const empty = model([], "2026-08-28T23:30:00.000Z").streak;
     expect(empty.atRisk).toBe(true);
@@ -257,7 +268,8 @@ describe("hudModel, the voice", () => {
  */
 describe("hudModel, the three button header", () => {
   it("gives a button to every system except the goal, which the header edge draws", () => {
-    expect([...HUD_BUTTON_IDS]).toEqual(["diamonds", "streak", "charge"]);
+    // Streak first, as the bar orders its header (round two of the g5 loop).
+    expect([...HUD_BUTTON_IDS]).toEqual(["streak", "diamonds", "charge"]);
     // The goal is still a readout and still carries its own sentence: it moved
     // surface, it did not disappear.
     expect(HUD_ITEM_IDS).toContain("xp");

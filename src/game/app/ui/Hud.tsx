@@ -186,6 +186,7 @@ import {
   type HudButtonId,
   type HudModel,
   type StreakReadout,
+  type StreakState,
 } from "./hudModel";
 import { closeOnBackdrop } from "./dismiss";
 
@@ -250,6 +251,12 @@ interface ItemProps {
   readonly label: string;
   readonly rank: HudRank;
   readonly onOpen: (id: HudButtonId, spot: Spot) => void;
+  /**
+   * The streak cell's state, written onto the button as `data-streak` so a
+   * test or a capture script can read which state is on screen from the DOM
+   * rather than from pixels. Only the streak passes it.
+   */
+  readonly streak?: StreakState;
   readonly children: ReactNode;
 }
 
@@ -274,12 +281,13 @@ interface ItemProps {
  * which element was pressed, and the spotlight has to be cut around exactly
  * that one.
  */
-function HudButton({ id, label, rank, onOpen, children }: ItemProps) {
+function HudButton({ id, label, rank, onOpen, streak, children }: ItemProps) {
   return (
     <button
       type="button"
       data-hud={id}
       data-rank={rank}
+      data-streak={streak}
       onPointerDown={(event) => {
         const rect = event.currentTarget.getBoundingClientRect();
         onOpen(id, {
@@ -327,7 +335,7 @@ function ChargeReading({ charge }: { readonly charge: ChargeReadout }) {
           is drawn solid. It is 1 in the exam window by the model's own rule, so
           the cell reads full there. */}
       <ChargeMark fill={charge.fraction} className="hud-mark" />
-      <span className={`hud-value text-good-ink ${charge.examWindow ? "hud-charge-exam" : ""}`}>
+      <span className={`hud-value hud-ink-charge ${charge.examWindow ? "hud-charge-exam" : ""}`}>
         {charge.value}
       </span>
     </>
@@ -355,20 +363,14 @@ export function Hud() {
   return (
     <>
       <div className="flex shrink-0 items-center gap-1 sm:gap-2" role="group" aria-label="Today's progress">
-        <HudButton id="diamonds" label={diamonds.label} rank="peer" onOpen={openItem}>
-          {/* SOLID, ALWAYS. A balance has no cap, so there is no level to draw
-              and inventing one would be drawing a fraction that does not
-              exist. That is the second of the row's three differences. */}
-          <DiamondMark className="hud-mark" />
-          <span className="hud-value text-diamond-ink">{diamonds.value}</span>
-        </HudButton>
-
         {/*
           THE LEAD READOUT. `rank="lead"` is the row's whole size hierarchy:
           the streak's NUMBER steps up one size, and nothing else about the
           cell changes. Round five stepped the mark too and that was the 20
-          against 24 a critic counted as two anatomies. A critic measured the emphasis running
-          backwards, with diamonds loudest and the streak quietest, and named
+          against 24 a critic counted as two anatomies. It is also FIRST in
+          the row, as the bar orders its own header, and its flame inks the
+          most of its box (HudIcons.tsx, HeaderFlame). A critic measured the
+          emphasis running backwards, with diamonds loudest and the streak quietest, and named
           it the bigger of its two findings. The header exists for the thing
           the retention model rests on, so that thing is the biggest object in
           it, and the two supporting balances are peers.
@@ -379,10 +381,11 @@ export function Hud() {
           file carries why that swap is a gain rather than a loss of the
           legibility an earlier round bought.
         */}
-        <HudButton id="streak" label={`${streak.label}. ${xp.label}`} rank="lead" onOpen={openItem}>
+        <HudButton id="streak" label={`${streak.label}. ${xp.label}`} rank="lead" streak={streak.state} onOpen={openItem}>
           {/* THE FLAME SAYS WHICH OF FOUR STATES THE RUN IS IN, AS A SHAPE.
               hudModel derives `streak.state` once; FlameMark draws each one
-              differently (outline, burning ember, ember with a clock, full).
+              differently (grey outline; orange outline with a lit core; the
+              same broken into dashes with a clock; solid).
               The body is still lit to today's goal fraction, which is the
               whole of what the header says about the goal. Only the evening
               state leans, because a lean is the one motion that says "this
@@ -398,9 +401,17 @@ export function Hud() {
               run saw a grey 5 all morning: the "switched off" finding. Grey is
               kept for the one state that really has nothing in it, zero,
               which is also the bar's own drawing of that state. */}
-          <span className={`hud-value ${streak.state === "zero" ? "text-bb-muted-foreground" : "text-streak-ink"}`}>
+          <span className={`hud-value ${streak.state === "zero" ? "text-bb-muted-foreground" : "hud-ink-streak"}`}>
             {streak.value}
           </span>
+        </HudButton>
+
+        <HudButton id="diamonds" label={diamonds.label} rank="peer" onOpen={openItem}>
+          {/* SOLID, ALWAYS. A balance has no cap, so there is no level to draw
+              and inventing one would be drawing a fraction that does not
+              exist. That is the second of the row's three differences. */}
+          <DiamondMark className="hud-mark" />
+          <span className="hud-value hud-ink-diamond">{diamonds.value}</span>
         </HudButton>
 
         <HudButton id="charge" label={charge.label} rank="peer" onOpen={openItem}>

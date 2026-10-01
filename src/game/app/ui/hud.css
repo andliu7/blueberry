@@ -25,8 +25,9 @@
  * Marks are held to the 3:1 floor WCAG 1.4.11 sets for a graphic:
  *
  * Round six took the cell edge out of this table with the edge, and added the
- * hover ground (--bb-muted, #e8eef8 and #24334a), because a cell with no ground
- * of its own shows one under a pointer. Worst row on it: --diamond 3.51:1 light.
+ * hover ground (--hud-hover, #f2f5fa light and --bb-muted #24334a dark),
+ * because a cell with no ground of its own shows one under a pointer. Worst
+ * mark on it: the light battery, #059669, 3.45:1.
  *
  *                                        light card  light page   dark card   dark page
  *   mark unlit     --hud-out                  7.58:1      7.07:1      6.66:1      7.61:1
@@ -44,14 +45,15 @@
  * is there for the dark row. hudContrast.test.ts measures all of this from
  * theme.css.
  *
- * The numbers beside them are TEXT and are held to 4.5:1 instead, which is why
- * each one is drawn in its family's `-ink` token rather than in the mark's own
- * fill:
+ * The numbers beside them are TEXT and are held to 4.5:1 instead. Since
+ * 2026-10-01 light draws them in the row's own -ink colours (`.hud-item`
+ * below) and dark keeps the theme's; worst light pair is on the hover ground:
  *
- *   streak lit     --streak-ink               7.31:1      6.81:1      9.22:1     10.54:1
- *   streak out     --bb-muted-foreground      6.21:1      5.79:1      7.37:1      8.43:1
- *   diamonds       --diamond-ink             10.21:1      9.52:1      9.32:1     10.66:1
- *   charge         --good-ink                 9.72:1      9.06:1     10.20:1     11.66:1
+ *                                        light card  light hover   dark card   dark hover
+ *   streak         #c2410c / --streak-ink     5.18:1      4.74:1      9.22:1      7.56:1
+ *   streak zero    --bb-muted-foreground      6.21:1      5.68:1      7.37:1      6.05:1
+ *   diamonds       #0369a1 / --diamond-ink    5.93:1      5.43:1      9.32:1      7.65:1
+ *   charge         #047857 / --good-ink       5.48:1      5.02:1     10.20:1      8.36:1
  *
  * That split is the same one --good/--good-ink and --bb-primary/--bb-primary-ink
  * already carry, and it exists because a fill bright enough to read as a flame
@@ -147,6 +149,20 @@
   --hud-value-size: var(--text-scale-base);
   --hud-value-weight: 700;
 
+  /* THE ROW'S OWN COLOURS, light. A critic read the light row as "three black
+     numbers": the theme's -ink tokens are navy, rust and forest, chosen for
+     the reward screens where a number sits on a tinted card. Here each number
+     is in its mark's own hue, one step darker, at AA on both of this cell's
+     grounds: orange-700, sky-700 and emerald-700, 4.74:1 at worst (orange on
+     the hover ground). The battery's fill is emerald-600 rather than --good,
+     because --good is so dark in light that a full battery was the heaviest
+     object in the row in grayscale. hudAnatomy.test.ts measures all of it. */
+  --hud-ink-streak: #c2410c;
+  --hud-ink-diamond: #0369a1;
+  --hud-ink-charge: #047857;
+  --hud-charge-mark: #059669;
+  --hud-hover: #f2f5fa;
+
   gap: 0.375rem;
   padding-inline: 0.25rem;
   /* NO FRAME AND NO GROUND, round six. The bar's four header readouts are bare,
@@ -157,9 +173,27 @@
   border-radius: 0.875rem;
   background: transparent;
 }
+/* Dark already had the saturated numbers the critic liked (peach, sky, mint),
+   so it keeps the theme's inks and its own --good. */
+.dark .hud-item {
+  --hud-ink-streak: var(--streak-ink);
+  --hud-ink-diamond: var(--diamond-ink);
+  --hud-ink-charge: var(--good-ink);
+  --hud-charge-mark: var(--good);
+  --hud-hover: var(--bb-muted);
+}
 .hud-item:hover,
 .hud-item:focus-visible {
-  background: var(--bb-muted);
+  background: var(--hud-hover);
+}
+.hud-ink-streak {
+  color: var(--hud-ink-streak);
+}
+.hud-ink-diamond {
+  color: var(--hud-ink-diamond);
+}
+.hud-ink-charge {
+  color: var(--hud-ink-charge);
 }
 .hud-item:focus-visible {
   outline: 2px solid var(--bb-primary);

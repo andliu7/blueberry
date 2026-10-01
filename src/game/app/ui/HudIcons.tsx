@@ -141,23 +141,23 @@ const FLAME_TIP = 1.2;
  * animation, so they lick in register. The clip window does not move with them,
  * which is right: a flame's tip wobbles and its level does not.
  *
- * `state` IS THE HEADER'S, and only the header passes it. Round five drew the
- * no-run, run-waiting and evening cases as one identical grey flame, so the
- * one counter that matters looked switched off for most of every day and the
- * evening case looked like nothing at all. Each state is now a different
- * SHAPE, so none of them rests on hue alone:
+ * `state` IS THE HEADER'S, and only the header passes it. When it is set the
+ * mark is drawn from HEADER_BODY, below, rather than the narrow body above,
+ * and each streak state is its own SHAPE:
  *
- *  - "zero": the silhouette as an OUTLINE. No run exists; there is nothing in
- *    the flame yet. The bar draws this state grey too.
- *  - "pending" and "atRisk": the solid grey body with its core BURNING, an
- *    ember in the core token cut out of the body by a card coloured ring. The
- *    run is alive and today's part of it is the level rising behind it. The
- *    ring is what keeps the ember a shape in dark, where the amber and the
- *    grey body sit close in lightness.
- *  - "atRisk" adds a clock notched into the lower right: the day has a
- *    deadline now. A clock and not a warning sign, and no red, because
- *    docs/ECONOMY.md forbids drawing an unmet day as a loss.
- *  - "live": exactly the lit flame, drawn at fill 1 by the caller.
+ *  - "zero": a grey OUTLINE. No run exists; there is nothing in the flame.
+ *  - "pending": an orange outline with its core lit solid: a run that is
+ *    alive and waiting on today. The body fills from the base with today's
+ *    goal fraction.
+ *  - "atRisk": pending with the outline BROKEN into dashes, a flame starting
+ *    to come apart, plus a clock badge. Both are static, so both survive
+ *    reduced motion; the lean in hud.css is a third cue, not the only one.
+ *  - "live": the whole body solid. Solid against outline is what makes the
+ *    counted day the heaviest flame in grayscale as well as in colour; a
+ *    critic measured the old solid grey pending flame as DARKER than live.
+ *
+ * No red and no warning sign anywhere: docs/ECONOMY.md forbids drawing an
+ * unmet day as a loss. A clock states a deadline, nothing more.
  */
 export function FlameMark({
   lit,
@@ -173,36 +173,68 @@ export function FlameMark({
   readonly className?: string;
 }) {
   const clip = `hud-flame-${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
-  const hollow = state === "zero";
-  const ember = state === "pending" || state === "atRisk";
+  if (state !== undefined) return <HeaderFlame state={state} fill={fill} clip={clip} className={className} />;
   return (
     <svg viewBox="0 0 24 24" className={className} aria-hidden focusable="false">
       <clipPath id={clip}>
         <rect x="0" y={fillWindow(FLAME_BASE, FLAME_TIP, fill)} width="24" height="24" />
       </clipPath>
-      {hollow ? (
-        <path d={FLAME_BODY} fill="none" stroke="var(--hud-out)" strokeWidth="2" strokeLinejoin="round" />
-      ) : (
-        <path className="hud-flame-body" d={FLAME_BODY} fill="var(--hud-out)" />
-      )}
+      <path className="hud-flame-body" d={FLAME_BODY} fill="var(--hud-out)" />
       {/* Lighter than the body in BOTH states, because that is what a hot core
           is. A first pass drew the unlit core in --hud-out at 0.42, which is
           the body's own colour over the body: opaque grey on opaque grey, so
           the flame lost its structure and the capture showed a raindrop. A
           white wash lightens either theme's mid grey. */}
-      {hollow ? null : ember ? (
-        <path className="hud-flame-core" d={FLAME_CORE} fill="var(--streak-core)" stroke="var(--bb-card)" strokeWidth="1.25" />
-      ) : (
-        <path className="hud-flame-core" d={FLAME_CORE} fill="#ffffff" fillOpacity="0.42" />
-      )}
+      <path className="hud-flame-core" d={FLAME_CORE} fill="#ffffff" fillOpacity="0.42" />
       <g clipPath={`url(#${clip})`}>
         <path className="hud-flame-body" d={FLAME_BODY} fill="var(--streak)" />
         <path className="hud-flame-core" d={FLAME_CORE} fill="var(--streak-core)" />
       </g>
+    </svg>
+  );
+}
+
+/**
+ * The header's flame: wide enough to carry the row.
+ *
+ * WHY A SECOND BODY. The narrow body above inks 32 percent of its 24 unit box
+ * when solid, against the diamond's 44 and the battery's 45, so at one box
+ * size the streak was the lightest mark in the row it exists to lead. This one
+ * inks 47 percent (hudAnatomy.test.ts measures it). It is written with cubics
+ * only, which is what lets that test rasterise it. The streak screen and the
+ * reward moment keep the narrow flame until the queued visual rebuild decides
+ * what the one flame should be.
+ */
+const HEADER_BODY =
+  "M13 1C14.6 4.2 17.6 6.4 19.6 9.6C21 11.8 21.6 13.6 21.6 15.4C21.6 19.8 17.4 23 12 23C6.6 23 2.4 19.8 2.4 15.2C2.4 12.2 3.8 9.8 5.8 8C6.2 9.8 7.2 11 8.6 11.4C8 7.4 10 3.6 13 1Z";
+const HEADER_CORE = "M12 11.6C14.3 13.8 15.7 15.6 15.7 17.6C15.7 19.7 14 21.2 12 21.2C10 21.2 8.3 19.7 8.3 17.6C8.3 15.6 9.7 13.8 12 11.6Z";
+
+function HeaderFlame({ state, fill, clip, className }: { readonly state: StreakState; readonly fill: number; readonly clip: string; readonly className: string }) {
+  const alive = state !== "zero";
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden focusable="false">
+      <clipPath id={clip}>
+        <rect x="0" y={fillWindow(23, 1, state === "live" ? 1 : fill)} width="24" height="24" />
+      </clipPath>
+      {/* The 2 unit stroke is centred on a body that spans 1 to 23, so it
+          reaches exactly the box's edges and is never cut by the viewBox. */}
+      <path
+        d={HEADER_BODY}
+        fill="none"
+        stroke={alive ? "var(--streak)" : "var(--hud-out)"}
+        strokeWidth="2"
+        strokeLinejoin="round"
+        strokeDasharray={state === "atRisk" ? "3.2 2.4" : undefined}
+      />
+      {alive ? <path className="hud-flame-core" d={HEADER_CORE} fill="var(--streak)" /> : null}
+      <g clipPath={`url(#${clip})`}>
+        <path className="hud-flame-body" d={HEADER_BODY} fill="var(--streak)" />
+        <path className="hud-flame-core" d={HEADER_CORE} fill="var(--streak-core)" />
+      </g>
       {state === "atRisk" ? (
         <g data-flame-clock>
-          <circle cx="18" cy="18" r="5.25" fill="var(--streak-ink)" stroke="var(--bb-card)" strokeWidth="1.5" />
-          <path d="M18 15.4V18l1.9 1.2" fill="none" stroke="var(--bb-card)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+          <circle cx="17.6" cy="17.6" r="5.9" fill="var(--streak-ink)" stroke="var(--bb-card)" strokeWidth="1.3" />
+          <path d="M17.6 14.6V17.6L19.8 19" fill="none" stroke="var(--bb-card)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         </g>
       ) : null}
     </svg>
@@ -245,7 +277,8 @@ export function FlameMark({
  * area alone. The nub on top is what makes it read as energy, the owner's own
  * word for this mark.
  */
-const CELL = "M9.5 3.5h5A4.5 4.5 0 0 1 19 8v10a4.5 4.5 0 0 1-4.5 4.5h-5A4.5 4.5 0 0 1 5 18V8a4.5 4.5 0 0 1 4.5-4.5zM9.8 1.5h4.4a.8.8 0 0 1 .8.8v1.2H9V2.3a.8.8 0 0 1 .8-.8z";
+const CELL =
+  "M9.5 3.5H14.5C16.985 3.5 19 5.515 19 8V18C19 20.485 16.985 22.5 14.5 22.5H9.5C7.015 22.5 5 20.485 5 18V8C5 5.515 7.015 3.5 9.5 3.5ZM9.8 1.5H14.2C14.642 1.5 15 1.858 15 2.3V3.5H9V2.3C9 1.858 9.358 1.5 9.8 1.5Z";
 const CELL_BASE = 22.5;
 const CELL_TIP = 1.5;
 
@@ -272,13 +305,16 @@ export function ChargeMark({
       </clipPath>
       <path d={CELL} fill="var(--hud-out)" />
       <g clipPath={`url(#${clip})`}>
-        <path d={CELL} fill="var(--good)" />
+        {/* --hud-charge-mark is hud.css's: a lighter green than --good in
+            light, so a full battery stops being the darkest object in the
+            row. --good is the fallback anywhere outside the header. */}
+        <path d={CELL} fill="var(--hud-charge-mark, var(--good))" />
       </g>
       {/* The facet and the bolt sit ABOVE the clip, not inside it. The bolt is
           a cut rather than a drawn mark: it is painted in the card's colour so
           the shape reads as one object in both themes, and a bolt that filled
           with the cell would stop being a hole and start being a stripe. */}
-      <path d="M9.5 3.5h5A4.5 4.5 0 0 1 19 8v2.5H5V8a4.5 4.5 0 0 1 4.5-4.5z" fill="#ffffff" fillOpacity="0.24" />
+      <path d="M9.5 3.5H14.5C16.985 3.5 19 5.515 19 8V10.5H5V8C5 5.515 7.015 3.5 9.5 3.5Z" fill="#ffffff" fillOpacity="0.24" />
       <path d="M13.3 6.2 8.2 14h2.9l-.6 5.6 5.3-7.9h-3z" fill="var(--bb-card)" />
     </svg>
   );
