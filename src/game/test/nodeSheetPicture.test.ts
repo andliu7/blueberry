@@ -106,7 +106,10 @@ describe("the sheet reads as the same design as the picture", () => {
   it("the Practice card holds exactly two rows, with no body copy between them", () => {
     // Image: "Practice" plus four pips, then START. 758..897, so 100 css px.
     // The blurb paragraph made the built card 165 css px, 65 percent taller.
-    const practice = SHEET.slice(SHEET.indexOf('aria-label={`Practice.'), SHEET.indexOf("model.challenge.enabled"));
+    // The heading is model.practiceTitle since round 3 (a checkpoint states
+    // its stakes there); on a lesson it still reads "Practice".
+    const practice = SHEET.slice(SHEET.indexOf('aria-label={`${model.practiceTitle}.'), SHEET.indexOf("model.challenge.enabled"));
+    expect(SHEET.indexOf('aria-label={`${model.practiceTitle}.')).toBeGreaterThan(-1);
     expect(practice).not.toContain("node.blurb");
     expect(practice).toContain("<Pips");
     expect(practice).toContain("ns-start");

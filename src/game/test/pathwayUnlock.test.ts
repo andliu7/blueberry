@@ -172,7 +172,10 @@ describe("deriveMapPathway, one line per unit on the Orgo map", () => {
           for (const node of unit.nodes) {
             if (done.has(node.id)) continue;
             const waiting = prerequisitesOf(unit, node).some((id) => !done.has(id));
-            expect(statusOf(status, node.id).state === "locked", `${node.id} at unit ${upTo}, step ${step}`).toBe(waiting);
+            // Round 3: an unauthored node is shut too, by having no content
+            // rather than by a prerequisite (pathwayState.ts, `queued`).
+            const shut = waiting || node.playable === undefined;
+            expect(statusOf(status, node.id).state === "locked", `${node.id} at unit ${upTo}, step ${step}`).toBe(shut);
           }
         });
       }
@@ -188,15 +191,36 @@ describe("deriveMapPathway, one line per unit on the Orgo map", () => {
     }
   });
 
-  it("marks a queued Unit 1 side loop open-and-queued inside the active unit, never locked, never current", () => {
+  it("marks a queued Unit 1 node queued and shut inside the active unit, never open, never current", () => {
     // The S3 critic caught u1-da wearing a padlock inside the active unit:
     // a node with no playable link is an authoring statement (queued), not a
-    // progress one. u1-da is playable now, so the pin moved to u1-poly, which
-    // is the unit's remaining node without a link and the one least likely to
-    // gain one: its own blurb reads "Conceptual mention".
+    // progress one, and `queued` is still what says so. Round 3 (g11) changed
+    // the state beside it from "open" to "locked": an open placeholder drew
+    // nine unplayable side quests on Unit 3 as the brightest things on the
+    // screen. The track and the sheet read `queued` first and say "coming
+    // soon", so "locked" here never reaches the student as a padlock.
     const status = deriveMapPathway(PATHWAY_UNITS, []);
-    expect(statusOf(status, "u1-poly")).toEqual({ state: "open", queued: true });
+    expect(statusOf(status, "u1-poly")).toEqual({ state: "locked", queued: true });
     expect(status.currentNodeId).not.toBe("u1-poly");
+  });
+
+  it("never opens an unauthored node, at any frontier and in any reachable unit", () => {
+    for (let upTo = 0; upTo <= PATHWAY_UNITS.length; upTo += 1) {
+      const journal = SETTLED_BY_UNIT.slice(0, upTo)
+        .flat()
+        .map((id) => cleared(id));
+      const status = deriveMapPathway(PATHWAY_UNITS, journal);
+      let checked = 0;
+      for (const unit of PATHWAY_UNITS) {
+        for (const node of unit.nodes) {
+          if (node.playable !== undefined) continue;
+          checked += 1;
+          expect(statusOf(status, node.id), `${node.id} with ${upTo} units cleared`).toEqual({ state: "locked", queued: true });
+        }
+      }
+      // Non-vacuous: the map carries unauthored nodes today.
+      expect(checked).toBeGreaterThan(0);
+    }
   });
 
   it("marks EXACTLY ONE node current across the WHOLE map, at every frontier", () => {

@@ -256,9 +256,9 @@ export function NodeSheet({ node, onClose, onStart, onChallenge, onGuidebook, re
                 the card 65 percent taller than the picture's 100 css px,
                 which changed the sheet's whole size hierarchy. The blurb is
                 not lost: it leads the guidebook's key-idea callout. */}
-            <section className="ns-card" aria-label={`Practice.${model.pips === null ? "" : ` ${model.pips.label}.`}`}>
+            <section className="ns-card" aria-label={`${model.practiceTitle}.${model.pips === null ? "" : ` ${model.pips.label}.`}`}>
               <div className="ns-card__row">
-                <h3 className="bb-title-face text-scale-lg font-bold">Practice</h3>
+                <h3 className="bb-title-face text-scale-lg font-bold">{model.practiceTitle}</h3>
                 {/* NO ROW WHEN NOTHING MEASURED IT. A node with no authored
                     content has no difficulty to report, and four empty dots
                     would be a claim about it. See nodeSheetModel.difficultyFor. */}
@@ -266,6 +266,9 @@ export function NodeSheet({ node, onClose, onStart, onChallenge, onGuidebook, re
                   <Pips filled={model.pips.filled} total={model.pips.total} label={model.pips.label} band={model.pips.band} />
                 )}
               </div>
+              {/* A checkpoint's stakes: how many questions, and where a pass
+                  goes. Null on a lesson, which keeps its two rows. */}
+              {model.practiceDetail === null ? null : <p className="ns-note text-scale-sm">{model.practiceDetail}</p>}
               {model.practice.enabled ? (
                 <button type="button" className="ns-chip ns-start" {...pressHandlers(() => onStart(node))}>
                   <span className="ns-chip__face bb-title-face text-scale-base">START</span>

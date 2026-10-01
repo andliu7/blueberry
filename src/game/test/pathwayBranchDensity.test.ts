@@ -43,7 +43,7 @@ import { planLesson, recycleBeatsFor } from "../beats/template";
 import { mcqBeatsForNode } from "../beats/mcq";
 import { deriveMapPathway, prerequisitesOf, statusOf } from "../tabs/pathway/pathwayState";
 import { trackWind } from "../tabs/pathway/pathwayLayout";
-import { branchAnchor, nodePlaces, placeSaid, unitShape, weaveBranches } from "../tabs/pathway/unitShape";
+import { branchAnchor, nodePlaces, placeSaid, roadOf, unitShape } from "../tabs/pathway/unitShape";
 import { trailSegments, type TrailPoint } from "../tabs/pathway/trail";
 
 /* ------------------------------------------------------------------------- */
@@ -77,23 +77,44 @@ function mainPrereqs(unit: (typeof PATHWAY_UNITS)[number], id: string, column: r
   return prerequisitesOf(unit, node).flatMap((pre) => (column.includes(pre) ? [pre] : mainPrereqs(unit, pre, column)));
 }
 
-describe("the branch lane, over every unit of the map the browser actually draws", () => {
-  it("has side quests on a branch lane somewhere: this suite would pass vacuously without them", () => {
-    const total = PATHWAY_UNITS.reduce((sum, unit) => sum + weaveBranches(unit).filter((entry) => entry.lane === "branch").length, 0);
+/*
+ * REWRITTEN round 3 (g11) for roadOf, which replaced weaveBranches: side
+ * quests are no longer rows between the lessons but ride BESIDE the lesson
+ * they branch from. Every claim the old block made is kept over the new
+ * function (side quests exist; each hangs off the lesson it branches from,
+ * the latest one it waits for; every node is drawn once; no side quest is a
+ * road stop in a unit with a road; Unit 1's exact placement; nothing but done
+ * work above START), and three are added: side quests add no rows, unwritten
+ * nodes collapse, and a lesson's side lane never holds more than the two
+ * chips its row can carry (pathwayRowLanes.test.ts pins the geometry).
+ */
+
+/** Every node a unit's road draws, as [road stops' nodes, side nodes]. */
+function drawn(unit: (typeof PATHWAY_UNITS)[number]): { road: string[]; side: string[] } {
+  const road: string[] = [];
+  const side: string[] = [];
+  for (const stop of roadOf(unit)) {
+    road.push(...(stop.soon.length > 0 ? stop.soon : [stop.node]).map((node) => node.id));
+    side.push(...[...stop.sides, ...stop.sidesSoon].map((node) => node.id));
+  }
+  return { road, side };
+}
+
+describe("the side lane, over every unit of the map the browser actually draws", () => {
+  it("has side quests beside the road somewhere: this suite would pass vacuously without them", () => {
+    const total = PATHWAY_UNITS.reduce((sum, unit) => sum + roadOf(unit).reduce((n, stop) => n + stop.sides.length, 0), 0);
     expect(total).toBeGreaterThan(3);
   });
 
-  it("hangs every side quest directly under the lesson it branches from", () => {
+  it("hangs every side quest beside the lesson it branches from", () => {
     for (const unit of PATHWAY_UNITS) {
       const shape = unitShape(unit);
-      let parent: string | null = null;
-      for (const entry of weaveBranches(unit)) {
-        if (entry.lane === "main") {
-          parent = entry.node.id;
-          continue;
+      for (const stop of roadOf(unit)) {
+        for (const node of [...stop.sides, ...stop.sidesSoon]) {
+          const parent = shape.column[branchAnchor(unit, shape.column, node)]!;
+          const stands = stop.soon.length > 0 ? stop.soon : [stop.node];
+          expect(stands.map((entry) => entry.id), node.id).toContain(parent.id);
         }
-        expect(parent, `${entry.node.id} has a lesson above it`).not.toBeNull();
-        expect(parent, entry.node.id).toBe(shape.column[branchAnchor(unit, shape.column, entry.node)]!.id);
       }
     }
   });
@@ -115,38 +136,77 @@ describe("the branch lane, over every unit of the map the browser actually draws
     expect(checked).toBeGreaterThan(2);
   });
 
-  it("draws every node exactly once", () => {
+  it("draws every node exactly once, mentions aside (they are text)", () => {
     for (const unit of PATHWAY_UNITS) {
       const shape = unitShape(unit);
-      const woven = weaveBranches(unit);
+      const { road, side } = drawn(unit);
+      const all = [...road, ...side];
       for (const node of [...shape.column, ...shape.loops]) {
-        expect(woven.filter((entry) => entry.node.id === node.id).length, unit.id + "/" + node.id).toBe(1);
+        expect(all.filter((id) => id === node.id).length, unit.id + "/" + node.id).toBe(node.mentionOnly === true ? 0 : 1);
       }
-      expect(woven.length).toBe(shape.column.length + shape.loops.length);
     }
   });
 
-  it("never puts a side quest on the main lane of a unit that has a road", () => {
+  it("never puts a side quest on the road of a unit that has one", () => {
     let units = 0;
     for (const unit of PATHWAY_UNITS) {
       if (unitShape(unit).loops.length === 0) continue;
       units += 1;
-      for (const entry of weaveBranches(unit)) {
-        expect(entry.lane === "branch", unit.id + "/" + entry.node.id).toBe(entry.node.kind === "branch");
-      }
+      const { road, side } = drawn(unit);
+      for (const id of road) expect(unit.nodes.find((node) => node.id === id)!.kind, id).not.toBe("branch");
+      for (const id of side) expect(unit.nodes.find((node) => node.id === id)!.kind, id).toBe("branch");
     }
     expect(units).toBeGreaterThan(3);
   });
 
-  it("puts Unit 1's side quests under their own lessons: NBS under allylic, the two Diels-Alders under 1,2 vs 1,4", () => {
-    const order = weaveBranches(PATHWAY_UNITS[0]!).map((entry) => `${entry.lane === "branch" ? "+" : ""}${entry.node.id}`);
-    expect(order).toEqual(["u1-allylic", "+u1-nbs", "u1-12v14", "+u1-da", "+u1-ied", "u1-kvt", "u1-x2", "+u1-poly"]);
+  it("puts Unit 1's side quests beside their own lessons: NBS by allylic, the two Diels-Alders by 1,2 vs 1,4", () => {
+    const stops = roadOf(PATHWAY_UNITS[0]!).map((stop) => [stop.node.id, ...stop.sides.map((node) => `+${node.id}`)]);
+    expect(stops).toEqual([["u1-allylic", "+u1-nbs"], ["u1-12v14", "+u1-da", "+u1-ied"], ["u1-kvt"], ["u1-x2"]]);
+  });
+
+  /* ADDED round 3: side quests add no height. The road is one row per stop,
+     and a stop is a lesson or a run of unwritten ones, never a side quest. */
+  it("adds no road row for a side quest: the road has exactly one row per lesson or unwritten run", () => {
+    for (const unit of PATHWAY_UNITS) {
+      const shape = unitShape(unit);
+      const stops = roadOf(unit);
+      // Runs of consecutive unwritten column nodes, counted independently.
+      let expected = 0;
+      let inRun = false;
+      for (const node of shape.column) {
+        if (node.mentionOnly === true) continue;
+        if (node.playable !== undefined) {
+          expected += 1;
+          inRun = false;
+        } else if (!inRun) {
+          expected += 1;
+          inRun = true;
+        }
+      }
+      expect(stops.length, unit.id).toBe(expected);
+    }
+  });
+
+  /* ADDED round 3: unwritten nodes collapse, so Unit 3's nine placeholders
+     are one marker, not a screen of discs before the checkpoint. */
+  it("collapses every lesson's unwritten side quests to one marker, and keeps its side lane to two items", () => {
+    let collapsed = 0;
+    for (const unit of PATHWAY_UNITS) {
+      for (const stop of roadOf(unit)) {
+        for (const node of stop.sides) expect(node.playable, node.id).toBeDefined();
+        for (const node of stop.sidesSoon) expect(node.playable, node.id).toBeUndefined();
+        if (stop.sidesSoon.length > 1) collapsed += 1;
+        const items = stop.sides.length + (stop.sidesSoon.length > 0 ? 1 : 0);
+        expect(items, `${unit.id}/${stop.node.id} side lane`).toBeLessThanOrEqual(2);
+      }
+    }
+    expect(collapsed).toBeGreaterThan(3);
   });
 
   /* ADDED 2026-10-01, owner: "nothing that is not done may sit above START in
      a way that reads as a skipped lesson". Swept over every prefix of every
      unit's line, with every earlier unit finished. */
-  it("never lets anything but done work precede START on the main lane, at every frontier", () => {
+  it("never lets anything but done work precede START on the road, at every frontier", () => {
     const settled: EconomyEvent[] = [];
     let checked = 0;
     for (const unit of PATHWAY_UNITS) {
@@ -154,13 +214,13 @@ describe("the branch lane, over every unit of the map the browser actually draws
       for (let step = 0; step <= line.length; step += 1) {
         const journal = [...settled, ...line.slice(0, step).map((node) => clearEvent(node.id))];
         const status = deriveMapPathway(PATHWAY_UNITS, journal);
-        const main = weaveBranches(unit).filter((entry) => entry.lane === "main");
-        const at = main.findIndex((entry) => entry.node.id === status.currentNodeId);
+        const main = roadOf(unit);
+        const at = main.findIndex((stop) => stop.node.id === status.currentNodeId);
         if (at === -1) continue;
         checked += 1;
-        for (const entry of main.slice(0, at)) {
-          const state = statusOf(status, entry.node.id).state;
-          expect(state === "done" || state === "review" || entry.node.playable === undefined, `${entry.node.id} above START`).toBe(true);
+        for (const stop of main.slice(0, at)) {
+          const state = statusOf(status, stop.node.id).state;
+          expect(state === "done" || state === "review" || stop.soon.length > 0, `${stop.node.id} above START`).toBe(true);
         }
       }
       settled.push(...line.map((node) => clearEvent(node.id)));
@@ -477,18 +537,36 @@ describe("every unit's own checkpoint", () => {
  * Every claim below is about the DERIVATION, so a unit whose shape changes
  * changes what its chips say in the same breath and no table can drift.
  */
+/*
+ * CHANGED round 3 (g11), to the corrected rule: only AUTHORED main-line
+ * lessons are steps. An unwritten node is coming soon and is never counted
+ * (Unit 2's unwritten Nomenclature review read "Step 1 of 1"), and a side
+ * quest riding the road of a unit with no spine is still optional. Before,
+ * every column node was a step, these two included.
+ */
+const lessonsOf = (shape: ReturnType<typeof unitShape>) =>
+  shape.column.filter((node) => node.playable !== undefined && node.kind !== "branch");
+
 describe("the order a unit's chips can be read off their names", () => {
-  it("gives every main-line node its position, 1 to n in authored order", () => {
+  it("gives every authored main-line lesson its position, 1 to n in authored order", () => {
+    let numbered = 0;
     for (const unit of PATHWAY_UNITS) {
       const shape = unitShape(unit);
       const places = nodePlaces(shape);
-      shape.column.forEach((node, i) => {
+      const lessons = lessonsOf(shape);
+      lessons.forEach((node, i) => {
         const place = places.get(node.id);
         expect(place, `${unit.id}/${node.id} must carry a place`).toBeDefined();
-        expect(place).toEqual({ kind: "step", index: i + 1, total: shape.column.length });
-        expect(placeSaid(place!)).toBe(`Step ${i + 1} of ${shape.column.length}`);
+        expect(place).toEqual({ kind: "step", index: i + 1, total: lessons.length });
+        expect(placeSaid(place!)).toBe(`Step ${i + 1} of ${lessons.length}`);
+        numbered += 1;
       });
+      // An unwritten road node carries no number at all.
+      for (const node of shape.column) {
+        if (node.playable === undefined) expect(places.get(node.id)?.kind, node.id).not.toBe("step");
+      }
     }
+    expect(numbered).toBeGreaterThan(20);
   });
 
   /*
@@ -502,7 +580,7 @@ describe("the order a unit's chips can be read off their names", () => {
     for (const unit of PATHWAY_UNITS) {
       const shape = unitShape(unit);
       const places = nodePlaces(shape);
-      const said = shape.column.map((node) => placeSaid(places.get(node.id) ?? null));
+      const said = lessonsOf(shape).map((node) => placeSaid(places.get(node.id) ?? null));
       expect(new Set(said).size, unit.id).toBe(said.length);
       for (const line of said) expect(line).toMatch(/^Step \d+ of \d+$/);
       for (const place of places.values()) expect(placeSaid(place)).not.toMatch(/either/i);
@@ -513,14 +591,18 @@ describe("the order a unit's chips can be read off their names", () => {
     for (const unit of PATHWAY_UNITS) {
       const shape = unitShape(unit);
       const places = nodePlaces(shape);
-      for (const node of shape.loops) {
+      for (const node of [...shape.loops, ...shape.column.filter((entry) => entry.kind === "branch")]) {
         expect(placeSaid(places.get(node.id) ?? null)).toBe("Optional side quest, off the main path");
       }
-      shape.checkpoint.forEach((node, i) => {
-        expect(placeSaid(places.get(node.id) ?? null)).toBe(
-          `Unit check, question ${i + 1} of ${shape.checkpoint.length}`,
-        );
+      // Authored gate questions only: an unwritten one is folded into the
+      // checkpoint's own sentence, never a numbered disc (round 3, Unit 2).
+      const questions = shape.checkpoint.filter((node) => node.playable !== undefined);
+      questions.forEach((node, i) => {
+        expect(placeSaid(places.get(node.id) ?? null)).toBe(`Unit check, question ${i + 1} of ${questions.length}`);
       });
+      for (const node of shape.checkpoint) {
+        if (node.playable === undefined) expect(places.has(node.id), node.id).toBe(false);
+      }
     }
   });
 
@@ -528,14 +610,16 @@ describe("the order a unit's chips can be read off their names", () => {
     // Two units with different trunk lengths must report different totals,
     // which a hand-typed table would have to be edited to keep true.
     const totals = new Set(
-      PATHWAY_UNITS.map((unit) => unitShape(unit).column.length).filter((length) => length > 0),
+      PATHWAY_UNITS.map((unit) => lessonsOf(unitShape(unit)).length).filter((length) => length > 0),
     );
     expect(totals.size).toBeGreaterThan(1);
     // And the map places exactly the nodes the shape names: no node left
     // silent, no id invented.
     for (const unit of PATHWAY_UNITS) {
       const shape = unitShape(unit);
-      const named = [...shape.column, ...shape.loops, ...shape.checkpoint].map((node) => node.id);
+      const branches = [...shape.column, ...shape.loops].filter((node) => node.kind === "branch");
+      const questions = shape.checkpoint.filter((node) => node.playable !== undefined);
+      const named = [...lessonsOf(shape), ...branches, ...questions].map((node) => node.id);
       expect([...nodePlaces(shape).keys()].sort()).toEqual([...named].sort());
     }
   });

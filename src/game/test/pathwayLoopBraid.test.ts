@@ -40,7 +40,7 @@ import type { EconomyEvent } from "@blueberry/economy";
 import { PATHWAY_UNITS } from "../demo/pathwayMap";
 import { trackWind } from "../tabs/pathway/pathwayLayout";
 import { deriveMapPathway, prerequisitesOf, statusOf } from "../tabs/pathway/pathwayState";
-import { weaveBranches } from "../tabs/pathway/unitShape";
+import { roadOf } from "../tabs/pathway/unitShape";
 
 /*
  * loopWind's three checks lived here until 2026-10-01 (side quest on the
@@ -69,15 +69,13 @@ function layout(): readonly { readonly unitId: string; readonly lane: "main" | "
   let index = 0;
   let lastWind = 1;
   for (const unit of PATHWAY_UNITS) {
-    for (const entry of weaveBranches(unit)) {
-      if (entry.lane === "main") {
-        lastWind = trackWind(index);
-        index += 1;
-        rows.push({ unitId: unit.id, lane: "main", wind: lastWind });
-        continue;
-      }
-      // A branch row carries its parent lesson's wind: it is where its trail starts.
-      rows.push({ unitId: unit.id, lane: "branch", wind: lastWind });
+    for (const stop of roadOf(unit)) {
+      lastWind = trackWind(index);
+      index += 1;
+      rows.push({ unitId: unit.id, lane: "main", wind: lastWind });
+      // Round 3: side quests ride beside their lesson's row, at its wind
+      // (that is where the stub leaves from), and take no row of their own.
+      for (const _side of [...stop.sides, ...stop.sidesSoon]) rows.push({ unitId: unit.id, lane: "branch", wind: lastWind });
     }
   }
   return rows;
@@ -177,7 +175,10 @@ describe("the unlock policy, over every node of every laid-out unit", () => {
         for (const node of unit.nodes) {
           if (done.has(node.id)) continue;
           const waiting = prerequisitesOf(unit, node).some((id) => !done.has(id));
-          expect(statusOf(status, node.id).state === "locked", `${unit.id}/${node.id} inside a reachable unit`).toBe(waiting);
+          // Round 3: an unauthored node is shut too, by having no content
+          // rather than by a prerequisite (pathwayState.ts, `queued`).
+          const shut = waiting || node.playable === undefined;
+          expect(statusOf(status, node.id).state === "locked", `${unit.id}/${node.id} inside a reachable unit`).toBe(shut);
         }
       }
     }

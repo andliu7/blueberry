@@ -152,3 +152,33 @@ export function difficultyForNode(nodeId: string): Pips | null {
   const moves = NODE_MOVES[nodeId];
   return moves === undefined || moves <= 0 ? null : pipsForMoves(moves);
 }
+
+/**
+ * HOW MANY QUESTIONS EACH UNIT'S CHECKPOINT ASKS, by unit id, for the
+ * checkpoint sheet's stakes line (round 3, g11: "no question count, no
+ * stakes"). The count is the length of the checkpoint's lesson plan
+ * (checkpointPlan in beats/template.ts: one step per content slot the unit's
+ * lessons fill), which the entry chunk may not compute for the same reason
+ * NODE_MOVES is a table. test/checkpointStakes.test.ts regenerates it from
+ * the real content and fails on drift. A unit absent here has no checkpoint
+ * content, and the sheet then states no count.
+ */
+export const CHECKPOINT_QUESTIONS: Readonly<Record<string, number>> = Object.freeze({
+  u1: 2,
+  u3: 3,
+  u4: 1,
+  u5: 3,
+  u6: 1,
+  u7: 2,
+  u8: 2,
+  u9: 3,
+  u10: 3,
+  u11: 2,
+  u14: 1,
+});
+
+/** The checkpoint's question count, or null when nothing is authored for it. */
+export function checkpointQuestions(unitId: string): number | null {
+  const count = CHECKPOINT_QUESTIONS[unitId];
+  return count === undefined || count <= 0 ? null : count;
+}

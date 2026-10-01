@@ -27,13 +27,14 @@
  * pathway.css) rather than the app-wide --chip-* family: owner 2026-09-23,
  * "the colors need to be a more fun blue-purple and turn into a fun green".
  *
- * THERE IS NO DRAWN TRAIL. Same owner, same sentence: "even get rid of the
- * path connections. just give it a glow." UnitTrail.tsx and every
- * .path-trail rule are deleted, the chips carry no trail anchors, and what
- * says "this one is yours" is now the chip's own bloom (--node-glow, pulsing
- * on the current node and static on the rest). A unit is ONE LINE of lessons
- * (unitShape.ts) with enrichment on dimmed side loops, ending on its own
- * checkpoint; the diamond fork and the petal hub were retired on 2026-10-01.
+ * THE TRAIL. Owner 2026-09-23: "even get rid of the path connections. just
+ * give it a glow." UnitTrail.tsx and every .path-trail rule are deleted, and
+ * what says "this one is yours" is the chip's own bloom (--node-glow). Round 3
+ * (g11) draws ONE line back, the road through the lessons into the checkpoint
+ * (RoadLine), because the 2026-10-01 side lane drew a trail to the optional
+ * work and left the required road undrawn. Reported for the owner. A unit is
+ * ONE LINE of lessons (unitShape.ts) with side quests pinned beside the lesson
+ * they branch from, ending on its own checkpoint.
  * The button styling lives in pathway.css beside this file.
  *
  * WHERE A PRESS GOES. Node, then price, in that order: a chip opens the NODE
@@ -82,9 +83,9 @@ import {
    name itself after its unit. Re-exported because they were exported from here
    and the pathway's own callers read them off this module. */
 export { unitName, unitNumber } from "../../demo/pathwayMap";
-import { deriveMapPathway, statusOf, unitPassed, waitingOn, type MapPathwayStatus } from "./pathwayState";
+import { deriveMapPathway, statusOf, unitLockSaid, unitNote, unitOpenedAfter, unitPassed, waitingOn, type MapPathwayStatus } from "./pathwayState";
 import { deriveFreeOrderStates } from "./topicPathway";
-import { isCheckpointUnit, nodePlaces, placeSaid, unitShape, weaveBranches, type NodePlace, type UnitShape } from "./unitShape";
+import { isCheckpointUnit, nodePlaces, placeSaid, roadOf, unitShape, type NodePlace, type UnitShape } from "./unitShape";
 import type { TrackMapNode } from "./trail";
 /*
  * THE NODE SHEET, wired here rather than left on the shelf. The attempt-2
@@ -97,7 +98,7 @@ import type { TrackMapNode } from "./trail";
  * entry, once).
  */
 import { NodeSheet, Guidebook, guidebookFor, type SheetNode } from "../../pathway-sheet";
-import { difficultyForNode } from "../../pathway-sheet/nodeDifficulty";
+import { checkpointQuestions, difficultyForNode } from "../../pathway-sheet/nodeDifficulty";
 // Pure label geometry, in its own module so it can be tested without a document.
 // Re-exported because callers and tests have always reached it through this file.
 import { trackWind, withBreakHints } from "./pathwayLayout";
@@ -485,7 +486,7 @@ function enterHandlers(onOpenNode: OpenNode, sheet: SheetNode, charge: ChargeGat
  * this one". The state already says it is locked, and the model disables START
  * on that; the href only says whether there is content behind the node.
  */
-function sheetNodeFor(node: MapNode, state: NodeState, lockedNote?: string): SheetNode {
+function sheetNodeFor(node: MapNode, state: NodeState, lockedNote?: string, checkpoint?: SheetNode["checkpoint"]): SheetNode {
   const practiceHref = node.playable === undefined ? null : hrefForPlayable(node.playable);
   const base = {
     id: node.id,
@@ -496,6 +497,7 @@ function sheetNodeFor(node: MapNode, state: NodeState, lockedNote?: string): She
     practiceHref,
     ...(lockedNote === undefined ? {} : { lockedNote }),
     ...(hasChallengeRun(node) ? {} : { noChallenge: true }),
+    ...(checkpoint === undefined ? {} : { checkpoint }),
   };
   // The pips are a measurement of the node's own content, not a restatement of
   // its kind. Null means nothing is authored behind it, and the sheet then
@@ -544,10 +546,12 @@ function Chip({
   const clickable = href !== null && sheetNode !== null;
   // The committed states sheet draws five states and no hybrids. Dim yields
   // to locked (the S3 critic found a periwinkle-dim chip wearing a padlock,
-  // a sixth face the sheet does not draw), and queued yields to locked too:
-  // inside an unreachable unit the lock is the truer statement.
+  // a sixth face the sheet does not draw). Queued WINS over locked since
+  // round 3: an unwritten node's state is always "locked" (pathwayState.ts),
+  // and "coming soon" is the truer statement, because finishing nothing will
+  // open it.
   const dimmed = dim && state !== "locked";
-  const isQueued = queued && state !== "locked";
+  const isQueued = queued;
   const chipClass = `path-node path-node--${state} ${dimmed ? "path-node--dim" : ""} ${isQueued ? "path-node--queued" : ""} ${clickable ? "path-node--press" : ""}`;
   /*
     The TWO states that carry a mark of their own: done wears the check and
@@ -810,6 +814,7 @@ function TrackSlab({
   queued = false,
   place = null,
   reducedMotion = false,
+  aside = null,
   onOpenNode,
   sheetNode,
   gateNode,
@@ -821,11 +826,10 @@ function TrackSlab({
   readonly wind: number;
   readonly badge: NodeBadge | null;
   readonly dim: boolean;
-  /**
-   * "branch" is a side quest on the branch lane: same chip, its own fixed
-   * column left of the road, its own pale face (.path-row--branch).
-   */
-  readonly lane?: "main" | "branch" | "check";
+  /** "check" is the unit's checkpoint, the heaviest chip (.path-row--check). */
+  readonly lane?: "main" | "check";
+  /** The side quests pinned beside this row (SideLane), or null. They take no height. */
+  readonly aside?: ReactNode;
   readonly queued?: boolean;
   /** Where the row sits in its unit. See Chip's own note. */
   readonly place?: NodePlace | null;
@@ -885,7 +889,9 @@ function TrackSlab({
             <Berry mood="happy" behaviour="leanIn" reducedMotion={reducedMotion} sizePx={MASCOT_PX} />
           </span>
         ) : null}
-        <div className="path-row__slab">
+        {aside}
+        {/* data-road-stop: RoadLine draws the road through this box's centre. */}
+        <div className="path-row__slab" data-road-stop>
           <Chip
             state={state}
             label={label}
@@ -901,7 +907,7 @@ function TrackSlab({
           />
           {/* A shut checkpoint keeps its gold and says "locked" with a padlock
               instead. aria-hidden: the chip's name already says why it waits. */}
-          {lane === "check" && state === "locked" ? (
+          {lane === "check" && state === "locked" && !queued ? (
             <span className="path-node__lock" aria-hidden>
               <svg viewBox="0 0 24 24" width="14" height="14">
                 <rect x="5" y="10.5" width="14" height="10" rx="2.2" fill="currentColor" />
@@ -921,61 +927,133 @@ function TrackSlab({
       <div className="path-row__name">
         {state === "current" ? <StartTag /> : null}
         <NodeLabel label={label} icon={badge} />
+        {/* Nothing written behind it: said under the name, not only in the
+            accessible name (round 3, Unit 2's checkpoint). */}
+        {queued && lane === "check" ? <span className="path-soon-note" aria-hidden>Coming soon</span> : null}
       </div>
     </li>
   );
 }
 
 /**
- * THE BRANCH LANE, owner 2026-10-01: "optional side quests leave the main
- * road ... a clearly drawn branch lane beside the main path, a visible trail
- * connecting them to the lesson they branch from".
+ * THE SIDE LANE, round 3 (g11 critic). The owner's 2026-10-01 branch lane
+ * ("a clearly drawn branch lane beside the main path, a visible trail
+ * connecting them to the lesson they branch from") is kept; what changed is
+ * that a run of side quests no longer takes rows of its own. It is pinned
+ * BESIDE the lesson it branches from, in that row's left lane, absolutely
+ * positioned, so it adds no height and the lesson to lesson pitch is one
+ * number. Chips are smaller than a lesson's, a dashed stub joins them to
+ * their lesson, and unwritten side quests collapse to one "coming soon"
+ * marker (roadOf in unitShape.ts). See .path-side in pathway.css.
  *
- * One list item holding the run of side quests that branch off the lesson
- * row just above it. A dashed trail leaves that lesson's chip, runs left to
- * the branch lane and down through the side-quest chips, which sit in a
- * fixed column left of the road with a pale face of their own (pathway.css,
- * .path-branch and .path-row--branch). So a side quest is never a row on the
- * road, and an unplayed one above START reads as a detour, not a skipped
- * lesson.
- *
- * `--parent-wind` is the parent chip's swing, so the trail starts under that
- * chip whichever way it leans. The tag and the trail are aria-hidden: each
- * chip's accessible name already opens "Optional side quest, off the main
- * path", and the list is labelled.
- *
- * React pattern: `children` is the JSX nested between <BranchLane> tags,
- * handed in as a prop, so the caller decides what rows go in the lane.
+ * The list is labelled, and each chip's accessible name opens "Optional side
+ * quest, off the main path", so the lane needs no visible caption.
  */
-function BranchLane({ parentWind, children }: { readonly parentWind: number; readonly children: ReactNode }) {
+function SideLane({ chips, soon }: { readonly chips: readonly ReactNode[]; readonly soon: readonly MapNode[] }) {
   return (
-    <li className="path-branch" style={{ "--parent-wind": parentWind } as CSSProperties}>
-      <span className="path-branch__elbow" aria-hidden />
-      <span className="path-branch__drop" aria-hidden />
-      <span className="path-branch__tag" aria-hidden>
-        Optional side quests
-      </span>
-      <ol className="path-branch__list" aria-label="Optional side quests">
-        {children}
-      </ol>
+    <ol className="path-side" aria-label="Optional side quests">
+      {chips}
+      {soon.length === 0 ? null : (
+        <li
+          className="path-side__soon"
+          role="img"
+          aria-label={`${soon.length} optional side ${soon.length === 1 ? "quest" : "quests"} coming soon: ${soon.map((node) => node.title).join(", ")}`}
+        >
+          <span className="path-side__soon-count" aria-hidden>
+            +{soon.length}
+          </span>
+          <span className="path-side__soon-word" aria-hidden>
+            soon
+          </span>
+        </li>
+      )}
+    </ol>
+  );
+}
+
+/**
+ * A STOP ON THE ROAD WITH NOTHING WRITTEN BEHIND IT, round 3: one row for a
+ * whole run of unwritten lessons (roadOf), never a chip, because there is
+ * nothing to press. It keeps the lesson row's height, so the pitch holds.
+ */
+function SoonRow({ row, aside }: { readonly row: UnitRow; readonly aside: ReactNode }) {
+  const count = row.soon.length;
+  const optional = row.node.kind === "branch";
+  const label = count === 1 ? row.node.title : `${count} ${optional ? "optional side quests" : "lessons"}`;
+  return (
+    <li className="path-row w-full" style={{ "--wind": row.wind } as CSSProperties} data-node-state="locked">
+      <div className="path-row__lane">
+        {aside}
+        <div className="path-row__slab" data-road-stop>
+          <span
+            className="path-soon"
+            role="img"
+            aria-label={`${label}${optional && count === 1 ? ", an optional side quest" : ""}. Coming soon: ${row.soon.map((node) => node.title).join(", ")}`}
+          />
+        </div>
+      </div>
+      <div className="path-row__name" aria-hidden>
+        <span className="path-label">
+          <span className="path-label__text">{withBreakHints(label)}</span>
+        </span>
+        <span className="path-soon-note">{optional ? "Optional, coming soon" : "Coming soon"}</span>
+      </div>
     </li>
   );
 }
 
-/** The rows in document order, with each run of consecutive branch rows grouped under the lesson above it. */
-type RowRun =
-  | { readonly kind: "row"; readonly row: UnitRow }
-  | { readonly kind: "branch"; readonly parentWind: number; readonly rows: readonly UnitRow[] };
-
-function branchRuns(rows: readonly UnitRow[]): readonly RowRun[] {
-  const runs: RowRun[] = [];
-  for (const row of rows) {
-    const last = runs[runs.length - 1];
-    if (row.lane !== "branch") runs.push({ kind: "row", row });
-    else if (last !== undefined && last.kind === "branch") runs[runs.length - 1] = { ...last, rows: [...last.rows, row] };
-    else runs.push({ kind: "branch", parentWind: row.wind, rows: [row] });
-  }
-  return runs;
+/**
+ * THE ROAD, round 3 (g11 critic: "the only drawn line on the page is the
+ * side-quest trail ... the drawn path leads to the optional thing, the
+ * undrawn one is the required thing"). One solid line through the centre of
+ * every stop on the road, lessons and checkpoint, measured off the laid-out
+ * chips so it follows the buttons by construction. Legs leaving a cleared
+ * stop take the done green.
+ *
+ * React pattern: useLayoutEffect measures the DOM after React has laid it
+ * out and before the browser paints, and the setState in it re-renders once
+ * with the measured points, so the line is never drawn in a stale place. A
+ * ResizeObserver re-measures when the unit's box changes (a font loading, a
+ * rotation). `version` changes whenever the states do, so the walked colour
+ * follows progress.
+ *
+ * It measures its OWN parent through its own ref, not a ref handed down from
+ * the unit: a child's layout effect runs before React attaches the parent's
+ * ref, so a parent ref is still null on the first pass and the road never drew.
+ */
+function RoadLine({ version }: { readonly version: string }) {
+  const ref = useRef<SVGSVGElement | null>(null);
+  const [road, setRoad] = useState<{ readonly w: number; readonly h: number; readonly legs: readonly { readonly d: string; readonly walked: boolean }[] } | null>(null);
+  useLayoutEffect(() => {
+    const surface = ref.current?.parentElement ?? null;
+    if (surface === null) return;
+    const measure = () => {
+      const box = surface.getBoundingClientRect();
+      const stops = [...surface.querySelectorAll<HTMLElement>("[data-road-stop]")].map((el) => {
+        const r = el.getBoundingClientRect();
+        const state = el.closest("li")?.getAttribute("data-node-state");
+        return { x: r.left + r.width / 2 - box.left, y: r.top + r.height / 2 - box.top, walked: state === "done" || state === "review" };
+      });
+      const legs = stops.slice(1).map((to, i) => {
+        const from = stops[i]!;
+        return { d: `M${from.x.toFixed(1)} ${from.y.toFixed(1)}L${to.x.toFixed(1)} ${to.y.toFixed(1)}`, walked: from.walked };
+      });
+      setRoad({ w: box.width, h: box.height, legs });
+    };
+    measure();
+    if (typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(surface);
+    return () => observer.disconnect();
+  }, [version]);
+  // Always rendered, empty until measured, so the ref exists to measure from.
+  return (
+    <svg ref={ref} className="path-road" width={road?.w ?? 0} height={road?.h ?? 0} aria-hidden>
+      {(road?.legs ?? []).map((leg, i) => (
+        <path key={i} d={leg.d} className={`path-road__leg${leg.walked ? " path-road__leg--walked" : ""}`} />
+      ))}
+    </svg>
+  );
 }
 
 function TrackNode({
@@ -1196,7 +1274,9 @@ function mapNodeDetail(
   lockedNote: string | null = null,
 ): string {
   const said = placeSaid(place);
-  const base = locked ? (lockedNote ?? "Opens when the unit before it is done") : queued ? "Authoring queued" : node.blurb;
+  // Coming soon first: an unwritten node is always "locked" (pathwayState.ts)
+  // and no lesson or unit opens it, so a lock sentence would be false.
+  const base = queued ? "Coming soon" : locked ? (lockedNote ?? "Opens when the unit before it is done") : node.blurb;
   return said === null ? base : `${said}. ${base}`;
 }
 
@@ -1240,17 +1320,21 @@ function mapGateNode(node: MapNode, clickable: boolean): ChargeGateNode | null {
 
 interface UnitRow {
   readonly node: MapNode;
-  readonly lane: "main" | "branch";
-  /** A branch row has no wind of its own: it carries its parent lesson's, which is where its trail starts. */
   readonly wind: number;
-  /** Enrichment: a side quest, on the branch lane or, in a unit with no spine, as the road itself. */
+  /** Enrichment: a side quest riding the road of a unit with no spine. */
   readonly dim: boolean;
+  /** The unwritten road nodes this row stands for (coming soon), or [] for a real lesson. See roadOf. */
+  readonly soon: readonly MapNode[];
+  /** Authored side quests branching from this row, pinned beside it. */
+  readonly sides: readonly MapNode[];
+  /** Unwritten side quests branching from it, drawn as one coming-soon marker. */
+  readonly sidesSoon: readonly MapNode[];
 }
 
 interface UnitPlan {
   readonly unit: MapUnit;
   readonly shape: UnitShape;
-  /** The winding column with its detours woven in, in DOCUMENT order. */
+  /** The road, one row per lesson (or per run of unwritten ones), in DOCUMENT order. */
   readonly rows: readonly UnitRow[];
   /**
    * The spine's last stretch: the unit's checkpoint challenges, between the
@@ -1266,6 +1350,13 @@ interface UnitPlan {
    * construction and the shape is the winding road it was always meant to be.
    */
   readonly gateRun: readonly UnitRow[];
+  /**
+   * The unit's UNWRITTEN gate questions. Round 3: they are not rows. Unit 2
+   * drew five "Unit check, question n of 5" discs over nothing, then a second
+   * gold checkpoint under them; the questions are the check's, so the check
+   * row says they are coming instead.
+   */
+  readonly checkSoon: readonly MapNode[];
   /**
    * THE UNIT'S OWN CHECKPOINT, the last chip on the page.
    *
@@ -1310,40 +1401,35 @@ interface UnitPlan {
  */
 export function planUnits(units: readonly MapUnit[]): readonly UnitPlan[] {
   let index = 0;
-  let lastWind = 1;
   return units.map((unit, unitOrdinal) => {
     // The peak steps of WIND_CYCLE, alternating per unit. See the note above.
     index = unitOrdinal % 2 === 0 ? 1 : 3;
     const shape = unitShape(unit);
-    const rows: UnitRow[] = [];
-    // A unit with no spine draws its branches AS its road (unitShape), so a
-    // main row is enrichment exactly when it is a branch node.
-    for (const entry of weaveBranches(unit, shape)) {
-      if (entry.lane === "branch") {
-        rows.push({ node: entry.node, lane: "branch", wind: lastWind, dim: true });
-        continue;
-      }
+    // One row per stop on the road (roadOf): side quests ride beside their
+    // lesson and take no row, so every row is a step of the same pitch.
+    const rows: UnitRow[] = roadOf(unit, shape).map((stop) => {
       const wind = trackWind(index);
       index += 1;
-      lastWind = wind;
-      rows.push({ node: entry.node, lane: "main", wind, dim: entry.node.kind === "branch" });
-    }
+      return { node: stop.node, wind, dim: stop.node.kind === "branch", soon: stop.soon, sides: stop.sides, sidesSoon: stop.sidesSoon };
+    });
     // The checkpoint run picks the wind cycle back up from wherever the main
     // line had reached, so the road keeps winding into the unit's end.
-    const gateRun: UnitRow[] = shape.checkpoint.map((node) => {
-      const wind = trackWind(index);
-      index += 1;
-      lastWind = wind;
-      return { node, lane: "main" as const, wind, dim: false };
-    });
+    const gateRun: UnitRow[] = shape.checkpoint
+      .filter((node) => node.playable !== undefined)
+      .map((node) => {
+        const wind = trackWind(index);
+        index += 1;
+        return { node, wind, dim: false, soon: [], sides: [], sidesSoon: [] };
+      });
+    const checkSoon = shape.checkpoint.filter((node) => node.playable === undefined);
     // The check closes the unit, so it takes the NEXT wind after the gateRun
     // rather than restarting: the road leaving the last question keeps turning
     // into the arch. trackWind never returns 0, so it never parks on the
     // centreline (pathwayBranchDensity pins that for the same reason).
     const checkWind = trackWind(index);
     index += 1;
-    const check: UnitRow = { node: unitCheckpointNode(unit), lane: "main", wind: checkWind, dim: false };
-    return { unit, shape, rows, gateRun, check, checkpoint: isCheckpointUnit(unit) };
+    const check: UnitRow = { node: unitCheckpointNode(unit), wind: checkWind, dim: false, soon: [], sides: [], sidesSoon: [] };
+    return { unit, shape, rows, gateRun, checkSoon, check, checkpoint: isCheckpointUnit(unit) };
   });
 }
 
@@ -1366,7 +1452,7 @@ export function trackMapNodesFor(
   };
   const nodes: TrackMapNode[] = plan.rows.map((row) => ({
     wind: row.wind,
-    lane: row.lane === "branch" ? ("loop" as const) : ("main" as const),
+    lane: "main" as const,
     done: done(row.node),
   }));
   for (const row of plan.gateRun) nodes.push({ wind: row.wind, lane: "main", done: done(row.node) });
@@ -1506,8 +1592,11 @@ function UnitMenu({
         {PATHWAY_UNITS.map((entry, at) => {
           const passed = unitStatusPassed(status, entry.id);
           const reachable = status.units.get(entry.id)?.reachable === true;
-          const rowState = passed ? "done" : !reachable ? "locked" : at === activeAt ? "current" : "open";
-          const said = passed ? "Done" : !reachable ? "Locked" : at === activeAt ? "Up next" : "Open";
+          // A unit with nothing written is neither open nor locked: it is coming
+          // (round 3; "Open" on Unit 2 offered a page with nothing to do).
+          const empty = (status.units.get(entry.id)?.playable ?? 0) === 0;
+          const rowState = passed ? "done" : !reachable || empty ? "locked" : at === activeAt ? "current" : "open";
+          const said = passed ? "Done" : empty ? "Coming soon" : !reachable ? "Locked" : at === activeAt ? "Up next" : "Open";
           return (
             <li key={entry.id}>
               <a
@@ -1594,13 +1683,17 @@ function OrgoMapTrack({
   const nextOpen = next !== null && status.units.get(next.id)?.reachable === true;
 
   /*
-    WHY A BROWSED UNIT IS SHUT, said once at the top of its page. The rail
-    browses (see above), so a student can open a unit the gates have not, and
-    every chip on it declines; this sentence names the unit to go finish. It
-    used to ride a sticky footer with a "N left" count, and both went with the
-    footer on 2026-10-01: the count is the checkpoint's own locked sentence now.
+    ONE SENTENCE AT THE TOP OF THE PAGE, when the unit needs one: why a
+    browsed unit is shut (naming the unit to finish), that a unit has nothing
+    written yet and never holds the student back, or, round 3, that the track
+    walked straight through an empty unit to reach this one (g11: clearing
+    Unit 1 landed on Unit 3 and nothing said why). Derived in pathwayState.ts,
+    where it is pinned by running it.
   */
-  const gateReason = gateLocked ? `Locked. Finish ${unitNumber(PATHWAY_UNITS[frontier]!.title)} to open this.` : null;
+  const gateReason = unitNote(PATHWAY_UNITS, status, index);
+  /* The sentence every chip in a shut unit says, naming the unit to finish:
+     "the unit before it" named the empty Unit 2 on Unit 3's chips (g11). */
+  const lockSaid = unitLockSaid(PATHWAY_UNITS, status);
 
   const pagerRef = useRef<HTMLDivElement | null>(null);
   const surfaceRef = useRef<HTMLElement | null>(null);
@@ -1747,43 +1840,92 @@ function OrgoMapTrack({
     window.scrollTo(0, 0);
   }, [unit.id, requested]);
 
-  /* One winding row, for the column and for the enrichment tail below the
-     fork: the same call either side of the split, so the two lists cannot
-     draw one node two ways. */
-  const slab = (row: UnitRow) => {
-    const nodeStatus = statusOf(status, row.node.id);
-    const playable = row.node.playable;
+  /* One chip's props for a map node, shared by the road and the side lane,
+     so the two cannot draw one node two ways. */
+  const chipFor = (node: MapNode) => {
+    const nodeStatus = statusOf(status, node.id);
+    const playable = node.playable;
     const clickable = playable !== undefined && nodeStatus.state !== "locked";
     /* A lesson shut inside an open unit is shut by the lesson before it on
        the line (pathwayState.ts), so it names that lesson rather than saying
        the unit-gate sentence, which would send the student backwards. Only
-       the nearest one: on a line, the ones before it are implied. */
-    const waits = gateLocked ? [] : waitingOn(status, unit, row.node);
-    const waitNote = waits.length === 0 ? null : `Opens after you clear ${titleOf(unit, waits[waits.length - 1]!)}`;
+       the nearest one: on a line, the ones before it are implied. In a shut
+       unit it names the unit to finish. */
+    const waits = gateLocked ? [] : waitingOn(status, unit, node);
+    const waitNote = gateLocked ? lockSaid : waits.length === 0 ? null : `Opens after you clear ${titleOf(unit, waits[waits.length - 1]!)}`;
+    const place = places.get(node.id) ?? null;
+    return {
+      state: nodeStatus.state,
+      queued: nodeStatus.queued,
+      place,
+      detail: mapNodeDetail(node, nodeStatus.queued, nodeStatus.state === "locked", place, waitNote),
+      href: clickable && playable !== undefined ? hrefForPlayable(playable) : null,
+      sheetNode: sheetNodeFor(node, nodeStatus.state, waitNote === null ? undefined : `${waitNote}.`),
+      gateNode: mapGateNode(node, clickable),
+    };
+  };
+
+  /* A side quest's chip in its lesson's side lane. dim is false: the lane
+     has its own quiet faces (.path-side in pathway.css). */
+  const sideChip = (node: MapNode) => {
+    const chip = chipFor(node);
+    return (
+      <li key={node.id} className="path-side__item">
+        <Chip
+          state={chip.state}
+          label={node.title}
+          detail={chip.detail}
+          href={chip.href}
+          badge={badgeForMapNode(node, shape.videoHookId)}
+          dim={false}
+          queued={chip.queued}
+          place={chip.place}
+          onOpenNode={onOpenNode}
+          sheetNode={chip.sheetNode}
+          gateNode={chip.gateNode}
+        />
+      </li>
+    );
+  };
+
+  /* One row on the road, with its side quests pinned beside it. */
+  const slab = (row: UnitRow) => {
+    const chip = chipFor(row.node);
+    /* THE CURRENT LESSON'S SIDE QUESTS ARE NOT DRAWN YET. They all wait on
+       it (they branch from it), and its left lane holds the mascot, so they
+       appear beside it the moment it clears. Its name says what clearing it
+       opens instead, so nothing is hidden from a screen reader either. */
+    const current = chip.state === "current";
+    const hasSides = row.sides.length + row.sidesSoon.length > 0;
+    const aside = hasSides && !current ? <SideLane chips={row.sides.map(sideChip)} soon={row.sidesSoon} /> : null;
+    if (row.soon.length > 0) return <SoonRow key={row.node.id} row={row} aside={aside} />;
+    const opens =
+      current && row.sides.length > 0
+        ? ` Clearing it opens ${row.sides.length === 1 ? "an optional side quest" : `${row.sides.length} optional side quests`}.`
+        : "";
     return (
       <TrackSlab
         key={row.node.id}
-        state={nodeStatus.state}
+        state={chip.state}
         label={row.node.title}
-        detail={mapNodeDetail(row.node, nodeStatus.queued, nodeStatus.state === "locked", places.get(row.node.id) ?? null, waitNote)}
-        place={places.get(row.node.id) ?? null}
-        href={clickable && playable !== undefined ? hrefForPlayable(playable) : null}
+        detail={`${chip.detail}${opens}`}
+        place={chip.place}
+        href={chip.href}
         wind={row.wind}
-        lane={row.lane}
         badge={badgeForMapNode(row.node, shape.videoHookId, row.dim)}
         /*
-          THE DIMMED SIDE LOOP, and the dim is AUTHORED TOKENS rather than
-          a CSS filter, per the S2 floor: the contrast audit reads computed
-          colours and a filter would make it measure a pair that is not on
-          screen. Enrichment stays off the exam-weighted spine per
-          CLAUDE.md, and dimming is how the track says so.
+          THE DIMMED SIDE QUEST riding the road of a unit with no spine, and
+          the dim is AUTHORED TOKENS rather than a CSS filter, per the S2
+          floor: the contrast audit reads computed colours and a filter would
+          make it measure a pair that is not on screen.
         */
         dim={row.dim}
-        queued={nodeStatus.queued}
+        queued={chip.queued}
         reducedMotion={reducedMotion}
+        aside={aside}
         onOpenNode={onOpenNode}
-        sheetNode={sheetNodeFor(row.node, nodeStatus.state, waitNote === null ? undefined : `${waitNote}.`)}
-        gateNode={mapGateNode(row.node, clickable)}
+        sheetNode={chip.sheetNode}
+        gateNode={chip.gateNode}
       />
     );
   };
@@ -1837,6 +1979,7 @@ function OrgoMapTrack({
         data-unit-id={unit.id}
         data-checkpoint={plan.checkpoint ? "true" : "false"}
       >
+        <RoadLine version={`${unit.id}:${status.currentNodeId ?? ""}:${status.doneCount}`} />
         {gateReason === null ? null : (
           <p className="path-unit__reason mx-auto w-full max-w-md" role="note">
             {gateReason}
@@ -1860,23 +2003,11 @@ function OrgoMapTrack({
         {/*
           THE MAIN LINE, ONE ROW PER LESSON IN THE ORDER THEY OPEN, 2026-10-01.
           There is no fork any more: each lesson opens the next (pathwayState.ts),
-          so the page draws a line because the unit is one. Side quests leave
-          it: each run of them is ONE BranchLane under the lesson it branches
-          from (weaveBranches in unitShape.ts), never a row on the road.
+          so the page draws a line because the unit is one. Side quests are not
+          rows (round 3): each lesson carries its own, pinned beside it, so
+          every row is one pitch (roadOf in unitShape.ts, SideLane above).
         */}
-        {plan.rows.length > 0 ? (
-          <ol className="path-track mx-auto flex w-full max-w-md flex-col">
-            {branchRuns(plan.rows.filter((row) => row.node.mentionOnly !== true)).map((run) =>
-              run.kind === "row" ? (
-                slab(run.row)
-              ) : (
-                <BranchLane key={`branch-${run.rows[0]!.node.id}`} parentWind={run.parentWind}>
-                  {run.rows.map(slab)}
-                </BranchLane>
-              ),
-            )}
-          </ol>
-        ) : null}
+        {plan.rows.length > 0 ? <ol className="path-track mx-auto flex w-full max-w-md flex-col">{plan.rows.map(slab)}</ol> : null}
 
         {/*
           THE MENTION SITS ABOVE THE CHECKPOINT, 2026-10-01: the unit ends on
@@ -1945,12 +2076,34 @@ function OrgoMapTrack({
               const locked = nodeStatus.state === "locked";
               const clickable = playable !== undefined && !locked;
               const href = clickable && playable !== undefined ? hrefForPlayable(playable) : null;
-              const waitsForLessons = row === plan.check && locked && !gateLocked;
+              const isCheck = row === plan.check;
+              const waitsForLessons = isCheck && locked && !gateLocked && !nodeStatus.queued;
               const checkWaitNote = checkWaits(status.units.get(unit.id)?.playable ?? 0);
               const place = places.get(row.node.id) ?? null;
+              /* A check over nothing written says so, and says it once: the
+                 unit's unwritten gate questions are this check's (checkSoon),
+                 not discs of their own (round 3, Unit 2). */
+              const soonSaid =
+                plan.checkSoon.length > 0
+                  ? `Coming soon: its ${plan.checkSoon.length} ${plan.checkSoon.length === 1 ? "question is" : "questions are"} being written`
+                  : "Coming soon: nothing in this unit is written yet";
               const detail = waitsForLessons
                 ? `${placeSaid(place) ?? "Unit checkpoint"}. ${checkWaitNote}`
-                : mapNodeDetail(row.node, nodeStatus.queued, locked, place);
+                : isCheck && nodeStatus.queued
+                  ? `Unit checkpoint. ${soonSaid}.`
+                  : mapNodeDetail(row.node, nodeStatus.queued, locked, place, gateLocked ? lockSaid : null);
+              /* What passing it does, from the map: the unit it opens, the
+                 empty ones walked through, and the measured question count. */
+              const route = unitOpenedAfter(PATHWAY_UNITS, index);
+              const stakes =
+                isCheck && !nodeStatus.queued
+                  ? {
+                      opens: route.opens === null ? null : unitNumber(route.opens.title),
+                      skipped: route.skipped.map((entry) => unitNumber(entry.title)),
+                      questions: checkpointQuestions(unit.id),
+                    }
+                  : undefined;
+              const lockedNote = waitsForLessons ? checkWaitNote : gateLocked ? `${lockSaid}.` : undefined;
               return (
                 <TrackSlab
                   key={row.node.id}
@@ -1966,7 +2119,7 @@ function OrgoMapTrack({
                   queued={nodeStatus.queued}
                   reducedMotion={reducedMotion}
                   onOpenNode={onOpenNode}
-                  sheetNode={sheetNodeFor(row.node, nodeStatus.state, waitsForLessons ? checkWaitNote : undefined)}
+                  sheetNode={sheetNodeFor(row.node, nodeStatus.state, lockedNote, stakes)}
                   gateNode={mapGateNode(row.node, clickable)}
                 />
               );
@@ -2125,7 +2278,7 @@ export default function PathwayTab({ reducedMotion }: { readonly reducedMotion: 
         check and review a refresh, every other face carries its content motif,
         the current chip carries the START tag AND aria-current="step", a locked
         chip's accessible name is "Opens when the unit before it is done", an
-        unauthored one's is "Authoring queued", and a detour's is "Optional side
+        unauthored one's is "Coming soon", and a detour's is "Optional side
         quest, off the main path". The legend was a second vocabulary for facts
         the chips already say in words, and a key a student has to scroll past
         the whole unit to read is not how they would have learned them anyway.

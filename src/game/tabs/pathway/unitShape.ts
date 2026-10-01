@@ -18,7 +18,7 @@
  *      unlock order by construction.
  *   2. SIDE QUESTS. Every `branch` node is, in the map's own words, an
  *      "optional side quest", drawn on a branch lane beside the road, off
- *      the lesson it branches from (see weaveBranches). A unit with NO spine
+ *      the lesson it branches from (see roadOf). A unit with NO spine
  *      at all is all enrichment, so its branches ARE its track and ride the
  *      main lane: a branch needs a road to leave.
  *   3. VIDEO HOOK. See VIDEO_HOOK below for what the badge does and does not
@@ -135,11 +135,20 @@ export function placeSaid(place: NodePlace | null): string | null {
 
 export function nodePlaces(shape: UnitShape): ReadonlyMap<string, NodePlace> {
   const places = new Map<string, NodePlace>();
-  shape.column.forEach((node, i) => places.set(node.id, { kind: "step", index: i + 1, total: shape.column.length }));
-  for (const node of shape.loops) places.set(node.id, { kind: "loop" });
-  shape.checkpoint.forEach((node, i) =>
-    places.set(node.id, { kind: "check", index: i + 1, total: shape.checkpoint.length }),
-  );
+  /*
+   * ONLY AUTHORED LESSONS ARE COUNTED, round 3 (g11). A coming-soon node is
+   * not a step a student can take, so numbering it made "Step 1 of 1" out of
+   * Unit 2's unwritten Nomenclature review. And a side quest riding the road
+   * of a unit with no spine (unitShape) is still optional, so it is a loop
+   * and never a step. The same rule covers the authored gate questions.
+   */
+  const steps = shape.column.filter((node) => node.playable !== undefined && node.kind !== "branch");
+  steps.forEach((node, i) => places.set(node.id, { kind: "step", index: i + 1, total: steps.length }));
+  for (const node of [...shape.column, ...shape.loops]) {
+    if (node.kind === "branch") places.set(node.id, { kind: "loop" });
+  }
+  const checks = shape.checkpoint.filter((node) => node.playable !== undefined);
+  checks.forEach((node, i) => places.set(node.id, { kind: "check", index: i + 1, total: checks.length }));
   return places;
 }
 
@@ -184,26 +193,57 @@ export function branchAnchor(unit: PathwayUnit, column: readonly PathwayNode[], 
   return at;
 }
 
-/** One row of a unit in document order: a main-line lesson or a side quest on the branch lane. */
-export interface WovenEntry {
+/**
+ * ONE STOP ON THE ROAD, and everything that hangs beside it.
+ *
+ * Round 3 (g11 critic): with side quests as rows of their own between the
+ * lessons, the road's pitch swung 86 to 281px wherever they sat, and the eye
+ * followed the only drawn line into the optional work. So a side quest is no
+ * longer a row. It is carried BY the lesson it branches from and drawn beside
+ * that lesson's row, adding no height, which is what keeps the lesson to
+ * lesson pitch one number.
+ *
+ * UNAUTHORED NODES COLLAPSE. A run of unwritten road nodes is one stop
+ * (`soon`), and a lesson's unwritten side quests are one marker
+ * (`sidesSoon`), so nine placeholders cannot fill a screen between the last
+ * lesson and the checkpoint (Unit 3 drew 780px of them).
+ */
+export interface RoadStop {
+  /** The node this row draws. For a coming-soon stop, the first of `soon`. */
   readonly node: PathwayNode;
-  readonly lane: "main" | "branch";
+  /** The unwritten road nodes this one row stands for, or [] for a real lesson. */
+  readonly soon: readonly PathwayNode[];
+  /** Authored side quests branching from this stop, drawn beside its row. */
+  readonly sides: readonly PathwayNode[];
+  /** Unwritten side quests branching from it, drawn as one coming-soon marker. */
+  readonly sidesSoon: readonly PathwayNode[];
 }
 
 /**
- * The unit in the order the DOM lays it: each main-line lesson, then the side
- * quests that branch from it, in authored order. A unit with no spine has no
- * road to branch off, so its branches ARE its column (unitShape) and every
- * row is "main" here.
+ * The unit's road in DOM order: one stop per authored lesson or per run of
+ * unwritten ones, each carrying the side quests that branch from it
+ * (branchAnchor). A mention is not a node (PathwayTab draws it as text), so it
+ * is left out here.
  */
-export function weaveBranches(unit: PathwayUnit, shape: UnitShape = unitShape(unit)): readonly WovenEntry[] {
-  const anchors = shape.loops.map((node) => branchAnchor(unit, shape.column, node));
-  const woven: WovenEntry[] = [];
-  shape.column.forEach((node, index) => {
-    woven.push({ node, lane: "main" });
-    shape.loops.forEach((loop, at) => {
-      if (anchors[at] === index) woven.push({ node: loop, lane: "branch" });
-    });
-  });
-  return woven;
+export function roadOf(unit: PathwayUnit, shape: UnitShape = unitShape(unit)): readonly RoadStop[] {
+  const stops: { node: PathwayNode; soon: PathwayNode[]; sides: PathwayNode[]; sidesSoon: PathwayNode[] }[] = [];
+  // Which stop each column index landed in, so a side quest can find its parent.
+  const stopAt: number[] = [];
+  for (const node of shape.column) {
+    const last = stops[stops.length - 1];
+    if (node.mentionOnly === true) {
+      stopAt.push(stops.length - 1);
+      continue;
+    }
+    if (node.playable === undefined && last !== undefined && last.soon.length > 0) last.soon.push(node);
+    else stops.push({ node, soon: node.playable === undefined ? [node] : [], sides: [], sidesSoon: [] });
+    stopAt.push(stops.length - 1);
+  }
+  for (const loop of shape.loops) {
+    if (loop.mentionOnly === true) continue;
+    const parent = stops[stopAt[branchAnchor(unit, shape.column, loop)] ?? -1];
+    if (parent === undefined) continue;
+    (loop.playable === undefined ? parent.sidesSoon : parent.sides).push(loop);
+  }
+  return stops;
 }

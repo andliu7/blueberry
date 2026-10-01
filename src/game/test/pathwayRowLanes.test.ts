@@ -119,8 +119,12 @@ const CHIP_H = px(decl("--node-face-h")) + px(decl("--node-lip")) + px(decl("--n
 const MASCOT_LANE = px(decl("--path-mascot-lane"));
 const NODE_LANE = px(decl("--path-node-lane"));
 const NAME_GAP = px(decl("--path-name-gap"));
-/* The branch lane's chip centre, row-local (.path-branch, 2026-10-01). */
-const BRANCH_X = px(declIn(".path-branch {", "--branch-x"));
+/* The side lane (.path-side, round 3): its chips sit centred in the row's
+   first track, and are their own smaller size. */
+const BRANCH_X = MASCOT_LANE / 2;
+const SIDE_W = px(declIn(".path-side .path-node {", "--node-size"));
+const SIDE_H = px(declIn(".path-side .path-node {", "--node-face-h")) + px(decl("--node-lip")) + px(decl("--node-border")) * 2;
+const SIDE_GAP = px(declIn(".path-side {", "--side-gap"));
 const SEAM = px(decl("--path-seam"));
 
 /** The peak of the wind cycle, in steps. */
@@ -200,27 +204,45 @@ describe("the name track gets what is left, and a loop chip never reaches it", (
   });
 
   /*
-     REWRITTEN 2026-10-01, owner: side quests leave the main road onto a
-     branch lane. These two pinned the old detour (a road chip swung 2.55
-     steps off the road, overhanging the name gap and outboard of the spine's
-     peak). The detour and loopWind are deleted; the same two places now pin
-     the branch lane: its chip never shares an x with the road's chips, and a
-     side quest's name gets at least the room a lesson's does.
+     REWRITTEN round 3 (g11). The 2026-10-01 pair pinned the branch lane as
+     ROWS of side quests with their own names; the critic measured those rows
+     stretching the road's pitch to 194 and 281px and the names running
+     through the road. Side quests now ride beside their lesson's row (.path-side),
+     so these pin the new lane: clear of the road, smaller than a lesson chip
+     but never under the 44px target floor, taking no height, and a run of
+     two never reaching the next row's mascot.
   */
-  it("keeps the branch chip in its own column, left of the road's chip at its leftmost swing", () => {
-    const branchRight = BRANCH_X + CHIP_W / 2;
+  it("keeps the side chip in its own column, left of the road's chip at its leftmost swing", () => {
+    const sideRight = BRANCH_X + SIDE_W / 2;
     const roadLeft = MASCOT_LANE + NODE_LANE / 2 - PEAK * SPINE_STEP - CHIP_W / 2;
-    expect(branchRight).toBeLessThanOrEqual(roadLeft + 0.01);
-    // And a whole chip apart centre to centre, never the half chip g9 measured.
-    expect(MASCOT_LANE + NODE_LANE / 2 - PEAK * SPINE_STEP - BRANCH_X).toBeGreaterThanOrEqual(CHIP_W - 0.01);
+    expect(sideRight).toBeLessThanOrEqual(roadLeft + 0.01);
   });
 
-  it("gives a side quest's name at least the room a lesson's name gets, on the road's pitch", () => {
-    const branchName = COLUMN_PHONE - 2 * BRANCH_X - px(declIn(".path-row--branch .path-row__name", "margin-left"));
-    expect(branchName).toBeGreaterThanOrEqual(COLUMN_PHONE - MASCOT_LANE - NODE_LANE - NAME_GAP);
-    // No padding of its own: a side-quest row rides the row's one seam.
-    const rule = CODE.slice(CODE.indexOf(".path-row--branch {"), CODE.indexOf("}", CODE.indexOf(".path-row--branch {")));
-    expect(rule).not.toMatch(/padding/);
+  it("draws a side quest smaller than a lesson, and still at least 44 by 44", () => {
+    expect(SIDE_W).toBeLessThan(CHIP_W);
+    expect(SIDE_H).toBeLessThan(CHIP_H);
+    expect(SIDE_W).toBeGreaterThanOrEqual(44);
+    expect(SIDE_H).toBeGreaterThanOrEqual(44);
+  });
+
+  it("takes the side lane out of flow, so a lesson with side quests is as tall as one without", () => {
+    expect(declIn(".path-side {", "position")).toBe("absolute");
+    // And it never owns a row rule of its own that could pad the road.
+    expect(CODE).not.toMatch(/\.path-row--branch/);
+  });
+
+  it("fits a run of two side chips beside one row without reaching the next row's mascot", () => {
+    // The mascot stands on the next row's chip base, MASCOT_LANE tall (it is
+    // square, MASCOT_PX): its top is SEAM + CHIP_H - MASCOT_LANE below that
+    // row's top. The run is centred on its own row.
+    const run = 2 * SIDE_H + SIDE_GAP;
+    const room = SEAM + CHIP_H / 2 + (SEAM + CHIP_H - MASCOT_LANE);
+    expect(run / 2).toBeLessThanOrEqual(room + 0.01);
+  });
+
+  it("keeps a coming-soon row on the lesson pitch", () => {
+    const soon = px(declIn(".path-soon {", "height")) + 2 * px(declIn(".path-soon {", "margin-block"));
+    expect(soon).toBeCloseTo(CHIP_H, 5);
   });
 });
 
@@ -345,11 +367,13 @@ describe("nothing clips, at any width a phone or a desktop presents", () => {
 
   // REWRITTEN 2026-10-01 with the branch lane (see above): was "a detour
   // overhangs into the gap and no further", over the deleted loop step.
-  it.each(WIDTHS)("at %ipx the branch chip stays in the page gutter and left of the road", (vw) => {
-    expect(BRANCH_X - CHIP_W / 2).toBeGreaterThanOrEqual(-23);
+  // CHANGED round 3: the side chip is SIDE_W now and has no name track of
+  // its own (its name is its accessible name and its sheet's title), so the
+  // third assertion, about that track, went with the rows it measured.
+  it.each(WIDTHS)("at %ipx the side chip stays inside the row and left of the road", (vw) => {
+    expect(BRANCH_X - SIDE_W / 2).toBeGreaterThanOrEqual(0);
     const roadLeft = MASCOT_LANE + NODE_LANE / 2 - PEAK * len(SPINE, vw) - CHIP_W / 2;
-    expect(BRANCH_X + CHIP_W / 2).toBeLessThanOrEqual(roadLeft + 0.01);
-    expect(column(vw) - 2 * BRANCH_X - 17, "a side quest's name track").toBeGreaterThan(0);
+    expect(BRANCH_X + SIDE_W / 2).toBeLessThanOrEqual(roadLeft + 0.01);
   });
 
   /*

@@ -19,7 +19,7 @@
 
 import { describe, expect, it } from "vitest";
 import { PATHWAY_UNITS } from "../demo/pathwayMap";
-import { branchAnchor, unitShape, weaveBranches } from "../tabs/pathway/unitShape";
+import { branchAnchor, roadOf, unitShape } from "../tabs/pathway/unitShape";
 
 const SHAPES = PATHWAY_UNITS.map((unit) => unitShape(unit));
 
@@ -100,29 +100,32 @@ describe("unitShape, enrichment rides a side loop", () => {
 });
 
 /*
- * REWRITTEN 2026-10-01 for weaveBranches, which replaced weaveLoops when the
- * owner moved side quests onto a branch lane off the lesson they branch from.
- * The first two checks are the same claims over the new function. The third
- * pinned RUN_MAX, a cap on a detour's length chosen for spacing; the branch
- * lane has no cap (a run is as long as what branches from that lesson), so it
- * now pins what replaced the spacing rule: a side quest never hangs above a
- * lesson it waits for.
+ * REWRITTEN round 3 (g11) for roadOf, which replaced weaveBranches: side
+ * quests ride beside the lesson they branch from instead of taking rows
+ * between lessons. The same three claims over the new function: every node
+ * kept once (a mention is text, not a node, so it is the one exception),
+ * the road never opens on a side quest, and a side quest never hangs above a
+ * lesson it names in `after`.
  */
-describe("weaveBranches, the side quests off the column", () => {
-  it("keeps every node, once, in an order the DOM can read", () => {
+describe("roadOf, the road with its side quests beside it", () => {
+  const stands = (stop: ReturnType<typeof roadOf>[number]) => (stop.soon.length > 0 ? stop.soon : [stop.node]);
+
+  it("keeps every node, once", () => {
     PATHWAY_UNITS.forEach((unit, at) => {
       const shape = SHAPES[at]!;
-      const woven = weaveBranches(unit, shape);
-      expect(woven).toHaveLength(shape.column.length + shape.loops.length);
-      expect(new Set(woven.map((entry) => entry.node.id)).size).toBe(woven.length);
+      const ids = roadOf(unit, shape).flatMap((stop) => [...stands(stop), ...stop.sides, ...stop.sidesSoon].map((node) => node.id));
+      const expected = [...shape.column, ...shape.loops].filter((node) => node.mentionOnly !== true);
+      expect(ids).toHaveLength(expected.length);
+      expect(new Set(ids).size).toBe(ids.length);
     });
   });
 
   it("never starts a unit on a side quest, so every branch has a lesson behind it", () => {
     PATHWAY_UNITS.forEach((unit, at) => {
       const shape = SHAPES[at]!;
-      if (shape.column.length === 0) return;
-      expect(weaveBranches(unit, shape)[0]!.lane).toBe("main");
+      const road = roadOf(unit, shape);
+      if (road.length === 0) return;
+      expect(shape.column.map((node) => node.id)).toContain(road[0]!.node.id);
     });
   });
 
@@ -130,12 +133,13 @@ describe("weaveBranches, the side quests off the column", () => {
     let named = 0;
     PATHWAY_UNITS.forEach((unit, at) => {
       const shape = SHAPES[at]!;
-      const order = weaveBranches(unit, shape).map((entry) => entry.node.id);
+      const road = roadOf(unit, shape);
+      const stopOf = (id: string) => road.findIndex((stop) => [...stands(stop), ...stop.sides, ...stop.sidesSoon].some((node) => node.id === id));
       for (const node of shape.loops) {
         for (const id of node.after ?? []) {
           if (!shape.column.some((entry) => entry.id === id)) continue;
           named += 1;
-          expect(order.indexOf(id), `${node.id} after ${id}`).toBeLessThan(order.indexOf(node.id));
+          expect(stopOf(id), `${node.id} after ${id}`).toBeLessThanOrEqual(stopOf(node.id));
           expect(branchAnchor(unit, shape.column, node)).toBeGreaterThanOrEqual(shape.column.findIndex((entry) => entry.id === id));
         }
       }

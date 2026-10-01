@@ -68,6 +68,19 @@ export interface SheetNode {
    * the map's nodes get it.
    */
   readonly noChallenge?: boolean;
+  /**
+   * Present on a unit CHECKPOINT only: what passing it does, derived by the
+   * caller from the map (unitOpenedAfter in tabs/pathway/pathwayState.ts)
+   * and the measured count (CHECKPOINT_QUESTIONS). `opens` is the unit it
+   * opens, null past the last unit with content; `skipped` names the empty
+   * units the track walks through on the way; `questions` is null when
+   * nothing is authored.
+   */
+  readonly checkpoint?: {
+    readonly opens: string | null;
+    readonly skipped: readonly string[];
+    readonly questions: number | null;
+  };
 }
 
 /** Four pips, per the committed reference blueberry_r5-node-sheet-v2. */
@@ -118,6 +131,15 @@ export interface CardReadout {
 
 export interface NodeSheetModel {
   readonly node: SheetNode;
+  /**
+   * The first card's heading. "Practice" for a lesson; a checkpoint states
+   * its stakes instead, "Pass to open Unit 3", because passing it is what
+   * opens the next unit (owner, 2026-10-01) and "Practice" said none of that
+   * (g11 critic).
+   */
+  readonly practiceTitle: string;
+  /** One line under that heading, or null: a checkpoint's count and route, or a side quest's "Optional". */
+  readonly practiceDetail: string | null;
   /** "Reaction lesson", "Side quest", ... The small line under the title. */
   readonly kindLabel: string;
   /** True on done and review: the student has cleared this node before. */
@@ -141,7 +163,9 @@ export interface NodeSheetModel {
 
 const KIND_LABEL: Record<SheetNodeKind, string> = {
   spine: "Reaction lesson",
-  branch: "Side quest",
+  // "Optional" in the words, not only in the lane: the sheet is where a side
+  // quest is opened, and it never said so (g11 critic).
+  branch: "Optional side quest",
   gate: "Checkpoint",
   boss: "Boss challenge",
 };
@@ -212,12 +236,22 @@ export function nodeSheetModel(node: SheetNode): NodeSheetModel {
     ? ""
     : !practiceEnabled
       ? "Opens with Practice."
-      : "Clear this lesson first to unlock Challenge.";
+      : // A side quest is not a lesson, and saying so here was the one place
+        // the sheet called it one (g11 critic).
+        node.kind === "branch"
+        ? "Clear this side quest first to unlock Challenge."
+        : "Clear this lesson first to unlock Challenge.";
 
   const filled = difficultyFor(node);
+  const stakes = node.checkpoint === undefined ? null : checkpointStakes(node.checkpoint);
 
   return {
     node,
+    practiceTitle: stakes === null ? "Practice" : stakes.title,
+    // A side quest says it is optional ON the sheet, not only in its
+    // accessible name (g11 critic). "Not on the checkpoint" is checkpointPlan's
+    // own rule (beats/template.ts skips branches), so it is a true statement.
+    practiceDetail: stakes !== null ? stakes.detail : node.kind === "branch" ? "Optional side quest. It is not on the unit checkpoint." : null,
     kindLabel: KIND_LABEL[node.kind],
     cleared,
     pips:
@@ -235,4 +269,23 @@ export function nodeSheetModel(node: SheetNode): NodeSheetModel {
     label: `${node.title}. ${KIND_LABEL[node.kind]}.`,
     guidebookLabel: `Open the guidebook for ${node.title}`,
   };
+}
+
+/**
+ * A checkpoint's stakes in words. Every number and name arrives from the
+ * caller's data; this only says it. The route sentence is there because the
+ * unit a pass opens is not always the next one by number: Unit 2 has nothing
+ * written, so Unit 1's checkpoint opens Unit 3.
+ */
+function checkpointStakes(checkpoint: NonNullable<SheetNode["checkpoint"]>): { readonly title: string; readonly detail: string | null } {
+  const title = checkpoint.opens === null ? "Pass to finish the course" : `Pass to open ${checkpoint.opens}`;
+  const parts: string[] = [];
+  if (checkpoint.questions !== null) {
+    parts.push(`${checkpoint.questions} ${checkpoint.questions === 1 ? "question" : "questions"} from this unit's lessons.`);
+  }
+  if (checkpoint.opens !== null && checkpoint.skipped.length > 0) {
+    const names = checkpoint.skipped.length === 1 ? checkpoint.skipped[0]! : `${checkpoint.skipped.slice(0, -1).join(", ")} and ${checkpoint.skipped[checkpoint.skipped.length - 1]!}`;
+    parts.push(`${names} ${checkpoint.skipped.length === 1 ? "has" : "have"} nothing written yet, so this opens ${checkpoint.opens}.`);
+  }
+  return { title, detail: parts.length === 0 ? null : parts.join(" ") };
 }

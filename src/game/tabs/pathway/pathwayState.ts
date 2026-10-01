@@ -26,12 +26,14 @@
  * with no `playable` link is not locked by progress, it is a node whose content
  * is not written yet. Conflating the two would tell a student they had failed
  * to unlock something that does not exist, so `queued` rides BESIDE the state
- * rather than inside it, and the copy differs. Concretely: in a reachable
- * unit a queued node with nothing to wait for is "open" with queued=true,
- * rendered as the dashed authoring treatment. A queued node is never "current", because
- * a START tag over a node with no content is a promise the app cannot keep.
- * In an unreachable unit it is "locked" like its siblings, because there the
- * lock is the unit gate's true statement.
+ * rather than inside it, and the copy differs ("coming soon", never a padlock).
+ *
+ * A QUEUED NODE IS NEVER OPEN AND NEVER CURRENT, round 3 (g11 critic). It used
+ * to be "open" whenever it had nothing to wait for, and on Unit 3 that drew
+ * nine placeholders as the brightest unplayed things on the screen while the
+ * real lessons sat locked. There is nothing behind it to open, so its state is
+ * "locked" and `queued` is what the track and the sheet read to say why. It is
+ * also never counted: `playable` below already leaves it out.
  *
  * PROGRESS IS SERVER STATE. CLAUDE.md: unlock state is enforced server side and
  * the client renders it. This is the rendering rule Phase 6's server applies to
@@ -40,7 +42,7 @@
  */
 
 import type { EconomyEvent } from "@blueberry/economy";
-import { checkpointNodeId, type PathwayNode, type PathwayUnit } from "../../demo/pathwayMap";
+import { checkpointNodeId, unitNumber, type PathwayNode, type PathwayUnit } from "../../demo/pathwayMap";
 
 export type MapNodeState = "done" | "current" | "open" | "review" | "locked";
 
@@ -65,9 +67,9 @@ const REVIEW_ACCURACY = 0.75;
 
 /** What a node waits for, by id: see the policy above. Pure over the unit. */
 export function prerequisitesOf(unit: PathwayUnit, node: PathwayNode): readonly string[] {
-  // Nothing to start, nothing to protect: an unauthored node or a mention
-  // keeps its queued treatment rather than a padlock over content that is
-  // not there.
+  // Nothing to start, so nothing to wait for: an unauthored node or a
+  // mention is shut by having no content (deriveMapPathway reads `queued`),
+  // not by any lesson, and must never name one as its blocker.
   if (node.playable === undefined) return [];
   if (node.kind === "branch" && node.after !== undefined) return node.after;
   const at = unit.nodes.indexOf(node);
@@ -190,9 +192,9 @@ export function deriveMapPathway(
       if (cleared.has(node.id)) {
         const tally = tallies.get(node.id);
         state = tally !== undefined && tally.attempted > 0 && tally.correct / tally.attempted < REVIEW_ACCURACY ? "review" : "done";
-      } else if (!unitReachable || prerequisitesOf(unit, node).some((id) => !cleared.has(id))) {
+      } else if (queued || !unitReachable || prerequisitesOf(unit, node).some((id) => !cleared.has(id))) {
         state = "locked";
-      } else if (!queued && currentNodeId === null && isTrackNode(node)) {
+      } else if (currentNodeId === null && isTrackNode(node)) {
         state = "current";
         currentNodeId = node.id;
         active = true;
@@ -301,4 +303,92 @@ export function unitPassed(
   const index = order.indexOf(unitId);
   const activeIndex = order.findIndex((id) => status.units.get(id)?.active === true);
   return activeIndex === -1 ? true : index < activeIndex;
+}
+
+/* ------------------------------------------------------------------------- */
+/* WHAT THE PAGE SAYS ABOUT UNITS, derived here so it is pinned by running it. */
+/* ------------------------------------------------------------------------- */
+
+/**
+ * Whether a unit has anything a student can clear on its track. The SAME
+ * test deriveMapPathway uses to decide whether a unit walls the track
+ * (`playable.length > 0`), so the copy below and the unlock agree by
+ * construction.
+ */
+export function hasContent(unit: PathwayUnit): boolean {
+  return unit.nodes.some((node) => isTrackNode(node) && node.playable !== undefined);
+}
+
+/**
+ * WHERE PASSING A UNIT'S CHECKPOINT TAKES THE STUDENT, round 3 (g11): the
+ * next unit with content, and the empty units the track walks straight
+ * through on the way. Clearing Unit 1 lands on Unit 3 because Unit 2 has
+ * nothing written, and the sheet and the page have to say that, not
+ * "Unit 2". `opens` is null past the last unit with content.
+ */
+export function unitOpenedAfter(
+  units: readonly PathwayUnit[],
+  index: number,
+): { readonly opens: PathwayUnit | null; readonly skipped: readonly PathwayUnit[] } {
+  const skipped: PathwayUnit[] = [];
+  for (const unit of units.slice(index + 1)) {
+    if (hasContent(unit)) return { opens: unit, skipped };
+    skipped.push(unit);
+  }
+  return { opens: null, skipped: [] };
+}
+
+/** "Unit 2" or "Units 2 and 4" or "Units 2, 4 and 5", from the units' own titles. */
+function namesOf(units: readonly PathwayUnit[]): string {
+  const numbers = units.map((unit) => unitNumber(unit.title));
+  if (numbers.length === 1) return numbers[0]!;
+  const bare = numbers.map((name) => name.replace(/^Unit\s+/, ""));
+  return `Units ${bare.slice(0, -1).join(", ")} and ${bare[bare.length - 1]}`;
+}
+
+/**
+ * The unit the student has to finish next: the first one with content that
+ * is not finished, which is the last reachable unit (`reachable` flips once,
+ * at exactly that unit). Every lock on a later unit is this unit's doing, so
+ * every locked sentence names it rather than "the unit before it", which on
+ * Unit 3 named the empty Unit 2 (g11).
+ */
+export function blockingUnit(units: readonly PathwayUnit[], status: MapPathwayStatus): PathwayUnit {
+  let at = 0;
+  units.forEach((unit, index) => {
+    if (status.units.get(unit.id)?.reachable === true) at = index;
+  });
+  return units[at]!;
+}
+
+/** The sentence a chip in a shut unit says, and its sheet. */
+export function unitLockSaid(units: readonly PathwayUnit[], status: MapPathwayStatus): string {
+  return `Opens when you finish ${unitNumber(blockingUnit(units, status).title)}`;
+}
+
+/**
+ * THE ONE SENTENCE AT THE TOP OF A UNIT'S PAGE, or null for a unit that
+ * needs none. Three cases, in order:
+ *
+ *   - nothing written: say so, and that it never holds the student back,
+ *     naming where the track goes instead (Unit 2, g11 "a unit in progress")
+ *   - shut: name the unit to finish (blockingUnit)
+ *   - reached past empty units: say they were walked through, so landing on
+ *     Unit 3 after Unit 1 is explained rather than silent
+ */
+export function unitNote(units: readonly PathwayUnit[], status: MapPathwayStatus, index: number): string | null {
+  const unit = units[index]!;
+  const name = unitNumber(unit.title);
+  const before = [...units.slice(0, index)].reverse().find(hasContent) ?? null;
+  if (!hasContent(unit)) {
+    const after = unitOpenedAfter(units, index).opens;
+    const route = before !== null && after !== null ? `: ${unitNumber(after.title)} opens when you finish ${unitNumber(before.title)}` : "";
+    return `Coming soon. Nothing in ${name} is written yet, so it never holds you back${route}.`;
+  }
+  if (status.units.get(unit.id)?.reachable !== true) return `Locked. Finish ${unitNumber(blockingUnit(units, status).title)} to open this.`;
+  if (before === null) return null;
+  const skipped = unitOpenedAfter(units, units.indexOf(before)).skipped;
+  if (skipped.length === 0) return null;
+  const verb = skipped.length === 1 ? "has" : "have";
+  return `${namesOf(skipped)} ${verb} nothing written yet, so ${name} opened straight after ${unitNumber(before.title)}.`;
 }
