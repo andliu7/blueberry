@@ -139,7 +139,11 @@ describe("the pathway surface never runs on scroll", () => {
        argument, one name. The picker's modal list is a fixed overlay and for
        that reason lives in pathway-sheet.css beside the guidebook's, so the
        ban above still means what it says. */
-    expect(sticky).toEqual([".path-unitbar", ".path-pager__foot"]);
+    /* ONE NOW, 2026-10-01: the pager's sticky foot is deleted (it covered the
+       unit's ending at 320 and its Continue continued nothing), so the list
+       shrinks to the unit bar. Narrower than before, never wider: a second
+       sticky strip coming back fails here. */
+    expect(sticky).toEqual([".path-unitbar"]);
     for (const selector of sticky) expect(selector).not.toContain("trail");
   });
 
@@ -151,10 +155,13 @@ describe("the pathway surface never runs on scroll", () => {
     expect(close).toBeGreaterThan(open);
     const section = tab.slice(open, close);
     // The section is the scrolling box: it carries the unit id the layout is
-    // keyed on, the chips, and the unit gate they close on.
+    // keyed on, the chips, and the unit gate they close on. The gate was the
+    // arch (<UnitGateNode>) until 2026-10-01; the arch is deleted and the gate
+    // is the checkpoint block, so the same claim names what the gate is now.
     expect(section).toContain("data-unit-id={unit.id}");
     expect(section).toContain("<TrackSlab");
-    expect(section).toContain("<UnitGateNode");
+    expect(section).toContain('aria-label="Unit gate"');
+    expect(section).toContain('aria-label="Unit checkpoint"');
   });
 
   it("keeps the unit section as the containing block its absolute children need", () => {

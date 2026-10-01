@@ -352,8 +352,8 @@
   transform: translateY(var(--node-lip));
   background: var(--node-face-press);
   /*
-   * INSTANT DOWN, SPRUNG RELEASE, copied from .path-pager__next, which
-   * already had it. The regearing shipped last round landed on that button
+   * INSTANT DOWN, SPRUNG RELEASE, copied from the pager's Continue (deleted
+   * with the footer, 2026-10-01), which already had it. The regearing shipped last round landed on that button
    * and missed this one, the chip a student presses eight times a unit.
    * Zeroing the duration HERE rather than removing it above leaves the
    * release governed by the spring on the base rule.
@@ -1257,6 +1257,88 @@
   align-items: flex-start;
   gap: 0.25rem;
   min-width: 0;
+  /*
+   * THE NAME FOLLOWS ITS OWN CHIP, 2026-10-01. The track above is fixed to the
+   * page, and the chip swings inside its lane, so the gap between a chip and
+   * its name swung 17 to 54px (g7 critic). This margin moves the name by the
+   * chip's own swing, so the gap is the lane's slack, (node lane - chip) / 2,
+   * which is 17px, on every row at every wind. Less the name gap: the name
+   * starts inside that track rather than past it, which hands the text the
+   * 20px back. A margin rather than a transform, so a name moved right
+   * shrinks its box and wraps instead of running off the column.
+   * --row-chip-extra is half of how much wider than a lesson chip this row's
+   * chip is (the checkpoint, .path-row--check), so its name keeps the same gap.
+   */
+  margin-left: calc(var(--wind) * var(--wind-step) - var(--path-name-gap) + var(--row-chip-extra, 0px));
+  /*
+   * AND IT COSTS THE ROW NO HEIGHT. A zero-height box whose content is centred
+   * on it overflows evenly above and below, so the row is exactly as tall as
+   * its chip whatever the name and the START tag add up to. Measured before
+   * this: the current row's tag plus a two-line name at 13px made that one row
+   * taller than its chip, and the pitch read 91 where every other row reads 86.
+   */
+  height: 0;
+  justify-content: center;
+}
+/*
+ * THE CHECKPOINT IS THE HEAVIEST NODE ON THE PAGE, 2026-10-01. It ends the
+ * unit, where the deleted arch used to, so it reads as the finish line: larger
+ * than a lesson chip (the hub's own 5.1rem is the next size down) and in the
+ * challenge gold in every state but done. LOCKED IS NOT GREY HERE: greying it
+ * gave the unit's goal the least weight on the page (g7). Locked is said by the
+ * padlock sticker (.path-node__lock) and by the accessible name.
+ *
+ * Measured: light, the line #8a5a0c is 5.41:1 on the page and the engraved
+ * motif #5c3a05 is 6.25:1 on the face #f5c451. Dark, the line #f5c451 is over
+ * 11:1 on the night page and the motif #4a2e04 is 5.88:1 on the face #e0a93a.
+ */
+.path-row--check {
+  --row-chip-extra: 0.5rem;
+}
+.path-row--check .path-node {
+  --node-size: 5.75rem;
+  --node-face-h: 4.1rem;
+}
+.path-row--check .path-node:not(.path-node--done):not(.path-node--review) {
+  --node-face: #f5c451;
+  --node-face-press: #e8b23a;
+  --node-edge: #c08a1e;
+  --node-line: #8a5a0c;
+  --node-ink: #3b2603;
+  --node-engrave: #5c3a05;
+  --node-lip-light: rgb(255 255 255 / 0.6);
+  --node-glow: transparent;
+}
+.dark .path-row--check .path-node:not(.path-node--done):not(.path-node--review) {
+  --node-face: #e0a93a;
+  --node-face-press: #c99630;
+  --node-edge: #8a5a0c;
+  --node-line: #f5c451;
+  --node-ink: #2b1a02;
+  --node-engrave: #4a2e04;
+  --node-lip-light: rgb(255 255 255 / 0.35);
+}
+/* The padlock on a shut checkpoint: a sticker on the chip's upper right, the
+   corner the step mark and the hub counter leave free, in the chip's own line. */
+.path-node__lock {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  z-index: 2;
+  display: flex;
+  width: 26px;
+  height: 26px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--bb-background);
+  border: 2px solid #8a5a0c;
+  color: #5c3a05;
+  pointer-events: none;
+}
+.dark .path-node__lock {
+  border-color: #f5c451;
+  color: #f5c451;
 }
 /*
  * THE CURRENT ROW IS ON THE SAME PITCH AS EVERY OTHER ROW, and this rule is
@@ -1454,7 +1536,8 @@
   gap: 0.3rem;
   min-width: 0;
   color: var(--bb-foreground);
-  font-size: 0.72rem;
+  /* 13px, up from 11.52 (g7): the name is the only thing a node is called. */
+  font-size: 0.8125rem;
   font-weight: 600;
   line-height: 1.25;
   text-align: left;
@@ -1560,17 +1643,13 @@
 }
 
 /*
- * The unit gate's own row. It paints nothing: the arch IS the marker, and the
- * outlined rectangle this used to draw around it was a box around nothing on
- * the twelve units with no authored checkpoint.
- *
- * ONE SEAM ABOVE, so the checkpoint chip that now precedes the arch on every unit
- * is the same distance from it as any two chips are from each other. Slightly
- * more below, because what follows is the next unit and a boundary may be wider
- * than a step; it is stated in seams so it cannot drift into a fifth number.
+ * The unit gate: the block holding the checkpoint rows, which end the unit.
+ * The arch it used to hold is deleted (2026-10-01). NOTHING ABOVE: its rows
+ * carry their own seams, so the checkpoint lands one pitch under the row before
+ * it like any other row. Two seams below, the room between the unit's last
+ * chip and the swipe hint, stated in seams so it cannot drift into a new number.
  */
 .path-gate {
-  padding-top: var(--path-seam);
   padding-bottom: calc(var(--path-seam) * 2);
 }
 
@@ -1687,75 +1766,7 @@
   height: 1.1rem;
 }
 
-/*
- * THE BOTTOM BAR: the donor pattern's foot-of-content nav (see
- * src/components/UnitPage.tsx) in this tab's vocabulary. Back is a small
- * round press, the title says where you stand, Continue is the one primary
- * control on the page. A gated Continue keeps its size and drops its
- * invitation: the same aria-disabled treatment the locked chip carries.
- */
-/*
- * THE FOOT IS STICKY, and the offset is DERIVED. The bar measured 346 to 523
- * CSS px below the fold on the two reference phones, which is roughly two
- * screens of scrolling before the page's primary control exists for the
- * reader. --tabbar-height is published once by app/ui/tabs.css and is the
- * same value the node sheet's bottom edge lands on; a second hand-typed 76
- * here is exactly the mistake test/nodeSheetSeam.test.ts was written after.
- * Above 48rem that token is 0, because there the bar is a side rail and the
- * foot sits on the bottom of the window.
- *
- * It carries its own background, because content scrolls under it.
- */
-.path-pager__foot {
-  position: sticky;
-  bottom: var(--tabbar-height, 0px);
-  z-index: 4;
-  padding-bottom: 0.4rem;
-  background: var(--bb-background);
-}
-.path-pager__bar {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-top: 0.25rem;
-  padding: 0.6rem 0 0;
-  border-top: 2px solid var(--bb-border);
-}
-.path-pager__side {
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 44px;
-  min-height: 44px;
-  border-radius: 999px;
-  border: 2px solid var(--bb-border);
-  background: transparent;
-  color: var(--bb-muted-foreground);
-}
-.path-pager__side--blank {
-  border-color: transparent;
-}
-.path-pager__title {
-  flex: 1 1 auto;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-}
-/* 0.6875rem is 11px. It was 0.62rem, which computes to 9.92, and "UNIT 1 OF
-   15" is the sentence that answers "where am I": the smallest type on the
-   page should not be the line carrying the page's own address. 11px is the
-   floor CLAUDE.md's Budgets table allows for a caps micro-label. */
-.path-pager__eyebrow {
-  font-family: var(--font-display);
-  font-size: 0.6875rem;
-  font-weight: 800;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-  color: var(--bb-muted-foreground);
-}
-/* Names the enrichment group under the fork. Same eyebrow as the pager above,
-   so the two quiet labels on this page are one idiom rather than two. Muted
+/* Names the enrichment group under the fork, above the checkpoint. Muted
    ink, which theme.css derives against the worst ground it composes on. */
 .path-tail__eyebrow {
   font-family: var(--font-display);
@@ -1809,72 +1820,14 @@
 .path-mention__name {
   font-weight: 700;
 }
-.path-pager__name {
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: var(--bb-foreground);
-}
-/*
- * CONTINUE IS A CHIP NOW, not a flat pill that shrinks.
- *
- * It is the page's primary control and it was the one button on this tab with
- * no wall under it: a flat capsule whose whole press was .press's
- * scale(0.96) plus a brightness filter, which is the generic acknowledgement
- * this palette gives a text link. Owner, 2026-09-23: "the button press does
- * not look good." Same answer as .chip-press in beat-chrome.css, same
- * mechanics, stated once in each place because the two files own different
- * buttons: a wall, a press that seats the whole wall, and a DOWN stroke with
- * no easing on it so the acknowledgement is the first painted frame.
- *
- * The face is the brand violet at full strength rather than the chips' lifted
- * #8b6df2, because a CTA that is the same colour as the things it is beside
- * is not a CTA. White on #6d3fd4 is 6.34:1, over the 4.5 text floor, and the
- * wall #3f2394 is 9.5:1 on the cream ground.
- */
-.path-pager__next {
-  --pager-next-lift: 4px;
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 44px;
-  padding: 0 1.1rem;
-  border-radius: 999px;
-  border: 0;
-  background: #6d3fd4;
-  color: #ffffff;
-  font-family: var(--font-display);
-  font-size: 0.85rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-decoration: none;
-  box-shadow: 0 var(--pager-next-lift) 0 var(--path-open-line);
-  margin-bottom: var(--pager-next-lift);
-  transition: transform 140ms cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 140ms cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-/* Instant down, eased release. See .chip-press:active for why the duration is
-   zeroed HERE rather than removed from the rule above. */
-.path-pager__next:active:not([aria-disabled="true"]) {
-  transform: translateY(var(--pager-next-lift));
-  box-shadow: 0 0 0 var(--path-open-line);
-  transition-duration: 0s;
-}
-.path-pager__next[aria-disabled="true"] {
-  background: var(--bb-muted);
-  color: var(--bb-muted-foreground);
-  box-shadow: 0 var(--pager-next-lift) 0 var(--bb-border);
-  cursor: not-allowed;
-}
-.path-pager__next:focus-visible {
-  outline: 3px solid var(--bb-ring);
-  outline-offset: 3px;
-}
-/* The gate's reason, said in words beside the control that declines. */
-.path-pager__reason {
-  margin: 0;
+/* Why a browsed unit is shut, at the top of its page. It rode the deleted
+   footer, right aligned under its Continue; with no control beside it, it
+   reads as the opening line of the unit, so it is left aligned. */
+.path-unit__reason {
+  margin: 0 0 var(--path-seam);
+  padding-inline: 0.25rem;
   font-size: 0.78rem;
   color: var(--bb-muted-foreground);
-  text-align: right;
 }
 .path-pager__hint {
   margin: 0.2rem 0 0;
@@ -1892,8 +1845,8 @@
   /* The landscape token families (--path-terrace-*, --path-ridge, --path-prop,
      --path-boulder*, --path-shade) left with the generated scene, owner
      decision 2026-09-17. What remains below is owned by drawn objects that
-     survive: the halo, the START tag, the badges, the hub, the gate arch and
-     the trail. */
+     survive: the halo, the START tag, the badges and the hub. The gate arch
+     went on 2026-10-01; the checkpoint chip is the unit's ending now. */
   /* THE RIBBON'S PERMANENT EDGE. 6.11:1 on the cream it outlines and 3.11:1 on
      the lavender ground it sits against, so the shape is identifiable from
      either side. This is the same value --bb-border is, and for the same reason. */
@@ -1973,42 +1926,6 @@
   --path-ring-track: #55597f;
   --path-gate-line: #55597f;
   /*
-   * THE GATE ARCH, light grey per blueberry_spec-node-types and never the
-   * progress green. It is drawn as a light BAND WITH A KEYLINE rather than as
-   * one light stroke, because measurement forced the shape: the light grey the
-   * spec draws is 2.25:1 on the cream page, under the 3.0 floor the arch needs
-   * as a node type a student has to recognise. Fill and keyline ride the same
-   * shape, so the audit takes the better of the two (the same argument every
-   * card in this app carries a border on) and the arch keeps the spec's light
-   * face. The keyline is 4.88:1 on the cream.
-   */
-  /*
-   * THE ARCH IS PERIWINKLE, superseding the grey. See UnitGateNode: the
-   * owner's 2026-09-03 ruling adopts unit02-path.jpg's arch by name and that
-   * arch is the node blue, not blueberry_spec-node-types' grey band.
-   *
-   * Two bands. The pale face is the chip's own #a2b5fa at 1.80:1 on the
-   * cream, and the KEYLINE is what carries the floor at 5.38:1, which is the
-   * fill-and-stroke-on-one-shape argument this file makes everywhere. The
-   * inner band is a deeper step of the same hue; it also carries the keyline,
-   * so it is identifiable against the page rather than only against the band
-   * it sits inside (1.50:1, which would not have been enough on its own).
-   */
-  --path-gate-arch: #a2b5fa;
-  --path-gate-arch-inner: #7f92d8;
-  --path-gate-arch-line: #55628f;
-  --path-gate-arch-locked: #c3c8e4;
-  --path-gate-arch-inner-locked: #a9b0d0;
-  /* The double dagger, VIOLET FAMILY per the owner's 2026-09-03 gate clause.
-     It now stands in the arch's OPENING rather than cut into its crown, so it
-     is measured against the page the opening shows: #33385c on the lightest
-     plate is 10.20:1, and it clears 3.76:1 even where the inner band passes
-     behind it. The lip is the light catching the far wall of the groove, so
-     it is white at low alpha and carries no floor of its own. */
-  --path-gate-mark: #33385c;
-  --path-gate-mark-locked: #5b6188;
-  --path-gate-lip: rgb(255 255 255 / 0.75);
-  /*
    * THE --path-trail-* FAMILY IS DELETED, owner 2026-09-23: "even get rid of
    * the path connections. just give it a glow." Nothing draws a connective
    * line on this tab any more, so the road's rest and detour colours, the
@@ -2063,16 +1980,6 @@
   --path-hub-well: #4a54ab;
   --path-ring-track: #6f74a3;
   --path-gate-line: #6f74a3;
-  --path-gate-arch: #4a54ab;
-  --path-gate-arch-inner: #39418a;
-  --path-gate-arch-line: #9ba8f5;
-  --path-gate-arch-locked: #3a3f66;
-  --path-gate-arch-inner-locked: #2e3253;
-  /* In dark the arch is the dark shape and the cut is the LIGHT one, the same
-     inversion theme.css makes for the chips: #c6cbe8 on #4d5273 is 4.62:1. */
-  --path-gate-mark: #c6cbe8;
-  --path-gate-mark-locked: #9aa0c4;
-  --path-gate-lip: rgb(0 0 0 / 0.35);
 }
 
 
@@ -2106,15 +2013,13 @@
   padding-bottom: var(--path-seam);
 }
 /*
- * THE ARMS, WITH THE WORD BETWEEN THEM. The middle track is the "or": two
- * chips at one y with an empty gap between them read as a row, and a row
- * reads as an order, which is the one thing this fork must not say. The
- * column is `auto`, so it takes the word's own width and the two arms keep
- * equal halves of what is left.
+ * THE ARMS, two equal halves. The "or" that stood between them went on
+ * 2026-10-01: the checkpoint needs both arms, so a word offering a choice
+ * between them was false. The fork's group name says "in either order".
  */
 .path-fork__arms {
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 12px;
   justify-items: center;
   /*
@@ -2146,24 +2051,6 @@
    * The number itself is --path-tag-room, declared once beside --path-seam.
    */
   padding-top: var(--path-tag-room);
-}
-/*
- * Quiet on purpose: it is a conjunction, not a control, and it sits between
- * two pressable chips. Lowercase, small, the body ink at the tab's own muted
- * weight, and pushed down to the vertical middle of a chip rather than to its
- * label, so it reads as being BETWEEN the two buttons.
- */
-.path-fork__or {
-  align-self: start;
-  /* Half the chip's 3.4rem face, less half a line of this text: the word
-     lands level with the middle of the two chips it sits between. */
-  margin-top: 1.15rem;
-  font-family: var(--font-display);
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  color: var(--bb-muted-foreground);
-  text-transform: lowercase;
 }
 .path-fork__arm {
   display: flex;
@@ -2203,6 +2090,12 @@
   gap: 8px;
   max-width: 10rem;
 }
+/* The chip and its mascot, centred over the name. See ForkChip. */
+.path-fork__chip {
+  position: relative;
+  width: fit-content;
+  margin-inline: auto;
+}
 /* The dimmed side loop: one detour off the spine, pushed to the flank so it
    reads as beside the road rather than on it. */
 .path-loop {
@@ -2212,99 +2105,6 @@
   margin: 2px 0;
 }
 
-/*
- * THE UNIT GATE, redrawn against blueberry_spec-node-types.
- *
- * IT IS A FILLED SILHOUETTE. The arch used to be two STROKED arcs with no
- * fill, so the ribbon behind it showed through its own mouth and the two
- * converging fork arms drew a V across the crown: a critic captured it on
- * Units 2 and 4 as "a dented horseshoe rather than the clean transition-state
- * arch". The spec draws one solid unbroken band, so the arch is one closed
- * path with a fill and a keyline. Nothing can show through a fill.
- *
- * NEVER GREEN IN ANY STATE, and that half of the old clause stands. The build
- * once painted a passed gate in the progress green, so a boundary claimed
- * "you moved" in the colour reserved for cleared work. A passed gate changes
- * its accessible name and nothing else.
- *
- * THE GREY IS SUPERSEDED. It came from blueberry_spec-node-types; the owner's
- * 2026-09-03 ruling adopts unit02-path.jpg's arch by name and that arch is
- * the node periwinkle in two concentric bands. See the token block and
- * UnitGateNode for the measurement and the divergence.
- *
- * THE MARK IS STILL ONE CLEAN SUNKEN DAGGER with the same two-layer engrave
- * the node motifs use, which is the owner's 2026-09-03 gate clause ("one
- * clean mark, sunken, violet family, no ornament"). What moved is WHERE: out
- * of the crown's masonry and into the opening, where the reference draws it.
- */
-/*
- * THE GATE, SIZED OFF THE ADOPTED DESIGN. See UnitGateNode for the scan: the
- * reference arch is 22.7 percent of screen width and this one is 100px on a
- * 390pt phone, which is 25.6 percent with the shadow's room included. It was
- * 84px around a band that painted about 16 percent.
- */
-.path-gatenode {
-  position: relative;
-  width: 100px;
-  height: 58px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.path-gatenode__arch {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-}
-/*
- * TWO CONCENTRIC BANDS IN THE NODE PERIWINKLE, which is what
- * unit02-path.jpg draws. Each band is one shape carrying both its fill and
- * its keyline, so the contrast audit collapses them to the better of the two
- * (the argument every card in this app carries a border on): the pale
- * periwinkle fill is 1.9:1 on the cream and the keyline --path-gate-arch-line
- * is 5.44:1, so the arch is identifiable on the page while keeping the
- * reference's face.
- *
- * The cast shadow is the chips' own, so the gate stands on the landscape the
- * same way they do. It replaces the white halo the arch used to wear, which
- * was the same cream keyline the chips have now lost and for the same reason.
- */
-.path-gatenode__arch-face,
-.path-gatenode__arch-inner {
-  stroke: var(--path-gate-arch-line);
-  stroke-width: 1.6;
-  stroke-linejoin: round;
-}
-.path-gatenode__arch-face {
-  fill: var(--path-gate-arch);
-  filter: drop-shadow(0 2px 3px rgb(60 48 24 / 0.22));
-}
-.path-gatenode__arch-inner {
-  fill: var(--path-gate-arch-inner);
-}
-.path-gatenode--locked .path-gatenode__arch-face {
-  fill: var(--path-gate-arch-locked);
-}
-.path-gatenode--locked .path-gatenode__arch-inner {
-  fill: var(--path-gate-arch-inner-locked);
-}
-/*
- * The double dagger, SUNKEN into the crown. The same cut language as the
- * chips: a light lip a hair below, the groove itself on top. --path-gate-mark
- * is measured against the arch face rather than against the page, because the
- * page is not what it sits on.
- */
-.path-gatenode__mark {
-  stroke: var(--path-gate-mark);
-}
-.path-gatenode__mark-lip {
-  stroke: var(--path-gate-lip);
-}
-.path-gatenode--locked .path-gatenode__mark {
-  stroke: var(--path-gate-mark-locked);
-}
 /*
  * THE CHECKPOINT: chips on the crest, not a box of text pills.
  *

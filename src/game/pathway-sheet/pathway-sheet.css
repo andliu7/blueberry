@@ -292,7 +292,11 @@
   margin-inline: auto;
   max-height: calc(100dvh - var(--ns-bottom-inset) - 3.5rem);
   overflow-y: auto;
-  padding: 0.5rem 1.125rem 2rem;
+  /* 5rem at the bottom, the height of the peek's crop (.ns-peek__crop), so the
+     last card ends above the berry's head instead of under it. At 2rem the
+     berry sat over the Challenge card's "No Challenge for this lesson yet"
+     (g7, 2026-10-01). */
+  padding: 0.5rem 1.125rem 5rem;
   border-radius: 1.5rem 1.5rem 0 0;
   background: var(--bb-background);
   box-shadow: 0 -0.25rem 0.875rem var(--ns-card-shade);

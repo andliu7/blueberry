@@ -43,7 +43,7 @@
  * door; the door is the sheet.
  */
 
-import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import {
   ACTS,
   prerequisiteClosure,
@@ -890,7 +890,7 @@ function TrackSlab({
    * swung further off the centreline and marked as a detour, so trail.ts
    * draws the spine straight past it and the loop out and back.
    */
-  readonly lane?: "main" | "loop";
+  readonly lane?: "main" | "loop" | "check";
   readonly queued?: boolean;
   /** Where the row sits in its unit. See Chip's own note. */
   readonly place?: NodePlace | null;
@@ -915,7 +915,7 @@ function TrackSlab({
   */
   return (
     <li
-      className={`path-row w-full ${lane === "loop" ? "path-row--loop" : ""}`}
+      className={`path-row w-full ${lane === "main" ? "" : `path-row--${lane}`}`}
       style={{ "--wind": wind } as CSSProperties}
       data-node-state={state}
     >
@@ -964,6 +964,16 @@ function TrackSlab({
             sheetNode={sheetNode}
             gateNode={gateNode}
           />
+          {/* A shut checkpoint keeps its gold and says "locked" with a padlock
+              instead. aria-hidden: the chip's name already says why it waits. */}
+          {lane === "check" && state === "locked" ? (
+            <span className="path-node__lock" aria-hidden>
+              <svg viewBox="0 0 24 24" width="14" height="14">
+                <rect x="5" y="10.5" width="14" height="10" rx="2.2" fill="currentColor" />
+                <path d="M8.2 10.5V8a3.8 3.8 0 0 1 7.6 0v2.5" fill="none" stroke="currentColor" strokeWidth="2.6" />
+              </svg>
+            </span>
+          ) : null}
         </div>
       </div>
       {/*
@@ -1260,37 +1270,43 @@ function ForkChip({
         {/* The same world marker TrackSlab carries: the current node may be a
             fork's concept or an arm, and the mascot marks where the student
             left off wherever that is. See the note on .path-berry. */}
-        {status.state === "current" ? (
-          /*
-            A FORK CELL IS HALF A COLUMN, so the side with room is the side
-            the cell opens onto rather than the side a wind step points at.
-            Left cell, mascot on the left; right cell, mascot on the right;
-            the concept above the split is centred and takes the right.
+        {/* THE CHIP'S OWN BOX, so the mascot is placed off the chip and not
+            off the cell (whose width is the name's), and the chip is centred
+            over its name rather than flush with the name's left edge. */}
+        <div className="path-fork__chip">
+          {status.state === "current" ? (
+            /*
+              A FORK CELL IS HALF A COLUMN, and the room is BETWEEN the arms:
+              the left cell's mascot stands on its right and the right cell's on
+              its left, both in the gap the "or" used to hold. Outward, the left
+              arm's mascot ran off the screen edge at 390 (g7). Anything else (a
+              hub petal) takes the right.
 
-            THE SIZE IS MASCOT_PX, the same box the spine rows draw, because one
-            surface with two mascot scales on it is a surface where the character
-            changes size as a student scrolls. It used to be 95 here and 95 there;
-            the spine's lane bounded it to 72 and this follows rather than keeping
-            a second number alive.
-          */
-          <span className={`path-berry path-berry--${lane === "left" ? "left" : "right"}`} aria-hidden>
-            <Berry mood="happy" behaviour="leanIn" reducedMotion={reducedMotion} sizePx={MASCOT_PX} />
-          </span>
-        ) : null}
-        <Chip
-          state={status.state}
-          label={node.title}
-          detail={detail}
-          href={clickable && node.playable !== undefined ? hrefForPlayable(node.playable) : null}
-          badge={badge}
-          dim={dim}
-          queued={status.queued}
-          counter={counter}
-          place={place}
-          onOpenNode={onOpenNode}
-          sheetNode={sheetNodeFor(node, status.state)}
-          gateNode={mapGateNode(node, clickable)}
-        />
+              THE SIZE IS MASCOT_PX, the same box the spine rows draw, because one
+              surface with two mascot scales on it is a surface where the character
+              changes size as a student scrolls. It used to be 95 here and 95 there;
+              the spine's lane bounded it to 72 and this follows rather than keeping
+              a second number alive.
+            */
+            <span className={`path-berry path-berry--${lane === "right" ? "left" : "right"}`} aria-hidden>
+              <Berry mood="happy" behaviour="leanIn" reducedMotion={reducedMotion} sizePx={MASCOT_PX} />
+            </span>
+          ) : null}
+          <Chip
+            state={status.state}
+            label={node.title}
+            detail={detail}
+            href={clickable && node.playable !== undefined ? hrefForPlayable(node.playable) : null}
+            badge={badge}
+            dim={dim}
+            queued={status.queued}
+            counter={counter}
+            place={place}
+            onOpenNode={onOpenNode}
+            sheetNode={sheetNodeFor(node, status.state)}
+            gateNode={mapGateNode(node, clickable)}
+          />
+        </div>
         <NodeLabel label={node.title} under icon={badge} />
       </div>
 
@@ -1365,114 +1381,6 @@ function HubFlower({
   );
 }
 
-/**
- * The unit gate, redrawn against blueberry_spec-node-types and the owner's
- * 2026-09-03 ruling on the gate.
- *
- * THE ARCH IS A FILLED SILHOUETTE, and that is the fix for the dented
- * horseshoe a critic captured on Units 2 and 4: "the arch has a V-shaped
- * notch cut into its apex where the two branch trails converge and pass
- * through it". The arch used to be two STROKED arcs with `fill: none`, so the
- * ribbon behind it showed through its own mouth and the two arms converging
- * on it drew a V across the crown. blueberry_spec-node-types draws a solid
- * unbroken grey band, so the arch is now one closed path with a fill and a
- * keyline: nothing can show through it, and the silhouette is the clean bell
- * the spec draws. Rounded joins, so the feet are finished ends rather than
- * cut-off legs that read as a continuation of the road.
- *
- * THE DOUBLE DAGGER IS SUNKEN, NOT HUNG. docs/DESIGN-GOALS.md: "one clean
- * mark, sunken, violet family, no ornament", and "the glyph is a proper
- * double dagger drawn once". The build hung it in a white circular badge off
- * the arch's shoulder, which is an ornament by that clause's own wording, and
- * blueberry_spec-node-types draws the mark directly on the arch with nothing
- * behind it. So the mark is drawn INSIDE the arch's own svg, in the arch's
- * darker tone, with the same two-layer cut the node motifs use: the same
- * engraving language, applied to the one node type that is not a chip. It
- * being in the same svg is also what stops it drifting off the shoulder at
- * any width.
- *
- * IT IS VECTOR, never the &#8225; character. A text glyph is a different
- * shape in every font a platform might fall back to, and CLAUDE.md's icon
- * rule ("ICONS ARE SVG, NEVER RASTER, NEVER EMOJI") is about exactly this
- * kind of drift. One stem, two crossbars, drawn once.
- *
- * THE ARCH IS GREY IN EVERY STATE, per the spec: grey is what says "this is a
- * boundary, not a lesson". A passed gate does not turn green, because green
- * says "you moved" and a boundary has not moved. `passed` changes the
- * accessible name, which is the honest place for a claim about progress.
- *
- * The arch carried `data-trail` anchors until 2026-09-23, when the drawn
- * connections went. It is still the point the two arms of a diamond close on,
- * which is the committed geometry in blueberry_branch-diamond; that is now a
- * fact about the LAYOUT rather than about a ribbon.
- */
-function UnitGateNode({ passed, locked }: { readonly passed: boolean; readonly locked: boolean }) {
-  /*
-    THE ARCH, REDRAWN AGAINST THE ADOPTED DESIGN, 2026-09-04.
-
-    WHAT unit02-path.jpg ACTUALLY DRAWS, read off the image at 6x with
-    measurements/_probe-ref-card.mjs and scanned for its width with
-    measurements/_probe-ref-gate.mjs: a wide half-round arch in the NODE
-    PERIWINKLE, built from TWO CONCENTRIC BANDS (a thick light one outside, a
-    thinner deeper one inside), short flat feet standing on the ground, a
-    large dark glyph centred in the OPENING under the crown, and no text
-    anywhere near it.
-
-    THE SIZE IS MEASURED. The reference arch is 135 pixels wide on a 594 pixel
-    phone screen, which is 22.7 percent of screen width. Ours painted at about
-    16 percent, inside an 84px box that was mostly padding. The band now spans
-    its own box, and the box is 100px on a 390pt phone: 25.6 percent, which is
-    the reference plus the hair the drop shadow needs.
-
-    IT IS PERIWINKLE NOW AND IT WAS GREY. The grey came from
-    blueberry_spec-node-types ("grey says boundary, not lesson"), which the
-    owner's 2026-09-03 ruling superseded by name: "THE UNIT GATE is the simple
-    arch of unit02-path.jpg". That arch is the node blue. Reported as the
-    divergence it is rather than resolved silently.
-
-    Two closed paths rather than one, because two bands is what the image
-    draws. Each is a half annulus: out along the ground, up the outside, over
-    the crown, down to the ground, then back up the inside.
-  */
-  const band = (outer: number, inner: number, foot: number) =>
-    `M${50 - outer} ${foot}V52a${outer} ${outer} 0 0 1 ${outer * 2} 0v${foot - 52}h${-(outer - inner)}V52a${inner} ${inner} 0 0 0 ${-inner * 2} 0v${foot - 52}Z`;
-  const outerBand = band(48, 34, 56);
-  const innerBand = band(34, 25, 56);
-  /*
-    THE DOUBLE DAGGER, MOVED INTO THE MOUTH AND GROWN.
-
-    It used to sit at y 12 to 26 of a 58-unit box, which is INSIDE the crown's
-    band: a mark cut into the masonry. The reference puts its glyph in the
-    OPENING, on the ground the trail runs through, centred on the trail's own
-    x, at roughly a sixth of the arch's width. That is what this is now.
-
-    docs/DESIGN-GOALS.md is explicit that the glyph is a proper double dagger
-    drawn once and never the hashtag the draft rendered, and it is vector and
-    never the character, per CLAUDE.md's icon rule.
-  */
-  const dagger = (
-    <>
-      <path d="M50 30v22" strokeWidth="3.4" strokeLinecap="round" fill="none" />
-      <path d="M42.5 36.5h15M42.5 45.5h15" strokeWidth="3.4" strokeLinecap="round" fill="none" />
-    </>
-  );
-  return (
-    <div
-      className={`path-gatenode ${locked ? "path-gatenode--locked" : ""}`}
-      role="img"
-      aria-label={passed ? "Unit gate, passed" : "Unit gate. Clear the checkpoint to open the next unit."}
-    >
-      <svg viewBox="0 0 100 58" className="path-gatenode__arch" aria-hidden>
-        <path className="path-gatenode__arch-face" d={outerBand} />
-        <path className="path-gatenode__arch-inner" d={innerBand} />
-        <g className="path-gatenode__mark-lip" transform="translate(0 1.4)">
-          {dagger}
-        </g>
-        <g className="path-gatenode__mark">{dagger}</g>
-      </svg>
-    </div>
-  );
-}
 /* ------------------------------------------------------------------------- */
 /* THE UNIT PLAN: one unit's shape, laid out, once, for BOTH the track and    */
 /* the F1 pill. The attempt-2 pill re-derived a shape of its own and drew a   */
@@ -1504,7 +1412,7 @@ interface UnitPlan {
   readonly tail: readonly UnitRow[];
   /**
    * The spine's last stretch: the unit's checkpoint challenges, between the
-   * fork's rejoin and the gate arch.
+   * fork's rejoin and the unit's own checkpoint.
    *
    * THE GRID IS DELETED, and this is what replaces it. The checkpoint used to
    * be a flow-wrapped block of chips with `lane="off"`, so five challenges
@@ -1517,12 +1425,12 @@ interface UnitPlan {
    */
   readonly gateRun: readonly UnitRow[];
   /**
-   * THE UNIT'S OWN CHECKPOINT, the last chip before the arch.
+   * THE UNIT'S OWN CHECKPOINT, the last chip on the page.
    *
    * One row, always, on every unit. See unitCheckpointNode in
    * demo/pathwayMap.ts for why it is synthetic and what it runs; here it is a
    * UnitRow like any other, riding the same wind cycle the gateRun leaves off
-   * at, so the road winds into it and out of it into the arch and it is a named
+   * at, so the road winds into it and it is a named
    * row on the column's rhythm rather than a block of its own.
    */
   readonly check: UnitRow;
@@ -1705,7 +1613,8 @@ export function currentIndexFor(plan: UnitPlan, status: MapPathwayStatus): numbe
  * The Duolingo shaped track, restructured onto the Orgo Pathway Map, ONE UNIT
  * PER PAGE. Owner decisions 2026-09-17: the generated terrain background
  * (PathScene, terrain.ts, sceneProps.ts) is dropped outright, and the pathway
- * is a per-unit pager advanced by a bottom button and a left or right swipe,
+ * is a per-unit pager advanced by a bottom button and a left or right swipe
+ * (the bottom button went on 2026-10-01, see the note where it stood),
  * reusing the interaction pattern of the site's own per-unit page
  * (src/components/UnitPage.tsx: 64px swipe, slope guard, arrow keys).
  *
@@ -1716,11 +1625,11 @@ export function currentIndexFor(plan: UnitPlan, status: MapPathwayStatus): numbe
  *   hub flower              only on the two units the goals reserve it for
  *   winding column          spine nodes, with dimmed side loops woven in,
  *                           ending on the concept as the trunk's last row
- *   arms                    two columns, both open at once
- *   checkpoint              any authored gate questions, then the unit's
- *                           own mixed check, where the arms rejoin
- *   unit gate               the double dagger arch
+ *   arms                    two columns, both open at once, both required
  *   side quests             the optional tail, then any mention-only topic
+ *   checkpoint              any authored gate questions, then the unit's
+ *                           own mixed check, where the arms rejoin. The
+ *                           unit's last thing: nothing is drawn after it
  *
  * State still comes from deriveMapPathway, where only unit gates lock, so
  * both arms and every loop are freely orderable the moment the unit opens.
@@ -1735,9 +1644,8 @@ export function currentIndexFor(plan: UnitPlan, status: MapPathwayStatus): numbe
  *
  * NAVIGATION STOPS AT THE GATE. The rail above the page lists all fifteen
  * units with their locked, current and done states, the whole mountain, but
- * the pager will not open a unit the gates have not: the Continue button
- * disables and carries the gate's reason, a swipe past the frontier does
- * nothing, and a deep link past it clamps. Unlock SEMANTICS are untouched
+ * the swipe and the arrow keys will not walk past the frontier, and a
+ * browsed unit past it says why at its top. Unlock SEMANTICS are untouched
  * (unit gates are still the only locks, pathwayState.ts, pinned by
  * pathwayUnlock.test.ts); this is a navigation rule over them.
  */
@@ -1751,11 +1659,6 @@ const SWIPE_SLOPE = 1.2;
 /** The pager's deep link: one unit, addressed inside the hash. */
 function hrefForUnit(unitId: string): string {
   return `${hrefForTab("pathway")}?unit=${encodeURIComponent(unitId)}`;
-}
-
-/** "all 4 lessons" / "1 lesson", for the gate sentence's count. */
-function countedLessons(playable: number): string {
-  return playable === 1 ? "1 lesson" : `all ${playable} lessons`;
 }
 
 /**
@@ -1782,7 +1685,7 @@ function countedLessons(playable: number): string {
  * LOCKED UNITS ARE STILL LINKS. Owner decision 2026-09-17: a locked unit
  * opens READ ONLY, so a student can look ahead; the page it opens is the one
  * that says the unit is shut. Unlock semantics are untouched, pathwayState.ts
- * still decides them, and the swipe and Continue still stop at the frontier.
+ * still decides them, and the swipe and arrow keys still stop at the frontier.
  */
 function UnitMenu({
   status,
@@ -1909,7 +1812,6 @@ function OrgoMapTrack({
   const tailRows = plan.tail.filter((row) => row.node.mentionOnly !== true);
   const mentions = unit.nodes.filter((node) => node.mentionOnly === true);
   const unitStatus = status.units.get(unit.id);
-  const gatePassed = unitStatusPassed(status, unit.id);
   const gateLocked = unitStatus === undefined || !unitStatus.reachable;
 
   const previous = index > 0 ? PATHWAY_UNITS[index - 1]! : null;
@@ -1917,30 +1819,13 @@ function OrgoMapTrack({
   const nextOpen = next !== null && status.units.get(next.id)?.reachable === true;
 
   /*
-    THE GATE SENTENCE IS COUNTABLE, and that is the round-two correction to a
-    line that was honest and useless. "Unit 2 opens when this unit is done"
-    names no number, so a student cannot tell from it whether they are one
-    lesson from the gate or nine, which is the single question the sentence
-    exists to answer.
-
-    The RULE it reports is pathwayState.ts's `finished`: every node in the
-    unit that HAS content cleared, or the unit's checkpoint passed. Both of
-    its terms are already on this page as unitStatus.done and .playable, so
-    the sentence says them rather than paraphrasing them. The "or pass the
-    checkpoint" clause is only said on the units that have one, because on
-    the other twelve it would be an instruction with nothing behind it.
-
-    On a locked page the sentence is a different one: the unit is not shut by
-    its own count but by the frontier's, so it names the unit to go finish.
+    WHY A BROWSED UNIT IS SHUT, said once at the top of its page. The rail
+    browses (see above), so a student can open a unit the gates have not, and
+    every chip on it declines; this sentence names the unit to go finish. It
+    used to ride a sticky footer with a "N left" count, and both went with the
+    footer on 2026-10-01: the count is the checkpoint's own locked sentence now.
   */
-  const lessonsLeft = Math.max((unitStatus?.playable ?? 0) - (unitStatus?.done ?? 0), 0);
-  const gateReason = gateLocked
-    ? `Locked. Finish ${unitNumber(PATHWAY_UNITS[frontier]!.title)} to open this.`
-    : next === null || nextOpen
-      ? null
-      : unitStatus === undefined || unitStatus.playable === 0
-        ? `${unitNumber(next.title)} opens when this unit is done.`
-        : `${unitNumber(next.title)} opens when ${countedLessons(unitStatus.playable)} here ${unitStatus.playable === 1 ? "is" : "are"} done${plan.checkpoint ? ", or you pass the checkpoint" : ""}. ${lessonsLeft} left.`;
+  const gateReason = gateLocked ? `Locked. Finish ${unitNumber(PATHWAY_UNITS[frontier]!.title)} to open this.` : null;
 
   const pagerRef = useRef<HTMLDivElement | null>(null);
   const surfaceRef = useRef<HTMLElement | null>(null);
@@ -2171,6 +2056,11 @@ function OrgoMapTrack({
         data-unit-id={unit.id}
         data-checkpoint={plan.checkpoint ? "true" : "false"}
       >
+        {gateReason === null ? null : (
+          <p className="path-unit__reason mx-auto w-full max-w-md" role="note">
+            {gateReason}
+          </p>
+        )}
         {/*
           THE SIGNPOST IS GONE FROM THIS TRACK, and only from this one.
           The picker directly above it now says "ORGO II / Unit 1 -
@@ -2221,34 +2111,19 @@ function OrgoMapTrack({
         {shape.concept !== null ? (
           /*
             THE DIAMOND FORK, per blueberry_branch-diamond: one arm each side
-            under the concept row, both rejoining at this unit's checkpoint
-            immediately below. Both arms are genuinely open at once, because
-            within a unit every node is freely orderable; the fork is the
-            unlock policy made visible, not a decoration over a chain.
+            under the concept row, both rejoining at this unit's checkpoint.
+            Both arms are open at once, because within a unit every node is
+            freely orderable.
+
+            NO "OR" BETWEEN THEM, 2026-10-01. The checkpoint opens only when
+            every lesson is done, so both arms are REQUIRED and the word stated
+            a choice that does not exist. What the fork says is "in either
+            order", and the group's name says it in words.
           */
-          <div className="path-fork mx-auto w-full max-w-md" role="group" aria-label="Choose either branch; they rejoin at the unit checkpoint">
+          <div className="path-fork mx-auto w-full max-w-md" role="group" aria-label="Both lessons are required, in either order; they rejoin at the unit checkpoint">
             <div className="path-fork__arms">
               {([0, 1] as const).map((side) => (
-                <Fragment key={side}>
-                  {/*
-                    THE FORK SAYS "OR" IN THE GAP BETWEEN ITS ARMS.
-
-                    Two chips at the same y with nothing between them read as
-                    a row, and a row reads as an order. The word is drawn
-                    once, between the two columns, so the parallel is visible
-                    before a tap rather than only in the accessible name.
-
-                    aria-hidden: the group around this fork already says
-                    "Choose either branch" and every arm chip says "either
-                    route may be taken first", so a third voice would be the
-                    same fact three times.
-                  */}
-                  {side === 1 ? (
-                    <span className="path-fork__or" aria-hidden>
-                      or
-                    </span>
-                  ) : null}
-                  <div className="path-fork__arm">
+                <div key={side} className="path-fork__arm">
                     {shape.arms[side].map((node) => (
                       <ForkChip
                         key={node.id}
@@ -2262,91 +2137,25 @@ function OrgoMapTrack({
                         onOpenNode={onOpenNode}
                       />
                     ))}
-                  </div>
-                </Fragment>
+                </div>
               ))}
             </div>
           </div>
         ) : null}
 
         {/*
-          THE CHECKPOINT COMES STRAIGHT AFTER THE REQUIRED WORK, 2026-09-29.
+          THE OPTIONAL WORK COMES BEFORE THE CHECKPOINT, 2026-10-01.
 
-          It used to be drawn after the optional side quests, in the same
-          column and the same rhythm, directly under four dimmed chips and the
-          "Optional side quests" eyebrow, so on Unit 1 it read as a fifth side
-          quest. It closes the REQUIRED road, so it sits where that road ends:
-          under the fork, which is also what makes the fork's "they rejoin at
-          the unit checkpoint" true on the page. The optional work moves below
-          the arch, where nothing required follows it.
+          It used to be drawn after the arch, so the side quests and the
+          reading-only mention sat past the unit's finish line, followed by a
+          sticky footer: three endings and optional work after all of them. The
+          g7 critic measured that against Duolingo, whose unit ends on one
+          trophy disc in the column. So the unit now ends on its checkpoint and
+          nothing is drawn after it: optional work sits above the finish line,
+          where a student passes it on the way down.
 
-          THE CHIPS ARE CHALLENGE NODES ON THE ROAD. No committed goal image
-          contains a checkpoint block, so the outlined box this once was is
-          deleted rather than restyled; a check is drawn as the CHALLENGE node
-          type the spec sheet already has, on spine rows riding the same wind
-          cycle as every other node. ONE <ol> for the authored gate questions
-          and the unit's own mixed check, because it is one thing: the work
-          between the last lesson and the boundary.
-
-          ITS LOCKED SENTENCE IS ITS OWN. The check waits for this unit's
-          lessons (pathwayState.ts), not for the unit before, so the default
-          "Opens when the unit before it is done" would send a student
-          backwards. Inside a locked unit the unit's sentence is still the true
-          one and is kept.
-        */}
-        <ol className="path-track mx-auto flex w-full max-w-md flex-col" aria-label="Unit checkpoint">
-          {[...plan.gateRun, plan.check].map((row) => {
-            const nodeStatus = statusOf(status, row.node.id);
-            const playable = row.node.playable;
-            const locked = nodeStatus.state === "locked";
-            const clickable = playable !== undefined && !locked;
-            const href = clickable && playable !== undefined ? hrefForPlayable(playable) : null;
-            const waitsForLessons = row === plan.check && locked && !gateLocked;
-            const place = places.get(row.node.id) ?? null;
-            const detail = waitsForLessons
-              ? `${placeSaid(place) ?? "Unit checkpoint"}. ${CHECK_WAITS}`
-              : mapNodeDetail(row.node, nodeStatus.queued, locked, place);
-            return (
-              <TrackSlab
-                key={row.node.id}
-                state={nodeStatus.state}
-                label={row.node.title}
-                detail={detail}
-                place={place}
-                href={href}
-                wind={row.wind}
-                lane="main"
-                badge="challenge"
-                dim={false}
-                queued={nodeStatus.queued}
-                reducedMotion={reducedMotion}
-                onOpenNode={onOpenNode}
-                sheetNode={sheetNodeFor(row.node, nodeStatus.state, waitsForLessons ? CHECK_WAITS : undefined)}
-                gateNode={mapGateNode(row.node, clickable)}
-              />
-            );
-          })}
-        </ol>
-        <div className="path-gate mx-auto flex w-full max-w-md flex-col items-center" aria-label="Unit gate">
-          <UnitGateNode passed={gatePassed} locked={gateLocked} />
-          {/*
-            NO CARD UNDER THE ARCH, pixel verdict of 2026-09-04: the
-            gate is drawn "with a large dark glyph centred in the
-            opening, straddling the trail, and NO TEXT LABEL UNDER IT".
-            Neither adopted per-unit design names its gate. The arch
-            carries role="img" and an aria-label instead.
-          */}
-        </div>
-
-        {/*
-          THE OPTIONAL WORK, AFTER EVERYTHING REQUIRED. See planUnits: the
-          trailing run of dimmed enrichment is drawn under the fork rather
-          than between the trunk and the concept, and since 2026-09-29 under
-          the arch as well, so nothing required ever follows a thing the
-          student may skip.
-
-          THE HEADING IS VISIBLE, because four chips detaching from the road
-          with nothing saying why reads as the track breaking rather than as a
+          THE HEADING IS VISIBLE, because chips detaching from the road with
+          nothing saying why reads as the track breaking rather than as a
           choice being offered. It is aria-hidden: the list keeps its
           aria-label, so the group is announced once and only once.
         */}
@@ -2396,72 +2205,74 @@ function OrgoMapTrack({
             ) : null}
           </>
         ) : null}
+
+        {/*
+          THE CHECKPOINT IS THE UNIT'S LAST THING, and the unit's gate.
+
+          The arch that used to follow it is deleted (2026-10-01): it was a
+          second object for the same ending, its double dagger meant nothing a
+          student could read, and Duolingo's unit ends on one disc in the
+          column. The checkpoint is that disc: the heaviest node on the page
+          (.path-row--check in pathway.css), in the challenge colour in every
+          state, with "locked" said by its padlock mark and not by greying it.
+
+          THE CHIPS ARE CHALLENGE NODES ON THE ROAD. ONE <ol> for the authored
+          gate questions and the unit's own mixed check, because it is one
+          thing: the work between the last lesson and the boundary.
+
+          ITS LOCKED SENTENCE IS ITS OWN. The check waits for this unit's
+          lessons (pathwayState.ts), not for the unit before, so the default
+          "Opens when the unit before it is done" would send a student
+          backwards. Inside a locked unit the unit's sentence is still the true
+          one and is kept.
+        */}
+        <div className="path-gate mx-auto flex w-full max-w-md flex-col" aria-label="Unit gate">
+          <ol className="path-track flex w-full flex-col" aria-label="Unit checkpoint">
+            {[...plan.gateRun, plan.check].map((row) => {
+              const nodeStatus = statusOf(status, row.node.id);
+              const playable = row.node.playable;
+              const locked = nodeStatus.state === "locked";
+              const clickable = playable !== undefined && !locked;
+              const href = clickable && playable !== undefined ? hrefForPlayable(playable) : null;
+              const waitsForLessons = row === plan.check && locked && !gateLocked;
+              const place = places.get(row.node.id) ?? null;
+              const detail = waitsForLessons
+                ? `${placeSaid(place) ?? "Unit checkpoint"}. ${CHECK_WAITS}`
+                : mapNodeDetail(row.node, nodeStatus.queued, locked, place);
+              return (
+                <TrackSlab
+                  key={row.node.id}
+                  state={nodeStatus.state}
+                  label={row.node.title}
+                  detail={detail}
+                  place={place}
+                  href={href}
+                  wind={row.wind}
+                  lane={row === plan.check ? "check" : "main"}
+                  badge="challenge"
+                  dim={false}
+                  queued={nodeStatus.queued}
+                  reducedMotion={reducedMotion}
+                  onOpenNode={onOpenNode}
+                  sheetNode={sheetNodeFor(row.node, nodeStatus.state, waitsForLessons ? CHECK_WAITS : undefined)}
+                  gateNode={mapGateNode(row.node, clickable)}
+                />
+              );
+            })}
+          </ol>
+        </div>
       </section>
       {/*
-        THE BOTTOM BAR, the donor's foot-of-page nav in this tab's vocabulary:
-        the unit's name, where it sits in the run of fifteen, and one primary
-        way onward. When the next unit is gated the button is a real control
-        that declines (aria-disabled, same pattern as a locked chip) and the
-        gate's reason is said in words beside it, never a dead end with no
-        sentence.
-
-        IT IS STICKY NOW, and the argument it used to carry ("the unit ends at
-        its gate, and the way onward sits just past the gate") was measured and
-        lost. The bar sat 346 to 523px below the fold, which is about two
-        screens of scrolling before the page's PRIMARY CONTROL is on screen at
-        all, on a page whose whole job is to send a student into a lesson or
-        on to the next unit. So it rides above the tab bar instead, and the
-        offset is --tabbar-height out of app/ui/tabs.css rather than a second
-        copy of 76: test/nodeSheetSeam.test.ts recomputes that bar's real
-        height from its own declarations, and a hand-typed 76 went stale there
-        once already.
-
-        The foot holds the bar AND the gate's reason, because a sentence that
-        explains a disabled control has to be pinned with it; the swipe hint
-        stays in the flow, since it is decoration and the gestures work
-        whether or not it is on screen.
+        NO PAGE FOOTER, 2026-10-01. A sticky bar used to ride above the tab
+        bar with "UNIT 1 OF 15", a back arrow and Continue. At 320 wide it
+        covered the unit's ending on first paint, and its Continue continued
+        nothing while the next unit was shut. What it did that nothing else
+        does is gone with it, deliberately: going to another unit is the unit
+        picker at the top of the page (it names every unit and its state), the
+        swipe and the arrow keys. Its one sentence that mattered, why a
+        browsed unit is shut, is said at the top of that page instead (see
+        .path-unit__reason above the section).
       */}
-      <div className="path-pager__foot mx-auto w-full max-w-md">
-        <nav className="path-pager__bar" aria-label="Unit pager">
-          {previous !== null ? (
-            <a className="path-pager__side press" href={hrefForUnit(previous.id)} aria-label={`Back to ${previous.title}`}>
-              <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden>
-                <path d="M14.5 5.5 8 12l6.5 6.5" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </a>
-          ) : (
-            <span className="path-pager__side path-pager__side--blank" aria-hidden />
-          )}
-          <div className="path-pager__title">
-            <span className="path-pager__eyebrow">
-              {unitNumber(unit.title)} of {PATHWAY_UNITS.length}
-            </span>
-            <span className="path-pager__name">{unitName(unit.title)}</span>
-          </div>
-          {next === null ? (
-            <span className="path-pager__side path-pager__side--blank" aria-hidden />
-          ) : nextOpen ? (
-            <a className="path-pager__next" href={hrefForUnit(next.id)}>
-              Continue
-            </a>
-          ) : (
-            <button
-              type="button"
-              className="path-pager__next"
-              aria-disabled="true"
-              aria-label={`Continue. ${gateReason ?? ""}`}
-              onClick={(event) => event.preventDefault()}
-            >
-              Continue
-            </button>
-          )}
-        </nav>
-        {gateReason === null ? null : (
-          <p className="path-pager__reason" role="note">
-            {gateReason}
-          </p>
-        )}
-      </div>
       <p className="path-pager__hint mx-auto w-full max-w-md" aria-hidden>
         Swipe or use the arrow keys
       </p>
