@@ -1,25 +1,23 @@
 /**
- * The unlock policy, asserted POSITIVELY: no mid-unit node ever renders
- * locked. Owner ruling 2026-09-01 in docs/DESIGN-GOALS.md: "reactions within
- * a unit are freely orderable. Branch nodes carry no locks; only UNIT GATES
- * lock." The per-node prerequisite gates the earlier topic view drew are
- * retired, and this file is the retirement's proof, over both vocabularies:
+ * The unlock policy, asserted over both vocabularies.
  *
- *   - deriveFreeOrderStates (topicPathway.ts), the topic track's rule, swept
- *     exhaustively over every done-pattern of a small track
- *   - deriveMapPathway (pathwayState.ts), the Orgo map's rule, run over
- *     PATHWAY_UNITS, the inventory the browser actually draws
+ * THE MAP HALF IS REWRITTEN, 2026-10-01. It pinned the owner's 2026-09-01
+ * ruling ("reactions within a unit are freely orderable ... only UNIT GATES
+ * lock") with five assertions that no mid-unit node ever locks. The owner
+ * replaced that ruling: "make the lessons follow a predictable path". Each of
+ * the five now pins the LINEAR rule, and at least as strictly, because each
+ * is an if-and-only-if over every node rather than a "never":
  *
- * pathwayState.test.ts already encodes the map model and stays untouched;
- * this file adds the free-order half and the cross-cutting positive claim.
- * One deliberate nuance: an UNAUTHORED map node rides queued=true BESIDE its
- * state, per pathwayState.ts. Inside a reachable unit it is "open" (dashed
- * authoring treatment, never a padlock: the S3 critic measured u1-da drawn
- * locked inside the active unit and named it a violation of the unlock
- * policy), it is never "current", and only inside an unreachable unit does
- * it share its siblings' lock, because there the unit gate is the true
- * statement. So the positive claim here is TOTAL: within a reachable unit,
- * NO node of any kind is ever locked.
+ *   - a main-line node is locked exactly while an earlier authored main-line
+ *     lesson in its unit is uncleared, so the line opens one lesson at a time
+ *   - a side quest is locked exactly while its prerequisite is uncleared
+ *     (pathwayState.ts, prerequisitesOf)
+ *   - a fresh account can START only the first lesson
+ *
+ * THE TOPIC HALF IS UNCHANGED. deriveFreeOrderStates is the generic course
+ * track's rule (topicPathway.ts), not the Orgo map's, and the owner's
+ * direction names the map's units; it is reported as an open question
+ * rather than changed here.
  *
  * No wall clocks anywhere: every journal timestamp is a fixed literal, so
  * this suite measures the same at 09:00 and at 23:00 (LOG.md, "The
@@ -32,9 +30,9 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import type { EconomyEvent } from "@blueberry/economy";
 import { PATHWAY_UNITS } from "../demo/pathwayMap";
-import { deriveMapPathway, statusOf } from "../tabs/pathway/pathwayState";
+import { deriveMapPathway, prerequisitesOf, statusOf } from "../tabs/pathway/pathwayState";
 import { deriveFreeOrderStates, type FreeOrderNode } from "../tabs/pathway/topicPathway";
-import { trunkOf, unitShape } from "../tabs/pathway/unitShape";
+import { unitShape } from "../tabs/pathway/unitShape";
 
 /* ------------------------------------------------------------------------- */
 /* The topic track's rule, swept exhaustively.                                */
@@ -144,24 +142,36 @@ const AUTHORED_BY_UNIT = PATHWAY_UNITS.map((unit) =>
   unit.nodes.filter((node) => node.kind !== "branch" && node.playable !== undefined),
 );
 
-describe("deriveMapPathway, the same policy on the Orgo map", () => {
-  it("renders NO node locked in any reachable unit, queued ones included, at every frontier the track can reach", () => {
-    // Walk the frontier across the whole map: clear the first k units and
-    // check the invariant at each stop. This is the browser-facing positive
-    // claim: a student standing anywhere never sees a locked node beside an
-    // open one inside their own unit. TOTAL over every node kind, because a
-    // queued node in a reachable unit renders the dashed authoring
-    // treatment, never a padlock (the S3 must-fix on u1-da).
+describe("deriveMapPathway, one line per unit on the Orgo map", () => {
+  it("locks a node in a reachable unit EXACTLY while one of its prerequisites is uncleared, at every frontier", () => {
+    // Was: no node in a reachable unit is ever locked. Now an iff over every
+    // node of every reachable unit, at every frontier the track can reach AND
+    // at every prefix of the frontier unit's own line, so a lock that is
+    // missing and a lock that is extra both fail.
     for (let upTo = 0; upTo < PATHWAY_UNITS.length; upTo += 1) {
-      const journal = AUTHORED_BY_UNIT.slice(0, upTo)
-        .flat()
-        .map((node) => cleared(node.id));
-      const status = deriveMapPathway(PATHWAY_UNITS, journal);
-      PATHWAY_UNITS.forEach((unit) => {
-        if (status.units.get(unit.id)?.reachable !== true) return;
-        for (const node of unit.nodes) {
-          expect(statusOf(status, node.id).state).not.toBe("locked");
-        }
+      const settled = AUTHORED_BY_UNIT.slice(0, upTo).flat().map((node) => cleared(node.id));
+      const line = AUTHORED_BY_UNIT[upTo]!;
+      for (let step = 0; step <= line.length; step += 1) {
+        const journal = [...settled, ...line.slice(0, step).map((node) => cleared(node.id))];
+        const done = new Set(journal.map((event) => (event.kind === "node_cleared" ? event.nodeId : "")));
+        const status = deriveMapPathway(PATHWAY_UNITS, journal);
+        PATHWAY_UNITS.forEach((unit) => {
+          if (status.units.get(unit.id)?.reachable !== true) return;
+          for (const node of unit.nodes) {
+            if (done.has(node.id)) continue;
+            const waiting = prerequisitesOf(unit, node).some((id) => !done.has(id));
+            expect(statusOf(status, node.id).state === "locked", `${node.id} at unit ${upTo}, step ${step}`).toBe(waiting);
+          }
+        });
+      }
+    }
+  });
+
+  it("makes every main-line node wait for EVERY authored main-line lesson before it, and nothing else", () => {
+    for (const unit of PATHWAY_UNITS) {
+      const line = unit.nodes.filter((node) => node.kind !== "branch" && node.playable !== undefined);
+      line.forEach((node, at) => {
+        expect(prerequisitesOf(unit, node), node.id).toEqual(line.slice(0, at).map((before) => before.id));
       });
     }
   });
@@ -226,17 +236,16 @@ describe("deriveMapPathway, the same policy on the Orgo map", () => {
     }
   });
 
-  it("keeps a half-cleared unit freely orderable: clearing one node locks none of its siblings", () => {
-    const first = AUTHORED_BY_UNIT.find((nodes) => nodes.length >= 2);
-    expect(first).toBeDefined();
-    // Clear the LAST authored node of the unit, out of order on purpose: the
-    // free-order ruling is precisely that order inside a unit is the
-    // student's own.
-    const status = deriveMapPathway(PATHWAY_UNITS, [cleared(first![first!.length - 1]!.id)]);
-    expect(statusOf(status, first![first!.length - 1]!.id).state).toBe("done");
-    for (const node of first!.slice(0, -1)) {
-      expect(["open", "current"]).toContain(statusOf(status, node.id).state);
-    }
+  it("opens nothing past the line when a later lesson is cleared out of order", () => {
+    // Was: clearing the LAST node locks none of its siblings. Now the same
+    // out-of-order journal must leave the line exactly where it was: the
+    // first lesson current, every other uncleared main-line lesson locked.
+    const first = AUTHORED_BY_UNIT.find((nodes) => nodes.length >= 3)!;
+    const last = first[first.length - 1]!;
+    const status = deriveMapPathway(PATHWAY_UNITS, [cleared(last.id)]);
+    expect(statusOf(status, last.id).state).toBe("done");
+    expect(statusOf(status, first[0]!.id).state).toBe("current");
+    for (const node of first.slice(1, -1)) expect(statusOf(status, node.id).state, node.id).toBe("locked");
   });
 });
 
@@ -244,58 +253,69 @@ describe("deriveMapPathway, the same policy on the Orgo map", () => {
 /* The derived fork carries no lock of its own.                               */
 /* ------------------------------------------------------------------------- */
 
-describe("the diamond fork, derived", () => {
-  const shapes = PATHWAY_UNITS.map((unit) => unitShape(unit));
+describe("Unit 1, the line a fresh student walks", () => {
+  const unit = PATHWAY_UNITS[0]!;
+  const shape = unitShape(unit);
 
   /*
-     REWRITTEN ON THE OWNER'S DECISION, 2026-09-30, and only this check. It
-     used to pin the concept as the unit's concept beat, which on u1 is
-     kinetic vs thermodynamic control, and kvt could only sit above the split
-     by drawing 1,2 vs 1,4 addition, whose products its questions are about,
-     BELOW it. The owner's rule is that a question may only combine skills
-     already cleared on their own, so 12v14 is drawn first. The check is as
-     exact as before: it names the concept, names where kvt goes, and still
-     requires two non-empty arms.
+     REWRITTEN 2026-10-01, with the four checks below it. This pinned a fork
+     whose concept was 1,2 vs 1,4 addition with kvt on an arm. The fork is
+     retired: Unit 1 is allylic, 12v14, kvt, X2, then its checkpoint, X2 after
+     kvt because X2's 1,4 dihalide is the thermodynamic product kvt explains.
   */
-  it("gives the first unit a fork whose concept is 1,2 vs 1,4 addition, with kvt drawn after it", () => {
-    const first = shapes[0]!;
-    expect(first.concept?.id).toBe("u1-12v14");
-    const armIds = [...first.arms[0], ...first.arms[1]].map((node) => node.id);
-    expect(armIds).toContain("u1-kvt");
-    expect(first.column.map((node) => node.id)).not.toContain("u1-kvt");
-    expect(first.arms[0].length).toBeGreaterThan(0);
-    expect(first.arms[1].length).toBeGreaterThan(0);
+  it("draws Unit 1's main line as allylic, 12v14, kvt, X2, in that order and no other", () => {
+    expect(shape.column.map((node) => node.id)).toEqual(["u1-allylic", "u1-12v14", "u1-kvt", "u1-x2"]);
   });
 
-  it("never draws a trunk or arm node above one authored before it, in any unit", () => {
-    // The drawn order is column, then concept, then the arms (whose own order
-    // is the student's). Read in that order it must be authored order, or
-    // the map draws a prerequisite under the thing that depends on it.
-    PATHWAY_UNITS.forEach((unit, index) => {
-      const shape = shapes[index]!;
-      const drawn = [...trunkOf(shape), ...shape.arms[0], ...shape.arms[1]].map((node) => node.id);
-      const authored = unit.nodes.map((node) => node.id).filter((id) => drawn.includes(id));
-      expect(drawn, `drawn order of ${unit.id}`).toEqual(authored);
+  it("never draws a main-line node above one authored before it, in any unit", () => {
+    PATHWAY_UNITS.forEach((entry) => {
+      const drawn = unitShape(entry).column.map((node) => node.id);
+      const authored = entry.nodes.map((node) => node.id).filter((id) => drawn.includes(id));
+      expect(drawn, `drawn order of ${entry.id}`).toEqual(authored);
     });
   });
 
-  it("carries no lock of its own: on a fresh account the concept and BOTH arms are open at once", () => {
+  it("lets a fresh account START only the first lesson: every other lesson in the unit is locked", () => {
     const status = deriveMapPathway(PATHWAY_UNITS, []);
-    const first = shapes[0]!;
-    const members = [first.concept!, ...first.arms[0], ...first.arms[1]];
-    for (const node of members) {
-      expect(["open", "current"]).toContain(statusOf(status, node.id).state);
+    expect(status.currentNodeId).toBe("u1-allylic");
+    for (const node of unit.nodes) {
+      if (node.playable === undefined || node.id === "u1-allylic") continue;
+      expect(statusOf(status, node.id).state, node.id).toBe("locked");
     }
   });
 
-  it("never locks a node on a dimmed side loop inside a reachable unit", () => {
-    const status = deriveMapPathway(PATHWAY_UNITS, []);
-    for (const shape of shapes) {
-      const entry = status.units.get(shape.unitId);
-      if (entry === undefined || !entry.reachable) continue;
-      for (const node of shape.loops) {
-        expect(statusOf(status, node.id).state).not.toBe("locked");
-      }
+  it("opens the line one lesson at a time: 12v14 after allylic, kvt after 12v14, X2 after kvt", () => {
+    const order = ["u1-allylic", "u1-12v14", "u1-kvt", "u1-x2"];
+    for (let done = 0; done < order.length; done += 1) {
+      const status = deriveMapPathway(PATHWAY_UNITS, order.slice(0, done).map((id) => cleared(id)));
+      order.forEach((id, at) => {
+        expect(statusOf(status, id).state, `${id} with ${done} cleared`).toBe(at < done ? "done" : at === done ? "current" : "locked");
+      });
+    }
+  });
+
+  it("locks each side quest exactly until its prerequisite clears: NBS and Diels-Alder after allylic, the inverse Diels-Alder after Diels-Alder", () => {
+    const fresh = deriveMapPathway(PATHWAY_UNITS, []);
+    for (const id of ["u1-nbs", "u1-da", "u1-ied"]) expect(statusOf(fresh, id).state, id).toBe("locked");
+    const afterAllylic = deriveMapPathway(PATHWAY_UNITS, [cleared("u1-allylic")]);
+    expect(statusOf(afterAllylic, "u1-nbs").state).toBe("open");
+    expect(statusOf(afterAllylic, "u1-da").state).toBe("open");
+    expect(statusOf(afterAllylic, "u1-ied").state).toBe("locked");
+    const afterDa = deriveMapPathway(PATHWAY_UNITS, [cleared("u1-allylic"), cleared("u1-da")]);
+    expect(statusOf(afterDa, "u1-ied").state).toBe("open");
+    // A side quest never takes the START tag: the line does.
+    expect(afterDa.currentNodeId).toBe("u1-12v14");
+  });
+
+  it("records a side quest's prerequisites only on side quests, and only as nodes authored above it in its own unit", () => {
+    for (const entry of PATHWAY_UNITS) {
+      const ids = entry.nodes.map((node) => node.id);
+      entry.nodes.forEach((node, at) => {
+        if (node.after === undefined) return;
+        expect(node.kind, node.id).toBe("branch");
+        for (const id of node.after) expect(ids.indexOf(id), `${node.id} after ${id}`).toBeGreaterThan(-1);
+        for (const id of node.after) expect(ids.indexOf(id), `${node.id} after ${id}`).toBeLessThan(at);
+      });
     }
   });
 });

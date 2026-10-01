@@ -822,56 +822,6 @@
   stroke: var(--node-lip-light);
   fill: var(--node-lip-light);
 }
-/* The hub's ball-and-stick fills its ring, so it is sized to the face rather
-   than to a motif slot: the ring plus the molecule plus the counter are the
-   three marks blueberry_spec-node-types draws on a hub. */
-.path-node__motif--hub {
-  width: 2rem;
-  height: 2rem;
-}
-/*
- * THE HUB IS A RING NODE, per blueberry_spec-node-types, and the ring is a
- * shape rather than a badge because the shape is what says "category" before
- * a tap. A thick periwinkle wall, a lighter well inside it, and the
- * ball-and-stick molecule sitting in the middle: three marks, of which the
- * build carried none (it drew an ordinary chip with a hexagon in the corner).
- */
-.path-node--hub {
-  --node-size: 5.1rem;
-  --node-face-h: 3.7rem;
-  border-width: 6px;
-}
-/* The lighter well only where the chip is live. A LOCKED hub is flat and grey
-   like every other locked chip: the states sheet draws five states and no
-   hybrids, and a grey ring with a periwinkle centre is a sixth. */
-.path-node--hub:not(.path-node--locked) .path-node__face {
-  border-width: 3px;
-  background: var(--path-hub-well);
-}
-.path-node--hub .path-node__face {
-  border-width: 3px;
-}
-/*
- * The hub's n-of-m counter, the third of the spec's three hub marks. A
- * periwinkle pill at the bottom right, white on --chip-edge at 5.03:1, and a
- * white keyline like every other sticker on a chip.
- */
-.path-node__counter {
-  position: absolute;
-  bottom: -6px;
-  right: -10px;
-  min-width: 32px;
-  padding: 1px 6px;
-  border-radius: 999px;
-  background: var(--chip-edge);
-  border: 2px solid #ffffff;
-  color: #ffffff;
-  font-family: var(--font-display);
-  font-size: 0.7rem;
-  font-weight: 800;
-  line-height: 1.4;
-  text-align: center;
-}
 
 /*
  * THE STEP MARK: which node in the trunk this is, drawn small and quiet.
@@ -1017,56 +967,6 @@
   }
 }
 
-/*
- * IN A FORK CELL THE TAG KEEPS THE STATES SHEET'S OWN GEOMETRY: above the chip,
- * centred, tail pointing down. And it MUST be out of flow there, which is the one
- * thing this override exists for.
- *
- * A fork cell is a flex column, so an in-flow tag would add its own 32px to that
- * ONE cell's height and the two arms of an either/or would sit 32px apart again.
- * That is the stagger this round is fixing, arriving through a different door: the
- * height has to be reserved on the container (--path-tag-room on
- * .path-fork__arms) and the tag itself has to cost the cell nothing.
- *
- * So the spine gets the relocated tag and the fork keeps the drawn one, and the
- * reason is the same reason the fork is the one exception for the NAME too: half a
- * column wide, with its name underneath, so there is no flank to put either on.
- * The divergence from blueberry_r7-states-sheet is therefore on the spine only.
- *
- * THE CENTRING USES `translate` AND THE BOB USES `transform`, deliberately. They
- * are separate properties, so the animation cannot clobber the -50% the way it
- * would if both rode `transform`; that is exactly the bug the old
- * `translate(-50%, -6px)` keyframes existed to work around, and it does not need
- * working around any more.
- */
-.path-fork__cell .path-start {
-  position: absolute;
-  left: 50%;
-  /* The 2px of the 34px --path-tag-room that is not the pill itself. */
-  bottom: calc(100% + 2px);
-  translate: -50% 0;
-  margin-left: 0;
-  animation-name: path-start-bob-up;
-}
-.path-fork__cell .path-start::after {
-  top: 100%;
-  right: auto;
-  left: 50%;
-  margin: -7px 0 0 -5.5px;
-  border: 0;
-  border-right: 2px solid var(--bb-primary);
-  border-bottom: 2px solid var(--bb-primary);
-}
-@keyframes path-start-bob-up {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-4px);
-  }
-}
-
 /* The winding. Each row carries --wind in -2..2 and slides by that many steps;
    the step shrinks with the viewport so the far nodes never leave a phone.
 
@@ -1107,23 +1007,6 @@
  */
 :root {
   --path-seam: 11px;
-  /*
-   * THE START TAG'S HEADROOM, and it is only ever spent in the FORK.
-   *
-   * On a spine row the tag lives in the name track and costs nothing. A fork cell
-   * is half a column wide and carries its name UNDER its chip, so it has nowhere
-   * sideways to put a tag and the tag stays above the chip: 32px of pill plus 2,
-   * the smallest gap that still reads as a tag over a chip rather than a label
-   * stuck to it.
-   *
-   * IT IS RESERVED UNCONDITIONALLY, on the fork's two containers, never on the
-   * cell that happens to be current. That is the whole fork-arm stagger fix: a
-   * per-cell reservation offset one arm of an either/or from the other by 52px and
-   * a capture agent read the result as a deliberate sequence. Equal padding cannot
-   * stagger anything. It costs 34px twice per fork, against the 52 + 62 it
-   * replaces.
-   */
-  --path-tag-room: 34px;
 }
 
 /*
@@ -1369,7 +1252,7 @@
  * The step SHRINKS on a loop row rather than the wind growing without limit,
  * so the detour stays clearly outboard of the widest spine step at the width
  * that has room for it and inboard of the column at the width that does not.
- * The rows are tighter too: a detour is an aside.
+ * The rows keep the column's seam (2026-10-01): one rhythm on the page.
  */
 .path-row--loop {
   /*
@@ -1404,8 +1287,13 @@
    * entirely underneath them: a critic looking at the built page saw a column of
    * chips with no connector. The ribbon is deleted now, but the reason the gap
    * has to be visible is the same one.
+   *
+   * AND NOW IT IS THE SEAM, 2026-10-01. At 9px a detour row sat 82 to 84px
+   * from its neighbours while every other row sat 86.4, and the owner's line
+   * keeps one rhythm. The detour still reads as an aside by its swing and its
+   * dim; it no longer does by a tighter pitch.
    */
-  padding: 9px 0;
+  padding: var(--path-seam) 0;
 }
 
 /* Unit banners: the coloured header that divides the track into acts. */
@@ -1576,54 +1464,6 @@
 .path-label__text {
   min-width: 0;
 }
-/*
- * THE ONE EXCEPTION, and it is the fork cell. Under the chip and centred,
- * because a fork cell is half a column wide and genuinely has no flank to put a
- * name on: blueberry_branch-diamond names the fork's parts over and under them
- * for the same reason.
- *
- * IN FLOW HERE TOO, which is the fork's half of the pitch fix. It used to be
- * absolutely positioned, so it cost the cell no height and the cell reserved a
- * blanket 62px (--path-label-drop) underneath itself in case a three-line name
- * turned up. That reservation was on EVERY fork cell whatever its name actually
- * needed, and it is the 62 in the measured 148px seam. A cell whose name is one
- * line now costs one line.
- *
- * THE PLATE IS GONE HERE TOO, 2026-09-29. It was kept on the argument that a
- * fork cell's name had the next row's chip right under it and needed a plate
- * to belong to the chip above. With the concept moved up into the trunk and the
- * checkpoint row below the arms, the name's nearest neighbour is its own chip
- * (8px) and the next chip is a full seam plus the checkpoint row's own seam
- * away, so proximity already says which chip it names. What the plate still
- * cost was the g1 critic's "two boxes per node" on the two arms, the last two
- * nodes on Unit 1 still carrying one. Naked text, centred, the spine's ink:
- * --bb-foreground on --bb-background, 14.28:1 light and 15.81:1 dark.
- */
-.path-label--under {
-  align-self: stretch;
-  justify-content: center;
-  box-sizing: border-box;
-  /*
-   * A fork cell is half a column, so the name's room is that half and not the
-   * flank's. It does not clamp either: nothing on this tab truncates.
-   *
-   * THE SECOND TERM IS THE HALF COLUMN, computed, and it was 44vw, guessed. The
-   * width sweep (scratchpad/g2-widths.mjs, resolving the emitted stylesheet at
-   * nine viewport widths) caught it: the arms grid is `1fr auto 1fr` with a 12px
-   * gap and the "or" between them, so one cell's track is about
-   * `50vw - 23 - 21` = `50vw - 44px`. 44vw is WIDER than that at every width, by
-   * 1px at 390pt and by 25px at 320, so a long fork name could reach out of its
-   * own cell and across the word that makes the fork an either/or.
-   *
-   * This is a pre-existing overflow rather than something this round introduced,
-   * and it is fixed here rather than reported because this rule is one this round
-   * was rewriting anyway: the name moved from absolute to in flow, and a
-   * max-width that does not match the box is exactly the kind of thing that
-   * change would otherwise bake in.
-   */
-  max-width: min(9.5rem, calc(50vw - 44px));
-  text-align: center;
-}
 /* The guidebook link on the generic track's signpost: a 44px round press,
    the touch floor, sitting at the rule's right end rather than inside the
    tag, so the tag stays one clean caps line. */
@@ -1766,21 +1606,6 @@
   height: 1.1rem;
 }
 
-/* Names the enrichment group under the fork, above the checkpoint. Muted
-   ink, which theme.css derives against the worst ground it composes on. */
-.path-tail__eyebrow {
-  font-family: var(--font-display);
-  font-size: 0.6875rem;
-  font-weight: 800;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-  color: var(--bb-muted-foreground);
-  /* In seams: two above, because a heading is a break in the column and is
-     allowed to be, and one below so it sits with the rows it names rather than
-     floating between two groups. */
-  margin: calc(var(--path-seam) * 2) 0 var(--path-seam);
-  padding-inline: 0.25rem;
-}
 /*
  * A TOPIC THE COURSE ONLY MENTIONS, drawn as text and never as a chip. See the
  * path-mention list in PathwayTab.tsx for why. Everything here is chosen to
@@ -1918,9 +1743,6 @@
      accent. Both are sticker fills carrying dark or white marks, never text. */
   --path-badge-gold: #f5c451;
   --path-badge-hot: #b3341f;
-  /* The hub ring's inner well: a lighter periwinkle so the thick wall around
-     it reads as a ring rather than as a fat border on a disc. */
-  --path-hub-well: #c5cdfa;
   /* Part of a control, so it is held to the same 3:1 as any other interface
      component. */
   --path-ring-track: #55597f;
@@ -1977,7 +1799,6 @@
   --path-start-fill: #2a2352;
   --path-badge-gold: #f5c451;
   --path-badge-hot: #ff8f78;
-  --path-hub-well: #4a54ab;
   --path-ring-track: #6f74a3;
   --path-gate-line: #6f74a3;
 }
@@ -1995,107 +1816,6 @@
   isolation: isolate;
 }
 
-/*
- * THE DIAMOND FORK, per blueberry_branch-diamond: concept centred above the
- * split, one arm per column, both open at once because nothing mid-unit
- * locks. The trail closes the diamond on the next unit gate's arch.
- */
-.path-fork {
-  display: flex;
-  flex-direction: column;
-  /* The concept is the trunk's last ROW now (PathwayTab, 2026-09-29), so this
-     block holds only the arms: one seam below the concept row's own seam puts the
-     arms one pitch under it, on the column's rhythm. The concept's START tag
-     rides its row's name track like every other step, so the room this block
-     used to reserve above a centred concept (--path-tag-room on top of the seam)
-     went with the centred concept; the arms still reserve theirs, below. */
-  padding-top: var(--path-seam);
-  padding-bottom: var(--path-seam);
-}
-/*
- * THE ARMS, two equal halves. The "or" that stood between them went on
- * 2026-10-01: the checkpoint needs both arms, so a word offering a choice
- * between them was false. The fork's group name says "in either order".
- */
-.path-fork__arms {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  justify-items: center;
-  /*
-   * START, AND THE TWO ARMS MUST STAY LEVEL. `align-items: start` is what makes
-   * the stagger below visible, and it is also what makes the fix work: with both
-   * arms starting at the same y, the only thing that could offset one of them was
-   * a per-cell padding, and that is now gone. See .path-fork__cell.
-   */
-  align-items: start;
-  /*
-   * THE PILL'S HEADROOM, RESERVED ON THE CONTAINER AND NOT ON THE CELL.
-   *
-   * A current fork ARM still carries the START tag, and inside a fork cell the tag
-   * has nowhere sideways to go: the cell is half a column wide and the name sits
-   * under the chip, so the tag stays above it. It therefore needs real headroom,
-   * and the previous build bought that with
-   * `.path-fork__cell[data-node-state="current"] { padding-top: 52px }`.
-   *
-   * THAT WAS THE WORST DEFECT ON THIS SURFACE and it was not the pitch. Unit 1's
-   * current node is a fork ARM, so one arm of an either/or got 52px of padding
-   * and the other got none: the two arms sat 52px apart vertically. A capture
-   * agent read that stagger as a deliberate "or" fork. It was not deliberate. Two
-   * options that are genuinely parallel (nothing mid-unit locks, so both arms are
-   * open at once) were drawn as a sequence, which is the single thing this fork
-   * exists not to say.
-   *
-   * Reserving it HERE costs 34px once, at the top of both arms, whichever of them
-   * is current and whether either is. Equal padding cannot stagger anything.
-   * The number itself is --path-tag-room, declared once beside --path-seam.
-   */
-  padding-top: var(--path-tag-room);
-}
-.path-fork__arm {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  /* Two seams, the same pitch the spine runs at, now that a cell's name takes
-     its own real height instead of the blanket 62 the cell used to reserve. */
-  gap: calc(var(--path-seam) * 2);
-}
-/*
- * THE FORK CELL, and the blanket reservation under it is DELETED.
- *
- * It carried `padding-bottom: var(--path-label-drop)`, a flat 62px on EVERY cell,
- * because the name under the chip was absolutely positioned and therefore cost
- * the cell no height at all. 62 was the tallest a three-line name could ever be,
- * so every cell paid for the worst case whatever its own name needed: that is the
- * 62 in the 148px seam the g1 capture reconstructed, and it was the larger of the
- * two causes of the 1.72x pitch spread.
- *
- *   148 = 62 + 22 + 64      the cell's blanket reservation, the fork's gap, and
- *                           the chip itself
- *
- * The name is in flow now (see .path-label--under), so a one-line name costs one
- * line and a two-line name costs two. Nothing is reserved and nothing overlaps,
- * because the thing that used to overlap was an absolutely positioned card
- * reaching into the block below it. --path-label-drop is gone with it: it had no
- * other reader.
- *
- * The 52px current-state padding is gone too, and that is the fork-arm stagger.
- * Its headroom moved to .path-fork__arms, where it applies to both arms equally;
- * the full argument is there.
- */
-.path-fork__cell {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  max-width: 10rem;
-}
-/* The chip and its mascot, centred over the name. See ForkChip. */
-.path-fork__chip {
-  position: relative;
-  width: fit-content;
-  margin-inline: auto;
-}
 /* The dimmed side loop: one detour off the spine, pushed to the flank so it
    reads as beside the road rather than on it. */
 .path-loop {
@@ -2123,115 +1843,12 @@
  * checkpoint is spine rows now: see UnitPlan.gateRun in PathwayTab.tsx.
  */
 
-/*
- * THE BERRY IN THE WORLD, beside the current chip.
- *
- * design-goals/units/*.jpg and blueberry_r7-compiled-v2 all lean the mascot
- * in on the current node's right. It is absolutely positioned off the row's
- * centre so it never takes part in the row's own layout and can never move a
- * chip; the chip's hit target is untouched because the berry takes no
- * pointer events. On the narrowest phone the whole marker sits inside the
- * half-column the wind leaves, and it is decorative, so a collision would
- * cost a pixel and never a tap.
- */
-/*
- * IT STANDS ON THE GROUND, and that is the fix for "a 26px head floating in
- * the air and clipped by the viewport edge".
- *
- * `bottom: 0` puts the character's feet on the chip's own base line, which
- * IS the ground in this landscape: the chip is a key pressed into the page
- * and its lower rim is where it meets the paper. It used to be `top: 50%`
- * with a -58 percent translate, which centres a figure on the chip's middle
- * and reads as hovering.
- *
- * The side is chosen in PathwayTab from the row's wind, so the 95px figure
- * always stands on the flank that has 240px rather than the one that has 45.
- */
-.path-berry {
-  position: absolute;
-  bottom: 0;
-  pointer-events: none;
-  z-index: 3;
-  line-height: 0;
-}
-.path-berry--right {
-  left: calc(100% + 0.55rem);
-}
-.path-berry--left {
-  right: calc(100% + 0.55rem);
-}
-
-/*
- * THE HUB WITH PETALS, the goals' reserved shape for categories with three
- * or more families, built for EAS (blueberry_spec-node-types). The spokes
- * and the chips share one arithmetic (hubPlan.petalPositions), so the lines
- * end under the chips by construction. The spoke rides --path-edge, the
- * same 3:1-clearing ink as the trail's own edge, with vector-effect keeping
- * its width honest under the stretched percent viewBox.
- */
-.path-hub {
-  position: relative;
-  /* 30rem, up from 27: with hubPlan's PETAL_RING (ry 42 percent) this puts
-     about 60px of clear air between an upper petal's chip and the centre
-     chip, which is what a plated label between them needs. Derived with the
-     ring in hubPlan.ts; change them together. */
-  height: 30rem;
-  margin-top: 0.25rem;
-}
-/* THE SPOKES WENT WITH THE TRAIL. A spoke was a piece of trail by its own
-   comment's argument, and the owner's "get rid of the path connections" is
-   about drawn connections, not about the ribbon's file name. The flower still
-   reads as a flower: the hub sits in the centre of the ring, carries its own
-   n-of-m counter, and the petals are placed by petalPositions exactly as
-   before. What is gone is the wiring between them. */
-.path-hub__cell {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  /* 8rem, up from 7: "Sulfonation and desulfonation" wraps to two plated
-     lines instead of three, which is part of the label-room arithmetic in
-     hubPlan.ts. */
-  width: 8rem;
-  display: flex;
-  justify-content: center;
-  /* Every cell above the spokes, and, because the petals come after the
-     centre in the DOM, petal labels paint ABOVE the centre chip. The
-     attempt-2 critic measured the two upper petal labels partly BEHIND the
-     centre cell; with the wider ring they no longer reach it, and if a long
-     title ever does, its opaque plate reads over the chip instead of
-     vanishing under it. */
-  z-index: 1;
-}
-/*
- * THE HUB KEEPS THE TAG'S HEADROOM, on every cell and not on the current one.
- *
- * A hub cell holds the same ForkChip a fork arm does, so a current petal or a
- * current hub carries the same tag above its chip and needs the same room. It used
- * to come from `.path-fork__cell[data-node-state="current"]`, which is deleted:
- * per-cell padding on an absolutely positioned, percent-placed ring would move one
- * chip off the ring while its neighbours stayed on it, which is the fork-arm
- * stagger with a different geometry. Applied to every cell it is a uniform shift
- * of half the padding through the -50% centring, and the ring stays a ring.
- */
-.path-hub__cell .path-fork__cell {
-  padding-top: var(--path-tag-room);
-}
-/* The centre chip still sits over its own spokes' meeting point; it shares
-   the cells' z-index and precedes the petals in the DOM. */
-.path-hub__cell--centre {
-  z-index: 1;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .path-node__face {
     transition-duration: 1ms;
   }
-  /* BOTH SELECTORS, and the second is not redundant. The fork's tag sets
-     `animation-name` under `.path-fork__cell .path-start`, which is a more
-     specific selector than `.path-start`, so the shorthand's implied
-     `animation-name: none` here loses to it and the fork's tag would keep
-     bobbing with reduced motion on. Matched specificity, so it does not. */
-  .path-start,
-  .path-fork__cell .path-start {
+  /* One selector since the fork's own tag went with the fork (2026-10-01). */
+  .path-start {
     animation: none;
   }
   /* No pulse under reduced motion, per the goals: the halo stays as a

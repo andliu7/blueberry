@@ -43,7 +43,7 @@ import { planLesson, recycleBeatsFor } from "../beats/template";
 import { mcqBeatsForNode } from "../beats/mcq";
 import { deriveMapPathway, statusOf } from "../tabs/pathway/pathwayState";
 import { LOOP_WIND, WIND_CYCLE, loopWind, trackWind } from "../tabs/pathway/pathwayLayout";
-import { RUN_GAP, RUN_MAX, nodePlaces, placeSaid, trunkOf, unitShape, weaveLoops } from "../tabs/pathway/unitShape";
+import { RUN_GAP, RUN_MAX, nodePlaces, placeSaid, unitShape, weaveLoops } from "../tabs/pathway/unitShape";
 import { trailSegments, type TrailPoint } from "../tabs/pathway/trail";
 
 /* ------------------------------------------------------------------------- */
@@ -451,48 +451,45 @@ describe("every unit's own checkpoint", () => {
  * and the column reversed direction four times across 226px of a 390px
  * screen.
  *
- * THE FIX IS NOT 1..8, and these assertions are what stops it becoming that.
- * The unit is a DIAMOND: the two chips at one y are the two ARMS, both open
- * at once because only unit gates lock, so numbering them would assert an
- * order the data denies. What gets said is the STRUCTURE: the trunk is
- * ordered and says so, the arms are parallel and say so, enrichment says it
- * is optional and the checkpoint says it is the unit's check.
+ * THE FIX IS 1..n, since 2026-10-01. The unit is one line now (owner: "make
+ * the lessons follow a predictable path"), each lesson opening the next, so a
+ * number on every main-line chip is a true statement about order. Until then
+ * the unit was a DIAMOND and these assertions refused to number its arms;
+ * that refusal is rewritten below into its replacement, that nothing on the
+ * main line goes unnumbered and no number repeats.
  *
  * Every claim below is about the DERIVATION, so a unit whose shape changes
  * changes what its chips say in the same breath and no table can drift.
  */
 describe("the order a unit's chips can be read off their names", () => {
-  it("gives every trunk node its position, counting the concept as the last step", () => {
+  it("gives every main-line node its position, 1 to n in authored order", () => {
     for (const unit of PATHWAY_UNITS) {
       const shape = unitShape(unit);
-      const trunk = trunkOf(shape);
       const places = nodePlaces(shape);
-      // The concept is the trunk's LAST step: every route passes through it
-      // before the split, so it is a step and not a choice.
-      if (shape.concept !== null) expect(trunk[trunk.length - 1]!.id).toBe(shape.concept.id);
-      trunk.forEach((node, i) => {
+      shape.column.forEach((node, i) => {
         const place = places.get(node.id);
         expect(place, `${unit.id}/${node.id} must carry a place`).toBeDefined();
-        expect(place!.kind).toBe("step");
-        expect(place).toEqual({ kind: "step", index: i + 1, total: trunk.length });
-        expect(placeSaid(place!)).toBe(`Step ${i + 1} of ${trunk.length}`);
+        expect(place).toEqual({ kind: "step", index: i + 1, total: shape.column.length });
+        expect(placeSaid(place!)).toBe(`Step ${i + 1} of ${shape.column.length}`);
       });
     }
   });
 
-  it("never lets an arm claim a step number, because both arms are open at once", () => {
+  /*
+     REWRITTEN 2026-10-01. Was: "never lets an arm claim a step number,
+     because both arms are open at once", which pinned the fork's refusal to
+     order its arms. There are no arms; the replacement pins the opposite
+     duty as strictly: every main-line chip says a step, no two say the same
+     one, and nothing anywhere still says a route may be taken in either order.
+  */
+  it("numbers every main-line chip once, and no chip offers an either-order route", () => {
     for (const unit of PATHWAY_UNITS) {
       const shape = unitShape(unit);
       const places = nodePlaces(shape);
-      for (const arm of shape.arms) {
-        for (const node of arm) {
-          const said = placeSaid(places.get(node.id) ?? null);
-          expect(places.get(node.id)!.kind).toBe("choice");
-          // No "Step n of m" anywhere in what an arm says about itself.
-          expect(said).not.toMatch(/step \d+ of \d+/i);
-          expect(said).toContain("Either route may be taken first");
-        }
-      }
+      const said = shape.column.map((node) => placeSaid(places.get(node.id) ?? null));
+      expect(new Set(said).size, unit.id).toBe(said.length);
+      for (const line of said) expect(line).toMatch(/^Step \d+ of \d+$/);
+      for (const place of places.values()) expect(placeSaid(place)).not.toMatch(/either/i);
     }
   });
 
@@ -515,21 +512,14 @@ describe("the order a unit's chips can be read off their names", () => {
     // Two units with different trunk lengths must report different totals,
     // which a hand-typed table would have to be edited to keep true.
     const totals = new Set(
-      PATHWAY_UNITS.map((unit) => trunkOf(unitShape(unit)).length).filter((length) => length > 0),
+      PATHWAY_UNITS.map((unit) => unitShape(unit).column.length).filter((length) => length > 0),
     );
     expect(totals.size).toBeGreaterThan(1);
     // And the map places exactly the nodes the shape names: no node left
-    // silent, no id invented. The hub and its petals are deliberately absent
-    // (see nodePlaces), so they are excluded on both sides of the count.
+    // silent, no id invented.
     for (const unit of PATHWAY_UNITS) {
       const shape = unitShape(unit);
-      const named = [
-        ...trunkOf(shape),
-        ...shape.arms[0],
-        ...shape.arms[1],
-        ...shape.loops,
-        ...shape.checkpoint,
-      ].map((node) => node.id);
+      const named = [...shape.column, ...shape.loops, ...shape.checkpoint].map((node) => node.id);
       expect([...nodePlaces(shape).keys()].sort()).toEqual([...named].sort());
     }
   });

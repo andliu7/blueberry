@@ -2,24 +2,15 @@
  * THE UNIT SHAPE, derived rather than authored, asserted over the map the
  * browser actually draws.
  *
- * docs/DESIGN-GOALS.md: "DIAMOND fork is the default unit shape (concept node
- * above the fork, branches rejoin at the unit gate). HUB with petals is
- * reserved for categories with three or more families (EAS, the acyl ladder).
- * Dimmed SIDE LOOPS mark application and enrichment lessons ... At most one
- * fork visible per screen, and all nodes the same size."
- *
- * The attempt-2 build satisfied that sentence twice, on two hardcoded units,
- * so eleven of thirteen rendered as bare winding columns. These are the
- * assertions that say the default is a default: every unit with enough spine
- * to cut one gets a fork, exactly two units may grow a flower, and every
- * enrichment node lands on a loop rather than in a flow-wrapped pill list.
- *
- * The other half of the file is the property that made the attempt-2 fork
- * unrenderable: the arms must be able to REJOIN. A fork whose rejoin anchor
- * is in another unit draws across whatever sits between, which is what the
- * critic captured fanning through two dashed chips, a purple banner and a
- * checkpoint card. Here that is a structural claim, not a screenshot: the
- * gate closes the same unit the arms are in.
+ * REWRITTEN 2026-10-01 on the owner's direction "make the lessons follow a
+ * predictable path". This file used to pin the DIAMOND fork as every unit's
+ * default shape and the HUB flower as reserved for EAS and the acyl ladder.
+ * Both are retired: a unit is ONE LINE of required lessons in authored order,
+ * with its side quests as detours off it. Every claim the old file made is
+ * replaced by the linear one at the same strength or stricter: where it
+ * counted forks it now requires the exact authored order of every main-line
+ * node, and where it reserved the flower to two units it now requires that
+ * no unit draws one, those two included.
  *
  * No wall clocks anywhere: pure data over pure functions, so this measures
  * the same at 09:00 and at 23:00 (LOG.md, "The instruments that only worked
@@ -28,50 +19,36 @@
 
 import { describe, expect, it } from "vitest";
 import { PATHWAY_UNITS } from "../demo/pathwayMap";
-import { HUB_PLANS } from "../tabs/pathway/hubPlan";
-import {
-  CONCEPT_REACH,
-  MIN_DIAMOND_SPINE,
-  RUN_MAX,
-  conceptIndex,
-  unitShape,
-  weaveLoops,
-} from "../tabs/pathway/unitShape";
+import { RUN_MAX, unitShape, weaveLoops } from "../tabs/pathway/unitShape";
 
 const SHAPES = PATHWAY_UNITS.map((unit) => unitShape(unit));
 
-describe("unitShape, the diamond as the DEFAULT unit shape", () => {
-  it("gives a fork to every unit whose spine is long enough to cut one", () => {
-    let forked = 0;
+const mainLine = (unit: (typeof PATHWAY_UNITS)[number]) =>
+  unit.nodes.filter((node) => node.kind === "spine" || node.kind === "boss");
+
+describe("unitShape, ONE LINE per unit", () => {
+  it("draws every main-line node in one column, in exactly its authored order", () => {
+    let lines = 0;
     PATHWAY_UNITS.forEach((unit, index) => {
-      const spine = unit.nodes.filter((node) => node.kind === "spine" || node.kind === "boss");
-      const shape = SHAPES[index]!;
-      const hub = HUB_PLANS.find((plan) => plan.unitId === unit.id);
-      const consumed = hub === undefined ? 0 : 1 + hub.petals.length;
-      if (spine.length - consumed < MIN_DIAMOND_SPINE) {
-        expect(shape.concept).toBeNull();
-        return;
-      }
-      expect(shape.concept).not.toBeNull();
-      expect(shape.arms[0].length + shape.arms[1].length).toBeGreaterThanOrEqual(2);
-      forked += 1;
+      const spine = mainLine(unit);
+      if (spine.length === 0) return;
+      expect(SHAPES[index]!.column.map((node) => node.id), unit.id).toEqual(spine.map((node) => node.id));
+      lines += 1;
     });
-    // The point of the whole file: this is not two.
-    expect(forked).toBeGreaterThanOrEqual(8);
+    // Every unit with a main line is checked, not a sample.
+    expect(lines).toBe(PATHWAY_UNITS.filter((unit) => mainLine(unit).length > 0).length);
+    expect(lines).toBeGreaterThanOrEqual(8);
+  });
+
+  it("has no fork and no flower to draw: the shape carries no field for either", () => {
+    for (const shape of SHAPES) {
+      expect(Object.keys(shape).sort()).toEqual(["checkpoint", "column", "loops", "unitId", "videoHookId"]);
+    }
   });
 
   it("never puts a node in two places at once", () => {
     for (const shape of SHAPES) {
-      const ids = [
-        ...(shape.hub === null ? [] : [shape.hub.id]),
-        ...shape.petals.map((node) => node.id),
-        ...shape.column.map((node) => node.id),
-        ...(shape.concept === null ? [] : [shape.concept.id]),
-        ...shape.arms[0].map((node) => node.id),
-        ...shape.arms[1].map((node) => node.id),
-        ...shape.loops.map((node) => node.id),
-        ...shape.checkpoint.map((node) => node.id),
-      ];
+      const ids = [...shape.column, ...shape.loops, ...shape.checkpoint].map((node) => node.id);
       expect(new Set(ids).size).toBe(ids.length);
     }
   });
@@ -79,68 +56,19 @@ describe("unitShape, the diamond as the DEFAULT unit shape", () => {
   it("places every node of every unit somewhere, so no authored node is dropped off the track", () => {
     PATHWAY_UNITS.forEach((unit, index) => {
       const shape = SHAPES[index]!;
-      const placed = new Set([
-        ...(shape.hub === null ? [] : [shape.hub.id]),
-        ...shape.petals.map((node) => node.id),
-        ...shape.column.map((node) => node.id),
-        ...(shape.concept === null ? [] : [shape.concept.id]),
-        ...shape.arms[0].map((node) => node.id),
-        ...shape.arms[1].map((node) => node.id),
-        ...shape.loops.map((node) => node.id),
-        ...shape.checkpoint.map((node) => node.id),
-      ]);
+      const placed = new Set([...shape.column, ...shape.loops, ...shape.checkpoint].map((node) => node.id));
       for (const node of unit.nodes) expect(placed.has(node.id)).toBe(true);
     });
   });
 
-  it("keeps the fork at the END of the unit, which is what lets the arms rejoin at the unit's own gate", () => {
-    // The gate is drawn directly under the arms in the SAME section, so the
-    // only nodes that may follow the concept are its own arms. Anything else
-    // after it would sit between the fork and its rejoin anchor, which is
-    // exactly the ~700px rejoin span the critic captured.
-    PATHWAY_UNITS.forEach((unit, index) => {
-      const shape = SHAPES[index]!;
-      if (shape.concept === null) return;
-      const armIds = new Set([...shape.arms[0], ...shape.arms[1]].map((node) => node.id));
-      const spine = unit.nodes.filter((node) => node.kind === "spine" || node.kind === "boss");
-      const after = spine.slice(spine.findIndex((node) => node.id === shape.concept!.id) + 1);
-      for (const node of after) {
-        const inHub = shape.hub?.id === node.id || shape.petals.some((petal) => petal.id === node.id);
-        expect(armIds.has(node.id) || inHub).toBe(true);
-      }
-    });
-  });
-
-  it("splits the arms evenly enough that neither is empty", () => {
-    for (const shape of SHAPES) {
-      if (shape.concept === null) continue;
-      expect(shape.arms[0].length).toBeGreaterThan(0);
-      expect(shape.arms[1].length).toBeGreaterThan(0);
-      expect(Math.abs(shape.arms[0].length - shape.arms[1].length)).toBeLessThanOrEqual(1);
-    }
-  });
-});
-
-describe("unitShape, the hub stays RESERVED", () => {
-  it("grows a flower on exactly the units the goals name, and on no others", () => {
-    const withHub = SHAPES.filter((shape) => shape.hub !== null).map((shape) => shape.unitId);
-    expect(withHub).toEqual(HUB_PLANS.map((plan) => plan.unitId));
-  });
-
-  it("only draws one where three or more families are actually present", () => {
-    for (const shape of SHAPES) {
-      if (shape.hub === null) continue;
-      expect(shape.petals.length).toBeGreaterThanOrEqual(3);
-    }
-  });
-
-  it("names only nodes that exist, so an authoring rename breaks here and not on screen", () => {
-    for (const plan of HUB_PLANS) {
-      const unit = PATHWAY_UNITS.find((entry) => entry.id === plan.unitId);
-      expect(unit).toBeDefined();
-      const ids = new Set(unit!.nodes.map((node) => node.id));
-      expect(ids.has(plan.hub)).toBe(true);
-      for (const petal of plan.petals) expect(ids.has(petal)).toBe(true);
+  it("draws the two former flowers, EAS and the acyl ladder, as lines like every other unit", () => {
+    // u3 and u8 were the only units HUB_PLANS let grow a flower, pulling a
+    // centre and its petals out of authored order. Named, so a flower coming
+    // back to either fails here by name.
+    for (const id of ["u3", "u8"]) {
+      const index = PATHWAY_UNITS.findIndex((unit) => unit.id === id);
+      expect(index, id).toBeGreaterThan(-1);
+      expect(SHAPES[index]!.column.map((node) => node.id)).toEqual(mainLine(PATHWAY_UNITS[index]!).map((node) => node.id));
     }
   });
 });
@@ -219,39 +147,33 @@ describe("weaveLoops, the detours through the column", () => {
   });
 });
 
-describe("conceptIndex, the concept the fork hangs from", () => {
-  it("refuses a diamond on a spine shorter than a concept plus two arms", () => {
-    for (let n = 0; n < MIN_DIAMOND_SPINE; n += 1) {
-      const spine = Array.from({ length: n }, (_, i) => ({
-        id: `n${i}`,
-        kind: "spine" as const,
-        title: "",
-        blurb: "",
-      }));
-      expect(conceptIndex(spine)).toBe(-1);
-    }
-  });
-
-  it("prefers a concept beat within reach of the end over the plain positional read", () => {
-    const spine = Array.from({ length: 6 }, (_, i) => ({
+describe("unitShape on synthetic units: nothing is lifted out of order", () => {
+  /*
+   * conceptIndex used to LIFT a concept beat to the fork's apex, and these
+   * three cases pinned where it landed. With the fork retired the same three
+   * inputs pin the opposite and stricter claim: whatever a unit's beats are,
+   * and however long its spine, the column is the spine in authored order.
+   */
+  const unitOf = (length: number, beatAt: number | null) => ({
+    id: "ux",
+    title: "Unit x",
+    note: "",
+    nodes: Array.from({ length }, (_, i) => ({
       id: `n${i}`,
       kind: "spine" as const,
       title: "",
       blurb: "",
-      ...(i === 4 ? { playable: { kind: "beat" as const, id: `n${i}` } } : {}),
-    }));
-    expect(conceptIndex(spine)).toBe(4);
+      ...(i === beatAt ? { playable: { kind: "beat" as const, id: `n${i}` } } : {}),
+    })),
   });
 
-  it("ignores a concept beat too far back to hang a fork from", () => {
-    const spine = Array.from({ length: 12 }, (_, i) => ({
-      id: `n${i}`,
-      kind: "spine" as const,
-      title: "",
-      blurb: "",
-      ...(i === 0 ? { playable: { kind: "beat" as const, id: `n${i}` } } : {}),
-    }));
-    expect(conceptIndex(spine)).toBe(12 - MIN_DIAMOND_SPINE);
-    expect(conceptIndex(spine)).toBeGreaterThan(12 - CONCEPT_REACH - 1);
+  it.each([
+    [0, null],
+    [2, null],
+    [6, 4],
+    [12, 0],
+  ] as const)("a %i-node spine with its beat at %s draws in authored order", (length, beatAt) => {
+    const unit = unitOf(length, beatAt);
+    expect(unitShape(unit).column.map((node) => node.id)).toEqual(unit.nodes.map((node) => node.id));
   });
 });

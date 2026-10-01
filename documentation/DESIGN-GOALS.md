@@ -45,14 +45,22 @@ the owner's newer word and the conflict gets reported, not silently resolved.
 ## The pathway
 
 - Winding trail, never a straight central spine
-- Branch vocabulary: DIAMOND fork is the default unit shape (concept node above the fork,
-  branches rejoin at the unit gate). HUB with petals is reserved for categories with three or
-  more families (EAS, the acyl ladder). Dimmed SIDE LOOPS mark application and enrichment
-  lessons, which stay off the exam-weighted spine per CLAUDE.md
-- At most one fork visible per screen, and all nodes the same size
-- UNLOCK POLICY, owner ruling 2026-09-01: reactions within a unit are freely orderable. Branch
-  nodes carry no locks; only UNIT GATES lock, and gate unlock stays server side per the
-  non-negotiables. A student picks their own order inside a unit
+- ONE LINE PER UNIT, owner 2026-10-01: "make the lessons follow a predictable path". A unit
+  is its required lessons one after another in a fixed authored order, each unlocking the
+  next, then the unit's checkpoint. No forks and no hubs on the main line. Dimmed SIDE LOOPS
+  still mark application and enrichment lessons, off the exam-weighted spine per CLAUDE.md,
+  and each opens after its prerequisite in a fixed order (Unit 1: NBS and Diels-Alder after
+  allylic delocalization, inverse Diels-Alder after Diels-Alder). All nodes the same size,
+  except the checkpoint, which ends the unit as its heaviest node
+- (SUPERSEDED 2026-10-01 by the line above) Branch vocabulary: DIAMOND fork is the default
+  unit shape (concept node above the fork, branches rejoin at the unit gate). HUB with petals
+  is reserved for categories with three or more families (EAS, the acyl ladder). At most one
+  fork visible per screen
+- UNLOCK POLICY, owner 2026-10-01: dependency order. A lesson opens only when the lessons it
+  relies on are cleared, because a question may only combine skills already cleared one at a
+  time; on the main line that is every lesson authored before it. Gate unlock stays server
+  side per the non-negotiables. (SUPERSEDED: the 2026-09-01 ruling that reactions within a
+  unit are freely orderable and only UNIT GATES lock)
 - The unit gate is drawn with a real double dagger, the transition-state symbol. The drafts'
   up-down arrows and glowing pouch are model artifacts of that instruction, not designs
 - The background is layered and alive: terraced hills stepping down, faint molecule line-art
@@ -92,7 +100,7 @@ against an image rather than this prose.
   the draft rendered; the correct symbol is a single cleanly drawn double dagger.
   `unit07-path.jpg` draws it doubled and muddy, which is what made unit 2 read simpler.
   Simplicity is the adopted quality; the glyph is a proper double dagger drawn once
-- BRANCHES: `unit08-path.jpg` is REJECTED. Its geometry crowds the labels and its two
+- (SUPERSEDED 2026-10-01: there are no forks on the main line) BRANCHES: `unit08-path.jpg` is REJECTED. Its geometry crowds the labels and its two
   columns read as a ladder rather than a fork. The later units are the reference: a clear
   split, room for a label on each side, a clear rejoin
 - NO FLAGS IN THE BACKGROUND. The small flag on a pole reads as a destination and competes
@@ -251,7 +259,7 @@ Unit 4 should feel like somewhere new without anything being redrawn.
   disappear under the pointer. The dated reversal is kept rather than deleted so
   the next round does not rebuild what was just removed. The clause below is the
   superseded text.
-- BRANCHES CURVE, owner 2026-09-03: fork and rejoin geometry is smooth. No hard
+- (SUPERSEDED 2026-10-01: there are no forks on the main line) BRANCHES CURVE, owner 2026-09-03: fork and rejoin geometry is smooth. No hard
   angles where a branch leaves or meets the spine; the split and the merge are
   continuous curves that keep the trail reading as one path that widens, which
   is also what makes the unit outline legible at track-map size.

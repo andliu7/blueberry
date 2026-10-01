@@ -45,6 +45,17 @@ export interface PathwayNode {
    * hand, only on a node whose own blurb already says "Conceptual mention."
    */
   readonly mentionOnly?: true;
+  /**
+   * A SIDE QUEST'S PREREQUISITES, by id, all in the same unit and authored
+   * above it. Owner direction 2026-10-01, "make the lessons follow a
+   * predictable path": the main line needs no field, because its AUTHORED
+   * ORDER is its unlock order (each lesson opens the next). A branch is off
+   * that line, so it says what it waits for here, with what its own content
+   * uses from it written beside the node. A branch with no `after` waits for
+   * every main-line lesson authored before it. deriveMapPathway
+   * (tabs/pathway/pathwayState.ts) reads this; the UI never restates it.
+   */
+  readonly after?: readonly string[];
 }
 
 export interface PathwayUnit {
@@ -61,12 +72,20 @@ export const PATHWAY_UNITS: readonly PathwayUnit[] = [
     note: "Gates Unit 9's control logic and all of Unit 12.",
     nodes: [
       { id: "u1-allylic", kind: "spine", title: "Allylic/resonance delocalization", blurb: "Draw and rank allyl cation, radical, anion resonance forms.", playable: { kind: "resonance", id: "res-allyl-1" } },
+      // THE MAIN LINE OPENS IN THIS ORDER, and the order is the content's:
+      // seq-diene protonates butadiene to the allyl cation u1-allylic drills.
       { id: "u1-12v14", kind: "spine", title: "1,2- vs 1,4-addition of HX", blurb: "Kinetic 1,2 cold, thermodynamic 1,4 warm.", playable: { kind: "sequence", id: "seq-diene" } },
+      // mcq-kvt-cold, -warm and -statement all ask for "the 1,2 product" or "the 1,4 product" of HBr and butadiene.
       { id: "u1-kvt", kind: "spine", title: "Kinetic vs thermodynamic control", blurb: "Hammond postulate, reaction coordinate diagrams.", playable: { kind: "beat", id: "u1-kvt" } },
+      // seq-diene-br2 ends on the 1,4 dihalide, the thermodynamic product kvt explains (owner, 2026-10-01).
       { id: "u1-x2", kind: "spine", title: "X₂ addition to dienes", blurb: "Br₂, Cl₂ → 1,2- and 1,4-dihalides, same allylic-cation logic.", playable: { kind: "sequence", id: "seq-diene-br2" } },
-      { id: "u1-nbs", kind: "branch", title: "Allylic halogenation", blurb: "NBS, hν; low [Br₂] is the whole trick.", playable: { kind: "beat", id: "u1-nbs" } },
-      { id: "u1-da", kind: "branch", title: "Diels–Alder", blurb: "s-cis diene + EWG dienophile; endo rule, stereospecific.", playable: { kind: "reaction", id: "diels-alder" } },
-      { id: "u1-ied", kind: "branch", title: "Inverse/hetero Diels–Alder", blurb: "Carbonyl or imine in the cycloaddition.", playable: { kind: "beat", id: "u1-ied" } },
+      // mcq-nbs-position is tagged resonance_delocalisation: its answer is the delocalised allylic radical.
+      { id: "u1-nbs", kind: "branch", title: "Allylic halogenation", blurb: "NBS, hν; low [Br₂] is the whole trick.", playable: { kind: "beat", id: "u1-nbs" }, after: ["u1-allylic"] },
+      // INFERRED, the weakest link here: the diels-alder card pushes three arrows round a conjugated
+      // diene's pi system, which u1-allylic is the unit's first drill on. No question names it.
+      { id: "u1-da", kind: "branch", title: "Diels–Alder", blurb: "s-cis diene + EWG dienophile; endo rule, stereospecific.", playable: { kind: "reaction", id: "diels-alder" }, after: ["u1-allylic"] },
+      // mcq-ied-roles asks what changes when the Diels-Alder's donor and acceptor roles are swapped.
+      { id: "u1-ied", kind: "branch", title: "Inverse/hetero Diels–Alder", blurb: "Carbonyl or imine in the cycloaddition.", playable: { kind: "beat", id: "u1-ied" }, after: ["u1-da"] },
       { id: "u1-poly", kind: "branch", title: "Radical polymerization of dienes", blurb: "Conceptual mention.", mentionOnly: true },
     ],
   },

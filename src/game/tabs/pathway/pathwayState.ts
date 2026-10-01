@@ -17,7 +17,8 @@
  *   ------------------------------     ------------------------------
  *   record exists            -> done   node_cleared event       -> done
  *   correct/attempted < 0.75 -> review attempt events, same bar  -> review
- *   prerequisites all done   -> open   the unit before is clear  -> open
+ *   prerequisites all done   -> open   the unit before is clear AND
+ *                                      its prerequisites are     -> open
  *   first open in order      -> current                          -> current
  *   otherwise                -> locked                           -> locked
  *
@@ -26,10 +27,8 @@
  * is not written yet. Conflating the two would tell a student they had failed
  * to unlock something that does not exist, so `queued` rides BESIDE the state
  * rather than inside it, and the copy differs. Concretely: in a reachable
- * unit a queued node is "open" with queued=true, rendered as the dashed
- * authoring treatment and never as a padlock, per the UNLOCK POLICY (only
- * unit gates lock; a mid-unit padlock inside the active unit is exactly the
- * defect the S3 critic measured). A queued node is never "current", because
+ * unit a queued node with nothing to wait for is "open" with queued=true,
+ * rendered as the dashed authoring treatment. A queued node is never "current", because
  * a START tag over a node with no content is a promise the app cannot keep.
  * In an unreachable unit it is "locked" like its siblings, because there the
  * lock is the unit gate's true statement.
@@ -47,6 +46,36 @@ export type MapNodeState = "done" | "current" | "open" | "review" | "locked";
 
 /** The bar a lesson has to clear to count as learned rather than as review. */
 const REVIEW_ACCURACY = 0.75;
+
+/*
+ * THE UNLOCK POLICY IS ONE LINE PER UNIT, owner direction 2026-10-01 ("make
+ * the lessons follow a predictable path"), retiring the 2026-09-01 "freely
+ * orderable, only unit gates lock" ruling. A question may only combine skills
+ * the student has already cleared one at a time, so:
+ *
+ *   - a MAIN-LINE node (anything but a branch) waits for every authored
+ *     main-line lesson before it, so the line opens one lesson at a time in
+ *     authored order. Unauthored nodes are skipped as prerequisites (our
+ *     authoring queue never blocks a student) and wait for nothing.
+ *   - a SIDE QUEST (branch) waits for its `after` list in demo/pathwayMap.ts,
+ *     or, with none, for every main-line lesson authored before it.
+ *
+ * Review counts as cleared: the lesson was finished, just not at the bar.
+ */
+
+/** What a node waits for, by id: see the policy above. Pure over the unit. */
+export function prerequisitesOf(unit: PathwayUnit, node: PathwayNode): readonly string[] {
+  // Nothing to start, nothing to protect: an unauthored node or a mention
+  // keeps its queued treatment rather than a padlock over content that is
+  // not there.
+  if (node.playable === undefined) return [];
+  if (node.kind === "branch" && node.after !== undefined) return node.after;
+  const at = unit.nodes.indexOf(node);
+  return unit.nodes
+    .slice(0, at === -1 ? 0 : at)
+    .filter((before) => isTrackNode(before) && before.playable !== undefined)
+    .map((before) => before.id);
+}
 
 export interface MapNodeStatus {
   readonly state: MapNodeState;
@@ -155,7 +184,7 @@ export function deriveMapPathway(
       if (cleared.has(node.id)) {
         const tally = tallies.get(node.id);
         state = tally !== undefined && tally.attempted > 0 && tally.correct / tally.attempted < REVIEW_ACCURACY ? "review" : "done";
-      } else if (!unitReachable) {
+      } else if (!unitReachable || prerequisitesOf(unit, node).some((id) => !cleared.has(id))) {
         state = "locked";
       } else if (!queued && currentNodeId === null && isTrackNode(node)) {
         state = "current";
@@ -226,6 +255,14 @@ export function deriveMapPathway(
   }
 
   return { nodes, units: unitStatus, currentNodeId, doneCount, playableCount };
+}
+
+/** The lessons a node still waits for, in authored order: empty when it is not waiting. */
+export function waitingOn(status: MapPathwayStatus, unit: PathwayUnit, node: PathwayNode): readonly string[] {
+  return prerequisitesOf(unit, node).filter((id) => {
+    const state = statusOf(status, id).state;
+    return state !== "done" && state !== "review";
+  });
 }
 
 /** The status of one node, with a safe default for an id the map does not carry. */

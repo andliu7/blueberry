@@ -120,7 +120,6 @@ const MASCOT_LANE = px(decl("--path-mascot-lane"));
 const NODE_LANE = px(decl("--path-node-lane"));
 const NAME_GAP = px(decl("--path-name-gap"));
 const SEAM = px(decl("--path-seam"));
-const TAG_ROOM = px(decl("--path-tag-room"));
 
 /** The peak of the wind cycle, in steps. */
 const PEAK = Math.max(...WIND_CYCLE.map((wind) => Math.abs(wind)));
@@ -181,8 +180,11 @@ describe("the mascot lane cannot touch a chip", () => {
     const sizes = [...tab.matchAll(/<Berry[^>]*?sizePx=\{([^}]+)\}/g)].map((match) => String(match[1]).trim());
     // Every mascot standing beside a node on the track is one size. The course
     // picker's greeting berry is not on the track and is not in this list.
+    // REWRITTEN 2026-10-01: it counted two MASCOT_PX placements, the row's and
+    // the fork cell's. The fork is retired, so the track has ONE placement and
+    // it must be MASCOT_PX: exactly one. (The 88 is the course picker.)
     const onTrack = sizes.filter((size) => size === "MASCOT_PX" || /^\d+$/.test(size));
-    expect(onTrack.filter((size) => size === "MASCOT_PX").length).toBeGreaterThanOrEqual(2);
+    expect(onTrack.filter((size) => size === "MASCOT_PX")).toEqual(["MASCOT_PX"]);
   });
 });
 
@@ -242,7 +244,7 @@ describe("one seam number, so the pitch never stutters", () => {
   it("gives no block on the column a seam of its own", () => {
     // Every block between two chips states its room in seams. A bare px padding
     // on one of them is how the 12 / 27 / 14 / 12 seam zoo happened.
-    for (const rule of [".path-row {", ".path-fork {", ".path-gate {", ".path-fork__arm {"]) {
+    for (const rule of [".path-row {", ".path-gate {"]) {
       const at = CODE.indexOf(rule);
       expect(at, rule).toBeGreaterThan(-1);
       const body = CODE.slice(at, CODE.indexOf("}", at));
@@ -255,30 +257,28 @@ describe("one seam number, so the pitch never stutters", () => {
       expect(spacing.length, rule).toBeGreaterThan(0);
       for (const value of spacing) expect(value, `${rule} ${value}`).toContain("--path-seam");
     }
+    // REWRITTEN 2026-10-01: ".path-fork {" and ".path-fork__arm {" were in the
+    // list above, each stating its room in seams. The fork is retired (one
+    // line per unit), so the stricter claim is that no fork block exists to
+    // add room of its own between two rows at all.
+    expect(CODE).not.toMatch(/\.path-fork[\w-]*\s*\{/);
   });
 
-  /**
-   * THE FORK'S TAG MUST COST ITS CELL NOTHING, which is the stagger arriving
-   * through a different door. A fork cell is a flex column, so an in-flow tag adds
-   * its 32px to that ONE cell and the two arms of an either/or are 32px apart
-   * again. The height is reserved on the container; the tag is absolute.
+  /*
+   * REWRITTEN 2026-10-01, with the two checks that followed it. They pinned
+   * the fork cell's START tag: out of the cell's flow, stilled under reduced
+   * motion at the fork's own specificity, and its 34px of headroom reserved
+   * on the arms' container (--path-tag-room). That headroom was the 86 to 120
+   * pitch jump going into the fork. The fork is retired, so the tag has ONE
+   * placement, the row's name track, and the replacement pins exactly that:
+   * no second placement, no headroom token, and the one bob still stilled.
    */
-  it("keeps the fork's tag out of its cell's flow", () => {
-    const at = CODE.indexOf(".path-fork__cell .path-start");
-    expect(at, "the fork overrides the tag's placement").toBeGreaterThan(-1);
-    expect(CODE.slice(at, CODE.indexOf("}", at))).toContain("position: absolute");
+  it("gives the START tag one placement on the page, with no headroom reserved for a second", () => {
+    expect(CODE).not.toContain("--path-tag-room");
+    expect([...CODE.matchAll(/([^{}]*\.path-start[^{}]*)\{/g)].map((m) => String(m[1]).trim().split("\n").pop()!.trim()).filter((sel) => !sel.startsWith(".path-start") && !sel.startsWith(".dark .path-start"))).toEqual([]);
   });
 
-  /**
-   * AND IT MUST STILL STAND DOWN FOR REDUCED MOTION. `.path-fork__cell
-   * .path-start` outranks `.path-start`, so an `animation: none` written only
-   * against the bare class loses to the fork's `animation-name` and the tag bobs
-   * anyway. Both selectors, matched specificity.
-   */
-  it("stops both tag bobs under reduced motion, at matching specificity", () => {
-    // There is more than one reduced-motion block in this stylesheet, so the
-    // selector is looked for across all of them rather than in "the" block: taking
-    // the first one is how this assertion failed on its own first run.
+  it("stops the tag's bob under reduced motion, and every animation this surface declares is answered", () => {
     const blocks: string[] = [];
     const marker = "@media (prefers-reduced-motion: reduce)";
     for (let at = CSS.indexOf(marker); at !== -1; at = CSS.indexOf(marker, at + 1)) {
@@ -292,31 +292,14 @@ describe("one seam number, so the pitch never stutters", () => {
       } while (depth > 0 && i < CSS.length);
       blocks.push(CSS.slice(from, i));
     }
-    expect(blocks.length).toBeGreaterThan(0);
     const off = blocks.join("\n");
-    expect(off).toContain(".path-fork__cell .path-start");
     expect(off).toContain(".path-start");
-
-    // Every keyframe animation this surface declares has to be one the blocks
-    // above switch off, so a third one cannot be added without an answer here.
     const declared = new Set(
       [...CODE.matchAll(/animation(?:-name)?\s*:\s*([a-zA-Z][\w-]*)/g)].map((m) => String(m[1])).filter((n) => n !== "none"),
     );
-    // path-halo is the current chip's pulse and predates this round; the blocks
-    // above switch it off through .path-node--current. Listing all three by name
-    // is what makes a fourth animation fail here instead of shipping unanswered.
-    expect([...declared].sort()).toEqual(["path-halo", "path-start-bob", "path-start-bob-up"]);
+    expect([...declared].sort()).toEqual(["path-halo", "path-start-bob"]);
     expect(off).toContain(".path-node--current");
     for (const name of declared) expect(CODE, `@keyframes ${name} exists`).toContain(`@keyframes ${name}`);
-  });
-
-  it("reserves the START tag's room on the fork's containers and never on a cell", () => {
-    // The fork-arm stagger: a per-cell reservation offset one arm of an either/or
-    // from the other by 52px and a capture agent read it as a deliberate sequence.
-    expect(TAG_ROOM).toBeGreaterThan(0);
-    expect(CODE).not.toMatch(/\.path-fork__cell\[data-node-state="current"\]/);
-    const arms = CODE.slice(CODE.indexOf(".path-fork__arms {"));
-    expect(arms.slice(0, arms.indexOf("}"))).toContain("--path-tag-room");
   });
 
   it("never lets the current row reserve headroom of its own again", () => {
@@ -344,8 +327,6 @@ describe("nothing clips, at any width a phone or a desktop presents", () => {
   const column = (vw: number) => Math.min(vw - 46, 448);
   const LOOP_STEP = declIn(".path-row--loop", "--wind-step");
   const SPINE = declIn(".path-row {", "--wind-step");
-  const UNDER_MAX = declIn(".path-label--under", "max-width");
-  const CELL_MAX = declIn(".path-fork__cell {", "max-width");
 
   it.each(WIDTHS)("at %ipx the row's four tracks fit the column and the chip stays in its lane", (vw) => {
     const name = column(vw) - MASCOT_LANE - NODE_LANE - NAME_GAP;
@@ -366,13 +347,15 @@ describe("nothing clips, at any width a phone or a desktop presents", () => {
     expect(0.72 * LOOP_WIND * step).toBeGreaterThan(PEAK * len(SPINE, vw));
   });
 
-  it.each(WIDTHS)("at %ipx a fork cell's name fits the track its cell sits in", (vw) => {
-    // The arms are `1fr auto 1fr` with a 12px gap and the "or" between them, so a
-    // cell's track is about half the column less its share of the gaps and the
-    // word. max-width on the CELL is a cap and never a width, so the name has to
-    // be checked against the track rather than against the cap.
-    const cellTrack = Math.min(len(CELL_MAX, vw), column(vw) / 2 - 21);
-    expect(len(UNDER_MAX, vw)).toBeLessThanOrEqual(cellTrack + 0.01);
+  /*
+   * REWRITTEN 2026-10-01: this checked, at every width, that a fork cell's
+   * under-the-chip name fit its half-column track. The fork and the under
+   * name are retired; the replacement holds every width to the one rule left,
+   * that no name on the page is placed under its chip or in a half column.
+   */
+  it.each(WIDTHS)("at %ipx every name rides its own row's name track: none is placed under a chip", () => {
+    expect(CODE).not.toContain(".path-label--under");
+    expect(CODE).not.toContain(".path-fork__cell");
   });
 
   /**

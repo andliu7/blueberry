@@ -2,56 +2,33 @@
  * THE SHAPE OF A UNIT, derived from the map's own structure. Pure: no React,
  * no DOM, so the composition the track draws is testable without a document.
  *
- * WHY THIS FILE EXISTS. The attempt-2 build authored one fork (u1) and one hub
- * (u3) as hardcoded constants, so eleven of thirteen units rendered as bare
- * winding columns and the critic named it: docs/DESIGN-GOALS.md says the
- * "DIAMOND fork is the DEFAULT UNIT SHAPE (concept node above the fork,
- * branches rejoin at the unit gate)", and a default that ships twice is not a
- * default. So the diamond is DERIVED here, for every unit, from the data the
- * map already carries, and nothing about a unit's shape is authored twice.
+ * ONE LINE, owner direction 2026-10-01: "make the lessons follow a
+ * predictable path". A unit is its required lessons one after another in
+ * their authored order, each opening the next (pathwayState.ts), then the
+ * checkpoint. This retires the derived DIAMOND fork (a concept with two arms
+ * either side) and the reserved HUB flower (a centre with petals) that this
+ * file used to cut from the same data: both drew lessons that are required in
+ * order as if they were a choice, and on Unit 1 the fork offered kinetic vs
+ * thermodynamic control beside X2 addition when X2 leans on it.
  *
- * THE DERIVATION, in the order it runs, and every step is a rule rather than a
- * judgement about one unit:
+ * WHAT IS LEFT, in the order it runs:
  *
- *   1. HUB, and it stays RESERVED. The goals reserve the petal flower for
- *      "categories with three or more families (EAS, the acyl ladder)", which
- *      is a two-item list, not a default. HUB_PLANS names exactly those two
- *      and hubPlan.ts explains each choice; a unit not in that table cannot
- *      grow a flower, and a table entry whose nodes have been renamed away
- *      degrades to the winding column rather than drawing a bald one.
- *   2. DIAMOND, the default. The fork sits at the END of the unit so the
- *      arms have somewhere to rejoin: the unit gate is drawn directly beneath
- *      them, in the same section, which is the whole of the attempt-2 rejoin
- *      bug (its gate was the NEXT unit's, about 700px down the page, so the
- *      arms closed across a banner and a side-quest block).
- *      The concept is the unit's own CONCEPT BEAT where one is in reach: a
- *      beat is MCQ, sort or ladder work, which is recognition and ranking,
- *      which is what a concept node is. Failing that it is the third node
- *      from the end, which is the plain positional reading of the committed
- *      diamond. The arms are what follows the concept, and if only one node
- *      follows it the concept moves UP ONE and the beat joins the arms, so
- *      the drawn order never puts a node above one authored before it. On u1
- *      that draws 1,2-vs-1,4 above the split and kinetic-vs-thermodynamic and
- *      X2 addition either side, without u1 being named anywhere in this file.
- *   3. SIDE LOOPS. Every `branch` node in the map is, in the map's own words,
- *      an "optional side quest", which is the goals' dimmed side loop. They
- *      are interleaved through the column so each detour carries one or two
- *      chips and the spine reads as continuous past them, rather than piling
- *      into a flow-wrapped list of dashed pills (the attempt-2 defect).
- *      A unit with NO spine at all is all enrichment, so its branches ARE its
- *      track and ride the main lane: a detour needs a road to leave.
- *   4. VIDEO HOOK. The seventh node type in blueberry_spec-node-types, and it
- *      had no vocabulary at all before this build. See VIDEO_HOOK below for
- *      what the badge does and does not claim.
+ *   1. THE MAIN LINE. Every spine and boss node, in authored order. Nothing
+ *      is lifted, split or pulled out of order, so the drawn order is the
+ *      unlock order by construction.
+ *   2. SIDE LOOPS. Every `branch` node is, in the map's own words, an
+ *      "optional side quest", drawn as a dimmed detour off the main line (see
+ *      weaveLoops). A unit with NO spine at all is all enrichment, so its
+ *      branches ARE its track and ride the main lane: a detour needs a road
+ *      to leave.
+ *   3. VIDEO HOOK. See VIDEO_HOOK below for what the badge does and does not
+ *      claim.
  *
  * NOTHING HERE DECIDES UNLOCK. Shape is presentation; state comes from
- * pathwayState.ts, where only unit gates lock, so both arms of every diamond
- * are genuinely open at once and the fork is the unlock policy made visible
- * rather than a decoration over a chain (docs/DESIGN-GOALS.md, 2026-09-01).
+ * pathwayState.ts. The two agree because both read authored order.
  */
 
 import type { PathwayNode, PathwayUnit } from "../../demo/pathwayMap";
-import { HUB_PLANS, type HubPlan } from "./hubPlan";
 
 /**
  * A checkpoint unit is one whose track nodes are all gates. It lived in
@@ -64,32 +41,13 @@ export function isCheckpointUnit(unit: PathwayUnit): boolean {
   return track.length > 0 && track.every((node) => node.kind === "gate");
 }
 
-/** The smallest spine a diamond can be cut from: a concept and two arms. */
-export const MIN_DIAMOND_SPINE = 3;
-
-/** How far back from the end of the spine a concept beat may be lifted. */
-export const CONCEPT_REACH = 5;
-
-export type UnitShapeKind = "diamond" | "hub" | "column";
-
-/** One node on the track, with the lane it rides and the badge it wears. */
 export interface UnitShape {
   readonly unitId: string;
-  /** What the unit reads as. "hub" units also carry a diamond below the flower. */
-  readonly kind: UnitShapeKind;
-  /** The shared mechanism at the centre of the flower, or null. */
-  readonly hub: PathwayNode | null;
-  /** The reaction families ringing it. Empty unless `hub` is set. */
-  readonly petals: readonly PathwayNode[];
-  /** The winding column above the fork, in authored order. */
+  /** The main line, in authored order: the order the lessons open in. */
   readonly column: readonly PathwayNode[];
-  /** The concept node drawn centred above the split, or null with no fork. */
-  readonly concept: PathwayNode | null;
-  /** The two arms. Both empty with no fork. */
-  readonly arms: readonly [readonly PathwayNode[], readonly PathwayNode[]];
   /** Enrichment, as dimmed detours off the column. */
   readonly loops: readonly PathwayNode[];
-  /** The unit's checkpoint questions, drawn under the gate arch. */
+  /** The unit's authored checkpoint questions, drawn above its own check. */
   readonly checkpoint: readonly PathwayNode[];
   /** The node carrying the video-hook badge, or null. See VIDEO_HOOK. */
   readonly videoHookId: string | null;
@@ -118,115 +76,14 @@ function videoHookOf(nodes: readonly PathwayNode[]): string | null {
   return beat === undefined ? null : beat.id;
 }
 
-/** The hub plan for a unit, only if every node it names is still present. */
-function hubFor(unit: PathwayUnit): { readonly hub: PathwayNode; readonly petals: readonly PathwayNode[] } | null {
-  const plan: HubPlan | undefined = HUB_PLANS.find((entry) => entry.unitId === unit.id);
-  if (plan === undefined) return null;
-  const hub = unit.nodes.find((node) => node.id === plan.hub);
-  if (hub === undefined) return null;
-  const petals = plan.petals
-    .map((id) => unit.nodes.find((node) => node.id === id))
-    .filter((node): node is PathwayNode => node !== undefined);
-  // The goals reserve the shape for three or more families. Fewer than that
-  // and the flower is not the thing the reservation was written for.
-  return petals.length >= 3 ? { hub, petals } : null;
-}
-
-/** Split a run of arm nodes into left and right, first half then second. */
-function splitArms(nodes: readonly PathwayNode[]): readonly [readonly PathwayNode[], readonly PathwayNode[]] {
-  const half = Math.ceil(nodes.length / 2);
-  return [nodes.slice(0, half), nodes.slice(half)];
-}
-
-/**
- * Where the concept sits in a spine run, or -1 when no diamond fits.
- *
- * A concept beat wins when one sits within CONCEPT_REACH of the end and has
- * at least one node after it; otherwise the third node from the end, which
- * is the committed diamond read positionally.
- */
-export function conceptIndex(spine: readonly PathwayNode[]): number {
-  if (spine.length < MIN_DIAMOND_SPINE) return -1;
-  const floor = Math.max(0, spine.length - CONCEPT_REACH);
-  for (let i = spine.length - 2; i >= floor; i -= 1) {
-    if (spine[i]!.playable?.kind === "beat") return i;
-  }
-  return spine.length - MIN_DIAMOND_SPINE;
-}
-
 export function unitShape(unit: PathwayUnit): UnitShape {
-  const spineAll = unit.nodes.filter((node) => node.kind === "spine" || node.kind === "boss");
+  const spine = unit.nodes.filter((node) => node.kind === "spine" || node.kind === "boss");
   const branches = unit.nodes.filter((node) => node.kind === "branch");
   const checkpoint = unit.nodes.filter((node) => node.kind === "gate");
   const videoHookId = videoHookOf(unit.nodes);
-
-  const flower = hubFor(unit);
-  const taken = new Set<string>(flower === null ? [] : [flower.hub.id, ...flower.petals.map((node) => node.id)]);
-  const spine = spineAll.filter((node) => !taken.has(node.id));
-
-  // No spine anywhere in the unit: the enrichment IS the track, so it rides
-  // the main lane. A detour needs a road to leave and come back to.
-  if (spineAll.length === 0) {
-    return {
-      unitId: unit.id,
-      kind: "column",
-      hub: null,
-      petals: [],
-      column: branches,
-      concept: null,
-      arms: [[], []],
-      loops: [],
-      checkpoint,
-      videoHookId,
-    };
-  }
-
-  const at = conceptIndex(spine);
-  if (at === -1) {
-    return {
-      unitId: unit.id,
-      kind: flower === null ? "column" : "hub",
-      hub: flower?.hub ?? null,
-      petals: flower?.petals ?? [],
-      column: spine,
-      concept: null,
-      arms: [[], []],
-      loops: branches,
-      checkpoint,
-      videoHookId,
-    };
-  }
-
-  // Only one node follows the concept: move the CONCEPT UP ONE, so the node
-  // before it becomes the node every route passes through and the beat joins
-  // the other arm. The diamond stays a diamond rather than a kink, and the
-  // drawn order stays the authored order.
-  //
-  // WHY NOT THE OLD RULE. It pulled the node before the concept DOWN into an
-  // arm, which drew a prerequisite after the thing that depends on it. On u1
-  // that drew kinetic vs thermodynamic control above 1,2 vs 1,4 addition,
-  // whose products kvt's questions are about, while the frontier (authored
-  // order, pathwayState.ts) sent START to the arm below it. Owner, 2026-09-30:
-  // a question may only combine skills already cleared on their own, so 1,2
-  // vs 1,4 is drawn first.
-  const pulled = spine.length - at - 1 < 2 && at >= 1;
-  const conceptAt = pulled ? at - 1 : at;
-  const concept = spine[conceptAt]!;
-  const armNodes = spine.slice(conceptAt + 1);
-  const column = spine.slice(0, conceptAt);
-
-  return {
-    unitId: unit.id,
-    kind: flower === null ? "diamond" : "hub",
-    hub: flower?.hub ?? null,
-    petals: flower?.petals ?? [],
-    column,
-    concept,
-    arms: splitArms(armNodes),
-    loops: branches,
-    checkpoint,
-    videoHookId,
-  };
+  // A unit that is all enrichment: its branches are its road. See the header.
+  if (spine.length === 0) return { unitId: unit.id, column: branches, loops: [], checkpoint, videoHookId };
+  return { unitId: unit.id, column: spine, loops: branches, checkpoint, videoHookId };
 }
 
 /**
@@ -240,26 +97,17 @@ export function unitShape(unit: PathwayUnit): UnitShape {
  * times across 226px of a 390px screen. Order was legible for exactly one
  * node, the current one, because it was the only saturated face.
  *
- * WHY NOT 1..8. Because this unit is a DIAMOND and the numbering would be a
- * lie. The two chips sharing a y are the two ARMS, both open at once (see the
- * header: only unit gates lock), so they have no order and asserting one
- * would be exactly the mistake the rest of this file exists to avoid. What
- * the student cannot read is the STRUCTURE, not a sequence, so this says the
- * structure: a trunk that is ordered, a fork that is not, enrichment that is
- * skippable, and a check that closes the unit.
- *
- * THE TRUNK is the column plus the concept, because the concept is a single
- * node every route passes through before the split: it is the last step, not
- * a choice. The arms hang off the end of it, which is what `after` carries.
- * Loops get no number at all: an optional detour that counted as a step would
- * make the totals disagree with the spine.
+ * SO THE MAIN LINE IS NUMBERED, 1 to n, because since 2026-10-01 it is a
+ * line: each lesson opens the next, so its position is a true statement about
+ * order. Loops get no number at all: an optional detour that counted as a
+ * step would make the totals disagree with the main line. The check closes
+ * the unit and counts its own questions.
  *
  * Derived from the shape and nothing else, so a unit that changes shape
  * changes what its chips say in the same breath.
  */
 export type NodePlace =
   | { readonly kind: "step"; readonly index: number; readonly total: number }
-  | { readonly kind: "choice"; readonly route: number; readonly routes: number; readonly after: number }
   | { readonly kind: "loop" }
   | { readonly kind: "check"; readonly index: number; readonly total: number };
 
@@ -272,23 +120,12 @@ export type NodePlace =
  * reason: PathwayTab imports the app's hooks and cannot load outside a
  * document, so a sentence written there can only ever be pinned by grepping
  * the source. Here it is pinned by being run.
- *
- * AN ARM SAYS "EITHER", NEVER "NEXT". Both arms are open at once, so the
- * sentence names the SIDE of the fork ("Route 1 of 2") and then says in words
- * that the order is the student's. It anchors to the trunk's last step so the
- * arm is still locatable, and it does not claim a step number of its own.
- * Where the arms rejoin is left to the fork group's own label, which already
- * says it: three voices on one fact is noise.
  */
 export function placeSaid(place: NodePlace | null): string | null {
   if (place === null) return null;
   switch (place.kind) {
     case "step":
       return `Step ${place.index} of ${place.total}`;
-    case "choice":
-      return place.routes < 2
-        ? "After the concept, and the only route from it"
-        : `Route ${place.route} of ${place.routes}, after step ${place.after}. Either route may be taken first`;
     case "loop":
       return "Optional side quest, off the main path";
     case "check":
@@ -296,29 +133,13 @@ export function placeSaid(place: NodePlace | null): string | null {
   }
 }
 
-/** The ordered run every route passes through: the column, then the concept. */
-export function trunkOf(shape: UnitShape): readonly PathwayNode[] {
-  return shape.concept === null ? shape.column : [...shape.column, shape.concept];
-}
-
 export function nodePlaces(shape: UnitShape): ReadonlyMap<string, NodePlace> {
   const places = new Map<string, NodePlace>();
-  const trunk = trunkOf(shape);
-  trunk.forEach((node, i) => places.set(node.id, { kind: "step", index: i + 1, total: trunk.length }));
-  // How many routes there actually ARE, counted rather than assumed: a shape
-  // whose second arm came back empty must not announce a choice of two.
-  const routes = shape.arms.filter((arm) => arm.length > 0).length;
-  shape.arms.forEach((arm, side) => {
-    for (const node of arm) places.set(node.id, { kind: "choice", route: side + 1, routes, after: trunk.length });
-  });
+  shape.column.forEach((node, i) => places.set(node.id, { kind: "step", index: i + 1, total: shape.column.length }));
   for (const node of shape.loops) places.set(node.id, { kind: "loop" });
   shape.checkpoint.forEach((node, i) =>
     places.set(node.id, { kind: "check", index: i + 1, total: shape.checkpoint.length }),
   );
-  // The hub and its petals are deliberately absent. A petal is a reaction
-  // FAMILY off a shared mechanism, and whether those are a choice of routes
-  // or a set to finish is not settled by the shape, so this says nothing
-  // rather than guessing. HubFlower passes null and the chip keeps its blurb.
   return places;
 }
 

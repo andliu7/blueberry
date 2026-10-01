@@ -39,7 +39,7 @@ import { describe, expect, it } from "vitest";
 import type { EconomyEvent } from "@blueberry/economy";
 import { PATHWAY_UNITS } from "../demo/pathwayMap";
 import { LOOP_WIND, WIND_CYCLE, loopWind, trackWind } from "../tabs/pathway/pathwayLayout";
-import { deriveMapPathway, statusOf } from "../tabs/pathway/pathwayState";
+import { deriveMapPathway, prerequisitesOf, statusOf } from "../tabs/pathway/pathwayState";
 import { RUN_MAX, unitShape, weaveLoops } from "../tabs/pathway/unitShape";
 
 /* ------------------------------------------------------------------------- */
@@ -186,14 +186,23 @@ describe("the unlock policy, over every node of every laid-out unit", () => {
     ["u1-allylic", "u1-12v14", "u1-kvt", "u1-x2"],
   ];
 
-  it("never locks ANY node inside a reachable unit, on any of those runs", () => {
+  /*
+     REWRITTEN 2026-10-01, a sixth pin of the retired free-order ruling (the
+     coordinator's list named five). It said no node inside a reachable unit
+     ever locks. Under the owner's "predictable path" a node there locks
+     exactly while one of its prerequisites (pathwayState.ts, prerequisitesOf)
+     is uncleared, so this is now an iff over the same runs and every node.
+  */
+  it("locks a node inside a reachable unit EXACTLY while a prerequisite is uncleared, on any of those runs", () => {
     for (const cleared of runs) {
+      const done = new Set(cleared);
       const status = deriveMapPathway(PATHWAY_UNITS, journalClearing(cleared));
       for (const unit of PATHWAY_UNITS) {
         if (status.units.get(unit.id)?.reachable !== true) continue;
         for (const node of unit.nodes) {
-          const state = statusOf(status, node.id).state;
-          expect(state, `${unit.id}/${node.id} inside a reachable unit`).not.toBe("locked");
+          if (done.has(node.id)) continue;
+          const waiting = prerequisitesOf(unit, node).some((id) => !done.has(id));
+          expect(statusOf(status, node.id).state === "locked", `${unit.id}/${node.id} inside a reachable unit`).toBe(waiting);
         }
       }
     }
