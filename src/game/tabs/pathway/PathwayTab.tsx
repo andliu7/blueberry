@@ -32,7 +32,7 @@
  * what says "this one is yours" is the chip's own bloom (--node-glow). Round 3
  * (g11) draws ONE line back, the road through the lessons into the checkpoint
  * (RoadLine), because the 2026-10-01 side lane drew a trail to the optional
- * work and left the required road undrawn. Reported for the owner. A unit is
+ * work and left the required road undrawn. Owner 2026-10-01: keep it. A unit is
  * ONE LINE of lessons (unitShape.ts) with side quests pinned beside the lesson
  * they branch from, ending on its own checkpoint.
  * The button styling lives in pathway.css beside this file.
