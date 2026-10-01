@@ -33,7 +33,7 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { WIND_CYCLE, LOOP_WIND, loopWind } from "../tabs/pathway/pathwayLayout";
+import { WIND_CYCLE } from "../tabs/pathway/pathwayLayout";
 
 const CSS = readFileSync(fileURLToPath(new URL("../tabs/pathway/pathway.css", import.meta.url)), "utf8");
 
@@ -119,6 +119,8 @@ const CHIP_H = px(decl("--node-face-h")) + px(decl("--node-lip")) + px(decl("--n
 const MASCOT_LANE = px(decl("--path-mascot-lane"));
 const NODE_LANE = px(decl("--path-node-lane"));
 const NAME_GAP = px(decl("--path-name-gap"));
+/* The branch lane's chip centre, row-local (.path-branch, 2026-10-01). */
+const BRANCH_X = px(declIn(".path-branch {", "--branch-x"));
 const SEAM = px(decl("--path-seam"));
 
 /** The peak of the wind cycle, in steps. */
@@ -197,24 +199,28 @@ describe("the name track gets what is left, and a loop chip never reaches it", (
     expect(nameWide).toBeGreaterThan(namePhone);
   });
 
-  it("leaves the widest detour inside the gap", () => {
-    const loopStep = minPx(CODE.slice(CODE.indexOf(".path-row--loop")).match(/--wind-step\s*:\s*([^;}]+)/)![1]!.trim());
-    const outer = LOOP_WIND * loopStep + CHIP_W / 2;
-    const overhang = outer - NODE_LANE / 2;
-    expect(overhang).toBeGreaterThan(0);
-    expect(overhang).toBeLessThanOrEqual(NAME_GAP);
+  /*
+     REWRITTEN 2026-10-01, owner: side quests leave the main road onto a
+     branch lane. These two pinned the old detour (a road chip swung 2.55
+     steps off the road, overhanging the name gap and outboard of the spine's
+     peak). The detour and loopWind are deleted; the same two places now pin
+     the branch lane: its chip never shares an x with the road's chips, and a
+     side quest's name gets at least the room a lesson's does.
+  */
+  it("keeps the branch chip in its own column, left of the road's chip at its leftmost swing", () => {
+    const branchRight = BRANCH_X + CHIP_W / 2;
+    const roadLeft = MASCOT_LANE + NODE_LANE / 2 - PEAK * SPINE_STEP - CHIP_W / 2;
+    expect(branchRight).toBeLessThanOrEqual(roadLeft + 0.01);
+    // And a whole chip apart centre to centre, never the half chip g9 measured.
+    expect(MASCOT_LANE + NODE_LANE / 2 - PEAK * SPINE_STEP - BRANCH_X).toBeGreaterThanOrEqual(CHIP_W - 0.01);
   });
 
-  it("keeps every detour outboard of the widest spine step, which is what the pure function asserts", () => {
-    const loopStep = minPx(CODE.slice(CODE.indexOf(".path-row--loop")).match(/--wind-step\s*:\s*([^;}]+)/)![1]!.trim());
-    for (const lastWind of WIND_CYCLE) {
-      for (let run = 1; run <= 3; run += 1) {
-        for (let at = 0; at < run; at += 1) {
-          const detour = Math.abs(loopWind(lastWind, at, run)) * loopStep;
-          expect(detour).toBeGreaterThan(PEAK * SPINE_STEP);
-        }
-      }
-    }
+  it("gives a side quest's name at least the room a lesson's name gets, on the road's pitch", () => {
+    const branchName = COLUMN_PHONE - 2 * BRANCH_X - px(declIn(".path-row--branch .path-row__name", "margin-left"));
+    expect(branchName).toBeGreaterThanOrEqual(COLUMN_PHONE - MASCOT_LANE - NODE_LANE - NAME_GAP);
+    // No padding of its own: a side-quest row rides the row's one seam.
+    const rule = CODE.slice(CODE.indexOf(".path-row--branch {"), CODE.indexOf("}", CODE.indexOf(".path-row--branch {")));
+    expect(rule).not.toMatch(/padding/);
   });
 });
 
@@ -325,7 +331,6 @@ describe("one seam number, so the pitch never stutters", () => {
 describe("nothing clips, at any width a phone or a desktop presents", () => {
   const WIDTHS = [320, 360, 375, 390, 414, 430, 494, 768, 1280];
   const column = (vw: number) => Math.min(vw - 46, 448);
-  const LOOP_STEP = declIn(".path-row--loop", "--wind-step");
   const SPINE = declIn(".path-row {", "--wind-step");
 
   it.each(WIDTHS)("at %ipx the row's four tracks fit the column and the chip stays in its lane", (vw) => {
@@ -338,13 +343,13 @@ describe("nothing clips, at any width a phone or a desktop presents", () => {
     expect(chipLeft).toBeGreaterThanOrEqual(MASCOT_LANE - 0.01);
   });
 
-  it.each(WIDTHS)("at %ipx a detour overhangs into the gap and no further", (vw) => {
-    const step = len(LOOP_STEP, vw);
-    const overhang = LOOP_WIND * step + CHIP_W / 2 - NODE_LANE / 2;
-    expect(overhang).toBeGreaterThan(0);
-    expect(overhang).toBeLessThanOrEqual(NAME_GAP + 0.01);
-    // And the tightest bow is still outboard of the spine's widest step.
-    expect(0.72 * LOOP_WIND * step).toBeGreaterThan(PEAK * len(SPINE, vw));
+  // REWRITTEN 2026-10-01 with the branch lane (see above): was "a detour
+  // overhangs into the gap and no further", over the deleted loop step.
+  it.each(WIDTHS)("at %ipx the branch chip stays in the page gutter and left of the road", (vw) => {
+    expect(BRANCH_X - CHIP_W / 2).toBeGreaterThanOrEqual(-23);
+    const roadLeft = MASCOT_LANE + NODE_LANE / 2 - PEAK * len(SPINE, vw) - CHIP_W / 2;
+    expect(BRANCH_X + CHIP_W / 2).toBeLessThanOrEqual(roadLeft + 0.01);
+    expect(column(vw) - 2 * BRANCH_X - 17, "a side quest's name track").toBeGreaterThan(0);
   });
 
   /*

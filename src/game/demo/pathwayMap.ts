@@ -81,9 +81,13 @@ export const PATHWAY_UNITS: readonly PathwayUnit[] = [
       { id: "u1-x2", kind: "spine", title: "X₂ addition to dienes", blurb: "Br₂, Cl₂ → 1,2- and 1,4-dihalides, same allylic-cation logic.", playable: { kind: "sequence", id: "seq-diene-br2" } },
       // mcq-nbs-position is tagged resonance_delocalisation: its answer is the delocalised allylic radical.
       { id: "u1-nbs", kind: "branch", title: "Allylic halogenation", blurb: "NBS, hν; low [Br₂] is the whole trick.", playable: { kind: "beat", id: "u1-nbs" }, after: ["u1-allylic"] },
-      // INFERRED, the weakest link here: the diels-alder card pushes three arrows round a conjugated
-      // diene's pi system, which u1-allylic is the unit's first drill on. No question names it.
-      { id: "u1-da", kind: "branch", title: "Diels–Alder", blurb: "s-cis diene + EWG dienophile; endo rule, stereospecific.", playable: { kind: "reaction", id: "diels-alder" }, after: ["u1-allylic"] },
+      // MOVED LATER 2026-10-01, from u1-allylic, on the arrows in the data. The diels-alder card
+      // (demo/dielsAlder.ts) pushes two kinds of arrow: a pi bond shifting to the next bond
+      // (a-da-right), which res-allyl-1's a-shift drills, and a pi bond attacking to make a new
+      // sigma bond (a-da-left, a-da-dienophile), which the unit first asks for in seq-diene's
+      // a-pi-grab (u1-12v14). After allylic alone, two of its three arrows were uncleared.
+      // Its trace beats self-teach the s-cis diene and the dienophile one at a time.
+      { id: "u1-da", kind: "branch", title: "Diels–Alder", blurb: "s-cis diene + EWG dienophile; endo rule, stereospecific.", playable: { kind: "reaction", id: "diels-alder" }, after: ["u1-12v14"] },
       // mcq-ied-roles asks what changes when the Diels-Alder's donor and acceptor roles are swapped.
       { id: "u1-ied", kind: "branch", title: "Inverse/hetero Diels–Alder", blurb: "Carbonyl or imine in the cycloaddition.", playable: { kind: "beat", id: "u1-ied" }, after: ["u1-da"] },
       { id: "u1-poly", kind: "branch", title: "Radical polymerization of dienes", blurb: "Conceptual mention.", mentionOnly: true },
@@ -443,9 +447,8 @@ export function unitCheckpointNode(unit: PathwayUnit): PathwayNode {
   return {
     id,
     // `gate` is the map's own word for "no preparative reaction, a check", which
-    // is what this is, and it is what badgeForMapNode already reads to engrave
-    // the challenge motif. Nothing else in the product branches on the kind of a
-    // node that is not in the ledger.
+    // is what this is; the sheet reads it to title the node "Checkpoint". The
+    // track engraves its finish flag by row (PathwayTab), not by this kind.
     kind: "gate",
     title: `${unitName(unit.title)} checkpoint`,
     blurb: "A short mixed set, one question from each kind of work in this unit.",

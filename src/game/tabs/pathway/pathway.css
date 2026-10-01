@@ -860,6 +860,12 @@
   line-height: 1.5;
   text-align: center;
 }
+/* At night the numeral takes a fixed dark ink on its white sticker: the
+   light chip's line (#8c93ad on a locked chip) measured 2.97 to 3.05:1 on
+   white at 9.9px (g9). #23264a on #ffffff is 14.6:1 in every state. */
+.dark .path-node__step {
+  color: #23264a;
+}
 
 /*
  * THE PROGRESS RING'S RULES ARE GONE with the element. Neither committed
@@ -1240,60 +1246,152 @@
  * writes a special case into.
  */
 /*
- * THE DIMMED SIDE LOOP, docs/DESIGN-GOALS.md's third branch shape.
+ * THE BRANCH LANE, owner 2026-10-01: side quests leave the main road. See
+ * BranchLane in PathwayTab.tsx. A run of side quests sits in a fixed column
+ * LEFT of the road (the mascot lane, which a side-quest row never needs: a
+ * side quest is never current), reached by a dashed trail that leaves the
+ * parent lesson's chip, turns left and runs down through the chips.
  *
- * It is the SAME CHIP AT THE SAME SIZE ("all nodes the same size"), swung
- * further off the centreline than any spine step so the detour reads as off
- * the road rather than as another kink in it, and dimmed with the authored
- * --node-* tokens in .path-node--dim, never with a CSS filter: the contrast
- * audit reads computed colours off the built page, and a filter would make it
- * measure a pair that is not on screen.
+ * Geometry, row-local px at every width (the row's first two tracks are
+ * fixed: 72 mascot lane + 110 node lane):
  *
- * The step SHRINKS on a loop row rather than the wind growing without limit,
- * so the detour stays clearly outboard of the widest spine step at the width
- * that has room for it and inboard of the column at the width that does not.
- * The rows keep the column's seam (2026-10-01): one rhythm on the page.
+ *   branch chip centre   34      (its 76px chip spans -4..72, inside the
+ *                                 page's 23px gutter)
+ *   road chip centre     127 + wind * min(10px, 2.6vw), so 110..144 at 390
+ *   clearance            the branch chip's right edge (72) never passes the
+ *                        road chip's leftmost edge (110 - 38 = 72), so the
+ *                        two columns never share an x, and the centres are a
+ *                        chip's width or more apart (g9 measured 25 to 45px
+ *                        for the old detour, half a chip)
+ *
+ * Same chip size as the road ("all nodes the same size"); what sets it apart
+ * is the lane, the trail, the tag and the face below.
  */
-.path-row--loop {
-  /*
-   * THE DETOUR HAS TO CLEAR THE SPINE'S OWN PEAK, or it reads as another kink
-   * in the road, AND IT MUST NOT REACH THE NAME. Both bounds, re-derived on the
-   * lane rather than on the column, because the spine step shrank from 78 to 10.
-   *
-   * On a 14px loop step at 390pt, loopWind bows a run between 1.84 and 2.55:
-   *
-   *   narrowest  0.72 * 2.55 * 14 = 25.7   outboard of the spine's peak of 17,
-   *                                        which is what pathwayBranchDensity
-   *                                        asserts about the pure function and
-   *                                        what this CSS must not contradict
-   *   widest          2.55 * 14   = 35.7   plus the chip's own 38 is 73.7 from
-   *                                        the lane's centre, against a 55px
-   *                                        half lane: it overhangs 18.7px into
-   *                                        the 20px name gap and stops there
-   *
-   * A loop row can never carry the mascot (a detour is always a `branch` node and
-   * deriveMapPathway never makes a branch current), so an overhang to the LEFT
-   * lands in an empty mascot lane and one to the RIGHT lands in the gap. Neither
-   * can touch anything.
-   */
-  --wind-step: min(14px, 3.6vw);
-  /*
-   * TIGHTER THAN A SPINE SEAM ON PURPOSE: a detour is an aside, so a run of them
-   * reads as one thing strung off the road rather than as more road. 9px against
-   * the spine's 11.
-   *
-   * 3px WAS THE BUG this replaced. A chip is 64px tall, so a 3px pad put
-   * consecutive detour chips 6px apart and the detour's own trail was drawn
-   * entirely underneath them: a critic looking at the built page saw a column of
-   * chips with no connector. The ribbon is deleted now, but the reason the gap
-   * has to be visible is the same one.
-   *
-   * AND NOW IT IS THE SEAM, 2026-10-01. At 9px a detour row sat 82 to 84px
-   * from its neighbours while every other row sat 86.4, and the owner's line
-   * keeps one rhythm. The detour still reads as an aside by its swing and its
-   * dim; it no longer does by a tighter pitch.
-   */
-  padding: var(--path-seam) 0;
+.path-branch {
+  --branch-x: 34px;
+  --branch-trail: 3px;
+  --branch-turn: 14px;
+  /* The parent chip's centre, the same sum as .path-row__slab's swing. */
+  --parent-x: calc(var(--path-mascot-lane, 4.5rem) + var(--path-node-lane, 6.875rem) / 2 + var(--parent-wind, 0) * min(10px, 2.6vw));
+  --path-mascot-lane: 4.5rem;
+  --path-node-lane: 6.875rem;
+  position: relative;
+  /* Room for the trail's turn and the tag between the parent chip and the
+     first side quest. */
+  padding-top: 1.35rem;
+}
+/* From the parent chip's base straight down, then round to the left. The
+   row above ends with its seam under the chip, so -seam is the chip's base. */
+.path-branch__elbow {
+  position: absolute;
+  top: calc(-1 * var(--path-seam));
+  left: calc(var(--branch-x) + var(--branch-turn) - var(--branch-trail) / 2);
+  width: calc(var(--parent-x) - var(--branch-x) - var(--branch-turn) + var(--branch-trail));
+  height: calc(var(--path-seam) + 0.9rem);
+  border-right: var(--branch-trail) dashed var(--path-branch-trail);
+  border-bottom: var(--branch-trail) dashed var(--path-branch-trail);
+  border-bottom-right-radius: var(--branch-turn);
+  pointer-events: none;
+}
+/* The turn down into the lane and the run through the chips, ending at the
+   last chip's centre (half of an 86px row), under that chip. */
+.path-branch__drop {
+  position: absolute;
+  top: calc(0.9rem - var(--branch-trail));
+  bottom: 43px;
+  left: calc(var(--branch-x) - var(--branch-trail) / 2);
+  width: calc(var(--branch-turn) + var(--branch-trail));
+  border-left: var(--branch-trail) dashed var(--path-branch-trail);
+  border-top: var(--branch-trail) dashed var(--path-branch-trail);
+  border-top-left-radius: var(--branch-turn);
+  pointer-events: none;
+}
+/* The lane's name, right of the turn. Muted ink, 11px, the eyebrow floor:
+   5.79:1 light, 8.43:1 dark (g2-contrast). */
+.path-branch__tag {
+  position: absolute;
+  top: calc(0.9rem + 2px);
+  left: calc(var(--branch-x) + var(--branch-turn) + 0.4rem);
+  font-family: var(--font-display);
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  text-transform: uppercase;
+  color: var(--bb-muted-foreground);
+  white-space: nowrap;
+}
+.path-branch__list {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+}
+/* A side-quest row: the chip in the branch column, the name 17px off its
+   edge, exactly the road's chip-to-name gap. Same seam, so same 86 pitch. */
+.path-row--branch {
+  /* The row carries its parent's wind (where the trail starts); the chip in
+     the branch lane does not swing with it. */
+  --wind-step: 0px;
+  grid-template-columns: calc(var(--branch-x) * 2) 1fr;
+}
+.path-row--branch .path-row__lane {
+  grid-column: 1;
+  z-index: 1;
+}
+.path-row--branch .path-row__name {
+  grid-column: 2;
+  margin-left: 17px;
+}
+/*
+ * THE SIDE-QUEST FACE, apart from both road faces: a pale disc with a drawn
+ * edge, where an open lesson is solid violet and a locked one solid grey.
+ * Authored values, never a filter (S2 floor). Measured on the page grounds
+ * (#f5f7fb light, #101827 dark):
+ *
+ *   light open    engrave #4a2aa8 on #ffffff 9.9:1   line #4a2aa8 on page 8.9:1
+ *   light locked  engrave #4f5688 on #eceef5 6.0:1   line #6b7096 on page 4.6:1
+ *   dark open     engrave #c9b8ff on #1f1a3d 9.6:1   line #a98ffc on page 7.0:1
+ *   dark locked   engrave #a3a9cc on #192033 6.9:1   line #737aa8 on page 4.2:1
+ *
+ * Done and review keep the road's green and amber: a finished side quest is
+ * finished, and saying so in the same colour is the point of that colour.
+ */
+.path-row--branch .path-node:not(.path-node--done):not(.path-node--review):not(.path-node--locked) {
+  --node-face: #ffffff;
+  --node-face-press: #efeaff;
+  --node-edge: #c9bcf5;
+  --node-line: #4a2aa8;
+  --node-ink: #17103a;
+  --node-engrave: #4a2aa8;
+  --node-lip-light: rgb(255 255 255 / 0.7);
+  --node-glow: transparent;
+}
+.path-row--branch .path-node--locked {
+  --node-face: #eceef5;
+  --node-face-press: #eceef5;
+  --node-edge: #eceef5;
+  --node-line: #6b7096;
+  --node-ink: #23264a;
+  --node-engrave: #4f5688;
+}
+.dark .path-row--branch .path-node:not(.path-node--done):not(.path-node--review):not(.path-node--locked) {
+  --node-face: #1f1a3d;
+  --node-face-press: #2a2352;
+  --node-edge: #0d0b1f;
+  --node-line: #a98ffc;
+  --node-ink: #efeaff;
+  --node-engrave: #c9b8ff;
+  --node-lip-light: rgb(255 255 255 / 0.12);
+}
+.dark .path-row--branch .path-node--locked {
+  --node-face: #192033;
+  --node-face-press: #192033;
+  --node-edge: #192033;
+  --node-line: #737aa8;
+  --node-ink: #ccd1e9;
+  --node-engrave: #a3a9cc;
+  --node-lip-light: rgb(0 0 0 / 0.3);
 }
 
 /* Unit banners: the coloured header that divides the track into acts. */
@@ -1589,16 +1687,16 @@
   letter-spacing: 0.12em;
   line-height: 1;
   text-transform: uppercase;
-  opacity: 0.85;
+  /* NO OPACITY, 2026-10-01: at 0.85 the ink measured 3.95:1 on the face in
+     light (g9), under the 4.5 floor for 10px text. Full ink is 4.8:1. */
 }
+/* WRAPS rather than truncating, 2026-10-01: at 320 the ellipsis cut the unit
+   to "Conjugation, Resonance ..." (g9). Two lines cost 17px of bar. */
 .path-unitbar__unit {
-  overflow: hidden;
   font-family: var(--font-display);
   font-size: 0.875rem;
   font-weight: 800;
   line-height: 1.2;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 .path-unitbar__caret {
   flex: none;
@@ -1747,6 +1845,8 @@
      component. */
   --path-ring-track: #55597f;
   --path-gate-line: #55597f;
+  /* The branch lane's dashed trail: 4.6:1 on the light page. */
+  --path-branch-trail: #6b7096;
   /*
    * THE --path-trail-* FAMILY IS DELETED, owner 2026-09-23: "even get rid of
    * the path connections. just give it a glow." Nothing draws a connective
@@ -1801,6 +1901,8 @@
   --path-badge-hot: #ff8f78;
   --path-ring-track: #6f74a3;
   --path-gate-line: #6f74a3;
+  /* 4.2:1 on the night page. */
+  --path-branch-trail: #737aa8;
 }
 
 

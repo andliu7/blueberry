@@ -125,6 +125,13 @@ export interface NodeSheetModel {
   /** Null when the node has no measured difficulty: the row is not drawn. */
   readonly pips: PipReadout | null;
   readonly practice: CardReadout;
+  /**
+   * False when the node has no Challenge run at all (SheetNode.noChallenge).
+   * The sheet then draws NO Challenge card: a card that can only ever say
+   * "no Challenge here" was the second thing a new student read on the first
+   * lesson (g9 critic), and nothing is the honest answer.
+   */
+  readonly offersChallenge: boolean;
   readonly challenge: CardReadout;
   /** The dialog's accessible name. */
   readonly label: string;
@@ -199,13 +206,13 @@ export function nodeSheetModel(node: SheetNode): NodeSheetModel {
   // what "the challenge doesnt work" was about.
   const hasChallenge = node.noChallenge !== true;
   const challengeEnabled = practiceEnabled && cleared && hasChallenge;
+  // No branch for a node without a Challenge run: it gets no card at all
+  // (offersChallenge), so it has no reason to word.
   const challengeNote = challengeEnabled
     ? ""
     : !practiceEnabled
       ? "Opens with Practice."
-      : !hasChallenge
-        ? "No Challenge for this lesson yet."
-        : "Clear this lesson first to unlock Challenge.";
+      : "Clear this lesson first to unlock Challenge.";
 
   const filled = difficultyFor(node);
 
@@ -223,6 +230,7 @@ export function nodeSheetModel(node: SheetNode): NodeSheetModel {
             band: BAND_LABEL[filled] ?? "",
           },
     practice: { enabled: practiceEnabled, note: practiceNote },
+    offersChallenge: hasChallenge,
     challenge: { enabled: challengeEnabled, note: challengeNote },
     label: `${node.title}. ${KIND_LABEL[node.kind]}.`,
     guidebookLabel: `Open the guidebook for ${node.title}`,

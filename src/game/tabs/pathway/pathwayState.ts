@@ -174,7 +174,13 @@ export function deriveMapPathway(
     // when its checkpoint was passed as a whole. Counting unauthored nodes
     // against a student would lock the track behind our own authoring queue,
     // which is our problem and not theirs.
-    const finished = passedUnits.has(unit.id) || (playable.length > 0 && done.length === playable.length);
+    const linesDone = playable.length > 0 && done.length === playable.length;
+    // THE CHECKPOINT GATES THE NEXT UNIT, owner 2026-10-01: clearing the
+    // unit's lessons is not enough, its checkpoint has to be cleared too, the
+    // way Duolingo's unit test opens the next unit. A quiz_passed or
+    // unit_cleared event still finishes the unit whole.
+    const checkId = checkpointNodeId(unit.id);
+    const finished = passedUnits.has(unit.id) || (linesDone && cleared.has(checkId));
     const unitReachable = reachable;
     let active = false;
 
@@ -197,48 +203,38 @@ export function deriveMapPathway(
     }
 
     /*
-     * THE UNIT CHECKPOINT'S OWN STATE, and it is deliberately outside every
-     * count above.
+     * THE UNIT CHECKPOINT'S OWN STATE.
      *
      * The checkpoint is a synthetic node (unitCheckpointNode in
      * demo/pathwayMap.ts): one more chip at the end of the unit that mixes the
-     * unit's own lessons. It needs a state to render, because statusOf's default
-     * for an unknown id is "locked, queued", which would draw every unit's check
-     * as shut.
+     * unit's own main-line lessons (checkpointPlan in beats/template.ts).
      *
-     * IT OPENS WHEN THE UNIT'S LESSONS ARE DONE, 2026-09-29, and not with the
-     * unit. The check mixes steps borrowed from the unit's required lessons
-     * (checkpointPlan in beats/template.ts), and a question may only combine
-     * skills the student has already cleared one at a time. Opening it with
-     * the unit let a fresh account take a mix of lessons it had never seen.
-     * So: `done` if the journal carries a clear for it, `locked` while the unit
-     * is behind the frontier OR any required lesson in it is uncleared.
+     * IT OPENS WHEN THE UNIT'S MAIN-LINE LESSONS ARE DONE, 2026-09-29: a
+     * question may only combine skills the student has already cleared one
+     * at a time. Side quests are not on the check and do not hold it shut.
      *
-     * IT STILL NEVER TAKES THE START TAG, and that is a reported open question
-     * rather than a settled one. Once the lock above lifts, every lesson in
-     * the unit is cleared, so the unit is finished and the tag has already
-     * moved to the next unit's first lesson; the Path tab opens there too. A
-     * check that took the tag would hold the student in a unit they have
-     * finished, which two committed tests say must not happen
-     * (pathwayState.test.ts, "the current node has moved out of unit one
-     * entirely", and pathwayUnlock.test.ts, no current node on a finished
-     * track). Whether a unit's check should hold START, or gate the next unit
-     * the way Unit 2's authored checkpoint can, is the owner's call.
+     * IT TAKES START, owner 2026-10-01. Once the line is cleared nothing else
+     * in the unit can be current, and the next unit stays shut until this is
+     * cleared (`finished` above), so the check is where the student stands.
      *
-     * IT NEVER MOVES THE GATE. It is absent from `done`, `playable`, `total`,
-     * `doneCount` and `playableCount`, so clearing or skipping it changes no
-     * unlock and no progress number. The unit still finishes on its authored
-     * lessons, which is what pathwayUnlock.test.ts holds.
+     * IT IS STILL OUTSIDE EVERY COUNT. It is absent from `done`, `playable`,
+     * `total`, `doneCount` and `playableCount`: those count lessons, and the
+     * unit's "4 of 4 lessons" stays true whether or not the check is passed.
      *
      * `queued` follows the unit: with no authored lesson in it there is nothing
      * to mix, which is the same statement checkpointPlan makes by returning null.
      */
-    const checkId = checkpointNodeId(unit.id);
-    const checkShut = !unitReachable || playable.length === 0 || done.length < playable.length;
-    nodes.set(checkId, {
-      state: cleared.has(checkId) ? "done" : checkShut ? "locked" : "open",
-      queued: playable.length === 0,
-    });
+    let checkState: MapNodeState;
+    if (cleared.has(checkId)) checkState = "done";
+    else if (!unitReachable || !linesDone) checkState = "locked";
+    // A unit finished some other way (a passed quiz event) is behind the
+    // student, so its unplayed check is open but does not hold START.
+    else if (!finished && currentNodeId === null) {
+      checkState = "current";
+      currentNodeId = checkId;
+      active = true;
+    } else checkState = "open";
+    nodes.set(checkId, { state: checkState, queued: playable.length === 0 });
 
     unitStatus.set(unit.id, {
       done: done.length,

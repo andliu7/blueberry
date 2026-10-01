@@ -41,145 +41,148 @@ import type { EconomyEvent } from "@blueberry/economy";
 import { PATHWAY_UNITS, checkpointNodeId, unitCheckpointNode, unitName } from "../demo/pathwayMap";
 import { planLesson, recycleBeatsFor } from "../beats/template";
 import { mcqBeatsForNode } from "../beats/mcq";
-import { deriveMapPathway, statusOf } from "../tabs/pathway/pathwayState";
-import { LOOP_WIND, WIND_CYCLE, loopWind, trackWind } from "../tabs/pathway/pathwayLayout";
-import { RUN_GAP, RUN_MAX, nodePlaces, placeSaid, unitShape, weaveLoops } from "../tabs/pathway/unitShape";
+import { deriveMapPathway, prerequisitesOf, statusOf } from "../tabs/pathway/pathwayState";
+import { trackWind } from "../tabs/pathway/pathwayLayout";
+import { branchAnchor, nodePlaces, placeSaid, unitShape, weaveBranches } from "../tabs/pathway/unitShape";
 import { trailSegments, type TrailPoint } from "../tabs/pathway/trail";
 
 /* ------------------------------------------------------------------------- */
-/* 1. The weave: how many detours there are and how far apart they sit.       */
+/* 1. The branch lane: every side quest off the lesson it branches from.      */
 /* ------------------------------------------------------------------------- */
 
-/** The runs of consecutive detour entries in one unit's weave. */
-function runsOf(
-  entries: readonly { readonly lane: "main" | "loop" }[],
-): readonly { readonly length: number; readonly mainsBefore: number }[] {
-  const runs: { length: number; mainsBefore: number }[] = [];
-  let mains = 0;
-  let current: { length: number; mainsBefore: number } | null = null;
-  for (const entry of entries) {
-    if (entry.lane === "main") {
-      mains += 1;
-      current = null;
-      continue;
-    }
-    if (current === null) {
-      current = { length: 0, mainsBefore: mains };
-      runs.push(current);
-    }
-    current.length += 1;
-  }
-  return runs;
+/*
+ * REWRITTEN 2026-10-01, owner: "optional side quests leave the main road: put
+ * them on a clearly drawn branch lane beside the main path (a visible trail
+ * connecting them to the lesson they branch from)". This section pinned the
+ * weave (weaveLoops: runs capped at RUN_MAX, mouths RUN_GAP apart, overflow
+ * onto the road) and section 2 pinned loopWind's detour swing. Both are
+ * deleted, because the mouths were picked for spacing and not for content, so
+ * Unit 1's three side quests sat between steps 1 and 2 whatever they waited
+ * for. Their replacements pin the owner's rule, each over every unit:
+ *
+ *   - a side quest hangs directly under the lesson it branches from, which is
+ *     the latest main-line lesson it waits for (prerequisitesOf), never earlier
+ *   - nothing that is a side quest rides the main lane of a unit with a road
+ *     (the old overflow did exactly that, dimmed)
+ *   - every node is drawn once
+ *   - above START on the main lane sits only what is done
+ *
+ * The branch lane's geometry (its own column, clear of the road) moved to
+ * pathwayRowLanes.test.ts with the CSS it reads.
+ */
+
+/** The main-line lessons a node waits for, following chains through side quests. */
+function mainPrereqs(unit: (typeof PATHWAY_UNITS)[number], id: string, column: readonly string[]): readonly string[] {
+  const node = unit.nodes.find((entry) => entry.id === id)!;
+  return prerequisitesOf(unit, node).flatMap((pre) => (column.includes(pre) ? [pre] : mainPrereqs(unit, pre, column)));
 }
 
-describe("the weave, over every unit of the map the browser actually draws", () => {
-  it("has detours somewhere: this suite would pass vacuously without them", () => {
-    const total = PATHWAY_UNITS.reduce((sum, unit) => {
-      const shape = unitShape(unit);
-      return sum + runsOf(weaveLoops(shape.column, shape.loops)).length;
-    }, 0);
+describe("the branch lane, over every unit of the map the browser actually draws", () => {
+  it("has side quests on a branch lane somewhere: this suite would pass vacuously without them", () => {
+    const total = PATHWAY_UNITS.reduce((sum, unit) => sum + weaveBranches(unit).filter((entry) => entry.lane === "branch").length, 0);
     expect(total).toBeGreaterThan(3);
   });
 
-  it("never lets one detour carry more than RUN_MAX chips", () => {
-    // A phone has about 195px of half column and the spine already spends
-    // 133px of it, so a long run cannot bow far enough to read as a loop and
-    // becomes a list instead. The per-unit references draw one or two chips.
+  it("hangs every side quest directly under the lesson it branches from", () => {
     for (const unit of PATHWAY_UNITS) {
       const shape = unitShape(unit);
-      for (const run of runsOf(weaveLoops(shape.column, shape.loops))) {
-        expect(run.length, unit.id).toBeLessThanOrEqual(RUN_MAX);
+      let parent: string | null = null;
+      for (const entry of weaveBranches(unit)) {
+        if (entry.lane === "main") {
+          parent = entry.node.id;
+          continue;
+        }
+        expect(parent, `${entry.node.id} has a lesson above it`).not.toBeNull();
+        expect(parent, entry.node.id).toBe(shape.column[branchAnchor(unit, shape.column, entry.node)]!.id);
       }
     }
   });
 
-  it("keeps two detour mouths at least RUN_GAP spine nodes apart", () => {
+  it("branches a playable side quest off the LATEST main-line lesson it waits for, never an earlier one", () => {
+    let checked = 0;
     for (const unit of PATHWAY_UNITS) {
       const shape = unitShape(unit);
-      const runs = runsOf(weaveLoops(shape.column, shape.loops));
-      for (let i = 1; i < runs.length; i += 1) {
-        const gap = runs[i]!.mainsBefore - runs[i - 1]!.mainsBefore;
-        expect(gap, unit.id).toBeGreaterThanOrEqual(RUN_GAP);
+      const column = shape.column.map((node) => node.id);
+      for (const node of shape.loops) {
+        if (node.playable === undefined) continue;
+        const waits = mainPrereqs(unit, node.id, column);
+        const at = branchAnchor(unit, shape.column, node);
+        expect(waits, node.id).toContain(column[at]);
+        for (const id of waits) expect(column.indexOf(id), `${node.id} waits for ${id}`).toBeLessThanOrEqual(at);
+        checked += 1;
       }
     }
+    expect(checked).toBeGreaterThan(2);
   });
 
-  it("draws every enrichment node exactly once, on whichever lane it fits", () => {
+  it("draws every node exactly once", () => {
     for (const unit of PATHWAY_UNITS) {
       const shape = unitShape(unit);
-      const woven = weaveLoops(shape.column, shape.loops);
+      const woven = weaveBranches(unit);
       for (const node of [...shape.column, ...shape.loops]) {
-        const seen = woven.filter((entry) => entry.node.id === node.id).length;
-        expect(seen, unit.id + "/" + node.id).toBe(1);
+        expect(woven.filter((entry) => entry.node.id === node.id).length, unit.id + "/" + node.id).toBe(1);
       }
       expect(woven.length).toBe(shape.column.length + shape.loops.length);
     }
   });
 
-  it("keeps enrichment DIMMED even when a short column pushes it onto the road", () => {
-    // The overflow is the case this exists for: a two-node column has room
-    // for one mouth, so unit 3's remaining enrichment rides the main lane.
-    // Riding the road must not make it read as exam-weighted spine content.
-    let overflow = 0;
+  it("never puts a side quest on the main lane of a unit that has a road", () => {
+    let units = 0;
     for (const unit of PATHWAY_UNITS) {
-      const shape = unitShape(unit);
-      const loopIds = new Set(shape.loops.map((node) => node.id));
-      for (const entry of weaveLoops(shape.column, shape.loops)) {
-        expect(entry.dim, unit.id + "/" + entry.node.id).toBe(loopIds.has(entry.node.id));
-        if (entry.dim && entry.lane === "main") overflow += 1;
+      if (unitShape(unit).loops.length === 0) continue;
+      units += 1;
+      for (const entry of weaveBranches(unit)) {
+        expect(entry.lane === "branch", unit.id + "/" + entry.node.id).toBe(entry.node.kind === "branch");
       }
     }
-    // Not vacuous: the map really does contain columns too short to draw all
-    // their enrichment off the road, which is why the rule above exists.
-    expect(overflow).toBeGreaterThan(0);
+    expect(units).toBeGreaterThan(3);
+  });
+
+  it("puts Unit 1's side quests under their own lessons: NBS under allylic, the two Diels-Alders under 1,2 vs 1,4", () => {
+    const order = weaveBranches(PATHWAY_UNITS[0]!).map((entry) => `${entry.lane === "branch" ? "+" : ""}${entry.node.id}`);
+    expect(order).toEqual(["u1-allylic", "+u1-nbs", "u1-12v14", "+u1-da", "+u1-ied", "u1-kvt", "u1-x2", "+u1-poly"]);
+  });
+
+  /* ADDED 2026-10-01, owner: "nothing that is not done may sit above START in
+     a way that reads as a skipped lesson". Swept over every prefix of every
+     unit's line, with every earlier unit finished. */
+  it("never lets anything but done work precede START on the main lane, at every frontier", () => {
+    const settled: EconomyEvent[] = [];
+    let checked = 0;
+    for (const unit of PATHWAY_UNITS) {
+      const line = unitShape(unit).column.filter((node) => node.playable !== undefined);
+      for (let step = 0; step <= line.length; step += 1) {
+        const journal = [...settled, ...line.slice(0, step).map((node) => clearEvent(node.id))];
+        const status = deriveMapPathway(PATHWAY_UNITS, journal);
+        const main = weaveBranches(unit).filter((entry) => entry.lane === "main");
+        const at = main.findIndex((entry) => entry.node.id === status.currentNodeId);
+        if (at === -1) continue;
+        checked += 1;
+        for (const entry of main.slice(0, at)) {
+          const state = statusOf(status, entry.node.id).state;
+          expect(state === "done" || state === "review" || entry.node.playable === undefined, `${entry.node.id} above START`).toBe(true);
+        }
+      }
+      settled.push(...line.map((node) => clearEvent(node.id)));
+      if (line.length > 0) settled.push(clearEvent(checkpointNodeId(unit.id)));
+    }
+    expect(checked).toBeGreaterThan(10);
   });
 });
 
-/* ------------------------------------------------------------------------- */
-/* 2. loopWind: one side, bowing, and always outboard of the spine.           */
-/* ------------------------------------------------------------------------- */
-
-describe("loopWind", () => {
-  it("puts the whole run on the side the spine vacated, whichever way it leans", () => {
-    for (const wind of WIND_CYCLE) {
-      const expected = Math.sign(wind) * -1;
-      for (let run = 0; run < RUN_MAX; run += 1) {
-        expect(Math.sign(loopWind(wind, run, RUN_MAX))).toBe(expected);
-      }
-    }
-  });
-
-  it("bows: the middle of a run sits further out than either end", () => {
-    const winds = [0, 1, 2].map((i) => Math.abs(loopWind(1.7, i, 3)));
-    expect(winds[1]!).toBeGreaterThan(winds[0]!);
-    expect(winds[1]!).toBeGreaterThan(winds[2]!);
-    // Symmetric, so the detour reads as a lens and not as a comma.
-    expect(winds[0]!).toBeCloseTo(winds[2]!, 10);
-  });
-
-  it("never places a detour inboard of the widest spine step, at any run length", () => {
-    // A detour that swung less far than a spine kink would read as another
-    // kink rather than as a road leaving the road.
-    const widestSpine = Math.max(...WIND_CYCLE.map((wind) => Math.abs(wind)));
-    for (const wind of WIND_CYCLE) {
-      for (let length = 1; length <= RUN_MAX; length += 1) {
-        for (let run = 0; run < length; run += 1) {
-          expect(Math.abs(loopWind(wind, run, length))).toBeGreaterThan(widestSpine);
-        }
-      }
-    }
-  });
-
-  it("never swings further than LOOP_WIND, so a chip cannot leave the column", () => {
-    for (const wind of WIND_CYCLE) {
-      for (let length = 1; length <= RUN_MAX; length += 1) {
-        for (let run = 0; run < length; run += 1) {
-          expect(Math.abs(loopWind(wind, run, length))).toBeLessThanOrEqual(LOOP_WIND + 1e-9);
-        }
-      }
-    }
-  });
-});
+function clearEvent(nodeId: string): EconomyEvent {
+  return {
+    kind: "node_cleared",
+    at: "2026-10-01T12:00:00.000Z",
+    tz: "UTC",
+    nodeId,
+    nodeKind: "concept",
+    flawless: true,
+    stepsInOneSitting: 1,
+    spine: true,
+    difficulty: 3,
+  };
+}
 
 /* ------------------------------------------------------------------------- */
 /* 3. The trail: ONE detour per run, and it reaches every chip on it.         */
@@ -344,7 +347,10 @@ describe("every unit's own checkpoint", () => {
     expect(mixed).toBeGreaterThan(0);
   });
 
-  it("never wears the START tag, because a student is sent to a lesson and not to the exam", () => {
+  // RETITLED 2026-10-01, assertions unchanged: the check takes START once its
+  // unit's lessons are cleared (owner), so "never" is no longer the rule; on a
+  // fresh account it is still a lesson that holds START, which is what this pins.
+  it("does not wear the START tag on a fresh account: the first lesson does", () => {
     const status = deriveMapPathway(PATHWAY_UNITS, []);
     for (const { node } of checks) expect(statusOf(status, node.id).state).not.toBe("current");
     expect([...status.nodes.values()].filter((entry) => entry.state === "current")).toHaveLength(1);
@@ -426,16 +432,26 @@ describe("every unit's own checkpoint", () => {
     }
     journal.push(clear(required[required.length - 1]!.id));
     const ready = deriveMapPathway(PATHWAY_UNITS, journal);
-    expect(statusOf(ready, checkId).state).toBe("open");
+    /*
+     * CHANGED 2026-10-01 to the owner's rule, three assertions: the check
+     * GATES the next unit and takes START once the line is cleared. It said
+     * "open", "Unit 2 is open already" and "clearing the check moves no
+     * current node"; it now says "current", "Unit 2 waits for the check" and
+     * "clearing the check moves START out of the unit". The count of
+     * currents and the unchanged progress number are kept as they were.
+     */
+    expect(statusOf(ready, checkId).state).toBe("current");
+    expect(ready.currentNodeId).toBe(checkId);
     expect([...ready.nodes.values()].filter((entry) => entry.state === "current")).toHaveLength(1);
-    // The unlock did not wait for the check: Unit 2 is open already.
-    expect(ready.units.get(PATHWAY_UNITS[1]!.id)?.reachable).toBe(true);
+    expect(ready.units.get(PATHWAY_UNITS[1]!.id)?.reachable).toBe(false);
     journal.push(clear(checkId));
     const after = deriveMapPathway(PATHWAY_UNITS, journal);
     expect(statusOf(after, checkId).state).toBe("done");
-    // Clearing the check moved no progress number and no current node.
+    // Clearing the check moved no progress number; it moved START on.
     expect(after.doneCount).toBe(ready.doneCount);
-    expect(after.currentNodeId).toBe(ready.currentNodeId);
+    expect(after.units.get(PATHWAY_UNITS[1]!.id)?.reachable).toBe(true);
+    expect(after.currentNodeId).not.toBe(checkId);
+    expect(after.currentNodeId).not.toBeNull();
   });
 });
 

@@ -22,7 +22,7 @@ import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import type { EconomyEvent } from "@blueberry/economy";
-import { PATHWAY_UNITS } from "../demo/pathwayMap";
+import { PATHWAY_UNITS, checkpointNodeId } from "../demo/pathwayMap";
 import { deriveMapPathway, statusOf } from "../tabs/pathway/pathwayState";
 import { unitShape } from "../tabs/pathway/unitShape";
 
@@ -55,9 +55,13 @@ describe("the EAS unit is a line, not a flower", () => {
 
   it("opens its families one at a time: exactly the next authored lesson, at every step of the unit", () => {
     const index = PATHWAY_UNITS.indexOf(UNIT!);
-    const before = PATHWAY_UNITS.slice(0, index).flatMap((unit) =>
-      unit.nodes.filter((node) => node.kind !== "branch" && node.playable !== undefined).map((node) => cleared(node.id)),
-    );
+    // Every earlier unit finished: its lessons AND its checkpoint, which gates
+    // the next unit since 2026-10-01 (owner). The checkpoint clears were added
+    // then; nothing else in this fixture changed.
+    const before = PATHWAY_UNITS.slice(0, index).flatMap((unit) => {
+      const lessons = unit.nodes.filter((node) => node.kind !== "branch" && node.playable !== undefined).map((node) => cleared(node.id));
+      return lessons.length === 0 ? lessons : [...lessons, cleared(checkpointNodeId(unit.id))];
+    });
     const line = UNIT!.nodes.filter((node) => node.kind !== "branch" && node.playable !== undefined);
     expect(line.length).toBeGreaterThanOrEqual(3);
     for (let done = 0; done < line.length; done += 1) {

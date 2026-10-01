@@ -297,7 +297,10 @@ export function NodeSheet({ node, onClose, onStart, onChallenge, onGuidebook, re
                 pathwaySheetContract.test.ts now pins the line instead of its
                 absence. The ENABLED card draws none: pressing it is the
                 explanation. */}
-            {model.challenge.enabled ? (
+            {/* NO CARD AT ALL for a node with no Challenge run (the unit
+                checkpoint, and a lesson with a mechanism step): see
+                offersChallenge in nodeSheetModel.ts. */}
+            {!model.offersChallenge ? null : model.challenge.enabled ? (
               <button
                 type="button"
                 className="ns-chip ns-card--go"

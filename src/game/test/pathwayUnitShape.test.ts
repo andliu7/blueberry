@@ -19,7 +19,7 @@
 
 import { describe, expect, it } from "vitest";
 import { PATHWAY_UNITS } from "../demo/pathwayMap";
-import { RUN_MAX, unitShape, weaveLoops } from "../tabs/pathway/unitShape";
+import { branchAnchor, unitShape, weaveBranches } from "../tabs/pathway/unitShape";
 
 const SHAPES = PATHWAY_UNITS.map((unit) => unitShape(unit));
 
@@ -99,51 +99,48 @@ describe("unitShape, enrichment rides a side loop", () => {
   });
 });
 
-describe("weaveLoops, the detours through the column", () => {
-  it("keeps every node, once, in an order the trail can read", () => {
-    for (const shape of SHAPES) {
-      const woven = weaveLoops(shape.column, shape.loops);
+/*
+ * REWRITTEN 2026-10-01 for weaveBranches, which replaced weaveLoops when the
+ * owner moved side quests onto a branch lane off the lesson they branch from.
+ * The first two checks are the same claims over the new function. The third
+ * pinned RUN_MAX, a cap on a detour's length chosen for spacing; the branch
+ * lane has no cap (a run is as long as what branches from that lesson), so it
+ * now pins what replaced the spacing rule: a side quest never hangs above a
+ * lesson it waits for.
+ */
+describe("weaveBranches, the side quests off the column", () => {
+  it("keeps every node, once, in an order the DOM can read", () => {
+    PATHWAY_UNITS.forEach((unit, at) => {
+      const shape = SHAPES[at]!;
+      const woven = weaveBranches(unit, shape);
       expect(woven).toHaveLength(shape.column.length + shape.loops.length);
       expect(new Set(woven.map((entry) => entry.node.id)).size).toBe(woven.length);
-    }
+    });
   });
 
-  it("never starts a unit on a detour, so every loop has a road behind it", () => {
-    for (const shape of SHAPES) {
-      if (shape.column.length === 0) continue;
-      expect(weaveLoops(shape.column, shape.loops)[0]!.lane).toBe("main");
-    }
+  it("never starts a unit on a side quest, so every branch has a lesson behind it", () => {
+    PATHWAY_UNITS.forEach((unit, at) => {
+      const shape = SHAPES[at]!;
+      if (shape.column.length === 0) return;
+      expect(weaveBranches(unit, shape)[0]!.lane).toBe("main");
+    });
   });
 
-  /*
-   * TIGHTENED, not relaxed, and the reason is recorded because a changed
-   * assertion always deserves one.
-   *
-   * This used to bound a run by ceil(loops / column), which is the spacing
-   * the old weave happened to produce. That bound is DERIVED FROM THE
-   * IMPLEMENTATION, so it could not fail whatever the implementation did:
-   * unit 3, with nine enrichment nodes and a two-node column, satisfied it
-   * with a run of five. A critic then measured the real defect on the built
-   * page ("four simultaneous forks at scrollY 0 and 2800, and six at scrollY
-   * 4200") and the goals' own clause is an absolute one: "at most one fork
-   * visible per screen".
-   *
-   * So the bound is now the ABSOLUTE constant the layout is written against,
-   * RUN_MAX, which is 3 and is smaller than the old bound on every unit of
-   * the map. Nothing that passed before and should still pass now fails; unit
-   * 3's run of five, which passed before and should not have, now fails.
-   */
-  it("never lets one detour carry more than RUN_MAX chips, on any unit", () => {
-    for (const shape of SHAPES) {
-      if (shape.column.length === 0 || shape.loops.length === 0) continue;
-      let run = 0;
-      let worst = 0;
-      for (const entry of weaveLoops(shape.column, shape.loops)) {
-        run = entry.lane === "loop" ? run + 1 : 0;
-        worst = Math.max(worst, run);
+  it("never hangs a side quest above a main-line lesson named in its `after`, on any unit", () => {
+    let named = 0;
+    PATHWAY_UNITS.forEach((unit, at) => {
+      const shape = SHAPES[at]!;
+      const order = weaveBranches(unit, shape).map((entry) => entry.node.id);
+      for (const node of shape.loops) {
+        for (const id of node.after ?? []) {
+          if (!shape.column.some((entry) => entry.id === id)) continue;
+          named += 1;
+          expect(order.indexOf(id), `${node.id} after ${id}`).toBeLessThan(order.indexOf(node.id));
+          expect(branchAnchor(unit, shape.column, node)).toBeGreaterThanOrEqual(shape.column.findIndex((entry) => entry.id === id));
+        }
       }
-      expect(worst, shape.unitId).toBeLessThanOrEqual(RUN_MAX);
-    }
+    });
+    expect(named).toBeGreaterThan(1);
   });
 });
 

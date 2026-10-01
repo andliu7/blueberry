@@ -43,7 +43,7 @@
  * door; the door is the sheet.
  */
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import {
   ACTS,
   prerequisiteClosure,
@@ -84,7 +84,7 @@ import {
 export { unitName, unitNumber } from "../../demo/pathwayMap";
 import { deriveMapPathway, statusOf, unitPassed, waitingOn, type MapPathwayStatus } from "./pathwayState";
 import { deriveFreeOrderStates } from "./topicPathway";
-import { isCheckpointUnit, nodePlaces, placeSaid, unitShape, weaveLoops, type NodePlace, type UnitShape } from "./unitShape";
+import { isCheckpointUnit, nodePlaces, placeSaid, unitShape, weaveBranches, type NodePlace, type UnitShape } from "./unitShape";
 import type { TrackMapNode } from "./trail";
 /*
  * THE NODE SHEET, wired here rather than left on the shelf. The attempt-2
@@ -100,7 +100,7 @@ import { NodeSheet, Guidebook, guidebookFor, type SheetNode } from "../../pathwa
 import { difficultyForNode } from "../../pathway-sheet/nodeDifficulty";
 // Pure label geometry, in its own module so it can be tested without a document.
 // Re-exported because callers and tests have always reached it through this file.
-import { loopWind, trackWind, withBreakHints } from "./pathwayLayout";
+import { trackWind, withBreakHints } from "./pathwayLayout";
 export { trackWind, withBreakHints } from "./pathwayLayout";
 
 export interface PathwayNode {
@@ -264,7 +264,7 @@ function NodeGlyph({ state }: { readonly state: NodeState }) {
  * single most Blueberry-specific mark in the vocabulary never appeared on the
  * map at all. It is the motif for a node whose playable is arrow work.
  */
-export type NodeBadge = "mechanism" | "concept" | "challenge" | "application" | "video";
+export type NodeBadge = "mechanism" | "concept" | "challenge" | "checkpoint" | "video";
 
 /**
  * The motif's outline, drawn once and rendered twice: see MotifGlyph.
@@ -377,11 +377,16 @@ function motifShape(badge: NodeBadge) {
       );
     default:
       /*
-        THE APPLICATION FLAG, and it is a FLAG rather than a pennant now. The
-        build drew a staff plus a right-pointing triangle, which at 16px is
-        indistinguishable from a play button; blueberry_spec-node-types draws
-        a rectangular cloth notched at its fly end, which is the silhouette
-        that still says "flag" when it is small.
+        THE CHECKPOINT'S FINISH FLAG, 2026-10-01. It was the application flag,
+        which no node had flown since side quests stopped taking it, and the
+        unit checkpoint wore the stopwatch instead. The stopwatch means "a
+        timed Challenge run" and the checkpoint has none (challengeable() in
+        beats/template.ts says no by design: it already IS the unit's check),
+        so the honest mark is the flag at the end of the road.
+
+        A FLAG rather than a pennant: a staff plus a right-pointing triangle
+        is indistinguishable from a play button at 16px; a rectangular cloth
+        notched at its fly end still says "flag" when it is small.
       */
       return (
         <>
@@ -817,11 +822,10 @@ function TrackSlab({
   readonly badge: NodeBadge | null;
   readonly dim: boolean;
   /**
-   * "loop" is the goals' dimmed SIDE LOOP: the same chip at the same size,
-   * swung further off the centreline and marked as a detour, so trail.ts
-   * draws the spine straight past it and the loop out and back.
+   * "branch" is a side quest on the branch lane: same chip, its own fixed
+   * column left of the road, its own pale face (.path-row--branch).
    */
-  readonly lane?: "main" | "loop" | "check";
+  readonly lane?: "main" | "branch" | "check";
   readonly queued?: boolean;
   /** Where the row sits in its unit. See Chip's own note. */
   readonly place?: NodePlace | null;
@@ -920,6 +924,58 @@ function TrackSlab({
       </div>
     </li>
   );
+}
+
+/**
+ * THE BRANCH LANE, owner 2026-10-01: "optional side quests leave the main
+ * road ... a clearly drawn branch lane beside the main path, a visible trail
+ * connecting them to the lesson they branch from".
+ *
+ * One list item holding the run of side quests that branch off the lesson
+ * row just above it. A dashed trail leaves that lesson's chip, runs left to
+ * the branch lane and down through the side-quest chips, which sit in a
+ * fixed column left of the road with a pale face of their own (pathway.css,
+ * .path-branch and .path-row--branch). So a side quest is never a row on the
+ * road, and an unplayed one above START reads as a detour, not a skipped
+ * lesson.
+ *
+ * `--parent-wind` is the parent chip's swing, so the trail starts under that
+ * chip whichever way it leans. The tag and the trail are aria-hidden: each
+ * chip's accessible name already opens "Optional side quest, off the main
+ * path", and the list is labelled.
+ *
+ * React pattern: `children` is the JSX nested between <BranchLane> tags,
+ * handed in as a prop, so the caller decides what rows go in the lane.
+ */
+function BranchLane({ parentWind, children }: { readonly parentWind: number; readonly children: ReactNode }) {
+  return (
+    <li className="path-branch" style={{ "--parent-wind": parentWind } as CSSProperties}>
+      <span className="path-branch__elbow" aria-hidden />
+      <span className="path-branch__drop" aria-hidden />
+      <span className="path-branch__tag" aria-hidden>
+        Optional side quests
+      </span>
+      <ol className="path-branch__list" aria-label="Optional side quests">
+        {children}
+      </ol>
+    </li>
+  );
+}
+
+/** The rows in document order, with each run of consecutive branch rows grouped under the lesson above it. */
+type RowRun =
+  | { readonly kind: "row"; readonly row: UnitRow }
+  | { readonly kind: "branch"; readonly parentWind: number; readonly rows: readonly UnitRow[] };
+
+function branchRuns(rows: readonly UnitRow[]): readonly RowRun[] {
+  const runs: RowRun[] = [];
+  for (const row of rows) {
+    const last = runs[runs.length - 1];
+    if (row.lane !== "branch") runs.push({ kind: "row", row });
+    else if (last !== undefined && last.kind === "branch") runs[runs.length - 1] = { ...last, rows: [...last.rows, row] };
+    else runs.push({ kind: "branch", parentWind: row.wind, rows: [row] });
+  }
+  return runs;
 }
 
 function TrackNode({
@@ -1147,11 +1203,17 @@ function mapNodeDetail(
 
 /**
  * Why a unit's checkpoint is shut while its unit is open. pathwayState.ts
- * locks it until every required lesson in the unit is cleared, because it is
- * a mix of those lessons and a question may only combine skills a student has
- * already cleared one at a time. Said on the chip and in the sheet.
+ * locks it until every numbered (main-line) lesson in the unit is cleared,
+ * because it is a mix of those lessons and a question may only combine skills
+ * a student has already cleared one at a time. Side quests are not on the
+ * check, so the sentence counts the numbered lessons only: "every lesson"
+ * was false while the side quests were unplayed (g9 critic). The count is
+ * the unit's own `playable`, never a typed number. Said on the chip and in
+ * the sheet.
  */
-const CHECK_WAITS = "Opens when every lesson in this unit is done.";
+function checkWaits(lessons: number): string {
+  return lessons === 1 ? "Opens after you clear the numbered lesson." : `Opens after you clear the ${lessons} numbered lessons.`;
+}
 
 /** A node's title by id, inside its own unit, for the "opens when" sentence. */
 function titleOf(unit: MapUnit, id: string): string {
@@ -1178,9 +1240,10 @@ function mapGateNode(node: MapNode, clickable: boolean): ChargeGateNode | null {
 
 interface UnitRow {
   readonly node: MapNode;
-  readonly lane: "main" | "loop";
+  readonly lane: "main" | "branch";
+  /** A branch row has no wind of its own: it carries its parent lesson's, which is where its trail starts. */
   readonly wind: number;
-  /** Enrichment, whichever lane it landed on. See WovenEntry.dim. */
+  /** Enrichment: a side quest, on the branch lane or, in a unit with no spine, as the road itself. */
   readonly dim: boolean;
 }
 
@@ -1253,46 +1316,17 @@ export function planUnits(units: readonly MapUnit[]): readonly UnitPlan[] {
     index = unitOrdinal % 2 === 0 ? 1 : 3;
     const shape = unitShape(unit);
     const rows: UnitRow[] = [];
-    // How many detours have already been emitted off the CURRENT spine node.
-    // It resets on every spine row, which is what makes loopWind alternate
-    // within a run rather than across the whole unit.
-    let runIndex = 0;
-    const woven = weaveLoops(shape.column, shape.loops);
-    /*
-     * How long each contiguous run of detours is, indexed by entry.
-     *
-     * loopWind bows a run outward and back, so a chip has to know how many
-     * are beside it before it can be placed, and a unit may carry more than
-     * one run (weaveLoops spaces them RUN_GAP column nodes apart). Counting
-     * per run rather than per unit is what keeps the second run's bow from
-     * being computed against the first run's length.
-     */
-    const runLengths = new Array<number>(woven.length).fill(0);
-    for (let i = 0; i < woven.length; i += 1) {
-      if (woven[i]!.lane !== "loop" || runLengths[i] !== 0) continue;
-      let end = i;
-      while (end < woven.length && woven[end]!.lane === "loop") end += 1;
-      for (let j = i; j < end; j += 1) runLengths[j] = end - i;
-    }
-    for (const [entryIndex, entry] of woven.entries()) {
-      if (entry.lane === "main") {
-        const wind = trackWind(index);
-        index += 1;
-        lastWind = wind;
-        runIndex = 0;
-        rows.push({ node: entry.node, lane: "main", wind, dim: entry.dim });
+    // A unit with no spine draws its branches AS its road (unitShape), so a
+    // main row is enrichment exactly when it is a branch node.
+    for (const entry of weaveBranches(unit, shape)) {
+      if (entry.lane === "branch") {
+        rows.push({ node: entry.node, lane: "branch", wind: lastWind, dim: true });
         continue;
       }
-      // One detour, on the side the spine vacated, bowing out and back so the
-      // run traces a single loop rather than a column or a braid. See
-      // loopWind in pathwayLayout.ts for the two defects that shape answers.
-      rows.push({
-        node: entry.node,
-        lane: "loop",
-        wind: loopWind(lastWind, runIndex, runLengths[entryIndex] ?? 1),
-        dim: true,
-      });
-      runIndex += 1;
+      const wind = trackWind(index);
+      index += 1;
+      lastWind = wind;
+      rows.push({ node: entry.node, lane: "main", wind, dim: entry.node.kind === "branch" });
     }
     // The checkpoint run picks the wind cycle back up from wherever the main
     // line had reached, so the road keeps winding into the unit's end.
@@ -1332,7 +1366,7 @@ export function trackMapNodesFor(
   };
   const nodes: TrackMapNode[] = plan.rows.map((row) => ({
     wind: row.wind,
-    lane: row.lane === "loop" ? ("loop" as const) : ("main" as const),
+    lane: row.lane === "branch" ? ("loop" as const) : ("main" as const),
     done: done(row.node),
   }));
   for (const row of plan.gateRun) nodes.push({ wind: row.wind, lane: "main", done: done(row.node) });
@@ -1824,14 +1858,23 @@ function OrgoMapTrack({
           it and pathway.css keeps its rules.
         */}
         {/*
-          THE MAIN LINE, ONE ROW PER LESSON IN THE ORDER THEY OPEN, 2026-10-01,
-          with its side quests hanging off it as dimmed detours (weaveLoops).
+          THE MAIN LINE, ONE ROW PER LESSON IN THE ORDER THEY OPEN, 2026-10-01.
           There is no fork any more: each lesson opens the next (pathwayState.ts),
-          so the page draws a line because the unit is one.
+          so the page draws a line because the unit is one. Side quests leave
+          it: each run of them is ONE BranchLane under the lesson it branches
+          from (weaveBranches in unitShape.ts), never a row on the road.
         */}
         {plan.rows.length > 0 ? (
           <ol className="path-track mx-auto flex w-full max-w-md flex-col">
-            {plan.rows.filter((row) => row.node.mentionOnly !== true).map(slab)}
+            {branchRuns(plan.rows.filter((row) => row.node.mentionOnly !== true)).map((run) =>
+              run.kind === "row" ? (
+                slab(run.row)
+              ) : (
+                <BranchLane key={`branch-${run.rows[0]!.node.id}`} parentWind={run.parentWind}>
+                  {run.rows.map(slab)}
+                </BranchLane>
+              ),
+            )}
           </ol>
         ) : null}
 
@@ -1903,9 +1946,10 @@ function OrgoMapTrack({
               const clickable = playable !== undefined && !locked;
               const href = clickable && playable !== undefined ? hrefForPlayable(playable) : null;
               const waitsForLessons = row === plan.check && locked && !gateLocked;
+              const checkWaitNote = checkWaits(status.units.get(unit.id)?.playable ?? 0);
               const place = places.get(row.node.id) ?? null;
               const detail = waitsForLessons
-                ? `${placeSaid(place) ?? "Unit checkpoint"}. ${CHECK_WAITS}`
+                ? `${placeSaid(place) ?? "Unit checkpoint"}. ${checkWaitNote}`
                 : mapNodeDetail(row.node, nodeStatus.queued, locked, place);
               return (
                 <TrackSlab
@@ -1917,12 +1961,12 @@ function OrgoMapTrack({
                   href={href}
                   wind={row.wind}
                   lane={row === plan.check ? "check" : "main"}
-                  badge="challenge"
+                  badge={row === plan.check ? "checkpoint" : "challenge"}
                   dim={false}
                   queued={nodeStatus.queued}
                   reducedMotion={reducedMotion}
                   onOpenNode={onOpenNode}
-                  sheetNode={sheetNodeFor(row.node, nodeStatus.state, waitsForLessons ? CHECK_WAITS : undefined)}
+                  sheetNode={sheetNodeFor(row.node, nodeStatus.state, waitsForLessons ? checkWaitNote : undefined)}
                   gateNode={mapGateNode(row.node, clickable)}
                 />
               );

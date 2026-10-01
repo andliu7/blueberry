@@ -38,48 +38,17 @@
 import { describe, expect, it } from "vitest";
 import type { EconomyEvent } from "@blueberry/economy";
 import { PATHWAY_UNITS } from "../demo/pathwayMap";
-import { LOOP_WIND, WIND_CYCLE, loopWind, trackWind } from "../tabs/pathway/pathwayLayout";
+import { trackWind } from "../tabs/pathway/pathwayLayout";
 import { deriveMapPathway, prerequisitesOf, statusOf } from "../tabs/pathway/pathwayState";
-import { RUN_MAX, unitShape, weaveLoops } from "../tabs/pathway/unitShape";
+import { weaveBranches } from "../tabs/pathway/unitShape";
 
-/* ------------------------------------------------------------------------- */
-/* loopWind, the arithmetic on its own.                                       */
-/* ------------------------------------------------------------------------- */
-
-describe("loopWind", () => {
-  it("puts the first detour on the side the spine vacated, whichever way it leans", () => {
-    // A spine node leaning right (positive wind) leaves room on the left, so
-    // its first detour goes left, and the mirror holds. This is the one case
-    // the pre-fix arithmetic already got right and it must not regress.
-    expect(loopWind(1.7, 0)).toBe(-LOOP_WIND);
-    expect(loopWind(0.85, 0)).toBe(-LOOP_WIND);
-    expect(loopWind(-1.7, 0)).toBe(LOOP_WIND);
-    expect(loopWind(-0.85, 0)).toBe(LOOP_WIND);
-  });
-
-  it("keeps a whole run on the vacated side, for every wind in the cycle", () => {
-    // Superseded the alternation claim: see the header. A run that flips
-    // sides is a braid, and a braid is not one of the three branch shapes.
-    for (const wind of WIND_CYCLE) {
-      for (let run = 0; run < 3; run += 1) {
-        expect(Math.sign(loopWind(wind, run, 3))).toBe(Math.sign(loopWind(wind, 0, 3)));
-      }
-    }
-  });
-
-  it("never places a detour inboard of the widest spine step", () => {
-    // A detour that swung less far than a spine kink would read as another
-    // kink rather than as a road leaving the road.
-    const widestSpine = Math.max(...WIND_CYCLE.map((wind) => Math.abs(wind)));
-    for (const wind of WIND_CYCLE) {
-      for (let length = 1; length <= 3; length += 1) {
-        for (let run = 0; run < length; run += 1) {
-          expect(Math.abs(loopWind(wind, run, length))).toBeGreaterThan(widestSpine);
-        }
-      }
-    }
-  });
-});
+/*
+ * loopWind's three checks lived here until 2026-10-01 (side quest on the
+ * vacated side, one side per run, outboard of the spine's peak). The owner
+ * moved side quests off the road onto a branch lane, so loopWind is deleted;
+ * the branch lane's own place, clear of the road at every width, is pinned in
+ * pathwayRowLanes.test.ts and its order in pathwayBranchDensity.test.ts.
+ */
 
 /* ------------------------------------------------------------------------- */
 /* The laid-out track: the same weave the tab renders.                        */
@@ -91,44 +60,47 @@ describe("loopWind", () => {
  *
  * It is reproduced here rather than imported because planUnits lives in
  * PathwayTab.tsx, which imports the app's hooks and so cannot be loaded
- * outside a document. The pieces it is built from (unitShape, weaveLoops,
- * trackWind, loopWind) are all pure and are all imported, so what is
+ * outside a document. The pieces it is built from (weaveBranches and
+ * trackWind) are pure and are imported, so what is
  * duplicated is six lines of control flow and not any of the arithmetic.
  */
-function layout(): readonly { readonly unitId: string; readonly lane: "main" | "loop"; readonly wind: number }[] {
-  const rows: { unitId: string; lane: "main" | "loop"; wind: number }[] = [];
+function layout(): readonly { readonly unitId: string; readonly lane: "main" | "branch"; readonly wind: number }[] {
+  const rows: { unitId: string; lane: "main" | "branch"; wind: number }[] = [];
   let index = 0;
   let lastWind = 1;
   for (const unit of PATHWAY_UNITS) {
-    const shape = unitShape(unit);
-    let runIndex = 0;
-    for (const entry of weaveLoops(shape.column, shape.loops)) {
+    for (const entry of weaveBranches(unit)) {
       if (entry.lane === "main") {
         lastWind = trackWind(index);
         index += 1;
-        runIndex = 0;
         rows.push({ unitId: unit.id, lane: "main", wind: lastWind });
         continue;
       }
-      rows.push({ unitId: unit.id, lane: "loop", wind: loopWind(lastWind, runIndex, RUN_MAX) });
-      runIndex += 1;
+      // A branch row carries its parent lesson's wind: it is where its trail starts.
+      rows.push({ unitId: unit.id, lane: "branch", wind: lastWind });
     }
   }
   return rows;
 }
 
 describe("the laid-out track, over the map the browser actually draws", () => {
-  it("has side loops somewhere: this suite would pass vacuously without them", () => {
-    expect(layout().filter((row) => row.lane === "loop").length).toBeGreaterThan(3);
+  it("has side quests somewhere: this suite would pass vacuously without them", () => {
+    expect(layout().filter((row) => row.lane === "branch").length).toBeGreaterThan(3);
   });
 
-  it("keeps every detour of one run on one side, so no run reads as a braid", () => {
+  /* REWRITTEN 2026-10-01: was "keeps every detour of one run on one side".
+     A run now always sits in the one branch lane, so the braid cannot form;
+     what can still go wrong is a run with no lesson to leave from, or a run
+     whose trail starts under a different chip than the lesson above it. */
+  it("starts every run of side quests under the lesson directly above it, never at the top of a unit", () => {
     const rows = layout();
-    for (let i = 1; i < rows.length; i += 1) {
-      const previous = rows[i - 1]!;
+    for (let i = 0; i < rows.length; i += 1) {
       const row = rows[i]!;
-      if (previous.lane !== "loop" || row.lane !== "loop") continue;
-      expect(Math.sign(row.wind)).toBe(Math.sign(previous.wind));
+      if (row.lane !== "branch") continue;
+      const previous = rows[i - 1];
+      expect(previous, "a side quest opens a unit").toBeDefined();
+      expect(previous!.unitId).toBe(row.unitId);
+      expect(row.wind).toBe(previous!.wind);
     }
   });
 
@@ -184,6 +156,9 @@ describe("the unlock policy, over every node of every laid-out unit", () => {
     ["u1-allylic"],
     ["u1-allylic", "u1-12v14"],
     ["u1-allylic", "u1-12v14", "u1-kvt", "u1-x2"],
+    // ADDED 2026-10-01: since the owner made the checkpoint gate the next
+    // unit, the run above no longer moves the active unit on; this one does.
+    ["u1-allylic", "u1-12v14", "u1-kvt", "u1-x2", "u1-check"],
   ];
 
   /*

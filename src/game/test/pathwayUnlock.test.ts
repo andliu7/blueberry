@@ -29,7 +29,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import type { EconomyEvent } from "@blueberry/economy";
-import { PATHWAY_UNITS } from "../demo/pathwayMap";
+import { PATHWAY_UNITS, checkpointNodeId } from "../demo/pathwayMap";
 import { deriveMapPathway, prerequisitesOf, statusOf } from "../tabs/pathway/pathwayState";
 import { deriveFreeOrderStates, type FreeOrderNode } from "../tabs/pathway/topicPathway";
 import { unitShape } from "../tabs/pathway/unitShape";
@@ -142,6 +142,18 @@ const AUTHORED_BY_UNIT = PATHWAY_UNITS.map((unit) =>
   unit.nodes.filter((node) => node.kind !== "branch" && node.playable !== undefined),
 );
 
+/*
+ * What a FINISHED unit's journal holds, unit by unit: its authored lessons
+ * and, where it has any, its checkpoint. ADDED 2026-10-01 with the owner's
+ * rule that the checkpoint gates the next unit; the frontier sweeps below
+ * clear whole units with this instead of AUTHORED_BY_UNIT, or every unit
+ * after the first would stay shut and the sweeps would go vacuous.
+ */
+const SETTLED_BY_UNIT = PATHWAY_UNITS.map((unit, at) => {
+  const ids = AUTHORED_BY_UNIT[at]!.map((node) => node.id);
+  return ids.length === 0 ? ids : [...ids, checkpointNodeId(unit.id)];
+});
+
 describe("deriveMapPathway, one line per unit on the Orgo map", () => {
   it("locks a node in a reachable unit EXACTLY while one of its prerequisites is uncleared, at every frontier", () => {
     // Was: no node in a reachable unit is ever locked. Now an iff over every
@@ -149,7 +161,7 @@ describe("deriveMapPathway, one line per unit on the Orgo map", () => {
     // at every prefix of the frontier unit's own line, so a lock that is
     // missing and a lock that is extra both fail.
     for (let upTo = 0; upTo < PATHWAY_UNITS.length; upTo += 1) {
-      const settled = AUTHORED_BY_UNIT.slice(0, upTo).flat().map((node) => cleared(node.id));
+      const settled = SETTLED_BY_UNIT.slice(0, upTo).flat().map((id) => cleared(id));
       const line = AUTHORED_BY_UNIT[upTo]!;
       for (let step = 0; step <= line.length; step += 1) {
         const journal = [...settled, ...line.slice(0, step).map((node) => cleared(node.id))];
@@ -204,9 +216,9 @@ describe("deriveMapPathway, one line per unit on the Orgo map", () => {
      * cleared, which is the same shape the topic sweep above asserts.
      */
     for (let upTo = 0; upTo <= PATHWAY_UNITS.length; upTo += 1) {
-      const journal = AUTHORED_BY_UNIT.slice(0, upTo)
+      const journal = SETTLED_BY_UNIT.slice(0, upTo)
         .flat()
-        .map((node) => cleared(node.id));
+        .map((id) => cleared(id));
       const status = deriveMapPathway(PATHWAY_UNITS, journal);
       const currents = [...status.nodes.values()].filter((entry) => entry.state === "current");
       // Zero is correct in exactly one case: nothing AUTHORED is left to
@@ -227,9 +239,9 @@ describe("deriveMapPathway, one line per unit on the Orgo map", () => {
 
   it("never hangs the START tag on a queued node, at any frontier", () => {
     for (let upTo = 0; upTo < PATHWAY_UNITS.length; upTo += 1) {
-      const journal = AUTHORED_BY_UNIT.slice(0, upTo)
+      const journal = SETTLED_BY_UNIT.slice(0, upTo)
         .flat()
-        .map((node) => cleared(node.id));
+        .map((id) => cleared(id));
       const status = deriveMapPathway(PATHWAY_UNITS, journal);
       if (status.currentNodeId === null) continue;
       expect(statusOf(status, status.currentNodeId).queued).toBe(false);
@@ -294,17 +306,58 @@ describe("Unit 1, the line a fresh student walks", () => {
     }
   });
 
-  it("locks each side quest exactly until its prerequisite clears: NBS and Diels-Alder after allylic, the inverse Diels-Alder after Diels-Alder", () => {
+  /*
+     CHANGED 2026-10-01 with the data: Diels-Alder moved from after allylic to
+     after 1,2 vs 1,4 (pathwayMap.ts says which arrows forced it). The
+     "u1-da open after allylic" assertion now says locked, a new step pins it
+     open after 12v14, and the START check moved with it to u1-kvt.
+  */
+  it("locks each side quest exactly until its prerequisite clears: NBS after allylic, Diels-Alder after 1,2 vs 1,4, the inverse Diels-Alder after Diels-Alder", () => {
     const fresh = deriveMapPathway(PATHWAY_UNITS, []);
     for (const id of ["u1-nbs", "u1-da", "u1-ied"]) expect(statusOf(fresh, id).state, id).toBe("locked");
     const afterAllylic = deriveMapPathway(PATHWAY_UNITS, [cleared("u1-allylic")]);
     expect(statusOf(afterAllylic, "u1-nbs").state).toBe("open");
-    expect(statusOf(afterAllylic, "u1-da").state).toBe("open");
+    expect(statusOf(afterAllylic, "u1-da").state).toBe("locked");
     expect(statusOf(afterAllylic, "u1-ied").state).toBe("locked");
-    const afterDa = deriveMapPathway(PATHWAY_UNITS, [cleared("u1-allylic"), cleared("u1-da")]);
+    const after12v14 = deriveMapPathway(PATHWAY_UNITS, [cleared("u1-allylic"), cleared("u1-12v14")]);
+    expect(statusOf(after12v14, "u1-da").state).toBe("open");
+    expect(statusOf(after12v14, "u1-ied").state).toBe("locked");
+    const afterDa = deriveMapPathway(PATHWAY_UNITS, [cleared("u1-allylic"), cleared("u1-12v14"), cleared("u1-da")]);
     expect(statusOf(afterDa, "u1-ied").state).toBe("open");
     // A side quest never takes the START tag: the line does.
-    expect(afterDa.currentNodeId).toBe("u1-12v14");
+    expect(afterDa.currentNodeId).toBe("u1-kvt");
+  });
+
+  /* ADDED 2026-10-01, owner: the checkpoint gates the next unit, and START
+     moves onto it after the last main lesson, like Duolingo's unit test. */
+  it("moves START onto the checkpoint after the last main lesson, with the side quests unplayed", () => {
+    const line = ["u1-allylic", "u1-12v14", "u1-kvt", "u1-x2"];
+    const status = deriveMapPathway(PATHWAY_UNITS, line.map((id) => cleared(id)));
+    expect(status.currentNodeId).toBe(checkpointNodeId(unit.id));
+    expect(statusOf(status, checkpointNodeId(unit.id)).state).toBe("current");
+    expect(status.units.get(unit.id)?.active).toBe(true);
+    // The side quests are open and still not played: they hold nothing shut.
+    for (const id of ["u1-nbs", "u1-da"]) expect(statusOf(status, id).state, id).toBe("open");
+  });
+
+  it("gates the next unit on the checkpoint, at every unit with authored lessons", () => {
+    let checked = 0;
+    PATHWAY_UNITS.forEach((entry, at) => {
+      const lessons = AUTHORED_BY_UNIT[at]!;
+      if (lessons.length === 0) return;
+      const next = PATHWAY_UNITS.slice(at + 1).find((_later, offset) => AUTHORED_BY_UNIT[at + 1 + offset]!.length > 0);
+      if (next === undefined) return;
+      const before = SETTLED_BY_UNIT.slice(0, at).flat().map((id) => cleared(id));
+      const lessonsDone = [...before, ...lessons.map((node) => cleared(node.id))];
+      const waiting = deriveMapPathway(PATHWAY_UNITS, lessonsDone);
+      expect(waiting.units.get(next.id)?.reachable, `${next.id} before ${entry.id}'s check`).toBe(false);
+      expect(waiting.currentNodeId, entry.id).toBe(checkpointNodeId(entry.id));
+      for (const node of next.nodes) expect(statusOf(waiting, node.id).state, node.id).toBe("locked");
+      const passed = deriveMapPathway(PATHWAY_UNITS, [...lessonsDone, cleared(checkpointNodeId(entry.id))]);
+      expect(passed.units.get(next.id)?.reachable, `${next.id} after ${entry.id}'s check`).toBe(true);
+      checked += 1;
+    });
+    expect(checked).toBeGreaterThan(3);
   });
 
   it("records a side quest's prerequisites only on side quests, and only as nodes authored above it in its own unit", () => {

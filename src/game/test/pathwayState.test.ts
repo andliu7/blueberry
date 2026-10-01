@@ -11,7 +11,7 @@
 
 import { describe, expect, it } from "vitest";
 import type { EconomyEvent } from "@blueberry/economy";
-import { PATHWAY_UNITS } from "../demo/pathwayMap";
+import { PATHWAY_UNITS, checkpointNodeId } from "../demo/pathwayMap";
 import { deriveMapPathway, statusOf } from "../tabs/pathway/pathwayState";
 import { trackWind, withBreakHints } from "../tabs/pathway/pathwayLayout";
 
@@ -79,8 +79,15 @@ describe("deriveMapPathway", () => {
     expect(statusOf(deriveMapPathway(PATHWAY_UNITS, journal), id).state).toBe("done");
   });
 
-  it("unlocks the next unit once every authored node of this one is cleared", () => {
-    const journal = FIRST_PLAYABLE.map((node) => cleared(node.id));
+  /*
+   * CHANGED 2026-10-01 to the owner's rule that the checkpoint gates the next
+   * unit: the journal now clears unit one's checkpoint as well, and the new
+   * assertion in the middle pins that the lessons alone do NOT unlock it.
+   */
+  it("unlocks the next unit once every authored node of this one AND its checkpoint are cleared", () => {
+    const lessonsOnly = deriveMapPathway(PATHWAY_UNITS, FIRST_PLAYABLE.map((node) => cleared(node.id)));
+    expect(lessonsOnly.currentNodeId).toBe(checkpointNodeId(FIRST_UNIT.id));
+    const journal = [...FIRST_PLAYABLE.map((node) => cleared(node.id)), cleared(checkpointNodeId(FIRST_UNIT.id))];
     const status = deriveMapPathway(PATHWAY_UNITS, journal);
     for (const node of FIRST_PLAYABLE) expect(statusOf(status, node.id).state).toBe("done");
     // The current node has moved out of unit one entirely.
@@ -115,10 +122,13 @@ describe("deriveMapPathway", () => {
     const empty = PATHWAY_UNITS.find((unit) => unit.nodes.every((node) => node.playable === undefined));
     if (empty === undefined) return;
     const index = PATHWAY_UNITS.indexOf(empty);
-    const before = PATHWAY_UNITS.slice(0, index).flatMap((unit) =>
-      unit.nodes.filter((node) => node.kind !== "branch" && node.playable !== undefined),
-    );
-    const status = deriveMapPathway(PATHWAY_UNITS, before.map((node) => cleared(node.id)));
+    // Every unit before it finished, checkpoints included (owner, 2026-10-01:
+    // the checkpoint gates the next unit; the checkpoint clears were added).
+    const before = PATHWAY_UNITS.slice(0, index).flatMap((unit) => {
+      const lessons = unit.nodes.filter((node) => node.kind !== "branch" && node.playable !== undefined).map((node) => node.id);
+      return lessons.length === 0 ? lessons : [...lessons, checkpointNodeId(unit.id)];
+    });
+    const status = deriveMapPathway(PATHWAY_UNITS, before.map((id) => cleared(id)));
     const after = PATHWAY_UNITS[index + 1];
     if (after === undefined) return;
     const reachable = after.nodes.some((node) => statusOf(status, node.id).state !== "locked");

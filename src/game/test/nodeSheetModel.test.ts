@@ -74,6 +74,16 @@ describe("challenge availability", () => {
     }
   });
 
+  // ADDED 2026-10-01: a node with no Challenge run gets no card, rather than
+  // a dead card that says so (g9 critic, the first lesson's sheet).
+  it("offers no Challenge card at all on a node with no Challenge run, in any state", () => {
+    for (const state of STATES) {
+      expect(nodeSheetModel(node({ state, noChallenge: true })).offersChallenge, state).toBe(false);
+      expect(nodeSheetModel(node({ state, noChallenge: true })).challenge.enabled, state).toBe(false);
+      expect(nodeSheetModel(node({ state })).offersChallenge, state).toBe(true);
+    }
+  });
+
   it("never opens on a node whose practice is unavailable", () => {
     for (const state of STATES) {
       expect(nodeSheetModel(node({ state, practiceHref: null })).challenge.enabled, state).toBe(false);
