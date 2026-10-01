@@ -9,6 +9,7 @@ import {
   ChevronRight,
   FileText,
   FlaskConical,
+  KeyRound,
   List,
   PencilLine,
   Plus,
@@ -52,6 +53,12 @@ import { cn } from "@/lib/utils";
  * long until the next exam. Hence `kind` as a closed set with fixed colour and
  * icon, and a relative countdown on everything upcoming.
  *
+ * The look of the grid follows the master calendar in the Focus Family
+ * pamphlet guide (ff_technical_instructions, 2026-09-27): day numbers and the
+ * month title in the site's serif, a date as a chip with a colour bar down its
+ * left edge and the room after the title, and a key behind a key icon so the
+ * colours never have to be guessed.
+ *
  * No Radix and no shadcn primitives, matching every other integrated component
  * here — see the header notes in `404-page-not-found.tsx`, `contact-2.tsx` and
  * `notification-bell.tsx` for the same call. The one thing Radix would have
@@ -82,43 +89,55 @@ export interface CourseDate {
  */
 const KINDS: Record<
   CourseDateKind,
-  { label: string; Icon: typeof AlertTriangle; dot: string; chip: string }
+  { label: string; Icon: typeof AlertTriangle; dot: string; chip: string; bar: string; note: string }
 > = {
   exam: {
     label: "Exam",
     Icon: AlertTriangle,
     dot: "bg-rose-500",
+    bar: "border-rose-500",
     chip: "bg-rose-50 text-rose-700 ring-rose-200 dark:bg-rose-950/60 dark:text-rose-200 dark:ring-rose-900",
+    note: "A graded sitting in a room at a set time. The countdown in the list is mostly for these.",
   },
   quiz: {
     label: "Quiz",
     Icon: PencilLine,
     dot: "bg-amber-500",
+    bar: "border-amber-500",
     chip: "bg-amber-50 text-amber-800 ring-amber-200 dark:bg-amber-950/60 dark:text-amber-200 dark:ring-amber-900",
+    note: "A short graded check, usually during lecture.",
   },
   assignment: {
     label: "Assignment",
     Icon: FileText,
     dot: "bg-[#6b51dd]",
+    bar: "border-[#5a3fd8] dark:border-[#6d5ae0]",
     chip: "bg-[#f1f4fa] text-[#472ab4] ring-[#ccd5ea] dark:bg-[#1f1456]/60 dark:text-[#ccd5ea] dark:ring-[#33208c]",
+    note: "A deadline rather than a span. The time shown is when it is due.",
   },
   lecture: {
     label: "Lecture",
     Icon: BookOpen,
     dot: "bg-slate-400",
+    bar: "border-slate-400",
     chip: "bg-slate-100 text-slate-700 ring-slate-200 dark:bg-stone-800 dark:text-stone-300 dark:ring-stone-700",
+    note: "A class meeting where the material is taught.",
   },
   lab: {
     label: "Lab",
     Icon: FlaskConical,
     dot: "bg-emerald-500",
+    bar: "border-emerald-500",
     chip: "bg-emerald-50 text-emerald-700 ring-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-200 dark:ring-emerald-900",
+    note: "A hands-on session in the lab.",
   },
   "office-hours": {
     label: "Office hours",
     Icon: Users,
     dot: "bg-sky-500",
+    bar: "border-sky-500",
     chip: "bg-sky-50 text-sky-700 ring-sky-200 dark:bg-sky-950/60 dark:text-sky-200 dark:ring-sky-900",
+    note: "Drop-in time with the instructor or a TA.",
   },
 };
 
@@ -200,6 +219,7 @@ export function CourseCalendar({
   const [query, setQuery] = useState("");
   const [kinds, setKinds] = useState<CourseDateKind[]>([]);
   const [showPast, setShowPast] = useState(false);
+  const [keyOpen, setKeyOpen] = useState(false);
 
   const [editing, setEditing] = useState<CourseDate | null>(null);
   const [mode, setMode] = useState<"create" | "edit">("create");
@@ -327,7 +347,7 @@ export function CourseCalendar({
     <div className={cn("flex min-h-0 flex-1 flex-col gap-3", className)}>
       <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
-          <h2 className="min-w-44 text-lg font-semibold text-slate-900 dark:text-stone-100">
+          <h2 className="title-face min-w-44 text-xl font-semibold text-slate-900 dark:text-stone-100">
             {view === "month"
               ? anchor.toLocaleDateString(undefined, { month: "long", year: "numeric" })
               : "Coming up"}
@@ -356,6 +376,9 @@ export function CourseCalendar({
               List
             </ViewTab>
           </div>
+          <IconButton label="Key: what the colours mean" onClick={() => setKeyOpen(true)}>
+            <KeyRound className="size-4" />
+          </IconButton>
           {canEdit && (
             <Button onClick={() => openCreate(selectedDay)}>
               <Plus className="size-4" />
@@ -495,8 +518,8 @@ export function CourseCalendar({
                   >
                     <span
                       className={cn(
-                        "flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-medium sm:self-start",
-                        isToday && "bg-slate-900 font-semibold text-white dark:bg-stone-100 dark:text-stone-900",
+                        "title-face flex size-6 shrink-0 items-center justify-center rounded-full text-sm font-semibold sm:self-start",
+                        isToday && "bg-[#5a3fd8] text-white dark:bg-[#6d5ae0]",
                         !isToday && inMonth && "text-slate-700 dark:text-stone-200",
                         !isToday && !inMonth && "text-slate-400 dark:text-stone-600",
                       )}
@@ -522,12 +545,13 @@ export function CourseCalendar({
                         <span
                           key={item.id}
                           className={cn(
-                            "flex items-center gap-1 truncate rounded px-1 py-0.5 text-[11px] font-medium ring-1",
+                            "truncate rounded-sm border-l-[3px] px-1.5 py-0.5 text-[11px] font-semibold",
                             KINDS[item.kind].chip,
+                            KINDS[item.kind].bar,
                           )}
                         >
-                          <span className={cn("size-1.5 shrink-0 rounded-full", KINDS[item.kind].dot)} />
-                          <span className="truncate">{item.title}</span>
+                          {item.title}
+                          {item.detail && <span className="font-normal opacity-80"> {item.detail}</span>}
                         </span>
                       ))}
                       {items.length > 3 && (
@@ -664,6 +688,49 @@ export function CourseCalendar({
               Cancel
             </Button>
             <Button onClick={submit}>{mode === "create" ? "Add" : "Save"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={keyOpen} onOpenChange={setKeyOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Key</DialogTitle>
+            <DialogDescription>
+              Colour is fixed per kind, and every kind also carries an icon and a word, so the
+              grid still reads without the colour.
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogBody>
+            <ul className="flex flex-col divide-y divide-border">
+              {KIND_ORDER.map((kind) => {
+                const { label, Icon, chip, bar, note } = KINDS[kind];
+                return (
+                  <li key={kind} className="flex items-start gap-3 py-2.5">
+                    <span
+                      aria-hidden
+                      className={cn("mt-0.5 h-5 w-8 shrink-0 rounded-sm border-l-[3px]", chip, bar)}
+                    />
+                    <span className="min-w-0">
+                      <span className="flex items-center gap-1.5 font-semibold text-slate-900 dark:text-stone-100">
+                        <Icon className="size-3.5 opacity-70" />
+                        {label}
+                      </span>
+                      <span className="block text-sm text-slate-600 dark:text-stone-400">{note}</span>
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+            <p className="mt-3 text-sm text-slate-600 dark:text-stone-400">
+              The filled circle on the grid is today. Anything within a week shows a countdown in
+              the list.
+            </p>
+          </DialogBody>
+
+          <DialogFooter>
+            <Button onClick={() => setKeyOpen(false)}>Done</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

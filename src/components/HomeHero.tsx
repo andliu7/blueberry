@@ -1,9 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { ArrowRight, ChevronDown } from "lucide-react";
-import { HomeIntro } from "@/components/HomeIntro";
+
 import { Blueberry } from "@/components/ui/blueberry";
-import { BerryParallax } from "@/components/ui/berry-parallax";
+
 import { GradientButton } from "@/components/ui/gradient-button";
 import { TextRoll } from "@/components/ui/text-roll";
 import { FoundingSeats } from "@/components/ui/founding-seats";
@@ -34,7 +34,7 @@ import { HERO, SITE_NAME } from "@/data/site";
  */
 export function HomeHero({
   decks,
-  settled,
+
   onReady,
   onMore,
 }: {
@@ -50,7 +50,7 @@ export function HomeHero({
   const reduce = useReducedMotion();
 
   /** The hero is transparent until the particles finish landing on top of it. */
-  const [landed, setLanded] = useState(false);
+  useEffect(() => { onReady(); }, [onReady]);
 
   /**
    * The berry's face, summed across every deck with progress on it.
@@ -73,22 +73,15 @@ export function HomeHero({
 
 
   return (
-    <HomeIntro
-      settled={settled}
-      onComplete={() => {
-        setLanded(true);
-        onReady();
-      }}
-      hero={
-        <HeroContent
-          landed={landed}
-          reduce={Boolean(reduce)}
-          mood={heroMood}
-          stats={`${decks.length} decks · ${cards} cards · ${REACTIONS.length} checked reactions`}
-          onMore={onMore}
-        />
-      }
-    />
+    <section className="relative min-h-svh bg-background">
+      <HeroContent
+        landed={true}
+        reduce={Boolean(reduce)}
+        mood={heroMood}
+        stats={`${decks.length} decks · ${cards} cards · ${REACTIONS.length} checked reactions`}
+        onMore={onMore}
+      />
+    </section>
   );
 }
 
@@ -119,7 +112,7 @@ function HeroContent({
 }) {
   return (
     <motion.div
-      className="absolute inset-0 z-20 flex"
+      className="relative z-20 flex min-h-svh"
       initial={false}
       animate={{ opacity: landed ? 1 : 0 }}
       // Slower than the swarm's last movement and started a beat into it, so
@@ -135,7 +128,7 @@ function HeroContent({
           because a positioned element paints over a static one regardless of
           document order, so without the pair the parallax would sit on top of
           the headline rather than behind it. */}
-      <BerryParallax className="z-0" />
+
 
       <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col px-6 pt-[7vh] pb-8 sm:px-10">
         {/* Band one: what we sell, and who is selling it. */}

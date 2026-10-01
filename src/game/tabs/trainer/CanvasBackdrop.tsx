@@ -70,7 +70,7 @@ const MAX_RIPPLES = 4;
  */
 const QUIET_MS = 260;
 
-export function CanvasBackdrop({ mode, surface, reducedMotion }: CanvasBackdropProps) {
+function AtmosphericCanvasBackdrop({ mode, surface, reducedMotion }: CanvasBackdropProps) {
   const [ripples, setRipples] = useState<readonly Ripple[]>([]);
   const nextId = useRef(0);
   const lastAt = useRef(0);
@@ -169,4 +169,10 @@ export function CanvasBackdrop({ mode, surface, reducedMotion }: CanvasBackdropP
     </div>
     </>
   );
+}
+
+// Owner direction: decorative backgrounds are temporarily disabled.
+const ATMOSPHERE_ENABLED = false;
+export function CanvasBackdrop(props: CanvasBackdropProps) {
+  return ATMOSPHERE_ENABLED ? <AtmosphericCanvasBackdrop {...props} /> : null;
 }

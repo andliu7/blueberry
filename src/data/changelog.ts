@@ -25,6 +25,11 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    date: "2026-09-27",
+    title: "The calendar gets a key",
+    body: "Dates on the course calendar now show as chips with a colour bar and the room after the title, the day numbers use the site's serif, and a key button beside the view switch says what each colour means.",
+  },
+  {
     date: "2026-08-21",
     title: "The front page gets to the point",
     body: "The home page now opens on what the site is and one Get Started button, instead of a long animation before anything can be pressed. The berry-window animation still plays - scroll and it opens.",

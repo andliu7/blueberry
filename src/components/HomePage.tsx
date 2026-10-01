@@ -9,6 +9,7 @@ import {
   Timer,
 } from "lucide-react";
 import { HomeHero } from "@/components/HomeHero";
+import { CinematicHero } from "@/components/ui/cinematic-landing-hero";
 import { Marquee } from "@/components/ui/marquee";
 import { Dashboard, useDashboard } from "@/components/Dashboard";
 import { SiteHeader } from "@/components/ui/site-header";
@@ -237,6 +238,8 @@ function Body({
 
       {/* Screen two: the board. */}
       <Board ref={boardRef} deckCountLabel={`${decks.length} decks · ${cards} cards`} />
+
+      <div className="mx-auto max-w-6xl px-4 pb-16 sm:px-6"><CinematicHero /></div>
 
       {/* Above the footer, and off the deck pages. A carousel of people
           praising the site belongs where someone is deciding whether to use
