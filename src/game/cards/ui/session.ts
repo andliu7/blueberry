@@ -150,31 +150,6 @@ export interface SessionSummary {
   readonly cameBack: number;
   /** Cards whose LAST rating was good or easy. */
   readonly solid: number;
-  readonly diamonds: number;
-}
-
-/**
- * Diamonds for a review, and this is a DISPLAY number.
- *
- * CLAUDE.md's non negotiables put the currency server side: balances and
- * spends live in Postgres behind RLS, and a client that can write its own
- * balance has a free store. Phase 6 computes this from the append only attempt
- * history. Until then the surface still has to put a number on the button,
- * because the reference's start button carries its reward and a button that
- * promises nothing is a button nobody presses. So the rule is stated here,
- * once, in a function the server can later disagree with harmlessly.
- *
- * One per card, capped, because a hundred card cram should not out-earn a
- * week of lessons. Nothing is deducted for a card that came back: the borrow
- * from CLAUDE.md is to reward returning and never to punish leaving, and
- * charging a student for pressing Again teaches them to lie to the scheduler,
- * which breaks the one system the whole flashcard surface exists to feed.
- */
-export const REVIEW_DIAMONDS_PER_CARD = 1;
-export const REVIEW_DIAMONDS_CAP = 20;
-
-export function reviewDiamonds(reviewed: number): number {
-  return Math.min(reviewed * REVIEW_DIAMONDS_PER_CARD, REVIEW_DIAMONDS_CAP);
 }
 
 export function sessionSummary(state: ReviewSessionState): SessionSummary {
@@ -192,7 +167,6 @@ export function sessionSummary(state: ReviewSessionState): SessionSummary {
     total: state.total,
     cameBack: state.requeued.length,
     solid,
-    diamonds: reviewDiamonds(state.finished.length),
   };
 }
 

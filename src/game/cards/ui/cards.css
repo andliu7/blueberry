@@ -354,13 +354,15 @@
   align-items: center;
 }
 
-/* Big enough that the drawing's own atom labels read: RDKit renders the
-   reagents at a fixed bond length on a 168 by 104 canvas, so 4rem tall is
-   close to its natural size, where round 1's 3rem cap left 6px labels. */
+/* Tall enough that the drawing's own atom labels read: RDKit draws each
+   reagent at a fixed bond length on a 168 by 104 canvas with 22-unit labels
+   (build_curriculum.py, REAGENT_FONT_SIZE), so 4.75rem tall sets the letters
+   at 11px or more, where round 2's 4.5rem and RDKit's bond-scaled labels left
+   them at 6px. cardsContrast.test.ts reads this height to check that. */
 .rxn-reagent__art {
   width: auto;
   max-width: 9rem;
-  height: 4.5rem;
+  height: 4.75rem;
   object-fit: contain;
 }
 
@@ -601,6 +603,9 @@
    horizontal ones to us, so a swipe never fights the scroll. */
 .run__card {
   touch-action: pan-y;
+  /* A mouse swipe used to select the reagent drawing and leave a blue box
+     over it through the reveal (round 2 critic). */
+  user-select: none;
   transition: transform var(--dur-fast, 140ms) var(--ease-out, ease-out);
   will-change: transform;
 }
@@ -643,49 +648,65 @@
   padding: 0.75rem 1rem max(0.75rem, env(safe-area-inset-bottom));
 }
 
-/* The three products to call. Square tiles, drawings only: the names would
-   give the answer away, so they appear after the pick. */
+/* THE THREE PRODUCTS TO CALL, one row each, in the dock. Round 2 set them as
+   three 114px tiles under 271px of empty page, so each drawing was 63px tall
+   with 6px atom labels, and after the pick the marked options moved under
+   the card, below the fold. Now they are full-width rows that STAY where
+   they were picked: the pick marks them in place, under the verdict line,
+   and the dock never scrolls, so the marking is on screen on every card.
+   Drawings only before the pick (the names would give the answer away); the
+   caption joins each row after it. */
 .predict {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.5rem;
+  /* The drawing's height is the label size: the generator draws on a 300
+     by 128 canvas with 23-unit labels (scripts/build_card_distractors.py),
+     so 5.5rem tall sets the letters at 11px or more. cardsContrast.test.ts
+     reads this to check that from the files. */
+  --predict-art-height: 5.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .predict__option {
   display: flex;
-  min-height: 6rem;
+  min-height: 2.75rem;
   align-items: center;
   justify-content: center;
+  gap: 0.5rem;
   border-radius: 0.875rem;
   border: 2px solid var(--bb-border);
   background: var(--bb-card);
-  padding: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  text-align: left;
   touch-action: manipulation;
+  user-select: none;
 }
 
-/* The pick is the task, so its drawings are the biggest thing in the dock:
-   5rem tall, where round 1's 4.25rem left 6px atom labels on a phone. */
-.predict__option img {
-  width: 100%;
-  max-height: 5rem;
+.predict__art {
+  height: var(--predict-art-height);
+  width: auto;
+  max-width: 62%;
+  flex: none;
   object-fit: contain;
+  -webkit-user-drag: none;
 }
 
-/* AFTER THE PICK THE TILES KEEP THEIR SIZE. Round 1 shrank them to 32px
-   thumbnails at the one moment a student compares their call with the
-   answer. They now move up into the stage under the card, full size, each
-   with its caption, and each state is said in WORDS as well as colour:
-   "Product" with a check on the right one, "Your call" on the student's. */
-.predict--review {
-  gap: 0.5rem;
-}
-
+/* After the pick: the drawing keeps its size and moves to the row's start,
+   and the words fill the rest of the row. */
 .predict--review .predict__option {
-  flex-direction: column;
   justify-content: flex-start;
+}
+
+.predict__words {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
   gap: 0.25rem;
-  padding: 0.375rem 0.25rem 0.5rem;
-  text-align: center;
 }
 
 .predict__badge {
@@ -765,6 +786,14 @@
 .cards-danger {
   color: var(--bb-destructive);
   border-color: color-mix(in srgb, var(--bb-destructive) 60%, var(--bb-border));
+}
+
+/* A phone shorter than 720px cannot hold the card and three 5.5rem rows:
+   the rows give way first, so the card above them stays readable. */
+@media (max-height: 720px) {
+  .predict {
+    --predict-art-height: 4.25rem;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

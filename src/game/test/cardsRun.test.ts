@@ -29,10 +29,11 @@ import type { Card } from "../cards/types";
 import { RATING_LABELS, RATINGS } from "../cards/types";
 import { cardFromDraft } from "../cards/ui/composer";
 import { intervalLabel } from "../cards/ui/intervalLabel";
-import { PREDICT_DISTRACTORS, PREDICT_GAPS } from "../cards/predictDistractors.generated";
+import { PREDICT_ANSWERS, PREDICT_DISTRACTORS, PREDICT_GAPS } from "../cards/predictDistractors.generated";
 import { predictionChoices, PREDICT_OPTIONS } from "../cards/ui/predict";
 import { GradeDock, Run } from "../cards/ui/Run";
-import { formulaParts, normaliseFormula } from "../cards/ui/formulaText";
+import { formulaParts, isFormulaWord, normaliseFormula, proseParts } from "../cards/ui/formulaText";
+import { CardFace } from "../cards/ui/CardFace";
 import { sessionSummary, startSession, rateCurrent } from "../cards/ui/session";
 import {
   calledLine,
@@ -149,6 +150,64 @@ describe("calling the product", () => {
     }
   });
 
+  /* THE ODD-ONE-OUT PINS, round 3. The round 2 critic solved eight cards
+     without chemistry: both wrong options were one kind of mistake (both
+     "substituted twice", both the group moved onto the ring), so the answer
+     was the drawing that did not match the other two. */
+  it("makes the two wrong options on a card two different kinds of mistake", () => {
+    for (const reaction of PREDICTED) {
+      const kinds = (PREDICT_DISTRACTORS[reaction.id] ?? []).map((d) => d.kind);
+      expect(new Set(kinds).size, `${reaction.id}: ${kinds.join(", ")}`).toBe(kinds.length);
+    }
+  });
+
+  it("never leaves the answer the odd formula out", () => {
+    for (const reaction of PREDICTED) {
+      const [first, second] = PREDICT_DISTRACTORS[reaction.id] ?? [];
+      if (first === undefined || second === undefined || first.formula !== second.formula) continue;
+      expect(reaction.product_formula, reaction.id).toBe(first.formula);
+    }
+  });
+
+  /* THE LOOK-ALIKE PIN, round 3. "Pick the option most like the start"
+     (Morgan fingerprint similarity) found the answer on 25 of 39 cards in
+     round 2, against 13 by chance. Three strategies are scored here, because
+     a deck where the answer is NEVER the closest teaches "never pick the
+     closest" instead: the most similar, the middle and the least similar
+     option, an exact tie splitting the credit. Each must stay within two
+     standard errors of a fair three-way guess over the predict cards,
+     2 * sqrt((1/3)(2/3) / n): the band a coin-flipping student lands in 19
+     runs out of 20, so a strategy above it is learning something, not lucky.
+     The similarities are RDKit's, written by the generator next to each
+     structure; the generator's header says how they are measured. */
+  it("gives no look-alike strategy better odds than a guess", () => {
+    const strategies = ["closest", "middle", "farthest"] as const;
+    const score = { closest: 0, middle: 0, farthest: 0 };
+    for (const reaction of PREDICTED) {
+      const answer = PREDICT_ANSWERS[reaction.id];
+      expect(answer, reaction.id).toBeDefined();
+      const values = [answer!.similarity, ...(PREDICT_DISTRACTORS[reaction.id] ?? []).map((d) => d.similarity)];
+      const ordered = [...values].sort((a, b) => b - a);
+      strategies.forEach((strategy, position) => {
+        const tied = values.filter((value) => value === ordered[position]);
+        score[strategy] += (ordered[position] === values[0] ? 1 : 0) / tied.length;
+      });
+    }
+    const bound = 1 / 3 + 2 * Math.sqrt((1 / 3) * (2 / 3) / PREDICTED.length);
+    for (const strategy of strategies) {
+      expect(score[strategy] / PREDICTED.length, strategy).toBeLessThanOrEqual(bound);
+    }
+  });
+
+  it("never makes the answer clearly the closest to the start on any one card", () => {
+    // The generator's tie band (TIE in scripts/build_card_distractors.py).
+    for (const reaction of PREDICTED) {
+      const answer = PREDICT_ANSWERS[reaction.id]?.similarity ?? 1;
+      const closest = Math.max(...(PREDICT_DISTRACTORS[reaction.id] ?? []).map((d) => d.similarity));
+      expect(closest, reaction.id).toBeGreaterThanOrEqual(answer - 0.05);
+    }
+  });
+
   it("puts the 1,2 product beside the 1,4 answer on the diene card, derived rather than typed", () => {
     const kinds = (PREDICT_DISTRACTORS["diene-1-4-addition"] ?? []).map((d) => d.kind);
     expect(kinds).toContain("allylic");
@@ -163,7 +222,10 @@ describe("calling the product", () => {
   });
 
   it("deals the same options in the same order every time, and moves the answer between cards", () => {
-    const card = registryCard("wolff-kishner");
+    // A card that HAS a predict step: wolff-kishner, used before, is a gap
+    // since round 3 and would compare null with null.
+    const card = registryCard("lialh4-reduction");
+    expect(predictionChoices(card, REACTIONS)).not.toBeNull();
     expect(predictionChoices(card, REACTIONS)).toEqual(predictionChoices(card, REACTIONS));
     const positions = new Set(
       PREDICTED.map((reaction) =>
@@ -181,7 +243,9 @@ describe("calling the product", () => {
 
 describe("the run's first frame", () => {
   it("asks for the call, names no option, and gives the card no flip of its own", () => {
-    const card = registryCard("gilman-to-ketone");
+    // gilman-to-ketone, used here before, has no predict step since round 3.
+    const card = registryCard("lialh4-reduction");
+    expect(predictionChoices(card, REACTIONS)).not.toBeNull();
     const source = createLocalDecks({ now: () => NOON });
     const html = renderToStaticMarkup(createElement(Run, { cards: [card], source, journal: [], onExit: () => undefined }));
     expect(html).toContain("Call the product");
@@ -237,17 +301,38 @@ describe("the grade dock", () => {
 });
 
 describe("streaks, calls and swipes", () => {
-  it("counts consecutive good or easy, restarts quietly on hard or again", () => {
-    const stats = runStats(
-      ["good", "easy", "hard", "good", "good", "good", "again"].map((rating, index) => ({
-        cardId: `c${index}`,
-        rating: rating as (typeof RATINGS)[number],
-      })),
-      [],
-    );
+  /* THE STREAK COUNTS RIGHT CALLS, round 3. It counted Good and Easy grades,
+     and the round 2 critic ended a run of six wrong calls, each graded Good,
+     on "7 Best streak" with a "6 in a row" chip on the way. */
+  it("counts consecutive right calls, in the order made, and restarts quietly on a miss", () => {
+    const calls = [true, true, false, true, true, true, false].map((correct, index) => ({ cardId: `c${index}`, correct }));
+    const stats = runStats([], calls);
     expect(stats.bestStreak).toBe(3);
     expect(stats.streak).toBe(0);
-    expect(stats.split).toEqual({ again: 1, hard: 1, good: 4, easy: 1 });
+  });
+
+  it("gives no streak to wrong calls, however they are graded", () => {
+    const ratings = Array.from({ length: 6 }, (_, index) => ({ cardId: `c${index}`, rating: "good" as const }));
+    const calls = ratings.map(({ cardId }) => ({ cardId, correct: false }));
+    const stats = runStats(ratings, calls);
+    expect(stats.streak).toBe(0);
+    expect(stats.bestStreak).toBe(0);
+    expect(calledLine(stats)).toBe("Called it 0 of 6");
+    expect(stats.split).toEqual({ again: 0, hard: 0, good: 6, easy: 0 });
+  });
+
+  it("reads a card called twice once in the tally, and in order for the streak", () => {
+    // a right, b wrong, c right, then b again after Again, right this time.
+    const stats = runStats([], [
+      { cardId: "a", correct: true },
+      { cardId: "b", correct: false },
+      { cardId: "c", correct: true },
+      { cardId: "b", correct: true },
+    ]);
+    expect(stats.predicted).toBe(3);
+    expect(stats.called).toBe(3);
+    // The miss on b sat between a and c, so the best run is c then b.
+    expect(stats.bestStreak).toBe(2);
   });
 
   it("tallies calls, and says nothing when none were made", () => {
@@ -280,6 +365,16 @@ describe("streaks, calls and swipes", () => {
 });
 
 describe("the summary hears the calls", () => {
+  /* No reward the economy does not pay: the summary showed "7 Diamonds" that
+     nothing credited, and ECONOMY.md names no flashcard earner. */
+  it("shows no diamonds on the summary", () => {
+    const html = renderToStaticMarkup(
+      createElement(Run, { cards: [], source: createLocalDecks({ now: () => NOON }), journal: [], onExit: () => undefined }),
+    );
+    expect(html).toContain("Done");
+    expect(html).not.toMatch(/diamond/i);
+  });
+
   function finished(ratings: readonly (typeof RATINGS)[number][]) {
     let state = startSession(ratings.map((_, index) => ({
       id: `c${index}`, front: "f", back: "b", why: "", tags: [], source: { kind: "composed" as const, at: "" },
@@ -327,6 +422,50 @@ describe("reagents set as formulas, never as SMILES", () => {
     for (const text of ["buta-1,3-diene", "2-phenylpropan-2-ol", "pH 4 to 5", "N-methyl imine", "cyclopentene + NBS"]) {
       expect(normaliseFormula(text)).toBe(text);
       expect(set(text).every((part) => part.kind === "plain"), text).toBe(true);
+    }
+  });
+
+  /* ROUND 3: "What matters here" printed NaNH2, NaBH4, H2SO4 and six more
+     flat, because the note went to the page as plain text. Every count in a
+     formula word of every registry note is now set as a subscript, and the
+     prose around it, mechanism names included, is left alone. */
+  it("sets every formula in every registry note, and nothing else", () => {
+    for (const reaction of REACTIONS) {
+      for (const stage of reaction.stages) {
+        const parts = proseParts(stage.conditions.notes);
+        // No formula word is left with its digits on the baseline.
+        for (const part of parts.filter((run) => run.kind === "plain")) {
+          for (const word of part.text.split(/\s+/)) {
+            expect(isFormulaWord(word.replace(/[.,;:!?)]+$/, "")), `${reaction.id}: ${word}`).toBe(false);
+          }
+        }
+      }
+    }
+    expect(proseParts("plus NaNH2.")).toEqual([
+      { text: "plus NaNH", kind: "plain" },
+      { text: "2", kind: "sub" },
+      { text: ".", kind: "plain" },
+    ]);
+    for (const text of ["SN2, so a primary halide only.", "E1 through the carbocation", "1,2 and 1,4", "at -78 C"]) {
+      expect(proseParts(text).every((run) => run.kind === "plain"), text).toBe(true);
+    }
+  });
+
+  it("renders the acetylide card's note with NaNH2 subscripted", () => {
+    const card = registryCard("acetylide-addition");
+    const html = renderToStaticMarkup(createElement(CardFace, { card, revealed: true, onReveal: () => undefined }));
+    expect(html).toContain("NaNH</span><sub>2</sub>");
+  });
+
+  /* ROUND 3: the workup note said "The reduction itself is not acidic" on a
+     Grignard addition, an acetylide addition and an epoxide opening. It now
+     names the reaction's own type, filled in by build_curriculum.py. */
+  it("names each workup's first step by the reaction's own type", () => {
+    for (const reaction of REACTIONS) {
+      for (const stage of reaction.stages) {
+        const named = stage.conditions.notes.match(/The (.+) itself is not acidic/);
+        if (named !== null) expect(named[1], reaction.id).toBe(reaction.reaction_type);
+      }
     }
   });
 

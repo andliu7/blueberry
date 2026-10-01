@@ -174,7 +174,11 @@ function Back({ card, scheme }: { readonly card: Card; readonly scheme: Reaction
     if (scheme.name === undefined && why.length === 0) return null;
     return (
       <div className="rxn-reveal">
-        {scheme.name !== undefined && <h3 className="m-0 text-scale-base font-semibold">{scheme.name}</h3>}
+        {scheme.name !== undefined && (
+          <h3 className="m-0 text-scale-base font-semibold">
+            <FormulaLabel text={scheme.name} prose />
+          </h3>
+        )}
         {why.length > 0 && (
           <p className="whitespace-pre-line text-scale-sm leading-normal text-bb-muted-foreground">{why}</p>
         )}
@@ -201,12 +205,20 @@ function RevealPanel({ reveal, name }: { readonly reveal: ReactionCardData["reve
   const chips = entries.filter((entry) => CHIP_FIELDS.has(entry.field));
   return (
     <section className="rxn-reveal">
-      {name !== undefined && name.trim().length > 0 && <h3 className="m-0 text-scale-base font-semibold">{name}</h3>}
+      {name !== undefined && name.trim().length > 0 && (
+        <h3 className="m-0 text-scale-base font-semibold">
+          <FormulaLabel text={name} prose />
+        </h3>
+      )}
       <dl className="rxn-reveal__rows">
         {rows.map((entry) => (
           <div key={entry.field} className="rxn-reveal__row">
             <dt className={EYEBROW}>{entry.label}</dt>
-            <dd className="whitespace-pre-line text-scale-sm leading-6">{entry.value}</dd>
+            {/* The authored notes mention reagents in ASCII ("NaNH2"); each
+                formula word is set with its subscripts, the prose left alone. */}
+            <dd className="whitespace-pre-line text-scale-sm leading-6">
+              <FormulaLabel text={entry.value} prose />
+            </dd>
           </div>
         ))}
         {chips.length > 0 && (

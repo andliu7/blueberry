@@ -6,12 +6,12 @@
                   xml:space='preserve'
 width='168px' height='104px' viewBox='0 0 168 104'>
 <!-- END OF HEADER -->
-<path class='bond-0 atom-0 atom-1' d='M 67.9,51.8 L 82.8,51.8' style='fill:none;fill-rule:evenodd;stroke:#E5E2E0;stroke-width:2.0px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1' />
-<path class='bond-0 atom-0 atom-1' d='M 82.8,51.8 L 97.8,51.8' style='fill:none;fill-rule:evenodd;stroke:#CC8CF2;stroke-width:2.0px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1' />
-<path class='atom-1' d='M 98.8 47.3
-L 100.0 47.3
-L 100.0 56.3
-L 98.8 56.3
-L 98.8 47.3
+<path class='bond-0 atom-0 atom-1' d='M 67.7,51.8 L 82.4,51.8' style='fill:none;fill-rule:evenodd;stroke:#E5E2E0;stroke-width:2.0px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1' />
+<path class='bond-0 atom-0 atom-1' d='M 82.4,51.8 L 97.1,51.8' style='fill:none;fill-rule:evenodd;stroke:#CC8CF2;stroke-width:2.0px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1' />
+<path class='atom-1' d='M 98.1 44.0
+L 100.2 44.0
+L 100.2 59.6
+L 98.1 59.6
+L 98.1 44.0
 ' fill='#CC8CF2'/>
 </svg>

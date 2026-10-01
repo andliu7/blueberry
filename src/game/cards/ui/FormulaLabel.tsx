@@ -8,15 +8,29 @@
  * copy is the same characters with the tags taken off.
  */
 
-import { formulaParts, normaliseFormula } from "./formulaText";
+import { formulaParts, normaliseFormula, proseParts } from "./formulaText";
 
-export function FormulaLabel({ text, className }: { readonly text: string; readonly className?: string }) {
-  const plain = normaliseFormula(text);
+/**
+ * `prose` is for a sentence or a name that MENTIONS formulas ("Acetylide from
+ * terminal alkyne plus NaNH2"): only its formula words are set, see
+ * proseParts. Without it the whole text is one formula, as a reagent label is.
+ */
+export function FormulaLabel({
+  text,
+  className,
+  prose = false,
+}: {
+  readonly text: string;
+  readonly className?: string;
+  readonly prose?: boolean;
+}) {
+  const parts = prose ? proseParts(text) : formulaParts(normaliseFormula(text));
+  const plain = parts.map((part) => part.text).join("");
   return (
     <span className={className}>
       <span className="sr-only">{plain}</span>
       <span aria-hidden="true">
-        {formulaParts(plain).map((part, index) =>
+        {parts.map((part, index) =>
           part.kind === "sub" ? (
             <sub key={index}>{part.text}</sub>
           ) : part.kind === "sup" ? (

@@ -131,7 +131,7 @@ const DATA: {
             "temperature_c": null,
             "solvent": "water",
             "acid_base": "acidic",
-            "notes": "Separate step. The reduction itself is not acidic."
+            "notes": "Separate step. The nucleophilic addition itself is not acidic."
           },
           "byproducts": []
         }
@@ -273,7 +273,7 @@ const DATA: {
             "temperature_c": null,
             "solvent": "water",
             "acid_base": "acidic",
-            "notes": "Separate step. The reduction itself is not acidic."
+            "notes": "Separate step. The nucleophilic addition itself is not acidic."
           },
           "byproducts": []
         }
@@ -2534,7 +2534,7 @@ const DATA: {
             "temperature_c": null,
             "solvent": "water",
             "acid_base": "acidic",
-            "notes": "Separate step. The reduction itself is not acidic."
+            "notes": "Separate step. The nucleophilic substitution itself is not acidic."
           },
           "byproducts": []
         }

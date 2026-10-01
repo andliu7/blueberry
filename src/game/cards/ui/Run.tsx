@@ -33,6 +33,7 @@ import { RATING_LABELS, RATINGS } from "../types";
 import { CardFace, Drawing } from "./CardFace";
 import { cardSchedulerState } from "./cardState";
 import { dueForecast } from "./forecast";
+import { FormulaLabel } from "./FormulaLabel";
 import { intervalLabel } from "./intervalLabel";
 import { predictionChoices, type PredictOption } from "./predict";
 import {
@@ -66,8 +67,6 @@ export interface RunProps {
   readonly journal: readonly SavedMistake[];
   /** Leaving, early or after the summary. Every grade is already committed. */
   readonly onExit: () => void;
-  /** Called from the summary with the diamonds the run displayed. */
-  readonly onDone?: (diamonds: number) => void;
 }
 
 /** The chip family per grade. Again is periwinkle, never red: see cards.css. */
@@ -88,7 +87,7 @@ interface Call {
   readonly correct: boolean;
 }
 
-export function Run({ cards, source, journal, onExit, onDone }: RunProps) {
+export function Run({ cards, source, journal, onExit }: RunProps) {
   const [state, setState] = useState<ReviewSessionState>(() => startSession(cards));
   const [calls, setCalls] = useState<readonly Call[]>([]);
   const [dx, setDx] = useState(0);
@@ -99,7 +98,9 @@ export function Run({ cards, source, journal, onExit, onDone }: RunProps) {
 
   const card = currentCard(state);
   const done = isFinished(state);
-  const call = card === null ? undefined : calls.find((entry) => entry.cardId === card.id);
+  // `calls` keeps every call in order (the streak reads that order); this
+  // card's call is its latest, since a card back after Again is called again.
+  const call = card === null ? undefined : [...calls].reverse().find((entry) => entry.cardId === card.id);
   const choices = useMemo(() => (card === null ? null : predictionChoices(card, REACTIONS)), [card]);
   const predictions: PredictionRecord[] = calls.map(({ cardId, correct }) => ({ cardId, correct }));
   const stats = runStats(state.ratings, predictions);
@@ -119,10 +120,8 @@ export function Run({ cards, source, journal, onExit, onDone }: RunProps) {
   // honest call (null) and counts as a miss, which is what it is.
   const callIt = (option: PredictOption | null): void => {
     if (card === null || state.revealed) return;
-    // A card that came back after Again is called again, so the latest call
-    // for a card replaces its earlier one rather than counting twice.
     const entry: Call = { cardId: card.id, key: option?.key ?? null, correct: option?.correct === true };
-    setCalls([...calls.filter((previous) => previous.cardId !== card.id), entry]);
+    setCalls([...calls, entry]);
     flip();
   };
 
@@ -168,15 +167,7 @@ export function Run({ cards, source, journal, onExit, onDone }: RunProps) {
   if (done) {
     return (
       <div className="run" role="dialog" aria-modal="true" aria-label="Review finished">
-        <RunSummary
-          state={state}
-          stats={stats}
-          forecast={dueForecast(snapshot, journal, new Date())}
-          onDone={(diamonds) => {
-            onDone?.(diamonds);
-            onExit();
-          }}
-        />
+        <RunSummary state={state} stats={stats} forecast={dueForecast(snapshot, journal, new Date())} onDone={onExit} />
       </div>
     );
   }
@@ -271,18 +262,18 @@ export function Run({ cards, source, journal, onExit, onDone }: RunProps) {
             {...(choices === null ? {} : { frontPrompt: "Call the product below" })}
           />
         </div>
-        {/* After the pick, the three options move up here at full size, under
-            the card's own explanation, each saying in words what it is. */}
-        {state.revealed && choices !== null && <OptionsReview choices={choices} call={call} />}
       </div>
 
       <div className="run__dock">
         {state.revealed ? (
           <>
             {choices !== null && (
-              <p className="m-0 text-scale-sm font-semibold" aria-live="polite">
-                {verdictLine(call)}
-              </p>
+              <>
+                <p className="m-0 text-scale-sm font-semibold" aria-live="polite">
+                  {verdictLine(call)}
+                </p>
+                <PredictOptions choices={choices} call={call} />
+              </>
             )}
             <GradeDock reviewState={reviewState} suggested={suggested} onPress={press} />
             <p className="m-0 text-center text-scale-xs text-bb-muted-foreground">
@@ -290,7 +281,7 @@ export function Run({ cards, source, journal, onExit, onDone }: RunProps) {
             </p>
           </>
         ) : choices !== null ? (
-          <PredictPick choices={choices} onCall={callIt} />
+          <PredictOptions choices={choices} onCall={callIt} />
         ) : (
           <button type="button" className="chip3d press bb-title-face w-full text-scale-lg font-bold" onClick={flip}>
             Show the answer
@@ -303,9 +294,10 @@ export function Run({ cards, source, journal, onExit, onDone }: RunProps) {
 
 /** The one line over the grades after a pick. Coach voice, never a scold. */
 function verdictLine(call: Call | undefined): string {
-  if (call === undefined || call.key === null) return "No call this time. All three options are under the card.";
-  if (call.correct) return "You called it. The other two are under the card.";
-  return "Not this time. Your call and the product are marked under the card.";
+  // One line at 390px, so the marked rows under it start as high as they can.
+  if (call === undefined || call.key === null) return "No call this time. The product is marked.";
+  if (call.correct) return "You called it. Here is what each one is.";
+  return "Not this time. Both are marked below.";
 }
 
 /**
@@ -370,69 +362,71 @@ function Progress({ state }: { readonly state: ReviewSessionState }) {
 }
 
 /**
- * "Call the product": three drawings, one of them the answer, and an honest
- * way out. Drawings only, because the names would give the answer away; keys
- * 1 to 3 pick in the same order.
+ * "Call the product": three drawings, one of them the answer, in rows that
+ * stay put through the pick. Before it (`onCall` given) each row is a button
+ * and shows its drawing only, because the names would give the answer away;
+ * keys 1 to 3 pick in the same order, and "I don't know yet" is the honest
+ * way out. After it (`call` given) the same rows are marked IN PLACE, the way
+ * Quizlet marks its options, each with words saying what it is: the
+ * product's name, or what the wrong one is relative to it ("the other end of
+ * the allyl system"), so a miss still teaches. State is carried in words (the
+ * "Product" and "Your call" badges) and in the border style, never in colour
+ * alone. One component for both moments, so the rows cannot move between
+ * them: round 2 moved them under the card and below the fold.
  */
-function PredictPick({
+function PredictOptions({
   choices,
   onCall,
+  call,
 }: {
   readonly choices: readonly PredictOption[];
-  readonly onCall: (option: PredictOption | null) => void;
+  readonly onCall?: (option: PredictOption | null) => void;
+  readonly call?: Call | undefined;
 }) {
-  return (
-    <div className="flex flex-col gap-2">
-      <p className="m-0 text-scale-sm font-semibold">Call the product</p>
-      <div className="predict">
-        {choices.map((option, index) => (
-          <button
-            key={option.key}
-            type="button"
-            className="predict__option press"
-            aria-label={`Option ${index + 1}`}
-            aria-keyshortcuts={String(index + 1)}
-            onClick={() => onCall(option)}
-          >
-            <Drawing light={option.light} dark={option.dark} alt="" className="predict__art" />
-          </button>
-        ))}
-      </div>
-      <button type="button" className="cards-ghost press w-full text-scale-sm" onClick={() => onCall(null)}>
-        I don't know yet
-      </button>
-    </div>
-  );
-}
-
-/**
- * The three options again after the pick, full size. Each says what it is:
- * the product's name, or what the wrong one is relative to it ("the other end
- * of the allyl system"), so a miss still teaches. State is carried in words
- * (the "Product" and "Your call" badges) and in the border style, never in
- * colour alone.
- */
-function OptionsReview({ choices, call }: { readonly choices: readonly PredictOption[]; readonly call: Call | undefined }) {
-  return (
-    <section className="mt-4 flex flex-col gap-2" aria-label="The three options">
-      <h3 className="m-0 text-scale-sm font-semibold text-bb-muted-foreground">The three options</h3>
-      <ul className="predict predict--review m-0 list-none p-0">
-        {choices.map((option) => {
-          const picked = call?.key === option.key;
-          return (
-            <li
+  if (onCall !== undefined) {
+    return (
+      <div className="flex flex-col gap-2">
+        {/* No heading here: the card right above says "Call the product
+            below", and the line it would take is the card's last line. */}
+        <div className="predict" role="group" aria-label="Call the product">
+          {choices.map((option, index) => (
+            <button
               key={option.key}
-              className={`predict__option ${option.correct ? "predict__option--right" : ""} ${picked ? "predict__option--picked" : ""}`}
+              type="button"
+              className="predict__option press"
+              aria-label={`Option ${index + 1}`}
+              aria-keyshortcuts={String(index + 1)}
+              onClick={() => onCall(option)}
             >
               <Drawing light={option.light} dark={option.dark} alt="" className="predict__art" />
+            </button>
+          ))}
+        </div>
+        <button type="button" className="cards-ghost press w-full text-scale-sm" onClick={() => onCall(null)}>
+          I don't know yet
+        </button>
+      </div>
+    );
+  }
+  return (
+    <ul className="predict predict--review" aria-label="The three options">
+      {choices.map((option) => {
+        const picked = call?.key === option.key;
+        return (
+          <li
+            key={option.key}
+            className={`predict__option ${option.correct ? "predict__option--right" : ""} ${picked ? "predict__option--picked" : ""}`}
+          >
+            <Drawing light={option.light} dark={option.dark} alt="" className="predict__art" />
+            <span className="predict__words">
               {option.correct && <span className="predict__badge predict__badge--right">Product</span>}
               {picked && <span className="predict__badge predict__badge--picked">Your call</span>}
-              <span className="text-scale-xs leading-tight">{option.label}</span>
-            </li>
-          );
-        })}
-      </ul>
-    </section>
+              <FormulaLabel text={option.label} prose className="text-scale-xs leading-tight" />
+            </span>
+          </li>
+        );
+      })}
+    </ul>
   );
 }
 
@@ -450,7 +444,7 @@ function RunSummary({
   readonly state: ReviewSessionState;
   readonly stats: RunStats;
   readonly forecast: readonly { readonly label: string; readonly count: number }[];
-  readonly onDone: (diamonds: number) => void;
+  readonly onDone: () => void;
 }) {
   const summary = sessionSummary(state);
   const called = calledLine(stats);
@@ -468,10 +462,15 @@ function RunSummary({
         <p className="m-0 text-scale-base leading-normal text-bb-muted-foreground">{summaryLine(summary)}</p>
       </div>
 
-      <div className="grid grid-cols-3 gap-2 text-center">
+      {/* NO DIAMONDS TILE. It showed one per card reviewed, whatever the
+          calls, and nothing ever credited it: a flashcard run writes no
+          attempt to the journal, and ECONOMY.md lists no flashcard earner
+          ("not earners: anything a client could fabricate without an attempt
+          record"). A reward the economy does not pay is not shown. The best
+          streak counts right calls (runStats.ts). */}
+      <div className="grid grid-cols-2 gap-2 text-center">
         <Stat value={called === null ? "None" : `${stats.called}/${stats.predicted}`} label="Called it" />
-        <Stat value={String(stats.bestStreak)} label="Best streak" />
-        <Stat value={String(summary.diamonds)} label="Diamonds" />
+        <Stat value={String(stats.bestStreak)} label="Best streak of right calls" />
       </div>
 
       {presses > 0 && (
@@ -506,7 +505,7 @@ function RunSummary({
       <button
         type="button"
         className="chip3d chip3d--go press bb-title-face mt-auto w-full text-scale-lg font-bold"
-        onClick={() => onDone(summary.diamonds)}
+        onClick={onDone}
       >
         Done
       </button>

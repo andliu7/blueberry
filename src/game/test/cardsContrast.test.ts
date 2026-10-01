@@ -16,6 +16,8 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import { REACTIONS, REAGENT_ART } from "../../data/reactions";
+import { PREDICT_ANSWERS, PREDICT_DISTRACTORS } from "../cards/predictDistractors.generated";
 
 const CARDS = readFileSync(fileURLToPath(new URL("../cards/ui/cards.css", import.meta.url)), "utf8");
 const THEME = readFileSync(fileURLToPath(new URL("../theme.css", import.meta.url)), "utf8");
@@ -142,4 +144,121 @@ it("never paints Again or a wrong call in the error ramp", () => {
   const inDanger = [...block(CARDS, ".cards-danger", "--bb-destructive").matchAll(/var\(--bb-destructive\)/g)].length;
   expect(inDanger).toBeGreaterThan(0);
   expect(uses).toBe(inDanger);
+});
+
+/* GLYPHS INSIDE THE DRAWINGS, round 3. Everything above reads CSS; the atom
+   labels RDKit draws live in the SVG files, and nobody measured them: the
+   round 2 critic found a blue N at 3.53:1 on the dark Product tile and 6px
+   labels on the options and reagents. These read the shipped files the cards
+   point at, every fill and every label, in both themes. */
+describe("the atom labels inside the card drawings", () => {
+  const PUBLIC = (path: string) => readFileSync(fileURLToPath(new URL(`../../../public/${path}`, import.meta.url)), "utf8");
+  const ROOT_PX = 16;
+
+  /** Each atom label's fill, and its tallest glyph in viewBox units (the letter, not a subscript). */
+  function labels(svg: string): { fill: string; height: number }[] {
+    const groups = new Map<string, { fill: string; height: number }>();
+    for (const match of svg.matchAll(/<path class='(atom-\d+)' d='([^']*)' fill='(#[0-9A-Fa-f]{6})'/g)) {
+      const numbers = [...(match[2] ?? "").matchAll(/-?\d+(?:\.\d+)?/g)].map((m) => Number(m[0]));
+      const ys = numbers.filter((_, index) => index % 2 === 1);
+      const height = Math.max(...ys) - Math.min(...ys);
+      const key = match[1] ?? "";
+      const previous = groups.get(key);
+      if (previous === undefined || height > previous.height) groups.set(key, { fill: match[3] ?? "", height });
+    }
+    return [...groups.values()];
+  }
+
+  function viewBoxHeight(svg: string): number {
+    const match = svg.match(/viewBox='0 0 [\d.]+ ([\d.]+)'/);
+    if (match?.[1] === undefined) throw new Error("no viewBox");
+    return Number(match[1]);
+  }
+
+  /** A rem height declared in cards.css, in CSS px. */
+  function remHeight(selector: string, property: string): number {
+    const match = block(CARDS, selector, property).match(new RegExp(`(^|[;\\s])${property}:\\s*([\\d.]+)rem`));
+    if (match?.[2] === undefined) throw new Error(`${selector} ${property} is not in rem`);
+    return Number(match[2]) * ROOT_PX;
+  }
+
+  /** color-mix(in srgb, a p%, b): a straight per-channel mix, as the browser does it in sRGB. */
+  function mix(a: string, share: number, b: string): string {
+    const channel = (hex: string, i: number) => Number.parseInt(hex.slice(1 + i * 2, 3 + i * 2), 16);
+    return `#${[0, 1, 2]
+      .map((i) => Math.round(channel(a, i) * share + channel(b, i) * (1 - share)).toString(16).padStart(2, "0"))
+      .join("")}`;
+  }
+
+  const options = PREDICTED_OPTIONS();
+  const reagents = DRAWN_REAGENTS();
+
+  function PREDICTED_OPTIONS(): { light: string; dark: string }[] {
+    const all = [...Object.values(PREDICT_ANSWERS), ...Object.values(PREDICT_DISTRACTORS).flat()];
+    return all.map((entry) => ({ light: entry.light ?? "", dark: entry.dark ?? "" }));
+  }
+
+  function DRAWN_REAGENTS(): { light: string; dark: string }[] {
+    return Object.values(REAGENT_ART).map((entry) => ({ light: entry.light ?? "", dark: entry.dark ?? "" }));
+  }
+
+  /** The Product tile's fill, from the rule that paints it: color-mix of two tokens. */
+  function productTile(theme: (typeof THEMES)[number]): string {
+    const rule = block(CARDS, ".predict__option--right", "background");
+    const match = rule.match(/color-mix\(in srgb, var\((--[\w-]+)\) (\d+)%, var\((--[\w-]+)\)\)/);
+    if (match?.[1] === undefined || match[2] === undefined || match[3] === undefined) throw new Error("Product tile is not a two-token mix");
+    const hex = (name: string) => token(theme.theme.includes(`${name}:`) ? theme.theme : THEMES[0].theme, name);
+    return mix(hex(match[1]), Number(match[2]) / 100, hex(match[3]));
+  }
+
+  it("sets every option label at 11px or more on a phone", () => {
+    const px = remHeight(".predict", "--predict-art-height");
+    expect(options.length).toBeGreaterThan(0);
+    for (const option of options) {
+      for (const path of [option.light, option.dark]) {
+        const svg = PUBLIC(path);
+        const scale = px / viewBoxHeight(svg);
+        for (const label of labels(svg)) expect(label.height * scale, path).toBeGreaterThanOrEqual(11);
+      }
+    }
+  });
+
+  it("sets every reagent label at 11px or more on the card", () => {
+    const px = remHeight(".rxn-reagent__art", "height");
+    for (const reagent of reagents) {
+      for (const path of [reagent.light, reagent.dark]) {
+        const svg = PUBLIC(path);
+        const scale = px / viewBoxHeight(svg);
+        for (const label of labels(svg)) expect(label.height * scale, path).toBeGreaterThanOrEqual(11);
+      }
+    }
+  });
+
+  it.each(THEMES)("holds every option label to 4.5 on the card and on the Product tile, $name", (theme) => {
+    const card = token(theme.theme, "--bb-card");
+    const tile = productTile(theme);
+    for (const option of options) {
+      const path = theme.name === "light" ? option.light : option.dark;
+      for (const label of labels(PUBLIC(path))) {
+        expect(ratio(label.fill, card), `${path} ${label.fill} on card`).toBeGreaterThanOrEqual(4.5);
+        expect(ratio(label.fill, tile), `${path} ${label.fill} on ${tile}`).toBeGreaterThanOrEqual(4.5);
+      }
+    }
+  });
+
+  it.each(THEMES)("holds every reagent and scheme label to 4.5 on the reaction panel, $name", (theme) => {
+    // .rxn-panel paints --bb-muted; the reagents, the start and the product sit on it.
+    const panel = token(theme.theme, "--bb-muted");
+    const paths = [
+      ...reagents.map((r) => (theme.name === "light" ? r.light : r.dark)),
+      ...REACTIONS.flatMap((r) =>
+        theme.name === "light" ? [r.art.start_light, r.art.product_light] : [r.art.start_dark, r.art.product_dark],
+      ),
+    ].filter((path): path is string => path !== undefined && path !== "");
+    for (const path of paths) {
+      for (const label of labels(PUBLIC(path))) {
+        expect(ratio(label.fill, panel), `${path} ${label.fill}`).toBeGreaterThanOrEqual(4.5);
+      }
+    }
+  });
 });

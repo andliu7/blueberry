@@ -16,13 +16,11 @@ import {
   isFinished,
   rateCurrent,
   reveal,
-  reviewDiamonds,
   sessionCounter,
   sessionProgress,
   sessionSummary,
   startSession,
   summaryHeadline,
-  REVIEW_DIAMONDS_CAP,
 } from "../cards/ui/session";
 import { intervalLabel } from "../cards/ui/intervalLabel";
 
@@ -147,14 +145,6 @@ describe("what the screen reports", () => {
     let state = startSession(THREE);
     for (let i = 0; i < 3; i += 1) state = rateCurrent(state, "good")!.state;
     expect(summaryHeadline(sessionSummary(state))).toBe("Straight through, no repeats");
-  });
-});
-
-describe("the display reward", () => {
-  it("is one per card and capped, and never goes negative", () => {
-    expect(reviewDiamonds(0)).toBe(0);
-    expect(reviewDiamonds(5)).toBe(5);
-    expect(reviewDiamonds(1000)).toBe(REVIEW_DIAMONDS_CAP);
   });
 });
 

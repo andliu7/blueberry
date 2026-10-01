@@ -8,20 +8,21 @@
  * turns the reveal into feedback on a committed answer rather than a
  * confirmation of a vague one.
  *
- * THE WRONG OPTIONS CANNOT BE PICKED BY COUNTING ATOMS. Round 1 drew them from
- * other registry reactions, and a critic measured that on four of six starter
- * cards the answer was the only option carrying the element the reagent
- * brought (the only N after methylamine, the only Br after HBr). They now come
- * from scripts/build_card_distractors.py, which derives each one with RDKit
- * (the other end of the allyl system, the tautomer, the group on a different
- * carbon, one reduction too far, or a sibling reagent's real product) and keeps
- * only structures with EXACTLY the answer's element set and carbon count. So
- * the options differ only in where the atoms are, which is the chemistry.
- * cardsRun.test.ts pins that rule over every registry reaction.
+ * THE WRONG OPTIONS CANNOT BE PICKED WITHOUT CHEMISTRY. Round 1's could be
+ * picked by counting atoms; round 2's by spotting the odd one out (both wrong
+ * options "substituted twice") or by choosing the drawing most like the start.
+ * scripts/build_card_distractors.py now derives each with RDKit and keeps a
+ * pair only when it has the answer's elements and carbon count, is two
+ * different kinds of mistake, leaves the answer the odd one out on nothing a
+ * non-chemist can count, and is not farther from the start than the answer.
+ * Its header has the rules; cardsRun.test.ts pins them over every card.
  *
- * A reaction the script could not give two honest wrong options gets no
- * predict step (PREDICT_GAPS): a question answerable by elimination is worse
- * than a plain flip.
+ * THE ANSWER IS DRAWN BY THE SAME SCRIPT, in the options' own style and
+ * folder, so no drawing or file path tells it apart (PREDICT_ANSWERS).
+ *
+ * A reaction with no pair that meets the rules gets no predict step
+ * (PREDICT_GAPS): a question answerable by elimination is worse than a plain
+ * flip.
  *
  * DETERMINISTIC. The answer's position comes from a hash of the card id, so a
  * reload mid run deals the same three, and the position varies across cards.
@@ -30,7 +31,12 @@
  */
 
 import type { StagedReaction } from "../../../data/reactions";
-import { PREDICT_DISTRACTORS, type PredictDistractor } from "../predictDistractors.generated";
+import {
+  PREDICT_ANSWERS,
+  PREDICT_DISTRACTORS,
+  type PredictAnswer,
+  type PredictDistractor,
+} from "../predictDistractors.generated";
 import type { Card } from "../types";
 
 export interface PredictOption {
@@ -74,18 +80,20 @@ export function predictionChoices(
   card: Card,
   reactions: readonly StagedReaction[],
   distractors: Readonly<Record<string, readonly PredictDistractor[]>> = PREDICT_DISTRACTORS,
+  answers: Readonly<Record<string, PredictAnswer>> = PREDICT_ANSWERS,
 ): readonly PredictOption[] | null {
   if (card.source.kind !== "reaction") return null;
   const reactionId = card.source.reactionId;
   const target = reactions.find((reaction) => reaction.id === reactionId);
   const wrong = distractors[reactionId];
+  const art = answers[reactionId];
   if (target === undefined || wrong === undefined || wrong.length < PREDICT_OPTIONS - 1) return null;
-  if (target.art.product_light === undefined && target.art.product_dark === undefined) return null;
+  if (art === undefined || (art.light === undefined && art.dark === undefined)) return null;
 
   const answer: PredictOption = {
     key: target.id,
-    ...(target.art.product_light === undefined ? {} : { light: target.art.product_light }),
-    ...(target.art.product_dark === undefined ? {} : { dark: target.art.product_dark }),
+    ...(art.light === undefined ? {} : { light: art.light }),
+    ...(art.dark === undefined ? {} : { dark: art.dark }),
     label: target.product_label,
     formula: target.product_formula,
     correct: true,

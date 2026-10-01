@@ -5,9 +5,14 @@
  * WHY A STREAK, AND WHICH ONE. Quizlet Learn's "12 in a row" is the one piece
  * of game feel in its study loop (blueberry screens 43 and 45 in the mobbin
  * set), and it works because it counts something the student did. Ours
- * counts consecutive Good or Easy grades. Hard and Again end it quietly and
- * nothing is taken away: the number simply starts again, per DESIGN-TOKENS'
- * rule that a retention surface never animates a number falling.
+ * counts consecutive RIGHT CALLS, in the order they were made. It used to
+ * count Good and Easy grades, and the round 2 critic watched a run of six
+ * wrong calls, each graded Good, end on "7 Best streak" with a "6 in a row"
+ * chip on the way: a grade is the student's own report, a call is checked.
+ * A wrong call or "I don't know" ends it quietly and nothing is taken away:
+ * the number simply starts again, per DESIGN-TOKENS' rule that a retention
+ * surface never animates a number falling. A card with nothing to call
+ * neither extends nor ends it.
  *
  * THE SUGGESTED GRADE IS A SUGGESTION. A correct prediction lights Good, a
  * wrong one lights Again, and the student can still press anything. The
@@ -27,37 +32,40 @@ export interface PredictionRecord {
 }
 
 export interface RunStats {
-  /** Consecutive good or easy grades ending at the latest press. */
+  /** Consecutive right calls ending at the latest call. */
   readonly streak: number;
   readonly bestStreak: number;
-  /** Predictions made, and how many were right. */
+  /** Cards called, and how many of them the latest call got right. */
   readonly predicted: number;
   readonly called: number;
   /** Presses per grade, every press counted (a card graded twice counts twice). */
   readonly split: Readonly<Record<Rating, number>>;
 }
 
-function holdsStreak(rating: Rating): boolean {
-  return rating === "good" || rating === "easy";
-}
-
+/**
+ * `calls` is every call in the order made, a card called again after Again
+ * included: the streak reads that order. The tally reads only each card's
+ * latest call, so a card called twice counts once, as the card it is.
+ */
 export function runStats(
   ratings: readonly RatingRecord[],
-  predictions: readonly PredictionRecord[],
+  calls: readonly PredictionRecord[],
 ): RunStats {
+  const split: Record<Rating, number> = { again: 0, hard: 0, good: 0, easy: 0 };
+  for (const record of ratings) split[record.rating] += 1;
   let streak = 0;
   let bestStreak = 0;
-  const split: Record<Rating, number> = { again: 0, hard: 0, good: 0, easy: 0 };
-  for (const record of ratings) {
-    split[record.rating] += 1;
-    streak = holdsStreak(record.rating) ? streak + 1 : 0;
+  for (const call of calls) {
+    streak = call.correct ? streak + 1 : 0;
     bestStreak = Math.max(bestStreak, streak);
   }
+  const latest = new Map<CardId, boolean>();
+  for (const call of calls) latest.set(call.cardId, call.correct);
   return {
     streak,
     bestStreak,
-    predicted: predictions.length,
-    called: predictions.filter((prediction) => prediction.correct).length,
+    predicted: latest.size,
+    called: [...latest.values()].filter(Boolean).length,
     split,
   };
 }

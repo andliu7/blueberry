@@ -76,7 +76,8 @@ _DARK_HETERO = {
 
 
 def render_svg(smiles: str, path: Path, dark: bool, width: int = 340, height: int = 210,
-               bond_length: float | None = None) -> bool:
+               bond_length: float | None = None, font_size: int | None = None,
+               dark_hetero: dict | None = None) -> bool:
     """
     One structure to one SVG. False if RDKit will not draw it.
 
@@ -84,6 +85,12 @@ def render_svg(smiles: str, path: Path, dark: bool, width: int = 340, height: in
     canvas. The reaction structures leave it None and keep the behaviour they
     shipped with; the reagents set it, because a set of drawings that each fill
     their own box shows HBr the size of mCPBA.
+
+    `font_size` pins the atom labels instead of letting RDKit scale them with
+    the bonds, for a drawing shown small: the reagents and the Cards options,
+    whose labels a critic measured at 6px on a phone. `dark_hetero` replaces
+    the dark heteroatom colours for a drawing that sits on a darker tile than
+    the reaction panel. Both None keeps every existing drawing byte-identical.
     """
     from rdkit import Chem
     from rdkit.Chem.Draw import rdMolDraw2D
@@ -96,6 +103,8 @@ def render_svg(smiles: str, path: Path, dark: bool, width: int = 340, height: in
     opts = drawer.drawOptions()
     if bond_length is not None:
         opts.fixedBondLength = bond_length
+    if font_size is not None:
+        opts.fixedFontSize = font_size
     # Transparent, so the card behind it shows through and one render works on
     # any surface colour.
     opts.clearBackground = False
@@ -103,7 +112,7 @@ def render_svg(smiles: str, path: Path, dark: bool, width: int = 340, height: in
     opts.padding = 0.08
     if dark:
         opts.setAtomPalette({-1: _DARK_CARBON})
-        opts.updateAtomPalette(_DARK_HETERO)
+        opts.updateAtomPalette(_DARK_HETERO if dark_hetero is None else dark_hetero)
     else:
         opts.setAtomPalette({-1: _LIGHT_CARBON})
 
@@ -262,6 +271,11 @@ REAGENT_PROSE: dict[str, str] = {
 REAGENT_WIDTH = 168
 REAGENT_HEIGHT = 104
 REAGENT_BOND_LENGTH = 21.0
+# Atom labels at a fixed size, not RDKit's bond-scaled one: at 21 per bond the
+# letters came out 9 units tall, about 6px where the Cards face shows a reagent
+# 4.75rem tall (round 2 critic). 22 gives letters about 15.6 units tall, 11px
+# or more on that face; cardsContrast.test.ts measures it from the files.
+REAGENT_FONT_SIZE = 22
 
 
 def reagent_slug(token: str) -> str:
@@ -303,6 +317,7 @@ def render_reagent_art() -> dict:
                 width=REAGENT_WIDTH,
                 height=REAGENT_HEIGHT,
                 bond_length=REAGENT_BOND_LENGTH,
+                font_size=REAGENT_FONT_SIZE,
             )
             if drawn:
                 entry[theme] = f"reagents/{name}"
@@ -365,8 +380,24 @@ def stage(order, role, reagents, acid_base, solvent="", temperature_c=None,
 # Stage 2 of every hydride reduction and every carbanion addition. Named once so
 # it cannot drift, and so the separation from stage 1 is structural rather than
 # a thing each author remembers.
-def acid_workup(order=2, notes="Separate step. The reduction itself is not acidic."):
+#
+# The default note names stage 1 by the reaction's own `reaction_type`, filled
+# in by name_workup_step() once the reaction is known. It used to say "the
+# reduction" on every workup, which put that word on a Grignard addition, an
+# acetylide addition and an epoxide opening (round 2 critic). The type is data
+# the reaction already carries, so no chemistry is typed here.
+WORKUP_NOTE = "Separate step. The {step} itself is not acidic."
+
+
+def acid_workup(order=2, notes=WORKUP_NOTE):
     return stage(order, "workup", ["[H3O+]"], "acidic", solvent="water", notes=notes)
+
+
+def name_workup_step(rxn) -> None:
+    """Fill WORKUP_NOTE with the reaction's own type. Other notes are left alone."""
+    for st in rxn["stages"]:
+        if st["conditions"]["notes"] == WORKUP_NOTE:
+            st["conditions"]["notes"] = WORKUP_NOTE.format(step=rxn["reaction_type"])
 
 
 # ==========================================================================
@@ -1532,6 +1563,7 @@ def main() -> int:
     published, flagged = [], []
 
     for rxn in REACTIONS:
+        name_workup_step(rxn)
         # Canonicalise every structure before checking, so what is published and
         # what mechanism_trainer compares against are the same strings.
         for key in ("reactants", "intermediates"):
