@@ -1945,7 +1945,7 @@ export const TRAINER_REACTIONS: readonly TrainerReaction[] = [
     brief: "Hydroxide attacks, bromide leaves. Draw both arrows.",
     successLine: "Back-side attack: the hydroxide lone pair forms the new C–O bond as the bromide leaves.",
     prompt: "Push the electrons for this Sₙ2 in one step.",
-    hint: "Tap the oxygen to open its lone pairs, and remember the bromide has to let go.",
+    hint: "Drag from an oxygen lone pair, and remember the bromide has to let go.",
     step: SN2_DEMO_STEP,
     fromHints: SN2_FROM_HINTS,
     toHints: SN2_TO_HINTS,

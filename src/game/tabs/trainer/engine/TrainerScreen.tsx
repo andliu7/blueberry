@@ -49,6 +49,7 @@ import {
   createMechanismDraft,
   currentDraft,
   inFlightGuide,
+  type HitTester,
   type InteractionEvent,
   type MechanismDraft,
 } from "@blueberry/interaction";
@@ -110,7 +111,7 @@ export interface TrainerScreenProps {
 
 const WIN_TWEEN_MS = 1400;
 /** How long the green arrows hold at full before the bond change starts. */
-const WIN_HOLD_MS = 700;
+const WIN_HOLD_MS = 2500;
 /** Under reduced motion: how long the green arrows hold before the cut to the product. */
 const REDUCED_HOLD_MS = 1000;
 
@@ -172,6 +173,7 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
   // new document rather than unwinding fifty entries.
   const [epoch, setEpoch] = useState(0);
   const targetsRef = useRef<readonly DrawTarget[]>([]);
+  const armedRef = useRef(false);
   // Pushes the machine refused (a legality failure on release). The canvas
   // shakes one off where it was aimed on each increment.
   const [refusals, setRefusals] = useState(0);
@@ -179,7 +181,11 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
     () =>
       createInteractionStore({
         initialDraft: createMechanismDraft(step.from),
-        environment: { hitTester: createHitTester(() => targetsRef.current) },
+        // With nothing picked up, an atom body is not a target: its only
+        // meaning then was the machine's lone-pair reveal, which draws nothing
+        // now that every pair is shown, but still lit UNDO with nothing drawn
+        // (round four critic). Once a pair is armed, atoms are drop targets.
+        environment: { hitTester: atomsOnlyWhenArmed(createHitTester(() => targetsRef.current), () => armedRef.current) },
         onEffect: (effect) => {
           if (effect.kind === "haptic" && typeof navigator.vibrate === "function") navigator.vibrate(12);
           if (effect.kind === "haptic" && effect.style === "refusal") setRefusals((n) => n + 1);
@@ -209,6 +215,7 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
     [step, scene, annotations, pairedAtoms, armedAtom],
   );
   targetsRef.current = targets;
+  armedRef.current = mechanism.armed !== null;
   const guide = inFlightGuide(machine);
   const dispatch = useCallback((event: InteractionEvent) => void store.dispatch(event), [store]);
 
@@ -333,9 +340,9 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
     if (outcome.justWon) {
       setVerdict(null);
       // The student's own arrows, green, are the win's first beat, held at
-      // full before the bond change plays: round two's critic found them
-      // readable for about 300 ms. Under reduced motion there is no tween:
-      // owner ruling of 30 Sep 2026, the green arrows hold about a second and
+      // full for 2.5 s before the bond change plays (critics measured them
+      // readable for 300 ms, then 1.4 s; 2.5 s is the round four floor).
+      // Under reduced motion there is no tween: owner ruling of 30 Sep 2026, the green arrows hold about a second and
       // then the screen CUTS to the product, so both are seen and nothing
       // moves. (Scrubbing straight to the product painted zero green pixels,
       // g4-arrows-verdict.md claim 1; holding forever never showed the product.)
@@ -853,6 +860,22 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
 }
 
 /* ------------------------------------------------------------------ */
+
+/**
+ * A tap on an atom body with nothing armed hits NOTHING. Filtering atoms out
+ * of the list instead let the tap fall through to a bond-end handle on the
+ * atom's rim and arm that bond, so the atom still wins the hit test and is
+ * then turned into empty.
+ */
+function atomsOnlyWhenArmed(base: HitTester, armed: () => boolean): HitTester {
+  return {
+    hitTest(query) {
+      const outcome = base.hitTest(query);
+      if (armed() || outcome.primary.kind !== "atom") return outcome;
+      return { primary: { kind: "empty", point: query.point }, candidates: [], margin: Number.POSITIVE_INFINITY };
+    },
+  };
+}
 
 /** Do two arrows start from the same electrons? Kind plus the atom or bond they leave. */
 function sameSource(a: ElectronFlowArrow["source"], b: ElectronFlowArrow["source"]): boolean {

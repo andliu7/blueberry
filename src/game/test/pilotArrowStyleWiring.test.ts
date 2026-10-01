@@ -16,7 +16,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createElement, act } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import type { InteractionStore, Point2 } from "@blueberry/interaction";
+import { currentDraft, type InteractionStore, type Point2 } from "@blueberry/interaction";
 import { SN2_DEMO_STEP, SN2_FROM_HINTS, SN2_TO_HINTS } from "../demo/sn2Step";
 import { TrainerScreen } from "../tabs/trainer/engine/TrainerScreen";
 import type { TrainerQuestion } from "../tabs/trainer/engine/question";
@@ -28,7 +28,7 @@ const question: TrainerQuestion = {
   id: "sn2",
   kind: "reaction",
   title: "SN2 at bromomethane",
-  steps: [{ step: SN2_DEMO_STEP, fromHints: SN2_FROM_HINTS, toHints: SN2_TO_HINTS, prompt: "Push the electrons.", hint: "Tap the oxygen." }],
+  steps: [{ step: SN2_DEMO_STEP, fromHints: SN2_FROM_HINTS, toHints: SN2_TO_HINTS, prompt: "Push the electrons.", hint: "Drag from the oxygen." }],
   successLine: "Back-side attack.",
   wonPill: "Goal achieved",
 };
@@ -264,6 +264,53 @@ describe("reduced motion on a win: hold the green arrows, then cut to the produc
       act(() => void vi.advanceTimersByTime(200));
       expect(canvas.getAttribute("data-win-t")).toBe("1.00");
       for (const record of container.querySelectorAll("[data-push-record]")) expect(effectiveOpacity(record)).toBeLessThan(0.05);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});
+
+describe("a tap on an atom with nothing picked up does nothing", () => {
+  it("leaves UNDO disabled and arms nothing", () => {
+    const { container, store } = mount("auto");
+    for (const atomId of ["o1", "c1", "br1"]) openAtom(store, atomId);
+    const undo = [...container.querySelectorAll("button")].find((b) => (b.textContent ?? "").trim() === "Undo");
+    expect(undo?.disabled).toBe(true);
+    const draft = currentDraft(store.getSnapshot());
+    if (draft.shape !== "mechanism") throw new Error("not a mechanism draft");
+    expect(draft.armed).toBeNull();
+    expect(draft.arrows.length).toBe(0);
+  });
+});
+
+function openAtom(store: InteractionStore, atomId: string): void {
+  const at = targetCentre({ kind: "atom", atomId });
+  down(store, at);
+  up(store, at);
+}
+
+describe("with motion, the green mechanism holds before the bond change", () => {
+  // Round four: green was readable for about 1.4 s; the floor asked for is 2.5 s.
+  it("still shows both green arrows, and no product, 2.6 s after Check", () => {
+    vi.useFakeTimers();
+    try {
+      act(() => arrowStyleSetting.set("curved"));
+      const container = document.createElement("div");
+      document.body.appendChild(container);
+      const root = createRoot(container);
+      mounted = { root, container };
+      act(() => {
+        root.render(createElement(TrainerScreen, { question, onExit: () => undefined, reducedMotion: false }));
+      });
+      const store = window.__pilotStore;
+      if (store === undefined) throw new Error("no store");
+      drawWin(store);
+      check(container);
+      act(() => void vi.advanceTimersByTime(2600));
+      expect(container.querySelector("[data-pilot-canvas]")?.getAttribute("data-win-t")).toBe("0.00");
+      const records = [...container.querySelectorAll("[data-push-record]")];
+      expect(records.length).toBe(2);
+      for (const record of records) expect(effectiveOpacity(record)).toBeGreaterThan(0.9);
     } finally {
       vi.useRealTimers();
     }

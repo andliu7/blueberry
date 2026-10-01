@@ -58,12 +58,12 @@ import {
 import type { StepScene, SceneAtom } from "../../../render/layout/stepScene";
 import { lerp, smoothstep } from "../../../render/layout/vec";
 import { AtomSphere, BondCapsule, ChargeBadge, DepthDefs, SHADOW_FILTER_ID } from "../../../render/svg/depth";
-import { atomRadius, bondMidpoint, bowAwayFrom, mix as mixPx, pointerInputFrom, rimPoint, sceneCentroid, toPx, type DrawTarget } from "../hitLayout";
+import { atomCentre, atomRadius, bondMidpoint, bowAwayFrom, mix as mixPx, pointerInputFrom, rimPoint, sceneCentroid, toPx, type DrawTarget } from "../hitLayout";
 import { TaperedArrow } from "./arrow/TaperedArrowSvg";
 import "./push.css";
 import { createDragSmoother, type DragSmoother, type SmoothedArrow } from "./drag/smoothing";
 import { replayArrows, type RecordedStep } from "./screenModel";
-import { committedArrowGeometry, targetAnchorPx, type AtomAnnotations } from "./screenLayout";
+import { committedArrowGeometry, targetAnchorPx, type AtomAnnotations, type CommittedArrowGeometry } from "./screenLayout";
 
 export interface TrainerCanvasProps {
   readonly step: MechanismStep;
@@ -278,6 +278,19 @@ export function TrainerCanvas({
   }, [replay, draft.arrows]);
 
   const armedTarget = draft.armed?.target;
+  const sourcePairAtoms = useMemo(
+    () => step.arrows.flatMap((arrow) => (arrow.source.kind === "lonePair" ? [arrow.source.atomId] : [])),
+    [step],
+  );
+  // Which lone pair each committed push actually left from. The arrow names
+  // only the atom, so the canvas remembers the pair that was armed at the
+  // commit and the record starts where the student's finger did (round four
+  // critic: the saved tail jumped 33 px to the pair facing the target).
+  // Refs, not state: remembering must not re-render anything.
+  const grabbedRef = useRef(new Map<string, number>());
+  const lastArmedRef = useRef<typeof armedTarget>(undefined);
+  if (armedTarget !== undefined) lastArmedRef.current = armedTarget;
+  const geometryOf = (arrow: ElectronFlowArrow) => committedArrowGeometry(step, scene, annotations, arrow, centroid, grabbedRef.current.get(arrow.id));
 
   const annotationSide: "from" | "to" | "none" =
     (replay !== null && replay.settledAtEnd !== true) || t < 0.25 ? "from" : t > 0.75 ? "to" : "none";
@@ -307,8 +320,12 @@ export function TrainerCanvas({
     const added = draft.arrows.find((arrow) => !seen.has(arrow.id));
     seenIdsRef.current = new Set(draft.arrows.map((arrow) => arrow.id));
     if (draft.arrows.length === 0) setLanded(null);
+    const armedWas = lastArmedRef.current;
+    if (added !== undefined && armedWas?.kind === "lonePair" && added.source.kind === "lonePair" && armedWas.atomId === added.source.atomId) {
+      grabbedRef.current.set(added.id, armedWas.slotIndex);
+    }
     if (added === undefined || !interactive) return;
-    setLanded({ id: added.id, at: committedArrowGeometry(step, scene, annotations, added, centroid).landing });
+    setLanded({ id: added.id, at: geometryOf(added).landing });
     if (reducedMotion) return;
     let raf = 0;
     const start = performance.now();
@@ -484,21 +501,24 @@ export function TrainerCanvas({
           {scene.atoms.map((atom) => {
             const entry = liveAnnotations.get(atom.id);
             if (entry === undefined) return null;
-            const c = posOf(atom);
             // Every lone pair is drawn, dark and at full contrast, and is
             // grabbable from the first frame: no tap-to-open step. Round two's
             // critic scored the old hidden pairs (and the grey ghost dots that
             // replaced them) as the molecule never saying "drag from here".
             return (
               <g key={`ann-${atom.id}`}>
-                <Hydrogens centre={c} slots={entry.hydrogens} />
                 {entry.lonePairs.map((slot, slotIndex) => {
                   const isArmed =
                     armedTarget?.kind === "lonePair" &&
                     armedTarget.atomId === atom.id &&
                     armedTarget.slotIndex === slotIndex;
                   const anyArmedHere = armedTarget?.kind === "lonePair" && armedTarget.atomId === atom.id;
-                  const dimmed = anyArmedHere && !isArmed;
+                  // Pairs that are no source in this step sit back, so at rest
+                  // the molecule points at the move rather than advertising
+                  // every pair equally (round four critic: Br's pairs called
+                  // as loudly as O's). Still drawn and still grabbable.
+                  const quiet = interactive && !isArmed && !sourcePairAtoms.includes(atom.id);
+                  const dimmed = (anyArmedHere && !isArmed) || quiet;
                   const aScr = -slot.angleSceneRad;
                   const ux = -Math.sin(aScr);
                   const uy = Math.cos(aScr);
@@ -532,13 +552,13 @@ export function TrainerCanvas({
             const r = atomRadius(atomById.get(atomId)?.element ?? "C");
             return (
               <g key={`centre-${atomId}`} style={{ pointerEvents: "none" }}>
-                <circle cx={centre.x} cy={centre.y} r={r + 8} fill="none" stroke="var(--bb-primary)" strokeWidth={2} opacity={0.28} />
+                <circle cx={centre.x} cy={centre.y} r={r + 8} fill="none" stroke="var(--arrow-ink)" strokeWidth={2} opacity={0.28} />
                 <circle
                   cx={centre.x}
                   cy={centre.y}
                   r={r + 8}
                   fill="none"
-                  stroke="var(--bb-primary)"
+                  stroke="var(--arrow-ink)"
                   strokeWidth={2}
                   opacity={0.5}
                   className={reducedMotion ? undefined : "centre-breathe"}
@@ -548,30 +568,31 @@ export function TrainerCanvas({
           })
         : null}
 
-      {/* The records: full, then any the scrubber is animating in. */}
+      {/* The records: full, then any the scrubber is animating in. Two
+          passes over the same records, verdict rings first and arrows second,
+          so no ring is ever painted over an arrow (round four critic: Br's
+          ring buried the leaving-group arrow). */}
       <g style={{ pointerEvents: "none" }} opacity={recordFade}>
-        {shown.full.map((arrow) => (
-          <Record
-            key={arrow.id}
-            step={step}
-            scene={scene}
-            annotations={annotations}
-            arrow={arrow}
-            away={centroid}
-            curved={curvedArrows}
-            t={fresh !== null && fresh.id === arrow.id ? fresh.t : 1}
-            tone={toneOf(arrow.id)}
-            reducedMotion={reducedMotion}
-          />
-        ))}
+        {(["mark", "arrow"] as const).map((layer) =>
+          shown.full.map((arrow) => (
+            <Record
+              key={`${layer}-${arrow.id}`}
+              layer={layer}
+              geometry={geometryOf(arrow)}
+              scene={scene}
+              curved={curvedArrows}
+              t={fresh !== null && fresh.id === arrow.id ? fresh.t : 1}
+              tone={toneOf(arrow.id)}
+              reducedMotion={reducedMotion}
+            />
+          )),
+        )}
         {shown.animating.map((entry) => (
           <Record
             key={`anim-${entry.arrow.id}`}
-            step={step}
+            layer="arrow"
+            geometry={geometryOf(entry.arrow)}
             scene={scene}
-            annotations={annotations}
-            arrow={entry.arrow}
-            away={centroid}
             curved={curvedArrows}
             t={entry.t}
           />
@@ -582,9 +603,9 @@ export function TrainerCanvas({
           halo in the win's green, quieter than the amber ring on what was hit. */}
       {marks !== null && marks.tone === "near"
         ? (marks.hints ?? []).map((hint) => {
-            const geometry = committedArrowGeometry(step, scene, annotations, hint, centroid);
-            const at = geometry.targetAtom !== null ? geometry.to : geometry.landing;
-            const r = geometry.targetAtom !== null ? geometry.sinkRadiusPx + 4 : 16;
+            const geometry = geometryOf(hint);
+            const at = geometry.targetAtom !== null ? centreOf(geometry.targetAtom) : geometry.landing;
+            const r = geometry.targetAtom !== null ? atomRadius(atomById.get(geometry.targetAtom)?.element ?? "C") + 7 : 16;
             return (
               <g key={`hint-${hint.id}`} style={{ pointerEvents: "none" }} data-push-hint>
                 <circle cx={at.x} cy={at.y} r={r} fill="var(--good)" opacity={0.16} />
@@ -593,6 +614,17 @@ export function TrainerCanvas({
             );
           })
         : null}
+
+      {/* Implicit-H labels ABOVE the arrows, each on a workbench halo, so an
+          arrowhead landing beside an atom never hides its H (round four). */}
+      {annotationOpacity > 0.01 ? (
+        <g opacity={annotationOpacity} style={{ pointerEvents: "none" }}>
+          {scene.atoms.map((atom) => {
+            const entry = liveAnnotations.get(atom.id);
+            return entry === undefined ? null : <Hydrogens key={`h-${atom.id}`} centre={posOf(atom)} slots={entry.hydrogens} />;
+          })}
+        </g>
+      ) : null}
 
       {/* The commit's ring, keyed on the push so each commit plays it once. */}
       {landed !== null && interactive && !reducedMotion ? (
@@ -615,9 +647,10 @@ export function TrainerCanvas({
         <g style={{ pointerEvents: "none" }} data-push-travel>
           {travelling.map(({ arrow, local }) => {
             if (local <= 0 || local >= 1) return null;
-            const geometry = committedArrowGeometry(step, scene, annotations, arrow, centroid);
+            const geometry = geometryOf(arrow);
             const eased = local * local * (3 - 2 * local);
-            const at = curvedArrows ? quadAt(geometry.from, bowAwayFrom(geometry.from, geometry.landing, centroid, 34), geometry.landing, eased) : mixPx(geometry.from, geometry.landing, eased);
+            const bend = curvedArrows ? bowAwayFrom(geometry.from, geometry.landing, geometry.away, geometry.bow) : geometry.control;
+            const at = bend !== null ? quadAt(geometry.from, bend, geometry.landing, eased) : mixPx(geometry.from, geometry.landing, eased);
             return <ElectronPair key={`travel-${arrow.id}`} at={at} />;
           })}
         </g>
@@ -685,6 +718,9 @@ function Hydrogens({ centre, slots }: { readonly centre: Point2; readonly slots:
               fontSize={10.5}
               fontWeight={600}
               fill="var(--scene-faint)"
+              stroke="var(--workbench)"
+              strokeWidth={3}
+              paintOrder="stroke"
             >
               H
             </text>
@@ -696,105 +732,105 @@ function Hydrogens({ centre, slots }: { readonly centre: Point2; readonly slots:
 }
 
 /**
- * One committed push, at progress t (1 is fully drawn). The record IS the
- * arrow the student drew, full length, from the electrons to the atom or bond
- * it was dropped on: the tapered curved arrow in the curved style, the
- * straight dashed guide with a head in the dashed style. Round two's critic
- * measured the old records (a 60 px hook, or two resting dots) as the
- * student's arrow disappearing at the moment it should be rewarded.
+ * One committed push, at progress t (1 is fully drawn), in one of two layers:
+ * the verdict ring (`mark`) or the arrow itself (`arrow`). The canvas paints
+ * every ring before any arrow, so a ring never covers an arrow.
  *
- * A `tone` is the verdict painted on it: the arrow itself takes the colour,
- * and the atom it was dropped on is ringed, so the mark points at WHERE.
+ * The record IS the arrow the student drew, full length, from the pair they
+ * grabbed to the surface of the atom or the bond they dropped on: the
+ * tapered curved arrow in the curved style, the dashed arrow with a head in
+ * the dashed style. screenLayout.committedArrowGeometry owns the shape
+ * (leaving-group arc, detour round an atom in the way).
+ *
+ * A `tone` is the verdict: the arrow takes the colour and the atom it was
+ * dropped on is ringed, so the mark points at WHERE.
  */
 function Record({
-  step,
+  layer,
+  geometry,
   scene,
-  annotations,
-  arrow,
-  away,
   curved,
   t,
   tone,
   reducedMotion = true,
 }: {
-  readonly step: MechanismStep;
+  readonly layer: "mark" | "arrow";
+  readonly geometry: CommittedArrowGeometry;
   readonly scene: StepScene;
-  readonly annotations: ReadonlyMap<AtomId, AtomAnnotations>;
-  readonly arrow: ElectronFlowArrow;
-  readonly away: Point2;
   readonly curved: boolean;
   readonly t: number;
   readonly tone?: CanvasMarks["tone"];
   readonly reducedMotion?: boolean;
 }) {
-  const geometry = committedArrowGeometry(step, scene, annotations, arrow, away);
-  const eased = t >= 1 ? 1 : t * (2 - t);
-  const colour = tone === undefined ? undefined : TONE_COLOUR[tone];
-  const mark =
-    colour === undefined ? null : (
+  const colour = tone === undefined ? "var(--arrow-ink)" : TONE_COLOUR[tone];
+  if (layer === "mark") {
+    if (tone === undefined || t < 1) return null;
+    const target = geometry.targetAtom;
+    const element = target === null ? null : (scene.atoms.find((atom) => atom.id === target)?.element ?? "C");
+    const centre = target === null ? geometry.landing : atomCentre(scene, target);
+    return (
       <circle
         className={reducedMotion ? undefined : "push-mark-pop"}
         data-push-mark={tone}
-        cx={geometry.targetAtom !== null ? geometry.to.x : geometry.landing.x}
-        cy={geometry.targetAtom !== null ? geometry.to.y : geometry.landing.y}
-        r={geometry.targetAtom !== null ? geometry.sinkRadiusPx + 3 : 15}
+        cx={centre.x}
+        cy={centre.y}
+        r={element === null ? 15 : atomRadius(element) + 6}
         fill="none"
         stroke={colour}
         strokeWidth={3.5}
       />
     );
-  if (curved) {
-    // No forming-bond stub under the ribbon: on a push to a far atom it ran
-    // straight through whatever sat between (O to Br through carbon), which
-    // read as carbon being the thing marked. The arrow alone says it.
-    if (t >= 1) {
-      return (
-        <g data-push-record="curved">
-          {mark}
-          <TaperedArrow
-            from={geometry.from}
-            to={geometry.to}
-            away={away}
-            sinkRadiusPx={geometry.sinkRadiusPx}
-            {...(colour !== undefined ? { fill: colour } : {})}
-          />
-        </g>
-      );
-    }
-    // Growing in (the commit beat, or the scrubber): the ribbon reaches
-    // toward its landing, so a young arrow is a short arrow.
-    return <TaperedArrow from={geometry.from} to={mixPx(geometry.from, geometry.landing, eased)} away={away} glow={false} />;
   }
+  const eased = t >= 1 ? 1 : t * (2 - t);
+  if (curved) {
+    // Growing in (the commit beat, or the scrubber), a young arrow is a short arrow.
+    const tip = t >= 1 ? geometry.to : mixPx(geometry.from, geometry.landing, eased);
+    return (
+      <g data-push-record="curved">
+        <TaperedArrow
+          from={geometry.from}
+          to={tip}
+          away={geometry.away}
+          bowMagnitude={geometry.bow}
+          sinkRadiusPx={t >= 1 ? geometry.sinkRadiusPx : 0}
+          fill={colour}
+          glow={t >= 1}
+        />
+      </g>
+    );
+  }
+  const tip = mixPx(geometry.from, geometry.landing, eased);
   return (
     <g data-push-record="dashed">
-      {t >= 1 ? mark : null}
-      <DashedArrow from={geometry.from} to={mixPx(geometry.from, geometry.landing, eased)} colour={colour ?? "var(--bb-primary)"} />
+      <DashedArrow from={geometry.from} to={tip} control={t >= 1 ? geometry.control : null} colour={colour} />
     </g>
   );
 }
 
 /**
- * The straight dashed guide with a head: the dashed style's arrow, in flight
- * and at rest. The head is a solid triangle so the direction reads at a
- * glance; the dashes say "this bond is being made", the head says which way
- * the electrons went.
+ * The dashed arrow with a head: the dashed style's arrow, in flight and at
+ * rest. Straight by the owner's ruling, bent only to go round an atom in the
+ * way or to give a leaving group room (`control`). The head is a solid
+ * triangle aligned with the path's last direction.
  */
-function DashedArrow({ from, to, colour }: { readonly from: Point2; readonly to: Point2; readonly colour: string }) {
-  const dx = to.x - from.x;
-  const dy = to.y - from.y;
-  const len = Math.hypot(dx, dy);
-  if (len < 4) return null;
-  const ux = dx / len;
-  const uy = dy / len;
+function DashedArrow({ from, to, control = null, colour }: { readonly from: Point2; readonly to: Point2; readonly control?: Point2 | null; readonly colour: string }) {
+  const tail = control ?? from;
+  const dx = to.x - tail.x;
+  const dy = to.y - tail.y;
+  const length = Math.hypot(dx, dy);
+  if (length < 4) return null;
+  const ux = dx / length;
+  const uy = dy / length;
   const HEAD = 13;
   const base = { x: to.x - ux * HEAD, y: to.y - uy * HEAD };
   const wing = 6.5;
   const head = `M ${to.x} ${to.y} L ${base.x - uy * wing} ${base.y + ux * wing} L ${base.x + uy * wing} ${base.y - ux * wing} Z`;
+  const d = control === null ? `M ${from.x} ${from.y} L ${base.x} ${base.y}` : `M ${from.x} ${from.y} Q ${control.x} ${control.y} ${base.x} ${base.y}`;
   return (
     <g>
       {/* Casing blends into the workbench so the dashes read on any rod they cross. */}
-      <line x1={from.x} y1={from.y} x2={base.x} y2={base.y} stroke="var(--workbench)" strokeWidth={8} strokeLinecap="round" opacity={0.9} />
-      <line x1={from.x} y1={from.y} x2={base.x} y2={base.y} stroke={colour} strokeWidth={4} strokeDasharray="8 6" strokeLinecap="round" />
+      <path d={d} fill="none" stroke="var(--workbench)" strokeWidth={8} strokeLinecap="round" opacity={0.9} />
+      <path d={d} fill="none" stroke={colour} strokeWidth={4} strokeDasharray="8 6" strokeLinecap="round" />
       <path d={head} fill={colour} stroke="var(--workbench)" strokeWidth={1.5} strokeLinejoin="round" />
     </g>
   );
@@ -850,7 +886,9 @@ function snapPreview(
   if (snapped.kind === "atom" || snapped.kind === "lonePair") {
     const centre = centreOf(snapped.atomId);
     const r = atomRadius(atomById.get(snapped.atomId)?.element ?? "C");
-    return { centre, r, landing: rimPoint(centre, from, r + 6), aim: centre, sinkRadiusPx: r + 6 };
+    // The head touches the surface, the same 1.5 px the committed record keeps.
+    const landing = rimPoint(centre, from, r + 1.5);
+    return { centre, r, landing, aim: landing, sinkRadiusPx: 0 };
   }
   if (snapped.kind === "bondEndHandle") {
     // "Into this bond": the landing is the bond's middle, as the record draws it.
@@ -868,8 +906,8 @@ function snapPreview(
 function SnapHalo({ snap, reducedMotion }: { readonly snap: SnapPreview; readonly reducedMotion: boolean }) {
   return (
     <g className={reducedMotion ? undefined : "push-snap-throb"} data-snap-halo>
-      <circle cx={snap.centre.x} cy={snap.centre.y} r={snap.r + 9} fill="var(--bb-primary)" opacity={0.16} />
-      <circle cx={snap.centre.x} cy={snap.centre.y} r={snap.r + 7} fill="none" stroke="var(--bb-primary)" strokeWidth={3.5} />
+      <circle cx={snap.centre.x} cy={snap.centre.y} r={snap.r + 9} fill="var(--arrow-ink)" opacity={0.16} />
+      <circle cx={snap.centre.x} cy={snap.centre.y} r={snap.r + 7} fill="none" stroke="var(--arrow-ink)" strokeWidth={3.5} />
     </g>
   );
 }
@@ -898,9 +936,9 @@ function InFlightCurved({
 }) {
   const tip = smoothed?.tip ?? fallbackTo;
   return snap !== null ? (
-    <TaperedArrow from={from} to={snap.aim} away={away} sinkRadiusPx={snap.sinkRadiusPx} glow={false} />
+    <TaperedArrow from={from} to={snap.aim} away={away} sinkRadiusPx={snap.sinkRadiusPx} glow={false} fill="var(--arrow-ink)" />
   ) : (
-    <TaperedArrow from={from} to={tip} away={away} glow={false} />
+    <TaperedArrow from={from} to={tip} away={away} glow={false} fill="var(--arrow-ink)" />
   );
 }
 
@@ -910,5 +948,5 @@ function InFlightCurved({
  * on a snap it sat on the target's letter and hid it (round two critic).
  */
 function InFlightArrowless({ from, to, snap }: { readonly from: Point2; readonly to: Point2; readonly snap: SnapPreview | null }) {
-  return <DashedArrow from={from} to={snap?.landing ?? to} colour="var(--bb-primary)" />;
+  return <DashedArrow from={from} to={snap?.landing ?? to} colour="var(--arrow-ink)" />;
 }

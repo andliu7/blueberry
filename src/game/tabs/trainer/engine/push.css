@@ -67,3 +67,19 @@
     opacity: 0;
   }
 }
+
+/*
+ * The ink every drawn arrow, snap halo and reaction-centre ring uses, taken
+ * from the palette's own tokens. The tapered module's default is a fixed
+ * violet that measured 2.3:1 on the dark bench (round four critic), and the
+ * dark --bb-primary is 2.9:1 there, both under the 3:1 a graphic needs, so
+ * dark uses the palette's bright primary:
+ *   light  --bb-primary        #5a3fd8 on #ffffff   6.7:1
+ *   dark   --bb-primary-bright #78a5ff on #232741   6.0:1
+ */
+:root {
+  --arrow-ink: var(--bb-primary);
+}
+.dark {
+  --arrow-ink: var(--bb-primary-bright);
+}
