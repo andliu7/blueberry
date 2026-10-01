@@ -126,8 +126,6 @@ const LAVENDER_HEXES = [
 const HEX_EXCEPTIONS: Record<string, string> = {
   "src/game/tabs/periodic/PeriodicTab.tsx":
     "noble/gas #ddd6fe is H 250.5, --bb-primary's own hue at wash lightness, carries PERIODIC_INK at 10.03:1, and is a categorical scale where moving further collides with nonmetal #bfdbfe",
-  "src/components/ui/blueberry-loader.tsx":
-    "the mascot's own palette: #a5b4fc and #6366f1 are stops on the berry's body gradient, not chrome",
   "src/game/tokens.css":
     "a v2 token file nothing imports yet; its --purple-* ramp is dead until it is wired in, and it was swept separately",
   "src/data/decks/carbonyls/all.ts":

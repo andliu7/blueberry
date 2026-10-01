@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ChevronsUpDown, ChevronsDownUp, Shuffle, GalleryHorizontalEnd, List, MoveVertical, ArrowDown, GitBranch, ArrowUpRight, Layers, RefreshCw, Orbit, Rows3, Maximize2, Minimize2 } from "lucide-react";
 import { FlippingCard } from "@/components/ui/flipping-card";
 import { MathHtml } from "@/components/ui/math-html";
@@ -26,6 +26,7 @@ import { ScrollTiltedGrid } from "@/components/ui/scroll-tilted-grid";
 import { StackedCards } from "@/components/ui/stacked-cards";
 import { GooeyTogglePair, type ToggleVisibility } from "@/components/ui/gooey-toggle-pair";
 import { HomePage } from "@/components/HomePage";
+import { LoaderGate } from "@/components/ui/blueberry-loader";
 import { StartPage } from "@/components/StartPage";
 import { EntryGate } from "@/components/EntryGate";
 import { StudyDecksPage } from "@/components/StudyDecksPage";
@@ -221,33 +222,19 @@ const CARD_STYLE_LABEL: Record<CardStyle, string> = {
 };
 
 
-/** Wraps a split route so its chunk can arrive without a blank frame. */
-function withBoundary(node: React.ReactNode) {
-  return <Suspense fallback={<RouteLoading />}>{node}</Suspense>;
-}
-
 /**
- * The wait for a code-split chunk, which is NOT the wait for a deck.
+ * Wraps a split route so its chunk arrives behind the berry, and the page only
+ * shows once the berry's bar has finished. See `LoaderGate`.
  *
- * WHY THIS IS NOT DeckLoading. It used to be, and that was a real bug reported as
- * "the server 404s when I click the first node of Unit 1". Nothing 404s: every
- * hash link on the pathway resolves under `#/app`. What happens is that the game
- * route is the largest chunk in the app, five engine packages behind it, so on a
- * cold dev server the Suspense fallback holds for about fifteen seconds, and the
- * fallback was reading "Looking for that deck…". A student clicks a chemistry
- * node, waits, and is told the site is hunting for a deck it cannot find. Only
- * one of the twenty routes behind withBoundary is a deck at all.
- *
- * A chunk that is still arriving has nothing to say about whether the thing
- * exists, so this says the one true thing and no more. The deck lookup keeps
- * DeckLoading, where the 404 that wording anticipates is a real outcome.
+ * The loader says nothing but "Loading Blueberry" (to screen readers; on screen
+ * it says nothing at all), and that is deliberate. This used to be DeckLoading,
+ * which read "Looking for that deck..." while the game's chunk arrived, and was
+ * reported as a 404 that never happened. A chunk that is still arriving has
+ * nothing to say about whether the thing exists; the deck lookup keeps
+ * DeckLoading, where a 404 is a real outcome.
  */
-function RouteLoading() {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-[#f6f4ef] dark:bg-[#0c0a09]">
-      <p className="font-mono text-sm text-slate-400 dark:text-stone-500">Loading…</p>
-    </div>
-  );
+function withBoundary(node: React.ReactNode) {
+  return <LoaderGate>{node}</LoaderGate>;
 }
 
 /**

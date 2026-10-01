@@ -390,8 +390,7 @@ legal.
 
 Judged and kept, because none of these is chrome:
 
-- The mascot's `#7c3aed` cape and `#5b21b6` fold, and the berry gradient in
-  `blueberry-loader.tsx`. Sticker rule 9 keeps that palette out of chrome; it does not ask
+- The mascot's `#7c3aed` cape and `#5b21b6` fold. Sticker rule 9 keeps that palette out of chrome; it does not ask
   the character to change
 - `PeriodicTab.tsx` `noble`/`gas` `#ddd6fe`, H 250.5, which is the primary's own hue at
   wash lightness, carrying `PERIODIC_INK` at 10.03:1. A categorical scale where pushing
