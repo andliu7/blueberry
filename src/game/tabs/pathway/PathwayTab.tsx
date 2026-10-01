@@ -1722,9 +1722,10 @@ function OrgoMapTrack({
     const clickable = playable !== undefined && nodeStatus.state !== "locked";
     /* A lesson shut inside an open unit is shut by the lesson before it on
        the line (pathwayState.ts), so it names that lesson rather than saying
-       the unit-gate sentence, which would send the student backwards. */
+       the unit-gate sentence, which would send the student backwards. Only
+       the nearest one: on a line, the ones before it are implied. */
     const waits = gateLocked ? [] : waitingOn(status, unit, row.node);
-    const waitNote = waits.length === 0 ? null : `Opens when you clear ${waits.map((id) => titleOf(unit, id)).join(" and ")}`;
+    const waitNote = waits.length === 0 ? null : `Opens after you clear ${titleOf(unit, waits[waits.length - 1]!)}`;
     return (
       <TrackSlab
         key={row.node.id}
