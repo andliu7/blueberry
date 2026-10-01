@@ -20,7 +20,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CARD_RUN_MIN_GRADED, DIAMONDS_CARD_RUN } from "@blueberry/economy";
 import { REACTIONS } from "../../data/reactions";
 import { createLocalProgress } from "../app/progress";
@@ -558,5 +558,51 @@ describe("reagents set as formulas, never as SMILES", () => {
         expect(normaliseFormula(step.label), `${reaction.id}: ${step.label}`).not.toMatch(/[#[\]@\\]/);
       }
     }
+  });
+});
+
+/* ROUND 6: THE ANSWER'S SLOT MOVES BETWEEN REVIEWS. The round 4 critic found
+   the slot fixed per card (a hash of its id), so across spaced reviews a
+   student could recall "the middle one" instead of the product. The order is
+   now shuffled per review instance, and stays put within one. */
+describe("option order per review", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  const order = (options: readonly { readonly key: string }[] | null) => (options ?? []).map((option) => option.key).join("|");
+
+  it("deals one review instance the same order every time", () => {
+    const card = registryCard("lialh4-reduction");
+    expect(order(predictionChoices(card, REACTIONS, undefined, undefined, "run-1:0"))).toBe(
+      order(predictionChoices(card, REACTIONS, undefined, undefined, "run-1:0")),
+    );
+  });
+
+  it("moves the answer through every slot, and reorders the wrong options, across one card's reviews", () => {
+    const card = registryCard("lialh4-reduction");
+    const slots = new Set<number>();
+    const orders = new Set<string>();
+    for (let review = 0; review < 30; review += 1) {
+      const options = predictionChoices(card, REACTIONS, undefined, undefined, `review-${review}`) ?? [];
+      slots.add(options.findIndex((option) => option.correct));
+      orders.add(order(options));
+    }
+    expect(slots.size).toBe(PREDICT_OPTIONS);
+    expect(orders.size).toBe(6); // all 3! orders of three options
+  });
+
+  it("deals a different order to the same card in runs opened at different times", () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    const card = registryCard("lialh4-reduction");
+    const seen = new Set<string>();
+    for (let minute = 0; minute < 12; minute += 1) {
+      vi.setSystemTime(new Date(NOON.getTime() + minute * 60_000));
+      const html = renderToStaticMarkup(
+        createElement(Run, { cards: [card], source: createLocalDecks({ now: () => NOON }), journal: [], onExit: () => undefined }),
+      );
+      seen.add((html.match(/predict__art[^>]*src="[^"]*"|src="[^"]*"[^>]*predict__art/g) ?? []).join("|"));
+    }
+    expect(seen.size).toBeGreaterThan(1);
   });
 });

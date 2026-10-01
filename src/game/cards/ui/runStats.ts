@@ -24,6 +24,7 @@
 
 import { CARD_RUN_MIN_GRADED, CARD_RUNS_PAID_PER_DAY, DIAMONDS_CARD_RUN } from "@blueberry/economy";
 import type { Card, CardId, DeckSnapshot, Rating } from "../types";
+import { isLearning } from "../scheduler";
 import { isDue, RATINGS } from "../types";
 import { summaryHeadline, type RatingRecord, type SessionSummary } from "./session";
 
@@ -143,6 +144,35 @@ export function dueAtRunStart(cards: readonly Card[], snapshot: DeckSnapshot, no
   return due;
 }
 
+/**
+ * The sources whose cards the app wrote: a lesson beat, a game mistake, a
+ * registry reaction. The student cannot mint more of them by typing, so a
+ * first look at one is real study. A composed or imported card is the
+ * student's own text, and five of them cost a minute (round 4 critic).
+ */
+const BUILT_IN_SOURCES: ReadonlySet<Card["source"]["kind"]> = new Set(["lesson", "mistake", "reaction"]);
+
+/**
+ * The cards whose grade counts toward the reward's minimum, read once at the
+ * start like dueAtRunStart, of which it is a subset. Round 6 rule:
+ *   (a) a GRADUATED card that was due: a real spaced review;
+ *   (b) the first review of a built-in card (BUILT_IN_SOURCES).
+ * Never a composed or imported card's first review (the junk card farm), and
+ * never a learning or relearning step (the self lapse farm: Again on cards
+ * that were not due, then a run ten minutes later). Owner may revise.
+ */
+export function creditableAtRunStart(cards: readonly Card[], snapshot: DeckSnapshot, now: Date): ReadonlySet<CardId> {
+  const due = dueAtRunStart(cards, snapshot, now);
+  const out = new Set<CardId>();
+  for (const card of cards) {
+    if (!due.has(card.id)) continue;
+    const state = snapshot.review[card.id];
+    const firstReview = state === undefined || state.lastRating === null;
+    if (firstReview ? BUILT_IN_SOURCES.has(card.source.kind) : !isLearning(state)) out.add(card.id);
+  }
+  return out;
+}
+
 /** Distinct finished cards that were due at the start: the number the economy is told. */
 export function dueGraded(finished: readonly CardId[], dueAtStart: ReadonlySet<CardId>): number {
   return new Set(finished.filter((cardId) => dueAtStart.has(cardId))).size;
@@ -160,6 +190,6 @@ export function rewardLine(dueCount: number, credited: number): string | null {
   }
   return (
     `A run of ${CARD_RUN_MIN_GRADED} or more cards earns ${DIAMONDS_CARD_RUN} diamonds, up to ` +
-    `${CARD_RUNS_PAID_PER_DAY} runs a day. Only cards that were due count.`
+    `${CARD_RUNS_PAID_PER_DAY} runs a day. Only cards that were due count, and new cards only from built-in decks.`
   );
 }

@@ -24,11 +24,11 @@
  * normal step, and the streak simply restarts without a falling number.
  */
 
-import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { REACTIONS } from "../../../data/reactions";
 import type { SavedMistake } from "../../tabs/trainer/mistakes";
 import { reviewInterval, startCard } from "../scheduler";
-import type { Card, DeckSource, Rating, ReviewState } from "../types";
+import type { Card, CardId, DeckSnapshot, DeckSource, Rating, ReviewState } from "../types";
 import { RATING_LABELS, RATINGS } from "../types";
 import { CardFace, Drawing } from "./CardFace";
 import { cardSchedulerState } from "./cardState";
@@ -38,7 +38,7 @@ import { intervalLabel } from "./intervalLabel";
 import { predictionChoices, type PredictOption } from "./predict";
 import {
   calledLine,
-  dueAtRunStart,
+  creditableAtRunStart,
   dueGraded,
   ratingForKey,
   runHeadline,
@@ -54,11 +54,13 @@ import {
   isFinished,
   rateCurrent,
   reveal,
+  scheduleChange,
   sessionCounter,
   sessionSummary,
   startSession,
   summaryLine,
   type ReviewSessionState,
+  type ScheduleChange,
 } from "./session";
 import { useDeckSnapshot } from "./useDeck";
 import "./cards.css";
@@ -71,12 +73,20 @@ export interface RunProps {
   /** Leaving, early or after the summary. Every grade is already committed. */
   readonly onExit: () => void;
   /**
-   * Credits a finished run with `graded` distinct DUE cards graded (see
-   * runStats.dueAtRunStart: early re-reviews do not count) and returns
+   * Credits a finished run with `graded` distinct cards that count (see
+   * runStats.creditableAtRunStart: early re-reviews, composed cards' first
+   * looks and relearning steps do not) and returns
    * the diamonds the economy actually paid (CardsHome passes the progress
    * store's finishCardRun). Absent in tests and previews: nothing is paid.
    */
   readonly credit?: (graded: number) => number;
+}
+
+/** Every card's current interval in days, by id. */
+function intervalsOf(snapshot: DeckSnapshot): Readonly<Record<CardId, number>> {
+  const out: Record<CardId, number> = {};
+  for (const [cardId, state] of Object.entries(snapshot.review)) out[cardId] = state.interval;
+  return out;
 }
 
 /** The chip family per grade. Again is periwinkle, never red: see cards.css. */
@@ -107,16 +117,28 @@ export function Run({ cards, source, journal, onExit, credit }: RunProps) {
   // is down. State rather than a ref because the card's class reads it.
   const [drag, setDrag] = useState<{ readonly x: number; readonly width: number } | null>(null);
   const snapshot = useDeckSnapshot(source);
-  // A useState initializer runs once, on the first render: the cards that were
-  // due as the run opened, before its own grades move any due date.
-  const [dueAtStart] = useState(() => dueAtRunStart(cards, source.getSnapshot(), new Date()));
+  // A useState initializer runs once, on the first render: the cards that
+  // count toward the reward as the run opened (due, and not a composed card's
+  // first look or a relearning step), before its own grades move anything.
+  const [dueAtStart] = useState(() => creditableAtRunStart(cards, source.getSnapshot(), new Date()));
+  // Each card's interval as the run opened, so the summary can say what the
+  // scheduler really did (session.scheduleChange) rather than assume growth.
+  const [intervalsAtStart] = useState(() => intervalsOf(source.getSnapshot()));
+  // The run's start time seeds the option shuffle (predict.ts).
+  const [runSeed] = useState(() => String(Date.now()));
 
   const card = currentCard(state);
   const done = isFinished(state);
   // `calls` keeps every call in order (the streak reads that order); this
   // card's call is its latest, since a card back after Again is called again.
   const call = card === null ? undefined : [...calls].reverse().find((entry) => entry.cardId === card.id);
-  const choices = useMemo(() => (card === null ? null : predictionChoices(card, REACTIONS)), [card]);
+  // One review instance = this run and this showing of the card, so the
+  // options are reshuffled every review but hold still within one.
+  const instance = `${runSeed}:${card !== null && state.requeued.includes(card.id) ? 1 : 0}`;
+  const choices = useMemo(
+    () => (card === null ? null : predictionChoices(card, REACTIONS, undefined, undefined, instance)),
+    [card, instance],
+  );
   const predictions: PredictionRecord[] = calls.map(({ cardId, correct }) => ({ cardId, correct }));
   const stats = runStats(state.ratings, predictions);
 
@@ -145,12 +167,34 @@ export function Run({ cards, source, journal, onExit, credit }: RunProps) {
 
   // useRef reaches the scrolling stage element so a new card, or a flip,
   // starts at its top: round 2 found the back opened scrolled past its own
-  // start structure. The effect runs after React has drawn the new content.
+  // start structure.
+  //
+  // AFTER THE PICK THE WHY MUST SIT ABOVE THE DOCK on every card, not only
+  // the short ones (round 4 critic: malonic's note was cut 135px under the
+  // seam). When the card overflows, the stage scrolls so the start and
+  // product row is its top line: the reagents and the card's label, already
+  // read on the front, pass fully out of view above it, so no drawing or
+  // line is cut at either edge. A bottom pad makes that scroll reachable on
+  // a card whose why is shorter than the reagents it scrolls past.
+  // useLayoutEffect, not useEffect: it measures and scrolls before the
+  // browser paints, so the card never flashes at the old position.
   const stage = useRef<HTMLDivElement | null>(null);
   const cardId = card?.id ?? null;
-  useEffect(() => {
-    if (stage.current !== null) stage.current.scrollTop = 0;
-  }, [cardId, state.revealed]);
+  const predictable = choices !== null;
+  useLayoutEffect(() => {
+    const el = stage.current;
+    if (el === null) return;
+    el.style.paddingBottom = "";
+    el.scrollTop = 0;
+    if (!state.revealed || !predictable || el.scrollHeight <= el.clientHeight) return;
+    const sides = [...el.querySelectorAll(".rxn-side")];
+    if (sides.length === 0) return;
+    const rowTop = Math.min(...sides.map((side) => side.getBoundingClientRect().top)) - el.getBoundingClientRect().top;
+    const offset = Math.max(0, Math.floor(rowTop) - 8);
+    const short = offset + el.clientHeight - el.scrollHeight;
+    if (short > 0) el.style.paddingBottom = `calc(1rem + ${short}px)`;
+    el.scrollTop = offset;
+  }, [cardId, state.revealed, predictable]);
 
   // THE KEYBOARD PATH. An effect that subscribes a window listener and returns
   // its own cleanup, so the listener always sees this render's `press` and is
@@ -190,6 +234,7 @@ export function Run({ cards, source, journal, onExit, credit }: RunProps) {
           stats={stats}
           credited={credited}
           dueCount={dueGraded(state.finished, dueAtStart)}
+          change={scheduleChange(state.finished, intervalsAtStart, intervalsOf(snapshot))}
           forecast={dueForecast(snapshot, journal, new Date())}
           onDone={onExit}
         />
@@ -489,6 +534,7 @@ function RunSummary({
   stats,
   credited,
   dueCount,
+  change,
   forecast,
   onDone,
 }: {
@@ -497,6 +543,8 @@ function RunSummary({
   readonly credited: number;
   /** Graded cards that were due at the start: what the reward counted. */
   readonly dueCount: number;
+  /** What the scheduler did to the run's cards, for the line under the headline. */
+  readonly change: ScheduleChange;
   readonly forecast: readonly { readonly label: string; readonly count: number }[];
   readonly onDone: () => void;
 }) {
@@ -514,7 +562,7 @@ function RunSummary({
           {summary.reviewed === 1 ? "card reviewed" : "cards reviewed"}
         </p>
         <h1 className="bb-title-face m-0 mt-3 text-scale-2xl font-bold">{runHeadline(summary, stats)}</h1>
-        <p className="m-0 text-scale-base leading-normal text-bb-muted-foreground">{summaryLine(summary)}</p>
+        <p className="m-0 text-scale-base leading-normal text-bb-muted-foreground">{summaryLine(summary, change)}</p>
       </div>
 
       {/* THE DIAMONDS TILE SHOWS WHAT WAS CREDITED. Round 2 showed one per

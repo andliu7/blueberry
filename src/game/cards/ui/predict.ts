@@ -24,8 +24,12 @@
  * (PREDICT_GAPS): a question answerable by elimination is worse than a plain
  * flip.
  *
- * DETERMINISTIC. The answer's position comes from a hash of the card id, so a
- * reload mid run deals the same three, and the position varies across cards.
+ * SHUFFLED PER REVIEW, DETERMINISTIC WITHIN ONE. The order of all three is a
+ * seeded shuffle of the card id and a review `instance` the caller names (the
+ * run passes its start time and which showing this is). Round 4 critic: a
+ * slot fixed per card let a student recall "the middle one" across spaced
+ * reviews instead of the product. The same instance always deals the same
+ * order, so a re-render never moves an option and a test can seed it.
  *
  * Pure: no React, no storage, no clock.
  */
@@ -60,6 +64,18 @@ function hash(text: string): number {
   return Math.abs(value);
 }
 
+/** Fisher-Yates driven by a small linear congruential generator seeded from `seed`. */
+function shuffled<T>(items: readonly T[], seed: number): T[] {
+  const out = [...items];
+  let state = seed >>> 0;
+  for (let i = out.length - 1; i > 0; i -= 1) {
+    state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+    const j = state % (i + 1);
+    [out[i], out[j]] = [out[j]!, out[i]!];
+  }
+  return out;
+}
+
 function wrongOption(distractor: PredictDistractor): PredictOption {
   return {
     key: distractor.smiles,
@@ -81,6 +97,8 @@ export function predictionChoices(
   reactions: readonly StagedReaction[],
   distractors: Readonly<Record<string, readonly PredictDistractor[]>> = PREDICT_DISTRACTORS,
   answers: Readonly<Record<string, PredictAnswer>> = PREDICT_ANSWERS,
+  /** Names this review: the same instance deals the same order. */
+  instance = "",
 ): readonly PredictOption[] | null {
   if (card.source.kind !== "reaction") return null;
   const reactionId = card.source.reactionId;
@@ -98,7 +116,5 @@ export function predictionChoices(
     formula: target.product_formula,
     correct: true,
   };
-  const options = wrong.slice(0, PREDICT_OPTIONS - 1).map(wrongOption);
-  options.splice(hash(card.id) % PREDICT_OPTIONS, 0, answer);
-  return options;
+  return shuffled([answer, ...wrong.slice(0, PREDICT_OPTIONS - 1).map(wrongOption)], hash(`${card.id}#${instance}`));
 }

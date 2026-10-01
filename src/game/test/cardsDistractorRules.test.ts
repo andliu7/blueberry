@@ -40,10 +40,22 @@ describe("no option class only the wrong options carry (rule 5)", () => {
      wrong options were alkoxides and six were enols, so "never pick the
      charged one or the enol" scored 0.45 blind against 0.33. A class that only
      wrong options carry, anywhere in the deck, is that tell. */
+  /* ROUND 4 CRITIC: the next class over. Every ether the start lacked sat
+     on a wrong option ("on-oxygen"), none on an answer: 0.38 blind. The
+     generator writes newEther from RDKit (an ether O the starts do not have). */
+  type Option = { readonly charge: number; readonly enol: boolean; readonly newEther: boolean };
   const classes = {
-    charged: (charge: number, _enol: boolean) => charge !== 0,
-    "enol, enolate or enamine": (_charge: number, enol: boolean) => enol,
+    charged: (option: Option) => option.charge !== 0,
+    "enol, enolate or enamine": (option: Option) => option.enol,
+    "a new ether": (option: Option) => option.newEther,
   } as const;
+
+  it("states every option's new-ether class, answer included", () => {
+    for (const reaction of PREDICTED) {
+      expect(typeof PREDICT_ANSWERS[reaction.id]?.newEther, reaction.id).toBe("boolean");
+      for (const d of PREDICT_DISTRACTORS[reaction.id] ?? []) expect(typeof d.newEther, d.smiles).toBe("boolean");
+    }
+  });
 
   it("reads the generator's charge the same way the SMILES text does", () => {
     for (const reaction of PREDICTED) {
@@ -60,7 +72,7 @@ describe("no option class only the wrong options carry (rule 5)", () => {
       for (const reaction of PREDICTED) {
         const answer = PREDICT_ANSWERS[reaction.id]!;
         const options = [answer, ...(PREDICT_DISTRACTORS[reaction.id] ?? [])];
-        const flagged = options.map((option) => has(option.charge, option.enol));
+        const flagged = options.map((option) => has(option));
         if (flagged[0]) answers += 1;
         wrong += flagged.slice(1).filter(Boolean).length;
         // "Never pick one of these": guess among the rest (all three if all are flagged).
@@ -122,6 +134,27 @@ describe("no wrong option that needs a reagent the card lacks (rule 7)", () => {
           expect(reaction.redox && reaction.reaction_type.includes("oxidation"), reaction.id).toBe(true);
         }
       }
+    }
+  });
+
+  /* ROUND 4 CRITIC: rule 7 gated redox by edit KIND, so an "on-oxygen" move
+     that leaves the attacked carbonyl carbon with an H it never had (the
+     methyl ether of 1-phenylethanol on the Grignard card) passed as a
+     non-redox edit. The generator now maps each start's C=O carbon into the
+     option with RDKit and writes carbonylGainsH; on a card with no reductant
+     it must be false. */
+  it("never gives a start's carbonyl carbon an H the card has no reductant for", () => {
+    for (const reaction of PREDICTED) {
+      const reductant = reaction.redox && reaction.reaction_type.includes("reduction");
+      for (const d of PREDICT_DISTRACTORS[reaction.id] ?? []) {
+        expect(typeof d.carbonylGainsH, d.smiles).toBe("boolean");
+        if (!reductant) expect(d.carbonylGainsH, `${reaction.id}: ${d.smiles}`).toBe(false);
+      }
+    }
+    // The four the critic named, by structure.
+    const all = Object.values(PREDICT_DISTRACTORS).flat().map((d) => d.smiles);
+    for (const named of ["COC(C)c1ccccc1", "CCOCC=O", "CC#COCc1ccccc1", "N#COCc1ccccc1"]) {
+      expect(all, named).not.toContain(named);
     }
   });
 });

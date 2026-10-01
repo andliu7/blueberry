@@ -33,15 +33,18 @@ test/cardsRun.test.ts:
      proxy, with a tie band of TIE: inside it the difference is not a thing a
      student can see, and asking for strictly closer would make "never pick
      the closest" the new tell.
-  5. Each matches the answer's species class: its net charge, and whether it
-     is an enol, enolate or enamine. Across a deck, a class only wrong options
+  5. Each matches the answer's species class: its net charge, whether it
+     is an enol, enolate or enamine, and whether it has an ether oxygen the
+     starts do not (round 6). Across a deck, a class only wrong options
      carry is a rule a student learns without chemistry (round 5).
   6. Neither is a product this card's own data or mechanism makes: see
      own_products() (the NBS card's other allyl end).
   7. Neither needs a reagent the card does not carry: no more carbon than the
      starts and consumed reagents supply, no reduction without a reductant and
      no oxidation without an oxidant. See carbon_supply() and
-     needs_absent_reagent().
+     needs_absent_reagent(). Round 6: a reduction hidden inside another
+     edit counts too: no start's C=O carbon may gain an H on a card with no
+     reductant (carbonyl_gains_h()), whatever the edit is called.
 
 WHERE THE WRONG OPTIONS COME FROM. Derived, never recalled. Each candidate is
 the answer or the start rewritten by one RDKit edit, or a structure the
@@ -173,6 +176,11 @@ CAPTIONS = {
     "intermediate": "An intermediate: the reaction stops short",
     "half": "Halfway: one of the two new C–O bonds",
     "on-oxygen": "The new group on the oxygen instead",
+    "1,2-adduct": "1,2-addition: the nucleophile on the C=O carbon",
+    "alpha-adduct": "The nucleophile on the alpha carbon, not the beta",
+    "two-two": "A [2+2] four-ring instead of the [4+2] six-ring",
+    "other-end": "The ring opened at its other carbon",
+    "hetero": "The C=O as the diene's partner instead of the C=C",
     "over": "The reagent adding a second time",
 }
 
@@ -180,7 +188,7 @@ CAPTIONS = {
 # end, stopping short, a sibling reagent's product, the reagent's other way of
 # reacting), then plausible misplacements, then the rest.
 PRIORITY = [
-    "allylic", "intermediate", "over", "half", "sibling", "addition", "ring-site", "on-oxygen",
+    "allylic", "intermediate", "1,2-adduct", "hetero", "over", "alpha-adduct", "two-two", "other-end", "half", "sibling", "addition", "ring-site", "on-oxygen",
     "shifted", "reversed", "regio", "twice", "tautomer", "reduced", "oxidised", "branch", "unsaturated",
 ]
 
@@ -401,6 +409,150 @@ def added_on_oxygen(answer_smiles: str, start_smiles: str) -> list[str]:
     return sorted(out)
 
 
+def _loose(mol):
+    """A query of `mol`'s atoms with every bond loosened to "any"."""
+    query = Chem.RWMol(Chem.MolFromSmarts(Chem.MolToSmarts(mol)))
+    for bond in query.GetBonds():
+        bond.SetQuery(Chem.MolFromSmarts("[*]~[*]").GetBondWithIdx(0))
+    return query
+
+
+def conjugate_misplacements(rxn: dict) -> list[tuple[str, str]]:
+    """
+    THE 1,2 vs 1,4 FAMILY (round 6). On a conjugate addition the nucleophile
+    can also add to the C=O carbon of the enone: the 1,2-adduct, the textbook
+    Michael trap. Derived, not typed: the enone start is found in the
+    conjugate-addition product (the answer on a plain conjugate addition, the
+    registry's intermediate on a sequence that starts with one), the bond the
+    nucleophile made to the beta carbon is moved to the C=O carbon, the C=C
+    is restored and the C=O becomes C-OH. The same cut also gives the
+    "alpha-adduct": the nucleophile on the alpha carbon instead of the beta,
+    the other carbon of the C=C a student can put it on.
+    """
+    if "conjugate addition" not in rxn["reaction_type"]:
+        return []
+    adducts = [rxn["product"]] if rxn["reaction_type"] == "conjugate addition" else rxn.get("intermediates", [])
+    enone_smarts = Chem.MolFromSmarts("[CX3;!a]=[CX3;!a]-[CX3;!a]=[OX1]")
+    out: set[tuple[str, str]] = set()
+    for start in rxn["reactants"]:
+        e_mol = Chem.MolFromSmiles(start)
+        hit0 = e_mol.GetSubstructMatch(enone_smarts) if e_mol is not None else ()
+        if not hit0:
+            continue
+        beta, alpha, carbonyl, oxygen = hit0
+        query = _loose(e_mol)
+        for smiles in adducts:
+            mol = Chem.MolFromSmiles(smiles)
+            if mol is None:
+                continue
+            for hit in mol.GetSubstructMatches(query, uniquify=False):
+                # The enone keeps its ring membership: an acyclic enone's
+                # image must not be laid over the other start's ring.
+                if any(mol.GetAtomWithIdx(m).IsInRing() != e_mol.GetAtomWithIdx(i).IsInRing() for i, m in enumerate(hit)):
+                    continue
+                b, a, c, o = hit[beta], hit[alpha], hit[carbonyl], hit[oxygen]
+                if mol.GetBondBetweenAtoms(c, o).GetBondType() != Chem.BondType.DOUBLE:
+                    continue
+                if mol.GetBondBetweenAtoms(b, a).GetBondType() != Chem.BondType.SINGLE:
+                    continue
+                outside = [n.GetIdx() for n in mol.GetAtomWithIdx(b).GetNeighbors() if n.GetIdx() not in hit]
+                if len(outside) != 1 or mol.GetAtomWithIdx(outside[0]).GetSymbol() != "C":
+                    continue
+                nu = outside[0]
+                edit = Chem.RWMol(mol)
+                Chem.Kekulize(edit, clearAromaticFlags=True)
+                edit.RemoveBond(b, nu)
+                edit.GetBondBetweenAtoms(b, a).SetBondType(Chem.BondType.DOUBLE)
+                edit.GetBondBetweenAtoms(c, o).SetBondType(Chem.BondType.SINGLE)
+                edit.AddBond(nu, c, Chem.BondType.SINGLE)
+                made = _finish(edit)
+                if made is not None:
+                    out.add(("1,2-adduct", made))
+                moved = Chem.RWMol(mol)
+                moved.RemoveBond(b, nu)
+                moved.AddBond(nu, a, Chem.BondType.SINGLE)
+                made = _finish(moved)
+                if made is not None:
+                    out.add(("alpha-adduct", made))
+    return sorted(out)
+
+
+def other_cycloadducts(rxn: dict) -> list[tuple[str, str]]:
+    """
+    THE OTHER 2-PI PARTNER (round 6). On a Diels-Alder whose dienophile also
+    carries a C=O, the diene can close onto the C=O instead of the C=C: a
+    hetero-Diels-Alder dihydropyran. Derived by running the same [4+2] on the
+    card's own starts with the C=O as the 2-pi component. "two-two" is the
+    other wrong ring the same two starts can be drawn closing: a [2+2]
+    cyclobutane from one C=C of the diene and the dienophile's C=C, the
+    thermally forbidden mode the card's "one concerted step" rules out.
+    """
+    if "cycloaddition" not in rxn["reaction_type"]:
+        return []
+    modes = [
+        ("hetero", AllChem.ReactionFromSmarts(
+            "[C:1]=[C:2]-[C:3]=[C:4].[C:5]=[O:6]>>[C:1]1-[C:2]=[C:3]-[C:4]-[O:6]-[C:5]-1")),
+        ("two-two", AllChem.ReactionFromSmarts(
+            "[C:1]=[C:2]-[C:3]=[C:4].[C:5]=[C:6]>>[C:1]1-[C:2](-[C:3]=[C:4])-[C:6]-[C:5]-1")),
+    ]
+    mols = [Chem.MolFromSmiles(s) for s in rxn["reactants"]]
+    out: set[tuple[str, str]] = set()
+    for i, diene in enumerate(mols):
+        for j, partner in enumerate(mols):
+            if i == j or diene is None or partner is None:
+                continue
+            for kind, mode in modes:
+                for products in mode.RunReactants((diene, partner)):
+                    made = canonical(Chem.Mol(products[0]))
+                    if made is not None and "." not in made:
+                        out.add((kind, made))
+    return sorted(out)
+
+
+def other_end_openings(rxn: dict) -> list[str]:
+    """
+    THE OTHER CARBON OF A THREE-RING (round 6). An epoxide opened by a
+    nucleophile can break at either C-O bond, and which one is the question
+    (base: the less hindered carbon; acid: the more substituted one). The
+    start's epoxide is found in the answer, and the ring O and the
+    nucleophile trade carbons.
+    """
+    epoxide = Chem.MolFromSmarts("[C:1]1-[O:2]-[C:3]-1")
+    out: set[str] = set()
+    answer = Chem.MolFromSmiles(rxn["product"])
+    for start in rxn["reactants"]:
+        s_mol = Chem.MolFromSmiles(start)
+        ring = s_mol.GetSubstructMatch(epoxide) if s_mol is not None else ()
+        if not ring or answer is None:
+            continue
+        for broken in (ring[0], ring[2]):
+            # The start with one ring C-O bond cut is what the answer contains.
+            cut = Chem.RWMol(s_mol)
+            cut.RemoveBond(broken, ring[1])
+            hits = answer.GetSubstructMatches(_loose(cut.GetMol()), uniquify=False)
+            out.update(_swap_opening(answer, hits, ring[1], ring[2] if broken == ring[0] else ring[0], broken))
+    return sorted(out)
+
+
+def _swap_opening(answer, hits, o_index: int, kept_index: int, opened_index: int) -> set[str]:
+    """other_end_openings for one cut: the ring O and the nucleophile trade carbons."""
+    out: set[str] = set()
+    for hit in hits:
+        o, kept, opened = hit[o_index], hit[kept_index], hit[opened_index]
+        nucs = [n.GetIdx() for n in answer.GetAtomWithIdx(opened).GetNeighbors() if n.GetIdx() not in hit]
+        if len(nucs) != 1:
+            continue
+        swap = Chem.RWMol(answer)
+        swap.RemoveBond(o, kept)
+        swap.RemoveBond(nucs[0], opened)
+        swap.AddBond(o, opened, Chem.BondType.SINGLE)
+        swap.AddBond(nucs[0], kept, Chem.BondType.SINGLE)
+        made = _finish(swap)
+        if made is not None:
+            out.add(made)
+    return out
+
+
 def half_acetal(answer_smiles: str) -> list[str]:
     """
     A cyclic acetal opened at one ring C-O bond, OH on the carbon: the
@@ -557,7 +709,7 @@ def candidates(rxn: dict, registry: list[dict]) -> list[Candidate]:
     starts = {canonical(Chem.MolFromSmiles(s)) for s in rxn["reactants"]}
     found: list[Candidate] = []
     seen = {answer_smiles} | starts | own_products(rxn, registry)  # rule 6
-    answer_class = species_class(rxn["product"])
+    answer_class = {**species_class(rxn["product"]), "new ether": new_ether(rxn["product"], rxn)}
     supply = carbon_supply(rxn)
 
     def keep(key: str, caption: str, smiles: str | None, source: str, check_stable: bool = True) -> None:
@@ -565,10 +717,12 @@ def candidates(rxn: dict, registry: list[dict]) -> list[Candidate]:
             return
         if check_stable and not stable(smiles):
             return
-        if species_class(smiles) != answer_class:
+        if {**species_class(smiles), "new ether": new_ether(smiles, rxn)} != answer_class:
             return  # rule 5
         if needs_absent_reagent(key, rxn) or (key != "over" and _carbons(smiles) > supply):
             return  # rule 7
+        if carbonyl_gains_h(smiles, rxn) and not has_reductant(rxn):
+            return  # rule 7, a reduction hidden inside another edit
         seen.add(smiles)
         found.append((key, caption, smiles, source))
 
@@ -611,6 +765,18 @@ def candidates(rxn: dict, registry: list[dict]) -> list[Candidate]:
             keep("over", CAPTIONS["over"], canonical(Chem.Mol(products[0])), "derived")
     for smiles in half_acetal(rxn["product"]):
         keep("half", CAPTIONS["half"], smiles, "derived", False)
+    for kind, smiles in conjugate_misplacements(rxn) + other_cycloadducts(rxn):
+        keep(kind, CAPTIONS[kind], smiles, "derived")
+    for smiles in other_end_openings(rxn):
+        keep("other-end", CAPTIONS["other-end"], smiles, "derived")
+    # The card's own X2 halogenating the same alpha carbon again: the
+    # polyhalogenation the alpha-halogenation card's own note contrasts
+    # (acid stops at one, base runs on). Same kind as CH3I acting twice.
+    halogen = x2_source(rxn)
+    if halogen is not None:
+        again = f"[CX4;!H0:1](-[{halogen}:2])-[CX3:3]=[O:4]>>[C:1](-[{halogen}:2])({halogen})-[C:3]=[O:4]"
+        for smiles in smarts_products(answer, again):
+            keep("over", CAPTIONS["over"], smiles, "derived")
     for start in rxn["reactants"]:
         for smiles in added_on_oxygen(rxn["product"], start):
             keep("on-oxygen", CAPTIONS["on-oxygen"], smiles, "derived")
@@ -653,6 +819,71 @@ def species_class(smiles: str) -> dict[str, object]:
     """The classes rule 5 compares: net formal charge and enol/enamine form."""
     mol = Chem.MolFromSmiles(smiles)
     return {"charge": Chem.GetFormalCharge(mol), "enol": mol.HasSubstructMatch(ENOL_FORM)}
+
+
+# An ether oxygen: two carbons, neither of them a C=O or C=N carbon (so an
+# ester's or an acid's O is not one). Acetals and epoxides count: both are
+# a C-O-C a student sees.
+ETHER = Chem.MolFromSmarts("[OX2;!$(O[#6]=[O,N])]([#6;!$([#6]=[O,N])])[#6;!$([#6]=[O,N])]")
+
+
+def _ethers(smiles: str) -> int:
+    mol = Chem.MolFromSmiles(smiles)
+    return 0 if mol is None else len(mol.GetSubstructMatches(ETHER))
+
+
+def new_ether(smiles: str, rxn: dict) -> bool:
+    """
+    RULE 5's third class (round 6): more ether oxygens than any start has.
+    The round 4 critic found every new C-O-C on a wrong option ("on-oxygen")
+    and none on an answer, so "never pick the new ether" beat chance.
+    """
+    return _ethers(smiles) > max(_ethers(s) for s in rxn["reactants"])
+
+
+def has_reductant(rxn: dict) -> bool:
+    """The registry's own flag and type: does this card carry a reductant."""
+    return bool(rxn["redox"]) and "reduction" in rxn["reaction_type"]
+
+
+_CARBONYL = Chem.MolFromSmarts("[CX3;!a]=[OX1]")
+
+
+def carbonyl_gains_h(smiles: str, rxn: dict) -> bool:
+    """
+    RULE 7, round 6: True when the option gives a start's C=O carbon an H it
+    did not have, which is a reduction whatever the edit is called (the
+    critic's "on-oxygen" methyl ether: the carbonyl carbon became CH-O).
+    Each start with a C=O is matched into the option by its atoms with every
+    bond loosened; a C=O carbon "keeps" when some match lands it on a carbon
+    with no more H than it had. A start used twice (aldol) needs two keeping
+    images. A start the option does not contain says nothing: a skeleton
+    change is rules 1 to 4's business, not this one's.
+    """
+    mol = Chem.MolFromSmiles(smiles)
+    if mol is None:
+        return False
+    counts: dict[str, int] = {}
+    for start in rxn["reactants"]:
+        key = canonical(Chem.MolFromSmiles(start))
+        counts[key] = counts.get(key, 0) + 1
+    for key, uses in counts.items():
+        start = Chem.MolFromSmiles(key)
+        sites = [hit[0] for hit in start.GetSubstructMatches(_CARBONYL)]
+        if not sites:
+            continue
+        query = _loose(start)
+        images: set[int] = set()
+        kept: set[int] = set()
+        for hit in mol.GetSubstructMatches(query, uniquify=False, maxMatches=10000):
+            for site in sites:
+                image = hit[site]
+                images.add(image)
+                if mol.GetAtomWithIdx(image).GetTotalNumHs() <= start.GetAtomWithIdx(site).GetTotalNumHs():
+                    kept.add(image)
+        if images and len(kept) < min(uses * len(sites), len(images)):
+            return True
+    return False
 
 
 def own_products(rxn: dict, registry: list[dict]) -> set[str]:
@@ -839,6 +1070,10 @@ export interface PredictDistractor {
   /** Rule 5's classes, from RDKit: net formal charge, and enol/enamine form. */
   readonly charge: number;
   readonly enol: boolean;
+  /** Rule 5, round 6: an ether oxygen none of the starts has. */
+  readonly newEther: boolean;
+  /** Rule 7, round 6: a start's C=O carbon gained an H (a hidden reduction). */
+  readonly carbonylGainsH: boolean;
   readonly light?: string;
   readonly dark?: string;
 }
@@ -848,6 +1083,7 @@ export interface PredictAnswer {
   readonly similarity: number;
   readonly charge: number;
   readonly enol: boolean;
+  readonly newEther: boolean;
   /** Rule 6: what this card's own data or mechanism makes; never a wrong option. */
   readonly ownProducts: readonly string[];
   readonly light?: string;
@@ -883,11 +1119,14 @@ def main() -> int:
         entries = []
         for key, caption, smiles, source in chosen:
             entry = {"smiles": smiles, "formula": formula(smiles), "caption": caption, "kind": key,
-                     "source": source, "similarity": sims[smiles], **species_class(smiles), **draw_option(smiles)}
+                     "source": source, "similarity": sims[smiles], **species_class(smiles),
+                     "newEther": new_ether(smiles, rxn), "carbonylGainsH": carbonyl_gains_h(smiles, rxn),
+                     **draw_option(smiles)}
             entries.append(entry)
             print(f"  {rxn['id']:<28} {key:<12} {sims[smiles]:.2f} {smiles}")
         table[rxn["id"]] = entries
         answers[rxn["id"]] = {"similarity": sims["answer"], **species_class(rxn["product"]),
+                              "newEther": new_ether(rxn["product"], rxn),
                               "ownProducts": sorted(own_products(rxn, registry)), **draw_option(rxn["product"])}
         print(f"  {'':<28} {'answer':<12} {sims['answer']:.2f} {rxn['product']}")
 

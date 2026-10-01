@@ -184,11 +184,51 @@ export function summaryHeadline(summary: SessionSummary): string {
   return `${summary.cameBack} cards needed a second look`;
 }
 
-/** The line under it. Names the work, then points at the next thing. */
-export function summaryLine(summary: SessionSummary): string {
+/**
+ * What the scheduler actually did to the run's finished cards: how many
+ * intervals grew, shrank or stayed. Read by comparing each card's interval as
+ * the run opened (absent for a card never rated, which counts as zero) with
+ * its interval now. Round 4 critic: the line said "Those intervals just got
+ * longer" after a cram the scheduler had passed over without a change.
+ */
+export interface ScheduleChange {
+  readonly longer: number;
+  readonly sooner: number;
+  readonly same: number;
+}
+
+export function scheduleChange(
+  finished: readonly CardId[],
+  before: Readonly<Record<CardId, number>>,
+  after: Readonly<Record<CardId, number>>,
+): ScheduleChange {
+  let longer = 0;
+  let sooner = 0;
+  let same = 0;
+  for (const cardId of new Set(finished)) {
+    const was = before[cardId] ?? 0;
+    const now = after[cardId] ?? 0;
+    if (now > was) longer += 1;
+    else if (now < was) sooner += 1;
+    else same += 1;
+  }
+  return { longer, sooner, same };
+}
+
+/** The line under it. Names the work, then says what the schedule did. */
+export function summaryLine(summary: SessionSummary, change: ScheduleChange): string {
   const cards = summary.reviewed === 1 ? "1 card" : `${summary.reviewed} cards`;
-  if (summary.cameBack === 0) return `${cards} reviewed. Those intervals just got longer.`;
-  return `${cards} reviewed. The ones you repeated come back sooner, which is the point.`;
+  const all = change.longer + change.sooner + change.same;
+  if (all === 0) return `${cards} reviewed.`;
+  if (change.longer === all) return `${cards} reviewed. Those intervals just got longer.`;
+  if (change.sooner === all) return `${cards} reviewed. They come back sooner, which is the point.`;
+  if (change.same === all) return `${cards} reviewed. Their schedules did not change.`;
+  const parts = [
+    change.longer > 0 ? `${change.longer} now ${change.longer === 1 ? "waits" : "wait"} longer` : null,
+    change.sooner > 0 ? `${change.sooner} ${change.sooner === 1 ? "comes" : "come"} back sooner` : null,
+    change.same > 0 ? `${change.same} kept ${change.same === 1 ? "its" : "their"} schedule` : null,
+  ].filter((part): part is string => part !== null);
+  return `${cards} reviewed: ${parts.join(", ")}.`;
 }
 
 /** Progress for the bar at the top: finished over promised, clamped to [0,1]. */
