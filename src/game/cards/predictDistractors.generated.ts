@@ -60,14 +60,14 @@ export const PREDICT_DISTRACTORS: Readonly<Record<string, readonly PredictDistra
       "dark": "cards/predict/e73ae8c6477c-dark.svg"
     },
     {
-      "smiles": "CCOCC=O",
-      "formula": "C4H8O2",
-      "caption": "The new group on the oxygen instead",
-      "kind": "on-oxygen",
+      "smiles": "CC(O)=CC=O",
+      "formula": "C4H6O2",
+      "caption": "A double bond the conditions do not make",
+      "kind": "unsaturated",
       "source": "derived",
-      "similarity": 0.235,
-      "light": "cards/predict/e6c091254dcf-light.svg",
-      "dark": "cards/predict/e6c091254dcf-dark.svg"
+      "similarity": 0.267,
+      "light": "cards/predict/d3452ceff6ab-light.svg",
+      "dark": "cards/predict/d3452ceff6ab-dark.svg"
     }
   ],
   "alpha-halogenation": [
@@ -236,14 +236,14 @@ export const PREDICT_DISTRACTORS: Readonly<Record<string, readonly PredictDistra
       "dark": "cards/predict/3c4e8deecc4d-dark.svg"
     },
     {
-      "smiles": "CC(CO)c1ccccc1",
-      "formula": "C9H12O",
-      "caption": "The same group on a different carbon",
-      "kind": "regio",
-      "source": "derived",
-      "similarity": 0.296,
-      "light": "cards/predict/9054989f0091-light.svg",
-      "dark": "cards/predict/9054989f0091-dark.svg"
+      "smiles": "CC1(c2ccccc2)OCCO1",
+      "formula": "C10H12O2",
+      "caption": "What Acetal protection gives",
+      "kind": "sibling:protection",
+      "source": "acetal-protection",
+      "similarity": 0.286,
+      "light": "cards/predict/ae83f49021c6-light.svg",
+      "dark": "cards/predict/ae83f49021c6-dark.svg"
     }
   ],
   "lialh4-reduction": [
@@ -266,6 +266,28 @@ export const PREDICT_DISTRACTORS: Readonly<Record<string, readonly PredictDistra
       "similarity": 0.5,
       "light": "cards/predict/aaba64840aca-light.svg",
       "dark": "cards/predict/aaba64840aca-dark.svg"
+    }
+  ],
+  "malonic-ester-synthesis": [
+    {
+      "smiles": "CCOC(=O)C(C)C(=O)OCC",
+      "formula": "C8H14O4",
+      "caption": "An intermediate: the reaction stops short",
+      "kind": "intermediate",
+      "source": "malonic-ester-synthesis",
+      "similarity": 0.476,
+      "light": "cards/predict/55bd0b3366fa-light.svg",
+      "dark": "cards/predict/55bd0b3366fa-dark.svg"
+    },
+    {
+      "smiles": "C=CC(=O)O",
+      "formula": "C3H4O2",
+      "caption": "A double bond the conditions do not make",
+      "kind": "unsaturated",
+      "source": "derived",
+      "similarity": 0.136,
+      "light": "cards/predict/4e21c045dd2c-light.svg",
+      "dark": "cards/predict/4e21c045dd2c-dark.svg"
     }
   ],
   "nabh4-reduction": [
@@ -414,6 +436,11 @@ export const PREDICT_ANSWERS: Readonly<Record<string, PredictAnswer>> = {
     "light": "cards/predict/24703bb6824e-light.svg",
     "dark": "cards/predict/24703bb6824e-dark.svg"
   },
+  "malonic-ester-synthesis": {
+    "similarity": 0.316,
+    "light": "cards/predict/103f2657047a-light.svg",
+    "dark": "cards/predict/103f2657047a-dark.svg"
+  },
   "nabh4-reduction": {
     "similarity": 0.333,
     "light": "cards/predict/574cee0172c2-light.svg",
@@ -437,4 +464,4 @@ export const PREDICT_ANSWERS: Readonly<Record<string, PredictAnswer>> = {
 };
 
 /** Registry reactions with no honest predict step: no pair of wrong options meets the rules. */
-export const PREDICT_GAPS: readonly string[] = ["acetal-protection", "acidchloride-to-amide", "alcohol-dehydration", "alcohol-pbr3", "alcohol-to-halide", "aldol-condensation", "clemmensen", "diazonium-formation", "eas-bromination", "epoxidation-mcpba", "epoxide-opening-base", "ester-acidic-hydrolysis", "ether-cleavage", "fischer-esterification", "gilman-to-ketone", "imine-formation", "jones-oxidation", "malonic-ester-synthesis", "michael-addition", "nitration", "nitrile-basic-hydrolysis", "nitrile-formation", "nitrile-reduction", "periodic-cleavage", "sandmeyer", "socl2-acid-to-chloride", "wittig-olefination", "wolff-kishner"];
+export const PREDICT_GAPS: readonly string[] = ["acetal-protection", "acidchloride-to-amide", "alcohol-dehydration", "alcohol-pbr3", "alcohol-to-halide", "aldol-condensation", "clemmensen", "diazonium-formation", "eas-bromination", "epoxidation-mcpba", "epoxide-opening-base", "ester-acidic-hydrolysis", "ether-cleavage", "fischer-esterification", "gilman-to-ketone", "imine-formation", "jones-oxidation", "michael-addition", "nitration", "nitrile-basic-hydrolysis", "nitrile-formation", "nitrile-reduction", "periodic-cleavage", "sandmeyer", "socl2-acid-to-chloride", "wittig-olefination", "wolff-kishner"];

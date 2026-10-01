@@ -17,8 +17,12 @@ option most like the start" found the answer on 25 of 39.
 THE RULES A CARD'S TWO WRONG OPTIONS MEET, checked here and pinned again in
 test/cardsRun.test.ts:
 
-  1. Each has exactly the answer's set of elements and its carbon count, so
-     counting atoms cannot tell them apart.
+  1. Each has exactly the answer's set of elements, and its carbon count
+     unless the reaction moves carbon: then the count may lie anywhere from
+     the start's to the answer's, give or take carbon_shift(), the carbons
+     the reaction itself adds or loses (owner decision, 1 Oct). Counting atoms still cannot tell the
+     answer apart, since a reagent that brings carbon makes "how many
+     carbons did it bring" a question about the reagent, which is chemistry.
   2. They are of two different kinds, so neither the drawings nor the captions
      pair up against the answer.
   3. The answer is not the odd one out on anything a non-chemist can count:
@@ -120,8 +124,10 @@ TRANSFORMS: list[tuple[str, str, list[str]]] = [
     (
         "tautomer",
         "A tautomer: the double bond on carbon instead",
-        # H-C-C=X  ->  C=C-X-H, for X = O or N (enol, enamine).
-        ["[CX4;!H0:1]-[C:2]=[O,N:3]>>[C:1]=[C:2]-[*:3]"],
+        # H-C-C=X  ->  C=C-X-H, for X = O or N (enol, enamine), on a ketone,
+        # aldehyde or imine carbon only: the "enol" of an acid or ester is an
+        # ene-diol nobody draws (round 2's propene-1,1-diol on malonic ester).
+        ["[CX4;!H0:1]-[C;!$(C-[O,N]):2]=[O,N:3]>>[C:1]=[C:2]-[*:3]"],
     ),
     (
         "reduced",
@@ -151,13 +157,14 @@ CAPTIONS = {
     "intermediate": "An intermediate: the reaction stops short",
     "half": "Halfway: one of the two new C–O bonds",
     "on-oxygen": "The new group on the oxygen instead",
+    "over": "The reagent adding a second time",
 }
 
 # Preference: real competing outcomes of this reaction first (the other allyl
 # end, stopping short, a sibling reagent's product, the reagent's other way of
 # reacting), then plausible misplacements, then the rest.
 PRIORITY = [
-    "allylic", "intermediate", "half", "sibling", "addition", "ring-site", "on-oxygen",
+    "allylic", "intermediate", "over", "half", "sibling", "addition", "ring-site", "on-oxygen",
     "shifted", "reversed", "regio", "twice", "tautomer", "reduced", "branch", "unsaturated",
 ]
 
@@ -286,6 +293,12 @@ def _edits_across(mol, a, x, mode: str, hydrocarbon: bool, onto_ring: bool) -> s
             smiles = _finish(copy)
         else:
             if target.GetIsAromatic() != onto_ring:
+                continue
+            # A chain move keeps the group's kind: OH from one sp3 carbon to
+            # another, not off a carboxyl carbon onto the chain, which turns
+            # an acid into a hydroxy aldehyde (round 2's lactaldehyde on the
+            # malonic ester card) rather than misplacing a group.
+            if not onto_ring and target.GetHybridization() != a.GetHybridization():
                 continue
             moved = Chem.RWMol(cut)
             moved.AddBond(b, x.GetIdx(), Chem.BondType.SINGLE)
@@ -480,19 +493,57 @@ def ring_substituting_reaction(rxn: dict, registry: list[dict]) -> dict | None:
 Candidate = tuple[str, str, str, str]  # (kind, caption, smiles, source)
 
 
+def _carbons(smiles: str) -> int:
+    mol = Chem.MolFromSmiles(smiles)
+    return 0 if mol is None else sum(1 for atom in mol.GetAtoms() if atom.GetSymbol() == "C")
+
+
+def carbon_shift(rxn: dict) -> int:
+    """
+    How far rule 1 lets a wrong option's carbon count stray past the span
+    from the start's count to the answer's: 0 unless the reaction moves
+    carbon, read from the registry's own balance.
+    It moves carbon when a species it consumes that is not a start carries
+    carbon (CH3- of a Grignard or Gilman, the ylide, the acetylide, cyanide,
+    methylamine, CH3I) or a byproduct does (the methanol an ester reduction
+    loses, the CO2 of a decarboxylation). The amount is the carbons between
+    the first start and the answer, so a Gilman card may offer a structure one
+    carbon away (the second methyl), not twenty (the ylide's phenyls), and a
+    malonic ester card the methylated diester it passes through.
+    """
+    starts = {canonical(Chem.MolFromSmiles(s)) for s in rxn["reactants"]}
+    product = canonical(Chem.MolFromSmiles(rxn["product"]))
+    consumed = [s for s in rxn.get("balance_lhs", []) if canonical(Chem.MolFromSmiles(s) or Chem.Mol()) not in starts]
+    released = [s for s in rxn.get("balance_rhs", []) if canonical(Chem.MolFromSmiles(s) or Chem.Mol()) != product]
+    if not any(_carbons(s) > 0 for s in consumed + released):
+        return 0
+    return abs(_carbons(rxn["product"]) - _carbons(rxn["reactants"][0]))
+
+
+def passes_rule_1(smiles: str, rxn: dict) -> bool:
+    """Rule 1: the answer's elements exactly, and its carbons as carbon_shift() allows."""
+    mine, target = signature(smiles), signature(rxn["product"])
+    if mine is None or target is None or mine[0] != target[0]:
+        return False
+    shift = carbon_shift(rxn)
+    if shift == 0:
+        return mine[1] == target[1]
+    start = _carbons(rxn["reactants"][0])
+    return min(start, target[1]) - shift <= mine[1] <= max(start, target[1]) + shift
+
+
 def candidates(rxn: dict, registry: list[dict]) -> list[Candidate]:
     """Every wrong option that passes rule 1, in PRIORITY order."""
     answer = Chem.MolFromSmiles(rxn["product"])
     answer_smiles = canonical(Chem.Mol(answer))
-    target = signature(rxn["product"])
-    if answer_smiles is None or target is None:
+    if answer_smiles is None or signature(rxn["product"]) is None:
         return []
     starts = {canonical(Chem.MolFromSmiles(s)) for s in rxn["reactants"]}
     found: list[Candidate] = []
     seen = {answer_smiles} | starts
 
     def keep(key: str, caption: str, smiles: str | None, source: str, check_stable: bool = True) -> None:
-        if smiles is None or smiles in seen or signature(smiles) != target:
+        if smiles is None or smiles in seen or not passes_rule_1(smiles, rxn):
             return
         if check_stable and not stable(smiles):
             return
@@ -516,6 +567,15 @@ def candidates(rxn: dict, registry: list[dict]) -> list[Candidate]:
         if other["id"] != rxn["id"] and other["reactants"][0] == first_start:
             keep(f"sibling:{other['reaction_type']}", f"What {other['name']} gives",
                  canonical(Chem.MolFromSmiles(other["product"])), other["id"])
+    # The same reagent acting again: a registry reaction that starts from THIS
+    # answer and consumes a carbon-carrying species this one consumes too
+    # (Gilman's methyl added twice is the Grignard's tertiary alcohol, the
+    # thing the card's own note says the cuprate exists to prevent).
+    mine = {canonical(Chem.MolFromSmiles(s) or Chem.Mol()) for s in rxn.get("balance_lhs", []) if _carbons(s) > 0}
+    for other in sorted(registry, key=lambda r: r["id"]):
+        theirs = {canonical(Chem.MolFromSmiles(s) or Chem.Mol()) for s in other.get("balance_lhs", []) if _carbons(s) > 0}
+        if other["id"] != rxn["id"] and canonical(Chem.MolFromSmiles(other["reactants"][0])) == answer_smiles and (mine & theirs) - starts:
+            keep("over", CAPTIONS["over"], canonical(Chem.MolFromSmiles(other["product"])), other["id"])
     for smiles in half_acetal(rxn["product"]):
         keep("half", CAPTIONS["half"], smiles, "derived", False)
     for start in rxn["reactants"]:
