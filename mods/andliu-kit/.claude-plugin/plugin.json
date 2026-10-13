@@ -1,0 +1,9 @@
+{
+  "name": "andliu-kit",
+  "version": "0.1.0",
+  "description": "Blueberry-themed crab progress band and prompt-cache readout above the prompt.",
+  "types": "./types/index.d.ts",
+  "author": {
+    "name": "andliu7"
+  }
+}

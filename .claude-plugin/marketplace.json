@@ -1,0 +1,6 @@
+{
+  "name": "andliu-mods",
+  "description": "andliu7 Claude Code mods",
+  "owner": { "name": "andliu7" },
+  "plugins": [{ "name": "andliu-kit", "source": "./mods/andliu-kit" }]
+}
