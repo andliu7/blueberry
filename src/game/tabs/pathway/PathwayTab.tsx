@@ -1442,6 +1442,8 @@ export function currentIndexFor(plan: UnitPlan, status: MapPathwayStatus): numbe
 const SWIPE_PX = 64;
 /** How much steeper than horizontal a drag may be before it is a scroll. */
 const SWIPE_SLOPE = 1.2;
+/** How long the road fades before the unit list appears (pathway-sheet.css matches it). */
+const ROAD_FADE_MS = 200;
 
 /** The pager's deep link: one unit, addressed inside the hash. */
 function hrefForUnit(unitId: string): string {
@@ -1453,21 +1455,21 @@ function hrefForUnit(unitId: string): string {
  * asked for by name: "click on the course at the top left and select the
  * unit."
  *
- * WHAT IT REPLACES. Fifteen bare numerals in a sticky horizontal scroller.
- * They showed the whole course and named none of it, so the only question a
- * browse control exists to answer ("which one is the carbonyls unit") could
- * not be answered from them. Here every unit carries its real title and its
- * state in a word, which is also why state is never colour alone in this
- * list.
+ * IT OPENS IN PLACE, NOT OVER THE PAGE (owner, 2026-10-17): "should be a
+ * smaller popup, not the whole screen ... like unit 1 when i click on it I
+ * want the pathway to fade out and then the other units to appear under it in
+ * rows. the text will reveal by a flip ... the header would stay and on the
+ * computer the dashboard on the left will stay too." So the unit bar stays
+ * where it is, the road fades out, and every OTHER unit appears under the bar
+ * as a row drawn like the bar itself, its title rising letter by letter (the
+ * same per-letter rise the bar plays). The app header and the desktop rail
+ * never move. It replaced a full-screen overlay.
  *
- * IT IS MODAL, AND THE ARIA IS LOAD BEARING. OrgoMapTrack's arrow-key
- * handler stands down for `dialog[open], [role="dialog"][aria-modal="true"]`.
- * Without these two attributes, pressing Right with the list open would turn
- * the page behind it and leave the list describing a unit that is no longer
- * on screen: the same bug the node sheet and the guidebook were each fixed
- * for. A plain <div> with the attributes rather than a real <dialog>, because
- * the tab's other overlay (the guidebook) is built that way and one overlay
- * shape per tab beats two.
+ * Every unit carries its real title and its state in a word, so state is never
+ * colour alone. Escape, the bar again, or picking a unit closes it. While it is
+ * open the arrow keys do not turn the page (the guard in the pager's key
+ * handler looks for #path-unitmenu), or the list would describe a unit that is
+ * no longer on screen.
  *
  * LOCKED UNITS ARE STILL LINKS. Owner decision 2026-09-17: a locked unit
  * opens READ ONLY, so a student can look ahead; the page it opens is the one
@@ -1478,16 +1480,16 @@ function UnitMenu({
   status,
   activeAt,
   shownAt,
+  reducedMotion,
   onClose,
 }: {
   readonly status: MapPathwayStatus;
   /** The unit the student is working in, which is not always the one shown. */
   readonly activeAt: number;
   readonly shownAt: number;
+  readonly reducedMotion: boolean;
   readonly onClose: () => void;
 }) {
-  const listRef = useRef<HTMLUListElement | null>(null);
-
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -1496,56 +1498,61 @@ function UnitMenu({
       }
     };
     window.addEventListener("keydown", onKey);
-    // Focus lands on the row the page is already showing, so a keyboard user
-    // arrives where they are rather than at the top of fifteen.
-    listRef.current?.querySelector<HTMLElement>('[aria-current="page"]')?.focus();
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
+  let row = 0;
   return (
-    <div className="path-unitmenu" role="dialog" aria-modal="true" aria-label="Choose a unit">
-      <div className="path-unitmenu__head">
-        <h2 className="path-unitmenu__title">{COURSE_LABEL.orgo_2}</h2>
-        <button type="button" className="path-unitmenu__close" onClick={onClose} aria-label="Close">
-          <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden>
-            <path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" />
-          </svg>
-        </button>
-      </div>
-      <ul ref={listRef} className="path-unitmenu__list">
-        {PATHWAY_UNITS.map((entry, at) => {
-          const passed = unitStatusPassed(status, entry.id);
-          const reachable = status.units.get(entry.id)?.reachable === true;
-          // A unit with nothing written is neither open nor locked: it is coming
-          // (round 3; "Open" on Unit 2 offered a page with nothing to do).
-          const empty = (status.units.get(entry.id)?.playable ?? 0) === 0;
-          const rowState = passed ? "done" : !reachable || empty ? "locked" : at === activeAt ? "current" : "open";
-          const said = passed ? "Done" : empty ? "Coming soon" : !reachable ? "Locked" : at === activeAt ? "Up next" : "Open";
-          return (
-            <li key={entry.id}>
-              <a
-                href={hrefForUnit(entry.id)}
-                className={`path-unitmenu__row path-unitmenu__row--${rowState} press`}
-                aria-current={at === shownAt ? "page" : undefined}
-                /* The number is drawn as a token and hidden from the tree, so
-                   the row says it in words instead; without this a screen
-                   reader hears fifteen names and no positions. */
-                aria-label={`${unitNumber(entry.title)}, ${unitName(entry.title)}. ${said}`}
-                onClick={onClose}
-              >
-                <span className="path-unitmenu__num" aria-hidden>
-                  {at + 1}
+    <ul id="path-unitmenu" className="path-unitmenu" aria-label="All units">
+      {PATHWAY_UNITS.map((entry, at) => {
+        // The unit on screen is the bar above; the list is every other one.
+        if (at === shownAt) return null;
+        const passed = unitStatusPassed(status, entry.id);
+        const reachable = status.units.get(entry.id)?.reachable === true;
+        // A unit with nothing written is neither open nor locked: it is coming
+        // (round 3; "Open" on Unit 2 offered a page with nothing to do).
+        const empty = (status.units.get(entry.id)?.playable ?? 0) === 0;
+        const rowState = passed ? "done" : !reachable || empty ? "locked" : at === activeAt ? "current" : "open";
+        const said = passed ? "Done" : empty ? "Coming soon" : !reachable ? "Locked" : at === activeAt ? "Up next" : "Open";
+        const order = row++;
+        return (
+          // --row staggers each row's entrance and its letters' rise in CSS.
+          <li key={entry.id} style={{ "--row": order } as CSSProperties}>
+            <a
+              href={hrefForUnit(entry.id)}
+              className={`path-unitmenu__row path-unitmenu__row--${rowState} press`}
+              aria-label={`${unitNumber(entry.title)}, ${unitName(entry.title)}. ${said}`}
+              onClick={onClose}
+            >
+              <span className="path-unitmenu__lines" aria-hidden>
+                <span className="path-unitmenu__eyebrow">{unitNumber(entry.title)}</span>
+                <span className={`path-unitmenu__name path-reveal${reducedMotion ? " path-reveal--still" : ""}`}>
+                  {revealWords(unitName(entry.title)).map((word, w) => (
+                    <Fragment key={w}>
+                      {w > 0 ? " " : null}
+                      <span className="path-reveal__word">
+                        {word.map((letter) => (
+                          <span key={letter.index} className="path-reveal__clip">
+                            <span className="path-reveal__ch" style={{ "--i": letter.index } as CSSProperties}>
+                              {letter.text}
+                            </span>
+                          </span>
+                        ))}
+                      </span>
+                    </Fragment>
+                  ))}
                 </span>
-                <span className="path-unitmenu__name">{unitName(entry.title)}</span>
-                {/* The state in a word, not only in a colour, and it is the
-                    chip's own vocabulary so the list and the track agree. */}
-                <span className="path-unitmenu__state">{said}</span>
-              </a>
-            </li>
-          );
-        })}
-      </ul>
-    </div>
+              </span>
+              {/* The state in a word, not only in a colour, and it is the
+                  chip's own vocabulary so the list and the track agree. */}
+              <span className="path-unitmenu__state" aria-hidden>
+                {said}
+              </span>
+            </a>
+          </li>
+        );
+      })}
+    </ul>
   );
 }
 
@@ -1712,6 +1719,25 @@ function OrgoMapTrack({
      the document, which on this page is the app header. */
   const pickRef = useRef<HTMLButtonElement | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  /* True for the moment the road fades out, before the list replaces it. */
+  const [roadLeaving, setRoadLeaving] = useState(false);
+  const toggleMenu = () => {
+    if (menuOpen) {
+      setMenuOpen(false);
+      return;
+    }
+    const open = () => {
+      setRoadLeaving(false);
+      setMenuOpen(true);
+      // The road is gone, so bring the bar (the top of the page) back into view.
+      window.scrollTo({ top: 0 });
+    };
+    if (reducedMotion) open();
+    else {
+      setRoadLeaving(true);
+      window.setTimeout(open, ROAD_FADE_MS);
+    }
+  };
 
   /*
    * Swipe and arrow keys, the donor pattern from src/components/UnitPage.tsx:
@@ -1771,6 +1797,8 @@ function OrgoMapTrack({
         carries the role="dialog" and aria-modal this reads.
       */
       if (document.querySelector('dialog[open], [role="dialog"][aria-modal="true"]') !== null) return;
+      // The unit list opens in place rather than as a modal, so it is named here.
+      if (document.getElementById("path-unitmenu") !== null) return;
       if (event.key === "ArrowRight") forward();
       if (event.key === "ArrowLeft") back();
     };
@@ -2007,7 +2035,7 @@ function OrgoMapTrack({
   const roadVersion = `${unit.id}:${status.currentNodeId ?? ""}:${status.doneCount}`;
 
   return (
-    <div ref={pagerRef} className="path-pager" role="region" aria-label="Orgo II pathway map">
+    <div ref={pagerRef} className={`path-pager${roadLeaving ? " path-pager--leaving" : ""}${menuOpen ? " path-pager--menu" : ""}`} role="region" aria-label="Orgo II pathway map">
       {/*
         THE WHOLE MOUNTAIN, BEHIND ONE CONTROL. One page open, every unit
         always reachable: the Duolingo/ALEKS principle the per-page cut must
@@ -2031,10 +2059,10 @@ function OrgoMapTrack({
           ref={pickRef}
           type="button"
           className="path-unitbar__pick"
-          aria-haspopup="dialog"
+          aria-controls="path-unitmenu"
           aria-expanded={menuOpen}
           aria-label={`${COURSE_LABEL.orgo_2}, ${unitNumber(unit.title)}, ${unitName(unit.title)}. Choose a unit`}
-          onClick={() => setMenuOpen(true)}
+          onClick={toggleMenu}
         >
           <span className="path-unitbar__lines">
             <span className="path-unitbar__course">{COURSE_LABEL.orgo_2}</span>
@@ -2125,6 +2153,7 @@ function OrgoMapTrack({
           status={status}
           activeAt={activeAt}
           shownAt={index}
+          reducedMotion={reducedMotion}
           onClose={() => {
             setMenuOpen(false);
             pickRef.current?.focus();

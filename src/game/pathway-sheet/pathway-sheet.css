@@ -791,137 +791,126 @@ button.ns-card--go .ns-chip__face {
 /* --------------------------------------------------------- the unit list */
 
 /*
- * THE UNIT PICKER'S LIST, and it lives HERE rather than in pathway.css for a
- * reason a test enforces. pathwayTrailLayer.test.ts bans `position: fixed`
- * outright in pathway.css, because a fixed element leaves the scrolling layer
- * and that is the architecture of the trail-lag bug. A modal overlay is the
- * one thing that is SUPPOSED to leave it, and this tab already has one built
- * that way: .gb-overlay, directly below. Two overlays of one family in one
- * file, and pathway.css keeps a ban that still means what it says.
+ * THE UNIT PICKER'S LIST. It lived here because it was a fixed, full-screen
+ * overlay and pathwayTrailLayer.test.ts bans `position: fixed` in
+ * pathway.css. Since 2026-10-17 it opens in place under the unit bar and is
+ * not fixed at all; it stays in this file beside the other pathway sheets.
  *
  * The control that opens this is .path-unitbar in pathway.css, which carries
  * the argument for replacing the fifteen-numeral rail with a picker.
  */
 /*
- * THE LIST. A modal overlay, and the ARIA is load bearing rather than
- * decorative: OrgoMapTrack's arrow-key handler stands down for
- * `dialog[open], [role="dialog"][aria-modal="true"]`, so without these two
- * attributes pressing Right with the picker open would turn the page behind
- * it and leave the list describing a unit that is no longer on screen. That
- * is the exact bug the node sheet and the guidebook were each fixed for.
+ * THE LIST, in place (owner, 2026-10-17: "not the whole screen"). It sits
+ * under the unit bar where the road was; the app header and the desktop rail
+ * never move. The road fades out first (.path-pager--leaving, ROAD_FADE_MS in
+ * PathwayTab), then is taken out of the layout while the list is open
+ * (.path-pager--menu). Each row is drawn like the unit bar itself: the violet
+ * card with its lip, the unit number over its name, the state in a word. A
+ * unit that is locked or not written yet is a quiet card, so it never looks
+ * like a door. Rows arrive one after another (--row) and each name rises
+ * letter by letter like the bar's.
  */
+.path-pager > :not(.path-unitbar) {
+  transition: opacity 200ms ease;
+}
+.path-pager--leaving > :not(.path-unitbar) {
+  opacity: 0;
+}
+.path-pager--menu > :not(.path-unitbar):not(.path-unitmenu) {
+  display: none;
+}
+.path-unitbar__caret {
+  transition: transform 200ms ease;
+}
+.path-unitbar__pick[aria-expanded="true"] .path-unitbar__caret {
+  transform: rotate(180deg);
+}
 .path-unitmenu {
-  position: fixed;
-  inset: 0;
-  z-index: 60;
   display: flex;
   flex-direction: column;
-  background: var(--bb-background);
-}
-.path-unitmenu__head {
-  position: sticky;
-  top: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  border-bottom: 2px solid var(--bb-border);
-  background: var(--bb-card);
-}
-.path-unitmenu__title {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: 1rem;
-  font-weight: 800;
-  color: var(--bb-foreground);
-}
-.path-unitmenu__close {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: var(--hit-min, 2.75rem);
-  height: var(--hit-min, 2.75rem);
-  border: 2px solid var(--bb-border);
-  border-radius: 999px;
-  background: var(--bb-card);
-  color: var(--bb-foreground);
-  cursor: pointer;
-}
-.path-unitmenu__close:focus-visible,
-.path-unitmenu__row:focus-visible {
-  outline: 3px solid var(--bb-ring);
-  outline-offset: -3px;
-}
-.path-unitmenu__list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin: 0;
-  padding: 0.75rem 1rem calc(1.5rem + var(--tabbar-height, 0px));
-  overflow-y: auto;
+  gap: 0.6rem;
+  margin: 0.25rem 0 0;
+  padding: 0 0 calc(1.5rem + var(--tabbar-height, 0px));
   list-style: none;
 }
-/* One row per unit: the number as a token, the name at reading size, the
-   state said in a word. State is never colour alone here either. */
 .path-unitmenu__row {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  min-height: var(--hit-min, 2.75rem);
-  padding: 0.6rem 0.75rem;
-  border: 2px solid var(--bb-border);
-  border-radius: 1rem;
-  background: var(--bb-card);
-  color: var(--bb-foreground);
-  text-align: left;
+  min-height: 3.5rem;
+  padding: 0.6rem 1rem;
+  border-radius: 16px;
+  background: var(--bb-primary);
+  color: var(--bb-primary-foreground);
+  box-shadow: 0 4px 0 var(--bb-primary-lip);
   text-decoration: none;
 }
-.path-unitmenu__num {
-  flex: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  border: 2px solid var(--path-open-line);
-  border-radius: 999px;
-  background: var(--path-open-face);
-  color: var(--path-open-ink);
-  font-family: var(--font-display);
-  font-size: 0.8rem;
-  font-weight: 800;
-}
-.path-unitmenu__row--done .path-unitmenu__num {
-  border-color: var(--path-done-rim);
-  background: var(--path-done-face);
-  color: var(--path-done-ink);
-}
-.path-unitmenu__row--locked .path-unitmenu__num {
-  border-color: var(--bb-border);
-  border-style: dashed;
-  background: transparent;
+.path-unitmenu__row--locked {
+  background: var(--bb-card);
   color: var(--bb-muted-foreground);
+  box-shadow: 0 4px 0 var(--bb-border);
 }
-.path-unitmenu__row--current {
-  border-color: var(--path-open-line);
-  box-shadow: 0 0 0 3px var(--path-halo-soft);
+.path-unitmenu__row:focus-visible {
+  outline: 3px solid var(--bb-ring);
+  outline-offset: 2px;
+}
+.path-unitmenu__lines {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+.path-unitmenu__eyebrow {
+  font-family: var(--font-display);
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.85;
 }
 .path-unitmenu__name {
-  min-width: 0;
-  flex: 1 1 auto;
-  font-size: 0.875rem;
-  font-weight: 600;
-  line-height: 1.25;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.2;
 }
 .path-unitmenu__state {
   flex: none;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.18);
   font-family: var(--font-display);
   font-size: 0.625rem;
   font-weight: 800;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--bb-muted-foreground);
+}
+.path-unitmenu__row--locked .path-unitmenu__state {
+  background: transparent;
+  border: 2px dashed var(--bb-border);
+}
+.path-unitmenu__row--done .path-unitmenu__state {
+  background: var(--path-done-face);
+  color: var(--path-done-ink);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .path-unitmenu > li {
+    animation: path-unitmenu-in 320ms cubic-bezier(0.19, 1, 0.22, 1) both;
+    animation-delay: calc(var(--row, 0) * 35ms);
+  }
+  .path-unitmenu .path-reveal:not(.path-reveal--still) .path-reveal__ch {
+    animation-delay: calc(var(--row, 0) * 35ms + var(--i, 0) * 14ms);
+  }
+}
+html[data-motion="reduced"] .path-unitmenu > li {
+  animation: none;
+}
+@keyframes path-unitmenu-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
 }
 
 /* ----------------------------------------------------------- the guidebook */
