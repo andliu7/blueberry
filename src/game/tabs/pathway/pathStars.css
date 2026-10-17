@@ -1,0 +1,115 @@
+/*
+ * The night sky behind the path (PathStars.tsx). Fixed to the screen behind
+ * the path's content: the page wrapper is `isolation: isolate`, so z-index -1
+ * puts the sky above the ground gradient and below every card and chip. The
+ * tab bar and the header carry their own solid backgrounds above it.
+ *
+ * Star colour is currentColor: soft violet on the light ground (never white on
+ * lavender), near white at night.
+ */
+.path-stars {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  color: rgb(106 84 220 / 0.55);
+}
+.dark .path-stars {
+  color: rgb(255 250 240 / 0.85);
+}
+.path-stars-lean {
+  position: absolute;
+  inset: -40px;
+  will-change: transform;
+}
+.path-stars-follow {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+}
+/* One layer: a 2000px tile of stars and its repeat below, drifting up one tile and looping. */
+.path-stars-layer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 2000px;
+  animation: path-stars-drift linear infinite;
+  will-change: transform;
+}
+.path-stars-dots {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: 50%;
+  background: transparent;
+}
+@keyframes path-stars-drift {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(0, -2000px, 0); }
+}
+.path-stars[data-off] .path-stars-layer {
+  animation-play-state: paused;
+}
+
+.path-stars-fx {
+  position: absolute;
+  inset: 0;
+}
+/* A shooting star: a bright head with a fading tail, turned to --a, streaking along its length. */
+.path-stars-shoot {
+  position: absolute;
+  width: var(--len);
+  height: 2px;
+  border-radius: 2px;
+  transform-origin: 100% 50%;
+  background: linear-gradient(90deg, transparent, currentColor);
+  box-shadow: 0 0 6px currentColor;
+  rotate: var(--a);
+  animation: path-stars-shoot 1.2s cubic-bezier(0.3, 0.6, 0.4, 1) forwards;
+}
+@keyframes path-stars-shoot {
+  0% { opacity: 0; transform: translateX(-40px) scaleX(0.2); }
+  15% { opacity: 1; }
+  70% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(260px) scaleX(1); }
+}
+/* A supernova: a white point flares, a ring in --c opens around it, both fade. */
+.path-stars-pop {
+  position: absolute;
+  width: var(--s);
+  height: var(--s);
+  margin: calc(var(--s) / -2) 0 0 calc(var(--s) / -2);
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0 18%, var(--c) 40%, transparent 70%);
+  animation: path-stars-pop 1.6s ease-out forwards;
+}
+.path-stars-pop::after {
+  content: "";
+  position: absolute;
+  inset: -60%;
+  border-radius: 50%;
+  border: 2px solid var(--c);
+  opacity: 0;
+  animation: path-stars-ring 1.6s ease-out forwards;
+}
+@keyframes path-stars-pop {
+  0% { opacity: 0; transform: scale(0.2); }
+  18% { opacity: 1; transform: scale(1.3); }
+  45% { opacity: 0.9; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.6); }
+}
+@keyframes path-stars-ring {
+  0% { opacity: 0; transform: scale(0.3); }
+  20% { opacity: 0.9; }
+  100% { opacity: 0; transform: scale(2.4); }
+}
+
+/* Reduced motion: the stars stand still and no effect plays. */
+html[data-motion="reduced"] .path-stars-layer {
+  animation: none;
+}
+html[data-motion="reduced"] .path-stars-fx {
+  display: none;
+}

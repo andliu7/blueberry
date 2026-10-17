@@ -2418,26 +2418,10 @@
 }
 
 /*
- * THE STARFIELD, owner 2026-10-17: "maybe add stars in the background of the
- * pathway". One inline SVG tile, drawn once, no script. Static under every
- * motion setting. Text never sits on stars without a solid surface: the names
- * moved to both sides of the road in round 3 of P1, so the old mask over one
- * name column is gone and each name carries its own page-coloured backing
- * instead (.path-label__text).
+ * THE STARFIELD moved to PathStars.tsx (owner, 2026-10-17: "build it like
+ * andliu.dev resume page"): one moving sky behind the whole path, replacing
+ * the static tile that sat behind each unit.
  */
-.path-unit::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='260'%3E%3Cg fill='%237a63e6'%3E%3Ccircle cx='18' cy='22' r='1.6'/%3E%3Ccircle cx='96' cy='48' r='1.1'/%3E%3Ccircle cx='170' cy='18' r='1.4'/%3E%3Ccircle cx='40' cy='120' r='1.2'/%3E%3Ccircle cx='130' cy='140' r='1.7'/%3E%3Ccircle cx='200' cy='96' r='1'/%3E%3Ccircle cx='70' cy='200' r='1.5'/%3E%3Ccircle cx='160' cy='226' r='1.1'/%3E%3Ccircle cx='10' cy='244' r='1'/%3E%3C/g%3E%3C/svg%3E");
-  opacity: 0.7;
-}
-.dark .path-unit::before {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='260'%3E%3Cg fill='%23e8e4ff'%3E%3Ccircle cx='18' cy='22' r='1.6'/%3E%3Ccircle cx='96' cy='48' r='1.1'/%3E%3Ccircle cx='170' cy='18' r='1.4'/%3E%3Ccircle cx='40' cy='120' r='1.2'/%3E%3Ccircle cx='130' cy='140' r='1.7'/%3E%3Ccircle cx='200' cy='96' r='1'/%3E%3Ccircle cx='70' cy='200' r='1.5'/%3E%3Ccircle cx='160' cy='226' r='1.1'/%3E%3Ccircle cx='10' cy='244' r='1'/%3E%3C/g%3E%3C/svg%3E");
-  opacity: 0.6;
-}
 
 /* The concept check's one line of what clears it, under the run's count. */
 .review-run__ask {

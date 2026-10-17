@@ -247,11 +247,83 @@
     text-decoration: none;
     border-radius: 0.75rem;
   }
-  .tabbar-brand:hover {
-    opacity: 0.85;
-  }
   .tabbar-brand:focus-visible {
     outline: 3px solid var(--bb-primary);
     outline-offset: 2px;
   }
+}
+
+/*
+ * THE WORDMARK, logo C (owner, 2026-10-17): "Blue" over "Berry", left aligned,
+ * lavender over light at night and violet over deep indigo by day. Each letter
+ * rolls to a face in the other line's colour on hover or focus (BrandMark.tsx
+ * says where the mechanic comes from). Night tones: #9d8bff and #ece8ff on the
+ * rail's card; day tones: #5a3fd8 and #2a1d7a.
+ */
+.brand-mark {
+  --brand-top: #5a3fd8;
+  --brand-bottom: #2a1d7a;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1.625rem;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+.dark .brand-mark {
+  --brand-top: #9d8bff;
+  --brand-bottom: #ece8ff;
+}
+.brand-mark__line {
+  display: block;
+  white-space: nowrap;
+}
+.brand-mark__line--top {
+  color: var(--brand-top);
+  --brand-other: var(--brand-bottom);
+}
+.brand-mark__line--bottom {
+  color: var(--brand-bottom);
+  --brand-other: var(--brand-top);
+}
+.brand-mark__cell {
+  position: relative;
+  display: inline-block;
+  vertical-align: bottom;
+  /* Exactly one line tall, so a rolling face never spills into the other line.
+     Both axes hidden: a one-axis clip let the faces leak in Chrome. */
+  overflow: hidden;
+  line-height: 1;
+  padding: 0 0.02em 0.06em;
+}
+.brand-mark__roll {
+  position: relative;
+  display: block;
+  transition: transform 500ms cubic-bezier(0.76, 0, 0.24, 1) calc(var(--i) * 18ms);
+}
+.brand-mark__face--a {
+  display: block;
+}
+.brand-mark__face--b {
+  position: absolute;
+  left: 0;
+  top: 100%;
+  color: var(--brand-other);
+}
+.tabbar-brand:focus-visible .brand-mark__roll {
+  transform: translateY(-100%);
+}
+@media (hover: hover) and (pointer: fine) {
+  .tabbar-brand:hover .brand-mark__roll {
+    transform: translateY(-100%);
+  }
+}
+html[data-motion="reduced"] .brand-mark__roll {
+  transform: none !important;
+  transition: none;
+}
+html[data-motion="reduced"] .tabbar-brand:is(:hover, :focus-visible) .brand-mark__face--a {
+  color: var(--brand-other);
 }

@@ -106,6 +106,10 @@ import { nameSide, revealWords, trackWind, withBreakHints } from "./pathwayLayou
 import { reviewHolding, reviewsAfter, withReviewGates, type ReviewCheckpoint } from "./reviewCheckpoints";
 import { splitSections, type SectionStop } from "./pathwaySections";
 import { TreasureChest, type ChestState } from "./TreasureChest";
+import { PathStars } from "./PathStars";
+// The written unit guidebook (src/game/guide), opened from the unit card's GUIDEBOOK key.
+import { unitGuideFor, type LessonDoor } from "../../guide";
+import { UnitGuidePage } from "../../guide/UnitGuide";
 export { trackWind, withBreakHints } from "./pathwayLayout";
 
 export interface PathwayNode {
@@ -1616,6 +1620,7 @@ function SectionDivider({ id, eyebrow, title }: { readonly id: string; readonly 
 function OrgoMapTrack({
   onOpenNode,
   onGuidebook,
+  onUnitGuide,
   status,
   gatedBy,
   cleared,
@@ -1628,6 +1633,8 @@ function OrgoMapTrack({
   readonly cleared: ReadonlySet<string>;
   /** The unit card's GUIDEBOOK key: opens the guidebook page for a node. */
   readonly onGuidebook: (node: SheetNode) => void;
+  /** The same key on a unit that has a written guidebook: every lesson's door, by node id. */
+  readonly onUnitGuide: (unitId: string, doors: ReadonlyMap<string, LessonDoor>) => void;
   readonly status: MapPathwayStatus;
   readonly reducedMotion: boolean;
 }) {
@@ -1876,6 +1883,7 @@ function OrgoMapTrack({
       href: clickable && playable !== undefined ? hrefForPlayable(playable) : null,
       sheetNode: sheetNodeFor(node, nodeStatus.state, waitNote === null ? undefined : `${waitNote}.`),
       gateNode: mapGateNode(node, clickable),
+      waitNote: nodeStatus.queued ? "Coming soon" : waitNote,
     };
   };
 
@@ -2063,7 +2071,22 @@ function OrgoMapTrack({
           type="button"
           className="path-unitcard__guide"
           aria-label={`Guidebook for ${guideNode.title}`}
-          onClick={() => onGuidebook(chipFor(guideNode).sheetNode)}
+          onClick={() => {
+            // A unit with a written guidebook opens it, with every lesson's door
+            // worked out here, where the unlock rules live. Any other unit keeps
+            // the per lesson page.
+            if (unitGuideFor(unit.id) === null) {
+              onGuidebook(chipFor(guideNode).sheetNode);
+              return;
+            }
+            const doors = new Map<string, LessonDoor>();
+            for (const node of unit.nodes) {
+              if (node.playable === undefined) continue;
+              const chip = chipFor(node);
+              doors.set(node.id, { title: node.title, state: chip.state, gate: chip.gateNode, note: chip.gateNode === null ? chip.waitNote : null });
+            }
+            onUnitGuide(unit.id, doors);
+          }}
         >
           <svg viewBox="0 0 24 24" className="path-unitcard__book" aria-hidden>
             {/* A closed book: the cover, a spine line and the page edge, cut
@@ -2359,6 +2382,8 @@ export default function PathwayTab({ reducedMotion }: { readonly reducedMotion: 
   const [sheet, setSheet] = useState<{ readonly node: SheetNode; readonly charge: ChargeGateNode | null } | null>(null);
   /** The guidebook page, swapped in from the sheet's hamburger. */
   const [guidebook, setGuidebook] = useState<SheetNode | null>(null);
+  /** The written unit guidebook, with the lesson doors it was opened with, or null. */
+  const [unitGuide, setUnitGuide] = useState<{ readonly unitId: string; readonly doors: ReadonlyMap<string, LessonDoor> } | null>(null);
   const openNode: OpenNode = (node, charge) => setSheet({ node, charge });
   /*
     START and CHALLENGE both leave the sheet and open the charge sheet, at
@@ -2401,6 +2426,8 @@ export default function PathwayTab({ reducedMotion }: { readonly reducedMotion: 
   if (course === null) return <CoursePicker />;
 
   const onMap = course === "orgo_2";
+  const writtenGuide = unitGuide === null ? null : unitGuideFor(unitGuide.unitId);
+  const guideUnitTitle = PATHWAY_UNITS.find((entry) => entry.id === unitGuide?.unitId)?.title ?? "";
   const doneCount = onMap ? mapStatus.doneCount : nodes.filter((node) => node.state === "done").length;
   const totalCount = onMap ? mapStatus.playableCount : nodes.length;
   // Node numbering runs over the whole track, so the wind offset counts from
@@ -2413,7 +2440,10 @@ export default function PathwayTab({ reducedMotion }: { readonly reducedMotion: 
       room a reader can see is deliberate under a fixed tab bar. md:pb-6
       puts it back to the page padding on a desktop, where the bar is a rail.
     */
-    <div className="mx-auto flex max-w-2xl flex-col gap-4 p-4 pb-16 md:p-6 md:pb-6">
+    // `isolate` makes this wrapper its own stacking context, so the fixed sky's
+    // z-index -1 lands behind the path's content and above the shell's ground.
+    <div className="relative isolate mx-auto flex max-w-2xl flex-col gap-4 p-4 pb-16 md:p-6 md:pb-6">
+      <PathStars />
       {/*
         THE COURSE BANNER CARD IS GONE, and its absence is the point.
 
@@ -2440,6 +2470,10 @@ export default function PathwayTab({ reducedMotion }: { readonly reducedMotion: 
           onGuidebook={(node) => {
             setSheet(null);
             setGuidebook(node);
+          }}
+          onUnitGuide={(unitId, doors) => {
+            setSheet(null);
+            setUnitGuide({ unitId, doors });
           }}
           status={mapStatus}
           gatedBy={gated.gatedBy}
@@ -2537,6 +2571,24 @@ export default function PathwayTab({ reducedMotion }: { readonly reducedMotion: 
         <div className="gb-overlay" role="dialog" aria-modal="true" aria-label="Guidebook">
           <Guidebook content={guidebookFor(guidebook)} onBack={() => setGuidebook(null)} reducedMotion={reducedMotion} />
         </div>
+      )}
+
+      {/* The written unit guidebook. Its own component renders the dialog ARIA,
+          for the same arrow-key reason as the overlay above. START closes it
+          and walks the same charge gate a node's START does. */}
+      {unitGuide === null || writtenGuide === null ? null : (
+        <UnitGuidePage
+          guide={writtenGuide}
+          unitLabel={unitNumber(guideUnitTitle)}
+          unitName={unitName(guideUnitTitle)}
+          doors={unitGuide.doors}
+          onStart={(charge) => {
+            setUnitGuide(null);
+            startFromSheet(charge);
+          }}
+          onClose={() => setUnitGuide(null)}
+          reducedMotion={reducedMotion}
+        />
       )}
 
       <ChargeGate node={gate} onClose={() => setGate(null)} reducedMotion={reducedMotion} />

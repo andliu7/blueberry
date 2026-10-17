@@ -69,6 +69,7 @@ import { NAV_TABS, TOOL_TABS, hrefForTab, tabDefinition, type Route, type TabId,
 import { isFlagOn } from "./flags";
 import { TabSkeleton } from "./ui/Skeleton";
 import { BootReady } from "./Loader";
+import { BrandMark } from "./ui/BrandMark";
 import { useReducedMotion } from "./hooks";
 import { CourseChip } from "./ui/CourseChip";
 import { Hud } from "./ui/Hud";
@@ -358,7 +359,7 @@ export function Shell({ route, children }: { readonly route: Route; readonly chi
             something when it appears. Same argument as rule 3, where the bar's
             nodes are fake extrusions and ours are outlines. */}
         <a href="#/" className="tabbar-brand" aria-label="Blueberry website" title="Back to the Blueberry website">
-          <span className="bb-title-face text-scale-xl font-extrabold">Blueberry</span>
+          <BrandMark />
         </a>
         {NAV_TABS.map((tab) => (
           <TabLink key={tab.id} tab={tab.id} active={tab.id === litTab} />
