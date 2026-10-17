@@ -181,6 +181,19 @@ function Eye({ side, modeRef }: { side: number; modeRef: React.RefObject<EyeMode
 const BLINK_CYCLE = 5.4;
 const BLINK_SHUT = 0.22;
 
+/** Seconds untouched before he falls asleep, and how far his chin drops (radians, down). */
+const SLEEP_AFTER_S = 30;
+const SLEEP_NOD = 0.22;
+/**
+ * Dizzy. A drag turns him half a turn per 300px, so DIZZY_AT (two full turns) is a hard,
+ * quick spin; SPIN_LEAK drains the meter so a slow turn never gets there.
+ */
+const DIZZY_AT = Math.PI * 4;
+const SPIN_LEAK = 3;
+const DIZZY_S = 2.6;
+/** How fast the dizzy head rolls round, radians per second. */
+const DIZZY_RATE = 9;
+
 function Berry({
   mood,
   interactive,
@@ -230,6 +243,13 @@ function Berry({
   const velY = useRef(0);
   const velX = useRef(0);
   const awe = useRef(0);
+  /** Asleep and dizzy: the last pointer seen, when he was last disturbed, the spin meter. */
+  const lastPx = useRef(0);
+  const lastPy = useRef(0);
+  const awakeAt = useRef(0);
+  const lastSpin = useRef(0);
+  const spinCharge = useRef(0);
+  const dizzyUntil = useRef(0);
   /** Wraps both eyes so they can lead the head without moving it. */
   const gaze = useRef<THREE.Group>(null);
   const mouth = useRef<THREE.Mesh>(null);
@@ -342,6 +362,38 @@ function Berry({
     const cheering = poked > 0.05;
 
     /**
+     * Asleep and dizzy (owner, 2026-10-17: "if you spin the blueberry it should become dizzy
+     * and if you don't touch it it goes to sleep (after like 30 seconds)").
+     *
+     * Asleep: no pointer movement, hover, drag or poke for SLEEP_AFTER_S. Any of those wakes
+     * him on the same frame, so he is never asleep while you are doing something to him.
+     *
+     * Dizzy: every radian the drag turns him charges a meter that leaks at SPIN_LEAK per
+     * second, so a slow turn never adds up and a hard spin does. Let go with more than
+     * DIZZY_AT in it and he is dizzy for DIZZY_S: squeezed eyes, the head rolling round in a
+     * circle that winds down, mouth a little open, and he stops following the cursor.
+     */
+    const px = pointer.x;
+    const py = pointer.y;
+    const moved = Math.abs(px - lastPx.current) + Math.abs(py - lastPy.current) > 0.002;
+    lastPx.current = px;
+    lastPy.current = py;
+    if (moved || hovered.current || dragging.current || poked > 0) awakeAt.current = t;
+    const asleep = t - awakeAt.current > SLEEP_AFTER_S;
+
+    spinCharge.current = Math.max(
+      0,
+      spinCharge.current + Math.abs(spin.current - lastSpin.current) - dt * SPIN_LEAK,
+    );
+    lastSpin.current = spin.current;
+    if (!dragging.current && spinCharge.current > DIZZY_AT) {
+      dizzyUntil.current = t + DIZZY_S;
+      spinCharge.current = 0;
+    }
+    /** 1 the moment he goes dizzy, winding down to 0. */
+    const dizzy = Math.max(0, dizzyUntil.current - t) / DIZZY_S;
+
+    /**
      * The blink is a fifth of a second every five and a half: much longer and it
      * stops reading as a blink and starts reading as a berry falling asleep. It
      * runs under every mood except the ones whose eyes are already closed, where
@@ -350,7 +402,9 @@ function Berry({
     const lidsDown = shape.eyes === "shut" || shape.eyes === "kind";
     const blinking = !lidsDown && t % BLINK_CYCLE > BLINK_CYCLE - BLINK_SHUT;
 
-    if (blinking) eyeMode.current = "shut";
+    if (dizzy > 0) eyeMode.current = "fluster";
+    else if (asleep) eyeMode.current = "shut";
+    else if (blinking) eyeMode.current = "shut";
     else if (shy) eyeMode.current = "fluster";
     else if (cheering) eyeMode.current = "shut";
     else if (shape.eyes === "fluster") eyeMode.current = "fluster";
@@ -367,7 +421,7 @@ function Berry({
        * spinning off. A mood that does not track sits at its own resting angle,
        * which is what makes `thinking` look away and `reading` look down.
        */
-      const tracking = shape.tracks && !shy && !dragging.current;
+      const tracking = shape.tracks && !shy && !dragging.current && !asleep && dizzy === 0;
       /**
        * The spin is kept after the drag ends, not thrown away.
        *
@@ -390,7 +444,10 @@ function Berry({
         : tracking
           ? pointer.x * 0.62 + spin.current
           : shape.lookY + spin.current;
-      const tx = shy ? -0.12 : tracking ? -pointer.y * 0.34 : shape.lookX;
+      // Asleep, the chin drops. Dizzy, the head rolls round in a shrinking circle.
+      const tx =
+        (shy ? -0.12 : asleep ? SLEEP_NOD : tracking ? -pointer.y * 0.34 : shape.lookX) +
+        Math.cos(t * DIZZY_RATE) * 0.14 * dizzy;
 
       /**
        * A spring, not a lerp.
@@ -446,7 +503,8 @@ function Berry({
       // The idle sway underneath is per-mood, so a focused berry barely moves
       // and a cheering one rolls.
       const idle = Math.sin(t * 1.1) * 0.035 * shape.sway;
-      head.current.rotation.z = Math.sin(t * 23) * 0.055 * shake.current + idle;
+      head.current.rotation.z =
+        Math.sin(t * 23) * 0.055 * shake.current + idle + Math.sin(t * DIZZY_RATE) * 0.2 * dizzy;
 
       // Lifts when caught out, and hops when poked. The hop is a half sine over
       // the life of the poke, so it goes up and comes back down once.
@@ -475,9 +533,16 @@ function Berry({
      * mouth from the mood table instead, and a poke opens it regardless.
      */
     const reach =
-      shape.tracks && !shy && !dragging.current ? Math.min(1, Math.hypot(pointer.x, pointer.y)) : 0;
+      shape.tracks && !shy && !dragging.current && !asleep && dizzy === 0
+        ? Math.min(1, Math.hypot(pointer.x, pointer.y))
+        : 0;
     const gawk = Math.min(1, reach * 2.2);
-    const openness = Math.max(gawk, cheering ? poked : 0, shape.mouth > 1.4 ? shape.mouth - 1.4 : 0);
+    const openness = Math.max(
+      gawk,
+      cheering ? poked : 0,
+      shape.mouth > 1.4 ? shape.mouth - 1.4 : 0,
+      dizzy * 0.55,
+    );
 
     if (mouth.current) {
       mouth.current.scale.y = THREE.MathUtils.lerp(
