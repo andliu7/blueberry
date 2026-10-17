@@ -1,7 +1,7 @@
-import { lazy, Suspense, useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent } from "react";
-import { BlueberryMark } from "@/components/ui/blueberry-mark";
+import { lazy, Suspense, useEffect, useMemo, useState, type CSSProperties } from "react";
+import { Blueberry } from "@/components/ui/blueberry";
 import { moodForDecks, type BerryMood } from "@/lib/berryMood";
-import { isReducedMotion, useReducedMotionPref } from "@/lib/motionPref";
+import { useReducedMotionPref } from "@/lib/motionPref";
 import { prefetchEntry } from "@/lib/entryChunks";
 import { type Deck } from "@/data/types";
 import { HERO, HOME_HEADLINE_FLIPS } from "@/data/site";
@@ -20,7 +20,7 @@ const HomeHeroBoard = lazy(() => import("@/components/HomeHeroBoard"));
  *
  * Duolingo's logged-out first screen is the bar for clarity: one picture, one sentence, one
  * button, one quiet second door. The portfolio is the bar for how it arrives: the letters rise
- * in one by one, then the blocks under them, and the mascot bobs and hops when pressed.
+ * in one by one, then the blocks under them, and the mascot bobs and spins when dragged.
  *
  * Layout: the stage is Bloom presenting a live mechanism board (HomeHeroBoard, lazy). On a
  * phone it sits between the headline and the sell line, small and tilted, so the first screen
@@ -30,8 +30,7 @@ const HomeHeroBoard = lazy(() => import("@/components/HomeHeroBoard"));
  * first Tab stop in the hero and the toy comes after it (home round 2). The grid areas put
  * Bloom back beside the headline on screen; only the keyboard order changed.
  *
- * Motion is all CSS (src/components/home.css) except the hop, which is four keyframes through
- * the Web Animations API. Nothing here imports a motion library.
+ * Motion is all CSS (src/components/home.css); the 3D Bloom (ui/blueberry.tsx) animates himself.
  *
  * `entered` comes from HomePage: true two frames after mount. Until then the letters sit in
  * their start positions, but only under full motion (the CSS keys the hidden state on
@@ -168,59 +167,27 @@ function SplitLetters({ text }: { text: string }) {
   );
 }
 
-/** How high the hop goes, in px. About a fifth of the berry on a phone. */
-const HOP_PX = 26;
-
 /**
- * Bloom, the mascot. Idles with a slow bob (CSS) and hops when pressed.
- *
- * The hop is a port of the portfolio mascot's: andliu-portfolio
- * components/mascot/mascot.tsx:141-151, squash for the wind-up, rise stretched, land squashed,
- * settle, 700 ms. Its two per-keyframe cubic-beziers became the `ease-out` and `ease-in`
- * keywords, because a new curve outside tokens.css fails the token gate.
- * It starts on pointer down, so the press answers inside the 100 ms budget; a keyboard press
- * arrives as a click with `detail` 0 and hops from there.
- *
- * Reduced motion: no hop. Bloom changes face instead (cheer for 700 ms), which keeps the
- * meaning, "you poked me and I noticed", without moving.
+ * Bloom, the mascot: the 3D berry again (owner, 2026-10-17: "the website needs the 3D
+ * blueberry ... it should just replace the current blueberry and be smaller than it was").
+ * The live site's hero drew him large; here he keeps the flat Bloom's place and size at the
+ * board's corner. `Blueberry` brings his own drag to spin and press to poke, and falls back to
+ * the flat mark with no WebGL or under reduced motion (ui/blueberry.tsx), so the hop this
+ * replaced is gone. The slow bob is still CSS (home.css .home-bloom__bob).
  */
 function Bloom({ mood }: { mood: BerryMood }) {
-  const squash = useRef<HTMLSpanElement>(null);
-  const [flash, setFlash] = useState<BerryMood | null>(null);
-
-  const hop = () => {
-    setFlash("cheer");
-    window.setTimeout(() => setFlash(null), 700);
-    if (isReducedMotion()) return;
-    squash.current?.animate(
-      [
-        { transform: "translateY(0) scale(1, 1)" },
-        { transform: "translateY(0) scale(1.2, .8)", offset: 0.18, easing: "ease-out" },
-        { transform: `translateY(${-HOP_PX}px) scale(.88, 1.14)`, offset: 0.5, easing: "ease-in" },
-        { transform: "translateY(0) scale(1.16, .84)", offset: 0.72 },
-        { transform: "translateY(0) scale(.96, 1.04)", offset: 0.86 },
-        { transform: "translateY(0) scale(1, 1)" },
-      ],
-      { duration: 700 },
-    );
-  };
-
   return (
-    <button
-      type="button"
-      className="home-bloom"
-      aria-label="Bloom, the Blueberry mascot. Press to make him hop."
-      onPointerDown={hop}
-      onClick={(e: MouseEvent) => {
-        if (e.detail === 0) hop();
-      }}
-    >
+    <div className="home-bloom">
       <span className="home-bloom__bob">
-        <span ref={squash} className="home-bloom__squash">
-          <BlueberryMark eyes mood={flash ?? mood} className="h-full w-full" />
-        </span>
+        <Blueberry
+          mood={mood}
+          trackWindow
+          interactive
+          className="h-full w-full"
+          label="Bloom, the Blueberry mascot. Drag to spin him, press to poke."
+        />
       </span>
-    </button>
+    </div>
   );
 }
 
