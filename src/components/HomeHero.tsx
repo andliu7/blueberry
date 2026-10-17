@@ -1,9 +1,7 @@
-import { lazy, Suspense, useEffect, useMemo, useState, type CSSProperties } from "react";
+import { lazy, Suspense, useEffect, useState, type CSSProperties } from "react";
 import { Blueberry } from "@/components/ui/blueberry";
-import { moodForDecks, type BerryMood } from "@/lib/berryMood";
 import { useReducedMotionPref } from "@/lib/motionPref";
 import { prefetchEntry } from "@/lib/entryChunks";
-import { type Deck } from "@/data/types";
 import { HERO, HOME_HEADLINE_FLIPS } from "@/data/site";
 
 /**
@@ -38,11 +36,7 @@ const HomeHeroBoard = lazy(() => import("@/components/HomeHeroBoard"));
  * paint. Everything under the headline is there at first paint in both modes (home round 2:
  * the portfolio's hero is readable by about 300 ms; ours waited 1.6 s for its blocks).
  */
-export function HomeHero({ decks, entered }: { decks: Deck[]; entered: boolean }) {
-  /** Bloom's face follows your progress across the decks (see `moodForDecks`). Memoised on
-   *  the list, because it reads localStorage once per deck. */
-  const mood = useMemo<BerryMood>(() => moodForDecks(decks), [decks]);
-
+export function HomeHero({ entered }: { entered: boolean }) {
   return (
     <section className="home-hero" data-in={entered ? "" : undefined} aria-labelledby="home-title">
       {/* aria-label: the heading's name is line 1 alone, whatever line is showing, so a screen
@@ -82,7 +76,7 @@ export function HomeHero({ decks, entered }: { decks: Deck[]; entered: boolean }
         <Suspense fallback={null}>
           <HomeHeroBoard />
         </Suspense>
-        <Bloom mood={mood} />
+        <Bloom />
       </div>
     </section>
   );
@@ -173,14 +167,19 @@ function SplitLetters({ text }: { text: string }) {
  * The live site's hero drew him large; here he keeps the flat Bloom's place and size at the
  * board's corner. `Blueberry` brings his own drag to spin and press to poke, and falls back to
  * the flat mark with no WebGL or under reduced motion (ui/blueberry.tsx), so the hop this
- * replaced is gone. The slow bob is still CSS (home.css .home-bloom__bob).
+ * replaced is gone. The slow bob is still CSS (home.css .home-bloom__bob), and it no longer
+ * rocks him: he stands upright.
+ *
+ * Always `curious`, never the deck-progress mood (owner, same day: "upright and follow mouse
+ * in awe"). Curious is the one mood that tracks the cursor across the whole window, and its
+ * eyes widen and its jaw drops the further away you point (blueberry-bot-3d.tsx, the gawk).
  */
-function Bloom({ mood }: { mood: BerryMood }) {
+function Bloom() {
   return (
     <div className="home-bloom">
       <span className="home-bloom__bob">
         <Blueberry
-          mood={mood}
+          mood="curious"
           trackWindow
           interactive
           className="h-full w-full"

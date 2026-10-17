@@ -1,7 +1,6 @@
 import { lazy, Suspense, useEffect, useRef, useState, type ComponentType, type RefObject } from "react";
 import { HomeHero } from "@/components/HomeHero";
 import { HomeLoader } from "@/components/HomeLoader";
-import { useDecks } from "@/lib/useDecks";
 import { hasSeenIntro, markIntroSeen } from "@/lib/intro";
 import { prefetchEntry } from "@/lib/entryChunks";
 import "./home.css";
@@ -91,8 +90,6 @@ export function HomePage() {
     return () => clearTimeout(id);
   }, []);
 
-  const { decks } = useDecks();
-
   return (
     // No surface colour here: the page sits on the one site ground that <html> paints
     // (--site-ground in src/tokens.css). No photograph behind any text, owner 2026-10-07.
@@ -103,7 +100,7 @@ export function HomePage() {
     // sheets have passed the headline.
     <div className="home relative" data-intro={showLoader ? "" : undefined}>
       {showLoader && <HomeLoader />}
-      <HomeHero decks={decks} entered={entered} />
+      <HomeHero entered={entered} />
       <PhoneDemoSlot />
       <SculptureSlot Sculpture={LiquidSculpture} />
       <SectionsSlot />
