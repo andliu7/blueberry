@@ -15,7 +15,7 @@
  */
 
 import { useEffect, useRef } from "react";
-import { LANGUAGES, languageByCode, languageStore, translate } from "../i18n";
+import { LANGUAGES, languageStore, translate } from "../i18n";
 import { useLanguage } from "../hooks";
 
 function CheckMark() {
