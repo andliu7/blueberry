@@ -52,6 +52,7 @@ import {
   DIAMONDS_CHALLENGE_PASSED,
   DIAMONDS_FLAWLESS,
   DIAMONDS_NODE_FIRST_CLEAR,
+  DIAMONDS_CHEST,
   DIAMONDS_RESONANCE,
   DIAMONDS_REVIEW_CLEARED,
   DIAMONDS_SEQUENCE_PER_EXTRA_STEP,
@@ -322,6 +323,7 @@ function run(journal: readonly EconomyEvent[], now: string, options: DeriveOptio
 
   const firstClears: Record<string, true> = {};
   const resonanceSeen = new Set<string>();
+  const chestsOpened = new Set<string>();
   // Paid card runs per local day, for CARD_RUNS_PAID_PER_DAY.
   const cardRunsPaid = new Map<string, number>();
   const nodes = new Map<string, NodeMastery>();
@@ -477,6 +479,16 @@ function run(journal: readonly EconomyEvent[], now: string, options: DeriveOptio
           resonanceSeen.add(event.nodeId);
           line.xp.push({ label: "Resonance found", amount: XP_RESONANCE });
           line.diamonds.push({ label: "Resonance found", amount: DIAMONDS_RESONANCE });
+        }
+        break;
+      }
+
+      case "chest_opened": {
+        // Once per chest, diamonds only, and no unlock: a chest is a reward,
+        // not a lesson, so it never touches mastery, XP or the daily goal.
+        if (!chestsOpened.has(event.chestId)) {
+          chestsOpened.add(event.chestId);
+          line.diamonds.push({ label: "Treasure chest", amount: DIAMONDS_CHEST });
         }
         break;
       }

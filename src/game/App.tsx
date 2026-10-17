@@ -20,9 +20,12 @@ import { CHALLENGE_PARAM, hashParam, hrefForTab, hrefForOnboarding, type Route }
 import { useProgress, useReducedMotion } from "./app/hooks";
 import { TabSkeleton } from "./app/ui/Skeleton";
 import { BootReady, Loader } from "./app/Loader";
+import { reviewCheckpointFor } from "./tabs/pathway/reviewCheckpoints";
 
 const Onboarding = lazy(() => import("./onboarding/Onboarding"));
 const BeatRunner = lazy(() => import("./beats/BeatRunner").then((m) => ({ default: m.BeatRunner })));
+// A review checkpoint between lessons (tabs/pathway/reviewCheckpoints.ts) plays its own interleaved run.
+const ReviewRun = lazy(() => import("./tabs/pathway/ReviewRun").then((m) => ({ default: m.ReviewRun })));
 
 /**
  * The mascot gallery, a development surface at #/gallery/berry.
@@ -49,6 +52,9 @@ const PilotArrowGallery = lazy(() => import("./tabs/trainer/engine/ArrowGallery"
  * it later is another mount point. See tabs/trainer/engine/TrainerScreen.tsx.
  */
 const PilotTrainerGallery = lazy(() => import("./tabs/trainer/engine/TrainerGallery"));
+
+/** The button and heading sheet, at #/gallery/buttons. Development only, lazy. */
+const ButtonGallery = lazy(() => import("./app/ui/ButtonGallery"));
 
 const params = new URLSearchParams(window.location.search);
 /** The measurement scripts need the canvas with no onboarding in front of it. */
@@ -105,6 +111,14 @@ function Body({
         </Suspense>
       );
     }
+    if (route.name === "buttons") {
+      return (
+        <Suspense fallback={<TabSkeleton label="the button sheet" />}>
+          <BootReady />
+          <ButtonGallery />
+        </Suspense>
+      );
+    }
     if (route.name === "pilot-trainer") {
       return (
         <Suspense fallback={<TabSkeleton label="the pilot trainer" />}>
@@ -126,6 +140,15 @@ function Body({
       <Suspense fallback={<TabSkeleton label="the placement quiz" />}>
         <BootReady />
         <Onboarding step={route.step} reducedMotion={reducedMotion} />
+      </Suspense>
+    );
+  }
+
+  if (route.kind === "lesson" && reviewCheckpointFor(route.node) !== null) {
+    return (
+      <Suspense fallback={<TabSkeleton label="the review" />}>
+        <BootReady />
+        <ReviewRun key={route.node} id={route.node} reducedMotion={reducedMotion} onExit={() => navigate(hrefForTab("pathway"))} />
       </Suspense>
     );
   }

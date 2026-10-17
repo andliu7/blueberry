@@ -1,0 +1,240 @@
+/* Schedule (SITE-REPLAN.md phase 6). Loaded with the Schedule page's lazy chunk, so none of
+ * this is in the entry bundle. Colours and motion are tokens only (src/tokens.css); the
+ * shapes follow the blueberry skill's components.md, sections 5 (sheet) and 7 (slot). */
+
+/* Three colour names only Schedule paints. Here rather than in src/tokens.css so they ride this
+ * lazy chunk and the entry bundle does not grow (the phase gate); fold them into tokens.css
+ * when a second page needs them. Site names for the same reason as --site-edge: the game's
+ * --bb-primary and --bb-primary-bright exist only once its chunk has loaded.
+ * #4779ee is an edge and fill colour only (4.01:1 on white as a 2px outline); words in blue
+ * use --bb-blue-ink. Ratios computed 2026-10-07 with the checks.md formula. */
+:root {
+  --site-primary: #5a3fd8;  /* white on it 6.69:1 */
+  --site-touch: #4779ee;
+  --site-on-blue: #ffffff;  /* on a --bb-blue-ink #3a5fd0 fill: 5.63:1 */
+}
+.dark {
+  --site-primary: #6d5ae0;  /* white on it 5.01:1 (STATUS.md, the measured night value) */
+  --site-touch: #78a5ff;    /* 6.38:1 on the #192438 card */
+  --site-on-blue: #101827;  /* on the night --bb-blue-ink #78a5ff: 7.30:1 */
+}
+
+/* ---------- The calendar's five categories (schedule round 2) ----------
+ * Each category has its own colour, so Exams and Deadlines no longer share one violet, and
+ * every colour also travels with an icon (and on a phone, a filled or hollow bar), so the
+ * colour is never the only cue. All five are tokens; only --site-due is new. A mark is the
+ * colour itself (the chip's left rule, the legend icon, the phone bar); a chip is a 16% tint
+ * of it on the card with --bb-deep ink. Ratios computed 2026-10-07 with the checks.md
+ * formula, light then night, and re-computed by src/test/scheduleCalendar.test.ts:
+ *   mark on card: exam 6.69 / 6.53, due 6.07 / 6.18, class 4.75 / 4.01,
+ *                 hours 4.01 / 6.38, mine 4.21 / 5.22 (all over 3:1 for a component)
+ *   ink on tint:  10.57 / 10.30, 10.49 / 10.64, 11.14 / 11.30, 11.25 / 10.29, 11.20 / 10.90
+ * Deadlines are a berry magenta: not violet (exams), not red (red means delete), not amber
+ * (amber is "wrong" in Blueberry). */
+:root {
+  --site-due: #b4237a;
+  --cat-exam: var(--site-nav-line);
+  --cat-due: var(--site-due);
+  --cat-class: var(--site-border);
+  --cat-hours: var(--site-touch);
+  --cat-mine: var(--bb-progress-edge);
+}
+/* Night exams use the nav's violet line, not the button violet (#6d5ae0 is 3.10:1 on the card). */
+.dark { --site-due: #f27bbd; }
+[data-cat="exam"] { --cat: var(--cat-exam); }
+[data-cat="due"] { --cat: var(--cat-due); }
+[data-cat="class"] { --cat: var(--cat-class); }
+[data-cat="hours"] { --cat: var(--cat-hours); }
+[data-cat="mine"] { --cat: var(--cat-mine); }
+.sch-chip { background: color-mix(in srgb, var(--cat) var(--chip-mix), var(--card)); color: var(--bb-deep); border-left: 3px solid var(--cat); }
+.sch-mark { color: var(--cat); }
+
+/* Schedule round 3. How much of its colour a chip carries: 20% by day, 32% at night, where
+   16% left the five kinds alike on the navy (critic, round 2: "muddy"). Ink on every tint is
+   computed in src/test/scheduleCalendar.test.ts, both themes, at least 4.5:1. */
+:root { --chip-mix: 20%; }
+.dark { --chip-mix: 32%; }
+/* An exam is filled, not tinted, so Midterm 2 never reads like a quiz. White on #5a3fd8 6.69:1;
+   night navy #101827 on the #a99bff night exam colour 7.46:1. */
+:root { --cat-exam-on: #ffffff; }
+.dark { --cat-exam-on: #101827; }
+.sch-chip[data-strong] { background: var(--cat); color: var(--cat-exam-on); }
+.sch-chip[data-strong] .sch-mark { color: inherit; }
+
+/* "My sessions" rows: green fill with dark ink (green says "you moved"). At night the lime
+   #7ed957 outshouted the one violet action (critic, round 2), so night uses the calmer
+   --bb-progress-edge #55a838 with the night ground #101827 as ink: 5.96:1. By day it stays
+   --bb-progress with --bb-progress-ink. */
+.sch-mine { background: var(--bb-progress); color: var(--bb-progress-ink); border-left: 3px solid var(--bb-progress-edge); }
+.dark .sch-mine { background: var(--bb-progress-edge); color: var(--site-ground); }
+.sch-mine:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
+
+/* A pressable row in the day's list (a slot to book, your session): the tappable card from
+   the blueberry skill, outlined in its kind's colour with the 4px bottom ledge, sinking by
+   the ledge on press (components.md 2 and 7). A row that opens nothing stays flat. */
+.sch-row {
+  border-radius: 12px; background: var(--card); color: var(--bb-deep);
+  border: 2px solid var(--cat); border-bottom-width: 4px;
+  transition: transform var(--bb-dur-release) var(--bb-ease-spring), background-color var(--bb-dur-ui) var(--bb-ease-ui);
+}
+.sch-row:hover { background: var(--bb-wash); }
+.sch-row:active { transform: translateY(2px); border-bottom-width: 2px;
+                  transition-duration: var(--bb-dur-press); transition-timing-function: ease-out; }
+.sch-row:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
+
+/* Focus. The view tabs and filter chips get the shell's 3px ring (site-shell.css). A month
+   cell's selection is a 2px violet ring drawn inside it, and the focused cell is always the
+   selected one (one roving tab stop), so focus adds a second, 3px ring in --ring, 2px inside
+   the first: arriving by keyboard visibly changes the cell (WCAG 2.4.7). */
+.sch-focus:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
+.sch-cell { outline: none; }
+.sch-cell:focus-visible { outline: 3px solid var(--ring); outline-offset: -7px; }
+/* The phone's bars: filled for most, hollow for a deadline, so exam and deadline differ in
+   shape as well as hue at 6px tall. */
+.sch-bar { display: block; height: 6px; border-radius: 3px; background: var(--cat); }
+.sch-bar[data-cat="due"] { background: transparent; box-shadow: inset 0 0 0 2px var(--cat); }
+
+/* Titles in Nunito (owner, 7 Oct), as home.css does for home: scoped to this page and its
+   sheet, because `.title-face` is still the old serif everywhere else until the type phase. */
+.schedule .title-face, .sch-sheet .title-face { font-family: var(--site-display); letter-spacing: 0; }
+
+/* ---------- The filled action: one per viewport, with the ledge ---------- */
+.sch-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 44px; padding: 0 18px; border-radius: 14px; cursor: pointer;
+  font: 800 0.95rem/1 var(--site-display);
+  background: var(--site-primary); color: #fff;
+  box-shadow: 0 4px 0 var(--site-edge);
+  transition: transform var(--bb-dur-release) var(--bb-ease-spring),
+              box-shadow var(--bb-dur-release) var(--bb-ease-spring);
+}
+.sch-btn:hover { transform: translateY(-1px); box-shadow: 0 5px 0 var(--site-edge); }
+.sch-btn:active { transform: translateY(4px); box-shadow: 0 0 0 var(--site-edge);
+                  transition-duration: var(--bb-dur-press); transition-timing-function: ease-out; }
+.sch-btn:focus-visible { outline: 3px solid var(--ring); outline-offset: 3px; }
+.sch-btn:disabled { cursor: default; opacity: .55; transform: none; }
+/* White in both themes: 6.69:1 on #5a3fd8, 5.01:1 on the night #6d5ae0. The ledge
+   (--site-edge) turns light at night so it still shows on the navy. */
+
+/* The quiet second action beside it: outlined, flat, no ledge. */
+.sch-ghost {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 44px; padding: 0 14px; border-radius: 14px; cursor: pointer;
+  font: 700 0.9rem/1 var(--site-display); color: var(--bb-deep);
+  background: var(--card); border: 2px solid var(--site-border);
+  transition: background-color var(--bb-dur-ui) var(--bb-ease-ui);
+}
+.sch-ghost:hover { background: var(--bb-wash); }
+.sch-ghost:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
+.sch-ghost[data-danger] { color: var(--destructive); }
+.sch-ghost:disabled { cursor: default; opacity: .55; }
+
+/* A text-only action, for the destructive one that should not compete (Cancel this session). */
+.sch-quiet {
+  min-height: 44px; padding: 0 12px; border-radius: 12px; cursor: pointer;
+  font: 700 0.875rem/1 var(--site-display); color: var(--bb-deep);
+  text-decoration: underline; text-underline-offset: 3px;
+}
+.sch-quiet[data-danger] { color: var(--destructive); }
+.sch-quiet:hover { background: var(--bb-wash); }
+.sch-quiet:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
+.sch-quiet:disabled { cursor: default; opacity: .55; }
+
+/* ---------- A slot you can take: the blue touch, outlined, with a 4px bottom ---------- */
+.sch-slot {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  width: 100%; min-height: 44px; padding: 6px 10px; border-radius: 12px; cursor: pointer;
+  background: var(--card); color: var(--bb-deep);
+  border: 2px solid var(--site-touch); border-bottom-width: 4px;
+  font: 800 0.875rem/1.2 var(--site-display); text-align: left;
+  transition: transform var(--bb-dur-release) var(--bb-ease-spring), background-color var(--bb-dur-ui) var(--bb-ease-ui);
+}
+.sch-slot:hover { background: var(--bb-wash); }
+.sch-slot:active { transform: translateY(2px); border-bottom-width: 2px;
+                   transition-duration: var(--bb-dur-press); transition-timing-function: ease-out; }
+.sch-slot:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
+/* Chosen: filled with the blue that carries words, so the ink can be white (5.63:1) by day
+   and navy (7.30:1) at night. */
+.sch-slot[aria-pressed="true"] { background: var(--bb-blue-ink); border-color: var(--bb-blue-ink); color: var(--site-on-blue); }
+
+/* ---------- The booking sheet: bottom sheet on a phone, centred dialog from 1024px ---------- */
+.sch-scrim { position: fixed; inset: 0; z-index: 60; background: rgb(16 24 39 / .4); }
+.sch-sheet {
+  position: fixed; inset: auto 0 0 0; z-index: 61; max-height: 92dvh; overflow: auto;
+  background: var(--bb-sheet); color: var(--foreground);
+  border-radius: 24px 24px 0 0; border-top: 2px solid var(--site-border);
+  padding: 12px 16px calc(20px + env(safe-area-inset-bottom));
+  animation: sch-sheet-in var(--bb-dur-enter) var(--bb-ease-spring) both;
+}
+/* The close X sits in the corner but comes last in the DOM, so Tab and first focus reach the
+   sheet's own controls first. (The grab handle that was drawn here did not drag: removed.) */
+.sch-close {
+  position: absolute; top: 10px; right: 10px;
+  display: flex; align-items: center; justify-content: center; width: 44px; height: 44px;
+  border-radius: 999px; cursor: pointer; color: var(--bb-deep);
+}
+.sch-close:hover { background: var(--bb-wash); }
+.sch-close:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
+@media (min-width: 1024px) {
+  /* Cal.com's shape: a centred card, facts | month | times, every column carrying content.
+     `margin: auto` with `inset: 0` and a fit-content height centres it without a transform,
+     so the arrival animation can own the transform. */
+  .sch-sheet { inset: 0; margin: auto; width: min(1000px, calc(100vw - 48px)); height: fit-content;
+               max-height: calc(100dvh - 48px); border-radius: 24px; border: 2px solid var(--site-border);
+               padding: 0; animation-name: sch-sheet-pop; }
+  .sch-sheet[data-mode="done"] { width: min(560px, calc(100vw - 48px)); padding: 32px; }
+}
+@keyframes sch-sheet-in { from { transform: translateY(100%); } }
+@keyframes sch-sheet-pop { from { opacity: 0; transform: translateY(16px) scale(.98); } }
+
+/* Inside the sheet: the facts, then the step. Stacked on a phone; two columns from 1024px,
+   the facts column ruled off as on Cal.com. */
+.sch-book { display: grid; gap: 16px; }
+.sch-facts { padding-right: 48px; }
+.sch-fact-list { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: .875rem; color: var(--site-quiet); }
+.sch-fact-list li { display: flex; align-items: center; gap: 6px; }
+.sch-pick { display: grid; gap: 20px; }
+@media (min-width: 1024px) {
+  .sch-book { grid-template-columns: 260px minmax(0, 1fr); gap: 0; min-height: 440px; }
+  .sch-book > :first-child { padding: 28px 24px; border-right: 2px solid color-mix(in srgb, var(--site-border) 35%, transparent); }
+  .sch-book > :last-child { padding: 28px 28px 28px 24px; }
+  .sch-book[data-step="question"] > :last-child, .sch-book[data-step="type"] > :last-child,
+  .sch-book[data-step="empty"] > :last-child { margin-top: 44px; }
+  .sch-facts { padding-right: 24px; }
+  .sch-fact-list { flex-direction: column; gap: 10px; margin-top: 16px; }
+  .sch-pick { grid-template-columns: minmax(0, 1fr) 220px; gap: 24px; }
+  /* The times column scrolls on its own only when a day has more times than fit, as Cal.com's does. */
+  .sch-pick > :last-child ul { max-height: 360px; overflow-y: auto; padding-right: 4px; }
+}
+
+/* The confirmation's success mark: green fill with dark ink (green says "you moved"). */
+.sch-done-mark {
+  display: flex; align-items: center; justify-content: center; width: 56px; height: 56px;
+  border-radius: 999px; background: var(--bb-progress); color: var(--bb-progress-ink);
+  animation: sch-mark-in var(--bb-dur-enter) var(--bb-ease-spring) both;
+}
+@keyframes sch-mark-in { from { transform: scale(.4); } }
+
+/* The day picker inside the sheet. A closed day is plain regular-weight figures; an open day
+   is bold, washed, and ringed in the blue touch, and the ring is what clears 3:1 against the
+   sheet (#4779ee on #ffffff 4.01:1, #78a5ff on #192438 6.38:1). The wash alone was 1.34:1 by
+   day and 1.22:1 at night (critic, round 1). */
+.sch-day {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 44px; border-radius: 12px; font: 400 0.9rem/1 var(--site-display);
+  color: var(--site-faint);
+}
+.sch-day[data-open] { cursor: pointer; font-weight: 800; background: var(--bb-wash); color: var(--bb-deep);
+                      box-shadow: inset 0 0 0 2px var(--site-touch); }
+.sch-day[data-open]:hover { box-shadow: inset 0 0 0 3px var(--site-touch); }
+.sch-day[aria-pressed="true"] { background: var(--site-primary); color: #fff; box-shadow: none; }
+.sch-day:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
+
+/* Reduced motion keeps the meaning (the sheet arrives, the press sinks) without travel. */
+html[data-motion="reduced"] .sch-sheet { animation: sch-fade 120ms linear both; }
+html[data-motion="reduced"] .sch-btn,
+html[data-motion="reduced"] .sch-slot,
+html[data-motion="reduced"] .sch-row { transition: none; }
+html[data-motion="reduced"] .sch-btn:hover { transform: none; }
+html[data-motion="reduced"] .sch-done-mark { animation: none; }
+@keyframes sch-fade { from { opacity: 0; } }

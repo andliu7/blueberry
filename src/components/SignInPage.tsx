@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { ArrowLeft, CalendarDays, CircleCheck, PencilLine, Sparkles, Users } from "lucide-react";
 import { BlueberryMark } from "@/components/ui/blueberry-mark";
@@ -58,36 +58,16 @@ export function SignInPage({ mode = "signin" }: { mode?: "signin" | "signup" | "
   const session = useSession();
   const reduced = useReducedMotion();
 
-  // This page paints its own dark surface, so it forces the theme while it is
-  // open and puts it back on the way out.
-  useEffect(() => {
-    const root = document.documentElement;
-    const hadDark = root.classList.contains("dark");
-    root.classList.add("dark");
-    return () => {
-      if (!hadDark) root.classList.remove("dark");
-    };
-  }, []);
-
+  // The page follows the visitor's theme (owner, 2026-10-07). It used to force
+  // dark mode and paint a photograph, so a light-mode visitor flipped to a
+  // purple-black page and back (audit SI1). It now sits on the one site ground.
   return (
-    <main className="relative min-h-dvh overflow-hidden bg-[#171327] text-white">
-      {/* The intro photograph, dimmed. Same image the opening screen uses, so
-          arriving here does not feel like leaving the site. */}
-      <img
-        src={`${import.meta.env.BASE_URL}backgrounds/intro-dark.webp`}
-        alt=""
-        aria-hidden
-        className="absolute inset-0 size-full object-cover opacity-25"
-      />
-      <div
-        aria-hidden
-        className="absolute inset-0 bg-gradient-to-br from-[#171327]/90 via-[#171327]/70 to-[#1f1456]/80"
-      />
+    <main className="relative min-h-dvh overflow-hidden text-foreground">
 
       <div className="relative mx-auto flex min-h-dvh w-full max-w-5xl flex-col px-4 py-6 sm:px-6">
         <a
           href="#/home"
-          className="inline-flex min-h-11 w-fit items-center gap-2 text-sm font-semibold text-white/60 transition hover:text-white"
+          className="inline-flex min-h-11 w-fit items-center gap-2 text-sm font-semibold text-muted-foreground transition hover:text-foreground"
         >
           <ArrowLeft className="size-4" />
           Back to Blueberry
@@ -99,33 +79,33 @@ export function SignInPage({ mode = "signin" }: { mode?: "signin" | "signup" | "
             <div className="flex items-center gap-3">
               <BlueberryMark eyes className="size-10 shrink-0" />
               <div>
-                <h1 className="title-face text-3xl leading-none sm:text-4xl">Blueberry</h1>
-                <p className="text-sm text-white/50">Organic chemistry, University of Maryland</p>
+                <h1 className="page-title text-3xl leading-none sm:text-4xl">Blueberry</h1>
+                <p className="text-sm text-muted-foreground">Organic chemistry, University of Maryland</p>
               </div>
             </div>
 
             <ul className="mt-7 flex flex-col gap-4">
               {WHAT_YOU_GET.map(({ Icon, title, body, ...rest }) => (
                 <li key={title} className="flex gap-3">
-                  <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl bg-white/10">
-                    <Icon className="size-4 text-[#bbb1eb]" />
+                  <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl bg-[var(--bb-wash)]">
+                    <Icon className="size-4 text-accent-foreground" />
                   </span>
                   <div className="min-w-0">
                     <p className="flex flex-wrap items-center gap-2 text-sm font-semibold">
                       {title}
                       {"staffOnly" in rest && rest.staffOnly && (
-                        <span className="rounded-md bg-[#6b51dd]/20 px-1.5 py-0.5 text-[.65rem] font-semibold uppercase tracking-wide text-[#ccd5ea]">
+                        <span className="rounded-md bg-[var(--bb-wash)] px-1.5 py-0.5 text-[.65rem] font-semibold uppercase tracking-wide text-accent-foreground">
                           Staff
                         </span>
                       )}
                     </p>
-                    <p className="mt-0.5 text-sm leading-6 text-white/55">{body}</p>
+                    <p className="mt-0.5 text-sm leading-6 text-muted-foreground">{body}</p>
                   </div>
                 </li>
               ))}
             </ul>
 
-            <p className="mt-7 text-sm leading-6 text-white/40">
+            <p className="mt-7 text-sm leading-6 text-muted-foreground">
               Decks and lessons are readable without an account. Signing in is for the things
               that belong to you.
             </p>
@@ -133,11 +113,11 @@ export function SignInPage({ mode = "signin" }: { mode?: "signin" | "signup" | "
 
           {/* ------------------------------- the card ------------------------------ */}
           <div className="order-1 lg:order-2">
-            <div className="rounded-3xl border border-white/10 bg-white/[0.06] p-5 shadow-2xl backdrop-blur-xl sm:p-6">
+            <div className="rounded-3xl border-2 border-[var(--site-border)] bg-card p-5 sm:p-6">
               {session ? (
                 <SignedIn session={session} />
               ) : !supabaseConfigured ? (
-                <p className="rounded-xl border border-amber-300/20 bg-amber-200/10 px-4 py-3 text-sm leading-5 text-amber-100/80">
+                <p className="rounded-xl bg-[var(--bb-warn-wash)] px-4 py-3 text-sm leading-5 text-[var(--bb-warn-ink)]">
                   Sign-in is not configured for this build yet.
                 </p>
               ) : (
@@ -149,7 +129,7 @@ export function SignInPage({ mode = "signin" }: { mode?: "signin" | "signup" | "
                   <div
                     role="tablist"
                     aria-label="Sign in or create an account"
-                    className="relative mb-5 grid grid-cols-2 rounded-xl bg-white/5 p-1"
+                    className="relative mb-5 grid grid-cols-2 rounded-xl bg-[var(--bb-wash)] p-1"
                   >
                     {(["signin", "signup"] as const).map((tab) => {
                       const active = (tab === "signup") === signup;
@@ -161,7 +141,7 @@ export function SignInPage({ mode = "signin" }: { mode?: "signin" | "signup" | "
                           onClick={() => setSignup(tab === "signup")}
                           className={cn(
                             "relative z-10 min-h-11 cursor-pointer rounded-lg text-sm font-semibold transition-colors",
-                            active ? "text-white" : "text-white/50 hover:text-white/75",
+                            active ? "text-foreground" : "text-muted-foreground hover:text-foreground",
                           )}
                         >
                           {active && (
@@ -172,7 +152,7 @@ export function SignInPage({ mode = "signin" }: { mode?: "signin" | "signup" | "
                                   ? { duration: 0 }
                                   : { type: "spring", stiffness: 400, damping: 32 }
                               }
-                              className="absolute inset-0 -z-10 rounded-lg bg-white/12"
+                              className="absolute inset-0 -z-10 rounded-lg bg-card"
                             />
                           )}
                           {tab === "signin" ? "Sign in" : "Create account"}
@@ -184,11 +164,11 @@ export function SignInPage({ mode = "signin" }: { mode?: "signin" | "signup" | "
                   {/* Said plainly, above the buttons rather than below them.
                       The single most common thing to get wrong here is assuming
                       a password is required. */}
-                  <p className="mb-4 text-sm leading-6 text-white/60">
-                    <span className="font-semibold text-white">
+                  <p className="mb-4 text-sm leading-6 text-muted-foreground">
+                    <span className="font-semibold text-foreground">
                       You do not need a password.
                     </span>{" "}
-                    Continue with Google and you are done — most people should use that. An
+                    Continue with Google and you are done. Most people should use that. An
                     email and password is there if you would rather.
                   </p>
 
@@ -210,7 +190,7 @@ export function SignInPage({ mode = "signin" }: { mode?: "signin" | "signup" | "
             </div>
 
             {!session && (
-              <p className="mt-4 px-1 text-xs leading-5 text-white/35">
+              <p className="mt-4 px-1 text-xs leading-5 text-muted-foreground">
                 Staff access is decided by the server from your account, not by anything this
                 page can be told. Signing in with a university address is enough.
               </p>
@@ -236,19 +216,19 @@ function SignedIn({ session }: { session: NonNullable<ReturnType<typeof useSessi
             className="size-11 shrink-0 rounded-full object-cover"
           />
         ) : (
-          <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-white/10">
-            <CircleCheck className="size-5 text-emerald-300" />
+          <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[var(--bb-wash)]">
+            <CircleCheck className="size-5 text-accent-foreground" />
           </span>
         )}
         <div className="min-w-0">
           <p className="truncate font-semibold">{session.name ?? session.email}</p>
-          <p className="truncate text-sm text-white/50">{session.email}</p>
+          <p className="truncate text-sm text-muted-foreground">{session.email}</p>
         </div>
       </div>
 
-      <p className="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white/70">
+      <p className="rounded-xl bg-[var(--bb-wash)] px-3 py-2.5 text-sm text-muted-foreground">
         Signed in as{" "}
-        <span className="font-semibold text-white">
+        <span className="font-semibold text-foreground">
           {staff ? (session.role === "owner" ? "an owner" : "course staff") : "a student"}
         </span>
         {staff && ". Editing controls appear on the lessons, calendar and tutoring pages."}
@@ -266,7 +246,7 @@ function SignedIn({ session }: { session: NonNullable<ReturnType<typeof useSessi
         {staff && (
           <a
             href="#/lessons"
-            className="flex min-h-11 items-center justify-center rounded-xl border border-white/15 px-4 text-sm font-semibold text-white/80 transition hover:bg-white/5"
+            className="flex min-h-11 items-center justify-center rounded-xl border-2 border-[var(--site-border)] px-4 text-sm font-semibold text-foreground transition hover:bg-[var(--bb-wash)]"
           >
             Open the lessons editor
           </a>
@@ -274,7 +254,7 @@ function SignedIn({ session }: { session: NonNullable<ReturnType<typeof useSessi
         <button
           type="button"
           onClick={session.signOut}
-          className="min-h-11 cursor-pointer text-sm text-white/45 transition hover:text-white/75"
+          className="min-h-11 cursor-pointer text-sm text-muted-foreground transition hover:text-foreground"
         >
           Sign out
         </button>

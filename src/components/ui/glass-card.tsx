@@ -42,6 +42,22 @@ export interface GlassCardProps {
   style?: React.CSSProperties;
 }
 
+/**
+ * The deck colour pulled 40 percent toward black, as an `rgb()` string.
+ *
+ * WHY. Every word on this card is white, and the lightest deck colours could not
+ * carry it: the lightest fuchsia deck measured 2.46:1 under white text (contrast
+ * audit, 2026-10-07). At 0.6 the worst deck colour gives white 4.86:1 even under
+ * the glass highlight. Done here rather than in the deck data because some of
+ * that data is generated (src/data/decks/carbonyls), and because the fan and the
+ * lightbox draw the same colours as art, where no text sits on them.
+ */
+function deepen(hex: string): string {
+  const n = parseInt(hex.slice(1), 16);
+  const [r, g, b] = [16, 8, 0].map((shift) => Math.round(((n >> shift) & 255) * 0.6));
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
 const DISCS = [
   { size: "62%", pos: "3%", z: "20px", delay: "0s" },
   { size: "50%", pos: "5%", z: "40px", delay: "0.12s" },
@@ -78,12 +94,12 @@ export const GlassCard = React.forwardRef<HTMLAnchorElement, GlassCardProps>(
         )}
       >
         <div
-          style={{ backgroundImage: `linear-gradient(to bottom right, ${from}, ${to})` }}
+          style={{ backgroundImage: `linear-gradient(to bottom right, ${deepen(from)}, ${deepen(to)})` }}
           className="relative h-full min-h-[19rem] rounded-[2rem] shadow-2xl transition-all duration-500 ease-in-out [transform-style:preserve-3d] group-hover:[box-shadow:rgba(0,0,0,0.3)_30px_50px_25px_-40px,rgba(0,0,0,0.1)_0px_25px_30px_0px] group-hover:[transform:rotate3d(1,1,0,20deg)] group-focus-visible:[transform:rotate3d(1,1,0,20deg)] motion-reduce:group-hover:[transform:none]"
         >
           {/* The glass inset. Slightly inside the panel so its lit edges read as
               a second sheet floating above the gradient. */}
-          <div className="absolute inset-2 rounded-[1.75rem] border-b border-l border-white/20 bg-gradient-to-b from-white/25 to-white/5 backdrop-blur-sm [transform-style:preserve-3d] [transform:translate3d(0,0,25px)]" />
+          <div className="absolute inset-2 rounded-[1.75rem] border-b border-l border-white/20 bg-gradient-to-b from-white/10 to-white/0 backdrop-blur-sm [transform-style:preserve-3d] [transform:translate3d(0,0,25px)]" />
 
           {/* Disc stack and motif, top right. */}
           <div
@@ -125,7 +141,7 @@ export const GlassCard = React.forwardRef<HTMLAnchorElement, GlassCardProps>(
               while the panel tilts. */}
           <div className="absolute inset-x-0 top-0 [transform:translate3d(0,0,26px)]">
             <div className="px-6 pt-6">
-              <span className="inline-block rounded-full bg-white/20 px-2.5 py-1 font-mono text-[0.7rem] font-semibold text-white backdrop-blur-sm">
+              <span className="inline-block rounded-full bg-black/25 px-2.5 py-1 font-mono text-[0.7rem] font-semibold text-white backdrop-blur-sm">
                 {meta}
               </span>
             </div>
@@ -134,7 +150,7 @@ export const GlassCard = React.forwardRef<HTMLAnchorElement, GlassCardProps>(
           <div className="absolute inset-x-0 bottom-0 [transform:translate3d(0,0,26px)]">
             <div className="px-6 pb-6">
               <h2 className="text-lg leading-tight font-black text-white">{title}</h2>
-              <p className="mt-2 line-clamp-3 text-[0.82rem] leading-relaxed text-white/75">
+              <p className="mt-2 line-clamp-3 text-[0.82rem] leading-relaxed text-white">
                 {description}
               </p>
               {progress && progress.reviewed > 0 ? (
@@ -146,7 +162,8 @@ export const GlassCard = React.forwardRef<HTMLAnchorElement, GlassCardProps>(
                         : "Pick up where you left off"}
                     </span>
                     <span className="font-mono">
-                      {progress.reviewed}/{progress.total}
+                      {/* In words, never a bare "4/44" (Review, phase 7). */}
+                      {progress.reviewed} of {progress.total} rated
                     </span>
                   </div>
                   <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-black/25">

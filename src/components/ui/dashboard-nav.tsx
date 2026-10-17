@@ -1,14 +1,7 @@
 import {
-  Atom,
   Bell,
-  BookOpen,
-  CalendarClock,
-  CalendarDays,
   CreditCard,
-  FlaskConical,
   Info,
-  Layers,
-  LayoutGrid,
   LogIn,
   Palette,
   Settings,
@@ -50,24 +43,25 @@ export type DashboardView =
   | "appearance"
   | "categories"
   | "lessons"
-  | "concepts"
   | "decks"
   | "subscriptions"
   | "imports"
-  | "profile";
+  | "profile"
+  /** Staff tools: posting office hours (phase 6). Linked from Schedule, not the nav. */
+  | "hours";
 
 export const VIEW_TITLE: Record<DashboardView, string> = {
-  home: "Dashboard",
+  home: "Me", // matches its tab in the site nav (shell round 5); was "Dashboard"
   notifications: "Notifications",
   settings: "Settings",
   appearance: "Appearance",
   categories: "Categories",
   lessons: "Lessons",
-  concepts: "Concepts",
   decks: "Study Decks",
   subscriptions: "Subscriptions",
   imports: "Imports",
   profile: "Profile",
+  hours: "Office hours",
 };
 
 /** `home` is the bare `#/d`, so the dashboard's own front page has one address. */
@@ -115,11 +109,6 @@ export function DashboardNav({
     />
   );
 
-  // A row that leaves the dashboard for a page of the site.
-  const link = (href: string, icon: React.ReactNode, label: string) => (
-    <SidebarNavItem icon={icon} label={label} href={href} onClick={onNavigate} />
-  );
-
   return (
     <Sidebar
       profile={<ProfileRow onNavigate={onNavigate} />}
@@ -128,10 +117,11 @@ export function DashboardNav({
       <div className="space-y-0.5">
         {item("profile", <User className="size-4" />, "Profile")}
         {item("notifications", <Bell className="size-4" />, "Notifications")}
-        {/* Out of Categories, where they never belonged. Categories are kinds of
-            study material; a date and a person are neither. */}
-        {link("#/calendar", <CalendarDays className="size-4" />, "Calendar")}
-        {link("#/tutoring", <CalendarClock className="size-4" />, "Tutoring")}
+        {/* Calendar, Tutoring and the Categories group (Lessons, Study Decks,
+            Reactions) are gone from this column (shell round 2): they are the
+            header's Schedule, Learn and Review under other names, and two lists
+            of the same places on one page is the audit's C3 problem again. This
+            column is Me's own sections only. */}
       </div>
 
       <div className="mt-2">
@@ -145,19 +135,6 @@ export function DashboardNav({
           onHeaderClick={() => goToView("settings", onNavigate)}
         >
           {item("appearance", <Palette className="size-4" />, "Appearance")}
-        </CollapsibleSection>
-
-        <CollapsibleSection
-          title="Categories"
-          icon={<LayoutGrid className="size-4" />}
-          defaultOpen
-          active={activeView === "categories"}
-          onHeaderClick={() => goToView("categories", onNavigate)}
-        >
-          {item("lessons", <BookOpen className="size-4" />, "Lessons")}
-          {item("concepts", <Atom className="size-4" />, "Concepts", true)}
-          {item("decks", <Layers className="size-4" />, "Study Decks")}
-          {link("#/reactions", <FlaskConical className="size-4" />, "Reactions")}
         </CollapsibleSection>
 
         <CollapsibleSection title="Extra Options" icon={<Sparkles className="size-4" />}>

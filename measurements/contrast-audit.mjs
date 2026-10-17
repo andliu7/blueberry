@@ -140,9 +140,66 @@ const ECONOMY_ROUTES = [
   { name: "boot", moment: "boot", root: "#boot", midMs: null },
 ];
 
-const ROUTES = [
+/**
+ * The site's own pages, added 2026-10-07 (SITE-REPLAN.md phase 2).
+ *
+ * Until then every route here was a game route, so the replan's check "zero
+ * failing pairs on site routes" had nothing to stand on: the site was a set of
+ * pages no audit had ever measured. These are the site routes from the 7 Oct
+ * design audit, minus `#/app/...` (already above, through `withApp`). They are
+ * NOT passed through `withApp`, because they are the site, not the game. Each
+ * is labelled `site:<name>` so the summary below can count them on their own;
+ * they are also in the overall FAILING list and the exit code, so adding them
+ * can only make the audit stricter.
+ *
+ * `settle` is the wait after load. The home page holds a loader and lets its
+ * hero in over about two seconds, and measuring before that settles would file
+ * the loader's colours under the page.
+ */
+const SITE_ROUTES = [
+  ["home", "#/"],
+  ["start", "#/start"],
+  ["start-course", "#/start/course"],
+  ["start-exam", "#/start/exam"],
+  ["start-topics", "#/start/topics"],
+  ["start-lesson", "#/start/lesson"],
+  ["start-finish", "#/start/finish"],
+  ["enter", "#/enter"],
+  ["lessons", "#/lessons"],
+  ["lessons-section", "#/lessons/addition"],
+  ["lessons-reaction", "#/lessons/addition/grignard-addition-ketone"],
+  ["reactions", "#/reactions"],
+  ["study-decks", "#/study-decks"],
+  ["deck", "#/deck/grignard"],
+  ["folder", "#/folder/carbonyls"],
+  ["unit", "#/unit/u1"],
+  ["calendar", "#/calendar"],
+  ["tutoring", "#/tutoring"],
+  ["d", "#/d"],
+  ["d-settings", "#/d/settings"],
+  ["d-appearance", "#/d/appearance"],
+  ["d-notifications", "#/d/notifications"],
+  ["signin", "#/signin"],
+  ["contact", "#/contact"],
+  ["terms", "#/terms"],
+  ["new-reaction", "#/new-reaction"],
+  ["draw", "#/draw/grignard-addition-ketone"],
+  ["404", "#/nope-not-here"],
+].map(([name, hash]) => ({ name: `site:${name}`, hash, site: true, settle: 3000 }));
+
+/**
+ * `--site` measures the site routes alone. It exists for SITE-REPLAN.md's
+ * phase checks ("zero failing pairs on site routes"), which ask about the site
+ * and nothing else; the full run, with no flag, is unchanged and still covers
+ * every game surface. It is a selection, not a pass: the exit code and the
+ * FAILING list follow the same rules for whatever was measured.
+ */
+const SITE_ONLY = process.argv.includes("--site");
+
+const ALL_ROUTES = [
   ...TABS.map((tab) => ({ name: tab, hash: `#/${tab}` })),
   { name: "onboarding", hash: "#/start/welcome" },
+  ...SITE_ROUTES,
   // `hash` and `stored` come off the moment, because not every moment lives in
   // the intro lesson any more: P5's three states are opened from the pathway,
   // and a moment that named its own route was already carrying both fields for
@@ -156,6 +213,7 @@ const ROUTES = [
     drive: MOMENTS[route.moment].drive,
   })),
 ];
+const ROUTES = SITE_ONLY ? SITE_ROUTES : ALL_ROUTES;
 const VIEWPORT = { width: 1280, height: 900, deviceScaleFactor: 1 };
 
 function findChrome() {
@@ -210,9 +268,27 @@ const origin = `http://127.0.0.1:${server.address().port}`;
 function auditInPage(rootSelector) {
   const root = rootSelector === null ? document.body : document.querySelector(rootSelector);
   if (root === null) return null;
+  // Tailwind v4's palette (slate-900, blue-500 and the rest) computes as
+  // oklch(), which the rgb() reading below cannot see. Until 2026-10-07 such a
+  // colour parsed as null: as TEXT it was skipped without a word, and as a
+  // BACKGROUND the climb walked straight past it to whatever was underneath,
+  // which reported white on a slate-900 badge as white on the page. A canvas
+  // resolves any CSS colour the browser understands to sRGB channels, so those
+  // colours are now measured instead of being missed in either direction.
+  const scratch = document.createElement("canvas").getContext("2d", { willReadFrequently: true });
+  const viaCanvas = (value) => {
+    scratch.clearRect(0, 0, 1, 1);
+    scratch.fillStyle = "rgba(0, 0, 0, 0)";
+    scratch.fillStyle = value;
+    scratch.fillRect(0, 0, 1, 1);
+    const [r, g, b, a] = scratch.getImageData(0, 0, 1, 1).data;
+    return { r, g, b, a: a / 255 };
+  };
   const parse = (value) => {
     const match = /rgba?\(([^)]+)\)/.exec(value ?? "");
-    if (match === null) return null;
+    if (match === null) {
+      return /^(oklch|oklab|lab|lch|hwb|color)\(/.test(String(value ?? "").trim()) ? viaCanvas(value) : null;
+    }
     const parts = match[1].split(/[,\s/]+/).filter((p) => p.length > 0).map(Number);
     if (parts.length < 3 || parts.some((n) => Number.isNaN(n))) return null;
     return { r: parts[0], g: parts[1], b: parts[2], a: parts.length > 3 ? parts[3] : 1 };
@@ -498,12 +574,22 @@ try {
           localStorage.setItem("theme", wanted);
           document.documentElement.classList.toggle("dark", wanted === "dark");
         }, theme);
-        await page.goto(`${origin}/?targets=1${withApp(route.hash)}`, { waitUntil: "networkidle0" });
+        // Site pages wait for "networkidle2", not "networkidle0": sign-in and
+        // contact load Google's sign-in script, which holds a connection open and
+        // took 14 to 16 s to go fully idle when measured on 2026-10-07. `settle`
+        // then waits for the page itself before anything is measured.
+        await page.goto(`${origin}/?targets=1${route.site ? route.hash : withApp(route.hash)}`, {
+          waitUntil: route.site ? "networkidle2" : "networkidle0",
+          timeout: route.site ? 60_000 : 30_000,
+        });
         // The front door is a full bleed layer over every route and it leaves
         // on its own about 1.25 s in, which networkidle0 can beat. Measuring
         // before it goes would file the loader's colours under this tab.
         await settleBoot(page);
-        await sleep(500);
+        await sleep(route.settle ?? 500);
+        // Progress on stderr, so a run that dies names the route it died on.
+        process.stderr.write(`measuring ${route.name} (${theme})
+`);
         await collect(page, route.name, theme, null);
         await page.close();
         continue;
@@ -518,7 +604,17 @@ try {
         const page = await context.newPage();
         await page.setViewport(VIEWPORT);
         await installSeed(page, theme, route.seed, route.stored);
-        await page.goto(`${origin}/${withApp(route.momentHash)}`, { waitUntil: "networkidle0" });
+        // A navigation that never goes idle is recorded as UNREACHED and the run
+        // carries on, for the same reason and on the same terms as the drive
+        // below: a throw here discarded every pair already measured, so the run
+        // printed a stack trace and no verdict for any surface (seen 2026-10-07).
+        // It still prints as a failure and the process still exits non-zero.
+        try {
+          await page.goto(`${origin}/${withApp(route.momentHash)}`, { waitUntil: "networkidle0" });
+        } catch (error) {
+          unreached.push(`${route.name} (${theme}): navigation did not settle (${String(error?.message ?? error).slice(0, 80)}).`);
+          continue;
+        }
         // Every route but the front door itself waits for the loader to go.
         // `?boot=hold` is what holds it, and holding it is the whole point of
         // that one route, so it is the one route that must not wait.
@@ -592,6 +688,22 @@ for (const finding of all) {
   }
 }
 const failing = rows.filter((row) => !row.pass);
+
+// The site routes on their own, grouped exactly as `rows` is. Counted from `all`
+// rather than from `rows`, because a row keeps at most four example locations
+// and a pair shared with a game route could otherwise hide a site occurrence.
+const siteGroups = new Map();
+for (const finding of all) {
+  if (finding.unresolved === true || !String(finding.route).startsWith("site:") || finding.pass) continue;
+  const key = `${finding.theme}|${finding.fg}|${finding.bg}|${finding.floor}|${finding.kind}`;
+  const existing = siteGroups.get(key);
+  if (existing === undefined) siteGroups.set(key, { ...finding, count: 1, where: new Set([`${finding.route}:${finding.element}`]) });
+  else {
+    existing.count += 1;
+    if (existing.where.size < 4) existing.where.add(`${finding.route}:${finding.element}`);
+  }
+}
+const siteFailing = [...siteGroups.values()].sort((a, b) => a.ratio - b.ratio);
 const unresolved = all.filter((finding) => finding.unresolved === true);
 
 if (process.argv.includes("--json")) {
@@ -607,6 +719,12 @@ if (unreached.length > 0) {
 UNREACHED, ${unreached.length}. These surfaces were NOT audited, which is a failure of`);
   console.log(`the run and not a pass for the surface:`);
   for (const line of unreached) console.log(`  ${line}`);
+}
+console.log(`SITE ROUTES (${SITE_ROUTES.length} pages, both themes): ${siteFailing.length} failing pairs`);
+for (const row of siteFailing) {
+  console.log(
+    `  ${row.ratio.toFixed(2)}:1 (needs ${row.floor})  ${row.theme.padEnd(5)} ${row.kind.padEnd(14)} ${row.fg} on ${row.bg}  x${row.count}\n      ${[...row.where].join("\n      ")}${row.text ? `\n      text: "${row.text}"` : ""}`,
+  );
 }
 console.log(`FAILING: ${failing.length}`);
 for (const row of failing) {

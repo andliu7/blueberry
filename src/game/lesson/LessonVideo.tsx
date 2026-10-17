@@ -26,24 +26,23 @@
  */
 
 import { useState } from "react";
+import { Press } from "../app/ui/Press";
 
 export interface LessonVideoProps {
   readonly title: string;
   readonly src?: string;
   readonly transcript?: string;
+  /** Planned length in minutes, said on the unfilmed strip. Absent says "about a minute". */
+  readonly minutes?: number;
   readonly onSkip: () => void;
 }
 
-export function LessonVideo({ title, src, transcript, onSkip }: LessonVideoProps) {
+export function LessonVideo({ title, src, transcript, minutes, onSkip }: LessonVideoProps) {
   const [showTranscript, setShowTranscript] = useState(false);
   const transcriptToggle = (
-    <button
-      type="button"
-      className="press min-h-11 shrink-0 px-2 text-scale-sm font-semibold text-bb-primary"
-      onPointerDown={() => setShowTranscript((s) => !s)}
-    >
+    <Press variant="ghost" size="sm" className="shrink-0" onPointerDown={() => setShowTranscript((s) => !s)}>
       {showTranscript ? "Hide transcript" : "Transcript"}
-    </button>
+    </Press>
   );
   const transcriptBody = showTranscript ? (
     <p className="rounded-xl bg-bb-muted p-3 text-scale-sm text-bb-muted-foreground">
@@ -60,8 +59,8 @@ export function LessonVideo({ title, src, transcript, onSkip }: LessonVideoProps
             Template
           </span>
           <p className="min-w-0 flex-1 truncate text-scale-sm text-bb-muted-foreground">
-            <span className="font-semibold text-bb-foreground">{title}</span> video, about a minute, from Kai. Not
-            filmed yet.
+            <span className="font-semibold text-bb-foreground">{title}</span> video,{" "}
+            {minutes === undefined || minutes === 1 ? "about a minute" : `about ${minutes} minutes`}, from Kai. Not filmed yet.
           </p>
           {transcriptToggle}
           <button
@@ -85,13 +84,9 @@ export function LessonVideo({ title, src, transcript, onSkip }: LessonVideoProps
         <video src={src} controls muted playsInline preload="metadata" className="h-full w-full" aria-label={title}>
           {transcript !== undefined ? <track kind="captions" label="Transcript" /> : null}
         </video>
-        <button
-          type="button"
-          onPointerDown={onSkip}
-          className="press absolute right-3 top-3 min-h-11 rounded-full border-2 border-bb-border bg-bb-card px-4 text-scale-sm font-semibold text-bb-foreground"
-        >
+        <Press variant="secondary" size="sm" onPointerDown={onSkip} className="absolute right-3 top-3">
           Skip video
-        </button>
+        </Press>
       </div>
       <figcaption className="flex items-center justify-between text-scale-xs text-bb-muted-foreground">
         <span>{title}</span>

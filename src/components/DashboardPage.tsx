@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { ChevronLeft, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { PageBackground, DASHBOARD_SCENE } from "@/components/ui/page-background";
-import { SiteFooter } from "@/components/ui/site-footer";
 import {
   DashboardNav,
   VIEW_TITLE,
@@ -11,6 +9,8 @@ import {
   type DashboardView,
 } from "@/components/ui/dashboard-nav";
 import { Panel, useUpdates, loadSeen, SEEN_KEY } from "@/components/Dashboard";
+import { SITE_CONTAINER } from "@/components/ui/site-nav";
+import { PageHeader } from "@/components/ui/page-header";
 import { useDecks } from "@/lib/useDecks";
 import { cn } from "@/lib/utils";
 
@@ -79,23 +79,17 @@ export function DashboardPage({ route }: { route: string }) {
 
   return (
     <main className="relative min-h-screen text-slate-900 dark:text-stone-100">
-      <PageBackground scene={DASHBOARD_SCENE} />
-      {/* The same veil the modal used. The photograph is the darker thing on a
-          pale surface and the brighter thing on a near-black one, so the two
-          take opposite corrections rather than one value flipped. */}
-      <div aria-hidden className="fixed inset-0 bg-white/78 dark:bg-[#171327]/62" />
-
-      <div className="relative mx-auto flex w-full max-w-7xl gap-6 px-4 py-5 sm:px-6">
-        {/* The column, permanent from `md` up. Sticky rather than fixed so it
-            scrolls with a long page but stays put for a short one. */}
-        <aside className="hidden w-64 shrink-0 md:block">
-          <div className="sticky top-5 max-h-[calc(100vh-2.5rem)] overflow-hidden rounded-3xl border border-slate-200 bg-white/95 shadow-sm backdrop-blur-sm dark:border-stone-800 dark:bg-stone-950/92">
-            <DashboardNav activeView={view} unread={unread} />
-          </div>
-        </aside>
-
-        <div className="min-w-0 flex-1">
-          <header className="flex items-center gap-2">
+      {/* The title sits above the rail and the panel, so it starts on the page
+          column's left edge like every other page (shell round 4); it used to
+          start right of the 256px rail. */}
+      <div className={cn(SITE_CONTAINER, "relative pb-5")}>
+        {/* No "Home" link here: the header's berry is the way home, and a second
+            one under it was a third navigation on this page (shell round 2).
+            The shared page header (shell round 3): the title comes first, and the
+            phone's "Menu" sits at the right of it instead of above it. */}
+        <PageHeader
+          title={VIEW_TITLE[view]}
+          actions={
             <button
               type="button"
               onClick={() => setNavOpen(true)}
@@ -105,29 +99,31 @@ export function DashboardPage({ route }: { route: string }) {
               <Menu className="size-4" />
               Menu
             </button>
+          }
+        />
 
-            <a
-              href="#/home"
-              className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-slate-600 transition-colors hover:text-[#472ab4] dark:text-stone-300"
-            >
-              <ChevronLeft className="size-4" />
-              Home
-            </a>
-          </header>
+        <div className="flex gap-6">
+          {/* The column, permanent from `md` up. Sticky rather than fixed so it
+              scrolls with a long page but stays put for a short one. */}
+          <aside className="hidden w-64 shrink-0 md:block">
+            <div className="sticky top-5 max-h-[calc(100vh-2.5rem)] overflow-hidden rounded-3xl border border-slate-200 bg-white/95 shadow-sm backdrop-blur-sm dark:border-stone-800 dark:bg-stone-950/92">
+              <DashboardNav activeView={view} unread={unread} />
+            </div>
+          </aside>
 
-          <h1 className="title-face mt-4 text-4xl leading-none">{VIEW_TITLE[view]}</h1>
-
-          <div className="mt-5 rounded-3xl border border-slate-200 bg-white/95 p-5 shadow-sm backdrop-blur-sm sm:p-6 dark:border-stone-800 dark:bg-stone-950/92">
-            <Panel
-              view={view}
-              decks={decks}
-              query={query}
-              onQuery={setQuery}
-              searchRef={searchRef}
-              updates={updates}
-              go={go}
-              onClose={leave}
-            />
+          <div className="min-w-0 flex-1">
+            <div className="rounded-3xl border border-slate-200 bg-white/95 p-5 shadow-sm backdrop-blur-sm sm:p-6 dark:border-stone-800 dark:bg-stone-950/92">
+              <Panel
+                view={view}
+                decks={decks}
+                query={query}
+                onQuery={setQuery}
+                searchRef={searchRef}
+                updates={updates}
+                go={go}
+                onClose={leave}
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -176,7 +172,6 @@ export function DashboardPage({ route }: { route: string }) {
         )}
       </AnimatePresence>
 
-      <SiteFooter />
     </main>
   );
 }

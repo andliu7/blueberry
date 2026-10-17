@@ -5,7 +5,7 @@
  * VISUAL FIDELITY round, so the picture is the spec down to the geometry.
  * Every measurement is written out in pathway-sheet.css's header with the
  * image coordinates it was taken from. The composition, top to bottom:
- * grabber, a ONE ROW head (molecule mark, title, hamburger), a full width
+ * grabber, a ONE ROW head (molecule mark, title, guidebook key), a full width
  * Practice card holding exactly two rows (heading plus difficulty pips, then
  * the violet 3D START), a HALF WIDTH Challenge card in the SAME cream with
  * the SAME near-black heading, holding its heading and then the double
@@ -21,7 +21,7 @@
  * pattern this reuses rather than reinvents.
  *
  * Per docs/DESIGN-GOALS.md there is no separate Concept row; the guidebook
- * behind the hamburger is the concept surface.
+ * behind the guidebook key is the concept surface.
  *
  * WHY A NATIVE <dialog>. Modality, focus trapping, Escape and the top layer
  * are the browser's; hand rolling those is three bugs. Same call and the same
@@ -52,20 +52,8 @@ import { MoleculeGlyph } from "./MoleculeGlyph";
 import { nodeSheetModel, type SheetNode } from "./nodeSheetModel";
 import "./pathway-sheet.css";
 import { closeOnBackdrop } from "../app/ui/dismiss";
+import { pressClassName } from "../app/ui/Press";
 
-/**
- * Where the sheet title steps down a size, in characters.
- *
- * The head is ONE ROW in the reference and it has to stay one row for every
- * node, not only for a one-word name (see .ns-head in pathway-sheet.css). The
- * title truncates rather than wraps, so the only lever left is size, and the
- * map's node titles have a median length of 21 characters with a tail out to
- * 44. On a 390 px phone the title's column is about 262 px, which holds about
- * 18 characters at the reference's 22 px and about 26 at 18 px. So a name over
- * this length takes the smaller step, most names arrive whole, and the
- * picture's own 22 px is what a short name still gets.
- */
-const TITLE_STEP_DOWN = 18;
 
 /** The pointer-down-first activation pair. See the header note on idempotence. */
 function pressHandlers(act: () => void) {
@@ -79,10 +67,16 @@ function pressHandlers(act: () => void) {
 }
 
 /** Three thick rules, the reference's weight. The corner route to the guidebook. */
-function HamburgerGlyph() {
+/**
+ * The guidebook key's mark. A2 round 4: a closed book, the same mark the
+ * unit card's GUIDEBOOK key draws, instead of a hamburger that did not say
+ * where it led. Same key, same picture, so the student already knows it.
+ */
+function GuideGlyph() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden>
-      <path d="M3.5 7h17M3.5 12h17M3.5 17h17" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" />
+      <rect x="4.5" y="3" width="15" height="18" rx="2.5" fill="currentColor" />
+      <path d="M8.5 3v18M8.5 16.5h11" fill="none" stroke="var(--bb-background)" strokeWidth="1.8" />
     </svg>
   );
 }
@@ -107,10 +101,16 @@ function HamburgerGlyph() {
  * Drawn rather than typed so it inherits the icon row's size and colour
  * instead of a font's idea of them.
  */
-function DoubleDaggerGlyph() {
+/**
+ * The Challenge mark, A2 round 3: a lightning bolt on an amber disc, built
+ * from two flat shapes. It replaced a bare double dagger that read as a broken
+ * glyph. Amber is the reward colour; the bolt says "no second chances, fast".
+ */
+function ChallengeGlyph() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden>
-      <path d="M12 3.5v17M6.5 8h11M6.5 16h11" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
+    <svg viewBox="0 0 28 28" aria-hidden>
+      <circle cx="14" cy="14" r="13" fill="var(--btn-warn)" />
+      <path d="M15.6 5.5 8.8 15.4h4.6l-1.6 7.1 7.4-10.3h-4.8z" fill="var(--btn-warn-ink)" />
     </svg>
   );
 }
@@ -179,7 +179,7 @@ export interface NodeSheetProps {
   readonly onStart: (node: SheetNode) => void;
   /** The second graded run. Enabled by the model only after a first clear. */
   readonly onChallenge: (node: SheetNode) => void;
-  /** The hamburger. The integrator routes this to the Guidebook page. */
+  /** The guidebook key. The integrator routes this to the Guidebook page. */
   readonly onGuidebook: (node: SheetNode) => void;
   readonly reducedMotion: boolean;
 }
@@ -238,16 +238,18 @@ export function NodeSheet({ node, onClose, onStart, onChallenge, onGuidebook, re
               <span className="ns-badge" aria-hidden>
                 <MoleculeGlyph />
               </span>
-              <h2
-                className={`ns-head__title bb-title-face font-bold leading-tight ${
-                  node.title.length > TITLE_STEP_DOWN ? "text-scale-lg" : "text-scale-xl"
-                }`}
-                title={node.title}
-              >
+              {/* A2 round 4: the sheet title is the scale's 20px step (bb-h2) at
+                  every length; long titles wrap to two lines instead of
+                  stepping down to an off-scale 18px. */}
+              <h2 className="ns-head__title bb-h2" title={node.title}>
                 {node.title}
               </h2>
               <button type="button" className="ns-menu press" aria-label={model.guidebookLabel} {...pressHandlers(() => onGuidebook(node))}>
-                <HamburgerGlyph />
+                <GuideGlyph />
+                {/* The word where there is room, so the icon is not a bare glyph. */}
+                <span className="ns-menu__label" aria-hidden>
+                  Guide
+                </span>
               </button>
             </header>
 
@@ -258,7 +260,7 @@ export function NodeSheet({ node, onClose, onStart, onChallenge, onGuidebook, re
                 not lost: it leads the guidebook's key-idea callout. */}
             <section className="ns-card" aria-label={`${model.practiceTitle}.${model.pips === null ? "" : ` ${model.pips.label}.`}`}>
               <div className="ns-card__row">
-                <h3 className="bb-title-face text-scale-lg font-bold">{model.practiceTitle}</h3>
+                <h3 className="bb-h3">{model.practiceTitle}</h3>
                 {/* NO ROW WHEN NOTHING MEASURED IT. A node with no authored
                     content has no difficulty to report, and four empty dots
                     would be a claim about it. See nodeSheetModel.difficultyFor. */}
@@ -270,8 +272,14 @@ export function NodeSheet({ node, onClose, onStart, onChallenge, onGuidebook, re
                   goes. Null on a lesson, which keeps its two rows. */}
               {model.practiceDetail === null ? null : <p className="ns-note text-scale-sm">{model.practiceDetail}</p>}
               {model.practice.enabled ? (
-                <button type="button" className="ns-chip ns-start" {...pressHandlers(() => onStart(node))}>
-                  <span className="ns-chip__face bb-title-face text-scale-base">START</span>
+                // START is the game's one shared 3D key (app/ui/press.css),
+                // full width, the same object as CHECK in a lesson.
+                <button
+                  type="button"
+                  className={`${pressClassName({ variant: "primary", size: "lg", block: true })} ns-start`}
+                  {...pressHandlers(() => onStart(node))}
+                >
+                  Start
                 </button>
               ) : (
                 <p className="ns-note text-scale-sm">{model.practice.note}</p>
@@ -314,24 +322,30 @@ export function NodeSheet({ node, onClose, onStart, onChallenge, onGuidebook, re
                   <span className="ns-card__row">
                     {/* A span, not an h3: a button's content model is phrasing
                         content, and the control's name is its aria-label. */}
-                    <span className="bb-title-face text-scale-lg font-bold">Challenge</span>
+                    {/* A2 round 5: the bolt is the heading's own icon, beside
+                        the word, rather than a lone disc on a row of its own. */}
+                    <span className="ns-titled">
+                      <span className="ns-title-mark" aria-hidden>
+                        <ChallengeGlyph />
+                      </span>
+                      <span className="bb-h3">Challenge</span>
+                    </span>
                     <span className="ns-go" aria-hidden>
                       <ChevronGlyph />
                     </span>
                   </span>
-                  <span className="ns-marks" aria-hidden>
-                    <DoubleDaggerGlyph />
-                  </span>
                 </span>
               </button>
             ) : (
-              <section className="ns-card ns-card--half" aria-label="Challenge">
+              <section className="ns-card ns-card--rest" aria-label="Challenge">
                 <div className="ns-card__row">
-                  <h3 className="bb-title-face text-scale-lg font-bold">Challenge</h3>
+                  <span className="ns-titled">
+                    <span className="ns-title-mark" aria-hidden>
+                      <ChallengeGlyph />
+                    </span>
+                    <h3 className="bb-h3">Challenge</h3>
+                  </span>
                 </div>
-                <span className="ns-marks" aria-hidden>
-                  <DoubleDaggerGlyph />
-                </span>
                 <p className="ns-note text-scale-sm">{model.challenge.note}</p>
               </section>
             )}

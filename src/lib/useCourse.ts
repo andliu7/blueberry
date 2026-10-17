@@ -67,6 +67,29 @@ function toOverrides(rows: OverrideRow[]): CourseOverrides {
   };
 }
 
+/**
+ * The one overrides request this page load shares (S3 round 3). Every component
+ * that calls useCourse used to fire its own, twice under StrictMode, so a page with
+ * Supabase unreachable logged four to six failed requests. Now the first caller
+ * starts it and the rest wait on the same promise; a failure resolves to null and
+ * is not retried until someone calls `refresh`.
+ */
+let shared: Promise<CourseOverrides | null> | null = null;
+
+function fetchOverrides(force: boolean): Promise<CourseOverrides | null> {
+  if (!supabase) return Promise.resolve(null);
+  if (shared && !force) return shared;
+  shared = Promise.resolve(
+    supabase.from("course_overrides").select("kind, entity_id, field, value"),
+  ).then(
+    // A failure here is not worth surfacing: the built-in content is already on
+    // screen and correct, just without whatever the TA has since fixed.
+    ({ data, error }) => (!error && data ? toOverrides(data as OverrideRow[]) : null),
+    () => null,
+  );
+  return shared;
+}
+
 export function useCourse(): {
   units: Unit[];
   topics: Topic[];
@@ -99,16 +122,13 @@ export function useCourse(): {
     let cancelled = false;
     setLoading(true);
 
-    void supabase
-      .from("course_overrides")
-      .select("kind, entity_id, field, value")
-      .then(({ data, error }) => {
-        if (cancelled) return;
-        // A failure here is not worth surfacing: the built-in content is already
-        // on screen and correct, just without whatever the TA has since fixed.
-        if (!error && data) setOverrides(toOverrides(data as OverrideRow[]));
-        setLoading(false);
-      });
+    // nonce 0 is the first mount, which may share a request already in flight;
+    // a refresh (nonce above 0) always asks again.
+    void fetchOverrides(nonce > 0).then((result) => {
+      if (cancelled) return;
+      if (result) setOverrides(result);
+      setLoading(false);
+    });
 
     return () => {
       cancelled = true;

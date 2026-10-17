@@ -52,6 +52,14 @@ the owner's newer word and the conflict gets reported, not silently resolved.
   and each opens after its prerequisite in a fixed order (Unit 1: NBS and Diels-Alder after
   allylic delocalization, inverse Diels-Alder after Diels-Alder). All nodes the same size,
   except the checkpoint, which ends the unit as its heaviest node
+- UNIT 1 REBUILT, owner whiteboard of 2026-09-29, built 2026-10-07: four stages (A allylic
+  stability, B addition to dienes, C allylic halogenation as a side quest, D Diels-Alder) and
+  the unit checkpoint. Supersedes the PDF inventory for Unit 1 only, and the Unit 1 example in
+  the line above: NBS now waits for X2 (D5 superseded), Diels-Alder is on the main line, the
+  inverse Diels-Alder still waits for it. Each node carries a `role` (video, practice, quiz)
+  beside its `kind`; stage quizzes are main-line nodes, never gates. Where the whiteboard
+  disagreed with the 1 Oct rulings the rulings won: no D2a | D2b fork (dienes then
+  dienophiles), and 1,2 vs 1,4 stays before kinetic vs thermodynamic, whose questions use it
 - (SUPERSEDED 2026-10-01 by the line above) Branch vocabulary: DIAMOND fork is the default
   unit shape (concept node above the fork, branches rejoin at the unit gate). HUB with petals
   is reserved for categories with three or more families (EAS, the acyl ladder). At most one
@@ -309,6 +317,12 @@ Unit 4 should feel like somewhere new without anything being redrawn.
 - Guidebook format locked: text-and-image explainer, key-idea callout card, numbered
   worked-example strip. This is the worked-example emphasis (see `LEARNING-SCIENCE.md`) given
   a surface
+- AMENDED, owner whiteboard 2026-09-29, built 2026-10-07: the guidebook gains a FOURTH part, a
+  "Background" section of short videos (the info box at the top right of a node). Each topic
+  is `{ id, title, minutes }` on the map node and renders through `LessonVideo`, so until a clip
+  is filmed it is the template strip and the page stands without it. Unit 1 attaches C⁺
+  stability, HOMO/LUMO and frontier MO theory; R/S and E/Z were crossed out and are not added.
+  A node's draft takeaway fills the key-idea card, which says "draft" on its face
 - The mascot peeking over the sheet edge stays
 
 ## Cards

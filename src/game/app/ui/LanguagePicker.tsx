@@ -1,5 +1,6 @@
 /**
- * The language list, and the button that opens it.
+ * The language list, and the sheet that holds it. It opens from the Me tab;
+ * the header button was removed on the owner's ask (2026-10-17).
  *
  * The list is the Memrise/Duolingo shape from the owner's captures: full width
  * rows, the endonym large and the English name small beneath, a check on the
@@ -88,36 +89,12 @@ export function LanguageSheet({ open, onClose }: { readonly open: boolean; reado
       className="m-auto w-[min(26rem,calc(100vw-2rem))] rounded-2xl border border-bb-border bg-bb-card p-5 text-bb-foreground backdrop:bg-black/50"
     >
       <div className="flex items-center justify-between gap-3 pb-3">
-        <h2 className="text-scale-lg font-semibold">{translate(current, "language.title")}</h2>
+        <h2 className="bb-h2">{translate(current, "language.title")}</h2>
         <button type="button" onPointerDown={onClose} aria-label="Close" className="press flex min-h-11 min-w-11 items-center justify-center rounded-full border-2 border-bb-border text-scale-lg">
           ×
         </button>
       </div>
       <LanguageList onPick={onClose} />
     </dialog>
-  );
-}
-
-/**
- * The header control. Shows the current language's code, not a globe glyph.
- *
- * Ghost rather than a bordered pill, matching ThemeToggle for the reason
- * recorded there: the header carries four economy readouts now, and two 44px
- * white discs beside them made the loudest marks in the row the two that say
- * the least. The 44px target and the press are unchanged.
- */
-export function LanguageButton({ onOpen }: { readonly onOpen: () => void }) {
-  const current = useLanguage();
-  const language = languageByCode(current);
-  return (
-    <button
-      type="button"
-      onPointerDown={onOpen}
-      aria-label={`Language: ${language.english}. Change it.`}
-      title={`Language: ${language.english}`}
-      className="press inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl border-2 border-bb-border bg-bb-card px-2 text-scale-sm font-bold uppercase tracking-wide text-bb-muted-foreground hover:text-bb-foreground"
-    >
-      {language.code}
-    </button>
   );
 }

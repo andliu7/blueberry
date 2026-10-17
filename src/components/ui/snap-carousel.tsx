@@ -434,7 +434,8 @@ export function SnapCarousel({
           <ChevronLeft className="h-4 w-4" />
         </button>
         <span className="font-mono text-sm text-slate-500 dark:text-stone-400 tabular-nums">
-          {car.index + 1} / {slides.length}
+          {/* In words, never a bare "3 / 12" (Review, phase 7). */}
+          Card {car.index + 1} of {slides.length}
         </span>
         <button
           type="button"

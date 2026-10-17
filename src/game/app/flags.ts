@@ -50,7 +50,16 @@ export type BetaId = "unlockall" | "infinitecharge";
 const FLAG_IDS: readonly FlagId[] = ["leaderboards", "chat", "messages"];
 const BETA_IDS: readonly BetaId[] = ["unlockall", "infinitecharge"];
 
-const ALL_IDS: readonly string[] = [...FLAG_IDS, ...BETA_IDS];
+/**
+ * The REVIEW flag: ?flags=drafts shows the "draft copy" marks on screens whose
+ * copy has not passed the owner's human gate yet. Off by default, in dev too,
+ * because a student (and a critic judging the product) must never read
+ * internal review notes. The drafts are still marked in the data and pinned
+ * by tests; this only decides whether the mark is PAINTED.
+ */
+const REVIEW_ID = "drafts";
+
+const ALL_IDS: readonly string[] = [...FLAG_IDS, ...BETA_IDS, REVIEW_ID];
 
 const STORAGE_KEY = "blueberry.flags";
 
@@ -125,4 +134,9 @@ export function isBetaOn(beta: BetaId): boolean {
 /** Every flag currently on. Used by the Me tab to decide what to list. */
 export function flagsOn(): readonly FlagId[] {
   return FLAG_IDS.filter((flag) => ON.has(flag));
+}
+
+/** True only under ?flags=drafts: paint the human gate's draft marks. */
+export function showDraftMarks(): boolean {
+  return ON.has(REVIEW_ID);
 }

@@ -17,12 +17,17 @@ import { describe, expect, it } from "vitest";
  * no DOM, and the repository's position is that React components are judged by
  * eye. The copy is a string in the source either way, which is what is asserted.
  */
+// The testimonials carousel and its data were deleted with the home rebuild (SITE-REPLAN.md
+// section 7 has no praise section), so their rows went with them; the new home files joined.
 const LANDING_FILES = [
   "src/components/HomePage.tsx",
   "src/components/HomeHero.tsx",
-  "src/components/ui/testimonials.tsx",
+  "src/components/HomeLoader.tsx",
+  "src/components/HomePhoneDemo.tsx",
+  "src/components/HomeDestinations.tsx",
+  "src/lib/homeDemo.ts",
   "src/components/ui/subscription-plans.tsx",
-  "src/data/testimonials.ts",
+  "src/data/site.ts",
 ];
 
 const UNSHIPPABLE = /fake|lorem|TBD|placeholder/i;

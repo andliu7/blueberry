@@ -301,6 +301,8 @@ export type SortCriterion =
   | "acyl_reactivity"
   | "oxidation_level"
   | "carbocation_stability"
+  | "radical_stability"
+  | "carbanion_stability"
   | "sn2_rate"
   | "ring_activation";
 

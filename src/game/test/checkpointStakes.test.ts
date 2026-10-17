@@ -35,6 +35,33 @@ const UNIT_ONE_DONE = [
   cleared(checkpointNodeId("u1")),
 ];
 
+/**
+ * CHANGED 2026-10-17: Unit 2 draft authored. The empty-unit cases below used
+ * Unit 2 by name; they now take the first unit that is still empty today and
+ * has a unit with content on both sides, derived from the map, so the same
+ * sentences stay pinned whichever units get written next.
+ */
+const EMPTY_AT = PATHWAY_UNITS.findIndex(
+  (unit, at) => !hasContent(unit) && PATHWAY_UNITS.slice(0, at).some(hasContent) && PATHWAY_UNITS.slice(at + 1).some(hasContent),
+);
+
+// Added 2026-10-17 (Unit 2 wire, round 2): the draft lanes are filling units one by one. When no empty unit is
+// left between written ones, the tests below lose their premise; this says so by name instead of an undefined crash.
+describe("the premise the walked-through tests stand on", () => {
+  it("still has an empty unit with written units on both sides", () => {
+    expect(EMPTY_AT, "no empty unit is left between written ones: give these tests a fixture map").toBeGreaterThan(-1);
+  });
+});
+/** Every unit with content before the empty one, finished whole, the way UNIT_ONE_DONE finishes Unit 1. */
+function doneThrough(last: number): EconomyEvent[] {
+  return PATHWAY_UNITS.slice(0, last + 1)
+    .filter(hasContent)
+    .flatMap((unit) => [
+      ...unit.nodes.filter((node) => node.kind !== "branch" && node.playable !== undefined).map((node) => cleared(node.id)),
+      cleared(checkpointNodeId(unit.id)),
+    ]);
+}
+
 describe("CHECKPOINT_QUESTIONS, regenerated from the real content", () => {
   it("matches the length of every unit's checkpoint plan", () => {
     const regenerated: Record<string, number> = {};
@@ -49,7 +76,10 @@ describe("CHECKPOINT_QUESTIONS, regenerated from the real content", () => {
   });
 
   it("says no count for a unit with nothing authored", () => {
-    expect(checkpointQuestions("u2")).toBeNull();
+    // CHANGED 2026-10-17: Unit 2 draft authored, so the unit is derived (no node on it plans a lesson) rather than typed as u2.
+    const unwritten = PATHWAY_UNITS.find((unit) => unit.nodes.every((node) => planLesson(node.id) === null));
+    expect(unwritten).toBeDefined();
+    expect(checkpointQuestions(unwritten!.id)).toBeNull();
     expect(checkpointQuestions("no-such-unit")).toBeNull();
   });
 });
@@ -64,9 +94,10 @@ describe("where a checkpoint pass goes, from the map", () => {
       expect(opens?.id ?? null, unit.id).toBe(expected?.id ?? null);
       if (expected !== null) expect(skipped.map((entry) => entry.id)).toEqual(later.slice(0, later.indexOf(expected)).map((entry) => entry.id));
     });
-    // Unit 1's pass opens Unit 3 today because Unit 2 has nothing written.
-    expect(hasContent(PATHWAY_UNITS[1]!)).toBe(false);
-    expect(unitOpenedAfter(PATHWAY_UNITS, 0).opens?.id).toBe("u3");
+    // CHANGED 2026-10-17: Unit 2 draft authored, so Unit 1's pass opens Unit 2, walking through nothing.
+    expect(hasContent(PATHWAY_UNITS[1]!)).toBe(true);
+    expect(unitOpenedAfter(PATHWAY_UNITS, 0).opens?.id).toBe("u2");
+    expect(unitOpenedAfter(PATHWAY_UNITS, 0).skipped).toEqual([]);
   });
 });
 
@@ -122,17 +153,36 @@ describe("the unit page says what really happens", () => {
   });
 
   it("says an empty unit is coming and never holds the student back, and where the track goes", () => {
+    // CHANGED 2026-10-17: Unit 2 draft authored; the empty unit and its neighbours are derived (EMPTY_AT), not typed.
     const status = deriveMapPathway(PATHWAY_UNITS, []);
-    const note = unitNote(PATHWAY_UNITS, status, 1)!;
-    expect(note).toMatch(/^Coming soon\. Nothing in Unit 2 is written yet/);
-    expect(note).toContain("Unit 3 opens when you finish Unit 1");
+    const empty = PATHWAY_UNITS[EMPTY_AT]!;
+    const before = [...PATHWAY_UNITS.slice(0, EMPTY_AT)].reverse().find(hasContent)!;
+    const after = unitOpenedAfter(PATHWAY_UNITS, EMPTY_AT).opens!;
+    const note = unitNote(PATHWAY_UNITS, status, EMPTY_AT)!;
+    expect(note.startsWith(`Coming soon. Nothing in ${unitNumber(empty.title)} is written yet`)).toBe(true);
+    expect(note).toContain(`${unitNumber(after.title)} opens when you finish ${unitNumber(before.title)}`);
   });
 
-  it("explains landing on Unit 3 after Unit 1, once Unit 1 is finished", () => {
+  it("lands on Unit 2 after Unit 1, once Unit 1 is finished", () => {
+    // CHANGED 2026-10-17: Unit 2 draft authored, so finishing Unit 1 opens Unit 2 with no walked-through note.
     const status = deriveMapPathway(PATHWAY_UNITS, UNIT_ONE_DONE);
-    expect(status.units.get("u3")?.active).toBe(true);
-    expect(unitNote(PATHWAY_UNITS, status, 2)).toBe("Unit 2 has nothing written yet, so Unit 3 opened straight after Unit 1.");
+    expect(status.units.get("u2")?.active).toBe(true);
+    expect(unitNote(PATHWAY_UNITS, status, 1)).toBeNull();
     expect(unitNote(PATHWAY_UNITS, status, 0)).toBeNull();
-    expect(unitLockSaid(PATHWAY_UNITS, status)).toBe("Opens when you finish Unit 3");
+    expect(unitLockSaid(PATHWAY_UNITS, status)).toBe("Opens when you finish Unit 2");
+  });
+
+  it("explains landing past an empty unit, once the unit before it is finished", () => {
+    // CHANGED 2026-10-17: the walked-through sentence Unit 2 used to pin, kept on the first unit still empty (EMPTY_AT).
+    const before = PATHWAY_UNITS.slice(0, EMPTY_AT).map(hasContent).lastIndexOf(true);
+    const route = unitOpenedAfter(PATHWAY_UNITS, before);
+    const landing = PATHWAY_UNITS.indexOf(route.opens!);
+    const status = deriveMapPathway(PATHWAY_UNITS, doneThrough(before));
+    expect(status.units.get(route.opens!.id)?.active).toBe(true);
+    const names = route.skipped.map((unit) => unitNumber(unit.title));
+    expect(names).toContain(unitNumber(PATHWAY_UNITS[EMPTY_AT]!.title));
+    const said = unitNote(PATHWAY_UNITS, status, landing)!;
+    expect(said).toMatch(new RegExp(`nothing written yet, so ${unitNumber(route.opens!.title)} opened straight after ${unitNumber(PATHWAY_UNITS[before]!.title)}\.$`));
+    expect(unitLockSaid(PATHWAY_UNITS, status)).toBe(`Opens when you finish ${unitNumber(route.opens!.title)}`);
   });
 });

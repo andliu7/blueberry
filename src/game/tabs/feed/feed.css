@@ -204,12 +204,6 @@
   line-height: 1.15;
   color: var(--bb-foreground);
 }
-.feed-heading-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.6rem;
-}
 
 /* ------------------------------------------------------------- the quests -- */
 
@@ -223,8 +217,7 @@
 /* THE WHITE CARD. See the header for why the outline is a warm hairline and
    not the app's --bb-border: the image separates these from the page by value,
    and a 2 px slate ring round a white card is the first thing the eye reads. */
-.feed-quest,
-.feed-panel {
+.feed-quest {
   border-radius: 1.15rem;
   border: 1px solid var(--quest-rim);
   background: var(--quest-card);
@@ -304,7 +297,9 @@
   border-radius: 999px;
   background: var(--quest-track);
   box-shadow: inset 0 0 0 1.5px var(--hud-track);
-  margin-right: 1.35rem;
+  /* The chest sits BESIDE the track, in this reserved space, never over its
+     end: at 390 the old 1.35rem let the 2.6rem chest cover the bar's end. */
+  margin-right: 3rem;
 }
 .feed-quest-fill {
   position: absolute;
@@ -324,7 +319,7 @@
 
 .feed-chest {
   position: absolute;
-  right: -1.35rem;
+  right: -3rem;
   top: 50%;
   width: 2.6rem;
   height: 2.6rem;
@@ -349,79 +344,10 @@
 
 /* --------------------------------------------------------------- lab mates */
 
-.feed-panel {
-  margin-top: 0.75rem;
-  padding: 0.25rem 0.9rem;
-}
-.feed-mates {
-  display: flex;
-  flex-direction: column;
-}
-/* THE DIVIDER IS A LIGHT HAIRLINE, not the app's --bb-border. The image separates
-   these rows with about #dfdfdf; the build used a 1 px dark slate, so the
-   dividers carried more weight than the avatars and the text they separate.
-   A row separator inside one card is not an information boundary and owes no
-   floor: what identifies the panel is its own edge, measured above. */
-.feed-mate {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.55rem 0;
-}
-.feed-mate + .feed-mate {
-  border-top: 1px solid var(--quest-divider);
-}
 .feed-avatar {
   width: 2.5rem;
   height: 2.5rem;
   flex-shrink: 0;
-}
-.feed-mate-line {
-  height: 0.9rem;
-  flex: 1 1 auto;
-  border-radius: 999px;
-}
-
-/* THE CHEER'S BUTTON. 44 by 44, the Budgets floor, with the flask drawn at
-   28 px inside it: the image draws a bare raised flask at the row's end, so
-   the control has no fill and no ring of its own and the hit area is the
-   padding around the glyph. Disabled until the friends server exists, and it
-   SAYS it is disabled rather than being absent. `.press` (theme.css) supplies
-   the pointer-down acknowledgement for the day it goes live; while it is
-   disabled the browser suppresses :active, which is the correct reading of a
-   control that cannot be pressed yet. */
-.feed-toast-btn {
-  display: flex;
-  width: 2.75rem;
-  height: 2.75rem;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  border-radius: 999px;
-  background: transparent;
-  border: none;
-}
-.feed-toast-btn:disabled {
-  opacity: 0.55;
-  cursor: default;
-}
-.feed-toast-btn:focus-visible {
-  outline: 2px solid var(--bb-ring);
-  outline-offset: 2px;
-}
-.feed-toast {
-  width: 1.75rem;
-  height: 1.75rem;
-  overflow: visible;
-}
-
-/* The honest not-open sentence, under the panel rather than inside it, so the
-   panel stays the picture of a row and the paragraph stays a paragraph. */
-.feed-note {
-  margin-top: 0.7rem;
-  font-size: var(--text-scale-sm);
-  line-height: 1.45;
-  color: var(--bb-muted-foreground);
 }
 
 /* ------------------------------------------------------- reduced motion --- */
@@ -433,4 +359,75 @@
   .feed-chest[data-open="true"] {
     animation: none;
   }
+}
+
+/* ------------------------------------------------- activity and invite --- */
+
+.feed-post-badge {
+  width: 2.75rem;
+  height: 2.75rem;
+  flex-shrink: 0;
+}
+.feed-post-when {
+  margin-top: 0.15rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--bb-muted-foreground);
+}
+/* The three lab-mate berries, the middle one forward, as the invite's picture. */
+.feed-avatar-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.25rem;
+}
+.feed-avatar-row .feed-avatar {
+  width: 4rem;
+  height: 4rem;
+}
+.feed-avatar-row .feed-avatar:nth-child(2) {
+  width: 5.25rem;
+  height: 5.25rem;
+}
+
+/* The first-win card: the one bright thing in Your activity before any win.
+   A green-washed solid surface with a solid lip; text stays the page ink on
+   it, so contrast never depends on the wash. */
+.feed-first-win {
+  border: 2px solid var(--progress-edge, #2f7d33);
+  border-bottom-width: 5px;
+  border-radius: 1.25rem;
+  background: color-mix(in srgb, var(--progress) 16%, var(--bb-card));
+  padding: 1.1rem;
+}
+
+/* The invite row's picture: the same three berries, small enough for a row. */
+.feed-avatar-row--small .feed-avatar {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+.feed-avatar-row--small .feed-avatar:nth-child(2) {
+  width: 2.25rem;
+  height: 2.25rem;
+}
+.feed-avatar-row--small {
+  gap: 0;
+}
+
+/* The countdown beside the quests heading: a quiet pill, not a banner. */
+.feed-timer {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 2rem;
+  padding: 0 0.75rem;
+  border-radius: 999px;
+  border: 2px solid var(--btn-line);
+  background: var(--bb-card);
+  color: var(--bb-foreground);
+  font-family: var(--font-display);
+  font-size: 0.8125rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
 }

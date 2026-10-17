@@ -84,6 +84,20 @@
   pointer-events: none;
 }
 
+/* In the page flow instead of floating (Recommendation placement="inline"). */
+.mistake-toast--inline {
+  position: static;
+  padding: 0;
+}
+/* Inline, it sits under the lesson-complete card, so it takes that card's
+   full width, its 2px outline and no float shadow (A2 round 6: it was 416px
+   under a 528px card, so the two edges did not line up). */
+.mistake-toast--inline .mistake-toast__card {
+  max-width: none;
+  border-width: 2px;
+  box-shadow: none;
+}
+
 .mistake-toast__card {
   pointer-events: auto;
   position: relative;
@@ -136,6 +150,7 @@
 
 .mistake-toast__actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 0.75rem;
 }
@@ -186,16 +201,24 @@
  * disappears under it.
  */
 .mistake-toast__save {
-  flex: 1 1 auto;
+  /* A2 round 6: in ALL CAPS the label wrapped to two lines beside NOT NOW on
+     a phone. A 14rem basis makes the pair wrap instead: the save key takes
+     the full row and NOT NOW sits centred under it, as a stacked pair. */
+  flex: 3 1 14rem;
   min-height: 2.75rem; /* 44px, CLAUDE.md's minimum hit target */
-  padding: 0.625rem 1.25rem;
+  /* A2 round 6: the same key as every other in /app, ALL CAPS display type
+     and 52px tall (1rem padding each side of a 1.25 line). */
+  padding: 1rem 1.25rem;
   border: 0;
   border-radius: 0.75rem;
   background: var(--bb-primary);
   color: var(--bb-primary-foreground);
-  font: inherit;
-  font-size: 0.9375rem;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   cursor: pointer;
   touch-action: manipulation;
   box-shadow: 0 4px 0 color-mix(in srgb, var(--bb-primary) 72%, black);
@@ -221,16 +244,20 @@
 }
 
 .mistake-toast__dismiss {
-  flex: 0 0 auto;
+  flex: 1 0 auto;
   min-height: 2.75rem;
-  padding: 0.625rem 0.75rem;
+  /* The flat ghost key: same type and height as the save key, no lip. */
+  padding: 1rem 0.75rem;
   border: 0;
   border-radius: 0.75rem;
   background: transparent;
-  color: var(--bb-muted-foreground);
-  font: inherit;
-  font-size: 0.9375rem;
-  font-weight: 600;
+  color: var(--bb-primary-ink);
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   cursor: pointer;
   touch-action: manipulation;
   transition: background-color var(--sa-press, var(--dur-instant, 80ms)) linear, transform var(--sa-press, var(--dur-instant, 80ms)) linear;

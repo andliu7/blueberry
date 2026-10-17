@@ -3,6 +3,8 @@ import { Editor } from "ketcher-react";
 import { StandaloneStructServiceProvider } from "ketcher-standalone";
 import type { Ketcher } from "ketcher-core";
 import "ketcher-react/dist/index.css";
+// After Ketcher's own sheet, so its atom colours can be darkened. See the file.
+import "./ketcher-overrides.css";
 
 /**
  * The drawing surface, copied from `mechanism_trainer/src/components/

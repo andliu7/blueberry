@@ -20,7 +20,7 @@
  * face back off the DOM.
  *
  * Nothing is added to the source to make this observable. `Berry` already
- * publishes `data-state` and an aria-label of "Blueberry, looking <mood>", and
+ * publishes `data-state` and an aria-label of "Bloom, looking <mood>", and
  * `BlueberryMark` already publishes `.bb-eyes[data-mood]`, because the mood CSS
  * contract needs them. Reading the mood the student's screen reader is read is
  * a stronger pin than a test hook would be anyway.

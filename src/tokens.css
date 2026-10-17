@@ -1,0 +1,232 @@
+/* Site tokens, 2026-10-07 (SITE-REPLAN.md section 11, phase 0).
+ *
+ * WHAT THIS FILE IS. The one place the site's motion curves and its new colour names live.
+ * The design rules behind every value are in ~/.claude/skills/blueberry/references/tokens.css;
+ * this is the repo's copy of the part the site uses. Any cubic-bezier outside a file named
+ * tokens.css fails the token gate (check_tokens.py), so a new curve goes HERE or nowhere.
+ *
+ * WHY THESE NAMES AND NOT --bb-background. The game's src/game/theme.css already defines
+ * --bb-background (#f5f7fb) and --bb-border (#70839d) on :root, and it loads with the game's
+ * lazy chunk. If this file set --bb-background to the lavender, the site's ground would flip
+ * from lavender to grey-white the first time a student opened the game, because whichever
+ * :root block loads last wins. So the two values the site and the game disagree on get their
+ * own names (--site-ground, --site-border) until phase 11 moves the game onto the lavender,
+ * and then they fold into --bb-background and --bb-border. Every other name below is one the
+ * game does not define, so the two files cannot fight over it.
+ *
+ * Ratios are WCAG 2.x, computed 2026-10-07 with the formula in the skill's checks.md. A ratio
+ * in a comment is a claim (STATUS.md, 2026-09-23): re-measure before trusting one.
+ *
+ * Nothing in this file is painted yet in phase 0; pages pick the names up in phases 2 and 3.
+ */
+
+:root {
+  /* ---------- Grounds (light) ---------- */
+  --site-ground: #efeaf8;   /* owner 7 Oct: the lavender ground. His #F4F0FB one step darker */
+  --site-border: #756e95;   /* outline on the lavender: 4.03:1 on the ground, 4.75:1 on white */
+  --bb-wash: #e2dbf5;       /* selected rows and chips: #472ab4 on it 6.95:1 */
+  --bb-sheet: #ffffff;      /* bottom sheets, same as the card */
+  /* The still wash on the ground (owner, 15 Oct, option A): the top of the screen a shade
+     more violet, the bottom a shade more blue, the lavender ground between (site-shell.css).
+     Round 3: quieter than round 2's radial peaks, which the blind judges read as a tinted
+     haze the cards blurred into. Ink at the two ends: --site-faint 5.03 / 5.25, --site-quiet
+     6.14 / 6.41, --bb-deep 10.99 / 11.47, --bb-blue-ink 4.56 / 4.76. */
+  --site-wash-violet: #ebe4fa;
+  --site-wash-blue: #e6ecfb;
+  /* Faint and quiet ink: what Tailwind's slate-400 and slate-500 now resolve to
+     (index.css @theme). Light: #51627b is 5.26:1 on the ground, 6.21:1 on white,
+     4.69:1 on the #e1deed wash; #475569 is 6.42:1 ground, 7.58:1 white. */
+  --site-faint: #51627b;
+  --site-quiet: #475569;
+
+  /* ---------- Ink ---------- */
+  --bb-deep: #2e2b45;       /* owner 7 Oct: headings. 11.50:1 on the ground */
+  --bb-blue-ink: #3a5fd0;   /* blue that carries words: 4.77:1 on the ground, 5.63:1 on white */
+
+  /* ---------- Calm states ---------- */
+  --bb-warn: #b45309;       /* 4.26:1 on the lavender ground: warn TEXT only on a card */
+  --bb-warn-ink: #92400e;   /* owner 7 Oct: the darker amber. 6.01:1 on the ground, passes AA */
+  --bb-warn-wash: #fef3c7;
+
+  /* ---------- Progress green: fill only, dark ink on it ---------- */
+  --bb-progress: #b3df92;
+  --bb-progress-ink: #163a26;
+  --bb-progress-edge: #3f8c28;
+  --bb-correct: #7ed957;
+
+  /* ---------- Motion: one set. Every animation names these; no other curve exists ---------- */
+  --bb-dur-press: 60ms;     /* pointer down, under the 100ms budget */
+  --bb-dur-release: 160ms;
+  --bb-dur-ui: 200ms;
+  --bb-dur-enter: 320ms;
+  --bb-dur-roll: 750ms;
+  --bb-dur-wipe: 720ms;
+  --bb-ease-ui: cubic-bezier(.2, 0, 0, 1);            /* hover, tabs, toggles. No bounce */
+  --bb-ease-out: cubic-bezier(.19, 1, .22, 1);        /* reveals and scroll moments */
+  --bb-ease-spring: cubic-bezier(.34, 1.56, .64, 1);  /* arrivals and press release */
+  --bb-ease-wipe: cubic-bezier(.76, 0, .24, 1);       /* loader, header label roll */
+  --bb-ease-sheet: cubic-bezier(.35, 1.8, .35, .83);  /* the feedback sheet only */
+  /* The Slush spring the portfolio rolls its pills and letters on (andliu-portfolio
+     app/globals.css:40 and :57). This cubic is the fallback; the linear() below wins where
+     the browser has it. Copied from the skill's tokens.css, not a new curve. */
+  --bb-ease-elastic: cubic-bezier(.34, 1.56, .64, 1);
+
+  /* ---------- Home, phase 4a ---------- */
+  /* The press ledge under a filled button. The same value as the game's --bb-primary-edge
+     and index.css's --gb-wall, under a site name so the game chunk cannot repaint it.
+     #33208c as a boundary on the lavender ground: 10.31:1. */
+  --site-edge: #33208c;
+  /* The home loader's front sheet: the same deep violet in both themes, because the loader
+     is a brand moment, not a surface (the back sheet is --primary). */
+  --site-sheet-deep: #33208c;
+  /* Titles in Nunito (owner, 7 Oct). A site name, not --font-display, because the game's
+     theme.css sets --font-display on :root to "Nunito", which is not the family fontsource
+     registers ("Nunito Variable"), and it loads last whenever the game has been opened. */
+  --site-display: "Nunito Variable", "Nunito", ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", ui-sans-serif, system-ui, sans-serif;
+
+  /* ---------- Site nav, shell round 2 ---------- */
+  /* The current tab: a wash chip in a 2px --site-nav-ring outline (below), and violet
+     words; the glyphs keep their own colours. The header sits on the white card, the
+     phone bar on the lavender ground (shell round 6).
+     src/test/siteNavPress.test.ts re-computes these ratios, so a change here that breaks
+     one fails the suite. #472ab4 ink on the #e2dbf5 wash 6.95:1, on the pressed #d4caf0
+     wash 5.98:1. --site-nav-line (#5a3fd8) was the chip's outline until shell round 6;
+     the schedule's exam colour still reads it. */
+  --site-nav-line: #5a3fd8;
+  --site-nav-wash: #e2dbf5;
+  --site-nav-wash-press: #d4caf0;
+  --site-nav-ink: #472ab4;
+  /* The current chip's ring (shell round 6): the wash's own hue (256, the same saturation),
+     darkened only until it holds 3:1 for a UI edge: 3.59:1 on the white header, 3.04:1 on
+     the lavender phone bar, 2.68:1 against the wash it rings. src/test/siteNavPress.test.ts
+     re-computes the first two. */
+  --site-nav-ring: #9177d9;
+  /* The shell's hairline (shell round 3): the header's bottom edge and the phone bar's top
+     edge. A divider, not a control outline, so it is quiet on purpose: 1.51:1 on the card. */
+  --site-hairline: #d6cfe8;
+
+  /* ---------- Tab glyphs, shell round 5, redrawn round 6 (src/components/ui/site-tab-icons.tsx) */
+  /* Three tones per glyph, the same bright face in both themes (owner, 30 Sep: cute, clean,
+     3D). The face does not have to hold 3:1: the shade tone does. It is the whole silhouette,
+     painted first, with the face over it lifted toward the light, so it shows as the band
+     along each shape's lower and right edge. Shell round 7: no outline (Duolingo's bar has
+     none; measured in the round 7 log). The test re-computes
+     every shade against the header (card), the phone bar (ground), the hover/current wash
+     and the pressed wash, both themes.
+     Light shades on #ffffff / #efeaf8 / #e2dbf5 / #d4caf0: learn #3a5fd0 (= --bb-blue-ink)
+     5.63, 4.77, 4.21, 3.62; practice #5a3fd8 (= --primary) 6.69, 5.67, 5.00, 4.30; review
+     #b45309 (= --bb-warn) 5.02, 4.26, 3.75, 3.23; schedule #0d7c6e 5.09, 4.31, 3.80, 3.27;
+     me #c42d5c 5.42, 4.59, 4.05, 3.48.
+     Round 6: Me is a person in a pink shirt (was a green fruit), so its family moved to
+     coral; -2 is the skin and -3 the skin's shade. Practice -3 is the liquid's shade.
+     -2 and -3 are detail inside a face and have no floor. Shine is every highlight; eye is
+     the person's eyes and smile.
+     Round 7: Me's hair, -4, is a cap over the head and is its top edge, so it holds 3:1 like a
+     shade: #6b4430 on #ffffff / #efeaf8 / #e2dbf5 / #d4caf0 is 8.42, 7.13, 6.29, 5.41. */
+  --site-tab-learn: #78a5ff;
+  --site-tab-learn-shade: #3a5fd0;
+  --site-tab-learn-2: #dbe5fd;
+  --site-tab-practice: #a99bff;
+  --site-tab-practice-shade: #5a3fd8;
+  --site-tab-practice-2: #7ed957;
+  --site-tab-practice-3: #55a838;
+  --site-tab-review: #f59e0b;
+  --site-tab-review-shade: #b45309;
+  --site-tab-review-2: #fcd34d;
+  --site-tab-schedule: #2fc4ad;
+  --site-tab-schedule-shade: #0d7c6e;
+  --site-tab-schedule-2: #e6faf6;
+  --site-tab-me: #ff8aa5;
+  --site-tab-me-shade: #c42d5c;
+  --site-tab-me-2: #ffd9bf;
+  --site-tab-me-3: #f2b28c;
+  --site-tab-me-4: #6b4430;
+  --site-tab-shine: #ffffff;
+  --site-tab-eye: #1b1840;
+  /* Home's ground tint, one per destination card (owner 15 Oct, option C; cardGlow.ts
+     tintPage, drawn by .site-wash::after in site-shell.css). By day: the card's colour mixed
+     into white, a pastel about as light as the ground, so muted ink keeps 4.61:1 on the
+     worst one (Learn). */
+  --site-tint-learn: color-mix(in srgb, var(--site-tab-learn) 34%, #fff);
+  --site-tint-practice: color-mix(in srgb, var(--site-tab-practice) 34%, #fff);
+  --site-tint-review: color-mix(in srgb, var(--site-tab-review) 34%, #fff);
+  --site-tint-schedule: color-mix(in srgb, var(--site-tab-schedule) 34%, #fff);
+}
+@supports (transition-timing-function: linear(0, 1)) {
+  :root {
+    --bb-ease-elastic: linear(0, .5737 7.6%, .8382 11.87%, .9463 14.19%, 1.0292 16.54%, 1.0886 18.97%, 1.1258 21.53%, 1.137 22.97%, 1.1424 24.48%, 1.1423 26.1%, 1.1366 27.86%, 1.1165 31.01%, 1.0507 38.62%, 1.0219 42.57%, .9995 46.99%, .9872 51.63%, .9842 58.77%, 1.0011 81.26%, 1);
+  }
+}
+
+/* Night. The site switches on the `dark` class on <html> (index.html's pre-paint script), so
+   this keys on .dark, the same as the rest of index.css. Night keeps the measured navy. */
+.dark {
+  --site-ground: #101827;
+  --site-border: #70839d;
+  --site-faint: #a4b4ca;    /* 7.37:1 on the #192438 card, 6.05:1 on the #24334a wash */
+  --site-quiet: #a4b4ca;
+  --bb-wash: #24334a;
+  --bb-sheet: #192438;
+  /* Night wash ends. Owner 2026-10-16, "more gradient on dark mode": a clear violet on
+     top and a clear blue below (were #16163a / #0f2140, which read as flat navy). Still
+     only behind the cards' solid faces. --site-faint 7.00 / 6.60, foreground 13.14 /
+     12.39, --bb-blue-ink 6.06 / 5.72, all above AA 4.5. */
+  --site-wash-violet: #24196a;
+  --site-wash-blue: #0c2a5e;
+  --bb-deep: #edf2fa;       /* headings collapse to the foreground at night */
+  --bb-blue-ink: #78a5ff;
+  --bb-warn: #f59e0b;
+  --bb-warn-ink: #fcd34d;
+  --bb-warn-wash: #453a12;
+  --bb-progress: #7ed957;
+  --bb-progress-edge: #55a838;
+  /* Lighter than the face at night, as index.css's .dark --gb-wall explains: #33208c is
+     1.46:1 on the navy, so the ledge vanished. #aac7ff is 10.4:1 on #101827. */
+  --site-edge: #aac7ff;
+  /* Night nav stays violet (it was sky blue #aac7ff on a navy #24334a wash, 1.22:1).
+     #a99bff line on the #192438 card 6.53:1.
+     Shell round 8: the wash is a quiet tint of the navy with a little violet (hue 232, the
+     ring's 244 within 15), 1.24:1 on the #101827 phone bar, as light's wash is a tint of the
+     lavender (1.13:1) and Duolingo's night chip is a tint of its ground (1.22:1). Round 7's
+     #2f2a5e read as a filled violet button (critic). The ring carries "current".
+     #cdc4ff ink on the #232848 wash 8.81:1, on the pressed #2a2f55 wash 7.91:1. */
+  --site-nav-line: #a99bff;
+  --site-nav-wash: #232848;
+  --site-nav-wash-press: #2a2f55;
+  --site-nav-ink: #cdc4ff;
+  /* Night ring, the night wash's hue lightened until 3:1: 3.04:1 on the #192438 header,
+     3.48:1 on the #101827 phone bar. */
+  --site-nav-ring: #6b63b9;
+  /* The night hairline. The header's 2px #70839d edge cut a bright line across the page
+     (critic, shell round 2); this is 1.38:1 on the #192438 card. */
+  --site-hairline: #2c3b55;
+  /* Night glyph shades (round 5), the edge that carries 3:1, on the #192438 card /
+     #101827 ground (the phone bar, round 6) / #232848 wash / #2a2f55 pressed wash (round 8):
+     learn #5a8cf5 4.82, 5.50, 4.43, 3.98; practice #8a78f5 4.51, 5.15, 4.14, 3.72; review
+     #c97a05 4.64, 5.30, 4.27, 3.83; schedule #1b9886 4.35, 4.98, 4.01, 3.59; me #ec6a8c 5.19,
+     5.93, 4.77, 4.28; all re-computed by src/test/siteNavPress.test.ts. Lighter than the light shades because a dark edge
+     vanishes on the navy (the same reason as --site-edge above); still darker than each
+     face, so the lower band reads as shade. The faces are not redefined: same as light. */
+  --site-tab-learn-shade: #5a8cf5;
+  --site-tab-practice-shade: #8a78f5;
+  --site-tab-review-shade: #c97a05;
+  --site-tab-schedule-shade: #1b9886;
+  --site-tab-me-shade: #ec6a8c;
+  /* Me's hair at night (round 7): the light brown would vanish on the navy. #c08a5c on the
+     #192438 card / #101827 ground / #232848 wash / #2a2f55 pressed wash (round 8): 5.21, 5.95, 4.79, 4.30. */
+  --site-tab-me-4: #c08a5c;
+  /* Night tints (S2 round 2). Round 1 mixed each card colour half and half with the violet,
+     which turned all four into the same navy (critic: Learn and Practice sampled identical).
+     Now each is its own hue held at one lightness: oklch L .34, C .10 at the card colour's
+     hue (blue 263, violet 289, amber 70, teal 180), so the four read apart and none is
+     brighter than the others. Ink #edf2fa / muted #a4b4ca on each: learn 10.61 / 5.66,
+     practice 10.82 / 5.77, review 10.63 / 5.67, schedule 9.49 / 5.06. */
+  --site-tint-learn: #1b356b;
+  --site-tint-practice: #382c67;
+  --site-tint-review: #572b00;
+  --site-tint-schedule: #004739;
+}
+
+/* Reduced motion is one attribute, set before first paint by index.html's pre-paint script
+   from the OS setting (phase 4a). The Settings switch that can also write it is phase 8. */
+html[data-motion="reduced"] { --bb-dur-roll: 0ms; --bb-dur-wipe: 120ms; --bb-dur-enter: 0ms; }

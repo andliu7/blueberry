@@ -72,6 +72,11 @@ export interface UnitShape {
  * that genuinely pull against each other and the resolution is the owner's.
  */
 function videoHookOf(nodes: readonly PathwayNode[]): string | null {
+  // AUTHORED, NOT DERIVED, once a unit carries roles (Unit 1 since
+  // 2026-10-07): the hook is its first `role: "video"` node, and PathwayTab
+  // badges every video node from the role itself. A unit with no roles keeps
+  // the derived rule below unchanged.
+  if (nodes.some((node) => node.role !== undefined)) return nodes.find((node) => node.role === "video")?.id ?? null;
   const beat = nodes.find((node) => node.playable?.kind === "beat");
   return beat === undefined ? null : beat.id;
 }

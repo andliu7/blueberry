@@ -13,7 +13,7 @@ export const irDeck: ReferenceDeck = {
   group: "reference",
   titleLines: ["IR", "REFERENCE"],
   subtitle:
-    "24 rows covering the four regions, the C–H ladder, and every functional group. Hover for the real spectrum.",
+    "24 rows covering the four regions, the C–H ladder, and every functional group. Tap a row for the real spectrum.",
   blurb:
     "The four regions, the C–H stretch ladder, and what each functional group actually looks like, with the spectrum from the slides on every row.",
   footNote: "Four regions, left to right: bonds to H, triple bonds, double bonds, fingerprint.",
@@ -52,7 +52,7 @@ export const irDeck: ReferenceDeck = {
       ],
     },
     {
-      heading: "Functional groups — hover for the real spectrum",
+      heading: "Functional groups, tap for the real spectrum",
       items: [
         { title: "Alkane", description: "sp3 C–H only", badge: "2950 cm-1", image: "ir_alkane" },
         { title: "Alkene", description: "sp2 C–H plus C=C", badge: "3050 + 2000–1500", image: "ir_alkene" },

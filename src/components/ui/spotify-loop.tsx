@@ -28,6 +28,15 @@ import { AlertCircle } from "lucide-react";
 
 const API_SRC = "https://open.spotify.com/embed/iframe-api/v1";
 
+/**
+ * Spotify's own embed heights. 152 is the compact player meant for a single
+ * track; a playlist or album squeezed into it loses its track list and looks
+ * crushed, so those get the standard 352 that shows the cover and the list.
+ */
+export function spotifyEmbedHeight(uri: string): number {
+  return /^spotify:(track|episode):/.test(uri) ? 152 : 352;
+}
+
 /** Loop a little before the true end: seeking exactly at zero remaining races the player's own stop. */
 const LOOP_LEAD_MS = 900;
 
@@ -89,7 +98,7 @@ export function SpotifyLoop({ uri, playing }: { uri: string; playing: boolean })
         if (cancelled || !hostRef.current) return;
         api.createController(
           hostRef.current,
-          { uri, width: "100%", height: 152 },
+          { uri, width: "100%", height: spotifyEmbedHeight(uri) },
           (controller) => {
             if (cancelled) {
               controller.destroy();

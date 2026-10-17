@@ -17,9 +17,11 @@ import { useSyncExternalStore } from "react";
 import { arrowStyleSetting, type ArrowStyle } from "./arrowStyle";
 
 const OPTIONS: readonly { readonly id: ArrowStyle; readonly label: string; readonly detail: string }[] = [
-  { id: "auto", label: "Per question", detail: "Curved on resonance, dashed on reactions" },
-  { id: "curved", label: "Curved arrow", detail: "Drag draws the arrow" },
-  { id: "dashed", label: "Straight dashed", detail: "Drag draws the bond" },
+  // One short word each, so three fit side by side on a 390px phone without
+  // wrapping; the sketch above the word carries the rest.
+  { id: "auto", label: "Auto", detail: "Curved on resonance, dashed on reactions" },
+  { id: "curved", label: "Curved", detail: "Your drag draws a curved arrow" },
+  { id: "dashed", label: "Dashed", detail: "Your drag draws a straight dashed line" },
 ];
 
 /** A 40 by 24 sketch of the drag: electrons on the left, the finger on the right. */
@@ -46,39 +48,33 @@ function Sketch({ id }: { readonly id: ArrowStyle }) {
 
 export function ArrowStyleSetting() {
   const style = useSyncExternalStore(arrowStyleSetting.subscribe, arrowStyleSetting.getSnapshot, arrowStyleSetting.getSnapshot);
+  const chosen = OPTIONS.find((option) => option.id === style) ?? OPTIONS[0];
+  // Drawn as a row of the Me tab's grouped settings list; the .me-* classes
+  // live in tabs/me/me.css, which the Me tab loads.
   return (
-    <div className="flex flex-col gap-2 rounded-2xl border-2 border-bb-border bg-bb-card px-4 py-3" data-arrow-style-setting>
-      <span className="min-w-0">
-        <span className="block text-scale-base font-semibold text-bb-foreground">Arrow drawing</span>
-        <span className="block text-scale-xs text-bb-muted-foreground">
-          How a push looks while you drag it. Grading is the same in every style.
+    <div data-arrow-style-setting>
+      <div className="me-row me-row-static">
+        <span className="me-row-text">
+          <span className="me-row-title">Arrow drawing</span>
+          <span className="me-row-detail">{chosen?.detail}</span>
         </span>
-      </span>
-      <div className="flex flex-col gap-2" role="group" aria-label="Arrow drawing">
-        {OPTIONS.map((option) => {
-          const on = style === option.id;
-          return (
+      </div>
+      <div className="me-seg-wrap">
+        <div className="me-seg me-seg--stack" role="group" aria-label="Arrow drawing">
+          {OPTIONS.map((option) => (
             <button
               key={option.id}
               type="button"
-              aria-pressed={on}
+              aria-pressed={style === option.id}
               data-arrow-style={option.id}
-              onPointerDown={() => arrowStyleSetting.set(option.id)}
+              // onClick fires for a mouse, a tap, Enter and Space alike.
               onClick={() => arrowStyleSetting.set(option.id)}
-              className={`press flex min-h-11 items-center gap-3 rounded-xl border-2 px-3 py-2 text-left ${
-                on
-                  ? "border-[color:var(--bb-primary-ink)] bg-[color:var(--tab-active)] text-bb-primary-ink"
-                  : "border-bb-border bg-bb-card text-bb-muted-foreground"
-              }`}
             >
               <Sketch id={option.id} />
-              <span className="min-w-0 flex-1">
-                <span className="block text-scale-sm font-semibold">{option.label}</span>
-                <span className="block text-scale-xs">{option.detail}</span>
-              </span>
+              {option.label}
             </button>
-          );
-        })}
+          ))}
+        </div>
       </div>
     </div>
   );

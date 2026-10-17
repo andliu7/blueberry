@@ -4,15 +4,11 @@ import { useEffect, useState } from "react";
 import {
   ArrowRight,
   CircleCheck,
-  CircleDot,
   Droplets,
-  Eye,
-  EyeOff,
   FlaskConical,
   Info as InfoIcon,
   Minus,
   Pencil,
-  PenLine,
   RefreshCw,
   Save,
   ShieldCheck,
@@ -23,7 +19,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader } from "@/components/ui/loader";
-import { Formulas } from "@/components/ui/formula";
 import { MoleculeArt } from "@/components/ui/lesson-nav";
 import { StageReagents } from "@/components/ui/reagent-line";
 import type { Stage, StagedReaction } from "@/data/reactions";
@@ -31,35 +26,34 @@ import { setCourseField } from "@/lib/useCourse";
 import { cn } from "@/lib/utils";
 
 /**
- * One reaction, in full.
+ * One reaction, in full: the body of the reaction sheet (SITE-REPLAN.md section 3).
  *
- * Three things this does that a flat reaction card cannot:
+ * Three sides, switched by a segmented pill (DESIGN-GOALS.md, Cards): Setup (what
+ * goes in), Conditions (the stages, why this reagent, how it was checked) and
+ * Product. It opens on Setup, so the product stays hidden until a student asks
+ * for it: "predict the product" is the exercise, and a sheet that shows the
+ * answer beside the question is a reference card, not practice.
  *
- * 1. The product hides. "Predict the product" is the exercise, and a page that
- *    shows the answer next to the question is a reference sheet, not practice.
- * 2. The stages stay apart. Stage 1 is the hydride and stage 2 is the acid
- *    workup, and collapsing them is what produced "NaBH4, acidic conditions".
- * 3. Staff can edit in place. The written summary and the video live in the
- *    sheet as overrides, merged over the generated data, so a TA fixing a note
- *    never touches the file the checker writes.
+ * The stages stay apart. Stage 1 is the hydride and stage 2 the acid workup;
+ * collapsing them is what produced "NaBH4, acidic conditions".
+ *
+ * Staff edit in place. The written note and the video are overrides merged over
+ * the generated data, so a TA fixing a note never touches the file the checker
+ * writes.
+ *
+ * DRAWN, NEVER SPELLED (owner, 27 Sep). Every molecule here is an RDKit drawing.
+ * The molecular formulas that used to sit under the names, and the byproducts
+ * line (raw SMILES such as "O=S=O"), are gone; src/test/learn.test.ts asserts no
+ * SMILES string from the data reaches the text of this sheet.
  */
 
+/** Acid, base and neutral each get a word and an icon, never a colour alone. */
 const ACID_BASE: Record<string, { label: string; Icon: typeof Droplets; chip: string }> = {
-  acidic: {
-    label: "acidic",
-    Icon: Droplets,
-    chip: "bg-rose-50 text-rose-700 ring-rose-200 dark:bg-rose-950/60 dark:text-rose-200 dark:ring-rose-900",
-  },
-  basic: {
-    label: "basic",
-    Icon: FlaskConical,
-    chip: "bg-sky-50 text-sky-700 ring-sky-200 dark:bg-sky-950/60 dark:text-sky-200 dark:ring-sky-900",
-  },
-  neutral: {
-    label: "neutral",
-    Icon: Minus,
-    chip: "bg-slate-100 text-slate-600 ring-slate-200 dark:bg-stone-800 dark:text-stone-300 dark:ring-stone-700",
-  },
+  acidic: { label: "acidic", Icon: Droplets, chip: "bg-[var(--bb-wash)] text-[var(--lrn-ink)]" },
+  // --lrn-ink, not --bb-blue-ink: the blue measured 4.21:1 on this wash at 12px
+  // (critic, 7 Oct). The word and the icon carry acid against base, not the hue.
+  basic: { label: "basic", Icon: FlaskConical, chip: "bg-[var(--bb-wash)] text-[var(--lrn-ink)]" },
+  neutral: { label: "neutral", Icon: Minus, chip: "bg-muted text-[var(--site-quiet)]" },
 };
 
 const ROLE_LABEL: Record<string, string> = {
@@ -67,6 +61,13 @@ const ROLE_LABEL: Record<string, string> = {
   workup: "Workup",
   catalyst: "Catalyst",
 };
+
+export type ReactionSide = "setup" | "conditions" | "product";
+const SIDES: { id: ReactionSide; label: string }[] = [
+  { id: "setup", label: "Setup" },
+  { id: "conditions", label: "Conditions" },
+  { id: "product", label: "Product" },
+];
 
 export interface ReactionOverrideValues {
   videoUrl?: string;
@@ -79,191 +80,155 @@ export function ReactionPanel({
   idToken,
   overrides,
   onSaved,
+  initialSide = "setup",
 }: {
   reaction: StagedReaction;
   canEdit: boolean;
   idToken: string | null;
   overrides?: ReactionOverrideValues;
   onSaved?: () => void;
+  initialSide?: ReactionSide;
 }) {
-  /**
-   * Hidden by default only if the reaction is being met for the first time.
-   *
-   * Resets whenever the reaction changes: leaving the previous answer revealed
-   * would quietly show the next one too, which is the one thing this control
-   * exists to prevent.
-   */
-  const [showProduct, setShowProduct] = useState(false);
-  useEffect(() => setShowProduct(false), [reaction.id]);
-
+  // Starts on Setup. The sheet gives this panel `key={reaction.id}`, so a new
+  // reaction is a fresh panel back on Setup: leaving Product showing would
+  // quietly reveal the next reaction's answer too.
+  const [side, setSide] = useState<ReactionSide>(initialSide);
   const [editing, setEditing] = useState(false);
   const flagged = reaction.validation.status !== "ok";
 
   return (
-    <article className="rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-sm dark:border-stone-800 dark:bg-stone-950/70 sm:p-8">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="font-mono text-xs font-semibold uppercase tracking-[.16em] text-blue-700 dark:text-blue-300">
-            {reaction.family.replace("/", " / ").replace(/-/g, " ")}
-          </p>
-          <h2 className="title-face mt-2 text-3xl leading-tight sm:text-4xl">{reaction.name}</h2>
-        </div>
-        <div className="flex shrink-0 flex-wrap items-center gap-2">
-          {/* An anchor, not a button with a click handler: it is a real route,
-              so it should be shareable, openable in a new tab, and reachable by
-              the browser's own back button. */}
-          <Button asChild>
-            <a href={`#/draw/${reaction.id}`}>
-              <PenLine className="size-4" />
-              Draw the product
-            </a>
-          </Button>
-          {canEdit && (
-            <Button
-              variant={editing ? "secondary" : "outline"}
-              onClick={() => setEditing((e) => !e)}
-              aria-pressed={editing}
-            >
-              <Pencil className="size-4" />
-              {editing ? "Done editing" : "Edit"}
-            </Button>
-          )}
-        </div>
+    <div>
+      <div role="tablist" aria-label="Reaction sides" className="lrn-seg">
+        {SIDES.map((s) => (
+          <button
+            key={s.id}
+            type="button"
+            role="tab"
+            id={`side-${s.id}`}
+            aria-selected={side === s.id}
+            aria-controls="reaction-side"
+            onClick={() => setSide(s.id)}
+          >
+            {s.label}
+          </button>
+        ))}
       </div>
 
-      {/* The scheme. Start on the left, product on the right, and the product
-          covered until asked for. */}
-      <div className="mt-6 grid items-center gap-4 rounded-2xl border border-slate-200 bg-slate-50/80 p-4 dark:border-stone-800 dark:bg-stone-900/70 sm:grid-cols-[1fr_auto_1fr]">
-        <figure className="m-0">
-          <MoleculeArt
-            light={reaction.art.start_light}
-            dark={reaction.art.start_dark}
-            alt={`Structure of ${reaction.reactant_labels.join(" and ")}`}
-            className="mx-auto h-auto w-full max-w-[340px]"
-          />
-          {/* Name, then formula. The formula is computed by RDKit from the same
-              structure the drawing came from, so the two cannot disagree. */}
-          <figcaption className="mt-1 text-center text-sm font-semibold">
-            {reaction.reactant_labels.join(" + ")}
-            <Formulas list={reaction.reactant_formulas} join=" + " />
-          </figcaption>
-        </figure>
-
-        <div className="flex flex-col items-center gap-1 text-slate-400 dark:text-stone-500">
-          <ArrowRight className="size-6 rotate-90 sm:rotate-0" aria-label="gives" />
-        </div>
-
-        <figure className="m-0">
-          <div className="relative">
-            <div className={cn(!showProduct && "blur-lg select-none")} aria-hidden={!showProduct}>
+      <div id="reaction-side" role="tabpanel" aria-labelledby={`side-${side}`} className="mt-4">
+        {side === "setup" && (
+          <>
+            <figure className="m-0 rounded-2xl border-2 border-[var(--site-border)] bg-card p-3">
               <MoleculeArt
-                light={reaction.art.product_light}
-                dark={reaction.art.product_dark}
-                alt={showProduct ? `Structure of ${reaction.product_label}` : ""}
+                light={reaction.art.start_light}
+                dark={reaction.art.start_dark}
+                alt={`Structure of ${reaction.reactant_labels.join(" and ")}`}
                 className="mx-auto h-auto w-full max-w-[340px]"
               />
-            </div>
-            {!showProduct && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <Button variant="secondary" onClick={() => setShowProduct(true)}>
-                  <Eye className="size-4" />
-                  Show product
-                </Button>
+              <figcaption className="mt-1 text-center text-sm font-semibold">
+                {reaction.reactant_labels.join(" + ")}
+              </figcaption>
+            </figure>
+            <h3 className="lrn-eyebrow mt-5">What you add, in order</h3>
+            <ol className="mt-2 flex flex-col gap-2" data-reagents>
+              {reaction.stages.map((stage) => (
+                <li key={stage.order} className="flex items-center gap-3">
+                  <StageNumber order={stage.order} />
+                  <div className="min-w-0">
+                    <StageReagents stage={stage} />
+                  </div>
+                </li>
+              ))}
+            </ol>
+            <p className="mt-5 flex items-center gap-2 text-sm text-[var(--site-quiet)]">
+              What comes out? Draw it, then check the Product side.
+              <ArrowRight className="size-4 shrink-0" aria-hidden />
+            </p>
+          </>
+        )}
+
+        {side === "conditions" && (
+          <>
+            <ol className="flex flex-col gap-3">
+              {reaction.stages.map((stage) => (
+                <StageRow key={stage.order} stage={stage} />
+              ))}
+            </ol>
+
+            {overrides?.whyThisReagent && (
+              <div className="mt-5 rounded-2xl bg-[var(--bb-wash)] p-4">
+                <h3 className="text-sm font-semibold text-[var(--bb-deep)]">Why this reagent</h3>
+                <p className="mt-1 text-sm leading-6">{overrides.whyThisReagent}</p>
               </div>
             )}
-          </div>
-          <figcaption className="mt-1 flex items-center justify-center gap-2 text-center text-sm font-semibold">
-            {showProduct ? (
-              <>
-                <span>
-                  {reaction.product_label}
-                  <Formulas list={[reaction.product_formula]} />
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setShowProduct(false)}
-                  className="flex min-h-11 items-center gap-1 rounded-lg px-2 text-xs font-medium text-slate-500 hover:text-slate-800 dark:text-stone-400 dark:hover:text-stone-100"
-                >
-                  <EyeOff className="size-3.5" />
-                  Hide
-                </button>
-              </>
-            ) : (
-              <span className="text-slate-400 dark:text-stone-500">Product hidden</span>
+
+            {overrides?.videoUrl && (
+              <div className="mt-5">
+                <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold">
+                  <Video className="size-4 text-[var(--lrn-ink)]" />
+                  Walkthrough
+                </h3>
+                <div className="aspect-video overflow-hidden rounded-2xl border-2 border-[var(--site-border)] bg-black">
+                  <iframe
+                    src={overrides.videoUrl}
+                    title={`Walkthrough for ${reaction.name}`}
+                    allow="accelerometer; clipboard-write; encrypted-media; picture-in-picture"
+                    allowFullScreen
+                    className="size-full"
+                  />
+                </div>
+              </div>
             )}
-          </figcaption>
-        </figure>
-      </div>
 
-      <h3 className="mt-7 font-mono text-xs font-semibold uppercase tracking-[.16em] text-slate-500 dark:text-stone-400">
-        Conditions, stage by stage
-      </h3>
-      <ol className="mt-3 flex flex-col gap-3">
-        {reaction.stages.map((stage) => (
-          <StageRow
-            key={stage.order}
-            stage={stage}
-            committed={reaction.committed_step_index === stage.order}
-          />
-        ))}
-      </ol>
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              <Info title="Reaction type" icon={<FlaskConical className="size-4" />}>
+                {reaction.reaction_type}
+              </Info>
+              <Info
+                title={reaction.reversible ? "Reversible" : "Not reversible"}
+                icon={<RefreshCw className="size-4" />}
+              >
+                {/* Learn round 2: the "Committed at stage N ... reversible scaffolding"
+                    line was the pipeline's vocabulary, not a student's. Where it
+                    stood the card says nothing; the owner has the gap. */}
+                {reaction.reversible
+                  ? "An equilibrium. Drive it by removing a product or using an excess."
+                  : reaction.committed_step_index
+                    ? null
+                    : "Runs to completion."}
+              </Info>
+            </div>
 
-      {overrides?.whyThisReagent && (
-        <div className="mt-5 rounded-2xl border border-[#ccd5ea] bg-[#f1f4fa]/70 p-4 dark:border-[#33208c] dark:bg-[#1f1456]/30">
-          <h3 className="text-sm font-semibold text-[#3d2599] dark:text-[#ccd5ea]">
-            Why this reagent
-          </h3>
-          <p className="mt-1 text-sm leading-6 text-[#33208c]/85 dark:text-[#e5eaf5]/85">
-            {overrides.whyThisReagent}
-          </p>
-        </div>
-      )}
+            {/* How the pipeline checked it ("BALANCED", "Source: professor-slide")
+                is for the staff who sign reactions off, not for a student. */}
+            {canEdit && <ChecksStrip reaction={reaction} flagged={flagged} />}
+          </>
+        )}
 
-      {overrides?.videoUrl && (
-        <div className="mt-5">
-          <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold">
-            <Video className="size-4 text-[#5a3fd8] dark:text-[#bbb1eb]" />
-            Walkthrough
-          </h3>
-          <div className="aspect-video overflow-hidden rounded-2xl border border-slate-200 bg-black dark:border-stone-800">
-            <iframe
-              src={overrides.videoUrl}
-              title={`Walkthrough for ${reaction.name}`}
-              allow="accelerometer; clipboard-write; encrypted-media; picture-in-picture"
-              allowFullScreen
-              className="size-full"
+        {side === "product" && (
+          <figure className="m-0 rounded-2xl border-2 border-[var(--site-border)] bg-card p-3">
+            <MoleculeArt
+              light={reaction.art.product_light}
+              dark={reaction.art.product_dark}
+              alt={`Structure of ${reaction.product_label}`}
+              className="mx-auto h-auto w-full max-w-[340px]"
             />
-          </div>
-        </div>
-      )}
-
-      <div className="mt-6 grid gap-4 md:grid-cols-2">
-        <Info title="Reaction type" icon={<FlaskConical className="size-4" />}>
-          {reaction.reaction_type}
-        </Info>
-        <Info
-          title={reaction.reversible ? "Reversible" : "Not reversible"}
-          icon={<RefreshCw className="size-4" />}
-        >
-          {reaction.reversible
-            ? "An equilibrium. Drive it by removing a product or using an excess."
-            : reaction.committed_step_index
-              ? `Committed at stage ${reaction.committed_step_index}. Everything before that is reversible scaffolding.`
-              : "Runs to completion."}
-        </Info>
+            <figcaption className="mt-1 text-center text-sm font-semibold">{reaction.product_label}</figcaption>
+          </figure>
+        )}
       </div>
 
-      <ChecksStrip reaction={reaction} flagged={flagged} />
-
-      {editing && (
-        <StaffEditor
-          reaction={reaction}
-          idToken={idToken}
-          overrides={overrides}
-          onSaved={onSaved}
-        />
+      {canEdit && (
+        <div className="mt-5">
+          <Button variant="outline" onClick={() => setEditing((e) => !e)} aria-pressed={editing}>
+            <Pencil className="size-4" />
+            {editing ? "Done editing" : "Edit"}
+          </Button>
+        </div>
       )}
-    </article>
+      {editing && (
+        <StaffEditor reaction={reaction} idToken={idToken} overrides={overrides} onSaved={onSaved} />
+      )}
+    </div>
   );
 }
 
@@ -315,12 +280,12 @@ function StaffEditor({
   };
 
   return (
-    <section className="mt-6 rounded-2xl border-2 border-[#bbb1eb] bg-[#f1f4fa]/50 p-5 dark:border-[#3d2599] dark:bg-[#1f1456]/30">
-      <h3 className="flex items-center gap-2 font-semibold text-[#33208c] dark:text-[#e5eaf5]">
+    <section className="mt-4 rounded-2xl border-2 border-[var(--site-border)] bg-[var(--bb-wash)] p-5">
+      <h3 className="flex items-center gap-2 font-semibold text-[var(--bb-deep)]">
         <Pencil className="size-4" />
         Staff edit
       </h3>
-      <p className="mt-1 text-sm text-[#33208c]/80 dark:text-[#e5eaf5]/80">
+      <p className="mt-1 text-sm">
         Saved as an override on top of the generated data. Clearing a field puts the original
         back. Structures and conditions are not editable here: those come from the checked
         pipeline, and a hand edit would go around the conservation checks.
@@ -366,7 +331,7 @@ function StaffEditor({
 
         <div className="flex items-center justify-end gap-2">
           {state === "saved" && (
-            <span className="flex items-center gap-1 text-sm font-medium text-emerald-700 dark:text-emerald-300">
+            <span className="flex items-center gap-1 text-sm font-medium">
               <CircleCheck className="size-4" />
               Saved
             </span>
@@ -391,34 +356,25 @@ function ChecksStrip({ reaction, flagged }: { reaction: StagedReaction; flagged:
   return (
     <div
       className={cn(
-        "mt-6 rounded-2xl border p-4",
-        flagged
-          ? "border-amber-300 bg-amber-50/70 dark:border-amber-800 dark:bg-amber-950/30"
-          : "border-slate-200 bg-slate-50/80 dark:border-stone-800 dark:bg-stone-900/70",
+        "mt-5 rounded-2xl border-2 p-4",
+        flagged ? "border-[var(--bb-warn)] bg-[var(--bb-warn-wash)]" : "border-[var(--site-border)] bg-card",
       )}
     >
       <h3 className="flex items-center gap-2 text-sm font-semibold">
         {flagged ? (
-          <TriangleAlert className="size-4 text-amber-700 dark:text-amber-300" />
+          <TriangleAlert className="size-4 text-[var(--bb-warn-ink)]" />
         ) : (
-          <ShieldCheck className="size-4 text-[#5a3fd8] dark:text-[#bbb1eb]" />
+          <ShieldCheck className="size-4 text-[var(--lrn-ink)]" />
         )}
         How this was checked
       </h3>
       <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-3">
         <Check label="Structures" value={reaction.validation.checks.parse ?? "not run"} />
         <Check label="Conservation" value={reaction.validation.checks.conservation ?? "not run"} />
-        <Check
-          label="Classification"
-          value={reaction.validation.checks.classification ?? "not run"}
-        />
+        <Check label="Classification" value={reaction.validation.checks.classification ?? "not run"} />
       </dl>
-      <p className="mt-3 border-t border-slate-200 pt-3 text-xs leading-5 text-slate-500 dark:border-stone-800 dark:text-stone-400">
-        Source:{" "}
-        <span className="font-mono font-semibold text-slate-700 dark:text-stone-200">
-          {reaction.provenance}
-        </span>
-        .{" "}
+      <p className="mt-3 border-t border-[var(--site-border)] pt-3 text-xs leading-5 text-[var(--site-quiet)]">
+        Source: <span className="font-semibold text-foreground">{reaction.provenance}</span>.{" "}
         {reaction.provenance === "ta-verified"
           ? "Signed off by course staff."
           : "Not yet signed off by course staff. Conditions are not machine-checkable."}
@@ -427,62 +383,41 @@ function ChecksStrip({ reaction, flagged }: { reaction: StagedReaction; flagged:
   );
 }
 
-function StageRow({ stage, committed }: { stage: Stage; committed: boolean }) {
+function StageNumber({ order }: { order: number }) {
+  return (
+    <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-[var(--bb-deep)] text-xs font-bold text-card">
+      {order}
+    </span>
+  );
+}
+
+function StageRow({ stage }: { stage: Stage }) {
   const ab = ACID_BASE[stage.conditions.acid_base] ?? ACID_BASE.neutral;
   const { Icon } = ab;
 
   return (
-    <li
-      className={cn(
-        "rounded-2xl border p-4",
-        committed
-          ? "border-[#bbb1eb] bg-[#f1f4fa]/60 dark:border-[#472ab4] dark:bg-[#1f1456]/30"
-          : "border-slate-200 bg-slate-50/80 dark:border-stone-800 dark:bg-stone-900/70",
-      )}
-    >
+    <li className="rounded-2xl border-2 border-[var(--site-border)] bg-card p-4">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-slate-900 font-mono text-xs font-bold text-white dark:bg-stone-100 dark:text-stone-900">
-          {stage.order}
-        </span>
+        <StageNumber order={stage.order} />
         <span className="text-sm font-semibold">{ROLE_LABEL[stage.role] ?? stage.role}</span>
-        <span
-          className={cn(
-            "flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[.7rem] font-semibold ring-1",
-            ab.chip,
-          )}
-        >
+        <span className={cn("flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-semibold", ab.chip)}>
           <Icon className="size-3" />
           {ab.label}
         </span>
         {stage.conditions.temperature_c !== null && (
-          <span className="rounded-md bg-slate-100 px-1.5 py-0.5 font-mono text-[.7rem] font-semibold text-slate-600 dark:bg-stone-800 dark:text-stone-300">
+          <span className="rounded-md bg-muted px-1.5 py-0.5 text-xs font-semibold">
             {stage.conditions.temperature_c} &deg;C
           </span>
         )}
         {stage.conditions.solvent && (
-          <span className="rounded-md bg-slate-100 px-1.5 py-0.5 font-mono text-[.7rem] text-slate-600 dark:bg-stone-800 dark:text-stone-300">
-            {stage.conditions.solvent}
-          </span>
-        )}
-        {committed && (
-          <span className="ml-auto flex items-center gap-1 text-[.7rem] font-semibold text-[#472ab4] dark:text-[#bbb1eb]">
-            <CircleDot className="size-3" />
-            committed step
-          </span>
+          <span className="rounded-md bg-muted px-1.5 py-0.5 text-xs">{stage.conditions.solvent}</span>
         )}
       </div>
 
-      <StageReagents stage={stage} />
-      {stage.conditions.notes && (
-        <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-stone-300">
-          {stage.conditions.notes}
-        </p>
-      )}
-      {stage.byproducts.length > 0 && (
-        <p className="mt-2 text-xs text-slate-500 dark:text-stone-400">
-          Byproducts: <span className="font-mono">{stage.byproducts.join(", ")}</span>
-        </p>
-      )}
+      <div data-reagents className="mt-2">
+        <StageReagents stage={stage} />
+      </div>
+      {stage.conditions.notes && <p className="mt-2 text-sm leading-6">{stage.conditions.notes}</p>}
     </li>
   );
 }
@@ -492,13 +427,11 @@ function Check({ label, value }: { label: string; value: string }) {
   const bad = value === "MISMATCH" || value.includes("FAIL");
   return (
     <div className="flex items-center justify-between gap-2 sm:flex-col sm:items-start">
-      <dt className="text-slate-600 dark:text-stone-300">{label}</dt>
+      <dt className="text-[var(--site-quiet)]">{label}</dt>
       <dd
         className={cn(
-          "flex items-center gap-1 font-mono text-xs font-semibold",
-          good && "text-emerald-700 dark:text-emerald-300",
-          bad && "text-amber-700 dark:text-amber-300",
-          !good && !bad && "text-slate-500 dark:text-stone-400",
+          "flex items-center gap-1 text-xs font-semibold",
+          bad ? "text-[var(--bb-warn-ink)]" : "text-foreground",
         )}
       >
         {good && <CircleCheck className="size-3.5 shrink-0" />}
@@ -520,12 +453,12 @@ function Info({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4 dark:border-stone-800 dark:bg-stone-900/70">
-      <div className="flex items-center gap-2 text-sm font-semibold text-[#472ab4] dark:text-[#bbb1eb]">
+    <div className="rounded-2xl border-2 border-[var(--site-border)] bg-card p-4">
+      <div className="flex items-center gap-2 text-sm font-semibold text-[var(--lrn-ink)]">
         {icon}
         {title}
       </div>
-      <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-stone-300">{children}</p>
+      <p className="mt-2 text-sm leading-6">{children}</p>
     </div>
   );
 }

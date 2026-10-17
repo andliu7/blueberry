@@ -44,7 +44,7 @@
  * door; the door is the sheet.
  */
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import {
   ACTS,
   prerequisiteClosure,
@@ -56,9 +56,10 @@ import {
 } from "@blueberry/curriculum";
 import { Card } from "../../app/ui/Card";
 import { Press } from "../../app/ui/Press";
+import { TabIcon } from "../../app/ui/TabIcon";
 import { hashParam, hrefForChallenge, hrefForTab, hrefForOnboarding, hrefForLesson } from "../../app/routes";
 import { navigate } from "../../app/useHashRoute";
-import { useProgress } from "../../app/hooks";
+import { useProgress, useReducedMotion } from "../../app/hooks";
 import { lessonNodeId, progress, type ProgressSnapshot } from "../../app/progress";
 import { ChargeGate } from "../../charge/ChargeGate";
 import type { ChargeGateNode } from "../../charge/chargeGateModel";
@@ -101,7 +102,10 @@ import { NodeSheet, Guidebook, guidebookFor, type SheetNode } from "../../pathwa
 import { checkpointQuestions, difficultyForNode } from "../../pathway-sheet/nodeDifficulty";
 // Pure label geometry, in its own module so it can be tested without a document.
 // Re-exported because callers and tests have always reached it through this file.
-import { trackWind, withBreakHints } from "./pathwayLayout";
+import { nameSide, revealWords, trackWind, withBreakHints } from "./pathwayLayout";
+import { reviewHolding, reviewsAfter, withReviewGates, type ReviewCheckpoint } from "./reviewCheckpoints";
+import { splitSections, type SectionStop } from "./pathwaySections";
+import { TreasureChest, type ChestState } from "./TreasureChest";
 export { trackWind, withBreakHints } from "./pathwayLayout";
 
 export interface PathwayNode {
@@ -265,175 +269,127 @@ function NodeGlyph({ state }: { readonly state: NodeState }) {
  * single most Blueberry-specific mark in the vocabulary never appeared on the
  * map at all. It is the motif for a node whose playable is arrow work.
  */
-export type NodeBadge = "mechanism" | "concept" | "challenge" | "checkpoint" | "video";
+/* "trophy" is a concept check that ends a section (a stage quiz, or a review
+   stop from reviewCheckpoints.ts), owner 2026-10-17. The treasure chest the
+   check earns is NOT a badge: it is its own drawn object, TreasureChest.tsx. */
+export type NodeBadge = "mechanism" | "concept" | "challenge" | "checkpoint" | "video" | "trophy";
 
 /**
- * The motif's outline, drawn once and rendered twice: see MotifGlyph.
+ * The four paints a motif is drawn with. One drawing, two paint sets:
  *
- * Every shape is stroked rather than filled wherever it can be, because an
- * ENGRAVING is a cut line and a filled blob at 22px reads as a sticker again.
- * `vectorEffect` is deliberately absent: these never scale independently of
- * their chip, so a fixed stroke width is the honest one.
+ *   body    the main filled shape (the bulb's glass, the flag's cloth)
+ *   lip     the same shape a hair lower in a darker tone, the 3D lip every
+ *           pressable thing in the app carries
+ *   accent  the second part (the bulb's screw base, the flag's pole)
+ *   detail  what sits ON the body (a glint, a play triangle, clock hands)
  */
-function motifShape(badge: NodeBadge) {
+type MotifPaint = { readonly body: string; readonly lip: string; readonly accent: string; readonly detail: string };
+
+/**
+ * ON A NODE the motif is one flat tone with a lip, and its detail is cut out
+ * in the face's own colour, the way the reference stamps a white star on a
+ * coloured node. The tones live per state in pathway.css (--node-glyph): white
+ * on the open and current faces, the dark engrave tone on the dimmed, locked
+ * and gold faces, where white would not clear 3:1.
+ */
+const NODE_PAINT: MotifPaint = {
+  body: "var(--node-glyph)",
+  lip: "var(--node-glyph-lip)",
+  accent: "var(--node-glyph)",
+  detail: "var(--node-face)",
+};
+
+/**
+ * WHAT KIND OF NODE THIS IS, drawn as a small flat illustration.
+ *
+ * REDRAWN FILLED, 2026-10-15. These were stroked outlines engraved into the
+ * face (the 2026-09-03 engrave ruling), and the icon redesign supersedes that:
+ * both blind judges and the critic read the thin outline bulbs beside the
+ * filled tab bar as "two icon libraries on one screen". Every motif is now
+ * solid shapes with a lip, the same construction as TabIcon.tsx. Silhouettes
+ * are kept from the old set (frame for video, crown and winder for the
+ * stopwatch, notched cloth for the flag), because those were tuned so no two
+ * motifs read alike at node size.
+ */
+function MotifArt({ badge, paint }: { readonly badge: NodeBadge; readonly paint: MotifPaint }) {
+  const { body, lip, accent, detail } = paint;
   switch (badge) {
     case "mechanism":
-      /*
-        THE CURVED ARROW, the motif this vocabulary exists for. A single
-        electron-pushing arrow: a bowed arc leaving one lone pair and landing
-        with a barbed head, which is the mark a student draws all day in the
-        trainer. Drawn as one arc plus an open barb rather than a filled
-        triangle, so the two-layer engrave below cuts it cleanly.
-
-        DEEPENED, AND THE LONE PAIR IS DRAWN NOW. The note above has always
-        said "leaving one lone pair" and no dots were ever on the page.
-        Measured at the 24.8px this really renders: the old arc's ink box was
-        22 wide by TEN tall carrying 88 ink px, against 121 to 181 for the
-        marks beside it, so the most Blueberry-specific glyph on the map was
-        also the faintest and read as a sliver in a square slot. The arc is
-        bowed higher (box 23x17, 111 px) and the pair it leaves from is two
-        dots at its tail, which buys the weight and says WHY the arrow starts
-        where it starts in the same stroke.
-      */
+      /* The curved electron-pushing arrow, the mark a student draws all day
+         in the trainer: a fat bowed arc with a solid head, leaving a lone pair
+         (the two dots) at its tail. */
       return (
         <>
-          <path d="M4.6 18.4C4.6 4.6 19.4 4.6 19.4 15.8" fill="none" strokeWidth="2.5" strokeLinecap="round" />
-          <path d="M16 13 19.4 16.6 22.6 12.6" fill="none" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-          <circle cx="3.2" cy="21.4" r="1.35" strokeWidth="0" />
-          <circle cx="6.6" cy="21.4" r="1.35" strokeWidth="0" />
+          <path d="M5.4 17.4C5.4 6 17.6 4.4 18.4 13.2" fill="none" stroke={lip} strokeWidth="3.6" strokeLinecap="round" transform="translate(0 1.2)" />
+          <path d="M14.4 12.2 18.6 18.4 22.6 11.6z" fill={lip} strokeLinejoin="round" transform="translate(0 1.2)" />
+          <path d="M5.4 17.4C5.4 6 17.6 4.4 18.4 13.2" fill="none" stroke={body} strokeWidth="3.6" strokeLinecap="round" />
+          <path d="M14.4 12.2 18.6 18.4 22.6 11.6z" fill={body} stroke={body} strokeWidth="1.2" strokeLinejoin="round" />
+          <circle cx="3.2" cy="21.2" r="1.7" fill={accent} />
+          <circle cx="7.6" cy="21.2" r="1.7" fill={accent} />
         </>
       );
     case "video":
-      /*
-        THE VIDEO HOOK. CLAUDE.md's short form video is authored lesson
-        content, so the map needs a mark for the slot it lives in;
-        unitShape.ts's videoHookOf is explicit that the badge marks a
-        PLACEMENT and never a promise that a file has been shot.
-
-        IT IS A FRAME NOW, NOT A DISC, and the disc was the single worst
-        collision on the map. A play disc and the challenge stopwatch are both
-        a ~19px circle at this size: silhouette IoU 0.757 and form distance
-        0.133, the closest pair in either icon set, separated only by what was
-        drawn INSIDE them. A landscape frame round the same play triangle is
-        the one silhouette nothing else in the vocabulary has, it is the more
-        specific picture of video anyway (a bare disc says "play audio" just
-        as loudly), and it took the pair to 0.513 IoU / 0.290 form.
-      */
+      /* A screen with a play triangle cut into it. */
       return (
         <>
-          <path
-            d="M4.6 6h14.8a2.4 2.4 0 0 1 2.4 2.4v7.2a2.4 2.4 0 0 1-2.4 2.4H4.6a2.4 2.4 0 0 1-2.4-2.4V8.4a2.4 2.4 0 0 1 2.4-2.4z"
-            fill="none"
-            strokeWidth="2.3"
-            strokeLinejoin="round"
-          />
-          <path d="M10.2 8.9 15.6 12 10.2 15.1Z" strokeWidth="1.6" strokeLinejoin="round" />
+          <rect x="1.6" y="5.4" width="20.8" height="14.6" rx="3.6" fill={lip} />
+          <rect x="1.6" y="4" width="20.8" height="14.6" rx="3.6" fill={body} />
+          <path d="M9.8 7.9 16 11.3 9.8 14.7z" fill={detail} stroke={detail} strokeWidth="1.4" strokeLinejoin="round" />
         </>
       );
     case "concept":
-      /*
-        The lightbulb, outlined so the cut reads as a cut.
-
-        IT HAS A BASE NOW. The old bulb's two detached tick marks did not join
-        the outline, so the silhouette was a bare 15x21 blob: 0.609 IoU and
-        0.205 form against the stopwatch circle, 0.645 against the play disc.
-        A screwed base narrowing under the glass is what makes a bulb read as
-        a bulb rather than as a circle, and it is a silhouette feature rather
-        than interior detail, which is the only kind that survives 24.8px.
-      */
+      /* A lightbulb: the glass, a glint, and a screw base under it. */
       return (
         <>
-          <path
-            d="M12 2.6a5.7 5.7 0 0 0-3.3 10.35c.55.4.85 1 .85 1.65h4.9c0-.65.3-1.25.85-1.65A5.7 5.7 0 0 0 12 2.6z"
-            fill="none"
-            strokeWidth="2.2"
-            strokeLinejoin="round"
-          />
-          <path d="M9.9 17h4.2M10.4 19.6h3.2M11.1 21.4h1.8" fill="none" strokeWidth="2.2" strokeLinecap="round" />
+          <path d="M12 2.6a7 7 0 0 0-4.2 12.6c.7.55 1.1 1.2 1.1 2h6.2c0-.8.4-1.45 1.1-2A7 7 0 0 0 12 2.6z" fill={lip} transform="translate(0 1.2)" />
+          <path d="M12 1.4a7 7 0 0 0-4.2 12.6c.7.55 1.1 1.2 1.1 2h6.2c0-.8.4-1.45 1.1-2A7 7 0 0 0 12 1.4z" fill={body} />
+          <ellipse cx="9.3" cy="7.2" rx="1.3" ry="2.1" transform="rotate(30 9.3 7.2)" fill={detail} />
+          <rect x="8.6" y="17.6" width="6.8" height="2.4" rx="1.2" fill={accent} />
+          <rect x="9.6" y="20.4" width="4.8" height="2.2" rx="1.1" fill={accent} />
         </>
       );
     case "challenge":
-      /*
-        The stopwatch: a timed assessment, which is what a challenge is.
-
-        THE WINDER IS WHAT MAKES IT A STOPWATCH rather than a circle with a
-        hat. Once the video hook stopped being a disc this was the only circle
-        left, so the remaining question was the lightbulb, and a crown alone
-        left the two as vertical mirrors of each other: a circle with a nub
-        above against a circle tapering below. The canonical stopwatch is
-        asymmetric, so it takes the crown plus ONE angled winder at about one
-        o'clock, and the hands sit at an angle rather than straight up so the
-        face is not a mirror either.
-
-        A version with TWO winders, one each side, measured slightly better
-        and rendered as an insect. The eye overruled it.
-      */
+      /* A stopwatch: crown and one angled winder, white hands on a solid face. */
       return (
         <>
-          <circle cx="12" cy="15" r="6.6" fill="none" strokeWidth="2.3" />
-          <path d="M12 15.2V11.4M12 15.2h3" fill="none" strokeWidth="2.3" strokeLinecap="round" />
-          <path d="M10.3 5.1h3.4v2.7h-3.4z" strokeWidth="1.8" strokeLinejoin="round" />
-          <path d="M17.4 7.4 20.4 4.8" fill="none" strokeWidth="2.3" strokeLinecap="round" />
+          <rect x="9.6" y="1.6" width="4.8" height="3.4" rx="1.2" fill={accent} />
+          <rect x="17.2" y="4" width="3.6" height="3" rx="1.1" transform="rotate(40 19 5.5)" fill={accent} />
+          <circle cx="12" cy="15" r="7.6" fill={lip} />
+          <circle cx="12" cy="13.8" r="7.6" fill={body} />
+          <path d="M12 14V9.8M12 14h3.4" fill="none" stroke={detail} strokeWidth="2.4" strokeLinecap="round" />
+        </>
+      );
+    case "trophy":
+      /* A trophy cup: a bowl with two handles on a stem and a base, and a
+         glint cut into the bowl. A concept check, never a lesson shape. */
+      return (
+        <>
+          <path d="M5.4 3h13.2v5.4a6.6 6.6 0 0 1-13.2 0z" fill={lip} transform="translate(0 1.2)" />
+          <path d="M5.4 3h13.2v5.4a6.6 6.6 0 0 1-13.2 0z" fill={body} />
+          <path d="M5.6 5H2.8v1.8a4 4 0 0 0 4 4M18.4 5h2.8v1.8a4 4 0 0 1-4 4" fill="none" stroke={accent} strokeWidth="2" strokeLinecap="round" />
+          <rect x="10.6" y="14.6" width="2.8" height="3.6" fill={accent} />
+          <rect x="6.6" y="18.4" width="10.8" height="3.6" rx="1.4" fill={body} />
+          <rect x="8.2" y="5" width="2" height="5" rx="1" fill={detail} />
         </>
       );
     default:
-      /*
-        THE CHECKPOINT'S FINISH FLAG, 2026-10-01. It was the application flag,
-        which no node had flown since side quests stopped taking it, and the
-        unit checkpoint wore the stopwatch instead. The stopwatch means "a
-        timed Challenge run" and the checkpoint has none (challengeable() in
-        beats/template.ts says no by design: it already IS the unit's check),
-        so the honest mark is the flag at the end of the road.
-
-        A FLAG rather than a pennant: a staff plus a right-pointing triangle
-        is indistinguishable from a play button at 16px; a rectangular cloth
-        notched at its fly end still says "flag" when it is small.
-      */
+      /* The checkpoint's finish flag: a pole and a cloth notched at its fly
+         end, so it never reads as a play triangle when small. */
       return (
         <>
-          <path d="M6.6 21.6V3.4" fill="none" strokeWidth="2.4" strokeLinecap="round" />
-          <path d="M6.6 4.6h12.2l-2.6 3.6 2.6 3.6H6.6z" fill="none" strokeWidth="2.2" strokeLinejoin="round" />
+          <rect x="4.2" y="2" width="3.2" height="20.6" rx="1.6" fill={accent} />
+          <path d="M7 4.4h13.4l-3 4.4 3 4.4H7z" fill={lip} strokeLinejoin="round" transform="translate(0 1.3)" />
+          <path d="M7 3.2h13.4l-3 4.4 3 4.4H7z" fill={body} stroke={body} strokeWidth="1.2" strokeLinejoin="round" />
         </>
       );
   }
 }
 
-/**
- * THE MOTIF IS ENGRAVED INTO THE FACE, not stuck onto its corner.
- *
- * docs/DESIGN-GOALS.md, owner ruling 2026-09-03: "ICONS ARE ENGRAVED INTO THE
- * FACE ... the motif is cut into the chip in a darker tone of the chip's own
- * colour, never a separate badge on top of or beside it."
- *
- * THIS IS A KNOWING DIVERGENCE FROM blueberry_spec-node-types, which draws
- * each motif as a separate glossy corner sticker (a gold bulb, a violet
- * flag, a white play disc). The clause is three days newer than the image and
- * CLAUDE.md's ordering makes the newer owner word the one that governs; a
- * critic named the stickers as the defect, so this is the clause being
- * applied rather than a preference. It is reported as a divergence in the
- * summary.
- *
- * HOW A CUT IS DRAWN, and it is two layers rather than a filter. The same
- * outline is painted twice: once a hair BELOW in the chip's own highlight
- * tone, which is the light catching the far wall of the groove, and once on
- * top in the engrave tone, which is the groove itself. That is the whole
- * trick, it costs one extra path, and it is why the motif reads as cut into
- * the face rather than as a dark drawing on it.
- *
- * The engrave tone is authored per state in pathway.css (--node-engrave), a
- * real token and never a filter, per the S2 floor: the contrast audit reads
- * computed colours, and a filter would make it measure a pair that is not on
- * screen. Measured there: 3.41:1 on the rest face, over the 3.0 an
- * identifiable graphic needs.
- */
+/** The motif on the node's face. Paints and size: pathway.css .path-node__motif. */
 function MotifGlyph({ badge }: { readonly badge: NodeBadge }) {
-  const shape = motifShape(badge);
   return (
     <svg viewBox="0 0 24 24" className={`path-node__motif path-node__motif--${badge}`} aria-hidden>
-      <g className="path-node__motif-lip" transform="translate(0 1.1)">
-        {shape}
-      </g>
-      <g className="path-node__motif-cut">{shape}</g>
+      <MotifArt badge={badge} paint={NODE_PAINT} />
     </svg>
   );
 }
@@ -519,7 +475,6 @@ function Chip({
   badge,
   dim,
   queued = false,
-  place = null,
   onOpenNode,
   sheetNode,
   gateNode,
@@ -532,13 +487,6 @@ function Chip({
   readonly dim: boolean;
   /** Authoring queue, riding BESIDE state: dashed treatment, never a lock. */
   readonly queued?: boolean;
-  /**
-   * Where the node sits in its unit, from nodePlaces(). The DETAIL already
-   * carries it in words; this is what the chip draws, and it draws a mark for
-   * exactly one kind of place: a trunk step, which is the only place with a
-   * position to show. An arm has no number to draw, which is the point.
-   */
-  readonly place?: NodePlace | null;
   readonly onOpenNode: OpenNode;
   readonly sheetNode: SheetNode | null;
   readonly gateNode: ChargeGateNode | null;
@@ -575,24 +523,6 @@ function Chip({
       <span className="path-node__face">
         {stateGlyph !== null ? stateGlyph : badge !== null ? <MotifGlyph badge={badge} /> : null}
       </span>
-      {/*
-        THE STEP MARK, and it is deliberately NOT in the face.
-
-        The face carries one mark and never two (see the note above it), so a
-        number there would have to evict the check or the motif. This is a
-        small sticker on the chip's lower left, the free corner: the hub's
-        n-of-m already owns the lower right and no chip carries both, because
-        a hub is never a trunk step.
-
-        It is aria-hidden because the accessible name already opens with
-        "Step 2 of 5", and a screen reader reading "2" again after it would be
-        the same fact twice in two vocabularies.
-      */}
-      {place !== null && place !== undefined && place.kind === "step" ? (
-        <span className="path-node__step" aria-hidden>
-          {place.index}
-        </span>
-      ) : null}
     </>
   );
   return clickable ? (
@@ -697,35 +627,18 @@ function Chip({
  *
  * MEASURED, not assumed, on the page's own ground rather than on a card:
  * --bb-foreground on --bb-background is 14.28:1 in light and 15.81:1 in dark,
- * both far over the 4.5 body floor, and the leading icon at 0.75 opacity
- * composites to 6.49:1 and 9.30:1 over the 3.0 graphics floor.
+ * both far over the 4.5 body floor.
  *
  * `aria-hidden`, because the chip's own accessible name already carries the
  * title and the detail. A visible label that is also announced makes a screen
  * reader say every lesson name twice.
  */
-function NodeLabel({
-  label,
-  icon = null,
-}: {
-  readonly label: string;
-  /**
-   * The leading mark, where the reference draws one. unit01-path.jpg puts a
-   * stopwatch, a lightbulb, a play triangle and the mechanism arrow at the
-   * head of four of its eight cards, always the same motif the chip itself
-   * carries, so a student reads the KIND off the name as well as off the
-   * face. Null on the cards that name a thing rather than a lesson (the unit
-   * gate), which is what the reference does too.
-   */
-  readonly icon?: NodeBadge | null;
-}) {
+function NodeLabel({ label }: { readonly label: string }) {
+  /* NO LEADING ICON (A1 round 5). The name used to repeat the chip's motif as a
+     small coloured mark, so every row drew its type twice and both judges
+     counted the duplicate. The chip beside the name already says the kind. */
   return (
     <span className="path-label" aria-hidden>
-      {icon === null ? null : (
-        <svg viewBox="0 0 24 24" className="path-label__icon" aria-hidden>
-          {motifShape(icon)}
-        </svg>
-      )}
       <span className="path-label__text">{withBreakHints(label)}</span>
     </span>
   );
@@ -812,7 +725,6 @@ function TrackSlab({
   dim,
   lane = "main",
   queued = false,
-  place = null,
   reducedMotion = false,
   aside = null,
   onOpenNode,
@@ -826,26 +738,22 @@ function TrackSlab({
   readonly wind: number;
   readonly badge: NodeBadge | null;
   readonly dim: boolean;
-  /** "check" is the unit's checkpoint, the heaviest chip (.path-row--check). */
-  readonly lane?: "main" | "check";
+  /** "check" is the unit's checkpoint, the heaviest chip (.path-row--check); "quiz" a concept check ending a section (.path-row--quiz). */
+  readonly lane?: "main" | "check" | "quiz";
   /** The side quests pinned beside this row (SideLane), or null. They take no height. */
   readonly aside?: ReactNode;
   readonly queued?: boolean;
-  /** Where the row sits in its unit. See Chip's own note. */
-  readonly place?: NodePlace | null;
   readonly reducedMotion?: boolean;
   readonly onOpenNode: OpenNode;
   readonly sheetNode: SheetNode | null;
   readonly gateNode: ChargeGateNode | null;
 }) {
   /*
-    A ROW IS THREE TRACKS, and nothing in it moves between rows.
-
-    [ mascot lane ][ node lane ][ gap ][ name ]. The mascot has a lane whether
-    or not this row carries one, the chip swings only inside its own lane, and
-    the name is always the last track: one column, at every wind, in every
-    state. See .path-row in pathway.css for the widths and the arithmetic that
-    picks them, and NodeLabel for why the three old placements collapsed to one.
+    A ROW IS ONE WIDE LANE (round 3 of P1, replacing the four-track grid
+    that held the swing to 34px). The chip swings across the whole column;
+    the name sits a fixed gap from the chip on the side it leaned away from,
+    and the mascot and side quests on the side it leaned toward
+    (nameSide in pathwayLayout.ts). See .path-row in pathway.css.
 
     The DOM order is the reading order, which is also the visual order, so a
     screen reader walking the row meets the chip (which carries the whole
@@ -854,7 +762,7 @@ function TrackSlab({
   */
   return (
     <li
-      className={`path-row w-full ${lane === "main" ? "" : `path-row--${lane}`}`}
+      className={`path-row path-row--name-${nameSide(wind)} w-full ${lane === "main" ? "" : `path-row--${lane}`}`}
       style={{ "--wind": wind } as CSSProperties}
       data-node-state={state}
     >
@@ -874,24 +782,22 @@ function TrackSlab({
           START pill already say the same thing in the accessibility tree, so
           a second announcement would be noise.
 
-          IT HAS A LANE NOW AND IT NO LONGER PICKS A SIDE. It used to stand on
-          whichever flank the chip had swung away from, which meant the mascot
-          jumped across the column every time the wind changed sign. The lane is
-          always the left one, reserved on every row, so the character stands in
-          the same place down the whole page and cannot collide with a chip at
-          any wind. See --path-mascot-lane for the clearance arithmetic.
-
-          THE SIZE IS THE COST OF THAT LANE and it is reported, not hidden: see
-          .path-row__mascot in pathway.css and the build report.
+          IT STANDS ON THE LEAN SIDE (round 3 of P1). The chip now swings
+          across the whole column, so the mascot stands beside it on the side
+          it swung toward, opposite the name, and moves with it. See
+          .path-row in pathway.css for the room each side has.
         */}
-        {state === "current" ? (
-          <span className="path-row__mascot" aria-hidden>
-            <Berry mood="happy" behaviour="leanIn" reducedMotion={reducedMotion} sizePx={MASCOT_PX} />
-          </span>
-        ) : null}
-        {aside}
-        {/* data-road-stop: RoadLine draws the road through this box's centre. */}
+        {/* data-road-stop: RoadLine draws the road through this box's centre.
+            The mascot and the side quests ride inside it (round 3 of P1), on
+            the chip's lean side, so they follow its swing. Both are absolutely
+            placed, so neither changes the box the road is drawn through. */}
         <div className="path-row__slab" data-road-stop>
+          {state === "current" ? (
+            <span className="path-row__mascot" aria-hidden>
+              <Berry mood="happy" behaviour="leanIn" reducedMotion={reducedMotion} sizePx={MASCOT_PX} />
+            </span>
+          ) : null}
+          {aside}
           <Chip
             state={state}
             label={label}
@@ -900,7 +806,6 @@ function TrackSlab({
             badge={badge}
             dim={dim}
             queued={queued}
-            place={place}
             onOpenNode={onOpenNode}
             sheetNode={sheetNode}
             gateNode={gateNode}
@@ -924,13 +829,25 @@ function TrackSlab({
         break the one thing this whole change buys: a fixed left edge for the
         text down the page.
       */}
-      <div className="path-row__name">
-        {state === "current" ? <StartTag /> : null}
-        <NodeLabel label={label} icon={badge} />
-        {/* Nothing written behind it: said under the name, not only in the
-            accessible name (round 3, Unit 2's checkpoint). */}
-        {queued && lane === "check" ? <span className="path-soon-note" aria-hidden>Coming soon</span> : null}
-      </div>
+      {/*
+        ONLY THE CURRENT ROW CARRIES ITS NAME, round 4 of P1. Both blind
+        judges read a name card on every node as "a dense labelled diagram"
+        beside the bar's open field of bare round buttons, so a node's name now
+        shows beside START on the live lesson and, for every other node, in the
+        sheet a tap opens (its title heads it). This supersedes the 2026-09-03
+        "name labels are default and always visible" rule; it is in the build
+        report for the owner. The accessible name is unchanged: every chip
+        still announces its full title.
+      */}
+      {state === "current" || (queued && lane === "check") ? (
+        <div className="path-row__name">
+          {state === "current" ? <StartTag /> : null}
+          {state === "current" ? <NodeLabel label={label} /> : null}
+          {/* Nothing written behind it: said beside the chip, not only in the
+              accessible name (round 3, Unit 2's checkpoint). */}
+          {queued && lane === "check" ? <span className="path-soon-note" aria-hidden>Coming soon</span> : null}
+        </div>
+      ) : null}
     </li>
   );
 }
@@ -981,10 +898,10 @@ function SoonRow({ row, aside }: { readonly row: UnitRow; readonly aside: ReactN
   const optional = row.node.kind === "branch";
   const label = count === 1 ? row.node.title : `${count} ${optional ? "optional side quests" : "lessons"}`;
   return (
-    <li className="path-row w-full" style={{ "--wind": row.wind } as CSSProperties} data-node-state="locked">
+    <li className={`path-row path-row--name-${nameSide(row.wind)} w-full`} style={{ "--wind": row.wind } as CSSProperties} data-node-state="locked">
       <div className="path-row__lane">
-        {aside}
         <div className="path-row__slab" data-road-stop>
+          {aside}
           <span
             className="path-soon"
             role="img"
@@ -1248,7 +1165,10 @@ function hrefForPlayable(link: MapPlayableLink): string {
  * is the same thing unitShape.ts's videoHookOf says about the video badge.
  */
 function badgeForMapNode(node: MapNode, videoHookId: string | null, _enrichment = false): NodeBadge {
-  if (node.id === videoHookId) return "video";
+  // A node whose role is video wears the badge itself, owner 2026-09-29.
+  if (node.id === videoHookId || node.role === "video") return "video";
+  // A stage quiz is the concept check that ends a section: a trophy.
+  if (node.role === "quiz") return "trophy";
   if (node.kind === "boss" || node.kind === "gate") return "challenge";
   if (node.playable === undefined) return node.kind === "branch" ? "mechanism" : "concept";
   return node.playable.kind === "beat" ? "concept" : "mechanism";
@@ -1625,12 +1545,89 @@ function UnitMenu({
   );
 }
 
+/**
+ * A SECTION DIVIDER, owner 2026-10-17: "there is a visual break so it doesn't
+ * feel like it's continuing forever". A rule either side of a solid card
+ * with the section's number and name, so the unit reads as chapters. The
+ * card is a solid surface because the starfield runs behind the road and text
+ * never sits on bare stars. An h3 under the unit's h2, so a screen reader's
+ * heading list is the unit's table of contents.
+ */
+function SectionDivider({ id, eyebrow, title }: { readonly id: string; readonly eyebrow: string; readonly title: string }) {
+  const still = useReducedMotion();
+  // THE HEADER REVEAL on every section title too (owner: "also include the
+  // header reveal"), andliu's per-letter rise, the same one the unit card plays.
+  // It waits until the divider scrolls into view, or it would be spent off
+  // screen. React pattern: a ref to the DOM node plus an effect that sets up an
+  // IntersectionObserver once and flips `shown` the first time the title is
+  // visible; the observer is disconnected in the effect's cleanup.
+  const ref = useRef<HTMLSpanElement | null>(null);
+  const [shown, setShown] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (el === null || typeof IntersectionObserver === "undefined") {
+      setShown(true);
+      return;
+    }
+    const observer = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) {
+        setShown(true);
+        observer.disconnect();
+      }
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  return (
+    <h3 id={id} className="path-divider">
+      <span className="path-divider__rule" aria-hidden />
+      <span className="path-divider__card">
+        <span className="path-divider__eyebrow">{eyebrow}</span>
+        <span className="path-divider__title">
+          {/* The whole title for assistive tech; the split letters are decoration. */}
+          <span className="sr-only">{title}</span>
+          <span
+            ref={ref}
+            className={`path-reveal${still ? " path-reveal--still" : ""}${shown ? "" : " path-reveal--hold"}`}
+            aria-hidden
+          >
+            {revealWords(title).map((word, w) => (
+              <Fragment key={w}>
+                {w > 0 ? " " : null}
+                <span className="path-reveal__word">
+                  {word.map((letter) => (
+                    <span key={letter.index} className="path-reveal__clip">
+                      <span className="path-reveal__ch" style={{ "--i": letter.index } as CSSProperties}>
+                        {letter.text}
+                      </span>
+                    </span>
+                  ))}
+                </span>
+              </Fragment>
+            ))}
+          </span>
+        </span>
+      </span>
+      <span className="path-divider__rule" aria-hidden />
+    </h3>
+  );
+}
+
 function OrgoMapTrack({
   onOpenNode,
+  onGuidebook,
   status,
+  gatedBy,
+  cleared,
   reducedMotion,
 }: {
   readonly onOpenNode: OpenNode;
+  /** Main-line lessons held shut by a review stop (withReviewGates), to that stop. */
+  readonly gatedBy: ReadonlyMap<string, ReviewCheckpoint>;
+  /** Every node id the journal holds a clear for, which is how a chest knows it is open. */
+  readonly cleared: ReadonlySet<string>;
+  /** The unit card's GUIDEBOOK key: opens the guidebook page for a node. */
+  readonly onGuidebook: (node: SheetNode) => void;
   readonly status: MapPathwayStatus;
   readonly reducedMotion: boolean;
 }) {
@@ -1672,11 +1669,17 @@ function OrgoMapTrack({
     differently. See NodePlace in unitShape.ts.
   */
   const places = nodePlaces(shape);
+  // The node the unit card's GUIDEBOOK key opens: where the student stands
+  // if that is in this unit, otherwise the unit's first lesson.
+  const unitOrder: MapNode[] = [...plan.rows.map((row) => row.node), ...plan.gateRun.map((row) => row.node), plan.check.node];
+  const guideNode = unitOrder.find((node) => node.id === status.currentNodeId) ?? unitOrder[0]!;
   // The topics the course only mentions. See the path-mention list below for
   // why a mention is text and not a chip.
   const mentions = unit.nodes.filter((node) => node.mentionOnly === true);
   const unitStatus = status.units.get(unit.id);
   const gateLocked = unitStatus === undefined || !unitStatus.reachable;
+  const unitDone = unitStatus?.done ?? 0;
+  const unitLessons = unitStatus?.playable ?? 0;
 
   const previous = index > 0 ? PATHWAY_UNITS[index - 1]! : null;
   const next = index < PATHWAY_UNITS.length - 1 ? PATHWAY_UNITS[index + 1]! : null;
@@ -1852,7 +1855,18 @@ function OrgoMapTrack({
        the nearest one: on a line, the ones before it are implied. In a shut
        unit it names the unit to finish. */
     const waits = gateLocked ? [] : waitingOn(status, unit, node);
-    const waitNote = gateLocked ? lockSaid : waits.length === 0 ? null : `Opens after you clear ${titleOf(unit, waits[waits.length - 1]!)}`;
+    /* The review stop holding it: the live gate once its lesson is cleared,
+       or, before that, the uncleared review between it and its nearest wait
+       (reviewHolding), so a fresh profile reads the same rule. */
+    const heldBy =
+      gatedBy.get(node.id) ?? (waits.length === 0 ? undefined : (reviewHolding(unit, waits[waits.length - 1]!, node.id, cleared) ?? undefined));
+    const waitNote = gateLocked
+      ? lockSaid
+      : heldBy !== undefined
+        ? `Opens after you clear ${heldBy.title}`
+        : waits.length === 0
+          ? null
+          : `Opens after you clear ${titleOf(unit, waits[waits.length - 1]!)}`;
     const place = places.get(node.id) ?? null;
     return {
       state: nodeStatus.state,
@@ -1879,7 +1893,6 @@ function OrgoMapTrack({
           badge={badgeForMapNode(node, shape.videoHookId)}
           dim={false}
           queued={chip.queued}
-          place={chip.place}
           onOpenNode={onOpenNode}
           sheetNode={chip.sheetNode}
           gateNode={chip.gateNode}
@@ -1909,10 +1922,10 @@ function OrgoMapTrack({
         state={chip.state}
         label={row.node.title}
         detail={`${chip.detail}${opens}`}
-        place={chip.place}
         href={chip.href}
         wind={row.wind}
         badge={badgeForMapNode(row.node, shape.videoHookId, row.dim)}
+        lane={row.node.role === "quiz" ? "quiz" : "main"}
         /*
           THE DIMMED SIDE QUEST riding the road of a unit with no spine, and
           the dim is AUTHORED TOKENS rather than a CSS filter, per the S2
@@ -1930,6 +1943,61 @@ function OrgoMapTrack({
     );
   };
 
+  /*
+    A REVIEW STOP between two lessons (reviewCheckpoints.ts): a concept check
+    on the road, drawn like a stage quiz. It opens once the lesson above it is
+    cleared, takes START, and holds the next lesson shut until it is cleared
+    (withReviewGates). It swings to the opposite side of the lesson above, so
+    the road bends into it like any other stop.
+  */
+  const reviewSlab = (review: ReviewCheckpoint, above: UnitRow) => {
+    const state = statusOf(status, review.id).state;
+    const open = state !== "locked";
+    const href = open ? hrefForLesson(review.id) : null;
+    const lockedNote = `Opens after you clear ${titleOf(unit, review.after)}.`;
+    // The lesson it holds shut, named on the sheet as what a pass opens.
+    const line = unit.nodes.filter((node) => node.kind !== "branch");
+    const next = line[line.findIndex((node) => node.id === review.after) + 1];
+    const sheetNode: SheetNode = {
+      id: review.id,
+      kind: "spine",
+      state,
+      title: review.title,
+      blurb: review.blurb,
+      practiceHref: hrefForLesson(review.id),
+      noChallenge: true,
+      checkpoint: { opens: next?.title ?? null, skipped: [], questions: null },
+      ...(open ? {} : { lockedNote }),
+    };
+    const gateNode: ChargeGateNode | null = open ? { id: review.id, kind: "review", title: review.title, href: hrefForLesson(review.id) } : null;
+    return (
+      <TrackSlab
+        key={review.id}
+        state={state}
+        label={review.title}
+        detail={open ? `Concept check. ${review.blurb}` : `Concept check. ${lockedNote}`}
+        href={href}
+        wind={-above.wind}
+        badge="trophy"
+        lane="quiz"
+        dim={false}
+        reducedMotion={reducedMotion}
+        onOpenNode={onOpenNode}
+        sheetNode={sheetNode}
+        gateNode={gateNode}
+      />
+    );
+  };
+
+  /* The road as stops, review stops in place after their lesson, cut into
+     sections. A stage quiz or a review stop ends a section. */
+  const stops: SectionStop<ReactNode>[] = plan.rows.flatMap((row) => [
+    { id: row.node.id, title: row.node.title, checkpoint: row.node.role === "quiz" && row.soon.length === 0, item: slab(row) },
+    ...reviewsAfter(row.node.id).map((review) => ({ id: review.id, title: review.title, checkpoint: true, item: reviewSlab(review, row) })),
+  ]);
+  const sections = splitSections(stops);
+  const roadVersion = `${unit.id}:${status.currentNodeId ?? ""}:${status.doneCount}`;
+
   return (
     <div ref={pagerRef} className="path-pager" role="region" aria-label="Orgo II pathway map">
       {/*
@@ -1940,6 +2008,17 @@ function OrgoMapTrack({
         .path-unitbar in pathway.css for why the strip became a button.
       */}
       <div className="path-unitbar">
+        {/* A2 round 3: THE UNIT CARD. One solid violet card with a lip, the
+            unit picker on the left and a GUIDEBOOK key on the right, split by
+            a rule. The guidebook it opens is the page for the lesson the
+            student is on in this unit (a map unit has no page of its own). */}
+        <div className="path-unitcard">
+        {/* A2 round 4: the unit name is the screen's h2. The home path had no
+            heading element at all, so a screen reader's heading list was
+            empty and the page had no titled section. A button may sit inside a
+            heading (a heading's content is phrasing content), so the picker
+            keeps working exactly as before. */}
+        <h2 className="path-unitcard__h">
         <button
           ref={pickRef}
           type="button"
@@ -1951,14 +2030,72 @@ function OrgoMapTrack({
         >
           <span className="path-unitbar__lines">
             <span className="path-unitbar__course">{COURSE_LABEL.orgo_2}</span>
-            <span className="path-unitbar__unit">
-              {unitNumber(unit.title)} &middot; {unitName(unit.title)}
+            {/* THE HEADER REVEAL, andliu's per-letter rise: each letter climbs out
+                of its own clip, staggered, every time a unit page opens. Keyed on
+                the unit so it replays on a page turn. The button's aria-label
+                already names the unit, so the split letters are hidden from
+                assistive tech. pathway.css .path-reveal. */}
+            <span key={unit.id} className={`path-unitbar__unit path-reveal${reducedMotion ? " path-reveal--still" : ""}`} aria-hidden>
+              {revealWords(`${unitNumber(unit.title)} · ${unitName(unit.title)}`).map((word, w) => (
+                /* A word never breaks inside itself; the space after it is plain text, so lines wrap between words. */
+                <Fragment key={w}>
+                  {w > 0 ? " " : null}
+                  <span className="path-reveal__word">
+                    {word.map((letter) => (
+                      <span key={letter.index} className="path-reveal__clip">
+                        <span className="path-reveal__ch" style={{ "--i": letter.index } as CSSProperties}>
+                          {letter.text}
+                        </span>
+                      </span>
+                    ))}
+                  </span>
+                </Fragment>
+              ))}
             </span>
           </span>
           <svg viewBox="0 0 24 24" className="path-unitbar__caret" aria-hidden>
             <path d="M6 9.5 12 15.5 18 9.5" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
+        </h2>
+        <span className="path-unitcard__rule" aria-hidden />
+        <button
+          type="button"
+          className="path-unitcard__guide"
+          aria-label={`Guidebook for ${guideNode.title}`}
+          onClick={() => onGuidebook(chipFor(guideNode).sheetNode)}
+        >
+          <svg viewBox="0 0 24 24" className="path-unitcard__book" aria-hidden>
+            {/* A closed book: the cover, a spine line and the page edge, cut
+                in the card's own violet so it reads on the white cover. */}
+            <rect x="4.5" y="3" width="15" height="18" rx="2.5" fill="currentColor" />
+            <path d="M8.5 3v18M8.5 16.5h11" fill="none" stroke="var(--bb-primary)" strokeWidth="1.8" />
+          </svg>
+          <span className="path-unitcard__guidelabel">Guidebook</span>
+        </button>
+        </div>
+        {/* THE UNIT PROGRESS BAR, owner 2026-10-17: lessons done of the unit's
+            total, pinned with the card (the bar is sticky), filling as the
+            student goes. Counts main-line lessons, the same count the unit
+            checkpoint waits for (pathwayState.ts). */}
+        {unitLessons > 0 ? (
+          <div
+            className="path-unitprog"
+            role="progressbar"
+            aria-label={`${unitNumber(unit.title)} lessons done`}
+            aria-valuemin={0}
+            aria-valuemax={unitLessons}
+            aria-valuenow={unitDone}
+            aria-valuetext={`${unitDone} of ${unitLessons} lessons`}
+          >
+            <span className="path-unitprog__track" aria-hidden>
+              <span className="path-unitprog__fill" style={{ width: `${(100 * unitDone) / unitLessons}%` }} />
+            </span>
+            <span className="path-unitprog__count" aria-hidden>
+              {unitDone} / {unitLessons}
+            </span>
+          </div>
+        ) : null}
       </div>
       {menuOpen ? (
         <UnitMenu
@@ -1979,7 +2116,6 @@ function OrgoMapTrack({
         data-unit-id={unit.id}
         data-checkpoint={plan.checkpoint ? "true" : "false"}
       >
-        <RoadLine version={`${unit.id}:${status.currentNodeId ?? ""}:${status.doneCount}`} />
         {gateReason === null ? null : (
           <p className="path-unit__reason mx-auto w-full max-w-md" role="note">
             {gateReason}
@@ -2007,7 +2143,46 @@ function OrgoMapTrack({
           rows (round 3): each lesson carries its own, pinned beside it, so
           every row is one pitch (roadOf in unitShape.ts, SideLane above).
         */}
-        {plan.rows.length > 0 ? <ol className="path-track mx-auto flex w-full max-w-md flex-col">{plan.rows.map(slab)}</ol> : null}
+        {/*
+          THE ROAD IN SECTIONS, owner 2026-10-17 (pathwaySections.ts). Each
+          section opens on a divider with its number and name, runs a short
+          line of lessons, ends on its concept check, and leaves the check's
+          treasure chest on the road. Each section draws its OWN road
+          (RoadLine inside it), so the line stops at every divider and starts
+          again under it (round 4 of P1: a road running unbroken through the
+          bands undid the owner's "visual break").
+        */}
+        {/* One version string for every road, so all of them re-measure together. */}
+        {sections.map((section) => {
+          const headingId = `path-sec-${unit.id}-${section.number}`;
+          const checkState = section.checkpoint === null ? null : statusOf(status, section.checkpoint.id).state;
+          const chestState: ChestState =
+            section.chestId !== null && cleared.has(section.chestId)
+              ? "open"
+              : checkState === "done" || checkState === "review"
+                ? "ready"
+                : "locked";
+          return (
+            <div key={section.number} className="path-section mx-auto flex w-full max-w-md flex-col" role="group" aria-labelledby={headingId}>
+              <SectionDivider id={headingId} eyebrow={`Section ${section.number}`} title={section.title} />
+              <RoadLine version={roadVersion} />
+              <ol className="path-track flex w-full flex-col">
+                {section.stops.map((stop) => stop.item)}
+                {section.chestId !== null && section.checkpoint !== null ? (
+                  /* On the road. Walked once its checkpoint is cleared, so the road past it is green whether or not it is opened yet. */
+                  <li className="path-chestrow" data-node-state={chestState === "locked" ? "locked" : "done"}>
+                    <TreasureChest
+                      chestId={section.chestId}
+                      state={chestState}
+                      checkpointTitle={section.checkpoint.title}
+                      reducedMotion={reducedMotion}
+                    />
+                  </li>
+                ) : null}
+              </ol>
+            </div>
+          );
+        })}
 
         {/*
           THE MENTION SITS ABOVE THE CHECKPOINT, 2026-10-01: the unit ends on
@@ -2030,15 +2205,7 @@ function OrgoMapTrack({
               <ul className="path-mention mx-auto w-full max-w-md" aria-label="Mentioned in this unit, with no exercise">
                 {mentions.map((node) => (
                   <li key={node.id} className="path-mention__item">
-                    <svg viewBox="0 0 24 24" className="path-mention__icon" aria-hidden>
-                      <path
-                        d="M4 5.5h6a2 2 0 0 1 2 2V19a1.6 1.6 0 0 0-1.6-1.6H4zM20 5.5h-6a2 2 0 0 0-2 2V19a1.6 1.6 0 0 1 1.6-1.6H20z"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.8"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
+                    <TabIcon tab="courses" className="path-mention__icon" />
                     <span className="path-mention__text">
                       <span className="path-mention__name">{node.title}</span>
                       <span className="path-mention__note">Mentioned in the course. Reading only, no exercise.</span>
@@ -2068,7 +2235,9 @@ function OrgoMapTrack({
           backwards. Inside a locked unit the unit's sentence is still the true
           one and is kept.
         */}
-        <div className="path-gate mx-auto flex w-full max-w-md flex-col" aria-label="Unit gate">
+        <div className="path-gate mx-auto flex w-full max-w-md flex-col" role="group" aria-label="Unit gate">
+          <SectionDivider id={`path-sec-${unit.id}-review`} eyebrow="Unit review" title={`${unitNumber(unit.title)} checkpoint`} />
+          <RoadLine version={roadVersion} />
           <ol className="path-track flex w-full flex-col" aria-label="Unit checkpoint">
             {[...plan.gateRun, plan.check].map((row) => {
               const nodeStatus = statusOf(status, row.node.id);
@@ -2100,7 +2269,8 @@ function OrgoMapTrack({
                   ? {
                       opens: route.opens === null ? null : unitNumber(route.opens.title),
                       skipped: route.skipped.map((entry) => unitNumber(entry.title)),
-                      questions: checkpointQuestions(unit.id),
+                      // An exam pool is an in-a-row run, not a count of questions: its blurb says what it is.
+                      questions: unit.examBlurb === undefined ? checkpointQuestions(unit.id) : null,
                     }
                   : undefined;
               const lockedNote = waitsForLessons ? checkWaitNote : gateLocked ? `${lockSaid}.` : undefined;
@@ -2110,7 +2280,6 @@ function OrgoMapTrack({
                   state={nodeStatus.state}
                   label={row.node.title}
                   detail={detail}
-                  place={place}
                   href={href}
                   wind={row.wind}
                   lane={row === plan.check ? "check" : "main"}
@@ -2199,11 +2368,35 @@ export default function PathwayTab({ reducedMotion }: { readonly reducedMotion: 
   */
   const startFromSheet = (charge: ChargeGateNode | null) => {
     setSheet(null);
-    if (charge !== null) setGate(charge);
+    if (charge === null) return;
+    /* A review costs no charge, ever (CHARGE_COST.review is 0), so the charge
+       sheet would only be a second START saying "free". The round 1 critic
+       counted three taps to reach a concept check; this makes it two, the
+       node and START, and journals the entry exactly as ChargeGate does. */
+    if (charge.kind === "review") {
+      progress.startNode(charge.id, charge.kind);
+      navigate(charge.href);
+      return;
+    }
+    setGate(charge);
   };
   const nodes = useMemo(() => (course === null ? [] : derivePathway(course, snapshot)), [course, snapshot]);
   const units = useMemo(() => (course === null ? [] : groupIntoUnits(course, nodes)), [course, nodes]);
-  const mapStatus = useMemo(() => deriveMapPathway(PATHWAY_UNITS, snapshot.journal), [snapshot.journal]);
+  const clearedIds = useMemo(
+    // Opened chests ride in the same set (chest ids are never map nodes, so
+    // the gates ignore them); a chest opened before chest_opened existed was
+    // journalled as a node clear, and that still counts as open.
+    () =>
+      new Set(
+        snapshot.journal.flatMap((event) =>
+          event.kind === "node_cleared" ? [event.nodeId] : event.kind === "chest_opened" ? [event.chestId] : [],
+        ),
+      ),
+    [snapshot.journal],
+  );
+  // The map's own unlock rule, then the review stops laid over it (reviewCheckpoints.ts).
+  const gated = useMemo(() => withReviewGates(PATHWAY_UNITS, deriveMapPathway(PATHWAY_UNITS, snapshot.journal), clearedIds), [snapshot.journal, clearedIds]);
+  const mapStatus = gated.status;
 
   if (course === null) return <CoursePicker />;
 
@@ -2242,7 +2435,17 @@ export default function PathwayTab({ reducedMotion }: { readonly reducedMotion: 
       </span>
 
       {onMap ? (
-        <OrgoMapTrack onOpenNode={openNode} status={mapStatus} reducedMotion={reducedMotion} />
+        <OrgoMapTrack
+          onOpenNode={openNode}
+          onGuidebook={(node) => {
+            setSheet(null);
+            setGuidebook(node);
+          }}
+          status={mapStatus}
+          gatedBy={gated.gatedBy}
+          cleared={clearedIds}
+          reducedMotion={reducedMotion}
+        />
       ) : (
         <div className="flex flex-col gap-2" role="region" aria-label="Pathway">
           {units.map((unit) => {
@@ -2287,13 +2490,14 @@ export default function PathwayTab({ reducedMotion }: { readonly reducedMotion: 
         renderer, so leaving them would leave a vocabulary nothing speaks.
       */}
 
-      <button
-        type="button"
-        className="press min-h-11 self-start rounded-full border-2 border-bb-border px-4 text-scale-xs font-semibold text-bb-muted-foreground"
+      <Press
+        variant="secondary"
+        size="sm"
+        className="self-start"
         onPointerDown={() => progress.setCourse(course, snapshot.startTopics)}
       >
         Change track in Courses
-      </button>
+      </Press>
 
       <NodeSheet
         node={sheet?.node ?? null}
@@ -2359,10 +2563,7 @@ function UnitBanner({ unit, course }: { readonly unit: PathwayUnit; readonly cou
         aria-label={`Guidebook for ${unit.title}`}
         title="Guidebook"
       >
-        <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden>
-          <path d="M5 4.5h9.5a2.5 2.5 0 0 1 2.5 2.5v12.5H7.5A2.5 2.5 0 0 1 5 17z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-          <path d="M8.5 9h5M8.5 12.5h5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-        </svg>
+        <TabIcon tab="courses" className="h-6 w-6" />
       </a>
     </header>
   );

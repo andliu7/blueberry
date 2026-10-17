@@ -140,6 +140,12 @@ export interface FigureBond {
   readonly order?: 1 | 2 | 3;
   /** Draws a head at (x2, y2). A reaction arrow, never a bond. */
   readonly arrow?: boolean;
+  /**
+   * A stereo bond: `wedge` comes toward the reader, `hash` goes away. The
+   * narrow end is (x1, y1), the stereocentre; the wide end is (x2, y2).
+   * Single bonds only, and only where RDKit put one (scripts/u1_pools_cd.py).
+   */
+  readonly stereo?: "wedge" | "hash";
 }
 
 /** A ring drawn around a group, which is how "this one" is marked. */
@@ -153,6 +159,48 @@ export interface Figure {
   readonly bonds?: readonly FigureBond[];
   readonly labels?: readonly FigureLabel[];
   readonly rings?: readonly FigureRing[];
+}
+
+/** Half the width of a wedge's wide end, and where a hash bond's rungs sit along it. */
+const WEDGE_HALF = 3.4;
+const HASH_STEPS = [0.2, 0.4, 0.6, 0.8, 1] as const;
+
+/**
+ * The ink of a stereo bond, as plain numbers so the suite can hold it without
+ * a DOM; StructureFigure.tsx draws it. A wedge is a filled triangle from a point at the stereocentre (x1, y1)
+ * to a wide end at (x2, y2); a hash is rungs across the same triangle, widening
+ * away from the stereocentre.
+ */
+export type StereoShape =
+  | { readonly kind: "wedge"; readonly points: readonly (readonly [number, number])[] }
+  | { readonly kind: "hash"; readonly rungs: readonly (readonly [number, number, number, number])[] };
+
+export function stereoShape(bond: FigureBond & { readonly stereo: "wedge" | "hash" }): StereoShape {
+  const { x1, y1, x2, y2 } = bond;
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const length = Math.hypot(dx, dy) || 1;
+  const nx = -dy / length;
+  const ny = dx / length;
+  if (bond.stereo === "wedge") {
+    return {
+      kind: "wedge",
+      points: [
+        [x1, y1],
+        [x2 + nx * WEDGE_HALF, y2 + ny * WEDGE_HALF],
+        [x2 - nx * WEDGE_HALF, y2 - ny * WEDGE_HALF],
+      ],
+    };
+  }
+  return {
+    kind: "hash",
+    rungs: HASH_STEPS.map((t) => {
+      const cx = x1 + dx * t;
+      const cy = y1 + dy * t;
+      const w = WEDGE_HALF * t;
+      return [cx + nx * w, cy + ny * w, cx - nx * w, cy - ny * w] as const;
+    }),
+  };
 }
 
 /** The one viewBox every figure is drawn in. */

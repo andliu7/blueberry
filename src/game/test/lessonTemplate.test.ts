@@ -28,7 +28,7 @@
 
 import { describe, expect, it } from "vitest";
 
-import { GLYPH_BADGE_KINDS, badgeMark } from "../beats/RecipeStrip";
+import { segmentSpoken } from "../beats/RecipeStrip";
 import {
   BADGE_LABEL,
   LESSON_SLOTS,
@@ -272,14 +272,10 @@ describe("the curriculum lesson's strip", () => {
   });
 });
 
-describe("every badge carries its motif", () => {
-  it("draws a glyph for every badge kind the strip can be handed", () => {
-    // Owner ruling 4: a chip with no motif reads as broken rather than as
-    // unauthored. BADGE_LABEL is the closed list of kinds; GLYPH is what the
-    // strip can actually draw. They have to be the same set.
-    expect([...GLYPH_BADGE_KINDS].sort()).toEqual(Object.keys(BADGE_LABEL).sort());
-  });
-
+// A2 round 6: the strip no longer draws a glyph per badge (it is the one
+// plain lesson bar now), so the glyph-coverage test went with the glyphs. The
+// labels are still read out for every segment, so they are still pinned here.
+describe("every badge is named", () => {
   it("labels every badge in the coach's voice, never as a bare type name", () => {
     for (const [badge, label] of Object.entries(BADGE_LABEL)) {
       expect(label.length, badge).toBeGreaterThan(3);
@@ -341,30 +337,26 @@ describe("the template is reachable, not only correct", () => {
 /* 5. The cleared mark, and where it may not appear                     */
 /* ------------------------------------------------------------------ */
 
-describe("the strip marks what is behind the student", () => {
-  it("draws the cleared tick on a done segment, whatever beat it held", () => {
-    for (const badge of GLYPH_BADGE_KINDS) {
-      expect(badgeMark("done", badge), badge).toBe("cleared");
+// A2 round 6: the tick marks went with the icon pucks. What a segment says
+// is now its spoken line under the bar, and the promise is the same one: only
+// a segment behind the student is ever called done.
+describe("the strip says what is behind the student", () => {
+  it("calls a done segment done and nothing else done", () => {
+    const plan = planLesson("u3-sequencing");
+    expect(plan, "u3-sequencing is the multi-slot lesson these tests lean on").not.toBeNull();
+    for (const segment of recipeSegments(startRun(plan as LessonPlan))) {
+      expect(segmentSpoken({ ...segment, state: "done" })).toMatch(/, done$/);
+      expect(segmentSpoken({ ...segment, state: "todo" })).not.toMatch(/done/);
+      expect(segmentSpoken({ ...segment, state: "current" })).not.toMatch(/done/);
     }
   });
 
-  it("never draws the cleared tick on a segment nobody has earned", () => {
-    // The committed spec uses a tick to mean COMPLETED and the reward slot is
-    // `todo` for a whole lesson, so a reward glyph that IS a tick puts the
-    // done-mark on an unearned slot from the first frame. Measured on the
-    // build at #/lesson/u3-directing before answering anything.
-    for (const badge of GLYPH_BADGE_KINDS) {
-      expect(badgeMark("todo", badge), badge).not.toBe("cleared");
-      expect(badgeMark("current", badge), badge).not.toBe("cleared");
-    }
-  });
-
-  it("leaves the reward slot un-ticked on a fresh run", () => {
+  it("leaves the reward slot un-done on a fresh run", () => {
     const plan = planLesson("u3-sequencing");
     expect(plan, "u3-sequencing is the multi-slot lesson these tests lean on").not.toBeNull();
     const segments = recipeSegments(startRun(plan as LessonPlan));
     const reward = segments[segments.length - 1];
     expect(reward?.badge).toBe("reward");
-    expect(badgeMark(reward?.state ?? "todo", "reward")).not.toBe("cleared");
+    expect(segmentSpoken(reward!)).toMatch(/, coming up$/);
   });
 });

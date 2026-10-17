@@ -57,7 +57,8 @@ export function SystemWindow({ label, aside, children, className }: SystemWindow
           --sysw-edge:#1d6fd0;
           --sysw-glow:rgba(29,111,208,0.18);
           --sysw-ink:#0d2038;
-          --sysw-dim:rgba(13,32,56,0.62);
+          /* 0.80, up from 0.62, which measured 4.28:1 on the window over the lavender ground (2026-10-07). */
+          --sysw-dim:rgba(13,32,56,0.80);
         }
         .dark .sysw{
           --sysw-fill:rgba(6,14,27,0.78);

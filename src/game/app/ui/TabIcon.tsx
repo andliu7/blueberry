@@ -1,246 +1,258 @@
 /**
- * One inline icon per tab id. Inline SVG rather than an icon package so the
- * shell's entry chunk carries a handful of glyphs and not a font.
+ * Every navigation icon in /app: the five bar tabs and the six off-bar
+ * surfaces. Inline SVG rather than an icon package, so the shell's entry chunk
+ * carries a handful of shapes and not a font.
  *
- * THE FIVE BAR ICONS ARE STICKERS, THE FIVE OFF-BAR ONES ARE GLYPHS, and that
- * is a deliberate split rather than an unfinished job.
+ * ONE SET, ONE CONSTRUCTION (owner, 2026-10-15: redesign every icon, the old
+ * ones were "I kinda just went with them"). Each icon is a small flat
+ * illustration built from rounded shapes, the way the reference app draws its
+ * tab bar: a house, a shield, a chest, each in full colour, never a grey line
+ * glyph. Three rules make the eleven icons read as one family:
  *
- * The bar's icons are the only ones a student sees at 32px on a phone with
- * nothing else beside them, and a 2px hairline outline at that size reads as a
- * settings menu. The reference bar draws its five as flat, chunky, CENTRE-FILLED
- * cut-outs, each in its own colour, and it keeps that colour whether or not the
- * item is the active one. Round one of this piece wrote that intent into this
- * comment ("a flat shape in the tab's own colour") and then drew every layer in
- * `currentColor`, so the shipped bar was four hairlines in one grey. The colour
- * is real now and lives in theme.css as `--tab-hue-*`.
+ *   1. ONE HUE PER ICON, A1 round 5. Each icon is a face colour and its own
+ *      darker lip from the --ic-* palette in theme.css, plus white detail, and
+ *      nothing else: no second object in a second colour, no skin tone, no
+ *      yellow photo on a blue page. Round 4's set mixed sticker, badge and
+ *      emoji styles in five schemes; this is one construction in five hues.
+ *      Nothing is a 2px keyline.
+ *   2. Depth is a LIP, the same move as the app's buttons: a darker copy of a
+ *      shape peeks out under it (the `*-lip` tokens). That is also what keeps
+ *      a bright yellow shape visible on a white bar, since the lip clears 3:1
+ *      where the face alone would not.
+ *   3. Detail is white. Stars, text lines, bubbles and glints are white shapes
+ *      sitting on a colour, never thin dark strokes, so nothing closes up into
+ *      a smudge at 20px.
  *
- * THREE KINDS OF LAYER, which is the whole construction:
+ * Icons keep their colour whether or not their tab is the selected one; the
+ * selected state is the tile the bar draws around it (tabs.css). That is the
+ * reference's own rule and it means the bar at rest is a row of coloured
+ * objects rather than grey ones with one lit.
  *
- *   line   a thick round-capped stroke in the hue, or in the tint when it is
- *          the highlight laid back over one. The track, the arrow shaft
- *   body   a flat fill in the hue's 22 percent tint, outlined in the hue. This
- *          is what makes a shape read as a cut-out pressed onto the page, per
- *          sticker rule 3, and the tint under the outline is what stops it
- *          reading as a solid blob
- *   ink    a flat fill in the hue at full strength, no outline. Used where one
- *          shape sits ON another and has to occlude it: the head over the
- *          shoulders, the arrowhead over the shaft, the card behind the card
- *          in front
- *
- * Layers paint in order, so occlusion is the order and there is no knockout
- * colour to keep in sync with the ground any more. That is why the old `paper`
- * layer is gone: an opaque tint occludes what is behind it by itself, and a
- * knockout that had to guess whether the bar was white or near-black was one
- * more thing to get wrong in a theme nobody screenshotted.
- *
- * The five off-bar ids stay single stroke paths in `currentColor` on purpose.
- * They are drawn in a header tool button, in a list row on the Me tab and
- * beside a course name, all at 20px next to text, where a filled sticker would
- * out-shout the label it is labelling. Same family, different job.
- *
- * No shadow on any of them. Depth here is the outline and the occlusion, per
- * sticker rule 3, and a drop shadow is the thing that language forbids.
+ * No drop shadow and no gradient anywhere: depth is the lip.
  */
 
+import type { ReactElement } from "react";
 import type { TabId } from "../routes";
 
-type LayerKind = "line" | "body" | "ink";
+/* Palette shorthands, so the drawings below read as colour names. */
+const PURPLE = "var(--ic-purple)";
+const PURPLE_LIP = "var(--ic-purple-lip)";
+const BLUE = "var(--ic-blue)";
+const BLUE_LIP = "var(--ic-blue-lip)";
+const GREEN = "var(--ic-green)";
+const GREEN_LIP = "var(--ic-green-lip)";
+const YELLOW = "var(--ic-yellow)";
+const YELLOW_LIP = "var(--ic-yellow-lip)";
+const RED = "var(--ic-red)";
+const RED_LIP = "var(--ic-red-lip)";
+const ORANGE = "var(--ic-orange)";
+const ORANGE_LIP = "var(--ic-orange-lip)";
+const WHITE = "#ffffff";
 
-interface Layer {
-  readonly d: string;
-  readonly as: LayerKind;
-  /** Stroke width, `line` layers only. Bodies are always the 1.9 outline. */
-  readonly w?: number;
-  /** A `line` drawn in the tint rather than the hue: a highlight over a shaft. */
-  readonly tint?: boolean;
-  /**
-   * An SVG transform on this layer alone. Only the card fan uses it, and it is
-   * a transform rather than three hand-rotated path strings so the three cards
-   * are provably ONE card at three angles and cannot drift apart when one of
-   * them is nudged.
-   */
-  readonly at?: string;
-}
-
-interface Sticker {
-  /** The token holding this tab's hue. Its 22 percent tint is the same name with `tint`. */
-  readonly hue: string;
-  readonly layers: readonly Layer[];
+/**
+ * A rounded tile with a lip under it: a face, and the same box 1.4 units lower
+ * in the darker colour. The back card of the periodic icon.
+ */
+function Tile({ x, y, size, face, lip }: { readonly x: number; readonly y: number; readonly size: number; readonly face: string; readonly lip: string }) {
+  return (
+    <>
+      <rect x={x} y={y + 1.4} width={size} height={size} rx={1.8} fill={lip} />
+      <rect x={x} y={y} width={size} height={size} rx={1.8} fill={face} />
+    </>
+  );
 }
 
 /**
- * ONE CARD, drawn three times by the `cards` sticker at three angles. 7.6 wide
- * by 14.2 tall on the 24 grid, which is the widest card that still leaves a
- * visible gap between neighbours once the fan opens.
+ * One element card, the periodic table's own unit: a rounded tile on its lip
+ * with a white H on it. A grid of small cells read as an app launcher or a bar
+ * chart at 28px (critic, round 1, and our own round 2 capture); a single
+ * element card with its symbol is what every chemistry student recognises.
+ * The H is drawn from three bars, not set in a font, so it is the same shape
+ * on every platform.
  */
-const CARD = "M10.2 5.5h3.6a2 2 0 0 1 2 2v10.2a2 2 0 0 1-2 2h-3.6a2 2 0 0 1-2-2V7.5a2 2 0 0 1 2-2z";
-
-/** The five that appear in the bar, drawn as cut-outs in their own colour. */
-const STICKERS: Record<"pathway" | "trainer" | "cards" | "feed" | "me", Sticker> = {
-  /* Two nodes on a winding track, the small one behind and the big one ahead
-     with a filled centre. The pathway tab draws exactly this, so the icon is a
-     small picture of the screen it opens rather than a generic signpost, and
-     the size difference between the two discs is what makes the line between
-     them read as a direction rather than as a dumbbell. */
-  pathway: {
-    hue: "path",
-    layers: [
-      { d: "M6.8 18.2C6.8 12.4 17.2 13.8 17.2 6.4", as: "line", w: 3.2 },
-      { d: "M6.8 14.7a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7z", as: "body" },
-      { d: "M17.2 1.9a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9z", as: "body" },
-      { d: "M17.2 4.7a1.7 1.7 0 1 1 0 3.4 1.7 1.7 0 0 1 0-3.4z", as: "ink" },
-    ],
-  },
-  /* THE FLASK AND THE DUMBBELL, owner 2026-09-03: "keep train the flask and
-     dumbbell, makes more sense", and the committed designs draw exactly that.
-
-     What was here before was a curved electron arrow, which is a fine picture
-     of the Mechanism Trainer and the wrong picture of this TAB. The tab is not
-     the mechanism trainer; it is the gym, holding Puzzle Sprint, four practice
-     modes and the daily mechanism, and an arrow says none of that. Flask plus
-     dumbbell says chemistry plus reps in one glance, which is the job.
-
-     Drawn as a conical flask on the left with a filled body, and a compact
-     dumbbell on the right: two bells and a bar. The bar is a `line` rather
-     than a rectangle so it survives being 20px next to a label, where a thin
-     filled bar closes up into a smudge. */
-  trainer: {
-    hue: "train",
-    layers: [
-      // The flask: neck, shoulders, and a body that holds the level.
-      { d: "M9.1 2.4h4.2", as: "line", w: 1.9 },
-      { d: "M10.3 2.9v4.4L6.1 17.6a2.2 2.2 0 0 0 2 3.1h4.6a2.2 2.2 0 0 0 2-3.1l-4.2-10.3V2.9z", as: "body" },
-      // The level inside it: the wide part only, so it reads as liquid.
-      { d: "M7.3 14.8h6.9l1.5 3.4a1.6 1.6 0 0 1-1.5 2.5H7.3a1.6 1.6 0 0 1-1.5-2.5z", as: "ink" },
-      // The dumbbell: bar first, then a bell each end.
-      { d: "M16.4 12.6h4.6", as: "line", w: 2.1 },
-      { d: "M15.5 10.2a1.5 1.5 0 0 1 1.5 1.5v1.8a1.5 1.5 0 0 1-3 0v-1.8a1.5 1.5 0 0 1 1.5-1.5z", as: "ink" },
-      { d: "M21.9 10.2a1.5 1.5 0 0 1 1.5 1.5v1.8a1.5 1.5 0 0 1-3 0v-1.8a1.5 1.5 0 0 1 1.5-1.5z", as: "ink" },
-    ],
-  },
-  /* A FAN THAT ACTUALLY FANS, and the previous note in this slot described one
-     while the paths drew something else.
-
-     What was here claimed "the references fan them: the back card leans, the
-     front one sits upright, and the lean is the whole tell", but only the BACK
-     card carried a lean and the other two were axis aligned, so the assembly
-     was a stepped rectangle. Measured at the 32px the bar actually draws: the
-     three cards made one 26x27 upright mass, and against the Feed newspaper's
-     26x26 upright mass that is a silhouette IoU of 0.791 and a form distance of
-     0.146, both of them the worst pair in the bar by a wide margin. Two icons
-     that differ only inside their outline are one icon at 32px.
-
-     So: one card, three angles, plus and minus 34 degrees about a pivot below
-     the stack, which is how a hand of cards actually opens. All three are
-     `body` rather than the old ink/tint/body ladder, because the fan's tell is
-     the three OUTLINES splaying and an ink card is an outline you painted out.
-     Verified by eye at 32px on both grounds before it was written down; 40 and
-     46 degrees measure better and read as a crown, so 34 is the angle the eye
-     picked and not the one the number did.
-
-     WHAT THIS DOES NOT FIX, recorded so the next reader does not re-run the
-     search: it does not separate Cards from Feed. Fifty-odd geometries were
-     measured (fans from 28 to 46 degrees, two-card tilts, an index-card tray,
-     five newspaper reshapes) and every arrangement of paper rectangles lands
-     between 0.115 and 0.146 against a paper rectangle. The pair is one object
-     class drawn twice, and only changing one of the two NOUNS clears it. Both
-     nouns are the owner's. */
-  cards: {
-    hue: "cards",
-    layers: [
-      { d: CARD, as: "body", at: "rotate(-34 12 21.6)" },
-      { d: CARD, as: "body", at: "rotate(34 12 21.6)" },
-      { d: CARD, as: "body" },
-    ],
-  },
-  /* THE BLUE NEWSPAPER, docs/DESIGN-GOALS.md, "Header and tabs": "Feed is the
-     blue NEWSPAPER". Drawn here in the same three-layer construction as its
-     four neighbours rather than reusing FeedIcon.tsx's NewspaperMark, and the
-     reason is that the bar draws its icons in the tab's OWN hue while
-     NewspaperMark inherits `currentColor` and knocks its print out in
-     `var(--bb-card)`. In the bar that would be a grey silhouette beside four
-     coloured cut-outs at rest, and on the active chip its knockouts would be
-     card-coloured on a lavender ground. NewspaperMark stays exactly where it
-     is and keeps its job: it is the cheap glyph a non-bar surface imports
-     without pulling the Feed chunk into the entry payload.
-
-     The folded back page is the shape that says "newspaper" rather than
-     "document" at 32px, so it is an `ink` slab BEHIND the sheet: an opaque
-     fill occludes nothing it should not and needs no knockout colour. The
-     print is three marks, not six: a masthead bar, one headline block and two
-     column rules. Round one of this glyph drew six and they closed into a
-     smudge at bar size. */
-  feed: {
-    hue: "feed",
-    layers: [
-      { d: "M15.4 6.3h3.9a1.7 1.7 0 0 1 1.7 1.7v9.4a2.7 2.7 0 0 1-2.7 2.7h-2.9z", as: "ink" },
-      { d: "M4.5 3.3h10.3a2 2 0 0 1 2 2v13a2.4 2.4 0 0 1-2.4 2.4H4.9a2.4 2.4 0 0 1-2.4-2.4V5.3a2 2 0 0 1 2-2z", as: "body" },
-      { d: "M4.9 6.2h9.2v1.9H4.9z", as: "ink" },
-      { d: "M4.9 10.1h4v4.6h-4z", as: "ink" },
-      { d: "M9.9 10.1h4.2v1.6H9.9zM9.9 13.1h4.2v1.6H9.9z", as: "ink" },
-    ],
-  },
-  /* The avatar: a head and shoulders, the shoulders solid so the head reads as
-     sitting in front of them rather than floating. */
-  me: {
-    hue: "me",
-    layers: [
-      { d: "M3.2 21.6a8.8 8.8 0 0 1 17.6 0z", as: "body" },
-      { d: "M12 2.8a4.6 4.6 0 1 1 0 9.2 4.6 4.6 0 0 1 0-9.2z", as: "ink" },
-    ],
-  },
-};
-
-/** The five off-bar glyphs. Stroke only, in currentColor; see the header. */
-const GLYPHS: Record<Exclude<TabId, keyof typeof STICKERS>, string> = {
-  periodic: "M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z",
-  search: "M10 4a6 6 0 1 0 0 12 6 6 0 0 0 0-12zM14.5 14.5 20 20",
-  courses: "M4 5h6a2 2 0 0 1 2 2v12a2 2 0 0 0-2-2H4zM20 5h-6a2 2 0 0 0-2 2v12a2 2 0 0 1 2-2h6z",
-  leaderboards: "M4 20V10h4v10zM10 20V4h4v16zM16 20v-7h4v7z",
-  chat: "M4 5h16v10H9l-5 4z",
-  messages: "M3 6h18v12H3zM3 6l9 7 9-7",
-};
-
-function isSticker(tab: TabId): tab is keyof typeof STICKERS {
-  return tab in STICKERS;
+function ElementCard({ x, y, size, face, lip }: { readonly x: number; readonly y: number; readonly size: number; readonly face: string; readonly lip: string }) {
+  const u = size / 16;
+  return (
+    <>
+      <rect x={x} y={y + 1.6 * u} width={size} height={size} rx={4 * u} fill={lip} />
+      <rect x={x} y={y} width={size} height={size} rx={4 * u} fill={face} />
+      <rect x={x + 4.2 * u} y={y + 3.6 * u} width={2.4 * u} height={8.8 * u} rx={1.2 * u} fill={WHITE} />
+      <rect x={x + 9.4 * u} y={y + 3.6 * u} width={2.4 * u} height={8.8 * u} rx={1.2 * u} fill={WHITE} />
+      <rect x={x + 4.2 * u} y={y + 6.8 * u} width={7.6 * u} height={2.4 * u} rx={1.2 * u} fill={WHITE} />
+    </>
+  );
 }
 
-export function TabIcon({ tab, className = "" }: { readonly tab: TabId; readonly className?: string }) {
-  if (!isSticker(tab)) {
-    return (
-      <svg
-        viewBox="0 0 24 24"
-        className={className}
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.1"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden
-      >
-        <path d={GLYPHS[tab]} />
-      </svg>
-    );
-  }
-
-  const sticker = STICKERS[tab];
-  const hue = `var(--tab-hue-${sticker.hue})`;
-  const tint = `var(--tab-tint-${sticker.hue})`;
+/** A magnifier in one hue: a blue ring with a white lens, a darker handle and a glint. */
+function Lens({ cx, cy, r }: { readonly cx: number; readonly cy: number; readonly r: number }) {
+  const reach = r * 0.72;
   return (
-    <svg viewBox="0 0 24 24" className={className} fill="none" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      {sticker.layers.map((layer, index) => {
-        // Index as the key is safe here and only here: the list is a frozen
-        // literal above, so nothing is ever inserted, removed or reordered.
-        if (layer.as === "line") {
-          return (
-            <path key={index} d={layer.d} transform={layer.at} stroke={layer.tint === true ? tint : hue} strokeWidth={layer.w ?? 3} />
-          );
-        }
-        if (layer.as === "ink") {
-          return <path key={index} d={layer.d} transform={layer.at} fill={hue} />;
-        }
-        return <path key={index} d={layer.d} transform={layer.at} fill={tint} stroke={hue} strokeWidth={1.9} />;
-      })}
+    <>
+      <path d={`M${cx + reach} ${cy + reach}L${cx + r * 1.7} ${cy + r * 1.7}`} stroke={BLUE_LIP} strokeWidth={r * 0.7} strokeLinecap="round" />
+      <circle cx={cx} cy={cy} r={r} fill={WHITE} stroke={BLUE} strokeWidth={r * 0.42} />
+      <path d={`M${cx - r * 0.42} ${cy - r * 0.05}a${r * 0.42} ${r * 0.42} 0 0 1 ${r * 0.42}-${r * 0.42}`} stroke={BLUE} strokeWidth={r * 0.24} strokeLinecap="round" fill="none" />
+    </>
+  );
+}
+
+/**
+ * The drawings, one per tab id. Each returns the inside of a 24 unit box and
+ * paints back to front, so a later shape covers an earlier one.
+ */
+const DRAWINGS: Record<TabId, () => ReactElement> = {
+  /* PATH: one lesson node from the path itself, a purple disc on its lip with
+     a white star. The tab opens a column of exactly these, so the icon is a
+     small picture of the screen behind it. */
+  pathway: () => (
+    <>
+      <ellipse cx="12" cy="13.6" rx="10" ry="8.6" fill={PURPLE_LIP} />
+      <ellipse cx="12" cy="10.6" rx="10" ry="8.6" fill={PURPLE} />
+      <path
+        d="M12 5.7L13.29 8.82L16.66 9.09L14.09 11.28L14.88 14.56L12 12.8L9.12 14.56L9.91 11.28L7.34 9.09L10.71 8.82Z"
+        fill={WHITE}
+        stroke={WHITE}
+        strokeWidth="1.1"
+        strokeLinejoin="round"
+      />
+    </>
+  ),
+
+  /* TRAIN: one green flask with a white dumbbell printed on it. The owner's
+     flask and dumbbell (2026-09-03) kept as ONE object, so the icon is no
+     longer two things leaning on each other in two colours. */
+  trainer: () => (
+    <>
+      <path d="M8.6 3.6h6.8v5.8l5.2 9a2.8 2.8 0 0 1-2.4 4.2H5.8a2.8 2.8 0 0 1-2.4-4.2l5.2-9z" fill={GREEN_LIP} />
+      <path d="M8.6 2.2h6.8v5.8l5.2 9a2.8 2.8 0 0 1-2.4 4.2H5.8a2.8 2.8 0 0 1-2.4-4.2l5.2-9z" fill={GREEN} />
+      <rect x="7.2" y="1" width="9.6" height="2.8" rx="1.4" fill={GREEN_LIP} />
+      <rect x="8.4" y="15" width="7.2" height="1.6" rx="0.8" fill={WHITE} />
+      <rect x="6.8" y="12.8" width="2.4" height="6" rx="1.2" fill={WHITE} />
+      <rect x="14.8" y="12.8" width="2.4" height="6" rx="1.2" fill={WHITE} />
+      <circle cx="13" cy="8.6" r="1" fill={WHITE} />
+    </>
+  ),
+
+  /* CARDS: a red flashcard with a white question mark, the card behind it
+     in the same red's lip. One hue, so it no longer competes with Feed. */
+  cards: () => (
+    <>
+      <rect x="7.2" y="1.6" width="13" height="17" rx="2.6" fill={RED_LIP} transform="rotate(12 13.7 10.1)" />
+      <rect x="3.6" y="4.8" width="13" height="17" rx="2.6" fill={RED_LIP} />
+      <rect x="3.6" y="3.4" width="13" height="17" rx="2.6" fill={RED} />
+      <path d="M8 9.4a2.4 2.4 0 1 1 3.6 2.1c-.9.5-1.2 1-1.2 1.9v.4" stroke={WHITE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      <circle cx="10.4" cy="16.6" r="1.2" fill={WHITE} />
+    </>
+  ),
+
+  /* FEED: the blue newspaper (docs/DESIGN-GOALS.md: "Feed is the blue
+     NEWSPAPER"). A folded back page in the lip colour, the front sheet in
+     blue, and every mark of print in white: headline, photo block, lines. */
+  feed: () => (
+    <>
+      <path d="M16 6.4h4.2a1.8 1.8 0 0 1 1.8 1.8v10.4a3 3 0 0 1-3 3H16z" fill={BLUE_LIP} />
+      <rect x="2" y="3.8" width="16.4" height="18.8" rx="2.6" fill={BLUE_LIP} />
+      <rect x="2" y="2.6" width="16.4" height="18.8" rx="2.6" fill={BLUE} />
+      <rect x="4.6" y="5.4" width="11.2" height="2.4" rx="1.2" fill={WHITE} />
+      <rect x="4.6" y="10" width="4.8" height="5.4" rx="1.2" fill={WHITE} />
+      <rect x="11" y="10.2" width="4.8" height="1.8" rx="0.9" fill={WHITE} />
+      <rect x="11" y="13.6" width="4.8" height="1.8" rx="0.9" fill={WHITE} />
+      <rect x="4.6" y="17.2" width="11.2" height="1.8" rx="0.9" fill={WHITE} />
+    </>
+  ),
+
+  /* ME: the student, not the mascot, as one orange figure: a head and
+     shoulders on their lip, with a white face. Bloom is never redrawn as an
+     icon (docs/MASCOT.md). */
+  me: () => (
+    <>
+      <path d="M3 23.4a9 7.6 0 0 1 18 0z" fill={ORANGE_LIP} />
+      <path d="M3 22.2a9 7.6 0 0 1 18 0z" fill={ORANGE} />
+      <circle cx="12" cy="9.8" r="6.6" fill={ORANGE_LIP} />
+      <circle cx="12" cy="8.6" r="6.6" fill={ORANGE} />
+      <circle cx="9.6" cy="8.4" r="1.1" fill={WHITE} />
+      <circle cx="14.4" cy="8.4" r="1.1" fill={WHITE} />
+      <path d="M9.8 11.2a2.8 2.8 0 0 0 4.4 0" stroke={WHITE} strokeWidth="1.5" strokeLinecap="round" fill="none" />
+    </>
+  ),
+
+  /* PERIODIC: an element card (a purple tile with a white H) in front of a
+     second card in the purple's lip, so it reads as a table of them. */
+  periodic: () => (
+    <>
+      <Tile x={8.4} y={1.4} size={14.2} face={PURPLE_LIP} lip={PURPLE_LIP} />
+      <ElementCard x={1.4} y={6.2} size={15.6} face={PURPLE} lip={PURPLE_LIP} />
+    </>
+  ),
+
+  /* SEARCH: the magnifier on its own. */
+  search: () => <Lens cx={10} cy={10} r={6.4} />,
+
+  /* COURSES: an open book, yellow pages on the yellow's darker cover. */
+  courses: () => (
+    <>
+      <path d="M1.6 5.6h8.2a2.2 2.2 0 0 1 2.2 2.2 2.2 2.2 0 0 1 2.2-2.2h8.2v15.2H14a2 2 0 0 0-2 1.6 2 2 0 0 0-2-1.6H1.6z" fill={YELLOW_LIP} />
+      <path d="M3.4 3.4H9a3 3 0 0 1 3 3v12.6a3 3 0 0 0-3-1.8H3.4z" fill={YELLOW} />
+      <path d="M20.6 3.4H15a3 3 0 0 0-3 3v12.6a3 3 0 0 1 3-1.8h5.6z" fill={YELLOW} />
+      <rect x="5.2" y="7.2" width="4.4" height="1.6" rx="0.8" fill={WHITE} />
+      <rect x="14.4" y="7.2" width="4.4" height="1.6" rx="0.8" fill={WHITE} />
+    </>
+  ),
+
+  /* LEADERBOARDS: a three step podium in orange, the top step starred. */
+  leaderboards: () => (
+    <>
+      <rect x="1.6" y="11.8" width="6.6" height="10.6" rx="1.6" fill={ORANGE_LIP} />
+      <rect x="1.6" y="10.6" width="6.6" height="10.6" rx="1.6" fill={ORANGE} />
+      <rect x="8.7" y="5.6" width="6.6" height="16.8" rx="1.6" fill={ORANGE_LIP} />
+      <rect x="8.7" y="4.4" width="6.6" height="16.8" rx="1.6" fill={ORANGE} />
+      <rect x="15.8" y="14.8" width="6.6" height="7.6" rx="1.6" fill={ORANGE_LIP} />
+      <rect x="15.8" y="13.6" width="6.6" height="7.6" rx="1.6" fill={ORANGE} />
+      <path d="M12 7.2l.9 1.9 2 .2-1.5 1.4.5 2-1.9-1.1-1.9 1.1.5-2-1.5-1.4 2-.2z" fill={WHITE} />
+    </>
+  ),
+
+  /* CHAT: a green speech bubble with three white dots. */
+  chat: () => (
+    <>
+      <path d="M5.4 4.4h13.2a3.4 3.4 0 0 1 3.4 3.4v8.2a3.4 3.4 0 0 1-3.4 3.4H10l-5.2 3.4V19.4A3.4 3.4 0 0 1 2 16V7.8a3.4 3.4 0 0 1 3.4-3.4z" fill={GREEN_LIP} />
+      <path d="M5.4 3h13.2a3.4 3.4 0 0 1 3.4 3.4v8.2a3.4 3.4 0 0 1-3.4 3.4H10l-5.2 3.8V18A3.4 3.4 0 0 1 2 14.6V6.4A3.4 3.4 0 0 1 5.4 3z" fill={GREEN} />
+      <circle cx="7.6" cy="10.6" r="1.5" fill={WHITE} />
+      <circle cx="12" cy="10.6" r="1.5" fill={WHITE} />
+      <circle cx="16.4" cy="10.6" r="1.5" fill={WHITE} />
+    </>
+  ),
+
+  /* MESSAGES: a blue envelope with a white flap. */
+  messages: () => (
+    <>
+      <rect x="1.6" y="5.6" width="20.8" height="15.2" rx="2.8" fill={BLUE_LIP} />
+      <rect x="1.6" y="4.4" width="20.8" height="15.2" rx="2.8" fill={BLUE} />
+      <path d="M4.4 7.6l7.6 5.6 7.6-5.6" stroke={WHITE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+    </>
+  ),
+};
+
+export function TabIcon({ tab, className = "" }: { readonly tab: TabId; readonly className?: string }) {
+  const Drawing = DRAWINGS[tab];
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden focusable="false">
+      <Drawing />
+    </svg>
+  );
+}
+
+/**
+ * The header's one tools control stands for two tools, so its mark is both:
+ * an element card with the search lens over its corner.
+ *
+ * REDRAWN, round 2. Four equal tiles in a square read as a generic app
+ * launcher grid (critic). See ElementCard.
+ */
+export function ToolsIcon({ className = "" }: { readonly className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden focusable="false">
+      <ElementCard x={1.2} y={1.2} size={16.4} face={PURPLE} lip={PURPLE_LIP} />
+      <Lens cx={16.6} cy={16.4} r={4} />
     </svg>
   );
 }

@@ -1,282 +1,226 @@
-import { useEffect, useMemo } from "react";
-import { motion, useReducedMotion } from "motion/react";
-import { ArrowRight, ChevronDown } from "lucide-react";
-
-import { Blueberry } from "@/components/ui/blueberry";
-
-import { GradientButton } from "@/components/ui/gradient-button";
-import { TextRoll } from "@/components/ui/text-roll";
-import { FoundingSeats } from "@/components/ui/founding-seats";
-import { moodForProgress, type BerryMood } from "@/lib/berryMood";
-import { reviewedCount } from "@/lib/progress";
-import { deckCount, type Deck } from "@/data/types";
-import { REACTIONS } from "@/data/reactions";
-import { HERO, SITE_NAME } from "@/data/site";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent } from "react";
+import { BlueberryMark } from "@/components/ui/blueberry-mark";
+import { moodForDecks, type BerryMood } from "@/lib/berryMood";
+import { isReducedMotion, useReducedMotionPref } from "@/lib/motionPref";
+import { prefetchEntry } from "@/lib/entryChunks";
+import { type Deck } from "@/data/types";
+import { HERO, HOME_HEADLINE_FLIPS } from "@/data/site";
 
 /**
- * The front door, and now the whole of it.
- *
- * There used to be two screens here: an opening that spelled the name in
- * particles across 210vh of column, and a hero one and a half screens below it
- * holding the wordmark and the mascot. Someone arriving had to sit through the
- * first and scroll past the second before reaching anything they could press.
- *
- * They are one screen. The swarm's last act is to assemble into this page: the
- * wordmark lands in the corner at the heading's own size, the berry lands on the
- * right where the mascot lives, and then the real elements fade up underneath
- * the particles that are already shaped like them. Nothing moves, nothing
- * scrolls, and about four seconds after arriving there is a button in the middle
- * of the screen.
- *
- * **What is being optimised here is the first decision, not the first
- * impression.** Every element is either saying what this is, showing what it
- * feels like, or asking for the one action. There is nothing else on it.
+ * The hero's stage: Bloom beside a live mechanism board (home round 2). Its own chunk, so the
+ * board, its CSS and the code it needs are never in the entry. S2 round 2: phones get it too,
+ * under the headline (critic: at 390 the first screen was text and a mascot, with the
+ * strongest product art gone). React pattern: `lazy` splits the file out, and `<Suspense>`
+ * renders nothing until it arrives (Bloom is already there, and the stage keeps its size).
  */
-export function HomeHero({
-  decks,
+const HomeHeroBoard = lazy(() => import("@/components/HomeHeroBoard"));
 
-  onReady,
-  onMore,
-}: {
-  /** For the mascot's face. See `heroMood`. */
-  decks: Deck[];
-  /** Already seen the opening this visit. */
-  settled: boolean;
-  /** The swarm has landed and the page below may show itself. */
-  onReady: () => void;
-  /** The cue at the foot was pressed. */
-  onMore: () => void;
-}) {
-  const reduce = useReducedMotion();
-
-  /** The hero is transparent until the particles finish landing on top of it. */
-  useEffect(() => { onReady(); }, [onReady]);
-
-  /**
-   * The berry's face, summed across every deck with progress on it.
-   *
-   * Summed rather than taken from the best one, or it would be proud of the
-   * deck you finished while ignoring the four you abandoned. One localStorage
-   * read per deck, so it is memoised on the list rather than done per render.
-   */
-  const cards = useMemo(() => decks.reduce((n, d) => n + deckCount(d), 0), [decks]);
-
-  const heroMood = useMemo(() => {
-    const rows = decks
-      .map((deck) => ({ reviewed: reviewedCount(deck.id), total: deckCount(deck) }))
-      .filter((row) => row.reviewed > 0);
-    if (rows.length === 0) return "curious" as const;
-    const reviewed = rows.reduce((n, r) => n + r.reviewed, 0);
-    const total = rows.reduce((n, r) => n + r.total, 0);
-    return moodForProgress(reviewed, total);
-  }, [decks]);
-
+/**
+ * Beat 1, the hero (SITE-REPLAN.md section 7).
+ *
+ * Duolingo's logged-out first screen is the bar for clarity: one picture, one sentence, one
+ * button, one quiet second door. The portfolio is the bar for how it arrives: the letters rise
+ * in one by one, then the blocks under them, and the mascot bobs and hops when pressed.
+ *
+ * Layout: the stage is Bloom presenting a live mechanism board (HomeHeroBoard, lazy). On a
+ * phone it sits between the headline and the sell line, small and tilted, so the first screen
+ * holds the headline, the product working and the button. From 1024 px it is the right column.
+ *
+ * Source order is headline, then the sell line and buttons, then Bloom, so the button is the
+ * first Tab stop in the hero and the toy comes after it (home round 2). The grid areas put
+ * Bloom back beside the headline on screen; only the keyboard order changed.
+ *
+ * Motion is all CSS (src/components/home.css) except the hop, which is four keyframes through
+ * the Web Animations API. Nothing here imports a motion library.
+ *
+ * `entered` comes from HomePage: true two frames after mount. Until then the letters sit in
+ * their start positions, but only under full motion (the CSS keys the hidden state on
+ * `html:not([data-motion="reduced"])`), so with reduced motion the text is there at first
+ * paint. Everything under the headline is there at first paint in both modes (home round 2:
+ * the portfolio's hero is readable by about 300 ms; ours waited 1.6 s for its blocks).
+ */
+export function HomeHero({ decks, entered }: { decks: Deck[]; entered: boolean }) {
+  /** Bloom's face follows your progress across the decks (see `moodForDecks`). Memoised on
+   *  the list, because it reads localStorage once per deck. */
+  const mood = useMemo<BerryMood>(() => moodForDecks(decks), [decks]);
 
   return (
-    <section className="relative min-h-svh bg-background">
-      <HeroContent
-        landed={true}
-        reduce={Boolean(reduce)}
-        mood={heroMood}
-        stats={`${decks.length} decks · ${cards} cards · ${REACTIONS.length} checked reactions`}
-        onMore={onMore}
-      />
+    <section className="home-hero" data-in={entered ? "" : undefined} aria-labelledby="home-title">
+      {/* aria-label: the heading's name is line 1 alone, whatever line is showing, so a screen
+          reader never hears the invisible size-holding copies (critic, S2 round 3). */}
+      <h1 id="home-title" className="home-hero__title" aria-label={HOME_HEADLINE_FLIPS[0]}>
+        <FlipHeadline lines={HOME_HEADLINE_FLIPS} />
+      </h1>
+
+      <div className="home-hero__rest">
+        <p className="home-hero__sell">{HERO.sell}</p>
+        <div className="home-hero__actions">
+          {/* The one filled button on the screen. Into the entry gate, which says what the
+              next two minutes hold before the first question (see EntryGate). */}
+          <a
+            href="#/enter"
+            className="home-btn"
+            // Warm the next screen's chunk before the press lands (src/lib/entryChunks.ts).
+            onPointerEnter={prefetchEntry}
+            onFocus={prefetchEntry}
+            onTouchStart={prefetchEntry}
+          >
+            <span className="home-btn__face">{HERO.cta}</span>
+            {/* The back face that rolls in on hover (motion.md item 3). A copy of the label
+                for the eye only: the accessible name comes from the front face. */}
+            <span className="home-btn__face home-btn__face--back" aria-hidden>
+              {HERO.cta}
+            </span>
+          </a>
+          <a href="#/signin" className="home-link">
+            {HERO.haveAccount}
+          </a>
+        </div>
+        <p className="home-hero__note">{HERO.ctaNote}</p>
+      </div>
+
+      <div className="home-hero__stage">
+        <Suspense fallback={null}>
+          <HomeHeroBoard />
+        </Suspense>
+        <Bloom mood={mood} />
+      </div>
     </section>
   );
 }
 
+/** How long each headline line stays before it flips to the next, and how long the roll out takes. */
+const FLIP_EVERY_MS = 4500;
+const FLIP_OUT_MS = 380;
+
 /**
- * Three bands: what this is, the one thing to do, and the reason to believe it.
- *
- * Laid out as a column with the middle band taking the slack, so the button
- * finds the optical centre of whatever screen it is on rather than being nailed
- * to a percentage that is right on a laptop and wrong on a monitor.
- *
- * The whole block is in the document from the first frame at `opacity: 0`. It
- * has to be: the swarm aims at these elements, and a rect measured off
- * `display: none` is four zeroes.
+ * The headline flips between the owner's lines (andliu.dev's FlipHeading, owner 15 Oct): the
+ * letters roll up and out, then the next line's letters roll up into place. A tap or click flips
+ * early. Every line is also laid out invisibly in the same grid cell, so the box is always as
+ * tall as the longest line and nothing under it jumps. Screen readers hear the first line only.
+ * Reduced motion: the lines still change, instantly, with no roll.
  */
-function HeroContent({
-  landed,
-  reduce,
-  mood,
-  stats,
-  onMore,
-}: {
-  landed: boolean;
-  reduce: boolean;
-  mood: BerryMood;
-  /** The inventory line: decks, cards, checked reactions. Counted, not claimed. */
-  stats: string;
-  onMore: () => void;
-}) {
+function FlipHeadline({ lines }: { lines: readonly string[] }) {
+  const reduced = useReducedMotionPref();
+  const [index, setIndex] = useState(0);
+  const [leaving, setLeaving] = useState(false);
+
+  // One timer per line shown. `flip` reads the latest index through the setter, so the
+  // effect does not need to restart when it changes.
+  const flip = () => {
+    if (leaving) return;
+    if (reduced) return setIndex((i) => (i + 1) % lines.length);
+    setLeaving(true);
+    window.setTimeout(() => {
+      setIndex((i) => (i + 1) % lines.length);
+      setLeaving(false);
+    }, FLIP_OUT_MS);
+  };
+  useEffect(() => {
+    if (lines.length < 2) return;
+    const id = window.setTimeout(flip, FLIP_EVERY_MS);
+    return () => window.clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- restart only when a new line shows
+  }, [index, reduced]);
+
   return (
-    <motion.div
-      className="relative z-20 flex min-h-svh"
-      initial={false}
-      animate={{ opacity: landed ? 1 : 0 }}
-      // Slower than the swarm's last movement and started a beat into it, so
-      // the particles are still in the shape of the heading while the heading
-      // arrives underneath them. That overlap is the entire trick.
-      transition={{ duration: 0.85, ease: "easeOut", delay: landed ? 0.1 : 0 }}
-      // Nothing here is clickable until it is visible. A transparent button
-      // over the middle of the opening would eat the first click of anyone
-      // impatient enough to try.
-      style={{ pointerEvents: landed ? "auto" : "none" }}
-    >
-      {/* The berry field, behind everything. `z-0` against the content's `z-10`
-          because a positioned element paints over a static one regardless of
-          document order, so without the pair the parallax would sit on top of
-          the headline rather than behind it. */}
+    <span className="home-flip" onClick={flip} data-out={leaving ? "" : undefined}>
+      <span className="sr-only">{lines[0]}</span>
+      {lines.map((line) => (
+        <span key={line} className="home-flip__sizer" aria-hidden>{line}</span>
+      ))}
+      {/* key={index}: a new line mounts fresh letters, which play the roll-in from home.css. */}
+      <span key={index} className="home-flip__line" data-flipped={index > 0 || undefined}>
+        <SplitLetters text={lines[index]} />
+      </span>
+    </span>
+  );
+}
 
-
-      <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col px-6 pt-[7vh] pb-8 sm:px-10">
-        {/* Band one: what we sell, and who is selling it. */}
-        <div className="grid gap-8 lg:grid-cols-12 lg:items-start lg:gap-6">
-          <div className="lg:col-span-7">
-            {/*
-              Plain type, one solid colour, no gradient.
-
-              The wordmark used to be a gradient-swept button that opened the
-              dashboard. Both went. A gradient on the largest text on the page
-              is the thing most likely to fail against a photograph, and this
-              screen's stated problem was contrast; and a title that opens a
-              panel is a second action competing with the only action that
-              matters here.
-            */}
-            {/* Interactive on purpose: it grows a touch and sweeps its
-                underline on hover. It goes somewhere real — back to the top of
-                the page — because a wordmark that reacts and does nothing is a
-                worse lie than one that never reacted. */}
-            {/* The brand, small. It was the 8xl display line, and the blind
-                panel's first-read verdict was that the largest text on the
-                screen told a stranger nothing. A wordmark is a signature, not
-                a pitch; it signs the corner now and the pitch gets the size.
-                Same serif, same lowercase, same swept underline. */}
-            <a
-              href="#/home"
-              onClick={(e) => {
-                e.preventDefault();
-                window.scrollTo({ top: 0, behavior: "smooth" });
-              }}
-              className="group/mark inline-block rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
-            >
-              <span className="title-face relative inline-block text-2xl lowercase text-slate-900 transition-transform duration-300 ease-out group-hover/mark:scale-[1.05] sm:text-3xl dark:text-white">
-                {SITE_NAME.toLowerCase()}.
-                <span
-                  aria-hidden
-                  className="absolute -bottom-1 left-0 h-[3px] w-full origin-left scale-x-0 rounded-full bg-gradient-to-r from-brand-from to-brand-to transition-transform duration-500 ease-out group-hover/mark:scale-x-100 group-focus-visible/mark:scale-x-100"
-                />
-              </span>
-            </a>
-
-            {/* The pitch, at the size the brand used to take. A stranger's
-                first fixation now contains the words "organic chemistry". */}
-            <h1 className="title-face mt-6 max-w-2xl text-5xl leading-[1.02] tracking-tight text-slate-900 sm:text-6xl lg:text-7xl dark:text-white">
-              {HERO.headline}
-            </h1>
-
-            {/* What you get, in one breath. Held to a narrow measure so it
-                reads as a subtitle rather than as the start of an essay. */}
-            <p className="mt-5 max-w-md text-base leading-relaxed font-medium text-slate-700 sm:text-lg dark:text-stone-200">
-              {HERO.sell}
-            </p>
-
-            {/* The ask, at the end of the drop. Both blind rounds said the
-                same thing about the old centred pill: the copy column and the
-                button belonged to two different layouts, and the eye finished
-                the paragraph and died. Headline, support, button - one spine,
-                one drop, and the eye lands on the action because there is
-                nowhere else for it to fall. */}
-            <div className="mt-9 flex flex-col items-start gap-3">
-              <motion.div
-                animate={reduce || !landed ? undefined : { scale: [1, 1.025, 1] }}
-                transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
-              >
-                {/* Not straight into the funnel: into the entry gate, which
-                    is one screen and one press. It says what the next two
-                    minutes contain before the first field appears, and it is
-                    where the two appearance settings live. See `EntryGate`. */}
-                {/* `asChild` keeps this an anchor. It is a link, and a link that
-                    renders as a button still has to be one: middle click, copy
-                    address and open in a new tab all come from the element, not
-                    from the styling.
-
-                    `motion.a` rather than `a` because the label's roll is driven
-                    from here. TextRoll states the variants and animates nothing
-                    itself, so this element's hover propagates down to it, which
-                    means the whole control is the target rather than the eleven
-                    characters in the middle of it. */}
-                <GradientButton asChild className="bb-press group">
-                  <motion.a href="#/enter" initial="initial" whileHover="hovered">
-                    <TextRoll driven center>
-                      {HERO.cta}
-                    </TextRoll>
-                    <ArrowRight className="size-5 transition-transform duration-300 group-hover:translate-x-1" />
-                  </motion.a>
-                </GradientButton>
-              </motion.div>
-              <p className="text-sm font-medium text-slate-600 dark:text-stone-300">{HERO.ctaNote}</p>
-            </div>
-          </div>
-
-          {/* The mascot, floating.
-
-              The float is the idle: a slow bob, like something buoyant, so the
-              berry reads as alive before you have touched it. The 3-D scene
-              adds its own breathing and blinking on top. The motto that used
-              to sit under him is gone — cut on request, and the frame is
-              calmer for it. */}
-          <div className="flex flex-col items-center justify-center lg:col-span-5 lg:items-end">
-            <motion.div
-              className="h-44 w-44 sm:h-56 sm:w-56 lg:h-80 lg:w-80 lg:me-6"
-              animate={reduce ? undefined : { y: [0, -10, 0] }}
-              transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
-            >
-              <Blueberry
-                mood={mood}
-                trackWindow
-                interactive
-                className="h-full w-full"
-                label="Blueberry, the site's mascot. Drag to spin, click to poke."
-              />
-            </motion.div>
-          </div>
-        </div>
-
-        {/* Band three: the reason to believe it, and the way onward.
-
-            `FoundingSeats` renders nothing until the number it would show is
-            real, so on a pre-launch build this band is the cue alone. */}
-        <div className="mt-auto flex flex-col items-center gap-5 pt-8">
-          {/* The proof that exists. There are no reviews yet, so what stands
-              in for them is the inventory, counted live from the data — which
-              has the advantage over a testimonial that nobody has to take it
-              on trust. The founding counter joins it the day the table has a
-              number worth showing. */}
-          <p className="font-mono text-xs tracking-[0.14em] text-slate-700 uppercase dark:text-stone-200">
-            {stats}
-          </p>
-          <FoundingSeats />
-
-          <button
-            type="button"
-            onClick={onMore}
-            className="group flex min-h-11 cursor-pointer flex-col items-center gap-1 px-4 text-slate-600 transition-colors hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:outline-none dark:text-stone-300 dark:hover:text-white"
-          >
-            <span className="font-mono text-[0.7rem] tracking-[0.2em] uppercase">
-              Everything else
+/**
+ * The headline, one span per letter, each carrying its index as `--i`, and the letter count
+ * as `--n` on the wrapper, so home.css can cap the whole stagger at 160 ms.
+ * Letters are grouped by word in a no-wrap span so a line can only break between words.
+ * The letters are hidden from screen readers, or the headline would be read out one letter at
+ * a time; FlipHeadline gives them the sentence once.
+ */
+function SplitLetters({ text }: { text: string }) {
+  let i = 0;
+  const words = text.split(" ");
+  const n = [...words.join("")].length;
+  return (
+    <>
+      <span aria-hidden style={{ "--n": n } as CSSProperties}>
+        {words.map((word, w) => (
+          <span key={w}>
+            <span className="home-word">
+              {[...word].map((ch) => (
+                <span key={i} className="home-c" style={{ "--i": i++ } as CSSProperties}>
+                  {ch}
+                </span>
+              ))}
             </span>
-            <motion.span
-              animate={reduce ? undefined : { y: [0, 4, 0] }}
-              transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-            >
-              <ChevronDown className="size-4" />
-            </motion.span>
-          </button>
-        </div>
-      </div>
-    </motion.div>
+            {w < words.length - 1 ? " " : null}
+          </span>
+        ))}
+      </span>
+    </>
+  );
+}
+
+/** How high the hop goes, in px. About a fifth of the berry on a phone. */
+const HOP_PX = 26;
+
+/**
+ * Bloom, the mascot. Idles with a slow bob (CSS) and hops when pressed.
+ *
+ * The hop is a port of the portfolio mascot's: andliu-portfolio
+ * components/mascot/mascot.tsx:141-151, squash for the wind-up, rise stretched, land squashed,
+ * settle, 700 ms. Its two per-keyframe cubic-beziers became the `ease-out` and `ease-in`
+ * keywords, because a new curve outside tokens.css fails the token gate.
+ * It starts on pointer down, so the press answers inside the 100 ms budget; a keyboard press
+ * arrives as a click with `detail` 0 and hops from there.
+ *
+ * Reduced motion: no hop. Bloom changes face instead (cheer for 700 ms), which keeps the
+ * meaning, "you poked me and I noticed", without moving.
+ */
+function Bloom({ mood }: { mood: BerryMood }) {
+  const squash = useRef<HTMLSpanElement>(null);
+  const [flash, setFlash] = useState<BerryMood | null>(null);
+
+  const hop = () => {
+    setFlash("cheer");
+    window.setTimeout(() => setFlash(null), 700);
+    if (isReducedMotion()) return;
+    squash.current?.animate(
+      [
+        { transform: "translateY(0) scale(1, 1)" },
+        { transform: "translateY(0) scale(1.2, .8)", offset: 0.18, easing: "ease-out" },
+        { transform: `translateY(${-HOP_PX}px) scale(.88, 1.14)`, offset: 0.5, easing: "ease-in" },
+        { transform: "translateY(0) scale(1.16, .84)", offset: 0.72 },
+        { transform: "translateY(0) scale(.96, 1.04)", offset: 0.86 },
+        { transform: "translateY(0) scale(1, 1)" },
+      ],
+      { duration: 700 },
+    );
+  };
+
+  return (
+    <button
+      type="button"
+      className="home-bloom"
+      aria-label="Bloom, the Blueberry mascot. Press to make him hop."
+      onPointerDown={hop}
+      onClick={(e: MouseEvent) => {
+        if (e.detail === 0) hop();
+      }}
+    >
+      <span className="home-bloom__bob">
+        <span ref={squash} className="home-bloom__squash">
+          <BlueberryMark eyes mood={flash ?? mood} className="h-full w-full" />
+        </span>
+      </span>
+    </button>
   );
 }
 

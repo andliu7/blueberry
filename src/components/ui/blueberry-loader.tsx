@@ -91,51 +91,6 @@ export const FADE_S = 0.15;
  */
 export const SHORT_SHOW_MS = 400;
 
-/* ------------------------------------------------------------- the hold -- */
-
-/**
- * True once it is fair to start the opening.
- *
- * Two conditions, and both matter. **Fonts**, because the particle canvas
- * samples rendered text to decide where its particles go; sampling Times and
- * then re-sampling the real face a moment later is a visible re-flow of the
- * whole word. **A floor**, because on a warm cache everything above resolves in
- * 30ms, and a loading screen that appears and vanishes inside two frames reads
- * as a flicker or a bug rather than as a beat.
- *
- * `document.fonts` is missing on nothing current, but it is guarded anyway: the
- * failure mode without a guard is a door that never opens.
- */
-export function useLoaderHold(minMs = 600) {
-  const [held, setHeld] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-    const floor = new Promise<void>((resolve) => setTimeout(resolve, minMs));
-    /**
-     * Capped, because `document.fonts.ready` does not just wait for fonts: per
-     * spec it also waits out the document's `load` event, so one slow
-     * third-party script or image holds this screen hostage. Measured on the
-     * Vercel preview: nine seconds of loader on a page whose fonts are
-     * self-hosted and were long since decoded. The swarm re-measures itself
-     * when the real face arrives, so the worst case after the cap is one
-     * reflowed word, not a broken opening.
-     */
-    const cap = new Promise<void>((resolve) => setTimeout(resolve, 1200));
-    const fonts = Promise.race([document.fonts?.ready ?? Promise.resolve(), cap]);
-
-    void Promise.all([floor, fonts]).then(() => {
-      if (!cancelled) setHeld(true);
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [minMs]);
-
-  return held;
-}
-
 /* ------------------------------------------------------------- the finish -- */
 
 /** The four moves the finish makes. Split out so the order can be tested. */

@@ -23,7 +23,7 @@
  * its OWN colour whether or not it is the selected item, so the bar at rest is
  * a row of coloured objects rather than a row of grey ones with one lit. Ours
  * was four hairline glyphs in a single grey, which is the shape of a settings
- * menu. See TabIcon.tsx and the --tab-hue-* tokens in theme.css.
+ * menu. See TabIcon.tsx and the --ic-* palette in theme.css.
  *
  * What we do not take is the colour itself: the chip here is Blueberry purple,
  * per sticker-ui's loudest rule, that a reference brand's dominant colour is
@@ -53,18 +53,18 @@
  * THE BAR'S HEIGHT, PUBLISHED ONCE. Anything that has to stop where the bar
  * begins reads this instead of keeping its own copy of the number: the
  * pathway pager's sticky foot does today. The value is the one derived in
- * pathway-sheet.css from the declarations below (2 border + 6 padding + 62.2
- * item + 6 padding = 76.2, and 76 is deliberately a fifth of a pixel under so
+ * pathway-sheet.css from the declarations below (2 border + 6 padding + 66.2
+ * item + 6 padding = 80.2, and 80 is deliberately a fifth of a pixel under so
  * the thing above overlaps the bar rather than floating off it), and
  * test/nodeSheetSeam.test.ts recomputes the real height from this file and
  * checks BOTH against it, so a change to the bar's padding or icon size fails
  * a test rather than silently opening a seam.
  *
- * Above 48rem it is 0: the bar is a static side rail there, so nothing is
+ * Above 48rem it is 0: the bar is a sticky side rail there, so nothing is
  * below to clear.
  */
 :root {
-  --tabbar-height: calc(4.75rem + env(safe-area-inset-bottom, 0px));
+  --tabbar-height: calc(5rem + env(safe-area-inset-bottom, 0px));
 }
 @media (min-width: 48rem) {
   :root {
@@ -84,7 +84,7 @@
   gap: 0.25rem;
   padding: 0.375rem 0.5rem;
   padding-bottom: max(0.375rem, env(safe-area-inset-bottom));
-  border-top: 2px solid var(--bb-border);
+  border-top: 2px solid var(--tabbar-line);
   background: var(--bb-card);
 }
 
@@ -95,80 +95,112 @@
   justify-content: center;
   gap: 0.125rem;
   min-height: var(--hit-min, 2.75rem);
-  padding: 0.375rem 0.25rem 0.3125rem;
+  padding: 0.25rem 0.25rem 0.1875rem;
   /* Two pixels of transparent border on the inactive item, so nothing shifts
      by 2px when it becomes the active one. A bar that jumps on every tap is a
      bar a student notices. */
   border: 2px solid transparent;
-  border-radius: 1rem;
+  border-radius: 0.75rem;
   color: var(--bb-muted-foreground);
+  /* Bold rounded caps, the label style of the 2026-10-15 redesign. Weight,
+     face and case only: size and line-height are what the bar's height is
+     computed from (test/nodeSheetSeam.test.ts), so they stay put. */
+  font-family: var(--font-display);
   font-size: var(--text-scale-xs);
-  font-weight: 600;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   line-height: 1.1;
   text-decoration: none;
 }
 
-.tabbar-icon {
-  /* 32px, and it stayed 32 when the bar went from four columns to five. The
-     reference's items are 48 square with the sticker filling most of that and
-     no label under it; ours carries a label, so the icon takes 32 of the item's
-     58 and the word takes the rest. At 28, which is what round one shipped, a
-     two-tone cut-out has no room to be two tones.
-
-     A first pass at the five-tab bar dropped this to 28 on the phone and it was
-     wrong twice over. The fifth column costs WIDTH, not height: at 390px five
-     columns are 74px each and a 32px icon over a six character label is not
-     close to either edge. And the height is load bearing elsewhere: the node
-     sheet pins its bottom edge to this bar with --ns-bottom-inset, so 4px off
-     the icon is 4px of seam between the sheet and the bar, which
-     test/nodeSheetSeam.test.ts measures against a live 76.19px capture and
-     caught within the hour. */
-  width: 2rem;
-  height: 2rem;
+/* Hover is a quiet wash, desktop pointers only. Tab items are flat (no lip):
+   the reference keeps its 3D lip for buttons and leaves navigation flat. */
+@media (hover: hover) {
+  .tabbar-item:not([aria-current="page"]):hover {
+    /* A visible pill, not a faint wash (A1 round 5 critic found none): the
+       selected tile's fill without its border, so hover previews selection. */
+    background: var(--tab-active);
+    color: var(--bb-foreground);
+  }
 }
 
-/* The active object. Tint, hard border, same hue. */
+.tabbar-icon {
+  /* 40px, round 2 of the icon redesign. At 32 the bar's drawings were the
+     smallest coloured objects on a screen of big 3D path nodes, and read less
+     like toys than the reference's (about 40 in a 48 item). The 8px came out
+     of the item's own padding (4 + 3 now, 6 + 5 before) and the rest out of
+     the bar, which is 80.2px tall now rather than 76.2.
+
+     The height is load bearing: the node sheet pins its bottom edge to this
+     bar with --ns-bottom-inset, and test/nodeSheetSeam.test.ts recomputes the
+     bar from this file and checks both against it. Change one, change all. */
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+/* The selected tab: a lavender tile with a light violet edge around the
+   icon, and the label turns brand ink. The icon keeps its own colours. */
 .tabbar-item[aria-current="page"] {
-  border-color: var(--bb-primary-ink);
+  border-color: var(--tab-active-line);
   background: var(--tab-active);
   color: var(--bb-primary-ink);
-  /* The sticker's body is a mix with the ground it sits on, and on this item
-     the ground is the chip rather than the bar. Re-mixing against the chip, and
-     one step stronger, is what keeps the Path sticker from dissolving into the
-     purple it is standing on. The other three never sit on this chip while they
-     are their own colour, and they are written out anyway so the rule holds if
-     the bar ever lights a different tab. */
-  --tab-tint-path: color-mix(in srgb, var(--tab-hue-path) 34%, var(--tab-active));
-  --tab-tint-train: color-mix(in srgb, var(--tab-hue-train) 34%, var(--tab-active));
-  --tab-tint-cards: color-mix(in srgb, var(--tab-hue-cards) 34%, var(--tab-active));
-  --tab-tint-feed: color-mix(in srgb, var(--tab-hue-feed) 34%, var(--tab-active));
-  --tab-tint-me: color-mix(in srgb, var(--tab-hue-me) 34%, var(--tab-active));
+}
+
+/* A small bounce when a tab becomes the selected one. The animation runs
+   whenever this selector starts matching, which is exactly on a tab change. */
+.tabbar-item[aria-current="page"] .tabbar-icon {
+  animation: tab-icon-pop 360ms cubic-bezier(0.35, 1.8, 0.35, 0.83);
+}
+
+@keyframes tab-icon-pop {
+  from {
+    transform: scale(0.82);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tabbar-item[aria-current="page"] .tabbar-icon {
+    animation: none;
+  }
 }
 
 /* The rail, above 768px. Same object, laid on its side, with the long label. */
 @media (min-width: 48rem) {
   .tabbar {
-    position: static;
+    /* STICKY, A1 round 5. The rail was static, so it was as tall as the page
+       (1990px measured) and scrolled away with the path: halfway down a unit
+       there was no way to change tab. Sticky at the top, one screen tall,
+       and it scrolls on its own only if a short window cannot hold it. */
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+    height: 100dvh;
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
     gap: 0.375rem;
     width: 15rem;
     padding: 0.75rem;
     border-top: 0;
-    border-right: 2px solid var(--bb-border);
+    border-right: 2px solid var(--tabbar-line);
   }
 
   .tabbar-item {
     flex-direction: row;
     justify-content: flex-start;
-    gap: 0.75rem;
-    padding: 0.625rem 0.875rem;
+    gap: 1rem;
+    padding: 0.5rem 1rem;
     font-size: var(--text-scale-sm);
+    letter-spacing: 0.06em;
   }
 
   .tabbar-icon {
-    width: 1.75rem;
-    height: 1.75rem;
+    width: 2.5rem;
+    height: 2.5rem;
   }
 }
 
@@ -196,8 +228,8 @@
 /*
  * The wordmark above the rail. It does not exist on the phone at all: the
  * bottom bar is thumb space, the header's 390px is worth more to the course
- * chip than to a logo, and the bar itself already says which app this is. It is
- * a label and not a link; Shell.tsx records why.
+ * chip than to a logo, and the bar itself already says which app this is. On
+ * desktop it links to the website's home (#/); Shell.tsx records why.
  */
 .tabbar-brand {
   display: none;
@@ -210,8 +242,16 @@
     gap: 0.5rem;
     min-height: var(--hit-min, 2.75rem);
     margin-bottom: 0.5rem;
-    padding-inline: 0.875rem;
-    color: var(--bb-foreground);
+    padding-inline: 1rem;
+    color: var(--bb-primary-ink);
     text-decoration: none;
+    border-radius: 0.75rem;
+  }
+  .tabbar-brand:hover {
+    opacity: 0.85;
+  }
+  .tabbar-brand:focus-visible {
+    outline: 3px solid var(--bb-primary);
+    outline-offset: 2px;
   }
 }

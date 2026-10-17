@@ -414,6 +414,7 @@ function Welcome({
          running about 85 percent of the frame with "5%" set in it. */
       column="wide"
       barNumeral
+      heroWide
       /* THE HORIZON IS A BACKDROP, NOT A FLEX CHILD. See FrameProps.backdrop:
          it has to sit outside the scrolling body to bleed off both screen
          edges, and outside the flow so it can never push GET STARTED down. */
@@ -421,7 +422,9 @@ function Welcome({
       foot={
         <>
           <Action label={WELCOME_START} shape="stadium" onPress={onStart} />
-          <QuietAction label={WELCOME_RETURNING} onPress={enterReturning} />
+          {/* A2 round 3: the secondary KEY, not an underlined link, so the
+              screen's two choices speak the same button language. */}
+          <Action label={WELCOME_RETURNING} variant="secondary" onPress={enterReturning} />
         </>
       }
     >
@@ -433,7 +436,7 @@ function Welcome({
         sizePx={186}
         bottomAnchored
       >
-        <p className="ob-promise">{withoutMark(WELCOME_PROMISE)}</p>
+        <h1 className="ob-promise">{withoutMark(WELCOME_PROMISE)}</h1>
       </Hero>
     </Frame>
   );

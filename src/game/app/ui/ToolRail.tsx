@@ -33,7 +33,8 @@
  * THE BUTTONS CARRY AN OUTLINE, and that is a deliberate difference from the
  * readouts beside them. Sticker rule 3: an outline is what makes an element
  * read as a pressable cut-out. The HUD's numbers are readings and are flat; a
- * tool is an object you pick up, so it gets a border. The header's two halves
+ * tool is an object you pick up, so it gets a border and a 3D lip (.lip-button
+ * in tools.css). The header's two halves
  * are then two different KINDS of thing rather than seven chips at one weight,
  * which is the finding the P3 round already paid for.
  */
@@ -71,13 +72,11 @@ export function ToolButtons({
           aria-haspopup="dialog"
           aria-label={`Open the ${tool.label.toLowerCase()}`}
           title={tool.label}
-          // Full ink, not muted. Round one drew these at muted-foreground and
-          // they read as two empty boxes beside a header of coloured readouts:
-          // the outline said "pressable" and the pale glyph said "disabled",
-          // which is two controls arguing with each other.
-          className="press inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl border-2 border-bb-border bg-bb-card text-bb-foreground"
+          // The icon is full colour (TabIcon.tsx), so it carries the button;
+          // .lip-button in tools.css is the outline and the 3D bottom edge.
+          className="lip-button inline-flex min-h-11 min-w-11 items-center justify-center"
         >
-          <TabIcon tab={tool.id} className="h-5 w-5" />
+          <TabIcon tab={tool.id} className="h-6 w-6" />
         </button>
       ))}
     </div>
@@ -118,12 +117,12 @@ export function ToolSheet({ tool, onClose }: { readonly tool: ToolId | null; rea
         <div className="tool-panel">
           <span className="tool-grabber" aria-hidden />
           <div className="flex items-center justify-between gap-2 px-4 py-3">
-            <h2 className="bb-title-face text-scale-lg font-semibold text-bb-foreground">{definition.label}</h2>
+            <h2 className="bb-h2 text-bb-foreground">{definition.label}</h2>
             <div className="flex items-center gap-1.5">
               <a
                 href={hrefForTab(tool)}
                 onPointerDown={onClose}
-                className="press inline-flex min-h-11 items-center rounded-xl border-2 border-bb-border bg-bb-card px-3 text-scale-sm font-semibold text-bb-muted-foreground"
+                className="lip-button inline-flex min-h-11 items-center px-3 text-scale-xs"
               >
                 Open as a page
               </a>
@@ -131,7 +130,7 @@ export function ToolSheet({ tool, onClose }: { readonly tool: ToolId | null; rea
                 type="button"
                 onPointerDown={onClose}
                 aria-label="Close"
-                className="press inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl border-2 border-bb-border bg-bb-card text-scale-lg text-bb-muted-foreground"
+                className="lip-button inline-flex min-h-11 min-w-11 items-center justify-center text-scale-lg"
               >
                 ×
               </button>

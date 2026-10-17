@@ -112,7 +112,7 @@ describe("the challenge card's two states read at rest", () => {
   */
   it("the resting Challenge card is the SAME card as Practice, not a second surface", () => {
     // One class list, used by both: the reference draws one card family.
-    expect(TSX).toContain("ns-card ns-card--half");
+    expect(TSX).toContain("ns-card ns-card--rest");
     // The rejected surface, by name, so it cannot come back quietly.
     expect(CSS).not.toContain(".ns-card--flat");
     expect(TSX).not.toContain("ns-card--flat");
@@ -131,7 +131,7 @@ describe("the challenge card's two states read at rest", () => {
      The 100 css px floor is kept exactly as it was.
   */
   it("the resting card draws its reason as a line, and the enabled card draws none", () => {
-    const resting = TSX.slice(TSX.indexOf("ns-card ns-card--half"));
+    const resting = TSX.slice(TSX.indexOf("ns-card ns-card--rest"));
     const cardMarkup = resting.slice(0, resting.indexOf("</section>"));
     const body = cardMarkup.slice(cardMarkup.indexOf(">"));
     // The wording is DRAWN exactly once, as a child of the card: a
@@ -146,7 +146,7 @@ describe("the challenge card's two states read at rest", () => {
     // The enabled card, the branch before the resting one, draws no reason.
     const enabledAt = TSX.indexOf("model.challenge.enabled ?");
     expect(enabledAt, "the enabled branch is present").toBeGreaterThanOrEqual(0);
-    const enabled = TSX.slice(enabledAt, TSX.indexOf("ns-card ns-card--half"));
+    const enabled = TSX.slice(enabledAt, TSX.indexOf("ns-card ns-card--rest"));
     expect(enabled).toContain("ns-card--go");
     expect(enabled).not.toContain("challenge.note");
     expect(enabled).not.toContain("ns-note");
@@ -191,7 +191,9 @@ describe("the challenge card's two states read at rest", () => {
     expect(CSS).not.toMatch(/box-shadow:\s*0 var\(--ns-lip\) 0/);
     const chip = block(CSS, ".ns-chip");
     expect(chip).toMatch(/padding:\s*0 0 var\(--ns-lip\)/);
-    for (const well of ["button.ns-card--go", ".ns-start"]) {
+    // START left this list in A2 round 2: it is the shared .btn3d key now
+    // (app/ui/press.css), pinned in the START test further down.
+    for (const well of ["button.ns-card--go"]) {
       expect(block(CSS, well), `${well} paints the edge`).toMatch(/background:\s*var\(--ns-[a-z-]*lip\)/);
     }
   });
@@ -237,16 +239,13 @@ describe("no colour value can drift from the palette", () => {
     expect(declarations).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
   });
 
-  it("the START lip reads the theme token and derives its fallback from a token", () => {
-    const start = block(CSS, ".ns-start");
-    expect(start).toContain("var(--bb-primary-lip");
-    // The FALLBACK is what ships until theme.css defines --bb-primary-lip, so
-    // the fallback is what has to be a derivation and not a literal.
-    const fallback = start.match(/var\(--bb-primary-lip,([^;]*)\);/);
-    expect(fallback, "the fallback is declared inline on --ns-start-lip").not.toBeNull();
-    // Every term in the fallback is a token: a percentage of --bb-primary mixed
-    // toward another var(), never toward a literal like the #000 that shipped.
-    expect(String(fallback![1]).trim()).toMatch(/^color-mix\(in srgb, var\(--bb-primary\) \d+%, var\(--[a-z-]+\)\)$/);
+  it("START is the game's shared 3D primary key, not a sheet-local pill", () => {
+    // A2 round 2 (2026-10-16): the critic found two different "primary" looks
+    // on one screen, the sheet's soft periwinkle pill and the shared key. The
+    // pill and its lip tokens are gone; START wears .btn3d--primary, whose
+    // colours come from theme.css tokens (press.css), full width.
+    expect(TSX).toMatch(/pressClassName\(\{ variant: "primary", size: "lg", block: true \}\)\} ns-start/);
+    expect(CSS).not.toContain("--ns-start-face");
   });
 });
 
@@ -286,7 +285,8 @@ describe("the sheet is the reference's cream bottom sheet", () => {
   });
 
   it("every control the sheet owns clears the 44 px target floor", () => {
-    for (const selector of [".ns-menu", ".ns-start"]) {
+    // START's target is the shared key's (btn3d--lg, 52px), pinned with the key.
+    for (const selector of [".ns-menu"]) {
       const declarations = block(CSS, selector);
       const property = declarations.includes("min-height:") ? "min-height" : "height";
       expect(lengthPx(declarations, property), `${selector} height`).toBeGreaterThanOrEqual(44);
@@ -296,8 +296,10 @@ describe("the sheet is the reference's cream bottom sheet", () => {
 });
 
 describe("the marks are drawn, not typed", () => {
-  it("the double dagger is an SVG glyph, never a text character or an emoji", () => {
-    expect(TSX).toContain("DoubleDaggerGlyph");
+  // A2 round 3: the Challenge mark is a drawn bolt on an amber disc now (the
+  // bare double dagger read as a broken glyph); the rule it pins is unchanged.
+  it("the Challenge mark is an SVG glyph, never a text character or an emoji", () => {
+    expect(TSX).toContain("ChallengeGlyph");
     // The literal character would inherit a font's idea of size and weight,
     // and DESIGN-GOALS puts every in-product icon in SVG.
     expect(TSX).not.toContain("‡");

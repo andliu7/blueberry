@@ -15,14 +15,13 @@ import { MoleculeCanvas } from "@/components/ui/molecule-canvas";
 import { MoleculeArt } from "@/components/ui/lesson-nav";
 import { Button } from "@/components/ui/button";
 import { Loader } from "@/components/ui/loader";
-import { SiteFooter } from "@/components/ui/site-footer";
-import { PageBackground } from "@/components/ui/page-background";
 import { StageReagents } from "@/components/ui/reagent-line";
 import { REACTIONS } from "@/data/reactions";
 import { drawCardFor } from "@/game/cards/reactionCard";
 import { migrateLegacySavedCards } from "@/game/cards/migrateSavedCards";
 import { decks, PERSONAL_DECK_ID } from "@/game/cards/store";
 import { sameStructure } from "@/lib/checkAnswer";
+import { reactionHref } from "@/lib/reactionSearch";
 import { cn } from "@/lib/utils";
 
 /**
@@ -61,12 +60,11 @@ export default function ReactionDrawPage({ reactionId }: { reactionId: string })
   if (!reaction) {
     return (
       <main className="relative min-h-screen text-slate-900 dark:text-stone-100">
-        <PageBackground />
         <div className="mx-auto max-w-3xl px-4 py-16">
           <p className="rounded-2xl border border-dashed border-slate-300 p-8 text-center text-slate-600 dark:border-stone-700 dark:text-stone-300">
             No reaction called <span className="font-mono">{reactionId}</span>.{" "}
-            <a href="#/lessons" className="font-semibold underline">
-              Back to lessons
+            <a href="#/learn" className="font-semibold underline">
+              Back to Learn
             </a>
           </p>
         </div>
@@ -106,22 +104,23 @@ export default function ReactionDrawPage({ reactionId }: { reactionId: string })
 
   return (
     <main className="relative min-h-screen text-slate-900 dark:text-stone-100">
-      <PageBackground />
 
       <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
+        {/* Back to the reaction this was opened from (SITE-REPLAN.md section 8):
+            its lesson, with its sheet open. */}
         <a
-          href="#/lessons"
+          href={reactionHref(reaction.id, reaction.family)}
           className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-slate-600 hover:text-[#472ab4] dark:text-stone-300"
         >
           <ChevronLeft className="size-4" />
-          Lessons
+          {reaction.name}
         </a>
 
         <header className="mt-5 rounded-3xl border border-[#ccd5ea]/80 bg-white/75 p-6 shadow-sm dark:border-[#9989e2]/20 dark:bg-stone-950/70">
-          <p className="font-mono text-xs font-semibold uppercase tracking-[.18em] text-[#5a3fd8] dark:text-[#bbb1eb]">
+          <p className="page-title text-sm text-[#5a3fd8] dark:text-[#bbb1eb]">
             Draw the product
           </p>
-          <h1 className="title-face mt-2 text-4xl leading-none">{reaction.name}</h1>
+          <h1 className="page-title mt-2 text-4xl leading-none text-[var(--bb-deep)]">{reaction.name}</h1>
         </header>
 
         <div className="mt-5 grid items-start gap-5 lg:grid-cols-[330px_1fr]">
@@ -252,7 +251,6 @@ export default function ReactionDrawPage({ reactionId }: { reactionId: string })
         </div>
       </div>
 
-      <SiteFooter />
     </main>
   );
 }

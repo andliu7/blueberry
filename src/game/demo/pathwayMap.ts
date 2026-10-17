@@ -1,11 +1,13 @@
 /**
  * The Orgo II pathway map as data: every node of the owner's full inventory
- * (reference images/Orgo_Pathway_Map_Full.pdf), 192 nodes across 15 units,
- * classified by dependency load exactly as the source classifies them.
+ * (reference images/Orgo_Pathway_Map_Full.pdf), classified by dependency load
+ * exactly as the source classifies them. Unit 1 is the exception: it was
+ * rebuilt from the owner's whiteboard on 2026-10-07 and no longer mirrors the
+ * PDF, which moves the totals to 208 nodes across 15 units.
  *
- *   spine   Required. Blocks downstream units. 86 nodes.
- *   branch  Optional side quest, reachable later at no cost. 95 nodes.
- *   gate    No preparative reactions: checkpoint quiz or parallel track. 10.
+ *   spine   Required. Blocks downstream units. 105 nodes (Unit 2 draft, 2026-10-17: five gates became spine).
+ *   branch  Optional side quest, reachable later at no cost. 97 nodes.
+ *   gate    No preparative reactions: checkpoint quiz or parallel track. 5.
  *   boss    Integration node, gated on multiple units. 1.
  *
  * `playable` links a node to a trainer entry that exists TODAY: a reaction id,
@@ -16,6 +18,7 @@
  */
 
 import type { NodeKind as EconomyNodeKind } from "@blueberry/economy";
+import { lessonTrainerFor } from "../content/u1/lessonTrainers";
 
 export type NodeKind = "spine" | "branch" | "gate" | "boss";
 
@@ -56,6 +59,34 @@ export interface PathwayNode {
    * (tabs/pathway/pathwayState.ts) reads this; the UI never restates it.
    */
   readonly after?: readonly string[];
+  /**
+   * WHAT THE STUDENT DOES HERE, owner whiteboard of 2026-09-29, recorded on
+   * Unit 1 first. Separate from `kind`, which keeps its meaning of dependency
+   * load: a `video` node opens on a short explainer and plays its lesson, a
+   * `practice` node plays the in-a-row run (beats/practice/run.ts), a `quiz`
+   * node is a stage checkpoint on the main line. A stage quiz is never
+   * `kind: "gate"`: the unit's one gate is its synthetic checkpoint
+   * (unitCheckpointNode below). Unset on every unit not yet rebuilt.
+   */
+  readonly role?: NodeRole;
+  /** The explainer's planned length in minutes, for a `video` node that has one set. */
+  readonly videoMinutes?: number;
+  /** Short background videos the guidebook lists in its Background section. */
+  readonly backgroundTopics?: readonly BackgroundTopic[];
+}
+
+export type NodeRole = "video" | "practice" | "quiz";
+
+/**
+ * One short background clip, owner 2026-09-29: the guidebook's fourth part.
+ * Rendered through lesson/LessonVideo, so until a clip exists it is the
+ * template strip and the page stands without it.
+ */
+export interface BackgroundTopic {
+  readonly id: string;
+  readonly title: string;
+  /** Planned length, in minutes. A clip under a minute is written as 1. */
+  readonly minutes: number;
 }
 
 export interface PathwayUnit {
@@ -63,32 +94,81 @@ export interface PathwayUnit {
   readonly title: string;
   readonly note: string;
   readonly nodes: readonly PathwayNode[];
+  /** What the checkpoint says it is, when the unit has an exam pool rather than the derived mix. */
+  readonly examBlurb?: string;
 }
+
+/*
+ * UNIT 1'S BACKGROUND CLIPS, owner whiteboard 2026-09-29: the guidebook's
+ * fourth part. Written once and attached by reference. R/S and E/Z were
+ * crossed out on the whiteboard and are deliberately absent.
+ */
+const BG_CATION: BackgroundTopic = { id: "bg-cation-stability", title: "C⁺ stability", minutes: 2 };
+const BG_HOMO_LUMO: BackgroundTopic = { id: "bg-homo-lumo", title: "HOMO/LUMO", minutes: 2 };
+// "30 s to 1 min" on the whiteboard; the field is whole minutes, so 1.
+const BG_FMO: BackgroundTopic = { id: "bg-fmo", title: "Frontier MO theory", minutes: 1 };
+const BG_STAGE_A = [BG_CATION];
+const BG_STAGE_D = [BG_HOMO_LUMO, BG_FMO];
 
 export const PATHWAY_UNITS: readonly PathwayUnit[] = [
   {
     id: "u1",
     title: "Unit 1 · Conjugation, Resonance & Dienes",
     note: "Gates Unit 9's control logic and all of Unit 12.",
+    // The exam is a pool (beats/practice/pools.ts), so the checkpoint says that instead of the mix.
+    examBlurb: "The unit exam: allylic stability, diene addition and Diels-Alder, in turn. Three in a row passes it.",
+    // REBUILT 2026-10-07 from the owner's whiteboard (prompt of 2026-09-29), in four stages, and
+    // no longer a mirror of the PDF inventory. The 1 Oct rulings shape it: one main line in
+    // dependency order (no D2a | D2b fork, so dienes then dienophiles), side quests beside it,
+    // stage quizzes on the line. A node with no `playable` is coming soon and waits for nothing.
+    // A practice node gains its link only when its pool exists (content/u1); playable.test.ts
+    // fails a link with nothing behind it.
     nodes: [
-      { id: "u1-allylic", kind: "spine", title: "Allylic/resonance delocalization", blurb: "Draw and rank allyl cation, radical, anion resonance forms.", playable: { kind: "resonance", id: "res-allyl-1" } },
-      // THE MAIN LINE OPENS IN THIS ORDER, and the order is the content's:
+      // STAGE A, allylic stability.
+      { id: "u1-allylic", kind: "spine", role: "video", videoMinutes: 2, title: "Allylic/resonance delocalization", blurb: "Draw and rank allyl cation, radical, anion resonance forms.", playable: { kind: "beat", id: "u1-allylic" }, backgroundTopics: [BG_CATION, BG_HOMO_LUMO] },
+      { id: "u1-rank-cation", kind: "spine", role: "practice", title: "Rank carbocation stability", blurb: "Order ladders, then quick questions: substitution and resonance.", playable: { kind: "beat", id: "u1-rank-cation" }, backgroundTopics: BG_STAGE_A },
+      { id: "u1-rank-anion", kind: "spine", role: "practice", title: "Rank carbanion stability", blurb: "The alkyl trend flips; resonance and s-character still help.", playable: { kind: "beat", id: "u1-rank-anion" }, backgroundTopics: BG_STAGE_A },
+      // Optional, owner 2026-09-29: radicals stay off Practice and the stage quiz.
+      { id: "u1-rank-radical", kind: "branch", role: "practice", title: "Rank radical stability", blurb: "Optional: radicals follow the cation trend; allylic and benzylic win.", playable: { kind: "beat", id: "u1-rank-radical" }, after: ["u1-rank-anion"], backgroundTopics: BG_STAGE_A },
+      { id: "u1-quiz-a", kind: "spine", role: "quiz", title: "Allylic stability checkpoint", blurb: "Use resonance to find the most stable cation and anion.", playable: { kind: "beat", id: "u1-quiz-a" }, backgroundTopics: BG_STAGE_A },
+      // STAGE B, addition to dienes. 12v14 BEFORE kvt, against the whiteboard's order, because
+      // the owner's 1 Oct dependency rule wins: mcq-kvt-cold, -warm and -statement all ask for
+      // "the 1,2 product" or "the 1,4 product" of HBr and butadiene, which 12v14 teaches.
       // seq-diene protonates butadiene to the allyl cation u1-allylic drills.
-      { id: "u1-12v14", kind: "spine", title: "1,2- vs 1,4-addition of HX", blurb: "Kinetic 1,2 cold, thermodynamic 1,4 warm.", playable: { kind: "sequence", id: "seq-diene" } },
-      // mcq-kvt-cold, -warm and -statement all ask for "the 1,2 product" or "the 1,4 product" of HBr and butadiene.
-      { id: "u1-kvt", kind: "spine", title: "Kinetic vs thermodynamic control", blurb: "Hammond postulate, reaction coordinate diagrams.", playable: { kind: "beat", id: "u1-kvt" } },
+      { id: "u1-12v14", kind: "spine", role: "video", title: "1,2- vs 1,4-addition of HX", blurb: "Kinetic 1,2 cold, thermodynamic 1,4 warm.", playable: { kind: "beat", id: "u1-12v14" }, backgroundTopics: BG_STAGE_A },
+      { id: "u1-kvt", kind: "spine", role: "video", title: "Kinetic vs thermodynamic control", blurb: "Hammond postulate, reaction coordinate diagrams.", playable: { kind: "beat", id: "u1-kvt" } },
+      { id: "u1-energy-diagram", kind: "spine", role: "practice", title: "Energy diagrams and reaction coordinate", blurb: "Read TS height against product depth on a two-product diagram.", playable: { kind: "beat", id: "u1-energy-diagram" } },
+      { id: "u1-hx-dienes", kind: "spine", role: "practice", title: "HX + dienes: kinetic or thermodynamic", blurb: "Given a diene, HX and a temperature, give the major product.", backgroundTopics: BG_STAGE_A, playable: { kind: "beat", id: "u1-hx-dienes" } },
       // seq-diene-br2 ends on the 1,4 dihalide, the thermodynamic product kvt explains (owner, 2026-10-01).
-      { id: "u1-x2", kind: "spine", title: "X₂ addition to dienes", blurb: "Br₂, Cl₂ → 1,2- and 1,4-dihalides, same allylic-cation logic.", playable: { kind: "sequence", id: "seq-diene-br2" } },
-      // mcq-nbs-position is tagged resonance_delocalisation: its answer is the delocalised allylic radical.
-      { id: "u1-nbs", kind: "branch", title: "Allylic halogenation", blurb: "NBS, hν; low [Br₂] is the whole trick.", playable: { kind: "beat", id: "u1-nbs" }, after: ["u1-allylic"] },
-      // MOVED LATER 2026-10-01, from u1-allylic, on the arrows in the data. The diels-alder card
-      // (demo/dielsAlder.ts) pushes two kinds of arrow: a pi bond shifting to the next bond
-      // (a-da-right), which res-allyl-1's a-shift drills, and a pi bond attacking to make a new
-      // sigma bond (a-da-left, a-da-dienophile), which the unit first asks for in seq-diene's
-      // a-pi-grab (u1-12v14). After allylic alone, two of its three arrows were uncleared.
-      // Its trace beats self-teach the s-cis diene and the dienophile one at a time.
-      { id: "u1-da", kind: "branch", title: "Diels–Alder", blurb: "s-cis diene + EWG dienophile; endo rule, stereospecific.", playable: { kind: "reaction", id: "diels-alder" }, after: ["u1-12v14"] },
-      // mcq-ied-roles asks what changes when the Diels-Alder's donor and acceptor roles are swapped.
+      // Role practice per the whiteboard; it keeps its sequence, so it plays that, not a pool run.
+      { id: "u1-x2", kind: "spine", role: "practice", title: "X₂ addition to dienes", blurb: "Br₂, Cl₂ → 1,2- and 1,4-dihalides, same allylic-cation logic.", playable: { kind: "beat", id: "u1-x2" } },
+      { id: "u1-quiz-b", kind: "spine", role: "quiz", title: "Kinetic/thermo diene addition checkpoint", blurb: "Mixed diene addition: mechanism first, then conditions.", playable: { kind: "beat", id: "u1-quiz-b" } },
+      // STAGE C, allylic halogenation: side quests after Stage B (D5 superseded, owner
+      // 2026-09-29). Split over two rows because a side lane holds two items
+      // (pathwayBranchDensity): the explainer waits for X2, its practice and check for the Stage B
+      // quiz the whiteboard hangs them off. mcq-nbs-position is tagged resonance_delocalisation:
+      // its answer is the delocalised allylic radical, which Stage A teaches.
+      { id: "u1-nbs", kind: "branch", role: "video", title: "Allylic halogenation", blurb: "NBS, hν; low [Br₂] is the whole trick.", playable: { kind: "beat", id: "u1-nbs" }, after: ["u1-x2"] },
+      { id: "u1-nbs-practice", kind: "branch", role: "practice", title: "NBS with hν or ROOR, CCl₄", blurb: "Find the allylic H's, draw every product, spot the initiator.", playable: { kind: "beat", id: "u1-nbs-practice" }, after: ["u1-nbs", "u1-quiz-b"] },
+      { id: "u1-quiz-c", kind: "branch", role: "quiz", title: "Allylic halogenation check", blurb: "NBS, start to finish.", playable: { kind: "beat", id: "u1-quiz-c" }, after: ["u1-nbs-practice"] },
+      // STAGE D, Diels-Alder, the main line to the exam. u1-mo is required, owner 2026-09-29:
+      // the Diels-Alder checklist opens with "HOMO and LUMO in phase".
+      { id: "u1-mo", kind: "spine", role: "practice", title: "π MO ladders and HOMO/LUMO", blurb: "Build the ladder, count nodes, label HOMO and LUMO.", playable: { kind: "beat", id: "u1-mo" }, backgroundTopics: BG_STAGE_D },
+      // SPINE SINCE 2026-10-07 (was a branch), owner 2026-09-29: about 14 exam points with dienes.
+      // The diels-alder card (demo/dielsAlder.ts) pushes two kinds of arrow: a pi bond shifting to
+      // the next bond (a-da-right), which res-allyl-1's a-shift drills, and a pi bond attacking to
+      // make a new sigma bond (a-da-left, a-da-dienophile), which seq-diene's a-pi-grab (u1-12v14)
+      // drills first. Both sit above it on the line. Its trace beats self-teach the s-cis diene
+      // and the dienophile one at a time.
+      { id: "u1-da", kind: "spine", role: "video", videoMinutes: 3, title: "Diels–Alder", blurb: "s-cis diene + EWG dienophile; endo rule, stereospecific.", playable: { kind: "beat", id: "u1-da" }, backgroundTopics: BG_STAGE_D },
+      { id: "u1-dienes", kind: "spine", role: "video", title: "Dienes", blurb: "The diene must reach s-cis; locked s-cis is fast.", playable: { kind: "beat", id: "u1-dienes" }, backgroundTopics: BG_STAGE_D },
+      { id: "u1-dienophiles", kind: "spine", role: "video", title: "Dienophiles", blurb: "EWGs on the dienophile: C=O, CN, NO₂.", playable: { kind: "beat", id: "u1-dienophiles" }, backgroundTopics: BG_STAGE_D },
+      { id: "u1-da-predict", kind: "spine", role: "practice", title: "Predict starting materials or product", blurb: "Forward and backward, with ortho/para regiochemistry.", playable: { kind: "beat", id: "u1-da-predict" }, backgroundTopics: BG_STAGE_D },
+      { id: "u1-da-stereo", kind: "spine", role: "video", title: "Diels–Alder stereochemistry", blurb: "Suprafacial, endo, fused and bridged rings.", playable: { kind: "beat", id: "u1-da-stereo" }, backgroundTopics: BG_STAGE_D },
+      { id: "u1-da-3d", kind: "spine", role: "practice", title: "3D products", blurb: "Wedge-dash products, endo vs exo, ring cases.", playable: { kind: "beat", id: "u1-da-3d" }, backgroundTopics: BG_STAGE_D },
+      { id: "u1-quiz-d", kind: "spine", role: "quiz", title: "Diels–Alder checkpoint", blurb: "The Diels–Alder, start to finish.", playable: { kind: "beat", id: "u1-quiz-d" }, backgroundTopics: BG_STAGE_D },
+      // Enrichment after Stage D, unchanged: mcq-ied-roles asks what changes when the
+      // Diels-Alder's donor and acceptor roles are swapped, so it waits for the Diels-Alder.
       { id: "u1-ied", kind: "branch", title: "Inverse/hetero Diels–Alder", blurb: "Carbonyl or imine in the cycloaddition.", playable: { kind: "beat", id: "u1-ied" }, after: ["u1-da"] },
       { id: "u1-poly", kind: "branch", title: "Radical polymerization of dienes", blurb: "Conceptual mention.", mentionOnly: true },
     ],
@@ -96,14 +176,23 @@ export const PATHWAY_UNITS: readonly PathwayUnit[] = [
   {
     id: "u2",
     title: "Unit 2 · Aromaticity & Benzene",
-    note: "Checkpoint quiz, not a lesson unit. Unlocks Unit 3.",
+    // A lesson unit since the draft (2026-10-17), owner direction "complete like Unit 1": the old note called it a checkpoint quiz.
+    note: "Aromaticity: the four Hückel tests, then charged rings, annulenes and heterocycles. Unlocks Unit 3.",
+    // The u2 checkpoint plays an exam pool (beats/practice/pools.ts), so it says so, as Unit 1's does. Draft copy.
+    examBlurb: "The unit exam: Hückel, charged rings, annulenes, heterocycles and ring-current NMR, in turn. Three in a row passes it.",
     nodes: [
-      { id: "u2-huckel", kind: "gate", title: "Hückel 4n+2 classification", blurb: "Aromatic vs antiaromatic vs nonaromatic." },
-      { id: "u2-annulene", kind: "gate", title: "Annulenes and ring size", blurb: "Why cyclooctatetraene tubs out." },
-      { id: "u2-hetero", kind: "gate", title: "Heterocycles", blurb: "Pyridine's lone pair sits out; pyrrole's joins in." },
-      { id: "u2-charged", kind: "gate", title: "Charged aromatics", blurb: "Cyclopentadienyl anion, tropylium cation." },
-      { id: "u2-nmr", kind: "gate", title: "Ring-current NMR signature", blurb: "Deshields outside, shields inside. Links to Unit 6." },
-      { id: "u2-nomen", kind: "branch", title: "Nomenclature review", blurb: "o/m/p, common names, polycyclics." },
+      // Unit 2 DRAFT, round 2 (2026-10-17). SPINE, not gate: an all-gate unit draws as a checkpoint (unitShape.ts
+      // isCheckpointUnit), so its lessons showed as timed check questions that opened only with the unit before it.
+      // Spine makes them a main line that opens one lesson at a time, like Unit 1. This moves reactions.test.ts's
+      // inventory pin from 100 spine to 105, which is the owner's to confirm (one word per row to revert).
+      // Charged rings come before annulenes because u2-ann-ladder-cation and u2-ann-azulene lean on charged rings.
+      { id: "u2-huckel", kind: "spine", role: "video", title: "Hückel 4n+2 classification", blurb: "Aromatic vs antiaromatic vs nonaromatic.", playable: { kind: "beat", id: "u2-huckel" } },
+      { id: "u2-charged", kind: "spine", role: "practice", title: "Charged aromatics", blurb: "Cyclopentadienyl anion, tropylium cation.", playable: { kind: "beat", id: "u2-charged" } },
+      { id: "u2-annulene", kind: "spine", role: "practice", title: "Annulenes and ring size", blurb: "Why cyclooctatetraene tubs out.", playable: { kind: "beat", id: "u2-annulene" } },
+      { id: "u2-hetero", kind: "spine", role: "practice", title: "Heterocycles", blurb: "Pyridine's lone pair sits out; pyrrole's joins in.", playable: { kind: "beat", id: "u2-hetero" } },
+      { id: "u2-nmr", kind: "spine", role: "video", title: "Ring-current NMR signature", blurb: "Deshields outside, shields inside. Links to Unit 6.", playable: { kind: "beat", id: "u2-nmr" } },
+      // A side quest off the first lesson: naming benzene rings needs only what Hückel teaches, not the NMR lesson.
+      { id: "u2-nomen", kind: "branch", role: "practice", title: "Nomenclature review", blurb: "o/m/p, common names, polycyclics.", playable: { kind: "beat", id: "u2-nomen" }, after: ["u2-huckel"] },
     ],
   },
   {
@@ -121,10 +210,13 @@ export const PATHWAY_UNITS: readonly PathwayUnit[] = [
       { id: "u3-nitro-red", kind: "spine", title: "Nitro reduction", blurb: "H₂/Pd or metal/HCl → aniline. The bridge into Unit 10.", playable: { kind: "beat", id: "u3-nitro-red" } },
       { id: "u3-c-to-ch2", kind: "spine", title: "Carbonyl → CH₂ after acylation", blurb: "Clemmensen or Wolff–Kishner: the unrearranged alkyl chain.", playable: { kind: "reaction", id: "wolff-extrusion" } },
       { id: "u3-sequencing", kind: "spine", title: "Multistep sequencing logic", blurb: "When to nitrate, reduce, block: order of operations.", playable: { kind: "beat", id: "u3-sequencing" } },
-      { id: "u3-fc-alkyl", kind: "branch", title: "Friedel–Crafts alkylation", blurb: "Taught as a failure mode: rearrangement, polyalkylation." },
-      { id: "u3-benzylic-br", kind: "branch", title: "Benzylic bromination", blurb: "NBS, hν; needs a benzylic H." },
-      { id: "u3-benzylic-ox", kind: "branch", title: "Benzylic oxidation", blurb: "KMnO₄ → ArCOOH; t-Bu survives." },
-      { id: "u3-birch", kind: "branch", title: "Birch reduction", blurb: "Na/NH₃(l)/ROH → 1,4-cyclohexadiene." },
+      // Unit 3 side quests with a DRAFT pool (scripts/u3_pools.py), each hung beside the lesson its
+      // questions lean on: alkylation is contrasted with acylation (u3-fc-acyl), NBS with ring
+      // bromination (u3-halo), and KMnO4 and Birch use the donor and withdrawer classes (u3-directing).
+      { id: "u3-fc-alkyl", kind: "branch", title: "Friedel–Crafts alkylation", blurb: "Taught as a failure mode: rearrangement, polyalkylation.", playable: { kind: "beat", id: "u3-fc-alkyl" }, after: ["u3-fc-acyl"] },
+      { id: "u3-benzylic-br", kind: "branch", title: "Benzylic bromination", blurb: "NBS, hν; needs a benzylic H.", playable: { kind: "beat", id: "u3-benzylic-br" }, after: ["u3-halo"] },
+      { id: "u3-benzylic-ox", kind: "branch", title: "Benzylic oxidation", blurb: "KMnO₄ → ArCOOH; t-Bu survives.", playable: { kind: "beat", id: "u3-benzylic-ox" }, after: ["u3-directing"] },
+      { id: "u3-birch", kind: "branch", title: "Birch reduction", blurb: "Na/NH₃(l)/ROH → 1,4-cyclohexadiene.", playable: { kind: "beat", id: "u3-birch" }, after: ["u3-directing"] },
       { id: "u3-gk", kind: "branch", title: "Gattermann–Koch formylation", blurb: "CO, HCl, AlCl₃/CuCl → ArCHO." },
       { id: "u3-ghh", kind: "branch", title: "Gattermann / Houben–Hoesch", blurb: "HCN or RCN, HCl, ZnCl₂." },
       { id: "u3-vilsmeier", kind: "branch", title: "Vilsmeier–Haack", blurb: "POCl₃, DMF; activated rings only." },
@@ -140,9 +232,10 @@ export const PATHWAY_UNITS: readonly PathwayUnit[] = [
       { id: "u4-snar", kind: "spine", title: "SNAr addition–elimination", blurb: "Aryl halide with o/p EWG + a nucleophile.", playable: { kind: "sequence", id: "seq-snar" } },
       { id: "u4-meisenheimer", kind: "spine", title: "Meisenheimer complex", blurb: "Drawing the charge onto the nitro oxygen is the exam question.", playable: { kind: "sequence", id: "seq-snar" } },
       { id: "u4-lg-order", kind: "spine", title: "Reversed leaving-group order", blurb: "F > Cl > Br > I: addition is rate-determining.", playable: { kind: "sequence", id: "seq-snar" } },
-      { id: "u4-benzyne", kind: "branch", title: "Benzyne elimination–addition", blurb: "NaNH₂/NH₃; symmetric addition gives a mixture." },
-      { id: "u4-isotope", kind: "branch", title: "Isotope-labelling proof", blurb: "¹⁴C chlorobenzene, 50:50 products." },
-      { id: "u4-dow", kind: "branch", title: "Dow phenol process", blurb: "Historical." },
+      // Unit 4 side quests with a DRAFT pool (scripts/u4_pools.py): each plays its lesson on the beat route.
+      { id: "u4-benzyne", kind: "branch", title: "Benzyne elimination–addition", blurb: "NaNH₂/NH₃; symmetric addition gives a mixture.", playable: { kind: "beat", id: "u4-benzyne" } },
+      { id: "u4-isotope", kind: "branch", title: "Isotope-labelling proof", blurb: "¹⁴C chlorobenzene, 50:50 products.", playable: { kind: "beat", id: "u4-isotope" } },
+      { id: "u4-dow", kind: "branch", title: "Dow phenol process", blurb: "Historical.", playable: { kind: "beat", id: "u4-dow" } },
     ],
   },
   {
@@ -161,14 +254,15 @@ export const PATHWAY_UNITS: readonly PathwayUnit[] = [
       { id: "u5-ep-base", kind: "spine", title: "Epoxide opening, basic", blurb: "Less hindered carbon, anti, clean SN2.", playable: { kind: "reaction", id: "epoxide-basic" } },
       { id: "u5-syn-diol", kind: "spine", title: "Syn-dihydroxylation", blurb: "OsO₄/NMO or cold KMnO₄ → cis-diol.", playable: { kind: "beat", id: "u5-syn-diol" } },
       { id: "u5-anti-diol", kind: "spine", title: "Anti-dihydroxylation", blurb: "mCPBA then H₃O⁺ → trans-diol. Teach as a pair with syn.", playable: { kind: "reaction", id: "epoxide-acidic" } },
-      { id: "u5-appel", kind: "branch", title: "Appel reaction", blurb: "CBr₄/PPh₃, driven by P=O." },
-      { id: "u5-swern", kind: "branch", title: "Swern / DMP / TEMPO detail", blurb: "Reagent-selection nuance." },
-      { id: "u5-alkoxymerc", kind: "branch", title: "Alkoxymercuration", blurb: "Hg(OAc)₂/ROH then NaBH₄; Markovnikov ether." },
-      { id: "u5-cleavage", kind: "branch", title: "Ether cleavage", blurb: "Excess HI/HBr, Δ." },
+      // Unit 5 side quests with a DRAFT pool (scripts/u5_pools.py): each plays its lesson on the beat route and hangs beside the lesson it leans on (`after`), at most two per lesson. u5-sharpless has none (see the u5 owner report).
+      { id: "u5-appel", kind: "branch", title: "Appel reaction", blurb: "CBr₄/PPh₃, driven by P=O.", playable: { kind: "beat", id: "u5-appel" }, after: ["u5-roh-rx"] },
+      { id: "u5-swern", kind: "branch", title: "Swern / DMP / TEMPO detail", blurb: "Reagent-selection nuance.", playable: { kind: "beat", id: "u5-swern" }, after: ["u5-oxidation"] },
+      { id: "u5-alkoxymerc", kind: "branch", title: "Alkoxymercuration", blurb: "Hg(OAc)₂/ROH then NaBH₄; Markovnikov ether.", playable: { kind: "beat", id: "u5-alkoxymerc" }, after: ["u5-williamson"] },
+      { id: "u5-cleavage", kind: "branch", title: "Ether cleavage", blurb: "Excess HI/HBr, Δ.", playable: { kind: "beat", id: "u5-cleavage" }, after: ["u5-williamson"] },
       { id: "u5-sharpless", kind: "branch", title: "Sharpless epoxidation", blurb: "Allylic alcohols, chiral DET. Advanced." },
-      { id: "u5-diol-cleave", kind: "branch", title: "Oxidative cleavage of diols", blurb: "HIO₄ → two carbonyls." },
-      { id: "u5-pinacol", kind: "branch", title: "Pinacol rearrangement", blurb: "1,2-diol, H⁺, Δ: the 1,2-shift." },
-      { id: "u5-thiols", kind: "branch", title: "Thiols and sulfides", blurb: "RSH, R₂S, sulfoxide, sulfone." },
+      { id: "u5-diol-cleave", kind: "branch", title: "Oxidative cleavage of diols", blurb: "HIO₄ → two carbonyls.", playable: { kind: "beat", id: "u5-diol-cleave" }, after: ["u5-syn-diol"] },
+      { id: "u5-pinacol", kind: "branch", title: "Pinacol rearrangement", blurb: "1,2-diol, H⁺, Δ: the 1,2-shift.", playable: { kind: "beat", id: "u5-pinacol" }, after: ["u5-dehydration"] },
+      { id: "u5-thiols", kind: "branch", title: "Thiols and sulfides", blurb: "RSH, R₂S, sulfoxide, sulfone.", playable: { kind: "beat", id: "u5-thiols" }, after: ["u5-oxidation"] },
     ],
   },
   {
@@ -176,13 +270,15 @@ export const PATHWAY_UNITS: readonly PathwayUnit[] = [
     title: "Unit 6 · Spectroscopy & Structure Determination",
     note: "Parallel track: one node injected into every downstream problem.",
     nodes: [
-      { id: "u6-dou", kind: "gate", title: "Degrees of unsaturation", blurb: "Cheapest information in the problem." },
+      // Unit 6 DRAFT wiring (2026-10-17): each node with a pool from scripts/u6_pools.py plays its lesson on the beat
+      // route; kind stays "gate" as Unit 2 does. u6-ir has no pool (IR band values are not derivable; see the u6 owner report).
+      { id: "u6-dou", kind: "gate", title: "Degrees of unsaturation", blurb: "Cheapest information in the problem.", playable: { kind: "beat", id: "u6-dou" } },
       { id: "u6-ir", kind: "gate", title: "IR diagnostics", blurb: "C=O ≈ 1700 and its shifts; O–H broad; C≡N ≈ 2250." },
-      { id: "u6-hnmr", kind: "gate", title: "¹H NMR", blurb: "Shift, integration, multiplicity, J." },
-      { id: "u6-cnmr", kind: "gate", title: "¹³C and DEPT", blurb: "Count, symmetry, CH₃/CH₂/CH/quaternary." },
-      { id: "u6-ms", kind: "gate", title: "Mass spectrometry", blurb: "Isotope patterns, α-cleavage, McLafferty." },
-      { id: "u6-2d", kind: "branch", title: "2D NMR", blurb: "COSY, HSQC, HMBC." },
-      { id: "u6-uv", kind: "branch", title: "UV-Vis and conjugation", blurb: "λmax, Woodward–Fieser. Links to Unit 1." },
+      { id: "u6-hnmr", kind: "gate", title: "¹H NMR", blurb: "Shift, integration, multiplicity, J.", playable: { kind: "beat", id: "u6-hnmr" } },
+      { id: "u6-cnmr", kind: "gate", title: "¹³C and DEPT", blurb: "Count, symmetry, CH₃/CH₂/CH/quaternary.", playable: { kind: "beat", id: "u6-cnmr" } },
+      { id: "u6-ms", kind: "gate", title: "Mass spectrometry", blurb: "Isotope patterns, α-cleavage, McLafferty.", playable: { kind: "beat", id: "u6-ms" } },
+      { id: "u6-2d", kind: "branch", title: "2D NMR", blurb: "COSY, HSQC, HMBC.", playable: { kind: "beat", id: "u6-2d" } },
+      { id: "u6-uv", kind: "branch", title: "UV-Vis and conjugation", blurb: "λmax, Woodward–Fieser. Links to Unit 1.", playable: { kind: "beat", id: "u6-uv" } },
     ],
   },
   {
@@ -451,7 +547,7 @@ export function unitCheckpointNode(unit: PathwayUnit): PathwayNode {
     // track engraves its finish flag by row (PathwayTab), not by this kind.
     kind: "gate",
     title: `${unitName(unit.title)} checkpoint`,
-    blurb: "A short mixed set, one question from each kind of work in this unit.",
+    blurb: unit.examBlurb ?? "A short mixed set, one question from each kind of work in this unit.",
     // A beat, so it plays on the lesson runner the rest of the map already uses.
     // planLesson resolves this id to the mix; see checkpointPlan in beats/template.ts.
     playable: { kind: "beat", id },
@@ -525,6 +621,9 @@ export function pathwayNodeForPlayable(kind: PlayableLink["kind"], id: string): 
     for (const node of unit.nodes) {
       const link = node.playable;
       if (link !== undefined && link.kind === kind && link.id === id) return node;
+      // A lesson that ends on the trainer still owns that trainer's clear from the Train tab.
+      const trainer = lessonTrainerFor(node.id);
+      if (trainer !== undefined && trainer.kind === kind && trainer.id === id) return node;
     }
   }
   return null;
@@ -590,5 +689,8 @@ export function economyKindFor(mapKind: NodeKind, link: PlayableLink): EconomyNo
  * test/challengeMode.test.ts holds the two equal over every node on the map.
  */
 export function hasChallengeRun(node: PathwayNode): boolean {
-  return node.kind !== "gate" && node.playable?.kind === "beat";
+  // A beat lesson that closes on the trainer (content/u1/lessonTrainers.ts) has an engine step too.
+  // The unit's synthetic checkpoint has none. It used to be found by `kind !== "gate"`, but Unit 2's draft rows are
+  // gate-kind practice runs (2026-10-17), so the checkpoint is now found by its id; no other gate on the map is playable.
+  return checkpointUnitFor(node.id) === null && node.playable?.kind === "beat" && lessonTrainerFor(node.id) === undefined;
 }

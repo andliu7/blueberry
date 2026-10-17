@@ -1,25 +1,29 @@
-import type { ComponentProps, ReactNode } from "react";
-import { motion, useReducedMotion } from "motion/react";
+import { useState } from "react";
 import { Mail } from "lucide-react";
 import { GithubMark, LinkedinMark } from "@/components/ui/brand-marks";
 import { BlueberryMark } from "@/components/ui/blueberry-mark";
-import { EMAIL, GITHUB_URL, LINKEDIN_URL, REPO_URL, SITE_NAME, TRAINER_URL } from "@/data/site";
+import { AboutOverlay } from "@/components/AboutOverlay";
+import { EMAIL, GITHUB_URL, LINKEDIN_URL, REPO_URL, SITE_NAME } from "@/data/site";
+import { SITE_CONTAINER } from "@/components/ui/site-nav";
+import { isReducedMotion } from "@/lib/motionPref";
 import { cn } from "@/lib/utils";
 
 /**
  * The foot of the page.
  *
  * Adapted from the supplied footer rather than pasted. The original shipped
- * four columns of links to pages that do not exist here — Pricing, Changelog,
- * Brand, a Facebook account — and a placeholder copyright for a company called
- * Asme. A footer full of dead links is worse than no footer: it is a map of a
- * building that was never built.
+ * four columns of links to pages that do not exist here (Pricing, Changelog,
+ * Brand, a Facebook account) and a placeholder copyright for a company called
+ * Asme. A footer full of dead links is worse than no footer.
  *
- * What is kept is the good part: the staggered blur-up on scroll, which is why
- * the file was worth starting from at all.
+ * Shell round 6: the staggered blur-up on scroll is gone too. Chrome should be
+ * there when you arrive; a footer still smeared 500ms after you reach it reads as
+ * loading (critic, shell round 5).
  *
- * Every link here goes somewhere real, and the sections are the ones this site
- * actually has.
+ * Drawn once for every site page by `SiteChrome`. Shell round 4: it no longer
+ * repeats the five destinations (the header and the phone bar already show them,
+ * 60px below on a phone), and it holds what the header gave up instead: About,
+ * Contact, Terms, the source, and the two site settings, theme and motion.
  */
 
 interface FooterLink {
@@ -29,154 +33,164 @@ interface FooterLink {
   external?: boolean;
 }
 
-const SECTIONS: { label: string; links: FooterLink[] }[] = [
-  {
-    label: "Study",
-    links: [
-      { title: "Study Decks", href: "#/study-decks" },
-      { title: "Lessons", href: "#/lessons" },
-      { title: "The game", href: TRAINER_URL },
-    ],
-  },
-  {
-    label: "The site",
-    links: [
-      { title: "Home", href: "#/home" },
-      { title: "Contact", href: "#/contact" },
-      { title: "Source", href: REPO_URL, external: true },
-    ],
-  },
-  {
-    label: "Find me",
-    links: [
-      { title: "GitHub", href: GITHUB_URL, icon: GithubMark, external: true },
-      { title: "LinkedIn", href: LINKEDIN_URL, icon: LinkedinMark, external: true },
-      { title: "Email", href: `mailto:${EMAIL}`, icon: Mail, external: true },
-    ],
-  },
+const SITE_LINKS: FooterLink[] = [
+  { title: "Contact", href: "#/contact" },
+  { title: "FAQ", href: "#/faq" },
+  { title: "Terms", href: "#/terms" },
+  { title: "Source", href: REPO_URL, external: true },
 ];
 
+const FIND_ME: FooterLink[] = [
+  { title: "GitHub", href: GITHUB_URL, icon: GithubMark, external: true },
+  { title: "LinkedIn", href: LINKEDIN_URL, icon: LinkedinMark, external: true },
+  { title: "Email", href: `mailto:${EMAIL}`, icon: Mail, external: true },
+];
+
+// 44 by 44 at least: `min-w-11` because "Terms" alone measured 41px wide (shell round 7).
+const LINK = "inline-flex min-h-11 min-w-11 items-center gap-1.5 text-foreground transition-colors duration-200 hover:text-[var(--site-nav-ink)]";
+const HEAD = "page-title text-base text-[var(--bb-deep)]";
+
 export function SiteFooter({ className }: { className?: string }) {
+  const [aboutOpen, setAboutOpen] = useState(false);
+
   return (
-    <footer
-      className={cn(
-        "relative isolate mx-auto w-full max-w-5xl border-t border-slate-200 px-6 py-12 dark:border-stone-800",
-        className,
-      )}
-    >
-      {/* A sheet of the page's own colour between the photograph and the text.
-
-          The footer is small, quiet type over whatever landscape the hour
-          picked, and small quiet type is exactly what a photograph destroys
-          first: the headings and links were sitting directly on tree bark. This
-          is deliberately *not* a full-strength background. It is translucent and
-          feathered at the top, so the picture still reads behind the footer and
-          the section simply gains enough ground to be legible on.
-
-          `-z-10` under an `isolate` footer, so it covers the photograph without
-          also covering the links it is there to protect. */}
-      <div
-        aria-hidden
-        className="absolute inset-0 -z-10 bg-gradient-to-b from-transparent via-[#f6f4ef]/85 to-[#f6f4ef]/95 backdrop-blur-[3px] dark:via-[#0c0a09]/85 dark:to-[#0c0a09]/95"
-      />
-
-      {/* The seam catches a little light in the middle, the way the supplied one
-          did. It is the only decoration here and it costs one div. */}
-      <div
-        aria-hidden
-        className="absolute top-0 left-1/2 h-px w-1/3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-r from-transparent via-[#9989e2]/40 to-transparent blur-[1px]"
-      />
-
-      <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.2fr_2fr]">
-        <Rise className="space-y-4">
+    <footer className={cn("site-footer border-t-2 border-[var(--site-hairline)]", className)}>
+      <div className={cn(SITE_CONTAINER, "grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-[1.2fr_2fr]")}>
+        <div className="space-y-3">
+          {/* 44 by 44, the skill's target floor (it was 36). */}
           <a
             href="#/home"
             aria-label={`${SITE_NAME}, home`}
-            className="inline-block rounded-full outline-none focus-visible:ring-2 focus-visible:ring-[#9989e2]"
+            className="-ml-1 inline-flex size-11 items-center justify-center rounded-full"
           >
             <BlueberryMark eyes className="size-9" />
           </a>
-          <p className="max-w-xs text-sm leading-relaxed text-slate-700 dark:text-stone-300">
+          <p className="max-w-xs text-sm leading-relaxed text-[var(--site-quiet)]">
             Organic chemistry for CHEM 241 and 242 at Maryland. Built while taking it.
           </p>
-          <p className="font-mono text-xs text-slate-500 dark:text-stone-400">
-            © {new Date().getFullYear()} Andrew Liu
-          </p>
-          {/* Unsplash asks for attribution wherever their photographs are used.
-              The backgrounds are all from there, so it belongs here rather than
-              buried on an about page. */}
-          <p className="font-mono text-xs text-slate-500 dark:text-stone-400">
-            Backgrounds from{" "}
-            <a
-              href="https://unsplash.com"
-              target="_blank"
-              rel="noreferrer noopener"
-              className="underline decoration-slate-400 underline-offset-2 transition-colors hover:text-[#5a3fd8] dark:hover:text-[#bbb1eb]"
-            >
-              Unsplash
-            </a>
-          </p>
-        </Rise>
+          <p className="text-xs text-[var(--site-quiet)]">© {new Date().getFullYear()} Andrew Liu</p>
+        </div>
 
         <div className="grid grid-cols-2 gap-8 sm:grid-cols-3">
-          {SECTIONS.map((section, i) => (
-            <Rise key={section.label} delay={0.08 + i * 0.08}>
-              <h3 className="font-mono text-[0.65rem] tracking-widest text-slate-600 uppercase dark:text-stone-300">
-                {section.label}
-              </h3>
-              <ul className="mt-4 space-y-2.5 text-sm">
-                {section.links.map((link) => (
-                  <li key={link.title}>
-                    <a
-                      href={link.href}
-                      {...(link.external ? { target: "_blank", rel: "noreferrer" } : {})}
-                      className="inline-flex items-center gap-1.5 text-slate-700 transition-colors hover:text-[#5a3fd8] dark:text-stone-200 dark:hover:text-[#bbb1eb]"
-                    >
-                      {link.icon && <link.icon className="size-3.5" />}
-                      {link.title}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </Rise>
-          ))}
+          <div>
+            <h3 className={HEAD}>The site</h3>
+            <ul className="mt-2 text-sm">
+              <li>
+                {/* The About card, which used to open from every page header. */}
+                <button type="button" onClick={() => setAboutOpen(true)} className={cn(LINK, "cursor-pointer")}>
+                  About
+                </button>
+              </li>
+              {SITE_LINKS.map((link) => (
+                <FooterItem key={link.title} link={link} />
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h3 className={HEAD}>Settings</h3>
+            <ul className="mt-2 text-sm">
+              <li>
+                <ThemeSwitch />
+              </li>
+              <li>
+                <MotionSwitch />
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h3 className={HEAD}>Find me</h3>
+            <ul className="mt-2 text-sm">
+              {FIND_ME.map((link) => (
+                <FooterItem key={link.title} link={link} />
+              ))}
+            </ul>
+          </div>
         </div>
       </div>
+
+      <AboutOverlay open={aboutOpen} onClose={() => setAboutOpen(false)} />
     </footer>
   );
 }
 
-/**
- * Blur-up on first sight, staggered by column.
- *
- * `once` because a footer that re-animates every time it scrolls back into view
- * is a footer that fidgets. Reduced motion gets the children unwrapped
- * entirely, rather than an animation with a zero duration, so there is no
- * motion component in the tree at all.
- */
-function Rise({
-  className,
-  delay = 0.1,
-  children,
-}: {
-  className?: ComponentProps<typeof motion.div>["className"];
-  delay?: number;
-  children: ReactNode;
-}) {
-  const reduce = useReducedMotion();
-  if (reduce) return <div className={className as string}>{children}</div>;
-
+function FooterItem({ link }: { link: FooterLink }) {
   return (
-    <motion.div
-      initial={{ filter: "blur(4px)", y: -8, opacity: 0 }}
-      whileInView={{ filter: "blur(0px)", y: 0, opacity: 1 }}
-      viewport={{ once: true }}
-      transition={{ delay, duration: 0.7 }}
-      className={className}
-    >
-      {children}
-    </motion.div>
+    <li>
+      <a href={link.href} {...(link.external ? { target: "_blank", rel: "noreferrer" } : {})} className={LINK}>
+        {link.icon && <link.icon className="size-3.5" />}
+        {link.title}
+      </a>
+    </li>
   );
+}
+
+/**
+ * A plain on/off switch: the words, then a small track. `role="switch"` with
+ * `aria-checked` is what a screen reader announces as "on" or "off".
+ */
+function Switch({ label, on, onToggle }: { label: string; on: boolean; onToggle: () => void }) {
+  return (
+    <button type="button" role="switch" aria-checked={on} onClick={onToggle} className={cn(LINK, "cursor-pointer gap-2.5")}>
+      {label}
+      <span
+        aria-hidden
+        className={cn(
+          "flex h-5 w-9 items-center rounded-full border-2 bg-[var(--bb-wash)] p-0.5 transition-colors duration-200",
+          // On is tinted, not filled: a filled violet here was a second primary on
+          // every page whose footer was in view (Learn round 4). Wash track, violet
+          // edge, knob in the violet ink (6.95:1 on the wash light, 7.85:1 night).
+          on ? "justify-end border-primary" : "justify-start border-[var(--site-border)]",
+        )}
+      >
+        <span className={cn("size-3 rounded-full", on ? "bg-[var(--site-nav-ink)]" : "bg-card")} />
+      </span>
+    </button>
+  );
+}
+
+/**
+ * Dark theme on or off. The same three steps as the theme toggler on the deck
+ * pages: crossfade every surface for the swap, flip the `dark` class, and save the
+ * choice so index.html's pre-paint script restores it on the next load.
+ */
+function ThemeSwitch() {
+  const [dark, setDark] = useState(
+    () => typeof document !== "undefined" && document.documentElement.classList.contains("dark"),
+  );
+  const toggle = () => {
+    const root = document.documentElement;
+    root.classList.add("theme-transition");
+    window.setTimeout(() => root.classList.remove("theme-transition"), 260);
+    const next = root.classList.toggle("dark");
+    setDark(next);
+    try {
+      localStorage.setItem("theme", next ? "dark" : "light");
+    } catch {
+      /* private mode: the choice lasts until reload */
+    }
+  };
+  return <Switch label="Dark theme" on={dark} onToggle={toggle} />;
+}
+
+/**
+ * Reduce motion on or off. Motion is one attribute, `html[data-motion="reduced"]`
+ * (src/lib/motionPref.ts). Saved as "reduced" or "full", so index.html can honour
+ * the choice before first paint even when it disagrees with the OS setting.
+ */
+function MotionSwitch() {
+  const [reduced, setReduced] = useState(() => typeof document !== "undefined" && isReducedMotion());
+  const toggle = () => {
+    const next = !reduced;
+    if (next) document.documentElement.setAttribute("data-motion", "reduced");
+    else document.documentElement.removeAttribute("data-motion");
+    setReduced(next);
+    try {
+      localStorage.setItem("motion", next ? "reduced" : "full");
+    } catch {
+      /* private mode: the choice lasts until reload */
+    }
+  };
+  return <Switch label="Reduce motion" on={reduced} onToggle={toggle} />;
 }
 
 export default SiteFooter;

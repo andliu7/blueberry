@@ -1,0 +1,217 @@
+/*
+ * Shared look for the social tabs (Leaderboards, Feed, Messages, Ask Blueberry).
+ *
+ * Three things live here because Tailwind utilities cannot say them cleanly:
+ * the coloured hero banner, the plain card, and
+ * the rule that hides blob faces inside a one-to-one Messages thread.
+ */
+
+/* Two columns on a wide screen: the screen's own content, and a rail that
+   says what the screen is for. One column on a phone, rail underneath. */
+.social-grid {
+  display: grid;
+  gap: 1.25rem;
+  width: 100%;
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: 1rem;
+}
+@media (min-width: 768px) {
+  .social-grid {
+    padding: 1.5rem;
+  }
+}
+@media (min-width: 1024px) {
+  .social-grid {
+    grid-template-columns: minmax(0, 1fr) 20rem;
+    gap: 2rem;
+    align-items: start;
+  }
+  .social-rail {
+    position: sticky;
+    top: 5.5rem;
+  }
+}
+.social-main,
+.social-rail {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* The hero banner: brand purple used as a surface, white type on it (7:1),
+   a solid lip under it like every other pressable-looking slab in the game. */
+.social-banner {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.25rem;
+  background: var(--bb-primary);
+  color: #ffffff;
+  box-shadow: 0 5px 0 var(--bb-primary-lip);
+  margin-bottom: 5px;
+  padding: 1.25rem;
+}
+.social-banner--orange {
+  background: #c2410c; /* white on it is 5.2:1 */
+  box-shadow: 0 5px 0 #7c2d12;
+}
+.social-banner h2 {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 900;
+  line-height: 1.1;
+}
+.social-banner p {
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.92);
+}
+/* Two flat circles in a lighter tint behind the art: the banner's only decoration. */
+.social-banner::before,
+.social-banner::after {
+  content: "";
+  position: absolute;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  pointer-events: none;
+}
+.social-banner::before {
+  width: 13rem;
+  height: 13rem;
+  right: -4rem;
+  top: -5rem;
+}
+.social-banner::after {
+  width: 7rem;
+  height: 7rem;
+  right: 6rem;
+  bottom: -4.5rem;
+}
+.social-banner > * {
+  position: relative;
+}
+
+/* The white pill on a banner (a timer, a count). */
+.social-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 2rem;
+  padding: 0 0.75rem;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #472ab4; /* the light-theme primary ink: the chip is white in both themes */
+  font-family: var(--font-display);
+  font-size: 0.8125rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+}
+.social-banner--orange .social-chip {
+  color: #8a3404;
+}
+
+/* A plain card on the game ground: solid surface, 2px line, 16px radius. */
+.social-card {
+  border: 2px solid var(--btn-line);
+  border-radius: 1.25rem;
+  background: var(--bb-card);
+  padding: 1.25rem;
+  color: var(--bb-foreground);
+}
+.social-card h2,
+.social-card h3 {
+  font-family: var(--font-display);
+  font-weight: 900;
+  color: var(--bb-foreground);
+}
+
+/* ONE-TO-ONE THREADS SHOW NO FACES on the bubbles, as iPhone Messages does:
+   the header already says who it is. GroupChat draws a blob face at size-9 on
+   every run; hiding it here keeps Bloom as one character (the berry in the
+   header) instead of a berry and a blob on the same screen. */
+.msg-one-to-one svg.size-9,
+.msg-one-to-one img.size-9 {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .social-pop {
+    animation: none !important;
+  }
+}
+.social-pop {
+  animation: social-pop 320ms var(--ease-spring) both;
+}
+@keyframes social-pop {
+  from {
+    transform: scale(0.92);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+/* A button sitting on a banner is white with the brand ink, in both themes,
+   so it reads as the banner's one action rather than a dark hole in it. */
+.social-banner .btn3d {
+  --b3-face: #ffffff;
+  --b3-lip: #2a1880;
+  --b3-ink: #472ab4;
+  --b3-rim: transparent;
+}
+.social-banner--orange .btn3d {
+  --b3-lip: #7c2d12;
+  --b3-ink: #8a3404;
+}
+
+/* A rail that only makes sense beside a desktop thread. On a phone the thread
+   is full height and pinned (Ask Blueberry), so a rail under it would be a
+   second scroll region hiding behind the tab bar. Plain CSS because
+   .social-rail's own display rule is unlayered and beats a Tailwind utility. */
+@media (max-width: 767px) {
+  .social-rail--desk {
+    display: none;
+  }
+}
+
+/* "How leagues work": the one secondary control under the Leaderboards hero.
+   An outlined slab with a lip (it is pressable), not a filled button, so the
+   filled START A LESSON above stays the only primary action. */
+.league-details__summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 3rem;
+  margin-bottom: 4px;
+  border: 2px solid var(--btn-line);
+  border-radius: 0.875rem;
+  background: var(--bb-card);
+  box-shadow: 0 4px 0 var(--btn-line);
+  color: var(--bb-primary-ink);
+  font-family: var(--font-display);
+  font-size: 0.9375rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+.league-details__summary::-webkit-details-marker {
+  display: none;
+}
+.league-details__summary:active {
+  transform: translateY(4px);
+  box-shadow: none;
+}
+.league-details__chevron {
+  transition: transform 200ms var(--ease-spring, ease-out);
+}
+.league-details[open] .league-details__chevron {
+  transform: rotate(180deg);
+}

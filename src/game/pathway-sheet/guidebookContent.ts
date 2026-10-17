@@ -38,6 +38,8 @@
  */
 
 import { HUMAN_GATE_MARK, type SheetNode, type SheetNodeKind } from "./nodeSheetModel";
+import { pathwayNode, type BackgroundTopic } from "../demo/pathwayMap";
+import { takeawayFor } from "./takeaways";
 
 /**
  * Which little structure the scheme draws at a step. Art direction, not
@@ -73,8 +75,16 @@ export interface GuidebookContent {
   readonly badge: string;
   /** Two or three sentences above the figure. Content face, per the goals. */
   readonly intro: string;
-  /** The key-idea callout card's body. The node's own authored blurb leads. */
+  /** The key-idea callout card's body: the node's takeaway when it has one, else its blurb. */
   readonly keyIdea: string;
+  /** True while the key idea is a draft takeaway; the card says so on its face. */
+  readonly keyIdeaDraft: boolean;
+  /**
+   * THE FOURTH PART, owner amendment 2026-09-29 (DESIGN-GOALS): short
+   * background clips, each rendered through lesson/LessonVideo, so the page
+   * stands without them until they are filmed. Empty draws no section.
+   */
+  readonly background: readonly BackgroundTopic[];
   readonly workedExample: {
     readonly heading: string;
     /**
@@ -145,6 +155,7 @@ const CLOSING_LINE =
   "A first attempt that does not land is how this gets learned, and every step tells you what it saw.";
 
 export function guidebookFor(node: SheetNode): GuidebookContent {
+  const takeaway = takeawayFor(node.id);
   return {
     placeholder: true,
     gateMark: HUMAN_GATE_MARK,
@@ -157,7 +168,9 @@ export function guidebookFor(node: SheetNode): GuidebookContent {
     intro:
       `${node.title}, on one page: what it is, where it shows up, and the ` +
       `pattern to look for. A short read before you press START.`,
-    keyIdea: node.blurb,
+    keyIdea: takeaway?.text ?? node.blurb,
+    keyIdeaDraft: takeaway?.placeholder === true,
+    background: pathwayNode(node.id)?.backgroundTopics ?? [],
     workedExample: {
       heading: "Worked example",
       lead: "Follow one problem of this shape, end to end.",

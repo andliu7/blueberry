@@ -751,6 +751,12 @@ export interface RecommendationProps {
   readonly mistakeTotal?: number;
   /** How long an ignored offer stays. 0 keeps it until the student acts. */
   readonly autoDismissMs?: number;
+  /**
+   * "toast" (default) floats it over the bottom of the screen. "inline" lays it
+   * in the page flow, for a screen that has room for it and a key it must not
+   * cover (the lesson's reward screen, A2 round 4).
+   */
+  readonly placement?: "toast" | "inline";
 }
 
 /**
@@ -771,6 +777,7 @@ export function Recommendation({
   reducedMotion,
   mistakeTotal,
   autoDismissMs = AUTO_DISMISS_MS,
+  placement = "toast",
 }: RecommendationProps) {
   const [phase, setPhase] = useState<SavePhase>("offered");
   const [flight, setFlight] = useState<FlightTransform | null>(null);
@@ -891,7 +898,7 @@ export function Recommendation({
   } as CSSProperties;
 
   return (
-    <div className="mistake-toast" style={style} data-phase={phase} role="status" aria-live="polite">
+    <div className={placement === "inline" ? "mistake-toast mistake-toast--inline" : "mistake-toast"} style={style} data-phase={phase} role="status" aria-live="polite">
       <div className="mistake-toast__card" ref={cardRef}>
         <p className="mistake-toast__reason">{reco.reason}</p>
         <p className="mistake-toast__front">{card.front}</p>

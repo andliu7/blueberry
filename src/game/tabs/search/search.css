@@ -1,0 +1,291 @@
+/*
+ * Reaction search. Style language: chunky, outlined, colour as surface.
+ *
+ * RULES THIS FILE KEEPS (same as tabs/me/me.css)
+ *  - Cards are outlined, never shadowed: a 2px --btn-line rim on --bb-card.
+ *  - Anything pressable has a solid lip (box-shadow, no blur) and sinks by the
+ *    lip on :active. Text buttons reuse .btn3d from app/ui/press.css.
+ *  - Fills come from the --ic-* palette in theme.css, the same in both themes,
+ *    so labels on them use --sr-on-bright, a fixed dark ink (8:1 or better on
+ *    every --ic-* face), never a themed token that would turn white at night.
+ *  - One colour per search axis, used by the try-chips AND the result tags:
+ *    blue = reagent, green = class, purple = name.
+ */
+
+.sr {
+  --sr-on-bright: #1d1640;
+  width: 100%;
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 1rem 1rem 3rem;
+  display: grid;
+  gap: 1.25rem;
+  color: var(--bb-foreground);
+  font-family: var(--font-display);
+}
+
+/* ---- the field --------------------------------------------------------- */
+
+.sr-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.sr-field__icon {
+  position: absolute;
+  left: 1rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--bb-muted-foreground);
+  pointer-events: none;
+}
+.sr-input {
+  width: 100%;
+  min-height: 3.5rem;
+  padding: 0 3.5rem 0 3.25rem;
+  border: 2px solid var(--btn-line);
+  border-bottom-width: 4px;
+  border-radius: 1rem;
+  background: var(--bb-card);
+  color: var(--bb-foreground);
+  font: 700 1.0625rem/1.2 var(--font-display);
+  transition: border-color 160ms ease;
+}
+.sr-input::placeholder {
+  color: var(--bb-muted-foreground);
+  font-weight: 600;
+}
+.sr-input:focus {
+  outline: none;
+  border-color: var(--ic-blue);
+}
+/* No browser "x": we draw our own clear key, which is 44px and themed. */
+.sr-input::-webkit-search-cancel-button {
+  display: none;
+}
+.sr-clear {
+  position: absolute;
+  right: 0.375rem;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 0;
+  border-radius: 9999px;
+  background: transparent;
+  color: var(--bb-muted-foreground);
+  cursor: pointer;
+}
+.sr-clear:hover {
+  background: var(--btn-ghost-hover);
+}
+.sr-clear:focus-visible {
+  outline: 3px solid var(--bb-ring);
+}
+
+/* ---- Bloom's speech bubble (empty and no-match states) ----------------- */
+
+.sr-coach {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.75rem;
+}
+.sr-bubble {
+  position: relative;
+  flex: 1;
+  padding: 0.875rem 1rem;
+  border: 2px solid var(--btn-line);
+  border-radius: 1rem;
+  background: var(--bb-card);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+.sr-bubble__sub {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--bb-muted-foreground);
+}
+/* The tail: a rotated square sharing the bubble's rim, pointing at Bloom. */
+.sr-bubble::before {
+  content: "";
+  position: absolute;
+  left: -0.5625rem;
+  bottom: 1rem;
+  width: 1rem;
+  height: 1rem;
+  background: var(--bb-card);
+  border-left: 2px solid var(--btn-line);
+  border-bottom: 2px solid var(--btn-line);
+  transform: rotate(45deg);
+}
+
+/* ---- try-chips --------------------------------------------------------- */
+
+.sr-groups {
+  display: grid;
+  gap: 1rem;
+}
+.sr-group__title {
+  margin: 0 0 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--bb-muted-foreground);
+}
+.sr-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.sr-chip {
+  --chip-face: var(--ic-blue);
+  --chip-lip: var(--ic-blue-lip);
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 0 1rem;
+  margin-bottom: 4px;
+  border: 0;
+  border-radius: 9999px;
+  background: var(--chip-face);
+  color: var(--sr-on-bright);
+  box-shadow: 0 4px 0 var(--chip-lip);
+  font: 800 0.9375rem/1 var(--font-display);
+  cursor: pointer;
+  transition: transform 90ms ease, box-shadow 90ms ease, filter 160ms ease;
+}
+.sr-chip--class { --chip-face: var(--ic-green); --chip-lip: var(--ic-green-lip); }
+.sr-chip--name { --chip-face: var(--ic-purple); --chip-lip: var(--ic-purple-lip); }
+/* White on the purple face: dark ink on #7c5cff is only 3.9:1, white is 4.6:1. */
+.sr-chip--name { color: #ffffff; }
+@media (hover: hover) {
+  .sr-chip:hover { filter: brightness(1.08); }
+}
+.sr-chip:active {
+  transform: translateY(4px);
+  box-shadow: 0 0 0 var(--chip-lip);
+}
+.sr-chip:focus-visible {
+  outline: 3px solid var(--bb-ring);
+  outline-offset: 2px;
+}
+
+/* ---- results ----------------------------------------------------------- */
+
+.sr-count {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: var(--bb-muted-foreground);
+}
+.sr-list {
+  display: grid;
+  gap: 0.875rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.sr-card {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem 1rem 1.125rem;
+  border: 2px solid var(--btn-line);
+  border-radius: 1rem;
+  background: var(--bb-card);
+}
+.sr-card__name {
+  margin: 0;
+  font-size: 1.1875rem;
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+.sr-card__what {
+  margin: 0;
+  font-family: var(--font-sans, inherit);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+.sr-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+/* A tag is a flat label, not a button, so it has no lip. */
+.sr-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: 9999px;
+  background: var(--ic-blue);
+  color: var(--sr-on-bright);
+  font-size: 0.8125rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.sr-tag--class { background: var(--ic-green); }
+.sr-tag--name { background: var(--ic-purple); color: #ffffff; }
+
+.sr-facts {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+}
+.sr-fact {
+  display: grid;
+  gap: 0.25rem;
+}
+.sr-fact dt {
+  font-size: 0.8125rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--bb-muted-foreground);
+}
+.sr-fact dd {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+/* A reagent slot: a small outlined key cap. The token the student typed is lit. */
+.sr-token {
+  padding: 0.1875rem 0.5rem;
+  border: 2px solid var(--btn-line);
+  border-radius: 0.5rem;
+  background: var(--bb-background, var(--bb-card));
+  font-weight: 700;
+}
+.sr-hit {
+  padding: 0 0.25rem;
+  border-radius: 0.375rem;
+  background: var(--ic-blue);
+  color: var(--sr-on-bright);
+}
+.sr-token__role {
+  margin-right: 0.25rem;
+  color: var(--bb-muted-foreground);
+  font-weight: 700;
+}
+.sr-note {
+  margin: 0;
+  padding: 0.625rem 0.75rem;
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, var(--ic-yellow) 22%, var(--bb-card));
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+.sr-card__foot {
+  display: flex;
+  justify-content: flex-start;
+}

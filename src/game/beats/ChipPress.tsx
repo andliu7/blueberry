@@ -1,49 +1,58 @@
 /**
- * The 3D pressable chip button, per DESIGN-GOALS "The buttons": thick darker
- * bottom edge, visibly presses down on pointer down, and a disabled state
- * that is a different object rather than a dimmed live one.
+ * The lesson's action key (CHECK, CONTINUE, KEEP GOING, UNDO).
  *
- * WHY THIS EXISTS BESIDE Press. The shell's Press is the outlined sticker
- * button of the lavender turn, and its disabled state is the live button at
- * opacity 0.6, which is exactly the ambiguity the S3 judge carried against
- * the question screen: an outlined Check whose disabled state you have to
- * guess at. The goals' chip is a different construction (fill plus edge, no
- * outline when live), and the lesson surfaces own their chrome, so the chip
- * lives here rather than in a file another builder owns.
+ * A2 round 2 (2026-10-16): this is now the shared 3D key from app/ui/press.css
+ * and nothing else. The lesson used to draw its own chip with its own rim,
+ * size and disabled look, which is why CHECK read as a different object from
+ * START and every other button. Now every lesson button is the same full-width
+ * key with the same lip, and only its COLOUR changes with the state:
  *
- * The press acknowledgement is pure CSS (`:active` in beat-chrome.css), which
- * paints the same frame the pointer lands, no JavaScript in the path; that is
- * how it stays inside the 100 ms budget by construction.
+ *   check  green "go" key (Check, Continue, Start). A2 round 4: the lesson's
+ *          commit key is green, not the brand violet, so the answer moment
+ *          has its own colour: flat grey slab while nothing is picked, green
+ *          once it is live, then the tray's own green or red
+ *   claim  green, the collect action
+ *   won    green, the key on a right-answer tray
+ *   near   red, the key on a wrong-answer tray (owner direction 2026-10-15:
+ *          green right, red wrong; it used to be amber)
+ *   quiet  the white secondary key (Undo, Adjust, Skip)
  *
- * Variants map to the committed button-types sheet:
- *   check  the violet primary action (Check, Continue, Start)
- *   claim  the green collect action, dark ink on the fill per FILL-ONLY
- *   quiet  the secondary action (Undo, Skip): outlined, still pressable
- *   won    the primary while a win is on screen, wearing the verdict's green
- *   near   the same, in the near-miss amber
+ * The `chip-press` and `chip-press--<variant>` classes stay on the element as
+ * plain markers: tests and a few stylesheets find the lesson's buttons by
+ * them. They carry no look of their own any more.
  *
- * WHY THE VERDICT COLOURS THE BUTTON. The bar's answer sheet turns its
- * primary button the verdict colour the instant it arrives, so the first
- * painted frame says right or not quite before a word is read. Ours kept the
- * indigo primary and lost the blind call on exactly that (round four motion
- * critic). The button is already on screen, so the cue costs no motion and no
- * latency. Still no red: a miss wears the sheet's own amber, per the file
- * header in sheetCopy.ts.
+ * `block` (default true) makes the key fill its row, the way the main action
+ * sits docked at the bottom of a lesson. Pass block={false} for a key that
+ * shares a row with another one.
  */
 
-import type { ButtonHTMLAttributes, ReactNode } from "react";
+import type { ButtonHTMLAttributes, ReactNode, Ref } from "react";
+import { pressClassName, type PressVariant } from "../app/ui/Press";
+import "../app/ui/press.css";
 import "./beat-chrome.css";
 
 export type ChipVariant = "check" | "claim" | "quiet" | "won" | "near";
 
+const PRESS_VARIANT: Record<ChipVariant, PressVariant> = {
+  check: "success",
+  claim: "success",
+  won: "success",
+  near: "danger",
+  quiet: "secondary",
+};
+
 export interface ChipPressProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   readonly variant?: ChipVariant;
+  readonly block?: boolean;
   readonly children: ReactNode;
+  /** React 19 passes `ref` as an ordinary prop, so it rides in `rest` onto the button. */
+  readonly ref?: Ref<HTMLButtonElement>;
 }
 
-export function ChipPress({ variant = "check", className = "", children, ...rest }: ChipPressProps) {
+export function ChipPress({ variant = "check", block = true, className = "", children, ...rest }: ChipPressProps) {
+  const look = pressClassName({ variant: PRESS_VARIANT[variant], size: "lg", block });
   return (
-    <button type="button" {...rest} className={`chip-press chip-press--${variant} ${className}`}>
+    <button type="button" {...rest} className={`${look} chip-press chip-press--${variant} ${className}`}>
       {children}
     </button>
   );

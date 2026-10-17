@@ -89,7 +89,7 @@ export const Contact2 = ({
           <div>
             {/* no-pointer: the name reacts to hover for the flourish, not because it
                 goes anywhere, and a pointer would promise a click that does nothing. */}
-            <h1 className="no-pointer title-face mb-3 text-4xl leading-[1.05] text-slate-900 sm:text-5xl dark:text-stone-100">
+            <h1 className="no-pointer page-title mb-3 text-4xl leading-[1.05] text-[var(--bb-deep)] sm:text-5xl">
               {title}
             </h1>
             {/* The one block of real body copy that was set in handwriting. It
@@ -150,7 +150,7 @@ export const Contact2 = ({
         >
         <form
           onSubmit={submit}
-          className="shine-border relative flex w-full flex-col gap-5 rounded-2xl border border-slate-200 bg-white/60 p-8 shadow-sm dark:border-stone-800 dark:bg-stone-900/50"
+          className="shine-border bb-glow relative flex w-full flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-8 shadow-sm dark:border-stone-800 dark:bg-stone-900"
         >
           <div className="flex flex-col gap-5 sm:flex-row sm:gap-4">
             <div className="grid w-full gap-1.5">

@@ -94,7 +94,7 @@ export function VerifyChecklist({
                 "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full transition-colors",
                 step.done
                   ? "bg-emerald-500 text-white"
-                  : "border border-dashed border-slate-300 text-slate-300 dark:border-stone-600 dark:text-stone-600",
+                  : "border border-dashed border-slate-400 text-slate-400 dark:border-stone-500 dark:text-stone-500",
               )}
             >
               {step.done ? <Check className="size-3" /> : <Circle className="size-2" />}

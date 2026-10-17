@@ -8,9 +8,9 @@ import { cn } from "@/lib/utils";
  * `grid-cols-[0fr]` version on the old lessons pencil and a `max-w-0` version on
  * `DashboardButton`. One component so the two cannot drift.
  *
- * **The label is never hover-only.** `DashboardButton` carries a comment about
- * why: it used to hide the word until hover, which made it an unlabelled square
- * on every phone and tablet, and it is the way in to most of the site. The
+ * **The label is never hover-only.** The dashboard's old header button (gone
+ * since 2026-10-07) once hid the word until hover, which made it an unlabelled
+ * square on every phone and tablet, and it was the way in to most of the site. The
  * expansion here is an enhancement for pointers, not the only way to read the
  * control:
  *

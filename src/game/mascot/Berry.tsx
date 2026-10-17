@@ -304,9 +304,30 @@ export function Berry({
       }
       return;
     }
+    // While the boot loader covers the screen (html[data-boot]) nobody can see
+    // this berry, and measured on a throttled phone its per-frame work cost
+    // about 1.4 s of main thread during boot. Draw one frame so it has its
+    // size, then only keep the loop alive until the loader is gone. The berry
+    // the Loader portals INTO the boot layer is the one on screen, so it never
+    // pauses (pausing it froze the loader's blink).
+    let drawn = false;
+    let covered = false;
+    const onLoader = nodeRef.current?.closest("#boot") != null;
     const tick = (now: number) => {
       const node = nodeRef.current;
       if (node === null) return;
+      if (drawn && !onLoader && document.documentElement.hasAttribute("data-boot")) {
+        covered = true;
+        frameRef.current = requestAnimationFrame(tick);
+        return;
+      }
+      if (covered) {
+        // Blend from the frozen pose, as any new behaviour does, so nothing snaps.
+        covered = false;
+        fromPoseRef.current = lastPoseRef.current;
+        startedAtRef.current = now;
+      }
+      drawn = true;
       const name = currentRef.current;
       const config = BEHAVIOURS[name];
       const elapsed = now - startedAtRef.current;
@@ -438,7 +459,8 @@ export function Berry({
       // Only a state that contributes blush takes the blush over from the mood
       // CSS, so every mood the shell already renders is untouched.
       data-blush={shape.blush > 0 ? "state" : undefined}
-      aria-label={`Blueberry, looking ${impliedMood}${STATE_ALT[state]}`}
+      // The character is Bloom; Blueberry is the product (documentation/MASCOT.md).
+      aria-label={`Bloom, looking ${impliedMood}${STATE_ALT[state]}`}
       role="img"
     >
       {shape.haloKind !== "none" ? <span className="berry-halo" aria-hidden /> : null}

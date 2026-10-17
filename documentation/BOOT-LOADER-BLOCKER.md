@@ -53,3 +53,23 @@ Three ways out, none of them free:
 
 The test stays failing until this is answered. Adjusting it to pass would be
 adjusting a validator to fit a build, which this repository does not do.
+
+## What is built now (2026-10-16, X1 loading screen, round 3)
+
+Option 3 is what exists in the tree, uncommitted, and it was built without this
+decision being taken. Recording it here so it is not silent:
+
+- The markup and its driver script live in the site's `index.html`. The head
+  script switches it on before paint only when the URL is `#/app`; on any other
+  page it stays `display: none`.
+- It also opens on a hashchange INTO `#/app` (home CTA, funnel, a link), so a
+  warm entry gets the same loader as a cold one, once per document.
+- `src/game/app/Loader.tsx` finds `#boot-mark` on mount, not at module scope,
+  which is half of option 2's change.
+- `src/game/test/bootFrontDoor.test.ts` pins the contract as built (ids,
+  events, Bloom's size, the ground colours, inert while up). It does not replace
+  `bootLoader.test.ts`, which still describes the old two-panel design and stays
+  red until the owner picks a way out above.
+
+The decision is still open. If the answer is option 1 or 2, the new test moves
+or goes with it in the same commit.

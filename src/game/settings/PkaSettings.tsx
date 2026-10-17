@@ -21,12 +21,11 @@
  * questions a student asks: what is this, whose table am I on, is anything
  * wrong, and then the ladder itself with the rung they came to change.
  *
- * WHERE THIS SCREEN IS REACHED FROM, stated because today the answer is
- * nowhere. app/routes.ts has no `settings` tab and it belongs to the
- * integration agent, so this component is written and exported and not yet
- * mounted. The READING half is already live: SortBeatView subscribes to the
- * same store and resolves every card's number through `pkaValueFor`, so a
- * number changed here shows up in a lesson the moment the route exists.
+ * WHERE THIS SCREEN IS REACHED FROM: Me, then Settings, then the "pKa
+ * values" row, at #/app/me/settings/pka (tabs/me/MeTab.tsx picks the screen
+ * from the hash, so the back button returns to Settings). SortBeatView
+ * subscribes to the same store and resolves every card's number through
+ * `pkaValueFor`, so a number changed here shows up in a lesson at once.
  *
  * REACT PATTERNS NAMED, per CLAUDE.md's communication rules.
  *   - `useSyncExternalStore` subscribes this component to the settings store in
@@ -63,7 +62,7 @@ import {
   useSyncExternalStore,
   type KeyboardEvent,
 } from "react";
-import { Card, Pill } from "../app/ui/Card";
+import type { ReactNode } from "react";
 import type { PkaSiteId } from "@blueberry/curriculum";
 import {
   PKA_PRESETS,
@@ -88,6 +87,34 @@ import {
  */
 export function usePkaSettings(): PkaSettingsSnapshot {
   return useSyncExternalStore(pkaSettings.subscribe, pkaSettings.getSnapshot);
+}
+
+/**
+ * Cards and chips in the Me tab's style. This screen only ever opens inside
+ * the Me tab (#/app/me/settings/pka), which loads tabs/me/me.css.
+ */
+function Card({ children }: { readonly children: ReactNode }) {
+  return <section className="me-card">{children}</section>;
+}
+
+function Pill({ children, tone }: { readonly children: ReactNode; readonly tone: "muted" | "primary" }) {
+  return (
+    <span className="me-chip" data-tone={tone}>
+      {children}
+    </span>
+  );
+}
+
+/**
+ * A preset's source, as a student should read it. The data keeps the exact
+ * file it was checked against (settings/pka.ts); the screen drops the folder
+ * and the file extension, which mean nothing to a student.
+ */
+function sourceForStudents(source: string): string {
+  return source
+    .replace(/^.*\//, "")
+    .replace(/\.pdf/i, "")
+    .replace(/_/g, ", ");
 }
 
 const ORIGIN_LABEL: Readonly<Record<ResolvedPka["origin"], string>> = {
@@ -124,20 +151,17 @@ export default function PkaSettings() {
   const savedRung = justSaved === null ? null : (ladder.find((r) => r.id === justSaved) ?? null);
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-4 p-4 md:p-6">
-      <header>
-        <h1 className="text-scale-xl font-semibold leading-tight">pKa values</h1>
-        <p className="mt-1 text-scale-sm text-bb-muted-foreground">
-          Different courses teach slightly different numbers for the same rung. Pick the table your
-          class uses, and change any single value your professor writes differently. Everything in
-          the app reads these numbers: lessons, cards and the quiz.
-        </p>
-      </header>
+    // The screen's title and back key are drawn by the Me tab's sub header.
+    <div className="flex flex-col gap-4">
+      <p className="m-0 text-center font-bold me-muted">
+        Pick your class's table, then change any number your professor writes differently.
+        Lessons, cards and quizzes all use these numbers.
+      </p>
 
       <Card>
-        <h2 className="text-scale-base font-semibold">Which table</h2>
+        <h2 className="me-h2">Which table</h2>
         <PresetChooser selectedId={preset.id} />
-        <p className="mt-3 text-scale-xs text-bb-muted-foreground">
+        <p className="mt-3 text-scale-sm text-bb-muted-foreground">
           Your own changes sit on top of whichever table is selected, so switching tables keeps
           them.
         </p>
@@ -156,7 +180,7 @@ export default function PkaSettings() {
             color: "var(--warn-ink-strong)",
           }}
         >
-          <h2 className="text-scale-base font-semibold">
+          <h2 className="me-h2" style={{ color: "inherit" }}>
             {conflicts.length === 1
               ? "One question disagrees with your table"
               : `${conflicts.length} questions disagree with your table`}
@@ -179,7 +203,7 @@ export default function PkaSettings() {
                     those are the audited pairs. Fading it to 80 percent drops
                     the light pair to 4.17:1, under AA for normal text, and it
                     is the one theme the fade was invisible in. */}
-                <p className="mt-1 text-scale-xs">Ranked by {conflict.criterion}</p>
+                <p className="mt-1 text-scale-sm">Ranked by {conflict.criterion}</p>
                 <p className="mt-1 text-scale-sm">{conflict.message}</p>
               </li>
             ))}
@@ -189,8 +213,8 @@ export default function PkaSettings() {
 
       <Card>
         <div className="flex items-baseline justify-between gap-3">
-          <h2 className="text-scale-base font-semibold">The ladder</h2>
-          <span className="text-scale-xs text-bb-muted-foreground">Most acidic first</span>
+          <h2 className="me-h2 m-0">The ladder</h2>
+          <span className="text-scale-sm text-bb-muted-foreground">Most acidic first</span>
         </div>
         <ul className="mt-2 divide-y divide-bb-border">
           {ladder.map((rung) => (
@@ -205,7 +229,7 @@ export default function PkaSettings() {
         {/* A live region rather than a toast. The list re-sorted under the
             reader, so a screen reader is told where the row went and a sighted
             reader gets the same sentence in the same place. */}
-        <p className="mt-2 text-scale-xs text-bb-muted-foreground" role="status" aria-live="polite">
+        <p className="mt-2 text-scale-sm text-bb-muted-foreground" role="status" aria-live="polite">
           {savedRung === null
             ? ""
             : `Saved. ${savedRung.label} is now ${formatPka(savedRung.value)}, at position ${
@@ -215,7 +239,7 @@ export default function PkaSettings() {
       </Card>
 
       <Card>
-        <h2 className="text-scale-base font-semibold">Start over</h2>
+        <h2 className="me-h2">Start over</h2>
         <p className="mt-1 text-scale-sm text-bb-muted-foreground">
           {changed === 0
             ? "You have not changed any single value yet."
@@ -229,7 +253,7 @@ export default function PkaSettings() {
           disabled={changed === 0}
           onPointerDown={() => pkaSettings.clearAllOverrides()}
           onClick={() => pkaSettings.clearAllOverrides()}
-          className="press mt-3 min-h-11 rounded-2xl border-2 border-bb-input bg-bb-card px-4 font-semibold disabled:opacity-50"
+          className="btn3d btn3d--secondary mt-3"
         >
           Clear my changes
         </button>
@@ -315,22 +339,18 @@ function PresetChooser({ selectedId }: { readonly selectedId: string }) {
             }}
             onPointerDown={() => pkaSettings.setPreset(option.id)}
             onClick={() => pkaSettings.setPreset(option.id)}
-            className={`press min-h-11 rounded-[12px] border p-3 text-left ${
-              selected ? "border-bb-primary bg-bb-primary/10" : "border-bb-border bg-bb-card hover:bg-bb-muted"
-            }`}
+            className="me-choice"
           >
             <span className="flex items-center gap-2">
               <span
                 aria-hidden
-                className={`h-4 w-4 shrink-0 rounded-full border-2 ${
-                  selected ? "border-bb-primary bg-bb-primary" : "border-bb-input"
-                }`}
+                className="me-choice-dot"
               />
-              <span className="text-scale-base font-semibold">{option.label}</span>
+              <span className="me-row-title">{option.label}</span>
             </span>
             <span className="mt-1 block text-scale-sm text-bb-muted-foreground">{option.blurb}</span>
-            <span className="mt-1 block text-scale-xs text-bb-muted-foreground">
-              Source: {option.source}
+            <span className="mt-1 block text-scale-sm text-bb-muted-foreground">
+              Source: {sourceForStudents(option.source)}
             </span>
           </button>
         );
@@ -409,17 +429,19 @@ function LadderRow({
     >
       <div className="flex items-center gap-3">
         <span className="min-w-0 flex-1">
-          <span className="block text-scale-sm font-medium leading-snug">{rung.label}</span>
+          <span className="block font-bold leading-snug">{rung.label}</span>
+          {/* The chip sits under the name so a phone row keeps the name on
+              one or two lines instead of one word per line. */}
+          <span className="mt-1 block">
+            <Pill tone={rung.origin === "override" ? "primary" : "muted"}>{ORIGIN_LABEL[rung.origin]}</Pill>
+          </span>
           {rung.origin === "override" ? (
-            <span className="block text-scale-xs text-bb-muted-foreground">
+            <span className="block text-scale-sm text-bb-muted-foreground">
               This table says {formatPka(rung.baseValue)}.
             </span>
           ) : null}
         </span>
-        <span className="text-scale-base font-bold tabular-nums">{formatPka(rung.value)}</span>
-        <Pill tone={rung.origin === "override" ? "primary" : "muted"}>
-          {ORIGIN_LABEL[rung.origin]}
-        </Pill>
+        <span className="me-pka-value">{formatPka(rung.value)}</span>
         <button
           type="button"
           aria-expanded={open}
@@ -429,7 +451,7 @@ function LadderRow({
              in one press. The pressed state still lands on pointer down,
              because .press does it in CSS with :active and never waits on JS. */
           onClick={() => (open ? setOpen(false) : startEditing())}
-          className="press min-h-11 rounded-2xl border-2 border-bb-input px-3 text-scale-sm font-semibold"
+          className="btn3d btn3d--secondary btn3d--sm"
         >
           {open ? "Close" : "Change"}
         </button>
@@ -466,7 +488,7 @@ function LadderRow({
           />
           <button
             type="submit"
-            className="press min-h-11 rounded-2xl border-2 border-[color:var(--bb-primary-edge)] bg-bb-primary px-4 font-semibold text-bb-primary-foreground"
+            className="btn3d btn3d--primary btn3d--sm"
           >
             Save
           </button>
@@ -481,19 +503,19 @@ function LadderRow({
                 pkaSettings.clearOverride(rung.id);
                 setOpen(false);
               }}
-              className="press min-h-11 rounded-2xl border-2 border-bb-input px-3 text-scale-sm font-semibold"
+              className="btn3d btn3d--ghost btn3d--sm"
             >
               Use the table value
             </button>
           ) : null}
           {rejection === null ? (
-            <p className="basis-full text-scale-xs text-bb-muted-foreground">
+            <p className="basis-full text-scale-sm text-bb-muted-foreground">
               {rung.note ?? `Where this one came from: ${rung.source.replace(/_/g, " ")}.`}
             </p>
           ) : (
             <p
               id={rejectionId}
-              className="basis-full text-scale-xs font-medium"
+              className="basis-full text-scale-sm font-medium"
               style={{ color: "var(--warn-ink-strong)" }}
               role="alert"
             >

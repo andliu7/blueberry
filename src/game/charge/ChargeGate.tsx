@@ -60,6 +60,7 @@ import { chargeMeterModel, type ChargeMeterModel } from "./chargeMeterModel";
 import { chargeGateModel, type ChargeGateModel, type ChargeGateNode } from "./chargeGateModel";
 import "./charge.css";
 import { closeOnBackdrop } from "../app/ui/dismiss";
+import { Press } from "../app/ui/Press";
 
 /**
  * How often the sheet re-derives while it is open and nothing has been pressed.
@@ -306,10 +307,10 @@ export function ChargeGate({ node, onClose, reducedMotion }: ChargeGateProps) {
             </p>
           )}
 
-          <button
-            type="button"
+          <Press
+            block
+            size="lg"
             data-charge-primary
-            className="press charge-cta"
             onPointerDown={() => {
               if (model.state === "empty") {
                 navigate(REVIEW_HREF);
@@ -320,25 +321,25 @@ export function ChargeGate({ node, onClose, reducedMotion }: ChargeGateProps) {
             }}
           >
             {model.primaryLabel}
-          </button>
+          </Press>
 
           {model.topUp === null ? null : (
-            <button
-              type="button"
+            <Press
+              block
+              variant="secondary"
               data-charge-topup
               disabled={!model.topUp.affordable}
-              className="press charge-second"
               onPointerDown={topUp}
             >
               <DiamondMark className="h-5 w-5 shrink-0" />
               <span>{model.topUp.label}</span>
-            </button>
+            </Press>
           )}
           {model.topUp === null ? null : <p className="charge-note">{model.topUp.note}</p>}
 
-          <button type="button" className="press charge-dismiss" onPointerDown={onClose}>
+          <Press block variant="ghost" onPointerDown={onClose}>
             {model.dismissLabel}
-          </button>
+          </Press>
         </div>
       )}
     </dialog>

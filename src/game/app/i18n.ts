@@ -148,7 +148,7 @@ const EN: Readonly<Record<StringKey, string>> = Object.freeze({
   "tab.leaderboards": "Leaderboards",
   "tab.periodic": "Periodic table",
   "tab.chat": "AI chat",
-  "tab.messages": "Tutor messages",
+  "tab.messages": "Messages",
   "action.continue": "Continue",
   "action.check": "Check the step",
   "action.startOver": "Start over",

@@ -97,8 +97,6 @@ function code(text: string): string {
  * instead of quietly excusing a file that no longer needs it.
  */
 const CLASS_EXCEPTIONS: Record<string, string> = {
-  "src/components/HomePage.tsx": "another session owns this file; 10 hits reported to the owner",
-  "src/components/HomeHero.tsx": "another session owns this file; 2 hits reported to the owner",
 };
 
 // Built from parts so this file does not itself emit the utilities it bans.
@@ -134,8 +132,6 @@ const HEX_EXCEPTIONS: Record<string, string> = {
   // lavenders are real and reported to the owner. Delete the rows when they land.
   "src/index.css":
     "OWNED BY ANOTHER SESSION. Real lavender at :397, :398 (indigo-600), :534, :572, :622 (violet-500), :535, :573, :623 (#7c3aed), :580, :581 (violet-400), :1173, :1398, :1411 (indigo-500), :1328 (#faf9ff)",
-  "src/components/ui/page-background.tsx":
-    "OWNED BY ANOTHER SESSION. Real lavender at :530, :531 (indigo-500) and :574 (#faf9ff)",
 };
 
 /**
@@ -209,6 +205,10 @@ const GROUNDS = {
   cream: "#fbf3e6",
   white: "#ffffff",
   ground: "#f5f7fb",
+  // The site's page ground from 2026-10-07 (owner: "page ground lavender #efeaf8"),
+  // --site-ground in src/tokens.css. Added as an input so every light-ink check
+  // below also runs against the ground the site now paints.
+  siteGround: "#efeaf8",
   night: "#171a2e",
   nightCard: "#232741",
   stone900: "#1c1917",
@@ -260,7 +260,7 @@ describe("the brand ramp measures what its comments claim", () => {
 
   it("carries body text at 4.5:1 on every light ground it is used as ink on", () => {
     for (const step of [600, 700, 800, 900, 950] as const) {
-      for (const ground of [GROUNDS.cream, GROUNDS.white, GROUNDS.ground]) {
+      for (const ground of [GROUNDS.cream, GROUNDS.white, GROUNDS.ground, GROUNDS.siteGround]) {
         expect(contrast(RAMP[step], ground), `${step} ${RAMP[step]} on ${ground}`).toBeGreaterThanOrEqual(4.5);
       }
     }

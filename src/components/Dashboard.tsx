@@ -1,22 +1,18 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { useMemo, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import {
   ArrowUpRight,
-  Atom,
   BookOpen,
   ChevronDown,
-  ExternalLink,
   LayoutGrid,
   Layers,
   LogIn,
-  Menu,
   Palette,
   Search,
   Sparkles,
   X,
 } from "lucide-react";
-import { DashboardNav, type DashboardView } from "@/components/ui/dashboard-nav";
+import { type DashboardView } from "@/components/ui/dashboard-nav";
 import { CourseTree } from "@/components/ui/course-tree";
 import { SearchResults } from "@/components/ui/deck-search";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
@@ -35,41 +31,24 @@ import { timeAgo } from "@/lib/workspace";
 import { useDecks } from "@/lib/useDecks";
 import { useGoogleAuth } from "@/lib/useGoogleAuth";
 import { useIsDark } from "@/lib/useIsDark";
-import { SURFACE } from "@/lib/hubSurface";
-import { TRAINER_URL } from "@/data/site";
 import { cn } from "@/lib/utils";
+import { OfficeHoursEditor } from "@/components/OfficeHoursEditor";
 
 /**
- * The dashboard: everything the site can do, in one surface laid over the page.
+ * The dashboard's panels: what `#/d` and each `#/d/<view>` page shows (see
+ * `DashboardPage`), plus the update list the Notifications page reads.
  *
- * It replaces the Browse drawer, which was a course tree and nothing else. That
- * was the right size while study decks *were* the site. They are not going to
- * be — lessons and mechanism practice are coming, subscriptions are coming, and
- * accounts are coming — and none of that fits in a drawer whose only idea is a
- * list of folders.
+ * Until 2026-10-07 this file also held the dashboard as a drawer laid over the
+ * home page, Study Decks and the folder pages, with the "Dashboard" button in
+ * their headers that opened it. The site header now carries the five
+ * destinations on every page (SITE-REPLAN.md phase 3), so the drawer and its
+ * button went; the panels below are unchanged.
  *
- * **A panel over the page rather than a route.** You reach this by clicking
- * search, which happens in the middle of reading a deck; navigating away from
- * what you were reading in order to search it would be the wrong trade. Escape,
- * the backdrop and the ✕ all put you back exactly where you were. When Settings
- * and Notifications grow into pages worth linking to, they can graduate to
- * routes of their own without this having to change shape.
- *
- * The sections that are not built yet say so, in the nav and in the panel. A
- * greyed row marked "soon" is a promise; a row that opens onto a convincing
- * empty page is a bug report waiting to happen.
+ * The sections that are not built yet say so. A greyed row marked "soon" is a
+ * promise; a row that opens onto a convincing empty page is a bug report
+ * waiting to happen.
  */
 
-
-
-/**
- * Open state, held by the page so the header can drive it.
- *
- * `view === null` is closed. One piece of state rather than a boolean plus a
- * view, because the two can never legally disagree: there is no such thing as
- * open-on-nothing, and a separate boolean is how you end up with a panel that
- * opens onto whatever you were looking at three clicks ago.
- */
 /**
  * Set just before navigating when the dashboard should be open on arrival.
  * Exported so the sign-in page sets the same string this reads.
@@ -77,30 +56,6 @@ import { cn } from "@/lib/utils";
 export const OPEN_ON_ARRIVAL = "blueberry_open_dashboard_on_arrival";
 
 export type { DashboardView };
-
-export function useDashboard() {
-  const [view, setView] = useState<DashboardView | null>(null);
-  const [focusSearch, setFocusSearch] = useState(false);
-
-  const open = useCallback((next: DashboardView = "home", opts?: { focusSearch?: boolean }) => {
-    setView(next);
-    setFocusSearch(Boolean(opts?.focusSearch));
-  }, []);
-
-  const close = useCallback(() => {
-    setView(null);
-    setFocusSearch(false);
-  }, []);
-
-  /** For a button that is both the way in and the way out, like Browse. */
-  const toggle = useCallback((next: DashboardView = "home") => {
-    setView((cur) => (cur === null ? next : null));
-  }, []);
-
-  return { view, focusSearch, open, close, toggle, setView, isOpen: view !== null };
-}
-
-export type DashboardState = ReturnType<typeof useDashboard>;
 
 /** Decks added recently enough to be worth announcing, newest first. */
 export function useUpdates() {
@@ -128,196 +83,6 @@ export function loadSeen(): Set<string> {
   } catch {
     return new Set();
   }
-}
-
-/**
- * The menu the hub's burger opens.
- *
- * It no longer takes a seed query. That existed because the modal contained a
- * search box and the page's own filter had to be copied into it; the drawer is
- * a list of destinations, and searching is the job of the overlay that `/`
- * opens. Callers still pass `seedQuery` harmlessly, since it is ignored rather
- * than required.
- */
-export function Dashboard({
-  dash,
-}: {
-  dash: DashboardState;
-  /** Accepted and unused, so existing callers do not have to change. */
-  seedQuery?: string;
-}) {
-  const { close, isOpen } = dash;
-  const isDark = useIsDark();
-  const reduce = useReducedMotion();
-  const surface = isDark ? SURFACE.dark : SURFACE.light;
-  const updates = useUpdates();
-  const [seen] = useState<Set<string>>(loadSeen);
-
-  const panelRef = useRef<HTMLDivElement>(null);
-  const returnFocusTo = useRef<Element | null>(null);
-
-  // Only the badge is drawn here now.
-  const unread = updates.filter((u) => !seen.has(u.id)).length;
-
-  useEffect(() => {
-    if (!isOpen) return;
-
-    returnFocusTo.current = document.activeElement;
-    // The panel rather than the first control: focus landing on a nav row would
-    // read as having already chosen something.
-    panelRef.current?.focus();
-
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") close();
-    };
-    document.addEventListener("keydown", onKey);
-
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prev;
-      (returnFocusTo.current as HTMLElement | null)?.focus?.();
-    };
-  }, [isOpen, close]);
-
-
-
-
-  /**
-   * The drawer, which is only the column.
-   *
-   * This used to be the whole dashboard: a centred card holding the column and
-   * a panel beside it. Everything about that fought being a place. You could not
-   * link to Settings, the browser's back button closed the lot rather than
-   * stepping back one section, and a full page of content had to live inside
-   * `min(88vh, 880px)` and scroll within its own box.
-   *
-   * So the sections became pages at `#/d/<view>` and this became what the
-   * burger on the hub actually implies: a panel that slides in from the edge,
-   * shows you where you can go, and closes when you go there.
-   */
-  return createPortal(
-    <AnimatePresence>
-      {isOpen && (
-        <>
-          <motion.div
-            initial={reduce ? false : { opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={reduce ? undefined : { opacity: 0 }}
-            transition={{ duration: 0.18 }}
-            onClick={close}
-            className="fixed inset-0 z-[60] bg-slate-950/45 backdrop-blur-[2px]"
-            aria-hidden
-          />
-
-          <motion.aside
-            ref={panelRef}
-            tabIndex={-1}
-            role="dialog"
-            aria-modal="true"
-            aria-label="Blueberry menu"
-            initial={reduce ? false : { x: "-100%" }}
-            animate={{ x: 0 }}
-            exit={reduce ? undefined : { x: "-100%" }}
-            transition={{ type: "spring", stiffness: 260, damping: 30, mass: 0.7 }}
-            style={{ backgroundColor: surface.base }}
-            className="fixed inset-y-0 left-0 z-[61] flex w-72 max-w-[85vw] flex-col border-r border-slate-200 shadow-2xl outline-none dark:border-stone-700"
-          >
-            <div className="flex shrink-0 items-center justify-between px-3 pt-3">
-              <a
-                href="#/d"
-                onClick={close}
-                className="inline-flex min-h-9 items-center rounded-lg px-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:text-stone-200 dark:hover:bg-stone-800"
-              >
-                Open the dashboard
-              </a>
-              <button
-                type="button"
-                onClick={close}
-                aria-label="Close the menu"
-                className="cursor-pointer rounded-full p-1.5 text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-[#9989e2] focus-visible:outline-none dark:text-stone-300 dark:hover:bg-stone-800"
-              >
-                <X className="size-4" />
-              </button>
-            </div>
-
-            <div className="min-h-0 flex-1">
-              <DashboardNav unread={unread} onNavigate={close} />
-            </div>
-          </motion.aside>
-        </>
-      )}
-    </AnimatePresence>,
-    document.body,
-  );
-}
-
-/**
- * The pill in the site header that opens it, inherited from the Browse button
- * it replaces.
- *
- * Icon only until reached for, then the label grows out beside it. The bar has a
- * mark, a category name, a search and three actions to fit, so a permanently
- * worded button was spending room on a label you only need in the moment you are
- * deciding whether to press it.
- *
- * `max-width` rather than `width`, because the label has no width to animate to
- * until it is laid out and `auto` is not interpolable. The icon is first in the
- * row and never moves, so the button grows rightward from under the cursor
- * instead of sliding out from beneath it. `whitespace-nowrap` matters too: at
- * zero width the text would wrap to one character per line and give the button a
- * height it could not lose.
- */
-export function DashboardButton({
-  open,
-  onToggle,
-  className,
-}: {
-  open: boolean;
-  onToggle: () => void;
-  className?: string;
-}) {
-  const label = open ? "Close" : "Dashboard";
-
-  /**
-   * The label is written, not revealed.
-   *
-   * This used to keep the word in a `max-w-0` box that opened on hover, which
-   * made it an unlabelled square everywhere hover does not exist — every phone
-   * and tablet — and this is the only way into search, categories and settings.
-   * A control that is the way in to most of the site cannot be a mystery icon.
-   *
-   * The word is hidden below `sm` rather than never shown, because on a phone
-   * the row already carries a mark, a category and two actions; there the
-   * `aria-label` and the 44px target do the work.
-   *
-   * `min-h-11` is 44px. It was 30x28 with the icon at `size-3.5`, which is
-   * under the minimum on both axes.
-   */
-  return (
-    <button
-      type="button"
-      onClick={onToggle}
-      title={open ? "Close the dashboard" : "Open the dashboard"}
-      aria-label={open ? "Close the dashboard" : "Open the dashboard"}
-      aria-expanded={open}
-      className={cn(
-        "group/dash inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full border px-3 text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-[#9989e2] focus-visible:outline-none",
-        open
-          ? "border-[#bbb1eb] bg-[#f1f4fa] text-[#472ab4] dark:border-[#9989e2]/40 dark:bg-[#6b51dd]/15 dark:text-[#ccd5ea]"
-          : "border-slate-200 bg-white/85 text-slate-600 hover:border-[#bbb1eb] hover:bg-white hover:text-[#472ab4] dark:border-stone-700 dark:bg-stone-900/60 dark:text-stone-300 dark:hover:border-[#9989e2]/50 dark:hover:bg-stone-800 dark:hover:text-[#ccd5ea]",
-        className,
-      )}
-    >
-      {/* A burger rather than the four squares. The squares read as "grid view",
-          which is a thing this button does not do; three stacked lines are the
-          one icon everybody already reads as "the menu is behind here". */}
-      {open ? <X className="size-4 shrink-0" /> : <Menu className="size-4 shrink-0" />}
-      <span className="hidden whitespace-nowrap sm:inline">{label}</span>
-    </button>
-  );
 }
 
 /* ── the panels ─────────────────────────────────────────────────────────── */
@@ -366,35 +131,12 @@ export function Panel({
       return <AppearancePanel />;
     case "profile":
       return <ProfilePanel onClose={onClose} />;
+    case "hours":
+      return <OfficeHoursEditor />;
     // A real panel rather than a redirect: a redirect fired from render is the
     // bug this replaced.
     case "lessons":
       return <LessonsPanel onClose={onClose} />;
-    case "concepts":
-      return (
-        <Unbuilt
-          title="Concepts"
-          lead="Mechanisms you draw rather than recall: push the electrons and get told whether the product is right."
-        >
-          <p>
-            This is where the mechanism trainer will land. It is a separate app today, far enough
-            along to try but not yet part of Blueberry.
-          </p>
-          <a
-            href={TRAINER_URL}
-            className="group mt-4 inline-flex items-center gap-1.5 text-sm font-bold text-[#5a3fd8] outline-none dark:text-[#bbb1eb]"
-          >
-            <span className="relative">
-              Open the mechanism trainer
-              <span
-                aria-hidden
-                className="absolute -bottom-0.5 left-0 h-[2px] w-full origin-left scale-x-0 rounded-full bg-gradient-to-r from-brand-from to-brand-to transition-transform duration-300 ease-out group-hover:scale-x-100"
-              />
-            </span>
-            <ExternalLink className="size-3.5 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-          </a>
-        </Unbuilt>
-      );
     case "subscriptions":
       return (
         <div>
@@ -586,15 +328,6 @@ function CategoriesPanel({ decks, go }: { decks: Deck[]; go: (view: DashboardVie
       title: "Lessons",
       blurb: "Written notes for each topic, to read before the cards make sense.",
       meta: "Carbonyls, in seven parts",
-      ready: true,
-    },
-    {
-      view: "concepts" as const,
-      icon: <Atom className="size-4" />,
-      title: "Concepts",
-      blurb: "Draw the mechanism and push the electrons. The mechanism trainer, once it moves in.",
-      meta: "Separate app for now",
-      ready: false,
     },
     {
       view: "decks" as const,
@@ -602,14 +335,13 @@ function CategoriesPanel({ decks, go }: { decks: Deck[]; go: (view: DashboardVie
       title: "Study Decks",
       blurb: "Flashcards and reference sheets, grouped by course and folder.",
       meta: `${decks.length} decks · ${cards} cards`,
-      ready: true,
     },
   ];
 
   return (
     <div>
       <p className="playful-body max-w-xl text-[0.95rem] leading-7 text-slate-600 dark:text-stone-300">
-        Three ways into the same chemistry. Only one of them is built.
+        Two ways into the same chemistry.
       </p>
       <ul className="mt-6 space-y-3">
         {rows.map((row) => (
@@ -617,15 +349,10 @@ function CategoriesPanel({ decks, go }: { decks: Deck[]; go: (view: DashboardVie
             <button
               type="button"
               onClick={() => go(row.view)}
-              className={cn(
-                "group flex w-full cursor-pointer items-start gap-3 rounded-xl border px-4 py-3.5 text-left transition-colors",
-                row.ready
-                  ? "border-slate-200 bg-white/85 hover:border-[#bbb1eb] hover:bg-white dark:border-stone-700 dark:bg-stone-900/75 dark:hover:border-[#9989e2]/50 dark:hover:bg-stone-900"
-                  : "border-dashed border-slate-300 hover:bg-slate-100/60 dark:border-stone-700 dark:hover:bg-stone-900/40",
-              )}
+              className="group flex w-full cursor-pointer items-start gap-3 rounded-xl border border-slate-200 bg-white/85 px-4 py-3.5 text-left transition-colors hover:border-[#bbb1eb] hover:bg-white dark:border-stone-700 dark:bg-stone-900/75 dark:hover:border-[#9989e2]/50 dark:hover:bg-stone-900"
             >
               {/* The berry itself behind the icon, rather than the gradient it
-                  was borrowing. Same mark the home cards carry, so the three
+                  was borrowing. Same mark the home cards carry, so the two
                   ways in are recognisably the same family. The icon keeps a
                   drop shadow because it now sits on a rounded shape with light
                   and dark areas rather than a flat fill. */}
@@ -881,7 +608,7 @@ function ProfilePanel({ onClose }: { onClose: () => void }) {
       <AvatarPicker fallback={user?.picture ?? undefined} />
 
       <div className="mt-5">
-        <p className="title-face text-2xl text-slate-900 dark:text-stone-100">
+        <p className="page-title text-2xl text-slate-900 dark:text-stone-100">
           {name || user?.name || "Guest"}
         </p>
         <p className="truncate text-sm text-slate-500 dark:text-stone-400">
@@ -1023,8 +750,8 @@ function ProfileIdentity() {
 
 function Stat({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white/85 px-4 py-3 dark:border-stone-700 dark:bg-stone-900/75">
-      <p className="title-face text-2xl text-slate-900 dark:text-stone-100">{value}</p>
+    <div className="bb-glow rounded-xl border border-slate-200 bg-white/85 px-4 py-3 [--glow:var(--site-tab-me)] dark:border-stone-700 dark:bg-stone-900/75">
+      <p className="page-title text-2xl text-slate-900 dark:text-stone-100">{value}</p>
       <p className="mt-0.5 text-xs text-slate-500 dark:text-stone-400">{label}</p>
     </div>
   );
@@ -1199,4 +926,3 @@ function Unbuilt({
   );
 }
 
-export default Dashboard;

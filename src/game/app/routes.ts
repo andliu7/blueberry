@@ -112,7 +112,7 @@ export const ALL_TABS: readonly TabDefinition[] = Object.freeze([
   { id: "courses", label: "Courses", short: "Courses", dataPhase: 5, placement: "collapsed", parent: "pathway" },
   { id: "leaderboards", label: "Leaderboards", short: "Boards", dataPhase: 6, placement: "flagged", parent: "me" },
   { id: "chat", label: "Ask Blueberry", short: "Chat", dataPhase: 7, placement: "flagged", parent: "me" },
-  { id: "messages", label: "Tutor messages", short: "Tutors", dataPhase: 8, placement: "flagged", parent: "me" },
+  { id: "messages", label: "Messages", short: "Texts", dataPhase: 8, placement: "flagged", parent: "me" },
 ]);
 
 /** The bar. Five items, in this order, and five is the ceiling. */

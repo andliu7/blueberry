@@ -19,6 +19,14 @@
 @import "@fontsource-variable/inter/wght.css";
 @import "@fontsource-variable/fraunces/wght.css";
 @import "@fontsource-variable/caveat/wght.css";
+/* Nunito, the title face (owner, 7 Oct 2026). Same fontsource convention: the variable
+   build, split by unicode-range, so a page that draws Latin fetches only the 39 kB Latin
+   file, and only when a title in --site-display is on screen. */
+@import "@fontsource-variable/nunito/wght.css";
+
+/* The site's motion curves and new colour names. See the header of that file for why the
+   ground has its own name rather than --bb-background. */
+@import "./tokens.css";
 
 /* Tailwind v4 wires `dark:` to prefers-color-scheme by default. The theme
    switch toggles a class instead, so point the variant at it. */
@@ -309,14 +317,15 @@
 
 body {
   font-family: "Inter Variable", Inter, ui-sans-serif, system-ui, sans-serif;
-  /* NO COLOUR HERE. The root paints the ground (html, further down); body stays
-     transparent so `PageBackground`, which mounts `fixed inset-0 -z-10`, is not
-     buried under body's own background box. The grid lines stay, because they
-     are texture rather than ground and they read over either. */
-  background-image:
-    linear-gradient(rgba(15,23,42,0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(15,23,42,0.025) 1px, transparent 1px);
-  background-size: 28px 28px;
+  /* NO BACKGROUND HERE. The root paints the ground (html, further down, from
+     --site-ground). No grid either (shell round 5): the light theme's 2.5% grid
+     showed on Learn, Schedule and sign-in while Study Decks painted flat ground
+     over it, two grounds in one product. One flat lavender now, the blueberry
+     skill's rule 1, as night already was. */
+  /* One ink for any text that names no colour of its own, in both themes. Pages
+     that set none inherited the browser's black, which is black on the navy at
+     night (the unit page's title, 2026-10-07 audit). */
+  color: var(--foreground);
 }
 
 /* Reference-deck answer badges: blurred in quiz mode until you hover the row,
@@ -385,28 +394,6 @@ body {
   font-family: "Inter Variable", Inter, ui-sans-serif, system-ui, sans-serif;
   letter-spacing: 0.01em;
   line-height: 1.7;
-}
-
-/* Giant outlined word behind the hero title, for the "ghost" variant. Sized in
-   viewport units so it always spans the screen. */
-.ghost-word {
-  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia,
-    "Times New Roman", serif;
-  font-size: 26vw;
-  line-height: 0.75;
-  font-weight: 900;
-  letter-spacing: -0.05em;
-  color: transparent;
-  -webkit-text-stroke: 1px rgba(79, 70, 229, 0.22);
-  background: linear-gradient(180deg, rgba(79, 70, 229, 0.1) 0%, transparent 65%);
-  -webkit-background-clip: text;
-  background-clip: text;
-}
-.dark .ghost-word {
-  -webkit-text-stroke: 1px rgba(253, 230, 138, 0.18);
-  background: linear-gradient(180deg, rgba(253, 230, 138, 0.09) 0%, transparent 65%);
-  -webkit-background-clip: text;
-  background-clip: text;
 }
 
 /* Serif display face for the page title. */
@@ -513,48 +500,6 @@ input:-webkit-autofill:active {
   caret-color: var(--autofill-fg, #e7e5e4);
 }
 
-/* While a blocking toast is up, everything is behind a blurred scrim except
-   whatever the toast is pointing at.
-
-   The scrim is a fixed element at z-80, so lifting one control above it is a
-   matter of giving that control a stacking context of its own at a higher
-   index. `position: relative` is required: `z-index` does nothing on a static
-   element, which is the trap this rule exists to avoid. */
-.toast-blocking .toast-spotlight {
-  position: relative;
-  z-index: 85;
-}
-
-/* A ring, so the one sharp control on a blurred page reads as chosen rather
-   than as the only thing that failed to blur. */
-.toast-blocking .toast-spotlight::after {
-  content: "";
-  position: absolute;
-  inset: -6px;
-  border-radius: 0.85rem;
-  pointer-events: none;
-  box-shadow:
-    0 0 0 2px rgba(139, 92, 246, 0.55),
-    0 0 26px -2px rgba(124, 58, 237, 0.6);
-  animation: spotlight-pulse 1.8s ease-in-out infinite;
-}
-
-@keyframes spotlight-pulse {
-  0%,
-  100% {
-    opacity: 0.75;
-  }
-  50% {
-    opacity: 1;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .toast-blocking .toast-spotlight::after {
-    animation: none;
-  }
-}
-
 /* The violet halo the form fields wear when focused, as something anything can
    pick up on hover. Used on the about card's tags, its profile links and the
    logo, so pointing at any of them gets the same answer.
@@ -635,82 +580,7 @@ input:-webkit-autofill:active {
      At #0c0a09 it was a dead black band across the top of every screenshot -
      two blind critics called it an unfinished page. The ground and the page
      are the same colour now, so an undressed slot reads as page, not absence. */
-  /* NO COLOUR HERE either, and html.dark above already paints this exact
-     #171327 as the root, so the ground a reader sees is unchanged. */
-  background-image:
-    linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
-}
-
-/* Card fan carousel. The component positions .fan-card purely through GSAP
-   transforms, so the cards need their box (absolute, centered, sized) from CSS
-   or they collapse to zero height and nothing is visible. Layout heights track
-   the breakpoints in getHeightMultiplier(). */
-.fan-layout {
-  height: 13rem;
-}
-.fan-card {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 5.5rem;
-  height: 7.25rem;
-  margin-top: -3.625rem;
-  margin-left: -2.75rem;
-  border-radius: 0.75rem;
-  overflow: hidden;
-  /* THE TOKEN, NOT A LITERAL. These were hardcoded #fff and, in dark, #1c1917,
-     which is a WARM near-black while every other card surface in the product is
-     the cool navy --card #192438. So the fan was the one card stack that did not
-     match the others, and it also sat outside the ivory-to-white pass that moved
-     --cards-paper, since a literal cannot be moved by changing a token.
-     Light is unchanged at #ffffff. Dark goes 1.02:1 to 1.14:1 against the page,
-     neither of which is a boundary the eye reads: the fan is separated by its
-     shadow, which is why these cards carry one and the flat surfaces do not. */
-  background: var(--card);
-  border: 4px solid var(--card);
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.18);
-  will-change: transform;
-  transform-origin: center bottom;
-}
-.dark .fan-card {
-  /* Colour comes from --card above, which the dark theme already redefines.
-     Only the shadow needs a dark variant, because a shadow tuned for a light
-     page disappears on a dark one. */
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
-}
-
-@media (min-width: 480px) {
-  .fan-layout { height: 14rem; }
-  .fan-card {
-    width: 6rem; height: 8rem;
-    margin-top: -4rem; margin-left: -3rem;
-  }
-}
-
-@media (min-width: 640px) {
-  .fan-layout { height: 15rem; }
-  .fan-card {
-    width: 6.75rem; height: 9rem;
-    margin-top: -4.5rem; margin-left: -3.375rem;
-  }
-}
-
-@media (min-width: 768px) {
-  .fan-layout { height: 16rem; }
-  .fan-card {
-    width: 7.5rem; height: 10rem;
-    margin-top: -5rem; margin-left: -3.75rem;
-    border-radius: 1rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  .fan-layout { height: 17rem; }
-  .fan-card {
-    width: 8rem; height: 10.75rem;
-    margin-top: -5.375rem; margin-left: -4rem;
-  }
+  /* NO COLOUR HERE either: <html> paints the ground, --site-ground. */
 }
 
 /* ---------------------------------------------------------------- MacBook
@@ -1156,72 +1026,6 @@ button:disabled,
   }
 }
 
-/* ── the light that runs around a hovered tile ─────────────────────────────
-
-   A conic gradient spun behind the card and masked to a one-pixel ring, so the
-   bright arc travels the border rather than sweeping across the face. The mask
-   is the trick: `padding-box` minus `content-box` composited with `xor` leaves
-   exactly the frame, which is why this needs no second element and no SVG.
-
-   `@property` is what makes it animate at all. A conic gradient's angle is not
-   an interpolatable value to CSS unless the custom property it comes from is
-   declared with a type, so without this the arc would jump from 0 to 360 with
-   nothing in between. */
-@property --tile-spin {
-  syntax: "<angle>";
-  initial-value: 0deg;
-  inherits: false;
-}
-
-.tile-sheen::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  padding: 1px;
-  background: conic-gradient(
-    from var(--tile-spin),
-    transparent 0deg,
-    transparent 250deg,
-    rgba(99, 102, 241, 0.9) 300deg,
-    rgba(217, 70, 239, 0.95) 330deg,
-    transparent 360deg
-  );
-  -webkit-mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  opacity: 0;
-  transition: opacity 260ms ease;
-  pointer-events: none;
-}
-
-.tile-sheen:hover::before,
-.tile-sheen:focus-visible::before {
-  opacity: 1;
-  animation: tile-spin 2.4s linear infinite;
-}
-
-@keyframes tile-spin {
-  to {
-    --tile-spin: 360deg;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .tile-sheen:hover::before,
-  .tile-sheen:focus-visible::before {
-    animation: none;
-    /* Still lit, just not travelling: the ring is the hover feedback and
-       removing it entirely would leave nothing in its place. */
-    opacity: 0.7;
-  }
-}
-
 /* A rail you drag rather than one you aim a scrollbar at. The bar is hidden
    because the row is plainly horizontal and a 4px track under six chips is more
    chrome than content. Keyboard and wheel scrolling are untouched. */
@@ -1245,130 +1049,14 @@ button:disabled,
   100% { background-position: -200% 0; }
 }
 
-/* ── The living photograph ─────────────────────────────────────────────────
- *
- * The photograph itself holds still — a Ken Burns drift was tried and cut,
- * because scaling a 2560px frame past 1:1 spends sharpness. What moves is the
- * colour wash breathing over it, plus the weather layers further down.
- *
- * **`alternate` is the whole trick.** A one-way keyframe has to get back to
- * its start somehow, and every way of doing that is a jump: the picture
- * snaps, and a background nobody was looking at suddenly demands attention.
- * Running the same keyframe forwards and then backwards means there is no
- * loop point at all — the drift arrives at the far end, turns around, and
- * comes home, and the seam does not exist to be seen.
- *
- * The two durations are deliberately unequal, 74 and 96 seconds, so the two
- * fields never fall into phase and the pattern never visibly repeats.
- *
- * Transform only. Animating a filter or a background-position on a
- * full-screen element repaints it every frame; a transform is handed to the
- * compositor and costs nothing per frame after the first.
- *
- * Wrapped in `prefers-reduced-motion: no-preference`, so a visitor who has
- * asked for stillness gets a still photograph and no JS has to be consulted.
- */
-@media (prefers-reduced-motion: no-preference) {
-  .bb-wash-a {
-    animation: bb-wash-a 74s ease-in-out infinite alternate;
-    will-change: transform, opacity;
-  }
-  .bb-wash-b {
-    animation: bb-wash-b 96s ease-in-out infinite alternate;
-    will-change: transform, opacity;
-  }
-}
-
-/* The wash: two soft colour fields breathing over the picture, which is what
-   the intro's aurora does and what every page below it was missing. Done in
-   CSS rather than by mounting the WebGL aurora on every route — this is a
-   study site, and a second GL context behind a page of flashcards is a real
-   cost for an effect that is two moving blobs. */
-@keyframes bb-wash-a {
-  from { transform: translate3d(-6%, -3%, 0) scale(1); opacity: 0.55; }
-  to   { transform: translate3d(7%, 5%, 0) scale(1.25); opacity: 0.85; }
-}
-@keyframes bb-wash-b {
-  from { transform: translate3d(5%, 6%, 0) scale(1.2); opacity: 0.8; }
-  to   { transform: translate3d(-7%, -4%, 0) scale(1); opacity: 0.5; }
-}
-
-/* ── Weather over the photograph ───────────────────────────────────────────
- *
- * Clouds cross left to right on loops long enough that no two crossings feel
- * related; the negative delays start each one mid-sky so the first paint is
- * never an empty sky that suddenly grows clouds. `linear`, because wind does
- * not ease. Transform-only, same as every moving layer back here.
- *
- * The water glints slide the other way and are `alternate`, so like the wash
- * they have no loop point to catch. Speeds chosen so the two strips beat
- * against each other rather than marching. */
-@media (prefers-reduced-motion: no-preference) {
-  .bb-cloud-a { animation: bb-cloud 120s linear -30s infinite; will-change: transform; }
-  .bb-cloud-b { animation: bb-cloud 165s linear -90s infinite; will-change: transform; }
-  .bb-cloud-c { animation: bb-cloud 210s linear -150s infinite; will-change: transform; }
-  .bb-water-a { animation: bb-water-a 17s ease-in-out infinite alternate; will-change: transform; }
-  .bb-water-b { animation: bb-water-b 23s ease-in-out infinite alternate; will-change: transform; }
-}
-
-/* From fully off the left edge to fully off the right. The element is up to
-   70vw wide, so the throw has to clear both sides with margin. */
-@keyframes bb-cloud {
-  from { transform: translate3d(-80vw, 0, 0); }
-  to   { transform: translate3d(110vw, 0, 0); }
-}
-
-/* The strips are 300% wide and start at -100%, so a third of the pattern is
-   always on screen and a small sideways drift never shows an edge. */
-@keyframes bb-water-a {
-  from { transform: translate3d(0, 0, 0); }
-  to   { transform: translate3d(6%, 0, 0); }
-}
-@keyframes bb-water-b {
-  from { transform: translate3d(4%, 0, 0); }
-  to   { transform: translate3d(-3%, 0, 0); }
-}
-
 /* ── The page behind the page ──────────────────────────────────────────────
  *
- * The photograph is a `fixed` layer, and a fixed layer does not follow the
- * page into the rubber-band. Overscroll past the top showed the browser's
- * default white behind everything — on the dark theme, a white flash ruled
- * across the top of the screen that read as the dashboard being cut off.
- * The root carries the surface colour itself so there is nothing behind the
- * site that is not the site. */
+ * THE ONE SITE GROUND (owner, 2026-10-07): lavender by day, the measured navy at
+ * night, from --site-ground in src/tokens.css, which flips with `.dark`. The root
+ * paints it so every page, and the overscroll rubber-band past the top, sits on
+ * the same colour. No photograph is drawn behind any page any more. */
 html {
-  background-color: #faf9ff;
-}
-html.dark {
-  background-color: #171327;
-}
-
-/* ── Waves and rivers ──────────────────────────────────────────────────────
- *
- * Waves: the swell drifts sideways while it bobs, `alternate` in both so
- * there is no loop point. Two layers at different beats read as water; one
- * reads as a machine.
- *
- * River: streaks slide one way and only one way — downstream — and the loop
- * is seamless because the travel per cycle is an exact multiple of the
- * pattern's period, so frame N and frame 0 are the same picture. */
-@media (prefers-reduced-motion: no-preference) {
-  .bb-wave-a { animation: bb-wave-a 9s ease-in-out infinite alternate; will-change: transform; }
-  .bb-wave-b { animation: bb-wave-b 13s ease-in-out infinite alternate; will-change: transform; }
-  .bb-river { animation: bb-river 7s linear infinite; }
-}
-@keyframes bb-wave-a {
-  from { transform: translate3d(-2%, 0, 0); }
-  to   { transform: translate3d(2%, 6px, 0); }
-}
-@keyframes bb-wave-b {
-  from { transform: translate3d(2%, 4px, 0); }
-  to   { transform: translate3d(-2%, 0, 0); }
-}
-@keyframes bb-river {
-  from { background-position: 0 0; }
-  to   { background-position: 480px 0; }
+  background-color: var(--site-ground);
 }
 
 /* ── Buttons that are unmistakably buttons ─────────────────────────────────
@@ -1450,17 +1138,9 @@ html.dark {
 }
 
 
-/* The corner dock (timer, assistant) leaves the first screen of the home
-   page. A blind panel counted the floating chips among the things that made
-   the pitch read as an app screen; they are furniture for people already
-   inside. HomePage sets data-hero on <html> while the visitor is on the
-   unscrolled hero, and the dock sits out until they move.
-
-   The entry gate sets data-gate for the same reason and a stronger one: it
-   is a single framed panel with one press to make, and three floating chips
-   over the corner of it are furniture from a room the visitor has not been
-   shown yet. */
-html[data-hero] .bb-corner-dock,
+/* The corner dock (the timer card, toasts) sits out on the entry gate, which
+   sets data-gate: it is a single framed panel with one press to make. The home
+   page's data-hero twin of this rule went with the corner rail on 2026-10-07. */
 html[data-gate] .bb-corner-dock {
   opacity: 0;
   pointer-events: none;
@@ -1579,78 +1259,6 @@ html[data-device-frame] #root::-webkit-scrollbar {
 }
 
 /* ---------------------------------------------------------------------------
-   Marquee
-
-   Home of the animation for `components/ui/marquee.tsx`. It lives here rather
-   than in a `<style>` tag inside the component because the keyframes and the
-   track class are global names: injected per instance, a second marquee with a
-   different speed or direction silently retimes the first. Per-instance values
-   arrive as `--bb-marquee-duration` and `[data-direction]` instead.
-
-   The track is rendered twice and each copy translates a full 100% of itself,
-   so at the end of a pass the second copy sits exactly where the first started
-   and the loop has no seam.
-
-   Names carry the `bb-` prefix deliberately. A bare `@keyframes scroll` is the
-   kind of generic global that collides the moment another stylesheet arrives,
-   and several are about to.
-   --------------------------------------------------------------------------- */
-
-@keyframes bb-marquee-x {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-100%); }
-}
-@keyframes bb-marquee-x-reverse {
-  from { transform: translateX(-100%); }
-  to   { transform: translateX(0); }
-}
-@keyframes bb-marquee-y {
-  from { transform: translateY(0); }
-  to   { transform: translateY(-100%); }
-}
-@keyframes bb-marquee-y-reverse {
-  from { transform: translateY(-100%); }
-  to   { transform: translateY(0); }
-}
-
-@layer components {
-  .bb-marquee {
-    display: flex;
-    width: 100%;
-    overflow: hidden;
-  }
-  .bb-marquee--vertical { flex-direction: column; }
-
-  .bb-marquee__track {
-    display: flex;
-    flex-shrink: 0;
-    align-items: center;
-    animation: bb-marquee-x var(--bb-marquee-duration, 20s) linear infinite;
-  }
-  .bb-marquee--vertical .bb-marquee__track { flex-direction: column; }
-
-  .bb-marquee[data-direction="right"] .bb-marquee__track { animation-name: bb-marquee-x-reverse; }
-  .bb-marquee[data-direction="up"]    .bb-marquee__track { animation-name: bb-marquee-y; }
-  .bb-marquee[data-direction="down"]  .bb-marquee__track { animation-name: bb-marquee-y-reverse; }
-
-  .bb-marquee__item { flex-shrink: 0; }
-  .bb-marquee--vertical .bb-marquee__item { width: 100%; }
-
-  /* CSS rather than an isPaused state, which would re-render the subtree twice
-     per hover to do what this line does for free. */
-  .bb-marquee[data-pause-on-hover]:hover .bb-marquee__track { animation-play-state: paused; }
-
-  /* Stopping the animation would leave both copies stacked and the overflow
-     clipped, so the duplicate goes and the strip becomes an ordinary scroller
-     the reader drives. */
-  @media (prefers-reduced-motion: reduce) {
-    .bb-marquee { overflow-x: auto; }
-    .bb-marquee__track { animation: none; }
-    .bb-marquee__track[aria-hidden] { display: none; }
-  }
-}
-
-/* ---------------------------------------------------------------------------
    Blueberry game token layer
 
    Lifted out of src/game/theme.css. `@theme` is a build-time directive and only
@@ -1748,16 +1356,14 @@ html[data-device-frame] #root::-webkit-scrollbar {
 /* ---------------------------------------------------------------------------
    Gradient button
 
-   The surface for `components/ui/gradient-button.tsx`. A radial gradient whose
+   The surface for the `.gradient-button` class. A radial gradient whose
    focal point, spread and five stops all travel on hover, rather than one
    background cross-fading into another.
 
    `@property` is what makes that possible. Without a declared `syntax` a custom
    property is an untyped string and `transition: --pos-x 0.5s` does nothing,
    because there is no halfway point between two strings. Typing it as a
-   `<percentage>` or a `<color>` makes it interpolable. `--tile-spin` further up
-   this file already relies on the same thing, so the browser floor was accepted
-   here before this arrived.
+   `<percentage>` or a `<color>` makes it interpolable.
 
    NOT the palette this shipped with. The original was pink, magenta and orange;
    these are the site's own blues, so the button belongs to the page it sits on.
@@ -2002,15 +1608,29 @@ html[data-device-frame] #root::-webkit-scrollbar {
   --color-stone-200: #dce5f2;
   --color-stone-300: #bdcbe0;
   --color-stone-400: #a4b4ca;
-  --color-stone-500: #70839d;
+  /* Lifted from #70839d on 2026-10-07. The site uses this step almost only as
+     NIGHT ink (`dark:` text, 116 places), and #70839d measured 4.01 to 4.23:1
+     on the night cards, under the 4.5 body floor. #8a9bb4: 5.50:1 on #192438,
+     5.77:1 on #18202f, 4.51:1 on the #24334a wash, 6.28:1 on the #101827 ground. */
+  --color-stone-500: #8a9bb4;
   --color-stone-600: #51627b;
   --color-stone-700: #35465f;
   --color-stone-800: #24334a;
   --color-stone-900: #192438;
   --color-stone-950: #101827;
+
+  /* The faint slate steps, re-measured for the lavender ground (owner,
+     2026-10-07). Tailwind's defaults, slate-400 and slate-500, measured 2.23 and
+     4.04:1 on #efeaf8, so every caption and hint on the new ground failed. No one
+     colour can pass both on the lavender and on the night card, and many of these
+     uses have no `dark:` sibling, so both steps point at tokens that flip with
+     `.dark` (src/tokens.css carries the values and their ratios). The game uses
+     no slate, so this repaints the site only. */
+  --color-slate-400: var(--site-faint);
+  --color-slate-500: var(--site-quiet);
 }
 :root {
-  --background: #f5f7fb;
+  --background: var(--site-ground); /* the one site ground, src/tokens.css (owner, 2026-10-07) */
   --foreground: #18253d;
   --card: #ffffff;
   --card-foreground: #18253d;
@@ -2031,7 +1651,7 @@ html[data-device-frame] #root::-webkit-scrollbar {
   --color-brand-to: #5a3fd8;
 }
 .dark {
-  --background: #101827;
+  --background: var(--site-ground);
   --foreground: #edf2fa;
   --card: #192438;
   --card-foreground: #edf2fa;
@@ -2103,32 +1723,26 @@ html[data-device-frame] #root::-webkit-scrollbar {
      filter stays in the list because call sites wear Tailwind's
      hover:brightness-110; an unlayered transition would otherwise snap it.
 
-   THE LED GLOW is the same two zero-spread layers pathway.css and
-   beat-chrome.css carry, in the button's own hue: a tight seam light and a
-   wide bloom, no spread, so it is a falloff with no boundary rather than a
-   ring. Centred while the contact shadow is offset down, which is what
-   separates the button's light from its shadow. On press the bloom pinches
-   to half its radius, same frame as the seat.
+   NO GLOW (shell round 5). Two violet bloom layers (0 0 6px and 0 0 18px)
+   sat on top of the ledge here; the blueberry skill's rule 5 says no glow on
+   any button, and the critic measured them on sign-in. Removed with the
+   --gb-led colour they used.
 
    MEASURED against what index.css actually declares (page #f5f7fb / #101827,
-   card #ffffff / #192438), not against the older cream. Recorded, because a
-   glow carries no floor; the floors are on the face, the wall and the label:
+   card #ffffff / #192438), not against the older cream. The floors are on the
+   face, the wall and the label:
 
      white label on --primary #5a3fd8       6.69:1   floor 4.5
      white label on the hover #472ab4       9.30:1
      face #5a3fd8 as a shape on #f5f7fb     6.24:1   floor 3.0
      wall #33208c as a boundary on #f5f7fb 11.34:1   (12.17 on the card)
-     LED --primary at .45, light page       seam 3.37   bloom 2.10
-     LED #a98ffc at .45, dark page          seam 3.95   bloom 2.39
 
    THE DARK WALL IS LIGHTER THAN THE FACE, not darker, for the reason
    theme.css gives on --bb-primary-edge: an edge reads against the ground it
    sits on, and #33208c measured 1.46:1 on the night page, so the whole press
    cue was invisible at night. #aac7ff is that file's own dark edge and this
    file's dark --ring: 10.43:1 on #101827, 9.12:1 on the card, 3.93:1 against
-   the face. The dark LED is #a98ffc, the lit violet the pathway's open chip
-   wears at night (pathway.css --path-open-face); --primary itself at night
-   composites to 1.90:1 at the seam, too dim to read as a light source.
+   the face.
 
    REPORTED, NOT FIXED HERE: the dark --primary above is #5a3fd8 and measures
    2.65:1 as a shape on #101827, under the 3.0 floor. theme.css moved the
@@ -2137,16 +1751,13 @@ html[data-device-frame] #root::-webkit-scrollbar {
 .gradient-button, .gradient-button-cool {
   --gb-lift: 4px;
   --gb-wall: #33208c;
-  --gb-led: color-mix(in srgb, var(--primary) 45%, transparent);
   background: var(--primary);
   color: var(--primary-foreground);
   border: 1px solid var(--gb-wall);
   transform: translateY(0);
   box-shadow:
     0 var(--gb-lift) 0 var(--gb-wall),
-    0 calc(var(--gb-lift) + 2px) 8px color-mix(in srgb, var(--gb-wall) 38%, transparent),
-    0 0 6px var(--gb-led),
-    0 0 18px var(--gb-led);
+    0 calc(var(--gb-lift) + 2px) 8px color-mix(in srgb, var(--gb-wall) 38%, transparent);
   transition:
     transform 140ms cubic-bezier(0.34, 1.56, 0.64, 1),
     box-shadow 140ms cubic-bezier(0.34, 1.56, 0.64, 1),
@@ -2154,7 +1765,6 @@ html[data-device-frame] #root::-webkit-scrollbar {
 }
 .dark .gradient-button, .dark .gradient-button-cool {
   --gb-wall: #aac7ff;
-  --gb-led: color-mix(in srgb, #a98ffc 45%, transparent);
 }
 .gradient-button:hover, .gradient-button-cool:hover { background: #472ab4; }
 .gradient-button::before { display: none; }
@@ -2162,9 +1772,7 @@ html[data-device-frame] #root::-webkit-scrollbar {
   transform: translateY(var(--gb-lift));
   box-shadow:
     0 0 0 var(--gb-wall),
-    0 1px 2px color-mix(in srgb, var(--gb-wall) 45%, transparent),
-    0 0 3px var(--gb-led),
-    0 0 8px var(--gb-led);
+    0 1px 2px color-mix(in srgb, var(--gb-wall) 45%, transparent);
   transition-duration: 0s;
 }
 @media (prefers-reduced-motion: reduce) {

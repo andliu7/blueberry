@@ -188,7 +188,7 @@ export function QuestionCard({
           {item.image && <CardImage src={item.image} crop={open ? undefined : item.imageCrop} />}
         </div>
         <svg
-          className={cn("w-5 h-5 text-gray-400 dark:text-stone-500 shrink-0 mt-1 transition-transform", open && "rotate-180")}
+          className={cn("w-5 h-5 text-slate-400 dark:text-stone-500 shrink-0 mt-1 transition-transform", open && "rotate-180")}
           fill="none" stroke="currentColor" viewBox="0 0 24 24"
         >
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -270,7 +270,7 @@ export function QuestionCard({
               rather than a row of buttons that record nothing. */}
           {showRating && (
           <div className="mt-4 pt-4 border-t border-[#e5eaf5] dark:border-stone-800 flex flex-wrap gap-2 items-center">
-            <span className="text-xs text-gray-400 dark:text-stone-500 font-medium uppercase tracking-wider mr-auto">
+            <span className="text-xs text-slate-400 dark:text-stone-500 font-medium uppercase tracking-wider mr-auto">
               Rate your recall:
             </span>
             <PressDepth

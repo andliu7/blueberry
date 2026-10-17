@@ -289,6 +289,13 @@ describe("deriveMapPathway, one line per unit on the Orgo map", () => {
 /* The derived fork carries no lock of its own.                               */
 /* ------------------------------------------------------------------------- */
 
+// Unit 1's main line since the 2026-10-07 rebuild: every node on it is authored, so it is also the playable line.
+const U1_LINE = [
+  "u1-allylic", "u1-rank-cation", "u1-rank-anion", "u1-quiz-a",
+  "u1-12v14", "u1-kvt", "u1-energy-diagram", "u1-hx-dienes", "u1-x2", "u1-quiz-b",
+  "u1-mo", "u1-da", "u1-dienes", "u1-dienophiles", "u1-da-predict", "u1-da-stereo", "u1-da-3d", "u1-quiz-d",
+];
+
 describe("Unit 1, the line a fresh student walks", () => {
   const unit = PATHWAY_UNITS[0]!;
   const shape = unitShape(unit);
@@ -299,8 +306,10 @@ describe("Unit 1, the line a fresh student walks", () => {
      retired: Unit 1 is allylic, 12v14, kvt, X2, then its checkpoint, X2 after
      kvt because X2's 1,4 dihalide is the thermodynamic product kvt explains.
   */
-  it("draws Unit 1's main line as allylic, 12v14, kvt, X2, in that order and no other", () => {
-    expect(shape.column.map((node) => node.id)).toEqual(["u1-allylic", "u1-12v14", "u1-kvt", "u1-x2"]);
+  /* CHANGED 2026-10-07 with the data: Unit 1 rebuilt from the owner's whiteboard in four stages,
+     the stage quizzes and Diels-Alder on the line, 12v14 still before kvt (the 1 Oct rule). */
+  it("draws Unit 1's main line in the whiteboard's stage order and no other", () => {
+    expect(shape.column.map((node) => node.id)).toEqual(U1_LINE);
   });
 
   it("never draws a main-line node above one authored before it, in any unit", () => {
@@ -320,8 +329,9 @@ describe("Unit 1, the line a fresh student walks", () => {
     }
   });
 
-  it("opens the line one lesson at a time: 12v14 after allylic, kvt after 12v14, X2 after kvt", () => {
-    const order = ["u1-allylic", "u1-12v14", "u1-kvt", "u1-x2"];
+  // CHANGED 2026-10-07 with the data: the order is Unit 1's whole rebuilt line, not its old four lessons.
+  it("opens the line one lesson at a time, in authored order", () => {
+    const order = U1_LINE;
     for (let done = 0; done < order.length; done += 1) {
       const status = deriveMapPathway(PATHWAY_UNITS, order.slice(0, done).map((id) => cleared(id)));
       order.forEach((id, at) => {
@@ -336,32 +346,39 @@ describe("Unit 1, the line a fresh student walks", () => {
      "u1-da open after allylic" assertion now says locked, a new step pins it
      open after 12v14, and the START check moved with it to u1-kvt.
   */
-  it("locks each side quest exactly until its prerequisite clears: NBS after allylic, Diels-Alder after 1,2 vs 1,4, the inverse Diels-Alder after Diels-Alder", () => {
+  /* CHANGED 2026-10-07 with the data: radicals wait for the anion ranking, NBS moved after Stage B
+     (D5 superseded), Diels-Alder is on the main line, the inverse Diels-Alder still waits for it. */
+  it("locks each side quest exactly until its prerequisite clears: NBS after X2, its practice after the Stage B quiz, the inverse Diels-Alder after Diels-Alder", () => {
     const fresh = deriveMapPathway(PATHWAY_UNITS, []);
-    for (const id of ["u1-nbs", "u1-da", "u1-ied"]) expect(statusOf(fresh, id).state, id).toBe("locked");
-    const afterAllylic = deriveMapPathway(PATHWAY_UNITS, [cleared("u1-allylic")]);
-    expect(statusOf(afterAllylic, "u1-nbs").state).toBe("open");
-    expect(statusOf(afterAllylic, "u1-da").state).toBe("locked");
-    expect(statusOf(afterAllylic, "u1-ied").state).toBe("locked");
-    const after12v14 = deriveMapPathway(PATHWAY_UNITS, [cleared("u1-allylic"), cleared("u1-12v14")]);
-    expect(statusOf(after12v14, "u1-da").state).toBe("open");
-    expect(statusOf(after12v14, "u1-ied").state).toBe("locked");
-    const afterDa = deriveMapPathway(PATHWAY_UNITS, [cleared("u1-allylic"), cleared("u1-12v14"), cleared("u1-da")]);
-    expect(statusOf(afterDa, "u1-ied").state).toBe("open");
+    for (const id of ["u1-rank-radical", "u1-nbs", "u1-nbs-practice", "u1-ied"]) expect(statusOf(fresh, id).state, id).toBe("locked");
+    const through = (last: string) => U1_LINE.slice(0, U1_LINE.indexOf(last) + 1).map((id) => cleared(id));
+    expect(statusOf(deriveMapPathway(PATHWAY_UNITS, through("u1-rank-cation")), "u1-rank-radical").state).toBe("locked");
+    expect(statusOf(deriveMapPathway(PATHWAY_UNITS, through("u1-rank-anion")), "u1-rank-radical").state).toBe("open");
+    expect(statusOf(deriveMapPathway(PATHWAY_UNITS, through("u1-hx-dienes")), "u1-nbs").state).toBe("locked");
+    const afterX2 = deriveMapPathway(PATHWAY_UNITS, through("u1-x2"));
+    expect(statusOf(afterX2, "u1-nbs").state).toBe("open");
+    expect(statusOf(afterX2, "u1-ied").state).toBe("locked");
     // A side quest never takes the START tag: the line does.
-    expect(afterDa.currentNodeId).toBe("u1-kvt");
+    expect(afterX2.currentNodeId).toBe("u1-quiz-b");
+    // NBS practice waits for NBS AND the Stage B quiz; the check after it waits for the practice.
+    expect(statusOf(deriveMapPathway(PATHWAY_UNITS, [...through("u1-x2"), cleared("u1-nbs")]), "u1-nbs-practice").state).toBe("locked");
+    const afterQuizB = deriveMapPathway(PATHWAY_UNITS, [...through("u1-quiz-b"), cleared("u1-nbs")]);
+    expect(statusOf(afterQuizB, "u1-nbs-practice").state).toBe("open");
+    expect(statusOf(afterQuizB, "u1-quiz-c").state).toBe("locked");
+    expect(statusOf(deriveMapPathway(PATHWAY_UNITS, through("u1-da")), "u1-ied").state).toBe("open");
   });
 
   /* ADDED 2026-10-01, owner: the checkpoint gates the next unit, and START
      moves onto it after the last main lesson, like Duolingo's unit test. */
+  // CHANGED 2026-10-07 with the data: the authored line is the rebuilt one, and the open side quests are NBS and the inverse Diels-Alder.
   it("moves START onto the checkpoint after the last main lesson, with the side quests unplayed", () => {
-    const line = ["u1-allylic", "u1-12v14", "u1-kvt", "u1-x2"];
+    const line = U1_LINE;
     const status = deriveMapPathway(PATHWAY_UNITS, line.map((id) => cleared(id)));
     expect(status.currentNodeId).toBe(checkpointNodeId(unit.id));
     expect(statusOf(status, checkpointNodeId(unit.id)).state).toBe("current");
     expect(status.units.get(unit.id)?.active).toBe(true);
     // The side quests are open and still not played: they hold nothing shut.
-    for (const id of ["u1-nbs", "u1-da"]) expect(statusOf(status, id).state, id).toBe("open");
+    for (const id of ["u1-nbs", "u1-ied"]) expect(statusOf(status, id).state, id).toBe("open");
   });
 
   it("gates the next unit on the checkpoint, at every unit with authored lessons", () => {

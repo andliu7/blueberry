@@ -4,7 +4,7 @@ import { motion, useReducedMotion } from "motion/react";
 import { cn } from "@/lib/utils";
 
 /**
- * Handwritten "click here!" with a curved arrow pointing at whatever sits next
+ * "click here!" with a curved arrow pointing at whatever sits next
  * to it. Used to point at the toolbar trigger, which starts collapsed and would
  * otherwise be easy to miss, and at the home mark on a deck page.
  *
@@ -35,7 +35,9 @@ export function ClickHereHint({
       transition={{ duration: 0.35 }}
       aria-hidden
     >
-      <span className="playful-face text-sm md:text-base font-bold text-[#6b51dd] dark:text-amber-300 whitespace-nowrap">
+      {/* Nunito, not the handwritten face: rule 7 bans the hand on student pages
+          (shell round 3). The arrow carries the playfulness now. */}
+      <span className="page-title text-sm md:text-base text-primary dark:text-amber-300 whitespace-nowrap">
         click here!
       </span>
 
@@ -46,7 +48,7 @@ export function ClickHereHint({
         height="22"
         viewBox="0 0 34 22"
         fill="none"
-        className={cn("text-[#6b51dd] dark:text-amber-300 shrink-0", left && "-scale-x-100")}
+        className={cn("text-primary dark:text-amber-300 shrink-0", left && "-scale-x-100")}
         animate={reduce ? undefined : { x: left ? [0, -4, 0] : [0, 4, 0] }}
         transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
       >

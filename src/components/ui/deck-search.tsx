@@ -40,6 +40,9 @@ export function DeckSearch({
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const active = value.trim().length >= 2;
+  // "(press /)" only where there is a keyboard to press it on: a fine pointer means a
+  // mouse or trackpad. A phone or tablet with no mouse gets the plain words (shell round 5).
+  const keyHint = typeof window !== "undefined" && window.matchMedia?.("(pointer: fine)").matches;
 
   // `/` to focus, the convention everywhere else that has a search box. Ignored
   // while typing into something, or it would be impossible to type a slash.
@@ -70,7 +73,7 @@ export function DeckSearch({
           type="search"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          placeholder="Search every deck…  (press /)"
+          placeholder={`Search every deck…${keyHint ? "  (press /)" : ""}`}
           aria-label="Search decks"
           className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pr-10 pl-10 text-sm text-slate-800 shadow-sm outline-none placeholder:text-slate-400 focus-visible:border-[#9989e2] focus-visible:ring-2 focus-visible:ring-[#9989e2]/40 dark:border-stone-800 dark:bg-stone-900 dark:text-stone-200 dark:placeholder:text-stone-500"
         />

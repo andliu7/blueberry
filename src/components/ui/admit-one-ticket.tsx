@@ -63,7 +63,6 @@ export interface AdmitOneTicketProps {
   venue?: string;
   dates?: string;
   stubText?: string;
-  watermark?: string;
   width?: number;
   className?: string;
   tilt?: boolean;
@@ -78,7 +77,6 @@ export function AdmitOneTicket({
   venue = "",
   dates = "",
   stubText = "Admit one",
-  watermark = "242",
   width = REF,
   className,
   tilt = true,
@@ -135,16 +133,18 @@ export function AdmitOneTicket({
           onClick && !disabled && "cursor-pointer",
           disabled && "cursor-not-allowed opacity-60",
         )}
-        style={{ width, height, clipPath: clip }}
+        // The wash the shader used to draw, no WebGL. On the ticket itself rather
+        // than on a sibling layer, so the words sit on the colour they are read
+        // against (the contrast audit climbs ancestors). Two stops, not three:
+        // the old darkest stop held the brown ink at only 3.37:1 (2026-10-07);
+        // brown on the darker stop left is 4.73:1.
+        style={{
+          width,
+          height,
+          clipPath: clip,
+          background: "radial-gradient(120% 120% at 62% 30%, #ffc691 0%, #fe9046 100%)",
+        }}
       >
-        {/* The wash the shader used to draw. Same palette, no WebGL. */}
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "radial-gradient(120% 120% at 62% 30%, #ffc691 0%, #fe9046 45%, #ef671c 100%)",
-          }}
-        />
 
         {/* Perforation line where the stub tears away. */}
         <div
@@ -156,31 +156,6 @@ export function AdmitOneTicket({
             backgroundImage: `repeating-linear-gradient(to bottom, #5a352055 0 ${0.012 * width}px, transparent ${0.012 * width}px ${0.024 * width}px)`,
           }}
         />
-
-        {/* Oversized watermark behind the stub. */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute grid place-items-center font-bold tabular-nums"
-          style={{
-            left: perfX,
-            top: 0,
-            width: width - perfX,
-            height,
-            color: "#ffdcbe",
-            opacity: 0.6,
-          }}
-        >
-          <span
-            style={{
-              writingMode: "vertical-rl",
-              fontSize: (144 / REF) * width,
-              lineHeight: 1,
-              letterSpacing: "-0.04em",
-            }}
-          >
-            {watermark}
-          </span>
-        </div>
 
         <div className="absolute inset-0" style={{ color: "#5a3520" }}>
           {(presenter || event) && (

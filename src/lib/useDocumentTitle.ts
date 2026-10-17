@@ -16,20 +16,19 @@ import { useEffect } from "react";
 const TITLES: Record<string, string> = {
   "": "Home",
   home: "Home",
-  "study-decks": "Study Decks",
-  lessons: "Lessons",
-  calendar: "Calendar",
-  tutoring: "Office Hours",
-  reactions: "Reactions",
+  "study-decks": "Review",
+  learn: "Learn",
+  schedule: "Schedule",
   "new-reaction": "New Reaction",
   contact: "Contact",
   about: "Contact",
   terms: "Terms",
+  faq: "FAQ",
   workspace: "Workspace",
   signin: "Sign In",
   signup: "Create Account",
   staff: "Sign In",
-  d: "Dashboard",
+  d: "Me",
   // The funnel. It is six addresses now rather than one, so without these
   // every step of it titled itself "Not Found" while rendering perfectly.
   enter: "Get Started",
@@ -37,19 +36,18 @@ const TITLES: Record<string, string> = {
   // The game and the unit pages. Both rendered fine while titling themselves
   // "Not Found", because a route added in a merge does not add itself here.
   app: "Course",
-  unit: "Units",
 };
 
 /** Prefixed routes, longest first so `lessons/x/y` does not match `lessons`. */
 const PREFIXES: [string, string][] = [
   ["start/", "Get Started"],
   ["app/", "Course"],
-  ["unit/", "Units"],
-  ["lessons/", "Lessons"],
+  ["unit/", "Unit"],
+  ["lessons/", "Lesson"],
   ["deck/", "Deck"],
   ["folder/", "Folder"],
   ["draw/", "Draw"],
-  ["d/", "Dashboard"],
+  ["d/", "Me"],
 ];
 
 export function titleForRoute(route: string): string {

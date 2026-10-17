@@ -95,7 +95,7 @@ export function ButtonHoldAndRelease({
         "border border-red-300 bg-red-50 text-red-700 text-sm font-semibold",
         "dark:border-red-900 dark:bg-red-950/60 dark:text-red-300",
         "cursor-pointer outline-none transition-colors",
-        "focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#f6f4ef] dark:focus-visible:ring-offset-[#0c0a09]",
+        "focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         className,
       )}
       onPointerDown={(e) => {

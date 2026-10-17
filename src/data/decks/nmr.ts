@@ -13,7 +13,7 @@ export const nmrDeck: ReferenceDeck = {
   group: "reference",
   titleLines: ["NMR", "SHIFTS"],
   subtitle:
-    "11 shift ranges for 1H and 13C. Hover any row to bring up the full chart from the handout.",
+    "11 shift ranges for 1H and 13C. Tap any row to bring up the full chart from the handout.",
   blurb:
     "Where every proton and carbon shows up, downfield to upfield, from the class shift chart.",
   footNote: "Downfield = deshielded = near electronegative atoms or pi systems.",

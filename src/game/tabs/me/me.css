@@ -1,0 +1,1028 @@
+/*
+ * The Me tab: profile, statistics, week chart, achievements, streak calendar,
+ * and the settings list. Style language: chunky, outlined, colour as surface.
+ *
+ * RULES THIS FILE KEEPS
+ *  - Cards are outlined, never shadowed: a 2px --btn-line rim on --bb-card.
+ *  - Anything pressable has a solid lip (box-shadow with no blur) and sinks
+ *    by the lip on :active. Text buttons reuse .btn3d from app/ui/press.css.
+ *  - Colour fills come from the --ic-* palette in theme.css, which is the same
+ *    in both themes, so labels on those fills use --me-on-bright, a fixed dark
+ *    ink (8:1 or better on every --ic-* face) rather than a themed token that
+ *    would turn white at night and fail.
+ *  - Motion is transform and opacity only, and none under reduced motion.
+ */
+
+.me {
+  --me-on-bright: #1d1640;
+  --me-line: var(--btn-line);
+  --me-gap: 1.25rem;
+  /* Locked badges: a mid grey that reads as a real shape on the white card. */
+  --me-locked: color-mix(in srgb, var(--bb-muted-foreground) 42%, var(--bb-card));
+  --me-locked-lip: color-mix(in srgb, var(--bb-muted-foreground) 78%, var(--bb-card));
+  /* The profile band's scene: a lighter hill and soft white rings on purple. */
+  --me-band-hill: #9a80ff;
+  --me-band-shape: rgba(255, 255, 255, 0.18);
+  width: 100%;
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: 1rem 1rem 3rem;
+  display: grid;
+  gap: var(--me-gap);
+  color: var(--bb-foreground);
+}
+
+@media (min-width: 1024px) {
+  .me {
+    grid-template-columns: minmax(0, 1fr) 21rem;
+    align-items: start;
+    padding: 1.5rem 1.5rem 3rem;
+  }
+  .me-side {
+    position: sticky;
+    top: 1rem;
+  }
+}
+
+.me-col {
+  display: grid;
+  gap: var(--me-gap);
+  min-width: 0;
+}
+
+/* PHONE ORDER. Under 1024px the two columns dissolve (display: contents) so
+   every section is a direct item of .me, and `order` puts the streak
+   calendar right after Statistics instead of after the whole left column. */
+@media (max-width: 1023px) {
+  .me-col,
+  .me-side {
+    display: contents;
+  }
+  .me-slot-profile { order: 1; }
+  .me-slot-stats { order: 2; }
+  .me-slot-cal { order: 3; }
+  .me-slot-week { order: 4; }
+  .me-slot-badges { order: 5; }
+  .me-slot-tools { order: 6; }
+}
+
+/* Settings and pKa: one narrow column at every width, like a phone list. */
+.me.me--narrow {
+  max-width: 40rem;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.me-subhead {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.me-subhead-title {
+  flex: 1;
+  margin: 0;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  line-height: 1.2;
+  font-weight: 900;
+}
+
+.me-subhead-spacer {
+  width: 2.75rem;
+  flex-shrink: 0;
+}
+
+a.me-icon-btn {
+  text-decoration: none;
+}
+
+.me-name-error {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: var(--warn-ink-strong);
+}
+
+.me-card {
+  background: var(--bb-card);
+  border: 2px solid var(--me-line);
+  border-radius: 1rem;
+  padding: 1rem;
+  min-width: 0;
+}
+
+.me-h2 {
+  margin: 0 0 0.75rem;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  line-height: 1.2;
+  font-weight: 800;
+  color: var(--bb-foreground);
+}
+
+.me-muted {
+  color: var(--bb-muted-foreground);
+}
+
+.me-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------------------ profile -- */
+
+.me-hero {
+  padding: 0;
+  overflow: hidden;
+}
+
+/* The identity band: a drawn scene with Bloom standing on the hills. */
+.me-hero-band {
+  position: relative;
+  height: 10.5rem;
+  background: var(--ic-purple);
+  overflow: hidden;
+}
+
+.me-hero-scene {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.me-hero-bloom {
+  position: absolute;
+  left: 50%;
+  bottom: 0.875rem;
+  width: 7rem;
+  height: 7rem;
+  transform: translateX(-50%);
+}
+
+.me-hero-bloom svg {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* A flat pill of shade under Bloom, so it stands rather than floats. */
+.me-hero-shadow {
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  bottom: 0.125rem;
+  height: 0.875rem;
+  border-radius: 999px;
+  background: rgba(29, 22, 64, 0.28);
+}
+
+/* Settings, as a white key with a lip in the band's corner. */
+.me-band-btn {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 2.75rem;
+  height: 2.75rem;
+  display: grid;
+  place-items: center;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  color: var(--ic-purple-lip);
+  box-shadow: 0 4px 0 var(--ic-purple-lip);
+  transition: transform 90ms ease, box-shadow 90ms ease;
+}
+
+.me-band-btn svg > circle {
+  fill: #ffffff;
+}
+
+.me-band-btn:active {
+  transform: translateY(4px);
+  box-shadow: 0 0 0 var(--ic-purple-lip);
+}
+
+.me-band-btn:focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: 2px;
+}
+
+.me-hero-body {
+  padding: 0.875rem 1rem 1rem;
+  display: grid;
+  gap: 0.25rem;
+}
+
+.me-id-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.me-name {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  line-height: 1.1;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+
+.me-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--bb-muted-foreground);
+}
+
+/* The dot travels with the course name, so a wrap never strands it. */
+.me-meta-course {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--bb-primary-ink);
+}
+
+.me-meta-course::before {
+  content: "";
+  width: 0.3125rem;
+  height: 0.3125rem;
+  border-radius: 999px;
+  background: var(--bb-muted-foreground);
+}
+
+.me-name-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+.me-input {
+  flex: 1 1 12rem;
+  min-height: 3rem;
+  padding: 0 0.875rem;
+  border: 2px solid var(--bb-border);
+  border-radius: 0.75rem;
+  background: var(--bb-card);
+  color: var(--bb-foreground);
+  font: 700 1rem/1 var(--font-display);
+}
+
+.me-input:focus-visible {
+  outline: 3px solid var(--bb-ring);
+  outline-offset: 2px;
+}
+
+/* ---------------------------------------------------------- statistics -- */
+
+.me-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.me-stat {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0.875rem;
+  border: 2px solid var(--me-line);
+  border-radius: 1rem;
+  background: var(--bb-card);
+  min-width: 0;
+}
+
+.me-stat-icon {
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+}
+
+.me-stat-value {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+  line-height: 1.1;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+
+/* On a phone a tile is about 170px wide. The icon stays beside the number
+   (a short tile), so the number scales down instead, and a rank name like
+   "Retrosynthesist" may break onto a second line with a hyphen. */
+@media (max-width: 479px) {
+  .me-stat {
+    gap: 0.5rem;
+    padding: 0.625rem 0.75rem;
+  }
+  .me-stat-icon {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+  .me-stat-value {
+    font-size: clamp(1rem, 4.6vw, 1.25rem);
+    hyphens: auto;
+  }
+}
+
+.me-stat-label {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--bb-muted-foreground);
+}
+
+/* ----------------------------------------------------------- week chart -- */
+
+.me-chart {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.5rem;
+  align-items: end;
+  height: 9.5rem;
+  position: relative;
+  padding-top: 1.25rem;
+}
+
+.me-chart-plot {
+  position: absolute;
+  inset: 2.25rem 0 0 0; /* the chart's top padding plus the number row */
+  pointer-events: none;
+}
+
+.me-chart-goal {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 2px dashed var(--ic-orange);
+  pointer-events: none;
+}
+
+.me-chart-goal span {
+  position: absolute;
+  right: 0;
+  top: -0.75rem;
+  padding: 0 0.375rem;
+  border-radius: 999px;
+  background: var(--bb-card);
+  border: 2px solid var(--ic-orange);
+  font-size: 0.8125rem;
+  font-weight: 800;
+  color: var(--streak-ink);
+}
+
+.me-bar-col {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  height: 100%;
+  min-width: 0;
+}
+
+.me-bar-num {
+  text-align: center;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  color: var(--bb-muted-foreground);
+  min-height: 1rem;
+}
+
+.me-bar-track {
+  display: flex;
+  align-items: flex-end;
+  height: 100%;
+}
+
+.me-bar {
+  width: 100%;
+  min-height: 0.375rem;
+  border-radius: 0.5rem 0.5rem 0.25rem 0.25rem;
+  background: var(--me-line);
+}
+
+.me-bar[data-on="true"] {
+  background: var(--ic-purple);
+  box-shadow: inset 0 -4px 0 var(--ic-purple-lip);
+}
+
+.me-bar[data-today="true"][data-on="true"] {
+  background: var(--ic-yellow);
+  box-shadow: inset 0 -4px 0 var(--ic-yellow-lip);
+}
+
+.me-bar-days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.375rem;
+  text-align: center;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  color: var(--bb-muted-foreground);
+}
+
+.me-bar-days [data-today="true"] {
+  color: var(--bb-foreground);
+}
+
+/* -------------------------------------------------------- achievements -- */
+
+.me-badges {
+  display: grid;
+  gap: 0;
+}
+
+.me-badge {
+  display: flex;
+  gap: 0.875rem;
+  align-items: center;
+  padding: 0.875rem 0;
+  border-top: 2px solid var(--me-line);
+}
+
+.me-badge:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.me-badge:last-child {
+  padding-bottom: 0;
+}
+
+.me-badge-art {
+  width: 4rem;
+  flex-shrink: 0;
+  display: grid;
+  justify-items: center;
+  gap: 0.25rem;
+}
+
+.me-badge-art svg {
+  width: 3.5rem;
+  height: 3.9375rem;
+}
+
+.me-badge-level {
+  font-family: var(--font-display);
+  font-size: 0.8125rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  color: var(--bb-muted-foreground);
+  white-space: nowrap;
+}
+
+.me-badge-body {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 0.375rem;
+}
+
+.me-badge-title {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.0625rem;
+}
+
+.me-badge-count {
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: var(--bb-muted-foreground);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.me-meter {
+  height: 0.875rem;
+  border-radius: 999px;
+  background: var(--bb-muted);
+  overflow: hidden;
+}
+
+.me-meter > span {
+  display: block;
+  height: 100%;
+  width: 100%;
+  border-radius: 999px;
+  transform-origin: left center;
+  background: var(--ic-yellow);
+  /* A highlight stripe along the top, drawn as a flat second shape. */
+  box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.35);
+}
+
+.me-meter[data-tone="orange"] > span { background-color: var(--ic-orange); }
+.me-meter[data-tone="purple"] > span { background-color: var(--ic-purple); }
+.me-meter[data-tone="green"] > span { background-color: var(--ic-green); }
+.me-meter[data-tone="blue"] > span { background-color: var(--ic-blue); }
+
+.me-badge-line {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--bb-muted-foreground);
+}
+
+/* ------------------------------------------------------------ calendar -- */
+
+.me-cal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.me-cal-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: 800;
+}
+
+.me-icon-btn {
+  width: 2.75rem;
+  height: 2.75rem;
+  display: grid;
+  place-items: center;
+  border-radius: 0.75rem;
+  border: 2px solid var(--me-line);
+  background: var(--bb-card);
+  color: var(--bb-primary-ink);
+  box-shadow: 0 3px 0 var(--me-line);
+  margin-bottom: 3px;
+  cursor: pointer;
+  font: 900 1.125rem/1 var(--font-display);
+  transition: transform 90ms ease, box-shadow 90ms ease;
+}
+
+.me-icon-btn:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: 0 0 0 var(--me-line);
+}
+
+.me-icon-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.me-icon-btn:focus-visible,
+.me-row:focus-visible,
+.me-seg button:focus-visible {
+  outline: 3px solid var(--bb-ring);
+  outline-offset: 2px;
+}
+
+.me-cal {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 0.25rem;
+  table-layout: fixed;
+  text-align: center;
+}
+
+.me-cal th {
+  font-size: 0.8125rem;
+  font-weight: 800;
+  color: var(--bb-muted-foreground);
+  padding-bottom: 0.25rem;
+}
+
+.me-cal td {
+  padding: 0;
+}
+
+.me-day {
+  width: 2.25rem;
+  height: 2.25rem;
+  margin: 0 auto;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: var(--bb-foreground);
+}
+
+.me-day[data-future="true"] {
+  color: var(--bb-muted-foreground);
+}
+
+/* A studied day that missed the goal gets a dot under its number, not a
+   ring: only orange goal days look like part of a streak. */
+.me-day {
+  position: relative;
+}
+.me-day[data-active="true"]::after {
+  content: "";
+  position: absolute;
+  bottom: 0.1875rem;
+  left: 50%;
+  width: 0.375rem;
+  height: 0.375rem;
+  margin-left: -0.1875rem;
+  border-radius: 999px;
+  background: var(--ic-purple);
+}
+.me-day[data-goal="true"]::after {
+  content: none;
+}
+
+.me-day[data-goal="true"] {
+  background: var(--ic-orange);
+  color: var(--me-on-bright);
+  box-shadow: inset 0 -3px 0 var(--ic-orange-lip);
+}
+
+.me-day[data-today="true"] {
+  outline: 3px solid var(--ic-orange);
+  outline-offset: 1px;
+}
+
+.me-cal-key {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--bb-muted-foreground);
+}
+
+.me-cal-key span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.me-day-key {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: var(--ic-purple);
+}
+
+.me-day-key[data-goal="true"] {
+  width: 0.875rem;
+  height: 0.875rem;
+  background: var(--ic-orange);
+}
+
+.me-cal-note {
+  margin-top: 0.375rem;
+  text-align: center;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--bb-muted-foreground);
+}
+
+.me-goal {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 2px solid var(--me-line);
+  display: grid;
+  gap: 0.5rem;
+}
+
+.me-goal-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-weight: 800;
+}
+
+/* ------------------------------------------------------- settings list -- */
+
+.me-group {
+  padding: 0;
+  overflow: hidden;
+}
+
+.me-group-title {
+  margin: 0;
+  padding: 0.875rem 1rem 0.25rem;
+  font-size: 0.8125rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--bb-muted-foreground);
+}
+
+.me-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 3.5rem;
+  padding: 0.75rem 1rem;
+  border: 0;
+  border-top: 2px solid var(--me-line);
+  background: transparent;
+  color: var(--bb-foreground);
+  text-align: left;
+  text-decoration: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+.me-group-title + .me-row,
+.me-group-title + * > .me-row:first-child {
+  border-top: 0;
+}
+
+a.me-row:active,
+button.me-row:active {
+  background: var(--bb-muted);
+}
+
+@media (hover: hover) {
+  a.me-row:hover,
+  button.me-row:hover {
+    background: color-mix(in srgb, var(--bb-primary) 6%, var(--bb-card));
+  }
+}
+
+.me-row-static {
+  position: relative;
+  cursor: default;
+}
+
+.me-row-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.me-row-title {
+  display: block;
+  font-weight: 800;
+  font-size: 1rem;
+}
+
+.me-row-detail {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--bb-muted-foreground);
+}
+
+.me-row-value {
+  flex-shrink: 0;
+  font-weight: 800;
+  color: var(--bb-primary-ink);
+}
+
+.me-row-chevron {
+  flex-shrink: 0;
+  color: var(--bb-muted-foreground);
+  font-weight: 900;
+}
+
+.me-row-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 0.75rem;
+  background: var(--tab-active);
+}
+
+/* Segmented control: the chosen option is a raised key, the rest are flat. */
+.me-seg {
+  display: flex;
+  gap: 0.375rem;
+  padding: 0.25rem;
+  border-radius: 0.875rem;
+  background: var(--bb-muted);
+}
+
+.me-seg button {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 2.75rem;
+  white-space: nowrap;
+  padding: 0 0.75rem;
+  border: 2px solid transparent;
+  border-radius: 0.625rem;
+  background: transparent;
+  color: var(--bb-muted-foreground);
+  font: 800 0.9375rem/1.1 var(--font-display);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+}
+
+.me-seg button[aria-pressed="true"],
+.me-seg button[aria-checked="true"] {
+  background: var(--bb-card);
+  color: var(--bb-primary-ink);
+  border-color: var(--tab-active-line);
+  box-shadow: 0 3px 0 var(--tab-active-line);
+}
+
+.me-seg-wrap {
+  padding: 0.25rem 1rem 1rem;
+}
+
+/* Two options beside the row title (Appearance). */
+.me-seg--inline {
+  flex: 0 0 auto;
+}
+.me-seg--inline button {
+  flex: 0 0 auto;
+  padding: 0 0.875rem;
+}
+
+/* Options stacked as a picture or name over a small second line, so three or
+   four fit a 390px phone with every word on one line. */
+.me-seg--stack button {
+  flex-direction: column;
+  gap: 0.125rem;
+  min-height: 3.5rem;
+  padding: 0.375rem 0.25rem;
+}
+
+.me-seg-sub {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  opacity: 0.85;
+}
+
+/* Plain switch, drawn inside a SwitchRow (the row is the button). Off is a
+   neutral grey track with a white knob on the left; on is green with the
+   knob on the right. No purple in either state, so off never reads as on. */
+.me-switch {
+  position: relative;
+  flex-shrink: 0;
+  width: 3.5rem;
+  height: 2rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bb-muted-foreground) 62%, var(--bb-card));
+  box-shadow: inset 0 -3px 0 color-mix(in srgb, var(--bb-muted-foreground) 90%, var(--bb-card));
+  transition: background-color 150ms ease;
+}
+
+.me-switch-knob {
+  position: absolute;
+  top: 0.25rem;
+  left: 0.25rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 999px;
+  background: #ffffff;
+  transition: transform 160ms cubic-bezier(0.35, 1.5, 0.45, 1);
+}
+
+[aria-checked="true"] > .me-switch {
+  background: var(--ic-green);
+  box-shadow: inset 0 -3px 0 var(--ic-green-lip);
+}
+
+[aria-checked="true"] > .me-switch .me-switch-knob {
+  transform: translateX(1.5rem);
+}
+
+.me-date {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+  color-scheme: light dark;
+}
+
+/* The exam date key: outlined, with a lip, like the segment's chosen option. */
+.me-date-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0 0.875rem;
+  border: 2px solid var(--tab-active-line);
+  border-radius: 0.75rem;
+  background: var(--bb-card);
+  color: var(--bb-primary-ink);
+  box-shadow: 0 3px 0 var(--tab-active-line);
+  margin-bottom: 3px;
+  font: 800 0.9375rem/1 var(--font-display);
+  cursor: pointer;
+  transition: transform 90ms ease, box-shadow 90ms ease;
+}
+
+.me-date-btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 0 0 var(--tab-active-line);
+}
+
+.me-date-btn:focus-visible {
+  outline: 3px solid var(--bb-ring);
+  outline-offset: 2px;
+}
+
+.me-date-btn .me-stat-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* ---------------------------------------------------------- pKa editor -- */
+
+/* A choice tile: outlined, 4px bottom rim as its lip; the chosen one takes
+   the selected wash and sinks 2px (rim moves from bottom to top). */
+.me-choice {
+  display: block;
+  width: 100%;
+  min-height: 3.5rem;
+  padding: 0.75rem 1rem;
+  text-align: left;
+  background: var(--bb-card);
+  color: var(--bb-foreground);
+  border: solid var(--me-line);
+  border-width: 2px 2px 4px;
+  border-radius: 0.875rem;
+  font: inherit;
+  cursor: pointer;
+}
+
+.me-choice[aria-checked="true"] {
+  background: var(--tab-active);
+  border-color: var(--tab-active-line);
+  border-width: 4px 2px 2px;
+}
+
+.me-choice:focus-visible {
+  outline: 3px solid var(--bb-ring);
+  outline-offset: 2px;
+}
+
+.me-choice-dot {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+  border-radius: 999px;
+  border: 2px solid var(--bb-border);
+  background: var(--bb-card);
+}
+
+[aria-checked="true"] .me-choice-dot {
+  border: 6px solid var(--ic-purple-lip);
+}
+
+.me-chip {
+  display: inline-block;
+  flex-shrink: 0;
+  padding: 0.25rem 0.625rem;
+  border-radius: 999px;
+  border: 2px solid var(--me-line);
+  background: var(--bb-muted);
+  color: var(--bb-foreground);
+  font: 800 0.8125rem/1.2 var(--font-display);
+  white-space: nowrap;
+}
+
+.me-chip[data-tone="primary"] {
+  background: var(--tab-active);
+  border-color: var(--tab-active-line);
+}
+
+.me-pka-value {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .me *,
+  .me *::before,
+  .me *::after {
+    transition-duration: 1ms !important;
+    animation-duration: 1ms !important;
+  }
+}
+
+/* The chevron inherits the text colour of its key or row. */
+.me-chev {
+  display: block;
+}
+.me-row-chevron .me-chev {
+  width: 1.125rem;
+  height: 1.125rem;
+}

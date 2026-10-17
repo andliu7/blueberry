@@ -105,7 +105,7 @@ const PLANS: Plan[] = [
     // EXISTS. This card is filtered out today because Stripe cannot quote it, so
     // the filter is the only thing keeping these off the page, and it stops
     // protecting you the instant the price is created. Checked 2026-09-24 and
-    // trimmed to what actually ships: the mechanism trainer grades arrows as they
+    // trimmed to what actually ships: the game's arrow trainer grades arrows as they
     // are drawn, and importFile.ts brings in notes from our JSON and from
     // delimited text. Removed "A syllabus, so the site knows when your exams
     // are", which does not exist anywhere in src, and narrowed the import line
@@ -139,9 +139,12 @@ const PLANS: Plan[] = [
 const COMING: Plan = {
   id: "coming",
   icon: <Sparkles />,
-  name: "Paid tiers",
+  // Owner, 2026-10-07: keep Plans visible and mark the paid tiers "coming soon"
+  // with honest copy. So the card names no feature and no price: it says the tier
+  // is coming, that nothing is on sale, and that what is free now stays free.
+  name: "Paid tiers, coming soon",
   description:
-    "Not on sale. Mechanism practice, note imports and a syllabus are being built, and no price has been set for any of it.",
+    "Nothing is on sale yet and no price is set. Everything on the site today stays free.",
   features: [],
 };
 
@@ -310,7 +313,7 @@ function PlanAction({
     );
   }
 
-  if (!price) return <div className={quiet}>Not on sale yet</div>;
+  if (!price) return <div className={quiet}>Coming soon</div>;
 
   if (!signedIn) {
     return (

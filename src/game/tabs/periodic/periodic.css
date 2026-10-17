@@ -1,0 +1,512 @@
+/*
+ * The periodic table tab, in the app's chunky style: lipped tiles and buttons
+ * that sink when pressed, rounded bold type, colour as the surface.
+ *
+ * THE TABLE HAS A FIXED NATURAL SIZE and is scaled to fit, never reflowed.
+ * 18 columns of 64px with 4px gaps and 8px padding is 1236px wide; 7 period
+ * rows, a 16px spacer and the two f rows is 644px tall. The viewport carries
+ * that same aspect ratio, so at "fit" the whole table is visible at any width.
+ * If you change a size here, change the aspect ratio with it.
+ *
+ * Chrome colours are theme tokens. Tile fills are literals in colours.ts.
+ */
+
+.pt-root {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  font-family: var(--font-display);
+  color: var(--bb-foreground);
+  container-type: inline-size;
+}
+
+/* ------------------------------------------------------------- toolbar -- */
+
+.pt-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.pt-toolbar-actions {
+  display: flex;
+  gap: 0.375rem;
+}
+
+/* The lipped button: 2px outline, 4px bottom edge, sinks onto the edge when pressed. */
+.pt-btn {
+  min-height: 2.75rem;
+  min-width: 2.75rem;
+  padding: 0 0.875rem;
+  border: 2px solid var(--bb-border);
+  border-bottom-width: 4px;
+  border-radius: 0.75rem;
+  background: var(--bb-card);
+  color: var(--bb-foreground);
+  font: 800 0.8125rem/1 var(--font-display);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 100ms ease;
+}
+
+.pt-btn--icon {
+  padding: 0;
+  font-size: 1.25rem;
+}
+
+.pt-btn[aria-pressed="true"] {
+  border-color: var(--bb-primary-edge);
+  background: var(--bb-primary);
+  color: var(--bb-primary-foreground);
+}
+
+.pt-btn:active {
+  transform: translateY(2px);
+  border-bottom-width: 2px;
+  margin-bottom: 2px;
+}
+
+.pt-btn:focus-visible,
+.pt-seg-option:focus-visible,
+.pt-tile:focus-visible,
+.pt-marker:focus-visible {
+  outline: 3px solid var(--bb-ring);
+  outline-offset: 2px;
+}
+
+/* ------------------------------------------- sliding segmented switch -- */
+
+.pt-seg {
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+  border-radius: 0.875rem;
+  background: var(--bb-muted);
+  border: 2px solid color-mix(in srgb, var(--bb-border) 35%, transparent);
+}
+
+.pt-seg::-webkit-scrollbar {
+  display: none;
+}
+
+.pt-seg-row {
+  position: relative;
+  display: flex;
+  width: max-content;
+  padding: 3px;
+}
+
+.pt-seg-thumb {
+  position: absolute;
+  border-radius: 0.625rem;
+  background: var(--bb-card);
+  box-shadow: 0 3px 0 color-mix(in srgb, var(--bb-border) 60%, transparent);
+}
+
+/* Only after the first tap: no slide on first paint. */
+.pt-seg-thumb--slide {
+  transition:
+    left 260ms cubic-bezier(0.35, 1.4, 0.45, 1),
+    width 260ms cubic-bezier(0.35, 1.4, 0.45, 1),
+    top 260ms cubic-bezier(0.35, 1.4, 0.45, 1);
+}
+
+/* Wide screens: the ten filters wrap rather than scroll, so none is hidden. */
+@container (min-width: 56rem) {
+  .pt-seg--wrap .pt-seg-row {
+    flex-wrap: wrap;
+    width: auto;
+  }
+}
+
+.pt-seg-option {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 2.5rem;
+  margin-bottom: 3px;
+  padding: 0 0.875rem;
+  border: 0;
+  border-radius: 0.625rem;
+  background: transparent;
+  color: var(--bb-muted-foreground);
+  font: 800 0.875rem/1 var(--font-display);
+  white-space: nowrap;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.pt-seg-option[aria-checked="true"] {
+  color: var(--bb-foreground);
+}
+
+.pt-seg--compact .pt-seg-option {
+  padding: 0 0.75rem;
+  font-size: 0.8125rem;
+}
+
+.pt-seg-swatch {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 999px;
+  border: 1.5px solid rgb(42 42 66 / 0.35);
+}
+
+/* ------------------------------------------------------------- legend -- */
+
+.pt-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem 0.625rem;
+  color: var(--bb-muted-foreground);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.pt-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.pt-legend-swatch {
+  display: inline-block;
+  width: 1.25rem;
+  height: 0.875rem;
+  border-radius: 0.25rem;
+  border: 1.5px solid rgb(42 42 66 / 0.25);
+}
+
+/* ------------------------------------------------- viewport and table -- */
+
+.pt-viewport {
+  position: relative;
+  box-sizing: content-box;
+  width: calc(100% - 4px);
+  aspect-ratio: 1236 / 644;
+  overflow: hidden;
+  border: 2px solid color-mix(in srgb, var(--bb-border) 45%, transparent);
+  border-radius: 1rem;
+  background: var(--bb-card);
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.pt-viewport[data-zoomed="true"] {
+  cursor: grab;
+}
+
+.pt-viewport[data-zoomed="true"]:active {
+  cursor: grabbing;
+}
+
+.pt-table {
+  position: absolute;
+  top: 0;
+  left: 0;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: repeat(18, 64px);
+  grid-template-rows: repeat(7, 64px) 16px repeat(2, 64px);
+  gap: 4px;
+  width: 1236px;
+  height: 644px;
+  padding: 8px;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
+.pt-tile,
+.pt-marker {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 3px 4px;
+  border: 0;
+  border-radius: 0.5rem;
+  box-shadow: 0 3px 0 rgb(42 42 66 / 0.28);
+  margin-bottom: 3px;
+  font-family: var(--font-display);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition:
+    opacity 180ms ease,
+    filter 180ms ease,
+    transform 260ms cubic-bezier(0.35, 1.6, 0.45, 1);
+}
+
+.pt-tile:active,
+.pt-marker:active {
+  transform: translateY(3px);
+  box-shadow: none;
+}
+
+.pt-tile-number {
+  position: absolute;
+  top: 3px;
+  left: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.pt-tile-symbol {
+  margin-top: 6px;
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.pt-tile-name {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 8px;
+  font-weight: 700;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pt-tile-mass {
+  font-size: 8px;
+  font-weight: 600;
+  line-height: 1;
+  opacity: 0.85;
+}
+
+.pt-marker {
+  font-size: 11px;
+  font-weight: 900;
+}
+
+/* The highlight filter: the chosen group stays, the rest fades to grey. */
+.pt-tile[data-dim="true"],
+.pt-marker[data-dim="true"] {
+  opacity: 0.2;
+  filter: saturate(0);
+}
+
+/* A selected tile outside the lit group stays findable, at half strength. */
+.pt-tile[data-selected="true"][data-dim="true"] {
+  opacity: 0.6;
+}
+
+/* The selected tile lifts above its neighbours with a small overshoot. */
+.pt-tile[data-selected="true"] {
+  z-index: 2;
+  transform: translateY(-2px) scale(1.12);
+  box-shadow:
+    0 0 0 3px var(--bb-primary),
+    0 5px 0 var(--bb-primary-edge);
+}
+
+.pt-tile[data-selected="true"]:active {
+  transform: scale(1.12);
+}
+
+/* ----------------------------------------------- inset (empty corner) -- */
+
+.pt-inset {
+  grid-column: 3 / 13;
+  grid-row: 1 / 4;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 4px 8px 4px 16px;
+  pointer-events: none;
+}
+
+.pt-inset-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 176px;
+  height: 176px;
+  flex-shrink: 0;
+  border-radius: 1rem;
+  box-shadow: 0 6px 0 rgb(42 42 66 / 0.28);
+}
+
+.pt-inset-number {
+  position: absolute;
+  top: 10px;
+  left: 14px;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.pt-inset-symbol {
+  font-size: 76px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.pt-inset-mass {
+  margin-top: 6px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.pt-inset-text {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pt-inset-name {
+  font-size: 34px;
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+}
+
+.pt-inset-line {
+  color: var(--bb-muted-foreground);
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.pt-hint {
+  margin: 0;
+  color: var(--bb-muted-foreground);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+/* --------------------------------------------------------- detail card -- */
+
+.pt-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+  border: 2px solid color-mix(in srgb, var(--bb-border) 45%, transparent);
+  border-radius: 1rem;
+  background: var(--bb-card);
+}
+
+.pt-detail-head {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.pt-detail-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 5.5rem;
+  height: 5.5rem;
+  flex-shrink: 0;
+  border-radius: 0.875rem;
+  box-shadow: 0 4px 0 rgb(42 42 66 / 0.28);
+}
+
+.pt-detail-number {
+  position: absolute;
+  top: 6px;
+  left: 9px;
+  font-size: 0.8125rem;
+  font-weight: 800;
+}
+
+.pt-detail-symbol {
+  font-size: 2.25rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.pt-detail-mass {
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.pt-detail-name {
+  margin: 0 0 0.375rem;
+  font-size: 1.625rem;
+  font-weight: 900;
+  line-height: 1.1;
+}
+
+.pt-chip {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 800;
+}
+
+.pt-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin: 0;
+}
+
+@container (min-width: 44rem) {
+  .pt-facts {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.pt-fact {
+  min-width: 0;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.75rem;
+  background: var(--bb-muted);
+}
+
+.pt-fact dt {
+  color: var(--bb-muted-foreground);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.pt-fact dd sup {
+  font-size: 0.65em;
+  line-height: 0;
+}
+
+.pt-fact dd {
+  margin: 0.125rem 0 0;
+  overflow-wrap: anywhere;
+  font-size: 0.9375rem;
+  font-weight: 800;
+}
+
+.pt-source {
+  margin: 0;
+  color: var(--bb-muted-foreground);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.pt-source a {
+  color: var(--bb-primary-ink);
+  font-weight: 800;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pt-seg-thumb--slide,
+  .pt-tile,
+  .pt-marker,
+  .pt-btn {
+    transition: none;
+  }
+}

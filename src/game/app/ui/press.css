@@ -1,0 +1,191 @@
+/*
+ * The 3D button (A2, 2026-10-16). One look for every text button in the game.
+ *
+ * ANATOMY. A flat face over a solid, unblurred lip. The lip is a box-shadow
+ * offset straight down with no blur, so it reads as the side of a key, not as
+ * a shadow. Pressing moves the face down by exactly the lip and the lip goes
+ * to zero, so the face lands where the lip was and nothing around it moves:
+ * margin-bottom reserves the lip's space for that reason.
+ *
+ * The press paints through :active, the same frame the pointer lands, with no
+ * JavaScript in the path (the press contract in CLAUDE.md).
+ *
+ * Colours are tokens from theme.css only. Each variant sets four custom
+ * properties and the base rule paints them, so a variant is four lines.
+ */
+
+.btn3d {
+  --b3-face: var(--bb-primary);
+  --b3-lip: var(--bb-primary-lip);
+  --b3-ink: var(--bb-primary-foreground);
+  --b3-rim: transparent;
+  --b3-lip-size: 4px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 3rem;
+  min-width: 2.75rem;
+  padding: 0 1.25rem;
+  margin-bottom: var(--b3-lip-size);
+  border: 2px solid var(--b3-rim);
+  border-radius: 0.875rem;
+  background: var(--b3-face);
+  color: var(--b3-ink);
+  box-shadow: 0 var(--b3-lip-size) 0 var(--b3-lip);
+  font-family: var(--font-display);
+  font-size: 0.9375rem;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform 90ms cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 90ms cubic-bezier(0.4, 0, 0.2, 1),
+    filter 160ms ease;
+}
+
+@media (hover: hover) {
+  .btn3d:hover:not(:disabled):not(.is-busy) {
+    filter: brightness(1.08);
+  }
+}
+
+.btn3d:active:not(:disabled),
+.btn3d.is-busy {
+  transform: translateY(var(--b3-lip-size));
+  box-shadow: 0 0 0 var(--b3-lip);
+}
+
+.btn3d:focus-visible {
+  outline: 3px solid var(--bb-ring);
+  outline-offset: 3px;
+}
+
+/* Disabled: a solid flat grey slab sitting where a pressed key would. A2
+   round 4: no rim. The rim made it read as an outlined ghost, which is the
+   secondary key's look; a slab of its own grey says "not yet" instead. */
+.btn3d:disabled:not(.is-busy) {
+  --b3-face: var(--btn-disabled);
+  --b3-ink: var(--btn-disabled-ink);
+  --b3-rim: transparent;
+  transform: translateY(var(--b3-lip-size));
+  box-shadow: none;
+  cursor: default;
+}
+
+/* ------------------------------------------------------------- variants */
+
+.btn3d--primary {
+  --b3-face: var(--bb-primary);
+  --b3-lip: var(--bb-primary-lip);
+  --b3-ink: var(--bb-primary-foreground);
+}
+
+/* White key with a soft violet rim and lip. The label carries the meaning.
+   At night the face is one step lighter than the card (--btn-secondary-face)
+   so it stays a raised key and never reads as the flat ghost. */
+.btn3d--secondary {
+  --b3-face: var(--btn-secondary-face);
+  --b3-lip: var(--btn-line);
+  --b3-rim: var(--btn-line);
+  --b3-ink: var(--bb-primary-ink);
+}
+@media (hover: hover) {
+  .btn3d--secondary:hover:not(:disabled) {
+    filter: none;
+    --b3-face: color-mix(in srgb, var(--bb-primary) 6%, var(--btn-secondary-face));
+  }
+}
+
+/* Success: the green "you got it" key. Dark ink on the bright fill (7.48:1),
+   because white on a bright green fails the label floor. */
+.btn3d--success {
+  --b3-face: var(--progress);
+  --b3-lip: var(--progress-edge);
+  --b3-ink: var(--progress-ink);
+}
+
+.btn3d--danger {
+  --b3-face: var(--btn-danger);
+  --b3-lip: var(--btn-danger-lip);
+  --b3-ink: #ffffff;
+}
+
+/* Ghost: a text button. Flat on purpose, the way a link is flat; it still
+   acknowledges the press with a one-pixel drop and a tint. */
+.btn3d--ghost {
+  --b3-face: transparent;
+  --b3-ink: var(--bb-primary-ink);
+  box-shadow: none;
+  margin-bottom: 0;
+}
+.btn3d--ghost:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: none;
+}
+@media (hover: hover) {
+  .btn3d--ghost:hover:not(:disabled) {
+    filter: none;
+    --b3-face: var(--btn-ghost-hover);
+  }
+}
+.btn3d--ghost:disabled:not(.is-busy) {
+  --b3-face: transparent;
+  transform: none;
+}
+
+/* ---------------------------------------------------------------- sizes */
+
+.btn3d--sm {
+  --b3-lip-size: 3px;
+  min-height: 2.75rem;
+  padding: 0 1rem;
+  border-radius: 0.75rem;
+  font-size: 0.8125rem;
+}
+.btn3d--lg {
+  min-height: 3.25rem;
+  padding: 0 1.5rem;
+  border-radius: 1rem;
+  font-size: 1rem;
+}
+.btn3d--block {
+  display: flex;
+  width: 100%;
+}
+
+/* The loading continuation: the key stays down and a dot pulses inside. */
+.btn3d .busy-dot {
+  flex: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn3d {
+    transition-duration: 1ms;
+  }
+}
+
+/* Labels that are chemistry (element symbols, bond orders) keep their case:
+   "Cl" shouted as "CL" is a different thing. */
+.btn3d--keepcase {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 1rem;
+}
+
+/* A toggle in its on state (a picked tool): violet wash, violet rim and lip. */
+.btn3d.btn3d--selected,
+.btn3d.btn3d--selected:hover:not(:disabled) {
+  --b3-face: color-mix(in srgb, var(--bb-primary) 14%, var(--bb-card));
+  --b3-rim: var(--bb-primary);
+  --b3-lip: var(--bb-primary);
+  --b3-ink: var(--bb-primary-ink);
+}

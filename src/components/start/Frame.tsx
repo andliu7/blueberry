@@ -134,7 +134,7 @@ export function Frame({
           scrollable" state has to be computed and then kept true. */}
       <div
         aria-hidden
-        className="pointer-events-none -mt-8 h-8 shrink-0 bg-gradient-to-b from-transparent to-[#f6f4ef] dark:to-[#0c0a09]"
+        className="pointer-events-none -mt-8 h-8 shrink-0 bg-gradient-to-b from-transparent to-background"
       />
 
       <div className="mx-auto flex w-full max-w-2xl shrink-0 flex-col items-center gap-2 px-5 pt-2 pb-6 sm:px-6">
@@ -268,7 +268,7 @@ export function Action({ label, disabled = false, shape = "rect", onPress }: Act
         // Tailwind's layers, so a `disabled:shadow-none` utility would lose the
         // specificity tie; not applying the class at all is the honest fix.
         disabled
-          ? "cursor-not-allowed bg-slate-900/10 text-slate-400 dark:bg-white/10 dark:text-stone-500"
+          ? "cursor-not-allowed bg-slate-900/10 text-slate-500 dark:bg-white/10 dark:text-stone-400"
           : "bb-press cursor-pointer gradient-button text-white",
       )}
     >

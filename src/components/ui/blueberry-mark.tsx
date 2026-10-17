@@ -56,17 +56,17 @@ export function BlueberryMark({
               saturation colour that neither background threw into relief. The
               shading still darkens toward the base so it reads as a sphere,
               but it stays saturated instead of draining to grey. */}
-          <stop offset="0%" stopColor="#bdefff" />
-          <stop offset="28%" stopColor="#3fa9ff" />
-          <stop offset="66%" stopColor="#3d63f5" />
-          <stop offset="100%" stopColor="#2b2fb0" />
+          <stop offset="0%" stopColor="#a8c6ff" />
+          <stop offset="28%" stopColor="#3a66e0" />
+          <stop offset="66%" stopColor="#1c3c9e" />
+          <stop offset="100%" stopColor="#0a1a4f" />
         </radialGradient>
         <linearGradient id="bb-calyx" x1="0.3" y1="0" x2="0.7" y2="1">
           {/* Lifted to match. The calyx sits on top of the lightest part of
               the berry, so leaving it near-black made a dark cap on a bright
               sphere. */}
-          <stop offset="0%" stopColor="#4a6cff" />
-          <stop offset="100%" stopColor="#2a2496" />
+          <stop offset="0%" stopColor="#2f5ad4" />
+          <stop offset="100%" stopColor="#0f2462" />
         </linearGradient>
       </defs>
 
@@ -102,7 +102,7 @@ export function BlueberryMark({
           d="M0 -11 C2.8 -6.7 3.7 -2.8 2.6 0 C1.6 2.2 -1.6 2.2 -2.6 0 C-3.7 -2.8 -2.8 -6.7 0 -11 Z"
           transform="rotate(288)"
         />
-        <circle r="3.6" fill="#241f7a" />
+        <circle r="3.6" fill="#14266e" />
       </g>
 
       {/* Drawn last so they sit over the berry's shading rather than under it.

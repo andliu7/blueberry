@@ -1,0 +1,371 @@
+/*
+ * Courses: the course list, a course's topic list, and the coming-soon page.
+ * Style language: chunky, outlined, colour as surface (see tabs/me/me.css for
+ * the same rules written out).
+ *
+ *  - The open course is a SECTION CARD: a purple band of colour across the
+ *    top holding the emblem and name, then progress and one CONTINUE key.
+ *  - Closed courses are the same card shape with a grey band and a padlock,
+ *    no key. Full-strength text, no opacity: what is greyed is the band and
+ *    the missing button, never the words.
+ *  - Topic rows are pressable tiles: 2px rim, 4px bottom rim as the lip,
+ *    sinking 2px on :active.
+ */
+
+.cs {
+  --cs-on-bright: #1d1640;
+  width: 100%;
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 1rem 1rem 3rem;
+  display: grid;
+  gap: 1rem;
+  color: var(--bb-foreground);
+  font-family: var(--font-display);
+}
+
+.cs-title {
+  margin: 0;
+  font-size: 2rem;
+  line-height: 1.1;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+.cs-lede {
+  margin: 0.25rem 0 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--bb-muted-foreground);
+}
+.cs-kicker {
+  margin: 0.5rem 0 0;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--bb-muted-foreground);
+}
+
+/* ---- section card ------------------------------------------------------ */
+
+.cs-card {
+  overflow: hidden;
+  border: 2px solid var(--btn-line);
+  border-bottom-width: 4px;
+  border-radius: 1.25rem;
+  background: var(--bb-card);
+}
+.cs-band {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 1rem 1.125rem;
+  background: var(--ic-purple);
+  color: #ffffff;
+}
+.cs-band--closed {
+  background: var(--bb-muted);
+  color: var(--bb-foreground);
+}
+.cs-emblem {
+  display: grid;
+  place-items: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  flex-shrink: 0;
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.22);
+}
+.cs-band--closed .cs-emblem {
+  background: var(--bb-card);
+  border: 2px solid var(--btn-line);
+  color: var(--bb-muted-foreground);
+}
+.cs-emblem .course-flask,
+.cs-emblem svg {
+  width: 2.5rem;
+  height: 2.5rem;
+}
+.cs-mark {
+  font-size: 1rem;
+  font-weight: 900;
+}
+.cs-band__text {
+  min-width: 0;
+  flex: 1;
+}
+.cs-band__over {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.92;
+}
+.cs-band__name {
+  margin: 0.125rem 0 0;
+  font-size: 1.375rem;
+  line-height: 1.15;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+}
+.cs-band--closed .cs-band__name {
+  font-size: 1.125rem;
+}
+.cs-lock {
+  width: 1.5rem;
+  height: 1.5rem;
+  flex-shrink: 0;
+  color: var(--bb-muted-foreground);
+}
+.cs-body {
+  display: grid;
+  gap: 0.875rem;
+  padding: 1rem 1.125rem 1.125rem;
+}
+.cs-body--tight {
+  padding-top: 0.75rem;
+  padding-bottom: 0.875rem;
+  gap: 0.25rem;
+}
+.cs-blurb {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+.cs-coming {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--bb-muted-foreground);
+}
+
+/* ---- progress bar ------------------------------------------------------ */
+
+.cs-progress {
+  display: grid;
+  gap: 0.375rem;
+}
+.cs-progress__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.9375rem;
+  font-weight: 800;
+}
+.cs-bar {
+  position: relative;
+  height: 1rem;
+  border-radius: 9999px;
+  background: var(--btn-line);
+  overflow: hidden;
+}
+.cs-bar__fill {
+  height: 100%;
+  border-radius: 9999px;
+  background: var(--ic-green);
+  /* The highlight stripe is a second flat shape, not a gradient. */
+  box-shadow: inset 0 -5px 0 rgba(0, 0, 0, 0.08), inset 0 4px 0 rgba(255, 255, 255, 0.35);
+}
+.cs-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.625rem;
+  border-radius: 9999px;
+  background: var(--ic-yellow);
+  color: var(--cs-on-bright);
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.cs-pill--grey {
+  background: var(--bb-muted);
+  color: var(--bb-muted-foreground);
+  border: 2px solid var(--btn-line);
+}
+
+/* ---- topic page header band (full width, like a section page) ---------- */
+
+.cs-hero {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem 1.125rem 1.25rem;
+  border-radius: 1.25rem;
+  background: var(--ic-purple);
+  color: #ffffff;
+  box-shadow: 0 4px 0 var(--ic-purple-lip);
+  margin-bottom: 4px;
+}
+.cs-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  justify-self: start;
+  min-height: 2.75rem;
+  padding: 0 0.75rem 0 0.25rem;
+  border-radius: 0.75rem;
+  color: #ffffff;
+  font-size: 0.9375rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+.cs-back:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+.cs-back:focus-visible {
+  outline: 3px solid #ffffff;
+}
+.cs-hero .cs-title {
+  font-size: 1.75rem;
+}
+.cs-hero .cs-lede {
+  color: #ffffff;
+  opacity: 0.95;
+}
+.cs-hero .cs-bar {
+  background: rgba(255, 255, 255, 0.3);
+}
+.cs-hero .cs-progress__row {
+  color: #ffffff;
+}
+
+/* ---- topic rows -------------------------------------------------------- */
+
+.cs-topics {
+  display: grid;
+  gap: 0.625rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.cs-topic {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  min-height: 4.5rem;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--btn-line);
+  border-bottom-width: 4px;
+  border-radius: 1rem;
+  background: var(--bb-card);
+  color: var(--bb-foreground);
+  text-decoration: none;
+  transition: transform 90ms ease;
+}
+a.cs-topic:active {
+  transform: translateY(2px);
+  border-bottom-width: 2px;
+  margin-bottom: 2px;
+}
+@media (hover: hover) {
+  a.cs-topic:hover {
+    background: color-mix(in srgb, var(--ic-purple) 6%, var(--bb-card));
+  }
+}
+a.cs-topic:focus-visible {
+  outline: 3px solid var(--bb-ring);
+  outline-offset: 2px;
+}
+.cs-topic--next {
+  border-color: var(--ic-purple);
+}
+.cs-topic--empty {
+  border-style: dashed;
+  border-bottom-width: 2px;
+  background: transparent;
+}
+
+/* The round node, a small path node with its own lip. */
+.cs-node {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  background: var(--ic-purple);
+  color: #ffffff;
+  box-shadow: 0 4px 0 var(--ic-purple-lip);
+  font-size: 1.0625rem;
+  font-weight: 900;
+}
+.cs-node--done {
+  background: var(--ic-green);
+  color: var(--cs-on-bright);
+  box-shadow: 0 4px 0 var(--ic-green-lip);
+}
+.cs-node--empty {
+  background: var(--bb-muted);
+  color: var(--bb-muted-foreground);
+  box-shadow: 0 4px 0 var(--btn-line);
+}
+.cs-node svg {
+  width: 1.375rem;
+  height: 1.375rem;
+}
+.cs-topic__text {
+  min-width: 0;
+  flex: 1;
+}
+.cs-topic__name {
+  display: block;
+  font-size: 1.0625rem;
+  font-weight: 800;
+  line-height: 1.25;
+}
+.cs-topic__meta {
+  display: block;
+  margin-top: 0.125rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--bb-muted-foreground);
+}
+.cs-score {
+  flex-shrink: 0;
+  font-size: 0.9375rem;
+  font-weight: 900;
+  color: var(--good-ink);
+}
+.cs-chev {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+  color: var(--bb-muted-foreground);
+}
+
+/* ---- coming-soon page -------------------------------------------------- */
+
+.cs-soon {
+  max-width: 30rem;
+  margin: 0 auto;
+  padding: 2rem 1rem 3rem;
+  display: grid;
+  justify-items: center;
+  gap: 1rem;
+  text-align: center;
+  color: var(--bb-foreground);
+  font-family: var(--font-display);
+}
+.cs-soon__art {
+  display: grid;
+  place-items: center;
+  width: 6rem;
+  height: 6rem;
+  border-radius: 1.5rem;
+  background: var(--bb-muted);
+  border: 2px solid var(--btn-line);
+  border-bottom-width: 6px;
+  color: var(--bb-muted-foreground);
+}
+.cs-soon__art svg {
+  width: 2.75rem;
+  height: 2.75rem;
+}
+.cs-soon .btn3d {
+  width: 100%;
+}

@@ -34,11 +34,13 @@ export function isCourseOpen(course: CourseId): boolean {
  * next step obvious. "Coming soon" is the sentence this file exists to avoid,
  * because it tells a student nothing about whether to wait.
  */
+// A2 round 4: student copy, not build notes. The old lines said "scoped",
+// "authored" and "the engine", which are our words for our process.
 export const COURSE_COMING: Record<CourseId, string> = {
-  gen_chem_1: "Scoped and not authored yet. Its stoichiometry and gas law problems already run inside the placement quiz.",
-  gen_chem_2: "Scoped and not authored yet. Kinetics and equilibrium arrive with the numeric answer shapes.",
-  orgo_1: "Next in line. Its mechanisms are already in the engine; what is missing is the authored lesson order.",
+  gen_chem_1: "Not open yet. Its stoichiometry and gas law problems already show up in the placement quiz.",
+  gen_chem_2: "Not open yet. Kinetics and equilibrium come after General Chemistry I.",
+  orgo_1: "Opening next. Its lessons are being written now.",
   orgo_2: "Open.",
-  dat: "A review track over the four content courses, so it opens when there is more than one to review.",
-  mcat: "Same as the DAT track: it is a weighting over authored content, and the content comes first.",
+  dat: "A review track across the content courses. It opens once more than one course is open.",
+  mcat: "A review track, like the DAT one. It opens once its courses are open.",
 };

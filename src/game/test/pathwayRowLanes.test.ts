@@ -1,21 +1,20 @@
 /**
- * THE ROW'S THREE TRACKS, and the arithmetic that picks their widths.
+ * THE ROW'S LANE, and the arithmetic that picks its widths.
  *
- * WHY THIS FILE EXISTS. A pathway row used to be one centred cell with three
- * pieces of furniture absolutely positioned over it, each choosing its own side
- * per row: the name took one of three placements, the mascot took whichever flank
- * the chip had vacated, and the chip swung 265px across the whole column. A critic
- * named the consequence rather than the cause: "the label chip has NO FIXED
- * RELATIONSHIP to its node ... fixing pitch will not make the column read as a
- * line while the label moves every row."
+ * REWRITTEN in round 3 of P1 (2026-10-17). This file used to pin a four-track
+ * grid, [mascot 72][node lane][gap][name], whose node lane held the swing to
+ * 34px. The critic measured the road's centres at x=132..166 on a 390pt phone
+ * against the bar's roughly 70px of weave, and both blind judges asked for the
+ * nodes to "swing much wider left and right". So the chip swings across the
+ * whole column now, the name rides the side it leaned away from, and the
+ * mascot and side quests the side it leaned toward (nameSide). The pins below
+ * are the same KINDS of pin over the new geometry, recomputed, not loosened:
+ * the swing has a floor from the bar, nothing overlaps the chip, nothing
+ * leaves the screen, and every name keeps at least 96px from 360pt up.
  *
- * The row is a grid now, and every width in it is derived from one chain:
- *
- *   node lane   = the chip's own width + the total swing
- *   total swing = 2 * peak(WIND_CYCLE) * the spine step
- *   mascot lane = the chip's leftmost position at the most negative wind, which is
- *                 mascot + (lane / 2) - peak * step - chip / 2
- *   name        = the content column minus the other three tracks
+ *   chip centre = column / 2 + wind * step
+ *   name room   = column / 2 + |wind| * step - chip / 2 - name gap
+ *   outer room  = column / 2 - |wind| * step - chip / 2   (mascot, side lane)
  *
  * Every one of those numbers is written in TWO places: pathway.css declares the
  * lanes, PathwayTab declares the mascot's pixel size (Berry's lean arithmetic
@@ -33,7 +32,7 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { WIND_CYCLE } from "../tabs/pathway/pathwayLayout";
+import { WIND_CYCLE, nameSide } from "../tabs/pathway/pathwayLayout";
 
 const CSS = readFileSync(fileURLToPath(new URL("../tabs/pathway/pathway.css", import.meta.url)), "utf8");
 
@@ -117,14 +116,15 @@ const CHIP_W = px(decl("--node-size"));
 const CHIP_H = px(decl("--node-face-h")) + px(decl("--node-lip")) + px(decl("--node-border")) * 2;
 
 const MASCOT_LANE = px(decl("--path-mascot-lane"));
-const NODE_LANE = px(decl("--path-node-lane"));
 const NAME_GAP = px(decl("--path-name-gap"));
-/* The side lane (.path-side, round 3): its chips sit centred in the row's
-   first track, and are their own smaller size. */
-const BRANCH_X = MASCOT_LANE / 2;
+/* The side lane (.path-side): a MASCOT_LANE wide box hung --side-off
+   outboard of the chip, its chips centred in it, at their own smaller size. */
+const SIDE_OFF = px(declIn(".path-side {", "--side-off"));
 const SIDE_W = px(declIn(".path-side .path-node {", "--node-size"));
 const SIDE_H = px(declIn(".path-side .path-node {", "--node-face-h")) + px(decl("--node-lip")) + px(decl("--node-border")) * 2;
 const SIDE_GAP = px(declIn(".path-side {", "--side-gap"));
+/* The unit checkpoint's chip, the widest on the road. */
+const CHECK_W = px(declIn(".path-row--check .path-node {", "--node-size"));
 const SEAM = px(decl("--path-seam"));
 
 /** The peak of the wind cycle, in steps. */
@@ -135,43 +135,47 @@ const SPINE_STEP = minPx(decl("--wind-step"));
 /**
  * The content column, measured off the built page by the g1 capture: .path-gate
  * came out 344px wide on a 390pt phone and 448 at max-w-md, so the page reserves
- * 23px a side. These are the two widths the tracks have to add up to.
+ * 23px a side. The phone width is the one the swing has to fit.
  */
 const COLUMN_PHONE = 344;
-const COLUMN_WIDE = 448;
 
-describe("the node lane holds the swing, and only the swing", () => {
-  it("is exactly the chip plus its total travel", () => {
-    expect(NODE_LANE).toBe(CHIP_W + 2 * PEAK * SPINE_STEP);
-  });
-
-  it("keeps the chip's outer edge inside the lane at the widest wind", () => {
-    const outer = PEAK * SPINE_STEP + CHIP_W / 2;
-    expect(outer).toBeLessThanOrEqual(NODE_LANE / 2);
-  });
-
+describe("the road winds as wide as the bar's, and the chip never leaves the column", () => {
   /**
-   * THE BAR, and it is the reason 34px of travel is enough. Pitch and swing only
-   * mean anything against node size: the capture measured Brilliant swinging 59px
-   * on a 128px node, which is 0.46 node widths. Anything close to that is the same
-   * road proportionally, whatever the absolute travel is.
+   * THE BAR. The critic measured the duolingo-live path swinging about 70px at
+   * 390pt; ours was 34. The floor is the bar's figure, and the ceiling is the
+   * column: the widest chip must still sit wholly inside it.
    */
-  it("swings the same proportion of a node that the bar does", () => {
-    const ours = (2 * PEAK * SPINE_STEP) / CHIP_W;
-    const bar = 59 / 128;
-    expect(Math.abs(ours - bar)).toBeLessThan(0.08);
+  it("swings at least the bar's 70px at 390pt", () => {
+    expect(2 * PEAK * SPINE_STEP).toBeGreaterThanOrEqual(70);
+  });
+
+  it("keeps even the widest chip inside the phone column at the widest wind", () => {
+    expect(PEAK * SPINE_STEP + CHECK_W / 2).toBeLessThanOrEqual(COLUMN_PHONE / 2);
+  });
+
+  it("winds both ways about the centre, never parking on it", () => {
+    expect(WIND_CYCLE.reduce((sum, wind) => sum + wind, 0)).toBeCloseTo(0, 5);
+    for (const wind of WIND_CYCLE) expect(wind).not.toBe(0);
   });
 });
 
-describe("the mascot lane cannot touch a chip", () => {
-  it("is bounded by the chip's leftmost position at any spine wind", () => {
-    // The chip's left edge, measured from the row's left edge, at the most
-    // negative wind in the cycle.
-    const chipLeft = MASCOT_LANE + NODE_LANE / 2 - PEAK * SPINE_STEP - CHIP_W / 2;
-    expect(chipLeft).toBeGreaterThanOrEqual(MASCOT_LANE);
+describe("the name takes the open side, the mascot and side quests the lean side", () => {
+  it("puts the name opposite the lean", () => {
+    for (const wind of WIND_CYCLE) expect(nameSide(wind)).toBe(wind > 0 ? "left" : "right");
   });
 
-  it("is the same number PathwayTab hands Berry", async () => {
+  it("starts the name one gap past the chip's own edge, on either side", () => {
+    // The two placements in the stylesheet, read as text: they are the formula
+    // the room arithmetic below assumes.
+    expect(declIn(".path-row--name-left .path-row__name {", "right")).toBe(
+      "calc(50% - var(--wind) * var(--wind-step) + var(--row-chip-half) + var(--path-name-gap))",
+    );
+    expect(declIn(".path-row--name-right .path-row__name {", "left")).toBe(
+      "calc(50% + var(--wind) * var(--wind-step) + var(--row-chip-half) + var(--path-name-gap))",
+    );
+  });
+
+  it("is the same mascot number PathwayTab hands Berry", () => {
     // Berry's lean and bob scale off a pixel number, so the size cannot be a CSS
     // length and the two copies have to be checked against each other. Read as
     // text, because importing PathwayTab pulls in React and the app shell.
@@ -184,38 +188,15 @@ describe("the mascot lane cannot touch a chip", () => {
   it("draws one mascot size on the whole surface", () => {
     const tab = readFileSync(fileURLToPath(new URL("../tabs/pathway/PathwayTab.tsx", import.meta.url)), "utf8");
     const sizes = [...tab.matchAll(/<Berry[^>]*?sizePx=\{([^}]+)\}/g)].map((match) => String(match[1]).trim());
-    // Every mascot standing beside a node on the track is one size. The course
-    // picker's greeting berry is not on the track and is not in this list.
-    // REWRITTEN 2026-10-01: it counted two MASCOT_PX placements, the row's and
-    // the fork cell's. The fork is retired, so the track has ONE placement and
-    // it must be MASCOT_PX: exactly one. (The 88 is the course picker.)
     const onTrack = sizes.filter((size) => size === "MASCOT_PX" || /^\d+$/.test(size));
     expect(onTrack.filter((size) => size === "MASCOT_PX")).toEqual(["MASCOT_PX"]);
   });
-});
 
-describe("the name track gets what is left, and a loop chip never reaches it", () => {
-  it("adds up to the measured content column at both widths", () => {
-    const namePhone = COLUMN_PHONE - MASCOT_LANE - NODE_LANE - NAME_GAP;
-    const nameWide = COLUMN_WIDE - MASCOT_LANE - NODE_LANE - NAME_GAP;
-    // Wide enough that a two-word lesson name is not one word per line.
-    expect(namePhone).toBeGreaterThanOrEqual(120);
-    expect(nameWide).toBeGreaterThan(namePhone);
-  });
-
-  /*
-     REWRITTEN round 3 (g11). The 2026-10-01 pair pinned the branch lane as
-     ROWS of side quests with their own names; the critic measured those rows
-     stretching the road's pitch to 194 and 281px and the names running
-     through the road. Side quests now ride beside their lesson's row (.path-side),
-     so these pin the new lane: clear of the road, smaller than a lesson chip
-     but never under the 44px target floor, taking no height, and a run of
-     two never reaching the next row's mascot.
-  */
-  it("keeps the side chip in its own column, left of the road's chip at its leftmost swing", () => {
-    const sideRight = BRANCH_X + SIDE_W / 2;
-    const roadLeft = MASCOT_LANE + NODE_LANE / 2 - PEAK * SPINE_STEP - CHIP_W / 2;
-    expect(sideRight).toBeLessThanOrEqual(roadLeft + 0.01);
+  it("hangs the mascot and the side lane outboard of the chip, never over it", () => {
+    expect(declIn(".path-row--name-left .path-row__mascot {", "left")).toBe("calc(100% + 4px)");
+    expect(declIn(".path-row--name-right .path-row__mascot {", "right")).toBe("calc(100% + 4px)");
+    expect(declIn(".path-row--name-left .path-side {", "left")).toBe("calc(100% + var(--side-off))");
+    expect(declIn(".path-row--name-right .path-side {", "right")).toBe("calc(100% + var(--side-off))");
   });
 
   it("draws a side quest smaller than a lesson, and still at least 44 by 44", () => {
@@ -227,14 +208,10 @@ describe("the name track gets what is left, and a loop chip never reaches it", (
 
   it("takes the side lane out of flow, so a lesson with side quests is as tall as one without", () => {
     expect(declIn(".path-side {", "position")).toBe("absolute");
-    // And it never owns a row rule of its own that could pad the road.
     expect(CODE).not.toMatch(/\.path-row--branch/);
   });
 
   it("fits a run of two side chips beside one row without reaching the next row's mascot", () => {
-    // The mascot stands on the next row's chip base, MASCOT_LANE tall (it is
-    // square, MASCOT_PX): its top is SEAM + CHIP_H - MASCOT_LANE below that
-    // row's top. The run is centred on its own row.
     const run = 2 * SIDE_H + SIDE_GAP;
     const room = SEAM + CHIP_H / 2 + (SEAM + CHIP_H - MASCOT_LANE);
     expect(run / 2).toBeLessThanOrEqual(room + 0.01);
@@ -254,8 +231,24 @@ describe("one seam number, so the pitch never stutters", () => {
    * mattered to the conclusion, and quoting the rounded figure into an assertion
    * is exactly how a comment starts disagreeing with the code.
    */
-  it("puts two chips one chip plus two seams apart, and that is 86.4", () => {
-    expect(CHIP_H + 2 * SEAM).toBeCloseTo(86.4, 5);
+  /*
+   * REWRITTEN 2026-10-17, owner: "a bit more physical space ... maybe make the
+   * buttons larger too". The chip is 88 by 76 now (4rem face, 8px wall, two
+   * 2px borders) and the seam 20, so the pitch is 116. Pinned exactly, the
+   * same way 86.4 was, so a token that moves without this test fails.
+   *
+   * MOVED TO 132 in round 4 of P1: both blind judges asked for the nodes to
+   * sit further apart, so the seam is 28 and the pitch 76 + 56. Still pinned
+   * exactly, and the ratio test below still caps it at half again the bar's.
+   *
+   * BACK TO 120 the same day, owner: "pathway slightly less spaced". Seam 22,
+   * pitch 76 + 44: still more than the 116 he first asked for, less than 132.
+   */
+  it("puts two chips one chip plus two seams apart, and that is 120", () => {
+    expect(CHIP_W).toBe(88);
+    expect(CHIP_H).toBe(76);
+    expect(SEAM).toBe(22);
+    expect(CHIP_H + 2 * SEAM).toBeCloseTo(120, 5);
   });
 
   /**
@@ -264,9 +257,24 @@ describe("one seam number, so the pitch never stutters", () => {
    * already, which is why adopting 164 would have been the wrong reading of the
    * capture: on a 64px chip it is 2.56, twice the bar.
    */
-  it("is a rhythm no looser than the bar's by more than a fifth", () => {
+  /*
+   * REWRITTEN 2026-10-17. The old bar was Brilliant's 164 / 134 = 1.22, and it
+   * capped the room between nodes; the owner asked for more room and named
+   * Duolingo's path as the look. Measured off the duolingo-live capture
+   * (t04-path-tabbar, 1170px wide for a 390pt phone): node pitch 86pt over a
+   * 63pt tall node, 1.37. The pitch is now pinned to at least that and to no
+   * more than half again, so the column reads roomy and still a path.
+   */
+  it("is a rhythm at least as roomy as the bar's and no looser than half again", () => {
     const ours = (CHIP_H + 2 * SEAM) / CHIP_H;
-    expect(ours).toBeLessThan((164 / 134) * 1.2);
+    const bar = 86 / 63;
+    expect(ours).toBeGreaterThanOrEqual(bar);
+    expect(ours).toBeLessThanOrEqual(bar * 1.5);
+  });
+
+  it("is roomier than the 86.4 pitch it replaced, with a bigger chip", () => {
+    expect(CHIP_H + 2 * SEAM).toBeGreaterThan(86.4);
+    expect(CHIP_W).toBeGreaterThan(76);
   });
 
   it("gives no block on the column a seam of its own", () => {
@@ -322,10 +330,33 @@ describe("one seam number, so the pitch never stutters", () => {
     }
     const off = blocks.join("\n");
     expect(off).toContain(".path-start");
-    const declared = new Set(
-      [...CODE.matchAll(/animation(?:-name)?\s*:\s*([a-zA-Z][\w-]*)/g)].map((m) => String(m[1])).filter((n) => n !== "none"),
-    );
-    expect([...declared].sort()).toEqual(["path-halo", "path-start-bob"]);
+    /* An animation declared INSIDE a no-preference block is answered by
+       construction: it never runs under reduced motion, whatever comes later
+       in the file. Round 2 (2026-10-17) moved the header reveal there because
+       a reduce override that sat above the base rule lost to it. */
+    const on: string[] = [];
+    const welcome = "@media (prefers-reduced-motion: no-preference)";
+    for (let at = CODE.indexOf(welcome); at !== -1; at = CODE.indexOf(welcome, at + 1)) {
+      let depth = 0;
+      let i = CODE.indexOf("{", at);
+      const from = i;
+      do {
+        if (CODE[i] === "{") depth += 1;
+        else if (CODE[i] === "}") depth -= 1;
+        i += 1;
+      } while (depth > 0 && i < CODE.length);
+      on.push(CODE.slice(from, i));
+    }
+    const names = (text: string) =>
+      [...text.matchAll(/animation(?:-name)?\s*:\s*([a-zA-Z][\w-]*)/g)].map((m) => String(m[1])).filter((n) => n !== "none");
+    const scoped = new Set(names(on.join("\n")));
+    const declared = new Set(names(CODE));
+    // Every unscoped animation must be switched off in a reduce block.
+    const unscoped = [...declared].filter((name) => !scoped.has(name)).sort();
+    expect(unscoped).toEqual(["path-halo", "path-start-bob"]);
+    // path-letter-rise is the unit header's per-letter reveal; the chest ones are the treasure chest's (2026-10-17).
+    expect([...scoped].sort()).toEqual(["path-chest-bob", "path-chest-lid", "path-chest-pop", "path-chest-say", "path-letter-rise"]);
+    expect(off).toContain(".path-reveal__ch");
     expect(off).toContain(".path-node--current");
     for (const name of declared) expect(CODE, `@keyframes ${name} exists`).toContain(`@keyframes ${name}`);
   });
@@ -353,52 +384,45 @@ describe("one seam number, so the pitch never stutters", () => {
 describe("nothing clips, at any width a phone or a desktop presents", () => {
   const WIDTHS = [320, 360, 375, 390, 414, 430, 494, 768, 1280];
   const column = (vw: number) => Math.min(vw - 46, 448);
+  /** The page's own side margin: the column is centred with 23px a side on a phone. */
+  const gutter = (vw: number) => (vw - column(vw)) / 2;
   const SPINE = declIn(".path-row {", "--wind-step");
+  const nameRoom = (vw: number, wind: number) => column(vw) / 2 + Math.abs(wind) * len(SPINE, vw) - CHIP_W / 2 - NAME_GAP;
 
-  it.each(WIDTHS)("at %ipx the row's four tracks fit the column and the chip stays in its lane", (vw) => {
-    const name = column(vw) - MASCOT_LANE - NODE_LANE - NAME_GAP;
-    expect(name, "the row overflows its column").toBeGreaterThan(0);
-    const chipEdge = PEAK * len(SPINE, vw) + CHIP_W / 2;
-    expect(chipEdge).toBeLessThanOrEqual(NODE_LANE / 2 + 0.01);
-    // The mascot's box abuts the chip at the most negative wind, never overlaps it.
-    const chipLeft = MASCOT_LANE + NODE_LANE / 2 - PEAK * len(SPINE, vw) - CHIP_W / 2;
-    expect(chipLeft).toBeGreaterThanOrEqual(MASCOT_LANE - 0.01);
+  it.each(WIDTHS)("at %ipx every chip, the checkpoint's too, stays inside the column", (vw) => {
+    for (const wind of WIND_CYCLE) {
+      expect(Math.abs(wind) * len(SPINE, vw) + CHECK_W / 2).toBeLessThanOrEqual(column(vw) / 2 + 0.01);
+    }
   });
 
-  // REWRITTEN 2026-10-01 with the branch lane (see above): was "a detour
-  // overhangs into the gap and no further", over the deleted loop step.
-  // CHANGED round 3: the side chip is SIDE_W now and has no name track of
-  // its own (its name is its accessible name and its sheet's title), so the
-  // third assertion, about that track, went with the rows it measured.
-  it.each(WIDTHS)("at %ipx the side chip stays inside the row and left of the road", (vw) => {
-    expect(BRANCH_X - SIDE_W / 2).toBeGreaterThanOrEqual(0);
-    const roadLeft = MASCOT_LANE + NODE_LANE / 2 - PEAK * len(SPINE, vw) - CHIP_W / 2;
-    expect(BRANCH_X + SIDE_W / 2).toBeLessThanOrEqual(roadLeft + 0.01);
+  it.each(WIDTHS)("at %ipx the mascot and a side chip stay on screen on the lean side", (vw) => {
+    for (const wind of WIND_CYCLE) {
+      const chipOuter = Math.abs(wind) * len(SPINE, vw) + CHIP_W / 2;
+      const mascotOuter = chipOuter + 4 + MASCOT_LANE;
+      const sideOuter = chipOuter + SIDE_OFF + MASCOT_LANE / 2 + SIDE_W / 2;
+      expect(mascotOuter, `wind ${wind}`).toBeLessThanOrEqual(column(vw) / 2 + gutter(vw));
+      expect(sideOuter, `wind ${wind}`).toBeLessThanOrEqual(column(vw) / 2 + gutter(vw));
+    }
   });
 
-  /*
-   * REWRITTEN 2026-10-01: this checked, at every width, that a fork cell's
-   * under-the-chip name fit its half-column track. The fork and the under
-   * name are retired; the replacement holds every width to the one rule left,
-   * that no name on the page is placed under its chip or in a half column.
-   */
-  it.each(WIDTHS)("at %ipx every name rides its own row's name track: none is placed under a chip", () => {
+  it.each(WIDTHS)("at %ipx every name has room of its own on the open side", (vw) => {
+    for (const wind of WIND_CYCLE) expect(nameRoom(vw, wind), `wind ${wind}`).toBeGreaterThan(0);
+  });
+
+  it.each(WIDTHS)("at %ipx every name rides its own row: none is placed under a chip", () => {
     expect(CODE).not.toContain(".path-label--under");
     expect(CODE).not.toContain(".path-fork__cell");
   });
 
   /**
-   * THE ONE DEGRADATION, asserted so it is a known number rather than a surprise.
-   * At 320pt the name track is 72px, which is narrow enough that a long title
-   * wraps past the chip's own height and grows its row. 360 is the practical floor
-   * of a phone in use and gives 112. Reported in the build report rather than
-   * papered over, because the fix is a responsive lane scheme that cannot be
-   * judged without eyes.
+   * THE ONE DEGRADATION, asserted so it is a known number. The grid gave 60px
+   * at 320pt and 100 at 360; the wide lane gives every name more, because the
+   * open side grows as the chip swings away.
    */
   it("gives the name at least 96px from 360pt up, and records what 320 gives", () => {
     for (const vw of WIDTHS.filter((w) => w >= 360)) {
-      expect(column(vw) - MASCOT_LANE - NODE_LANE - NAME_GAP, `${vw}pt`).toBeGreaterThanOrEqual(96);
+      for (const wind of WIND_CYCLE) expect(nameRoom(vw, wind), `${vw}pt wind ${wind}`).toBeGreaterThanOrEqual(96);
     }
-    expect(column(320) - MASCOT_LANE - NODE_LANE - NAME_GAP).toBe(72);
+    expect(Math.round(Math.min(...WIND_CYCLE.map((wind) => nameRoom(320, wind))))).toBe(91);
   });
 });

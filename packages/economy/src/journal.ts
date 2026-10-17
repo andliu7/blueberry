@@ -87,6 +87,8 @@ export type EconomyEvent =
   | (EventBase & { readonly kind: "unit_cleared"; readonly unitId: string })
   | (EventBase & { readonly kind: "boss_cleared"; readonly bossId: string })
   | (EventBase & { readonly kind: "resonance_found"; readonly nodeId: string })
+  /** A pathway treasure chest opened. Pays DIAMONDS_CHEST once per chestId; never a node. */
+  | (EventBase & { readonly kind: "chest_opened"; readonly chestId: string })
   | (EventBase & {
       readonly kind: "attempt";
       readonly nodeId: string;
@@ -201,6 +203,8 @@ export function isEconomyEvent(x: unknown): x is EconomyEvent {
       return nonEmptyString(x["bossId"]);
     case "resonance_found":
       return nonEmptyString(x["nodeId"]);
+    case "chest_opened":
+      return nonEmptyString(x["chestId"]);
     case "attempt":
       return nonEmptyString(x["nodeId"]) && nonEmptyString(x["problemId"]) && typeof x["correct"] === "boolean";
     case "spend":

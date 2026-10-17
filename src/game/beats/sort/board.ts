@@ -82,6 +82,26 @@ export function openingBoard(itemIds: readonly SortCardId[], seed: number): Sort
   });
 }
 
+/**
+ * The opening board for sorting inside the ladder: every card already on a
+ * rung, shuffled, the pool empty. The student reorders rather than places
+ * (owner, 2026-10-16: "just sort it within the box"), so there is no pool to
+ * scroll down to on a phone.
+ *
+ * A shuffle that happens to equal `answer` hands the ladder over, so it is
+ * rotated by one rung instead. Rotation keeps it reproducible by seed.
+ */
+export function rankedOpening(
+  itemIds: readonly SortCardId[],
+  seed: number,
+  answer: readonly SortCardId[],
+): SortBoard {
+  let order = shuffled(itemIds, seed);
+  const solved = order.length > 1 && order.every((card, index) => card === answer[index]);
+  if (solved) order = [...order.slice(1), order[0] as SortCardId];
+  return Object.freeze({ slots: Object.freeze([...order]), pool: Object.freeze([]) });
+}
+
 export function placeOf(board: SortBoard, card: SortCardId): CardPlace {
   const index = board.slots.indexOf(card);
   if (index >= 0) return { where: "slot", index };
@@ -177,6 +197,42 @@ export function nudge(board: SortBoard, card: SortCardId, delta: -1 | 1): SortBo
   const target = from.index + delta;
   if (target < 0 || target >= board.slots.length) return board;
   return placeOnRung(board, card, target);
+}
+
+/**
+ * Move a ranked card to another rung and slide the cards between it and that
+ * rung one step to close the gap: a list reorder, not an exchange. Dragging a
+ * card from rung 4 to rung 1 pushes 1, 2 and 3 down one each, which is what a
+ * drag in a list looks like it will do. A card that is not on the track, or a
+ * rung that does not exist, returns the board unchanged.
+ */
+export function moveToRung(board: SortBoard, card: SortCardId, index: number): SortBoard {
+  const from = board.slots.indexOf(card);
+  if (from < 0 || index < 0 || index >= board.slots.length || from === index) return board;
+  const slots = [...board.slots];
+  slots.splice(from, 1);
+  slots.splice(index, 0, card);
+  return Object.freeze({ slots: Object.freeze(slots), pool: board.pool });
+}
+
+/**
+ * The rung a dragged card would land on: the one whose vertical centre is
+ * nearest the pointer. Unlike hitTarget it never misses, so a card released
+ * above the ladder goes to the top rung rather than snapping back. Rects are
+ * the rung rects measured at drag start; returns null only when there are none.
+ */
+export function nearestRung(rects: readonly TargetRect[], y: number): number | null {
+  let best: number | null = null;
+  let bestDistance = Infinity;
+  for (const rect of rects) {
+    if (rect.target.kind !== "slot") continue;
+    const distance = Math.abs((rect.top + rect.bottom) / 2 - y);
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      best = rect.target.index;
+    }
+  }
+  return best;
 }
 
 /* ------------------------------------------------------------------ */

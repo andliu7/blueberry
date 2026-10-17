@@ -67,6 +67,12 @@ import {
   type Pt,
   type Scheme,
 } from "../../lesson/lessonFigures";
+import { U1_OPTION_TILES, U1_VISUALS } from "../../content/u1";
+import { U3_OPTION_TILES, U3_VISUALS } from "../../content/u3";
+import { U4_OPTION_TILES, U4_VISUALS } from "../../content/u4";
+import { U5_OPTION_TILES, U5_VISUALS } from "../../content/u5";
+import { U6_OPTION_TILES, U6_VISUALS } from "../../content/u6";
+import { U2_OPTION_TILES, U2_VISUALS } from "../../content/u2";
 
 /* ------------------------------------------------------------------ */
 /* The three shapes                                                     */
@@ -698,7 +704,10 @@ const VISUALS: Readonly<Record<string, McqVisual>> = Object.freeze({
 
 /** The visual for a beat, or null when the table has not met it. */
 export function mcqVisualFor(beatId: string): McqVisual | null {
-  return VISUALS[beatId] ?? null;
+  // Unit 1's draft pools carry their own drawings (content/u1), keyed by
+  // their own beat ids; the keys below stay this table's, which the suite
+  // holds to MCQ_BEATS. test/u1Pools.test.ts holds the pool tables.
+  return VISUALS[beatId] ?? U1_VISUALS[beatId] ?? U2_VISUALS[beatId] ?? U3_VISUALS[beatId] ?? U4_VISUALS[beatId] ?? U5_VISUALS[beatId] ?? U6_VISUALS[beatId] ?? null;
 }
 
 /** Every beat id the table draws, for the suite. */
@@ -843,7 +852,7 @@ export function mcqOptionTiles(
   beatId: string,
   optionIds: readonly string[],
 ): Readonly<Record<string, NamedFigure>> | null {
-  const table = OPTION_FIGURES[beatId];
+  const table = OPTION_FIGURES[beatId] ?? U1_OPTION_TILES[beatId] ?? U2_OPTION_TILES[beatId] ?? U3_OPTION_TILES[beatId] ?? U4_OPTION_TILES[beatId] ?? U5_OPTION_TILES[beatId] ?? U6_OPTION_TILES[beatId];
   if (table === undefined) return null;
   return optionIds.every((id) => table[id] !== undefined) ? table : null;
 }

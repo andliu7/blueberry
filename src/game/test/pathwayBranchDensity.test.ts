@@ -159,9 +159,17 @@ describe("the side lane, over every unit of the map the browser actually draws",
     expect(units).toBeGreaterThan(3);
   });
 
-  it("puts Unit 1's side quests beside their own lessons: NBS by allylic, the two Diels-Alders by 1,2 vs 1,4", () => {
+  /* CHANGED 2026-10-07 with the data: Unit 1 rebuilt in four stages, every lesson authored. Radicals
+     hang by the anion ranking, NBS by X2, its practice and check by the Stage B quiz (two per lane),
+     the inverse Diels-Alder by the Diels-Alder. */
+  it("puts Unit 1's side quests beside their own lessons", () => {
     const stops = roadOf(PATHWAY_UNITS[0]!).map((stop) => [stop.node.id, ...stop.sides.map((node) => `+${node.id}`)]);
-    expect(stops).toEqual([["u1-allylic", "+u1-nbs"], ["u1-12v14", "+u1-da", "+u1-ied"], ["u1-kvt"], ["u1-x2"]]);
+    expect(stops).toEqual([
+      ["u1-allylic"], ["u1-rank-cation"], ["u1-rank-anion", "+u1-rank-radical"], ["u1-quiz-a"],
+      ["u1-12v14"], ["u1-kvt"], ["u1-energy-diagram"], ["u1-hx-dienes"], ["u1-x2", "+u1-nbs"],
+      ["u1-quiz-b", "+u1-nbs-practice", "+u1-quiz-c"], ["u1-mo"], ["u1-da", "+u1-ied"], ["u1-dienes"],
+      ["u1-dienophiles"], ["u1-da-predict"], ["u1-da-stereo"], ["u1-da-3d"], ["u1-quiz-d"],
+    ]);
   });
 
   /* ADDED round 3: side quests add no height. The road is one row per stop,

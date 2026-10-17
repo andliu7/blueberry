@@ -14,6 +14,7 @@
 import { describe, expect, it } from "vitest";
 import { PATHWAY_UNITS } from "../demo/pathwayMap";
 import { guidebookFor } from "../pathway-sheet/guidebookContent";
+import { takeawayFor } from "../pathway-sheet/takeaways";
 import { HUMAN_GATE_MARK, type SheetNode } from "../pathway-sheet/nodeSheetModel";
 
 /** Every node on the owner's map, shaped the way the sheet receives one. */
@@ -55,7 +56,12 @@ describe("guidebookFor, over all map nodes", () => {
       expect(content.title, node.id).toBe(node.title);
       // The one chemistry sentence in a draft is the map's own authored line.
       // A generated chemistry claim here would be wrong on some node.
-      expect(content.keyIdea, node.id).toBe(node.blurb);
+      // CHANGED 2026-10-07, owner whiteboard 2026-09-29: a node with a takeaway
+      // (pathway-sheet/takeaways.ts, the owner's own draft line) shows that
+      // instead, marked as a draft on the card; every other node is unchanged.
+      const takeaway = takeawayFor(node.id);
+      expect(content.keyIdea, node.id).toBe(takeaway?.text ?? node.blurb);
+      expect(content.keyIdeaDraft, node.id).toBe(takeaway !== null);
       expect(content.intro, node.id).toContain(node.title);
     }
   });
@@ -122,5 +128,33 @@ describe("guidebookFor, over all map nodes", () => {
       expect(copy.toLowerCase()).not.toContain("you should have");
       expect(copy).not.toMatch(/\u2014/);
     }
+  });
+});
+
+describe("the Background section, owner amendment 2026-09-29", () => {
+  const sheet = (id: string): SheetNode => {
+    const node = PATHWAY_UNITS.flatMap((unit) => unit.nodes).find((entry) => entry.id === id)!;
+    return { id, kind: node.kind, state: "open", title: node.title, blurb: node.blurb, practiceHref: null };
+  };
+  const topics = (id: string) => guidebookFor(sheet(id)).background.map((topic) => topic.id);
+
+  it("attaches the whiteboard's three clips where it put them, and no R/S or E/Z", () => {
+    expect(topics("u1-allylic")).toEqual(["bg-cation-stability", "bg-homo-lumo"]);
+    for (const id of ["u1-rank-cation", "u1-rank-anion", "u1-rank-radical", "u1-quiz-a", "u1-12v14", "u1-hx-dienes"]) {
+      expect(topics(id), id).toEqual(["bg-cation-stability"]);
+    }
+    for (const id of ["u1-mo", "u1-da", "u1-dienes", "u1-dienophiles", "u1-da-predict", "u1-da-stereo", "u1-da-3d", "u1-quiz-d"]) {
+      expect(topics(id), id).toEqual(["bg-homo-lumo", "bg-fmo"]);
+    }
+    expect(topics("u1-kvt")).toEqual([]);
+    const all = PATHWAY_UNITS.flatMap((unit) => unit.nodes).flatMap((node) => node.backgroundTopics ?? []);
+    for (const topic of all) expect(topic.title, topic.id).not.toMatch(/R\/S|E\/Z/);
+  });
+
+  it("gives A1 a draft key idea from its takeaway", () => {
+    const page = guidebookFor(sheet("u1-allylic"));
+    expect(page.keyIdea).toBe(takeawayFor("u1-allylic")!.text);
+    expect(page.keyIdeaDraft).toBe(true);
+    expect(page.placeholder).toBe(true);
   });
 });

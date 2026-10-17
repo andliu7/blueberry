@@ -206,6 +206,15 @@ export function judgeSort(
     const meaning = meaningFor(content, grading.distractorId);
     const cause: BeatShapeCauseId = meaning?.cause ?? "chose_authored_distractor";
     const built = meaning?.built;
+    // A whole-ladder reversal is authored as a distractor too, but "Close." is
+    // the wrong first word for a board with every rung wrong. It gets the same
+    // plain correction the unauthored reversal gets below (A2 round 6).
+    const reversed = sameOrder(state.order, [...content.spec.correctOrder].reverse());
+    const headline = reversed
+      ? `The ladder is right and it is upside down. Flip it so ${content.trackEnds.first.toLowerCase()} is at the top.`
+      : built === undefined
+        ? "Close. This one catches a lot of people, and here is the comparison it turns on."
+        : `That is ${built}, built soundly. It answers the other question.`;
     const result: BeatResult =
       built === undefined
         ? { ...base, kind: "invalid", cause, distractorId: grading.distractorId }
@@ -221,10 +230,7 @@ export function judgeSort(
       result,
       tier: 2,
       explanation: grading.explanation,
-      headline:
-        built === undefined
-          ? "Close. This one catches a lot of people, and here is the comparison it turns on."
-          : `That is ${built}, built soundly. It answers the other question.`,
+      headline,
       breakdown,
     };
   }
@@ -270,7 +276,7 @@ export function judgeSort(
     explanation: null,
     headline:
       placed === 0
-        ? `Nothing landed yet. Start from the ends: pick the one card you are surest is ${content.trackEnds.first.toLowerCase()}.`
+        ? `None are on the right rung yet. Start from the ends: drag the card you are surest is ${content.trackEnds.first.toLowerCase()} to the top.`
         : `${placed} of ${breakdown.total} are already on the right rung. Work down the track and check each neighbouring pair.`,
     breakdown,
   };

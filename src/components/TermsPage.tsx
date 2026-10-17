@@ -1,6 +1,3 @@
-import { ChevronLeft } from "lucide-react";
-import { SiteFooter } from "@/components/ui/site-footer";
-import { PageBackground } from "@/components/ui/page-background";
 import { SITE_NAME } from "@/data/site";
 
 /**
@@ -19,27 +16,19 @@ import { SITE_NAME } from "@/data/site";
 export function TermsPage() {
   return (
     <main className="relative min-h-screen text-slate-900 dark:text-stone-100">
-      <PageBackground />
       <div className="mx-auto max-w-3xl px-4 py-5 sm:px-6">
-        <a
-          href="#/home"
-          className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-slate-600 hover:text-[#472ab4] dark:text-stone-300"
-        >
-          <ChevronLeft className="size-4" />
-          Home
-        </a>
-
-        <header className="mt-5 rounded-3xl border border-[#ccd5ea]/80 bg-white/75 p-6 shadow-sm dark:border-[#9989e2]/20 dark:bg-stone-950/70">
-          <p className="font-mono text-xs font-semibold tracking-[.18em] text-[#5a3fd8] uppercase dark:text-[#bbb1eb]">
+        {/* No "Home" link: the header's berry goes home (shell round 2). */}
+        <header className="bb-glow rounded-3xl border border-[#ccd5ea]/80 bg-white p-6 shadow-sm dark:border-[#9989e2]/20 dark:bg-stone-950">
+          <p className="page-title text-sm text-[#5a3fd8] dark:text-[#bbb1eb]">
             {SITE_NAME}
           </p>
-          <h1 className="title-face mt-3 text-4xl leading-none">Terms &amp; policies</h1>
+          <h1 className="page-title mt-2 text-4xl leading-none text-[var(--bb-deep)]">Terms &amp; policies</h1>
           <p className="mt-4 leading-7 text-slate-600 dark:text-stone-300">
             What this site does with what you give it.
           </p>
         </header>
 
-        <div className="mt-5 rounded-3xl border border-amber-300 bg-amber-50/80 p-5 text-sm leading-6 text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100">
+        <div className="bb-glow mt-5 rounded-3xl border border-amber-300 bg-amber-50 p-5 text-sm leading-6 text-amber-900 [--glow:var(--site-tab-review)] dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100">
           <p className="font-semibold">This page is not finished.</p>
           <p className="mt-2">
             The sections below describe how {SITE_NAME} actually behaves today, which is
@@ -48,7 +37,7 @@ export function TermsPage() {
           </p>
         </div>
 
-        <article className="mt-5 space-y-6 rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-sm sm:p-8 dark:border-stone-800 dark:bg-stone-950/70">
+        <article className="bb-glow mt-5 space-y-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8 dark:border-stone-800 dark:bg-stone-950">
           <Section title="What is stored about you">
             <p>
               Signing in creates a row holding your email address, the name your provider
@@ -87,7 +76,6 @@ export function TermsPage() {
           </Section>
         </article>
       </div>
-      <SiteFooter />
     </main>
   );
 }

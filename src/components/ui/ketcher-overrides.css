@@ -1,0 +1,17 @@
+/* Ketcher's atom buttons, darkened to pass WCAG AA on its white toolbar.
+ *
+ * Ketcher colours each element's letter with the Jmol palette, and five of them
+ * measured under 4.5:1 on white in the contrast audit of 2026-10-07: O 3.95,
+ * S 2.59, P 2.52, F 2.32, Cl 2.08. Each keeps its own hue, one step darker, so a
+ * student who knows the convention still reads the colour:
+ *   O #d00000 5.70:1, S #806211 5.72:1, P #a65d00 5.02:1, F #4a7f1f 4.83:1,
+ *   Cl #147a14 5.49:1.
+ * Keyed on the buttons' titles because Ketcher's class names are generated
+ * hashes. If a Ketcher upgrade renames a title, the letter goes back to the
+ * Jmol colour and `npm run contrast:audit -- --site` reports it on #/draw.
+ * Imported by ui/molecule-canvas.tsx, so it rides the lazy Ketcher chunk. */
+button[title="Oxygen (O)"] span { color: #d00000; }
+button[title="Sulfur (S)"] span { color: #806211; }
+button[title="Phosphorus (P)"] span { color: #a65d00; }
+button[title="Fluorine (F)"] span { color: #4a7f1f; }
+button[title="Chlorine (L)"] span { color: #147a14; }

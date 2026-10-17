@@ -1,0 +1,264 @@
+/* The site shell's own rules: the nav item's press and current state, the phone bar's
+ * room at the foot of the page, and the content-page title faces. Shell round 2,
+ * 2026-10-07. Imported once, by SiteChrome.
+ *
+ * WHY PLAIN CSS AND NOT TAILWIND CLASSES. The press needs a different transition on the
+ * way down (60ms) than on the way back (160ms spring), a reduced-motion branch, and a
+ * test that can read the rule (src/test/siteNavPress.test.ts). Written as Tailwind
+ * classes that is four arbitrary-value strings per element; here it is one rule each.
+ * Every colour, duration and curve is a token from src/tokens.css: nothing new is
+ * defined in this file.
+ */
+
+/* ---------- The nav item ---------- */
+
+/* `.site-nav-item` is the anchor; `.site-nav-face` is the part that moves: the pill in
+   the header, the glyph tile on the phone bar. Labels in the rounded chrome face.
+   The glyphs (site-tab-icons.tsx) keep their own colours at all times: nothing here
+   paints an svg. */
+.site-nav-item {
+  font-family: var(--site-display);
+  -webkit-tap-highlight-color: transparent;
+}
+/* Tab items are flat, like any toolbar control (rule 5): no lip at rest or when current
+   (shell round 5; the current chip's lilac lip read as an unpressed button). */
+.site-nav-face {
+  transition:
+    translate var(--bb-dur-release) var(--bb-ease-spring),
+    background-color var(--bb-dur-ui) var(--bb-ease-ui);
+}
+@media (hover: hover) {
+  .site-nav-item:hover .site-nav-face {
+    background-color: var(--site-nav-wash);
+  }
+}
+
+/* Current: the pale wash chip around the glyph inside a 2px ring, Duolingo's current-tab
+   tile (shell round 5), and violet words. Shell round 6: the ring is --site-nav-ring, a
+   tint of the wash's own hue rather than the full violet, which clashed with the orange
+   Review glyph and was the loudest thing in the header. It still holds 3:1 on the bar and
+   the header (tokens.css has the ratios), so "current" does not rest on a 1.2:1 wash.
+   An inset ring rather than a border, so the chip does not grow and nothing beside it
+   moves. */
+.site-nav-item[aria-current="page"] {
+  color: var(--site-nav-ink);
+}
+.site-nav-item[aria-current="page"] .site-nav-face {
+  background-color: var(--site-nav-wash);
+  box-shadow: inset 0 0 0 2px var(--site-nav-ring);
+}
+
+/* Pressed. Frame 0 (pointer down): the face snaps to the pressed wash with no
+   transition at all, so the very first painted frame differs from rest. A 3px sink
+   follows in --bb-dur-press (60ms). Release springs back on the rule above.
+   `[data-pressed]` is the same press for a finger: site-nav.tsx sets it on pointerdown,
+   because a phone holds `:active` back for about 260ms (shell round 6). */
+.site-nav-item:active .site-nav-face,
+.site-nav-item[data-pressed] .site-nav-face {
+  translate: 0 3px;
+  background-color: var(--site-nav-wash-press);
+  transition:
+    translate var(--bb-dur-press) var(--bb-ease-ui),
+    background-color 0s;
+}
+
+/* Reduced motion: the colour and the lip still answer the press at frame 0, nothing
+   moves. */
+html[data-motion="reduced"] .site-nav-face {
+  transition: background-color var(--bb-dur-press) var(--bb-ease-ui);
+}
+html[data-motion="reduced"] .site-nav-item:active .site-nav-face,
+html[data-motion="reduced"] .site-nav-item[data-pressed] .site-nav-face {
+  translate: none;
+  transition: none;
+}
+
+/* ---------- The phone bar's room ---------- */
+
+/* The bar is a full-width strip on the bottom edge, its height plus the home indicator's
+   safe area. The spacer after the footer and the scroll padding use the same numbers, so
+   the last line of a page and anything scrolled into view by focus stop above the bar. */
+/* Shell round 8: 64px with its 2px rule (round 7 was 80). Duolingo's phone app, measured on
+   78 Mobbin captures, is 60px from its hairline to the home indicator's safe area (the safe
+   area is added below, as theirs is); the 80 in round 7 was duolingo.com at phone size. The
+   items are 62px tall, the 44px chip and a 12px label line. */
+:root {
+  --site-bar-h: 4rem;
+}
+@media (max-width: 767.98px) {
+  html {
+    scroll-padding-bottom: calc(var(--site-bar-h) + env(safe-area-inset-bottom) + 0.5rem);
+  }
+}
+
+/* The sticky header is 60px plus its 1px hairline. When focus (the skip link, or Tab)
+   scrolls something into view, stop it below the header rather than under it (shell
+   round 6: the skip link parked the start of main behind the header). Keyed on the
+   header being there, so the game, which has its own, is untouched. */
+html:has(.site-header) {
+  scroll-padding-top: 61px;
+}
+
+/* ---------- The wordmark on a phone ---------- */
+
+/* Below 768px the top row is the berry, the wordmark, search and the account. A running
+   focus timer adds its pill, and then the row is 50px too wide at 360px. The wordmark
+   gives way while the pill shows: hidden from sight, still read out as the link's name. */
+@media (max-width: 767.98px) {
+  .site-header:has(.site-pill > *) .site-wordmark {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+/* ---------- One focus ring for the shell ---------- */
+
+/* 3px, 2px off the control, on every focusable thing in the header, the phone bar, the
+   footer and the shared page header (the skill's rule; the phone "Sign in" pill computed
+   `auto 1px` before this). One rule here instead of a ring class on each control, so a new
+   control cannot forget it. It outranks Tailwind's `outline-none` (two classes against
+   one). Shell round 7 added `.page-header`: Learn's reading berry (a focusable div with
+   `outline-none`) showed nothing when Tab reached it, and the first control after the skip
+   link computed the browser's `auto 1px` on four pages. */
+.site-header :focus-visible,
+.site-bar :focus-visible,
+.site-footer :focus-visible,
+.page-header :focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* ---------- Content page titles (owner, 7 Oct: Nunito titles, system body) ---------- */
+
+.page-title {
+  font-family: var(--site-display);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  /* Break only between words, and keep lines even, so "STUDY DECKS" never ends in a
+     lone S at 390px. */
+  overflow-wrap: normal;
+  word-break: normal;
+  text-wrap: balance;
+}
+/* The line under a title takes Tailwind's `font-sans` (the system stack) in the JSX. */
+
+/* ---------- The ground wash and the card glow (owner, 15 Oct, option A) ---------- */
+
+/* A still lavender-to-blue wash behind every framed page. SiteChrome draws this one
+   fixed layer; z-index -1 puts it above <html>'s flat --site-ground and below every page,
+   so cards and their text still sit on their own solid faces. It never moves, so it has no
+   reduced-motion branch.
+   Round 3: one quiet top-to-bottom wash, no blobs. The blind judges read round 2's two
+   radial peaks as atmosphere that blurred the cards into the ground, so the wash now only
+   turns the lavender ground a shade bluer toward the bottom of the screen, and the cards'
+   white faces and outlines carry the page. */
+.site-wash {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(180deg, var(--site-wash-violet) 0%, var(--site-ground) 45%, var(--site-wash-blue) 100%);
+}
+
+/* Each card glows in its own accent where the cursor is, in two parts. SiteChrome's
+   pointermove listener (src/lib/cardGlow.ts) writes --x and --y on the card under the mouse.
+   A card names its colour with --glow (default: --primary).
+
+   1. The rim: the card's own border lights up in full accent near the cursor and fades
+      along the edge. It is the part you actually see, so it has to survive cards whose
+      middle is covered by an opaque panel (the home card's picture, a deck tile's white
+      panel, the flashcard's drawing). It is one ::after masked to its own rim, the same
+      trick as .shine-border in index.css: a gradient fills the box, then
+      `mask-composite: exclude` punches the content box out, so only a 3px ring is painted
+      and it can never cover text. It sits ON the border (inset -2px). The flashcard glows on
+      .rv-tilt, the layer that holds both faces, not on a face: a face scrolls a long answer,
+      and a rim inside it would scroll away with the text (round 3).
+   2. The face: a faint circle in the same colour, painted as a background image UNDER the
+      card's content. Round 3: 8% by day and 12% at night, down from 14 / 18, because the
+      blind judges read the stronger one as a lilac tint inside every card. Every ink keeps
+      more contrast than it did at 14 / 18, which were measured AA.
+   Mouse only: off on touch (no hover), off under Reduce motion. Unlayered on purpose, so it
+   sits on top of the cards' own `background` shorthand in @layer components.
+   KEEP THESE LISTS IN STEP with GLOW_CARDS in src/lib/cardGlow.ts (src/test/cardGlow.test.ts
+   checks it). */
+:root { --glow-face: 8%; }
+.dark { --glow-face: 12%; }
+
+/* The rim needs its card to be a containing block. In the base layer and inside :where(),
+   so a card that is already absolute or sticky (the flashcard face, the unit sidebar) keeps
+   that. */
+@layer base {
+  :where(.bb-glow, .lrn-card, .lrn-tap, .rv-card-box, .rv-tile, .rv-tilt, .home-card) { position: relative; }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  html:not([data-motion="reduced"]) :is(.bb-glow, .lrn-card, .lrn-tap, .rv-card-box, .rv-tile, .rv-tilt, .home-card):hover {
+    background-image: radial-gradient(
+      180px circle at var(--x, 50%) var(--y, 50%),
+      color-mix(in srgb, var(--glow, var(--primary)) var(--glow-face), transparent),
+      transparent 70%
+    );
+  }
+  html:not([data-motion="reduced"]) :is(.bb-glow, .lrn-card, .lrn-tap, .rv-card-box, .rv-tile, .rv-tilt, .home-card)::after {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    padding: 3px;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity var(--bb-dur-ui) var(--bb-ease-ui);
+    background: radial-gradient(
+      360px circle at var(--x, 50%) var(--y, 50%),
+      var(--glow, var(--primary)) 0%,
+      var(--glow, var(--primary)) 40%,
+      transparent 80%
+    );
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+  }
+  html:not([data-motion="reduced"]) :is(.bb-glow, .lrn-card, .lrn-tap, .rv-card-box, .rv-tile, .rv-tilt, .home-card):hover::after {
+    opacity: 1;
+  }
+  /* The home card's own hover turns its whole border violet, which hid the rim in light
+     (round 2 critic). Where the rim draws, the border stays put and the rim is the change. */
+  html:not([data-motion="reduced"]) .home-card:hover { border-color: var(--site-border); }
+}
+/* The deck tile glows in its folder's tint. */
+.rv-tile { --glow: var(--rv-tint); }
+
+/* Home only (owner, 15 Oct, option C): the page ground takes the colour of the destination
+   card under the mouse. HomeSections sets html[data-tint] and --site-tint; this layer fades
+   in over the wash from two corners, as in scratchpad gradient-options.html option C, with a
+   softer pool in the middle where the cards are.
+   S2 round 1: the tint glides from card to card instead of jumping, because --site-tint-c is
+   registered as a <color> (@property below), and only a registered property can be
+   transitioned. Round 1 also made it visible: rounds 2 and 3 darkened the ground toward a
+   mid colour, which the muted ink (#51627b) only survives at about 15%, so by day it was too
+   faint to see. Now the day tint is the card's colour mixed into white (34% colour), a pastel
+   about as light as the ground, so it can change the hue at full strength without costing
+   contrast: muted ink 4.61:1 on the worst one (Learn), body ink and #5a3fd8 above 4.9:1.
+   S2 round 2: the colour itself is a per-card token, --site-tint-<card> in src/tokens.css,
+   one pastel by day and one deep hue by night at a shared lightness (the night half-and-half
+   mix with the violet made all four the same navy). The ratios are beside the tokens. */
+@property --site-tint-c { syntax: "<color>"; inherits: false; initial-value: transparent; }
+.site-wash::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  --site-tint-c: var(--site-tint, transparent);
+  transition: opacity 400ms var(--bb-ease-out), --site-tint-c 600ms var(--bb-ease-ui);
+  background:
+    radial-gradient(80% 75% at 0% 0%, var(--site-tint-c), transparent 72%),
+    radial-gradient(80% 75% at 100% 100%, var(--site-tint-c), transparent 72%),
+    radial-gradient(60% 50% at 50% 55%, color-mix(in srgb, var(--site-tint-c) 70%, transparent), transparent 80%);
+}
+html[data-tint] .site-wash::after { opacity: 1; }
+html[data-motion="reduced"] .site-wash::after { transition: none; }

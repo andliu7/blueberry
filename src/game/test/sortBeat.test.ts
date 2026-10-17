@@ -27,10 +27,13 @@ import {
   emptyBoard,
   emptyRungCount,
   hitTarget,
+  moveToRung,
+  nearestRung,
   nudge,
   openingBoard,
   placeOf,
   placeOnRung,
+  rankedOpening,
   returnToPool,
   shuffled,
   type DropTarget,
@@ -215,6 +218,64 @@ describe("the board", () => {
   });
 });
 
+describe("sorting inside the ladder", () => {
+  // Owner, 2026-10-16: the cards start on the rungs and the student reorders them.
+  it("opens with every card on a rung, none in the pool", () => {
+    const board = rankedOpening(CARDS, 11, CARDS);
+    expect(board.pool).toHaveLength(0);
+    expect(boardIsComplete(board)).toBe(true);
+    expect(holdsEveryCardOnce(board, CARDS)).toBe(true);
+  });
+
+  it("never opens already solved, for any seed", () => {
+    for (let seed = 1; seed < 400; seed += 1) {
+      for (const answer of [CARDS, [...CARDS].reverse()]) {
+        const board = rankedOpening(CARDS, seed, answer);
+        expect(boardOrder(board), `seed ${seed}`).not.toEqual(answer);
+        expect(holdsEveryCardOnce(board, CARDS)).toBe(true);
+      }
+    }
+  });
+
+  it("slides the cards between instead of exchanging two", () => {
+    const board = boardFrom(["a", "b", "c", "d"]);
+    expect(moveToRung(board, "d", 0).slots).toEqual(["d", "a", "b", "c"]);
+    expect(moveToRung(board, "a", 2).slots).toEqual(["b", "c", "a", "d"]);
+    expect(moveToRung(board, "b", 1)).toBe(board);
+    expect(moveToRung(board, "zz", 0)).toBe(board);
+    expect(moveToRung(board, "a", 9)).toBe(board);
+  });
+
+  it("never loses a card, over a random walk of reorders", () => {
+    let state = 999;
+    const next = (bound: number): number => {
+      state = (state * 1664525 + 1013904223) >>> 0;
+      return state % bound;
+    };
+    let board = rankedOpening(CARDS, 3, CARDS);
+    for (let step = 0; step < 2000; step += 1) {
+      board = moveToRung(board, CARDS[next(CARDS.length)] as string, next(CARDS.length));
+      expect(holdsEveryCardOnce(board, CARDS), `step ${step}`).toBe(true);
+      expect(board.pool).toHaveLength(0);
+    }
+  });
+
+  it("lands a released card on the nearest rung, even above or below the ladder", () => {
+    const rung = (index: number): TargetRect => ({
+      target: { kind: "slot", index },
+      left: 0,
+      right: 100,
+      top: index * 60,
+      bottom: index * 60 + 50,
+    });
+    const rects = [0, 1, 2, 3].map(rung);
+    expect(nearestRung(rects, 85)).toBe(1);
+    expect(nearestRung(rects, -400)).toBe(0);
+    expect(nearestRung(rects, 9000)).toBe(3);
+    expect(nearestRung([], 10)).toBeNull();
+  });
+});
+
 describe("hit testing", () => {
   const rects: readonly TargetRect[] = [
     { target: { kind: "pool" }, left: 0, top: 200, right: 300, bottom: 300 },
@@ -350,6 +411,10 @@ describe("judging a sort", () => {
     // The corpus anticipated this one, so it arrives as Tier 2 with authored copy.
     expect(judgement.tier).toBe(2);
     expect(judgement.explanation).not.toBeNull();
+    // A2 round 6: an authored reversal still leads with the plain correction,
+    // never with "Close.", which read as approval of a board with every rung wrong.
+    expect(judgement.headline).not.toMatch(/^Close/);
+    expect(judgement.headline).toContain("upside down");
   });
 
   it("names the basicity ladder as what was built rather than as one pair out of place", () => {

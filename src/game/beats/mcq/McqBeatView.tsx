@@ -38,10 +38,10 @@
  *      beat still needs a way to say so; it moves to the foot of the
  *      question, where it says what it does in words.
  *
- * NO RED ON THIS SCREEN, the rule lesson/Feedback.tsx already set: the student
- * is learning, not being marked down. The answer is marked with the `--good`
- * family and the option they committed keeps its periwinkle stroke, so they
- * can still see what they chose beside what was right.
+ * GREEN RIGHT, RED WRONG (A2 round 4, owner direction 2026-10-15 item 2).
+ * This screen used to have no red at all; the owner reversed that. The answer
+ * is marked green with a tick, a wrong pick red with a cross, and the verdict
+ * is the shared AnswerTray docked where CHECK was.
  *
  * SELECTION IS SAID WITH FORM, NEVER WITH A WORD. blueberry_r9-lesson-reaction
  * marks the picked candidate by keeping the cream fill and adding an indigo
@@ -60,11 +60,8 @@
  *
  * KEYBOARD. The options stay focusable after the answer, marked `aria-disabled`
  * with the handler returning early, rather than `disabled`. A disabled element
- * leaves the tab order, and the element the student just activated leaving the
- * tab order dumps focus to the document and makes them Tab the whole page to
- * reach Continue. That is the same reason focus moves to the explanation when
- * it appears: it is one Tab from there to the button, and a screen reader hears
- * the explanation rather than a silent jump.
+ * leaves the tab order and dumps focus to the document. Once the answer is in,
+ * AnswerTray moves focus to its CONTINUE key and announces the verdict.
  *
  * THE QUESTION IS A PICTURE FIRST, owner ruling 1 of 2026-09-04: "a question
  * that is only prose has already lost the student", and it names every beat
@@ -92,11 +89,15 @@ import { useEffect, useRef, type ReactNode } from "react";
 import { Berry } from "../../mascot/Berry";
 import { ChipPress } from "../ChipPress";
 import { type MasteryLevel, type McqBeat } from "../types";
-import { ExitMark, FlagMark, GemMark } from "../chromeIcons";
+import { ExitMark, FlagMark } from "../chromeIcons";
+import { LessonBar } from "../LessonBar";
+import { ToolRail } from "../../app/ui/ToolRail";
 import { McqVisualCard } from "./McqVisualCard";
 import { mcqOptionTiles, mcqVisualFor } from "./mcqFigures";
 import { StructureFigure } from "../../onboarding/StructureFigure";
-import { revealHeading, type McqReveal } from "./grade";
+import { type McqReveal } from "./grade";
+import { AnswerTray, TrayWhy } from "../AnswerTray";
+import { OptionMark } from "./OptionMark";
 import type { McqProgress } from "./session";
 import "../beat-chrome.css";
 import "../../lesson/scheme.css";
@@ -112,50 +113,6 @@ function optionState(answered: boolean, isAnswer: boolean, isSelected: boolean):
   return isSelected ? "chosen" : "other";
 }
 
-/**
- * The glyph that says which card is which, once the answer is revealed.
- *
- * WCAG 1.4.1: colour may not be the ONLY visual means of conveying
- * information. Before this the graded row said "answer" with a green fill and
- * "the one you chose" with a periwinkle stroke, and nothing else. A student
- * with a colour vision deficiency, or anyone reading in sunlight, got two
- * cards that differ by a hue they cannot separate. Both Mobbin references mark
- * this with a glyph rather than a fill: Quizlet's screen 44 puts a cross on
- * the choice and a tick on the answer, and screen 38 leads its banner with one.
- *
- * NO RED, and that is not an oversight. beat-chrome.css already records the
- * rule ("No red on this screen, the rule lesson/Feedback.tsx already set") and
- * it comes from CLAUDE.md's voice section: the reader is stressed, a mistake is
- * the normal step, and the copy is a coach on the student's side. So this takes
- * the reference's INFORMATION, which is "this was yours and this was right",
- * and leaves its scolding colour. The chosen card is labelled in words, in the
- * same periwinkle it already wore.
- *
- * The sr-only text is what a screen reader gets, and it is why the glyphs are
- * aria-hidden: a tick read aloud as "check mark" beside the words "correct
- * answer" is the same fact twice.
- */
-function OptionMark({ state }: { readonly state: string }): React.ReactElement | null {
-  if (state === "answer") {
-    return (
-      <span className="option-mark option-mark--answer">
-        <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden>
-          <path d="M3 8.5 6.5 12 13 4.5" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-        <span className="sr-only">correct answer</span>
-      </span>
-    );
-  }
-  if (state === "chosen") {
-    return (
-      <span className="option-mark option-mark--chosen">
-        <span aria-hidden>your pick</span>
-        <span className="sr-only">the answer you chose</span>
-      </span>
-    );
-  }
-  return null;
-}
 
 export interface McqBeatViewProps {
   readonly beat: McqBeat;
@@ -185,14 +142,14 @@ export interface McqBeatViewProps {
    */
   readonly showHowTo?: boolean;
   readonly reducedMotion?: boolean;
+  /** Right answers in a row, this one included, for the green tray's combo chip. */
+  readonly combo?: number;
   /**
    * Replaces the thin per-question bar: the beat runner passes the lesson's
    * recipe strip so the top bar carries the committed frame (X, the strip,
    * the counters) with one progress instrument rather than two stacked bars.
    */
   readonly progressSlot?: ReactNode;
-  /** The header's currency counter. See McqRunner for why it is not beat.diamonds. */
-  readonly currencySlot?: ReactNode;
 }
 
 const HOW_TO_PICKING = "Pick one, then press Check. You can change your mind as many times as you like first.";
@@ -214,25 +171,37 @@ export function McqBeatView({
   showHowTo,
   reducedMotion = false,
   progressSlot,
-  currencySlot,
+  combo,
 }: McqBeatViewProps) {
   const answered = reveal !== null;
   const howTo = showHowTo ?? level === 0;
-  const revealRef = useRef<HTMLElement | null>(null);
-
-  // Move focus to the explanation the frame it appears. The React pattern is a
-  // ref plus an effect keyed on the thing that changed, which is the ordinary
-  // way to touch a DOM node after render. It is here so a keyboard or switch
-  // user hears the explanation and is one Tab from the button, instead of being
-  // dropped on the document because the option they pressed left the tab order.
-  useEffect(() => {
-    if (reveal !== null) revealRef.current?.focus();
-  }, [reveal]);
-
   const choose = (optionId: string) => {
     if (answered) return;
     onSelect(optionId);
   };
+
+  // THE OPTIONS STAY IN SIGHT ABOVE THE TRAY, AND SO DOES THE QUESTION. Once
+  // the answer is in, the column scrolls only by as much as the options reach
+  // under the tray, and never so far that the question's own heading leaves
+  // the top (the mascot's hint line goes first). A2 round 5 scrolled with a
+  // margin the size of the whole tray, which overshot to the bottom of the
+  // column on a phone and pushed the question out of sight (A2 round 6
+  // critic). Measured against the column's own bottom edge rather than the
+  // tray's, because the tray is still sliding in when this runs. A ref is a
+  // handle on the rendered DOM node; the effect runs after React has painted.
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (!answered) return;
+    const scroller = scrollRef.current;
+    const group = scroller?.querySelector<HTMLElement>('[aria-label="Answer options"]');
+    if (scroller == null || group == null || scroller.scrollHeight <= scroller.clientHeight) return;
+    const view = scroller.getBoundingClientRect();
+    const overlap = group.getBoundingClientRect().bottom - (view.bottom - 12);
+    if (overlap <= 0) return;
+    const heading = scroller.querySelector<HTMLElement>("h1");
+    const roomAbove = heading === null ? overlap : heading.getBoundingClientRect().top - view.top;
+    scroller.scrollBy({ top: Math.min(overlap, Math.max(0, roomAbove)), behavior: reducedMotion ? "auto" : "smooth" });
+  }, [answered, reducedMotion]);
 
   const visual = mcqVisualFor(beat.id);
   const tiles = mcqOptionTiles(
@@ -246,12 +215,17 @@ export function McqBeatView({
     // this sheet came out 464px tall on an 844px screen. The runner's stage
     // is a flex column now, so growing is a flex clause, not a percentage.
     <div className="mcq-sheet mx-auto flex min-h-0 w-full max-w-xl flex-1 flex-col">
-      {/* The top bar, per the reference: a way out, how far along, a way to
-          report, and the reward count. Fixed height so nothing below it moves. */}
+      {/* The top bar: a way out and how far along, nothing else (A2 round 6).
+          The gem count and the two tools used to ride here too, and two blind
+          judges read the row as a cluster of cryptic icons rather than as
+          progress. The tools moved to the foot of the question, beside the
+          report link; the gems are on the pathway and the lesson-complete
+          screen. */}
       <div className="flex shrink-0 items-center gap-3 px-4 pt-3 pb-2 md:px-6">
+        {/* onClick, not onPointerDown, so Enter and Space leave too. */}
         <button
           type="button"
-          onPointerDown={onExit}
+          onClick={onExit}
           aria-label="Leave this lesson"
           title="Leave this lesson"
           className="lesson-exit"
@@ -262,49 +236,15 @@ export function McqBeatView({
         {progressSlot !== undefined ? (
           <div className="min-w-0 flex-1">{progressSlot}</div>
         ) : (
-          <div
-            className="h-2 flex-1 overflow-hidden rounded-full bg-bb-muted"
-            role="progressbar"
-            aria-label="Questions answered"
-            aria-valuemin={0}
-            aria-valuemax={progress.total}
-            aria-valuenow={progress.answered}
-          >
-            <div
-              className="h-full rounded-full bg-bb-primary"
-              style={{
-                width: `${Math.round(progress.fraction * 100)}%`,
-                transition: reducedMotion ? "none" : "width 220ms cubic-bezier(0.4, 0, 0.2, 1)",
-              }}
-            />
+          <div className="min-w-0 flex-1">
+            <LessonBar fraction={progress.fraction} label="Questions answered" reducedMotion={reducedMotion} />
           </div>
-        )}
-
-        {/* THE COUNTER IS A DRAWN GEM AND A NUMBER, and there is nothing else
-            in this row. Both committed frames pair the count with an icon (a
-            flask and flame in the mechanism frame, a gem in the reaction
-            frame) and neither carries a flag up here; the previous build
-            showed a bare numeral beside a U+2691 flag button, so the number
-            did not say what it counted and the row carried a control the
-            frames do not have. The flag itself is not cut, only moved: see
-            the quiet report control at the foot of the question.
-
-            IT ARRIVES AS A SLOT, and the fallback is this beat's own payout
-            rather than nothing, so a runner mounted on its own still draws a
-            counter instead of a hole where one belongs. */}
-        {currencySlot ?? (
-          beat.diamonds !== undefined ? (
-            <span className="lesson-currency" aria-label={`${beat.diamonds} gems for this question`}>
-              <GemMark />
-              {beat.diamonds}
-            </span>
-          ) : null
         )}
       </div>
 
       {/* Everything that can grow lives in the one scrolling region, so the
           action bar below it is the only fixed thing on the screen. */}
-      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 pb-4 md:px-6">
+      <div ref={scrollRef} className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 pb-4 md:px-6">
         {reported ? (
           <p className="fade-in rounded-2xl border border-bb-border bg-bb-muted px-3 py-2 text-scale-sm text-bb-muted-foreground">
             Thanks, this one is flagged for review. Carry on when you are ready.
@@ -338,9 +278,9 @@ export function McqBeatView({
             underneath it. The previous build set it at 600, which made the
             stem the heaviest element on the screen and inverted that. */}
         <div>
-          <h2 className="text-scale-xl font-normal leading-snug text-bb-foreground">{beat.prompt}</h2>
+          <h1 className="bb-h1 text-bb-foreground">{beat.prompt}</h1>
           {beat.brief !== undefined ? (
-            <p className="mt-1 text-scale-sm text-bb-muted-foreground">{beat.brief}</p>
+            <p className="mt-2 text-scale-sm text-bb-muted-foreground">{beat.brief}</p>
           ) : null}
         </div>
 
@@ -440,34 +380,6 @@ export function McqBeatView({
           </div>
         )}
 
-        {reveal !== null ? (
-          // The short explanation, in the shape of the reference capture: the
-          // claim in full weight, then one muted line under it.
-          <section
-            ref={revealRef}
-            tabIndex={-1}
-            aria-live="polite"
-            className={`fade-in rounded-2xl border p-4 outline-none ${
-              reveal.matchedAnswer ? "border-good/40 bg-good-soft" : "border-bb-primary/30 bg-bb-primary/5"
-            }`}
-          >
-            <h3
-              className={`text-scale-base font-semibold ${
-                reveal.matchedAnswer ? "text-good-ink" : "text-bb-foreground"
-              }`}
-            >
-              {revealHeading(reveal)}
-            </h3>
-            <p className="mt-2 text-scale-sm text-bb-foreground">{reveal.chosenWhy}</p>
-            {!reveal.matchedAnswer ? (
-              <p className="mt-2 text-scale-sm text-bb-muted-foreground">
-                <span className="font-semibold text-bb-foreground">{reveal.answerText}. </span>
-                {reveal.answerWhy}
-              </p>
-            ) : null}
-          </section>
-        ) : null}
-
         {/* THE REPORT CONTROL, MOVED OUT OF THE TOP BAR. Neither committed
             lesson frame has a flag in the header; both carry an exit, one
             progress bar and one currency count, and nothing else. The
@@ -476,42 +388,60 @@ export function McqBeatView({
             of the question, where it is out of the way of the chemistry, and
             it says what it does in the coach's own words rather than in a
             bare symbol. */}
-        <button type="button" onPointerDown={onReport} aria-pressed={reported} className="lesson-report">
-          <FlagMark />
-          {reported ? "Flagged, thank you" : "Something wrong with this question?"}
-        </button>
+        {/* The foot row: the report link, and the two tools (periodic table,
+            look up) that used to crowd the header (A2 round 6). ToolRail owns
+            its own open sheet, so nothing here holds state for it. */}
+        <div className="lesson-foot-row">
+          <ToolRail className="lesson-tools" />
+          <button type="button" onPointerDown={onReport} aria-pressed={reported} className="lesson-report">
+            <FlagMark />
+            {reported ? "Flagged, thank you" : "Something wrong with this question?"}
+          </button>
+        </div>
       </div>
 
-      {/* The one slot the way forward always lives in. Sticky as well as last
-          in a flex column, so it stays put whether this sheet has a bounded
-          height of its own or scrolls with the page around it. */}
-      <div className="beat-action-bar pb-safe sticky bottom-0 shrink-0 border-t border-bb-border bg-bb-card px-4 pt-3 pb-3 md:px-6">
-        {/* THE MASCOT IS ANCHORED, NOT FLOATING, the S3 judge's carry against
-            the question screen. Both committed lesson frames stand the berry
-            in the bottom right with its toes on the action row, so that is
-            where it stands: on an edge the layout owns rather than in the
-            middle of the content. Decoration to the layout, so it reserves no
-            row, shifts nothing, and takes no pointer events; the Check's own
-            label is centred, so the berry never covers it. Dropped while the
-            explanation is on screen, because that panel has its own reacting
-            berry and DESIGN-GOALS allows exactly one on a frame. */}
-        {answered ? null : (
+      {/* The one slot the way forward always lives in. Before the answer it
+          holds CHECK (a flat grey slab until something is picked, green once
+          it is live). After the answer the SAME slot becomes the answer tray,
+          green or red, with CONTINUE in the tray's colour (AnswerTray.tsx).
+          Sticky as well as last in a flex column, so it stays put whether this
+          sheet has a bounded height of its own or scrolls with the page. */}
+      {reveal !== null ? (
+        <AnswerTray
+          tone={reveal.matchedAnswer ? "right" : "wrong"}
+          title={reveal.matchedAnswer ? "Nice!" : "Not quite"}
+          combo={combo}
+          badge={!reveal.matchedAnswer && reveal.firstMeeting ? "First look, no penalty" : undefined}
+          actionLabel={primaryLabel}
+          onAction={onPrimary}
+          actionDisabled={!primaryEnabled}
+        >
+          {/* A2 round 5: the tray reads in one glance. A wrong answer leads with
+              the labelled correct answer in large type, then ONE sentence of why.
+              Everything else the author wrote is one tap away in "Why?". */}
+          {reveal.matchedAnswer ? (
+            <TrayWhy lead={reveal.chosenWhy} />
+          ) : (
+            <>
+              <p className="answer-tray__label">Correct answer:</p>
+              <p className="answer-tray__answer answer-tray__answer--big">{reveal.answerText}</p>
+              <TrayWhy lead={reveal.answerWhy} more={[reveal.chosenWhy]} />
+            </>
+          )}
+        </AnswerTray>
+      ) : (
+        <div className="beat-action-bar foot-bleed pb-safe sticky bottom-0 shrink-0 border-t-2 border-bb-border bg-bb-card px-4 pt-3 pb-3 md:px-6">
+          {/* THE MASCOT IS ANCHORED, NOT FLOATING: he stands on the action
+              row, bottom right, decoration only (no row reserved, no pointer
+              events). Gone once the tray is up, one effect per moment. */}
           <span className="berry-anchor berry-anchor--bar" aria-hidden>
             <Berry mood="focused" working sizePx={68} reducedMotion={reducedMotion} />
           </span>
-        )}
-        {/* THE COMMIT IS A CHIP. The S3 judge's carry was an outlined Check
-            whose disabled state was ambiguous; ChipPress is the committed
-            button-types sheet's own construction, the sheet's PERIWINKLE
-            check face over a darker bottom edge when it is live and the
-            sheet's cool grey-blue disabled pill with no travel when it is
-            not, so "nothing picked yet" is a different object rather than a
-            dimmer one. The label is CHECK then CONTINUE in one slot that
-            does not move, which is BUTTON-MECHANICS' content swap. */}
-        <ChipPress className="w-full" disabled={!primaryEnabled} onClick={onPrimary}>
-          {primaryLabel}
-        </ChipPress>
-      </div>
+          <ChipPress className="w-full" disabled={!primaryEnabled} onClick={onPrimary}>
+            {primaryLabel}
+          </ChipPress>
+        </div>
+      )}
     </div>
   );
 }

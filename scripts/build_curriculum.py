@@ -77,7 +77,7 @@ _DARK_HETERO = {
 
 def render_svg(smiles: str, path: Path, dark: bool, width: int = 340, height: int = 210,
                bond_length: float | None = None, font_size: int | None = None,
-               dark_hetero: dict | None = None) -> bool:
+               dark_hetero: dict | None = None, ink: tuple | None = None) -> bool:
     """
     One structure to one SVG. False if RDKit will not draw it.
 
@@ -91,6 +91,9 @@ def render_svg(smiles: str, path: Path, dark: bool, width: int = 340, height: in
     whose labels a critic measured at 6px on a phone. `dark_hetero` replaces
     the dark heteroatom colours for a drawing that sits on a darker tile than
     the reaction panel. Both None keeps every existing drawing byte-identical.
+
+    `ink` draws every atom and bond in that one colour, heteroatoms included:
+    the reagents (Learn round 6), whose typeset neighbours wear one ink.
     """
     from rdkit import Chem
     from rdkit.Chem.Draw import rdMolDraw2D
@@ -110,7 +113,9 @@ def render_svg(smiles: str, path: Path, dark: bool, width: int = 340, height: in
     opts.clearBackground = False
     opts.bondLineWidth = 2
     opts.padding = 0.08
-    if dark:
+    if ink is not None:
+        opts.setAtomPalette({-1: ink})
+    elif dark:
         opts.setAtomPalette({-1: _DARK_CARBON})
         opts.updateAtomPalette(_DARK_HETERO if dark_hetero is None else dark_hetero)
     else:
@@ -141,7 +146,23 @@ def render_reaction_art(rxn) -> dict:
             name = f"{rxn['id']}-{slot}-{theme}.svg"
             if render_svg(smiles, ART / name, dark=(theme == "dark")):
                 art[f"{slot}_{theme}"] = f"reactions/{name}"
+            # Learn round 6: a thumbnail drawn AT its display size, not the full
+            # drawing shrunk. Shrunk to a 64px tile, the 340px drawing's atom
+            # labels came out 4.2 to 5.8px (critic-learn-r5). Here the letters are
+            # pinned at THUMB_FONT_SIZE in a THUMB_WIDTH by THUMB_HEIGHT canvas, so
+            # shown at that size or larger every label is 11px or taller.
+            name = f"{rxn['id']}-{slot}-thumb-{theme}.svg"
+            if render_svg(smiles, ART / name, dark=(theme == "dark"), width=THUMB_WIDTH,
+                          height=THUMB_HEIGHT, font_size=THUMB_FONT_SIZE):
+                art[f"{slot}_thumb_{theme}"] = f"reactions/{name}"
     return art
+
+
+# 17 gives atom letters about 12 units tall (measured from the drawn label
+# paths); learn.test.ts measures every thumbnail file and holds the 11px floor.
+THUMB_WIDTH = 120
+THUMB_HEIGHT = 88
+THUMB_FONT_SIZE = 17
 
 
 # ==========================================================================
@@ -276,6 +297,13 @@ REAGENT_BOND_LENGTH = 21.0
 # 4.75rem tall (round 2 critic). 22 gives letters about 15.6 units tall, 11px
 # or more on that face; cardsContrast.test.ts measures it from the files.
 REAGENT_FONT_SIZE = 22
+# Learn round 6: ONE INK FOR A REAGENT, DRAWN OR TYPESET. The typeset bottle
+# labels (CH3MgBr) wear --bb-deep; a drawn reagent beside one used to colour its
+# oxygen red at night, so the workup step read as an error. Every reagent drawing
+# is now that same ink, atoms and bonds alike: #2e2b45 light, #edf2fa night, the
+# two values of --bb-deep in src/tokens.css. learn.test.ts reads both files and
+# fails if they part.
+REAGENT_INK = {"light": (0x2E / 255, 0x2B / 255, 0x45 / 255), "dark": (0xED / 255, 0xF2 / 255, 0xFA / 255)}
 
 
 def reagent_slug(token: str) -> str:
@@ -318,6 +346,7 @@ def render_reagent_art() -> dict:
                 height=REAGENT_HEIGHT,
                 bond_length=REAGENT_BOND_LENGTH,
                 font_size=REAGENT_FONT_SIZE,
+                ink=REAGENT_INK[theme],
             )
             if drawn:
                 entry[theme] = f"reagents/{name}"
@@ -1666,7 +1695,10 @@ def main() -> int:
         "  /** Paths under BASE_URL. Rendered by RDKit from the canonical SMILES. */\n"
         "  art: {\n"
         "    start_light?: string;\n    start_dark?: string;\n"
-        "    product_light?: string;\n    product_dark?: string;\n  };\n}\n\n"
+        "    product_light?: string;\n    product_dark?: string;\n"
+        "    /** Drawn at 120 by 88 with fixed 17-unit letters: never shown smaller. */\n"
+        "    start_thumb_light?: string;\n    start_thumb_dark?: string;\n"
+        "    product_thumb_light?: string;\n    product_thumb_dark?: string;\n  };\n}\n\n"
         "/**\n"
         " * One reagent's drawing, and the formula RDKit computed from the same\n"
         " * structure it drew. Paths under BASE_URL. Either theme may be absent and\n"
@@ -1705,6 +1737,7 @@ def main() -> int:
         "  REACTIONS.filter((r) => r.family === family);\n"
         "export const byTier = (tier: number) => REACTIONS.filter((r) => r.tier === tier);\n",
         encoding="utf-8",
+        newline="\n",  # LF, as the repo keeps it; Windows would write CRLF
     )
 
     print(f"Wrote {OUT.name} ({len(published)}) and {FLAGGED.name} ({len(flagged)}).")

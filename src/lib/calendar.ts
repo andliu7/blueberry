@@ -187,7 +187,7 @@ export async function deleteDate(
  * A syllabus PDF in, unsaved rows out.
  *
  * Nothing is written by this call. What comes back is a proposal to look at,
- * and saving is a separate, deliberate step — see `CalendarPage`.
+ * and saving is a separate, deliberate step. See `SchedulePage`.
  */
 export async function importSyllabus(
   file: File,

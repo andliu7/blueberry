@@ -145,16 +145,18 @@ const FLAME_TIP = 1.2;
  * mark is drawn from HEADER_BODY, below, rather than the narrow body above,
  * and each streak state is its own SHAPE:
  *
- *  - "zero": a grey OUTLINE. No run exists; there is nothing in the flame.
- *  - "pending": an orange outline with its core lit solid: a run that is
- *    alive and waiting on today. The body fills from the base with today's
- *    goal fraction.
- *  - "atRisk": pending with the outline BROKEN into dashes, a flame starting
- *    to come apart, plus a clock badge. Both are static, so both survive
- *    reduced motion; the lean in hud.css is a third cue, not the only one.
- *  - "live": the whole body solid. Solid against outline is what makes the
- *    counted day the heaviest flame in grayscale as well as in colour; a
- *    critic measured the old solid grey pending flame as DARKER than live.
+ *  - "zero": a solid grey flame with a pale core. No run exists.
+ *  - "pending": the same grey flame with its core lit orange: a run that is
+ *    alive and waiting on today. The orange body rises from the base with
+ *    today's goal fraction.
+ *  - "atRisk": pending plus a clock badge, static, so it survives reduced
+ *    motion; the lean in hud.css is a second cue, not the only one.
+ *  - "live": the whole body orange, the heaviest flame in grayscale as well
+ *    as in colour.
+ *
+ * All four are filled, never outlined (2026-10-15 icon redesign): the row
+ * beside it is a filled diamond and a filled battery, and an outline flame
+ * read as a second icon style.
  *
  * No red and no warning sign anywhere: docs/ECONOMY.md forbids drawing an
  * unmet day as a loss. A clock states a deadline, nothing more.
@@ -216,17 +218,19 @@ function HeaderFlame({ state, fill, clip, className }: { readonly state: StreakS
       <clipPath id={clip}>
         <rect x="0" y={fillWindow(23, 1, state === "live" ? 1 : fill)} width="24" height="24" />
       </clipPath>
-      {/* The 2 unit stroke is centred on a body that spans 1 to 23, so it
-          reaches exactly the box's edges and is never cut by the viewBox. */}
-      <path
-        d={HEADER_BODY}
-        fill="none"
-        stroke={alive ? "var(--streak)" : "var(--hud-out)"}
-        strokeWidth="2"
-        strokeLinejoin="round"
-        strokeDasharray={state === "atRisk" ? "3.2 2.4" : undefined}
-      />
-      {alive ? <path className="hud-flame-core" d={HEADER_CORE} fill="var(--streak)" /> : null}
+      {/* FILLED IN EVERY STATE, 2026-10-15. The zero, pending and at risk
+          flames were outlines, and both blind judges read an outline flame
+          beside the filled diamond and battery as a second icon style. Now
+          the body is always solid: pale grey when unlit (--hud-out at half
+          strength, so a live run stays the heaviest flame in grayscale, which
+          hudAnatomy.test.ts measures), with the lit part rising from the base
+          as today's goal fills. A live run is all orange. */}
+      <path d={HEADER_BODY} fill="var(--hud-out)" fillOpacity="0.5" />
+      {alive ? (
+        <path className="hud-flame-core" d={HEADER_CORE} fill="var(--streak)" />
+      ) : (
+        <path className="hud-flame-core" d={HEADER_CORE} fill="#ffffff" fillOpacity="0.42" />
+      )}
       <g clipPath={`url(#${clip})`}>
         <path className="hud-flame-body" d={HEADER_BODY} fill="var(--streak)" />
         <path className="hud-flame-core" d={HEADER_CORE} fill="var(--streak-core)" />

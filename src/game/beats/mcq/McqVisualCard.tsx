@@ -17,6 +17,7 @@
  * brief, and reading the picture aloud would say the question twice.
  */
 
+import { formulaRuns } from "../../onboarding/figures";
 import { StructureFigure } from "../../onboarding/StructureFigure";
 import { SchemeCard } from "../../lesson/SchemeCard";
 import type { McqVisual, NamedFigure } from "./mcqFigures";
@@ -28,11 +29,21 @@ import "../../lesson/scheme.css";
  * field off a union member and passing it on is passing `string | undefined`,
  * and a prop declared optional will not accept that. Boring and explicit.
  */
+/**
+ * A caption may carry the figure labels' formula marks ("OCH_3", "ψ_2"): draw
+ * them as a real subscript or superscript instead of a literal underscore.
+ */
+function captionRuns(name: string) {
+  return formulaRuns(name).map((run, index) =>
+    run.level === 1 ? <sub key={index}>{run.text}</sub> : run.level === 2 ? <sup key={index}>{run.text}</sup> : run.text,
+  );
+}
+
 function Species({ figure, name }: { readonly figure: NamedFigure["figure"]; readonly name: string | undefined }) {
   return (
     <div className="scheme__species">
       <StructureFigure figure={figure} className="scheme__figure" />
-      {name === undefined ? null : <span className="scheme__caption">{name}</span>}
+      {name === undefined ? null : <span className="scheme__caption">{captionRuns(name)}</span>}
     </div>
   );
 }

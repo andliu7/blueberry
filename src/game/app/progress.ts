@@ -135,6 +135,12 @@ export interface ProgressSource {
    */
   passChallenge(nodeId: string): number;
   /**
+   * A pathway treasure chest opened. Returns the diamonds earned, which is 0
+   * for a chest already opened. Its own event, never a node clear, so it moves
+   * no XP and no mastery (packages/economy, DIAMONDS_CHEST).
+   */
+  openChest(chestId: string): number;
+  /**
    * A flashcard review run reached its summary with `graded` distinct cards
    * graded. Returns the diamonds credited, which is 0 for a short run or past
    * the day's cap: the economy decides (packages/economy, DIAMONDS_CARD_RUN).
@@ -353,7 +359,18 @@ function applyBetaFlags(snapshot: ProgressSnapshot): ProgressSnapshot {
     // Clearing the first few spine nodes of unit one puts a walked stretch,
     // its join and the road ahead on the first screen, which is the picture
     // the references draw and the one worth developing against.
-    const opening = ["u1-allylic", "u1-12v14", "u1-kvt"];
+    //
+    // IN AUTHORED ORDER, read from the map, never a hand list. The hand list
+    // ("u1-allylic", "u1-12v14", "u1-kvt") went stale when Unit 1 was
+    // reordered: it cleared steps 1, 5 and 6 while 3 and 4 stayed locked, so
+    // the path showed finished lessons below locked ones (A1 round 4, both
+    // judges). The first main-line lesson is cleared and the next one takes
+    // START, which is a state a real student can actually be in.
+    const firstUnit = PATHWAY_UNITS[0];
+    const opening = (firstUnit?.nodes ?? [])
+      .filter((node) => node.kind !== "branch" && node.playable !== undefined)
+      .slice(0, 1)
+      .map((node) => node.id);
     for (const nodeId of opening) {
       synthetic.push({
         kind: "node_cleared",
@@ -679,6 +696,10 @@ export function createLocalProgress(): ProgressSource {
     },
     passChallenge(nodeId) {
       const next = appendOne((at, tz) => ({ kind: "challenge_passed", at, tz, nodeId }));
+      return next.diamonds.reduce((sum, line) => sum + line.amount, 0);
+    },
+    openChest(chestId) {
+      const next = appendOne((at, tz) => ({ kind: "chest_opened", at, tz, chestId }));
       return next.diamonds.reduce((sum, line) => sum + line.amount, 0);
     },
     finishCardRun(graded) {

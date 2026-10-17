@@ -30,8 +30,13 @@ interface QuestionCommon {
   imageCrop?: string;
   /** The short answer, when there is one worth showing apart from `a`. */
   badge?: string;
-  /** The section this card belongs to, used to group the table view. */
+  /** The section this card belongs to, used to group the table view and the category chips. */
   heading?: string;
+  /**
+   * The product's SMILES, canonical from RDKit, written by the carbonyl generator.
+   * A card that has one can be answered by drawing it in Write (Ketcher marks it).
+   */
+  product?: string;
 }
 
 /** A plain question with a written answer. */
@@ -228,54 +233,30 @@ export const DECK_GROUPS: {
   id: DeckGroupId;
   title: string;
   blurb: string;
-  /** Folder card wash: one step along the site's indigo-to-fuchsia ramp. */
-  from: string;
-  to: string;
-  /**
-   * A photograph behind the wash, under BASE_URL.
-   *
-   * The gradient stays and becomes the scrim over it. White text on an
-   * arbitrary photograph is a contrast bet you lose on the bright ones, and
-   * keeping the ramp means a folder with no picture yet still reads as itself
-   * rather than as a broken card.
-   */
-  photo?: string;
 }[] = [
   {
     id: "lab",
-    photo: "backgrounds/folder-blueberry.webp",
     // The course prefix moved up to the course folder, where it belongs now
     // that there is more than one course on the site.
     title: "LCTA",
     blurb: "One deck per experiment, written for the lab critical thinking assessment.",
-    from: "#5b34bb",
-    to: "#6f30ed",
   },
   {
     id: "reference",
-    photo: "backgrounds/folder-cool-dark-blueberry.webp",
     title: "Reference sheets",
-    blurb: "The charts you look up mid-problem. Hover any row for the diagram.",
-    from: "#7340ed",
-    to: "#7e5bee",
+    blurb: "The charts you look up mid-problem. Tap any row for the diagram.",
   },
   {
     id: "carbonyls",
-    photo: "backgrounds/folder-tart-blueberry.webp",
     title: "Carbonyls",
     blurb: "One deck per reaction type, plus the same reactions asked backwards.",
-    from: "#8360f6",
-    to: "#9078f8",
   },
   {
     id: "uploaded",
-    photo: "backgrounds/folder-pancake-blueberry.webp",
     // No course prefix. The other two are tied to a specific course; this one
     // holds whatever anyone uploads, which may well not be CHEM 242 at all.
     title: "Uploaded",
     blurb: "Decks added from a text file.",
-    from: "#a21caf",
-    to: "#c026d3",
   },
 ];
 

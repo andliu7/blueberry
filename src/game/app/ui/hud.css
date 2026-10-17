@@ -384,26 +384,6 @@
   line-height: 1.55;
   color: var(--bb-muted-foreground);
 }
-/*
- * One large primary CTA, which is the third thing the critic named. The bottom
- * edge is the same 3px ledge the pathway's nodes carry, so a press has
- * somewhere to travel: .press translates the button down and the ledge is what
- * makes that read as a key going down rather than as a jitter.
- */
-.hud-panel-cta {
-  width: 100%;
-  min-height: 3rem;
-  margin-top: 0.25rem;
-  border-radius: 0.875rem;
-  background: var(--bb-primary);
-  color: var(--bb-primary-foreground);
-  font-size: var(--text-scale-base);
-  font-weight: 700;
-  /* This was `0 3px 0` in a darker primary, which is the fake extrusion the
-     sticker audit's own refinement names: a solid block offset only on Y is a
-     shadow drawn with the shadow property. It is a real 2px outline now. */
-  border: 2px solid var(--bb-primary-edge);
-}
 .hud-panel-mark {
   display: flex;
   align-items: center;

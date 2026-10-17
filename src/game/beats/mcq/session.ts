@@ -207,6 +207,24 @@ export interface McqProgress {
   readonly clearedFraction: number;
 }
 
+/**
+ * How many answers in a row, counting back from the latest, matched the
+ * authored answer. A first-meeting miss clears the beat but carries a
+ * distractorId, so it breaks the run: the run counts right answers, not passes.
+ * Read at the reveal, it includes the answer just given (commitPick has
+ * already recorded it), which is what the green tray's combo label shows.
+ */
+export function currentRun(session: McqSession): number {
+  let run = 0;
+  for (let i = session.results.length - 1; i >= 0; i -= 1) {
+    const result = session.results[i];
+    const right = (result.kind === "correct" || result.kind === "correct_alternative_route") && result.distractorId === undefined;
+    if (!right) break;
+    run += 1;
+  }
+  return run;
+}
+
 export function sessionProgress(session: McqSession): McqProgress {
   const answered = session.results.length;
   const total = session.beats.length;

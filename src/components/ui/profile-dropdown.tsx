@@ -12,6 +12,7 @@ import {
   Shield,
   User,
   Users,
+  MessageCircle,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -74,7 +75,7 @@ export function ProfileDropdown({
       <div className={cn("relative", className)} {...props}>
         <a
           href="#/signin"
-          className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-slate-300/70 bg-white/60 px-3 text-sm font-semibold text-slate-600 backdrop-blur transition-colors hover:text-slate-900 dark:border-stone-700/70 dark:bg-stone-900/50 dark:text-stone-400 dark:hover:text-stone-100"
+          className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-slate-300/70 bg-white/60 px-4 text-sm font-semibold text-slate-600 backdrop-blur transition-colors hover:text-slate-900 dark:border-stone-700/70 dark:bg-stone-900/50 dark:text-stone-400 dark:hover:text-stone-100"
         >
           <LogIn className="size-3.5" />
           Sign in
@@ -121,7 +122,7 @@ export function ProfileDropdown({
           <button
             type="button"
             aria-label={`Account: ${name}`}
-            className="flex cursor-pointer items-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-[#9989e2]"
+            className="flex size-11 cursor-pointer items-center justify-center rounded-full"
           >
             {/* The gradient ring is the original's, kept because it reads as an
                 avatar even before the picture loads, and shrunk to match the
@@ -183,6 +184,16 @@ export function ProfileDropdown({
               </a>
             </DropdownMenuItem>
           ))}
+
+          {/* The assistant's way in, since the corner rail it used to sit in went
+              (2026-10-07). The panel listens for this event; see ui/blueberry-bot. */}
+          <DropdownMenuItem
+            onSelect={() => window.dispatchEvent(new CustomEvent("blueberry:open-bot"))}
+            className="gap-2"
+          >
+            <MessageCircle className="size-4" />
+            Ask Blueberry
+          </DropdownMenuItem>
 
           <DropdownMenuSeparator />
 

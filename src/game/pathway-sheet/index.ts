@@ -13,7 +13,7 @@
  *
  *   --ns-bottom-inset  the tab bar's height. The sheet's bottom edge lands on
  *                      it, because the reference keeps the four tabs visible
- *                      and undimmed under the sheet. Default 4.75rem plus the
+ *                      and undimmed under the sheet. Default 5rem plus the
  *                      home-indicator safe area, derived from app/ui/tabs.css
  *                      and locked by test/nodeSheetSeam.test.ts, and 0 above
  *                      48rem where the bar becomes a side rail.

@@ -1,0 +1,81 @@
+/* The resume screen (ResumePrompt.tsx). One centred card under the lesson bar,
+   two keys in the lesson footer. Tokens only, so both themes follow. */
+
+.resume-prompt__stage {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.resume-prompt__card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  max-width: 36rem;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem;
+  border: 2px solid var(--bb-border);
+  border-bottom-width: 4px;
+  border-radius: 16px;
+  background: var(--bb-card);
+  text-align: center;
+  animation: resume-pop 320ms cubic-bezier(0.35, 1.8, 0.35, 0.83) both;
+}
+
+.resume-prompt__lesson {
+  margin: 0;
+  font-weight: 800;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--bb-muted-foreground);
+}
+
+.resume-prompt__title {
+  margin: 0;
+  font-size: clamp(1.35rem, 5vw, 1.65rem);
+  line-height: 1.2;
+  font-weight: 800;
+  color: var(--bb-foreground);
+  text-wrap: balance;
+}
+
+.resume-prompt__saved {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0.25rem 0 0;
+  padding: 0.4rem 0.85rem;
+  border-radius: 9999px;
+  background: var(--bb-primary-soft);
+  color: var(--bb-foreground);
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.resume-prompt__mark {
+  flex: none;
+  color: var(--bb-primary);
+}
+
+@keyframes resume-pop {
+  from {
+    transform: scale(0.94);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+.resume-prompt[data-motion="reduced"] .resume-prompt__card {
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .resume-prompt__card {
+    animation: none;
+  }
+}

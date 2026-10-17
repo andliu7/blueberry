@@ -20,7 +20,7 @@ export const carbonylReagentsDeck: StudyDeck = {
   from: "#c026d3",
   to: "#e879f9",
   questions: [
-    { q: "Friedel-Crafts acylation: Benzene + CH₃COCl , AlCl₃", a: "anhydrous  ·  irreversible  ·  0 °C to room temperature", badge: "Acetophenone", image: "carbonyl_friedel-crafts.svg", imageCrop: "37%", heading: "Making the reagents · worked examples" },
-    { q: "Making a phosphonium ylide: Triphenylphosphine + CH₃Br , then n-BuLi", a: "anhydrous  ·  irreversible  ·  0 °C, under nitrogen", badge: "Methylenetriphenylphosphorane", image: "carbonyl_ylide.svg", imageCrop: "37%", heading: "Making the reagents · worked examples" },
+    { q: "Friedel-Crafts acylation: Benzene + CH₃COCl , AlCl₃", a: "anhydrous  ·  irreversible  ·  0 °C to room temperature", badge: "Acetophenone", image: "carbonyl_friedel-crafts.svg", imageCrop: "37%", heading: "Making the reagents · worked examples", product: "CC(=O)c1ccccc1" },
+    { q: "Making a phosphonium ylide: Triphenylphosphine + CH₃Br , then n-BuLi", a: "anhydrous  ·  irreversible  ·  0 °C, under nitrogen", badge: "Methylenetriphenylphosphorane", image: "carbonyl_ylide.svg", imageCrop: "37%", heading: "Making the reagents · worked examples", product: "[CH2-][P+](c1ccccc1)(c1ccccc1)c1ccccc1" },
   ],
 };

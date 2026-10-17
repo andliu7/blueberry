@@ -147,8 +147,7 @@ export function EntryGate() {
    * On <html> rather than in component state because the timer, the assistant
    * and the notification bell are mounted outside `App` on purpose so they
    * survive route changes, which means a class hook is the only line of
-   * communication to them that does not undo that. The home hero already does
-   * exactly this with `data-hero`; see index.css.
+   * communication to them that does not undo that. See index.css.
    */
   useEffect(() => {
     const el = document.documentElement;

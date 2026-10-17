@@ -84,7 +84,7 @@ export function DeckAbout({
                   "focus-visible:ring-2 focus-visible:ring-[#9989e2]",
                   selected
                     ? "bg-[#5a3fd8] text-white dark:bg-[#6b51dd]"
-                    : "text-[#5a3fd8]/70 hover:bg-[#e5eaf5]/70 hover:text-[#472ab4] dark:text-[#bbb1eb]/70 dark:hover:bg-[#9989e2]/10 dark:hover:text-[#ccd5ea]",
+                    : "text-accent-foreground hover:bg-[#e5eaf5]/70 dark:hover:bg-[#9989e2]/10",
                 )}
               >
                 <Icon className="h-3.5 w-3.5" />

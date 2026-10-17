@@ -189,6 +189,7 @@ import {
   type StreakState,
 } from "./hudModel";
 import { closeOnBackdrop } from "./dismiss";
+import { Press } from "./Press";
 
 /**
  * How often the header re-derives against the wall clock.
@@ -506,9 +507,9 @@ function HudSheet({
             <HudSheetStrip model={model} id={readout.id} reducedMotion={reducedMotion} />
             <h2 className="hud-panel-headline">{readout.headline}</h2>
             <p className="hud-panel-line">{readout.line}</p>
-            <button type="button" onPointerDown={onClose} className="press hud-panel-cta">
+            <Press block onPointerDown={onClose} className="mt-1">
               Keep going
-            </button>
+            </Press>
           </div>
         </>
       )}

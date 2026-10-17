@@ -1,7 +1,76 @@
 # Status
 
-Updated 2026-09-28. This file is a thin live index: current state and pointers,
+Updated 2026-10-17. This file is a thin live index: current state and pointers,
 no detail that has a better home. Keep it thin and keep it current.
+
+## Queue, 2026-10-17 (the to-do list; keep it current)
+
+Nothing is committed; the owner pushes himself. `tsc` clean, `npm run build` passes, Learn tests
+324/324 as of 17 Oct. Overnight run 17 Oct: Unit 1 upgrades + Unit 2 draft (progress page:
+the f142b2c5 session scratchpad `progress.html`; the 16 Oct page is `progress-oct16.html`).
+
+**Waiting on the owner**
+- Unit 1 sign-off: all ~179 items are `placeholder: true`, which keeps them out of spaced review.
+- Six pieces parked after 6 rounds without a blind win: X1 loader, X3 pomodoro, S2 home tint,
+  X5 me + settings, A2 buttons + headings, X6 leaderboards/feed/messages. Keep or send back.
+- Bloom gradient (A, A softer, keep); AI tutor personas; Twilio go-ahead.
+
+**Stopped mid-build on 16 Oct (state on disk, unverified per piece)**
+S1 gradient ground + card glow, A1 icon set + tab bar, X2 periodic table, X4 cards tab,
+S3 Learn decision card + right rail, X7 search + courses + trainer, A3 lesson popover.
+
+**Not started**
+A4 HUD (XP/energy pips, streak screen); A8 pathway redesign (spec: scratchpad
+`pathway-research.md`); F1-F5 flashcards (Review hub, deck options, study modes, custom decks,
+more decks); drawing practice (extend `src/game/beats/trace`); Units 3-15 content (only
+`src/game/content/u1/` exists).
+
+**Running 17 Oct**: three runs (Unit 1 upgrades + Unit 2; Units 3-15 drafts; path, guides, Unit 0).
+**Queued for a fourth run**: Bloom reactions in lessons and on the path, the next-lesson transition,
+end-of-lesson feedback both ways (student summary + rating for the owner). Boot loader done by the lead:
+six Bloom moves, hand-written wordmark, jump / curtain lift / land exit.
+
+**Later, by owner decision (17 Oct)**: native apps via Capacitor (Android Studio + emulator with
+live reload; iOS needs a Mac or a cloud Mac), after Unit 1 is solid. No Kotlin/Swift rewrite.
+
+## Review built (replan phase 7), uncommitted, 2026-10-07
+
+`#/study-decks` is Review: Due today, My decks, the library as tiles. A deck opens on its first
+card, which flips on a tap and tilts on a hold, with progress in words. The deck page is
+`src/components/review/` and is lazy; entry bundle 373.2 to 327.3 kB. Addresses unchanged.
+**"Due today" means the cards marked Missed or Unsure** (decks have no scheduler; ratings stay
+local), pending the owner. Six deck view modes became study card plus list and table. Detail:
+`site-build-log.md`, "Phase 7".
+
+## Learn built (replan phase 5), uncommitted, 2026-10-07
+
+`#/learn` is the Learn index; `#/lessons` and `#/reactions` redirect there, the old
+reactions page is gone, and a reaction is a card that opens a sheet inside its lesson.
+**The lesson-to-unit mapping, `src/data/learnMap.ts`, is the DRAFT from
+`DRAFTS-2026-10-07.md` section 2, pending the owner's approval.** Diazonium formation and
+Sandmeyer stay under Amines until he decides. Detail and open items: the builder's
+`site-build-log.md`, "Phase 5".
+
+## Home rebuilt (replan phases 4a to 4d), uncommitted, 2026-10-07
+
+Section 7's five beats: a CSS loader, the hero with Bloom, a lazy phone demo (Learn,
+Practice, Review, Schedule), the four destinations with counts from `src/data/taxonomy.ts`,
+a backwards-arrow proof in the game's own words, and the close. Nunito is loaded for titles.
+Entry bundle 433.1 to **384.3 kB**, under the 400 kB budget; GSAP is imported nowhere.
+**The headline is a marked stand-in, `HOME_HEADLINE` in `src/data/site.ts`: Andrew writes
+it before the next deploy.** Detail: `site-build-log.md`, "Phase 4a" to "Phase 4d".
+
+## Site replan phases 0 to 3 built, uncommitted, 2026-10-07
+
+`documentation/SITE-REPLAN.md` section 11, phases 0 to 3, on `ui/cta-and-background`:
+tokens (`src/tokens.css`), the mechanism promo and template video out, one lavender
+ground with no photograph behind text, and one header, phone bar and footer drawn by
+`SiteChrome` for every site page (the five destinations live in `src/lib/siteNav.ts`;
+retired addresses in `src/lib/redirects.ts`). `measurements/contrast-audit.mjs` now
+reads oklch colours and has a `--site` run over 28 site pages: 4 rows left, both
+marks the owner should rule on (Google's "G" logo, a Ketcher glyph the audit cannot
+see behind). The builder's log, with every number and the open items, was written to
+that session's scratchpad as `site-build-log.md`.
 
 ## Reagents are drawn, not spelled, 2026-09-28
 

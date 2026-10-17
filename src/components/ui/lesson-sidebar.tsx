@@ -4,100 +4,126 @@ import { ChevronDown, Circle, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
- * The lessons index, down the side.
+ * A grouped index down the side: groups of items, each group a dropdown.
  *
  * Replaces a horizontal row of seven pills. The pills scrolled sideways on a
  * laptop, gave no sense of how much subject there was, and left nowhere to show
  * the courses that are not written yet without implying they were ready.
  *
- * **Carbonyls is a dropdown, not a spread.** It is one unit of nine sections and
- * the only one with content, so it opens by default and the others sit under it
- * collapsed and marked. That way the page says what the plan is without pretending
- * any of it is finished.
+ * **The groups come from the caller.** This used to wrap whatever it was given
+ * in one hard-coded group labelled "Carbonyls", so the Reactions page showed all
+ * 43 reactions, nitration and Sandmeyer included, as carbonyl chemistry
+ * (DRAFTS-2026-10-07.md section 3, item 1). Learn's reaction search now passes
+ * one group per lesson section, filed by `sectionForFamily`, so this index files
+ * a reaction exactly where the lessons do.
  *
- * On narrow screens the whole thing collapses to a single closed group, since a
- * fixed 240px column on a phone is most of the screen given over to navigation.
+ * Labels wrap instead of truncating (SITE-REPLAN.md section 3): a reaction name
+ * cut to "Friedel-Crafts acyl..." is a name nobody can search for.
+ *
+ * Styled by src/components/learn/learn.css (`lrn-card`, `--lrn-ink`), which its
+ * one caller, Learn's reaction search, loads.
  */
+
+export interface SidebarGroup {
+  id: string;
+  label: string;
+  items: Topic[];
+}
 
 interface Topic {
   id: string;
   label: string;
 }
 
-/** The rest of the course, listed so the shape is visible, none of it linked. */
-const PLANNED = [
-  "Aromatics",
-  "Amines",
-  "Radicals",
-  "Pericyclic reactions",
-  "Spectroscopy",
-];
+/**
+ * The rest of the course, listed so the shape is visible, none of it linked.
+ * Aromatics and Amines left this list on 7 Oct: their reactions are filed under
+ * them now. "Pericyclic reactions" stays until the owner decides, though
+ * Diels-Alder is listed under Dienes (DRAFTS-2026-10-07.md section 3, item 2).
+ */
+const PLANNED = ["Radicals", "Pericyclic reactions", "Spectroscopy"];
 
 export function LessonSidebar({
-  topics,
+  groups,
   active,
   onSelect,
+  label = "Lessons",
+  startClosed = false,
+  showPlanned = true,
 }: {
-  topics: Topic[];
-  active: string;
+  groups: SidebarGroup[];
+  active: string | null;
   onSelect: (id: string) => void;
+  label?: string;
+  /** Every group starts folded, so a long list opens as its group names. */
+  startClosed?: boolean;
+  /** The locked "not written yet" rows. Off for a search result, where they are noise. */
+  showPlanned?: boolean;
 }) {
-  const [open, setOpen] = useState(true);
+  // Which groups are closed, by id. Read once, when the index first mounts; a
+  // caller that wants it re-read gives the component a new `key`.
+  const [closed, setClosed] = useState<Set<string>>(
+    () => new Set(startClosed ? groups.map((g) => g.id) : []),
+  );
+  const toggle = (id: string) =>
+    setClosed((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
 
   return (
-    <nav
-      aria-label="Lessons"
-      className="rounded-2xl border border-slate-200 bg-white/80 p-2 shadow-sm lg:sticky lg:top-4 dark:border-stone-800 dark:bg-stone-950/70"
-    >
-      <Group
-        label="Carbonyls"
-        count={topics.length}
-        open={open}
-        onToggle={() => setOpen((o) => !o)}
-      >
-        <ul className="mt-1 space-y-0.5" role="tablist">
-          {topics.map((x) => (
-            <li key={x.id}>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={active === x.id}
-                onClick={() => onSelect(x.id)}
-                className={cn(
-                  "flex w-full cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm transition-colors",
-                  active === x.id
-                    ? "bg-[#5a3fd8] font-semibold text-white"
-                    : "text-slate-600 hover:bg-slate-100 hover:text-[#472ab4] dark:text-stone-300 dark:hover:bg-stone-900 dark:hover:text-[#ccd5ea]",
-                )}
-              >
-                <Circle
+    <nav aria-label={label} className="lrn-card p-2">
+      {groups.map((g) => (
+        <Group
+          key={g.id}
+          label={g.label}
+          count={g.items.length}
+          open={!closed.has(g.id)}
+          onToggle={() => toggle(g.id)}
+        >
+          <ul className="mt-1 space-y-0.5">
+            {g.items.map((x) => (
+              <li key={x.id}>
+                <button
+                  type="button"
+                  aria-current={active === x.id ? "true" : undefined}
+                  onClick={() => onSelect(x.id)}
                   className={cn(
-                    "size-1.5 shrink-0",
-                    active === x.id ? "fill-white text-white" : "fill-slate-300 text-slate-300 dark:fill-stone-700 dark:text-stone-700",
+                    "flex min-h-11 w-full cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm transition-colors",
+                    "focus-visible:outline-3 focus-visible:outline-[var(--ring)]",
+                    active === x.id
+                      ? "bg-[var(--bb-wash)] font-semibold text-[var(--lrn-ink)]"
+                      : "text-foreground hover:bg-[var(--bb-wash)]",
                   )}
-                />
-                <span className="min-w-0 truncate">{x.label}</span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      </Group>
+                >
+                  <Circle className="size-1.5 shrink-0 fill-current" />
+                  <span className="min-w-0">{x.label}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </Group>
+      ))}
 
-      <div className="mt-1 border-t border-slate-100 pt-1 dark:border-stone-900">
-        {PLANNED.map((label) => (
-          <div
-            key={label}
-            // Not a button. There is nothing behind these, and a control that
-            // does nothing when pressed is worse than one that is plainly not
-            // ready.
-            className="flex cursor-not-allowed items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-slate-400 dark:text-stone-600"
-            title="Not written yet"
-          >
-            <Lock className="size-3 shrink-0" />
-            <span className="min-w-0 truncate">{label}</span>
-          </div>
-        ))}
-      </div>
+      {showPlanned && (
+        <div className="mt-1 border-t border-[var(--site-border)] pt-1">
+          {PLANNED.map((label) => (
+            <div
+              key={label}
+              // Not a button. There is nothing behind these, and a control that
+              // does nothing when pressed is worse than one that is plainly not
+              // ready.
+              className="flex cursor-not-allowed items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-[var(--site-faint)]"
+              title="Not written yet"
+            >
+              <Lock className="size-3 shrink-0" />
+              <span className="min-w-0">{label}</span>
+            </div>
+          ))}
+        </div>
+      )}
     </nav>
   );
 }
@@ -121,13 +147,13 @@ function Group({
         type="button"
         onClick={onToggle}
         aria-expanded={open}
-        className="flex w-full cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-slate-50 dark:hover:bg-stone-900"
+        className="flex min-h-11 w-full cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-[var(--bb-wash)] focus-visible:outline-3 focus-visible:outline-[var(--ring)]"
       >
         <span className="flex-1 text-sm font-semibold">{label}</span>
-        <span className="font-mono text-[0.65rem] text-slate-400 dark:text-stone-500">{count}</span>
+        <span className="text-xs text-[var(--site-faint)]">{count}</span>
         <ChevronDown
           className={cn(
-            "size-4 shrink-0 text-slate-400 transition-transform duration-200",
+            "size-4 shrink-0 text-[var(--site-faint)] transition-transform duration-200 motion-reduce:transition-none",
             open && "rotate-180",
           )}
         />

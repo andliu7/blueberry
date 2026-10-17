@@ -63,21 +63,32 @@ import { clearsBeat, type BeatResult, type MasteryLevel } from "./types";
 import type { Card, Reco } from "../cards/types";
 import type { CardOffer } from "../cards/Recommendation";
 import { decks, PERSONAL_DECK_ID } from "../cards/store";
+import { isDraftCard } from "./practice/pools";
 import { CORRECT_CAUSE } from "./mcq/grade";
 import { questionForBeat } from "../tabs/trainer/engine/question";
 import { MATCH_BOARDS } from "./match";
 import { sortContentById } from "./sort";
 import { synthesisGapsForNode } from "./synthesis";
-import { ToolRail } from "../app/ui/ToolRail";
 import { Berry } from "../mascot/Berry";
 import { pathwayNode } from "../demo/pathwayMap";
+import { HUMAN_GATE_MARK } from "../pathway-sheet/nodeSheetModel";
+import { showDraftMarks } from "../app/flags";
 import { ChipPress } from "./ChipPress";
+import { Press } from "../app/ui/Press";
 import { ExitMark, GemMark } from "./chromeIcons";
 import { RecipeStrip } from "./RecipeStrip";
+import { LessonPreview } from "./LessonPreview";
+import { LessonRecap } from "./LessonRecap";
+import { PoolItemsStep } from "./PoolItemsStep";
+import { markPrimed, opensOnPreview, primedThisSession, primingFor } from "./priming";
 import {
   challengeable,
   challengeOutcome,
   currentStep,
+  lessonHasDraft,
+  lessonMcqBeats,
+  lessonMeetBeats,
+  lessonPoolItems,
   missedMcqIdsFrom,
   planLesson,
   recipeSegments,
@@ -87,6 +98,8 @@ import {
   startRun,
   type LessonRun,
 } from "./template";
+import { answeredSoFar, browserStorage, clearSave, loadLesson, saveLesson, type LessonResume, type McqSave } from "../resume/lessonSave";
+import { ResumePrompt } from "../resume/ResumePrompt";
 import "./beat-chrome.css";
 
 // The resolution API lives in template.ts now: one table and one ordering
@@ -113,7 +126,6 @@ const SortBeatView = lazy(() => import("./sort/SortBeatView").then((m) => ({ def
 const SynthesisGapBeat = lazy(() =>
   import("./synthesis/SynthesisGapBeat").then((m) => ({ default: m.SynthesisGapBeat })),
 );
-const LessonGems = lazy(() => import("./LessonGems"));
 // The trainer engine, the same screen the Train tab mounts. Fixed and
 // full-viewport by construction, so inside a lesson it covers the header and
 // the strip exactly as it covers the tab bar: one screen, wherever it opens.
@@ -123,6 +135,8 @@ const TrainerScreen = lazy(() => import("../tabs/trainer/engine/TrainerScreen").
 // clean run never loads it at all. A null fallback is right here: the toast
 // is an overlay, and its honest loading state is absence.
 const Recommendation = lazy(() => import("../cards/Recommendation"));
+// The in-a-row run, for a node whose plan is a practice step (template.ts).
+const PracticeRunner = lazy(() => import("./practice/PracticeRunner").then((m) => ({ default: m.PracticeRunner })));
 
 export interface BeatRunnerProps {
   /** The pathway node the student tapped, for example "u3-directing". */
@@ -161,6 +175,11 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
   // A ref, not state: recording it must not re-render mid-animation, and
   // nothing draws from it.
   const stepResult = useRef<BeatResult | null>(null);
+  // A trainer step that draws first (template.ts `draws`): the step index whose
+  // drawings are finished, and how they went, so the trainer's result adds to
+  // them rather than replacing them. -1 while the drawings are still playing.
+  const [drawsDoneAt, setDrawsDoneAt] = useState(-1);
+  const drawTally = useRef({ cleared: 0, total: 0 });
   /**
    * The diamonds the store actually paid for this run, or null before it has
    * been asked. Not computed here: CLAUDE.md's rule is that every number in
@@ -185,21 +204,71 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
    */
   const [offer, setOffer] = useState<CardOffer | null>(null);
   const handleOfferCard = useCallback((card: Card, reco: Reco) => {
+    // A draft pool question never becomes a flashcard (mayOfferCard in practice/pools.ts); CHANGED 2026-10-17.
+    if (isDraftCard(card.id)) return;
     decks.offer(reco);
     const pending = decks.getSnapshot().pendingRecos.some((r) => r.cardId === reco.cardId);
     if (pending) setOffer({ card, reco });
   }, []);
 
+  /**
+   * The priming preview (U1-P2): whether this visit still has to show it.
+   * Decided once when the runner mounts or the node changes, never on a
+   * re-render, so the preview cannot reappear mid-lesson. Not on a Challenge
+   * and not on a reopen in the same session (beats/priming.ts says why).
+   */
+  const [needsPreview, setNeedsPreview] = useState(() =>
+    opensOnPreview(node, { challenge, seenThisSession: primedThisSession(node) }),
+  );
+  /**
+   * The preview's loop, closed at the end (U1-P2 round 4). `primed` is set
+   * when the student pressed START on this visit's preview, with the guess
+   * they locked in (null if they skipped it). When the lesson's own ending
+   * says Continue, a primed visit shows LessonRecap first; `recapOpen` is
+   * that screen being up.
+   */
+  const [primed, setPrimed] = useState<{ readonly guess: string | null } | null>(null);
+  const [recapOpen, setRecapOpen] = useState(false);
+
+  /**
+   * SAVE AS YOU GO (resume/lessonSave.ts). `resume` is a saved position found
+   * when the lesson opened, shown as the "pick up where you left off?" screen
+   * until the student answers it. `mcqSave` is the open multiple-choice
+   * step's answers so far, a ref because it only feeds the next write.
+   * `restoredAt` hands those answers to the step that was open, once.
+   */
+  const [resume, setResume] = useState<LessonResume | null>(() =>
+    plan === null ? null : loadLesson(browserStorage(), node, plan, mode),
+  );
+  const mcqSave = useRef<McqSave | null>(null);
+  const [restoredAt, setRestoredAt] = useState<{ readonly step: string; readonly save: McqSave } | null>(null);
+
   // See the header: adjust-state-during-render, so a swapped node never plays
   // the previous node's run.
   if (seenNode !== node) {
+    setNeedsPreview(opensOnPreview(node, { challenge, seenThisSession: primedThisSession(node) }));
+    setPrimed(null);
+    setRecapOpen(false);
     setSeenNode(node);
     setRun(plan === null ? null : startRun(plan, mode));
     setMcqFraction(0);
     stepResult.current = null;
+    setDrawsDoneAt(-1);
+    drawTally.current = { cleared: 0, total: 0 };
     setBanked(null);
     setOffer(null);
+    setResume(null);
+    mcqSave.current = null;
+    setRestoredAt(null);
   }
+
+  // Write the position whenever the run moves (a step done, the recycle pass
+  // begun, the ending reached, which clears it). Not while the resume screen
+  // is up, or the fresh run behind it would overwrite the bookmark it offers.
+  useEffect(() => {
+    if (run === null || resume !== null) return;
+    saveLesson(browserStorage(), node, run, mcqSave.current, primed?.guess);
+  }, [run, resume, node, primed]);
 
   /**
    * Bank the clear, once, when the run reaches its reward phase.
@@ -268,10 +337,89 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
     return (
       <div className="beat-runner beat-runner--empty" role="status">
         <p>This lesson has no Challenge yet. Practice is open on the pathway.</p>
-        <button type="button" onClick={onExit}>
+        <Press onClick={onExit}>
           Back to the pathway
-        </button>
+        </Press>
       </div>
+    );
+  }
+
+  // THE RESUME SCREEN comes first when this lesson has a saved position.
+  if (resume !== null) {
+    const answered = answeredSoFar(resume.run, resume.mcq);
+    return (
+      <ResumePrompt
+        title={pathwayNode(node)?.title ?? ""}
+        detail={`${answered} ${answered === 1 ? "question" : "questions"} done and saved`}
+        bar={
+          <RecipeStrip
+            segments={recipeSegments(resume.run)}
+            {...(resume.mcq !== null ? { currentFraction: resume.mcq.fraction ?? 0 } : {})}
+            reducedMotion={reducedMotion}
+          />
+        }
+        reducedMotion={reducedMotion}
+        onExit={onExit}
+        onRestart={() => {
+          clearSave(browserStorage(), node);
+          setResume(null);
+        }}
+        onContinue={() => {
+          mcqSave.current = resume.mcq;
+          if (resume.mcq !== null) {
+            setRestoredAt({ step: `${resume.run.phase}:${resume.run.index}`, save: resume.mcq });
+            setMcqFraction(resume.mcq.fraction ?? 0);
+          }
+          if (resume.primedGuess !== undefined) {
+            markPrimed(node);
+            setPrimed({ guess: resume.primedGuess });
+          }
+          setNeedsPreview(false);
+          setRun(resume.run);
+          setResume(null);
+        }}
+      />
+    );
+  }
+
+  // THE PRIMING PREVIEW comes before any question, for a seven-slot lesson
+  // and for a practice run alike. START remembers it for the session and
+  // drops straight into the plan below.
+  const priming = primingFor(node);
+  if (needsPreview && priming !== null && plan !== null) {
+    return (
+      <LessonPreview
+        node={node}
+        priming={priming}
+        strip={<RecipeStrip segments={recipeSegments(startRun(plan, mode))} reducedMotion={reducedMotion} />}
+        reducedMotion={reducedMotion}
+        onExit={onExit}
+        onStart={(guess) => {
+          markPrimed(node);
+          setPrimed({ guess });
+          setNeedsPreview(false);
+        }}
+      />
+    );
+  }
+
+  // THE RECAP, after the lesson's own ending, on a visit that opened on the
+  // preview. Its Continue (or SKIP, or X) goes where the ending was going.
+  if (recapOpen && primed !== null && priming !== null) {
+    return <LessonRecap node={node} priming={priming} picked={primed.guess} reducedMotion={reducedMotion} onDone={onExit} />;
+  }
+  // The lesson's ending calls this instead of onExit: a primed visit gets the
+  // recap first. The X mid-lesson still calls onExit, so leaving early never
+  // lands on a recap of a lesson the student did not finish.
+  const finish = primed !== null && priming !== null ? () => setRecapOpen(true) : onExit;
+
+  // A practice or stage-quiz node is a run mode, not a seven-slot lesson: the
+  // run owns its own header, its ending and its banking (clear at 3 in a row).
+  if (plan?.steps[0]?.beat.kind === "practice") {
+    return (
+      <Suspense fallback={<p role="status">Loading the practice set.</p>}>
+        <PracticeRunner key={node} node={node} onExit={onExit} onFinish={finish} reducedMotion={reducedMotion} challenge={challenge} />
+      </Suspense>
     );
   }
 
@@ -279,9 +427,9 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
     return (
       <div className="beat-runner beat-runner--empty" role="status">
         <p>This lesson is still being written. Nothing here is lost: pick another node and come back.</p>
-        <button type="button" onClick={onExit}>
+        <Press onClick={onExit}>
           Back to the pathway
-        </button>
+        </Press>
       </div>
     );
   }
@@ -289,8 +437,18 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
   const step = currentStep(run);
   const segments = recipeSegments(run);
 
+  // The open MCQ step's saved answers, if this is the step that was resumed.
+  const stepKey = `${run.phase}:${run.index}`;
+  const resumeResults = restoredAt?.step === stepKey ? { resumeResults: restoredAt.save.results } : {};
+  /** After every answered question: remember the step's answers and write the position. */
+  const saveAnswer = (results: readonly BeatResult[], fraction: number) => {
+    mcqSave.current = { results, fraction };
+    saveLesson(browserStorage(), node, run, mcqSave.current, primed?.guess);
+  };
+
   const advanceStep = (cleared: number, total: number, missedMcqIds?: readonly string[]) => {
     stepResult.current = null;
+    mcqSave.current = null;
     setMcqFraction(0);
     setRun((r) =>
       r === null ? r : reportStep(r, { cleared, total, ...(missedMcqIds !== undefined ? { missedMcqIds } : {}) }),
@@ -303,32 +461,29 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
     advanceStep(result === null || clearsBeat(result) ? 1 : 0, 1);
   };
 
+  /** A trainer step with drawings in front: the drawings' tally plus the trainer's one result. */
+  const advanceAfterDraws = () => {
+    const result = stepResult.current;
+    const { cleared, total } = drawTally.current;
+    drawTally.current = { cleared: 0, total: 0 };
+    advanceStep(cleared + (result === null || clearsBeat(result) ? 1 : 0), total + 1);
+  };
+
   // The strip element, one instance whichever slot is playing. For the MCQ
   // surfaces it rides down into the question screen's own top bar
   // (progressSlot), so each screen keeps exactly one bar and one exit, in
-  // the committed lesson frame's shape: X, the recipe strip, the counters.
-  const inMcq = step?.beat.kind === "mcq" || run.phase === "recycle";
+  // the one lesson header shape: X and the bar (A2 round 6).
+  const inMcq = step?.beat.kind === "meet" || step?.beat.kind === "mcq" || run.phase === "recycle";
   // The trainer engine is a fixed full-viewport screen with its own exit, so
   // while it plays the lesson chrome underneath is covered but still in the
   // accessibility tree. inert takes the tool rail out of the tab order and
   // the header is not drawn at all: one exit on screen, one exit reachable.
-  const inEngine = step?.beat.kind === "mechanism" || step?.beat.kind === "resonance";
-  // The header's counter. LAZY, and LessonGems.tsx's header records the
-  // measured reason: its balance comes from app/progress, whose import chain
-  // touches `document` at module scope, and the web suite runs in node with
-  // no DOM. The fallback is the gem alone rather than a blank gap, so the row
-  // never changes width while the module arrives.
-  const currency = (
-    <Suspense
-      fallback={
-        <span className="lesson-currency" aria-hidden>
-          <GemMark />
-        </span>
-      }
-    >
-      <LessonGems />
-    </Suspense>
-  );
+  // A trainer step whose "Draw it" items have not finished yet plays them first, in the lesson chrome.
+  const drawsPending =
+    (step?.beat.kind === "mechanism" || step?.beat.kind === "resonance") &&
+    step.beat.draws !== undefined &&
+    drawsDoneAt !== run.index;
+  const inEngine = (step?.beat.kind === "mechanism" || step?.beat.kind === "resonance") && !drawsPending;
   const strip = (
     <RecipeStrip
       segments={segments}
@@ -339,17 +494,6 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
 
   return (
     <div className="beat-runner">
-      {/* THE TOOLS, INSIDE A LESSON. This is the half of CLAUDE.md's
-          "interactive, always reachable" that a tab could never satisfy: a
-          student three steps into a directing-effects beat who wants an
-          electronegativity had to leave the beat to get it, and leaving was a
-          decision they then had to reverse. The rail opens a sheet over this
-          screen instead, so the lesson is still underneath it. See
-          app/ui/ToolRail.tsx for why these two stopped being tabs. */}
-      <header className="beat-runner-tools" inert={inEngine}>
-        <ToolRail />
-      </header>
-
       {/* THE HEADER DOES NOT CHANGE SHAPE BETWEEN SCREENS. It used to be
           dropped on the reward slot, which drew its own bare strip instead,
           so the exit vanished on the last screen of the lesson and the strip
@@ -362,7 +506,7 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
           scrolls internally and the row has to sit above that scroller
           rather than above the sheet; they are handed the same strip. */}
       {!inMcq && !inEngine ? (
-        <LessonHeader onExit={onExit} strip={strip} currency={currency} />
+        <LessonHeader onExit={onExit} strip={strip} />
       ) : null}
 
       {/* THE STAGE. One surface plays here at a time and it fills what is
@@ -384,15 +528,53 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
           than unconditional, and the condition is which surface is playing. */}
       <div className={`beat-runner__stage${inMcq ? "" : " beat-runner__stage--gutter"}`}>
       <Suspense fallback={<p role="status">Loading the lesson.</p>}>
+        {step?.beat.kind === "meet" ? (
+          // THE MEET STEP: the first-meeting questions at level 0, where a
+          // pick cannot fail and the how-to shows the answer forming. It
+          // reports 0 of 0 so nothing here counts for or against the run;
+          // the graded rung-1 questions come next (template.ts lessonMeetBeats).
+          <McqRunner
+            node={step.beat.node}
+            level={0}
+            beats={lessonMeetBeats(step.beat.node)}
+            onExit={onExit}
+            reducedMotion={reducedMotion}
+            progressSlot={
+              lessonHasDraft(step.beat.node) && showDraftMarks() ? (
+                <div className="flex min-w-0 flex-col gap-0.5">
+                  {strip}
+                  <p className="text-scale-xs text-bb-muted-foreground">{HUMAN_GATE_MARK}</p>
+                </div>
+              ) : (
+                strip
+              )
+            }
+            onProgress={(progress) => setMcqFraction(progress.fraction)}
+            {...resumeResults}
+            onCommit={(results, progress) => saveAnswer(results, progress.fraction)}
+            onDone={() => advanceStep(0, 0)}
+          />
+        ) : null}
         {step?.beat.kind === "mcq" ? (
           <McqRunner
             node={step.beat.node}
             level={level}
+            beats={lessonMcqBeats(step.beat.node)}
             onExit={onExit}
             reducedMotion={reducedMotion}
-            progressSlot={strip}
-            currencySlot={currency}
+            progressSlot={
+              lessonHasDraft(step.beat.node) && showDraftMarks() ? (
+                <div className="flex min-w-0 flex-col gap-0.5">
+                  {strip}
+                  <p className="text-scale-xs text-bb-muted-foreground">{HUMAN_GATE_MARK}</p>
+                </div>
+              ) : (
+                strip
+              )
+            }
             onProgress={(progress) => setMcqFraction(progress.clearedFraction)}
+            {...resumeResults}
+            onCommit={(results, progress) => saveAnswer(results, progress.clearedFraction)}
             onOfferCard={handleOfferCard}
             onDone={(results) =>
               advanceStep(results.filter((r) => clearsBeat(r)).length, results.length, missedMcqIdsFrom(results))
@@ -432,7 +614,31 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
           />
         ) : null}
 
-        {step?.beat.kind === "mechanism" || step?.beat.kind === "resonance" ? (
+        {step?.beat.kind === "poolSort" || step?.beat.kind === "poolMatch" || step?.beat.kind === "draw" ? (
+          // The node's pool ladders, boards or drawings, one after another (PoolItemsStep.tsx).
+          <PoolItemsStep
+            key={`${step.beat.kind}:${run.index}`}
+            entries={lessonPoolItems(
+              step.beat.node,
+              step.beat.kind === "poolSort" ? "sort" : step.beat.kind === "poolMatch" ? "match" : "draw",
+            )}
+            onDone={(cleared, total) => advanceStep(cleared, total)}
+          />
+        ) : null}
+
+        {drawsPending && step !== null && (step.beat.kind === "mechanism" || step.beat.kind === "resonance") ? (
+          // Produce, part one: draw it. Then the same step hands over to the trainer below.
+          <PoolItemsStep
+            key={`draws:${run.index}`}
+            entries={lessonPoolItems(step.beat.draws ?? "", "draw")}
+            onDone={(cleared, total) => {
+              drawTally.current = { cleared, total };
+              setDrawsDoneAt(run.index);
+            }}
+          />
+        ) : null}
+
+        {inEngine && step !== null && (step.beat.kind === "mechanism" || step.beat.kind === "resonance") ? (
           <TrainerBeat
             beat={step.beat}
             level={level}
@@ -440,7 +646,7 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
             onResult={(result) => {
               stepResult.current = result;
             }}
-            onContinue={advanceSingle}
+            onContinue={step.beat.draws !== undefined ? advanceAfterDraws : advanceSingle}
             onExit={onExit}
           />
         ) : null}
@@ -455,11 +661,13 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
             onExit={onExit}
             reducedMotion={reducedMotion}
             progressSlot={strip}
-            currencySlot={currency}
             onProgress={(progress) => setMcqFraction(progress.clearedFraction)}
+            {...resumeResults}
+            onCommit={(results, progress) => saveAnswer(results, progress.clearedFraction)}
             onOfferCard={handleOfferCard}
             onDone={(results) => {
               setMcqFraction(0);
+              mcqSave.current = null;
               setRun((r) =>
                 r === null ? r : reportRecycle(r, results.filter((res) => clearsBeat(res)).length, results.length),
               );
@@ -468,27 +676,38 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
         ) : null}
 
         {run.phase === "reward" ? (
-          <RewardSlot run={run} banked={banked} reducedMotion={reducedMotion} onExit={onExit} />
+          <RewardSlot
+            run={run}
+            banked={banked}
+            reducedMotion={reducedMotion}
+            onExit={finish}
+            offerSlot={
+              // THE MISTAKE-TO-CARD OFFER, HELD UNTIL THE LESSON ENDS (A2
+              // round 4). It used to float up the moment a wrong answer was
+              // graded, on top of the answer tray: it covered CONTINUE and
+              // repeated the tray's explanation word for word. decks.offer
+              // already queued it, so it is shown here instead, in the page
+              // flow under the summary, and it waits until the student
+              // chooses. onSave commits through the seam into the personal
+              // deck; onDismiss is counted so the same card is not pushed twice.
+              offer !== null ? (
+                <Suspense fallback={null}>
+                  <Recommendation
+                    offer={offer}
+                    placement="inline"
+                    autoDismissMs={0}
+                    reducedMotion={reducedMotion}
+                    onSave={(card) => decks.saveCard(card, PERSONAL_DECK_ID)}
+                    onDismiss={(card) => decks.dismissReco(card.id)}
+                  />
+                </Suspense>
+              ) : null
+            }
+          />
         ) : null}
       </Suspense>
       </div>
 
-      {/* The offer toast. Non-blocking by its own contract: no scrim, no
-          focus steal, and it leaves on its own if ignored. onSave commits on
-          the toast's landing frame through the seam, into the personal deck
-          the deck badge counts; onDismiss is counted so the same card is not
-          pushed twice. Both write through DeckSource, so Phase 6 syncs them
-          like any other save. */}
-      {offer !== null ? (
-        <Suspense fallback={null}>
-          <Recommendation
-            offer={offer}
-            reducedMotion={reducedMotion}
-            onSave={(card) => decks.saveCard(card, PERSONAL_DECK_ID)}
-            onDismiss={(card) => decks.dismissReco(card.id)}
-          />
-        </Suspense>
-      ) : null}
     </div>
   );
 }
@@ -550,29 +769,25 @@ function TrainerBeat({
 /* ------------------------------------------------------------------ */
 
 /**
- * The committed lesson frames' top row: the exit chip, the progress bar, the
- * currency count. One component so the row cannot drift between the screens
- * that draw it, which is exactly what it had done: the question frame put the
- * X at x = 16 and the strip from x = 72, and the lesson-complete frame had no
- * X at all and started its strip at x = 36.
- *
- * THE COUNT IS A DRAWN GEM AND A NUMBER. Both frames pair the number with an
- * icon; a bare numeral does not say what it counts.
+ * The lesson's top row: the exit chip and the one lesson bar, nothing else
+ * (A2 round 6; the gem count and the tools left the header). One component so
+ * the row cannot drift between the screens that draw it, which is exactly what
+ * it had done: the question frame put the X at x = 16 and the strip from
+ * x = 72, and the lesson-complete frame had no X at all.
  */
 function LessonHeader({
   onExit,
   strip,
-  currency,
 }: {
   readonly onExit: () => void;
   readonly strip: ReactNode;
-  readonly currency: ReactNode;
 }) {
   return (
     <div className="mx-auto flex w-full max-w-xl shrink-0 items-center gap-3 px-4 pt-3 pb-1 md:px-6">
+      {/* onClick, not onPointerDown, so Enter and Space leave too. */}
       <button
         type="button"
-        onPointerDown={onExit}
+        onClick={onExit}
         aria-label="Leave this lesson"
         title="Leave this lesson"
         className="lesson-exit"
@@ -580,7 +795,6 @@ function LessonHeader({
         <ExitMark />
       </button>
       <div className="min-w-0 flex-1">{strip}</div>
-      {currency}
     </div>
   );
 }
@@ -598,12 +812,15 @@ function RewardSlot({
   banked,
   reducedMotion,
   onExit,
+  offerSlot,
 }: {
   readonly run: LessonRun;
   /** Diamonds the store actually paid, or null while the clear is still landing. */
   readonly banked: number | null;
   readonly reducedMotion: boolean;
   readonly onExit: () => void;
+  /** The held mistake-to-card offer, laid under the summary card. */
+  readonly offerSlot?: ReactNode;
 }) {
   const cleared = run.clearedBeats + run.recycleCleared;
   const played = run.totalBeats;
@@ -614,7 +831,8 @@ function RewardSlot({
     // the claim. A fail says what happened and what is still open, never
     // that something was lost: Practice stays open and the node stays done.
     return (
-      <div className="flex min-h-0 w-full flex-1 flex-col justify-center">
+      <div className="flex min-h-0 w-full flex-1 flex-col">
+        <div className="flex min-h-0 flex-1 flex-col justify-center gap-4">
         <div className="flex flex-col items-center gap-3 rounded-2xl border-2 border-bb-border bg-bb-card p-6 text-center">
           <Berry
             mood={outcome === "passed" ? "cheer" : "focused"}
@@ -645,10 +863,10 @@ function RewardSlot({
               This node is still cleared, and Practice is open whenever you want another look.
             </p>
           ) : null}
-          <ChipPress className="mt-2 w-full" onClick={onExit}>
-            Continue
-          </ChipPress>
         </div>
+        {offerSlot}
+        </div>
+        <EndingFooter onExit={onExit} />
       </div>
     );
   }
@@ -659,15 +877,17 @@ function RewardSlot({
     // same dead zone the S3 judge carried against the question screen,
     // reappearing on the screen the lesson ENDS on. The card is centred in
     // what the header leaves, so the frame has a subject.
-    <div className="flex min-h-0 w-full flex-1 flex-col justify-center">
+    <div className="flex min-h-0 w-full flex-1 flex-col">
+      <div className="flex min-h-0 flex-1 flex-col justify-center gap-4">
       <div className="flex flex-col items-center gap-3 rounded-2xl border-2 border-bb-border bg-bb-card p-6 text-center">
         <Berry mood="cheer" behaviour="celebrate" sizePx={96} reducedMotion={reducedMotion} />
         <h2 className="bb-title-face text-scale-2xl font-bold text-bb-foreground">Lesson complete</h2>
+        {/* Plain numbers a student reads in one go (A2 round 5; the old line
+            "brought back 0 of the 1 that slipped past" needed a second read). */}
         <p className="text-scale-base text-bb-foreground">
-          You cleared {cleared} of {played}
-          {run.recycled
-            ? `, and brought back ${run.recycleCleared} of the ${run.recycleTotal} that slipped past the first time.`
-            : "."}
+          {/* First-try count, so a recycled miss is not counted twice ("3 of 3 right, 1 of 1 fixed"); CHANGED 2026-10-17. */}
+          {run.clearedBeats} of {played} right
+          {run.recycled ? `, ${run.recycleCleared} of ${run.recycleTotal} fixed on the second try.` : "."}
         </p>
         {/* THE NUMBER THE STORE PAID, not one this screen worked out. It
             appears only once the clear has actually landed, which is why it
@@ -686,8 +906,7 @@ function RewardSlot({
         ) : null}
         {stillRough > 0 ? (
           <p className="text-scale-sm text-bb-muted-foreground">
-            {stillRough === 1 ? "One is" : `${stillRough} are`} still settling. That is what the next visit is for,
-            and this node stays open on the pathway.
+            {stillRough === 1 ? "One question gets" : `${stillRough} questions get`} another look next time.
           </p>
         ) : null}
         {/* THE CHECK CHIP, NOT THE CLAIM CHIP. The committed button-types
@@ -697,10 +916,26 @@ function RewardSlot({
             a run the progress store already committed. A green claim chip
             over the word Continue promises a payout the screen does not
             make. */}
-        <ChipPress className="mt-2 w-full" onClick={onExit}>
-          Continue
-        </ChipPress>
       </div>
+      {offerSlot}
+      </div>
+      <EndingFooter onExit={onExit} />
+    </div>
+  );
+}
+
+/**
+ * CONTINUE on the lesson's last screen sits where CHECK and CONTINUE sat on
+ * every screen before it: a footer docked at the bottom, full width (A2 round
+ * 5). It used to sit inside the summary card, mid-screen, the one place in the
+ * lesson the way forward moved.
+ */
+function EndingFooter({ onExit }: { readonly onExit: () => void }) {
+  return (
+    <div className="lesson-end__foot beat-action-bar foot-bleed pb-safe shrink-0 border-t-2 border-bb-border bg-bb-card px-4 pt-3 pb-3 md:px-6">
+      <ChipPress className="w-full" onClick={onExit}>
+        Continue
+      </ChipPress>
     </div>
   );
 }

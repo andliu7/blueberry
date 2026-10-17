@@ -1,0 +1,303 @@
+/* Review (SITE-REPLAN.md phase 7): the Review page, a folder, and a deck. Imported by those
+ * lazy pages only, so none of this is in the entry bundle. Colours and motion are tokens only
+ * (src/tokens.css, index.css); shapes follow the blueberry skill's components.md: section 1
+ * (ledge button), 2 (card) and 3 (deck tile), and motion.md item 17 (flip and hold tilt).
+ *
+ * Ratios computed 2026-10-07 with the checks.md formula, light then night:
+ *   tile shell words (--bb-deep) on the 24% folder tints: 11.14 to 11.25 / 8.64 to 8.86
+ *   Missed: --bb-warn-ink on --bb-warn-wash 6.37 / 7.80; its ledge --bb-warn on the card 5.02 / 7.24
+ *   Got it: --bb-progress-ink on --bb-progress 8.33 / 7.17
+ *   white on --primary 6.69 / 5.01; --site-quiet on the card 7.58 / 7.37
+ *   --site-border on the card 4.75 / 4.01 (edges, 3:1 floor)
+ *   mastery fill --bb-progress-edge on the --bb-wash track 3.14 / 4.28 (a graphic, 3:1 floor) */
+
+/* The flip takes 450ms on the spring (motion.md item 17). A duration, not a curve, so it
+   can live here; the curve is the token. */
+:root { --rv-dur-flip: 450ms; }
+
+@layer components {
+  /* ---------- Buttons: one filled primary per viewport, with the ledge ---------- */
+  .rv-btn, .rv-btn2, .rv-rate {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    min-height: 48px; padding: 0 20px; border-radius: 14px; cursor: pointer;
+    font: 800 1rem/1 var(--site-display); text-decoration: none;
+    -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+    transition: transform var(--bb-dur-release) var(--bb-ease-spring),
+                box-shadow var(--bb-dur-release) var(--bb-ease-spring);
+  }
+  .rv-btn { background: var(--primary); color: var(--primary-foreground); box-shadow: 0 4px 0 var(--site-edge); }
+  .rv-btn2 { background: var(--card); color: var(--bb-deep); border: 2px solid var(--site-border);
+             box-shadow: 0 4px 0 var(--site-border); }
+  .rv-rate { flex: 1; padding: 0 8px; border: 2px solid var(--rv-edge); box-shadow: 0 4px 0 var(--rv-edge);
+             background: var(--rv-face); color: var(--rv-ink); }
+  .rv-rate[data-rate="red"] { --rv-face: var(--bb-warn-wash); --rv-ink: var(--bb-warn-ink); --rv-edge: var(--bb-warn); }
+  .rv-rate[data-rate="yellow"] { --rv-face: var(--card); --rv-ink: var(--bb-deep); --rv-edge: var(--site-border); }
+  .rv-rate[data-rate="green"] { --rv-face: var(--bb-progress); --rv-ink: var(--bb-progress-ink); --rv-edge: var(--bb-progress-edge); }
+  @media (hover: hover) {
+    .rv-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 0 var(--site-edge); }
+    .rv-btn2:hover { transform: translateY(-2px); box-shadow: 0 6px 0 var(--site-border); }
+    .rv-rate:hover { transform: translateY(-2px); box-shadow: 0 6px 0 var(--rv-edge); }
+  }
+  /* Pointer down: sinks by the ledge inside the 60ms press token. */
+  .rv-btn:active, .rv-btn2:active, .rv-rate:active {
+    transform: translateY(4px); box-shadow: 0 0 0 transparent;
+    transition-duration: var(--bb-dur-press); transition-timing-function: ease-out;
+  }
+  .rv-btn:focus-visible, .rv-btn2:focus-visible, .rv-rate:focus-visible, .rv-flat:focus-visible,
+  .rv-chip:focus-visible, .rv-tile:focus-visible, .rv-tilt:focus-visible {
+    outline: 3px solid var(--ring); outline-offset: 3px;
+  }
+  /* Flat controls (arrows, filters, shuffle): no ledge, a wash on hover. */
+  .rv-flat {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    min-height: 44px; min-width: 44px; padding: 0 10px; border-radius: 12px; cursor: pointer;
+    font: 700 0.9rem/1 var(--site-display); color: var(--bb-deep); background: transparent;
+    transition: background-color var(--bb-dur-ui) var(--bb-ease-ui);
+  }
+  .rv-flat:hover:not(:disabled) { background: var(--bb-wash); }
+  .rv-flat:disabled { opacity: .45; cursor: default; }
+  .rv-chip {
+    display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 9999px;
+    font: 700 0.9rem/1 var(--site-display); color: var(--bb-deep); cursor: pointer;
+    border: 2px solid var(--site-border); background: var(--card);
+  }
+  .rv-chip[aria-pressed="true"] { background: var(--site-nav-wash); color: var(--site-nav-ink); border-color: var(--site-nav-ring); }
+
+  /* ---------- Category chips and the reagents switch, under the mode row ---------- */
+  .rv-deck-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; margin-top: 14px; }
+  /* One scrolling row on a phone rather than four wrapped ones: seven categories would
+     otherwise push the card below the first screen. */
+  .rv-cats { display: flex; gap: 8px; min-width: 0; flex: 1 1 22rem; overflow-x: auto; scrollbar-width: none; padding: 2px; }
+  .rv-cats::-webkit-scrollbar { display: none; }
+  .rv-cats .rv-chip { flex: 0 0 auto; min-height: 38px; font-size: 0.85rem; }
+  /* Wide enough to show every chip: wrap them, since a clipped chip with a hidden
+     scrollbar does not say there is more. */
+  @media (min-width: 640px) {
+    .rv-cats { flex-wrap: wrap; overflow: visible; flex-basis: 100%; }
+  }
+  /* The footer's plain switch (site-footer.tsx Switch): words, then a tinted track. */
+  .rv-switch {
+    display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 4px;
+    font: 700 0.9rem/1 var(--site-display); color: var(--bb-deep); background: none; border: 0; cursor: pointer;
+  }
+  .rv-switch__track {
+    display: flex; align-items: center; justify-content: flex-start; width: 36px; height: 20px; padding: 2px;
+    border-radius: 9999px; border: 2px solid var(--site-border); background: var(--bb-wash);
+    transition: border-color var(--bb-dur-ui) var(--bb-ease-ui);
+  }
+  .rv-switch__thumb { width: 12px; height: 12px; border-radius: 9999px; background: var(--card); }
+  .rv-switch[aria-checked="true"] .rv-switch__track { justify-content: flex-end; border-color: var(--primary); }
+  .rv-switch[aria-checked="true"] .rv-switch__thumb { background: var(--site-nav-ink); }
+  /* Write's Type it / Draw it choice. */
+  .rv-method { display: flex; gap: 8px; }
+  .rv-method .rv-chip { min-height: 38px; font-size: 0.85rem; }
+  .rv-switch:focus-visible { outline: 3px solid var(--site-nav-ring); outline-offset: 2px; border-radius: 8px; }
+
+  /* ---------- Card: outlined, not floating ---------- */
+  .rv-card-box { background: var(--card); color: var(--foreground); border: 2px solid var(--site-border); border-radius: 20px; }
+  .rv-eyebrow { font: 800 0.8rem/1.2 var(--site-display); letter-spacing: .06em; text-transform: uppercase; color: var(--site-quiet); }
+
+  /* ---------- Deck tile: Quizlet's tinted shell around a white panel ---------- */
+  .rv-tile {
+    --rv-tint: var(--site-tab-practice);
+    display: flex; flex-direction: column; gap: 8px; padding: 8px; border-radius: 24px;
+    background: color-mix(in srgb, var(--rv-tint) 24%, var(--card));
+    border: 2px solid var(--site-border); box-shadow: 0 4px 0 var(--site-border); margin-bottom: 4px;
+    color: var(--foreground); text-decoration: none; cursor: pointer;
+    transition: transform var(--bb-dur-release) var(--bb-ease-spring),
+                box-shadow var(--bb-dur-release) var(--bb-ease-spring);
+  }
+  .rv-tile[data-folder="reference"] { --rv-tint: var(--site-tab-learn); }
+  .rv-tile[data-folder="carbonyls"] { --rv-tint: var(--site-tab-schedule); }
+  .rv-tile[data-folder="uploaded"] { --rv-tint: var(--site-tab-me); }
+  @media (hover: hover) { .rv-tile:hover { transform: translateY(-2px); box-shadow: 0 6px 0 var(--site-border); } }
+  .rv-tile:active { transform: translateY(4px); box-shadow: 0 0 0 transparent;
+                    transition-duration: var(--bb-dur-press); transition-timing-function: ease-out; }
+  .rv-tile__label { padding: 4px 8px 0; font: 800 0.8rem/1.2 var(--site-display); color: var(--bb-deep); }
+  .rv-tile__panel { flex: 1; display: flex; flex-direction: column; gap: 6px; padding: 14px;
+                    border-radius: 14px; background: var(--card); }
+  .rv-tile__title { font: 800 1.05rem/1.25 var(--site-display); color: var(--bb-deep); }
+  .rv-tile__meta { font-size: .875rem; line-height: 1.4; color: var(--site-quiet); }
+  .rv-mastery { height: 8px; border-radius: 9999px; background: var(--bb-wash); overflow: hidden; }
+  .rv-mastery > i { display: block; height: 100%; background: var(--bb-progress-edge); border-radius: inherit; }
+
+  /* A folder's tiles: a grid at every width. */
+  .rv-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); }
+
+  /* A row of tiles: a grid from 768px, a swipeable carousel on a phone. */
+  .rv-row { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); }
+  @media (max-width: 767px) {
+    .rv-row { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none;
+              margin-inline: -16px; padding: 2px 16px 8px; scroll-padding-inline: 16px; }
+    .rv-row::-webkit-scrollbar { display: none; }
+    .rv-row > * { flex: 0 0 78%; scroll-snap-align: start; }
+  }
+
+  /* ---------- The study card: a deck you hold, flip and tilt ---------- */
+  .rv-stage { position: relative; height: 22rem; perspective: 1100px; }
+  @media (min-width: 768px) { .rv-stage { height: 24rem; } }
+  /* The two cards under the top one: a deck, not a tray (owner, 30 Sep). */
+  .rv-peek { position: absolute; inset: 0; border-radius: 24px; background: var(--card);
+             border: 2px solid var(--site-border); }
+  .rv-peek[data-depth="1"] { transform: translateY(10px) scale(.96); }
+  .rv-peek[data-depth="2"] { transform: translateY(20px) scale(.92); }
+  /* The layer the finger moves: the hold tilt and the swipe. It never turns past 8deg, so
+     the back of the card can never show by tilting (owner, 30 Sep). The flip is the layer
+     inside it, so the two transforms never compose into a swing (flipping-card.tsx). */
+  .rv-tilt {
+    position: absolute; inset: 0; border-radius: 24px; transform-style: preserve-3d;
+    transform: translateX(var(--rv-dx, 0px)) rotate(var(--rv-rz, 0deg)) rotateX(var(--rv-rx, 0deg)) rotateY(var(--rv-ry, 0deg));
+    transition: transform var(--bb-dur-enter) var(--bb-ease-spring);
+    touch-action: pan-y; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+    cursor: pointer; outline: none;
+  }
+  .rv-tilt[data-live] { transition-duration: var(--bb-dur-press); transition-timing-function: ease-out; }
+  .rv-flip { position: absolute; inset: 0; transform-style: preserve-3d;
+             transition: transform var(--rv-dur-flip) var(--bb-ease-spring); }
+  .rv-flip[data-flipped] { transform: rotateY(180deg); }
+  .rv-face {
+    position: absolute; inset: 0; display: flex; flex-direction: column; gap: 12px;
+    padding: 20px; overflow-y: auto; border-radius: 24px; background: var(--card); color: var(--foreground);
+    border: 2px solid var(--site-border); border-bottom-width: 6px;
+    backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  }
+  .rv-face--back { transform: rotateY(180deg); }
+  .rv-tilt[data-held] .rv-face { border-color: var(--primary); }
+  .rv-q { font: 700 1.2rem/1.4 var(--font-sans); color: var(--bb-deep); }
+  .rv-q--solo { text-align: center; }
+  @media (min-width: 768px) { .rv-q--solo { font-size: 1.5rem; } }
+  .rv-a { font-size: 1rem; line-height: 1.6; }
+  .rv-badge { align-self: flex-start; padding: 4px 10px; border-radius: 9999px; font: 800 .9rem/1.3 var(--site-display);
+              background: var(--site-nav-wash); color: var(--site-nav-ink); }
+  /* The drawings are dark ink on white in both themes (QuestionCard's CardImage). */
+  .rv-figure { overflow: hidden; border-radius: 10px; background: white; transition: width var(--bb-dur-enter) var(--bb-ease-out); }
+  .rv-figure__art { position: relative; container-type: inline-size; }
+  .rv-figure__art img { display: block; width: 100%; height: auto; max-width: none; }
+  /* Reagents switch off (DeckPage): white patches over the text above and below the
+     arrow, in the scheme's own coordinates (make_flashcards.py: 810 x 254, arrow from
+     x 320 to 490 at y 110), leaving the arrow itself showing. */
+  .rv-reagent-mask {
+    position: absolute; left: 38.9%; width: 22.2%;
+    display: grid; place-items: center;
+    background: white;
+  }
+  .rv-reagent-mask--above {
+    top: 27.5%; height: 13.4%;
+    font: 700 3cqw/1 Georgia, serif; color: #5a3fd8;
+  }
+  .rv-reagent-mask--below { top: 46%; height: 11%; }
+
+  /* Keyboard hints only where there is a keyboard (replan section 8). */
+  .rv-keys { display: none; }
+  @media (hover: hover) and (pointer: fine) { .rv-keys { display: block; } }
+  .rv-keys kbd { display: inline-block; min-width: 1.6em; padding: 1px 6px; border-radius: 6px; text-align: center;
+                 border: 1px solid var(--site-border); background: var(--card); font: 700 .8rem/1.4 var(--site-display); }
+}
+
+/* Reduced motion swaps the flip for a crossfade: the faces stop turning and trade places by
+   opacity, so "this is the other side" is still shown (motion.md rule 2). The tilt still
+   follows the finger, without the spring. Unlayered, so it beats the rules above. */
+html[data-motion="reduced"] .rv-flip,
+html[data-motion="reduced"] .rv-flip[data-flipped],
+html[data-motion="reduced"] .rv-face--back { transform: none; transition: none; }
+html[data-motion="reduced"] .rv-face { transition: opacity var(--bb-dur-ui) linear; }
+html[data-motion="reduced"] .rv-face--back,
+html[data-motion="reduced"] .rv-flip[data-flipped] .rv-face--front { opacity: 0; pointer-events: none; }
+html[data-motion="reduced"] .rv-flip[data-flipped] .rv-face--back { opacity: 1; pointer-events: auto; }
+html[data-motion="reduced"] .rv-tilt { transition: none; }
+
+/* The deck page's compact header (replan section 8): a smaller title, so the first card is
+   on the first screen of a phone. Scoped to the deck page; PageHeader is unchanged. */
+.rv-deck .page-title { font-size: 1.75rem; line-height: 1.15; }
+@media (min-width: 768px) { .rv-deck .page-title { font-size: 2.5rem; } }
+.rv-deck .page-header { padding-bottom: 1rem; }
+
+/* ---------- Quizlet's set page, round 3 (owner, 15 Oct) ---------- */
+@layer components {
+  /* The study mode row: one segmented switch with a pill that slides to the chosen mode
+     (effect #12). --n is the number of modes and --i the chosen one, set by ModeSwitch.
+     The pill is the --site-nav-wash chip in its ring, the same "current" as the site nav;
+     #472ab4-family ink on it is 6.95:1 (tokens.css). */
+  .rv-modes {
+    position: relative; display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr));
+    padding: 4px; border-radius: 16px; background: var(--card); border: 2px solid var(--site-border);
+  }
+  .rv-modes__pill {
+    position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc((100% - 8px) / var(--n));
+    border-radius: 12px; background: var(--site-nav-wash); box-shadow: inset 0 0 0 2px var(--site-nav-ring);
+    transform: translateX(calc(var(--i) * 100%));
+    transition: transform var(--bb-dur-ui) var(--bb-ease-ui);
+  }
+  .rv-modes__tab {
+    position: relative; min-height: 44px; padding: 0 4px; border-radius: 12px; cursor: pointer;
+    font: 800 .95rem/1 var(--site-display); color: var(--bb-deep); background: transparent;
+    white-space: nowrap; -webkit-tap-highlight-color: transparent;
+  }
+  .rv-modes__tab[aria-selected="true"] { color: var(--site-nav-ink); }
+  .rv-modes__tab:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
+  /* Five modes in 358px: "Flashcards" has to fit a 70px segment. */
+  @media (max-width: 420px) { .rv-modes__tab { padding: 0; font-size: .75rem; letter-spacing: -.01em; } }
+
+  /* Test: an answer is a flat outlined row. Chosen takes the nav's current chip. After
+     Check, the right answer is outlined dashed (Quizlet's mark) and a wrong pick is calm
+     amber, never alarm red. */
+  .rv-option {
+    display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 10px 14px; text-align: left;
+    border-radius: 12px; border: 2px solid var(--site-border); background: var(--card); color: var(--foreground);
+    cursor: pointer; transition: background-color var(--bb-dur-ui) var(--bb-ease-ui), border-color var(--bb-dur-ui) var(--bb-ease-ui);
+  }
+  .rv-option:hover:not(:disabled) { background: var(--bb-wash); }
+  .rv-option[aria-pressed="true"] { background: var(--site-nav-wash); border-color: var(--site-nav-ring); color: var(--site-nav-ink); }
+  .rv-option[data-mark="right"] { border-style: dashed; border-color: var(--bb-progress-edge); background: var(--card); color: var(--foreground); }
+  .rv-option[data-mark="right"][aria-pressed="true"] { border-style: solid; background: var(--bb-progress); color: var(--bb-progress-ink); }
+  .rv-option[data-mark="wrong"] { border-color: var(--bb-warn); background: var(--bb-warn-wash); color: var(--bb-warn-ink); }
+  .rv-option:disabled { cursor: default; }
+  .rv-option:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
+
+  /* Match: twelve flat tiles. A pair you got fades out; a wrong pair shows amber briefly. */
+  .rv-match {
+    display: flex; flex-direction: column; gap: 8px; justify-content: center; width: 100%; height: 100%;
+    min-height: 96px; padding: 12px; text-align: left; border-radius: 16px; cursor: pointer;
+    border: 2px solid var(--site-border); background: var(--card); color: var(--foreground);
+    transition: opacity var(--bb-dur-ui) var(--bb-ease-ui), background-color var(--bb-dur-ui) var(--bb-ease-ui),
+                border-color var(--bb-dur-ui) var(--bb-ease-ui);
+  }
+  .rv-match:hover:not(:disabled) { background: var(--bb-wash); }
+  .rv-match[data-state="selected"] { background: var(--site-nav-wash); border-color: var(--site-nav-ring); color: var(--site-nav-ink); }
+  .rv-match[data-state="miss"] { border-color: var(--bb-warn); background: var(--bb-warn-wash); color: var(--bb-warn-ink); }
+  .rv-match[data-state="matched"] { opacity: 0; cursor: default; }
+  .rv-match:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
+
+  /* Write: the answer field, and the real answer under it. */
+  .rv-input {
+    min-height: 48px; padding: 0 14px; border-radius: 12px; font-size: 1rem;
+    border: 2px solid var(--site-border); background: var(--card); color: var(--foreground);
+  }
+  .rv-input:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
+  .rv-answer { padding: 14px; border-radius: 14px; border: 2px dashed var(--site-border); }
+  .rv-answer[data-mark="right"] { border-style: solid; border-color: var(--bb-progress-edge); }
+
+  /* The term list: question left, answer right, star at the end. One column on a phone. */
+  .rv-term {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 16px; padding: 16px;
+    grid-template-areas: "front star" "back back";
+  }
+  .rv-term__front { grid-area: front; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+  .rv-term__back { grid-area: back; display: flex; flex-direction: column; gap: 4px; }
+  .rv-star { grid-area: star; }
+  @media (min-width: 768px) {
+    .rv-term { grid-template-columns: minmax(0, 2fr) minmax(0, 3fr) auto; grid-template-areas: "front back star"; }
+    .rv-term__back { padding-left: 16px; border-left: 2px solid var(--bb-wash); }
+  }
+  .rv-term__rating { font: 700 .75rem/1.2 var(--site-display); color: var(--site-quiet); }
+  .rv-term__rating[data-rate="red"] { color: var(--bb-warn-ink); }
+  .rv-star {
+    display: grid; place-items: center; width: 44px; height: 44px; border-radius: 12px; cursor: pointer;
+    color: var(--site-quiet); background: transparent; transition: background-color var(--bb-dur-ui) var(--bb-ease-ui);
+  }
+  .rv-star:hover { background: var(--bb-wash); }
+  .rv-star[aria-pressed="true"] { color: var(--primary); }
+  .rv-star:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
+}
+html[data-motion="reduced"] .rv-modes__pill,
+html[data-motion="reduced"] .rv-match { transition: none; }

@@ -170,7 +170,7 @@ export function MechanismBoard({ className }: { className?: string }) {
         >
           <motion.path
             d={ARROW_ONE_D}
-            initial={{ pathLength: 0 }}
+            initial={drawn ?? { pathLength: 0 }}
             animate={drawn ?? { pathLength: ARROW_ONE, opacity: SHOWN }}
             transition={loop}
           />
@@ -179,13 +179,13 @@ export function MechanismBoard({ className }: { className?: string }) {
             transform="translate(170,104) rotate(29)"
             fill="currentColor"
             stroke="none"
-            initial={{ opacity: 0 }}
+            initial={drawn ? { opacity: 1 } : { opacity: 0 }}
             animate={drawn ?? { opacity: HEAD_ONE }}
             transition={loop}
           />
           <motion.path
             d={ARROW_TWO_D}
-            initial={{ pathLength: 0 }}
+            initial={drawn ?? { pathLength: 0 }}
             animate={drawn ?? { pathLength: ARROW_TWO, opacity: SHOWN }}
             transition={loop}
           />
@@ -194,7 +194,7 @@ export function MechanismBoard({ className }: { className?: string }) {
             transform="translate(190,40) rotate(-73)"
             fill="currentColor"
             stroke="none"
-            initial={{ opacity: 0 }}
+            initial={drawn ? { opacity: 1 } : { opacity: 0 }}
             animate={drawn ?? { opacity: HEAD_TWO }}
             transition={loop}
           />
@@ -245,9 +245,13 @@ export function MechanismBoard({ className }: { className?: string }) {
         animate={reduce ? { opacity: 1, y: 0 } : { opacity: VERDICT, y: VERDICT.map((v) => (v > 0 ? 0 : 6)) }}
         transition={loop}
       >
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-emerald-700 dark:text-emerald-300">
-          <Check className="size-3.5" />
-          <span className="text-xs font-semibold">Correct &middot; nucleophilic addition</span>
+        {/* A solid green fill with dark ink (green is fill only, ink on it): emerald-950 on
+            emerald-300 is about 12:1, the same in both themes. It was a 10% tint with
+            semibold 12 px text, which went soft on the hero's tilted card (S2 round 3). One
+            line at every width. */}
+        <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-emerald-300 px-2.5 py-1 text-emerald-950">
+          <Check className="size-3.5" strokeWidth={3} />
+          <span className="text-xs font-extrabold leading-none">Correct &middot; nucleophilic addition</span>
         </span>
       </motion.div>
     </div>

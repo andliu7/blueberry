@@ -1,239 +1,372 @@
 /**
- * The interactive periodic table. Bar matched against ptable.com: the 18
- * column layout with the f block below, colour by category, a property
- * selector that recolours the grid, and a detail panel for the selected
- * element. Free, always reachable, works offline (the data is in this chunk
- * and the service worker in public/sw.js keeps the chunk).
+ * The interactive periodic table. Bar: ptable.com and the RSC periodic table.
  *
- * Layout: CSS grid with explicit column and row placement from gridPosition,
- * so the table is one element per cell and no empty placeholder divs. On a
- * phone it scrolls horizontally inside its own container, which is the one
- * place in the app wide content is allowed to scroll sideways; the page body
- * never does.
+ * What it does:
+ *  - All 118 elements, the two f rows included. On a wide screen the whole
+ *    table fits at once; in the tool sheet it fits the sheet's height as well
+ *    as its width, so the actinide row is never cut. On a phone it opens at a
+ *    readable size (48px tiles) and you drag sideways; FIT shows the whole
+ *    table as an opt-in thumbnail (useZoomPan.ts has the reasoning).
+ *  - Scroll wheel and pinch zoom, drag to pan, and minus, plus and fit buttons.
+ *  - Tap a tile to select it: it lifts with a ring, the inset in the table's
+ *    empty corner shows it big, and the full card below (ElementDetail) shows
+ *    every value. DETAILS scrolls to that card.
+ *  - The category filters are a sliding segmented switch (approved effect #12):
+ *    pick one and that group stays in colour while the rest go flat grey, and
+ *    the table pans to the group if it is off screen. The filter row can be
+ *    hidden, and that choice is remembered on this device.
+ *  - Colour by category, electronegativity or standard state.
  *
- * Every cell is a button of at least 44 by 44 points on touch, the hit floor.
- * The selected symbol is in the URL (#/periodic/Br) so it survives a refresh.
+ * NO LAYOUT SHIFT. The row under the toolbar is one fixed-height slot. It holds
+ * the filter switch, or the key for the electronegativity and state colourings,
+ * or (filters hidden) a one-line summary of the selected element. Changing
+ * colouring or hiding the filters swaps what is in the slot; nothing below it
+ * moves.
+ *
+ * Data: PubChem (NCBI), through elements.ts. Nothing is typed in by hand.
+ *
+ * The selected symbol goes into the URL when this is the page (#/app/periodic/Br)
+ * so a refresh keeps it. Inside the tool sheet the URL is left alone, because
+ * changing the hash there would close the sheet.
  */
 
-import { useMemo, useState } from "react";
-import { Card, Pill } from "../../app/ui/Card";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { hrefForTab } from "../../app/routes";
-import { CATEGORY_LABEL, ELEMENTS, elementBySymbol, gridPosition, type Category, type Element } from "./elements";
+import { CATEGORIES, CATEGORY_LABEL, ELEMENTS, elementBySymbol, gridPosition, shortMass, type Category, type Element } from "./elements";
+import { CATEGORY_COLOUR, EN_BINS, NO_DATA_FILL, PHASE_COLOUR, PHASE_LABEL, tileColour, tileInk, type Colouring } from "./colours";
+import { Configuration, ElementDetail } from "./ElementDetail";
+import { SegmentedSwitch, type SegmentOption } from "./SegmentedSwitch";
+import { useZoomPan } from "./useZoomPan";
+import "./periodic.css";
 
-type Colouring = "category" | "electronegativity" | "block" | "phase";
+type Filter = Category | "all";
 
-/**
- * The ink on an element tile, and it is a literal because the tile's ground is
- * one.
- *
- * The nine category colours below are fixed pale washes that do not move with
- * the theme, so the ink on them cannot be a theme token either. It used to be
- * #1e293b, slate-800. That value measures HSL S 0.326, which the sticker audit
- * scores as a saturated hue on body sized text, and rule 7 of that language is
- * that body copy recedes so the colour can lead. theme.css already settled the
- * same question for --bb-foreground and reached #2a2a42, S 0.222, which reads as
- * the same deep navy and is a near neutral by measurement rather than by
- * assertion. This is that value, for that reason, and the contrast audit reads
- * it where it is actually composed on all nine washes.
- */
-const PERIODIC_INK = "#2a2a42";
-
-const CATEGORY_COLOUR: Record<Category, string> = {
-  alkali: "#fecaca",
-  alkaline: "#fed7aa",
-  transition: "#fde68a",
-  post_transition: "#bbf7d0",
-  metalloid: "#a7f3d0",
-  nonmetal: "#bfdbfe",
-  // LEFT AS IS, and measured rather than assumed: `#ddd6fe` is H 250.5, which is
-  // --bb-primary's own hue (H 250.6) at wash lightness, so it is already the
-  // blue-violet member of this scale and not a lavender straggler. It carries
-  // PERIODIC_INK at 10.03:1. Rotating it toward the primary would only push it
-  // into `nonmetal` (`#bfdbfe`, H 213.3) and cost the scale a distinguishable
-  // category, so the value stays.
-  noble: "#ddd6fe",
-  lanthanide: "#fbcfe8",
-  actinide: "#f5d0fe",
+/** Short labels so the eleven options stay one row on a wide screen. */
+const SHORT_LABEL: Record<Category, string> = {
+  alkali: "Alkali",
+  alkaline: "Alkaline earth",
+  transition: "Transition",
+  post_transition: "Post-transition",
+  metalloid: "Metalloid",
+  nonmetal: "Nonmetal",
+  halogen: "Halogen",
+  noble: "Noble gas",
+  lanthanide: "Lanthanide",
+  actinide: "Actinide",
 };
 
-const BLOCK_COLOUR: Record<Element["block"], string> = { s: "#fecaca", p: "#bfdbfe", d: "#fde68a", f: "#fbcfe8" };
-const PHASE_COLOUR: Record<Element["phase"], string> = { solid: "#e7e5e4", liquid: "#bfdbfe", gas: "#ddd6fe", unknown: "#f5f5f4" };
+const FILTER_OPTIONS: readonly SegmentOption<Filter>[] = [
+  { id: "all", label: "All" },
+  ...CATEGORIES.map((category) => ({ id: category, label: SHORT_LABEL[category], swatch: CATEGORY_COLOUR[category] })),
+];
 
-function electronegativityColour(value: number | null): string {
-  if (value === null) return "#f5f5f4";
-  // 0.7 to 4.0 mapped onto a light-to-saturated violet ramp.
-  //
-  // THE RAMP STOPS AT L72 AND THAT IS A CONTRAST FLOOR, NOT A TASTE CHOICE. The
-  // cell label is #2a2a42 (PERIODIC_INK) composed on this fill, so every step has
-  // to clear the 4.5 text floor. The old ramp ran to L50 and the dark end failed
-  // outright: L62 measured 3.03:1 and L50 measured 1.90:1, so fluorine, oxygen,
-  // nitrogen and chlorine, the four a student reads most, carried illegible
-  // labels. The problem there was lightness, not hue.
-  //
-  // THE HUE IS 250.6, --bb-primary's own, and the saturation came down to 55 to
-  // pay for it. This was `hsl(262 70% L)`, whose pale end #f3eefc sat in the
-  // lavender wash family the palette is dropping. Rotating alone would have cost
-  // contrast, because at equal lightness the brand hue is slightly darker: at
-  // S70 the worst step fell from 4.84:1 to 4.58:1. Taking saturation to 55 gives
-  // it back and then some, so every step is now BETTER than the ramp it replaces
-  // rather than merely legal. Measured on PERIODIC_INK, before -> after:
-  //
-  //   L96  12.23 -> 12.24    L90  9.92 -> 9.99    L84  7.94 -> 8.10
-  //   L78   6.23 ->  6.40    L72  4.84 -> 4.98
-  //
-  // The span is COMPRESSED to 24 rather than clipped at the top, so all five
-  // steps stay distinguishable: clipping would flatten the whole high end and
-  // make those same four elements look identical, trading a contrast bug for an
-  // information one. Do not lower this floor; L70 is 4.56:1 and the next step
-  // down leaves the 4.5 body floor for good.
-  const t = Math.max(0, Math.min(1, (value - 0.7) / 3.3));
-  const light = 96 - t * 24;
-  return `hsl(250.6 55% ${light}%)`;
-}
+const COLOURING_OPTIONS: readonly SegmentOption<Colouring>[] = [
+  { id: "category", label: "Category" },
+  { id: "electronegativity", label: "Electronegativity" },
+  { id: "state", label: "State" },
+];
 
-function cellColour(element: Element, colouring: Colouring): string {
-  switch (colouring) {
-    case "category":
-      return CATEGORY_COLOUR[element.category];
-    case "electronegativity":
-      return electronegativityColour(element.electronegativity);
-    case "block":
-      return BLOCK_COLOUR[element.block];
-    case "phase":
-      return PHASE_COLOUR[element.phase];
-    default: {
-      const unreachable: never = colouring;
-      return unreachable;
-    }
+const FILTERS_KEY = "bb.periodic.filtersShown";
+
+/** Remembered per device. Storage can throw (private mode), so both sides are guarded. */
+function readFiltersShown(): boolean {
+  try {
+    return window.localStorage.getItem(FILTERS_KEY) !== "false";
+  } catch {
+    return true;
   }
 }
 
-const COLOURINGS: readonly { readonly id: Colouring; readonly label: string }[] = [
-  { id: "category", label: "Category" },
-  { id: "electronegativity", label: "Electronegativity" },
-  { id: "block", label: "Block" },
-  { id: "phase", label: "Phase at STP" },
-];
+function writeFiltersShown(shown: boolean): void {
+  try {
+    window.localStorage.setItem(FILTERS_KEY, String(shown));
+  } catch {
+    // Not remembered this time; the switch still works.
+  }
+}
 
-function Detail({ element }: { readonly element: Element }) {
+/** A finger cannot scroll-wheel, so the hint names the gestures the device has. */
+function hintText(): string {
+  const coarse = typeof window !== "undefined" && window.matchMedia?.("(pointer: coarse)").matches;
+  return coarse
+    ? "Pinch to zoom, drag to move, tap an element for its details."
+    : "Scroll or pinch to zoom, drag to move, click an element for its details.";
+}
+
+function prefersReducedMotion(): boolean {
+  return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+}
+
+const CARBON = elementBySymbol("C") as Element;
+
+export default function PeriodicTab({ selected }: { readonly selected: string | null }) {
+  const [picked, setPicked] = useState<Element>(() => (selected === null ? null : elementBySymbol(selected)) ?? CARBON);
+  const [colouring, setColouring] = useState<Colouring>("category");
+  const [filter, setFilter] = useState<Filter>("all");
+  const [filtersShown, setFiltersShown] = useState(readFiltersShown);
+  const [hint] = useState(hintText);
+
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const tableRef = useRef<HTMLDivElement>(null);
+  const detailRef = useRef<HTMLDivElement>(null);
+  const zoom = useZoomPan(viewportRef, tableRef);
+
+  /** Pan so these tiles are on screen, if they are not already. */
+  const revealTiles = (selector: string, glide: boolean) => {
+    const table = tableRef.current;
+    if (table === null) return;
+    const tiles = [...table.querySelectorAll<HTMLElement>(selector)];
+    if (tiles.length === 0) return;
+    // offsetLeft and offsetTop are in the table's own pixels: the transform does not change them.
+    const left = Math.min(...tiles.map((tile) => tile.offsetLeft));
+    const top = Math.min(...tiles.map((tile) => tile.offsetTop));
+    const right = Math.max(...tiles.map((tile) => tile.offsetLeft + tile.offsetWidth));
+    const bottom = Math.max(...tiles.map((tile) => tile.offsetTop + tile.offsetHeight));
+    zoom.reveal({ left, top, width: right - left, height: bottom - top }, glide && !prefersReducedMotion());
+  };
+
+  // A deep link (#/app/periodic/Br) opens with that element on screen. Runs
+  // before the first paint, after useZoomPan has sized the view, so there is no jump.
+  useLayoutEffect(() => {
+    if (selected !== null) revealTiles(`[data-number="${picked.number}"]`, false);
+    // Mount only: later deep links are handled by the effect below.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // A new deep link (typed or followed while the page is open) moves the selection.
+  useEffect(() => {
+    const element = selected === null ? null : elementBySymbol(selected);
+    if (element !== null && element.number !== picked.number) {
+      setPicked(element);
+      revealTiles(`[data-number="${element.number}"]`, true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selected]);
+
+  const pick = (element: Element) => {
+    setPicked(element);
+    // replaceState, not a hash assignment: it updates the address without a
+    // hashchange event, so the shell does not re-route and history is not spammed.
+    if (window.location.hash.startsWith(hrefForTab("periodic"))) {
+      window.history.replaceState(null, "", hrefForTab("periodic", element.symbol));
+    }
+  };
+
+  const chooseFilter = (next: Filter) => {
+    setFilter(next);
+    if (next !== "all") revealTiles(`[data-category="${next}"]`, true);
+  };
+
+  const chooseColouring = (next: Colouring) => {
+    setColouring(next);
+    // The highlight filter is a category filter; it only shows with the category colours.
+    if (next !== "category") setFilter("all");
+  };
+
+  const toggleFilters = () => {
+    const next = !filtersShown;
+    setFiltersShown(next);
+    writeFiltersShown(next);
+    // A hidden filter must not keep dimming the table with no control in sight.
+    if (!next) setFilter("all");
+  };
+
+  /** The "57-71" and "89-103" markers light the f row they stand for. */
+  const showRow = (category: Category) => {
+    if (colouring !== "category") setColouring("category");
+    if (!filtersShown) {
+      setFiltersShown(true);
+      writeFiltersShown(true);
+    }
+    chooseFilter(filter === category ? "all" : category);
+  };
+
+  const showDetails = () => {
+    detailRef.current?.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth", block: "start" });
+  };
+
+  // Tiles only re-render when something they show changes, not on every zoom frame.
+  const tiles = useMemo(
+    () =>
+      ELEMENTS.map((element) => {
+        const position = gridPosition(element);
+        const dim = filter !== "all" && element.category !== filter;
+        const isPicked = picked.number === element.number;
+        return (
+          <button
+            key={element.number}
+            type="button"
+            className="pt-tile"
+            data-number={element.number}
+            data-category={element.category}
+            data-dim={dim}
+            data-selected={isPicked}
+            aria-pressed={isPicked}
+            aria-label={`${element.name}, ${element.number}, ${CATEGORY_LABEL[element.category]}`}
+            onClick={() => pick(element)}
+            style={{ gridColumn: position.column, gridRow: position.row, background: tileColour(element, colouring), color: tileInk(element, colouring) }}
+          >
+            <span className="pt-tile-number">{element.number}</span>
+            <span className="pt-tile-symbol">{element.symbol}</span>
+            <span className="pt-tile-name">{element.name}</span>
+            <span className="pt-tile-mass">{shortMass(element.mass)}</span>
+          </button>
+        );
+      }),
+    // `pick` is a fresh function each render but only calls setters, so it is safe to leave out.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [filter, picked, colouring],
+  );
+
+  const byCategory = colouring === "category";
+
   return (
-    <Card className="flex flex-col gap-3">
-      <div className="flex items-center gap-4">
-        <div
-          className="flex h-20 w-20 shrink-0 flex-col items-center justify-center rounded-2xl border border-bb-border text-bb-foreground"
-          style={{ background: CATEGORY_COLOUR[element.category], color: PERIODIC_INK }}
-        >
-          <span className="text-scale-xs">{element.number}</span>
-          <span className="bb-title-face text-scale-2xl font-semibold leading-none">{element.symbol}</span>
-        </div>
-        <div>
-          <h2 className="bb-title-face text-scale-xl font-semibold">{element.name}</h2>
-          <Pill>{CATEGORY_LABEL[element.category]}</Pill>
+    <div className="pt-root">
+      <div className="pt-toolbar">
+        <SegmentedSwitch label="Colour by" options={COLOURING_OPTIONS} value={colouring} onChange={chooseColouring} compact />
+        <div className="pt-toolbar-actions">
+          <button
+            type="button"
+            className="pt-btn pt-btn--toggle"
+            aria-pressed={filtersShown && byCategory}
+            disabled={!byCategory}
+            title={byCategory ? undefined : "Highlight filters work with the Category colours"}
+            onClick={toggleFilters}
+          >
+            <span className="pt-btn-check" aria-hidden>
+              {filtersShown && byCategory ? "✓" : ""}
+            </span>
+            Filters
+          </button>
+          <button type="button" className="pt-btn pt-btn--icon" aria-label="Zoom out" disabled={zoom.atFit} onClick={zoom.zoomOut}>
+            −
+          </button>
+          <button type="button" className="pt-btn pt-btn--icon" aria-label="Zoom in" onClick={zoom.zoomIn}>
+            +
+          </button>
+          <button type="button" className="pt-btn" aria-label="Fit the whole table" disabled={zoom.atFit} onClick={zoom.fit}>
+            Fit
+          </button>
         </div>
       </div>
-      <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-scale-sm">
-        <dt className="text-bb-muted-foreground">Atomic mass</dt>
-        <dd className="font-mono">
-          {element.massIsNominal ? `[${element.mass}]` : element.mass}
-        </dd>
-        <dt className="text-bb-muted-foreground">Electronegativity</dt>
-        <dd className="font-mono">{element.electronegativity ?? "–"}</dd>
-        <dt className="text-bb-muted-foreground">Configuration</dt>
-        <dd className="font-mono">{element.configuration}</dd>
-        <dt className="text-bb-muted-foreground">Group, period</dt>
-        <dd className="font-mono">
-          {element.group ?? "f"}, {element.period}
-        </dd>
-        <dt className="text-bb-muted-foreground">Block</dt>
-        <dd className="font-mono">{element.block}</dd>
-        <dt className="text-bb-muted-foreground">Phase at STP</dt>
-        <dd className="font-mono">{element.phase}</dd>
-      </dl>
-      {element.massIsNominal ? (
-        <p className="text-scale-xs text-bb-muted-foreground">No stable isotope. The bracketed mass is the mass number of the longest lived one.</p>
-      ) : null}
-    </Card>
+
+      <div className="pt-slot">
+        {!byCategory ? (
+          <Legend colouring={colouring} />
+        ) : filtersShown ? (
+          <SegmentedSwitch label="Highlight a group" options={FILTER_OPTIONS} value={filter} onChange={chooseFilter} />
+        ) : (
+          <SelectedSummary element={picked} onDetails={showDetails} />
+        )}
+      </div>
+
+      <div ref={viewportRef} className="pt-viewport" onClickCapture={zoom.onClickCapture}>
+        <div ref={tableRef} className="pt-table" data-filtered={filter !== "all"} role="group" aria-label="Periodic table, 118 elements">
+          {tiles}
+
+          <button
+            type="button"
+            className="pt-marker"
+            data-category="lanthanide"
+            data-dim={filter !== "all" && filter !== "lanthanide"}
+            data-neutral={!byCategory}
+            style={{ gridColumn: 3, gridRow: 6, background: CATEGORY_COLOUR.lanthanide }}
+            onClick={() => showRow("lanthanide")}
+            aria-label="Highlight the lanthanides, 57 to 71"
+          >
+            57-71
+          </button>
+          <button
+            type="button"
+            className="pt-marker"
+            data-category="actinide"
+            data-dim={filter !== "all" && filter !== "actinide"}
+            data-neutral={!byCategory}
+            style={{ gridColumn: 3, gridRow: 7, background: CATEGORY_COLOUR.actinide }}
+            onClick={() => showRow("actinide")}
+            aria-label="Highlight the actinides, 89 to 103"
+          >
+            89-103
+          </button>
+
+          {/* The empty corner over the transition metals, as ptable and RSC use it. */}
+          <div className="pt-inset">
+            <div className="pt-inset-tile" style={{ background: tileColour(picked, colouring), color: tileInk(picked, colouring) }} aria-hidden>
+              <span className="pt-inset-number">{picked.number}</span>
+              <span className="pt-inset-symbol">{picked.symbol}</span>
+              <span className="pt-inset-mass">{shortMass(picked.mass)}</span>
+            </div>
+            <div className="pt-inset-text">
+              <span className="pt-inset-name">{picked.name}</span>
+              <span className="pt-inset-line">{CATEGORY_LABEL[picked.category]}</span>
+              <span className="pt-inset-line">
+                <Configuration text={picked.configuration} />
+              </span>
+              <span className="pt-inset-line">Electronegativity {picked.electronegativity ?? "no data"}</span>
+              <button type="button" className="pt-inset-more" onClick={showDetails}>
+                All facts
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p className="pt-hint">{hint}</p>
+
+      <div ref={detailRef} className="pt-detail-anchor">
+        <ElementDetail element={picked} />
+      </div>
+    </div>
   );
 }
 
-export default function PeriodicTab({ selected }: { readonly selected: string | null }) {
-  const [colouring, setColouring] = useState<Colouring>("category");
-  const [hover, setHover] = useState<Element | null>(null);
-  const chosen = useMemo(() => (selected === null ? null : elementBySymbol(selected)), [selected]);
-  const shown = hover ?? chosen ?? elementBySymbol("C");
-
+/** The selected element in one line, for the slot when the filters are hidden. */
+function SelectedSummary({ element, onDetails }: { readonly element: Element; readonly onDetails: () => void }) {
   return (
-    <div className="flex flex-col gap-4 p-4 md:p-6">
-      <div className="flex flex-wrap gap-2" role="tablist" aria-label="Colour by">
-        {COLOURINGS.map((option) => (
-          <button
-            key={option.id}
-            type="button"
-            role="tab"
-            aria-selected={colouring === option.id}
-            onPointerDown={() => setColouring(option.id)}
-            className={`press min-h-11 rounded-full px-4 text-scale-sm font-semibold ${
-              colouring === option.id
-                ? "border border-[color:var(--bb-primary-edge)] bg-bb-primary text-bb-primary-foreground"
-                : "border border-bb-border bg-bb-card text-bb-foreground"
-            }`}
-          >
-            {option.label}
-          </button>
-        ))}
-      </div>
+    <div className="pt-summary" aria-live="polite">
+      <span className="pt-summary-tile" style={{ background: CATEGORY_COLOUR[element.category] }} aria-hidden>
+        {element.symbol}
+      </span>
+      <span className="pt-summary-text">
+        <strong>{element.name}</strong>
+        <span>
+          {CATEGORY_LABEL[element.category]}, {shortMass(element.mass)} u
+        </span>
+      </span>
+      <button type="button" className="pt-btn pt-btn--small" onClick={onDetails}>
+        Details
+      </button>
+    </div>
+  );
+}
 
-      <div className="grid gap-4 lg:grid-cols-[1fr_20rem]">
-        <div className="overflow-x-auto rounded-2xl border border-bb-border bg-bb-card p-3">
-          <div
-            className="grid gap-0.5"
-            style={{ gridTemplateColumns: "repeat(18, minmax(2.75rem, 1fr))", gridTemplateRows: "repeat(10, 2.75rem)", minWidth: "52rem" }}
-            role="grid"
-            aria-label="Periodic table"
-          >
-            {ELEMENTS.map((element) => {
-              const position = gridPosition(element);
-              const isChosen = chosen?.number === element.number;
-              return (
-                <a
-                  key={element.number}
-                  href={hrefForTab("periodic", element.symbol)}
-                  role="gridcell"
-                  aria-label={`${element.name}, ${element.number}`}
-                  aria-selected={isChosen}
-                  onPointerEnter={() => setHover(element)}
-                  onPointerLeave={() => setHover(null)}
-                  onFocus={() => setHover(element)}
-                  onBlur={() => setHover(null)}
-                  className={`press flex min-h-11 min-w-11 flex-col items-center justify-center rounded-xl border text-[#2a2a42] ${
-                    isChosen ? "border-bb-primary ring-2 ring-bb-primary/40" : "border-black/10"
-                  }`}
-                  style={{
-                    gridColumn: position.column,
-                    gridRow: position.row,
-                    background: cellColour(element, colouring),
-                  }}
-                >
-                  <span className="text-[0.6rem] leading-none opacity-70">{element.number}</span>
-                  <span className="text-scale-sm font-bold leading-tight">{element.symbol}</span>
-                </a>
-              );
-            })}
-          </div>
-          {colouring === "category" ? (
-            <ul className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-scale-xs text-bb-muted-foreground">
-              {(Object.keys(CATEGORY_LABEL) as Category[]).map((category) => (
-                <li key={category} className="flex items-center gap-1">
-                  <span className="inline-block h-3 w-3 rounded-sm border border-black/10" style={{ background: CATEGORY_COLOUR[category] }} aria-hidden />
-                  {CATEGORY_LABEL[category]}
-                </li>
-              ))}
-            </ul>
-          ) : null}
-        </div>
-
-        {shown !== null ? <Detail element={shown} /> : null}
+/** The key for the two non-category colourings. Category has the filter row. */
+function Legend({ colouring }: { readonly colouring: Colouring }) {
+  if (colouring === "electronegativity") {
+    return (
+      <div className="pt-legend" aria-label="Electronegativity key, Pauling scale">
+        <span className="pt-legend-title">Pauling</span>
+        <span className="pt-legend-ramp">
+          {EN_BINS.map((bin) => (
+            <span key={bin.from} className="pt-legend-step" style={{ background: bin.fill, color: bin.ink }}>
+              {bin.label === "under 1.0" ? "<1.0" : bin.label}
+            </span>
+          ))}
+        </span>
+        <span className="pt-legend-item">
+          <span className="pt-legend-swatch" style={{ background: NO_DATA_FILL }} />
+          No data
+        </span>
       </div>
+    );
+  }
+  return (
+    <div className="pt-legend" aria-label="Standard state key">
+      {(Object.keys(PHASE_COLOUR) as (keyof typeof PHASE_COLOUR)[]).map((phase) => (
+        <span key={phase} className="pt-legend-item">
+          <span className="pt-legend-swatch" style={{ background: PHASE_COLOUR[phase] }} />
+          {PHASE_LABEL[phase]}
+        </span>
+      ))}
     </div>
   );
 }

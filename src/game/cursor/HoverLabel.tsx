@@ -69,6 +69,20 @@ function labelFor(el: HTMLElement): string | null {
   return words.length > 24 ? words.slice(0, 24) : words;
 }
 
+/**
+ * The per device opt in. Nothing in the UI writes it yet; a toggle on the
+ * Me page's settings is the place for it (settings/ belongs to another lane).
+ * Storage can throw in a private window, which reads as "not opted in".
+ */
+export const HOVER_LABEL_KEY = "bb.hoverLabel";
+function hoverLabelOptedIn(): boolean {
+  try {
+    return window.localStorage.getItem(HOVER_LABEL_KEY) === "on";
+  } catch {
+    return false;
+  }
+}
+
 export function HoverLabel() {
   const [label, setLabel] = useState<string | null>(null);
   const chipRef = useRef<HTMLDivElement>(null);
@@ -77,6 +91,10 @@ export function HoverLabel() {
   useEffect(() => {
     // Desktop only, and only where a pointer can actually hover.
     if (!window.matchMedia("(pointer: fine)").matches) return;
+    // OFF BY DEFAULT since 2026-10-15. Owner direction: no hover-reveal
+    // effects on by default. On the rail it repeated the label it hovered in
+    // a low contrast pill (critic, round 1). It stays available as an opt in.
+    if (!hoverLabelOptedIn()) return;
 
     let lastX = 0;
     let lastY = 0;

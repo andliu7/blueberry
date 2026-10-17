@@ -70,13 +70,12 @@ import { isFlagOn } from "./flags";
 import { TabSkeleton } from "./ui/Skeleton";
 import { BootReady } from "./Loader";
 import { useReducedMotion } from "./hooks";
-import { LanguageButton, LanguageSheet } from "./ui/LanguagePicker";
 import { CourseChip } from "./ui/CourseChip";
 import { Hud } from "./ui/Hud";
 import { NotOpenYet } from "./ui/NotOpenYet";
 import { ToolSheet } from "./ui/ToolRail";
 import { TrainerTab } from "../tabs/trainer/TrainerTab";
-import { TabIcon } from "./ui/TabIcon";
+import { TabIcon, ToolsIcon } from "./ui/TabIcon";
 import "./ui/tabs.css";
 
 const PathwayTab = lazy(() => import("../tabs/pathway/PathwayTab"));
@@ -164,11 +163,9 @@ function Outlet({
         </Flagged>
       );
     case "messages":
-      return (
-        <Flagged flag="messages">
-          <MessagesTab />
-        </Flagged>
-      );
+      // Not behind <Flagged> any more: since 2026-10-16 its two threads (Bloom
+      // and Study reminders) run on local state and need no server.
+      return <MessagesTab />;
     default: {
       const unreachable: never = route.tab;
       return <>{unreachable}</>;
@@ -200,40 +197,12 @@ function Outlet({
  * CourseChip.tsx, LanguagePicker.tsx and Hud.tsx; this is the fifth use of one
  * pattern rather than a fifth pattern.
  *
- * THE GLYPH IS THE TWO TOOLS, NOT A WRENCH. A wrench means "settings" in every
- * app a student has ever used, and settings live on Me. The mark is three cells
- * of the periodic table's own grid with the search lens sitting in the fourth,
- * so the button pictures what is behind it rather than naming a category.
- *
- * THREE CELLS AND NOT FOUR, and that is a measurement rather than a preference.
- * A first pass drew four small hollow cells at a 2.1 stroke and the 20px
- * capture read as a QR code: at that size a dense grid of equal squares is
- * noise, and the eye finds the pattern before it finds the meaning. Fewer,
- * larger cells at a thinner stroke read as a table. The lens then has a corner
- * of its own to sit in instead of being laid over a cell, which is the second
- * half of why the first pass was dense.
+ * THE MARK IS THE TWO TOOLS, NOT A WRENCH. A wrench means "settings" in every
+ * app a student has ever used, and settings live on Me. ToolsIcon (in
+ * TabIcon.tsx, with the rest of the set) draws three table cells and the
+ * search lens, so the button pictures what is behind it.
  */
-function ToolsMark({ className = "" }: { readonly className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className={className}
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.9"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-      focusable="false"
-    >
-      <path d="M3.1 3.1h7.6v7.6H3.1zM13.3 3.1h7.6v7.6h-7.6zM3.1 13.3h7.6v7.6H3.1z" />
-      <circle cx="16.4" cy="16.4" r="3.1" />
-      <path d="M18.7 18.7 21.2 21.2" />
-    </svg>
-  );
-}
-
-function HeaderTools() {
+function HeaderTools({ route }: { readonly route: Route }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [tool, setTool] = useState<ToolId | null>(null);
   const menu = useRef<HTMLDialogElement>(null);
@@ -245,6 +214,20 @@ function HeaderTools() {
     if (!menuOpen && dialog.open) dialog.close();
   }, [menuOpen]);
 
+  /*
+   * A ROUTE CHANGE CLOSES THE MENU AND THE SHEET. This header stays mounted
+   * across tabs, so without this the periodic table stayed open over the Me
+   * page after the hash moved (critic, round 1). The hash router hands the
+   * shell a new `route` object on every hash change, so an effect keyed on it
+   * runs exactly once per navigation. (A window "hashchange" listener does not
+   * work here: the router's own listener re-renders first, the effect
+   * re-subscribes mid-dispatch, and the new listener misses the event.)
+   */
+  useEffect(() => {
+    setMenuOpen(false);
+    setTool(null);
+  }, [route]);
+
   return (
     <>
       <button
@@ -255,10 +238,13 @@ function HeaderTools() {
         onPointerDown={() => setMenuOpen(true)}
         aria-haspopup="dialog"
         aria-label="Tools: the periodic table and the reaction search"
-        title="Tools"
-        className="press inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-xl border-2 border-bb-border bg-bb-card text-bb-foreground"
+        className="lip-button header-tools inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center gap-2"
       >
-        <ToolsMark className="h-5 w-5" />
+        <ToolsIcon className="h-7 w-7" />
+        {/* The word on desktop, where the row has room: an icon-only control
+            between the course chip and the language button read as a
+            launcher grid with no name. The phone row has no room for it. */}
+        <span className="header-tools__label hidden md:inline">Tools</span>
       </button>
 
       <dialog
@@ -274,13 +260,23 @@ function HeaderTools() {
       >
         <div className="tools-menu__panel">
           <span className="tools-menu__grip" aria-hidden />
-          <h2 className="tools-menu__title">Tools</h2>
+          {/* A visible way out (A1 round 5 critic): the sheet sits over the
+              bottom of the screen, so a close button beside the title rather
+              than relying on the grip or a tap outside. */}
+          <div className="tools-menu__head">
+            <h2 className="tools-menu__title">Tools</h2>
+            <button type="button" className="tools-menu__close" aria-label="Close tools" onClick={() => setMenuOpen(false)}>
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden>
+                <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+              </svg>
+            </button>
+          </div>
           <ul className="tools-menu__list">
             {TOOL_TABS.map((entry) => (
               <li key={entry.id}>
                 <button
                   type="button"
-                  className="press tools-menu__row"
+                  className="tools-menu__row"
                   data-tool-row={entry.id}
                   onPointerDown={() => {
                     setMenuOpen(false);
@@ -288,7 +284,7 @@ function HeaderTools() {
                   }}
                 >
                   <span className="tools-menu__mark" aria-hidden>
-                    <TabIcon tab={entry.id} className="h-5 w-5" />
+                    <TabIcon tab={entry.id} className="h-8 w-8" />
                   </span>
                   <span className="tools-menu__name">{entry.label}</span>
                 </button>
@@ -304,7 +300,6 @@ function HeaderTools() {
 }
 
 export function Shell({ route, children }: { readonly route: Route; readonly children?: ReactNode }) {
-  const [languageOpen, setLanguageOpen] = useState(false);
   /**
    * True while a tab is running a full screen task and the bar should get out
    * of the way. mobile-ui: "The bar is contextual: entering an editor may
@@ -325,10 +320,15 @@ export function Shell({ route, children }: { readonly route: Route; readonly chi
   const litTab = activeTab === null ? null : tabDefinition(activeTab).parent;
 
   return (
-    <div className="flex min-h-dvh flex-col bg-bb-background md:flex-row">
+    <div className="bb-ground flex min-h-dvh flex-col md:flex-row">
       <nav aria-label="Tabs" className={`tabbar order-last md:order-first ${immersive ? "tabbar--away" : ""}`}>
-        {/* THE WORDMARK IS IDENTITY, NOT NAVIGATION, and round two demoted it
-            from a link to a label. It used to be an anchor to #/pathway, which
+        {/* THE WORDMARK LINKS TO THE WEBSITE (owner, 2026-10-17: "it should
+            also be a link to the home or the website, for now while it's on
+            the website"). It goes to #/, the site's home, a destination nothing
+            else on the rail offers, so the round two objection below (two
+            adjacent controls for one place) does not apply to it.
+
+            Earlier history: round two demoted it from a link to a label. It used to be an anchor to #/pathway, which
             is exactly where the Path tab immediately below it goes: two
             controls, adjacent, for one destination, and only one of them
             carries a word saying so. Rule 4 of the sticker language was reading
@@ -357,9 +357,9 @@ export function Shell({ route, children }: { readonly route: Route; readonly chi
             without spending the character, and the character is then worth
             something when it appears. Same argument as rule 3, where the bar's
             nodes are fake extrusions and ours are outlines. */}
-        <span className="tabbar-brand" aria-hidden>
-          <span className="bb-title-face text-scale-lg font-semibold">Blueberry</span>
-        </span>
+        <a href="#/" className="tabbar-brand" aria-label="Blueberry website" title="Back to the Blueberry website">
+          <span className="bb-title-face text-scale-xl font-extrabold">Blueberry</span>
+        </a>
         {NAV_TABS.map((tab) => (
           <TabLink key={tab.id} tab={tab.id} active={tab.id === litTab} />
         ))}
@@ -422,24 +422,30 @@ export function Shell({ route, children }: { readonly route: Route; readonly chi
               budget is met now with room rather than by hiding a label. The
               phone row is FOUR controls: the course chip, one tool control and
               two readouts, with charge as a third readout costing a mark and a
-              number rather than a pill and a meter. Language keeps its `sm`
-              breakpoint, because it is a setting chosen once and it already has
-              a full row under SETTINGS on the Me tab opening the same sheet.
+              number rather than a pill and a meter. Language is not in the row
+              at all (owner, 2026-10-17): it is a setting chosen once, and its
+              full row under SETTINGS on the Me tab opens the language sheet.
 
               `shrink-0` on the tool control and on the HUD is the structural
               half: a flex row whose children may shrink below their content is
               a row that overlaps, and this one has to be unable to. */}
           <div className="flex min-w-0 items-center gap-1.5">
-            <h1 className="hidden truncate pr-1 text-scale-lg font-semibold text-bb-foreground lg:block">{label}</h1>
+            {/* A label, not a heading: each page draws its own h1, and two h1s on
+                one screen (this plus the page title) broke heading navigation.
+                The ONE exception is the Path, which draws no title of its own
+                (A2 round 4: the audit found no h1 on the home screen), so there
+                this label is the page's h1. */}
+            {activeTab === "pathway" ? (
+              <h1 className="bb-h1 hidden truncate pr-1 text-bb-foreground lg:block">{label}</h1>
+            ) : (
+              <p className="bb-h1 hidden truncate pr-1 text-bb-foreground lg:block">{label}</p>
+            )}
             {/* THE COURSE, NOT THE APP'S NAME. See CourseChip.tsx. The page
                 label beside it moved from `md` to `lg` because the two say
                 overlapping things at a glance and the course is the one a
                 student cannot work out from the lit tab underneath. */}
             <CourseChip />
-            <HeaderTools />
-            <div className="hidden shrink-0 sm:block">
-              <LanguageButton onOpen={() => setLanguageOpen(true)} />
-            </div>
+            <HeaderTools route={route} />
           </div>
           <Hud />
         </header>
@@ -457,7 +463,6 @@ export function Shell({ route, children }: { readonly route: Route; readonly chi
         </main>
       </div>
 
-      <LanguageSheet open={languageOpen} onClose={() => setLanguageOpen(false)} />
     </div>
   );
 }

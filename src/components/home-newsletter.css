@@ -1,0 +1,113 @@
+/* The newsletter band (HomeNewsletter.tsx). Tokens only: no hex, no curve of its own.
+   Ratios computed 2026-10-16 with the skill's checks.md formula:
+   mark #5a3fd8 on the #e2dbf5 wash 5.00:1; at night #a99bff (--site-nav-line) on the #24334a
+   wash 5.35:1, because the night primary #6d5ae0 is only 2.54:1 there.
+   Card edge --site-border on the wash 3.55:1 (night #70839d on #24334a 3.29:1).
+   Error ink --bb-warn-ink on the card 7.09:1 (night #fcd34d on #192438 10.78:1). */
+
+.hn {
+  --hn-mark: var(--primary);
+  position: relative; display: grid;
+  background: var(--bb-wash);
+  padding-top: 56px;
+  overflow: clip;
+}
+.dark .hn { --hn-mark: var(--site-nav-line); }
+
+/* The wordmark field: full width, its height set from the measured cap height so the
+   bottom edge cuts the letters off. 13vw holds the place until the first measure. */
+.hn__field { position: relative; order: 2; height: var(--hn-h, 13vw); overflow: clip; }
+.hn__word {
+  position: absolute; left: 0; display: flex; white-space: pre;
+  font-family: var(--site-display); font-weight: 900; line-height: 1;
+  color: var(--hn-mark); visibility: hidden;
+}
+.hn__field[data-ready] .hn__word { visibility: visible; }
+.hn__letter { display: inline-block; }
+/* The word not showing is simply hidden until the first swap, so nothing drops on load. */
+.hn__field .hn__word[data-state="out"]:not([data-anim]) { visibility: hidden; }
+
+/* Out: each letter falls through the bottom edge, 300ms, 24ms apart. In: each letter drops
+   from above the field and settles with the spring's one overshoot, 560ms, 40ms apart,
+   after the last outgoing letter has gone (--wait, set from the outgoing word's length). */
+html:not([data-motion="reduced"]) .hn__word[data-anim][data-state="out"] .hn__letter {
+  animation: hn-out 300ms var(--bb-ease-ui) calc(var(--i) * 24ms) both;
+}
+html:not([data-motion="reduced"]) .hn__word[data-anim][data-state="in"] .hn__letter {
+  animation: hn-in 560ms var(--bb-ease-spring) calc(var(--wait) + var(--i) * 40ms) both;
+}
+@keyframes hn-out { to { transform: translateY(115%); } }
+@keyframes hn-in { from { transform: translateY(-115%); } }
+/* Reduced motion: the words swap at once. The card's own heading carries the meaning. */
+html[data-motion="reduced"] .hn__word[data-state="out"] { visibility: hidden; }
+
+/* The card sits on top of the wordmark and covers its upper part. */
+.hn__card {
+  position: relative; z-index: 1; order: 1;
+  width: min(34rem, calc(100% - 32px)); margin: 0 auto calc(var(--hn-h, 13vw) * -0.3);
+  padding: 28px 24px 24px; box-sizing: border-box;
+  background: var(--card); color: var(--foreground);
+  border: 2px solid var(--site-border); border-bottom-width: 6px; border-radius: 28px;
+}
+.hn__form, .hn__done { display: grid; gap: 12px; }
+.hn__form[hidden] { display: none; }
+.hn__title { margin: 0; font-weight: 900; font-size: clamp(1.5rem, 3.4vw, 2rem); line-height: 1.1; text-wrap: balance; }
+.hn__title:focus { outline: none; }
+.hn__lede { margin: 0 0 8px; font-size: 1rem; line-height: 1.5; color: var(--muted-foreground); }
+.hn__label { padding: 0; font: 700 .875rem/1.3 var(--site-display); color: var(--foreground); }
+
+/* The address in display type; HomeNewsletter shrinks it from 28px to 16px as it grows. */
+.hn__email {
+  width: 100%; min-height: 64px; box-sizing: border-box; padding: 0 16px;
+  font-family: var(--site-display); font-weight: 800; color: var(--bb-deep);
+  background: var(--card); border: 2px solid var(--site-border); border-radius: 16px;
+  transition: border-color var(--bb-dur-ui) var(--bb-ease-ui);
+}
+.hn__email::placeholder { color: var(--muted-foreground); font-weight: 700; }
+.hn__email:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
+.hn__email[aria-invalid="true"] { border-color: var(--bb-warn-ink); }
+
+.hn__topics { margin: 8px 0 0; padding: 0; border: 0; display: grid; gap: 8px; }
+.hn__chips { display: flex; flex-wrap: wrap; gap: 8px; }
+/* A choice chip: card face, outline, the 4px ledge as a thicker bottom border (components.md
+   section 2), sinking on press. Chosen: the wash and the violet ink with a tick. */
+.hn__chip {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 16px;
+  font: 700 .9375rem/1 var(--site-display); color: var(--foreground);
+  background: var(--card); border: 2px solid var(--site-border); border-bottom-width: 4px; border-radius: 999px;
+  cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  transition: transform var(--bb-dur-press) ease-out, background-color var(--bb-dur-ui) var(--bb-ease-ui);
+}
+.hn__chip:active { transform: translateY(2px); border-bottom-width: 2px; margin-bottom: 2px; }
+.hn__chip[aria-pressed="true"] { background: var(--site-nav-wash); color: var(--site-nav-ink); }
+.hn__chip:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
+.hn__tick { width: 16px; height: 16px; stroke-width: 3; }
+
+.hn__consent {
+  display: flex; align-items: center; gap: 12px; min-height: 44px; margin-top: 4px;
+  font-size: 1rem; cursor: pointer;
+}
+.hn__consent input { width: 22px; height: 22px; margin: 0; flex: none; accent-color: var(--primary); cursor: pointer; }
+.hn__consent input:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
+
+/* Calm, never red: the darker amber, in words. Empty until there is something to say. */
+.hn__error { margin: 0; min-height: 1.5em; font-size: .9375rem; line-height: 1.5; color: var(--bb-warn-ink); }
+
+/* The button is home.css's .home-btn; these only undo a <button>'s own chrome. */
+.hn__submit { justify-self: start; padding: 0; border: 0; background: none; cursor: pointer; }
+.hn__submit[aria-busy="true"] { cursor: progress; }
+
+/* "Use a different email": a flat text control, not a second filled button. */
+.hn__again {
+  justify-self: start; min-height: 44px; padding: 0 4px; border: 0; background: none;
+  font: 800 1rem/1 var(--site-display); color: var(--site-nav-ink);
+  text-decoration: underline; text-underline-offset: 4px; cursor: pointer;
+}
+.hn__again:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; border-radius: 8px; }
+
+/* Phone: the wordmark first, then the card beneath it, no overlap. */
+@media (max-width: 719px) {
+  .hn { padding: 24px 0 32px; }
+  .hn__field { order: 1; }
+  .hn__card { order: 2; margin: 24px auto 0; padding: 24px 20px 20px; }
+}

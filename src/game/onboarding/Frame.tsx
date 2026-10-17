@@ -35,6 +35,8 @@
 
 import type { CSSProperties, ReactNode } from "react";
 import { Berry } from "../mascot/Berry";
+import { pressClassName } from "../app/ui/Press";
+import { showDraftMarks } from "../app/flags";
 import { BackIcon, CheckIcon, CloseIcon } from "./icons";
 import {
   BACK_LABEL,
@@ -114,6 +116,12 @@ export interface FrameProps {
   readonly backdrop?: ReactNode;
   /** Reserves air under the last option for the peeking mascot. Placement. */
   readonly peek?: boolean;
+  /**
+   * The welcome beat on a wide screen: Berry on the left, the headline and
+   * the action on the right (onboarding.css, "THE DESKTOP HERO"). A phone
+   * ignores it.
+   */
+  readonly heroWide?: boolean;
 }
 
 export function Frame({
@@ -127,6 +135,7 @@ export function Frame({
   foot,
   backdrop,
   peek = false,
+  heroWide = false,
 }: FrameProps) {
   const clamped = Math.max(0, Math.min(100, percent));
   const leave = leading === "leave";
@@ -146,7 +155,12 @@ export function Frame({
   );
 
   return (
-    <div className="ob" data-column={column} data-peek={peek ? "true" : "false"}>
+    <div
+      className="ob"
+      data-column={column}
+      data-peek={peek ? "true" : "false"}
+      data-hero-wide={heroWide ? "true" : undefined}
+    >
       {backdrop === undefined ? null : <div className="ob__backdrop">{backdrop}</div>}
       {/*
         THE GUTTER PLACEMENT IS A CHILD OF `.ob`, NOT OF THE HEADER ROW, and the
@@ -199,9 +213,13 @@ export function Frame({
         screen of the flow. CLAUDE.md makes this funnel a human gate, so a
         reviewer opening #/start/welcome is owed the sentence that says so.
       */}
-      <p className="ob-gate">
-        <span className="ob-gate__mark">{HUMAN_GATE_MARK}</span> {withoutMark(GATE_NOTICE)}
-      </p>
+      {/* A2 round 3: painted only under ?flags=drafts. A student must never
+          read an internal review note; the reviewer still can. */}
+      {showDraftMarks() ? (
+        <p className="ob-gate">
+          <span className="ob-gate__mark">{HUMAN_GATE_MARK}</span> {withoutMark(GATE_NOTICE)}
+        </p>
+      ) : null}
     </div>
   );
 }
@@ -368,14 +386,16 @@ export interface ActionProps {
    * majority shape and the welcome beat opts into the other one.
    */
   readonly shape?: "rect" | "stadium";
+  /** "secondary" is the white key under a primary, e.g. I ALREADY HAVE AN ACCOUNT. */
+  readonly variant?: "primary" | "secondary";
   readonly onPress: () => void;
 }
 
-export function Action({ label, disabled = false, shape = "rect", onPress }: ActionProps) {
+export function Action({ label, disabled = false, shape = "rect", variant = "primary", onPress }: ActionProps) {
   return (
     <button
       type="button"
-      className="ob-cta"
+      className={`${pressClassName({ variant, size: "lg", block: true })} ob-cta`}
       data-shape={shape}
       disabled={disabled}
       data-stacking=""

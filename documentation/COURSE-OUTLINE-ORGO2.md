@@ -110,6 +110,13 @@ introduction, which implies the delocalised allylic radical and cation were alre
 **Reconciled:** `allylic_halogenation` is its own topic and a prerequisite of `diene_addition`. If
 the inference is wrong the edge is still harmless, because allylic delocalisation is genuinely
 prerequisite either way.
+**SUPERSEDED for the pathway, owner 2026-09-29 (built 2026-10-07):** `allylic_halogenation` is no
+longer a prerequisite of `diene_addition` on the map. Unit 1's Stage A teaches allylic
+delocalisation, and NBS is a side quest after Stage B.
+**OWNER AMENDMENT 2026-10-07:** the owner superseded D5 outright, not only for the pathway. The
+edge is removed from `packages/curriculum/src/placement.ts` as well, so `diene_addition` now
+requires `alkene_addition` and `carbocation_stability_and_rearrangement` only, and allylic
+halogenation no longer gates diene addition in the topic curriculum or in placement.
 
 **D6. Nucleophilic aromatic substitution is reference topic 4 and is examined without being
 lectured.** `[measured]` No lecture deck covers SNAr or benzyne. SNAr appears as a graded part of Act
@@ -607,6 +614,9 @@ by an `introducedIn` and `reusedIn` pair.
 | `protecting_group_strategy` | `nucleophilic_addition_oxygen` | `nucleophilic_addition_nitrogen`, `amines`, `multistep_synthesis` | `[measured]` The dominant theme of two synthesis worksheets. The enamine is taught as an alternative masking strategy, and aniline acylation is protection on a ring. |
 | `acyl_reactivity_ladder` | `nucleophilic_acyl_substitution` | `aldol_and_claisen`, `carboxylic_acids` | `[measured]` The reference calls it the organizing principle of its topic 8. Act 2's exam makes it a whole question. A Claisen is a legal traversal of it with an enolate nucleophile. |
 | `oxidation_state_ladder` | `oxidation_and_reduction_ladder` | `carboxylic_acids`, `multistep_synthesis`, `nucleophilic_acyl_substitution` | `[measured]` Taught with an explicit one level diagram, and reused as the connective tissue of every synthesis worksheet. |
+| `diels_alder_geometry` | `diels_alder` | `aromaticity` | `[inferred, owner 2026-10-07]` The s-cis requirement, cis kept cis and endo first, which the Unit 1 pools had been filing under `ewg_edg_rubric`. The only reuse site in the record is the carried Diels-Alder practice that opens the benzene lecture (section 4), so the owner should confirm it. |
+| `radical_stability` | `allylic_halogenation` | `arene_side_chain_chemistry` | `[inferred, owner 2026-10-07]` Radicals rank like cations, with allylic and benzylic best. Taught on NBS, used again on benzylic bromination. |
+| `carbanion_stability` | `resonance_and_delocalisation` | `enols_and_enolates` | `[inferred, owner 2026-10-07]` The alkyl trend flips for an anion, and resonance and s character still help. Unit 1 Stage A teaches it; enolate stability uses it again. |
 
 Two more patterns are cross cutting but are **engine features rather than chemistry concepts**, so
 they are recorded here and not in `CONCEPTS`:

@@ -125,6 +125,18 @@ export const DIAMONDS_CHALLENGE_PASSED = DIAMONDS_REVIEW_CLEARED;
 export const DIAMONDS_CARD_RUN = DIAMONDS_REVIEW_CLEARED;
 export const CARD_RUN_MIN_GRADED = 5;
 export const CARD_RUNS_PAID_PER_DAY = 3;
+/**
+ * A TREASURE CHEST on the pathway, opened. Each chest sits at the end of a
+ * section and opens once its checkpoint is cleared; it pays this, once per
+ * chest id, and nothing else: no XP (so it never fills the daily goal on its
+ * own), and it unlocks no node (so it never moves mastery or sets off a rank
+ * award, which is what made a chest journalled as a lesson clear pay +135).
+ *
+ * A PROPOSAL, NOT AN OWNER DECISION. ECONOMY.md has no chest row. 15 is one
+ * lesson's first clear plus its spine bonus, so a chest feels like a reward
+ * without out-earning the lessons that earned it. The owner sets the number.
+ */
+export const DIAMONDS_CHEST = 15;
 /** At 7, 14, 30, 60, 100, 180, 365. */
 export const DIAMONDS_STREAK_MILESTONE = 75;
 

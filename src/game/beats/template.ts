@@ -6,7 +6,9 @@
  * spec (docs/reference/design-goals/blueberry_spec-question-badges_*.png)
  * surfaces to the student up front as the recipe strip:
  *
- *   hook       a video or motivating open. Authored asset; empty today
+ *   hook       a video or motivating open. No video is authored yet; what fills
+ *              it today is the MEET step, the node's L0 "Meet it" questions,
+ *              which cannot fail and show the answer forming (2026-10-16)
  *   recognise  the gentle entry: quick questions (the MCQ beats)
  *   connect    pairing ideas to each other (the match boards)
  *   order      ranking and sequence (the sort ladders)
@@ -42,7 +44,11 @@ import { MATCH_BOARDS } from "./match";
 import { sortContentById } from "./sort";
 import { synthesisGapsForNode } from "./synthesis";
 import { checkpointUnitFor, pathwayNode, type PathwayUnit } from "../demo/pathwayMap";
+import { lessonPool, practicePool } from "./practice/pools";
+import { lessonTrainerFor } from "../content/u1/lessonTrainers";
+import type { McqBeat } from "./types";
 import type { TrainerRef } from "./types";
+import type { PoolEntry } from "../content/u1/types";
 
 /* ------------------------------------------------------------------ */
 /* The slots                                                            */
@@ -114,21 +120,40 @@ export const LADDER_FOR_NODE: Readonly<Record<string, string>> = Object.freeze({
 /* ------------------------------------------------------------------ */
 
 export type ResolvedBeat =
+  /** The node's first-meeting (L0) questions, played at level 0 before anything is graded. */
+  | { readonly kind: "meet"; readonly node: string }
   | { readonly kind: "mcq"; readonly node: string }
   | { readonly kind: "match"; readonly node: string }
   | { readonly kind: "sort"; readonly ladderId: string }
   | { readonly kind: "synthesis"; readonly node: string }
-  /** The trainer engine inside a lesson: the node's own mechanism, the same full screen. */
-  | { readonly kind: "mechanism"; readonly play: TrainerRef }
-  | { readonly kind: "resonance"; readonly resonanceId: string };
+  /** The node's pool ladders (content/u1 and later units), played one after another. */
+  | { readonly kind: "poolSort"; readonly node: string }
+  /** The node's pool match boards, played one after another. */
+  | { readonly kind: "poolMatch"; readonly node: string }
+  /** The node's "Draw it" items (beats/draw), played one after another. */
+  | { readonly kind: "draw"; readonly node: string }
+  /**
+   * The trainer engine inside a lesson: the node's own mechanism, the same full screen.
+   * `draws` names the node whose "Draw it" items play first, inside the same
+   * produce step, so a trainer lesson still has one step per slot (U1-P3).
+   */
+  | { readonly kind: "mechanism"; readonly play: TrainerRef; readonly draws?: string }
+  | { readonly kind: "resonance"; readonly resonanceId: string; readonly draws?: string }
+  /** The in-a-row run over a practice node's pool (practice/run.ts). Always a plan's only step. */
+  | { readonly kind: "practice"; readonly node: string };
 
 export const SLOT_FOR_KIND: Readonly<Record<ResolvedBeat["kind"], ContentSlot>> = Object.freeze({
+  meet: "hook",
   mcq: "recognise",
   match: "connect",
   sort: "order",
+  poolSort: "order",
+  poolMatch: "connect",
+  draw: "produce",
   synthesis: "produce",
   mechanism: "produce",
   resonance: "produce",
+  practice: "recognise",
 });
 
 export interface PlanStep {
@@ -142,8 +167,57 @@ export interface LessonPlan {
   readonly steps: readonly PlanStep[];
 }
 
+/**
+ * A lesson's quick questions: the authored MCQs for the node, then any MCQs
+ * its Unit 1 pool carries (a video node's "two or three recognise MCQs so it
+ * stands without video", owner 2026-09-29). Pool MCQs are drafts, and the
+ * runner marks a step that plays one (lessonHasDraft).
+ */
+export function lessonMcqBeats(node: string): readonly McqBeat[] {
+  const pooled = lessonPool(node).flatMap((entry) => (entry.item.kind === "mcq" ? [entry.item.beat] : []));
+  return pooled.length === 0 ? mcqBeatsForNode(node) : [...mcqBeatsForNode(node), ...pooled];
+}
+
+/**
+ * THE MEET STEP'S QUESTIONS: the ones authored for a first meeting only (L0
+ * and not rung 1). They play at level 0, where canFail is false, so nothing
+ * rides on them and the how-to shows the answer forming. This is the encoding
+ * layer before retrieval (Sung, scratchpad/justin-sung.md mechanic 2).
+ *
+ * A question authored at L0 AND rung 1 is left to the rung-1 step on purpose:
+ * playing it twice in a row would grade memory of the screen just seen, the
+ * same reason the recycle pass never replays a synthesis.
+ */
+export function lessonMeetBeats(node: string): readonly McqBeat[] {
+  return lessonMcqBeats(node).filter((beat) => beat.levels.includes(0) && !beat.levels.includes(1));
+}
+
+/**
+ * Whether the recognise step has anything above the first meeting. A node
+ * whose questions are all L0 gets no recognise step, rather than one that
+ * dead-ends on "Nothing here yet" at rung 1 (u1-allylic, u1-12v14 before
+ * 2026-10-16). A node with only L2 or L3 questions keeps its step, as before.
+ */
+function hasGradedMcqs(node: string): boolean {
+  return lessonMcqBeats(node).some((beat) => beat.levels.some((level) => level > 0));
+}
+
+/** Whether a node's lesson plays any draft pool question, so the runner shows the human-gate mark. */
+export function lessonHasDraft(node: string): boolean {
+  return lessonPool(node).some((entry) => entry.item.kind === "mcq" && entry.placeholder);
+}
+
 function matchBoardsForNode(node: string) {
   return MATCH_BOARDS.filter((board) => board.node === node);
+}
+
+/**
+ * A lesson node's pool entries of one kind, in authored order. The MCQs join
+ * the quick questions above; the ladders, boards and drawings each get their
+ * own step (U1-P3, 2026-10-17: before this only pool MCQs reached a lesson).
+ */
+export function lessonPoolItems(node: string, kind: "sort" | "match" | "draw"): readonly PoolEntry[] {
+  return lessonPool(node).filter((entry) => entry.item.kind === kind);
 }
 
 /**
@@ -186,6 +260,10 @@ function checkpointPlan(unit: PathwayUnit, node: string): LessonPlan | null {
     // be grading a student on work the track told them they could skip.
     if (entry.kind === "branch") continue;
     for (const step of planLesson(entry.id)?.steps ?? []) {
+      // A whole in-a-row run is a lesson of its own, not one question of a mix.
+      if (step.beat.kind === "practice") continue;
+      // A first meeting cannot fail, so it has no place on a check.
+      if (step.beat.kind === "meet") continue;
       if (taken.has(step.slot)) continue;
       taken.add(step.slot);
       steps.push(step);
@@ -197,6 +275,12 @@ function checkpointPlan(unit: PathwayUnit, node: string): LessonPlan | null {
 }
 
 export function planLesson(node: string): LessonPlan | null {
+  // A RUN MODE, not a second lesson system (owner, 2026-09-29): a practice or
+  // stage-quiz node with problems in its pool plays the in-a-row run as its one
+  // step, and BeatRunner hands that step to PracticeRunner. A unit whose exam
+  // has a pool (Unit 1, practice/pools.ts) plays it the same way on its checkpoint.
+  if (practicePool(node).length > 0) return { node, steps: [{ slot: "recognise", beat: { kind: "practice", node } }] };
+
   // A checkpoint id is not a map node, so the lookups below would all miss it.
   // It resolves against the UNIT instead. No recursion: a real node's id is
   // never a checkpoint id, so the call back into this function terminates.
@@ -206,31 +290,48 @@ export function planLesson(node: string): LessonPlan | null {
   const steps: PlanStep[] = [];
 
   // hook: an authored video open. No node carries one yet, and the free tier
-  // rule in CLAUDE.md is that lessons must stand without video, so the slot
-  // stays empty rather than being faked.
+  // rule in CLAUDE.md is that lessons must stand without video, so no video is
+  // faked here. What opens the lesson instead is the meet step: the node's
+  // first-meeting questions, at level 0, before anything is graded.
+  if (lessonMeetBeats(node).length > 0) {
+    steps.push({ slot: "hook", beat: { kind: "meet", node } });
+  }
 
-  if (mcqBeatsForNode(node).length > 0) {
+  if (hasGradedMcqs(node)) {
     steps.push({ slot: "recognise", beat: { kind: "mcq", node } });
   }
+  // One step per slot (lessonTemplate.test.ts): an authored board or ladder
+  // keeps its slot, and the pool's own only fill a slot nothing else has.
   if (matchBoardsForNode(node).length > 0) {
     steps.push({ slot: "connect", beat: { kind: "match", node } });
+  } else if (lessonPoolItems(node, "match").length > 0) {
+    steps.push({ slot: "connect", beat: { kind: "poolMatch", node } });
   }
   const ladderId = LADDER_FOR_NODE[node];
   if (ladderId !== undefined && sortContentById(ladderId) !== undefined) {
     steps.push({ slot: "order", beat: { kind: "sort", ladderId } });
+  } else if (lessonPoolItems(node, "sort").length > 0) {
+    steps.push({ slot: "order", beat: { kind: "poolSort", node } });
   }
-  if (synthesisGapsForNode(node).length > 0) {
+  const hasSynthesis = synthesisGapsForNode(node).length > 0;
+  if (hasSynthesis) {
     steps.push({ slot: "produce", beat: { kind: "synthesis", node } });
   }
   // produce, the mechanism itself: a node the map plays in the trainer
   // embeds that same question here, on the same engine screen. The link is
   // the map's own, so the lesson and the Train tab can never disagree about
-  // which mechanism a node is.
-  const link = pathwayNode(node)?.playable;
+  // which mechanism a node is. A node whose map link opens this lesson but
+  // still ends on the trainer names it in content/u1/lessonTrainers.ts.
+  // The node's drawings share produce with the trainer: drawn first, then the
+  // engine, inside one step. A synthesis node keeps its gap as produce.
+  const link = lessonTrainerFor(node) ?? pathwayNode(node)?.playable;
+  const draws = !hasSynthesis && lessonPoolItems(node, "draw").length > 0 ? { draws: node } : {};
   if (link?.kind === "reaction" || link?.kind === "sequence") {
-    steps.push({ slot: "produce", beat: { kind: "mechanism", play: link } });
+    steps.push({ slot: "produce", beat: { kind: "mechanism", play: link, ...draws } });
   } else if (link?.kind === "resonance") {
-    steps.push({ slot: "produce", beat: { kind: "resonance", resonanceId: link.id } });
+    steps.push({ slot: "produce", beat: { kind: "resonance", resonanceId: link.id, ...draws } });
+  } else if ("draws" in draws) {
+    steps.push({ slot: "produce", beat: { kind: "draw", node } });
   }
 
   return steps.length === 0 ? null : { node, steps };
@@ -396,7 +497,12 @@ export function challengeable(node: string): boolean {
   if (checkpointUnitFor(node) !== null) return false;
   const plan = planLesson(node);
   if (plan === null) return false;
-  return plan.steps.every((step) => step.beat.kind !== "mechanism" && step.beat.kind !== "resonance");
+  // An in-a-row run reports every miss, so it has a Challenge (practice/run.ts says what it is).
+  // A meet step reports 0 of 0 (it cannot fail), so a Challenge needs some other step to grade.
+  return (
+    plan.steps.some((step) => step.beat.kind !== "meet") &&
+    plan.steps.every((step) => step.beat.kind !== "mechanism" && step.beat.kind !== "resonance")
+  );
 }
 
 /** The recycle pass finished. One pass only; the run moves to the reward. */
@@ -436,7 +542,7 @@ export function missedMcqIdsFrom(results: readonly BeatResult[]): readonly strin
  */
 export function recycleBeatsFor(plan: LessonPlan, missedIds: readonly string[]) {
   const sources = [...new Set(plan.steps.flatMap((step) => (step.beat.kind === "mcq" ? [step.beat.node] : [])))];
-  return sources.flatMap((source) => mcqBeatsForNode(source)).filter((beat) => missedIds.includes(beat.id));
+  return sources.flatMap((source) => lessonMcqBeats(source)).filter((beat) => missedIds.includes(beat.id));
 }
 
 /* ------------------------------------------------------------------ */
@@ -487,12 +593,17 @@ export interface RecipeSegment {
 }
 
 export const BADGE_LABEL: Readonly<Record<BadgeKind, string>> = Object.freeze({
+  meet: "Meet it first",
   mcq: "Quick questions",
   match: "Match the pairs",
   sort: "Put them in order",
+  poolSort: "Put them in order",
+  poolMatch: "Match the pairs",
+  draw: "Draw it",
   synthesis: "Build the synthesis",
   mechanism: "Push the electrons",
   resonance: "Find the resonance form",
+  practice: "Answer in a row",
   recycle: "The ones that got away",
   reward: "Collect the lesson",
   reagents: "Supply the reagents",
@@ -515,12 +626,17 @@ export const BADGE_LABEL: Readonly<Record<BadgeKind, string>> = Object.freeze({
  * and structure share it: they differ in answer shape, not in teaching move.
  */
 export const SLOT_FOR_BADGE: Readonly<Record<BadgeKind, LessonSlot>> = Object.freeze({
+  meet: "hook",
   mcq: "recognise",
   match: "connect",
   sort: "order",
+  poolSort: "order",
+  poolMatch: "connect",
+  draw: "produce",
   synthesis: "produce",
   mechanism: "produce",
   resonance: "produce",
+  practice: "recognise",
   reagents: "produce",
   product: "produce",
   numeric: "produce",

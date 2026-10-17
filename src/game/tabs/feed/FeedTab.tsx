@@ -1,4 +1,11 @@
 /**
+ * ROUND 6 (both judges: "one primary action per screen"): the feed comes
+ * first, as the student's own wins or, before any, the one first-win card
+ * with the page's only filled button. The quests follow under a plain
+ * heading with the reset countdown (the orange banner is gone), and the lab
+ * mates invite is a row in the More list, not a card with its own button.
+ * The notes below predate that order; what they say about each part holds.
+ *
  * The Feed tab. Two sections, per docs/DESIGN-GOALS.md ("Ours, not
  * Duolingo's") and the committed reference blueberry_r7-feed-v2_1788288479.png:
  *
@@ -9,12 +16,16 @@
  *                  of the reading. Everything derives from the LOCAL journal
  *                  through feedModel.ts; nothing is invented.
  *
- *   LAB MATES      other people's activity, which only a server can know. It
- *                  renders honestly not open, naming the Phase 6 server it
- *                  waits on: the SHAPE is drawn (berry avatars in three berry
- *                  colours, the toast-a-flask cheer at the end of each row) so
- *                  the student sees what this becomes, and no row pretends to
- *                  be a person.
+ *   YOUR ACTIVITY  the student's own wins from the journal (activityModel.ts),
+ *                  newest first. Before the first lesson it shows a bright
+ *                  "your wins land here" card naming the real next lesson,
+ *                  and a button that starts it. No pretend post. Over the quests sits a coloured banner
+ *                  with a real countdown to the midnight reset.
+ *
+ *   LAB MATES      other students, which only a server can know. Until one
+ *                  exists the card is an honest invite: the three berry
+ *                  avatars, one sentence, and a SHARE button that really
+ *                  shares the link. No placeholder people, no dead buttons.
  *
  * WHAT ATTEMPT 2 CHANGED, every line of it measured against the committed
  * image by a critic rather than argued here:
@@ -62,9 +73,14 @@
  * berries, drawn small and flat, never the imported mark.
  */
 
-import { useId, useMemo } from "react";
-import { Pill } from "../../app/ui/Card";
+import { useEffect, useId, useMemo, useState } from "react";
+import { isFlagOn } from "../../app/flags";
 import { useProgress } from "../../app/hooks";
+import { hrefForTab } from "../../app/routes";
+import { PATHWAY_UNITS, pathwayNode } from "../../demo/pathwayMap";
+import { useStudyState } from "../social/useStudyState";
+import "../social/social.css";
+import { activityFeed, type ActivityItem, type ActivityKind } from "./activityModel";
 import { FeedBackdrop } from "./FeedBackdrop";
 import { feedModel, type QuestModel } from "./feedModel";
 import "./feed.css";
@@ -318,7 +334,8 @@ function BerryCrown({ cx, cy }: { readonly cx: number; readonly cy: number }) {
 function BlueberryAvatar() {
   return (
     <svg viewBox="0 0 32 32" className="feed-avatar" aria-hidden focusable="false">
-      <circle cx="16" cy="18.5" r="11.4" fill="#3d63f5" stroke="#2231a8" strokeWidth="1.2" />
+      {/* Bloom's own darker blue (owner, 2026-10-16), never the old sky blue. */}
+      <circle cx="16" cy="18.5" r="11.4" fill="#4a5ae0" stroke="#10164f" strokeWidth="1.2" />
       <ellipse cx="10.6" cy="13" rx="3.4" ry="2.3" fill="#ffffff" fillOpacity="0.32" transform="rotate(-28 10.6 13)" />
       <BerryCrown cx={16} cy={8} />
       <BerryFace cx={16} cy={18.5} />
@@ -360,61 +377,6 @@ function BlackberryAvatar() {
   );
 }
 
-/**
- * The toast-a-flask cheer: a raised, tipped flask with the cheer's fizz.
- *
- * IT IS THE QUEST FLASK, TIPPED, and that is the point rather than an economy
- * of drawing: the committed reference draws one piece of glassware in this
- * product and uses it twice on this screen, held upright to show a quest
- * filling and raised at an angle to cheer. Same vessel, same violet liquid,
- * same lip; the rotation and the radiating cheer strokes are the difference.
- *
- * THE FIZZ IS STROKES, NOT DOTS. The reference draws short lines radiating off
- * the flask's shoulder, which is the comic-book mark for a thing being raised;
- * three dots beside it read as bubbles escaping, which is the opposite motion.
- */
-function ToastFlask() {
-  const body = "M10.4 5.4h3.2v4.6l4.4 7.3a1.5 1.5 0 0 1-1.3 2.3H7.3a1.5 1.5 0 0 1-1.3-2.3l4.4-7.3z";
-  return (
-    <svg viewBox="0 0 24 24" className="feed-toast" aria-hidden focusable="false">
-      <g transform="rotate(20 12 15)">
-        <path d={body} fill={LIQUID} />
-        <path d={body} fill="none" stroke={LIQUID_DEEP} strokeWidth="1.6" strokeLinejoin="round" />
-        <rect x="9.2" y="3.9" width="5.6" height="2.2" rx="1.1" fill={LIQUID_DEEP} />
-      </g>
-      <g stroke={FLAME_BODY} strokeWidth="1.9" strokeLinecap="round">
-        <path d="M18.6 4.4 20.6 2.6M20.4 7.6 22.6 6.6M17.4 8.2 18.6 6.6" />
-      </g>
-    </svg>
-  );
-}
-
-/**
- * The cheer, as a real DISABLED control.
- *
- * The honest not-open treatment of an ACTION is a disabled control, not the
- * absence of a control: the student sees the affordance, sees that it is not
- * live, and reads why in its accessible name. Drawing the flask with no button
- * round it meant the whole Feed contained zero <button> elements, so there was
- * no press to acknowledge, no disabled state to read and no 44 px target to
- * hit. This is 44 by 44 from the Budgets table and carries `.press`, so the
- * day the friends server lands, dropping `disabled` is the entire change and
- * the press contract is already satisfied.
- */
-function ToastButton() {
-  return (
-    <button
-      type="button"
-      className="press feed-toast-btn"
-      disabled
-      aria-label="Toast this clear. Opens when the friends server arrives in Phase 6."
-      title="Opens with the friends server"
-    >
-      <ToastFlask />
-    </button>
-  );
-}
-
 /* --------------------------------------------------------------- the rows -- */
 
 function QuestRow({ quest }: { readonly quest: QuestModel }) {
@@ -451,19 +413,214 @@ function QuestRow({ quest }: { readonly quest: QuestModel }) {
   );
 }
 
-const LAB_MATE_SHAPES = [
-  { key: "blueberry", Avatar: BlueberryAvatar, width: "9rem" },
-  { key: "raspberry", Avatar: RaspberryAvatar, width: "11rem" },
-  { key: "blackberry", Avatar: BlackberryAvatar, width: "8rem" },
-] as const;
+/* ------------------------------------------------------------ activity --- */
+
+/** A map node's or a unit's title, for the activity posts. */
+function titleFor(id: string): string | null {
+  return pathwayNode(id)?.title ?? PATHWAY_UNITS.find((unit) => unit.id === id)?.title ?? null;
+}
+
+/** One flat badge per kind of post: a colour surface and a white glyph. */
+const STAR = "M12 6.5 13.7 10 17.5 10.5 14.7 13.1 15.4 17 12 15.1 8.6 17 9.3 13.1 6.5 10.5 10.3 10z";
+const CHECK = "M7 12.5 10.5 16 17 9";
+/** Dark ink on the bright faces, white only on the purple, so every glyph clears 3:1. */
+const ACTIVITY_BADGE: Readonly<Record<ActivityKind, { readonly face: string; readonly ink: string; readonly glyph: string; readonly solid: boolean }>> = {
+  cleared: { face: "var(--progress)", ink: "var(--progress-ink)", glyph: CHECK, solid: false },
+  flawless: { face: "#ffc233", ink: "#5f3c12", glyph: STAR, solid: true },
+  unit: { face: "var(--bb-primary)", ink: "#ffffff", glyph: "M8 17.5V6.5M8 7h8l-2 3 2 3H8", solid: false },
+  quiz: { face: "var(--bb-primary)", ink: "#ffffff", glyph: CHECK, solid: false },
+  challenge: { face: "#ff9b3d", ink: "#5a2a00", glyph: "M13 5.5 8 13h4l-1 5.5 5-7.5h-4z", solid: true },
+  cards: { face: "#f487a6", ink: "#5e1530", glyph: "M8 7.5h8v9H8zM10 10.5h4M10 13.5h4", solid: false },
+  boss: { face: "#ff9b3d", ink: "#5a2a00", glyph: STAR, solid: true },
+};
+
+function ActivityRow({ item }: { readonly item: ActivityItem }) {
+  const badge = ACTIVITY_BADGE[item.kind];
+  return (
+    <li className="feed-quest">
+      <svg viewBox="0 0 24 24" className="feed-post-badge" aria-hidden focusable="false">
+        <circle cx="12" cy="12" r="11" fill={badge.face} />
+        <path
+          d={badge.glyph}
+          fill={badge.solid ? badge.ink : "none"}
+          stroke={badge.ink}
+          strokeWidth="2.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+      <div className="min-w-0 flex-1">
+        <p className="feed-quest-label">{item.text}</p>
+        <p className="feed-post-when">{item.when}</p>
+      </div>
+    </li>
+  );
+}
+
+
+/**
+ * The lab mates invite, as one pressable row in the rail: there are no lab
+ * mates on this device to show, so it offers the link. Tapping opens the
+ * phone's share sheet on a touch phone and copies the link everywhere else,
+ * and says which happened. A row, not a filled button, so the page keeps one
+ * primary action.
+ */
+function LabMatesInvite() {
+  const [status, setStatus] = useState("");
+
+  async function share(): Promise<void> {
+    const url = `${window.location.origin}${window.location.pathname}`;
+    // The OS share sheet only on a touch phone. Desktop Chrome and Edge on
+    // Windows also have navigator.share, but there it opens a system dialog
+    // that can hang, so a mouse gets the plain copy-the-link path.
+    const phone = window.matchMedia("(pointer: coarse)").matches;
+    try {
+      if (phone && typeof navigator.share === "function") {
+        await navigator.share({ title: "Blueberry", text: "Learn orgo with me on Blueberry", url });
+        setStatus("Shared!");
+      } else {
+        await navigator.clipboard.writeText(url);
+        setStatus("Link copied! Paste it to a classmate.");
+      }
+    } catch {
+      // A closed share sheet says nothing; a blocked clipboard shows the link to copy by hand.
+      setStatus(phone ? "" : `Copy this link: ${url}`);
+    }
+  }
+
+  return (
+    <li className="flex flex-col gap-1">
+      <button
+        type="button"
+        onClick={() => void share()}
+        className="press flex min-h-16 w-full items-center gap-3 rounded-2xl border-2 border-b-4 border-[color:var(--btn-line)] bg-bb-card px-3 py-2 text-left"
+      >
+        <span className="feed-avatar-row feed-avatar-row--small" aria-hidden="true">
+          <RaspberryAvatar />
+          <BlueberryAvatar />
+          <BlackberryAvatar />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block font-display font-extrabold text-bb-foreground">Invite a friend</span>
+          <span className="block text-sm font-semibold text-bb-muted-foreground">Send them the link</span>
+        </span>
+        <span aria-hidden="true" className="text-xl font-black text-bb-muted-foreground">›</span>
+      </button>
+      <p className="break-all px-1 text-[0.9375rem] font-bold text-bb-foreground empty:hidden" role="status">
+        {status}
+      </p>
+    </li>
+  );
+}
+
+/* ------------------------------------------------------------ the hero --- */
+
+/** Milliseconds until the next local midnight, when the daily quests reset. */
+function msToMidnight(now: Date): number {
+  const next = new Date(now);
+  next.setHours(24, 0, 0, 0);
+  return next.getTime() - now.getTime();
+}
+
+function timeLeftLabel(ms: number): string {
+  const minutes = Math.max(1, Math.floor(ms / 60_000));
+  const hours = Math.floor(minutes / 60);
+  return hours > 0 ? `${hours}h ${minutes % 60}m left` : `${minutes}m left`;
+}
+
+/** A clock face for the timer chip. */
+function ClockGlyph() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-4" aria-hidden="true" focusable="false">
+      <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="3" />
+      <path d="M12 7v5l3 2" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+/**
+ * The quests' section header: how many are done and a real countdown to the
+ * local midnight reset, in one line. The timer ticks once a minute, which is
+ * the finest unit it shows.
+ */
+function QuestsHeader({ done, total }: { readonly done: number; readonly total: number }) {
+  const [left, setLeft] = useState(() => msToMidnight(new Date()));
+  // useEffect with a cleanup: start one interval on mount, stop it on unmount.
+  useEffect(() => {
+    const timer = window.setInterval(() => setLeft(msToMidnight(new Date())), 60_000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-2">
+      <h2 className="feed-heading">
+        Daily quests <span className="text-bb-muted-foreground tabular-nums">{done}/{total}</span>
+      </h2>
+      <span className="feed-timer">
+        <ClockGlyph />
+        {timeLeftLabel(left)}
+      </span>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------- the first win --- */
+
+/**
+ * Before the student has a win: not a pretend post (no name, no timestamp,
+ * nothing that claims something happened), but the screen's one idea and one
+ * action. It says where wins will show up and starts the real next lesson.
+ */
+function FirstWin({ lesson }: { readonly lesson: string | null }) {
+  return (
+    <div className="feed-first-win flex flex-col items-center gap-3 text-center">
+      <svg viewBox="0 0 64 64" className="size-28" aria-hidden="true" focusable="false">
+        <circle cx="32" cy="34" r="27" fill="#2f7d33" />
+        <circle cx="32" cy="30" r="27" fill="var(--progress)" />
+        <path d="M20 31 28 39 44 22" fill="none" stroke="var(--progress-ink)" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M53 8 55 13 60 15 55 17 53 22 51 17 46 15 51 13z" fill="#ffc233" />
+        <path d="M9 44 10.5 47.5 14 49 10.5 50.5 9 54 7.5 50.5 4 49 7.5 47.5z" fill="#ffc233" />
+      </svg>
+      <h2 className="font-display text-2xl leading-tight font-black text-bb-foreground">Your wins land here</h2>
+      <p className="max-w-[22rem] text-base font-bold text-bb-foreground">
+        {lesson === null ? "Finish a lesson to post your first one." : `Finish ${lesson} to post your first one.`}
+      </p>
+      <a href={hrefForTab("pathway")} className="btn3d btn3d--primary mt-1 w-full">
+        {lesson === null ? "Start a lesson" : "Start this lesson"}
+      </a>
+    </div>
+  );
+}
+
+/* --------------------------------------------------------- more links --- */
+
+function MoreRow({ href, color, glyph, title, line }: { readonly href: string; readonly color: string; readonly glyph: string; readonly title: string; readonly line: string }) {
+  return (
+    <li>
+      <a href={href} className="press flex min-h-16 items-center gap-3 rounded-2xl border-2 border-b-4 border-[color:var(--btn-line)] bg-bb-card px-3 py-2">
+        <svg viewBox="0 0 24 24" className="size-10 shrink-0" aria-hidden="true" focusable="false">
+          <circle cx="12" cy="12" r="12" fill={color} />
+          <path d={glyph} fill="none" stroke="#ffffff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        <span className="min-w-0 flex-1">
+          <span className="block font-display font-extrabold text-bb-foreground">{title}</span>
+          <span className="block text-sm font-semibold text-bb-muted-foreground">{line}</span>
+        </span>
+        <span aria-hidden="true" className="text-xl font-black text-bb-muted-foreground">›</span>
+      </a>
+    </li>
+  );
+}
 
 /* ---------------------------------------------------------------- the tab -- */
 
 export default function FeedTab() {
   const snapshot = useProgress();
+  const study = useStudyState();
   // Re-read the clock when the journal moves, not on a timer: the bars are
   // day totals, and the one thing that changes them mid visit is an event.
   const model = useMemo(() => feedModel(snapshot.journal, new Date().toISOString()), [snapshot.journal]);
+  const activity = useMemo(() => activityFeed(snapshot.journal, titleFor, new Date().toISOString()), [snapshot.journal]);
 
   return (
     <div
@@ -471,50 +628,53 @@ export default function FeedTab() {
       data-feed-done={model.doneCount}
       data-feed-streak={model.snapshot.streak.todayCounted ? "true" : "false"}
     >
-      {/* The composed ground, per BACKGROUND DOCTRINE and the committed
-          reference. Behind everything, decorative, and placed by a table
-          rather than scattered (backdropProps.ts). */}
+      {/* The composed ground: behind everything, decorative, placed by a table (backdropProps.ts). */}
       <FeedBackdrop />
-      <div className="feed-column mx-auto flex max-w-2xl flex-col gap-5 p-4 md:p-6">
-        <section aria-label={`Daily quests, fresh each day. ${model.doneCount} of ${model.quests.length} done`}>
-          {/* Heading alone, the way the image draws it. The "fresh each day"
-              line that used to sit under it is in the accessible name above:
-              on a phone it occupied exactly the band a backdrop prop drifts
-              through, and the image goes from heading straight to cards. */}
-          <h2 className="feed-heading">Daily Quests</h2>
-          <ul className="feed-quests">
-            {model.quests.map((quest) => (
-              <QuestRow key={quest.id} quest={quest} />
-            ))}
-          </ul>
-        </section>
+      <div className="feed-column social-grid">
+        <div className="social-main">
+          {/* On desktop the shell header already names the screen, so there this heading is for screen readers only. */}
+          <h1 className="font-display text-[1.75rem] font-black text-bb-foreground md:sr-only">Feed</h1>
 
-        <section aria-label="Lab mates">
-          <div className="feed-heading-row">
-            <h2 className="feed-heading">Lab mates</h2>
-            <Pill>Phase 6 data</Pill>
-          </div>
-          {/* The section's SHAPE, with no invented people in it: a berry
-              avatar, the row a name and a clear will fill, and the
-              toast-a-flask cheer on the row's end as a disabled control. The
-              same honesty device LeaderboardsTab gives its standings. */}
-          <div className="feed-panel">
-            <ol className="feed-mates" aria-label="What a lab mate's row will look like">
-              {LAB_MATE_SHAPES.map(({ key, Avatar, width }) => (
-                <li key={key} className="feed-mate">
-                  <Avatar />
-                  <span className="skeleton feed-mate-line" style={{ maxWidth: width }} aria-hidden />
-                  <ToastButton />
-                </li>
+          {/* The feed itself first: the student's wins, newest first, or the one first-win card. */}
+          {activity.length === 0 ? (
+            <FirstWin lesson={study.input.nextLesson} />
+          ) : (
+            <section aria-label="Your activity" className="flex flex-col gap-3">
+              <h2 className="feed-heading">Your activity</h2>
+              <ol className="feed-quests !mt-0">
+                {activity.map((item) => (
+                  <ActivityRow key={item.key} item={item} />
+                ))}
+              </ol>
+            </section>
+          )}
+
+          <section aria-label={`Daily quests, ${model.doneCount} of ${model.quests.length} done`} className="flex flex-col gap-3">
+            <QuestsHeader done={model.doneCount} total={model.quests.length} />
+            <ul className="feed-quests !mt-0">
+              {model.quests.map((quest) => (
+                <QuestRow key={quest.id} quest={quest} />
               ))}
-            </ol>
-          </div>
-          <p className="feed-note">
-            Lab mates are other students, and other students live on the friends server, which
-            arrives in Phase 6. Nothing here is made up in the meantime: these rows are the shape
-            this takes, and the tipped flask is how you will toast a lab mate&apos;s clear.
-          </p>
-        </section>
+            </ul>
+          </section>
+        </div>
+
+        <aside className="social-rail" aria-label="Friends and more">
+          <section className="flex flex-col gap-3" aria-label="More">
+            <h2 className="feed-heading">More</h2>
+            <ul className="flex flex-col gap-2">
+              <LabMatesInvite />
+              {/* flags.ts decides whether the app LINKS to a flagged surface, so those two rows follow it. */}
+              {isFlagOn("leaderboards") ? (
+                <MoreRow href={hrefForTab("leaderboards")} color="#b7791f" glyph="M8 20h8M12 16v4M7 4h10v5a5 5 0 0 1-10 0z" title="Leaderboards" line="Weekly leagues by XP" />
+              ) : null}
+              <MoreRow href={hrefForTab("messages")} color="#5a3fd8" glyph="M5 6h14v9H10l-4 3v-3H5z" title="Messages" line="Bloom's check-in, and answers" />
+              {isFlagOn("chat") ? (
+                <MoreRow href={hrefForTab("chat")} color="#2f7d33" glyph="M10.5 16a5.5 5.5 0 1 1 0-11 5.5 5.5 0 0 1 0 11zM15 15l4.5 4.5" title="Ask Blueberry" line="Your streak, cards and any reaction" />
+              ) : null}
+            </ul>
+          </section>
+        </aside>
       </div>
     </div>
   );

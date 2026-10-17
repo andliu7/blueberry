@@ -262,14 +262,14 @@ export function BlueberryMark({
     <svg viewBox="0 0 64 64" role="img" aria-label="Blueberry" className={`block ${className}`}>
       <defs>
         <radialGradient id={berryId} cx="33%" cy="27%" r="84%">
-          <stop offset="0%" stopColor="#bdefff" />
-          <stop offset="28%" stopColor="#3fa9ff" />
-          <stop offset="66%" stopColor="#3d63f5" />
-          <stop offset="100%" stopColor="#2b2fb0" />
+          <stop offset="0%" stopColor="#a8c6ff" />
+          <stop offset="28%" stopColor="#3a66e0" />
+          <stop offset="66%" stopColor="#1c3c9e" />
+          <stop offset="100%" stopColor="#0a1a4f" />
         </radialGradient>
         <linearGradient id={calyxId} x1="0.3" y1="0" x2="0.7" y2="1">
-          <stop offset="0%" stopColor="#4a6cff" />
-          <stop offset="100%" stopColor="#2a2496" />
+          <stop offset="0%" stopColor="#2f5ad4" />
+          <stop offset="100%" stopColor="#0f2462" />
         </linearGradient>
         {costume !== undefined ? <CostumeDefs clipId={clipId} /> : null}
       </defs>
@@ -285,7 +285,7 @@ export function BlueberryMark({
         <path d={LOBE} transform="rotate(144)" />
         <path d={LOBE} transform="rotate(216)" />
         <path d={LOBE} transform="rotate(288)" />
-        <circle r="3.6" fill="#241f7a" />
+        <circle r="3.6" fill="#14266e" />
       </g>
 
       {eyes ? (

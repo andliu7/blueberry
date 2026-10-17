@@ -64,6 +64,7 @@ import { hrefForTab } from "../routes";
 import { navigate } from "../useHashRoute";
 import "./course-chip.css";
 import { closeOnBackdrop } from "./dismiss";
+import { Press } from "./Press";
 
 const ALL_COURSES: readonly CourseId[] = Object.freeze([
   "orgo_2",
@@ -100,8 +101,13 @@ export function CourseChip(): React.ReactElement | null {
     // which is what makes pulling down reveal it rather than just scroll.
     // Done after the dialog is on screen because a hidden element has no
     // scroll height to set.
+    // A2 round 4: phone only. On a wide screen the sheet is a centred card
+    // with no pull gesture, and a short list could not scroll the whole field
+    // away, which left a clipped sliver of it above the title. There the
+    // search field simply shows.
+    const wide = window.matchMedia("(min-width: 48rem)").matches;
     const id = window.requestAnimationFrame(() => {
-      if (scroller.current) scroller.current.scrollTop = SEARCH_REVEAL_PX;
+      if (scroller.current && !wide) scroller.current.scrollTop = SEARCH_REVEAL_PX;
     });
     return () => window.cancelAnimationFrame(id);
   }, [open]);
@@ -201,9 +207,9 @@ export function CourseChip(): React.ReactElement | null {
           </ul>
         </div>
 
-        <button type="button" className="course-sheet__done press" onPointerDown={close}>
+        <Press className="course-sheet__done" onPointerDown={close}>
           Done
-        </button>
+        </Press>
       </dialog>
     </>
   );

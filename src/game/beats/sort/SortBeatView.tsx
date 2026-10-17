@@ -10,10 +10,11 @@
  * turning gestures into moves and state into markup, which is what a React
  * component is for.
  *
- * THREE WAYS IN, ONE SET OF RULES. Drag a card onto a rung. Or tap a card, then
- * tap a rung, which is the path that works on a phone and is the path the
- * reference capture ("Tap / Drag the node to fill in the blank") offers first.
- * Or use the keyboard: every card and every empty rung is a real <button>, so
+ * THREE WAYS IN, ONE SET OF RULES. Every card starts on a rung, shuffled
+ * (owner, 2026-10-16: "just sort it within the box"; the old pool below the
+ * ladder sat off screen on a phone). Drag a card up or down and the cards
+ * between slide to open the gap (board.ts moveToRung). Or tap two cards to swap
+ * them, the no-drag path. Or use the keyboard: every card and every empty rung is a real <button>, so
  * Tab reaches them and Enter activates them, and Arrow Up and Arrow Down move a
  * card one rung at a time. The keyboard is not a fallback bolted on afterwards;
  * it is the tap path with a different input device, which is why it took no
@@ -36,7 +37,9 @@
  * release over an empty rung did nothing, and a release over another card ran
  * that card's handler with the wrong id. So the hole the card leaves behind is
  * the SAME `<button>`, carrying `is-ghosted`, which zeroes its paint and keeps
- * its box. test/sortDrag.test.tsx pins the whole gesture against exactly this.
+ * its box. That bug was back when this file moved into src/game (the test the
+ * old repo pinned it with did not come along); it is fixed again, and the
+ * gesture was checked with a real mouse drag in Chrome on 2026-10-16.
  *
  * REACT PATTERNS USED HERE, named because they are the kind of thing that is
  * hard to look up if you have not seen it before:
@@ -55,6 +58,7 @@
  */
 
 import {
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -64,25 +68,25 @@ import {
 } from "react";
 import { PKA_TABLE, type OrderingState, type PkaSiteId } from "@blueberry/curriculum";
 import { ChipPress } from "../ChipPress";
+import { AnswerTray, TrayWhy } from "../AnswerTray";
 import { canFail, type BeatResult, type MasteryLevel } from "../types";
 import {
   boardIsComplete,
   boardOrder,
-  emptyRungCount,
-  hitTarget,
+  moveToRung,
+  nearestRung,
   nudge,
   placeOf,
   placeOnRung,
-  returnToPool,
-  applyDrop,
-  openingBoard,
-  type DropTarget,
+  rankedOpening,
   type SortBoard,
   type SortCardId,
   type TargetRect,
 } from "./board";
 import { judgeSort, type SortJudgement } from "./judge";
 import type { SortContent } from "./ladders";
+import type { NamedFigure } from "../mcq/mcqFigures";
+import { StructureFigure } from "../../onboarding/StructureFigure";
 import {
   formatPka,
   pkaSettings as pkaSettingsStore,
@@ -108,9 +112,19 @@ interface DragState {
   readonly dx: number;
   readonly dy: number;
   readonly width: number;
+  /** The card's own left edge: the drag is vertical only, so it reads as a reorder. */
+  readonly left: number;
+  /** The rung the card was picked up from. */
+  readonly from: number;
+  /** Distance between one rung and the next, measured at drag start. */
+  readonly pitch: number;
   readonly moved: boolean;
-  readonly over: DropTarget | null;
+  /** The rung it would land on if released now. */
+  readonly over: number | null;
 }
+
+/** Remembers, per device, that the "these cards move" nudge has been shown. */
+const HINT_KEY = "bb-sort-hinted";
 
 export interface SortBeatViewProps {
   readonly content: SortContent;
@@ -136,6 +150,11 @@ export interface SortBeatViewProps {
   readonly onSubmitOrder?: (state: OrderingState) => void;
   /** Shown as the forward action once the ladder is right. */
   readonly onContinue?: () => void;
+  /**
+   * A drawing per card, keyed by item id (Unit 1's ladders carry one, owner
+   * rule: draw structures, never formulas). A card without one shows its label alone.
+   */
+  readonly figures?: Readonly<Record<string, NamedFigure>>;
 }
 
 export function SortBeatView({
@@ -146,6 +165,7 @@ export function SortBeatView({
   onResult,
   onSubmitOrder,
   onContinue,
+  figures,
 }: SortBeatViewProps) {
   // useSyncExternalStore is React's supported way to read a store that lives
   // outside React (subscribe plus getSnapshot). It is what app/progress.ts and
@@ -157,7 +177,9 @@ export function SortBeatView({
   );
   const table = settings ?? liveSettings;
   const itemIds = useMemo(() => content.beat.items.map((item) => item.id), [content]);
-  const [board, setBoard] = useState<SortBoard>(() => openingBoard(itemIds, seed));
+  const [board, setBoard] = useState<SortBoard>(() =>
+    rankedOpening(itemIds, seed, content.spec.correctOrder),
+  );
   const [selected, setSelected] = useState<SortCardId | null>(null);
   const [judgement, setJudgement] = useState<SortJudgement | null>(null);
   const [drag, setDrag] = useState<DragState | null>(null);
@@ -165,11 +187,36 @@ export function SortBeatView({
   // Refs: mutable boxes that survive renders and never cause one.
   const rectsRef = useRef<readonly TargetRect[]>([]);
   const rungRefs = useRef<(HTMLLIElement | null)[]>([]);
-  const poolRef = useRef<HTMLDivElement | null>(null);
   const startedAtRef = useRef<number>(Date.now());
+  const openingRef = useRef<SortBoard>(board);
+
+  // The first ranking a student ever meets nudges its top card once, so it is
+  // obvious the cards move. Lazy useState initializer: read storage once, on mount.
+  const [hinting, setHinting] = useState(() => {
+    try {
+      return window.localStorage.getItem(HINT_KEY) === null;
+    } catch {
+      return false;
+    }
+  });
+  useEffect(() => {
+    if (!hinting) return;
+    try {
+      window.localStorage.setItem(HINT_KEY, "1");
+    } catch {
+      /* storage blocked: the nudge just shows again next time */
+    }
+    const stop = window.setTimeout(() => setHinting(false), 2600);
+    return () => window.clearTimeout(stop);
+  }, [hinting]);
 
   const judged = judgement !== null && judgement.status === "judged";
   const complete = boardIsComplete(board);
+  // CHECK stays grey until the student has moved a card. The ladder opens full
+  // but never solved, so a live CHECK on first paint only invited a free miss.
+  // Every move returns a new board object, so "still the opening object" means
+  // nothing has moved yet.
+  const untouched = board === openingRef.current;
   const conflicts = useMemo(
     () => sortBeatPkaConflicts(content.beat, table),
     [content, table],
@@ -186,23 +233,9 @@ export function SortBeatView({
     return map;
   }, [content]);
 
-  /**
-   * Every drop target, measured ONCE at drag start. See board.ts on why this is
-   * not read per frame. The pool goes in first and the rungs after, because
-   * hitTarget lets the later rect win.
-   */
+  /** Every rung, measured ONCE at drag start. See board.ts on why this is not read per frame. */
   function collectRects(): readonly TargetRect[] {
     const rects: TargetRect[] = [];
-    const pool = poolRef.current?.getBoundingClientRect();
-    if (pool !== undefined) {
-      rects.push({
-        target: { kind: "pool" },
-        left: pool.left,
-        top: pool.top,
-        right: pool.right,
-        bottom: pool.bottom,
-      });
-    }
     rungRefs.current.forEach((element, index) => {
       const rect = element?.getBoundingClientRect();
       if (rect === undefined) return;
@@ -219,10 +252,13 @@ export function SortBeatView({
 
   function handlePointerDown(event: ReactPointerEvent<HTMLButtonElement>, card: SortCardId) {
     if (judged) return;
+    setHinting(false);
     // The pressed frame is already painted by :active. This only starts the drag.
     event.currentTarget.setPointerCapture(event.pointerId);
-    rectsRef.current = collectRects();
+    const rects = collectRects();
+    rectsRef.current = rects;
     const rect = event.currentTarget.getBoundingClientRect();
+    const from = board.slots.indexOf(card);
     setDrag({
       card,
       pointerId: event.pointerId,
@@ -233,6 +269,9 @@ export function SortBeatView({
       dx: event.clientX - rect.left,
       dy: event.clientY - rect.top,
       width: rect.width,
+      left: rect.left,
+      from,
+      pitch: rects.length > 1 ? (rects[1]?.top ?? 0) - (rects[0]?.top ?? 0) : 0,
       moved: false,
       over: null,
     });
@@ -249,7 +288,7 @@ export function SortBeatView({
         x: event.clientX,
         y: event.clientY,
         moved,
-        over: moved ? hitTarget(rectsRef.current, event.clientX, event.clientY) : null,
+        over: moved ? nearestRung(rectsRef.current, event.clientY) : null,
       };
     });
   }
@@ -260,25 +299,23 @@ export function SortBeatView({
     if (current === null || current.pointerId !== event.pointerId) return;
 
     if (current.moved) {
-      const target = hitTarget(rectsRef.current, event.clientX, event.clientY);
+      const target = nearestRung(rectsRef.current, event.clientY);
       if (target !== null) {
-        setBoard((live) => applyDrop(live, card, target));
+        setBoard((live) => moveToRung(live, card, target));
       }
       setSelected(null);
       return;
     }
 
     // A tap. Either this card is being picked up, or a card already picked up
-    // is being dropped onto whatever this card is sitting on.
+    // swaps rungs with this one (the no-drag path, and the one a switch user takes).
     if (selected !== null && selected !== card) {
       const moving = selected;
       setBoard((live) => {
         // Where the tapped card sits is read from the LIVE board inside the
         // updater, not from the render this handler closed over.
         const here = placeOf(live, card);
-        return here !== null && here.where === "slot"
-          ? placeOnRung(live, moving, here.index)
-          : returnToPool(live, moving);
+        return here !== null && here.where === "slot" ? placeOnRung(live, moving, here.index) : live;
       });
       setSelected(null);
       return;
@@ -292,6 +329,17 @@ export function SortBeatView({
       event.preventDefault();
       setBoard((live) => nudge(live, card, event.key === "ArrowUp" ? -1 : 1));
     }
+  }
+
+  /**
+   * How far a ranked card slides while another is dragged past it, so the
+   * ladder opens a gap where the dragged card would land.
+   */
+  function slideFor(index: number): number {
+    if (drag === null || !drag.moved || drag.over === null || drag.from < 0) return 0;
+    if (drag.from < index && index <= drag.over) return -drag.pitch;
+    if (drag.over <= index && index < drag.from) return drag.pitch;
+    return 0;
   }
 
   function handleEmptyRung(index: number) {
@@ -326,8 +374,6 @@ export function SortBeatView({
     judged &&
     judgement.status === "judged" &&
     (judgement.result.kind === "correct" || judgement.result.kind === "correct_alternative_route");
-  const sound =
-    judged && judgement.status === "judged" && judgement.result.kind === "valid_not_requested";
 
   function cardMarkClass(card: SortCardId, index: number): string {
     if (nearest === null) return "";
@@ -337,10 +383,6 @@ export function SortBeatView({
   function renderCard(card: SortCardId, options: { readonly ranked: boolean; readonly index: number }) {
     const item = itemById.get(card);
     if (item === undefined) return null;
-    if (drag !== null && drag.card === card && drag.moved) {
-      // The hole the card left, so nothing under the finger jumps.
-      return <span key={card} className="sort-card-ghost" aria-hidden />;
-    }
     // SortItem.pkaSiteId is a plain string on the beat contract, so it is
     // checked against the real table before it is used as a key. Same guard the
     // settings layer's own sortItemValue applies, for the same reason: an
@@ -351,9 +393,15 @@ export function SortBeatView({
         ? (item.pkaSiteId as PkaSiteId)
         : null;
     const value = site === null ? null : pkaValueFor(table, site);
+    // The dragged card's OWN button stays mounted, painted as a hole: it holds the
+    // pointer capture, and swapping it for another element ends the drag (header).
+    const ghosted = drag !== null && drag.card === card && drag.moved;
+    const slide = options.ranked ? slideFor(options.index) : 0;
     const classes = [
       "sort-card",
       options.ranked ? " is-ranked" : "",
+      ghosted ? " is-ghosted" : "",
+      hinting && options.ranked && options.index === 0 ? " is-hinting" : "",
       selected === card ? " is-selected" : "",
       options.ranked ? cardMarkClass(card, options.index) : "",
     ].join("");
@@ -362,6 +410,9 @@ export function SortBeatView({
       <>
         <span className="sort-card__edge" aria-hidden />
         <span className="sort-card__face">
+          {figures?.[card] === undefined ? null : (
+            <StructureFigure figure={figures[card].figure} className="sort-card__figure" />
+          )}
           <span className="sort-card__label">{item.label}</span>
           {showValues && value !== null ? (
             <span className="sort-card__pka">pKa {formatPka(value)}</span>
@@ -371,6 +422,10 @@ export function SortBeatView({
               ⋮⋮
             </span>
           )}
+          {/* The right-or-move mark, so colour is never the only signal. */}
+          {judged && options.ranked && nearest !== null ? (
+            <span className="sort-card__mark">{nearest[options.index] === card ? "✓" : "Move"}</span>
+          ) : null}
         </span>
         {judged && item.why !== undefined ? (
           <span className="sort-card__why">{item.why}</span>
@@ -395,6 +450,7 @@ export function SortBeatView({
         key={card}
         type="button"
         className={classes}
+        style={slide === 0 ? undefined : { transform: `translateY(${slide}px)` }}
         aria-pressed={selected === card}
         aria-label={`${item.label}, in ${position}`}
         onPointerDown={(event) => handlePointerDown(event, card)}
@@ -412,13 +468,17 @@ export function SortBeatView({
 
   return (
     <section className="sort-beat">
-      <p className="sort-beat__prompt">{content.beat.prompt}</p>
+      {/* The prompt is the screen's one heading, so heading navigation in a
+          screen reader lands on the question. */}
+      <h1 className="sort-beat__prompt">{content.beat.prompt}</h1>
       {content.beat.brief === undefined ? null : (
         <p className="sort-beat__brief">{content.beat.brief}</p>
       )}
       <p className="sort-beat__how">
-        Drag a card onto a rung, or tap the card and then the rung. On a keyboard, Tab to a card and
-        use Arrow Up and Arrow Down to move it.
+        Drag a card up or down to put the ladder in order, or tap two cards to swap them.
+        {/* The keyboard half is hidden on touch screens (sort.css), where it
+            only pushed the ladder down. */}
+        <span className="sort-beat__keys"> On a keyboard, Tab to a card and use Arrow Up and Arrow Down to move it.</span>
       </p>
 
       {conflicts.map((conflict) => (
@@ -434,10 +494,7 @@ export function SortBeatView({
           <ol className="sort-track__rungs">
             {board.slots.map((card, index) => {
               const armed = selected !== null && card === null;
-              const over =
-                drag !== null && drag.over !== null && drag.over.kind === "slot"
-                  ? drag.over.index === index
-                  : false;
+              const over = drag !== null && drag.over === index;
               return (
                 <li
                   key={index}
@@ -476,81 +533,59 @@ export function SortBeatView({
         <div className="sort-track__end">{content.trackEnds.last}</div>
       </div>
 
-      <div
-        className={`sort-pool${drag?.over?.kind === "pool" ? " is-over" : ""}`}
-        ref={poolRef}
-        aria-label="Cards not yet ranked"
-      >
-        {board.pool.length === 0 ? (
-          <p className="sort-pool__empty">Every card is on the track.</p>
-        ) : (
-          board.pool.map((card) => renderCard(card, { ranked: false, index: -1 }))
-        )}
-      </div>
-
-      {/* THE COMMIT IS A CHIP, and its disabled state is a different object.
-          The S3 judge's carry against the question screen was an outlined
-          Check whose disabled state was ambiguous; this row held the same
-          defect, because a ladder is incomplete far more often than it is
-          complete and the student was reading a dimmed button to find out.
-          ChipPress is the committed button-types sheet's own construction:
-          the sheet's periwinkle check face over a darker bottom edge while
-          it is live, and the sheet's cool grey-blue disabled pill, which is
-          a different object rather than a dimmer one, while it is not. */}
-      <div className="sort-beat__actions">
-        {judged ? (
-          cleared ? (
-            <ChipPress onClick={onContinue} disabled={onContinue === undefined}>
-              Keep going
-            </ChipPress>
-          ) : (
-            <ChipPress variant="quiet" onClick={adjust}>
-              Adjust the ladder
-            </ChipPress>
-          )
-        ) : (
-          <ChipPress onClick={check} disabled={!complete}>
-            Check
-          </ChipPress>
-        )}
-        {!judged && !complete ? (
-          <span className="sort-beat__how">
-            {emptyRungCount(board)} still to place.
-          </span>
-        ) : null}
-        {!canFail(level) ? (
-          <span className="sort-beat__how">First meeting: this one is a look, not a test.</span>
-        ) : null}
-      </div>
-
-      {judgement !== null && judgement.status === "judged" ? (
-        <div
-          className={`sort-feedback${cleared ? " is-correct" : ""}${sound ? " is-sound" : ""}`}
-          role="status"
+      {/* THE FOOTER, docked at the bottom of the lesson (sticky in sort.css).
+          Before the check it holds one full-width CHECK. After the check the
+          SAME slot becomes the shared answer tray (AnswerTray.tsx), green with
+          KEEP GOING when the ladder is right and red with TRY AGAIN when it is
+          not: the same tray every lesson type uses (A2 round 4). */}
+      {judged && judgement !== null && judgement.status === "judged" ? (
+        <AnswerTray
+          tone={cleared ? "right" : "wrong"}
+          title={cleared ? "Nice!" : "Not quite"}
+          actionLabel={cleared ? "Keep going" : "Try again"}
+          onAction={cleared ? onContinue : adjust}
+          actionDisabled={cleared && onContinue === undefined}
         >
-          {judgement.tier === null ? null : (
-            <span className="sort-feedback__tier">
-              {judgement.tier === 2 ? "Anticipated answer" : `Tier ${judgement.tier}`}
-            </span>
-          )}
-          <p className="sort-feedback__headline">{judgement.headline}</p>
+          <p className="answer-tray__answer">{judgement.headline}</p>
           {judgement.explanation === null ? null : (
             <>
-              <p className="sort-feedback__field">{judgement.explanation.whatHappened}</p>
-              <p className="sort-feedback__field">{judgement.explanation.why}</p>
-              <p className="sort-feedback__field">
-                <b>Look at</b> {judgement.explanation.lookAt}
-              </p>
+              {/* The tray stays short: the headline, one line on show, and the
+                  rest folded behind a native <details>. A right ladder shows
+                  the why. A wrong one shows what to look at next, because an
+                  authored distractor's why describes the tempting reasoning,
+                  and its first sentence alone can read as approval ("so the
+                  ranking work is done"). A2 round 6. */}
+              {cleared ? (
+                <TrayWhy
+                  lead={judgement.explanation.why}
+                  more={[judgement.explanation.whatHappened, judgement.explanation.lookAt]}
+                />
+              ) : (
+                <TrayWhy
+                  lead={judgement.explanation.lookAt}
+                  more={[judgement.explanation.why, judgement.explanation.whatHappened]}
+                />
+              )}
             </>
           )}
+          {!canFail(level) ? <p>First meeting: this one is a look, not a test.</p> : null}
+        </AnswerTray>
+      ) : (
+        <div className="sort-beat__actions foot-bleed">
+          <ChipPress onClick={check} disabled={!complete || untouched}>
+            Check
+          </ChipPress>
+          {!canFail(level) ? (
+            <span className="sort-beat__how">First meeting: this one is a look, not a test.</span>
+          ) : null}
         </div>
-      ) : null}
+      )}
 
       {drag !== null && drag.moved && draggedItem !== undefined ? (
         <div
           className="sort-card is-dragging"
           style={{
-            left: `${drag.x - drag.dx}px`,
+            left: `${drag.left}px`,
             top: `${drag.y - drag.dy}px`,
             width: `${drag.width}px`,
           }}
@@ -558,6 +593,9 @@ export function SortBeatView({
         >
           <span className="sort-card__edge" />
           <span className="sort-card__face">
+            {figures?.[drag.card] === undefined ? null : (
+              <StructureFigure figure={figures[drag.card].figure} className="sort-card__figure" />
+            )}
             <span className="sort-card__label">{draggedItem.label}</span>
           </span>
         </div>

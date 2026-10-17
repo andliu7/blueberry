@@ -18,7 +18,7 @@
  */
 
 import type { Figure, FigureBond, FigureLabel } from "./figures";
-import { FIGURE_HEIGHT, FIGURE_WIDTH, formulaRuns } from "./figures";
+import { FIGURE_HEIGHT, FIGURE_WIDTH, formulaRuns, stereoShape } from "./figures";
 
 /** Bond weight, in viewBox units. Reads at the 145px the tile draws it at. */
 const STROKE = 2.6;
@@ -78,6 +78,28 @@ function Bond({ bond }: { readonly bond: FigureBond }) {
         <line x1={x1} y1={y1} x2={x2} y2={y2} />
         <line x1={x2} y1={y2} x2={x2 - ux * head + nx * head * 0.6} y2={y2 - uy * head + ny * head * 0.6} />
         <line x1={x2} y1={y2} x2={x2 - ux * head - nx * head * 0.6} y2={y2 - uy * head - ny * head * 0.6} />
+      </g>
+    );
+  }
+
+  if (bond.stereo !== undefined) {
+    const shape = stereoShape({ ...bond, stereo: bond.stereo });
+    if (shape.kind === "wedge") {
+      return (
+        <polygon
+          points={shape.points.map(([x, y]) => `${x},${y}`).join(" ")}
+          fill="currentColor"
+          stroke="currentColor"
+          strokeWidth={0.8}
+          strokeLinejoin="round"
+        />
+      );
+    }
+    return (
+      <g stroke="currentColor" strokeWidth={1.6} strokeLinecap="round">
+        {shape.rungs.map(([ax, ay, bx, by], index) => (
+          <line key={index} x1={ax} y1={ay} x2={bx} y2={by} />
+        ))}
       </g>
     );
   }

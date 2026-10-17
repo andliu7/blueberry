@@ -39,6 +39,7 @@ import { Press } from "../../app/ui/Press";
 import type { Card, Reco } from "../../cards/types";
 import type { BeatResult, MasteryLevel, McqBeat } from "../types";
 import { mcqBeatsForNode } from "./content";
+import { resumeMcqSession } from "../../resume/lessonSave";
 import { McqBeatView } from "./McqBeatView";
 import {
   advance,
@@ -52,6 +53,7 @@ import {
   mcqReportFor,
   selectOption,
   sessionProgress,
+  currentRun,
   startMcqSession,
   type McqProgress,
   type McqReport,
@@ -89,22 +91,18 @@ export interface McqRunnerProps {
    */
   readonly progressSlot?: ReactNode;
   /**
-   * The header's currency counter, from the same owner as `progressSlot`.
-   *
-   * WHY IT ARRIVES FROM ABOVE. The lesson's header has to be ONE row that
-   * does not change shape between screens, and the runner is only one of the
-   * surfaces that draws it. A per-beat diamond value is not that counter:
-   * both committed lesson frames pair their number with a drawn icon and the
-   * number is a BALANCE, the thing the student is carrying, not the payout
-   * for the question on screen.
-   */
-  readonly currencySlot?: ReactNode;
-  /**
    * Fired on every committed answer and on the advance past it, with the
    * run's progress, so the owner of `progressSlot` can fill the strip's
    * current segment to its fraction.
    */
   readonly onProgress?: (progress: McqProgress) => void;
+  /**
+   * Answers saved from an earlier visit (resume/lessonSave.ts). The run opens
+   * on the next unanswered question; ignored if they no longer match.
+   */
+  readonly resumeResults?: readonly BeatResult[];
+  /** Fired after every committed answer with all answers so far, so the parent can save them. */
+  readonly onCommit?: (results: readonly BeatResult[], progress: McqProgress) => void;
 }
 
 export function McqRunner({
@@ -119,14 +117,17 @@ export function McqRunner({
   reducedMotion = false,
   now = () => new Date(),
   progressSlot,
-  currencySlot,
   onProgress,
+  resumeResults,
+  onCommit,
 }: McqRunnerProps) {
   const source = beats ?? mcqBeatsForNode(node);
   const runKey = `${node}:${level}:${source.length}`;
 
   const [seenRun, setSeenRun] = useState(runKey);
-  const [session, setSession] = useState(() => startMcqSession(source, level));
+  const [session, setSession] = useState(() =>
+    resumeMcqSession(startMcqSession(source, level), resumeResults === undefined ? null : { results: resumeResults }),
+  );
   const startedAt = useRef(Date.now());
 
   // See the header: React's adjust-state-during-render pattern, so a swapped
@@ -157,6 +158,7 @@ export function McqRunner({
     if (committed === null) return;
     setSession(committed.session);
     if (onProgress !== undefined) onProgress(sessionProgress(committed.session));
+    if (onCommit !== undefined) onCommit(committed.session.results, sessionProgress(committed.session));
     if (committed.offer !== null && onOfferCard !== undefined) {
       onOfferCard(committed.offer.card, committed.offer.reco);
     }
@@ -206,8 +208,8 @@ export function McqRunner({
       reported={isReported(session)}
       {...(showHowTo !== undefined ? { showHowTo } : {})}
       {...(progressSlot !== undefined ? { progressSlot } : {})}
-      {...(currencySlot !== undefined ? { currencySlot } : {})}
       reducedMotion={reducedMotion}
+      combo={currentRun(session)}
     />
   );
 }

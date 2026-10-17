@@ -48,17 +48,28 @@
    bounded by the surface it belongs to and never floats over another one. */
 .sort-beat__actions {
   position: sticky;
-  bottom: 0;
+  /* Flush with the bottom of the screen: the scroller has a bottom padding
+     (--stage-pad, beat-chrome.css) that sticky would otherwise keep clear. */
+  bottom: calc(-1 * var(--stage-pad, 1rem));
+  margin-bottom: calc(-1 * var(--stage-pad, 1rem));
   z-index: 2;
-  padding-top: 0.75rem;
-  padding-bottom: 0.75rem;
-  background: linear-gradient(to top, var(--bb-background) 78%, transparent);
+  /* A2 round 2: a solid footer docked to the bottom, a 2px rule on top, one
+     full-width key inside. Solid so nothing on the gradient ground shows
+     through behind the label. Round 3: `foot-bleed` (beat-chrome.css) runs
+     it edge to edge, and margin-top:auto docks it to the bottom of the
+     screen even when the ladder is shorter than the screen (before, it
+     followed the content and left bare ground below it). */
+  margin-top: auto;
+  padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
+  background: var(--bb-card);
+  border-top: 2px solid var(--btn-line);
 }
-
 .sort-beat__prompt {
-  font-size: 1.125rem;
-  font-weight: 600;
-  line-height: 1.35;
+  font-family: var(--font-display);
+  font-size: var(--h-1);
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
   color: var(--bb-foreground);
   margin: 0;
 }
@@ -196,34 +207,6 @@
 }
 
 /* -----------------------------------------------------------------------
- * THE POOL. Cards not yet ranked.
- * --------------------------------------------------------------------- */
-
-.sort-pool {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  padding: 0.75rem;
-  border-radius: 1rem;
-  background: color-mix(in srgb, var(--bb-muted) 60%, transparent);
-  border: 1px solid var(--bb-border);
-  min-height: calc(var(--hit-min, 2.75rem) + 1.5rem);
-  align-content: flex-start;
-  transition: border-color 140ms ease;
-}
-
-.sort-pool.is-over {
-  border-color: var(--bb-primary);
-}
-
-.sort-pool__empty {
-  margin: 0;
-  padding: 0.6rem 0.25rem;
-  font-size: 0.8125rem;
-  color: var(--bb-muted-foreground);
-}
-
-/* -----------------------------------------------------------------------
  * THE CARD. Two slabs: a floor that does not move, and a face that does.
  * --------------------------------------------------------------------- */
 
@@ -288,8 +271,7 @@
 /* THE SINK. Pressed: the face drops the full edge height onto its floor, the
    top lip inverts from a highlight to an inset shadow, and the whole face goes
    one step darker. Painted on pointer down by the browser. */
-.sort-card:active .sort-card__face,
-.sort-card.is-dragging .sort-card__face {
+.sort-card:active .sort-card__face {
   transform: translateY(var(--bb-card-edge-h));
   filter: brightness(0.94);
   box-shadow:
@@ -304,6 +286,15 @@
 .sort-card:focus-visible .sort-card__face {
   outline: 3px solid var(--bb-ring);
   outline-offset: 2px;
+}
+
+/* A card's drawn structure (Unit 1's ladders), ink from the card's own colour. */
+.sort-card__figure {
+  flex: 0 0 auto;
+  /* A2 round 4: one and a half times the old 84px box. The small cations
+     (isopropyl, tert-butyl) drew about 25px wide at the old size. */
+  width: 7.5rem;
+  height: 5.25rem;
 }
 
 .sort-card__label {
@@ -367,27 +358,103 @@ div.sort-card {
   border-radius: 0.85rem;
 }
 
-/* The hole a dragged card left, so the layout does not jump under the finger. */
-.sort-card-ghost {
-  flex: 1 1 auto;
-  min-width: 8rem;
-  min-height: calc(var(--hit-min, 2.75rem) + 8px);
-  border-radius: 0.85rem;
-  border: 2px dashed var(--bb-border);
+/* In the air the card is lifted, not pressed: up a little, slightly larger,
+   with a deeper shadow, so it reads as picked up and movable. */
+.sort-card.is-dragging .sort-card__face {
+  transform: translateY(-2px) scale(1.02);
 }
 
-/* After the check: which rungs held and which moved. Never red for a near miss,
-   per the design rule that error red is for errors. A misplaced card is amber. */
+/* The dragged card's own button, left in its rung but painted out. It must
+   stay mounted (it holds the pointer capture), so it is hidden, not removed.
+   No outline: the sliding cards open the visible gap where it will land. */
+.sort-card.is-ghosted .sort-card__face,
+.sort-card.is-ghosted .sort-card__edge {
+  visibility: hidden;
+}
+
+/* The cards between the picked-up card and where it would land slide one rung
+   to open the gap (SortBeatView slideFor). On release they land in their new
+   rungs as fresh elements, so there is no slide back. */
+.sort-card.is-ranked {
+  transition: transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* The first ranking a student meets: the top card bobs twice so it is plain
+   the cards move. Shown once per device (SortBeatView HINT_KEY). */
+.sort-card.is-hinting {
+  animation: sort-hint 900ms ease-in-out 600ms 2;
+}
+
+@keyframes sort-hint {
+  0%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-8px); }
+  70% { transform: translateY(2px); }
+}
+
+/* After the check: which rungs held and which moved. Green held, red moved
+   (owner direction 2026-10-15: green right, red wrong; it used to be amber).
+
+   A JUDGED CARD IS A RESULT, NOT A CONTROL, so it drops the raised edge and
+   becomes one flat tinted tile with its reason inside it. (Round 1 kept the
+   edge slab, which is absolutely positioned to the card's full height: once
+   the reason line made the card taller the slab ballooned under it as a
+   brown or pale-blue block, and at night the translucent tint let that slab
+   show through the face and drowned the label.) The tint is layered over a
+   solid card colour so it is opaque in both themes. */
+div.sort-card {
+  --bb-card-tint: var(--bb-card-face);
+  border-radius: 0.85rem;
+  border: 2px solid var(--btn-line);
+  background-color: var(--bb-card);
+  background-image: linear-gradient(var(--bb-card-tint), var(--bb-card-tint));
+  color: var(--bb-foreground);
+}
+div.sort-card .sort-card__edge {
+  display: none;
+}
+div.sort-card .sort-card__face {
+  background: transparent;
+  box-shadow: none;
+}
+
 .sort-card.is-correct {
   --bb-card-face: var(--good-soft);
-  --bb-card-edge: var(--good);
   --bb-card-ink: var(--bb-foreground);
 }
 
+/* A2 round 4: misplaced is the red family, the same as the answer tray's
+   wrong state, so a miss reads one way across the lesson (it was amber). */
 .sort-card.is-misplaced {
-  --bb-card-face: var(--not-requested-soft);
-  --bb-card-edge: var(--not-requested);
+  --bb-card-face: var(--tray-bad-bg);
   --bb-card-ink: var(--bb-foreground);
+}
+
+/* The mark that says right or move, so colour never carries it alone. */
+.sort-card__mark {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.75rem;
+  height: 1.75rem;
+  padding: 0 0.5rem;
+  border-radius: 999px;
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.sort-card.is-correct .sort-card__mark {
+  background: var(--progress);
+  color: var(--progress-ink);
+}
+.sort-card.is-misplaced .sort-card__mark {
+  /* An OUTLINED tag, not a filled pill: filled, three of them stacked down
+     the ladder competed with the one key in the footer. */
+  background: transparent;
+  box-shadow: inset 0 0 0 2px var(--btn-danger);
+  color: var(--tray-bad-ink);
 }
 
 .sort-card__why {
@@ -395,60 +462,20 @@ div.sort-card {
   padding: 0.15rem 0.9rem 0.6rem;
   font-size: 0.8125rem;
   line-height: 1.45;
-  color: var(--bb-muted-foreground);
+  color: var(--bb-foreground);
 }
 
 /* -----------------------------------------------------------------------
  * FEEDBACK AND THE FLAG.
  * --------------------------------------------------------------------- */
 
-.sort-feedback {
-  border-radius: 1rem;
-  border: 1px solid var(--bb-border);
-  background: var(--bb-card);
-  padding: 0.9rem 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
+/* The verdict itself is beats/AnswerTray.tsx, folded half and all. */
 
-.sort-feedback.is-correct {
-  border-color: var(--good);
-  background: var(--good-soft);
-}
-
-.sort-feedback.is-sound {
-  border-color: var(--not-requested);
-  background: var(--not-requested-soft);
-}
-
-.sort-feedback__headline {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 700;
-  line-height: 1.35;
-  color: var(--bb-foreground);
-}
-
-.sort-feedback__field {
-  margin: 0;
-  font-size: 0.875rem;
-  line-height: 1.5;
-  color: var(--bb-foreground);
-}
-
-.sort-feedback__field b {
-  color: var(--bb-muted-foreground);
-  font-weight: 700;
-}
-
-.sort-feedback__tier {
-  align-self: flex-start;
-  font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--bb-muted-foreground);
+/* Keyboard instructions only where there is likely a keyboard. */
+@media (pointer: coarse) {
+  .sort-beat__keys {
+    display: none;
+  }
 }
 
 /* The professor adjustable pKa conflict. A warning, not an error: the app is
@@ -465,9 +492,12 @@ div.sort-card {
 
 .sort-beat__actions {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  align-items: center;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+.sort-beat__actions .sort-beat__how {
+  text-align: center;
 }
 
 /* -----------------------------------------------------------------------
@@ -504,7 +534,22 @@ div.sort-card {
 @media (prefers-reduced-motion: reduce) {
   .sort-card__face,
   .sort-slot-empty,
-  .sort-pool {
+  .sort-card.is-ranked {
     transition: none;
   }
+
+  .sort-card.is-hinting {
+    animation: none;
+  }
+}
+
+/* A2 round 4: the answer tray (beats/AnswerTray.tsx) docks in the footer's
+   slot with the footer's own sticky offsets. The ladder's column already sits
+   in the stage gutter, so the tray adds no inner gutter of its own. */
+.beat-runner .sort-beat > .answer-tray.foot-bleed {
+  --foot-pad: 0px;
+  position: sticky;
+  bottom: calc(-1 * var(--stage-pad, 1rem));
+  margin-bottom: calc(-1 * var(--stage-pad, 1rem));
+  margin-top: auto;
 }

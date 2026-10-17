@@ -1,0 +1,629 @@
+/* Learn (SITE-REPLAN.md phase 5): the Learn index, unit hubs, lesson pages and the reaction
+ * sheet. Imported by those lazy pages only, so none of this is in the entry bundle. Colours
+ * and motion are tokens only (src/tokens.css, index.css); shapes follow the blueberry skill's
+ * components.md: section 2 (card), 3 (deck tile), 5 (sheet).
+ *
+ * Ratios computed 2026-10-07 with the checks.md formula:
+ *   --lrn-ink #472ab4 on white 9.30:1, on the #e2dbf5 wash 6.95:1;
+ *   night #cdc4ff on the #192438 card 9.58:1, on the #24334a wash 7.85:1;
+ *   white on --primary #5a3fd8 6.69:1, night #6d5ae0 5.01:1;
+ *   --site-border #756e95 on white 4.75:1, night #70839d on the card 4.01:1 (edges, 3:1 floor). */
+
+:root { --lrn-ink: var(--site-nav-ink); }
+
+/* Titles in Nunito (owner, 7 Oct), scoped like home.css and schedule.css, because
+   `.title-face` is still the old serif elsewhere until the type phase. */
+.learn .title-face, .lrn-sheet .title-face { font-family: var(--site-display); letter-spacing: 0; }
+
+/* The shapes sit in Tailwind's `components` layer, below its utilities, so a utility on
+   the same element still wins: `lg:hidden` on a `.lrn-row` must hide it. Unlayered, these
+   rules beat every utility, which is how the phone's chip row showed on a desktop. */
+@layer components {
+  /* ---------- Card: outlined, not floating ---------- */
+  .lrn-card {
+    background: var(--card); color: var(--foreground);
+    border: 2px solid var(--site-border); border-radius: 20px;
+  }
+  /* Tappable: 4px bottom edge, sinks by it on press. */
+  .lrn-tap {
+    display: flex; flex-direction: column; width: 100%; text-align: left; cursor: pointer;
+    background: var(--card); color: var(--foreground);
+    border: 2px solid var(--site-border); border-bottom-width: 4px; border-radius: 20px;
+    transition: transform var(--bb-dur-release) var(--bb-ease-spring),
+                border-color var(--bb-dur-ui) var(--bb-ease-ui);
+  }
+  @media (hover: hover) { .lrn-tap:hover { border-color: var(--primary); } }
+  .lrn-tap:active { transform: translateY(2px); border-bottom-width: 2px;
+                    transition-duration: var(--bb-dur-press); transition-timing-function: ease-out; }
+  .lrn-tap:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
+
+  .lrn-eyebrow { font: 700 0.75rem/1.2 var(--site-display); letter-spacing: .06em;
+                 text-transform: uppercase; color: var(--site-quiet); }
+
+  /* ---------- The filled action, with the ledge: one per viewport ---------- */
+  .lrn-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    min-height: 44px; padding: 0 18px; border-radius: 14px; cursor: pointer;
+    font: 800 0.95rem/1 var(--site-display);
+    background: var(--primary); color: var(--primary-foreground);
+    box-shadow: 0 4px 0 var(--site-edge);
+    transition: transform var(--bb-dur-release) var(--bb-ease-spring),
+                box-shadow var(--bb-dur-release) var(--bb-ease-spring);
+  }
+  .lrn-btn:hover { transform: translateY(-1px); box-shadow: 0 5px 0 var(--site-edge); }
+  .lrn-btn:active { transform: translateY(4px); box-shadow: 0 0 0 var(--site-edge);
+                    transition-duration: var(--bb-dur-press); transition-timing-function: ease-out; }
+  .lrn-btn:focus-visible { outline: 3px solid var(--ring); outline-offset: 3px; }
+
+  /* The quiet action beside it: outlined, flat. */
+  .lrn-ghost {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    min-height: 44px; padding: 0 14px; border-radius: 14px; cursor: pointer;
+    font: 700 0.9rem/1 var(--site-display); color: var(--bb-deep);
+    background: var(--card); border: 2px solid var(--site-border);
+    transition: background-color var(--bb-dur-ui) var(--bb-ease-ui);
+  }
+  .lrn-ghost:hover { background: var(--bb-wash); }
+  .lrn-ghost:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
+
+  /* ---------- Chips: the phone's lesson row, unit tags ---------- */
+  .lrn-chip {
+    display: inline-flex; align-items: center; flex-shrink: 0; min-height: 44px; padding: 0 14px;
+    border-radius: 999px; border: 2px solid var(--site-border); background: var(--card);
+    font: 700 0.875rem/1 var(--site-display); color: var(--bb-deep); white-space: nowrap;
+    transition: background-color var(--bb-dur-ui) var(--bb-ease-ui);
+  }
+  .lrn-chip:hover { background: var(--bb-wash); }
+  .lrn-chip:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
+  .lrn-chip[aria-current="page"] { background: var(--bb-wash); border-color: var(--primary); color: var(--lrn-ink); }
+  /* A tag is a chip that is not pressable: smaller, never 44px. */
+  .lrn-tag {
+    display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 999px;
+    background: var(--bb-wash); color: var(--lrn-ink); font: 700 0.75rem/1.4 var(--site-display);
+  }
+  .lrn-row { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; }
+  .lrn-row::-webkit-scrollbar { display: none; }
+
+  /* Links that read as words in the violet ink, underlined on hover. */
+  .lrn-link { color: var(--lrn-ink); font-weight: 700; text-underline-offset: 3px; }
+  .lrn-link:hover { text-decoration: underline; }
+  .lrn-link:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; border-radius: 4px; }
+
+  /* ---------- The reaction sheet: bottom sheet on a phone, side sheet from 1024px ---------- */
+  .lrn-scrim { position: fixed; inset: 0; z-index: 60; background: rgb(16 24 39 / .4); }
+  /* Learn round 6: at night the light scrim's navy was the page's own navy, so the page did
+     not dim at all (1.14:1 sheet to page, critic-learn-r5). Black at .6 takes the #101827
+     page to about #06090f, and the sheet lifts to the wash (#24334a): 1.57:1 face to page,
+     plus its 2px #70839d edge. */
+  .dark .lrn-scrim { background: rgb(0 0 0 / .6); }
+  .dark .lrn-sheet, .dark .lrn-sheet-foot { --bb-sheet: var(--bb-wash); }
+  .lrn-sheet {
+    /* Learn round 6: one height, whatever the tab. Content-sized, the sheet shrank from full
+       height to about 65% on Product and the layout jumped; the foot's `margin-top: auto`
+       keeps the action at the bottom edge either way. */
+    position: fixed; inset: auto 0 0 0; z-index: 61; height: 88dvh; overflow: auto;
+    background: var(--bb-sheet); color: var(--foreground);
+    border-radius: 24px 24px 0 0; border-top: 2px solid var(--site-border);
+    padding: 12px 16px calc(20px + env(safe-area-inset-bottom));
+    animation: lrn-sheet-in var(--bb-dur-enter) var(--bb-ease-spring) both;
+    display: flex; flex-direction: column;
+  }
+  /* Learn round 5: the sheet's one action at its foot, full width, held at the bottom
+     edge while the chemistry scrolls under it; on a tall desktop panel `margin-top: auto`
+     takes it to the bottom rather than leaving it under the drawing. */
+  .lrn-sheet-foot {
+    position: sticky; bottom: 0; margin-top: auto; padding-top: 16px;
+    display: flex; flex-direction: column; gap: 4px;
+    background: var(--bb-sheet);
+  }
+  .lrn-sheet::before { content: ""; display: block; width: 40px; height: 4px; margin: 0 auto 12px;
+                       border-radius: 999px; background: var(--site-border); }
+  @media (min-width: 1024px) {
+    .lrn-sheet { inset: 0 0 0 auto; width: min(680px, 100vw); height: auto;
+                 border-radius: 24px 0 0 24px; border-top: 0; border-left: 2px solid var(--site-border);
+                 padding: 24px 28px; animation-name: lrn-sheet-side; }
+    .lrn-sheet::before { display: none; }
+  }
+  @keyframes lrn-sheet-in { from { transform: translateY(100%); } }
+  @keyframes lrn-sheet-side { from { transform: translateX(100%); } }
+
+  /* ---------- Segmented pill: Setup, Conditions, Product (DESIGN-GOALS.md, Cards) ---------- */
+  .lrn-seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .lrn-seg button {
+    min-height: 44px; border-radius: 999px; cursor: pointer;
+    border: 2px solid var(--site-border); background: var(--card); color: var(--bb-deep);
+    font: 800 0.875rem/1 var(--site-display);
+    transition: background-color var(--bb-dur-ui) var(--bb-ease-ui), color var(--bb-dur-ui) var(--bb-ease-ui);
+  }
+  .lrn-seg button:hover { background: var(--bb-wash); }
+  .lrn-seg button:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
+  /* Active segment filled (rule: active filled, inactive outlined). Wash and ink rather than the
+     primary fill, so the sheet's one filled action stays "Draw the product". */
+  .lrn-seg button[aria-selected="true"] { background: var(--bb-wash); border-color: var(--primary); color: var(--lrn-ink); }
+
+  /* ---------- Learn round 3: the unit path (components.md, path node) ---------- */
+  /* One node per lesson in a column that sways left and right (`--sway`, set per node from
+     its index), so the lessons read as a road, not a list. Every disc has the ledge and
+     sinks on press; none is filled violet, because the next-step card's button is the one
+     filled primary on the hub. Done is the progress green with dark ink; current is ringed. */
+  /* Side padding equals the largest sway (28px), so a node never leaves the column. */
+  .lrn-path { display: flex; flex-direction: column; gap: 14px; max-width: 28rem; margin: 0 auto; padding-inline: 28px; }
+  .lrn-node {
+    display: flex; align-items: center; gap: 14px; min-height: 72px; padding: 4px 8px;
+    border-radius: 20px; transform: translateX(var(--sway, 0));
+    color: var(--foreground);
+  }
+  .lrn-node:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
+  /* Learn round 6: a disc is an object, not a ring (critic-learn-r5): a face on an 8px
+     ledge in a darker tone (components.md, path node), sinking by it on press. The three
+     states differ by more than colour:
+       done     green face, green ledge, a tick instead of the numeral;
+       current  the full 8px ledge, a 4px violet ring around it and a "Next" tag over it;
+       later    flat on the card, outlined, a 4px ledge, the numeral in quiet ink.
+     None is filled violet: the next step card's button is the hub's one filled primary. */
+  .lrn-disc {
+    position: relative; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+    width: 64px; height: 64px; border-radius: 999px; margin-bottom: 8px;
+    font: 900 1.375rem/1 var(--site-display);
+    background: var(--card); color: var(--site-quiet);
+    border: 2px solid var(--site-border); box-shadow: 0 4px 0 var(--site-border);
+    transition: transform var(--bb-dur-release) var(--bb-ease-spring),
+                box-shadow var(--bb-dur-release) var(--bb-ease-spring);
+  }
+  .lrn-node:active .lrn-disc { transform: translateY(4px); box-shadow: 0 0 0 var(--site-border);
+                               transition-duration: var(--bb-dur-press); transition-timing-function: ease-out; }
+  .lrn-node[data-state="done"] .lrn-disc {
+    background: var(--bb-progress); color: var(--bb-progress-ink);
+    border: 0; box-shadow: 0 8px 0 var(--bb-progress-edge);
+  }
+  .lrn-node[data-state="current"] .lrn-disc {
+    background: var(--bb-wash); color: var(--lrn-ink);
+    border: 0; box-shadow: 0 8px 0 var(--site-edge);
+    outline: 4px solid var(--primary); outline-offset: 4px;
+  }
+  .lrn-node[data-state="done"]:active .lrn-disc { transform: translateY(8px); box-shadow: 0 0 0 var(--bb-progress-edge); }
+  .lrn-node[data-state="current"]:active .lrn-disc { transform: translateY(8px); box-shadow: 0 0 0 var(--site-edge); }
+  /* The current node's tag, over the disc (a path game's START bubble). Words, so the
+     state is not carried by the ring's colour alone. */
+  .lrn-node-tag {
+    position: absolute; top: -36px; left: 50%; transform: translateX(-50%); white-space: nowrap;
+    padding: 2px 10px; border-radius: 999px; border: 2px solid var(--primary);
+    background: var(--card); color: var(--lrn-ink); font: 800 0.75rem/1.4 var(--site-display);
+    letter-spacing: .06em; text-transform: uppercase;
+  }
+  .lrn-node[data-state="current"] { margin-top: 30px; }
+  @media (hover: hover) { .lrn-node:hover .lrn-title { text-decoration: underline; text-underline-offset: 3px; } }
+  .lrn-title { font: 800 1.125rem/1.2 var(--site-display); color: var(--bb-deep); }
+
+  /* The unit's progress: green fill on the wash track, words beside it carry the number. */
+  .lrn-bar { height: 12px; border-radius: 999px; background: var(--bb-wash); overflow: hidden; }
+  .lrn-bar > span { display: block; height: 100%; border-radius: 999px; background: var(--bb-progress); }
+
+  /* Learn round 5: the next step, a card hung under the current lesson's node (a path
+     game's node popover). Replaces the phone's fixed dock, which covered the path. The
+     caret points up at the disc: the node's 8px padding plus half the 64px disc, moved by
+     the same sway as the node (`--sway`, set on the row). */
+  .lrn-pop {
+    position: relative; margin-top: 14px; padding: 16px;
+    background: var(--card); border: 2px solid var(--site-border); border-radius: 20px;
+  }
+  .lrn-pop[data-caret]::before {
+    content: ""; position: absolute; top: -9px; left: calc(8px + 32px - 8px + var(--sway, 0px));
+    width: 16px; height: 16px; background: var(--card);
+    border-top: 2px solid var(--site-border); border-left: 2px solid var(--site-border);
+    border-top-left-radius: 4px; transform: rotate(45deg);
+  }
+
+  /* A unit's picture: its first reaction's product on the wash, in a rounded tile. */
+  .lrn-cover {
+    display: flex; align-items: center; justify-content: center; overflow: hidden;
+    border-radius: 16px; background: var(--bb-wash);
+  }
+
+  /* From 1024px, the hub's right column: a preview of the current lesson, held in view
+     while the path scrolls. Hidden on a phone, where the card on the path draws it. */
+  .lrn-aside { display: none; }
+  @media (min-width: 1024px) {
+    .lrn-aside { display: block; position: sticky; top: 96px; padding: 16px 20px 20px;
+                 background: var(--card); border: 2px solid var(--site-border); border-radius: 20px; }
+  }
+
+  /* The lesson page's sidebar and phone chips: this unit's lessons, numbered. The current
+     one is a tinted pill (wash, violet edge), never a filled one. */
+  .lrn-side {
+    display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 10px;
+    border-radius: 14px; border: 2px solid transparent;
+    font: 700 0.9rem/1.2 var(--site-display); color: var(--bb-deep);
+    transition: background-color var(--bb-dur-ui) var(--bb-ease-ui);
+  }
+  .lrn-side:hover { background: var(--bb-wash); }
+  .lrn-side:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
+  .lrn-side[aria-current="page"] { background: var(--bb-wash); border-color: var(--primary); color: var(--lrn-ink); }
+  .lrn-side > span:first-child { min-width: 1.25rem; text-align: right; color: var(--site-quiet); }
+  .lrn-side[aria-current="page"] > span:first-child { color: var(--lrn-ink); }
+
+  /* A reaction's scheme (ReactionScheme in ReactionCard.tsx). Learn round 4: it is a CONTAINER,
+     so its layout follows its own width, not the screen's. A desktop used to squeeze the row
+     into a half-width card and atom labels came out 6px.
+     Narrower than 820px: one column, starting material over a downward arrow (reagents beside
+     it) over product, each structure at up to its own 340px.
+     820px or wider: the textbook row, step 1 over a rightward arrow, later steps under it.
+     Why 820: the smallest atom label in any drawing is 11.9 of its 340 units (Learn round 3,
+     learn-r3/caps.json), so a structure must be drawn 314px wide or more for an 11px label;
+     two of them, the reagent column (up to 160px) and two 12px gaps need 812px. */
+  .lrn-scheme { display: block; container-type: inline-size; }
+  .lrn-scheme-row { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .lrn-rg { display: grid; grid-template-columns: auto auto; grid-template-areas: "arrow above" "arrow below";
+            column-gap: 12px; align-items: center; justify-content: center; }
+  .lrn-rg > [data-slot="above"] { grid-area: above; align-items: flex-start; }
+  .lrn-rg > [data-slot="below"] { grid-area: below; align-items: flex-start; }
+  .lrn-rg > [role="img"] { grid-area: arrow; align-self: stretch; }
+  .lrn-arrow-down { display: flex; flex-direction: column; align-items: center; min-height: 64px; }
+  .lrn-arrow-across { display: none; align-items: center; width: 100%; min-width: 48px; }
+  @container (min-width: 820px) {
+    .lrn-scheme-row { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 12px; }
+    .lrn-rg { grid-template-columns: auto; grid-template-areas: "above" "arrow" "below"; row-gap: 4px; max-width: 160px; }
+    .lrn-rg > [data-slot] { align-items: center; }
+    .lrn-arrow-down { display: none; }
+    .lrn-arrow-across { display: flex; }
+  }
+
+  /* Learn round 6: the lesson's end. One full-width block on the wash (a lesson-complete
+     screen's shape): a done mark, where next, one full-width button. The mark is the path's
+     done node at a smaller size, progress green with its ledge and dark ink. */
+  .lrn-end {
+    padding: 20px; border-radius: 20px;
+    background: var(--bb-wash); border: 2px solid var(--site-border);
+  }
+  @media (min-width: 768px) { .lrn-end { padding: 28px 32px; } }
+  .lrn-done-mark {
+    flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+    width: 56px; height: 56px; border-radius: 999px; margin-bottom: 6px;
+    background: var(--bb-progress); color: var(--bb-progress-ink);
+    box-shadow: 0 6px 0 var(--bb-progress-edge);
+  }
+
+}
+
+/* Learn round 5: the hub's title on a phone. The header's 36px set "Aldehydes & Ketones:
+   Nucleophilic Addition" on four lines; 28px takes two. Unlayered, so it beats the
+   header's own size utility; from 768px the header's sizes apply. */
+@media (max-width: 767px) { .lrn-hub-head .page-title { font-size: 1.75rem; } }
+
+/* Reduced motion keeps the meaning (the sheet arrives, the press sinks) without travel. */
+html[data-motion="reduced"] .lrn-sheet { animation: lrn-fade 120ms linear both; }
+html[data-motion="reduced"] .lrn-btn,
+html[data-motion="reduced"] .lrn-tap,
+html[data-motion="reduced"] .lrn-disc { transition: none; }
+html[data-motion="reduced"] .lrn-btn:hover { transform: none; }
+@keyframes lrn-fade { from { opacity: 0; } }
+
+/* ---------- S3 (16 Oct): one decision card and a right rail ----------
+   Grid areas so the order reads right on a phone (card, the rail, the path, the rest:
+   S3 round 3 moved the rail up, because under a 15-stop path it was three screens
+   down and the streak and due cards went unseen), while from
+   1024px the rail takes its own column and stays in view as the page scrolls. */
+@layer components {
+  .lrn-layout {
+    display: grid; gap: 28px; grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "main" "rail" "units" "rest";
+  }
+  .lrn-layout-main { grid-area: main; min-width: 0; }
+  .lrn-layout-units { grid-area: units; min-width: 0; }
+  .lrn-layout-rail { grid-area: rail; min-width: 0; }
+  .lrn-layout-rest { grid-area: rest; min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 40px; align-content: start; }
+  @media (min-width: 1024px) {
+    .lrn-layout {
+      grid-template-columns: minmax(0, 1fr) 20rem; column-gap: 32px; row-gap: 40px;
+      grid-template-areas: "main rail" "units rail" "rest rail";
+      grid-template-rows: auto auto 1fr;
+    }
+    .lrn-layout-rail { align-self: start; }
+  }
+  /* Sticky where the whole rail fits under the nav (round 2 made it about 470px, so a
+     720px laptop qualifies); align-self: start (above) is what lets it stick. */
+  @media (min-width: 1024px) and (min-height: 680px) {
+    .lrn-layout-rail { position: sticky; top: 84px; }
+  }
+
+  /* ---------- S3 round 5: the decision card is one scene and one Start ----------
+     The card is flat and outlined (only pressable buttons get a ledge). The scene on
+     top is the page's one big picture; the band under it holds the words and the
+     button. DecisionCard.tsx says why. */
+  .lrn-decide {
+    background: var(--card); color: var(--foreground); overflow: hidden;
+    border: 2px solid var(--site-border); border-radius: 24px;
+  }
+  .lrn-scene {
+    position: relative; display: flex; flex-direction: column; justify-content: space-between;
+    height: 312px; overflow: hidden; isolation: isolate; cursor: pointer;
+    background: #6a4ff0; /* the sky's middle, while the SVG is not painted */
+  }
+  @media (min-width: 1024px) { .lrn-scene { height: 340px; } }
+  .lrn-scene-sky { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; }
+  .lrn-scene-top { display: flex; justify-content: center; padding: 18px 12px 0; }
+  .lrn-scene-figure { display: flex; flex-direction: column; align-items: center; gap: 10px; margin: 0; max-width: 100%; }
+  /* White on the sky's #3b24b0 top 11.6:1, on its #6a4ff0 middle 5.6:1. */
+  .lrn-decide-art-name {
+    font: 800 0.9375rem/1.2 var(--site-display); color: #ffffff; text-align: center;
+  }
+  /* The plate is the card's own surface, so each theme's drawings keep their ink. Names
+     in --site-quiet: 7.58:1 on white, 7.37:1 on the night card. */
+  .lrn-decide-plate {
+    display: flex; align-items: center; justify-content: center; gap: 4px; max-width: 100%;
+    padding: 8px 12px; border-radius: 18px; background: var(--card);
+    box-shadow: 0 6px 0 #2a1890;
+  }
+  /* One structure on the plate with its name under it, so a small drawing (formaldehyde
+     is one line and an O) is never read as a symbol. */
+  .lrn-decide-mol { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; }
+  .lrn-decide-mol-name {
+    max-width: 140px; text-align: center; font: 700 0.75rem/1.2 var(--site-display); color: var(--site-quiet);
+  }
+  /* The product's count from the balanced equation, set like a textbook coefficient. */
+  .lrn-decide-count { font: 900 1.375rem/1 var(--site-display); color: var(--bb-deep); margin-right: 2px; }
+  .lrn-decide-arrow {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+    width: 72px; flex-shrink: 0;
+  }
+  /* A reading lesson: Bloom's speech bubble in place of a plate. #2e2b45 on white 13.9:1,
+     #472ab4 on white 9.30:1. */
+  .lrn-scene-bubble {
+    position: relative; max-width: 22rem; margin-top: 18px; padding: 14px 18px; border-radius: 20px;
+    background: #ffffff; color: #2e2b45; box-shadow: 0 6px 0 #2a1890;
+    font: 700 1.125rem/1.3 var(--site-display); text-align: center;
+  }
+  .lrn-scene-bubble b { font-weight: 900; color: #472ab4; }
+  .lrn-scene-bubble::after {
+    content: ""; position: absolute; left: 50%; bottom: -9px; width: 18px; height: 18px;
+    background: #ffffff; transform: translateX(-50%) rotate(45deg); border-radius: 0 0 4px 0;
+  }
+
+  /* The unit's lessons as stepping stones on the ground, a finish flag after them, a
+     dashed road between them. A picture of where you are, not buttons (the scene is one
+     link), so they sit on a solid base and do not press. */
+  .lrn-scene-path {
+    position: relative; display: flex; align-items: flex-end; justify-content: center;
+    gap: clamp(18px, 6vw, 56px); padding: 0 16px 18px;
+  }
+  .lrn-scene-path::before {
+    content: ""; position: absolute; left: 12%; right: 12%; bottom: 44px; height: 0;
+    border-top: 4px dashed rgb(255 255 255 / .5); z-index: -1;
+  }
+  .lrn-stone { position: relative; display: flex; flex-direction: column; align-items: center; }
+  .lrn-stone-face {
+    display: flex; align-items: center; justify-content: center; width: 48px; height: 48px;
+    border-radius: 999px; font: 900 1.125rem/1 var(--site-display);
+    background: #c9bfff; color: #2a1890; box-shadow: 0 5px 0 #2a1890;
+  }
+  .lrn-stone[data-state="done"] .lrn-stone-face { background: #b3df92; color: #163a26; box-shadow: 0 5px 0 #3f8c28; }
+  /* You are here: bigger, white, in a soft halo, with Bloom standing on it. */
+  .lrn-stone[data-state="current"] .lrn-stone-face {
+    width: 60px; height: 60px; font-size: 1.375rem; background: #ffffff; color: #472ab4;
+    box-shadow: 0 6px 0 #2a1890, 0 0 0 8px rgb(255 255 255 / .3);
+  }
+  .lrn-stone[data-state="flag"] .lrn-stone-face { background: #ffd98a; color: #6b3d00; box-shadow: 0 5px 0 #b45309; }
+  .lrn-scene-bloom { display: block; width: 64px; height: 64px; margin-bottom: -4px; position: relative; z-index: 1; }
+  @media (min-width: 1024px) { .lrn-scene-bloom { width: 76px; height: 76px; } }
+
+  /* The band under the scene: the words left and the button right from 768px; stacked on
+     a phone, the button full width. */
+  .lrn-decide-body { display: grid; gap: 14px; padding: 18px 18px 20px; }
+  @media (min-width: 768px) {
+    .lrn-decide-body { grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 24px; padding: 22px 28px 24px; }
+  }
+  .lrn-decide-title { margin-top: 4px; font: 900 1.75rem/1.1 var(--site-display); color: var(--bb-deep); }
+  @media (min-width: 1024px) { .lrn-decide-title { font-size: 2.25rem; } }
+  .lrn-decide-unit { margin-top: 4px; font-size: 1rem; line-height: 1.35; color: var(--site-quiet); }
+  .lrn-decide-btn { min-height: 60px; padding: 0 28px; font-size: 1.1875rem; border-radius: 16px; width: 100%; }
+  @media (min-width: 768px) { .lrn-decide-btn { width: auto; min-width: 15rem; } }
+
+  /* The phone's dock: the same Start, held above the tab bar once the card's button has
+     scrolled away. Below 768px the site's tab bar is fixed at the bottom, so the dock
+     sits above it; from 1024px the card sits beside the rail and the dock never shows. */
+  .lrn-dock {
+    position: fixed; z-index: 30; left: 12px; right: 12px;
+    bottom: calc(var(--site-bar-h) + env(safe-area-inset-bottom) + 10px);
+    display: flex; align-items: center; gap: 12px; padding: 10px 10px 10px 16px;
+    background: var(--card); border: 2px solid var(--site-border); border-radius: 20px;
+    box-shadow: 0 10px 30px rgb(16 24 39 / .18);
+    transform: translateY(calc(100% + 120px)); visibility: hidden;
+    transition: transform var(--bb-dur-enter) var(--bb-ease-out), visibility 0s linear var(--bb-dur-enter);
+  }
+  .lrn-dock[data-show] { transform: none; visibility: visible; transition: transform var(--bb-dur-enter) var(--bb-ease-out); }
+  @media (min-width: 768px) { .lrn-dock { bottom: 16px; left: 50%; right: auto; width: min(36rem, calc(100% - 32px)); margin-left: max(-18rem, calc(16px - 50%)); } }
+  @media (min-width: 1024px) { .lrn-dock { display: none; } }
+  .lrn-dock-label {
+    display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+    font: 900 1rem/1.25 var(--site-display); color: var(--bb-deep);
+  }
+  /* Room under the page so the dock never covers its last line. */
+  @media (max-width: 1023px) { .lrn-layout { padding-bottom: 84px; } }
+
+  /* ---------- S3 round 2: the path, one stop per unit ----------
+     A disc on a line per unit, the course's progress spine. The line runs between disc
+     centres and turns green under a finished unit. */
+  .lrn-spine { position: relative; display: grid; gap: 10px; }
+  .lrn-spine > li { position: relative; }
+  .lrn-spine > li:not(:last-child)::before {
+    content: ""; position: absolute; left: 25px; top: 50%; width: 6px; height: calc(100% + 10px);
+    border-radius: 999px; background: var(--site-hairline);
+  }
+  .lrn-spine > li[data-state="done"]:not(:last-child)::before { background: var(--bb-progress-edge); }
+  .lrn-stop { display: flex; align-items: center; gap: 14px; border-radius: 20px; }
+  .lrn-stop:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
+  .lrn-stop-node {
+    position: relative; z-index: 1; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+    width: 56px; height: 56px; border-radius: 999px; margin-bottom: 4px;
+    font: 900 1.25rem/1 var(--site-display);
+    background: var(--card); color: var(--site-quiet);
+    border: 2px solid var(--site-border); box-shadow: 0 4px 0 var(--site-border);
+  }
+  li[data-state="done"] .lrn-stop-node {
+    background: var(--bb-progress); color: var(--bb-progress-ink); border: 0;
+    box-shadow: 0 6px 0 var(--bb-progress-edge);
+  }
+  /* You are here: the filled violet disc with a wash halo, the one lit stop. */
+  li[data-state="current"] .lrn-stop-node {
+    background: var(--primary); color: var(--primary-foreground); border: 0;
+    box-shadow: 0 6px 0 var(--site-edge), 0 0 0 8px var(--bb-wash);
+  }
+  /* Started (some lessons finished): a green arc round the outlined disc, its length
+     the share finished. A conic gradient on the pseudo-element, masked to a 5px
+     ring by a radial gradient, so the number inside stays on the card colour. */
+  li[data-state="started"] .lrn-stop-node::after {
+    content: ""; position: absolute; inset: -2px; border-radius: 999px;
+    background: conic-gradient(var(--bb-progress-edge) calc(var(--pct) * 1%), transparent 0);
+    mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #000 calc(100% - 4px));
+  }
+  li[data-state="started"] .lrn-stop-node { color: var(--bb-deep); }
+  /* Coming later: dashed and flat, so it reads as not open yet. */
+  li[data-state="soon"] .lrn-stop-node { border-style: dashed; box-shadow: none; background: transparent; }
+  li[data-state="soon"] .lrn-stop-card { border-style: dashed; background: transparent; }
+  .lrn-stop-card {
+    flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+    background: var(--card); border: 2px solid var(--site-hairline); border-radius: 18px;
+    transition: border-color var(--bb-dur-ui) var(--bb-ease-ui), transform var(--bb-dur-release) var(--bb-ease-spring);
+  }
+  .lrn-stop-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  li[data-state="current"] .lrn-stop-card { border-color: var(--primary); border-bottom-width: 4px; }
+  @media (hover: hover) { .lrn-stop:hover .lrn-stop-card { border-color: var(--primary); } }
+  .lrn-stop:active .lrn-stop-card { transform: translateY(2px); transition-duration: var(--bb-dur-press); }
+  .lrn-here {
+    display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 999px;
+    background: var(--primary); color: var(--primary-foreground);
+    font: 800 0.75rem/1.4 var(--site-display); letter-spacing: .04em; text-transform: uppercase;
+  }
+
+  /* ---------- The rail: outlined cards, compact, each with its own colour tile ---------- */
+  .lrn-rail { display: grid; gap: 10px; }
+  .lrn-rail-card {
+    background: var(--card); color: var(--foreground);
+    border: 2px solid var(--site-hairline); border-radius: 20px; padding: 10px 14px;
+  }
+  .lrn-rail-title { font: 800 1.0625rem/1.2 var(--site-display); color: var(--bb-deep); }
+  .lrn-rail-count { margin-left: 4px; font: 700 0.8125rem/1 var(--site-display); color: var(--site-quiet); }
+  .lrn-rail-big { font: 900 1.375rem/1.1 var(--site-display); color: var(--bb-deep); }
+  .lrn-rail-link {
+    display: inline-flex; align-items: center; gap: 4px; min-height: 44px; flex-shrink: 0;
+    color: var(--lrn-ink); font: 800 0.9rem/1 var(--site-display);
+    text-underline-offset: 3px;
+  }
+  .lrn-rail-link:hover { text-decoration: underline; }
+  .lrn-rail-link:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; border-radius: 6px; }
+  .lrn-rail-link-text {
+    display: inline-flex; align-items: center; gap: 4px; margin-top: 4px;
+    color: var(--lrn-ink); font: 800 0.9rem/1 var(--site-display);
+  }
+
+  /* The streak flame on an amber wash: outlined in amber while today is open, filled once
+     it counts. --bb-warn #b45309 is a stroke here, never text. */
+  .lrn-flame {
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    width: 44px; height: 44px; border-radius: 14px; background: var(--bb-warn-wash);
+  }
+  .lrn-flame path { fill: none; stroke: var(--bb-warn); }
+  .lrn-flame[data-lit] path { fill: var(--site-tab-review); stroke: var(--bb-warn); }
+
+  /* Seven days: a disc per day, green with a tick when it counted, violet ring for today. */
+  .lrn-week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; margin-top: 8px; }
+  .lrn-week li { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .lrn-week-dot {
+    display: flex; align-items: center; justify-content: center; width: 28px; height: 28px;
+    border-radius: 999px; border: 2px solid var(--site-hairline); background: var(--bb-wash);
+  }
+  .lrn-week li[data-counted] .lrn-week-dot {
+    background: var(--bb-progress); border-color: var(--bb-progress-edge); color: var(--bb-progress-ink);
+  }
+  .lrn-week li[data-today] .lrn-week-dot { border-width: 3px; border-color: var(--primary); background: var(--card); }
+  /* S3 round 4: today, once it counts, is green like the other counted days, ringed violet. */
+  .lrn-week li[data-today][data-counted] .lrn-week-dot { background: var(--bb-progress); }
+  .lrn-week-letter { font: 700 0.75rem/1 var(--site-display); color: var(--site-quiet); }
+  .lrn-week li[data-today] .lrn-week-letter { color: var(--lrn-ink); }
+
+  /* A quest row's icon tile (amber, the quests' colour), and its bar: amber fill on a
+     track drawn with an edge, so an empty bar reads as a bar to fill, not decoration. */
+  .lrn-quest-icon {
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    width: 32px; height: 32px; border-radius: 10px; background: var(--bb-warn-wash); color: var(--bb-warn-ink);
+  }
+  .lrn-quest-icon[data-done] { background: var(--bb-progress); color: var(--bb-progress-ink); }
+  .lrn-hours-icon { background: var(--site-tint-schedule); color: var(--bb-deep); }
+  .lrn-quest-bar {
+    height: 12px; border-radius: 999px; overflow: hidden;
+    background: var(--bb-wash); box-shadow: inset 0 0 0 1.5px var(--site-hairline);
+  }
+  .lrn-quest-bar > span { display: block; height: 100%; border-radius: 999px; background: var(--site-tab-review); }
+
+  /* Cards due: the count in a violet tile (filled once something is due), the row a link. */
+  .lrn-due-count {
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    min-width: 48px; height: 48px; padding: 0 8px; border-radius: 14px;
+    font: 900 1.5rem/1 var(--site-display); background: var(--bb-wash); color: var(--lrn-ink);
+  }
+  .lrn-due-count[data-some] { background: var(--primary); color: var(--primary-foreground); }
+  .lrn-due-row {
+    display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 4px;
+    margin: -4px; border-radius: 14px;
+    transition: background-color var(--bb-dur-ui) var(--bb-ease-ui);
+  }
+  .lrn-due-row:hover { background: var(--bb-wash); }
+  .lrn-due-row:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
+
+}
+
+html[data-motion="reduced"] .lrn-stop-card { transition: none; }
+
+/* ---------- S3 round 4: one progress card, and one card for the rest ----------
+   The progress card leads the rail: the course ring, the study run with its flame, and
+   the week. The run sits on the amber wash the quests use, so the card has its colour. */
+@layer components {
+  .lrn-progress { padding: 14px 16px; }
+  /* S3 round 5: the run is a row under a hairline, not an amber block. By night the
+     amber wash was a muddy olive (#453a12), and the block outweighed the card above it. */
+  .lrn-progress-run {
+    display: flex; align-items: center; gap: 12px; margin-top: 12px; padding-top: 12px;
+    border-top: 2px solid var(--site-hairline);
+  }
+  /* Cards due and office hours as two rows of one card, each row one link. */
+  .lrn-rail-more { display: grid; gap: 2px; padding: 6px; }
+  .lrn-more-row {
+    display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 6px 8px;
+    border-radius: 14px; transition: background-color var(--bb-dur-ui) var(--bb-ease-ui);
+  }
+  .lrn-more-row + .lrn-more-row { border-top: 2px solid var(--site-hairline); border-radius: 0 0 14px 14px; }
+  .lrn-more-row:hover { background: var(--bb-wash); }
+  .lrn-more-row:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
+  .lrn-more-go {
+    display: inline-flex; align-items: center; gap: 2px; flex-shrink: 0;
+    color: var(--lrn-ink); font: 800 0.875rem/1 var(--site-display);
+  }
+  .lrn-more-row .lrn-due-count { min-width: 40px; height: 40px; border-radius: 12px; font-size: 1.25rem; }
+  .lrn-due-count.lrn-hours-icon { background: var(--site-tint-schedule); color: var(--bb-deep); }
+}
+html[data-motion="reduced"] .lrn-more-row { transition: none; }
+html[data-motion="reduced"] .lrn-dock { transition: none; }
+
+/* S3 round 5, night: the flame and quest tiles sit on the navy wash instead of the olive
+   amber wash, the flame keeping its amber stroke; the empty course ring gets a track that
+   shows (#3d4d6b on the #192438 card, a visible groove; the green arc over it carries the
+   reading, and the words beside it carry the number). */
+.dark .lrn-flame, .dark .lrn-quest-icon:not([data-done]) { background: var(--bb-wash); }
+.lrn-ring-track { stroke: var(--bb-wash); }
+.dark .lrn-ring-track { stroke: #3d4d6b; }
+
+/* S3 round 5: a part page folds its lesson's full text (LessonsPage.tsx). A native
+   <details>, so it opens with the keyboard and needs no state. */
+@layer components {
+  .lrn-fold-sum {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    min-height: 56px; padding: 16px 20px; cursor: pointer; list-style: none; border-radius: 18px;
+  }
+  .lrn-fold-sum::-webkit-details-marker { display: none; }
+  .lrn-fold-sum:hover { background: var(--bb-wash); }
+  .lrn-fold-sum:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
+  .lrn-fold-chev { color: var(--lrn-ink); transition: transform var(--bb-dur-ui) var(--bb-ease-ui); }
+  .lrn-fold[open] .lrn-fold-chev { transform: rotate(180deg); }
+  .lrn-fold[open] .lrn-fold-sum { border-radius: 18px 18px 0 0; }
+}
+html[data-motion="reduced"] .lrn-fold-chev { transition: none; }

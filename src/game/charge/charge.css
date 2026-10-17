@@ -257,70 +257,13 @@
 }
 
 /* ------------------------------------------------------------ the controls -- */
-/* One large primary, and it carries a visible border like every other control
-   here. NO LEDGE UNDER IT: a darker offset block beneath a button is a fake
-   extrusion, which is the shadow rule wearing a different property, and the
-   sticker audit scores it as one. .press travels by scale and brightness, so
-   there is nothing for the button to fall into and nothing missing when it
-   does not. */
-.charge-cta {
-  display: flex;
-  width: 100%;
-  min-height: 3rem;
-  align-items: center;
-  justify-content: center;
-  margin-top: 0.25rem;
-  padding: 0 1rem;
-  border-radius: 0.875rem;
-  border: 1px solid color-mix(in srgb, var(--bb-primary) 70%, #000);
-  background: var(--bb-primary);
-  color: var(--bb-primary-foreground);
-  font-size: var(--text-scale-base);
-  font-weight: 700;
-  text-wrap: balance;
-}
-.charge-second {
-  display: flex;
-  width: 100%;
-  min-height: 2.75rem;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  border-radius: 0.875rem;
-  border: 1px solid var(--bb-border);
-  background: var(--bb-card);
-  color: var(--bb-foreground);
-  font-size: var(--text-scale-sm);
-  font-weight: 700;
-}
-.charge-second:disabled {
-  color: var(--bb-muted-foreground);
-  opacity: 1;
-}
+/* The buttons are the game's shared 3D Press (app/ui/press.css) since A2,
+   2026-10-16; this file only lays out the note under the top-up. */
 .charge-note {
   font-size: var(--text-scale-xs);
   line-height: 1.4;
   color: var(--bb-muted-foreground);
 }
-/* The way out. A REAL border, not a transparent one holding the width: the
-   language's rule 4 is that an outline is what makes a control read as a
-   cut-out, and a 1px transparent edge satisfies a width check while drawing
-   nothing. It is the quietest control on the sheet and it is still a sticker. */
-.charge-dismiss {
-  display: flex;
-  min-height: 2.75rem;
-  min-width: 2.75rem;
-  align-items: center;
-  justify-content: center;
-  padding: 0 1rem;
-  border-radius: 0.875rem;
-  border: 1px solid var(--bb-border);
-  background: transparent;
-  color: var(--bb-muted-foreground);
-  font-size: var(--text-scale-sm);
-  font-weight: 700;
-}
-
 /* ------------------------------------------------------------------------- */
 /* Reduced motion: the settled frame, at once. Nothing here is load bearing
    while it moves; the commit's own hold is skipped in the component, which

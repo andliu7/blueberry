@@ -25,13 +25,13 @@ installGradientCursor()
 // the one thing a timer must never do.
 const tree = (
   <PageFlipProvider>
-    <App />
-    {/* The timer, the search, the bot and the avatar. Still mounted out here so
-        they survive a route change, but gathered into one component because
-        they now share a rule: they stand down on "#/app", where the game draws
-        its own header, its own bottom tab bar and its own mascot. See
-        components/SiteChrome. */}
-    <SiteChrome />
+    {/* The header, the phone bar and the footer around every site page, and the
+        timer, search and assistant beside them. SiteChrome wraps the router so
+        the header comes before the page and the footer after it; it stands down
+        on "#/app", where the game draws its own frame. See components/SiteChrome. */}
+    <SiteChrome>
+      <App />
+    </SiteChrome>
   </PageFlipProvider>
 )
 

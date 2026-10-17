@@ -1,16 +1,16 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import {
   AlertTriangle,
   BookOpen,
-  CalendarDays,
+  CalendarCheck,
   ChevronLeft,
   ChevronRight,
+  Clock,
   FileText,
   FlaskConical,
-  KeyRound,
-  List,
   PencilLine,
   Plus,
   Search,
@@ -38,6 +38,16 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import {
+  CELL_ROW_PX,
+  WEEKDAY_NAMES,
+  cellEntries,
+  chipCapacity,
+  fitCell,
+  fitChips,
+  leadDays,
+  nothingLine,
+} from "@/lib/calendarCells";
 
 /**
  * The course calendar: what is due, what is examined, and when.
@@ -54,15 +64,19 @@ import { cn } from "@/lib/utils";
  * icon, and a relative countdown on everything upcoming.
  *
  * The look of the grid follows the master calendar in the Focus Family
- * pamphlet guide (ff_technical_instructions, 2026-09-27): day numbers and the
- * month title in the site's serif, a date as a chip with a colour bar down its
- * left edge and the room after the title, and a key behind a key icon so the
- * colours never have to be guessed.
+ * pamphlet guide (ff_technical_instructions, 2026-09-27): tall month cells with
+ * tinted chips, a colour rule down each chip's left edge, greyed days outside
+ * the month, and a week view whose columns are as tall as what is in them.
+ * The filter chips double as the key: each carries its category's icon in its
+ * colour, so there is no separate key dialog to find.
  *
  * No Radix and no shadcn primitives, matching every other integrated component
  * here — see the header notes in `404-page-not-found.tsx`, `contact-2.tsx` and
  * `notification-bell.tsx` for the same call. The one thing Radix would have
  * genuinely provided, a real dialog keyboard contract, lives in `modal.tsx`.
+ *
+ * Colours come from `src/components/schedule.css` (the `data-cat` rules), which
+ * the Schedule page loads; this calendar is only used there.
  */
 
 export type CourseDateKind = "exam" | "quiz" | "assignment" | "lecture" | "lab" | "office-hours";
@@ -80,69 +94,64 @@ export interface CourseDate {
 }
 
 /**
- * Colour is fixed per kind, not chosen.
- *
- * Two reasons. A shared course calendar where the TA picks pink for one exam
- * and red for the next teaches students nothing, and colour alone cannot carry
- * meaning for the part of the class that cannot distinguish these hues — so
- * every kind gets an icon and a word as well.
+ * What the Schedule page lays over the course dates: an office-hour slot you can
+ * book, and a session you have booked. They come from the office-hours tables,
+ * not `course_dates`, so they are never editable here; pressing one hands it
+ * back to the page (`onOpenItem`), which opens the booking sheet.
  */
-const KINDS: Record<
-  CourseDateKind,
-  { label: string; Icon: typeof AlertTriangle; dot: string; chip: string; bar: string; note: string }
-> = {
-  exam: {
-    label: "Exam",
-    Icon: AlertTriangle,
-    dot: "bg-rose-500",
-    bar: "border-rose-500",
-    chip: "bg-rose-50 text-rose-700 ring-rose-200 dark:bg-rose-950/60 dark:text-rose-200 dark:ring-rose-900",
-    note: "A graded sitting in a room at a set time. The countdown in the list is mostly for these.",
-  },
-  quiz: {
-    label: "Quiz",
-    Icon: PencilLine,
-    dot: "bg-amber-500",
-    bar: "border-amber-500",
-    chip: "bg-amber-50 text-amber-800 ring-amber-200 dark:bg-amber-950/60 dark:text-amber-200 dark:ring-amber-900",
-    note: "A short graded check, usually during lecture.",
-  },
-  assignment: {
-    label: "Assignment",
-    Icon: FileText,
-    dot: "bg-[#6b51dd]",
-    bar: "border-[#5a3fd8] dark:border-[#6d5ae0]",
-    chip: "bg-[#f1f4fa] text-[#472ab4] ring-[#ccd5ea] dark:bg-[#1f1456]/60 dark:text-[#ccd5ea] dark:ring-[#33208c]",
-    note: "A deadline rather than a span. The time shown is when it is due.",
-  },
-  lecture: {
-    label: "Lecture",
-    Icon: BookOpen,
-    dot: "bg-slate-400",
-    bar: "border-slate-400",
-    chip: "bg-slate-100 text-slate-700 ring-slate-200 dark:bg-stone-800 dark:text-stone-300 dark:ring-stone-700",
-    note: "A class meeting where the material is taught.",
-  },
-  lab: {
-    label: "Lab",
-    Icon: FlaskConical,
-    dot: "bg-emerald-500",
-    bar: "border-emerald-500",
-    chip: "bg-emerald-50 text-emerald-700 ring-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-200 dark:ring-emerald-900",
-    note: "A hands-on session in the lab.",
-  },
-  "office-hours": {
-    label: "Office hours",
-    Icon: Users,
-    dot: "bg-sky-500",
-    bar: "border-sky-500",
-    chip: "bg-sky-50 text-sky-700 ring-sky-200 dark:bg-sky-950/60 dark:text-sky-200 dark:ring-sky-900",
-    note: "Drop-in time with the instructor or a TA.",
-  },
+export type ScheduleKind = "open-slot" | "my-session";
+export interface ScheduleItem {
+  id: string;
+  title: string;
+  detail?: string;
+  start: Date;
+  end?: Date;
+  kind: ScheduleKind;
+}
+type CalendarKind = CourseDateKind | ScheduleKind;
+type Item = Omit<CourseDate, "kind"> & { kind: CalendarKind };
+const isScheduleKind = (k: CalendarKind): k is ScheduleKind => k === "open-slot" || k === "my-session";
+
+/**
+ * The five categories a student filters by, each with its own colour
+ * (schedule.css, `[data-cat]`): exams violet, deadlines berry, class neutral,
+ * office hours the blue touch, your sessions green. Red is not used: in
+ * Blueberry red means delete.
+ *
+ * Colour never carries the meaning alone. Every kind also has an icon and a
+ * word, the chip text is the same dark ink on every kind, and on a phone a
+ * deadline's bar is hollow where the others are filled.
+ */
+export type Category = "exam" | "due" | "class" | "hours" | "mine";
+
+const KINDS: Record<CalendarKind, { label: string; Icon: typeof AlertTriangle; cat: Category }> = {
+  exam: { label: "Exam", Icon: AlertTriangle, cat: "exam" },
+  quiz: { label: "Quiz", Icon: PencilLine, cat: "exam" },
+  assignment: { label: "Assignment", Icon: FileText, cat: "due" },
+  lecture: { label: "Lecture", Icon: BookOpen, cat: "class" },
+  lab: { label: "Lab", Icon: FlaskConical, cat: "class" },
+  "office-hours": { label: "Office hours", Icon: Users, cat: "hours" },
+  "open-slot": { label: "Open slot", Icon: Clock, cat: "hours" },
+  "my-session": { label: "My session", Icon: CalendarCheck, cat: "mine" },
 };
 
-const KIND_ORDER = Object.keys(KINDS) as CourseDateKind[];
-const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const KIND_ORDER = Object.keys(KINDS) as CalendarKind[];
+/** The kinds a course date can be, which is what the editor offers. */
+const EDITABLE_KINDS = KIND_ORDER.filter((k): k is CourseDateKind => !isScheduleKind(k));
+
+/**
+ * The filter chips, by what a student is looking for rather than by table
+ * column (SITE-REPLAN.md section 4: Exams, Deadlines, Office hours, My sessions,
+ * plus Class so lectures and labs can still be hidden). Each chip is also the
+ * key for its colour, so each names its own mark.
+ */
+const CATEGORIES: { id: Category; label: string; kinds: CalendarKind[]; Icon: typeof AlertTriangle }[] = [
+  { id: "exam", label: "Exams", kinds: ["exam", "quiz"], Icon: AlertTriangle },
+  { id: "due", label: "Deadlines", kinds: ["assignment"], Icon: FileText },
+  { id: "class", label: "Class", kinds: ["lecture", "lab"], Icon: BookOpen },
+  { id: "hours", label: "Office hours", kinds: ["office-hours", "open-slot"], Icon: Clock },
+  { id: "mine", label: "My sessions", kinds: ["my-session"], Icon: CalendarCheck },
+];
 const DAY_MS = 86_400_000;
 
 const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
@@ -161,7 +170,7 @@ function monthGrid(anchor: Date): Date[] {
   const first = new Date(anchor.getFullYear(), anchor.getMonth(), 1);
   return Array.from(
     { length: 42 },
-    (_, i) => new Date(first.getFullYear(), first.getMonth(), 1 - first.getDay() + i),
+    (_, i) => new Date(first.getFullYear(), first.getMonth(), 1 - leadDays(first) + i),
   );
 }
 
@@ -200,9 +209,30 @@ export interface CourseCalendarProps {
    * re-check on every write — a flag in the browser is a hint, not a gate.
    */
   canEdit?: boolean;
-  defaultView?: "month" | "agenda";
+  /** Office-hour slots and booked sessions, drawn beside the course dates. */
+  items?: ScheduleItem[];
+  /** Pressing a slot or a session. The page decides what opens. */
+  onOpenItem?: (item: ScheduleItem) => void;
+  /** Hide the My sessions chip when nobody is signed in to have any. */
+  showMine?: boolean;
+  defaultView?: "month" | "week" | "agenda";
+  /**
+   * Desktop only: an element beside the grid (the page's side column) where the
+   * picked day's list is drawn, so picking a day never takes the grid away.
+   * Without it, or below 1024px, the list sits under the grid.
+   */
+  dayDock?: HTMLElement | null;
+  /** Called when a day is pressed, so the page can show `dayDock`. */
+  onPickDay?: (day: Date) => void;
   className?: string;
 }
+
+type View = "month" | "week" | "agenda";
+const VIEWS: { id: View; label: string }[] = [
+  { id: "month", label: "Month" },
+  { id: "week", label: "Week" },
+  { id: "agenda", label: "List" },
+];
 
 export function CourseCalendar({
   dates = [],
@@ -210,28 +240,54 @@ export function CourseCalendar({
   onUpdate,
   onDelete,
   canEdit = false,
+  items: scheduleItems = [],
+  onOpenItem,
+  showMine = true,
   defaultView = "month",
+  dayDock = null,
+  onPickDay,
   className,
 }: CourseCalendarProps) {
-  const [view, setView] = useState<"month" | "agenda">(defaultView);
+  const [view, setView] = useState<View>(defaultView);
   const [anchor, setAnchor] = useState(() => startOfDay(new Date()));
   const [selectedDay, setSelectedDay] = useState(() => startOfDay(new Date()));
   const [query, setQuery] = useState("");
-  const [kinds, setKinds] = useState<CourseDateKind[]>([]);
+  const [cats, setCats] = useState<Category[]>([]);
   const [showPast, setShowPast] = useState(false);
-  const [keyOpen, setKeyOpen] = useState(false);
+  // Phone only: the search field stays folded behind an icon until asked for.
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const [editing, setEditing] = useState<CourseDate | null>(null);
   const [mode, setMode] = useState<"create" | "edit">("create");
   const [formError, setFormError] = useState<string | null>(null);
 
   const gridRef = useRef<HTMLDivElement>(null);
+  const dayListRef = useRef<HTMLElement>(null);
+  // From 1024px the day's list goes into the page's side column, if it gave one.
+  const docked = useWide() && dayDock !== null;
+
+  /**
+   * How many chip rows a month cell holds, measured rather than assumed, so a
+   * larger font or a browser zoom still never clips a chip. A ResizeObserver
+   * calls back whenever the first cell changes size; the state it sets is
+   * the only thing the cells read. Where there is no ResizeObserver (tests),
+   * the design height stands in.
+   */
+  const [capacity, setCapacity] = useState(() => chipCapacity(CELL_ROW_PX));
+  useEffect(() => {
+    const cell = gridRef.current?.firstElementChild;
+    if (!cell || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(([entry]) => setCapacity(chipCapacity((entry.target as HTMLElement).offsetHeight)));
+    ro.observe(cell);
+    return () => ro.disconnect();
+  }, [view]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return dates
-      .filter((d) => {
-        if (kinds.length > 0 && !kinds.includes(d.kind)) return false;
+    const shown = new Set(CATEGORIES.filter((c) => cats.includes(c.id)).flatMap((c) => c.kinds));
+    return [...dates, ...scheduleItems]
+      .filter((d: Item) => {
+        if (shown.size > 0 && !shown.has(d.kind)) return false;
         if (!q) return true;
         return (
           d.title.toLowerCase().includes(q) ||
@@ -240,10 +296,10 @@ export function CourseCalendar({
         );
       })
       .sort((a, b) => a.start.getTime() - b.start.getTime());
-  }, [dates, query, kinds]);
+  }, [dates, scheduleItems, query, cats]);
 
   const byDay = useMemo(() => {
-    const map = new Map<number, CourseDate[]>();
+    const map = new Map<number, Item[]>();
     for (const d of filtered) {
       const key = startOfDay(d.start).getTime();
       const list = map.get(key);
@@ -259,7 +315,7 @@ export function CourseCalendar({
   }, [filtered, showPast]);
 
   const selectedDayDates = byDay.get(selectedDay.getTime()) ?? [];
-  const filtersActive = kinds.length > 0 || query.trim() !== "";
+  const filtersActive = cats.length > 0 || query.trim() !== "";
 
   const goToday = () => {
     const today = startOfDay(new Date());
@@ -269,6 +325,47 @@ export function CourseCalendar({
 
   const shiftMonth = (by: number) =>
     setAnchor((prev) => new Date(prev.getFullYear(), prev.getMonth() + by, 1));
+
+  /** The week view pages by seven days and keeps the month title in step. */
+  const shiftWeek = (by: number) => {
+    const next = new Date(selectedDay.getFullYear(), selectedDay.getMonth(), selectedDay.getDate() + by * 7);
+    setSelectedDay(next);
+    setAnchor(new Date(next.getFullYear(), next.getMonth(), 1));
+  };
+  const weekDays = useMemo(() => {
+    const first = new Date(selectedDay.getFullYear(), selectedDay.getMonth(), selectedDay.getDate() - leadDays(selectedDay));
+    return Array.from({ length: 7 }, (_, i) => new Date(first.getFullYear(), first.getMonth(), first.getDate() + i));
+  }, [selectedDay]);
+
+  /**
+   * Pressing an item. A slot or a session goes back to the page (the booking
+   * sheet); a course date opens the editor, and only for staff.
+   */
+  const openItem = (item: Item) => {
+    if (isScheduleKind(item.kind)) onOpenItem?.(item as ScheduleItem);
+    else if (canEdit) {
+      setMode("edit");
+      setFormError(null);
+      setEditing(item as CourseDate);
+    }
+  };
+  const isOpenable = (item: Item) => isScheduleKind(item.kind) ? Boolean(onOpenItem) : canEdit;
+
+  /**
+   * Pressing a day. On a laptop the day's list is already beside the grid (the
+   * dock), so nothing moves. Under the grid, if the cell was hiding chips behind
+   * "+N more", the list is brought into view, so "+N more" opens the day.
+   */
+  const pickDay = (day: Date, hidden: number) => {
+    setSelectedDay(startOfDay(day));
+    onPickDay?.(startOfDay(day));
+    if (hidden > 0 && !docked) {
+      const reduced = document.documentElement.dataset.motion === "reduced";
+      requestAnimationFrame(() =>
+        dayListRef.current?.scrollIntoView?.({ block: "nearest", behavior: reduced ? "auto" : "smooth" }),
+      );
+    }
+  };
 
   /**
    * Arrow keys walk the grid, the way every date picker does.
@@ -339,63 +436,151 @@ export function CourseCalendar({
     setEditing(null);
   };
 
+  /**
+   * The filter chips, which are also the key. On a phone they sit under the
+   * month grid, right below the bars they explain, in one row that scrolls
+   * sideways, with the search icon at its start; from 640px they sit above the
+   * grid and wrap. (Rendered in one of two places by breakpoint, which is why
+   * this is a variable rather than inline JSX.)
+   */
+  const filters = (where: "top" | "bottom") => (
+    <div
+      className={cn(
+        "-mx-1 items-center gap-1.5 overflow-x-auto px-1 pb-1 sm:flex-wrap sm:overflow-visible sm:pb-0",
+        where === "bottom" ? "flex sm:hidden" : view === "month" ? "hidden sm:flex" : "flex",
+      )}
+    >
+      <IconButton
+        label={searchOpen ? "Hide search" : "Search the calendar"}
+        aria-expanded={searchOpen}
+        onClick={() => setSearchOpen((o) => !o)}
+        className="shrink-0 sm:hidden"
+      >
+        <Search className="size-4" />
+      </IconButton>
+      {CATEGORIES.filter((c) => showMine || c.id !== "mine").map((c) => {
+        const on = cats.includes(c.id);
+        return (
+          <button
+            key={c.id}
+            type="button"
+            aria-pressed={on}
+            onClick={() =>
+              setCats((prev) =>
+                prev.includes(c.id) ? prev.filter((k) => k !== c.id) : [...prev, c.id],
+              )
+            }
+            className={cn(
+              "sch-focus flex min-h-11 shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 text-sm font-semibold ring-1 transition-colors duration-200",
+              on
+                ? "bg-[var(--bb-wash)] text-[var(--bb-deep)] ring-2 ring-[var(--site-primary)]"
+                : "bg-card text-[var(--site-quiet)] ring-[var(--site-border)] hover:bg-[var(--bb-wash)]",
+            )}
+          >
+            <c.Icon aria-hidden data-cat={c.id} className="sch-mark size-4" strokeWidth={2.5} />
+            {c.label}
+          </button>
+        );
+      })}
+      {filtersActive && (
+        <Button
+          variant="ghost"
+          onClick={() => {
+            setCats([]);
+            setQuery("");
+          }}
+          className="shrink-0 text-muted-foreground"
+        >
+          <X className="size-3.5" />
+          Clear
+        </Button>
+      )}
+    </div>
+  );
+
+  /** The picked day's full list: under the grid, or in the page's dock beside it. */
+  const daySection = (
+    <section ref={dayListRef} aria-live="polite" className="scroll-mt-24">
+      <h3
+        className={cn(
+          "mb-2 font-semibold text-[var(--bb-deep)]",
+          docked ? "title-face text-xl font-extrabold" : "text-sm",
+        )}
+      >
+        {selectedDay.toLocaleDateString(undefined, {
+          weekday: "long",
+          day: "numeric",
+          month: "long",
+        })}
+      </h3>
+      {selectedDayDates.length === 0 ? (
+        <Empty>Nothing scheduled.</Empty>
+      ) : (
+        <ul className="flex flex-col gap-2">
+          {selectedDayDates.map((item) => (
+            <DateRow
+              key={item.id}
+              item={item}
+              openable={isOpenable(item)}
+              onOpen={() => openItem(item)}
+            />
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+
   // `min-h-0` on the root as well as on the grid. A flex child defaults to
   // `min-height: auto`, so it will not shrink below its content no matter what
   // its own children are told. Without it the chain broke one level above the
   // grid: the card measured 358px and its children still measured 654px.
   return (
     <div className={cn("flex min-h-0 flex-1 flex-col gap-3", className)}>
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-2">
-          <h2 className="title-face min-w-44 text-xl font-semibold text-slate-900 dark:text-stone-100">
-            {view === "month"
-              ? anchor.toLocaleDateString(undefined, { month: "long", year: "numeric" })
-              : "Coming up"}
-          </h2>
-          {view === "month" && (
-            <div className="flex items-center gap-1">
-              <IconButton label="Previous month" onClick={() => shiftMonth(-1)}>
-                <ChevronLeft className="size-4" />
-              </IconButton>
-              <IconButton label="Next month" onClick={() => shiftMonth(1)}>
-                <ChevronRight className="size-4" />
-              </IconButton>
-            </div>
+      {/* One row of controls on a phone (month, arrows, Today, view), and on a
+          laptop the search joins it, with the filter chips as a second row. */}
+      <header className="flex flex-wrap items-center gap-1 sm:gap-2">
+        <h2 className="title-face min-w-0 truncate text-lg font-extrabold text-[var(--bb-deep)] sm:text-xl">
+          {view === "agenda" ? (
+            "Coming up"
+          ) : (
+            <>
+              <span className="sm:hidden">{anchor.toLocaleDateString(undefined, { month: "short", year: "numeric" })}</span>
+              <span className="hidden sm:inline">{anchor.toLocaleDateString(undefined, { month: "long", year: "numeric" })}</span>
+            </>
           )}
-          <Button variant="ghost" onClick={goToday}>
-            Today
-          </Button>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1 rounded-xl bg-slate-100 p-1 dark:bg-stone-800">
-            <ViewTab active={view === "month"} onClick={() => setView("month")} Icon={CalendarDays}>
-              Month
-            </ViewTab>
-            <ViewTab active={view === "agenda"} onClick={() => setView("agenda")} Icon={List}>
-              List
-            </ViewTab>
+        </h2>
+        {view !== "agenda" && (
+          <div className="flex items-center">
+            <IconButton
+              label={view === "week" ? "Previous week" : "Previous month"}
+              onClick={() => (view === "week" ? shiftWeek(-1) : shiftMonth(-1))}
+            >
+              <ChevronLeft className="size-4" />
+            </IconButton>
+            <IconButton
+              label={view === "week" ? "Next week" : "Next month"}
+              onClick={() => (view === "week" ? shiftWeek(1) : shiftMonth(1))}
+            >
+              <ChevronRight className="size-4" />
+            </IconButton>
           </div>
-          <IconButton label="Key: what the colours mean" onClick={() => setKeyOpen(true)}>
-            <KeyRound className="size-4" />
-          </IconButton>
-          {canEdit && (
-            <Button onClick={() => openCreate(selectedDay)}>
-              <Plus className="size-4" />
-              Add
-            </Button>
-          )}
-        </div>
-      </header>
+        )}
+        <Button variant="ghost" onClick={goToday} className="ml-auto px-2.5 sm:ml-0 sm:px-4">
+          Today
+        </Button>
 
-      <div className="flex flex-col gap-2">
-        <div className="relative">
+        <div
+          className={cn(
+            "relative order-last w-full sm:order-none sm:ml-auto sm:block sm:w-64",
+            searchOpen ? "block" : "hidden",
+          )}
+        >
           <Search className="pointer-events-none absolute left-3 top-1/2 z-[1] size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search the calendar…"
+            placeholder="Search the calendar"
             aria-label="Search the calendar"
             className="pl-9 pr-11"
           />
@@ -410,63 +595,48 @@ export function CourseCalendar({
           )}
         </div>
 
-        {/* Chips, not a dropdown menu. Six kinds fit on one row, and a filter
-            you can see the state of beats one hidden behind two clicks. */}
-        <div className="-mx-1 flex flex-wrap gap-1.5 px-1">
-          {KIND_ORDER.map((kind) => {
-            const { label, Icon, chip } = KINDS[kind];
-            const on = kinds.includes(kind);
-            return (
-              <button
-                key={kind}
-                type="button"
-                aria-pressed={on}
-                onClick={() =>
-                  setKinds((prev) =>
-                    prev.includes(kind) ? prev.filter((k) => k !== kind) : [...prev, kind],
-                  )
-                }
-                className={cn(
-                  "flex min-h-11 cursor-pointer items-center gap-1.5 rounded-xl px-3 text-sm font-medium ring-1 transition",
-                  on
-                    ? chip
-                    : "bg-white text-slate-500 ring-slate-200 hover:bg-slate-50 dark:bg-stone-900 dark:text-stone-400 dark:ring-stone-700 dark:hover:bg-stone-800",
-                )}
-              >
-                <Icon className="size-3.5" />
-                {label}
-              </button>
-            );
-          })}
-          {filtersActive && (
-            <Button
-              variant="ghost"
-              onClick={() => {
-                setKinds([]);
-                setQuery("");
-              }}
-              className="text-muted-foreground"
-            >
-              <X className="size-3.5" />
-              Clear
-            </Button>
-          )}
+        {/* A native select on a phone: three views in one 44px control. */}
+        <select
+          aria-label="View"
+          value={view}
+          onChange={(e) => setView(e.target.value as View)}
+          className="min-h-11 cursor-pointer rounded-xl border border-[var(--site-border)] bg-card px-2.5 text-sm font-semibold text-[var(--bb-deep)] focus-visible:outline-3 focus-visible:outline-[var(--ring)] sm:hidden"
+        >
+          {VIEWS.map((v) => (
+            <option key={v.id} value={v.id}>
+              {v.label}
+            </option>
+          ))}
+        </select>
+        <div className="hidden items-center gap-1 rounded-xl bg-[var(--bb-wash)] p-1 sm:flex">
+          {VIEWS.map((v) => (
+            <ViewTab key={v.id} active={view === v.id} onClick={() => setView(v.id)}>
+              {v.label}
+            </ViewTab>
+          ))}
         </div>
-      </div>
+        {canEdit && (
+          <Button onClick={() => openCreate(selectedDay)}>
+            <Plus className="size-4" />
+            Add
+          </Button>
+        )}
+      </header>
+
+      {filters("top")}
 
       {view === "month" ? (
         <>
-          {/* A flex column so the grid can take the height that is left.
-              It was a plain box whose cells each carried `sm:min-h-24`, which
-              is 96px times six rows of grid before the month nav, the search
-              and the six filter chips are counted. That is why the page ran
-              879px past the viewport on a laptop. */}
-          <div className="flex min-h-72 flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-stone-700 dark:bg-stone-900">
-            <div className="grid shrink-0 grid-cols-7 border-b border-slate-200 dark:border-stone-700">
-              {WEEKDAYS.map((day) => (
+          {/* Rows of a fixed height, 56px on a phone and 116px from 640px, so a
+              cell's capacity is known and the page grows instead of the cells
+              shrinking until they clip. The day's list below the grid flows
+              with the page (it used to scroll inside a 160px box). */}
+          <div className="overflow-hidden rounded-2xl border border-[var(--site-hairline)] bg-card">
+            <div className="grid grid-cols-7 border-b border-[var(--site-hairline)]">
+              {WEEKDAY_NAMES.map((day) => (
                 <div
                   key={day}
-                  className="py-2 text-center text-xs font-semibold text-slate-500 dark:text-stone-400"
+                  className="py-2 text-center text-xs font-semibold text-[var(--site-quiet)]"
                 >
                   <span className="hidden sm:inline">{day}</span>
                   <span aria-hidden className="sm:hidden">
@@ -477,15 +647,10 @@ export function CourseCalendar({
               ))}
             </div>
 
-            {/* Six equal rows that divide the remaining height between them,
-                rather than six rows each at least 96px tall. `min-h-0` is the
-                part people leave off: without it a grid child refuses to
-                shrink below its content and the whole column overflows
-                anyway. */}
             <div
               ref={gridRef}
               onKeyDown={onGridKeyDown}
-              className="grid min-h-72 flex-1 grid-cols-7 grid-rows-6"
+              className="grid auto-rows-[56px] grid-cols-7 sm:auto-rows-[116px]"
             >
               {monthGrid(anchor).map((day) => {
                 const key = startOfDay(day).getTime();
@@ -493,6 +658,15 @@ export function CourseCalendar({
                 const inMonth = day.getMonth() === anchor.getMonth();
                 const isToday = sameDay(day, new Date());
                 const isSelected = sameDay(day, selectedDay);
+                // Importance order, open slots folded into one entry, and
+                // exams, deadlines and sessions never behind "+N more".
+                const entries = cellEntries(items);
+                const fit = fitCell(entries, capacity);
+                // Phone: up to three bars, or two and a count. The 56px cell has
+                // no room past three rows, so the count always wins its row
+                // here; the bars carry no words, and the order puts the most
+                // important two first.
+                const bars = fitChips(entries.length, 3);
 
                 return (
                   <button
@@ -500,7 +674,7 @@ export function CourseCalendar({
                     type="button"
                     data-day={key}
                     tabIndex={isSelected ? 0 : -1}
-                    onClick={() => setSelectedDay(startOfDay(day))}
+                    onClick={() => pickDay(day, fit.more)}
                     aria-current={isToday ? "date" : undefined}
                     aria-pressed={isSelected}
                     aria-label={`${day.toLocaleDateString(undefined, {
@@ -509,54 +683,62 @@ export function CourseCalendar({
                       month: "long",
                     })}, ${items.length === 0 ? "nothing scheduled" : `${items.length} scheduled`}`}
                     className={cn(
-                      "flex min-h-0 cursor-pointer flex-col items-center gap-1 overflow-hidden border-b border-r border-slate-100 p-1.5 text-left outline-none transition sm:items-stretch dark:border-stone-800",
-                      "focus-visible:ring-2 focus-visible:ring-[#6b51dd] focus-visible:ring-inset",
-                      !inMonth && "bg-slate-50/60 dark:bg-stone-950/40",
-                      isSelected && "bg-[#f1f4fa] dark:bg-[#1f1456]/40",
-                      !isSelected && "hover:bg-slate-50 dark:hover:bg-stone-800/60",
+                      "sch-cell flex min-h-0 min-w-0 cursor-pointer flex-col gap-0.5 overflow-hidden border-b border-r border-[var(--site-hairline)] p-1 text-left transition-colors duration-200",
+                      !inMonth && "bg-[color-mix(in_srgb,var(--site-ground)_70%,var(--card))]",
+                      isSelected && "bg-[var(--bb-wash)] shadow-[inset_0_0_0_2px_var(--site-primary)]",
+                      !isSelected && "hover:bg-[var(--bb-wash)]",
                     )}
                   >
                     <span
                       className={cn(
-                        "title-face flex size-6 shrink-0 items-center justify-center rounded-full text-sm font-semibold sm:self-start",
-                        isToday && "bg-[#5a3fd8] text-white dark:bg-[#6d5ae0]",
-                        !isToday && inMonth && "text-slate-700 dark:text-stone-200",
-                        !isToday && !inMonth && "text-slate-400 dark:text-stone-600",
+                        "title-face flex size-[22px] shrink-0 items-center justify-center self-center rounded-full text-sm font-bold sm:self-start",
+                        isToday && "bg-[var(--site-primary)] text-white",
+                        !isToday && inMonth && "text-[var(--bb-deep)]",
+                        !isToday && !inMonth && "text-[var(--site-faint)]",
                       )}
                     >
                       {day.getDate()}
                     </span>
 
-                    {/* Dots on a phone, titles on a laptop. An 18px chip is
-                        under any touch-target floor, so on small screens the
-                        cell is the target and the list below is where things
-                        are actually read and tapped. */}
-                    <span aria-hidden className="flex flex-wrap justify-center gap-0.5 sm:hidden">
-                      {items.slice(0, 4).map((item) => (
-                        <span
-                          key={item.id}
-                          className={cn("size-1.5 rounded-full", KINDS[item.kind].dot)}
-                        />
-                      ))}
+                    {/* Bars on a phone, chips on a laptop. A chip is under any
+                        touch-target floor, so the cell is the target and the
+                        list below is where things are read and tapped. */}
+                    <span aria-hidden className="flex w-full flex-col gap-0.5 px-0.5 sm:hidden">
+                      {entries.slice(0, bars.shown).map((e) =>
+                        e.type === "open" ? (
+                          <span key="open" data-cat="hours" className="sch-bar" />
+                        ) : (
+                          <span key={e.item.id} data-cat={KINDS[e.item.kind].cat} className="sch-bar" />
+                        ),
+                      )}
+                      {bars.more > 0 && (
+                        <span className="text-center text-[11px] leading-3 font-bold text-[var(--site-quiet)]">
+                          +{bars.more}
+                        </span>
+                      )}
                     </span>
 
                     <span aria-hidden className="hidden min-w-0 flex-col gap-0.5 sm:flex">
-                      {items.slice(0, 3).map((item) => (
-                        <span
-                          key={item.id}
-                          className={cn(
-                            "truncate rounded-sm border-l-[3px] px-1.5 py-0.5 text-[11px] font-semibold",
-                            KINDS[item.kind].chip,
-                            KINDS[item.kind].bar,
-                          )}
-                        >
-                          {item.title}
-                          {item.detail && <span className="font-normal opacity-80"> {item.detail}</span>}
-                        </span>
-                      ))}
-                      {items.length > 3 && (
-                        <span className="px-1 text-[11px] text-slate-500 dark:text-stone-400">
-                          +{items.length - 3} more
+                      {entries.slice(0, fit.shown).map((e) => {
+                        const chip = "sch-chip flex h-[18px] min-w-0 items-center gap-1 rounded-sm px-1 text-xs leading-4 font-semibold";
+                        if (e.type === "open")
+                          return (
+                            <span key="open" data-cat="hours" className={chip}>
+                              <Clock className="sch-mark size-3 shrink-0" strokeWidth={2.5} />
+                              <span className="truncate">{e.count === 1 ? "1 open time" : `${e.count} open times`}</span>
+                            </span>
+                          );
+                        const { Icon, cat } = KINDS[e.item.kind];
+                        return (
+                          <span key={e.item.id} data-cat={cat} data-strong={e.item.kind === "exam" || undefined} className={chip}>
+                            <Icon className="sch-mark size-3 shrink-0" strokeWidth={2.5} />
+                            <span className="truncate">{e.item.title}</span>
+                          </span>
+                        );
+                      })}
+                      {fit.more > 0 && (
+                        <span className="h-[18px] px-1 text-xs leading-4 font-bold text-[var(--bb-deep)] underline underline-offset-2">
+                          +{fit.more} more
                         </span>
                       )}
                     </span>
@@ -566,38 +748,17 @@ export function CourseCalendar({
             </div>
           </div>
 
-          {/* The day's agenda scrolls inside its own box rather than growing
-              the page. A day with eight things on it is a real scroll, and it
-              should not push the month grid off the screen the calendar is
-              supposed to fit on. */}
-          <section aria-live="polite" className="max-h-40 shrink-0 overflow-y-auto">
-            <h3 className="mb-2 text-sm font-semibold text-slate-700 dark:text-stone-300">
-              {selectedDay.toLocaleDateString(undefined, {
-                weekday: "long",
-                day: "numeric",
-                month: "long",
-              })}
-            </h3>
-            {selectedDayDates.length === 0 ? (
-              <Empty>Nothing scheduled.</Empty>
-            ) : (
-              <ul className="flex flex-col gap-2">
-                {selectedDayDates.map((item) => (
-                  <DateRow
-                    key={item.id}
-                    item={item}
-                    canEdit={canEdit}
-                    onEdit={() => {
-                      setMode("edit");
-                      setFormError(null);
-                      setEditing(item);
-                    }}
-                  />
-                ))}
-              </ul>
-            )}
-          </section>
+          {filters("bottom")}
+
+          {!docked && daySection}
         </>
+      ) : view === "week" ? (
+        <WeekView
+          days={weekDays}
+          byDay={byDay}
+          isOpenable={isOpenable}
+          onOpen={openItem}
+        />
       ) : (
         <section>
           {agenda.length === 0 ? (
@@ -608,7 +769,7 @@ export function CourseCalendar({
             <ul className="flex flex-col gap-4">
               {groupByDay(agenda).map(([key, items]) => (
                 <li key={key}>
-                  <h3 className="mb-2 text-sm font-semibold text-slate-700 dark:text-stone-300">
+                  <h3 className="mb-2 text-sm font-semibold text-[var(--bb-deep)]">
                     {new Date(key).toLocaleDateString(undefined, {
                       weekday: "long",
                       day: "numeric",
@@ -620,12 +781,8 @@ export function CourseCalendar({
                       <DateRow
                         key={item.id}
                         item={item}
-                        canEdit={canEdit}
-                        onEdit={() => {
-                          setMode("edit");
-                          setFormError(null);
-                          setEditing(item);
-                        }}
+                        openable={isOpenable(item)}
+                        onOpen={() => openItem(item)}
                       />
                     ))}
                   </ul>
@@ -642,6 +799,11 @@ export function CourseCalendar({
           </Button>
         </section>
       )}
+
+      {/* A portal draws this list inside `dayDock`, an element the page owns
+          beside the grid, while it stays part of this component (its state,
+          its handlers). */}
+      {docked && dayDock && createPortal(daySection, dayDock)}
 
       {/* Radix handles the whole keyboard contract here — focus in, Tab
           trapped, Escape out, focus returned to the Add button. `onOpenChange`
@@ -691,55 +853,12 @@ export function CourseCalendar({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      <Dialog open={keyOpen} onOpenChange={setKeyOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Key</DialogTitle>
-            <DialogDescription>
-              Colour is fixed per kind, and every kind also carries an icon and a word, so the
-              grid still reads without the colour.
-            </DialogDescription>
-          </DialogHeader>
-
-          <DialogBody>
-            <ul className="flex flex-col divide-y divide-border">
-              {KIND_ORDER.map((kind) => {
-                const { label, Icon, chip, bar, note } = KINDS[kind];
-                return (
-                  <li key={kind} className="flex items-start gap-3 py-2.5">
-                    <span
-                      aria-hidden
-                      className={cn("mt-0.5 h-5 w-8 shrink-0 rounded-sm border-l-[3px]", chip, bar)}
-                    />
-                    <span className="min-w-0">
-                      <span className="flex items-center gap-1.5 font-semibold text-slate-900 dark:text-stone-100">
-                        <Icon className="size-3.5 opacity-70" />
-                        {label}
-                      </span>
-                      <span className="block text-sm text-slate-600 dark:text-stone-400">{note}</span>
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
-            <p className="mt-3 text-sm text-slate-600 dark:text-stone-400">
-              The filled circle on the grid is today. Anything within a week shows a countdown in
-              the list.
-            </p>
-          </DialogBody>
-
-          <DialogFooter>
-            <Button onClick={() => setKeyOpen(false)}>Done</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
 
-function groupByDay(items: CourseDate[]): [number, CourseDate[]][] {
-  const map = new Map<number, CourseDate[]>();
+function groupByDay(items: Item[]): [number, Item[]][] {
+  const map = new Map<number, Item[]>();
   for (const item of items) {
     const key = startOfDay(item.start).getTime();
     const list = map.get(key);
@@ -749,32 +868,146 @@ function groupByDay(items: CourseDate[]): [number, CourseDate[]][] {
   return [...map.entries()].sort((a, b) => a[0] - b[0]);
 }
 
+/**
+ * The week, as Focusment draws it: a big date numeral over each day, and each
+ * column only as tall as what is in it, so an empty day is a header and
+ * nothing more (it used to be a 730px card reading "Nothing"). On a phone the
+ * week is a list of the days that have something, with the empty runs between
+ * them folded into one quiet line each.
+ */
+function WeekView({
+  days,
+  byDay,
+  isOpenable,
+  onOpen,
+}: {
+  days: Date[];
+  byDay: Map<number, Item[]>;
+  isOpenable: (item: Item) => boolean;
+  onOpen: (item: Item) => void;
+}) {
+  const listFor = (d: Date) => byDay.get(startOfDay(d).getTime()) ?? [];
+  const empty = days.every((d) => listFor(d).length === 0);
+  const items = (list: Item[]) =>
+    list.map((item) =>
+      item.kind === "open-slot" ? (
+        <button
+          key={item.id}
+          type="button"
+          onClick={() => onOpen(item)}
+          className="sch-slot"
+          aria-label={`Book ${item.title} at ${timeOf(item.start)}`}
+        >
+          {timeOf(item.start)}
+        </button>
+      ) : (
+        <WeekChip key={item.id} item={item} openable={isOpenable(item)} onOpen={() => onOpen(item)} />
+      ),
+    );
+
+  // Phone: the days with something, and one line per run of empty days. The
+  // trailing `null` closes the last run.
+  const phone: React.ReactNode[] = [];
+  let run: Date[] = [];
+  for (const d of [...days, null]) {
+    const list = d ? listFor(d) : [];
+    if (d && list.length === 0) {
+      run.push(d);
+      continue;
+    }
+    if (run.length > 0)
+      phone.push(
+        <p key={`none-${run[0].getTime()}`} className="px-1 text-sm text-[var(--site-quiet)]">
+          {nothingLine(run)}
+        </p>,
+      );
+    run = [];
+    if (d)
+      phone.push(
+        <section
+          key={d.getTime()}
+          aria-label={d.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })}
+          className="flex flex-col gap-1.5"
+        >
+          <DayHeading day={d} />
+          {items(list)}
+        </section>,
+      );
+  }
+
+  return (
+    <>
+      <div className="flex flex-col gap-3 sm:hidden">
+        {empty ? <Empty>Nothing this week.</Empty> : phone}
+      </div>
+      <div className="hidden sm:block">
+        <div className="grid grid-cols-7 items-start gap-2">
+          {days.map((d) => (
+            <section
+              key={d.getTime()}
+              aria-label={d.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })}
+              className="flex min-w-0 flex-col gap-1.5"
+            >
+              <DayHeading day={d} big />
+              {items(listFor(d))}
+            </section>
+          ))}
+        </div>
+        {empty && <p className="mt-4 text-center text-sm text-[var(--site-quiet)]">Nothing this week.</p>}
+      </div>
+    </>
+  );
+}
+
+function DayHeading({ day, big = false }: { day: Date; big?: boolean }) {
+  const isToday = sameDay(day, new Date());
+  return (
+    <h3
+      className={cn(
+        "flex items-baseline gap-1.5 px-1 text-[var(--bb-deep)]",
+        big && "flex-col items-center gap-0 border-b-2 border-[var(--site-hairline)] pb-1.5",
+      )}
+    >
+      <span className="text-xs font-semibold uppercase text-[var(--site-quiet)]">
+        {day.toLocaleDateString(undefined, { weekday: "short" })}
+      </span>
+      <span
+        className={cn(
+          "title-face font-extrabold",
+          big ? "text-2xl" : "text-base",
+          isToday && "rounded-full bg-[var(--site-primary)] px-2 text-white",
+        )}
+      >
+        {day.getDate()}
+      </span>
+      {isToday && <span className="sr-only">, today</span>}
+    </h3>
+  );
+}
+
 function DateRow({
   item,
-  canEdit,
-  onEdit,
+  openable,
+  onOpen,
 }: {
-  item: CourseDate;
-  canEdit: boolean;
-  onEdit: () => void;
+  item: Item;
+  openable: boolean;
+  onOpen: () => void;
 }) {
-  const { label, Icon, dot, chip } = KINDS[item.kind];
+  const { label, Icon, cat } = KINDS[item.kind];
   const soon = countdown(item.start);
   const past = daysUntil(item.start) < 0;
 
   const body = (
     <>
-      <span className={cn("mt-1.5 size-2.5 shrink-0 rounded-full", dot)} />
+      <Icon aria-hidden data-cat={cat} className="sch-mark mt-0.5 size-4 shrink-0" strokeWidth={2.5} />
       <span className="min-w-0 flex-1">
         <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <span className="font-semibold text-slate-900 dark:text-stone-100">{item.title}</span>
+          <span className="font-semibold text-[var(--bb-deep)]">{item.title}</span>
           <span
-            className={cn(
-              "flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-semibold ring-1",
-              chip,
-            )}
+            data-cat={cat}
+            className="sch-chip rounded-md px-1.5 py-0.5 text-[11px] font-semibold"
           >
-            <Icon className="size-3" />
             {label}
           </span>
           {soon && (
@@ -782,8 +1015,8 @@ function DateRow({
               className={cn(
                 "text-xs font-semibold",
                 soon.urgent
-                  ? "text-rose-600 dark:text-rose-400"
-                  : "text-slate-500 dark:text-stone-400",
+                  ? "text-[var(--bb-warn-ink)]"
+                  : "text-[var(--site-quiet)]",
               )}
             >
               {soon.text}
@@ -791,11 +1024,11 @@ function DateRow({
           )}
         </span>
         {item.detail && (
-          <span className="mt-0.5 block text-sm text-slate-600 dark:text-stone-400">
+          <span className="mt-0.5 block text-sm text-[var(--site-quiet)]">
             {item.detail}
           </span>
         )}
-        <span className="mt-0.5 block text-xs text-slate-500 dark:text-stone-400">
+        <span className="mt-0.5 block text-xs text-[var(--site-quiet)]">
           {timeOf(item.start)}
           {item.end && ` – ${timeOf(item.end)}`}
         </span>
@@ -805,21 +1038,19 @@ function DateRow({
 
   return (
     <li>
-      {canEdit ? (
+      {openable ? (
         <button
           type="button"
-          onClick={onEdit}
-          className={cn(
-            "flex w-full cursor-pointer items-start gap-3 rounded-xl border border-slate-200 bg-white p-3 text-left transition hover:border-slate-300 hover:shadow-sm dark:border-stone-700 dark:bg-stone-900 dark:hover:border-stone-600",
-            past && "opacity-60",
-          )}
+          onClick={onOpen}
+          data-cat={cat}
+          className={cn("sch-row flex w-full cursor-pointer items-start gap-3 p-3 text-left", past && "opacity-60")}
         >
           {body}
         </button>
       ) : (
         <div
           className={cn(
-            "flex items-start gap-3 rounded-xl border border-slate-200 bg-white p-3 dark:border-stone-700 dark:bg-stone-900",
+            "flex items-start gap-3 rounded-xl border border-[var(--site-hairline)] bg-card p-3",
             past && "opacity-60",
           )}
         >
@@ -827,6 +1058,35 @@ function DateRow({
         </div>
       )}
     </li>
+  );
+}
+
+/** A date or a session in the week view: the Focusment chip, a coloured rule
+ *  down the left and dark ink, pressable when it opens something. The title
+ *  wraps rather than truncating, because the column is as tall as it needs. */
+function WeekChip({ item, openable, onOpen }: { item: Item; openable: boolean; onOpen: () => void }) {
+  const { label, Icon, cat } = KINDS[item.kind];
+  const cls = cn(
+    "sch-chip flex w-full min-w-0 flex-col rounded-md px-2 py-1 text-left text-xs font-semibold break-words",
+    openable && "min-h-11 cursor-pointer",
+  );
+  const inner = (
+    <>
+      <span className="flex items-start gap-1">
+        <Icon aria-hidden className="sch-mark mt-px size-3 shrink-0" strokeWidth={2.5} />
+        <span>{item.title}</span>
+      </span>
+      <span className="font-normal">
+        {timeOf(item.start)} · {label}
+      </span>
+    </>
+  );
+  return openable ? (
+    <button type="button" data-cat={cat} onClick={onOpen} className={cls}>
+      {inner}
+    </button>
+  ) : (
+    <div data-cat={cat} className={cls}>{inner}</div>
   );
 }
 
@@ -867,13 +1127,12 @@ function DateForm({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {KIND_ORDER.map((kind) => {
-              const { label, Icon, dot } = KINDS[kind];
+            {EDITABLE_KINDS.map((kind) => {
+              const { label, Icon, cat } = KINDS[kind];
               return (
                 <SelectItem key={kind} value={kind}>
                   <span className="flex items-center gap-2">
-                    <span className={cn("size-2 rounded-full", dot)} />
-                    <Icon className="size-3.5 opacity-70" />
+                    <Icon data-cat={cat} className="sch-mark size-3.5" strokeWidth={2.5} />
                     {label}
                   </span>
                 </SelectItem>
@@ -967,12 +1226,10 @@ function Field({
 function ViewTab({
   active,
   onClick,
-  Icon,
   children,
 }: {
   active: boolean;
   onClick: () => void;
-  Icon: typeof CalendarDays;
   children: React.ReactNode;
 }) {
   return (
@@ -981,15 +1238,34 @@ function ViewTab({
       onClick={onClick}
       aria-pressed={active}
       className={cn(
-        "flex min-h-9 cursor-pointer items-center gap-1.5 rounded-lg px-3 text-sm font-medium transition",
+        "sch-focus flex min-h-11 cursor-pointer items-center rounded-lg px-3.5 text-sm font-semibold transition-colors duration-200",
         active
-          ? "bg-white text-slate-900 shadow-sm dark:bg-stone-900 dark:text-stone-100"
-          : "text-slate-500 hover:text-slate-800 dark:text-stone-400 dark:hover:text-stone-200",
+          ? "bg-card text-[var(--bb-deep)] ring-1 ring-[var(--site-border)]"
+          : "text-[var(--site-quiet)] hover:text-[var(--bb-deep)]",
       )}
     >
-      <Icon className="size-4" />
       {children}
     </button>
+  );
+}
+
+/**
+ * True from 1024px (the page's two-column layout). `useSyncExternalStore` is
+ * React's hook for reading a value that lives outside React, here the
+ * browser's media query, and re-rendering when it changes. No matchMedia
+ * (jsdom) reads as a phone.
+ */
+const WIDE = "(min-width: 1024px)";
+function useWide() {
+  return useSyncExternalStore(
+    (onChange) => {
+      if (typeof window.matchMedia !== "function") return () => {};
+      const mq = window.matchMedia(WIDE);
+      mq.addEventListener("change", onChange);
+      return () => mq.removeEventListener("change", onChange);
+    },
+    () => typeof window.matchMedia === "function" && window.matchMedia(WIDE).matches,
+    () => false,
   );
 }
 
@@ -998,11 +1274,13 @@ function IconButton({
   onClick,
   className,
   children,
+  "aria-expanded": expanded,
 }: {
   label: string;
   onClick: () => void;
   className?: string;
   children: React.ReactNode;
+  "aria-expanded"?: boolean;
 }) {
   return (
     <Button
@@ -1010,6 +1288,7 @@ function IconButton({
       size="icon"
       onClick={onClick}
       aria-label={label}
+      aria-expanded={expanded}
       className={cn("text-muted-foreground", className)}
     >
       {children}

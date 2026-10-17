@@ -32,27 +32,29 @@ export function NotFoundPage({
   detail?: string;
 }) {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#f6f4ef] px-6 py-12 dark:bg-[#0c0a09]">
+    <main className="flex min-h-screen items-center justify-center px-6 py-12">
       <div className="w-full max-w-lg text-center">
-        <div className="relative mx-auto mb-2 flex h-40 w-full items-end justify-center">
+        {/* The mascot above the number, not behind it: nothing sits behind text
+            (owner, 2026-10-07). It was a 25 percent wash under the "404". */}
+        <div className="mx-auto mb-2 flex w-full flex-col items-center">
           <svg
             aria-hidden
             viewBox={MOTIF_VIEWBOX}
-            className="h-40 w-auto text-[#6b51dd]/25 dark:text-amber-200/20"
+            className="h-24 w-auto text-primary dark:text-amber-200"
             dangerouslySetInnerHTML={{ __html: motifMarkup("mascot") }}
           />
           <span
             aria-hidden
-            className="title-face pointer-events-none absolute inset-0 flex items-center justify-center text-7xl font-bold text-slate-900 sm:text-8xl dark:text-stone-100"
+            className="page-title block text-7xl text-slate-900 sm:text-8xl dark:text-stone-100"
           >
             404
           </span>
         </div>
 
-        <h1 className="title-face text-2xl font-bold text-slate-900 sm:text-3xl dark:text-stone-100">
+        <h1 className="page-title text-2xl text-slate-900 sm:text-3xl dark:text-stone-100">
           Looks like you're lost
         </h1>
-        <p className="playful-face mx-auto mt-3 max-w-sm text-lg text-slate-500 dark:text-stone-400">
+        <p className="mx-auto mt-3 max-w-sm font-sans text-lg text-slate-500 dark:text-stone-400">
           {what} does not exist. It may have been renamed, or the link may have a
           typo in it.
         </p>

@@ -89,11 +89,18 @@ describe("unitShape, enrichment rides a side loop", () => {
     });
   });
 
+  // CHANGED 2026-10-07: a unit that carries roles (Unit 1) authors its hook as its first video
+  // node; every other unit keeps the derived rule, asserted exactly as before.
   it("carries the video hook when the unit has a concept beat, and nothing when it does not", () => {
     PATHWAY_UNITS.forEach((unit, index) => {
+      if (unit.nodes.some((node) => node.role !== undefined)) {
+        expect(SHAPES[index]!.videoHookId).toBe(unit.nodes.find((node) => node.role === "video")?.id ?? null);
+        return;
+      }
       const beat = unit.nodes.find((node) => node.playable?.kind === "beat");
       expect(SHAPES[index]!.videoHookId).toBe(beat === undefined ? null : beat.id);
     });
+    expect(SHAPES[0]!.videoHookId).toBe("u1-allylic");
     // The vocabulary has to actually appear somewhere, or it is not shipped.
     expect(SHAPES.filter((shape) => shape.videoHookId !== null).length).toBeGreaterThan(0);
   });

@@ -1,3 +1,6 @@
+import { deckCount, type Deck } from "@/data/types";
+import { reviewedCount } from "@/lib/progress";
+
 /**
  * What the blueberry is feeling, and why.
  *
@@ -129,4 +132,19 @@ export function moodForProgress(reviewed: number, total: number): BerryMood {
   if (share >= 0.75) return "proud";
   if (share >= 0.25) return "focused";
   return "happy";
+}
+
+/**
+ * The mood across a deck list, summed over the decks that have any progress on them. Summed
+ * rather than taken from the best one, or the berry would be proud of the deck you finished
+ * while ignoring the four you abandoned. One localStorage read per deck. Home's Bloom.
+ */
+export function moodForDecks(decks: readonly Deck[]): BerryMood {
+  const rows = decks
+    .map((deck) => ({ reviewed: reviewedCount(deck.id), total: deckCount(deck) }))
+    .filter((row) => row.reviewed > 0);
+  if (rows.length === 0) return "curious";
+  const reviewed = rows.reduce((n, r) => n + r.reviewed, 0);
+  const total = rows.reduce((n, r) => n + r.total, 0);
+  return moodForProgress(reviewed, total);
 }

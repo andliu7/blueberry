@@ -59,7 +59,8 @@ export interface StepCopy {
   readonly note: string | null;
 }
 
-export const WELCOME_GREETING = draft("Hi! I'm Berry.");
+// The mascot's name is Bloom (documentation/MASCOT.md); Blueberry is the product.
+export const WELCOME_GREETING = draft("Hi! I'm Bloom.");
 export const WELCOME_PROMISE = draft("Learn organic chemistry by doing it.");
 export const WELCOME_START = draft("Get started");
 export const WELCOME_RETURNING = draft("I already have an account");
@@ -259,7 +260,7 @@ export const ALL_DRAFT_LINES: readonly string[] = Object.freeze([
  * FOUR KINDS OF LINE ARE DELIBERATELY NOT IN THIS LIST, and leaving each one
  * out is a decision rather than an oversight:
  *
- *   WELCOME_GREETING, "Hi! I'm Berry.", is two beats because
+ *   WELCOME_GREETING, "Hi! I'm Bloom.", is two beats because
  *   blueberry_r9-onboard-welcome draws it as two, and it frames nothing: it
  *   is a hello, and there is no question on that screen to keep short.
  *

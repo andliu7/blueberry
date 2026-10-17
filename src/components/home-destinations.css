@@ -1,0 +1,56 @@
+/* The four destination rows (HomeDestinations.tsx), beside the phone demo. Imported by that
+ * component, so it rides the lazy demo chunk. Tokens only; --bb-ease-* only. The card glow
+ * and the ground tint are site-shell.css.
+ *
+ * S2 round 5: one row per place (icon, name, line, count, arrow), the way Duolingo's
+ * Practice hub lists its ways in. The row the phone is showing is lit in its own colour and
+ * carries the auto-advance clock, so the rows are the demo's tabs. */
+
+.home-dest__grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; width: 100%; margin: 0; padding: 0; list-style: none; }
+@media (min-width: 640px) and (max-width: 1023px) { .home-dest__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; } }
+
+/* An outlined row that is a link: the ledge press (andliu-portfolio app/globals.css:184-193)
+   as a hard 4px shadow, so the press moves nothing else on the page. */
+.home-card {
+  display: grid; grid-template-columns: 56px minmax(0, 1fr) auto; align-items: center; column-gap: 14px;
+  height: 100%; padding: 12px 16px 12px 12px; overflow: hidden;
+  border: 2px solid var(--site-border); border-radius: 20px; background: var(--card); color: var(--foreground);
+  text-decoration: none; box-shadow: 0 4px 0 var(--site-border); margin-bottom: 4px;
+  transition: transform var(--bb-dur-release) var(--bb-ease-spring), box-shadow var(--bb-dur-release) var(--bb-ease-spring), border-color var(--bb-dur-ui) var(--bb-ease-ui), background-color var(--bb-dur-ui) var(--bb-ease-ui);
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+@media (hover: hover) {
+  .home-card:hover { transform: translateY(-2px); box-shadow: 0 6px 0 var(--site-border); border-color: var(--accent-foreground); }
+}
+.home-card:active { transform: translateY(4px); box-shadow: 0 0 0 var(--site-border); transition-duration: var(--bb-dur-press); transition-timing-function: ease-out; }
+.home-card:focus-visible { outline: 3px solid var(--ring); outline-offset: 3px; }
+
+/* The lit row: the one the phone is showing, filled with its own colour (the same tone the
+   phone's panel takes), so the eye can match row to screen. Light 30% into the card, night
+   22%, the phone panel's own mixes, whose ink ratios are noted in home-phone.css. */
+.home-card[data-lit] { background-color: color-mix(in srgb, var(--tone, var(--bb-wash)) 30%, var(--card)); }
+.dark .home-card[data-lit] { background-color: color-mix(in srgb, var(--tone, var(--bb-wash)) 22%, var(--card)); }
+
+/* The icon on a tile of its own colour: the header's icon for the place, at size. */
+.home-card__icon { display: grid; place-items: center; width: 56px; height: 56px; padding: 9px; border-radius: 16px; background: color-mix(in srgb, var(--tone, var(--bb-wash)) 34%, var(--card)); }
+.home-card[data-lit] .home-card__icon { background: var(--card); }
+.home-card__text { display: grid; gap: 2px; min-width: 0; }
+.home-card__title { font: 800 1.125rem/1.2 var(--site-display); color: var(--bb-deep); }
+.home-card__line { font-size: .9375rem; line-height: 1.4; }
+.home-card__count { justify-self: start; margin-top: 4px; padding: 2px 10px; border-radius: 999px; background: var(--bb-wash); color: var(--accent-foreground); font: 800 .8125rem/1.4 var(--site-display); white-space: nowrap; }
+.home-card__go { color: var(--accent-foreground); }
+
+/* The auto-advance clock: a bar along the lit row's foot that fills over --hp-advance (set on
+   .hp), then hands on to the next row. Paused while anyone is pointing at or tabbing through
+   the demo, and while it is off screen (the selector is in home-phone.css, beside .hp). */
+.home-card__clock { position: absolute; left: 16px; right: 16px; bottom: 6px; height: 3px; border-radius: 999px; background: var(--accent-foreground); transform-origin: left; animation: home-clock var(--hp-advance, 6000ms) linear both; }
+@keyframes home-clock { from { transform: scaleX(0); } }
+html[data-motion="reduced"] .home-card__clock { display: none; }
+
+/* Phone: tighter rows, a smaller icon. */
+@media (max-width: 639px) {
+  .home-card { grid-template-columns: 48px minmax(0, 1fr) auto; column-gap: 12px; padding: 10px 12px 10px 10px; border-radius: 18px; }
+  .home-card__icon { width: 48px; height: 48px; padding: 8px; border-radius: 14px; }
+  .home-card__title { font-size: 1.0625rem; }
+  .home-card__line { font-size: .875rem; }
+}

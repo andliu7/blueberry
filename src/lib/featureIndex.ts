@@ -42,18 +42,18 @@ export const FEATURES: Feature[] = [
   },
   {
     id: "decks",
-    label: "Study Decks",
+    label: "Review",
     blurb: "Every flashcard deck, grouped by folder",
     kind: "page",
     href: "#/study-decks",
-    keywords: ["flashcards", "cards", "revise", "practice", "hub", "library"],
+    keywords: ["flashcards", "cards", "revise", "practice", "hub", "library", "study decks", "due"],
   },
   {
     id: "lessons",
-    label: "Lessons",
-    blurb: "Carbonyls, written out in seven sections",
+    label: "Learn",
+    blurb: "The units, the lessons with their reactions, and reaction search",
     kind: "page",
-    href: "#/lessons",
+    href: "#/learn",
     keywords: ["carbonyl", "reading", "notes", "theory", "mechanism", "video"],
   },
   {

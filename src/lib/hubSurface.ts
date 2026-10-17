@@ -11,21 +11,19 @@ import type { SpotlightConfig } from "@/components/ui/spotlight-cursor";
  */
 
 /**
- * Lighter than the flat warm stone it replaces, with a little violet worked in
- * and a gradient down the page so three screenfuls of cards are not sitting on
- * one dead colour. Near enough to opaque that the spotlight reads as light on
- * the surface rather than something showing through it.
+ * The one site ground (owner, 2026-10-07): lavender by day, the measured navy
+ * at night. Both halves name the same token, `--site-ground` in src/tokens.css,
+ * which flips with the `.dark` class, so a page that picks `light` or `dark` here
+ * gets the right colour either way and the hex lives in exactly one file.
  */
 export const SURFACE = {
   light: {
-    base: "#f5f7fb",
-    gradient:
-      "none",
+    base: "var(--site-ground)",
+    gradient: "none",
   },
   dark: {
-    base: "#101827",
-    gradient:
-      "none",
+    base: "var(--site-ground)",
+    gradient: "none",
   },
 } as const;
 

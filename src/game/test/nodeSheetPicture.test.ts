@@ -115,15 +115,16 @@ describe("the sheet reads as the same design as the picture", () => {
     expect(practice).toContain("ns-start");
   });
 
-  it("the Challenge marks ride a SECOND row, not the heading row", () => {
-    // Image: icons scanned at x 170..263, y 1000..1030, left aligned at the
-    // card's own padding; the heading's ink sits at y 944..958.
-    for (const marks of SHEET.matchAll(/<span className="ns-marks"/g)) {
-      const before = SHEET.slice(0, marks.index);
-      const openRows = (before.match(/<div className="ns-card__row">/g) ?? []).length;
-      const closedRows = (before.match(/<\/div>/g) ?? []).length;
-      expect(openRows, "the marks are outside every card__row").toBeLessThanOrEqual(closedRows);
+  // A2 round 5, design change: the lone bolt on its own row read as a stray
+  // icon (critic, round 4). It is now the heading's icon, beside the word.
+  it("the Challenge bolt sits beside its heading, not alone on a row", () => {
+    expect(SHEET).not.toContain('className="ns-marks"');
+    for (const mark of SHEET.matchAll(/<span className="ns-title-mark"/g)) {
+      const after = SHEET.slice(mark.index, mark.index + 400);
+      expect(after).toContain("<ChallengeGlyph />");
+      expect(after).toMatch(/Challenge<\/(span|h3)>/);
     }
+    expect([...SHEET.matchAll(/<span className="ns-title-mark"/g)].length).toBe(2);
     expect(SHEET).not.toContain("ns-card__end");
     expect(CSS).not.toContain(".ns-card__end");
   });
@@ -144,20 +145,23 @@ describe("the sheet reads as the same design as the picture", () => {
     expect(SHEET.indexOf('className="ns-peek"')).toBeGreaterThan(panelClose);
   });
 
-  it("the difficulty pips are a quiet warm grey, not the heaviest ink on the card", () => {
-    // Sampled #908a7a across both filled pips at row y 796.
+  // A2 round 5, design change: the pips moved from a warm brown grey in no
+  // token family to brand violet, solid when filled and a ring when empty.
+  it("the difficulty pips are brand violet, solid against hollow, not the body ink", () => {
     const filled = block(CSS, ".ns-pip.is-filled");
-    expect(filled).toContain("var(--ns-quiet-mark)");
+    expect(filled).toContain("background: var(--bb-primary)");
     expect(filled).not.toContain("var(--bb-foreground)");
-    expect(CSS).toMatch(/--ns-quiet-mark:\s*color-mix\(/);
+    const empty = block(CSS, ".ns-pip");
+    expect(empty).toContain("border: 2px solid var(--bb-primary)");
+    expect(empty).not.toContain("background: var(--bb-primary)");
   });
 
-  it("the Challenge card is half the Practice card's width, as drawn", () => {
-    // Measured above the mascot, where nothing occludes it: right edge at
-    // image x 381 against the practice card's 628.
-    const half = block(CSS, ".ns-card--half");
-    expect(half).toMatch(/width:\s*50%/);
-    expect(half).toContain("align-self: flex-start");
+  // A2 round 3, design change: the resting Challenge card is FULL width. At
+  // half width it left a dead hole beside it at 390 and 1440 (critic, r2).
+  it("the resting Challenge card is as wide as the Practice card", () => {
+    const rest = block(CSS, ".ns-card--rest");
+    expect(rest).toMatch(/width:\s*100%/);
+    expect(CSS).not.toContain(".ns-card--half");
   });
 });
 

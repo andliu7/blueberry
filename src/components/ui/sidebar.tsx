@@ -241,7 +241,7 @@ export function SidebarNavItem({
         </span>
       )}
       {badge !== undefined && badge > 0 && (
-        <span className="shrink-0 rounded-full bg-blue-500 px-1.5 py-px font-mono text-[0.65rem] font-bold text-white">
+        <span className="shrink-0 rounded-full bg-primary px-1.5 py-px font-mono text-[0.65rem] font-bold text-primary-foreground">
           {badge > 99 ? "99+" : badge}
         </span>
       )}

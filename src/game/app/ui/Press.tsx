@@ -1,49 +1,53 @@
 /**
- * The one button. Every control in the shell is this or is styled like it.
+ * The one button. Every text button in the game is this, or is a link
+ * wearing the same classes through `pressClassName`.
  *
- * The press contract in CLAUDE.md: the pressed state renders on pointer down,
- * before any work happens. The `.press` class in theme.css does that through
- * `:active`, which the browser paints the same frame the pointer lands, with
- * no JavaScript in the path. `busy` continues the acknowledgement as a loading
- * affordance when the action takes time, so nothing ever waits silently.
+ * THE LOOK (A2, 2026-10-16): a chunky 3D key. A flat face over a solid
+ * darker lip; pressing drops the face onto the lip. All of it is CSS in
+ * press.css, painted through `:active` on pointer down, so the press is
+ * acknowledged the same frame the finger lands, before any work runs (the
+ * press contract in CLAUDE.md). `busy` holds the key down with a pulsing dot
+ * while a slow action runs, so nothing ever waits silently.
  *
- * The minimum size is 44 by 44, the hit target floor in the Budgets table.
+ * Variants:
+ *   primary    brand violet face, white label. The one main action on a screen
+ *   secondary  white face, soft violet rim and lip. Every other action
+ *   danger     red face, white label. Destructive acts only (delete, reset)
+ *   ghost      flat text button. Back, skip, cancel
+ *   success    green face, dark label. CHECK in a lesson, and the key on a
+ *              right-answer tray (beats/AnswerTray.tsx)
  *
- * EVERY VARIANT CARRIES A REAL OUTLINE AND NO SHADOW, and that is the lavender
- * turn arriving at button scale.
+ * A wrong-answer tray uses `danger` (A2 round 4, green right and red wrong);
+ * the amber `warn` key it used to wear is gone.
  *
- * On a cream card sitting on a lavender ground the card edge measures 1.96:1,
- * under the 3:1 a boundary needs, so the card carries a border. A control is the
- * same shape one level down: it is a sticker pressed onto the sheet, and what
- * makes a flat fill read as a cut-out is the cut, not a shadow under it.
- * Sticker rule 3 says the same thing from the other direction ("outlined buttons
- * are first-class, never a fallback") and rule 3's shadow ban applies to chrome
- * outright. So `shadow-sm` is gone from all four variants and a 2px outline is
- * on all four, INCLUDING ghost: a transparent border would satisfy a
- * border-width check and satisfy nothing a reader can see, which is the sort of
- * fix this repo does not make.
- *
- * The radius is 1rem rather than 9px. The sticker language's floor is 12px and
- * the audit was reporting 9 on this exact element, 28 rows of it.
- *
- * The reward variant WAS a two-stop gradient. Rule 2 forbids gradients outright
- * and the audit was right to say so; it is a flat fill of --accent-from now,
- * which carries white at 7.18:1.
+ * Sizes: sm (44px tall), md (48px, default), lg (52px). `block` fills the row.
+ * The minimum hit target is 44 by 44 at every size.
  */
 
 import type { ButtonHTMLAttributes, ReactNode } from "react";
+import "./press.css";
 
-type Variant = "primary" | "secondary" | "ghost" | "reward";
+export type PressVariant = "primary" | "secondary" | "danger" | "ghost" | "success";
+export type PressSize = "sm" | "md" | "lg";
 
-const VARIANT_CLASS: Record<Variant, string> = {
-  primary: "border-2 border-[color:var(--bb-primary-edge)] bg-bb-primary text-bb-primary-foreground",
-  secondary: "border-2 border-bb-border bg-bb-card text-bb-foreground",
-  ghost: "border-2 border-bb-border bg-transparent text-bb-foreground",
-  reward: "border-2 border-[color:var(--bb-primary-edge)] bg-[color:var(--accent-from)] text-white",
-};
+export interface PressStyle {
+  readonly variant?: PressVariant;
+  readonly size?: PressSize;
+  readonly block?: boolean;
+}
 
-export interface PressProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  readonly variant?: Variant;
+/**
+ * The class string for a 3D button. Exported so an `<a>` that navigates can
+ * look exactly like a Press without pretending to be a <button>.
+ */
+export function pressClassName({ variant = "primary", size = "md", block = false }: PressStyle = {}): string {
+  const parts = ["btn3d", `btn3d--${variant}`];
+  if (size !== "md") parts.push(`btn3d--${size}`);
+  if (block) parts.push("btn3d--block");
+  return parts.join(" ");
+}
+
+export interface PressProps extends ButtonHTMLAttributes<HTMLButtonElement>, PressStyle {
   /** The action is running. The button stays pressed-looking and says so. */
   readonly busy?: boolean;
   readonly children: ReactNode;
@@ -51,6 +55,8 @@ export interface PressProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 export function Press({
   variant = "primary",
+  size = "md",
+  block = false,
   busy = false,
   className = "",
   children,
@@ -63,7 +69,7 @@ export function Press({
       {...rest}
       disabled={disabled || busy}
       aria-busy={busy || undefined}
-      className={`press inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-2xl px-5 text-scale-base font-semibold disabled:opacity-60 ${VARIANT_CLASS[variant]} ${busy ? "is-busy" : ""} ${className}`}
+      className={`${pressClassName({ variant, size, block })} ${busy ? "is-busy" : ""} ${className}`}
     >
       {busy ? <span className="busy-dot" aria-hidden /> : null}
       {children}

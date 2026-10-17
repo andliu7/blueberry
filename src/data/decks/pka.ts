@@ -16,7 +16,7 @@ export const pkaDeck: ReferenceDeck = {
   group: "reference",
   titleLines: ["THE PKA", "LADDER"],
   subtitle:
-    "23 values from Dr. Stocker's sheet. Hover a row for the structure, or switch off quiz mode to read the whole ladder at once.",
+    "23 values from Dr. Stocker's sheet. Tap a row for the structure, or switch off quiz mode to read the whole ladder at once.",
   blurb:
     "Every pKa worth memorising, strongest acid first, with the structure behind each one. The number you need before you can pick a base.",
   footNote: "Lower pKa = stronger acid = more willing to hand off that proton.",

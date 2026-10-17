@@ -69,6 +69,8 @@ const CRITERION_LABELS: Readonly<Record<SortCriterion, string>> = Object.freeze(
   acyl_reactivity: "reactivity toward nucleophilic acyl substitution",
   oxidation_level: "oxidation level",
   carbocation_stability: "carbocation stability",
+  radical_stability: "radical stability",
+  carbanion_stability: "carbanion stability",
   sn2_rate: "SN2 rate",
   ring_activation: "ring activation",
 });

@@ -319,6 +319,3 @@ export function applyOverrides(overrides: CourseOverrides | null | undefined): {
 export const findTopic = (id: string) => TOPICS.find((t) => t.id === id) ?? null;
 export const reactionsFor = (topicId: string) => REACTIONS.filter((r) => r.topicId === topicId);
 
-/** e.g. "6 topics across 2 units" — for the homepage tile. */
-export const courseSummary = () =>
-  `${TOPICS.length} topics across ${UNITS.length} units`;

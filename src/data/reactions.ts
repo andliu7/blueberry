@@ -72,6 +72,11 @@ export interface StagedReaction {
     start_dark?: string;
     product_light?: string;
     product_dark?: string;
+    /** Drawn at 120 by 88 with fixed 17-unit letters: never shown smaller. */
+    start_thumb_light?: string;
+    start_thumb_dark?: string;
+    product_thumb_light?: string;
+    product_thumb_dark?: string;
   };
 }
 
@@ -169,9 +174,13 @@ const DATA: {
       },
       "art": {
         "start_light": "reactions/grignard-addition-ketone-start-light.svg",
+        "start_thumb_light": "reactions/grignard-addition-ketone-start-thumb-light.svg",
         "start_dark": "reactions/grignard-addition-ketone-start-dark.svg",
+        "start_thumb_dark": "reactions/grignard-addition-ketone-start-thumb-dark.svg",
         "product_light": "reactions/grignard-addition-ketone-product-light.svg",
-        "product_dark": "reactions/grignard-addition-ketone-product-dark.svg"
+        "product_thumb_light": "reactions/grignard-addition-ketone-product-thumb-light.svg",
+        "product_dark": "reactions/grignard-addition-ketone-product-dark.svg",
+        "product_thumb_dark": "reactions/grignard-addition-ketone-product-thumb-dark.svg"
       }
     },
     {
@@ -232,9 +241,13 @@ const DATA: {
       },
       "art": {
         "start_light": "reactions/cyanohydrin-start-light.svg",
+        "start_thumb_light": "reactions/cyanohydrin-start-thumb-light.svg",
         "start_dark": "reactions/cyanohydrin-start-dark.svg",
+        "start_thumb_dark": "reactions/cyanohydrin-start-thumb-dark.svg",
         "product_light": "reactions/cyanohydrin-product-light.svg",
-        "product_dark": "reactions/cyanohydrin-product-dark.svg"
+        "product_thumb_light": "reactions/cyanohydrin-product-thumb-light.svg",
+        "product_dark": "reactions/cyanohydrin-product-dark.svg",
+        "product_thumb_dark": "reactions/cyanohydrin-product-thumb-dark.svg"
       }
     },
     {
@@ -311,9 +324,13 @@ const DATA: {
       },
       "art": {
         "start_light": "reactions/acetylide-addition-start-light.svg",
+        "start_thumb_light": "reactions/acetylide-addition-start-thumb-light.svg",
         "start_dark": "reactions/acetylide-addition-start-dark.svg",
+        "start_thumb_dark": "reactions/acetylide-addition-start-thumb-dark.svg",
         "product_light": "reactions/acetylide-addition-product-light.svg",
-        "product_dark": "reactions/acetylide-addition-product-dark.svg"
+        "product_thumb_light": "reactions/acetylide-addition-product-thumb-light.svg",
+        "product_dark": "reactions/acetylide-addition-product-dark.svg",
+        "product_thumb_dark": "reactions/acetylide-addition-product-thumb-dark.svg"
       }
     },
     {
@@ -376,9 +393,13 @@ const DATA: {
       },
       "art": {
         "start_light": "reactions/wittig-olefination-start-light.svg",
+        "start_thumb_light": "reactions/wittig-olefination-start-thumb-light.svg",
         "start_dark": "reactions/wittig-olefination-start-dark.svg",
+        "start_thumb_dark": "reactions/wittig-olefination-start-thumb-dark.svg",
         "product_light": "reactions/wittig-olefination-product-light.svg",
-        "product_dark": "reactions/wittig-olefination-product-dark.svg"
+        "product_thumb_light": "reactions/wittig-olefination-product-thumb-light.svg",
+        "product_dark": "reactions/wittig-olefination-product-dark.svg",
+        "product_thumb_dark": "reactions/wittig-olefination-product-thumb-dark.svg"
       }
     },
     {
@@ -442,9 +463,13 @@ const DATA: {
       },
       "art": {
         "start_light": "reactions/imine-formation-start-light.svg",
+        "start_thumb_light": "reactions/imine-formation-start-thumb-light.svg",
         "start_dark": "reactions/imine-formation-start-dark.svg",
+        "start_thumb_dark": "reactions/imine-formation-start-thumb-dark.svg",
         "product_light": "reactions/imine-formation-product-light.svg",
-        "product_dark": "reactions/imine-formation-product-dark.svg"
+        "product_thumb_light": "reactions/imine-formation-product-thumb-light.svg",
+        "product_dark": "reactions/imine-formation-product-dark.svg",
+        "product_thumb_dark": "reactions/imine-formation-product-thumb-dark.svg"
       }
     },
     {
@@ -507,9 +532,13 @@ const DATA: {
       },
       "art": {
         "start_light": "reactions/acetal-protection-start-light.svg",
+        "start_thumb_light": "reactions/acetal-protection-start-thumb-light.svg",
         "start_dark": "reactions/acetal-protection-start-dark.svg",
+        "start_thumb_dark": "reactions/acetal-protection-start-thumb-dark.svg",
         "product_light": "reactions/acetal-protection-product-light.svg",
-        "product_dark": "reactions/acetal-protection-product-dark.svg"
+        "product_thumb_light": "reactions/acetal-protection-product-thumb-light.svg",
+        "product_dark": "reactions/acetal-protection-product-dark.svg",
+        "product_thumb_dark": "reactions/acetal-protection-product-thumb-dark.svg"
       }
     },
     {
@@ -586,9 +615,13 @@ const DATA: {
       },
       "art": {
         "start_light": "reactions/nabh4-reduction-start-light.svg",
+        "start_thumb_light": "reactions/nabh4-reduction-start-thumb-light.svg",
         "start_dark": "reactions/nabh4-reduction-start-dark.svg",
+        "start_thumb_dark": "reactions/nabh4-reduction-start-thumb-dark.svg",
         "product_light": "reactions/nabh4-reduction-product-light.svg",
-        "product_dark": "reactions/nabh4-reduction-product-dark.svg"
+        "product_thumb_light": "reactions/nabh4-reduction-product-thumb-light.svg",
+        "product_dark": "reactions/nabh4-reduction-product-dark.svg",
+        "product_thumb_dark": "reactions/nabh4-reduction-product-thumb-dark.svg"
       }
     },
     {
@@ -666,9 +699,13 @@ const DATA: {
       },
       "art": {
         "start_light": "reactions/lialh4-reduction-start-light.svg",
+        "start_thumb_light": "reactions/lialh4-reduction-start-thumb-light.svg",
         "start_dark": "reactions/lialh4-reduction-start-dark.svg",
+        "start_thumb_dark": "reactions/lialh4-reduction-start-thumb-dark.svg",
         "product_light": "reactions/lialh4-reduction-product-light.svg",
-        "product_dark": "reactions/lialh4-reduction-product-dark.svg"
+        "product_thumb_light": "reactions/lialh4-reduction-product-thumb-light.svg",
+        "product_dark": "reactions/lialh4-reduction-product-dark.svg",
+        "product_thumb_dark": "reactions/lialh4-reduction-product-thumb-dark.svg"
       }
     },
     {
@@ -733,9 +770,13 @@ const DATA: {
       },
       "art": {
         "start_light": "reactions/clemmensen-start-light.svg",
+        "start_thumb_light": "reactions/clemmensen-start-thumb-light.svg",
         "start_dark": "reactions/clemmensen-start-dark.svg",
+        "start_thumb_dark": "reactions/clemmensen-start-thumb-dark.svg",
         "product_light": "reactions/clemmensen-product-light.svg",
-        "product_dark": "reactions/clemmensen-product-dark.svg"
+        "product_thumb_light": "reactions/clemmensen-product-thumb-light.svg",
+        "product_dark": "reactions/clemmensen-product-dark.svg",
+        "product_thumb_dark": "reactions/clemmensen-product-thumb-dark.svg"
       }
     },
     {
@@ -818,9 +859,13 @@ const DATA: {
       },
       "art": {
         "start_light": "reactions/wolff-kishner-start-light.svg",
+        "start_thumb_light": "reactions/wolff-kishner-start-thumb-light.svg",
         "start_dark": "reactions/wolff-kishner-start-dark.svg",
+        "start_thumb_dark": "reactions/wolff-kishner-start-thumb-dark.svg",
         "product_light": "reactions/wolff-kishner-product-light.svg",
-        "product_dark": "reactions/wolff-kishner-product-dark.svg"
+        "product_thumb_light": "reactions/wolff-kishner-product-thumb-light.svg",
+        "product_dark": "reactions/wolff-kishner-product-dark.svg",
+        "product_thumb_dark": "reactions/wolff-kishner-product-thumb-dark.svg"
       }
     },
     {
@@ -883,9 +928,13 @@ const DATA: {
       },
       "art": {
         "start_light": "reactions/jones-oxidation-start-light.svg",
+        "start_thumb_light": "reactions/jones-oxidation-start-thumb-light.svg",
         "start_dark": "reactions/jones-oxidation-start-dark.svg",
+        "start_thumb_dark": "reactions/jones-oxidation-start-thumb-dark.svg",
         "product_light": "reactions/jones-oxidation-product-light.svg",
-        "product_dark": "reactions/jones-oxidation-product-dark.svg"
+        "product_thumb_light": "reactions/jones-oxidation-product-thumb-light.svg",
+        "product_dark": "reactions/jones-oxidation-product-dark.svg",
+        "product_thumb_dark": "reactions/jones-oxidation-product-thumb-dark.svg"
       }
     },
     {
@@ -951,9 +1000,13 @@ const DATA: {
       },
       "art": {
         "start_light": "reactions/socl2-acid-to-chloride-start-light.svg",
+        "start_thumb_light": "reactions/socl2-acid-to-chloride-start-thumb-light.svg",
         "start_dark": "reactions/socl2-acid-to-chloride-start-dark.svg",
+        "start_thumb_dark": "reactions/socl2-acid-to-chloride-start-thumb-dark.svg",
         "product_light": "reactions/socl2-acid-to-chloride-product-light.svg",
-        "product_dark": "reactions/socl2-acid-to-chloride-product-dark.svg"
+        "product_thumb_light": "reactions/socl2-acid-to-chloride-product-thumb-light.svg",
+        "product_dark": "reactions/socl2-acid-to-chloride-product-dark.svg",
+        "product_thumb_dark": "reactions/socl2-acid-to-chloride-product-thumb-dark.svg"
       }
     },
     {
@@ -1020,9 +1073,13 @@ const DATA: {
       },
       "art": {
         "start_light": "reactions/fischer-esterification-start-light.svg",
+        "start_thumb_light": "reactions/fischer-esterification-start-thumb-light.svg",
         "start_dark": "reactions/fischer-esterification-start-dark.svg",
+        "start_thumb_dark": "reactions/fischer-esterification-start-thumb-dark.svg",
         "product_light": "reactions/fischer-esterification-product-light.svg",
-        "product_dark": "reactions/fischer-esterification-product-dark.svg"
+        "product_thumb_light": "reactions/fischer-esterification-product-thumb-light.svg",
+        "product_dark": "reactions/fischer-esterification-product-dark.svg",
+        "product_thumb_dark": "reactions/fischer-esterification-product-thumb-dark.svg"
       }
     },
     {
@@ -1089,9 +1146,13 @@ const DATA: {
       },
       "art": {
         "start_light": "reactions/acidchloride-to-amide-start-light.svg",
+        "start_thumb_light": "reactions/acidchloride-to-amide-start-thumb-light.svg",
         "start_dark": "reactions/acidchloride-to-amide-start-dark.svg",
+        "start_thumb_dark": "reactions/acidchloride-to-amide-start-thumb-dark.svg",
         "product_light": "reactions/acidchloride-to-amide-product-light.svg",
-        "product_dark": "reactions/acidchloride-to-amide-product-dark.svg"
+        "product_thumb_light": "reactions/acidchloride-to-amide-product-thumb-light.svg",
+        "product_dark": "reactions/acidchloride-to-amide-product-dark.svg",
+        "product_thumb_dark": "reactions/acidchloride-to-amide-product-thumb-dark.svg"
       }
     },
     {
@@ -1158,9 +1219,13 @@ const DATA: {
       },
       "art": {
         "start_light": "reactions/ester-acidic-hydrolysis-start-light.svg",
+        "start_thumb_light": "reactions/ester-acidic-hydrolysis-start-thumb-light.svg",
         "start_dark": "reactions/ester-acidic-hydrolysis-start-dark.svg",
+        "start_thumb_dark": "reactions/ester-acidic-hydrolysis-start-thumb-dark.svg",
         "product_light": "reactions/ester-acidic-hydrolysis-product-light.svg",
-        "product_dark": "reactions/ester-acidic-hydrolysis-product-dark.svg"
+        "product_thumb_light": "reactions/ester-acidic-hydrolysis-product-thumb-light.svg",
+        "product_dark": "reactions/ester-acidic-hydrolysis-product-dark.svg",
+        "product_thumb_dark": "reactions/ester-acidic-hydrolysis-product-thumb-dark.svg"
       }
     },
     {
@@ -1238,9 +1303,13 @@ const DATA: {
       },
       "art": {
         "start_light": "reactions/gilman-to-ketone-start-light.svg",
+        "start_thumb_light": "reactions/gilman-to-ketone-start-thumb-light.svg",
         "start_dark": "reactions/gilman-to-ketone-start-dark.svg",
+        "start_thumb_dark": "reactions/gilman-to-ketone-start-thumb-dark.svg",
         "product_light": "reactions/gilman-to-ketone-product-light.svg",
-        "product_dark": "reactions/gilman-to-ketone-product-dark.svg"
+        "product_thumb_light": "reactions/gilman-to-ketone-product-thumb-light.svg",
+        "product_dark": "reactions/gilman-to-ketone-product-dark.svg",
+        "product_thumb_dark": "reactions/gilman-to-ketone-product-thumb-dark.svg"
       }
     },
     {
@@ -1316,9 +1385,13 @@ const DATA: {
       },
       "art": {
         "start_light": "reactions/dibalh-to-aldehyde-start-light.svg",
+        "start_thumb_light": "reactions/dibalh-to-aldehyde-start-thumb-light.svg",
         "start_dark": "reactions/dibalh-to-aldehyde-start-dark.svg",
+        "start_thumb_dark": "reactions/dibalh-to-aldehyde-start-thumb-dark.svg",
         "product_light": "reactions/dibalh-to-aldehyde-product-light.svg",
-        "product_dark": "reactions/dibalh-to-aldehyde-product-dark.svg"
+        "product_thumb_light": "reactions/dibalh-to-aldehyde-product-thumb-light.svg",
+        "product_dark": "reactions/dibalh-to-aldehyde-product-dark.svg",
+        "product_thumb_dark": "reactions/dibalh-to-aldehyde-product-thumb-dark.svg"
       }
     },
     {
@@ -1385,9 +1458,13 @@ const DATA: {
       },
       "art": {
         "start_light": "reactions/nitrile-formation-start-light.svg",
+        "start_thumb_light": "reactions/nitrile-formation-start-thumb-light.svg",
         "start_dark": "reactions/nitrile-formation-start-dark.svg",
+        "start_thumb_dark": "reactions/nitrile-formation-start-thumb-dark.svg",
         "product_light": "reactions/nitrile-formation-product-light.svg",
-        "product_dark": "reactions/nitrile-formation-product-dark.svg"
+        "product_thumb_light": "reactions/nitrile-formation-product-thumb-light.svg",
+        "product_dark": "reactions/nitrile-formation-product-dark.svg",
+        "product_thumb_dark": "reactions/nitrile-formation-product-thumb-dark.svg"
       }
     },
     {
@@ -1454,9 +1531,13 @@ const DATA: {
       },
       "art": {
         "start_light": "reactions/nitrile-basic-hydrolysis-start-light.svg",
+        "start_thumb_light": "reactions/nitrile-basic-hydrolysis-start-thumb-light.svg",
         "start_dark": "reactions/nitrile-basic-hydrolysis-start-dark.svg",
+        "start_thumb_dark": "reactions/nitrile-basic-hydrolysis-start-thumb-dark.svg",
         "product_light": "reactions/nitrile-basic-hydrolysis-product-light.svg",
-        "product_dark": "reactions/nitrile-basic-hydrolysis-product-dark.svg"
+        "product_thumb_light": "reactions/nitrile-basic-hydrolysis-product-thumb-light.svg",
+        "product_dark": "reactions/nitrile-basic-hydrolysis-product-dark.svg",
+        "product_thumb_dark": "reactions/nitrile-basic-hydrolysis-product-thumb-dark.svg"
       }
     },
     {
@@ -1531,9 +1612,13 @@ const DATA: {
       },
       "art": {
         "start_light": "reactions/nitrile-reduction-start-light.svg",
+        "start_thumb_light": "reactions/nitrile-reduction-start-thumb-light.svg",
         "start_dark": "reactions/nitrile-reduction-start-dark.svg",
+        "start_thumb_dark": "reactions/nitrile-reduction-start-thumb-dark.svg",
         "product_light": "reactions/nitrile-reduction-product-light.svg",
-        "product_dark": "reactions/nitrile-reduction-product-dark.svg"
+        "product_thumb_light": "reactions/nitrile-reduction-product-thumb-light.svg",
+        "product_dark": "reactions/nitrile-reduction-product-dark.svg",
+        "product_thumb_dark": "reactions/nitrile-reduction-product-thumb-dark.svg"
       }
     },
     {
@@ -1599,9 +1684,13 @@ const DATA: {
       },
       "art": {
         "start_light": "reactions/aldol-addition-start-light.svg",
+        "start_thumb_light": "reactions/aldol-addition-start-thumb-light.svg",
         "start_dark": "reactions/aldol-addition-start-dark.svg",
+        "start_thumb_dark": "reactions/aldol-addition-start-thumb-dark.svg",
         "product_light": "reactions/aldol-addition-product-light.svg",
-        "product_dark": "reactions/aldol-addition-product-dark.svg"
+        "product_thumb_light": "reactions/aldol-addition-product-thumb-light.svg",
+        "product_dark": "reactions/aldol-addition-product-dark.svg",
+        "product_thumb_dark": "reactions/aldol-addition-product-thumb-dark.svg"
       }
     },
     {
@@ -1684,9 +1773,13 @@ const DATA: {
       },
       "art": {
         "start_light": "reactions/aldol-condensation-start-light.svg",
+        "start_thumb_light": "reactions/aldol-condensation-start-thumb-light.svg",
         "start_dark": "reactions/aldol-condensation-start-dark.svg",
+        "start_thumb_dark": "reactions/aldol-condensation-start-thumb-dark.svg",
         "product_light": "reactions/aldol-condensation-product-light.svg",
-        "product_dark": "reactions/aldol-condensation-product-dark.svg"
+        "product_thumb_light": "reactions/aldol-condensation-product-thumb-light.svg",
+        "product_dark": "reactions/aldol-condensation-product-dark.svg",
+        "product_thumb_dark": "reactions/aldol-condensation-product-thumb-dark.svg"
       }
     },
     {
@@ -1767,9 +1860,13 @@ const DATA: {
       },
       "art": {
         "start_light": "reactions/claisen-condensation-start-light.svg",
+        "start_thumb_light": "reactions/claisen-condensation-start-thumb-light.svg",
         "start_dark": "reactions/claisen-condensation-start-dark.svg",
+        "start_thumb_dark": "reactions/claisen-condensation-start-thumb-dark.svg",
         "product_light": "reactions/claisen-condensation-product-light.svg",
-        "product_dark": "reactions/claisen-condensation-product-dark.svg"
+        "product_thumb_light": "reactions/claisen-condensation-product-thumb-light.svg",
+        "product_dark": "reactions/claisen-condensation-product-dark.svg",
+        "product_thumb_dark": "reactions/claisen-condensation-product-thumb-dark.svg"
       }
     },
     {
@@ -1833,9 +1930,13 @@ const DATA: {
       },
       "art": {
         "start_light": "reactions/michael-addition-start-light.svg",
+        "start_thumb_light": "reactions/michael-addition-start-thumb-light.svg",
         "start_dark": "reactions/michael-addition-start-dark.svg",
+        "start_thumb_dark": "reactions/michael-addition-start-thumb-dark.svg",
         "product_light": "reactions/michael-addition-product-light.svg",
-        "product_dark": "reactions/michael-addition-product-dark.svg"
+        "product_thumb_light": "reactions/michael-addition-product-thumb-light.svg",
+        "product_dark": "reactions/michael-addition-product-dark.svg",
+        "product_thumb_dark": "reactions/michael-addition-product-thumb-dark.svg"
       }
     },
     {
@@ -1901,9 +2002,13 @@ const DATA: {
       },
       "art": {
         "start_light": "reactions/alpha-halogenation-start-light.svg",
+        "start_thumb_light": "reactions/alpha-halogenation-start-thumb-light.svg",
         "start_dark": "reactions/alpha-halogenation-start-dark.svg",
+        "start_thumb_dark": "reactions/alpha-halogenation-start-thumb-dark.svg",
         "product_light": "reactions/alpha-halogenation-product-light.svg",
-        "product_dark": "reactions/alpha-halogenation-product-dark.svg"
+        "product_thumb_light": "reactions/alpha-halogenation-product-thumb-light.svg",
+        "product_dark": "reactions/alpha-halogenation-product-dark.svg",
+        "product_thumb_dark": "reactions/alpha-halogenation-product-thumb-dark.svg"
       }
     },
     {
@@ -2008,9 +2113,13 @@ const DATA: {
       },
       "art": {
         "start_light": "reactions/malonic-ester-synthesis-start-light.svg",
+        "start_thumb_light": "reactions/malonic-ester-synthesis-start-thumb-light.svg",
         "start_dark": "reactions/malonic-ester-synthesis-start-dark.svg",
+        "start_thumb_dark": "reactions/malonic-ester-synthesis-start-thumb-dark.svg",
         "product_light": "reactions/malonic-ester-synthesis-product-light.svg",
-        "product_dark": "reactions/malonic-ester-synthesis-product-dark.svg"
+        "product_thumb_light": "reactions/malonic-ester-synthesis-product-thumb-light.svg",
+        "product_dark": "reactions/malonic-ester-synthesis-product-dark.svg",
+        "product_thumb_dark": "reactions/malonic-ester-synthesis-product-thumb-dark.svg"
       }
     },
     {
@@ -2092,9 +2201,13 @@ const DATA: {
       },
       "art": {
         "start_light": "reactions/robinson-annulation-start-light.svg",
+        "start_thumb_light": "reactions/robinson-annulation-start-thumb-light.svg",
         "start_dark": "reactions/robinson-annulation-start-dark.svg",
+        "start_thumb_dark": "reactions/robinson-annulation-start-thumb-dark.svg",
         "product_light": "reactions/robinson-annulation-product-light.svg",
-        "product_dark": "reactions/robinson-annulation-product-dark.svg"
+        "product_thumb_light": "reactions/robinson-annulation-product-thumb-light.svg",
+        "product_dark": "reactions/robinson-annulation-product-dark.svg",
+        "product_thumb_dark": "reactions/robinson-annulation-product-thumb-dark.svg"
       }
     },
     {
@@ -2161,9 +2274,13 @@ const DATA: {
       },
       "art": {
         "start_light": "reactions/alcohol-to-halide-start-light.svg",
+        "start_thumb_light": "reactions/alcohol-to-halide-start-thumb-light.svg",
         "start_dark": "reactions/alcohol-to-halide-start-dark.svg",
+        "start_thumb_dark": "reactions/alcohol-to-halide-start-thumb-dark.svg",
         "product_light": "reactions/alcohol-to-halide-product-light.svg",
-        "product_dark": "reactions/alcohol-to-halide-product-dark.svg"
+        "product_thumb_light": "reactions/alcohol-to-halide-product-thumb-light.svg",
+        "product_dark": "reactions/alcohol-to-halide-product-dark.svg",
+        "product_thumb_dark": "reactions/alcohol-to-halide-product-thumb-dark.svg"
       }
     },
     {
@@ -2232,9 +2349,13 @@ const DATA: {
       },
       "art": {
         "start_light": "reactions/alcohol-pbr3-start-light.svg",
+        "start_thumb_light": "reactions/alcohol-pbr3-start-thumb-light.svg",
         "start_dark": "reactions/alcohol-pbr3-start-dark.svg",
+        "start_thumb_dark": "reactions/alcohol-pbr3-start-thumb-dark.svg",
         "product_light": "reactions/alcohol-pbr3-product-light.svg",
-        "product_dark": "reactions/alcohol-pbr3-product-dark.svg"
+        "product_thumb_light": "reactions/alcohol-pbr3-product-thumb-light.svg",
+        "product_dark": "reactions/alcohol-pbr3-product-dark.svg",
+        "product_thumb_dark": "reactions/alcohol-pbr3-product-thumb-dark.svg"
       }
     },
     {
@@ -2299,9 +2420,13 @@ const DATA: {
       },
       "art": {
         "start_light": "reactions/alcohol-dehydration-start-light.svg",
+        "start_thumb_light": "reactions/alcohol-dehydration-start-thumb-light.svg",
         "start_dark": "reactions/alcohol-dehydration-start-dark.svg",
+        "start_thumb_dark": "reactions/alcohol-dehydration-start-thumb-dark.svg",
         "product_light": "reactions/alcohol-dehydration-product-light.svg",
-        "product_dark": "reactions/alcohol-dehydration-product-dark.svg"
+        "product_thumb_light": "reactions/alcohol-dehydration-product-thumb-light.svg",
+        "product_dark": "reactions/alcohol-dehydration-product-dark.svg",
+        "product_thumb_dark": "reactions/alcohol-dehydration-product-thumb-dark.svg"
       }
     },
     {
@@ -2361,9 +2486,13 @@ const DATA: {
       },
       "art": {
         "start_light": "reactions/pcc-oxidation-start-light.svg",
+        "start_thumb_light": "reactions/pcc-oxidation-start-thumb-light.svg",
         "start_dark": "reactions/pcc-oxidation-start-dark.svg",
+        "start_thumb_dark": "reactions/pcc-oxidation-start-thumb-dark.svg",
         "product_light": "reactions/pcc-oxidation-product-light.svg",
-        "product_dark": "reactions/pcc-oxidation-product-dark.svg"
+        "product_thumb_light": "reactions/pcc-oxidation-product-thumb-light.svg",
+        "product_dark": "reactions/pcc-oxidation-product-dark.svg",
+        "product_thumb_dark": "reactions/pcc-oxidation-product-thumb-dark.svg"
       }
     },
     {
@@ -2426,9 +2555,13 @@ const DATA: {
       },
       "art": {
         "start_light": "reactions/ether-cleavage-start-light.svg",
+        "start_thumb_light": "reactions/ether-cleavage-start-thumb-light.svg",
         "start_dark": "reactions/ether-cleavage-start-dark.svg",
+        "start_thumb_dark": "reactions/ether-cleavage-start-thumb-dark.svg",
         "product_light": "reactions/ether-cleavage-product-light.svg",
-        "product_dark": "reactions/ether-cleavage-product-dark.svg"
+        "product_thumb_light": "reactions/ether-cleavage-product-thumb-light.svg",
+        "product_dark": "reactions/ether-cleavage-product-dark.svg",
+        "product_thumb_dark": "reactions/ether-cleavage-product-thumb-dark.svg"
       }
     },
     {
@@ -2492,9 +2625,13 @@ const DATA: {
       },
       "art": {
         "start_light": "reactions/epoxidation-mcpba-start-light.svg",
+        "start_thumb_light": "reactions/epoxidation-mcpba-start-thumb-light.svg",
         "start_dark": "reactions/epoxidation-mcpba-start-dark.svg",
+        "start_thumb_dark": "reactions/epoxidation-mcpba-start-thumb-dark.svg",
         "product_light": "reactions/epoxidation-mcpba-product-light.svg",
-        "product_dark": "reactions/epoxidation-mcpba-product-dark.svg"
+        "product_thumb_light": "reactions/epoxidation-mcpba-product-thumb-light.svg",
+        "product_dark": "reactions/epoxidation-mcpba-product-dark.svg",
+        "product_thumb_dark": "reactions/epoxidation-mcpba-product-thumb-dark.svg"
       }
     },
     {
@@ -2569,9 +2706,13 @@ const DATA: {
       },
       "art": {
         "start_light": "reactions/epoxide-opening-base-start-light.svg",
+        "start_thumb_light": "reactions/epoxide-opening-base-start-thumb-light.svg",
         "start_dark": "reactions/epoxide-opening-base-start-dark.svg",
+        "start_thumb_dark": "reactions/epoxide-opening-base-start-thumb-dark.svg",
         "product_light": "reactions/epoxide-opening-base-product-light.svg",
-        "product_dark": "reactions/epoxide-opening-base-product-dark.svg"
+        "product_thumb_light": "reactions/epoxide-opening-base-product-thumb-light.svg",
+        "product_dark": "reactions/epoxide-opening-base-product-dark.svg",
+        "product_thumb_dark": "reactions/epoxide-opening-base-product-thumb-dark.svg"
       }
     },
     {
@@ -2636,9 +2777,13 @@ const DATA: {
       },
       "art": {
         "start_light": "reactions/nbs-allylic-start-light.svg",
+        "start_thumb_light": "reactions/nbs-allylic-start-thumb-light.svg",
         "start_dark": "reactions/nbs-allylic-start-dark.svg",
+        "start_thumb_dark": "reactions/nbs-allylic-start-thumb-dark.svg",
         "product_light": "reactions/nbs-allylic-product-light.svg",
-        "product_dark": "reactions/nbs-allylic-product-dark.svg"
+        "product_thumb_light": "reactions/nbs-allylic-product-thumb-light.svg",
+        "product_dark": "reactions/nbs-allylic-product-dark.svg",
+        "product_thumb_dark": "reactions/nbs-allylic-product-thumb-dark.svg"
       }
     },
     {
@@ -2701,9 +2846,13 @@ const DATA: {
       },
       "art": {
         "start_light": "reactions/diene-1-4-addition-start-light.svg",
+        "start_thumb_light": "reactions/diene-1-4-addition-start-thumb-light.svg",
         "start_dark": "reactions/diene-1-4-addition-start-dark.svg",
+        "start_thumb_dark": "reactions/diene-1-4-addition-start-thumb-dark.svg",
         "product_light": "reactions/diene-1-4-addition-product-light.svg",
-        "product_dark": "reactions/diene-1-4-addition-product-dark.svg"
+        "product_thumb_light": "reactions/diene-1-4-addition-product-thumb-light.svg",
+        "product_dark": "reactions/diene-1-4-addition-product-dark.svg",
+        "product_thumb_dark": "reactions/diene-1-4-addition-product-thumb-dark.svg"
       }
     },
     {
@@ -2767,9 +2916,13 @@ const DATA: {
       },
       "art": {
         "start_light": "reactions/diels-alder-start-light.svg",
+        "start_thumb_light": "reactions/diels-alder-start-thumb-light.svg",
         "start_dark": "reactions/diels-alder-start-dark.svg",
+        "start_thumb_dark": "reactions/diels-alder-start-thumb-dark.svg",
         "product_light": "reactions/diels-alder-product-light.svg",
-        "product_dark": "reactions/diels-alder-product-dark.svg"
+        "product_thumb_light": "reactions/diels-alder-product-thumb-light.svg",
+        "product_dark": "reactions/diels-alder-product-dark.svg",
+        "product_thumb_dark": "reactions/diels-alder-product-thumb-dark.svg"
       }
     },
     {
@@ -2836,9 +2989,13 @@ const DATA: {
       },
       "art": {
         "start_light": "reactions/eas-bromination-start-light.svg",
+        "start_thumb_light": "reactions/eas-bromination-start-thumb-light.svg",
         "start_dark": "reactions/eas-bromination-start-dark.svg",
+        "start_thumb_dark": "reactions/eas-bromination-start-thumb-dark.svg",
         "product_light": "reactions/eas-bromination-product-light.svg",
-        "product_dark": "reactions/eas-bromination-product-dark.svg"
+        "product_thumb_light": "reactions/eas-bromination-product-thumb-light.svg",
+        "product_dark": "reactions/eas-bromination-product-dark.svg",
+        "product_thumb_dark": "reactions/eas-bromination-product-thumb-dark.svg"
       }
     },
     {
@@ -2905,9 +3062,13 @@ const DATA: {
       },
       "art": {
         "start_light": "reactions/friedel-crafts-acylation-start-light.svg",
+        "start_thumb_light": "reactions/friedel-crafts-acylation-start-thumb-light.svg",
         "start_dark": "reactions/friedel-crafts-acylation-start-dark.svg",
+        "start_thumb_dark": "reactions/friedel-crafts-acylation-start-thumb-dark.svg",
         "product_light": "reactions/friedel-crafts-acylation-product-light.svg",
-        "product_dark": "reactions/friedel-crafts-acylation-product-dark.svg"
+        "product_thumb_light": "reactions/friedel-crafts-acylation-product-thumb-light.svg",
+        "product_dark": "reactions/friedel-crafts-acylation-product-dark.svg",
+        "product_thumb_dark": "reactions/friedel-crafts-acylation-product-thumb-dark.svg"
       }
     },
     {
@@ -2974,9 +3135,13 @@ const DATA: {
       },
       "art": {
         "start_light": "reactions/nitration-start-light.svg",
+        "start_thumb_light": "reactions/nitration-start-thumb-light.svg",
         "start_dark": "reactions/nitration-start-dark.svg",
+        "start_thumb_dark": "reactions/nitration-start-thumb-dark.svg",
         "product_light": "reactions/nitration-product-light.svg",
-        "product_dark": "reactions/nitration-product-dark.svg"
+        "product_thumb_light": "reactions/nitration-product-thumb-light.svg",
+        "product_dark": "reactions/nitration-product-dark.svg",
+        "product_thumb_dark": "reactions/nitration-product-thumb-dark.svg"
       }
     },
     {
@@ -3045,9 +3210,13 @@ const DATA: {
       },
       "art": {
         "start_light": "reactions/diazonium-formation-start-light.svg",
+        "start_thumb_light": "reactions/diazonium-formation-start-thumb-light.svg",
         "start_dark": "reactions/diazonium-formation-start-dark.svg",
+        "start_thumb_dark": "reactions/diazonium-formation-start-thumb-dark.svg",
         "product_light": "reactions/diazonium-formation-product-light.svg",
-        "product_dark": "reactions/diazonium-formation-product-dark.svg"
+        "product_thumb_light": "reactions/diazonium-formation-product-thumb-light.svg",
+        "product_dark": "reactions/diazonium-formation-product-dark.svg",
+        "product_thumb_dark": "reactions/diazonium-formation-product-thumb-dark.svg"
       }
     },
     {
@@ -3111,9 +3280,13 @@ const DATA: {
       },
       "art": {
         "start_light": "reactions/sandmeyer-start-light.svg",
+        "start_thumb_light": "reactions/sandmeyer-start-thumb-light.svg",
         "start_dark": "reactions/sandmeyer-start-dark.svg",
+        "start_thumb_dark": "reactions/sandmeyer-start-thumb-dark.svg",
         "product_light": "reactions/sandmeyer-product-light.svg",
-        "product_dark": "reactions/sandmeyer-product-dark.svg"
+        "product_thumb_light": "reactions/sandmeyer-product-thumb-light.svg",
+        "product_dark": "reactions/sandmeyer-product-dark.svg",
+        "product_thumb_dark": "reactions/sandmeyer-product-thumb-dark.svg"
       }
     },
     {
@@ -3180,9 +3353,13 @@ const DATA: {
       },
       "art": {
         "start_light": "reactions/periodic-cleavage-start-light.svg",
+        "start_thumb_light": "reactions/periodic-cleavage-start-thumb-light.svg",
         "start_dark": "reactions/periodic-cleavage-start-dark.svg",
+        "start_thumb_dark": "reactions/periodic-cleavage-start-thumb-dark.svg",
         "product_light": "reactions/periodic-cleavage-product-light.svg",
-        "product_dark": "reactions/periodic-cleavage-product-dark.svg"
+        "product_thumb_light": "reactions/periodic-cleavage-product-thumb-light.svg",
+        "product_dark": "reactions/periodic-cleavage-product-dark.svg",
+        "product_thumb_dark": "reactions/periodic-cleavage-product-thumb-dark.svg"
       }
     }
   ],

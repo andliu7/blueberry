@@ -23,7 +23,7 @@
                        the sheet. It was a 40 percent --bb-muted-foreground
                        neutral, the highest contrast mark in the sheet's top
                        30 px, which pulled the eye above the title
-     START face        #8276d8 (470,850) and #8174dd (513,832), a SOFT
+     START face        (SUPERSEDED A2 r2: START is .btn3d now) #8276d8 (470,850) and #8174dd (513,832), a SOFT
                        periwinkle-violet, sampled again at the pill's left
                        (440,851) and right (590,851) edges to prove it is flat
                        -> --ns-start-face, measured (128,113,220). The build
@@ -122,20 +122,6 @@
    --ns-card-fill    the card, one whisker lighter than the ground it sits on,
                      which is the reference's #f7f3e8 over #f6f2e7
    --ns-card-shade   the soft warm shadow that is the card's only boundary
-   --ns-quiet-mark   the WARM brown grey the filled difficulty pips are, and
-                     the hairline every empty one is ringed in. Re-sampled at
-                     #978b7b and #9a8e80 and then taken a few points darker so
-                     the ring clears the 3.0 graphics floor of WCAG 1.4.11 with
-                     margin rather than landing on it: this expression measures
-                     (138,131,120) light, 3.24:1 on the card, and (148,149,169)
-                     dark, 5.4:1. The build it replaces mixed --bb-foreground into
-                     the cream ground and landed on (133,128,131), a COOL
-                     neutral that fell out of the sheet's warm family
-   --ns-hollow       the empty pip's interior, and it is LIGHTER than the card
-                     it sits on, which is the whole reason the empty pair read
-                     hollow in the reference (#f9f6e7 inside a #f7f3e8 card).
-                     --scene-ground-top is the palette's paler cream and is
-                     lighter than --ns-card-fill in both themes
    --ns-paper        pure white, and see divergence 4 in the file header. The
                      token this asks theme.css for does not exist yet; the
                      fallback is the palette's declared white, and the dark
@@ -147,8 +133,6 @@
 .ns-molecule {
   --ns-card-fill: color-mix(in srgb, var(--bb-card) 22%, var(--bb-background));
   --ns-card-shade: color-mix(in srgb, var(--bb-foreground) 16%, transparent);
-  --ns-quiet-mark: color-mix(in srgb, var(--charge-chip) 58%, var(--scene-ground-bottom));
-  --ns-hollow: var(--scene-ground-top);
   --ns-paper: var(--paper-white, var(--bb-primary-foreground));
 }
 /* In the dark theme a shadow mixed toward the light foreground would be a rim
@@ -229,18 +213,18 @@
 
      2      .tabbar border-top
      6      .tabbar padding-top (0.375rem)
-     62.2   .tabbar-item: 2 + 2 border, 6 + 5 padding, 32 icon, 2 gap,
+     66.2   .tabbar-item: 2 + 2 border, 4 + 3 padding, 40 icon, 2 gap,
             13.2 label (0.75rem at line-height 1.1)
      6      .tabbar padding-bottom (max(0.375rem, safe-area))
      =====
-     76.2
+     80.2
 
-   4.75rem is 76, which is UNDER the bar's real height, so the sheet's edge
+   5rem is 80, which is UNDER the bar's real height, so the sheet's edge
    lands a fifth of a pixel inside the bar and no ground can show through.
    Above 48rem the bar becomes a static side rail, so the inset is 0.
 */
 .ns-sheet {
-  --ns-bottom-inset: calc(4.75rem + env(safe-area-inset-bottom, 0px));
+  --ns-bottom-inset: calc(5rem + env(safe-area-inset-bottom, 0px));
   position: fixed;
   top: auto;
   left: 0;
@@ -267,6 +251,14 @@
   display: none;
 }
 
+/* A2 round 3: ONE START AT A TIME. While this sheet is open its own START key
+   is the action, so the path's START tag beside the node steps out instead
+   of repeating it. Visibility only: the tag keeps its one placement on the
+   path (pathwayRowLanes.test.ts) and nothing reflows. */
+body:has(.ns-sheet[open]) .path-start {
+  visibility: hidden;
+}
+
 /*
    NO SCRIM. Measured, not assumed: in the reference the pathway behind the
    sheet is undimmed (two points of delta across the sheet edge) and the
@@ -278,7 +270,14 @@
 .ns-sheet::backdrop {
   background: transparent;
 }
-
+/* On a wide screen the sheet is a 30rem panel over a much wider path, and
+   with no scrim the path labels beside it were cut at its edge. A soft
+   scrim there sets the panel apart; the phone keeps the reference's none. */
+@media (min-width: 48rem) {
+  .ns-sheet::backdrop {
+    background: rgba(18, 14, 48, 0.5);
+  }
+}
 /* Full bleed, flush to the sheet's bottom, rounded top corners only. The
    panel is the cream paper; the shadow above its top edge is what lifts it
    off the pathway (the reference draws about 6 css px of it). */
@@ -308,6 +307,30 @@
   from {
     transform: translateY(2.5rem);
     opacity: 0;
+  }
+}
+
+/* A2 round 3: ON A WIDE SCREEN THE SHEET IS A CENTRED CARD, not a phone
+   sheet glued to the bottom edge. With the tab bar turned into a side rail
+   there is nothing for a bottom sheet to sit on, so the bottom-anchored
+   panel read as a phone part dropped onto a desktop and cut the path labels
+   at its edges. Centred, fully rounded and over the scrim, it reads as a
+   modal on purpose. The berry still peeks over the card's bottom edge. */
+@media (min-width: 48rem) {
+  .ns-sheet[open] {
+    top: 50%;
+    bottom: auto;
+    transform: translateY(-50%);
+  }
+  /* A centred card is not dragged, so it draws no drag handle. */
+  .ns-sheet .ns-grabber {
+    display: none;
+  }
+  .ns-sheet .ns-panel {
+    border-radius: 1.5rem;
+    padding-top: 1.125rem;
+    max-height: calc(100dvh - 6rem);
+    box-shadow: 0 0.5rem 2rem rgba(18, 14, 48, 0.28);
   }
 }
 
@@ -416,6 +439,29 @@
   width: 1.625rem;
   height: 1.625rem;
 }
+.ns-menu__label {
+  display: none;
+}
+/* From tablet width the guidebook key names itself and wears the outline
+   and lip of the other quiet keys, rather than floating as a bare glyph. */
+@media (min-width: 48rem) {
+  .ns-menu {
+    width: auto;
+    gap: 0.375rem;
+    margin-right: 0;
+    padding: 0 0.75rem;
+    border-color: var(--bb-border);
+    box-shadow: 0 3px 0 var(--bb-border);
+  }
+  .ns-menu__label {
+    display: inline;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: var(--text-scale-sm);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+}
 
 /* --------------------------------------------------------------- the cards */
 
@@ -461,15 +507,12 @@
 }
 
 /*
-   THE CHALLENGE CARD IS HALF WIDTH. Measured off the reference above the
-   mascot, where nothing occludes it: its right edge is at image x 381 against
-   the practice card's 628, so it is 49.6 percent of the practice card's
-   width, and the berry rises in the space beside it.
+   THE RESTING CHALLENGE CARD IS FULL WIDTH (A2 round 3). It used to be half
+   width, measured off an older reference, and left a dead hole beside it on
+   every screen size. Full width, it lines up with the Practice card above.
 */
-.ns-card--half {
-  width: 50%;
-  min-width: 10rem;
-  align-self: flex-start;
+.ns-card--rest {
+  width: 100%;
 }
 
 /* ------------------------------------------------------------- the 3D chip */
@@ -557,79 +600,17 @@ button.ns-card--go .ns-chip__face {
 }
 
 /*
-   The violet 3D START, same two layers. The lip cannot be --bb-primary-edge,
-   which flips LIGHTER in the dark theme (it is the outline token), and a
-   physical lip must stay darker than its face in both. So it reads
-   --bb-primary-lip from theme.css, which is the integrator's to define per
-   theme (theme.css already carries this token family: --progress-edge,
-   --chip-face-press). Until it lands, the fallback DERIVES the lip by mixing
-   --bb-primary toward --chip-ink, which is the darkest token in the palette and
-   is the SAME value in both themes, so the mix darkens the face in both. The
-   old fallback mixed toward a literal #000, which was the value that actually
-   shipped and the one hex this file's own header promised was not here.
-
-   THE FACE IS NOT var(--bb-primary), AND IT CARRIES NO STROKE. Both are round 2
-   findings and both were re-sampled with a canvas readback before this build
-   moved: the pill reads #8276d8 at (470,850) and #8174dd at (513,832), and
-   the same value at its left (440,851) and right (590,851) edges, so it is a
-   flat SOFT periwinkle-violet with no ring. --bb-primary is #6d3fd4, 55 points
-   darker in green, which made the sheet's one violet object read heavy where
-   the picture reads light; --bb-primary-edge is #4c2ba0, and a continuous 2 px
-   ring of it was the loudest line on the whole sheet.
-
-   --ns-start-face is the brand violet carried toward --chip-face, which IS
-   the pathway's periwinkle, and then greyed by a whisker of the neutral ink:
-   (128,113,220) light against the sample's (129,117,218), and (123,131,219)
-   dark. That derivation is also the right story rather than a lucky mix, per
-   DESIGN-GOALS: the nodes are periwinkle, the primary is violet, and the
-   START pill in the picture sits between them.
-
-   THE OUTLINE IS DROPPED and BUTTON-MECHANICS' "a real border on the face" is
-   reported rather than followed, per divergence 3. What terminates the face
-   is the lip beneath it, which is that note's own mechanism; the sampled lip
-   is #6f63b5, only a step down from the face, and the existing --bb-primary
-   toward --chip-ink derivation lands there.
-
-   THE LABEL IS 20 px AT WEIGHT 800. The reference's own cap height measures
-   14.4 css px, so about a 20 px face, and 20 px at 700 or more is WCAG large
-   text: white on the re-sampled fill measures 3.95:1 light and 3.44:1 dark
-   against the 3.0 large-text floor. At the 16 px the build used it would have
-   been normal text at a 4.5 floor, which nothing near the sampled colour can
-   clear, so the size is what makes the picture's colour legal rather than a
-   tolerance being moved. Contrast is measured by contrast-audit.mjs, which
-   applies the same rule.
-
-   The reference draws this pill about 112 by 38 css px. The width matches;
-   the face is 44 here because the minimum hit target is 44 by 44 and
-   CLAUDE.md's budget wins over the image.
+   START (A2 round 2, 2026-10-16) is no longer drawn here. It wears the game's
+   one shared 3D key, .btn3d--primary in app/ui/press.css: the brand violet
+   face over a solid darker lip, full width, the same object as CHECK in a
+   lesson. Round 1's soft periwinkle pill was the second "primary" look on the
+   same screen. This class is only the hook that places it in the card.
 */
 .ns-start {
-  --ns-start-lip: var(--bb-primary-lip, color-mix(in srgb, var(--bb-primary) 72%, var(--chip-ink)));
-  --ns-start-face: color-mix(
-    in srgb,
-    color-mix(in srgb, var(--bb-primary) 55%, var(--chip-face)) 94%,
-    var(--bb-muted-foreground)
-  );
-  align-self: flex-end;
-  min-height: 3rem;
-  border-radius: 9999px;
-  background: var(--ns-start-lip);
+  align-self: stretch;
+  margin-top: 0.25rem;
 }
-.ns-start .ns-chip__face {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 2.75rem;
-  min-width: 7rem;
-  padding: 0 1.25rem;
-  border-radius: 9999px;
-  border: 0;
-  background: var(--ns-start-face);
-  color: var(--bb-primary-foreground);
-  font-size: 1.25rem;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-}
+
 /*
    Difficulty pips, TWO TONE, and the two tones are SOLID and HOLLOW.
 
@@ -643,14 +624,11 @@ button.ns-card--go .ns-chip__face {
    four pips read as filled discs and the 2-of-4 difficulty stopped reading at
    a glance, which is the one job this row has.
 
-   So: the filled pip is a solid disc of --ns-quiet-mark and carries no ring
-   at all, and the empty pip is --ns-hollow (the palette's paler cream, which
-   is lighter than the card in both themes) behind a 1.5 px hairline of the
-   same mark. The hairline is kept rather than taken to the reference's own
-   #c1beaf, which measures 1.64:1 on the card and cannot be seen: WCAG 1.4.11
-   asks 3.0 of a graphic that carries meaning, and this row carries the
-   difficulty. The ring measures 3.24:1 light and 5.4:1 dark, and
-   measurements/_probe-sheet-graphics.mjs re-takes both.
+   So: the filled pip is a solid disc and the empty pip is a lavender well
+   behind a 2 px ring of the same colour. A2 round 5 moved both from a warm
+   brown grey that belonged to no token family to brand violet (--bb-primary),
+   which clears the 3.0 graphics floor of WCAG 1.4.11 on the card in both
+   themes.
 */
 /*
    THE DIFFICULTY GROUP: the word and the dots, read as one thing.
@@ -660,12 +638,9 @@ button.ns-card--go .ns-chip__face {
    the card's row now balances against the "Practice" heading, so the dots
    keep their place on the right and the word sits just inside them.
 
-   THE WORD IS --bb-muted-foreground, NOT --ns-quiet-mark. The pips' own
-   colour is measured for a SHAPE and only just: --ns-quiet-mark samples
-   #908a7a, which is 3.10:1 on the card's #f7f3e8 fill. That clears the 3.0
-   floor an identifiable graphic needs and FAILS the 4.5 a piece of text
-   needs, so the word cannot wear it. --bb-muted-foreground is the token
-   .ns-note already draws body copy with on this exact surface.
+   THE WORD IS --bb-muted-foreground, the token .ns-note already draws body
+   copy with on this exact surface, so the label reads as text and the pips
+   carry the colour.
 */
 .ns-difficulty {
   display: inline-flex;
@@ -673,9 +648,11 @@ button.ns-card--go .ns-chip__face {
   gap: 0.5rem;
 }
 .ns-difficulty__band {
-  font-weight: 600;
+  font-weight: 700;
   white-space: nowrap;
-  color: var(--bb-muted-foreground);
+  /* A2 round 3: full ink. The muted ink measured 3.36:1 on the white card
+     at this small size, under the 4.5 text floor. */
+  color: var(--bb-foreground);
 }
 .ns-pips {
   display: inline-flex;
@@ -685,32 +662,31 @@ button.ns-card--go .ns-chip__face {
   width: 1rem;
   height: 1rem;
   border-radius: 9999px;
-  border: 1.5px solid var(--ns-quiet-mark);
-  background: var(--ns-hollow);
+  /* A2 round 5: brand violet, solid against hollow. The warm brown-grey the
+     pips used to be belonged to no token family; now a filled pip is a solid
+     violet disc and an empty one is the same violet ring around a lavender
+     well, so the count reads by shape as well as by colour. */
+  border: 2px solid var(--bb-primary);
+  background: var(--bb-secondary);
 }
 .ns-pip.is-filled {
-  border-color: var(--ns-quiet-mark);
-  background: var(--ns-quiet-mark);
+  border-color: var(--bb-primary);
+  background: var(--bb-primary);
 }
 
-/* Challenge marks: the transition-state double dagger (the stopwatch came out
-   with the timed-run promise it stood for; see NodeSheet.tsx),
-   at the reference's 28 px, both traced SVG per DESIGN-GOALS. They ride their
-   OWN row under the heading, left aligned at the card's padding, which is
-   where the reference scans them (x 170..263, y 1000..1030). */
-.ns-marks {
+/* The Challenge bolt rides the heading row, left of the word (A2 round 5).
+   It used to sit alone on a row of its own under the heading. */
+.ns-titled {
   display: inline-flex;
   align-items: center;
-  /* The marks settle on the card's BOTTOM padding line, which is where the
-     reference draws them: its card runs image y 917..1047 and the marks band
-     is 1000..1030, so they sit 12 css px off the bottom edge rather than
-     tucked under the heading. margin-top:auto on a column flex item is the
-     one-line way to say "push me to the end". */
-  margin-top: auto;
-  gap: 0.625rem;
-  color: var(--bb-foreground);
+  gap: 0.5rem;
+  min-width: 0;
 }
-.ns-marks svg {
+.ns-title-mark {
+  display: inline-flex;
+  flex: none;
+}
+.ns-title-mark svg {
   width: 1.75rem;
   height: 1.75rem;
 }
@@ -796,6 +772,20 @@ button.ns-card--go .ns-chip__face {
   bottom: 0;
   height: 1.75rem;
   z-index: 1;
+}
+
+/* A2 round 4: ON THE CENTRED DESKTOP CARD THE BERRY STEPS OUT. On a phone he
+   peeks over the sheet's bottom edge into the tab bar, which is the
+   reference. On the centred card there is no tab bar under him: he hung half
+   off the card over the path behind the scrim, and the card kept 80px of
+   empty padding for him. So the card drops him and its spare padding. */
+@media (min-width: 48rem) {
+  .ns-sheet .ns-peek {
+    display: none;
+  }
+  .ns-sheet .ns-panel {
+    padding-bottom: 1.25rem;
+  }
 }
 
 /* --------------------------------------------------------- the unit list */
@@ -1331,8 +1321,7 @@ button.ns-card--go .ns-chip__face {
     animation: none;
   }
   .ns-chip__face,
-  button.ns-card--go .ns-chip__face,
-  .ns-start .ns-chip__face {
+  button.ns-card--go .ns-chip__face {
     transition: none;
   }
 }

@@ -1,0 +1,23 @@
+/* The desktop hero's board (HomeHeroBoard.tsx), home round 2. Imported by that lazy component,
+ * so it ships in the board's own chunk. Tokens only; --bb-ease-* only.
+ *
+ * A sticker card, tilted a few degrees, at the top right of the stage; Bloom (home.css) sits
+ * over its lower left corner. The tilt and the sticker outline are the portfolio's props
+ * around its headline; the arrival is the card swing's spring
+ * (andliu-portfolio app/sections/projects.css:141-142), ending on the tilt.
+ */
+.home-board {
+  position: absolute; top: 8px; left: 4px; width: min(74%, 16rem);
+  display: grid; gap: 6px; padding: 14px 16px 16px;
+  border: 2px solid var(--site-border); border-bottom-width: 6px; border-radius: 22px;
+  background: var(--card); color: var(--foreground);
+  rotate: 3deg;
+}
+.home-board__eyebrow { font: 800 .75rem/1.2 var(--site-display); letter-spacing: .06em; text-transform: uppercase; color: var(--muted-foreground); }
+@keyframes home-board-in { from { opacity: 0; transform: translateY(24px) scale(.88); rotate: -6deg; } }
+html:not([data-motion="reduced"]) .home-board { animation: home-board-in .6s var(--bb-ease-spring) .2s both; }
+/* From 1024 px: the right column's card, top right of the stage, Bloom over its lower left. */
+@media (min-width: 1024px) { .home-board { left: auto; right: 0; width: min(100%, 22rem); } }
+/* Reduced: the card is simply there, tilted; the board inside shows its finished frame
+   (MechanismBoard reads the reduced setting itself). */
+html[data-motion="reduced"] .home-board { animation: none; }

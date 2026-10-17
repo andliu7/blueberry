@@ -1,0 +1,474 @@
+/*
+ * Glass folder cards: the stylesheet for glass-folder-cards.tsx.
+ *
+ * Rebuilt from Kedhareswer Naidu's "Glassmorphism Folder Cards" on 21st.dev (MIT),
+ * which the owner supplied on 15 Oct 2026. The geometry, layering and timings are the
+ * original's. What changed for Blueberry: the two curves are the site's motion tokens
+ * (--bb-ease-out, --bb-ease-spring) instead of private ones, the ink is the deep #2e2b45
+ * and the quiet #475569 (fixed hexes, not the --bb-deep token, because that token turns
+ * near-white at night and the light folder's glass stays milky), focus rings are the
+ * #5a3fd8 purple, and the font is the page's own.
+ *
+ * How it works, in one paragraph: three layers sit in a 340 x 272 stage. The back
+ * panel (with the generated art) is clipped to a folder shape with a tab, the paper
+ * sheets sit in front of it, and the frosted front pocket covers their lower half.
+ * Hover and open only change six custom properties on .gf-root (hinge, lift, spread,
+ * fan, stack); every sheet reads them, so one attribute change moves the whole fan.
+ * Everything that moves is transform, translate, rotate or opacity: no layout per frame.
+ */
+
+.gf-root {
+  --gf-px: 0;
+  --gf-py: 0;
+  --gf-ease: var(--bb-ease-out, cubic-bezier(.19, 1, .22, 1));
+  --gf-spring: var(--bb-ease-spring, cubic-bezier(.34, 1.56, .64, 1));
+  /* Blueberry change: closed, the files stand 30px apart above the glass so every
+     deck name can be read before the folder is opened (the original hid them). A
+     file's top is 96px + lift - depth * stack in the stage. */
+  --gf-hinge: 0deg;
+  --gf-lift: -50px;
+  --gf-spread: 0px;
+  --gf-fan: 0deg;
+  --gf-stack: 30px;
+  --gf-ink: #2e2b45;
+  --gf-ink-soft: #475569;
+  --gf-focus: #5a3fd8;
+  position: relative;
+  display: inline-block;
+  flex: none;
+  vertical-align: top;
+  font-family: inherit;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  isolation: isolate;
+}
+.gf-root[data-tone="dark"] { --gf-ink: #f4f0fb; --gf-ink-soft: rgba(244, 240, 251, .7); --gf-focus: #9db6f5; }
+.gf-root:hover, .gf-root:focus-within { --gf-hinge: -11deg; --gf-lift: -54px; --gf-spread: 8px; --gf-fan: 1.4deg; --gf-stack: 31px; }
+/* Open, the glass flap folds further toward you (its tab drops to about y=118)
+   instead of the files rising high, so each file shows a strip at least 44px tall
+   to press (a touch target) and the fan stays inside the head room. Stack 48px, not
+   44, because the fan's tilt eats a few px of each strip (measured 42px at 46).
+   Lift -16px keeps the back file's top at 96 - 16 - 3 * 48 = -64, the head room.
+   Spread 22px keeps the fan out of a phone's 16px gutter. */
+.gf-root[data-open] { --gf-hinge: -52deg; --gf-lift: -16px; --gf-spread: 22px; --gf-fan: 4deg; --gf-stack: 48px; --gf-persp: 1400px; }
+
+.gf-stage {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 340px;
+  height: 272px;
+  transform-origin: 0 0;
+}
+.gf-tilt {
+  position: absolute;
+  inset: 0;
+  transform: perspective(1400px) rotateX(calc(var(--gf-py) * -3deg)) rotateY(calc(var(--gf-px) * 4deg));
+  transition: transform .9s var(--gf-ease);
+}
+
+.gf-shadow {
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: -6px;
+  height: 60px;
+  border-radius: 40px;
+  background: rgba(46, 43, 69, .3);
+  filter: blur(22px);
+  transform: translateX(calc(var(--gf-px) * -8px));
+  transition: transform .9s var(--gf-ease), opacity .9s var(--gf-ease);
+}
+.gf-root[data-tone="dark"] .gf-shadow { background: rgba(0, 0, 0, .62); }
+
+.gf-back {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: linear-gradient(180deg, #f4f0fb 0%, #e2dbf5 100%);
+}
+.gf-root[data-tone="dark"] .gf-back { background: linear-gradient(180deg, #2e2b45 0%, #1d1b2e 100%); }
+.gf-art {
+  position: absolute;
+  left: -12px;
+  top: -12px;
+  max-width: none;
+  object-fit: cover;
+  transform: translate(calc(var(--gf-px) * -7px), calc(var(--gf-py) * -6px)) scale(1.02);
+  transition: transform 1.1s var(--gf-ease), opacity 1.2s var(--gf-ease), filter 1.2s var(--gf-ease);
+}
+canvas.gf-art { opacity: 0; filter: blur(14px) saturate(.6); }
+canvas.gf-art[data-ready] { opacity: 1; filter: none; }
+/* appear={false}: the art swaps in when painted, with no fade (nothing animates on
+   first page paint). The lean's transform still eases. */
+.gf-root[data-still] canvas.gf-art { transition-property: transform; }
+.gf-back-sheen {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .22) 0%, rgba(255, 255, 255, 0) 22%),
+    radial-gradient(120% 80% at 80% 0%, rgba(255, 255, 255, .16), rgba(255, 255, 255, 0) 60%);
+  pointer-events: none;
+}
+
+.gf-rim {
+  position: absolute;
+  left: 0;
+  top: 0;
+  max-width: none;
+  overflow: visible;
+  pointer-events: none;
+  fill: none;
+}
+.gf-back-rim { width: 340px; height: 272px; }
+.gf-back-rim path { stroke: rgba(255, 255, 255, .45); stroke-width: 1; }
+.gf-root[data-tone="dark"] .gf-back-rim path { stroke: rgba(255, 255, 255, .16); }
+
+/* ---- files ---------------------------------------------------------------- */
+.gf-files {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  /* nothing hangs out of the bottom of the pocket, however tall the stack */
+  clip-path: inset(-400px -400px 10px -400px);
+}
+.gf-sheet-slot { display: contents; }
+.gf-sheet {
+  all: unset;
+  box-sizing: border-box;
+  position: absolute;
+  left: 34px;
+  top: 96px;
+  width: 272px;
+  height: 184px;
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: pointer;
+  pointer-events: auto;
+  background: linear-gradient(180deg, #ffffff 0%, #f4f0fb 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .9),
+    0 0 0 .5px rgba(46, 43, 69, .14),
+    0 10px 26px -8px rgba(46, 43, 69, .3);
+  transform-origin: 50% 100%;
+  transform:
+    translate(calc(var(--gf-jx) + var(--gf-slot) * var(--gf-spread)), calc(var(--gf-lift) + var(--gf-depth) * var(--gf-stack) * -1))
+    rotate(calc(var(--gf-jr) + var(--gf-slot) * var(--gf-fan)));
+  transition:
+    transform .75s var(--gf-spring) calc(var(--gf-depth) * 40ms),
+    box-shadow .4s var(--gf-ease),
+    translate .9s var(--gf-ease),
+    opacity .9s var(--gf-ease);
+}
+.gf-root[data-tone="dark"] .gf-sheet { background: linear-gradient(180deg, #34304f 0%, #24213a 100%); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .14), 0 0 0 .5px rgba(255, 255, 255, .08), 0 12px 28px -8px rgba(0, 0, 0, .7); }
+.gf-sheet--art { background: #2e2b45; }
+.gf-root[data-open] .gf-sheet:hover,
+.gf-root[data-open] .gf-sheet:focus-visible {
+  transform:
+    translate(calc(var(--gf-jx) + var(--gf-slot) * var(--gf-spread)), calc(var(--gf-lift) + var(--gf-depth) * var(--gf-stack) * -1 - 18px))
+    rotate(calc(var(--gf-slot) * var(--gf-fan) * .6));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .9), 0 0 0 .5px rgba(46, 43, 69, .14), 0 22px 40px -12px rgba(46, 43, 69, .42);
+  transition-delay: 0s;
+}
+.gf-sheet:focus-visible { outline: 2px solid var(--gf-focus); outline-offset: 2px; }
+.gf-sheet-art {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 272px;
+  height: 184px;
+  max-width: none;
+  object-fit: cover;
+  transition: opacity .9s var(--gf-ease), filter .9s var(--gf-ease);
+}
+canvas.gf-sheet-art { opacity: 0; filter: blur(10px); }
+canvas.gf-sheet-art[data-ready] { opacity: 1; filter: none; }
+.gf-root[data-still] canvas.gf-sheet-art { transition: none; }
+.gf-sheet--art::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(180deg, rgba(0, 0, 0, .42) 0%, rgba(0, 0, 0, 0) 34%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .2);
+  pointer-events: none;
+}
+.gf-sheet-head {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  top: 11px;
+  z-index: 1;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  white-space: nowrap;
+}
+.gf-sheet-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -.005em;
+  color: #2e2b45;
+}
+.gf-sheet-meta {
+  flex: none;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .02em;
+  font-variant-numeric: tabular-nums;
+  color: #475569;
+}
+.gf-root[data-tone="dark"] .gf-sheet-name, .gf-sheet--art .gf-sheet-name { color: #fafafa; }
+.gf-root[data-tone="dark"] .gf-sheet-meta, .gf-sheet--art .gf-sheet-meta { color: rgba(250, 250, 250, .72); }
+.gf-lines {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  top: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.gf-lines i {
+  display: block;
+  height: 5px;
+  border-radius: 3px;
+  background: rgba(46, 43, 69, .08);
+}
+.gf-lines i:first-child { height: 9px; margin-bottom: 4px; background: rgba(90, 63, 216, .18); }
+.gf-root[data-tone="dark"] .gf-lines i { background: rgba(255, 255, 255, .08); }
+.gf-root[data-tone="dark"] .gf-lines i:first-child { background: rgba(255, 255, 255, .16); }
+
+.gf-sheet--drop { animation: gf-drop .85s var(--gf-ease) both; }
+@keyframes gf-drop {
+  0% { translate: 0 -190px; rotate: -9deg; opacity: 0; }
+  35% { opacity: 1; }
+  72% { translate: 0 10px; rotate: 1deg; }
+  100% { translate: 0 0; rotate: 0deg; opacity: 1; }
+}
+
+/* ---- front glass ----------------------------------------------------------- */
+.gf-front {
+  position: absolute;
+  left: 0;
+  top: 74px;
+  width: 340px;
+  height: 198px;
+  z-index: 10;
+  -webkit-backdrop-filter: blur(22px) saturate(1.5);
+  backdrop-filter: blur(22px) saturate(1.5);
+  transform-origin: 50% 100%;
+  /* Open, the flap folds 52deg toward you; at the original's 760px perspective its top
+     edge then grows about 44px past each side of the folder (off a phone's screen).
+     1400px keeps that near 21px, which the caller's side room covers. */
+  transform: perspective(var(--gf-persp, 760px)) rotateX(var(--gf-hinge));
+  transition: transform .8s var(--gf-spring), translate 1s var(--gf-ease), opacity 1s var(--gf-ease);
+}
+.gf-front--bump { animation: gf-bump .7s var(--gf-ease) .38s both; }
+@keyframes gf-bump {
+  0% { scale: 1; }
+  35% { scale: 1.018 .975; }
+  70% { scale: .996 1.006; }
+  100% { scale: 1; }
+}
+.gf-tint {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .16) 0%, rgba(255, 255, 255, .5) 42%, rgba(252, 251, 255, .94) 100%);
+}
+.gf-root[data-tone="dark"] .gf-tint {
+  background: linear-gradient(180deg, rgba(29, 27, 46, .18) 0%, rgba(29, 27, 46, .62) 46%, rgba(20, 18, 32, .94) 100%);
+}
+.gf-spec {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(260px 200px at calc(50% + var(--gf-px) * 46%) calc(30% + var(--gf-py) * 40%), rgba(255, 255, 255, .5), rgba(255, 255, 255, 0) 70%);
+  mix-blend-mode: soft-light;
+  opacity: .9;
+  transition: background-position .6s var(--gf-ease);
+  pointer-events: none;
+}
+.gf-root[data-tone="dark"] .gf-spec { mix-blend-mode: screen; opacity: .16; }
+.gf-front-rim { width: 340px; height: 198px; }
+.gf-front-rim path { stroke-width: 2.4; transition: stroke-width .3s var(--gf-ease); }
+.gf-root[data-tone="dark"] .gf-front-rim { opacity: .55; }
+
+.gf-hit {
+  all: unset;
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  cursor: pointer;
+}
+.gf-hit:focus-visible ~ .gf-label .gf-title { text-decoration: underline; text-decoration-thickness: 1.5px; text-underline-offset: 4px; }
+.gf-front:has(.gf-hit:focus-visible) .gf-front-rim path { stroke-width: 5; }
+
+.gf-label {
+  position: absolute;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 260px;
+  pointer-events: none;
+  color: var(--gf-ink);
+}
+.gf-root[data-place="bottom-left"] .gf-label { left: 28px; bottom: 32px; }
+.gf-root[data-place="top-left"] .gf-label { left: 28px; top: 34px; }
+.gf-root[data-place="top-right"] .gf-label { right: 32px; top: 52px; align-items: flex-start; }
+.gf-title {
+  font-family: var(--site-display, inherit);
+  font-size: 21px;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -.012em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.gf-meta {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .01em;
+  font-variant-numeric: tabular-nums;
+  color: var(--gf-ink-soft);
+  white-space: nowrap;
+}
+/* Only when the meta changes after mount (the tsx adds the class), never on mount. */
+.gf-meta--roll { animation: gf-roll .5s var(--gf-ease) both; }
+@keyframes gf-roll {
+  from { opacity: 0; translate: 0 7px; filter: blur(3px); }
+  to { opacity: 1; translate: 0 0; filter: blur(0); }
+}
+
+/* ---- the key: + or ... ------------------------------------------------------ */
+.gf-key {
+  all: unset;
+  box-sizing: border-box;
+  position: absolute;
+  right: 22px;
+  bottom: 22px;
+  z-index: 12;
+  width: 58px;
+  height: 58px;
+  border-radius: 18px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: transform .35s var(--gf-spring), box-shadow .35s var(--gf-ease), background .35s var(--gf-ease);
+}
+.gf-key:hover { transform: translateY(-2px); }
+.gf-key:active { transform: translateY(0) scale(.93); transition-duration: .12s; }
+.gf-key:focus-visible { outline: 2px solid var(--gf-focus); outline-offset: 3px; }
+.gf-key--add {
+  color: #fff;
+  background: radial-gradient(120% 90% at 50% 0%, #7a63ec 0%, #5a3fd8 55%, #33208c 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .28),
+    inset 0 -3px 8px rgba(29, 20, 90, .55),
+    0 0 0 1px rgba(51, 32, 140, .75),
+    0 14px 22px -8px rgba(46, 43, 69, .55),
+    0 3px 6px -2px rgba(46, 43, 69, .35);
+}
+.gf-root[data-tone="dark"] .gf-key--add {
+  color: #2e2b45;
+  background: radial-gradient(120% 90% at 50% 0%, #ffffff 0%, #f4f0fb 55%, #d9d1f3 100%);
+  box-shadow: inset 0 1px 0 #fff, inset 0 -3px 8px rgba(0, 0, 0, .14), 0 0 0 1px rgba(0, 0, 0, .4), 0 14px 22px -8px rgba(0, 0, 0, .7);
+}
+.gf-key--more {
+  color: #2e2b45;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .92) 0%, rgba(226, 219, 245, .82) 100%);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow:
+    inset 0 1px 0 #fff,
+    inset 0 -2px 4px rgba(0, 0, 0, .06),
+    0 0 0 1px rgba(46, 43, 69, .16),
+    0 10px 18px -8px rgba(46, 43, 69, .3);
+}
+.gf-root[data-tone="dark"] .gf-key--more {
+  color: #f4f0fb;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .16) 0%, rgba(255, 255, 255, .06) 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .22), 0 0 0 1px rgba(255, 255, 255, .1), 0 10px 18px -8px rgba(0, 0, 0, .6);
+}
+.gf-key--more[aria-expanded="true"] { transform: scale(.96); }
+.gf-glyph { display: block; max-width: none; fill: none; stroke: currentColor; stroke-linecap: round; }
+.gf-glyph--plus { width: 26px; height: 26px; stroke-width: 1.6; animation: gf-turn .6s var(--gf-spring); }
+.gf-glyph--more { width: 30px; height: 12px; stroke-width: 1.7; }
+@keyframes gf-turn { from { rotate: -90deg; } to { rotate: 0deg; } }
+
+/* ---- menu ------------------------------------------------------------------- */
+.gf-menu {
+  position: absolute;
+  right: 22px;
+  bottom: 90px;
+  z-index: 20;
+  min-width: 176px;
+  padding: 6px;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  background: rgba(252, 251, 255, .78);
+  -webkit-backdrop-filter: blur(24px) saturate(1.6);
+  backdrop-filter: blur(24px) saturate(1.6);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .9), 0 0 0 .5px rgba(46, 43, 69, .14), 0 24px 48px -16px rgba(46, 43, 69, .4);
+  transform-origin: 100% 100%;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(6px) scale(.94);
+  transition: opacity .2s var(--gf-ease), transform .32s var(--gf-spring), visibility 0s .32s;
+}
+.gf-menu[data-open] { opacity: 1; visibility: visible; transform: none; transition-delay: 0s; }
+.gf-root[data-tone="dark"] .gf-menu { background: rgba(36, 33, 58, .78); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .1), 0 0 0 .5px rgba(255, 255, 255, .1), 0 24px 48px -16px rgba(0, 0, 0, .8); }
+.gf-menu-item {
+  all: unset;
+  box-sizing: border-box;
+  padding: 9px 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #2e2b45;
+  cursor: pointer;
+}
+.gf-root[data-tone="dark"] .gf-menu-item { color: #f4f0fb; }
+.gf-menu-item:hover, .gf-menu-item:focus-visible { background: rgba(90, 63, 216, .1); }
+.gf-root[data-tone="dark"] .gf-menu-item:hover, .gf-root[data-tone="dark"] .gf-menu-item:focus-visible { background: rgba(255, 255, 255, .09); }
+.gf-menu-item--danger { color: #b42318; }
+.gf-root[data-tone="dark"] .gf-menu-item--danger { color: #ff6b5e; }
+
+/* ---- entrance: the folder assembles itself ---------------------------------- */
+.gf-root:not([data-entered]) .gf-back,
+.gf-root:not([data-entered]) .gf-back-rim { translate: 0 22px; opacity: 0; }
+.gf-root:not([data-entered]) .gf-sheet { translate: 0 -120px; opacity: 0; }
+.gf-root:not([data-entered]) .gf-front { translate: 0 46px; opacity: 0; }
+.gf-root:not([data-entered]) .gf-key { opacity: 0; scale: .6; }
+.gf-root:not([data-entered]) .gf-shadow { opacity: 0; }
+.gf-back, .gf-back-rim { transition: translate 1s var(--gf-ease), opacity .9s var(--gf-ease); }
+.gf-root[data-entered] .gf-sheet { transition-delay: calc(var(--gf-depth) * 40ms), 0s, calc(.18s + var(--gf-depth) * 90ms), calc(.18s + var(--gf-depth) * 90ms); }
+.gf-root[data-entered] .gf-front { transition-delay: 0s, .42s, .42s; }
+.gf-key { transition: transform .35s var(--gf-spring), box-shadow .35s var(--gf-ease), opacity .6s var(--gf-ease) .7s, scale .7s var(--gf-spring) .7s; }
+
+/* Reduced motion: the OS setting, and the site's own switch (html[data-motion]),
+   which lib/motionPref.ts says is the one attribute everything reads. States still
+   change (open is still open), they just arrive without travelling. */
+@media (prefers-reduced-motion: reduce) {
+  .gf-root *, .gf-root *::before, .gf-root *::after {
+    transition-duration: 0s !important;
+    transition-delay: 0s !important;
+    animation: none !important;
+  }
+  .gf-tilt { transform: none; }
+}
+html[data-motion="reduced"] .gf-root *,
+html[data-motion="reduced"] .gf-root *::before,
+html[data-motion="reduced"] .gf-root *::after {
+  transition-duration: 0s !important;
+  transition-delay: 0s !important;
+  animation: none !important;
+}
+html[data-motion="reduced"] .gf-tilt { transform: none; }

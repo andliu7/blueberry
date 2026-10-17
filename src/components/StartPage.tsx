@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import { motion } from "motion/react";
 import { ArrowUpRight, CalendarDays, Check, GraduationCap, X } from "lucide-react";
-import { PageBackground } from "@/components/ui/page-background";
 import { TOPICS, REACTIONS as COURSE_REACTIONS } from "@/data/topics";
 import { TRAINER_URL } from "@/data/site";
 import { readGoals, writeGoals, daysUntil } from "@/lib/goals";
@@ -112,7 +111,6 @@ export function StartPage({ step: rawStep }: { step: string }) {
 
   return (
     <div className="relative text-slate-900 dark:text-stone-100">
-      <PageBackground />
       {step === "welcome" && <Welcome percent={percent} onGo={forward} />}
 
       {step === "course" && (

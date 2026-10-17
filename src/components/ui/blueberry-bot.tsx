@@ -7,26 +7,21 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { X } from "lucide-react";
 import { BlueberryMark } from "@/components/ui/blueberry-mark";
 import { PromptInput } from "@/components/ui/ai-chat-input";
-import { RailSlot, RAIL } from "@/components/ui/corner-dock";
-import { cn } from "@/lib/utils";
 
 /**
- * The berry as a bot: one control with four states and a panel behind it.
+ * The berry as a bot: a panel in the middle of the screen, opened from the
+ * account menu (see the effect below).
  *
- * States are a single string rather than four booleans, because they are
- * mutually exclusive and the bug in every version of this that uses booleans is
- * the frame where two of them are true. `thinking` outranks pointer state: once
- * it is working, moving the mouse away should not make it look idle.
- *
- * Every transition is a spring rather than a duration, so an interruption
- * blends instead of snapping. That is the whole difference between this feeling
- * elastic and feeling like four separate animations taking turns.
+ * Its state is a single string rather than booleans, because "idle" and
+ * "thinking" are mutually exclusive and the bug in every boolean version is the
+ * frame where both are true. The panel arrives on a spring, so an interruption
+ * blends instead of snapping.
  *
  * `motion`, not `framer-motion`: same library, newer name, already a dependency
  * here. Installing the old package would ship it twice.
  */
 
-type BotState = "idle" | "hover" | "active" | "thinking";
+type BotState = "idle" | "thinking";
 
 const SPRING = { type: "spring" as const, stiffness: 300, damping: 22, mass: 0.7 };
 
@@ -98,19 +93,21 @@ export function BlueberryBot() {
     }
   };
 
-  const scale = reduced ? 1 : thinking ? 1.04 : state === "hover" ? 1.08 : state === "active" ? 0.92 : 1;
+  /**
+   * Opened by an event, not by a button of its own (2026-10-07). The button was a
+   * member of the corner rail, and the replan removes that rail (SITE-REPLAN.md
+   * section 6): the account menu in the site header now has "Ask Blueberry", and
+   * it dispatches `blueberry:open-bot`. The same pattern the focus timer already
+   * uses with `blueberry:open-focus`, so nothing has to pass state between them.
+   */
+  useEffect(() => {
+    const openIt = () => setOpen(true);
+    window.addEventListener("blueberry:open-bot", openIt);
+    return () => window.removeEventListener("blueberry:open-bot", openIt);
+  }, []);
 
   return (
-    /* A member of the shared corner rail, not a chip of its own.
-
-       It was a 56px berry with a breathing halo, floating above three other
-       corner controls of similar weight, and a blind read against the
-       reference counted them and could not rank them. It is the same berry at
-       the rail's own 44px now, first in the row, and the halo it breathes at
-       rest went with the pill: an idle glow is a control asking to be pressed,
-       and this one is not the thing the page is asking for. The working ring
-       stays, because that one is state rather than decoration. */
-    <RailSlot order={RAIL.assistant}>
+    <>
       {/* A card in the middle of the screen, like About.
 
           It used to hang off the button as a 22rem panel wedged into a corner
@@ -215,90 +212,7 @@ export function BlueberryBot() {
         document.body,
       )}
 
-      <motion.button
-        type="button"
-        aria-label={open ? "Close Blueberry" : "Ask Blueberry"}
-        aria-expanded={open}
-        /* Opening is a plain `onClick`, not motion's `onTap`.
-
-           `onTap` resolves from a pointerdown/pointerup pair on the element
-           itself, which is fragile for a control sitting inside a portal that
-           other things overlap: a sequence motion does not recognise leaves
-           the button looking pressed and doing nothing. `onClick` is the
-           browser's own definition of activation and comes with keyboard
-           support for free. The motion handlers stay, but only for how the
-           button looks while it is being pressed. */
-        onClick={() => {
-          setState("idle");
-          setOpen((o) => !o);
-        }}
-        onHoverStart={() => !thinking && setState("hover")}
-        onHoverEnd={() => !thinking && setState("idle")}
-        onTapStart={() => !thinking && setState("active")}
-        onTapCancel={() => !thinking && setState("idle")}
-        animate={{ scale }}
-        transition={SPRING}
-        className="relative flex size-11 cursor-pointer items-center justify-center rounded-full"
-      >
-        {/* The halo, while it is working and only then. It used to breathe at
-            rest too, which reads as alive when the control is alone on a page
-            and reads as a fourth thing competing when it is one of four in a
-            corner. Thinking is worth a glow; idling is not. */}
-        {thinking && (
-          <motion.span
-            aria-hidden
-            animate={reduced ? {} : { scale: [1, 1.25, 1], opacity: [0.5, 0.15, 0.5] }}
-            transition={{ duration: 1.1, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute inset-0 rounded-full bg-[#6b51dd]/40 blur-md"
-          />
-        )}
-
-        {/* The working ring: a conic sweep that only spins while thinking, so
-            the state is legible without reading anything. */}
-        <motion.span
-          aria-hidden
-          animate={reduced ? {} : { rotate: thinking ? 360 : 0 }}
-          transition={
-            thinking
-              ? { duration: 1.1, repeat: Infinity, ease: "linear" }
-              : { duration: 0.4 }
-          }
-          className={cn(
-            "absolute inset-[-3px] rounded-full transition-opacity duration-300",
-            thinking ? "opacity-100" : "opacity-0",
-          )}
-          style={{
-            // The brand ramp's 400 step #9989e2 = rgb(153,137,226), replacing
-            // indigo-400 `#818cf8`. This sweep DOES carry meaning, it is the
-            // thinking state, so the 3:1 graphic floor is the one it answers to.
-            // The replacement is at luminance parity with what it replaces, so the
-            // ratio does not move: 5.75:1 on the night ground either way, and
-            // 2.99:1 against white where #818cf8 was 2.98:1.
-            background:
-              "conic-gradient(from 0deg, transparent 0deg, rgba(153,137,226,0.9) 90deg, transparent 200deg)",
-            mask: "radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px))",
-            WebkitMask:
-              "radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px))",
-          }}
-        />
-
-        {/* Sized and lit like a subordinate, because that is what it is here.
-            At `size-9` with `blueberry-glow-art` it was a saturated orb next to
-            three 16px glyphs, so the next blind read still found no rank in the
-            row: the loudest thing in the corner was the mascot and the captioned
-            entry it sits beside came second. The mark is the same mark, at the
-            scale of the glyphs it shares the rail with, and it picks the glow
-            back up on hover where a glow means a pointer rather than a shout.
-            Everywhere else it keeps its full size; this is the rail only. */}
-        <BlueberryMark
-          eyes
-          className={cn(
-            "relative size-7 transition-[filter] duration-300",
-            state === "hover" && "blueberry-glow-art brightness-110",
-          )}
-        />
-      </motion.button>
-    </RailSlot>
+    </>
   );
 }
 

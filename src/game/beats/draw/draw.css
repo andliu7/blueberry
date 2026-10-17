@@ -1,0 +1,105 @@
+/* "Draw it" beat. Same column, prompt face and docked footer as the sort
+   ladder (sort.css), so a draw screen reads as the same lesson. */
+
+.draw-beat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3, 0.75rem);
+  min-height: 100%;
+}
+
+.draw-beat__prompt {
+  font-family: var(--font-display);
+  font-size: var(--h-1);
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+  color: var(--bb-foreground);
+  margin: 0;
+}
+
+.draw-beat__brief,
+.draw-beat__how {
+  margin: 0;
+  color: var(--bb-muted-foreground);
+  font-size: var(--text-scale-sm, 0.875rem);
+}
+
+/* The editor box: a fixed height so the screen never jumps when Ketcher
+   finishes loading, white because the editor's own toolbars are drawn for
+   white, and the house 2px outline with a rounded 16px card. */
+.draw-beat__canvas {
+  position: relative;
+  /* Shorter on a short phone so CHECK stays on screen with the scheme above. */
+  height: clamp(300px, 44vh, 400px);
+  overflow: hidden;
+  border: 2px solid var(--btn-line, var(--bb-border));
+  border-radius: 16px;
+  background: #ffffff;
+}
+.draw-beat__editor {
+  height: 100%;
+  width: 100%;
+}
+.draw-beat__wait {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  margin: 0;
+  color: #4b5563;
+  font-weight: 700;
+}
+
+.draw-beat__actions {
+  position: sticky;
+  bottom: calc(-1 * var(--stage-pad, 1rem));
+  margin-bottom: calc(-1 * var(--stage-pad, 1rem));
+  margin-top: auto;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
+  background: var(--bb-card);
+  border-top: 2px solid var(--btn-line);
+}
+.draw-beat__empty {
+  margin: 0;
+  text-align: center;
+  font-weight: 700;
+  color: var(--bb-foreground);
+}
+
+/* The right structure, drawn inside the red tray after a miss. A white card
+   so the black bonds read on the tray in both themes. */
+.draw-beat__answer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  margin: 0.25rem 0 0.5rem;
+  padding: 0.5rem;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #1f2937;
+}
+/* Small enough that the tray leaves the student's own drawing in view above it. */
+.draw-beat__answer-figure {
+  width: auto;
+  max-width: 180px;
+  height: 104px;
+}
+.draw-beat__answer-name {
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+/* The answer tray docks in the footer's slot with the footer's own sticky
+   offsets, the same rule the sort ladder uses (sort.css). */
+.beat-runner .draw-beat > .answer-tray.foot-bleed {
+  --foot-pad: 0px;
+  position: sticky;
+  bottom: calc(-1 * var(--stage-pad, 1rem));
+  margin-bottom: calc(-1 * var(--stage-pad, 1rem));
+  margin-top: auto;
+}

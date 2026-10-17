@@ -20,6 +20,45 @@
  * stacked over another is the scrim's job to say.
  */
 
+/*
+ * THE LIP BUTTON: the header's small pressable controls (TOOLS, the language
+ * pick, the sheet's own buttons). A2 round 2: it is drawn as the shared
+ * secondary key (app/ui/press.css .btn3d--secondary), with the same face,
+ * rim, solid lip and straight-down press, so the header's buttons are the
+ * same object as every other button. Kept as its own class because these
+ * buttons size themselves (icon plus short label) rather than taking the
+ * key's padding.
+ */
+.lip-button {
+  --lip-size: 3px;
+  border: 2px solid var(--btn-line);
+  border-radius: 0.75rem;
+  background: var(--btn-secondary-face);
+  color: var(--bb-primary-ink);
+  box-shadow: 0 var(--lip-size) 0 var(--btn-line);
+  margin-bottom: var(--lip-size);
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition:
+    transform 90ms cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 90ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (hover: hover) {
+  .lip-button:hover {
+    background: color-mix(in srgb, var(--bb-primary) 6%, var(--btn-secondary-face));
+  }
+}
+
+.lip-button:active {
+  transform: translateY(var(--lip-size));
+  box-shadow: 0 0 0 var(--btn-line);
+}
+
 .tool-sheet {
   position: fixed;
   margin: 0;
@@ -116,21 +155,9 @@
   }
 }
 
-/*
- * The lesson's own tool row, at #/lesson/:node.
- *
- * A lesson route renders OUTSIDE the shell, so it has no header of its own to
- * hang these on; without this row the two tools would be unreachable in the one
- * place the amendment specifically says they have to be reachable. Right
- * aligned and unlabelled, because a lesson screen's job is the question and a
- * tool is a thing you go and find, not a thing that should be competing for the
- * first read.
- */
-.beat-runner-tools {
-  display: flex;
-  justify-content: flex-end;
-  padding: 0.5rem 0.75rem 0;
-}
+/* Inside a lesson the two tools sit at the foot of the question, beside the
+   report link (McqBeatView.tsx, .lesson-foot-row in beats/beat-chrome.css).
+   A lesson route renders outside the shell, so that row is where they live. */
 
 
 /* ------------------------------------------------------- the tools menu -- */
@@ -193,13 +220,38 @@
   background: var(--bb-border);
 }
 
+.tools-menu__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Flat round close, 44px target: a ghost control, so no lip. */
+.tools-menu__close {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--bb-muted-foreground);
+  cursor: pointer;
+}
+@media (hover: hover) {
+  .tools-menu__close:hover {
+    background: var(--tab-active);
+  }
+}
+
 .tools-menu__title {
   padding-inline: 0.5rem;
-  color: var(--bb-muted-foreground);
-  font-size: var(--text-scale-xs);
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  /* A2 round 3: a sheet title on the h2 step (20px), not a 12px eyebrow
+     wearing a heading tag. */
+  margin: 0;
+  color: var(--bb-foreground);
+  font-size: var(--h-2);
+  font-weight: 800;
 }
 
 .tools-menu__list {
@@ -220,7 +272,9 @@
   width: 100%;
   min-height: 3.25rem;
   padding: 0.5rem 0.75rem;
-  border: 2px solid var(--bb-border);
+  /* A tappable row carries the lip: 2px sides, 4px bottom, and it sinks on press. */
+  border: 2px solid var(--tabbar-line);
+  border-bottom-width: 4px;
   border-radius: 1rem;
   background: var(--bb-card);
   color: var(--bb-foreground);
@@ -230,17 +284,35 @@
   cursor: pointer;
 }
 
+.tools-menu__row:active {
+  transform: translateY(2px);
+  border-bottom-width: 2px;
+  margin-bottom: 2px;
+}
+
 .tools-menu__mark {
   display: grid;
   place-items: center;
   flex: none;
   width: 2.25rem;
   height: 2.25rem;
-  border-radius: 0.75rem;
-  /* The DISC carries the colour and the glyph recedes into it: sticker rules 5
-     and 6 in one object, the same construction NotOpenYet.tsx uses. */
-  background: var(--tab-active);
-  color: var(--bb-muted-foreground);
+  /* No tile behind it: the icon is a full colour illustration already
+     (TabIcon.tsx), and a lavender box round a 20px drawing made it read small
+     and boxed (critic, round 1). */
+}
+
+/* The header tools button: padding for the word on desktop, square on a phone. */
+.header-tools {
+  padding-inline: 0.375rem;
+}
+@media (min-width: 48rem) {
+  .header-tools {
+    padding-inline: 0.625rem 0.875rem;
+  }
+}
+.header-tools__label {
+  color: var(--bb-primary-ink);
+  font-size: var(--text-scale-xs);
 }
 
 .tools-menu__name {

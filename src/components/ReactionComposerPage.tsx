@@ -16,8 +16,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader } from "@/components/ui/loader";
-import { SiteFooter } from "@/components/ui/site-footer";
-import { PageBackground } from "@/components/ui/page-background";
 import {
   Select,
   SelectContent,
@@ -134,7 +132,6 @@ export default function ReactionComposerPage() {
   if (!canEdit) {
     return (
       <main className="relative min-h-screen text-slate-900 dark:text-stone-100">
-        <PageBackground />
         <div className="mx-auto flex max-w-3xl flex-col gap-4 px-4 py-16">
           {/* Two different reasons to be here, and they need different answers.
               Staff who simply signed in the wrong way get told which one works;
@@ -155,7 +152,6 @@ export default function ReactionComposerPage() {
 
   return (
     <main className="relative min-h-screen text-slate-900 dark:text-stone-100">
-      <PageBackground />
 
       <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
         <a
@@ -167,10 +163,10 @@ export default function ReactionComposerPage() {
         </a>
 
         <header className="mt-5 rounded-3xl border border-[#ccd5ea]/80 bg-white/75 p-6 shadow-sm dark:border-[#9989e2]/20 dark:bg-stone-950/70">
-          <p className="font-mono text-xs font-semibold uppercase tracking-[.18em] text-[#5a3fd8] dark:text-[#bbb1eb]">
+          <p className="page-title text-sm text-[#5a3fd8] dark:text-[#bbb1eb]">
             Staff / add a reaction
           </p>
-          <h1 className="title-face mt-2 text-4xl leading-none">Add a reaction</h1>
+          <h1 className="page-title mt-2 text-4xl leading-none text-[var(--bb-deep)]">Add a reaction</h1>
           <p className="mt-3 max-w-2xl leading-7 text-slate-600 dark:text-stone-300">
             Draw the starting material, capture it, draw the product, capture that. The
             structures are read from what you drew, so there is no SMILES to mistype.
@@ -359,7 +355,6 @@ export default function ReactionComposerPage() {
         </div>
       </div>
 
-      <SiteFooter />
     </main>
   );
 }

@@ -185,7 +185,10 @@ export type ConceptId =
   | "anti_addition_geometry"
   | "protecting_group_strategy"
   | "acyl_reactivity_ladder"
-  | "oxidation_state_ladder";
+  | "oxidation_state_ladder"
+  | "diels_alder_geometry"
+  | "radical_stability"
+  | "carbanion_stability";
 
 export interface ConceptDefinition {
   readonly id: ConceptId;
@@ -392,8 +395,10 @@ export const TOPICS: Readonly<Record<TopicId, TopicDefinition>> = Object.freeze(
     id: "diene_addition",
     course: "orgo_2",
     label: "Electrophilic addition to conjugated dienes",
+    // No allylic_halogenation edge: decision D5 superseded by the owner on
+    // 2026-09-29 (COURSE-OUTLINE-ORGO2.md, D5). Allylic delocalisation now
+    // comes from resonance_and_delocalisation, through carbocation stability.
     prerequisites: Object.freeze([
-      "allylic_halogenation",
       "alkene_addition",
       "carbocation_stability_and_rearrangement",
     ] as const),
@@ -705,6 +710,29 @@ export const CONCEPTS: Readonly<Record<ConceptId, ConceptDefinition>> = Object.f
       "nucleophilic_acyl_substitution",
       "multistep_synthesis",
     ] as const),
+  }),
+  // Owner, 2026-10-07 (Unit 1 finish): three ids the Unit 1 pools had been
+  // borrowing ewg_edg_rubric, basicity and resonance for, because none fitted.
+  // Inferred rather than measured; COURSE-OUTLINE-ORGO2.md section 5 says so.
+  diels_alder_geometry: Object.freeze({
+    id: "diels_alder_geometry",
+    label: "Diels-Alder geometry: an s-cis diene in, cis kept cis, endo first",
+    introducedIn: "diels_alder",
+    // The one measured reuse site (outline section 4): the benzene lecture
+    // opens on carried Diels-Alder practice. Inferred, for the owner to confirm.
+    reusedIn: Object.freeze(["aromaticity"] as const),
+  }),
+  radical_stability: Object.freeze({
+    id: "radical_stability",
+    label: "Radical stability: substitution and resonance, as for a cation",
+    introducedIn: "allylic_halogenation",
+    reusedIn: Object.freeze(["arene_side_chain_chemistry"] as const),
+  }),
+  carbanion_stability: Object.freeze({
+    id: "carbanion_stability",
+    label: "Carbanion stability: alkyl groups hurt, resonance and s character help",
+    introducedIn: "resonance_and_delocalisation",
+    reusedIn: Object.freeze(["enols_and_enolates"] as const),
   }),
 });
 

@@ -15,6 +15,18 @@
 export const SITE_NAME = "Blueberry";
 
 /**
+ * THE HOME HEADLINE IS ANDREW'S (owner, 15 Oct 2026), and this is the one place
+ * it lives. The hero flips between these lines letter by letter, the way
+ * andliu.dev's FlipHeading does; the first is what loads first, what screen
+ * readers hear, and what HOME_HEADLINE names. Edit the strings, not the hero.
+ */
+export const HOME_HEADLINE_FLIPS = [
+  "The class everyone warns you about, one arrow at a time.",
+  "Weed-out class? Not this time.",
+] as const;
+export const HOME_HEADLINE = HOME_HEADLINE_FLIPS[0];
+
+/**
  * The front door's copy, and it is Andrew's to rewrite.
  *
  * It lives here rather than inline in the hero for one reason: this is the
@@ -32,24 +44,17 @@ export const HERO = {
    * One sentence, display size. The blind panel's finding was blunt: the
    * largest text on the screen was the word "blueberry.", which tells a
    * stranger nothing, while the answer to "what is this?" hid in body copy.
-   * The first sentence of the sell already said it best, so it is the
-   * headline now - same words, promoted, not rewritten.
+   * The old line, "Organic chemistry that actually sticks.", is retired: the
+   * replan (question 8) found it a claim any competitor could make.
    */
-  headline: "Organic chemistry that actually sticks.",
+  headline: HOME_HEADLINE,
   sell: "Lessons that explain it properly, mechanisms you draw yourself, and flashcards that hunt down the one thing you keep getting wrong.",
-  cta: "Get Started",
+  /** SITE-REPLAN.md section 7, beat 1: a verb that says what happens. */
+  cta: "Start the first lesson",
+  /** The quiet second door, Duolingo's "I already have an account". */
+  haveAccount: "I already have an account",
   ctaNote: "Free to start. No card. About two minutes.",
 } as const;
-
-/**
- * The founding cohort, and the number the counter on the front page is out of.
- *
- * A cap that is real: it is the number of people Andrew is willing to hand-hold
- * through a first term. Raise it when that changes, and do not raise it merely
- * because the bar filled up, because a scarcity claim that quietly resets is
- * the one kind of dishonesty visitors reliably catch.
- */
-export const FOUNDING_SEATS = 100;
 
 export const GITHUB_URL = "https://github.com/andliu7";
 export const LINKEDIN_URL = "https://www.linkedin.com/in/andrew-liu-06154225b/";

@@ -15,7 +15,10 @@
  * index.css imports Inter, Fraunces and Caveat the same way. It also drops two
  * preconnects and a third-party request from the critical path.
  */
-@import "@fontsource-variable/nunito/wght.css";
+/* 2026-10-16 (A2 round 6): the @import that lived here is gone. src/index.css
+ * now imports the same "@fontsource-variable/nunito/wght.css" for the whole
+ * site, and having both registered two full sets of "Nunito Variable" faces,
+ * one of which never loaded. One import, in index.css, is the only one. */
 
 /* Palette updated 2026-09-10: blue actions and cool neutral surfaces. Historical color measurements below refer to the prior palette. */
 /* PALETTE RE-ANCHOR 2026-09-23, owner direction of 17 September: the lavender
@@ -164,7 +167,9 @@
   --text-scale-2xl: 1.75rem;
   --text-scale-display: 2.5rem;
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-display: "Nunito", ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", ui-sans-serif, system-ui, sans-serif;
+  /* "Nunito Variable" is the family name fontsource registers. Plain "Nunito" matched
+     nothing, so every heading fell back to Segoe UI (measured 2026-10-16). */
+  --font-display: "Nunito Variable", "Nunito", ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", ui-sans-serif, system-ui, sans-serif;
 }
 
 :root {
@@ -175,7 +180,7 @@
      near-white, so a white card lifted off it by 1.10:1 and the whole screen read
      as one pale field. This is the mockup's actual ground and it carries 1.23:1
      under the card, which is still a border's job, not a value's. */
-  --bb-background: #f5f7fb;
+  --bb-background: #eef0ff;
   /* Deep navy, near-neutral by measurement (S 0.222). 12.6:1 on the ground,
      13.9:1 on the card. See the file header. */
   --bb-foreground: #18253d;
@@ -209,8 +214,8 @@
   /* Warm steps of the cream family, so a muted surface reads as paper. */
   /* One warm step DOWN from the ground, not up: on #ede7d9 the old #f1e8d7 was
      1.10:1 and disappeared. */
-  --bb-secondary: #e8eef8;
-  --bb-muted: #e8eef8;
+  --bb-secondary: #e9e6fb;
+  --bb-muted: #e9e6fb;
   /* Derived once to clear the worst ground it composes on: 9.28:1 on the
      cream ground, 10.22:1 on the white card. */
   --bb-muted-foreground: #51627b;
@@ -219,8 +224,8 @@
   /* THE BORDER IS STRUCTURAL: white card on cream ground is 1.10:1, so the
      border is the card's edge. 6.73:1 on the white card and 6.11:1 on the
      cream ground, so the cut edge of a sticker reads from both sides. */
-  --bb-border: #70839d;
-  --bb-input: #70839d;
+  --bb-border: #7f7ab4;
+  --bb-input: #7f7ab4;
   --bb-ring: #5a3fd8;
   /* THE CUT EDGE OF A FILLED STICKER. A primary button is a saturated fill and
      its outline cannot be --bb-border, which is derived against the card and the
@@ -228,6 +233,64 @@
      not the mascot's #5b21b6: 11.34:1 on the page ground and 12.17:1 on the
      card, so the shape's outline reads from either side of it. */
   --bb-primary-edge: #33208c;
+  /* ---------------------------------------------------------------------
+     A2, 2026-10-16: THE 3D BUTTON AND THE GROUND. The game now speaks the
+     chunky-key language: every pressable button is a flat face over a solid
+     darker lip that the face drops onto when pressed (app/ui/press.css).
+     Neutrals moved toward the brand violet in the same pass so the screen
+     reads as colour, not grey: page #eef0ff, muted #e9e6fb, border #7f7ab4
+     (3.93:1 on the white card, 3.32:1 on the lower ground stop), and the
+     progress green brightened to #8ddc4a (its ink #163a26 is 7.48:1 on it).
+     Ratios quoted further down this file predate this pass where they name
+     the old hexes. */
+  --bb-primary-lip: #3d27a3;
+  /* White on the danger face is 4.65:1, over the 4.5 label floor. */
+  --btn-danger: #e0263e;
+  --btn-danger-lip: #a5182a;
+  /* The secondary button: white face, a soft violet rim and lip. Its label is
+     --bb-primary-ink, 9.30:1 on white, and the label is what identifies it. */
+  --btn-line: #d3cdf5;
+  --btn-secondary-face: #ffffff;
+  --btn-ghost-hover: color-mix(in srgb, var(--bb-primary) 10%, transparent);
+  /* The "hold on" key a near miss wears: amber face, dark ink 8.9:1 on it. */
+  --btn-warn: #ffc23d;
+  --btn-warn-lip: #c98a00;
+  --btn-warn-ink: #3a2600;
+  /* A2 round 4: THE ANSWER TRAY (beats/AnswerTray.tsx). One footer for every
+     lesson verdict, green when right and red when wrong, each with a key in
+     the same colour. Titles and body on the washes: good ink #256108 on
+     #d7f5c0 is 6.3:1, bad ink #b0102b on #ffe1e4 is 5.8:1, and
+     --bb-foreground clears 12:1 on both. */
+  --tray-good-bg: #d7f5c0;
+  --tray-good-line: #a3e27a;
+  --tray-good-ink: #256108;
+  --tray-bad-bg: #ffe1e4;
+  --tray-bad-line: #ffb4bd;
+  --tray-bad-ink: #b0102b;
+  /* The disabled key: a solid flat grey slab, never an outline, so "not yet"
+     cannot be mistaken for the white secondary key. The label is exempt
+     from contrast as a disabled control. */
+  --btn-disabled: #dedbea;
+  --btn-disabled-ink: #8a86a3;
+  /* THE GROUND GRADIENT behind the whole game (.bb-game below): lavender at the
+     top into a soft blue at the bottom, plus one violet glow. Static CSS only.
+     Text that sits straight on it stays readable at both stops:
+     --bb-muted-foreground 5.0:1 on the top stop and 4.9:1 on the bottom (round 2 stops). */
+  --bb-ground-top: #ece4ff;
+  --bb-ground-bottom: #d8e6ff;
+  --bb-ground-glow: rgba(124, 92, 255, 0.22);
+  /* The painted ground, as one value. A sticky strip that must hide what
+     scrolls under it (the pathway's unit bar) paints this same image with
+     background-attachment: fixed, so it lines up with the page seamlessly. */
+  --bb-ground-image:
+    radial-gradient(120% 60% at 50% -10%, var(--bb-ground-glow), transparent 70%),
+    linear-gradient(180deg, var(--bb-ground-top), var(--bb-ground-bottom));
+  /* Heading scale: Nunito, heavy, tight. Sizes in rem so user zoom holds. */
+  --h-display: 2rem;      /* 32px: reward and celebration titles */
+  --h-1: 1.5rem;          /* 24px: screen titles */
+  --h-2: 1.25rem;         /* 20px: section titles, sheet titles */
+  --h-3: 1.0625rem;       /* 17px: card titles */
+  --h-eyebrow: 0.8125rem; /* 13px: the uppercase kicker above a title */
   /* Kept as tokens because two beats still name them. Neither is painted as a
      gradient on chrome any more; sticker rule 2 is a hard rule and the reward
      button is a flat fill. */
@@ -265,9 +328,9 @@
      ground and 2.98:1 against its own face, which keeps the sunken-key read the
      owner adopted while making the button a shape a person can see. The value
      moved toward compliance; the check was not touched. */
-  --chip-face: #b8affa;
-  --chip-face-press: #a79cee;
-  --chip-edge: #645e8e;
+  --chip-face: #b2a6ff;
+  --chip-face-press: #a99bff;
+  --chip-edge: #5b4fc4;
   --chip-ink: #23264a;
   --chip-edge-size: 4px;
   --chip-press-travel: 3px;
@@ -296,7 +359,7 @@
      screen. It ships as the FILL. Its white check measures 1.51:1 and does not,
      so a completed node wears the dark mark below, not a white one, and
      --progress-deep stays the only green a white mark may sit on. */
-  --progress: #b3df92;
+  --progress: #8ddc4a;
   --progress-mark: #12300a;
   --progress-ink: #163a26;
   --progress-edge: #3f8c28;
@@ -530,54 +593,32 @@
      over the 3:1 floor a WCAG 1.4.11 interface component needs. */
   --tab-active: #e2e1f4;
 
-  /* ONE HUE PER BAR TAB, AND WHY A GREY BAR LOST.
-     The reference bar is a row of chunky coloured objects, and ours was four
-     hairline glyphs in one ink. The eye finds a filled shape before it finds a
-     hue, and it finds four different shapes faster than four tints of the same
-     one, so each of the four destinations gets a colour it keeps whether or not
-     it is the active tab, exactly as the reference does. The ACTIVE state is
-     still the chip and only the chip; colour here is identity, not selection.
+  /* THE ICON PALETTE, 2026-10-15 redesign. TabIcon.tsx draws every nav icon
+     as a small flat illustration from these pairs: a face colour and a darker
+     LIP that peeks out under it, the same move as the app's 3D buttons. The
+     icons sit beside their labels, so they are not the only carrier of a
+     tab's meaning; the lips still clear 3:1 on white so each shape keeps an
+     edge on the bar. Brand purple is the purple's lip. Same values in both
+     themes: an illustration is the same object at night. */
+  --ic-purple: #7c5cff;
+  --ic-purple-lip: #5a3fd8;
+  --ic-blue: #1cb0f6;
+  --ic-blue-lip: #1386c2;
+  --ic-green: #4cc64f;
+  --ic-green-lip: #2f9a3a;
+  --ic-yellow: #ffc61a;
+  --ic-yellow-lip: #d99a00;
+  --ic-red: #ff5a5f;
+  --ic-red-lip: #d93a43;
+  --ic-orange: #ff9a1f;
+  --ic-orange-lip: #d47600;
 
-     None of these is the reference's green, per sticker-ui's loudest rule. Path
-     is the identity violet's ink because the pathway is where the brand lives
-     (DESIGN-GOALS: violet says "this is Blueberry"); the other three are the
-     families already in this file, warm for the arrow the trainer pushes, teal
-     for the deck, blue for the person.
-
-     PATH IS NOT #7c3aed. That hex is the mascot's costume cape, and rule 9 of
-     the sticker language counts every place the two palettes touch. It was 80
-     of the 247 rows on its own before the navy interlude; the violet that
-     returns here is the family, not that hex.
-
-     Measured on the bar's ground, which is --bb-card #ffffff, against the 3:1 that
-     WCAG 1.4.11 asks of a graphical object: violet 8.04, orange 5.19, teal
-     5.48, blue 6.70. The tint each sticker's body is filled with is the same
-     hue at 22 percent over that ground, so the shape reads as a cut-out with a
-     lighter body inside it rather than as a blob. */
-  /* THE TAB HUES ARE THE REFERENCE'S OWN, owner 2026-09-04: "the icons I want
-     basically exactly what we have in the reference images". Sampled from the
-     tab bar of unit02-path.jpg and then each deepened along its own hue until
-     it clears 3.0 against the cream bar, because an icon is a graphic and
-     WCAG 1.4.11 asks 3.0 of one. The sampled values sit between 1.67 and 2.23,
-     which is why they are not used raw: the reference is a picture and does not
-     have to be legible to someone with low vision. Hue kept, value moved, and
-     the arithmetic is the reason.
-
-       path  sampled #80b07e 2.23 -> #4d7a49 4.47   the green trail
-       train sampled #70756f 4.21 -> #5d6360 5.49   the flask's cool grey
-       cards sampled #ffab5a 1.67 -> #c06f1f 3.39   the orange card fan
-       feed  sampled #8ebdf1 1.75 -> #3a71b0 4.50   the blue newspaper
-       me    sampled #dcb278 1.76 -> #9c6f31 3.97   the warm avatar */
-  --tab-hue-path: #4d7a49;
-  --tab-hue-train: #5d6360;
-  --tab-hue-cards: #c06f1f;
-  --tab-hue-feed: #3a71b0;
-  --tab-hue-me: #9c6f31;
-  --tab-tint-path: color-mix(in srgb, var(--tab-hue-path) 22%, var(--bb-card));
-  --tab-tint-train: color-mix(in srgb, var(--tab-hue-train) 22%, var(--bb-card));
-  --tab-tint-cards: color-mix(in srgb, var(--tab-hue-cards) 22%, var(--bb-card));
-  --tab-tint-feed: color-mix(in srgb, var(--tab-hue-feed) 22%, var(--bb-card));
-  --tab-tint-me: color-mix(in srgb, var(--tab-hue-me) 22%, var(--bb-card));
+  /* The selected tab tile's edge: a light violet, the way the reference edges
+     its selected tile in a light blue rather than its darkest ink. 3.56:1 on
+     white, over the 3:1 a state indicator needs. */
+  --tab-active-line: #8b74f0;
+  /* The bar's own top rule: a soft line, not the 6.7:1 control border. */
+  --tabbar-line: #e4e1f2;
 }
 
 /*
@@ -598,9 +639,9 @@
  * themes are one product at night rather than two.
  */
 .dark {
-  --bb-background: #101827;
+  --bb-background: #13172e;
   --bb-foreground: #edf2fa;
-  --bb-card: #192438;
+  --bb-card: #1b1f3d;
   --bb-card-foreground: #edf2fa;
   /* The reference locking the white workbench is a light-theme capture; at
      night the bench is the card, so every dark ink keeps the surface it was
@@ -627,22 +668,52 @@
   /* Primary coloured TEXT and canvas marks. 7.57:1 on the card, 8.90:1 on the
      page. Same shape as --good and --good-ink below, for the same reason. */
   --bb-primary-ink: #aac7ff;
-  --bb-secondary: #24334a;
-  --bb-muted: #24334a;
+  --bb-secondary: #262b4d;
+  --bb-muted: #262b4d;
   /* 6.25:1 on the card, 7.35:1 on the page, and HSL S 0.197 so it is a neutral
      by the same measurement the light half uses. */
   --bb-muted-foreground: #a4b4ca;
   --bb-destructive: #fb7185;
   /* Structural, and derived against BOTH surfaces it separates, exactly as the
      light half is: 3.27:1 on the card and 3.84:1 on the ground. */
-  --bb-border: #70839d;
-  --bb-input: #70839d;
+  --bb-border: #8a86c4;
+  --bb-input: #8a86c4;
   --bb-ring: #aac7ff;
   /* Lighter than the fill here rather than darker, because an outline reads
      against the ground it sits on and the ground at night is dark: 5.30:1 on
      the card and 6.23:1 on the page. Same job, opposite direction, which is
      what deriving a dark theme rather than inverting one looks like. */
   --bb-primary-edge: #aac7ff;
+  /* A2 night half of the button and ground tokens (see the light block). The
+     violet lip sits below a lighter face, so it reads as depth on a dark page.
+     Measured: --bb-primary on this card 3.20:1, --bb-border on it 4.80:1,
+     --btn-line on the card is a lip, not a boundary; the label carries the
+     secondary button. */
+  --bb-primary-lip: #4433b5;
+  --btn-danger: #e0263e;
+  --btn-danger-lip: #94142a;
+  /* Night secondary: a raised face one step LIGHTER than the card, with a
+     visible violet rim and lip, so it never reads as the flat ghost. Label
+     --bb-primary-ink on #2c3166 is 7.09:1; the rim #6a70bb is 3.55:1 on the card. */
+  --btn-line: #6a70bb;
+  --btn-secondary-face: #2c3166;
+  --btn-ghost-hover: color-mix(in srgb, var(--bb-primary-ink) 14%, transparent);
+  --btn-warn: #ffc23d;
+  --btn-warn-lip: #b07800;
+  --btn-warn-ink: #3a2600;
+  /* Night answer tray: good ink #a6ea74 on #1b3a22 is 8.7:1, bad ink #ff9aa6
+     on #45182a is 7.4:1. */
+  --tray-good-bg: #1b3a22;
+  --tray-good-line: #2f6a34;
+  --tray-good-ink: #a6ea74;
+  --tray-bad-bg: #45182a;
+  --tray-bad-line: #7c2b43;
+  --tray-bad-ink: #ff9aa6;
+  --btn-disabled: #333a5e;
+  --btn-disabled-ink: #7b85a8;
+  --bb-ground-top: #1d1747;
+  --bb-ground-bottom: #0f1830;
+  --bb-ground-glow: rgba(109, 90, 224, 0.28);
   --bond-stroke: #aab0cc;
   --bond-joint: #d6d9ea;
   --bond-joint-ring: #aab0cc;
@@ -711,19 +782,10 @@
      #373353 is 7.00:1 and --bb-muted-foreground #a4b4ca on it is 5.66:1. */
   --tab-active: #373353;
 
-  /* The same four, lifted for the night bar. Each is the light value's family
-     two or three steps brighter, measured on --bb-card #232741: navy 7.57, orange
-     6.45, teal 9.87, blue 8.10. The tint is again the hue at 22 percent over
-     the same ground, which on this theme darkens rather than lightens the body;
-     what the shape needs is contrast between body and outline, not a particular
-     direction. */
-  /* Dark lifts the same five hues rather than substituting different ones, so
-     the bar is recognisably the same bar in either theme. */
-  --tab-hue-path: #8fc98a;
-  --tab-hue-train: #b7bdb8;
-  --tab-hue-cards: #f0a659;
-  --tab-hue-feed: #8ebdf1;
-  --tab-hue-me: #e0b478;
+  /* The bar at night: the icons keep their light values (see the icon
+     palette above); only the rule under them and the tile edge move. */
+  --tabbar-line: #2e3a52;
+  --tab-active-line: #8b74f0;
 
   /* The chip at night. The violet face carries itself here: 6.91:1 as a
      shape on --bb-card #192438, so the fill identifies the chip and the edge
@@ -744,17 +806,6 @@
   --progress-deep: #43a047;
   --progress-soft: rgba(126, 217, 87, 0.16);
   --progress-glow: rgba(126, 217, 87, 0.35);
-  --tab-tint-path: color-mix(in srgb, var(--tab-hue-path) 22%, var(--bb-card));
-  --tab-tint-train: color-mix(in srgb, var(--tab-hue-train) 22%, var(--bb-card));
-  --tab-tint-cards: color-mix(in srgb, var(--tab-hue-cards) 22%, var(--bb-card));
-  /* Feed's tint was the one missing from this block while its hue was here.
-     It happened to render correctly anyway, because a custom property holding
-     a color-mix() is substituted at USE time and both of its terms are
-     themselves tokens the dark block redefines. That is a fact about CSS, not
-     a decision, and a list of five hues with four tints is a list the next
-     reader has to work that out from. Written out, like its four neighbours. */
-  --tab-tint-feed: color-mix(in srgb, var(--tab-hue-feed) 22%, var(--bb-card));
-  --tab-tint-me: color-mix(in srgb, var(--tab-hue-me) 22%, var(--bb-card));
 }
 
 /* Map the tokens into Tailwind v4 utility names (bg-bb-background, text-bb-foreground,
@@ -781,9 +832,63 @@
    container, so min-height still fills the screen the way it used to. */
 .bb-game {
   background-color: var(--bb-background);
+  /* The ground gradient on the game's root too, so screens that render
+     outside the Shell (the lesson runner, onboarding) sit on it as well. */
+  background-image: var(--bb-ground-image);
+  background-attachment: fixed;
   color: var(--bb-foreground);
   font-family: var(--font-sans);
   min-height: 100vh;
+}
+
+/* THE GROUND (A2, owner 2026-10-15): one static gradient behind the whole
+   game, lavender into soft blue with a violet glow at the top. CSS only, so it
+   costs nothing per frame. background-attachment: fixed keeps it still while
+   the page scrolls; text and cards sit on their own solid surfaces, and the
+   few lines that sit straight on it are measured at both stops (tokens). */
+.bb-ground {
+  background-color: var(--bb-background);
+  background-image: var(--bb-ground-image);
+  background-attachment: fixed;
+}
+
+/* THE HEADING SCALE. Every heading in the game is the rounded display face,
+   heavy and slightly tight, so a title reads as a title before it is read.
+   Sizes stay with each screen's own utilities; these classes are the scale a
+   new screen picks from. */
+.bb-game :is(h1, h2, h3) {
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.bb-h-display,
+.bb-h1,
+.bb-h2,
+.bb-h3,
+.bb-eyebrow {
+  font-family: var(--font-display);
+  margin: 0;
+}
+/* A screen title written with the older utility (text-scale-2xl, 28px, on
+   neither step) lands on the display step instead, so every page title in
+   the game is the same 32px heavy title without touching each screen. */
+.bb-game h1.text-scale-2xl {
+  font-size: var(--h-display);
+  line-height: 1.1;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+.bb-h-display { font-size: var(--h-display); line-height: 1.1; font-weight: 900; letter-spacing: -0.02em; }
+.bb-h1 { font-size: var(--h-1); line-height: 1.2; font-weight: 800; letter-spacing: -0.015em; }
+.bb-h2 { font-size: var(--h-2); line-height: 1.25; font-weight: 800; letter-spacing: -0.01em; }
+.bb-h3 { font-size: var(--h-3); line-height: 1.3; font-weight: 800; }
+.bb-eyebrow {
+  font-size: var(--h-eyebrow);
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--bb-primary-ink);
 }
 
 .bb-title-face {
@@ -808,9 +913,13 @@
   transition: transform 120ms cubic-bezier(0.4, 0, 0.2, 1);
   touch-action: manipulation;
 }
+/* A2 round 2: flat controls (tab items, readouts, rows) press the same WAY
+   as the 3D key, by sinking straight down, never by shrinking. A key that
+   shrinks reads as a different object from one that sinks, and the game
+   should have one press. Flat items have no lip, so they sink 2px. */
 .press:active {
-  transform: scale(0.96);
-  filter: brightness(0.92);
+  transform: translateY(2px);
+  filter: brightness(0.94);
 }
 
 /* Loading skeleton: a visible shimmer, never a blank rectangle. */
@@ -836,7 +945,7 @@
 /* The loading continuation of a press: a dot that pulses inside the button,
    so the acknowledgement never stops while the action runs. */
 .press.is-busy {
-  transform: scale(0.98);
+  transform: translateY(2px);
   filter: brightness(0.95);
 }
 .busy-dot {

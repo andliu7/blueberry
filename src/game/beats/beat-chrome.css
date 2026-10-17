@@ -101,20 +101,73 @@
      under its own sticky action bar, and two nested scrollers on one screen
      is how a phone loses a fling. */
   overflow-y: auto;
+  /* A2 round 3: THE SCROLLER IS FULL WIDTH, THE COLUMN IS NOT. The stage
+     used to be the 36rem column itself, so the docked CHECK footer inside it
+     could never be wider than the column: on a 1440 screen it floated as a
+     576px slab. Now the scroller spans the screen (so the footer can too)
+     and each surface inside is held to the column by the rule below. */
   width: 100%;
-  max-width: 36rem; /* max-w-xl, the width the header row above already uses */
-  margin-inline: auto;
   /* NO TOP PADDING, deliberately: the X and the recipe strip above already
      carry `pt-3`, and a second one here cost 12px that a 4-rung ladder on a
      390 by 844 phone does not have. Measured: with it, the Check fell below
      the fold on the oxidation ladder. */
-  padding: 0 1rem 1rem;
+  /* --stage-pad is read by docked footers (sort.css) so they can reach the
+     scroller's edges and sit flush on the bottom of the screen. */
+  --stage-pad: 1rem;
+  padding: 0 var(--stage-pad) var(--stage-pad);
 }
 
 @media (min-width: 768px) {
   .beat-runner__stage--gutter {
-    padding: 0 1.5rem 1.5rem;
+    --stage-pad: 1.5rem;
   }
+}
+
+/* The column: every surface in the guttered stage is held to max-w-xl
+   (36rem, the header row's width, minus the gutter on each side) and
+   centred. */
+.beat-runner__stage--gutter > * {
+  width: 100%;
+  max-width: calc(36rem - 2 * var(--stage-pad));
+  margin-inline: auto;
+}
+
+/* ------------------------------------------------------------------ */
+/* THE DOCKED FOOTER, FULL BLEED (A2 round 3)                           */
+/*                                                                      */
+/* The footer's KEY stays in the column, but the footer itself (its     */
+/* ground and its 2px top rule) runs edge to edge, the way a lesson     */
+/* footer spans the whole screen in the reference app. How: the runner  */
+/* is a size container, so `100cqi` is the runner's width, and `100%`   */
+/* is the column the footer sits in. Half the difference, negative, as  */
+/* the margin pulls the footer out to both screen edges; the same half  */
+/* as padding puts the key back in the column. On a phone the column is */
+/* the screen less the gutter, so this is the old 16px pull-out.         */
+/* ------------------------------------------------------------------ */
+.beat-runner {
+  container-type: inline-size;
+}
+.beat-runner .foot-bleed {
+  margin-inline: calc((100% - 100cqi) / 2);
+  /* --foot-pad is an inner gutter for a footer whose column has none of its
+     own (the MCQ sheet's); the ladder's column already sits in one. */
+  padding-inline: calc((100cqi - 100%) / 2 + var(--foot-pad, 0px));
+}
+.beat-runner .beat-action-bar.foot-bleed {
+  --foot-pad: 1rem;
+  /* A floor under the key. `.pb-safe` alone resolves to 0 on any screen
+     without a notch, which stood CHECK's lip on the window's bottom edge. */
+  padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+}
+@media (min-width: 768px) {
+  .beat-runner .beat-action-bar.foot-bleed {
+    --foot-pad: 1.5rem;
+  }
+}
+/* The ladder's stage scrolls; a vertical scrollbar would otherwise make the
+   full-bleed footer a few pixels wider than the scroller. */
+.beat-runner__stage--gutter {
+  overflow-x: hidden;
 }
 
 /* ------------------------------------------------------------------ */
@@ -142,8 +195,7 @@
 .mcq-sheet,
 .chip-press,
 .option-card,
-.option-tile,
-.recipe-strip {
+.option-tile {
   /* check / continue: the sheet's periwinkle, darkened to carry white. */
   --check-face: color-mix(in srgb, var(--chip-face) 20%, var(--chip-edge));
   --check-edge: color-mix(in srgb, var(--chip-edge) 55%, var(--bb-foreground));
@@ -174,277 +226,17 @@
 /* ------------------------------------------------------------------ */
 /* The chip button                                                      */
 /*                                                                      */
-/* THREE LAYERS, per docs/reference/design-goals/BUTTON-MECHANICS.md:   */
-/* an EDGE (the darker slab under the face), a FACE, and an OUTLINE     */
-/* which is a real border on the face rather than a glow. The build     */
-/* shipped `border: 0` on the live variants, so the outline clause was  */
-/* silently skipped on the two chips that matter in a lesson; it is a   */
-/* border now on every variant.                                         */
-/*                                                                      */
-/* THE LABEL IS SET IN CAPS. Both committed lesson frames               */
-/* (blueberry_r9-lesson-mechanism, blueberry_r9-lesson-reaction) set    */
-/* the primary label as UNDO / CHECK / CONTINUE, and the onboarding     */
-/* CONTINUE in this same build was already uppercase, so sentence case  */
-/* here made the product inconsistent with itself as well as with the   */
-/* sheet. Caps need the tracking opened up, hence the letter-spacing.   */
+/* A2 round 2: GONE AS A LOOK. ChipPress now renders the shared 3D key   */
+/* (app/ui/press.css, .btn3d), so CHECK, CONTINUE, START and every other */
+/* button are one object. `.chip-press` survives only as a marker class. */
+/* The one rule left gives a non-button placeholder (TrainerScreen holds */
+/* its row height with an invisible span) the key's height.              */
 /* ------------------------------------------------------------------ */
 
-.chip-press {
-  --chip-press-face: var(--check-face);
-  --chip-press-ink: var(--bb-primary-foreground);
-  --chip-press-edge: var(--check-edge);
-  --chip-press-rim: var(--check-rim);
-  /*
-   * THE LED, owner 2026-09-24: "a glow to them as if they have LEDs around
-   * them." It is drawn as two zero-spread box-shadow layers of this one
-   * token (see the box-shadow below): a 6px seam light where the LEDs sit
-   * under the rim and an 18px bloom on the sheet, the alpha compounding where
-   * they overlap so the light is brightest at the seam and falls off with no
-   * boundary. NEVER a spread: a spread is a ring, and this button already has
-   * a rim. Centred while the contact shadow below is offset down, which is
-   * what tells the eye which one is the button's light and which its shadow.
-   *
-   * THE LED IS --chip-face, NOT --check-face. The check face is the family's
-   * periwinkle darkened until white clears 4.5 on it, and a darker-than-page
-   * bloom around a button on the light page is ambient occlusion, a shadow.
-   * An emitter has to be the family's BRIGHT member: on the page it tints
-   * the paper the chip's colour, at night it is lighter than the ground. Each
-   * variant below re-points it at its own bright member for the same reason.
-   *
-   * MEASURED, composited at the seam (both layers) and in the bloom (one),
-   * on the grounds theme.css declares. Recorded, not claimed: a glow carries
-   * no floor because it is never the only thing identifying a state.
-   *
-   *   check  #b8affa light, page #f5f7fb   seam 1.52  bloom 1.30
-   *          #ada3f5 dark,  page #101827   seam 4.49  bloom 2.62
-   *   claim  #b3df92 light, page #f5f7fb   seam 1.27  bloom 1.17
-   *          #7ed957 dark,  page #101827   seam 5.51  bloom 3.02
-   *   near   #d5af81 light, page #f5f7fb   seam 1.54  bloom 1.31
-   *          #fbbf24 dark,  page #101827   seam 5.68  bloom 3.08
-   */
-  --chip-press-glow: color-mix(in srgb, var(--chip-face) 45%, transparent);
-  position: relative;
+span.chip-press {
   display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  /* FULL CAPSULE, 52px TALL. blueberry_spec-button-types draws every button
-     in the taxonomy (start, review, check, continue, skip, claim) as a
-     capsule whose corner radius is half its height, and
-     blueberry_r9-lesson-mechanism draws UNDO and CHECK that way at about
-     52 CSS px. The previous build was 44px with a 16px radius, a squircle,
-     so the one control a lesson ends on did not have the silhouette the
-     taxonomy sheet exists to specify. 52 clears the 44px hit floor with
-     room over. */
   min-height: 3.25rem;
-  min-width: 3.25rem;
-  padding: 0 1.5rem;
-  border: 2px solid var(--chip-press-rim);
-  border-radius: 9999px;
-  background: var(--chip-press-face);
-  color: var(--chip-press-ink);
-  font-family: var(--font-display); /* chrome face, per the typography split */
-  font-weight: 700;
-  font-size: 1rem;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  cursor: pointer;
-  touch-action: manipulation;
-  transform: translateY(0);
-  /*
-   * THE WALL, AND WHY IT IS 6px AND ITS OWN TOKEN.
-   *
-   * Owner, 2026-09-23: "the button press does not look good." Three things
-   * were wrong and all three are geometry, not colour.
-   *
-   * 1. THE WALL WAS TOO SHALLOW. --chip-edge-size is 4px and it is shared
-   *    with the pathway node's rim, which is a 66px disc; on a 52px capsule
-   *    340px wide, 4px is a hairline under a slab and the button reads flat.
-   *    Duolingo's own primary is about 4px of wall on a 50px button at half
-   *    our width, so per unit of face it is roughly double ours. 6px, in a
-   *    LOCAL token, so deepening this button does not silently deepen every
-   *    node on the pathway.
-   *
-   * 2. THE PRESS DID NOT SEAT. --chip-press-travel is 3px against a 4px
-   *    wall, so pressing left a 1px ledge: the button moved and never
-   *    arrived. It seats FULLY now, wall to zero, which is what a key doing
-   *    its whole travel looks like and what both references draw.
-   *
-   * 3. THE DOWN STROKE WAS EASED. The transition ran 120ms in BOTH
-   *    directions, so pointer down began a 120ms animation rather than
-   *    painting the pressed state. CLAUDE.md's contract is that the
-   *    acknowledgement "renders on pointer down, not on completion", and
-   *    120ms of ease-out is the difference between a key and a sponge. The
-   *    :active rule below zeroes the duration, so DOWN is one frame and the
-   *    RELEASE keeps the ease: instant commit, soft return, which is the
-   *    asymmetry every good physical button has.
-   *
-   * None of this puts JavaScript in the path: it is still :active plus a
-   * transform and a box-shadow, so the first painted frame after pointer
-   * down is the pressed one.
-   */
-  --chip-press-lift: 6px;
-  /* The edge is a box-shadow rather than a border so pressing can compress
-     it without reflowing the layout around the button. The second stop is a
-     soft contact shadow on the ground, offset and blurred but NEVER spread:
-     a spread shadow is a ring, and this button already has a rim. It is what
-     makes the chip read as an object standing on the sheet rather than as a
-     slab with a bar under it.
-
-     ITS COLOUR IS THE BUTTON'S OWN WALL, thinned, and not a literal: this
-     file's header says there is not one hex below it and that is a rule, not
-     an observation. Deriving the shadow from --chip-press-edge also means
-     the green chip casts a green-black and the amber one an amber-black,
-     which is what a coloured object standing on paper actually does. */
-  box-shadow:
-    0 var(--chip-press-lift) 0 var(--chip-press-edge),
-    0 calc(var(--chip-press-lift) + 2px) 8px color-mix(in srgb, var(--chip-press-edge) 38%, transparent),
-    0 0 6px var(--chip-press-glow),
-    0 0 18px var(--chip-press-glow);
-  /* Reserve the wall's room so a tight flex row does not clip it. */
-  margin-bottom: var(--chip-press-lift);
-  transition:
-    transform 140ms cubic-bezier(0.34, 1.56, 0.64, 1),
-    box-shadow 140ms cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-/* CHECK AND CONTINUE ARE THE SAME CHIP, which is what the button-types
-   sheet draws: `check` #8991e4 and `continue` #8791e6 are one periwinkle
-   and only `claim` is green. The build wore the claim green on the
-   lesson's advance control, which said "collect" where the screen meant
-   "carry on". See the palette block above for the darkening. */
-.chip-press--check {
-  --chip-press-face: var(--check-face);
-  --chip-press-ink: var(--bb-primary-foreground);
-  --chip-press-edge: var(--check-edge);
-  --chip-press-rim: var(--check-rim);
-}
-
-/* The green chip: the reward card collects with it, and the answer sheet's
-   primary wears it on a win, so the first painted frame of a verdict says
-   "right" before a word is read. One definition, two roles, because a second
-   green would be a second green. FILL-ONLY, dark ink on the fill, never
-   green text, and the rim goes through --claim-rim rather than naming the
-   token, which is the rule lessonProgress.test.ts holds this file to. */
-.chip-press--claim,
-.chip-press--won {
-  --chip-press-face: var(--progress);
-  --chip-press-ink: var(--progress-ink);
-  --chip-press-edge: var(--progress-edge);
-  --chip-press-rim: var(--claim-rim);
-  /* The green LED. A blurred shadow is neither text nor a hairline, so this
-     is outside what FILL-ONLY forbids and outside lessonProgress.test.ts's
-     line-property list on purpose, not by accident of naming. */
-  --chip-press-glow: color-mix(in srgb, var(--progress) 45%, transparent);
-}
-
-/* The sheet's `skip`: a cream face inside a violet-family outline, no fill
-   of its own. Still a chip, so it still presses. */
-.chip-press--quiet {
-  --chip-press-face: var(--bb-card);
-  --chip-press-ink: var(--bb-foreground);
-  --chip-press-edge: var(--off-edge);
-  --chip-press-rim: color-mix(in srgb, var(--chip-face) 55%, var(--bb-border));
-  /* Unlit. The primary is the one control on the row that is powered; a
-     glowing skip would compete with it for the same glance. */
-  --chip-press-glow: transparent;
-}
-
-/* The near-miss amber, worn by the primary while that sheet is up. Same job
-   as the green above, and there is no red anywhere: a miss is never scolded,
-   per the header in sheetCopy.ts.
-
-   THE FACE IS MIXED, NOT THE TOKEN ITSELF. --not-requested is amber-800 in
-   light, a dark red-brown, and a round-five critic measured it as the
-   heaviest object on the screen: 6.37:1 against its own pale sheet, 2.4x
-   the weight the bar puts on its actual red. Not red by the letter of the
-   rule and still a scold by the look of it. Mixing it toward its own soft
-   tint gives a mid amber that carries dark ink, which is the same
-   fill-with-dark-ink construction the green chip uses, and it lands the two
-   themes on the same message: dark already had a bright amber-400 face. */
-.chip-press--near {
-  --chip-press-face: color-mix(in srgb, var(--not-requested) 38%, var(--not-requested-soft));
-  --chip-press-ink: color-mix(in srgb, var(--not-requested) 80%, black);
-  --chip-press-edge: color-mix(in srgb, var(--not-requested) 62%, black);
-  --chip-press-rim: color-mix(in srgb, var(--not-requested) 62%, black);
-  /* Its own face is already the family's bright member (the mix above, or
-     the amber-400 dark keeps), so the LED is the face. A violet light around
-     an amber chip would be the sixth face pathway.css was corrected for. */
-  --chip-press-glow: color-mix(in srgb, var(--chip-press-face) 45%, transparent);
-}
-
-/* Dark already runs a bright amber-400, which reads as "hold on" rather than
-   as blame, so it keeps the token face and takes the dark ink that fill
-   asks for.
-
-   THE SELECTOR IS `.dark`, WHICH IS THE ONE THIS APP ACTUALLY USES.
-   hooks.ts toggles a `dark` class on <html> and never writes data-theme, so
-   the first version of this block, guarded on
-   `:root:not([data-theme="light"])` inside a prefers-color-scheme query, was
-   true on any OS-dark machine no matter which theme the student had chosen.
-   Light theme therefore kept the amber-800 face and took the DARK ink meant
-   for the bright face, dropping the label to 2.28:1, and the whole point of
-   the change never shipped. theme.css at :544 is the precedent: a bare
-   `.dark` block, no media query, because the class is the source of truth. */
-.dark .chip-press--near {
-  --chip-press-face: var(--not-requested);
-  --chip-press-ink: #2A1F05;
-}
-
-/* The press itself is the first frame of feedback: :active paints on pointer
-   down, the same frame, before any JS runs. The chip travels the WHOLE height
-   of its own wall and the wall goes to nothing, so the button is seated in
-   its socket rather than hovering one pixel above it.
-
-   transition-duration: 0s is what makes it the same frame. A transition is
-   driven by the property on the rule being transitioned TO, so zeroing it
-   here makes the press instant while the base rule's 140ms still governs the
-   RELEASE. That asymmetry is the whole feel: a key commits immediately and
-   springs back. */
-.chip-press:active:not(:disabled) {
-  transform: translateY(var(--chip-press-lift));
-  /* THE LIGHT PINCHES AS THE CHIP SEATS: same two LED layers at half their
-     radius, same alpha, same frame. With the wall closed the light can only
-     escape along the sheet, so the same light in a third of the area reads
-     brighter at the seam, which is what a seated LED button looks like. It
-     relaxes on the release spring with everything else. */
-  box-shadow:
-    0 0 0 var(--chip-press-edge),
-    0 1px 2px color-mix(in srgb, var(--chip-press-edge) 45%, transparent),
-    0 0 3px var(--chip-press-glow),
-    0 0 8px var(--chip-press-glow);
-  transition-duration: 0s;
-}
-
-/* UNMISTAKABLY DISABLED, the S3 judge's carry, now in the sheet's own
-   colour. The previous build used --bb-muted, the warm tan of the page paper,
-   and a comment that claimed it was the sheet's; the sheet draws #d1d5de
-   with a #c0c4cf lip, a COOL grey-blue that reads as a control waiting on
-   the student rather than as a hole in the bar. The lip stays (the sheet
-   draws one) but the TRAVEL does not, so the chip does not answer a press
-   it is not going to act on. */
-.chip-press:disabled {
-  --chip-press-face: var(--off-face);
-  --chip-press-ink: var(--bb-muted-foreground);
-  --chip-press-edge: var(--off-edge);
-  --chip-press-rim: var(--off-edge);
-  /* Unpowered. A control that will not act on a press does not light. */
-  --chip-press-glow: transparent;
-  transform: none;
-  cursor: default;
-}
-
-.chip-press:focus-visible {
-  outline: 3px solid var(--bb-ring);
-  outline-offset: 2px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .chip-press {
-    /* The pressed state still lands (it is a state, not a decoration); it
-       just lands in one step instead of travelling. */
-    transition: none;
-  }
+  margin-bottom: 4px;
 }
 
 /* ------------------------------------------------------------------ */
@@ -461,6 +253,10 @@
 /* ------------------------------------------------------------------ */
 
 .lesson-exit {
+  /* A2 round 3: a QUIET grey X, flat, with no lip. The lesson's one loud
+     key is CHECK in the footer; a filled violet close key competed with it
+     as a second primary action. Flat is the system's ghost rule: icon-only
+     chrome carries no lip. Still a 44px target. */
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -469,17 +265,22 @@
   height: 2.75rem;
   border: 0;
   border-radius: 0.875rem;
-  background: var(--bb-primary);
-  color: var(--bb-primary-foreground);
+  background: transparent;
+  color: var(--bb-muted-foreground);
   font-size: 1.0625rem;
   font-weight: 700;
   line-height: 1;
   padding: 0;
   cursor: pointer;
   touch-action: manipulation;
-  box-shadow: 0 3px 0 var(--bb-primary-edge);
-  margin-bottom: 3px;
-  transition: transform 120ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 120ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 120ms cubic-bezier(0.4, 0, 0.2, 1), transform 120ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (hover: hover) {
+  .lesson-exit:hover {
+    background: var(--bb-muted);
+    color: var(--bb-foreground);
+  }
 }
 
 /* A TRACED SVG, NEVER A GLYPH-SET CHARACTER. DESIGN-GOALS: "Every in-product
@@ -488,14 +289,13 @@
    U+2715 MULTIPLICATION X, whose weight and centring vary by platform font;
    the committed frame draws a drawn mark inside the violet chip. */
 .lesson-exit svg {
-  width: 1.25rem;
-  height: 1.25rem;
+  width: 1.5rem;
+  height: 1.5rem;
   display: block;
 }
 
 .lesson-exit:active {
-  transform: translateY(2px);
-  box-shadow: 0 1px 0 var(--bb-primary-edge);
+  transform: scale(0.92);
 }
 
 .lesson-exit:focus-visible {
@@ -510,158 +310,52 @@
 }
 
 /* ------------------------------------------------------------------ */
-/* The recipe strip                                                     */
+/* THE LESSON BAR (LessonBar.tsx), A2 round 6                           */
 /*                                                                      */
-/* ONE CAPSULE, THREE ZONES, AND THE BADGES ON TOP. Both committed      */
-/* lesson frames (blueberry_r9-lesson-mechanism,                        */
-/* blueberry_r9-lesson-reaction) draw one long green capsule between    */
-/* the exit and the currency counter, green behind the student and grey */
-/* ahead. blueberry_spec-question-badges draws the same slot as a row   */
-/* of beat badges. Both are drawn here: a grey capsule track, a         */
-/* periwinkle band on the beat being played, one continuous green flow  */
-/* over everything cleared, and the sheet's pucks riding above all of   */
-/* it. The green is a single element rather than a per-segment fill, so */
-/* a completed run has no seams in it.                                  */
-/*                                                                      */
-/* NO RIM ON ANY SEGMENT. The previous build set --seg-rim to           */
-/* --seg-done-rim on a done segment, which computed to #a7cd8e as a 1px */
-/* border on the #cfe7b6 done fill: 1.34:1, an invisible green line,    */
-/* and precisely the case DESIGN-GOALS' FILL-ONLY rule forbids while    */
-/* the file's own header claimed the opposite. There is no border on a  */
-/* segment now in any state, which also removes the boxed-cell grid an  */
-/* even earlier build drew and lets the cleared run read as one bar.    */
-/*                                                                      */
-/* THE PUCKS ARE VOLUMETRIC ON EVERY STATE, which is what the sheet     */
-/* draws and what the previous build only did on two of three: a        */
-/* coloured face, a WHITE glyph, and a thick lip of the same hue. The   */
-/* upcoming ones were a pale lavender flat disc with a dark navy glyph  */
-/* and a transparent lip, i.e. the sheet's own relationship inverted    */
-/* and no volume at all.                                                */
-/*                                                                      */
-/* THE ONE THING THAT IS NOT THE SHEET'S PIXEL, and DESIGN-GOALS names  */
-/* the contrast gate as the arbiter for exactly this: the sheet's puck  */
-/* face is #8f9ef0 and white on it measures 2.53:1, under the 3:1       */
-/* large-graphic floor. Each face below is the same hue DARKENED until  */
-/* white clears the floor, measured in light:                           */
-/*                                                                      */
-/*   current puck  --check-face #6473a4, white 4.64:1                   */
-/*   upcoming puck 35% chip-face in chip-edge #707fb4, white 3.90:1     */
-/*   cleared puck  --progress-deep #43a047, white 3.30:1, the one green */
-/*                 DESIGN-TOKENS licenses a white mark on               */
-/*                                                                      */
-/* And each puck against the zone behind it: current on grey 3.72:1,    */
-/* upcoming on grey 3.13:1, current on the green flow 3.07:1. The       */
-/* cleared puck on the green flow is 2.19:1, which is the one pair      */
-/* under the floor; it carries a --progress-mark lip that separates it, */
-/* and the white tick it holds is the mark that has to read, at 3.30:1. */
-/* Reported rather than solved by putting a green line round it.        */
+/* One bar for every lesson screen: a 16px rounded track and a green    */
+/* fill with a lighter band along its top, the shape the reference      */
+/* lesson frames use. It replaced the recipe strip's icon pucks and the */
+/* practice run's separate bar, so every lesson opens on one header.    */
+/* The fill is never narrower than it is tall, so a first step shows as */
+/* a round dot rather than a sliver on the track's edge.                */
 /* ------------------------------------------------------------------ */
-
 .recipe-strip {
-  /* Sampled off the sheet as ratios: an 80px strip carrying a 50px badge,
-     so the badge is 0.625 of the strip and there is 19 percent clear above
-     and below it. */
-  --strip-h: 2.5rem;
-  --strip-badge: 1.5rem;
-  --strip-lip: 3px;
-
-  /* The three zones. Grey is a COOL grey-blue rather than --bb-muted, which is
-     the warm tan of the page paper and read as a hole in the bar. */
-  --seg-todo: color-mix(in srgb, var(--chip-face) 20%, var(--bb-card));
-  --seg-current: var(--chip-face);
-  --seg-flow: var(--progress);
-
+  min-width: 0;
+}
+.lesson-bar {
   position: relative;
-  height: var(--strip-h);
-  border-radius: 9999px;
-  background: var(--seg-todo);
+  flex: 1;
+  width: 100%;
+  height: 1rem;
+  border-radius: 999px;
+  background: var(--bb-muted);
   overflow: hidden;
 }
-
-/* The green capsule the committed frames draw. Rounded on both ends so its
-   leading edge is a cap rather than a cut, which is how the frames draw it. */
-.recipe-strip__flow {
+.lesson-bar__fill {
   position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 1;
-  border-radius: 9999px;
-  background: var(--seg-flow);
-  transition: width 260ms cubic-bezier(0.4, 0, 0.2, 1);
+  inset: 0 auto 0 0;
+  min-width: 1rem;
+  border-radius: inherit;
+  background: var(--progress);
+  transition: width 260ms cubic-bezier(0.22, 1, 0.36, 1);
 }
-
-.recipe-strip--still .recipe-strip__flow {
+/* The light band along the top of the fill: a flat second shape, not a
+   gradient, inset from both ends so it reads as a highlight. */
+.lesson-bar__fill::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 0.5rem;
+  right: 0.5rem;
+  height: 4px;
+  border-radius: 999px;
+  background: color-mix(in srgb, #ffffff 40%, transparent);
+}
+.lesson-bar--still .lesson-bar__fill {
   transition: none;
 }
-
-.recipe-strip__beats {
-  position: relative;
-  display: flex;
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-/* Static on purpose: an unpositioned background paints below the green flow,
-   so the flow crossing a segment covers its band rather than sitting under
-   it. The badge inside is positioned and lifted above both. */
-.recipe-strip__seg {
-  flex: 1 1 0;
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: 0;
-}
-
-/* The beat being played: the sheet's periwinkle band, and the only zone
-   between the green and the grey. It is one segment wide, so the bar still
-   reads as the frames' green-then-grey capsule with the student's position
-   marked in the identity colour at the join. */
-.recipe-strip__seg[data-state="current"] {
-  background: var(--seg-current);
-}
-
-.recipe-strip__badge {
-  --badge-face: color-mix(in srgb, var(--chip-face) 35%, var(--chip-edge));
-  --badge-ink: #ffffff;
-  --badge-lip: var(--chip-edge);
-  position: relative;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 auto;
-  width: var(--strip-badge);
-  height: var(--strip-badge);
-  /* Centred as FACE PLUS LIP rather than as the face alone, so the lip does
-     not eat the clearance under it. */
-  margin-bottom: var(--strip-lip);
-  border: 0;
-  border-radius: 9999px;
-  background: var(--badge-face);
-  color: var(--badge-ink);
-  box-shadow: 0 var(--strip-lip) 0 var(--badge-lip);
-}
-
-.recipe-strip__seg[data-state="current"] .recipe-strip__badge {
-  --badge-face: var(--check-face);
-  --badge-lip: var(--check-edge);
-}
-
-/* Cleared: the sheet's saturated green disc carrying a white tick. */
-.recipe-strip__seg[data-state="done"] .recipe-strip__badge {
-  --badge-face: var(--progress-deep);
-  --badge-lip: var(--progress-mark);
-}
-
-.recipe-strip__badge svg {
-  width: 1rem;
-  height: 1rem;
-  display: block;
+@media (prefers-reduced-motion: reduce) {
+  .lesson-bar__fill { transition: none; }
 }
 
 /* ------------------------------------------------------------------ */
@@ -714,10 +408,21 @@
     border-color 120ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Picked, and not yet graded: the reference's lifted card. */
+/* Picked, and not yet graded. A2 round 5: the WHOLE card takes the selection
+   colour, face, rim, lip and ink, so picked and not picked differ at a glance
+   at 390px (a 2px outline on the same fill did not). Brand violet is the
+   selection family in this app; green stays for right, red for wrong. */
 .option-card[data-state="picked"] {
-  --opt-rim: var(--check-face);
-  --opt-lip: color-mix(in srgb, var(--check-face) 62%, var(--check-edge));
+  --opt-face: color-mix(in srgb, var(--bb-primary) 22%, var(--bb-card));
+  --opt-ink: var(--bb-primary-ink);
+  --opt-rim: var(--bb-primary);
+  --opt-lip: var(--bb-primary);
+  font-weight: 700;
+}
+.option-tile[data-state="picked"][aria-pressed="true"] {
+  background: color-mix(in srgb, var(--bb-primary) 22%, var(--bb-card));
+  border-color: var(--bb-primary);
+  box-shadow: 0 4px 0 var(--bb-primary);
 }
 
 /* Graded. No red on this screen, the rule lesson/Feedback.tsx already set:
@@ -884,6 +589,40 @@ main:has(> * > .lesson-frame) {
   font-variant-numeric: tabular-nums;
 }
 
+/* The lesson ending's CONTINUE footer (BeatRunner.tsx EndingFooter), docked
+   flush on the bottom of the screen.
+   A2 round 6: it used to pull itself down by the stage's bottom padding with
+   a negative margin and offset, like the ladder's footer (sort.css). Here
+   that made the summary overflow the stage by exactly --stage-pad, so the
+   stage scrolled by that much and the footer parked its CONTINUE lip under
+   the bottom edge (852-904 on a 900px screen). Now the stage drops its bottom
+   padding while the ending plays, and the footer sticks at 0. */
+/* Two classes, because .beat-action-bar further down sets position: relative
+   and, as one class declared later, used to win: the footer was never
+   actually sticky, only in flow. */
+.beat-action-bar.lesson-end__foot {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+}
+.beat-runner__stage--gutter:has(> * > .lesson-end__foot) {
+  padding-bottom: 0;
+}
+
+/* The question's foot row (A2 round 6): the two tools, then the report
+   link. Left-aligned, and clear of the berry who stands on the right end of
+   the action row below. */
+.lesson-foot-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-right: 5rem;
+}
+.lesson-foot-row > .lesson-report {
+  margin-right: 0;
+}
+
 .lesson-currency svg {
   width: 1.375rem;
   height: 1.375rem;
@@ -1002,6 +741,24 @@ main:has(> * > .lesson-frame) {
 .berry-anchor--bar {
   bottom: 100%;
 }
+/* A2 round 4: the action bar is full-bleed, so `right` alone put the berry
+   in the window's corner at 1440, far from the lesson. The MCQ column is
+   36rem (max-w-xl), so half of what is left either side, plus the bar's own
+   inner gutter, stands him on the column's right edge at every width. */
+.beat-action-bar.foot-bleed > .berry-anchor--bar {
+  right: calc(max(0px, (100cqi - 36rem) / 2) + var(--foot-pad, 1rem));
+}
+
+/* At desktop widths the tray's text and key get more room than the 36rem
+   lesson column: the row is centred on the screen and up to 56rem wide. */
+@media (min-width: 1024px) {
+  .beat-runner .answer-tray__row {
+    position: relative;
+    left: 50%;
+    width: min(56rem, calc(100cqi - 4rem));
+    translate: -50% 0;
+  }
+}
 
 @media (min-width: 768px) {
   .berry-anchor {
@@ -1096,6 +853,7 @@ main:has(> * > .lesson-frame) {
    screen is the fraction cleared, and a second large figure beside it would
    make the reader choose which one the screen is about. */
 .lesson-banked {
+  white-space: nowrap;
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
@@ -1105,4 +863,257 @@ main:has(> * > .lesson-frame) {
   color: var(--diamond-ink, var(--check-edge));
   font-size: var(--text-scale-sm);
   font-weight: 700;
+}
+
+/* ------------------------------------------------------------------ */
+/* THE ANSWER TRAY (AnswerTray.tsx), A2 round 4                         */
+/*                                                                      */
+/* One footer for every lesson verdict. Full width (foot-bleed), a      */
+/* coloured wash with a hairline on top, an icon disc, the title, the   */
+/* explanation and one key in the same colour. On a phone the key sits  */
+/* under the text; from 768px it sits to the right of it.               */
+/* ------------------------------------------------------------------ */
+.answer-tray {
+  --tray-bg: var(--tray-good-bg);
+  --tray-line: var(--tray-good-line);
+  --tray-ink: var(--tray-good-ink);
+  --tray-disc: var(--progress);
+  --tray-disc-ink: var(--progress-ink);
+  background: var(--tray-bg);
+  border-top: 2px solid var(--tray-line);
+  /* Inside a lesson, foot-bleed (above) replaces the inline padding with the
+     full-bleed gutter; this is the tray's own padding anywhere else. */
+  padding: 1rem 1rem 1rem;
+  z-index: 5;
+  animation: answer-tray-in 260ms cubic-bezier(0.35, 1.5, 0.45, 0.95) both;
+}
+.answer-tray--wrong {
+  --tray-bg: var(--tray-bad-bg);
+  --tray-line: var(--tray-bad-line);
+  --tray-ink: var(--tray-bad-ink);
+  --tray-disc: var(--btn-danger);
+  --tray-disc-ink: #ffffff;
+}
+.answer-tray__row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+.answer-tray__text {
+  min-width: 0;
+}
+.answer-tray__head {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+.answer-tray__icon {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 999px;
+  background: var(--tray-disc);
+  color: var(--tray-disc-ink);
+}
+.answer-tray__title {
+  color: var(--tray-ink);
+}
+.answer-tray__body {
+  margin-top: 0.5rem;
+  max-height: 32vh;
+  overflow-y: auto;
+  color: var(--bb-foreground);
+  font-size: var(--text-scale-sm);
+  line-height: 1.45;
+}
+.answer-tray__body > * + * {
+  margin-top: 0.375rem;
+}
+.answer-tray__answer {
+  font-weight: 800;
+  color: var(--tray-ink);
+}
+/* A2 round 5, the wrong tray in one glance: a small "Correct answer:" label,
+   the answer itself in large heavy type, one sentence of why, the key. */
+.answer-tray__label {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--text-scale-sm);
+  color: var(--tray-ink);
+}
+.answer-tray__body > .answer-tray__label + .answer-tray__answer {
+  margin-top: 0;
+}
+.answer-tray__answer--big {
+  font-family: var(--font-display);
+  font-size: var(--text-scale-lg);
+  line-height: 1.25;
+}
+/* A quiet chip by the title, outlined in the tray's own ink. It sits right
+   after the title (A2 round 6): margin-left auto pushed it 450px away at 1440,
+   where the tray row is 56rem wide. */
+.answer-tray__badge {
+  margin-left: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  border: 2px solid var(--tray-line);
+  border-radius: 999px;
+  color: var(--tray-ink);
+  font-weight: 700;
+  font-size: var(--text-scale-xs);
+  white-space: nowrap;
+}
+/* WHY? is a flat ghost key (A2 round 6): the same display face, weight and
+   ALL CAPS as every other key in /app, and a 48px target like them. Ghost keys
+   stay flat, no lip. The negative inline margin keeps its text aligned with
+   the tray's text while the padding widens the tap area. */
+.answer-tray__more > summary {
+  cursor: pointer;
+  width: max-content;
+  min-height: 3rem;
+  min-width: 3rem;
+  margin-inline-start: -0.75rem;
+  padding: 0 0.75rem;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  font-family: var(--font-display);
+  font-size: var(--text-scale-sm);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--tray-ink);
+}
+@media (hover: hover) {
+  .answer-tray__more > summary:hover {
+    background: color-mix(in srgb, var(--tray-line) 45%, transparent);
+  }
+}
+.answer-tray__more > summary::-webkit-details-marker {
+  display: none;
+}
+.answer-tray__more > summary {
+  list-style: none;
+  gap: 0.375rem;
+}
+/* A small chevron that turns when the details open, so WHY? reads as a toggle. */
+.answer-tray__more > summary::after {
+  content: "";
+  width: 0.45rem;
+  height: 0.45rem;
+  border-right: 3px solid currentColor;
+  border-bottom: 3px solid currentColor;
+  transform: rotate(45deg) translateY(-2px);
+}
+.answer-tray__more[open] > summary::after {
+  transform: rotate(-135deg) translateY(-2px);
+}
+.answer-tray__more > p + p {
+  margin-top: 0.375rem;
+}
+.answer-tray__actions {
+  display: flex;
+  gap: 0.75rem;
+}
+.answer-tray__actions > .chip-press {
+  flex: 1;
+}
+.answer-tray__actions {
+  position: relative;
+}
+/* The combo chip: a small solid pill in the tray's own green, right after the title. */
+.answer-tray__combo {
+  margin-left: 0.25rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: 999px;
+  background: var(--tray-disc);
+  color: var(--tray-disc-ink);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--text-scale-xs);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+/* The ring pulse: one outline that grows off the key and fades, after the
+   tray has slid in (the 260ms delay), so it never moves during the slide. */
+.answer-tray__pulse {
+  position: absolute;
+  inset: 0 0 4px;
+  border-radius: 1rem;
+  border: 3px solid var(--tray-disc);
+  pointer-events: none;
+  opacity: 0;
+  animation: answer-tray-pulse 650ms ease-out 260ms 1 both;
+}
+@keyframes answer-tray-pulse {
+  0% { opacity: 0.9; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.12, 1.5); }
+}
+@media (min-width: 768px) {
+  .answer-tray__row {
+    flex-direction: row;
+    align-items: center;
+    gap: 1.5rem;
+  }
+  .answer-tray__text {
+    flex: 1;
+  }
+  .answer-tray__actions {
+    flex: none;
+    width: 15rem;
+    flex-direction: column;
+  }
+}
+@keyframes answer-tray-in {
+  from { transform: translateY(100%); }
+  to { transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .answer-tray,
+  .answer-tray__pulse {
+    animation: none;
+  }
+}
+
+/* THE WRONG PICK IS PAINTED RED (A2 round 4, owner direction item 2). The
+   "chosen" state only exists on a graded wrong pick, because a right pick is
+   "answer". It used to keep a violet outline and a "your pick" chip, so a
+   miss looked like a selection rather than a miss. */
+.option-card[data-state="chosen"] {
+  --opt-face: var(--tray-bad-bg);
+  --opt-ink: var(--tray-bad-ink);
+  --opt-rim: var(--btn-danger);
+  --opt-lip: var(--btn-danger-lip);
+}
+.option-tile[data-state="chosen"] {
+  border-color: var(--btn-danger);
+  background: var(--tray-bad-bg);
+  color: var(--tray-bad-ink);
+}
+.option-mark--wrong {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 999px;
+  background: var(--btn-danger);
+  color: #ffffff;
+  box-shadow: 0 2px 0 var(--btn-danger-lip);
+}
+
+/* The practice run's header row (PracticeRunner RunCount): the one lesson
+   bar, then the count. */
+.run-count__row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 2.75rem;
+}
+.run-count__label {
+  flex: none;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--text-scale-sm);
+  color: var(--bb-foreground);
 }

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Eye, EyeOff, GitBranch, ArrowUpRight, MousePointerClick, ImageOff, Highlighter, List, RefreshCw, GalleryHorizontalEnd, Orbit, Maximize2, Minimize2 } from "lucide-react";
-import { HeroTitle } from "@/components/ui/hero-title";
+import { Eye, EyeOff, MousePointerClick, ImageOff, Highlighter, List, RefreshCw, GalleryHorizontalEnd, Orbit, Maximize2, Minimize2, ZoomIn, ZoomOut } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
+import { SITE_CONTAINER } from "@/components/ui/site-nav";
 import { HomeBlueberry } from "@/components/ui/home-blueberry";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
@@ -12,7 +13,6 @@ import { DeckAbout } from "@/components/ui/deck-about";
 import { DrillBanner, REFERENCE_STEPS } from "@/components/ui/drill-banner";
 import { CardGallery3D, GALLERY_MAX, type GalleryItem } from "@/components/ui/card-gallery-3d";
 import { cn } from "@/lib/utils";
-import { REPO_URL } from "@/data/site";
 
 /**
  * The page for a reference deck.
@@ -46,6 +46,26 @@ const VIEW_ICON: Record<ReferenceView, typeof List> = {
   gallery: Orbit,
 };
 
+/** A boolean setting remembered on this device. Storage can be blocked, so it falls back to the default. */
+function useStoredToggle(key: string, initial: boolean) {
+  const [value, setValue] = useState(() => {
+    try {
+      const saved = localStorage.getItem(key);
+      return saved === null ? initial : saved === "1";
+    } catch {
+      return initial;
+    }
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem(key, value ? "1" : "0");
+    } catch {
+      // Private window or blocked storage: the setting just lasts this visit.
+    }
+  }, [key, value]);
+  return [value, setValue] as const;
+}
+
 export function ReferenceApp({ deck }: { deck: ReferenceDeck }) {
   /**
    * Every row of the sheet, flattened, and whether there are few enough of them
@@ -73,7 +93,11 @@ export function ReferenceApp({ deck }: { deck: ReferenceDeck }) {
   );
 
   const [quizMode, setQuizMode] = useState(true);
-  const [hoverPreview, setHoverPreview] = useState(true);
+  // Both off by default (owner, 15 Oct: "it's too much"); each is its own setting.
+  const [hoverPreview, setHoverPreview] = useStoredToggle("reference.hoverPreview", false);
+  const [magnifier, setMagnifier] = useStoredToggle("reference.magnifier", false);
+  // The lens is configured per deck; the setting decides whether that config is used.
+  const previewOpts = magnifier ? deck.preview : deck.preview && { ...deck.preview, magnify: undefined };
   const [laser, setLaser] = useState(false);
   const [view, setView] = useState<ReferenceView>("table");
   const total = deckCount(deck);
@@ -119,18 +143,18 @@ export function ReferenceApp({ deck }: { deck: ReferenceDeck }) {
 
   return (
     <div className="min-h-screen text-slate-800 dark:text-stone-200">
-      <HeroTitle
-        variant="art"
-        titleLines={deck.titleLines}
-        subtitle={deck.subtitle}
-        ghostWord={deck.titleLines[0]}
-        motif={deck.motif}
-        topLeft={<HomeBlueberry />}
-      />
-
-      <div className="relative z-10 rounded-t-[2rem] bg-[#f6f4ef] px-4 pt-4 pb-16 shadow-[0_-24px_60px_-20px_rgba(15,23,42,0.25)] dark:bg-[#0c0a09] dark:shadow-[0_-24px_60px_-20px_rgba(0,0,0,0.7)]">
-        <div className="mx-auto max-w-5xl">
-          <div className="sticky top-3 z-30 mb-6 rounded-2xl border border-slate-200 bg-white/85 px-3 py-2.5 shadow-lg backdrop-blur dark:border-stone-800 dark:bg-stone-900/85">
+      <div className="relative z-10 bg-background pb-16">
+        <div className={SITE_CONTAINER}>
+          {/* The shared page header (shell round 3), in place of the full-screen
+              title page. Same as a study deck's: up one level, to the library, and the
+              deck's sentence-case `title`, not its ALL CAPS title-screen lines. */}
+          <PageHeader
+            back={{ href: "#/study-decks", label: "Review" }}
+            title={deck.title}
+            subtitle={deck.subtitle}
+          />
+          {/* 12px under the site header (60px), which covered it at top-3. */}
+          <div className="sticky top-[4.5rem] z-30 mb-6 rounded-2xl border border-slate-200 bg-white/85 px-3 py-2.5 shadow-lg backdrop-blur dark:border-stone-800 dark:bg-stone-900/85">
             <div className="flex flex-wrap items-center gap-2.5">
               <div className="flex items-center gap-2.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium dark:border-stone-800 dark:bg-stone-900">
                 <span className="font-mono text-xs text-slate-400 dark:text-stone-500">
@@ -193,6 +217,23 @@ export function ReferenceApp({ deck }: { deck: ReferenceDeck }) {
                 {hoverPreview ? "Hover previews" : "Tap only"}
               </button>
                 </>
+              )}
+
+              {/* Only decks that configure a lens (IR, NMR) get the toggle. */}
+              {deck.preview?.magnify && (
+                <button
+                  onClick={() => setMagnifier((m) => !m)}
+                  title={magnifier ? "Magnifying glass on over diagrams" : "Magnifying glass off"}
+                  className={cn(
+                    "flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-semibold transition",
+                    magnifier
+                      ? "border-[#ccd5ea] bg-[#f1f4fa] text-[#472ab4] dark:border-[#6b51dd]/30 dark:bg-[#9989e2]/15 dark:text-[#bbb1eb]"
+                      : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-stone-800 dark:bg-stone-900 dark:text-stone-300 dark:hover:bg-white/5",
+                  )}
+                >
+                  {magnifier ? <ZoomIn className="h-4 w-4" /> : <ZoomOut className="h-4 w-4" />}
+                  {magnifier ? "Magnifier on" : "Magnifier off"}
+                </button>
               )}
 
               {/* Only in the carousel, for the same reason the study deck only
@@ -260,7 +301,7 @@ export function ReferenceApp({ deck }: { deck: ReferenceDeck }) {
                 groups={deck.groups}
                 quizMode={quizMode}
                 hoverPreview={hoverPreview}
-                preview={deck.preview}
+                preview={previewOpts}
               />
             ) : view === "gallery" ? (
               <CardGallery3D items={galleryItems} label={`${deck.title} rows`} />
@@ -269,7 +310,7 @@ export function ReferenceApp({ deck }: { deck: ReferenceDeck }) {
               // page has a sticky hero, a sticky toolbar and a floating feedback
               // button, and lifting one element above all of them is a fight
               // that taking it out of flow avoids entirely.
-              <div className="fixed inset-0 z-[110] flex flex-col bg-[#f6f4ef] px-4 py-5 dark:bg-[#0c0a09]">
+              <div className="fixed inset-0 z-[110] flex flex-col bg-background px-4 py-5">
                 <div className="mx-auto flex w-full max-w-3xl items-center gap-3">
                   <HomeBlueberry />
                   <span className="font-mono text-xs text-slate-400 dark:text-stone-500">
@@ -288,7 +329,7 @@ export function ReferenceApp({ deck }: { deck: ReferenceDeck }) {
                   <div className="w-full">
                     <ReferenceCards
                       groups={deck.groups}
-                      preview={deck.preview}
+                      preview={previewOpts}
                       layout="carousel"
                     />
                   </div>
@@ -299,7 +340,7 @@ export function ReferenceApp({ deck }: { deck: ReferenceDeck }) {
                 </p>
               </div>
             ) : (
-              <ReferenceCards groups={deck.groups} preview={deck.preview} layout={view} />
+              <ReferenceCards groups={deck.groups} preview={previewOpts} layout={view} />
             )}
 
             <ScrollToTop className="mt-6" />
@@ -310,31 +351,17 @@ export function ReferenceApp({ deck }: { deck: ReferenceDeck }) {
                 foot of a deck it was an invitation to add another deck at the
                 exact moment someone had finished studying this one. */}
 
-            <footer className="mt-12 text-center text-sm text-gray-500 dark:text-stone-400">
+            {/* The sheet's sign-off, as the last of the page's content (shell round 6). It was a
+                second <footer> above the site footer, with a GitHub link the site footer's
+                "Source" already gives. */}
+            <div className="mt-12 text-center text-sm text-slate-500 dark:text-stone-400">
               {deck.footNote && <p>{deck.footNote}</p>}
 
               <p className="playful-face mx-auto mt-6 max-w-xl text-lg leading-relaxed text-slate-600 dark:text-stone-300">
                 Built from the class reference sheets. Not a substitute for drawing the arrows
                 yourself.
               </p>
-
-              <a
-                href={REPO_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group mt-2 inline-flex items-center gap-2 rounded-full px-3 py-1.5 font-semibold text-[#5a3fd8] outline-none transition-colors hover:text-[#472ab4] focus-visible:ring-2 focus-visible:ring-[#9989e2] dark:text-[#bbb1eb] dark:hover:text-[#ccd5ea]"
-              >
-                <GitBranch className="h-4 w-4 transition-transform duration-300 group-hover:-rotate-12 group-hover:scale-110" />
-                <span className="relative">
-                  Check out the GitHub here
-                  <span
-                    aria-hidden
-                    className="absolute left-0 -bottom-0.5 h-[2px] w-full origin-left scale-x-0 rounded-full bg-gradient-to-r from-brand-from to-brand-to transition-transform duration-300 ease-out group-hover:scale-x-100"
-                  />
-                </span>
-                <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
-              </a>
-            </footer>
+            </div>
           </div>
         </div>
       </div>

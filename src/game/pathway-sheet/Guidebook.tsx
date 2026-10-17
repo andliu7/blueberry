@@ -19,7 +19,10 @@
  */
 
 import {  } from "../mascot/Berry";
+import { useState } from "react";
 import { SectionBerry } from "./SectionBerry";
+import { showDraftMarks } from "../app/flags";
+import { LessonVideo } from "../lesson/LessonVideo";
 import { MoleculeGlyph } from "./MoleculeGlyph";
 import type { GuidebookContent, SchemeStep } from "./guidebookContent";
 import "./pathway-sheet.css";
@@ -376,6 +379,31 @@ function StripArt({
   );
 }
 
+/**
+ * THE BACKGROUND SECTION, the guidebook's fourth part (owner amendment
+ * 2026-09-29): short clips that fill in what a node assumes. Each is the
+ * lesson's own video slot, so an unfilmed clip is the one-row template strip
+ * and the page stands without it. Skipping one hides it for this visit.
+ */
+function Background({ topics }: { readonly topics: GuidebookContent["background"] }) {
+  const [skipped, setSkipped] = useState<readonly string[]>([]);
+  const shown = topics.filter((topic) => !skipped.includes(topic.id));
+  if (shown.length === 0) return null;
+  return (
+    <section className="flex flex-col gap-2" aria-label="Background">
+      <p className="gb-callout__cap text-scale-xs">Background</p>
+      {shown.map((topic) => (
+        <LessonVideo
+          key={topic.id}
+          title={topic.title}
+          minutes={topic.minutes}
+          onSkip={() => setSkipped((ids) => [...ids, topic.id])}
+        />
+      ))}
+    </section>
+  );
+}
+
 export interface GuidebookProps {
   readonly content: GuidebookContent;
   readonly onBack: () => void;
@@ -404,7 +432,9 @@ export function Guidebook({ content, onBack, reducedMotion }: GuidebookProps) {
         </span>
       </header>
 
-      {content.placeholder ? <p className="gb-draft text-scale-xs">{content.gateMark}</p> : null}
+      {content.placeholder && showDraftMarks() ? <p className="gb-draft text-scale-xs">{content.gateMark}</p> : null}
+
+      <Background topics={content.background} />
 
       <p className="gb-intro text-scale-base">{content.intro}</p>
 
@@ -414,7 +444,7 @@ export function Guidebook({ content, onBack, reducedMotion }: GuidebookProps) {
           <ExplainerFigure />
         </figure>
         <aside className="gb-callout" aria-label="Key idea">
-          <p className="gb-callout__cap text-scale-xs">Key idea</p>
+          <p className="gb-callout__cap text-scale-xs">{content.keyIdeaDraft ? "Key idea, draft" : "Key idea"}</p>
           <p className="gb-callout__body text-scale-sm">{content.keyIdea}</p>
         </aside>
       </div>

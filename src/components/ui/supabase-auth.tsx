@@ -22,13 +22,12 @@ import { cn } from "@/lib/utils";
  * Google first, then email. A UMD account is what staff and most students
  * already have, and it is the route with no password to invent or forget.
  *
- * Styled for the dark card this sits in, not with the site's shadcn tokens: the
- * sign-in page pins `.dark` and paints its own `#171327`, so `bg-card` here
- * would be the wrong surface.
+ * Styled with the site's tokens, so it follows the visitor's theme: the sign-in
+ * page stopped forcing dark mode on 2026-10-07.
  */
 
 const FIELD =
-  "min-h-11 w-full rounded-xl border border-white/15 bg-white/5 px-3 text-sm text-white placeholder:text-white/35 outline-none focus-visible:border-[#9989e2] focus-visible:ring-2 focus-visible:ring-[#6b51dd]/40";
+  "min-h-11 w-full rounded-xl border-2 border-[var(--site-border)] bg-card px-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus-visible:border-[#9989e2] focus-visible:ring-2 focus-visible:ring-[#6b51dd]/40";
 
 export function SupabaseAuth({ signup }: { signup: boolean }) {
   const [email, setEmail] = useState("");
@@ -92,8 +91,8 @@ export function SupabaseAuth({ signup }: { signup: boolean }) {
         }}
         className="flex flex-col gap-3"
       >
-        <p className="text-sm leading-6 text-white/70">
-          We sent a six-digit code to <span className="font-semibold text-white">{email}</span>.
+        <p className="text-sm leading-6 text-muted-foreground">
+          We sent a six-digit code to <span className="font-semibold text-foreground">{email}</span>.
         </p>
         <label className="sr-only" htmlFor="auth-code">
           Six-digit code
@@ -116,7 +115,7 @@ export function SupabaseAuth({ signup }: { signup: boolean }) {
         {error && (
           <p
             role="alert"
-            className="flex items-start gap-2 rounded-xl border border-rose-400/25 bg-rose-400/10 p-2.5 text-sm text-rose-100"
+            className="flex items-start gap-2 rounded-xl bg-[var(--bb-warn-wash)] p-2.5 text-sm text-[var(--bb-warn-ink)]"
           >
             <TriangleAlert className="mt-0.5 size-4 shrink-0" />
             <span>{error}</span>
@@ -137,7 +136,7 @@ export function SupabaseAuth({ signup }: { signup: boolean }) {
             setCode("");
             setError(null);
           }}
-          className="min-h-11 text-sm text-white/50 hover:text-white/80"
+          className="min-h-11 text-sm text-muted-foreground hover:text-foreground"
         >
           Use a different email
         </button>
@@ -147,7 +146,7 @@ export function SupabaseAuth({ signup }: { signup: boolean }) {
 
   if (sent) {
     return (
-      <div className="rounded-xl border border-emerald-400/25 bg-emerald-400/10 p-4 text-sm leading-6 text-emerald-100">
+      <div className="rounded-xl bg-[var(--bb-progress)] p-4 text-sm leading-6 text-[var(--bb-progress-ink)]">
         <CircleCheck className="mb-2 size-5" />
         Check <span className="font-semibold">{email}</span> for a confirmation link.
         You can close this page; the link brings you back signed in.
@@ -161,7 +160,7 @@ export function SupabaseAuth({ signup }: { signup: boolean }) {
         type="button"
         onClick={() => void google()}
         disabled={busy !== null}
-        className="flex min-h-11 w-full cursor-pointer items-center justify-center gap-2.5 rounded-xl bg-white px-4 text-sm font-semibold text-slate-800 transition hover:bg-white/90 disabled:opacity-60"
+        className="flex min-h-11 w-full cursor-pointer items-center justify-center gap-2.5 rounded-xl border-2 border-[var(--site-border)] bg-white px-4 text-sm font-semibold text-slate-800 transition hover:bg-white/90 disabled:opacity-60"
       >
         {busy === "google" ? (
           <Loader2 className="size-4 animate-spin" />
@@ -179,9 +178,9 @@ export function SupabaseAuth({ signup }: { signup: boolean }) {
       </button>
 
       <div className="flex items-center gap-3 py-1">
-        <span className="h-px flex-1 bg-white/10" />
-        <span className="text-xs text-white/40">or</span>
-        <span className="h-px flex-1 bg-white/10" />
+        <span className="h-px flex-1 bg-border" />
+        <span className="text-xs text-muted-foreground">or</span>
+        <span className="h-px flex-1 bg-border" />
       </div>
 
       <form onSubmit={(e) => void submit(e)} className="flex flex-col gap-2.5">
@@ -248,7 +247,7 @@ export function SupabaseAuth({ signup }: { signup: boolean }) {
         {error && (
           <p
             role="alert"
-            className="flex items-start gap-2 rounded-xl border border-rose-400/25 bg-rose-400/10 p-2.5 text-sm text-rose-100"
+            className="flex items-start gap-2 rounded-xl bg-[var(--bb-warn-wash)] p-2.5 text-sm text-[var(--bb-warn-ink)]"
           >
             <TriangleAlert className="mt-0.5 size-4 shrink-0" />
             <span>{error}</span>
@@ -287,7 +286,7 @@ export function SupabaseAuth({ signup }: { signup: boolean }) {
               else setAwaitingCode(true);
             })();
           }}
-          className="min-h-11 text-sm text-white/50 transition hover:text-white/80 disabled:opacity-40"
+          className="min-h-11 text-sm text-muted-foreground transition hover:text-foreground disabled:opacity-40"
         >
           Email me a six-digit code instead
         </button>

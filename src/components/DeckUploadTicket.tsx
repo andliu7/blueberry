@@ -116,7 +116,6 @@ export function DeckUploadTicket() {
         venue={user?.email ? user.email.split("@")[0] : "Staff only"}
         dates={user ? "signed in" : "sign in to enter"}
         stubText={open ? "Open" : "Add a deck"}
-        watermark="242"
         onClick={() => setOpen((o) => !o)}
       />
 

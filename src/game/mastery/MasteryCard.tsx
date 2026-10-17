@@ -39,7 +39,7 @@
  */
 
 import type { EconomySnapshot } from "@blueberry/economy";
-import {  } from "../beats/ChipPress";
+import { pressClassName } from "../app/ui/Press";
 import { hrefForReview } from "../app/routes";
 import { RankMark } from "./RankMark";
 import { masteryCardModel, type LadderRow } from "./masteryModel";
@@ -141,9 +141,9 @@ export function MasteryCard({ economy, reviewHref = hrefForReview(), className =
             {model.dipCap === null ? null : <span className="rank-restore__promise">{model.dipCap}</span>}
           </span>
           {/* The taxonomy sheet's REVIEW chip, which is the green one. It is a
-              link because it goes to a route; see mastery.css for why it wears
-              the chip classes rather than being a button. */}
-          <a href={reviewHref} className="chip-press chip-press--claim">
+              link because it goes to a route, wearing the shared 3D key classes
+              (app/ui/press.css) so it looks like every other button. */}
+          <a href={reviewHref} className={`${pressClassName({ variant: "success" })} chip-press chip-press--claim`}>
             Review
           </a>
         </div>

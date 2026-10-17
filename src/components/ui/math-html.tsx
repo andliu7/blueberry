@@ -58,9 +58,32 @@ const BATCH = 2;
 const queue = new Set<HTMLElement>();
 let draining = false;
 
+const MATHJAX_SRC = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js";
+
+/**
+ * Fetches MathJax the first time something on the page needs it.
+ *
+ * It used to load from index.html on every page, and measured on a throttled
+ * phone (4x CPU, 10 Mbps) it held the #/app loader up for about 3.2 s while it
+ * evaluated, for a route that never typesets anything at boot. The queue below
+ * already waits for `window.MathJax` to appear, so loading it late changes
+ * nothing about how maths looks, only when the script is paid for.
+ */
+function loadMathJax() {
+  if (document.getElementById("MathJax-script")) return;
+  // MathJax reads this config object when its script runs, so it must exist first.
+  window.MathJax = { tex: { inlineMath: [["$", "$"]] } };
+  const script = document.createElement("script");
+  script.id = "MathJax-script";
+  script.async = true;
+  script.src = MATHJAX_SRC;
+  document.head.appendChild(script);
+}
+
 function drain() {
   if (draining) return;
   draining = true;
+  loadMathJax();
 
   const step = () => {
     const mj = window.MathJax;

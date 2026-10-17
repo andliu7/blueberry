@@ -243,6 +243,10 @@
    is a light value against a night card and would invert the stack. */
 .dark .ob {
   --ob-chip-edge: color-mix(in srgb, var(--bb-card) 45%, #05050a);
+  /* A2 round 2: the night hill is a lifted violet, not a pale grey slab. The
+     grey put GET STARTED's quiet link and the draft line on a light ground in
+     a light ink (about 1.5:1); on this hill they read again. */
+  --ob-prop: color-mix(in srgb, var(--bb-primary) 24%, var(--bb-card));
 }
 
 /* THE WIDE COLUMN, which is blueberry_r9-onboard-placement's and
@@ -587,7 +591,6 @@
   .ob-headskip,
   .ob-chip,
   .ob-tile,
-  .ob-cta,
   .ob-quiet {
     transition: none;
   }
@@ -665,10 +668,14 @@
   max-width: 22rem;
 }
 
+/* The first headline a new student reads: the display step of the heading
+   scale (theme.css), heavy, so it reads as a title before it is read. */
 .ob-promise {
   font-family: var(--font-display);
-  font-size: 1.75rem;
-  line-height: 1.2;
+  font-size: var(--h-display);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
   text-align: center;
   color: var(--bb-foreground);
   margin: 0;
@@ -754,7 +761,9 @@
 .ob-welcome__bubble {
   position: absolute;
   left: calc(50% + var(--ob-berry, 165px) * 0.41);
-  right: -0.4375rem;
+  /* 0, not the image's few pixels into the gutter: .ob__body scrolls, so it
+     clips on x as well, and the bubble's right edge was being cut off. */
+  right: 0;
   bottom: calc(var(--ob-berry, 165px) * 0.82);
   margin: 0;
   font-size: 1rem;
@@ -871,6 +880,90 @@
   width: 116%;
   height: auto;
   aspect-ratio: 390 / 340;
+}
+
+/* ON A WIDE SCREEN the frame is a 30rem column, so the hill would stop in two
+   hard vertical edges on the gradient ground. Fade its sides out instead, so
+   it reads as a scene sitting on the ground rather than a cut-out panel. */
+@media (min-width: 40rem) {
+  .ob__backdrop {
+    -webkit-mask-image: linear-gradient(90deg, transparent, black 22%, black 78%, transparent);
+    mask-image: linear-gradient(90deg, transparent, black 22%, black 78%, transparent);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* THE DESKTOP HERO (A2 round 3)                                        */
+/*                                                                      */
+/* On a wide screen the welcome beat stopped being a phone column       */
+/* marooned in the middle: Berry and his greeting take the left half,   */
+/* the headline and the two actions the right half, the way a desktop   */
+/* welcome is a two-column hero. How: the frame becomes a grid, and the */
+/* body and the hero wrapper are `display: contents` so their children  */
+/* (Berry, the headline) become grid cells of the frame directly. The   */
+/* phone layout above is untouched. The hill is a phone-shaped drawing  */
+/* (390 by 340) that can only be a pillar or a wall on a wide screen,   */
+/* so it is dropped here and Berry is drawn bigger in its place.         */
+/* ------------------------------------------------------------------ */
+@media (min-width: 64rem) {
+  .ob[data-hero-wide="true"] {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: auto 1fr auto auto 1fr;
+    column-gap: 6rem;
+    max-width: 68rem;
+    padding-inline: 3rem;
+  }
+  .ob[data-hero-wide="true"] .ob__backdrop,
+  .ob[data-hero-wide="true"] .ob__edge {
+    display: none;
+  }
+  .ob[data-hero-wide="true"] .ob__head {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    justify-self: center;
+    width: min(30rem, 100%);
+  }
+  .ob[data-hero-wide="true"] .ob__body,
+  .ob[data-hero-wide="true"] .ob-welcome {
+    display: contents;
+  }
+  .ob[data-hero-wide="true"] .ob-welcome__hero {
+    grid-column: 1;
+    grid-row: 2 / 6;
+    align-self: center;
+    justify-self: center;
+    /* Nudged left of centre so the greeting bubble on Berry's right keeps
+       clear air before the headline column. */
+    margin-inline-end: 5rem;
+    width: auto;
+    /* zoom, not transform: it scales the layout box too, so the grid
+       reserves Berry's real drawn size. */
+    zoom: 1.45;
+  }
+  .ob[data-hero-wide="true"] .ob-welcome__bubble {
+    right: auto;
+    white-space: nowrap;
+  }
+  .ob[data-hero-wide="true"] .ob-promise {
+    grid-column: 2;
+    grid-row: 3;
+    align-self: end;
+    text-align: left;
+    text-wrap: balance;
+  }
+  .ob[data-hero-wide="true"] .ob__foot {
+    grid-column: 2;
+    grid-row: 4;
+    width: 100%;
+    max-width: 24rem;
+    padding-top: 2rem;
+  }
+  .ob[data-hero-wide="true"] .ob-gate {
+    grid-column: 1 / -1;
+    grid-row: 5;
+    align-self: end;
+  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -1262,76 +1355,11 @@
 /* The action: CONTINUE, GET STARTED, CHECK                            */
 /* ------------------------------------------------------------------ */
 
-/* THE SHAPE IS A ROUNDED RECTANGLE BY DEFAULT AND A STADIUM ON ONE SCREEN.
-   blueberry_r9-onboard-question draws CONTINUE and
-   blueberry_r9-onboard-placement draws CHECK with a corner radius of roughly
-   12 to 14 CSS pixels; only blueberry_r9-onboard-welcome draws GET STARTED as
-   a full stadium. The previous pass used 9999px everywhere, which matched one
-   image out of three. */
-.ob-cta {
-  position: relative;
-  display: inline-flex;
-  width: 100%;
-  min-height: 3.5rem;
-  align-items: center;
-  justify-content: center;
-  padding: 0.75rem 1.25rem;
-  border-radius: 0.875rem;
-  border: 2px solid var(--bb-primary-edge);
-  background: var(--bb-primary);
-  color: var(--bb-primary-foreground);
-  font-family: var(--font-display);
-  font-size: 1.125rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  cursor: pointer;
-  touch-action: manipulation;
-  box-shadow: 0 var(--ob-edge-size) 0 0 var(--bb-primary-edge);
-  transition: transform 120ms cubic-bezier(0.4, 0, 0.2, 1);
-  margin-bottom: var(--ob-edge-size);
-}
-
-.ob-cta[data-shape="stadium"] {
-  border-radius: 9999px;
-}
-
-.ob-cta:active:not(:disabled) {
-  transform: translateY(var(--ob-travel));
-  box-shadow: 0 calc(var(--ob-edge-size) - var(--ob-travel)) 0 0 var(--bb-primary-edge);
-}
-
-.ob-cta:focus-visible {
-  outline: none;
-  box-shadow:
-    0 var(--ob-edge-size) 0 0 var(--bb-primary-edge),
-    0 0 0 3px var(--bb-ring);
-}
-
-/* THE DISABLED ACTION IS STILL PLAINLY A BUTTON, and unmistakably off.
-   The S3 verdict named an ambiguous disabled CHECK as the thing the bar did
-   better than us; this is that finding answered. It keeps its shape and its
-   edge, loses the violet, and does not travel, because travelling is the
-   acknowledgement of an act that is not going to happen.
-
-   THE EDGE IS --ob-off-edge AND THE PREVIOUS ONE FAILED ITS OWN FLOOR. The
-   comment here used to cite 7.1:1, which is the LABEL pair
-   (--bb-muted-foreground on --bb-muted) and not the outline against the ground; the
-   outline itself measured 2.53:1 against the page, under the 3.0 a non-text
-   boundary owes. The state was right and its edge was not legible enough to be
-   the finding answered. See --ob-off-edge for the measurement. */
-.ob-cta:disabled {
-  background: var(--bb-muted);
-  color: var(--bb-muted-foreground);
-  border-color: var(--ob-off-edge);
-  box-shadow: 0 var(--ob-edge-size) 0 0 var(--ob-off-edge);
-  cursor: not-allowed;
-}
-.ob-cta:disabled:focus-visible {
-  box-shadow:
-    0 var(--ob-edge-size) 0 0 var(--ob-off-edge),
-    0 0 0 3px var(--bb-ring);
-}
+/* The action is the game's shared 3D button since A2 (2026-10-16): Frame.tsx
+   gives it pressClassName({ size: "lg", block: true }) and app/ui/press.css
+   paints the face, the lip, the press and the disabled state. Round 2: the
+   welcome beat's full stadium is gone too, so GET STARTED is the same
+   rounded key as CHECK and START (the shape prop is now inert). */
 
 /* THE FULL WIDTH OUTLINED SKIP STADIUM IS GONE, and its rules with it.
 
@@ -1532,4 +1560,18 @@
   font-size: 0.8125rem;
   line-height: 1.45;
   color: var(--bb-muted-foreground);
+}
+
+/* A2 round 4: THE WELCOME SCREEN DRAWS NO PROGRESS BAR. A "5%" bar on the
+   very first screen read as homework before hello. Hidden, not removed, so
+   the header keeps its height and nothing below it moves. */
+.ob-bar[data-numeral="true"] {
+  visibility: hidden;
+}
+
+/* The speech bubble speaks in the display face at a bold weight, the same
+   voice as the headline beside it. It was the regular weight, which read as
+   a different, system face next to the heavy title. */
+.ob-bubble {
+  font-weight: 700;
 }

@@ -4,7 +4,6 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { CornerDownLeft, FlaskConical, Layers, LayoutGrid, Search, Sparkles, SquareArrowOutUpRight } from "lucide-react";
 import { BlueberryMark } from "@/components/ui/blueberry-mark";
 import { searchFeatures, type Feature } from "@/lib/featureIndex";
-import { reactionFeatures } from "@/lib/reactionSearch";
 import { useDecks } from "@/lib/useDecks";
 import { deckHref } from "@/data/types";
 import { cn } from "@/lib/utils";
@@ -23,7 +22,14 @@ import { cn } from "@/lib/utils";
  * would be stale the first time one is added.
  */
 
-const REACTION_FEATURES = reactionFeatures();
+/**
+ * The reactions join the index the first time the search opens, not at startup
+ * (Learn round 3). Their module pulls in all 43 generated reactions and the lesson
+ * table, about 13 kB gzipped, and this component sits in the entry bundle that
+ * every page pays for. Loaded once and kept for the life of the page.
+ */
+let reactionIndex: Promise<Feature[]> | null = null;
+const loadReactionFeatures = () => (reactionIndex ??= import("@/lib/reactionSearch").then((m) => m.reactionFeatures()));
 
 const KIND_ICON = {
   page: SquareArrowOutUpRight,
@@ -118,6 +124,15 @@ export function FeatureSearch({
   const [cursor, setCursor] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const { decks } = useDecks();
+  const [reactionFeatures, setReactionFeatures] = useState<Feature[]>([]);
+  useEffect(() => {
+    if (!open) return;
+    let live = true;
+    loadReactionFeatures().then((f) => live && setReactionFeatures(f));
+    return () => {
+      live = false;
+    };
+  }, [open]);
 
   // Decks join the same index the features are in, so one query covers both and
   // the ranking can compare them against each other.
@@ -134,9 +149,7 @@ export function FeatureSearch({
     [decks],
   );
 
-  // Reactions are generated at build time and never change, so this is built
-  // once for the life of the module rather than on every keystroke.
-  const extra = useMemo(() => [...REACTION_FEATURES, ...deckFeatures], [deckFeatures]);
+  const extra = useMemo(() => [...reactionFeatures, ...deckFeatures], [reactionFeatures, deckFeatures]);
   const results = useMemo(() => searchFeatures(query, extra), [query, extra]);
 
   useEffect(() => setCursor(0), [query]);

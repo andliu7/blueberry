@@ -36,6 +36,19 @@ export function trackWind(index: number): number {
 }
 
 /**
+ * WHICH SIDE A ROW'S NAME TAKES, round 3 of P1. The chip swings across the
+ * whole column now (pathway.css .path-row), so the name goes on the side the
+ * chip leaned AWAY from, where the room is, and the mascot and side quests
+ * take the side it leaned toward. A chip on the centreline (wind 0, which the
+ * spine never uses) keeps its name on the right, the old reading side.
+ */
+export type NameSide = "left" | "right";
+
+export function nameSide(wind: number): NameSide {
+  return wind > 0 ? "left" : "right";
+}
+
+/**
  * A break opportunity after a slash, for the VISIBLE label only.
  *
  * "Allylic/resonance delocalization" is one 115px word in a 105px column, and
@@ -53,4 +66,24 @@ const ZERO_WIDTH_SPACE = String.fromCharCode(0x200b);
 
 export function withBreakHints(label: string): string {
   return label.replace(/\//g, `/${ZERO_WIDTH_SPACE}`);
+}
+
+/**
+ * THE HEADER REVEAL's letters, grouped by word. andliu's per-letter rise
+ * staggers every letter by its position in the whole title, so the index
+ * runs across words; the grouping is only so a line can wrap between words
+ * and never inside one. Pure, so the stagger order is testable without a DOM.
+ */
+export interface RevealLetter {
+  readonly text: string;
+  /** Position in the whole title, spaces not counted. Drives the stagger delay. */
+  readonly index: number;
+}
+
+export function revealWords(title: string): readonly (readonly RevealLetter[])[] {
+  let index = 0;
+  return title
+    .split(/\s+/)
+    .filter((word) => word.length > 0)
+    .map((word) => Array.from(word).map((text) => ({ text, index: index++ })));
 }

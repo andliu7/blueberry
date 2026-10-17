@@ -1,23 +1,18 @@
 /**
- * A button that acknowledges the press on pointer down, before anything else.
+ * The drawing beat's tool button: bond orders, element symbols, Undo, Clear.
  *
- * CLAUDE.md makes this a contract rather than a nicety: "Every button has a
- * pressed state that renders on pointer down, not on completion", and pointer
- * down to visible acknowledgement is inside the same under 100 ms budget as
- * everything else. This component exists so that contract is one visible piece
- * of code rather than a habit every surface has to remember.
+ * Since A2 (2026-10-16) it is drawn by the game's one 3D button system
+ * (app/ui/press.css), so a tool chip presses exactly like every other key in
+ * the app. The press itself paints through CSS `:active` on pointer down, the
+ * same frame the finger lands and before `onPress` runs, which is the press
+ * contract in CLAUDE.md.
  *
- * WHY IT IS STATE AND NOT `:active`. `:active` would do the job in CSS, but
- * this piece owns no stylesheet (theme.css and tokens.css belong to the shell)
- * and, more usefully, a reader can see the rule here: `onPointerDown` sets
- * `pressed`, the transform renders from it, and `onClick` runs afterwards. If
- * the click ever grows an await, the acknowledgement has already happened.
- *
- * `useState` in a component this small is the boring choice on purpose. It
- * re-renders one button.
+ * Labels keep their case (`btn3d--keepcase`): these are element symbols and
+ * bond orders, and "Cl" shouted as "CL" is a different thing.
  */
 
-import { useState, type CSSProperties, type ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
+import { pressClassName } from "../../app/ui/Press";
 
 export type PressTone = "primary" | "quiet" | "ghost";
 
@@ -31,23 +26,7 @@ export interface PressButtonProps {
   readonly style?: CSSProperties;
 }
 
-const TONE_STYLE: Record<PressTone, CSSProperties> = {
-  primary: {
-    background: "var(--bb-primary)",
-    color: "var(--bb-primary-foreground)",
-    border: "1px solid var(--bb-primary)",
-  },
-  quiet: {
-    background: "var(--bb-card)",
-    color: "var(--bb-card-foreground)",
-    border: "1px solid var(--bb-border)",
-  },
-  ghost: {
-    background: "transparent",
-    color: "var(--bb-muted-foreground)",
-    border: "1px solid transparent",
-  },
-};
+const TONE_VARIANT = { primary: "primary", quiet: "secondary", ghost: "ghost" } as const;
 
 export function PressButton({
   onPress,
@@ -58,9 +37,11 @@ export function PressButton({
   label,
   style,
 }: PressButtonProps) {
-  const [pressed, setPressed] = useState(false);
-
-  const release = () => setPressed(false);
+  const classes = [
+    pressClassName({ variant: TONE_VARIANT[tone], size: "sm" }),
+    "btn3d--keepcase",
+    selected ? "btn3d--selected" : "",
+  ].join(" ");
 
   return (
     <button
@@ -68,33 +49,11 @@ export function PressButton({
       aria-label={label}
       aria-pressed={selected}
       disabled={disabled}
-      // The acknowledgement. Synchronous, first thing, before onPress can run.
-      onPointerDown={() => setPressed(true)}
-      onPointerUp={release}
-      onPointerLeave={release}
-      onPointerCancel={release}
+      className={classes}
       onClick={() => {
         if (!disabled) onPress();
       }}
-      style={{
-        // 44 by 44 is the minimum hit target in CLAUDE.md's budget table.
-        minHeight: 44,
-        minWidth: 44,
-        padding: "10px 16px",
-        borderRadius: "var(--radius-button, 12px)",
-        font: "inherit",
-        fontWeight: 600,
-        cursor: disabled ? "default" : "pointer",
-        opacity: disabled ? 0.45 : 1,
-        transform: pressed ? "translateY(2px) scale(0.98)" : "none",
-        transition: "transform 90ms var(--ease-out, ease-out)",
-        touchAction: "manipulation",
-        ...TONE_STYLE[tone],
-        ...(selected
-          ? { background: "var(--bb-primary-soft, var(--bb-muted))", borderColor: "var(--bb-primary)", color: "var(--bb-primary-ink)" }
-          : {}),
-        ...style,
-      }}
+      style={style}
     >
       {children}
     </button>

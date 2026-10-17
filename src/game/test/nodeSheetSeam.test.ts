@@ -100,10 +100,13 @@ function tabBarHeightPx(): number {
 
 describe("the sheet's bottom edge lands on the tab bar, with nothing between", () => {
   it("the recomputed bar height matches what the browser measures", () => {
-    // The live render at 390x844 reports 76.19 (measurements/_probe-sheet-r3).
-    // A quarter px of slack absorbs the sub-pixel rounding of the label line.
-    expect(tabBarHeightPx()).toBeGreaterThan(75.9);
-    expect(tabBarHeightPx()).toBeLessThan(76.5);
+    // The live render at 390x844 reports 80.19 since the 2026-10-15 icon
+    // redesign took the bar's icons from 32 to 40px (76.19 before, in
+    // measurements/_probe-sheet-r3). Measured with getBoundingClientRect on
+    // nav[aria-label="Tabs"]. A quarter px of slack absorbs the sub-pixel
+    // rounding of the label line.
+    expect(tabBarHeightPx()).toBeGreaterThan(79.9);
+    expect(tabBarHeightPx()).toBeLessThan(80.5);
   });
 
   it("--ns-bottom-inset never exceeds the bar it sits on", () => {
@@ -146,11 +149,13 @@ describe("the sheet's bottom edge lands on the tab bar, with nothing between", (
   });
 
   it("above the rail breakpoint the inset is zero, because the bar is not below", () => {
-    // At 48rem .tabbar becomes a static side rail, so a bottom inset would
-    // suspend the sheet in mid air.
+    // At 48rem .tabbar becomes a side rail, so a bottom inset would suspend
+    // the sheet in mid air. It is sticky to the top since A1 round 5 (it used
+    // to be static and scrolled away with a long path); either way it is no
+    // longer fixed to the bottom edge.
     const wide = SHEET.match(/@media \(min-width: 48rem\) \{\s*\.ns-sheet \{([\s\S]*?)\}/);
     expect(wide, "the sheet answers the rail breakpoint").not.toBeNull();
     expect(px(decl(String(wide![1]), "--ns-bottom-inset"))).toBe(0);
-    expect(TABS).toMatch(/@media \(min-width: 48rem\)[\s\S]*?\.tabbar \{[\s\S]*?position: static/);
+    expect(TABS).toMatch(/@media \(min-width: 48rem\)[\s\S]*?\.tabbar \{[\s\S]*?position: sticky;\s*top: 0;/);
   });
 });

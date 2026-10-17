@@ -184,7 +184,7 @@ export function MatchBoard({
   );
 }
 
-function Board({
+export function Board({
   spec,
   onComplete,
   onMistakeCard,

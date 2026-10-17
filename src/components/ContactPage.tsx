@@ -1,11 +1,9 @@
-﻿import { ArrowLeft, ArrowUpRight } from "lucide-react";
+﻿import { ArrowLeft } from "lucide-react";
 import { Contact2 } from "@/components/ui/contact-2";
 import { GradientMenuButton } from "@/components/ui/gradient-menu";
 import { GithubMark, LinkedinMark } from "@/components/ui/brand-marks";
-import { SiteHeader } from "@/components/ui/site-header";
 import { FeedbackButton } from "@/components/FeedbackButton";
-import { SiteFooter } from "@/components/ui/site-footer";
-import { EMAIL, GITHUB_URL, LINKEDIN_URL, REPO_URL } from "@/data/site";
+import { EMAIL, GITHUB_URL, LINKEDIN_URL } from "@/data/site";
 
 /**
  * Contact, at `#/contact`.
@@ -20,18 +18,8 @@ import { EMAIL, GITHUB_URL, LINKEDIN_URL, REPO_URL } from "@/data/site";
 export function ContactPage() {
   return (
     <main className="relative min-h-screen pb-8">
-      {/* The photograph replaces the flat surface colour rather than sitting
-          on top of it: `PageBackground` paints `surface.base` underneath the
-          image itself, so keeping the old inline background here would have
-          hidden it entirely. */}
-      {/* NO PHOTOGRAPH HERE UNTIL THE TEXT SURVIVES IT. Measured 2026-09-25 with
-          the body occluder removed: this page's copy sits straight on the
-          picture with no panel under it and stops being readable. Dashboard is
-          the pattern that works, because its content rides translucent panels
-          over the scene; Home works because it is a hero with its own scrim.
-          This page is neither yet, so the mount comes out rather than shipping
-          unreadable text. Put it back in the same commit that gives this
-          content a surface. */}
+      {/* No photograph behind any text (owner, 2026-10-07): the page sits on the
+          one site ground that <html> paints. */}
       {/* No spotlight here, deliberately. The hub and the folder pages are
           things you scan, where a light tracking the cursor gives the eye
           something to follow. This one is a form you sit and fill in, and the
@@ -39,8 +27,6 @@ export function ContactPage() {
           was one too many. */}
       {/* No Browse here: this page has no course tree beside it. No Contact
           button either, since it would link to the page you are on. */}
-      <SiteHeader showContact={false} />
-
       <div className="relative z-10 mx-auto flex max-w-5xl flex-col px-6">
         <a
           href="#/home"
@@ -82,33 +68,10 @@ export function ContactPage() {
             </>
           }
         />
-
-        <footer className="mt-16 text-center text-sm text-slate-400 dark:text-stone-500">
-          {/* Keeps the dotted underline a link is expected to have, and adds the
-              sweep the deck footer's GitHub link already uses, so the two do not
-              behave differently for no reason. */}
-          <a
-            href={REPO_URL}
-            target="_blank"
-            rel="noreferrer"
-            className="group/gh inline-flex items-center gap-1.5 outline-none transition-colors hover:text-slate-600 dark:hover:text-stone-300"
-          >
-            <span className="relative">
-              Source on GitHub
-              <span className="absolute right-0 -bottom-1 left-0 border-b border-dotted border-current" />
-              <span
-                aria-hidden
-                className="absolute right-0 -bottom-1 left-0 h-[2px] origin-left scale-x-0 rounded-full bg-gradient-to-r from-brand-from to-brand-to transition-transform duration-300 ease-out group-hover/gh:scale-x-100"
-              />
-            </span>
-            <ArrowUpRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover/gh:translate-x-0.5 group-hover/gh:-translate-y-0.5" />
-          </a>
-        </footer>
       </div>
 
       <FeedbackButton />
     
-      <SiteFooter />
     </main>
   );
 }

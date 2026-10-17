@@ -330,22 +330,30 @@ describe("the marks share their box fairly", () => {
 });
 
 describe("the streak flame draws its state as a shape", () => {
-  it("draws no run as a grey outline, with no core and no clock", () => {
+  // 2026-10-15 icon redesign: every state is a FILLED flame, never an
+  // outline, so the streak matches the filled diamond and battery beside it.
+  it("never draws the header flame as an outline, in any state", () => {
+    // The clock badge is a separate sticker with a ring cut round it; the
+    // flame itself is what must carry no stroke.
+    for (const state of STATES) expect(flame(state).replace(/<g data-flame-clock[\s\S]*?<\/g>/, ""), state).not.toMatch(/fill="none"|stroke=|stroke-dasharray/);
+  });
+
+  it("draws no run as a solid grey flame with a pale core and no clock", () => {
     const svg = flame("zero");
-    expect(svg).toMatch(/fill="none" stroke="var\(--hud-out\)"/);
+    expect(svg).toMatch(/fill="var\(--hud-out\)"/);
+    expect(svg).toMatch(/class="hud-flame-core"[^>]*fill="#ffffff" fill-opacity="0.42"/);
     expect(svg).not.toMatch(/data-flame-clock/);
   });
 
-  it("draws a waiting run as an orange outline with its core lit", () => {
+  it("draws a waiting run as the grey flame with its core lit orange", () => {
     const svg = flame("pending");
-    expect(svg).toMatch(/fill="none" stroke="var\(--streak\)"/);
+    expect(svg).toMatch(/fill="var\(--hud-out\)"/);
     expect(svg).toMatch(/class="hud-flame-core"[^>]*fill="var\(--streak\)"/);
-    expect(svg).not.toMatch(/stroke-dasharray|data-flame-clock/);
+    expect(svg).not.toMatch(/data-flame-clock/);
   });
 
-  it("breaks the outline and adds the clock in the evening, both static", () => {
+  it("adds the clock in the evening, and only then", () => {
     const svg = flame("atRisk");
-    expect(svg).toMatch(/stroke-dasharray/);
     expect(svg).toMatch(/data-flame-clock/);
     // The clock is at least 11 units across, larger than round one's 10.5.
     const r = Number(svg.match(/<circle[^>]*r="([\d.]+)"/)?.[1]);

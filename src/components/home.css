@@ -1,0 +1,234 @@
+/* The home page (SITE-REPLAN.md section 7), phases 4a to 4c.
+ *
+ * Every colour is a token (src/tokens.css and index.css's shadcn block), every curve is a
+ * --bb-ease-* token, and every animation has a branch under html[data-motion="reduced"] that
+ * reduces it rather than deleting it. Each motion block names the portfolio file and line it
+ * was ported from (C:/Users/zeusa/Downloads/Projects/andliu-portfolio).
+ *
+ * Hidden start states apply only under html:not([data-motion="reduced"]), so with reduced
+ * motion nothing is ever waiting to appear.
+ */
+
+/* Titles in Nunito, body in the system stack (owner, 7 Oct). Scoped to home for now; the
+   site's .title-face is still Fraunces until the owner moves every page. */
+.home { font-family: var(--font-sans); color: var(--foreground); }
+.home :is(h1, h2, h3) { font-family: var(--site-display); color: var(--bb-deep); }
+
+/* ---------- Beat 0. The loader ----------
+   Port: andliu-portfolio app/globals.css:446-460. Two sheets slide off to the left, the back
+   one 70 ms behind; the berry drops in and squashes. The portfolio gives the drop its own
+   overshooting curve; here it is --bb-ease-spring, the nearest token. */
+.home-loader { position: fixed; inset: 0; z-index: 100; overflow: hidden; pointer-events: none; }
+.home-loader__sheet { position: absolute; inset: 0; will-change: transform; }
+.home-loader__sheet--back { background: var(--primary); }
+.home-loader__sheet--front { display: grid; place-items: center; background: var(--site-sheet-deep); }
+.home-loader__berry { display: block; width: clamp(80px, 11vw, 128px); aspect-ratio: 1; }
+html:not([data-motion="reduced"]) .home-loader__berry { animation: home-berry-drop 300ms var(--bb-ease-spring) both; }
+@keyframes home-berry-drop {
+  from { transform: translateY(-40vh) rotate(-24deg); }
+  70% { transform: translateY(0) scale(1.08, .92); }
+  to { transform: none; }
+}
+/* The wipe as an animation with a delay rather than a class added by a timer: see the note in
+   HomeLoader.tsx. `both` holds the sheets in place through the delay and off screen after. */
+html:not([data-motion="reduced"]) .home-loader__sheet { animation: home-wipe var(--bb-dur-wipe) var(--bb-ease-wipe) 110ms both; }
+html:not([data-motion="reduced"]) .home-loader__sheet--back { animation-delay: 180ms; }
+@keyframes home-wipe { to { transform: translateX(-101%); } }
+/* Reduced (portfolio globals.css:457-460): no pan, the loader fades where it stands in 120 ms
+   (--bb-dur-wipe is 120ms under reduced, tokens.css) and the berry is shown still. */
+html[data-motion="reduced"] .home-loader { animation: home-fade var(--bb-dur-wipe) linear 110ms both; }
+@keyframes home-fade { to { opacity: 0; } }
+
+/* ---------- Beat 1. The hero ---------- */
+.home-hero {
+  /* S2 round 2: on a phone the headline takes the full width (beside a 112 px Bloom it ran to
+     five lines) and the stage, board and Bloom, sits under it, before the sell line. */
+  display: grid; grid-template-columns: minmax(0, 1fr); grid-template-areas: "title" "bloom" "rest";
+  column-gap: 12px; align-items: start;
+  max-width: 72rem; margin: 0 auto; padding: 28px 16px 8px;
+}
+.home-hero__title { grid-area: title; margin: 0; text-wrap: balance; font-weight: 900; font-size: clamp(2rem, 6.4vw, 4rem); line-height: 1.04; letter-spacing: -.01em; }
+.home-hero__rest { grid-area: rest; margin-top: 16px; }
+.home-hero__sell { margin: 0; max-width: 34rem; font-size: 1.0625rem; line-height: 1.5; }
+.home-hero__actions { margin-top: 24px; display: flex; flex-direction: column; align-items: stretch; gap: 8px; max-width: 24rem; }
+.home-hero__note { margin: 12px 0 0; font-size: .875rem; line-height: 1.4; color: var(--muted-foreground); }
+@media (min-width: 640px) { .home-hero__actions { align-items: flex-start; } }
+@media (min-width: 1024px) {
+  .home-hero { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); grid-template-areas: "title bloom" "rest bloom"; align-items: center; padding: 64px 24px 40px; column-gap: 32px; }
+  .home-hero__sell { font-size: 1.25rem; }
+}
+
+/* The letter rise. Port: andliu-portfolio app/sections/hero.css:212-216 (.hero-c, 30 ms per
+   letter on the elastic spring). The portfolio slides each letter in from the left; the
+   replan asks for letters "rising", so the start adds .4em of drop to the same slide.
+   Home round 2: the portfolio's name is 9 letters, so 30 ms each is done in about 600 ms;
+   our headline is longer and Andrew has not written it yet, so the whole stagger is capped
+   at 160 ms however many letters it has (--n, the letter count, set by SplitLetters), and
+   the rise is .4 s from mount, not .65 s after a .1 s wait. Last letter settled by about
+   600 ms, readable (opacity 1) by about 400 ms. Only the headline moves: the sell line,
+   the buttons and the note are there at first paint (critic, home round 1). */
+.home-word { display: inline-block; white-space: nowrap; }
+.home-c { --home-step: min(30ms, calc(160ms / var(--n, 1))); display: inline-block; transition: opacity .2s linear calc(var(--i) * var(--home-step)), transform .4s var(--bb-ease-elastic) calc(var(--i) * var(--home-step)); }
+html:not([data-motion="reduced"]) .home-hero:not([data-in]) .home-c { opacity: 0; transform: translate(-.25em, .4em); }
+/* Reduced: no transition, the headline is there at first paint (hero.css:216). */
+html[data-motion="reduced"] .home-c { transition: none; }
+
+/* The demo section waits for the headline, so the first thing a stranger reads is the
+   headline and never the section under it (critic, home round 1: at 600 ms the page showed
+   "Look around before you sign up." before the H1 existed). It comes in once the letters
+   are opaque, about 450 ms after mount. A sibling selector, so no JS: .home-hero carries
+   data-in from its first frames. Reduced: no hidden state, so it is there at first paint. */
+.home-demo { transition: opacity .3s linear .45s, translate .6s var(--bb-ease-out) .45s; }
+html:not([data-motion="reduced"]) .home-hero:not([data-in]) ~ .home-demo { opacity: 0; translate: 0 24px; }
+/* With the loader up, the sheets uncover the right of the screen first and the headline
+   last (about 830 ms), so the demo waits for that instead: 900 ms. */
+.home[data-intro] .home-demo { transition-delay: .9s; }
+html[data-motion="reduced"] .home-demo { transition: none; }
+
+/* The primary button: the ledge press plus the two-face pill roll.
+   Ledge: andliu-portfolio app/globals.css:184-193 (hover lift 2px, sink by the lip on press
+   at --bb-dur-press, spring back). Roll: globals.css:208-219 (two faces in one grid cell, the
+   front swings to rotate x 85deg, the back swings in from -90deg, perspective 500px). */
+.home-btn {
+  display: inline-grid; min-height: 52px; border-radius: 999px; text-decoration: none;
+  font: 800 1.0625rem/1 var(--site-display);
+  perspective: 500px; transform-style: preserve-3d;
+  box-shadow: 0 4px 0 var(--site-edge); margin-bottom: 4px;
+  transition: transform var(--bb-dur-release) var(--bb-ease-spring), box-shadow var(--bb-dur-release) var(--bb-ease-spring);
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+.home-btn__face {
+  grid-area: 1 / 1; display: inline-flex; align-items: center; justify-content: center; padding: 0 28px;
+  border-radius: inherit; background: var(--primary); color: var(--primary-foreground);
+  backface-visibility: hidden;
+  transition: translate .85s var(--bb-ease-elastic), rotate var(--bb-dur-roll) var(--bb-ease-elastic), opacity .15s ease-out, background-color var(--bb-dur-ui) var(--bb-ease-ui);
+}
+/* The back face is the same violet as the front (home round 2): only the label rolls. It
+   was --bb-deep, which painted the one violet on the screen navy by day and near-white at
+   night the moment you aimed at it (blueberry rule 1). The lift and the taller ledge on
+   hover are the answer to the pointer; the face never changes colour. */
+.home-btn__face--back { translate: 0 2em -6em; rotate: x -90deg; opacity: 0; }
+@media (hover: hover) {
+  .home-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 0 var(--site-edge); }
+  .home-btn:hover > .home-btn__face:first-child { translate: 0 -2em -6em; rotate: x 85deg; opacity: 0; }
+  .home-btn:hover > .home-btn__face--back { translate: 0 0 0; rotate: x 0deg; opacity: 1; }
+}
+/* The focus ring sits clear of the ledge and differs from it in both themes (home round 2).
+   At night --ring and --site-edge are both #aac7ff, and a 3 px offset laid the ring on the
+   4 px ledge, so the two read as one band. Now: offset 7 px, so 3 px of ground separates
+   the ring from the resting ledge (1 px at the hover lift), and at night the ring is the
+   foreground, #edf2fa: 15.8:1 on the #101827 ground, and a step brighter than the #aac7ff
+   ledge (1.52:1) on top of the gap. By day the ring is --ring #5a3fd8, 5.67:1 on the
+   #efeaf8 ground, against the #33208c ledge (1.82:1), with the same gap. */
+.home-btn { --home-ring: var(--ring); }
+.dark .home-btn { --home-ring: var(--foreground); }
+.home-btn:focus-visible { outline: 3px solid var(--home-ring); outline-offset: 7px; }
+.home-btn:focus-visible > .home-btn__face:first-child { translate: 0 -2em -6em; rotate: x 85deg; opacity: 0; }
+.home-btn:focus-visible > .home-btn__face--back { translate: 0 0 0; rotate: x 0deg; opacity: 1; }
+.home-btn:active { transform: translateY(4px); box-shadow: 0 0 0 var(--site-edge); transition-duration: var(--bb-dur-press); transition-timing-function: ease-out; }
+/* Reduced: no roll; the label stays put on the one violet face, and the lift and the ledge
+   press are the answer (motion.md rule 2: 4 px of feedback is not vestibular motion). */
+html[data-motion="reduced"] .home-btn__face--back { display: none; }
+html[data-motion="reduced"] .home-btn:is(:hover, :focus-visible) > .home-btn__face:first-child { translate: none; rotate: none; opacity: 1; }
+
+/* The quiet second door, with the highlight bar under it.
+   Port: andliu-portfolio app/globals.css:515-520 (.hl-bar: a bar .12em tall grows to 1.2em
+   behind the word, 260 ms on the spring). */
+.home-link { position: relative; isolation: isolate; display: inline-flex; align-self: flex-start; align-items: center; min-height: 44px; padding: 0 4px; font: 700 1rem/1.2 var(--site-display); color: var(--accent-foreground); text-decoration: none; }
+.home-link::before { content: ""; position: absolute; z-index: -1; left: 0; right: 0; bottom: calc((44px - 1.2em) / 2); height: .12em; border-radius: 2px; background: currentColor; opacity: .35; transition: height 260ms var(--bb-ease-spring), opacity 260ms var(--bb-ease-ui); }
+.home-link:is(:hover, :focus-visible)::before { height: 1.2em; opacity: 1; background: var(--bb-wash); }
+.home-link:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; border-radius: 6px; }
+/* Reduced: the bar does not grow; the wash appears at full height at once. */
+html[data-motion="reduced"] .home-link::before { transition: none; }
+
+/* Bloom. The idle bob is the portfolio's sticker bob: andliu-portfolio
+   components/site/corner-stickers/corner-stickers.css:8-9 (8 px and 3 deg, 4.6 s, alternate).
+   The arrival is the card swing's spring (app/sections/projects.css:141-142) at a smaller
+   scale. The hop is WAAPI in HomeHero.tsx. */
+/* The stage holds Bloom (and, from 1024 px, the lazy board beside him). It is the grid's
+   bloom area, so it sits beside the headline although it comes after the buttons in the
+   source (Tab order, home round 2). */
+.home-hero__stage { grid-area: bloom; position: relative; height: 284px; margin-top: 12px; }
+.home-bloom {
+  position: absolute; z-index: 2; right: 4px; bottom: 0; display: block; width: 104px; height: 104px; padding: 0; border: 0; background: none;
+  border-radius: 50%; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  transition: opacity .3s linear .15s, transform .85s var(--bb-ease-elastic) .15s;
+}
+.home-bloom:focus-visible { outline: 3px solid var(--ring); outline-offset: 4px; }
+.home-bloom__bob, .home-bloom__squash { display: block; width: 100%; height: 100%; }
+.home-bloom__squash { transform-origin: 50% 90%; }
+html:not([data-motion="reduced"]) .home-bloom__bob { animation: home-bob 4.6s ease-in-out infinite alternate; }
+@keyframes home-bob { from { translate: 0 0; rotate: -3deg; } to { translate: 0 -8px; rotate: 3deg; } }
+html:not([data-motion="reduced"]) .home-hero:not([data-in]) .home-bloom { opacity: 0; transform: scale(.6) rotate(-12deg); }
+/* Reduced: no bob and no arrival; Bloom is simply there, and a press changes his face. */
+html[data-motion="reduced"] .home-bloom { transition: none; }
+/* From 1024 px: a stage the size of the board, Bloom at its lower left, over the board's
+   corner, presenting it (the board itself is HomeHeroBoard, styled in home-hero-board.css,
+   in its own chunk). Sized here so nothing moves when the board arrives. */
+@media (min-width: 1024px) {
+  .home-hero__stage { justify-self: center; width: min(100%, 30rem); height: 440px; }
+  .home-hero__stage { margin-top: 0; }
+  .home-bloom { right: auto; left: 0; width: 176px; height: 176px; }
+}
+
+/* ---------- Beat 2. The phone demo's section (the demo's own CSS is home-phone.css, lazy) ---------- */
+/* S2 round 1 (owner: "too much empty space"): every beat's padding roughly halved, here and in
+   home-sections.css, so one beat hands to the next without a blank screen between. */
+.home-demo { max-width: 72rem; margin: 0 auto; padding: 16px 16px 24px; display: grid; justify-items: center; gap: 20px; }
+.home-section-title { margin: 0; text-align: center; text-wrap: balance; font-weight: 900; font-size: clamp(1.5rem, 4.2vw, 2.5rem); line-height: 1.1; }
+/* Holds the demo's place until its chunk arrives: on a phone the four rows, then the phone's
+   panel; measured, S2 round 5. */
+.home-demo__hold { width: 100%; height: 1010px; }
+/* The lede is a pointer instruction, so it shows only where there is a pointer to point with. */
+.home-demo__lede { display: none; margin: 0; }
+/* From 1024 px the band is two columns, as Duolingo's hub puts a rail of choices beside its
+   main column: the title and the lede are one header row over both, then the phone's coloured
+   panel on the left and the four destination rows on the right, stretched to the panel's
+   height so neither column ends early (S2 rounds 2 and 3). `.hp` is `display: contents` so
+   its two halves land in this grid's areas; the selector carries the section's class so it
+   outranks home-phone.css's own `.hp`, which loads later.
+   S2 round 5: the rows are the demo's tabs now, so there is no tab strip over the phone and
+   the panel is the phone alone. The rows take a bigger icon to fill their share of the height. */
+@media (min-width: 1024px) {
+  .home-demo {
+    padding: 16px 24px 32px; grid-template-columns: minmax(0, 24rem) minmax(0, 1fr);
+    grid-template-areas: "title lede" "phone rail"; grid-template-rows: auto 1fr;
+    column-gap: 40px; row-gap: 20px; justify-items: stretch; align-items: end;
+  }
+  .home-demo > .home-section-title { grid-area: title; text-align: left; }
+  .home-demo__hold { grid-column: 1 / -1; height: 680px; }
+  .home-demo .hp { display: contents; }
+  .home-demo .hp-stage { grid-area: phone; align-self: stretch; align-content: center; }
+  .home-demo .hp-rail { grid-area: rail; align-self: stretch; display: grid; }
+  .home-demo .hp-rail .home-dest__grid { grid-auto-rows: 1fr; gap: 14px; }
+  .home-demo .hp-rail .home-card { grid-template-columns: 76px minmax(0, 1fr) auto; column-gap: 20px; padding: 16px 24px 16px 16px; border-radius: 24px; }
+  .home-demo .hp-rail .home-card__icon { width: 76px; height: 76px; padding: 12px; border-radius: 20px; }
+  .home-demo .hp-rail .home-card__title { font-size: 1.375rem; }
+  .home-demo .hp-rail .home-card__line { font-size: 1rem; }
+}
+@media (min-width: 1024px) and (hover: hover) {
+  .home-demo__lede { display: block; grid-area: lede; max-width: 34rem; padding-bottom: 6px; font-size: 1.0625rem; line-height: 1.5; color: var(--muted-foreground); }
+}
+
+/* ThemedArt (src/components/ThemedArt.tsx): an RDKit drawing in both themes, one shown. */
+.themed-art { display: block; }
+.themed-art img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.themed-art__dark { display: none !important; }
+.dark .themed-art__light { display: none !important; }
+.dark .themed-art__dark { display: block !important; }
+
+/* Beats 4 and 5 hold their place until their chunk arrives (HomeSections, lazy). */
+.home-sections__hold { min-height: 1000px; }
+
+/* The flipping headline (FlipHeadline in HomeHero.tsx). Every line sits in one grid cell; the
+   invisible sizers hold the height of the longest so nothing below moves when lines change. */
+.home-flip { display: grid; cursor: pointer; }
+.home-flip > * { grid-area: 1 / 1; }
+.home-flip__sizer { visibility: hidden; }
+/* The shown line sits at the foot of the reserved box (S2 round 2), so while the shorter
+   line shows, the spare room is above the headline and it stays next to the sell line under
+   it (critic: a 100 to 140 px band between headline and lede at 390). */
+.home-flip__line { align-self: end; }
+html:not([data-motion="reduced"]) .home-flip[data-out] .home-c { opacity: 0; transform: translateY(-.5em); }
+html:not([data-motion="reduced"]) .home-flip__line[data-flipped] .home-c { animation: home-flip-in .45s var(--bb-ease-elastic) calc(var(--i) * var(--home-step)) backwards; }
+@keyframes home-flip-in { from { opacity: 0; transform: translateY(.6em); } }

@@ -26,14 +26,10 @@
     <meta property="og:url" content="https://andliu7.github.io/blueberry/" />
     <meta property="og:image" content="https://andliu7.github.io/blueberry/favicon.svg" />
     <meta name="twitter:card" content="summary" />
-    <!-- Matches the dark surface in lib/hubSurface, so mobile browser chrome
-         does not sit as a white band above a dark page. -->
-    <meta name="theme-color" content="#171327" media="(prefers-color-scheme: dark)" />
-    <meta name="theme-color" content="#faf9ff" media="(prefers-color-scheme: light)" />
-    <script>
-      window.MathJax = { tex: { inlineMath: [['$', '$']] } };
-    </script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <!-- Matches the site ground, --site-ground in src/tokens.css, so mobile
+         browser chrome does not sit as a different band above the page. -->
+    <meta name="theme-color" content="#101827" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#efeaf8" media="(prefers-color-scheme: light)" />
     <script>
       // Applies the saved theme before first paint. Doing this in React instead
       // would show a flash of the light theme on every load for dark users.
@@ -50,6 +46,23 @@
             document.documentElement.setAttribute('data-device-frame', '');
           }
         } catch (e) {}
+        // The game's front door (#boot, in the body) is shown on the way into
+        // #/app. Set before paint on a cold open, so its first frame is the
+        // loader and no other page ever shows a frame of it.
+        if (/^#\/app(?:[\/?]|$)/.test(location.hash)) {
+          document.documentElement.setAttribute('data-boot', '');
+        }
+        // Reduced motion is one attribute (src/tokens.css), read by CSS and by
+        // isReducedMotion() in src/lib/motionPref.ts. Set here, before paint, so
+        // a hidden entry state never flashes for someone who asked for less motion.
+        // The footer's switch saves "reduced" or "full"; with no saved choice the OS
+        // setting decides.
+        try {
+          var motion = localStorage.getItem('motion');
+          if (motion === 'reduced' || (motion !== 'full' && matchMedia('(prefers-reduced-motion: reduce)').matches)) {
+            document.documentElement.setAttribute('data-motion', 'reduced');
+          }
+        } catch (e) {}
       })();
     </script>
     <!-- NO FONT LINK HERE. Nunito moved to src/game/theme.css, which rides the
@@ -59,9 +72,473 @@
          third-party stylesheet on the critical path of every marketing page,
          for a face those pages never draw. Body and site faces are self-hosted
          through fontsource in index.css; this now matches that. -->
+    <!-- The game's front door. Reasoning lives in src/game/app/Loader.tsx,
+         because comments here ship to every visitor. -->
+    <style>
+      @font-face { font-family: "Boot Nunito"; font-weight: 900; font-style: normal; font-display: block;
+        src: url(data:font/woff2;base64,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) format("woff2"); }
+      :root { --boot-top: #ece4ff; --boot-bottom: #d8e6ff; --boot-glow: rgba(124, 92, 255, 0.22);
+        --boot-ink: #5a3fd8; --boot-lip: #cfc4fb; --boot-name: #4a3f7a; --boot-floor: rgb(58 38 160 / 0.32); }
+      .dark { --boot-top: #1d1747; --boot-bottom: #0f1830; --boot-glow: rgba(109, 90, 224, 0.28);
+        --boot-ink: #ece8ff; --boot-lip: #3a2b9a; --boot-name: #b9b0e8; --boot-floor: rgb(150 128 255 / 0.34); }
+      #boot { display: none; }
+      html[data-boot] #boot {
+        position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; overflow: hidden;
+        --boot-g: clamp(16px, 3.4vw, 48px);
+        font-family: "Boot Nunito", ui-rounded, "SF Pro Rounded", system-ui, "Segoe UI", Roboto, sans-serif;
+        font-weight: 900;
+      }
+      html[data-boot] #boot::before {
+        content: ""; position: absolute; inset: 0; z-index: -1;
+        background-color: var(--boot-bottom);
+        background-image: radial-gradient(120% 60% at 50% -10%, var(--boot-glow), transparent 70%),
+          linear-gradient(180deg, var(--boot-top), var(--boot-bottom));
+        box-shadow: 0 16px 48px rgb(20 10 70 / 0.28);
+      }
+      .boot-stage { position: relative; display: flex; flex-direction: column; align-items: center; margin-bottom: 12vh;
+        --mark: 128px; --hop: 56px; }
+      .boot-air { height: var(--hop); }
+      .boot-hop { animation: boot-hop 5400ms infinite; }
+      /* Bloom blinks now and then: once at about 1.6 s of each 9 s cycle and a double blink at
+         about 6.3 s, so it never reads as a metronome. The lids close by squashing the eyes
+         about their centre line, like the in-app berry's blink. */
+      .boot-eyes { transform-box: view-box; transform-origin: 32px 33px; animation: boot-blink 9000ms infinite; }
+      @keyframes boot-blink {
+        0%, 17.2%, 18.8%, 69.2%, 70.8%, 73.2%, 74.8%, 100% { transform: scaleY(1); }
+        18%, 70%, 74% { transform: scaleY(0.08); }
+      }
+      .boot-mark { position: relative; width: var(--mark); height: var(--mark); transform-origin: 50% 100%;
+        animation: boot-squash 5400ms infinite; }
+      .boot-mark > * { position: absolute; inset: 0; }
+      .boot-floor { width: calc(var(--mark) * 0.72); height: 18px; margin-top: -2px; border-radius: 50%;
+        background: radial-gradient(closest-side, var(--boot-floor), transparent); animation: boot-floor 5400ms infinite; }
+      .boot-count { position: absolute; right: var(--boot-g); bottom: var(--boot-g); color: var(--boot-ink);
+        font-size: clamp(120px, 31vw, 260px); line-height: 1; letter-spacing: -0.04em; font-variant-numeric: tabular-nums;
+        text-align: right; text-shadow: 0 0.035em 0 var(--boot-lip); }
+      .boot-win { height: 1em; overflow: hidden; margin-bottom: -0.13em; padding-left: 0.04em; }
+      .boot-strip > span { display: block; height: 1em; line-height: 1em; }
+      .boot-name { position: absolute; left: var(--boot-g); bottom: calc(var(--boot-g) + 0.05 * clamp(120px, 31vw, 260px)); margin: 0; }
+      .boot-name svg { display: block; height: clamp(30px, 4.2vw, 50px); width: auto; overflow: visible; }
+      .boot-name path { fill: var(--boot-ink); fill-opacity: 0; stroke: var(--boot-ink); stroke-width: 16; stroke-linejoin: round;
+        stroke-dasharray: 1; stroke-dashoffset: 1;
+        animation: boot-write 760ms cubic-bezier(0.45, 0, 0.25, 1) calc(var(--i) * 110ms + 150ms) forwards,
+          boot-fill 360ms ease-out calc(var(--i) * 110ms + 760ms) forwards; }
+      @keyframes boot-write { to { stroke-dashoffset: 0; } }
+      @keyframes boot-fill { to { fill-opacity: 1; } }
+      .boot-slow { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); white-space: nowrap; margin: 14px 0 0; font: 700 15px/1.3 ui-rounded, "SF Pro Rounded", system-ui, "Segoe UI", Roboto, sans-serif;
+        color: var(--boot-name); text-align: center; }
+      .boot-slow[hidden] { display: none; }
+      .boot-sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; color: transparent; }
+      @media (min-width: 768px) { .boot-stage { --mark: 160px; --hop: 72px; } }
+      @keyframes boot-hop {
+        0% { transform: translateY(calc(var(--hop) * 0.00)) rotate(0deg); }
+        2.33% { transform: translateY(calc(var(--hop) * 0.00)) rotate(0deg); animation-timing-function: cubic-bezier(0.2, 0.7, 0.4, 1); }
+        8.33% { transform: translateY(calc(var(--hop) * -1.00)) rotate(0.0deg); animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.3); }
+        14.33% { transform: translateY(calc(var(--hop) * 0.00)) rotate(0deg); animation-timing-function: ease-in-out; }
+        16.67% { transform: translateY(calc(var(--hop) * 0.00)) rotate(0deg); }
+        19% { transform: translateY(calc(var(--hop) * 0.00)) rotate(0deg); animation-timing-function: cubic-bezier(0.2, 0.7, 0.4, 1); }
+        25% { transform: translateY(calc(var(--hop) * -1.00)) rotate(0.0deg); animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.3); }
+        31% { transform: translateY(calc(var(--hop) * 0.00)) rotate(0deg); animation-timing-function: ease-in-out; }
+        33.33% { transform: translateY(calc(var(--hop) * 0.00)) rotate(0deg); }
+        35.67% { transform: translateY(calc(var(--hop) * 0.00)) rotate(0deg); animation-timing-function: cubic-bezier(0.2, 0.7, 0.4, 1); }
+        41.67% { transform: translateY(calc(var(--hop) * -1.00)) rotate(180.0deg); animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.3); }
+        47.67% { transform: translateY(calc(var(--hop) * 0.00)) rotate(360deg); animation-timing-function: ease-in-out; }
+        50% { transform: translateY(calc(var(--hop) * 0.00)) rotate(360deg); animation-timing-function: ease-in-out; }
+        53% { transform: translateY(calc(var(--hop) * 0.00)) rotate(348deg); animation-timing-function: ease-in-out; }
+        56% { transform: translateY(calc(var(--hop) * 0.00)) rotate(372deg); animation-timing-function: ease-in-out; }
+        59% { transform: translateY(calc(var(--hop) * 0.00)) rotate(352deg); animation-timing-function: ease-in-out; }
+        62% { transform: translateY(calc(var(--hop) * 0.00)) rotate(365deg); animation-timing-function: ease-in-out; }
+        64.67% { transform: translateY(calc(var(--hop) * 0.00)) rotate(360deg); animation-timing-function: ease-in-out; }
+        66.67% { transform: translateY(calc(var(--hop) * 0.00)) rotate(360deg); }
+        69% { transform: translateY(calc(var(--hop) * 0.00)) rotate(360deg); animation-timing-function: cubic-bezier(0.2, 0.7, 0.4, 1); }
+        75% { transform: translateY(calc(var(--hop) * -1.35)) rotate(360.0deg); animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.3); }
+        81% { transform: translateY(calc(var(--hop) * 0.00)) rotate(360deg); animation-timing-function: ease-in-out; }
+        83.33% { transform: translateY(calc(var(--hop) * 0.00)) rotate(360deg); }
+        84.33% { transform: translateY(calc(var(--hop) * 0.00)) rotate(360deg); animation-timing-function: cubic-bezier(0.2, 0.7, 0.4, 1); }
+        87.5% { transform: translateY(calc(var(--hop) * -0.50)) rotate(360deg); animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.3); }
+        90.67% { transform: translateY(calc(var(--hop) * 0.00)) rotate(360deg); animation-timing-function: ease-in-out; }
+        91.67% { transform: translateY(calc(var(--hop) * 0.00)) rotate(360deg); }
+        92.67% { transform: translateY(calc(var(--hop) * 0.00)) rotate(360deg); animation-timing-function: cubic-bezier(0.2, 0.7, 0.4, 1); }
+        95.83% { transform: translateY(calc(var(--hop) * -0.50)) rotate(360deg); animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.3); }
+        99% { transform: translateY(calc(var(--hop) * 0.00)) rotate(360deg); animation-timing-function: ease-in-out; }
+        100% { transform: translateY(0) rotate(360deg); }
+      }
+      @keyframes boot-squash {
+        0% { transform: scale(1.140, 0.840); }
+        2.33% { transform: scale(0.900, 1.120); }
+        8.33% { transform: scale(1.000, 1.000); }
+        13.33% { transform: scale(0.950, 1.060); }
+        14.67% { transform: scale(1.140, 0.840); }
+        16.67% { transform: scale(1.140, 0.840); }
+        19% { transform: scale(0.900, 1.120); }
+        25% { transform: scale(1.000, 1.000); }
+        30% { transform: scale(0.950, 1.060); }
+        31.33% { transform: scale(1.140, 0.840); }
+        33.33% { transform: scale(1.140, 0.840); }
+        35.67% { transform: scale(0.900, 1.120); }
+        41.67% { transform: scale(1.000, 1.000); }
+        46.67% { transform: scale(0.950, 1.060); }
+        48% { transform: scale(1.140, 0.840); }
+        50% { transform: scale(1.140, 0.840); }
+        52.67% { transform: scale(1.000, 1.000); }
+        58.33% { transform: scale(1.040, 0.970); }
+        64% { transform: scale(1.000, 1.000); }
+        65.67% { transform: scale(1.080, 0.920); }
+        66.67% { transform: scale(1.140, 0.840); }
+        69% { transform: scale(0.900, 1.120); }
+        75% { transform: scale(1.000, 1.000); }
+        80% { transform: scale(0.950, 1.060); }
+        81.33% { transform: scale(1.140, 0.840); }
+        83.33% { transform: scale(1.084, 0.904); }
+        84.33% { transform: scale(0.940, 1.072); }
+        87.5% { transform: scale(1.000, 1.000); }
+        90.67% { transform: scale(1.084, 0.904); }
+        91.67% { transform: scale(1.084, 0.904); }
+        92.67% { transform: scale(0.940, 1.072); }
+        95.83% { transform: scale(1.000, 1.000); }
+        99% { transform: scale(1.084, 0.904); }
+        100% { transform: scale(1.140, 0.840); }
+      }
+      @keyframes boot-floor {
+        0% { transform: scale(1.10); opacity: 1.00; }
+        2.33% { transform: scale(1.10); opacity: 1.00; }
+        8.33% { transform: scale(0.60); opacity: 0.50; }
+        14.33% { transform: scale(1.10); opacity: 1.00; }
+        16.67% { transform: scale(1.10); opacity: 1.00; }
+        19% { transform: scale(1.10); opacity: 1.00; }
+        25% { transform: scale(0.60); opacity: 0.50; }
+        31% { transform: scale(1.10); opacity: 1.00; }
+        33.33% { transform: scale(1.10); opacity: 1.00; }
+        35.67% { transform: scale(1.10); opacity: 1.00; }
+        41.67% { transform: scale(0.60); opacity: 0.50; }
+        47.67% { transform: scale(1.10); opacity: 1.00; }
+        50% { transform: scale(1.10); opacity: 1.00; }
+        58.33% { transform: scale(1.15); opacity: 1.00; }
+        66.67% { transform: scale(1.10); opacity: 1.00; }
+        69% { transform: scale(1.10); opacity: 1.00; }
+        75% { transform: scale(0.51); opacity: 0.43; }
+        81% { transform: scale(1.10); opacity: 1.00; }
+        83.33% { transform: scale(1.10); opacity: 1.00; }
+        87.5% { transform: scale(0.85); opacity: 0.75; }
+        90.67% { transform: scale(1.10); opacity: 1.00; }
+        91.67% { transform: scale(1.10); opacity: 1.00; }
+        95.83% { transform: scale(0.85); opacity: 0.75; }
+        99% { transform: scale(1.10); opacity: 1.00; }
+        100% { transform: scale(1.1); opacity: 1; }
+      }
+      #boot[data-boot] { pointer-events: none; }
+      #boot[data-boot] .boot-count, #boot[data-boot] .boot-name, #boot[data-boot] .boot-floor {
+        opacity: 0; animation: none; transition: opacity 140ms ease-in; }
+      #boot[data-lift]::before { transform: translateY(-100%); transition: transform 520ms cubic-bezier(0.76, 0, 0.24, 1); }
+      html[data-boot] #boot[data-boot="out"] { opacity: 0; transition: opacity 200ms cubic-bezier(0.4, 0, 0.2, 1); }
+      html[data-boot] #boot[data-quick][data-boot="out"] { transition-duration: 160ms; }
+      #boot[data-lift]:not([data-carried]) .boot-stage, #boot[data-boot="out"]:not([data-carried]) .boot-stage { opacity: 0; transform: scale(0.9);
+        transition: opacity 140ms ease-in, transform 140ms ease-in; }
+      @keyframes boot-breathe { 50% { opacity: 0.45; } }
+      html[data-motion="reduced"] .boot-hop, html[data-motion="reduced"] .boot-mark { animation: none; }
+      html[data-motion="reduced"] .boot-eyes { animation: none; }
+      html[data-motion="reduced"] .boot-floor { animation: boot-breathe 1600ms ease-in-out infinite; }
+      html[data-motion="reduced"] .boot-name path { animation: none; fill-opacity: 1; stroke-dashoffset: 0; }
+      html[data-motion="reduced"] #boot[data-lift]::before { transform: none; }
+      html[data-motion="reduced"] #boot[data-boot="out"]:not([data-carried]) .boot-stage { transform: none; }
+      html[data-motion="reduced"][data-boot] #boot[data-boot="out"] { transition: opacity 160ms ease-out; }
+    </style>
   </head>
   <body>
     <div id="root"></div>
+    <div id="boot">
+      <div class="boot-stage">
+        <div class="boot-air"></div>
+        <div class="boot-hop">
+          <div class="boot-mark" id="boot-mark">
+            <svg class="boot-static" viewBox="0 0 64 64" aria-hidden="true">
+              <defs>
+                <radialGradient id="boot-berry" cx="33%" cy="27%" r="84%"><stop offset="0%" stop-color="#a8c6ff"/><stop offset="28%" stop-color="#3a66e0"/><stop offset="66%" stop-color="#1c3c9e"/><stop offset="100%" stop-color="#0a1a4f"/></radialGradient>
+                <linearGradient id="boot-calyx" x1="0.3" y1="0" x2="0.7" y2="1"><stop offset="0%" stop-color="#2f5ad4"/><stop offset="100%" stop-color="#0f2462"/></linearGradient>
+                <path id="boot-lobe" d="M0 -11 C2.8 -6.7 3.7 -2.8 2.6 0 C1.6 2.2 -1.6 2.2 -2.6 0 C-3.7 -2.8 -2.8 -6.7 0 -11 Z"/>
+              </defs>
+              <circle cx="32" cy="34" r="23" fill="url(#boot-berry)"/>
+              <ellipse cx="19" cy="26" rx="6" ry="4.1" fill="#fff" opacity="0.26" transform="rotate(-30 19 26)"/>
+              <g fill="url(#boot-calyx)" transform="translate(32 15.5) scale(1 0.62)"><use href="#boot-lobe"/><use href="#boot-lobe" transform="rotate(72)"/><use href="#boot-lobe" transform="rotate(144)"/><use href="#boot-lobe" transform="rotate(216)"/><use href="#boot-lobe" transform="rotate(288)"/><circle r="3.6" fill="#14266e"/></g>
+              <g class="boot-eyes"><ellipse cx="23.5" cy="33" rx="3.2" ry="5.7" fill="#0b0b14"/><ellipse cx="40.5" cy="33" rx="3.2" ry="5.7" fill="#0b0b14"/>
+              <ellipse cx="22.4" cy="30.4" rx="1" ry="1.5" fill="#fff" opacity="0.9"/><ellipse cx="39.4" cy="30.4" rx="1" ry="1.5" fill="#fff" opacity="0.9"/></g>
+              <path d="M26.5 42.4 Q32 46.2 37.5 42.4" fill="none" stroke="#0b0b14" stroke-width="2.2" stroke-linecap="round"/>
+            </svg>
+          </div>
+        </div>
+        <div class="boot-floor"></div>
+        <p class="boot-slow" id="boot-slow" hidden>Slow connection. Still loading.</p>
+        <p class="boot-sr" id="boot-word" role="status">Getting ready</p>
+      </div>
+      <p class="boot-name" aria-hidden="true"><svg viewBox="0 0 4528 990"><path pathLength="1" style="--i:0" d="M376 771Q319 771 275 743Q230 716 216 671L227 630V679Q227 723 205 746Q182 769 140 769Q97 769 74 746Q52 723 52 679V136Q52 92 75 69Q98 46 140 46Q183 46 206 69Q230 92 230 136V350H218Q233 309 277 283Q321 257 376 257Q440 257 488 288Q537 319 564 376Q591 433 591 514Q591 593 564 651Q537 709 488 740Q440 771 376 771ZM320 640Q347 640 368 627Q388 613 400 586Q412 558 412 514Q412 447 386 418Q360 388 320 388Q293 388 272 401Q251 414 239 442Q227 469 227 514Q227 580 253 610Q279 640 320 640Z"/><path pathLength="1" style="--i:1" d="M839 771Q743 771 697 720Q652 668 652 564V136Q652 92 675 69Q698 46 740 46Q783 46 806 69Q830 92 830 136V558Q830 595 844 612Q859 629 882 629Q889 629 897 627Q904 626 913 625Q930 625 939 638Q947 651 947 691Q947 726 933 743Q919 761 890 766Q882 767 867 769Q852 771 839 771Z"/><path pathLength="1" style="--i:2" d="M1164 771Q1100 771 1059 748Q1018 724 997 677Q977 630 977 558V348Q977 304 1000 281Q1023 259 1066 259Q1109 259 1132 281Q1155 304 1155 348V563Q1155 599 1170 617Q1185 635 1217 635Q1253 635 1276 609Q1299 583 1299 540V348Q1299 304 1322 281Q1345 259 1388 259Q1431 259 1454 281Q1477 304 1477 348V679Q1477 769 1391 769Q1349 769 1326 746Q1303 723 1303 679V621L1319 670Q1297 719 1258 745Q1218 771 1164 771Z"/><path pathLength="1" style="--i:3" d="M1829 771Q1739 771 1674 740Q1608 708 1573 650Q1538 592 1538 513Q1538 437 1571 380Q1605 322 1664 289Q1722 257 1797 257Q1852 257 1897 274Q1942 292 1974 326Q2006 359 2023 406Q2039 453 2039 511Q2039 531 2028 541Q2017 550 1993 550H1687V466H1909L1893 479Q1893 442 1883 419Q1873 396 1853 384Q1834 372 1805 372Q1774 372 1751 387Q1729 401 1717 429Q1705 457 1705 499V508Q1705 579 1736 609Q1768 640 1834 640Q1856 640 1884 635Q1913 629 1939 619Q1965 609 1984 615Q2003 622 2014 637Q2024 653 2025 672Q2026 692 2016 711Q2006 729 1983 739Q1948 755 1909 763Q1869 771 1829 771Z"/><path pathLength="1" style="--i:4" d="M2420 771Q2363 771 2319 743Q2274 716 2260 671L2271 630V679Q2271 723 2249 746Q2226 769 2184 769Q2141 769 2118 746Q2096 723 2096 679V136Q2096 92 2119 69Q2142 46 2184 46Q2227 46 2250 69Q2274 92 2274 136V350H2262Q2277 309 2321 283Q2365 257 2420 257Q2484 257 2532 288Q2581 319 2608 376Q2635 433 2635 514Q2635 593 2608 651Q2581 709 2532 740Q2484 771 2420 771ZM2364 640Q2391 640 2412 627Q2432 613 2444 586Q2456 558 2456 514Q2456 447 2430 418Q2404 388 2364 388Q2337 388 2316 401Q2295 414 2283 442Q2271 469 2271 514Q2271 580 2297 610Q2323 640 2364 640Z"/><path pathLength="1" style="--i:5" d="M2964 771Q2874 771 2809 740Q2743 708 2708 650Q2673 592 2673 513Q2673 437 2706 380Q2740 322 2799 289Q2857 257 2932 257Q2987 257 3032 274Q3077 292 3109 326Q3141 359 3158 406Q3174 453 3174 511Q3174 531 3163 541Q3152 550 3128 550H2822V466H3044L3028 479Q3028 442 3018 419Q3008 396 2988 384Q2969 372 2940 372Q2909 372 2886 387Q2864 401 2852 429Q2840 457 2840 499V508Q2840 579 2871 609Q2903 640 2969 640Q2991 640 3019 635Q3048 629 3074 619Q3100 609 3119 615Q3138 622 3149 637Q3159 653 3160 672Q3161 692 3151 711Q3141 729 3118 739Q3083 755 3044 763Q3004 771 2964 771Z"/><path pathLength="1" style="--i:6" d="M3322 769Q3278 769 3254 746Q3231 723 3231 679V348Q3231 305 3253 282Q3276 259 3318 259Q3360 259 3382 282Q3404 305 3404 348V389H3394Q3404 329 3445 294Q3487 259 3549 257Q3578 256 3592 272Q3607 287 3608 329Q3608 365 3593 386Q3578 407 3536 411L3513 413Q3460 418 3436 442Q3412 467 3412 515V679Q3412 723 3389 746Q3366 769 3322 769Z"/><path pathLength="1" style="--i:7" d="M3736 769Q3692 769 3668 746Q3645 723 3645 679V348Q3645 305 3667 282Q3690 259 3732 259Q3774 259 3796 282Q3818 305 3818 348V389H3808Q3818 329 3859 294Q3901 259 3963 257Q3992 256 4006 272Q4021 287 4022 329Q4022 365 4007 386Q3992 407 3950 411L3927 413Q3874 418 3850 442Q3826 467 3826 515V679Q3826 723 3803 746Q3780 769 3736 769Z"/><path pathLength="1" style="--i:8" d="M4202 949Q4171 949 4152 933Q4133 917 4128 891Q4124 865 4137 836L4204 691V763L4033 372Q4020 342 4025 316Q4029 290 4051 274Q4073 259 4111 259Q4143 259 4162 273Q4182 288 4198 330L4298 590H4264L4370 329Q4386 288 4407 274Q4427 259 4462 259Q4492 259 4510 274Q4528 290 4532 316Q4536 342 4523 372L4296 882Q4278 922 4256 935Q4235 949 4202 949Z"/></svg></p>
+      <div class="boot-count" role="progressbar" aria-label="Loading Blueberry" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="0 percent, Getting ready"><div class="boot-win"><div class="boot-strip" id="boot-strip"><span>0</span></div></div></div>
+    </div>
+    <script>
+      // Drives #boot: the count, the handoff, and the warm open from inside the
+      // site. Loader.tsx reports the two milestones only the game knows and
+      // explains the rest.
+      (function () {
+        var d = document.documentElement, el = document.getElementById('boot'), root = document.getElementById('root');
+        if (!el || !root) return;
+        var APP = /^#\/app(?:[\/?]|$)/, P = window.performance;
+        var MIN_MS = 900, CAP_MS = 15000, HOLD_MS = 200, FLY_MS = 640, LIFT_AT = 90, LIFT_MS = 520, ROW = 1;
+        // A load whose app was ready inside FAST_MS gets a shorter reveal: settle, run to 100,
+        // hold and fade all shrink, Bloom's flight stays. On good wifi the full ceremony
+        // was longer than the load itself (owner picked this, 2026-10-16).
+        var FAST_MS = 1500, quick = false;
+        var QUICK_MS = 80, SLOW_MIN = 250, SLOW_MAX = 700;
+        var ORDER = ['parsed', 'entry', 'game', 'ready', 'settled'];
+        var W = { parsed: 5, entry: 25, game: 30, ready: 30, settled: 10 };
+        var FIRST_WORD = 'Getting ready';
+        var hold = /[?&]boot=hold(?:&|$)/.test(location.search);
+        var strip = document.getElementById('boot-strip'), word = document.getElementById('boot-word'), slow = document.getElementById('boot-slow');
+        var meter = el.querySelector('[role="progressbar"]');
+        var rows = '';
+        for (var i = 0; i <= 100; i++) rows += '<span>' + i + '</span>';
+        strip.innerHTML = rows;
+        var up = false, run = 0, got = {}, finished = false, closing = false, capped = false, middle = '', live = false, reduced = false;
+        var anim = null, segs = [], planAt = 0, at = 0, t0 = 0, ariaTimer = 0, capTimer = 0, seen = 0, base = 0, bump = 0;
+        var entered = document.readyState !== 'loading';
+        function wordFor(v) {
+          if (v >= 100) return 'Ready';
+          if (v >= 90) return 'Almost there';
+          if (capped) return 'Slow connection, still loading';
+          if (v >= 60) return middle || FIRST_WORD;
+          return FIRST_WORD;
+        }
+        function say(v) {
+          var w = wordFor(v);
+          if (word.textContent !== w) word.textContent = w;
+          meter.setAttribute('aria-valuenow', String(v));
+          meter.setAttribute('aria-valuetext', v + ' percent, ' + w);
+        }
+        function paint(v) { strip.style.transform = 'translateY(' + -ROW * v + 'em)'; }
+        function current() {
+          if (!anim) return at;
+          var t = P.now() - planAt, v = at;
+          for (var i = 0; i < segs.length; i++) {
+            var s = segs[i];
+            if (t < s.ms) return v + Math.floor((s.to - v) * t / s.ms);
+            t -= s.ms; v = s.to;
+          }
+          return v;
+        }
+        function stop() {
+          var v = current();
+          if (anim) anim.cancel();
+          anim = null; segs = []; at = v; paint(v);
+          return v;
+        }
+        function animate(out, done) {
+          var total = 0, keys = [], time = 0, from = at;
+          for (var i = 0; i < out.length; i++) total += out[i].ms;
+          for (i = 0; i <= out.length; i++) {
+            var val = i === 0 ? from : out[i - 1].to, k = { offset: time / total, transform: 'translateY(' + -ROW * val + 'em)' };
+            if (i < out.length) { k.easing = 'steps(' + (out[i].to - val) + ', end)'; time += out[i].ms; }
+            keys.push(k);
+          }
+          segs = out; planAt = P.now();
+          anim = strip.animate(keys, { duration: total, fill: 'forwards' });
+          if (done) anim.onfinish = done;
+        }
+        function plan(fromFiles) {
+          if (closing) return;
+          var sum = 0, next = 0;
+          for (var i = 0; i < ORDER.length; i++) {
+            if (got[ORDER[i]]) sum += W[ORDER[i]]; else if (!next) next = W[ORDER[i]];
+          }
+          var top = sum + next - 1;
+          var low = Math.min(top, sum + Math.floor(next * 0.5 * (1 - Math.exp((base - seen) / 40))));
+          if (fromFiles && live && low <= current()) return;
+          var v = stop();
+          if (!live) { at = Math.max(v, sum); paint(at); say(at); if (sum >= 100) finish(); return; }
+          say(v);
+          var out = [];
+          if (sum >= 100) {
+            if (v < 100) out.push({ to: 100, ms: quick ? Math.min(200, (100 - v) * 8) : Math.min(400, (100 - v) * 15) });
+          } else {
+            var from = v, spent = 0;
+            if (low > from) { out.push({ to: low, ms: Math.min(500, (low - from) * 25) }); spent += out[out.length - 1].ms; from = low; }
+            var quick = Math.min(top, sum + Math.floor(next * 0.4));
+            if (quick > from) { out.push({ to: quick, ms: (quick - from) * QUICK_MS }); spent += out[out.length - 1].ms; from = quick; }
+            if (top > from) {
+              var left = t0 + (capped ? 2 : 1) * CAP_MS - P.now() - spent;
+              var unit = Math.max(SLOW_MIN, Math.min(SLOW_MAX, left / (top - from)));
+              out.push({ to: top, ms: (top - from) * unit });
+            }
+          }
+          if (!out.length) { if (sum >= 100) finish(); return; }
+          animate(out, sum >= 100 ? finish : null);
+        }
+        function finish() {
+          if (finished || hold) return;
+          finished = true;
+          var mine = run;
+          setTimeout(function () { if (run === mine) reveal(); }, Math.max(quick ? 0 : HOLD_MS, MIN_MS - (P.now() - t0)));
+        }
+        function free() {
+          root.inert = false;
+          root.removeAttribute('aria-hidden');
+        }
+        function close(shown) {
+          up = false; closing = false; run++; stop();
+          clearInterval(ariaTimer); clearTimeout(capTimer);
+          d.removeAttribute('data-boot'); el.removeAttribute('data-boot'); el.removeAttribute('data-carried'); el.removeAttribute('data-quick'); el.removeAttribute('data-lift');
+          var hop = el.querySelector('.boot-hop'), mark = document.getElementById('boot-mark');
+          hop.style.animation = hop.style.transform = mark.style.animation = mark.style.transform = mark.style.filter = '';
+          if (stand) { stand.style.opacity = ''; stand = null; }
+          free();
+          if (shown && el.parentNode) el.parentNode.removeChild(el);
+          window.dispatchEvent(new Event('blueberry:boot-gone'));
+        }
+        function reveal(force) {
+          if (!up || closing) return;
+          var mine = run;
+          if (!force && !shown()) { setTimeout(function () { if (run === mine) reveal(); }, 100); return; }
+          closing = true;
+          clearInterval(ariaTimer); clearTimeout(capTimer);
+          var v = stop();
+          if (v >= 100 || !live) { at = 100; paint(100); say(100); handoff(mine); return; }
+          animate([{ to: 100, ms: Math.min(700, (100 - v) * 20) }], function () {
+            say(100);
+            setTimeout(function () { handoff(mine); }, quick ? 0 : HOLD_MS);
+          });
+        }
+        function bloomTarget() {
+          var list = root.querySelectorAll('.berry-origin'), best = null, area = 0;
+          for (var i = 0; i < list.length; i++) {
+            var r = list[i].getBoundingClientRect();
+            if (r.width < 36 || r.bottom <= 0 || r.right <= 0 || r.top >= innerHeight || r.left >= innerWidth) continue;
+            if (getComputedStyle(list[i]).visibility === 'hidden') continue;
+            if (r.width * r.height > area) { area = r.width * r.height; best = list[i]; }
+          }
+          return best;
+        }
+        function body(node) {
+          var c = node.querySelector('circle[r="23"][fill^="url"]'), was = node.style.transform;
+          node.style.transform = 'none';
+          var r = (c || node).getBoundingClientRect();
+          node.style.transform = was;
+          return { x: r.left + r.width / 2, y: r.top + r.height / 2, d: c ? r.width : r.width * 46 / 64 };
+        }
+        var home = null, stand = null;
+        function carry(target) {
+          var hop = el.querySelector('.boot-hop'), mark = document.getElementById('boot-mark');
+          var hopNow = getComputedStyle(hop).transform, markNow = getComputedStyle(mark).transform;
+          hop.style.animation = 'none'; mark.style.animation = 'none';
+          hop.style.transform = 'none'; mark.style.transform = 'none';
+          var box = hop.getBoundingClientRect();
+          home = { cx: box.left + box.width / 2, cy: box.top + box.height / 2, b: body(mark) };
+          el.setAttribute('data-carried', ''); el.setAttribute('data-boot', 'carry');
+          var t = body(target), s = t.d / home.b.d;
+          var x = t.x - home.cx - s * (home.b.x - home.cx), y = t.y - home.cy - s * (home.b.y - home.cy);
+          var end = 'translate(' + x + 'px, ' + y + 'px) scale(' + s + ')';
+          var peak = Math.min(0, y) - Math.max(56, innerHeight * 0.1);
+          hop.style.transform = end;
+          // The real mascot waits out of sight until Bloom lands on it, or the lift shows two.
+          stand = target; target.style.opacity = '0';
+          var ring = getComputedStyle(target).filter;
+          mark.style.filter = ring === 'none' ? '' : ring.replace(/(-?[\d.]+)px/g, function (m, n) { return n / s + 'px'; });
+          mark.animate([{ transform: markNow === 'none' ? 'none' : markNow }, { transform: 'none' }], { duration: 200, easing: 'ease-out' });
+          return hop.animate([
+            { transform: hopNow === 'none' ? 'none' : hopNow, easing: 'cubic-bezier(0.2, 0.7, 0.4, 1)' },
+            { offset: 0.42, transform: 'translate(' + x * 0.4 + 'px, ' + peak + 'px) scale(' + (1 + s) / 2 + ') rotate(-8deg)', easing: 'cubic-bezier(0.55, 0, 0.85, 0.35)' },
+            { transform: end },
+          ], { duration: FLY_MS });
+        }
+        function land() {
+          document.getElementById('boot-mark').animate(
+            [{ transform: 'scale(1.14, 0.84)' }, { transform: 'scale(0.96, 1.05)', offset: 0.5 }, { transform: 'none' }],
+            { duration: 220, easing: 'ease-out' });
+        }
+        function handoff(mine) {
+          if (run !== mine) return;
+          free();
+          function fade() {
+            if (run !== mine) return;
+            if (stand) { stand.style.opacity = ''; stand = null; }
+            el.setAttribute('data-boot', 'out');
+            setTimeout(function () { if (run === mine) close(true); }, (reduced ? 160 : quick ? 160 : 200) + 20);
+          }
+          if (reduced) { el.offsetWidth; fade(); return; }
+          var target = bloomTarget();
+          setTimeout(function () { if (run === mine) el.setAttribute('data-lift', ''); }, target ? LIFT_AT : 0);
+          if (!target) {
+            el.setAttribute('data-boot', 'carry');
+            setTimeout(function () { if (run === mine) close(true); }, LIFT_MS + 20);
+            return;
+          }
+          carry(target).onfinish = function () {
+            if (run !== mine) return;
+            land();
+            setTimeout(fade, 220);
+          };
+        }
+        function leave() {
+          if (up) close(el.hasAttribute('data-boot'));
+        }
+        function step(k) {
+          if (!up || got[k] || closing) return;
+          got[k] = true; base = seen;
+          if (k === 'ready') { quick = P.now() - t0 < FAST_MS; if (quick) el.setAttribute('data-quick', ''); settle(); }
+          plan();
+        }
+        function gateUp() { return !!root.querySelector('[aria-busy].fixed.inset-0'); }
+        function painted() { return root.childElementCount > 0 && !!root.innerText.trim(); }
+        function shown() {
+          if (gateUp() || !painted()) return false;
+          return !!got.ready || P.now() - t0 > 2 * CAP_MS;
+        }
+        function settle() {
+          var mine = run, start = 0, clear = 0, last = 0, smooth = 0;
+          function frame(now) {
+            if (run !== mine || got.settled) return;
+            if (!start) start = now;
+            if (!clear && !gateUp()) clear = now;
+            if (clear) { smooth = last && now - last < 25 ? smooth + 1 : 0; last = now; }
+            if (clear && (smooth >= 4 || now - clear > (quick ? 150 : 400))) step('settled'); else requestAnimationFrame(frame);
+          }
+          requestAnimationFrame(frame);
+        }
+        function open() {
+          if (up) return;
+          var again = run > 0;
+          up = true; run++; finished = false; closing = false; capped = false; quick = false; middle = ''; anim = null; segs = []; at = 0;
+          got = { parsed: true }; if (entered) got.entry = true;
+          if (again) at = W.parsed + (entered ? W.entry : 0);
+          reduced = d.getAttribute('data-motion') === 'reduced';
+          live = typeof strip.animate === 'function';
+          t0 = P.now(); base = seen; slow.hidden = true; paint(at); say(at);
+          d.setAttribute('data-boot', ''); el.removeAttribute('data-boot');
+          root.inert = true; root.setAttribute('aria-hidden', 'true');
+          ariaTimer = setInterval(function () { say(current()); }, 400);
+          if (!hold) capTimer = setTimeout(function () { capped = true; slow.hidden = false; plan(); reveal(); }, CAP_MS);
+          plan();
+        }
+        try {
+          new PerformanceObserver(function (list) {
+            seen += list.getEntries().length;
+            if (up && !bump) bump = setTimeout(function () { bump = 0; if (up) plan(true); }, 250);
+          }).observe({ type: 'resource', buffered: true });
+        } catch (e) {}
+        window.__blueberryBoot = function (k, text) {
+          if (!up) return;
+          if (k === 'game' && text) middle = text;
+          step(k);
+        };
+        window.__blueberryBootRelease = function () { hold = false; reveal(true); };
+        if (!entered) document.addEventListener('DOMContentLoaded', function () { entered = true; step('entry'); });
+        var wasApp = APP.test(location.hash);
+        window.addEventListener('hashchange', function () {
+          var isApp = APP.test(location.hash);
+          if (isApp && !wasApp && el.parentNode) open();
+          else if (!isApp) leave();
+          wasApp = isApp;
+        });
+        // A cold open counts its floor from navigation, not from this line.
+        if (d.hasAttribute('data-boot')) { open(); t0 = 0; }
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
