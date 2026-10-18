@@ -76,7 +76,10 @@ six Bloom moves, hand-written wordmark, jump / curtain lift / land exit.
    always open. Passing lights up the section and moves the progress bar.
 3. Rewards: start nobody at zero. An onboarding gift chest (random diamonds + XP). XP as a learning
    metric seen in lessons and on the leaderboard, with Duolingo-style XP animations and Bloom
-   reactions.
+   reactions. Same evening: redo the diamond animation, the energy (charge) bar, and add an XP
+   bar that tracks XP (this is A4 HUD below).
+3b. Guide tabs for every current unit (only u0 and u1 have one; u2 and u7 to u10 have content
+   and no guide). Quiz questions to draw on the owner's class problem sets (path pending).
 4. Admin view: toggle Member / Pro (and ads for Member, owner wants ad revenue) to preview each
    plan; admin role comes from the same Supabase roster as the site (Kai Walsh signs in on
    Blueberry and is admin in the app too). The plan switch is a view, never a grant.
