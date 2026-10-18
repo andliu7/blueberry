@@ -122,10 +122,12 @@ export function SiteNav({ route, pill, account }: { route: string; pill: ReactNo
         <div className={cn(SITE_CONTAINER, "flex h-[60px] items-center gap-2")}>
           {/* The berry with the name beside it, so the left edge has an anchor
               instead of a lone 32px dot 400px from the tabs. The link's words
-              are the wordmark, so a screen reader hears "Blueberry". */}
+              are the wordmark, so a screen reader hears "Blueberry". In the same white
+              card with an outline and lip as the game's rail logo (owner, 17 Oct); at
+              night the face keeps the card colour so the pale wordmark stays legible. */}
           <a
             href="#/"
-            className="-ml-1.5 flex min-h-11 shrink-0 items-center gap-2 rounded-full pr-2 pl-1.5"
+            className="flex min-h-11 shrink-0 items-center gap-2 rounded-xl border-2 border-[#2a1d7a] bg-white py-1 pr-3 pl-1.5 shadow-[0_3px_0_#2a1d7a] transition-[transform,box-shadow] duration-200 hover:-translate-y-px hover:shadow-[0_4px_0_#2a1d7a] active:translate-y-[3px] active:shadow-none dark:border-[#9d8bff] dark:bg-card dark:shadow-[0_3px_0_#9d8bff]"
           >
             <BlueberryMark eyes className="size-8" />
             <span className="site-wordmark page-title text-xl leading-none text-[var(--bb-deep)]">Blueberry</span>

@@ -241,7 +241,9 @@
  * a link and every pressable there has one: it lifts 2px on hover, sinks into
  * the lip on press, and the card wobbles once (mark-dance, copied from
  * andliu-portfolio app/globals.css). Outline and lip are the word's deep tone:
- * #2a1d7a by day, #9d8bff at night.
+ * #2a1d7a by day, #9d8bff at night. The face is white by day (owner, 17 Oct:
+ * "make the frame around Blueberry white"); at night it keeps the card colour,
+ * since the word's night tones are pale and would vanish on white.
  */
 @media (min-width: 48rem) {
   .tabbar-brand {
@@ -256,7 +258,7 @@
     text-decoration: none;
     border: 2px solid var(--brand-frame);
     border-radius: 0.75rem;
-    background: var(--bb-card);
+    background: #fff;
     box-shadow: 0 4px 0 var(--brand-frame);
     transform-origin: 50% 100%;
     transition:
@@ -265,6 +267,7 @@
   }
   .dark .tabbar-brand {
     --brand-frame: #9d8bff;
+    background: var(--bb-card);
   }
   .tabbar-brand:focus-visible {
     outline: 3px solid var(--bb-primary);
