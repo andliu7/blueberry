@@ -6,8 +6,9 @@ need, not the file. Working with Andrew and the shell load from
 `../../CLAUDE.md`.
 
 ## Start here, read less
-- `documentation/STATUS.md` is current state in under 100 lines. Read it
-  before exploring
+- `documentation/STATUS.md` is current state and THE QUEUE. Next session:
+  start at its "ORDERED QUEUE, 17 Oct night" block and work it top to bottom
+  (the owner plans to run it as a gauntlet loop); ask on any item marked ASK
 - Big docs by section: Grep the heading, Read that range.
   `TRAINER-INVENTORY.md` ~1,900 lines, `COURSE-OUTLINE-ORGO2.md` ~770
 - Never open `docs/`, `dist/` or `.gauntlet/`: build output and

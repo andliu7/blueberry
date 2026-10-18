@@ -5,7 +5,9 @@ no detail that has a better home. Keep it thin and keep it current.
 
 ## Queue, 2026-10-17 (the to-do list; keep it current)
 
-Nothing is committed; the owner pushes himself. `tsc` clean, `npm run build` passes, Learn tests
+Since the night of 17 Oct, Claude commits and pushes to `main` when the owner asks (it deploys).
+**Resume at "ORDERED QUEUE, 17 Oct night" below.** 5 game tests red since f980ab9 (checkpoint
+counts, move counts, branch density, unit walls, ladder table): fix first, never loosen. `tsc` clean, `npm run build` passes, Learn tests
 324/324 as of 17 Oct. Overnight run 17 Oct: Unit 1 upgrades + Unit 2 draft (progress page:
 the f142b2c5 session scratchpad `progress.html`; the 16 Oct page is `progress-oct16.html`).
 
@@ -66,7 +68,7 @@ six Bloom moves, hand-written wordmark, jump / curtain lift / land exit.
 - Later: merch, e.g. printed flashcard sets shipped to students (needs a print and shipping
   vendor; not before the shop works).
 
-**Owner brief, 17 Oct evening (building now: items 1 to 4; the rest queued)**
+**Owner brief, 17 Oct evening (PAUSED by the owner the same night; still queued, see the ordered queue below)**
 1. Unit 1 test-outs, Duolingo style: each section's treasure chest node is always open and is a
    10 to 15 question quiz over that section, harder each section, the last the hardest. Mix of
    drag-and-drop, matching and MCQ; conceptual, light on nomenclature (molecules shown as
@@ -90,6 +92,73 @@ six Bloom moves, hand-written wordmark, jump / curtain lift / land exit.
    acid, an allylic carbocation...), reagents around it (Grignard, halogenation...), products
    beyond; zoom in and out.
 7. QUEUED, not yet: an organic chemistry 1 course after the Orgo 2 units are done.
+
+**ORDERED QUEUE, 17 Oct night (owner: "queue these in the order you see fit"; a gauntlet loop
+works this top to bottom; the evening brief above and the older items fold in where noted)**
+
+Wave 1, quick fixes (small, visible, low risk)
+1. Learn > Start > "Practice this unit": the owner says the word should end in S ("practise").
+   ASK before changing: US English uses "practice" for both noun and verb; confirm which he wants.
+2. Unit 1 sheet on the path: drop the dark purple square-cornered rectangle behind it; add a line
+   that the course is free for now and will be paid later.
+3. Courses picker: every course but Orgo 2 visibly not selectable, labelled "Not open yet"
+   (Organic Chemistry 1, Gen Chem, DAT, MCAT).
+4. Bloom on the path is pressable: a small jump (and a line from him) on tap.
+5. Text pass on path lessons: cut AI tells (padding, and over-clipped fragments); read as human.
+
+Wave 2, rewards and the HUD (folds in evening brief item 3 and A4)
+6. XP that visibly moves: award on every lesson, quiz and practice; an XP bar; Duolingo-style
+   +XP animation with Bloom. The owner finished tasks and saw no XP change.
+7. Energy bar redesign: not the circle ("looks ugly"); a bar that says why it matters (what a
+   lesson costs, when it refills).
+8. Chest opening: 2 to 3 taps, the box shakes, light grows behind it, it bursts open, light fills
+   the screen, several 3D diamonds hover a beat then fly into the top-right counter, which counts
+   up. Find references first (Clash Royale / Clash of Clans chests, Duolingo chest).
+9. Sound: coin/gem pickup (Clash of Clans-like but our own) and a correct-answer chime
+   (Duolingo-like, not a copy), with a Sound on/off setting. Build them with the island's
+   synthesized sound module (andliu-portfolio/island, `sound` in island/CONTRACT.md: tone() +
+   sfx.*), not audio files.
+10. Daily quests: three a day, two recurring (complete 2-3 lessons/quizzes; 30 minutes of
+   training) and one random (e.g. an XP doubler). XP ranks the leaderboard, daily and all time.
+
+Wave 3, accounts and the home screen
+11. A display name typed while signed out does not save: ask the person to sign in, then greet
+   "Welcome back, <their name>" with "pick up where you left off" (links to the path), and feed
+   notifications (friends' encouragement), quests and reminders. That is what the feed is for.
+12. Skip ahead: unlock a unit not yet started by testing out (evening brief items 1-2).
+
+Wave 4, cards and starter reactions
+13. Starter reactions feel like a separate app: keep the feel, make it cohesive with the shell.
+14. Glossary of every compound on the cards (acetophenone, benzoic acid, benzyl chloride, methyl
+   benzoate, buta-1,3-diene, ...): structure (RDKit), name, and WHY it is named that way (-oic
+   acid, -one = ketone, phen- = the benzene ring, aceto- = the acetyl part), plus the owner's
+   lecture point on substituent reactivity (EWG / EDG). An info icon on each molecule opens it.
+15. The dashed "?" box under each card: replace with an arrow (it is a reaction) and a specific
+   prompt ("What forms?" / "Which reagent?").
+16. Answers on the product side: a name, a formula, or a drawing. Keep the Ketcher editor; add a
+   scratchpad for finger / Apple Pencil (iPad), and try turning a sketch into a close molecule
+   in the editor (research spike first; may be hard).
+
+Wave 5, lessons
+17. Prediction revisit: at the end, "Here was your prediction. Still agree?" yes/no, then right or
+   wrong with the reason, or ask for feedback; the map step after it, made cohesive (today it
+   does not match).
+18. Practice inside Learn: trim empty space so a question fits one phone screen.
+19. Double bonds: the second line on the INNER side of the angle, parallel to the single bond,
+   the skeleton unchanged (careful: a fix here can make it worse; measure before and after).
+20. Decide where a flagged question goes (owner likes flagging; destination undecided).
+
+Wave 6, polish
+21. Pathway supernova: a bright four-point star flash that closes to a red or blue glow with a
+   slight ripple (today it does not read as a supernova).
+22. Site footer like andliu.dev; "Find me" as GitHub / LinkedIn / email logos that expand into
+   words on hover; make FAQ easier to find (he likes that page; maybe recolour later).
+
+Kept, owner likes (do not regress): the progress bar, lesson progression, the lesson guide, the
+map, predictions up front, numbered carbons, flagging, full screen on iPad, the selecting
+interaction in practice.
+
+Also queued earlier tonight: the iPhone preview for Netlify is at `grignard/iphone-preview`.
 
 **Later, by owner decision (17 Oct)**: native apps via Capacitor (Android Studio + emulator with
 live reload; iOS needs a Mac or a cloud Mac), after Unit 1 is solid. No Kotlin/Swift rewrite.
