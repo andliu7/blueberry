@@ -93,6 +93,25 @@ six Bloom moves, hand-written wordmark, jump / curtain lift / land exit.
    beyond; zoom in and out.
 7. QUEUED, not yet: an organic chemistry 1 course after the Orgo 2 units are done.
 
+**Calibration, 18 Oct (run before the loop; full reports in `grignard/reports/calibration-2026-10-18/`,
+outside the repo; 05_user_report.md is the one to read). Do these BEFORE Wave 1:**
+- D1 make the 5 red tests pass (pathwayState, nodeDifficulty, checkpointStakes, pathwayBranchDensity,
+  beatRunner) by fixing code or regenerating numbers, never by editing the tests.
+- D2 the budget validators point at `apps/web`, gone since 09-08 (`packages/validators/src/measure/web-app.ts:47`),
+  so they never run; CI only builds. Point them at `src/game`; add vitest + validators to deploy.yml
+  before deploy. OWNER OK NEEDED (it can block deploys).
+- D3 `#/app` cold load measured ~585 KB gz vs the 400 KB row; re-measure once D2 works, cut weight before W8/W9/W21.
+- D4 36 tap targets under 44 px across 9 controls (`measurements/hit-targets.mjs` exit 1); fix, rerun after W7/W18/W22.
+- D6 every new guide/glossary file (W14, EB3b) ships with an RDKit byte-match test like `guideU1.test.ts`.
+- Also: D5 keep leaderboard/social/shop flagged off until server tables + RLS exist; D10 contrast audit
+  crashes on `#/` (boot settle); D7 W12 = EB1+EB2 and W6 = EB3 = A4, build once; onPointerDown is in 43
+  files, not 34; W3 mostly built; W1 already reads "Practise this unit" (see Q8).
+- OPEN OWNER QUESTIONS (Q2-Q14 in the report): real-money freezes vs ECONOMY (75 diamonds, "not buyable");
+  Shop tab vs Shop inside Me (OPEN-QUESTIONS:305); XP doubler / random XP chest vs the flat XP table;
+  leaderboard windows; Capacitor vs the rulebook's Expo/EAS; keep or delete the structure/ranking/reagents
+  answer shapes (rulebook 385-399); payload: cut or raise; default goal tier with onboarding skipped;
+  guideU1 timeout; copying the island sound module; "paid later" copy timing; orgo_1 "Opening next".
+
 **ORDERED QUEUE, 17 Oct night (owner: "queue these in the order you see fit"; a gauntlet loop
 works this top to bottom; the evening brief above and the older items fold in where noted)**
 
