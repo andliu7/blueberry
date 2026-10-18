@@ -443,7 +443,22 @@ function applyBetaFlags(snapshot: ProgressSnapshot): ProgressSnapshot {
 /** A fixed stamp, so a beta unlock never looks like a real completion date. */
 const BETA_COMPLETED_AT = "1970-01-01T00:00:00.000Z";
 
-function project(stored: StoredProgress, receipt: Receipt | null, now: string): ProgressSnapshot {
+/**
+ * Onboarding is skipped (owner, 17 Oct): a first visit lands on the path, not the placement
+ * quiz. The path keys everything off the course, so a device that never picked one gets the
+ * first open course, the same default the beta unlock uses. The onboarding screens still exist
+ * at `#/app/start/...`; set this to false to send first visits through them again.
+ */
+const SKIP_ONBOARDING = true;
+
+function withDefaultCourse(stored: StoredProgress): StoredProgress {
+  if (!SKIP_ONBOARDING || stored.onboardingDone) return stored;
+  const course = stored.course ?? OPEN_COURSE_IDS[0] ?? null;
+  return course === null ? stored : { ...stored, course, onboardingDone: true };
+}
+
+function project(raw: StoredProgress, receipt: Receipt | null, now: string): ProgressSnapshot {
+  const stored = withDefaultCourse(raw);
   const economy = deriveEconomy(stored.journal, now, deriveOptions(stored.course));
   const days = new Set<string>();
   for (const event of stored.journal) {

@@ -1,8 +1,7 @@
 import { lazy, Suspense, useEffect, useState, type CSSProperties } from "react";
 import { Blueberry } from "@/components/ui/blueberry";
 import { useReducedMotionPref } from "@/lib/motionPref";
-import { prefetchEntry } from "@/lib/entryChunks";
-import { HERO, HOME_HEADLINE_FLIPS } from "@/data/site";
+import { HERO, HOME_HEADLINE_FLIPS, TRAINER_URL } from "@/data/site";
 
 /**
  * The hero's stage: Bloom beside a live mechanism board (home round 2). Its own chunk, so the
@@ -48,15 +47,11 @@ export function HomeHero({ entered }: { entered: boolean }) {
       <div className="home-hero__rest">
         <p className="home-hero__sell">{HERO.sell}</p>
         <div className="home-hero__actions">
-          {/* The one filled button on the screen. Into the entry gate, which says what the
-              next two minutes hold before the first question (see EntryGate). */}
+          {/* The one filled button on the screen. Straight into the game: onboarding is
+              skipped (owner, 17 Oct), so this lands on the Unit 1 path. */}
           <a
-            href="#/enter"
+            href={TRAINER_URL}
             className="home-btn"
-            // Warm the next screen's chunk before the press lands (src/lib/entryChunks.ts).
-            onPointerEnter={prefetchEntry}
-            onFocus={prefetchEntry}
-            onTouchStart={prefetchEntry}
           >
             <span className="home-btn__face">{HERO.cta}</span>
             {/* The back face that rolls in on hover (motion.md item 3). A copy of the label

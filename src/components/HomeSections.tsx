@@ -2,8 +2,7 @@ import { useEffect, useRef, type CSSProperties } from "react";
 import { Hexagon, MessageSquareText, MoveUpRight } from "lucide-react";
 import { ELECTRON_FLOW_COPY } from "@blueberry/feedback";
 import { BlueberryMark } from "@/components/ui/blueberry-mark";
-import { HERO } from "@/data/site";
-import { prefetchEntry } from "@/lib/entryChunks";
+import { HERO, TRAINER_URL } from "@/data/site";
 import "./home-sections.css";
 
 /**
@@ -162,7 +161,7 @@ function Close() {
           <h2 id="home-close-title" className="home-close__title">
             Ready when you are.
           </h2>
-          <a href="#/enter" className="home-btn" onPointerEnter={prefetchEntry} onFocus={prefetchEntry} onTouchStart={prefetchEntry}>
+          <a href={TRAINER_URL} className="home-btn">
             <span className="home-btn__face">{HERO.cta}</span>
             <span className="home-btn__face home-btn__face--back" aria-hidden>
               {HERO.cta}

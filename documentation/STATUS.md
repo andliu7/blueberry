@@ -66,6 +66,28 @@ six Bloom moves, hand-written wordmark, jump / curtain lift / land exit.
 - Later: merch, e.g. printed flashcard sets shipped to students (needs a print and shipping
   vendor; not before the shop works).
 
+**Owner brief, 17 Oct evening (building now: items 1 to 4; the rest queued)**
+1. Unit 1 test-outs, Duolingo style: each section's treasure chest node is always open and is a
+   10 to 15 question quiz over that section, harder each section, the last the hardest. Mix of
+   drag-and-drop, matching and MCQ; conceptual, light on nomenclature (molecules shown as
+   structures, not names; ask properties, reactivity, K, Q, pKa). A little harder than the
+   lessons, e.g. a short multistep synthesis as a challenge item.
+2. A 20 question unit exam per unit, and skip to any unit at any time. Unit 1 always free; quizzes
+   always open. Passing lights up the section and moves the progress bar.
+3. Rewards: start nobody at zero. An onboarding gift chest (random diamonds + XP). XP as a learning
+   metric seen in lessons and on the leaderboard, with Duolingo-style XP animations and Bloom
+   reactions.
+4. Admin view: toggle Member / Pro (and ads for Member, owner wants ad revenue) to preview each
+   plan; admin role comes from the same Supabase roster as the site (Kai Walsh signs in on
+   Blueberry and is admin in the app too). The plan switch is a view, never a grant.
+5. QUEUED: build out the other units the same way, and cut token spend while doing it (the units
+   repeat one question style with added complexity, e.g. a Claisen unit: generate from shared
+   templates rather than writing each by hand).
+6. QUEUED: reaction maps. A circle with a reactant in the middle (ketone, aldehyde, carboxylic
+   acid, an allylic carbocation...), reagents around it (Grignard, halogenation...), products
+   beyond; zoom in and out.
+7. QUEUED, not yet: an organic chemistry 1 course after the Orgo 2 units are done.
+
 **Later, by owner decision (17 Oct)**: native apps via Capacitor (Android Studio + emulator with
 live reload; iOS needs a Mac or a cloud Mac), after Unit 1 is solid. No Kotlin/Swift rewrite.
 

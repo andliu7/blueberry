@@ -2,7 +2,6 @@ import { lazy, Suspense, useEffect, useRef, useState, type ComponentType, type R
 import { HomeHero } from "@/components/HomeHero";
 import { HomeLoader } from "@/components/HomeLoader";
 import { hasSeenIntro, markIntroSeen } from "@/lib/intro";
-import { prefetchEntry } from "@/lib/entryChunks";
 import "./home.css";
 
 /**
@@ -77,17 +76,6 @@ export function HomePage() {
       cancelAnimationFrame(outer);
       cancelAnimationFrame(inner);
     };
-  }, []);
-
-  // Once the page is idle, fetch the screens behind "Start the first lesson", so the press
-  // never waits on them (src/lib/entryChunks.ts). requestIdleCallback where it exists.
-  useEffect(() => {
-    if (typeof window.requestIdleCallback === "function") {
-      const id = window.requestIdleCallback(prefetchEntry, { timeout: 3000 });
-      return () => window.cancelIdleCallback(id);
-    }
-    const id = setTimeout(prefetchEntry, 1500);
-    return () => clearTimeout(id);
   }, []);
 
   return (
