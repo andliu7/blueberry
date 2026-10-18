@@ -8,6 +8,8 @@
 }
 
 .resume-prompt__card {
+  /* Sized to its content and centred: a card stretched to the stage's height is a box of nothing. */
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -21,7 +23,6 @@
   border-radius: 16px;
   background: var(--bb-card);
   text-align: center;
-  animation: resume-pop 320ms cubic-bezier(0.35, 1.8, 0.35, 0.83) both;
 }
 
 .resume-prompt__lesson {
@@ -60,22 +61,61 @@
   color: var(--bb-primary);
 }
 
-@keyframes resume-pop {
-  from {
-    transform: scale(0.94);
-    opacity: 0;
-  }
-  to {
-    transform: none;
-    opacity: 1;
-  }
+/* The same receipt in the pathway's node sheet, above CONTINUE (NodeSheet.tsx). */
+.ns-saved {
+  align-self: flex-start;
+  margin: 0 0 0.5rem;
+  font-size: 0.875rem;
 }
 
-.resume-prompt[data-motion="reduced"] .resume-prompt__card {
+/* The leave sheet (LeaveSheet.tsx) borrows the charge sheet's panel. The app's
+   own reduced-motion switch stills its slide, as the OS setting already does. */
+.leave-sheet .resume-prompt__saved {
+  margin: 0;
+}
+.leave-sheet[data-motion="reduced"][open]::backdrop,
+.leave-sheet[data-motion="reduced"][open] .charge-panel {
   animation: none;
 }
-@media (prefers-reduced-motion: reduce) {
-  .resume-prompt__card {
-    animation: none;
-  }
+
+/* The ring round a half-done node on the path (SavedRing.tsx). It sits in the
+   chip's slab, a little outside the chip, under the tag and the mascot, and
+   never takes a click. Absolute, so the row does not move by a pixel. */
+.saved-ring {
+  position: absolute;
+  inset: -9px;
+  width: calc(100% + 18px);
+  height: calc(100% + 18px);
+  z-index: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+/* Fill against track is the contrast that matters (3:1 for a non-text cue).
+   The track is quiet (the card colour by day, a light wash at night); the done arc is the
+   lesson bar's green on its darker edge. Measured in the page (q1r4.mjs):
+   edge against track 4.2:1 on the light theme, and 3.3:1 (edge) to 5.6:1 (face) on the
+   dark one. Green, not purple, so it never melts into the purple chip or
+   its glow. */
+.saved-ring__track,
+.saved-ring__edge,
+.saved-ring__fill {
+  fill: none;
+  stroke-width: 7px;
+}
+.saved-ring__track {
+  stroke: var(--bb-card);
+}
+/* On the night sky the card colour vanishes, so the empty part is a lighter wash instead. */
+.dark .saved-ring__track {
+  stroke: color-mix(in srgb, var(--bb-foreground) 20%, transparent);
+}
+.saved-ring__edge {
+  stroke: var(--progress-edge);
+  stroke-width: 10px;
+  stroke-linecap: round;
+}
+.saved-ring__fill {
+  stroke: var(--progress);
+  stroke-width: 6px;
+  stroke-linecap: round;
 }

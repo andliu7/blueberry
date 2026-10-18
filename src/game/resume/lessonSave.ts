@@ -60,6 +60,41 @@ export interface McqSave {
   readonly fraction?: number;
 }
 
+/**
+ * Progress inside a step that plays pool items one after another
+ * (PoolItemsStep: drawings, ladders, boards). Without it a reload after nine
+ * of ten drawings went back to drawing one.
+ */
+export interface PoolSave {
+  /** Which step it belongs to: `${phase}:${index}:${part}`, part "items", "draws" or "recycle". */
+  readonly step: string;
+  /** The entry ids finished, in order. Checked against the step's entries on load. */
+  readonly done: readonly string[];
+  /** How many of those cleared on the first try. */
+  readonly cleared: number;
+  /** Drawings missed on the first try, queued for the recycle pass. */
+  readonly missed: readonly string[];
+}
+
+/** A trainer step whose drawings are finished: their tally, so a reload opens on the trainer. */
+export interface DrawsDoneSave {
+  /** The run index of the trainer step the drawings belong to. */
+  readonly at: number;
+  readonly cleared: number;
+  readonly total: number;
+  readonly missed: readonly string[];
+}
+
+/** Everything about the open step beyond the multiple-choice answers. */
+export interface OpenStepSave {
+  readonly pool?: PoolSave | null;
+  readonly drawsDone?: DrawsDoneSave | null;
+  /** The recycle pass's drawings, finished, before its missed quick questions. */
+  readonly recycleDraws?: { readonly cleared: number; readonly total: number } | null;
+  /** The lesson bar's fill (0 to 1) when it was saved, for the half-done ring on the path. */
+  readonly bar?: number;
+}
+
 type RunCounters = Omit<LessonRun, "plan" | "mode">;
 
 export interface LessonSave {
@@ -72,6 +107,10 @@ export interface LessonSave {
   readonly mcq: McqSave | null;
   /** The priming guess, so the end-of-lesson recap still has it. Undefined when not primed. */
   readonly primedGuess?: string | null;
+  /** Questions answered so far, every kind (a first-meeting step reports 0 of 0 to the run). */
+  readonly answered?: number;
+  /** The open step's pool items and finished drawings. Absent on saves written before it existed. */
+  readonly open?: OpenStepSave;
 }
 
 export interface PracticeSave {
@@ -125,6 +164,21 @@ export function clearSave(storage: SaveStorage | null, node: string): void {
   }
 }
 
+/**
+ * Whether the lesson a pathway link opens has a bookmark. The pathway asks
+ * before it charges: a resume is the same visit, already paid for at its
+ * first entry, so START on a saved lesson goes straight back in.
+ */
+export function hasSavedLesson(storage: SaveStorage | null, href: string): boolean {
+  const node = /\/lesson\/([^/?&#]+)/.exec(href)?.[1];
+  if (node === undefined || storage === null) return false;
+  try {
+    return storage.getItem(saveKey(decodeURIComponent(node))) !== null;
+  } catch {
+    return false;
+  }
+}
+
 /** The plan as a string: each step's kind and what it plays. A content edit changes it. */
 export function planShape(plan: LessonPlan): string {
   return plan.steps
@@ -150,11 +204,15 @@ export function saveLesson(
   run: LessonRun,
   mcq: McqSave | null,
   primedGuess: string | null | undefined,
+  answered?: number,
+  open: OpenStepSave = {},
   now: Date = new Date(),
 ): void {
   // A Challenge leaves any Practice bookmark on the same node alone.
   if (run.mode !== "practice") return;
-  if (run.phase === "reward") {
+  // The ending, or a run with nothing answered yet (a START OVER): no bookmark.
+  const count = answered ?? answeredSoFar(run, mcq);
+  if (run.phase === "reward" || count === 0) {
     clearSave(storage, node);
     return;
   }
@@ -167,6 +225,8 @@ export function saveLesson(
     savedAt: now.toISOString(),
     run: counters,
     mcq,
+    answered: count,
+    open,
     ...(primedGuess !== undefined ? { primedGuess } : {}),
   });
 }
@@ -175,6 +235,10 @@ export interface LessonResume {
   readonly run: LessonRun;
   readonly mcq: McqSave | null;
   readonly primedGuess?: string | null;
+  /** Questions answered before the save, for the resume screen and the next write. */
+  readonly answered: number;
+  /** The open step's pool items and finished drawings; empty when none were saved. */
+  readonly open: OpenStepSave;
 }
 
 function isLessonSave(x: unknown): x is LessonSave {
@@ -198,8 +262,10 @@ export function loadLesson(storage: SaveStorage | null, node: string, plan: Less
   if (r.phase === "content" && r.index === plan.steps.length) return null;
   const run: LessonRun = { ...r, plan, mode };
   const mcq = saved.mcq !== null && Array.isArray(saved.mcq?.results) ? saved.mcq : null;
-  if (answeredSoFar(run, mcq) === 0) return null;
-  return { run, mcq, ...(saved.primedGuess !== undefined ? { primedGuess: saved.primedGuess } : {}) };
+  const answered = typeof saved.answered === "number" && saved.answered > 0 ? saved.answered : answeredSoFar(run, mcq);
+  if (answered === 0) return null;
+  const open = typeof saved.open === "object" && saved.open !== null ? saved.open : {};
+  return { run, mcq, answered, open, ...(saved.primedGuess !== undefined ? { primedGuess: saved.primedGuess } : {}) };
 }
 
 /** Questions answered so far: the steps behind, the recycle pass, and the open step's answers. */
@@ -223,6 +289,67 @@ export function resumeMcqSession(fresh: McqSession, save: McqSave | null): McqSe
     if (fresh.beats[i]?.id !== save.results[i]?.beatId) return fresh;
   }
   return { ...fresh, index: n, results: save.results.slice(0, n) };
+}
+
+/** Where a pool-items step picks up: the next item, and the tally so far. */
+export interface PoolResume {
+  readonly index: number;
+  readonly cleared: number;
+  readonly missed: readonly string[];
+}
+
+/**
+ * Put a saved pool step back: the items finished must be the step's first
+ * items in order, or the step starts from its first item. A save is written
+ * before the step's last Continue at the latest, so it never covers every item.
+ */
+export function resumePool(entryIds: readonly string[], save: PoolSave | null | undefined): PoolResume | null {
+  if (save === null || save === undefined || !Array.isArray(save.done)) return null;
+  const n = save.done.length;
+  if (n === 0 || n >= entryIds.length) return null;
+  for (let i = 0; i < n; i += 1) {
+    if (entryIds[i] !== save.done[i]) return null;
+  }
+  const known = new Set(save.done);
+  const missed = Array.isArray(save.missed) ? save.missed.filter((id) => known.has(id)) : [];
+  const cleared = Number.isInteger(save.cleared) ? Math.max(0, Math.min(save.cleared, n)) : 0;
+  return { index: n, cleared, missed };
+}
+
+/**
+ * How many questions a node's bookmark holds, of either kind, or null when it
+ * has none. The pathway reads it to say "3 done and saved" before START.
+ */
+export function savedCount(storage: SaveStorage | null, node: string): number | null {
+  const saved = read(storage, node) as { kind?: unknown; answered?: unknown; state?: { answered?: unknown } } | null;
+  if (saved === null || typeof saved !== "object") return null;
+  const n = saved.kind === "practice" ? saved.state?.answered : saved.kind === "lesson" ? saved.answered : undefined;
+  return typeof n === "number" && n > 0 ? n : null;
+}
+
+/**
+ * How full the lesson bar was when a node's bookmark was written, 0 to 1, or
+ * null when it has none. The pathway draws it as a ring round the half-done
+ * node, so a lesson left part way looks part way before it is tapped. A save
+ * from before the bar was recorded still counts: it reads as a sliver, never 0.
+ */
+export function savedBar(storage: SaveStorage | null, node: string): number | null {
+  if (savedCount(storage, node) === null) return null;
+  const saved = read(storage, node) as { kind?: unknown; open?: { bar?: unknown }; state?: { answered?: unknown; queue?: unknown } } | null;
+  let bar: unknown = undefined;
+  if (saved?.kind === "lesson") bar = saved.open?.bar;
+  if (saved?.kind === "practice" && Array.isArray(saved.state?.queue) && typeof saved.state?.answered === "number") {
+    // A practice run's queue holds what is left, so answered of answered plus left is its fill.
+    bar = saved.state.answered / (saved.state.answered + saved.state.queue.length);
+  }
+  const n = typeof bar === "number" && Number.isFinite(bar) ? bar : 0;
+  return Math.min(0.95, Math.max(0.08, n));
+}
+
+/** The node id a lesson href opens, or null. */
+export function nodeOfHref(href: string): string | null {
+  const node = /\/lesson\/([^/?&#]+)/.exec(href)?.[1];
+  return node === undefined ? null : decodeURIComponent(node);
 }
 
 /* ------------------------------------------------------------------ */

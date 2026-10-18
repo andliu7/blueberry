@@ -64,6 +64,19 @@
   color: var(--bb-foreground);
 }
 
+/* A figure the student works on (McqVisual `large`, Unit 2 draft): up to
+   about three times the thumbnail, so a lettered atom reads at 390 wide. It
+   gives way on a short screen (the 39rem is the stem, options, foot row and
+   Check bar), and the answer list after it keeps its full height, so a tall
+   question scrolls instead of the options sliding over the foot row. */
+.scheme--large .scheme__figure {
+  max-height: clamp(4.5rem, 100dvh - 39rem, 12rem);
+}
+
+.scheme--large ~ [aria-label="Answer options"] {
+  flex: 0 0 auto;
+}
+
 /* THE NAME IS A LABEL ON THE THING, so it is the muted ink at the small step
    and never the body ink. Ruling 2, and the reason a caption is allowed to
    carry a stereodescriptor the drawing cannot: it is text about a picture. */

@@ -53,6 +53,8 @@ import { nodeSheetModel, type SheetNode } from "./nodeSheetModel";
 import "./pathway-sheet.css";
 import { closeOnBackdrop } from "../app/ui/dismiss";
 import { pressClassName } from "../app/ui/Press";
+import { browserStorage, nodeOfHref, savedCount } from "../resume/lessonSave";
+import "../resume/resume.css";
 
 
 /** The pointer-down-first activation pair. See the header note on idempotence. */
@@ -187,6 +189,9 @@ export interface NodeSheetProps {
 export function NodeSheet({ node, onClose, onStart, onChallenge, onGuidebook, reducedMotion }: NodeSheetProps) {
   const ref = useRef<HTMLDialogElement>(null);
   const model = node === null ? null : nodeSheetModel(node);
+  // A lesson left half done: how many questions its bookmark holds (resume/lessonSave.ts), or null.
+  const savedNode = node?.practiceHref == null ? null : nodeOfHref(node.practiceHref);
+  const saved = savedNode === null ? null : savedCount(browserStorage(), savedNode);
 
   // The dialog element mounts once and opens or closes as the node comes and
   // goes, the same lifecycle ChargeGate uses: showModal cannot be declared in
@@ -271,6 +276,16 @@ export function NodeSheet({ node, onClose, onStart, onChallenge, onGuidebook, re
               {/* A checkpoint's stakes: how many questions, and where a pass
                   goes. Null on a lesson, which keeps its two rows. */}
               {model.practiceDetail === null ? null : <p className="ns-note text-scale-sm">{model.practiceDetail}</p>}
+              {model.practice.enabled && saved !== null ? (
+                // Saved progress is said before the tap, and the key says what it does.
+                <p className="resume-prompt__saved ns-saved">
+                  <svg className="resume-prompt__mark" viewBox="0 0 20 20" width="20" height="20" aria-hidden="true">
+                    <circle cx="10" cy="10" r="9" fill="currentColor" />
+                    <path d="M5.8 10.4l2.7 2.7 5.7-5.9" fill="none" stroke="var(--bb-card)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  <span>{`${saved} ${saved === 1 ? "question" : "questions"} done and saved`}</span>
+                </p>
+              ) : null}
               {model.practice.enabled ? (
                 // START is the game's one shared 3D key (app/ui/press.css),
                 // full width, the same object as CHECK in a lesson.
@@ -279,7 +294,7 @@ export function NodeSheet({ node, onClose, onStart, onChallenge, onGuidebook, re
                   className={`${pressClassName({ variant: "primary", size: "lg", block: true })} ns-start`}
                   {...pressHandlers(() => onStart(node))}
                 >
-                  Start
+                  {saved !== null ? "Continue" : "Start"}
                 </button>
               ) : (
                 <p className="ns-note text-scale-sm">{model.practice.note}</p>

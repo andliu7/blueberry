@@ -1,0 +1,169 @@
+/* The unit exam's ending (ExamEnd.tsx). Game tokens only, so both themes follow. */
+.exam-end {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  width: 100%;
+  max-width: 34rem;
+  margin: 0 auto;
+  padding: 1rem 1rem 1.25rem;
+}
+
+.exam-end__hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.375rem;
+  text-align: center;
+}
+
+.exam-end__title {
+  font-size: var(--text-display, 2rem);
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--ink);
+}
+
+.exam-end__said {
+  color: var(--ink-muted);
+  font-size: var(--text-body, 1rem);
+}
+
+/* Three tiles with a coloured head band and a lip, like the chunky buttons. */
+.exam-end__tiles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.625rem;
+}
+
+.exam-end__tile {
+  --tile: var(--bb-primary);
+  display: flex;
+  flex-direction: column;
+  border: 2px solid var(--tile);
+  border-radius: var(--radius-card, 1rem);
+  background: var(--tile);
+  box-shadow: 0 4px 0 color-mix(in srgb, var(--tile) 70%, black);
+  overflow: hidden;
+}
+
+.exam-end__tile--good {
+  --tile: var(--good);
+}
+
+.exam-end__tile--warn {
+  --tile: var(--warn);
+}
+
+.exam-end__tile-head {
+  padding: 0.25rem 0.5rem;
+  color: var(--n-0); /* white on the coloured tile in both themes */
+  font-size: var(--text-caption, 0.75rem);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.exam-end__tile-value {
+  padding: 0.25rem 0.25rem 0.625rem;
+  color: var(--n-0); /* white on the coloured tile in both themes */
+  font-size: var(--text-title, 1.5rem);
+  font-weight: 800;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.exam-end__topics {
+  border: 2px solid var(--bb-border);
+  border-radius: var(--radius-card, 1rem);
+  background: var(--surface);
+  padding: 0.75rem;
+}
+
+.exam-end__topics-head {
+  margin-bottom: 0.5rem;
+  color: var(--ink-muted);
+  font-size: var(--text-caption, 0.75rem);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.exam-end__topics ul {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.exam-end__topic {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.75rem;
+  font-size: var(--text-label, 0.875rem);
+  font-weight: 700;
+}
+
+.exam-end__topic--clean {
+  background: var(--good-soft);
+  color: var(--ink);
+}
+
+.exam-end__topic--review {
+  /* An outline, not a fill: --warn-soft is not set on every theme. */
+  box-shadow: inset 0 0 0 2px var(--warn);
+  color: var(--warn-ink);
+}
+
+.exam-end__topic-score {
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.exam-end__opens {
+  color: var(--ink);
+  font-size: var(--text-label, 0.875rem);
+  font-weight: 700;
+  text-align: center;
+}
+
+.exam-end__banked {
+  align-self: center;
+}
+
+/* A topic with a miss is a link to its lesson (round 4): the whole row is the target. */
+.exam-end__topic:has(.exam-end__topic-link) {
+  padding: 0;
+}
+
+.exam-end__topic-link {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.75rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.exam-end__topic-link .exam-end__topic-name {
+  flex: 1 1 auto;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.exam-end__topic-link:focus-visible {
+  outline: 3px solid var(--bb-primary);
+  outline-offset: 2px;
+}
+
+.exam-end__topic-go {
+  flex-shrink: 0;
+  font-size: 1.25rem;
+  line-height: 1;
+}

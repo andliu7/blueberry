@@ -36,14 +36,18 @@ import { FIGURE_HEIGHT, FIGURE_WIDTH, type Figure } from "../onboarding/figures"
 // CHANGED 2026-10-17 (U1-P3): one "Draw it" item joined u1-allylic, u1-kvt,
 // u1-12v14, u1-hx-dienes, u1-x2 and u1-quiz-b. Two MCQs became ladders under
 // their own ids (u1-cat-middle-methyl, u1-ani-ring), which changes no size.
+// CHANGED 2026-10-17 (U1-P3 round 2): u1-energy-diagram, u1-rank-cation,
+// u1-rank-anion, u1-rank-radical and u1-quiz-a each gained one "Draw it" item,
+// so every stage A and B node now asks for a drawn structure. Two radical MCQs became ladders and four produce MCQs became
+// "Draw it" items, all under their own ids, which changes no size.
 const EXPECTED_SIZES: Readonly<Record<string, number>> = {
   "u1-allylic": 4,
-  "u1-rank-cation": 12,
-  "u1-rank-anion": 12,
-  "u1-rank-radical": 10,
-  "u1-quiz-a": 10,
+  "u1-rank-cation": 13,
+  "u1-rank-anion": 13,
+  "u1-rank-radical": 11,
+  "u1-quiz-a": 11,
   "u1-kvt": 3,
-  "u1-energy-diagram": 12,
+  "u1-energy-diagram": 13,
   "u1-12v14": 4,
   "u1-hx-dienes": 13,
   "u1-x2": 13,
@@ -164,6 +168,27 @@ describe("u1 stage A and B sort ladders", () => {
       const drawn = STAGE_AB_SORT_FIGURES[content.beat.id];
       expect(drawn, content.beat.id).toBeDefined();
       expect(Object.keys(drawn ?? {}).sort()).toEqual(content.beat.items.map((item) => item.id).sort());
+    }
+  });
+});
+
+describe("owner-directed content (2026-10-17)", () => {
+  it("compares crotyl with isopropyl on u1-cat-allyl-vs-2, crotyl the answer, no tie", () => {
+    const entry = entries.find(([, e]) => e.id === "u1-cat-allyl-vs-2")?.[1];
+    expect(entry?.item.kind).toBe("mcq");
+    if (entry?.item.kind !== "mcq") return;
+    expect(entry.item.beat.correctOptionId).toBe("crotyl");
+    expect(entry.item.beat.options.map((o) => o.id).sort()).toEqual(["crotyl", "ipr", "tie"]);
+    expect(entry.placeholder).toBe(true);
+    expect(JSON.stringify(STAGE_AB_VISUALS["u1-cat-allyl-vs-2"])).toContain("crotyl cation");
+  });
+
+  it("never puts the rank in a ladder card's label (round 2 critic: 3°/2°/1° gave the order away)", () => {
+    for (const [, entry] of entries) {
+      if (entry.item.kind !== "sort") continue;
+      for (const item of entry.item.content.beat.items) {
+        expect(item.label, `${entry.id}::${item.id}`).not.toMatch(/°|allylic/);
+      }
     }
   });
 });

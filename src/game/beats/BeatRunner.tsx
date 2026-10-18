@@ -90,15 +90,19 @@ import {
   lessonMeetBeats,
   lessonPoolItems,
   missedMcqIdsFrom,
+  missedPoolIdsOf,
   planLesson,
+  recipeProgress,
   recipeSegments,
   recycleBeatsFor,
+  recyclePoolEntriesFor,
+  BADGE_LABEL,
   reportRecycle,
   reportStep,
   startRun,
   type LessonRun,
 } from "./template";
-import { answeredSoFar, browserStorage, clearSave, loadLesson, saveLesson, type LessonResume, type McqSave } from "../resume/lessonSave";
+import { browserStorage, clearSave, loadLesson, resumePool, saveLesson, savedCount, type LessonResume, type McqSave, type PoolSave } from "../resume/lessonSave";
 import { ResumePrompt } from "../resume/ResumePrompt";
 import "./beat-chrome.css";
 
@@ -179,7 +183,10 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
   // drawings are finished, and how they went, so the trainer's result adds to
   // them rather than replacing them. -1 while the drawings are still playing.
   const [drawsDoneAt, setDrawsDoneAt] = useState(-1);
-  const drawTally = useRef({ cleared: 0, total: 0 });
+  const drawTally = useRef<{ cleared: number; total: number; missed: readonly string[] }>({ cleared: 0, total: 0, missed: [] });
+  // The recycle pass replays missed drawings first, then missed quick
+  // questions. Set once the drawings are done, with how they went.
+  const [recycleDraws, setRecycleDraws] = useState<{ cleared: number; total: number } | null>(null);
   /**
    * The diamonds the store actually paid for this run, or null before it has
    * been asked. Not computed here: CLAUDE.md's rule is that every number in
@@ -241,7 +248,17 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
     plan === null ? null : loadLesson(browserStorage(), node, plan, mode),
   );
   const mcqSave = useRef<McqSave | null>(null);
+  /** Questions answered in the steps already behind the student, for the saved count. */
+  const answeredBefore = useRef(0);
   const [restoredAt, setRestoredAt] = useState<{ readonly step: string; readonly save: McqSave } | null>(null);
+  /** The open pool-items step's progress (drawings, ladders, boards), a ref for the same reason. */
+  const poolSave = useRef<PoolSave | null>(null);
+  /** The saved pool step handed back on CONTINUE, read once by the step it names. */
+  const [restoredPool, setRestoredPool] = useState<PoolSave | null>(null);
+  // A practice or stage-quiz node saves inside PracticeRunner; this runner must never write or clear its key.
+  const practicePlan = plan?.steps[0]?.beat.kind === "practice";
+  // A practice run with a bookmark opens on its resume screen, never on the preview first. Read once per node.
+  const practiceSavedAtOpen = useMemo(() => practicePlan && savedCount(browserStorage(), node) !== null, [practicePlan, node]);
 
   // See the header: adjust-state-during-render, so a swapped node never plays
   // the previous node's run.
@@ -254,21 +271,51 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
     setMcqFraction(0);
     stepResult.current = null;
     setDrawsDoneAt(-1);
-    drawTally.current = { cleared: 0, total: 0 };
+    drawTally.current = { cleared: 0, total: 0, missed: [] };
+    setRecycleDraws(null);
     setBanked(null);
     setOffer(null);
     setResume(null);
     mcqSave.current = null;
+    answeredBefore.current = 0;
     setRestoredAt(null);
+    poolSave.current = null;
+    setRestoredPool(null);
   }
+
+  /**
+   * Write the position: the run, the open step's answers, and every count the
+   * student has earned so far. Read from this render's state and refs, so the
+   * step callbacks below call it as they commit.
+   */
+  const writePosition = (r: LessonRun) => {
+    if (practicePlan) return;
+    const drawsDone =
+      drawsDoneAt === r.index && r.phase === "content" ? { at: drawsDoneAt, ...drawTally.current } : null;
+    const count =
+      answeredBefore.current +
+      (mcqSave.current?.results.length ?? 0) +
+      (poolSave.current?.done.length ?? 0) +
+      (drawsDone?.total ?? 0) +
+      (r.phase === "recycle" ? (recycleDraws?.total ?? 0) : 0);
+    saveLesson(browserStorage(), node, r, mcqSave.current, primed?.guess, count, {
+      pool: poolSave.current,
+      drawsDone,
+      recycleDraws: r.phase === "recycle" ? recycleDraws : null,
+      // The lesson bar's fill, so the path can draw the half-done node's ring.
+      bar: recipeProgress(recipeSegments(r), mcqSave.current?.fraction ?? 0),
+    });
+  };
 
   // Write the position whenever the run moves (a step done, the recycle pass
   // begun, the ending reached, which clears it). Not while the resume screen
   // is up, or the fresh run behind it would overwrite the bookmark it offers.
   useEffect(() => {
     if (run === null || resume !== null) return;
-    saveLesson(browserStorage(), node, run, mcqSave.current, primed?.guess);
-  }, [run, resume, node, primed]);
+    writePosition(run);
+    // writePosition reads the same state listed here; it is a plain function, so it is not a dependency.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [run, resume, node, primed, drawsDoneAt, recycleDraws]);
 
   /**
    * Bank the clear, once, when the run reaches its reward phase.
@@ -346,11 +393,13 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
 
   // THE RESUME SCREEN comes first when this lesson has a saved position.
   if (resume !== null) {
-    const answered = answeredSoFar(resume.run, resume.mcq);
+    const answered = resume.answered;
     return (
       <ResumePrompt
+        node={node}
         title={pathwayNode(node)?.title ?? ""}
         detail={`${answered} ${answered === 1 ? "question" : "questions"} done and saved`}
+        saved={`${answered} saved ${answered === 1 ? "question" : "questions"}`}
         bar={
           <RecipeStrip
             segments={recipeSegments(resume.run)}
@@ -362,10 +411,31 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
         onExit={onExit}
         onRestart={() => {
           clearSave(browserStorage(), node);
+          answeredBefore.current = 0;
           setResume(null);
         }}
         onContinue={() => {
+          const open = resume.open;
+          const drawsDone = open.drawsDone ?? null;
+          const drawsHere = drawsDone !== null && drawsDone.at === resume.run.index && resume.run.phase === "content";
+          const recycled = resume.run.phase === "recycle" ? (open.recycleDraws ?? null) : null;
           mcqSave.current = resume.mcq;
+          poolSave.current = open.pool ?? null;
+          setRestoredPool(open.pool ?? null);
+          // The steps behind: the total less what is still open (answers, items, finished drawings).
+          answeredBefore.current = Math.max(
+            0,
+            resume.answered -
+              (resume.mcq?.results.length ?? 0) -
+              (open.pool?.done.length ?? 0) -
+              (drawsHere ? drawsDone.total : 0) -
+              (recycled?.total ?? 0),
+          );
+          if (drawsHere) {
+            drawTally.current = { cleared: drawsDone.cleared, total: drawsDone.total, missed: [...drawsDone.missed] };
+            setDrawsDoneAt(drawsDone.at);
+          }
+          if (recycled !== null) setRecycleDraws(recycled);
           if (resume.mcq !== null) {
             setRestoredAt({ step: `${resume.run.phase}:${resume.run.index}`, save: resume.mcq });
             setMcqFraction(resume.mcq.fraction ?? 0);
@@ -386,7 +456,7 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
   // and for a practice run alike. START remembers it for the session and
   // drops straight into the plan below.
   const priming = primingFor(node);
-  if (needsPreview && priming !== null && plan !== null) {
+  if (needsPreview && !practiceSavedAtOpen && priming !== null && plan !== null) {
     return (
       <LessonPreview
         node={node}
@@ -435,7 +505,16 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
   }
 
   const step = currentStep(run);
-  const segments = recipeSegments(run);
+  // A trainer step that opens with drawings names the activity on screen, not the trainer still to come.
+  const drawingFirst =
+    (step?.beat.kind === "mechanism" || step?.beat.kind === "resonance") &&
+    step.beat.draws !== undefined &&
+    drawsDoneAt !== run.index;
+  const segments = recipeSegments(run).map((segment) =>
+    drawingFirst && segment.state === "current" && segment.slot === "produce"
+      ? { ...segment, badge: "draw" as const, label: BADGE_LABEL.draw }
+      : segment,
+  );
 
   // The open MCQ step's saved answers, if this is the step that was resumed.
   const stepKey = `${run.phase}:${run.index}`;
@@ -443,15 +522,40 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
   /** After every answered question: remember the step's answers and write the position. */
   const saveAnswer = (results: readonly BeatResult[], fraction: number) => {
     mcqSave.current = { results, fraction };
-    saveLesson(browserStorage(), node, run, mcqSave.current, primed?.guess);
+    writePosition(run);
+  };
+  /** A pool-items step's props for save as you go: where to pick up, and the write after each item. */
+  const poolSaving = (part: "items" | "draws" | "recycle", ids: readonly string[]) => {
+    const tag = `${stepKey}:${part}`;
+    return {
+      resume: restoredPool?.step === tag ? resumePool(ids, restoredPool) : null,
+      onCommit: (done: readonly string[], cleared: number, missed: readonly string[]) => {
+        poolSave.current = { step: tag, done, cleared, missed };
+        writePosition(run);
+      },
+    };
   };
 
-  const advanceStep = (cleared: number, total: number, missedMcqIds?: readonly string[]) => {
+  const advanceStep = (
+    cleared: number,
+    total: number,
+    missedMcqIds?: readonly string[],
+    missedPoolIds?: readonly string[],
+  ) => {
     stepResult.current = null;
+    answeredBefore.current += Math.max(total, mcqSave.current?.results.length ?? 0);
     mcqSave.current = null;
+    poolSave.current = null;
     setMcqFraction(0);
     setRun((r) =>
-      r === null ? r : reportStep(r, { cleared, total, ...(missedMcqIds !== undefined ? { missedMcqIds } : {}) }),
+      r === null
+        ? r
+        : reportStep(r, {
+            cleared,
+            total,
+            ...(missedMcqIds !== undefined ? { missedMcqIds } : {}),
+            ...(missedPoolIds !== undefined ? { missedPoolIds } : {}),
+          }),
     );
   };
 
@@ -464,25 +568,23 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
   /** A trainer step with drawings in front: the drawings' tally plus the trainer's one result. */
   const advanceAfterDraws = () => {
     const result = stepResult.current;
-    const { cleared, total } = drawTally.current;
-    drawTally.current = { cleared: 0, total: 0 };
-    advanceStep(cleared + (result === null || clearsBeat(result) ? 1 : 0), total + 1);
+    const { cleared, total, missed } = drawTally.current;
+    drawTally.current = { cleared: 0, total: 0, missed: [] };
+    advanceStep(cleared + (result === null || clearsBeat(result) ? 1 : 0), total + 1, undefined, missed);
   };
 
   // The strip element, one instance whichever slot is playing. For the MCQ
   // surfaces it rides down into the question screen's own top bar
   // (progressSlot), so each screen keeps exactly one bar and one exit, in
   // the one lesson header shape: X and the bar (A2 round 6).
-  const inMcq = step?.beat.kind === "meet" || step?.beat.kind === "mcq" || run.phase === "recycle";
+  const recyclingDraws = run.phase === "recycle" && recycleDraws === null && missedPoolIdsOf(run).length > 0;
+  const inMcq = step?.beat.kind === "meet" || step?.beat.kind === "mcq" || (run.phase === "recycle" && !recyclingDraws);
   // The trainer engine is a fixed full-viewport screen with its own exit, so
   // while it plays the lesson chrome underneath is covered but still in the
   // accessibility tree. inert takes the tool rail out of the tab order and
   // the header is not drawn at all: one exit on screen, one exit reachable.
   // A trainer step whose "Draw it" items have not finished yet plays them first, in the lesson chrome.
-  const drawsPending =
-    (step?.beat.kind === "mechanism" || step?.beat.kind === "resonance") &&
-    step.beat.draws !== undefined &&
-    drawsDoneAt !== run.index;
+  const drawsPending = drawingFirst;
   const inEngine = (step?.beat.kind === "mechanism" || step?.beat.kind === "resonance") && !drawsPending;
   const strip = (
     <RecipeStrip
@@ -491,6 +593,15 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
       reducedMotion={reducedMotion}
     />
   );
+
+  // The pool items each kind of pool step plays, named once so the save can check them.
+  const itemEntries =
+    step?.beat.kind === "poolSort" || step?.beat.kind === "poolMatch" || step?.beat.kind === "draw"
+      ? lessonPoolItems(step.beat.node, step.beat.kind === "poolSort" ? "sort" : step.beat.kind === "poolMatch" ? "match" : "draw")
+      : [];
+  const drawEntries =
+    drawsPending && (step?.beat.kind === "mechanism" || step?.beat.kind === "resonance") ? lessonPoolItems(step.beat.draws ?? "", "draw") : [];
+  const recycleEntries = recyclingDraws ? recyclePoolEntriesFor(run.plan, missedPoolIdsOf(run)) : [];
 
   return (
     <div className="beat-runner">
@@ -618,11 +729,9 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
           // The node's pool ladders, boards or drawings, one after another (PoolItemsStep.tsx).
           <PoolItemsStep
             key={`${step.beat.kind}:${run.index}`}
-            entries={lessonPoolItems(
-              step.beat.node,
-              step.beat.kind === "poolSort" ? "sort" : step.beat.kind === "poolMatch" ? "match" : "draw",
-            )}
-            onDone={(cleared, total) => advanceStep(cleared, total)}
+            entries={itemEntries}
+            {...poolSaving("items", itemEntries.map((one) => one.id))}
+            onDone={(cleared, total, missedDraws) => advanceStep(cleared, total, undefined, missedDraws)}
           />
         ) : null}
 
@@ -630,9 +739,11 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
           // Produce, part one: draw it. Then the same step hands over to the trainer below.
           <PoolItemsStep
             key={`draws:${run.index}`}
-            entries={lessonPoolItems(step.beat.draws ?? "", "draw")}
-            onDone={(cleared, total) => {
-              drawTally.current = { cleared, total };
+            entries={drawEntries}
+            {...poolSaving("draws", drawEntries.map((one) => one.id))}
+            onDone={(cleared, total, missed) => {
+              poolSave.current = null;
+              drawTally.current = { cleared, total, missed };
               setDrawsDoneAt(run.index);
             }}
           />
@@ -651,7 +762,25 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
           />
         ) : null}
 
-        {run.phase === "recycle" ? (
+        {recyclingDraws ? (
+          // The recycle slot, part one: drawings missed on the first try come
+          // back, once, before the missed quick questions (U1-P3 round 2).
+          <PoolItemsStep
+            key="recycle:draws"
+            entries={recycleEntries}
+            {...poolSaving("recycle", recycleEntries.map((one) => one.id))}
+            onDone={(cleared, total) => {
+              poolSave.current = null;
+              if (run.missedMcqIds.length === 0) {
+                setRun((r) => (r === null ? r : reportRecycle(r, cleared, total)));
+              } else {
+                setRecycleDraws({ cleared, total });
+              }
+            }}
+          />
+        ) : null}
+
+        {run.phase === "recycle" && (recycleDraws !== null || missedPoolIdsOf(run).length === 0) && run.missedMcqIds.length > 0 ? (
           // The recycle slot: the missed quick questions come back, once.
           // Same surface, same rules, only the ones that got away.
           <McqRunner
@@ -667,9 +796,17 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
             onOfferCard={handleOfferCard}
             onDone={(results) => {
               setMcqFraction(0);
+              answeredBefore.current += results.length;
               mcqSave.current = null;
+              const before = recycleDraws ?? { cleared: 0, total: 0 };
               setRun((r) =>
-                r === null ? r : reportRecycle(r, results.filter((res) => clearsBeat(res)).length, results.length),
+                r === null
+                  ? r
+                  : reportRecycle(
+                      r,
+                      before.cleared + results.filter((res) => clearsBeat(res)).length,
+                      before.total + results.length,
+                    ),
               );
             }}
           />

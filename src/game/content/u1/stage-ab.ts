@@ -165,7 +165,7 @@ export const STAGE_AB_POOLS: UnitPools = {
             2
           ],
           "prompt": "H+ adds to C1 of buta-1,3-diene. Draw the cation that forms.",
-          "brief": "Use the + charge on the carbon that carries it. Either resonance contributor counts.",
+          "brief": "Count the bonds on each carbon once the H is on. Either resonance contributor counts.",
           "visual": {
             "kind": "scheme",
             "scheme": {
@@ -235,11 +235,27 @@ export const STAGE_AB_POOLS: UnitPools = {
           },
           "stereo": false,
           "why": "H+ goes on the end carbon, so the + lands on C2, right next to the remaining C=C. That pi bond can shift over and share the charge with C4.",
-          "lookAt": "Put the H on C1, then put the + on the carbon next to it. It is allylic, which is why this end gets protonated."
+          "lookAt": "Put the H on C1, then put the + on the carbon next to it. It is allylic, which is why this end gets protonated.",
+          "misses": [
+            {
+              "id": "inner",
+              "inchi": "InChI=1S/C4H7/c1-3-4-2/h3H,1-2,4H2/q+1",
+              "smiles": "C=CC[CH2+]",
+              "name": "the cation from H+ on C2",
+              "says": "That + sits on an end carbon with no C=C beside it, so nothing can share it. The prompt puts the H on C1."
+            },
+            {
+              "id": "product",
+              "inchi": "InChI=1S/C4H7Br/c1-3-4(2)5/h3-4H,1H2,2H3",
+              "smiles": "C=CC(C)Br",
+              "name": "the finished product",
+              "says": "That is after bromide arrives. Stop one step earlier: draw the cation, with its +."
+            }
+          ]
         }
       },
       "explanation": "Protonating the end carbon of a diene gives an allylic cation: the charge is shared by C2 and C4.",
-      "provenance": "scripts/u1_pools_ab.py: cation from diene_addition, the end-carbon orientation; contributors from ResonanceMolSupplier share one InChI. OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only.",
+      "provenance": "scripts/u1_pools_ab.py: cation from diene_addition, the end-carbon orientation; contributors from ResonanceMolSupplier share one InChI; misses built from the same diene. OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
   ],
@@ -255,15 +271,15 @@ export const STAGE_AB_POOLS: UnitPools = {
       "items": [
         {
           "id": "tbu",
-          "text": "tert-butyl, 3°"
+          "text": "tert-butyl"
         },
         {
           "id": "ipr",
-          "text": "isopropyl, 2°"
+          "text": "isopropyl"
         },
         {
           "id": "et",
-          "text": "ethyl, 1°"
+          "text": "ethyl"
         },
         {
           "id": "me",
@@ -375,19 +391,19 @@ export const STAGE_AB_POOLS: UnitPools = {
       "items": [
         {
           "id": "all3",
-          "text": "3° allylic"
+          "text": "prenyl"
         },
         {
           "id": "all2",
-          "text": "2° allylic"
+          "text": "crotyl"
         },
         {
           "id": "all1",
-          "text": "allyl, 1° allylic"
+          "text": "allyl"
         },
         {
           "id": "et",
-          "text": "ethyl, 1°"
+          "text": "ethyl"
         }
       ],
       "order": [
@@ -484,6 +500,102 @@ export const STAGE_AB_POOLS: UnitPools = {
       "explanation": "Resonance spreads the charge first; among allylic cations, more substitution on the charged carbons wins. 3° allylic > 2° allylic > 1° allylic > 1° alkyl.",
       "provenance": "scripts/u1_pools_ab.py: charge positions from ResonanceMolSupplier and substitution counted per position; every adjacent pair checked decidable. OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only; OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only."
     }),
+    {
+      "id": "u1-cat-draw-protonate",
+      "item": {
+        "kind": "draw",
+        "beat": {
+          "kind": "draw",
+          "id": "u1-cat-draw-protonate",
+          "node": "u1-rank-cation",
+          "conceptIds": [
+            "resonance_delocalisation"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "H+ adds to 2-methylpropene. Draw the cation that forms.",
+          "brief": "There are two ways to put the H on. Draw the cation each one leaves, then keep one.",
+          "visual": {
+            "kind": "structure",
+            "figure": {
+              "bonds": [
+                {
+                  "x1": 60.0,
+                  "y1": 29.0,
+                  "x2": 60.0,
+                  "y2": 49.0,
+                  "order": 2
+                },
+                {
+                  "x1": 60.0,
+                  "y1": 49.0,
+                  "x2": 77.3,
+                  "y2": 59.0
+                },
+                {
+                  "x1": 60.0,
+                  "y1": 49.0,
+                  "x2": 42.7,
+                  "y2": 59.0
+                }
+              ]
+            },
+            "name": "2-methylpropene"
+          },
+          "answer": {
+            "smiles": "C[C+](C)C",
+            "inchi": "InChI=1S/C4H9/c1-4(2)3/h1-3H3/q+1",
+            "name": "the tert-butyl cation",
+            "figure": {
+              "bonds": [
+                {
+                  "x1": 60.0,
+                  "y1": 29.0,
+                  "x2": 60.0,
+                  "y2": 49.0
+                },
+                {
+                  "x1": 60.0,
+                  "y1": 49.0,
+                  "x2": 77.3,
+                  "y2": 59.0
+                },
+                {
+                  "x1": 60.0,
+                  "y1": 49.0,
+                  "x2": 42.7,
+                  "y2": 59.0
+                }
+              ],
+              "labels": [
+                {
+                  "x": 53.1,
+                  "y": 50.0,
+                  "t": "+",
+                  "size": 14
+                }
+              ]
+            }
+          },
+          "stereo": false,
+          "why": "H+ goes on the CH2 end, which leaves the + on the carbon carrying three carbons. Three alkyl groups donate into the empty orbital, so this cation forms much faster than the primary one.",
+          "lookAt": "Put the H on the CH2 end. The + then sits on the central carbon, with three carbons around it.",
+          "misses": [
+            {
+              "id": "c1",
+              "inchi": "InChI=1S/C4H9/c1-4(2)3/h4H,1H2,2-3H3/q+1",
+              "smiles": "[CH2+]C(C)C",
+              "name": "the primary cation",
+              "says": "That puts the + on the carbon with fewer carbons around it. H+ goes on the end that leaves the more substituted cation."
+            }
+          ]
+        }
+      },
+      "explanation": "H+ adds to the end of the C=C that leaves the more substituted, more stable cation.",
+      "provenance": "scripts/u1_pools_ab.py: both protonations built and ranked with the script's cation model (compare). OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
     ladder({
       "id": "u1-cat-ladder-ring",
       "node": "u1-rank-cation",
@@ -495,19 +607,19 @@ export const STAGE_AB_POOLS: UnitPools = {
       "items": [
         {
           "id": "diene",
-          "text": "two C=C in the ring"
+          "text": "cyclohexadienyl"
         },
         {
           "id": "ene",
-          "text": "one C=C, allylic"
+          "text": "cyclohexenyl"
         },
         {
           "id": "cy",
-          "text": "cyclohexyl, 2°"
+          "text": "cyclohexyl"
         },
         {
           "id": "cym",
-          "text": "cyclohexylmethyl, 1°"
+          "text": "cyclohexylmethyl"
         }
       ],
       "order": [
@@ -659,28 +771,29 @@ export const STAGE_AB_POOLS: UnitPools = {
             1
           ],
           "prompt": "Compare these two cations. Pick the closest statement.",
-          "correctOptionId": "tie",
+          "brief": "Count the substitution on each charged carbon, then look for resonance.",
+          "correctOptionId": "crotyl",
           "options": [
             {
-              "id": "allyl",
-              "text": "The allyl cation is far more stable",
-              "why": "Resonance helps a lot, but both of its charged carbons are primary. The isopropyl cation's one charged carbon is secondary. The two effects come out about even."
+              "id": "crotyl",
+              "text": "The crotyl cation is more stable",
+              "why": "Its best charged carbon is secondary, just like isopropyl's. On top of that, resonance spreads the charge over a second carbon. Same substitution plus resonance wins."
             },
             {
               "id": "ipr",
-              "text": "The isopropyl cation is far more stable",
-              "why": "Two carbon neighbours is real help, and resonance gives the allyl cation about the same amount. Neither wins by much."
+              "text": "The isopropyl cation is more stable",
+              "why": "Isopropyl's charged carbon is secondary, but so is the crotyl cation's best one. Isopropyl has no C=C next door, so its one carbon holds the whole charge."
             },
             {
               "id": "tie",
               "text": "They are about as stable as each other",
-              "why": "Resonance spreads the allyl charge over two primary carbons; hyperconjugation from two carbons helps the isopropyl cation. Those come out about even, so a 1° allylic cation sits near a 2° alkyl one."
+              "why": "Count the substitution first: both have a secondary charged carbon, so that part ties. Then look for resonance. Only the crotyl cation has it, so the tie breaks."
             }
           ]
         }
       },
-      "explanation": "A 1° allylic cation is about as stable as a 2° alkyl cation: resonance is worth about one extra carbon. Count both effects.",
-      "provenance": "scripts/u1_pools_ab.py: the two factors point opposite ways (resonance against substitution); the takeaway scale puts both at 2. OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only.",
+      "explanation": "Same substitution, plus resonance: a 2° allylic cation beats a 2° alkyl cation, because resonance spreads the charge over a second carbon.",
+      "provenance": "scripts/u1_pools_ab.py: compare() dominance: crotyl (2 charge positions, best 2°) over isopropyl (1 position, 2°); takeaway scale 3 against 2. OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only; OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
     {
@@ -1050,15 +1163,15 @@ export const STAGE_AB_POOLS: UnitPools = {
         },
         {
           "id": "et",
-          "text": "ethyl, 1°"
+          "text": "ethyl"
         },
         {
           "id": "ipr",
-          "text": "isopropyl, 2°"
+          "text": "isopropyl"
         },
         {
           "id": "tbu",
-          "text": "tert-butyl, 3°"
+          "text": "tert-butyl"
         }
       ],
       "order": [
@@ -1167,19 +1280,19 @@ export const STAGE_AB_POOLS: UnitPools = {
       "items": [
         {
           "id": "sp",
-          "text": "ethynyl, sp"
+          "text": "ethynyl"
         },
         {
           "id": "sp2",
-          "text": "vinyl, sp2"
+          "text": "vinyl"
         },
         {
           "id": "sp3",
-          "text": "ethyl, sp3"
+          "text": "ethyl"
         },
         {
           "id": "sp3t",
-          "text": "tert-butyl, sp3"
+          "text": "tert-butyl"
         }
       ],
       "order": [
@@ -1277,6 +1390,123 @@ export const STAGE_AB_POOLS: UnitPools = {
       "explanation": "More s character steadies a carbanion: sp > sp2 > sp3. When the orbital ties, fewer alkyl groups wins.",
       "provenance": "scripts/u1_pools_ab.py: hybridisation read from the bonds at the charged carbon; every adjacent pair checked decidable. OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only."
     }),
+    {
+      "id": "u1-ani-draw-pentene",
+      "item": {
+        "kind": "draw",
+        "beat": {
+          "kind": "draw",
+          "id": "u1-ani-draw-pentene",
+          "node": "u1-rank-anion",
+          "conceptIds": [
+            "carbanion_stability",
+            "resonance_delocalisation"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "A strong base takes one H from an sp3 carbon of pent-1-ene. Draw the most stable anion.",
+          "brief": "Three sp3 carbons carry H. Draw the anion each one gives, then compare. Either contributor counts.",
+          "visual": {
+            "kind": "structure",
+            "figure": {
+              "bonds": [
+                {
+                  "x1": 25.4,
+                  "y1": 39.0,
+                  "x2": 42.7,
+                  "y2": 49.0,
+                  "order": 2
+                },
+                {
+                  "x1": 42.7,
+                  "y1": 49.0,
+                  "x2": 60.0,
+                  "y2": 39.0
+                },
+                {
+                  "x1": 60.0,
+                  "y1": 39.0,
+                  "x2": 77.3,
+                  "y2": 49.0
+                },
+                {
+                  "x1": 77.3,
+                  "y1": 49.0,
+                  "x2": 94.6,
+                  "y2": 39.0
+                }
+              ]
+            },
+            "name": "pent-1-ene"
+          },
+          "answer": {
+            "smiles": "C=C[CH-]CC",
+            "inchi": "InChI=1S/C5H9/c1-3-5-4-2/h3,5H,1,4H2,2H3/q-1",
+            "name": "the pent-1-en-3-yl anion, an allylic anion",
+            "figure": {
+              "bonds": [
+                {
+                  "x1": 25.4,
+                  "y1": 39.0,
+                  "x2": 42.7,
+                  "y2": 49.0,
+                  "order": 2
+                },
+                {
+                  "x1": 42.7,
+                  "y1": 49.0,
+                  "x2": 60.0,
+                  "y2": 39.0
+                },
+                {
+                  "x1": 60.0,
+                  "y1": 39.0,
+                  "x2": 77.3,
+                  "y2": 49.0
+                },
+                {
+                  "x1": 77.3,
+                  "y1": 49.0,
+                  "x2": 94.6,
+                  "y2": 39.0
+                }
+              ],
+              "labels": [
+                {
+                  "x": 60.0,
+                  "y": 36.0,
+                  "t": "−",
+                  "size": 14
+                }
+              ]
+            }
+          },
+          "stereo": false,
+          "why": "Taking an H from C3 leaves a lone pair next to the C=C, so the charge is shared by C3 and C1. The other sp3 carbons give anions with no resonance and more alkyl groups pushing on them.",
+          "lookAt": "Take the H from C3, the allylic carbon, right next to the C=C. The pi bond shares the negative charge.",
+          "misses": [
+            {
+              "id": "a1",
+              "inchi": "InChI=1S/C5H9/c1-3-5-4-2/h3-4H,1,5H2,2H3/q-1",
+              "smiles": "C=CC[CH-]C",
+              "name": "an anion with no C=C beside it",
+              "says": "No pi bond sits next to that carbon, so one carbon holds the whole charge. The allylic carbon can share it."
+            },
+            {
+              "id": "a2",
+              "inchi": "InChI=1S/C5H9/c1-3-5-4-2/h3H,1-2,4-5H2/q-1",
+              "smiles": "C=CCC[CH2-]",
+              "name": "an anion with no C=C beside it",
+              "says": "No pi bond sits next to that carbon, so one carbon holds the whole charge. The allylic carbon can share it."
+            }
+          ]
+        }
+      },
+      "explanation": "Resonance makes the allylic C-H the most acidic sp3 C-H in an alkene.",
+      "provenance": "scripts/u1_pools_ab.py: every sp3 carbanion of pent-1-ene built and ranked with the script's anion model (resonance, then orbital, then alkyl groups); contributors share one InChI. OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
     ladder({
       "id": "u1-ani-ladder-res",
       "node": "u1-rank-anion",
@@ -1288,11 +1518,11 @@ export const STAGE_AB_POOLS: UnitPools = {
       "items": [
         {
           "id": "penta",
-          "text": "two C=C, conjugated"
+          "text": "pentadienyl"
         },
         {
           "id": "allyl",
-          "text": "allyl, one C=C"
+          "text": "allyl"
         },
         {
           "id": "me",
@@ -1832,46 +2062,127 @@ export const STAGE_AB_POOLS: UnitPools = {
     },
   ],
   "u1-rank-radical": [
-    {
+    ladder({
       "id": "u1-rad-alkyl",
-      "item": {
-        "kind": "mcq",
-        "beat": {
-          "kind": "mcq",
-          "id": "u1-rad-alkyl",
-          "node": "u1-rank-radical",
-          "conceptIds": [
-            "radical_stability",
-            "resonance_delocalisation"
+      "node": "u1-rank-radical",
+      "problemId": "u1-u1-rad-alkyl",
+      "topic": "allylic_halogenation",
+      "difficulty": 1100,
+      "problemPrompt": "Rank four alkyl radicals by stability, most stable first: tert-butyl, isopropyl, ethyl and methyl.",
+      "criterionText": "most stable",
+      "items": [
+        {
+          "id": "tbu",
+          "text": "tert-butyl radical"
+        },
+        {
+          "id": "ipr",
+          "text": "isopropyl radical"
+        },
+        {
+          "id": "et",
+          "text": "ethyl radical"
+        },
+        {
+          "id": "me",
+          "text": "methyl radical"
+        }
+      ],
+      "order": [
+        "tbu",
+        "ipr",
+        "et",
+        "me"
+      ],
+      "solution": {
+        "whatHappened": "tert-Butyl, then isopropyl, then ethyl, then methyl.",
+        "why": "A radical carbon is one electron short of an octet, so each alkyl group on it donates a little density and helps. More carbons on the radical carbon, more stable: 3° > 2° > 1° > methyl, the cation trend.",
+        "lookAt": "Count the carbons bonded to each radical carbon: more is better for a radical."
+      },
+      "distractors": [
+        {
+          "id": "ranked-least-stable-first",
+          "cause": "ordering_is_reversed",
+          "order": [
+            "me",
+            "et",
+            "ipr",
+            "tbu"
           ],
-          "levels": [
-            1
+          "explanation": {
+            "whatHappened": "The right ladder read from the other end.",
+            "why": "Every comparison in it holds, so the ranking work is done. The track asks for the most stable species at the top.",
+            "lookAt": "Put tert-butyl in the first position and the rest follow down from there."
+          }
+        },
+        {
+          "id": "isopropyl-above-tertbutyl",
+          "cause": "ordering_one_adjacent_pair_swapped",
+          "order": [
+            "ipr",
+            "tbu",
+            "et",
+            "me"
           ],
-          "prompt": "Pick the most stable radical.",
-          "correctOptionId": "tbu",
-          "options": [
-            {
-              "id": "et",
-              "text": "ethyl radical",
-              "why": "One carbon neighbour gives a little hyperconjugation. The least helped of the three."
-            },
-            {
-              "id": "tbu",
-              "text": "tert-butyl radical",
-              "why": "Three carbon neighbours donate into the half-empty orbital. Radicals follow the cation trend, so 3° wins."
-            },
-            {
-              "id": "ipr",
-              "text": "isopropyl radical",
-              "why": "Two carbon neighbours is good help, one less than tert-butyl."
-            }
-          ]
+          "explanation": {
+            "whatHappened": "Isopropyl is placed above tert-butyl.",
+            "why": "Three carbon neighbours beat two. A radical is electron poor, so each extra alkyl group helps it.",
+            "lookAt": "Count carbons on the radical carbon of those two."
+          }
+        },
+        {
+          "id": "ethyl-above-isopropyl",
+          "cause": "ordering_one_adjacent_pair_swapped",
+          "order": [
+            "tbu",
+            "et",
+            "ipr",
+            "me"
+          ],
+          "explanation": {
+            "whatHappened": "Ethyl is placed above isopropyl.",
+            "why": "Isopropyl's radical carbon has two carbon neighbours, ethyl's has one. More donation, more stable.",
+            "lookAt": "Count carbons on the radical carbon of those two."
+          }
+        }
+      ],
+      "beat": {
+        "conceptIds": [
+          "radical_stability",
+          "resonance_delocalisation"
+        ],
+        "prompt": "Rank these radicals, most stable at the top.",
+        "brief": "No resonance in any of them. Count what is attached to each radical carbon.",
+        "criterion": "radical_stability",
+        "direction": "descending",
+        "notes": {
+          "tbu": "Three carbon neighbours donate into the half-empty orbital. Radicals follow the cation trend, so 3° is first.",
+          "ipr": "Two carbon neighbours: good help, one less than tert-butyl.",
+          "et": "One carbon neighbour gives a little hyperconjugation.",
+          "me": "No carbon neighbours at all, so nothing helps the odd electron."
         }
       },
-      "explanation": "Radicals follow the cation trend: 3° > 2° > 1° > methyl, because the radical carbon is electron poor.",
-      "provenance": "scripts/u1_pools_ab.py: ranking by charge positions then substitution, the radical model in the script header. OpenStax Organic Chemistry 10.5 (CC BY-NC-SA), read as a check only.",
-      "placeholder": true
-    },
+      "trackEnds": {
+        "first": "Most stable",
+        "last": "Least stable"
+      },
+      "meanings": [
+        {
+          "id": "ranked-least-stable-first",
+          "cause": "order_fully_reversed"
+        },
+        {
+          "id": "isopropyl-above-tertbutyl",
+          "cause": "order_adjacent_pair_swapped"
+        },
+        {
+          "id": "ethyl-above-isopropyl",
+          "cause": "order_adjacent_pair_swapped"
+        }
+      ],
+      "explanation": "Alkyl radicals follow the cation trend: 3° > 2° > 1° > methyl, because the radical carbon is electron poor.",
+      "provenance": "scripts/u1_pools_ab.py: ranking by charge positions then substitution, the radical model in the script header; every adjacent pair checked decidable. OpenStax Organic Chemistry 10.5 (CC BY-NC-SA), read as a check only."
+    }),
     {
       "id": "u1-rad-allyl",
       "item": {
@@ -1910,6 +2221,181 @@ export const STAGE_AB_POOLS: UnitPools = {
       },
       "explanation": "An allylic radical is shared between two carbons by resonance, which beats any simple alkyl radical.",
       "provenance": "scripts/u1_pools_ab.py: ranking by charge positions then substitution; positions found through the cation analogue. OpenStax Organic Chemistry 10.5 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
+    {
+      "id": "u1-rad-draw-bromination",
+      "item": {
+        "kind": "draw",
+        "beat": {
+          "kind": "draw",
+          "id": "u1-rad-draw-bromination",
+          "node": "u1-rank-radical",
+          "conceptIds": [
+            "radical_stability",
+            "resonance_delocalisation"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "Methylcyclohexane, Br2, light. Draw the major monobromide.",
+          "brief": "Br• takes one H first. Picture the radical each H would leave.",
+          "visual": {
+            "kind": "scheme",
+            "scheme": {
+              "left": {
+                "bonds": [
+                  {
+                    "x1": 34.0,
+                    "y1": 64.0,
+                    "x2": 51.3,
+                    "y2": 54.0
+                  },
+                  {
+                    "x1": 51.3,
+                    "y1": 54.0,
+                    "x2": 51.4,
+                    "y2": 34.0
+                  },
+                  {
+                    "x1": 51.4,
+                    "y1": 34.0,
+                    "x2": 68.7,
+                    "y2": 24.0
+                  },
+                  {
+                    "x1": 68.7,
+                    "y1": 24.0,
+                    "x2": 86.0,
+                    "y2": 34.0
+                  },
+                  {
+                    "x1": 86.0,
+                    "y1": 34.0,
+                    "x2": 86.0,
+                    "y2": 54.0
+                  },
+                  {
+                    "x1": 86.0,
+                    "y1": 54.0,
+                    "x2": 68.6,
+                    "y2": 64.0
+                  },
+                  {
+                    "x1": 68.6,
+                    "y1": 64.0,
+                    "x2": 51.3,
+                    "y2": 54.0
+                  }
+                ]
+              },
+              "leftName": "methylcyclohexane",
+              "over": "Br_2",
+              "under": "hν"
+            }
+          },
+          "answer": {
+            "smiles": "CC1(Br)CCCCC1",
+            "inchi": "InChI=1S/C7H13Br/c1-7(8)5-3-2-4-6-7/h2-6H2,1H3",
+            "name": "1-bromo-1-methylcyclohexane",
+            "figure": {
+              "bonds": [
+                {
+                  "x1": 45.7,
+                  "y1": 68.4,
+                  "x2": 52.5,
+                  "y2": 49.6
+                },
+                {
+                  "x1": 52.5,
+                  "y1": 49.6,
+                  "x2": 41.5,
+                  "y2": 47.6
+                },
+                {
+                  "x1": 52.5,
+                  "y1": 49.6,
+                  "x2": 52.5,
+                  "y2": 29.6
+                },
+                {
+                  "x1": 52.5,
+                  "y1": 29.6,
+                  "x2": 69.9,
+                  "y2": 19.6
+                },
+                {
+                  "x1": 69.9,
+                  "y1": 19.6,
+                  "x2": 87.2,
+                  "y2": 29.6
+                },
+                {
+                  "x1": 87.2,
+                  "y1": 29.6,
+                  "x2": 87.2,
+                  "y2": 49.6
+                },
+                {
+                  "x1": 87.2,
+                  "y1": 49.6,
+                  "x2": 69.8,
+                  "y2": 59.6
+                },
+                {
+                  "x1": 69.8,
+                  "y1": 59.6,
+                  "x2": 52.5,
+                  "y2": 49.6
+                }
+              ],
+              "labels": [
+                {
+                  "x": 32.8,
+                  "y": 51.1,
+                  "t": "Br",
+                  "size": 13
+                }
+              ]
+            }
+          },
+          "stereo": false,
+          "why": "Br• is choosy: it takes the H that leaves the most stable radical. Here that is the tertiary ring carbon carrying the methyl, so Br ends up there.",
+          "lookAt": "Take the H from the carbon with three carbons around it, the tertiary one, then put Br where that H was.",
+          "misses": [
+            {
+              "id": "b0",
+              "inchi": "InChI=1S/C7H13Br/c8-6-7-4-2-1-3-5-7/h7H,1-6H2",
+              "smiles": "BrCC1CCCCC1",
+              "name": "Br on a primary carbon",
+              "says": "That H leaves a primary radical. Br• takes the H that leaves the most stable radical, and a tertiary one is on offer."
+            },
+            {
+              "id": "b2",
+              "inchi": "InChI=1S/C7H13Br/c1-6-4-2-3-5-7(6)8/h6-7H,2-5H2,1H3",
+              "smiles": "CC1CCCCC1Br",
+              "name": "Br on a secondary carbon",
+              "says": "That H leaves a secondary radical. Br• takes the H that leaves the most stable radical, and a tertiary one is on offer."
+            },
+            {
+              "id": "b3",
+              "inchi": "InChI=1S/C7H13Br/c1-6-3-2-4-7(8)5-6/h6-7H,2-5H2,1H3",
+              "smiles": "CC1CCCC(Br)C1",
+              "name": "Br on a secondary carbon",
+              "says": "That H leaves a secondary radical. Br• takes the H that leaves the most stable radical, and a tertiary one is on offer."
+            },
+            {
+              "id": "b4",
+              "inchi": "InChI=1S/C7H13Br/c1-6-2-4-7(8)5-3-6/h6-7H,2-5H2,1H3",
+              "smiles": "CC1CCC(Br)CC1",
+              "name": "Br on a secondary carbon",
+              "says": "That H leaves a secondary radical. Br• takes the H that leaves the most stable radical, and a tertiary one is on offer."
+            }
+          ]
+        }
+      },
+      "explanation": "Bromination goes through the most stable radical: tertiary beats secondary beats primary.",
+      "provenance": "scripts/u1_pools_ab.py: every H abstraction built, the radicals ranked with the script's radical model, Br placed on the winner; name checked with OPSIN. OpenStax Organic Chemistry 10.5 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
     {
@@ -2193,46 +2679,118 @@ export const STAGE_AB_POOLS: UnitPools = {
       "provenance": "scripts/u1_pools_ab.py: the three radicals built and ranked by charge positions then substitution. OpenStax Organic Chemistry 10.5 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
-    {
+    ladder({
       "id": "u1-rad-ring",
-      "item": {
-        "kind": "mcq",
-        "beat": {
-          "kind": "mcq",
-          "id": "u1-rad-ring",
-          "node": "u1-rank-radical",
-          "conceptIds": [
-            "radical_stability",
-            "resonance_delocalisation"
+      "node": "u1-rank-radical",
+      "problemId": "u1-u1-rad-ring",
+      "topic": "allylic_halogenation",
+      "difficulty": 1150,
+      "problemPrompt": "Rank three six-ring radicals by stability, most stable first: cyclohex-2-enyl, 1-methylcyclohexyl and cyclohexyl.",
+      "criterionText": "most stable",
+      "items": [
+        {
+          "id": "ene",
+          "text": "cyclohex-2-enyl radical"
+        },
+        {
+          "id": "me",
+          "text": "1-methylcyclohexyl radical"
+        },
+        {
+          "id": "cy",
+          "text": "cyclohexyl radical"
+        }
+      ],
+      "order": [
+        "ene",
+        "me",
+        "cy"
+      ],
+      "solution": {
+        "whatHappened": "Cyclohex-2-enyl, then 1-methylcyclohexyl, then cyclohexyl.",
+        "why": "Only cyclohex-2-enyl can share its odd electron by resonance, so it is first. Without resonance, substitution decides, and for a radical more carbons on the radical carbon is better, so tertiary beats secondary.",
+        "lookAt": "Look for a C=C next to the radical carbon first, then count carbons on it."
+      },
+      "distractors": [
+        {
+          "id": "ranked-least-stable-first",
+          "cause": "ordering_is_reversed",
+          "order": [
+            "cy",
+            "me",
+            "ene"
           ],
-          "levels": [
-            1
+          "explanation": {
+            "whatHappened": "The right ladder read from the other end.",
+            "why": "Every comparison in it holds, so the ranking work is done. The track asks for the most stable species at the top.",
+            "lookAt": "Put the cyclohex-2-enyl radical in the first position and the rest follow down from there."
+          }
+        },
+        {
+          "id": "tertiary-above-allylic",
+          "cause": "ordering_one_adjacent_pair_swapped",
+          "order": [
+            "me",
+            "ene",
+            "cy"
           ],
-          "prompt": "Pick the most stable radical.",
-          "correctOptionId": "ene",
-          "options": [
-            {
-              "id": "me",
-              "text": "1-methylcyclohexyl",
-              "why": "Tertiary is the best a plain alkyl radical can do. The allylic radical shares its odd electron by resonance, and that counts for more."
-            },
-            {
-              "id": "ene",
-              "text": "cyclohex-2-enyl",
-              "why": "Allylic and secondary at both ends. Resonance shares the odd electron over two carbons, which outweighs one extra alkyl group."
-            },
-            {
-              "id": "cy",
-              "text": "cyclohexyl",
-              "why": "Secondary with no resonance. It loses to both of the others."
-            }
-          ]
+          "explanation": {
+            "whatHappened": "1-Methylcyclohexyl is placed above cyclohex-2-enyl.",
+            "why": "Being 3° helps, but resonance helps more: the allylic radical spreads its odd electron over two carbons.",
+            "lookAt": "Push one electron of the C=C toward the radical carbon of cyclohex-2-enyl and see where the odd electron lands."
+          }
+        },
+        {
+          "id": "secondary-above-tertiary",
+          "cause": "ordering_one_adjacent_pair_swapped",
+          "order": [
+            "ene",
+            "cy",
+            "me"
+          ],
+          "explanation": {
+            "whatHappened": "Cyclohexyl is placed above 1-methylcyclohexyl.",
+            "why": "That is the anion trend. A radical is electron poor, so the extra methyl on the tertiary carbon helps it.",
+            "lookAt": "Count carbons on the radical carbon of those two: for a radical, more wins."
+          }
+        }
+      ],
+      "beat": {
+        "conceptIds": [
+          "radical_stability",
+          "resonance_delocalisation"
+        ],
+        "prompt": "Rank these ring radicals, most stable at the top.",
+        "brief": "Look for resonance first, then count carbons on the radical carbon.",
+        "criterion": "radical_stability",
+        "direction": "descending",
+        "notes": {
+          "ene": "Allylic: the C=C next door shares the odd electron with the far end, and resonance counts for more than one extra alkyl group.",
+          "me": "Tertiary is the best a plain alkyl radical can do, with no resonance.",
+          "cy": "Secondary with no resonance. It loses to both of the others."
         }
       },
-      "explanation": "Allylic resonance outweighs substitution for radicals: a 2° allylic radical beats a 3° alkyl one.",
-      "provenance": "scripts/u1_pools_ab.py: radical model: resonance first, then substitution. OpenStax Organic Chemistry 10.5 (CC BY-NC-SA), read as a check only.",
-      "placeholder": true
-    },
+      "trackEnds": {
+        "first": "Most stable",
+        "last": "Least stable"
+      },
+      "meanings": [
+        {
+          "id": "ranked-least-stable-first",
+          "cause": "order_fully_reversed"
+        },
+        {
+          "id": "tertiary-above-allylic",
+          "cause": "order_adjacent_pair_swapped"
+        },
+        {
+          "id": "secondary-above-tertiary",
+          "cause": "order_adjacent_pair_swapped"
+        }
+      ],
+      "explanation": "Allylic resonance outweighs substitution for radicals: a 2° allylic radical beats a 3° alkyl one, which beats a 2° alkyl one.",
+      "provenance": "scripts/u1_pools_ab.py: radical model: resonance first, then substitution; every adjacent pair checked decidable. OpenStax Organic Chemistry 10.5 (CC BY-NC-SA), read as a check only."
+    }),
   ],
   "u1-quiz-a": [
     ladder({
@@ -2246,19 +2804,19 @@ export const STAGE_AB_POOLS: UnitPools = {
       "items": [
         {
           "id": "penta",
-          "text": "two C=C, conjugated"
+          "text": "pentadienyl"
         },
         {
           "id": "all2",
-          "text": "2° allylic"
+          "text": "crotyl"
         },
         {
           "id": "ipr",
-          "text": "isopropyl, 2°"
+          "text": "isopropyl"
         },
         {
           "id": "et",
-          "text": "ethyl, 1°"
+          "text": "ethyl"
         }
       ],
       "order": [
@@ -2366,19 +2924,19 @@ export const STAGE_AB_POOLS: UnitPools = {
       "items": [
         {
           "id": "sp",
-          "text": "ethynyl, sp"
+          "text": "ethynyl"
         },
         {
           "id": "sp2",
-          "text": "vinyl, sp2"
+          "text": "vinyl"
         },
         {
           "id": "me",
-          "text": "methyl, sp3"
+          "text": "methyl"
         },
         {
           "id": "et",
-          "text": "ethyl, sp3"
+          "text": "ethyl"
         }
       ],
       "order": [
@@ -2476,6 +3034,150 @@ export const STAGE_AB_POOLS: UnitPools = {
       "explanation": "For a carbanion: more s character first, then fewer alkyl groups.",
       "provenance": "scripts/u1_pools_ab.py: hybridisation read from the bonds at the charged carbon; every adjacent pair checked decidable. OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only."
     }),
+    {
+      "id": "u1-qa-draw-protonate",
+      "item": {
+        "kind": "draw",
+        "beat": {
+          "kind": "draw",
+          "id": "u1-qa-draw-protonate",
+          "node": "u1-quiz-a",
+          "conceptIds": [
+            "resonance_delocalisation"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "H+ adds to 1-methylcyclohexene. Draw the cation that forms.",
+          "brief": "Two carbons could take the H. Compare the cations they leave.",
+          "visual": {
+            "kind": "structure",
+            "figure": {
+              "bonds": [
+                {
+                  "x1": 34.0,
+                  "y1": 64.0,
+                  "x2": 51.3,
+                  "y2": 54.0
+                },
+                {
+                  "x1": 51.3,
+                  "y1": 54.0,
+                  "x2": 51.4,
+                  "y2": 34.0,
+                  "order": 2
+                },
+                {
+                  "x1": 51.4,
+                  "y1": 34.0,
+                  "x2": 68.7,
+                  "y2": 24.0
+                },
+                {
+                  "x1": 68.7,
+                  "y1": 24.0,
+                  "x2": 86.0,
+                  "y2": 34.0
+                },
+                {
+                  "x1": 86.0,
+                  "y1": 34.0,
+                  "x2": 86.0,
+                  "y2": 54.0
+                },
+                {
+                  "x1": 86.0,
+                  "y1": 54.0,
+                  "x2": 68.6,
+                  "y2": 64.0
+                },
+                {
+                  "x1": 68.6,
+                  "y1": 64.0,
+                  "x2": 51.3,
+                  "y2": 54.0
+                }
+              ]
+            },
+            "name": "1-methylcyclohexene"
+          },
+          "answer": {
+            "smiles": "C[C+]1CCCCC1",
+            "inchi": "InChI=1S/C7H13/c1-7-5-3-2-4-6-7/h2-6H2,1H3/q+1",
+            "name": "the 1-methylcyclohexyl cation",
+            "figure": {
+              "bonds": [
+                {
+                  "x1": 34.0,
+                  "y1": 64.0,
+                  "x2": 51.3,
+                  "y2": 54.0
+                },
+                {
+                  "x1": 51.3,
+                  "y1": 54.0,
+                  "x2": 51.4,
+                  "y2": 34.0
+                },
+                {
+                  "x1": 51.4,
+                  "y1": 34.0,
+                  "x2": 68.7,
+                  "y2": 24.0
+                },
+                {
+                  "x1": 68.7,
+                  "y1": 24.0,
+                  "x2": 86.0,
+                  "y2": 34.0
+                },
+                {
+                  "x1": 86.0,
+                  "y1": 34.0,
+                  "x2": 86.0,
+                  "y2": 54.0
+                },
+                {
+                  "x1": 86.0,
+                  "y1": 54.0,
+                  "x2": 68.6,
+                  "y2": 64.0
+                },
+                {
+                  "x1": 68.6,
+                  "y1": 64.0,
+                  "x2": 51.3,
+                  "y2": 54.0
+                }
+              ],
+              "labels": [
+                {
+                  "x": 58.3,
+                  "y": 55.0,
+                  "t": "+",
+                  "size": 14
+                }
+              ]
+            }
+          },
+          "stereo": false,
+          "why": "H+ goes on the ring CH of the C=C, which leaves the + on the carbon carrying the methyl: three carbons around it, a tertiary cation.",
+          "lookAt": "Put the H on the C=C carbon that has an H already. The + lands on the carbon with the methyl.",
+          "misses": [
+            {
+              "id": "c0",
+              "inchi": "InChI=1S/C7H13/c1-7-5-3-2-4-6-7/h5,7H,2-4,6H2,1H3/q+1",
+              "smiles": "CC1[CH+]CCCC1",
+              "name": "the secondary cation",
+              "says": "That leaves the + on a carbon with only two carbons around it. The other carbon of the C=C gives a tertiary cation."
+            }
+          ]
+        }
+      },
+      "explanation": "Protonation leaves the more substituted cation: here, tertiary beats secondary.",
+      "provenance": "scripts/u1_pools_ab.py: both protonations built and ranked with the script's cation model (compare). OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
     {
       "id": "u1-qa-prenyl-cation",
       "item": {
@@ -2895,7 +3597,7 @@ export const STAGE_AB_POOLS: UnitPools = {
             2
           ],
           "prompt": "HBr, 40 degrees, given time. Draw the major product.",
-          "brief": "Warm and reversible: the more stable product wins. Count groups on its C=C.",
+          "brief": "Read the temperature first. It decides which product you draw.",
           "visual": {
             "kind": "scheme",
             "scheme": {
@@ -2996,12 +3698,28 @@ export const STAGE_AB_POOLS: UnitPools = {
           },
           "stereo": false,
           "why": "At 40 degrees both products can return to the cation, so the mixture settles into the more stable one: the 1,4 product, whose C=C carries four carbons.",
-          "lookAt": "Warm means thermodynamic. Draw both products, then keep the one with more carbons on its C=C."
+          "lookAt": "Warm means thermodynamic. Draw both products, then keep the one with more carbons on its C=C.",
+          "misses": [
+            {
+              "id": "p12",
+              "inchi": "InChI=1S/C6H11Br/c1-5(2)6(3,4)7/h1H2,2-4H3",
+              "smiles": "C=C(C)C(C)(C)Br",
+              "name": "the 1,2 product, the kinetic one",
+              "says": "It forms fastest, but at 40 degrees it can ionise again. Given time, the mixture drifts to the more stable alkene."
+            },
+            {
+              "id": "inner",
+              "inchi": "InChI=1S/C6H11Br/c1-5(2)6(3)4-7/h6H,1,4H2,2-3H3",
+              "smiles": "C=C(C)C(C)CBr",
+              "name": "the product of H+ on an inner carbon",
+              "says": "That needs a cation with no resonance. H+ goes on an end carbon."
+            }
+          ]
         }
       },
       "explanation": "Warm and reversible gives the thermodynamic product, the one with the more substituted alkene.",
       "conditions": "one equivalent; 40 degrees, given time: both products can return to the cation",
-      "provenance": "scripts/u1_pools_ab.py: thermodynamic call from diene_addition (alkene substitution counted); name checked with OPSIN. OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only; OpenStax Organic Chemistry 14.3 (CC BY-NC-SA), read as a check only.",
+      "provenance": "scripts/u1_pools_ab.py: thermodynamic call from diene_addition (alkene substitution counted); misses are the kinetic and inner products; name checked with OPSIN. OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only; OpenStax Organic Chemistry 14.3 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
   ],
@@ -3082,6 +3800,232 @@ export const STAGE_AB_POOLS: UnitPools = {
       },
       "explanation": "Product depth is stability: the deeper well is the more stable product.",
       "provenance": "scripts/u1_pools_ab.py: thermodynamic product read off the diagram's product depths. OpenStax Organic Chemistry 14.3 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
+    {
+      "id": "u1-ed-draw-cold",
+      "item": {
+        "kind": "draw",
+        "beat": {
+          "kind": "draw",
+          "id": "u1-ed-draw-cold",
+          "node": "u1-energy-diagram",
+          "conceptIds": [
+            "kinetic_vs_thermodynamic_control"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "The diagram is HBr plus buta-1,3-diene. At minus 80 degrees, draw the major product.",
+          "brief": "Read the diagram for a cold flask, then draw that product.",
+          "visual": {
+            "kind": "structure",
+            "figure": {
+              "bonds": [
+                {
+                  "x1": 4,
+                  "y1": 80,
+                  "x2": 4,
+                  "y2": 8,
+                  "arrow": true
+                },
+                {
+                  "x1": 52,
+                  "y1": 50.0,
+                  "x2": 68,
+                  "y2": 50.0
+                },
+                {
+                  "x1": 52,
+                  "y1": 50.0,
+                  "x2": 48.0,
+                  "y2": 43.1
+                },
+                {
+                  "x1": 48.0,
+                  "y1": 43.1,
+                  "x2": 44.0,
+                  "y2": 37.3
+                },
+                {
+                  "x1": 44.0,
+                  "y1": 37.3,
+                  "x2": 40.0,
+                  "y2": 33.4
+                },
+                {
+                  "x1": 40.0,
+                  "y1": 33.4,
+                  "x2": 36.0,
+                  "y2": 32.0
+                },
+                {
+                  "x1": 36.0,
+                  "y1": 32.0,
+                  "x2": 32.5,
+                  "y2": 34.0
+                },
+                {
+                  "x1": 32.5,
+                  "y1": 34.0,
+                  "x2": 29.0,
+                  "y2": 39.7
+                },
+                {
+                  "x1": 29.0,
+                  "y1": 39.7,
+                  "x2": 25.5,
+                  "y2": 48.3
+                },
+                {
+                  "x1": 25.5,
+                  "y1": 48.3,
+                  "x2": 22.0,
+                  "y2": 58.4
+                },
+                {
+                  "x1": 22,
+                  "y1": 58.4,
+                  "x2": 10,
+                  "y2": 58.4
+                },
+                {
+                  "x1": 68,
+                  "y1": 50.0,
+                  "x2": 72.0,
+                  "y2": 39.4
+                },
+                {
+                  "x1": 72.0,
+                  "y1": 39.4,
+                  "x2": 76.0,
+                  "y2": 30.5
+                },
+                {
+                  "x1": 76.0,
+                  "y1": 30.5,
+                  "x2": 80.0,
+                  "y2": 24.5
+                },
+                {
+                  "x1": 80.0,
+                  "y1": 24.5,
+                  "x2": 84.0,
+                  "y2": 22.4
+                },
+                {
+                  "x1": 84.0,
+                  "y1": 22.4,
+                  "x2": 87.5,
+                  "y2": 26.0
+                },
+                {
+                  "x1": 87.5,
+                  "y1": 26.0,
+                  "x2": 91.0,
+                  "y2": 36.1
+                },
+                {
+                  "x1": 91.0,
+                  "y1": 36.1,
+                  "x2": 94.5,
+                  "y2": 51.3
+                },
+                {
+                  "x1": 94.5,
+                  "y1": 51.3,
+                  "x2": 98.0,
+                  "y2": 69.2
+                },
+                {
+                  "x1": 98,
+                  "y1": 69.2,
+                  "x2": 112,
+                  "y2": 69.2
+                }
+              ],
+              "labels": [
+                {
+                  "x": 16,
+                  "y": 69.4,
+                  "t": "1,2",
+                  "size": 12
+                },
+                {
+                  "x": 105,
+                  "y": 80.2,
+                  "t": "1,4",
+                  "size": 12
+                },
+                {
+                  "x": 10,
+                  "y": 10,
+                  "t": "G",
+                  "size": 11
+                }
+              ]
+            },
+            "name": "the two routes from the allylic cation"
+          },
+          "answer": {
+            "smiles": "C=CC(C)Br",
+            "inchi": "InChI=1S/C4H7Br/c1-3-4(2)5/h3-4H,1H2,2H3",
+            "name": "3-bromobut-1-ene",
+            "figure": {
+              "bonds": [
+                {
+                  "x1": 77.3,
+                  "y1": 19.0,
+                  "x2": 77.3,
+                  "y2": 39.0,
+                  "order": 2
+                },
+                {
+                  "x1": 77.3,
+                  "y1": 39.0,
+                  "x2": 60.0,
+                  "y2": 49.0
+                },
+                {
+                  "x1": 60.0,
+                  "y1": 49.0,
+                  "x2": 60.1,
+                  "y2": 69.0
+                },
+                {
+                  "x1": 60.0,
+                  "y1": 49.0,
+                  "x2": 51.3,
+                  "y2": 44.0
+                }
+              ],
+              "labels": [
+                {
+                  "x": 42.7,
+                  "y": 44.1,
+                  "t": "Br",
+                  "size": 13
+                }
+              ]
+            }
+          },
+          "stereo": false,
+          "why": "Cold, no product can climb back over its hump, so the one over the lower hump wins. That is the 1,2 product: H on C1, Br on C2.",
+          "lookAt": "Cold means the lower hump wins. That is the 1,2 route: Br on C2, right beside the new H, with the C=C left at the end.",
+          "misses": [
+            {
+              "id": "p14",
+              "inchi": "InChI=1S/C4H7Br/c1-2-3-4-5/h2-3H,4H2,1H3",
+              "smiles": "CC=CCBr",
+              "name": "the 1,4 product",
+              "says": "That is the deeper well, the stable one. Cold, nothing climbs back, so depth gets no vote: the lower hump decides."
+            }
+          ]
+        }
+      },
+      "explanation": "Cold and irreversible: the product over the lower transition state (kinetic) wins.",
+      "conditions": "one equivalent; minus 80 degrees: nothing reverses, so the faster product is locked in",
+      "provenance": "scripts/u1_pools_ab.py: kinetic route read off the diagram's transition state heights and checked against diene_addition's kinetic call; name checked with OPSIN. OpenStax Organic Chemistry 14.3 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
     {
@@ -3613,13 +4557,19 @@ export const STAGE_AB_POOLS: UnitPools = {
           "levels": [
             2
           ],
-          "prompt": "HBr adds 1,4 to buta-1,3-diene. Draw the 1,4 product.",
-          "brief": "H on C1, Br on C4. Watch where the double bond ends up.",
+          "prompt": "HBr adds to hexa-2,4-diene. Draw the 1,4 product.",
+          "brief": "The 1 and 4 count the diene's four C=C carbons, not the chain's six.",
           "visual": {
             "kind": "scheme",
             "scheme": {
               "left": {
                 "bonds": [
+                  {
+                    "x1": 103.3,
+                    "y1": 49.0,
+                    "x2": 86.0,
+                    "y2": 39.0
+                  },
                   {
                     "x1": 86.0,
                     "y1": 39.0,
@@ -3639,49 +4589,67 @@ export const STAGE_AB_POOLS: UnitPools = {
                     "x2": 34.0,
                     "y2": 49.0,
                     "order": 2
+                  },
+                  {
+                    "x1": 34.0,
+                    "y1": 49.0,
+                    "x2": 16.7,
+                    "y2": 39.0
                   }
                 ]
               },
-              "leftName": "buta-1,3-diene",
+              "leftName": "hexa-2,4-diene",
               "over": "HBr"
             }
           },
           "answer": {
-            "smiles": "CC=CCBr",
-            "inchi": "InChI=1S/C4H7Br/c1-2-3-4-5/h2-3H,4H2,1H3",
-            "name": "1-bromobut-2-ene",
+            "smiles": "CCC=CC(C)Br",
+            "inchi": "InChI=1S/C6H11Br/c1-3-4-5-6(2)7/h4-6H,3H2,1-2H3",
+            "name": "2-bromohex-3-ene",
             "figure": {
               "bonds": [
                 {
-                  "x1": 25.4,
-                  "y1": 49.0,
-                  "x2": 42.7,
-                  "y2": 39.0
+                  "x1": 16.7,
+                  "y1": 49.1,
+                  "x2": 34.0,
+                  "y2": 59.1
                 },
                 {
-                  "x1": 42.7,
-                  "y1": 39.0,
-                  "x2": 60.0,
-                  "y2": 49.0,
+                  "x1": 34.0,
+                  "y1": 59.1,
+                  "x2": 51.3,
+                  "y2": 49.0
+                },
+                {
+                  "x1": 51.3,
+                  "y1": 49.0,
+                  "x2": 68.7,
+                  "y2": 59.0,
                   "order": 2
                 },
                 {
-                  "x1": 60.0,
-                  "y1": 49.0,
-                  "x2": 77.3,
-                  "y2": 39.0
+                  "x1": 68.7,
+                  "y1": 59.0,
+                  "x2": 86.0,
+                  "y2": 48.9
                 },
                 {
-                  "x1": 77.3,
-                  "y1": 39.0,
-                  "x2": 86.0,
-                  "y2": 44.0
+                  "x1": 86.0,
+                  "y1": 48.9,
+                  "x2": 103.3,
+                  "y2": 58.9
+                },
+                {
+                  "x1": 86.0,
+                  "y1": 48.9,
+                  "x2": 85.9,
+                  "y2": 35.0
                 }
               ],
               "labels": [
                 {
-                  "x": 94.6,
-                  "y": 54.0,
+                  "x": 85.9,
+                  "y": 33.9,
                   "t": "Br",
                   "size": 13
                 }
@@ -3689,13 +4657,29 @@ export const STAGE_AB_POOLS: UnitPools = {
             }
           },
           "stereo": false,
-          "why": "H goes on C1, Br on C4, and the C=C moves to C2=C3. That is the second contributor of the allylic cation being trapped.",
-          "lookAt": "Number the four carbons. Br goes on C4, the far end, and the double bond moves into the middle."
+          "why": "The diene is C2 to C5 of the chain. H goes on C2, the diene's first carbon, which shares the + between C3 and C5. Br on C5, the diene's fourth carbon, moves the C=C to the middle: C3=C4.",
+          "lookAt": "Count only the diene: chain C2 is its 1, chain C5 its 4. H on the 1, Br on the 4, and the C=C slides into the middle, between the diene's 2 and 3.",
+          "misses": [
+            {
+              "id": "p12",
+              "inchi": "InChI=1S/C6H11Br/c1-3-5-6(7)4-2/h3,5-6H,4H2,1-2H3",
+              "smiles": "CC=CC(Br)CC",
+              "name": "the 1,2 product",
+              "says": "Br landed on the near end of the allylic cation, right beside the new H. That is 1,2 addition: the diene's carbons 1 and 2."
+            },
+            {
+              "id": "inner",
+              "inchi": "InChI=1S/C6H11Br/c1-3-4-5-6(2)7/h3-4,6H,5H2,1-2H3",
+              "smiles": "CC=CCC(C)Br",
+              "name": "the product of H+ on an inner carbon",
+              "says": "That needs H+ on a middle carbon of the diene, which leaves a cation with no resonance. H+ goes on an end of the diene."
+            }
+          ]
         }
       },
-      "explanation": "1,4 addition: H on C1, the nucleophile on C4, and the double bond moves to C2=C3.",
+      "explanation": "1,4 addition: E+ on the diene's first carbon, the nucleophile on its fourth, and the double bond moves into the middle.",
       "conditions": "one equivalent of HBr",
-      "provenance": "scripts/u1_pools_ab.py: 1,4 product from diene_addition; name checked with OPSIN. OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only.",
+      "provenance": "scripts/u1_pools_ab.py: 1,4 product from diene_addition on hexa-2,4-diene (both ends protonate alike, no losing cation); misses are its 1,2 and inner-protonation products; name checked with OPSIN. OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
   ],
@@ -3793,7 +4777,7 @@ export const STAGE_AB_POOLS: UnitPools = {
             2
           ],
           "prompt": "HBr, minus 80 degrees. Draw the major product.",
-          "brief": "Protonate the end that gives the better cation first. Cold keeps the 1,2 product.",
+          "brief": "Decide where H+ goes first, then read the temperature.",
           "visual": {
             "kind": "scheme",
             "scheme": {
@@ -3882,12 +4866,28 @@ export const STAGE_AB_POOLS: UnitPools = {
           },
           "stereo": false,
           "why": "H+ goes on C1, which puts the + on the tertiary, allylic C2. Cold, nothing reverses, so Br lands right next to where the H went: the 1,2 product.",
-          "lookAt": "Find the protonation that gives a tertiary allylic cation, then put Br on that same carbon."
+          "lookAt": "Protonate C1 to get the tertiary allylic cation, then put Br on that same carbon. Cold keeps the 1,2 product.",
+          "misses": [
+            {
+              "id": "p14",
+              "inchi": "InChI=1S/C5H9Br/c1-5(2)3-4-6/h3H,4H2,1-2H3",
+              "smiles": "CC(C)=CCBr",
+              "name": "the 1,4 product",
+              "says": "That is the product that wins when warm. At minus 80 degrees nothing reverses, so the first-formed product stays."
+            },
+            {
+              "id": "loser0",
+              "inchi": "InChI=1S/C5H9Br/c1-4(2)5(3)6/h5H,1H2,2-3H3",
+              "smiles": "C=C(C)C(C)Br",
+              "name": "the product of the weaker cation",
+              "says": "That comes from H+ on the other end, which gives a cation that is only secondary. The tertiary allylic cation forms faster."
+            }
+          ]
         }
       },
       "explanation": "Cold gives the kinetic, 1,2 product from the best cation.",
       "conditions": "one equivalent; minus 80 degrees: nothing reverses, so the faster product is locked in",
-      "provenance": "scripts/u1_pools_ab.py: kinetic call from diene_addition (best cation by dominance); name checked with OPSIN. OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only; OpenStax Organic Chemistry 14.3 (CC BY-NC-SA), read as a check only.",
+      "provenance": "scripts/u1_pools_ab.py: kinetic call from diene_addition (best cation by dominance); misses are its 1,4 product and the weaker cation's products; name checked with OPSIN. OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only; OpenStax Organic Chemistry 14.3 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
     {
@@ -4012,41 +5012,141 @@ export const STAGE_AB_POOLS: UnitPools = {
     {
       "id": "u1-hx-dmb-cold",
       "item": {
-        "kind": "mcq",
+        "kind": "draw",
         "beat": {
-          "kind": "mcq",
+          "kind": "draw",
           "id": "u1-hx-dmb-cold",
           "node": "u1-hx-dienes",
           "conceptIds": [
             "kinetic_vs_thermodynamic_control"
           ],
           "levels": [
-            1
+            2
           ],
-          "prompt": "Add HBr at minus 80 degrees. Pick the major product.",
-          "correctOptionId": "p12",
-          "options": [
+          "prompt": "Add HBr at minus 80 degrees. Draw the major product.",
+          "brief": "Decide where H+ goes, then read the temperature.",
+          "visual": {
+            "kind": "scheme",
+            "scheme": {
+              "left": {
+                "bonds": [
+                  {
+                    "x1": 68.6,
+                    "y1": 19.0,
+                    "x2": 68.7,
+                    "y2": 39.0,
+                    "order": 2
+                  },
+                  {
+                    "x1": 68.7,
+                    "y1": 39.0,
+                    "x2": 86.0,
+                    "y2": 48.9
+                  },
+                  {
+                    "x1": 68.7,
+                    "y1": 39.0,
+                    "x2": 51.3,
+                    "y2": 49.0
+                  },
+                  {
+                    "x1": 51.3,
+                    "y1": 49.0,
+                    "x2": 34.0,
+                    "y2": 39.1
+                  },
+                  {
+                    "x1": 51.3,
+                    "y1": 49.0,
+                    "x2": 51.4,
+                    "y2": 69.0,
+                    "order": 2
+                  }
+                ]
+              },
+              "leftName": "2,3-dimethylbuta-1,3-diene",
+              "over": "HBr, 1 equiv",
+              "under": "-80 degrees"
+            }
+          },
+          "answer": {
+            "smiles": "C=C(C)C(C)(C)Br",
+            "inchi": "InChI=1S/C6H11Br/c1-5(2)6(3,4)7/h1H2,2-4H3",
+            "name": "3-bromo-2,3-dimethylbut-1-ene",
+            "figure": {
+              "bonds": [
+                {
+                  "x1": 51.4,
+                  "y1": 20.3,
+                  "x2": 51.3,
+                  "y2": 40.3,
+                  "order": 2
+                },
+                {
+                  "x1": 51.3,
+                  "y1": 40.3,
+                  "x2": 34.0,
+                  "y2": 50.3
+                },
+                {
+                  "x1": 51.3,
+                  "y1": 40.3,
+                  "x2": 68.6,
+                  "y2": 50.3
+                },
+                {
+                  "x1": 68.6,
+                  "y1": 50.3,
+                  "x2": 78.6,
+                  "y2": 67.7
+                },
+                {
+                  "x1": 68.6,
+                  "y1": 50.3,
+                  "x2": 86.0,
+                  "y2": 40.4
+                },
+                {
+                  "x1": 68.6,
+                  "y1": 50.3,
+                  "x2": 62.1,
+                  "y2": 61.6
+                }
+              ],
+              "labels": [
+                {
+                  "x": 58.6,
+                  "y": 72.6,
+                  "t": "Br",
+                  "size": 13
+                }
+              ]
+            }
+          },
+          "stereo": false,
+          "why": "H on C1, then bromide captured at C2, the nearby tertiary carbon. Cold locks in this fast, 1,2 product.",
+          "lookAt": "Cold and irreversible: the 1,2 (kinetic) product.",
+          "misses": [
             {
               "id": "p14",
-              "text": "1-bromo-2,3-dimethylbut-2-ene",
-              "why": "The 1,4 product, with its four-carbon alkene, is the stable one. Cold, nothing reverses, so stability gets no vote."
-            },
-            {
-              "id": "p12",
-              "text": "3-bromo-2,3-dimethylbut-1-ene",
-              "why": "H on C1, then bromide captured at C2, the nearby tertiary carbon. Cold locks in this fast, 1,2 product."
+              "inchi": "InChI=1S/C6H11Br/c1-5(2)6(3)4-7/h4H2,1-3H3",
+              "smiles": "CC(C)=C(C)CBr",
+              "name": "the 1,4 product",
+              "says": "The 1,4 product, with its four-carbon alkene, is the stable one. Cold, nothing reverses, so stability gets no vote."
             },
             {
               "id": "inner",
-              "text": "4-bromo-2,3-dimethylbut-1-ene",
-              "why": "This needs H+ on an inner carbon, which leaves a primary cation with no resonance. Protonation goes to the end instead."
+              "inchi": "InChI=1S/C6H11Br/c1-5(2)6(3)4-7/h6H,1,4H2,2-3H3",
+              "smiles": "C=C(C)C(C)CBr",
+              "name": "the product of H+ on an inner carbon",
+              "says": "This needs H+ on an inner carbon, which leaves a primary cation with no resonance. Protonation goes to the end instead."
             }
           ]
         }
       },
       "explanation": "Cold and irreversible: the 1,2 (kinetic) product.",
       "conditions": "one equivalent; minus 80 degrees: nothing reverses, so the faster product is locked in",
-      "provenance": "scripts/u1_pools_ab.py: kinetic call from diene_addition; names checked with OPSIN. OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only; OpenStax Organic Chemistry 14.3 (CC BY-NC-SA), read as a check only.",
+      "provenance": "scripts/u1_pools_ab.py: kinetic call from diene_addition; misses are the MCQ's derived options; names checked with OPSIN. OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only; OpenStax Organic Chemistry 14.3 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
     {
@@ -4092,41 +5192,141 @@ export const STAGE_AB_POOLS: UnitPools = {
     {
       "id": "u1-hx-hexadiene-cold",
       "item": {
-        "kind": "mcq",
+        "kind": "draw",
         "beat": {
-          "kind": "mcq",
+          "kind": "draw",
           "id": "u1-hx-hexadiene-cold",
           "node": "u1-hx-dienes",
           "conceptIds": [
             "kinetic_vs_thermodynamic_control"
           ],
           "levels": [
-            1
+            2
           ],
-          "prompt": "Add HBr at minus 80 degrees. Pick the major product.",
-          "correctOptionId": "p12",
-          "options": [
+          "prompt": "Add HBr at minus 80 degrees. Draw the major product.",
+          "brief": "Decide where H+ goes, then read the temperature.",
+          "visual": {
+            "kind": "scheme",
+            "scheme": {
+              "left": {
+                "bonds": [
+                  {
+                    "x1": 103.3,
+                    "y1": 49.0,
+                    "x2": 86.0,
+                    "y2": 39.0
+                  },
+                  {
+                    "x1": 86.0,
+                    "y1": 39.0,
+                    "x2": 68.7,
+                    "y2": 49.0,
+                    "order": 2
+                  },
+                  {
+                    "x1": 68.7,
+                    "y1": 49.0,
+                    "x2": 51.3,
+                    "y2": 39.0
+                  },
+                  {
+                    "x1": 51.3,
+                    "y1": 39.0,
+                    "x2": 34.0,
+                    "y2": 49.0,
+                    "order": 2
+                  },
+                  {
+                    "x1": 34.0,
+                    "y1": 49.0,
+                    "x2": 16.7,
+                    "y2": 39.0
+                  }
+                ]
+              },
+              "leftName": "hexa-2,4-diene",
+              "over": "HBr, 1 equiv",
+              "under": "-80 degrees"
+            }
+          },
+          "answer": {
+            "smiles": "CC=CC(Br)CC",
+            "inchi": "InChI=1S/C6H11Br/c1-3-5-6(7)4-2/h3,5-6H,4H2,1-2H3",
+            "name": "4-bromohex-2-ene",
+            "figure": {
+              "bonds": [
+                {
+                  "x1": 16.7,
+                  "y1": 59.0,
+                  "x2": 34.0,
+                  "y2": 49.0
+                },
+                {
+                  "x1": 34.0,
+                  "y1": 49.0,
+                  "x2": 51.3,
+                  "y2": 59.0,
+                  "order": 2
+                },
+                {
+                  "x1": 51.3,
+                  "y1": 59.0,
+                  "x2": 68.7,
+                  "y2": 49.0
+                },
+                {
+                  "x1": 68.7,
+                  "y1": 49.0,
+                  "x2": 68.6,
+                  "y2": 35.0
+                },
+                {
+                  "x1": 68.7,
+                  "y1": 49.0,
+                  "x2": 86.0,
+                  "y2": 59.0
+                },
+                {
+                  "x1": 86.0,
+                  "y1": 59.0,
+                  "x2": 103.3,
+                  "y2": 49.0
+                }
+              ],
+              "labels": [
+                {
+                  "x": 68.6,
+                  "y": 34.0,
+                  "t": "Br",
+                  "size": 13
+                }
+              ]
+            }
+          },
+          "stereo": false,
+          "why": "H on C2, then bromide captured on C3, right beside it. Both charged carbons are secondary, so nearness decides: the 1,2 product.",
+          "lookAt": "Cold: the nucleophile is captured at the nearer charged carbon, the 1,2 product.",
+          "misses": [
             {
               "id": "inner",
-              "text": "5-bromohex-2-ene",
-              "why": "This needs H+ on an inner carbon of the diene, which leaves a cation with no resonance. Protonation goes to an end carbon instead."
+              "inchi": "InChI=1S/C6H11Br/c1-3-4-5-6(2)7/h3-4,6H,5H2,1-2H3",
+              "smiles": "CC=CCC(C)Br",
+              "name": "the product of H+ on an inner carbon",
+              "says": "This needs H+ on an inner carbon of the diene, which leaves a cation with no resonance. Protonation goes to an end carbon instead."
             },
             {
               "id": "p14",
-              "text": "2-bromohex-3-ene",
-              "why": "The 1,4 product forms through the far end of the allylic cation. Cold favours the near end, beside the new C-H."
-            },
-            {
-              "id": "p12",
-              "text": "4-bromohex-2-ene",
-              "why": "H on C2, then bromide captured on C3, right beside it. Both charged carbons are secondary, so nearness decides: the 1,2 product."
+              "inchi": "InChI=1S/C6H11Br/c1-3-4-5-6(2)7/h4-6H,3H2,1-2H3",
+              "smiles": "CCC=CC(C)Br",
+              "name": "the 1,4 product",
+              "says": "The 1,4 product forms through the far end of the allylic cation. Cold favours the near end, beside the new C-H."
             }
           ]
         }
       },
       "explanation": "Cold: the nucleophile is captured at the nearer charged carbon, the 1,2 product.",
       "conditions": "one equivalent; minus 80 degrees: nothing reverses, so the faster product is locked in",
-      "provenance": "scripts/u1_pools_ab.py: kinetic call from diene_addition; names checked with OPSIN. OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only; OpenStax Organic Chemistry 14.3 (CC BY-NC-SA), read as a check only.",
+      "provenance": "scripts/u1_pools_ab.py: kinetic call from diene_addition; misses are the MCQ's derived options; names checked with OPSIN. OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only; OpenStax Organic Chemistry 14.3 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
     {
@@ -4212,9 +5412,9 @@ export const STAGE_AB_POOLS: UnitPools = {
     {
       "id": "u1-hx-mp4-warm",
       "item": {
-        "kind": "mcq",
+        "kind": "draw",
         "beat": {
-          "kind": "mcq",
+          "kind": "draw",
           "id": "u1-hx-mp4-warm",
           "node": "u1-hx-dienes",
           "conceptIds": [
@@ -4223,30 +5423,130 @@ export const STAGE_AB_POOLS: UnitPools = {
           "levels": [
             2
           ],
-          "prompt": "Add HBr at 40 degrees and wait. Pick the major product.",
-          "correctOptionId": "p12",
-          "options": [
+          "prompt": "Add HBr at 40 degrees and wait. Draw the major product.",
+          "brief": "Decide where H+ goes, then read the temperature.",
+          "visual": {
+            "kind": "scheme",
+            "scheme": {
+              "left": {
+                "bonds": [
+                  {
+                    "x1": 25.4,
+                    "y1": 29.0,
+                    "x2": 42.7,
+                    "y2": 39.0,
+                    "order": 2
+                  },
+                  {
+                    "x1": 42.7,
+                    "y1": 39.0,
+                    "x2": 60.0,
+                    "y2": 29.0
+                  },
+                  {
+                    "x1": 60.0,
+                    "y1": 29.0,
+                    "x2": 77.3,
+                    "y2": 39.0,
+                    "order": 2
+                  },
+                  {
+                    "x1": 77.3,
+                    "y1": 39.0,
+                    "x2": 94.6,
+                    "y2": 29.0
+                  },
+                  {
+                    "x1": 77.3,
+                    "y1": 39.0,
+                    "x2": 77.3,
+                    "y2": 59.0
+                  }
+                ]
+              },
+              "leftName": "4-methylpenta-1,3-diene",
+              "over": "HBr, 1 equiv",
+              "under": "40 degrees"
+            }
+          },
+          "answer": {
+            "smiles": "CC(C)=CC(C)Br",
+            "inchi": "InChI=1S/C6H11Br/c1-5(2)4-6(3)7/h4,6H,1-3H3",
+            "name": "4-bromo-2-methylpent-2-ene",
+            "figure": {
+              "bonds": [
+                {
+                  "x1": 94.6,
+                  "y1": 59.1,
+                  "x2": 77.3,
+                  "y2": 49.0
+                },
+                {
+                  "x1": 77.3,
+                  "y1": 49.0,
+                  "x2": 77.4,
+                  "y2": 29.0
+                },
+                {
+                  "x1": 77.3,
+                  "y1": 49.0,
+                  "x2": 60.0,
+                  "y2": 59.0,
+                  "order": 2
+                },
+                {
+                  "x1": 60.0,
+                  "y1": 59.0,
+                  "x2": 42.7,
+                  "y2": 48.9
+                },
+                {
+                  "x1": 42.7,
+                  "y1": 48.9,
+                  "x2": 25.4,
+                  "y2": 58.9
+                },
+                {
+                  "x1": 42.7,
+                  "y1": 48.9,
+                  "x2": 42.7,
+                  "y2": 35.0
+                }
+              ],
+              "labels": [
+                {
+                  "x": 42.7,
+                  "y": 33.9,
+                  "t": "Br",
+                  "size": 13
+                }
+              ]
+            }
+          },
+          "stereo": false,
+          "why": "Its C=C carries three carbons, against two in the 1,4 product. Warm, the more substituted alkene wins, and here that is the 1,2 product.",
+          "lookAt": "Decide thermo by alkene substitution, not by 1,4 always wins. Here the 1,2 product has the better alkene.",
+          "misses": [
             {
               "id": "p14",
-              "text": "4-bromo-4-methylpent-2-ene",
-              "why": "The 1,4 product often wins warm, but only because it usually has the better alkene. Here its C=C carries two carbons and the 1,2 product's carries three."
+              "inchi": "InChI=1S/C6H11Br/c1-4-5-6(2,3)7/h4-5H,1-3H3",
+              "smiles": "CC=CC(C)(C)Br",
+              "name": "the 1,4 product",
+              "says": "The 1,4 product often wins warm, but only because it usually has the better alkene. Here its C=C carries two carbons and the 1,2 product's carries three."
             },
             {
               "id": "loser",
-              "text": "3-bromo-4-methylpent-1-ene",
-              "why": "This comes from H+ on C4, which makes a weaker cation. H+ on C1 puts the charge on a secondary and a tertiary carbon."
-            },
-            {
-              "id": "p12",
-              "text": "4-bromo-2-methylpent-2-ene",
-              "why": "Its C=C carries three carbons, against two in the 1,4 product. Warm, the more substituted alkene wins, and here that is the 1,2 product."
+              "inchi": "InChI=1S/C6H11Br/c1-4-6(7)5(2)3/h4-6H,1H2,2-3H3",
+              "smiles": "C=CC(Br)C(C)C",
+              "name": "the product of the weaker cation",
+              "says": "This comes from H+ on C4, which makes a weaker cation. H+ on C1 puts the charge on a secondary and a tertiary carbon."
             }
           ]
         }
       },
       "explanation": "Decide thermo by alkene substitution, not by 1,4 always wins. Here the 1,2 product has the better alkene.",
       "conditions": "one equivalent; 40 degrees, given time: both products can return to the cation",
-      "provenance": "scripts/u1_pools_ab.py: thermodynamic call from diene_addition; names checked with OPSIN. OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only; OpenStax Organic Chemistry 14.3 (CC BY-NC-SA), read as a check only.",
+      "provenance": "scripts/u1_pools_ab.py: thermodynamic call from diene_addition; misses are the MCQ's derived options; names checked with OPSIN. OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only; OpenStax Organic Chemistry 14.3 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
     {
@@ -4534,41 +5834,153 @@ export const STAGE_AB_POOLS: UnitPools = {
     {
       "id": "u1-x2-dmb-cold",
       "item": {
-        "kind": "mcq",
+        "kind": "draw",
         "beat": {
-          "kind": "mcq",
+          "kind": "draw",
           "id": "u1-x2-dmb-cold",
           "node": "u1-x2",
           "conceptIds": [
             "kinetic_vs_thermodynamic_control"
           ],
           "levels": [
-            1
+            2
           ],
-          "prompt": "Add Br2 at minus 80 degrees. Pick the major product.",
-          "correctOptionId": "p12",
-          "options": [
+          "prompt": "Add Br2 at minus 80 degrees. Draw the major product.",
+          "brief": "Decide where the first Br goes, then read the temperature.",
+          "visual": {
+            "kind": "scheme",
+            "scheme": {
+              "left": {
+                "bonds": [
+                  {
+                    "x1": 68.6,
+                    "y1": 19.0,
+                    "x2": 68.7,
+                    "y2": 39.0,
+                    "order": 2
+                  },
+                  {
+                    "x1": 68.7,
+                    "y1": 39.0,
+                    "x2": 86.0,
+                    "y2": 48.9
+                  },
+                  {
+                    "x1": 68.7,
+                    "y1": 39.0,
+                    "x2": 51.3,
+                    "y2": 49.0
+                  },
+                  {
+                    "x1": 51.3,
+                    "y1": 49.0,
+                    "x2": 34.0,
+                    "y2": 39.1
+                  },
+                  {
+                    "x1": 51.3,
+                    "y1": 49.0,
+                    "x2": 51.4,
+                    "y2": 69.0,
+                    "order": 2
+                  }
+                ]
+              },
+              "leftName": "2,3-dimethylbuta-1,3-diene",
+              "over": "Br_2, 1 equiv",
+              "under": "-80 degrees"
+            }
+          },
+          "answer": {
+            "smiles": "C=C(C)C(C)(Br)CBr",
+            "inchi": "InChI=1S/C6H10Br2/c1-5(2)6(3,8)4-7/h1,4H2,2-3H3",
+            "name": "3,4-dibromo-2,3-dimethylbut-1-ene",
+            "figure": {
+              "bonds": [
+                {
+                  "x1": 77.3,
+                  "y1": 20.3,
+                  "x2": 77.3,
+                  "y2": 40.3,
+                  "order": 2
+                },
+                {
+                  "x1": 77.3,
+                  "y1": 40.3,
+                  "x2": 94.6,
+                  "y2": 50.3
+                },
+                {
+                  "x1": 77.3,
+                  "y1": 40.3,
+                  "x2": 60.0,
+                  "y2": 50.3
+                },
+                {
+                  "x1": 60.0,
+                  "y1": 50.3,
+                  "x2": 50.0,
+                  "y2": 67.7
+                },
+                {
+                  "x1": 60.0,
+                  "y1": 50.3,
+                  "x2": 66.5,
+                  "y2": 61.6
+                },
+                {
+                  "x1": 60.0,
+                  "y1": 50.3,
+                  "x2": 42.7,
+                  "y2": 40.4
+                },
+                {
+                  "x1": 42.7,
+                  "y1": 40.4,
+                  "x2": 34.0,
+                  "y2": 45.4
+                }
+              ],
+              "labels": [
+                {
+                  "x": 70.0,
+                  "y": 72.6,
+                  "t": "Br",
+                  "size": 13
+                },
+                {
+                  "x": 25.4,
+                  "y": 55.4,
+                  "t": "Br",
+                  "size": 13
+                }
+              ]
+            }
+          },
+          "stereo": false,
+          "why": "Bromide is captured at C2, the tertiary carbon beside the first Br. Cold locks in this fast, 1,2 product.",
+          "lookAt": "Cold: the 1,2 dihalide.",
+          "misses": [
             {
               "id": "p14",
-              "text": "1,4-dibromo-2,3-dimethylbut-2-ene",
-              "why": "The most stable product, with its four-carbon alkene. Cold, nothing reverses, so the fast route decides instead."
+              "inchi": "InChI=1S/C6H10Br2/c1-5(3-7)6(2)4-8/h3-4H2,1-2H3",
+              "smiles": "CC(CBr)=C(C)CBr",
+              "name": "the 1,4 product",
+              "says": "The most stable product, with its four-carbon alkene. Cold, nothing reverses, so the fast route decides instead."
             },
             {
               "id": "tetra",
-              "text": "1,2,3,4-tetrabromo-2,3-dimethylbutane",
-              "why": "Saturating both C=C bonds takes two equivalents of Br2. One equivalent leaves one C=C behind."
-            },
-            {
-              "id": "p12",
-              "text": "3,4-dibromo-2,3-dimethylbut-1-ene",
-              "why": "Bromide is captured at C2, the tertiary carbon beside the first Br. Cold locks in this fast, 1,2 product."
+              "inchi": "InChI=1S/C6H10Br4/c1-5(9,3-7)6(2,10)4-8/h3-4H2,1-2H3",
+              "smiles": "CC(Br)(CBr)C(C)(Br)CBr",
+              "name": "the product of two equivalents",
+              "says": "Saturating both C=C bonds takes two equivalents of Br2. One equivalent leaves one C=C behind."
             }
           ]
         }
       },
       "explanation": "Cold: the 1,2 dihalide.",
       "conditions": "one equivalent; minus 80 degrees: nothing reverses, so the faster product is locked in",
-      "provenance": "scripts/u1_pools_ab.py: kinetic call from diene_addition; names checked with OPSIN. OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only; OpenStax Organic Chemistry 14.3 (CC BY-NC-SA), read as a check only.",
+      "provenance": "scripts/u1_pools_ab.py: kinetic call from diene_addition; misses are the MCQ's derived options; names checked with OPSIN. OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only; OpenStax Organic Chemistry 14.3 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
     {
@@ -4785,7 +6197,7 @@ export const STAGE_AB_POOLS: UnitPools = {
             2
           ],
           "prompt": "Br2, one equivalent, 40 degrees. Draw the major product.",
-          "brief": "Same allylic cation logic as HBr, with Br on both ends.",
+          "brief": "Br2 adds through the same kind of cation as HBr. Read the temperature.",
           "visual": {
             "kind": "scheme",
             "scheme": {
@@ -4874,12 +6286,28 @@ export const STAGE_AB_POOLS: UnitPools = {
           },
           "stereo": false,
           "why": "Br+ adds to C1 and the allylic cation is shared by C2 and C4. Warm and reversible, the 1,4 product wins: its C=C sits in the middle with two carbons on it.",
-          "lookAt": "Put one Br on C1. Warm conditions send the second Br to C4, and the double bond moves to C2=C3."
+          "lookAt": "Put one Br on C1. Warm conditions send the second Br to C4, and the double bond moves to C2=C3.",
+          "misses": [
+            {
+              "id": "p12",
+              "inchi": "InChI=1S/C4H6Br2/c1-2-4(6)3-5/h2,4H,1,3H2",
+              "smiles": "C=CC(Br)CBr",
+              "name": "the 1,2 product",
+              "says": "It forms first, and at 40 degrees it can go back to the cation. Given time, the mixture settles into the more stable alkene."
+            },
+            {
+              "id": "tetra",
+              "inchi": "InChI=1S/C4H6Br4/c5-1-3(7)4(8)2-6/h3-4H,1-2H2",
+              "smiles": "BrCC(Br)C(Br)CBr",
+              "name": "the product of two equivalents",
+              "says": "Adding across both C=C takes two Br2. With one equivalent, one C=C stays."
+            }
+          ]
         }
       },
       "explanation": "Br2 adds like HBr: warm and reversible gives the 1,4 dibromide.",
       "conditions": "one equivalent; 40 degrees, given time: both products can return to the cation",
-      "provenance": "scripts/u1_pools_ab.py: thermodynamic call from diene_addition with Br as electrophile and nucleophile; name checked with OPSIN. OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only; OpenStax Organic Chemistry 14.3 (CC BY-NC-SA), read as a check only.",
+      "provenance": "scripts/u1_pools_ab.py: thermodynamic call from diene_addition with Br as electrophile and nucleophile; misses are the 1,2 dibromide and the tetrabromide; name checked with OPSIN. OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only; OpenStax Organic Chemistry 14.3 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
   ],
@@ -5090,12 +6518,28 @@ export const STAGE_AB_POOLS: UnitPools = {
           },
           "stereo": false,
           "why": "In this ring the 1,2 and 1,4 products are the same molecule, 3-bromocyclohexene, so temperature does not change the answer.",
-          "lookAt": "Draw both products and number them from the C=C: Br sits next to the double bond either way."
+          "lookAt": "Draw both products and number them from the C=C: Br sits next to the double bond either way.",
+          "misses": [
+            {
+              "id": "far",
+              "inchi": "InChI=1S/C6H9Br/c7-6-4-2-1-3-5-6/h1-2,6H,3-5H2",
+              "smiles": "BrC1CC=CCC1",
+              "name": "a Br two carbons from the C=C",
+              "says": "Bromide adds to a carbon that carried the +, and both of those sit right next to the remaining C=C."
+            },
+            {
+              "id": "no-ene",
+              "inchi": "InChI=1S/C6H11Br/c7-6-4-2-1-3-5-6/h6H,1-5H2",
+              "smiles": "BrC1CCCCC1",
+              "name": "a ring with no C=C",
+              "says": "One equivalent of HBr adds once. One C=C stays in the ring."
+            }
+          ]
         }
       },
       "explanation": "When the diene is symmetric in a ring, the 1,2 and 1,4 products can be one compound.",
       "conditions": "one equivalent of HBr",
-      "provenance": "scripts/u1_pools_ab.py: p12 and p14 from diene_addition are one canonical SMILES; name checked with OPSIN. OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only.",
+      "provenance": "scripts/u1_pools_ab.py: p12 and p14 from diene_addition are one canonical SMILES; misses are the non-allylic isomer and the doubly added ring; name checked with OPSIN. OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
     {
@@ -5588,29 +7032,35 @@ export const STAGE_AB_VISUALS: Readonly<Record<string, McqVisual>> = {
       "figure": {
         "bonds": [
           {
-            "x1": 42.7,
-            "y1": 39.1,
-            "x2": 60.0,
-            "y2": 49.0
+            "x1": 86.0,
+            "y1": 39.0,
+            "x2": 68.7,
+            "y2": 49.0,
+            "order": 2
           },
           {
-            "x1": 60.0,
+            "x1": 68.7,
             "y1": 49.0,
-            "x2": 77.3,
-            "y2": 39.0,
-            "order": 2
+            "x2": 51.3,
+            "y2": 39.0
+          },
+          {
+            "x1": 51.3,
+            "y1": 39.0,
+            "x2": 34.0,
+            "y2": 49.0
           }
         ],
         "labels": [
           {
-            "x": 35.7,
-            "y": 40.1,
+            "x": 51.4,
+            "y": 36.0,
             "t": "+",
             "size": 14
           }
         ]
       },
-      "name": "allyl, 1° allylic"
+      "name": "crotyl cation"
     },
     "b": {
       "figure": {
@@ -5637,7 +7087,7 @@ export const STAGE_AB_VISUALS: Readonly<Record<string, McqVisual>> = {
           }
         ]
       },
-      "name": "isopropyl, 2°"
+      "name": "isopropyl cation"
     }
   },
   "u1-cat-major": {
@@ -6406,20 +7856,6 @@ export const STAGE_AB_VISUALS: Readonly<Record<string, McqVisual>> = {
       "name": "allyl anion"
     }
   },
-  "u1-rad-alkyl": {
-    "kind": "structure",
-    "figure": {
-      "labels": [
-        {
-          "x": 60,
-          "y": 47,
-          "t": "CH_3•",
-          "size": 16
-        }
-      ]
-    },
-    "name": "for scale: methyl radical, no help at all"
-  },
   "u1-rad-allyl": {
     "kind": "structure",
     "figure": {
@@ -6888,51 +8324,6 @@ export const STAGE_AB_VISUALS: Readonly<Record<string, McqVisual>> = {
       ]
     },
     "name": "cyclohexene, numbered"
-  },
-  "u1-rad-ring": {
-    "kind": "structure",
-    "figure": {
-      "bonds": [
-        {
-          "x1": 42.7,
-          "y1": 54.0,
-          "x2": 42.7,
-          "y2": 34.0,
-          "order": 2
-        },
-        {
-          "x1": 42.7,
-          "y1": 34.0,
-          "x2": 60.0,
-          "y2": 24.0
-        },
-        {
-          "x1": 60.0,
-          "y1": 24.0,
-          "x2": 77.3,
-          "y2": 34.0
-        },
-        {
-          "x1": 77.3,
-          "y1": 34.0,
-          "x2": 77.3,
-          "y2": 54.0
-        },
-        {
-          "x1": 77.3,
-          "y1": 54.0,
-          "x2": 60.0,
-          "y2": 64.0
-        },
-        {
-          "x1": 60.0,
-          "y1": 64.0,
-          "x2": 42.7,
-          "y2": 54.0
-        }
-      ]
-    },
-    "name": "cyclohexene, the parent ring"
   },
   "u1-qa-prenyl-cation": {
     "kind": "pair",
@@ -10169,50 +11560,6 @@ export const STAGE_AB_VISUALS: Readonly<Record<string, McqVisual>> = {
     },
     "name": "penta-1,3-diene, numbered"
   },
-  "u1-hx-dmb-cold": {
-    "kind": "scheme",
-    "scheme": {
-      "left": {
-        "bonds": [
-          {
-            "x1": 68.6,
-            "y1": 19.0,
-            "x2": 68.7,
-            "y2": 39.0,
-            "order": 2
-          },
-          {
-            "x1": 68.7,
-            "y1": 39.0,
-            "x2": 86.0,
-            "y2": 48.9
-          },
-          {
-            "x1": 68.7,
-            "y1": 39.0,
-            "x2": 51.3,
-            "y2": 49.0
-          },
-          {
-            "x1": 51.3,
-            "y1": 49.0,
-            "x2": 34.0,
-            "y2": 39.1
-          },
-          {
-            "x1": 51.3,
-            "y1": 49.0,
-            "x2": 51.4,
-            "y2": 69.0,
-            "order": 2
-          }
-        ]
-      },
-      "leftName": "2,3-dimethylbuta-1,3-diene",
-      "over": "HBr, 1 equiv",
-      "under": "-80 degrees"
-    }
-  },
   "u1-hx-dmb-warm": {
     "kind": "scheme",
     "scheme": {
@@ -10255,50 +11602,6 @@ export const STAGE_AB_VISUALS: Readonly<Record<string, McqVisual>> = {
       "leftName": "2,3-dimethylbuta-1,3-diene",
       "over": "HBr, 1 equiv",
       "under": "40 degrees"
-    }
-  },
-  "u1-hx-hexadiene-cold": {
-    "kind": "scheme",
-    "scheme": {
-      "left": {
-        "bonds": [
-          {
-            "x1": 103.3,
-            "y1": 49.0,
-            "x2": 86.0,
-            "y2": 39.0
-          },
-          {
-            "x1": 86.0,
-            "y1": 39.0,
-            "x2": 68.7,
-            "y2": 49.0,
-            "order": 2
-          },
-          {
-            "x1": 68.7,
-            "y1": 49.0,
-            "x2": 51.3,
-            "y2": 39.0
-          },
-          {
-            "x1": 51.3,
-            "y1": 39.0,
-            "x2": 34.0,
-            "y2": 49.0,
-            "order": 2
-          },
-          {
-            "x1": 34.0,
-            "y1": 49.0,
-            "x2": 16.7,
-            "y2": 39.0
-          }
-        ]
-      },
-      "leftName": "hexa-2,4-diene",
-      "over": "HBr, 1 equiv",
-      "under": "-80 degrees"
     }
   },
   "u1-hx-chd": {
@@ -10387,50 +11690,6 @@ export const STAGE_AB_VISUALS: Readonly<Record<string, McqVisual>> = {
       "leftName": "penta-1,3-diene",
       "over": "HBr, 1 equiv",
       "under": "-80 degrees"
-    }
-  },
-  "u1-hx-mp4-warm": {
-    "kind": "scheme",
-    "scheme": {
-      "left": {
-        "bonds": [
-          {
-            "x1": 25.4,
-            "y1": 29.0,
-            "x2": 42.7,
-            "y2": 39.0,
-            "order": 2
-          },
-          {
-            "x1": 42.7,
-            "y1": 39.0,
-            "x2": 60.0,
-            "y2": 29.0
-          },
-          {
-            "x1": 60.0,
-            "y1": 29.0,
-            "x2": 77.3,
-            "y2": 39.0,
-            "order": 2
-          },
-          {
-            "x1": 77.3,
-            "y1": 39.0,
-            "x2": 94.6,
-            "y2": 29.0
-          },
-          {
-            "x1": 77.3,
-            "y1": 39.0,
-            "x2": 77.3,
-            "y2": 59.0
-          }
-        ]
-      },
-      "leftName": "4-methylpenta-1,3-diene",
-      "over": "HBr, 1 equiv",
-      "under": "40 degrees"
     }
   },
   "u1-hx-mp2-cold": {
@@ -10690,50 +11949,6 @@ export const STAGE_AB_VISUALS: Readonly<Record<string, McqVisual>> = {
       "leftName": "2,3-dimethylbuta-1,3-diene",
       "over": "Cl_2, 1 equiv",
       "under": "40 degrees"
-    }
-  },
-  "u1-x2-dmb-cold": {
-    "kind": "scheme",
-    "scheme": {
-      "left": {
-        "bonds": [
-          {
-            "x1": 68.6,
-            "y1": 19.0,
-            "x2": 68.7,
-            "y2": 39.0,
-            "order": 2
-          },
-          {
-            "x1": 68.7,
-            "y1": 39.0,
-            "x2": 86.0,
-            "y2": 48.9
-          },
-          {
-            "x1": 68.7,
-            "y1": 39.0,
-            "x2": 51.3,
-            "y2": 49.0
-          },
-          {
-            "x1": 51.3,
-            "y1": 49.0,
-            "x2": 34.0,
-            "y2": 39.1
-          },
-          {
-            "x1": 51.3,
-            "y1": 49.0,
-            "x2": 51.4,
-            "y2": 69.0,
-            "order": 2
-          }
-        ]
-      },
-      "leftName": "2,3-dimethylbuta-1,3-diene",
-      "over": "Br_2, 1 equiv",
-      "under": "-80 degrees"
     }
   },
   "u1-x2-chd-14": {
@@ -12445,95 +13660,6 @@ export const STAGE_AB_OPTION_TILES: Readonly<Record<string, Readonly<Record<stri
       "name": "tert-butyl anion"
     }
   },
-  "u1-rad-alkyl": {
-    "et": {
-      "figure": {
-        "bonds": [
-          {
-            "x1": 51,
-            "y1": 42,
-            "x2": 69,
-            "y2": 42
-          }
-        ],
-        "labels": [
-          {
-            "x": 38.0,
-            "y": 47,
-            "t": "CH_3",
-            "size": 14
-          },
-          {
-            "x": 82.0,
-            "y": 47,
-            "t": "CH_2•",
-            "size": 14
-          }
-        ]
-      },
-      "name": "ethyl radical"
-    },
-    "tbu": {
-      "figure": {
-        "bonds": [
-          {
-            "x1": 60.0,
-            "y1": 29.0,
-            "x2": 60.0,
-            "y2": 49.0
-          },
-          {
-            "x1": 60.0,
-            "y1": 49.0,
-            "x2": 77.3,
-            "y2": 59.0
-          },
-          {
-            "x1": 60.0,
-            "y1": 49.0,
-            "x2": 42.7,
-            "y2": 59.0
-          }
-        ],
-        "labels": [
-          {
-            "x": 53.1,
-            "y": 50.0,
-            "t": "•",
-            "size": 14
-          }
-        ]
-      },
-      "name": "tert-butyl radical"
-    },
-    "ipr": {
-      "figure": {
-        "bonds": [
-          {
-            "x1": 42.7,
-            "y1": 48.9,
-            "x2": 60.0,
-            "y2": 39.0
-          },
-          {
-            "x1": 60.0,
-            "y1": 39.0,
-            "x2": 77.3,
-            "y2": 49.0
-          }
-        ],
-        "labels": [
-          {
-            "x": 60.1,
-            "y": 36.0,
-            "t": "•",
-            "size": 14
-          }
-        ]
-      },
-      "name": "isopropyl radical"
-    }
-  },
   "u1-rad-allyl": {
     "vinyl": {
       "figure": {
@@ -12842,168 +13968,6 @@ export const STAGE_AB_OPTION_TILES: Readonly<Record<string, Readonly<Record<stri
         ]
       },
       "name": "two carbons away"
-    }
-  },
-  "u1-rad-ring": {
-    "me": {
-      "figure": {
-        "bonds": [
-          {
-            "x1": 34.0,
-            "y1": 64.0,
-            "x2": 51.3,
-            "y2": 54.0
-          },
-          {
-            "x1": 51.3,
-            "y1": 54.0,
-            "x2": 51.4,
-            "y2": 34.0
-          },
-          {
-            "x1": 51.4,
-            "y1": 34.0,
-            "x2": 68.7,
-            "y2": 24.0
-          },
-          {
-            "x1": 68.7,
-            "y1": 24.0,
-            "x2": 86.0,
-            "y2": 34.0
-          },
-          {
-            "x1": 86.0,
-            "y1": 34.0,
-            "x2": 86.0,
-            "y2": 54.0
-          },
-          {
-            "x1": 86.0,
-            "y1": 54.0,
-            "x2": 68.6,
-            "y2": 64.0
-          },
-          {
-            "x1": 68.6,
-            "y1": 64.0,
-            "x2": 51.3,
-            "y2": 54.0
-          }
-        ],
-        "labels": [
-          {
-            "x": 58.3,
-            "y": 55.0,
-            "t": "•",
-            "size": 14
-          }
-        ]
-      },
-      "name": "1-methylcyclohexyl"
-    },
-    "ene": {
-      "figure": {
-        "bonds": [
-          {
-            "x1": 42.7,
-            "y1": 54.0,
-            "x2": 42.7,
-            "y2": 34.0
-          },
-          {
-            "x1": 42.7,
-            "y1": 34.0,
-            "x2": 60.0,
-            "y2": 24.0,
-            "order": 2
-          },
-          {
-            "x1": 60.0,
-            "y1": 24.0,
-            "x2": 77.3,
-            "y2": 34.0
-          },
-          {
-            "x1": 77.3,
-            "y1": 34.0,
-            "x2": 77.3,
-            "y2": 54.0
-          },
-          {
-            "x1": 77.3,
-            "y1": 54.0,
-            "x2": 60.0,
-            "y2": 64.0
-          },
-          {
-            "x1": 60.0,
-            "y1": 64.0,
-            "x2": 42.7,
-            "y2": 54.0
-          }
-        ],
-        "labels": [
-          {
-            "x": 35.7,
-            "y": 63.0,
-            "t": "•",
-            "size": 14
-          }
-        ]
-      },
-      "name": "cyclohex-2-enyl"
-    },
-    "cy": {
-      "figure": {
-        "bonds": [
-          {
-            "x1": 42.7,
-            "y1": 54.0,
-            "x2": 42.7,
-            "y2": 34.0
-          },
-          {
-            "x1": 42.7,
-            "y1": 34.0,
-            "x2": 60.0,
-            "y2": 24.0
-          },
-          {
-            "x1": 60.0,
-            "y1": 24.0,
-            "x2": 77.3,
-            "y2": 34.0
-          },
-          {
-            "x1": 77.3,
-            "y1": 34.0,
-            "x2": 77.3,
-            "y2": 54.0
-          },
-          {
-            "x1": 77.3,
-            "y1": 54.0,
-            "x2": 60.0,
-            "y2": 64.0
-          },
-          {
-            "x1": 60.0,
-            "y1": 64.0,
-            "x2": 42.7,
-            "y2": 54.0
-          }
-        ],
-        "labels": [
-          {
-            "x": 35.7,
-            "y": 63.0,
-            "t": "•",
-            "size": 14
-          }
-        ]
-      },
-      "name": "cyclohexyl"
     }
   },
   "u1-qa-best-cation": {
@@ -13498,164 +14462,6 @@ export const STAGE_AB_OPTION_TILES: Readonly<Record<string, Readonly<Record<stri
       "name": "1-bromobut-2-ene"
     }
   },
-  "u1-hx-dmb-cold": {
-    "p14": {
-      "figure": {
-        "bonds": [
-          {
-            "x1": 86.0,
-            "y1": 24.0,
-            "x2": 68.6,
-            "y2": 34.0
-          },
-          {
-            "x1": 68.6,
-            "y1": 34.0,
-            "x2": 51.3,
-            "y2": 24.0
-          },
-          {
-            "x1": 68.6,
-            "y1": 34.0,
-            "x2": 68.7,
-            "y2": 54.0,
-            "order": 2
-          },
-          {
-            "x1": 68.7,
-            "y1": 54.0,
-            "x2": 86.0,
-            "y2": 64.0
-          },
-          {
-            "x1": 68.7,
-            "y1": 54.0,
-            "x2": 51.3,
-            "y2": 64.0
-          },
-          {
-            "x1": 51.3,
-            "y1": 64.0,
-            "x2": 42.7,
-            "y2": 59.0
-          }
-        ],
-        "labels": [
-          {
-            "x": 34.0,
-            "y": 59.0,
-            "t": "Br",
-            "size": 13
-          }
-        ]
-      },
-      "name": "1-bromo-2,3-dimethylbut-2-ene"
-    },
-    "p12": {
-      "figure": {
-        "bonds": [
-          {
-            "x1": 51.4,
-            "y1": 20.3,
-            "x2": 51.3,
-            "y2": 40.3,
-            "order": 2
-          },
-          {
-            "x1": 51.3,
-            "y1": 40.3,
-            "x2": 34.0,
-            "y2": 50.3
-          },
-          {
-            "x1": 51.3,
-            "y1": 40.3,
-            "x2": 68.6,
-            "y2": 50.3
-          },
-          {
-            "x1": 68.6,
-            "y1": 50.3,
-            "x2": 78.6,
-            "y2": 67.7
-          },
-          {
-            "x1": 68.6,
-            "y1": 50.3,
-            "x2": 86.0,
-            "y2": 40.4
-          },
-          {
-            "x1": 68.6,
-            "y1": 50.3,
-            "x2": 62.1,
-            "y2": 61.6
-          }
-        ],
-        "labels": [
-          {
-            "x": 58.6,
-            "y": 72.6,
-            "t": "Br",
-            "size": 13
-          }
-        ]
-      },
-      "name": "3-bromo-2,3-dimethylbut-1-ene"
-    },
-    "inner": {
-      "figure": {
-        "bonds": [
-          {
-            "x1": 77.3,
-            "y1": 19.0,
-            "x2": 77.3,
-            "y2": 39.0,
-            "order": 2
-          },
-          {
-            "x1": 77.3,
-            "y1": 39.0,
-            "x2": 94.6,
-            "y2": 48.9
-          },
-          {
-            "x1": 77.3,
-            "y1": 39.0,
-            "x2": 60.0,
-            "y2": 49.0
-          },
-          {
-            "x1": 60.0,
-            "y1": 49.0,
-            "x2": 60.0,
-            "y2": 69.0
-          },
-          {
-            "x1": 60.0,
-            "y1": 49.0,
-            "x2": 42.7,
-            "y2": 39.1
-          },
-          {
-            "x1": 42.7,
-            "y1": 39.1,
-            "x2": 34.0,
-            "y2": 44.1
-          }
-        ],
-        "labels": [
-          {
-            "x": 25.4,
-            "y": 54.1,
-            "t": "Br",
-            "size": 13
-          }
-        ]
-      },
-      "name": "4-bromo-2,3-dimethylbut-1-ene"
-    }
-  },
   "u1-hx-dmb-warm": {
     "p14": {
       "figure": {
@@ -13812,164 +14618,6 @@ export const STAGE_AB_OPTION_TILES: Readonly<Record<string, Readonly<Record<stri
         ]
       },
       "name": "4-bromo-2,3-dimethylbut-1-ene"
-    }
-  },
-  "u1-hx-hexadiene-cold": {
-    "inner": {
-      "figure": {
-        "bonds": [
-          {
-            "x1": 16.7,
-            "y1": 49.1,
-            "x2": 34.0,
-            "y2": 59.1
-          },
-          {
-            "x1": 34.0,
-            "y1": 59.1,
-            "x2": 51.3,
-            "y2": 49.0,
-            "order": 2
-          },
-          {
-            "x1": 51.3,
-            "y1": 49.0,
-            "x2": 68.7,
-            "y2": 59.0
-          },
-          {
-            "x1": 68.7,
-            "y1": 59.0,
-            "x2": 86.0,
-            "y2": 48.9
-          },
-          {
-            "x1": 86.0,
-            "y1": 48.9,
-            "x2": 103.3,
-            "y2": 58.9
-          },
-          {
-            "x1": 86.0,
-            "y1": 48.9,
-            "x2": 85.9,
-            "y2": 35.0
-          }
-        ],
-        "labels": [
-          {
-            "x": 85.9,
-            "y": 33.9,
-            "t": "Br",
-            "size": 13
-          }
-        ]
-      },
-      "name": "5-bromohex-2-ene"
-    },
-    "p14": {
-      "figure": {
-        "bonds": [
-          {
-            "x1": 16.7,
-            "y1": 49.1,
-            "x2": 34.0,
-            "y2": 59.1
-          },
-          {
-            "x1": 34.0,
-            "y1": 59.1,
-            "x2": 51.3,
-            "y2": 49.0
-          },
-          {
-            "x1": 51.3,
-            "y1": 49.0,
-            "x2": 68.7,
-            "y2": 59.0,
-            "order": 2
-          },
-          {
-            "x1": 68.7,
-            "y1": 59.0,
-            "x2": 86.0,
-            "y2": 48.9
-          },
-          {
-            "x1": 86.0,
-            "y1": 48.9,
-            "x2": 103.3,
-            "y2": 58.9
-          },
-          {
-            "x1": 86.0,
-            "y1": 48.9,
-            "x2": 85.9,
-            "y2": 35.0
-          }
-        ],
-        "labels": [
-          {
-            "x": 85.9,
-            "y": 33.9,
-            "t": "Br",
-            "size": 13
-          }
-        ]
-      },
-      "name": "2-bromohex-3-ene"
-    },
-    "p12": {
-      "figure": {
-        "bonds": [
-          {
-            "x1": 16.7,
-            "y1": 59.0,
-            "x2": 34.0,
-            "y2": 49.0
-          },
-          {
-            "x1": 34.0,
-            "y1": 49.0,
-            "x2": 51.3,
-            "y2": 59.0,
-            "order": 2
-          },
-          {
-            "x1": 51.3,
-            "y1": 59.0,
-            "x2": 68.7,
-            "y2": 49.0
-          },
-          {
-            "x1": 68.7,
-            "y1": 49.0,
-            "x2": 68.6,
-            "y2": 35.0
-          },
-          {
-            "x1": 68.7,
-            "y1": 49.0,
-            "x2": 86.0,
-            "y2": 59.0
-          },
-          {
-            "x1": 86.0,
-            "y1": 59.0,
-            "x2": 103.3,
-            "y2": 49.0
-          }
-        ],
-        "labels": [
-          {
-            "x": 68.6,
-            "y": 34.0,
-            "t": "Br",
-            "size": 13
-          }
-        ]
-      },
-      "name": "4-bromohex-2-ene"
     }
   },
   "u1-hx-chd": {
@@ -14286,164 +14934,6 @@ export const STAGE_AB_OPTION_TILES: Readonly<Record<string, Readonly<Record<stri
         ]
       },
       "name": "4-bromopent-2-ene"
-    }
-  },
-  "u1-hx-mp4-warm": {
-    "p14": {
-      "figure": {
-        "bonds": [
-          {
-            "x1": 25.4,
-            "y1": 57.7,
-            "x2": 42.7,
-            "y2": 47.7
-          },
-          {
-            "x1": 42.7,
-            "y1": 47.7,
-            "x2": 60.0,
-            "y2": 57.7,
-            "order": 2
-          },
-          {
-            "x1": 60.0,
-            "y1": 57.7,
-            "x2": 77.3,
-            "y2": 47.6
-          },
-          {
-            "x1": 77.3,
-            "y1": 47.6,
-            "x2": 87.3,
-            "y2": 30.3
-          },
-          {
-            "x1": 77.3,
-            "y1": 47.6,
-            "x2": 94.6,
-            "y2": 57.6
-          },
-          {
-            "x1": 77.3,
-            "y1": 47.6,
-            "x2": 70.8,
-            "y2": 36.4
-          }
-        ],
-        "labels": [
-          {
-            "x": 67.3,
-            "y": 35.3,
-            "t": "Br",
-            "size": 13
-          }
-        ]
-      },
-      "name": "4-bromo-4-methylpent-2-ene"
-    },
-    "loser": {
-      "figure": {
-        "bonds": [
-          {
-            "x1": 25.4,
-            "y1": 39.0,
-            "x2": 42.7,
-            "y2": 49.0,
-            "order": 2
-          },
-          {
-            "x1": 42.7,
-            "y1": 49.0,
-            "x2": 60.0,
-            "y2": 39.0
-          },
-          {
-            "x1": 60.0,
-            "y1": 39.0,
-            "x2": 60.0,
-            "y2": 25.0
-          },
-          {
-            "x1": 60.0,
-            "y1": 39.0,
-            "x2": 77.3,
-            "y2": 49.0
-          },
-          {
-            "x1": 77.3,
-            "y1": 49.0,
-            "x2": 94.6,
-            "y2": 39.0
-          },
-          {
-            "x1": 77.3,
-            "y1": 49.0,
-            "x2": 77.3,
-            "y2": 69.0
-          }
-        ],
-        "labels": [
-          {
-            "x": 60.0,
-            "y": 24.0,
-            "t": "Br",
-            "size": 13
-          }
-        ]
-      },
-      "name": "3-bromo-4-methylpent-1-ene"
-    },
-    "p12": {
-      "figure": {
-        "bonds": [
-          {
-            "x1": 94.6,
-            "y1": 59.1,
-            "x2": 77.3,
-            "y2": 49.0
-          },
-          {
-            "x1": 77.3,
-            "y1": 49.0,
-            "x2": 77.4,
-            "y2": 29.0
-          },
-          {
-            "x1": 77.3,
-            "y1": 49.0,
-            "x2": 60.0,
-            "y2": 59.0,
-            "order": 2
-          },
-          {
-            "x1": 60.0,
-            "y1": 59.0,
-            "x2": 42.7,
-            "y2": 48.9
-          },
-          {
-            "x1": 42.7,
-            "y1": 48.9,
-            "x2": 25.4,
-            "y2": 58.9
-          },
-          {
-            "x1": 42.7,
-            "y1": 48.9,
-            "x2": 42.7,
-            "y2": 35.0
-          }
-        ],
-        "labels": [
-          {
-            "x": 42.7,
-            "y": 33.9,
-            "t": "Br",
-            "size": 13
-          }
-        ]
-      },
-      "name": "4-bromo-2-methylpent-2-ene"
     }
   },
   "u1-hx-mp2-cold": {
@@ -15714,223 +16204,6 @@ export const STAGE_AB_OPTION_TILES: Readonly<Record<string, Readonly<Record<stri
         ]
       },
       "name": "3,4-dichloro-2,3-dimethylbut-1-ene"
-    }
-  },
-  "u1-x2-dmb-cold": {
-    "p14": {
-      "figure": {
-        "bonds": [
-          {
-            "x1": 68.7,
-            "y1": 19.0,
-            "x2": 68.7,
-            "y2": 39.0
-          },
-          {
-            "x1": 68.7,
-            "y1": 39.0,
-            "x2": 86.0,
-            "y2": 49.0
-          },
-          {
-            "x1": 86.0,
-            "y1": 49.0,
-            "x2": 94.7,
-            "y2": 44.0
-          },
-          {
-            "x1": 68.7,
-            "y1": 39.0,
-            "x2": 51.3,
-            "y2": 49.0,
-            "order": 2
-          },
-          {
-            "x1": 51.3,
-            "y1": 49.0,
-            "x2": 51.3,
-            "y2": 69.0
-          },
-          {
-            "x1": 51.3,
-            "y1": 49.0,
-            "x2": 34.0,
-            "y2": 39.0
-          },
-          {
-            "x1": 34.0,
-            "y1": 39.0,
-            "x2": 25.3,
-            "y2": 44.0
-          }
-        ],
-        "labels": [
-          {
-            "x": 103.3,
-            "y": 44.0,
-            "t": "Br",
-            "size": 13
-          },
-          {
-            "x": 16.7,
-            "y": 54.0,
-            "t": "Br",
-            "size": 13
-          }
-        ]
-      },
-      "name": "1,4-dibromo-2,3-dimethylbut-2-ene"
-    },
-    "tetra": {
-      "figure": {
-        "bonds": [
-          {
-            "x1": 78.7,
-            "y1": 21.7,
-            "x2": 68.7,
-            "y2": 39.0
-          },
-          {
-            "x1": 68.7,
-            "y1": 39.0,
-            "x2": 62.2,
-            "y2": 27.7
-          },
-          {
-            "x1": 68.7,
-            "y1": 39.0,
-            "x2": 86.0,
-            "y2": 49.0
-          },
-          {
-            "x1": 86.0,
-            "y1": 49.0,
-            "x2": 94.7,
-            "y2": 44.0
-          },
-          {
-            "x1": 68.7,
-            "y1": 39.0,
-            "x2": 51.3,
-            "y2": 49.0
-          },
-          {
-            "x1": 51.3,
-            "y1": 49.0,
-            "x2": 41.3,
-            "y2": 66.3
-          },
-          {
-            "x1": 51.3,
-            "y1": 49.0,
-            "x2": 57.8,
-            "y2": 60.3
-          },
-          {
-            "x1": 51.3,
-            "y1": 49.0,
-            "x2": 34.0,
-            "y2": 39.0
-          },
-          {
-            "x1": 34.0,
-            "y1": 39.0,
-            "x2": 25.3,
-            "y2": 44.0
-          }
-        ],
-        "labels": [
-          {
-            "x": 58.7,
-            "y": 26.7,
-            "t": "Br",
-            "size": 13
-          },
-          {
-            "x": 103.3,
-            "y": 44.0,
-            "t": "Br",
-            "size": 13
-          },
-          {
-            "x": 61.3,
-            "y": 71.3,
-            "t": "Br",
-            "size": 13
-          },
-          {
-            "x": 16.7,
-            "y": 54.0,
-            "t": "Br",
-            "size": 13
-          }
-        ]
-      },
-      "name": "1,2,3,4-tetrabromo-2,3-dimethylbutane"
-    },
-    "p12": {
-      "figure": {
-        "bonds": [
-          {
-            "x1": 77.3,
-            "y1": 20.3,
-            "x2": 77.3,
-            "y2": 40.3,
-            "order": 2
-          },
-          {
-            "x1": 77.3,
-            "y1": 40.3,
-            "x2": 94.6,
-            "y2": 50.3
-          },
-          {
-            "x1": 77.3,
-            "y1": 40.3,
-            "x2": 60.0,
-            "y2": 50.3
-          },
-          {
-            "x1": 60.0,
-            "y1": 50.3,
-            "x2": 50.0,
-            "y2": 67.7
-          },
-          {
-            "x1": 60.0,
-            "y1": 50.3,
-            "x2": 66.5,
-            "y2": 61.6
-          },
-          {
-            "x1": 60.0,
-            "y1": 50.3,
-            "x2": 42.7,
-            "y2": 40.4
-          },
-          {
-            "x1": 42.7,
-            "y1": 40.4,
-            "x2": 34.0,
-            "y2": 45.4
-          }
-        ],
-        "labels": [
-          {
-            "x": 70.0,
-            "y": 72.6,
-            "t": "Br",
-            "size": 13
-          },
-          {
-            "x": 25.4,
-            "y": 55.4,
-            "t": "Br",
-            "size": 13
-          }
-        ]
-      },
-      "name": "3,4-dibromo-2,3-dimethylbut-1-ene"
     }
   },
   "u1-x2-two-equiv": {
@@ -17220,7 +17493,7 @@ export const STAGE_AB_SORT_FIGURES: Readonly<Record<string, Readonly<Record<stri
           }
         ]
       },
-      "name": "tert-butyl, 3°"
+      "name": "tert-butyl"
     },
     "ipr": {
       "figure": {
@@ -17247,7 +17520,7 @@ export const STAGE_AB_SORT_FIGURES: Readonly<Record<string, Readonly<Record<stri
           }
         ]
       },
-      "name": "isopropyl, 2°"
+      "name": "isopropyl"
     },
     "et": {
       "figure": {
@@ -17274,7 +17547,7 @@ export const STAGE_AB_SORT_FIGURES: Readonly<Record<string, Readonly<Record<stri
           }
         ]
       },
-      "name": "ethyl, 1°"
+      "name": "ethyl"
     },
     "me": {
       "figure": {
@@ -17329,7 +17602,7 @@ export const STAGE_AB_SORT_FIGURES: Readonly<Record<string, Readonly<Record<stri
           }
         ]
       },
-      "name": "3° allylic"
+      "name": "prenyl"
     },
     "all2": {
       "figure": {
@@ -17363,7 +17636,7 @@ export const STAGE_AB_SORT_FIGURES: Readonly<Record<string, Readonly<Record<stri
           }
         ]
       },
-      "name": "2° allylic"
+      "name": "crotyl"
     },
     "all1": {
       "figure": {
@@ -17391,7 +17664,7 @@ export const STAGE_AB_SORT_FIGURES: Readonly<Record<string, Readonly<Record<stri
           }
         ]
       },
-      "name": "allyl, 1° allylic"
+      "name": "allyl"
     },
     "et": {
       "figure": {
@@ -17418,7 +17691,7 @@ export const STAGE_AB_SORT_FIGURES: Readonly<Record<string, Readonly<Record<stri
           }
         ]
       },
-      "name": "ethyl, 1°"
+      "name": "ethyl"
     }
   },
   "u1-cat-ladder-ring": {
@@ -17473,7 +17746,7 @@ export const STAGE_AB_SORT_FIGURES: Readonly<Record<string, Readonly<Record<stri
           }
         ]
       },
-      "name": "two C=C in the ring"
+      "name": "cyclohexadienyl"
     },
     "ene": {
       "figure": {
@@ -17525,7 +17798,7 @@ export const STAGE_AB_SORT_FIGURES: Readonly<Record<string, Readonly<Record<stri
           }
         ]
       },
-      "name": "one C=C, allylic"
+      "name": "cyclohexenyl"
     },
     "cy": {
       "figure": {
@@ -17576,7 +17849,7 @@ export const STAGE_AB_SORT_FIGURES: Readonly<Record<string, Readonly<Record<stri
           }
         ]
       },
-      "name": "cyclohexyl, 2°"
+      "name": "cyclohexyl"
     },
     "cym": {
       "figure": {
@@ -17633,7 +17906,7 @@ export const STAGE_AB_SORT_FIGURES: Readonly<Record<string, Readonly<Record<stri
           }
         ]
       },
-      "name": "cyclohexylmethyl, 1°"
+      "name": "cyclohexylmethyl"
     }
   },
   "u1-cat-middle-methyl": {
@@ -17779,7 +18052,7 @@ export const STAGE_AB_SORT_FIGURES: Readonly<Record<string, Readonly<Record<stri
           }
         ]
       },
-      "name": "ethyl, 1°"
+      "name": "ethyl"
     },
     "ipr": {
       "figure": {
@@ -17806,7 +18079,7 @@ export const STAGE_AB_SORT_FIGURES: Readonly<Record<string, Readonly<Record<stri
           }
         ]
       },
-      "name": "isopropyl, 2°"
+      "name": "isopropyl"
     },
     "tbu": {
       "figure": {
@@ -17839,7 +18112,7 @@ export const STAGE_AB_SORT_FIGURES: Readonly<Record<string, Readonly<Record<stri
           }
         ]
       },
-      "name": "tert-butyl, 3°"
+      "name": "tert-butyl"
     }
   },
   "u1-ani-ladder-s": {
@@ -17869,7 +18142,7 @@ export const STAGE_AB_SORT_FIGURES: Readonly<Record<string, Readonly<Record<stri
           }
         ]
       },
-      "name": "ethynyl, sp"
+      "name": "ethynyl"
     },
     "sp2": {
       "figure": {
@@ -17897,7 +18170,7 @@ export const STAGE_AB_SORT_FIGURES: Readonly<Record<string, Readonly<Record<stri
           }
         ]
       },
-      "name": "vinyl, sp2"
+      "name": "vinyl"
     },
     "sp3": {
       "figure": {
@@ -17924,7 +18197,7 @@ export const STAGE_AB_SORT_FIGURES: Readonly<Record<string, Readonly<Record<stri
           }
         ]
       },
-      "name": "ethyl, sp3"
+      "name": "ethyl"
     },
     "sp3t": {
       "figure": {
@@ -17957,7 +18230,7 @@ export const STAGE_AB_SORT_FIGURES: Readonly<Record<string, Readonly<Record<stri
           }
         ]
       },
-      "name": "tert-butyl, sp3"
+      "name": "tert-butyl"
     }
   },
   "u1-ani-ladder-res": {
@@ -18000,7 +18273,7 @@ export const STAGE_AB_SORT_FIGURES: Readonly<Record<string, Readonly<Record<stri
           }
         ]
       },
-      "name": "two C=C, conjugated"
+      "name": "pentadienyl"
     },
     "allyl": {
       "figure": {
@@ -18028,7 +18301,7 @@ export const STAGE_AB_SORT_FIGURES: Readonly<Record<string, Readonly<Record<stri
           }
         ]
       },
-      "name": "allyl, one C=C"
+      "name": "allyl"
     },
     "me": {
       "figure": {
@@ -18233,6 +18506,270 @@ export const STAGE_AB_SORT_FIGURES: Readonly<Record<string, Readonly<Record<stri
       "name": "1-methylcyclohexyl anion"
     }
   },
+  "u1-rad-alkyl": {
+    "tbu": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 60.0,
+            "y1": 29.0,
+            "x2": 60.0,
+            "y2": 49.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 49.0,
+            "x2": 77.3,
+            "y2": 59.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 49.0,
+            "x2": 42.7,
+            "y2": 59.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 53.1,
+            "y": 50.0,
+            "t": "•",
+            "size": 14
+          }
+        ]
+      },
+      "name": "tert-butyl radical"
+    },
+    "ipr": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 42.7,
+            "y1": 48.9,
+            "x2": 60.0,
+            "y2": 39.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 39.0,
+            "x2": 77.3,
+            "y2": 49.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 60.1,
+            "y": 36.0,
+            "t": "•",
+            "size": 14
+          }
+        ]
+      },
+      "name": "isopropyl radical"
+    },
+    "et": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 51,
+            "y1": 42,
+            "x2": 69,
+            "y2": 42
+          }
+        ],
+        "labels": [
+          {
+            "x": 38.0,
+            "y": 47,
+            "t": "CH_3",
+            "size": 14
+          },
+          {
+            "x": 82.0,
+            "y": 47,
+            "t": "CH_2•",
+            "size": 14
+          }
+        ]
+      },
+      "name": "ethyl radical"
+    },
+    "me": {
+      "figure": {
+        "labels": [
+          {
+            "x": 60,
+            "y": 47,
+            "t": "CH_3•",
+            "size": 16
+          }
+        ]
+      },
+      "name": "methyl radical"
+    }
+  },
+  "u1-rad-ring": {
+    "ene": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 42.7,
+            "y1": 54.0,
+            "x2": 42.7,
+            "y2": 34.0
+          },
+          {
+            "x1": 42.7,
+            "y1": 34.0,
+            "x2": 60.0,
+            "y2": 24.0,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 24.0,
+            "x2": 77.3,
+            "y2": 34.0
+          },
+          {
+            "x1": 77.3,
+            "y1": 34.0,
+            "x2": 77.3,
+            "y2": 54.0
+          },
+          {
+            "x1": 77.3,
+            "y1": 54.0,
+            "x2": 60.0,
+            "y2": 64.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 64.0,
+            "x2": 42.7,
+            "y2": 54.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 35.7,
+            "y": 63.0,
+            "t": "•",
+            "size": 14
+          }
+        ]
+      },
+      "name": "cyclohex-2-enyl radical"
+    },
+    "me": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 34.0,
+            "y1": 64.0,
+            "x2": 51.3,
+            "y2": 54.0
+          },
+          {
+            "x1": 51.3,
+            "y1": 54.0,
+            "x2": 51.4,
+            "y2": 34.0
+          },
+          {
+            "x1": 51.4,
+            "y1": 34.0,
+            "x2": 68.7,
+            "y2": 24.0
+          },
+          {
+            "x1": 68.7,
+            "y1": 24.0,
+            "x2": 86.0,
+            "y2": 34.0
+          },
+          {
+            "x1": 86.0,
+            "y1": 34.0,
+            "x2": 86.0,
+            "y2": 54.0
+          },
+          {
+            "x1": 86.0,
+            "y1": 54.0,
+            "x2": 68.6,
+            "y2": 64.0
+          },
+          {
+            "x1": 68.6,
+            "y1": 64.0,
+            "x2": 51.3,
+            "y2": 54.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 58.3,
+            "y": 55.0,
+            "t": "•",
+            "size": 14
+          }
+        ]
+      },
+      "name": "1-methylcyclohexyl radical"
+    },
+    "cy": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 42.7,
+            "y1": 54.0,
+            "x2": 42.7,
+            "y2": 34.0
+          },
+          {
+            "x1": 42.7,
+            "y1": 34.0,
+            "x2": 60.0,
+            "y2": 24.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 24.0,
+            "x2": 77.3,
+            "y2": 34.0
+          },
+          {
+            "x1": 77.3,
+            "y1": 34.0,
+            "x2": 77.3,
+            "y2": 54.0
+          },
+          {
+            "x1": 77.3,
+            "y1": 54.0,
+            "x2": 60.0,
+            "y2": 64.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 64.0,
+            "x2": 42.7,
+            "y2": 54.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 35.7,
+            "y": 63.0,
+            "t": "•",
+            "size": 14
+          }
+        ]
+      },
+      "name": "cyclohexyl radical"
+    }
+  },
   "u1-qa-ladder-cation": {
     "penta": {
       "figure": {
@@ -18273,7 +18810,7 @@ export const STAGE_AB_SORT_FIGURES: Readonly<Record<string, Readonly<Record<stri
           }
         ]
       },
-      "name": "two C=C, conjugated"
+      "name": "pentadienyl"
     },
     "all2": {
       "figure": {
@@ -18307,7 +18844,7 @@ export const STAGE_AB_SORT_FIGURES: Readonly<Record<string, Readonly<Record<stri
           }
         ]
       },
-      "name": "2° allylic"
+      "name": "crotyl"
     },
     "ipr": {
       "figure": {
@@ -18334,7 +18871,7 @@ export const STAGE_AB_SORT_FIGURES: Readonly<Record<string, Readonly<Record<stri
           }
         ]
       },
-      "name": "isopropyl, 2°"
+      "name": "isopropyl"
     },
     "et": {
       "figure": {
@@ -18361,7 +18898,7 @@ export const STAGE_AB_SORT_FIGURES: Readonly<Record<string, Readonly<Record<stri
           }
         ]
       },
-      "name": "ethyl, 1°"
+      "name": "ethyl"
     }
   },
   "u1-qa-ladder-anion": {
@@ -18391,7 +18928,7 @@ export const STAGE_AB_SORT_FIGURES: Readonly<Record<string, Readonly<Record<stri
           }
         ]
       },
-      "name": "ethynyl, sp"
+      "name": "ethynyl"
     },
     "sp2": {
       "figure": {
@@ -18419,7 +18956,7 @@ export const STAGE_AB_SORT_FIGURES: Readonly<Record<string, Readonly<Record<stri
           }
         ]
       },
-      "name": "vinyl, sp2"
+      "name": "vinyl"
     },
     "me": {
       "figure": {
@@ -18432,7 +18969,7 @@ export const STAGE_AB_SORT_FIGURES: Readonly<Record<string, Readonly<Record<stri
           }
         ]
       },
-      "name": "methyl, sp3"
+      "name": "methyl"
     },
     "et": {
       "figure": {
@@ -18459,7 +18996,7 @@ export const STAGE_AB_SORT_FIGURES: Readonly<Record<string, Readonly<Record<stri
           }
         ]
       },
-      "name": "ethyl, sp3"
+      "name": "ethyl"
     }
   }
 };

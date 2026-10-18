@@ -221,6 +221,21 @@ export function lessonPoolItems(node: string, kind: "sort" | "match" | "draw"): 
 }
 
 /**
+ * The pool entries the recycle pass replays: the missed drawings, looked up on
+ * every node the plan's steps play pool items from (a trainer step's `draws`
+ * names its node), in plan order.
+ */
+export function recyclePoolEntriesFor(plan: LessonPlan, missedIds: readonly string[]): readonly PoolEntry[] {
+  const sources = new Set<string>([plan.node]);
+  for (const step of plan.steps) {
+    const beat = step.beat as { readonly node?: string; readonly draws?: string };
+    if (beat.node !== undefined) sources.add(beat.node);
+    if (beat.draws !== undefined) sources.add(beat.draws);
+  }
+  return [...sources].flatMap((source) => lessonPool(source)).filter((entry) => missedIds.includes(entry.id));
+}
+
+/**
  * Everything this node has authored, ordered by the template.
  *
  * The order is not availability order and not authoring order: it is the
@@ -396,6 +411,12 @@ export interface LessonRun {
   readonly totalBeats: number;
   /** MCQ beat ids missed at a failable rung, waiting for the recycle pass. */
   readonly missedMcqIds: readonly string[];
+  /**
+   * Pool entry ids (a "Draw it" item) missed on the first try, waiting for the
+   * recycle pass too (U1-P3 round 2). Optional because a save written before
+   * this field existed (resume/lessonSave.ts) has none; read it with missedPoolIdsOf.
+   */
+  readonly missedPoolIds?: readonly string[];
   /** How the recycle pass went. Zeros until it plays. */
   readonly recycleCleared: number;
   readonly recycleTotal: number;
@@ -430,6 +451,18 @@ export interface StepReport {
   readonly total: number;
   /** MCQ beat ids the recycle pass should bring back. */
   readonly missedMcqIds?: readonly string[];
+  /** Pool entry ids (drawings) the recycle pass should bring back. */
+  readonly missedPoolIds?: readonly string[];
+}
+
+/** The run's missed pool entry ids, empty for a run saved before the field existed. */
+export function missedPoolIdsOf(run: LessonRun): readonly string[] {
+  return run.missedPoolIds ?? [];
+}
+
+/** Whether anything is waiting for the recycle pass. */
+export function hasRecycle(run: LessonRun): boolean {
+  return run.missedMcqIds.length > 0 || missedPoolIdsOf(run).length > 0;
 }
 
 /**
@@ -443,6 +476,10 @@ export function reportStep(run: LessonRun, report: StepReport): LessonRun {
   const missed = [...run.missedMcqIds];
   for (const id of report.missedMcqIds ?? []) {
     if (!missed.includes(id)) missed.push(id);
+  }
+  const missedPool = [...missedPoolIdsOf(run)];
+  for (const id of report.missedPoolIds ?? []) {
+    if (!missedPool.includes(id)) missedPool.push(id);
   }
   const index = run.index + 1;
   const contentDone = index >= run.plan.steps.length;
@@ -464,7 +501,8 @@ export function reportStep(run: LessonRun, report: StepReport): LessonRun {
     clearedBeats: run.clearedBeats + report.cleared,
     totalBeats: run.totalBeats + report.total,
     missedMcqIds: missed,
-    phase: contentDone ? (missed.length > 0 ? "recycle" : "reward") : "content",
+    missedPoolIds: missedPool,
+    phase: contentDone ? (missed.length > 0 || missedPool.length > 0 ? "recycle" : "reward") : "content",
   };
 }
 
@@ -662,7 +700,7 @@ export function recipeSegments(run: LessonRun): readonly RecipeSegment[] {
     state: run.phase !== "content" || i < run.index ? "done" : i === run.index ? "current" : "todo",
     label: BADGE_LABEL[step.beat.kind],
   }));
-  if (run.missedMcqIds.length > 0) {
+  if (hasRecycle(run)) {
     segments.push({
       slot: "recycle",
       badge: "recycle",

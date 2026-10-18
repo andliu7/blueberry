@@ -184,7 +184,10 @@ describe("the unit exam on u1-check", () => {
     // CHANGED 2026-10-17 (round 2): the exact list went red whenever another draft lane added an exam. The rule it
     // stood for: a checkpoint plays an exam pool exactly when its unit says so in examBlurb (what the sheet shows).
     expect(withExam).toEqual(PATHWAY_UNITS.filter((unit) => unit.examBlurb !== undefined).map((unit) => unit.id));
-    expect(withExam).toEqual(expect.arrayContaining(["u1", "u2"]));
+    // CHANGED 2026-10-17 (round 3): back to the exact set the brief asked for. The examBlurb rule above can be
+    // satisfied by any lane that writes a blurb, so it cannot catch a stray exam pool; this line can. A lane that
+    // adds a unit exam adds its id here, in the open, for the owner to see.
+    expect(withExam).toEqual(["u1", "u2"]);
     for (const unit of PATHWAY_UNITS) {
       if (withExam.includes(unit.id)) continue;
       expect(practicePool(checkpointNodeId(unit.id)), unit.id).toEqual([]);
@@ -258,7 +261,17 @@ describe("the sort ladders' drawings", () => {
 describe("the concept ids and sort criteria Unit 1 had been borrowing", () => {
   const beats = Object.values(U1_POOLS)
     .flat()
-    .map((entry) => ({ entry, beat: entry.item.kind === "mcq" ? entry.item.beat : entry.item.kind === "sort" ? entry.item.content.beat : null }));
+    // CHANGED 2026-10-17 (U1-P3 round 2): "Draw it" items are checked too, now that
+    // the radical node has one; before this they were skipped as null.
+    .map((entry) => ({
+      entry,
+      beat:
+        entry.item.kind === "mcq" || entry.item.kind === "draw"
+          ? entry.item.beat
+          : entry.item.kind === "sort"
+            ? entry.item.content.beat
+            : null,
+    }));
   const raw = new Map(
     [
       ...Object.values(STAGE_AB_POOLS).flat(),

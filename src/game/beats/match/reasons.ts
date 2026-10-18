@@ -126,10 +126,13 @@ export function messageForMiss(
       detail: "That row is there to be ruled out. Every card on the left has a home somewhere else.",
     };
   }
+  // An authored hint about the left card is chemistry the student can use
+  // (look at its C=O groups, its lone pairs) without naming the right card.
+  const hint = spec.hintByPrompt?.[promptId];
   return {
     tone: "rejected",
-    headline: `${right} is not what ${left} does.`,
-    detail: `${left} has its own row still on the board.`,
+    headline: `${left} does not go with ${right}.`,
+    detail: hint ?? `${left} has its own row still on the board.`,
   };
 }
 

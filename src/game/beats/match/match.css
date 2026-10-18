@@ -110,3 +110,35 @@
     transition: none;
   }
 }
+
+/* A drawn molecule on a card (U1-P3 round 2). The structure sits on a white
+   chip above the name so its black bonds read in both themes; the comment at
+   the top of this file is about motion, and this is the one layout rule a
+   Tailwind utility could not say as plainly. */
+.match-card-face {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  width: 100%;
+}
+.match-card-figure {
+  display: block;
+  width: 100%;
+  max-width: 8rem;
+  border-radius: 0.5rem;
+  background: #ffffff;
+  color: #1f2937;
+  padding: 0.125rem;
+}
+.match-card-figure--row {
+  float: right;
+  width: 6rem;
+  margin-left: 0.5rem;
+}
+.match-card-figure__svg {
+  display: block;
+  width: 100%;
+  aspect-ratio: 120 / 84;
+  max-height: 4.25rem;
+}

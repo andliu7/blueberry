@@ -24,6 +24,8 @@ import { reviewCheckpointFor } from "./tabs/pathway/reviewCheckpoints";
 
 const Onboarding = lazy(() => import("./onboarding/Onboarding"));
 const BeatRunner = lazy(() => import("./beats/BeatRunner").then((m) => ({ default: m.BeatRunner })));
+// The X's "Your progress is saved" sheet (resume/LeaveSheet.tsx), loaded with the lesson.
+const LessonLeave = lazy(() => import("./resume/LeaveSheet").then((m) => ({ default: m.LessonLeave })));
 // A review checkpoint between lessons (tabs/pathway/reviewCheckpoints.ts) plays its own interleaved run.
 const ReviewRun = lazy(() => import("./tabs/pathway/ReviewRun").then((m) => ({ default: m.ReviewRun })));
 
@@ -161,13 +163,22 @@ function Body({
         {/* Keyed on node AND mode: a key change makes React throw the old
             runner away and mount a fresh one, so a Practice run can never
             carry its progress into a Challenge on the same node. */}
-        <BeatRunner
-          key={`${route.node}:${challenge ? "challenge" : "practice"}`}
+        <LessonLeave
           node={route.node}
-          challenge={challenge}
+          saves={!challenge}
           reducedMotion={reducedMotion}
-          onExit={() => navigate(hrefForTab("pathway"))}
-        />
+          onLeave={() => navigate(hrefForTab("pathway"))}
+        >
+          {(exit) => (
+            <BeatRunner
+              key={`${route.node}:${challenge ? "challenge" : "practice"}`}
+              node={route.node}
+              challenge={challenge}
+              reducedMotion={reducedMotion}
+              onExit={exit}
+            />
+          )}
+        </LessonLeave>
       </Suspense>
     );
   }

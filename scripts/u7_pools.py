@@ -978,8 +978,8 @@ def outcome(product: str, *reactants: str) -> tuple[str, int]:
 
 def ring_size_new(before: str, after: str) -> int | None:
     """Size of the one ring the product has that the reactant did not."""
-    a = sorted(len(r) for r in mol(after).GetRingInfo().AtomRings())
-    b = sorted(len(r) for r in mol(before).GetRingInfo().AtomRings())
+    a = sorted(len(r) for r in Chem.GetSymmSSSR(mol(after)))
+    b = sorted(len(r) for r in Chem.GetSymmSSSR(mol(before)))
     extra = list(a)
     for r in b:
         if r in extra:
@@ -1082,7 +1082,8 @@ NUC = ("nucleophilic_addition_carbon",)
 OXY = ("nucleophilic_addition_oxygen",)
 NIT = ("nucleophilic_addition_nitrogen",)
 PROT = ("protecting_group_strategy",)
-RED = ("oxidation_and_reduction_ladder",)
+RED = ("oxidation_state_ladder",)
+EWG = ("carbonyl_chemistry", "ewg_edg_rubric")
 CONJ = ("conjugate_addition",)
 
 S = {
@@ -1176,7 +1177,7 @@ def node_mechanism() -> None:
          [trio[best]], "hcho",
          "Aldehydes beat ketones, and methanal beats every other aldehyde: fewer alkyl groups, more reactive.",
          prov("carbon neighbours of each carbonyl carbon counted", CH, "fewer alkyl groups on C=O means more reactive"),
-         lead(S["mecho"], "acetaldehyde", "three carbonyls"), level=2, concepts=CARB,
+         lead(S["mecho"], "acetaldehyde", "three carbonyls"), level=2, concepts=EWG,
          convention="fewer alkyl groups on C=O means more reactive")
 
     p = add(S["mecho"], "[*]CC")
@@ -1226,13 +1227,13 @@ def node_hydration() -> None:
          [("chloral", S["chloral"], "2,2,2-trichloroacetaldehyde", "Trichloroethanal",
            "Three chlorines pull electron density away from the carbonyl carbon, so the C=O is less stable and the hydrate wins."),
           ("mecho", S["mecho"], "acetaldehyde", "Ethanal",
-           "An aldehyde with a plain methyl: about half hydrated. Without the chlorines the C=O holds on better."),
+           "An aldehyde with a plain methyl. Without the chlorines the C=O holds on better, so less hydrate forms."),
           ("acetone", S["acetone"], "propan-2-one", "Propanone",
            "Two alkyl groups stabilise the C=O and crowd the hydrate. Very little hydrate forms.")],
          [trio[best]], "chloral",
          "Electron-withdrawing groups next to C=O favour the hydrate; alkyl groups disfavour it.",
          prov("halogens on the alpha carbon and alkyl groups on C=O counted", CH, "electron-withdrawing groups favour the hydrate"),
-         lead(S["chloral"], "2,2,2-trichloroacetaldehyde", "three carbonyls in water"), level=2, concepts=OXY,
+         lead(S["chloral"], "2,2,2-trichloroacetaldehyde", "three carbonyls in water"), level=2, concepts=EWG,
          convention="electron-withdrawing groups favour the hydrate")
 
     # 18O exchange: the hydrate's two OH are equal, so losing either one is allowed.
@@ -1280,7 +1281,7 @@ def node_hydration() -> None:
          [trio[best]], "hfa",
          "Withdrawing groups make a ketone behave like a very reactive aldehyde.",
          prov("halogens on the alpha carbons counted", CH, "electron-withdrawing groups favour the hydrate"),
-         lead(S["acetone"], "propan-2-one", "three ketones in water"), level=2, concepts=OXY,
+         lead(S["acetone"], "propan-2-one", "three ketones in water"), level=2, concepts=EWG,
          convention="electron-withdrawing groups favour the hydrate")
 
 
@@ -1441,6 +1442,17 @@ def node_protect() -> None:
          lead(s, "methyl 4-oxopentanoate", "keto ester, three steps"), level=2, concepts=PROT,
          convention="acetals survive LiAlH4 and fall apart in aqueous acid")
 
+    s = S["keto_ester"]
+    hit = {"ket": len(co_sites(s)) == 1, "ester": False, "both": len(co_sites(s)) == 2}
+    ask(node, "u7-pro-site", "Methyl 4-oxopentanoate meets ethane-1,2-diol and acid. Pick the group that reacts.",
+        [("ket", "The ketone C=O", "A ketone carbon has only carbon groups, so it adds the diol and closes the acetal."),
+         ("ester", "The ester C=O", "The ester's OCH₃ lone pair is shared with its C=O, so it is a poor electrophile and forms no acetal."),
+         ("both", "Both C=O groups", "Only aldehydes and ketones form acetals. The ester is left as it is.")],
+        {"ket": True, "ester": hit["ester"], "both": hit["both"]}, hit["ket"], "ket",
+        "Acetals form from aldehydes and ketones, which is why one can hide a ketone beside an ester.",
+        prov("SMARTS for an aldehyde or ketone C=O, which excludes the ester", CH, "esters do not form acetals"),
+        lead(s, "methyl 4-oxopentanoate", "keto ester + diol"), concepts=PROT, convention="esters do not form acetals")
+
     s = "CC(=O)CCC=O"
     sites = co_sites(s)
     m = mol(s)
@@ -1468,18 +1480,20 @@ def node_protect() -> None:
     rnu = one(nu)
     p2 = add(S["acetone"], rnu)
     p3 = [f for f in hydrolyse_acetal(p2) if f != "OCCO"]
-    pick(node, "u7-pro-grignard", "4-Bromobutanal: protect, then Mg, then propanone, then H₃O⁺. Pick the product.",
-         [("target", p3[0], "5-hydroxy-5-methylhexanal", "5-Hydroxy-5-methylhexanal",
-           "With the aldehyde hidden, Mg makes a Grignard at C-Br, it adds to propanone, and acid restores the aldehyde."),
+    # The question stops before the acid step: the open chain 5-hydroxy aldehyde
+    # could close to a lactol (see u7-acl-lactol), so it is not asked for here.
+    pick(node, "u7-pro-grignard", "Protected 4-bromobutanal: Mg, then propanone, then neutral water. Pick the product.",
+         [("acetal", p2, "5-(1,3-dioxolan-2-yl)-2-methylpentan-2-ol", "Still protected",
+           "With the aldehyde hidden, Mg makes a Grignard at C-Br, it adds to propanone, and water protonates the alkoxide. The acetal stays."),
           ("diol", "CC(C)(O)CCCCO", "5-methylhexane-1,5-diol", "5-Methylhexane-1,5-diol",
-           "That has the aldehyde reduced as well. None of these steps is a hydride source."),
-          ("acetal", p2, "2-methyl-5-(1,3-dioxolan-2-yl)pentan-2-ol", "Still protected",
-           "The last step is aqueous acid, which takes the acetal off.")],
-         p3, "target",
+           "That has lost the acetal and reduced the aldehyde. None of these steps is a hydride source."),
+          ("target", p3[0], "5-hydroxy-5-methylhexanal", "5-Hydroxy-5-methylhexanal",
+           "Taking the acetal off needs aqueous acid. Neutral water leaves it on.")],
+         [p2], "acetal",
          "A Grignard and an aldehyde cannot share a molecule unless the aldehyde is protected.",
-         prov("Rule C, Br to MgBr, rule A on propanone, rule H, applied in turn", CH, "acetals survive Grignard reagents and fall apart in aqueous acid"),
-         lead(s, "4-bromobutanal", "4-bromobutanal, four steps"), level=2, concepts=PROT,
-         convention="acetals survive Grignard reagents and fall apart in aqueous acid")
+         prov("Rule C, Br to MgBr, rule A on propanone, applied in turn", CH, "acetals survive Grignard reagents and a neutral workup"),
+         lead(s, "4-bromobutanal", "4-bromobutanal, three steps"), level=2, concepts=PROT,
+         convention="acetals survive Grignard reagents and a neutral workup")
 
 
 # ---------------------------------------------------------------------------
@@ -1815,16 +1829,21 @@ def node_hydride() -> None:
     s = S["keto_ester"]
     nab = [reduce_co(s)]
     lah = lialh4(s)
-    pick(node, "u7-hdr-nabh4-ester", "Methyl 4-oxopentanoate meets NaBH₄. Pick the product.",
-         [("keto", nab[0], "methyl 4-hydroxypentanoate", "Methyl 4-hydroxypentanoate",
+    # Para keto ester: the new OH and the ester sit across a benzene ring, so the
+    # product cannot close to a lactone (methyl 4-oxopentanoate's product can).
+    para = "COC(=O)c1ccc(C(C)=O)cc1"
+    para_nab = [reduce_co(para)]
+    para_diol = [f for f in lialh4(para) if f != "CO"][0]
+    pick(node, "u7-hdr-nabh4-ester", "Methyl 4-acetylbenzoate meets NaBH₄. Pick the product.",
+         [("keto", para_nab[0], "methyl 4-(1-hydroxyethyl)benzoate", "Methyl 4-(1-hydroxyethyl)benzoate",
            "NaBH₄ is mild: it reduces the ketone and leaves the ester."),
-          ("diol", "CC(O)CCCO", "pentane-1,4-diol", "Pentane-1,4-diol",
+          ("diol", para_diol, "1-[4-(hydroxymethyl)phenyl]ethan-1-ol", "Both reduced",
            "That is the LiAlH₄ product, with the ester reduced too."),
-          ("ald", "CC(=O)CCCO", "5-hydroxypentan-2-one", "5-Hydroxypentan-2-one",
+          ("ald", "CC(=O)c1ccc(CO)cc1", "1-[4-(hydroxymethyl)phenyl]ethan-1-one", "Ester reduced, ketone kept",
            "That reduces the ester and spares the ketone, the reverse of what NaBH₄ does.")],
-         nab, "keto", "NaBH₄ picks ketones and aldehydes over esters.",
+         para_nab, "keto", "NaBH₄ picks ketones and aldehydes over esters.",
          prov("Rule R on the ketone only", CH, "NaBH4 leaves an ester alone"),
-         lead(s, "methyl 4-oxopentanoate", "keto ester + NaBH₄"), level=2, concepts=RED,
+         lead(para, "methyl 4-acetylbenzoate", "keto ester + NaBH₄"), level=2, concepts=RED,
          convention="NaBH4 leaves an ester alone")
 
     pick(node, "u7-hdr-lah-ester", "Methyl 4-oxopentanoate meets LiAlH₄, then H₃O⁺. Pick the main product.",
@@ -2107,17 +2126,21 @@ def node_to_ch2() -> None:
          prov("Rule R: every S removed", CH), structure(thio, "1,4-dithiaspiro[4.5]decane", "thioacetal + Raney Ni"),
          concepts=RED)
 
-    s = "CCOC(=O)CCC(C)=O"
-    base_sensitive = mol(s).HasSubstructMatch(ESTER)
-    ask(node, "u7-ch2-ester", "The ketone in ethyl 4-oxopentanoate must go to CH₂. Pick a method.",
-        [("clem", "Clemmensen, hot HCl", "Hot KOH would hydrolyse the ester. The acidic Clemmensen route spares it better."),
-         ("wk", "Wolff-Kishner, hot base", "Hot concentrated KOH saponifies the ester to a carboxylate."),
-         ("lah", "LiAlH₄", "LiAlH₄ reduces the ester as well, and stops the ketone at the alcohol.")],
-        {"clem": True, "wk": False, "lah": None}, base_sensitive, "clem",
-        "Base-sensitive groups point to Clemmensen; acid-sensitive ones to Wolff-Kishner.",
-        prov("SMARTS finds the ester", CH, "esters are saponified by hot base"),
-        lead(s, "ethyl 4-oxopentanoate", "ketone with an ester"), level=2, concepts=RED,
-        convention="esters are saponified by hot base")
+    # u7-ch2-ester (Clemmensen for a keto ester) was removed in the critic fix
+    # round: hot HCl also hydrolyses an ester, so neither method truly spares it.
+    # See the Unit 7 owner report. This plain Wolff-Kishner item takes its place.
+    s = "CC(=O)CCc1ccccc1"
+    p = to_ch2(s)
+    pick(node, "u7-ch2-chain", "4-Phenylbutan-2-one meets H₂NNH₂ and KOH, heated. Pick the product.",
+         [("ane", p, "butylbenzene", "Butylbenzene",
+           "The C=O carbon becomes CH₂. The chain keeps all four carbons, in the same order."),
+          ("ol", "CC(O)CCc1ccccc1", "4-phenylbutan-2-ol", "4-Phenylbutan-2-ol",
+           "That is the NaBH₄ product. Wolff-Kishner removes the oxygen entirely."),
+          ("hz", condense(s, "[*]NN"), "(4-phenylbutan-2-ylidene)hydrazine", "The hydrazone",
+           "That is the intermediate. Hot KOH takes it on, losing N₂, to CH₂.")],
+         [p], "ane", "Wolff-Kishner: C=O to CH₂, carbon skeleton unchanged.",
+         prov("Rule C with hydrazine, then rule R to CH2", CH), lead(s, "4-phenylbutan-2-one", "ketone + H₂NNH₂, KOH"),
+         concepts=RED)
 
 
 # ---------------------------------------------------------------------------
@@ -2185,8 +2208,8 @@ def node_cyanohydrin() -> None:
            "Hot aqueous acid turns C≡N into COOH. The OH stays: an alpha-hydroxy acid."),
           ("back", S["acetone"], "propan-2-one", "Propanone",
            "Losing HCN is the reverse reaction. Hot acid hydrolyses the nitrile."),
-          ("ene", "C=C(C)C(=O)O", "2-methylprop-2-enoic acid", "2-Methylpropenoic acid",
-           "That also loses water. The hydrolysis itself only changes C≡N.")],
+          ("amine", "CC(C)(O)CN", "1-amino-2-methylpropan-2-ol", "1-Amino-2-methylpropan-2-ol",
+           "That reduces C≡N to CH₂NH₂. Aqueous acid is not a hydride source.")],
          [acid], "acid", "The nitrile is a handle: hydrolysis gives an alpha-hydroxy acid.",
          prov("Rule A, then C≡N to COOH", CH_ACID, "hot aqueous acid hydrolyses a nitrile to the acid"),
          structure(cy, "2-hydroxy-2-methylpropanenitrile", "cyanohydrin + H₃O⁺, heat"), level=2, concepts=NUC,
@@ -2320,12 +2343,12 @@ def node_derivatives() -> None:
     p = condense(s, DNP)
     pick(node, "u7-der-dnp", "Cyclohexanone meets 2,4-dinitrophenylhydrazine. Pick the product.",
          [("dnp", p, "1-cyclohexylidene-2-(2,4-dinitrophenyl)hydrazine", "Cyclohexanone 2,4-DNP hydrazone",
-           "The terminal NH₂ of the hydrazine condenses with the C=O, giving C=N-NH-Ar: a coloured solid."),
+           "The terminal NH₂ of the hydrazine condenses with the C=O, giving C=N-NH-Ar, a hydrazone."),
           ("ring", "O=C1CCCCC1NNc1ccc([N+](=O)[O-])cc1[N+](=O)[O-]", "2-[2-(2,4-dinitrophenyl)hydrazinyl]cyclohexan-1-one", "Substituted on the ring",
            "That bonds N to the alpha carbon and keeps the C=O. The reaction is at the carbonyl carbon."),
           ("amine", "C1CCC(CC1)NNc1ccc(cc1[N+](=O)[O-])[N+](=O)[O-]", "1-cyclohexyl-2-(2,4-dinitrophenyl)hydrazine", "Reduced hydrazine",
            "That has H added across C=N. Nothing reduces it.")],
-         [p], "dnp", "2,4-DNP gives the hydrazone, the classic carbonyl test.",
+         [p], "dnp", "2,4-DNP gives the hydrazone, by the same imine logic.",
          prov("Rule C with 2,4-dinitrophenylhydrazine", CH), lead(s, "cyclohexanone", "cyclohexanone + 2,4-DNP"), concepts=NIT)
 
     s = S["acetone"]
@@ -2356,7 +2379,7 @@ def node_derivatives() -> None:
 
     rows = [("nh2oh", "NH₂OH", "[*]NO"), ("hz", "H₂NNH₂", "[*]NN"), ("dnp", "2,4-DNP", DNP), ("sc", "Semicarbazide", "[*]NNC(N)=O")]
     whys = {"oxime": "N-OH on the C=N: an oxime.", "hydrazone": "N-NH₂ on the C=N: a hydrazone.",
-            "2,4-DNP hydrazone": "N-NH-aryl with two nitro groups: the coloured DNP derivative.",
+            "2,4-DNP hydrazone": "N-NH-aryl with two nitro groups: the 2,4-DNP hydrazone.",
             "semicarbazone": "N-NH-C(O)NH₂ on the C=N: a semicarbazone."}
     pairs = []
     for pid, left, nu in rows:
@@ -2370,15 +2393,15 @@ def node_derivatives() -> None:
 
     subs = {"ket": S["butanone"], "alc": "CCC(C)O", "ester": "CCOC(C)=O"}
     has = {k: len(co_sites(v)) == 1 for k, v in subs.items()}
-    pick(node, "u7-der-which", "Pick the compound that gives a 2,4-DNP precipitate.",
+    pick(node, "u7-der-which", "Pick the compound that condenses with 2,4-DNP to a hydrazone.",
          [("ket", subs["ket"], "butan-2-one", "Butan-2-one",
-           "It has a ketone C=O, which condenses with the hydrazine to the coloured hydrazone."),
+           "It has a ketone C=O, which condenses with the hydrazine to the hydrazone."),
           ("alc", subs["alc"], "butan-2-ol", "Butan-2-ol",
            "An alcohol has no C=O to condense with."),
           ("ester", subs["ester"], "ethyl acetate", "Ethyl acetate",
            "An ester's C=O is stabilised by its OR group and does not form the hydrazone under test conditions.")],
          [subs[k] for k, v in has.items() if v], "ket",
-         "2,4-DNP flags aldehydes and ketones.",
+         "2,4-DNP condenses with aldehydes and ketones.",
          prov("SMARTS for an aldehyde or ketone C=O on each compound", CH, "esters and acids do not give a DNP test"),
          lead(subs["ket"], "butan-2-one", "three compounds + 2,4-DNP"), concepts=NIT,
          convention="esters and acids do not give a DNP test")
@@ -2578,9 +2601,9 @@ def node_ald_to_acid() -> None:
 
     subs = {"ald": S["phcho"], "ket": S["acph"], "alc": "OCc1ccccc1"}
     pos = {k: bool(co_sites(v)) and bool(oxidise_ald(v)) for k, v in subs.items()}
-    pick(node, "u7-ox-tollens", "Pick the compound that gives a silver mirror with Tollens reagent.",
+    pick(node, "u7-ox-tollens", "Pick the compound that Tollens reagent oxidises.",
          [("ald", subs["ald"], "benzaldehyde", "Benzaldehyde",
-           "Its aldehyde C-H is oxidised to the acid while Ag⁺ is reduced to silver metal."),
+           "Its aldehyde C-H is oxidised to the acid while Ag⁺ is reduced."),
           ("ket", subs["ket"], "1-phenylethan-1-one", "Acetophenone",
            "A ketone has no H on its carbonyl carbon, so mild Tollens cannot oxidise it."),
           ("alc", subs["alc"], "phenylmethanol", "Phenylmethanol",
@@ -2624,7 +2647,7 @@ def node_ald_to_acid() -> None:
           ("alc", "OCc1ccccc1", "phenylmethanol", "Phenylmethanol",
            "Silver is reduced, so the organic partner must be oxidised, not reduced."),
           ("same", s, "benzaldehyde", "No reaction",
-           "Aldehydes react with Tollens. The silver mirror is the sign.")],
+           "Aldehydes react with Tollens: the aldehyde C-H is oxidised.")],
          p, "ate", "Tollens makes the carboxylate, and acid workup gives the acid.",
          prov("Rule O, then the acid drawn as its anion in basic solution", CH),
          lead(s, "benzaldehyde", "benzaldehyde + Tollens"), level=2, concepts=RED)
@@ -2994,4 +3017,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
-                                                                                        

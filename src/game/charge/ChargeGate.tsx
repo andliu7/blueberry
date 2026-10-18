@@ -61,6 +61,7 @@ import { chargeGateModel, type ChargeGateModel, type ChargeGateNode } from "./ch
 import "./charge.css";
 import { closeOnBackdrop } from "../app/ui/dismiss";
 import { Press } from "../app/ui/Press";
+import { isRestart, restartCopy } from "../resume/restartCopy";
 
 /**
  * How often the sheet re-derives while it is open and nothing has been pressed.
@@ -157,6 +158,14 @@ export interface ChargeGateProps {
   readonly node: ChargeGateNode | null;
   readonly onClose: () => void;
   readonly reducedMotion: boolean;
+  /**
+   * Called once the entry is journalled, in place of going to the node's href.
+   * The resume screen's START OVER uses it: the student is already on the
+   * lesson, so the gate charges a fresh run and hands control back.
+   */
+  readonly onStarted?: () => void;
+  /** What a START OVER erases, for example "4 saved questions"; the sheet names that loss (resume/restartCopy.ts). */
+  readonly restartSaved?: string;
 }
 
 /**
@@ -167,7 +176,7 @@ export interface ChargeGateProps {
  * sheet from a track node, a side quest, or anywhere else that costs charge,
  * without the sheet knowing what a pathway is.
  */
-export function ChargeGate({ node, onClose, reducedMotion }: ChargeGateProps) {
+export function ChargeGate({ node, onClose, reducedMotion, onStarted, restartSaved }: ChargeGateProps) {
   const ref = useRef<HTMLDialogElement>(null);
   const [phase, setPhase] = useState<Phase>("idle");
   /** The model at the instant of the commit, so the animation's endpoints hold still. */
@@ -176,7 +185,11 @@ export function ChargeGate({ node, onClose, reducedMotion }: ChargeGateProps) {
   const timer = useRef<number | null>(null);
 
   const economy = useLiveEconomy(node !== null && phase === "idle");
-  const live = useMemo(() => (node === null ? null : chargeGateModel(economy, node)), [economy, node]);
+  const live = useMemo(() => {
+    if (node === null) return null;
+    const model = chargeGateModel(economy, node);
+    return restartSaved === undefined ? model : restartCopy(model, restartSaved);
+  }, [economy, node, restartSaved]);
   /**
    * The meter, and the SPEND IS ONLY PASSED WHEN IT CAN ACTUALLY HAPPEN.
    *
@@ -240,16 +253,17 @@ export function ChargeGate({ node, onClose, reducedMotion }: ChargeGateProps) {
     setFrozen(model);
     setFrozenMeter(meter);
     progress.startNode(model.node.id, model.node.kind);
-    if (reducedMotion || model.cost === 0) {
-      go(model.node.href);
+    const enter = () => {
+      if (onStarted !== undefined) onStarted();
+      else go(model.node.href);
       onClose();
+    };
+    if (reducedMotion || model.cost === 0) {
+      enter();
       return;
     }
     setPhase("spending");
-    timer.current = window.setTimeout(() => {
-      go(model.node.href);
-      onClose();
-    }, COMMIT_MS);
+    timer.current = window.setTimeout(enter, COMMIT_MS);
   };
 
   const topUp = (): void => {
@@ -307,9 +321,18 @@ export function ChargeGate({ node, onClose, reducedMotion }: ChargeGateProps) {
             </p>
           )}
 
+          {/* START OVER from the resume screen: the safe key is the big one (resume/restartCopy.ts). */}
+          {isRestart(model, restartSaved) ? (
+            <Press block size="lg" data-charge-keep onPointerDown={onClose}>
+              {model.dismissLabel}
+            </Press>
+          ) : null}
+
           <Press
             block
-            size="lg"
+            size={isRestart(model, restartSaved) ? "md" : "lg"}
+            variant={isRestart(model, restartSaved) ? "ghost" : "primary"}
+            className={isRestart(model, restartSaved) ? "restart-erase" : ""}
             data-charge-primary
             onPointerDown={() => {
               if (model.state === "empty") {
@@ -337,9 +360,11 @@ export function ChargeGate({ node, onClose, reducedMotion }: ChargeGateProps) {
           )}
           {model.topUp === null ? null : <p className="charge-note">{model.topUp.note}</p>}
 
-          <Press block variant="ghost" onPointerDown={onClose}>
-            {model.dismissLabel}
-          </Press>
+          {isRestart(model, restartSaved) ? null : (
+            <Press block variant="ghost" onPointerDown={onClose}>
+              {model.dismissLabel}
+            </Press>
+          )}
         </div>
       )}
     </dialog>

@@ -33,17 +33,20 @@ import { FIGURE_HEIGHT, FIGURE_WIDTH, type Figure } from "../onboarding/figures"
 /**
  * CHANGED 2026-10-17 (wire piece, round 2): Hückel gains a match board and a drawing (5 to 7),
  * NMR a match board (4 to 5), Heterocycles a drawing (12 to 13), Charged two drawings (12 to 14).
+ * CHANGED 2026-10-17 (wire piece, round 4): Charged, Annulenes and Heterocycles became seven-slot lessons,
+ * so each opens on two new L0 worked examples (14 to 16, 12 to 14, 13 to 15).
  */
 const EXPECTED_SIZES: Readonly<Record<string, number>> = {
   "u2-huckel": 7,
-  "u2-annulene": 12,
-  "u2-hetero": 13,
-  "u2-charged": 14,
+  "u2-annulene": 14,
+  "u2-hetero": 15,
+  "u2-charged": 16,
   "u2-nmr": 5,
   "u2-nomen": 12,
 };
 
-const LESSON_NODES = ["u2-huckel", "u2-nmr"];
+// CHANGED 2026-10-17 (round 4): five lessons now, was Hückel and NMR only. Nomenclature stays the in-a-row set.
+const LESSON_NODES = ["u2-huckel", "u2-charged", "u2-annulene", "u2-hetero", "u2-nmr"];
 
 const entries: readonly (readonly [string, PoolEntry])[] = Object.entries(U2_POOLS).flatMap(([node, pool]) =>
   pool.map((entry) => [node, entry] as const),
@@ -124,9 +127,13 @@ describe("u2 draft pools", () => {
 
   // CHANGED 2026-10-17 (round 2): lessons were MCQ only; each now carries a match board (connect) and Hückel a
   // drawing (produce), so the kinds are pinned exactly and the MCQ rule below still holds for every MCQ.
-  it("gives each lesson its MCQs (two meet questions at L0, the rest at rung 1), one match board, and Hückel one drawing", () => {
+  // CHANGED 2026-10-17 (round 4): the three former runs are pinned too, each with exactly two L0 worked examples.
+  it("gives each lesson its MCQs (two meet questions at L0, the rest at rung 1) and its exact boards, ladders and drawings", () => {
     const WANT: Readonly<Record<string, Readonly<Record<string, number>>>> = {
       "u2-huckel": { mcq: 5, match: 1, draw: 1 },
+      "u2-charged": { mcq: 12, sort: 2, draw: 2 },
+      "u2-annulene": { mcq: 12, match: 1, sort: 1 },
+      "u2-hetero": { mcq: 13, match: 1, draw: 1 },
       "u2-nmr": { mcq: 4, match: 1 },
     };
     for (const node of LESSON_NODES) {

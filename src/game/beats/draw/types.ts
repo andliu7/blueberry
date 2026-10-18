@@ -28,6 +28,29 @@ export interface DrawAnswer {
   readonly figure: Figure;
 }
 
+/**
+ * A wrong structure the script expects students to draw, named so the miss can
+ * say what the student actually built ("that is the 1,2 product") instead of a
+ * generic "not quite". Derived by the same script as the answer, with RDKit.
+ */
+export interface DrawMiss {
+  /** Short id for the log (BeatResult.distractorId). */
+  readonly id: string;
+  /** Standard InChI of the wrong structure, from RDKit. Compared the same way as the answer. */
+  readonly inchi: string;
+  /**
+   * RDKit canonical SMILES of the same structure. The reveal draws "Yours"
+   * from this when the drawing matched a named miss, so both cards come from
+   * canonical SMILES and lay out the same way (round 3: drawn from the
+   * student's own atom order, a card could come out mirrored).
+   */
+  readonly smiles?: string;
+  /** What it is, as the miss headline says it: "the 1,2 product". */
+  readonly name: string;
+  /** One coach line on why it is not the answer, without giving the answer away. */
+  readonly says: string;
+}
+
 export interface DrawBeat {
   readonly kind: "draw";
   readonly id: string;
@@ -42,13 +65,17 @@ export interface DrawBeat {
   readonly visual: McqVisual;
   readonly answer: DrawAnswer;
   /**
-   * Whether wedges and E/Z count. False for every item today: the lesson asks
-   * for connectivity, and a drawn double bond always has a geometry the
-   * student did not mean as an answer (see grade.ts).
+   * Whether wedges and E/Z count. False for most items: the lesson asks for
+   * connectivity, and a drawn double bond always has a geometry the student
+   * did not mean as an answer. True only on the Diels-Alder stereo items
+   * (u1-da-stereo, u1-da-3d), graded on relative stereo so either mirror
+   * image of a racemic product counts (grade.ts relativeStereo).
    */
   readonly stereo: boolean;
   /** Shown on a right answer: why this is the structure. */
   readonly why: string;
   /** Shown on a miss, before the why: the one thing to look at. */
   readonly lookAt: string;
+  /** The wrong structures worth naming, checked before the generic miss. Optional. */
+  readonly misses?: readonly DrawMiss[];
 }

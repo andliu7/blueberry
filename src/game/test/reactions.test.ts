@@ -147,11 +147,11 @@ describe("the pathway map is a truthful ledger", () => {
 
   // CHANGED 2026-10-07 with the data, was 192 and 86: Unit 1 was rebuilt from the owner's
   // whiteboard (8 nodes to 24, spine 4 to 18) and no longer mirrors the PDF inventory.
-  // CHANGED 2026-10-17, Unit 2 draft authored: its five lessons went from gate to spine (an all-gate unit drew as
-  // a checkpoint, not a lesson unit), so spine 100 to 105. Node total unchanged. Owner to confirm (pathwayMap.ts u2).
-  it("carries the full inventory: 208 nodes, 105 of them spine", () => {
+  // Restored 2026-10-17 (Unit 2 draft, round 3): round 2 had moved this pin to 105 by making Unit 2 spine; the
+  // brief kept Unit 2 as gates, so the owner's pin stands at 100 until the owner decides otherwise.
+  it("carries the full inventory: 208 nodes, 100 of them spine", () => {
     const score = coverage();
     expect(score.total).toBe(208);
-    expect(score.spineTotal).toBe(105);
+    expect(score.spineTotal).toBe(100);
   });
 });

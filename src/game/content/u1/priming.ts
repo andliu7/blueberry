@@ -127,10 +127,11 @@ export const U1_PRIMING: Readonly<Record<string, LessonPriming>> = {
         quote: "Resonance spreads the charge",
       },
       {
-        label: "About one extra carbon",
-        via: ", worth",
+        // Owner swap 2026-10-17: this item is now crotyl vs isopropyl.
+        label: "Resonance breaks a tie",
+        via: ", so",
         source: "u1-cat-allyl-vs-2",
-        quote: "resonance is worth about one extra carbon",
+        quote: "a 2° allylic cation beats a 2° alkyl cation",
       },
       {
         label: "Score both effects",

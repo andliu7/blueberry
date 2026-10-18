@@ -48,6 +48,7 @@
 
 import type { CauseId, ResolutionKind } from "@blueberry/chem-core";
 import type { LessonId } from "@blueberry/curriculum";
+import type { Figure } from "../onboarding/figures";
 
 /**
  * Plain string aliases, for the reason packages/curriculum/src/ids.ts gives:
@@ -346,6 +347,17 @@ export interface MatchPair {
   readonly left: string;
   readonly right: string;
   readonly why?: string;
+  /**
+   * The left card's molecule, drawn on the card above its name (U1-P3 round 2).
+   * Owner rule: a molecule is identified by its structure, never by name alone.
+   */
+  readonly leftFigure?: Figure;
+  /**
+   * A chemistry nudge about the left card, said on a wrong pairing in place of
+   * the generic "has its own row" line. It points at what to look at on the
+   * structure and never names the right card.
+   */
+  readonly hint?: string;
 }
 
 /** A right hand item that pairs with nothing. Empty at L1, close ones at L2. */

@@ -722,6 +722,12 @@ def ladder(
     if id in IDS:
         fail(f"duplicate id {id}")
     IDS.add(id)
+    # A card label names the species, never its rank: "tert-butyl, 3°" let a
+    # student read the order off the labels (U1-P3 round 2 critic). The card
+    # still draws the structure, so the student has to count from the drawing.
+    for i, label, _, _ in species:
+        if "°" in label or "allylic" in label or "C=C" in label or ", sp" in label:
+            fail(f"{id}: card {i} label {label!r} gives the ranking away")
     smis = [s for _, _, s, _ in species]
     if not chain_ok(smis):
         bad = [(species[i][0], species[i + 1][0], compare(smis[i], smis[i + 1])) for i in range(len(smis) - 1)]
@@ -1017,9 +1023,9 @@ def node_rank_cation() -> None:
     ladder(
         node, "u1-cat-ladder-alkyl",
         [
-            ("tbu", "tert-butyl, 3°", TBU_C, "Three carbons on the charged carbon feed its empty p orbital by hyperconjugation. The most help of the four."),
-            ("ipr", "isopropyl, 2°", IPR_C, "Two carbons on the charged carbon, one rung below tert-butyl."),
-            ("et", "ethyl, 1°", ETHYL_C, "One carbon on the charged carbon. Some help, not much."),
+            ("tbu", "tert-butyl", TBU_C, "Three carbons on the charged carbon feed its empty p orbital by hyperconjugation. The most help of the four."),
+            ("ipr", "isopropyl", IPR_C, "Two carbons on the charged carbon, one rung below tert-butyl."),
+            ("et", "ethyl", ETHYL_C, "One carbon on the charged carbon. Some help, not much."),
             ("me", "methyl", METHYL_C, "No carbon neighbours at all, so nothing feeds the empty orbital."),
         ],
         "Rank these cations, most stable at the top.",
@@ -1051,10 +1057,10 @@ def node_rank_cation() -> None:
     ladder(
         node, "u1-cat-ladder-allylic",
         [
-            ("all3", "3° allylic", PRENYL_C, "Resonance shares the charge with the far end, and the charged carbon also carries two methyls."),
-            ("all2", "2° allylic", CROTYL_C, "Shared by resonance, and one methyl on the better charged carbon."),
-            ("all1", "allyl, 1° allylic", ALLYL_C, "Shared by resonance, but both charged ends are primary."),
-            ("et", "ethyl, 1°", ETHYL_C, "No pi bond next door, so one primary carbon holds the whole charge."),
+            ("all3", "prenyl", PRENYL_C, "Resonance shares the charge with the far end, and the charged carbon also carries two methyls."),
+            ("all2", "crotyl", CROTYL_C, "Shared by resonance, and one methyl on the better charged carbon."),
+            ("all1", "allyl", ALLYL_C, "Shared by resonance, but both charged ends are primary."),
+            ("et", "ethyl", ETHYL_C, "No pi bond next door, so one primary carbon holds the whole charge."),
         ],
         "Rank these cations, most stable at the top.",
         "Find the ones with a C=C next to the charge, then count substitution.",
@@ -1085,10 +1091,10 @@ def node_rank_cation() -> None:
     ladder(
         node, "u1-cat-ladder-ring",
         [
-            ("diene", "two C=C in the ring", CYHEXADIENYL_C, "Two pi bonds in a row share the charge over three carbons."),
-            ("ene", "one C=C, allylic", CYHEXENYL_C, "One pi bond next door shares the charge over two secondary carbons."),
-            ("cy", "cyclohexyl, 2°", CYHEXYL_C, "A secondary carbon and no pi bond, so one carbon holds it all."),
-            ("cym", "cyclohexylmethyl, 1°", CYHEXMETHYL_C, "A primary carbon outside the ring and no pi bond. The least help of the four."),
+            ("diene", "cyclohexadienyl", CYHEXADIENYL_C, "Two pi bonds in a row share the charge over three carbons."),
+            ("ene", "cyclohexenyl", CYHEXENYL_C, "One pi bond next door shares the charge over two secondary carbons."),
+            ("cy", "cyclohexyl", CYHEXYL_C, "A secondary carbon and no pi bond, so one carbon holds it all."),
+            ("cym", "cyclohexylmethyl", CYHEXMETHYL_C, "A primary carbon outside the ring and no pi bond. The least help of the four."),
         ],
         "Rank these ring cations, most stable at the top.",
         "Count how many carbons share the charge first, then substitution.",
@@ -1132,19 +1138,27 @@ def node_rank_cation() -> None:
         tiles=tile_set(t), brief="Look for a pi bond the charge can actually share.",
         derived=pick(most_stable([s for s, _ in t.values()]), t),
     )
-    eq = compare(ALLYL_C, IPR_C) == 0 and takeaway_scale(ALLYL_C) == takeaway_scale(IPR_C)
+    # OWNER SWAP 2026-10-17 (owner-direction.md): this id used to pair the allyl
+    # cation (1° allylic) with isopropyl and keep "about as stable" as the
+    # answer. That ranking depends on the source, so the pair is now one every
+    # source agrees on: crotyl (2° allylic) against isopropyl (2°). Same
+    # substitution on the best charged carbon, plus resonance, so crotyl wins.
+    # The script refuses to write the item unless compare() and the takeaway
+    # scale both say so.
+    crotyl_wins = compare(CROTYL_C, IPR_C) == 1 and takeaway_scale(CROTYL_C) > takeaway_scale(IPR_C)
     mcq(
         node, "u1-cat-allyl-vs-2", "Compare these two cations. Pick the closest statement.",
         [
-            ("allyl", "The allyl cation is far more stable", "Resonance helps a lot, but both of its charged carbons are primary. The isopropyl cation's one charged carbon is secondary. The two effects come out about even."),
-            ("ipr", "The isopropyl cation is far more stable", "Two carbon neighbours is real help, and resonance gives the allyl cation about the same amount. Neither wins by much."),
-            ("tie", "They are about as stable as each other", "Resonance spreads the allyl charge over two primary carbons; hyperconjugation from two carbons helps the isopropyl cation. Those come out about even, so a 1° allylic cation sits near a 2° alkyl one."),
+            ("crotyl", "The crotyl cation is more stable", "Its best charged carbon is secondary, just like isopropyl's. On top of that, resonance spreads the charge over a second carbon. Same substitution plus resonance wins."),
+            ("ipr", "The isopropyl cation is more stable", "Isopropyl's charged carbon is secondary, but so is the crotyl cation's best one. Isopropyl has no C=C next door, so its one carbon holds the whole charge."),
+            ("tie", "They are about as stable as each other", "Count the substitution first: both have a secondary charged carbon, so that part ties. Then look for resonance. Only the crotyl cation has it, so the tie breaks."),
         ],
-        "tie",
-        "A 1° allylic cation is about as stable as a 2° alkyl cation: resonance is worth about one extra carbon. Count both effects.",
-        prov("the two factors point opposite ways (resonance against substitution); the takeaway scale puts both at 2", OS_7_9),
-        {"kind": "pair", "a": named(ALLYL_C, "allyl, 1° allylic"), "b": named(IPR_C, "isopropyl, 2°")},
-        derived="tie" if eq else None,
+        "crotyl",
+        "Same substitution, plus resonance: a 2° allylic cation beats a 2° alkyl cation, because resonance spreads the charge over a second carbon.",
+        prov("compare() dominance: crotyl (2 charge positions, best 2°) over isopropyl (1 position, 2°); takeaway scale 3 against 2", OS_7_9, OS_14_2),
+        {"kind": "pair", "a": named(CROTYL_C, "crotyl cation"), "b": named(IPR_C, "isopropyl cation")},
+        brief="Count the substitution on each charged carbon, then look for resonance.",
+        derived="crotyl" if crotyl_wins else None,
     )
     subs = sorted(carbon_neighbours(mol(CROTYL_C), p) for p in positions(CROTYL_C))
     ok = same_ion(CROTYL_C, CROTYL_C_1) and subs == [1, 2]
@@ -1301,9 +1315,9 @@ def node_rank_anion() -> None:
         node, "u1-ani-ladder-alkyl",
         [
             ("me", "methyl", METHYL_A, "No alkyl groups pushing density onto the lone pair. The best of the four."),
-            ("et", "ethyl, 1°", ETHYL_A, "One alkyl group donating onto a carbon that already holds a negative charge."),
-            ("ipr", "isopropyl, 2°", IPR_A, "Two alkyl groups, so more unwanted donation."),
-            ("tbu", "tert-butyl, 3°", TBU_A, "Three alkyl groups. The best cation of the four is the worst anion."),
+            ("et", "ethyl", ETHYL_A, "One alkyl group donating onto a carbon that already holds a negative charge."),
+            ("ipr", "isopropyl", IPR_A, "Two alkyl groups, so more unwanted donation."),
+            ("tbu", "tert-butyl", TBU_A, "Three alkyl groups. The best cation of the four is the worst anion."),
         ],
         "Rank these carbanions, most stable at the top.",
         "The cation trend flips: alkyl groups push density onto a carbon that is already full.",
@@ -1338,10 +1352,10 @@ def node_rank_anion() -> None:
     ladder(
         node, "u1-ani-ladder-s",
         [
-            ("sp", "ethynyl, sp", ETHYNYL_A, "The lone pair sits in an sp orbital, 50 percent s, held closest to the nucleus."),
-            ("sp2", "vinyl, sp2", VINYL_A, "An sp2 lone pair, 33 percent s. Held less tightly than sp, more than sp3."),
-            ("sp3", "ethyl, sp3", ETHYL_A, "An sp3 lone pair, 25 percent s, plus one alkyl group."),
-            ("sp3t", "tert-butyl, sp3", TBU_A, "Also sp3, and three alkyl groups instead of one."),
+            ("sp", "ethynyl", ETHYNYL_A, "The lone pair sits in an sp orbital, 50 percent s, held closest to the nucleus."),
+            ("sp2", "vinyl", VINYL_A, "An sp2 lone pair, 33 percent s. Held less tightly than sp, more than sp3."),
+            ("sp3", "ethyl", ETHYL_A, "An sp3 lone pair, 25 percent s, plus one alkyl group."),
+            ("sp3t", "tert-butyl", TBU_A, "Also sp3, and three alkyl groups instead of one."),
         ],
         "Rank these carbanions, most stable at the top.",
         "Name the orbital that holds each lone pair first.",
@@ -1372,8 +1386,8 @@ def node_rank_anion() -> None:
     ladder(
         node, "u1-ani-ladder-res",
         [
-            ("penta", "two C=C, conjugated", PENTADIENYL_A, "Two pi bonds share the charge over three carbons."),
-            ("allyl", "allyl, one C=C", ALLYL_A, "One pi bond shares the charge over two carbons."),
+            ("penta", "pentadienyl", PENTADIENYL_A, "Two pi bonds share the charge over three carbons."),
+            ("allyl", "allyl", ALLYL_A, "One pi bond shares the charge over two carbons."),
             ("me", "methyl", METHYL_A, "No resonance and no alkyl groups."),
             ("et", "ethyl", ETHYL_A, "No resonance, and one alkyl group pushing density onto the charge."),
         ],
@@ -1576,20 +1590,42 @@ def node_rank_radical() -> None:
     benzyl = "[CH2]c1ccccc1"
     cy_ene, me_cy, cy = radical(CYHEXENYL_C), "C[C]1CCCCC1", radical(CYHEXYL_C)
 
-    t = {"et": (et, "ethyl radical"), "tbu": (tbu, "tert-butyl radical"), "ipr": (ipr, "isopropyl radical")}
-    mcq(
-        node, "u1-rad-alkyl", "Pick the most stable radical.",
+    # CONVERTED 2026-10-17 (U1-P3 round 2): was a pick-the-most-stable MCQ with
+    # the same id and the same three radicals. Every adjacent pair is decidable,
+    # so the whole order is asked for, with methyl added at the bottom.
+    ladder(
+        node, "u1-rad-alkyl",
         [
-            ("et", "ethyl radical", "One carbon neighbour gives a little hyperconjugation. The least helped of the three."),
-            ("tbu", "tert-butyl radical", "Three carbon neighbours donate into the half-empty orbital. Radicals follow the cation trend, so 3° wins."),
-            ("ipr", "isopropyl radical", "Two carbon neighbours is good help, one less than tert-butyl."),
+            ("tbu", "tert-butyl radical", tbu, "Three carbon neighbours donate into the half-empty orbital. Radicals follow the cation trend, so 3° is first."),
+            ("ipr", "isopropyl radical", ipr, "Two carbon neighbours: good help, one less than tert-butyl."),
+            ("et", "ethyl radical", et, "One carbon neighbour gives a little hyperconjugation."),
+            ("me", "methyl radical", me, "No carbon neighbours at all, so nothing helps the odd electron."),
         ],
-        "tbu",
-        "Radicals follow the cation trend: 3° > 2° > 1° > methyl, because the radical carbon is electron poor.",
-        prov("ranking by charge positions then substitution, the radical model in the script header", OS_10_5),
-        ref(me, "for scale: methyl radical, no help at all"), tiles=tile_set(t),
-        derived=pick(most_stable([s for s, _ in t.values()]), t),
-        concepts=CONCEPT_RADICAL,
+        "Rank these radicals, most stable at the top.",
+        "No resonance in any of them. Count what is attached to each radical carbon.",
+        "radical_stability", "descending", ("Most stable", "Least stable"),
+        "Rank four alkyl radicals by stability, most stable first: tert-butyl, isopropyl, ethyl and methyl.",
+        (
+            "tert-Butyl, then isopropyl, then ethyl, then methyl.",
+            "A radical carbon is one electron short of an octet, so each alkyl group on it donates a little density and helps. More carbons on the radical carbon, more stable: 3° > 2° > 1° > methyl, the cation trend.",
+            "Count the carbons bonded to each radical carbon: more is better for a radical.",
+        ),
+        [
+            ("ranked-least-stable-first", ["me", "et", "ipr", "tbu"], "ordering_is_reversed", rev("tert-butyl")),
+            ("isopropyl-above-tertbutyl", ["ipr", "tbu", "et", "me"], "ordering_one_adjacent_pair_swapped", (
+                "Isopropyl is placed above tert-butyl.",
+                "Three carbon neighbours beat two. A radical is electron poor, so each extra alkyl group helps it.",
+                "Count carbons on the radical carbon of those two.",
+            )),
+            ("ethyl-above-isopropyl", ["tbu", "et", "ipr", "me"], "ordering_one_adjacent_pair_swapped", (
+                "Ethyl is placed above isopropyl.",
+                "Isopropyl's radical carbon has two carbon neighbours, ethyl's has one. More donation, more stable.",
+                "Count carbons on the radical carbon of those two.",
+            )),
+        ],
+        "Alkyl radicals follow the cation trend: 3° > 2° > 1° > methyl, because the radical carbon is electron poor.",
+        prov("ranking by charge positions then substitution, the radical model in the script header; every adjacent pair checked decidable", OS_10_5),
+        "allylic_halogenation", CONCEPT_RADICAL, 1100,
     )
     t = {"vinyl": (vinyl, "vinyl radical"), "propyl": (propyl, "propyl radical"), "allyl": (allyl, "allyl radical")}
     mcq(
@@ -1721,20 +1757,40 @@ def node_rank_radical() -> None:
         derived=pick_c[0] if len(pick_c) == 1 else None,
         concepts=CONCEPT_RADICAL,
     )
-    t = {"me": (me_cy, "1-methylcyclohexyl"), "ene": (cy_ene, "cyclohex-2-enyl"), "cy": (cy, "cyclohexyl")}
-    mcq(
-        node, "u1-rad-ring", "Pick the most stable radical.",
+    # CONVERTED 2026-10-17 (U1-P3 round 2): was a pick-the-most-stable MCQ with
+    # the same id and the same three radicals; every pair is decidable.
+    ladder(
+        node, "u1-rad-ring",
         [
-            ("me", "1-methylcyclohexyl", "Tertiary is the best a plain alkyl radical can do. The allylic radical shares its odd electron by resonance, and that counts for more."),
-            ("ene", "cyclohex-2-enyl", "Allylic and secondary at both ends. Resonance shares the odd electron over two carbons, which outweighs one extra alkyl group."),
-            ("cy", "cyclohexyl", "Secondary with no resonance. It loses to both of the others."),
+            ("ene", "cyclohex-2-enyl radical", cy_ene, "Allylic: the C=C next door shares the odd electron with the far end, and resonance counts for more than one extra alkyl group."),
+            ("me", "1-methylcyclohexyl radical", me_cy, "Tertiary is the best a plain alkyl radical can do, with no resonance."),
+            ("cy", "cyclohexyl radical", cy, "Secondary with no resonance. It loses to both of the others."),
         ],
-        "ene",
-        "Allylic resonance outweighs substitution for radicals: a 2° allylic radical beats a 3° alkyl one.",
-        prov("radical model: resonance first, then substitution", OS_10_5),
-        ref("C1=CCCCC1", "cyclohexene, the parent ring"), tiles=tile_set(t),
-        derived=pick(most_stable([s for s, _ in t.values()]), t),
-        concepts=CONCEPT_RADICAL,
+        "Rank these ring radicals, most stable at the top.",
+        "Look for resonance first, then count carbons on the radical carbon.",
+        "radical_stability", "descending", ("Most stable", "Least stable"),
+        "Rank three six-ring radicals by stability, most stable first: cyclohex-2-enyl, 1-methylcyclohexyl and cyclohexyl.",
+        (
+            "Cyclohex-2-enyl, then 1-methylcyclohexyl, then cyclohexyl.",
+            "Only cyclohex-2-enyl can share its odd electron by resonance, so it is first. Without resonance, substitution decides, and for a radical more carbons on the radical carbon is better, so tertiary beats secondary.",
+            "Look for a C=C next to the radical carbon first, then count carbons on it.",
+        ),
+        [
+            ("ranked-least-stable-first", ["cy", "me", "ene"], "ordering_is_reversed", rev("the cyclohex-2-enyl radical")),
+            ("tertiary-above-allylic", ["me", "ene", "cy"], "ordering_one_adjacent_pair_swapped", (
+                "1-Methylcyclohexyl is placed above cyclohex-2-enyl.",
+                "Being 3° helps, but resonance helps more: the allylic radical spreads its odd electron over two carbons.",
+                "Push one electron of the C=C toward the radical carbon of cyclohex-2-enyl and see where the odd electron lands.",
+            )),
+            ("secondary-above-tertiary", ["ene", "cy", "me"], "ordering_one_adjacent_pair_swapped", (
+                "Cyclohexyl is placed above 1-methylcyclohexyl.",
+                "That is the anion trend. A radical is electron poor, so the extra methyl on the tertiary carbon helps it.",
+                "Count carbons on the radical carbon of those two: for a radical, more wins.",
+            )),
+        ],
+        "Allylic resonance outweighs substitution for radicals: a 2° allylic radical beats a 3° alkyl one, which beats a 2° alkyl one.",
+        prov("radical model: resonance first, then substitution; every adjacent pair checked decidable", OS_10_5),
+        "allylic_halogenation", CONCEPT_RADICAL, 1150,
     )
 
 
@@ -1752,10 +1808,10 @@ def node_quiz_a() -> None:
     ladder(
         node, "u1-qa-ladder-cation",
         [
-            ("penta", "two C=C, conjugated", "[CH2+]C=CC=C", "Three carbons share the charge."),
-            ("all2", "2° allylic", CROTYL_C, "Two carbons share it, and one of them is secondary."),
-            ("ipr", "isopropyl, 2°", IPR_C, "Secondary, but one carbon holds the whole charge."),
-            ("et", "ethyl, 1°", ETHYL_C, "Primary and no resonance."),
+            ("penta", "pentadienyl", "[CH2+]C=CC=C", "Three carbons share the charge."),
+            ("all2", "crotyl", CROTYL_C, "Two carbons share it, and one of them is secondary."),
+            ("ipr", "isopropyl", IPR_C, "Secondary, but one carbon holds the whole charge."),
+            ("et", "ethyl", ETHYL_C, "Primary and no resonance."),
         ],
         "Rank these cations, most stable at the top.",
         "Draw every contributor before you rank.",
@@ -1786,10 +1842,10 @@ def node_quiz_a() -> None:
     ladder(
         node, "u1-qa-ladder-anion",
         [
-            ("sp", "ethynyl, sp", ETHYNYL_A, "sp lone pair, held closest."),
-            ("sp2", "vinyl, sp2", VINYL_A, "sp2 lone pair."),
-            ("me", "methyl, sp3", METHYL_A, "sp3 lone pair, and no alkyl groups."),
-            ("et", "ethyl, sp3", ETHYL_A, "sp3 lone pair plus an alkyl group pushing on it."),
+            ("sp", "ethynyl", ETHYNYL_A, "sp lone pair, held closest."),
+            ("sp2", "vinyl", VINYL_A, "sp2 lone pair."),
+            ("me", "methyl", METHYL_A, "sp3 lone pair, and no alkyl groups."),
+            ("et", "ethyl", ETHYL_A, "sp3 lone pair plus an alkyl group pushing on it."),
         ],
         "Rank these carbanions, most stable at the top.",
         "Orbital first, then alkyl groups.",
@@ -2273,11 +2329,40 @@ def produce(
     table: dict,
     brief: str | None = None,
     level: int = 1,
+    as_draw: bool = False,
 ) -> None:
-    """A run-it item: given diene, reagent and temperature, pick the major product."""
+    """A run-it item: given diene, reagent and temperature, pick the major product.
+
+    CONVERTED with as_draw (U1-P3 round 2): the same id, diene, conditions and
+    derived answer, asked as "Draw the major product". Each wrong option becomes
+    a named miss whose coach line is that option's own authored why, so a
+    student who draws the 1,2 product is told exactly what the MCQ would have
+    told them for picking it."""
     r = diene_addition(diene, e, nu)
     answer = r["thermo"] if warm else r["kinetic"]
     reagent = {"H": "H" + nu, "Br": "Br_2", "Cl": "Cl_2"}[e]
+    if as_draw:
+        if pick(answer, table) != correct:
+            fail(f"{id}: the derived answer is not the authored correct option")
+            return
+        roles = {"p12": "the 1,2 product", "p14": "the 1,4 product", "inner": "the product of H+ on an inner carbon",
+                 "loser": "the product of the weaker cation", "tetra": "the product of two equivalents"}
+        whys = {key: text for key, _, text in options}
+        draw_prompt = prompt.replace("Pick the major product.", "Draw the major product.")
+        if draw_prompt == prompt:
+            fail(f"{id}: converted prompt did not change")
+        first = "H+" if e == "H" else "the first " + e
+        draw(
+            node, id, draw_prompt,
+            brief or f"Decide where {first} goes, then read the temperature.",
+            scheme_visual(diene, diene_name, reagent + ", 1 equiv", WARM_UNDER if warm else COLD_UNDER),
+            answer, table[correct][1], whys[correct], explanation, explanation,
+            prov(f"{'thermodynamic' if warm else 'kinetic'} call from diene_addition; misses are the MCQ's derived options; names checked with OPSIN", OS_14_2, OS_14_3),
+            conditions=("one equivalent; " + (WARM if warm else COLD)),
+            misses=[(key, table[key][0], roles.get(key, table[key][1]), whys[key]) for key in table if key != correct],
+            keep_place=True,
+        )
+        return
     mcq(
         node, id, prompt, options, correct, explanation,
         prov(f"{'thermodynamic' if warm else 'kinetic'} call from diene_addition; names checked with OPSIN", OS_14_2, OS_14_3),
@@ -2388,6 +2473,7 @@ def node_hx() -> None:
             ("inner", t["inner"][1], "This needs H+ on an inner carbon, which leaves a primary cation with no resonance. Protonation goes to the end instead."),
         ],
         "p12", "Cold and irreversible: the 1,2 (kinetic) product.", t,
+        as_draw=True,
     )
     produce(
         node, "u1-hx-dmb-warm", DMB, "2,3-dimethylbuta-1,3-diene", "H", "Br", True,
@@ -2414,6 +2500,7 @@ def node_hx() -> None:
             ("p12", t["p12"][1], "H on C2, then bromide captured on C3, right beside it. Both charged carbons are secondary, so nearness decides: the 1,2 product."),
         ],
         "p12", "Cold: the nucleophile is captured at the nearer charged carbon, the 1,2 product.", t,
+        as_draw=True,
     )
     r = diene_addition(CHD, "H", "Br")
     t = {
@@ -2471,6 +2558,7 @@ def node_hx() -> None:
             ("p12", t["p12"][1], "Its C=C carries three carbons, against two in the 1,4 product. Warm, the more substituted alkene wins, and here that is the 1,2 product."),
         ],
         "p12", "Decide thermo by alkene substitution, not by 1,4 always wins. Here the 1,2 product has the better alkene.", t, level=2,
+        as_draw=True,
     )
     r = diene_addition(MP2, "H", "Br")
     t = {
@@ -2607,6 +2695,7 @@ def node_x2() -> None:
             ("p12", t["p12"][1], "Bromide is captured at C2, the tertiary carbon beside the first Br. Cold locks in this fast, 1,2 product."),
         ],
         "p12", "Cold: the 1,2 dihalide.", t,
+        as_draw=True,
     )
     r = diene_addition(CHD, "Br", "Br")
     n12, n14 = "3,4-dibromocyclohexene", "3,6-dibromocyclohexene"
@@ -2871,6 +2960,12 @@ def node_quiz_b() -> None:
 PRACTICE_NODES = {"u1-rank-cation", "u1-rank-anion", "u1-rank-radical", "u1-quiz-a", "u1-energy-diagram", "u1-hx-dienes", "u1-quiz-b"}
 
 
+def no_stereo(inchi: str) -> str:
+    """The browser grader's comparison for a no-stereo item (beats/draw/grade.ts withoutStereo)."""
+    head, *layers = inchi.split("/")
+    return "/".join([head] + [layer for layer in layers if not layer.startswith(("b", "t", "m", "s"))])
+
+
 def inchi_of(smi: str) -> str:
     out = Chem.MolToInchi(mol(smi))
     if not out.startswith("InChI=1S/"):
@@ -2893,9 +2988,16 @@ def draw(
     conditions: str | None = None,
     concepts: tuple[str, ...] = CONCEPT_KVT,
     any_contributor: bool = False,
+    misses: list[tuple[str, str | None, str, str]] | None = None,
+    keep_place: bool = False,
 ) -> None:
     """
-    One "Draw it" entry. `answer` is the derived SMILES (None means the script
+    One "Draw it" entry. `misses` (round 2) are (id, SMILES, what it is, coach
+    line): wrong structures the screen names when a student draws one. Each is
+    built by a derivation in this file and must grade differently from the
+    answer and from every other miss (stereo layers dropped, as the browser
+    grader does), or the file is refused. `keep_place` appends the entry where
+    an MCQ with the same id used to sit (a converted item) instead of third. `answer` is the derived SMILES (None means the script
     could not derive it, which refuses the file). With any_contributor, every
     resonance contributor of the answer must share its InChI, so drawing either
     one is graded right, which is what the prompt then promises.
@@ -2921,6 +3023,20 @@ def draw(
                 fail(f"{id}: contributor {f} has a different InChI, so it would be marked wrong")
     elif "+" not in smi and "-" not in smi:
         NAME_CHECKS.append((smi, answer_name, id))
+    graded = {no_stereo(key): "the answer"}
+    out_misses = []
+    for mid, msmi, mname, says in misses or []:
+        if msmi is None:
+            fail(f"{id} miss {mid}: the script could not derive it")
+            continue
+        lint_copy(f"{id} miss {mid} says", says, 220)
+        lint_copy(f"{id} miss {mid} name", mname, 60)
+        m_key = inchi_of(canon(msmi))
+        if no_stereo(m_key) in graded:
+            fail(f"{id} miss {mid}: grades the same as {graded[no_stereo(m_key)]}")
+            continue
+        graded[no_stereo(m_key)] = mid
+        out_misses.append({"id": mid, "inchi": m_key, "smiles": canon(msmi), "name": mname, "says": says})
     beat = {
         "kind": "draw",
         "id": id,
@@ -2935,6 +3051,8 @@ def draw(
         "why": why,
         "lookAt": look_at,
     }
+    if out_misses:
+        beat["misses"] = out_misses
     entry = {"id": id, "item": {"kind": "draw", "beat": beat}, "explanation": explanation}
     if conditions is not None:
         entry["conditions"] = conditions
@@ -2944,95 +3062,372 @@ def draw(
     # In an in-a-row run the third problem is a drawing, so a student who stops
     # at the first tier still draws once. In a lesson the order does not matter:
     # the drawings get their own produce step (template.ts).
-    if node in PRACTICE_NODES and len(pool) >= 2:
+    if node in PRACTICE_NODES and len(pool) >= 2 and not keep_place:
         pool.insert(2, entry)
     else:
         pool.append(entry)
 
 
+def hydrogenated(smi: str) -> str:
+    """Every C=C made single: the drawing of a student who added twice."""
+    rw = Chem.RWMol(mol(smi))
+    for bond in rw.GetBonds():
+        if bond.GetBondType() == Chem.BondType.DOUBLE:
+            bond.SetBondType(Chem.BondType.SINGLE)
+    return _finish(rw)
+
+
+def br_moved_off_allylic(smi: str) -> str | None:
+    """Move the Br of a 3-bromocycloalkene to the ring carbon two away from the
+    C=C, and prove that carbon is not allylic: the 'Br not next to the C=C' drawing."""
+    m = mol(smi)
+    br = [a for a in m.GetAtoms() if a.GetSymbol() == "Br"]
+    if len(br) != 1:
+        return None
+    c = br[0].GetNeighbors()[0]
+    ring = [r for r in m.GetRingInfo().AtomRings() if c.GetIdx() in r]
+    if not ring:
+        return None
+    alkene = {a.GetIdx() for b in m.GetBonds() if b.GetBondType() == Chem.BondType.DOUBLE for a in (b.GetBeginAtom(), b.GetEndAtom())}
+    for cand in ring[0]:
+        if cand in alkene or cand == c.GetIdx():
+            continue
+        if any(n.GetIdx() in alkene for n in m.GetAtomWithIdx(cand).GetNeighbors()):
+            continue  # still allylic
+        rw = Chem.RWMol(m)
+        rw.RemoveBond(c.GetIdx(), br[0].GetIdx())
+        rw.AddBond(cand, br[0].GetIdx(), Chem.BondType.SINGLE)
+        return _finish(rw)
+    return None
+
+
 def node_draws() -> None:
+    # ROUND 2 (2026-10-17): the briefs no longer hand over the deciding rule
+    # (where Br goes, which product temperature picks). That moved into lookAt,
+    # which shows only after a first miss. Every item names the wrong structures
+    # a student is likely to draw (misses), each derived here.
+
     # u1-allylic: protonate the diene, draw the cation. Either contributor.
     r = diene_addition(BUTADIENE, "H", "Br")
     draw(
         "u1-allylic", "u1-allylic-draw-cation",
         "H+ adds to C1 of buta-1,3-diene. Draw the cation that forms.",
-        "Use the + charge on the carbon that carries it. Either resonance contributor counts.",
+        "Count the bonds on each carbon once the H is on. Either resonance contributor counts.",
         scheme_visual(BUTADIENE, "buta-1,3-diene", "H^+"),
         r["cation"], "the but-3-en-2-yl cation, an allylic cation",
         "H+ goes on the end carbon, so the + lands on C2, right next to the remaining C=C. That pi bond can shift over and share the charge with C4.",
         "Put the H on C1, then put the + on the carbon next to it. It is allylic, which is why this end gets protonated.",
         "Protonating the end carbon of a diene gives an allylic cation: the charge is shared by C2 and C4.",
-        prov("cation from diene_addition, the end-carbon orientation; contributors from ResonanceMolSupplier share one InChI", OS_14_2),
+        prov("cation from diene_addition, the end-carbon orientation; contributors from ResonanceMolSupplier share one InChI; misses built from the same diene", OS_14_2),
         concepts=CONCEPT_RES, any_contributor=True,
+        misses=[
+            ("inner", inner_cation(BUTADIENE), "the cation from H+ on C2",
+             "That + sits on an end carbon with no C=C beside it, so nothing can share it. The prompt puts the H on C1."),
+            ("product", r["p12"], "the finished product",
+             "That is after bromide arrives. Stop one step earlier: draw the cation, with its +."),
+        ],
     )
-    # u1-12v14: the 1,4 product.
+    # u1-12v14: the 1,4 product. CHANGED round 4 (critic): on butadiene the
+    # prompt had to spell out "bromide attacks C4", and the lesson's priming
+    # question names 1-bromobut-2-ene as the 1,4 product a few screens
+    # earlier, so the drawing could be copied from memory. A new diene makes
+    # it transfer: the student has to find the diene's own C1 to C4 inside a
+    # six-carbon chain and apply "1,4" there. hexa-2,4-diene is symmetric, so
+    # both ends protonate alike and the 1,2 and 1,4 products are distinct.
+    hexa = "CC=CC=CC"
+    rh = diene_addition(hexa, "H", "Br")
     draw(
         "u1-12v14", "u1-12v14-draw-14",
-        "HBr adds 1,4 to buta-1,3-diene. Draw the 1,4 product.",
-        "H on C1, Br on C4. Watch where the double bond ends up.",
-        scheme_visual(BUTADIENE, "buta-1,3-diene", "HBr"),
-        r["p14"], "1-bromobut-2-ene",
-        "H goes on C1, Br on C4, and the C=C moves to C2=C3. That is the second contributor of the allylic cation being trapped.",
-        "Number the four carbons. Br goes on C4, the far end, and the double bond moves into the middle.",
-        "1,4 addition: H on C1, the nucleophile on C4, and the double bond moves to C2=C3.",
-        prov("1,4 product from diene_addition; name checked with OPSIN", OS_14_2),
+        "HBr adds to hexa-2,4-diene. Draw the 1,4 product.",
+        "The 1 and 4 count the diene's four C=C carbons, not the chain's six.",
+        scheme_visual(hexa, "hexa-2,4-diene", "HBr"),
+        rh["p14"] if not rh["losers"] else None, "2-bromohex-3-ene",
+        "The diene is C2 to C5 of the chain. H goes on C2, the diene's first carbon, which shares the + between C3 and C5. Br on C5, the diene's fourth carbon, moves the C=C to the middle: C3=C4.",
+        "Count only the diene: chain C2 is its 1, chain C5 its 4. H on the 1, Br on the 4, and the C=C slides into the middle, between the diene's 2 and 3.",
+        "1,4 addition: E+ on the diene's first carbon, the nucleophile on its fourth, and the double bond moves into the middle.",
+        prov("1,4 product from diene_addition on hexa-2,4-diene (both ends protonate alike, no losing cation); misses are its 1,2 and inner-protonation products; name checked with OPSIN", OS_14_2),
         conditions="one equivalent of HBr",
+        misses=[
+            ("p12", rh["p12"], "the 1,2 product",
+             "Br landed on the near end of the allylic cation, right beside the new H. That is 1,2 addition: the diene's carbons 1 and 2."),
+            ("inner", inner_product(hexa, "H", "Br"), "the product of H+ on an inner carbon",
+             "That needs H+ on a middle carbon of the diene, which leaves a cation with no resonance. H+ goes on an end of the diene."),
+        ],
     )
     # u1-kvt: warm means thermodynamic.
     r = diene_addition(DMB, "H", "Br")
     draw(
         "u1-kvt", "u1-kvt-draw-warm",
         "HBr, 40 degrees, given time. Draw the major product.",
-        "Warm and reversible: the more stable product wins. Count groups on its C=C.",
+        "Read the temperature first. It decides which product you draw.",
         scheme_visual(DMB, "2,3-dimethylbuta-1,3-diene", "HBr, 1 equiv", WARM_UNDER),
         r["thermo"], "1-bromo-2,3-dimethylbut-2-ene",
         "At 40 degrees both products can return to the cation, so the mixture settles into the more stable one: the 1,4 product, whose C=C carries four carbons.",
         "Warm means thermodynamic. Draw both products, then keep the one with more carbons on its C=C.",
         "Warm and reversible gives the thermodynamic product, the one with the more substituted alkene.",
-        prov("thermodynamic call from diene_addition (alkene substitution counted); name checked with OPSIN", OS_14_2, OS_14_3),
+        prov("thermodynamic call from diene_addition (alkene substitution counted); misses are the kinetic and inner products; name checked with OPSIN", OS_14_2, OS_14_3),
         conditions="one equivalent; " + WARM,
+        misses=[
+            ("p12", r["kinetic"], "the 1,2 product, the kinetic one",
+             "It forms fastest, but at 40 degrees it can ionise again. Given time, the mixture drifts to the more stable alkene."),
+            ("inner", inner_product(DMB, "H", "Br"), "the product of H+ on an inner carbon",
+             "That needs a cation with no resonance. H+ goes on an end carbon."),
+        ],
     )
     # u1-x2: Br2, warm, 1,4.
     r = diene_addition(BUTADIENE, "Br", "Br")
     draw(
         "u1-x2", "u1-x2-draw-warm",
         "Br2, one equivalent, 40 degrees. Draw the major product.",
-        "Same allylic cation logic as HBr, with Br on both ends.",
+        "Br2 adds through the same kind of cation as HBr. Read the temperature.",
         scheme_visual(BUTADIENE, "buta-1,3-diene", "Br_2, 1 equiv", WARM_UNDER),
         r["thermo"], "1,4-dibromobut-2-ene",
         "Br+ adds to C1 and the allylic cation is shared by C2 and C4. Warm and reversible, the 1,4 product wins: its C=C sits in the middle with two carbons on it.",
         "Put one Br on C1. Warm conditions send the second Br to C4, and the double bond moves to C2=C3.",
         "Br2 adds like HBr: warm and reversible gives the 1,4 dibromide.",
-        prov("thermodynamic call from diene_addition with Br as electrophile and nucleophile; name checked with OPSIN", OS_14_2, OS_14_3),
+        prov("thermodynamic call from diene_addition with Br as electrophile and nucleophile; misses are the 1,2 dibromide and the tetrabromide; name checked with OPSIN", OS_14_2, OS_14_3),
         conditions="one equivalent; " + WARM,
+        misses=[
+            ("p12", r["p12"], "the 1,2 product",
+             "It forms first, and at 40 degrees it can go back to the cation. Given time, the mixture settles into the more stable alkene."),
+            ("tetra", saturate(r["p12"], "Br"), "the product of two equivalents",
+             "Adding across both C=C takes two Br2. With one equivalent, one C=C stays."),
+        ],
     )
     # u1-hx-dienes: cold, kinetic, unsymmetrical diene.
     r = diene_addition(ISOPRENE, "H", "Br")
     draw(
         "u1-hx-dienes", "u1-hx-draw-isoprene-cold",
         "HBr, minus 80 degrees. Draw the major product.",
-        "Protonate the end that gives the better cation first. Cold keeps the 1,2 product.",
+        "Decide where H+ goes first, then read the temperature.",
         scheme_visual(ISOPRENE, "isoprene", "HBr, 1 equiv", COLD_UNDER),
         r["kinetic"], "3-bromo-3-methylbut-1-ene",
         "H+ goes on C1, which puts the + on the tertiary, allylic C2. Cold, nothing reverses, so Br lands right next to where the H went: the 1,2 product.",
-        "Find the protonation that gives a tertiary allylic cation, then put Br on that same carbon.",
+        "Protonate C1 to get the tertiary allylic cation, then put Br on that same carbon. Cold keeps the 1,2 product.",
         "Cold gives the kinetic, 1,2 product from the best cation.",
-        prov("kinetic call from diene_addition (best cation by dominance); name checked with OPSIN", OS_14_2, OS_14_3),
+        prov("kinetic call from diene_addition (best cation by dominance); misses are its 1,4 product and the weaker cation's products; name checked with OPSIN", OS_14_2, OS_14_3),
         conditions="one equivalent; " + COLD,
+        misses=[
+            ("p14", r["p14"], "the 1,4 product",
+             "That is the product that wins when warm. At minus 80 degrees nothing reverses, so the first-formed product stays."),
+        ] + [
+            (f"loser{i}", lose["p12"], "the product of the weaker cation",
+             "That comes from H+ on the other end, which gives a cation that is only secondary. The tertiary allylic cation forms faster.")
+            for i, lose in enumerate(r["losers"])
+        ],
     )
     # u1-quiz-b: cyclohexa-1,3-diene, where 1,2 and 1,4 coincide.
     r = diene_addition(CHD, "H", "Br")
+    answer = r["thermo"] if r["p12"] == r["p14"] else None
     draw(
         "u1-quiz-b", "u1-qb-draw-chd",
         "HBr adds to cyclohexa-1,3-diene. Draw the product.",
         "Draw the 1,2 and the 1,4 product. Then look again.",
         scheme_visual(CHD, "cyclohexa-1,3-diene", "HBr, 1 equiv"),
-        r["thermo"] if r["p12"] == r["p14"] else None, "3-bromocyclohexene",
+        answer, "3-bromocyclohexene",
         "In this ring the 1,2 and 1,4 products are the same molecule, 3-bromocyclohexene, so temperature does not change the answer.",
         "Draw both products and number them from the C=C: Br sits next to the double bond either way.",
         "When the diene is symmetric in a ring, the 1,2 and 1,4 products can be one compound.",
-        prov("p12 and p14 from diene_addition are one canonical SMILES; name checked with OPSIN", OS_14_2),
+        prov("p12 and p14 from diene_addition are one canonical SMILES; misses are the non-allylic isomer and the doubly added ring; name checked with OPSIN", OS_14_2),
         conditions="one equivalent of HBr",
+        misses=[
+            ("far", br_moved_off_allylic(answer) if answer else None, "a Br two carbons from the C=C",
+             "Bromide adds to a carbon that carried the +, and both of those sit right next to the remaining C=C."),
+            ("no-ene", hydrogenated(answer) if answer else None, "a ring with no C=C",
+             "One equivalent of HBr adds once. One C=C stays in the ring."),
+        ],
+    )
+    # u1-energy-diagram: read the diagram, then produce the structure (round 2).
+    p = (7.0, 2.6, 8.6, 0.8)
+    d = ed(*p)
+    r = diene_addition(BUTADIENE, "H", "Br")
+    ok = d["kinetic"] == "A" and d["thermo"] == "B" and r["kinetic"] == r["p12"] and r["thermo"] == r["p14"]
+    draw(
+        "u1-energy-diagram", "u1-ed-draw-cold",
+        "The diagram is HBr plus buta-1,3-diene. At minus 80 degrees, draw the major product.",
+        "Read the diagram for a cold flask, then draw that product.",
+        energy_visual("the two routes from the allylic cation", *p, names=("1,2", "1,4")),
+        r["p12"] if ok else None, "3-bromobut-1-ene",
+        "Cold, no product can climb back over its hump, so the one over the lower hump wins. That is the 1,2 product: H on C1, Br on C2.",
+        "Cold means the lower hump wins. That is the 1,2 route: Br on C2, right beside the new H, with the C=C left at the end.",
+        "Cold and irreversible: the product over the lower transition state (kinetic) wins.",
+        prov("kinetic route read off the diagram's transition state heights and checked against diene_addition's kinetic call; name checked with OPSIN", OS_14_3),
+        conditions="one equivalent; " + COLD,
+        misses=[
+            ("p14", r["p14"], "the 1,4 product",
+             "That is the deeper well, the stable one. Cold, nothing climbs back, so depth gets no vote: the lower hump decides."),
+        ],
+    )
+
+
+# ---------------------------------------------------------------------------
+# Round 2 (U1-P3): a "Draw it" item for each stability node, so every Unit 1
+# node asks the student to produce a structure. Each answer is the species the
+# script's own stability model (compare / most_stable) picks among EVERY
+# candidate it enumerates, and every other candidate becomes a named miss.
+# ---------------------------------------------------------------------------
+
+
+def protonations(alkene: str) -> list[str]:
+    """H+ on each end of each C=C: the cation left on the other carbon."""
+    m = mol(alkene)
+    out: list[str] = []
+    for bond in m.GetBonds():
+        if bond.GetBondType() != Chem.BondType.DOUBLE:
+            continue
+        for h_on, plus_on in ((bond.GetBeginAtomIdx(), bond.GetEndAtomIdx()), (bond.GetEndAtomIdx(), bond.GetBeginAtomIdx())):
+            rw = Chem.RWMol(m)
+            rw.GetBondBetweenAtoms(h_on, plus_on).SetBondType(Chem.BondType.SINGLE)
+            rw.GetAtomWithIdx(plus_on).SetFormalCharge(1)
+            got = canon(_finish(rw))
+            if got not in out:
+                out.append(got)
+    return out
+
+
+def carbanions(smi: str, sp3_only: bool = False) -> list[str]:
+    """A proton off each carbon that has one: every carbanion, by constitution.
+    sp3_only skips C=C carbons: the anion model cannot rank a vinyl anion
+    against an allylic one (s character and resonance disagree), so an item
+    that needs a decidable winner asks only about the sp3 C-H."""
+    m = mol(smi)
+    out: list[str] = []
+    for a in m.GetAtoms():
+        if a.GetSymbol() != "C" or a.GetTotalNumHs() == 0:
+            continue
+        if sp3_only and in_multiple_bond(m, a.GetIdx()):
+            continue
+        rw = Chem.RWMol(m)
+        atom = rw.GetAtomWithIdx(a.GetIdx())
+        atom.SetFormalCharge(-1)
+        atom.SetNumExplicitHs(a.GetTotalNumHs() - 1)
+        atom.SetNoImplicit(True)
+        p = rw.GetMol()
+        Chem.SanitizeMol(p)
+        got = canon(Chem.MolToSmiles(p))
+        if got not in out:
+            out.append(got)
+    return out
+
+
+def brominations(smi: str) -> list[tuple[str, str]]:
+    """For each carbon with an H: (the radical left when Br. takes that H, the
+    bromide made when Br2 then caps it). The radical is built as the cation
+    analogue and converted with radical(), the model the radical node uses."""
+    m = mol(smi)
+    out: list[tuple[str, str]] = []
+    seen: set[str] = set()
+    for a in m.GetAtoms():
+        if a.GetSymbol() != "C" or a.GetTotalNumHs() == 0:
+            continue
+        rw = Chem.RWMol(m)
+        atom = rw.GetAtomWithIdx(a.GetIdx())
+        atom.SetFormalCharge(1)
+        atom.SetNumExplicitHs(a.GetTotalNumHs() - 1)
+        atom.SetNoImplicit(True)
+        p = rw.GetMol()
+        Chem.SanitizeMol(p)
+        cat = Chem.MolToSmiles(p)
+        rw2 = Chem.RWMol(m)
+        br = rw2.AddAtom(Chem.Atom("Br"))
+        rw2.AddBond(a.GetIdx(), br, Chem.BondType.SINGLE)
+        product = canon(_finish(rw2))
+        if product in seen:
+            continue
+        seen.add(product)
+        out.append((canon(radical(canon(cat))), product))
+    return out
+
+
+def charged_on_alkene(smi: str) -> bool:
+    m = mol(smi)
+    return any((a.GetFormalCharge() != 0 or a.GetNumRadicalElectrons() > 0) and in_multiple_bond(m, a.GetIdx()) for a in m.GetAtoms())
+
+
+def degree_word(smi: str) -> str:
+    m = mol(smi)
+    idx = [a.GetIdx() for a in m.GetAtoms() if a.GetFormalCharge() != 0 or a.GetNumRadicalElectrons() > 0][0]
+    return {0: "methyl", 1: "primary", 2: "secondary", 3: "tertiary"}[carbon_neighbours(m, idx)]
+
+
+def node_produce_more() -> None:
+    # u1-rank-cation: Markovnikov protonation, the best cation.
+    alkene = "C=C(C)C"
+    cats = protonations(alkene)
+    best = most_stable(cats)
+    draw(
+        "u1-rank-cation", "u1-cat-draw-protonate",
+        "H+ adds to 2-methylpropene. Draw the cation that forms.",
+        "There are two ways to put the H on. Draw the cation each one leaves, then keep one.",
+        struct_visual(alkene, "2-methylpropene"),
+        best, "the tert-butyl cation",
+        "H+ goes on the CH2 end, which leaves the + on the carbon carrying three carbons. Three alkyl groups donate into the empty orbital, so this cation forms much faster than the primary one.",
+        "Put the H on the CH2 end. The + then sits on the central carbon, with three carbons around it.",
+        "H+ adds to the end of the C=C that leaves the more substituted, more stable cation.",
+        prov("both protonations built and ranked with the script's cation model (compare)", OS_7_9),
+        concepts=CONCEPT_RES,
+        misses=[(f"c{i}", c, f"the {degree_word(c)} cation",
+                 "That puts the + on the carbon with fewer carbons around it. H+ goes on the end that leaves the more substituted cation.")
+                for i, c in enumerate(cats) if c != best],
+    )
+    # u1-quiz-a: the same move on a ring, mixed into the stage A quiz.
+    alkene = "CC1=CCCCC1"
+    cats = protonations(alkene)
+    best = most_stable(cats)
+    draw(
+        "u1-quiz-a", "u1-qa-draw-protonate",
+        "H+ adds to 1-methylcyclohexene. Draw the cation that forms.",
+        "Two carbons could take the H. Compare the cations they leave.",
+        struct_visual(alkene, "1-methylcyclohexene"),
+        best, "the 1-methylcyclohexyl cation",
+        "H+ goes on the ring CH of the C=C, which leaves the + on the carbon carrying the methyl: three carbons around it, a tertiary cation.",
+        "Put the H on the C=C carbon that has an H already. The + lands on the carbon with the methyl.",
+        "Protonation leaves the more substituted cation: here, tertiary beats secondary.",
+        prov("both protonations built and ranked with the script's cation model (compare)", OS_7_9),
+        concepts=CONCEPT_RES,
+        misses=[(f"c{i}", c, f"the {degree_word(c)} cation",
+                 "That leaves the + on a carbon with only two carbons around it. The other carbon of the C=C gives a tertiary cation.")
+                for i, c in enumerate(cats) if c != best],
+    )
+    # u1-rank-anion: deprotonate pent-1-ene at its best sp3 C-H.
+    start = "C=CCCC"
+    anions = carbanions(start, sp3_only=True)
+    best = most_stable(anions)
+    draw(
+        "u1-rank-anion", "u1-ani-draw-pentene",
+        "A strong base takes one H from an sp3 carbon of pent-1-ene. Draw the most stable anion.",
+        "Three sp3 carbons carry H. Draw the anion each one gives, then compare. Either contributor counts.",
+        struct_visual(start, "pent-1-ene"),
+        best, "the pent-1-en-3-yl anion, an allylic anion",
+        "Taking an H from C3 leaves a lone pair next to the C=C, so the charge is shared by C3 and C1. The other sp3 carbons give anions with no resonance and more alkyl groups pushing on them.",
+        "Take the H from C3, the allylic carbon, right next to the C=C. The pi bond shares the negative charge.",
+        "Resonance makes the allylic C-H the most acidic sp3 C-H in an alkene.",
+        prov("every sp3 carbanion of pent-1-ene built and ranked with the script's anion model (resonance, then orbital, then alkyl groups); contributors share one InChI", OS_7_9),
+        concepts=CONCEPT_CARBANION, any_contributor=True,
+        misses=[(f"a{i}", a, "an anion with no C=C beside it",
+                 "No pi bond sits next to that carbon, so one carbon holds the whole charge. The allylic carbon can share it.")
+                for i, a in enumerate(anions) if a != best],
+    )
+    # u1-rank-radical: radical bromination goes through the most stable radical.
+    start = "CC1CCCCC1"
+    rows = brominations(start)
+    rads = [r for r, _ in rows]
+    best_rad = most_stable(rads)
+    product = next((p for r, p in rows if r == best_rad), None) if best_rad is not None else None
+    draw(
+        "u1-rank-radical", "u1-rad-draw-bromination",
+        "Methylcyclohexane, Br2, light. Draw the major monobromide.",
+        "Br• takes one H first. Picture the radical each H would leave.",
+        scheme_visual(start, "methylcyclohexane", "Br_2", "hν"),
+        product, "1-bromo-1-methylcyclohexane",
+        "Br• is choosy: it takes the H that leaves the most stable radical. Here that is the tertiary ring carbon carrying the methyl, so Br ends up there.",
+        "Take the H from the carbon with three carbons around it, the tertiary one, then put Br where that H was.",
+        "Bromination goes through the most stable radical: tertiary beats secondary beats primary.",
+        prov("every H abstraction built, the radicals ranked with the script's radical model, Br placed on the winner; name checked with OPSIN", OS_10_5),
+        concepts=CONCEPT_RADICAL,
+        misses=[(f"b{i}", p, f"Br on a {degree_word(r)} carbon",
+                 f"That H leaves a {degree_word(r)} radical. Br• takes the H that leaves the most stable radical, and a tertiary one is on offer.")
+                for i, (r, p) in enumerate(rows) if r != best_rad],
     )
 
 
@@ -3049,6 +3444,7 @@ def build() -> None:
     node_x2()
     node_quiz_b()
     node_draws()
+    node_produce_more()
     check_names()
 
 

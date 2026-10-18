@@ -107,9 +107,12 @@ import { reviewHolding, reviewsAfter, withReviewGates, type ReviewCheckpoint } f
 import { splitSections, type SectionStop } from "./pathwaySections";
 import { TreasureChest, type ChestState } from "./TreasureChest";
 import { PathStars } from "./PathStars";
+import { browserStorage, hasSavedLesson, nodeOfHref, savedBar } from "../../resume/lessonSave";
+import { SavedRing } from "../../resume/SavedRing";
 // The written unit guidebook (src/game/guide), opened from the unit card's GUIDEBOOK key.
 import { unitGuideFor, type LessonDoor } from "../../guide";
 import { UnitGuidePage } from "../../guide/UnitGuide";
+import { guideInHash } from "../../guide/guideLink";
 export { trackWind, withBreakHints } from "./pathwayLayout";
 
 export interface PathwayNode {
@@ -676,10 +679,17 @@ function NodeLabel({ label }: { readonly label: string }) {
  * and 1.24:1 against the page, so the border is what draws its edge, which is
  * what it was already doing over the cream.
  */
-function StartTag() {
+function HalfDoneRing({ href }: { readonly href: string }) {
+  const node = nodeOfHref(href);
+  const bar = node === null ? null : savedBar(browserStorage(), node);
+  return bar === null ? null : <SavedRing fraction={bar} />;
+}
+
+function StartTag({ saved = false }: { readonly saved?: boolean }) {
+  // A lesson left half done says so before it is tapped (save as you go, resume/lessonSave.ts).
   return (
     <span className="path-start" aria-hidden>
-      START
+      {saved ? "CONTINUE" : "START"}
     </span>
   );
 }
@@ -802,6 +812,8 @@ function TrackSlab({
             </span>
           ) : null}
           {aside}
+          {/* A lesson left half done wears its saved bar as a ring (resume/SavedRing.tsx). */}
+          {state !== "locked" && href !== null ? <HalfDoneRing href={href} /> : null}
           <Chip
             state={state}
             label={label}
@@ -845,7 +857,7 @@ function TrackSlab({
       */}
       {state === "current" || (queued && lane === "check") ? (
         <div className="path-row__name">
-          {state === "current" ? <StartTag /> : null}
+          {state === "current" ? <StartTag saved={href !== null && hasSavedLesson(browserStorage(), href)} /> : null}
           {state === "current" ? <NodeLabel label={label} /> : null}
           {/* Nothing written behind it: said beside the chip, not only in the
               accessible name (round 3, Unit 2's checkpoint). */}
@@ -1641,7 +1653,7 @@ function OrgoMapTrack({
   /** The unit card's GUIDEBOOK key: opens the guidebook page for a node. */
   readonly onGuidebook: (node: SheetNode) => void;
   /** The same key on a unit that has a written guidebook: every lesson's door, by node id. */
-  readonly onUnitGuide: (unitId: string, doors: ReadonlyMap<string, LessonDoor>) => void;
+  readonly onUnitGuide: (unitId: string, doors: ReadonlyMap<string, LessonDoor>, progress: { readonly done: number; readonly total: number }) => void;
   readonly status: MapPathwayStatus;
   readonly reducedMotion: boolean;
 }) {
@@ -1915,6 +1927,25 @@ function OrgoMapTrack({
     };
   };
 
+  /* The written unit guide, with every lesson's door worked out here, where
+     the unlock rules live. Used by the GUIDEBOOK key and by the effect below. */
+  const openUnitGuide = () => {
+    const doors = new Map<string, LessonDoor>();
+    for (const node of unit.nodes) {
+      if (node.playable === undefined) continue;
+      const chip = chipFor(node);
+      doors.set(node.id, { title: node.title, state: chip.state, gate: chip.gateNode, note: chip.gateNode === null ? chip.waitNote : null, sideQuest: node.kind === "branch" });
+    }
+    onUnitGuide(unit.id, doors, { done: unitDone, total: unitLessons });
+  };
+  /* A hash that names this unit's guide (guide/guideLink.ts) reopens it: Back
+     from a lesson started in the guide, or a reload, returns to the guide.
+     Runs when the unit changes, not on every render; openUnitGuide reads the
+     render it was made in, which is the one this unit just drew. */
+  useEffect(() => {
+    if (guideInHash()?.unit === unit.id && unitGuideFor(unit.id) !== null) openUnitGuide();
+  }, [unit.id]);
+
   /* A side quest's chip in its lesson's side lane. dim is false: the lane
      has its own quiet faces (.path-side in pathway.css). */
   const sideChip = (node: MapNode) => {
@@ -2107,13 +2138,7 @@ function OrgoMapTrack({
               onGuidebook(chipFor(guideNode).sheetNode);
               return;
             }
-            const doors = new Map<string, LessonDoor>();
-            for (const node of unit.nodes) {
-              if (node.playable === undefined) continue;
-              const chip = chipFor(node);
-              doors.set(node.id, { title: node.title, state: chip.state, gate: chip.gateNode, note: chip.gateNode === null ? chip.waitNote : null });
-            }
-            onUnitGuide(unit.id, doors);
+            openUnitGuide();
           }}
         >
           <svg viewBox="0 0 24 24" className="path-unitcard__book" aria-hidden>
@@ -2412,7 +2437,11 @@ export default function PathwayTab({ reducedMotion }: { readonly reducedMotion: 
   /** The guidebook page, swapped in from the sheet's hamburger. */
   const [guidebook, setGuidebook] = useState<SheetNode | null>(null);
   /** The written unit guidebook, with the lesson doors it was opened with, or null. */
-  const [unitGuide, setUnitGuide] = useState<{ readonly unitId: string; readonly doors: ReadonlyMap<string, LessonDoor> } | null>(null);
+  const [unitGuide, setUnitGuide] = useState<{
+    readonly unitId: string;
+    readonly doors: ReadonlyMap<string, LessonDoor>;
+    readonly progress: { readonly done: number; readonly total: number };
+  } | null>(null);
   const openNode: OpenNode = (node, charge) => setSheet({ node, charge });
   /*
     START and CHALLENGE both leave the sheet and open the charge sheet, at
@@ -2429,6 +2458,11 @@ export default function PathwayTab({ reducedMotion }: { readonly reducedMotion: 
        node and START, and journals the entry exactly as ChargeGate does. */
     if (charge.kind === "review") {
       progress.startNode(charge.id, charge.kind);
+      navigate(charge.href);
+      return;
+    }
+    // A lesson left half done was paid for when it was entered: back in for free, to its resume screen.
+    if (charge.challenge !== true && hasSavedLesson(browserStorage(), charge.href)) {
       navigate(charge.href);
       return;
     }
@@ -2500,9 +2534,9 @@ export default function PathwayTab({ reducedMotion }: { readonly reducedMotion: 
             setSheet(null);
             setGuidebook(node);
           }}
-          onUnitGuide={(unitId, doors) => {
+          onUnitGuide={(unitId, doors, progress) => {
             setSheet(null);
-            setUnitGuide({ unitId, doors });
+            setUnitGuide({ unitId, doors, progress });
           }}
           status={mapStatus}
           gatedBy={gated.gatedBy}
@@ -2603,19 +2637,21 @@ export default function PathwayTab({ reducedMotion }: { readonly reducedMotion: 
       )}
 
       {/* The written unit guidebook. Its own component renders the dialog ARIA,
-          for the same arrow-key reason as the overlay above. START closes it
-          and walks the same charge gate a node's START does. */}
+          for the same arrow-key reason as the overlay above. START walks the
+          same charge gate a node's START does, opened above the guide. */}
       {unitGuide === null || writtenGuide === null ? null : (
         <UnitGuidePage
           guide={writtenGuide}
           unitLabel={unitNumber(guideUnitTitle)}
           unitName={unitName(guideUnitTitle)}
           doors={unitGuide.doors}
-          onStart={(charge) => {
-            setUnitGuide(null);
-            startFromSheet(charge);
-          }}
+          progress={unitGuide.progress}
+          // The guide stays open under the charge sheet, so CANCEL lands the
+          // student back on the page they were reading. Entering the lesson
+          // changes the route, and the guide closes itself on that.
+          onStart={startFromSheet}
           onClose={() => setUnitGuide(null)}
+          covered={gate !== null}
           reducedMotion={reducedMotion}
         />
       )}

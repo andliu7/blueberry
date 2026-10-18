@@ -579,6 +579,11 @@ def figure(smi: str, marks: list[int] | None = None, numbers: dict[int, str] | N
     lengths = [math.dist(pts[b.GetBeginAtomIdx()], pts[b.GetEndAtomIdx()]) for b in m.GetBonds()]
     unit = sum(lengths) / len(lengths)
     scale = min(32.0 / unit, 96.0 / span_x, 58.0 / span_y)
+    if numbers:
+        # A lettered figure (atom_choice) shrinks the ring a little so its
+        # bigger letters fit outside it without touching a bond (round 4 critic:
+        # letters about 7 px and run into the lone pair dots).
+        scale *= 0.8
     cx = (max(xs) + min(xs)) / 2
     cy = (max(ys) + min(ys)) / 2
 
@@ -674,8 +679,12 @@ def figure(smi: str, marks: list[int] | None = None, numbers: dict[int, str] | N
                 side = abs(math.cos(th)) > 0.7
                 labels.append({"x": r1(x), "y": r1(y + (4 if side else 2)), "t": ":" if side else "··", "size": 13})
         if i in numbers:
-            x, y = out(i, 9 if mark is None and i not in labelled else 15, gap_angle(i))
-            labels.append({"x": r1(x), "y": r1(y + 4), "t": numbers[i], "size": 10})
+            # The letter goes further out when this atom carries drawn lone pair
+            # dots, so ":B" never reads as part of the N label (round 4 critic).
+            has_dots = pairs and sym not in ("C", "H") and a.IsInRing() and i < base.GetNumAtoms() and lone_pairs(base.GetAtomWithIdx(i)) > 0
+            dist = 22 if has_dots else 11 if mark is None and i not in labelled else 16
+            x, y = out(i, dist, gap_angle(i))
+            labels.append({"x": r1(x), "y": r1(y + 4.5), "t": numbers[i], "size": 13})
     rings = []
     for i in marks:
         x, y = at(i)
@@ -871,12 +880,14 @@ def named(name: str, caption: str, **kw) -> dict:
     return {"figure": fig_of(name, **kw), "name": caption}
 
 
+# `large` asks McqVisualCard for the big figure (round 4: both judges asked for
+# the molecule to fill the card, not sit as an 80 px thumbnail).
 def struct_visual(name: str, caption: str, **kw) -> dict:
-    return {"kind": "structure", "figure": fig_of(name, **kw), "name": caption}
+    return {"kind": "structure", "figure": fig_of(name, **kw), "name": caption, "large": True}
 
 
 def pair_visual(a: tuple[str, str], b: tuple[str, str], kw_a: dict | None = None, kw_b: dict | None = None) -> dict:
-    return {"kind": "pair", "a": named(*a, **(kw_a or {})), "b": named(*b, **(kw_b or {}))}
+    return {"kind": "pair", "a": named(*a, **(kw_a or {})), "b": named(*b, **(kw_b or {})), "large": True}
 
 
 def smi_named(smi: str, caption: str, where: str, check: bool = True) -> dict:
@@ -1374,12 +1385,48 @@ def node_huckel() -> None:
 
 
 # ---------------------------------------------------------------------------
-# u2-annulene (practice, 12)
+# u2-annulene (lesson since round 4: 2 meet at L0, then the rest)
 # ---------------------------------------------------------------------------
 
 def node_annulene() -> None:
     node = "u2-annulene"
     bz, cot, a10, a18, az = H("benzene"), H("cot"), H("ann10"), H("ann18"), H("azulene")
+
+    # Round 4: a lesson now, so two L0 worked examples open it (the meet step).
+    a18_pi = pi_of("ann18")
+    mcq(
+        node, "u2-ann-meet-size",
+        "Benzene is [6]annulene: n is the ring size. Count [18]annulene's pi electrons.",
+        [
+            ("nine", "9 pi electrons", "Nine is the number of C=C bonds. Each C=C bond holds 2 pi electrons."),
+            ("eighteen", f"{a18_pi} pi electrons", f"Eighteen carbons, each in one C=C bond, each giving 1: {a18_pi}. That fits 4n + 2 with {nn('ann18')}."),
+            ("thirtysix", "36 pi electrons", "That gives each carbon 2. A C=C carbon gives 1; its partner gives the other."),
+        ],
+        "eighteen" if a18_pi == 18 else None, "eighteen",
+        f"Worked example. An annulene alternates C=C all the way round, so its pi count is its ring size: {a18_pi} for [18]annulene, {nn('ann18')}.",
+        prov("Huckel counter: 1 electron per ring pi bond atom", OS_15_3, ["ann18"]),
+        struct_visual("ann18", "[18]annulene"),
+        ["ann18"],
+        brief="Each ring carbon in a C=C gives 1 pi electron.",
+        level=0,
+    )
+    flat_cot = {"aromatic": "aromatic", "antiaromatic": "antiaromatic"}.get(cot["electronic"])
+    mcq(
+        node, "u2-ann-meet-flat",
+        "Suppose cyclooctatetraene stayed flat. Pick what its 8 pi electrons would make it.",
+        [
+            ("antiaromatic", "Antiaromatic", f"Flat, cyclic, a p orbital everywhere, and 8 is 4n ({nn('cot')} in 4n + 2 is not whole). That is the antiaromatic case, which a ring avoids if it can."),
+            ("aromatic", "Aromatic", "Aromatic needs 4n + 2: 2, 6, 10, 14. Eight is not on that list."),
+            ("nonaromatic", "Nonaromatic", "Nonaromatic needs a failed gate. A flat ring with a p orbital on every carbon passes the gate, so the count decides."),
+        ],
+        flat_cot, "antiaromatic",
+        "Worked example. Flat, COT would be antiaromatic, which costs energy. So it does not stay flat: it folds into a tub. Keep that in mind for the next questions.",
+        prov("Huckel counter: 8 pi is 4n, the class if flat; the tub is authored", OS_15_3, ["cot"]),
+        struct_visual("cot", "cyclooctatetraene, drawn flat"),
+        ["cot"],
+        brief="Run the count as if the ring were flat. A 4n count on a flat ring is the bad case.",
+        level=0,
+    )
 
     cpd = H("cyclopentadiene")
     cpd_atoms = {"a": 0, "b": 3, "c": 2, "d": 4}
@@ -1596,13 +1643,50 @@ def node_annulene() -> None:
 
 
 # ---------------------------------------------------------------------------
-# u2-hetero (practice, 12)
+# u2-hetero (lesson since round 4: 2 meet at L0, then the rest)
 # ---------------------------------------------------------------------------
 
 def node_hetero() -> None:
     node = "u2-hetero"
     py, pyr, fur, thi, imi = H("pyridine"), H("pyrrole"), H("furan"), H("thiophene"), H("imidazole")
     home_opt = {"sp2": "sp2", "p": "p", "sp3": "sp3"}
+
+    # Round 4: a lesson now, so two L0 worked examples open it (the meet step).
+    py_pi = pi_of("pyridine")
+    mcq(
+        node, "u2-het-meet-pyridine",
+        "Pyridine's N sits in a C=N bond, so it gives 1, like a carbon. Count its pi electrons.",
+        [
+            ("eight", "8 pi electrons", "That adds the N lone pair too. The N already gives 1 through its C=N bond, so its pair stays out."),
+            ("five", "5 pi electrons", "That leaves out the N. It is in a C=N bond, so it gives 1, the same as each carbon."),
+            ("six", f"{py_pi} pi electrons", f"Five carbons and one N, each giving 1: {py_pi}, {nn('pyridine')}. The same count as benzene."),
+        ],
+        "six" if py_pi == 6 else None, "six",
+        f"Worked example. An atom in a ring double bond gives 1, whatever its element. Pyridine has {py_pi} pi electrons and is aromatic, like benzene.",
+        prov("Huckel counter: N in a ring pi bond gives 1", OS_15_5, ["pyridine"]),
+        struct_visual("pyridine", "pyridine, lone pair drawn", pairs=True),
+        ["pyridine"],
+        brief="An N in a ring double bond counts like a carbon.",
+        level=0,
+    )
+    joins = {"pyrrole": home_of("pyrrole", "N") == "p", "pyridine": home_of("pyridine", "N") == "p"}
+    which = "pyrrole" if joins["pyrrole"] and not joins["pyridine"] else "pyridine" if joins["pyridine"] and not joins["pyrrole"] else None
+    mcq(
+        node, "u2-het-meet-contrast",
+        "Compare the two nitrogens. Pick the one whose lone pair joins the ring's pi system.",
+        [
+            ("pyridine", "Pyridine's N", "Pyridine's N already gives 1 through its C=N bond. Its pair points out of the ring, in the plane."),
+            ("pyrrole", "Pyrrole's N", f"Pyrrole's N has an H and no ring double bond. Its pair sits in the p orbital and joins: 4 plus 2 is {pi_of('pyrrole')}."),
+            ("both", "Both of them", "Only one of them needs its pair. An N that already has a ring double bond keeps its pair out."),
+        ],
+        which, "pyrrole",
+        "Worked example. The rule is one question: does the N already have a ring double bond. Yes (pyridine): it gives 1 and the pair sits out. No (pyrrole): the pair goes in.",
+        prov("Huckel counter: where each N keeps its pair", OS_15_5, ["pyridine", "pyrrole"]),
+        pair_visual(("pyridine", "pyridine"), ("pyrrole", "pyrrole"), kw_a={"pairs": True}, kw_b={"pairs": True}),
+        ["pyridine", "pyrrole"],
+        brief="Look for a ring double bond on each N first.",
+        level=0,
+    )
 
     mcq(
         node, "u2-het-pyridine-pair",
@@ -1824,12 +1908,57 @@ def node_hetero() -> None:
 
 
 # ---------------------------------------------------------------------------
-# u2-charged (practice, 12)
+# u2-charged (lesson since round 4: 2 meet at L0, then the rest)
 # ---------------------------------------------------------------------------
 
 def node_charged() -> None:
     node = "u2-charged"
     cl = {k: H(k)["klass"] for k in ("cp_anion", "cp_cation", "tropylium", "c7_anion", "c3_cation", "c3_anion")}
+
+    # Round 4 (wiring piece): this node now plays the seven-slot lesson, so it
+    # opens on two first-meeting worked examples at L0 (the meet step, which
+    # cannot fail), the encoding layer before retrieval (justin-sung.md 1).
+    def charged_atom(name: str) -> int:
+        hits = [a.GetIdx() for a in kekule(SPECIES[name][0]).GetAtoms() if a.GetFormalCharge() != 0]
+        if len(hits) != 1:
+            fail(f"{name}: expected one charged ring atom, found {hits}")
+        return hits[0] if hits else -1
+
+    give = {0: "none", 1: "one", 2: "pair"}
+    cpa_gives = H("cp_anion")["per"].get(charged_atom("cp_anion"))
+    mcq(
+        node, "u2-chg-meet-anion",
+        "Take H+ off cyclopentadiene's CH2. Pick what that carbon now gives the ring.",
+        [
+            ("pair", "2 electrons, a lone pair in a p orbital", f"The C-H bond's pair stays on carbon. The carbon flattens to sp2 and its pair sits in the p orbital, so the loop closes with {pi_of('cp_anion')} pi electrons."),
+            ("none", "Nothing, it stays sp3", "Before, the CH2 was sp3 and broke the loop. Losing H+ leaves a lone pair on that carbon, and the pair needs a p orbital to join."),
+            ("one", "1 electron, like a C=C carbon", "That carbon has no ring double bond. What it has is a whole lone pair, so it gives 2, not 1."),
+        ],
+        give.get(cpa_gives), "pair",
+        f"Worked example. Cyclopentadiene fails the gate at its CH2. Remove H+ and that carbon keeps a lone pair in a p orbital: 4 from the C=C bonds plus 2 is {pi_of('cp_anion')}, {nn('cp_anion')}, aromatic.",
+        prov("Huckel counter per atom: the carbanion carbon gives 2", OS_15_4, ["cyclopentadiene", "cp_anion"]),
+        pair_visual(("cyclopentadiene", "cyclopentadiene"), ("cp_anion", "cyclopentadienyl anion")),
+        ["cyclopentadiene", "cp_anion"],
+        brief="A negative ring carbon holds a lone pair. Ask where that pair sits.",
+        level=0,
+    )
+    trop_gives = H("tropylium")["per"].get(charged_atom("tropylium"))
+    mcq(
+        node, "u2-chg-meet-cation",
+        "The cation's plus carbon has an empty p orbital. Pick what it gives the ring.",
+        [
+            ("one", "1 electron, like a C=C carbon", "That carbon has no ring double bond. Its p orbital is there but empty, so it adds an orbital and no electrons."),
+            ("pair", "2 electrons", "Two would be a lone pair, which is the anion. A cation has lost electrons from that carbon."),
+            ("none", "0 electrons, but it closes the loop", f"An empty p orbital still overlaps with its neighbours, so the loop is complete. The three C=C bonds give all {pi_of('tropylium')} pi electrons."),
+        ],
+        give.get(trop_gives), "none",
+        f"Worked example. An empty p orbital counts 0 electrons but keeps the ring of p orbitals unbroken. Three C=C bonds give {pi_of('tropylium')}, {nn('tropylium')}, so this cation is aromatic.",
+        prov("Huckel counter per atom: the carbocation carbon gives 0", OS_15_4, ["tropylium"]),
+        struct_visual("tropylium", "cycloheptatrienyl cation"),
+        ["tropylium"],
+        brief="A positive ring carbon is sp2 with an empty p orbital.",
+        level=0,
+    )
 
     def classify(id: str, name: str, caption: str, prompt: str, whys: dict, order: tuple, expl: str, brief: str | None = None) -> None:
         mcq(
@@ -2373,7 +2502,7 @@ def round2() -> None:
     chd = H("chd13")
     match(
         "u2-huckel", "u2-huckel-match",
-        "Match each ring to the test it fails.",
+        "Match each ring, described in words, to the first test it fails.",
         "Run the four tests in order and stop at the first one that fails.",
         [
             ("sp3", "A ring with an sp3 CH2", "Fails: p orbital on every atom", "An sp3 carbon has no p orbital, so the loop has a gap. Nothing after this test matters.", huckel_gate_card("chd13")),

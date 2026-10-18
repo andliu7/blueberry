@@ -25,14 +25,15 @@ const STAGES: readonly GuideStage[] = [
         node: "u1-allylic",
         ideas: [
           {
+            text: "In the allyl cation the two end carbons, C1 and C3, share the charge.",
+            mark: "C1 and C3",
+            source: "u1-allylic-where",
+            quote: "the charge is shared by the two END carbons, C1 and C3",
+          },
+          {
             text: "Allylic means the charged carbon sits right next to a C=C. A charge on the C=C carbon itself, or one carbon further away, gets no resonance.",
             source: "u1-allylic-pick",
             quote: "A charge on the double bond carbon itself (vinyl), or one carbon further away, gets no resonance.",
-          },
-          {
-            text: "In the allyl cation the two end carbons, C1 and C3, share the charge.",
-            source: "u1-allylic-where",
-            quote: "the charge is shared by the two END carbons, C1 and C3",
           },
           {
             text: "Contributors differ only in where the electrons are drawn. Atoms never move.",
@@ -46,14 +47,15 @@ const STAGES: readonly GuideStage[] = [
         node: "u1-rank-cation",
         ideas: [
           {
+            text: "When substitution ties, resonance breaks the tie: a 3° allylic cation beats a 3° alkyl one.",
+            mark: "resonance breaks the tie",
+            source: "u1-cat-3allyl-vs-3",
+            quote: "When substitution ties, resonance breaks the tie. A 3° allylic cation beats a 3° alkyl one.",
+          },
+          {
             text: "Count the carbons on the charged carbon: 3° > 2° > 1° > methyl.",
             source: "u1-cat-ladder-alkyl",
             quote: "Count the carbons on the charged carbon: 3° > 2° > 1° > methyl.",
-          },
-          {
-            text: "Resonance is worth about one extra carbon, so a 1° allylic cation sits near a 2° alkyl one.",
-            source: "u1-cat-tbu-vs-allyl",
-            quote: "Resonance is worth about one extra carbon, so 1° allylic sits near 2° alkyl",
           },
           {
             text: "Score every cation on both: resonance and substitution.",
@@ -61,13 +63,14 @@ const STAGES: readonly GuideStage[] = [
             quote: "Score each cation on resonance and on substitution.",
           },
         ],
-        example: { source: "u1-cat-allyl-vs-2", quote: "A 1° allylic cation is about as stable as a 2° alkyl cation" },
+        example: { source: "u1-cat-3allyl-vs-3", quote: "A 3° allylic cation beats a 3° alkyl one." },
       },
       {
         node: "u1-rank-anion",
         ideas: [
           {
             text: "For carbanions the alkyl trend flips: methyl > 1° > 2° > 3°.",
+            mark: "the alkyl trend flips",
             source: "u1-ani-flip",
             quote: "For a carbanion the alkyl trend flips: methyl > 1° > 2° > 3°.",
           },
@@ -88,14 +91,15 @@ const STAGES: readonly GuideStage[] = [
         node: "u1-rank-radical",
         ideas: [
           {
+            text: "Allylic and benzylic resonance beats substitution: a benzylic radical beats a 3° alkyl one.",
+            mark: "resonance beats substitution",
+            source: "u1-rad-benzyl-vs-3",
+            quote: "For radicals, allylic and benzylic resonance beats substitution",
+          },
+          {
             text: "Radicals are electron poor, so they follow the cation trend: 3° > 2° > 1° > methyl.",
             source: "u1-rad-trend",
             quote: "Radicals are electron poor, so they follow the cation trend: 3° > 2° > 1° > methyl.",
-          },
-          {
-            text: "Allylic and benzylic resonance beats substitution: a benzylic radical beats a 3° alkyl one.",
-            source: "u1-rad-benzyl-vs-3",
-            quote: "For radicals, allylic and benzylic resonance beats substitution",
           },
         ],
         example: { source: "u1-rad-benzyl-vs-3", quote: "a benzylic radical is more stable than a 3° alkyl one" },
@@ -133,14 +137,15 @@ const STAGES: readonly GuideStage[] = [
         node: "u1-12v14",
         ideas: [
           {
+            text: "The nucleophile can land on either charged carbon: C2 gives the 1,2 product, C4 the 1,4 product.",
+            mark: "either charged carbon",
+            source: "u1-12v14-which-carbon",
+            quote: "C2 gives the 1,2 product and C4 gives the 1,4 product",
+          },
+          {
             text: "H⁺ adds to an END carbon of the diene. That is the move that leaves an allylic cation.",
             source: "u1-12v14-protonate",
             quote: "Protonate an END carbon of the diene: that is the move that leaves an allylic cation.",
-          },
-          {
-            text: "The nucleophile can land on either charged carbon: C2 gives the 1,2 product, C4 the 1,4 product.",
-            source: "u1-12v14-which-carbon",
-            quote: "C2 gives the 1,2 product and C4 gives the 1,4 product",
           },
           {
             text: "In 1,4 addition the C=C moves to the middle, C2=C3.",
@@ -154,14 +159,15 @@ const STAGES: readonly GuideStage[] = [
         node: "u1-kvt",
         ideas: [
           {
+            text: "The thermodynamic product is the most stable one. It wins when the reaction is warm and reversible.",
+            mark: "warm and reversible",
+            source: "u1-kvt-define-conditions",
+            quote: "It wins when the reaction is warm and reversible",
+          },
+          {
             text: "The kinetic product has the lowest barrier, so it forms fastest.",
             source: "u1-kvt-define-kinetic",
             quote: "The kinetic product has the lowest barrier (lowest transition state), so it forms fastest.",
-          },
-          {
-            text: "The thermodynamic product is the most stable one. It wins when the reaction is warm and reversible.",
-            source: "u1-kvt-define-conditions",
-            quote: "It wins when the reaction is warm and reversible",
           },
         ],
         example: {
@@ -174,6 +180,7 @@ const STAGES: readonly GuideStage[] = [
         ideas: [
           {
             text: "On the diagram, hump height is speed and well depth is stability.",
+            mark: "hump height is speed",
             source: "u1-ed-disagree",
             quote: "TS height is speed and product depth is stability.",
           },
@@ -190,6 +197,7 @@ const STAGES: readonly GuideStage[] = [
         ideas: [
           {
             text: "On a real diene, protonate the end carbon that leaves the best allylic cation.",
+            mark: "the best allylic cation",
             source: "u1-hx-isoprene-site",
             quote: "Protonate the end carbon that leaves the best allylic cation.",
           },
@@ -211,6 +219,7 @@ const STAGES: readonly GuideStage[] = [
         ideas: [
           {
             text: "Br₂ and Cl₂ add 1,2 or 1,4 through the same allylic cation as HX.",
+            mark: "the same allylic cation",
             source: "u1-x2-pick-14",
             quote: "X2 adds 1,2 or 1,4 by the same allylic cation as HX",
           },
@@ -252,7 +261,7 @@ const STAGES: readonly GuideStage[] = [
   {
     id: "c",
     label: "Stage C",
-    title: "Allylic halogenation",
+    title: "Bromination with NBS",
     optional: true,
     checkpoint: "u1-quiz-c",
     lessons: [
@@ -261,6 +270,7 @@ const STAGES: readonly GuideStage[] = [
         ideas: [
           {
             text: "NBS holds Br₂ at a trace. Addition across the C=C needs a lot of Br₂, so the C=C survives.",
+            mark: "the C=C survives",
             source: "u1-cd-nbs-why",
             quote: "NBS holds Br2 at a trace.",
           },
@@ -281,14 +291,15 @@ const STAGES: readonly GuideStage[] = [
         node: "u1-nbs-practice",
         ideas: [
           {
+            text: "Both ends of the allylic radical take Br. Two products appear only when those ends differ.",
+            mark: "Both ends",
+            source: "u1-cd-nbsp-cyclohexene-count",
+            quote: "Two products only appear when the radical's two ends differ.",
+          },
+          {
             text: "An allylic carbon is any sp3 carbon bonded to a C=C carbon, in a ring or a chain.",
             source: "u1-cd-nbsp-mch-sites",
             quote: "An allylic carbon is any sp3 carbon bonded to a C=C carbon, ring or chain.",
-          },
-          {
-            text: "Both ends of the allylic radical take Br. Two products appear only when those ends differ.",
-            source: "u1-cd-nbsp-cyclohexene-count",
-            quote: "Two products only appear when the radical's two ends differ.",
           },
         ],
         example: { source: "u1-cd-qc-hexene-count", quote: "3-bromohex-1-ene and 1-bromohex-2-ene" },
@@ -318,7 +329,7 @@ const STAGES: readonly GuideStage[] = [
   {
     id: "d",
     label: "Stage D",
-    title: "The Diels-Alder",
+    title: "The Diels–Alder",
     optional: false,
     checkpoint: "u1-quiz-d",
     lessons: [
@@ -327,6 +338,7 @@ const STAGES: readonly GuideStage[] = [
         ideas: [
           {
             text: "n p orbitals make n π MOs. Butadiene has four.",
+            mark: "n π MOs",
             source: "u1-cd-mo-count",
             quote: "n p orbitals make n pi MOs. Butadiene has four.",
           },
@@ -348,6 +360,7 @@ const STAGES: readonly GuideStage[] = [
         ideas: [
           {
             text: "Diene plus dienophile give a cyclohexene in one step.",
+            mark: "a cyclohexene in one step",
             source: "u1-cd-da-ring",
             quote: "diene plus dienophile give a cyclohexene in one step",
           },
@@ -368,6 +381,12 @@ const STAGES: readonly GuideStage[] = [
         node: "u1-dienes",
         ideas: [
           {
+            text: "A cyclic diene gives a bridged product.",
+            mark: "bridged product",
+            source: "u1-cd-dienes-draw-norbornene",
+            quote: "A cyclic diene gives a bridged product",
+          },
+          {
             text: "Shape first: locked s-cis is fastest, free rotation is fine, locked s-trans is out.",
             source: "u1-cd-dienes-fastest",
             quote: "Shape first: locked s-cis is fastest, free rotation is fine, locked s-trans is out.",
@@ -377,11 +396,6 @@ const STAGES: readonly GuideStage[] = [
             source: "u1-cd-dienes-edg-locked",
             quote: "s-cis is a gate, not a bonus.",
           },
-          {
-            text: "A cyclic diene gives a bridged product.",
-            source: "u1-cd-dienes-draw-norbornene",
-            quote: "A cyclic diene gives a bridged product",
-          },
         ],
         example: { source: "u1-cd-dienes-draw-norbornene", quote: "A cyclic diene gives a bridged product" },
       },
@@ -390,6 +404,7 @@ const STAGES: readonly GuideStage[] = [
         ideas: [
           {
             text: "Withdrawing groups (C=O, CN, NO₂) on the dienophile lower its LUMO and speed the reaction.",
+            mark: "Withdrawing groups",
             source: "u1-cd-phile-fastest",
             quote: "Withdrawing groups (C=O, CN, NO2) on the dienophile lower its LUMO and speed the reaction.",
           },
@@ -405,6 +420,12 @@ const STAGES: readonly GuideStage[] = [
         node: "u1-da-predict",
         ideas: [
           {
+            text: "A 1-substituted diene gives the ortho product; a 2-substituted diene gives para.",
+            mark: "a 2-substituted diene gives para",
+            source: "u1-cd-pred-ortho-acrolein",
+            quote: "1-Substituted dienes give the ortho (1,2) product; 2-substituted dienes give the para (1,4) product.",
+          },
+          {
             text: "Working backward, the ring's C=C was the diene's C2-C3.",
             source: "u1-cd-pred-which-bond",
             quote: "Backward: the ring C=C was diene C2-C3.",
@@ -414,11 +435,6 @@ const STAGES: readonly GuideStage[] = [
             source: "u1-cd-pred-retro-cn",
             quote: "Find the C=C, cut the two sigma bonds across from it.",
           },
-          {
-            text: "A 1-substituted diene gives the ortho product; a 2-substituted diene gives para.",
-            source: "u1-cd-pred-ortho-acrolein",
-            quote: "1-Substituted dienes give the ortho (1,2) product; 2-substituted dienes give the para (1,4) product.",
-          },
         ],
         example: { source: "u1-cd-pred-draw-para", quote: "2-Substituted dienes give the para (1,4) product." },
       },
@@ -427,6 +443,7 @@ const STAGES: readonly GuideStage[] = [
         ideas: [
           {
             text: "Suprafacial and concerted: cis stays cis, trans stays trans.",
+            mark: "cis stays cis, trans stays trans",
             source: "u1-cd-st-cis",
             quote: "Suprafacial and concerted: cis stays cis, trans stays trans.",
           },
@@ -448,6 +465,7 @@ const STAGES: readonly GuideStage[] = [
         ideas: [
           {
             text: "The dienophile's cis or trans relationship is copied onto the ring.",
+            mark: "copied onto the ring",
             source: "u1-cd-3d-fumarate",
             quote: "the dienophile's cis or trans relationship is copied onto the ring",
           },
@@ -468,12 +486,13 @@ const STAGES: readonly GuideStage[] = [
         node: "u1-ied",
         ideas: [
           {
-            text: "Donating groups raise the diene's HOMO, and withdrawing groups lower the dienophile's LUMO.",
+            text: "Inverse demand swaps the roles: the electron-rich alkene donates and the diene accepts.",
+            mark: "the diene accepts",
             source: "mcq-ied-roles",
-            quote: "Donating groups raise the diene's HOMO",
+            quote: "with the electron-rich alkene donating and the diene accepting. That is inverse demand.",
           },
           {
-            text: "Swap them, each on the other partner, and the gap still closes.",
+            text: "Donating groups raise the diene's HOMO, and withdrawing groups lower the dienophile's LUMO. Put each group on the other partner and the gap still closes.",
             source: "mcq-ied-roles",
             quote: "Put each one on the other partner and the gap still closes",
           },
@@ -484,7 +503,7 @@ const STAGES: readonly GuideStage[] = [
     mistakes: [
       {
         mistake: "Trying a diene that is locked s-trans.",
-        fix: "No s-cis, no Diels-Alder, whatever its donor groups.",
+        fix: "No s-cis, no Diels–Alder, whatever its donor groups.",
         source: "u1-cd-dienes-strans",
         quote: "does not undergo Diels-Alder at all",
       },
@@ -519,7 +538,7 @@ const STAGES: readonly GuideStage[] = [
 export const U1_GUIDE: UnitGuide = {
   unitId: "u1",
   intro:
-    "What a C=C does to the carbon next to it, then everything that follows from it: adding to dienes, allylic bromination and the Diels-Alder. Read a stage before its lessons, or come back when one trips you up.",
+    "What a C=C does to the carbon next to it, then everything that follows from it: adding to dienes, allylic bromination and the Diels–Alder. Read a stage before its lessons, or come back when one trips you up.",
   stages: STAGES,
   examples: U1_GUIDE_EXAMPLES,
   placeholder: true,

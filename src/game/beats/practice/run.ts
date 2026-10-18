@@ -24,6 +24,12 @@
  * engine with the second chance removed. No requeue, the first miss ends it,
  * and it passes only when every problem in the set was right first time.
  *
+ * A UNIT EXAM over the same run (Unit 2 draft, 2026-10-17; pools.ts isExamRun says
+ * which checkpoints play one): every problem in the set is played, a miss still
+ * comes back once, there is no Stop and no top-tier stop, and it passes on the
+ * share of problems right FIRST time (EXAM_PASS), not on a run. Reason: a run
+ * of three let a 14-problem unit exam be cleared after 4 answers.
+ *
  * `run` is not the streak. "Streak" is the daily streak currency
  * (documentation/ECONOMY.md); this counter pays nothing and is said on screen
  * as "N in a row".
@@ -43,6 +49,9 @@ export type RunTier = (typeof RUN_TIERS)[number];
 
 /** The run that clears the node. */
 export const CLEAR_AT: number = RUN_TIERS[0].at;
+
+/** A unit exam passes with at least this share right first time. Owner to confirm the figure. */
+export const EXAM_PASS = 0.8;
 
 /** A missed problem comes back after this many other problems, or last if fewer remain. */
 export const REQUEUE_GAP = 2;
@@ -71,12 +80,14 @@ export interface PracticeRunState {
   readonly finished: boolean;
   /** A Challenge: no requeue, a miss ends the session, no top-tier stop. */
   readonly challenge: boolean;
+  /** A unit exam: the whole set plays, misses come back once, passes on EXAM_PASS. Optional so older saves still load. */
+  readonly exam?: boolean;
 }
 
 /** A session over a pool, in authored order. A repeated id is dropped: a pool never pads. */
-export function startPracticeRun(ids: readonly string[], challenge = false): PracticeRunState {
+export function startPracticeRun(ids: readonly string[], challenge = false, exam = false): PracticeRunState {
   const queue = [...new Set(ids)];
-  return { queue, run: 0, best: 0, requeued: [], answered: 0, correct: 0, missed: [], finished: queue.length === 0, challenge };
+  return { queue, run: 0, best: 0, requeued: [], answered: 0, correct: 0, missed: [], finished: queue.length === 0, challenge, ...(exam && !challenge ? { exam: true } : {}) };
 }
 
 export function currentProblem(state: PracticeRunState): string | null {
@@ -107,8 +118,11 @@ export function answerProblem(state: PracticeRunState, correct: boolean): Practi
     answered: state.answered + 1,
     correct: state.correct + (correct ? 1 : 0),
     missed: correct || state.missed.includes(id) ? state.missed : [...state.missed, id],
-    finished: state.challenge ? queue.length === 0 || !correct : queue.length === 0 || run >= TOP,
+    // An exam has no top-tier stop: it ends when the whole set has been played.
+    finished: state.challenge ? queue.length === 0 || !correct : state.exam === true ? queue.length === 0 : queue.length === 0 || run >= TOP,
     challenge: state.challenge,
+    // The key is only written for an exam, so every other run keeps its exact old shape.
+    ...(state.exam === true ? { exam: true } : {}),
   };
 }
 
@@ -122,8 +136,30 @@ export function challengePassed(state: PracticeRunState): boolean {
   return state.challenge && state.finished && state.queue.length === 0 && state.answered > 0 && state.missed.length === 0;
 }
 
-/** Whether this session clears the node: the first tier was reached at some point. */
+/** Distinct problems in the set: answered plus still queued, less the requeued copies. */
+export function examSize(state: PracticeRunState): number {
+  return state.answered - state.requeued.length + state.queue.length;
+}
+
+/** Problems right the first time they were shown. A requeued problem already replayed was answered twice. */
+export function firstTimeRight(state: PracticeRunState): number {
+  const replayed = state.requeued.filter((id) => !state.queue.includes(id)).length;
+  return state.answered - replayed - state.missed.length;
+}
+
+/** Right-first-time answers an exam of this size needs. */
+export function examPassMark(size: number): number {
+  return Math.ceil(size * EXAM_PASS);
+}
+
+/** An exam passes when the whole set was played and enough were right first time. */
+export function examPassed(state: PracticeRunState): boolean {
+  return state.exam === true && state.finished && state.queue.length === 0 && state.answered > 0 && firstTimeRight(state) >= examPassMark(examSize(state));
+}
+
+/** Whether this session clears the node: the first tier was reached at some point, or, for an exam, it passed. */
 export function cleared(state: PracticeRunState): boolean {
+  if (state.exam === true) return examPassed(state);
   return state.best >= CLEAR_AT;
 }
 
@@ -153,6 +189,13 @@ export function endSaid(state: PracticeRunState): string {
     return challengePassed(state)
       ? `${state.correct} of ${state.correct} right first time. Challenge passed.`
       : `A miss ends a Challenge. You had ${state.correct} of ${state.answered} right when it stopped.`;
+  }
+  if (state.exam === true) {
+    const size = examSize(state);
+    const mark = examPassMark(size);
+    return examPassed(state)
+      ? `${firstTimeRight(state)} of ${size} right first time. ${mark} was the pass mark: checkpoint passed.`
+      : `${firstTimeRight(state)} of ${size} right first time. ${mark} passes it, so review the topics below and come back.`;
   }
   const tier = tierFor(state.best);
   if (tier !== null) return `${state.best} in a row. ${tier.name}: this lesson is cleared.`;

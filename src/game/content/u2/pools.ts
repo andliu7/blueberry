@@ -376,7 +376,7 @@ export const U2_POOLS: UnitPools = {
           2
         ],
         "presentation": "columns",
-        "prompt": "Match each ring to the test it fails.",
+        "prompt": "Match each ring, described in words, to the first test it fails.",
         "brief": "Run the four tests in order and stop at the first one that fails.",
         "pairs": [
           {
@@ -480,7 +480,8 @@ export const U2_POOLS: UnitPools = {
                 }
               ]
             },
-            "name": "cyclohexa-1,3-diene, sp3 carbons circled"
+            "name": "cyclohexa-1,3-diene, sp3 carbons circled",
+            "large": true
           },
           "answer": {
             "smiles": "c1ccccc1",
@@ -542,88 +543,83 @@ export const U2_POOLS: UnitPools = {
   ],
   "u2-annulene": [
     {
-      "id": "u2-ann-cpd-gate",
+      "id": "u2-ann-meet-size",
       "item": {
         "kind": "mcq",
         "beat": {
           "kind": "mcq",
-          "id": "u2-ann-cpd-gate",
+          "id": "u2-ann-meet-size",
           "node": "u2-annulene",
           "conceptIds": [
             "aromaticity"
           ],
           "levels": [
-            1
+            0
           ],
-          "prompt": "Find the lettered atom that breaks cyclopenta-1,3-diene's p orbital loop.",
-          "brief": "Go round the ring one atom at a time. For each, ask whether it has a p orbital.",
-          "correctOptionId": "c",
+          "prompt": "Benzene is [6]annulene: n is the ring size. Count [18]annulene's pi electrons.",
+          "brief": "Each ring carbon in a C=C gives 1 pi electron.",
+          "correctOptionId": "eighteen",
           "options": [
             {
-              "id": "a",
-              "text": "Atom A, lower right",
-              "why": "This carbon sits in a C=C bond, so it is sp2 with a p orbital. The loop runs through it."
+              "id": "nine",
+              "text": "9 pi electrons",
+              "why": "Nine is the number of C=C bonds. Each C=C bond holds 2 pi electrons."
             },
             {
-              "id": "b",
-              "text": "Atom B, top",
-              "why": "This carbon sits in a C=C bond, so it is sp2 with a p orbital. The loop runs through it."
+              "id": "eighteen",
+              "text": "18 pi electrons",
+              "why": "Eighteen carbons, each in one C=C bond, each giving 1: 18. That fits 4n + 2 with n = 4."
             },
             {
-              "id": "c",
-              "text": "Atom C, left",
-              "why": "This is the CH2. It is sp3, with four single bonds and no p orbital, so the loop has a gap here and the ring is nonaromatic."
-            },
-            {
-              "id": "d",
-              "text": "Atom D, upper right",
-              "why": "This carbon sits in a C=C bond, so it is sp2 with a p orbital. The loop runs through it."
+              "id": "thirtysix",
+              "text": "36 pi electrons",
+              "why": "That gives each carbon 2. A C=C carbon gives 1; its partner gives the other."
             }
           ]
         }
       },
-      "explanation": "Run the gate atom by atom: every ring atom needs a p orbital. One sp3 CH2 is enough to make the ring nonaromatic, before the count is even asked.",
-      "provenance": "scripts/u2_pools.py: Huckel counter: the atom with no p orbital is the first failed gate. OpenStax Organic Chemistry 15.3 (CC BY-NC-SA), read as a check only.",
+      "explanation": "Worked example. An annulene alternates C=C all the way round, so its pi count is its ring size: 18 for [18]annulene, n = 4.",
+      "provenance": "scripts/u2_pools.py: Huckel counter: 1 electron per ring pi bond atom. OpenStax Organic Chemistry 15.3 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
     {
-      "id": "u2-ann-cot",
+      "id": "u2-ann-meet-flat",
       "item": {
         "kind": "mcq",
         "beat": {
           "kind": "mcq",
-          "id": "u2-ann-cot",
+          "id": "u2-ann-meet-flat",
           "node": "u2-annulene",
           "conceptIds": [
             "aromaticity"
           ],
           "levels": [
-            1
+            0
           ],
-          "prompt": "Classify cyclooctatetraene as it really sits, a tub.",
-          "brief": "A flat octagon needs 135 degree angles. Its sp2 carbons want 120.",
-          "correctOptionId": "nonaromatic",
+          "prompt": "Suppose cyclooctatetraene stayed flat. Pick what its 8 pi electrons would make it.",
+          "brief": "Run the count as if the ring were flat. A 4n count on a flat ring is the bad case.",
+          "correctOptionId": "antiaromatic",
           "options": [
             {
               "id": "antiaromatic",
               "text": "Antiaromatic",
-              "why": "Flat, 8 pi electrons would make it antiaromatic. That is exactly why it does not stay flat: it folds into a tub and escapes."
-            },
-            {
-              "id": "nonaromatic",
-              "text": "Nonaromatic",
-              "why": "The tub breaks the side by side overlap of the p orbitals, so the ring fails the planarity test. Failing the gate means nonaromatic. (tub: a flat octagon needs 135 degree angles, so the ring folds.)"
+              "why": "Flat, cyclic, a p orbital everywhere, and 8 is 4n (n = 1.5 in 4n + 2 is not whole). That is the antiaromatic case, which a ring avoids if it can."
             },
             {
               "id": "aromatic",
               "text": "Aromatic",
-              "why": "Eight pi electrons is 4n, so it could never be aromatic, flat or bent."
+              "why": "Aromatic needs 4n + 2: 2, 6, 10, 14. Eight is not on that list."
+            },
+            {
+              "id": "nonaromatic",
+              "text": "Nonaromatic",
+              "why": "Nonaromatic needs a failed gate. A flat ring with a p orbital on every carbon passes the gate, so the count decides."
             }
           ]
         }
       },
-      "explanation": "COT would be antiaromatic if flat, so it bends into a tub. Its C=C bonds then act like separate alkenes: nonaromatic.",
-      "provenance": "scripts/u2_pools.py: Huckel counter: 8 pi; planarity authored (tub) decides nonaromatic over antiaromatic. OpenStax Organic Chemistry 15.3 (CC BY-NC-SA), read as a check only. planarity authored for cot.",
+      "explanation": "Worked example. Flat, COT would be antiaromatic, which costs energy. So it does not stay flat: it folds into a tub. Keep that in mind for the next questions.",
+      "provenance": "scripts/u2_pools.py: Huckel counter: 8 pi is 4n, the class if flat; the tub is authored. OpenStax Organic Chemistry 15.3 (CC BY-NC-SA), read as a check only. planarity authored for cot.",
       "placeholder": true
     },
     match({
@@ -672,12 +668,12 @@ export const U2_POOLS: UnitPools = {
       "provenance": "scripts/u2_pools.py: Huckel counter for each card's ring (benzene, cyclobutadiene, COT, [18]annulene); planarity authored for COT. OpenStax Organic Chemistry 15.3 (CC BY-NC-SA), read as a check only. NEEDS OWNER RULING: RDKit disagrees with the counter on cyclobutadiene (scripts/u2_pools_report.md); planarity authored for cot."
     }),
     {
-      "id": "u2-ann-10",
+      "id": "u2-ann-cpd-gate",
       "item": {
         "kind": "mcq",
         "beat": {
           "kind": "mcq",
-          "id": "u2-ann-10",
+          "id": "u2-ann-cpd-gate",
           "node": "u2-annulene",
           "conceptIds": [
             "aromaticity"
@@ -685,29 +681,35 @@ export const U2_POOLS: UnitPools = {
           "levels": [
             1
           ],
-          "prompt": "[10]Annulene has 10 pi electrons. Pick the test it fails.",
-          "correctOptionId": "flat",
+          "prompt": "Find the lettered atom that breaks cyclopenta-1,3-diene's p orbital loop.",
+          "brief": "Go round the ring one atom at a time. For each, ask whether it has a p orbital.",
+          "correctOptionId": "c",
           "options": [
             {
-              "id": "count",
-              "text": "The 4n + 2 count",
-              "why": "Ten fits: n = 2, a whole number. The count is fine, so the trouble is earlier in the checklist."
+              "id": "a",
+              "text": "Atom A, lower right",
+              "why": "This carbon sits in a C=C bond, so it is sp2 with a p orbital. The loop runs through it."
             },
             {
-              "id": "porb",
-              "text": "A p orbital on every carbon",
-              "why": "Every carbon sits in a C=C, so every carbon has a p orbital."
+              "id": "b",
+              "text": "Atom B, top",
+              "why": "This carbon sits in a C=C bond, so it is sp2 with a p orbital. The loop runs through it."
             },
             {
-              "id": "flat",
-              "text": "Being flat",
-              "why": "Flat, two H atoms inside the ring would sit on top of each other. The ring twists to avoid that clash, and a twisted ring fails the planarity test. (inner H clash: flat [10]annulene puts two inside H atoms on top of each other, so it twists.)"
+              "id": "c",
+              "text": "Atom C, left",
+              "why": "This is the CH2. It is sp3, with four single bonds and no p orbital, so the loop has a gap here and the ring is nonaromatic."
+            },
+            {
+              "id": "d",
+              "text": "Atom D, upper right",
+              "why": "This carbon sits in a C=C bond, so it is sp2 with a p orbital. The loop runs through it."
             }
           ]
         }
       },
-      "explanation": "[10]Annulene has the right count but cannot lie flat because of its inner H atoms, so it is nonaromatic.",
-      "provenance": "scripts/u2_pools.py: Huckel counter: 10 pi, n = 2; planarity authored (inner H clash) decides nonaromatic. OpenStax Organic Chemistry 15.3 (CC BY-NC-SA), read as a check only. NEEDS OWNER RULING: RDKit disagrees with the counter on ann10 (scripts/u2_pools_report.md); planarity authored for ann10.",
+      "explanation": "Run the gate atom by atom: every ring atom needs a p orbital. One sp3 CH2 is enough to make the ring nonaromatic, before the count is even asked.",
+      "provenance": "scripts/u2_pools.py: Huckel counter: the atom with no p orbital is the first failed gate. OpenStax Organic Chemistry 15.3 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
     ladder({
@@ -803,6 +805,85 @@ export const U2_POOLS: UnitPools = {
       "explanation": "Ring class decides cation stability here: aromatic, then nonaromatic, then antiaromatic.",
       "provenance": "scripts/u2_pools.py: ranked by the counter's class only (aromatic > nonaromatic > antiaromatic), no numbers typed. OpenStax Organic Chemistry 15.4 (CC BY-NC-SA), read as a check only. NEEDS OWNER RULING: RDKit disagrees with the counter on cp_cation (scripts/u2_pools_report.md)."
     }),
+    {
+      "id": "u2-ann-cot",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u2-ann-cot",
+          "node": "u2-annulene",
+          "conceptIds": [
+            "aromaticity"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "Classify cyclooctatetraene as it really sits, a tub.",
+          "brief": "A flat octagon needs 135 degree angles. Its sp2 carbons want 120.",
+          "correctOptionId": "nonaromatic",
+          "options": [
+            {
+              "id": "antiaromatic",
+              "text": "Antiaromatic",
+              "why": "Flat, 8 pi electrons would make it antiaromatic. That is exactly why it does not stay flat: it folds into a tub and escapes."
+            },
+            {
+              "id": "nonaromatic",
+              "text": "Nonaromatic",
+              "why": "The tub breaks the side by side overlap of the p orbitals, so the ring fails the planarity test. Failing the gate means nonaromatic. (tub: a flat octagon needs 135 degree angles, so the ring folds.)"
+            },
+            {
+              "id": "aromatic",
+              "text": "Aromatic",
+              "why": "Eight pi electrons is 4n, so it could never be aromatic, flat or bent."
+            }
+          ]
+        }
+      },
+      "explanation": "COT would be antiaromatic if flat, so it bends into a tub. Its C=C bonds then act like separate alkenes: nonaromatic.",
+      "provenance": "scripts/u2_pools.py: Huckel counter: 8 pi; planarity authored (tub) decides nonaromatic over antiaromatic. OpenStax Organic Chemistry 15.3 (CC BY-NC-SA), read as a check only. planarity authored for cot.",
+      "placeholder": true
+    },
+    {
+      "id": "u2-ann-10",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u2-ann-10",
+          "node": "u2-annulene",
+          "conceptIds": [
+            "aromaticity"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "[10]Annulene has 10 pi electrons. Pick the test it fails.",
+          "correctOptionId": "flat",
+          "options": [
+            {
+              "id": "count",
+              "text": "The 4n + 2 count",
+              "why": "Ten fits: n = 2, a whole number. The count is fine, so the trouble is earlier in the checklist."
+            },
+            {
+              "id": "porb",
+              "text": "A p orbital on every carbon",
+              "why": "Every carbon sits in a C=C, so every carbon has a p orbital."
+            },
+            {
+              "id": "flat",
+              "text": "Being flat",
+              "why": "Flat, two H atoms inside the ring would sit on top of each other. The ring twists to avoid that clash, and a twisted ring fails the planarity test. (inner H clash: flat [10]annulene puts two inside H atoms on top of each other, so it twists.)"
+            }
+          ]
+        }
+      },
+      "explanation": "[10]Annulene has the right count but cannot lie flat because of its inner H atoms, so it is nonaromatic.",
+      "provenance": "scripts/u2_pools.py: Huckel counter: 10 pi, n = 2; planarity authored (inner H clash) decides nonaromatic. OpenStax Organic Chemistry 15.3 (CC BY-NC-SA), read as a check only. NEEDS OWNER RULING: RDKit disagrees with the counter on ann10 (scripts/u2_pools_report.md); planarity authored for ann10.",
+      "placeholder": true
+    },
     {
       "id": "u2-ann-18",
       "item": {
@@ -1081,81 +1162,83 @@ export const U2_POOLS: UnitPools = {
   ],
   "u2-hetero": [
     {
-      "id": "u2-het-pyridine-pair",
+      "id": "u2-het-meet-pyridine",
       "item": {
         "kind": "mcq",
         "beat": {
           "kind": "mcq",
-          "id": "u2-het-pyridine-pair",
+          "id": "u2-het-meet-pyridine",
           "node": "u2-hetero",
           "conceptIds": [
             "aromaticity"
           ],
           "levels": [
-            1
+            0
           ],
-          "prompt": "Pick where pyridine's nitrogen keeps its lone pair.",
-          "correctOptionId": "sp2",
+          "prompt": "Pyridine's N sits in a C=N bond, so it gives 1, like a carbon. Count its pi electrons.",
+          "brief": "An N in a ring double bond counts like a carbon.",
+          "correctOptionId": "six",
           "options": [
             {
-              "id": "p",
-              "text": "In a p orbital, part of the pi system",
-              "why": "The N already sits in a ring C=N bond, so its p orbital is used by that pi bond. The pair has to go somewhere else."
+              "id": "eight",
+              "text": "8 pi electrons",
+              "why": "That adds the N lone pair too. The N already gives 1 through its C=N bond, so its pair stays out."
             },
             {
-              "id": "sp2",
-              "text": "In an sp2 orbital, in the ring plane",
-              "why": "The N gives 1 electron to the ring through its C=N pi bond, like a carbon. The pair sits in an sp2 orbital pointing out from the ring, in the plane, and is not counted."
+              "id": "five",
+              "text": "5 pi electrons",
+              "why": "That leaves out the N. It is in a C=N bond, so it gives 1, the same as each carbon."
             },
             {
-              "id": "sp3",
-              "text": "In an sp3 orbital",
-              "why": "The N is part of a flat ring with a C=N bond, so it is sp2, not sp3."
+              "id": "six",
+              "text": "6 pi electrons",
+              "why": "Five carbons and one N, each giving 1: 6, n = 1. The same count as benzene."
             }
           ]
         }
       },
-      "explanation": "Pyridine's N is in a C=N bond, so its pair sits in an sp2 orbital in the plane. The ring has 6 pi electrons, like benzene.",
-      "provenance": "scripts/u2_pools.py: Huckel counter: N in a ring pi bond gives 1 and keeps its pair in an sp2 orbital. OpenStax Organic Chemistry 15.5 (CC BY-NC-SA), read as a check only.",
+      "explanation": "Worked example. An atom in a ring double bond gives 1, whatever its element. Pyridine has 6 pi electrons and is aromatic, like benzene.",
+      "provenance": "scripts/u2_pools.py: Huckel counter: N in a ring pi bond gives 1. OpenStax Organic Chemistry 15.5 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
     {
-      "id": "u2-het-pyrrole-pair",
+      "id": "u2-het-meet-contrast",
       "item": {
         "kind": "mcq",
         "beat": {
           "kind": "mcq",
-          "id": "u2-het-pyrrole-pair",
+          "id": "u2-het-meet-contrast",
           "node": "u2-hetero",
           "conceptIds": [
             "aromaticity"
           ],
           "levels": [
-            1
+            0
           ],
-          "prompt": "Pick where pyrrole's nitrogen keeps its lone pair.",
-          "correctOptionId": "p",
+          "prompt": "Compare the two nitrogens. Pick the one whose lone pair joins the ring's pi system.",
+          "brief": "Look for a ring double bond on each N first.",
+          "correctOptionId": "pyrrole",
           "options": [
             {
-              "id": "sp2",
-              "text": "In an sp2 orbital, in the ring plane",
-              "why": "That is pyridine's N, which has a C=N bond. Pyrrole's N has an H instead and no ring double bond."
+              "id": "pyridine",
+              "text": "Pyridine's N",
+              "why": "Pyridine's N already gives 1 through its C=N bond. Its pair points out of the ring, in the plane."
             },
             {
-              "id": "sp3",
-              "text": "In an sp3 orbital",
-              "why": "If the N were sp3 the ring would have no p orbital there and would not be aromatic. It rehybridises to sp2 so the pair can join."
+              "id": "pyrrole",
+              "text": "Pyrrole's N",
+              "why": "Pyrrole's N has an H and no ring double bond. Its pair sits in the p orbital and joins: 4 plus 2 is 6."
             },
             {
-              "id": "p",
-              "text": "In a p orbital, part of the pi system",
-              "why": "The N has no ring double bond, so its pair sits in the p orbital and joins the ring: 4 from the two C=C bonds plus 2 from N is 6."
+              "id": "both",
+              "text": "Both of them",
+              "why": "Only one of them needs its pair. An N that already has a ring double bond keeps its pair out."
             }
           ]
         }
       },
-      "explanation": "Pyrrole's N lone pair is in the p orbital and is counted, giving 6 pi electrons. That is why pyrrole is aromatic.",
-      "provenance": "scripts/u2_pools.py: Huckel counter: N with a pair and no ring pi bond gives 2. OpenStax Organic Chemistry 15.5 (CC BY-NC-SA), read as a check only.",
+      "explanation": "Worked example. The rule is one question: does the N already have a ring double bond. Yes (pyridine): it gives 1 and the pair sits out. No (pyrrole): the pair goes in.",
+      "provenance": "scripts/u2_pools.py: Huckel counter: where each N keeps its pair. OpenStax Organic Chemistry 15.5 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
     match({
@@ -1204,12 +1287,12 @@ export const U2_POOLS: UnitPools = {
       "provenance": "scripts/u2_pools.py: Huckel counter: orbital recorded for every ring heteroatom pair. OpenStax Organic Chemistry 15.5 (CC BY-NC-SA), read as a check only."
     }),
     {
-      "id": "u2-het-pyrrole-count",
+      "id": "u2-het-pyridine-pair",
       "item": {
         "kind": "mcq",
         "beat": {
           "kind": "mcq",
-          "id": "u2-het-pyrrole-count",
+          "id": "u2-het-pyridine-pair",
           "node": "u2-hetero",
           "conceptIds": [
             "aromaticity"
@@ -1217,29 +1300,29 @@ export const U2_POOLS: UnitPools = {
           "levels": [
             1
           ],
-          "prompt": "Count pyrrole's pi electrons.",
-          "correctOptionId": "six",
+          "prompt": "Pick where pyridine's nitrogen keeps its lone pair.",
+          "correctOptionId": "sp2",
           "options": [
             {
-              "id": "four",
-              "text": "4 pi electrons",
-              "why": "That counts the two C=C bonds and leaves out the N lone pair, which sits in a p orbital and is part of the ring."
+              "id": "p",
+              "text": "In a p orbital, part of the pi system",
+              "why": "The N already sits in a ring C=N bond, so its p orbital is used by that pi bond. The pair has to go somewhere else."
             },
             {
-              "id": "six",
-              "text": "6 pi electrons",
-              "why": "Two C=C bonds give 4, and the N lone pair in its p orbital gives 2: 6, n = 1."
+              "id": "sp2",
+              "text": "In an sp2 orbital, in the ring plane",
+              "why": "The N gives 1 electron to the ring through its C=N pi bond, like a carbon. The pair sits in an sp2 orbital pointing out from the ring, in the plane, and is not counted."
             },
             {
-              "id": "eight",
-              "text": "8 pi electrons",
-              "why": "That counts the N-H bond as well. Only the lone pair joins; the N-H bond is a sigma bond in the plane."
+              "id": "sp3",
+              "text": "In an sp3 orbital",
+              "why": "The N is part of a flat ring with a C=N bond, so it is sp2, not sp3."
             }
           ]
         }
       },
-      "explanation": "Pyrrole has 6 pi electrons: four from carbon, two from the N lone pair. That gives n = 1, so it is aromatic.",
-      "provenance": "scripts/u2_pools.py: Huckel counter per atom. OpenStax Organic Chemistry 15.5 (CC BY-NC-SA), read as a check only.",
+      "explanation": "Pyridine's N is in a C=N bond, so its pair sits in an sp2 orbital in the plane. The ring has 6 pi electrons, like benzene.",
+      "provenance": "scripts/u2_pools.py: Huckel counter: N in a ring pi bond gives 1 and keeps its pair in an sp2 orbital. OpenStax Organic Chemistry 15.5 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
     {
@@ -1317,7 +1400,8 @@ export const U2_POOLS: UnitPools = {
                 }
               ]
             },
-            "name": "pyridine, lone pair drawn"
+            "name": "pyridine, lone pair drawn",
+            "large": true
           },
           "answer": {
             "smiles": "c1cc[nH+]cc1",
@@ -1400,6 +1484,84 @@ export const U2_POOLS: UnitPools = {
       },
       "explanation": "Pyridine's lone pair is in an sp2 orbital in the ring plane. Using it for H+ leaves the 6 pi electrons alone: pyridinium is aromatic.",
       "provenance": "scripts/u2_pools.py: Huckel counter: pyridinium aromatic, its N pair in the plane; graded on RDKit's standard InChI. OpenStax Organic Chemistry 15.5 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
+    {
+      "id": "u2-het-pyrrole-pair",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u2-het-pyrrole-pair",
+          "node": "u2-hetero",
+          "conceptIds": [
+            "aromaticity"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "Pick where pyrrole's nitrogen keeps its lone pair.",
+          "correctOptionId": "p",
+          "options": [
+            {
+              "id": "sp2",
+              "text": "In an sp2 orbital, in the ring plane",
+              "why": "That is pyridine's N, which has a C=N bond. Pyrrole's N has an H instead and no ring double bond."
+            },
+            {
+              "id": "sp3",
+              "text": "In an sp3 orbital",
+              "why": "If the N were sp3 the ring would have no p orbital there and would not be aromatic. It rehybridises to sp2 so the pair can join."
+            },
+            {
+              "id": "p",
+              "text": "In a p orbital, part of the pi system",
+              "why": "The N has no ring double bond, so its pair sits in the p orbital and joins the ring: 4 from the two C=C bonds plus 2 from N is 6."
+            }
+          ]
+        }
+      },
+      "explanation": "Pyrrole's N lone pair is in the p orbital and is counted, giving 6 pi electrons. That is why pyrrole is aromatic.",
+      "provenance": "scripts/u2_pools.py: Huckel counter: N with a pair and no ring pi bond gives 2. OpenStax Organic Chemistry 15.5 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
+    {
+      "id": "u2-het-pyrrole-count",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u2-het-pyrrole-count",
+          "node": "u2-hetero",
+          "conceptIds": [
+            "aromaticity"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "Count pyrrole's pi electrons.",
+          "correctOptionId": "six",
+          "options": [
+            {
+              "id": "four",
+              "text": "4 pi electrons",
+              "why": "That counts the two C=C bonds and leaves out the N lone pair, which sits in a p orbital and is part of the ring."
+            },
+            {
+              "id": "six",
+              "text": "6 pi electrons",
+              "why": "Two C=C bonds give 4, and the N lone pair in its p orbital gives 2: 6, n = 1."
+            },
+            {
+              "id": "eight",
+              "text": "8 pi electrons",
+              "why": "That counts the N-H bond as well. Only the lone pair joins; the N-H bond is a sigma bond in the plane."
+            }
+          ]
+        }
+      },
+      "explanation": "Pyrrole has 6 pi electrons: four from carbon, two from the N lone pair. That gives n = 1, so it is aromatic.",
+      "provenance": "scripts/u2_pools.py: Huckel counter per atom. OpenStax Organic Chemistry 15.5 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
     {
@@ -1728,88 +1890,83 @@ export const U2_POOLS: UnitPools = {
   ],
   "u2-charged": [
     {
-      "id": "u2-chg-cp-anion",
+      "id": "u2-chg-meet-anion",
       "item": {
         "kind": "mcq",
         "beat": {
           "kind": "mcq",
-          "id": "u2-chg-cp-anion",
+          "id": "u2-chg-meet-anion",
           "node": "u2-charged",
           "conceptIds": [
             "aromaticity"
           ],
           "levels": [
-            1
+            0
           ],
-          "prompt": "Classify the cyclopentadienyl anion.",
-          "brief": "Decide first what the charged carbon's lone pair is doing.",
-          "correctOptionId": "aromatic",
+          "prompt": "Take H+ off cyclopentadiene's CH2. Pick what that carbon now gives the ring.",
+          "brief": "A negative ring carbon holds a lone pair. Ask where that pair sits.",
+          "correctOptionId": "pair",
           "options": [
             {
-              "id": "antiaromatic",
-              "text": "Antiaromatic",
-              "why": "That would be 4 pi electrons. The lone pair on the charged carbon counts too."
+              "id": "pair",
+              "text": "2 electrons, a lone pair in a p orbital",
+              "why": "The C-H bond's pair stays on carbon. The carbon flattens to sp2 and its pair sits in the p orbital, so the loop closes with 6 pi electrons."
             },
             {
-              "id": "aromatic",
-              "text": "Aromatic",
-              "why": "The charged carbon's lone pair sits in a p orbital: 4 from the C=C bonds plus 2 is 6, n = 1."
+              "id": "none",
+              "text": "Nothing, it stays sp3",
+              "why": "Before, the CH2 was sp3 and broke the loop. Losing H+ leaves a lone pair on that carbon, and the pair needs a p orbital to join."
             },
             {
-              "id": "nonaromatic",
-              "text": "Nonaromatic",
-              "why": "Removing H+ turned the sp3 CH2 into a carbon with a lone pair in a p orbital, so the loop is complete."
+              "id": "one",
+              "text": "1 electron, like a C=C carbon",
+              "why": "That carbon has no ring double bond. What it has is a whole lone pair, so it gives 2, not 1."
             }
           ]
         }
       },
-      "explanation": "The anion's lone pair joins the ring: 6 pi electrons, aromatic.",
-      "provenance": "scripts/u2_pools.py: Huckel counter; Frost circle agrees. OpenStax Organic Chemistry 15.4 (CC BY-NC-SA), read as a check only.",
+      "explanation": "Worked example. Cyclopentadiene fails the gate at its CH2. Remove H+ and that carbon keeps a lone pair in a p orbital: 4 from the C=C bonds plus 2 is 6, n = 1, aromatic.",
+      "provenance": "scripts/u2_pools.py: Huckel counter per atom: the carbanion carbon gives 2. OpenStax Organic Chemistry 15.4 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
     {
-      "id": "u2-chg-cp-cation",
+      "id": "u2-chg-meet-cation",
       "item": {
         "kind": "mcq",
         "beat": {
           "kind": "mcq",
-          "id": "u2-chg-cp-cation",
+          "id": "u2-chg-meet-cation",
           "node": "u2-charged",
           "conceptIds": [
             "aromaticity"
           ],
           "levels": [
-            1
+            0
           ],
-          "prompt": "Count the cyclopentadienyl cation's pi electrons, then find n in 4n + 2.",
-          "brief": "Go atom by atom: what each ring atom puts in, then n from the total.",
-          "correctOptionId": "four",
+          "prompt": "The cation's plus carbon has an empty p orbital. Pick what it gives the ring.",
+          "brief": "A positive ring carbon is sp2 with an empty p orbital.",
+          "correctOptionId": "none",
           "options": [
             {
-              "id": "five",
-              "text": "5 pi electrons, n = 0.75",
-              "why": "That gives the charged carbon 1, like a C=C carbon. Its p orbital is empty, so it gives 0."
+              "id": "one",
+              "text": "1 electron, like a C=C carbon",
+              "why": "That carbon has no ring double bond. Its p orbital is there but empty, so it adds an orbital and no electrons."
             },
             {
-              "id": "fourone",
-              "text": "4 pi electrons, n = 1",
-              "why": "The count is right, and 4 is 4n with n = 1, the antiaromatic test. The question asks for n in 4n + 2: take 2 off first, then divide by 4."
+              "id": "pair",
+              "text": "2 electrons",
+              "why": "Two would be a lone pair, which is the anion. A cation has lost electrons from that carbon."
             },
             {
-              "id": "four",
-              "text": "4 pi electrons, n = 0.5",
-              "why": "Two C=C bonds give 4 and the empty p orbital gives 0. Take 2 off and divide by 4: n = 0.5. Not a whole number, so the flat ring is antiaromatic."
-            },
-            {
-              "id": "six",
-              "text": "6 pi electrons, n = 1",
-              "why": "That gives the charged carbon a lone pair. That is the anion; the cation's p orbital is empty."
+              "id": "none",
+              "text": "0 electrons, but it closes the loop",
+              "why": "An empty p orbital still overlaps with its neighbours, so the loop is complete. The three C=C bonds give all 6 pi electrons."
             }
           ]
         }
       },
-      "explanation": "The cation has 4 pi electrons and n = 0.5. A non whole n is the tell: flat and 4n, so it is antiaromatic.",
-      "provenance": "scripts/u2_pools.py: Huckel counter: empty p counts 0; n = (pi - 2) / 4. OpenStax Organic Chemistry 15.4 (CC BY-NC-SA), read as a check only. NEEDS OWNER RULING: RDKit disagrees with the counter on cp_cation (scripts/u2_pools_report.md).",
+      "explanation": "Worked example. An empty p orbital counts 0 electrons but keeps the ring of p orbitals unbroken. Three C=C bonds give 6, n = 1, so this cation is aromatic.",
+      "provenance": "scripts/u2_pools.py: Huckel counter per atom: the carbocation carbon gives 0. OpenStax Organic Chemistry 15.4 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
     ladder({
@@ -1907,12 +2064,12 @@ export const U2_POOLS: UnitPools = {
       "provenance": "scripts/u2_pools.py: ranked by the counter's class only, no numbers typed. OpenStax Organic Chemistry 15.4 (CC BY-NC-SA), read as a check only. NEEDS OWNER RULING: RDKit disagrees with the counter on c3_anion (scripts/u2_pools_report.md)."
     }),
     {
-      "id": "u2-chg-tropylium",
+      "id": "u2-chg-cp-anion",
       "item": {
         "kind": "mcq",
         "beat": {
           "kind": "mcq",
-          "id": "u2-chg-tropylium",
+          "id": "u2-chg-cp-anion",
           "node": "u2-charged",
           "conceptIds": [
             "aromaticity"
@@ -1920,29 +2077,30 @@ export const U2_POOLS: UnitPools = {
           "levels": [
             1
           ],
-          "prompt": "Count the cycloheptatrienyl cation's pi electrons.",
-          "correctOptionId": "six",
+          "prompt": "Classify the cyclopentadienyl anion.",
+          "brief": "Decide first what the charged carbon's lone pair is doing.",
+          "correctOptionId": "aromatic",
           "options": [
             {
-              "id": "seven",
-              "text": "7 pi electrons",
-              "why": "That gives the charged carbon 1, like a C=C carbon. Its p orbital is empty, so it gives 0."
+              "id": "antiaromatic",
+              "text": "Antiaromatic",
+              "why": "That would be 4 pi electrons. The lone pair on the charged carbon counts too."
             },
             {
-              "id": "eight",
-              "text": "8 pi electrons",
-              "why": "That gives the charged carbon a lone pair. That is the anion. The cation's p orbital is empty."
+              "id": "aromatic",
+              "text": "Aromatic",
+              "why": "The charged carbon's lone pair sits in a p orbital: 4 from the C=C bonds plus 2 is 6, n = 1."
             },
             {
-              "id": "six",
-              "text": "6 pi electrons",
-              "why": "Three C=C bonds give 6, and the empty p orbital gives 0 but closes the loop. That is n = 1, so it is aromatic."
+              "id": "nonaromatic",
+              "text": "Nonaromatic",
+              "why": "Removing H+ turned the sp3 CH2 into a carbon with a lone pair in a p orbital, so the loop is complete."
             }
           ]
         }
       },
-      "explanation": "Tropylium has 6 pi electrons over seven p orbitals: aromatic, and unusually stable for a cation.",
-      "provenance": "scripts/u2_pools.py: Huckel counter per atom: the cationic carbon gives 0. OpenStax Organic Chemistry 15.4 (CC BY-NC-SA), read as a check only.",
+      "explanation": "The anion's lone pair joins the ring: 6 pi electrons, aromatic.",
+      "provenance": "scripts/u2_pools.py: Huckel counter; Frost circle agrees. OpenStax Organic Chemistry 15.4 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
     ladder({
@@ -2040,12 +2198,12 @@ export const U2_POOLS: UnitPools = {
       "provenance": "scripts/u2_pools.py: ranked by the counter's class of each conjugate base, no pKa typed. OpenStax Organic Chemistry 15.4 (CC BY-NC-SA), read as a check only. NEEDS OWNER RULING: RDKit disagrees with the counter on c3_anion (scripts/u2_pools_report.md)."
     }),
     {
-      "id": "u2-chg-c7-anion",
+      "id": "u2-chg-cp-cation",
       "item": {
         "kind": "mcq",
         "beat": {
           "kind": "mcq",
-          "id": "u2-chg-c7-anion",
+          "id": "u2-chg-cp-cation",
           "node": "u2-charged",
           "conceptIds": [
             "aromaticity"
@@ -2053,29 +2211,35 @@ export const U2_POOLS: UnitPools = {
           "levels": [
             1
           ],
-          "prompt": "Classify the cycloheptatrienyl anion, taken as flat.",
-          "correctOptionId": "antiaromatic",
+          "prompt": "Count the cyclopentadienyl cation's pi electrons, then find n in 4n + 2.",
+          "brief": "Go atom by atom: what each ring atom puts in, then n from the total.",
+          "correctOptionId": "four",
           "options": [
             {
-              "id": "aromatic",
-              "text": "Aromatic",
-              "why": "Adding two electrons to aromatic tropylium gives 8, which is 4n."
+              "id": "five",
+              "text": "5 pi electrons, n = 0.75",
+              "why": "That gives the charged carbon 1, like a C=C carbon. Its p orbital is empty, so it gives 0."
             },
             {
-              "id": "antiaromatic",
-              "text": "Antiaromatic",
-              "why": "Three C=C bonds plus the lone pair: 8 pi electrons, 4n, in a flat ring."
+              "id": "fourone",
+              "text": "4 pi electrons, n = 1",
+              "why": "The count is right, and 4 is 4n with n = 1, the antiaromatic test. The question asks for n in 4n + 2: take 2 off first, then divide by 4."
             },
             {
-              "id": "nonaromatic",
-              "text": "Nonaromatic",
-              "why": "Taken as flat, every atom offers a p orbital. The count decides, not the gate."
+              "id": "four",
+              "text": "4 pi electrons, n = 0.5",
+              "why": "Two C=C bonds give 4 and the empty p orbital gives 0. Take 2 off and divide by 4: n = 0.5. Not a whole number, so the flat ring is antiaromatic."
+            },
+            {
+              "id": "six",
+              "text": "6 pi electrons, n = 1",
+              "why": "That gives the charged carbon a lone pair. That is the anion; the cation's p orbital is empty."
             }
           ]
         }
       },
-      "explanation": "With 8 pi electrons the flat anion is antiaromatic. The real anion may distort to escape it, like COT.",
-      "provenance": "scripts/u2_pools.py: Huckel counter; Frost circle agrees. OpenStax Organic Chemistry 15.4 (CC BY-NC-SA), read as a check only. NEEDS OWNER RULING: RDKit disagrees with the counter on c7_anion (scripts/u2_pools_report.md).",
+      "explanation": "The cation has 4 pi electrons and n = 0.5. A non whole n is the tell: flat and 4n, so it is antiaromatic.",
+      "provenance": "scripts/u2_pools.py: Huckel counter: empty p counts 0; n = (pi - 2) / 4. OpenStax Organic Chemistry 15.4 (CC BY-NC-SA), read as a check only. NEEDS OWNER RULING: RDKit disagrees with the counter on cp_cation (scripts/u2_pools_report.md).",
       "placeholder": true
     },
     {
@@ -2139,7 +2303,8 @@ export const U2_POOLS: UnitPools = {
                 }
               ]
             },
-            "name": "cyclopentadiene, CH2 circled"
+            "name": "cyclopentadiene, CH2 circled",
+            "large": true
           },
           "answer": {
             "smiles": "c1cc[cH-]c1",
@@ -2206,12 +2371,12 @@ export const U2_POOLS: UnitPools = {
       "placeholder": true
     },
     {
-      "id": "u2-chg-c3-cation",
+      "id": "u2-chg-tropylium",
       "item": {
         "kind": "mcq",
         "beat": {
           "kind": "mcq",
-          "id": "u2-chg-c3-cation",
+          "id": "u2-chg-tropylium",
           "node": "u2-charged",
           "conceptIds": [
             "aromaticity"
@@ -2219,35 +2384,29 @@ export const U2_POOLS: UnitPools = {
           "levels": [
             1
           ],
-          "prompt": "Count the cyclopropenyl cation's pi electrons, then find n in 4n + 2.",
-          "brief": "Go atom by atom: what each of the three ring atoms puts in, then n from the total.",
-          "correctOptionId": "two",
+          "prompt": "Count the cycloheptatrienyl cation's pi electrons.",
+          "correctOptionId": "six",
           "options": [
             {
-              "id": "twohalf",
-              "text": "2 pi electrons, n = 0.5",
-              "why": "The count is right, but that is 2 divided by 4, n in 4n. The question asks for n in 4n + 2: take 2 off first, then divide by 4."
-            },
-            {
-              "id": "two",
-              "text": "2 pi electrons, n = 0",
-              "why": "One C=C gives 2, and the empty p orbital gives 0. Take 2 off and divide by 4: n = 0. Zero is a whole number, so the ring is aromatic."
-            },
-            {
-              "id": "three",
-              "text": "3 pi electrons, n = 0.25",
+              "id": "seven",
+              "text": "7 pi electrons",
               "why": "That gives the charged carbon 1, like a C=C carbon. Its p orbital is empty, so it gives 0."
             },
             {
-              "id": "four",
-              "text": "4 pi electrons, n = 0.5",
-              "why": "That counts the charged carbon as if it had a pair. That is the anion; the cation's p orbital is empty."
+              "id": "eight",
+              "text": "8 pi electrons",
+              "why": "That gives the charged carbon a lone pair. That is the anion. The cation's p orbital is empty."
+            },
+            {
+              "id": "six",
+              "text": "6 pi electrons",
+              "why": "Three C=C bonds give 6, and the empty p orbital gives 0 but closes the loop. That is n = 1, so it is aromatic."
             }
           ]
         }
       },
-      "explanation": "The smallest aromatic ring: 2 pi electrons, n = 0, and zero counts as a whole number.",
-      "provenance": "scripts/u2_pools.py: Huckel counter: empty p counts 0; n = (pi - 2) / 4. OpenStax Organic Chemistry 15.4 (CC BY-NC-SA), read as a check only.",
+      "explanation": "Tropylium has 6 pi electrons over seven p orbitals: aromatic, and unusually stable for a cation.",
+      "provenance": "scripts/u2_pools.py: Huckel counter per atom: the cationic carbon gives 0. OpenStax Organic Chemistry 15.4 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
     {
@@ -2324,7 +2483,8 @@ export const U2_POOLS: UnitPools = {
                 }
               ]
             },
-            "name": "cycloheptatriene, CH2 circled"
+            "name": "cycloheptatriene, CH2 circled",
+            "large": true
           },
           "answer": {
             "smiles": "c1ccc[cH+]cc1",
@@ -2395,6 +2555,90 @@ export const U2_POOLS: UnitPools = {
       },
       "explanation": "Removing hydride leaves the old CH2 carbon with an empty p orbital. Seven atoms, 6 pi electrons: tropylium is aromatic.",
       "provenance": "scripts/u2_pools.py: Huckel counter: tropylium aromatic; graded on RDKit's standard InChI. OpenStax Organic Chemistry 15.4 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
+    {
+      "id": "u2-chg-c7-anion",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u2-chg-c7-anion",
+          "node": "u2-charged",
+          "conceptIds": [
+            "aromaticity"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "Classify the cycloheptatrienyl anion, taken as flat.",
+          "correctOptionId": "antiaromatic",
+          "options": [
+            {
+              "id": "aromatic",
+              "text": "Aromatic",
+              "why": "Adding two electrons to aromatic tropylium gives 8, which is 4n."
+            },
+            {
+              "id": "antiaromatic",
+              "text": "Antiaromatic",
+              "why": "Three C=C bonds plus the lone pair: 8 pi electrons, 4n, in a flat ring."
+            },
+            {
+              "id": "nonaromatic",
+              "text": "Nonaromatic",
+              "why": "Taken as flat, every atom offers a p orbital. The count decides, not the gate."
+            }
+          ]
+        }
+      },
+      "explanation": "With 8 pi electrons the flat anion is antiaromatic. The real anion may distort to escape it, like COT.",
+      "provenance": "scripts/u2_pools.py: Huckel counter; Frost circle agrees. OpenStax Organic Chemistry 15.4 (CC BY-NC-SA), read as a check only. NEEDS OWNER RULING: RDKit disagrees with the counter on c7_anion (scripts/u2_pools_report.md).",
+      "placeholder": true
+    },
+    {
+      "id": "u2-chg-c3-cation",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u2-chg-c3-cation",
+          "node": "u2-charged",
+          "conceptIds": [
+            "aromaticity"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "Count the cyclopropenyl cation's pi electrons, then find n in 4n + 2.",
+          "brief": "Go atom by atom: what each of the three ring atoms puts in, then n from the total.",
+          "correctOptionId": "two",
+          "options": [
+            {
+              "id": "twohalf",
+              "text": "2 pi electrons, n = 0.5",
+              "why": "The count is right, but that is 2 divided by 4, n in 4n. The question asks for n in 4n + 2: take 2 off first, then divide by 4."
+            },
+            {
+              "id": "two",
+              "text": "2 pi electrons, n = 0",
+              "why": "One C=C gives 2, and the empty p orbital gives 0. Take 2 off and divide by 4: n = 0. Zero is a whole number, so the ring is aromatic."
+            },
+            {
+              "id": "three",
+              "text": "3 pi electrons, n = 0.25",
+              "why": "That gives the charged carbon 1, like a C=C carbon. Its p orbital is empty, so it gives 0."
+            },
+            {
+              "id": "four",
+              "text": "4 pi electrons, n = 0.5",
+              "why": "That counts the charged carbon as if it had a pair. That is the anion; the cation's p orbital is empty."
+            }
+          ]
+        }
+      },
+      "explanation": "The smallest aromatic ring: 2 pi electrons, n = 0, and zero counts as a whole number.",
+      "provenance": "scripts/u2_pools.py: Huckel counter: empty p counts 0; n = (pi - 2) / 4. OpenStax Organic Chemistry 15.4 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
     {
@@ -3385,7 +3629,8 @@ export const U2_VISUALS: Readonly<Record<string, McqVisual>> = {
         ]
       },
       "name": "cyclohexa-1,3-diene"
-    }
+    },
+    "large": true
   },
   "u2-huckel-meet-count": {
     "kind": "structure",
@@ -3432,7 +3677,8 @@ export const U2_VISUALS: Readonly<Record<string, McqVisual>> = {
         }
       ]
     },
-    "name": "benzene: one p orbital per carbon"
+    "name": "benzene: one p orbital per carbon",
+    "large": true
   },
   "u2-huckel-cbd": {
     "kind": "structure",
@@ -3466,7 +3712,8 @@ export const U2_VISUALS: Readonly<Record<string, McqVisual>> = {
         }
       ]
     },
-    "name": "cyclobutadiene"
+    "name": "cyclobutadiene",
+    "large": true
   },
   "u2-huckel-naph": {
     "kind": "structure",
@@ -3545,7 +3792,8 @@ export const U2_VISUALS: Readonly<Record<string, McqVisual>> = {
         }
       ]
     },
-    "name": "naphthalene"
+    "name": "naphthalene",
+    "large": true
   },
   "u2-huckel-n-cot": {
     "kind": "structure",
@@ -3605,73 +3853,336 @@ export const U2_VISUALS: Readonly<Record<string, McqVisual>> = {
         }
       ]
     },
-    "name": "cyclooctatetraene, drawn flat"
+    "name": "cyclooctatetraene, drawn flat",
+    "large": true
+  },
+  "u2-ann-meet-size": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 35.1,
+          "y1": 13.2,
+          "x2": 47.6,
+          "y2": 6.0,
+          "order": 2
+        },
+        {
+          "x1": 47.6,
+          "y1": 6.0,
+          "x2": 60.1,
+          "y2": 13.2
+        },
+        {
+          "x1": 60.1,
+          "y1": 13.2,
+          "x2": 72.5,
+          "y2": 6.0,
+          "order": 2
+        },
+        {
+          "x1": 72.5,
+          "y1": 6.0,
+          "x2": 85.0,
+          "y2": 13.3
+        },
+        {
+          "x1": 85.0,
+          "y1": 13.3,
+          "x2": 85.0,
+          "y2": 27.7,
+          "order": 2
+        },
+        {
+          "x1": 85.0,
+          "y1": 27.7,
+          "x2": 97.4,
+          "y2": 34.9
+        },
+        {
+          "x1": 97.4,
+          "y1": 34.9,
+          "x2": 97.4,
+          "y2": 49.3,
+          "order": 2
+        },
+        {
+          "x1": 97.4,
+          "y1": 49.3,
+          "x2": 84.9,
+          "y2": 56.4
+        },
+        {
+          "x1": 84.9,
+          "y1": 56.4,
+          "x2": 84.9,
+          "y2": 70.8,
+          "order": 2
+        },
+        {
+          "x1": 84.9,
+          "y1": 70.8,
+          "x2": 72.4,
+          "y2": 78.0
+        },
+        {
+          "x1": 72.4,
+          "y1": 78.0,
+          "x2": 59.9,
+          "y2": 70.8,
+          "order": 2
+        },
+        {
+          "x1": 59.9,
+          "y1": 70.8,
+          "x2": 47.5,
+          "y2": 78.0
+        },
+        {
+          "x1": 47.5,
+          "y1": 78.0,
+          "x2": 35.0,
+          "y2": 70.7,
+          "order": 2
+        },
+        {
+          "x1": 35.0,
+          "y1": 70.7,
+          "x2": 35.0,
+          "y2": 56.3
+        },
+        {
+          "x1": 35.0,
+          "y1": 56.3,
+          "x2": 22.6,
+          "y2": 49.1,
+          "order": 2
+        },
+        {
+          "x1": 22.6,
+          "y1": 49.1,
+          "x2": 22.6,
+          "y2": 34.7
+        },
+        {
+          "x1": 22.6,
+          "y1": 34.7,
+          "x2": 35.1,
+          "y2": 27.6,
+          "order": 2
+        },
+        {
+          "x1": 35.1,
+          "y1": 27.6,
+          "x2": 35.1,
+          "y2": 13.2
+        },
+        {
+          "x1": 60.1,
+          "y1": 14.4,
+          "x2": 60.0,
+          "y2": 17.5
+        },
+        {
+          "x1": 84.0,
+          "y1": 28.2,
+          "x2": 81.2,
+          "y2": 29.8
+        },
+        {
+          "x1": 83.9,
+          "y1": 55.9,
+          "x2": 81.2,
+          "y2": 54.3
+        },
+        {
+          "x1": 59.9,
+          "y1": 69.6,
+          "x2": 60.0,
+          "y2": 66.5
+        },
+        {
+          "x1": 36.0,
+          "y1": 55.8,
+          "x2": 38.8,
+          "y2": 54.2
+        },
+        {
+          "x1": 36.1,
+          "y1": 28.1,
+          "x2": 38.8,
+          "y2": 29.7
+        }
+      ],
+      "labels": [
+        {
+          "x": 60.0,
+          "y": 23.9,
+          "t": "H",
+          "size": 10
+        },
+        {
+          "x": 78.7,
+          "y": 34.7,
+          "t": "H",
+          "size": 10
+        },
+        {
+          "x": 78.7,
+          "y": 56.3,
+          "t": "H",
+          "size": 10
+        },
+        {
+          "x": 60.0,
+          "y": 67.1,
+          "t": "H",
+          "size": 10
+        },
+        {
+          "x": 41.3,
+          "y": 56.3,
+          "t": "H",
+          "size": 10
+        },
+        {
+          "x": 41.3,
+          "y": 34.7,
+          "t": "H",
+          "size": 10
+        }
+      ]
+    },
+    "name": "[18]annulene",
+    "large": true
+  },
+  "u2-ann-meet-flat": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 89.0,
+          "y1": 47.7,
+          "x2": 77.9,
+          "y2": 67.1,
+          "order": 2
+        },
+        {
+          "x1": 77.9,
+          "y1": 67.1,
+          "x2": 56.3,
+          "y2": 73.0
+        },
+        {
+          "x1": 56.3,
+          "y1": 73.0,
+          "x2": 36.9,
+          "y2": 61.9,
+          "order": 2
+        },
+        {
+          "x1": 36.9,
+          "y1": 61.9,
+          "x2": 31.0,
+          "y2": 40.3
+        },
+        {
+          "x1": 31.0,
+          "y1": 40.3,
+          "x2": 42.1,
+          "y2": 20.9,
+          "order": 2
+        },
+        {
+          "x1": 42.1,
+          "y1": 20.9,
+          "x2": 63.7,
+          "y2": 15.0
+        },
+        {
+          "x1": 63.7,
+          "y1": 15.0,
+          "x2": 83.1,
+          "y2": 26.1,
+          "order": 2
+        },
+        {
+          "x1": 83.1,
+          "y1": 26.1,
+          "x2": 89.0,
+          "y2": 47.7
+        }
+      ]
+    },
+    "name": "cyclooctatetraene, drawn flat",
+    "large": true
   },
   "u2-ann-cpd-gate": {
     "kind": "structure",
     "figure": {
       "bonds": [
         {
-          "x1": 79.2,
-          "y1": 65.8,
-          "x2": 47.4,
-          "y2": 69.4,
+          "x1": 75.4,
+          "y1": 61.5,
+          "x2": 50.0,
+          "y2": 64.3,
           "order": 2
         },
         {
-          "x1": 47.4,
-          "y1": 69.4,
-          "x2": 34.3,
-          "y2": 40.2
+          "x1": 50.0,
+          "y1": 64.3,
+          "x2": 39.4,
+          "y2": 40.9
         },
         {
-          "x1": 34.3,
-          "y1": 40.2,
-          "x2": 57.9,
-          "y2": 18.6
+          "x1": 39.4,
+          "y1": 40.9,
+          "x2": 58.3,
+          "y2": 23.7
         },
         {
-          "x1": 57.9,
-          "y1": 18.6,
-          "x2": 85.7,
-          "y2": 34.5,
+          "x1": 58.3,
+          "y1": 23.7,
+          "x2": 80.6,
+          "y2": 36.4,
           "order": 2
         },
         {
-          "x1": 85.7,
-          "y1": 34.5,
-          "x2": 79.2,
-          "y2": 65.8
+          "x1": 80.6,
+          "y1": 36.4,
+          "x2": 75.4,
+          "y2": 61.5
         }
       ],
       "labels": [
         {
-          "x": 85.3,
-          "y": 76.5,
+          "x": 82.8,
+          "y": 74.1,
           "t": "A",
-          "size": 10
+          "size": 13
         },
         {
-          "x": 25.5,
-          "y": 42.4,
+          "x": 28.6,
+          "y": 43.2,
           "t": "C",
-          "size": 10
+          "size": 13
         },
         {
-          "x": 56.9,
-          "y": 13.7,
+          "x": 57.1,
+          "y": 17.3,
           "t": "B",
-          "size": 10
+          "size": 13
         },
         {
-          "x": 93.9,
-          "y": 34.8,
+          "x": 90.6,
+          "y": 36.4,
           "t": "D",
-          "size": 10
+          "size": 13
         }
       ]
     },
-    "name": "cyclopenta-1,3-diene"
+    "name": "cyclopenta-1,3-diene",
+    "large": true
   },
   "u2-ann-cot": {
     "kind": "structure",
@@ -3731,7 +4242,8 @@ export const U2_VISUALS: Readonly<Record<string, McqVisual>> = {
         }
       ]
     },
-    "name": "cyclooctatetraene"
+    "name": "cyclooctatetraene",
+    "large": true
   },
   "u2-ann-10": {
     "kind": "structure",
@@ -3818,7 +4330,8 @@ export const U2_VISUALS: Readonly<Record<string, McqVisual>> = {
         }
       ]
     },
-    "name": "[10]annulene, drawn flat"
+    "name": "[10]annulene, drawn flat",
+    "large": true
   },
   "u2-ann-18": {
     "kind": "structure",
@@ -4017,7 +4530,8 @@ export const U2_VISUALS: Readonly<Record<string, McqVisual>> = {
         }
       ]
     },
-    "name": "[18]annulene"
+    "name": "[18]annulene",
+    "large": true
   },
   "u2-ann-pick-anti": {
     "kind": "structure",
@@ -4096,7 +4610,8 @@ export const U2_VISUALS: Readonly<Record<string, McqVisual>> = {
         }
       ]
     },
-    "name": "worked example: naphthalene, flat, 10 pi electrons, aromatic"
+    "name": "worked example: naphthalene, flat, 10 pi electrons, aromatic",
+    "large": true
   },
   "u2-ann-18-n": {
     "kind": "structure",
@@ -4295,7 +4810,8 @@ export const U2_VISUALS: Readonly<Record<string, McqVisual>> = {
         }
       ]
     },
-    "name": "[18]annulene"
+    "name": "[18]annulene",
+    "large": true
   },
   "u2-ann-cot-why": {
     "kind": "pair",
@@ -4403,7 +4919,8 @@ export const U2_VISUALS: Readonly<Record<string, McqVisual>> = {
         ]
       },
       "name": "benzene, flat"
-    }
+    },
+    "large": true
   },
   "u2-ann-azulene": {
     "kind": "structure",
@@ -4482,7 +4999,8 @@ export const U2_VISUALS: Readonly<Record<string, McqVisual>> = {
         }
       ]
     },
-    "name": "azulene"
+    "name": "azulene",
+    "large": true
   },
   "u2-ann-tell": {
     "kind": "structure",
@@ -4561,7 +5079,8 @@ export const U2_VISUALS: Readonly<Record<string, McqVisual>> = {
         }
       ]
     },
-    "name": "worked example: naphthalene, 10 pi electrons, n = 2"
+    "name": "worked example: naphthalene, 10 pi electrons, n = 2",
+    "large": true
   },
   "u2-ann-frost-cbd": {
     "kind": "structure",
@@ -4641,6 +5160,197 @@ export const U2_VISUALS: Readonly<Record<string, McqVisual>> = {
     },
     "name": "Frost circle for a 4 ring, empty"
   },
+  "u2-het-meet-pyridine": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 85.1,
+          "y1": 29.5,
+          "x2": 60.0,
+          "y2": 15.0,
+          "order": 2
+        },
+        {
+          "x1": 60.0,
+          "y1": 15.0,
+          "x2": 34.9,
+          "y2": 29.5
+        },
+        {
+          "x1": 34.9,
+          "y1": 29.5,
+          "x2": 34.9,
+          "y2": 52.5,
+          "order": 2
+        },
+        {
+          "x1": 40.1,
+          "y1": 61.5,
+          "x2": 60.0,
+          "y2": 73.0
+        },
+        {
+          "x1": 60.0,
+          "y1": 73.0,
+          "x2": 85.1,
+          "y2": 58.5,
+          "order": 2
+        },
+        {
+          "x1": 85.1,
+          "y1": 58.5,
+          "x2": 85.1,
+          "y2": 29.5
+        }
+      ],
+      "labels": [
+        {
+          "x": 34.9,
+          "y": 63.5,
+          "t": "N",
+          "size": 13
+        },
+        {
+          "x": 26.2,
+          "y": 67.5,
+          "t": ":",
+          "size": 13
+        }
+      ]
+    },
+    "name": "pyridine, lone pair drawn",
+    "large": true
+  },
+  "u2-het-meet-contrast": {
+    "kind": "pair",
+    "a": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 85.1,
+            "y1": 29.5,
+            "x2": 60.0,
+            "y2": 15.0,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 15.0,
+            "x2": 34.9,
+            "y2": 29.5
+          },
+          {
+            "x1": 34.9,
+            "y1": 29.5,
+            "x2": 34.9,
+            "y2": 52.5,
+            "order": 2
+          },
+          {
+            "x1": 40.1,
+            "y1": 61.5,
+            "x2": 60.0,
+            "y2": 73.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 73.0,
+            "x2": 85.1,
+            "y2": 58.5,
+            "order": 2
+          },
+          {
+            "x1": 85.1,
+            "y1": 58.5,
+            "x2": 85.1,
+            "y2": 29.5
+          }
+        ],
+        "labels": [
+          {
+            "x": 34.9,
+            "y": 63.5,
+            "t": "N",
+            "size": 13
+          },
+          {
+            "x": 26.2,
+            "y": 67.5,
+            "t": ":",
+            "size": 13
+          }
+        ]
+      },
+      "name": "pyridine"
+    },
+    "b": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 99.2,
+            "y1": 44.5,
+            "x2": 77.8,
+            "y2": 68.3,
+            "order": 2
+          },
+          {
+            "x1": 77.8,
+            "y1": 68.3,
+            "x2": 54.0,
+            "y2": 57.7
+          },
+          {
+            "x1": 49.2,
+            "y1": 49.3,
+            "x2": 51.9,
+            "y2": 23.4
+          },
+          {
+            "x1": 51.9,
+            "y1": 23.4,
+            "x2": 83.2,
+            "y2": 16.8,
+            "order": 2
+          },
+          {
+            "x1": 83.2,
+            "y1": 16.8,
+            "x2": 99.2,
+            "y2": 44.5
+          },
+          {
+            "x1": 43.3,
+            "y1": 58.2,
+            "x2": 26.0,
+            "y2": 68.2
+          }
+        ],
+        "labels": [
+          {
+            "x": 48.5,
+            "y": 60.2,
+            "t": "N",
+            "size": 13
+          },
+          {
+            "x": 49.1,
+            "y": 67.2,
+            "t": "··",
+            "size": 13
+          },
+          {
+            "x": 20.8,
+            "y": 76.2,
+            "t": "H",
+            "size": 13
+          }
+        ]
+      },
+      "name": "pyrrole"
+    },
+    "large": true
+  },
   "u2-het-pyridine-pair": {
     "kind": "structure",
     "figure": {
@@ -4700,7 +5410,8 @@ export const U2_VISUALS: Readonly<Record<string, McqVisual>> = {
         }
       ]
     },
-    "name": "pyridine, lone pair drawn"
+    "name": "pyridine, lone pair drawn",
+    "large": true
   },
   "u2-het-pyrrole-pair": {
     "kind": "structure",
@@ -4766,7 +5477,8 @@ export const U2_VISUALS: Readonly<Record<string, McqVisual>> = {
         }
       ]
     },
-    "name": "pyrrole, lone pair drawn"
+    "name": "pyrrole, lone pair drawn",
+    "large": true
   },
   "u2-het-pyrrole-count": {
     "kind": "structure",
@@ -4832,7 +5544,8 @@ export const U2_VISUALS: Readonly<Record<string, McqVisual>> = {
         }
       ]
     },
-    "name": "pyrrole"
+    "name": "pyrrole",
+    "large": true
   },
   "u2-het-furan-pairs": {
     "kind": "structure",
@@ -4892,7 +5605,8 @@ export const U2_VISUALS: Readonly<Record<string, McqVisual>> = {
         }
       ]
     },
-    "name": "furan, both pairs drawn"
+    "name": "furan, both pairs drawn",
+    "large": true
   },
   "u2-het-thiophene": {
     "kind": "structure",
@@ -4952,7 +5666,8 @@ export const U2_VISUALS: Readonly<Record<string, McqVisual>> = {
         }
       ]
     },
-    "name": "thiophene, both pairs drawn"
+    "name": "thiophene, both pairs drawn",
+    "large": true
   },
   "u2-het-imid-which": {
     "kind": "structure",
@@ -5030,109 +5745,111 @@ export const U2_VISUALS: Readonly<Record<string, McqVisual>> = {
         }
       ]
     },
-    "name": "imidazole"
+    "name": "imidazole",
+    "large": true
   },
   "u2-het-imid-base": {
     "kind": "structure",
     "figure": {
       "bonds": [
         {
-          "x1": 51.9,
-          "y1": 23.4,
-          "x2": 83.2,
-          "y2": 16.8,
+          "x1": 53.5,
+          "y1": 27.5,
+          "x2": 78.6,
+          "y2": 22.2,
           "order": 2
         },
         {
-          "x1": 83.2,
-          "y1": 16.8,
-          "x2": 96.2,
-          "y2": 39.3
+          "x1": 78.6,
+          "y1": 22.2,
+          "x2": 88.4,
+          "y2": 39.2
         },
         {
-          "x1": 95.2,
-          "y1": 49.0,
-          "x2": 77.8,
-          "y2": 68.3,
+          "x1": 87.3,
+          "y1": 48.9,
+          "x2": 74.2,
+          "y2": 63.4,
           "order": 2
         },
         {
-          "x1": 77.8,
-          "y1": 68.3,
-          "x2": 54.0,
-          "y2": 57.7
+          "x1": 74.2,
+          "y1": 63.4,
+          "x2": 56.3,
+          "y2": 55.4
         },
         {
-          "x1": 49.2,
-          "y1": 49.3,
-          "x2": 51.9,
-          "y2": 23.4
+          "x1": 51.5,
+          "y1": 47.0,
+          "x2": 53.5,
+          "y2": 27.5
         },
         {
-          "x1": 43.3,
-          "y1": 58.2,
-          "x2": 26.0,
-          "y2": 68.2
+          "x1": 45.6,
+          "y1": 56.0,
+          "x2": 33.8,
+          "y2": 62.8
         }
       ],
       "labels": [
         {
-          "x": 45.2,
-          "y": 21.4,
+          "x": 45.4,
+          "y": 24.7,
           "t": "D",
-          "size": 10
+          "size": 13
         },
         {
-          "x": 99.2,
-          "y": 49.5,
+          "x": 91.4,
+          "y": 49.4,
           "t": "N",
           "size": 13
         },
         {
-          "x": 109.1,
-          "y": 49.6,
+          "x": 101.3,
+          "y": 49.5,
           "t": ":",
           "size": 13
         },
         {
-          "x": 114.1,
-          "y": 50.1,
+          "x": 113.2,
+          "y": 51.2,
           "t": "B",
-          "size": 10
+          "size": 13
         },
         {
-          "x": 79.6,
-          "y": 81.1,
+          "x": 76.5,
+          "y": 78.7,
           "t": "C",
-          "size": 10
+          "size": 13
         },
         {
-          "x": 48.5,
-          "y": 60.2,
+          "x": 50.8,
+          "y": 58.0,
           "t": "N",
           "size": 13
         },
         {
-          "x": 49.1,
-          "y": 67.2,
+          "x": 51.3,
+          "y": 65.0,
           "t": "··",
           "size": 13
         },
         {
-          "x": 49.3,
-          "y": 74.2,
+          "x": 52.0,
+          "y": 79.5,
           "t": "A",
-          "size": 10
+          "size": 13
         },
         {
-          "x": 20.8,
-          "y": 76.2,
+          "x": 28.6,
+          "y": 70.8,
           "t": "H",
           "size": 13
         }
       ]
     },
-    "name": "imidazole, both pairs drawn"
+    "name": "imidazole, both pairs drawn",
+    "large": true
   },
   "u2-het-matched": {
     "kind": "pair",
@@ -5238,7 +5955,8 @@ export const U2_VISUALS: Readonly<Record<string, McqVisual>> = {
         ]
       },
       "name": "add H2: two sp3 carbons, not aromatic"
-    }
+    },
+    "large": true
   },
   "u2-het-dihydrofuran": {
     "kind": "pair",
@@ -5346,7 +6064,8 @@ export const U2_VISUALS: Readonly<Record<string, McqVisual>> = {
         ]
       },
       "name": "2,3-dihydrofuran"
-    }
+    },
+    "large": true
   },
   "u2-het-protonate": {
     "kind": "pair",
@@ -5474,97 +6193,257 @@ export const U2_VISUALS: Readonly<Record<string, McqVisual>> = {
         ]
       },
       "name": "pyrrole, before"
-    }
+    },
+    "large": true
   },
   "u2-het-dhp": {
     "kind": "structure",
     "figure": {
       "bonds": [
         {
-          "x1": 97.6,
-          "y1": 58.7,
-          "x2": 72.4,
-          "y2": 73.0,
+          "x1": 90.1,
+          "y1": 55.7,
+          "x2": 69.9,
+          "y2": 67.2,
           "order": 2
         },
         {
-          "x1": 72.4,
-          "y1": 73.0,
-          "x2": 52.6,
-          "y2": 61.4
+          "x1": 69.9,
+          "y1": 67.2,
+          "x2": 55.1,
+          "y2": 58.5
         },
         {
-          "x1": 47.4,
-          "y1": 52.3,
-          "x2": 47.6,
-          "y2": 29.3
+          "x1": 50.0,
+          "y1": 49.5,
+          "x2": 50.1,
+          "y2": 32.3
         },
         {
-          "x1": 47.6,
-          "y1": 29.3,
-          "x2": 72.8,
-          "y2": 15.0,
+          "x1": 50.1,
+          "y1": 32.3,
+          "x2": 70.2,
+          "y2": 20.8,
           "order": 2
         },
         {
-          "x1": 72.8,
-          "y1": 15.0,
-          "x2": 97.8,
-          "y2": 29.7
+          "x1": 70.2,
+          "y1": 20.8,
+          "x2": 90.2,
+          "y2": 32.5
         },
         {
-          "x1": 97.8,
-          "y1": 29.7,
-          "x2": 97.6,
-          "y2": 58.7
+          "x1": 90.2,
+          "y1": 32.5,
+          "x2": 90.1,
+          "y2": 55.7
         },
         {
-          "x1": 42.2,
-          "y1": 61.3,
-          "x2": 27.4,
-          "y2": 69.7
+          "x1": 44.7,
+          "y1": 58.4,
+          "x2": 35.0,
+          "y2": 64.0
         }
       ],
       "labels": [
         {
-          "x": 105.4,
-          "y": 67.2,
+          "x": 99.6,
+          "y": 65.8,
           "t": "A",
-          "size": 10
+          "size": 13
         },
         {
-          "x": 47.4,
-          "y": 63.3,
+          "x": 49.9,
+          "y": 60.5,
           "t": "N",
           "size": 13
         },
         {
-          "x": 60.4,
-          "y": 54.9,
+          "x": 63.8,
+          "y": 52.1,
           "t": "C",
-          "size": 10
+          "size": 13
         },
         {
-          "x": 39.8,
-          "y": 28.8,
+          "x": 40.6,
+          "y": 31.2,
           "t": "D",
-          "size": 10
+          "size": 13
         },
         {
-          "x": 105.6,
-          "y": 29.2,
+          "x": 99.8,
+          "y": 31.6,
           "t": "B",
-          "size": 10
+          "size": 13
         },
         {
-          "x": 22.2,
-          "y": 77.7,
+          "x": 29.8,
+          "y": 71.9,
           "t": "H",
           "size": 13
         }
       ]
     },
-    "name": "1,4-dihydropyridine"
+    "name": "1,4-dihydropyridine",
+    "large": true
+  },
+  "u2-chg-meet-anion": {
+    "kind": "pair",
+    "a": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 79.2,
+            "y1": 65.8,
+            "x2": 47.4,
+            "y2": 69.4,
+            "order": 2
+          },
+          {
+            "x1": 47.4,
+            "y1": 69.4,
+            "x2": 34.3,
+            "y2": 40.2
+          },
+          {
+            "x1": 34.3,
+            "y1": 40.2,
+            "x2": 57.9,
+            "y2": 18.6
+          },
+          {
+            "x1": 57.9,
+            "y1": 18.6,
+            "x2": 85.7,
+            "y2": 34.5,
+            "order": 2
+          },
+          {
+            "x1": 85.7,
+            "y1": 34.5,
+            "x2": 79.2,
+            "y2": 65.8
+          }
+        ]
+      },
+      "name": "cyclopentadiene"
+    },
+    "b": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 60.0,
+            "y1": 19.4,
+            "x2": 85.9,
+            "y2": 38.2
+          },
+          {
+            "x1": 85.9,
+            "y1": 38.2,
+            "x2": 76.0,
+            "y2": 68.6,
+            "order": 2
+          },
+          {
+            "x1": 76.0,
+            "y1": 68.6,
+            "x2": 44.0,
+            "y2": 68.6
+          },
+          {
+            "x1": 44.0,
+            "y1": 68.6,
+            "x2": 34.1,
+            "y2": 38.2,
+            "order": 2
+          },
+          {
+            "x1": 34.1,
+            "y1": 38.2,
+            "x2": 60.0,
+            "y2": 19.4
+          }
+        ],
+        "labels": [
+          {
+            "x": 64.2,
+            "y": 17.1,
+            "t": "−",
+            "size": 15
+          },
+          {
+            "x": 55.8,
+            "y": 17.5,
+            "t": "··",
+            "size": 14
+          }
+        ]
+      },
+      "name": "cyclopentadienyl anion"
+    },
+    "large": true
+  },
+  "u2-chg-meet-cation": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 60.0,
+          "y1": 15.0,
+          "x2": 36.1,
+          "y2": 26.5
+        },
+        {
+          "x1": 36.1,
+          "y1": 26.5,
+          "x2": 30.3,
+          "y2": 52.3,
+          "order": 2
+        },
+        {
+          "x1": 30.3,
+          "y1": 52.3,
+          "x2": 46.8,
+          "y2": 73.0
+        },
+        {
+          "x1": 46.8,
+          "y1": 73.0,
+          "x2": 73.2,
+          "y2": 73.0,
+          "order": 2
+        },
+        {
+          "x1": 73.2,
+          "y1": 73.0,
+          "x2": 89.7,
+          "y2": 52.3
+        },
+        {
+          "x1": 89.7,
+          "y1": 52.3,
+          "x2": 83.9,
+          "y2": 26.5,
+          "order": 2
+        },
+        {
+          "x1": 83.9,
+          "y1": 26.5,
+          "x2": 60.0,
+          "y2": 15.0
+        }
+      ],
+      "labels": [
+        {
+          "x": 64.2,
+          "y": 12.7,
+          "t": "+",
+          "size": 15
+        }
+      ]
+    },
+    "name": "cycloheptatrienyl cation",
+    "large": true
   },
   "u2-chg-cp-anion": {
     "kind": "structure",
@@ -5618,7 +6497,8 @@ export const U2_VISUALS: Readonly<Record<string, McqVisual>> = {
         }
       ]
     },
-    "name": "cyclopentadienyl anion"
+    "name": "cyclopentadienyl anion",
+    "large": true
   },
   "u2-chg-cp-cation": {
     "kind": "structure",
@@ -5666,7 +6546,8 @@ export const U2_VISUALS: Readonly<Record<string, McqVisual>> = {
         }
       ]
     },
-    "name": "cyclopentadienyl cation"
+    "name": "cyclopentadienyl cation",
+    "large": true
   },
   "u2-chg-tropylium": {
     "kind": "structure",
@@ -5727,7 +6608,8 @@ export const U2_VISUALS: Readonly<Record<string, McqVisual>> = {
         }
       ]
     },
-    "name": "cycloheptatrienyl cation"
+    "name": "cycloheptatrienyl cation",
+    "large": true
   },
   "u2-chg-c7-anion": {
     "kind": "structure",
@@ -5794,7 +6676,8 @@ export const U2_VISUALS: Readonly<Record<string, McqVisual>> = {
         }
       ]
     },
-    "name": "cycloheptatrienyl anion"
+    "name": "cycloheptatrienyl anion",
+    "large": true
   },
   "u2-chg-c3-cation": {
     "kind": "structure",
@@ -5829,7 +6712,8 @@ export const U2_VISUALS: Readonly<Record<string, McqVisual>> = {
         }
       ]
     },
-    "name": "cyclopropenyl cation"
+    "name": "cyclopropenyl cation",
+    "large": true
   },
   "u2-chg-c3-anion": {
     "kind": "structure",
@@ -5870,7 +6754,8 @@ export const U2_VISUALS: Readonly<Record<string, McqVisual>> = {
         }
       ]
     },
-    "name": "cyclopropenyl anion"
+    "name": "cyclopropenyl anion",
+    "large": true
   },
   "u2-chg-frost-cp": {
     "kind": "structure",
@@ -6222,7 +7107,8 @@ export const U2_VISUALS: Readonly<Record<string, McqVisual>> = {
         ]
       },
       "name": "its conjugate base"
-    }
+    },
+    "large": true
   },
   "u2-nmr-meet-downfield": {
     "kind": "structure",
@@ -6269,7 +7155,8 @@ export const U2_VISUALS: Readonly<Record<string, McqVisual>> = {
         }
       ]
     },
-    "name": "benzene: H around the edge"
+    "name": "benzene: H around the edge",
+    "large": true
   },
   "u2-nmr-meet-inner": {
     "kind": "structure",
@@ -6500,7 +7387,8 @@ export const U2_VISUALS: Readonly<Record<string, McqVisual>> = {
         }
       ]
     },
-    "name": "[18]annulene, inner H circled"
+    "name": "[18]annulene, inner H circled",
+    "large": true
   },
   "u2-nmr-shielded": {
     "kind": "structure",
@@ -6690,7 +7578,8 @@ export const U2_VISUALS: Readonly<Record<string, McqVisual>> = {
         ]
       },
       "name": "benzene"
-    }
+    },
+    "large": true
   },
   "u2-nom-xylene": {
     "kind": "structure",

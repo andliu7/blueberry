@@ -43,7 +43,7 @@ Where they part, the item was still built from the counter and its provenance sa
 
 | species | planar | reason | class with the call | class if flat | items |
 |---|---|---|---|---|---|
-| cot | False | tub: a flat octagon needs 135 degree angles, so the ring folds | nonaromatic | antiaromatic | u2-ann-cot, u2-ann-cot-why, u2-ann-match, u2-ann-pick-anti, u2-huckel-match, u2-huckel-n-cot, u2-nmr-cot |
+| cot | False | tub: a flat octagon needs 135 degree angles, so the ring folds | nonaromatic | antiaromatic | u2-ann-cot, u2-ann-cot-why, u2-ann-match, u2-ann-meet-flat, u2-ann-pick-anti, u2-huckel-match, u2-huckel-n-cot, u2-nmr-cot |
 | ann10 | False | inner H clash: flat [10]annulene puts two inside H atoms on top of each other, so it twists | nonaromatic | aromatic | u2-ann-10 |
 
 Planarity authored as True but load bearing (a flat call that makes the class antiaromatic or aromatic):
@@ -52,7 +52,7 @@ Planarity authored as True but load bearing (a flat call that makes the class an
 - cp_cation: taught as a flat pentagon (antiaromatic). Items: u2-ann-ladder-cation, u2-chg-cp-cation, u2-chg-frost-cp
 - c3_anion: a triangle is always flat (antiaromatic). Items: u2-chg-c3-anion, u2-chg-ladder-acid, u2-chg-ladder-anion
 - c7_anion: taught as flat; the real anion may distort to escape antiaromaticity (antiaromatic). Items: u2-chg-acid-pick, u2-chg-c7-anion
-- ann18: large enough to hold its six inner H without a clash (aromatic). Items: u2-ann-18, u2-ann-18-n, u2-ann-match, u2-ann-tell, u2-nmr-match, u2-nmr-meet-inner, u2-nmr-shielded
+- ann18: large enough to hold its six inner H without a clash (aromatic). Items: u2-ann-18, u2-ann-18-n, u2-ann-match, u2-ann-meet-size, u2-ann-tell, u2-nmr-match, u2-nmr-meet-inner, u2-nmr-shielded
 
 ## 4. Items marked NEEDS OWNER RULING
 

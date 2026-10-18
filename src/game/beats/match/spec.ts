@@ -70,6 +70,7 @@ import {
   type MatchBeat,
   type NodeId,
 } from "../types";
+import type { Figure } from "../../onboarding/figures";
 
 /**
  * The longest a card's own text may be before it stops reading as a pill.
@@ -135,6 +136,10 @@ export interface MatchBoardSpec {
   readonly whyByDecoy: Readonly<Record<OptionId, string>>;
   /** Target option ids that pair with nothing at this level. */
   readonly decoyTargetIds: readonly OptionId[];
+  /** The drawn molecule of a prompt card, keyed by PROMPT option id. Absent for text-only boards. */
+  readonly figureByPrompt?: Readonly<Record<OptionId, Figure>>;
+  /** The authored chemistry nudge for a prompt card, keyed by PROMPT option id (reasons.ts tier 3). */
+  readonly hintByPrompt?: Readonly<Record<OptionId, string>>;
 }
 
 /**
@@ -261,10 +266,14 @@ export function buildMatchBoard(beat: MatchBeat, level: MasteryLevel): MatchBoar
   const text: Record<OptionId, string> = {};
   const whyByPrompt: Record<OptionId, string> = {};
   const whyByDecoy: Record<OptionId, string> = {};
+  const figureByPrompt: Record<OptionId, Figure> = {};
+  const hintByPrompt: Record<OptionId, string> = {};
   for (const pair of beat.pairs) {
     text[promptIdFor(pair.id)] = pair.left;
     text[targetIdFor(pair.id)] = pair.right;
     if (pair.why !== undefined) whyByPrompt[promptIdFor(pair.id)] = pair.why;
+    if (pair.leftFigure !== undefined) figureByPrompt[promptIdFor(pair.id)] = pair.leftFigure;
+    if (pair.hint !== undefined) hintByPrompt[promptIdFor(pair.id)] = pair.hint;
   }
   for (const decoy of decoys) {
     text[targetIdFor(decoy.id)] = decoy.text;
@@ -283,6 +292,8 @@ export function buildMatchBoard(beat: MatchBeat, level: MasteryLevel): MatchBoar
     whyByPrompt: Object.freeze(whyByPrompt),
     whyByDecoy: Object.freeze(whyByDecoy),
     decoyTargetIds: Object.freeze(decoys.map((decoy) => targetIdFor(decoy.id))),
+    ...(Object.keys(figureByPrompt).length > 0 ? { figureByPrompt: Object.freeze(figureByPrompt) } : {}),
+    ...(Object.keys(hintByPrompt).length > 0 ? { hintByPrompt: Object.freeze(hintByPrompt) } : {}),
   });
 }
 

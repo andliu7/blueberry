@@ -24,6 +24,9 @@
   color: var(--bb-muted-foreground);
   font-size: var(--text-scale-sm, 0.875rem);
 }
+.draw-beat__how {
+  font-size: var(--text-scale-xs, 0.75rem);
+}
 
 /* The editor box: a fixed height so the screen never jumps when Ketcher
    finishes loading, white because the editor's own toolbars are drawn for
@@ -31,14 +34,18 @@
 .draw-beat__canvas {
   position: relative;
   /* Shorter on a short phone so CHECK stays on screen with the scheme above. */
-  height: clamp(300px, 44vh, 400px);
+  height: clamp(320px, 50vh, 460px);
   overflow: hidden;
   border: 2px solid var(--btn-line, var(--bb-border));
   border-radius: 16px;
   background: #ffffff;
+  /* A column: the tool row on top (DrawEditor.tsx), the board takes the rest. */
+  display: flex;
+  flex-direction: column;
 }
 .draw-beat__editor {
-  height: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
   width: 100%;
 }
 .draw-beat__wait {
@@ -70,28 +77,105 @@
   color: var(--bb-foreground);
 }
 
-/* The right structure, drawn inside the red tray after a miss. A white card
-   so the black bonds read on the tray in both themes. */
-.draw-beat__answer {
+/* The starting materials. The scheme card's figures are capped at 4.5rem for
+   MCQs; here they are the whole question, so they get more room, and two
+   reactants read as a reaction: A + B -> ?. */
+@media (min-width: 640px) {
+  .draw-beat .scheme__figure {
+    max-height: clamp(4.5rem, 13vh, 8rem);
+  }
+}
+.draw-beat__plus,
+.draw-beat__arrow {
+  flex: none;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--bb-muted-foreground);
+}
+.draw-beat__slot {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 2px dashed var(--btn-line, var(--bb-border));
+  border-radius: 12px;
+  font-weight: 800;
+  color: var(--bb-muted-foreground);
+}
+
+/* File, clipboard, image and layout buttons on Ketcher's bars. Its `buttons`
+   setting (DrawEditor.tsx) cannot hide these, and a student drawing one
+   product needs none of them; hiding them is what keeps CLEAR, UNDO and REDO
+   on screen at 390px. Clear, undo, redo, zoom and the ring templates stay. */
+.draw-beat__canvas [data-testid="open-file-button"],
+.draw-beat__canvas [data-testid="save-file-button"],
+.draw-beat__canvas [data-testid="copy-button"],
+.draw-beat__canvas [data-testid="copy-button-dropdown-triangle"],
+.draw-beat__canvas [data-testid="paste-button"],
+.draw-beat__canvas [data-testid="cut-button"],
+.draw-beat__canvas [data-testid="Layout button"],
+.draw-beat__canvas [data-testid="images"],
+.draw-beat__canvas [data-testid="template-lib"],
+.draw-beat__canvas [data-testid="any-atom"],
+.draw-beat__canvas [data-testid="extended-table"] {
+  display: none !important;
+}
+
+/* "Show me": the quieter key beside TRY AGAIN, the same pill the trainer's
+   Undo and Replay use (TrainerScreen.tsx). */
+.draw-beat__showme {
+  border: 2px solid var(--bb-border);
+  border-radius: 999px;
+  background: var(--bb-card);
+  color: var(--bb-foreground);
+  padding: 0.375rem 1rem;
+  font-weight: 700;
+  font-size: var(--text-scale-sm, 0.875rem);
+}
+.draw-beat__look {
+  font-weight: 700;
+}
+
+/* Their drawing and the answer, side by side in the tray after a reveal.
+   White cards so the black bonds read on the red tray in both themes. */
+.draw-beat__compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin: 0.25rem 0 0.5rem;
+}
+.draw-beat__card {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: space-between;
   gap: 0.25rem;
-  margin: 0.25rem 0 0.5rem;
+  margin: 0;
   padding: 0.5rem;
   border-radius: 12px;
   background: #ffffff;
   color: #1f2937;
-}
-/* Small enough that the tray leaves the student's own drawing in view above it. */
-.draw-beat__answer-figure {
-  width: auto;
-  max-width: 180px;
-  height: 104px;
-}
-.draw-beat__answer-name {
   font-size: 0.8125rem;
   font-weight: 700;
+  text-align: center;
+}
+.draw-beat__card--answer {
+  outline: 3px solid var(--good, #58a700);
+}
+.draw-beat__mine,
+.draw-beat__answer-figure {
+  width: 100%;
+  max-width: 200px;
+  height: 110px;
+  object-fit: contain;
+}
+.draw-beat__card-empty {
+  display: grid;
+  place-items: center;
+  height: 96px;
+  color: #6b7280;
 }
 
 /* The answer tray docks in the footer's slot with the footer's own sticky
@@ -102,4 +186,63 @@
   bottom: calc(-1 * var(--stage-pad, 1rem));
   margin-bottom: calc(-1 * var(--stage-pad, 1rem));
   margin-top: auto;
+}
+
+/* The lesson's keypad above the board (DrawEditor.tsx): two rows of the
+   shared 3D keys, bonds and the ring on top, atoms, charges, undo and clear
+   below. Each row is one grid line, so six or seven keys share the width. */
+.draw-beat__tools {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  padding: 0.375rem;
+  background: var(--bb-card);
+  border-bottom: 2px solid var(--btn-line, var(--bb-border));
+}
+.draw-beat__tool-row {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 0.25rem;
+}
+.draw-beat__tool.btn3d {
+  min-width: 0;
+  min-height: 2.5rem;
+  padding: 0;
+  text-transform: none;
+  font-size: 0.9375rem;
+  font-weight: 800;
+}
+.draw-beat__tool[data-tool="erase"],
+.draw-beat__tool[data-tool="undo"],
+.draw-beat__tool[data-tool="clear"] {
+  font-size: 0.75rem;
+}
+.draw-beat__tool svg {
+  display: block;
+  margin: auto;
+}
+
+/* ALL of Ketcher's own chrome is hidden (round 4): the keypad above replaces
+   it, and the board gets the whole box. Hidden, not removed: the keypad
+   presses these buttons. Ketcher lays its app out as a 3x3 grid with the
+   toolbars round the canvas; collapsing the outer tracks gives the canvas
+   every pixel. Its class names are hashed, hence the prefix match. */
+.draw-beat__canvas [data-testid="top-toolbar"],
+.draw-beat__canvas [data-testid="left-toolbar"],
+.draw-beat__canvas [data-testid="bottom-toolbar"],
+.draw-beat__canvas [data-testid="right-toolbar"] {
+  display: none !important;
+}
+.draw-beat__editor [class*="App-module_app__"] {
+  grid-template-columns: 0 1fr 0 !important;
+  grid-template-rows: 0 1fr 0 !important;
+}
+
+/* A first miss scrolls the board up to just above the tray (DrawBeatView.tsx),
+   so the student can see the drawing the tray is about. This room below is
+   what lets the page scroll that far; it stays under the tray. */
+.draw-beat[data-draw-phase="retry"] {
+  padding-bottom: 50vh;
 }

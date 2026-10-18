@@ -19,6 +19,8 @@
 
 import type { NodeKind as EconomyNodeKind } from "@blueberry/economy";
 import { lessonTrainerFor } from "../content/u1/lessonTrainers";
+// Unit 0 is its own unit, not in PATHWAY_UNITS (see content/u0/story.ts); story.ts imports only types from here.
+import { storyNode } from "../content/u0/story";
 
 export type NodeKind = "spine" | "branch" | "gate" | "boss";
 
@@ -67,6 +69,8 @@ export interface PathwayNode {
    * node is a stage checkpoint on the main line. A stage quiz is never
    * `kind: "gate"`: the unit's one gate is its synthetic checkpoint
    * (unitCheckpointNode below). Unset on every unit not yet rebuilt.
+   * `lesson` says outright what unset means: the plain seven-slot lesson,
+   * no explainer first (Unit 0's chapter lessons, content/u0/story.ts).
    */
   readonly role?: NodeRole;
   /** The explainer's planned length in minutes, for a `video` node that has one set. */
@@ -75,7 +79,7 @@ export interface PathwayNode {
   readonly backgroundTopics?: readonly BackgroundTopic[];
 }
 
-export type NodeRole = "video" | "practice" | "quiz";
+export type NodeRole = "video" | "practice" | "quiz" | "lesson";
 
 /**
  * One short background clip, owner 2026-09-29: the guidebook's fourth part.
@@ -176,21 +180,25 @@ export const PATHWAY_UNITS: readonly PathwayUnit[] = [
   {
     id: "u2",
     title: "Unit 2 · Aromaticity & Benzene",
-    // A lesson unit since the draft (2026-10-17), owner direction "complete like Unit 1": the old note called it a checkpoint quiz.
+    // Draft content since 2026-10-17 (owner: "complete like Unit 1"), so the note names the topics; the old note called it a checkpoint quiz.
     note: "Aromaticity: the four Hückel tests, then charged rings, annulenes and heterocycles. Unlocks Unit 3.",
     // The u2 checkpoint plays an exam pool (beats/practice/pools.ts), so it says so, as Unit 1's does. Draft copy.
-    examBlurb: "The unit exam: Hückel, charged rings, annulenes, heterocycles and ring-current NMR, in turn. Three in a row passes it.",
+    // Round 3: the checkpoint plays as a whole exam (pools.ts isExamRun), so the blurb says that rule, not "three in a row".
+    examBlurb: "The unit exam: every question once, Hückel, charged rings, annulenes, heterocycles and ring-current NMR mixed. 80% right first time passes it.",
     nodes: [
-      // Unit 2 DRAFT, round 2 (2026-10-17). SPINE, not gate: an all-gate unit draws as a checkpoint (unitShape.ts
-      // isCheckpointUnit), so its lessons showed as timed check questions that opened only with the unit before it.
-      // Spine makes them a main line that opens one lesson at a time, like Unit 1. This moves reactions.test.ts's
-      // inventory pin from 100 spine to 105, which is the owner's to confirm (one word per row to revert).
+      // Unit 2 DRAFT (2026-10-17). KIND STAYS "gate", as briefed: spine would move the owner's inventory pin in
+      // reactions.test.ts (100 spine). An all-gate unit is a checkpoint unit (unitShape.ts isCheckpointUnit), so these
+      // playable gates draw as the gate run before the unit check. Whether Unit 2 becomes a spine lesson unit is the owner's call.
+      // Each row gets a role and its own beat so it plays end to end.
+      // Round 4: charged, annulene and hetero are role "video" (a lesson that opens on worked examples, as u1's video
+      // nodes do), not "practice": the owner's 2026-10-17 rule is that every lesson node plays the seven-slot lesson,
+      // and the in-a-row run hid their last items from a clean run. Nomenclature stays the unit's in-a-row problem set.
       // Charged rings come before annulenes because u2-ann-ladder-cation and u2-ann-azulene lean on charged rings.
-      { id: "u2-huckel", kind: "spine", role: "video", title: "Hückel 4n+2 classification", blurb: "Aromatic vs antiaromatic vs nonaromatic.", playable: { kind: "beat", id: "u2-huckel" } },
-      { id: "u2-charged", kind: "spine", role: "practice", title: "Charged aromatics", blurb: "Cyclopentadienyl anion, tropylium cation.", playable: { kind: "beat", id: "u2-charged" } },
-      { id: "u2-annulene", kind: "spine", role: "practice", title: "Annulenes and ring size", blurb: "Why cyclooctatetraene tubs out.", playable: { kind: "beat", id: "u2-annulene" } },
-      { id: "u2-hetero", kind: "spine", role: "practice", title: "Heterocycles", blurb: "Pyridine's lone pair sits out; pyrrole's joins in.", playable: { kind: "beat", id: "u2-hetero" } },
-      { id: "u2-nmr", kind: "spine", role: "video", title: "Ring-current NMR signature", blurb: "Deshields outside, shields inside. Links to Unit 6.", playable: { kind: "beat", id: "u2-nmr" } },
+      { id: "u2-huckel", kind: "gate", role: "video", title: "Hückel 4n+2 classification", blurb: "Aromatic vs antiaromatic vs nonaromatic.", playable: { kind: "beat", id: "u2-huckel" } },
+      { id: "u2-charged", kind: "gate", role: "video", title: "Charged aromatics", blurb: "Cyclopentadienyl anion, tropylium cation.", playable: { kind: "beat", id: "u2-charged" } },
+      { id: "u2-annulene", kind: "gate", role: "video", title: "Annulenes and ring size", blurb: "Why cyclooctatetraene tubs out.", playable: { kind: "beat", id: "u2-annulene" } },
+      { id: "u2-hetero", kind: "gate", role: "video", title: "Heterocycles", blurb: "Pyridine's lone pair sits out; pyrrole's joins in.", playable: { kind: "beat", id: "u2-hetero" } },
+      { id: "u2-nmr", kind: "gate", role: "video", title: "Ring-current NMR signature", blurb: "Deshields outside, shields inside. Links to Unit 6.", playable: { kind: "beat", id: "u2-nmr" } },
       // A side quest off the first lesson: naming benzene rings needs only what Hückel teaches, not the NMR lesson.
       { id: "u2-nomen", kind: "branch", role: "practice", title: "Nomenclature review", blurb: "o/m/p, common names, polycyclics.", playable: { kind: "beat", id: "u2-nomen" }, after: ["u2-huckel"] },
     ],
@@ -298,14 +306,15 @@ export const PATHWAY_UNITS: readonly PathwayUnit[] = [
       { id: "u7-12v14", kind: "spine", title: "1,2 vs 1,4 selectivity on enones", blurb: "Hard 1,2, soft 1,4; the node Unit 9 depends on.", playable: { kind: "reaction", id: "grignard-12" } },
       { id: "u7-to-ch2", kind: "spine", title: "Reduction to CH₂", blurb: "Clemmensen, Wolff–Kishner, thioacetal/Raney Ni.", playable: { kind: "reaction", id: "wolff-extrusion" } },
       { id: "u7-cyanohydrin", kind: "branch", title: "Cyanohydrin formation", blurb: "Adds one carbon; nitrile handle for Unit 8.", playable: { kind: "reaction", id: "cyanohydrin" } },
+      // Unit 7 side quests with a DRAFT pool (scripts/u7_pools.py) play their lesson on the beat route beside the lesson they lean on (`after`), at most two per lesson. u7-bisulfite has none (see the u7 owner report).
       { id: "u7-bisulfite", kind: "branch", title: "Bisulfite adduct", blurb: "Purification trick, reversible." },
-      { id: "u7-thioacetal", kind: "branch", title: "Thioacetal", blurb: "Then Raney Ni desulfurizes." },
-      { id: "u7-derivative-tests", kind: "branch", title: "Carbonyl derivative tests", blurb: "Oxime, hydrazone, 2,4-DNP, semicarbazone." },
-      { id: "u7-hwe", kind: "branch", title: "Horner–Wadsworth–Emmons", blurb: "E-enoate selectively." },
-      { id: "u7-bv", kind: "branch", title: "Baeyer–Villiger", blurb: "Migratory aptitude 3° > 2° ≈ Ar > 1° > Me." },
-      { id: "u7-ald-to-acid", kind: "branch", title: "Aldehyde → carboxylic acid", blurb: "Tollens, Jones, and the tests." },
-      { id: "u7-cannizzaro", kind: "branch", title: "Cannizzaro", blurb: "No-α-H aldehyde disproportionates." },
-      { id: "u7-mpv", kind: "branch", title: "Meerwein–Ponndorf–Verley", blurb: "Reversible with Oppenauer." },
+      { id: "u7-thioacetal", kind: "branch", title: "Thioacetal", blurb: "Then Raney Ni desulfurizes.", playable: { kind: "beat", id: "u7-thioacetal" }, after: ["u7-acetal"] },
+      { id: "u7-derivative-tests", kind: "branch", title: "Carbonyl derivative tests", blurb: "Oxime, hydrazone, 2,4-DNP, semicarbazone.", playable: { kind: "beat", id: "u7-derivative-tests" }, after: ["u7-imine"] },
+      { id: "u7-hwe", kind: "branch", title: "Horner–Wadsworth–Emmons", blurb: "E-enoate selectively.", playable: { kind: "beat", id: "u7-hwe" }, after: ["u7-wittig"] },
+      { id: "u7-bv", kind: "branch", title: "Baeyer–Villiger", blurb: "Migratory aptitude 3° > 2° ≈ Ar > 1° > Me.", playable: { kind: "beat", id: "u7-bv" }, after: ["u7-mechanism"] },
+      { id: "u7-ald-to-acid", kind: "branch", title: "Aldehyde → carboxylic acid", blurb: "Tollens, Jones, and the tests.", playable: { kind: "beat", id: "u7-ald-to-acid" }, after: ["u7-hydration"] },
+      { id: "u7-cannizzaro", kind: "branch", title: "Cannizzaro", blurb: "No-α-H aldehyde disproportionates.", playable: { kind: "beat", id: "u7-cannizzaro" }, after: ["u7-hydride"] },
+      { id: "u7-mpv", kind: "branch", title: "Meerwein–Ponndorf–Verley", blurb: "Reversible with Oppenauer.", playable: { kind: "beat", id: "u7-mpv" }, after: ["u7-hydride"] },
     ],
   },
   {
@@ -329,14 +338,15 @@ export const PATHWAY_UNITS: readonly PathwayUnit[] = [
       { id: "u8-organomet", kind: "spine", title: "Organometallics on derivatives", blurb: "Two additions on esters; over-addition unavoidable.", playable: { kind: "sequence", id: "seq-grignard-ester" } },
       { id: "u8-gilman", kind: "spine", title: "Gilman + acyl chloride", blurb: "Stops cleanly at the ketone.", playable: { kind: "sequence", id: "seq-gilman" } },
       { id: "u8-decarb", kind: "spine", title: "Decarboxylation", blurb: "β-keto acids, 6-membered TS. Load-bearing for Unit 9.", playable: { kind: "reaction", id: "decarboxylation" } },
-      { id: "u8-steglich", kind: "branch", title: "Steglich esterification", blurb: "DCC/DMAP; returns for peptides." },
-      { id: "u8-diazomethane", kind: "branch", title: "Diazomethane methylation", blurb: "Quantitative and explosive." },
-      { id: "u8-carboxylate-alk", kind: "branch", title: "Carboxylate alkylation", blurb: "SN2, 1° halides only." },
-      { id: "u8-weinreb", kind: "branch", title: "Weinreb amide", blurb: "The chelate stops over-addition." },
-      { id: "u8-nabh4", kind: "branch", title: "NaBH₄ on derivatives", blurb: "Chemoselectivity node." },
-      { id: "u8-hvz", kind: "branch", title: "Hell–Volhard–Zelinsky", blurb: "α-bromo acid; mechanistically Unit 9." },
-      { id: "u8-kolbe-e", kind: "branch", title: "Kolbe electrolysis", blurb: "Radical dimerization." },
-      { id: "u8-hunsdiecker", kind: "branch", title: "Hunsdiecker", blurb: "One carbon shorter." },
+      // Unit 8 side quests with a DRAFT pool (scripts/u8_pools.py) play their lesson on the beat route beside the lesson they lean on (`after`), at most two per lesson.
+      { id: "u8-steglich", kind: "branch", title: "Steglich esterification", blurb: "DCC/DMAP; returns for peptides.", playable: { kind: "beat", id: "u8-steglich" }, after: ["u8-fischer"] },
+      { id: "u8-diazomethane", kind: "branch", title: "Diazomethane methylation", blurb: "Quantitative and explosive.", playable: { kind: "beat", id: "u8-diazomethane" }, after: ["u8-fischer"] },
+      { id: "u8-carboxylate-alk", kind: "branch", title: "Carboxylate alkylation", blurb: "SN2, 1° halides only.", playable: { kind: "beat", id: "u8-carboxylate-alk" }, after: ["u8-transester"] },
+      { id: "u8-weinreb", kind: "branch", title: "Weinreb amide", blurb: "The chelate stops over-addition.", playable: { kind: "beat", id: "u8-weinreb" }, after: ["u8-organomet"] },
+      { id: "u8-nabh4", kind: "branch", title: "NaBH₄ on derivatives", blurb: "Chemoselectivity node.", playable: { kind: "beat", id: "u8-nabh4" }, after: ["u8-lialh4"] },
+      { id: "u8-hvz", kind: "branch", title: "Hell–Volhard–Zelinsky", blurb: "α-bromo acid; mechanistically Unit 9.", playable: { kind: "beat", id: "u8-hvz" }, after: ["u8-to-acylcl"] },
+      { id: "u8-kolbe-e", kind: "branch", title: "Kolbe electrolysis", blurb: "Radical dimerization.", playable: { kind: "beat", id: "u8-kolbe-e" }, after: ["u8-decarb"] },
+      { id: "u8-hunsdiecker", kind: "branch", title: "Hunsdiecker", blurb: "One carbon shorter.", playable: { kind: "beat", id: "u8-hunsdiecker" }, after: ["u8-decarb"] },
     ],
   },
   {
@@ -364,12 +374,12 @@ export const PATHWAY_UNITS: readonly PathwayUnit[] = [
       { id: "u9-cuprate", kind: "spine", title: "9c · Conjugate organocuprate", blurb: "Unstabilized alkyl delivered 1,4.", playable: { kind: "sequence", id: "seq-gilman-enone" } },
       { id: "u9-robinson", kind: "spine", title: "9c · Robinson annulation", blurb: "Michael then intramolecular aldol condensation.", playable: { kind: "sequence", id: "seq-robinson" } },
       { id: "u9-retro", kind: "spine", title: "9c · Retrosynthetic C–C disconnection", blurb: "The skill the whole unit builds.", playable: { kind: "beat", id: "u9-retro" } },
-      { id: "u9-haloform", kind: "branch", title: "Haloform reaction", blurb: "Iodoform and its yellow precipitate." },
-      { id: "u9-stork", kind: "branch", title: "Stork enamine alkylation", blurb: "Softer alternative to enolate alkylation." },
-      { id: "u9-mannich", kind: "branch", title: "Mannich reaction", blurb: "β-amino carbonyl; biosynthesis relevance." },
-      { id: "u9-knoevenagel", kind: "branch", title: "Knoevenagel", blurb: "Aldol condensation with a stabilized donor." },
-      { id: "u9-reformatsky", kind: "branch", title: "Reformatsky", blurb: "Zinc enolate, mild enough not to self-condense." },
-      { id: "u9-directed", kind: "branch", title: "Directed aldol at low temperature", blurb: "LDA at –78 °C, then the electrophile." },
+      { id: "u9-haloform", kind: "branch", title: "Haloform reaction", blurb: "Iodoform and its yellow precipitate.", playable: { kind: "beat", id: "u9-haloform" }, after: ["u9-halo-base"] },
+      { id: "u9-stork", kind: "branch", title: "Stork enamine alkylation", blurb: "Softer alternative to enolate alkylation.", playable: { kind: "beat", id: "u9-stork" }, after: ["u9-alkylation"] },
+      { id: "u9-mannich", kind: "branch", title: "Mannich reaction", blurb: "β-amino carbonyl; biosynthesis relevance.", playable: { kind: "beat", id: "u9-mannich" }, after: ["u9-aldol"] },
+      { id: "u9-knoevenagel", kind: "branch", title: "Knoevenagel", blurb: "Aldol condensation with a stabilized donor.", playable: { kind: "beat", id: "u9-knoevenagel" }, after: ["u9-aldol-cond"] },
+      { id: "u9-reformatsky", kind: "branch", title: "Reformatsky", blurb: "Zinc enolate, mild enough not to self-condense.", playable: { kind: "beat", id: "u9-reformatsky" }, after: ["u9-claisen"] },
+      { id: "u9-directed", kind: "branch", title: "Directed aldol at low temperature", blurb: "LDA at –78 °C, then the electrophile.", playable: { kind: "beat", id: "u9-directed" }, after: ["u9-crossed"] },
     ],
   },
   {
@@ -385,14 +395,14 @@ export const PATHWAY_UNITS: readonly PathwayUnit[] = [
       { id: "u10-diazonium", kind: "spine", title: "Diazonium formation", blurb: "NaNO₂/HCl at 0–5 °C, no negotiation on temperature.", playable: { kind: "reaction", id: "diazonium-first" } },
       { id: "u10-diazo-sub", kind: "spine", title: "Diazonium substitution", blurb: "Sandmeyer and friends; NH₂ as a temporary director.", playable: { kind: "sequence", id: "seq-diazo-sub" } },
       { id: "u10-acyl-protect", kind: "spine", title: "Amine acylation as protection", blurb: "Ac₂O moderates aniline for controlled EAS.", playable: { kind: "sequence", id: "seq-anhydride" } },
-      { id: "u10-direct-alk", kind: "branch", title: "Direct alkylation of ammonia", blurb: "The over-alkylation failure mode." },
-      { id: "u10-gabriel", kind: "branch", title: "Gabriel synthesis", blurb: "Phthalimide route to pure 1° amines." },
-      { id: "u10-azide", kind: "branch", title: "Azide route", blurb: "R–N₃ then reduce; cleanest 1° amine." },
-      { id: "u10-hofmann-r", kind: "branch", title: "Hofmann rearrangement", blurb: "Amide to amine, one carbon shorter." },
-      { id: "u10-curtius", kind: "branch", title: "Curtius rearrangement", blurb: "Acyl azide → isocyanate → amine." },
-      { id: "u10-hofmann-e", kind: "branch", title: "Hofmann elimination", blurb: "Exhaustive methylation → anti-Zaitsev alkene." },
-      { id: "u10-cope", kind: "branch", title: "Cope elimination", blurb: "Amine oxide, syn, intramolecular." },
-      { id: "u10-azo", kind: "branch", title: "Azo coupling", blurb: "Diazonium as the EAS electrophile: dyes." },
+      { id: "u10-direct-alk", kind: "branch", title: "Direct alkylation of ammonia", blurb: "The over-alkylation failure mode.", playable: { kind: "beat", id: "u10-direct-alk" }, after: ["u10-basicity"] },
+      { id: "u10-gabriel", kind: "branch", title: "Gabriel synthesis", blurb: "Phthalimide route to pure 1° amines.", playable: { kind: "beat", id: "u10-gabriel" }, after: ["u10-basicity"] },
+      { id: "u10-azide", kind: "branch", title: "Azide route", blurb: "R–N₃ then reduce; cleanest 1° amine.", playable: { kind: "beat", id: "u10-azide" }, after: ["u10-nitrile-red"] },
+      { id: "u10-hofmann-r", kind: "branch", title: "Hofmann rearrangement", blurb: "Amide to amine, one carbon shorter.", playable: { kind: "beat", id: "u10-hofmann-r" }, after: ["u10-amide-red"] },
+      { id: "u10-curtius", kind: "branch", title: "Curtius rearrangement", blurb: "Acyl azide → isocyanate → amine.", playable: { kind: "beat", id: "u10-curtius" }, after: ["u10-amide-red"] },
+      { id: "u10-hofmann-e", kind: "branch", title: "Hofmann elimination", blurb: "Exhaustive methylation → anti-Zaitsev alkene.", playable: { kind: "beat", id: "u10-hofmann-e" }, after: ["u10-red-amination"] },
+      { id: "u10-cope", kind: "branch", title: "Cope elimination", blurb: "Amine oxide, syn, intramolecular.", playable: { kind: "beat", id: "u10-cope" }, after: ["u10-red-amination"] },
+      { id: "u10-azo", kind: "branch", title: "Azo coupling", blurb: "Diazonium as the EAS electrophile: dyes.", playable: { kind: "beat", id: "u10-azo" }, after: ["u10-diazo-sub"] },
     ],
   },
   {
@@ -588,7 +598,7 @@ export function pathwayNode(id: string): PathwayNode | null {
       if (node.id === id) return node;
     }
   }
-  return null;
+  return storyNode(id);
 }
 
 /**

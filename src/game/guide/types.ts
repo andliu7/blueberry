@@ -10,20 +10,63 @@
  *
  * Pure data, no React, so the node test suite can walk all of it.
  */
-import type { Figure } from "../onboarding/figures";
+import type { FigureAnchor } from "../onboarding/figures";
 import type { ChargeGateNode } from "../charge/chargeGateModel";
+
+/**
+ * A guide drawing. Unlike the answer tiles' fixed 120 by 84 box, the viewBox
+ * here is cut to the ink and one bond is always 24 units, so the page can draw
+ * every structure at the same bond length (GuideMol.tsx) and a ring is never
+ * shrunk to fit. `hi` marks the part the example is about, drawn in colour.
+ */
+export interface GuideFigure {
+  readonly w: number;
+  readonly h: number;
+  readonly bonds: readonly GuideBond[];
+  readonly labels?: readonly GuideLabel[];
+  /** A coloured disc behind each charged or radical carbon. */
+  readonly halos?: readonly { readonly x: number; readonly y: number }[];
+  /** A charge or radical sign, centred at (x, y), drawn as a shape: circled + or minus, or a dot. */
+  readonly signs?: readonly { readonly x: number; readonly y: number; readonly t: string }[];
+}
+
+export interface GuideBond {
+  readonly x1: number;
+  readonly y1: number;
+  readonly x2: number;
+  readonly y2: number;
+  readonly order?: 2 | 3;
+  /** A ring double bond: which side of the line (1 or -1, along the left normal) the second line sits on. */
+  readonly inner?: 1 | -1;
+  /** Narrow end at (x1, y1), the stereocentre. */
+  readonly stereo?: "wedge" | "hash";
+  readonly hi?: true;
+}
+
+export interface GuideLabel {
+  readonly x: number;
+  readonly y: number;
+  /** `_` subscripts and `^` superscripts the next character, as in figures.ts. */
+  readonly t: string;
+  /** Default 14 units. */
+  readonly size?: number;
+  readonly anchor?: FigureAnchor;
+  readonly hi?: true;
+}
 
 /** One thing drawn in a mini example, left to right. */
 export type GuidePanel =
-  /** A structure. `smiles` is what RDKit parsed; `figure` is its drawing. */
-  | { readonly kind: "mol"; readonly smiles: string; readonly name?: string; readonly figure: Figure }
+  /**
+   * A structure. `smiles` is what RDKit parsed; `figure` is its drawing.
+   * `focus` marks the structure the example is about (the product, the
+   * winner): drawn larger, on its own line under the arrow.
+   */
+  | { readonly kind: "mol"; readonly smiles: string; readonly name?: string; readonly figure: GuideFigure; readonly focus?: true }
   /** A reaction arrow with its conditions above and below. */
   | { readonly kind: "arrow"; readonly over: string; readonly under?: string }
   | { readonly kind: "plus" }
   /** The double headed resonance arrow between two contributors. */
   | { readonly kind: "resonance" }
-  /** "About the same as", for a comparison. */
-  | { readonly kind: "about" }
   /** "Is more stable than", for a comparison. */
   | { readonly kind: "beats" }
   /** Starts a second row, for a two condition example. */
@@ -59,6 +102,8 @@ export interface Sourced {
 export interface GuideIdea extends Sourced {
   /** Plain language, one sentence or two. */
   readonly text: string;
+  /** The words in `text` drawn in colour, the part to remember. Must occur in `text`. */
+  readonly mark?: string;
 }
 
 export interface GuideMistake extends Sourced {
@@ -71,6 +116,10 @@ export interface GuideMistake extends Sourced {
 export interface GuideLesson {
   /** The pathway node id. The START key plays this lesson. */
   readonly node: string;
+  /**
+   * The FIRST idea is the lesson's key idea: the one line shown open, above
+   * the drawing, with its `mark` in colour. The rest sit behind a fold.
+   */
   readonly ideas: readonly GuideIdea[];
   /** Where the example's caption comes from. */
   readonly example: Sourced;
@@ -108,4 +157,6 @@ export interface LessonDoor {
   readonly gate: ChargeGateNode | null;
   /** Why it is shut, in the chip's own words, or null when it is open. */
   readonly note: string | null;
+  /** A side quest (a branch off the path). The path's lesson count leaves these out, so the guide does too. */
+  readonly sideQuest: boolean;
 }

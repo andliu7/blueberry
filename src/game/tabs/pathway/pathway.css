@@ -1777,11 +1777,16 @@
   height: 1.5rem;
   flex: none;
 }
-/* On a narrow phone the label goes and the book carries the key (it keeps
-   its aria-label). */
+/* On a narrow phone the label moves under the book instead of going: an
+   unlabelled book icon was not read as the guidebook (P2 critic, round 2). */
 @media (max-width: 26rem) {
-  .path-unitcard__guidelabel {
-    display: none;
+  .path-unitcard__guide {
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.25rem;
+    padding: 0 0.5rem;
+    font-size: 0.6875rem;
+    letter-spacing: 0.04em;
   }
 }
 

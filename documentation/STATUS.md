@@ -30,6 +30,42 @@ more decks); drawing practice (extend `src/game/beats/trace`); Units 3-15 conten
 end-of-lesson feedback both ways (student summary + rating for the owner). Boot loader done by the lead:
 six Bloom moves, hand-written wordmark, jump / curtain lift / land exit.
 
+**Bloat cleanup, owner decisions 17 Oct (do as its own commit, full suite before it)**
+- KEEP: `src/game/mastery/` (start of topic mastery, queued) and `src/game/beats/trace/`
+  (base for drawing practice). Keep the 3D berry and three.js.
+- DELETE: HomeIntro + BlobReveal + the 5 effects only it used; `packages/interaction/src/geometry/`
+  + its tests; the structure/ranking/reagents answer shapes; the mutation testing setup (never
+  `validators.lock.json`); every unused site component in the audit (morph-gallery, auth-card,
+  nav-pill, study-timer/toast, card-8, loader-10, loading-state, the lib copies of
+  berryBehaviour/berryMood, ...); game `tokens.css`, `courses.css`, CanvasBackdrop + backdrop.css;
+  unused deps gsap, @react-three/drei, @supabase/ssr, autoprefixer, postcss, duplicate @types/node,
+  interaction's @vitest/coverage-v8.
+- DO: the small tidy-ups (unused exports, test-only exports, one shared seeded shuffle, clamp,
+  plural, Intl and crypto.randomUUID built-ins).
+- NOT NOW: swapping Radix select/tooltip/dropdown and recharts for native (visible change).
+
+**Next, right after the 17 Oct push (owner)**
+- Buttons press and hold: the face sinks on pointer down and stays down until release, and the
+  action fires on release only if the pointer is still on the button (drag off cancels). Today
+  34 files fire on `onPointerDown`, so the action lands before the hold can show and a drag off
+  still selects. Move actions to `onClick`; keep `:active` / `data-pressed` for the instant sink.
+- Admin mode: sign in as admin, view the app as each plan (free / paid tiers), drop in videos,
+  edit lessons, add reactions to cover. Roles already come from the Supabase roster; access stays
+  server side (RLS), the plan switch is a view, never a grant.
+- Social: friend suggestions, following, and celebrating friends' achievements in the feed. Needs
+  real accounts (Supabase tables with RLS, follow rows owned by the follower); suggestions come
+  from shared courses or classes, never from uploaded contacts without consent; no fake people.
+- Shop tab: streak freezes bought with REAL MONEY (owner, 17 Oct). Through the existing Stripe
+  Edge Functions: one purchase row per freeze, price set server side, the freeze granted by the
+  webhook, never by the client.
+  Freezes can ALSO come free from daily boxes, and diamonds buy shop items too (owner, 17 Oct).
+- Bloom pet (owner idea, 17 Oct; needs a design pass before any build): care for Bloom and feed
+  him to evolve, Pokemon style; collect blueberries in different colours. A few collected berries
+  hop around your screen, and with enough of them the loading transition becomes a swarm running
+  left to right across the screen. Ties into diamonds, daily boxes and the shop.
+- Later: merch, e.g. printed flashcard sets shipped to students (needs a print and shipping
+  vendor; not before the shop works).
+
 **Later, by owner decision (17 Oct)**: native apps via Capacitor (Android Studio + emulator with
 live reload; iOS needs a Mac or a cloud Mac), after Unit 1 is solid. No Kotlin/Swift rewrite.
 

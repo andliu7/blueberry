@@ -51,48 +51,48 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
             2
           ],
           "prompt": "Cyclohexene, NBS, light. Draw the product.",
-          "brief": "Find the allylic carbon first. Both ends of the radical give the same product here.",
+          "brief": "Decide which C-H breaks first.",
           "visual": {
             "kind": "scheme",
             "scheme": {
               "left": {
                 "bonds": [
                   {
-                    "x1": 45,
-                    "y1": 50,
-                    "x2": 45,
-                    "y2": 33,
+                    "x1": 34,
+                    "y1": 57,
+                    "x2": 34,
+                    "y2": 27,
                     "order": 2
                   },
                   {
-                    "x1": 45,
-                    "y1": 33,
+                    "x1": 34,
+                    "y1": 27,
                     "x2": 60,
-                    "y2": 25
+                    "y2": 12
                   },
                   {
                     "x1": 60,
-                    "y1": 25,
-                    "x2": 75,
-                    "y2": 34
+                    "y1": 12,
+                    "x2": 86,
+                    "y2": 27
                   },
                   {
-                    "x1": 75,
-                    "y1": 34,
-                    "x2": 75,
-                    "y2": 51
+                    "x1": 86,
+                    "y1": 27,
+                    "x2": 86,
+                    "y2": 57
                   },
                   {
-                    "x1": 75,
-                    "y1": 51,
+                    "x1": 86,
+                    "y1": 57,
                     "x2": 60,
-                    "y2": 59
+                    "y2": 72
                   },
                   {
                     "x1": 60,
-                    "y1": 59,
-                    "x2": 45,
-                    "y2": 50
+                    "y1": 72,
+                    "x2": 34,
+                    "y2": 57
                   }
                 ]
               },
@@ -163,7 +163,30 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
           },
           "stereo": false,
           "why": "Br replaces an H on the carbon next to the C=C. The allylic radical's two ends are equivalent in the ring, so one product forms.",
-          "lookAt": "Br goes on the carbon beside the double bond, not on the double bond. The C=C stays in the ring."
+          "lookAt": "Br replaces an H on a carbon right beside the C=C, and the C=C stays where it was in the ring.",
+          "misses": [
+            {
+              "id": "vinyl0",
+              "inchi": "InChI=1S/C6H9Br/c7-6-4-2-1-3-5-6/h4H,1-3,5H2",
+              "smiles": "BrC1=CCCCC1",
+              "name": "a Br on the C=C",
+              "says": "That H sits on a C=C carbon. NBS takes the H whose radical can share its odd electron with the C=C, which is never one on the double bond itself."
+            },
+            {
+              "id": "far0",
+              "inchi": "InChI=1S/C6H9Br/c7-6-4-2-1-3-5-6/h1-2,6H,3-5H2",
+              "smiles": "BrC1CC=CCC1",
+              "name": "a Br too far from the C=C",
+              "says": "That carbon has no C=C beside it, so the radical left there cannot share its odd electron with the pi bond. NBS takes the H whose radical can."
+            },
+            {
+              "id": "br2",
+              "inchi": "InChI=1S/C6H10Br2/c7-5-3-1-2-4-6(5)8/h5-6H,1-4H2",
+              "smiles": "BrC1CCCCC1Br",
+              "name": "the Br2 addition product",
+              "says": "That is what a bottle of Br2 does to the C=C. NBS keeps Br2 so scarce that the C=C survives and a C-H reacts instead."
+            }
+          ]
         }
       },
       "explanation": "NBS swaps an allylic H for Br and leaves the C=C in place.",
@@ -188,42 +211,42 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
             2
           ],
           "prompt": "Cyclopentene, NBS, light. Draw the product.",
-          "brief": "Same move as cyclohexene, in a five-membered ring.",
+          "brief": "Same reagent as before, in a five-membered ring.",
           "visual": {
             "kind": "scheme",
             "scheme": {
               "left": {
                 "bonds": [
                   {
-                    "x1": 70,
-                    "y1": 54,
-                    "x2": 53,
-                    "y2": 55,
+                    "x1": 78,
+                    "y1": 62,
+                    "x2": 48,
+                    "y2": 66,
                     "order": 2
                   },
                   {
-                    "x1": 53,
-                    "y1": 55,
-                    "x2": 46,
-                    "y2": 40
+                    "x1": 48,
+                    "y1": 66,
+                    "x2": 36,
+                    "y2": 38
                   },
                   {
-                    "x1": 46,
-                    "y1": 40,
-                    "x2": 59,
-                    "y2": 29
+                    "x1": 36,
+                    "y1": 38,
+                    "x2": 58,
+                    "y2": 18
                   },
                   {
-                    "x1": 59,
-                    "y1": 29,
-                    "x2": 74,
-                    "y2": 37
+                    "x1": 58,
+                    "y1": 18,
+                    "x2": 84,
+                    "y2": 33
                   },
                   {
-                    "x1": 74,
-                    "y1": 37,
-                    "x2": 70,
-                    "y2": 54
+                    "x1": 84,
+                    "y1": 33,
+                    "x2": 78,
+                    "y2": 62
                   }
                 ]
               },
@@ -288,7 +311,30 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
           },
           "stereo": false,
           "why": "The allylic radical's two ends are equivalent in the ring, so Br on either one gives 3-bromocyclopentene.",
-          "lookAt": "Put Br on a carbon next to the C=C and keep the double bond where it was."
+          "lookAt": "Put Br on a carbon next to the C=C and keep the double bond where it was.",
+          "misses": [
+            {
+              "id": "vinyl0",
+              "inchi": "InChI=1S/C5H7Br/c6-5-3-1-2-4-5/h3H,1-2,4H2",
+              "smiles": "BrC1=CCCC1",
+              "name": "a Br on the C=C",
+              "says": "That H sits on a C=C carbon. NBS takes the H whose radical can share its odd electron with the C=C, which is never one on the double bond itself."
+            },
+            {
+              "id": "far0",
+              "inchi": "InChI=1S/C5H7Br/c6-5-3-1-2-4-5/h1-2,5H,3-4H2",
+              "smiles": "BrC1CC=CC1",
+              "name": "a Br too far from the C=C",
+              "says": "That carbon has no C=C beside it, so the radical left there cannot share its odd electron with the pi bond. NBS takes the H whose radical can."
+            },
+            {
+              "id": "br2",
+              "inchi": "InChI=1S/C5H8Br2/c6-4-2-1-3-5(4)7/h4-5H,1-3H2",
+              "smiles": "BrC1CCCC1Br",
+              "name": "the Br2 addition product",
+              "says": "That is what a bottle of Br2 does to the C=C. NBS keeps Br2 so scarce that the C=C survives and a C-H reacts instead."
+            }
+          ]
         }
       },
       "explanation": "NBS brominates the allylic carbon. Symmetric ends give one product.",
@@ -313,7 +359,7 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
             2
           ],
           "prompt": "2-Methylpropene, NBS, light. Draw the product.",
-          "brief": "All six allylic H are equivalent. Draw both ends of the radical and compare.",
+          "brief": "Draw the radical first, then both places the Br could land.",
           "visual": {
             "kind": "scheme",
             "scheme": {
@@ -321,22 +367,22 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
                 "bonds": [
                   {
                     "x1": 60,
-                    "y1": 29,
+                    "y1": 19,
                     "x2": 60,
-                    "y2": 46,
+                    "y2": 49,
                     "order": 2
                   },
                   {
                     "x1": 60,
-                    "y1": 46,
-                    "x2": 75,
-                    "y2": 55
+                    "y1": 49,
+                    "x2": 86,
+                    "y2": 65
                   },
                   {
                     "x1": 60,
-                    "y1": 46,
-                    "x2": 45,
-                    "y2": 55
+                    "y1": 49,
+                    "x2": 34,
+                    "y2": 64
                   }
                 ]
               },
@@ -389,7 +435,23 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
           },
           "stereo": false,
           "why": "Both ends of the radical are CH2 groups on the same carbon, so the direct and shifted products are one molecule.",
-          "lookAt": "Br goes on a CH3 carbon, and one C=C stays. Shifting the double bond gives the same drawing."
+          "lookAt": "Br goes on a CH3 carbon, and one C=C stays. Shifting the double bond gives the same drawing.",
+          "misses": [
+            {
+              "id": "vinyl0",
+              "inchi": "InChI=1S/C4H7Br/c1-4(2)3-5/h3H,1-2H3",
+              "smiles": "CC(C)=CBr",
+              "name": "a Br on the C=C",
+              "says": "That H sits on a C=C carbon. NBS takes the H whose radical can share its odd electron with the C=C, which is never one on the double bond itself."
+            },
+            {
+              "id": "br2",
+              "inchi": "InChI=1S/C4H8Br2/c1-4(2,6)3-5/h3H2,1-2H3",
+              "smiles": "CC(C)(Br)CBr",
+              "name": "the Br2 addition product",
+              "says": "That is what a bottle of Br2 does to the C=C. NBS keeps Br2 so scarce that the C=C survives and a C-H reacts instead."
+            }
+          ]
         }
       },
       "explanation": "Equivalent radical ends give one NBS product.",
@@ -414,30 +476,30 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
             2
           ],
           "prompt": "Butadiene and propenal, heat. Draw the Diels-Alder product.",
-          "brief": "Number C1 to C4 on the diene. New bonds at C1 and C4, new C=C at C2-C3.",
+          "brief": "Find which carbon of each partner makes a new bond before you draw.",
           "visual": {
             "kind": "pair",
             "a": {
               "figure": {
                 "bonds": [
                   {
-                    "x1": 82,
-                    "y1": 38,
-                    "x2": 67,
-                    "y2": 46,
+                    "x1": 99,
+                    "y1": 35,
+                    "x2": 73,
+                    "y2": 50,
                     "order": 2
                   },
                   {
-                    "x1": 67,
-                    "y1": 46,
-                    "x2": 53,
-                    "y2": 38
+                    "x1": 73,
+                    "y1": 50,
+                    "x2": 47,
+                    "y2": 34
                   },
                   {
-                    "x1": 53,
-                    "y1": 38,
-                    "x2": 38,
-                    "y2": 46,
+                    "x1": 47,
+                    "y1": 34,
+                    "x2": 21,
+                    "y2": 49,
                     "order": 2
                   }
                 ]
@@ -448,30 +510,30 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
               "figure": {
                 "bonds": [
                   {
-                    "x1": 82,
-                    "y1": 38,
-                    "x2": 67,
-                    "y2": 46,
+                    "x1": 99,
+                    "y1": 35,
+                    "x2": 73,
+                    "y2": 50,
                     "order": 2
                   },
                   {
-                    "x1": 67,
-                    "y1": 46,
-                    "x2": 53,
-                    "y2": 38
+                    "x1": 73,
+                    "y1": 50,
+                    "x2": 47,
+                    "y2": 34
                   },
                   {
-                    "x1": 53,
-                    "y1": 38,
-                    "x2": 44,
-                    "y2": 43,
+                    "x1": 47,
+                    "y1": 34,
+                    "x2": 27,
+                    "y2": 46,
                     "order": 2
                   }
                 ],
                 "labels": [
                   {
-                    "x": 38,
-                    "y": 51,
+                    "x": 21,
+                    "y": 54,
                     "t": "O",
                     "size": 13
                   }
@@ -549,7 +611,30 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
           },
           "stereo": false,
           "why": "The diene's ends bond to the two alkene carbons of propenal, closing a six-membered ring. The leftover C=C sits between the old C2 and C3, and the CHO rides along on the ring.",
-          "lookAt": "Draw a six-membered ring first. One C=C in it, across from the carbon that carries the CHO."
+          "lookAt": "New bonds at C1 and C4 of the diene, new C=C at C2-C3. Draw the six-membered ring, then put its one C=C across from the carbon that carries the CHO.",
+          "misses": [
+            {
+              "id": "no-ene",
+              "inchi": "InChI=1S/C7H12O/c8-6-7-4-2-1-3-5-7/h6-7H,1-5H2",
+              "smiles": "O=CC1CCCCC1",
+              "name": "a ring with no C=C",
+              "says": "The diene's old middle bond becomes a C=C in the new ring. Every Diels-Alder product made from an alkene keeps exactly one."
+            },
+            {
+              "id": "moved0",
+              "inchi": "InChI=1S/C7H10O/c8-6-7-4-2-1-3-5-7/h4,6H,1-3,5H2",
+              "smiles": "O=CC1=CCCCC1",
+              "name": "a ring with its C=C moved",
+              "says": "The new C=C sits where the diene's single bond was, between its old C2 and C3, not next to a carbon that just made a new bond."
+            },
+            {
+              "id": "moved1",
+              "inchi": "InChI=1S/C7H10O/c8-6-7-4-2-1-3-5-7/h2,4,6-7H,1,3,5H2",
+              "smiles": "O=CC1C=CCCC1",
+              "name": "a ring with its C=C moved",
+              "says": "The new C=C sits where the diene's single bond was, between its old C2 and C3, not next to a carbon that just made a new bond."
+            }
+          ]
         }
       },
       "explanation": "Diels-Alder: two new sigma bonds, one ring, the new C=C where the diene's single bond was.",
@@ -574,43 +659,43 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
             2
           ],
           "prompt": "Cyclopentadiene and ethene, heat. Draw the product.",
-          "brief": "The CH2 of the five-membered ring becomes a bridge. No wedges needed.",
+          "brief": "No wedges needed. Keep track of every carbon in the five-membered ring.",
           "visual": {
             "kind": "pair",
             "a": {
               "figure": {
                 "bonds": [
                   {
-                    "x1": 70,
-                    "y1": 54,
-                    "x2": 53,
-                    "y2": 55,
+                    "x1": 78,
+                    "y1": 62,
+                    "x2": 48,
+                    "y2": 66,
                     "order": 2
                   },
                   {
-                    "x1": 53,
-                    "y1": 55,
-                    "x2": 46,
-                    "y2": 40
+                    "x1": 48,
+                    "y1": 66,
+                    "x2": 36,
+                    "y2": 38
                   },
                   {
-                    "x1": 46,
-                    "y1": 40,
-                    "x2": 59,
-                    "y2": 29
+                    "x1": 36,
+                    "y1": 38,
+                    "x2": 58,
+                    "y2": 18
                   },
                   {
-                    "x1": 59,
-                    "y1": 29,
-                    "x2": 74,
-                    "y2": 37,
+                    "x1": 58,
+                    "y1": 18,
+                    "x2": 84,
+                    "y2": 33,
                     "order": 2
                   },
                   {
-                    "x1": 74,
-                    "y1": 37,
-                    "x2": 70,
-                    "y2": 54
+                    "x1": 84,
+                    "y1": 33,
+                    "x2": 78,
+                    "y2": 62
                   }
                 ]
               },
@@ -620,11 +705,25 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
               "figure": {
                 "bonds": [
                   {
-                    "x1": 52,
+                    "x1": 51,
                     "y1": 42,
-                    "x2": 68,
+                    "x2": 69,
                     "y2": 42,
                     "order": 2
+                  }
+                ],
+                "labels": [
+                  {
+                    "x": 38,
+                    "y": 47,
+                    "t": "CH_2",
+                    "size": 14
+                  },
+                  {
+                    "x": 82,
+                    "y": 47,
+                    "t": "CH_2",
+                    "size": 14
                   }
                 ]
               },
@@ -691,7 +790,16 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
           },
           "stereo": false,
           "why": "Cyclopentadiene's ends bond to the two ethene carbons. Its CH2 was between those ends, so it ends up as a one-carbon bridge over the new six-membered ring: a bridged bicycle.",
-          "lookAt": "Draw the new six-membered ring with its C=C, then add the CH2 as a bridge joining the two carbons that made new bonds."
+          "lookAt": "The CH2 of the five-membered ring becomes a bridge. Draw the new six-membered ring with its C=C, then join the two carbons that made new bonds with that one CH2.",
+          "misses": [
+            {
+              "id": "no-ene",
+              "inchi": "InChI=1S/C7H12/c1-2-7-4-3-6(1)5-7/h6-7H,1-5H2",
+              "smiles": "C1CC2CCC1C2",
+              "name": "a bicycle with no C=C",
+              "says": "The diene's old middle bond becomes a C=C in the new ring. Every Diels-Alder product made from an alkene keeps exactly one."
+            }
+          ]
         }
       },
       "explanation": "A cyclic diene gives a bridged product: the ring atoms between the diene's ends become the bridge.",
@@ -719,25 +827,191 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
             "id": "chd",
             "left": "Cyclohexa-1,3-diene",
             "right": "Locked s-cis: fast",
-            "why": "The ring holds both C=C on the same side of the central bond, so the diene is always ready."
+            "why": "The ring holds both C=C on the same side of the central bond, so the diene is always ready.",
+            "leftFigure": {
+              "bonds": [
+                {
+                  "x1": 34,
+                  "y1": 57,
+                  "x2": 34,
+                  "y2": 27,
+                  "order": 2
+                },
+                {
+                  "x1": 34,
+                  "y1": 27,
+                  "x2": 60,
+                  "y2": 12
+                },
+                {
+                  "x1": 60,
+                  "y1": 12,
+                  "x2": 86,
+                  "y2": 27,
+                  "order": 2
+                },
+                {
+                  "x1": 86,
+                  "y1": 27,
+                  "x2": 86,
+                  "y2": 57
+                },
+                {
+                  "x1": 86,
+                  "y1": 57,
+                  "x2": 60,
+                  "y2": 72
+                },
+                {
+                  "x1": 60,
+                  "y1": 72,
+                  "x2": 34,
+                  "y2": 57
+                }
+              ]
+            },
+            "hint": "Both C=C sit inside one ring. Check whether the bond between them can turn."
           },
           {
             "id": "ee",
             "left": "(2E,4E)-Hexa-2,4-diene",
             "right": "Free: rotates into s-cis",
-            "why": "The central bond rotates, and turning to s-cis costs little strain, so it reacts once it turns."
+            "why": "The central bond rotates, and turning to s-cis costs little strain, so it reacts once it turns.",
+            "leftFigure": {
+              "bonds": [
+                {
+                  "x1": 111,
+                  "y1": 48,
+                  "x2": 91,
+                  "y2": 36
+                },
+                {
+                  "x1": 91,
+                  "y1": 36,
+                  "x2": 70,
+                  "y2": 48,
+                  "order": 2
+                },
+                {
+                  "x1": 70,
+                  "y1": 48,
+                  "x2": 50,
+                  "y2": 36
+                },
+                {
+                  "x1": 50,
+                  "y1": 36,
+                  "x2": 29,
+                  "y2": 48,
+                  "order": 2
+                },
+                {
+                  "x1": 29,
+                  "y1": 48,
+                  "x2": 9,
+                  "y2": 36
+                }
+              ]
+            },
+            "hint": "The middle bond can turn. Turn it to s-cis and look where the two end methyls point."
           },
           {
             "id": "zz",
             "left": "(2Z,4Z)-Hexa-2,4-diene",
             "right": "Free, but s-cis is strained",
-            "why": "It can rotate, but in s-cis the two inner methyls clash, so it rarely spends time there."
+            "why": "It can rotate, but in s-cis the two inner methyls clash, so it rarely spends time there.",
+            "leftFigure": {
+              "bonds": [
+                {
+                  "x1": 111,
+                  "y1": 27,
+                  "x2": 86,
+                  "y2": 13
+                },
+                {
+                  "x1": 86,
+                  "y1": 13,
+                  "x2": 60,
+                  "y2": 27,
+                  "order": 2
+                },
+                {
+                  "x1": 60,
+                  "y1": 27,
+                  "x2": 60,
+                  "y2": 57
+                },
+                {
+                  "x1": 60,
+                  "y1": 57,
+                  "x2": 34,
+                  "y2": 71,
+                  "order": 2
+                },
+                {
+                  "x1": 34,
+                  "y1": 71,
+                  "x2": 9,
+                  "y2": 57
+                }
+              ]
+            },
+            "hint": "Turn the middle bond to s-cis and look where the two inner methyls end up."
           },
           {
             "id": "mch",
             "left": "3-Methylenecyclohexene",
             "right": "Locked s-trans: no reaction",
-            "why": "The ring holds the two C=C on opposite sides of the central bond. The ends can never reach a dienophile together."
+            "why": "The ring holds the two C=C on opposite sides of the central bond. The ends can never reach a dienophile together.",
+            "leftFigure": {
+              "bonds": [
+                {
+                  "x1": 21,
+                  "y1": 12,
+                  "x2": 47,
+                  "y2": 27,
+                  "order": 2
+                },
+                {
+                  "x1": 47,
+                  "y1": 27,
+                  "x2": 47,
+                  "y2": 57
+                },
+                {
+                  "x1": 47,
+                  "y1": 57,
+                  "x2": 73,
+                  "y2": 72
+                },
+                {
+                  "x1": 73,
+                  "y1": 72,
+                  "x2": 99,
+                  "y2": 57
+                },
+                {
+                  "x1": 99,
+                  "y1": 57,
+                  "x2": 99,
+                  "y2": 27
+                },
+                {
+                  "x1": 99,
+                  "y1": 27,
+                  "x2": 73,
+                  "y2": 12,
+                  "order": 2
+                },
+                {
+                  "x1": 73,
+                  "y1": 12,
+                  "x2": 47,
+                  "y2": 27
+                }
+              ]
+            },
+            "hint": "One C=C is in the ring and one sticks out of it. Check whether the bond between them can turn."
           }
         ]
       },
@@ -761,30 +1035,30 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
             2
           ],
           "prompt": "Butadiene and acrylonitrile, heat. Draw the product.",
-          "brief": "The CN stays on its carbon. Only the C=C of acrylonitrile reacts.",
+          "brief": "Acrylonitrile has two pi systems. Decide which one is the dienophile.",
           "visual": {
             "kind": "pair",
             "a": {
               "figure": {
                 "bonds": [
                   {
-                    "x1": 82,
-                    "y1": 38,
-                    "x2": 67,
-                    "y2": 46,
+                    "x1": 99,
+                    "y1": 35,
+                    "x2": 73,
+                    "y2": 50,
                     "order": 2
                   },
                   {
-                    "x1": 67,
-                    "y1": 46,
-                    "x2": 53,
-                    "y2": 38
+                    "x1": 73,
+                    "y1": 50,
+                    "x2": 47,
+                    "y2": 34
                   },
                   {
-                    "x1": 53,
-                    "y1": 38,
-                    "x2": 38,
-                    "y2": 46,
+                    "x1": 47,
+                    "y1": 34,
+                    "x2": 21,
+                    "y2": 49,
                     "order": 2
                   }
                 ]
@@ -795,30 +1069,30 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
               "figure": {
                 "bonds": [
                   {
-                    "x1": 81,
-                    "y1": 35,
-                    "x2": 73,
-                    "y2": 49,
+                    "x1": 98,
+                    "y1": 29,
+                    "x2": 82,
+                    "y2": 55,
                     "order": 2
                   },
                   {
-                    "x1": 73,
-                    "y1": 49,
-                    "x2": 56,
-                    "y2": 49
+                    "x1": 82,
+                    "y1": 55,
+                    "x2": 52,
+                    "y2": 55
                   },
                   {
-                    "x1": 56,
-                    "y1": 49,
-                    "x2": 45,
-                    "y2": 49,
+                    "x1": 52,
+                    "y1": 55,
+                    "x2": 29,
+                    "y2": 55,
                     "order": 3
                   }
                 ],
                 "labels": [
                   {
-                    "x": 39,
-                    "y": 54,
+                    "x": 22,
+                    "y": 60,
                     "t": "N",
                     "size": 13
                   }
@@ -896,7 +1170,37 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
           },
           "stereo": false,
           "why": "The C=C of acrylonitrile is the dienophile; the C≡N only pulls electrons out of it. The product is a cyclohexene with CN on the carbon that was the CH of acrylonitrile.",
-          "lookAt": "Use the C=C, not the C≡N, to close the ring. The nitrile stays a substituent."
+          "lookAt": "Only the C=C of acrylonitrile reacts; the C≡N stays a substituent. Close the ring with the C=C.",
+          "misses": [
+            {
+              "id": "cn-ring",
+              "inchi": "InChI=1S/C7H9N/c1-2-7-5-3-4-6-8-7/h2-4H,1,5-6H2",
+              "smiles": "C=CC1=NCC=CC1",
+              "name": "the ring closed through the C≡N",
+              "says": "That ring used the C≡N as the dienophile. The nitrile only pulls electrons out of the C=C next to it, which is the bond that reacts."
+            },
+            {
+              "id": "no-ene",
+              "inchi": "InChI=1S/C7H11N/c8-6-7-4-2-1-3-5-7/h7H,1-5H2",
+              "smiles": "N#CC1CCCCC1",
+              "name": "a ring with no C=C",
+              "says": "The diene's old middle bond becomes a C=C in the new ring. Every Diels-Alder product made from an alkene keeps exactly one."
+            },
+            {
+              "id": "moved0",
+              "inchi": "InChI=1S/C7H9N/c8-6-7-4-2-1-3-5-7/h4H,1-3,5H2",
+              "smiles": "N#CC1=CCCCC1",
+              "name": "a ring with its C=C moved",
+              "says": "The new C=C sits where the diene's single bond was, between its old C2 and C3, not next to a carbon that just made a new bond."
+            },
+            {
+              "id": "moved1",
+              "inchi": "InChI=1S/C7H9N/c8-6-7-4-2-1-3-5-7/h2,4,7H,1,3,5H2",
+              "smiles": "N#CC1C=CCCC1",
+              "name": "a ring with its C=C moved",
+              "says": "The new C=C sits where the diene's single bond was, between its old C2 and C3, not next to a carbon that just made a new bond."
+            }
+          ]
         }
       },
       "explanation": "The withdrawing group activates the dienophile and ends up as a substituent on the new ring.",
@@ -916,38 +1220,303 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
           1,
           2
         ],
-        "prompt": "Match each dienophile to how well it reacts.",
-        "brief": "Withdrawing groups lower the LUMO. Donors raise it.",
+        "prompt": "Match each product to the diene and dienophile that made it.",
+        "brief": "Find the ring's one C=C first. Then read what sits on the carbons beside it.",
         "presentation": "columns",
         "pairs": [
           {
-            "id": "ma",
-            "left": "Maleic anhydride",
-            "right": "Best: two C=O withdraw",
-            "why": "Two carbonyls pull density out of the C=C by resonance, so its LUMO is the lowest of the four."
+            "id": "bd_eth",
+            "left": "Product A",
+            "right": "Butadiene + ethene",
+            "why": "A bare ring with one C=C and no groups anywhere, so neither partner brought one: butadiene and ethene.",
+            "leftFigure": {
+              "bonds": [
+                {
+                  "x1": 34,
+                  "y1": 57,
+                  "x2": 34,
+                  "y2": 27,
+                  "order": 2
+                },
+                {
+                  "x1": 34,
+                  "y1": 27,
+                  "x2": 60,
+                  "y2": 12
+                },
+                {
+                  "x1": 60,
+                  "y1": 12,
+                  "x2": 86,
+                  "y2": 27
+                },
+                {
+                  "x1": 86,
+                  "y1": 27,
+                  "x2": 86,
+                  "y2": 57
+                },
+                {
+                  "x1": 86,
+                  "y1": 57,
+                  "x2": 60,
+                  "y2": 72
+                },
+                {
+                  "x1": 60,
+                  "y1": 72,
+                  "x2": 34,
+                  "y2": 57
+                }
+              ]
+            },
+            "hint": "This ring carries no groups at all, not even on its C=C. Find the pair where neither partner brings one."
           },
           {
-            "id": "acn",
-            "left": "Acrylonitrile",
-            "right": "Good: one CN withdraws",
-            "why": "One nitrile withdraws by resonance, lowering the LUMO, but less than two carbonyls."
+            "id": "bd_ma",
+            "left": "Product B",
+            "right": "Butadiene + maleic anhydride",
+            "why": "The anhydride ring is still there, fused to the new ring. Maleic anhydride's C=C became the bond the two rings share.",
+            "leftFigure": {
+              "bonds": [
+                {
+                  "x1": 83,
+                  "y1": 15,
+                  "x2": 80,
+                  "y2": 27,
+                  "order": 2
+                },
+                {
+                  "x1": 80,
+                  "y1": 27,
+                  "x2": 87,
+                  "y2": 37
+                },
+                {
+                  "x1": 87,
+                  "y1": 47,
+                  "x2": 80,
+                  "y2": 57
+                },
+                {
+                  "x1": 80,
+                  "y1": 57,
+                  "x2": 83,
+                  "y2": 69,
+                  "order": 2
+                },
+                {
+                  "x1": 80,
+                  "y1": 57,
+                  "x2": 62,
+                  "y2": 51
+                },
+                {
+                  "x1": 62,
+                  "y1": 51,
+                  "x2": 46,
+                  "y2": 61
+                },
+                {
+                  "x1": 46,
+                  "y1": 61,
+                  "x2": 29,
+                  "y2": 51
+                },
+                {
+                  "x1": 29,
+                  "y1": 51,
+                  "x2": 29,
+                  "y2": 33,
+                  "order": 2
+                },
+                {
+                  "x1": 29,
+                  "y1": 33,
+                  "x2": 46,
+                  "y2": 23
+                },
+                {
+                  "x1": 46,
+                  "y1": 23,
+                  "x2": 62,
+                  "y2": 33
+                },
+                {
+                  "x1": 62,
+                  "y1": 33,
+                  "x2": 80,
+                  "y2": 27
+                },
+                {
+                  "x1": 62,
+                  "y1": 33,
+                  "x2": 62,
+                  "y2": 51
+                }
+              ],
+              "labels": [
+                {
+                  "x": 85,
+                  "y": 14,
+                  "t": "O",
+                  "size": 13
+                },
+                {
+                  "x": 91,
+                  "y": 47,
+                  "t": "O",
+                  "size": 13
+                },
+                {
+                  "x": 85,
+                  "y": 80,
+                  "t": "O",
+                  "size": 13
+                }
+              ]
+            },
+            "hint": "Two rings share one bond here. Look for the dienophile that brings a ring of its own."
           },
           {
-            "id": "eth",
-            "left": "Ethene",
-            "right": "Slow: nothing withdraws",
-            "why": "No group on the C=C, so its LUMO stays high and it needs harsh heat."
+            "id": "bd_mvk",
+            "left": "Product C",
+            "right": "Butadiene + methyl vinyl ketone",
+            "why": "An acetyl group (a C=O with a methyl) sits on an sp3 ring carbon, where methyl vinyl ketone's C=C was. The bare ring C=C says butadiene.",
+            "leftFigure": {
+              "bonds": [
+                {
+                  "x1": 22,
+                  "y1": 42,
+                  "x2": 41,
+                  "y2": 31
+                },
+                {
+                  "x1": 41,
+                  "y1": 31,
+                  "x2": 41,
+                  "y2": 15,
+                  "order": 2
+                },
+                {
+                  "x1": 41,
+                  "y1": 31,
+                  "x2": 60,
+                  "y2": 42
+                },
+                {
+                  "x1": 60,
+                  "y1": 42,
+                  "x2": 60,
+                  "y2": 64
+                },
+                {
+                  "x1": 60,
+                  "y1": 64,
+                  "x2": 79,
+                  "y2": 75
+                },
+                {
+                  "x1": 79,
+                  "y1": 75,
+                  "x2": 98,
+                  "y2": 64,
+                  "order": 2
+                },
+                {
+                  "x1": 98,
+                  "y1": 64,
+                  "x2": 98,
+                  "y2": 42
+                },
+                {
+                  "x1": 98,
+                  "y1": 42,
+                  "x2": 79,
+                  "y2": 31
+                },
+                {
+                  "x1": 79,
+                  "y1": 31,
+                  "x2": 60,
+                  "y2": 42
+                }
+              ],
+              "labels": [
+                {
+                  "x": 41,
+                  "y": 14,
+                  "t": "O",
+                  "size": 13
+                }
+              ]
+            },
+            "hint": "The group on the ring holds a C=O with a methyl on it, and the ring's C=C is bare. Read both halves."
           },
           {
-            "id": "ether",
-            "left": "Methyl vinyl ether",
-            "right": "Poor: OCH3 donates in",
-            "why": "The O lone pair donates into the C=C and raises its LUMO above ethene's."
+            "id": "dmb_eth",
+            "left": "Product D",
+            "right": "Dimethylbutadiene + ethene",
+            "why": "The two methyls sit on the new ring's C=C, the diene's old middle carbons, so the diene was 2,3-dimethylbutadiene. Nothing sits on the sp3 carbons, so the dienophile was bare ethene.",
+            "leftFigure": {
+              "bonds": [
+                {
+                  "x1": 21,
+                  "y1": 72,
+                  "x2": 47,
+                  "y2": 57
+                },
+                {
+                  "x1": 47,
+                  "y1": 57,
+                  "x2": 47,
+                  "y2": 27,
+                  "order": 2
+                },
+                {
+                  "x1": 47,
+                  "y1": 27,
+                  "x2": 21,
+                  "y2": 12
+                },
+                {
+                  "x1": 47,
+                  "y1": 27,
+                  "x2": 73,
+                  "y2": 12
+                },
+                {
+                  "x1": 73,
+                  "y1": 12,
+                  "x2": 99,
+                  "y2": 27
+                },
+                {
+                  "x1": 99,
+                  "y1": 27,
+                  "x2": 99,
+                  "y2": 57
+                },
+                {
+                  "x1": 99,
+                  "y1": 57,
+                  "x2": 73,
+                  "y2": 72
+                },
+                {
+                  "x1": 73,
+                  "y1": 72,
+                  "x2": 47,
+                  "y2": 57
+                }
+              ]
+            },
+            "hint": "Look at the ring's C=C: it carries two methyls. Those came from the diene, not the dienophile."
           }
         ]
       },
-      "explanation": "Withdrawing groups (C=O, CN, NO2) on the dienophile lower its LUMO and speed the reaction. A donor on the dienophile slows it.",
-      "provenance": "scripts/u1_pools_cd.py section 3 Huckel heteroatom model (LUMO energy per dienophile) and section 8."
+      "explanation": "In every Diels-Alder product the diene's middle carbons become the new ring's C=C, and the dienophile's groups sit on the sp3 carbons across the ring from it.",
+      "provenance": "scripts/u1_pools_cd.py section 3 (Diels-Alder reaction SMARTS) and section 8; name checked with OPSIN."
     }) },
   ],
   "u1-da-predict": [
@@ -966,36 +1535,36 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
             2
           ],
           "prompt": "Isoprene and propenal, heat. Draw the major product.",
-          "brief": "A 2-substituted diene: put the two groups para, 1,4 on the ring.",
+          "brief": "The two can line up two ways. Decide which way wins before you draw.",
           "visual": {
             "kind": "pair",
             "a": {
               "figure": {
                 "bonds": [
                   {
-                    "x1": 75,
-                    "y1": 21,
-                    "x2": 75,
-                    "y2": 38,
+                    "x1": 83,
+                    "y1": 9,
+                    "x2": 83,
+                    "y2": 35,
                     "order": 2
                   },
                   {
-                    "x1": 75,
-                    "y1": 38,
+                    "x1": 83,
+                    "y1": 35,
                     "x2": 60,
-                    "y2": 46
+                    "y2": 49
                   },
                   {
                     "x1": 60,
-                    "y1": 46,
+                    "y1": 49,
                     "x2": 60,
-                    "y2": 63
+                    "y2": 75
                   },
                   {
                     "x1": 60,
-                    "y1": 46,
-                    "x2": 45,
-                    "y2": 38,
+                    "y1": 49,
+                    "x2": 37,
+                    "y2": 35,
                     "order": 2
                   }
                 ]
@@ -1006,30 +1575,30 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
               "figure": {
                 "bonds": [
                   {
-                    "x1": 82,
-                    "y1": 38,
-                    "x2": 67,
-                    "y2": 46,
+                    "x1": 99,
+                    "y1": 35,
+                    "x2": 73,
+                    "y2": 50,
                     "order": 2
                   },
                   {
-                    "x1": 67,
-                    "y1": 46,
-                    "x2": 53,
-                    "y2": 38
+                    "x1": 73,
+                    "y1": 50,
+                    "x2": 47,
+                    "y2": 34
                   },
                   {
-                    "x1": 53,
-                    "y1": 38,
-                    "x2": 44,
-                    "y2": 43,
+                    "x1": 47,
+                    "y1": 34,
+                    "x2": 27,
+                    "y2": 46,
                     "order": 2
                   }
                 ],
                 "labels": [
                   {
-                    "x": 38,
-                    "y": 51,
+                    "x": 21,
+                    "y": 54,
                     "t": "O",
                     "size": 13
                   }
@@ -1113,7 +1682,16 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
           },
           "stereo": false,
           "why": "The diene's largest HOMO coefficient bonds to the dienophile's largest LUMO coefficient. For isoprene and propenal that puts CH3 and CHO 1,4 on the ring: the para product.",
-          "lookAt": "Draw the cyclohexene, then place CH3 on the ring C=C and CHO three carbons away, across the ring."
+          "lookAt": "A 2-substituted diene gives the para product. Draw the cyclohexene, put CH3 on the ring C=C, and CHO three carbons away, across the ring.",
+          "misses": [
+            {
+              "id": "meta",
+              "inchi": "InChI=1S/C8H12O/c1-7-3-2-4-8(5-7)6-9/h3,6,8H,2,4-5H2,1H3",
+              "smiles": "CC1=CCCC(C=O)C1",
+              "name": "the meta product",
+              "says": "Right ring, wrong alignment: CH3 and CHO end up 1,3. Line up the diene's most electron-rich end with the dienophile's most electron-poor carbon."
+            }
+          ]
         }
       },
       "explanation": "2-Substituted dienes give the para (1,4) product.",
@@ -1136,7 +1714,7 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
             2
           ],
           "prompt": "Work backward. Draw the diene that made this product.",
-          "brief": "The ring C=C was the diene's middle bond. Cut the two bonds across from it.",
+          "brief": "Start from the ring C=C and run the reaction in reverse.",
           "visual": {
             "kind": "structure",
             "figure": {
@@ -1257,8 +1835,17 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
             }
           },
           "stereo": false,
-          "why": "The ring C=C was C2-C3 of the diene. Cutting the two sigma bonds across the ring from it gives back propenal and 2,3-dimethylbutadiene, whose methyls sat on C2 and C3.",
-          "lookAt": "Find the ring C=C. The diene is the four carbons starting one carbon either side of it, with a C=C at each end."
+          "why": "The ring C=C was C2-C3 of the diene. The two sigma bonds that formed sit one carbon away from it on each side; cutting them gives back propenal and 2,3-dimethylbutadiene, whose methyls sat on C2 and C3.",
+          "lookAt": "Find the ring C=C. The diene is the four carbons starting one carbon either side of it, with a C=C at each end.",
+          "misses": [
+            {
+              "id": "phile",
+              "inchi": "InChI=1S/C3H4O/c1-2-3-4/h2-3H,1H2",
+              "smiles": "C=CC=O",
+              "name": "the dienophile half",
+              "says": "That is the two-carbon piece that carried the CHO. The question asks for the four-carbon piece."
+            }
+          ]
         }
       },
       "explanation": "Retro Diels-Alder: the ring C=C marks the diene's old C2-C3 bond.",
@@ -1283,30 +1870,30 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
             2
           ],
           "prompt": "Butadiene and DMAD, heat. Draw the product.",
-          "brief": "An alkyne dienophile leaves a second C=C in the ring.",
+          "brief": "DMAD is an alkyne. Count the pi bonds it has before and after.",
           "visual": {
             "kind": "pair",
             "a": {
               "figure": {
                 "bonds": [
                   {
-                    "x1": 82,
-                    "y1": 38,
-                    "x2": 67,
-                    "y2": 46,
+                    "x1": 99,
+                    "y1": 35,
+                    "x2": 73,
+                    "y2": 50,
                     "order": 2
                   },
                   {
-                    "x1": 67,
-                    "y1": 46,
-                    "x2": 53,
-                    "y2": 38
+                    "x1": 73,
+                    "y1": 50,
+                    "x2": 47,
+                    "y2": 34
                   },
                   {
-                    "x1": 53,
-                    "y1": 38,
-                    "x2": 38,
-                    "y2": 46,
+                    "x1": 47,
+                    "y1": 34,
+                    "x2": 21,
+                    "y2": 49,
                     "order": 2
                   }
                 ]
@@ -1529,12 +2116,916 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
           },
           "stereo": false,
           "why": "The triple bond uses one pi bond to form the ring and keeps the other, so the product has two C=C: one from the diene's old C2-C3 and one carrying both esters.",
-          "lookAt": "Close the six-membered ring, then put a C=C between the two ester carbons as well as across from them."
+          "lookAt": "An alkyne dienophile leaves a second C=C in the ring. Close the six-membered ring, then put a C=C between the two ester carbons as well as across from them.",
+          "misses": [
+            {
+              "id": "one-ene",
+              "inchi": "InChI=1S/C10H14O4/c1-13-9(11)7-5-3-4-6-8(7)10(12)14-2/h3-4,7-8H,5-6H2,1-2H3",
+              "smiles": "COC(=O)C1CC=CCC1C(=O)OC",
+              "name": "the product of an alkene dienophile",
+              "says": "That is what an alkene would give. A triple bond has two pi bonds and spends only one making the ring."
+            }
+          ]
         }
       },
       "explanation": "An alkyne dienophile gives a cyclohexa-1,4-diene.",
       "conditions": "heat",
       "provenance": "scripts/u1_pools_cd.py section 3 (Diels-Alder reaction SMARTS) and section 8; name checked with OPSIN.",
+      "placeholder": true
+    } },
+  ],
+  "u1-mo": [
+    { at: 2, entry: {
+      "id": "u1-cd-mo-draw-conjugated",
+      "item": {
+        "kind": "draw",
+        "beat": {
+          "kind": "draw",
+          "id": "u1-cd-mo-draw-conjugated",
+          "node": "u1-mo",
+          "conceptIds": [
+            "resonance_delocalisation"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "Move one C=C of penta-1,4-diene so the pi system is conjugated. Draw it.",
+          "brief": "Keep all five carbons in one chain and keep two C=C.",
+          "visual": {
+            "kind": "structure",
+            "figure": {
+              "bonds": [
+                {
+                  "x1": 9,
+                  "y1": 35,
+                  "x2": 35,
+                  "y2": 49,
+                  "order": 2
+                },
+                {
+                  "x1": 35,
+                  "y1": 49,
+                  "x2": 60,
+                  "y2": 35
+                },
+                {
+                  "x1": 60,
+                  "y1": 35,
+                  "x2": 86,
+                  "y2": 49
+                },
+                {
+                  "x1": 86,
+                  "y1": 49,
+                  "x2": 111,
+                  "y2": 35,
+                  "order": 2
+                }
+              ]
+            },
+            "name": "penta-1,4-diene"
+          },
+          "answer": {
+            "smiles": "C=CC=CC",
+            "inchi": "InChI=1S/C5H8/c1-3-5-4-2/h3-5H,1H2,2H3",
+            "name": "penta-1,3-diene",
+            "figure": {
+              "bonds": [
+                {
+                  "x1": 31,
+                  "y1": 38,
+                  "x2": 45,
+                  "y2": 46,
+                  "order": 2
+                },
+                {
+                  "x1": 45,
+                  "y1": 46,
+                  "x2": 60,
+                  "y2": 38
+                },
+                {
+                  "x1": 60,
+                  "y1": 38,
+                  "x2": 75,
+                  "y2": 46,
+                  "order": 2
+                },
+                {
+                  "x1": 75,
+                  "y1": 46,
+                  "x2": 89,
+                  "y2": 38
+                }
+              ]
+            }
+          },
+          "stereo": false,
+          "why": "Conjugated means the two C=C are joined by one single bond, so their four p orbitals line up into one pi system. In penta-1,3-diene they share C2-C3.",
+          "lookAt": "Slide the C4=C5 bond to C3=C4. Now only the C2-C3 single bond separates the two C=C.",
+          "misses": [
+            {
+              "id": "start",
+              "inchi": "InChI=1S/C5H8/c1-3-5-4-2/h3-4H,1-2,5H2",
+              "smiles": "C=CCC=C",
+              "name": "the starting diene",
+              "says": "Its two C=C are still separated by a CH2, so their p orbitals cannot overlap."
+            }
+          ]
+        }
+      },
+      "explanation": "Two C=C joined by exactly one single bond form one conjugated pi system.",
+      "provenance": "scripts/u1_pools_cd.py section 8 (every one-bond move of a C=C enumerated; conjugated and cumulated results told apart by RDKit); name checked with OPSIN.",
+      "placeholder": true
+    } },
+  ],
+  "u1-exam": [
+    { entry: {
+      "id": "u1-cd-exam-draw-mvk",
+      "item": {
+        "kind": "draw",
+        "beat": {
+          "kind": "draw",
+          "id": "u1-cd-exam-draw-mvk",
+          "node": "u1-exam",
+          "conceptIds": [
+            "ewg_edg_rubric"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "Isoprene and methyl vinyl ketone, heat. Draw the major product.",
+          "brief": "Two alignments are possible. Pick the major one before you draw.",
+          "visual": {
+            "kind": "pair",
+            "a": {
+              "figure": {
+                "bonds": [
+                  {
+                    "x1": 83,
+                    "y1": 9,
+                    "x2": 83,
+                    "y2": 35,
+                    "order": 2
+                  },
+                  {
+                    "x1": 83,
+                    "y1": 35,
+                    "x2": 60,
+                    "y2": 49
+                  },
+                  {
+                    "x1": 60,
+                    "y1": 49,
+                    "x2": 60,
+                    "y2": 75
+                  },
+                  {
+                    "x1": 60,
+                    "y1": 49,
+                    "x2": 37,
+                    "y2": 35,
+                    "order": 2
+                  }
+                ]
+              },
+              "name": "isoprene"
+            },
+            "b": {
+              "figure": {
+                "bonds": [
+                  {
+                    "x1": 83,
+                    "y1": 9,
+                    "x2": 83,
+                    "y2": 35,
+                    "order": 2
+                  },
+                  {
+                    "x1": 83,
+                    "y1": 35,
+                    "x2": 60,
+                    "y2": 49
+                  },
+                  {
+                    "x1": 60,
+                    "y1": 49,
+                    "x2": 60,
+                    "y2": 75
+                  },
+                  {
+                    "x1": 60,
+                    "y1": 49,
+                    "x2": 43,
+                    "y2": 39,
+                    "order": 2
+                  }
+                ],
+                "labels": [
+                  {
+                    "x": 37,
+                    "y": 40,
+                    "t": "O",
+                    "size": 13
+                  }
+                ]
+              },
+              "name": "methyl vinyl ketone"
+            }
+          },
+          "answer": {
+            "smiles": "CC(=O)C1CC=C(C)CC1",
+            "inchi": "InChI=1S/C9H14O/c1-7-3-5-9(6-4-7)8(2)10/h3,9H,4-6H2,1-2H3",
+            "name": "1-(4-methylcyclohex-3-en-1-yl)ethan-1-one",
+            "figure": {
+              "bonds": [
+                {
+                  "x1": 82,
+                  "y1": 67,
+                  "x2": 82,
+                  "y2": 50
+                },
+                {
+                  "x1": 82,
+                  "y1": 50,
+                  "x2": 91,
+                  "y2": 45,
+                  "order": 2
+                },
+                {
+                  "x1": 82,
+                  "y1": 50,
+                  "x2": 67,
+                  "y2": 42
+                },
+                {
+                  "x1": 67,
+                  "y1": 42,
+                  "x2": 67,
+                  "y2": 25
+                },
+                {
+                  "x1": 67,
+                  "y1": 25,
+                  "x2": 53,
+                  "y2": 17
+                },
+                {
+                  "x1": 53,
+                  "y1": 17,
+                  "x2": 38,
+                  "y2": 25,
+                  "order": 2
+                },
+                {
+                  "x1": 38,
+                  "y1": 25,
+                  "x2": 23,
+                  "y2": 17
+                },
+                {
+                  "x1": 38,
+                  "y1": 25,
+                  "x2": 38,
+                  "y2": 42
+                },
+                {
+                  "x1": 38,
+                  "y1": 42,
+                  "x2": 53,
+                  "y2": 51
+                },
+                {
+                  "x1": 53,
+                  "y1": 51,
+                  "x2": 67,
+                  "y2": 42
+                }
+              ],
+              "labels": [
+                {
+                  "x": 97,
+                  "y": 47,
+                  "t": "O",
+                  "size": 13
+                }
+              ]
+            }
+          },
+          "stereo": false,
+          "why": "Isoprene's largest HOMO coefficient is on C1, next to the methyl-bearing carbon; methyl vinyl ketone's largest LUMO coefficient is on its CH2 end. Bonding those two puts CH3 and the acetyl group 1,4: the para product.",
+          "lookAt": "A 2-substituted diene gives the para product: draw the cyclohexene, CH3 on the ring C=C, and the C(=O)CH3 three carbons away, across the ring.",
+          "misses": [
+            {
+              "id": "meta",
+              "inchi": "InChI=1S/C9H14O/c1-7-4-3-5-9(6-7)8(2)10/h4,9H,3,5-6H2,1-2H3",
+              "smiles": "CC(=O)C1CCC=C(C)C1",
+              "name": "the meta product",
+              "says": "Right ring, wrong alignment: CH3 and the acetyl end up 1,3. Pair the diene's biggest HOMO lobe with the dienophile's biggest LUMO lobe."
+            },
+            {
+              "id": "no-ene",
+              "inchi": "InChI=1S/C9H16O/c1-7-3-5-9(6-4-7)8(2)10/h7,9H,3-6H2,1-2H3",
+              "smiles": "CC(=O)C1CCC(C)CC1",
+              "name": "a ring with no C=C",
+              "says": "The diene's old middle bond becomes a C=C in the new ring. Every Diels-Alder product made from an alkene keeps exactly one."
+            },
+            {
+              "id": "moved0",
+              "inchi": "InChI=1S/C9H14O/c1-7-3-5-9(6-4-7)8(2)10/h5,7H,3-4,6H2,1-2H3",
+              "smiles": "CC(=O)C1=CCC(C)CC1",
+              "name": "a ring with its C=C moved",
+              "says": "The new C=C sits where the diene's single bond was, between its old C2 and C3, not next to a carbon that just made a new bond."
+            },
+            {
+              "id": "moved1",
+              "inchi": "InChI=1S/C9H14O/c1-7-3-5-9(6-4-7)8(2)10/h3,5,7,9H,4,6H2,1-2H3",
+              "smiles": "CC(=O)C1C=CC(C)CC1",
+              "name": "a ring with its C=C moved",
+              "says": "The new C=C sits where the diene's single bond was, between its old C2 and C3, not next to a carbon that just made a new bond."
+            }
+          ]
+        }
+      },
+      "explanation": "2-Substituted dienes give the para (1,4) product.",
+      "conditions": "heat",
+      "provenance": "scripts/u1_pools_cd.py section 3 (Huckel frontier coefficients pick the pairing, para read off the product) and section 8; name checked with OPSIN.",
+      "placeholder": true
+    } },
+  ],
+  "u1-da-stereo": [
+    { entry: {
+      "id": "u1-cd-st-draw-maleate",
+      "item": {
+        "kind": "draw",
+        "beat": {
+          "kind": "draw",
+          "id": "u1-cd-st-draw-maleate",
+          "node": "u1-da-stereo",
+          "conceptIds": [
+            "diels_alder_geometry"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "Butadiene and dimethyl maleate, heat. Draw the product with wedges.",
+          "brief": "Use the wedge tool on the bond to each ester.",
+          "visual": {
+            "kind": "pair",
+            "a": {
+              "figure": {
+                "bonds": [
+                  {
+                    "x1": 99,
+                    "y1": 35,
+                    "x2": 73,
+                    "y2": 50,
+                    "order": 2
+                  },
+                  {
+                    "x1": 73,
+                    "y1": 50,
+                    "x2": 47,
+                    "y2": 34
+                  },
+                  {
+                    "x1": 47,
+                    "y1": 34,
+                    "x2": 21,
+                    "y2": 49,
+                    "order": 2
+                  }
+                ]
+              },
+              "name": "buta-1,3-diene"
+            },
+            "b": {
+              "figure": {
+                "bonds": [
+                  {
+                    "x1": 107,
+                    "y1": 9,
+                    "x2": 107,
+                    "y2": 24
+                  },
+                  {
+                    "x1": 102,
+                    "y1": 34,
+                    "x2": 89,
+                    "y2": 42
+                  },
+                  {
+                    "x1": 89,
+                    "y1": 42,
+                    "x2": 75,
+                    "y2": 34,
+                    "order": 2
+                  },
+                  {
+                    "x1": 89,
+                    "y1": 42,
+                    "x2": 89,
+                    "y2": 64
+                  },
+                  {
+                    "x1": 89,
+                    "y1": 64,
+                    "x2": 70,
+                    "y2": 75,
+                    "order": 2
+                  },
+                  {
+                    "x1": 70,
+                    "y1": 75,
+                    "x2": 51,
+                    "y2": 64
+                  },
+                  {
+                    "x1": 51,
+                    "y1": 64,
+                    "x2": 50,
+                    "y2": 49,
+                    "order": 2
+                  },
+                  {
+                    "x1": 51,
+                    "y1": 64,
+                    "x2": 37,
+                    "y2": 72
+                  },
+                  {
+                    "x1": 26,
+                    "y1": 72,
+                    "x2": 13,
+                    "y2": 64
+                  }
+                ],
+                "labels": [
+                  {
+                    "x": 107,
+                    "y": 36,
+                    "t": "O",
+                    "size": 13
+                  },
+                  {
+                    "x": 69,
+                    "y": 36,
+                    "t": "O",
+                    "size": 13
+                  },
+                  {
+                    "x": 50,
+                    "y": 47,
+                    "t": "O",
+                    "size": 13
+                  },
+                  {
+                    "x": 32,
+                    "y": 80,
+                    "t": "O",
+                    "size": 13
+                  }
+                ]
+              },
+              "name": "dimethyl maleate"
+            }
+          },
+          "answer": {
+            "smiles": "COC(=O)[C@H]1CC=CC[C@H]1C(=O)OC",
+            "inchi": "InChI=1S/C10H14O4/c1-13-9(11)7-5-3-4-6-8(7)10(12)14-2/h3-4,7-8H,5-6H2,1-2H3/t7-,8+",
+            "name": "cis-dimethyl cyclohex-4-ene-1,2-dicarboxylate",
+            "figure": {
+              "bonds": [
+                {
+                  "x1": 92,
+                  "y1": 9,
+                  "x2": 92,
+                  "y2": 17
+                },
+                {
+                  "x1": 86,
+                  "y1": 27,
+                  "x2": 79,
+                  "y2": 31
+                },
+                {
+                  "x1": 79,
+                  "y1": 31,
+                  "x2": 72,
+                  "y2": 27,
+                  "order": 2
+                },
+                {
+                  "x1": 79,
+                  "y1": 46,
+                  "x2": 79,
+                  "y2": 31,
+                  "stereo": "wedge"
+                },
+                {
+                  "x1": 79,
+                  "y1": 46,
+                  "x2": 92,
+                  "y2": 53
+                },
+                {
+                  "x1": 92,
+                  "y1": 53,
+                  "x2": 92,
+                  "y2": 68
+                },
+                {
+                  "x1": 92,
+                  "y1": 68,
+                  "x2": 79,
+                  "y2": 75,
+                  "order": 2
+                },
+                {
+                  "x1": 79,
+                  "y1": 75,
+                  "x2": 66,
+                  "y2": 68
+                },
+                {
+                  "x1": 66,
+                  "y1": 68,
+                  "x2": 66,
+                  "y2": 53
+                },
+                {
+                  "x1": 66,
+                  "y1": 53,
+                  "x2": 54,
+                  "y2": 46,
+                  "stereo": "wedge"
+                },
+                {
+                  "x1": 54,
+                  "y1": 46,
+                  "x2": 54,
+                  "y2": 37,
+                  "order": 2
+                },
+                {
+                  "x1": 54,
+                  "y1": 46,
+                  "x2": 47,
+                  "y2": 50
+                },
+                {
+                  "x1": 35,
+                  "y1": 50,
+                  "x2": 28,
+                  "y2": 46
+                },
+                {
+                  "x1": 66,
+                  "y1": 53,
+                  "x2": 79,
+                  "y2": 46
+                }
+              ],
+              "labels": [
+                {
+                  "x": 92,
+                  "y": 29,
+                  "t": "O",
+                  "size": 13
+                },
+                {
+                  "x": 66,
+                  "y": 29,
+                  "t": "O",
+                  "size": 13
+                },
+                {
+                  "x": 54,
+                  "y": 36,
+                  "t": "O",
+                  "size": 13
+                },
+                {
+                  "x": 41,
+                  "y": 58,
+                  "t": "O",
+                  "size": 13
+                }
+              ]
+            }
+          },
+          "stereo": true,
+          "why": "The Diels-Alder is one concerted step, so the dienophile's geometry survives. Maleate's esters are cis, so they end up on the same face of the new ring: both wedged, or both dashed.",
+          "lookAt": "Cis stays cis. Draw both esters on wedges, the same face of the ring.",
+          "misses": [
+            {
+              "id": "trans",
+              "inchi": "InChI=1S/C10H14O4/c1-13-9(11)7-5-3-4-6-8(7)10(12)14-2/h3-4,7-8H,5-6H2,1-2H3/t7-,8-/m0/s1",
+              "smiles": "COC(=O)[C@H]1CC=CC[C@@H]1C(=O)OC",
+              "name": "the trans diester",
+              "says": "One ester up and one down is what dimethyl fumarate gives. Maleate's esters start on the same side and the one-step reaction keeps them there."
+            },
+            {
+              "id": "flat",
+              "inchi": "InChI=1S/C10H14O4/c1-13-9(11)7-5-3-4-6-8(7)10(12)14-2/h3-4,7-8H,5-6H2,1-2H3",
+              "smiles": "COC(=O)C1CC=CCC1C(=O)OC",
+              "name": "the ring with no wedges",
+              "says": "Right atoms. This item is about where the esters point, so put a wedge on each ester bond."
+            }
+          ]
+        }
+      },
+      "explanation": "Groups cis on the dienophile end up cis in the product.",
+      "conditions": "heat",
+      "provenance": "scripts/u1_pools_cd.py section 5 (cis and trans diesters enumerated, faces measured on embedded 3D) and section 8; graded on relative stereo.",
+      "placeholder": true
+    } },
+  ],
+  "u1-da-3d": [
+    { at: 2, entry: {
+      "id": "u1-cd-3d-draw-fumarate",
+      "item": {
+        "kind": "draw",
+        "beat": {
+          "kind": "draw",
+          "id": "u1-cd-3d-draw-fumarate",
+          "node": "u1-da-3d",
+          "conceptIds": [
+            "diels_alder_geometry"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "Butadiene and dimethyl fumarate, heat. Draw the product with wedges.",
+          "brief": "Use the wedge and dash tools on the bonds to the esters.",
+          "visual": {
+            "kind": "pair",
+            "a": {
+              "figure": {
+                "bonds": [
+                  {
+                    "x1": 99,
+                    "y1": 35,
+                    "x2": 73,
+                    "y2": 50,
+                    "order": 2
+                  },
+                  {
+                    "x1": 73,
+                    "y1": 50,
+                    "x2": 47,
+                    "y2": 34
+                  },
+                  {
+                    "x1": 47,
+                    "y1": 34,
+                    "x2": 21,
+                    "y2": 49,
+                    "order": 2
+                  }
+                ]
+              },
+              "name": "buta-1,3-diene"
+            },
+            "b": {
+              "figure": {
+                "bonds": [
+                  {
+                    "x1": 111,
+                    "y1": 38,
+                    "x2": 102,
+                    "y2": 43
+                  },
+                  {
+                    "x1": 91,
+                    "y1": 43,
+                    "x2": 82,
+                    "y2": 38
+                  },
+                  {
+                    "x1": 82,
+                    "y1": 38,
+                    "x2": 82,
+                    "y2": 27,
+                    "order": 2
+                  },
+                  {
+                    "x1": 82,
+                    "y1": 38,
+                    "x2": 67,
+                    "y2": 46
+                  },
+                  {
+                    "x1": 67,
+                    "y1": 46,
+                    "x2": 53,
+                    "y2": 38,
+                    "order": 2
+                  },
+                  {
+                    "x1": 53,
+                    "y1": 38,
+                    "x2": 38,
+                    "y2": 46
+                  },
+                  {
+                    "x1": 38,
+                    "y1": 46,
+                    "x2": 38,
+                    "y2": 57,
+                    "order": 2
+                  },
+                  {
+                    "x1": 38,
+                    "y1": 46,
+                    "x2": 29,
+                    "y2": 41
+                  },
+                  {
+                    "x1": 18,
+                    "y1": 41,
+                    "x2": 9,
+                    "y2": 46
+                  }
+                ],
+                "labels": [
+                  {
+                    "x": 96,
+                    "y": 51,
+                    "t": "O",
+                    "size": 13
+                  },
+                  {
+                    "x": 82,
+                    "y": 26,
+                    "t": "O",
+                    "size": 13
+                  },
+                  {
+                    "x": 38,
+                    "y": 68,
+                    "t": "O",
+                    "size": 13
+                  },
+                  {
+                    "x": 24,
+                    "y": 43,
+                    "t": "O",
+                    "size": 13
+                  }
+                ]
+              },
+              "name": "dimethyl fumarate"
+            }
+          },
+          "answer": {
+            "smiles": "COC(=O)[C@H]1CC=CC[C@@H]1C(=O)OC",
+            "inchi": "InChI=1S/C10H14O4/c1-13-9(11)7-5-3-4-6-8(7)10(12)14-2/h3-4,7-8H,5-6H2,1-2H3/t7-,8-/m0/s1",
+            "name": "trans-dimethyl cyclohex-4-ene-1,2-dicarboxylate",
+            "figure": {
+              "bonds": [
+                {
+                  "x1": 92,
+                  "y1": 9,
+                  "x2": 92,
+                  "y2": 17
+                },
+                {
+                  "x1": 86,
+                  "y1": 27,
+                  "x2": 79,
+                  "y2": 31
+                },
+                {
+                  "x1": 79,
+                  "y1": 31,
+                  "x2": 72,
+                  "y2": 27,
+                  "order": 2
+                },
+                {
+                  "x1": 79,
+                  "y1": 46,
+                  "x2": 79,
+                  "y2": 31,
+                  "stereo": "wedge"
+                },
+                {
+                  "x1": 79,
+                  "y1": 46,
+                  "x2": 92,
+                  "y2": 53
+                },
+                {
+                  "x1": 92,
+                  "y1": 53,
+                  "x2": 92,
+                  "y2": 68
+                },
+                {
+                  "x1": 92,
+                  "y1": 68,
+                  "x2": 79,
+                  "y2": 75,
+                  "order": 2
+                },
+                {
+                  "x1": 79,
+                  "y1": 75,
+                  "x2": 66,
+                  "y2": 68
+                },
+                {
+                  "x1": 66,
+                  "y1": 68,
+                  "x2": 66,
+                  "y2": 53
+                },
+                {
+                  "x1": 66,
+                  "y1": 53,
+                  "x2": 54,
+                  "y2": 46,
+                  "stereo": "hash"
+                },
+                {
+                  "x1": 54,
+                  "y1": 46,
+                  "x2": 54,
+                  "y2": 37,
+                  "order": 2
+                },
+                {
+                  "x1": 54,
+                  "y1": 46,
+                  "x2": 47,
+                  "y2": 50
+                },
+                {
+                  "x1": 35,
+                  "y1": 50,
+                  "x2": 28,
+                  "y2": 46
+                },
+                {
+                  "x1": 66,
+                  "y1": 53,
+                  "x2": 79,
+                  "y2": 46
+                }
+              ],
+              "labels": [
+                {
+                  "x": 92,
+                  "y": 29,
+                  "t": "O",
+                  "size": 13
+                },
+                {
+                  "x": 66,
+                  "y": 29,
+                  "t": "O",
+                  "size": 13
+                },
+                {
+                  "x": 54,
+                  "y": 36,
+                  "t": "O",
+                  "size": 13
+                },
+                {
+                  "x": 41,
+                  "y": 58,
+                  "t": "O",
+                  "size": 13
+                }
+              ]
+            }
+          },
+          "stereo": true,
+          "why": "Fumarate's esters are trans, and the concerted reaction keeps them trans: one on a wedge, one on a dash. It forms as a racemic pair, so either mirror image is right.",
+          "lookAt": "Trans stays trans. Put one ester on a wedge and the other on a dash.",
+          "misses": [
+            {
+              "id": "cis",
+              "inchi": "InChI=1S/C10H14O4/c1-13-9(11)7-5-3-4-6-8(7)10(12)14-2/h3-4,7-8H,5-6H2,1-2H3/t7-,8+",
+              "smiles": "COC(=O)[C@H]1CC=CC[C@H]1C(=O)OC",
+              "name": "the cis diester",
+              "says": "Both esters on the same face is what dimethyl maleate gives. Fumarate's esters start on opposite sides and stay there."
+            },
+            {
+              "id": "flat",
+              "inchi": "InChI=1S/C10H14O4/c1-13-9(11)7-5-3-4-6-8(7)10(12)14-2/h3-4,7-8H,5-6H2,1-2H3",
+              "smiles": "COC(=O)C1CC=CCC1C(=O)OC",
+              "name": "the ring with no wedges",
+              "says": "Right atoms. This item is about where the esters point, so put a wedge on one ester bond and a dash on the other."
+            }
+          ]
+        }
+      },
+      "explanation": "Groups trans on the dienophile end up trans in the product.",
+      "conditions": "heat",
+      "provenance": "scripts/u1_pools_cd.py section 5 (cis and trans diesters enumerated, faces measured on embedded 3D) and section 8; graded on relative stereo.",
       "placeholder": true
     } },
   ],

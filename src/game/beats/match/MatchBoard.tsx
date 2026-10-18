@@ -67,6 +67,7 @@ import type { BeatResult, MasteryLevel, MatchBeat } from "../types";
 import type { Card } from "../../cards/types";
 import { Press } from "../../app/ui/Press";
 import { ChipPress } from "../ChipPress";
+import { StructureFigure } from "../../onboarding/StructureFigure";
 import {
   buildMatchBoard,
   isPlayable,
@@ -201,7 +202,10 @@ export function Board({
     undefined,
     initialBoardState,
   );
-  const [showWorkings, setShowWorkings] = useState(false);
+  // Open by default once the board is solved: the cards have all left, and the
+  // pairings with their reasons fill the space they left (round 2 critic: a
+  // solved board was a large empty area).
+  const [showWorkings, setShowWorkings] = useState(true);
 
   const startedAt = useRef(Date.now());
   const completionReported = useRef(false);
@@ -310,6 +314,7 @@ export function Board({
           child now and `items-stretch` lets each column's rows share the room
           it gets, so a four pair board reads as a full screen of big tap
           targets rather than as a diagram parked at the top. */}
+      {complete && pending === null ? null : (
       <div className="grid min-h-0 flex-1 grid-cols-2 items-stretch gap-2 sm:gap-3">
         <Column
           heading="Cards"
@@ -329,6 +334,7 @@ export function Board({
           onPick={(id) => dispatch({ kind: "pick", side: "target", id })}
         />
       </div>
+      )}
 
       {/* role=status plus aria-live=polite: the browser reads the new sentence
           after it finishes what it is saying, which is right for feedback and
@@ -503,13 +509,31 @@ function Column({
                 aria-disabled={gone || undefined}
                 className={`press flex h-full min-h-11 w-full items-center break-words hyphens-auto rounded-xl border px-2.5 py-2.5 text-left text-scale-sm leading-snug sm:px-3 sm:py-3 ${skin} ${motion}`}
               >
-                {textOf(spec, id)}
+                <CardFace spec={spec} id={id} />
               </button>
             </li>
           );
         })}
       </ul>
     </div>
+  );
+}
+
+/**
+ * A card's face: its text, and above it the molecule drawn when the board
+ * carries one (owner rule: structures, not names alone). The drawing sits on
+ * a white chip so its black bonds read in both themes.
+ */
+function CardFace({ spec, id }: { readonly spec: MatchBoardSpec; readonly id: OptionId }) {
+  const figure = spec.figureByPrompt?.[id];
+  if (figure === undefined) return <>{textOf(spec, id)}</>;
+  return (
+    <span className="match-card-face">
+      <span className="match-card-figure">
+        <StructureFigure figure={figure} className="match-card-figure__svg" />
+      </span>
+      <span>{textOf(spec, id)}</span>
+    </span>
   );
 }
 
@@ -533,6 +557,11 @@ function Workings({
     <ul className="flex flex-col gap-2 text-scale-sm" role="list">
       {state.landed.map((pair) => (
         <li key={pair.promptId} className="rounded-xl border border-bb-border bg-bb-card p-3">
+          {spec.figureByPrompt?.[pair.promptId] === undefined ? null : (
+            <span className="match-card-figure match-card-figure--row">
+              <StructureFigure figure={spec.figureByPrompt[pair.promptId]!} className="match-card-figure__svg" />
+            </span>
+          )}
           <p className="font-semibold text-bb-foreground">
             {textOf(spec, pair.promptId)} to {textOf(spec, pair.targetId)}
           </p>

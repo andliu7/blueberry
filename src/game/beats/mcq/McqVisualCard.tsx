@@ -50,16 +50,18 @@ function Species({ figure, name }: { readonly figure: NamedFigure["figure"]; rea
 
 export function McqVisualCard({ visual }: { readonly visual: McqVisual }) {
   if (visual.kind === "scheme") return <SchemeCard scheme={visual.scheme} />;
+  // `large` picks the big figure (scheme.css .scheme--large); every other visual keeps the thumbnail.
+  const box = visual.large === true ? "scheme scheme--large" : "scheme";
   if (visual.kind === "pair") {
     return (
-      <div className="scheme" aria-hidden>
+      <div className={box} aria-hidden>
         <Species figure={visual.a.figure} name={visual.a.name} />
         <Species figure={visual.b.figure} name={visual.b.name} />
       </div>
     );
   }
   return (
-    <div className="scheme" aria-hidden>
+    <div className={box} aria-hidden>
       <Species figure={visual.figure} name={visual.name} />
     </div>
   );

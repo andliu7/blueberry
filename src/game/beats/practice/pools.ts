@@ -14,6 +14,14 @@ import { U3_POOLS } from "../../content/u3";
 import { U4_POOLS } from "../../content/u4";
 import { U5_POOLS } from "../../content/u5";
 import { U6_POOLS } from "../../content/u6";
+import { U7_POOLS } from "../../content/u7";
+import { U8_POOLS } from "../../content/u8";
+// Unit 9 draft pools (ADDED 2026-10-17, scripts/u9_pools.py).
+import { U9_POOLS } from "../../content/u9";
+// Unit 10 draft pools (ADDED 2026-10-17, scripts/u10_pools.py).
+import { U10_POOLS } from "../../content/u10";
+// Unit 0 ("Start here") draft pools and its test out quiz (ADDED 2026-10-17).
+import { U0_EXAM_CHAPTERS, U0_EXAM_IDS, U0_POOLS } from "../../content/u0";
 import { lessonTrainerFor } from "../../content/u1/lessonTrainers";
 import { mcqCardId } from "../mcq/card";
 import type { PoolEntry, UnitPools } from "../../content/u1/types";
@@ -32,11 +40,15 @@ const EXAM_SOURCES: Readonly<Record<string, readonly (readonly string[] | string
   [checkpointNodeId("u2")]: ["u2-huckel", "u2-charged", "u2-annulene", "u2-hetero", "u2-nmr"].map((node) =>
     U2_EXAM_IDS.filter((id) => (U2_POOLS[node] ?? []).some((entry) => entry.id === id)),
   ),
+  // Unit 0's test out quiz (u0-check): the ids u0_pools.py sets aside, split by chapter so chapters 2 to 8 interleave.
+  [checkpointNodeId("u0")]: U0_EXAM_CHAPTERS.map((node) =>
+    U0_EXAM_IDS.filter((id) => (U0_POOLS[node] ?? []).some((entry) => entry.id === id)),
+  ),
 });
 
 /** Every unit's pools in one table. Node ids carry their unit prefix, so keys cannot collide. */
 // mergePools throws on a node or entry id written twice, so a unit collision fails at import, never silently overwrites.
-const ALL_POOLS: UnitPools = mergePools(U1_POOLS, U2_POOLS, U3_POOLS, U4_POOLS, U5_POOLS, U6_POOLS);
+const ALL_POOLS: UnitPools = mergePools(U1_POOLS, U2_POOLS, U3_POOLS, U4_POOLS, U5_POOLS, U6_POOLS, U7_POOLS, U8_POOLS, U9_POOLS, U10_POOLS, U0_POOLS);
 
 /**
  * What a node's Challenge adds to its own pool. Radical items may reach a quiz
@@ -76,6 +88,25 @@ function isRunNode(nodeId: string): boolean {
 export function practicePool(nodeId: string, pools: UnitPools = ALL_POOLS): readonly PoolEntry[] {
   if (EXAM_SOURCES[nodeId] !== undefined) return examPool(nodeId, pools);
   return isRunNode(nodeId) ? (pools[nodeId] ?? []) : [];
+}
+
+/**
+ * Checkpoints that play as a UNIT EXAM (run.ts: the whole set, passed on the
+ * share right first time) instead of the in-a-row run. Unit 2 draft only, 2026-10-17:
+ * the in-a-row rule let its 14-problem exam clear after 4 answers. Unit 1's
+ * checkpoint still plays in a row; adding it here is one line and the owner's call.
+ */
+// Unit 0's test out quiz plays as the whole set too, so it cannot pass on three lucky answers (2026-10-17).
+const EXAM_RUNS: ReadonlySet<string> = new Set([checkpointNodeId("u2"), checkpointNodeId("u0")]);
+
+export function isExamRun(nodeId: string): boolean {
+  return EXAM_RUNS.has(nodeId);
+}
+
+/** The node whose pool an entry was written for, so an exam can report per topic. Null for an unknown id. */
+export function poolHomeOf(entryId: string, pools: UnitPools = ALL_POOLS): string | null {
+  for (const [node, entries] of Object.entries(pools)) if (entries.some((entry) => entry.id === entryId)) return node;
+  return null;
 }
 
 /** A run node's Challenge set: its own pool, with any Challenge-only problems taken in turn. */
