@@ -200,6 +200,30 @@ Wave 6, polish
 22. Site footer like andliu.dev; "Find me" as GitHub / LinkedIn / email logos that expand into
    words on hover; make FAQ easier to find (he likes that page; maybe recolour later).
 
+Added 20 Oct (owner)
+23. Admin lesson viewer: open ANY lesson at any time, step through its questions as a slideshow,
+   toggle student view and Pro / Free view, and edit the text in place (edits saved server side,
+   admin only; the plan toggle is a view, never a grant). Folds into Wave 3's admin view.
+24. Back buttons over images (guides first): a faint circle behind the back button so it reads on
+   any header image. Small; do with the next quick-fix batch.
+25. SANDBOX tab: play with molecules in several views (2D, 3D, skeletal/condensed); draw with
+   finger, mouse or Apple Pencil (test on iPad); build with the molecule editor (Ketcher, lazy);
+   arrow-pushing mode where you search and add reactions; save intermediates and replay them as a
+   slideshow. Needs a design pass and a tab-count decision (the rulebook caps tabs: probably inside
+   an existing tab or replacing one; ASK).
+26. Stereochemistry: little is built in. Add it where reactions need it (anti/syn additions,
+   epoxide opening, Diels-Alder endo, SN2 inversion, enolates, Fischer projections). See the audit.
+27. Glossary (merges W14): Orgo II nomenclature; personal definitions a student saves, marked with
+   an award badge as their own; pKa table; EVERY reaction, categorised by functional group so the
+   reaction maps (EB6) can be built from it (alkanes, alkenes, alkynes, aromatics, haloalkanes,
+   alcohols, thiols/amines, aldehydes/ketones, carboxylic acids, esters, with each interconversion);
+   shorthands (DMSO, THF, tBu, DMS, Py, Ph, Me, Ts, PCC, Jones = H2CrO4 in Orgo II). Structures from
+   RDKit with byte-match tests (D6).
+28. Curriculum audit against the owner's reagent reference
+   (`documentation/ORGO2-REAGENT-REFERENCE.md`); gaps in
+   `grignard/reports/curriculum-vs-reference-2026-10-20.md` (outside the repo). Feeds item 5 of the
+   evening brief (build the other units from shared templates).
+
 Kept, owner likes (do not regress): the progress bar, lesson progression, the lesson guide, the
 map, predictions up front, numbered carbons, flagging, full screen on iPad, the selecting
 interaction in practice.
