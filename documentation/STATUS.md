@@ -126,6 +126,9 @@ six Bloom moves, hand-written wordmark, jump / curtain lift / land exit.
   "N XP to pass <classmate>" once leaderboards are real), never "135 / 200"; NO energy cost shown
   on spend (no -N chip, no cost slice). +XP moment = B1. Chest = C1 (three taps, five diamonds
   fly one by one to the counter). Add DAILY GIFTS.
+- Chests are EARNED and SAVED (owner 20 Oct): completing a task (a daily quest, a section final, a
+  daily gift) drops a chest right away with "Open now" / "Save for later"; saved chests stack in a
+  chest inventory (in Me, or a corner badge) and can be opened one by one or all at once.
 - Energy (owner 20 Oct, amends ECONOMY): cap 20; lesson -3; challenge or section final -6;
   refill +10 every 30 min; EARN energy: review drill +3, each daily quest +5, flawless lesson +2;
   wrong answers never cost. Intent: a full tank covers a ~5-lesson section and runs out just
