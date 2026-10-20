@@ -17,16 +17,16 @@
  * lazy again. CLAUDE.md's rule is that heavy imports are lazy; a boundary that
  * silently does not hold is worse than not having drawn one.
  *
- * problemsForTopic comes with them because PathwayTab already calls it, and it
- * carries the curriculum corpus that the pathway pulls in either way.
+ * The problems themselves are NOT here any more (owner, 2026-10-20). The path's
+ * first screen only needs how many problems each topic serves, and importing
+ * the corpus for that put ~48 KB gzipped on the game's first load. The counts
+ * come from a committed table (topicProblemCounts.ts) that a test regenerates
+ * from the real corpus; the problems live in courseProblems.ts, which only the
+ * lazy Courses tab imports.
  */
 
-import {
-  SEED_CORPUS,
-  type CourseId,
-  type Problem,
-  type TopicId,
-} from "@blueberry/curriculum";
+import type { CourseId, TopicId } from "@blueberry/curriculum";
+import { TOPIC_PROBLEM_COUNTS } from "./topicProblemCounts";
 
 export const COURSE_LABEL: Record<CourseId, string> = {
   gen_chem_1: "General Chemistry I",
@@ -74,7 +74,7 @@ export const COURSE_BLURB: Record<CourseId, string> = {
  * keyboard and equation surfaces in the video corpus). The authored MCQ and
  * numeric corpus stays; it is gated, not deleted.
  */
-const SERVED_KINDS = new Set(["major_product", "reagents", "structure"]);
+export const SERVED_KINDS = new Set(["major_product", "reagents", "structure"]);
 
 /**
  * `?serveAll=1` lifts the gate for the capture scripts and nothing else. No
@@ -84,11 +84,17 @@ const SERVED_KINDS = new Set(["major_product", "reagents", "structure"]);
  * problems are served, never how one is graded, the same family as
  * App.tsx's ?measure flag. See measurements/capture-economy.mjs.
  */
-const SERVE_ALL =
+export const SERVE_ALL =
   typeof window !== "undefined" && new URLSearchParams(window.location.search).get("serveAll") === "1";
 
-export function problemsForTopic(topic: TopicId): readonly Problem[] {
-  return SEED_CORPUS.filter((problem) => problem.topic === topic && (SERVE_ALL || SERVED_KINDS.has(problem.answer.kind)));
+/**
+ * `problemsForTopic(topic).length` without the corpus. Same gate, same
+ * `?serveAll=1` switch, read off the committed table.
+ */
+export function problemCountForTopic(topic: TopicId): number {
+  const counts = TOPIC_PROBLEM_COUNTS[topic];
+  if (counts === undefined) return 0;
+  return SERVE_ALL ? counts.all : counts.served;
 }
 
 /**

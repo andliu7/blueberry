@@ -1,4 +1,4 @@
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 /**
  * The Supabase browser client.
@@ -32,8 +32,27 @@ const PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string 
  */
 export const supabaseConfigured = Boolean(URL && PUBLISHABLE_KEY);
 
-export const supabase: SupabaseClient | null = supabaseConfigured
-  ? createClient(URL!, PUBLISHABLE_KEY!, {
+/**
+ * The client, created on first ask.
+ *
+ * supabase-js is about 50 KB gzipped, and the first screen of the site and the
+ * game never needs it before the page is up. So it is a dynamic import behind
+ * this getter instead of a top-level `createClient`, which keeps it out of the
+ * first load. The promise is memoised, so every caller still shares the one
+ * client the note above insists on.
+ *
+ * `AuthProvider` asks for it on mount, which is what restores a stored session
+ * and finishes a Google redirect (`detectSessionInUrl`) on page load, exactly
+ * as the eager client did, a chunk download later.
+ *
+ * Resolves to null when the build has no Supabase settings, same as before.
+ */
+let client: Promise<SupabaseClient | null> | null = null;
+
+export function getSupabase(): Promise<SupabaseClient | null> {
+  if (!supabaseConfigured) return Promise.resolve(null);
+  client ??= import("@supabase/supabase-js").then(({ createClient }) =>
+    createClient(URL!, PUBLISHABLE_KEY!, {
       auth: {
         // A static site has no server to complete a code exchange, so the
         // redirect comes back to the page itself and the client finishes the
@@ -46,8 +65,10 @@ export const supabase: SupabaseClient | null = supabaseConfigured
         // it read the URL is what completes a Google sign-in on return.
         detectSessionInUrl: true,
       },
-    })
-  : null;
+    }),
+  );
+  return client;
+}
 
 /** Where Google should send someone back to after signing in. */
 export const authRedirectTo = () =>

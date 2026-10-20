@@ -1,5 +1,4 @@
 import { useSyncExternalStore } from "react";
-import { DECKS as BUILTIN_DECKS } from "@/data/decks";
 import { fetchPublishedDecks } from "@/lib/appsScript";
 import { sanitizeHtml } from "@/lib/parseDeckText";
 import type { Deck, Question, StudyDeck } from "@/data/types";
@@ -21,6 +20,12 @@ import type { Deck, Question, StudyDeck } from "@/data/types";
  * which goes nowhere near the parser that sanitised it on the way in. So every
  * deck is shape-checked and every question re-sanitised on arrival. Doing it
  * only on write would trust an edit the server never saw.
+ *
+ * The built-in decks are a lazy chunk too (owner, 2026-10-20): the router calls
+ * this hook on every page, including the game, and the decks weighed ~38 KB
+ * gzipped on the game's first load. They arrive a moment after the page, so a
+ * cold link straight to a deck shows "Looking for that deck" for that moment,
+ * which the owner accepted. `loading` stays true until they are in.
  */
 
 function isQuestion(value: unknown): value is Question {
@@ -70,9 +75,8 @@ function isPublishedDeck(value: unknown): value is StudyDeck {
  * depending on which end of the array won. Refusing it here keeps the built-in
  * decks unreachable from the sheet entirely.
  */
-const RESERVED = new Set(BUILTIN_DECKS.map((d) => d.id));
-
-function normalise(raw: unknown[], shelves: string[]): StudyDeck[] {
+function normalise(raw: unknown[], shelves: string[], builtIns: readonly Deck[]): StudyDeck[] {
+  const RESERVED = new Set(builtIns.map((d) => d.id));
   const seen = new Set<string>();
   const known = new Map(shelves.map((s) => [s.toLowerCase(), s]));
   const out: StudyDeck[] = [];
@@ -108,7 +112,7 @@ export interface DecksSnapshot {
   published: StudyDeck[];
   /** Sub-folder names inside Uploaded, including ones with nothing in them. */
   shelves: string[];
-  /** True until the first fetch settles. */
+  /** True until the built-in decks are in and the first fetch settles. */
   loading: boolean;
 }
 
@@ -118,16 +122,50 @@ const NO_SHELVES: string[] = [];
 // Rebuilt only when the data changes, because useSyncExternalStore compares
 // snapshots by identity and a fresh object every read is an infinite loop.
 let snapshot: DecksSnapshot = {
-  decks: BUILTIN_DECKS,
+  decks: EMPTY,
   published: EMPTY,
   shelves: NO_SHELVES,
   loading: true,
 };
 const listeners = new Set<() => void>();
 
+/** Null until the built-in chunk has arrived. */
+let builtIns: Deck[] | null = null;
+/** Whether the sheet fetch is still out, kept apart from the built-ins. */
+let fetching = true;
+
 function publish(published: StudyDeck[], shelves: string[], loading: boolean) {
-  snapshot = { decks: [...BUILTIN_DECKS, ...published], published, shelves, loading };
+  fetching = loading;
+  snapshot = {
+    decks: [...(builtIns ?? []), ...published],
+    published,
+    shelves,
+    loading: builtIns === null || fetching,
+  };
   listeners.forEach((fn) => fn());
+}
+
+/**
+ * The built-in decks, fetched once. A failed chunk counts as none, so the router
+ * settles on a 404 rather than "Looking for that deck" forever; the published
+ * list is then never accepted either (see `load`), so nothing can take a
+ * built-in id while the real deck is missing.
+ */
+let builtInsReady: Promise<Deck[] | null> | null = null;
+function loadBuiltIns(): Promise<Deck[] | null> {
+  builtInsReady ??= import("@/data/decks").then(
+    (m) => {
+      builtIns = m.DECKS;
+      publish(snapshot.published, snapshot.shelves, fetching);
+      return m.DECKS;
+    },
+    () => {
+      builtIns = [];
+      publish(snapshot.published, snapshot.shelves, fetching);
+      return null;
+    },
+  );
+  return builtInsReady;
 }
 
 let started = false;
@@ -135,8 +173,14 @@ let started = false;
 function load() {
   started = true;
   if (!snapshot.loading) publish(snapshot.published, snapshot.shelves, true);
+  const ready = loadBuiltIns();
   fetchPublishedDecks()
-    .then(({ decks, shelves }) => publish(normalise(decks, shelves), shelves, false))
+    // The sheet's list is checked against the built-in ids, so it waits for them.
+    .then(async ({ decks, shelves }) => {
+      const reserved = await ready;
+      if (reserved === null) throw new Error("The built-in decks did not load.");
+      publish(normalise(decks, shelves, reserved), shelves, false);
+    })
     .catch(() => publish(snapshot.published, snapshot.shelves, false));
 }
 

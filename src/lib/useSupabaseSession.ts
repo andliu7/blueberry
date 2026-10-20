@@ -1,4 +1,4 @@
-import { authRedirectTo, supabase } from "@/lib/supabase";
+import { authRedirectTo, getSupabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/AuthContext";
 import type { AccountRole } from "@/lib/account";
 
@@ -55,7 +55,7 @@ export function useSupabaseSession(): {
       role,
       accessToken: session?.access_token ?? null,
       canWrite: true,
-      signOut: () => void supabase?.auth.signOut(),
+      signOut: () => void getSupabase().then((supabase) => supabase?.auth.signOut()),
     },
   };
 }
@@ -69,6 +69,7 @@ export function useSupabaseSession(): {
  * other.
  */
 export async function signInWithGoogle(): Promise<{ error?: string }> {
+  const supabase = await getSupabase();
   if (!supabase) return { error: "Sign-in is not configured." };
   const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",
@@ -98,6 +99,7 @@ export async function signInWithEmail(
   email: string,
   password: string,
 ): Promise<{ error?: string }> {
+  const supabase = await getSupabase();
   if (!supabase) return { error: "Sign-in is not configured." };
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   return error ? { error: error.message } : {};
@@ -117,6 +119,7 @@ export async function signUpWithEmail(args: {
   fullName: string;
   institution: string;
 }): Promise<{ error?: string; needsConfirmation?: boolean }> {
+  const supabase = await getSupabase();
   if (!supabase) return { error: "Sign-in is not configured." };
   const { data, error } = await supabase.auth.signUp({
     email: args.email,
@@ -152,6 +155,7 @@ export async function sendEmailCode(
   email: string,
   options?: { fullName?: string; institution?: string; createIfMissing?: boolean },
 ): Promise<{ error?: string }> {
+  const supabase = await getSupabase();
   if (!supabase) return { error: "Sign-in is not configured." };
   const { error } = await supabase.auth.signInWithOtp({
     email,
@@ -171,6 +175,7 @@ export async function verifyEmailCode(
   email: string,
   token: string,
 ): Promise<{ error?: string }> {
+  const supabase = await getSupabase();
   if (!supabase) return { error: "Sign-in is not configured." };
   const { error } = await supabase.auth.verifyOtp({
     email,

@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase";
+import { getSupabase } from "@/lib/supabase";
 
 /**
  * Office hours: the slots tutors post and the sessions students book.
@@ -94,6 +94,7 @@ export async function loadOfficeHours(from: Date): Promise<{
   bookings: Booking[];
   error?: string;
 }> {
+  const supabase = await getSupabase();
   if (!supabase) return { slots: [], bookings: [], error: NOT_SET_UP };
   const since = new Date(from.getFullYear(), from.getMonth(), from.getDate());
 
@@ -131,6 +132,7 @@ export async function bookOfficeHour(args: {
   studentName: string;
   note: string;
 }): Promise<{ ok: boolean; error?: string; booking?: Booking }> {
+  const supabase = await getSupabase();
   if (!supabase) return { ok: false, error: NOT_SET_UP };
   const { data, error } = await supabase
     .from("office_hour_bookings")
@@ -146,6 +148,7 @@ export async function bookOfficeHour(args: {
 }
 
 export async function cancelBooking(id: string): Promise<{ ok: boolean; error?: string }> {
+  const supabase = await getSupabase();
   if (!supabase) return { ok: false, error: NOT_SET_UP };
   const { error } = await supabase.from("office_hour_bookings").delete().eq("id", id);
   return error ? { ok: false, error: describeBookingError(error) } : { ok: true };
@@ -180,6 +183,7 @@ export async function moveBooking(args: {
 export async function postOfficeHours(
   rows: { start: Date; minutes: number; location: string; tutorName: string }[],
 ): Promise<{ ok: boolean; error?: string }> {
+  const supabase = await getSupabase();
   if (!supabase) return { ok: false, error: NOT_SET_UP };
   if (!rows.length) return { ok: true };
   const { error } = await supabase.from("office_hours").insert(
@@ -194,6 +198,7 @@ export async function postOfficeHours(
 }
 
 export async function removeOfficeHours(ids: string[]): Promise<{ ok: boolean; error?: string }> {
+  const supabase = await getSupabase();
   if (!supabase) return { ok: false, error: NOT_SET_UP };
   if (!ids.length) return { ok: true };
   const { error } = await supabase.from("office_hours").delete().in("id", ids);
@@ -202,6 +207,7 @@ export async function removeOfficeHours(ids: string[]): Promise<{ ok: boolean; e
 
 /** The caller's own Supabase user id, or null when signed out. */
 export async function currentUserId(): Promise<string | null> {
+  const supabase = await getSupabase();
   if (!supabase) return null;
   const { data } = await supabase.auth.getSession();
   return data.session?.user.id ?? null;

@@ -44,7 +44,7 @@
  * door; the door is the sheet.
  */
 
-import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { Fragment, lazy, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import {
   ACTS,
   prerequisiteClosure,
@@ -65,7 +65,7 @@ import { ChargeGate } from "../../charge/ChargeGate";
 import type { ChargeGateNode } from "../../charge/chargeGateModel";
 import { Berry } from "../../mascot/Berry";
 import { PathMascot } from "./PathMascot";
-import { COURSE_LABEL, problemsForTopic } from "../courses/courseCopy";
+import { COURSE_LABEL, problemCountForTopic } from "../courses/courseCopy";
 import { closedCourseTag, isCourseOpen } from "../../app/courses";
 import "./pathway.css";
 
@@ -100,7 +100,9 @@ import type { TrackMapNode } from "./trail";
  * which is where docs/ECONOMY.md wants the price named (at the door, on
  * entry, once).
  */
-import { NodeSheet, Guidebook, guidebookFor, type SheetNode } from "../../pathway-sheet";
+import { NodeSheet } from "../../pathway-sheet/NodeSheet";
+import type { SheetNode } from "../../pathway-sheet/nodeSheetModel";
+import { guidebookFor } from "../../pathway-sheet/guidebookContent";
 import { checkpointQuestions, difficultyForNode } from "../../pathway-sheet/nodeDifficulty";
 // Pure label geometry, in its own module so it can be tested without a document.
 // Re-exported because callers and tests have always reached it through this file.
@@ -113,8 +115,18 @@ import { browserStorage, hasSavedLesson, nodeOfHref, savedBar } from "../../resu
 import { SavedRing } from "../../resume/SavedRing";
 // The written unit guidebook (src/game/guide), opened from the unit card's GUIDEBOOK key.
 import { unitGuideFor, type LessonDoor } from "../../guide";
-import { UnitGuidePage } from "../../guide/UnitGuide";
 import { guideInHash } from "../../guide/guideLink";
+
+/*
+ * Both guidebooks load when first opened, not with the path (owner,
+ * 2026-10-20, to bring the game's first load under budget). React.lazy splits
+ * each into its own chunk; the Suspense around it shows nothing for the moment
+ * the chunk takes on a first open. The imports above go to the pathway-sheet
+ * files directly, because a name taken from its index would keep Guidebook
+ * reachable from this module.
+ */
+const Guidebook = lazy(() => import("../../pathway-sheet/Guidebook").then((m) => ({ default: m.Guidebook })));
+const UnitGuidePage = lazy(() => import("../../guide/UnitGuide").then((m) => ({ default: m.UnitGuidePage })));
 export { trackWind, withBreakHints } from "./pathwayLayout";
 
 export interface PathwayNode {
@@ -152,7 +164,7 @@ export function derivePathway(course: CourseId, snapshot: ProgressSnapshot): rea
       topic,
       definition,
       done: isDone(topic),
-      playable: problemsForTopic(topic).length > 0,
+      playable: problemCountForTopic(topic) > 0,
     };
   });
   // The unit key cuts where the act changes, the same cut groupIntoUnits
@@ -171,7 +183,7 @@ export function derivePathway(course: CourseId, snapshot: ProgressSnapshot): rea
       topic: standing.topic,
       label: standing.definition.label,
       state: review ? "review" : states[index]!,
-      problemCount: problemsForTopic(standing.topic).length,
+      problemCount: problemCountForTopic(standing.topic),
       homeCourse: standing.definition.course,
     };
   });
@@ -2659,7 +2671,9 @@ export default function PathwayTab({ reducedMotion }: { readonly reducedMotion: 
          * none is. pathwayUnlock.test.ts pins both overlays carrying them.
          */
         <div className="gb-overlay" role="dialog" aria-modal="true" aria-label="Guidebook">
-          <Guidebook content={guidebookFor(guidebook)} onBack={() => setGuidebook(null)} reducedMotion={reducedMotion} />
+          <Suspense fallback={null}>
+            <Guidebook content={guidebookFor(guidebook)} onBack={() => setGuidebook(null)} reducedMotion={reducedMotion} />
+          </Suspense>
         </div>
       )}
 
@@ -2667,20 +2681,22 @@ export default function PathwayTab({ reducedMotion }: { readonly reducedMotion: 
           for the same arrow-key reason as the overlay above. START walks the
           same charge gate a node's START does, opened above the guide. */}
       {unitGuide === null || writtenGuide === null ? null : (
-        <UnitGuidePage
-          guide={writtenGuide}
-          unitLabel={unitNumber(guideUnitTitle)}
-          unitName={unitName(guideUnitTitle)}
-          doors={unitGuide.doors}
-          progress={unitGuide.progress}
-          // The guide stays open under the charge sheet, so CANCEL lands the
-          // student back on the page they were reading. Entering the lesson
-          // changes the route, and the guide closes itself on that.
-          onStart={startFromSheet}
-          onClose={() => setUnitGuide(null)}
-          covered={gate !== null}
-          reducedMotion={reducedMotion}
-        />
+        <Suspense fallback={null}>
+          <UnitGuidePage
+            guide={writtenGuide}
+            unitLabel={unitNumber(guideUnitTitle)}
+            unitName={unitName(guideUnitTitle)}
+            doors={unitGuide.doors}
+            progress={unitGuide.progress}
+            // The guide stays open under the charge sheet, so CANCEL lands the
+            // student back on the page they were reading. Entering the lesson
+            // changes the route, and the guide closes itself on that.
+            onStart={startFromSheet}
+            onClose={() => setUnitGuide(null)}
+            covered={gate !== null}
+            reducedMotion={reducedMotion}
+          />
+        </Suspense>
       )}
 
       <ChargeGate node={gate} onClose={() => setGate(null)} reducedMotion={reducedMotion} />

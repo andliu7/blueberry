@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { getSupabase, supabaseConfigured } from "@/lib/supabase";
 import {
   applyOverrides,
   type CourseOverrides,
@@ -77,16 +77,18 @@ function toOverrides(rows: OverrideRow[]): CourseOverrides {
 let shared: Promise<CourseOverrides | null> | null = null;
 
 function fetchOverrides(force: boolean): Promise<CourseOverrides | null> {
-  if (!supabase) return Promise.resolve(null);
+  if (!supabaseConfigured) return Promise.resolve(null);
   if (shared && !force) return shared;
-  shared = Promise.resolve(
-    supabase.from("course_overrides").select("kind, entity_id, field, value"),
-  ).then(
-    // A failure here is not worth surfacing: the built-in content is already on
-    // screen and correct, just without whatever the TA has since fixed.
-    ({ data, error }) => (!error && data ? toOverrides(data as OverrideRow[]) : null),
-    () => null,
-  );
+  shared = getSupabase()
+    .then((supabase) =>
+      supabase ? supabase.from("course_overrides").select("kind, entity_id, field, value") : null,
+    )
+    .then(
+      // A failure here is not worth surfacing: the built-in content is already on
+      // screen and correct, just without whatever the TA has since fixed.
+      (res) => (res && !res.error && res.data ? toOverrides(res.data as OverrideRow[]) : null),
+      () => null,
+    );
   return shared;
 }
 
@@ -115,7 +117,7 @@ export function useCourse(): {
   const refresh = useCallback(() => setNonce((n) => n + 1), []);
 
   useEffect(() => {
-    if (!supabase) {
+    if (!supabaseConfigured) {
       setLoading(false);
       return;
     }
@@ -161,6 +163,7 @@ export async function setCourseField(args: {
   value: string;
   idToken?: string | null;
 }): Promise<{ ok: boolean; error?: string; overrides?: CourseOverrides }> {
+  const supabase = await getSupabase();
   if (!supabase) return { ok: false, error: "Editing is not configured for this build." };
 
   const { kind, id, field } = args;

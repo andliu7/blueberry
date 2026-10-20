@@ -1,5 +1,5 @@
 import { postToAppsScript } from "@/lib/appsScript";
-import { supabase } from "@/lib/supabase";
+import { getSupabase } from "@/lib/supabase";
 import { describeWrite } from "@/lib/useCourse";
 import type { CourseDate, CourseDateKind } from "@/components/ui/event-manager";
 
@@ -120,6 +120,7 @@ export async function loadDates(_idToken?: string | null): Promise<{
   dates: CourseDate[];
   error?: string;
 }> {
+  const supabase = await getSupabase();
   if (!supabase) return { dates: [], error: "The calendar backend is not set up yet." };
 
   const { data, error } = await supabase
@@ -148,6 +149,7 @@ export async function saveDates(
   dates: CourseDate[],
   _idToken?: string | null,
 ): Promise<{ dates: CourseDate[]; error?: string }> {
+  const supabase = await getSupabase();
   if (!supabase) return { dates: [], error: "The calendar backend is not set up yet." };
   if (!dates.length) return loadDates();
 
@@ -176,6 +178,7 @@ export async function deleteDate(
   id: string,
   _idToken?: string | null,
 ): Promise<{ dates: CourseDate[]; error?: string }> {
+  const supabase = await getSupabase();
   if (!supabase) return { dates: [], error: "The calendar backend is not set up yet." };
 
   const { error } = await supabase.from("course_dates").delete().eq("id", id);

@@ -35,9 +35,10 @@ export {
   COURSE_BLURB,
   COURSE_SHORT,
   COURSE_MARK,
-  problemsForTopic,
 } from "./courseCopy";
-import { COURSE_BLURB, COURSE_LABEL, COURSE_MARK, problemsForTopic } from "./courseCopy";
+export { problemsForTopic } from "./courseProblems";
+import { COURSE_BLURB, COURSE_LABEL, COURSE_MARK } from "./courseCopy";
+import { problemsForTopic } from "./courseProblems";
 
 
 function isCourseId(value: string): value is CourseId {

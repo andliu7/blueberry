@@ -1,8 +1,6 @@
-import { useEffect, type ReactNode } from "react";
+import { lazy, Suspense, useEffect, type ReactNode } from "react";
 import { MotionConfig } from "motion/react";
-import { FocusPill, FocusTimer } from "@/components/FocusTimer";
 import { GlobalSearch } from "@/components/GlobalSearch";
-import { BlueberryBot } from "@/components/ui/blueberry-bot";
 import { ProfileDropdown } from "@/components/ui/profile-dropdown";
 import { SiteFooter } from "@/components/ui/site-footer";
 import { SiteNav, SiteNavBar, SiteNavSpacer } from "@/components/ui/site-nav";
@@ -12,6 +10,18 @@ import { useHashRoute } from "@/lib/useHashRoute";
 import { isFlowRoute } from "@/lib/siteNav";
 import { useReducedMotionPref } from "@/lib/motionPref";
 import { startCardGlow } from "@/lib/cardGlow";
+
+/*
+ * The timer (card and header pill) and the assistant load as their own chunks
+ * (owner, 2026-10-20). None of them is drawn inside the game, so `#/app` never
+ * downloads them; on the site they arrive just after the first paint. React
+ * pattern: React.lazy plus a Suspense with a null fallback, so nothing is drawn
+ * in their place for the moment the chunk takes. The pill and the bot draw
+ * nothing until used anyway, and the timer card is a corner launcher.
+ */
+const FocusTimer = lazy(() => import("@/components/FocusTimer").then((m) => ({ default: m.FocusTimer })));
+const FocusPill = lazy(() => import("@/components/FocusTimer").then((m) => ({ default: m.FocusPill })));
+const BlueberryBot = lazy(() => import("@/components/ui/blueberry-bot").then((m) => ({ default: m.BlueberryBot })));
 
 /**
  * Everything that frames the pages: the header and phone bar, the footer, and
@@ -71,15 +81,31 @@ export function SiteChrome({ children }: { children: ReactNode }) {
     <MotionConfig reducedMotion={motionMode}>
       {!inGame && <div className="site-wash" aria-hidden />}
       {framed && (
-        <SiteNav route={route} pill={<FocusPill t={timer} />} account={<ProfileDropdown />} />
+        <SiteNav
+          route={route}
+          pill={
+            <Suspense fallback={null}>
+              <FocusPill t={timer} />
+            </Suspense>
+          }
+          account={<ProfileDropdown />}
+        />
       )}
       {children}
       {framed && <SiteNavBar route={route} />}
       {framed && <SiteFooter />}
       {framed && <SiteNavSpacer />}
-      {!inGame && <FocusTimer t={timer} />}
+      {!inGame && (
+        <Suspense fallback={null}>
+          <FocusTimer t={timer} />
+        </Suspense>
+      )}
       {!inGame && <GlobalSearch />}
-      {!inGame && <BlueberryBot />}
+      {!inGame && (
+        <Suspense fallback={null}>
+          <BlueberryBot />
+        </Suspense>
+      )}
     </MotionConfig>
   );
 }

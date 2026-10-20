@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase";
+import { getSupabase } from "@/lib/supabase";
 
 /**
  * Getting a picture from a TA's desktop onto a student's screen.
@@ -41,6 +41,7 @@ export async function uploadLessonMedia(
   file: File,
   topicId: string,
 ): Promise<{ url?: string; error?: string }> {
+  const supabase = await getSupabase();
   if (!supabase) return { error: "Uploading is not configured for this build." };
 
   if (!isImage(file) && !isVideo(file)) {

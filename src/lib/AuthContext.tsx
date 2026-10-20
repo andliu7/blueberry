@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { Session, User } from "@supabase/supabase-js";
-import { supabase } from "@/lib/supabase";
+import { getSupabase, supabaseConfigured } from "@/lib/supabase";
 import type { AccountRole } from "@/lib/account";
 
 /**
@@ -45,33 +45,46 @@ function asRole(value: unknown): AccountRole {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [role, setRole] = useState<AccountRole>("member");
-  const [loading, setLoading] = useState(Boolean(supabase));
+  const [loading, setLoading] = useState(supabaseConfigured);
   const [roleNonce, setRoleNonce] = useState(0);
 
   useEffect(() => {
-    if (!supabase) {
+    if (!supabaseConfigured) {
       setLoading(false);
       return;
     }
     let cancelled = false;
+    let unsubscribe: (() => void) | null = null;
 
-    // Whatever is already in localStorage. Without this the first paint is
-    // signed-out and then corrects itself, which reads as a flicker on reload.
-    void supabase.auth.getSession().then(({ data }) => {
+    // The client arrives as a lazy chunk (see `getSupabase`). Asking for it
+    // here, on mount, is what restores the session and completes a Google
+    // redirect on page load.
+    void getSupabase().then((supabase) => {
       if (cancelled) return;
-      setSession(data.session);
-      setLoading(false);
-    });
+      if (!supabase) {
+        setLoading(false);
+        return;
+      }
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, next) => {
-      // State only. See the note above about the lock.
-      setSession(next);
-      setLoading(false);
+      // Whatever is already in localStorage. Without this the first paint is
+      // signed-out and then corrects itself, which reads as a flicker on reload.
+      void supabase.auth.getSession().then(({ data }) => {
+        if (cancelled) return;
+        setSession(data.session);
+        setLoading(false);
+      });
+
+      const { data: listener } = supabase.auth.onAuthStateChange((_event, next) => {
+        // State only. See the note above about the lock.
+        setSession(next);
+        setLoading(false);
+      });
+      unsubscribe = () => listener.subscription.unsubscribe();
     });
 
     return () => {
       cancelled = true;
-      listener.subscription.unsubscribe();
+      unsubscribe?.();
     };
   }, []);
 
@@ -84,21 +97,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
    */
   const userId = session?.user?.id ?? null;
   useEffect(() => {
-    if (!supabase || !userId) {
+    if (!supabaseConfigured || !userId) {
       setRole("member");
       return;
     }
     let cancelled = false;
-    void supabase
-      .from("profiles")
-      .select("role")
-      // Redundant against RLS, which would filter it anyway, but it lets
-      // Postgres use the primary key index instead of scanning then filtering.
-      .eq("id", userId)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (!cancelled) setRole(asRole(data?.role));
-      });
+    void getSupabase().then((supabase) => {
+      if (cancelled || !supabase) return;
+      return supabase
+        .from("profiles")
+        .select("role")
+        // Redundant against RLS, which would filter it anyway, but it lets
+        // Postgres use the primary key index instead of scanning then filtering.
+        .eq("id", userId)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (!cancelled) setRole(asRole(data?.role));
+        });
+    });
     return () => {
       cancelled = true;
     };

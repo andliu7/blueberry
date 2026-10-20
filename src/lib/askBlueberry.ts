@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase";
+import { getSupabase } from "@/lib/supabase";
 
 /**
  * One turn of Ask Blueberry, through the Edge Function.
@@ -16,6 +16,7 @@ export interface Turn {
 export async function askBlueberry(
   messages: Turn[],
 ): Promise<{ ok: boolean; text?: string; error?: string }> {
+  const supabase = await getSupabase();
   if (!supabase) return { ok: false, error: "The assistant is not configured yet." };
 
   const { data, error } = await supabase.functions.invoke("chat", {

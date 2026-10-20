@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { getSupabase, supabaseConfigured } from "@/lib/supabase";
 import { useAuth } from "@/lib/AuthContext";
 
 /**
@@ -45,14 +45,15 @@ export function usePlanPrices(): { prices: PlanPrice[]; loading: boolean } {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!supabase) {
+    if (!supabaseConfigured) {
       setLoading(false);
       return;
     }
     let live = true;
-    supabase.functions
-      .invoke("stripe-prices", { method: "GET" })
-      .then(({ data }) => {
+    getSupabase()
+      .then((supabase) => supabase?.functions.invoke("stripe-prices", { method: "GET" }))
+      .then((res) => {
+        const data = res?.data;
         if (!live) return;
         setPrices(Array.isArray(data?.prices) ? (data.prices as PlanPrice[]) : []);
       })
@@ -121,21 +122,24 @@ export function useEntitlements(): {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!supabase || !user) {
+    if (!supabaseConfigured || !user) {
       setEntitlements([]);
       setLoading(false);
       return;
     }
     let live = true;
     setLoading(true);
-    supabase
-      .from("entitlements")
-      .select("kind, plan, status, access_until")
-      .then(({ data }) => {
-        if (!live) return;
-        setEntitlements((data as Entitlement[]) ?? []);
-        setLoading(false);
-      });
+    void getSupabase().then((supabase) => {
+      if (!supabase) return;
+      return supabase
+        .from("entitlements")
+        .select("kind, plan, status, access_until")
+        .then(({ data }) => {
+          if (!live) return;
+          setEntitlements((data as Entitlement[]) ?? []);
+          setLoading(false);
+        });
+    });
     return () => {
       live = false;
     };
@@ -166,6 +170,7 @@ export interface CheckoutResult {
  * whoever calls it next.
  */
 export async function startCheckout(plan: PlanKey): Promise<CheckoutResult> {
+  const supabase = await getSupabase();
   if (!supabase) return { ok: false, error: "Payments are not configured yet." };
 
   const { data, error } = await supabase.functions.invoke("stripe-checkout", {
@@ -178,6 +183,7 @@ export async function startCheckout(plan: PlanKey): Promise<CheckoutResult> {
 
 /** A link to Stripe's own billing portal, for changing a card or cancelling. */
 export async function openBillingPortal(): Promise<CheckoutResult> {
+  const supabase = await getSupabase();
   if (!supabase) return { ok: false, error: "Payments are not configured yet." };
 
   const { data, error } = await supabase.functions.invoke("stripe-portal", { body: {} });
