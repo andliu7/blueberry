@@ -56,12 +56,13 @@
  * this is, and 390px of header is worth more to the course than to a logo. It
  * stays above the rail on the wide layout, where there is room.
  *
- * Every tab except the trainer is behind React.lazy, so a student who opens
- * the app for a mechanism downloads the mechanism. The trainer is a static
- * import on purpose: the payload gate in packages/validators weighs the entry
- * chunk as "the game route", and a trainer behind a dynamic import would make
- * the gate weigh an empty shell and call it the game. The skeleton fallbacks
- * are the loading contract: never a blank rectangle.
+ * Every tab is behind React.lazy, so a student who opens the app for a
+ * mechanism downloads the mechanism. The trainer used to be a static import so
+ * the payload gate would not weigh an empty shell; the gate now weighs the
+ * chunks a cold #/app load really fetches (the route plus the Path tab, named
+ * in vite.config.ts), so the trainer no longer has to ride in the first
+ * download. The skeleton fallbacks are the loading contract: never a blank
+ * rectangle.
  */
 
 import { lazy, Suspense, useCallback, useEffect, useRef, useState, type ReactNode } from "react";
@@ -75,10 +76,10 @@ import { CourseChip } from "./ui/CourseChip";
 import { Hud } from "./ui/Hud";
 import { NotOpenYet } from "./ui/NotOpenYet";
 import { ToolSheet } from "./ui/ToolRail";
-import { TrainerTab } from "../tabs/trainer/TrainerTab";
 import { TabIcon, ToolsIcon } from "./ui/TabIcon";
 import "./ui/tabs.css";
 
+const TrainerTab = lazy(() => import("../tabs/trainer/TrainerTab").then((m) => ({ default: m.TrainerTab })));
 const PathwayTab = lazy(() => import("../tabs/pathway/PathwayTab"));
 const CardsTab = lazy(() => import("../tabs/cards/CardsTab"));
 const FeedTab = lazy(() => import("../tabs/feed/FeedTab"));

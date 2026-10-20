@@ -35,16 +35,33 @@ import {
  *   conservative one. Concatenating first and gzipping once would report a smaller
  *   figure than the student downloads, which is the wrong direction for a ceiling.
  *
- *   Guessing the entry chunk by filename is refused. apps/web publishes
+ *   Guessing the entry chunk by filename is refused. The app's build publishes
  *   dist/budget-subjects.json naming it. See subject.ts for that contract and for why a
  *   heuristic is not acceptable here.
+ *
+ *   The app is the repository root. apps/web was the planned home and never shipped;
+ *   on 2026-09-08 the game moved into the site at src/game, mounted under #/app as a
+ *   React.lazy route. A cold load of #/app is therefore the site entry chunk plus the
+ *   route chunks the manifest names under routeChunks, each walked over static edges,
+ *   and the union weighed. vite.config.ts writes the manifest from Rollup's own chunk
+ *   graph, so the route chunks are named by source module, not by filename.
  *
  * appRoot is a parameter rather than a constant so budget-gate-self-test.ts can drive
  * this against synthetic app directories in all three subject states. A measurement path
  * that only ever runs against a subject that does not exist yet is untested code.
  */
 
-export const WEB_APP_ROOT = path.join(REPO_ROOT, "apps", "web");
+export const WEB_APP_ROOT = REPO_ROOT;
+
+/**
+ * Where the app's build output is read from. dist/ under the root by default, which is
+ * where `npm run build` writes and what CI deploys. BLUEBERRY_WEB_DIST overrides it so a
+ * build written elsewhere (a scratch outDir) can be measured without touching dist/.
+ */
+export const WEB_APP_DIST: string =
+  process.env.BLUEBERRY_WEB_DIST !== undefined && process.env.BLUEBERRY_WEB_DIST !== ""
+    ? path.resolve(process.env.BLUEBERRY_WEB_DIST)
+    : path.join(WEB_APP_ROOT, "dist");
 
 export interface InitialChunk {
   /** Path relative to the app's dist directory. */
@@ -101,60 +118,74 @@ async function fileBytes(absolute: string): Promise<Uint8Array | null> {
   }
 }
 
-export async function measureGameRoute(appRoot: string = WEB_APP_ROOT): Promise<WebAppOutcome> {
-  const classification = await classifyWebAppSubject(appRoot);
+export async function measureGameRoute(
+  appRoot: string = WEB_APP_ROOT,
+  distDirOverride?: string,
+): Promise<WebAppOutcome> {
+  const distDirRequested =
+    distDirOverride ?? (appRoot === WEB_APP_ROOT ? WEB_APP_DIST : path.join(appRoot, "dist"));
+  const classification = await classifyWebAppSubject(appRoot, distDirRequested);
   if (classification.state === "absent") return { kind: "subject-absent", classification };
   if (classification.state === "unbuilt") return { kind: "subject-unbuilt", classification };
 
-  const manifest = await readBudgetSubjectsManifest(appRoot);
+  const manifest = await readBudgetSubjectsManifest(appRoot, distDirRequested);
   if (manifest.kind === "missing") return { kind: "manifest-missing", classification };
   if (manifest.kind === "malformed") {
     return { kind: "manifest-malformed", detail: manifest.detail, classification };
   }
 
   const distDir = classification.distDir;
-  const entryAbsolute = path.resolve(distDir, manifest.manifest.gameRouteEntry);
-  if ((await fileBytes(entryAbsolute)) === null) {
-    return { kind: "entry-missing", entryFile: manifest.manifest.gameRouteEntry };
-  }
+  // The entry first, then each route chunk. Every one of them is a root of the walk.
+  const roots = [manifest.manifest.gameRouteEntry, ...(manifest.manifest.routeChunks ?? [])];
+  const reached = new Set<string>();
+  const bannedReach: BannedReach[] = [];
 
-  const bundled = await bundleForMeasurement({
-    entryPointAbsolute: entryAbsolute,
-    external: WEB_APP_EXTERNALS,
-    // The emitted chunks are already minified by the app's own build, and their on disk
-    // bytes are what gets weighed. Re-minifying would cost time and change no number.
-    minify: false,
-  });
+  for (const root of roots) {
+    const rootAbsolute = path.resolve(distDir, root);
+    if ((await fileBytes(rootAbsolute)) === null) {
+      return { kind: "entry-missing", entryFile: root };
+    }
 
-  if (bundled.kind === "bundler-absent") return { kind: "bundler-absent", detail: bundled.detail };
-  if (bundled.kind === "build-failed") {
-    return { kind: "build-failed", messages: bundled.messages };
-  }
+    const bundled = await bundleForMeasurement({
+      entryPointAbsolute: rootAbsolute,
+      external: WEB_APP_EXTERNALS,
+      // The emitted chunks are already minified by the app's own build, and their on disk
+      // bytes are what gets weighed. Re-minifying would cost time and change no number.
+      minify: false,
+    });
 
-  const bannedReach = findBannedReach(
-    bundled.metafile,
-    bundled.entryInput,
-    GAME_ROUTE_BANNED,
-    followStaticEdgesOnly,
-  );
+    if (bundled.kind === "bundler-absent") return { kind: "bundler-absent", detail: bundled.detail };
+    if (bundled.kind === "build-failed") {
+      return { kind: "build-failed", messages: bundled.messages };
+    }
 
-  // The initial set is every emitted file the static walk reached. metafile input keys
-  // are repo relative because absWorkingDir is the repo root, so they resolve back to
-  // real files without any guessing about the working directory.
-  const reached = new Set<string>([bundled.entryInput]);
-  const queue: string[] = [bundled.entryInput];
-  while (queue.length > 0) {
-    const current = queue.shift();
-    if (current === undefined) continue;
-    const input = bundled.metafile.inputs[current];
-    if (input === undefined) continue;
-    for (const record of input.imports) {
-      if (!followStaticEdgesOnly(record.kind)) continue;
-      if (record.external === true) continue;
-      if (bundled.metafile.inputs[record.path] === undefined) continue;
-      if (reached.has(record.path)) continue;
-      reached.add(record.path);
-      queue.push(record.path);
+    for (const reach of findBannedReach(
+      bundled.metafile,
+      bundled.entryInput,
+      GAME_ROUTE_BANNED,
+      followStaticEdgesOnly,
+    )) {
+      if (!bannedReach.some((known) => known.specifier === reach.specifier)) bannedReach.push(reach);
+    }
+
+    // The initial set is every emitted file the static walk reached. metafile input keys
+    // are repo relative because absWorkingDir is the repo root, so they resolve back to
+    // real files without any guessing about the working directory.
+    reached.add(bundled.entryInput);
+    const queue: string[] = [bundled.entryInput];
+    while (queue.length > 0) {
+      const current = queue.shift();
+      if (current === undefined) continue;
+      const input = bundled.metafile.inputs[current];
+      if (input === undefined) continue;
+      for (const record of input.imports) {
+        if (!followStaticEdgesOnly(record.kind)) continue;
+        if (record.external === true) continue;
+        if (bundled.metafile.inputs[record.path] === undefined) continue;
+        if (reached.has(record.path)) continue;
+        reached.add(record.path);
+        queue.push(record.path);
+      }
     }
   }
 

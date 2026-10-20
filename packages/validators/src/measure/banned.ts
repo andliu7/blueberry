@@ -131,7 +131,10 @@ export const RDKIT_RULE: BannedRule = RDKIT;
  * either of those is somebody solving a problem in the wrong package.
  */
 export const KETCHER_MANIFEST_FREE_PACKAGES: readonly string[] = [
-  "package.json",
+  // The root package.json is not listed. It was the workspace root when apps/web was the
+  // planned app; since 2026-09-08 the root IS the app (the game lives at src/game), so it
+  // is where Ketcher is declared, behind React.lazy, and the import graph half of
+  // budget-ketcher-route-isolation is what keeps it off the game route.
   "packages/chem-core/",
   "packages/validators/",
 ];

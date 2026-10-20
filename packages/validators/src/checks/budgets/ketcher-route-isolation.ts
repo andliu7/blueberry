@@ -23,7 +23,7 @@ import { BUDGET_SUBJECTS_MANIFEST, measureGameRoute } from "../../measure/web-ap
  *   assertion, and the failures say so rather than overclaiming.
  *
  *   The import graph half is what BUILD-PROMPT.md asks for, "run against built output
- *   rather than source", and it needs apps/web. Until apps/web exists it reports under
+ *   rather than source", and it needs the built app at the repository root. Until it exists it reports under
  *   notMeasurable and arms itself automatically. See measure/subject.ts for the argument
  *   and for the three state machine that makes the arming automatic rather than a
  *   reminder somebody has to act on.
@@ -59,7 +59,7 @@ export const ketcherRouteIsolation: Check = {
       if (!dependency.name.startsWith("ketcher")) continue;
       failures.push({
         expected:
-          `${dependency.manifest} declares no ketcher package. Ketcher belongs to apps/web ` +
+          `${dependency.manifest} declares no ketcher package. Ketcher belongs to the app ` +
           `behind a lazy route, never to the engine or the validator suite`,
         actual: `${dependency.manifest} declares ${dependency.name} under ${dependency.section}`,
         fixture: dependency.manifest,
@@ -74,10 +74,9 @@ export const ketcherRouteIsolation: Check = {
         notMeasurable.push({
           property: "game route built import graph reaches no ketcher or @rdkit package",
           reason:
-            `NOT MEASURED. ${route.classification.evidence}. apps/web is a Phase 3 and ` +
-            `Phase 4 deliverable and does not exist yet, so there is no built graph to ` +
-            `walk. This gate arms itself with no human step the moment ` +
-            `apps/web/package.json appears: from that run onward an unmeasurable graph ` +
+            `NOT MEASURED. ${route.classification.evidence}, so there is no built graph to ` +
+            `walk. This gate arms itself with no human step the moment the app's ` +
+            `package.json appears: from that run onward an unmeasurable graph ` +
             `is a hard failure, not a note. The manifest half of this check ran and ` +
             `passed over ${declared.length} declared dependencies.`,
         });
@@ -86,37 +85,37 @@ export const ketcherRouteIsolation: Check = {
       case "subject-unbuilt":
         failures.push({
           expected:
-            `apps/web built, so the game route's import graph can be walked against the ` +
+            `the app built, so the game route's import graph can be walked against the ` +
             `ketcher-standalone 15.5 MB and ketcher-react 3.1 MB rule`,
           actual: `${route.classification.evidence} Run the app's build, then re-run this check.`,
-          fixture: "apps/web/dist/",
+          fixture: "dist/",
         });
         break;
 
       case "manifest-missing":
         failures.push({
-          expected: `apps/web/${BUDGET_SUBJECTS_MANIFEST}, naming the game route's entry chunk`,
+          expected: `${BUDGET_SUBJECTS_MANIFEST}, naming the game route's entry chunk`,
           actual:
-            `apps/web is built and publishes no ${BUDGET_SUBJECTS_MANIFEST}. Which emitted ` +
+            `the app is built and publishes no ${BUDGET_SUBJECTS_MANIFEST}. Which emitted ` +
             `chunk is the game route's initial chunk cannot be determined from dist/ alone, ` +
             `and this check does not guess by filename. See measure/subject.ts.`,
-          fixture: `apps/web/${BUDGET_SUBJECTS_MANIFEST}`,
+          fixture: BUDGET_SUBJECTS_MANIFEST,
         });
         break;
 
       case "manifest-malformed":
         failures.push({
-          expected: `apps/web/${BUDGET_SUBJECTS_MANIFEST} in the documented shape`,
+          expected: `${BUDGET_SUBJECTS_MANIFEST} in the documented shape`,
           actual: route.detail,
-          fixture: `apps/web/${BUDGET_SUBJECTS_MANIFEST}`,
+          fixture: BUDGET_SUBJECTS_MANIFEST,
         });
         break;
 
       case "entry-missing":
         failures.push({
-          expected: `the chunk named by gameRouteEntry to exist in apps/web/dist`,
+          expected: `the chunk named by gameRouteEntry or routeChunks to exist in dist/`,
           actual: `${route.entryFile} is named in the manifest and is not on disk`,
-          fixture: `apps/web/${BUDGET_SUBJECTS_MANIFEST}`,
+          fixture: BUDGET_SUBJECTS_MANIFEST,
         });
         break;
 
@@ -133,7 +132,7 @@ export const ketcherRouteIsolation: Check = {
           failures.push({
             expected: "the game route's emitted chunks parse and resolve as a module graph",
             actual: message,
-            fixture: "apps/web/dist/",
+            fixture: "dist/",
           });
         }
         break;
@@ -143,7 +142,7 @@ export const ketcherRouteIsolation: Check = {
           failures.push({
             expected: `the game route's initial chunk reaches no ${violation.rule.name}. ${violation.rule.source}`,
             actual: `statically reaches ${violation.specifier} via ${formatChain(violation.chain)}`,
-            fixture: `apps/web/dist/${route.entryFile}`,
+            fixture: `dist/${route.entryFile}`,
           });
         }
         notMeasurable.push({

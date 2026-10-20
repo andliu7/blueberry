@@ -14,9 +14,10 @@ import { BUDGET_SUBJECTS_MANIFEST, measureGameRoute } from "../../measure/web-ap
  * two different useful ways. Subtracting Ketcher out by name would have hidden exactly
  * the failure the budget exists to catch.
  *
- * apps/web does not exist yet. What this check does about that, and the argument for it,
- * is in measure/subject.ts. In short: notMeasurable while the subject is absent, hard
- * failure from the moment apps/web/package.json appears, with the transition driven off
+ * The subject is the repository root since the game moved to src/game on 2026-09-08
+ * (apps/web never shipped). What this check does when a subject is absent, and the
+ * argument for it, is in measure/subject.ts. In short: notMeasurable while the subject is
+ * absent, hard failure once its package.json exists, with the transition driven off
  * the file system on every run rather than off anybody remembering. No BudgetResult row
  * is emitted while nothing has been weighed, because a row saying "pass" next to a
  * ceiling nobody measured is the exact false confidence this suite exists to prevent.
@@ -42,9 +43,8 @@ export const gameRoutePayload: Check = {
           property: `game route initial payload against the ${ceiling} ceiling`,
           reason:
             `NOT MEASURED, and no number is reported for it. ` +
-            `${route.classification.evidence}. apps/web is a Phase 3 and Phase 4 ` +
-            `deliverable. This gate arms itself with no human step the moment ` +
-            `apps/web/package.json appears: from that run onward an unmeasurable payload ` +
+            `${route.classification.evidence}. This gate arms itself with no human step the ` +
+            `moment the app's package.json appears: from that run onward an unmeasurable payload ` +
             `is a hard failure rather than this note. Verified every run by ` +
             `budget-gate-self-test, which drives all three subject states.`,
         });
@@ -52,37 +52,37 @@ export const gameRoutePayload: Check = {
 
       case "subject-unbuilt":
         failures.push({
-          expected: `apps/web built, so the initial payload can be weighed against ${ceiling}`,
+          expected: `the app built, so the initial payload can be weighed against ${ceiling}`,
           actual: `${route.classification.evidence} Nothing was weighed and no number is reported.`,
-          fixture: "apps/web/dist/",
+          fixture: "dist/",
         });
         break;
 
       case "manifest-missing":
         failures.push({
-          expected: `apps/web/${BUDGET_SUBJECTS_MANIFEST}, naming gameRouteEntry`,
+          expected: `${BUDGET_SUBJECTS_MANIFEST}, naming gameRouteEntry`,
           actual:
-            `apps/web is built and publishes no ${BUDGET_SUBJECTS_MANIFEST}. Which chunk ` +
+            `the app is built and publishes no ${BUDGET_SUBJECTS_MANIFEST}. Which chunk ` +
             `the game route loads first cannot be read off a directory of content hashed ` +
             `filenames, and this check will not guess one. A guessed entry produces a ` +
             `number, and a number produced by guessing is what CLAUDE.md forbids.`,
-          fixture: `apps/web/${BUDGET_SUBJECTS_MANIFEST}`,
+          fixture: BUDGET_SUBJECTS_MANIFEST,
         });
         break;
 
       case "manifest-malformed":
         failures.push({
-          expected: `apps/web/${BUDGET_SUBJECTS_MANIFEST} in the documented shape`,
+          expected: `${BUDGET_SUBJECTS_MANIFEST} in the documented shape`,
           actual: route.detail,
-          fixture: `apps/web/${BUDGET_SUBJECTS_MANIFEST}`,
+          fixture: BUDGET_SUBJECTS_MANIFEST,
         });
         break;
 
       case "entry-missing":
         failures.push({
-          expected: "the chunk named by gameRouteEntry to exist in apps/web/dist",
+          expected: "the chunk named by gameRouteEntry or routeChunks to exist in dist/",
           actual: `${route.entryFile} is named in the manifest and is not on disk`,
-          fixture: `apps/web/${BUDGET_SUBJECTS_MANIFEST}`,
+          fixture: BUDGET_SUBJECTS_MANIFEST,
         });
         break;
 
@@ -99,7 +99,7 @@ export const gameRoutePayload: Check = {
           failures.push({
             expected: "the game route's emitted chunks parse and resolve as a module graph",
             actual: message,
-            fixture: "apps/web/dist/",
+            fixture: "dist/",
           });
         }
         break;
@@ -126,7 +126,7 @@ export const gameRoutePayload: Check = {
             actual:
               `${formatBytes(route.totalGzipBytes)}, ` +
               `${route.totalGzipBytes - ceilingBytes} bytes over. Heaviest: ${heaviest}`,
-            fixture: `apps/web/dist/${route.entryFile}`,
+            fixture: `dist/${route.entryFile}`,
           });
         }
 
@@ -135,7 +135,7 @@ export const gameRoutePayload: Check = {
             property: "stylesheets and fonts that load with the game route",
             reason:
               `the number above counts JavaScript only. Vite emits CSS as a <link> tag, ` +
-              `which no import graph walk can see, and apps/web declared no ` +
+              `which no import graph walk can see, and the app declared no ` +
               `additionalInitialAssets in ${BUDGET_SUBJECTS_MANIFEST}. The real download ` +
               `is this number plus the stylesheet. Declare the field to close the gap.`,
           });

@@ -86,9 +86,11 @@ async function exists(target: string): Promise<boolean> {
  * directory is what a stray mkdir or an editor leaves behind, and that must not arm the
  * gate. A package.json means somebody created an application.
  */
-export async function classifyWebAppSubject(appRoot: string): Promise<SubjectClassification> {
+export async function classifyWebAppSubject(
+  appRoot: string,
+  distDir: string = path.join(appRoot, "dist"),
+): Promise<SubjectClassification> {
   const manifest = path.join(appRoot, "package.json");
-  const distDir = path.join(appRoot, "dist");
   const htmlEntry = path.join(distDir, "index.html");
 
   if (!(await exists(manifest))) {
@@ -157,6 +159,14 @@ export const BUDGET_SUBJECTS_MANIFEST = "dist/budget-subjects.json";
 
 export interface BudgetSubjectsManifest {
   readonly gameRouteEntry: string;
+  /**
+   * Chunks the game route fetches on a cold load through a lazy boundary that fires on
+   * mount, relative to dist/. Since 2026-09-08 the game is a lazy route inside the site,
+   * so a cold load of #/app is the site entry plus these. Each is walked over static
+   * edges exactly like gameRouteEntry, and the union is weighed. Optional, empty when
+   * the route is the entry itself.
+   */
+  readonly routeChunks?: readonly string[];
   readonly lazyChunks: readonly string[];
   readonly additionalInitialAssets?: readonly string[];
 }
@@ -166,8 +176,11 @@ export type ManifestRead =
   | { readonly kind: "missing" }
   | { readonly kind: "malformed"; readonly detail: string };
 
-export async function readBudgetSubjectsManifest(appRoot: string): Promise<ManifestRead> {
-  const target = path.join(appRoot, ...BUDGET_SUBJECTS_MANIFEST.split("/"));
+export async function readBudgetSubjectsManifest(
+  appRoot: string,
+  distDir: string = path.join(appRoot, "dist"),
+): Promise<ManifestRead> {
+  const target = path.join(distDir, path.basename(BUDGET_SUBJECTS_MANIFEST));
   let raw: string;
   try {
     raw = await fs.readFile(target, "utf8");
@@ -193,9 +206,16 @@ export async function readBudgetSubjectsManifest(appRoot: string): Promise<Manif
     return { kind: "malformed", detail: "lazyChunks is missing or not an array" };
   }
 
+  if (candidate.routeChunks !== undefined && !Array.isArray(candidate.routeChunks)) {
+    return { kind: "malformed", detail: "routeChunks is present and not an array" };
+  }
+
   const assets = candidate.additionalInitialAssets;
   const base: BudgetSubjectsManifest = {
     gameRouteEntry: candidate.gameRouteEntry,
+    routeChunks: (candidate.routeChunks ?? []).filter(
+      (entry): entry is string => typeof entry === "string",
+    ),
     lazyChunks: candidate.lazyChunks.filter((entry): entry is string => typeof entry === "string"),
   };
 

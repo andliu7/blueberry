@@ -60,7 +60,13 @@ async function writeFiles(root: string, files: Record<string, string>): Promise<
   }
 }
 
-/** A synthetic built app. `eager` decides whether the editor chunk is lazy or not. */
+/**
+ * A synthetic built app. `eager` decides whether the editor chunk is lazy or not.
+ *
+ * route.js is the shape of the real app since 2026-09-08: the game is a lazy route the
+ * entry fetches on mount, declared under routeChunks, so its static graph (route.js and
+ * routeDep.js) is in the initial set while the editor behind a dynamic import is not.
+ */
 function syntheticApp(eager: boolean): Record<string, string> {
   const editorImport = eager
     ? 'import "./editor.js";\nexport const openEditor = () => 1;\n'
@@ -69,11 +75,19 @@ function syntheticApp(eager: boolean): Record<string, string> {
     "package.json": JSON.stringify({ name: "synthetic-web", private: true }, null, 2),
     "dist/index.html": "<!doctype html><html><body></body></html>",
     "dist/budget-subjects.json": JSON.stringify(
-      { gameRouteEntry: "assets/game.js", lazyChunks: eager ? [] : ["assets/editor.js"] },
+      {
+        gameRouteEntry: "assets/game.js",
+        routeChunks: ["assets/route.js"],
+        lazyChunks: eager ? [] : ["assets/editor.js"],
+      },
       null,
       2,
     ),
-    "dist/assets/game.js": `import { shared } from "./shared.js";\n${editorImport}export { shared };\n`,
+    "dist/assets/game.js":
+      `import { shared } from "./shared.js";\n${editorImport}` +
+      `export const openRoute = () => import("./route.js");\nexport { shared };\n`,
+    "dist/assets/route.js": 'import { routeDep } from "./routeDep.js";\nexport const route = routeDep;\n',
+    "dist/assets/routeDep.js": "export const routeDep = 1;\n",
     "dist/assets/shared.js": "export const shared = 1;\n",
     "dist/assets/editor.js": 'import "ketcher-standalone";\nexport const editor = 1;\n',
   };
@@ -264,9 +278,11 @@ export const budgetGateSelfTest: Check = {
           );
         }
         const files = lazy.initialChunks.map((chunk) => chunk.file).sort();
-        if (files.join(",") !== "assets/game.js,assets/shared.js") {
+        const expectedFiles = ["assets/game.js", "assets/route.js", "assets/routeDep.js", "assets/shared.js"];
+        if (files.join(",") !== expectedFiles.join(",")) {
           record(
-            "the initial set is the statically reachable chunks only, [assets/game.js, assets/shared.js]",
+            "the initial set is the chunks statically reachable from the entry and the declared " +
+              `route chunks only, [${expectedFiles.join(", ")}]`,
             `it was [${files.join(", ")}]`,
             "n/a, synthetic directory",
           );
@@ -274,7 +290,7 @@ export const budgetGateSelfTest: Check = {
         // The reported total must be the sum of the real files' real gzip sizes,
         // recomputed here from disk rather than trusted from the measurement.
         let expectedTotal = 0;
-        for (const name of ["assets/game.js", "assets/shared.js"]) {
+        for (const name of expectedFiles) {
           const bytes = await fs.readFile(path.join(lazyRoot, "dist", ...name.split("/")));
           expectedTotal += gzippedByteLength(bytes);
         }

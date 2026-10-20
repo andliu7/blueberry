@@ -1,7 +1,72 @@
-import { defineConfig } from 'vite'
+import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
+
+/**
+ * Writes dist/budget-subjects.json, the contract the budget validators read
+ * (packages/validators/src/measure/subject.ts). It names which emitted chunks a
+ * cold load of #/app fetches, so the 400 KB game route budget is weighed off the
+ * build's own chunk graph instead of a guessed filename.
+ *
+ * A cold #/app load is the site entry plus the lazy chunks that fire on mount
+ * for the first game screen: the GamePage route and the default Path tab. They
+ * are named here by source module; Rollup resolves each to its hashed chunk.
+ * The validator walks static imports from each and weighs the union. CSS is
+ * listed separately because a <link> tag is not an import a walker can follow.
+ */
+const GAME_ROUTE_COLD_LOAD_MODULES = [
+  'src/components/GamePage.tsx',
+  'src/game/tabs/pathway/PathwayTab.tsx',
+]
+
+function budgetSubjects(): Plugin {
+  return {
+    name: 'blueberry-budget-subjects',
+    apply: 'build',
+    generateBundle(_options, bundle) {
+      const chunks = Object.values(bundle).filter((file) => file.type === 'chunk')
+      const byFile = new Map(chunks.map((chunk) => [chunk.fileName, chunk]))
+      const entry = chunks.find((chunk) => chunk.isEntry)
+      if (!entry) this.error('budget-subjects: no entry chunk in the bundle')
+
+      const routeChunks = GAME_ROUTE_COLD_LOAD_MODULES.map((module) => {
+        const absolute = path.resolve(import.meta.dirname, module)
+        const chunk = chunks.find(
+          (candidate) => candidate.facadeModuleId !== null && path.resolve(candidate.facadeModuleId) === absolute,
+        )
+        if (!chunk) this.error(`budget-subjects: no chunk has ${module} as its facade module`)
+        return chunk.fileName
+      })
+
+      // Stylesheets of every chunk statically reachable from the roots.
+      const css = new Set<string>()
+      const seen = new Set<string>()
+      const queue = [entry.fileName, ...routeChunks]
+      while (queue.length > 0) {
+        const chunk = byFile.get(queue.shift()!)
+        if (!chunk || seen.has(chunk.fileName)) continue
+        seen.add(chunk.fileName)
+        for (const sheet of chunk.viteMetadata?.importedCss ?? []) css.add(sheet)
+        queue.push(...chunk.imports)
+      }
+
+      const lazyChunks = chunks
+        .filter((chunk) => chunk.moduleIds.some((id) => /[\\/]node_modules[\\/]ketcher-/.test(id)))
+        .map((chunk) => chunk.fileName)
+
+      this.emitFile({
+        type: 'asset',
+        fileName: 'budget-subjects.json',
+        source: JSON.stringify(
+          { gameRouteEntry: entry.fileName, routeChunks, lazyChunks, additionalInitialAssets: [...css] },
+          null,
+          2,
+        ),
+      })
+    },
+  }
+}
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -40,7 +105,7 @@ export default defineConfig(({ mode }) => ({
    * instead of hiding it behind a broken sign-in half an hour later.
    */
   server: { port: 5173, strictPort: true },
-  plugins: [react(), tailwindcss()],
+  plugins: [react(), tailwindcss(), budgetSubjects()],
   resolve: {
     alias: {
       '@': path.resolve(import.meta.dirname, './src'),
