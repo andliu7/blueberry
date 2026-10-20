@@ -93,6 +93,20 @@ six Bloom moves, hand-written wordmark, jump / curtain lift / land exit.
    beyond; zoom in and out.
 7. QUEUED, not yet: an organic chemistry 1 course after the Orgo 2 units are done.
 
+**Progress, 20 Oct (subagent run)**
+- Phase 0: 5 red tests green (2 regenerated tables, 3 by owner decision); budget validators measure
+  the real app again; deploy gate ON for tests (budgets commented in deploy.yml until the owner runs
+  `npm run lock:regen -w packages/validators` and the game route is under its limit); all controls
+  >= 44 px; contrast audit runs to the end. Weight cuts in progress (owner: supabase lazy,
+  precomputed topic counts, lazy Guidebook/FocusTimer/BlueberryBot, lazy decks; raise the limit only
+  if still over). Also stale: the mutation score (`npm run mutate`).
+- Wave 1 done: Practice spelling, no dark box on the unit picker + "Free for now.", closed courses
+  tagged and unpressable, Bloom pressable on the path, text pass on Unit 1 and Unit 0.
+- NEW TASK: 54 contrast failures (mostly dark-theme SVG icon fills, 11 on site pages, the
+  "Swipe or use the arrow keys" hint at 3.93 vs 4.5) and 9 economy drives that no longer reach
+  their moment (reward-first, reward-streak, streak-*, charge-cost, charge-empty, shell-bar, boot).
+  Full list: `grignard/reports/contrast-audit-2026-10-20.txt` (outside the repo).
+
 **Owner decisions, 20 Oct (answers to the calibration questions; recorded here, docs amended)**
 - Real-money streak freezes dropped for now; Shop lives inside Me. XP doubler and random-XP chest
   held until XP is stored server side; the onboarding gift chest pays a FIXED amount.
