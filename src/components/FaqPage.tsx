@@ -62,7 +62,7 @@ const ITEMS: FaqItem[] = [
   },
   {
     category: "Chemistry",
-    question: "Can I practise drawing structures?",
+    question: "Can I practice drawing structures?",
     answer:
       "Not in the lessons yet. Drawing practice, where you sketch a molecule for naming and spectroscopy questions, is planned, with no date set.",
   },

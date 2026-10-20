@@ -291,6 +291,28 @@
   color: var(--bb-muted-foreground);
 }
 
+/* 20 Oct: the closed row's name recedes to the note's ink (the same pair the
+   note already uses on this face, so no new contrast to measure), and a tag
+   with a padlock says "Not open yet" or "Opening next" in words. */
+.course-row:disabled .course-row__name {
+  color: var(--bb-muted-foreground);
+}
+.course-row__tag {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 0.25rem;
+  margin-left: auto;
+  padding: 0.2rem 0.5rem;
+  border: 2px solid var(--bb-border);
+  border-radius: 999px;
+  background: var(--bb-card);
+  color: var(--bb-muted-foreground);
+  font-size: var(--text-scale-xs);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 .course-row__text {
   display: grid;
   gap: 0.125rem;

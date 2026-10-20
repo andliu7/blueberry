@@ -55,7 +55,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { CourseId } from "@blueberry/curriculum";
-import { COURSE_COMING, isCourseOpen } from "../courses";
+import { COURSE_COMING, closedCourseTag, isCourseOpen } from "../courses";
 import { COURSE_LABEL, COURSE_MARK, COURSE_SHORT } from "../../tabs/courses/courseCopy";
 import { CourseFlask } from "./CourseFlask";
 import { useProgress } from "../hooks";
@@ -179,6 +179,7 @@ export function CourseChip(): React.ReactElement | null {
           <ul className="course-sheet__list">
             {shown.map((id) => {
               const openCourse = isCourseOpen(id);
+              const tag = closedCourseTag(id);
               const current = id === course;
               return (
                 <li key={id}>
@@ -187,6 +188,7 @@ export function CourseChip(): React.ReactElement | null {
                     className={`course-row press${current ? " course-row--current" : ""}`}
                     onPointerDown={() => choose(id)}
                     disabled={!openCourse}
+                    aria-disabled={openCourse ? undefined : "true"}
                     aria-current={current ? "true" : undefined}
                   >
                     <span className="course-row__mark" aria-hidden>
@@ -199,6 +201,19 @@ export function CourseChip(): React.ReactElement | null {
                       <span className="course-row__note">{openCourse ? "Open" : COURSE_COMING[id]}</span>
                     </span>
                     {current ? <span className="course-row__tick" aria-hidden>✓</span> : null}
+                    {/* A CLOSED COURSE SAYS SO IN A TAG, with a padlock (owner,
+                        20 Oct: "obviously not selectable"). The row is a
+                        disabled button, so a press does nothing and a screen
+                        reader hears it as unavailable; the tag is the words. */}
+                    {tag !== null ? (
+                      <span className="course-row__tag">
+                        <svg viewBox="0 0 24 24" width="12" height="12" aria-hidden>
+                          <rect x="5" y="10.5" width="14" height="10" rx="2.2" fill="currentColor" />
+                          <path d="M8.2 10.5V8a3.8 3.8 0 0 1 7.6 0v2.5" fill="none" stroke="currentColor" strokeWidth="2.6" />
+                        </svg>
+                        {tag}
+                      </span>
+                    ) : null}
                   </button>
                 </li>
               );

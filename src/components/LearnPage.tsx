@@ -182,7 +182,7 @@ export function LearnPage() {
                     href={GAME_HREF}
                     className="lrn-btn lrn-decide-btn mt-4 w-full"
                   >
-                    Practise in the app
+                    Practice in the app
                     <ArrowRight className="size-4" aria-hidden />
                   </a>
                 </div>
@@ -279,7 +279,7 @@ export function LearnPage() {
                               c.reactions
                                 ? `${c.reactions} ${c.reactions === 1 ? "reaction" : "reactions"}`
                                 : null,
-                              c.practice ? `${c.practice} to practise` : null,
+                              c.practice ? `${c.practice} to practice` : null,
                             ]
                               .filter(Boolean)
                               .join(" · ") || "No lessons or practice yet"}

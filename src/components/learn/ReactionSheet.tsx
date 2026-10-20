@@ -14,8 +14,8 @@ import { findUnit, hrefForNode, nodeForReaction, unitForFamily, unitParts } from
  * that opened it. Writing that by hand is where sheets usually go wrong.
  *
  * Two actions, as the replan asks: "Draw the product" (the one filled button, at
- * the sheet's foot since Learn round 5) and "Practise this", a text link under it.
- * Practise opens the path node that plays exactly this reaction when one exists;
+ * the sheet's foot since Learn round 5) and "Practice this", a text link under it.
+ * Practice opens the path node that plays exactly this reaction when one exists;
  * most reactions have none yet (the trainer and the reaction data name things
  * differently, see `nodeForReaction`), so it falls back to the unit's own practice list, and is left out when the student is already on that unit.
  */
@@ -44,9 +44,9 @@ export function ReactionSheet({
   const node = reaction ? nodeForReaction(reaction.id) : undefined;
   const nodeHref = node ? hrefForNode(node) : null;
   const practise = nodeHref
-    ? { href: nodeHref, label: "Practise this" }
+    ? { href: nodeHref, label: "Practice this" }
     : unit && unit.id !== currentUnit
-      ? { href: `#/unit/${unit.id}`, label: "Practise this unit" }
+      ? { href: `#/unit/${unit.id}`, label: "Practice this unit" }
       : null;
 
   return (
@@ -86,7 +86,7 @@ export function ReactionSheet({
 
               {/* Learn round 5: one action, at the foot, full width (Brilliant's Start
                   sheet). It sticks to the bottom of the sheet while the chemistry
-                  scrolls under it. "Practise" is a text link under it, no longer a
+                  scrolls under it. "Practice" is a text link under it, no longer a
                   second button tier above the drawing. Anchors, not buttons: real
                   routes, so they open in a new tab and back returns here. */}
               <div className="lrn-sheet-foot">

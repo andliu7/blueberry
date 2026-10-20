@@ -1,0 +1,61 @@
+/*
+ * BLOOM AS A BUTTON on the path (PathMascot.tsx). Its own file so the press
+ * and the bubble do not touch pathway.css's row geometry.
+ *
+ * .path-row__mascot (pathway.css) places the 72px box beside the current node
+ * and turns pointer events off so the box never steals a press from the row.
+ * The button turns them back on for itself only. The button IS the box, 72 by
+ * 72, so the hit area is well over the 44px floor.
+ */
+.path-mascot__btn {
+  display: block;
+  width: 100%;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+  pointer-events: auto;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.path-mascot__btn:focus-visible {
+  outline: 3px solid var(--bb-ring);
+  outline-offset: 2px;
+}
+
+/* The line, in a bubble over his head. Card ground and full foreground ink,
+   so it reads on the starfield and in both themes. */
+.path-mascot__line {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.35rem 0.7rem;
+  border: 2px solid var(--bb-border);
+  border-radius: 14px;
+  background: var(--bb-card);
+  color: var(--bb-foreground);
+  font-family: var(--font-display);
+  font-size: 0.875rem;
+  font-weight: 800;
+  line-height: 1.2;
+  white-space: nowrap;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .path-mascot__line {
+    animation: path-mascot-line-in 180ms ease-out both;
+  }
+}
+html[data-motion="reduced"] .path-mascot__line {
+  animation: none;
+}
+@keyframes path-mascot-line-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 4px);
+  }
+}

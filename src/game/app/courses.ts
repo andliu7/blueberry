@@ -28,6 +28,17 @@ export function isCourseOpen(course: CourseId): boolean {
 }
 
 /**
+ * The short tag a closed course wears in every course picker (owner, 20 Oct):
+ * Organic Chemistry I says "Opening next", because it is, and every other
+ * closed course says "Not open yet". An open course has no tag. One function
+ * so the chip's sheet, the Courses tab and the pathway's picker never disagree.
+ */
+export function closedCourseTag(course: CourseId): string | null {
+  if (isCourseOpen(course)) return null;
+  return course === "orgo_1" ? "Opening next" : "Not open yet";
+}
+
+/**
  * What a closed course says about itself, one line each.
  *
  * The voice is CLAUDE.md's: name what is true, do not apologise, and make the
@@ -36,10 +47,12 @@ export function isCourseOpen(course: CourseId): boolean {
  */
 // A2 round 4: student copy, not build notes. The old lines said "scoped",
 // "authored" and "the engine", which are our words for our process.
+// 20 Oct: the "Not open yet." / "Opening next." openers moved out into
+// closedCourseTag, which every surface showing these lines now draws as a tag.
 export const COURSE_COMING: Record<CourseId, string> = {
-  gen_chem_1: "Not open yet. Its stoichiometry and gas law problems already show up in the placement quiz.",
-  gen_chem_2: "Not open yet. Kinetics and equilibrium come after General Chemistry I.",
-  orgo_1: "Opening next. Its lessons are being written now.",
+  gen_chem_1: "Its stoichiometry and gas law problems already show up in the placement quiz.",
+  gen_chem_2: "Kinetics and equilibrium come after General Chemistry I.",
+  orgo_1: "Its lessons are being written now.",
   orgo_2: "Open.",
   dat: "A review track across the content courses. It opens once more than one course is open.",
   mcat: "A review track, like the DAT one. It opens once its courses are open.",

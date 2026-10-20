@@ -367,7 +367,7 @@ export function LessonsPage({ section, reaction }: { section?: string; reaction?
                   <h2 id="next-title" className="title-face mt-1 text-2xl leading-tight font-extrabold text-[var(--bb-deep)]">
                     {next.href === "#/learn" ? next.title : `Next: ${next.title}`}
                   </h2>
-                  {/* "Lesson 3 of 5", "Practise Unit 7": the eyebrow upNext writes, minus "Up next". */}
+                  {/* "Lesson 3 of 5", "Practice Unit 7": the eyebrow upNext writes, minus "Up next". */}
                   {next.href === "#/learn" && (
                     <p className="mt-1 text-sm text-[var(--site-quiet)]">Learn opens on what comes next.</p>
                   )}
@@ -388,7 +388,7 @@ export function LessonsPage({ section, reaction }: { section?: string; reaction?
                   onClick={() => markLessonFinished(key)}
                   className="lrn-link mt-1 flex min-h-11 items-center justify-center gap-1 text-sm"
                 >
-                  Or finish and practise {next.practice.unit} in the app
+                  Or finish and practice {next.practice.unit} in the app
                   <ArrowRight className="size-4" aria-hidden />
                 </a>
               )}

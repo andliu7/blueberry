@@ -208,7 +208,7 @@ function ProgressCard({
               ? "Today counts. Nice."
               : run > 0
                 ? "Finish a lesson today to keep it going."
-                : "Finish a lesson here or practise in the app."}
+                : "Finish a lesson here or practice in the app."}
           </span>
         </p>
       </div>

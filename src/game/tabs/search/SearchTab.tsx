@@ -123,7 +123,7 @@ function ReactionCard({
       {reaction.note !== undefined ? <p className="sr-note">{reaction.note}</p> : null}
       <div className="sr-card__foot">
         <a href={hrefForTab("courses", reaction.course, reaction.topic)} className={pressClassName({ variant: "secondary", size: "sm" })}>
-          Practise {topic.label}
+          Practice {topic.label}
         </a>
       </div>
     </article>

@@ -64,7 +64,9 @@ import { lessonNodeId, progress, type ProgressSnapshot } from "../../app/progres
 import { ChargeGate } from "../../charge/ChargeGate";
 import type { ChargeGateNode } from "../../charge/chargeGateModel";
 import { Berry } from "../../mascot/Berry";
+import { PathMascot } from "./PathMascot";
 import { COURSE_LABEL, problemsForTopic } from "../courses/courseCopy";
+import { closedCourseTag, isCourseOpen } from "../../app/courses";
 import "./pathway.css";
 
 export type NodeState = "done" | "current" | "open" | "review" | "locked";
@@ -792,9 +794,9 @@ function TrackSlab({
           blueberry_r7-compiled-v2 draw it exactly here, leaning in beside the
           live chip. It used to ride the scroll rail; the owner cut that on
           2026-09-03 ("the berry on the scroll track ... is cut") and this is
-          where the marker survives. Decorative: aria-current="step" and the
-          START pill already say the same thing in the accessibility tree, so
-          a second announcement would be noise.
+          where the marker survives. aria-current="step" and the START pill
+          already say where the student is, so his button is named for what
+          it does (say hi), not for the place.
 
           IT STANDS ON THE LEAN SIDE (round 3 of P1). The chip now swings
           across the whole column, so the mascot stands beside it on the side
@@ -806,10 +808,12 @@ function TrackSlab({
             the chip's lean side, so they follow its swing. Both are absolutely
             placed, so neither changes the box the road is drawn through. */}
         <div className="path-row__slab" data-road-stop>
+          {/* 20 Oct: no longer only decoration. Bloom is a button now and
+              answers a tap with a hop and a line (PathMascot.tsx). */}
           {state === "current" ? (
-            <span className="path-row__mascot" aria-hidden>
-              <Berry mood="happy" behaviour="leanIn" reducedMotion={reducedMotion} sizePx={MASCOT_PX} />
-            </span>
+            <PathMascot>
+              {(move) => <Berry mood="happy" {...move} reducedMotion={reducedMotion} sizePx={MASCOT_PX} />}
+            </PathMascot>
           ) : null}
           {aside}
           {/* A lesson left half done wears its saved bar as a ring (resume/SavedRing.tsx). */}
@@ -1075,11 +1079,28 @@ function CoursePicker() {
         </p>
         <Press onPointerDown={() => navigate(hrefForOnboarding("quiz"))}>Take the placement quiz</Press>
         <div className="mt-2 grid w-full grid-cols-2 gap-2">
-          {(Object.keys(COURSE_LABEL) as CourseId[]).map((course) => (
-            <Press key={course} variant="secondary" className="text-scale-sm" onPointerDown={() => progress.setCourse(course, [])}>
-              {COURSE_LABEL[course]}
-            </Press>
-          ))}
+          {/* A CLOSED COURSE IS A DISABLED KEY WITH ITS TAG (owner, 20 Oct):
+              grey, not pressable, and it says "Not open yet" (or "Opening
+              next" for Organic Chemistry I) in words. It used to set any of
+              the six as the course, five of them with nothing behind them. */}
+          {(Object.keys(COURSE_LABEL) as CourseId[]).map((course) => {
+            const tag = closedCourseTag(course);
+            return (
+              <Press
+                key={course}
+                variant="secondary"
+                className="flex-col text-scale-sm"
+                disabled={!isCourseOpen(course)}
+                aria-disabled={isCourseOpen(course) ? undefined : "true"}
+                onPointerDown={() => {
+                  if (isCourseOpen(course)) progress.setCourse(course, []);
+                }}
+              >
+                {COURSE_LABEL[course]}
+                {tag !== null ? <span className="text-scale-xs font-semibold">{tag}</span> : null}
+              </Press>
+            );
+          })}
         </div>
       </Card>
     </div>
@@ -2172,6 +2193,12 @@ function OrgoMapTrack({
             </span>
           </div>
         ) : null}
+        {/* THE PRICE, SAID PLAINLY, while the unit list is open (owner, 17 Oct:
+            "include a mention that it's free for now"). It lives in the bar,
+            not the list, because .path-pager--menu hides every other child of
+            the pager. Owner decision 20 Oct: "Free for now" only, the "paid
+            later" half waits for the UMD content sort (STATUS.md). */}
+        {menuOpen ? <p className="path-unitbar__free">Free for now.</p> : null}
       </div>
       {menuOpen ? (
         <UnitMenu

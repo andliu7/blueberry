@@ -27,7 +27,7 @@ import "@/components/learn/learn.css";
  *
  * THE UNIT HUB (SITE-REPLAN.md phase 5, section 3). This page is the spine Learn
  * hangs from, the way a Duolingo unit's guidebook hangs off the unit: the unit's
- * lessons in order; then "Practise this unit", the path's nodes as links into the game;
+ * lessons in order; then "Practice this unit", the path's nodes as links into the game;
  * then the decks its lessons use. Which lessons and reactions belong here comes
  * from data/learnMap.ts, a DRAFT table pending the owner's approval.
  *
@@ -232,7 +232,7 @@ export function UnitPage({ unitId }: { unitId?: string }) {
                   {[
                     lessons.length ? `${lessons.length} ${lessons.length === 1 ? "lesson" : "lessons"}` : null,
                     inUnit.length ? `${inUnit.length} ${inUnit.length === 1 ? "reaction" : "reactions"}` : null,
-                    playable.length ? `${playable.length} to practise` : null,
+                    playable.length ? `${playable.length} to practice` : null,
                   ]
                     .filter(Boolean)
                     .join(" · ") || "Coming later"}
@@ -316,7 +316,7 @@ export function UnitPage({ unitId }: { unitId?: string }) {
             </section>
 
             <section aria-labelledby="practise-title" className="mt-10">
-              <h2 id="practise-title" className="title-face text-2xl font-extrabold text-[var(--bb-deep)]">Practise this unit</h2>
+              <h2 id="practise-title" className="title-face text-2xl font-extrabold text-[var(--bb-deep)]">Practice this unit</h2>
               {playable.length === 0 ? (
                 <p className="mt-2 text-[var(--site-quiet)]">Practice for this unit is on the way.</p>
               ) : (
@@ -478,7 +478,7 @@ function nextStep(
   }
   const node = playable[0];
   const href = node ? hrefForNode(node) : null;
-  if (node && href) return { eyebrow: "Practise", title: node.title, action: "Start", href };
+  if (node && href) return { eyebrow: "Practice", title: node.title, action: "Start", href };
   if (nextUnit) return { eyebrow: "Up next", title: unitParts(nextUnit).name, action: "Next unit", href: `#/unit/${nextUnit.id}` };
   return { eyebrow: "Every unit", title: "Learn", action: "Back to Learn", href: "#/learn" };
 }

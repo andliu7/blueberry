@@ -1730,7 +1730,14 @@
   box-shadow: none;
   margin-bottom: 0;
 }
-.path-unitcard .path-unitbar__pick:active,
+/* NO DARK BOX ON THE UNIT PICK (owner, 17 Oct): pressing the unit painted the
+   lip violet as a square-cornered rectangle inside the rounded card, and he
+   asked for it gone. The pick keeps the card's own violet, so the white ink
+   stays on the pair it is measured on; the caret turning and the road fading
+   are the press feedback. The guidebook key keeps its fill. */
+.path-unitcard .path-unitbar__pick:active {
+  transform: none;
+}
 .path-unitcard__guide:active {
   transform: none;
   background: var(--bb-primary-lip);
@@ -2419,6 +2426,15 @@
   font-family: var(--font-display);
   font-size: 0.8125rem;
   font-weight: 800;
+  color: var(--bb-foreground);
+}
+/* "Free for now." under the card while the unit list is open. Full foreground
+   ink on the page ground, the same pair as the count beside the bar. */
+.path-unitbar__free {
+  margin: 0.25rem 0 0;
+  padding: 0 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 700;
   color: var(--bb-foreground);
 }
 

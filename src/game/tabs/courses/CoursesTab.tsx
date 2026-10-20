@@ -24,7 +24,7 @@ import {
 } from "@blueberry/curriculum";
 import { Pill } from "../../app/ui/Card";
 import { hrefForTab } from "../../app/routes";
-import { COURSE_COMING, isCourseOpen } from "../../app/courses";
+import { COURSE_COMING, closedCourseTag, isCourseOpen } from "../../app/courses";
 import { navigate } from "../../app/useHashRoute";
 import { useProgress } from "../../app/hooks";
 import { LessonPlayer } from "../../lesson/LessonPlayer";
@@ -180,7 +180,9 @@ function CourseList() {
                 below the floor is worse than a row that is loud. */}
             <div className="flex items-baseline justify-between gap-2">
               <h3 className="bb-title-face text-scale-base font-semibold text-bb-muted-foreground">{COURSE_LABEL[course]}</h3>
-              <span className="shrink-0 text-scale-xs font-semibold text-bb-muted-foreground">Soon</span>
+              {/* 20 Oct: the closed course's tag ("Not open yet", or "Opening next"
+                  for Organic Chemistry I), from courses.ts like every picker. */}
+              <span className="shrink-0 text-scale-xs font-semibold text-bb-muted-foreground">{closedCourseTag(course)}</span>
             </div>
             <p className="text-scale-xs text-bb-muted-foreground">{COURSE_COMING[course]}</p>
             </div>
@@ -203,7 +205,7 @@ function CourseComingSoon({ course }: { readonly course: CourseId }) {
   return (
     <div className="mx-auto flex max-w-xl flex-col items-center gap-4 px-4 py-10 text-center md:py-16">
       <span className="rounded-full border-2 border-bb-border bg-bb-muted px-3 py-1 text-scale-xs font-bold text-bb-muted-foreground">
-        Being authored
+        {closedCourseTag(course) ?? "Being authored"}
       </span>
       <h1 className="bb-title-face text-scale-2xl font-bold text-bb-foreground">{COURSE_LABEL[course]}</h1>
       <p className="text-scale-base text-bb-muted-foreground">{COURSE_BLURB[course]}</p>

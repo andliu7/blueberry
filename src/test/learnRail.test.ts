@@ -70,7 +70,7 @@ describe("Learn rail, a new visitor", () => {
     expect(text).toMatch(/0 of 3 done/);
     // The empty run says what starts one (reading counts as well as the app), and every
     // quest has a bar, read as a count. S3 round 4: the first quest is the site's own.
-    expect(text).toContain("Finish a lesson here or practise in the app.");
+    expect(text).toContain("Finish a lesson here or practice in the app.");
     expect(el.querySelectorAll(".lrn-quest-bar")).toHaveLength(3);
     expect(text).not.toContain("Today is open");
     // S3 round 5: a spoken separator between the quest and its count.
