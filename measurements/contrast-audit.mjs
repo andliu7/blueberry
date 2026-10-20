@@ -627,7 +627,18 @@ try {
                 if (wait > 0) await sleep(wait);
                 await collect(page, `${route.name}@${route.midMs}ms`, theme, route.root);
               };
-        const result = await route.drive(page, { onTrigger });
+        // A drive that THROWS (a control it presses is gone, a wait it needs
+        // times out) is the same failure as one that returns unreached, and it
+        // is recorded on the same terms as the navigation above: the run goes
+        // on, the route prints under UNREACHED, and the exit stays non-zero.
+        // Uncaught, one stale drive threw away every pair already measured.
+        let result;
+        try {
+          result = await route.drive(page, { onTrigger });
+        } catch (error) {
+          unreached.push(`${route.name} (${theme}): the drive threw (${String(error?.message ?? error).slice(0, 120)}).`);
+          continue;
+        }
         if (!result.reached) {
           /*
            * RECORD AND CARRY ON, rather than throwing here.

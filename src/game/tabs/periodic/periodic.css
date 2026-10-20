@@ -130,7 +130,8 @@
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
-  min-height: 2.5rem;
+  /* 44px: the hit target floor (measurements/hit-targets.mjs). */
+  min-height: 2.75rem;
   margin-bottom: 3px;
   padding: 0 0.875rem;
   border: 0;
@@ -498,6 +499,11 @@
 }
 
 .pt-source a {
+  /* A 44px tall target around one line of text: the padding grows the box,
+     the matching negative margin keeps the line where it was. */
+  display: inline-block;
+  padding-block: 0.875rem;
+  margin-block: -0.875rem;
   color: var(--bb-primary-ink);
   font-weight: 800;
 }

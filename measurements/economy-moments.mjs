@@ -256,9 +256,21 @@ export async function installSeed(page, theme, journal = null, stored = {}) {
  * after the reveal transition has finished, so what follows is the settled
  * screen. A page held open with `?boot=hold` never satisfies it, which is why
  * the two boot moments below do not call it.
+ *
+ * OR FOR IT NEVER TO HAVE OPENED. Since the loader moved into index.html
+ * (17 Oct), #boot is in every document and only a way into #/app opens it:
+ * the head script sets html[data-boot], and close() clears that attribute in
+ * the same step that deletes the element. A site page (#/, #/lessons) never
+ * sets the attribute, so its #boot sits in the body as `display: none` for
+ * good, and waiting for the element alone timed out on every site route
+ * (contrast-audit.mjs died on site:home, 2026-10-20). With the attribute
+ * absent the loader is not on screen, which is the thing this waits for.
  */
 export async function settleBoot(page) {
-  await page.waitForFunction(() => document.getElementById("boot") === null, { timeout: 20_000 });
+  await page.waitForFunction(
+    () => document.getElementById("boot") === null || !document.documentElement.hasAttribute("data-boot"),
+    { timeout: 20_000 },
+  );
 }
 
 /**
@@ -1717,7 +1729,17 @@ async function openChargeSheet(page, onTrigger, selector = SPINE_SLAB) {
       document.querySelector("dialog.ns-sheet[open]") !== null,
   );
   if (needsStart) {
-    await press(page, await buttonByText(page, "START"), "START (node sheet)");
+    // Found by its class, not its words: the key reads "Start", or "Continue"
+    // over a saved lesson (NodeSheet.tsx), and an exact match on "START"
+    // pressed nothing since the label went to sentence case.
+    const start = await page.evaluate(() => {
+      const button = document.querySelector("dialog.ns-sheet[open] .ns-start");
+      if (button === null) return null;
+      button.scrollIntoView({ block: "center", behavior: "instant" });
+      const rect = button.getBoundingClientRect();
+      return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+    });
+    await press(page, start, "START (node sheet)");
     await sleep(300);
   }
   const trigger = onTrigger === null ? null : await onTrigger(at);

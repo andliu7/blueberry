@@ -396,7 +396,8 @@
 .ct-btn--white { background: var(--bb-card); color: var(--bb-foreground); border-color: var(--bb-border); }
 .ct-btn--outline { background: transparent; color: var(--bb-primary); border-color: var(--bb-border); }
 .ct-btn--ghost { background: transparent; color: var(--bb-muted-foreground); border-color: transparent; border-bottom-width: 2px; }
-.ct-btn--small { min-height: 2.25rem; padding: 0 0.8rem; font-size: 0.8125rem; }
+/* Small in type and padding only; the height stays at the 44px hit target floor. */
+.ct-btn--small { padding: 0 0.8rem; font-size: 0.8125rem; }
 
 .ct-icon-btn {
   display: inline-grid;
