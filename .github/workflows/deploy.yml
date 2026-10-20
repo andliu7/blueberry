@@ -66,6 +66,32 @@ jobs:
           VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
           VITE_APPS_SCRIPT_ENDPOINT: ${{ secrets.VITE_APPS_SCRIPT_ENDPOINT }}
 
+      # The gate (owner 2026-10-20: tests now, budgets later). It runs after the
+      # build because the engine packages load from their compiled dist/. A
+      # failing test fails the job, so nothing deploys.
+      #
+      # Some tests (the guide RDKit byte-match checks) and the validator oracle
+      # call Python with RDKit, pinned to the version
+      # packages/validators/python/CONTRACT.md records.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install rdkit==2026.3.5
+
+      # The one exclusion is owner-acknowledged: src/game/test/bootLoader.test.ts
+      # is red on purpose pending an owner decision, see
+      # documentation/BOOT-LOADER-BLOCKER.md. Remove the flag when that resolves.
+      # Nothing else is excluded.
+      - name: Tests
+        run: npm test -- --exclude src/game/test/bootLoader.test.ts
+
+      # NOT YET ON. The validator CLI (suite integrity against validators.lock.json,
+      # then every check, budgets included: chem-core 150 KB, game route 400 KB,
+      # Ketcher isolation) joins the gate once the owner regenerates
+      # validators.lock.json and the game route is under its limit. Uncomment then:
+      # - name: Validators and budgets
+      #   run: npm run validate -w packages/validators
+
       - uses: actions/configure-pages@v5
 
       - uses: actions/upload-pages-artifact@v3
