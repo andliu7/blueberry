@@ -20,6 +20,7 @@ import {
   CARD_RUNS_PAID_PER_DAY,
   DIAMONDS_CARD_RUN,
   DIAMONDS_REVIEW_CLEARED,
+  XP_CARD_RUN,
 } from "../src/rules.ts";
 import { at, TZ } from "./helpers.ts";
 
@@ -40,7 +41,8 @@ describe("a flashcard review run's diamonds", () => {
   it("pays a completed run, and the receipt says so", () => {
     const receipt = receiptFor([], run(CARD_RUN_MIN_GRADED, "10:00"), at(DAY, "10:00"));
     expect(receipt.diamonds).toEqual([{ label: "Card review", amount: DIAMONDS_CARD_RUN }]);
-    expect(receipt.xp).toEqual([]);
+    // Owner 2026-10-20: every review clear awards XP. A card run paid none before.
+    expect(receipt.xp).toEqual([{ label: "Card review", amount: XP_CARD_RUN }]);
     expect(balance([run(CARD_RUN_MIN_GRADED, "10:00")])).toBe(DIAMONDS_CARD_RUN);
   });
 

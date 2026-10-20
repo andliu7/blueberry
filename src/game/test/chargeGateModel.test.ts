@@ -100,9 +100,10 @@ describe("the ready state", () => {
     // The headline slot carries a RULE in all four states, so the ready state
     // puts the price there and the node's own title is drawn above it. A sheet
     // whose headline is sometimes a title and sometimes a notice is two sheets.
-    expect(gate.headline).toBe("8 charge to start");
+    // Owner 2026-10-20: a reaction node costs 3 (was 8) and the cap is 20 (was 30).
+    expect(gate.headline).toBe("3 charge to start");
     expect(gate.headline).not.toBe(NODE.title);
-    expect(gate.line).toBe("You will have 22 left, and it refills on its own.");
+    expect(gate.line).toBe("You will have 17 left, and it refills on its own.");
     // The journal is untouched by opening the sheet: the model is a read.
     expect(gate.primaryLabel).toBe("Start");
   });

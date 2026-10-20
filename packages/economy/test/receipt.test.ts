@@ -82,9 +82,10 @@ describe("the lines", () => {
     const soon = at(DAY, "12:25");
     const journal: readonly EconomyEvent[] = [];
     const spendEvent = started("n1", "reaction", DAY, "12:00");
-    expect(receiptFor(journal, spendEvent, soon).charge.delta).toBe(-8);
+    // Owner 2026-10-20: a reaction node costs 3 (was 8) and a flawless clear pays back 2 (was 3).
+    expect(receiptFor(journal, spendEvent, soon).charge.delta).toBe(-3);
     const clear = cleared("n1", "reaction", DAY, { time: "12:20", flawless: true });
-    expect(receiptFor([spendEvent], clear, soon).charge.delta).toBe(3);
+    expect(receiptFor([spendEvent], clear, soon).charge.delta).toBe(2);
   });
 });
 

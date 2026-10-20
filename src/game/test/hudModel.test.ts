@@ -48,7 +48,8 @@ describe("hudModel, the empty account", () => {
     expect(empty.diamonds.value).toBe("0");
     expect(empty.streak.value).toBe("0");
     // Charge starts full: nothing has been spent, so the meter is at the cap.
-    expect(empty.charge.value).toBe("30");
+    // Owner 2026-10-20: the cap is 20 (was 30).
+    expect(empty.charge.value).toBe("20");
     expect(empty.charge.fraction).toBe(1);
   });
 
@@ -174,18 +175,20 @@ describe("hudModel, charge", () => {
       { kind: "attempt", at: at(0, 14), tz: TZ, nodeId: "b", problemId: "p2", correct: false },
     ];
     const charge = model(journal).charge;
-    // 30 minus a concept's 5 and a reaction's 8. The two wrong attempts are free,
-    // which is the rule the copy below promises out loud.
-    expect(charge.current).toBe(17);
-    expect(charge.cap).toBe(30);
-    expect(charge.value).toBe("17");
-    expect(charge.fraction).toBeCloseTo(17 / 30, 5);
+    // 20 minus a concept's 3 and a reaction's 3 (owner 2026-10-20; was 30, 5
+    // and 8). The two wrong attempts are free, which is the rule the copy
+    // below promises out loud.
+    expect(charge.current).toBe(14);
+    expect(charge.cap).toBe(20);
+    expect(charge.value).toBe("14");
+    expect(charge.fraction).toBeCloseTo(14 / 20, 5);
     expect(charge.examWindow).toBe(false);
     expect(charge.line).toContain("Getting things wrong never does.");
   });
 
   it("goes flat at zero rather than reading as an error", () => {
-    const journal: readonly EconomyEvent[] = Array.from({ length: 6 }, (_unused, i) => ({
+    // Seven reaction nodes at 3 (owner 2026-10-20; was six at 8) overdraw a meter of 20.
+    const journal: readonly EconomyEvent[] = Array.from({ length: 7 }, (_unused, i) => ({
       kind: "node_started" as const,
       at: at(0, 14),
       tz: TZ,

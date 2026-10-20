@@ -8,7 +8,7 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { CHARGE_COST, deriveEconomy } from "@blueberry/economy";
+import { CHARGE_COST, CHARGE_ENTRY_COST, deriveEconomy } from "@blueberry/economy";
 import { chargeGateModel } from "../charge/chargeGateModel";
 import { createLocalProgress } from "../app/progress";
 import { CHALLENGE_PARAM, hrefForChallenge, parseHash } from "../app/routes";
@@ -110,11 +110,13 @@ describe("the money flows end to end through the real store", () => {
     return store;
   }
 
-  it("charges the node's own price on entry to the Challenge", () => {
+  // Owner 2026-10-20: a Challenge costs its own entry price, 6, not the node's 3.
+  it("charges the Challenge entry price on entry to the Challenge", () => {
     const store = clearedKvt();
     const before = store.getSnapshot().economy.charge.current;
-    store.startNode("u1-kvt", "concept");
-    expect(before - store.getSnapshot().economy.charge.current).toBe(CHARGE_COST.concept);
+    store.startNode("u1-kvt", "concept", "challenge");
+    expect(before - store.getSnapshot().economy.charge.current).toBe(CHARGE_ENTRY_COST.challenge);
+    expect(store.getSnapshot().journal.at(-1)).toMatchObject({ kind: "node_started", entry: "challenge" });
   });
 
   it("a pass journals challenge_passed and moves the diamond balance", () => {
@@ -165,11 +167,12 @@ describe("the charge sheet in front of a Challenge", () => {
   const door = { id: "u1-kvt", kind: "concept" as const, title: "Kinetic vs thermodynamic control", href: hrefForChallenge("u1-kvt") };
   const now = "2026-08-28T14:00:00.000Z";
 
-  it("charges the same price as Practice, and does not promise retries it will not give", () => {
+  // Owner 2026-10-20: a Challenge is priced at its own entry (6), above Practice (3).
+  it("charges the Challenge price, not Practice's, and does not promise retries it will not give", () => {
     const practice = chargeGateModel(deriveEconomy([], now), { ...door, href: "#/app/lesson/u1-kvt" });
     const challenge = chargeGateModel(deriveEconomy([], now), { ...door, challenge: true });
-    expect(challenge.cost).toBe(practice.cost);
-    expect(challenge.cost).toBe(CHARGE_COST.concept);
+    expect(practice.cost).toBe(CHARGE_COST.concept);
+    expect(challenge.cost).toBe(CHARGE_ENTRY_COST.challenge);
     // Rule 2 of the charge section still holds and is still said.
     expect(challenge.promise).toContain("Wrong answers cost nothing");
     expect(challenge.promise).not.toMatch(/as many tries/i);

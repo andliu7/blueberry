@@ -45,6 +45,22 @@ leaderboard.
 | Review drill cleared | 12 | The one repeatable earner. Re-practice is the one thing worth repeating |
 | Replay of a cleared node | 5 | Deliberately low. See the flat-rate constraint |
 | Challenge passed | 12 | PROPOSED 2026-09-30, owner to confirm. Priced as a review drill; see `XP_CHALLENGE_PASSED` in rules.ts |
+| Flashcard review run completed | 5 | Owner 2026-10-20: every lesson, quiz, practice run and review clear awards XP, and a card run was the one review that paid none. Same completed-run rules and daily cap as its diamonds. 5 is the replay rate, proposed. `XP_CARD_RUN` |
+| Chest opened | 0, or the chest's fixed XP | Only the onboarding gift pays XP (20). Chest XP counts toward the total and the stage, never toward the day's goal or the "Earn XP" quest. See Chests |
+
+Every clear path pays XP (owner 2026-10-20, checked in `test/xp-stage.test.ts`): a lesson's first
+clear or replay of every kind, a review drill, a quiz pass, a Challenge pass and a completed card
+run. Two paths pay none on purpose: a failed Challenge, and a practice session that ends before
+it clears (it banks no clear at all). A `node_cleared` of kind `quiz` pays 0 because the quiz
+pays through `quiz_passed`; no shipped surface journals a quiz-kind clear today.
+
+### XP stages (owner 2026-10-20)
+
+Bloom's level badge and the HUD line "N XP to the next stage!" (never "135 / 200"). There was
+no level logic before, so the curve is the builder's, flagged for the owner: stage 1 starts at
+0, and stage s to s + 1 takes 50 x s more XP, so stages open at 0, 50, 150, 300, 500, 750, and
+so on (25 x s x (s - 1)). No top stage. `stageFor` and `XP_STAGE_STEP` in rules.ts; the snapshot
+carries `xp.stage`, `xp.stageStartXp`, `xp.nextStageXp` and `xp.toNextStage`.
 
 **Flat-rate constraint.** Keep XP per minute roughly level across node types. If concept nodes pay
 10 in three minutes and reaction nodes pay 15 in eight, students farm concept nodes and never draw
@@ -123,6 +139,7 @@ Scale unchanged from v1. Every diamond still traces to a learning event.
 | Flashcard review run completed | 5 | Owner decision 2026-10-01, the review drill rate; diamonds only, no XP. Completed means the run reached its summary with at least 5 distinct cards graded, and at most 3 runs pay per local day, so opening and closing a run, or re-running a small deck, pays nothing more. The 5 cards and the cap of 3 are the builder's choice, flagged for the owner. `cards_reviewed` event, `DIAMONDS_CARD_RUN` in rules.ts |
 | Streak milestone | 75 | At 7, 14, 30, 60, 100, 180, 365 |
 | Mastery rank | 125 to 250 | See the Mastery table |
+| Chest opened | 5 to 50 | Fixed per kind of chest, paid when it is OPENED, not when it is earned. See Chests |
 
 Not earners: watching videos, and anything a client could fabricate without an attempt record.
 
@@ -137,7 +154,7 @@ Not earners: watching videos, and anything a client could fabricate without an a
 | Scratchpad pen colours | 50 | Small, cheap, personal |
 | **Streak freeze** | **75** | Hold up to 2. Consumed automatically before the streak breaks |
 | **Streak repair** | **150** | 48h window after a break. Capped at once a month |
-| **Charge top-up** | **60** | Full refill to 30 |
+| **Charge top-up** | **60** | Full refill to 20 (the cap since owner 2026-10-20) |
 
 Not sinks: anything on the spine, hints or answers, and retries. Wrong answers are free and
 journaled. Charging for mistakes is charging for learning.
@@ -160,18 +177,26 @@ correction of that, and two rules do the work.
    is enough to finish. Nobody is stranded mid-mechanism.
 2. **Mistakes cost nothing.** Charge paces volume. It never prices being wrong.
 
+Charge is "Energy" on screen. Every number below was set by the owner on 2026-10-20 (it was:
+cap 30, concept 5, reaction and branch 8, quiz 10, +1 per 30 min, flawless +3). The intent, in
+the owner's words: a full tank covers a ~5 lesson section and runs out just before its final, and
+the free plan must still give real value. Five lessons at 3 is 15 of 20, leaving 5, one short of
+the final's 6.
+
 | Item | Value | Notes |
 |---|---|---|
-| Full meter | 30 | Cap |
-| Concept node | 5 | Charged on entry |
-| Reaction node | 8 | Charged on entry |
-| Unit quiz | 10 | Refunded in full on a pass |
-| Branch node | 8 | Same as a reaction node |
+| Full meter | 20 | Cap. Owner 2026-10-20 |
+| A regular lesson (concept, reaction or branch node) | 3 | Charged on entry. Owner 2026-10-20 |
+| A Challenge run | 6 | Charged on entry, whatever the node's kind (`node_started.entry = "challenge"`). Owner 2026-10-20 |
+| A section final or unit checkpoint | 6 | Charged on entry (`node_started.entry = "final"`; a map node with role `quiz`, or the unit checkpoint). Owner 2026-10-20 |
+| Unit quiz (`quiz` kind) | 6 | Refunded in full on a `quiz_passed` |
 | Review drill | 0 | Always free. Never gate what repairs decay |
 | Tutorial and intro nodes | 0 | `CLAUDE.md`: what sells the product is never gated |
 | A wrong answer | 0 | Load bearing. Do not let this drift |
-| Regeneration | +1 per 30 min | Empty to full in 15h, so a night always resets it |
-| Flawless clear | +3 | The better you get, the less it binds. Inverts Duolingo's incentive |
+| Regeneration | +10 per 30 min | Capped at 20, so empty to full in an hour. Owner 2026-10-20 |
+| Review drill cleared | +3 | Every clear. Owner 2026-10-20 |
+| Daily quest completed | +5 | Each of the day's three. Owner 2026-10-20 |
+| Flawless lesson (no misses) | +2 | Concept, reaction and branch clears only, first clear or replay: a replay costs 3 and returns 2, so it cannot be farmed, and a free kind returning charge would be a faucet. Owner 2026-10-20 (was +3, on any kind) |
 | Combo mini-game | +2 to 6 | Random reward on a correct streak |
 
 **Exam window.** In the two weeks before the exam date the student sets in the Me tab (onboarding never asked
@@ -181,10 +206,54 @@ for the mechanic in one gesture. A student who was not blocked during cramming w
 who tells other people.
 
 Run the daily numbers and Charge almost never binds on the intended user: a Regular learner
-clearing one concept and one reaction node spends 13 against 30 plus regeneration. It binds on the
-fifth node in one sitting, which is the only place a limiter belongs.
+clearing one concept and one reaction node spends 6 against 20, and regeneration refills 10 every
+half hour. It binds at the end of a section taken in one sitting, just before the final, which is
+the only place a limiter belongs (owner 2026-10-20).
 
 No rewarded ads in v1.
+
+## Chests (owner 2026-10-20)
+
+Chests are EARNED and SAVED. Completing a task drops a chest right away, with "Open now" and
+"Save for later"; saved chests stack in an inventory and open one by one or all at once. Every
+reward is FIXED: a random-XP chest is held until XP is stored server side. The amounts are the
+builder's proposal except where the owner set them; `CHEST_REWARD` in rules.ts.
+
+| Chest | Earned by | Opens for | Notes |
+|---|---|---|---|
+| Section final | Clearing a section final or unit checkpoint (`chest_earned`, `source: "section_final"`, `ref` = the pathway chest id) | 15 diamonds | `DIAMONDS_CHEST`, the pathway chest's price since before 2026-10-20, so an old journal derives the same balance |
+| Daily quest | Completing a daily quest (derived, never journalled) | 5 diamonds | The C1 chest: five diamonds fly to the counter |
+| Daily gift | The first open of the app in a local day (`chest_earned`, `source: "daily_gift"`) | 5 diamonds | One per local day, read in the zone the student was in |
+| Onboarding gift | The first visit (`chest_earned`, `source: "onboarding_gift"`) | 50 diamonds + 20 XP | Once, ever. The owner set "fixed"; the amounts are proposed |
+
+Rules the derivation enforces, so no client can mint a chest:
+
+- The chest id is the derivation's, never the client's: `daily-gift:<local date>`,
+  `onboarding-gift`, `quest:<local date>:<quest id>`, or the pathway chest id. A duplicate earns
+  nothing. A section final cannot claim one of the minted prefixes.
+- Opening (`chest_opened`) pays the chest's fixed reward once. A minted id opened before it was
+  earned pays nothing and stays openable.
+- A pathway chest opened with no `chest_earned` (every journal before 2026-10-20) keeps the old
+  rule: 15 diamonds once per id.
+- Chest XP is in the total and the stage, never in the day's goal, so opening a gift cannot keep
+  a streak alive.
+
+## Daily quests (owner 2026-10-20)
+
+Three per local day, derived from the journal. Completing one earns a daily quest chest and +5
+energy. No XP doubler: that is held.
+
+| Quest | Kind | Counts |
+|---|---|---|
+| Finish 3 lessons or quizzes | Recurring | Any non-review clear, or a quiz pass |
+| Train for 30 minutes | Recurring | A PROXY: 5 minutes per training activity (a lesson or review clear, a quiz pass, a paid Challenge, a card run of at least 5 cards), so six activities. The journal records no time spent; swap in real time once it does |
+| Clear a review drill | Rotating | A review clear |
+| Finish a lesson with no misses | Rotating | A flawless lesson clear or quiz pass |
+| Finish a flashcard review | Rotating | A card run of at least 5 cards |
+| Earn 40 XP | Rotating | The day's XP from work (no goal bonus, no chest XP) |
+
+The rotating quest is picked by local date: the list in order, by the number of days since
+1970-01-01, modulo four. `RECURRING_QUESTS`, `QUEST_ROTATION` and `questsFor` in the package.
 
 ## Streak
 

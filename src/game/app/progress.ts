@@ -61,6 +61,7 @@ import {
   localDate,
   MASTERY_DEFAULT_DIFFICULTY,
   receiptFor,
+  type ChargeEntry,
   type DailyGoalTier,
   type Difficulty,
   type DeriveOptions,
@@ -124,8 +125,12 @@ export interface ProgressSource {
   reset(): void;
   /** Append any economy event. Everything below is a named shortcut for this. */
   append(event: EconomyEvent): Receipt;
-  /** Entering a node, which is where charge is spent. Never per question. */
-  startNode(nodeId: string, kind: NodeKind): Receipt;
+  /**
+   * Entering a node, which is where charge is spent. Never per question.
+   * `entry` prices a Challenge run or a section final (owner 2026-10-20: 6),
+   * instead of the kind's own price.
+   */
+  startNode(nodeId: string, kind: NodeKind, entry?: ChargeEntry): Receipt;
   /** Clearing a node. Returns the diamonds earned, which is 0 on a replay. */
   clearNode(nodeId: string, kind: NodeKind, options?: ClearNodeOptions): number;
   /**
@@ -135,11 +140,36 @@ export interface ProgressSource {
    */
   passChallenge(nodeId: string): number;
   /**
-   * A pathway treasure chest opened. Returns the diamonds earned, which is 0
-   * for a chest already opened. Its own event, never a node clear, so it moves
-   * no XP and no mastery (packages/economy, DIAMONDS_CHEST).
+   * A chest opened: a saved chest from `economy.chests.saved` (owner
+   * 2026-10-20, chests are earned and saved), or a pathway treasure chest.
+   * Returns the diamonds earned, which is 0 for a chest already opened or a
+   * gift or quest chest not earned yet. Its own event, never a node clear, so
+   * it moves no mastery and never the daily goal (packages/economy, CHEST_REWARD).
    */
   openChest(chestId: string): number;
+  /**
+   * "Open all": every chest in `economy.chests.saved`, at once. Returns the
+   * diamonds earned; `lastReceipt` carries every line, so the reward moment
+   * can fly them all. 0 and no journal write when nothing is saved.
+   */
+  openAllChests(): number;
+  /**
+   * A section final or unit checkpoint cleared: save its chest (the pathway
+   * chest id) so it can be opened now or later. Returns the receipt, whose
+   * `chestsEarned` is empty when that chest was already earned or opened.
+   */
+  earnSectionChest(chestId: string): Receipt;
+  /**
+   * The daily gift: call on every app open. Saves one chest per local day (the
+   * device's zone) and journals nothing when today's gift is already earned,
+   * in which case it returns null.
+   */
+  claimDailyGift(): Receipt | null;
+  /**
+   * The one-time onboarding gift (fixed diamonds + XP): call on the first
+   * visit. Saves the chest once, ever; returns null when it already was.
+   */
+  claimOnboardingGift(): Receipt | null;
   /**
    * A flashcard review run reached its summary with `graded` distinct cards
    * graded. Returns the diamonds credited, which is 0 for a short run or past
@@ -619,6 +649,8 @@ export function createLocalProgress(): ProgressSource {
       visibleAfter: snapshot.economy.mastery.visible,
       rankUp: null,
     },
+    chestsEarned: [],
+    questsCompleted: [],
   });
 
   return {
@@ -692,8 +724,12 @@ export function createLocalProgress(): ProgressSource {
       commit({ ...stored, journal: [...stored.journal, event] }, next);
       return next;
     },
-    startNode(nodeId, kind) {
-      return appendOne((at, tz) => ({ kind: "node_started", at, tz, nodeId, nodeKind: kind }));
+    startNode(nodeId, kind, entry) {
+      return appendOne((at, tz) =>
+        entry === undefined
+          ? { kind: "node_started", at, tz, nodeId, nodeKind: kind }
+          : { kind: "node_started", at, tz, nodeId, nodeKind: kind, entry },
+      );
     },
     clearNode(nodeId, kind, options = {}) {
       const next = appendOne((at, tz) => ({
@@ -716,6 +752,51 @@ export function createLocalProgress(): ProgressSource {
     openChest(chestId) {
       const next = appendOne((at, tz) => ({ kind: "chest_opened", at, tz, chestId }));
       return next.diamonds.reduce((sum, line) => sum + line.amount, 0);
+    },
+    openAllChests() {
+      const saved = snapshot.economy.chests.saved;
+      if (saved.length === 0) return 0;
+      const at = nowIso();
+      const tz = localZone();
+      const options = deriveOptions(stored.course);
+      // One receipt per chest, read in order against the growing journal, then
+      // merged: the lines are the economy's, this only concatenates them.
+      let journal = stored.journal;
+      let merged: Receipt | null = null;
+      for (const chest of saved) {
+        const event: EconomyEvent = { kind: "chest_opened", at, tz, chestId: chest.id };
+        const one = receiptFor(journal, event, at, options);
+        merged =
+          merged === null
+            ? one
+            : {
+                ...one,
+                xp: [...merged.xp, ...one.xp],
+                diamonds: [...merged.diamonds, ...one.diamonds],
+                charge: { delta: merged.charge.delta + one.charge.delta },
+                mastery: { ...one.mastery, visibleBefore: merged.mastery.visibleBefore },
+                chestsEarned: [...merged.chestsEarned, ...one.chestsEarned],
+                questsCompleted: [...merged.questsCompleted, ...one.questsCompleted],
+              };
+        journal = [...journal, event];
+      }
+      commit({ ...stored, journal }, merged);
+      return (merged as Receipt).diamonds.reduce((sum, line) => sum + line.amount, 0);
+    },
+    earnSectionChest(chestId) {
+      return appendOne((at, tz) => ({ kind: "chest_earned", at, tz, source: "section_final", ref: chestId }));
+    },
+    claimDailyGift() {
+      // The device's own day, which is the day the derivation will read off
+      // the event: same instant, same zone.
+      const today = localDate(Date.now(), localZone());
+      if (snapshot.economy.chests.giftDays.includes(today)) return null;
+      const next = appendOne((at, tz) => ({ kind: "chest_earned", at, tz, source: "daily_gift" }));
+      return next.chestsEarned.length > 0 ? next : null;
+    },
+    claimOnboardingGift() {
+      if (snapshot.economy.chests.onboardingGiftEarned) return null;
+      return appendOne((at, tz) => ({ kind: "chest_earned", at, tz, source: "onboarding_gift" }));
     },
     finishCardRun(graded) {
       if (!Number.isInteger(graded) || graded <= 0) return 0;

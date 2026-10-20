@@ -74,6 +74,7 @@ export type NodeState = "done" | "current" | "open" | "review" | "locked";
 import {
   economyKindFor,
   hasChallengeRun,
+  isSectionFinal,
   PATHWAY_UNITS,
   unitCheckpointNode,
   unitName,
@@ -1277,6 +1278,8 @@ function mapGateNode(node: MapNode, clickable: boolean): ChargeGateNode | null {
     kind: economyKindFor(node.kind, node.playable),
     title: node.title,
     href: hrefForPlayable(node.playable),
+    // A section's closing quiz or the unit checkpoint: the final price (owner 2026-10-20).
+    ...(isSectionFinal(node) ? { final: true } : {}),
   };
 }
 

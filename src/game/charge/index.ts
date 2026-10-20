@@ -22,7 +22,7 @@
  */
 
 export { ChargeGate, REVIEW_HREF, type ChargeGateProps } from "./ChargeGate";
-export { chargeGateModel, formatClock, formatCountdown } from "./chargeGateModel";
+export { chargeEntryOf, chargeGateModel, formatClock, formatCountdown } from "./chargeGateModel";
 export type {
   ChargeGateModel,
   ChargeGateNode,

@@ -147,6 +147,7 @@ describe("an empty journal", () => {
     expect(snapshot.diamonds.balance).toBe(0);
     expect(snapshot.streak.current).toBe(0);
     expect(snapshot.mastery.score).toBe(0);
-    expect(snapshot.charge.current).toBe(30);
+    // Owner 2026-10-20: the meter is 20 (was 30).
+    expect(snapshot.charge.current).toBe(20);
   });
 });

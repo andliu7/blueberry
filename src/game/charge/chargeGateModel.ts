@@ -43,6 +43,7 @@ import {
   CHARGE_REGEN_MINUTES,
   SINK_COST,
   chargeCostFor,
+  type ChargeEntry,
   type EconomySnapshot,
   type NodeKind,
 } from "@blueberry/economy";
@@ -58,11 +59,28 @@ export interface ChargeGateNode {
   /** Where Start goes once the charge is committed. */
   readonly href: string;
   /**
-   * The door is a CHALLENGE run of a cleared node. Priced the same, but the
-   * mistakes promise has to change: "take as many tries as you need" is the
-   * one thing a Challenge does not offer (a miss ends it, beats/template.ts).
+   * The door is a CHALLENGE run of a cleared node. Priced at the Challenge
+   * entry (owner 2026-10-20: 6), and the mistakes promise has to change:
+   * "take as many tries as you need" is the one thing a Challenge does not
+   * offer (a miss ends it, beats/template.ts).
    */
   readonly challenge?: boolean;
+  /**
+   * The node is a SECTION FINAL or unit checkpoint (a map node with role
+   * "quiz"). Owner 2026-10-20: it costs the final entry, 6, not a lesson's 3.
+   */
+  readonly final?: boolean;
+}
+
+/**
+ * How the node is entered, for the price and for the journal: the same value
+ * goes to `chargeCostFor` here and to `progress.startNode` in ChargeGate.tsx,
+ * so the sheet and the spend can never name two different prices.
+ */
+export function chargeEntryOf(node: ChargeGateNode): ChargeEntry | undefined {
+  if (node.challenge === true) return "challenge";
+  if (node.final === true) return "final";
+  return undefined;
 }
 
 /** The refill picture, in the empty state. Null everywhere else. */
@@ -286,7 +304,7 @@ function topUpReadout(snapshot: EconomySnapshot): TopUpReadout {
 export function chargeGateModel(snapshot: EconomySnapshot, node: ChargeGateNode): ChargeGateModel {
   const cap = snapshot.charge.cap;
   const before = snapshot.charge.current;
-  const cost = chargeCostFor(node.kind, snapshot);
+  const cost = chargeCostFor(node.kind, snapshot, chargeEntryOf(node));
   const kindLabel = KIND_LABEL[node.kind];
   const examDaysLeft = snapshot.charge.examWindow ? (snapshot.charge.examDaysLeft ?? 0) : null;
 

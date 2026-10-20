@@ -38,6 +38,31 @@ export type SpendSink =
   | "streak_repair"
   | "charge_topup";
 
+/**
+ * How a node was entered when it costs something other than its kind's price.
+ * Owner 2026-10-20: a CHALLENGE run and a SECTION FINAL (a section's closing
+ * quiz, or the unit checkpoint) each cost CHARGE_ENTRY_COST, whatever kind the
+ * node is journalled as. Absent means the kind's own price (CHARGE_COST).
+ */
+export type ChargeEntry = "challenge" | "final";
+
+/**
+ * Where a saved chest came from. Owner 2026-10-20: chests are EARNED and SAVED.
+ * Each source pays a fixed reward (rules.ts, CHEST_REWARD); the event never
+ * carries an amount, so no client can name its own prize.
+ *
+ *   daily_quest      derived from the journal, never journalled: completing a
+ *                    daily quest earns it at that instant
+ *   section_final    journalled by the client when a section final or unit
+ *                    checkpoint is cleared; `ref` is the pathway chest id
+ *   daily_gift       journalled on the first open of the app in a local day
+ *   onboarding_gift  journalled on the first visit; counts once, ever
+ */
+export type ChestSource = "daily_quest" | "section_final" | "daily_gift" | "onboarding_gift";
+
+/** The sources a client may journal. Daily quest chests are derived, so they are not among them. */
+export type JournalledChestSource = Exclude<ChestSource, "daily_quest">;
+
 /** The daily goal the student picked at onboarding. It is the streak's bar. */
 export type DailyGoalTier = "casual" | "regular" | "serious" | "exam";
 
@@ -56,6 +81,8 @@ export type EconomyEvent =
       readonly kind: "node_started";
       readonly nodeId: string;
       readonly nodeKind: NodeKind;
+      /** Set for a Challenge run or a section final: priced by CHARGE_ENTRY_COST. */
+      readonly entry?: ChargeEntry;
     })
   | (EventBase & {
       readonly kind: "node_cleared";
@@ -89,6 +116,13 @@ export type EconomyEvent =
   | (EventBase & { readonly kind: "resonance_found"; readonly nodeId: string })
   /** A pathway treasure chest opened. Pays DIAMONDS_CHEST once per chestId; never a node. */
   | (EventBase & { readonly kind: "chest_opened"; readonly chestId: string })
+  /**
+   * A chest EARNED and saved (owner 2026-10-20). Opening it is a separate
+   * `chest_opened`, now or later. The chest id is the derivation's call, not
+   * the client's: `daily-gift:<local date>`, `onboarding-gift`, or for a
+   * section final the pathway chest id in `ref`. Duplicates earn nothing.
+   */
+  | (EventBase & { readonly kind: "chest_earned"; readonly source: JournalledChestSource; readonly ref?: string })
   | (EventBase & {
       readonly kind: "attempt";
       readonly nodeId: string;
@@ -123,6 +157,10 @@ const SPEND_SINKS: readonly SpendSink[] = [
   "streak_repair",
   "charge_topup",
 ];
+
+const CHARGE_ENTRIES: readonly ChargeEntry[] = ["challenge", "final"];
+
+const JOURNALLED_CHEST_SOURCES: readonly JournalledChestSource[] = ["section_final", "daily_gift", "onboarding_gift"];
 
 const GOAL_TIERS: readonly DailyGoalTier[] = ["casual", "regular", "serious", "exam"];
 
@@ -180,7 +218,11 @@ export function isEconomyEvent(x: unknown): x is EconomyEvent {
 
   switch (x["kind"]) {
     case "node_started":
-      return nonEmptyString(x["nodeId"]) && NODE_KINDS.includes(x["nodeKind"] as NodeKind);
+      return (
+        nonEmptyString(x["nodeId"]) &&
+        NODE_KINDS.includes(x["nodeKind"] as NodeKind) &&
+        (x["entry"] === undefined || CHARGE_ENTRIES.includes(x["entry"] as ChargeEntry))
+      );
     case "node_cleared":
       return (
         nonEmptyString(x["nodeId"]) &&
@@ -205,6 +247,10 @@ export function isEconomyEvent(x: unknown): x is EconomyEvent {
       return nonEmptyString(x["nodeId"]);
     case "chest_opened":
       return nonEmptyString(x["chestId"]);
+    case "chest_earned":
+      if (!JOURNALLED_CHEST_SOURCES.includes(x["source"] as JournalledChestSource)) return false;
+      if (x["source"] === "section_final") return nonEmptyString(x["ref"]);
+      return x["ref"] === undefined || nonEmptyString(x["ref"]);
     case "attempt":
       return nonEmptyString(x["nodeId"]) && nonEmptyString(x["problemId"]) && typeof x["correct"] === "boolean";
     case "spend":

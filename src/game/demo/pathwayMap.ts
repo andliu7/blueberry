@@ -549,6 +549,16 @@ export function checkpointUnitFor(nodeId: string): PathwayUnit | null {
   return PATHWAY_UNITS.find((unit) => checkpointNodeId(unit.id) === nodeId) ?? null;
 }
 
+/**
+ * A SECTION FINAL: a section's closing quiz (role "quiz") or the unit
+ * checkpoint. Owner 2026-10-20: entering one costs the final price (6 energy,
+ * CHARGE_ENTRY_COST.final in @blueberry/economy), not a lesson's 3, and
+ * clearing one earns a saved chest.
+ */
+export function isSectionFinal(node: Pick<PathwayNode, "id" | "role">): boolean {
+  return node.role === "quiz" || checkpointUnitFor(node.id) !== null;
+}
+
 export function unitCheckpointNode(unit: PathwayUnit): PathwayNode {
   const id = checkpointNodeId(unit.id);
   return {
@@ -654,12 +664,13 @@ export function pathwayNodeForPlayable(kind: PlayableLink["kind"], id: string): 
  * same list, so the mapping is written down once here rather than guessed at
  * each call site:
  *
- *   branch          -> branch. Same word, same 8, and the map's side quests are
+ *   branch          -> branch. Same word, same price, and the map's side quests are
  *                      exactly what that row is for.
  *   spine, a beat   -> concept. A beat is recognition and ranking work, which is
- *                      what the 5 charge concept row is priced against.
+ *                      what the concept row is priced against.
  *   spine, anything -> reaction. Arrow work: a reaction, a sequence, a
- *                      resonance hunt. The 8 charge row.
+ *                      resonance hunt. Since owner 2026-10-20 every lesson
+ *                      kind costs the same 3, so this row no longer moves price.
  *   boss            -> quiz. UNREACHABLE TODAY, and flagged rather than settled:
  *                      the map's one boss carries no `playable`, so no press can
  *                      arrive here. ECONOMY.md prices no boss, and quiz is the
@@ -680,7 +691,11 @@ export function pathwayNodeForPlayable(kind: PlayableLink["kind"], id: string): 
  *                      row and clear against another: the exact defect the note
  *                      above this function exists to prevent. Moving both to
  *                      quiz together is an owner decision about money, not a fix
- *                      to smuggle in beside a layout change.
+ *                      to smuggle in beside a layout change. Owner 2026-10-20
+ *                      settled the PRICE without moving the kind: a checkpoint
+ *                      or a section's closing quiz is entered with
+ *                      `entry: "final"` (6, CHARGE_ENTRY_COST; see
+ *                      isSectionFinal) and still clears as a concept.
  */
 export function economyKindFor(mapKind: NodeKind, link: PlayableLink): EconomyNodeKind {
   if (mapKind === "branch") return "branch";

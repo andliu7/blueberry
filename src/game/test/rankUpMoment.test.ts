@@ -183,6 +183,8 @@ describe("more than one band in one event", () => {
     charge: { delta: 0 },
     streak: { counted: true, current: 1 },
     mastery: { visibleBefore: 10, visibleAfter: 35, rankUp: "Mechanist" },
+    chestsEarned: [],
+    questsCompleted: [],
   };
 
   it("names every band crossed, not only the highest", () => {

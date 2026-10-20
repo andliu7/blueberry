@@ -29,7 +29,7 @@ import { Suspense, lazy, useContext, useEffect, useMemo, useRef, useState, type 
 
 import { hrefForLesson } from "../app/routes";
 import type { ChargeGateNode } from "../charge/chargeGateModel";
-import { economyKindFor, pathwayNode } from "../demo/pathwayMap";
+import { economyKindFor, isSectionFinal, pathwayNode } from "../demo/pathwayMap";
 
 import { Berry } from "../mascot/Berry";
 import { ChipPress } from "../beats/ChipPress";
@@ -134,7 +134,8 @@ export function ResumePrompt({ node, title, detail, saved, bar, reducedMotion, o
 function restartGateNode(node: string, title: string): ChargeGateNode {
   const mapNode = pathwayNode(node);
   const kind = mapNode?.playable !== undefined ? economyKindFor(mapNode.kind, mapNode.playable) : "concept";
-  return { id: node, kind, title: title !== "" ? title : node, href: hrefForLesson(node) };
+  const final = isSectionFinal(mapNode ?? { id: node });
+  return { id: node, kind, title: title !== "" ? title : node, href: hrefForLesson(node), ...(final ? { final: true } : {}) };
 }
 
 /**

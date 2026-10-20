@@ -34,6 +34,7 @@ import {
   CHARGE_CAP,
   CHARGE_COST,
   CHARGE_REGEN_MINUTES,
+  CHARGE_REGEN_PER_INTERVAL,
   deriveEconomy,
   type EconomyEvent,
 } from "@blueberry/economy";
@@ -249,11 +250,12 @@ describe("empty", () => {
     expect(halfway).toBeGreaterThan(first);
     expect(halfway).toBeLessThanOrEqual(1);
 
-    // Past the boundary the point has ARRIVED, so the balance is one higher and
-    // the fraction starts the next one over. A meter that kept climbing past 1
-    // would be drawing a point that already landed as still on its way.
+    // Past the boundary the refill has ARRIVED, so the balance is one interval's
+    // worth higher (owner 2026-10-20: +10 a half hour, was +1) and the fraction
+    // starts the next one over. A meter that kept climbing past 1 would be
+    // drawing a refill that already landed as still on its way.
     const after = meter(drained, 0, past);
-    expect(after.current).toBe(chargeLeft(drained) + 1);
+    expect(after.current).toBe(Math.min(CHARGE_CAP, chargeLeft(drained) + CHARGE_REGEN_PER_INTERVAL));
     expect(after.nextFraction).toBeLessThan(halfway);
   });
 });

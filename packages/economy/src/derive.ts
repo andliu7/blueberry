@@ -32,13 +32,26 @@
  * proves it against every number in the snapshot.
  */
 
-import type { DailyGoalTier, Difficulty, EconomyEvent, NodeKind } from "./journal.js";
-import type { MasteryRank } from "./rules.js";
+import type { ChargeEntry, ChestSource, DailyGoalTier, Difficulty, EconomyEvent, NodeKind } from "./journal.js";
+import type { ChestReward, MasteryRank, QuestDef, QuestMeasure } from "./rules.js";
 import {
   CHARGE_CAP,
+  CHARGE_DAILY_QUEST,
+  CHARGE_FLAWLESS_KINDS,
+  CHARGE_REVIEW_CLEARED,
+  CHEST_REWARD,
+  DERIVED_CHEST_PREFIXES,
+  ONBOARDING_GIFT_CHEST_ID,
+  QUEST_MINUTES_PER_ACTIVITY,
+  QUEST_ROTATION,
+  RECURRING_QUESTS,
+  XP_CARD_RUN,
+  chargeEntryCost,
+  dailyGiftChestId,
+  questChestId,
+  stageFor,
   CHARGE_COMBO_MAX,
   CHARGE_COMBO_MIN,
-  CHARGE_COST,
   CHARGE_FLAWLESS_BONUS,
   CHARGE_QUIZ_REFUND,
   CHARGE_REGEN_MINUTES,
@@ -108,6 +121,14 @@ export interface XpState {
   readonly goalTier: DailyGoalTier;
   readonly goalXp: number;
   readonly goalMet: boolean;
+  /** Bloom's level badge (rules.ts, stageFor). 1 based. */
+  readonly stage: number;
+  /** Total XP at which the current stage opened. */
+  readonly stageStartXp: number;
+  /** Total XP at which the next stage opens. */
+  readonly nextStageXp: number;
+  /** "N XP to the next stage!": nextStageXp minus total, always at least 1. */
+  readonly toNextStage: number;
 }
 
 export interface DiamondState {
@@ -161,6 +182,47 @@ export interface MasteryState {
   readonly nextRank: { readonly name: string; readonly at: number } | null;
 }
 
+/** A chest earned and not yet opened. Owner 2026-10-20: chests are earned and saved. */
+export interface SavedChest {
+  readonly id: string;
+  readonly source: ChestSource;
+  /** When it was earned. */
+  readonly earnedAt: string;
+  /** What opening it pays, fixed by CHEST_REWARD. */
+  readonly reward: ChestReward;
+}
+
+export interface ChestState {
+  /** Saved chests, oldest first. They stack; "open all" opens every one. */
+  readonly saved: readonly SavedChest[];
+  /** Diamonds and XP that opening every saved chest would pay. */
+  readonly savedReward: ChestReward;
+  /** Every local date a daily gift was earned on, sorted. */
+  readonly giftDays: readonly string[];
+  /** The one-time onboarding gift has been earned (opened or not). */
+  readonly onboardingGiftEarned: boolean;
+}
+
+export interface QuestState {
+  readonly id: string;
+  readonly title: string;
+  readonly target: number;
+  /** Progress toward the target, capped at it. */
+  readonly progress: number;
+  readonly done: boolean;
+  /** When it completed, or null. */
+  readonly completedAt: string | null;
+  /** The chest completing it earns (opened or saved). */
+  readonly chestId: string;
+}
+
+export interface QuestsState {
+  /** The local date these quests belong to: the snapshot's today. */
+  readonly date: string;
+  /** Three: the two recurring quests, then the day's rotating one. */
+  readonly list: readonly QuestState[];
+}
+
 export interface EconomySnapshot {
   /** Echoed back so a rendered snapshot can say what it was computed against. */
   readonly now: string;
@@ -171,6 +233,9 @@ export interface EconomySnapshot {
   readonly charge: ChargeState;
   readonly streak: StreakState;
   readonly mastery: MasteryState;
+  readonly chests: ChestState;
+  /** Today's daily quests. */
+  readonly quests: QuestsState;
   /** Set like: every node id with a first clear. A replay of one of these earns 0. */
   readonly firstClears: Readonly<Record<string, true>>;
 }
@@ -221,6 +286,10 @@ export interface Receipt {
     readonly visibleAfter: number;
     readonly rankUp: string | null;
   };
+  /** Chests this event earned: a daily gift, a section final, or a quest it completed. */
+  readonly chestsEarned: readonly SavedChest[];
+  /** Ids of the daily quests this event completed. */
+  readonly questsCompleted: readonly string[];
 }
 
 /* --------------------------------------------------------- the internals -- */
@@ -234,6 +303,26 @@ interface Entry {
 interface EventAwards {
   readonly xp: ReceiptLine[];
   readonly diamonds: ReceiptLine[];
+  readonly chests: SavedChest[];
+  readonly quests: string[];
+}
+
+/** One local day's quest tallies, built in timestamp order by the walk. */
+interface QuestDay {
+  readonly tally: Record<QuestMeasure, number>;
+  readonly completedAt: Map<string, string>;
+}
+
+/** The three quests of a local day: the two recurring ones, then the rotating one. */
+export function questsFor(date: string): readonly QuestDef[] {
+  const dayNumber = daysBetween("1970-01-01", date);
+  const n = QUEST_ROTATION.length;
+  const rotating = QUEST_ROTATION[((dayNumber % n) + n) % n] as QuestDef;
+  return [...RECURRING_QUESTS, rotating];
+}
+
+function isDerivedChestId(chestId: string): boolean {
+  return DERIVED_CHEST_PREFIXES.some((prefix) => chestId.startsWith(prefix));
 }
 
 interface NodeMastery {
@@ -283,6 +372,48 @@ function inExamWindow(date: string, examDate: string | null): boolean {
   return left >= 0 && left <= EXAM_WINDOW_DAYS;
 }
 
+/** What the reward moment calls each kind of chest. "Treasure chest" is the pathway chest's label from before 2026-10-20. */
+const CHEST_LABEL: Readonly<Record<ChestSource, string>> = {
+  section_final: "Treasure chest",
+  daily_quest: "Quest chest",
+  daily_gift: "Daily gift",
+  onboarding_gift: "Welcome gift",
+};
+
+/**
+ * What one event adds to its day's quest tallies, or null when it adds
+ * nothing. Read AFTER the event's awards, so a Challenge or card run counts
+ * only when it would pay. "lessons" is any non-review clear plus a quiz pass (a
+ * quiz-kind clear is left out because a quiz counts through quiz_passed);
+ * "train_minutes" is the documented proxy in rules.ts (QUEST_MINUTES_PER_ACTIVITY).
+ */
+function questCounts(
+  event: EconomyEvent,
+  line: EventAwards,
+  firstClears: Readonly<Record<string, true>>,
+): Partial<Record<QuestMeasure, number>> | null {
+  const minutes = QUEST_MINUTES_PER_ACTIVITY;
+  switch (event.kind) {
+    case "node_cleared": {
+      if (event.nodeKind === "review") return { reviews: 1, train_minutes: minutes };
+      if (event.nodeKind === "quiz") return { train_minutes: minutes };
+      return { lessons: 1, train_minutes: minutes, flawless: event.flawless ? 1 : 0 };
+    }
+    case "quiz_passed":
+      return { lessons: 1, train_minutes: minutes, flawless: event.flawless ? 1 : 0 };
+    case "challenge_passed":
+      return firstClears[event.nodeId] === undefined ? null : { train_minutes: minutes };
+    case "cards_reviewed":
+      return event.graded >= CARD_RUN_MIN_GRADED ? { card_runs: 1, train_minutes: minutes } : null;
+    case "chest_opened":
+      // Chest XP never counts toward a day: not the goal, not the "Earn XP" quest.
+      return null;
+    default:
+      // XP from anything else (a resonance find) still moves the "Earn XP" quest.
+      return line.xp.length > 0 ? {} : null;
+  }
+}
+
 /* ---------------------------------------------------------------- the run -- */
 
 function run(journal: readonly EconomyEvent[], now: string, options: DeriveOptions = {}): RunResult {
@@ -299,7 +430,7 @@ function run(journal: readonly EconomyEvent[], now: string, options: DeriveOptio
     .filter((entry) => Number.isFinite(entry.ms))
     .sort((a, b) => (a.ms === b.ms ? a.order - b.order : a.ms - b.ms));
 
-  const awards: EventAwards[] = journal.map(() => ({ xp: [], diamonds: [] }));
+  const awards: EventAwards[] = journal.map(() => ({ xp: [], diamonds: [], chests: [], quests: [] }));
 
   const tz = safeZone(entries.length === 0 ? "UTC" : (entries[entries.length - 1] as Entry).event.tz);
   const today = localDate(nowMs, tz);
@@ -324,6 +455,12 @@ function run(journal: readonly EconomyEvent[], now: string, options: DeriveOptio
   const firstClears: Record<string, true> = {};
   const resonanceSeen = new Set<string>();
   const chestsOpened = new Set<string>();
+  // Chests earned, in earn order. Opened ones stay here too; `chestsOpened` says which.
+  const chestsEarned = new Map<string, SavedChest>();
+  const giftDays = new Set<string>();
+  const questDays = new Map<string, QuestDay>();
+  // XP paid by chests: in the total, never in a day's goal tally.
+  let chestXp = 0;
   // Paid card runs per local day, for CARD_RUNS_PAID_PER_DAY.
   const cardRunsPaid = new Map<string, number>();
   const nodes = new Map<string, NodeMastery>();
@@ -379,7 +516,8 @@ function run(journal: readonly EconomyEvent[], now: string, options: DeriveOptio
         applyRegen(ms);
         // Charge is spent on ENTRY, never per question, and never inside the
         // exam window. Free kinds are already 0 in CHARGE_COST.
-        const cost = examNow ? 0 : CHARGE_COST[event.nodeKind];
+        // A Challenge run or a section final is priced by its entry, not its kind.
+        const cost = examNow ? 0 : chargeEntryCost(event.nodeKind, event.entry);
         charge = Math.max(0, charge - cost);
         unlock(event.nodeId, ms);
         break;
@@ -423,9 +561,14 @@ function run(journal: readonly EconomyEvent[], now: string, options: DeriveOptio
           line.xp.push({ label: "Replay", amount: XP_REPLAY });
         }
 
-        // Charge: a flawless clear pays back, on a replay too. A replay costs
-        // more to enter than the bonus returns, so this cannot be farmed.
-        if (event.flawless) {
+        // Charge earned (owner 2026-10-20). A review drill pays back on every
+        // clear. A flawless LESSON pays back, on a replay too: a replay costs
+        // more to enter than the bonus returns, so it cannot be farmed, and the
+        // free kinds are left out of CHARGE_FLAWLESS_KINDS for that reason.
+        if (kind === "review") {
+          applyRegen(ms);
+          charge = Math.min(CHARGE_CAP, charge + CHARGE_REVIEW_CLEARED);
+        } else if (event.flawless && CHARGE_FLAWLESS_KINDS.includes(kind)) {
           applyRegen(ms);
           charge = Math.min(CHARGE_CAP, charge + CHARGE_FLAWLESS_BONUS);
         }
@@ -460,6 +603,7 @@ function run(journal: readonly EconomyEvent[], now: string, options: DeriveOptio
         const paid = cardRunsPaid.get(day) ?? 0;
         if (event.graded < CARD_RUN_MIN_GRADED || paid >= CARD_RUNS_PAID_PER_DAY) break;
         cardRunsPaid.set(day, paid + 1);
+        line.xp.push({ label: "Card review", amount: XP_CARD_RUN });
         line.diamonds.push({ label: "Card review", amount: DIAMONDS_CARD_RUN });
         break;
       }
@@ -483,13 +627,48 @@ function run(journal: readonly EconomyEvent[], now: string, options: DeriveOptio
         break;
       }
 
+      case "chest_earned": {
+        // Earned and saved (owner 2026-10-20). The id is decided here, never
+        // by the client, so a daily gift is one per local day and the
+        // onboarding gift one ever, however often the event is journalled.
+        let chestId: string;
+        if (event.source === "daily_gift") chestId = dailyGiftChestId(day);
+        else if (event.source === "onboarding_gift") chestId = ONBOARDING_GIFT_CHEST_ID;
+        else chestId = event.ref ?? "";
+        if (chestId === "" || (event.source === "section_final" && isDerivedChestId(chestId))) break;
+        if (chestsEarned.has(chestId) || chestsOpened.has(chestId)) break;
+        const chest: SavedChest = {
+          id: chestId,
+          source: event.source,
+          earnedAt: new Date(ms).toISOString(),
+          reward: CHEST_REWARD[event.source],
+        };
+        chestsEarned.set(chestId, chest);
+        if (event.source === "daily_gift") giftDays.add(day);
+        line.chests.push(chest);
+        break;
+      }
+
       case "chest_opened": {
-        // Once per chest, diamonds only, and no unlock: a chest is a reward,
-        // not a lesson, so it never touches mastery, XP or the daily goal.
-        if (!chestsOpened.has(event.chestId)) {
+        // Once per chest, and no unlock: a chest is a reward, not a lesson, so
+        // it never touches mastery or the daily goal.
+        if (chestsOpened.has(event.chestId)) break;
+        const earnedChest = chestsEarned.get(event.chestId);
+        if (earnedChest !== undefined) {
           chestsOpened.add(event.chestId);
-          line.diamonds.push({ label: "Treasure chest", amount: DIAMONDS_CHEST });
+          const label = CHEST_LABEL[earnedChest.source];
+          if (earnedChest.reward.diamonds > 0) line.diamonds.push({ label, amount: earnedChest.reward.diamonds });
+          if (earnedChest.reward.xp > 0) {
+            line.xp.push({ label, amount: earnedChest.reward.xp });
+            chestXp += earnedChest.reward.xp;
+          }
+        } else if (!isDerivedChestId(event.chestId)) {
+          // A pathway chest opened without a chest_earned: every journal
+          // written before 2026-10-20. The old rule, unchanged.
+          chestsOpened.add(event.chestId);
+          line.diamonds.push({ label: CHEST_LABEL.section_final, amount: DIAMONDS_CHEST });
         }
+        // A derived chest not yet earned pays nothing and stays unopened.
         break;
       }
 
@@ -534,9 +713,39 @@ function run(journal: readonly EconomyEvent[], now: string, options: DeriveOptio
     }
 
     let dayXp = xpByDay.get(day) ?? 0;
-    for (const item of line.xp) dayXp += item.amount;
+    // Chest XP is in the total but never the day's goal tally (rules.ts, CHEST_REWARD).
+    if (event.kind !== "chest_opened") for (const item of line.xp) dayXp += item.amount;
     xpByDay.set(day, dayXp);
     for (const item of line.diamonds) earned += item.amount;
+
+    // Daily quests, derived in timestamp order so the completing event is known.
+    const counts = questCounts(event, line, firstClears);
+    if (counts !== null) {
+      let questDay = questDays.get(day);
+      if (questDay === undefined) {
+        questDay = {
+          tally: { lessons: 0, train_minutes: 0, reviews: 0, flawless: 0, card_runs: 0, xp: 0 },
+          completedAt: new Map(),
+        };
+        questDays.set(day, questDay);
+      }
+      for (const measure of Object.keys(counts) as QuestMeasure[]) questDay.tally[measure] += counts[measure] ?? 0;
+      questDay.tally.xp = dayXp;
+      for (const quest of questsFor(day)) {
+        if (questDay.completedAt.has(quest.id) || questDay.tally[quest.measure] < quest.target) continue;
+        const stamp = new Date(ms).toISOString();
+        questDay.completedAt.set(quest.id, stamp);
+        line.quests.push(quest.id);
+        applyRegen(ms);
+        charge = Math.min(CHARGE_CAP, charge + CHARGE_DAILY_QUEST);
+        const chestId = questChestId(day, quest.id);
+        if (!chestsEarned.has(chestId) && !chestsOpened.has(chestId)) {
+          const chest: SavedChest = { id: chestId, source: "daily_quest", earnedAt: stamp, reward: CHEST_REWARD.daily_quest };
+          chestsEarned.set(chestId, chest);
+          line.chests.push(chest);
+        }
+      }
+    }
   }
 
   /* ------------------------------------------------ charge, read at `now` --- */
@@ -591,12 +800,18 @@ function run(journal: readonly EconomyEvent[], now: string, options: DeriveOptio
   const todayGoalXp = DAILY_GOAL_XP[todayGoalTier];
   const todayGoalMet = todayBase >= todayGoalXp && todayBase > 0;
 
+  xpTotal += chestXp;
+  const stage = stageFor(xpTotal);
   const xpState: XpState = {
     total: xpTotal,
     today: todayBase + (todayGoalMet ? XP_DAILY_GOAL_MET : 0),
     goalTier: todayGoalTier,
     goalXp: todayGoalXp,
     goalMet: todayGoalMet,
+    stage: stage.stage,
+    stageStartXp: stage.startXp,
+    nextStageXp: stage.nextXp,
+    toNextStage: stage.toNext,
   };
 
   /* --------------------------------------------------------- the streak --- */
@@ -799,6 +1014,36 @@ function run(journal: readonly EconomyEvent[], now: string, options: DeriveOptio
     if (rankRow.diamonds > 0 && floorRounded >= rankRow.at) earnedTotal += rankRow.diamonds;
   }
 
+  /* ------------------------------------------------ chests and quests --- */
+
+  const saved = [...chestsEarned.values()].filter((chest) => !chestsOpened.has(chest.id));
+  const chestState: ChestState = {
+    saved,
+    savedReward: {
+      diamonds: saved.reduce((sum, chest) => sum + chest.reward.diamonds, 0),
+      xp: saved.reduce((sum, chest) => sum + chest.reward.xp, 0),
+    },
+    giftDays: [...giftDays].sort(),
+    onboardingGiftEarned: chestsEarned.has(ONBOARDING_GIFT_CHEST_ID),
+  };
+
+  const todayQuests = questDays.get(today);
+  const questsState: QuestsState = {
+    date: today,
+    list: questsFor(today).map((quest) => {
+      const completedAt = todayQuests?.completedAt.get(quest.id) ?? null;
+      return {
+        id: quest.id,
+        title: quest.title,
+        target: quest.target,
+        progress: Math.min(quest.target, todayQuests?.tally[quest.measure] ?? 0),
+        done: completedAt !== null,
+        completedAt,
+        chestId: questChestId(today, quest.id),
+      };
+    }),
+  };
+
   const snapshot: EconomySnapshot = {
     now,
     tz,
@@ -807,6 +1052,8 @@ function run(journal: readonly EconomyEvent[], now: string, options: DeriveOptio
     charge: chargeState,
     streak: streakState,
     mastery: masteryState,
+    chests: chestState,
+    quests: questsState,
     firstClears,
   };
 
@@ -842,7 +1089,7 @@ export function receiptFor(
   // up in the snapshot and never an artefact of a different denominator.
   const before = run(journal, now, options);
   const after = run([...journal, event], now, options);
-  const mine = after.awards[after.awards.length - 1] ?? { xp: [], diamonds: [] };
+  const mine = after.awards[after.awards.length - 1] ?? { xp: [], diamonds: [], chests: [], quests: [] };
 
   const xp: ReceiptLine[] = [...mine.xp];
   const diamonds: ReceiptLine[] = [...mine.diamonds];
@@ -886,6 +1133,8 @@ export function receiptFor(
       visibleAfter: after.snapshot.mastery.visible,
       rankUp,
     },
+    chestsEarned: [...mine.chests],
+    questsCompleted: [...mine.quests],
   };
 }
 
@@ -899,14 +1148,17 @@ export function crackingNodes(snapshot: EconomySnapshot): readonly string[] {
   return snapshot.mastery.cracking;
 }
 
-/** Charge the given node kind would cost right now. 0 inside the exam window. */
-export function chargeCostFor(kind: NodeKind, snapshot: EconomySnapshot): number {
-  return snapshot.charge.examWindow ? 0 : CHARGE_COST[kind];
+/**
+ * Charge the given node kind would cost right now. 0 inside the exam window.
+ * Pass `entry` for a Challenge run or a section final (CHARGE_ENTRY_COST).
+ */
+export function chargeCostFor(kind: NodeKind, snapshot: EconomySnapshot, entry?: ChargeEntry): number {
+  return snapshot.charge.examWindow ? 0 : chargeEntryCost(kind, entry);
 }
 
 /** Whether the student can enter this node kind right now. */
-export function canAfford(kind: NodeKind, snapshot: EconomySnapshot): boolean {
-  return snapshot.charge.current >= chargeCostFor(kind, snapshot);
+export function canAfford(kind: NodeKind, snapshot: EconomySnapshot, entry?: ChargeEntry): boolean {
+  return snapshot.charge.current >= chargeCostFor(kind, snapshot, entry);
 }
 
 /** The next date after `date`, in the student's civil calendar. Exported for callers building day strips. */

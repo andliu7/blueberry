@@ -57,7 +57,7 @@ import { navigate } from "../app/useHashRoute";
 import { hrefForReview } from "../app/routes";
 import { ChargeMeter } from "./ChargeMeter";
 import { chargeMeterModel, type ChargeMeterModel } from "./chargeMeterModel";
-import { chargeGateModel, type ChargeGateModel, type ChargeGateNode } from "./chargeGateModel";
+import { chargeEntryOf, chargeGateModel, type ChargeGateModel, type ChargeGateNode } from "./chargeGateModel";
 import "./charge.css";
 import { closeOnBackdrop } from "../app/ui/dismiss";
 import { Press } from "../app/ui/Press";
@@ -252,7 +252,7 @@ export function ChargeGate({ node, onClose, reducedMotion, onStarted, restartSav
     if (model === null || phase === "spending") return;
     setFrozen(model);
     setFrozenMeter(meter);
-    progress.startNode(model.node.id, model.node.kind);
+    progress.startNode(model.node.id, model.node.kind, chargeEntryOf(model.node));
     const enter = () => {
       if (onStarted !== undefined) onStarted();
       else go(model.node.href);

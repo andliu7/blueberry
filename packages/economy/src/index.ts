@@ -30,6 +30,9 @@
  */
 
 export type {
+  ChargeEntry,
+  ChestSource,
+  JournalledChestSource,
   DailyGoalTier,
   Difficulty,
   EconomyEvent,
@@ -39,9 +42,25 @@ export type {
 } from "./journal.js";
 export { isCalendarDate, isEconomyEvent, readJournal } from "./journal.js";
 
-export type { MasteryRank } from "./rules.js";
+export type { ChestReward, MasteryRank, QuestDef, QuestMeasure, XpStage } from "./rules.js";
 export {
   CHARGE_CAP,
+  CHARGE_DAILY_QUEST,
+  CHARGE_ENTRY_COST,
+  CHARGE_FLAWLESS_KINDS,
+  CHARGE_REVIEW_CLEARED,
+  CHEST_REWARD,
+  DERIVED_CHEST_PREFIXES,
+  ONBOARDING_GIFT_CHEST_ID,
+  QUEST_MINUTES_PER_ACTIVITY,
+  QUEST_ROTATION,
+  RECURRING_QUESTS,
+  XP_CARD_RUN,
+  XP_STAGE_STEP,
+  chargeEntryCost,
+  dailyGiftChestId,
+  questChestId,
+  stageFor,
   CHARGE_COMBO_MAX,
   CHARGE_COMBO_MIN,
   CHARGE_COST,
@@ -99,6 +118,10 @@ export {
 } from "./rules.js";
 
 export type {
+  ChestState,
+  QuestState,
+  QuestsState,
+  SavedChest,
   ChargeState,
   DeriveOptions,
   DiamondState,
@@ -111,7 +134,16 @@ export type {
   UniverseNode,
   XpState,
 } from "./derive.js";
-export { canAfford, chargeCostFor, crackingNodes, deriveEconomy, emptyEconomy, nextDay, receiptFor } from "./derive.js";
+export {
+  canAfford,
+  chargeCostFor,
+  crackingNodes,
+  deriveEconomy,
+  emptyEconomy,
+  nextDay,
+  questsFor,
+  receiptFor,
+} from "./derive.js";
 
 export {
   MS_PER_DAY,

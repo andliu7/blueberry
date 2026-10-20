@@ -18,7 +18,7 @@
  *   test/wrong-answers-are-free.test.ts is the proof.
  */
 
-import type { DailyGoalTier, NodeKind, SpendSink } from "./journal.js";
+import type { ChargeEntry, ChestSource, DailyGoalTier, NodeKind, SpendSink } from "./journal.js";
 
 /* ------------------------------------------------------------------ XP ---- */
 
@@ -60,6 +60,50 @@ export const XP_RESONANCE = 8;
 export const XP_DAILY_GOAL_MET = 10;
 /** A replay of an already cleared node. Deliberately low: see the flat rate constraint. */
 export const XP_REPLAY = 5;
+
+/**
+ * A completed flashcard review run (the same run DIAMONDS_CARD_RUN pays, under
+ * the same CARD_RUN_MIN_GRADED and CARD_RUNS_PAID_PER_DAY rules). Owner
+ * 2026-10-20: every lesson, quiz, practice run and review clear awards XP, and
+ * a card run was the one review that paid none. 5 is the replay rate, the
+ * lowest XP row: proposed, owner to confirm.
+ */
+export const XP_CARD_RUN = 5;
+
+/**
+ * STAGES: Bloom's level badge and "N XP to the next stage!" (owner, Wave 2,
+ * 2026-10-20). There was no XP level logic before this, so the curve is this
+ * file's, documented in ECONOMY.md and flagged for the owner: stage 1 starts at
+ * 0, and moving from stage s to s + 1 takes XP_STAGE_STEP * s more XP. So the
+ * stages open at 0, 50, 150, 300, 500, 750, ... (25 * s * (s - 1)). A regular
+ * day (about 30 XP with the goal bonus) clears stage 1 in two days, and each
+ * stage after takes a little longer. No top stage: XP never stops.
+ */
+export const XP_STAGE_STEP = 50;
+
+export interface XpStage {
+  /** 1 based. */
+  readonly stage: number;
+  /** Total XP at which this stage opened. */
+  readonly startXp: number;
+  /** Total XP at which the next stage opens. */
+  readonly nextXp: number;
+  /** XP still needed: what the HUD says as "N XP to the next stage!". Always >= 1. */
+  readonly toNext: number;
+}
+
+/** The stage a lifetime XP total sits in. Negative or non-finite totals read as 0. */
+export function stageFor(totalXp: number): XpStage {
+  const total = Number.isFinite(totalXp) && totalXp > 0 ? totalXp : 0;
+  let stage = 1;
+  let startXp = 0;
+  while (total >= startXp + XP_STAGE_STEP * stage) {
+    startXp += XP_STAGE_STEP * stage;
+    stage += 1;
+  }
+  const nextXp = startXp + XP_STAGE_STEP * stage;
+  return { stage, startXp, nextXp, toNext: nextXp - total };
+}
 
 /** docs/ECONOMY.md, Daily goals. Exam mode is offered only inside the exam window. */
 export const DAILY_GOAL_XP: Readonly<Record<DailyGoalTier, number>> = Object.freeze({
@@ -110,7 +154,8 @@ export const DIAMONDS_CHALLENGE_PASSED = DIAMONDS_REVIEW_CLEARED;
 /**
  * A completed FLASHCARD REVIEW RUN pays the review drill rate. OWNER DECISION,
  * 2026-10-01: "flashcard review runs pay 5 diamonds per completed run (the
- * drill-review rate)". Diamonds only; the decision names no XP, so none.
+ * drill-review rate)". It paid no XP until owner 2026-10-20 ("every review
+ * clear awards XP"); it now also pays XP_CARD_RUN.
  *
  * WHAT COUNTS AS COMPLETED is this file's call, flagged to the owner:
  *   - the run reached its summary (the client journals nothing before), and
@@ -137,6 +182,91 @@ export const CARD_RUNS_PAID_PER_DAY = 3;
  * without out-earning the lessons that earned it. The owner sets the number.
  */
 export const DIAMONDS_CHEST = 15;
+
+/* -------------------------------------------------------------- CHESTS ---- */
+
+export interface ChestReward {
+  readonly diamonds: number;
+  readonly xp: number;
+}
+
+/**
+ * What a saved chest pays when it is opened, by where it came from. Owner
+ * 2026-10-20: chests are EARNED and SAVED, rewards are FIXED (a random-XP
+ * chest is held until XP is stored server side), and the onboarding gift pays
+ * a fixed diamonds + XP amount.
+ *
+ * The AMOUNTS are this file's proposal, flagged for the owner:
+ *   section_final    15, DIAMONDS_CHEST, so a pathway chest pays exactly what
+ *                    it always has, and an old journal derives unchanged
+ *   daily_quest       5, the "five diamonds fly one by one" chest moment (C1)
+ *   daily_gift        5, the same small chest, once a local day
+ *   onboarding_gift  50 diamonds + 20 XP, once ever
+ *
+ * Chest XP counts toward the XP total (and so the stage) but NOT toward the
+ * day's goal: opening a gift is not studying, and a chest that met the daily
+ * goal would keep a streak alive for opening the app.
+ */
+export const CHEST_REWARD: Readonly<Record<ChestSource, ChestReward>> = Object.freeze({
+  section_final: Object.freeze({ diamonds: DIAMONDS_CHEST, xp: 0 }),
+  daily_quest: Object.freeze({ diamonds: 5, xp: 0 }),
+  daily_gift: Object.freeze({ diamonds: 5, xp: 0 }),
+  onboarding_gift: Object.freeze({ diamonds: 50, xp: 20 }),
+});
+
+/** The chest id a daily gift gets, one per local day. */
+export function dailyGiftChestId(date: string): string {
+  return `daily-gift:${date}`;
+}
+/** The one onboarding gift chest. */
+export const ONBOARDING_GIFT_CHEST_ID = "onboarding-gift";
+/** The chest id a completed daily quest gets. */
+export function questChestId(date: string, questId: string): string {
+  return `quest:${date}:${questId}`;
+}
+/**
+ * Chest id prefixes the derivation mints. A `chest_opened` for one of these
+ * pays only if that chest was earned first; any other id is a pathway chest
+ * and keeps the pre-2026-10-20 rule (DIAMONDS_CHEST once per id).
+ */
+export const DERIVED_CHEST_PREFIXES: readonly string[] = Object.freeze(["daily-gift:", ONBOARDING_GIFT_CHEST_ID, "quest:"]);
+
+/* -------------------------------------------------------- DAILY QUESTS ---- */
+
+/** What a quest counts. Every measure is derived from the journal. */
+export type QuestMeasure = "lessons" | "train_minutes" | "reviews" | "flawless" | "card_runs" | "xp";
+
+export interface QuestDef {
+  readonly id: string;
+  readonly title: string;
+  readonly measure: QuestMeasure;
+  readonly target: number;
+}
+
+/**
+ * Three quests per local day (owner 2026-10-20): two recurring and one from
+ * QUEST_ROTATION. Completing one earns a chest (CHEST_REWARD.daily_quest) and
+ * CHARGE_DAILY_QUEST. No XP doubler: that is held.
+ *
+ * "Train for 30 minutes" is a PROXY. The journal records no time spent (no
+ * event carries a duration, and a lesson's attempts are stamped at its clear),
+ * so each training activity counts QUEST_MINUTES_PER_ACTIVITY minutes: a
+ * lesson or review clear, a quiz pass, a paid Challenge, or a flashcard run of
+ * at least CARD_RUN_MIN_GRADED cards. Six activities is the 30 minutes. Swap
+ * in real time once the journal carries it.
+ */
+export const QUEST_MINUTES_PER_ACTIVITY = 5;
+export const RECURRING_QUESTS: readonly QuestDef[] = Object.freeze([
+  Object.freeze({ id: "lessons", title: "Finish 3 lessons or quizzes", measure: "lessons", target: 3 } as const),
+  Object.freeze({ id: "train", title: "Train for 30 minutes", measure: "train_minutes", target: 30 } as const),
+]);
+/** The rotating third quest, picked by local date: QUEST_ROTATION[day number mod length]. */
+export const QUEST_ROTATION: readonly QuestDef[] = Object.freeze([
+  Object.freeze({ id: "review", title: "Clear a review drill", measure: "reviews", target: 1 } as const),
+  Object.freeze({ id: "flawless", title: "Finish a lesson with no misses", measure: "flawless", target: 1 } as const),
+  Object.freeze({ id: "cards", title: "Finish a flashcard review", measure: "card_runs", target: 1 } as const),
+  Object.freeze({ id: "xp", title: "Earn 40 XP", measure: "xp", target: 40 } as const),
+]);
 /** At 7, 14, 30, 60, 100, 180, 365. */
 export const DIAMONDS_STREAK_MILESTONE = 75;
 
@@ -164,33 +294,75 @@ export const COSTUME_COST_RANGE = Object.freeze({ min: 100, max: 300 });
 
 /* -------------------------------------------------------------- CHARGE ---- */
 
-/** Full meter. */
-export const CHARGE_CAP = 30;
+/*
+ * Charge is "Energy" on screen. Every number in this block was set by the
+ * owner on 2026-10-20, replacing the 2026-08-27 table (cap 30, concept 5,
+ * reaction and branch 8, quiz 10, +1 per 30 min, flawless +3). The intent, in
+ * the owner's words: a full tank covers a ~5 lesson section and runs out just
+ * before its final, and the free plan must still give real value. 5 lessons at
+ * 3 is 15 of 20, leaving 5, one short of a final's 6.
+ */
+
+/** Full meter. Owner 2026-10-20 (was 30). */
+export const CHARGE_CAP = 20;
 
 /**
  * Charged on ENTRY, never per question. docs/ECONOMY.md, Charge, rule 1:
  * "If there was enough to begin, there is enough to finish."
+ *
+ * Owner 2026-10-20 (was concept 5, reaction 8, branch 8, quiz 10): a regular
+ * lesson costs 3, whatever its kind, and a quiz 6, the section final price.
  */
 export const CHARGE_COST: Readonly<Record<NodeKind, number>> = Object.freeze({
-  concept: 5,
-  reaction: 8,
-  branch: 8,
-  quiz: 10,
+  concept: 3,
+  reaction: 3,
+  branch: 3,
+  quiz: 6,
   review: 0,
   tutorial: 0,
   intro: 0,
 });
 
-/** Refunded in full on a pass. */
+/**
+ * Owner 2026-10-20: a CHALLENGE run and a SECTION FINAL (a section's closing
+ * quiz or the unit checkpoint) cost 6 on entry. The app journals both as a
+ * "concept" node (BeatRunner banks every beat clear that way), so the price
+ * rides on `node_started.entry` rather than on the node kind.
+ */
+export const CHARGE_ENTRY_COST: Readonly<Record<ChargeEntry, number>> = Object.freeze({
+  challenge: 6,
+  final: 6,
+});
+
+/** Refunded in full on a `quiz_passed`. Follows the quiz price, so 6 since 2026-10-20. */
 export const CHARGE_QUIZ_REFUND = CHARGE_COST.quiz;
-/** +1 per 30 min. Empty to full in 15h, so a night always resets it. */
+/**
+ * +10 per 30 min, capped at CHARGE_CAP. Owner 2026-10-20 (was +1 per 30 min).
+ * Empty to full in an hour.
+ */
 export const CHARGE_REGEN_MINUTES = 30;
-export const CHARGE_REGEN_PER_INTERVAL = 1;
-/** The better you get, the less it binds. Inverts Duolingo's incentive. */
-export const CHARGE_FLAWLESS_BONUS = 3;
+export const CHARGE_REGEN_PER_INTERVAL = 10;
+/**
+ * A flawless LESSON (no misses) pays back 2. Owner 2026-10-20 (was 3, on any
+ * kind). Only the kinds in CHARGE_FLAWLESS_KINDS: a review drill earns its own
+ * CHARGE_REVIEW_CLEARED instead, and a free kind (tutorial, intro) paying
+ * charge back on a flawless replay would be a faucet with no entry price.
+ * A paid replay costs 3 to enter and returns 2, so this cannot be farmed.
+ */
+export const CHARGE_FLAWLESS_BONUS = 2;
+export const CHARGE_FLAWLESS_KINDS: readonly NodeKind[] = Object.freeze(["concept", "reaction", "branch"]);
+/** A review drill cleared earns 3, on every clear. Owner 2026-10-20. */
+export const CHARGE_REVIEW_CLEARED = 3;
+/** Each daily quest completed earns 5. Owner 2026-10-20. */
+export const CHARGE_DAILY_QUEST = 5;
 /** Combo mini game, random reward on a correct streak. */
 export const CHARGE_COMBO_MIN = 2;
 export const CHARGE_COMBO_MAX = 6;
+
+/** The price of entering `kind`, or the entry price when the run is a Challenge or a section final. */
+export function chargeEntryCost(kind: NodeKind, entry?: ChargeEntry): number {
+  return entry === undefined ? CHARGE_COST[kind] : CHARGE_ENTRY_COST[entry];
+}
 
 /** The kinds that are always free to enter, at any charge level. */
 export const CHARGE_FREE_NODE_KINDS: readonly NodeKind[] = Object.freeze(["review", "tutorial", "intro"]);

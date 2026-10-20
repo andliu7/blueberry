@@ -16,7 +16,12 @@ import {
   CHARGE_COST,
   CHARGE_FLAWLESS_BONUS,
   CHARGE_QUIZ_REFUND,
+  CHARGE_DAILY_QUEST,
+  CHARGE_ENTRY_COST,
+  CHARGE_FLAWLESS_KINDS,
   CHARGE_REGEN_MINUTES,
+  CHARGE_REGEN_PER_INTERVAL,
+  CHARGE_REVIEW_CLEARED,
   COSTUME_COST_RANGE,
   DAILY_GOAL_XP,
   DIAMONDS_BOSS,
@@ -130,12 +135,23 @@ describe("the diamond table", () => {
 });
 
 describe("the charge table", () => {
+  // Owner 2026-10-20 set every number in this block: cap 30 -> 20, concept
+  // 5 -> 3, reaction and branch 8 -> 3, quiz 10 -> 6, regeneration +1 -> +10
+  // per 30 min, flawless 3 -> 2. New rows: Challenge and section final entry
+  // 6, review drill +3, daily quest +5.
   it("holds the meter and the per kind entry costs", () => {
-    expect(CHARGE_CAP).toBe(30);
-    expect(CHARGE_COST.concept).toBe(5);
-    expect(CHARGE_COST.reaction).toBe(8);
-    expect(CHARGE_COST.branch).toBe(8);
-    expect(CHARGE_COST.quiz).toBe(10);
+    expect(CHARGE_CAP).toBe(20);
+    expect(CHARGE_COST.concept).toBe(3);
+    expect(CHARGE_COST.reaction).toBe(3);
+    expect(CHARGE_COST.branch).toBe(3);
+    expect(CHARGE_COST.quiz).toBe(6);
+    expect(CHARGE_ENTRY_COST).toEqual({ challenge: 6, final: 6 });
+  });
+
+  it("holds the ways charge is earned", () => {
+    expect(CHARGE_REVIEW_CLEARED).toBe(3);
+    expect(CHARGE_DAILY_QUEST).toBe(5);
+    expect([...CHARGE_FLAWLESS_KINDS]).toEqual(["concept", "reaction", "branch"]);
   });
 
   it("never charges for a review drill, a tutorial node or an intro node", () => {
@@ -144,13 +160,14 @@ describe("the charge table", () => {
     expect(CHARGE_COST.intro).toBe(0);
   });
 
-  it("regenerates one point per thirty minutes, which is empty to full in fifteen hours", () => {
+  it("regenerates ten points per thirty minutes, which is empty to full in an hour", () => {
     expect(CHARGE_REGEN_MINUTES).toBe(30);
-    expect((CHARGE_CAP * CHARGE_REGEN_MINUTES) / 60).toBe(15);
+    expect(CHARGE_REGEN_PER_INTERVAL).toBe(10);
+    expect((CHARGE_CAP / CHARGE_REGEN_PER_INTERVAL) * CHARGE_REGEN_MINUTES).toBe(60);
   });
 
-  it("pays back 3 on a flawless clear and refunds a quiz in full", () => {
-    expect(CHARGE_FLAWLESS_BONUS).toBe(3);
+  it("pays back 2 on a flawless clear and refunds a quiz in full", () => {
+    expect(CHARGE_FLAWLESS_BONUS).toBe(2);
     expect(CHARGE_QUIZ_REFUND).toBe(CHARGE_COST.quiz);
   });
 
@@ -160,8 +177,13 @@ describe("the charge table", () => {
   });
 
   it("leaves a regular day of one concept and one reaction node well inside the meter", () => {
-    expect(CHARGE_COST.concept + CHARGE_COST.reaction).toBe(13);
+    expect(CHARGE_COST.concept + CHARGE_COST.reaction).toBe(6);
     expect(CHARGE_COST.concept + CHARGE_COST.reaction).toBeLessThan(CHARGE_CAP);
+  });
+
+  it("fits a ~5 lesson section in a full tank and runs out just before its final", () => {
+    expect(5 * CHARGE_COST.concept).toBeLessThanOrEqual(CHARGE_CAP);
+    expect(CHARGE_CAP - 5 * CHARGE_COST.concept).toBeLessThan(CHARGE_ENTRY_COST.final);
   });
 });
 
