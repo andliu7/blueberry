@@ -113,6 +113,11 @@ export const LADDER_FOR_NODE: Readonly<Record<string, string>> = Object.freeze({
  * assert that planLesson(node) CONTAINS the sort step rather than that it
  * opens with it, which is strictly stronger, because it keeps checking the
  * ladder is reachable once other content exists.
+ *
+ * RESOLVED, owner 2026-10-20, exactly that way: u5-oxidation gained u5 pool
+ * MCQs and now opens on its warm-up, and the test asserts planLesson(node)
+ * contains the step for that node's own ladder. The u9-pka row is no longer
+ * blocked by the check; adding it is a separate content decision.
  */
 
 /* ------------------------------------------------------------------ */

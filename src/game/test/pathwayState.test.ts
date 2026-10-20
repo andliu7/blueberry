@@ -129,7 +129,10 @@ describe("deriveMapPathway", () => {
       return lessons.length === 0 ? lessons : [...lessons, checkpointNodeId(unit.id)];
     });
     const status = deriveMapPathway(PATHWAY_UNITS, before.map((id) => cleared(id)));
-    const after = PATHWAY_UNITS[index + 1];
+    // Owner 2026-10-20: the unit to check is the first one AFTER the empty unit that has authored
+    // content, since an empty unit right behind it would be queued for the same reason.
+    const after = PATHWAY_UNITS.slice(index + 1).find((unit) => unit.nodes.some((node) => node.playable !== undefined));
+    expect(after, "no unit with authored content follows the first empty unit: give this test a fixture map").toBeDefined();
     if (after === undefined) return;
     const reachable = after.nodes.some((node) => statusOf(status, node.id).state !== "locked");
     expect(reachable).toBe(true);

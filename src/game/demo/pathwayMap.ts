@@ -243,7 +243,8 @@ export const PATHWAY_UNITS: readonly PathwayUnit[] = [
       // Unit 4 side quests with a DRAFT pool (scripts/u4_pools.py): each plays its lesson on the beat route.
       { id: "u4-benzyne", kind: "branch", title: "Benzyne elimination–addition", blurb: "NaNH₂/NH₃; symmetric addition gives a mixture.", playable: { kind: "beat", id: "u4-benzyne" } },
       { id: "u4-isotope", kind: "branch", title: "Isotope-labelling proof", blurb: "¹⁴C chlorobenzene, 50:50 products.", playable: { kind: "beat", id: "u4-isotope" } },
-      { id: "u4-dow", kind: "branch", title: "Dow phenol process", blurb: "Historical.", playable: { kind: "beat", id: "u4-dow" } },
+      // Owner 2026-10-20: Dow hangs on u4-snar (hydroxide replacing an aryl Cl, here without the o/p EWG SNAr needs), so no stop carries three.
+      { id: "u4-dow", kind: "branch", title: "Dow phenol process", blurb: "Historical.", playable: { kind: "beat", id: "u4-dow" }, after: ["u4-snar"] },
     ],
   },
   {

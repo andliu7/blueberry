@@ -18,6 +18,7 @@ import { describe, expect, it } from "vitest";
 
 import { LADDER_FOR_NODE, nodeHasBeat, resolveBeat } from "../beats/BeatRunner";
 import { sortContentById } from "../beats/sort";
+import { planLesson } from "../beats/template";
 import { PATHWAY_UNITS } from "../demo/pathwayMap";
 
 describe("the ladder table", () => {
@@ -28,8 +29,10 @@ describe("the ladder table", () => {
   });
 
   it("resolves each of those nodes to its ladder", () => {
+    // Owner 2026-10-20: a ladder node may open on a warm-up; its lesson must still contain its own ladder.
     for (const node of Object.keys(LADDER_FOR_NODE)) {
-      expect(resolveBeat(node, 2), node).toEqual({ kind: "sort", ladderId: LADDER_FOR_NODE[node] });
+      const beats = planLesson(node)?.steps.map((step) => step.beat) ?? [];
+      expect(beats, node).toContainEqual({ kind: "sort", ladderId: LADDER_FOR_NODE[node] });
     }
   });
 });
