@@ -1912,7 +1912,7 @@ def active_section(facts: dict) -> None:
         active_match(
             "u1-dienes", "u1-cd-dienes-shape-match",
             "Match each diene to its shape.",
-            "Shape first: can the two ends reach a dienophile at the same time.",
+            "Shape first: check whether the two ends can reach a dienophile at the same time.",
             "diels_alder_geometry",
             [(k, name, shape_text[call], whys[call], shape_smiles[k], shape_hints[k]) for k, (name, call) in calls.items()],
             "Locked s-cis is fastest, free rotation is fine, strained s-cis is slow, and locked s-trans does not react.",
@@ -1934,7 +1934,7 @@ def active_section(facts: dict) -> None:
     # constitution and the four products are all different.
     pair_specs = [
         ("bd_eth", "Product A", "butadiene", "ethene", "Butadiene + ethene",
-         "A bare ring with one C=C and no groups anywhere, so neither partner brought one: butadiene and ethene.",
+         "The ring has one C=C and no groups anywhere, so neither partner brought one: butadiene and ethene.",
          "This ring carries no groups at all, not even on its C=C. Find the pair where neither partner brings one."),
         ("bd_ma", "Product B", "butadiene", "maleicanhydride", "Butadiene + maleic anhydride",
          "The anhydride ring is still there, fused to the new ring. Maleic anhydride's C=C became the bond the two rings share.",

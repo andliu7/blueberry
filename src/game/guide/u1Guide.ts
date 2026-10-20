@@ -75,7 +75,7 @@ const STAGES: readonly GuideStage[] = [
             quote: "For a carbanion the alkyl trend flips: methyl > 1° > 2° > 3°.",
           },
           {
-            text: "Resonance still helps. It helps an anion just as it helps a cation.",
+            text: "Resonance helps an anion just as it helps a cation.",
             source: "u1-ani-ring",
             quote: "Resonance helps an anion just as it helps a cation.",
           },
@@ -242,7 +242,7 @@ const STAGES: readonly GuideStage[] = [
         mistake: "Assuming 1,4 always wins when it is warm.",
         fix: "Decide by alkene substitution: the better C=C wins.",
         source: "u1-qb-rule",
-        quote: "Decide thermo by alkene substitution, not by 1,4 always wins.",
+        quote: "Decide thermo by alkene substitution. Do not assume 1,4 always wins.",
       },
       {
         mistake: "Putting H⁺ on a middle carbon.",
@@ -348,9 +348,9 @@ const STAGES: readonly GuideStage[] = [
             quote: "ψk always has k minus one nodes.",
           },
           {
-            text: "Longer conjugation, smaller HOMO to LUMO gap, longer wavelength.",
+            text: "The longer the conjugation, the smaller the HOMO to LUMO gap and the longer the wavelength.",
             source: "u1-cd-mo-gap",
-            quote: "Longer conjugation, smaller HOMO to LUMO gap, lower-energy photon, longer wavelength.",
+            quote: "Longer conjugation means a smaller HOMO to LUMO gap",
           },
         ],
         example: { source: "u1-cd-mo-bd-homo", quote: "HOMO is ψ2 (one node), LUMO is ψ3 (two nodes)" },
@@ -392,9 +392,9 @@ const STAGES: readonly GuideStage[] = [
             quote: "Shape first: locked s-cis is fastest, free rotation is fine, locked s-trans is out.",
           },
           {
-            text: "s-cis is a gate, not a bonus. Good donor groups cannot rescue a diene that cannot reach it.",
+            text: "Good donor groups cannot rescue a diene that cannot reach s-cis.",
             source: "u1-cd-dienes-edg-locked",
-            quote: "s-cis is a gate, not a bonus.",
+            quote: "A diene that cannot reach s-cis does not react, however good its donor groups are.",
           },
         ],
         example: { source: "u1-cd-dienes-draw-norbornene", quote: "A cyclic diene gives a bridged product" },
@@ -428,7 +428,7 @@ const STAGES: readonly GuideStage[] = [
           {
             text: "Working backward, the ring's C=C was the diene's C2-C3.",
             source: "u1-cd-pred-which-bond",
-            quote: "Backward: the ring C=C was diene C2-C3.",
+            quote: "Working backward, the ring C=C was diene C2-C3.",
           },
           {
             text: "Then find the C=C and cut the two σ bonds across from it.",

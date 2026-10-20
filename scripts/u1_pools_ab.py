@@ -951,9 +951,9 @@ def radical(smi: str) -> str:
 
 def rev(first: str) -> tuple[str, str, str]:
     return (
-        "The right ladder read from the other end.",
-        "Every comparison in it holds, so the ranking work is done. The track asks for the most stable species at the top.",
-        f"Put {first} in the first position and the rest follow down from there.",
+        "This is the right ladder, read from the other end.",
+        "Every comparison in it holds; only the direction is wrong. The most stable species goes at the top.",
+        f"Put {first} at the top and work down from there.",
     )
 
 
@@ -1128,8 +1128,8 @@ def node_rank_cation() -> None:
         node, "u1-cat-vinyl", "Pick the most stable cation.",
         [
             ("vinyl", "The vinyl cation", "A double bond is right there, but the charge sits on one of its own carbons. That empty orbital is at right angles to the pi bond, so the pi electrons cannot reach it and there is no second contributor."),
-            ("ethyl", "The ethyl cation", "One carbon neighbour gives a little hyperconjugation and nothing else. No pi bond, so the charge stays on one carbon."),
-            ("allyl", "The allyl cation", "The charged carbon sits next to a C=C, so the pi electrons can shift over and put the charge on C3 as well. Sharing beats a single primary carbon."),
+            ("ethyl", "The ethyl cation", "One carbon neighbour gives a little hyperconjugation and nothing else. There is no pi bond, so the charge stays on one carbon."),
+            ("allyl", "The allyl cation", "The charged carbon sits next to a C=C, so the pi electrons can shift over and put the charge on C3 as well. Sharing the charge beats leaving it on one primary carbon."),
         ],
         "allyl",
         "A C=C helps only when it is NEXT to the charged carbon. A charge on the alkene carbon itself (vinyl) gets no resonance.",
@@ -1182,7 +1182,7 @@ def node_rank_cation() -> None:
         [
             ("two", "C1 and C3", "That is one arrow push. The C=C made by that push can push again, which moves the charge on to C5."),
             ("five", "All five carbons", "C2 and C4 keep four bonds in every contributor, so they never carry the charge. It lands on every other carbon."),
-            ("three", "C1, C3 and C5", "Push the C2=C3 pi bond toward C1 and the charge moves to C3; push C4=C5 toward C3 and it moves to C5. Three contributors, three carbons."),
+            ("three", "C1, C3 and C5", "Push the C2=C3 pi bond toward C1 and the charge moves to C3; push C4=C5 toward C3 and it moves to C5. That is three contributors, with the charge on three carbons."),
         ],
         "three",
         "Keep pushing arrows until the charge stops moving. In a conjugated chain it lands on every other carbon.",
@@ -1232,7 +1232,7 @@ def node_rank_cation() -> None:
         [
             ("res", "tert-Butyl has resonance", "No pi bond sits next to either charged carbon, so neither has a second contributor. The difference here is hyperconjugation alone."),
             ("hyper", "More C-H bonds feed the empty p orbital", "Each neighbouring carbon brings C-H bonds that can lean into the empty orbital. tert-Butyl has three such carbons and ethyl has one."),
-            ("withdraw", "Methyl groups pull density away", "Backwards. Alkyl groups donate into an electron-poor carbon, which is why more of them helps a cation."),
+            ("withdraw", "Methyl groups pull density away", "It is the other way round. Alkyl groups donate into an electron-poor carbon, which is why more of them helps a cation."),
         ],
         "hyper",
         "Alkyl groups stabilise a carbocation by hyperconjugation: their C-H and C-C bonds donate into the empty p orbital.",
@@ -1272,7 +1272,7 @@ def node_rank_cation() -> None:
         node, "u1-cat-count-both", "Count both effects, then pick the most stable cation.",
         [
             ("ipr", "isopropyl, 2°", "Secondary is good, and the 2° allylic cation has a secondary charged carbon too, plus resonance on top."),
-            ("allyl", "allyl, 1° allylic", "Resonance, yes, but both charged carbons are primary. The 2° allylic cation has the same resonance and a methyl as well."),
+            ("allyl", "allyl, 1° allylic", "It has resonance, but both charged carbons are primary. The 2° allylic cation has the same resonance and a methyl as well."),
             ("et", "ethyl, 1°", "A primary carbon and no resonance, so it is the least helped of the four."),
             ("crotyl", "2° allylic", "It is the only one that scores on both counts: resonance shares the charge, and the better charged carbon is secondary."),
         ],
@@ -1367,7 +1367,7 @@ def node_rank_anion() -> None:
             "Write sp, sp2 or sp3 beside each charged carbon, then count alkyl groups on the two that tie.",
         ),
         [
-            ("ranked-least-stable-first", ["sp3t", "sp3", "sp2", "sp"], "ordering_is_reversed", rev("the sp anion, ethynyl")),
+            ("ranked-least-stable-first", ["sp3t", "sp3", "sp2", "sp"], "ordering_is_reversed", rev("the sp anion, ethynyl,")),
             ("vinyl-above-ethynyl", ["sp2", "sp", "sp3", "sp3t"], "ordering_one_adjacent_pair_swapped", (
                 "Vinyl is placed above ethynyl.",
                 "The ethynyl lone pair sits in an sp orbital, half s character. The vinyl one is sp2, a third s. More s character holds the charge closer to the nucleus.",
@@ -1520,7 +1520,7 @@ def node_rank_anion() -> None:
     mcq(
         node, "u1-ani-least", "Pick the LEAST stable carbanion.",
         [
-            ("vinyl", "vinyl anion", "Its lone pair sits in an sp2 orbital, with more s character than sp3, and no alkyl group pushes on it. Not the worst."),
+            ("vinyl", "vinyl anion", "Its lone pair sits in an sp2 orbital, with more s character than sp3, and no alkyl group pushes on it, so it is not the worst."),
             ("allyl", "allyl anion", "Resonance spreads its charge over two carbons. That makes it one of the better carbanions here."),
             ("tbu", "tert-butyl anion", "An sp3 lone pair, no resonance, and three alkyl groups pushing density onto it. Every factor points the wrong way."),
         ],
@@ -1619,7 +1619,7 @@ def node_rank_radical() -> None:
             )),
             ("ethyl-above-isopropyl", ["tbu", "et", "ipr", "me"], "ordering_one_adjacent_pair_swapped", (
                 "Ethyl is placed above isopropyl.",
-                "Isopropyl's radical carbon has two carbon neighbours, ethyl's has one. More donation, more stable.",
+                "Isopropyl's radical carbon has two carbon neighbours, ethyl's has one. More donation means more stable.",
                 "Count carbons on the radical carbon of those two.",
             )),
         ],
@@ -1631,7 +1631,7 @@ def node_rank_radical() -> None:
     mcq(
         node, "u1-rad-allyl", "Pick the most stable radical.",
         [
-            ("vinyl", "vinyl radical", "The odd electron sits on a carbon of the C=C itself, in an orbital that cannot overlap the pi bond. No second contributor."),
+            ("vinyl", "vinyl radical", "The odd electron sits on a carbon of the C=C itself, in an orbital that cannot overlap the pi bond, so there is no second contributor."),
             ("propyl", "propyl radical", "A primary radical with no pi bond nearby. One carbon holds the odd electron alone."),
             ("allyl", "allyl radical", "The C=C next door shares the odd electron between both ends. Resonance makes allylic radicals among the most stable you will meet."),
         ],
@@ -1694,7 +1694,7 @@ def node_rank_radical() -> None:
     mcq(
         node, "u1-rad-major", "One radical, two contributors. Pick the one that counts for more.",
         [
-            ("pri", "The one with the dot on the 1° carbon", "Fewer carbons help the odd electron there. That picture is real and it is the smaller share."),
+            ("pri", "The one with the dot on the 1° carbon", "Fewer carbons help the odd electron there. That picture is real, but it is the smaller share."),
             ("sec", "The one with the dot on the 2° carbon", "Two carbon neighbours feed that half-empty orbital, so this picture is lower in energy. Radicals follow the cation pattern here."),
             ("equal", "Both count equally", "Both are real, and the methyl makes one end the better home for the odd electron."),
         ],
@@ -1746,9 +1746,9 @@ def node_rank_radical() -> None:
     mcq(
         node, "u1-rad-ring-h", "Take one H off cyclohexene to make the best radical. Pick the carbon.",
         [
-            ("c1", "On a carbon of the C=C", "That leaves the odd electron on the alkene carbon itself, in an orbital at right angles to the pi bond, so the pi electrons cannot share it. No resonance."),
+            ("c1", "On a carbon of the C=C", "That leaves the odd electron on the alkene carbon itself, in an orbital at right angles to the pi bond, so the pi electrons cannot share it and there is no resonance."),
             ("c3", "On the carbon next to the C=C", "That is the allylic carbon. The radical left behind is shared with the far end of the alkene, so it is the cheapest one to make."),
-            ("c4", "Two carbons away from the C=C", "A plain secondary radical. The C=C is too far away to share the odd electron."),
+            ("c4", "Two carbons away from the C=C", "That leaves a plain secondary radical. The C=C is too far away to share the odd electron."),
         ],
         "c3",
         "The allylic position gives the most stable radical, because the odd electron is shared with the far end of the C=C.",
@@ -1857,7 +1857,7 @@ def node_quiz_a() -> None:
             "Name each lone pair's orbital, then count alkyl groups on the two sp3 cards.",
         ),
         [
-            ("ranked-least-stable-first", ["et", "me", "sp2", "sp"], "ordering_is_reversed", rev("the sp anion, ethynyl")),
+            ("ranked-least-stable-first", ["et", "me", "sp2", "sp"], "ordering_is_reversed", rev("the sp anion, ethynyl,")),
             ("methyl-above-vinyl", ["sp", "me", "sp2", "et"], "ordering_one_adjacent_pair_swapped", (
                 "Methyl is placed above vinyl.",
                 "Neither has an alkyl group on its charged carbon, so the orbital decides: vinyl's lone pair is sp2 and methyl's is sp3.",
@@ -1913,9 +1913,9 @@ def node_quiz_a() -> None:
         node, "u1-qa-best-cation", "Pick the most stable cation.",
         [
             ("tbu", "tert-butyl, 3°", "Tertiary, but one carbon holds the whole charge. The 3° allylic cation is just as substituted and shares the charge too."),
-            ("all2", "2° allylic", "Resonance, and a secondary charged carbon. The 3° allylic cation has the same resonance and one more methyl."),
+            ("all2", "2° allylic", "It has resonance and a secondary charged carbon. The 3° allylic cation has the same resonance and one more methyl."),
             ("all3", "3° allylic", "It wins on both counts: resonance shares the charge, and the better charged carbon is tertiary."),
-            ("all1", "allyl, 1° allylic", "Resonance, but both charged carbons are primary."),
+            ("all1", "allyl, 1° allylic", "It has resonance, but both charged carbons are primary."),
         ],
         "all3",
         "The most stable cation is the one at least as good as every other on both resonance and substitution.",
@@ -1944,7 +1944,7 @@ def node_quiz_a() -> None:
         [
             ("crotyl", "The 2° allylic cation", "One of its two charged carbons is secondary. The other cation's methyl sits on the middle carbon, which never carries the charge."),
             ("methallyl", "2-methylallyl, it has a methyl", "Its methyl is on C2, the carbon the charge skips. Both of its charged carbons are primary."),
-            ("tie", "They tie, same atoms", "Same formula, different positions. Only a methyl on a charged carbon helps."),
+            ("tie", "They tie, same atoms", "Same formula, but the methyl sits on a different carbon. Only a methyl on a charged carbon helps."),
         ],
         "crotyl",
         "Substitution only counts on carbons that carry the charge. Draw the contributors first.",
@@ -1974,7 +1974,7 @@ def node_quiz_a() -> None:
         [
             ("allyl", "allyl cation", "Its charged carbon sits next to a C=C, so the charge is shared with the far end."),
             ("homo", "but-3-enyl cation", "A CH2 separates the charge from the C=C, so no arrow connects them. One carbon holds the charge."),
-            ("ene", "cyclohex-2-enyl cation", "In a ring or not, the charged carbon is next to a C=C, so the charge is shared."),
+            ("ene", "cyclohex-2-enyl cation", "Ring or not, the charged carbon is next to a C=C, so the charge is shared."),
         ],
         "homo",
         "Resonance needs the C=C directly next to the charged carbon. One CH2 in between switches it off.",
@@ -2253,7 +2253,7 @@ def node_energy() -> None:
     mcq(
         node, "u1-ed-switch", "Cool this flask from 40 to minus 80 degrees. Pick how the major product changes.",
         [
-            ("ab", "From A to B", "Reversed. Warm gave the deeper well, B. Cold gives the lower hump, A."),
+            ("ab", "From A to B", "That is backwards. Warm gives the deeper well, B, and cold gives the lower hump, A."),
             ("ba", "From B to A", "Warm, the deeper well wins, and that is B. Cold, nothing reverses, so the lower hump wins, and that is A."),
             ("none", "No change, B both times", "B wins only while products can reverse. At minus 80 they cannot, so the lower hump decides, and that is A's."),
         ],
@@ -2402,10 +2402,10 @@ def node_hx() -> None:
         node, "u1-hx-too-close", "Both form from hexa-2,4-diene and HBr. Pick the thermodynamic one.",
         [
             ("p14", n14, "Tempting, because 1,4 often wins warm. That is only because it usually has the more substituted C=C, and here both alkenes carry two carbons."),
-            ("close", "Too close to call by alkene substitution", "Each product's C=C carries two carbons, so the substitution rule gives no winner. That is the honest answer from this rule."),
+            ("close", "Too close to call by alkene substitution", "Each product's C=C carries two carbons, so the substitution rule gives no winner."),
             ("p12", n12, "Nothing favours the 1,2 product on stability here either. Both alkenes are disubstituted."),
         ],
-        "close", "Decide the thermodynamic product by alkene substitution, not by 1,4 always wins. When the counts tie, the rule cannot call it.",
+        "close", "Decide the thermodynamic product by alkene substitution. Do not assume 1,4 always wins. When the counts tie, the rule cannot call it.",
         prov("both products from diene_addition; alkene substitution 2 against 2; names checked with OPSIN", OS_14_3),
         {"kind": "pair", "a": iupac(r["p12"], n12, "u1-hx-too-close a"), "b": iupac(r["p14"], n14, "u1-hx-too-close b")},
         level=2, derived="close" if r["thermo"] is None else None, **k,
@@ -2447,7 +2447,7 @@ def node_hx() -> None:
         node, "u1-hx-pentadiene-site", "H+ adds to penta-1,3-diene first. Pick the carbon it adds to.",
         [
             ("c3", "C3", "C3 is an inner carbon. H+ there leaves a charge with no C=C beside it, so there is no resonance."),
-            ("c4", "C4", "Protonating C4 gives a charge shared by C3, secondary, and C1, primary. Close, and still a step worse than protonating C1."),
+            ("c4", "C4", "Protonating C4 gives a charge shared by C3, secondary, and C1, primary. That is close, but still a step worse than protonating C1."),
             ("c1", "C1", "Protonating C1 puts the charge on C2 and C4, and both of those are secondary. That is the better allylic cation."),
         ],
         "c1", "Protonate the end carbon that leaves the best allylic cation.",
@@ -2472,7 +2472,7 @@ def node_hx() -> None:
             ("p12", t["p12"][1], "H on C1, then bromide captured at C2, the nearby tertiary carbon. Cold locks in this fast, 1,2 product."),
             ("inner", t["inner"][1], "This needs H+ on an inner carbon, which leaves a primary cation with no resonance. Protonation goes to the end instead."),
         ],
-        "p12", "Cold and irreversible: the 1,2 (kinetic) product.", t,
+        "p12", "Cold and irreversible gives the 1,2 (kinetic) product.", t,
         as_draw=True,
     )
     produce(
@@ -2557,7 +2557,7 @@ def node_hx() -> None:
             ("loser", t["loser"][1], "This comes from H+ on C4, which makes a weaker cation. H+ on C1 puts the charge on a secondary and a tertiary carbon."),
             ("p12", t["p12"][1], "Its C=C carries three carbons, against two in the 1,4 product. Warm, the more substituted alkene wins, and here that is the 1,2 product."),
         ],
-        "p12", "Decide thermo by alkene substitution, not by 1,4 always wins. Here the 1,2 product has the better alkene.", t, level=2,
+        "p12", "Decide thermo by alkene substitution. Do not assume 1,4 always wins. Here the 1,2 product has the better alkene.", t, level=2,
         as_draw=True,
     )
     r = diene_addition(MP2, "H", "Br")
@@ -2611,7 +2611,7 @@ def node_x2() -> None:
         node, "u1-x2-cold-cl", BUTADIENE, "buta-1,3-diene", "Cl", "Cl", False,
         "Add Cl2 at minus 80 degrees. Pick the major product.",
         [
-            ("p14", t["p14"][1], "The more stable product, with the internal C=C. Cold, nothing reverses, so the faster route decides."),
+            ("p14", t["p14"][1], "This is the more stable product, with the internal C=C. Cold, nothing reverses, so the faster route decides."),
             ("p12", t["p12"][1], "Chloride is captured next door to the first Cl, the fast route. Cold locks this 1,2 product in, as it does for HBr."),
             ("tetra", t["tetra"][1], "Two equivalents of Cl2 would saturate both C=C bonds. One equivalent leaves one C=C behind."),
         ],
@@ -2643,7 +2643,7 @@ def node_x2() -> None:
         "Add Br2 to isoprene at 40 degrees and wait. Pick the major product.",
         [
             ("loser", t["loser"][1], "This comes from Br+ on C4, which makes the weaker cation. Br+ on C1 puts the charge on the tertiary C2."),
-            ("p12", t["p12"][1], "The fast product, bromide on the tertiary carbon next door. Warm, it can return to the cation and re-sort."),
+            ("p12", t["p12"][1], "This is the fast product, with bromide on the tertiary carbon next door. Warm, it can return to the cation and re-sort."),
             ("p14", t["p14"][1], "Its C=C carries three carbons, against one in the 1,2 product. Warm and reversible, the more substituted alkene wins."),
         ],
         "p14", "Br+ goes where it makes the best cation; warm, the dibromide with the better alkene wins.", t,
@@ -2690,11 +2690,11 @@ def node_x2() -> None:
         node, "u1-x2-dmb-cold", DMB, "2,3-dimethylbuta-1,3-diene", "Br", "Br", False,
         "Add Br2 at minus 80 degrees. Pick the major product.",
         [
-            ("p14", t["p14"][1], "The most stable product, with its four-carbon alkene. Cold, nothing reverses, so the fast route decides instead."),
+            ("p14", t["p14"][1], "This is the most stable product, with its four-carbon alkene. Cold, nothing reverses, so the fast route decides instead."),
             ("tetra", t["tetra"][1], "Saturating both C=C bonds takes two equivalents of Br2. One equivalent leaves one C=C behind."),
             ("p12", t["p12"][1], "Bromide is captured at C2, the tertiary carbon beside the first Br. Cold locks in this fast, 1,2 product."),
         ],
-        "p12", "Cold: the 1,2 dihalide.", t,
+        "p12", "Cold gives the 1,2 dihalide.", t,
         as_draw=True,
     )
     r = diene_addition(CHD, "Br", "Br")
@@ -2860,7 +2860,7 @@ def node_quiz_b() -> None:
         node, "u1-qb-isoprene-warm", ISOPRENE, "isoprene", "H", "Br", True,
         "Add HBr to isoprene at 40 degrees and wait. Pick the major product.",
         [
-            ("p12", t["p12"][1], "The fast product, bromide on the tertiary carbon. Warm, it returns to the cation and the mixture re-sorts."),
+            ("p12", t["p12"][1], "This is the fast product, with bromide on the tertiary carbon. Warm, it returns to the cation and the mixture re-sorts."),
             ("loser", t["loser"][1], "This needs H+ on C4, which makes the weaker cation."),
             ("p14", t["p14"][1], "Its C=C carries three carbons, against one in the 1,2 product. Warm and reversible, it wins."),
         ],
@@ -2878,7 +2878,7 @@ def node_quiz_b() -> None:
         [
             ("loser", t["loser"][1], "This needs H+ on C4, which makes the weaker cation."),
             ("p14", t["p14"][1], "Its C=C carries three carbons, against two in the 1,2 product. Warm and reversible, the better alkene wins."),
-            ("p12", t["p12"][1], "The fast product, and it wins cold. Warm, it can return to the cation, and its C=C carries only two carbons."),
+            ("p12", t["p12"][1], "This is the fast product, and it wins cold. Warm, it can return to the cation, and its C=C carries only two carbons."),
         ],
         "p14", "Warm: the product with the more substituted alkene.", t,
     )
@@ -2893,7 +2893,7 @@ def node_quiz_b() -> None:
             ("alkene", "The one with the more substituted C=C", "Warm and reversible, the products re-sort by stability, and alkene substitution is how to read stability here. Usually that is 1,4, not always."),
             ("always12", "Always the 1,2 product", "The 1,2 product is the usual kinetic product. Warm conditions ask which is more stable, a different question."),
         ],
-        "alkene", "Decide thermo by alkene substitution, not by 1,4 always wins.",
+        "alkene", "Decide thermo by alkene substitution. Do not assume 1,4 always wins.",
         prov("thermodynamic calls from diene_addition: 1,4 for butadiene, 1,2 for 4-methylpenta-1,3-diene; names checked with OPSIN", OS_14_3),
         {"kind": "pair", "a": iupac(r4["p12"], n12, "u1-qb-rule a"), "b": iupac(r4["p14"], n14, "u1-qb-rule b")},
         derived="alkene" if ok else None, **k,
@@ -2910,7 +2910,7 @@ def node_quiz_b() -> None:
         [
             ("p14", t["p14"][1], "Its C=C carries three carbons, against one in the 1,2 product. Warm and reversible, it wins."),
             ("loser", t["loser"][1], "This needs Cl+ on C4, which makes the weaker cation."),
-            ("p12", t["p12"][1], "The fast product, and it wins cold. Warm, it returns to the cation and the mixture re-sorts."),
+            ("p12", t["p12"][1], "This is the fast product, and it wins cold. Warm, it returns to the cation and the mixture re-sorts."),
         ],
         "p14", "X2 follows the same rule: warm gives the dihalide with the better alkene.", t,
     )
@@ -2938,9 +2938,9 @@ def node_quiz_b() -> None:
     mcq(
         node, "u1-qb-first-cation", "Mechanism first. Pick the cation HBr makes from isoprene.",
         [
-            ("c4", "From H+ on C4", "Allylic, and its charge is shared by a secondary and a primary carbon. H+ on C1 does better."),
-            ("c1", "From H+ on C1", "Allylic, with the charge shared by C2, tertiary, and C4. That is the best cation, so it is the one that forms."),
-            ("c2", "From H+ on an inner carbon", "The charge lands on an end carbon with no C=C beside it: primary, and no resonance."),
+            ("c4", "From H+ on C4", "It is allylic, but its charge is shared by a secondary and a primary carbon. H+ on C1 does better."),
+            ("c1", "From H+ on C1", "It is allylic, with the charge shared by C2, which is tertiary, and C4. That is the best cation, so it is the one that forms."),
+            ("c2", "From H+ on an inner carbon", "The charge lands on an end carbon with no C=C beside it, so the cation is primary with no resonance."),
         ],
         "c1", "Mechanism first: the proton goes where it leaves the most stable allylic cation.",
         prov("every protonation built and the cations ranked by dominance", OS_14_2),
@@ -3248,7 +3248,7 @@ def node_draws() -> None:
         "Read the diagram for a cold flask, then draw that product.",
         energy_visual("the two routes from the allylic cation", *p, names=("1,2", "1,4")),
         r["p12"] if ok else None, "3-bromobut-1-ene",
-        "Cold, no product can climb back over its hump, so the one over the lower hump wins. That is the 1,2 product: H on C1, Br on C2.",
+        "When it is cold, no product can climb back over its hump, so the one over the lower hump wins. That is the 1,2 product: H on C1, Br on C2.",
         "Cold means the lower hump wins. That is the 1,2 route: Br on C2, right beside the new H, with the C=C left at the end.",
         "Cold and irreversible: the product over the lower transition state (kinetic) wins.",
         prov("kinetic route read off the diagram's transition state heights and checked against diene_addition's kinetic call; name checked with OPSIN", OS_14_3),

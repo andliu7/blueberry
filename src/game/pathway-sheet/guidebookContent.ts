@@ -151,8 +151,8 @@ const SCHEME: readonly { glyph: StepGlyph; said: string }[] = [
  * it is. No scolding, no rhetorical question, no em dash.
  */
 const CLOSING_LINE =
-  "Read the prompt, name the site it points at, and move one small step at a time. " +
-  "A first attempt that does not land is how this gets learned, and every step tells you what it saw.";
+  "Read the prompt, find the site it points at, and move one small step at a time. " +
+  "Missing on a first try is normal, and each step tells you what went wrong.";
 
 export function guidebookFor(node: SheetNode): GuidebookContent {
   const takeaway = takeawayFor(node.id);
@@ -166,14 +166,14 @@ export function guidebookFor(node: SheetNode): GuidebookContent {
     // and the worked example off the first screen, which changed the
     // composition the page is judged on. Copy still goes to the human gate.
     intro:
-      `${node.title}, on one page: what it is, where it shows up, and the ` +
-      `pattern to look for. A short read before you press START.`,
+      `A one-page read on ${node.title}: what it is and the pattern to ` +
+      `look for. Read it before you press START.`,
     keyIdea: takeaway?.text ?? node.blurb,
     keyIdeaDraft: takeaway?.placeholder === true,
     background: pathwayNode(node.id)?.backgroundTopics ?? [],
     workedExample: {
       heading: "Worked example",
-      lead: "Follow one problem of this shape, end to end.",
+      lead: "Follow one problem like this from start to finish.",
       scheme: SCHEME.map((step, i) => ({
         n: i + 1,
         // Structure 1 has no arrow leading into it, so it carries no label.

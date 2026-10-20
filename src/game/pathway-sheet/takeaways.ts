@@ -28,7 +28,7 @@ export const TAKEAWAYS: Readonly<Record<string, Takeaway>> = Object.freeze({
     "The alkyl trend flips: methyl > 1° > 2° > 3°. Resonance still stabilizes, and more s-character helps.",
   ),
   "u1-rank-radical": draft(
-    "Radicals follow the cation trend (3° > 2° > 1°), and allylic and benzylic radicals are the best. This is the intermediate in NBS.",
+    "Radicals follow the cation trend (3° > 2° > 1°), and allylic and benzylic radicals are the best. The allylic radical is the intermediate in NBS bromination.",
   ),
   "u1-quiz-a": draft("Draw every contributor before you rank."),
   "u1-kvt": draft(
@@ -63,7 +63,7 @@ export const TAKEAWAYS: Readonly<Record<string, Takeaway>> = Object.freeze({
     "Going backward: the ring's C=C was the diene's C2–C3, so break the two σ bonds across from it. 1-substituted dienes give \"ortho\" and 2-substituted give \"para\".",
   ),
   "u1-da-stereo": draft(
-    "Suprafacial, so cis stays cis. Endo is the kinetic product. A cyclic dienophile gives a fused bicyclic, and a cyclic diene gives a bridged one.",
+    "Addition is suprafacial, so cis stays cis. Endo is the kinetic product. A cyclic dienophile gives a fused bicyclic, and a cyclic diene gives a bridged one.",
   ),
   "u1-da-3d": draft("Draw the substituents that stay cis on the same face. Chiral products form as racemates."),
 });

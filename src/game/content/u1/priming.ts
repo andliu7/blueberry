@@ -108,7 +108,7 @@ export const U1_PRIMING: Readonly<Record<string, LessonPriming>> = {
         quote: "the real species is one blend of all its contributors",
       },
     ],
-    bridge: { node: null, title: "Start of Unit 1", text: "The first lesson of the unit. The rest of Unit 1 builds on it." },
+    bridge: { node: null, title: "Start of Unit 1", text: "This is where Unit 1 starts. Every later lesson builds on it." },
     placeholder: true,
   },
   "u1-rank-cation": {
@@ -142,7 +142,7 @@ export const U1_PRIMING: Readonly<Record<string, LessonPriming>> = {
     ],
     bridge: {
       node: "u1-allylic",
-      text: "The allyl cation shares its charge between two ends. Now: how much does that sharing help?",
+      text: "The allyl cation shares its charge between two ends. How much does that sharing help?",
       source: "u1-allylic-where",
       quote: "the real ion shares it between the two ends",
     },
@@ -288,7 +288,7 @@ export const U1_PRIMING: Readonly<Record<string, LessonPriming>> = {
     ],
     bridge: {
       node: "u1-12v14",
-      text: "One cation gave both the 1,2 and the 1,4 product. Now: which one ends up in the flask?",
+      text: "One cation gave both the 1,2 and the 1,4 product. Which one ends up in the flask?",
       source: "u1-12v14-which-carbon",
       quote: "C2 gives the 1,2 product and C4 gives the 1,4 product",
     },
@@ -315,7 +315,7 @@ export const U1_PRIMING: Readonly<Record<string, LessonPriming>> = {
     ],
     bridge: {
       node: "u1-kvt",
-      text: "The kinetic product has the lowest barrier. Here you see that barrier drawn.",
+      text: "The kinetic product has the lowest barrier. Here you see that barrier on a diagram.",
       source: "u1-kvt-define-kinetic",
       quote: "The kinetic product has the lowest barrier",
     },
@@ -568,7 +568,7 @@ export const U1_PRIMING: Readonly<Record<string, LessonPriming>> = {
       node: "u1-dienes",
       text: "The diene has to reach s-cis. Now look at its partner.",
       source: "u1-cd-dienes-edg-locked",
-      quote: "s-cis is a gate, not a bonus",
+      quote: "A diene that cannot reach s-cis does not react",
     },
     placeholder: true,
   },
@@ -629,7 +629,7 @@ export const U1_PRIMING: Readonly<Record<string, LessonPriming>> = {
     ],
     bridge: {
       node: "u1-da-predict",
-      text: "Groups land on set ring carbons. Now: which face of the ring?",
+      text: "Groups land on set ring carbons. Which face of the ring do they point to?",
       source: "u1-cd-pred-dmb-acn",
       quote: "Groups on diene C2 and C3 end up on the new ring C=C",
     },
@@ -654,7 +654,7 @@ export const U1_PRIMING: Readonly<Record<string, LessonPriming>> = {
         label: "Fused or bridged",
         via: ", note",
         source: "u1-cd-3d-fused",
-        quote: "Cyclic dienophile, fused product. Cyclic diene, bridged product.",
+        quote: "A cyclic dienophile gives a fused product; a cyclic diene gives a bridged one.",
       },
       {
         label: "Meso or racemate",

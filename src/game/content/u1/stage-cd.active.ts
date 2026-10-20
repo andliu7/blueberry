@@ -820,7 +820,7 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
           2
         ],
         "prompt": "Match each diene to its shape.",
-        "brief": "Shape first: can the two ends reach a dienophile at the same time.",
+        "brief": "Shape first: check whether the two ends can reach a dienophile at the same time.",
         "presentation": "columns",
         "pairs": [
           {
@@ -1228,7 +1228,7 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
             "id": "bd_eth",
             "left": "Product A",
             "right": "Butadiene + ethene",
-            "why": "A bare ring with one C=C and no groups anywhere, so neither partner brought one: butadiene and ethene.",
+            "why": "The ring has one C=C and no groups anywhere, so neither partner brought one: butadiene and ethene.",
             "leftFigure": {
               "bonds": [
                 {

@@ -909,7 +909,7 @@ const U1_QUIZ_C: readonly Spec[] = [
         why: "A radical meeting HBr would take the H, not the Br, and undo the first step. HBr is a by-product here, used up by NBS.",
       },
     ],
-    explanation: "Chain: Br• takes H, HBr plus NBS gives Br2, allylic radical takes Br from Br2 and releases Br•.",
+    explanation: "The chain: Br• takes an H, HBr and NBS give Br2, and the allylic radical takes Br from Br2, releasing a new Br•.",
     conditions: NBS_CONDITIONS,
     provenance: P_NBS,
     visual: structure("nbs", "NBS, N-bromosuccinimide"),
@@ -995,7 +995,7 @@ const U1_MO: readonly Spec[] = [
       {
         id: "two",
         text: "Two, one per C=C",
-        why: "Two belongs to two separate C=C bonds. Conjugated, the four p orbitals mix as one set, and four p orbitals always make four MOs.",
+        why: "Two is right for two separate C=C bonds. Once they are conjugated, the four p orbitals mix as one set, and four p orbitals always make four MOs.",
       },
       {
         id: "eight",
@@ -1310,7 +1310,7 @@ const U1_MO: readonly Spec[] = [
       {
         id: "larger",
         text: "Widens it: shorter wavelength",
-        why: "Opposite. More p orbitals pack more levels into the same band, so the HOMO and LUMO end up closer, not further apart.",
+        why: "It is the other way round. More p orbitals pack more levels into the same band, so the HOMO and LUMO end up closer, not further apart.",
       },
       {
         id: "same",
@@ -1323,7 +1323,7 @@ const U1_MO: readonly Spec[] = [
         why: "Right. Ethene, butadiene, hexatriene: the gap shrinks each time, and the absorption moves to longer wavelength.",
       },
     ],
-    explanation: "Longer conjugation, smaller HOMO to LUMO gap, lower-energy photon, longer wavelength.",
+    explanation: "Longer conjugation means a smaller HOMO to LUMO gap, so a lower-energy photon is absorbed, at a longer wavelength.",
     provenance: P_MO,
     visual: structure("ladder-hexatriene", "hexatriene's pi MOs, lowest at the bottom"),
   },
@@ -1476,7 +1476,7 @@ const U1_DIENES: readonly Spec[] = [
       {
         id: "fast",
         text: "A fast Diels-Alder: it is conjugated",
-        why: "Conjugated is necessary, not enough. The ring fixes the dihedral between the C=C near 180 degrees, so the ends point away from each other.",
+        why: "Being conjugated is necessary, but it is not enough. The ring fixes the dihedral between the C=C near 180 degrees, so the ends point away from each other.",
       },
       {
         id: "none",
@@ -1518,7 +1518,7 @@ const U1_DIENES: readonly Spec[] = [
         why: "Right. Locked s-trans is out regardless of its electronics. The checklist is shape before substituents.",
       },
     ],
-    explanation: "s-cis is a gate, not a bonus. A diene that cannot reach s-cis does not react, however good its donor groups are.",
+    explanation: "A diene that cannot reach s-cis does not react, however good its donor groups are.",
     conditions: "Heat, maleic anhydride.",
     provenance: P_CONF,
     visual: structure("methoxymethylenecyclohexene", "a locked s-trans diene with OCH_3"),
@@ -1795,7 +1795,7 @@ const U1_DA_PREDICT: readonly Spec[] = [
         why: "The bonds beside the C=C were the diene's own C1-C2 and C3-C4. The bonds to cut are the two one step further out.",
       },
     ],
-    explanation: "Backward: the ring C=C was diene C2-C3. Cut the two sigma bonds across from it to get the diene and the dienophile back.",
+    explanation: "Working backward, the ring C=C was diene C2-C3. Cut the two sigma bonds across from it to get the diene and the dienophile back.",
     provenance: P_RETRO,
     visual: structure("cyclohexenecarbonitrile", "cyclohex-3-ene-1-carbonitrile"),
   },
@@ -1892,7 +1892,7 @@ const U1_DA_PREDICT: readonly Spec[] = [
         why: "Ortho needs the substituent on the diene's end carbon. Isoprene's methyl is on C2, so it ends up on the ring C=C and cannot be next to the ester.",
       },
     ],
-    explanation: "2-Substituted diene, para product. 1-Substituted, ortho product.",
+    explanation: "A 2-substituted diene gives the para product; a 1-substituted one gives ortho.",
     conditions: "Heat, one equivalent each.",
     provenance: P_REGIO,
     visual: pair("isoprene", "isoprene", "methylacrylate", "methyl acrylate"),
@@ -2100,7 +2100,7 @@ const U1_DA_STEREO: readonly Spec[] = [
       {
         id: "even",
         text: "Endo and exo about equally",
-        why: "The two approaches have different barriers. The endo one is lower, which is exactly what makes this a clean example.",
+        why: "The two approaches have different barriers. The endo one is lower, so endo is clearly the major adduct.",
       },
     ],
     explanation: "Endo rule: under kinetic control the dienophile's withdrawing groups tuck under the diene. Endo forms faster even though exo is more stable.",
@@ -2233,7 +2233,7 @@ const U1_DA_3D: readonly Spec[] = [
       {
         id: "meso",
         text: "One meso compound",
-        why: "Right. The cis isomer is labelled R,S and has a mirror plane through the ring. One compound, no enantiomer.",
+        why: "Right. The cis isomer is labelled R,S and has a mirror plane through the ring. It is one compound with no enantiomer.",
       },
       {
         id: "racemate",
@@ -2409,7 +2409,7 @@ const U1_DA_3D: readonly Spec[] = [
         why: "Spiro needs both rings on one carbon. Here the anhydride ring sits across two adjacent carbons.",
       },
     ],
-    explanation: "Cyclic dienophile, fused product. Cyclic diene, bridged product.",
+    explanation: "A cyclic dienophile gives a fused product; a cyclic diene gives a bridged one.",
     conditions: "Heat.",
     provenance: P_DA,
     visual: structure("anhydrideadduct", "the adduct"),
@@ -2438,7 +2438,7 @@ const U1_DA_3D: readonly Spec[] = [
         why: "An open-chain diene gives a single cyclohexene ring, neither fused nor bridged.",
       },
     ],
-    explanation: "Bridged only when the diene's ring connects C1 and C4. A ring across C2 and C3 gives a fused product.",
+    explanation: "The product is bridged only when the diene's ring connects C1 and C4. A ring across C2 and C3 gives a fused product.",
     conditions: "Heat.",
     provenance: P_DA,
     visual: structure("ethene", "ethene, the dienophile"),
@@ -2612,7 +2612,7 @@ const U1_QUIZ_D: readonly Spec[] = [
         why: "One C=C gives the largest gap of the three and the shortest wavelength.",
       },
     ],
-    explanation: "Conjugation, not the number of C=C, sets the gap. Conjugated diene, longest wavelength.",
+    explanation: "Conjugation, not the number of C=C, sets the gap, so the conjugated diene absorbs at the longest wavelength.",
     provenance: P_MO,
     visual: structure("cyclohexa13diene", "one of the three"),
     tiles: tiles({
@@ -2746,7 +2746,7 @@ const U1_QUIZ_D: readonly Spec[] = [
         why: "Right. A 1-substituted diene gives the ortho product.",
       },
     ],
-    explanation: "1-Substituted diene, ortho. 2-Substituted diene, para.",
+    explanation: "A 1-substituted diene gives ortho; a 2-substituted diene gives para.",
     conditions: "Heat, one equivalent each.",
     provenance: P_REGIO,
     visual: pair("piperylene", "(E)-penta-1,3-diene", "methylacrylate", "methyl acrylate"),
@@ -2780,7 +2780,7 @@ const U1_QUIZ_D: readonly Spec[] = [
         why: "Right. A 2-substituted diene gives the para product.",
       },
     ],
-    explanation: "Isoprene is 2-substituted, so para.",
+    explanation: "Isoprene is 2-substituted, so it gives the para product.",
     conditions: "Heat, one equivalent each.",
     provenance: P_REGIO,
     visual: pair("isoprene", "isoprene", "mvk", "methyl vinyl ketone"),
@@ -2802,7 +2802,7 @@ const U1_QUIZ_D: readonly Spec[] = [
       {
         id: "endo",
         text: "Endo",
-        why: "Right. Kinetic control, and the endo approach has the lower barrier.",
+        why: "Right. This is kinetic control, and the endo approach has the lower barrier.",
       },
       {
         id: "exo",
@@ -2836,7 +2836,7 @@ const U1_QUIZ_D: readonly Spec[] = [
       {
         id: "diene",
         text: "Diene, faster: OCH3 raises its HOMO",
-        why: "Right. Diene, more reactive than butadiene because the donor raises its HOMO toward acrylonitrile's LUMO.",
+        why: "Right. It is the diene, more reactive than butadiene because the donor raises its HOMO toward acrylonitrile's LUMO.",
       },
       {
         id: "blocked",
@@ -2895,7 +2895,7 @@ const U1_EXAM_D: readonly Spec[] = [
       {
         id: "bd",
         text: "Butadiene plus ethene",
-        why: "This reacts, slowly: ethene carries no withdrawing group and butadiene must first rotate to s-cis.",
+        why: "This reacts, but slowly: ethene carries no withdrawing group and butadiene must first rotate to s-cis.",
       },
       {
         id: "strans",
@@ -2975,7 +2975,7 @@ const U1_EXAM_D: readonly Spec[] = [
         why: "Ortho would need the OCH3 on the diene's end carbon. Here it is on C2 and lands on the ring C=C.",
       },
     ],
-    explanation: "2-Substituted diene, para product.",
+    explanation: "A 2-substituted diene gives the para product.",
     conditions: "Heat, one equivalent each.",
     provenance: P_REGIO,
     visual: pair("methoxybutadiene2", "2-methoxybutadiene", "methylacrylate", "methyl acrylate"),
@@ -3009,7 +3009,7 @@ const U1_EXAM_D: readonly Spec[] = [
         why: "Right. Trans is copied from the dienophile, and the chiral trans product forms as (R,R) and (S,S) equally.",
       },
     ],
-    explanation: "Two questions in order: relationship (trans stays trans), then chirality (chiral product from achiral reagents is racemic).",
+    explanation: "Ask two questions in order: the relationship (trans stays trans), then chirality (a chiral product from achiral reagents is racemic).",
     conditions: "Achiral reagents, no chiral catalyst.",
     provenance: P_STEREO,
     visual: pair("butadiene", "buta-1,3-diene", "dimethylfumarate", "dimethyl fumarate"),
@@ -3054,7 +3054,7 @@ const U1_EXAM_D: readonly Spec[] = [
       {
         id: "bd",
         text: "Buta-1,3-diene",
-        why: "Two conjugated C=C: the largest gap of these three, about 217 nm.",
+        why: "With two conjugated C=C it has the largest gap of these three, about 217 nm.",
       },
       {
         id: "octa",
@@ -3064,7 +3064,7 @@ const U1_EXAM_D: readonly Spec[] = [
       {
         id: "hex",
         text: "Hexa-1,3,5-triene",
-        why: "Three conjugated C=C, about 258 nm. One more C=C narrows the gap further.",
+        why: "Three conjugated C=C absorb at about 258 nm. One more C=C narrows the gap further.",
       },
     ],
     explanation: "Each extra conjugated C=C narrows the gap and moves absorption to longer wavelength.",

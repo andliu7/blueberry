@@ -308,9 +308,9 @@ export const STAGE_AB_POOLS: UnitPools = {
             "tbu"
           ],
           "explanation": {
-            "whatHappened": "The right ladder read from the other end.",
-            "why": "Every comparison in it holds, so the ranking work is done. The track asks for the most stable species at the top.",
-            "lookAt": "Put the cation with three carbon neighbours in the first position and the rest follow down from there."
+            "whatHappened": "This is the right ladder, read from the other end.",
+            "why": "Every comparison in it holds; only the direction is wrong. The most stable species goes at the top.",
+            "lookAt": "Put the cation with three carbon neighbours at the top and work down from there."
           }
         },
         {
@@ -428,9 +428,9 @@ export const STAGE_AB_POOLS: UnitPools = {
             "all3"
           ],
           "explanation": {
-            "whatHappened": "The right ladder read from the other end.",
-            "why": "Every comparison in it holds, so the ranking work is done. The track asks for the most stable species at the top.",
-            "lookAt": "Put the 3° allylic cation in the first position and the rest follow down from there."
+            "whatHappened": "This is the right ladder, read from the other end.",
+            "why": "Every comparison in it holds; only the direction is wrong. The most stable species goes at the top.",
+            "lookAt": "Put the 3° allylic cation at the top and work down from there."
           }
         },
         {
@@ -644,9 +644,9 @@ export const STAGE_AB_POOLS: UnitPools = {
             "diene"
           ],
           "explanation": {
-            "whatHappened": "The right ladder read from the other end.",
-            "why": "Every comparison in it holds, so the ranking work is done. The track asks for the most stable species at the top.",
-            "lookAt": "Put the cation with two C=C in the ring in the first position and the rest follow down from there."
+            "whatHappened": "This is the right ladder, read from the other end.",
+            "why": "Every comparison in it holds; only the direction is wrong. The most stable species goes at the top.",
+            "lookAt": "Put the cation with two C=C in the ring at the top and work down from there."
           }
         },
         {
@@ -742,12 +742,12 @@ export const STAGE_AB_POOLS: UnitPools = {
             {
               "id": "ethyl",
               "text": "The ethyl cation",
-              "why": "One carbon neighbour gives a little hyperconjugation and nothing else. No pi bond, so the charge stays on one carbon."
+              "why": "One carbon neighbour gives a little hyperconjugation and nothing else. There is no pi bond, so the charge stays on one carbon."
             },
             {
               "id": "allyl",
               "text": "The allyl cation",
-              "why": "The charged carbon sits next to a C=C, so the pi electrons can shift over and put the charge on C3 as well. Sharing beats a single primary carbon."
+              "why": "The charged carbon sits next to a C=C, so the pi electrons can shift over and put the charge on C3 as well. Sharing the charge beats leaving it on one primary carbon."
             }
           ]
         }
@@ -865,7 +865,7 @@ export const STAGE_AB_POOLS: UnitPools = {
             {
               "id": "three",
               "text": "C1, C3 and C5",
-              "why": "Push the C2=C3 pi bond toward C1 and the charge moves to C3; push C4=C5 toward C3 and it moves to C5. Three contributors, three carbons."
+              "why": "Push the C2=C3 pi bond toward C1 and the charge moves to C3; push C4=C5 toward C3 and it moves to C5. That is three contributors, with the charge on three carbons."
             }
           ]
         }
@@ -916,9 +916,9 @@ export const STAGE_AB_POOLS: UnitPools = {
             "crotyl"
           ],
           "explanation": {
-            "whatHappened": "The right ladder read from the other end.",
-            "why": "Every comparison in it holds, so the ranking work is done. The track asks for the most stable species at the top.",
-            "lookAt": "Put but-2-enyl in the first position and the rest follow down from there."
+            "whatHappened": "This is the right ladder, read from the other end.",
+            "why": "Every comparison in it holds; only the direction is wrong. The most stable species goes at the top.",
+            "lookAt": "Put but-2-enyl at the top and work down from there."
           }
         },
         {
@@ -1015,7 +1015,7 @@ export const STAGE_AB_POOLS: UnitPools = {
             {
               "id": "withdraw",
               "text": "Methyl groups pull density away",
-              "why": "Backwards. Alkyl groups donate into an electron-poor carbon, which is why more of them helps a cation."
+              "why": "It is the other way round. Alkyl groups donate into an electron-poor carbon, which is why more of them helps a cation."
             }
           ]
         }
@@ -1127,7 +1127,7 @@ export const STAGE_AB_POOLS: UnitPools = {
             {
               "id": "allyl",
               "text": "allyl, 1° allylic",
-              "why": "Resonance, yes, but both charged carbons are primary. The 2° allylic cation has the same resonance and a methyl as well."
+              "why": "It has resonance, but both charged carbons are primary. The 2° allylic cation has the same resonance and a methyl as well."
             },
             {
               "id": "et",
@@ -1317,9 +1317,9 @@ export const STAGE_AB_POOLS: UnitPools = {
             "sp"
           ],
           "explanation": {
-            "whatHappened": "The right ladder read from the other end.",
-            "why": "Every comparison in it holds, so the ranking work is done. The track asks for the most stable species at the top.",
-            "lookAt": "Put the sp anion, ethynyl in the first position and the rest follow down from there."
+            "whatHappened": "This is the right ladder, read from the other end.",
+            "why": "Every comparison in it holds; only the direction is wrong. The most stable species goes at the top.",
+            "lookAt": "Put the sp anion, ethynyl, at the top and work down from there."
           }
         },
         {
@@ -1555,9 +1555,9 @@ export const STAGE_AB_POOLS: UnitPools = {
             "penta"
           ],
           "explanation": {
-            "whatHappened": "The right ladder read from the other end.",
-            "why": "Every comparison in it holds, so the ranking work is done. The track asks for the most stable species at the top.",
-            "lookAt": "Put the anion with two conjugated C=C in the first position and the rest follow down from there."
+            "whatHappened": "This is the right ladder, read from the other end.",
+            "why": "Every comparison in it holds; only the direction is wrong. The most stable species goes at the top.",
+            "lookAt": "Put the anion with two conjugated C=C at the top and work down from there."
           }
         },
         {
@@ -1830,9 +1830,9 @@ export const STAGE_AB_POOLS: UnitPools = {
             "ene"
           ],
           "explanation": {
-            "whatHappened": "The right ladder read from the other end.",
-            "why": "Every comparison in it holds, so the ranking work is done. The track asks for the most stable species at the top.",
-            "lookAt": "Put the cyclohex-2-enyl anion in the first position and the rest follow down from there."
+            "whatHappened": "This is the right ladder, read from the other end.",
+            "why": "Every comparison in it holds; only the direction is wrong. The most stable species goes at the top.",
+            "lookAt": "Put the cyclohex-2-enyl anion at the top and work down from there."
           }
         },
         {
@@ -1921,7 +1921,7 @@ export const STAGE_AB_POOLS: UnitPools = {
             {
               "id": "vinyl",
               "text": "vinyl anion",
-              "why": "Its lone pair sits in an sp2 orbital, with more s character than sp3, and no alkyl group pushes on it. Not the worst."
+              "why": "Its lone pair sits in an sp2 orbital, with more s character than sp3, and no alkyl group pushes on it, so it is not the worst."
             },
             {
               "id": "allyl",
@@ -2110,9 +2110,9 @@ export const STAGE_AB_POOLS: UnitPools = {
             "tbu"
           ],
           "explanation": {
-            "whatHappened": "The right ladder read from the other end.",
-            "why": "Every comparison in it holds, so the ranking work is done. The track asks for the most stable species at the top.",
-            "lookAt": "Put tert-butyl in the first position and the rest follow down from there."
+            "whatHappened": "This is the right ladder, read from the other end.",
+            "why": "Every comparison in it holds; only the direction is wrong. The most stable species goes at the top.",
+            "lookAt": "Put tert-butyl at the top and work down from there."
           }
         },
         {
@@ -2141,7 +2141,7 @@ export const STAGE_AB_POOLS: UnitPools = {
           ],
           "explanation": {
             "whatHappened": "Ethyl is placed above isopropyl.",
-            "why": "Isopropyl's radical carbon has two carbon neighbours, ethyl's has one. More donation, more stable.",
+            "why": "Isopropyl's radical carbon has two carbon neighbours, ethyl's has one. More donation means more stable.",
             "lookAt": "Count carbons on the radical carbon of those two."
           }
         }
@@ -2204,7 +2204,7 @@ export const STAGE_AB_POOLS: UnitPools = {
             {
               "id": "vinyl",
               "text": "vinyl radical",
-              "why": "The odd electron sits on a carbon of the C=C itself, in an orbital that cannot overlap the pi bond. No second contributor."
+              "why": "The odd electron sits on a carbon of the C=C itself, in an orbital that cannot overlap the pi bond, so there is no second contributor."
             },
             {
               "id": "propyl",
@@ -2539,7 +2539,7 @@ export const STAGE_AB_POOLS: UnitPools = {
             {
               "id": "pri",
               "text": "The one with the dot on the 1° carbon",
-              "why": "Fewer carbons help the odd electron there. That picture is real and it is the smaller share."
+              "why": "Fewer carbons help the odd electron there. That picture is real, but it is the smaller share."
             },
             {
               "id": "sec",
@@ -2660,7 +2660,7 @@ export const STAGE_AB_POOLS: UnitPools = {
             {
               "id": "c1",
               "text": "On a carbon of the C=C",
-              "why": "That leaves the odd electron on the alkene carbon itself, in an orbital at right angles to the pi bond, so the pi electrons cannot share it. No resonance."
+              "why": "That leaves the odd electron on the alkene carbon itself, in an orbital at right angles to the pi bond, so the pi electrons cannot share it and there is no resonance."
             },
             {
               "id": "c3",
@@ -2670,7 +2670,7 @@ export const STAGE_AB_POOLS: UnitPools = {
             {
               "id": "c4",
               "text": "Two carbons away from the C=C",
-              "why": "A plain secondary radical. The C=C is too far away to share the odd electron."
+              "why": "That leaves a plain secondary radical. The C=C is too far away to share the odd electron."
             }
           ]
         }
@@ -2721,9 +2721,9 @@ export const STAGE_AB_POOLS: UnitPools = {
             "ene"
           ],
           "explanation": {
-            "whatHappened": "The right ladder read from the other end.",
-            "why": "Every comparison in it holds, so the ranking work is done. The track asks for the most stable species at the top.",
-            "lookAt": "Put the cyclohex-2-enyl radical in the first position and the rest follow down from there."
+            "whatHappened": "This is the right ladder, read from the other end.",
+            "why": "Every comparison in it holds; only the direction is wrong. The most stable species goes at the top.",
+            "lookAt": "Put the cyclohex-2-enyl radical at the top and work down from there."
           }
         },
         {
@@ -2841,9 +2841,9 @@ export const STAGE_AB_POOLS: UnitPools = {
             "penta"
           ],
           "explanation": {
-            "whatHappened": "The right ladder read from the other end.",
-            "why": "Every comparison in it holds, so the ranking work is done. The track asks for the most stable species at the top.",
-            "lookAt": "Put the cation with two conjugated C=C in the first position and the rest follow down from there."
+            "whatHappened": "This is the right ladder, read from the other end.",
+            "why": "Every comparison in it holds; only the direction is wrong. The most stable species goes at the top.",
+            "lookAt": "Put the cation with two conjugated C=C at the top and work down from there."
           }
         },
         {
@@ -2961,9 +2961,9 @@ export const STAGE_AB_POOLS: UnitPools = {
             "sp"
           ],
           "explanation": {
-            "whatHappened": "The right ladder read from the other end.",
-            "why": "Every comparison in it holds, so the ranking work is done. The track asks for the most stable species at the top.",
-            "lookAt": "Put the sp anion, ethynyl in the first position and the rest follow down from there."
+            "whatHappened": "This is the right ladder, read from the other end.",
+            "why": "Every comparison in it holds; only the direction is wrong. The most stable species goes at the top.",
+            "lookAt": "Put the sp anion, ethynyl, at the top and work down from there."
           }
         },
         {
@@ -3282,7 +3282,7 @@ export const STAGE_AB_POOLS: UnitPools = {
             {
               "id": "all2",
               "text": "2° allylic",
-              "why": "Resonance, and a secondary charged carbon. The 3° allylic cation has the same resonance and one more methyl."
+              "why": "It has resonance and a secondary charged carbon. The 3° allylic cation has the same resonance and one more methyl."
             },
             {
               "id": "all3",
@@ -3292,7 +3292,7 @@ export const STAGE_AB_POOLS: UnitPools = {
             {
               "id": "all1",
               "text": "allyl, 1° allylic",
-              "why": "Resonance, but both charged carbons are primary."
+              "why": "It has resonance, but both charged carbons are primary."
             }
           ]
         }
@@ -3376,7 +3376,7 @@ export const STAGE_AB_POOLS: UnitPools = {
             {
               "id": "tie",
               "text": "They tie, same atoms",
-              "why": "Same formula, different positions. Only a methyl on a charged carbon helps."
+              "why": "Same formula, but the methyl sits on a different carbon. Only a methyl on a charged carbon helps."
             }
           ]
         }
@@ -3454,7 +3454,7 @@ export const STAGE_AB_POOLS: UnitPools = {
             {
               "id": "ene",
               "text": "cyclohex-2-enyl cation",
-              "why": "In a ring or not, the charged carbon is next to a C=C, so the charge is shared."
+              "why": "Ring or not, the charged carbon is next to a C=C, so the charge is shared."
             }
           ]
         }
@@ -4010,7 +4010,7 @@ export const STAGE_AB_POOLS: UnitPools = {
             }
           },
           "stereo": false,
-          "why": "Cold, no product can climb back over its hump, so the one over the lower hump wins. That is the 1,2 product: H on C1, Br on C2.",
+          "why": "When it is cold, no product can climb back over its hump, so the one over the lower hump wins. That is the 1,2 product: H on C1, Br on C2.",
           "lookAt": "Cold means the lower hump wins. That is the 1,2 route: Br on C2, right beside the new H, with the C=C left at the end.",
           "misses": [
             {
@@ -4402,7 +4402,7 @@ export const STAGE_AB_POOLS: UnitPools = {
             {
               "id": "ab",
               "text": "From A to B",
-              "why": "Reversed. Warm gave the deeper well, B. Cold gives the lower hump, A."
+              "why": "That is backwards. Warm gives the deeper well, B, and cold gives the lower hump, A."
             },
             {
               "id": "ba",
@@ -4748,7 +4748,7 @@ export const STAGE_AB_POOLS: UnitPools = {
             {
               "id": "close",
               "text": "Too close to call by alkene substitution",
-              "why": "Each product's C=C carries two carbons, so the substitution rule gives no winner. That is the honest answer from this rule."
+              "why": "Each product's C=C carries two carbons, so the substitution rule gives no winner."
             },
             {
               "id": "p12",
@@ -4758,7 +4758,7 @@ export const STAGE_AB_POOLS: UnitPools = {
           ]
         }
       },
-      "explanation": "Decide the thermodynamic product by alkene substitution, not by 1,4 always wins. When the counts tie, the rule cannot call it.",
+      "explanation": "Decide the thermodynamic product by alkene substitution. Do not assume 1,4 always wins. When the counts tie, the rule cannot call it.",
       "provenance": "scripts/u1_pools_ab.py: both products from diene_addition; alkene substitution 2 against 2; names checked with OPSIN. OpenStax Organic Chemistry 14.3 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
@@ -4995,7 +4995,7 @@ export const STAGE_AB_POOLS: UnitPools = {
             {
               "id": "c4",
               "text": "C4",
-              "why": "Protonating C4 gives a charge shared by C3, secondary, and C1, primary. Close, and still a step worse than protonating C1."
+              "why": "Protonating C4 gives a charge shared by C3, secondary, and C1, primary. That is close, but still a step worse than protonating C1."
             },
             {
               "id": "c1",
@@ -5125,7 +5125,7 @@ export const STAGE_AB_POOLS: UnitPools = {
           },
           "stereo": false,
           "why": "H on C1, then bromide captured at C2, the nearby tertiary carbon. Cold locks in this fast, 1,2 product.",
-          "lookAt": "Cold and irreversible: the 1,2 (kinetic) product.",
+          "lookAt": "Cold and irreversible gives the 1,2 (kinetic) product.",
           "misses": [
             {
               "id": "p14",
@@ -5144,7 +5144,7 @@ export const STAGE_AB_POOLS: UnitPools = {
           ]
         }
       },
-      "explanation": "Cold and irreversible: the 1,2 (kinetic) product.",
+      "explanation": "Cold and irreversible gives the 1,2 (kinetic) product.",
       "conditions": "one equivalent; minus 80 degrees: nothing reverses, so the faster product is locked in",
       "provenance": "scripts/u1_pools_ab.py: kinetic call from diene_addition; misses are the MCQ's derived options; names checked with OPSIN. OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only; OpenStax Organic Chemistry 14.3 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
@@ -5525,7 +5525,7 @@ export const STAGE_AB_POOLS: UnitPools = {
           },
           "stereo": false,
           "why": "Its C=C carries three carbons, against two in the 1,4 product. Warm, the more substituted alkene wins, and here that is the 1,2 product.",
-          "lookAt": "Decide thermo by alkene substitution, not by 1,4 always wins. Here the 1,2 product has the better alkene.",
+          "lookAt": "Decide thermo by alkene substitution. Do not assume 1,4 always wins. Here the 1,2 product has the better alkene.",
           "misses": [
             {
               "id": "p14",
@@ -5544,7 +5544,7 @@ export const STAGE_AB_POOLS: UnitPools = {
           ]
         }
       },
-      "explanation": "Decide thermo by alkene substitution, not by 1,4 always wins. Here the 1,2 product has the better alkene.",
+      "explanation": "Decide thermo by alkene substitution. Do not assume 1,4 always wins. Here the 1,2 product has the better alkene.",
       "conditions": "one equivalent; 40 degrees, given time: both products can return to the cation",
       "provenance": "scripts/u1_pools_ab.py: thermodynamic call from diene_addition; misses are the MCQ's derived options; names checked with OPSIN. OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only; OpenStax Organic Chemistry 14.3 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
@@ -5651,7 +5651,7 @@ export const STAGE_AB_POOLS: UnitPools = {
             {
               "id": "p14",
               "text": "1,4-dichlorobut-2-ene",
-              "why": "The more stable product, with the internal C=C. Cold, nothing reverses, so the faster route decides."
+              "why": "This is the more stable product, with the internal C=C. Cold, nothing reverses, so the faster route decides."
             },
             {
               "id": "p12",
@@ -5736,7 +5736,7 @@ export const STAGE_AB_POOLS: UnitPools = {
             {
               "id": "p12",
               "text": "3,4-dibromo-3-methylbut-1-ene",
-              "why": "The fast product, bromide on the tertiary carbon next door. Warm, it can return to the cation and re-sort."
+              "why": "This is the fast product, with bromide on the tertiary carbon next door. Warm, it can return to the cation and re-sort."
             },
             {
               "id": "p14",
@@ -5959,14 +5959,14 @@ export const STAGE_AB_POOLS: UnitPools = {
           },
           "stereo": false,
           "why": "Bromide is captured at C2, the tertiary carbon beside the first Br. Cold locks in this fast, 1,2 product.",
-          "lookAt": "Cold: the 1,2 dihalide.",
+          "lookAt": "Cold gives the 1,2 dihalide.",
           "misses": [
             {
               "id": "p14",
               "inchi": "InChI=1S/C6H10Br2/c1-5(3-7)6(2)4-8/h3-4H2,1-2H3",
               "smiles": "CC(CBr)=C(C)CBr",
               "name": "the 1,4 product",
-              "says": "The most stable product, with its four-carbon alkene. Cold, nothing reverses, so the fast route decides instead."
+              "says": "This is the most stable product, with its four-carbon alkene. Cold, nothing reverses, so the fast route decides instead."
             },
             {
               "id": "tetra",
@@ -5978,7 +5978,7 @@ export const STAGE_AB_POOLS: UnitPools = {
           ]
         }
       },
-      "explanation": "Cold: the 1,2 dihalide.",
+      "explanation": "Cold gives the 1,2 dihalide.",
       "conditions": "one equivalent; minus 80 degrees: nothing reverses, so the faster product is locked in",
       "provenance": "scripts/u1_pools_ab.py: kinetic call from diene_addition; misses are the MCQ's derived options; names checked with OPSIN. OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only; OpenStax Organic Chemistry 14.3 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
@@ -6642,7 +6642,7 @@ export const STAGE_AB_POOLS: UnitPools = {
             {
               "id": "p12",
               "text": "3-bromo-3-methylbut-1-ene",
-              "why": "The fast product, bromide on the tertiary carbon. Warm, it returns to the cation and the mixture re-sorts."
+              "why": "This is the fast product, with bromide on the tertiary carbon. Warm, it returns to the cation and the mixture re-sorts."
             },
             {
               "id": "loser",
@@ -6692,7 +6692,7 @@ export const STAGE_AB_POOLS: UnitPools = {
             {
               "id": "p12",
               "text": "4-bromo-4-methylpent-2-ene",
-              "why": "The fast product, and it wins cold. Warm, it can return to the cation, and its C=C carries only two carbons."
+              "why": "This is the fast product, and it wins cold. Warm, it can return to the cation, and its C=C carries only two carbons."
             }
           ]
         }
@@ -6737,7 +6737,7 @@ export const STAGE_AB_POOLS: UnitPools = {
           ]
         }
       },
-      "explanation": "Decide thermo by alkene substitution, not by 1,4 always wins.",
+      "explanation": "Decide thermo by alkene substitution. Do not assume 1,4 always wins.",
       "provenance": "scripts/u1_pools_ab.py: thermodynamic calls from diene_addition: 1,4 for butadiene, 1,2 for 4-methylpenta-1,3-diene; names checked with OPSIN. OpenStax Organic Chemistry 14.3 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
@@ -6771,7 +6771,7 @@ export const STAGE_AB_POOLS: UnitPools = {
             {
               "id": "p12",
               "text": "3,4-dichloro-3-methylbut-1-ene",
-              "why": "The fast product, and it wins cold. Warm, it returns to the cation and the mixture re-sorts."
+              "why": "This is the fast product, and it wins cold. Warm, it returns to the cation and the mixture re-sorts."
             }
           ]
         }
@@ -6841,17 +6841,17 @@ export const STAGE_AB_POOLS: UnitPools = {
             {
               "id": "c4",
               "text": "From H+ on C4",
-              "why": "Allylic, and its charge is shared by a secondary and a primary carbon. H+ on C1 does better."
+              "why": "It is allylic, but its charge is shared by a secondary and a primary carbon. H+ on C1 does better."
             },
             {
               "id": "c1",
               "text": "From H+ on C1",
-              "why": "Allylic, with the charge shared by C2, tertiary, and C4. That is the best cation, so it is the one that forms."
+              "why": "It is allylic, with the charge shared by C2, which is tertiary, and C4. That is the best cation, so it is the one that forms."
             },
             {
               "id": "c2",
               "text": "From H+ on an inner carbon",
-              "why": "The charge lands on an end carbon with no C=C beside it: primary, and no resonance."
+              "why": "The charge lands on an end carbon with no C=C beside it, so the cation is primary with no resonance."
             }
           ]
         }

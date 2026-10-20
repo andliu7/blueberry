@@ -129,8 +129,8 @@ export const PATHWAY_UNITS: readonly PathwayUnit[] = [
     // fails a link with nothing behind it.
     nodes: [
       // STAGE A, allylic stability.
-      { id: "u1-allylic", kind: "spine", role: "video", videoMinutes: 2, title: "Allylic/resonance delocalization", blurb: "Draw and rank allyl cation, radical, anion resonance forms.", playable: { kind: "beat", id: "u1-allylic" }, backgroundTopics: [BG_CATION, BG_HOMO_LUMO] },
-      { id: "u1-rank-cation", kind: "spine", role: "practice", title: "Rank carbocation stability", blurb: "Order ladders, then quick questions: substitution and resonance.", playable: { kind: "beat", id: "u1-rank-cation" }, backgroundTopics: BG_STAGE_A },
+      { id: "u1-allylic", kind: "spine", role: "video", videoMinutes: 2, title: "Allylic/resonance delocalization", blurb: "Draw and rank the resonance forms of the allyl cation, radical and anion.", playable: { kind: "beat", id: "u1-allylic" }, backgroundTopics: [BG_CATION, BG_HOMO_LUMO] },
+      { id: "u1-rank-cation", kind: "spine", role: "practice", title: "Rank carbocation stability", blurb: "Order the ladders, then answer quick questions on substitution and resonance.", playable: { kind: "beat", id: "u1-rank-cation" }, backgroundTopics: BG_STAGE_A },
       { id: "u1-rank-anion", kind: "spine", role: "practice", title: "Rank carbanion stability", blurb: "The alkyl trend flips; resonance and s-character still help.", playable: { kind: "beat", id: "u1-rank-anion" }, backgroundTopics: BG_STAGE_A },
       // Optional, owner 2026-09-29: radicals stay off Practice and the stage quiz.
       { id: "u1-rank-radical", kind: "branch", role: "practice", title: "Rank radical stability", blurb: "Optional: radicals follow the cation trend; allylic and benzylic win.", playable: { kind: "beat", id: "u1-rank-radical" }, after: ["u1-rank-anion"], backgroundTopics: BG_STAGE_A },

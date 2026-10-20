@@ -736,8 +736,8 @@ def ladder(node: str, id: str, cards: list[tuple[str, str, str, str]], score, pr
         "distractors": [
             {"id": "reversed", "cause": "ordering_is_reversed", "order": list(reversed(order)),
              "explanation": {"whatHappened": "The right ladder, read from the other end.",
-                             "why": f"Every step holds, but the track asks for {track[0].lower()} at the top.",
-                             "lookAt": f"Put {cards[0][1]} first."}},
+                             "why": "Every step holds, but the order is upside down, so flip it.",
+                             "lookAt": f"Put {cards[0][1][:1].lower() + cards[0][1][1:]} first."}},
             {"id": "top-swap", "cause": "ordering_one_adjacent_pair_swapped", "order": swapped,
              "explanation": {"whatHappened": swap[0], "why": swap[1], "lookAt": swap[2]}},
         ],
@@ -1219,7 +1219,7 @@ def ch5() -> None:
           "Look for a lone pair to give, or an empty orbital to fill.",
           [("cn", "Cyanide, CN⁻", "Nucleophile, with a minus", "C carries the minus and a lone pair.",
             "Nucleophile, with a minus" if roles["cyanide"] == "Nucleophile" and Chem.GetFormalCharge(mol(species("cyanide"))) < 0 else None, "cyanide"),
-           ("me", "Methyl cation, CH₃⁺", pk, "Three bonds and a plus: an empty p orbital.",
+           ("me", "Methyl cation, CH₃⁺", pk, "Three bonds and a plus leave an empty p orbital.",
             pk if roles["methyl_cation"] == "Electrophile" else None, "methyl_cation"),
            ("nh3", "Ammonia, NH₃", "Nucleophile, neutral", "N has one lone pair and no charge.",
             "Nucleophile, neutral" if roles["ammonia"] == "Nucleophile" and Chem.GetFormalCharge(mol(species("ammonia"))) == 0 else None, "ammonia")],
@@ -1507,7 +1507,7 @@ def ch9() -> None:
     preview("u2", t, "u0-pv-u2", "Pick the aromatic ring.",
             [("benzene", "Benzene", "Right. Six p orbitals in a flat ring, six pi electrons."),
              ("cyclohexene", "Cyclohexene", "Its four sp3 carbons break the ring of p orbitals."),
-             ("cyclohexane", "Cyclohexane", "No pi bonds at all.")],
+             ("cyclohexane", "Cyclohexane", "It has no pi bonds at all.")],
             hits[0] if len(hits) == 1 else None, "benzene",
             "Benzene is aromatic: a flat, unbroken ring of p orbitals with six pi electrons. It is extra stable.",
             prov("RDKit aromatic flag on every ring atom", "15.3"), None, concept="aromaticity",
@@ -1532,7 +1532,7 @@ def ch9() -> None:
              ("no2", "The nitro group", "The nitro group stays. It is the helper that makes the attack possible."),
              ("h", "A hydride, H⁻", "Hydride is a terrible leaving group. The halide leaves.")],
             leaves, "cl",
-            "On a ring with a strong electron pulling group, a nucleophile can replace a halide. Unit 4 is this.",
+            "On a ring with a strong electron pulling group, a nucleophile can replace a halide. That is Unit 4.",
             prov("products from an SNAr SMARTS, checked against OPSIN 4-nitrophenol", "16.6"),
             structure("chloronitrobenzene"), concept="nucleophilic_aromatic_substitution", note=f"products {snar}")
 
@@ -1623,7 +1623,7 @@ def ch9() -> None:
              ("4", "Four", "Four is the diene alone. The dienophile's C=C moves too."),
              ("2", "Two", "Two is a single C=C. Three move together, in a ring.")],
             {2: "2", 4: "4", 6: "6"}.get(pi_in * 2), "6",
-            "Pericyclic reactions move electrons around a ring in one step. The Diels-Alder moves six. Unit 12.",
+            "Pericyclic reactions move electrons around a ring in one step. The Diels-Alder moves six. That is Unit 12.",
             prov("C=C bonds in the two reactants counted in RDKit, two electrons each", "30.1"),
             pair(named("butadiene"), named("ethene")), concept="diels_alder", note=f"pi bonds {pi_in}")
 
@@ -1633,7 +1633,7 @@ def ch9() -> None:
              ("6", "Six", "C1 is the C=O carbon and C6 is a CH₂OH: neither is a stereocentre."),
              ("1", "One", "Every carbon from C2 to C5 has H, OH and two different chains.")],
             {1: "1", 4: "4", 6: "6"}.get(gl), "4",
-            "Sugars are packed with stereocentres, which is why there are so many of them. Unit 13 sorts them out.",
+            "Sugars are packed with stereocentres, which is why there are so many different sugars. Unit 13 sorts them out.",
             prov("FindMolChiralCenters with includeUnassigned on OPSIN 2,3,4,5,6-pentahydroxyhexanal (no configuration typed)", "25.3"),
             structure("glucose_chain"), concept="structure_and_bonding", note=f"stereocentres {gl}")
 
@@ -1662,7 +1662,7 @@ def ch9() -> None:
              ("ethanol", "Ethanol", "Fats are not ethyl esters. The backbone has three carbons."),
              ("methanol", "Methanol", "Methyl esters are biodiesel, not fats.")],
             "glycerol" if alcohols == {species("glycerol")} and hyd else None, "glycerol",
-            "A fat is three esters on glycerol. Base hydrolysis frees the glycerol and makes soap. Unit 15.",
+            "A fat is three esters on glycerol. Base hydrolysis frees the glycerol and makes soap. That is Unit 15.",
             prov("three ester hydrolyses by SMARTS on OPSIN glyceryl tributanoate; the leftover checked against OPSIN glycerol", "27.1"),
             structure("tributyrin", "a small fat"), concept="carboxylic_acids", note=f"leftover {cur}",
             tiles={k: named(k) for k in ("glycerol", "ethanol", "methanol")})
@@ -1700,7 +1700,7 @@ def primes() -> None:
         brief="Tap a card, then CHECK.", tiles={k: tile(key, pairs=True) for k, key in cands.items()}, **p0)
 
     c = next(a for a in mol(species("methane")).GetAtoms() if a.GetSymbol() == "C")
-    mcq("u0-bonding-scene", "u0-prime-ch2", "Guess first: how many bonds does carbon make in methane.",
+    mcq("u0-bonding-scene", "u0-prime-ch2", "Guess first: pick how many bonds carbon makes in methane.",
         [("four", "Four", "Right. Carbon makes four bonds, here one to each H."),
          ("three", "Three", "Three bonds is nitrogen's habit, as in ammonia."),
          ("two", "Two", "Two bonds is oxygen's habit, as in water.")],
@@ -1726,7 +1726,7 @@ def primes() -> None:
                "acid": tile("acetic_acid", "A"), "eto": tile("ethoxide", "C", pairs=True)}, **p0)
 
     pk = {k: PKA[k][0] for k in ("hcl", "water")}
-    mcq("u0-acids-scene", "u0-prime-ch4", "Guess first: which gives up its H⁺ more easily.",
+    mcq("u0-acids-scene", "u0-prime-ch4", "Guess first: pick the one that gives up its H⁺ more easily.",
         [("hcl", "Hydrogen chloride", f"Right. Its pKa is about {pk['hcl']:g}; water's is about {pk['water']:g}."),
          ("water", "Water", "Water holds its H⁺ tightly. HCl lets go almost completely."),
          ("same", "About the same", "Their pKa values are more than twenty units apart.")],
@@ -1762,7 +1762,7 @@ def primes() -> None:
     top = [k for k, v in deg.items() if v == max(deg.values())]
     mcq("u0-subst-elim-scene", "u0-prime-ch7", "Guess first: tap the most crowded C-Br carbon.",
         [("ter", "tert-Butyl bromide", "Right. Three carbons sit on its C-Br carbon."),
-         ("sec", "2-Bromopropane", "Two carbons on its C-Br carbon. One drawing has three."),
+         ("sec", "2-Bromopropane", "This one has two carbons on its C-Br carbon. One drawing has three."),
          ("me", "Bromomethane", "No carbons at all on its C-Br carbon: the least crowded.")],
         top[0] if len(top) == 1 else None, "ter",
         "Count the carbons on the carbon holding Br. That crowding decides SN1, SN2, E1 or E2.",
@@ -1782,7 +1782,7 @@ def primes() -> None:
         concept="structure_and_bonding", tiles={k: tile(key) for k, key in cands.items()}, **p0)
 
     n_units = len(unit_titles())
-    mcq("u0-preview-scene", "u0-prime-ch9", "Guess first: how many units does the map hold.",
+    mcq("u0-preview-scene", "u0-prime-ch9", "Guess first: pick how many units the map holds.",
         [("15", "Fifteen", "Right. Fifteen units, from the Diels-Alder to fats and soap."),
          ("5", "Five", "More than that: Orgo II is a long course."),
          ("30", "Thirty", "Fewer than that. Each unit is a few weeks of a course.")],

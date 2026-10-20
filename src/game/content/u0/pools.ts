@@ -220,8 +220,8 @@ export const U0_POOLS: UnitPools = {
           ],
           "explanation": {
             "whatHappened": "The right ladder, read from the other end.",
-            "why": "Every step holds, but the track asks for most bonds to o at the top.",
-            "lookAt": "Put Formic acid first."
+            "why": "Every step holds, but the order is upside down, so flip it.",
+            "lookAt": "Put formic acid first."
           }
         },
         {
@@ -1454,8 +1454,8 @@ export const U0_POOLS: UnitPools = {
           ],
           "explanation": {
             "whatHappened": "The right ladder, read from the other end.",
-            "why": "Every step holds, but the track asks for strongest acid at the top.",
-            "lookAt": "Put Hydrogen chloride first."
+            "why": "Every step holds, but the order is upside down, so flip it.",
+            "lookAt": "Put hydrogen chloride first."
           }
         },
         {
@@ -1754,7 +1754,7 @@ export const U0_POOLS: UnitPools = {
             "id": "me",
             "left": "Methyl cation, CH₃⁺",
             "right": "Electrophile, empty orbital",
-            "why": "Three bonds and a plus: an empty p orbital.",
+            "why": "Three bonds and a plus leave an empty p orbital.",
             "leftFigure": {
               "bonds": [
                 {
@@ -2677,7 +2677,7 @@ export const U0_POOLS: UnitPools = {
             {
               "id": "cyclohexane",
               "text": "Cyclohexane",
-              "why": "No pi bonds at all."
+              "why": "It has no pi bonds at all."
             },
             {
               "id": "benzene",
@@ -2767,7 +2767,7 @@ export const U0_POOLS: UnitPools = {
           ]
         }
       },
-      "explanation": "On a ring with a strong electron pulling group, a nucleophile can replace a halide. Unit 4 is this.",
+      "explanation": "On a ring with a strong electron pulling group, a nucleophile can replace a halide. That is Unit 4.",
       "provenance": "scripts/u0_pools.py: products from an SNAr SMARTS, checked against OPSIN 4-nitrophenol. OpenStax Organic Chemistry 16.6 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
@@ -3087,7 +3087,7 @@ export const U0_POOLS: UnitPools = {
           ]
         }
       },
-      "explanation": "Pericyclic reactions move electrons around a ring in one step. The Diels-Alder moves six. Unit 12.",
+      "explanation": "Pericyclic reactions move electrons around a ring in one step. The Diels-Alder moves six. That is Unit 12.",
       "provenance": "scripts/u0_pools.py: C=C bonds in the two reactants counted in RDKit, two electrons each. OpenStax Organic Chemistry 30.1 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
@@ -3127,7 +3127,7 @@ export const U0_POOLS: UnitPools = {
           ]
         }
       },
-      "explanation": "Sugars are packed with stereocentres, which is why there are so many of them. Unit 13 sorts them out.",
+      "explanation": "Sugars are packed with stereocentres, which is why there are so many different sugars. Unit 13 sorts them out.",
       "provenance": "scripts/u0_pools.py: FindMolChiralCenters with includeUnassigned on OPSIN 2,3,4,5,6-pentahydroxyhexanal (no configuration typed). OpenStax Organic Chemistry 25.3 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
@@ -3207,7 +3207,7 @@ export const U0_POOLS: UnitPools = {
           ]
         }
       },
-      "explanation": "A fat is three esters on glycerol. Base hydrolysis frees the glycerol and makes soap. Unit 15.",
+      "explanation": "A fat is three esters on glycerol. Base hydrolysis frees the glycerol and makes soap. That is Unit 15.",
       "provenance": "scripts/u0_pools.py: three ester hydrolyses by SMARTS on OPSIN glyceryl tributanoate; the leftover checked against OPSIN glycerol. OpenStax Organic Chemistry 27.1 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
@@ -3269,7 +3269,7 @@ export const U0_POOLS: UnitPools = {
           "levels": [
             0
           ],
-          "prompt": "Guess first: how many bonds does carbon make in methane.",
+          "prompt": "Guess first: pick how many bonds carbon makes in methane.",
           "correctOptionId": "four",
           "options": [
             {
@@ -3351,7 +3351,7 @@ export const U0_POOLS: UnitPools = {
           "levels": [
             0
           ],
-          "prompt": "Guess first: which gives up its H⁺ more easily.",
+          "prompt": "Guess first: pick the one that gives up its H⁺ more easily.",
           "correctOptionId": "hcl",
           "options": [
             {
@@ -3480,7 +3480,7 @@ export const U0_POOLS: UnitPools = {
             {
               "id": "sec",
               "text": "2-Bromopropane",
-              "why": "Two carbons on its C-Br carbon. One drawing has three."
+              "why": "This one has two carbons on its C-Br carbon. One drawing has three."
             },
             {
               "id": "me",
@@ -3556,7 +3556,7 @@ export const U0_POOLS: UnitPools = {
           "levels": [
             0
           ],
-          "prompt": "Guess first: how many units does the map hold.",
+          "prompt": "Guess first: pick how many units the map holds.",
           "correctOptionId": "15",
           "options": [
             {
