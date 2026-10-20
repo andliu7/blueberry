@@ -1,6 +1,6 @@
 # Blueberry
 
-A chemistry learning platform. One web app and one Expo app over a shared core.
+A chemistry learning platform. One web app, wrapped as a native app with Capacitor, over a shared core.
 
 The product is a set of tabs, not a single game. The centre of gravity is mechanisms: interactive,
 adjustable, something a student goes into and plays with, not watches.
@@ -93,8 +93,9 @@ leaderboard row beyond that display name.
 Owner direction, recorded 2026-08-21. The phases end in a deployed product that does not crash, and
 every phase is measured against that rather than against its own green suite.
 
-- **iOS first.** The App Store is the primary target. `apps/mobile` is Expo / React Native per the
-  repository layout, built and submitted through EAS. The app's display name on the home screen is
+- **iOS first.** The App Store is the primary target. The native app wraps this web app with
+  Capacitor (owner decision 2026-10-20, replacing the earlier Expo / React Native and EAS plan),
+  after Unit 1 is solid. The app's display name on the home screen is
   "Blueberry" and the bundle identifier is an owner decision recorded before Phase 9 submits
 - **Android second, verified in an emulator.** The Android build targets SDK 35 (the Play Store's
   current minimum target API), and the app manifest carries the label "Blueberry" so the name lands
@@ -179,7 +180,8 @@ src/                   The site around it: decks, lessons, calendar, tutoring, t
 documentation/         Written docs. docs/ is build output and gitignored.
 ```
 
-`apps/mobile`, the Expo / React Native shell, is planned and does not exist yet. The reference
+The native shell (Capacitor, owner 2026-10-20; it replaced the planned Expo `apps/mobile`) does not
+exist yet. The reference
 artifacts critics read stay in `blueberry_game/docs/reference/`, read only.
 
 `packages/curriculum` carries the two thirds of the syllabus that is not mechanisms. It has its own

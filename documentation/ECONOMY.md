@@ -174,7 +174,8 @@ correction of that, and two rules do the work.
 | Flawless clear | +3 | The better you get, the less it binds. Inverts Duolingo's incentive |
 | Combo mini-game | +2 to 6 | Random reward on a correct streak |
 
-**Exam window.** In the two weeks before the exam date collected at onboarding, Charge switches off
+**Exam window.** In the two weeks before the exam date the student sets in the Me tab (onboarding never asked
+for it, and is skipped since 2026-10-17), Charge switches off
 completely and says so: "Exam in 9 days. No limits until then." This is the whole ethical argument
 for the mechanic in one gesture. A student who was not blocked during cramming week is a student
 who tells other people.
@@ -188,8 +189,9 @@ No rewarded ads in v1.
 ## Streak
 
 A day counts when the student **hits their daily XP goal**, not when they open the app. That is
-why the goal picker at onboarding is load bearing: it is the user setting their own bar, which is
-why they respect it.
+why the goal picker is load bearing: it is the user setting their own bar, which is why they
+respect it. Since onboarding is skipped (2026-10-17) the picker lives in the Me tab and a new
+student starts on the default goal until they change it (owner, 2026-10-20).
 
 | Mechanic | Cost | Behaviour |
 |---|---|---|

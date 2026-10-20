@@ -34,9 +34,10 @@ six Bloom moves, hand-written wordmark, jump / curtain lift / land exit.
 
 **Bloat cleanup, owner decisions 17 Oct (do as its own commit, full suite before it)**
 - KEEP: `src/game/mastery/` (start of topic mastery, queued) and `src/game/beats/trace/`
-  (base for drawing practice). Keep the 3D berry and three.js.
+  (base for drawing practice). Keep the 3D berry and three.js. Keep the structure/ranking/
+  reagents answer shapes (rulebook "Four answer shapes"; owner 20 Oct, was on the DELETE list).
 - DELETE: HomeIntro + BlobReveal + the 5 effects only it used; `packages/interaction/src/geometry/`
-  + its tests; the structure/ranking/reagents answer shapes; the mutation testing setup (never
+  + its tests; the mutation testing setup (never
   `validators.lock.json`); every unused site component in the audit (morph-gallery, auth-card,
   nav-pill, study-timer/toast, card-8, loader-10, loading-state, the lib copies of
   berryBehaviour/berryMood, ...); game `tokens.css`, `courses.css`, CanvasBackdrop + backdrop.css;
@@ -49,7 +50,7 @@ six Bloom moves, hand-written wordmark, jump / curtain lift / land exit.
 **Next, right after the 17 Oct push (owner)**
 - Buttons press and hold: the face sinks on pointer down and stays down until release, and the
   action fires on release only if the pointer is still on the button (drag off cancels). Today
-  34 files fire on `onPointerDown`, so the action lands before the hold can show and a drag off
+  43 files (counted 18 Oct) fire on `onPointerDown`, so the action lands before the hold can show and a drag off
   still selects. Move actions to `onClick`; keep `:active` / `data-pressed` for the instant sink.
 - Admin mode: sign in as admin, view the app as each plan (free / paid tiers), drop in videos,
   edit lessons, add reactions to cover. Roles already come from the Supabase roster; access stays
@@ -57,10 +58,9 @@ six Bloom moves, hand-written wordmark, jump / curtain lift / land exit.
 - Social: friend suggestions, following, and celebrating friends' achievements in the feed. Needs
   real accounts (Supabase tables with RLS, follow rows owned by the follower); suggestions come
   from shared courses or classes, never from uploaded contacts without consent; no fake people.
-- Shop tab: streak freezes bought with REAL MONEY (owner, 17 Oct). Through the existing Stripe
-  Edge Functions: one purchase row per freeze, price set server side, the freeze granted by the
-  webhook, never by the client.
-  Freezes can ALSO come free from daily boxes, and diamonds buy shop items too (owner, 17 Oct).
+- Shop, INSIDE the Me tab (owner 20 Oct; no sixth tab, per OPEN-QUESTIONS:305). Diamonds buy shop
+  items; freezes stay 75 diamonds and can also come free from daily boxes. Real-money freezes are
+  DROPPED for now (owner 20 Oct): they conflict with ECONOMY ("not buyable") and Monetisation.
 - Bloom pet (owner idea, 17 Oct; needs a design pass before any build): care for Bloom and feed
   him to evolve, Pokemon style; collect blueberries in different colours. A few collected berries
   hop around your screen, and with enough of them the loading transition becomes a swarm running
@@ -92,6 +92,19 @@ six Bloom moves, hand-written wordmark, jump / curtain lift / land exit.
    acid, an allylic carbocation...), reagents around it (Grignard, halogenation...), products
    beyond; zoom in and out.
 7. QUEUED, not yet: an organic chemistry 1 course after the Orgo 2 units are done.
+
+**Owner decisions, 20 Oct (answers to the calibration questions; recorded here, docs amended)**
+- Real-money streak freezes dropped for now; Shop lives inside Me. XP doubler and random-XP chest
+  held until XP is stored server side; the onboarding gift chest pays a FIXED amount.
+- Leaderboards: daily, weekly and all time, flagged off in production until server tables + RLS.
+- Native: Capacitor (rulebook amended). Answer shapes kept (bloat list amended).
+- Over the payload budget: cut weight, do not raise the limit. Sound: copy the island module in.
+- "Paid later" copy waits for the UMD content sort; Wave 1 says "Free for now" only.
+- orgo_1 keeps "Opening next"; all other closed courses read "Not open yet".
+- Skipped onboarding: default goal until changed in Me (ECONOMY amended). Label: "Practice" (US).
+- Work mode: subagents, no gauntlet; a validator agent checks Phase 0 + Wave 1 before the push.
+- DUPLICATES MERGED: W12 = evening brief items 1+2 (build once, in Wave 3); W6 = evening item 3 =
+  A4 HUD (build once, in Wave 2). W3 is mostly built already (courses.ts greys closed courses).
 
 **Calibration, 18 Oct (run before the loop; full reports in `grignard/reports/calibration-2026-10-18/`,
 outside the repo; 05_user_report.md is the one to read). Do these BEFORE Wave 1:**
