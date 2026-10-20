@@ -135,6 +135,11 @@ six Bloom moves, hand-written wordmark, jump / curtain lift / land exit.
   joined late) they are gifted that section's deck. Every section has its own deck. Collecting
   decks unlocks achievements. Students can make folders to organise decks, like the review folders
   on the Blueberry site (reuse that pattern). Builds on the chest model (Wave 2) and the cards tab.
+- Tips and quotes (owner 20 Oct): a list of study tips (how to study orgo) and app tips (how to use
+  Blueberry) shown while pages load and when the site opens, plus famous motivational quotes.
+  Quotes must be real and correctly attributed (verify each source; no invented or misattributed
+  lines). Short enough to read during a load; rotate without repeats; respect the boot loader's
+  open owner decision (documentation/BOOT-LOADER-BLOCKER.md) when placing them there.
 - Energy (owner 20 Oct, amends ECONOMY): cap 20; lesson -3; challenge or section final -6;
   refill +10 every 30 min; EARN energy: review drill +3, each daily quest +5, flawless lesson +2;
   wrong answers never cost. Intent: a full tank covers a ~5-lesson section and runs out just
