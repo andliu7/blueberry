@@ -129,6 +129,12 @@ six Bloom moves, hand-written wordmark, jump / curtain lift / land exit.
 - Chests are EARNED and SAVED (owner 20 Oct): completing a task (a daily quest, a section final, a
   daily gift) drops a chest right away with "Open now" / "Save for later"; saved chests stack in a
   chest inventory (in Me, or a corner badge) and can be opened one by one or all at once.
+- Section rewards and deck collection (owner 20 Oct): reaching a NEW section gifts that section's
+  card deck (saved into the student's deck collection) and may also gift a chest. The starting
+  point counts: wherever a student starts (Unit 1, or a later unit if they skip ahead because they
+  joined late) they are gifted that section's deck. Every section has its own deck. Collecting
+  decks unlocks achievements. Students can make folders to organise decks, like the review folders
+  on the Blueberry site (reuse that pattern). Builds on the chest model (Wave 2) and the cards tab.
 - Energy (owner 20 Oct, amends ECONOMY): cap 20; lesson -3; challenge or section final -6;
   refill +10 every 30 min; EARN energy: review drill +3, each daily quest +5, flawless lesson +2;
   wrong answers never cost. Intent: a full tank covers a ~5-lesson section and runs out just
