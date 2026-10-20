@@ -97,9 +97,11 @@ six Bloom moves, hand-written wordmark, jump / curtain lift / land exit.
 - Phase 0: 5 red tests green (2 regenerated tables, 3 by owner decision); budget validators measure
   the real app again; deploy gate ON for tests (budgets commented in deploy.yml until the owner runs
   `npm run lock:regen -w packages/validators` and the game route is under its limit); all controls
-  >= 44 px; contrast audit runs to the end. Weight cuts in progress (owner: supabase lazy,
-  precomputed topic counts, lazy Guidebook/FocusTimer/BlueberryBot, lazy decks; raise the limit only
-  if still over). Also stale: the mutation score (`npm run mutate`).
+  >= 44 px; contrast audit runs to the end. Weight cuts done (supabase lazy, precomputed topic
+  counts, lazy guidebooks/FocusTimer/BlueberryBot, lazy decks): the validator says 341 KB, but a
+  real cold load also fetches the on-mount supabase and decks chunks, 432.6 KB; being fixed so the
+  measurement counts on-mount chunks and #/app stops loading decks. Also stale: the mutation score
+  (`npm run mutate -w packages/validators`).
 - Wave 1 done: Practice spelling, no dark box on the unit picker + "Free for now.", closed courses
   tagged and unpressable, Bloom pressable on the path, text pass on Unit 1 and Unit 0.
 - NEW TASK: 54 contrast failures (mostly dark-theme SVG icon fills, 11 on site pages, the
@@ -116,6 +118,22 @@ six Bloom moves, hand-written wordmark, jump / curtain lift / land exit.
 - "Paid later" copy waits for the UMD content sort; Wave 1 says "Free for now" only.
 - orgo_1 keeps "Opening next"; all other closed courses read "Not open yet".
 - Skipped onboarding: default goal until changed in Me (ECONOMY amended). Label: "Practice" (US).
+- Owner-approved test changes (20 Oct): beatRunner (a ladder lesson may open on a warm-up but
+  must contain its ladder), pathwayState (test the next unit WITH content), u4-dow hangs on
+  u4-snar; plus explicit per-test timeouts for tests that are slow on their own.
+- Wave 2 picks (20 Oct): top bar = A3 decluttered: ONE row; energy as a plain number (no bar);
+  a short XP bar at the top with Bloom's level badge; label "N XP to the next stage!" (later
+  "N XP to pass <classmate>" once leaderboards are real), never "135 / 200"; NO energy cost shown
+  on spend (no -N chip, no cost slice). +XP moment = B1. Chest = C1 (three taps, five diamonds
+  fly one by one to the counter). Add DAILY GIFTS.
+- Energy (owner 20 Oct, amends ECONOMY): cap 20; lesson -3; challenge or section final -6;
+  refill +10 every 30 min; EARN energy: review drill +3, each daily quest +5, flawless lesson +2;
+  wrong answers never cost. Intent: a full tank covers a ~5-lesson section and runs out just
+  before its final; the free plan must still give real value.
+- Sections: split units 3, 5, 7, 8, 9 into ~5-lesson sections, each ending in a chest test-out
+  quiz like Unit 1 (Wave 3, with the test-outs).
+- Course progress marker: how far through the course a student is, visible to classmates
+  relative to them (needs server tables + classes; Wave 3).
 - Work mode: subagents, no gauntlet; a validator agent checks Phase 0 + Wave 1 before the push.
 - DUPLICATES MERGED: W12 = evening brief items 1+2 (build once, in Wave 3); W6 = evening item 3 =
   A4 HUD (build once, in Wave 2). W3 is mostly built already (courses.ts greys closed courses).
@@ -123,11 +141,12 @@ six Bloom moves, hand-written wordmark, jump / curtain lift / land exit.
 **Calibration, 18 Oct (run before the loop; full reports in `grignard/reports/calibration-2026-10-18/`,
 outside the repo; 05_user_report.md is the one to read). Do these BEFORE Wave 1:**
 - D1 make the 5 red tests pass (pathwayState, nodeDifficulty, checkpointStakes, pathwayBranchDensity,
-  beatRunner) by fixing code or regenerating numbers, never by editing the tests.
+  beatRunner) by fixing code or regenerating numbers, never by editing the tests. DONE 20 Oct: two
+  regenerated; three test premises changed BY OWNER DECISION (see Owner decisions, 20 Oct).
 - D2 the budget validators point at `apps/web`, gone since 09-08 (`packages/validators/src/measure/web-app.ts:47`),
   so they never run; CI only builds. Point them at `src/game`; add vitest + validators to deploy.yml
   before deploy. OWNER OK NEEDED (it can block deploys).
-- D3 `#/app` cold load measured ~585 KB gz vs the 400 KB row; re-measure once D2 works, cut weight before W8/W9/W21.
+- D3 (superseded by Progress, 20 Oct) `#/app` cold load measured ~585 KB gz vs the 400 KB row; re-measure once D2 works, cut weight before W8/W9/W21.
 - D4 36 tap targets under 44 px across 9 controls (`measurements/hit-targets.mjs` exit 1); fix, rerun after W7/W18/W22.
 - D6 every new guide/glossary file (W14, EB3b) ships with an RDKit byte-match test like `guideU1.test.ts`.
 - Also: D5 keep leaderboard/social/shop flagged off until server tables + RLS exist; D10 contrast audit
