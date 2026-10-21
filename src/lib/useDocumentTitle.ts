@@ -24,6 +24,7 @@ const TITLES: Record<string, string> = {
   about: "Contact",
   terms: "Terms",
   faq: "FAQ",
+  phone: "On your phone",
   workspace: "Workspace",
   signin: "Sign In",
   signup: "Create Account",

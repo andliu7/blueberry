@@ -1,0 +1,116 @@
+/*
+ * #/phone (PhonePage.tsx). An iPhone 16 sized screen (393 x 852 pt) on the calm site ground,
+ * scaled down to fit short windows. Below 700px wide the frame disappears and the app fills
+ * the screen, with the store line under it.
+ */
+.phone-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  padding: 1.5rem 1rem;
+  background: var(--site-ground, #eeeaf8);
+}
+
+.phone-page__device {
+  /* The frame scales with the window height so the whole screen is always visible. */
+  --phone-scale: min(1, calc((100dvh - 7rem) / 876px));
+  width: calc(417px * var(--phone-scale));
+  height: calc(876px * var(--phone-scale));
+  padding: calc(12px * var(--phone-scale));
+  border-radius: calc(64px * var(--phone-scale));
+  background: #1b1b1f;
+  box-shadow:
+    0 0 0 2px #3a3a40,
+    0 30px 70px rgba(42, 29, 122, 0.22);
+}
+
+.phone-page__screen {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: calc(52px * var(--phone-scale));
+  background: #fff;
+}
+
+.phone-page__island {
+  position: absolute;
+  z-index: 1;
+  top: calc(11px * var(--phone-scale));
+  left: 50%;
+  width: calc(126px * var(--phone-scale));
+  height: calc(37px * var(--phone-scale));
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: #000;
+  pointer-events: none;
+}
+
+.phone-page__app {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+/* Status text, not buttons: no pointer, no hover, nothing to press. */
+.phone-page__stores {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem 0.75rem;
+  margin: 0;
+  /* #4f4a6b is about 7:1 on the lavender ground; the site's own muted grey is 4.2:1 there. */
+  color: #4f4a6b;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: default;
+  user-select: none;
+}
+
+.dark .phone-page__stores {
+  color: #a4b4ca; /* the night muted ink, 5.66:1 or better on the night grounds (tokens.css) */
+}
+
+.phone-page__dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.6;
+}
+
+.phone-page__soon {
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(90, 63, 216, 0.08);
+  font-weight: 500;
+}
+
+/* On a real phone the frame steps aside: the app fills the screen, the store line sits under it. */
+@media (max-width: 700px) {
+  .phone-page {
+    justify-content: flex-start;
+    gap: 0.5rem;
+    padding: 0 0 0.75rem;
+  }
+  .phone-page__device {
+    width: 100%;
+    height: calc(100dvh - 2.75rem);
+    padding: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+  }
+  .phone-page__screen {
+    border-radius: 0;
+  }
+  .phone-page__island {
+    display: none;
+  }
+}

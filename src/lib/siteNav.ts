@@ -51,6 +51,8 @@ export function isFlowRoute(route: string): boolean {
     route === "signup" ||
     route === "staff" ||
     route === "enter" ||
+    // #/phone: the course in a phone frame, a page of its own with no site header or footer.
+    route === "phone" ||
     route === "start" ||
     route.startsWith("start/")
   );

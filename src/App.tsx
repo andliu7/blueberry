@@ -39,6 +39,8 @@ const ContactPage = lazy(() =>
   import("@/components/ContactPage").then((m) => ({ default: m.ContactPage })),
 );
 const FaqPage = lazy(() => import("@/components/FaqPage"));
+// Only reachable by URL (andliu.dev links it); nothing on the site points here.
+const PhonePage = lazy(() => import("@/components/PhonePage"));
 const SignInPage = lazy(() =>
   import("@/components/SignInPage").then((m) => ({ default: m.SignInPage })),
 );
@@ -199,6 +201,7 @@ export default function App() {
   if (route === "contact" || route === "about") return withBoundary(<ContactPage />);
   if (route === "terms") return withBoundary(<TermsPage />);
   if (route === "faq") return withBoundary(<FaqPage />);
+  if (route === "phone") return withBoundary(<PhonePage />);
   // The dashboard is pages now, not a card over the hub. `#/d` is its front
   // page and `#/d/settings` and friends are the sections.
   if (route === "d" || route.startsWith("d/")) {
