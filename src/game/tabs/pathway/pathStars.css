@@ -75,35 +75,111 @@
   70% { opacity: 1; }
   100% { opacity: 0; transform: translateX(260px) scaleX(1); }
 }
-/* A supernova: a white point flares, a ring in --c opens around it, both fade. */
+/*
+ * A supernova (owner, 2026-10-20: "a brighter flash, like a four-point star
+ * shape, and then it closes. There's a red or blue light where that was, with
+ * a slight ripple").
+ *
+ * One .path-stars-pop holds four plain children, each with its own keyframe:
+ *   bloom   a white disc that flares under the star for the first moment
+ *   flash   the four-point star (a clip-path polygon), scales up, turns a
+ *           little and closes back to nothing in under a second
+ *   glow    the red or blue light left behind, fading in as the star closes
+ *   ripple  one thin ring in the same colour that opens out once and fades
+ * Only transform and opacity animate, so it all runs on the compositor.
+ *
+ * Red or blue (data-tone, chosen at random per supernova in PathStars.tsx):
+ * red is the hydrogen glow of a remnant like the Crab Nebula's filaments, blue
+ * is its hot oxygen. Both are toned per theme so they read on the lavender
+ * ground and at night. The star's tips take the same colour so the flash still
+ * reads on the light ground, where a white star would vanish.
+ */
 .path-stars-pop {
+  --c: #e2445f;
   position: absolute;
   width: var(--s);
   height: var(--s);
   margin: calc(var(--s) / -2) 0 0 calc(var(--s) / -2);
-  border-radius: 50%;
-  background: radial-gradient(circle, #fff 0 18%, var(--c) 40%, transparent 70%);
-  animation: path-stars-pop 1.6s ease-out forwards;
 }
-.path-stars-pop::after {
-  content: "";
+.path-stars-pop[data-tone="blue"] { --c: #4779ee; }
+.dark .path-stars-pop { --c: #ff7088; }
+.dark .path-stars-pop[data-tone="blue"] { --c: #78a5ff; }
+.path-stars-pop > i {
   position: absolute;
-  inset: -60%;
-  border-radius: 50%;
-  border: 2px solid var(--c);
   opacity: 0;
-  animation: path-stars-ring 1.6s ease-out forwards;
 }
-@keyframes path-stars-pop {
+.path-stars-bloom {
+  inset: 22%;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0 24%, color-mix(in srgb, var(--c) 40%, #fff) 44%, transparent 72%);
+  animation: path-stars-bloom 0.8s ease-out forwards;
+}
+.path-stars-flash {
+  inset: 0;
+  clip-path: polygon(50% 0%, 57% 43%, 100% 50%, 57% 57%, 50% 100%, 43% 57%, 0% 50%, 43% 43%);
+  background: radial-gradient(circle, #fff 0 14%, #fff6dc 26%, var(--c) 62%);
+  animation: path-stars-flash 0.8s ease-in-out forwards;
+}
+.path-stars-glow {
+  inset: 18%;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--c) 0 12%, color-mix(in srgb, var(--c) 45%, transparent) 38%, transparent 70%);
+  animation: path-stars-glow 2.2s ease-out 0.45s forwards;
+}
+.path-stars-ripple {
+  inset: 30%;
+  border-radius: 50%;
+  border: 1.5px solid var(--c);
+  animation: path-stars-ripple 1.6s ease-out 0.55s forwards;
+}
+@keyframes path-stars-bloom {
   0% { opacity: 0; transform: scale(0.2); }
-  18% { opacity: 1; transform: scale(1.3); }
-  45% { opacity: 0.9; transform: scale(1); }
-  100% { opacity: 0; transform: scale(0.6); }
+  25% { opacity: 1; transform: scale(1.2); }
+  100% { opacity: 0; transform: scale(0.3); }
 }
-@keyframes path-stars-ring {
-  0% { opacity: 0; transform: scale(0.3); }
-  20% { opacity: 0.9; }
-  100% { opacity: 0; transform: scale(2.4); }
+/* Opens fast, holds a beat at full size, then closes to a point. */
+@keyframes path-stars-flash {
+  0% { opacity: 0; transform: scale(0) rotate(-15deg); }
+  12% { opacity: 1; }
+  35% { opacity: 1; transform: scale(1) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1.05) rotate(4deg); }
+  100% { opacity: 1; transform: scale(0) rotate(25deg); }
+}
+@keyframes path-stars-glow {
+  0% { opacity: 0; transform: scale(0.4); }
+  18% { opacity: 1; transform: scale(1); }
+  55% { opacity: 0.85; }
+  100% { opacity: 0; transform: scale(1.1); }
+}
+@keyframes path-stars-ripple {
+  0% { opacity: 0; transform: scale(0.4); }
+  15% { opacity: 0.55; }
+  100% { opacity: 0; transform: scale(2.6); }
+}
+
+/*
+ * Reduced motion keeps the meaning without the movement: no flash, just two
+ * still remnant glows, one red and one blue, placed by PathStars.tsx. Hidden
+ * whenever motion is on. The OS "reduce motion" setting arrives through the
+ * same attribute: index.html sets it before paint unless the site toggle says
+ * "full", so a media query here would overrule that toggle.
+ */
+.path-stars-still {
+  display: none;
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  margin: -20px 0 0 -20px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--c) 0 12%, color-mix(in srgb, var(--c) 45%, transparent) 38%, transparent 70%);
+  opacity: 0.8;
+  --c: #e2445f;
+}
+.path-stars-still[data-tone="blue"] { --c: #4779ee; }
+.dark .path-stars-still { --c: #ff7088; }
+.dark .path-stars-still[data-tone="blue"] { --c: #78a5ff; }
+html[data-motion="reduced"] .path-stars-still {
+  display: block;
 }
 
 /* Reduced motion: the stars stand still and no effect plays. */

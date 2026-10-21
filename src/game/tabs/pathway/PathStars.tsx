@@ -10,7 +10,8 @@
  *    the distance scrolled), instead of fading out over one section.
  *  - The stars are drawn in `currentColor`, so pathStars.css picks the colour
  *    per theme: soft violet on the light ground, near white at night.
- *  - The pops use Blueberry's own colours.
+ *  - The supernovas are a four-point star flash that closes to a red or blue
+ *    glow with a slight ripple (owner, 2026-10-20); the look is in pathStars.css.
  *
  * How it stays cheap (from the original):
  *  - Each layer is ONE 1px element whose box-shadow draws every star, so the
@@ -26,7 +27,8 @@
  *    remove themselves.
  *  - Stars are generated in an effect after the first render.
  *  - With the tab hidden or under reduced motion (html[data-motion="reduced"])
- *    nothing runs: no drift, no follow, no shooting stars, no pops.
+ *    nothing runs: no drift, no follow, no shooting stars, no pops. Reduced
+ *    motion shows two still supernova glows instead, so the sky keeps them.
  *
  * Decoration only: aria-hidden, pointer-events none.
  */
@@ -47,8 +49,8 @@ const FOLLOW = 0.07;
 const LEAN = 0.02;
 /** Seconds for the slowest layer to drift one tile; the others take 2x and 3x. */
 const DRIFT_S = 120;
-// Blueberry's violet (#5a3fd8's brighter tones), its blue, and two warm accents.
-const POP_COLOURS = ["#9d8bff", "#4779ee", "#ff9bd2", "#ffd27a", "#7ee0c3"];
+/** A supernova leaves a red or a blue glow; pathStars.css holds the colours per theme. */
+const POP_TONES = ["red", "blue"] as const;
 
 function shadows(count: number): string {
   const out: string[] = [];
@@ -113,6 +115,7 @@ export function PathStars() {
       for (const [k, v] of Object.entries(style)) el.style.setProperty(k, v);
       fx.appendChild(el);
       window.setTimeout(() => el.remove(), ms);
+      return el;
     };
     // A shooting star every 4 to 10 seconds, somewhere in the upper two thirds,
     // heading down-left or down-right at a shallow random angle.
@@ -128,16 +131,21 @@ export function PathStars() {
         }
         shoot();
       }, rand(4000, 10000));
-    // A supernova every 8 to 18 seconds: a bright point that flares into a
-    // coloured ring and fades.
+    // A supernova every 8 to 18 seconds: a four-point star flashes and closes,
+    // leaving a red or blue glow and one ripple. The four parts are empty <i>
+    // elements, each animated by its own keyframe in pathStars.css; the whole
+    // thing is gone after 2.8s, once the glow (0.45s delay + 2.2s) has faded.
     const pop = () =>
       later(() => {
         if (live()) {
-          spawn(
+          const el = spawn(
             "path-stars-pop",
-            { left: `${rand(6, 94)}%`, top: `${rand(6, 88)}%`, "--c": POP_COLOURS[Math.floor(Math.random() * POP_COLOURS.length)], "--s": `${rand(10, 22)}px` },
-            1700,
+            { left: `${rand(6, 94)}%`, top: `${rand(6, 88)}%`, "--s": `${rand(44, 80)}px` },
+            2800,
           );
+          el.dataset.tone = POP_TONES[Math.floor(Math.random() * POP_TONES.length)];
+          el.innerHTML =
+            '<i class="path-stars-bloom"></i><i class="path-stars-flash"></i><i class="path-stars-glow"></i><i class="path-stars-ripple"></i>';
         }
         pop();
       }, rand(8000, 18000));
@@ -180,6 +188,9 @@ export function PathStars() {
         </div>
       </motion.div>
       <div ref={fxRef} className="path-stars-fx" />
+      {/* Reduced motion only (CSS shows them): two supernovas held as still glows. */}
+      <span className="path-stars-still" data-tone="red" style={{ left: "14%", top: "52%" }} />
+      <span className="path-stars-still" data-tone="blue" style={{ left: "78%", top: "64%" }} />
     </div>
   );
 }
