@@ -105,6 +105,26 @@
      edge. A divider, not a control outline, so it is quiet on purpose: 1.51:1 on the card. */
   --site-hairline: #d6cfe8;
 
+  /* ---------- The footer (owner 20 Oct: "like andliu.dev") ---------- */
+  /* One deep violet ground in both themes, as andliu.dev's footer is one dark ground in
+     both. No .dark override below on purpose. Ratios computed 2026-10-21 on #1c1745:
+     head #ffffff 16.69, ink #e7e2fa 13.24, quiet #b8b0dd 8.18, ring #cdc4ff 10.28.
+     The Find me chip #2a2360 is a quiet tint (1.2:1); its icon is white, 13.93:1 on it.
+     The FAQ tile is the lavender card on the dark ground: #2e2b45 on #efeaf8 11.5,
+     its ledge #a99ad8 6.6:1 against the footer. The seam line is decoration. */
+  --site-foot: #1c1745;
+  --site-foot-head: #ffffff;
+  --site-foot-ink: #e7e2fa;
+  --site-foot-quiet: #b8b0dd;
+  --site-foot-ring: #cdc4ff;
+  --site-foot-chip: #2a2360;
+  --site-foot-line: #3a3270;
+  --site-foot-faq: #efeaf8;
+  --site-foot-faq-ink: #2e2b45;
+  --site-foot-faq-edge: #a99ad8;
+  --site-foot-laser: #a99bff;
+  --site-foot-shadow: rgb(12 10 36 / 0.45);
+
   /* ---------- Tab glyphs, shell round 5, redrawn round 6 (src/components/ui/site-tab-icons.tsx) */
   /* Three tones per glyph, the same bright face in both themes (owner, 30 Sep: cute, clean,
      3D). The face does not have to hold 3:1: the shade tone does. It is the whole silhouette,

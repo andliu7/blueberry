@@ -262,3 +262,178 @@ html:has(.site-header) {
 }
 html[data-tint] .site-wash::after { opacity: 1; }
 html[data-motion="reduced"] .site-wash::after { transition: none; }
+
+/* ---------- The footer comes up from under the page (owner, 20 Oct: "like andliu.dev") ---------- */
+
+/* Ported from andliu-portfolio components/site/footer.css. The page is one layer up and the
+   footer one layer down, stuck to the bottom of the window, so the footer is uncovered as
+   the page slides up off it at the end of the scroll.
+
+   THE LAYERS, all in #root's stacking context (isolation below):
+     z -2  .site-footer   the footer, sticky to the bottom of the window
+     z -1  .site-wash     the page's ground, now riding inside .site-page (below)
+     z  0  the page itself, its cards and text
+   The page used to be see-through over a FIXED wash, which would have shown the footer
+   straight through it. Now the wash is sticky inside .site-page, so it is the window's
+   height while you read and is carried up with the page's bottom edge at the end, which
+   is what uncovers the footer.
+
+   WHY #root IS ISOLATED. A negative z-index sits under every ordinary block of its stacking
+   context, and <body> would then cover the footer: visible, but every click lands on <body>.
+   `isolation: isolate` makes #root the context, so its own box is the floor. Only on framed
+   pages (the footer is only drawn there), so the game and the flows are untouched. */
+#root:has(> .site-footer) {
+  isolation: isolate;
+}
+
+/* The page wrapper SiteChrome draws round the header and the page on framed routes. The
+   wash inside it is a window tall with a -100vh margin, so it takes no room; that same
+   margin would let sticky carry it past the page's end and over the footer, so the wrapper
+   clips at its own bottom edge. `clip`, not `hidden`: clip does not make a scroll box, so
+   the sticky wash and the sticky header still stick to the window. Only the vertical
+   axis: anything wider than the page is left alone. */
+.site-page {
+  overflow-x: visible;
+  overflow-y: clip;
+}
+.site-page > .site-wash {
+  position: sticky;
+  top: 0;
+  inset-inline: auto;
+  bottom: auto;
+  height: 100vh;
+  margin-bottom: -100vh;
+}
+
+/* The footer. In flow by default (no JavaScript, Reduce motion on, or too tall to fit);
+   sticky only when it fits the window (data-fits, measured in site-footer.tsx). On a phone
+   it sticks above the fixed bottom bar, not behind it. */
+.site-footer {
+  position: relative;
+  z-index: -2;
+  background: var(--site-foot);
+  color: var(--site-foot-ink);
+}
+html:not([data-motion="reduced"]) .site-footer[data-fits] {
+  position: sticky;
+  bottom: 0;
+}
+@media (max-width: 767.98px) {
+  html:not([data-motion="reduced"]) .site-footer[data-fits] {
+    bottom: calc(var(--site-bar-h) + env(safe-area-inset-bottom));
+  }
+}
+/* The shell ring is --ring, 2.5:1 on this ground by day. Same rule shape, later, so it wins. */
+.site-footer :focus-visible {
+  outline-color: var(--site-foot-ring);
+}
+
+/* The seam: zero height, at the page's bottom edge, above the footer. Its ::before casts the
+   page's shadow down onto the footer (clipped so none falls back up onto the page), and the
+   line is andliu.dev's laser in Blueberry's violet. Static: no flicker, no drift, so it needs
+   no reduced-motion branch. */
+.site-seam {
+  position: relative;
+  z-index: 1;
+  height: 0;
+  pointer-events: none;
+}
+.site-seam::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 24px;
+  box-shadow: 0 14px 32px var(--site-foot-shadow);
+  clip-path: inset(24px -60px -100px -60px);
+}
+.site-seam-line {
+  position: absolute;
+  left: 50%;
+  bottom: -1px;
+  width: min(840px, 70%);
+  height: 2px;
+  translate: -50% 0;
+  border-radius: 999px;
+  background: radial-gradient(closest-side, var(--site-foot-head) 30%, var(--site-foot-laser) 70%, transparent);
+  box-shadow: 0 0 14px 2px color-mix(in srgb, var(--site-foot-laser) 60%, transparent);
+}
+
+/* Find me: GitHub, LinkedIn, email as icon chips whose word grows out on hover or keyboard
+   focus (andliu.dev's social-button.css). The word is real text the whole time, only clipped
+   to zero width, so a screen reader reads "GitHub" even while it is hidden. Touch screens
+   have no hover, so there the word always shows. Flat, like any icon control (rule 5). */
+.site-find {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding-inline: 12px;
+  border: 2px solid var(--site-foot-line);
+  border-radius: 999px;
+  background: var(--site-foot-chip);
+  color: var(--site-foot-head);
+  font-family: var(--site-display);
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: border-color var(--bb-dur-ui) var(--bb-ease-ui);
+}
+.site-find-label {
+  max-width: 0;
+  opacity: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  margin-left: 0;
+  transition:
+    max-width var(--bb-dur-enter) var(--bb-ease-out),
+    opacity var(--bb-dur-ui) var(--bb-ease-ui),
+    margin-left var(--bb-dur-enter) var(--bb-ease-out);
+}
+@media (hover: hover) {
+  .site-find:hover { border-color: var(--site-foot-quiet); }
+  .site-find:hover .site-find-label { max-width: 8rem; opacity: 1; margin-left: 8px; }
+}
+.site-find:focus-visible .site-find-label { max-width: 8rem; opacity: 1; margin-left: 8px; }
+@media (hover: none) {
+  .site-find .site-find-label { max-width: 8rem; opacity: 1; margin-left: 8px; }
+}
+/* Reduced motion: the word still opens, it just does not slide. */
+html[data-motion="reduced"] .site-find,
+html[data-motion="reduced"] .site-find-label {
+  transition: none;
+}
+
+/* The FAQ, made hard to miss (owner, 20 Oct: "FAQ would be more obvious"). The lavender
+   card on the dark ground, with the ledge every pressable carries: it lifts on hover, sinks
+   onto its ledge on pointer down in 60ms, and springs back in 160ms. */
+.site-foot-faq {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 12px 16px;
+  border-radius: 16px;
+  background: var(--site-foot-faq);
+  color: var(--site-foot-faq-ink);
+  box-shadow: 0 4px 0 var(--site-foot-faq-edge);
+  text-decoration: none;
+  transition:
+    translate var(--bb-dur-release) var(--bb-ease-spring),
+    box-shadow var(--bb-dur-release) var(--bb-ease-spring);
+}
+@media (hover: hover) {
+  .site-foot-faq:hover { translate: 0 -1px; box-shadow: 0 5px 0 var(--site-foot-faq-edge); }
+}
+.site-foot-faq:active {
+  translate: 0 4px;
+  box-shadow: 0 0 0 var(--site-foot-faq-edge);
+  transition:
+    translate var(--bb-dur-press) var(--bb-ease-ui),
+    box-shadow var(--bb-dur-press) var(--bb-ease-ui);
+}
+/* Reduced motion: no travel; the ledge still collapses at once, so the press is seen. */
+html[data-motion="reduced"] .site-foot-faq { transition: none; }
+html[data-motion="reduced"] .site-foot-faq:hover { translate: none; box-shadow: 0 4px 0 var(--site-foot-faq-edge); }
+html[data-motion="reduced"] .site-foot-faq:active { translate: none; box-shadow: 0 0 0 var(--site-foot-faq-edge); }

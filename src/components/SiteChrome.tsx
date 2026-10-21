@@ -79,19 +79,26 @@ export function SiteChrome({ children }: { children: ReactNode }) {
   const motionMode = inGame ? "user" : reduced ? "always" : "never";
   return (
     <MotionConfig reducedMotion={motionMode}>
-      {!inGame && <div className="site-wash" aria-hidden />}
-      {framed && (
-        <SiteNav
-          route={route}
-          pill={
-            <Suspense fallback={null}>
-              <FocusPill t={timer} />
-            </Suspense>
-          }
-          account={<ProfileDropdown />}
-        />
-      )}
-      {children}
+      {/* The page layer (owner, 20 Oct: the footer comes up from under the page, as on
+          andliu.dev). On framed pages `.site-page` holds the wash, the header and the page,
+          and the footer sits one layer below it; site-shell.css, "The footer comes up",
+          explains the layers. The div is always drawn, with the class only where the
+          footer is, so `children` never changes position (see the note above). */}
+      <div className={framed ? "site-page" : undefined}>
+        {!inGame && <div className="site-wash" aria-hidden />}
+        {framed && (
+          <SiteNav
+            route={route}
+            pill={
+              <Suspense fallback={null}>
+                <FocusPill t={timer} />
+              </Suspense>
+            }
+            account={<ProfileDropdown />}
+          />
+        )}
+        {children}
+      </div>
       {framed && <SiteNavBar route={route} />}
       {framed && <SiteFooter />}
       {framed && <SiteNavSpacer />}
