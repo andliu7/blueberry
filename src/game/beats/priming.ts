@@ -97,6 +97,48 @@ export function guessPayoff(node: string, optionId: string): GuessPayoff | null 
 }
 
 /**
+ * The prediction revisit at the end of a primed lesson (owner, queue item 17):
+ * "Here was your prediction. Still agree?" The student answers yes or no, and
+ * THAT answer is what is marked:
+ *
+ *   prediction right, still agree   right  "You called it!"
+ *   prediction wrong, changed mind  right  "Right to change your mind!"
+ *   prediction wrong, still agree   wrong  "Not quite"
+ *   prediction right, changed mind  wrong  "Your first call was right"
+ *
+ * The answer and the why come from guessPayoff, so the revisit can only say
+ * what the lesson's own content already says. Null for an unknown option.
+ */
+export interface RevisitVerdict {
+  /** Whether the yes or no was the right call. */
+  readonly right: boolean;
+  /** Whether the prediction made before the lesson was itself right. */
+  readonly predictionRight: boolean;
+  readonly title: string;
+  readonly answer: string;
+  readonly why: string;
+}
+
+export function revisitVerdict(node: string, picked: string, stillAgree: boolean): RevisitVerdict | null {
+  const payoff = guessPayoff(node, picked);
+  if (payoff === null) return null;
+  const title = payoff.right
+    ? stillAgree
+      ? "You called it!"
+      : "Your first call was right"
+    : stillAgree
+      ? "Not quite"
+      : "Right to change your mind!";
+  return {
+    right: stillAgree === payoff.right,
+    predictionRight: payoff.right,
+    title,
+    answer: payoff.answer,
+    why: payoff.why,
+  };
+}
+
+/**
  * The order the map's idea chips sit in before the student places them.
  * Alphabetical by label, so it is the same on every render and in the test,
  * and reversed if that happens to be the lesson's own order, so the answer is

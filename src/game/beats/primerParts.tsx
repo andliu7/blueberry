@@ -276,24 +276,18 @@ export function MapBuilder({
   };
 
   return (
-    <section className="primer-map" aria-labelledby="primer-map-label">
-      <h3 id="primer-map-label" className="lesson-preview__label">
-        Rebuild the map
-      </h3>
-      <p className="primer-map__ask">You saw this map before the lesson. Read the links, then tap the ideas back in, top to bottom.</p>
-
+    // The heading and the ask are the recap's own (LessonRecap.tsx), in the
+    // question screen's heading face, so this section is the map and the dock.
+    <section className="primer-map" aria-label="The map to rebuild">
       <MapChain priming={priming} shown={placed} gaps openingVia="The lesson opened with" />
 
       {/* The dock: the chips to place and what the last tap said. It sticks to
           the bottom of the scroller (preview.css), so the word bank stays in
           reach while the map above it scrolls, as a word bank does. */}
-      <div className="primer-dock">
-        {done ? (
-          <p className="primer-build__done">
-            <DoneMark />
-            Map rebuilt. That is the lesson in one line.
-          </p>
-        ) : (
+      {/* Once built, the recap's green tray says so and the dock goes, so no
+          empty band is left over the tray. */}
+      {done ? null : (
+        <div className="primer-dock">
           <div ref={poolRef} role="group" aria-label="Ideas to place" className="primer-pool">
             {order
               .filter((index) => index >= placed)
@@ -301,7 +295,8 @@ export function MapBuilder({
                 <button
                   key={`${ideas[index].label}-${index}`}
                   type="button"
-                  className="primer-pool__chip"
+                  // The question screen's option card material, sized to its words.
+                  className="option-card primer-pool__chip"
                   data-miss={miss?.index === index ? (miss.count % 2 === 0 ? "b" : "a") : undefined}
                   style={{ "--i": slot } as CSSProperties}
                   onClick={() => tap(index)}
@@ -310,11 +305,11 @@ export function MapBuilder({
                 </button>
               ))}
           </div>
-        )}
-        <p className="primer-build__say" aria-live="polite" data-motion={reducedMotion ? "reduced" : "full"}>
-          {done ? "" : said}
-        </p>
-      </div>
+          <p className="primer-build__say" aria-live="polite" data-motion={reducedMotion ? "reduced" : "full"}>
+            {said}
+          </p>
+        </div>
+      )}
     </section>
   );
 }
@@ -325,15 +320,6 @@ function BackMark() {
     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
       <path d="M9 14 4 9l5-5" />
       <path d="M4 9h10a6 6 0 0 1 0 12h-3" />
-    </svg>
-  );
-}
-
-/** A tick for "map built". */
-export function DoneMark() {
-  return (
-    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M5 12.5 10 17.5 19 7" />
     </svg>
   );
 }

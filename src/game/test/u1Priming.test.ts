@@ -37,6 +37,7 @@ import {
   primingFor,
   primingSources,
   quotableText,
+  revisitVerdict,
   viaWords,
 } from "../beats/priming";
 import { lessonMcqBeats, lessonMeetBeats, planLesson } from "../beats/template";
@@ -230,6 +231,35 @@ describe("the recap marks the guess", () => {
       }
       expect(guessPayoff(node, "no-such-option")).toBeNull();
     }
+  });
+});
+
+describe("the prediction revisit marks the yes or no (owner, queue item 17)", () => {
+  it("is right exactly when 'still agree' matches whether the prediction was right, with the lesson's answer and why", () => {
+    for (const node of Object.keys(U1_PRIMING)) {
+      const guess = guessFor(node);
+      if (guess === null) continue;
+      for (const option of guess.options) {
+        const payoff = guessPayoff(node, option.id)!;
+        for (const stillAgree of [true, false]) {
+          const verdict = revisitVerdict(node, option.id, stillAgree)!;
+          expect(verdict.right, `${node}: ${option.id} agree=${stillAgree}`).toBe(stillAgree === payoff.right);
+          expect(verdict.predictionRight).toBe(payoff.right);
+          expect(verdict.answer).toBe(payoff.answer);
+          expect(verdict.why).toBe(payoff.why);
+        }
+      }
+      expect(revisitVerdict(node, "no-such-option", true)).toBeNull();
+    }
+  });
+
+  it("names each of the four cases in its own words", () => {
+    const guess = guessFor("u1-kvt")!;
+    const wrong = guess.options.find((option) => option.id !== guess.correctOptionId)!;
+    expect(revisitVerdict("u1-kvt", guess.correctOptionId, true)!.title).toBe("You called it!");
+    expect(revisitVerdict("u1-kvt", guess.correctOptionId, false)!.title).toBe("Your first call was right");
+    expect(revisitVerdict("u1-kvt", wrong.id, true)!.title).toBe("Not quite");
+    expect(revisitVerdict("u1-kvt", wrong.id, false)!.title).toBe("Right to change your mind!");
   });
 });
 
