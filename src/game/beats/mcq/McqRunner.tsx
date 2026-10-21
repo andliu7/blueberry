@@ -37,7 +37,8 @@ import { useRef, useState, type ReactNode } from "react";
 
 import { Press } from "../../app/ui/Press";
 import type { Card, Reco } from "../../cards/types";
-import type { BeatResult, MasteryLevel, McqBeat } from "../types";
+import { clearsBeat, type BeatResult, type MasteryLevel, type McqBeat } from "../types";
+import { playCorrect } from "../../sound/gameSound";
 import { mcqBeatsForNode } from "./content";
 import { resumeMcqSession } from "../../resume/lessonSave";
 import { McqBeatView } from "./McqBeatView";
@@ -156,6 +157,7 @@ export function McqRunner({
       elapsedMs: Date.now() - startedAt.current,
     });
     if (committed === null) return;
+    if (clearsBeat(committed.reveal.result)) playCorrect();
     setSession(committed.session);
     if (onProgress !== undefined) onProgress(sessionProgress(committed.session));
     if (onCommit !== undefined) onCommit(committed.session.results, sessionProgress(committed.session));

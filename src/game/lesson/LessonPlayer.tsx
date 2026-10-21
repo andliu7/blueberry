@@ -66,6 +66,7 @@ import {
 import { progress } from "../app/progress";
 import type { Receipt } from "@blueberry/economy";
 import { useProgress } from "../app/hooks";
+import { playCorrect } from "../sound/gameSound";
 import { ProblemView } from "./ProblemView";
 import { FeedbackBody, feedbackHeadline } from "./Feedback";
 import { ReactionStrip } from "./ReactionStrip";
@@ -213,6 +214,7 @@ export function LessonPlayer({ topic, problems, reducedMotion, onExit, onFinishe
     setAttempted((n) => n + 1);
 
     if (outcome === "correct") {
+      playCorrect();
       setCorrect((n) => n + 1);
       correctRunRef.current += 1;
       missRunRef.current = 0;

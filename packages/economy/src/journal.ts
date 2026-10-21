@@ -141,6 +141,8 @@ export type EconomyEvent =
       readonly dailyGoal?: DailyGoalTier;
       readonly examDate?: string | null;
       readonly reminderHour?: number | null;
+      /** Game sounds on or off (src/game/sound). Absent means on, the default. */
+      readonly sound?: boolean;
     });
 
 export type EconomyEventKind = EconomyEvent["kind"];
@@ -270,7 +272,8 @@ export function isEconomyEvent(x: unknown): x is EconomyEvent {
           (typeof x["reminderHour"] === "number" &&
             Number.isInteger(x["reminderHour"]) &&
             x["reminderHour"] >= 0 &&
-            x["reminderHour"] <= 23))
+            x["reminderHour"] <= 23)) &&
+        (x["sound"] === undefined || typeof x["sound"] === "boolean")
       );
     default:
       return false;

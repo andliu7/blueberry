@@ -19,6 +19,7 @@ import { Berry } from "../../mascot/Berry";
 import type { Card } from "../../cards/types";
 import { Drawing } from "../../cards/ui/CardFace";
 import { predictionChoices } from "../../cards/ui/predict";
+import { playCorrect } from "../../sound/gameSound";
 import { TermSide } from "./CardSides";
 import { answerText, shuffled, textChoices } from "./studyModel";
 
@@ -127,8 +128,11 @@ export function TestMode({
   const pick = (option: Option) => {
     if (answered) return;
     setPicked(option.key);
-    if (option.correct) setRight((value) => value + 1);
-    else setMissed((list) => [...list, question.card.id]);
+    if (option.correct) {
+      setRight((value) => value + 1);
+      // The chime lands with the green option. Silent when sound is off.
+      playCorrect();
+    } else setMissed((list) => [...list, question.card.id]);
   };
 
   return (

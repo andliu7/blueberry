@@ -112,6 +112,8 @@ export interface SettingsFields {
   readonly dailyGoal?: DailyGoalTier;
   readonly examDate?: string | null;
   readonly reminderHour?: number | null;
+  /** Game sounds on or off; see src/game/sound/sound.ts. */
+  readonly sound?: boolean;
 }
 
 export interface ProgressSource {

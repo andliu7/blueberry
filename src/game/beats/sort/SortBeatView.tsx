@@ -69,7 +69,8 @@ import {
 import { PKA_TABLE, type OrderingState, type PkaSiteId } from "@blueberry/curriculum";
 import { ChipPress } from "../ChipPress";
 import { AnswerTray, TrayWhy } from "../AnswerTray";
-import { canFail, type BeatResult, type MasteryLevel } from "../types";
+import { canFail, clearsBeat, type BeatResult, type MasteryLevel } from "../types";
+import { playCorrect } from "../../sound/gameSound";
 import {
   boardIsComplete,
   boardOrder,
@@ -361,6 +362,7 @@ export function SortBeatView({
     if (onSubmitOrder !== undefined) {
       onSubmitOrder({ kind: "ordering", order: boardOrder(board) });
     }
+    if (clearsBeat(judgedNow.result)) playCorrect();
     if (onResult !== undefined) onResult(judgedNow.result);
   }
 

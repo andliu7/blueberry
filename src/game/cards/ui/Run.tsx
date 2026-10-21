@@ -26,6 +26,7 @@
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { REACTIONS } from "../../../data/reactions";
+import { playCorrect } from "../../sound/gameSound";
 import type { SavedMistake } from "../../tabs/trainer/mistakes";
 import { reviewInterval, startCard } from "../scheduler";
 import type { Card, CardId, DeckSnapshot, DeckSource, Rating, ReviewState } from "../types";
@@ -162,6 +163,8 @@ export function Run({ cards, source, journal, onExit, credit }: RunProps) {
     if (card === null || state.revealed) return;
     const entry: Call = { cardId: card.id, key: option?.key ?? null, correct: option?.correct === true };
     setCalls([...calls, entry]);
+    // A right call chimes as the card flips to show it. Silent when sound is off.
+    if (entry.correct) playCorrect();
     flip();
   };
 

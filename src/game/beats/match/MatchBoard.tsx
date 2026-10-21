@@ -89,6 +89,7 @@ import {
   type BoardState,
 } from "./board";
 import { completionLine, progressLine } from "./reasons";
+import { playCorrect } from "../../sound/gameSound";
 import "./match.css";
 
 /**
@@ -241,6 +242,11 @@ export function Board({
       dispatch({ kind: "settle" });
     }, settleDelayMs(pending.outcome));
     return () => window.clearTimeout(timer);
+  }, [state.pending]);
+
+  // The correct chime, once per pair that lands, as the pair turns green.
+  useEffect(() => {
+    if (state.pending?.outcome === "landed") playCorrect();
   }, [state.pending]);
 
   // Focus repair, run after the settle has already removed the landed cards.

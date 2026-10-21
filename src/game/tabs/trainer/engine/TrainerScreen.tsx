@@ -60,6 +60,7 @@ import { createHitTester, type DrawTarget } from "../hitLayout";
 import { arrowKey, gradeDrawing, type DrawVerdict } from "../grade";
 import { matchDistractor } from "../distractors";
 import { playWrongSound } from "../feedbackSound";
+import { playCorrect } from "../../../sound/gameSound";
 import { saveMistake } from "../mistakes";
 import { ChipPress } from "../../../beats/ChipPress";
 import { ExitMark } from "../../../beats/chromeIcons";
@@ -347,10 +348,12 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
       // moves. (Scrubbing straight to the product painted zero green pixels,
       // g4-arrows-verdict.md claim 1; holding forever never showed the product.)
       if (reducedMotion) {
+        playCorrect();
         react("correct");
         holdTimer.current = window.setTimeout(() => win.scrub(1), REDUCED_HOLD_MS);
       } else {
         afterRise(() => {
+          playCorrect();
           react("correct");
           holdTimer.current = window.setTimeout(() => win.play(), WIN_HOLD_MS);
         });

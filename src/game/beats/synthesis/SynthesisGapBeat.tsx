@@ -41,7 +41,8 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Press } from "../../app/ui/Press";
 import { ChipPress } from "../ChipPress";
-import type { BeatResult, MasteryLevel } from "../types";
+import { clearsBeat, type BeatResult, type MasteryLevel } from "../types";
+import { playCorrect } from "../../sound/gameSound";
 import { offerCardForMistake, shouldOfferCard, type GapCardOffer } from "./cards";
 import { explainSynthesisResult, gradeSynthesisGap, type GapSubmission } from "./grade";
 import { levelToPlay } from "./beats";
@@ -220,6 +221,7 @@ export function SynthesisGapBeat({
       now: at,
     });
     setResult(graded);
+    if (clearsBeat(graded)) playCorrect();
     onResolved(graded);
     if (shouldOfferCard(graded) && onOfferCard !== undefined) {
       onOfferCard(offerCardForMistake(problem, graded, at));

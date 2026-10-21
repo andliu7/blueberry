@@ -46,6 +46,7 @@ import { ChipPress } from "../ChipPress";
 import { traceTarget } from "./content";
 import { gradeDrawing, toBeatResult, type Recognition, type TraceOutcome } from "./recognise";
 import { formulaOf, type Graph } from "./target";
+import { playCorrect } from "../../sound/gameSound";
 
 export interface TraceBeatViewProps {
   readonly beat: TraceBeat;
@@ -141,6 +142,8 @@ export function TraceBeatView({ beat, level, onResult, onOfferCard, onContinue }
       });
       setOutcome(next);
       if (next.kind === "correct") {
+        // Once per beat: a second correct read of the same drawing is quiet.
+        if (!resolved.current) playCorrect();
         resolved.current = true;
         onResult(result);
       } else if (target !== undefined) {
