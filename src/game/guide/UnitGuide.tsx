@@ -197,7 +197,7 @@ export function UnitGuidePage({ guide, unitLabel, unitName, doors, progress, onS
     <div ref={pageRef} className="ug-overlay" role="dialog" aria-modal="true" aria-label={`${unitLabel} guidebook`} onKeyDown={trapTab}>
       <div className="ug-bar">
         <div className="ug-bar__in">
-          <button ref={backRef} type="button" className="ug-back" aria-label="Back to the path" onClick={closeAndForget}>
+          <button ref={backRef} type="button" className="ug-back bb-back-disc" aria-label="Back to the path" onClick={closeAndForget}>
             <svg viewBox="0 0 24 24" aria-hidden>
               <path d="M15 5 8 12l7 7" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" />
             </svg>

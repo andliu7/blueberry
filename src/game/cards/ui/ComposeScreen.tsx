@@ -115,7 +115,7 @@ export function ComposeScreen({ snapshot, source, onBack }: ComposeScreenProps) 
       <div className="flex items-center gap-2">
         <button
           type="button"
-          className="press flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-bb-muted-foreground"
+          className="press bb-back-disc flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-bb-muted-foreground"
           onClick={onBack}
           aria-label="Back to your decks"
         >

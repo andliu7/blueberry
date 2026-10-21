@@ -142,7 +142,7 @@ export function Frame({
   const lead = (
     <button
       type="button"
-      className="ob-back"
+      className="ob-back bb-back-disc"
       data-place={leave ? "inline" : "gutter"}
       data-empty={onBack === null ? "true" : "false"}
       aria-label={withoutMark(leave ? LEAVE_LABEL : BACK_LABEL)}

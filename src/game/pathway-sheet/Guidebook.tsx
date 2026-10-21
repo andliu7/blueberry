@@ -420,7 +420,7 @@ export function Guidebook({ content, onBack, reducedMotion }: GuidebookProps) {
 
   return (
     <article className="gb-page" data-placeholder-copy={content.placeholder ? "human-gate" : undefined} aria-label={`Guidebook: ${content.title}`}>
-      <button type="button" className="gb-back press" aria-label="Back" {...pressHandlers(onBack)}>
+      <button type="button" className="gb-back bb-back-disc press" aria-label="Back" {...pressHandlers(onBack)}>
         <BackGlyph />
       </button>
 

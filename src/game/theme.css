@@ -922,6 +922,39 @@
   filter: brightness(0.94);
 }
 
+/* BACK DISC (owner, 20 Oct, queue item 24): "add a faint circle around it so
+   even if there is an image at the top or something, it's clear." One shared
+   class, added beside a back button's own class (ug-back, gb-back, ob-back,
+   the cards screens), never copied per page.
+
+   The disc is a ::before layer under the icon rather than the button's own
+   background, so each button keeps its own background and hover rules and
+   the shared class never fights them over load order. isolation keeps the
+   z-index -1 layer inside the button instead of dropping behind the page.
+
+   A soft card coloured fill (the icon's ink already passes on --bb-card in
+   both themes) plus a hairline ring in the ink colour. On a light ground the
+   ring is what shows; on a dark or busy image the fill is. Flat, per the
+   rulebook: no shadow, no glow, no gradient. The button itself stays the
+   44px hit target; the disc is inset 2px so it reads as faint, not a key. */
+.bb-back-disc {
+  position: relative;
+  isolation: isolate;
+  border-radius: 9999px;
+}
+.bb-back-disc::before {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  z-index: -1;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--bb-card) 78%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--bb-foreground) 16%, transparent);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  pointer-events: none;
+}
+
 /* Loading skeleton: a visible shimmer, never a blank rectangle. */
 .skeleton {
   background: linear-gradient(
