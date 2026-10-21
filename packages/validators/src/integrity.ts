@@ -88,21 +88,19 @@ import {
  * grade chem-core. A gate that reported the suite as MODIFIED on every engine edit
  * would be telling a builder that improving the thing under test has invalidated the
  * evidence, which is backwards: the correct reaction to an engine edit is to RE-RUN the
- * checks, not to refuse to run them. chem-core is also not unguarded. It already has a
- * gate built for exactly this shape, `chemCoreSourceFingerprint()` in
- * measure/mutation-record.ts, which hashes src, test, and both config files and reports
- * the mutation score STALE the moment any byte moves. STALE forces a fresh measurement.
- * MODIFIED refuses to report. Those are the right verbs for the two cases, and this
- * file borrows that file's vocabulary rather than inventing a second one: a fingerprint
- * over a declared set of paths, CRLF normalised, with the path in the hash alongside the
+ * checks, not to refuse to run them. chem-core is guarded by its own test suite, which
+ * runs on every push before deploy. (Until 2026-10-20 a mutation score with a source
+ * fingerprint also guarded it; the owner removed mutation testing in the 17 Oct cleanup,
+ * and Stryker was never installed in this repo.) The fingerprint below is a hash over a
+ * declared set of paths, CRLF normalised, with the path in the hash alongside the
  * content so a rename is a change.
  *
  * The residual risk, stated rather than hidden: a check that grades a fixture against
  * chem-core data, `allMechanismRoutes()` for instance, is trusting the subject under
  * test as a vocabulary. That is a narrower exposure than the feedback one was, because
  * MechanismRoute is a closed union in the type system, so editing it breaks compilation
- * across every fixture and check that names a route, and because any such edit makes
- * the mutation record STALE. It is not zero. If a later phase adds a check that reads
+ * across every fixture and check that names a route, and because any such edit has to
+ * get past every chem-core test that pins the route. It is not zero. If a later phase adds a check that reads
  * chem-core as an answer key rather than as a vocabulary, the honest fix is to add a
  * projection for that specific datum, exactly as was done here for competingRoutes, not
  * to fingerprint the whole engine.
@@ -224,9 +222,8 @@ export const EXTERNAL_DATA: readonly DeclaredExternalPackage[] = [
     reason:
       "The suite exists to grade chem-core. Fingerprinting it would report the evidence " +
       "inadmissible every time the engine is edited, when the correct reaction to an engine " +
-      "edit is to re-run the checks. chem-core is separately fingerprinted by " +
-      "chemCoreSourceFingerprint() in measure/mutation-record.ts, which reports the mutation " +
-      "score STALE on any byte change and forces a fresh measurement.",
+      "edit is to re-run the checks. chem-core is guarded by its own test suite, which runs " +
+      "on every push before deploy.",
   },
   {
     specifier: "@blueberry/curriculum",

@@ -5,7 +5,6 @@ import { budgetChecks } from "./budgets/index.ts";
 import { oracleChecks } from "./oracle/index.ts";
 import { feedbackChecks } from "./feedback/index.ts";
 import { curriculumChecks } from "./curriculum/index.ts";
-import { mutationChecks } from "./mutation/index.ts";
 
 /**
  * The check registry.
@@ -26,5 +25,4 @@ export const checks: readonly Check[] = [
   ...oracleChecks,
   ...feedbackChecks,
   ...curriculumChecks,
-  ...mutationChecks,
 ];
