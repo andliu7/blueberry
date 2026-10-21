@@ -316,7 +316,8 @@ def choose_wedges(smiles: str, xy: np.ndarray) -> list[tuple[int, int, str]]:
 
 
 def figure(smiles: str, coords: np.ndarray | None = None, source: Chem.Mol | None = None,
-           hi: tuple[str, ...] = (), explicit_h: bool = False, level: str | None = None) -> tuple[dict, np.ndarray]:
+           hi: tuple[str, ...] = (), explicit_h: bool = False, level: str | None = None,
+           ester_label: bool = True) -> tuple[dict, np.ndarray]:
     """A GuideFigure for `smiles`, plus the RDKit coordinates used (so a second
     contributor can be drawn on the same skeleton).
 
@@ -331,7 +332,9 @@ def figure(smiles: str, coords: np.ndarray | None = None, source: Chem.Mol | Non
     `source` draws that Mol as is, so two contributors keep one atom order.
     `explicit_h` draws every H (the methyl anion, which has no skeleton).
     `level` turns the drawing so the bond that SMARTS matches lies flat, with
-    the rest of the molecule above it (a rotation, so no stereo changes)."""
+    the rest of the molecule above it (a rotation, so no stereo changes).
+    `ester_label` False draws a methyl ester bond by bond (the later units'
+    guides use that for a small chain ester, where the label left a stub)."""
     mol = Chem.Mol(source) if source is not None else Chem.MolFromSmiles(smiles)
     if explicit_h:
         mol = Chem.AddHs(mol)
@@ -364,7 +367,7 @@ def figure(smiles: str, coords: np.ndarray | None = None, source: Chem.Mol | Non
     # Methyl esters, written as one label on the carbonyl carbon.
     hidden: set[int] = set()
     labels: dict[int, tuple[str, str]] = {}  # atom -> (text, anchor)
-    for attach, carbonyl, o1, o2, me in mol.GetSubstructMatches(Chem.MolFromSmarts("[#6][CX3](=O)O[CH3]")):
+    for attach, carbonyl, o1, o2, me in (mol.GetSubstructMatches(Chem.MolFromSmarts("[#6][CX3](=O)O[CH3]")) if ester_label else ()):
         hidden.update((o1, o2, me))
         rightward = xy[carbonyl][0] >= xy[attach][0]
         labels[carbonyl] = ("CO_2CH_3", "start") if rightward else ("CH_3O_2C", "end")
@@ -553,8 +556,8 @@ def equalize(panels: list[dict]) -> list[dict]:
 
 def mol_panel(smiles: str, name: str | None = None, coords: np.ndarray | None = None,
               source: Chem.Mol | None = None, hi: tuple[str, ...] = (), explicit_h: bool = False,
-              level: str | None = None) -> tuple[dict, np.ndarray]:
-    fig, pts = figure(smiles, coords, source, hi, explicit_h, level)
+              level: str | None = None, ester_label: bool = True) -> tuple[dict, np.ndarray]:
+    fig, pts = figure(smiles, coords, source, hi, explicit_h, level, ester_label)
     panel = {"kind": "mol", "smiles": smiles, "figure": fig}
     if name:
         panel["name"] = name
@@ -562,8 +565,8 @@ def mol_panel(smiles: str, name: str | None = None, coords: np.ndarray | None = 
 
 
 def mol(smiles: str, name: str | None = None, hi: tuple[str, ...] = (), explicit_h: bool = False,
-        level: str | None = None) -> dict:
-    return mol_panel(smiles, name, hi=hi, explicit_h=explicit_h, level=level)[0]
+        level: str | None = None, ester_label: bool = True) -> dict:
+    return mol_panel(smiles, name, hi=hi, explicit_h=explicit_h, level=level, ester_label=ester_label)[0]
 
 
 def arrow(over: str, under: str | None = None) -> dict:

@@ -115,7 +115,7 @@ import { PathStars } from "./PathStars";
 import { browserStorage, hasSavedLesson, nodeOfHref, savedBar } from "../../resume/lessonSave";
 import { SavedRing } from "../../resume/SavedRing";
 // The written unit guidebook (src/game/guide), opened from the unit card's GUIDEBOOK key.
-import { unitGuideFor, type LessonDoor } from "../../guide";
+import { hasUnitGuide, loadUnitGuide, unitGuideFor, type LessonDoor } from "../../guide";
 import { guideInHash } from "../../guide/guideLink";
 
 /*
@@ -1979,7 +1979,7 @@ function OrgoMapTrack({
      Runs when the unit changes, not on every render; openUnitGuide reads the
      render it was made in, which is the one this unit just drew. */
   useEffect(() => {
-    if (guideInHash()?.unit === unit.id && unitGuideFor(unit.id) !== null) openUnitGuide();
+    if (guideInHash()?.unit === unit.id && hasUnitGuide(unit.id)) openUnitGuide();
   }, [unit.id]);
 
   /* A side quest's chip in its lesson's side lane. dim is false: the lane
@@ -2170,7 +2170,7 @@ function OrgoMapTrack({
             // A unit with a written guidebook opens it, with every lesson's door
             // worked out here, where the unlock rules live. Any other unit keeps
             // the per lesson page.
-            if (unitGuideFor(unit.id) === null) {
+            if (!hasUnitGuide(unit.id)) {
               onGuidebook(chipFor(guideNode).sheetNode);
               return;
             }
@@ -2578,7 +2578,13 @@ export default function PathwayTab({ reducedMotion }: { readonly reducedMotion: 
           }}
           onUnitGuide={(unitId, doors, progress) => {
             setSheet(null);
-            setUnitGuide({ unitId, doors, progress });
+            // Units 0 and 1 ship with the path and open at once. A later unit's
+            // guide is fetched the first time (guide/index.ts) and opens when it lands.
+            if (unitGuideFor(unitId) !== null) setUnitGuide({ unitId, doors, progress });
+            else
+              void loadUnitGuide(unitId).then((guide) => {
+                if (guide !== null) setUnitGuide({ unitId, doors, progress });
+              });
           }}
           status={mapStatus}
           gatedBy={gated.gatedBy}

@@ -49,7 +49,7 @@ function quotedAnywhere(source: string, quote: string): boolean {
 describe("Unit 1 guidebook coverage", () => {
   it("is the guide the pathway opens for Unit 1", () => {
     expect(unitGuideFor("u1")).toBe(U1_GUIDE);
-    expect(unitGuideFor("u9")).toBeNull();
+    expect(unitGuideFor("u3")).toBeNull();
   });
 
   it("has one section per Unit 1 lesson, and no stray ones", () => {
