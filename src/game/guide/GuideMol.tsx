@@ -12,20 +12,25 @@
  * in one tinted capsule (round 4: a separate disc with the sign on its rim
  * read as a grey smudge with a badge in the dark theme).
  */
-import { formulaRuns, stereoShape } from "../onboarding/figures";
+import { doubleBondSide, formulaRuns, stereoShape } from "../onboarding/figures";
 import type { GuideBond, GuideFigure, GuideLabel } from "./types";
 
 const STROKE = 2.2;
 /** Half the spacing of a chain double bond's two lines. */
 const DOUBLE_HALF = 2.4;
-/** How far a ring double bond's inner line sits from the ring bond. */
+/** How far a one sided double bond's second line sits from the first (ring or chain). */
 const RING_GAP = 4.6;
 /** Matches HALO in scripts/guide_u1.py: the capsule's half width. */
 const HALO = 9;
 /** Matches SIGN_R in scripts/guide_u1.py, which keeps this circle clear of every bond. */
 const SIGN_R = 6.5;
 
-function Bond({ bond }: { readonly bond: GuideBond }) {
+/**
+ * `side` is the chain rule for a double bond the script did not mark `inner`
+ * (doubleBondSide in figures.ts): 1 or -1 draws the second line on that side,
+ * 0 centres both lines.
+ */
+function Bond({ bond, side = 0 }: { readonly bond: GuideBond; readonly side?: 1 | -1 | 0 }) {
   const { x1, y1, x2, y2 } = bond;
   const cls = bond.hi === true ? "ug-hi-ink" : undefined;
   if (bond.stereo !== undefined) {
@@ -57,9 +62,11 @@ function Bond({ bond }: { readonly bond: GuideBond }) {
   const nx = -dy / length;
   const ny = dx / length;
   const lines: [number, number, number, number][] = [];
-  if (bond.order === 2 && bond.inner !== undefined) {
-    // A ring double bond: one line on the ring, a shorter one inside it.
-    const o = RING_GAP * bond.inner;
+  const inner = bond.inner ?? (side === 0 ? undefined : side);
+  if (bond.order === 2 && inner !== undefined) {
+    // One line where a single bond would be, a shorter one inside the ring or
+    // on the inner side of the chain's angle (owner, 20 Oct).
+    const o = RING_GAP * inner;
     const trim = 0.16;
     lines.push([x1, y1, x2, y2]);
     lines.push([x1 + dx * trim + nx * o, y1 + dy * trim + ny * o, x2 - dx * trim + nx * o, y2 - dy * trim + ny * o]);
@@ -134,8 +141,8 @@ export function GuideMol({ figure }: { readonly figure: GuideFigure }) {
           <line key={`h${index}`} className="ug-halo" x1={halo.x} y1={halo.y} x2={sign.x} y2={sign.y} strokeWidth={HALO * 2} strokeLinecap="round" />
         );
       })}
-      {figure.bonds.map((bond, index) => (
-        <Bond key={`b${index}`} bond={bond} />
+      {figure.bonds.map((bond, index, bonds) => (
+        <Bond key={`b${index}`} bond={bond} side={bond.order === 2 && bond.inner === undefined ? doubleBondSide(bonds, index) : 0} />
       ))}
       {(figure.labels ?? []).map((label, index) => (
         <Label key={`l${index}`} label={label} />

@@ -203,6 +203,120 @@ export function stereoShape(bond: FigureBond & { readonly stereo: "wedge" | "has
   };
 }
 
+/** The four numbers every drawn bond carries, whichever renderer draws it. */
+export interface BondLine {
+  readonly x1: number;
+  readonly y1: number;
+  readonly x2: number;
+  readonly y2: number;
+  readonly order?: number;
+  readonly arrow?: boolean;
+}
+
+/** Two bond ends closer than this are the same atom (coordinates are rounded to 0.1). */
+const SAME_ATOM = 0.6;
+/** The largest ring searched for, in atoms: an [18]annulene still counts. */
+const MAX_RING = 18;
+
+/**
+ * Which side of a double bond its second line goes on, the way a textbook
+ * draws it (owner, 20 Oct): the first line sits exactly where a single bond
+ * would, and the second, shorter line sits on the INNER side of the angle.
+ *
+ * Returns 1 or -1 along the bond's left normal (-dy, dx), or 0 for "centre
+ * both lines on the axis", which stays the drawing for a bond with nothing on
+ * either side (ethene, CO2) or the same on both (a ketone's or an ester's
+ * C=O, isobutylene), because that is how the textbook draws those too.
+ *
+ * The figure is plain line segments, so atoms are found by matching bond
+ * ends. 1. A bond in a ring (a path of other bonds joins its two ends) takes
+ * the ring centre's side. 2. Otherwise each neighbouring bond votes for the
+ * side its far end lies on, and the larger side wins: propene's CH3 is on one
+ * side, so the second line goes there. A bond to a lettered atom is trimmed
+ * short of the letter, so that end simply has no neighbours here.
+ */
+export function doubleBondSide(bonds: readonly BondLine[], index: number): 1 | -1 | 0 {
+  const bond = bonds[index];
+  if (bond === undefined) return 0;
+  const { x1, y1, x2, y2 } = bond;
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const length = Math.hypot(dx, dy) || 1;
+  const nx = -dy / length;
+  const ny = dx / length;
+  // Signed distance of a point from the bond's line, positive on the left normal.
+  const sideOf = (x: number, y: number) => (x - x1) * nx + (y - y1) * ny;
+  const near = (ax: number, ay: number, bx: number, by: number) => Math.hypot(ax - bx, ay - by) < SAME_ATOM;
+  const others = bonds.filter((other, i) => i !== index && other.arrow !== true);
+
+  // 1. A ring: breadth first from the far end back to the near end, never
+  // using the bond itself. Each queue entry carries the path walked so far.
+  let queue: { x: number; y: number; path: { x: number; y: number }[] }[] = [{ x: x2, y: y2, path: [{ x: x2, y: y2 }] }];
+  for (let depth = 1; depth < MAX_RING && queue.length > 0; depth += 1) {
+    const next: typeof queue = [];
+    for (const at of queue) {
+      for (const other of others) {
+        const ends: [number, number, number, number][] = [
+          [other.x1, other.y1, other.x2, other.y2],
+          [other.x2, other.y2, other.x1, other.y1],
+        ];
+        for (const [ax, ay, bx, by] of ends) {
+          if (!near(ax, ay, at.x, at.y)) continue;
+          if (near(bx, by, x1, y1) && depth >= 2) {
+            // Back at the start: the ring is the path plus this end.
+            const ring = [...at.path, { x: x1, y: y1 }];
+            const cx = ring.reduce((sum, p) => sum + p.x, 0) / ring.length;
+            const cy = ring.reduce((sum, p) => sum + p.y, 0) / ring.length;
+            const side = sideOf(cx, cy);
+            if (Math.abs(side) > 0.5) return side > 0 ? 1 : -1;
+          }
+          if (at.path.some((p) => near(p.x, p.y, bx, by)) || near(bx, by, x1, y1)) continue;
+          next.push({ x: bx, y: by, path: [...at.path, { x: bx, y: by }] });
+        }
+      }
+    }
+    queue = next;
+  }
+
+  // 2. Not in a ring: the neighbours at both ends vote.
+  let vote = 0;
+  for (const other of others) {
+    for (const [ex, ey] of [
+      [x1, y1],
+      [x2, y2],
+    ] as const) {
+      let far: [number, number] | null = null;
+      if (near(other.x1, other.y1, ex, ey)) far = [other.x2, other.y2];
+      else if (near(other.x2, other.y2, ex, ey)) far = [other.x1, other.y1];
+      if (far === null) continue;
+      const side = sideOf(far[0], far[1]);
+      // A neighbour in line with the bond (an allene, a nitrile) takes no side.
+      if (Math.abs(side) > 1) vote += side > 0 ? 1 : -1;
+    }
+  }
+  return vote > 0 ? 1 : vote < 0 ? -1 : 0;
+}
+
+/**
+ * Whether each end of a bond, (x1, y1) then (x2, y2), meets another bond.
+ * A double bond's shorter line is trimmed hard only where it would run into a
+ * neighbour; at a free end (propene's CH2, or the O of a C=O, whose bond
+ * already stops short of the letter) it runs nearly to the end, or a short
+ * C=O keeps only a stub of its second line.
+ */
+export function bondEndsJoined(bonds: readonly BondLine[], index: number): readonly [boolean, boolean] {
+  const bond = bonds[index];
+  if (bond === undefined) return [false, false];
+  const joined = (x: number, y: number) =>
+    bonds.some(
+      (other, i) =>
+        i !== index &&
+        other.arrow !== true &&
+        (Math.hypot(other.x1 - x, other.y1 - y) < SAME_ATOM || Math.hypot(other.x2 - x, other.y2 - y) < SAME_ATOM),
+    );
+  return [joined(bond.x1, bond.y1), joined(bond.x2, bond.y2)];
+}
+
 /** The one viewBox every figure is drawn in. */
 export const FIGURE_WIDTH = 120;
 export const FIGURE_HEIGHT = 84;

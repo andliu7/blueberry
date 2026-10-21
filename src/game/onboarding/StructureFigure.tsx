@@ -18,12 +18,22 @@
  */
 
 import type { Figure, FigureBond, FigureLabel } from "./figures";
-import { FIGURE_HEIGHT, FIGURE_WIDTH, formulaRuns, stereoShape } from "./figures";
+import { bondEndsJoined, doubleBondSide, FIGURE_HEIGHT, FIGURE_WIDTH, formulaRuns, stereoShape } from "./figures";
 
 /** Bond weight, in viewBox units. Reads at the 145px the tile draws it at. */
 const STROKE = 2.6;
 /** How far the two lines of a double bond sit from the bond's own axis. */
 const DOUBLE_GAP = 3.1;
+/**
+ * A double bond drawn to one side: how far the second line sits from the
+ * first, and how much shorter it is at each end (a share of the bond, but
+ * never so little that it runs into the neighbouring bond at a corner).
+ */
+const SIDE_GAP = 5.4;
+const SIDE_TRIM = 0.18;
+const SIDE_TRIM_MIN = 4.6;
+/** The trim at a free end, where nothing meets the bond: just clear of the cap. */
+const SIDE_TRIM_FREE = 1.4;
 const TRIPLE_GAP = 4.4;
 
 function Label({ label }: { readonly label: FigureLabel }) {
@@ -60,7 +70,20 @@ function Label({ label }: { readonly label: FigureLabel }) {
 /* Bonds and arrows                                                    */
 /* ------------------------------------------------------------------ */
 
-function Bond({ bond }: { readonly bond: FigureBond }) {
+/**
+ * `side` is only read for a double bond: 1 or -1 puts the second line on that
+ * side of the first (doubleBondSide in figures.ts picks it), 0 centres both.
+ */
+function Bond({
+  bond,
+  side = 0,
+  joined = [true, true],
+}: {
+  readonly bond: FigureBond;
+  readonly side?: 1 | -1 | 0;
+  /** Whether each end meets another bond (bondEndsJoined in figures.ts). */
+  readonly joined?: readonly [boolean, boolean];
+}) {
   const { x1, y1, x2, y2 } = bond;
   const dx = x2 - x1;
   const dy = y2 - y1;
@@ -105,6 +128,27 @@ function Bond({ bond }: { readonly bond: FigureBond }) {
   }
 
   const order = bond.order ?? 1;
+  const trim = Math.max(length * SIDE_TRIM, SIDE_TRIM_MIN);
+  const trim1 = joined[0] ? trim : SIDE_TRIM_FREE;
+  const trim2 = joined[1] ? trim : SIDE_TRIM_FREE;
+  // A bond too short to keep a real second line keeps the centred drawing.
+  if (order === 2 && side !== 0 && length - trim1 - trim2 > length * 0.4) {
+    // The first line where a single bond would be, the second shorter one beside it.
+    const o = SIDE_GAP * side;
+    const ux = dx / length;
+    const uy = dy / length;
+    return (
+      <g stroke="currentColor" strokeWidth={STROKE} strokeLinecap="round">
+        <line x1={x1} y1={y1} x2={x2} y2={y2} />
+        <line
+          x1={x1 + ux * trim1 + nx * o}
+          y1={y1 + uy * trim1 + ny * o}
+          x2={x2 - ux * trim2 + nx * o}
+          y2={y2 - uy * trim2 + ny * o}
+        />
+      </g>
+    );
+  }
   const offsets =
     order === 2 ? [DOUBLE_GAP, -DOUBLE_GAP] : order === 3 ? [TRIPLE_GAP, 0, -TRIPLE_GAP] : [0];
   return (
@@ -142,8 +186,13 @@ export function StructureFigure({
       focusable="false"
       preserveAspectRatio="xMidYMid meet"
     >
-      {(figure.bonds ?? []).map((bond, index) => (
-        <Bond key={`b${index}`} bond={bond} />
+      {(figure.bonds ?? []).map((bond, index, bonds) => (
+        <Bond
+          key={`b${index}`}
+          bond={bond}
+          side={bond.order === 2 ? doubleBondSide(bonds, index) : 0}
+          joined={bond.order === 2 ? bondEndsJoined(bonds, index) : undefined}
+        />
       ))}
       {(figure.rings ?? []).map((ring, index) => (
         <circle
