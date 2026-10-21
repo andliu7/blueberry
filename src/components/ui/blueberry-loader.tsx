@@ -1,6 +1,7 @@
 import { Suspense, useEffect, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, animate, motion, useMotionValue, usePresence, useReducedMotion, useTransform, type Transition } from "motion/react";
 import { SITE_NAME } from "@/data/site";
+import type { TipLine } from "@/data/tips";
 import { cn } from "@/lib/utils";
 
 /**
@@ -167,6 +168,27 @@ export function BlueberryLoader({ className }: { className?: string }) {
     remove.current = safeToRemove;
   });
 
+  // A study tip, an app tip or a quote under the bar (owner, 20 Oct). The list is its own
+  // chunk, fetched with import() when the loader appears, so the loader itself stays as
+  // light as it was. It is picked once per loader and fades in when it arrives; if the
+  // chunk is slow or fails, the loader simply has no line, which is how it was before.
+  const [tip, setTip] = useState<TipLine | null>(null);
+  const tipRef = useRef<HTMLParagraphElement>(null);
+  useEffect(() => {
+    let live = true;
+    import("@/data/tips")
+      .then((m) => {
+        if (live) setTip(m.nextLine());
+      })
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, []);
+  useEffect(() => {
+    if (tip && tipRef.current) animate(tipRef.current, { opacity: [0, 1] }, reduced ? INSTANT : { duration: 0.2, ease: "easeOut" });
+  }, [tip, reduced]);
+
   // Loading: the creep and the bounce. Also undoes a half-run finish, for the
   // rare page that starts loading again before the last one had faded out.
   useEffect(() => {
@@ -256,6 +278,19 @@ export function BlueberryLoader({ className }: { className?: string }) {
         >
           <motion.div className="absolute inset-0 origin-left rounded-full bg-primary" style={{ scaleX: fill }} />
         </div>
+
+        {/* The tip, hung below the bar so the berry and bar stay where they were on screen.
+            Small and quiet: muted ink, no box. A quote carries its author and source. */}
+        {tip && (
+          <p ref={tipRef} className="absolute left-1/2 top-full mt-8 w-[min(24rem,calc(100vw-2rem))] -translate-x-1/2 text-center text-sm leading-snug text-muted-foreground" style={{ opacity: 0 }}>
+            {tip.kind === "quote" ? `“${tip.text}”` : tip.text}
+            {tip.author && (
+              <span className="mt-1 block text-xs">
+                {tip.author}, <cite className="not-italic">{tip.source}</cite>
+              </span>
+            )}
+          </p>
+        )}
       </div>
 
       {/* The splat: the whole screen in violet, clipped to nothing until the

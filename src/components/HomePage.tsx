@@ -23,6 +23,12 @@ const HomeSections = lazy(() => import("@/components/HomeSections"));
 const LiquidSculpture = lazy(() => import("@/components/HomeSculpture"));
 
 /**
+ * One study tip, app tip or quote under the hero, on the first arrival of a visit only (owner,
+ * 20 Oct). Lazy, with the tip list inside its chunk, so the first-load bundle does not grow.
+ */
+const HomeTip = lazy(() => import("@/components/HomeTip"));
+
+/**
  * The newsletter band, as a PREVIEW: the dev server only, and only with `?newsletter` in the
  * address (http://localhost:5173/?newsletter#/). `import.meta.env.DEV` is statically false in
  * a build, so this branch and the chunk it names are removed and nothing of it ships.
@@ -89,6 +95,12 @@ export function HomePage() {
     <div className="home relative" data-intro={showLoader ? "" : undefined}>
       {showLoader && <HomeLoader />}
       <HomeHero entered={entered} />
+      {/* Once per visit: the same first-arrival mark as the loader above. */}
+      {showLoader && (
+        <Suspense fallback={null}>
+          <HomeTip />
+        </Suspense>
+      )}
       <PhoneDemoSlot />
       <SculptureSlot Sculpture={LiquidSculpture} />
       <SectionsSlot />
