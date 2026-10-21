@@ -1,0 +1,371 @@
+/*
+ * The glossary page (GlossaryPage.tsx). Game tokens only (theme.css,
+ * tokens.css), so both themes come for free.
+ *
+ * A reading page of flat white cards on the lavender ground: nothing on it is
+ * a primary action, so nothing on it is filled violet. The chips and the
+ * picker are toolbar controls and stay flat (blueberry rule 5). Every control
+ * is at least 44px tall.
+ */
+
+.gl-page {
+  min-height: 100dvh;
+  background: var(--bb-background);
+  color: var(--bb-foreground);
+  font-family: var(--font-display);
+}
+
+/* ---------------------------------------------------------------- bar */
+
+.gl-bar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding-top: env(safe-area-inset-top, 0px);
+  background: var(--bb-background);
+  border-bottom: 2px solid var(--bb-border);
+}
+.gl-bar__in {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: 0.375rem 1rem;
+}
+.gl-back {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-left: -0.5rem;
+  border: 0;
+  background: transparent;
+  color: var(--bb-foreground);
+  cursor: pointer;
+}
+.gl-back svg {
+  width: 24px;
+  height: 24px;
+}
+@media (hover: hover) {
+  .gl-back:hover {
+    background: var(--bb-muted);
+  }
+}
+.gl-bar__title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 900;
+}
+
+/* ---------------------------------------------------------------- tools */
+
+.gl-main {
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: 1rem 1rem 4rem;
+}
+.gl-tools {
+  display: grid;
+  gap: 0.75rem;
+}
+.gl-search {
+  display: grid;
+  gap: 0.25rem;
+}
+.gl-search__label,
+.gl-family span {
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: var(--bb-foreground);
+}
+.gl-search input,
+.gl-family select {
+  min-height: 48px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0 0.875rem;
+  border: 2px solid var(--bb-border);
+  border-radius: 0.875rem;
+  background: var(--bb-card);
+  color: var(--bb-card-foreground);
+  font: 600 1rem var(--font-sans);
+}
+.gl-family {
+  display: grid;
+  gap: 0.25rem;
+}
+.gl-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.gl-chip {
+  min-height: 44px;
+  padding: 0 0.875rem;
+  border: 2px solid var(--bb-border);
+  border-radius: 9999px;
+  background: var(--bb-card);
+  color: var(--bb-card-foreground);
+  font: 800 0.9375rem var(--font-display);
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
+}
+.gl-chip[aria-pressed="true"] {
+  border-color: var(--bb-primary);
+  background: var(--bb-muted);
+  color: var(--bb-foreground);
+}
+.gl-chip__count {
+  font-weight: 700;
+  color: var(--bb-muted-foreground);
+}
+.gl-back:focus-visible,
+.gl-chip:focus-visible,
+.gl-search input:focus-visible,
+.gl-family select:focus-visible {
+  outline: 3px solid var(--bb-ring);
+  outline-offset: 2px;
+}
+
+.gl-count {
+  margin: 1rem 0 0;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--bb-muted-foreground);
+}
+
+/* ---------------------------------------------------------------- sections */
+
+.gl-section {
+  margin-top: 1.5rem;
+}
+.gl-section__title {
+  margin: 0 0 0.25rem;
+  font-size: 1.375rem;
+  font-weight: 900;
+}
+.gl-section__lede {
+  margin: 0 0 0.75rem;
+  font: 600 0.9375rem var(--font-sans);
+  color: var(--bb-muted-foreground);
+}
+.gl-group {
+  margin-top: 1rem;
+}
+.gl-group__title {
+  margin: 0 0 0.5rem;
+  font-size: 1.0625rem;
+  font-weight: 900;
+}
+.gl-group__count {
+  font-weight: 700;
+  color: var(--bb-muted-foreground);
+}
+
+/* ---------------------------------------------------------------- cards */
+
+.gl-card {
+  margin-top: 0.625rem;
+  padding: 0.875rem 1rem;
+  border: 2px solid var(--bb-border);
+  border-radius: 1rem;
+  background: var(--bb-card);
+  color: var(--bb-card-foreground);
+  scroll-margin-top: 5rem;
+}
+.gl-card--focus {
+  border-color: var(--bb-primary);
+}
+.gl-card--art {
+  display: grid;
+  grid-template-columns: 7rem minmax(0, 1fr);
+  gap: 0.875rem;
+  align-items: center;
+}
+@media (min-width: 36rem) {
+  .gl-card--art {
+    grid-template-columns: 9rem minmax(0, 1fr);
+  }
+}
+/* A compound: the drawing on top, its name parts under it at full width,
+   so a part's meaning never wraps one word to a line. */
+.gl-card--stack {
+  display: grid;
+  gap: 0.5rem;
+}
+@media (max-width: 22rem) {
+  .gl-card--art {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.gl-card__body {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.gl-card__title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 900;
+  overflow-wrap: anywhere;
+}
+.gl-card__title--name {
+  font-family: var(--font-sans);
+  font-weight: 800;
+}
+.gl-card__kind {
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--bb-muted-foreground);
+}
+.gl-card__full {
+  margin: 0.125rem 0 0;
+  font: 700 0.9375rem var(--font-sans);
+}
+.gl-card__route {
+  margin: 0.25rem 0 0;
+  font: 700 0.9375rem var(--font-sans);
+}
+.gl-card__text {
+  margin: 0.375rem 0 0;
+  font: 500 0.9375rem/1.45 var(--font-sans);
+}
+.gl-card__source {
+  margin: 0.375rem 0 0;
+  font: 600 0.8125rem var(--font-sans);
+  color: var(--bb-muted-foreground);
+}
+
+/* A drawing: --w is its width in units, one unit drawn as one px, so bonds
+   stay one length; a wide reagent shrinks to its column rather than spill. */
+.gl-mol {
+  justify-self: center;
+  width: calc(var(--w) * 1px);
+  max-width: 100%;
+  margin: 0;
+}
+.gl-mol .ug-mol__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+/* The few GuideMol classes the guidebook styles in guide.css, which this
+   lazy page does not load. Same values. */
+.gl-page .ug-halo {
+  stroke: color-mix(in srgb, var(--bb-primary) 18%, var(--bb-card));
+}
+.dark .gl-page .ug-halo {
+  stroke: color-mix(in srgb, var(--bb-primary) 48%, var(--bb-card));
+}
+.gl-page .ug-badge {
+  fill: var(--bb-primary);
+}
+.gl-page .ug-badge__sign {
+  stroke: #ffffff;
+}
+.gl-page .ug-radical {
+  fill: var(--bb-primary);
+}
+
+/* Name parts: the part on the left, what it means on the right. */
+.gl-parts {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0.5rem 0 0;
+}
+.gl-part {
+  display: grid;
+  grid-template-columns: 6.5rem minmax(0, 1fr);
+  gap: 0.5rem;
+  overflow-wrap: anywhere;
+  font: 500 0.875rem/1.4 var(--font-sans);
+}
+.gl-part dt {
+  font-weight: 800;
+  color: var(--bb-foreground);
+}
+.gl-part dd {
+  margin: 0;
+}
+
+.gl-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.gl-tag {
+  padding: 0.125rem 0.5rem;
+  border: 2px solid var(--bb-border);
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.gl-pka {
+  margin: 0.25rem 0 0;
+  font-size: 1rem;
+  font-weight: 800;
+}
+.gl-pka strong {
+  font-size: 1.5rem;
+  font-weight: 900;
+}
+
+/* The EWG / EDG rings, side by side, wrapping on a phone. */
+.gl-rings {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+  gap: 0.75rem;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.gl-ring {
+  display: grid;
+  justify-items: center;
+  gap: 0.25rem;
+  text-align: center;
+}
+.gl-ring__name {
+  font: 800 0.875rem var(--font-sans);
+}
+.gl-ring__effect {
+  font: 600 0.8125rem var(--font-sans);
+  color: var(--bb-muted-foreground);
+}
+
+/* A student's own definition (not built yet): the award badge. */
+.gl-award {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 900;
+  color: var(--bb-foreground);
+}
+.gl-award svg {
+  width: 18px;
+  height: 18px;
+  color: var(--bb-primary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gl-chip {
+    transition: none;
+  }
+}
+html[data-motion="reduced"] .gl-chip {
+  transition: none;
+}

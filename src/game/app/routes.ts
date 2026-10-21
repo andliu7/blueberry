@@ -149,6 +149,12 @@ export type Route =
    */
   | { readonly kind: "lesson"; readonly node: string }
   /**
+   * The glossary: "#/app/glossary", or "#/app/glossary/name-acetophenone" to
+   * open on one entry. A full screen page of its own rather than a tab, so the
+   * five-tab bar stays five (owner items 14 and 27).
+   */
+  | { readonly kind: "glossary"; readonly entry: string | null }
+  /**
    * Development surfaces. Deliberately NOT in ALL_TABS, so nothing renders a
    * link to them. Reached by typing the hash, which is the right amount of
    * friction for a page whose audience is a critic and an author.
@@ -197,6 +203,7 @@ export function parseHash(hash: string): Route {
   // lands on it rather than on a 404.
   if (head === "review") return { kind: "tab", tab: "cards", rest: [] };
   if (head === "gallery") return { kind: "gallery", name: parts[1] ?? "berry" };
+  if (head === "glossary") return { kind: "glossary", entry: parts[1] ?? null };
   if (head !== undefined && TAB_IDS.has(head)) {
     return { kind: "tab", tab: head as TabId, rest: parts.slice(1) };
   }
@@ -263,6 +270,11 @@ export function hrefForReview(): string {
 
 export function hrefForOnboarding(step: string): string {
   return `#/${BASE}/start/${encodeURIComponent(step)}`;
+}
+
+/** The glossary, optionally opened on one entry (an id from glossary/glossaryModel.ts). */
+export function hrefForGlossary(entry?: string): string {
+  return entry === undefined ? `#/${BASE}/glossary` : `#/${BASE}/glossary/${encodeURIComponent(entry)}`;
 }
 
 /** Development only. Nothing in the shell renders this; it is typed by hand. */

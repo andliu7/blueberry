@@ -55,6 +55,13 @@ const PilotArrowGallery = lazy(() => import("./tabs/trainer/engine/ArrowGallery"
  */
 const PilotTrainerGallery = lazy(() => import("./tabs/trainer/engine/TrainerGallery"));
 
+/**
+ * The glossary, at #/app/glossary. Lazy like the tabs: its RDKit drawings and
+ * the reaction table are about 25 KB gzipped that a student who never opens it
+ * should not download.
+ */
+const GlossaryPage = lazy(() => import("./glossary/GlossaryPage"));
+
 /** The button and heading sheet, at #/gallery/buttons. Development only, lazy. */
 const ButtonGallery = lazy(() => import("./app/ui/ButtonGallery"));
 
@@ -184,6 +191,15 @@ function Body({
   }
 
   if (needsOnboarding) return <TabSkeleton label="Blueberry" />;
+
+  if (route.kind === "glossary") {
+    return (
+      <Suspense fallback={<TabSkeleton label="the glossary" />}>
+        <BootReady />
+        <GlossaryPage entry={route.entry} reducedMotion={reducedMotion} />
+      </Suspense>
+    );
+  }
 
   return <Shell route={route} />;
 }
