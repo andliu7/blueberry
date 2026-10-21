@@ -394,8 +394,11 @@ span.chip-press {
   width: 100%;
   align-items: center;
   gap: 0.75rem;
-  min-height: 3.5rem;
-  padding: 0.75rem 1rem;
+  /* 48px, not 56px, and 10px of padding, not 12px (owner, 20 Oct: fit one
+     question on one phone screen). Still above the 44px target floor, and
+     an option that runs to two lines grows past it on its own. */
+  min-height: 3rem;
+  padding: 0.625rem 1rem;
   text-align: left;
   border: 2px solid var(--opt-rim);
   border-radius: 1rem;

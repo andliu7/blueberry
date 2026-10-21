@@ -243,8 +243,15 @@ export function McqBeatView({
       </div>
 
       {/* Everything that can grow lives in the one scrolling region, so the
-          action bar below it is the only fixed thing on the screen. */}
-      <div ref={scrollRef} className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 pb-4 md:px-6">
+          action bar below it is the only fixed thing on the screen.
+
+          ONE QUESTION, ONE PHONE SCREEN (owner, 20 Oct: "free up some of the
+          free space, so that it can fit into one page"). The gaps here are
+          12px rather than 16px, the stem is one heading step down (below)
+          and the option rows are a little shorter (beat-chrome.css). Measured
+          at 390 by 844: the stem, the picture, the options and Check all sit
+          on the first screen. */}
+      <div ref={scrollRef} className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-4 pb-3 md:px-6">
         {reported ? (
           <p className="fade-in rounded-2xl border border-bb-border bg-bb-muted px-3 py-2 text-scale-sm text-bb-muted-foreground">
             Thanks, this one is flagged for review. Carry on when you are ready.
@@ -256,7 +263,7 @@ export function McqBeatView({
           // it was pulling the option list up under the student's finger at the
           // exact frame they tapped; the line changes, the row stays.
           <div className="flex items-center gap-3">
-            <Berry mood="curious" sizePx={44} reducedMotion={reducedMotion} />
+            <Berry mood="curious" sizePx={36} reducedMotion={reducedMotion} />
             <p className="flex min-h-13 items-center rounded-2xl border border-bb-border bg-bb-card px-3 py-2 text-scale-sm text-bb-muted-foreground">
               {answered ? HOW_TO_REVEALED : HOW_TO_PICKING}
             </p>
@@ -276,9 +283,14 @@ export function McqBeatView({
             the stem in a REGULAR weight: it is the lightest large text on
             the frame, because the loudest thing is meant to be the chemistry
             underneath it. The previous build set it at 600, which made the
-            stem the heaviest element on the screen and inverted that. */}
+            stem the heaviest element on the screen and inverted that.
+
+            ONE STEP DOWN ON SIZE as well (bb-h2, 20px, not bb-h1's 24px):
+            a long stem at 24px ran to four lines on a phone and alone pushed
+            the last option under the Check bar. It is still the largest text
+            on the screen. */}
         <div>
-          <h1 className="bb-h1 text-bb-foreground">{beat.prompt}</h1>
+          <h1 className="bb-h2 text-bb-foreground">{beat.prompt}</h1>
           {beat.brief !== undefined ? (
             <p className="mt-2 text-scale-sm text-bb-muted-foreground">{beat.brief}</p>
           ) : null}
@@ -309,7 +321,13 @@ export function McqBeatView({
             dead-zone carry applied to this screen: three short options and a
             screenful of empty cream become three big option cards. Once the
             answer is revealed the growth stops, because the explanation
-            underneath is the thing that needs the room then. */}
+            underneath is the thing that needs the room then.
+
+            GROW, BUT NEVER SHRINK BELOW THE ROWS. The group is `flex-1`
+            without `min-h-0`: with it, a long stem let flexbox squeeze the
+            group shorter than its own rows, and the rows then drew on top
+            of the tools and the report link underneath (measured at 375 by
+            667 on u1-hx-dienes). Without it the column scrolls instead. */}
         {tiles !== null ? (
           // `shrink-0`, and NO growth clause. The tiles carry their own aspect
           // ratio now, so growing the grid could never make them bigger; what
@@ -352,7 +370,7 @@ export function McqBeatView({
           <div
             role="group"
             aria-label="Answer options"
-            className={`flex flex-col gap-2 ${answered ? "shrink-0" : "min-h-0 flex-1"}`}
+            className={`flex flex-col gap-2 ${answered ? "shrink-0" : "flex-1"}`}
           >
             {beat.options.map((option) => {
               const isAnswer = option.id === beat.correctOptionId;

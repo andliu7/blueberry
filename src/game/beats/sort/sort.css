@@ -38,7 +38,8 @@
 .sort-beat {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4, 1rem);
+  /* 12px, not 16px (owner, 20 Oct: one question on one phone screen). */
+  gap: var(--space-3, 0.75rem);
 }
 
 /* THE COMMIT ROW IS PINNED, per both committed lesson frames, which fix the
@@ -66,7 +67,9 @@
 }
 .sort-beat__prompt {
   font-family: var(--font-display);
-  font-size: var(--h-1);
+  /* One heading step down, as on the MCQ stem (McqBeatView.tsx), so a two
+     line prompt does not push the last rung under CHECK on a phone. */
+  font-size: var(--h-2);
   font-weight: 800;
   letter-spacing: -0.015em;
   line-height: 1.2;
@@ -258,7 +261,7 @@
   align-items: center;
   gap: 0.6rem;
   min-height: var(--hit-min, 2.75rem);
-  padding: 0.6rem 0.9rem;
+  padding: 0.4rem 0.9rem;
   border-radius: 0.85rem;
   background: var(--bb-card-face);
   box-shadow: inset 0 1px 0 var(--bb-card-shine);
@@ -292,9 +295,12 @@
 .sort-card__figure {
   flex: 0 0 auto;
   /* A2 round 4: one and a half times the old 84px box. The small cations
-     (isopropyl, tert-butyl) drew about 25px wide at the old size. */
+     (isopropyl, tert-butyl) drew about 25px wide at the old size.
+     Owner, 20 Oct: the four rungs and CHECK must fit one phone screen, so
+     the box is 72px tall rather than 84px, the MCQ thumbnail's own height
+     (lesson/scheme.css .scheme__figure). The width stays. */
   width: 7.5rem;
-  height: 5.25rem;
+  height: 4.5rem;
 }
 
 .sort-card__label {
