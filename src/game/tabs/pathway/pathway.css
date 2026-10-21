@@ -1778,6 +1778,8 @@
   text-transform: uppercase;
   cursor: pointer;
   touch-action: manipulation;
+  /* iOS Safari paints its own grey tap square otherwise (iPad, 2026-10-20). */
+  -webkit-tap-highlight-color: transparent;
 }
 .path-unitcard__book {
   width: 1.5rem;
@@ -1812,6 +1814,10 @@
   color: var(--path-open-ink);
   text-align: left;
   cursor: pointer;
+  /* iOS Safari paints a grey square on tap otherwise, and inside the rounded
+     unit card (border-radius 0 there) it read as a dark box (iPad, 2026-10-20).
+     The :focus-visible ring below is the keyboard cue, so nothing is lost. */
+  -webkit-tap-highlight-color: transparent;
   /* The chip vocabulary's own bottom wall, so the picker is visibly the same
      KIND of object as everything else on this tab. */
   box-shadow: 0 3px 0 var(--path-open-wall);

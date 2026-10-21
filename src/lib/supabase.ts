@@ -46,6 +46,10 @@ export const supabaseConfigured = Boolean(URL && PUBLISHABLE_KEY);
  * as the eager client did, a chunk download later.
  *
  * Resolves to null when the build has no Supabase settings, same as before.
+ *
+ * A failed chunk download (a flaky network, a deploy that replaced the hashed
+ * file) is not memoised: the promise is dropped on rejection, so the next call
+ * tries again instead of handing back the same failure for the whole session.
  */
 let client: Promise<SupabaseClient | null> | null = null;
 
@@ -67,7 +71,11 @@ export function getSupabase(): Promise<SupabaseClient | null> {
       },
     }),
   );
-  return client;
+  const pending = client;
+  pending.catch(() => {
+    if (client === pending) client = null;
+  });
+  return pending;
 }
 
 /** Where Google should send someone back to after signing in. */

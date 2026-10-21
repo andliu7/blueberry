@@ -21,9 +21,10 @@ import type { Deck, Question, StudyDeck } from "@/data/types";
  * deck is shape-checked and every question re-sanitised on arrival. Doing it
  * only on write would trust an edit the server never saw.
  *
- * The built-in decks are a lazy chunk too (owner, 2026-10-20): the router calls
- * this hook on every page, including the game, and the decks weighed ~38 KB
- * gzipped on the game's first load. They arrive a moment after the page, so a
+ * The built-in decks are a lazy chunk too (owner, 2026-10-20): they weigh ~38 KB
+ * gzipped, and the first subscriber is what loads them, so only pages that read
+ * deck data call this hook (the router calls it for `#/deck/<id>` alone, never
+ * for the game). They arrive a moment after the page, so a
  * cold link straight to a deck shows "Looking for that deck" for that moment,
  * which the owner accepted. `loading` stays true until they are in.
  */

@@ -120,10 +120,6 @@ function withBoundary(node: React.ReactNode) {
 export default function App() {
   const route = useHashRoute();
   useDocumentTitle(route);
-  // Includes the published decks, which arrive a moment after the page does.
-  // The router is what makes an uploaded deck reachable at its own URL rather
-  // than only visible as a card on the hub.
-  const { decks, loading } = useDecks();
 
   /**
    * Every route starts at the top.
@@ -230,6 +226,22 @@ export default function App() {
     return <NotFoundPage detail={`#/${route}`} />;
   }
 
+  return <DeckRoute route={route} />;
+}
+
+/**
+ * `#/deck/<id>`, the one route that looks a deck up by id.
+ *
+ * Its own component so `useDecks` runs only here. Called from `App`, it ran on
+ * every page, and its first subscriber loads the built-in decks chunk (~38 KB
+ * gzipped), which put that chunk on the game's cold load for nothing (validator
+ * finding, 2026-10-20). Pages that list decks call `useDecks` themselves.
+ */
+function DeckRoute({ route }: { route: string }) {
+  // Includes the published decks, which arrive a moment after the page does.
+  // The router is what makes an uploaded deck reachable at its own URL rather
+  // than only visible as a card on the hub.
+  const { decks, loading } = useDecks();
   const id = route.slice(5);
   const deck = decks.find((d) => d.id === id);
   /**

@@ -80,6 +80,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setLoading(false);
       });
       unsubscribe = () => listener.subscription.unsubscribe();
+    }).catch((error: unknown) => {
+      // The chunk failed to load. Settle as signed out, the same state as a
+      // build without Supabase, rather than leaving every page waiting on
+      // `loading` for the rest of the session. The eager client would have
+      // failed loudly at startup, so say so in the console too.
+      console.error("Blueberry: the Supabase client failed to load, continuing signed out.", error);
+      if (!cancelled) setLoading(false);
     });
 
     return () => {
@@ -114,6 +121,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .then(({ data }) => {
           if (!cancelled) setRole(asRole(data?.role));
         });
+    }).catch(() => {
+      // No client, so no profile to read: the default role stands.
+      if (!cancelled) setRole("member");
     });
     return () => {
       cancelled = true;

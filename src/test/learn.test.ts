@@ -38,6 +38,13 @@ import { REACTIONS, REAGENT_ART } from "@/data/reactions";
 import { REAGENT_NAMES } from "@/data/learnIndex";
 import { LESSON_TOPICS, sectionForFamily } from "@/data/lessonTopics";
 import { PATHWAY_UNITS } from "@/game/demo/pathwayMap";
+
+// Known-slow file, explicit timeout (owner, 2026-10-20). These tests render
+// the whole site and walk many routes, each a lazy chunk in jsdom; solo the
+// slowest default-timeout test takes ~4.9 s, against the 5 s default, so a
+// busy `npm test` pool timed them out and cascaded. 20 s is ~4x that. Tests
+// that already set their own (30 s, 60 s) keep it. No assertion changes.
+vi.setConfig({ testTimeout: 20_000 });
 import { LEARN_MAP, lessonsForUnit, partHref, partsForUnit, unitForFamily } from "@/data/learnMap";
 import { redirectFor } from "@/lib/redirects";
 import { titleForRoute } from "@/lib/useDocumentTitle";

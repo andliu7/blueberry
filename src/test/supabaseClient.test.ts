@@ -45,6 +45,25 @@ describe("getSupabase", () => {
     });
   });
 
+  it("does not cache a failed load: the next call tries again", async () => {
+    vi.stubEnv("VITE_SUPABASE_URL", "https://example.supabase.co");
+    vi.stubEnv("VITE_SUPABASE_PUBLISHABLE_KEY", "sb_publishable_test");
+    const { getSupabase } = await freshModule();
+
+    // A rejection inside the lazy load, as a failed chunk download would give.
+    createClient.mockImplementationOnce(() => {
+      throw new Error("chunk failed");
+    });
+    await expect(getSupabase()).rejects.toThrow("chunk failed");
+
+    const retried = await getSupabase();
+    expect(retried).toEqual({ fake: true });
+    expect(createClient).toHaveBeenCalledTimes(2);
+    // And the good client is the one that is shared from then on.
+    expect(await getSupabase()).toBe(retried);
+    expect(createClient).toHaveBeenCalledTimes(2);
+  });
+
   it("resolves to null and never loads the library when unconfigured", async () => {
     vi.stubEnv("VITE_SUPABASE_URL", "");
     vi.stubEnv("VITE_SUPABASE_PUBLISHABLE_KEY", "");

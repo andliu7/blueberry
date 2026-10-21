@@ -113,6 +113,9 @@ function drawMiss(store: InteractionStore): void {
 }
 
 describe("the drag style never changes a verdict", () => {
+  // Known slow, explicit timeout (owner, 2026-10-20): it grades a real
+  // mechanism under three styles, 1.6 to 2.6 s solo, and timed out at the 5 s
+  // default in a busy `npm test` pool. 10 s is ~4x. No assertion changes.
   it("grades the same win and the same miss under every style", () => {
     const results: Record<string, unknown> = {};
     for (const style of ARROW_STYLES) {
@@ -135,7 +138,7 @@ describe("the drag style never changes a verdict", () => {
     expect(auto.miss.tone).not.toBe("good");
     expect(results.curved).toEqual(results.auto);
     expect(results.dashed).toEqual(results.auto);
-  });
+  }, 10_000);
 });
 
 describe("what the style does change", () => {

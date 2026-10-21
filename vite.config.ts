@@ -20,6 +20,23 @@ const GAME_ROUTE_COLD_LOAD_MODULES = [
   'src/game/tabs/pathway/PathwayTab.tsx',
 ]
 
+/**
+ * Modules whose own dynamic imports fire on mount of #/app, not on a press.
+ * Every chunk they import dynamically is weighed as part of the cold load too,
+ * because a headless cold load of #/app fetches it (validator finding,
+ * 2026-10-20: leaving these out reported 341 KB for a load that was 432 KB).
+ *
+ * - src/lib/supabase.ts: AuthProvider calls getSupabase() on mount to restore
+ *   the stored session, so supabase-js arrives with every page.
+ *
+ * src/lib/useDecks.ts is not listed: its built-in decks chunk loads only on
+ * pages that read deck data, and #/app is not one of them. If a component the
+ * game draws starts calling useDecks(), add it here, or the number lies again.
+ */
+const GAME_ROUTE_ON_MOUNT_DYNAMIC_IMPORTERS = [
+  'src/lib/supabase.ts',
+]
+
 function budgetSubjects(): Plugin {
   return {
     name: 'blueberry-budget-subjects',
@@ -38,6 +55,26 @@ function budgetSubjects(): Plugin {
         if (!chunk) this.error(`budget-subjects: no chunk has ${module} as its facade module`)
         return chunk.fileName
       })
+
+      for (const module of GAME_ROUTE_ON_MOUNT_DYNAMIC_IMPORTERS) {
+        const absolute = path.resolve(import.meta.dirname, module)
+        const id = [...this.getModuleIds()].find((candidate) => path.resolve(candidate) === absolute)
+        const info = id === undefined ? null : this.getModuleInfo(id)
+        if (!info) this.error(`budget-subjects: ${module} is not in the build`)
+        if (info.dynamicallyImportedIds.length === 0) {
+          this.error(`budget-subjects: ${module} has no dynamic import to weigh`)
+        }
+        for (const target of info.dynamicallyImportedIds) {
+          // The chunk the browser fetches for this import: the one built around
+          // it if there is one, otherwise whichever chunk the bundler put it in.
+          const wanted = path.resolve(target)
+          const chunk =
+            chunks.find((candidate) => candidate.facadeModuleId !== null && path.resolve(candidate.facadeModuleId) === wanted) ??
+            chunks.find((candidate) => candidate.moduleIds.some((moduleId) => path.resolve(moduleId) === wanted))
+          if (!chunk) this.error(`budget-subjects: no chunk for ${target}, imported on mount by ${module}`)
+          if (!routeChunks.includes(chunk.fileName)) routeChunks.push(chunk.fileName)
+        }
+      }
 
       // Stylesheets of every chunk statically reachable from the roots.
       const css = new Set<string>()

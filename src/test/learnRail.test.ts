@@ -22,6 +22,12 @@ import { act, createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { DECKS } from "@/data/decks";
 import { isReference } from "@/data/types";
+
+// Known-slow file, explicit timeout (owner, 2026-10-20). Each test renders the
+// rail with its real data in jsdom; solo the slowest takes ~3.1 s, so a busy
+// `npm test` pool pushed them past the 5 s default. 15 s is ~4x that. No
+// assertion changes.
+vi.setConfig({ testTimeout: 15_000 });
 import { progressKey } from "@/lib/progress";
 import { LearnRail, useRailNumbers } from "@/components/learn/LearnRail";
 import { markLessonFinished } from "@/components/learn/lessonsOpened";
