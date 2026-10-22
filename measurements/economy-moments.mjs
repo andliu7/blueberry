@@ -271,6 +271,32 @@ export async function settleBoot(page) {
     () => document.getElementById("boot") === null || !document.documentElement.hasAttribute("data-boot"),
     { timeout: 20_000 },
   );
+  await saveGiftChests(page);
+}
+
+/**
+ * TODAY'S GIFT, PUT AWAY (Wave 2, 21 Oct). A seeded profile opening #/app is
+ * handed the daily gift (and on a first visit the onboarding gift) by App.tsx,
+ * and the "Open now / Save for later" sheet that brings it is a modal: the
+ * page under it is inert, so every gate here would measure the sheet and skip
+ * the screen it was written for. When this page load journalled a gift, press
+ * "Save for later" (the chest stays saved, as a student's would) and wait for
+ * the sheet to go. A load that earned nothing waits for nothing.
+ */
+async function saveGiftChests(page) {
+  const gifted = await page.evaluate(() => {
+    try {
+      const journal = JSON.parse(localStorage.getItem("blueberry.progress.v2") ?? "{}").journal ?? [];
+      return journal.some((event) => event.kind === "chest_earned" && Date.now() - Date.parse(event.at) < 60_000);
+    } catch {
+      return false;
+    }
+  });
+  if (!gifted) return;
+  const save = await page.waitForSelector('[data-chest-offer="save"]', { visible: true, timeout: 5_000 }).catch(() => null);
+  if (save === null) return;
+  await save.click();
+  await page.waitForSelector(".chest-offer", { hidden: true, timeout: 3_000 }).catch(() => {});
 }
 
 /**
