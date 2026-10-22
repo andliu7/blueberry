@@ -82,7 +82,7 @@ import { useStudyState } from "../social/useStudyState";
 import "../social/social.css";
 import { activityFeed, type ActivityItem, type ActivityKind } from "./activityModel";
 import { FeedBackdrop } from "./FeedBackdrop";
-import { feedModel, type QuestModel } from "./feedModel";
+import { dailyQuestRows, feedModel, type DailyQuestRow } from "./feedModel";
 import "./feed.css";
 
 /**
@@ -379,7 +379,7 @@ function BlackberryAvatar() {
 
 /* --------------------------------------------------------------- the rows -- */
 
-function QuestRow({ quest }: { readonly quest: QuestModel }) {
+function QuestRow({ quest }: { readonly quest: DailyQuestRow }) {
   return (
     <li
       className="feed-quest"
@@ -621,11 +621,14 @@ export default function FeedTab() {
   // day totals, and the one thing that changes them mid visit is an event.
   const model = useMemo(() => feedModel(snapshot.journal, new Date().toISOString()), [snapshot.journal]);
   const activity = useMemo(() => activityFeed(snapshot.journal, titleFor, new Date().toISOString()), [snapshot.journal]);
+  // The owner's daily quests (20 Oct), straight from the economy's snapshot.
+  const quests = useMemo(() => dailyQuestRows(snapshot.economy), [snapshot.economy]);
+  const questsDone = quests.filter((quest) => quest.done).length;
 
   return (
     <div
       className="feed-page"
-      data-feed-done={model.doneCount}
+      data-feed-done={questsDone}
       data-feed-streak={model.snapshot.streak.todayCounted ? "true" : "false"}
     >
       {/* The composed ground: behind everything, decorative, placed by a table (backdropProps.ts). */}
@@ -649,10 +652,10 @@ export default function FeedTab() {
             </section>
           )}
 
-          <section aria-label={`Daily quests, ${model.doneCount} of ${model.quests.length} done`} className="flex flex-col gap-3">
-            <QuestsHeader done={model.doneCount} total={model.quests.length} />
+          <section aria-label={`Daily quests, ${questsDone} of ${quests.length} done`} className="flex flex-col gap-3">
+            <QuestsHeader done={questsDone} total={quests.length} />
             <ul className="feed-quests !mt-0">
-              {model.quests.map((quest) => (
+              {quests.map((quest) => (
                 <QuestRow key={quest.id} quest={quest} />
               ))}
             </ul>

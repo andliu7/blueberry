@@ -175,3 +175,45 @@ export function feedModel(journal: readonly EconomyEvent[], now: string): FeedMo
     snapshot,
   };
 }
+
+/**
+ * TODAY'S DAILY QUESTS, AS THE ECONOMY DEFINES THEM (owner, 20 Oct): three a
+ * day, two recurring and one rotating, each paying a chest. This is what the
+ * Feed shows. Every number is `snapshot.quests`; this only words it.
+ *
+ * The three quests `feedModel` builds above (earn the goal, keep the streak,
+ * get five right) came before the owner's set and are no longer on screen;
+ * they stay, with their tests, until the owner says to retire them.
+ */
+export interface DailyQuestRow {
+  readonly id: string;
+  readonly label: string;
+  readonly motif: QuestMotif;
+  readonly progress: number;
+  readonly target: number;
+  readonly fraction: number;
+  readonly done: boolean;
+  readonly reading: string;
+  /** The chest finishing it earns; the row's chest is drawn open once it is opened. */
+  readonly chestId: string;
+}
+
+/** Which drawing leads each quest row. The training quest wears the flame: it is the one about keeping at it. */
+function dailyMotif(id: string): QuestMotif {
+  if (id === "cards") return "cards";
+  return id === "train" ? "flame" : "flask";
+}
+
+export function dailyQuestRows(snapshot: EconomySnapshot): readonly DailyQuestRow[] {
+  return snapshot.quests.list.map((quest) => ({
+    id: quest.id,
+    label: quest.title,
+    motif: dailyMotif(quest.id),
+    progress: quest.progress,
+    target: quest.target,
+    fraction: quest.target > 0 ? Math.min(1, quest.progress / quest.target) : 0,
+    done: quest.done,
+    reading: quest.id === "train" ? `${quest.progress} / ${quest.target} min` : `${quest.progress} / ${quest.target}`,
+    chestId: quest.chestId,
+  }));
+}
