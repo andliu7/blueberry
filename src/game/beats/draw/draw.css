@@ -79,28 +79,16 @@
 
 /* The starting materials. The scheme card's figures are capped at 4.5rem for
    MCQs; here they are the whole question, so they get more room, and two
-   reactants read as a reaction: A + B -> ?. */
+   reactants read as a reaction: A + B -> What forms?. */
 @media (min-width: 640px) {
   .draw-beat .scheme__figure {
     max-height: clamp(4.5rem, 13vh, 8rem);
   }
 }
-.draw-beat__plus,
-.draw-beat__arrow {
+.draw-beat__plus {
   flex: none;
   font-family: var(--font-display);
   font-size: 1.5rem;
-  font-weight: 800;
-  color: var(--bb-muted-foreground);
-}
-.draw-beat__slot {
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  border: 2px dashed var(--btn-line, var(--bb-border));
-  border-radius: 12px;
   font-weight: 800;
   color: var(--bb-muted-foreground);
 }

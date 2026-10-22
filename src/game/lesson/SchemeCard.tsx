@@ -3,7 +3,7 @@
  *
  * `blueberry_r9-lesson-reaction` draws it exactly, and it is the single
  * loudest element on that frame: a light card, and inside it the substrate,
- * the reagent, an arrow, and a boxed question mark where the answer goes. Our
+ * the reagent, an arrow, and a boxed blank where the answer goes. Our
  * built screen carried the prompt as prose and nothing else, which is what
  * owner ruling 1 of 2026-09-04 forbids.
  *
@@ -16,10 +16,11 @@
  * free, because a caption is text under a picture and HTML is better at that
  * than SVG is.
  *
- * WHERE THE QUESTION MARK GOES, and it moves. A predict-the-product question
+ * WHERE THE BLANK GOES, and it moves. A predict-the-product question
  * gives its reagents and asks for the right hand side, so the box on the
  * right asks. A supply-the-reagents question gives both sides and asks for
- * the arrow, so the ARROW carries the mark and both structures are drawn.
+ * the arrow, so the ARROW carries the blank ("Which reagent?") and both
+ * structures are drawn. The product blank says "What forms?".
  * lessonFigures.ts models that by which field is absent; nothing here has to
  * know the answer kind.
  *
@@ -74,17 +75,25 @@ function Species({ figure, name }: { readonly figure: Figure; readonly name: str
   );
 }
 
-/** The boxed question mark: where the answer will go once the student gives it. */
-function Unknown() {
+/**
+ * The product blank: a dashed box that says what is asked. It used to hold a
+ * bare "?", which the owner found confusing (21 Oct), so it now reads "What
+ * forms?", the same words and dashed box as the Cards tab (CardSides.tsx).
+ * Exported so the draw beat's A + B scheme shows the same blank.
+ */
+export function ProductBlank() {
   return (
     <div className="scheme__species">
-      <span className="scheme__unknown">?</span>
+      <span className="scheme__unknown">What forms?</span>
     </div>
   );
 }
 
 /**
  * The reaction arrow, with whatever is known written over and under it.
+ * The draw beat's bare arrow (DrawBeatView.tsx) is not this component: it
+ * takes the same scheme__arrow and scheme__shaft classes, so scheme.css
+ * gives both arrows one look.
  *
  * The shaft is a border rather than an SVG line so it stretches to whatever
  * width the row leaves it, and the head is a rotated square, which is the
@@ -94,9 +103,15 @@ function Unknown() {
 function Arrow({ over, under }: { readonly over: string | undefined; readonly under: string | undefined }) {
   return (
     <div className="scheme__arrow">
-      <span className="scheme__condition">
-        <Typeset text={over ?? "?"} />
-      </span>
+      {/* No reagent given means the reagent IS the question: a dashed blank
+          that says so sits over the arrow (owner, 21 Oct: not a bare "?"). */}
+      {over === undefined ? (
+        <span className="scheme__unknown scheme__unknown--reagent">Which reagent?</span>
+      ) : (
+        <span className="scheme__condition">
+          <Typeset text={over} />
+        </span>
+      )}
       <span className="scheme__shaft" />
       <span className="scheme__condition scheme__condition--under">
         {under === undefined ? null : <Typeset text={under} />}
@@ -110,7 +125,7 @@ export function SchemeCard({ scheme }: { readonly scheme: Scheme }) {
     <div className="scheme" aria-hidden>
       <Species figure={scheme.left} name={scheme.leftName} />
       <Arrow over={scheme.over} under={scheme.under} />
-      {scheme.right === undefined ? <Unknown /> : <Species figure={scheme.right} name={scheme.rightName} />}
+      {scheme.right === undefined ? <ProductBlank /> : <Species figure={scheme.right} name={scheme.rightName} />}
     </div>
   );
 }

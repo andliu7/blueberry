@@ -307,7 +307,7 @@ const VISUALS: Readonly<Record<string, McqVisual>> = Object.freeze({
   },
 
   // Both sides drawn, the ARROW open: this is the supply-the-reagents shape,
-  // and the scheme card puts the question mark on the arrow when `over` is
+  // and the scheme card puts "Which reagent?" on the arrow when `over` is
   // absent.
   "mcq-nitro-reagent": {
     kind: "scheme",

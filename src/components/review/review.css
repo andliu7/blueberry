@@ -181,9 +181,21 @@
     display: grid; place-items: center;
     background: white;
   }
+  /* The patch above the arrow runs from near the top of the drawing down to just over the
+     shaft (y 15 to 104 of 254), the empty band between the two molecules, so "Which
+     reagent?" gets two lines at a readable size. */
   .rv-reagent-mask--above {
-    top: 27.5%; height: 13.4%;
-    font: 700 3cqw/1 Georgia, serif; color: #5a3fd8;
+    top: 6%; height: 35%;
+    padding: 0 0.6cqw;
+  }
+  /* The answer blank, same look as the game's (.ct-slot, .scheme__unknown): a dashed box in
+     muted display type that says what is asked. Fixed colours because the drawing is white
+     in both themes; #475569 on white is the generator's own grey, about 7.6:1. */
+  .rv-reagent-blank {
+    padding: 0.5cqw 1cqw;
+    border: 2px dashed #cbd5e1; border-radius: 1.2cqw;
+    font: 800 3.4cqw/1.15 var(--site-display); color: #475569;
+    text-align: center;
   }
   .rv-reagent-mask--below { top: 46%; height: 11%; }
 

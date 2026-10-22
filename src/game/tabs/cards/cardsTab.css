@@ -669,6 +669,9 @@
 .ct-def--small { font-size: 0.9375rem; align-items: flex-start; text-align: left; }
 .ct-term--plain,
 .ct-def--plain { font-weight: 700; }
+/* A reaction term in the list keeps its stack centred, so the arrow and the
+   "What forms?" blank sit under the molecule rather than against the edge. */
+.ct-term--small:not(.ct-term--plain) { align-items: center; }
 
 .ct-words { line-height: 1.4; }
 
@@ -696,19 +699,32 @@
 .ct-formula { color: var(--bb-muted-foreground); font-size: 0.9375rem; }
 .ct-temp { font-size: 0.8125rem; color: var(--bb-muted-foreground); }
 
+/* The reaction arrow: a drawn down arrow with the reagents to its right, so
+   the stack reads start, arrow, blank. The svg keeps its own height now; it
+   was squashed to a 2px bar, which hid the head and read as a rule. */
 .ct-arrow {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 0.2rem;
+  gap: 0.6rem;
   color: var(--bb-muted-foreground);
 }
 
 .ct-arrow__line {
   display: block;
-  width: 3rem;
-  height: 2px;
-  background: currentColor;
+  flex: none;
+  width: 1rem;
+  height: 3rem;
+  color: var(--bb-foreground);
+}
+
+.ct-term--small .ct-arrow__line { height: 2.25rem; }
+
+.ct-arrow__over {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  text-align: left;
 }
 
 /* ---------- Term list ---------- */
@@ -929,10 +945,26 @@
   width: 100%;
 }
 
+/* The answer target under the arrow: dashed, with the question in words. */
 .ct-slot {
+  display: grid;
+  place-items: center;
   min-height: 3rem;
+  min-width: 9rem;
+  padding: 0.5rem 1rem;
   border: 2px dashed var(--bb-border);
   border-radius: 1rem;
+  color: var(--bb-muted-foreground);
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.ct-term--small .ct-slot {
+  min-height: 2.5rem;
+  min-width: 7rem;
+  font-size: 0.875rem;
 }
 
 .ct-import__result { font-weight: 700; }

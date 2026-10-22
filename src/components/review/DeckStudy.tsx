@@ -327,8 +327,11 @@ export function Figure({ src, crop }: { src: string; crop?: string }) {
         <img src={`${import.meta.env.BASE_URL}cards/${src}`} alt="" draggable={false} />
         {hideReagents && (
           <>
+            {/* The reagent is the blank, so the patch over the arrow says so in a
+                dashed box (owner, 21 Oct: a bare "?" was confusing), the same
+                blank as the game's cards and lesson schemes. */}
             <span className="rv-reagent-mask rv-reagent-mask--above" aria-hidden>
-              ?
+              <span className="rv-reagent-blank">Which reagent?</span>
             </span>
             <span className="rv-reagent-mask rv-reagent-mask--below" aria-hidden />
           </>

@@ -5,9 +5,9 @@
  * every mode.
  *
  * A reaction card's term is the start material DRAWN (the RDKit image the
- * build already rendered), the reagents over an arrow, and an empty slot
- * where the product goes. Its definition is the product drawn and named,
- * with the reaction's name under it. A three-sided card the student wrote
+ * build already rendered), a reaction arrow down to a dashed slot that asks
+ * "What forms?", with the reagents beside the arrow. Its definition is the
+ * product drawn and named, with the reaction's name under it. A three-sided card the student wrote
  * shows their words, and a plain card its front and back, with its tagged
  * structure when it has one (cardStructure.ts).
  *
@@ -30,7 +30,9 @@ function reagentText(card: Card): string {
   const reaction = card.reaction;
   if (reaction === undefined) return card.sides?.conditions ?? "";
   const steps = reaction.reagentSteps;
-  if (steps !== undefined && steps.length > 1) return steps.map((step, index) => `${index + 1}. ${step.label}`).join("  ");
+  // A no-break space after "1." keeps each step number on the line of its
+  // reagent; a narrow row used to leave "1." alone on its own line.
+  if (steps !== undefined && steps.length > 1) return steps.map((step, index) => `${index + 1}. ${step.label}`).join("  ");
   if (steps !== undefined && steps.length === 1) return steps[0]!.label;
   return reaction.reagents;
 }
@@ -50,16 +52,23 @@ export function TermSide({ card, size }: { readonly card: Card; readonly size: S
             {size === "big" && <Formulas list={reaction?.reactantFormulas} className="ct-formula" />}
           </figcaption>
         </figure>
+        {/* The reaction arrow points DOWN, from the start material to the blank,
+            because the card stacks top to bottom. The reagents sit beside it, the
+            way a vertical scheme in a textbook writes them. */}
         <div className="ct-arrow">
-          {reaction?.temperature !== undefined && size === "big" && <span className="ct-temp">{reaction.temperature}</span>}
-          {reagents.trim().length > 0 && <FormulaLabel text={reagents} className="ct-reagents" />}
-          <svg viewBox="0 0 72 12" className="ct-arrow__line" aria-hidden="true">
-            <path d="M2 6 H64 M58 2 L66 6 L58 10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <svg viewBox="0 0 16 48" className="ct-arrow__line" aria-hidden="true">
+            {/* The shaft, then the two strokes of the head. */}
+            <path d="M8 2 V44 M3 37 L8 45 L13 37" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
+          <span className="ct-arrow__over">
+            {reagents.trim().length > 0 && <FormulaLabel text={reagents} className="ct-reagents" />}
+            {reaction?.temperature !== undefined && size === "big" && <span className="ct-temp">{reaction.temperature}</span>}
+          </span>
         </div>
-        <div className="ct-slot" aria-label="Product to name">
-          ?
-        </div>
+        {/* The blank the student fills in their head. It says what is being
+            asked (owner, 21 Oct: a bare "?" was confusing), and the answer is
+            on the card's back. */}
+        <div className="ct-slot">What forms?</div>
       </div>
     );
   }

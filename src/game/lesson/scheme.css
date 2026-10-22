@@ -136,19 +136,36 @@
   border-bottom: 5px solid transparent;
 }
 
-/* The boxed question mark of the reference frame: a quiet well where the
-   answer will go, not a control. */
+/* The answer blank: a dashed box that says what is asked ("What forms?" or
+   "Which reagent?"), not a bare "?" (owner, 21 Oct). Same dashed border, muted
+   ink and display face as the Cards tab's .ct-slot, so a blank looks the same
+   everywhere. A quiet well where the answer will go, not a control, so it has
+   no hit target. It may wrap to two lines in a narrow row. */
 .scheme__unknown {
   display: grid;
   place-items: center;
-  width: 3rem;
-  height: 3rem;
+  min-width: 3rem;
+  min-height: 3rem;
+  max-width: 100%;
+  padding: 0.375rem 0.5rem;
+  border: 2px dashed var(--bb-border);
   border-radius: 0.875rem;
-  background: var(--bb-muted);
   color: var(--bb-muted-foreground);
-  font-size: 1.5rem;
-  font-weight: 700;
-  line-height: 1;
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 800;
+  line-height: 1.15;
+  text-align: center;
+}
+
+/* The reagent blank sits over the arrow shaft, where the reagent would be
+   written, so it is the smaller step and hugs its words. */
+.scheme__unknown--reagent {
+  min-width: 0;
+  min-height: 0;
+  padding: 0.1875rem 0.375rem;
+  border-radius: 0.625rem;
+  font-size: 0.6875rem;
 }
 
 /* ------------------------------------------------------------------ */

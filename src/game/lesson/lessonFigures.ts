@@ -144,9 +144,9 @@ export const KEKULE: Readonly<Record<number, 2>> = Object.freeze({ 0: 2, 2: 2, 4
  *
  * EXACTLY ONE SIDE IS UNKNOWN and the question kind decides which. A
  * predict-the-product question knows its reagents and asks for the right hand
- * side, so `right` is absent and the box draws a question mark. A supply-the
+ * side, so `right` is absent and the box asks "What forms?". A supply-the
  * reagents question knows both sides and asks for the arrow, so `over` is
- * absent and the ARROW carries the question mark. That is the same scheme
+ * absent and the ARROW carries "Which reagent?". That is the same scheme
  * read in two directions, which is what CLAUDE.md means when it says a
  * synthesis question is the reagent shape read backwards rather than a fifth
  * answer shape.

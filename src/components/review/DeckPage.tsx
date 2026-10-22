@@ -59,7 +59,7 @@ function readReagentsShown(): boolean {
 export function DeckPage({ deck }: { deck: StudyDeck }) {
   /**
    * REAGENTS (owner, 2026-10-16). With the switch off, every forward reaction card shows
-   * "?" where its reagents were, in the prompt here and over the arrow in its drawing
+   * "?" where its reagents were in the prompt here, and "Which reagent?" over the arrow in its drawing
    * (Figure, through ReagentsHiddenContext). The cards keep their indexes, so ratings
    * and stars are untouched by the switch.
    */

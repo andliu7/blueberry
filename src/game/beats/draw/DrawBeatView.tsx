@@ -38,11 +38,13 @@ import type { BeatResult, MasteryLevel } from "../types";
 import { AnswerTray, TrayWhy } from "../AnswerTray";
 import { ChipPress } from "../ChipPress";
 import { McqVisualCard } from "../mcq/McqVisualCard";
+import { ProductBlank } from "../../lesson/SchemeCard";
 import type { McqVisual } from "../mcq/mcqFigures";
 import { StructureFigure } from "../../onboarding/StructureFigure";
 import { gradeDrawing, hintFor, namedMiss, relativeStereo, withoutStereo } from "./grade";
 import type { DrawBeat, DrawMiss } from "./types";
 import type { DrawReader } from "./DrawEditor";
+import { playCorrect } from "../../sound/gameSound";
 import "./draw.css";
 
 const DrawEditor = lazy(() => import("./DrawEditor"));
@@ -61,7 +63,7 @@ export interface DrawBeatViewProps {
   readonly onContinue?: () => void;
 }
 
-/** The starting materials. Two reactants get a + between them and an arrow to the empty product. */
+/** The starting materials. Two reactants get a + between them and an arrow to the "What forms?" blank. */
 function Reactants({ visual }: { readonly visual: McqVisual }) {
   if (visual.kind !== "pair") return <McqVisualCard visual={visual} />;
   return (
@@ -75,8 +77,14 @@ function Reactants({ visual }: { readonly visual: McqVisual }) {
         <StructureFigure figure={visual.b.figure} className="scheme__figure" />
         {visual.b.name === undefined ? null : <span className="scheme__caption">{visual.b.name}</span>}
       </div>
-      <span className="draw-beat__arrow">→</span>
-      <span className="draw-beat__slot">?</span>
+      {/* The lesson scheme's drawn arrow and its "What forms?" blank
+          (SchemeCard.tsx), so this blank looks like every other one. No
+          reagent is written over this arrow: the two reactants are the whole
+          question. */}
+      <div className="scheme__arrow">
+        <span className="scheme__shaft" />
+      </div>
+      <ProductBlank />
     </div>
   );
 }
@@ -182,8 +190,10 @@ export function DrawBeatView({ beat, level, onResult, onContinue }: DrawBeatView
             : { ...base, kind: "valid_not_requested", cause: "no_named_cause_logged", built: "a different structure" },
       );
     }
-    if (verdict === "right") setPhase("right");
-    else if (attempt === 1) setPhase("retry");
+    if (verdict === "right") {
+      playCorrect();
+      setPhase("right");
+    } else if (attempt === 1) setPhase("retry");
     else await reveal(named);
   };
 

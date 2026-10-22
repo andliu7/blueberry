@@ -211,5 +211,6 @@ Q 238.3 121.1, 240.5 121.1
 </g>
 <line x1='320' y1='110.0' x2='480' y2='110.0' stroke='#334155' stroke-width='2'/>
 <path d='M480,105.0 L490,110.0 L480,115.0 L483,110.0 Z' fill='#334155'/>
-<text x='405.0' y='136.0' text-anchor='middle' font-family='Georgia, serif' font-size='14' fill='#475569'>?</text>
+<rect x='330.0' y='68.0' width='150' height='30' rx='8' fill='white' stroke='#cbd5e1' stroke-width='2' stroke-dasharray='6 4'/>
+<text x='405.0' y='88.5' text-anchor='middle' font-family='Nunito, ui-rounded, system-ui, Segoe UI, sans-serif' font-size='15' font-weight='800' fill='#475569'>Which reagent?</text>
 </svg>
