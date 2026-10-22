@@ -1,5 +1,5 @@
 import type { ArtMotif } from "@/data/testimonialArt";
-import { ART_MOTIFS } from "@/data/testimonialArt";
+import { ART_MOTIFS } from "@/data/artMotifs";
 import type { Question, StudyDeck } from "@/data/types";
 
 /**

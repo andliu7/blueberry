@@ -14,10 +14,17 @@ import path from 'path'
  * are named here by source module; Rollup resolves each to its hashed chunk.
  * The validator walks static imports from each and weighs the union. CSS is
  * listed separately because a <link> tag is not an import a walker can follow.
+ *
+ * ChestSheet is the day's first open: App.tsx claims the daily gift on mount
+ * and the gift arrives in this sheet, so once a day #/app fetches it before
+ * the student presses anything. The budget holds on that open too, so it is
+ * weighed on every one (a headless cold load, 22 Oct: 401.0 KB on the first
+ * open of a day, 398.5 KB after).
  */
 const GAME_ROUTE_COLD_LOAD_MODULES = [
   'src/components/GamePage.tsx',
   'src/game/tabs/pathway/PathwayTab.tsx',
+  'src/game/chest/ChestSheet.tsx',
 ]
 
 /**
@@ -28,6 +35,8 @@ const GAME_ROUTE_COLD_LOAD_MODULES = [
  *
  * - src/lib/supabase.ts: AuthProvider calls getSupabase() on mount to restore
  *   the stored session, so supabase-js arrives with every page.
+ * - src/components/ui/blueberry-loader.tsx: the loader imports its tip list
+ *   when it appears, and it appears over #/app on a cold open.
  *
  * src/lib/useDecks.ts is not listed: its built-in decks chunk loads only on
  * pages that read deck data, and #/app is not one of them. If a component the
@@ -35,6 +44,7 @@ const GAME_ROUTE_COLD_LOAD_MODULES = [
  */
 const GAME_ROUTE_ON_MOUNT_DYNAMIC_IMPORTERS = [
   'src/lib/supabase.ts',
+  'src/components/ui/blueberry-loader.tsx',
 ]
 
 function budgetSubjects(): Plugin {

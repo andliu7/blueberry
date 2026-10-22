@@ -1,7 +1,6 @@
 import { lazy, useEffect, useState } from "react";
 import { useDecks } from "@/lib/useDecks";
 import { isReference, DECK_GROUPS, type DeckGroupId } from "@/data/types";
-import { NotFoundPage } from "@/components/ui/404-page-not-found";
 import { HomePage } from "@/components/HomePage";
 import { LoaderGate } from "@/components/ui/blueberry-loader";
 import { entryModules, loadEntryGate, loadStartPage } from "@/lib/entryChunks";
@@ -76,6 +75,9 @@ function StartPageRoute({ step }: { step: string }) {
  * stylesheet, arrives with this chunk.
  */
 const GamePage = lazy(() => import("@/components/GamePage"));
+/* Lazy because almost nobody lands on it, and its card art (the motif SVGs in
+   testimonialArt.ts) was about 5 KB of every #/app cold load. */
+const NotFoundPage = lazy(() => import("@/components/ui/404-page-not-found"));
 /**
  * One page per unit of Organic Chemistry II. Lazy because a visitor who never
  * opens a unit should not download fifteen of them, and the unit data is 283
@@ -220,13 +222,13 @@ export default function App() {
     return DECK_GROUPS.some((g) => g.id === gid) ? (
       withBoundary(<FolderPage key={gid} groupId={gid} />)
     ) : (
-      <NotFoundPage what="That folder" detail={`#/${route}`} />
+      withBoundary(<NotFoundPage what="That folder" detail={`#/${route}`} />)
     );
   }
 
   // Everything reaching here should be a deck; anything else is a 404.
   if (!route.startsWith("deck/")) {
-    return <NotFoundPage detail={`#/${route}`} />;
+    return withBoundary(<NotFoundPage detail={`#/${route}`} />);
   }
 
   return <DeckRoute route={route} />;
@@ -264,7 +266,7 @@ function DeckRoute({ route }: { route: string }) {
     return loading ? (
       <DeckLoading />
     ) : (
-      <NotFoundPage what="That deck" detail={`#/${route}`} />
+      withBoundary(<NotFoundPage what="That deck" detail={`#/${route}`} />)
     );
   }
   // Keyed so switching decks remounts rather than carrying the old deck's
