@@ -109,6 +109,23 @@ six Bloom moves, hand-written wordmark, jump / curtain lift / land exit.
   their moment (reward-first, reward-streak, streak-*, charge-cost, charge-empty, shell-bar, boot).
   Full list: `grignard/reports/contrast-audit-2026-10-20.txt` (outside the repo).
 
+**Progress, 21 Oct (Wave 2 items 6, 8, 10 and item 15; committed, not pushed)**
+- Top bar A3: one row, Bloom with his level badge, a short XP bar, "N XP to the next stage!",
+  energy as a plain number, no cost on spend. +XP moment B1 plays when XP lands (verified after a
+  lesson). On phones the course chip left the row to make room (desktop keeps it; Me > Your tools
+  > Courses still switches course).
+- Chests C1: earned and saved (daily gift and onboarding gift on app open, daily quests, section
+  finals and review stops), "Open now / Save for later" sheet, three-tap opening with a gem clink
+  per diamond, saved chests in Me (open one or all). The map's treasure chest plays C1 too.
+- Daily quests on the Feed now come from the economy (two recurring, one rotating). The Feed's
+  older three (earn the goal, keep the streak, get five right) are off screen but still in
+  feedModel.ts with their tests: OWNER, retire them or keep them?
+- Item 15: every reaction blank says "What forms?" or "Which reagent?" (Cards, lesson schemes, the
+  draw beat, the site's review decks); the card SVGs match mechanism_trainer/scripts/make_flashcards.py,
+  whose `blank=` change is still uncommitted in that repo.
+- Measurement harness: settleBoot saves the day's gift chest, so the modal sheet does not hide
+  the page the gates measure.
+
 **Owner decisions, 20 Oct (answers to the calibration questions; recorded here, docs amended)**
 - Real-money streak freezes dropped for now; Shop lives inside Me. XP doubler and random-XP chest
   held until XP is stored server side; the onboarding gift chest pays a FIXED amount.
