@@ -32,7 +32,18 @@
  * promise broken in another language.
  */
 
-import { CHARGE_REGEN_MINUTES, type DailyGoalTier, type EconomySnapshot } from "@blueberry/economy";
+import {
+  CHARGE_COST,
+  CHARGE_DAILY_QUEST,
+  CHARGE_ENTRY_COST,
+  CHARGE_FLAWLESS_BONUS,
+  CHARGE_REGEN_MINUTES,
+  CHARGE_REGEN_PER_INTERVAL,
+  CHARGE_REVIEW_CLEARED,
+  type DailyGoalTier,
+  type EconomySnapshot,
+} from "@blueberry/economy";
+import { formatCountdown } from "../../charge/chargeGateModel";
 
 export type HudItemId = "xp" | "diamonds" | "streak" | "charge";
 
@@ -165,9 +176,54 @@ export interface ChargeReadout extends HudReadout {
    * clock against it and never a second opinion about the economy.
    */
   readonly nextFraction: number;
+  /**
+   * When the next refill lands, as the explainer says it: "+10 in 14 min".
+   * "Full" at the cap; empty in the exam window, where nothing refills.
+   */
+  readonly nextIn: string;
+  /**
+   * What costs charge and what pays it, for the sheet behind the number. This
+   * is information ON REQUEST (owner, 20 Oct): the header never shows a price
+   * at the moment of spending, no "-3" chip and no cost slice. A student who
+   * wants to know taps the number and reads this.
+   */
+  readonly facts: readonly ChargeFact[];
+}
+
+/**
+ * The short XP bar at the top and Bloom's level badge beside it (owner, Wave 2
+ * pick A3, 20 Oct).
+ *
+ * NOT A HudReadout: it is not a button and opens no sheet, so it carries no
+ * eyebrow, headline or coach line. It is a reading of `economy.xp`'s stage
+ * fields and nothing else; the stage maths lives in the economy (rules.ts,
+ * stageFor), never here.
+ */
+export interface StageReadout {
+  /** Bloom's level, 1 based. */
+  readonly stage: number;
+  /** The badge on Bloom: "Lv 4". */
+  readonly badge: string;
+  /** 0 to 1, how far through the current stage. The bar's fill. */
+  readonly fraction: number;
+  /** XP still needed for the next stage. Always at least 1. */
+  readonly toNext: number;
+  /** The line over the bar. See xpBarLabel. */
+  readonly barLabel: string;
+  /** The accessible name of the whole cluster. */
+  readonly label: string;
+  /** Lifetime XP. The +XP moment compares two of these to know a gain landed. */
+  readonly total: number;
+}
+
+/** One row of the charge explainer: what something costs or pays, as words. */
+export interface ChargeFact {
+  readonly label: string;
+  readonly value: string;
 }
 
 export interface HudModel {
+  readonly stage: StageReadout;
   readonly xp: XpReadout;
   readonly diamonds: DiamondReadout;
   readonly streak: StreakReadout;
@@ -214,6 +270,39 @@ function xpReadout(snapshot: EconomySnapshot): XpReadout {
     met: goalMet,
     today,
     goalXp,
+  };
+}
+
+/**
+ * The line over the XP bar: "65 XP to the next stage!".
+ *
+ * NEVER "135 / 200" (owner, 20 Oct): a fraction is arithmetic for the student
+ * to do, and the distance left is the one number that makes them want to play
+ * one more lesson.
+ *
+ * LEADERBOARD HOOK, NOT BUILT. Once leaderboards are real (server tables and
+ * RLS, flagged off until then; STATUS.md, Owner decisions 20 Oct) the owner
+ * wants this line to read "N XP to pass <classmate>" whenever a classmate is
+ * close ahead. That sentence belongs HERE and nowhere else, so the bar and its
+ * accessible name keep saying the same thing. Until then it is always the
+ * stage line.
+ */
+export function xpBarLabel(toNextStage: number): string {
+  return `${toNextStage} XP to the next stage!`;
+}
+
+function stageReadout(snapshot: EconomySnapshot): StageReadout {
+  const { total, stage, stageStartXp, nextStageXp, toNextStage } = snapshot.xp;
+  const span = nextStageXp - stageStartXp;
+  const barLabel = xpBarLabel(toNextStage);
+  return {
+    stage,
+    badge: `Lv ${stage}`,
+    fraction: span <= 0 ? 0 : clamp01((total - stageStartXp) / span),
+    toNext: toNextStage,
+    barLabel,
+    label: `Stage ${stage}. ${barLabel}`,
+    total,
   };
 }
 
@@ -311,6 +400,28 @@ function streakReadout(snapshot: EconomySnapshot): StreakReadout {
   };
 }
 
+/** "+10 in 14 min", or less than 10 when the cap is nearer than a full refill. */
+function nextRefillLine(snapshot: EconomySnapshot): string {
+  const { current, cap, nextRegenAt } = snapshot.charge;
+  if (nextRegenAt === null || current >= cap) return "Full";
+  const amount = Math.min(CHARGE_REGEN_PER_INTERVAL, cap - current);
+  return `+${amount} in ${formatCountdown(Date.parse(nextRegenAt) - Date.parse(snapshot.now))}`;
+}
+
+/**
+ * The explainer's rows, every number read off the economy's own constants so
+ * the sheet cannot drift from what is actually charged.
+ */
+const CHARGE_FACTS: readonly ChargeFact[] = Object.freeze([
+  { label: "A lesson", value: `${CHARGE_COST.reaction}` },
+  { label: "A section final", value: `${CHARGE_ENTRY_COST.final}` },
+  { label: "Refill", value: `+${CHARGE_REGEN_PER_INTERVAL} every ${CHARGE_REGEN_MINUTES} min` },
+  { label: "A review drill", value: `+${CHARGE_REVIEW_CLEARED}` },
+  { label: "A daily quest", value: `+${CHARGE_DAILY_QUEST}` },
+  { label: "A flawless lesson", value: `+${CHARGE_FLAWLESS_BONUS}` },
+  { label: "A wrong answer", value: "Free, always" },
+]);
+
 /** How far the next point has come, read off `nextRegenAt` against the clock. */
 function nextChargeFraction(snapshot: EconomySnapshot): number {
   const { nextRegenAt } = snapshot.charge;
@@ -342,6 +453,8 @@ function chargeReadout(snapshot: EconomySnapshot): ChargeReadout {
       daysLeft,
       daysLabel: daysLeft <= 0 ? "today" : `${daysLeft}d`,
       nextFraction: 0,
+      nextIn: "",
+      facts: CHARGE_FACTS,
     };
   }
   return {
@@ -361,7 +474,9 @@ function chargeReadout(snapshot: EconomySnapshot): ChargeReadout {
     headline: "Mistakes never cost charge",
     // The second sentence is mandated by ECONOMY.md's Charge rules and is the
     // difference between this meter and the one it is a correction of.
-    line: "Charge refills a point every 30 minutes. Starting a node costs some. Getting things wrong never does.",
+    // Owner 2026-10-20: +10 every 30 minutes, a lesson 3, a final 6. The
+    // numbers come off the economy's constants, never typed here.
+    line: `Charge refills ${CHARGE_REGEN_PER_INTERVAL} every ${CHARGE_REGEN_MINUTES} minutes. Starting a lesson costs some. Getting things wrong never does.`,
     fraction: cap <= 0 ? 0 : clamp01(current / cap),
     current,
     cap,
@@ -369,12 +484,15 @@ function chargeReadout(snapshot: EconomySnapshot): ChargeReadout {
     daysLeft: examDaysLeft,
     daysLabel: "",
     nextFraction: nextChargeFraction(snapshot),
+    nextIn: nextRefillLine(snapshot),
+    facts: CHARGE_FACTS,
   };
 }
 
 /** The whole header, from one snapshot. Pure: same snapshot in, same words out. */
 export function hudModel(snapshot: EconomySnapshot): HudModel {
   return {
+    stage: stageReadout(snapshot),
     xp: xpReadout(snapshot),
     diamonds: diamondReadout(snapshot),
     streak: streakReadout(snapshot),

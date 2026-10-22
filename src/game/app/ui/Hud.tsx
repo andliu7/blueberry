@@ -174,7 +174,7 @@
  * that the press itself is the first frame of feedback.
  */
 
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
 import { deriveEconomy, type EconomySnapshot } from "@blueberry/economy";
 import { economyOptions } from "../progress";
 import { useProgress, useReducedMotion } from "../hooks";
@@ -185,10 +185,12 @@ import {
   type ChargeReadout,
   type HudButtonId,
   type HudModel,
+  type StageReadout,
   type StreakReadout,
   type StreakState,
 } from "./hudModel";
 import { closeOnBackdrop } from "./dismiss";
+import { hudDiamondsHold } from "./hudTargets";
 import { Press } from "./Press";
 
 /**
@@ -289,6 +291,10 @@ function HudButton({ id, label, rank, onOpen, streak, children }: ItemProps) {
       data-hud={id}
       data-rank={rank}
       data-streak={streak}
+      // THE CHEST'S LANDING SPOT. Diamonds won from a chest fly into this
+      // counter; hudTargets.ts finds it by this attribute (HUD_DIAMONDS_ATTR)
+      // so the chest never has to import the header. Only diamonds carries it.
+      data-hud-diamonds={id === "diamonds" ? "" : undefined}
       onPointerDown={(event) => {
         const rect = event.currentTarget.getBoundingClientRect();
         onOpen(id, {
@@ -344,6 +350,250 @@ function ChargeReading({ charge }: { readonly charge: ChargeReadout }) {
 }
 
 /**
+ * A number that counts from its old value to its new one, over about 600 ms.
+ *
+ * Used by the diamond counter, so a chest paying out reads as the balance
+ * climbing rather than as a digit swapping. The first render shows the real
+ * value with no count: a counter that counted up from zero on every page load
+ * would be claiming a payout that did not happen. Under reduced motion it
+ * jumps straight to the new value.
+ *
+ * THE PATTERN: a requestAnimationFrame loop inside an effect, with the
+ * cleanup cancelling the frame. That is the React way to run a short
+ * animation that writes state: the effect starts it, and the cleanup stops it
+ * if the value changes again mid count or the header unmounts.
+ */
+const COUNT_MS = 600;
+
+function useCountUp(target: number, reducedMotion: boolean): number {
+  const [shown, setShown] = useState(target);
+  // Where the count starts: whatever is on screen right now. A ref, not
+  // state, because updating it must not cause a render of its own.
+  const shownRef = useRef(target);
+  useEffect(() => {
+    const from = shownRef.current;
+    if (from === target || reducedMotion) {
+      shownRef.current = target;
+      setShown(target);
+      return;
+    }
+    const start = performance.now();
+    let frame = 0;
+    const step = (now: number) => {
+      const t = Math.min(1, (now - start) / COUNT_MS);
+      // Ease out, so the last few units land slowly enough to be read.
+      const eased = 1 - (1 - t) * (1 - t) * (1 - t);
+      const value = Math.round(from + (target - from) * eased);
+      shownRef.current = value;
+      setShown(value);
+      if (t < 1) frame = requestAnimationFrame(step);
+    };
+    frame = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(frame);
+  }, [target, reducedMotion]);
+  return shown;
+}
+
+/**
+ * The last XP stage the header drew, kept OUTSIDE the component on purpose.
+ *
+ * A lesson runs outside the Shell (App.tsx), so the header is unmounted while
+ * the XP is being earned and mounts again on the way back to the path. A
+ * component's own state dies with it; a module variable does not. Comparing
+ * the fresh total with this one is how the header knows XP landed while it
+ * was away, and plays the +XP moment then, where the student can see it.
+ * Null until the header has drawn once, so a page load never plays it.
+ */
+let xpSeen: StageReadout | null = null;
+
+/** The spark angles round the end of the bar, in degrees. */
+const SPARKS = [0, 45, 90, 135, 180, 225, 270, 315];
+
+/**
+ * Bloom with its level badge, the line over the bar, and the short XP bar
+ * (owner, Wave 2 pick A3: one row, no second row).
+ *
+ * THE +XP MOMENT (Wave 2 pick B1) LIVES HERE, because this is the one place
+ * that sees every XP gain: a lesson, a quiz, a review, a chest, whatever paid
+ * it. When the lifetime total goes up:
+ *
+ *  1. "+N XP" pops in just under Bloom, and Bloom hops with happy eyes;
+ *  2. after a beat the number arcs up into the end of the bar;
+ *  3. the bar fills to the new value and sparks fly off its end.
+ *
+ * The bar holds its OLD fill until the number lands (that is `shown`), so the
+ * fill is visibly caused by the number arriving. The amount is the economy's
+ * own total, after minus before, never a sum this file works out from
+ * receipts: the store has already banked it, this only draws it.
+ *
+ * REDUCED MOTION: no pop, no flight, no hop and no sparks. The bar takes its
+ * new value at once and "+N XP" sits beside the line for a moment, as text.
+ */
+function XpStage({ stage, reducedMotion }: { readonly stage: StageReadout; readonly reducedMotion: boolean }) {
+  // What the bar and badge draw. Lags `stage` only while a number is flying.
+  const [shown, setShown] = useState<StageReadout>(() =>
+    xpSeen !== null && xpSeen.total < stage.total ? xpSeen : stage,
+  );
+  const [gain, setGain] = useState<number | null>(null);
+  const [hop, setHop] = useState(0);
+  const [cheer, setCheer] = useState(false);
+  const [sparks, setSparks] = useState(0);
+  const seen = useRef<StageReadout | null>(xpSeen);
+  const bloomRef = useRef<HTMLSpanElement>(null);
+  const barRef = useRef<HTMLSpanElement>(null);
+  const flyerRef = useRef<HTMLSpanElement>(null);
+  // Read inside the effect without being one of its dependencies: the minute
+  // tick hands over a fresh `stage` object with the same total, and that must
+  // not restart a flight. The effect re-runs on the TOTAL only.
+  const latest = useRef(stage);
+  latest.current = stage;
+
+  useEffect(() => {
+    const now = latest.current;
+    const before = seen.current;
+    seen.current = now;
+    xpSeen = now;
+    if (before === null || now.total <= before.total) {
+      setShown(now);
+      return;
+    }
+    const amount = now.total - before.total;
+    setGain(amount);
+
+    if (reducedMotion) {
+      setShown(now);
+      const id = window.setTimeout(() => setGain(null), 2000);
+      return () => window.clearTimeout(id);
+    }
+
+    setShown(before);
+    setCheer(true);
+    setHop((n) => n + 1);
+    let done = false;
+    const timers: number[] = [];
+    const animations: Animation[] = [];
+    const later = (fn: () => void, ms: number) => {
+      timers.push(window.setTimeout(fn, ms));
+    };
+
+    const land = () => {
+      done = true;
+      setShown(now);
+      setSparks((n) => n + 1);
+      later(() => setGain(null), 120);
+      later(() => setCheer(false), 1400);
+    };
+
+    // One frame first, so the flyer is in the DOM with its text before it is
+    // measured.
+    const frame = requestAnimationFrame(() => {
+      const flyer = flyerRef.current;
+      const bloom = bloomRef.current;
+      const bar = barRef.current;
+      if (flyer === null || bloom === null || bar === null || typeof flyer.animate !== "function") {
+        land();
+        return;
+      }
+      const b = bloom.getBoundingClientRect();
+      const r = bar.getBoundingClientRect();
+      const w = flyer.offsetWidth;
+      const h = flyer.offsetHeight;
+      // Start under Bloom, below the header, where there is room to read it.
+      const x0 = Math.max(8, b.left + b.width / 2 - w / 2);
+      const y0 = b.bottom + 18;
+      // End on the bar, at the point the fill is about to reach.
+      const x1 = r.left + r.width * now.fraction - w / 2;
+      const y1 = r.top + r.height / 2 - h / 2;
+      const pop = flyer.animate(
+        [
+          { transform: `translate(${x0}px, ${y0 + 24}px) scale(0.3)`, opacity: 0 },
+          { transform: `translate(${x0}px, ${y0}px) scale(1.15)`, opacity: 1, offset: 0.6 },
+          { transform: `translate(${x0}px, ${y0}px) scale(1)`, opacity: 1 },
+        ],
+        // --bb-ease-spring, written out because the Web Animations API cannot
+        // read a CSS variable.
+        { duration: 520, easing: "cubic-bezier(.34, 1.56, .64, 1)", fill: "forwards" },
+      );
+      animations.push(pop);
+      pop.onfinish = () => {
+        later(() => {
+          // The arc: out to the side and down a little, then up into the bar,
+          // shrinking as it goes in.
+          const fly = flyer.animate(
+            [
+              { transform: `translate(${x0}px, ${y0}px) scale(1)`, opacity: 1 },
+              { transform: `translate(${(x0 + x1) / 2 + 40}px, ${(y0 + y1) / 2 + 30}px) scale(0.8)`, opacity: 1, offset: 0.5 },
+              { transform: `translate(${x1}px, ${y1}px) scale(0.3)`, opacity: 0.2 },
+            ],
+            // --bb-ease-wipe, written out for the same reason.
+            { duration: 560, easing: "cubic-bezier(.76, 0, .24, 1)", fill: "forwards" },
+          );
+          animations.push(fly);
+          fly.onfinish = land;
+        }, 450);
+      };
+    });
+
+    return () => {
+      cancelAnimationFrame(frame);
+      for (const id of timers) window.clearTimeout(id);
+      for (const animation of animations) animation.cancel();
+      // Interrupted before it landed (React's development double run, or the
+      // header leaving mid flight): forget this gain so the next run plays it.
+      if (!done) {
+        seen.current = before;
+        xpSeen = before;
+      }
+    };
+  }, [stage.total, reducedMotion]);
+
+  return (
+    <div className="hud-xp" role="group" aria-label={stage.label}>
+      <span ref={bloomRef} className="hud-xp-bloom" aria-hidden>
+        <Berry
+          mood={cheer ? "cheer" : "happy"}
+          behaviour={hop > 0 ? "bounce" : "idle"}
+          behaviourKey={hop}
+          reducedMotion={reducedMotion}
+          sizePx={36}
+        />
+        <span className="hud-xp-badge">{shown.badge}</span>
+      </span>
+      <span className="hud-xp-col" aria-hidden>
+        <span className="hud-xp-line">
+          {shown.barLabel}
+          {reducedMotion && gain !== null ? <span className="hud-xp-gain"> +{gain} XP</span> : null}
+        </span>
+        <span ref={barRef} className="hud-xp-bar">
+          <span className="hud-xp-fill" style={{ width: `${(shown.fraction * 100).toFixed(1)}%` }} />
+          {sparks > 0 ? (
+            // Keyed on the count, so each landing mounts a fresh burst and the
+            // CSS animation plays again from its start.
+            <span key={sparks} className="hud-xp-sparks" style={{ left: `${(shown.fraction * 100).toFixed(1)}%` }}>
+              {SPARKS.map((angle) => (
+                <span key={angle} className="hud-xp-spark" style={{ "--a": `${angle}deg` } as CSSProperties} />
+              ))}
+            </span>
+          ) : null}
+        </span>
+      </span>
+      {/* The flying number. Fixed to the viewport, so the header's own box
+          cannot clip it on its way down and back. Present only while a gain
+          is playing. */}
+      {!reducedMotion && gain !== null ? (
+        <span ref={flyerRef} className="hud-xp-flyer" aria-hidden>
+          +{gain} XP
+        </span>
+      ) : null}
+      {/* Said once to a screen reader, since the flight itself is hidden. */}
+      <span className="sr-only" aria-live="polite">
+        {gain !== null ? `Plus ${gain} XP. ${stage.barLabel}` : ""}
+      </span>
+    </div>
+  );
+}
+
+/**
  * The header row. `role="group"` rather than a list: these are three readings
  * of one thing, and a screen reader announcing "list, 3 items" in front of the
  * page title is noise.
@@ -354,7 +604,10 @@ export function Hud() {
   const model = useMemo(() => hudModel(economy), [economy]);
   const [open, setOpen] = useState<HudButtonId | null>(null);
   const [spot, setSpot] = useState<Spot | null>(null);
-  const { xp, diamonds, streak, charge } = model;
+  const { stage, xp, diamonds, streak, charge } = model;
+  const diamondCount = useCountUp(diamonds.balance, reducedMotion);
+  // Diamonds from a chest still in the air (hudTargets.ts): the counter waits for them.
+  const inFlight = useSyncExternalStore(hudDiamondsHold.subscribe, hudDiamondsHold.get, hudDiamondsHold.get);
 
   const openItem = (id: HudButtonId, at: Spot) => {
     setSpot(at);
@@ -363,7 +616,11 @@ export function Hud() {
 
   return (
     <>
-      <div className="flex shrink-0 items-center gap-1 sm:gap-2" role="group" aria-label="Today's progress">
+      <div className="hud-row flex shrink-0 items-center gap-1 sm:gap-2" role="group" aria-label="Today's progress">
+        {/* ONE ROW (owner, Wave 2 pick A3, 20 Oct): Bloom wearing the level,
+            a short XP bar, then the three numbers. No second row and no
+            energy bar: charge is a plain number like its neighbours. */}
+        <XpStage stage={stage} reducedMotion={reducedMotion} />
         {/*
           THE LEAD READOUT. `rank="lead"` is the row's whole size hierarchy:
           the streak's NUMBER steps up one size, and nothing else about the
@@ -412,7 +669,8 @@ export function Hud() {
               and inventing one would be drawing a fraction that does not
               exist. That is the second of the row's three differences. */}
           <DiamondMark className="hud-mark" />
-          <span className="hud-value hud-ink-diamond">{diamonds.value}</span>
+          {/* Counts up from the old balance when it changes (useCountUp). */}
+          <span className="hud-value hud-ink-diamond">{inFlight === null ? diamondCount : diamonds.balance - inFlight}</span>
         </HudButton>
 
         <HudButton id="charge" label={charge.label} rank="peer" onOpen={openItem}>
@@ -641,6 +899,20 @@ function HudSheetStrip({
             sizePx={76}
           />
           {model.charge.examWindow ? null : <ChargePips charge={model.charge} />}
+          {model.charge.examWindow ? null : <span className="hud-charge-next">{model.charge.nextIn}</span>}
+          {/* THE PRICE LIST, ON REQUEST ONLY (owner, 20 Oct). The header never
+              shows a cost at the moment of spending; a student who wants to
+              know what a lesson takes taps the number and reads it here. */}
+          {model.charge.examWindow ? null : (
+            <dl className="hud-charge-facts">
+              {model.charge.facts.map((fact) => (
+                <div key={fact.label} className="hud-charge-fact">
+                  <dt>{fact.label}</dt>
+                  <dd>{fact.value}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
         </span>
       );
     default: {

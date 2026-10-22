@@ -114,6 +114,18 @@
   }
 }
 
+/* WAVE 2 TOOK THE CHIP OFF THE PHONE ROW (owner pick A3, 20 Oct: one
+   decluttered row). Bloom, his level and the XP bar now lead the row at about
+   138px, and chip + tool + XP + readouts measured ~470 in a 378px row, so the
+   chip overlapped the tool button. The course stays one tap away: the path's
+   unit banner names it and Me > Your tools > Courses switches it. Desktop
+   keeps the chip. */
+@media (width < 40rem) {
+  .course-chip {
+    display: none;
+  }
+}
+
 /* --------------------------------------------------------------- the sheet */
 
 /* A BOTTOM SHEET, not a centred card. The chip is at the top of the screen but
