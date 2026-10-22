@@ -56,15 +56,5 @@ export default defineConfig({
     include: ["test/**/*.test.ts"],
     environment: "node",
     watch: false,
-    coverage: {
-      provider: "v8",
-      include: ["src/**/*.ts"],
-      // Nothing is excluded, including src/geometry/, which a different builder
-      // owns and tests separately. The Phase 2 exit condition is branch coverage
-      // on the state machine specifically, so the report has to be read per file
-      // rather than as one total, and a total that hid half the package would be
-      // the wrong number to read anyway.
-      reporter: ["text", "json-summary"],
-    },
   },
 });

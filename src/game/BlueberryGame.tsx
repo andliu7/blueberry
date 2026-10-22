@@ -2,7 +2,6 @@ import App from "./App";
 import { HoverLabel } from "./cursor/HoverLabel";
 
 import "./theme.css";
-import "./tabs/trainer/backdrop.css";
 
 /**
  * The game as a component the site can mount, replacing the standalone
