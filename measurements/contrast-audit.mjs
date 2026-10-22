@@ -48,7 +48,7 @@ import http from "node:http";
 import path from "node:path";
 import process from "node:process";
 import puppeteer from "puppeteer-core";
-import { LESSON_HASH, MOMENTS, TAB_ROUTES, installSeed, settleBoot, sleep, withApp } from "./economy-moments.mjs";
+import { LESSON_HASH, MOMENTS, STREAK_STAGE, TAB_ROUTES, installSeed, settleBoot, sleep, withApp } from "./economy-moments.mjs";
 
 /**
  * The tab routes, imported rather than restated.
@@ -90,9 +90,9 @@ const ECONOMY_ROUTES = [
   // the milestone band's ink on the streak fill, and the exam banner. A
   // surface no script visits is a surface no audit has an opinion about, and
   // the reward moment's own headline is the standing proof of what that costs.
-  { name: "streak-rest", moment: "streak-rest", root: "[data-streak]", midMs: null },
-  { name: "streak-milestone", moment: "streak-milestone", root: "[data-streak]", midMs: null },
-  { name: "streak-exam", moment: "streak-exam", root: "[data-streak]", midMs: null },
+  { name: "streak-rest", moment: "streak-rest", root: STREAK_STAGE, midMs: null },
+  { name: "streak-milestone", moment: "streak-milestone", root: STREAK_STAGE, midMs: null },
+  { name: "streak-exam", moment: "streak-exam", root: STREAK_STAGE, midMs: null },
   // P5's Charge sheet, all three states plus the commit. `root` stays null:
   // the sheet is a modal over a live pathway and the pathway behind it is on
   // screen, so scoping the measurement to the panel would leave the ground it
@@ -207,7 +207,15 @@ const ALL_ROUTES = [
   // is what keeps the audit and the capture standing in the same place.
   ...ECONOMY_ROUTES.map((route) => ({
     ...route,
-    seed: MOMENTS[route.moment].seed,
+    // A GETTER, read when the route is measured, not when this list is built.
+    // The Charge seeds are getters for a reason (P5_SEED_BUILDERS): charge
+    // regenerates from the wall clock, and a seed frozen here aged by the
+    // whole light half of the run before the dark half used it. Since the
+    // 20 Oct refill of +10 per 30 min, that aged dark charge-empty into a
+    // ready meter, and the drive rightly refused it (22 Oct).
+    get seed() {
+      return MOMENTS[route.moment].seed;
+    },
     stored: MOMENTS[route.moment].stored ?? {},
     momentHash: MOMENTS[route.moment].hash ?? LESSON_HASH,
     drive: MOMENTS[route.moment].drive,

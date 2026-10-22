@@ -585,9 +585,15 @@ export async function walkToFinish(page, limit = 12) {
       appears over the lesson with its own Continue and the lesson resumes
       behind it. Measured: after the third correct answer and a Next, the
       position does not move and a Continue joins CHECK and NEXT on screen.
+
+      READ textContent, NOT innerText. The lesson buttons are uppercased in CSS
+      now, and innerText returns the rendered case ("CONTINUE"), so an exact
+      match on "Continue" never fired and the walk pressed Next under the combo
+      until it timed out (22 Oct). textContent is the authored label, which is
+      also what buttonByText presses by.
     */
     const interstitial = await page.evaluate(() =>
-      [...document.querySelectorAll("button")].some((node) => node.innerText.trim() === "Continue"),
+      [...document.querySelectorAll("button")].some((node) => node.textContent.trim() === "Continue"),
     );
     if (interstitial) {
       await press(page, await buttonByText(page, "Continue"), `Continue (walk ${i + 1})`);
@@ -606,7 +612,7 @@ export async function walkToFinish(page, limit = 12) {
       await page.waitForFunction(
         () =>
           document.querySelector("[data-reaction]") === null ||
-          [...document.querySelectorAll("button")].some((node) => node.innerText.trim() === "Continue"),
+          [...document.querySelectorAll("button")].some((node) => node.textContent.trim() === "Continue"),
         { timeout: 5_000 },
       );
       await sleep(120);
@@ -1357,10 +1363,18 @@ const P4_EXPECTED = {
   exam: { days: 13, saved: "", milestone: "", exam: "true", rest: 0, freeze: 0, freezesHeld: 0 },
 };
 
+/**
+ * The streak stage, and only the stage. The header's streak button carries
+ * data-streak too (its live/pending state, Hud.tsx), and the header now sits
+ * above the lesson, so a bare [data-streak] found the button first and read
+ * "live" forever (22 Oct). Only the stage carries data-streak-days.
+ */
+export const STREAK_STAGE = "[data-streak][data-streak-days]";
+
 /** Everything about the streak stage a still cannot prove: the state behind the picture. */
 async function readStreak(page) {
-  return page.evaluate(() => {
-    const stage = document.querySelector("[data-streak]");
+  return page.evaluate((selector) => {
+    const stage = document.querySelector(selector);
     if (stage === null) return null;
     const cells = [...stage.querySelectorAll(".streak-day")];
     const buy = stage.querySelector("[data-buy-freeze]");
@@ -1391,7 +1405,7 @@ async function readStreak(page) {
       // at any time.
       scrolls: scroller !== null && scroller.scrollHeight > scroller.clientHeight + 1,
     };
-  });
+  }, STREAK_STAGE);
 }
 
 /** True of every P4 moment whatever the numbers say. */
@@ -1417,6 +1431,17 @@ function streakGeometryHolds(state) {
  * measured from it and not from an arbitrary settle.
  */
 export async function driveStreak(page, seedName, { onTrigger = null } = {}) {
+  /*
+    THE STAGE ONLY OPENS ON THE CLEAR THAT COUNTS TODAY (LessonPlayer.tsx:
+    "skipped entirely when today was already counted"). If the header's streak
+    already reads "live" (hudModel.ts: today is counted) before a question is
+    answered, no lesson can open it, so say that rather than walk a lesson to a
+    screen that will not come. Seen 22 Oct on the exam seed: inside the exam
+    window any journalled event counts the day (derive.ts), and the day's gift
+    is journalled on open (Wave 2), so the open counts it first.
+  */
+  const counted = await page.evaluate(() => document.querySelector('[data-hud="streak"]')?.getAttribute("data-streak") === "live");
+  if (counted) throw new Error("today already counted on open (header streak live), so no clear can open the streak stage");
   await answerRunOf(page, 3);
   // The run of three is what the combo counts; the LESSON may be longer, and
   // Finish does not appear until it is done. See walkToFinish.
@@ -1434,7 +1459,7 @@ export async function driveStreak(page, seedName, { onTrigger = null } = {}) {
   await sleep(200);
   const at = await leaveReward(page);
   const trigger = onTrigger === null ? null : await onTrigger(at);
-  await page.waitForSelector('[data-streak="done"]', { timeout: 8_000 }).catch(() => {});
+  await page.waitForSelector(`${STREAK_STAGE}[data-streak="done"]`, { timeout: 8_000 }).catch(() => {});
   const state = await readStreak(page);
   const want = P4_EXPECTED[seedName];
   const reached =
@@ -1512,20 +1537,23 @@ function entries(count, sinceMinutes) {
 }
 
 /**
- * A working meter: 30 cap, two entries gone, 14 left.
+ * A working meter: 20 cap, two lesson entries at 3 gone, 14 left (owner
+ * 20 Oct: cap 20, a lesson costs 3; it was 30 and 8).
  *
- * Deliberately not full. A full meter draws thirty identical lit pips, so the
- * eight about to leave are the only thing on the row with an edge, which makes
- * the picture easier than the one a student usually sees. Fourteen lit, eight
- * of them outlined and sixteen dark is the honest composition.
+ * Deliberately not full. A full meter draws the whole capsule lit, so the
+ * three about to leave are the only part with an edge, which makes the
+ * picture easier than the one a student usually sees. Fourteen lit, three of
+ * them outlined and six dark is the honest composition.
  */
 export function p5ReadySeed() {
   return [{ kind: "settings", at: noonDaysAgo(6), tz: LOCAL_TZ, dailyGoal: "regular" }, ...entries(2, 12)];
 }
 
 /**
- * A drained meter: four entries, 32 charge against a cap of 30, so nothing is
- * left but the point that has been coming back for 18 minutes.
+ * A drained meter: seven entries, 21 charge against a cap of 20, so nothing is
+ * left but the refill that has been coming back for 18 minutes. It was four
+ * entries at 8 against 30; owner 20 Oct made it 3 against 20, and four entries
+ * left 8, which is a ready sheet, not an empty one.
  *
  * One clear yesterday puts a real balance behind the top up button, and it is
  * deliberately UNDER 60: the interesting screen is the one where the paid way
@@ -1546,7 +1574,7 @@ export function p5EmptySeed() {
       spine: true,
       difficulty: 3,
     },
-    ...entries(4, 12),
+    ...entries(7, 12),
   ];
 }
 
@@ -1745,9 +1773,10 @@ async function openChargeSheet(page, onTrigger, selector = SPINE_SLAB) {
   */
   // Wait for whichever dialog the press opens before asking which one it is.
   // Sampling immediately read "neither", because a press is a 40ms hold and a
-  // dialog is a frame behind it.
+  // dialog is a frame behind it. Named, not any dialog[open]: the day's gift
+  // sheet is a <dialog> too now (Wave 2), and only these two answer the press.
   await page
-    .waitForFunction(() => document.querySelector("dialog[open]") !== null, { timeout: 5_000 })
+    .waitForFunction(() => document.querySelector("dialog.charge-sheet[open], dialog.ns-sheet[open]") !== null, { timeout: 5_000 })
     .catch(() => {});
   const needsStart = await page.evaluate(
     () =>
@@ -1758,13 +1787,27 @@ async function openChargeSheet(page, onTrigger, selector = SPINE_SLAB) {
     // Found by its class, not its words: the key reads "Start", or "Continue"
     // over a saved lesson (NodeSheet.tsx), and an exact match on "START"
     // pressed nothing since the label went to sentence case.
-    const start = await page.evaluate(() => {
-      const button = document.querySelector("dialog.ns-sheet[open] .ns-start");
-      if (button === null) return null;
-      button.scrollIntoView({ block: "center", behavior: "instant" });
-      const rect = button.getBoundingClientRect();
-      return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
-    });
+    //
+    // And only once the key has STOPPED MOVING. The node sheet slides up as
+    // it opens, so a centre read on the first frame is where the key was, not
+    // where it lands, and on a cold first page the press missed it and the
+    // gate never opened (22 Oct). Two reads 100 ms apart that agree is a key
+    // at rest.
+    const startAt = () =>
+      page.evaluate(() => {
+        const button = document.querySelector("dialog.ns-sheet[open] .ns-start");
+        if (button === null) return null;
+        button.scrollIntoView({ block: "center", behavior: "instant" });
+        const rect = button.getBoundingClientRect();
+        return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+      });
+    let start = await startAt();
+    for (let i = 0; i < 20 && start !== null; i += 1) {
+      await sleep(100);
+      const again = await startAt();
+      if (again !== null && again.x === start.x && again.y === start.y) break;
+      start = again;
+    }
     await press(page, start, "START (node sheet)");
     await sleep(300);
   }
@@ -1793,15 +1836,16 @@ export async function driveChargeCost(page, { onTrigger = null } = {}) {
     state.modal &&
     state.state === "ready" &&
     state.phase === "idle" &&
-    state.pips === 30 &&
+    // Owner 20 Oct: cap 20, a lesson costs 3 (rules.ts CHARGE_CAP, CHARGE_COST).
+    state.pips === 20 &&
     state.lit === 14 &&
-    state.leaving === 8 &&
+    state.leaving === 3 &&
     // The PRICE is the headline. The node's name is above it, not in its
     // place: a sheet whose headline is sometimes a title and sometimes a
     // notice is two sheets, and the price is the thing this one exists to say.
-    state.headline === "8 charge to start" &&
+    state.headline === "3 charge to start" &&
     state.title === "Allylic/resonance delocalization" &&
-    state.line === "You will have 6 left, and it refills on its own." &&
+    state.line === "You will have 11 left, and it refills on its own." &&
     state.promise.includes("Wrong answers cost nothing") &&
     state.primary === "Start" &&
     targetsHold(state) &&
@@ -1851,10 +1895,10 @@ export async function driveChargeSpend(page, { onTrigger = null } = {}) {
   const reached =
     during.modal &&
     during.phase === "spending" &&
-    // A beat is a concept node, so five pips are on their way out rather than
-    // the eight the other three moments show. Both numbers come from
-    // CHARGE_COST in rules.ts by way of the sheet; neither is typed in the app.
-    during.leaving === 5 &&
+    // A beat is a lesson, so three are on their way out (owner 20 Oct: every
+    // lesson costs 3; a concept was 5 and a reaction 8). The number comes from
+    // CHARGE_COST in rules.ts by way of the sheet; it is not typed in the app.
+    during.leaving === 3 &&
     // The spend reached the journal, which is what the animation is playing.
     spent &&
     // And the student arrived where they were going.
@@ -1874,7 +1918,7 @@ export async function driveChargeEmpty(page, { onTrigger = null } = {}) {
     state.open &&
     state.modal &&
     state.state === "empty" &&
-    state.pips === 30 &&
+    state.pips === 20 &&
     state.lit === 0 &&
     // The point that is on its way back. It is the difference between a limiter
     // drawn going away and one drawn coming back, and it is the reason
@@ -1882,7 +1926,10 @@ export async function driveChargeEmpty(page, { onTrigger = null } = {}) {
     state.refilling === 1 &&
     state.headline === "Charge refills on its own" &&
     // A real plural in a real capital. "unit quizs cost 10" shipped once.
-    state.line.startsWith("Reaction nodes cost 8, and you have 0.") &&
+    // "Concept" because the first spine slab is a beat now (u1-allylic, the
+    // same lesson charge-spend lands in), and a beat is priced as a concept
+    // (pathwayMap.ts economyKindFor). It was a resonance hunt, a reaction.
+    state.line.startsWith("Concept nodes cost 3, and you have 0.") &&
     /Next point in \d+ min/.test(state.line) &&
     /full by /.test(state.line) &&
     // The honest way out is the PRIMARY, and it is true: review drills are
@@ -1980,6 +2027,13 @@ async function readBar(page) {
       minHeight: Math.min(...items.map((item) => item.getBoundingClientRect().height)),
       current: items.filter((item) => item.getAttribute("aria-current") === "page").length,
       atBottom: Math.abs(box.bottom - window.innerHeight) <= 4,
+      /*
+        A RAIL IS TALLER THAN IT IS WIDE. The wide screen rail is sticky and one
+        screen tall now (tabs.css, A1 round 5), so its bottom edge sits on the
+        window's bottom edge too, and "not at the bottom" stopped telling a rail
+        from a bar: the drive failed a correct rail (22 Oct). Orientation does.
+      */
+      rail: box.height > box.width,
       /** Rules 2 and 3 of sticker-ui, read where they are composed. */
       backgroundImage: style.backgroundImage,
       boxShadow: style.boxShadow,
@@ -2029,7 +2083,7 @@ function barHolds(state, { phone }) {
   // No glass. sticker-ui forbids it, and the eight tab bar had it.
   if (state.backdropFilter !== "none") return false;
   // The bar is at the bottom edge on a phone and a rail on a wide screen.
-  return phone ? state.atBottom : !state.atBottom;
+  return phone ? state.atBottom && !state.rail : state.rail;
 }
 
 /** The bar at rest, under a populated header, on the Path tab. */
@@ -2506,21 +2560,27 @@ export async function driveBoot(page, { onTrigger = null, at = Date.now(), reduc
  *
  * No mid-reveal measurement is asked for and that is a decision rather than an
  * omission: the reveal introduces no colour pair the held frame does not
- * already carry. It translates two panels and fades the mark and the words out,
- * and text on its way off a surface that is itself being removed is not text a
- * student reads.
+ * already carry. It flies Bloom out and lifts the ground away, and text on its
+ * way off a surface that is itself being removed is not text a student reads.
  */
 export async function driveBootHold(page, { onTrigger = null } = {}) {
+  /*
+    THE FRONT DOOR AS IT IS BUILT NOW (STATUS, 17 Oct: "Boot loader done by
+    the lead: six Bloom moves, hand-written wordmark, jump / curtain lift /
+    land exit"). This drive was written for the two-panel field with a rule
+    (--boot-progress, .boot-panel x2, data-boot="load"), which the owner's
+    loader replaced: one ground painted on #boot::before, Bloom, the written
+    wordmark and a 0 to 100 count. Same claims, read off what is drawn: the
+    layer is up and not leaving, full bleed, an opaque ground, the live Bloom
+    in it, a word, the count past half way, and the page in position behind.
+    The open owner decision in BOOT-LOADER-BLOCKER.md is not touched here.
+  */
   await page.waitForSelector("#boot .berry-origin", { timeout: 10000 }).catch(() => {});
-  // The rule's second milestone and the word that comes with it are written by
-  // Loader.tsx's mount effect, so wait for the number rather than for a sleep.
+  // The count is driven by the head script and Loader.tsx's milestones, so
+  // wait for the number rather than for a sleep.
   await page
     .waitForFunction(
-      () => {
-        const boot = document.getElementById("boot");
-        if (boot === null) return false;
-        return Number.parseFloat(getComputedStyle(boot).getPropertyValue("--boot-progress")) >= 0.5;
-      },
+      () => Number(document.querySelector('#boot [role="progressbar"]')?.getAttribute("aria-valuenow") ?? 0) >= 50,
       { timeout: 10000 },
     )
     .catch(() => {});
@@ -2529,29 +2589,29 @@ export async function driveBootHold(page, { onTrigger = null } = {}) {
   const state = await page.evaluate(() => {
     const boot = document.getElementById("boot");
     if (boot === null) return { held: false };
-    const style = getComputedStyle(boot);
     const box = boot.getBoundingClientRect();
-    const fill = boot.querySelector(".boot-rule__fill");
     return {
-      held: boot.dataset.boot === "load",
-      field: style.backgroundColor,
+      // Up, and not on its way out: the leaving states mark #boot itself.
+      held: document.documentElement.hasAttribute("data-boot") && !boot.hasAttribute("data-boot"),
+      field: getComputedStyle(boot, "::before").backgroundColor,
       fullBleed: Math.round(box.width) >= window.innerWidth && Math.round(box.height) >= window.innerHeight,
-      panels: boot.querySelectorAll(".boot-panel").length,
+      wordmark: boot.querySelectorAll(".boot-name svg").length,
       mark: boot.querySelectorAll(".berry-origin").length,
       word: document.getElementById("boot-word")?.textContent?.trim() ?? "",
-      progress: Number.parseFloat(style.getPropertyValue("--boot-progress")),
-      ruleTransform: fill === null ? "" : getComputedStyle(fill).transform,
-      /** The page it will part to reveal, already in position behind it. */
+      count: Number(boot.querySelector('[role="progressbar"]')?.getAttribute("aria-valuenow") ?? 0),
+      /** The page it will lift away from, already in position behind it. */
       behind: document.querySelectorAll("nav.tabbar a.tabbar-item").length,
     };
   });
   const reached =
     state.held === true &&
     state.fullBleed === true &&
-    state.panels === 2 &&
+    state.field !== "" &&
+    state.field !== "rgba(0, 0, 0, 0)" &&
+    state.wordmark === 1 &&
     state.mark === 1 &&
     state.word !== "" &&
-    state.progress >= 0.5 &&
+    state.count >= 50 &&
     state.behind === NAV_TAB_COUNT;
   return { moment: "boot-hold", reached, at, trigger, state };
 }
