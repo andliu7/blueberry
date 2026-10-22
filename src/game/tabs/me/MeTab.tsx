@@ -44,6 +44,7 @@ import { isFlagOn, type FlagId } from "../../app/flags";
 import { BlueberryMark } from "../../mascot/BlueberryMark";
 import { COURSE_LABEL } from "../courses/courseCopy";
 import { ArrowStyleSetting } from "../../settings/ArrowStyleSetting";
+import { ChestInventory } from "../../chest/ChestInventory";
 import {
   activeCount,
   badgesFor,
@@ -812,11 +813,13 @@ function ProfileScreen() {
 
   // On a phone the two columns below are `display: contents` (me.css), so
   // every section joins one list and the me-slot-* classes set its order:
-  // profile, stats, calendar, week, badges, tools.
+  // profile, chests, stats, calendar, week, badges, tools.
   return (
     <div className="me">
       <div className="me-col">
         <Profile name={snapshot.displayName} joined={joined} course={course} />
+        {/* Saved chests, right under the profile (owner, 20 Oct). */}
+        <ChestInventory saved={economy.chests.saved} className="me-slot-chests" />
 
         <section className="me-slot-stats" aria-labelledby="me-stats-title">
           <h2 id="me-stats-title" className="me-h2">

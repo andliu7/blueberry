@@ -23,6 +23,7 @@ import { HUMAN_GATE_MARK } from "../../pathway-sheet/nodeSheetModel";
 import { U1_SORT_FIGURES } from "../../content/u1";
 import { currentProblem, startPracticeRun, stopRun, type PracticeRunState } from "../../beats/practice/run";
 import { progress } from "../../app/progress";
+import { earnChestForClear } from "../../chest/chestFlow";
 import { clearTargetFor, reviewCheckpointFor } from "./reviewCheckpoints";
 import { reviewPool } from "./reviewPool";
 import { answerReview, countsTowardRun } from "./reviewRunRules";
@@ -87,6 +88,9 @@ export function ReviewRun({ id, onExit, reducedMotion = false }: { readonly id: 
     bankedOnce.current = true;
     setBanked(progress.clearNode(id, "review", { flawless: state.missed.length === 0, stepsInOneSitting: 1 }));
     setPaidLines(progress.getSnapshot().lastReceipt?.diamonds ?? []);
+    // A review stop ends a section: save its chest (after the line above,
+    // which reads the clear's own receipt).
+    earnChestForClear(progress, id);
   }, [state, id]);
 
   if (review === null || pool.length === 0) {

@@ -74,6 +74,7 @@ import { BrandMark } from "./ui/BrandMark";
 import { useReducedMotion } from "./hooks";
 import { CourseChip } from "./ui/CourseChip";
 import { Hud } from "./ui/Hud";
+import { ChestHost } from "../chest/ChestHost";
 import { NotOpenYet } from "./ui/NotOpenYet";
 import { ToolSheet } from "./ui/ToolRail";
 import { TabIcon, ToolsIcon } from "./ui/TabIcon";
@@ -464,6 +465,8 @@ export function Shell({ route, children }: { readonly route: Route; readonly chi
           )}
         </main>
       </div>
+      {/* The chest offer and the C1 opening, over everything (chest/ChestHost.tsx). */}
+      <ChestHost />
 
     </div>
   );

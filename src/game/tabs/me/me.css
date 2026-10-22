@@ -59,6 +59,7 @@
     display: contents;
   }
   .me-slot-profile { order: 1; }
+  .me-slot-chests { order: 1; }
   .me-slot-stats { order: 2; }
   .me-slot-cal { order: 3; }
   .me-slot-week { order: 4; }

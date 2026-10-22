@@ -21,6 +21,8 @@ import { useProgress, useReducedMotion } from "./app/hooks";
 import { TabSkeleton } from "./app/ui/Skeleton";
 import { BootReady, Loader } from "./app/Loader";
 import { reviewCheckpointFor } from "./tabs/pathway/reviewCheckpoints";
+import { progress } from "./app/progress";
+import { claimAppOpenGifts, watchEarnedChests } from "./chest/chestFlow";
 
 const Onboarding = lazy(() => import("./onboarding/Onboarding"));
 const BeatRunner = lazy(() => import("./beats/BeatRunner").then((m) => ({ default: m.BeatRunner })));
@@ -80,6 +82,17 @@ export default function App() {
   const needsOnboarding = !snapshot.onboardingDone && !MEASURING && route.kind !== "gallery";
   useEffect(() => {
     if (needsOnboarding && route.kind !== "onboarding") navigate(hrefForOnboarding("welcome"));
+  }, [needsOnboarding, route.kind]);
+
+  // CHESTS ARE EARNED AND SAVED (owner, 20 Oct). The watcher lives here, at
+  // the root, because a lesson runs outside the Shell: a chest earned there
+  // is queued now and offered back on the path (chest/ChestHost.tsx). It is
+  // declared before the gift claim so it is already listening when the
+  // onboarding gift and today's daily gift land. The measurement scripts get
+  // no gifts, so a sheet never sits over the surface they measure.
+  useEffect(() => watchEarnedChests(progress), []);
+  useEffect(() => {
+    if (!needsOnboarding && !MEASURING && route.kind !== "gallery") claimAppOpenGifts(progress);
   }, [needsOnboarding, route.kind]);
 
   // THE FRONT DOOR WRAPS EVERY ROUTE. The loader is a fixed layer over the

@@ -25,6 +25,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import { progress } from "../../app/progress";
+import { playChest } from "../../chest/chestFlow";
 
 export type ChestState = "locked" | "ready" | "open";
 
@@ -153,12 +154,20 @@ export function TreasureChest({
       setSaid("You already opened this chest.");
       return;
     }
-    // A ref, not state: two quick taps in one frame must not bank twice.
-    if (claimed.current) return;
-    claimed.current = true;
-    const diamonds = progress.openChest(chestId);
-    setPopping(!reducedMotion);
-    setSaid(diamonds > 0 ? `+${diamonds} diamonds!` : "Chest opened!");
+    // THE C1 OPENING (owner, 20 Oct): three taps on a full screen chest, then
+    // the diamonds fly to the counter. The economy write is `open`, run by the
+    // opening on its third tap, so leaving early banks nothing.
+    playChest({
+      detail: `From the ${checkpointTitle} chest`,
+      open: () => {
+        // A ref, not state: two quick taps in one frame must not bank twice.
+        if (claimed.current) return { diamonds: 0, xp: 0 };
+        claimed.current = true;
+        const diamonds = progress.openChest(chestId);
+        setPopping(!reducedMotion);
+        return { diamonds, xp: 0 };
+      },
+    });
   };
 
   const label =

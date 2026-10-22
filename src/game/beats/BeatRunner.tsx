@@ -365,12 +365,14 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
     const flawless = !run.recycled && run.clearedBeats === run.totalBeats;
     const spine = pathwayNode(node)?.kind === "spine";
     let live = true;
-    void import("../app/progress").then(({ progress }) => {
+    void Promise.all([import("../app/progress"), import("../chest/chestFlow")]).then(([{ progress }, { earnChestForClear }]) => {
       const diamonds = progress.clearNode(node, "concept", {
         flawless,
         stepsInOneSitting: run.totalBeats,
         spine,
       });
+      // A section final saves its section's chest, offered back on the path.
+      earnChestForClear(progress, node);
       if (live) setBanked(diamonds);
     });
     return () => {

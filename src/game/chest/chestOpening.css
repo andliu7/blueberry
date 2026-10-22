@@ -1,0 +1,247 @@
+/*
+ * The full screen chest opening (owner pick C1, 20 Oct), ChestOpening.tsx.
+ * Lazy with it. Values ported from grignard/reports/wave2-mockups.html.
+ */
+
+/* ------------------------------------------------------ the opening -- */
+
+/* While diamonds fly, the top bar is lifted over the opening so the counter
+   they land in is on screen (ChestOpening.tsx sets the attribute). */
+:root[data-chest-lift] [data-app-header] {
+  z-index: 75;
+}
+
+.chest-open {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(24, 16, 60, 0.82);
+  overflow: hidden;
+  outline: none;
+}
+.chest-open__close {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0px) + 5rem);
+  right: 1rem;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  padding: 0 1rem;
+  border-radius: 999px;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  background: transparent;
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 800;
+  cursor: pointer;
+}
+.chest-open__close:focus-visible,
+.chest-open__chest:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 6px;
+}
+
+.chest-open__chest {
+  position: relative;
+  width: 12rem;
+  height: 10.5rem;
+  padding: 0;
+  border: 0;
+  border-radius: 1rem;
+  background: none;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.chest-open__chest .chest-art {
+  position: relative;
+  z-index: 3;
+  width: 100%;
+  height: 100%;
+}
+
+/* The light behind the box: spinning rays and a soft glow. Both grow with
+   each tap through --light (0 to 1), set from the component. */
+.chest-open__rays,
+.chest-open__glow {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  pointer-events: none;
+  z-index: 1;
+  transition: opacity 400ms var(--bb-ease-ui), transform 600ms var(--bb-ease-out);
+}
+.chest-open__rays {
+  width: 38rem;
+  height: 38rem;
+  margin: -19rem 0 0 -19rem;
+  opacity: calc(var(--light, 0) * 0.9);
+  transform: scale(calc(0.3 + var(--light, 0) * 0.9));
+  -webkit-mask-image: radial-gradient(circle, #000 12%, transparent 62%);
+  mask-image: radial-gradient(circle, #000 12%, transparent 62%);
+}
+.chest-open__rays i {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: repeating-conic-gradient(from 0deg, rgba(255, 207, 72, 0.75) 0deg 9deg, rgba(255, 207, 72, 0) 9deg 22.5deg);
+  animation: chest-spin 14s linear infinite;
+}
+.chest-open__glow {
+  width: 19rem;
+  height: 19rem;
+  margin: -9.5rem 0 0 -9.5rem;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 246, 200, 1) 0%, rgba(255, 214, 90, 0.7) 30%, rgba(255, 214, 90, 0) 66%);
+  opacity: var(--light, 0);
+  transform: scale(calc(0.4 + var(--light, 0) * 0.9));
+}
+@keyframes chest-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Each tap shakes harder: --a is the swing, set per tap. */
+.chest-open__chest.is-shaking {
+  transform-origin: 50% 90%;
+  animation: chest-shake 460ms var(--bb-ease-ui);
+}
+@keyframes chest-shake {
+  0%, 100% { transform: none; }
+  15% { transform: rotate(calc(var(--a, 4deg) * -1)); }
+  35% { transform: rotate(var(--a, 4deg)); }
+  55% { transform: rotate(calc(var(--a, 4deg) * -0.7)); }
+  75% { transform: rotate(calc(var(--a, 4deg) * 0.4)) scale(1.03); }
+}
+.chest-open__chest.is-burst {
+  transform-origin: 50% 100%;
+  animation: chest-squash 420ms var(--bb-ease-spring);
+}
+@keyframes chest-squash {
+  0% { transform: scale(1.12, 0.9); }
+  50% { transform: scale(0.92, 1.12) translateY(-10px); }
+  100% { transform: none; }
+}
+
+.chest-open__hint {
+  min-height: 1.75rem;
+  margin: 2rem 0 0;
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: 900;
+  color: #fff;
+}
+.chest-open__dots {
+  display: flex;
+  gap: 0.625rem;
+  margin-top: 0.625rem;
+}
+.chest-open__dots i {
+  width: 0.875rem;
+  height: 0.875rem;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.35);
+  transition: background 200ms var(--bb-ease-ui), transform 200ms var(--bb-ease-spring);
+}
+.chest-open__dots i.is-on {
+  background: #ffd23f;
+  transform: scale(1.2);
+}
+
+/* The white light that fills the screen as the lid goes. */
+.chest-open__flood {
+  position: fixed;
+  z-index: 72;
+  width: 5rem;
+  height: 5rem;
+  margin: -2.5rem 0 0 -2.5rem;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(circle, #fff 0%, #fff 55%, rgba(255, 255, 255, 0) 72%);
+}
+
+/* A flying diamond. Fixed to the viewport, above the lifted top bar, so it
+   can land on the counter. */
+.chest-gem {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 80;
+  width: 3rem;
+  height: 2.75rem;
+  perspective: 220px;
+  pointer-events: none;
+}
+.chest-gem__bob.is-hover {
+  animation: chest-gem-bob 900ms ease-in-out infinite alternate;
+}
+@keyframes chest-gem-bob {
+  from { transform: translateY(3px); }
+  to { transform: translateY(-7px); }
+}
+.chest-gem__spin {
+  width: 100%;
+  height: 100%;
+  animation: chest-gem-spin 1300ms ease-in-out infinite alternate;
+  filter: drop-shadow(0 4px 0 rgba(3, 60, 110, 0.25));
+}
+@keyframes chest-gem-spin {
+  from { transform: rotateY(-42deg) rotateZ(-6deg); }
+  to { transform: rotateY(42deg) rotateZ(6deg); }
+}
+
+/* What it paid, and the way out. */
+.chest-open__result {
+  position: absolute;
+  z-index: 74;
+  left: 1rem;
+  right: 1rem;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 1.5rem);
+  max-width: 24rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 1.25rem 1rem 1rem;
+  border: 2px solid var(--bb-border);
+  border-radius: 1.5rem;
+  background: var(--bb-card);
+  animation: chest-result-in 420ms var(--bb-ease-spring);
+}
+@keyframes chest-result-in {
+  from { opacity: 0; transform: translateY(14px); }
+}
+.chest-open__amount {
+  margin: 0;
+  text-align: center;
+  text-wrap: balance;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  line-height: 1.2;
+  font-weight: 900;
+  color: var(--hud-ink-diamond, #0369a1);
+}
+.chest-open__detail {
+  margin: 0 0 0.75rem;
+  color: var(--bb-muted-foreground);
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+
+/* Reduced motion: the meaning stays, the movement goes. */
+@media (prefers-reduced-motion: reduce) {
+  .chest-open__rays,
+  .chest-open__glow {
+    transition: none;
+  }
+  .chest-open__rays i,
+  .chest-open__chest.is-shaking,
+  .chest-open__chest.is-burst,
+  .chest-open__result {
+    animation: none;
+  }
+}

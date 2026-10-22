@@ -1,0 +1,131 @@
+/*
+ * The chest moment (owner pick C1, 20 Oct): the drawings, the offer sheet and
+ * the Me inventory. The full screen opening has its own sheet,
+ * chestOpening.css, so a gift offered on a cold load does not fetch it.
+ * Values ported from grignard/reports/wave2-mockups.html.
+ *
+ * The chest is gold and the diamond is sky in BOTH themes: they are objects,
+ * not surfaces, so they keep their colours on a night page like a sticker does.
+ */
+
+/* ---------------------------------------------------------- the chest -- */
+
+.chest-art {
+  display: block;
+  overflow: visible;
+}
+.ca-shadow { fill: #2e2b45; opacity: 0.14; }
+.ca-band-dark { fill: #a5520f; }
+.ca-wood { fill: #6b3008; }
+.ca-rim { fill: none; stroke: #f5b82e; }
+.ca-deep { fill: #4a2208; }
+.ca-light { fill: #fff4b8; }
+.ca-lip { fill: #8a420c; }
+/* The lip is the chest's bottom edge, drawn against the card: on the night
+   card #8a420c measured 2.19:1 (contrast audit, 21 Oct), so the night lip is
+   a lighter wood, 3.37:1, still darker than the box face above it. */
+.dark .ca-lip { fill: #b45a14; }
+.ca-box { fill: #c8661a; }
+.ca-plank { fill: none; stroke: #a5520f; }
+.ca-band { fill: #f5b82e; }
+.ca-band-shade { fill: #d9960f; }
+.ca-lid-face { fill: #e0812c; }
+.ca-lid-hi { fill: none; stroke: #f3a55a; }
+.ca-plate-face { fill: #ffd23f; }
+.ca-keyhole { fill: #5a2d00; }
+
+/* Open: the lid blows off and the glowing inside springs up out of the box.
+   The inside is only drawn once open (ChestArt.tsx), so it arrives by an
+   animation rather than a transition. */
+.ca-lid {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  transition: transform 260ms var(--bb-ease-ui), opacity 160ms var(--bb-ease-ui);
+}
+.ca-inner {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: ca-inner-up 380ms var(--bb-ease-spring);
+}
+@keyframes ca-inner-up {
+  from {
+    transform: scaleY(0.2);
+  }
+}
+.ca-plate { transition: opacity 120ms var(--bb-ease-ui); }
+.chest-art.is-open .ca-lid { transform: translateY(-14px) scaleY(0.4); opacity: 0; }
+.chest-art.is-open .ca-plate { opacity: 0; }
+
+/* -------------------------------------------------------- the diamond -- */
+
+.gem-art { display: block; width: 100%; height: 100%; overflow: visible; }
+.ga-1 { fill: #0369a1; }
+.ga-2 { fill: #7dd3fc; }
+.ga-3 { fill: #38bdf8; }
+.ga-4 { fill: #0ea5e9; }
+.ga-5 { fill: #0284c7; }
+.ga-6 { fill: #075985; }
+.ga-shine { fill: #fff; fill-opacity: 0.7; }
+.ga-glint { fill: #fff; fill-opacity: 0.35; }
+.ga-edge { fill: none; stroke: #0c4a6e; }
+.ga-seam { fill: none; stroke: #0c4a6e; stroke-opacity: 0.35; }
+
+/* ------------------------------------------------------ the offer sheet -- */
+
+.chest-offer__art {
+  width: 7.5rem;
+  margin: 0.25rem auto 0;
+}
+
+/* ---------------------------------------------- the inventory, in Me -- */
+
+.chest-inv__row {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+}
+.chest-inv__art {
+  position: relative;
+  flex: none;
+  width: 4.5rem;
+}
+.chest-inv__count {
+  position: absolute;
+  right: -0.375rem;
+  top: -0.375rem;
+  min-width: 1.5rem;
+  padding: 0 0.375rem;
+  border: 2px solid var(--bb-card);
+  border-radius: 999px;
+  background: var(--bb-primary);
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 0.8125rem;
+  font-weight: 900;
+  line-height: 1.4;
+  text-align: center;
+}
+.chest-inv__line {
+  margin: 0;
+  font-weight: 700;
+  color: var(--bb-foreground);
+}
+.chest-inv__actions {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 0.875rem;
+}
+@media (min-width: 480px) {
+  .chest-inv__actions {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chest-art .ca-lid {
+    transition: none;
+  }
+  .chest-art .ca-inner {
+    animation: none;
+  }
+}
