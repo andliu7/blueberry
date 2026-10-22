@@ -34,6 +34,10 @@
 /* The icon on a tile of its own colour: the header's icon for the place, at size. */
 .home-card__icon { display: grid; place-items: center; width: 56px; height: 56px; padding: 9px; border-radius: 16px; background: color-mix(in srgb, var(--tone, var(--bb-wash)) 34%, var(--card)); }
 .home-card[data-lit] .home-card__icon { background: var(--card); }
+/* Night: a lighter tint, so each glyph's shade band keeps its 3:1 edge on the tile. At
+   34% the schedule, practice and review shades measured 2.2 to 2.4:1 (contrast audit,
+   22 Oct); at 16% the weakest, schedule, is 3.2:1. */
+.dark .home-card:not([data-lit]) .home-card__icon { background: color-mix(in srgb, var(--tone, var(--bb-wash)) 16%, var(--card)); }
 .home-card__text { display: grid; gap: 2px; min-width: 0; }
 .home-card__title { font: 800 1.125rem/1.2 var(--site-display); color: var(--bb-deep); }
 .home-card__line { font-size: .9375rem; line-height: 1.4; }

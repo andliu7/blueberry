@@ -171,7 +171,9 @@ function QuestFlask({ fraction }: { readonly fraction: number }) {
           <path d={FLASK_BODY} />
         </clipPath>
       </defs>
-      <path d={FLASK_BODY} fill={GLASS_TINT} />
+      {/* Rimmed in its own fill as well as by the outline below, so the glass is one
+          shape with an edge on a white card (see CourseFlask.tsx). */}
+      <path d={FLASK_BODY} fill={GLASS_TINT} stroke={LIQUID_DEEP} strokeWidth="1.7" strokeLinejoin="round" />
       {fraction > 0 ? (
         <g clipPath={`url(#${clip})`}>
           <rect x="3" y={level} width="18" height={bottom - level + 1} fill={LIQUID} />

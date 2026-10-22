@@ -69,8 +69,11 @@ export function CourseFlask({ className = "" }: { readonly className?: string })
         </clipPath>
       </defs>
 
-      {/* The glass */}
-      <path d={FLASK} fill={GLASS} />
+      {/* The glass, carrying the rim too: the outline below is a separate
+          mark, and the glass alone is #eceaff on a white bar (1.2:1). Its own
+          DEEP edge is what makes it one identifiable shape (the contrast
+          audit's fill-and-stroke rule); the outline drawn last still covers it. */}
+      <path d={FLASK} fill={GLASS} stroke={DEEP} strokeWidth="1.5" strokeLinejoin="round" />
 
       {/* The liquid, cut to the glass. It fills the wide part only, which is
           where liquid in a conical flask actually sits, so the level reads as a

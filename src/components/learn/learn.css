@@ -606,11 +606,12 @@ html[data-motion="reduced"] .lrn-dock { transition: none; }
 
 /* S3 round 5, night: the flame and quest tiles sit on the navy wash instead of the olive
    amber wash, the flame keeping its amber stroke; the empty course ring gets a track that
-   shows (#3d4d6b on the #192438 card, a visible groove; the green arc over it carries the
-   reading, and the words beside it carry the number). */
+   shows (below; the green arc over it carries the reading, and the words beside it carry
+   the number). */
 .dark .lrn-flame, .dark .lrn-quest-icon:not([data-done]) { background: var(--bb-wash); }
-.lrn-ring-track { stroke: var(--bb-wash); }
-.dark .lrn-ring-track { stroke: #3d4d6b; }
+/* The track carries the ring's extent, so it clears 3:1 on the card: 70 percent of the
+   faint ink (the wash was 1.3:1 by day and #3d4d6b 1.8:1 at night, contrast audit 22 Oct). */
+.lrn-ring-track { stroke: color-mix(in srgb, var(--site-faint) 70%, transparent); }
 
 /* S3 round 5: a part page folds its lesson's full text (LessonsPage.tsx). A native
    <details>, so it opens with the keyboard and needs no state. */

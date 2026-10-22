@@ -450,7 +450,9 @@ function Confetti({ reducedMotion }: { readonly reducedMotion: boolean }) {
 function DiamondIcon({ className = "h-6 w-6" }: { readonly className?: string }) {
   return (
     <svg viewBox="0 0 24 24" className={className} aria-hidden focusable="false">
-      <path d="M12 1.6 21 6.8v10.4L12 22.4 3 17.2V6.8z" fill="var(--gem)" />
+      {/* The edge on the face too, not only on the outline drawn last: the
+          outline is a separate mark, so the face alone was judged (2.1:1). */}
+      <path d="M12 1.6 21 6.8v10.4L12 22.4 3 17.2V6.8z" fill="var(--gem)" stroke="var(--gem-edge)" strokeWidth="1.3" strokeLinejoin="round" />
       {/* The top table, lighter, and one shaded flank: the house volume cue,
           the same device as the flask's meniscus and the visor's glint. */}
       <path d="M12 1.6 21 6.8l-9 5.2-9-5.2z" fill="var(--gem-light)" />
@@ -605,7 +607,9 @@ function BoltBadge() {
   return (
     <span className="reward-bolt" aria-hidden>
       <svg viewBox="0 0 24 24" focusable="false">
-        <path d="M13.6 1.5 5.2 13.1h5.1L9.3 22.5l9.1-12.4h-5.6z" fill="var(--streak-core)" />
+        {/* Edged in --streak, the flame's own boundary colour: the bright core
+            alone is 1.5:1 on the cream ground (contrast audit, 22 Oct). */}
+        <path d="M13.6 1.5 5.2 13.1h5.1L9.3 22.5l9.1-12.4h-5.6z" fill="var(--streak-core)" stroke="var(--streak)" strokeWidth="1.2" strokeLinejoin="round" />
         <path d="M13.6 1.5 10.3 13.1h-5.1z" fill="#000000" fillOpacity="0.12" />
       </svg>
     </span>

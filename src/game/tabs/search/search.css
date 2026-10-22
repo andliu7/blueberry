@@ -159,8 +159,9 @@
   transition: transform 90ms ease, box-shadow 90ms ease, filter 160ms ease;
 }
 .sr-chip--class { --chip-face: var(--ic-green); --chip-lip: var(--ic-green-lip); }
-.sr-chip--name { --chip-face: var(--ic-purple); --chip-lip: var(--ic-purple-lip); }
-/* White on the purple face: dark ink on #7c5cff is only 3.9:1, white is 4.6:1. */
+/* The primary face, not --ic-purple: white on #7c5cff measured 4.35:1, under
+   the 4.5 floor. White on --bb-primary is 6.7:1 light and 5.0:1 dark. */
+.sr-chip--name { --chip-face: var(--bb-primary); --chip-lip: var(--bb-primary-lip); }
 .sr-chip--name { color: #ffffff; }
 @media (hover: hover) {
   .sr-chip:hover { filter: brightness(1.08); }

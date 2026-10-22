@@ -272,7 +272,8 @@
 .ct-due {
   font-size: 0.75rem;
   font-weight: 800;
-  color: var(--bb-primary);
+  /* The ink, not the face: night --bb-primary on the card was 3.2:1. */
+  color: var(--bb-primary-ink);
 }
 
 /* Mastery ring: an SVG with a track and a fill circle. */
@@ -293,8 +294,13 @@
   transform: rotate(-90deg);
 }
 
-.ct-ring__track { stroke: var(--bb-muted); }
-.ct-ring__fill { stroke: var(--bb-correct); transition: stroke-dashoffset 400ms var(--bb-ease-out, ease); }
+/* fill: none on both. Unset, a circle fills black, which drew a black disc
+   under the ring (the contrast audit read the track's fill as #000 at night),
+   and with no width the ring itself was a 1px hairline: 5 of the 56 box.
+   The track is the gauge's empty half, --hud-track, which shows the extent on
+   the card; --bb-muted measured 1.2:1 there. */
+.ct-ring__track { fill: none; stroke: var(--hud-track); stroke-width: 5; }
+.ct-ring__fill { fill: none; stroke: var(--bb-correct); stroke-width: 5; stroke-linecap: round; transition: stroke-dashoffset 400ms var(--bb-ease-out, ease); }
 
 .ct-ring__num,
 .ct-ring__icon {
@@ -394,7 +400,7 @@
 .ct-btn--purple { background: var(--bb-primary); }
 .ct-btn--go { background: var(--bb-correct); border-color: color-mix(in srgb, var(--bb-correct) 70%, #000); color: #fff; }
 .ct-btn--white { background: var(--bb-card); color: var(--bb-foreground); border-color: var(--bb-border); }
-.ct-btn--outline { background: transparent; color: var(--bb-primary); border-color: var(--bb-border); }
+.ct-btn--outline { background: transparent; color: var(--bb-primary-ink); border-color: var(--bb-border); }
 .ct-btn--ghost { background: transparent; color: var(--bb-muted-foreground); border-color: transparent; border-bottom-width: 2px; }
 /* Small in type and padding only; the height stays at the 44px hit target floor. */
 .ct-btn--small { padding: 0 0.8rem; font-size: 0.8125rem; }

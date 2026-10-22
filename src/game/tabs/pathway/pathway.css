@@ -1339,6 +1339,14 @@
   --node-line: #b8b8b8;
   --node-engrave: #6b6b6b;
 }
+/* No light lip on a locked side quest. The side quest rule above outranks the
+   rule just above (two :not()s), so a locked side chip keeps that rule's white
+   face and white lip, and the lip is a white mark on white with no edge
+   (contrast audit, 22 Oct). Matching its weight takes the lip away only; the
+   face is left as it renders today. */
+.path-side .path-node--locked:not(.path-node--done):not(.path-node--review) {
+  --node-lip-light: transparent;
+}
 .dark .path-side .path-node:not(.path-node--done):not(.path-node--review) {
   --node-face: #262c45;
   --node-face-press: #2f3654;

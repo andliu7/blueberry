@@ -216,9 +216,11 @@
      1.10:1 and disappeared. */
   --bb-secondary: #e9e6fb;
   --bb-muted: #e9e6fb;
-  /* Derived once to clear the worst ground it composes on: 9.28:1 on the
-     cream ground, 10.22:1 on the white card. */
-  --bb-muted-foreground: #51627b;
+  /* Derived to clear the worst ground it composes on. Darkened from #51627b
+     (22 Oct): the ground's violet glow over the top stop is rgb(211,198,255),
+     and #51627b was 3.93:1 there; #465670 is 4.7:1, and darker on every
+     lighter ground. */
+  --bb-muted-foreground: #465670;
   /* 5.24:1 on the card. Error copy lives on a card, never on the bare ground. */
   --bb-destructive: #a4123c;
   /* THE BORDER IS STRUCTURAL: white card on cream ground is 1.10:1, so the
@@ -268,10 +270,11 @@
   --tray-bad-line: #ffb4bd;
   --tray-bad-ink: #b0102b;
   /* The disabled key: a solid flat grey slab, never an outline, so "not yet"
-     cannot be mistaken for the white secondary key. The label is exempt
-     from contrast as a disabled control. */
+     cannot be mistaken for the white secondary key. WCAG exempts a disabled
+     label, but the contrast audit measures it, and "Check" is read before it
+     can be pressed: ink 4.7:1 on the slab (was #8a86a3, 2.6:1). */
   --btn-disabled: #dedbea;
-  --btn-disabled-ink: #8a86a3;
+  --btn-disabled-ink: #5f5b78;
   /* THE GROUND GRADIENT behind the whole game (.bb-game below): lavender at the
      top into a soft blue at the bottom, plus one violet glow. Static CSS only.
      Text that sits straight on it stays readable at both stops:
@@ -597,21 +600,23 @@
      as a small flat illustration from these pairs: a face colour and a darker
      LIP that peeks out under it, the same move as the app's 3D buttons. The
      icons sit beside their labels, so they are not the only carrier of a
-     tab's meaning; the lips still clear 3:1 on white so each shape keeps an
-     edge on the bar. Brand purple is the purple's lip. Same values in both
-     themes: an illustration is the same object at night. */
+     tab's meaning; the lips clear 3:1 on the selected tile #e2e1f4, the
+     darkest light ground they sit on, so each shape keeps an edge on the bar
+     (contrast audit, 22 Oct: yellow, orange and green were 1.9, 2.6 and 2.8
+     there). Brand purple is the purple's lip. At night the three that fail
+     on the dark tiles take lighter lips inside an svg (see .dark svg below). */
   --ic-purple: #7c5cff;
   --ic-purple-lip: #5a3fd8;
   --ic-blue: #1cb0f6;
   --ic-blue-lip: #1386c2;
   --ic-green: #4cc64f;
-  --ic-green-lip: #2f9a3a;
+  --ic-green-lip: #2a8a34;
   --ic-yellow: #ffc61a;
-  --ic-yellow-lip: #d99a00;
+  --ic-yellow-lip: #a87400;
   --ic-red: #ff5a5f;
   --ic-red-lip: #d93a43;
   --ic-orange: #ff9a1f;
-  --ic-orange-lip: #d47600;
+  --ic-orange-lip: #b06200;
 
   /* The selected tab tile's edge: a light violet, the way the reference edges
      its selected tile in a light blue rather than its darkest ink. 3.56:1 on
@@ -710,7 +715,8 @@
   --tray-bad-line: #7c2b43;
   --tray-bad-ink: #ff9aa6;
   --btn-disabled: #333a5e;
-  --btn-disabled-ink: #7b85a8;
+  /* 5.0:1 on the night slab (was #7b85a8, 3.0:1). */
+  --btn-disabled-ink: #a5aecd;
   --bb-ground-top: #1d1747;
   --bb-ground-bottom: #0f1830;
   --bb-ground-glow: rgba(109, 90, 224, 0.28);
@@ -806,6 +812,21 @@
   --progress-deep: #43a047;
   --progress-soft: rgba(126, 217, 87, 0.16);
   --progress-glow: rgba(126, 217, 87, 0.35);
+}
+
+/* THE ICON LIPS AT NIGHT, scoped to svg so a button's 3D lip keeps its dark
+   value. The light lips sit at 1.8 to 3.0:1 on the night tiles (#373353, the
+   header key #2c3166, the card); these clear 3:1 on all three. The lip reads as
+   a light rim at night rather than a shadow. */
+.dark svg {
+  --ic-purple-lip: #8b74f0;
+  --ic-blue-lip: #4aa8e0;
+  --ic-red-lip: #f0646c;
+  /* The three lips darkened for the light tiles keep their old, lighter values
+     at night, where those already cleared 3:1 and the dark ones do not. */
+  --ic-green-lip: #2f9a3a;
+  --ic-yellow-lip: #d99a00;
+  --ic-orange-lip: #d47600;
 }
 
 /* Map the tokens into Tailwind v4 utility names (bg-bb-background, text-bb-foreground,

@@ -630,7 +630,9 @@ main:has(> * > .lesson-frame) {
   width: 1.375rem;
   height: 1.375rem;
   display: block;
-  color: var(--diamond);
+  /* The count's own ink: --diamond was 2.6:1 on the lesson ground's violet
+     glow (contrast audit, 22 Oct). */
+  color: var(--diamond-ink);
 }
 
 /* ------------------------------------------------------------------ */

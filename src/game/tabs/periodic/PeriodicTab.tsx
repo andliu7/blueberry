@@ -33,7 +33,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { hrefForTab } from "../../app/routes";
 import { CATEGORIES, CATEGORY_LABEL, ELEMENTS, elementBySymbol, gridPosition, shortMass, type Category, type Element } from "./elements";
-import { CATEGORY_COLOUR, EN_BINS, NO_DATA_FILL, PHASE_COLOUR, PHASE_LABEL, tileColour, tileInk, type Colouring } from "./colours";
+import { CATEGORY_COLOUR, EN_BINS, NO_DATA_FILL, PERIODIC_INK, PHASE_COLOUR, PHASE_LABEL, tileColour, tileInk, type Colouring } from "./colours";
 import { Configuration, ElementDetail } from "./ElementDetail";
 import { SegmentedSwitch, type SegmentOption } from "./SegmentedSwitch";
 import { useZoomPan } from "./useZoomPan";
@@ -270,7 +270,7 @@ export default function PeriodicTab({ selected }: { readonly selected: string | 
             data-category="lanthanide"
             data-dim={filter !== "all" && filter !== "lanthanide"}
             data-neutral={!byCategory}
-            style={{ gridColumn: 3, gridRow: 6, background: CATEGORY_COLOUR.lanthanide }}
+            style={{ gridColumn: 3, gridRow: 6, background: CATEGORY_COLOUR.lanthanide, color: PERIODIC_INK }}
             onClick={() => showRow("lanthanide")}
             aria-label="Highlight the lanthanides, 57 to 71"
           >
@@ -282,7 +282,7 @@ export default function PeriodicTab({ selected }: { readonly selected: string | 
             data-category="actinide"
             data-dim={filter !== "all" && filter !== "actinide"}
             data-neutral={!byCategory}
-            style={{ gridColumn: 3, gridRow: 7, background: CATEGORY_COLOUR.actinide }}
+            style={{ gridColumn: 3, gridRow: 7, background: CATEGORY_COLOUR.actinide, color: PERIODIC_INK }}
             onClick={() => showRow("actinide")}
             aria-label="Highlight the actinides, 89 to 103"
           >

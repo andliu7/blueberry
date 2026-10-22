@@ -1,6 +1,7 @@
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { COURSES, DECK_GROUPS, deckCount, deckHref, foldersUnder, isReference, type Deck, type DeckGroupId } from "@/data/types";
 import { cardsWord } from "@/lib/reviewProgress";
+import { useIsDark } from "@/lib/useIsDark";
 import { GlassFolder, type ArtPreset, type GlassFile } from "@/components/ui/glass-folder-cards";
 
 /**
@@ -77,6 +78,9 @@ export function DeckFolders({ decks }: { decks: Deck[] }) {
   // One folder open at a time: the page holds which one, and each folder is
   // "controlled" (it is told whether it is open, like a checkbox given `checked`).
   const [openId, setOpenId] = useState<DeckGroupId | null>(null);
+  // The folder follows the theme: a light folder on the night page put its dark
+  // title on the dark ground wherever the glass is thin (contrast audit, 22 Oct).
+  const isDark = useIsDark();
 
   // The folder width follows the real width of one grid column (not the whole
   // section: with two columns a section-wide folder overflows its cell), so it stays
@@ -116,7 +120,7 @@ export function DeckFolders({ decks }: { decks: Deck[] }) {
             key={f.id}
             label={f.title}
             meta={f.meta}
-            tone="light"
+            tone={isDark ? "dark" : "light"}
             art={ART[f.id]}
             seed={f.id.length * 7 + 3}
             files={f.files}

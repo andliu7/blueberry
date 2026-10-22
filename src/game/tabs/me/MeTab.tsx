@@ -87,7 +87,8 @@ function ShieldIcon() {
 function CalendarIcon() {
   return (
     <svg viewBox="0 0 32 32" className="me-stat-icon" aria-hidden>
-      <rect x="3" y="6" width="26" height="23" rx="5" fill="var(--ic-blue)" />
+      {/* Edged in its lip, as the bolt is: the bright face alone is 2.4:1 on the card. */}
+      <rect x="3" y="6" width="26" height="23" rx="5" fill="var(--ic-blue)" stroke="var(--ic-blue-lip)" strokeWidth="2" />
       <rect x="3" y="6" width="26" height="8" rx="4" fill="var(--ic-blue-lip)" />
       <rect x="9" y="2.5" width="3.5" height="7" rx="1.75" fill="var(--ic-blue-lip)" />
       <rect x="19.5" y="2.5" width="3.5" height="7" rx="1.75" fill="var(--ic-blue-lip)" />

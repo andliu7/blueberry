@@ -15,3 +15,9 @@ button[title="Sulfur (S)"] span { color: #806211; }
 button[title="Phosphorus (P)"] span { color: #a65d00; }
 button[title="Fluorine (F)"] span { color: #4a7f1f; }
 button[title="Chlorine (L)"] span { color: #147a14; }
+
+/* The selected tool's white expand corner sits on the button's teal, but as the
+ * button's sibling, so on its own box it is white on the white toolbar (contrast
+ * audit, 22 Oct). The same teal behind the 7px mark changes nothing on screen
+ * and makes the pair the one a student actually sees: white on #167782, 5.3:1. */
+svg[data-testid="dropdown-expand"][class*="iconSelected"] { background-color: #167782; }
