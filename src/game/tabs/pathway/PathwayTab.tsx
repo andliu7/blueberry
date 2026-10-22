@@ -55,7 +55,7 @@ import {
   type TopicId,
 } from "@blueberry/curriculum";
 import { Card } from "../../app/ui/Card";
-import { Press } from "../../app/ui/Press";
+import { Press, pressClassName } from "../../app/ui/Press";
 import { TabIcon } from "../../app/ui/TabIcon";
 import { hashParam, hrefForChallenge, hrefForTab, hrefForOnboarding, hrefForLesson } from "../../app/routes";
 import { navigate } from "../../app/useHashRoute";
@@ -72,6 +72,7 @@ import "./pathway.css";
 export type NodeState = "done" | "current" | "open" | "review" | "locked";
 
 import {
+  checkpointNodeId,
   economyKindFor,
   hasChallengeRun,
   isSectionFinal,
@@ -111,6 +112,7 @@ import { nameSide, revealWords, trackWind, withBreakHints } from "./pathwayLayou
 import { reviewHolding, reviewsAfter, withReviewGates, type ReviewCheckpoint } from "./reviewCheckpoints";
 import { splitSections, type SectionStop } from "./pathwaySections";
 import { TreasureChest, type ChestState } from "./TreasureChest";
+import { passedTests, sectionTestSize, unitExamId, unitSections, TEST_OUT_UNITS, UNIT_EXAM_SIZE } from "./testOuts";
 import { PathStars } from "./PathStars";
 import { browserStorage, hasSavedLesson, nodeOfHref, savedBar } from "../../resume/lessonSave";
 import { SavedRing } from "../../resume/SavedRing";
@@ -1679,9 +1681,12 @@ function OrgoMapTrack({
   status,
   gatedBy,
   cleared,
+  passed,
   reducedMotion,
 }: {
   readonly onOpenNode: OpenNode;
+  /** Test-out ids the journal holds a pass for (testOuts.ts). */
+  readonly passed: ReadonlySet<string>;
   /** Main-line lessons held shut by a review stop (withReviewGates), to that stop. */
   readonly gatedBy: ReadonlyMap<string, ReviewCheckpoint>;
   /** Every node id the journal holds a clear for, which is how a chest knows it is open. */
@@ -2099,6 +2104,8 @@ function OrgoMapTrack({
     ...reviewsAfter(row.node.id).map((review) => ({ id: review.id, title: review.title, checkpoint: true, item: reviewSlab(review, row) })),
   ]);
   const sections = splitSections(stops);
+  // The same cut, with each section's test-out and chest (testOuts.ts).
+  const testSections = unitSections(unit);
   const roadVersion = `${unit.id}:${status.currentNodeId ?? ""}:${status.doneCount}`;
 
   return (
@@ -2240,6 +2247,17 @@ function OrgoMapTrack({
             {gateReason}
           </p>
         )}
+        {/* SKIP AHEAD, owner brief 17 Oct item 2: every unit's exam is open at
+            any time, and a pass lights this unit and every unit before it
+            (testOuts.ts). Gone once the unit is finished. */}
+        {TEST_OUT_UNITS.has(unit.id) && statusOf(status, checkpointNodeId(unit.id)).state !== "done" ? (
+          <div className="path-skip mx-auto w-full max-w-md">
+            <p className="path-skip__text">{`Know ${unitNumber(unit.title)} already? Pass its ${UNIT_EXAM_SIZE} question exam to skip ahead.`}</p>
+            <a className={pressClassName({ variant: "secondary", size: "md" })} href={hrefForLesson(unitExamId(unit.id))}>
+              Test out
+            </a>
+          </div>
+        ) : null}
         {/*
           THE SIGNPOST IS GONE FROM THIS TRACK, and only from this one.
           The picker directly above it now says "ORGO II / Unit 1 -
@@ -2275,10 +2293,14 @@ function OrgoMapTrack({
         {sections.map((section) => {
           const headingId = `path-sec-${unit.id}-${section.number}`;
           const checkState = section.checkpoint === null ? null : statusOf(status, section.checkpoint.id).state;
+          // The section's test-out (testOuts.ts): every section with questions has one, so a section cut by length gets a chest too.
+          const tested = testSections.find((entry) => entry.number === section.number) ?? null;
+          const chestId = section.chestId ?? (tested?.testId != null ? tested.chestId : null);
+          const testPassed = tested?.testId != null && passed.has(tested.testId);
           const chestState: ChestState =
-            section.chestId !== null && cleared.has(section.chestId)
+            chestId !== null && cleared.has(chestId)
               ? "open"
-              : checkState === "done" || checkState === "review"
+              : checkState === "done" || checkState === "review" || testPassed
                 ? "ready"
                 : "locked";
           return (
@@ -2287,13 +2309,14 @@ function OrgoMapTrack({
               <RoadLine version={roadVersion} />
               <ol className="path-track flex w-full flex-col">
                 {section.stops.map((stop) => stop.item)}
-                {section.chestId !== null && section.checkpoint !== null ? (
+                {chestId !== null ? (
                   /* On the road. Walked once its checkpoint is cleared, so the road past it is green whether or not it is opened yet. */
                   <li className="path-chestrow" data-node-state={chestState === "locked" ? "locked" : "done"}>
                     <TreasureChest
-                      chestId={section.chestId}
+                      chestId={chestId}
                       state={chestState}
-                      checkpointTitle={section.checkpoint.title}
+                      checkpointTitle={section.checkpoint?.title ?? null}
+                      test={tested?.testId != null ? { href: hrefForLesson(tested.testId), size: sectionTestSize(section.number, testSections.length) } : null}
                       reducedMotion={reducedMotion}
                     />
                   </li>
@@ -2519,11 +2542,19 @@ export default function PathwayTab({ reducedMotion }: { readonly reducedMotion: 
     () =>
       new Set(
         snapshot.journal.flatMap((event) =>
-          event.kind === "node_cleared" ? [event.nodeId] : event.kind === "chest_opened" ? [event.chestId] : [],
+          event.kind === "node_cleared"
+            ? [event.nodeId]
+            : event.kind === "chest_opened"
+              ? [event.chestId]
+              : // A passed test-out (testOuts.ts) lights its lessons and review stops.
+                event.kind === "tested_out"
+                ? event.nodeIds
+                : [],
         ),
       ),
     [snapshot.journal],
   );
+  const passedIds = useMemo(() => passedTests(snapshot.journal), [snapshot.journal]);
   // The map's own unlock rule, then the review stops laid over it (reviewCheckpoints.ts).
   const gated = useMemo(() => withReviewGates(PATHWAY_UNITS, deriveMapPathway(PATHWAY_UNITS, snapshot.journal), clearedIds), [snapshot.journal, clearedIds]);
   const mapStatus = gated.status;
@@ -2589,6 +2620,7 @@ export default function PathwayTab({ reducedMotion }: { readonly reducedMotion: 
           status={mapStatus}
           gatedBy={gated.gatedBy}
           cleared={clearedIds}
+          passed={passedIds}
           reducedMotion={reducedMotion}
         />
       ) : (

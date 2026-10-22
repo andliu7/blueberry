@@ -135,6 +135,10 @@ function readJournal(journal: readonly EconomyEvent[]): {
       case "node_cleared":
         cleared.add(event.nodeId);
         break;
+      // A passed test-out (testOuts.ts) lights its lessons up as cleared, with no attempt tally of their own.
+      case "tested_out":
+        for (const nodeId of event.nodeIds) cleared.add(nodeId);
+        break;
       case "quiz_passed":
         passedUnits.add(event.unitId);
         break;

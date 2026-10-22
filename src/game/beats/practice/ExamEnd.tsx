@@ -52,9 +52,11 @@ export interface ExamEndProps {
   readonly banked: number | null;
   readonly onContinue: () => void;
   readonly reducedMotion: boolean;
+  /** A test-out's own words (tabs/pathway/TestOutRun.tsx): heading and verdict line in place of the checkpoint's. */
+  readonly words?: { readonly passed: string; readonly failed: string; readonly said: string; readonly opens: string | null };
 }
 
-export function ExamEnd({ node, state, ids, banked, onContinue, reducedMotion }: ExamEndProps) {
+export function ExamEnd({ node, state, ids, banked, onContinue, reducedMotion, words }: ExamEndProps) {
   const passed = examPassed(state);
   const size = examSize(state);
   const right = firstTimeRight(state);
@@ -69,8 +71,8 @@ export function ExamEnd({ node, state, ids, banked, onContinue, reducedMotion }:
     <div className="exam-end">
       <div className="exam-end__hero">
         <Berry mood={passed ? "cheer" : "thinking"} behaviour={passed ? "celebrate" : "idle"} sizePx={104} reducedMotion={reducedMotion} />
-        <h2 className="bb-title-face exam-end__title">{passed ? "Checkpoint passed!" : "Not passed yet"}</h2>
-        <p className="exam-end__said">{endSaid(state)}</p>
+        <h2 className="bb-title-face exam-end__title">{words === undefined ? (passed ? "Checkpoint passed!" : "Not passed yet") : passed ? words.passed : words.failed}</h2>
+        <p className="exam-end__said">{words?.said ?? endSaid(state)}</p>
       </div>
 
       <ul className="exam-end__tiles" role="list">
@@ -123,7 +125,8 @@ export function ExamEnd({ node, state, ids, banked, onContinue, reducedMotion }:
         </ul>
       </section>
 
-      {passed && opens !== null && unit !== null ? (
+      {passed && words?.opens != null ? <p className="exam-end__opens">{words.opens}</p> : null}
+      {passed && words === undefined && opens !== null && unit !== null ? (
         <p className="exam-end__opens">
           {`With every ${unitNumber(unit.title)} lesson cleared too, this opens ${opens.title.replace(" · ", ": ")}.`}
         </p>

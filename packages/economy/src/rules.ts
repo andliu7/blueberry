@@ -54,6 +54,8 @@ export const XP_SEQUENCE_PER_EXTRA_STEP = 3;
 export const XP_QUIZ_PASSED = 30;
 /** The largest single award. It should feel like it. */
 export const XP_QUIZ_FLAWLESS_BONUS = 20;
+/** A section test-out or unit exam passed, once per test: the unit quiz's own row. */
+export const XP_TESTED_OUT = XP_QUIZ_PASSED;
 /** The delight loop, deliberately under a node clear. */
 export const XP_RESONANCE = 8;
 /** Once per local day, on top of whatever earned it. */

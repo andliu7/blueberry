@@ -115,6 +115,19 @@ six Bloom moves, hand-written wordmark, jump / curtain lift / land exit.
   list and, for the day's first open, the gift sheet: 401.0 to 397.9 KB first open of the day,
   398.5 to 395.4 KB after (404 page lazy, motif names split from the drawings).
 
+**Progress, 22 Oct (Wave 3 item 12 = evening brief items 1+2: test-outs)**
+- Every section chest of units 1-10 offers a test-out (10 to 15 questions, longer each section);
+  every unit has a 20 question exam ("Test out" row on the path). Questions come from the
+  lessons' own pools, hardest rung first, no naming lessons, no structure-editor items, a ladder
+  or board every third question where the section has them. A pass journals `tested_out`, lights
+  that section and all before it (a unit exam lights every earlier unit too), pays XP once per
+  test and saves the section's chest. Checked in a production preview: offer, run, 8/10 pass mark.
+- Payload: #/app first open now 399.9 KB of 400 (testOuts.ts is a 1.5 KB chunk the path needs).
+  The next feature on the first load must cut weight first. The validator itself will not run
+  until the owner runs `npm run lock:regen -w packages/validators` (mutation files removed).
+- Still open from the brief: harder-than-lesson items (a short multistep synthesis as a challenge)
+  need authoring; today the draw only reorders existing lesson items, all still `placeholder`.
+
 **Progress, 21 Oct (Wave 2 items 6, 8, 10 and item 15; committed, not pushed)**
 - Top bar A3: one row, Bloom with his level badge, a short XP bar, "N XP to the next stage!",
   energy as a plain number, no cost on spend. +XP moment B1 plays when XP lands (verified after a

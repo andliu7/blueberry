@@ -30,6 +30,10 @@ const BeatRunner = lazy(() => import("./beats/BeatRunner").then((m) => ({ defaul
 const LessonLeave = lazy(() => import("./resume/LeaveSheet").then((m) => ({ default: m.LessonLeave })));
 // A review checkpoint between lessons (tabs/pathway/reviewCheckpoints.ts) plays its own interleaved run.
 const ReviewRun = lazy(() => import("./tabs/pathway/ReviewRun").then((m) => ({ default: m.ReviewRun })));
+// A section's chest quiz or a unit exam (tabs/pathway/testOuts.ts) plays its own exam run.
+const TestOutRun = lazy(() => import("./tabs/pathway/TestOutRun").then((m) => ({ default: m.TestOutRun })));
+/** A test-out id (sectionTestId / unitExamId in tabs/pathway/testOuts.ts), matched here so the entry chunk does not import the map. */
+const TEST_OUT_ID = /-(s\d+|unit)-test$/;
 
 /**
  * The mascot gallery, a development surface at #/gallery/berry.
@@ -171,6 +175,15 @@ function Body({
       <Suspense fallback={<TabSkeleton label="the review" />}>
         <BootReady />
         <ReviewRun key={route.node} id={route.node} reducedMotion={reducedMotion} onExit={() => navigate(hrefForTab("pathway"))} />
+      </Suspense>
+    );
+  }
+
+  if (route.kind === "lesson" && TEST_OUT_ID.test(route.node)) {
+    return (
+      <Suspense fallback={<TabSkeleton label="the test-out" />}>
+        <BootReady />
+        <TestOutRun key={route.node} id={route.node} reducedMotion={reducedMotion} onExit={() => navigate(hrefForTab("pathway"))} />
       </Suspense>
     );
   }

@@ -93,6 +93,7 @@ import {
   XP_NODE_FIRST_CLEAR,
   XP_QUIZ_FLAWLESS_BONUS,
   XP_QUIZ_PASSED,
+  XP_TESTED_OUT,
   XP_REPLAY,
   XP_RESONANCE,
   XP_SEQUENCE_PER_EXTRA_STEP,
@@ -401,6 +402,8 @@ function questCounts(
     }
     case "quiz_passed":
       return { lessons: 1, train_minutes: minutes, flawless: event.flawless ? 1 : 0 };
+    case "tested_out":
+      return line.xp.length > 0 ? { lessons: 1, train_minutes: minutes } : null;
     case "challenge_passed":
       return firstClears[event.nodeId] === undefined ? null : { train_minutes: minutes };
     case "cards_reviewed":
@@ -454,6 +457,7 @@ function run(journal: readonly EconomyEvent[], now: string, options: DeriveOptio
 
   const firstClears: Record<string, true> = {};
   const resonanceSeen = new Set<string>();
+  const testsPassed = new Set<string>();
   const chestsOpened = new Set<string>();
   // Chests earned, in earn order. Opened ones stay here too; `chestsOpened` says which.
   const chestsEarned = new Map<string, SavedChest>();
@@ -607,6 +611,14 @@ function run(journal: readonly EconomyEvent[], now: string, options: DeriveOptio
         line.diamonds.push({ label: "Card review", amount: DIAMONDS_CARD_RUN });
         break;
       }
+
+      case "tested_out":
+        // Once per test. It unlocks no mastery node: nothing was played lesson by lesson.
+        if (!testsPassed.has(event.testId)) {
+          testsPassed.add(event.testId);
+          line.xp.push({ label: "Test-out passed", amount: XP_TESTED_OUT });
+        }
+        break;
 
       case "unit_cleared":
         line.diamonds.push({ label: "Unit cleared", amount: DIAMONDS_UNIT_CLEARED });

@@ -112,6 +112,13 @@ export type EconomyEvent =
    */
   | (EventBase & { readonly kind: "cards_reviewed"; readonly graded: number })
   | (EventBase & { readonly kind: "unit_cleared"; readonly unitId: string })
+  /**
+   * A TEST-OUT passed (owner brief 17 Oct, items 1 and 2): a section's chest
+   * quiz or a unit exam. `nodeIds` are the lessons the pass lights up, which
+   * the pathway counts as cleared. It pays once per `testId` and never per
+   * node, so testing out of five lessons is not five first clears.
+   */
+  | (EventBase & { readonly kind: "tested_out"; readonly testId: string; readonly nodeIds: readonly string[] })
   | (EventBase & { readonly kind: "boss_cleared"; readonly bossId: string })
   | (EventBase & { readonly kind: "resonance_found"; readonly nodeId: string })
   /** A pathway treasure chest opened. Pays DIAMONDS_CHEST once per chestId; never a node. */
@@ -243,6 +250,8 @@ export function isEconomyEvent(x: unknown): x is EconomyEvent {
       return isPositiveInt(x["graded"]);
     case "unit_cleared":
       return nonEmptyString(x["unitId"]);
+    case "tested_out":
+      return nonEmptyString(x["testId"]) && Array.isArray(x["nodeIds"]) && (x["nodeIds"] as unknown[]).every(nonEmptyString);
     case "boss_cleared":
       return nonEmptyString(x["bossId"]);
     case "resonance_found":

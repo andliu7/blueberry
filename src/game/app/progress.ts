@@ -142,6 +142,11 @@ export interface ProgressSource {
    */
   passChallenge(nodeId: string): number;
   /**
+   * A test-out passed (tabs/pathway/testOuts.ts): `nodeIds` light up as
+   * cleared. Returns the receipt; the economy pays it once per test.
+   */
+  testOut(testId: string, nodeIds: readonly string[]): Receipt;
+  /**
    * A chest opened: a saved chest from `economy.chests.saved` (owner
    * 2026-10-20, chests are earned and saved), or a pathway treasure chest.
    * Returns the diamonds earned, which is 0 for a chest already opened or a
@@ -750,6 +755,9 @@ export function createLocalProgress(): ProgressSource {
     passChallenge(nodeId) {
       const next = appendOne((at, tz) => ({ kind: "challenge_passed", at, tz, nodeId }));
       return next.diamonds.reduce((sum, line) => sum + line.amount, 0);
+    },
+    testOut(testId, nodeIds) {
+      return appendOne((at, tz) => ({ kind: "tested_out", at, tz, testId, nodeIds: [...nodeIds] }));
     },
     openChest(chestId) {
       const next = appendOne((at, tz) => ({ kind: "chest_opened", at, tz, chestId }));

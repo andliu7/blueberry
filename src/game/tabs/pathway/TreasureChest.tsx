@@ -25,7 +25,14 @@
 import { useEffect, useRef, useState } from "react";
 
 import { progress } from "../../app/progress";
+import { pressClassName } from "../../app/ui/Press";
 import { playChest } from "../../chest/chestFlow";
+
+/** The section's test-out (testOuts.ts): always open, so a chest not yet earned offers it. */
+export interface ChestTest {
+  readonly href: string;
+  readonly size: number;
+}
 
 export type ChestState = "locked" | "ready" | "open";
 
@@ -124,14 +131,19 @@ export function TreasureChest({
   chestId,
   state,
   checkpointTitle,
+  test = null,
   reducedMotion,
 }: {
   readonly chestId: string;
   readonly state: ChestState;
-  /** The checkpoint that earns it, named in the locked sentence. */
-  readonly checkpointTitle: string;
+  /** The checkpoint that earns it, named in the locked sentence; null for a section cut by length. */
+  readonly checkpointTitle: string | null;
+  /** The section's test-out, offered while the chest is not earned. */
+  readonly test?: ChestTest | null;
   readonly reducedMotion: boolean;
 }) {
+  // The test-out offer under the chest, open after a press on a chest not yet earned.
+  const [offering, setOffering] = useState(false);
   // What the last press said, shown in a bubble beside the chest and read out (aria-live).
   const [said, setSaid] = useState<string | null>(null);
   // The pop plays once, on the press that opened it; a chest that loads open just sits open.
@@ -145,8 +157,12 @@ export function TreasureChest({
   }, [said]);
 
   const press = () => {
+    if (state === "locked" && test !== null) {
+      setOffering((open) => !open);
+      return;
+    }
     if (state === "locked") {
-      setSaid(`Clear ${checkpointTitle} to open this chest.`);
+      setSaid(`Clear ${checkpointTitle ?? "this section"} to open this chest.`);
       return;
     }
     if (state === "open") {
@@ -158,7 +174,7 @@ export function TreasureChest({
     // the diamonds fly to the counter. The economy write is `open`, run by the
     // opening on its third tap, so leaving early banks nothing.
     playChest({
-      detail: `From the ${checkpointTitle} chest`,
+      detail: checkpointTitle === null ? "From the section chest" : `From the ${checkpointTitle} chest`,
       open: () => {
         // A ref, not state: two quick taps in one frame must not bank twice.
         if (claimed.current) return { diamonds: 0, xp: 0 };
@@ -170,9 +186,12 @@ export function TreasureChest({
     });
   };
 
+  const offered = state === "locked" && test !== null;
   const label =
-    state === "locked"
-      ? `Treasure chest, locked. Clear ${checkpointTitle} to open it.`
+    offered
+      ? `Treasure chest. Test out of this section with ${test.size} questions to earn it.`
+      : state === "locked"
+      ? `Treasure chest, locked. Clear ${checkpointTitle ?? "this section"} to open it.`
       : state === "ready"
         ? "Treasure chest, ready. Press to open it."
         : "Treasure chest, opened.";
@@ -183,11 +202,15 @@ export function TreasureChest({
         <span className="path-chest__tag" aria-hidden>
           OPEN
         </span>
+      ) : offered ? (
+        <span className="path-chest__tag path-chest__tag--test" aria-hidden>
+          TEST OUT
+        </span>
       ) : null}
       {/* data-road-stop: the road runs through the chest's centre (RoadLine). */}
-      <button type="button" className="path-chest__button" aria-label={label} onClick={press} data-road-stop>
+      <button type="button" className="path-chest__button" aria-label={label} aria-expanded={offered ? offering : undefined} onClick={press} data-road-stop>
         <ChestArt open={state === "open"} locked={state === "locked"} />
-        {state === "locked" ? (
+        {state === "locked" && !offered ? (
           <span className="path-chest__padlock" aria-hidden>
             <svg viewBox="0 0 24 24" width="18" height="18">
               <rect x="5" y="10.5" width="14" height="10" rx="2.2" fill="currentColor" />
@@ -196,6 +219,19 @@ export function TreasureChest({
           </span>
         ) : null}
       </button>
+      {offered && offering ? (
+        <div className="path-chest__offer" role="group" aria-label="Test out of this section">
+          <p className="path-chest__offer-text">
+            {`Know this section already? Pass a ${test.size} question test-out to light it up and earn this chest.`}
+          </p>
+          <a href={test.href} className={pressClassName({ variant: "primary", size: "md", block: true })}>
+            Start test-out
+          </a>
+          <button type="button" className={pressClassName({ variant: "ghost", size: "md", block: true })} onClick={() => setOffering(false)}>
+            Not now
+          </button>
+        </div>
+      ) : null}
       <p className="path-chest__said" aria-live="polite">
         {said === null ? null : <span className="path-chest__bubble">{said}</span>}
       </p>

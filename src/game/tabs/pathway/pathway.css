@@ -1923,6 +1923,25 @@
   font-size: 0.78rem;
   color: var(--bb-muted-foreground);
 }
+/* Skip ahead: the unit exam's one row (testOuts.ts). */
+.path-skip {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0 0 var(--path-seam);
+  padding: 0.6rem 0.75rem;
+  border: 2px solid var(--bb-border);
+  border-radius: 16px;
+  background: var(--bb-card);
+}
+.path-skip__text {
+  flex: 1;
+  margin: 0;
+  color: var(--bb-foreground);
+  font-family: var(--font-display);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
 .path-pager__hint {
   margin: 0.2rem 0 0;
   font-family: var(--font-display);
@@ -2322,6 +2341,32 @@
   font-size: 0.8125rem;
   font-weight: 800;
   letter-spacing: 0.06em;
+}
+/* Not earned yet, and its test-out is open: the tag is violet, not gold. */
+.path-chest__tag--test {
+  border-color: var(--bb-primary);
+  background: var(--bb-card);
+  color: var(--bb-primary);
+}
+/* The test-out offer, a small card under the chest. */
+.path-chest__offer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 15rem;
+  margin-top: 0.5rem;
+  padding: 0.75rem;
+  border: 2px solid var(--bb-border);
+  border-radius: 16px;
+  background: var(--bb-card);
+}
+.path-chest__offer-text {
+  margin: 0;
+  color: var(--bb-foreground);
+  font-family: var(--font-display);
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-align: center;
 }
 .path-chest__said {
   min-height: 1.75rem;
