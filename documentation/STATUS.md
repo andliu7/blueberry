@@ -104,10 +104,16 @@ six Bloom moves, hand-written wordmark, jump / curtain lift / land exit.
   (`npm run mutate -w packages/validators`).
 - Wave 1 done: Practice spelling, no dark box on the unit picker + "Free for now.", closed courses
   tagged and unpressable, Bloom pressable on the path, text pass on Unit 1 and Unit 0.
-- NEW TASK: 54 contrast failures (mostly dark-theme SVG icon fills, 11 on site pages, the
-  "Swipe or use the arrow keys" hint at 3.93 vs 4.5) and 9 economy drives that no longer reach
-  their moment (reward-first, reward-streak, streak-*, charge-cost, charge-empty, shell-bar, boot).
-  Full list: `grignard/reports/contrast-audit-2026-10-20.txt` (outside the repo).
+- DONE 22 Oct (was NEW TASK): drives reach their moments again (826fd38), all but streak-exam:
+  in the exam window the day's gift, journalled on open, already counts the day, so no clear
+  opens the streak stage. OWNER: count the gift as "opening the app" or not? Contrast 54 to 27
+  failing pairs (1ecd5a9): every text, icon and gauge pair clears AA. The 27 left are art or a
+  brand mark: path road and chest shadows, Feed scenery and avatars, Me's hero scene, Bloom's
+  limbs on the reward, the review folder's glass rim, the Charge flask's card-coloured halo, the
+  Google "G". OWNER: recolour the art, or rule decorative (aria-hidden) art out of the audit?
+- DONE 22 Oct: #/app back under 400 KB on every open (d2a9bf8). The manifest now weighs the tip
+  list and, for the day's first open, the gift sheet: 401.0 to 397.9 KB first open of the day,
+  398.5 to 395.4 KB after (404 page lazy, motif names split from the drawings).
 
 **Progress, 21 Oct (Wave 2 items 6, 8, 10 and item 15; committed, not pushed)**
 - Top bar A3: one row, Bloom with his level badge, a short XP bar, "N XP to the next stage!",
