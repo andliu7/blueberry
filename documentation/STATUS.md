@@ -52,6 +52,7 @@ six Bloom moves, hand-written wordmark, jump / curtain lift / land exit.
   action fires on release only if the pointer is still on the button (drag off cancels). Today
   43 files (counted 18 Oct) fire on `onPointerDown`, so the action lands before the hold can show and a drag off
   still selects. Move actions to `onClick`; keep `:active` / `data-pressed` for the instant sink.
+  DONE 23 Oct in db159dc, see "Progress, 22 Oct".
 - Admin mode: sign in as admin, view the app as each plan (free / paid tiers), drop in videos,
   edit lessons, add reactions to cover. Roles already come from the Supabase roster; access stays
   server side (RLS), the plan switch is a view, never a grant.
@@ -210,6 +211,14 @@ Feed and accounts
   lessons plus an ad placeholder; the free rule (u0, u1, quizzes, checkpoints) is PROVISIONAL in
   admin/planView.ts, owner to confirm. Edit in place NOT built: needs a server change, proposed
   (not applied) in documentation/ADMIN-EDITS-PROPOSAL.md. #/app first open 341.3 KB.
+- Buttons press and hold DONE 23 Oct in db159dc: 22 game files moved their action from
+  `onPointerDown` to `onClick`. The face still sinks on pointer down (`:active`), the action lands
+  on release over the control, so sliding off cancels, a scroll that starts on a map node no longer
+  opens it, and Enter and Space now work on every key. Drag, scrub and tap-to-skip surfaces keep
+  pointer events. Pinned by src/game/test/pressOnRelease.test.ts (source allowlist, MatchBoard and
+  ProblemView pointerdown-does-not-pick). Owner to check that four liked surfaces feel right now
+  they commit on release: map node taps, the flag button, the node sheet keys and the answer
+  tiles; any one can be reverted alone. #/app first open 341.3 KB (unchanged).
 
 **Progress, 21 Oct (Wave 2 items 6, 8, 10 and item 15; committed, not pushed)**
 - Top bar A3: one row, Bloom with his level badge, a short XP bar, "N XP to the next stage!",

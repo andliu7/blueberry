@@ -421,6 +421,8 @@ both shells, and it is what the 100 ms interaction budget means in practice.
 
 - Every button has a pressed state that renders on pointer down, not on completion. The press itself
   is the first frame of feedback, always, even when the action then takes time.
+- The acknowledgement is visual (`:active` or `data-pressed`); the action commits on click, on release
+  over the control, so sliding off cancels. Drag surfaces are the exception. Owner, 17 Oct.
 - Nothing waits silently. If the action loads, the acknowledgement continues immediately as a loading
   affordance: the button itself enters a loading state, or the destination renders as a skeleton.
   Which one is a per-surface design choice; that there is one is not.
