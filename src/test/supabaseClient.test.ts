@@ -75,6 +75,100 @@ describe("getSupabase", () => {
   });
 });
 
+/** A window with `href` as its location and `keys` in localStorage. */
+function stubWindow(href: string, keys: string[] | "throws") {
+  const { hash, search } = new URL(href);
+  const localStorage =
+    keys === "throws"
+      ? {
+          get length(): number {
+            throw new Error("SecurityError");
+          },
+          key: () => null,
+        }
+      : { length: keys.length, key: (i: number) => keys[i] ?? null };
+  vi.stubGlobal("window", { location: { hash, search }, localStorage });
+}
+
+describe("supabaseAuthToRestore", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  async function gate(href: string, keys: string[] | "throws") {
+    vi.stubEnv("VITE_SUPABASE_URL", "https://example.supabase.co");
+    vi.stubEnv("VITE_SUPABASE_PUBLISHABLE_KEY", "sb_publishable_test");
+    const { supabaseAuthToRestore } = await freshModule();
+    stubWindow(href, keys);
+    return supabaseAuthToRestore();
+  }
+
+  it("is false on a first open with nothing stored", async () => {
+    expect(await gate("https://site.test/blueberry/", [])).toBe(false);
+    expect(await gate("https://site.test/blueberry/#/app", ["theme", "blueberry-progress"])).toBe(false);
+  });
+
+  it("is true when supabase-js has a session or a PKCE verifier stored", async () => {
+    expect(await gate("https://site.test/#/app", ["sb-example-auth-token"])).toBe(true);
+    expect(await gate("https://site.test/#/app", ["sb-example-auth-token-code-verifier"])).toBe(true);
+  });
+
+  it("ignores another project's keys", async () => {
+    expect(await gate("https://site.test/#/app", ["sb-other-auth-token"])).toBe(false);
+  });
+
+  it("is true when the URL carries a sign-in coming back", async () => {
+    expect(await gate("https://site.test/?code=x#/app", [])).toBe(true);
+    expect(await gate("https://site.test/#access_token=x&refresh_token=y", [])).toBe(true);
+    expect(await gate("https://site.test/?error=access_denied&error_description=no", [])).toBe(true);
+  });
+
+  it("is true when storage cannot be read, so the client loads as before", async () => {
+    expect(await gate("https://site.test/#/app", "throws")).toBe(true);
+  });
+
+  it("is false when the build has no Supabase settings", async () => {
+    vi.stubEnv("VITE_SUPABASE_URL", "");
+    vi.stubEnv("VITE_SUPABASE_PUBLISHABLE_KEY", "");
+    const { supabaseAuthToRestore } = await freshModule();
+    stubWindow("https://site.test/?code=x", ["sb-example-auth-token"]);
+    expect(supabaseAuthToRestore()).toBe(false);
+  });
+});
+
+describe("onSupabaseClient", () => {
+  it("calls a listener registered before creation once, with the client", async () => {
+    vi.stubEnv("VITE_SUPABASE_URL", "https://example.supabase.co");
+    vi.stubEnv("VITE_SUPABASE_PUBLISHABLE_KEY", "sb_publishable_test");
+    const { getSupabase, onSupabaseClient } = await freshModule();
+    const listener = vi.fn();
+    onSupabaseClient(listener);
+
+    const created = await getSupabase();
+    await getSupabase();
+    await Promise.resolve();
+    expect(listener).toHaveBeenCalledTimes(1);
+    expect(listener).toHaveBeenCalledWith(created);
+  });
+
+  it("calls a listener registered after creation, and not once unsubscribed", async () => {
+    vi.stubEnv("VITE_SUPABASE_URL", "https://example.supabase.co");
+    vi.stubEnv("VITE_SUPABASE_PUBLISHABLE_KEY", "sb_publishable_test");
+    const { getSupabase, onSupabaseClient } = await freshModule();
+    const created = await getSupabase();
+
+    const late = vi.fn();
+    onSupabaseClient(late);
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(late).toHaveBeenCalledWith(created);
+
+    const gone = vi.fn();
+    onSupabaseClient(gone)();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(gone).not.toHaveBeenCalled();
+  });
+});
+
 describe("supabase-js stays off the first load", () => {
   it("is imported only as a type outside the lazy getter", () => {
     const root = path.resolve(__dirname, "..");

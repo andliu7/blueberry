@@ -33,17 +33,19 @@ const GAME_ROUTE_COLD_LOAD_MODULES = [
  * because a headless cold load of #/app fetches it (validator finding,
  * 2026-10-20: leaving these out reported 341 KB for a load that was 432 KB).
  *
- * - src/lib/supabase.ts: AuthProvider calls getSupabase() on mount to restore
- *   the stored session, so supabase-js arrives with every page.
  * - src/components/ui/blueberry-loader.tsx: the loader imports its tip list
  *   when it appears, and it appears over #/app on a cold open.
+ *
+ * src/lib/supabase.ts is not listed: AuthProvider loads supabase-js on mount
+ * only when a stored session or an auth redirect is present
+ * (supabaseAuthToRestore), and a first open has neither. If AuthProvider ever
+ * loads it unconditionally again, add it back, or the number lies again.
  *
  * src/lib/useDecks.ts is not listed: its built-in decks chunk loads only on
  * pages that read deck data, and #/app is not one of them. If a component the
  * game draws starts calling useDecks(), add it here, or the number lies again.
  */
 const GAME_ROUTE_ON_MOUNT_DYNAMIC_IMPORTERS = [
-  'src/lib/supabase.ts',
   'src/components/ui/blueberry-loader.tsx',
 ]
 

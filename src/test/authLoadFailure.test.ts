@@ -13,7 +13,15 @@ import { act, createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 const { getSupabase } = vi.hoisted(() => ({ getSupabase: vi.fn() }));
-vi.mock("@/lib/supabase", () => ({ supabaseConfigured: true, getSupabase }));
+// A session is stored, so AuthProvider asks for the client on mount: the case
+// where a failed chunk download would leave `loading` stuck.
+vi.mock("@/lib/supabase", () => ({
+  supabaseConfigured: true,
+  getSupabase,
+  supabaseAuthToRestore: () => true,
+  onSupabaseClient: () => () => {},
+  supabaseStorageKeyPrefix: () => "sb-example-auth-token",
+}));
 
 import { AuthProvider, useAuth, type AuthState } from "@/lib/AuthContext";
 

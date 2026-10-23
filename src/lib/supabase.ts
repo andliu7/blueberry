@@ -41,9 +41,12 @@ export const supabaseConfigured = Boolean(URL && PUBLISHABLE_KEY);
  * first load. The promise is memoised, so every caller still shares the one
  * client the note above insists on.
  *
- * `AuthProvider` asks for it on mount, which is what restores a stored session
- * and finishes a Google redirect (`detectSessionInUrl`) on page load, exactly
- * as the eager client did, a chunk download later.
+ * `AuthProvider` asks for it on mount only when there is auth state to pick up:
+ * a stored session or a Google redirect coming back (`supabaseAuthToRestore`).
+ * That restores the session and finishes the redirect (`detectSessionInUrl`)
+ * on page load, exactly as the eager client did, a chunk download later. A
+ * first-time visitor has neither, so the library waits until something asks
+ * for it: a sign-in, a checkout, an editor or calendar action.
  *
  * Resolves to null when the build has no Supabase settings, same as before.
  *
@@ -55,7 +58,8 @@ let client: Promise<SupabaseClient | null> | null = null;
 
 export function getSupabase(): Promise<SupabaseClient | null> {
   if (!supabaseConfigured) return Promise.resolve(null);
-  client ??= import("@supabase/supabase-js").then(({ createClient }) =>
+  if (client) return client;
+  client = import("@supabase/supabase-js").then(({ createClient }) =>
     createClient(URL!, PUBLISHABLE_KEY!, {
       auth: {
         // A static site has no server to complete a code exchange, so the
@@ -75,7 +79,73 @@ export function getSupabase(): Promise<SupabaseClient | null> {
   pending.catch(() => {
     if (client === pending) client = null;
   });
+  // Tell whoever is waiting (AuthProvider) that the client now exists, so a
+  // sign-in that loaded it is still heard by the one auth subscription. This
+  // runs once per creation: later calls return early above.
+  void pending.then((created) => {
+    if (created && client === pending) for (const listener of clientListeners) listener(created);
+  }).catch(() => {});
   return pending;
+}
+
+const clientListeners = new Set<(client: SupabaseClient) => void>();
+
+/**
+ * Call `listener` once the client exists, whoever asked for it first.
+ *
+ * If it already exists the listener is called too, so in a race it can be
+ * called twice: the caller makes itself idempotent. Returns the unsubscribe.
+ */
+export function onSupabaseClient(listener: (client: SupabaseClient) => void): () => void {
+  clientListeners.add(listener);
+  client?.then((created) => {
+    if (created && clientListeners.has(listener)) listener(created);
+  }).catch(() => {});
+  return () => {
+    clientListeners.delete(listener);
+  };
+}
+
+/**
+ * The prefix of every key supabase-js keeps in localStorage: the session, and
+ * the PKCE code verifier a Google sign-in leaves behind while it is away.
+ * This is the library's own default (`sb-<project ref>-auth-token`), which is
+ * why `createClient` above sets no custom `storageKey`: changing it would
+ * sign everyone out.
+ */
+export function supabaseStorageKeyPrefix(): string | null {
+  if (!supabaseConfigured) return null;
+  return `sb-${new globalThis.URL(URL!).hostname.split(".")[0]}-auth-token`;
+}
+
+/** The URL parameters supabase-js reads when a sign-in comes back (`detectSessionInUrl`). */
+const AUTH_RETURN_PARAMS = ["code", "access_token", "refresh_token", "error", "error_description", "error_code"];
+
+/**
+ * Whether this page load has auth state the client must pick up on mount.
+ *
+ * True when a stored session (or a pending PKCE verifier) is in localStorage,
+ * or when the URL carries a redirect return. The URL is read the way
+ * supabase-js reads it: the hash as query parameters, then the search string.
+ * If storage cannot be read (private mode, blocked site data), it says true so
+ * the client loads on mount exactly as it always did.
+ */
+export function supabaseAuthToRestore(): boolean {
+  const prefix = supabaseStorageKeyPrefix();
+  if (!prefix) return false;
+  try {
+    const { hash, search } = window.location;
+    const params = new URLSearchParams(hash.startsWith("#") ? hash.slice(1) : hash);
+    new URLSearchParams(search).forEach((value, key) => params.set(key, value));
+    if (AUTH_RETURN_PARAMS.some((key) => params.has(key))) return true;
+
+    for (let i = 0; i < window.localStorage.length; i++) {
+      if (window.localStorage.key(i)?.startsWith(prefix)) return true;
+    }
+    return false;
+  } catch {
+    return true;
+  }
 }
 
 /** Where Google should send someone back to after signing in. */

@@ -1,6 +1,12 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import type { Session, User } from "@supabase/supabase-js";
-import { getSupabase, supabaseConfigured } from "@/lib/supabase";
+import type { Session, SupabaseClient, User } from "@supabase/supabase-js";
+import {
+  getSupabase,
+  onSupabaseClient,
+  supabaseAuthToRestore,
+  supabaseConfigured,
+  supabaseStorageKeyPrefix,
+} from "@/lib/supabase";
 import type { AccountRole } from "@/lib/account";
 
 /**
@@ -54,17 +60,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
     let cancelled = false;
+    let attached = false;
     let unsubscribe: (() => void) | null = null;
 
-    // The client arrives as a lazy chunk (see `getSupabase`). Asking for it
-    // here, on mount, is what restores the session and completes a Google
-    // redirect on page load.
-    void getSupabase().then((supabase) => {
-      if (cancelled) return;
-      if (!supabase) {
-        setLoading(false);
-        return;
-      }
+    // Subscribe once, to whichever client turns up first. `onSupabaseClient`
+    // can call this twice in a race, hence the `attached` guard.
+    const attach = (supabase: SupabaseClient) => {
+      if (cancelled || attached) return;
+      attached = true;
 
       // Whatever is already in localStorage. Without this the first paint is
       // signed-out and then corrects itself, which reads as a flicker on reload.
@@ -80,17 +83,50 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setLoading(false);
       });
       unsubscribe = () => listener.subscription.unsubscribe();
-    }).catch((error: unknown) => {
-      // The chunk failed to load. Settle as signed out, the same state as a
-      // build without Supabase, rather than leaving every page waiting on
-      // `loading` for the rest of the session. The eager client would have
-      // failed loudly at startup, so say so in the console too.
-      console.error("Blueberry: the Supabase client failed to load, continuing signed out.", error);
-      if (!cancelled) setLoading(false);
-    });
+    };
 
+    // The client arrives as a lazy chunk (see `getSupabase`). Whoever loads it
+    // first, a sign-in button or the restore below, this hears about it.
+    const off = onSupabaseClient(attach);
+
+    const load = () => {
+      void getSupabase().then((supabase) => {
+        if (cancelled) return;
+        if (!supabase) {
+          setLoading(false);
+          return;
+        }
+        attach(supabase);
+      }).catch((error: unknown) => {
+        // The chunk failed to load. Settle as signed out, the same state as a
+        // build without Supabase, rather than leaving every page waiting on
+        // `loading` for the rest of the session. The eager client would have
+        // failed loudly at startup, so say so in the console too.
+        console.error("Blueberry: the Supabase client failed to load, continuing signed out.", error);
+        if (!cancelled) setLoading(false);
+      });
+    };
+
+    // Load on mount only when there is a stored session or a Google redirect
+    // to finish. A first-time visitor has neither, and is signed out: the same
+    // answer the client would give, without its 53 KB on the first open.
+    if (supabaseAuthToRestore()) load();
+    else setLoading(false);
+
+    // A sign-in in another tab writes the session key here too. Load the
+    // client then, so this tab notices, as it did when the client was eager.
+    const prefix = supabaseStorageKeyPrefix();
+    const onStorage = (event: StorageEvent) => {
+      if (prefix && event.key?.startsWith(prefix) && event.newValue) load();
+    };
+    window.addEventListener("storage", onStorage);
+
+    // Subscribe in an effect, undo it in the cleanup: React runs the cleanup on
+    // unmount (and twice in dev's StrictMode), so nothing is left listening.
     return () => {
       cancelled = true;
+      off();
+      window.removeEventListener("storage", onStorage);
       unsubscribe?.();
     };
   }, []);

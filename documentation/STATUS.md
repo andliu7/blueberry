@@ -123,7 +123,11 @@ six Bloom moves, hand-written wordmark, jump / curtain lift / land exit.
   that section and all before it (a unit exam lights every earlier unit too), pays XP once per
   test and saves the section's chest. Checked in a production preview: offer, run, 8/10 pass mark.
 - Payload: #/app first open now 399.9 KB of 400 (testOuts.ts is a 1.5 KB chunk the path needs).
-  The next feature on the first load must cut weight first. The validator itself will not run
+  The next feature on the first load must cut weight first.
+- DONE 23 Oct: supabase-js (53 KB gz) off the first open. AuthProvider loads it on mount only
+  when a stored session or a sign-in redirect is present, otherwise on the first sign-in,
+  checkout or editor press. #/app first open 399.2 to 346.4 KB, checked headless: cold #/app
+  does not fetch it; a stored session, ?code=, and the Google button each do. The validator itself will not run
   until the owner runs `npm run lock:regen -w packages/validators` (mutation files removed).
 - Still open from the brief: harder-than-lesson items (a short multistep synthesis as a challenge)
   need authoring; today the draw only reorders existing lesson items, all still `placeholder`.
