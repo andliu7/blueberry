@@ -135,6 +135,11 @@ six Bloom moves, hand-written wordmark, jump / curtain lift / land exit.
   worst case 3.74:1 (dark theme, muted ink, over white), floor 3:1. Lowering the disc fill fails it.
 - Still open from the brief: harder-than-lesson items (a short multistep synthesis as a challenge)
   need authoring; today the draw only reorders existing lesson items, all still `placeholder`.
+- Item 22 (site footer) DONE: built in 47ec43b (Find me chips grow into words on hover and focus,
+  FAQ card, footer comes up from under the page; pinned by siteFooter.test.ts), and now loaded
+  lazily from SiteChrome so #/app never downloads it or the About sheet: #/app first open 346.4 to
+  339.4 KB. ASK: the footer mails andliu@terpmail.umd.edu (src/data/site.ts EMAIL), andliu.dev
+  uses zeus.andrewliu@gmail.com; which one should Blueberry show?
 - Item 21 (pathway supernova) DONE 21 Oct in af74062, on origin/main: four-point star flash closing
   to a red or blue glow with one ripple; reduced motion shows two still glows; pinned by
   src/game/test/pathSupernova.test.ts. Owner to check it on the live pathway.
@@ -279,6 +284,7 @@ Wave 6, polish
    slight ripple (today it does not read as a supernova).
 22. Site footer like andliu.dev; "Find me" as GitHub / LinkedIn / email logos that expand into
    words on hover; make FAQ easier to find (he likes that page; maybe recolour later).
+   DONE 23 Oct, see "Progress, 22 Oct".
 
 Added 20 Oct (owner)
 23. Admin lesson viewer: open ANY lesson at any time, step through its questions as a slideshow,

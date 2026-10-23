@@ -2,7 +2,6 @@ import { lazy, Suspense, useEffect, type ReactNode } from "react";
 import { MotionConfig } from "motion/react";
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { ProfileDropdown } from "@/components/ui/profile-dropdown";
-import { SiteFooter } from "@/components/ui/site-footer";
 import { SiteNav, SiteNavBar, SiteNavSpacer } from "@/components/ui/site-nav";
 import "@/components/ui/site-shell.css";
 import { useFocusTimer } from "@/lib/useFocusTimer";
@@ -17,11 +16,13 @@ import { startCardGlow } from "@/lib/cardGlow";
  * downloads them; on the site they arrive just after the first paint. React
  * pattern: React.lazy plus a Suspense with a null fallback, so nothing is drawn
  * in their place for the moment the chunk takes. The pill and the bot draw
- * nothing until used anyway, and the timer card is a corner launcher.
+ * nothing until used anyway, and the timer card is a corner launcher. The footer,
+ * with the About sheet it opens, is lazy for the same reason: #/app never draws it.
  */
 const FocusTimer = lazy(() => import("@/components/FocusTimer").then((m) => ({ default: m.FocusTimer })));
 const FocusPill = lazy(() => import("@/components/FocusTimer").then((m) => ({ default: m.FocusPill })));
 const BlueberryBot = lazy(() => import("@/components/ui/blueberry-bot").then((m) => ({ default: m.BlueberryBot })));
+const SiteFooter = lazy(() => import("@/components/ui/site-footer").then((m) => ({ default: m.SiteFooter })));
 
 /**
  * Everything that frames the pages: the header and phone bar, the footer, and
@@ -100,7 +101,11 @@ export function SiteChrome({ children }: { children: ReactNode }) {
         {children}
       </div>
       {framed && <SiteNavBar route={route} />}
-      {framed && <SiteFooter />}
+      {framed && (
+        <Suspense fallback={null}>
+          <SiteFooter />
+        </Suspense>
+      )}
       {framed && <SiteNavSpacer />}
       {!inGame && (
         <Suspense fallback={null}>
