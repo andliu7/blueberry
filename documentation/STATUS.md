@@ -202,6 +202,14 @@ Feed and accounts
   with the Pencil, no stray strokes. Sketch to molecule: research only, in
   documentation/SKETCH-TO-MOLECULE-SPIKE.md; recommends the offline in-house route first,
   AWAITING an owner pick (three questions at its end).
+- Item 23 + evening brief item 4 (client side) DONE 23 Oct: staff lesson viewer at #/app/admin
+  (src/game/admin/, lazy; Me > Your tools > Lesson viewer, shown to admin/owner only from the
+  site's profiles role). Every lesson as slides in run order, Prev/Next and arrow keys, View
+  Admin/Student (answers, whys, provenance, draft tags only in Admin), Plan Member (Free)/Pro as
+  React state only: never a grant, pinned by adminViewer.test.ts. Member draws a lock on Pro
+  lessons plus an ad placeholder; the free rule (u0, u1, quizzes, checkpoints) is PROVISIONAL in
+  admin/planView.ts, owner to confirm. Edit in place NOT built: needs a server change, proposed
+  (not applied) in documentation/ADMIN-EDITS-PROPOSAL.md. #/app first open 341.3 KB.
 
 **Progress, 21 Oct (Wave 2 items 6, 8, 10 and item 15; committed, not pushed)**
 - Top bar A3: one row, Bloom with his level badge, a short XP bar, "N XP to the next stage!",

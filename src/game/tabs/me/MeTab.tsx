@@ -40,7 +40,9 @@ import { languageByCode } from "../../app/i18n";
 import { LanguageSheet } from "../../app/ui/LanguagePicker";
 import { TabIcon } from "../../app/ui/TabIcon";
 import { FlameMark } from "../../app/ui/HudIcons";
-import { FLAGGED_TABS, hashParam, hrefForTab, type TabId } from "../../app/routes";
+import { FLAGGED_TABS, hashParam, hrefForAdmin, hrefForTab, type TabId } from "../../app/routes";
+import { useAuth } from "@/lib/AuthContext";
+import { isStaffRole } from "../../admin/staff";
 import { useHashRoute } from "../../app/useHashRoute";
 import { isFlagOn, type FlagId } from "../../app/flags";
 import { BlueberryMark } from "../../mascot/BlueberryMark";
@@ -243,6 +245,27 @@ function ToolRow({ tab, title, detail }: { readonly tab: TabId; readonly title: 
       <span className="me-row-text">
         <span className="me-row-title">{title}</span>
         <span className="me-row-detail">{detail}</span>
+      </span>
+      <span className="me-row-chevron" aria-hidden>
+        <Chevron />
+      </span>
+    </a>
+  );
+}
+
+/** The staff-only row: the lesson viewer. ToolRow takes a TabId, and this is not a tab. */
+function AdminRow() {
+  return (
+    <a href={hrefForAdmin()} className="me-row">
+      <span className="me-row-icon">
+        <svg viewBox="0 0 24 24" className="h-6 w-6" aria-hidden>
+          <rect x="3" y="5" width="18" height="13" rx="2.5" fill="none" stroke="currentColor" strokeWidth="2.4" />
+          <path d="M10 9l5 2.5-5 2.5z" fill="currentColor" />
+        </svg>
+      </span>
+      <span className="me-row-text">
+        <span className="me-row-title">Lesson viewer</span>
+        <span className="me-row-detail">Admin: open any lesson, preview each plan.</span>
       </span>
       <span className="me-row-chevron" aria-hidden>
         <Chevron />
@@ -837,6 +860,7 @@ function PkaScreen() {
 
 function ProfileScreen() {
   const snapshot = useProgress();
+  const { role } = useAuth();
 
   // snapshot.economy is derived from the REAL journal (the dev beta flag
   // adds its preview events after that derivation), so it is the one source.
@@ -896,6 +920,7 @@ function ProfileScreen() {
           {flagged.map((tab) => (
             <ToolRow key={tab.id} tab={tab.id} title={tab.label} detail="Turned on for this device." />
           ))}
+          {isStaffRole(role) ? <AdminRow /> : null}
         </section>
       </aside>
     </div>

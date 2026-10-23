@@ -38,6 +38,7 @@ const TITLES: Record<string, string> = {
   // "Not Found", because a route added in a merge does not add itself here.
   app: "Course",
   "app/glossary": "Glossary",
+  "app/admin": "Lesson Viewer",
 };
 
 /** Prefixed routes, longest first so `lessons/x/y` does not match `lessons`. */
@@ -45,6 +46,7 @@ const PREFIXES: [string, string][] = [
   ["start/", "Get Started"],
   // Before "app/", so a glossary entry link is not titled "Course".
   ["app/glossary/", "Glossary"],
+  ["app/admin/", "Lesson Viewer"],
   ["app/", "Course"],
   ["unit/", "Unit"],
   ["lessons/", "Lesson"],

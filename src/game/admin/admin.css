@@ -1,0 +1,333 @@
+/*
+ * The staff lesson viewer (AdminViewer.tsx). Game tokens only (theme.css,
+ * tokens.css), so both themes come for free. Every control is at least 44px.
+ */
+
+.av-page {
+  min-height: 100dvh;
+  background: var(--bb-background);
+  color: var(--bb-foreground);
+  font-family: var(--font-display);
+}
+
+/* ---------------------------------------------------------------- bar */
+
+.av-bar {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: calc(0.375rem + env(safe-area-inset-top, 0px)) 1rem 0.375rem;
+  background: var(--bb-background);
+  border-bottom: 2px solid var(--bb-border);
+}
+.av-back {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-left: -0.5rem;
+  border: 0;
+  background: transparent;
+  color: var(--bb-foreground);
+  cursor: pointer;
+}
+.av-back svg {
+  width: 24px;
+  height: 24px;
+}
+.av-bar__title {
+  flex: 1;
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 900;
+}
+.av-bar__lessons {
+  min-height: 44px;
+  padding: 0 1rem;
+  border: 2px solid var(--btn-line);
+  border-radius: 999px;
+  background: var(--bb-card);
+  color: var(--bb-foreground);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+/* ------------------------------------------------------ banner, toggles */
+
+.av-banner {
+  margin: 0.75rem 1rem 0;
+  padding: 0.625rem 0.875rem;
+  border: 2px dashed var(--bb-border);
+  border-radius: 0.875rem;
+  background: var(--bb-card);
+  font-size: var(--text-scale-sm);
+  font-weight: 700;
+}
+.av-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  padding: 0.75rem 1rem;
+}
+.av-seg {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.av-seg__label {
+  margin-right: 0.25rem;
+  font-size: var(--text-scale-sm);
+  font-weight: 800;
+  color: var(--bb-muted-foreground);
+}
+.av-seg__btn {
+  min-height: 44px;
+  padding: 0 0.875rem;
+  border: 2px solid var(--btn-line);
+  border-radius: 0.75rem;
+  background: var(--bb-card);
+  color: var(--bb-foreground);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+.av-seg__btn[aria-pressed="true"] {
+  border-color: var(--bb-primary);
+  background: var(--bb-primary);
+  color: var(--bb-primary-foreground);
+}
+
+/* -------------------------------------------------------- body, picker */
+
+.av-body {
+  display: grid;
+  gap: 1rem;
+  padding: 0 1rem 2rem;
+}
+.av-picker {
+  display: none;
+  max-height: 60dvh;
+  overflow-y: auto;
+  padding: 0.5rem 0.75rem;
+  border: 2px solid var(--bb-border);
+  border-radius: 1rem;
+  background: var(--bb-card);
+}
+.av-picker.is-open {
+  display: block;
+}
+.av-picker ul {
+  margin: 0 0 0.5rem;
+  padding: 0;
+  list-style: none;
+}
+.av-picker__unit-title {
+  margin: 0.5rem 0 0.25rem;
+  font-size: var(--text-scale-sm);
+  font-weight: 900;
+  color: var(--bb-muted-foreground);
+}
+.av-picker__lesson {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 0.625rem;
+  border-radius: 0.625rem;
+  color: var(--bb-foreground);
+  font-weight: 700;
+  text-decoration: none;
+}
+.av-picker__lesson[aria-current="page"] {
+  background: var(--bb-muted);
+  color: var(--bb-primary-ink);
+  font-weight: 900;
+}
+@media (hover: hover) {
+  .av-picker__lesson:hover {
+    background: var(--bb-muted);
+  }
+}
+
+@media (min-width: 900px) {
+  .av-bar__lessons {
+    display: none;
+  }
+  .av-body {
+    grid-template-columns: 18rem minmax(0, 1fr);
+    align-items: start;
+  }
+  .av-picker,
+  .av-picker.is-open {
+    display: block;
+    position: sticky;
+    top: 4.5rem;
+    max-height: calc(100dvh - 5.5rem);
+  }
+}
+
+/* ----------------------------------------------------------- slideshow */
+
+.av-main {
+  min-width: 0;
+  max-width: 44rem;
+}
+.av-show__head {
+  margin-bottom: 0.75rem;
+}
+.av-show__title {
+  margin: 0.125rem 0 0.5rem;
+}
+.av-show__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.av-empty {
+  padding: 2rem 0;
+  font-weight: 700;
+  color: var(--bb-muted-foreground);
+}
+
+.av-slide-wrap {
+  position: relative;
+}
+.av-slide {
+  padding: 1rem 1.125rem;
+  border: 2px solid var(--btn-line);
+  border-radius: 1.25rem;
+  background: var(--bb-card);
+  color: var(--bb-card-foreground);
+}
+.av-slide--locked {
+  filter: blur(3px);
+  opacity: 0.5;
+}
+.av-slide__kind {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.25rem;
+}
+.av-tag {
+  padding: 0.0625rem 0.5rem;
+  border-radius: 999px;
+  background: var(--btn-warn);
+  color: var(--btn-warn-ink);
+  font-size: var(--text-scale-xs);
+  text-transform: none;
+  letter-spacing: 0;
+}
+.av-slide__prompt {
+  margin: 0 0 0.375rem;
+}
+.av-slide__brief {
+  margin: 0 0 0.75rem;
+  color: var(--bb-muted-foreground);
+  font-weight: 600;
+}
+.av-slide__visual {
+  margin: 0.5rem 0 0.75rem;
+}
+
+.av-cards,
+.av-choices {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+  padding: 0;
+  list-style: none;
+}
+.av-card {
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.75rem;
+  background: var(--bb-muted);
+  font-weight: 700;
+}
+.av-choice {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.625rem 0.875rem;
+  border: 2px solid var(--btn-line);
+  border-radius: 0.875rem;
+  font-weight: 700;
+}
+.av-choice--correct {
+  border-color: var(--tray-good-line);
+  background: var(--tray-good-bg);
+  color: var(--tray-good-ink);
+}
+.av-choice__figure {
+  max-width: 10rem;
+}
+.av-mark {
+  font-weight: 900;
+}
+.av-choice__why {
+  font-size: var(--text-scale-sm);
+  font-weight: 600;
+  color: var(--bb-muted-foreground);
+}
+.av-choice--correct .av-choice__why {
+  color: inherit;
+}
+
+.av-meta {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0.75rem 0 0;
+  padding-top: 0.75rem;
+  border-top: 2px dashed var(--btn-line);
+  font-size: var(--text-scale-sm);
+}
+.av-meta dt {
+  font-weight: 900;
+}
+.av-meta dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.av-id {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color: var(--bb-muted-foreground);
+}
+
+.av-lock {
+  position: absolute;
+  inset: 0 0 auto;
+  display: grid;
+  place-content: center;
+  gap: 0.25rem;
+  min-height: 10rem;
+  padding: 1rem;
+  text-align: center;
+  font-weight: 700;
+}
+.av-lock p {
+  margin: 0;
+}
+.av-ad {
+  display: grid;
+  place-items: center;
+  min-height: 6rem;
+  margin-top: 0.75rem;
+  border: 2px dashed var(--bb-border);
+  border-radius: 1rem;
+  color: var(--bb-muted-foreground);
+  font-weight: 800;
+}
+
+.av-steps {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+.av-steps__count {
+  font-weight: 800;
+}

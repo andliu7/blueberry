@@ -23,6 +23,8 @@ import { BootReady, Loader } from "./app/Loader";
 import { reviewCheckpointFor } from "./tabs/pathway/reviewCheckpoints";
 import { progress } from "./app/progress";
 import { claimAppOpenGifts, watchEarnedChests } from "./chest/chestFlow";
+import { useAuth } from "@/lib/AuthContext";
+import { isStaffRole } from "./admin/staff";
 
 const Onboarding = lazy(() => import("./onboarding/Onboarding"));
 const BeatRunner = lazy(() => import("./beats/BeatRunner").then((m) => ({ default: m.BeatRunner })));
@@ -71,6 +73,12 @@ const GlossaryPage = lazy(() => import("./glossary/GlossaryPage"));
 /** The button and heading sheet, at #/gallery/buttons. Development only, lazy. */
 const ButtonGallery = lazy(() => import("./app/ui/ButtonGallery"));
 
+/**
+ * The staff lesson viewer, at #/app/admin. Lazy like the glossary, and only
+ * mounted for a staff role (AdminGate below), so a student never downloads it.
+ */
+const AdminViewer = lazy(() => import("./admin/AdminViewer"));
+
 const params = new URLSearchParams(window.location.search);
 /** The measurement scripts need the canvas with no onboarding in front of it. */
 const MEASURING = params.get("auto") === "1" || params.get("stats") === "1" || params.get("targets") === "1";
@@ -83,7 +91,9 @@ export default function App() {
   // The gallery is exempt from the onboarding redirect: it is a development
   // surface whose audience is a critic with a fresh profile, and a workbench
   // that first demands a placement quiz is a workbench nobody reaches.
-  const needsOnboarding = !snapshot.onboardingDone && !MEASURING && route.kind !== "gallery";
+  // The staff viewer is exempt for the same reason: an admin on a fresh device
+  // opens it to read lessons, not to take the placement quiz.
+  const needsOnboarding = !snapshot.onboardingDone && !MEASURING && route.kind !== "gallery" && route.kind !== "admin";
   useEffect(() => {
     if (needsOnboarding && route.kind !== "onboarding") navigate(hrefForOnboarding("welcome"));
   }, [needsOnboarding, route.kind]);
@@ -96,7 +106,8 @@ export default function App() {
   // no gifts, so a sheet never sits over the surface they measure.
   useEffect(() => watchEarnedChests(progress), []);
   useEffect(() => {
-    if (!needsOnboarding && !MEASURING && route.kind !== "gallery") claimAppOpenGifts(progress);
+    // No gift sheet over the staff viewer either.
+    if (!needsOnboarding && !MEASURING && route.kind !== "gallery" && route.kind !== "admin") claimAppOpenGifts(progress);
   }, [needsOnboarding, route.kind]);
 
   // THE FRONT DOOR WRAPS EVERY ROUTE. The loader is a fixed layer over the
@@ -160,6 +171,8 @@ function Body({
       </Suspense>
     );
   }
+
+  if (route.kind === "admin") return <AdminGate node={route.node} />;
 
   if (route.kind === "onboarding") {
     return (
@@ -228,4 +241,38 @@ function Body({
   }
 
   return <Shell route={route} />;
+}
+
+/**
+ * Who may open the staff viewer. The role is the site's own (useAuth reads
+ * public.profiles), so this draws UI only; RLS is the gate on anything that
+ * writes. A non-staff visitor is sent to the path and never fetches the chunk.
+ */
+function AdminGate({ node }: { readonly node: string | null }) {
+  const { role, loading, user, profileLoaded } = useAuth();
+  // Signed in but the profile row not read yet: the role still reads "member",
+  // so wait rather than bounce an admin to the path.
+  const waiting = loading || (user !== null && !profileLoaded && !isStaffRole(role));
+  const staff = isStaffRole(role);
+
+  // Every hook runs before any early return: React matches hooks by call
+  // order, so a hook skipped on one render would break the next.
+  useEffect(() => {
+    if (!waiting && !staff) navigate(hrefForTab("pathway"));
+  }, [waiting, staff]);
+
+  if (waiting || !staff) {
+    return (
+      <>
+        <BootReady />
+        <TabSkeleton label="Blueberry" />
+      </>
+    );
+  }
+  return (
+    <Suspense fallback={<TabSkeleton label="the lesson viewer" />}>
+      <BootReady />
+      <AdminViewer node={node} />
+    </Suspense>
+  );
 }

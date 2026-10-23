@@ -159,7 +159,13 @@ export type Route =
    * link to them. Reached by typing the hash, which is the right amount of
    * friction for a page whose audience is a critic and an author.
    */
-  | { readonly kind: "gallery"; readonly name: string };
+  | { readonly kind: "gallery"; readonly name: string }
+  /**
+   * The staff lesson viewer: "#/app/admin", or "#/app/admin/u1-allylic" to open
+   * on one lesson. Not in ALL_TABS; the only link to it is the staff-only row
+   * on Me. A non-staff visitor who types the hash is sent to the path (App.tsx).
+   */
+  | { readonly kind: "admin"; readonly node: string | null };
 
 const TAB_IDS = new Set<string>(ALL_TABS.map((tab) => tab.id));
 
@@ -204,6 +210,7 @@ export function parseHash(hash: string): Route {
   if (head === "review") return { kind: "tab", tab: "cards", rest: [] };
   if (head === "gallery") return { kind: "gallery", name: parts[1] ?? "berry" };
   if (head === "glossary") return { kind: "glossary", entry: parts[1] ?? null };
+  if (head === "admin") return { kind: "admin", node: parts[1] ?? null };
   if (head !== undefined && TAB_IDS.has(head)) {
     return { kind: "tab", tab: head as TabId, rest: parts.slice(1) };
   }
@@ -275,6 +282,11 @@ export function hrefForOnboarding(step: string): string {
 /** The glossary, optionally opened on one entry (an id from glossary/glossaryModel.ts). */
 export function hrefForGlossary(entry?: string): string {
   return entry === undefined ? `#/${BASE}/glossary` : `#/${BASE}/glossary/${encodeURIComponent(entry)}`;
+}
+
+/** The staff lesson viewer, optionally opened on one lesson node. */
+export function hrefForAdmin(node?: string): string {
+  return node === undefined ? `#/${BASE}/admin` : `#/${BASE}/admin/${encodeURIComponent(node)}`;
 }
 
 /** Development only. Nothing in the shell renders this; it is typed by hand. */
