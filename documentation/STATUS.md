@@ -129,6 +129,10 @@ six Bloom moves, hand-written wordmark, jump / curtain lift / land exit.
   checkout or editor press. #/app first open 399.2 to 346.4 KB, checked headless: cold #/app
   does not fetch it; a stored session, ?code=, and the Google button each do. The validator itself will not run
   until the owner runs `npm run lock:regen -w packages/validators` (mutation files removed).
+- Item 24 (back disc over images) DONE: built 21 Oct in 86a8a5a (one shared .bb-back-disc in
+  theme.css), now pinned on all six game back buttons (glossary added) by backDisc.test.ts, which
+  also checks the icon ink against the disc over pure black and pure white images in both themes:
+  worst case 3.74:1 (dark theme, muted ink, over white), floor 3:1. Lowering the disc fill fails it.
 - Still open from the brief: harder-than-lesson items (a short multistep synthesis as a challenge)
   need authoring; today the draw only reorders existing lesson items, all still `placeholder`.
 - Item 21 (pathway supernova) DONE 21 Oct in af74062, on origin/main: four-point star flash closing
@@ -281,7 +285,7 @@ Added 20 Oct (owner)
    toggle student view and Pro / Free view, and edit the text in place (edits saved server side,
    admin only; the plan toggle is a view, never a grant). Folds into Wave 3's admin view.
 24. Back buttons over images (guides first): a faint circle behind the back button so it reads on
-   any header image. Small; do with the next quick-fix batch.
+   any header image. Small; do with the next quick-fix batch. DONE 23 Oct, see "Progress, 22 Oct".
 25. SANDBOX tab: play with molecules in several views (2D, 3D, skeletal/condensed); draw with
    finger, mouse or Apple Pencil (test on iPad); build with the molecule editor (Ketcher, lazy);
    arrow-pushing mode where you search and add reactions; save intermediates and replay them as a
