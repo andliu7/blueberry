@@ -9,9 +9,9 @@
  * ends on a checkpoint (a stage quiz, or a review stop from
  * reviewCheckpoints.ts). Clearing that checkpoint earns the section's
  * treasure chest, and a divider with the next section's number and name
- * follows. A unit with no checkpoints at all (a draft unit) is cut every
- * CHUNK lessons instead, with dividers and no chests, because there is
- * nothing to earn a chest with.
+ * follows. A unit with no checkpoints of its own is cut by topic after the
+ * lessons SECTION_ENDS names, or, with none named, every CHUNK lessons. Such a
+ * section has no checkpoint, so its chest is its test-out's (testOuts.ts).
  */
 
 /** One stop on the road, as the section split needs to see it. */
@@ -49,6 +49,33 @@ export const SECTION_TITLES: Readonly<Record<string, string>> = Object.freeze({
   "u1-quiz-d": "Diels-Alder products",
 });
 
+/**
+ * Owner decision, 20 Oct: units with no checkpoints of their own are cut by
+ * topic into sections of 3 to 5 lessons, and each section ends on its
+ * test-out chest (testOuts.ts). Keyed by the LAST main-line lesson of each
+ * section; the value is that section's title.
+ */
+export const SECTION_ENDS: Readonly<Record<string, string>> = Object.freeze({
+  "u3-fc-acyl": "The five EAS reactions",
+  "u3-sequencing": "Directing groups and synthesis",
+  "u5-oxidation": "Reactions of alcohols",
+  "u5-epoxidation": "Ethers and epoxides",
+  "u5-anti-diol": "Opening epoxides, making diols",
+  "u7-protect": "Hydrates and acetals",
+  "u7-hydride": "Amines, Grignards and hydrides",
+  "u7-to-ch2": "Wittig, enones and C=O to CH₂",
+  "u8-to-anhydride": "The reactivity ladder",
+  "u8-anhydride": "Down the ladder",
+  "u8-nitrile": "Hydrolysis and nitriles",
+  "u8-decarb": "Reductions and organometallics",
+  "u9-enolate-res": "Enols and α-acidity",
+  "u9-halo-base": "Enolates and α-halogenation",
+  "u9-intra": "The aldol",
+  "u9-crossed-claisen": "The Claisen",
+  "u9-acetoacetic": "Alkylating enolates",
+  "u9-retro": "Conjugate addition and annulation",
+});
+
 /** The chest a checkpoint earns. Journalled under this id when opened. */
 export function chestIdFor(checkpointId: string): string {
   return `${checkpointId}-chest`;
@@ -62,18 +89,24 @@ function nameFrom(title: string): string {
 function sectionOf<T>(number: number, stops: readonly SectionStop<T>[]): PathSection<T> {
   const last = stops[stops.length - 1];
   const checkpoint = last !== undefined && last.checkpoint ? last : null;
-  const title = checkpoint === null ? `Part ${number}` : (SECTION_TITLES[checkpoint.id] ?? nameFrom(checkpoint.title));
+  const title = checkpoint === null ? (SECTION_ENDS[last?.id ?? ""] ?? `Part ${number}`) : (SECTION_TITLES[checkpoint.id] ?? nameFrom(checkpoint.title));
   return { number, title, stops, checkpoint, chestId: checkpoint === null ? null : chestIdFor(checkpoint.id) };
 }
 
 export function splitSections<T>(stops: readonly SectionStop<T>[]): readonly PathSection<T>[] {
   const groups: SectionStop<T>[][] = [];
-  if (stops.some((stop) => stop.checkpoint)) {
-    // Cut after every checkpoint. Lessons after the last one are their own section.
+  const cutBy = stops.some((stop) => stop.checkpoint)
+    ? (stop: SectionStop<T>) => stop.checkpoint
+    : stops.some((stop) => SECTION_ENDS[stop.id] !== undefined)
+      ? (stop: SectionStop<T>) => SECTION_ENDS[stop.id] !== undefined
+      : null;
+  if (cutBy !== null) {
+    // Cut after every checkpoint, or in a unit with none, after every lesson
+    // SECTION_ENDS names. Lessons after the last cut are their own section.
     let open: SectionStop<T>[] = [];
     for (const stop of stops) {
       open.push(stop);
-      if (stop.checkpoint) {
+      if (cutBy(stop)) {
         groups.push(open);
         open = [];
       }
