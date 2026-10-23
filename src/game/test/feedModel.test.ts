@@ -14,7 +14,8 @@
 
 import { describe, expect, it } from "vitest";
 import { DAILY_GOAL_XP, DEFAULT_DAILY_GOAL, type EconomyEvent } from "@blueberry/economy";
-import { feedModel, QUEST_CORRECT_TARGET, type QuestMotif } from "../tabs/feed/feedModel";
+import { feedModel, feedReminders, QUEST_CORRECT_TARGET, welcomeCard, type QuestMotif } from "../tabs/feed/feedModel";
+import { hrefForTab } from "../app/routes";
 
 const TZ = "UTC";
 const NOW = "2026-08-28T14:00:00.000Z";
@@ -197,5 +198,74 @@ describe("the motif each quest wears", () => {
     const empty = feedModel([CASUAL], NOW).quests;
     const busy = feedModel([CASUAL, ...Array.from({ length: 9 }, (_, i) => attempt(0, i, true))], NOW).quests;
     expect(busy.map((quest) => quest.motif)).toEqual(empty.map((quest) => quest.motif));
+  });
+});
+
+/* Welcome back and reminders (owner, item 11). */
+
+describe("welcomeCard", () => {
+  const base = { name: null, nextLesson: "Alkene addition", saved: false, hasCourse: true, signedIn: true } as const;
+
+  it("greets by first name, or plainly with no name", () => {
+    expect(welcomeCard({ ...base, name: "Ada Lovelace" }).heading).toBe("Welcome back, Ada!");
+    expect(welcomeCard({ ...base, name: "  " }).heading).toBe("Welcome back!");
+    expect(welcomeCard(base).heading).toBe("Welcome back!");
+  });
+
+  it("says continue when the lesson has a bookmark, next up when not", () => {
+    expect(welcomeCard({ ...base, saved: true }).line).toBe("Continue Alkene addition");
+    expect(welcomeCard(base).line).toBe("Next up: Alkene addition");
+    expect(welcomeCard(base).button).toBe("Pick up where you left off");
+  });
+
+  it("has honest copy when there is no next lesson", () => {
+    expect(welcomeCard({ ...base, nextLesson: null }).line).toBe("You have cleared every lesson on your path so far.");
+    expect(welcomeCard({ ...base, nextLesson: null, hasCourse: false }).line).toContain("Pick a course");
+  });
+
+  it("links to the path, not straight into the lesson", () => {
+    expect(welcomeCard(base).href).toBe(hrefForTab("pathway"));
+    expect(welcomeCard({ ...base, saved: true }).href).toBe(hrefForTab("pathway"));
+  });
+
+  it("asks for a sign-in only when signed out", () => {
+    expect(welcomeCard(base).askSignIn).toBe(false);
+    expect(welcomeCard({ ...base, signedIn: false }).askSignIn).toBe(true);
+  });
+});
+
+describe("feedReminders", () => {
+  const quiet = {
+    reminders: { hour: null, examDate: null },
+    today: "2026-08-28",
+    input: { streak: 0, todayCounted: false, cardsDue: 0 },
+  };
+
+  it("lists nothing when nothing is set or due", () => {
+    expect(feedReminders(quiet)).toEqual([]);
+  });
+
+  it("lists only what the journal and the decks hold", () => {
+    const lines = feedReminders({
+      reminders: { hour: 18, examDate: "2026-09-04" },
+      today: "2026-08-28",
+      input: { streak: 3, todayCounted: false, cardsDue: 2 },
+    });
+    expect(lines).toEqual([
+      "Exam in 7 days.",
+      "Your streak is at 3 days. One lesson today keeps it going.",
+      "2 cards are due for review today.",
+      "Your daily study reminder is set for 6 PM.",
+    ]);
+  });
+
+  it("drops the streak line once today counts, and a past exam", () => {
+    const lines = feedReminders({
+      reminders: { hour: null, examDate: "2026-08-01" },
+      today: "2026-08-28",
+      input: { streak: 3, todayCounted: true, cardsDue: 0 },
+    });
+    expect(lines).toEqual([]);
+    expect(feedReminders({ ...quiet, reminders: { hour: null, examDate: "2026-08-28" } })).toEqual(["Exam day. Good luck!"]);
   });
 });

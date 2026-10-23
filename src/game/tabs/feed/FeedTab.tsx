@@ -76,13 +76,17 @@
 import { useEffect, useId, useMemo, useState } from "react";
 import { isFlagOn } from "../../app/flags";
 import { useProgress } from "../../app/hooks";
-import { hrefForTab } from "../../app/routes";
+import { hrefForLesson, hrefForTab } from "../../app/routes";
+import { useDisplayName } from "../../app/useDisplayName";
 import { PATHWAY_UNITS, pathwayNode } from "../../demo/pathwayMap";
+import { browserStorage, hasSavedLesson } from "../../resume/lessonSave";
+import { firstNameOf } from "@/lib/accountName";
+import { rememberReturn } from "@/lib/returnTo";
 import { useStudyState } from "../social/useStudyState";
 import "../social/social.css";
 import { activityFeed, type ActivityItem, type ActivityKind } from "./activityModel";
 import { FeedBackdrop } from "./FeedBackdrop";
-import { dailyQuestRows, feedModel, type DailyQuestRow } from "./feedModel";
+import { dailyQuestRows, feedModel, feedReminders, welcomeCard, type DailyQuestRow, type WelcomeCard } from "./feedModel";
 import "./feed.css";
 
 /**
@@ -573,7 +577,8 @@ function QuestsHeader({ done, total }: { readonly done: number; readonly total: 
  * nothing that claims something happened), but the screen's one idea and one
  * action. It says where wins will show up and starts the real next lesson.
  */
-function FirstWin({ lesson }: { readonly lesson: string | null }) {
+function FirstWin({ lesson, name }: { readonly lesson: string | null; readonly name: string | null }) {
+  const first = firstNameOf(name);
   return (
     <div className="feed-first-win flex flex-col items-center gap-3 text-center">
       <svg viewBox="0 0 64 64" className="size-28" aria-hidden="true" focusable="false">
@@ -583,7 +588,7 @@ function FirstWin({ lesson }: { readonly lesson: string | null }) {
         <path d="M53 8 55 13 60 15 55 17 53 22 51 17 46 15 51 13z" fill="#ffc233" />
         <path d="M9 44 10.5 47.5 14 49 10.5 50.5 9 54 7.5 50.5 4 49 7.5 47.5z" fill="#ffc233" />
       </svg>
-      <h2 className="font-display text-2xl leading-tight font-black text-bb-foreground">Your wins land here</h2>
+      <h2 className="font-display text-2xl leading-tight font-black text-bb-foreground">{first === null ? "Your wins land here" : `${first}, your wins land here`}</h2>
       <p className="max-w-[22rem] text-base font-bold text-bb-foreground">
         {lesson === null ? "Finish a lesson to post your first one." : `Finish ${lesson} to post your first one.`}
       </p>
@@ -591,6 +596,65 @@ function FirstWin({ lesson }: { readonly lesson: string | null }) {
         {lesson === null ? "Start a lesson" : "Start this lesson"}
       </a>
     </div>
+  );
+}
+
+/* ------------------------------------------------------- welcome back --- */
+
+/** Signed out: a quiet text link, not a second filled button. It comes back here after (lib/returnTo.ts). */
+function SignInLink({ children }: { readonly children: string }) {
+  return (
+    <a
+      href="#/signin"
+      onClick={() => rememberReturn(window.location.hash)}
+      className="text-[0.9375rem] font-extrabold text-bb-primary-ink underline underline-offset-2"
+    >
+      {children}
+    </a>
+  );
+}
+
+/**
+ * The returning student's card, first on the page with its one filled button
+ * (owner, item 11). The button goes to the PATH, where the charge gate and the
+ * centring on the current node live; feedModel.ts's welcomeCard says why.
+ */
+function WelcomeBack({ card }: { readonly card: WelcomeCard }) {
+  return (
+    <section className="feed-welcome flex flex-col gap-2" aria-labelledby="feed-welcome-title">
+      <h2 id="feed-welcome-title" className="font-display text-2xl leading-tight font-black text-bb-foreground">
+        {card.heading}
+      </h2>
+      <p className="text-base font-bold text-bb-foreground">{card.line}</p>
+      <a href={card.href} className="btn3d btn3d--primary mt-1 w-full">
+        {card.button}
+      </a>
+      {card.askSignIn ? (
+        <p className="m-0 text-center">
+          <SignInLink>Sign in so Blueberry remembers your name</SignInLink>
+        </p>
+      ) : null}
+    </section>
+  );
+}
+
+/** Reminders from what the student set and what is due, with the full thread in Messages. */
+function Reminders({ lines }: { readonly lines: readonly string[] }) {
+  if (lines.length === 0) return null;
+  return (
+    <section aria-label="Reminders" className="flex flex-col gap-3">
+      <h2 className="feed-heading">Reminders</h2>
+      <ul className="social-card flex flex-col gap-2">
+        {lines.map((line) => (
+          <li key={line} className="text-[0.9375rem] font-bold text-bb-foreground">
+            {line}
+          </li>
+        ))}
+      </ul>
+      <a href={hrefForTab("messages")} className="text-[0.9375rem] font-extrabold text-bb-primary-ink underline underline-offset-2">
+        See them in Messages
+      </a>
+    </section>
   );
 }
 
@@ -626,6 +690,19 @@ export default function FeedTab() {
   // The owner's daily quests (20 Oct), straight from the economy's snapshot.
   const quests = useMemo(() => dailyQuestRows(snapshot.economy), [snapshot.economy]);
   const questsDone = quests.filter((quest) => quest.done).length;
+  const { signedIn } = useDisplayName();
+  // The same bookmark check as the path's START/CONTINUE tag. Only a beat
+  // lesson has a lesson link, and so only a beat lesson can have a bookmark.
+  const playable = study.nextLessonId === null ? undefined : pathwayNode(study.nextLessonId)?.playable;
+  const saved = playable?.kind === "beat" && hasSavedLesson(browserStorage(), hrefForLesson(playable.id));
+  const welcome = welcomeCard({
+    name: study.input.name,
+    nextLesson: study.input.nextLesson,
+    saved,
+    hasCourse: study.input.hasCourse,
+    signedIn,
+  });
+  const reminders = feedReminders(study);
 
   return (
     <div
@@ -640,10 +717,22 @@ export default function FeedTab() {
           {/* On desktop the shell header already names the screen, so there this heading is for screen readers only. */}
           <h1 className="font-display text-[1.75rem] font-black text-bb-foreground md:sr-only">Feed</h1>
 
-          {/* The feed itself first: the student's wins, newest first, or the one first-win card. */}
+          {/* A new student gets the first-win card (they are not "back" yet); a
+              returning one gets Welcome back first, then their wins, newest first. */}
           {activity.length === 0 ? (
-            <FirstWin lesson={study.input.nextLesson} />
+            <FirstWin lesson={study.input.nextLesson} name={study.input.name} />
           ) : (
+            <WelcomeBack card={welcome} />
+          )}
+          {activity.length === 0 && !signedIn ? (
+            <p className="m-0 text-center">
+              <SignInLink>Sign in so Blueberry remembers your name</SignInLink>
+            </p>
+          ) : null}
+
+          <Reminders lines={reminders} />
+
+          {activity.length === 0 ? null : (
             <section aria-label="Your activity" className="flex flex-col gap-3">
               <h2 className="feed-heading">Your activity</h2>
               <ol className="feed-quests !mt-0">
@@ -665,6 +754,14 @@ export default function FeedTab() {
         </div>
 
         <aside className="social-rail" aria-label="Friends and more">
+          {/* Friends' encouragement needs real accounts, and social is not open
+              until its server tables exist. One honest line, no pretend people. */}
+          <section className="flex flex-col gap-2" aria-label="From friends">
+            <h2 className="feed-heading">From friends</h2>
+            <p className="m-0 text-[0.9375rem] font-semibold text-bb-muted-foreground">
+              Cheers from friends will show up here once friend accounts open.
+            </p>
+          </section>
           <section className="flex flex-col gap-3" aria-label="More">
             <h2 className="feed-heading">More</h2>
             <ul className="flex flex-col gap-2">

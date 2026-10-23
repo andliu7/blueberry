@@ -628,6 +628,19 @@ export function createLocalProgress(): ProgressSource {
     for (const listener of listeners) listener();
   };
 
+  // ANOTHER TAB WROTE THE STORE. Every commit writes the whole object, so a tab
+  // still holding the old one would put back what the other tab changed (a name
+  // set there came back as null here on this tab's next lesson). Re-read and
+  // tell subscribers; never save from here, or two tabs would echo forever.
+  if (typeof window !== "undefined") {
+    window.addEventListener("storage", (event) => {
+      if (event.key !== STORAGE_KEY) return;
+      stored = load();
+      snapshot = project(stored, receipt, nowIso());
+      for (const listener of listeners) listener();
+    });
+  }
+
   /** Append one event and keep its receipt, which is what the reward moment plays. */
   const appendOne = (make: (at: string, tz: string) => EconomyEvent): Receipt => {
     const at = nowIso();

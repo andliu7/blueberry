@@ -25,11 +25,15 @@
  */
 
 import {
+  daysBetween,
   deriveEconomy,
   localDate,
   type EconomyEvent,
   type EconomySnapshot,
 } from "@blueberry/economy";
+import { firstNameOf } from "@/lib/accountName";
+import { hrefForTab } from "../../app/routes";
+import { hourLabel } from "../messages/messagesModel";
 
 /**
  * The third quest's bar. Five, deliberately: it is the free tier's own "5
@@ -216,4 +220,73 @@ export function dailyQuestRows(snapshot: EconomySnapshot): readonly DailyQuestRo
     reading: quest.id === "train" ? `${quest.progress} / ${quest.target} min` : `${quest.progress} / ${quest.target}`,
     chestId: quest.chestId,
   }));
+}
+
+/**
+ * WELCOME BACK (owner, item 11): "greet 'Welcome back, <their name>' with
+ * 'pick up where you left off' (links to the path)". The link goes to the PATH,
+ * not into the lesson, because that is the owner's wording and because the
+ * path is where the charge gate and the centring on the current node run; a
+ * straight lesson link would skip the charge.
+ */
+export interface WelcomeCard {
+  readonly heading: string;
+  readonly button: string;
+  readonly line: string;
+  readonly href: string;
+  /** Signed out: offer a quiet sign-in link so the name is remembered. */
+  readonly askSignIn: boolean;
+}
+
+export function welcomeCard(input: {
+  readonly name: string | null;
+  /** Title of the node the path's START tag is on; null when there is none. */
+  readonly nextLesson: string | null;
+  /** True when that lesson has a bookmark, the same check as the path's CONTINUE tag. */
+  readonly saved: boolean;
+  readonly hasCourse: boolean;
+  readonly signedIn: boolean;
+}): WelcomeCard {
+  const first = firstNameOf(input.name);
+  let line: string;
+  if (!input.hasCourse) line = "Pick a course on the path to get your first lesson.";
+  else if (input.nextLesson === null) line = "You have cleared every lesson on your path so far.";
+  else line = input.saved ? `Continue ${input.nextLesson}` : `Next up: ${input.nextLesson}`;
+  return {
+    heading: first === null ? "Welcome back!" : `Welcome back, ${first}!`,
+    button: "Pick up where you left off",
+    line,
+    href: hrefForTab("pathway"),
+    askSignIn: !input.signedIn,
+  };
+}
+
+function plural(count: number, one: string, many: string): string {
+  return `${count} ${count === 1 ? one : many}`;
+}
+
+/**
+ * REMINDERS, built only from what the student set and what is due: the
+ * reminder hour and exam date from the journal's settings events, the cards
+ * due from the deck store, and the streak when today is not counted yet. The
+ * same facts, in the same voice, as the Messages tab's reminders thread and
+ * Bloom's check-in, so the two never disagree. Nothing here is invented.
+ */
+export function feedReminders(study: {
+  readonly reminders: { readonly hour: number | null; readonly examDate: string | null };
+  readonly today: string;
+  readonly input: { readonly streak: number; readonly todayCounted: boolean; readonly cardsDue: number };
+}): readonly string[] {
+  const lines: string[] = [];
+  if (study.reminders.examDate !== null) {
+    const left = daysBetween(study.today, study.reminders.examDate);
+    if (left > 0) lines.push(`Exam in ${plural(left, "day", "days")}.`);
+    else if (left === 0) lines.push("Exam day. Good luck!");
+  }
+  if (study.input.streak > 0 && !study.input.todayCounted) {
+    lines.push(`Your streak is at ${plural(study.input.streak, "day", "days")}. One lesson today keeps it going.`);
+  }
+  if (study.input.cardsDue > 0) lines.push(`${plural(study.input.cardsDue, "card is", "cards are")} due for review today.`);
+  if (study.reminders.hour !== null) lines.push(`Your daily study reminder is set for ${hourLabel(study.reminders.hour)}.`);
+  return lines;
 }

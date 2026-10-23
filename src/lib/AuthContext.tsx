@@ -8,6 +8,7 @@ import {
   supabaseStorageKeyPrefix,
 } from "@/lib/supabase";
 import type { AccountRole } from "@/lib/account";
+import { consumeReturn } from "@/lib/returnTo";
 
 /**
  * One auth subscription for the whole app.
@@ -31,7 +32,14 @@ export interface AuthState {
   role: AccountRole;
   /** True until the first auth answer is known, so pages can avoid a flash. */
   loading: boolean;
-  /** Re-read the profile, for when a role changes without a sign-in. */
+  /**
+   * `profiles.full_name`: the account's name, the one the game greets with.
+   * Null when signed out, when the row has none, or before the row arrives.
+   */
+  profileName: string | null;
+  /** True once the profile row for the current user has been read (or failed to). */
+  profileLoaded: boolean;
+  /** Re-read the profile, for when a role or the name changes without a sign-in. */
   refreshRole: () => void;
 }
 
@@ -40,6 +48,8 @@ const AuthContext = createContext<AuthState>({
   user: null,
   role: "member",
   loading: true,
+  profileName: null,
+  profileLoaded: false,
   refreshRole: () => {},
 });
 
@@ -53,6 +63,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [role, setRole] = useState<AccountRole>("member");
   const [loading, setLoading] = useState(supabaseConfigured);
   const [roleNonce, setRoleNonce] = useState(0);
+  const [profileName, setProfileName] = useState<string | null>(null);
+  // Which user the name above belongs to, so a name still loading never reads as "no name".
+  const [profileFor, setProfileFor] = useState<string | null>(null);
 
   useEffect(() => {
     if (!supabaseConfigured) {
@@ -75,12 +88,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (cancelled) return;
         setSession(data.session);
         setLoading(false);
+        // Back to the game if the student left it to sign in (returnTo.ts).
+        // Synchronous, so the no-await rule below still holds.
+        if (data.session) consumeReturn();
       });
 
       const { data: listener } = supabase.auth.onAuthStateChange((_event, next) => {
         // State only. See the note above about the lock.
         setSession(next);
         setLoading(false);
+        if (next) consumeReturn();
       });
       unsubscribe = () => listener.subscription.unsubscribe();
     };
@@ -142,6 +159,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!supabaseConfigured || !userId) {
       setRole("member");
+      setProfileName(null);
+      setProfileFor(null);
       return;
     }
     let cancelled = false;
@@ -149,17 +168,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (cancelled || !supabase) return;
       return supabase
         .from("profiles")
-        .select("role")
+        .select("role, full_name")
         // Redundant against RLS, which would filter it anyway, but it lets
         // Postgres use the primary key index instead of scanning then filtering.
         .eq("id", userId)
         .maybeSingle()
-        .then(({ data }) => {
-          if (!cancelled) setRole(asRole(data?.role));
+        .then(({ data, error }) => {
+          if (cancelled) return;
+          setRole(asRole(data?.role));
+          // A failed read is not "this account has no name": leave it unloaded,
+          // so nothing writes a local name over an account name it never saw.
+          if (error) return;
+          const name = typeof data?.full_name === "string" ? data.full_name.trim() : "";
+          setProfileName(name === "" ? null : name);
+          setProfileFor(userId);
         });
     }).catch(() => {
       // No client, so no profile to read: the default role stands.
-      if (!cancelled) setRole("member");
+      if (cancelled) return;
+      setRole("member");
     });
     return () => {
       cancelled = true;
@@ -173,6 +200,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user: session?.user ?? null,
         role,
         loading,
+        profileName: profileFor === userId ? profileName : null,
+        profileLoaded: userId !== null && profileFor === userId,
         refreshRole: () => setRoleNonce((n) => n + 1),
       }}
     >

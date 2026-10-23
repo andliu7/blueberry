@@ -34,6 +34,8 @@ import { Suspense, lazy, useEffect, useMemo, useRef, useState, type ReactNode } 
 import { localDate, type DailyGoalTier, type EconomyEvent } from "@blueberry/economy";
 import { useLanguage, useProgress, useTheme, setTheme } from "../../app/hooks";
 import { progress } from "../../app/progress";
+import { useDisplayName } from "../../app/useDisplayName";
+import { rememberReturn } from "@/lib/returnTo";
 import { languageByCode } from "../../app/i18n";
 import { LanguageSheet } from "../../app/ui/LanguagePicker";
 import { TabIcon } from "../../app/ui/TabIcon";
@@ -293,12 +295,32 @@ function PencilIcon() {
   );
 }
 
-function Profile({ name, joined, course }: { readonly name: string | null; readonly joined: string | null; readonly course: string | null }) {
+/**
+ * The name, saved to the ACCOUNT (owner, item 11: "a display name typed while
+ * signed out does not save: ask the person to sign in"). A name kept only in
+ * this browser was missing on the iPad home-screen app and on every other
+ * device, so signed out the pencil asks for a sign-in instead of opening a box
+ * that would only half save. lib/accountName.ts has the whole story.
+ */
+export function Profile({ joined, course }: { readonly joined: string | null; readonly course: string | null }) {
+  const { name, signedIn, accountNameless, localName, save: saveName } = useDisplayName();
   const [editing, setEditing] = useState(false);
+  const [askSignIn, setAskSignIn] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [draft, setDraft] = useState(name ?? "");
   const [error, setError] = useState<string | null>(null);
 
-  const save = () => {
+  // A name typed here before this device ever signed in moves up to the
+  // account once, on the first signed-in visit, when the account has none.
+  // useRef keeps the "already tried" mark across renders without causing one.
+  const carried = useRef(false);
+  useEffect(() => {
+    if (carried.current || !accountNameless || localName === null) return;
+    carried.current = true;
+    void saveName(localName);
+  }, [accountNameless, localName, saveName]);
+
+  const save = async () => {
     const clean = cleanName(draft);
     // A blank save would wipe the name with no way to tell it happened, so it
     // is refused with a reason instead. Cancel keeps the old name.
@@ -306,7 +328,14 @@ function Profile({ name, joined, course }: { readonly name: string | null; reado
       setError("Type a name to save, or press Cancel to keep the old one.");
       return;
     }
-    progress.setDisplayName(clean);
+    setSaving(true);
+    const failure = await saveName(clean);
+    setSaving(false);
+    // A failed save keeps the form open with the reason, so nothing is lost.
+    if (failure !== null) {
+      setError(failure);
+      return;
+    }
     setError(null);
     setEditing(false);
   };
@@ -330,7 +359,7 @@ function Profile({ name, joined, course }: { readonly name: string | null; reado
             className="me-name-form"
             onSubmit={(event) => {
               event.preventDefault();
-              save();
+              void save();
             }}
           >
             <label className="me-sr" htmlFor="me-name-input">
@@ -351,7 +380,7 @@ function Profile({ name, joined, course }: { readonly name: string | null; reado
                 setError(null);
               }}
             />
-            <button type="submit" className="btn3d btn3d--primary">
+            <button type="submit" className="btn3d btn3d--primary" disabled={saving}>
               Save
             </button>
             <button
@@ -370,6 +399,18 @@ function Profile({ name, joined, course }: { readonly name: string | null; reado
               </p>
             )}
           </form>
+        ) : askSignIn ? (
+          <div className="me-name-form" role="group" aria-labelledby="me-signin-note">
+            <p id="me-signin-note" className="me-signin-note">
+              Sign in to save your name. It follows you to every device.
+            </p>
+            <a href="#/signin" className="btn3d btn3d--primary" onClick={() => rememberReturn(window.location.hash)}>
+              Sign in
+            </a>
+            <button type="button" className="btn3d btn3d--ghost" onClick={() => setAskSignIn(false)}>
+              Cancel
+            </button>
+          </div>
         ) : (
           <div className="me-id-row">
             <h1 className="me-name">{name ?? "Add your name"}</h1>
@@ -378,6 +419,10 @@ function Profile({ name, joined, course }: { readonly name: string | null; reado
               className="me-icon-btn"
               aria-label={name === null ? "Add name" : "Edit name"}
               onClick={() => {
+                if (!signedIn) {
+                  setAskSignIn(true);
+                  return;
+                }
                 setDraft(name ?? "");
                 setEditing(true);
               }}
@@ -818,7 +863,7 @@ function ProfileScreen() {
   return (
     <div className="me">
       <div className="me-col">
-        <Profile name={snapshot.displayName} joined={joined} course={course} />
+        <Profile joined={joined} course={course} />
         {/* Saved chests, right under the profile (owner, 20 Oct). */}
         <ChestInventory saved={economy.chests.saved} className="me-slot-chests" />
 

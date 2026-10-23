@@ -271,6 +271,14 @@ a.me-icon-btn {
   align-items: flex-start;
 }
 
+/* Signed out, the pencil asks for a sign-in: the sentence takes its own line above the two buttons. */
+.me-signin-note {
+  flex-basis: 100%;
+  margin: 0;
+  font-weight: 800;
+  color: var(--bb-foreground);
+}
+
 .me-input {
   flex: 1 1 12rem;
   min-height: 3rem;

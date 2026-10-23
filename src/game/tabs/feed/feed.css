@@ -431,3 +431,12 @@
   text-transform: uppercase;
   font-variant-numeric: tabular-nums;
 }
+
+/* Welcome back (owner, item 11): the first-win card's shape in the brand purple, the page's one filled button inside. */
+.feed-welcome {
+  border: 2px solid var(--bb-primary);
+  border-bottom-width: 5px;
+  border-radius: 1.25rem;
+  background: color-mix(in srgb, var(--bb-primary) 12%, var(--bb-card));
+  padding: 1.1rem;
+}

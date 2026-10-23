@@ -8,6 +8,7 @@
 import { useMemo } from "react";
 import { localDate } from "@blueberry/economy";
 import { useProgress } from "../../app/hooks";
+import { useDisplayName } from "../../app/useDisplayName";
 import { decks } from "../../cards/store";
 import { useDeckSnapshot } from "../../cards/ui/useDeck";
 import { dueTodayCount } from "../../cards/scheduler";
@@ -18,20 +19,22 @@ import { deviceZone, reminderSettings, type NudgeInput } from "../messages/messa
 
 export function useStudyState() {
   const snapshot = useProgress();
+  // The account's name when signed in, this device's otherwise (app/useDisplayName.ts).
+  const { name } = useDisplayName();
   const deckSnapshot = useDeckSnapshot(decks);
   const now = Date.now();
   // useMemo: only re-derive the path when the journal changes, not per keystroke.
-  const nextLesson = useMemo(() => {
-    if (snapshot.course !== "orgo_2") return null;
-    const id = deriveMapPathway(PATHWAY_UNITS, snapshot.journal).currentNodeId;
-    return id === null ? null : (pathwayNode(id)?.title ?? null);
-  }, [snapshot.course, snapshot.journal]);
+  const nextLessonId = useMemo(
+    () => (snapshot.course === "orgo_2" ? deriveMapPathway(PATHWAY_UNITS, snapshot.journal).currentNodeId : null),
+    [snapshot.course, snapshot.journal],
+  );
+  const nextLesson = nextLessonId === null ? null : (pathwayNode(nextLessonId)?.title ?? null);
   const cardsDue = useMemo(
     () => dueTodayCount(Object.values(deckSnapshot.review).filter((state) => !isSuspended(state)), new Date()),
     [deckSnapshot.review],
   );
   const input: NudgeInput = {
-    name: snapshot.displayName,
+    name,
     streak: snapshot.economy.streak.current,
     todayCounted: snapshot.economy.streak.todayCounted,
     cardsDue,
@@ -46,6 +49,8 @@ export function useStudyState() {
   const reminders = reminderSettings(snapshot.journal);
   return {
     input,
+    /** The map node the path's START tag is on, for the Feed's "pick up where you left off". */
+    nextLessonId,
     tz,
     now,
     today: localDate(now, snapshot.economy.tz),

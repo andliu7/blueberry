@@ -173,6 +173,11 @@ Feed and accounts
 - Item 21 (pathway supernova) DONE 21 Oct in af74062, on origin/main: four-point star flash closing
   to a red or blue glow with one ripple; reduced motion shows two still glows; pinned by
   src/game/test/pathSupernova.test.ts. Owner to check it on the live pathway.
+- Item 11 (welcome back) DONE 23 Oct: the name now saves to the account (profiles.full_name; Me
+  and Leaderboards ask a signed-out student to sign in, then return to #/app), a second open tab
+  no longer wipes it (progress.ts storage listener), and the Feed opens on "Welcome back, <name>"
+  with "Pick up where you left off" to the path, reminders, and one honest friends line.
+  #/app first open 340.2 KB. Signed-in view not checked in a browser (needs a real sign-in).
 
 **Progress, 21 Oct (Wave 2 items 6, 8, 10 and item 15; committed, not pushed)**
 - Top bar A3: one row, Bloom with his level badge, a short XP bar, "N XP to the next stage!",
