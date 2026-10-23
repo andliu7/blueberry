@@ -131,6 +131,9 @@ six Bloom moves, hand-written wordmark, jump / curtain lift / land exit.
   until the owner runs `npm run lock:regen -w packages/validators` (mutation files removed).
 - Still open from the brief: harder-than-lesson items (a short multistep synthesis as a challenge)
   need authoring; today the draw only reorders existing lesson items, all still `placeholder`.
+- Item 21 (pathway supernova) DONE 21 Oct in af74062, on origin/main: four-point star flash closing
+  to a red or blue glow with one ripple; reduced motion shows two still glows; pinned by
+  src/game/test/pathSupernova.test.ts. Owner to check it on the live pathway.
 
 **Progress, 21 Oct (Wave 2 items 6, 8, 10 and item 15; committed, not pushed)**
 - Top bar A3: one row, Bloom with his level badge, a short XP bar, "N XP to the next stage!",
