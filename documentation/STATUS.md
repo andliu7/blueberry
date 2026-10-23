@@ -192,6 +192,16 @@ Feed and accounts
   Still open: the personal definitions store, the full reaction catalogue, and deck STARTING
   materials (the deck files hold names in prose only; they would come from mechanism_trainer's
   generator, owner decision).
+- Item 16 (scratchpad) DONE 23 Oct: the "Draw it" screen keeps Ketcher and gains scratch paper
+  for a finger or Apple Pencil under it (src/game/beats/trace/ScratchpadCanvas.tsx, its own lazy
+  chunk; open by default from 900px wide, a "Scratch paper" key on a phone). Never graded.
+  Pencil pressure sets the width; once a Pencil has touched it every touch is a palm and refused
+  (beats/trace/ink.ts, shared with FreehandCanvas); Undo, and Clear that Undo brings back. Pinned
+  by scratchpadInk.test.ts. Stacked, not side by side: the 36rem lesson column is too narrow to
+  halve Ketcher. #/app first open 340.7 KB. Owner to check on an iPad: rest a palm while drawing
+  with the Pencil, no stray strokes. Sketch to molecule: research only, in
+  documentation/SKETCH-TO-MOLECULE-SPIKE.md; recommends the offline in-house route first,
+  AWAITING an owner pick (three questions at its end).
 
 **Progress, 21 Oct (Wave 2 items 6, 8, 10 and item 15; committed, not pushed)**
 - Top bar A3: one row, Bloom with his level badge, a short XP bar, "N XP to the next stage!",
@@ -319,6 +329,7 @@ Wave 4, cards and starter reactions
 16. Answers on the product side: a name, a formula, or a drawing. Keep the Ketcher editor; add a
    scratchpad for finger / Apple Pencil (iPad), and try turning a sketch into a close molecule
    in the editor (research spike first; may be hard).
+   SCRATCHPAD DONE 23 Oct, spike written; sketch to molecule awaits an owner pick, see "Progress, 22 Oct".
 
 Wave 5, lessons
 17. Prediction revisit: at the end, "Here was your prediction. Still agree?" yes/no, then right or

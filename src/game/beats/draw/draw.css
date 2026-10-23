@@ -48,6 +48,61 @@
   min-height: 0;
   width: 100%;
 }
+/* The editor and the scratch paper, stacked. Not side by side even on a wide
+   screen: the lesson column is held to 36rem (beat-chrome.css), and half of
+   that is too narrow for Ketcher's toolbar. */
+.draw-beat__boards {
+  display: grid;
+  gap: var(--space-3, 0.75rem);
+}
+
+/* "Scratch paper": a quiet text key, so it never competes with CHECK. */
+.draw-beat__scratch-toggle {
+  align-self: flex-start;
+  border: 0;
+  background: none;
+  padding: 0;
+  color: var(--bb-primary);
+  font-size: var(--text-scale-sm, 0.875rem);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* The scratch box takes the editor box's height, outline and radius, so
+   nothing jumps when it opens or finishes loading. */
+.draw-beat__scratch {
+  height: clamp(320px, 50vh, 460px);
+  overflow: hidden;
+  border: 2px solid var(--btn-line, var(--bb-border));
+  border-radius: 16px;
+  background: var(--bb-card);
+}
+.draw-beat__scratch-inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.draw-beat__scratch-paper {
+  display: block;
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  cursor: crosshair;
+}
+.draw-beat__scratch-foot {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 0.5rem);
+  padding: var(--space-2, 0.5rem);
+  border-top: 1px solid var(--bb-border);
+}
+.draw-beat__scratch-note {
+  flex: 1;
+  margin: 0;
+  color: var(--bb-muted-foreground);
+  font-size: var(--text-scale-xs, 0.75rem);
+}
+
 .draw-beat__wait {
   display: grid;
   place-items: center;

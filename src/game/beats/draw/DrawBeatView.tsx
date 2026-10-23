@@ -31,6 +31,10 @@
  * The editor is React.lazy (DrawEditor.tsx), so Ketcher downloads only when
  * this screen mounts. Its box has a fixed height, so nothing jumps when it
  * finishes loading.
+ *
+ * Beside it, a scratchpad (trace/ScratchpadCanvas.tsx) for a finger or an
+ * Apple Pencil: raw ink, never graded. Open by default on a wide screen, behind
+ * a "Scratch paper" key on a phone. Hiding it never unmounts the editor.
  */
 import { Suspense, lazy, useEffect, useRef, useState } from "react";
 
@@ -48,6 +52,14 @@ import { playCorrect } from "../../sound/gameSound";
 import "./draw.css";
 
 const DrawEditor = lazy(() => import("./DrawEditor"));
+// React.lazy again: scratch paper is not needed on first paint. Imported by its
+// own path, never through the trace barrel, which pulls in 88 authored items.
+const ScratchpadCanvas = lazy(() => import("../trace/ScratchpadCanvas"));
+
+/** Scratch paper starts open where it fits beside the editor. Read once, at mount. */
+function scratchFits(): boolean {
+  return typeof window !== "undefined" && window.matchMedia?.("(min-width: 900px)").matches === true;
+}
 
 /**
  * loading: the editor is still arriving. ready: drawing. checking: reading the canvas.
@@ -109,6 +121,8 @@ export function DrawBeatView({ beat, level, onResult, onContinue }: DrawBeatView
   const [mine, setMine] = useState<string | null>(null);
   // The answer drawn by the same renderer as `mine`; null falls back to the app's figure.
   const [theirs, setTheirs] = useState<string | null>(null);
+  // Whether the scratch paper is showing. useState(fn) runs scratchFits once, not every render.
+  const [scratch, setScratch] = useState(scratchFits);
 
   // The board's box, so a first miss can bring the student's drawing into view.
   const canvas = useRef<HTMLDivElement | null>(null);
@@ -208,16 +222,33 @@ export function DrawBeatView({ beat, level, onResult, onContinue }: DrawBeatView
         Pick a key, then tap the board. Tap an atom to grow a bond from it, or tap a bond to make it the kind you picked.
         {beat.stereo ? " For a wedge or dash, pick it, then tap the ring carbon the group hangs from." : ""}
       </p>
-      <div className="draw-beat__canvas" aria-label="Structure editor" ref={canvas}>
-        <Suspense fallback={<p className="draw-beat__wait" role="status">Loading the drawing board</p>}>
-          <DrawEditor
-            stereo={beat.stereo}
-            onReady={(next) => {
-              reader.current = next;
-              setPhase((now) => (now === "loading" ? "ready" : now));
-            }}
-          />
-        </Suspense>
+      <button
+        type="button"
+        className="draw-beat__scratch-toggle"
+        aria-pressed={scratch}
+        onClick={() => setScratch((open) => !open)}
+      >
+        {scratch ? "Hide scratch paper" : "Scratch paper"}
+      </button>
+      <div className="draw-beat__boards">
+        <div className="draw-beat__canvas" aria-label="Structure editor" ref={canvas}>
+          <Suspense fallback={<p className="draw-beat__wait" role="status">Loading the drawing board</p>}>
+            <DrawEditor
+              stereo={beat.stereo}
+              onReady={(next) => {
+                reader.current = next;
+                setPhase((now) => (now === "loading" ? "ready" : now));
+              }}
+            />
+          </Suspense>
+        </div>
+        {scratch ? (
+          <div className="draw-beat__scratch" aria-label="Scratch paper">
+            <Suspense fallback={<p className="draw-beat__wait" role="status">Loading scratch paper</p>}>
+              <ScratchpadCanvas />
+            </Suspense>
+          </div>
+        ) : null}
       </div>
 
       {phase === "right" ? (

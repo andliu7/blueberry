@@ -32,6 +32,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as
 import type { BondOrder, Element } from "@blueberry/chem-core";
 import { fillFor } from "../../render/svg/depth";
 import { polylineToPathData, type Pt } from "./geometry";
+import { createPointerGate } from "./ink";
 import {
   DEFAULT_RECOGNISE,
   recognise,
@@ -72,6 +73,8 @@ export function FreehandCanvas({ target, onGraphChange }: FreehandCanvasProps) {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const drawingRef = useRef<{ pointerId: number; points: Pt[] } | null>(null);
   const strokeCounter = useRef(0);
+  // Palm rejection (ink.ts). useState with an initialiser makes the gate once per canvas.
+  const [gate] = useState(createPointerGate);
 
   const box = useMemo(() => viewBoxOf(target.vertices), [target]);
   const palette = useMemo(
@@ -103,6 +106,7 @@ export function FreehandCanvas({ target, onGraphChange }: FreehandCanvasProps) {
   }, []);
 
   const onPointerDown = (event: ReactPointerEvent<SVGSVGElement>) => {
+    if (!gate.accept(event.pointerId, event.pointerType)) return;
     const point = toScene(event);
     if (point === null) return;
     setPress(point);
@@ -126,6 +130,8 @@ export function FreehandCanvas({ target, onGraphChange }: FreehandCanvasProps) {
   };
 
   const onPointerUp = (event: ReactPointerEvent<SVGSVGElement>) => {
+    // A refused pointer (a palm) lifting must not end or commit the Pencil's stroke.
+    if (!gate.release(event.pointerId)) return;
     setPress(null);
     const point = toScene(event);
     const drawing = drawingRef.current;
