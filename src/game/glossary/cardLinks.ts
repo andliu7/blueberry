@@ -86,3 +86,14 @@ export function glossaryLinksFor(card: Card): CardGlossaryLinks {
     definition: compoundLinks(reaction.products),
   };
 }
+
+/**
+ * The chip row in a review run (cards/ui/Run.tsx): the start side's links
+ * until the card is turned, then both sides', each entry once. The product's
+ * link waits for the turn, because its name is the answer.
+ */
+export function runLinksFor(card: Card, revealed: boolean): GlossaryLink[] {
+  const links = glossaryLinksFor(card);
+  const shown = revealed ? [...links.term, ...links.definition] : [...links.term];
+  return shown.filter((link, index) => shown.findIndex((other) => other.entryId === link.entryId) === index);
+}

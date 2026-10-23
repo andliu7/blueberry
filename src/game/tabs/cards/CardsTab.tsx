@@ -139,7 +139,7 @@ export default function CardsTab({ onImmersiveChange }: CardsTabProps) {
     <div className="ct-root">
       {body}
       {run !== null && (
-        <Run cards={run} source={source} journal={journal} onExit={() => setRun(null)} credit={(graded) => progress.finishCardRun(graded)} />
+        <Run cards={run} source={source} journal={journal} onExit={() => setRun(null)} credit={(graded) => progress.finishCardRun(graded)} reducedMotion={reducedMotion} />
       )}
     </div>
   );

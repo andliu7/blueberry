@@ -191,16 +191,22 @@ Feed and accounts
   only reachable through auth-card.tsx, which nothing imports.
 - Items 14 and 27 (core) DONE 23 Oct: the glossary page (556c370) now has an "i" beside every
   named compound and reagent shorthand on a Cards tab card (term list, Test and Write question,
-  Write's shown answer; Flashcards shows the same as a chip row under the card, Match none, since
-  its tiles are tap targets). It opens the entry in a bottom sheet, a 0.7 KB lazy chunk; the
+  Write's shown answer; Flashcards and the Learn review run show the same as a chip row under the
+  card, the run's product chip only after the call; Match none, since its tiles are tap targets).
+  While the sheet is open the card's own keys are off (Flashcards arrows, the run's 1 to 4 and
+  Escape). It opens the entry in a bottom sheet, a 0.7 KB lazy chunk; the
   drawings load on the first tap, never with the Cards tab. Compounds now also come from the site
   decks' drawn products (101 in all), and a compound with one group on a benzene ring carries the
   EWG / EDG line, found by RDKit (scripts/glossary.py RING_RULES; every other aromatic compound
   has a written reason in NO_RING_NOTE). Pinned by glossaryCardLinks.test.ts plus the --check
-  byte match, which now covers the small names index too. #/app first open 340.3 KB.
+  byte match, which now covers the small names index too. #/app first open 341.8 KB (weigh.ts
+  "total gz", 23 Oct fix round; no Cards or glossary chunk is in it, the Cards tab is lazy).
   Still open: the personal definitions store, the full reaction catalogue, and deck STARTING
   materials (the deck files hold names in prose only; they would come from mechanism_trainer's
-  generator, owner decision).
+  generator, owner decision). ASK: the site's own deck cards (src/data/decks, drawn by
+  QuestionCard.tsx and review/DeckStudy.tsx) have NO info icon; their products are in the
+  glossary but reachable only from the glossary page. An icon there would have to leave the deck
+  for #/app/glossary (the sheet lives in the game), so it waits for the owner: link out, or not.
 - Item 16 (scratchpad) DONE 23 Oct: the "Draw it" screen keeps Ketcher and gains scratch paper
   for a finger or Apple Pencil under it (src/game/beats/trace/ScratchpadCanvas.tsx, its own lazy
   chunk; open by default from 900px wide, a "Scratch paper" key on a phone). Never graded.

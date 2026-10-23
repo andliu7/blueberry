@@ -66,6 +66,9 @@ export function Flashcards({
   keys.current = { go, flip: () => setFlipped((value) => !value) };
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
+      // A modal is open over the card (the glossary sheet): its keys scroll
+      // and close it, they never move or flip the card behind.
+      if (document.querySelector("dialog[open]") !== null) return;
       const target = event.target as HTMLElement | null;
       const tag = target?.tagName ?? "";
       if (tag === "INPUT" || tag === "TEXTAREA" || target?.isContentEditable === true) return;

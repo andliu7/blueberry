@@ -26,7 +26,9 @@
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { REACTIONS } from "../../../data/reactions";
+import { runLinksFor } from "../../glossary/cardLinks";
 import { playCorrect } from "../../sound/gameSound";
+import { GlossaryPeekHost, InfoChip } from "../../tabs/cards/MoleculeInfo";
 import type { SavedMistake } from "../../tabs/trainer/mistakes";
 import { reviewInterval, startCard } from "../scheduler";
 import type { Card, CardId, DeckSnapshot, DeckSource, Rating, ReviewState } from "../types";
@@ -81,6 +83,8 @@ export interface RunProps {
    * store's finishCardRun). Absent in tests and previews: nothing is paid.
    */
   readonly credit?: (graded: number) => number;
+  /** For the glossary sheet's entrance; CardsTab passes the app's setting. */
+  readonly reducedMotion?: boolean;
 }
 
 /** Every card's current interval in days, by id. */
@@ -108,7 +112,7 @@ interface Call {
   readonly correct: boolean;
 }
 
-export function Run({ cards, source, journal, onExit, credit }: RunProps) {
+export function Run({ cards, source, journal, onExit, credit, reducedMotion = false }: RunProps) {
   const [state, setState] = useState<ReviewSessionState>(() => startSession(cards));
   // What the economy paid for this run, set once, when the last grade lands.
   const [credited, setCredited] = useState(0);
@@ -127,6 +131,8 @@ export function Run({ cards, source, journal, onExit, credit }: RunProps) {
   const [intervalsAtStart] = useState(() => intervalsOf(source.getSnapshot()));
   // The run's start time seeds the option shuffle (predict.ts).
   const [runSeed] = useState(() => String(Date.now()));
+  // The glossary entry open in the peek sheet (owner item 14), or null.
+  const [peek, setPeek] = useState<string | null>(null);
 
   const card = currentCard(state);
   const done = isFinished(state);
@@ -205,6 +211,9 @@ export function Run({ cards, source, journal, onExit, credit }: RunProps) {
   // the boring alternative to a ref juggling the latest handler.
   useEffect(() => {
     const onKey = (event: KeyboardEvent): void => {
+      // The glossary sheet is open: its keys are its own, and Escape closes
+      // the sheet, never the run behind it.
+      if (peek !== null) return;
       if (event.key === "Escape") {
         onExit();
         return;
@@ -262,6 +271,7 @@ export function Run({ cards, source, journal, onExit, credit }: RunProps) {
   const reviewState = snapshot.review[card.id] ?? startCard(card.id, at);
   const suggested = suggestedRating(call === undefined ? null : call.correct);
   const swipeHint = state.revealed ? swipeRating(dx, drag?.width ?? 360) : null;
+  const links = runLinksFor(card, state.revealed);
 
   const onPointerDown = (event: ReactPointerEvent<HTMLDivElement>): void => {
     if (!state.revealed) return;
@@ -339,6 +349,15 @@ export function Run({ cards, source, journal, onExit, credit }: RunProps) {
             {...(choices === null ? {} : { frontPrompt: "Call the product below" })}
           />
         </div>
+        {/* Glossary chips under the card, outside the swipe area. Like
+            Flashcards, the face is a button, so nothing pressable goes inside it. */}
+        {links.length > 0 && (
+          <div className="ct-info-row run__info" role="group" aria-label="In the glossary">
+            {links.map((link) => (
+              <InfoChip key={link.entryId} label={link.label} entryId={link.entryId} onOpen={setPeek} />
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="run__dock">
@@ -362,6 +381,8 @@ export function Run({ cards, source, journal, onExit, credit }: RunProps) {
           </button>
         )}
       </div>
+
+      <GlossaryPeekHost entryId={peek} reducedMotion={reducedMotion} onClose={() => setPeek(null)} />
     </div>
   );
 }

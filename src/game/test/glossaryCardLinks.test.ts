@@ -7,7 +7,8 @@
  * 2. The names index the cards import agrees with the full data file.
  * 3. Ring notes: the owner's EWG / EDG lecture point, per compound, from RDKit.
  * 4. Site deck products are in the glossary.
- * 5. Rendering: the icon shows only when a side is given onInfo.
+ * 5. Rendering: the icon shows only when a side is given onInfo, and the
+ *    review run (Learn) shows the chip row, the product's only after the turn.
  * 6. The cards never import the glossary's data statically.
  * The byte match for both generated files is glossary.test.ts's --check run (D6).
  */
@@ -20,7 +21,9 @@ import { describe, expect, it } from "vitest";
 import { REACTIONS } from "../../data/reactions";
 import { reactionCardFromStaged } from "../cards/reactionCard";
 import type { Card } from "../cards/types";
-import { glossaryLinksFor, shorthandLinkFor } from "../glossary/cardLinks";
+import { createLocalDecks } from "../cards/store";
+import { Run } from "../cards/ui/Run";
+import { glossaryLinksFor, runLinksFor, shorthandLinkFor } from "../glossary/cardLinks";
 import { GLOSSARY_DATA } from "../glossary/glossary.generated";
 import { GLOSSARY_COMPOUND_NAMES } from "../glossary/glossary.index.generated";
 import { glossaryEntries } from "../glossary/glossaryModel";
@@ -128,6 +131,27 @@ describe("rendering", () => {
     expect(both).toContain("About acetophenone");
   });
 
+  it("gives the review run the start side's links before the turn and both after", () => {
+    const links = glossaryLinksFor(card);
+    expect(runLinksFor(card, false)).toEqual(links.term);
+    const after = runLinksFor(card, true).map((link) => link.entryId);
+    expect(after).toEqual([...new Set([...links.term, ...links.definition].map((link) => link.entryId))]);
+    expect(links.definition.length).toBeGreaterThan(0);
+    for (const link of links.definition) {
+      if (!links.term.some((other) => other.entryId === link.entryId)) {
+        expect(runLinksFor(card, false).map((item) => item.entryId)).not.toContain(link.entryId);
+      }
+    }
+  });
+
+  it("draws the chip row in the review run's first frame", () => {
+    const html = renderToStaticMarkup(
+      createElement(Run, { cards: [card], source: createLocalDecks({ now: () => NOW }), journal: [], onExit: () => undefined }),
+    );
+    expect(html).toContain("About acetophenone");
+    for (const link of glossaryLinksFor(card).definition) expect(html).not.toContain(`About ${link.label}"`);
+  });
+
   it("draws no info button without onInfo", () => {
     const html =
       renderToStaticMarkup(createElement(TermSide, { card, size: "big" })) +
@@ -151,9 +175,21 @@ describe("source hygiene", () => {
       const text = readFileSync(resolve(ROOT, path), "utf8");
       expect(text, path).not.toMatch(/^import[^;]*(glossary\.generated|glossaryModel|GlossaryPeek|GlossaryPage)/m);
     }
+    // The run imports GlossaryPeekHost by name, so it is checked by the module it imports from.
+    expect(readFileSync(resolve(ROOT, "src/game/cards/ui/Run.tsx"), "utf8")).not.toMatch(
+      /^import[^;]*from "[^"]*(glossary\.generated|glossaryModel|glossary\/GlossaryPeek|GlossaryPage)"/m,
+    );
     expect(readFileSync(resolve(ROOT, "src/game/tabs/cards/MoleculeInfo.tsx"), "utf8")).toContain(
       'lazy(() => import("../../glossary/GlossaryPeek"))',
     );
+  });
+
+  it("keeps the card's keys off while the glossary sheet is open", () => {
+    // Flashcards and the run listen on window; a key in the open sheet must not move the card behind it.
+    expect(readFileSync(resolve(ROOT, "src/game/tabs/cards/Flashcards.tsx"), "utf8")).toContain(
+      'if (document.querySelector("dialog[open]") !== null) return;',
+    );
+    expect(readFileSync(resolve(ROOT, "src/game/cards/ui/Run.tsx"), "utf8")).toContain("if (peek !== null) return;");
   });
 
   it("has no em dash", () => {

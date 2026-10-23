@@ -1023,6 +1023,8 @@
   cursor: pointer;
 }
 .ct-info-chip .ct-info__icon { color: var(--bb-primary); }
+/* The same row under the card in a review run (cards/ui/Run.tsx). */
+.run__info { margin-top: 0.75rem; }
 
 /* The peek sheet (glossary/GlossaryPeek.tsx): a bottom sheet on a phone, a
    centred panel from 768px. Padding sits on the panel, not the dialog, so a
