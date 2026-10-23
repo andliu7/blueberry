@@ -49,37 +49,3 @@ export function ratingTally(deckId: string): RatingTally {
   }
   return out;
 }
-
-/**
- * The same three numbers across a set of decks, plus which deck holds the most
- * of each colour.
- *
- * The "worst" deck is what makes the counts actionable rather than decorative:
- * knowing you have 31 red cards is trivia, and being sent to the deck holding
- * 19 of them is a decision. Ties resolve to the first deck seen, which is the
- * registry's own order, so the answer is at least stable between renders.
- *
- * Reads localStorage once per deck, so callers should memoise on the deck list
- * rather than calling this inside a row.
- */
-export function tallyAcross(deckIds: string[]): {
-  total: RatingTally;
-  worst: { red?: string; yellow?: string; green?: string };
-} {
-  const total: RatingTally = { red: 0, yellow: 0, green: 0 };
-  const best: RatingTally = { red: 0, yellow: 0, green: 0 };
-  const worst: { red?: string; yellow?: string; green?: string } = {};
-
-  for (const id of deckIds) {
-    const t = ratingTally(id);
-    for (const key of ["red", "yellow", "green"] as const) {
-      total[key] += t[key];
-      if (t[key] > best[key]) {
-        best[key] = t[key];
-        worst[key] = id;
-      }
-    }
-  }
-
-  return { total, worst };
-}

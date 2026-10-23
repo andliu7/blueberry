@@ -54,8 +54,6 @@ export function writeGoals(goals: Omit<Goals, "setAt">): void {
   }
 }
 
-export const hasGoals = () => readGoals() !== null;
-
 /**
  * Days until the exam, or null when there is no date.
  *

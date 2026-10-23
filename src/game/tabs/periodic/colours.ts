@@ -81,7 +81,7 @@ function enBin(value: number) {
   return bin;
 }
 
-export function electronegativityColour(value: number | null): string {
+function electronegativityColour(value: number | null): string {
   return value === null ? NO_DATA_FILL : enBin(value).fill;
 }
 

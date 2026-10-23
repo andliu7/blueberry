@@ -51,7 +51,7 @@ export type RunTier = (typeof RUN_TIERS)[number];
 export const CLEAR_AT: number = RUN_TIERS[0].at;
 
 /** A unit exam passes with at least this share right first time. Owner to confirm the figure. */
-export const EXAM_PASS = 0.8;
+const EXAM_PASS = 0.8;
 
 /** A missed problem comes back after this many other problems, or last if fewer remain. */
 export const REQUEUE_GAP = 2;

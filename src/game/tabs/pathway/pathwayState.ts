@@ -357,7 +357,7 @@ function namesOf(units: readonly PathwayUnit[]): string {
  * every locked sentence names it rather than "the unit before it", which on
  * Unit 3 named the empty Unit 2 (g11).
  */
-export function blockingUnit(units: readonly PathwayUnit[], status: MapPathwayStatus): PathwayUnit {
+function blockingUnit(units: readonly PathwayUnit[], status: MapPathwayStatus): PathwayUnit {
   let at = 0;
   units.forEach((unit, index) => {
     if (status.units.get(unit.id)?.reachable === true) at = index;

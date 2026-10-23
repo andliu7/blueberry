@@ -112,21 +112,3 @@ export const MOOD_SHAPE: Record<BerryMood, MoodShape> = {
   // sleepy has its eyes shut and belongs to empty states, calm is present.
   calm: { eyes: "kind", blush: 0.1, mouth: 0.8, sway: 0.18, lookX: 0, lookY: 0, tracks: false },
 };
-
-/**
- * The mood that matches how a study session is going.
- *
- * Deliberately not a compliment machine. `cheer` is reserved for actually
- * finishing, because a berry that celebrates two cards has nothing left to do
- * when you finish forty-four. Nothing started at all is `curious` rather than
- * `sleepy`: an empty hub is an invitation, not a dead end.
- */
-export function moodForProgress(reviewed: number, total: number): BerryMood {
-  if (total <= 0) return "curious";
-  if (reviewed <= 0) return "curious";
-  if (reviewed >= total) return "cheer";
-  const share = reviewed / total;
-  if (share >= 0.75) return "proud";
-  if (share >= 0.25) return "focused";
-  return "happy";
-}

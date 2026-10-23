@@ -43,6 +43,7 @@ import {
   type DailyGoalTier,
   type EconomySnapshot,
 } from "@blueberry/economy";
+import { plural } from "@/lib/helpers";
 import { formatCountdown } from "../../charge/chargeGateModel";
 
 export type HudItemId = "xp" | "diamonds" | "streak" | "charge";
@@ -240,11 +241,6 @@ const TIER_LABEL: Readonly<Record<DailyGoalTier, string>> = Object.freeze({
 
 const clamp01 = (n: number): number => (n < 0 ? 0 : n > 1 ? 1 : n);
 
-/** "1 day" and "2 days", written once so no sentence below has to remember. */
-function plural(count: number, one: string, many: string): string {
-  return `${count} ${count === 1 ? one : many}`;
-}
-
 /** "today", "tomorrow", "in 9 days". The exam window's copy reads as a date, not a count. */
 function whenExam(daysLeft: number): string {
   if (daysLeft <= 0) return "today";
@@ -287,7 +283,7 @@ function xpReadout(snapshot: EconomySnapshot): XpReadout {
  * accessible name keep saying the same thing. Until then it is always the
  * stage line.
  */
-export function xpBarLabel(toNextStage: number): string {
+function xpBarLabel(toNextStage: number): string {
   return `${toNextStage} XP to the next stage!`;
 }
 

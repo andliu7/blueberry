@@ -81,15 +81,6 @@ export interface DeckGroup {
 /** The containers a deck's cards can be shown in. */
 export type DeckView = "list" | "carousel" | "scroll" | "stack" | "gallery" | "table";
 
-export const ALL_DECK_VIEWS: DeckView[] = [
-  "list",
-  "carousel",
-  "scroll",
-  "stack",
-  "gallery",
-  "table",
-];
-
 /**
  * Which of the deck page's controls a deck offers.
  *

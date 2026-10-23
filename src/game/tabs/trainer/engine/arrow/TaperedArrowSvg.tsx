@@ -46,7 +46,7 @@ export interface TaperedArrowProps {
   readonly label?: string;
 }
 
-export const ARROW_FILL = "#6d3fd4";
+const ARROW_FILL = "#6d3fd4";
 
 /**
  * The geometry, memoised on the values it actually depends on.

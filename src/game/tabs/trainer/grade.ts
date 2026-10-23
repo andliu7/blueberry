@@ -111,9 +111,3 @@ export function gradeDrawing(step: MechanismStep, drawn: readonly ElectronFlowAr
   }
   return { kind: "not_requested", missing, extra, drawn: drawn.length, extras };
 }
-
-/** The authored arrows this drawing is still missing. Used to pick what wobbles. */
-export function missingArrows(step: MechanismStep, drawn: readonly ElectronFlowArrow[]): readonly ElectronFlowArrow[] {
-  const have = new Set(drawn.map(arrowKey));
-  return step.arrows.filter((arrow) => !have.has(arrowKey(arrow)));
-}

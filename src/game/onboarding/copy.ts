@@ -121,7 +121,7 @@ export const OVERVIEW_NOTE = draft("You can explore it in any order.");
 /** Beside each act block: what it assumes comes from the outline, not from here. */
 export const OVERVIEW_ASSUMES_LABEL = draft("Assumes");
 export const OVERVIEW_TOPICS_LABEL = draft("topics");
-export const OVERVIEW_START_HERE = draft("You start here");
+const OVERVIEW_START_HERE = draft("You start here");
 /** The tail of a shortened act list. `%n` is filled by the view. */
 export const OVERVIEW_MORE = draft("and %n more");
 

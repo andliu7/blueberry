@@ -44,7 +44,7 @@ export const BERRY_COSTUMES: readonly BerryCostume[] = Object.freeze([
 ]);
 
 /** The costume the default lands on when a surface names nothing else. */
-export const DEFAULT_COSTUME: BerryCostume = "labcoat";
+const DEFAULT_COSTUME: BerryCostume = "labcoat";
 
 /**
  * The evening nudge, and nothing else.

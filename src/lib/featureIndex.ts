@@ -31,7 +31,7 @@ export interface Feature {
   view?: string;
 }
 
-export const FEATURES: Feature[] = [
+const FEATURES: Feature[] = [
   {
     id: "home",
     label: "Home",

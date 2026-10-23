@@ -60,9 +60,6 @@ export const SPOTIFY_PLAYLISTS: SpotifyPlaylist[] = [
 
 export const playlistUri = (id: string) => `spotify:playlist:${id}`;
 
-/** Kept so anything still importing the single-playlist name keeps working. */
-export const SPOTIFY_PLAYLIST_URI = playlistUri(SPOTIFY_PLAYLISTS[0].id);
-
 export const SCENE_LABEL: Record<Exclude<AmbienceScene, "off">, string> = {
   white: "White noise",
   rain: "Rainforest",

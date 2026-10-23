@@ -118,7 +118,7 @@ export function questionFromReaction(entry: TrainerReaction): TrainerQuestion {
   return singleStep("reaction", entry, entry.successLine, "Goal achieved");
 }
 
-export function questionFromResonance(entry: ResonanceEntry): TrainerQuestion {
+function questionFromResonance(entry: ResonanceEntry): TrainerQuestion {
   return singleStep("resonance", entry, entry.foundLine, "You found a resonance structure!");
 }
 

@@ -102,7 +102,7 @@ export interface Entitlement {
 const USABLE = new Set(["active", "trialing", "past_due", "complete"]);
 
 /** Whether an entitlement is good right now. One rule, one place. */
-export const isLive = (e: Entitlement): boolean =>
+const isLive = (e: Entitlement): boolean =>
   USABLE.has(e.status) && (e.access_until === null || new Date(e.access_until) > new Date());
 
 /**

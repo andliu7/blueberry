@@ -275,7 +275,7 @@ export function twoColumnGrid(options: readonly { readonly text: string }[]): bo
  * rather than overflowing it. It is a RENDERING threshold and never a layout
  * one: nothing is refused the grid for being long.
  */
-export const TILE_DENSE_CHARS = 48;
+const TILE_DENSE_CHARS = 48;
 
 export function tileIsDense(text: string): boolean {
   return text.length > TILE_DENSE_CHARS;
@@ -302,10 +302,6 @@ export function tileIsDense(text: string): boolean {
  * refused the screen for being long, and nothing here shortens authored words.
  */
 export const STEM_LONG_CHARS = 96;
-
-export function stemIsLong(prompt: string): boolean {
-  return prompt.length > STEM_LONG_CHARS;
-}
 
 /* ------------------------------------------------------------------ */
 /* The daily goal, mapped onto charge pacing                          */

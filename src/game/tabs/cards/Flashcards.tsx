@@ -18,12 +18,12 @@
  */
 
 import { useEffect, useRef, useState } from "react";
+import { seededShuffle } from "@/lib/helpers";
 import type { Card } from "../../cards/types";
 import { glossaryLinksFor } from "../../glossary/cardLinks";
 import { DefinitionSide, TermSide, type OnInfo } from "./CardSides";
 import { InfoChip } from "./MoleculeInfo";
 import { ArrowIcon, ShuffleIcon, StarIcon } from "./StudyIcons";
-import { shuffled } from "./studyModel";
 
 export function Flashcards({
   cards,
@@ -46,7 +46,7 @@ export function Flashcards({
 
   const starredCount = cards.filter((card) => stars.has(card.id)).length;
   const pool = starredOnly && starredCount > 0 ? cards.filter((card) => stars.has(card.id)) : cards;
-  const order = shuffleSeed === null ? pool : shuffled(pool, shuffleSeed);
+  const order = shuffleSeed === null ? pool : seededShuffle(pool, shuffleSeed);
   const safeIndex = Math.min(index, Math.max(0, order.length - 1));
   const card = order[safeIndex];
 

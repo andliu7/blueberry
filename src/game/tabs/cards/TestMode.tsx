@@ -14,6 +14,7 @@
  */
 
 import { useMemo, useState } from "react";
+import { seededShuffle } from "@/lib/helpers";
 import { REACTIONS } from "../../../data/reactions";
 import { Berry } from "../../mascot/Berry";
 import type { Card } from "../../cards/types";
@@ -21,7 +22,7 @@ import { Drawing } from "../../cards/ui/CardFace";
 import { predictionChoices } from "../../cards/ui/predict";
 import { playCorrect } from "../../sound/gameSound";
 import { TermSide, type OnInfo } from "./CardSides";
-import { answerText, shuffled, textChoices } from "./studyModel";
+import { answerText, textChoices } from "./studyModel";
 
 interface Option {
   readonly key: string;
@@ -39,7 +40,7 @@ interface Question {
 
 function buildQuestions(cards: readonly Card[], seed: number): readonly Question[] {
   const out: Question[] = [];
-  for (const card of shuffled(cards, seed)) {
+  for (const card of seededShuffle(cards, seed)) {
     const drawn = predictionChoices(card, REACTIONS, undefined, undefined, String(seed));
     if (drawn !== null) {
       out.push({ card, drawn: true, options: drawn.map((option) => ({ ...option })) });

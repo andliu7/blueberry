@@ -78,7 +78,7 @@ function initial(): string {
   return LANGUAGES.some((language) => language.code === preferred) ? preferred : "en";
 }
 
-export function createLanguageStore(): LanguageStore {
+function createLanguageStore(): LanguageStore {
   let code = initial();
   const listeners = new Set<() => void>();
   const apply = () => {

@@ -26,7 +26,7 @@ export function FlashcardsIcon({ className }: IconProps) {
 }
 
 /** A loop of two arrows: cards that come back. */
-export function LearnIcon({ className }: IconProps) {
+function LearnIcon({ className }: IconProps) {
   return (
     <svg {...box(className)}>
       <circle cx="16" cy="17" r="12" fill="var(--ic-green-lip)" />
@@ -38,7 +38,7 @@ export function LearnIcon({ className }: IconProps) {
 }
 
 /** A sheet with ticks. */
-export function TestIcon({ className }: IconProps) {
+function TestIcon({ className }: IconProps) {
   return (
     <svg {...box(className)}>
       <rect x="6" y="4" width="20" height="25" rx="4" fill="var(--ic-orange-lip)" />
@@ -51,7 +51,7 @@ export function TestIcon({ className }: IconProps) {
 }
 
 /** Two tiles that fit together. */
-export function MatchIcon({ className }: IconProps) {
+function MatchIcon({ className }: IconProps) {
   return (
     <svg {...box(className)}>
       <rect x="3" y="7" width="13" height="19" rx="4" fill="var(--ic-red-lip)" />
@@ -64,7 +64,7 @@ export function MatchIcon({ className }: IconProps) {
 }
 
 /** A pencil. */
-export function WriteIcon({ className }: IconProps) {
+function WriteIcon({ className }: IconProps) {
   return (
     <svg {...box(className)}>
       <path d="M21 4.5l6.5 6.5L13 25.5 5 27l1.5-8z" fill="var(--ic-purple-lip)" />

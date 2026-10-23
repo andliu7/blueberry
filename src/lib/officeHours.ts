@@ -71,7 +71,7 @@ const toBooking = (r: BookingRow): Booking => ({
 });
 
 /** Postgres codes are not sentences. 42501 is "the rules said no". */
-export function describeBookingError(error: { code?: string; message?: string }): string {
+function describeBookingError(error: { code?: string; message?: string }): string {
   if (error.code === "23505") return "Someone booked that time a moment ago. Pick another.";
   if (error.code === "42501") return "That was refused. Sign in again, then try once more.";
   if (error.code === "PGRST301" || error.code === "401")

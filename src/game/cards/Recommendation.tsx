@@ -79,6 +79,7 @@ import {
   type ElectronSource,
 } from "@blueberry/chem-core";
 import { causeCopy } from "@blueberry/feedback";
+import { clamp } from "@/lib/helpers";
 
 import { TRAINER_REACTIONS, type TrainerReaction } from "../demo/reactions";
 import { matchDistractor, type TrainerDistractor } from "../tabs/trainer/distractors";
@@ -423,10 +424,6 @@ export interface FlightTransform {
 /** Below this the card is a dot; above it the flight does not read as a shrink. */
 const MIN_FLIGHT_SCALE = 0.08;
 const MAX_FLIGHT_SCALE = 0.3;
-
-function clamp(value: number, low: number, high: number): number {
-  return Math.min(high, Math.max(low, value));
-}
 
 /**
  * Centre to centre, plus how far to shrink.

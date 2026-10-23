@@ -65,15 +65,3 @@ export function GemMark() {
     </svg>
   );
 }
-
-/**
- * The cleared tick, the one mark the FILL-ONLY rule licenses on the goal
- * green: a white check on a green fill, never a green line.
- */
-export function TickMark() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden focusable="false" role="presentation">
-      <path d="M5.5 12.6 10 17.1 18.6 7.4" {...STROKE} strokeWidth={3} />
-    </svg>
-  );
-}

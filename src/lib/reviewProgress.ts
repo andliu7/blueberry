@@ -1,5 +1,6 @@
 import { isReference, type Deck } from "@/data/types";
 import { ratingTally, type RatingTally } from "@/lib/progress";
+import { plural } from "@/lib/helpers";
 
 /**
  * The words Review uses for a deck's progress (SITE-REPLAN.md phase 7).
@@ -22,7 +23,7 @@ export function tallyWords(t: RatingTally): string {
 }
 
 /** "44 cards", "1 card". */
-export const cardsWord = (n: number) => `${n} ${n === 1 ? "card" : "cards"}`;
+export const cardsWord = (n: number) => plural(n, "card", "cards");
 
 /**
  * Due today: every card a student marked Missed or Unsure, across the study decks,

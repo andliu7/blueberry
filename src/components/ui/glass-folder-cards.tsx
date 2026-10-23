@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useId, useRef, useState, type CSSProperties } from "react";
 import { isReducedMotion } from "@/lib/motionPref";
+import { mulberry32 } from "@/lib/helpers";
 import "./glass-folder-cards.css";
 
 /**
@@ -69,18 +70,6 @@ function hexToRgb(hex: string): [number, number, number] {
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
 }
 
-/** A small seeded random number generator (mulberry32): same seed, same art. */
-function rng(seed: number) {
-  let s = seed >>> 0;
-  return () => {
-    s = (s + 0x6d2b79f5) >>> 0;
-    let t = s;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
 /** FNV-1a, to turn a file name into a stable seed. */
 function hashString(s: string): number {
   let h = 2166136261;
@@ -90,7 +79,7 @@ function hashString(s: string): number {
 
 /** Seeded gradient noise summed over octaves (fractal Brownian motion). */
 function makeFbm(seed: number) {
-  const random = rng(seed);
+  const random = mulberry32(seed);
   const perm = new Uint8Array(512);
   const grad = new Float32Array(512);
   const order: number[] = [];
@@ -158,7 +147,7 @@ function createArtJob(width: number, height: number, recipe: ArtRecipe, seed: nu
   const veins = recipe.veins ?? 0;
   const streak = recipe.style === "streak";
   const fbm = makeFbm(seed * 977 + 13);
-  const random = rng(seed + 1);
+  const random = mulberry32(seed + 1);
   const ox = random() * 50;
   const oy = random() * 50;
   const angle = (recipe.angle ?? 0) + (random() - 0.5) * 0.5;
@@ -699,7 +688,7 @@ export function GlassFolder({
           <div ref={filesRef} className="gf-files" role="list" aria-label={`${label} contents`}>
             {shown.map((file, i) => {
               const id = ids.current[first + i];
-              const jitter = rng(hashString(file.name) + id);
+              const jitter = mulberry32(hashString(file.name) + id);
               const hasArt = !!(file.art || file.image);
               const body = (
                 <>

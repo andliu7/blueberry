@@ -33,8 +33,7 @@ export interface TaReaction {
   addedAt: string;
 }
 
-export const newTaReactionId = () =>
-  `ta-${typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID().slice(0, 8) : Date.now().toString(36)}`;
+export const newTaReactionId = () => `ta-${crypto.randomUUID().slice(0, 8)}`;
 
 /** Never throws. A bad row is dropped, not rendered half-formed. */
 export function parseTaReactions(raw: unknown): TaReaction[] {

@@ -49,7 +49,7 @@ import { cardsIn } from "../types";
  * those are cheap now and impossible later.
  */
 export const DECK_EXPORT_FORMAT = "blueberry.deck";
-export const DECK_EXPORT_VERSION = 1;
+const DECK_EXPORT_VERSION = 1;
 
 export interface ExportedCard {
   readonly card: Card;

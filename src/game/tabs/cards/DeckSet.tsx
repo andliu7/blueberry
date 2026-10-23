@@ -267,7 +267,7 @@ export function DeckSet({
 }
 
 /** The split bar (approved effect #10): one segment per scheduler state, with words. */
-export function MasteryBar({ counts }: { readonly counts: Readonly<Record<(typeof STATE_ORDER)[number], number>> }) {
+function MasteryBar({ counts }: { readonly counts: Readonly<Record<(typeof STATE_ORDER)[number], number>> }) {
   const segments = splitSegments(counts, STATE_ORDER);
   if (segments.length === 0) return null;
   return (

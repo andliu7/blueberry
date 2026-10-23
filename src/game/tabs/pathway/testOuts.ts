@@ -65,7 +65,7 @@ export interface TestOut {
   readonly chestId: string | null;
 }
 
-export function sectionTestId(unitId: string, section: number): string {
+function sectionTestId(unitId: string, section: number): string {
   return `${unitId}-s${section}-test`;
 }
 

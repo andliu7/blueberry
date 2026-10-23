@@ -312,7 +312,7 @@ export const MODIFIERS = {
 const clamp01 = (n: number) => (n < 0 ? 0 : n > 1 ? 1 : n);
 
 /** Springy without the cartoon overshoot the brief rules out. */
-export const easeInOutCubic = (t: number) =>
+const easeInOutCubic = (t: number) =>
   t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
 export interface SampledPose extends BerryPose {
@@ -402,8 +402,3 @@ export interface BerrySettings {
    */
   dismissed: boolean;
 }
-
-export const DEFAULT_SETTINGS: BerrySettings = {
-  sleepMode: "neutral",
-  dismissed: false,
-};

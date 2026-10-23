@@ -20,6 +20,7 @@
 
 import type { Card } from "../../cards/types";
 import type { CardSchedulerState } from "../../cards/ui/cardState";
+import { seededShuffle } from "@/lib/helpers";
 
 /* ------------------------------------------------------------------ */
 /* Modes                                                                */
@@ -56,7 +57,7 @@ export function answerText(card: Card): string {
  * so "1-bromobut-2-ene" and "1 bromobut 2 ene" agree, but "but-1-ene" and
  * "but-2-ene" never do, because the locants survive.
  */
-export function normaliseAnswer(text: string): string {
+function normaliseAnswer(text: string): string {
   return text
     .normalize("NFKD")
     .toLowerCase()
@@ -66,22 +67,6 @@ export function normaliseAnswer(text: string): string {
 export function answersMatch(typed: string, card: Card): boolean {
   const want = normaliseAnswer(answerText(card));
   return want.length > 0 && normaliseAnswer(typed) === want;
-}
-
-/* ------------------------------------------------------------------ */
-/* Order                                                                */
-/* ------------------------------------------------------------------ */
-
-/** A seeded shuffle (Fisher-Yates over a small LCG), so one seed always deals one order. */
-export function shuffled<T>(items: readonly T[], seed: number): T[] {
-  const out = [...items];
-  let state = seed >>> 0 || 1;
-  for (let i = out.length - 1; i > 0; i -= 1) {
-    state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
-    const j = state % (i + 1);
-    [out[i], out[j]] = [out[j]!, out[i]!];
-  }
-  return out;
 }
 
 /* ------------------------------------------------------------------ */
@@ -105,7 +90,7 @@ export function textChoices(card: Card, deck: readonly Card[], seed: number): re
   const own = answerText(card);
   const seen = new Set([normaliseAnswer(own)]);
   const wrong: TextChoice[] = [];
-  for (const other of shuffled(deck, seed)) {
+  for (const other of seededShuffle(deck, seed)) {
     const label = answerText(other);
     const key = normaliseAnswer(label);
     if (key.length === 0 || seen.has(key)) continue;
@@ -114,7 +99,7 @@ export function textChoices(card: Card, deck: readonly Card[], seed: number): re
     if (wrong.length === 3) break;
   }
   if (wrong.length === 0) return null;
-  return shuffled([{ key: card.id, label: own, correct: true }, ...wrong], seed + 7);
+  return seededShuffle([{ key: card.id, label: own, correct: true }, ...wrong], seed + 7);
 }
 
 /* ------------------------------------------------------------------ */
@@ -129,17 +114,17 @@ export interface MatchTile {
 }
 
 /** Most pairs one board holds: twelve tiles fit a phone without scrolling far. */
-export const MATCH_PAIRS = 6;
+const MATCH_PAIRS = 6;
 
 /** Two tiles per card, for up to MATCH_PAIRS cards, shuffled together. */
 export function matchBoard(cards: readonly Card[], seed: number): readonly MatchTile[] {
-  const picked = shuffled(cards, seed).slice(0, MATCH_PAIRS);
+  const picked = seededShuffle(cards, seed).slice(0, MATCH_PAIRS);
   const tiles: MatchTile[] = [];
   for (const card of picked) {
     tiles.push({ key: `${card.id}#term`, cardId: card.id, side: "term" });
     tiles.push({ key: `${card.id}#definition`, cardId: card.id, side: "definition" });
   }
-  return shuffled(tiles, seed + 13);
+  return seededShuffle(tiles, seed + 13);
 }
 
 /** Two picked tiles are a pair when they are the two sides of one card. */
@@ -182,7 +167,7 @@ export function splitSegments(
 /* Stars (per device)                                                   */
 /* ------------------------------------------------------------------ */
 
-export const STARS_KEY = "blueberry.cards.starred.v1";
+const STARS_KEY = "blueberry.cards.starred.v1";
 
 export function readStars(): ReadonlySet<string> {
   try {

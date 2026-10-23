@@ -94,7 +94,7 @@ export function isFinished(session: McqSession): boolean {
 }
 
 /** True once the pick has been graded and the explanation is on screen. */
-export function isRevealed(session: McqSession): boolean {
+function isRevealed(session: McqSession): boolean {
   return session.reveal !== null;
 }
 

@@ -131,11 +131,6 @@ export function isBetaOn(beta: BetaId): boolean {
   return ON.has(beta);
 }
 
-/** Every flag currently on. Used by the Me tab to decide what to list. */
-export function flagsOn(): readonly FlagId[] {
-  return FLAG_IDS.filter((flag) => ON.has(flag));
-}
-
 /** True only under ?flags=drafts: paint the human gate's draft marks. */
 export function showDraftMarks(): boolean {
   return ON.has(REVIEW_ID);

@@ -289,11 +289,6 @@ export function hrefForAdmin(node?: string): string {
   return node === undefined ? `#/${BASE}/admin` : `#/${BASE}/admin/${encodeURIComponent(node)}`;
 }
 
-/** Development only. Nothing in the shell renders this; it is typed by hand. */
-export function hrefForGallery(name: string): string {
-  return `#/${BASE}/gallery/${encodeURIComponent(name)}`;
-}
-
 export function tabDefinition(id: TabId): TabDefinition {
   const found = ALL_TABS.find((tab) => tab.id === id);
   if (found === undefined) throw new Error(`no tab ${id}`);

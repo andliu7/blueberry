@@ -45,7 +45,7 @@ function ensureBuffer(ac: AudioContext): AudioBuffer {
   return buf;
 }
 
-export function playClick() {
+function playClick() {
   // Throttled, or a control that fires several handlers turns one press into a
   // rattle.
   const now = performance.now();

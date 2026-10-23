@@ -12,7 +12,7 @@ import { progress } from "../../app/progress";
 import { hourLabel } from "./messagesModel";
 
 /** The offered times. Hours are 0 to 23, the journal's own range. */
-export const REMINDER_HOURS = [
+const REMINDER_HOURS = [
   { hour: 8, label: "Morning" },
   { hour: 13, label: "Afternoon" },
   { hour: 19, label: "Evening" },

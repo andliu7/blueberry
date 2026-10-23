@@ -18,6 +18,7 @@ import {
 } from "motion/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { clamp } from "@/lib/helpers";
 
 /**
  * Drag/swipe carousel that snaps to whole slides.
@@ -34,8 +35,6 @@ const WALL = { type: "spring", stiffness: 700, damping: 30, mass: 0.5 } as const
 const WALL_IMPULSE = 900;
 /** How many dots show either side of the active one. */
 const DOT_WINDOW = 4;
-
-const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, n));
 
 type DragInfo = { offset: { x: number; y: number }; velocity: { x: number; y: number } };
 

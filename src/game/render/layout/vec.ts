@@ -29,7 +29,7 @@ export function scale(a: Vec, s: number): Vec {
   return { x: a.x * s, y: a.y * s, z: a.z * s };
 }
 
-export function length(a: Vec): number {
+function length(a: Vec): number {
   return Math.hypot(a.x, a.y, a.z);
 }
 

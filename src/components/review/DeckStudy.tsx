@@ -5,6 +5,7 @@ import type { Status } from "@/components/QuestionCard";
 import { MathHtml } from "@/components/ui/math-html";
 import { RATING_WORDS } from "@/lib/reviewProgress";
 import { maskableScheme } from "@/lib/deckFilters";
+import { clamp } from "@/lib/helpers";
 
 /**
  * The study card at the top of a deck (SITE-REPLAN.md phase 7): one card at a time,
@@ -101,9 +102,8 @@ export function DeckStudy({
     const r = el.getBoundingClientRect();
     const px = r.width ? (clientX - r.left) / r.width - 0.5 : 0;
     const py = r.height ? (clientY - r.top) / r.height - 0.5 : 0;
-    const clamp = (v: number) => Math.max(-TILT_DEG, Math.min(TILT_DEG, v));
     // The side under the finger dips away, as a card pressed at one corner does.
-    setVars({ "--rv-rx": `${clamp(py * 2 * TILT_DEG)}deg`, "--rv-ry": `${clamp(-px * 2 * TILT_DEG)}deg` });
+    setVars({ "--rv-rx": `${clamp(py * 2 * TILT_DEG, -TILT_DEG, TILT_DEG)}deg`, "--rv-ry": `${clamp(-px * 2 * TILT_DEG, -TILT_DEG, TILT_DEG)}deg` });
   };
   const rest = () => {
     setVars({ "--rv-rx": "0deg", "--rv-ry": "0deg", "--rv-dx": "0px", "--rv-rz": "0deg" });

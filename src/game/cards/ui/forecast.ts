@@ -29,7 +29,7 @@ export interface ForecastDay {
 
 export const FORECAST_DAYS = 7;
 
-const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
+const WEEKDAY = new Intl.DateTimeFormat("en-US", { weekday: "short" });
 
 export function dueForecast(
   snapshot: DeckSnapshot,
@@ -50,7 +50,7 @@ export function dueForecast(
       const due = Date.parse(state.dueAt);
       if (due > start && due <= end) count += 1;
     }
-    out.push({ label: WEEKDAYS[day.getDay()] ?? "", count });
+    out.push({ label: WEEKDAY.format(day), count });
   }
   return out;
 }

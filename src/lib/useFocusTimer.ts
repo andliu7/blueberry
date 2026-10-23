@@ -39,7 +39,7 @@ export interface TimerSettings {
   eyeRestSeconds: number;
 }
 
-export const DEFAULT_SETTINGS: TimerSettings = {
+const DEFAULT_SETTINGS: TimerSettings = {
   focusMinutes: 25,
   breakMinutes: 5,
   eyeEveryMinutes: 20,
@@ -252,7 +252,7 @@ export function useFocusTimer() {
       ...s,
       tasks: [
         ...s.tasks,
-        { id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, text: trimmed, done: false, href },
+        { id: crypto.randomUUID(), text: trimmed, done: false, href },
       ],
     }));
   }, []);

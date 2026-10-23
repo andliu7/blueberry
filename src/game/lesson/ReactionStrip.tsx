@@ -33,7 +33,7 @@ export interface ReactionStripProps {
 }
 
 /** 80 px, above the 72 floor the spec sets so the face reads. */
-export const STRIP_BERRY_PX = 80;
+const STRIP_BERRY_PX = 80;
 
 export function ReactionStrip({ outcome, headline, caption = null, berry, continueLabel, onContinue, children }: ReactionStripProps) {
   return (

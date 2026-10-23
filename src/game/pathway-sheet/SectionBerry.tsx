@@ -22,7 +22,7 @@
 import { Berry } from "../mascot/Berry";
 import { BerryLeaf } from "./BerryLeaf";
 
-export const SECTION_BERRY_PX = 36;
+const SECTION_BERRY_PX = 36;
 
 export function SectionBerry({
   mood,

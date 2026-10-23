@@ -57,10 +57,7 @@ export interface LessonTopicSource {
   difference: string;
 }
 
-export const newBlockId = () =>
-  typeof crypto !== "undefined" && "randomUUID" in crypto
-    ? crypto.randomUUID()
-    : `b-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+export const newBlockId = () => crypto.randomUUID();
 
 /**
  * The built-in writing, as blocks.

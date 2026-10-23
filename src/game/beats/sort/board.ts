@@ -24,6 +24,8 @@
  * back to the pool. Anything else loses a card the student placed on purpose.
  */
 
+import { seededShuffle } from "@/lib/helpers";
+
 /** An item id, as authored on the SortBeat. A plain string, per beats/types.ts. */
 export type SortCardId = string;
 
@@ -61,17 +63,7 @@ export function emptyBoard(itemIds: readonly SortCardId[]): SortBoard {
  * generator, the same "reproducible by seed" discipline the placement quiz uses.
  */
 export function shuffled(itemIds: readonly SortCardId[], seed: number): readonly SortCardId[] {
-  const out = [...itemIds];
-  let state = (seed >>> 0) || 1;
-  for (let index = out.length - 1; index > 0; index -= 1) {
-    state = (state * 1664525 + 1013904223) >>> 0;
-    const pick = state % (index + 1);
-    const here = out[index] as SortCardId;
-    const there = out[pick] as SortCardId;
-    out[index] = there;
-    out[pick] = here;
-  }
-  return Object.freeze(out);
+  return Object.freeze(seededShuffle(itemIds, seed));
 }
 
 /** The opening board: every card in the pool, shuffled, every rung empty. */

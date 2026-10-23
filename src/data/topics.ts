@@ -315,7 +315,3 @@ export function applyOverrides(overrides: CourseOverrides | null | undefined): {
     reactions: REACTIONS.map((r) => ({ ...r, ...clean(reactionEdits.get(r.id)) })),
   };
 }
-
-export const findTopic = (id: string) => TOPICS.find((t) => t.id === id) ?? null;
-export const reactionsFor = (topicId: string) => REACTIONS.filter((r) => r.topicId === topicId);
-

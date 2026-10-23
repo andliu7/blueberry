@@ -43,7 +43,7 @@ export interface WireDate {
  * hand-edited sheet would otherwise render as "NaN" across the grid and take
  * the sort order with it.
  */
-export function fromWire(row: WireDate, fallbackId: string): CourseDate | null {
+function fromWire(row: WireDate, fallbackId: string): CourseDate | null {
   const start = new Date(row.start);
   if (Number.isNaN(start.getTime())) return null;
 
@@ -69,7 +69,7 @@ export function fromWire(row: WireDate, fallbackId: string): CourseDate | null {
  * Park in the autumn, and 5am in the spring. The sheet holds the time the
  * syllabus printed, with no zone attached.
  */
-export function toWire(d: CourseDate): WireDate {
+function toWire(d: CourseDate): WireDate {
   const local = (date: Date) =>
     new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
 

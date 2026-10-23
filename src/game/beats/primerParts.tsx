@@ -25,7 +25,7 @@ import { mapPoolOrder, viaWords, type LessonPriming } from "./priming";
  * break opportunity, so "1,4-dichlorobut-2-ene" split as "1,4-dichlorobut-2- /
  * ene". U+2011 is a hyphen the browser will not break at.
  */
-export function unbrokenName(name: string): string {
+function unbrokenName(name: string): string {
   return name.replace(/-/g, "‑");
 }
 

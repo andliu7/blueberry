@@ -49,12 +49,6 @@ import { OfficeHoursEditor } from "@/components/OfficeHoursEditor";
  * waiting to happen.
  */
 
-/**
- * Set just before navigating when the dashboard should be open on arrival.
- * Exported so the sign-in page sets the same string this reads.
- */
-export const OPEN_ON_ARRIVAL = "blueberry_open_dashboard_on_arrival";
-
 export type { DashboardView };
 
 /** Decks added recently enough to be worth announcing, newest first. */

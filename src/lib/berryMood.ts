@@ -124,7 +124,7 @@ export const MOOD_SHAPE: Record<BerryMood, MoodShape> = {
  * when you finish forty-four. Nothing started at all is `curious` rather than
  * `sleepy`: an empty hub is an invitation, not a dead end.
  */
-export function moodForProgress(reviewed: number, total: number): BerryMood {
+function moodForProgress(reviewed: number, total: number): BerryMood {
   if (total <= 0) return "curious";
   if (reviewed <= 0) return "curious";
   if (reviewed >= total) return "cheer";

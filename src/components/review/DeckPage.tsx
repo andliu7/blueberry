@@ -11,6 +11,7 @@ import { SITE_CONTAINER } from "@/components/ui/site-nav";
 import { SITE_NAME } from "@/data/site";
 import { loadSaved, progressKey } from "@/lib/progress";
 import { cardsWord, tallyWords } from "@/lib/reviewProgress";
+import { shuffle } from "@/lib/helpers";
 import { DeckStudy, ReagentsHiddenContext } from "@/components/review/DeckStudy";
 import { deckCategories, hasReagents, hideReagents } from "@/lib/deckFilters";
 import { DeckMatch, DeckTest, DeckWrite, MODE_WORDS, ModeSwitch, type StudyMode } from "@/components/review/StudyModes";
@@ -164,13 +165,7 @@ export function DeckPage({ deck }: { deck: StudyDeck }) {
     startPass(mode === "learn" ? "learn" : "all", indexesFor(label));
   };
   const toggleShuffle = () => {
-    const order = [...all];
-    if (!shuffled) {
-      for (let i = order.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [order[i], order[j]] = [order[j]!, order[i]!];
-      }
-    }
+    const order = shuffled ? [...all] : shuffle(all);
     setShuffled(!shuffled);
     startPass(pass.label === "Missed and Unsure" ? "missed" : pass.label === "Starred" ? "starred" : "all", order);
   };

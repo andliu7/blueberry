@@ -54,7 +54,7 @@ const SearchTab = lazy(() => import("../../tabs/search/SearchTab"));
  * lesson header, where the row also carries a leave control, a progress bar and
  * a counter; the target stays 44 in both, only the padding moves.
  */
-export function ToolButtons({
+function ToolButtons({
   onOpen,
   className = "",
 }: {

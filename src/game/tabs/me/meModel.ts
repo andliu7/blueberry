@@ -64,7 +64,7 @@ export interface XpDay {
   readonly today: boolean;
 }
 
-const WEEKDAY_LETTERS = ["S", "M", "T", "W", "T", "F", "S"];
+const LETTER = new Intl.DateTimeFormat("en-US", { weekday: "narrow", timeZone: "UTC" });
 
 function weekdayOf(date: string): number {
   return new Date(`${date}T12:00:00Z`).getUTCDay();
@@ -93,7 +93,7 @@ export function lastSevenDaysXp(journal: readonly EconomyEvent[], tz: string, no
   for (let back = 6; back >= 0; back -= 1) {
     const date = addDays(today, -back);
     const after = totalAt(date);
-    days.push({ date, letter: WEEKDAY_LETTERS[weekdayOf(date)] ?? "", xp: Math.max(0, after - before), today: back === 0 });
+    days.push({ date, letter: LETTER.format(new Date(`${date}T12:00:00Z`)), xp: Math.max(0, after - before), today: back === 0 });
     before = after;
   }
   return days;

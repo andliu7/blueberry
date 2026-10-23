@@ -74,7 +74,7 @@ function labelFor(el: HTMLElement): string | null {
  * Me page's settings is the place for it (settings/ belongs to another lane).
  * Storage can throw in a private window, which reads as "not opted in".
  */
-export const HOVER_LABEL_KEY = "bb.hoverLabel";
+const HOVER_LABEL_KEY = "bb.hoverLabel";
 function hoverLabelOptedIn(): boolean {
   try {
     return window.localStorage.getItem(HOVER_LABEL_KEY) === "on";

@@ -55,6 +55,7 @@ import { COURSE_UNIVERSE } from "./courseUniverse.generated";
 import { PATHWAY_UNITS } from "../demo/pathwayMap";
 import { OPEN_COURSE_IDS } from "./courses";
 import { isBetaOn } from "./flags";
+import { deviceZone } from "@/lib/helpers";
 import {
   deriveEconomy,
   isEconomyEvent,
@@ -316,14 +317,6 @@ function nowIso(): string {
   return new Date().toISOString();
 }
 
-function localZone(): string {
-  try {
-    return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
-  } catch {
-    return "UTC";
-  }
-}
-
 /**
  * The two beta exploration flags, applied at the ONE seam every surface reads.
  *
@@ -554,7 +547,7 @@ function migrateFromV1(raw: string): StoredProgress {
     displayName: string | null;
   }>;
 
-  const tz = localZone();
+  const tz = deviceZone();
   const lessons = parsed.lessons ?? {};
   const journal: EconomyEvent[] = [];
   const records = Object.values(lessons).filter((record): record is LessonRecord => record !== null && record !== undefined);
@@ -644,7 +637,7 @@ export function createLocalProgress(): ProgressSource {
   /** Append one event and keep its receipt, which is what the reward moment plays. */
   const appendOne = (make: (at: string, tz: string) => EconomyEvent): Receipt => {
     const at = nowIso();
-    const event = make(at, localZone());
+    const event = make(at, deviceZone());
     // The receipt and the snapshot must read the same course, or a rank up on
     // the reward moment would not be a rank up on the pathway.
     const next = receiptFor(stored.journal, event, at, deriveOptions(stored.course));
@@ -686,7 +679,7 @@ export function createLocalProgress(): ProgressSource {
     },
     completeLesson(topic, correct, attempted, problemIds) {
       const at = nowIso();
-      const tz = localZone();
+      const tz = deviceZone();
       const nodeId = lessonNodeId(topic);
 
       // The attempts go in BEFORE the clear, at the same instant. The derivation
@@ -780,7 +773,7 @@ export function createLocalProgress(): ProgressSource {
       const saved = snapshot.economy.chests.saved;
       if (saved.length === 0) return 0;
       const at = nowIso();
-      const tz = localZone();
+      const tz = deviceZone();
       const options = deriveOptions(stored.course);
       // One receipt per chest, read in order against the growing journal, then
       // merged: the lines are the economy's, this only concatenates them.
@@ -812,7 +805,7 @@ export function createLocalProgress(): ProgressSource {
     claimDailyGift() {
       // The device's own day, which is the day the derivation will read off
       // the event: same instant, same zone.
-      const today = localDate(Date.now(), localZone());
+      const today = localDate(Date.now(), deviceZone());
       if (snapshot.economy.chests.giftDays.includes(today)) return null;
       const next = appendOne((at, tz) => ({ kind: "chest_earned", at, tz, source: "daily_gift" }));
       return next.chestsEarned.length > 0 ? next : null;
@@ -835,7 +828,7 @@ export function createLocalProgress(): ProgressSource {
       // A settings change earns nothing, so it does not replace a reward moment
       // the student has not seen yet. It still has to reach the journal.
       const at = nowIso();
-      const event: EconomyEvent = { kind: "settings", at, tz: localZone(), ...fields };
+      const event: EconomyEvent = { kind: "settings", at, tz: deviceZone(), ...fields };
       appendQuietly([event]);
       return emptyReceipt();
     },

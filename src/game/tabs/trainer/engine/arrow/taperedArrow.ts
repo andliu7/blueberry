@@ -305,7 +305,7 @@ export function cappedBow(magnitude: number, chordLengthPx: number): number {
  * length. The scale runs to zero with the chord on purpose; MIN_CHORD_PX
  * decides what is drawable, not this function.
  */
-export function profileForChord(profile: ArrowWidthProfile, chordPx: number): ArrowWidthProfile {
+function profileForChord(profile: ArrowWidthProfile, chordPx: number): ArrowWidthProfile {
   const scale = Math.min(1, Math.max(0, chordPx) / FULL_PROFILE_CHORD_PX);
   return {
     tailPx: profile.tailPx * scale,

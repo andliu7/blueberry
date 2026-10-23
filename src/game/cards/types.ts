@@ -107,16 +107,6 @@ export type CardSource =
       readonly importedAt: string;
     };
 
-export type CardSourceKind = CardSource["kind"];
-
-export const CARD_SOURCE_KINDS: readonly CardSourceKind[] = Object.freeze([
-  "lesson",
-  "mistake",
-  "composed",
-  "reaction",
-  "import",
-]);
-
 /* ------------------------------------------------------------------ */
 /* Cards and decks                                                      */
 /* ------------------------------------------------------------------ */
@@ -374,11 +364,6 @@ export const RATING_LABELS: Readonly<Record<Rating, string>> = Object.freeze({
   easy: "Easy",
 });
 
-/** For parsing what came out of storage or an import file. */
-export function isRating(value: unknown): value is Rating {
-  return typeof value === "string" && (RATINGS as readonly string[]).includes(value);
-}
-
 /**
  * One card's place in the schedule.
  *
@@ -424,15 +409,6 @@ export function isSuspended(state: ReviewState | undefined): boolean {
  */
 export function isDue(state: ReviewState, now: Date): boolean {
   return Date.parse(state.dueAt) <= now.getTime();
-}
-
-/**
- * Soonest due first. The most overdue card leads, which is the order a review
- * queue wants. Copies rather than sorting in place, because a snapshot is
- * shared and sorting it under a reader is how a list jumps mid render.
- */
-export function byDueDate(states: readonly ReviewState[]): readonly ReviewState[] {
-  return [...states].sort((a, b) => Date.parse(a.dueAt) - Date.parse(b.dueAt));
 }
 
 export function dueCount(states: readonly ReviewState[], now: Date): number {

@@ -35,7 +35,7 @@ export interface MessageTransport {
   deliver(message: StoredMessage): Promise<void>;
 }
 
-export const localOnly: MessageTransport = {
+const localOnly: MessageTransport = {
   deliver: async () => {
     /* nothing leaves the device yet; see the note above */
   },

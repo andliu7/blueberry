@@ -34,6 +34,7 @@
  * Pure: no React, no storage, no clock.
  */
 
+import { seededShuffle } from "@/lib/helpers";
 import type { StagedReaction } from "../../../data/reactions";
 import {
   PREDICT_ANSWERS,
@@ -62,18 +63,6 @@ function hash(text: string): number {
   let value = 0;
   for (let i = 0; i < text.length; i += 1) value = (value * 31 + text.charCodeAt(i)) | 0;
   return Math.abs(value);
-}
-
-/** Fisher-Yates driven by a small linear congruential generator seeded from `seed`. */
-function shuffled<T>(items: readonly T[], seed: number): T[] {
-  const out = [...items];
-  let state = seed >>> 0;
-  for (let i = out.length - 1; i > 0; i -= 1) {
-    state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
-    const j = state % (i + 1);
-    [out[i], out[j]] = [out[j]!, out[i]!];
-  }
-  return out;
 }
 
 function wrongOption(distractor: PredictDistractor): PredictOption {
@@ -116,5 +105,5 @@ export function predictionChoices(
     formula: target.product_formula,
     correct: true,
   };
-  return shuffled([answer, ...wrong.slice(0, PREDICT_OPTIONS - 1).map(wrongOption)], hash(`${card.id}#${instance}`));
+  return seededShuffle([answer, ...wrong.slice(0, PREDICT_OPTIONS - 1).map(wrongOption)], hash(`${card.id}#${instance}`));
 }

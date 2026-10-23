@@ -205,9 +205,6 @@ export interface PersonalEntry extends EntryBase {
 
 export type GlossaryEntry = ShorthandEntry | CompoundEntry | NoteEntry | PkaEntryRow | ReactionEntry | PersonalEntry;
 
-// Re-exported so existing imports of slug from this file keep working.
-export { slug };
-
 function haystack(...parts: readonly (string | undefined)[]): string {
   return parts.filter((part) => part !== undefined).join(" ").toLowerCase();
 }

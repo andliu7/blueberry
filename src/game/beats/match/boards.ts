@@ -319,7 +319,7 @@ export const PROTECTING_GROUP_BOARD: MatchBeat = Object.freeze({
  * bromination when the sequence asked for sulfonation, because both are "put
  * something on so you can take it off later".
  */
-export const SEQUENCING_JOBS_BOARD: MatchBeat = Object.freeze({
+const SEQUENCING_JOBS_BOARD: MatchBeat = Object.freeze({
   kind: "match",
   id: "match-sequencing-jobs",
   node: "u3-sequencing",

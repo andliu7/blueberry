@@ -34,7 +34,7 @@ const MatchBoardFromSpec = lazy(() => import("./match/MatchBoard").then((m) => (
 const DrawBeatView = lazy(() => import("./draw/DrawBeatView").then((m) => ({ default: m.DrawBeatView })));
 
 /** The first failable rung an item allows, so a miss counts; its first rung otherwise. */
-export function poolItemLevel(levels: readonly MasteryLevel[]): MasteryLevel {
+function poolItemLevel(levels: readonly MasteryLevel[]): MasteryLevel {
   return levels.find((level) => canFail(level)) ?? levels[0] ?? 1;
 }
 

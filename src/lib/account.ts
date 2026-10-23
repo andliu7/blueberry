@@ -11,7 +11,7 @@ const OWNER_EMAILS = new Set([
   "andliu@terpmail.umd.edu",
 ]);
 
-export function accountRole(user: Pick<GoogleUser, "email"> | null): AccountRole {
+function accountRole(user: Pick<GoogleUser, "email"> | null): AccountRole {
   if (!user?.email) return "member";
   return OWNER_EMAILS.has(user.email.trim().toLowerCase()) ? "owner" : "member";
 }

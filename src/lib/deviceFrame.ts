@@ -24,16 +24,8 @@ import { useEffect, useState } from "react";
 const KEY = "device-frame";
 const ATTR = "data-device-frame";
 
-export function readDeviceFrame(): boolean {
-  try {
-    return localStorage.getItem(KEY) === "on";
-  } catch {
-    return false;
-  }
-}
-
 /** Writes the choice and applies it in the same call, so the two cannot drift. */
-export function setDeviceFrame(on: boolean): void {
+function setDeviceFrame(on: boolean): void {
   try {
     localStorage.setItem(KEY, on ? "on" : "off");
   } catch {
@@ -46,7 +38,7 @@ export function setDeviceFrame(on: boolean): void {
   window.dispatchEvent(new CustomEvent(EVENT, { detail: on }));
 }
 
-export function applyDeviceFrame(on: boolean): void {
+function applyDeviceFrame(on: boolean): void {
   const root = document.documentElement;
   if (on) root.setAttribute(ATTR, "");
   else root.removeAttribute(ATTR);

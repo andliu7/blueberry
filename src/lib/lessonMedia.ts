@@ -14,7 +14,7 @@ import { getSupabase } from "@/lib/supabase";
 const BUCKET = "lesson-media";
 
 /** 10 MB, matching the bucket's own limit so the message is ours, not a 413. */
-export const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
+const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 
 export const isImage = (file: File) => file.type.startsWith("image/");
 export const isVideo = (file: File) => file.type.startsWith("video/");
@@ -29,10 +29,7 @@ export const isVideo = (file: File) => file.type.startsWith("video/");
  */
 function objectName(topicId: string, file: File): string {
   const ext = (file.name.split(".").pop() ?? "").toLowerCase().replace(/[^a-z0-9]/g, "");
-  const rand =
-    typeof crypto !== "undefined" && "randomUUID" in crypto
-      ? crypto.randomUUID()
-      : `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  const rand = crypto.randomUUID();
   const safeTopic = topicId.replace(/[^a-zA-Z0-9_-]/g, "") || "lesson";
   return `${safeTopic}/${rand}${ext ? `.${ext}` : ""}`;
 }

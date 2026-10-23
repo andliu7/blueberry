@@ -62,7 +62,7 @@ import {
 } from "@blueberry/economy";
 
 /** How many days the strip draws. A week, ending today. */
-export const STRIP_DAYS = 7;
+const STRIP_DAYS = 7;
 
 /**
  * What one square is.

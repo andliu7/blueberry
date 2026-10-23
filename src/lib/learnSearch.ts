@@ -28,7 +28,7 @@ import { unitForFamily, unitsForLesson } from "@/data/learnMap";
  * narrows instead of widening. A word ending in "s" also matches without it, so
  * "ketones" finds what "ketone" finds.
  */
-export function reactionWords(r: StagedReaction): string {
+function reactionWords(r: StagedReaction): string {
   const groups = REACTION_GROUPS[r.id];
   const lesson = LESSON_TOPICS.find((t) => t.id === sectionForFamily(r.family));
   const words = [

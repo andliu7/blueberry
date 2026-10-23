@@ -71,10 +71,10 @@ export const STARTING_EASE = 2.5;
  * multiplier below one and start SHRINKING its interval every review.
  */
 export const MIN_EASE = 1.3;
-export const MAX_EASE = 3.5;
+const MAX_EASE = 3.5;
 
 /** What each button does to the ease, for NEXT time. See `rateCard`. */
-export const EASE_DELTA: Readonly<Record<Rating, number>> = Object.freeze({
+const EASE_DELTA: Readonly<Record<Rating, number>> = Object.freeze({
   again: -0.2,
   hard: -0.15,
   good: 0,
@@ -95,7 +95,7 @@ export const AGAIN_INTERVAL_DAYS = AGAIN_MINUTES / (24 * 60);
  * interval, which is what `hard` means on a card you have just met: slower
  * than forgotten, not yet retained.
  */
-export const HARD_MINUTES = 30;
+const HARD_MINUTES = 30;
 export const HARD_LEARNING_INTERVAL_DAYS = HARD_MINUTES / (24 * 60);
 
 /** Below this is learning; at or above it is a real interval. */
@@ -103,10 +103,10 @@ export const GRADUATING_INTERVAL_DAYS = 1;
 export const EASY_GRADUATING_INTERVAL_DAYS = 4;
 
 /** Hard is a fixed slow growth, not an ease multiple. Same as Anki. */
-export const HARD_FACTOR = 1.2;
+const HARD_FACTOR = 1.2;
 
 /** Easy multiplies the ease, so easy at the starting ease is about 3.5. */
-export const EASY_BONUS = 1.4;
+const EASY_BONUS = 1.4;
 
 /**
  * A year. Past this the interval is a statement about a student who will have
@@ -118,7 +118,7 @@ export const MAX_INTERVAL_DAYS = 365;
 /* Reads                                                                */
 /* ------------------------------------------------------------------ */
 
-export function clampEase(ease: number): number {
+function clampEase(ease: number): number {
   if (!Number.isFinite(ease)) return STARTING_EASE;
   return Math.min(MAX_EASE, Math.max(MIN_EASE, ease));
 }
@@ -136,7 +136,7 @@ export function isLearning(state: ReviewState): boolean {
  * does not multiply anything, it resets to the learning step, so the type
  * excludes it rather than a comment promising it.
  */
-export function growthFactor(rating: Exclude<Rating, "again">, ease: number): number {
+function growthFactor(rating: Exclude<Rating, "again">, ease: number): number {
   switch (rating) {
     case "hard":
       return HARD_FACTOR;

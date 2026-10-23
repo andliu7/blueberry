@@ -3,6 +3,7 @@ import { LESSON_TOPICS } from "@/data/lessonTopics";
 import { REACTIONS } from "@/data/reactions";
 import { DECKS } from "@/data/decks";
 import { deckCount } from "@/data/types";
+import { plural } from "@/lib/helpers";
 
 /**
  * THE COUNTS. Every number the home page states about the course comes from here
@@ -43,7 +44,7 @@ export function siteCounts(): SiteCounts {
 
 /** "1 unit", "15 units". The noun is passed in singular; English plurals here all take -s. */
 export function counted(n: number, noun: string): string {
-  return `${n} ${noun}${n === 1 ? "" : "s"}`;
+  return plural(n, noun, `${noun}s`);
 }
 
 /** The one count line on each of home's destination cards (beat 3). Schedule has none: its

@@ -107,7 +107,7 @@ export function runHeadline(summary: SessionSummary, stats: RunStats): string {
  * card's width with a floor, so a small wobble while scrolling never grades.
  */
 export const SWIPE_MIN_PX = 80;
-export const SWIPE_FRACTION = 0.28;
+const SWIPE_FRACTION = 0.28;
 
 export function swipeRating(dx: number, width: number): Rating | null {
   const threshold = Math.max(SWIPE_MIN_PX, width * SWIPE_FRACTION);

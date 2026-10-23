@@ -23,7 +23,7 @@ export interface ChangelogEntry {
   body: string;
 }
 
-export const CHANGELOG: ChangelogEntry[] = [
+const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-09-27",
     title: "The calendar gets a key",

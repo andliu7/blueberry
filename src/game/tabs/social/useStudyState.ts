@@ -7,6 +7,7 @@
 
 import { useMemo } from "react";
 import { localDate } from "@blueberry/economy";
+import { deviceZone } from "@/lib/helpers";
 import { useProgress } from "../../app/hooks";
 import { useDisplayName } from "../../app/useDisplayName";
 import { decks } from "../../cards/store";
@@ -15,7 +16,7 @@ import { dueTodayCount } from "../../cards/scheduler";
 import { isSuspended } from "../../cards/types";
 import { PATHWAY_UNITS, pathwayNode } from "../../demo/pathwayMap";
 import { deriveMapPathway } from "../pathway/pathwayState";
-import { deviceZone, reminderSettings, type NudgeInput } from "../messages/messagesModel";
+import { reminderSettings, type NudgeInput } from "../messages/messagesModel";
 
 export function useStudyState() {
   const snapshot = useProgress();

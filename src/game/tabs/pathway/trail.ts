@@ -110,7 +110,7 @@ export interface TrailSegment {
  * curve, it is a loop, and the miniature has to be the unit's real shape and
  * not a knot of it.
  */
-export const TRAIL_GRIP_PX = 24;
+const TRAIL_GRIP_PX = 24;
 
 /** A smooth vertical-tangent cubic between two points, boundaryPath's idiom. */
 function cubic(from: TrailPoint, to: TrailPoint, minGrip: number): string {
@@ -187,7 +187,7 @@ function armChain(points: readonly XY[], minGrip: number): readonly string[] {
  * would make two neighbouring loops share a stretch of spine and read as one
  * long braid rather than as two detours.
  */
-export const LOOP_REACH_PX = 62;
+const LOOP_REACH_PX = 62;
 
 /**
  * A SIDE LOOP: a trail that leaves the spine, goes round its node, and
@@ -445,10 +445,10 @@ export interface TrackMapModel {
 }
 
 /** The grip a pill-sized segment gets; see TRAIL_GRIP_PX for why it differs. */
-export const PILL_GRIP_PX = 5;
+const PILL_GRIP_PX = 5;
 
 /** The widest wind step the full-size track uses, which sets the pill's scale. */
-export const WIND_EXTENT = 1.7;
+const WIND_EXTENT = 1.7;
 
 /**
  * Rows for a unit's nodes: a diamond's two arms SHARE rows.
@@ -459,7 +459,7 @@ export const WIND_EXTENT = 1.7;
  * beside it get the same y and opposite x, so the shape widens and closes
  * exactly where the track does.
  */
-export function trackMapRows(nodes: readonly TrackMapNode[]): { readonly rows: readonly number[]; readonly count: number } {
+function trackMapRows(nodes: readonly TrackMapNode[]): { readonly rows: readonly number[]; readonly count: number } {
   const rows: number[] = new Array<number>(nodes.length).fill(0);
   let row = 0;
   let left = -1;

@@ -22,7 +22,7 @@
 import type { Point2 } from "@blueberry/interaction";
 import "./depth.css";
 
-export const ELEMENT_FILL: Record<string, string> = {
+const ELEMENT_FILL: Record<string, string> = {
   // Saturated enough to hold white glyphs at 4.5:1+ in both themes.
   C: "#334155",
   // PALE, per CPK and per two blind critics who read our slate H as a second
@@ -58,10 +58,10 @@ function mixHex(hex: string, toward: number, t: number): string {
 }
 
 export const SHADOW_FILTER_ID = "depth-shadow";
-export const BADGE_GRADIENT_ID = "depth-badge";
+const BADGE_GRADIENT_ID = "depth-badge";
 
 /** Gradient id for an element's sphere. Unknown elements share carbon's. */
-export function sphereGradientId(element: string): string {
+function sphereGradientId(element: string): string {
   return `depth-sphere-${element in ELEMENT_FILL ? element : "C"}`;
 }
 
@@ -110,14 +110,14 @@ export function AtomSphere({ centre, r, element, opacity = 1 }: { centre: Point2
 }
 
 /** The point on the line from `centre` toward `toward`, `r` px out: the rim of an atom. */
-export function rimPoint(centre: Point2, toward: Point2, r: number): Point2 {
+function rimPoint(centre: Point2, toward: Point2, r: number): Point2 {
   const dx = toward.x - centre.x;
   const dy = toward.y - centre.y;
   const len = Math.hypot(dx, dy) || 1;
   return { x: centre.x + (dx / len) * r, y: centre.y + (dy / len) * r };
 }
 
-export const BOND_WIDTH = 10;
+const BOND_WIDTH = 10;
 
 /**
  * A rounded capsule from the surface of atom A to the surface of atom B: a
@@ -277,7 +277,7 @@ export function BondCapsule({
  * caller adds). Exported because two renderers need the SAME positions: the
  * quiet resting glyphs here, and DrawCanvas's reach-out reveal animation.
  */
-export function hydrogenDirections(count: number, bondAngles: readonly number[], openAngle: number): number[] {
+function hydrogenDirections(count: number, bondAngles: readonly number[], openAngle: number): number[] {
   const KEEP_OUT = 0.9;
   const TAU = Math.PI * 2;
   const norm = (a: number) => ((a % TAU) + TAU) % TAU;

@@ -161,7 +161,7 @@ export const PKA_PRESETS: readonly PkaPreset[] = Object.freeze([
   }),
 ]);
 
-export const DEFAULT_PRESET_ID: PkaPresetId = COURSE_PRESET_ID;
+const DEFAULT_PRESET_ID: PkaPresetId = COURSE_PRESET_ID;
 
 /** Falls back rather than throwing: an unknown id can arrive from storage. */
 export function pkaPreset(id: PkaPresetId): PkaPreset {
@@ -711,14 +711,6 @@ export function pkaOrderingConflicts(
   }
 
   return [...byPair.values()];
-}
-
-/** The flags for one problem, for a lesson surface that only cares about its own. */
-export function pkaConflictsForProblem(
-  settings: PkaSettingsSnapshot,
-  problemId: ProblemId,
-): readonly PkaOrderingConflict[] {
-  return pkaOrderingConflicts(settings).filter((conflict) => conflict.problemId === problemId);
 }
 
 /* ------------------------------------------------------------------ */

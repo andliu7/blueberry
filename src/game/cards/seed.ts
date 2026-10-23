@@ -36,7 +36,7 @@ import { reactionCardFromStaged } from "./reactionCard";
 import type { Card, DeckId, DeckSource } from "./types";
 
 export const STARTER_DECK_ID: DeckId = "deck-starter";
-export const STARTER_DECK_TITLE = "Starter reactions";
+const STARTER_DECK_TITLE = "Starter reactions";
 
 /** The done flag. Versioned like the store's own key. */
 export const SEED_FLAG_KEY = "blueberry.cards.seeded.v1";

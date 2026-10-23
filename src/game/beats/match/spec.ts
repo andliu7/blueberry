@@ -91,9 +91,9 @@ import type { Figure } from "../../onboarding/figures";
 export const CARD_TEXT_CAP = 34;
 
 /** The prefix a prompt option id carries. See the header. */
-export const PROMPT_PREFIX = "p:";
+const PROMPT_PREFIX = "p:";
 /** The prefix a target option id carries, decoys included. */
-export const TARGET_PREFIX = "t:";
+const TARGET_PREFIX = "t:";
 
 export function promptIdFor(pairId: string): OptionId {
   return `${PROMPT_PREFIX}${pairId}`;

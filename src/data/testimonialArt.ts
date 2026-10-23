@@ -325,39 +325,3 @@ export const MOTIF_VIEWBOX = "0 0 240 320";
 export function motifMarkup(motif: ArtMotif, color = "currentColor"): string {
   return MOTIFS[motif].replace(/#fff\b/g, color);
 }
-
-/**
- * Builds a portrait card image: gradient wash, the site's faint grid, then the motif.
- *
- * `art` wins when a deck has one. A carbonyl deck is better introduced by the
- * chemistry it drills than by an abstract mark, and those covers are drawn by
- * the generator at these exact proportions so they drop straight in.
- */
-export function cardArt(
-  motif: ArtMotif,
-  from: string,
-  to: string,
-  art?: string,
-): string {
-  if (art) return `${import.meta.env.BASE_URL}cards/${art}`;
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 320" width="240" height="320">
-  <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="${from}"/>
-      <stop offset="1" stop-color="${to}"/>
-    </linearGradient>
-    <pattern id="grid" width="24" height="24" patternUnits="userSpaceOnUse">
-      <path d="M24 0H0V24" fill="none" stroke="#fff" stroke-width="1" opacity=".13"/>
-    </pattern>
-    <radialGradient id="vig" cx=".5" cy=".38" r=".78">
-      <stop offset=".55" stop-color="#000" stop-opacity="0"/>
-      <stop offset="1" stop-color="#000" stop-opacity=".28"/>
-    </radialGradient>
-  </defs>
-  <rect width="240" height="320" fill="url(#g)"/>
-  <rect width="240" height="320" fill="url(#grid)"/>
-  ${MOTIFS[motif]}
-  <rect width="240" height="320" fill="url(#vig)"/>
-</svg>`;
-  return `data:image/svg+xml;utf8,${encodeURIComponent(svg.replace(/\s+/g, " "))}`;
-}

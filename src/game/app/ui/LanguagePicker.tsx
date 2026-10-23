@@ -26,7 +26,7 @@ function CheckMark() {
   );
 }
 
-export function LanguageList({ onPick }: { readonly onPick?: (code: string) => void }) {
+function LanguageList({ onPick }: { readonly onPick?: (code: string) => void }) {
   const current = useLanguage();
   return (
     <div className="flex flex-col gap-2">

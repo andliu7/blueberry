@@ -6,7 +6,7 @@
 // the phone and the desktop bar put `data-hud-diamonds` on the counter, so
 // whichever bar is on screen is the one that answers.
 
-export const HUD_DIAMONDS_ATTR = 'data-hud-diamonds';
+const HUD_DIAMONDS_ATTR = 'data-hud-diamonds';
 
 /** The diamond counter that is actually visible, or null when none is. */
 function diamondsEl(): HTMLElement | null {

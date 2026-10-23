@@ -43,7 +43,7 @@ export interface Profile {
   avatar?: string;
 }
 
-export const EMPTY_PROFILE: Profile = {
+const EMPTY_PROFILE: Profile = {
   firstName: "",
   lastName: "",
   username: "",

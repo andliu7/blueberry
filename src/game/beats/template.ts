@@ -466,7 +466,7 @@ export function missedPoolIdsOf(run: LessonRun): readonly string[] {
 }
 
 /** Whether anything is waiting for the recycle pass. */
-export function hasRecycle(run: LessonRun): boolean {
+function hasRecycle(run: LessonRun): boolean {
   return run.missedMcqIds.length > 0 || missedPoolIdsOf(run).length > 0;
 }
 

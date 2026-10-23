@@ -12,6 +12,7 @@
 import { daysBetween, localDate, type EconomyEvent } from "@blueberry/economy";
 import type { Reaction } from "@blueberry/curriculum";
 import type { ChatMessage } from "@/components/ui/group-chat";
+import { plural } from "@/lib/helpers";
 import { answer, answerText, type AskState } from "../chat/askModel";
 
 export type ThreadId = "bloom" | "reminders";
@@ -33,10 +34,6 @@ export interface NudgeInput {
   readonly nextLesson: string | null;
   /** True once a course is picked. Without one there is no "next lesson". */
   readonly hasCourse: boolean;
-}
-
-function plural(count: number, one: string, many: string): string {
-  return `${count} ${count === 1 ? one : many}`;
 }
 
 /** Bloom's opening run for today: a greeting and three facts, in that order. */
@@ -74,19 +71,6 @@ export function bloomReply(
 ): { readonly text: string; readonly ask?: string } {
   const reply = answer(question, state, topicLabel);
   return reply.kind === "reaction" ? { text: answerText(reply), ask: question } : { text: reply.text };
-}
-
-/**
- * The zone this device is in. Message times are shown in it, the way a phone
- * shows them, rather than in the journal's zone, which is "UTC" until the
- * student has done anything.
- */
-export function deviceZone(): string {
-  try {
-    return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
-  } catch {
-    return "UTC";
-  }
 }
 
 /** The latest reminder hour and exam date the student set, from the journal. */

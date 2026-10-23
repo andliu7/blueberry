@@ -32,6 +32,7 @@ import {
   type EconomySnapshot,
 } from "@blueberry/economy";
 import { firstNameOf } from "@/lib/accountName";
+import { plural } from "@/lib/helpers";
 import { hrefForTab } from "../../app/routes";
 import { hourLabel } from "../messages/messagesModel";
 
@@ -107,7 +108,7 @@ function correctToday(journal: readonly EconomyEvent[], today: string): number {
  * empty icon column, which is the failure mode owner ruling 4 of 2026-09-04
  * is about ("an empty chip reads as broken rather than unauthored").
  */
-export const QUEST_MOTIF: Readonly<Record<QuestId, QuestMotif>> = Object.freeze({
+const QUEST_MOTIF: Readonly<Record<QuestId, QuestMotif>> = Object.freeze({
   "earn-xp": "flask",
   "keep-streak": "flame",
   "get-right": "cards",
@@ -259,10 +260,6 @@ export function welcomeCard(input: {
     href: hrefForTab("pathway"),
     askSignIn: !input.signedIn,
   };
-}
-
-function plural(count: number, one: string, many: string): string {
-  return `${count} ${count === 1 ? one : many}`;
 }
 
 /**

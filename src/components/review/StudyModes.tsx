@@ -5,6 +5,7 @@ import type { Status } from "@/components/QuestionCard";
 import { MathHtml } from "@/components/ui/math-html";
 import { Figure } from "@/components/review/DeckStudy";
 import { Loader } from "@/components/ui/loader";
+import { shuffle } from "@/lib/helpers";
 
 /**
  * Write's drawing pad, split off with React.lazy so Ketcher (about 19MB) downloads only
@@ -110,16 +111,6 @@ export const same = (a: string, b: string) => {
       .replace(/[^\p{L}\p{N}]/gu, "");
   return norm(a) !== "" && norm(a) === norm(b);
 };
-
-/** A shuffled copy (Fisher-Yates). */
-function shuffle<T>(list: T[]): T[] {
-  const out = [...list];
-  for (let i = out.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [out[i], out[j]] = [out[j]!, out[i]!];
-  }
-  return out;
-}
 
 /** The question side of a card, without the flip hint: text, the masked drawing, options. */
 function Front({ q, options = true }: { q: Question; options?: boolean }) {

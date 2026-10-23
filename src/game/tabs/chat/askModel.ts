@@ -30,6 +30,7 @@ import {
   searchReactions,
   type Reaction,
 } from "@blueberry/curriculum";
+import { plural } from "@/lib/helpers";
 
 export interface AskState {
   readonly streak: number;
@@ -77,10 +78,6 @@ const FILLER = new Set([
 
 /** Words that say the student wants to know WHERE to study a reaction. */
 const STUDY_WORDS = ["lesson", "lessons", "learn", "study", "review", "covers", "cover", "covered", "where"];
-
-function plural(count: number, one: string, many: string): string {
-  return `${count} ${count === 1 ? one : many}`;
-}
 
 /** The words a question is made of, lower case, punctuation stripped (keeps digits, + and - for reagents). */
 function words(question: string): string[] {

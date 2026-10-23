@@ -9,10 +9,11 @@
  */
 
 import { useState } from "react";
+import { seededShuffle } from "@/lib/helpers";
 import { Berry } from "../../mascot/Berry";
 import type { Card } from "../../cards/types";
 import { DefinitionSide, TermSide, type OnInfo } from "./CardSides";
-import { answersMatch, answerText, shuffled } from "./studyModel";
+import { answersMatch, answerText } from "./studyModel";
 
 export function WriteMode({
   cards,
@@ -26,7 +27,7 @@ export function WriteMode({
 }) {
   const [seed, setSeed] = useState(() => Date.now() % 100000);
   // useState with a function computes the order once per round, not per keystroke.
-  const [order, setOrder] = useState(() => shuffled(cards, seed));
+  const [order, setOrder] = useState(() => seededShuffle(cards, seed));
   const [index, setIndex] = useState(0);
   const [typed, setTyped] = useState("");
   const [result, setResult] = useState<"right" | "wrong" | null>(null);
@@ -35,7 +36,7 @@ export function WriteMode({
   const restart = () => {
     const next = seed + 1;
     setSeed(next);
-    setOrder(shuffled(cards, next));
+    setOrder(seededShuffle(cards, next));
     setIndex(0);
     setTyped("");
     setResult(null);

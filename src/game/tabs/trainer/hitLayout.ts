@@ -56,9 +56,9 @@ export function mix(a: Point2, b: Point2, t: number): Point2 {
 }
 
 export const PX = 72;
-export const ATOM_R = 21;
-export const ATOM_R_SMALL = 13;
-export const ATOM_R_LARGE = 26;
+const ATOM_R = 21;
+const ATOM_R_SMALL = 13;
+const ATOM_R_LARGE = 26;
 
 export function toPx(v: Vec): Point2 {
   return { x: v.x * PX, y: -v.y * PX };
@@ -84,7 +84,7 @@ export interface DrawTarget {
 const SLOP: Record<PointerKind, number> = { touch: 10, pen: 6, mouse: 0 };
 
 /** Lone pair slot positions, the same fan MoleculeSvg draws. */
-export function lonePairSlots(scene: StepScene, atomId: AtomId): readonly Point2[] {
+function lonePairSlots(scene: StepScene, atomId: AtomId): readonly Point2[] {
   const atom = scene.atoms.find((candidate) => candidate.id === atomId);
   if (atom === undefined) return [];
   const r = atomRadius(atom.element);
@@ -95,37 +95,6 @@ export function lonePairSlots(scene: StepScene, atomId: AtomId): readonly Point2
     slots.push(toPx(add(atom.from.pos, fromAngle(angle, rimR))));
   }
   return slots;
-}
-
-/** Per species pixel offset from the authored layout, keyed by species id. */
-export type SpeciesOffsets = Readonly<Record<string, Point2>>;
-
-/**
- * Per ATOM pixel offset, for the orbit drag. Owner requirement, 2026-08-26,
- * matching the Alchemie videos: "if I drag the hydrogen I should be able to
- * circle the oxygen. Bonds should follow dynamically."
- *
- * A species offset moves a molecule; an orbit offset moves one atom within
- * it, constrained by the gesture code to the circle its bond allows. The two
- * compose: orbit is applied after the species carry, so a molecule dragged
- * across the canvas keeps its swung hydrogen where the student put it.
- */
-export type AtomOrbits = Readonly<Record<string, Point2>>;
-
-/** The scene with individual atoms moved by their orbit offsets. */
-export function applyAtomOrbits(scene: StepScene, orbits: AtomOrbits): StepScene {
-  if (Object.keys(orbits).length === 0) return scene;
-  const atoms = scene.atoms.map((atom) => {
-    const offset = orbits[atom.id];
-    if (offset === undefined) return atom;
-    const delta: Vec = { x: offset.x / PX, y: -offset.y / PX, z: 0 };
-    return {
-      ...atom,
-      from: { ...atom.from, pos: add(atom.from.pos, delta) },
-      to: { ...atom.to, pos: add(atom.to.pos, delta) },
-    };
-  });
-  return { ...scene, atoms };
 }
 
 /**
@@ -248,39 +217,6 @@ export function orbitPoint(neighbourPx: Point2, radiusPx: number, pointerPx: Poi
   return { x: neighbourPx.x + (dx / len) * radiusPx, y: neighbourPx.y + (dy / len) * radiusPx };
 }
 
-/** Which species each atom of the from state belongs to. */
-export function speciesOf(step: MechanismStep): ReadonlyMap<AtomId, string> {
-  const map = new Map<AtomId, string>();
-  for (const member of step.from.members) {
-    for (const atom of member.species.atoms) map.set(atom.id, member.species.id);
-  }
-  return map;
-}
-
-/**
- * The live layout: the authored scene with each species moved by where the
- * student dragged it. Every consumer of positions (targets, lone pair slots,
- * arrow endpoints, the canvas) reads the scene this returns, never the
- * authored one, so a drop site is wherever its atom is now. Offsets are in
- * pixels; scene units are bond lengths with y up, hence the divide and flip.
- */
-export function applySpeciesOffsets(scene: StepScene, step: MechanismStep, offsets: SpeciesOffsets): StepScene {
-  if (Object.keys(offsets).length === 0) return scene;
-  const owner = speciesOf(step);
-  const atoms = scene.atoms.map((atom) => {
-    const species = owner.get(atom.id);
-    const offset = species === undefined ? undefined : offsets[species];
-    if (offset === undefined) return atom;
-    const delta: Vec = { x: offset.x / PX, y: -offset.y / PX, z: 0 };
-    return {
-      ...atom,
-      from: { ...atom.from, pos: add(atom.from.pos, delta) },
-      to: { ...atom.to, pos: add(atom.to.pos, delta) },
-    };
-  });
-  return { ...scene, atoms };
-}
-
 export function atomCentre(scene: StepScene, atomId: AtomId): Point2 {
   const atom = scene.atoms.find((candidate) => candidate.id === atomId);
   if (atom === undefined) throw new Error(`no scene atom ${atomId}`);
@@ -377,21 +313,6 @@ export function bondMidpoint(step: MechanismStep, scene: StepScene, bondId: stri
     }
   }
   return null;
-}
-
-/** Of an atom's lone pair slots, the one facing `toward`. The slot the electrons leave from. */
-export function nearestLonePairSlot(scene: StepScene, atomId: AtomId, toward: Point2): Point2 {
-  const slots = lonePairSlots(scene, atomId);
-  let best: Point2 | null = null;
-  let bestD = Infinity;
-  for (const slot of slots) {
-    const d = distance(slot, toward);
-    if (d < bestD) {
-      bestD = d;
-      best = slot;
-    }
-  }
-  return best ?? atomCentre(scene, atomId);
 }
 
 /**

@@ -20,6 +20,8 @@
  * so every visitor gets a different line each time and never the same line twice in a row.
  */
 
+import { mulberry32 } from "@/lib/helpers";
+
 export type TipKind = "study" | "app" | "quote";
 
 export interface TipLine {
@@ -218,21 +220,6 @@ export const QUOTES: readonly TipLine[] = [
 export const ALL_LINES: readonly TipLine[] = [...STUDY_TIPS, ...APP_TIPS, ...QUOTES];
 
 /* -------------------------------------------------------------- rotation -- */
-
-/**
- * mulberry32: a tiny seeded random number generator. Same seed, same sequence, which is
- * what makes "seeded per day" work: every visitor's shuffle for a given date is the same.
- */
-function mulberry32(seed: number): () => number {
-  let a = seed >>> 0;
-  return () => {
-    a = (a + 0x6d2b79f5) >>> 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
 
 /** The day number for a date, counted in the visitor's own time zone. */
 export function dayNumber(date: Date): number {

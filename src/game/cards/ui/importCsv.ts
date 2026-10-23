@@ -185,7 +185,7 @@ export function columnsFrom(header: readonly string[]): ColumnMap {
 }
 
 /** Anki's positional default when the file carries no header. */
-export const POSITIONAL_COLUMNS: ColumnMap = Object.freeze({
+const POSITIONAL_COLUMNS: ColumnMap = Object.freeze({
   front: 0,
   back: 1,
   why: 2,
@@ -248,7 +248,7 @@ export interface ImportOptions {
  * the position in the file, and the note in the interface says that re-import
  * of a reordered file will make duplicates, because it will.
  */
-export function importedCardId(deckName: string, externalId: string | null, position: number): string {
+function importedCardId(deckName: string, externalId: string | null, position: number): string {
   const suffix = externalId === null ? `row${position}` : externalId;
   return `import:${deckName}:${suffix}`;
 }

@@ -41,6 +41,8 @@
  * apps/web/vitest.config.ts already declares.
  */
 
+import { clamp } from "@/lib/helpers";
+
 export interface Pt {
   readonly x: number;
   readonly y: number;
@@ -90,10 +92,6 @@ export function buildPath(points: readonly Pt[]): TracePath {
     cumulative: Object.freeze(cumulative),
     length: cumulative[cumulative.length - 1]!,
   });
-}
-
-function clamp(value: number, low: number, high: number): number {
-  return value < low ? low : value > high ? high : value;
 }
 
 /** The point that sits `along` px down the path, clamped to both ends. */

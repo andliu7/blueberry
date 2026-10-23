@@ -72,7 +72,7 @@ function speciesHolding(state: MechanismState, atomId: string): Species | null {
  * reader of the corpus would expect and a renamed atom does not silently move
  * every key.
  */
-export function canonicalAtom(state: MechanismState, atomId: string): string {
+function canonicalAtom(state: MechanismState, atomId: string): string {
   const species = speciesHolding(state, atomId);
   if (species === null) return atomId;
   const mine = atomSignature(species, atomId);
@@ -84,7 +84,7 @@ export function canonicalAtom(state: MechanismState, atomId: string): string {
 }
 
 /** The same idea for a bond: canonical when both of its ends are. */
-export function canonicalBond(state: MechanismState, bondId: string): string {
+function canonicalBond(state: MechanismState, bondId: string): string {
   for (const member of state.members) {
     const bond = member.species.bonds.find((b) => b.id === bondId);
     if (bond === undefined) continue;

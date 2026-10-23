@@ -21,6 +21,7 @@
  */
 
 import type { ChestSource, SavedChest } from "@blueberry/economy";
+import { plural } from "@/lib/helpers";
 import type { ProgressSource } from "../app/progress";
 import { checkpointUnitFor, isSectionFinal, pathwayNode } from "../demo/pathwayMap";
 import { reviewCheckpointFor } from "../tabs/pathway/reviewCheckpoints";
@@ -38,7 +39,7 @@ export const CHEST_COPY: Readonly<Record<ChestSource, { readonly title: string; 
 
 /** "1 diamond", "5 diamonds". */
 export function diamondsLabel(n: number): string {
-  return `${n} ${n === 1 ? "diamond" : "diamonds"}`;
+  return plural(n, "diamond", "diamonds");
 }
 
 /** The sheet's headline: "You earned a daily gift!", or "You earned 2 chests!" when several landed at once. */

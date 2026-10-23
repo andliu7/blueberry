@@ -18,7 +18,7 @@
 import type { ReagentSlot } from "@blueberry/curriculum";
 
 /** Most reagent tokens shown per slot; the full list is one tap away in Search. */
-export const TOKENS_PER_SLOT = 3;
+const TOKENS_PER_SLOT = 3;
 
 /**
  * True for a formula or abbreviation (NaBH4, PCC, n-BuLi, Ph3P=CH2, Swern),

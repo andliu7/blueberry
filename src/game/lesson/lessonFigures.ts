@@ -79,7 +79,7 @@ const DY = 9;
  * `up` says whether the FIRST step rises. Returns n + 1 vertices, so
  * `chain(24, 54, 3, true)` is butane drawn left to right.
  */
-export function chain(x: number, y: number, n: number, up: boolean): readonly Pt[] {
+function chain(x: number, y: number, n: number, up: boolean): readonly Pt[] {
   const pts: Pt[] = [{ x, y }];
   for (let i = 0; i < n; i += 1) {
     const last = pts[pts.length - 1] as Pt;

@@ -3,6 +3,7 @@ import { motion, useReducedMotion } from "motion/react";
 import { Check, Minus, Plus } from "lucide-react";
 import { AnimateDigits } from "@/components/ui/animate-digits";
 import { cn } from "@/lib/utils";
+import { clamp } from "@/lib/helpers";
 
 /**
  * A minute count you can spin, nudge or simply type.
@@ -63,8 +64,7 @@ export function DialMinutes({
   const angleAccum = useRef(0);
   const wheelAccum = useRef(0);
 
-  const clamp = (v: number) => Math.max(min, Math.min(max, v));
-  const commit = (v: number) => onChange(clamp(Math.round(v / step) * step));
+  const commit = (v: number) => onChange(clamp(Math.round(v / step) * step, min, max));
 
   useEffect(() => {
     if (editing) inputRef.current?.select();
@@ -152,7 +152,7 @@ export function DialMinutes({
     setEditing(false);
   }
 
-  const pct = max > min ? (clamp(value) - min) / (max - min) : 0;
+  const pct = max > min ? (clamp(value, min, max) - min) / (max - min) : 0;
   const RADIUS = 30;
   const CIRC = 2 * Math.PI * RADIUS;
 

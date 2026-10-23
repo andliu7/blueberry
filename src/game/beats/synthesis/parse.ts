@@ -50,7 +50,7 @@ const SUBSCRIPT_DIGITS = "₀₁₂₃₄₅₆₇₈₉";
  * Display text carries subscripts and a student pasting from a slide carries
  * them too. The authored answers are ASCII, so the two meet here.
  */
-export function normaliseTypedText(text: string): string {
+function normaliseTypedText(text: string): string {
   let out = "";
   for (const character of text.normalize("NFC")) {
     const subscript = SUBSCRIPT_DIGITS.indexOf(character);

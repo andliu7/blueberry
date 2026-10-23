@@ -13,7 +13,3 @@ export function TabSkeleton({ label }: { readonly label: string }) {
     </div>
   );
 }
-
-export function LineSkeleton({ className = "" }: { readonly className?: string }) {
-  return <div className={`skeleton h-5 rounded-lg ${className}`} aria-hidden />;
-}
