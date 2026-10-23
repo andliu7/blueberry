@@ -137,6 +137,7 @@ def build() -> dict:
             focus(mol(rel["ortho"], "¹⁴C beside it", hi=("[14#6]~[#6]-N",))),
         ],
     }
+    assert not u4.FAILURES, u4.FAILURES
     return ex
 
 
