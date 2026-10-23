@@ -137,8 +137,9 @@ export function CourseChip(): React.ReactElement | null {
       <button
         type="button"
         className="course-chip press"
-        // Pointer down, not click: the press is the first frame of feedback.
-        onPointerDown={() => setOpen(true)}
+        // Click, not pointer down: the face sinks on press and the sheet opens
+        // on release over the chip, so sliding off cancels.
+        onClick={() => setOpen(true)}
         aria-haspopup="dialog"
         aria-label={"Course: " + COURSE_LABEL[course] + ". Change course"}
       >
@@ -186,7 +187,7 @@ export function CourseChip(): React.ReactElement | null {
                   <button
                     type="button"
                     className={`course-row press${current ? " course-row--current" : ""}`}
-                    onPointerDown={() => choose(id)}
+                    onClick={() => choose(id)}
                     disabled={!openCourse}
                     aria-disabled={openCourse ? undefined : "true"}
                     aria-current={current ? "true" : undefined}
@@ -222,7 +223,7 @@ export function CourseChip(): React.ReactElement | null {
           </ul>
         </div>
 
-        <Press className="course-sheet__done" onPointerDown={close}>
+        <Press className="course-sheet__done" onClick={close}>
           Done
         </Press>
       </dialog>

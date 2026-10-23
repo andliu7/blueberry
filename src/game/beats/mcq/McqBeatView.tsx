@@ -411,7 +411,7 @@ export function McqBeatView({
             its own open sheet, so nothing here holds state for it. */}
         <div className="lesson-foot-row">
           <ToolRail className="lesson-tools" />
-          <button type="button" onPointerDown={onReport} aria-pressed={reported} className="lesson-report">
+          <button type="button" onClick={onReport} aria-pressed={reported} className="lesson-report">
             <FlagMark />
             {reported ? "Flagged, thank you" : "Something wrong with this question?"}
           </button>

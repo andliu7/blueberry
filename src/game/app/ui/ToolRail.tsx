@@ -68,7 +68,7 @@ export function ToolButtons({
           key={tool.id}
           type="button"
           data-tool={tool.id}
-          onPointerDown={() => onOpen(tool.id as ToolId)}
+          onClick={() => onOpen(tool.id as ToolId)}
           aria-haspopup="dialog"
           aria-label={`Open the ${tool.label.toLowerCase()}`}
           title={tool.label}
@@ -121,14 +121,14 @@ export function ToolSheet({ tool, onClose }: { readonly tool: ToolId | null; rea
             <div className="flex items-center gap-1.5">
               <a
                 href={hrefForTab(tool)}
-                onPointerDown={onClose}
+                onClick={onClose}
                 className="lip-button inline-flex min-h-11 items-center px-3 text-scale-xs"
               >
                 Open as a page
               </a>
               <button
                 type="button"
-                onPointerDown={onClose}
+                onClick={onClose}
                 aria-label="Close"
                 className="lip-button inline-flex min-h-11 min-w-11 items-center justify-center text-scale-lg"
               >

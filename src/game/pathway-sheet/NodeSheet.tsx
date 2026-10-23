@@ -37,12 +37,12 @@
  * Charge sheet the integrator opens next, so this component touches no
  * economy state at all.
  *
- * THE PRESS IS ACKNOWLEDGED ON POINTER DOWN. Callbacks fire on onPointerDown,
- * with onClick as the keyboard path (Enter and Space produce no pointer
- * event), and preventDefault so a wrapping form or anchor cannot race it.
- * A pointer activation is followed by a click for the same gesture, so
- * callbacks must be idempotent per activation; the pathway's enterHandlers
- * set the same contract and setState-shaped callers meet it for free.
+ * THE PRESS IS ACKNOWLEDGED ON POINTER DOWN, AND COMMITS ON RELEASE. The sink
+ * (:active) is the acknowledgement; callbacks fire on onClick, which a pointer
+ * sends only on release over the key (so sliding off cancels) and Enter and
+ * Space send too. preventDefault stops a wrapping form or anchor racing it.
+ * One activation is one call; the pathway's enterHandlers set the same
+ * contract.
  */
 
 import { useEffect, useRef } from "react";
@@ -57,10 +57,9 @@ import { browserStorage, nodeOfHref, savedCount } from "../resume/lessonSave";
 import "../resume/resume.css";
 
 
-/** The pointer-down-first activation pair. See the header note on idempotence. */
+/** The commit-on-release activation. See the header note. */
 function pressHandlers(act: () => void) {
   return {
-    onPointerDown: () => act(),
     onClick: (event: { preventDefault: () => void }) => {
       event.preventDefault();
       act();

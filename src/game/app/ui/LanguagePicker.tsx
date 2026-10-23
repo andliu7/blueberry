@@ -40,7 +40,7 @@ export function LanguageList({ onPick }: { readonly onPick?: (code: string) => v
                 role="radio"
                 aria-checked={selected}
                 lang={language.code}
-                onPointerDown={() => {
+                onClick={() => {
                   languageStore.set(language.code);
                   onPick?.(language.code);
                 }}
@@ -90,7 +90,7 @@ export function LanguageSheet({ open, onClose }: { readonly open: boolean; reado
     >
       <div className="flex items-center justify-between gap-3 pb-3">
         <h2 className="bb-h2">{translate(current, "language.title")}</h2>
-        <button type="button" onPointerDown={onClose} aria-label="Close" className="press flex min-h-11 min-w-11 items-center justify-center rounded-full border-2 border-bb-border text-scale-lg">
+        <button type="button" onClick={onClose} aria-label="Close" className="press flex min-h-11 min-w-11 items-center justify-center rounded-full border-2 border-bb-border text-scale-lg">
           ×
         </button>
       </div>

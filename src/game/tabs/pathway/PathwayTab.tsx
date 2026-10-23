@@ -430,9 +430,10 @@ function MotifGlyph({ badge }: { readonly badge: NodeBadge }) {
  *
  * The anchor stays an anchor: it keeps its href for the middle click, the
  * keyboard and the status bar, and the sheet takes over the plain activation.
- * `onPointerDown` is what opens it, so the acknowledgement and the action are
- * the same frame per CLAUDE.md; `onClick` opens it too, because a keyboard
- * Enter never produces a pointer event, and preventDefault is what stops the
+ * `onClick` is what opens it: a pointer sends it only on release over the
+ * node, so a press that slides off (or a scroll that starts on the node)
+ * opens nothing, and a keyboard Enter sends it too. The sink on pointer down
+ * is the acknowledgement per CLAUDE.md, and preventDefault is what stops the
  * href from racing the sheet.
  */
 export type OpenNode = (sheet: SheetNode, charge: ChargeGateNode | null) => void;
@@ -448,7 +449,6 @@ export type OpenNode = (sheet: SheetNode, charge: ChargeGateNode | null) => void
  */
 function enterHandlers(onOpenNode: OpenNode, sheet: SheetNode, charge: ChargeGateNode | null) {
   return {
-    onPointerDown: () => onOpenNode(sheet, charge),
     onClick: (event: { preventDefault: () => void }) => {
       event.preventDefault();
       onOpenNode(sheet, charge);
@@ -1092,7 +1092,7 @@ function CoursePicker() {
         <p className="text-scale-sm text-bb-muted-foreground">
           The placement quiz picks one for you in under three minutes, or choose a course directly.
         </p>
-        <Press onPointerDown={() => navigate(hrefForOnboarding("quiz"))}>Take the placement quiz</Press>
+        <Press onClick={() => navigate(hrefForOnboarding("quiz"))}>Take the placement quiz</Press>
         <div className="mt-2 grid w-full grid-cols-2 gap-2">
           {/* A CLOSED COURSE IS A DISABLED KEY WITH ITS TAG (owner, 20 Oct):
               grey, not pressable, and it says "Not open yet" (or "Opening
@@ -1107,7 +1107,7 @@ function CoursePicker() {
                 className="flex-col text-scale-sm"
                 disabled={!isCourseOpen(course)}
                 aria-disabled={isCourseOpen(course) ? undefined : "true"}
-                onPointerDown={() => {
+                onClick={() => {
                   if (isCourseOpen(course)) progress.setCourse(course, []);
                 }}
               >
@@ -2671,7 +2671,7 @@ export default function PathwayTab({ reducedMotion }: { readonly reducedMotion: 
         variant="secondary"
         size="sm"
         className="self-start"
-        onPointerDown={() => progress.setCourse(course, snapshot.startTopics)}
+        onClick={() => progress.setCourse(course, snapshot.startTopics)}
       >
         Change track in Courses
       </Press>

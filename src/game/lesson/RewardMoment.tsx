@@ -1374,10 +1374,11 @@ export function RewardMoment({
             is the minimum for a control and the wrong size for the one thing
             the screen is asking a student to press. */}
         <Press
-          onPointerDown={(event) => {
-            event.stopPropagation();
-            onContinue();
-          }}
+          // The stage skips its animation on pointer down; stopping it here
+          // keeps a press on CLAIM from also skipping. The claim itself lands
+          // on click, on release over the key, so sliding off cancels.
+          onPointerDown={(event) => event.stopPropagation()}
+          onClick={onContinue}
           className="reward-claim w-full"
         >
           {continueLabel}

@@ -292,11 +292,12 @@ function FreezeRow({ model }: { readonly model: StreakScreenModel }) {
         className="press streak-freeze-buy"
         data-buy-freeze
         disabled={blocked}
-        // The press is handled on pointer down and the spend is synchronous, so
-        // the acknowledgement and the new slot land in the same frame. That is
-        // CLAUDE.md's press contract with nothing async in the way.
-        onPointerDown={(event) => {
-          event.stopPropagation();
+        // The face sinks on pointer down and the spend lands on click, on
+        // release over the key, so sliding off buys nothing. Pointer down only
+        // stops the stage's skip; the spend is synchronous, so the new slot
+        // lands in the release frame.
+        onPointerDown={(event) => event.stopPropagation()}
+        onClick={() => {
           if (blocked) return;
           progress.spend("streak_freeze", STREAK_FREEZE_COST, "streak-screen");
         }}
@@ -452,10 +453,9 @@ export function StreakScreen({ receipt, reducedMotion, onContinue, continueLabel
 
       <div className="relative mx-auto w-full max-w-md shrink-0 p-4 pb-safe md:max-w-lg md:p-6">
         <Press
-          onPointerDown={(event) => {
-            event.stopPropagation();
-            onContinue();
-          }}
+          // Pointer down only stops the stage's skip; Continue lands on click.
+          onPointerDown={(event) => event.stopPropagation()}
+          onClick={onContinue}
           className="w-full"
         >
           {continueLabel}

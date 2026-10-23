@@ -40,11 +40,12 @@
  * spend is an appended event whose consequences are derived, never assigned.
  * Nothing on this sheet is added up here.
  *
- * THE PRESS IS THE COMMIT. CLAUDE.md: the pressed state renders on pointer down
- * before any work happens. Start spends on `onPointerDown`, so the first frame
- * of the halo thinning and the first frame of the pressed state are the same
- * frame. Under reduced motion the spend still happens on that press and the
- * route changes immediately: the settled frame is the destination.
+ * THE RELEASE IS THE COMMIT. CLAUDE.md: the pressed state renders on pointer
+ * down before any work happens, and that sink (:active) is the instant
+ * acknowledgement. Start spends on `onClick`, on release over the key, so a
+ * press that slides off spends nothing. Under reduced motion the spend still
+ * happens on that release and the route changes immediately: the settled
+ * frame is the destination.
  */
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -323,7 +324,7 @@ export function ChargeGate({ node, onClose, reducedMotion, onStarted, restartSav
 
           {/* START OVER from the resume screen: the safe key is the big one (resume/restartCopy.ts). */}
           {isRestart(model, restartSaved) ? (
-            <Press block size="lg" data-charge-keep onPointerDown={onClose}>
+            <Press block size="lg" data-charge-keep onClick={onClose}>
               {model.dismissLabel}
             </Press>
           ) : null}
@@ -334,7 +335,7 @@ export function ChargeGate({ node, onClose, reducedMotion, onStarted, restartSav
             variant={isRestart(model, restartSaved) ? "ghost" : "primary"}
             className={isRestart(model, restartSaved) ? "restart-erase" : ""}
             data-charge-primary
-            onPointerDown={() => {
+            onClick={() => {
               if (model.state === "empty") {
                 navigate(REVIEW_HREF);
                 onClose();
@@ -352,7 +353,7 @@ export function ChargeGate({ node, onClose, reducedMotion, onStarted, restartSav
               variant="secondary"
               data-charge-topup
               disabled={!model.topUp.affordable}
-              onPointerDown={topUp}
+              onClick={topUp}
             >
               <DiamondMark className="h-5 w-5 shrink-0" />
               <span>{model.topUp.label}</span>
@@ -361,7 +362,7 @@ export function ChargeGate({ node, onClose, reducedMotion, onStarted, restartSav
           {model.topUp === null ? null : <p className="charge-note">{model.topUp.note}</p>}
 
           {isRestart(model, restartSaved) ? null : (
-            <Press block variant="ghost" onPointerDown={onClose}>
+            <Press block variant="ghost" onClick={onClose}>
               {model.dismissLabel}
             </Press>
           )}

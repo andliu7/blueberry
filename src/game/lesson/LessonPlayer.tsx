@@ -311,7 +311,7 @@ export function LessonPlayer({ topic, problems, reducedMotion, onExit, onFinishe
     return (
       <Card>
         <p className="text-scale-sm text-bb-muted-foreground">No problems are authored for this topic yet.</p>
-        <Press variant="secondary" className="mt-3" onPointerDown={onExit}>
+        <Press variant="secondary" className="mt-3" onClick={onExit}>
           Back
         </Press>
       </Card>
@@ -400,7 +400,7 @@ export function LessonPlayer({ topic, problems, reducedMotion, onExit, onFinishe
       <header className="flex shrink-0 items-center gap-3">
         <button
           type="button"
-          onPointerDown={onExit}
+          onClick={onExit}
           aria-label="Leave this lesson"
           title="Leave this lesson"
           /* The committed mechanism frame's filled violet squircle, shared

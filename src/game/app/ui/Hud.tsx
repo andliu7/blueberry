@@ -169,9 +169,9 @@
  *  - FOUR STREAK STATES, FOUR SHAPES. `streak.state` in hudModel; FlameMark
  *    draws them. The number stays in the streak's ink whenever a run exists.
  *
- * PRESS. Each button carries `.press` and opens its sheet on `onPointerDown`,
- * so the acknowledgement and the action are the same frame. CLAUDE.md's rule is
- * that the press itself is the first frame of feedback.
+ * PRESS. Each button carries `.press`, whose :active sink is the first frame of
+ * feedback (CLAUDE.md), and opens its sheet on `onClick`, on release over the
+ * button, so a press that slides off opens nothing.
  */
 
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
@@ -295,7 +295,7 @@ function HudButton({ id, label, rank, onOpen, streak, children }: ItemProps) {
       // counter; hudTargets.ts finds it by this attribute (HUD_DIAMONDS_ATTR)
       // so the chest never has to import the header. Only diamonds carries it.
       data-hud-diamonds={id === "diamonds" ? "" : undefined}
-      onPointerDown={(event) => {
+      onClick={(event) => {
         const rect = event.currentTarget.getBoundingClientRect();
         onOpen(id, {
           x: rect.left + rect.width / 2,
@@ -765,7 +765,7 @@ function HudSheet({
             <HudSheetStrip model={model} id={readout.id} reducedMotion={reducedMotion} />
             <h2 className="hud-panel-headline">{readout.headline}</h2>
             <p className="hud-panel-line">{readout.line}</p>
-            <Press block onPointerDown={onClose} className="mt-1">
+            <Press block onClick={onClose} className="mt-1">
               Keep going
             </Press>
           </div>

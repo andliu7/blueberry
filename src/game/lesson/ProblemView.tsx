@@ -94,7 +94,7 @@ export function ProblemView({ problem, locked, onSubmit, onSkip }: ProblemViewPr
             This one asks you to draw a structure. The drawing canvas for structures arrives with
             the editor route; for now this question is skipped without counting against you.
           </p>
-          <Press variant="secondary" className="mt-3 self-start" onPointerDown={onSkip} disabled={locked}>
+          <Press variant="secondary" className="mt-3 self-start" onClick={onSkip} disabled={locked}>
             Skip this one
           </Press>
         </div>
@@ -112,7 +112,7 @@ export function ProblemView({ problem, locked, onSubmit, onSkip }: ProblemViewPr
             board lives in the beats runner and is not wired into lessons yet, so it is skipped
             without counting against you.
           </p>
-          <Press variant="secondary" className="mt-3 self-start" onPointerDown={onSkip} disabled={locked}>
+          <Press variant="secondary" className="mt-3 self-start" onClick={onSkip} disabled={locked}>
             Skip this one
           </Press>
         </div>
@@ -150,12 +150,9 @@ function OptionList({
               type="button"
               disabled={locked}
               aria-pressed={active}
-              onPointerDown={() => {
-                if (locked) return;
-                setPicked(option.id);
-              }}
               onClick={() => {
                 if (locked) return;
+                setPicked(option.id);
                 onPick(option.id);
               }}
               /* THE SAME OPTION VOCABULARY THE BEAT SURFACES USE, and the
@@ -220,12 +217,9 @@ function OptionTiles({
               disabled={locked}
               aria-pressed={active}
               data-visual={figure === null ? "name" : "structure"}
-              onPointerDown={() => {
-                if (locked) return;
-                setPicked(option.id);
-              }}
               onClick={() => {
                 if (locked) return;
+                setPicked(option.id);
                 onPick(option.id);
               }}
               className="option-tile"
@@ -270,12 +264,9 @@ function ReasonChips({
               type="button"
               disabled={locked}
               aria-pressed={active}
-              onPointerDown={() => {
-                if (locked) return;
-                setPicked(option.id);
-              }}
               onClick={() => {
                 if (locked) return;
+                setPicked(option.id);
                 onPick(option.id);
               }}
               className="reason-chip"
@@ -323,7 +314,7 @@ function MajorProduct({
         <ChipPress
           className="w-full"
           disabled={locked || candidateId === null || reasonId === null}
-          onPointerDown={() => {
+          onClick={() => {
             if (candidateId === null) return;
             onSubmit({ kind: "major_product", candidateId, reasonId });
           }}

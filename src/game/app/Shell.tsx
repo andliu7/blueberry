@@ -236,9 +236,9 @@ function HeaderTools({ route }: { readonly route: Route }) {
       <button
         type="button"
         data-header-tools
-        // Pointer down, not click. CLAUDE.md: the press is the first frame of
-        // feedback, and it renders before any work happens.
-        onPointerDown={() => setMenuOpen(true)}
+        // Click, not pointer down: the face sinks on press (:active) and the
+        // menu opens on release over the button, so sliding off cancels.
+        onClick={() => setMenuOpen(true)}
         aria-haspopup="dialog"
         aria-label="Tools: the periodic table and the reaction search"
         className="lip-button header-tools inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center gap-2"
@@ -281,7 +281,7 @@ function HeaderTools({ route }: { readonly route: Route }) {
                   type="button"
                   className="tools-menu__row"
                   data-tool-row={entry.id}
-                  onPointerDown={() => {
+                  onClick={() => {
                     setMenuOpen(false);
                     setTool(entry.id as ToolId);
                   }}

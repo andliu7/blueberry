@@ -175,7 +175,7 @@ export default function BerryGallery({ reducedMotion }: { readonly reducedMotion
             <button
               type="button"
               className="press min-h-11 rounded-xl border border-bb-border bg-bb-card px-4 text-scale-sm font-semibold text-bb-foreground"
-              onPointerDown={() => setTransient("charred")}
+              onClick={() => setTransient("charred")}
             >
               Play charred, recovers in {STATE_SHAPE.charred.recoverMs}ms
             </button>

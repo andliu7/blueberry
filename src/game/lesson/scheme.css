@@ -332,3 +332,10 @@
   border-color: var(--bb-primary);
   background: color-mix(in srgb, var(--bb-primary) 12%, transparent);
 }
+
+/* The hold: the picked look while the finger is down, before the pick lands on
+   release (ProblemView.tsx). Sliding off drops it and picks nothing. */
+.reason-chip:active:not(:disabled) {
+  border-color: var(--bb-primary);
+  background: color-mix(in srgb, var(--bb-primary) 12%, transparent);
+}

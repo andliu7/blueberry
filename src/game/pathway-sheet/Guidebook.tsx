@@ -27,10 +27,9 @@ import { MoleculeGlyph } from "./MoleculeGlyph";
 import type { GuidebookContent, SchemeStep } from "./guidebookContent";
 import "./pathway-sheet.css";
 
-/** Pointer-down-first activation, same contract as the sheet's buttons. */
+/** Commit-on-release activation, same contract as the sheet's buttons. */
 function pressHandlers(act: () => void) {
   return {
-    onPointerDown: () => act(),
     onClick: (event: { preventDefault: () => void }) => {
       event.preventDefault();
       act();

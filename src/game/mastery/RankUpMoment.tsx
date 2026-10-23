@@ -165,9 +165,9 @@ export function RankUpMoment({ receipt, reducedMotion, onContinue }: RankUpMomen
       <div className={`rankup-actions rankup-in${at(BEATS.action)}`}>
         {/* The taxonomy sheet's CONTINUE, which is the periwinkle chip and not
             the green one: green is CLAIM, and the reward moment already
-            collected. Pointer down, so the press is the first frame of
-            feedback and the 100 ms budget is met by construction. */}
-        <ChipPress variant="check" className="w-full" onPointerDown={onContinue}>
+            collected. The sink on pointer down is the first frame of
+            feedback; Continue lands on click, on release over the key. */}
+        <ChipPress variant="check" className="w-full" onClick={onContinue}>
           Continue
         </ChipPress>
       </div>

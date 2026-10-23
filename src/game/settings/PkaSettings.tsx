@@ -48,10 +48,10 @@
  *   - `useId` gives the rejection paragraph an id unique to its row, so the
  *     input can point `aria-errormessage` at ITS message and not at another
  *     row's.
- *   - Every control fires on `onPointerDown` for the acknowledgement AND on
- *     `onClick` so a keyboard works, which is safe because the store's setters
- *     are idempotent. That is the CLAUDE.md press contract: the pressed state
- *     is the first frame of feedback and nothing here waits on it.
+ *   - Every control fires on `onClick`, on release over it, so a press that
+ *     slides off changes nothing and a keyboard works. That is the CLAUDE.md
+ *     press contract: the pressed state (:active) is the first frame of
+ *     feedback and nothing here waits on it.
  */
 
 import {
@@ -251,7 +251,6 @@ export default function PkaSettings() {
         <button
           type="button"
           disabled={changed === 0}
-          onPointerDown={() => pkaSettings.clearAllOverrides()}
           onClick={() => pkaSettings.clearAllOverrides()}
           className="btn3d btn3d--secondary mt-3"
         >
@@ -337,7 +336,6 @@ function PresetChooser({ selectedId }: { readonly selectedId: string }) {
             ref={(node) => {
               buttons.current[index] = node;
             }}
-            onPointerDown={() => pkaSettings.setPreset(option.id)}
             onClick={() => pkaSettings.setPreset(option.id)}
             className="me-choice"
           >
@@ -495,10 +493,6 @@ function LadderRow({
           {rung.origin === "override" ? (
             <button
               type="button"
-              onPointerDown={() => {
-                pkaSettings.clearOverride(rung.id);
-                setOpen(false);
-              }}
               onClick={() => {
                 pkaSettings.clearOverride(rung.id);
                 setOpen(false);

@@ -57,12 +57,12 @@ export function ReactionStrip({ outcome, headline, caption = null, berry, contin
           {caption !== null ? <p className="mt-1 text-scale-sm text-bb-muted-foreground">{caption}</p> : null}
         </div>
         <div className="hidden md:block">
-          <ChipPress onPointerDown={onContinue}>{continueLabel}</ChipPress>
+          <ChipPress onClick={onContinue}>{continueLabel}</ChipPress>
         </div>
       </div>
       {children}
       <div className="md:hidden">
-        <ChipPress className="w-full" onPointerDown={onContinue}>
+        <ChipPress className="w-full" onClick={onContinue}>
           {continueLabel}
         </ChipPress>
       </div>

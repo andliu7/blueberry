@@ -40,7 +40,7 @@ export interface LessonVideoProps {
 export function LessonVideo({ title, src, transcript, minutes, onSkip }: LessonVideoProps) {
   const [showTranscript, setShowTranscript] = useState(false);
   const transcriptToggle = (
-    <Press variant="ghost" size="sm" className="shrink-0" onPointerDown={() => setShowTranscript((s) => !s)}>
+    <Press variant="ghost" size="sm" className="shrink-0" onClick={() => setShowTranscript((s) => !s)}>
       {showTranscript ? "Hide transcript" : "Transcript"}
     </Press>
   );
@@ -65,7 +65,7 @@ export function LessonVideo({ title, src, transcript, minutes, onSkip }: LessonV
           {transcriptToggle}
           <button
             type="button"
-            onPointerDown={onSkip}
+            onClick={onSkip}
             aria-label="Skip the video and go to the questions"
             title="Skip the video and go to the questions"
             className="press flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-full border-2 border-bb-border text-scale-base font-semibold text-bb-muted-foreground"
@@ -84,7 +84,7 @@ export function LessonVideo({ title, src, transcript, minutes, onSkip }: LessonV
         <video src={src} controls muted playsInline preload="metadata" className="h-full w-full" aria-label={title}>
           {transcript !== undefined ? <track kind="captions" label="Transcript" /> : null}
         </video>
-        <Press variant="secondary" size="sm" onPointerDown={onSkip} className="absolute right-3 top-3">
+        <Press variant="secondary" size="sm" onClick={onSkip} className="absolute right-3 top-3">
           Skip video
         </Press>
       </div>

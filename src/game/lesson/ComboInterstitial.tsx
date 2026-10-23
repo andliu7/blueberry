@@ -134,7 +134,7 @@ export function ComboInterstitial({ count, topicLabel, reaction, reactionKey, co
             bottom corners are at the screen edge where a radius means nothing. */}
         <footer className="rounded-t-2xl border-t border-bb-border bg-bb-card">
           <div className="mx-auto flex w-full max-w-2xl justify-end p-4 pb-safe md:p-6">
-            <Press onPointerDown={onContinue} className="w-full md:w-auto md:min-w-48">
+            <Press onClick={onContinue} className="w-full md:w-auto md:min-w-48">
               Continue
             </Press>
           </div>

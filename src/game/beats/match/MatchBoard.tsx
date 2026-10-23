@@ -387,13 +387,13 @@ export function Board({
           <div className="flex flex-wrap items-center gap-2">
             <Press
               variant="secondary"
-              onPointerDown={() => setShowWorkings((shown) => !shown)}
+              onClick={() => setShowWorkings((shown) => !shown)}
               aria-expanded={showWorkings}
             >
               {showWorkings ? "Hide the reasons" : "See every pairing"}
             </Press>
             {onContinue === undefined ? null : (
-              <ChipPress onPointerDown={onContinue}>Continue</ChipPress>
+              <ChipPress onClick={onContinue}>Continue</ChipPress>
             )}
           </div>
           {showWorkings ? <Workings spec={spec} state={state} /> : null}
@@ -498,12 +498,12 @@ function Column({
             <li key={id} className="flex min-h-12 max-h-40 flex-1 shrink-0">
               <button
                 type="button"
-                // The press contract: selection happens on pointer down, before
-                // anything else, so the acknowledgement is the first frame.
-                // Keyboard gets its own handler because a key press never emits
-                // a pointer event, and having both a click and a pointer down
-                // handler on one button is how a tap fires twice.
-                onPointerDown={() => {
+                // The press contract: the face sinks on pointer down (:active)
+                // and the pick lands on click, on release over the tile, so a
+                // drag off cancels. onKeyDown handles Enter and Space itself and
+                // its preventDefault stops the browser synthesising a second
+                // click, so a key still picks exactly once.
+                onClick={() => {
                   if (!gone) onPick(id);
                 }}
                 onKeyDown={(event) => {
