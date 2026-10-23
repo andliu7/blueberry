@@ -24,6 +24,7 @@ const GUIDES: Readonly<Record<string, UnitGuide>> = {
 
 const LATER: Readonly<Record<string, () => Promise<UnitGuide>>> = {
   u2: () => import("./u2Guide").then((m) => m.U2_GUIDE),
+  u3: () => import("./u3Guide").then((m) => m.U3_GUIDE),
   u4: () => import("./u4Guide").then((m) => m.U4_GUIDE),
   u6: () => import("./u6Guide").then((m) => m.U6_GUIDE),
   u7: () => import("./u7Guide").then((m) => m.U7_GUIDE),
