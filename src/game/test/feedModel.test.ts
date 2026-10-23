@@ -14,7 +14,7 @@
 
 import { describe, expect, it } from "vitest";
 import { DAILY_GOAL_XP, DEFAULT_DAILY_GOAL, type EconomyEvent } from "@blueberry/economy";
-import { feedModel, feedReminders, QUEST_CORRECT_TARGET, welcomeCard, type QuestMotif } from "../tabs/feed/feedModel";
+import { feedModel, feedReminders, QUEST_CORRECT_TARGET, welcomeCard, welcomesBack, type QuestMotif } from "../tabs/feed/feedModel";
 import { hrefForTab } from "../app/routes";
 
 const TZ = "UTC";
@@ -204,7 +204,7 @@ describe("the motif each quest wears", () => {
 /* Welcome back and reminders (owner, item 11). */
 
 describe("welcomeCard", () => {
-  const base = { name: null, nextLesson: "Alkene addition", saved: false, hasCourse: true, signedIn: true } as const;
+  const base = { name: null, nextLesson: "Alkene addition", saved: false, hasCourse: true, signedIn: true, playedHere: true } as const;
 
   it("greets by first name, or plainly with no name", () => {
     expect(welcomeCard({ ...base, name: "Ada Lovelace" }).heading).toBe("Welcome back, Ada!");
@@ -231,6 +231,28 @@ describe("welcomeCard", () => {
   it("asks for a sign-in only when signed out", () => {
     expect(welcomeCard(base).askSignIn).toBe(false);
     expect(welcomeCard({ ...base, signedIn: false }).askSignIn).toBe(true);
+  });
+
+  it("offers a lesson, not 'pick up', on a device with nothing played yet", () => {
+    const fresh = welcomeCard({ ...base, name: "Ada Lovelace", playedHere: false });
+    expect(fresh.heading).toBe("Welcome back, Ada!");
+    expect(fresh.button).toBe("Start a lesson");
+    expect(fresh.href).toBe(hrefForTab("pathway"));
+  });
+});
+
+describe("welcomesBack", () => {
+  it("welcomes a signed-in student on a new device whose local journal is empty", () => {
+    expect(welcomesBack({ playedHere: false, signedIn: true })).toBe(true);
+  });
+
+  it("welcomes anyone with activity on this device, signed in or not", () => {
+    expect(welcomesBack({ playedHere: true, signedIn: false })).toBe(true);
+    expect(welcomesBack({ playedHere: true, signedIn: true })).toBe(true);
+  });
+
+  it("gives a new signed-out student the first-win card instead", () => {
+    expect(welcomesBack({ playedHere: false, signedIn: false })).toBe(false);
   });
 });
 

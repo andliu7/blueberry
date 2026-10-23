@@ -94,6 +94,12 @@ export interface ProgressSnapshot {
   readonly activeDays: readonly string[];
   readonly onboardingDone: boolean;
   readonly displayName: string | null;
+  /**
+   * The nickname for the boards, kept apart from `displayName` so a league
+   * handle never becomes the account's name and a real name never lands on a
+   * board unchosen. Null keeps the student off the boards.
+   */
+  readonly leagueName: string | null;
   /** The append only history. The only thing this store actually persists. */
   readonly journal: readonly EconomyEvent[];
   /** Every economy number, derived from the journal at the moment of the last commit. */
@@ -125,6 +131,8 @@ export interface ProgressSource {
   completeLesson(topic: TopicId, correct: number, attempted: number, problemIds: readonly ProblemId[]): number;
   finishOnboarding(): void;
   setDisplayName(name: string): void;
+  /** A blank name clears it, which keeps the student off the boards. */
+  setLeagueName(name: string): void;
   reset(): void;
   /** Append any economy event. Everything below is a named shortcut for this. */
   append(event: EconomyEvent): Receipt;
@@ -199,6 +207,7 @@ interface StoredProgress {
   readonly attemptedProblems: readonly ProblemId[];
   readonly onboardingDone: boolean;
   readonly displayName: string | null;
+  readonly leagueName: string | null;
   readonly journal: readonly EconomyEvent[];
 }
 
@@ -209,6 +218,7 @@ const EMPTY_STORED: StoredProgress = Object.freeze({
   attemptedProblems: [],
   onboardingDone: false,
   displayName: null,
+  leagueName: null,
   journal: [],
 });
 
@@ -504,6 +514,7 @@ function project(raw: StoredProgress, receipt: Receipt | null, now: string): Pro
     activeDays: [...days].sort(),
     onboardingDone: stored.onboardingDone,
     displayName: stored.displayName,
+    leagueName: stored.leagueName,
     journal: stored.journal,
     economy,
     lastReceipt: receipt,
@@ -579,6 +590,7 @@ function migrateFromV1(raw: string): StoredProgress {
     attemptedProblems: parsed.attemptedProblems ?? [],
     onboardingDone: parsed.onboardingDone ?? false,
     displayName: parsed.displayName ?? null,
+    leagueName: null,
     journal,
   };
 }
@@ -728,6 +740,9 @@ export function createLocalProgress(): ProgressSource {
     },
     setDisplayName(name) {
       commit({ ...stored, displayName: name.trim() === "" ? null : name.trim() }, receipt);
+    },
+    setLeagueName(name) {
+      commit({ ...stored, leagueName: name.trim() === "" ? null : name.trim() }, receipt);
     },
     reset() {
       commit(EMPTY_STORED, null);

@@ -20,8 +20,12 @@ export async function saveAccountName(userId: string, name: string): Promise<{ e
   try {
     const supabase = await getSupabase();
     if (!supabase) return { error: "Sign-in is not set up here, so the name cannot be saved." };
-    const { error } = await supabase.from("profiles").update({ full_name: name }).eq("id", userId);
-    return error ? { error: "Your name did not save. Check your connection and try again." } : {};
+    // `.select` returns the rows the update changed. Zero rows is no error to
+    // Postgres (a missing profiles row), but nothing reached the account.
+    const { data, error } = await supabase.from("profiles").update({ full_name: name }).eq("id", userId).select("id");
+    if (error) return { error: "Your name did not save. Check your connection and try again." };
+    if (!data || data.length === 0) return { error: "Your account was not found, so your name did not save. Sign out, sign back in and try again." };
+    return {};
   } catch {
     return { error: "Your name did not save. Check your connection and try again." };
   }

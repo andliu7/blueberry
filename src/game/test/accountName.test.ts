@@ -42,11 +42,13 @@ describe("firstNameOf", () => {
 });
 
 describe("saveAccountName", () => {
-  function fakeClient(error: unknown) {
-    const eq = vi.fn(() => Promise.resolve({ error }));
+  /** `rows` is what `.select("id")` hands back: the rows the update changed. */
+  function fakeClient(error: unknown, rows: unknown = error ? null : [{ id: "u1" }]) {
+    const select = vi.fn(() => Promise.resolve({ data: rows, error }));
+    const eq = vi.fn(() => ({ select }));
     const update = vi.fn(() => ({ eq }));
     const from = vi.fn(() => ({ update }));
-    return { from, update, eq, client: { from } };
+    return { from, update, eq, select, client: { from } };
   }
 
   it("updates the student's own profiles row", async () => {
@@ -57,6 +59,12 @@ describe("saveAccountName", () => {
     expect(fake.from).toHaveBeenCalledWith("profiles");
     expect(fake.update).toHaveBeenCalledWith({ full_name: "Ada Lovelace" });
     expect(fake.eq).toHaveBeenCalledWith("id", "u1");
+    expect(fake.select).toHaveBeenCalledWith("id");
+  });
+
+  it("returns an error when no row matched, so the UI never says saved for nothing", async () => {
+    getSupabase.mockResolvedValue(fakeClient(null, []).client);
+    expect((await saveAccountName("u1", "Ada")).error).toEqual(expect.any(String));
   });
 
   it("returns an error when the update fails", async () => {

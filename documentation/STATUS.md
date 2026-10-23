@@ -182,6 +182,13 @@ Feed and accounts
   no longer wipes it (progress.ts storage listener), and the Feed opens on "Welcome back, <name>"
   with "Pick up where you left off" to the path, reminders, and one honest friends line.
   #/app first open 340.2 KB. Signed-in view not checked in a browser (needs a real sign-in).
+  Fix round 23 Oct: the league nickname is its own device field again (progress.ts leagueName), so
+  it never becomes the account name and a real name never lands on a board unchosen; a blank save
+  keeps the student off. A signed-in student with an empty journal (new device, iPad app) gets
+  Welcome back with "Start a lesson". The return to #/app fires only on SIGNED_IN and is dropped
+  when the student browses away from #/signin. A name save that matched no profiles row now says
+  so. #/app first open 341.8 KB. Pre-existing dead code: src/components/ui/profile-fields.tsx is
+  only reachable through auth-card.tsx, which nothing imports.
 - Items 14 and 27 (core) DONE 23 Oct: the glossary page (556c370) now has an "i" beside every
   named compound and reagent shorthand on a Cards tab card (term list, Test and Write question,
   Write's shown answer; Flashcards shows the same as a chip row under the card, Match none, since

@@ -86,7 +86,7 @@ import { useStudyState } from "../social/useStudyState";
 import "../social/social.css";
 import { activityFeed, type ActivityItem, type ActivityKind } from "./activityModel";
 import { FeedBackdrop } from "./FeedBackdrop";
-import { dailyQuestRows, feedModel, feedReminders, welcomeCard, type DailyQuestRow, type WelcomeCard } from "./feedModel";
+import { dailyQuestRows, feedModel, feedReminders, welcomeCard, welcomesBack, type DailyQuestRow, type WelcomeCard } from "./feedModel";
 import "./feed.css";
 
 /**
@@ -701,6 +701,7 @@ export default function FeedTab() {
     saved,
     hasCourse: study.input.hasCourse,
     signedIn,
+    playedHere: activity.length > 0,
   });
   const reminders = feedReminders(study);
 
@@ -718,11 +719,12 @@ export default function FeedTab() {
           <h1 className="font-display text-[1.75rem] font-black text-bb-foreground md:sr-only">Feed</h1>
 
           {/* A new student gets the first-win card (they are not "back" yet); a
-              returning one gets Welcome back first, then their wins, newest first. */}
-          {activity.length === 0 ? (
-            <FirstWin lesson={study.input.nextLesson} name={study.input.name} />
-          ) : (
+              returning one, here or signed in on a new device, gets Welcome back
+              first, then their wins, newest first. */}
+          {welcomesBack({ playedHere: activity.length > 0, signedIn }) ? (
             <WelcomeBack card={welcome} />
+          ) : (
+            <FirstWin lesson={study.input.nextLesson} name={study.input.name} />
           )}
           {activity.length === 0 && !signedIn ? (
             <p className="m-0 text-center">

@@ -21,9 +21,7 @@
 
 import { useState } from "react";
 import { useProgress } from "../../app/hooks";
-import { useDisplayName } from "../../app/useDisplayName";
-import { rememberReturn } from "@/lib/returnTo";
-import { cleanName } from "../me/meModel";
+import { progress } from "../../app/progress";
 import { hrefForTab } from "../../app/routes";
 import { BlueberryMark } from "../../mascot/BlueberryMark";
 import { StepPips } from "../social/SocialHero";
@@ -233,19 +231,20 @@ function LeagueLadder() {
   );
 }
 
-/** The student's own seat: a row only when they have a league name, otherwise the form to pick one. */
+/**
+ * The student's own seat: a row only when they have a league name, otherwise the form to pick one.
+ * The league name is its own field (progress.ts `leagueName`), never the account's name, so a
+ * real name is never on a board unless the student types it here, and a blank save takes them off.
+ */
 function SeatCard({ name, weekTotal }: { readonly name: string | null; readonly weekTotal: number }) {
-  // The same save path as the Me tab's name (app/useDisplayName.ts): the account, so signed out it asks for a sign-in.
-  const { signedIn, save } = useDisplayName();
   const [draft, setDraft] = useState(name ?? "");
   const [justSaved, setJustSaved] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   return (
     <section className="flex flex-col gap-3" aria-label="Your seat">
       <h2 className="text-lg">Your seat</h2>
       {name === null ? (
         <p className="text-[0.9375rem] font-semibold text-bb-muted-foreground">
-          Boards show the name you pick here, and Bloom calls you by it too. Pick a nickname, not your full name. No name keeps you off the boards.
+          Boards show only the name you pick here. Pick a nickname, not your full name. No name keeps you off the boards.
         </p>
       ) : (
         <div className="flex min-h-16 items-center gap-3 rounded-2xl border-2 border-b-4 border-bb-primary bg-[color-mix(in_srgb,var(--bb-primary)_14%,var(--bb-card))] px-3">
@@ -259,28 +258,12 @@ function SeatCard({ name, weekTotal }: { readonly name: string | null; readonly 
           <span className="font-display text-base font-black text-bb-foreground tabular-nums">{weekTotal} XP</span>
         </div>
       )}
-      {!signedIn ? (
-        <div className="flex flex-col items-start gap-2">
-          <p className="text-[0.9375rem] font-bold text-bb-foreground">Sign in to save your name. It follows you to every device.</p>
-          <a href="#/signin" className="btn3d btn3d--primary" onClick={() => rememberReturn(window.location.hash)}>
-            Sign in
-          </a>
-        </div>
-      ) : (
       <form
         className="flex items-start gap-2"
         onSubmit={(event) => {
           event.preventDefault();
-          const clean = cleanName(draft);
-          // A blank save would erase the account's name, so it is refused, as on the Me tab.
-          if (clean === "") {
-            setError("Type a name to save.");
-            return;
-          }
-          void save(clean).then((failure) => {
-            setError(failure);
-            setJustSaved(failure === null);
-          });
+          progress.setLeagueName(draft);
+          setJustSaved(true);
         }}
       >
         <input
@@ -288,7 +271,6 @@ function SeatCard({ name, weekTotal }: { readonly name: string | null; readonly 
           onChange={(event) => {
             setDraft(event.currentTarget.value);
             setJustSaved(false);
-            setError(null);
           }}
           maxLength={24}
           placeholder="e.g. carbocation_kid"
@@ -299,9 +281,8 @@ function SeatCard({ name, weekTotal }: { readonly name: string | null; readonly 
           {name === null ? "Save" : "Rename"}
         </button>
       </form>
-      )}
       <p className="text-[0.9375rem] font-semibold text-bb-foreground empty:hidden" role="status">
-        {error ?? (justSaved && name !== null ? `Saved! You'll show up as ${name}.` : "")}
+        {justSaved ? (name === null ? "Saved. You'll stay off the boards." : `Saved! You'll show up as ${name}.`) : ""}
       </p>
     </section>
   );
@@ -374,7 +355,6 @@ function LeagueDetailsBody({ name }: { readonly name: string | null }) {
 
 export default function LeaderboardsTab() {
   const snapshot = useProgress();
-  const { name } = useDisplayName();
   const standings = standingsFor();
 
   const cleared = Object.keys(snapshot.economy.firstClears).length;
@@ -416,7 +396,7 @@ export default function LeaderboardsTab() {
       <a href={hrefForTab("pathway")} className="btn3d btn3d--primary mt-2 w-full">
         {left > 0 ? "Start a lesson" : "Keep learning"}
       </a>
-      <LeagueDetails name={name} />
+      <LeagueDetails name={snapshot.leagueName} />
     </div>
   );
 }

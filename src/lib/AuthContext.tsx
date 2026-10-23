@@ -8,7 +8,7 @@ import {
   supabaseStorageKeyPrefix,
 } from "@/lib/supabase";
 import type { AccountRole } from "@/lib/account";
-import { consumeReturn } from "@/lib/returnTo";
+import { consumeReturn, forgetReturnUnlessSigningIn } from "@/lib/returnTo";
 
 /**
  * One auth subscription for the whole app.
@@ -93,11 +93,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (data.session) consumeReturn();
       });
 
-      const { data: listener } = supabase.auth.onAuthStateChange((_event, next) => {
+      const { data: listener } = supabase.auth.onAuthStateChange((event, next) => {
         // State only. See the note above about the lock.
         setSession(next);
         setLoading(false);
-        if (next) consumeReturn();
+        // Only a fresh sign-in returns to the game, not a token refresh or a
+        // profile update an hour later.
+        if (event === "SIGNED_IN" && next) consumeReturn();
       });
       unsubscribe = () => listener.subscription.unsubscribe();
     };
@@ -137,6 +139,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (prefix && event.key?.startsWith(prefix) && event.newValue) load();
     };
     window.addEventListener("storage", onStorage);
+    const onHash = () => forgetReturnUnlessSigningIn(window.location.hash);
+    window.addEventListener("hashchange", onHash);
 
     // Subscribe in an effect, undo it in the cleanup: React runs the cleanup on
     // unmount (and twice in dev's StrictMode), so nothing is left listening.
@@ -144,6 +148,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       cancelled = true;
       off();
       window.removeEventListener("storage", onStorage);
+      window.removeEventListener("hashchange", onHash);
       unsubscribe?.();
     };
   }, []);

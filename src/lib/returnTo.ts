@@ -23,6 +23,21 @@ export function rememberReturn(hash: string): void {
   }
 }
 
+/**
+ * Drop the errand when the student leaves the sign-in screens for anywhere
+ * else: they gave up, and a sign-in later from the site header should stay on
+ * the site. AuthProvider calls this on every hash change. A Google round trip
+ * is a fresh page load with no hash change, so it never trips this.
+ */
+export function forgetReturnUnlessSigningIn(hash: string): void {
+  if (hash.startsWith("#/signin") || hash.startsWith("#/signup")) return;
+  try {
+    sessionStorage.removeItem(KEY);
+  } catch {
+    /* storage blocked: nothing was remembered */
+  }
+}
+
 /** Go back to the remembered game hash, once. Returns true when it navigated. */
 export function consumeReturn(): boolean {
   try {

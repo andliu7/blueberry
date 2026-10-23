@@ -247,6 +247,12 @@ export function welcomeCard(input: {
   readonly saved: boolean;
   readonly hasCourse: boolean;
   readonly signedIn: boolean;
+  /**
+   * True when this device's journal has any activity. Progress lives on the
+   * device, so a signed-in student on a new one is greeted but has nothing
+   * here to pick up, and the button says so.
+   */
+  readonly playedHere: boolean;
 }): WelcomeCard {
   const first = firstNameOf(input.name);
   let line: string;
@@ -255,11 +261,20 @@ export function welcomeCard(input: {
   else line = input.saved ? `Continue ${input.nextLesson}` : `Next up: ${input.nextLesson}`;
   return {
     heading: first === null ? "Welcome back!" : `Welcome back, ${first}!`,
-    button: "Pick up where you left off",
+    button: input.playedHere ? "Pick up where you left off" : "Start a lesson",
     line,
     href: hrefForTab("pathway"),
     askSignIn: !input.signedIn,
   };
+}
+
+/**
+ * Who is "back": anyone with activity on this device, and anyone signed in,
+ * because the account follows them to a new device or the iPad home-screen
+ * app even though the local journal starts empty there.
+ */
+export function welcomesBack(input: { readonly playedHere: boolean; readonly signedIn: boolean }): boolean {
+  return input.playedHere || input.signedIn;
 }
 
 /**
