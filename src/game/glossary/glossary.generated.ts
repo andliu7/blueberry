@@ -2643,6 +2643,10 @@ export const GLOSSARY_DATA: GlossaryData = {
    "text": "hex-",
    "means": "six carbons (Greek for six)"
   },
+  "pent": {
+   "text": "pent-",
+   "means": "five carbons (Greek for five)"
+  },
   "hept": {
    "text": "hept-",
    "means": "seven carbons (Greek for seven)"
@@ -2662,6 +2666,14 @@ export const GLOSSARY_DATA: GlossaryData = {
   "diene": {
    "text": "-diene",
    "means": "two C=C double bonds (di = two)"
+  },
+  "yne": {
+   "text": "-yne / -yn-",
+   "means": "a C≡C triple bond"
+  },
+  "methylene": {
+   "text": "methylene-",
+   "means": "a CH2 joined to the rest by a double bond (=CH2). In the ylide that bond is drawn split, CH2- beside P+"
   },
   "ol": {
    "text": "-ol",
@@ -2695,6 +2707,10 @@ export const GLOSSARY_DATA: GlossaryData = {
    "text": "-oic acid",
    "means": "a carboxylic acid, COOH"
   },
+  "ic": {
+   "text": "-ic acid",
+   "means": "a carboxylic acid, COOH, in an old name kept by IUPAC"
+  },
   "oate": {
    "text": "-oate / -ate",
    "means": "the acid's O-H has become O-R (an ester) or O- (a carboxylate)"
@@ -2702,6 +2718,42 @@ export const GLOSSARY_DATA: GlossaryData = {
   "oyl": {
    "text": "-oyl chloride",
    "means": "an acyl chloride: the acid's OH swapped for Cl"
+  },
+  "ylchloride": {
+   "text": "-yl chloride",
+   "means": "an acyl chloride: the acid's OH swapped for Cl (acetic acid gives acetyl chloride)"
+  },
+  "anhydride": {
+   "text": "anhydride",
+   "means": "two acyl groups sharing one O: two acids joined with the loss of water (Greek an-hydor, without water)"
+  },
+  "cyanohydrin": {
+   "text": "cyanohydrin",
+   "means": "a CN and an OH on the same carbon: HCN added across the C=O of the compound named first"
+  },
+  "ethyleneacetal": {
+   "text": "ethylene acetal",
+   "means": "the C=O of the compound named first became a five membered ring: two O on that carbon, joined by CH2CH2 from ethane-1,2-diol"
+  },
+  "imine": {
+   "text": "-imine",
+   "means": "a C=N double bond in place of a C=O"
+  },
+  "aldimine": {
+   "text": "aldimine",
+   "means": "an imine made from an aldehyde: the C=N carbon keeps the aldehyde's H"
+  },
+  "enamine": {
+   "text": "enamine",
+   "means": "a nitrogen on a C=C carbon (ene + amine)"
+  },
+  "pyrrolidino": {
+   "text": "pyrrolidino-",
+   "means": "a pyrrolidine ring (five atoms, one of them N) joined through its N"
+  },
+  "phosphorane": {
+   "text": "phosphorane",
+   "means": "the phosphorus ylide, Ph3P=CH2, drawn here as P+ beside C-"
   },
   "amide": {
    "text": "-amide",
@@ -2718,6 +2770,10 @@ export const GLOSSARY_DATA: GlossaryData = {
   "nitro": {
    "text": "nitro-",
    "means": "an NO2 group"
+  },
+  "chloro": {
+   "text": "chloro-",
+   "means": "a chlorine atom"
   },
   "diazonium": {
    "text": "diazonium",
@@ -2746,6 +2802,10 @@ export const GLOSSARY_DATA: GlossaryData = {
   "ethyl": {
    "text": "ethyl",
    "means": "a CH2CH3 group"
+  },
+  "propyl": {
+   "text": "propyl",
+   "means": "a CH2CH2CH3 group"
   },
   "tbu": {
    "text": "tert-butyl",
@@ -2787,6 +2847,14 @@ export const GLOSSARY_DATA: GlossaryData = {
    "text": "phenacyl",
    "means": "a phenyl ketone on a CH2, PhC(=O)CH2"
   },
+  "phenylacet": {
+   "text": "phenylacet-",
+   "means": "the acetyl CH3 with one H swapped for a phenyl, so PhCH2C(=O)"
+  },
+  "primelocant": {
+   "text": "4′-",
+   "means": "a primed number counts around the ring, not along the chain the name is built on"
+  },
   "propargyl": {
    "text": "propargyl",
    "means": "the sp3 carbon next to a C≡C (from propyne and Latin argentum, silver: it forms silver salts)"
@@ -2822,6 +2890,18 @@ export const GLOSSARY_DATA: GlossaryData = {
   "benzene": {
    "text": "benzene",
    "means": "the six carbon aromatic ring itself"
+  },
+  "toluene": {
+   "text": "toluene",
+   "means": "an old name, kept: methylbenzene, first made from tolu balsam, a tree resin"
+  },
+  "styrene": {
+   "text": "styrene",
+   "means": "an old name, kept: vinylbenzene, first distilled from storax, a tree resin"
+  },
+  "vanillin": {
+   "text": "vanillin",
+   "means": "an old name, kept: the flavour compound of vanilla, 4-hydroxy-3-methoxybenzaldehyde"
   }
  },
  "compounds": [
@@ -2986,6 +3066,79 @@ export const GLOSSARY_DATA: GlossaryData = {
    }
   },
   {
+   "name": "1-methylcyclohexan-1-ol",
+   "smiles": "CC1(O)CCCCC1",
+   "family": "alcohols",
+   "parts": [
+    "methyl",
+    "cyclo",
+    "hex",
+    "ane",
+    "ol"
+   ],
+   "figure": {
+    "w": 87.5,
+    "h": 74.5,
+    "bonds": [
+     {
+      "x1": 29.6,
+      "y1": 66.5,
+      "x2": 37.9,
+      "y2": 44.0
+     },
+     {
+      "x1": 37.9,
+      "y1": 44.0,
+      "x2": 23.1,
+      "y2": 41.4
+     },
+     {
+      "x1": 37.9,
+      "y1": 44.0,
+      "x2": 37.9,
+      "y2": 20.0
+     },
+     {
+      "x1": 37.9,
+      "y1": 20.0,
+      "x2": 58.7,
+      "y2": 8.0
+     },
+     {
+      "x1": 58.7,
+      "y1": 8.0,
+      "x2": 79.5,
+      "y2": 20.0
+     },
+     {
+      "x1": 79.5,
+      "y1": 20.0,
+      "x2": 79.4,
+      "y2": 44.0
+     },
+     {
+      "x1": 79.4,
+      "y1": 44.0,
+      "x2": 58.6,
+      "y2": 56.0
+     },
+     {
+      "x1": 58.6,
+      "y1": 56.0,
+      "x2": 37.9,
+      "y2": 44.0
+     }
+    ],
+    "labels": [
+     {
+      "x": 14.2,
+      "y": 44.8,
+      "t": "OH"
+     }
+    ]
+   }
+  },
+  {
    "name": "1-phenylethanol",
    "smiles": "CC(O)c1ccccc1",
    "family": "alcohols",
@@ -3064,6 +3217,105 @@ export const GLOSSARY_DATA: GlossaryData = {
       "x": 28.8,
       "y": 18.4,
       "t": "OH"
+     }
+    ]
+   }
+  },
+  {
+   "name": "1-pyrrolidinocyclohexene",
+   "smiles": "C1=C(N2CCCC2)CCCC1",
+   "family": "amines",
+   "parts": [
+    "pyrrolidino",
+    "cyclo",
+    "hex",
+    "ene",
+    "enamine"
+   ],
+   "figure": {
+    "w": 116.6,
+    "h": 92.4,
+    "bonds": [
+     {
+      "x1": 87.6,
+      "y1": 56.0,
+      "x2": 66.9,
+      "y2": 43.9,
+      "order": 2,
+      "inner": 1
+     },
+     {
+      "x1": 66.9,
+      "y1": 43.9,
+      "x2": 53.9,
+      "y2": 51.3
+     },
+     {
+      "x1": 37.8,
+      "y1": 52.0,
+      "x2": 24.2,
+      "y2": 45.8
+     },
+     {
+      "x1": 24.2,
+      "y1": 45.8,
+      "x2": 8.0,
+      "y2": 63.6
+     },
+     {
+      "x1": 8.0,
+      "y1": 63.6,
+      "x2": 19.9,
+      "y2": 84.4
+     },
+     {
+      "x1": 19.9,
+      "y1": 84.4,
+      "x2": 43.4,
+      "y2": 79.6
+     },
+     {
+      "x1": 66.9,
+      "y1": 43.9,
+      "x2": 67.1,
+      "y2": 19.9
+     },
+     {
+      "x1": 67.1,
+      "y1": 19.9,
+      "x2": 87.9,
+      "y2": 8.0
+     },
+     {
+      "x1": 87.9,
+      "y1": 8.0,
+      "x2": 108.6,
+      "y2": 20.1
+     },
+     {
+      "x1": 108.6,
+      "y1": 20.1,
+      "x2": 108.5,
+      "y2": 44.1
+     },
+     {
+      "x1": 108.5,
+      "y1": 44.1,
+      "x2": 87.6,
+      "y2": 56.0
+     },
+     {
+      "x1": 43.4,
+      "y1": 79.6,
+      "x2": 45.0,
+      "y2": 64.7
+     }
+    ],
+    "labels": [
+     {
+      "x": 46.0,
+      "y": 60.8,
+      "t": "N"
      }
     ]
    }
@@ -3216,6 +3468,134 @@ export const GLOSSARY_DATA: GlossaryData = {
       "x": 40.9,
       "y": 18.4,
       "t": "Br"
+     }
+    ]
+   }
+  },
+  {
+   "name": "2-methyl-3-butyn-2-ol",
+   "smiles": "C#CC(C)(C)O",
+   "family": "alcohols",
+   "parts": [
+    "methyl",
+    "but",
+    "yne",
+    "ol"
+   ],
+   "figure": {
+    "w": 84.8,
+    "h": 66.2,
+    "bonds": [
+     {
+      "x1": 8.0,
+      "y1": 28.9,
+      "x2": 32.0,
+      "y2": 28.9,
+      "order": 3
+     },
+     {
+      "x1": 32.0,
+      "y1": 28.9,
+      "x2": 56.0,
+      "y2": 28.8
+     },
+     {
+      "x1": 56.0,
+      "y1": 28.8,
+      "x2": 76.8,
+      "y2": 40.8
+     },
+     {
+      "x1": 56.0,
+      "y1": 28.8,
+      "x2": 68.0,
+      "y2": 8.0
+     },
+     {
+      "x1": 56.0,
+      "y1": 28.8,
+      "x2": 56.0,
+      "y2": 43.8
+     }
+    ],
+    "labels": [
+     {
+      "x": 56.0,
+      "y": 57.8,
+      "t": "OH"
+     }
+    ]
+   }
+  },
+  {
+   "name": "2-methylcyclohexanone",
+   "smiles": "CC1CCCCC1=O",
+   "family": "carbonyls",
+   "parts": [
+    "methyl",
+    "cyclo",
+    "hex",
+    "one"
+   ],
+   "figure": {
+    "w": 80.0,
+    "h": 69.4,
+    "bonds": [
+     {
+      "x1": 9.6,
+      "y1": 61.4,
+      "x2": 30.4,
+      "y2": 49.4
+     },
+     {
+      "x1": 30.4,
+      "y1": 49.4,
+      "x2": 51.2,
+      "y2": 61.4
+     },
+     {
+      "x1": 51.2,
+      "y1": 61.4,
+      "x2": 71.9,
+      "y2": 49.4
+     },
+     {
+      "x1": 71.9,
+      "y1": 49.4,
+      "x2": 72.0,
+      "y2": 25.4
+     },
+     {
+      "x1": 72.0,
+      "y1": 25.4,
+      "x2": 51.2,
+      "y2": 13.4
+     },
+     {
+      "x1": 51.2,
+      "y1": 13.4,
+      "x2": 30.4,
+      "y2": 25.4
+     },
+     {
+      "x1": 30.4,
+      "y1": 25.4,
+      "x2": 17.4,
+      "y2": 17.9,
+      "order": 2
+     },
+     {
+      "x1": 30.4,
+      "y1": 25.4,
+      "x2": 30.4,
+      "y2": 49.4
+     }
+    ],
+    "labels": [
+     {
+      "x": 9.6,
+      "y": 18.4,
+      "t": "O"
      }
     ]
    }
@@ -3529,6 +3909,774 @@ export const GLOSSARY_DATA: GlossaryData = {
    }
   },
   {
+   "name": "4-chlorobenzaldehyde",
+   "smiles": "O=Cc1ccc(Cl)cc1",
+   "family": "carbonyls",
+   "parts": [
+    "chloro",
+    "benz",
+    "aldehyde"
+   ],
+   "figure": {
+    "w": 107.1,
+    "h": 98.7,
+    "bonds": [
+     {
+      "x1": 97.4,
+      "y1": 22.4,
+      "x2": 97.4,
+      "y2": 37.4,
+      "order": 2
+     },
+     {
+      "x1": 97.4,
+      "y1": 37.4,
+      "x2": 76.6,
+      "y2": 49.4
+     },
+     {
+      "x1": 76.6,
+      "y1": 49.4,
+      "x2": 76.6,
+      "y2": 73.4
+     },
+     {
+      "x1": 76.6,
+      "y1": 73.4,
+      "x2": 55.8,
+      "y2": 85.4,
+      "order": 2,
+      "inner": 1
+     },
+     {
+      "x1": 55.8,
+      "y1": 85.4,
+      "x2": 35.0,
+      "y2": 73.4
+     },
+     {
+      "x1": 35.0,
+      "y1": 73.4,
+      "x2": 22.0,
+      "y2": 80.8
+     },
+     {
+      "x1": 35.0,
+      "y1": 73.4,
+      "x2": 35.1,
+      "y2": 49.4,
+      "order": 2,
+      "inner": 1
+     },
+     {
+      "x1": 35.1,
+      "y1": 49.4,
+      "x2": 55.8,
+      "y2": 37.4
+     },
+     {
+      "x1": 55.8,
+      "y1": 37.4,
+      "x2": 76.6,
+      "y2": 49.4,
+      "order": 2,
+      "inner": 1
+     }
+    ],
+    "labels": [
+     {
+      "x": 97.4,
+      "y": 18.4,
+      "t": "O"
+     },
+     {
+      "x": 14.2,
+      "y": 90.4,
+      "t": "Cl"
+     }
+    ]
+   }
+  },
+  {
+   "name": "4-ethyltoluene",
+   "smiles": "CCc1ccc(C)cc1",
+   "family": "aromatics",
+   "parts": [
+    "ethyl",
+    "toluene"
+   ],
+   "figure": {
+    "w": 57.7,
+    "h": 124.0,
+    "bonds": [
+     {
+      "x1": 49.7,
+      "y1": 116.0,
+      "x2": 28.9,
+      "y2": 104.0
+     },
+     {
+      "x1": 28.9,
+      "y1": 104.0,
+      "x2": 28.9,
+      "y2": 80.0
+     },
+     {
+      "x1": 28.9,
+      "y1": 80.0,
+      "x2": 8.0,
+      "y2": 68.0
+     },
+     {
+      "x1": 8.0,
+      "y1": 68.0,
+      "x2": 8.0,
+      "y2": 44.0,
+      "order": 2,
+      "inner": 1
+     },
+     {
+      "x1": 8.0,
+      "y1": 44.0,
+      "x2": 28.8,
+      "y2": 32.0
+     },
+     {
+      "x1": 28.8,
+      "y1": 32.0,
+      "x2": 28.7,
+      "y2": 8.0
+     },
+     {
+      "x1": 28.8,
+      "y1": 32.0,
+      "x2": 49.6,
+      "y2": 44.0,
+      "order": 2,
+      "inner": 1
+     },
+     {
+      "x1": 49.6,
+      "y1": 44.0,
+      "x2": 49.6,
+      "y2": 68.0
+     },
+     {
+      "x1": 49.6,
+      "y1": 68.0,
+      "x2": 28.9,
+      "y2": 80.0,
+      "order": 2,
+      "inner": 1
+     }
+    ]
+   }
+  },
+  {
+   "name": "4-methoxybenzoic acid",
+   "smiles": "COc1ccc(C(=O)O)cc1",
+   "family": "aromatics",
+   "parts": [
+    "methoxy",
+    "benz",
+    "oic"
+   ],
+   "figure": {
+    "w": 142.3,
+    "h": 98.7,
+    "bonds": [
+     {
+      "x1": 8.0,
+      "y1": 25.4,
+      "x2": 21.0,
+      "y2": 17.9
+     },
+     {
+      "x1": 36.6,
+      "y1": 17.9,
+      "x2": 49.6,
+      "y2": 25.4
+     },
+     {
+      "x1": 49.6,
+      "y1": 25.4,
+      "x2": 70.3,
+      "y2": 13.4
+     },
+     {
+      "x1": 70.3,
+      "y1": 13.4,
+      "x2": 91.1,
+      "y2": 25.4,
+      "order": 2,
+      "inner": 1
+     },
+     {
+      "x1": 91.1,
+      "y1": 25.4,
+      "x2": 91.2,
+      "y2": 49.4
+     },
+     {
+      "x1": 91.2,
+      "y1": 49.4,
+      "x2": 112.0,
+      "y2": 61.3
+     },
+     {
+      "x1": 112.0,
+      "y1": 61.3,
+      "x2": 124.9,
+      "y2": 53.8,
+      "order": 2
+     },
+     {
+      "x1": 112.0,
+      "y1": 61.3,
+      "x2": 112.0,
+      "y2": 76.3
+     },
+     {
+      "x1": 91.2,
+      "y1": 49.4,
+      "x2": 70.4,
+      "y2": 61.4,
+      "order": 2,
+      "inner": 1
+     },
+     {
+      "x1": 70.4,
+      "y1": 61.4,
+      "x2": 49.6,
+      "y2": 49.4
+     },
+     {
+      "x1": 49.6,
+      "y1": 49.4,
+      "x2": 49.6,
+      "y2": 25.4,
+      "order": 2,
+      "inner": 1
+     }
+    ],
+    "labels": [
+     {
+      "x": 28.8,
+      "y": 18.4,
+      "t": "O"
+     },
+     {
+      "x": 132.7,
+      "y": 54.4,
+      "t": "O"
+     },
+     {
+      "x": 112.0,
+      "y": 90.4,
+      "t": "OH"
+     }
+    ]
+   }
+  },
+  {
+   "name": "4-methoxybenzoyl chloride",
+   "smiles": "COc1ccc(C(=O)Cl)cc1",
+   "family": "aromatics",
+   "parts": [
+    "methoxy",
+    "benz",
+    "oyl"
+   ],
+   "figure": {
+    "w": 142.3,
+    "h": 98.7,
+    "bonds": [
+     {
+      "x1": 8.0,
+      "y1": 25.4,
+      "x2": 21.0,
+      "y2": 17.9
+     },
+     {
+      "x1": 36.6,
+      "y1": 17.9,
+      "x2": 49.6,
+      "y2": 25.4
+     },
+     {
+      "x1": 49.6,
+      "y1": 25.4,
+      "x2": 70.3,
+      "y2": 13.4
+     },
+     {
+      "x1": 70.3,
+      "y1": 13.4,
+      "x2": 91.1,
+      "y2": 25.4,
+      "order": 2,
+      "inner": 1
+     },
+     {
+      "x1": 91.1,
+      "y1": 25.4,
+      "x2": 91.2,
+      "y2": 49.4
+     },
+     {
+      "x1": 91.2,
+      "y1": 49.4,
+      "x2": 112.0,
+      "y2": 61.3
+     },
+     {
+      "x1": 112.0,
+      "y1": 61.3,
+      "x2": 124.9,
+      "y2": 53.8,
+      "order": 2
+     },
+     {
+      "x1": 112.0,
+      "y1": 61.3,
+      "x2": 112.0,
+      "y2": 76.3
+     },
+     {
+      "x1": 91.2,
+      "y1": 49.4,
+      "x2": 70.4,
+      "y2": 61.4,
+      "order": 2,
+      "inner": 1
+     },
+     {
+      "x1": 70.4,
+      "y1": 61.4,
+      "x2": 49.6,
+      "y2": 49.4
+     },
+     {
+      "x1": 49.6,
+      "y1": 49.4,
+      "x2": 49.6,
+      "y2": 25.4,
+      "order": 2,
+      "inner": 1
+     }
+    ],
+    "labels": [
+     {
+      "x": 28.8,
+      "y": 18.4,
+      "t": "O"
+     },
+     {
+      "x": 132.7,
+      "y": 54.4,
+      "t": "O"
+     },
+     {
+      "x": 112.0,
+      "y": 90.4,
+      "t": "Cl"
+     }
+    ]
+   }
+  },
+  {
+   "name": "4-methoxybenzyl alcohol",
+   "smiles": "COc1ccc(CO)cc1",
+   "family": "aromatics",
+   "parts": [
+    "methoxy",
+    "benzyl",
+    "alcohol"
+   ],
+   "figure": {
+    "w": 127.8,
+    "h": 88.0,
+    "bonds": [
+     {
+      "x1": 118.2,
+      "y1": 8.0,
+      "x2": 118.2,
+      "y2": 23.0
+     },
+     {
+      "x1": 110.4,
+      "y1": 36.5,
+      "x2": 97.4,
+      "y2": 44.0
+     },
+     {
+      "x1": 97.4,
+      "y1": 44.0,
+      "x2": 97.4,
+      "y2": 68.0
+     },
+     {
+      "x1": 97.4,
+      "y1": 68.0,
+      "x2": 76.6,
+      "y2": 80.0,
+      "order": 2,
+      "inner": 1
+     },
+     {
+      "x1": 76.6,
+      "y1": 80.0,
+      "x2": 55.8,
+      "y2": 68.0
+     },
+     {
+      "x1": 55.8,
+      "y1": 68.0,
+      "x2": 35.0,
+      "y2": 79.9
+     },
+     {
+      "x1": 35.0,
+      "y1": 79.9,
+      "x2": 22.0,
+      "y2": 72.4
+     },
+     {
+      "x1": 55.8,
+      "y1": 68.0,
+      "x2": 55.8,
+      "y2": 44.0,
+      "order": 2,
+      "inner": 1
+     },
+     {
+      "x1": 55.8,
+      "y1": 44.0,
+      "x2": 76.6,
+      "y2": 32.0
+     },
+     {
+      "x1": 76.6,
+      "y1": 32.0,
+      "x2": 97.4,
+      "y2": 44.0,
+      "order": 2,
+      "inner": 1
+     }
+    ],
+    "labels": [
+     {
+      "x": 118.2,
+      "y": 37.0,
+      "t": "O"
+     },
+     {
+      "x": 14.2,
+      "y": 73.0,
+      "t": "OH"
+     }
+    ]
+   }
+  },
+  {
+   "name": "4-methylbenzoic acid",
+   "smiles": "Cc1ccc(C(=O)O)cc1",
+   "family": "aromatics",
+   "parts": [
+    "methyl",
+    "benz",
+    "oic"
+   ],
+   "figure": {
+    "w": 121.6,
+    "h": 93.4,
+    "bonds": [
+     {
+      "x1": 8.0,
+      "y1": 8.0,
+      "x2": 28.8,
+      "y2": 20.0
+     },
+     {
+      "x1": 28.8,
+      "y1": 20.0,
+      "x2": 49.6,
+      "y2": 8.0
+     },
+     {
+      "x1": 49.6,
+      "y1": 8.0,
+      "x2": 70.4,
+      "y2": 20.0,
+      "order": 2,
+      "inner": 1
+     },
+     {
+      "x1": 70.4,
+      "y1": 20.0,
+      "x2": 70.4,
+      "y2": 44.0
+     },
+     {
+      "x1": 70.4,
+      "y1": 44.0,
+      "x2": 91.2,
+      "y2": 56.0
+     },
+     {
+      "x1": 91.2,
+      "y1": 56.0,
+      "x2": 104.2,
+      "y2": 48.5,
+      "order": 2
+     },
+     {
+      "x1": 91.2,
+      "y1": 56.0,
+      "x2": 91.2,
+      "y2": 71.0
+     },
+     {
+      "x1": 70.4,
+      "y1": 44.0,
+      "x2": 49.6,
+      "y2": 56.0,
+      "order": 2,
+      "inner": 1
+     },
+     {
+      "x1": 49.6,
+      "y1": 56.0,
+      "x2": 28.8,
+      "y2": 44.0
+     },
+     {
+      "x1": 28.8,
+      "y1": 44.0,
+      "x2": 28.8,
+      "y2": 20.0,
+      "order": 2,
+      "inner": 1
+     }
+    ],
+    "labels": [
+     {
+      "x": 111.9,
+      "y": 49.0,
+      "t": "O"
+     },
+     {
+      "x": 91.2,
+      "y": 85.0,
+      "t": "OH"
+     }
+    ]
+   }
+  },
+  {
+   "name": "4-nitrostyrene",
+   "smiles": "C=Cc1ccc([N+](=O)[O-])cc1",
+   "family": "aromatics",
+   "parts": [
+    "nitro",
+    "styrene"
+   ],
+   "figure": {
+    "w": 121.6,
+    "h": 117.3,
+    "bonds": [
+     {
+      "x1": 113.6,
+      "y1": 8.0,
+      "x2": 113.6,
+      "y2": 32.0,
+      "order": 2
+     },
+     {
+      "x1": 113.6,
+      "y1": 32.0,
+      "x2": 92.8,
+      "y2": 44.0
+     },
+     {
+      "x1": 92.8,
+      "y1": 44.0,
+      "x2": 72.0,
+      "y2": 32.0
+     },
+     {
+      "x1": 72.0,
+      "y1": 32.0,
+      "x2": 51.2,
+      "y2": 43.9,
+      "order": 2,
+      "inner": -1
+     },
+     {
+      "x1": 51.2,
+      "y1": 43.9,
+      "x2": 51.2,
+      "y2": 67.9
+     },
+     {
+      "x1": 51.2,
+      "y1": 67.9,
+      "x2": 38.2,
+      "y2": 75.4
+     },
+     {
+      "x1": 22.6,
+      "y1": 75.4,
+      "x2": 17.4,
+      "y2": 72.4,
+      "order": 2
+     },
+     {
+      "x1": 30.4,
+      "y1": 88.9,
+      "x2": 30.4,
+      "y2": 94.9
+     },
+     {
+      "x1": 51.2,
+      "y1": 67.9,
+      "x2": 72.0,
+      "y2": 80.0,
+      "order": 2,
+      "inner": -1
+     },
+     {
+      "x1": 72.0,
+      "y1": 80.0,
+      "x2": 92.8,
+      "y2": 68.0
+     },
+     {
+      "x1": 92.8,
+      "y1": 68.0,
+      "x2": 92.8,
+      "y2": 44.0,
+      "order": 2,
+      "inner": -1
+     }
+    ],
+    "labels": [
+     {
+      "x": 30.4,
+      "y": 85.0,
+      "t": "N^+"
+     },
+     {
+      "x": 9.6,
+      "y": 73.0,
+      "t": "O"
+     },
+     {
+      "x": 30.4,
+      "y": 109.0,
+      "t": "O^−"
+     }
+    ]
+   }
+  },
+  {
+   "name": "4′-chloroacetophenone",
+   "smiles": "CC(=O)c1ccc(Cl)cc1",
+   "family": "aromatics",
+   "parts": [
+    "primelocant",
+    "chloro",
+    "acet",
+    "phenyl",
+    "one"
+   ],
+   "figure": {
+    "w": 127.8,
+    "h": 93.3,
+    "bonds": [
+     {
+      "x1": 97.4,
+      "y1": 85.3,
+      "x2": 97.4,
+      "y2": 61.3
+     },
+     {
+      "x1": 97.4,
+      "y1": 61.3,
+      "x2": 110.4,
+      "y2": 53.8,
+      "order": 2
+     },
+     {
+      "x1": 97.4,
+      "y1": 61.3,
+      "x2": 76.6,
+      "y2": 49.3
+     },
+     {
+      "x1": 76.6,
+      "y1": 49.3,
+      "x2": 76.6,
+      "y2": 25.3
+     },
+     {
+      "x1": 76.6,
+      "y1": 25.3,
+      "x2": 55.8,
+      "y2": 13.4,
+      "order": 2,
+      "inner": -1
+     },
+     {
+      "x1": 55.8,
+      "y1": 13.4,
+      "x2": 35.0,
+      "y2": 25.4
+     },
+     {
+      "x1": 35.0,
+      "y1": 25.4,
+      "x2": 22.0,
+      "y2": 17.9
+     },
+     {
+      "x1": 35.0,
+      "y1": 25.4,
+      "x2": 35.1,
+      "y2": 49.4,
+      "order": 2,
+      "inner": -1
+     },
+     {
+      "x1": 35.1,
+      "y1": 49.4,
+      "x2": 55.8,
+      "y2": 61.4
+     },
+     {
+      "x1": 55.8,
+      "y1": 61.4,
+      "x2": 76.6,
+      "y2": 49.3,
+      "order": 2,
+      "inner": -1
+     }
+    ],
+    "labels": [
+     {
+      "x": 118.2,
+      "y": 54.4,
+      "t": "O"
+     },
+     {
+      "x": 14.2,
+      "y": 18.4,
+      "t": "Cl"
+     }
+    ]
+   }
+  },
+  {
    "name": "acetaldehyde",
    "smiles": "CC=O",
    "family": "carbonyls",
@@ -3558,6 +4706,122 @@ export const GLOSSARY_DATA: GlossaryData = {
      {
       "x": 9.6,
       "y": 18.4,
+      "t": "O"
+     }
+    ]
+   }
+  },
+  {
+   "name": "acetic acid",
+   "smiles": "CC(=O)O",
+   "family": "acids",
+   "parts": [
+    "acet",
+    "ic"
+   ],
+   "figure": {
+    "w": 63.8,
+    "h": 62.9,
+    "bonds": [
+     {
+      "x1": 8.0,
+      "y1": 49.3,
+      "x2": 28.8,
+      "y2": 37.4
+     },
+     {
+      "x1": 28.8,
+      "y1": 37.4,
+      "x2": 28.9,
+      "y2": 22.4,
+      "order": 2
+     },
+     {
+      "x1": 28.8,
+      "y1": 37.4,
+      "x2": 41.8,
+      "y2": 44.9
+     }
+    ],
+    "labels": [
+     {
+      "x": 28.9,
+      "y": 18.4,
+      "t": "O"
+     },
+     {
+      "x": 49.6,
+      "y": 54.5,
+      "t": "OH"
+     }
+    ]
+   }
+  },
+  {
+   "name": "acetic anhydride",
+   "smiles": "CC(=O)OC(C)=O",
+   "family": "esters",
+   "parts": [
+    "acet",
+    "anhydride"
+   ],
+   "figure": {
+    "w": 99.1,
+    "h": 62.8,
+    "bonds": [
+     {
+      "x1": 8.0,
+      "y1": 49.4,
+      "x2": 28.8,
+      "y2": 37.4
+     },
+     {
+      "x1": 28.8,
+      "y1": 37.4,
+      "x2": 28.8,
+      "y2": 22.4,
+      "order": 2
+     },
+     {
+      "x1": 28.8,
+      "y1": 37.4,
+      "x2": 41.8,
+      "y2": 44.9
+     },
+     {
+      "x1": 57.4,
+      "y1": 45.0,
+      "x2": 70.4,
+      "y2": 37.5
+     },
+     {
+      "x1": 70.4,
+      "y1": 37.5,
+      "x2": 91.1,
+      "y2": 49.5
+     },
+     {
+      "x1": 70.4,
+      "y1": 37.5,
+      "x2": 70.4,
+      "y2": 22.5,
+      "order": 2
+     }
+    ],
+    "labels": [
+     {
+      "x": 28.9,
+      "y": 18.4,
+      "t": "O"
+     },
+     {
+      "x": 49.6,
+      "y": 54.5,
+      "t": "O"
+     },
+     {
+      "x": 70.4,
+      "y": 18.5,
       "t": "O"
      }
     ]
@@ -3600,6 +4864,63 @@ export const GLOSSARY_DATA: GlossaryData = {
       "x": 28.9,
       "y": 18.4,
       "t": "O"
+     }
+    ]
+   }
+  },
+  {
+   "name": "acetone cyanohydrin",
+   "smiles": "CC(C)(O)C#N",
+   "family": "acids",
+   "parts": [
+    "cyanohydrin"
+   ],
+   "figure": {
+    "w": 79.9,
+    "h": 71.7,
+    "bonds": [
+     {
+      "x1": 63.1,
+      "y1": 58.3,
+      "x2": 51.1,
+      "y2": 37.5
+     },
+     {
+      "x1": 51.1,
+      "y1": 37.5,
+      "x2": 71.9,
+      "y2": 25.6
+     },
+     {
+      "x1": 51.1,
+      "y1": 37.5,
+      "x2": 43.6,
+      "y2": 50.5
+     },
+     {
+      "x1": 51.1,
+      "y1": 37.5,
+      "x2": 30.4,
+      "y2": 25.5
+     },
+     {
+      "x1": 30.4,
+      "y1": 25.5,
+      "x2": 17.4,
+      "y2": 17.9,
+      "order": 3
+     }
+    ],
+    "labels": [
+     {
+      "x": 39.1,
+      "y": 63.3,
+      "t": "OH"
+     },
+     {
+      "x": 9.6,
+      "y": 18.4,
+      "t": "N"
      }
     ]
    }
@@ -3684,6 +5005,56 @@ export const GLOSSARY_DATA: GlossaryData = {
       "x": 28.8,
       "y": 18.4,
       "t": "O"
+     }
+    ]
+   },
+   "ring": {
+    "group": "the C=O",
+    "effect": "meta director, deactivating"
+   }
+  },
+  {
+   "name": "acetyl chloride",
+   "smiles": "CC(=O)Cl",
+   "family": "acids",
+   "parts": [
+    "acet",
+    "ylchloride"
+   ],
+   "figure": {
+    "w": 59.2,
+    "h": 62.9,
+    "bonds": [
+     {
+      "x1": 8.0,
+      "y1": 13.5,
+      "x2": 28.8,
+      "y2": 25.5
+     },
+     {
+      "x1": 28.8,
+      "y1": 25.5,
+      "x2": 41.8,
+      "y2": 17.9,
+      "order": 2
+     },
+     {
+      "x1": 28.8,
+      "y1": 25.5,
+      "x2": 28.9,
+      "y2": 40.5
+     }
+    ],
+    "labels": [
+     {
+      "x": 49.6,
+      "y": 18.4,
+      "t": "O"
+     },
+     {
+      "x": 28.9,
+      "y": 54.5,
+      "t": "Cl"
      }
     ]
    }
@@ -3798,6 +5169,10 @@ export const GLOSSARY_DATA: GlossaryData = {
       "t": "NH_2"
      }
     ]
+   },
+   "ring": {
+    "group": "the NH2",
+    "effect": "o/p director, activating"
    }
   },
   {
@@ -3872,6 +5247,115 @@ export const GLOSSARY_DATA: GlossaryData = {
      {
       "x": 49.7,
       "y": 18.4,
+      "t": "O"
+     }
+    ]
+   },
+   "ring": {
+    "group": "the C=O",
+    "effect": "meta director, deactivating"
+   }
+  },
+  {
+   "name": "benzaldehyde ethylene acetal",
+   "smiles": "c1ccc(C2OCCO2)cc1",
+   "family": "alcohols",
+   "parts": [
+    "benz",
+    "ethyleneacetal"
+   ],
+   "figure": {
+    "w": 116.6,
+    "h": 93.0,
+    "bonds": [
+     {
+      "x1": 108.6,
+      "y1": 20.1,
+      "x2": 108.5,
+      "y2": 44.1,
+      "order": 2,
+      "inner": 1
+     },
+     {
+      "x1": 108.5,
+      "y1": 44.1,
+      "x2": 87.6,
+      "y2": 56.0
+     },
+     {
+      "x1": 87.6,
+      "y1": 56.0,
+      "x2": 66.9,
+      "y2": 43.9,
+      "order": 2,
+      "inner": 1
+     },
+     {
+      "x1": 66.9,
+      "y1": 43.9,
+      "x2": 46.0,
+      "y2": 55.7
+     },
+     {
+      "x1": 46.0,
+      "y1": 55.7,
+      "x2": 32.4,
+      "y2": 49.5
+     },
+     {
+      "x1": 18.1,
+      "y1": 52.5,
+      "x2": 8.0,
+      "y2": 63.6
+     },
+     {
+      "x1": 8.0,
+      "y1": 63.6,
+      "x2": 19.9,
+      "y2": 84.4
+     },
+     {
+      "x1": 19.9,
+      "y1": 84.4,
+      "x2": 34.6,
+      "y2": 81.4
+     },
+     {
+      "x1": 66.9,
+      "y1": 43.9,
+      "x2": 67.1,
+      "y2": 19.9
+     },
+     {
+      "x1": 67.1,
+      "y1": 19.9,
+      "x2": 87.9,
+      "y2": 8.0,
+      "order": 2,
+      "inner": 1
+     },
+     {
+      "x1": 87.9,
+      "y1": 8.0,
+      "x2": 108.6,
+      "y2": 20.1
+     },
+     {
+      "x1": 44.4,
+      "y1": 70.6,
+      "x2": 46.0,
+      "y2": 55.7
+     }
+    ],
+    "labels": [
+     {
+      "x": 24.2,
+      "y": 50.9,
+      "t": "O"
+     },
+     {
+      "x": 43.4,
+      "y": 84.6,
       "t": "O"
      }
     ]
@@ -3963,6 +5447,10 @@ export const GLOSSARY_DATA: GlossaryData = {
       "t": "O"
      }
     ]
+   },
+   "ring": {
+    "group": "the C=O",
+    "effect": "meta director, deactivating"
    }
   },
   {
@@ -4277,6 +5765,10 @@ export const GLOSSARY_DATA: GlossaryData = {
       "t": "OH"
      }
     ]
+   },
+   "ring": {
+    "group": "the C=O",
+    "effect": "meta director, deactivating"
    }
   },
   {
@@ -4354,6 +5846,10 @@ export const GLOSSARY_DATA: GlossaryData = {
       "t": "N"
      }
     ]
+   },
+   "ring": {
+    "group": "the C≡N",
+    "effect": "meta director, deactivating"
    }
   },
   {
@@ -4442,6 +5938,10 @@ export const GLOSSARY_DATA: GlossaryData = {
       "t": "Cl"
      }
     ]
+   },
+   "ring": {
+    "group": "the C=O",
+    "effect": "meta director, deactivating"
    }
   },
   {
@@ -4740,6 +6240,10 @@ export const GLOSSARY_DATA: GlossaryData = {
       "t": "Br"
      }
     ]
+   },
+   "ring": {
+    "group": "the halogen",
+    "effect": "o/p director, deactivating"
    }
   },
   {
@@ -4991,6 +6495,176 @@ export const GLOSSARY_DATA: GlossaryData = {
    }
   },
   {
+   "name": "butan-2-ol",
+   "smiles": "CCC(C)O",
+   "family": "alcohols",
+   "parts": [
+    "but",
+    "ane",
+    "ol"
+   ],
+   "figure": {
+    "w": 63.8,
+    "h": 76.0,
+    "bonds": [
+     {
+      "x1": 55.8,
+      "y1": 68.0,
+      "x2": 55.8,
+      "y2": 44.0
+     },
+     {
+      "x1": 55.8,
+      "y1": 44.0,
+      "x2": 35.0,
+      "y2": 32.0
+     },
+     {
+      "x1": 35.0,
+      "y1": 32.0,
+      "x2": 35.1,
+      "y2": 8.0
+     },
+     {
+      "x1": 35.0,
+      "y1": 32.0,
+      "x2": 22.0,
+      "y2": 39.5
+     }
+    ],
+    "labels": [
+     {
+      "x": 14.2,
+      "y": 49.0,
+      "t": "OH"
+     }
+    ]
+   }
+  },
+  {
+   "name": "butan-2-one",
+   "smiles": "CCC(C)=O",
+   "family": "carbonyls",
+   "parts": [
+    "but",
+    "ane",
+    "one"
+   ],
+   "figure": {
+    "w": 59.2,
+    "h": 76.0,
+    "bonds": [
+     {
+      "x1": 51.1,
+      "y1": 8.0,
+      "x2": 51.2,
+      "y2": 32.0
+     },
+     {
+      "x1": 51.2,
+      "y1": 32.0,
+      "x2": 30.4,
+      "y2": 44.0
+     },
+     {
+      "x1": 30.4,
+      "y1": 44.0,
+      "x2": 30.5,
+      "y2": 68.0
+     },
+     {
+      "x1": 30.4,
+      "y1": 44.0,
+      "x2": 17.4,
+      "y2": 36.6,
+      "order": 2
+     }
+    ],
+    "labels": [
+     {
+      "x": 9.6,
+      "y": 37.1,
+      "t": "O"
+     }
+    ]
+   }
+  },
+  {
+   "name": "butan-2-one ethylene acetal",
+   "smiles": "CCC1(C)OCCO1",
+   "family": "alcohols",
+   "parts": [
+    "but",
+    "ethyleneacetal"
+   ],
+   "figure": {
+    "w": 82.0,
+    "h": 76.8,
+    "bonds": [
+     {
+      "x1": 8.0,
+      "y1": 46.9,
+      "x2": 28.8,
+      "y2": 58.8
+     },
+     {
+      "x1": 28.8,
+      "y1": 58.8,
+      "x2": 49.6,
+      "y2": 46.8
+     },
+     {
+      "x1": 49.6,
+      "y1": 46.8,
+      "x2": 59.3,
+      "y2": 68.8
+     },
+     {
+      "x1": 49.6,
+      "y1": 46.8,
+      "x2": 40.7,
+      "y2": 34.7
+     },
+     {
+      "x1": 40.7,
+      "y1": 20.1,
+      "x2": 49.5,
+      "y2": 8.0
+     },
+     {
+      "x1": 49.5,
+      "y1": 8.0,
+      "x2": 72.4,
+      "y2": 15.4
+     },
+     {
+      "x1": 72.4,
+      "y1": 15.4,
+      "x2": 72.4,
+      "y2": 30.4
+     },
+     {
+      "x1": 63.8,
+      "y1": 42.2,
+      "x2": 49.6,
+      "y2": 46.8
+     }
+    ],
+    "labels": [
+     {
+      "x": 35.4,
+      "y": 32.5,
+      "t": "O"
+     },
+     {
+      "x": 72.4,
+      "y": 44.4,
+      "t": "O"
+     }
+    ]
+   }
+  },
+  {
    "name": "butanal",
    "smiles": "CCCC=O",
    "family": "carbonyls",
@@ -5033,6 +6707,186 @@ export const GLOSSARY_DATA: GlossaryData = {
       "x": 91.1,
       "y": 18.4,
       "t": "O"
+     }
+    ]
+   }
+  },
+  {
+   "name": "butanal cyanohydrin",
+   "smiles": "CCCC(O)C#N",
+   "family": "acids",
+   "parts": [
+    "but",
+    "cyanohydrin"
+   ],
+   "figure": {
+    "w": 121.6,
+    "h": 74.8,
+    "bonds": [
+     {
+      "x1": 8.0,
+      "y1": 49.4,
+      "x2": 28.8,
+      "y2": 37.4
+     },
+     {
+      "x1": 28.8,
+      "y1": 37.4,
+      "x2": 49.6,
+      "y2": 49.4
+     },
+     {
+      "x1": 49.6,
+      "y1": 49.4,
+      "x2": 70.3,
+      "y2": 37.4
+     },
+     {
+      "x1": 70.3,
+      "y1": 37.4,
+      "x2": 70.3,
+      "y2": 22.4
+     },
+     {
+      "x1": 70.3,
+      "y1": 37.4,
+      "x2": 91.1,
+      "y2": 49.4
+     },
+     {
+      "x1": 91.1,
+      "y1": 49.4,
+      "x2": 104.1,
+      "y2": 56.9,
+      "order": 3
+     }
+    ],
+    "labels": [
+     {
+      "x": 70.3,
+      "y": 18.4,
+      "t": "OH"
+     },
+     {
+      "x": 111.9,
+      "y": 66.4,
+      "t": "N"
+     }
+    ]
+   }
+  },
+  {
+   "name": "butanoic acid",
+   "smiles": "CCCC(=O)O",
+   "family": "acids",
+   "parts": [
+    "but",
+    "oic"
+   ],
+   "figure": {
+    "w": 105.4,
+    "h": 62.8,
+    "bonds": [
+     {
+      "x1": 8.0,
+      "y1": 49.5,
+      "x2": 28.8,
+      "y2": 37.5
+     },
+     {
+      "x1": 28.8,
+      "y1": 37.5,
+      "x2": 49.6,
+      "y2": 49.4
+     },
+     {
+      "x1": 49.6,
+      "y1": 49.4,
+      "x2": 70.3,
+      "y2": 37.4
+     },
+     {
+      "x1": 70.3,
+      "y1": 37.4,
+      "x2": 70.3,
+      "y2": 22.4,
+      "order": 2
+     },
+     {
+      "x1": 70.3,
+      "y1": 37.4,
+      "x2": 83.3,
+      "y2": 44.9
+     }
+    ],
+    "labels": [
+     {
+      "x": 70.3,
+      "y": 18.4,
+      "t": "O"
+     },
+     {
+      "x": 91.1,
+      "y": 54.4,
+      "t": "OH"
+     }
+    ]
+   }
+  },
+  {
+   "name": "butanoyl chloride",
+   "smiles": "CCCC(=O)Cl",
+   "family": "acids",
+   "parts": [
+    "but",
+    "oyl"
+   ],
+   "figure": {
+    "w": 105.4,
+    "h": 62.8,
+    "bonds": [
+     {
+      "x1": 8.0,
+      "y1": 49.5,
+      "x2": 28.8,
+      "y2": 37.4
+     },
+     {
+      "x1": 28.8,
+      "y1": 37.4,
+      "x2": 49.6,
+      "y2": 49.4
+     },
+     {
+      "x1": 49.6,
+      "y1": 49.4,
+      "x2": 70.3,
+      "y2": 37.4
+     },
+     {
+      "x1": 70.3,
+      "y1": 37.4,
+      "x2": 70.3,
+      "y2": 22.4,
+      "order": 2
+     },
+     {
+      "x1": 70.3,
+      "y1": 37.4,
+      "x2": 83.3,
+      "y2": 44.9
+     }
+    ],
+    "labels": [
+     {
+      "x": 70.3,
+      "y": 18.4,
+      "t": "O"
+     },
+     {
+      "x": 91.1,
+      "y": 54.4,
+      "t": "Cl"
      }
     ]
    }
@@ -5113,6 +6967,123 @@ export const GLOSSARY_DATA: GlossaryData = {
    }
   },
   {
+   "name": "cyclohexane",
+   "smiles": "C1CCCCC1",
+   "family": "alkanes",
+   "parts": [
+    "cyclo",
+    "hex",
+    "ane"
+   ],
+   "figure": {
+    "w": 57.6,
+    "h": 64.0,
+    "bonds": [
+     {
+      "x1": 8.0,
+      "y1": 44.0,
+      "x2": 8.0,
+      "y2": 20.0
+     },
+     {
+      "x1": 8.0,
+      "y1": 20.0,
+      "x2": 28.8,
+      "y2": 8.0
+     },
+     {
+      "x1": 28.8,
+      "y1": 8.0,
+      "x2": 49.6,
+      "y2": 20.0
+     },
+     {
+      "x1": 49.6,
+      "y1": 20.0,
+      "x2": 49.6,
+      "y2": 44.0
+     },
+     {
+      "x1": 49.6,
+      "y1": 44.0,
+      "x2": 28.8,
+      "y2": 56.0
+     },
+     {
+      "x1": 28.8,
+      "y1": 56.0,
+      "x2": 8.0,
+      "y2": 44.0
+     }
+    ]
+   }
+  },
+  {
+   "name": "cyclohexanol",
+   "smiles": "OC1CCCCC1",
+   "family": "alcohols",
+   "parts": [
+    "cyclo",
+    "hex",
+    "ol"
+   ],
+   "figure": {
+    "w": 84.6,
+    "h": 69.4,
+    "bonds": [
+     {
+      "x1": 22.0,
+      "y1": 51.5,
+      "x2": 35.0,
+      "y2": 44.0
+     },
+     {
+      "x1": 35.0,
+      "y1": 44.0,
+      "x2": 35.1,
+      "y2": 20.0
+     },
+     {
+      "x1": 35.1,
+      "y1": 20.0,
+      "x2": 55.8,
+      "y2": 8.0
+     },
+     {
+      "x1": 55.8,
+      "y1": 8.0,
+      "x2": 76.6,
+      "y2": 20.0
+     },
+     {
+      "x1": 76.6,
+      "y1": 20.0,
+      "x2": 76.6,
+      "y2": 44.0
+     },
+     {
+      "x1": 76.6,
+      "y1": 44.0,
+      "x2": 55.8,
+      "y2": 56.0
+     },
+     {
+      "x1": 55.8,
+      "y1": 56.0,
+      "x2": 35.0,
+      "y2": 44.0
+     }
+    ],
+    "labels": [
+     {
+      "x": 14.2,
+      "y": 61.0,
+      "t": "OH"
+     }
+    ]
+   }
+  },
+  {
    "name": "cyclohexanone",
    "smiles": "O=C1CCCCC1",
    "family": "carbonyls",
@@ -5172,6 +7143,183 @@ export const GLOSSARY_DATA: GlossaryData = {
     "labels": [
      {
       "x": 9.6,
+      "y": 18.4,
+      "t": "O"
+     }
+    ]
+   }
+  },
+  {
+   "name": "cyclohexanone cyanohydrin",
+   "smiles": "N#CC1(O)CCCCC1",
+   "family": "acids",
+   "parts": [
+    "cyclo",
+    "hex",
+    "cyanohydrin"
+   ],
+   "figure": {
+    "w": 106.5,
+    "h": 79.9,
+    "bonds": [
+     {
+      "x1": 18.5,
+      "y1": 42.7,
+      "x2": 33.3,
+      "y2": 40.1,
+      "order": 3
+     },
+     {
+      "x1": 33.3,
+      "y1": 40.1,
+      "x2": 56.9,
+      "y2": 35.9
+     },
+     {
+      "x1": 56.9,
+      "y1": 35.9,
+      "x2": 51.7,
+      "y2": 21.9
+     },
+     {
+      "x1": 56.9,
+      "y1": 35.9,
+      "x2": 56.9,
+      "y2": 59.9
+     },
+     {
+      "x1": 56.9,
+      "y1": 59.9,
+      "x2": 77.7,
+      "y2": 71.9
+     },
+     {
+      "x1": 77.7,
+      "y1": 71.9,
+      "x2": 98.5,
+      "y2": 59.9
+     },
+     {
+      "x1": 98.5,
+      "y1": 59.9,
+      "x2": 98.5,
+      "y2": 35.9
+     },
+     {
+      "x1": 98.5,
+      "y1": 35.9,
+      "x2": 77.7,
+      "y2": 23.9
+     },
+     {
+      "x1": 77.7,
+      "y1": 23.9,
+      "x2": 56.9,
+      "y2": 35.9
+     }
+    ],
+    "labels": [
+     {
+      "x": 9.6,
+      "y": 49.4,
+      "t": "N"
+     },
+     {
+      "x": 48.7,
+      "y": 18.4,
+      "t": "OH"
+     }
+    ]
+   }
+  },
+  {
+   "name": "cyclohexanone ethylene acetal",
+   "smiles": "C1CCC2(CC1)OCCO2",
+   "family": "alcohols",
+   "parts": [
+    "cyclo",
+    "hex",
+    "ethyleneacetal"
+   ],
+   "figure": {
+    "w": 101.0,
+    "h": 65.6,
+    "bonds": [
+     {
+      "x1": 8.0,
+      "y1": 32.6,
+      "x2": 20.1,
+      "y2": 11.9
+     },
+     {
+      "x1": 20.1,
+      "y1": 11.9,
+      "x2": 44.1,
+      "y2": 12.0
+     },
+     {
+      "x1": 44.1,
+      "y1": 12.0,
+      "x2": 56.0,
+      "y2": 32.8
+     },
+     {
+      "x1": 56.0,
+      "y1": 32.8,
+      "x2": 43.9,
+      "y2": 53.5
+     },
+     {
+      "x1": 43.9,
+      "y1": 53.5,
+      "x2": 19.9,
+      "y2": 53.5
+     },
+     {
+      "x1": 56.0,
+      "y1": 32.8,
+      "x2": 64.8,
+      "y2": 44.9
+     },
+     {
+      "x1": 78.6,
+      "y1": 49.5,
+      "x2": 92.9,
+      "y2": 44.9
+     },
+     {
+      "x1": 92.9,
+      "y1": 44.9,
+      "x2": 93.0,
+      "y2": 20.9
+     },
+     {
+      "x1": 93.0,
+      "y1": 20.9,
+      "x2": 78.7,
+      "y2": 16.2
+     },
+     {
+      "x1": 19.9,
+      "y1": 53.5,
+      "x2": 8.0,
+      "y2": 32.6
+     },
+     {
+      "x1": 64.9,
+      "y1": 20.7,
+      "x2": 56.0,
+      "y2": 32.8
+     }
+    ],
+    "labels": [
+     {
+      "x": 70.1,
+      "y": 57.3,
+      "t": "O"
+     },
+     {
+      "x": 70.2,
       "y": 18.4,
       "t": "O"
      }
@@ -5626,6 +7774,10 @@ export const GLOSSARY_DATA: GlossaryData = {
       "y2": 44.1
      }
     ]
+   },
+   "ring": {
+    "group": "the alkyl group",
+    "effect": "o/p director, activating"
    }
   },
   {
@@ -5858,6 +8010,143 @@ export const GLOSSARY_DATA: GlossaryData = {
    }
   },
   {
+   "name": "methyl 4-nitrobenzoate",
+   "smiles": "COC(=O)c1ccc([N+](=O)[O-])cc1",
+   "family": "esters",
+   "parts": [
+    "methyl",
+    "nitro",
+    "benz",
+    "oate"
+   ],
+   "figure": {
+    "w": 165.2,
+    "h": 98.7,
+    "bonds": [
+     {
+      "x1": 110.5,
+      "y1": 81.8,
+      "x2": 95.7,
+      "y2": 73.4
+     },
+     {
+      "x1": 95.7,
+      "y1": 73.4,
+      "x2": 95.7,
+      "y2": 49.3
+     },
+     {
+      "x1": 95.7,
+      "y1": 49.3,
+      "x2": 74.9,
+      "y2": 37.4,
+      "order": 2,
+      "inner": -1
+     },
+     {
+      "x1": 74.9,
+      "y1": 37.4,
+      "x2": 54.1,
+      "y2": 49.4
+     },
+     {
+      "x1": 54.1,
+      "y1": 49.4,
+      "x2": 41.1,
+      "y2": 41.9
+     },
+     {
+      "x1": 33.3,
+      "y1": 28.4,
+      "x2": 33.3,
+      "y2": 22.4,
+      "order": 2
+     },
+     {
+      "x1": 25.6,
+      "y1": 41.9,
+      "x2": 20.4,
+      "y2": 44.9
+     },
+     {
+      "x1": 54.1,
+      "y1": 49.4,
+      "x2": 54.2,
+      "y2": 73.4,
+      "order": 2,
+      "inner": -1
+     },
+     {
+      "x1": 54.2,
+      "y1": 73.4,
+      "x2": 75.0,
+      "y2": 85.4
+     },
+     {
+      "x1": 75.0,
+      "y1": 85.4,
+      "x2": 95.7,
+      "y2": 73.4,
+      "order": 2,
+      "inner": -1
+     }
+    ],
+    "labels": [
+     {
+      "x": 111.5,
+      "y": 90.4,
+      "t": "CO_2CH_3",
+      "anchor": "start"
+     },
+     {
+      "x": 33.3,
+      "y": 42.4,
+      "t": "N^+"
+     },
+     {
+      "x": 33.3,
+      "y": 18.4,
+      "t": "O"
+     },
+     {
+      "x": 12.6,
+      "y": 54.5,
+      "t": "O^−"
+     }
+    ]
+   }
+  },
+  {
+   "name": "methyl acetate",
+   "smiles": "COC(C)=O",
+   "family": "esters",
+   "parts": [
+    "methyl",
+    "acet",
+    "oate"
+   ],
+   "figure": {
+    "w": 58.8,
+    "h": 45.4,
+    "bonds": [
+     {
+      "x1": 48.7,
+      "y1": 20.4,
+      "x2": 48.8,
+      "y2": 37.4
+     }
+    ],
+    "labels": [
+     {
+      "x": 53.8,
+      "y": 18.4,
+      "t": "CH_3O_2C",
+      "anchor": "end"
+     }
+    ]
+   }
+  },
+  {
    "name": "methyl benzoate",
    "smiles": "COC(=O)c1ccccc1",
    "family": "esters",
@@ -5927,6 +8216,46 @@ export const GLOSSARY_DATA: GlossaryData = {
       "anchor": "start"
      }
     ]
+   },
+   "ring": {
+    "group": "the C=O",
+    "effect": "meta director, deactivating"
+   }
+  },
+  {
+   "name": "methyl propanoate",
+   "smiles": "CCC(=O)OC",
+   "family": "esters",
+   "parts": [
+    "methyl",
+    "prop",
+    "oate"
+   ],
+   "figure": {
+    "w": 98.3,
+    "h": 33.4,
+    "bonds": [
+     {
+      "x1": 8.0,
+      "y1": 13.4,
+      "x2": 28.8,
+      "y2": 25.4
+     },
+     {
+      "x1": 28.8,
+      "y1": 25.4,
+      "x2": 43.5,
+      "y2": 16.9
+     }
+    ],
+    "labels": [
+     {
+      "x": 44.5,
+      "y": 18.4,
+      "t": "CO_2CH_3",
+      "anchor": "start"
+     }
+    ]
    }
   },
   {
@@ -5953,6 +8282,433 @@ export const GLOSSARY_DATA: GlossaryData = {
       "x": 32.0,
       "y": 18.4,
       "t": "NH_2"
+     }
+    ]
+   }
+  },
+  {
+   "name": "methylenecyclohexane",
+   "smiles": "C=C1CCCCC1",
+   "family": "alkenes",
+   "parts": [
+    "methylene",
+    "cyclo",
+    "hex"
+   ],
+   "figure": {
+    "w": 78.4,
+    "h": 64.0,
+    "bonds": [
+     {
+      "x1": 8.0,
+      "y1": 8.0,
+      "x2": 28.8,
+      "y2": 20.0,
+      "order": 2
+     },
+     {
+      "x1": 28.8,
+      "y1": 20.0,
+      "x2": 28.8,
+      "y2": 44.0
+     },
+     {
+      "x1": 28.8,
+      "y1": 44.0,
+      "x2": 49.6,
+      "y2": 56.0
+     },
+     {
+      "x1": 49.6,
+      "y1": 56.0,
+      "x2": 70.4,
+      "y2": 44.0
+     },
+     {
+      "x1": 70.4,
+      "y1": 44.0,
+      "x2": 70.4,
+      "y2": 20.0
+     },
+     {
+      "x1": 70.4,
+      "y1": 20.0,
+      "x2": 49.6,
+      "y2": 8.0
+     },
+     {
+      "x1": 49.6,
+      "y1": 8.0,
+      "x2": 28.8,
+      "y2": 20.0
+     }
+    ]
+   }
+  },
+  {
+   "name": "methylenetriphenylphosphorane",
+   "smiles": "[CH2-][P+](c1ccccc1)(c1ccccc1)c1ccccc1",
+   "family": "aromatics",
+   "parts": [
+    "methylene",
+    "phenyl",
+    "phosphorane"
+   ],
+   "figure": {
+    "w": 133.0,
+    "h": 160.0,
+    "bonds": [
+     {
+      "x1": 104.0,
+      "y1": 79.9,
+      "x2": 89.0,
+      "y2": 80.0
+     },
+     {
+      "x1": 71.0,
+      "y1": 80.0,
+      "x2": 56.0,
+      "y2": 80.1
+     },
+     {
+      "x1": 56.0,
+      "y1": 80.1,
+      "x2": 44.1,
+      "y2": 100.9,
+      "order": 2,
+      "inner": 1
+     },
+     {
+      "x1": 44.1,
+      "y1": 100.9,
+      "x2": 20.1,
+      "y2": 101.0
+     },
+     {
+      "x1": 20.1,
+      "y1": 101.0,
+      "x2": 8.0,
+      "y2": 80.2,
+      "order": 2,
+      "inner": 1
+     },
+     {
+      "x1": 8.0,
+      "y1": 80.2,
+      "x2": 19.9,
+      "y2": 59.4
+     },
+     {
+      "x1": 19.9,
+      "y1": 59.4,
+      "x2": 43.9,
+      "y2": 59.3,
+      "order": 2,
+      "inner": 1
+     },
+     {
+      "x1": 80.0,
+      "y1": 89.0,
+      "x2": 80.1,
+      "y2": 104.0
+     },
+     {
+      "x1": 80.1,
+      "y1": 104.0,
+      "x2": 100.9,
+      "y2": 115.9,
+      "order": 2,
+      "inner": 1
+     },
+     {
+      "x1": 100.9,
+      "y1": 115.9,
+      "x2": 101.0,
+      "y2": 139.9
+     },
+     {
+      "x1": 101.0,
+      "y1": 139.9,
+      "x2": 80.2,
+      "y2": 152.0,
+      "order": 2,
+      "inner": 1
+     },
+     {
+      "x1": 80.2,
+      "y1": 152.0,
+      "x2": 59.4,
+      "y2": 140.1
+     },
+     {
+      "x1": 59.4,
+      "y1": 140.1,
+      "x2": 59.3,
+      "y2": 116.1,
+      "order": 2,
+      "inner": 1
+     },
+     {
+      "x1": 80.0,
+      "y1": 71.0,
+      "x2": 79.9,
+      "y2": 56.0
+     },
+     {
+      "x1": 79.9,
+      "y1": 56.0,
+      "x2": 59.1,
+      "y2": 44.1,
+      "order": 2,
+      "inner": 1
+     },
+     {
+      "x1": 59.1,
+      "y1": 44.1,
+      "x2": 59.0,
+      "y2": 20.1
+     },
+     {
+      "x1": 59.0,
+      "y1": 20.1,
+      "x2": 79.8,
+      "y2": 8.0,
+      "order": 2,
+      "inner": 1
+     },
+     {
+      "x1": 79.8,
+      "y1": 8.0,
+      "x2": 100.6,
+      "y2": 19.9
+     },
+     {
+      "x1": 100.6,
+      "y1": 19.9,
+      "x2": 100.7,
+      "y2": 43.9,
+      "order": 2,
+      "inner": 1
+     },
+     {
+      "x1": 43.9,
+      "y1": 59.3,
+      "x2": 56.0,
+      "y2": 80.1
+     },
+     {
+      "x1": 59.3,
+      "y1": 116.1,
+      "x2": 80.1,
+      "y2": 104.0
+     },
+     {
+      "x1": 100.7,
+      "y1": 43.9,
+      "x2": 79.9,
+      "y2": 56.0
+     }
+    ],
+    "labels": [
+     {
+      "x": 80.0,
+      "y": 85.0,
+      "t": "P^+"
+     }
+    ],
+    "halos": [
+     {
+      "x": 104.0,
+      "y": 79.9
+     }
+    ],
+    "signs": [
+     {
+      "x": 119.0,
+      "y": 79.9,
+      "t": "−"
+     }
+    ]
+   }
+  },
+  {
+   "name": "N-methyl-4-chlorobenzaldimine",
+   "smiles": "CN=Cc1ccc(Cl)cc1",
+   "family": "aromatics",
+   "parts": [
+    "nlocant",
+    "methyl",
+    "chloro",
+    "benz",
+    "aldimine"
+   ],
+   "figure": {
+    "w": 146.8,
+    "h": 69.8,
+    "bonds": [
+     {
+      "x1": 8.0,
+      "y1": 61.8,
+      "x2": 21.0,
+      "y2": 54.3
+     },
+     {
+      "x1": 36.6,
+      "y1": 54.2,
+      "x2": 49.6,
+      "y2": 61.7,
+      "order": 2
+     },
+     {
+      "x1": 49.6,
+      "y1": 61.7,
+      "x2": 70.3,
+      "y2": 49.6
+     },
+     {
+      "x1": 70.3,
+      "y1": 49.6,
+      "x2": 91.1,
+      "y2": 61.5
+     },
+     {
+      "x1": 91.1,
+      "y1": 61.5,
+      "x2": 111.9,
+      "y2": 49.5,
+      "order": 2,
+      "inner": -1
+     },
+     {
+      "x1": 111.9,
+      "y1": 49.5,
+      "x2": 111.8,
+      "y2": 25.5
+     },
+     {
+      "x1": 111.8,
+      "y1": 25.5,
+      "x2": 124.8,
+      "y2": 17.9
+     },
+     {
+      "x1": 111.8,
+      "y1": 25.5,
+      "x2": 91.0,
+      "y2": 13.5,
+      "order": 2,
+      "inner": -1
+     },
+     {
+      "x1": 91.0,
+      "y1": 13.5,
+      "x2": 70.2,
+      "y2": 25.6
+     },
+     {
+      "x1": 70.2,
+      "y1": 25.6,
+      "x2": 70.3,
+      "y2": 49.6,
+      "order": 2,
+      "inner": -1
+     }
+    ],
+    "labels": [
+     {
+      "x": 28.7,
+      "y": 54.8,
+      "t": "N"
+     },
+     {
+      "x": 132.5,
+      "y": 18.4,
+      "t": "Cl"
+     }
+    ]
+   }
+  },
+  {
+   "name": "N-methylbenzaldimine",
+   "smiles": "CN=Cc1ccccc1",
+   "family": "aromatics",
+   "parts": [
+    "nlocant",
+    "methyl",
+    "benz",
+    "aldimine"
+   ],
+   "figure": {
+    "w": 119.9,
+    "h": 64.3,
+    "bonds": [
+     {
+      "x1": 8.0,
+      "y1": 56.3,
+      "x2": 21.0,
+      "y2": 48.7
+     },
+     {
+      "x1": 36.6,
+      "y1": 48.7,
+      "x2": 49.6,
+      "y2": 56.1,
+      "order": 2
+     },
+     {
+      "x1": 49.6,
+      "y1": 56.1,
+      "x2": 70.3,
+      "y2": 44.1
+     },
+     {
+      "x1": 70.3,
+      "y1": 44.1,
+      "x2": 91.1,
+      "y2": 56.0,
+      "order": 2,
+      "inner": -1
+     },
+     {
+      "x1": 91.1,
+      "y1": 56.0,
+      "x2": 111.9,
+      "y2": 43.9
+     },
+     {
+      "x1": 111.9,
+      "y1": 43.9,
+      "x2": 111.8,
+      "y2": 19.9,
+      "order": 2,
+      "inner": -1
+     },
+     {
+      "x1": 111.8,
+      "y1": 19.9,
+      "x2": 91.0,
+      "y2": 8.0
+     },
+     {
+      "x1": 91.0,
+      "y1": 8.0,
+      "x2": 70.2,
+      "y2": 20.1,
+      "order": 2,
+      "inner": -1
+     },
+     {
+      "x1": 70.2,
+      "y1": 20.1,
+      "x2": 70.3,
+      "y2": 44.1
+     }
+    ],
+    "labels": [
+     {
+      "x": 28.7,
+      "y": 49.3,
+      "t": "N"
      }
     ]
    }
@@ -6051,6 +8807,133 @@ export const GLOSSARY_DATA: GlossaryData = {
       "t": "O"
      }
     ]
+   },
+   "ring": {
+    "group": "the C=O",
+    "effect": "meta director, deactivating"
+   }
+  },
+  {
+   "name": "N-methylcyclohexanimine",
+   "smiles": "CN=C1CCCCC1",
+   "family": "alkanes",
+   "parts": [
+    "nlocant",
+    "methyl",
+    "cyclo",
+    "hex",
+    "imine"
+   ],
+   "figure": {
+    "w": 99.1,
+    "h": 69.5,
+    "bonds": [
+     {
+      "x1": 8.0,
+      "y1": 44.2,
+      "x2": 21.0,
+      "y2": 51.7
+     },
+     {
+      "x1": 36.6,
+      "y1": 51.6,
+      "x2": 49.6,
+      "y2": 44.1,
+      "order": 2
+     },
+     {
+      "x1": 49.6,
+      "y1": 44.1,
+      "x2": 70.4,
+      "y2": 56.0
+     },
+     {
+      "x1": 70.4,
+      "y1": 56.0,
+      "x2": 91.1,
+      "y2": 43.9
+     },
+     {
+      "x1": 91.1,
+      "y1": 43.9,
+      "x2": 91.0,
+      "y2": 19.9
+     },
+     {
+      "x1": 91.0,
+      "y1": 19.9,
+      "x2": 70.2,
+      "y2": 8.0
+     },
+     {
+      "x1": 70.2,
+      "y1": 8.0,
+      "x2": 49.5,
+      "y2": 20.1
+     },
+     {
+      "x1": 49.5,
+      "y1": 20.1,
+      "x2": 49.6,
+      "y2": 44.1
+     }
+    ],
+    "labels": [
+     {
+      "x": 28.8,
+      "y": 61.2,
+      "t": "N"
+     }
+    ]
+   }
+  },
+  {
+   "name": "N-methylpropanimine",
+   "smiles": "CCC=NC",
+   "family": "alkanes",
+   "parts": [
+    "nlocant",
+    "methyl",
+    "prop",
+    "imine"
+   ],
+   "figure": {
+    "w": 99.1,
+    "h": 33.4,
+    "bonds": [
+     {
+      "x1": 91.1,
+      "y1": 25.4,
+      "x2": 70.4,
+      "y2": 13.4
+     },
+     {
+      "x1": 70.4,
+      "y1": 13.4,
+      "x2": 49.6,
+      "y2": 25.4
+     },
+     {
+      "x1": 49.6,
+      "y1": 25.4,
+      "x2": 36.6,
+      "y2": 17.9,
+      "order": 2
+     },
+     {
+      "x1": 21.0,
+      "y1": 17.9,
+      "x2": 8.0,
+      "y2": 25.4
+     }
+    ],
+    "labels": [
+     {
+      "x": 28.8,
+      "y": 18.4,
+      "t": "N"
+     }
+    ]
    }
   },
   {
@@ -6142,6 +9025,118 @@ export const GLOSSARY_DATA: GlossaryData = {
       "x": 51.2,
       "y": 18.4,
       "t": "O^−"
+     }
+    ]
+   },
+   "ring": {
+    "group": "the NO2",
+    "effect": "meta director, deactivating"
+   }
+  },
+  {
+   "name": "pentan-2-one",
+   "smiles": "CCCC(C)=O",
+   "family": "carbonyls",
+   "parts": [
+    "pent",
+    "ane",
+    "one"
+   ],
+   "figure": {
+    "w": 99.1,
+    "h": 57.5,
+    "bonds": [
+     {
+      "x1": 8.0,
+      "y1": 49.5,
+      "x2": 28.8,
+      "y2": 37.5
+     },
+     {
+      "x1": 28.8,
+      "y1": 37.5,
+      "x2": 49.6,
+      "y2": 49.4
+     },
+     {
+      "x1": 49.6,
+      "y1": 49.4,
+      "x2": 70.3,
+      "y2": 37.4
+     },
+     {
+      "x1": 70.3,
+      "y1": 37.4,
+      "x2": 91.1,
+      "y2": 49.4
+     },
+     {
+      "x1": 70.3,
+      "y1": 37.4,
+      "x2": 70.3,
+      "y2": 22.4,
+      "order": 2
+     }
+    ],
+    "labels": [
+     {
+      "x": 70.3,
+      "y": 18.4,
+      "t": "O"
+     }
+    ]
+   }
+  },
+  {
+   "name": "pentan-3-one",
+   "smiles": "CCC(=O)CC",
+   "family": "carbonyls",
+   "parts": [
+    "pent",
+    "ane",
+    "one"
+   ],
+   "figure": {
+    "w": 99.1,
+    "h": 57.4,
+    "bonds": [
+     {
+      "x1": 91.1,
+      "y1": 37.4,
+      "x2": 70.3,
+      "y2": 49.4
+     },
+     {
+      "x1": 70.3,
+      "y1": 49.4,
+      "x2": 49.6,
+      "y2": 37.4
+     },
+     {
+      "x1": 49.6,
+      "y1": 37.4,
+      "x2": 49.6,
+      "y2": 22.4,
+      "order": 2
+     },
+     {
+      "x1": 49.6,
+      "y1": 37.4,
+      "x2": 28.8,
+      "y2": 49.4
+     },
+     {
+      "x1": 28.8,
+      "y1": 49.4,
+      "x2": 8.0,
+      "y2": 37.4
+     }
+    ],
+    "labels": [
+     {
+      "x": 49.6,
+      "y": 18.4,
+      "t": "O"
      }
     ]
    }
@@ -6236,6 +9231,236 @@ export const GLOSSARY_DATA: GlossaryData = {
       "x": 14.2,
       "y": 42.3,
       "t": "Br"
+     }
+    ]
+   },
+   "ring": {
+    "group": "the C=O",
+    "effect": "meta director, deactivating"
+   }
+  },
+  {
+   "name": "phenylacetaldehyde",
+   "smiles": "O=CCc1ccccc1",
+   "family": "carbonyls",
+   "parts": [
+    "phenylacet",
+    "aldehyde"
+   ],
+   "figure": {
+    "w": 121.5,
+    "h": 69.7,
+    "bonds": [
+     {
+      "x1": 17.4,
+      "y1": 17.9,
+      "x2": 30.4,
+      "y2": 25.5,
+      "order": 2
+     },
+     {
+      "x1": 30.4,
+      "y1": 25.5,
+      "x2": 51.2,
+      "y2": 13.5
+     },
+     {
+      "x1": 51.2,
+      "y1": 13.5,
+      "x2": 71.9,
+      "y2": 25.6
+     },
+     {
+      "x1": 71.9,
+      "y1": 25.6,
+      "x2": 92.8,
+      "y2": 13.7,
+      "order": 2,
+      "inner": 1
+     },
+     {
+      "x1": 92.8,
+      "y1": 13.7,
+      "x2": 113.5,
+      "y2": 25.8
+     },
+     {
+      "x1": 113.5,
+      "y1": 25.8,
+      "x2": 113.4,
+      "y2": 49.8,
+      "order": 2,
+      "inner": 1
+     },
+     {
+      "x1": 113.4,
+      "y1": 49.8,
+      "x2": 92.6,
+      "y2": 61.7
+     },
+     {
+      "x1": 92.6,
+      "y1": 61.7,
+      "x2": 71.8,
+      "y2": 49.6,
+      "order": 2,
+      "inner": 1
+     },
+     {
+      "x1": 71.8,
+      "y1": 49.6,
+      "x2": 71.9,
+      "y2": 25.6
+     }
+    ],
+    "labels": [
+     {
+      "x": 9.6,
+      "y": 18.4,
+      "t": "O"
+     }
+    ]
+   },
+   "ring": {
+    "group": "the alkyl group",
+    "effect": "o/p director, activating"
+   }
+  },
+  {
+   "name": "phenylacetic acid",
+   "smiles": "O=C(O)Cc1ccccc1",
+   "family": "acids",
+   "parts": [
+    "phenylacet",
+    "ic"
+   ],
+   "figure": {
+    "w": 126.1,
+    "h": 69.7,
+    "bonds": [
+     {
+      "x1": 34.9,
+      "y1": 29.2,
+      "x2": 35.0,
+      "y2": 44.2,
+      "order": 2
+     },
+     {
+      "x1": 35.0,
+      "y1": 44.2,
+      "x2": 22.0,
+      "y2": 51.8
+     },
+     {
+      "x1": 35.0,
+      "y1": 44.2,
+      "x2": 55.8,
+      "y2": 56.1
+     },
+     {
+      "x1": 55.8,
+      "y1": 56.1,
+      "x2": 76.5,
+      "y2": 44.1
+     },
+     {
+      "x1": 76.5,
+      "y1": 44.1,
+      "x2": 97.4,
+      "y2": 56.0,
+      "order": 2,
+      "inner": -1
+     },
+     {
+      "x1": 97.4,
+      "y1": 56.0,
+      "x2": 118.1,
+      "y2": 43.9
+     },
+     {
+      "x1": 118.1,
+      "y1": 43.9,
+      "x2": 118.0,
+      "y2": 19.9,
+      "order": 2,
+      "inner": -1
+     },
+     {
+      "x1": 118.0,
+      "y1": 19.9,
+      "x2": 97.2,
+      "y2": 8.0
+     },
+     {
+      "x1": 97.2,
+      "y1": 8.0,
+      "x2": 76.5,
+      "y2": 20.1,
+      "order": 2,
+      "inner": -1
+     },
+     {
+      "x1": 76.5,
+      "y1": 20.1,
+      "x2": 76.5,
+      "y2": 44.1
+     }
+    ],
+    "labels": [
+     {
+      "x": 34.9,
+      "y": 25.3,
+      "t": "O"
+     },
+     {
+      "x": 14.2,
+      "y": 61.3,
+      "t": "OH"
+     }
+    ]
+   },
+   "ring": {
+    "group": "the alkyl group",
+    "effect": "o/p director, activating"
+   }
+  },
+  {
+   "name": "propan-1-ol",
+   "smiles": "CCCO",
+   "family": "alcohols",
+   "parts": [
+    "prop",
+    "ane",
+    "ol"
+   ],
+   "figure": {
+    "w": 84.6,
+    "h": 33.4,
+    "bonds": [
+     {
+      "x1": 76.6,
+      "y1": 8.0,
+      "x2": 55.8,
+      "y2": 20.0
+     },
+     {
+      "x1": 55.8,
+      "y1": 20.0,
+      "x2": 35.0,
+      "y2": 8.0
+     },
+     {
+      "x1": 35.0,
+      "y1": 8.0,
+      "x2": 22.0,
+      "y2": 15.5
+     }
+    ],
+    "labels": [
+     {
+      "x": 14.2,
+      "y": 25.0,
+      "t": "OH"
      }
     ]
    }
@@ -6388,6 +9613,154 @@ export const GLOSSARY_DATA: GlossaryData = {
    }
   },
   {
+   "name": "propylbenzene",
+   "smiles": "CCCc1ccccc1",
+   "family": "aromatics",
+   "parts": [
+    "propyl",
+    "benz"
+   ],
+   "figure": {
+    "w": 119.9,
+    "h": 64.3,
+    "bonds": [
+     {
+      "x1": 8.0,
+      "y1": 56.3,
+      "x2": 28.7,
+      "y2": 44.2
+     },
+     {
+      "x1": 28.7,
+      "y1": 44.2,
+      "x2": 49.6,
+      "y2": 56.1
+     },
+     {
+      "x1": 49.6,
+      "y1": 56.1,
+      "x2": 70.3,
+      "y2": 44.1
+     },
+     {
+      "x1": 70.3,
+      "y1": 44.1,
+      "x2": 91.1,
+      "y2": 56.0,
+      "order": 2,
+      "inner": -1
+     },
+     {
+      "x1": 91.1,
+      "y1": 56.0,
+      "x2": 111.9,
+      "y2": 43.9
+     },
+     {
+      "x1": 111.9,
+      "y1": 43.9,
+      "x2": 111.8,
+      "y2": 19.9,
+      "order": 2,
+      "inner": -1
+     },
+     {
+      "x1": 111.8,
+      "y1": 19.9,
+      "x2": 91.0,
+      "y2": 8.0
+     },
+     {
+      "x1": 91.0,
+      "y1": 8.0,
+      "x2": 70.2,
+      "y2": 20.1,
+      "order": 2,
+      "inner": -1
+     },
+     {
+      "x1": 70.2,
+      "y1": 20.1,
+      "x2": 70.3,
+      "y2": 44.1
+     }
+    ]
+   },
+   "ring": {
+    "group": "the alkyl group",
+    "effect": "o/p director, activating"
+   }
+  },
+  {
+   "name": "styrene",
+   "smiles": "C=Cc1ccccc1",
+   "family": "aromatics",
+   "parts": [
+    "styrene"
+   ],
+   "figure": {
+    "w": 99.1,
+    "h": 64.1,
+    "bonds": [
+     {
+      "x1": 8.0,
+      "y1": 44.2,
+      "x2": 28.8,
+      "y2": 56.1,
+      "order": 2
+     },
+     {
+      "x1": 28.8,
+      "y1": 56.1,
+      "x2": 49.6,
+      "y2": 44.1
+     },
+     {
+      "x1": 49.6,
+      "y1": 44.1,
+      "x2": 70.4,
+      "y2": 56.0,
+      "order": 2,
+      "inner": -1
+     },
+     {
+      "x1": 70.4,
+      "y1": 56.0,
+      "x2": 91.1,
+      "y2": 43.9
+     },
+     {
+      "x1": 91.1,
+      "y1": 43.9,
+      "x2": 91.0,
+      "y2": 19.9,
+      "order": 2,
+      "inner": -1
+     },
+     {
+      "x1": 91.0,
+      "y1": 19.9,
+      "x2": 70.2,
+      "y2": 8.0
+     },
+     {
+      "x1": 70.2,
+      "y1": 8.0,
+      "x2": 49.5,
+      "y2": 20.1,
+      "order": 2,
+      "inner": -1
+     },
+     {
+      "x1": 49.5,
+      "y1": 20.1,
+      "x2": 49.6,
+      "y2": 44.1
+     }
+    ]
+   }
+  },
+  {
    "name": "tert-butanol",
    "smiles": "CC(C)(C)O",
    "family": "alcohols",
@@ -6429,6 +9802,136 @@ export const GLOSSARY_DATA: GlossaryData = {
       "x": 40.9,
       "y": 18.4,
       "t": "OH"
+     }
+    ]
+   }
+  },
+  {
+   "name": "vanillin acetate",
+   "smiles": "COc1cc(C=O)ccc1OC(C)=O",
+   "family": "aromatics",
+   "parts": [
+    "vanillin",
+    "acet",
+    "oate"
+   ],
+   "figure": {
+    "w": 142.4,
+    "h": 110.8,
+    "bonds": [
+     {
+      "x1": 134.3,
+      "y1": 85.4,
+      "x2": 121.3,
+      "y2": 92.9
+     },
+     {
+      "x1": 105.7,
+      "y1": 92.9,
+      "x2": 92.8,
+      "y2": 85.4
+     },
+     {
+      "x1": 92.8,
+      "y1": 85.4,
+      "x2": 72.0,
+      "y2": 97.4
+     },
+     {
+      "x1": 72.0,
+      "y1": 97.4,
+      "x2": 51.2,
+      "y2": 85.4,
+      "order": 2,
+      "inner": 1
+     },
+     {
+      "x1": 51.2,
+      "y1": 85.4,
+      "x2": 30.4,
+      "y2": 97.4
+     },
+     {
+      "x1": 30.4,
+      "y1": 97.4,
+      "x2": 17.4,
+      "y2": 89.8,
+      "order": 2
+     },
+     {
+      "x1": 51.2,
+      "y1": 85.4,
+      "x2": 51.2,
+      "y2": 61.4
+     },
+     {
+      "x1": 51.2,
+      "y1": 61.4,
+      "x2": 72.0,
+      "y2": 49.4,
+      "order": 2,
+      "inner": 1
+     },
+     {
+      "x1": 72.0,
+      "y1": 49.4,
+      "x2": 92.8,
+      "y2": 61.4
+     },
+     {
+      "x1": 92.8,
+      "y1": 61.4,
+      "x2": 105.8,
+      "y2": 53.9
+     },
+     {
+      "x1": 113.6,
+      "y1": 40.4,
+      "x2": 113.6,
+      "y2": 25.4
+     },
+     {
+      "x1": 113.6,
+      "y1": 25.4,
+      "x2": 134.4,
+      "y2": 13.4
+     },
+     {
+      "x1": 113.6,
+      "y1": 25.4,
+      "x2": 100.6,
+      "y2": 17.9,
+      "order": 2
+     },
+     {
+      "x1": 92.8,
+      "y1": 61.4,
+      "x2": 92.8,
+      "y2": 85.4,
+      "order": 2,
+      "inner": 1
+     }
+    ],
+    "labels": [
+     {
+      "x": 113.5,
+      "y": 102.5,
+      "t": "O"
+     },
+     {
+      "x": 9.6,
+      "y": 90.4,
+      "t": "O"
+     },
+     {
+      "x": 113.6,
+      "y": 54.5,
+      "t": "O"
+     },
+     {
+      "x": 92.8,
+      "y": 18.4,
+      "t": "O"
      }
     ]
    }

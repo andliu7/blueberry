@@ -180,6 +180,18 @@ Feed and accounts
   no longer wipes it (progress.ts storage listener), and the Feed opens on "Welcome back, <name>"
   with "Pick up where you left off" to the path, reminders, and one honest friends line.
   #/app first open 340.2 KB. Signed-in view not checked in a browser (needs a real sign-in).
+- Items 14 and 27 (core) DONE 23 Oct: the glossary page (556c370) now has an "i" beside every
+  named compound and reagent shorthand on a Cards tab card (term list, Test and Write question,
+  Write's shown answer; Flashcards shows the same as a chip row under the card, Match none, since
+  its tiles are tap targets). It opens the entry in a bottom sheet, a 0.7 KB lazy chunk; the
+  drawings load on the first tap, never with the Cards tab. Compounds now also come from the site
+  decks' drawn products (101 in all), and a compound with one group on a benzene ring carries the
+  EWG / EDG line, found by RDKit (scripts/glossary.py RING_RULES; every other aromatic compound
+  has a written reason in NO_RING_NOTE). Pinned by glossaryCardLinks.test.ts plus the --check
+  byte match, which now covers the small names index too. #/app first open 340.3 KB.
+  Still open: the personal definitions store, the full reaction catalogue, and deck STARTING
+  materials (the deck files hold names in prose only; they would come from mechanism_trainer's
+  generator, owner decision).
 
 **Progress, 21 Oct (Wave 2 items 6, 8, 10 and item 15; committed, not pushed)**
 - Top bar A3: one row, Bloom with his level badge, a short XP bar, "N XP to the next stage!",
@@ -301,6 +313,7 @@ Wave 4, cards and starter reactions
    benzoate, buta-1,3-diene, ...): structure (RDKit), name, and WHY it is named that way (-oic
    acid, -one = ketone, phen- = the benzene ring, aceto- = the acetyl part), plus the owner's
    lecture point on substituent reactivity (EWG / EDG). An info icon on each molecule opens it.
+   DONE 23 Oct, see "Progress, 22 Oct".
 15. The dashed "?" box under each card: replace with an arrow (it is a reaction) and a specific
    prompt ("What forms?" / "Which reagent?").
 16. Answers on the product side: a name, a formula, or a drawing. Keep the Ketcher editor; add a
@@ -341,7 +354,8 @@ Added 20 Oct (owner)
    reaction maps (EB6) can be built from it (alkanes, alkenes, alkynes, aromatics, haloalkanes,
    alcohols, thiols/amines, aldehydes/ketones, carboxylic acids, esters, with each interconversion);
    shorthands (DMSO, THF, tBu, DMS, Py, Ph, Me, Ts, PCC, Jones = H2CrO4 in Orgo II). Structures from
-   RDKit with byte-match tests (D6).
+   RDKit with byte-match tests (D6). CORE DONE 23 Oct, see "Progress, 22 Oct"; personal
+   definitions and the full reaction catalogue still open.
 28. Curriculum audit against the owner's reagent reference
    (`documentation/ORGO2-REAGENT-REFERENCE.md`); gaps in
    `grignard/reports/curriculum-vs-reference-2026-10-20.md` (outside the repo). Feeds item 5 of the

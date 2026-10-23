@@ -24,6 +24,7 @@ import { Berry } from "../../mascot/Berry";
 import { DefinitionSide, TermSide } from "./CardSides";
 import { Flashcards } from "./Flashcards";
 import { MatchMode } from "./MatchMode";
+import { GlossaryPeekHost } from "./MoleculeInfo";
 import { BackIcon, BinIcon, MODE_ICONS, StarIcon } from "./StudyIcons";
 import { readStars, splitSegments, STUDY_MODES, toggled, writeStars, type StudyMode } from "./studyModel";
 import { TestMode } from "./TestMode";
@@ -64,6 +65,8 @@ export function DeckSet({
   const [stars, setStars] = useState<ReadonlySet<string>>(() => readStars());
   const [pending, setPending] = useState<Card | null>(null);
   const [starredOnlyList, setStarredOnlyList] = useState(false);
+  // The glossary entry open in the peek sheet, or null. One sheet for every mode and the term list.
+  const [peek, setPeek] = useState<string | null>(null);
 
   const setAndSave = (next: ReadonlySet<string>) => {
     setStars(next);
@@ -108,7 +111,7 @@ export function DeckSet({
 
   let panel;
   if (mode === "flashcards") {
-    panel = <Flashcards cards={visible} stars={stars} onToggleStar={(id) => setAndSave(toggled(stars, id))} />;
+    panel = <Flashcards cards={visible} stars={stars} onToggleStar={(id) => setAndSave(toggled(stars, id))} onInfo={setPeek} />;
   } else if (mode === "learn") {
     panel = (
       <section className="ct-panel ct-learn" aria-label="Learn">
@@ -134,6 +137,7 @@ export function DeckSet({
       <TestMode
         cards={visible}
         reducedMotion={reducedMotion}
+        onInfo={setPeek}
         onStarMissed={(ids) => {
           const next = new Set(stars);
           for (const id of ids) next.add(id);
@@ -144,7 +148,7 @@ export function DeckSet({
   } else if (mode === "match") {
     panel = <MatchMode deckId={deckId} cards={visible} reducedMotion={reducedMotion} />;
   } else {
-    panel = <WriteMode cards={visible} reducedMotion={reducedMotion} />;
+    panel = <WriteMode cards={visible} reducedMotion={reducedMotion} onInfo={setPeek} />;
   }
 
   return (
@@ -197,10 +201,10 @@ export function DeckSet({
             return (
               <li key={card.id} className="ct-term-row">
                 <div className="ct-term-row__q">
-                  <TermSide card={card} size="small" />
+                  <TermSide card={card} size="small" onInfo={setPeek} />
                 </div>
                 <div className="ct-term-row__a">
-                  <DefinitionSide card={card} size="small" />
+                  <DefinitionSide card={card} size="small" onInfo={setPeek} />
                 </div>
                 <div className="ct-term-row__tools">
                   <span className={`ct-state ct-state--${state}`}>{CARD_STATE_LABELS[state]}</span>
@@ -247,6 +251,8 @@ export function DeckSet({
           </div>
         )}
       </section>
+
+      <GlossaryPeekHost entryId={peek} reducedMotion={reducedMotion} onClose={() => setPeek(null)} />
 
       {pending !== null && (
         <div className="ct-undo" role="status">

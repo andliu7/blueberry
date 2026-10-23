@@ -244,6 +244,23 @@
   color: var(--bb-muted-foreground);
 }
 
+/* The EWG / EDG line on a compound with one group on a benzene ring. The
+   link keeps a 44px target; the negative margin stops it from growing the line. */
+.gl-card__ring {
+  margin: 0.5rem 0 0;
+  font: 600 0.875rem/1.4 var(--font-sans);
+}
+.gl-card__ring a {
+  display: inline-flex;
+  min-width: 44px;
+  min-height: 44px;
+  margin: -0.75rem 0;
+  align-items: center;
+  justify-content: center;
+  color: var(--bb-primary);
+  font-weight: 800;
+}
+
 /* A drawing: --w is its width in units, one unit drawn as one px, so bonds
    stay one length; a wide reagent shrinks to its column rather than spill. */
 .gl-mol {

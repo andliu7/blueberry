@@ -19,7 +19,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { Card } from "../../cards/types";
-import { DefinitionSide, TermSide } from "./CardSides";
+import { glossaryLinksFor } from "../../glossary/cardLinks";
+import { DefinitionSide, TermSide, type OnInfo } from "./CardSides";
+import { InfoChip } from "./MoleculeInfo";
 import { ArrowIcon, ShuffleIcon, StarIcon } from "./StudyIcons";
 import { shuffled } from "./studyModel";
 
@@ -27,10 +29,13 @@ export function Flashcards({
   cards,
   stars,
   onToggleStar,
+  onInfo,
 }: {
   readonly cards: readonly Card[];
   readonly stars: ReadonlySet<string>;
   readonly onToggleStar: (cardId: string) => void;
+  /** Opens a glossary entry from the chip row under the card. */
+  readonly onInfo?: OnInfo;
 }) {
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
@@ -81,6 +86,8 @@ export function Flashcards({
 
   const starred = stars.has(card.id);
   const progress = ((safeIndex + 1) / order.length) * 100;
+  // The glossary chips follow the face that shows: start materials and reagents, or the product.
+  const links = onInfo === undefined ? [] : flipped ? glossaryLinksFor(card).definition : glossaryLinksFor(card).term;
 
   return (
     <section className="ct-flash" aria-label="Flashcards">
@@ -132,6 +139,14 @@ export function Flashcards({
           <StarIcon filled={starred} />
         </button>
       </div>
+
+      {onInfo !== undefined && links.length > 0 && (
+        <div className="ct-info-row" role="group" aria-label="In the glossary">
+          {links.map((link) => (
+            <InfoChip key={link.entryId} label={link.label} entryId={link.entryId} onOpen={onInfo} />
+          ))}
+        </div>
+      )}
 
       <div className="ct-progress" aria-hidden="true">
         <span style={{ width: `${progress}%` }} />

@@ -976,6 +976,112 @@
 .ct-import__result { font-weight: 700; }
 .ct-export { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 
+/* ------------------------------------------------- glossary info icons -- */
+/* The "i" beside a name (MoleculeInfo.tsx). The icon is small; the button is a
+   44px target, and the negative margin keeps it from growing the line. */
+.ct-linked { white-space: normal; }
+.ct-info {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin: -0.75rem -0.6rem -0.75rem -0.35rem;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--bb-primary);
+  vertical-align: middle;
+  cursor: pointer;
+}
+.ct-info__icon { width: 1.05rem; height: 1.05rem; }
+.ct-info:focus-visible,
+.ct-info-chip:focus-visible {
+  outline: 3px solid var(--bb-primary);
+  outline-offset: -4px;
+}
+
+/* Flashcards: the faces sit inside the flip button, so the icons sit in a row under it. */
+.ct-info-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+}
+.ct-info-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 44px;
+  padding: 0 0.85rem;
+  border: 1px solid var(--bb-border);
+  border-radius: 999px;
+  background: var(--bb-card);
+  color: var(--bb-foreground);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+.ct-info-chip .ct-info__icon { color: var(--bb-primary); }
+
+/* The peek sheet (glossary/GlossaryPeek.tsx): a bottom sheet on a phone, a
+   centred panel from 768px. Padding sits on the panel, not the dialog, so a
+   tap on the backdrop is a tap on the dialog itself (app/ui/dismiss.ts). */
+.ct-peek {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  max-width: 100vw;
+  height: 100dvh;
+  max-height: 100dvh;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.ct-peek:not([open]) { display: none; }
+.ct-peek::backdrop { background: rgb(0 0 0 / 0.52); }
+.ct-peek__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: min(30rem, calc(100% - 1rem));
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  margin-bottom: 0.5rem;
+  padding: 0.75rem 1rem 1rem;
+  border: 1px solid var(--bb-border);
+  border-radius: 1.25rem;
+  background: var(--bb-card);
+  color: var(--bb-foreground);
+}
+.ct-peek[open] .ct-peek__panel { animation: ct-peek-in 260ms var(--bb-ease-out, ease); }
+@keyframes ct-peek-in {
+  from {
+    transform: translateY(2rem);
+    opacity: 0;
+  }
+}
+.ct-peek__grabber {
+  align-self: center;
+  width: 2.5rem;
+  height: 0.25rem;
+  border-radius: 999px;
+  background: var(--bb-border);
+}
+.ct-peek__missing { margin: 0; color: var(--bb-muted-foreground); }
+.ct-peek__actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.5rem; }
+.ct-peek__actions .ct-btn { text-decoration: none; }
+@media (min-width: 768px) {
+  .ct-peek { align-items: center; }
+  .ct-peek__panel { margin-bottom: 0; }
+  .ct-peek__grabber { display: none; }
+}
+.ct-peek[data-motion="reduced"][open] .ct-peek__panel { animation: none; }
+
 @media (prefers-reduced-motion: reduce) {
   .ct-flip__inner,
   .ct-modes__thumb,
@@ -988,7 +1094,8 @@
 
   .ct-slide-right,
   .ct-slide-left,
-  .ct-tile[data-state="wrong"] {
+  .ct-tile[data-state="wrong"],
+  .ct-peek[open] .ct-peek__panel {
     animation: none;
   }
 }

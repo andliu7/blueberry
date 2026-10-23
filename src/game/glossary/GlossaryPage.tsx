@@ -17,7 +17,7 @@
  */
 import { useDeferredValue, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 
-import { hrefForTab } from "../app/routes";
+import { hrefForGlossary, hrefForTab } from "../app/routes";
 import { navigate } from "../app/useHashRoute";
 import { GuideMol } from "../guide/GuideMol";
 import type { GuideFigure } from "../guide/types";
@@ -95,7 +95,8 @@ function ReactionCard({ entry }: { readonly entry: ReactionEntry }) {
   );
 }
 
-function EntryCard({ entry, focused }: { readonly entry: GlossaryEntry; readonly focused: boolean }) {
+/** One entry, drawn the same on this page and in the Cards tab's peek sheet (GlossaryPeek.tsx). */
+export function EntryCard({ entry, focused }: { readonly entry: GlossaryEntry; readonly focused: boolean }) {
   const className = `gl-card${focused ? " gl-card--focus" : ""}`;
   switch (entry.kind) {
     case "shorthand": {
@@ -135,6 +136,14 @@ function EntryCard({ entry, focused }: { readonly entry: GlossaryEntry; readonly
                 </div>
               ))}
             </dl>
+            {entry.compound.ring !== undefined ? (
+              <p className="gl-card__ring">
+                On a ring: {entry.compound.ring.group} is an{" "}
+                {entry.compound.ring.effect.endsWith(", activating") ? "EDG" : "EWG"}, {entry.compound.ring.effect}.{" "}
+                {/* A hash route, not a bare #id: the app routes on the hash. */}
+                <a href={hrefForGlossary("rule-ewg-edg")}>Why</a>
+              </p>
+            ) : null}
             <FamilyTags families={entry.families} />
           </div>
         </article>

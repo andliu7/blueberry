@@ -18,6 +18,7 @@ import { REACTIONS, type ChemicalClass, type Reaction } from "@blueberry/curricu
 
 import { resolvedLadder, type PkaSettingsSnapshot, type ResolvedPka } from "../settings/pka";
 import { GLOSSARY_DATA } from "./glossary.generated";
+import { slug } from "./slug";
 import type {
   FamilyId,
   GlossaryCompound,
@@ -204,16 +205,11 @@ export interface PersonalEntry extends EntryBase {
 
 export type GlossaryEntry = ShorthandEntry | CompoundEntry | NoteEntry | PkaEntryRow | ReactionEntry | PersonalEntry;
 
+// Re-exported so existing imports of slug from this file keep working.
+export { slug };
+
 function haystack(...parts: readonly (string | undefined)[]): string {
   return parts.filter((part) => part !== undefined).join(" ").toLowerCase();
-}
-
-/** A stable id from free text: "Jones" gives "jones", "H3O+" gives "h3o". */
-export function slug(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
 }
 
 function reagentTokens(reaction: Reaction): string[] {

@@ -13,14 +13,22 @@
  *
  * Nothing here adds chemistry: every string and drawing is on the card
  * already. See cards/ui/CardFace.tsx's header for where those come from.
+ *
+ * INFO ICONS (owner item 14). Given `onInfo`, each name and reagent that has a
+ * glossary entry (glossary/cardLinks.ts) gets an "i" button that opens it.
+ * Without `onInfo` a side draws exactly as before: Match passes none, because
+ * its tiles are tap targets, and Flashcards passes none, because its faces sit
+ * inside the flip button and a button inside a button is invalid.
  */
 
 import { Formulas } from "../../../components/ui/formula";
 import { MoleculeSvg } from "../../render/svg/MoleculeSvg";
 import type { Card } from "../../cards/types";
+import { labelPieces, shorthandLinkFor } from "../../glossary/cardLinks";
 import { Drawing } from "../../cards/ui/CardFace";
 import { FormulaLabel } from "../../cards/ui/FormulaLabel";
 import { structureOnCard } from "../../cards/ui/cardStructure";
+import { InfoButton } from "./MoleculeInfo";
 import { answerText } from "./studyModel";
 
 export type SideSize = "big" | "small";
@@ -37,18 +45,61 @@ function reagentText(card: Card): string {
   return reaction.reagents;
 }
 
-export function TermSide({ card, size }: { readonly card: Card; readonly size: SideSize }) {
+/** Opens a glossary entry by id; see the header. */
+export type OnInfo = (entryId: string) => void;
+
+/** A " + " list of names, each linked name followed by its info button. */
+function LinkedNames({ names, onInfo }: { readonly names: string; readonly onInfo: OnInfo }) {
+  return (
+    <>
+      {labelPieces(names).map((piece, index) => (
+        <span key={index} className="ct-linked">
+          {index > 0 ? " + " : ""}
+          {piece.text}
+          {piece.link !== null && <InfoButton label={piece.link.label} entryId={piece.link.entryId} onOpen={onInfo} />}
+        </span>
+      ))}
+    </>
+  );
+}
+
+/**
+ * The reagent line with an info button beside each step that is a shorthand,
+ * or null when no step is, so the caller draws the plain line instead.
+ */
+function LinkedReagents({ card, onInfo }: { readonly card: Card; readonly onInfo: OnInfo }) {
+  const steps = card.reaction?.reagentSteps ?? [];
+  const links = steps.map((step) => shorthandLinkFor(step.label));
+  if (!links.some((link) => link !== null)) return null;
+  return (
+    <span className="ct-reagents">
+      {steps.map((step, index) => {
+        const link = links[index] ?? null;
+        return (
+          <span key={index} className="ct-linked">
+            {steps.length > 1 ? `${index + 1}. ` : ""}
+            <FormulaLabel text={step.label} />
+            {link !== null && <InfoButton label={link.label} entryId={link.entryId} onOpen={onInfo} />}
+          </span>
+        );
+      })}
+    </span>
+  );
+}
+
+export function TermSide({ card, size, onInfo }: { readonly card: Card; readonly size: SideSize; readonly onInfo?: OnInfo }) {
   const reaction = card.reaction;
   if (reaction !== undefined || card.sides !== undefined) {
     const start = reaction?.reactants ?? card.sides?.setup ?? card.front;
     const art = reaction?.art;
     const reagents = reagentText(card);
+    const linkedReagents = onInfo === undefined ? null : <LinkedReagents card={card} onInfo={onInfo} />;
     return (
       <div className={`ct-term ct-term--${size}`}>
         <figure className="ct-mol">
           <Drawing light={art?.startLight} dark={art?.startDark} alt={`Structure of ${start}`} className="ct-mol__art" />
           <figcaption className="ct-mol__name">
-            {start}
+            {onInfo !== undefined && reaction !== undefined ? <LinkedNames names={start} onInfo={onInfo} /> : start}
             {size === "big" && <Formulas list={reaction?.reactantFormulas} className="ct-formula" />}
           </figcaption>
         </figure>
@@ -61,7 +112,7 @@ export function TermSide({ card, size }: { readonly card: Card; readonly size: S
             <path d="M8 2 V44 M3 37 L8 45 L13 37" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
           <span className="ct-arrow__over">
-            {reagents.trim().length > 0 && <FormulaLabel text={reagents} className="ct-reagents" />}
+            {linkedReagents ?? (reagents.trim().length > 0 && <FormulaLabel text={reagents} className="ct-reagents" />)}
             {reaction?.temperature !== undefined && size === "big" && <span className="ct-temp">{reaction.temperature}</span>}
           </span>
         </div>
@@ -89,11 +140,13 @@ export function DefinitionSide({
   card,
   size,
   showName = true,
+  onInfo,
 }: {
   readonly card: Card;
   readonly size: SideSize;
   /** Match hides the reaction name: it would give the pair away. */
   readonly showName?: boolean;
+  readonly onInfo?: OnInfo;
 }) {
   const reaction = card.reaction;
   if (reaction !== undefined) {
@@ -104,7 +157,7 @@ export function DefinitionSide({
         <figure className="ct-mol">
           <Drawing light={art?.productLight} dark={art?.productDark} alt={`Structure of ${reaction.products}`} className="ct-mol__art" />
           <figcaption className="ct-mol__name ct-mol__name--answer">
-            {reaction.products}
+            {onInfo !== undefined ? <LinkedNames names={reaction.products} onInfo={onInfo} /> : reaction.products}
             {size === "big" && <Formulas list={formula} className="ct-formula" />}
           </figcaption>
         </figure>

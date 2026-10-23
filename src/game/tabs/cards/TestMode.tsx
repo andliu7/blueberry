@@ -20,7 +20,7 @@ import type { Card } from "../../cards/types";
 import { Drawing } from "../../cards/ui/CardFace";
 import { predictionChoices } from "../../cards/ui/predict";
 import { playCorrect } from "../../sound/gameSound";
-import { TermSide } from "./CardSides";
+import { TermSide, type OnInfo } from "./CardSides";
 import { answerText, shuffled, textChoices } from "./studyModel";
 
 interface Option {
@@ -54,10 +54,13 @@ function buildQuestions(cards: readonly Card[], seed: number): readonly Question
 export function TestMode({
   cards,
   reducedMotion,
+  onInfo,
   onStarMissed,
 }: {
   readonly cards: readonly Card[];
   readonly reducedMotion: boolean;
+  /** Opens a glossary entry from an info icon on the question (never on the options). */
+  readonly onInfo?: OnInfo;
   /** Stars the cards missed this round, so Flashcards can drill just those. */
   readonly onStarMissed: (cardIds: readonly string[]) => void;
 }) {
@@ -147,7 +150,7 @@ export function TestMode({
         <span style={{ width: `${(index / questions.length) * 100}%` }} />
       </div>
       <div className="ct-qcard">
-        <TermSide card={question.card} size="big" />
+        <TermSide card={question.card} size="big" onInfo={onInfo} />
       </div>
       <p className="ct-ask">{question.drawn ? "Which is the product?" : "Pick the answer"}</p>
       <div className={`ct-options ${question.drawn ? "ct-options--drawn" : ""}`} role="group" aria-label="Options">

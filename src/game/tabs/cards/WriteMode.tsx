@@ -11,10 +11,19 @@
 import { useState } from "react";
 import { Berry } from "../../mascot/Berry";
 import type { Card } from "../../cards/types";
-import { DefinitionSide, TermSide } from "./CardSides";
+import { DefinitionSide, TermSide, type OnInfo } from "./CardSides";
 import { answersMatch, answerText, shuffled } from "./studyModel";
 
-export function WriteMode({ cards, reducedMotion }: { readonly cards: readonly Card[]; readonly reducedMotion: boolean }) {
+export function WriteMode({
+  cards,
+  reducedMotion,
+  onInfo,
+}: {
+  readonly cards: readonly Card[];
+  readonly reducedMotion: boolean;
+  /** Opens a glossary entry from an info icon on the question or the shown answer. */
+  readonly onInfo?: OnInfo;
+}) {
   const [seed, setSeed] = useState(() => Date.now() % 100000);
   // useState with a function computes the order once per round, not per keystroke.
   const [order, setOrder] = useState(() => shuffled(cards, seed));
@@ -88,7 +97,7 @@ export function WriteMode({ cards, reducedMotion }: { readonly cards: readonly C
         <span style={{ width: `${(index / order.length) * 100}%` }} />
       </div>
       <div className="ct-qcard">
-        <TermSide card={card} size="big" />
+        <TermSide card={card} size="big" onInfo={onInfo} />
       </div>
       {/* A form so Enter checks the answer, the way any text box submits. */}
       <form
@@ -131,7 +140,7 @@ export function WriteMode({ cards, reducedMotion }: { readonly cards: readonly C
                 <span className="ct-tray__title">{result === "right" ? "Correct!" : "Not quite. Here's the answer:"}</span>
                 {result === "wrong" && (
                   <div className="ct-tray__answer">
-                    <DefinitionSide card={card} size="small" />
+                    <DefinitionSide card={card} size="small" onInfo={onInfo} />
                     <span className="sr-only">{answerText(card)}</span>
                   </div>
                 )}

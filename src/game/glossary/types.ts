@@ -54,6 +54,18 @@ export interface GlossaryCompound {
   /** Keys into GlossaryData.parts, in the order they explain the name. */
   readonly parts: readonly string[];
   readonly figure: GuideFigure;
+  /**
+   * The owner's EWG / EDG lecture point for this compound, set only when it
+   * has one benzene ring carrying one group (found by RDKit, RING_RULES in
+   * scripts/glossary.py). `effect` uses the Unit 3 pools' words.
+   */
+  readonly ring?: GlossaryRingNote;
+}
+
+/** "the C=O" and "meta director, deactivating". */
+export interface GlossaryRingNote {
+  readonly group: string;
+  readonly effect: string;
 }
 
 export interface GlossaryPkaExample {
