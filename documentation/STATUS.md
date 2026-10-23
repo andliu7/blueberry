@@ -115,6 +115,36 @@ six Bloom moves, hand-written wordmark, jump / curtain lift / land exit.
   list and, for the day's first open, the gift sheet: 401.0 to 397.9 KB first open of the day,
   398.5 to 395.4 KB after (404 page lazy, motif names split from the drawings).
 
+**Owner brief, 23 Oct (queued after the 23 Oct workflow run; not started)**
+Tutoring (business test 1)
+- T1 Tutoring end to end, testable with seeded model cases: bring a tutor in, the tutor sets
+  availability, students book specific slots, the tutor is paid per booked session, and the tutor
+  sees a short questionnaire about the student. Today tutoring still runs on Apps Script; this needs
+  Supabase tables + RLS and Stripe (money server side). OWNER: how tutors get paid (Stripe Connect
+  payouts, or a ledger paid by hand) and the rate.
+- T2 Admin view for the owner and TAs (roster already makes Kai, Ryan Rathbun and V. Wedekin admin;
+  Ryan and V. have no account yet and become admin on first sign-in): preview + edit, tutor testing,
+  watch test accounts complete lessons.
+Course (business test 2)
+- C1 Syllabus import: paste an Orgo II syllabus, reorder units/lessons to its schedule, adjustable by
+  hand afterwards (the site already has an Apps Script syllabus PDF import for the calendar).
+- C2 pKa sheet paste updates the site's pKa values, with visible feedback on what changed.
+  OWNER: everyone's values (admin only) or a student's own sheet?
+- C3 Problem sets, Khan Academy style: small sets with a celebration each, split a pasted set into
+  parts, suggest similar problems from the database.
+- C4 Lesson confidence: a student rates a lesson; "too easy" raises the difficulty. Needs a design.
+- C5 Lesson build pass: tutorial folded into the first lesson; the Alchemie-like interface with
+  clearer animation (see the Arrow Pusher bar).
+Discoverability
+- D1 A first-time visitor finds what they came for; the marketing says where things are.
+- D2 Flashcards: premade decks for every unit, one deck per section; iterate on the interaction.
+Feed and accounts
+- F1 Brainstorm the feed (show options first), plus a feed view in admin to test with the TA.
+- A1 Lessons tracked on the account (server-side progress, table + RLS; today progress lives in
+  localStorage only) and a reminder to sign in to save progress.
+- A2 BUG (owner): only the first lesson can be opened. Reproduce first: live site or local, signed
+  in or out, which unit.
+
 **Progress, 22 Oct (Wave 3 item 12 = evening brief items 1+2: test-outs)**
 - Every section chest of units 1-10 offers a test-out (10 to 15 questions, longer each section);
   every unit has a 20 question exam ("Test out" row on the path). Questions come from the
