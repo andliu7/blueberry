@@ -7,7 +7,7 @@
  *
  * Two kinds of row, on purpose:
  *   - GUIDES, Units 0 and 1, ship with the path, as they always have;
- *   - LATER, Units 2 and 7 to 10, are each fetched the first time a student
+ *   - LATER, Units 2 to 10, are each fetched the first time a student
  *     opens that unit's guide. The game's first load sits at its 400 KB
  *     budget, and these guides are mostly drawing data, so a static import
  *     here would put all of them on every first load. A dynamic import()
@@ -26,6 +26,7 @@ const LATER: Readonly<Record<string, () => Promise<UnitGuide>>> = {
   u2: () => import("./u2Guide").then((m) => m.U2_GUIDE),
   u3: () => import("./u3Guide").then((m) => m.U3_GUIDE),
   u4: () => import("./u4Guide").then((m) => m.U4_GUIDE),
+  u5: () => import("./u5Guide").then((m) => m.U5_GUIDE),
   u6: () => import("./u6Guide").then((m) => m.U6_GUIDE),
   u7: () => import("./u7Guide").then((m) => m.U7_GUIDE),
   u8: () => import("./u8Guide").then((m) => m.U8_GUIDE),

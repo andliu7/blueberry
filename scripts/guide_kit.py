@@ -1,6 +1,6 @@
 """
 Shared plumbing for the unit guidebook generators after Unit 1
-(guide_u2.py, guide_u7.py, guide_u8.py, guide_u9.py, guide_u10.py).
+(guide_u2.py to guide_u10.py).
 
     python scripts/guide_uN.py          writes src/game/guide/uNGuide.figures.ts
     python scripts/guide_uN.py --check  rebuilds it in memory and fails if the file on disk differs

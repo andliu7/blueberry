@@ -1,6 +1,6 @@
 /**
  * The checks every unit guidebook after Unit 1 is held to, written once so
- * Units 2 and 7 to 10 cannot drift apart. Each unit's test file
+ * Units 2 to 10 cannot drift apart. Each unit's test file
  * (guideU2.test.ts, ...) calls describeUnitGuide with its own guide, pool and
  * generator script. Not a test file itself (no .test.ts), so vitest only runs
  * it through those files.
