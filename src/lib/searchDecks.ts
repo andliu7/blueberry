@@ -1,4 +1,5 @@
 import { DECK_GROUPS, deckHref, isReference, type Deck } from "@/data/types";
+import { plural } from "@/lib/helpers";
 
 /**
  * Search across the folders, every deck, and everything inside them.
@@ -78,7 +79,7 @@ export function searchDecks(decks: Deck[], rawQuery: string, limit = 24): Search
         href: `#/folder/${group.id}`,
         label: "Folder",
         title: group.title,
-        detail: `${inside.length} ${inside.length === 1 ? "deck" : "decks"} · ${group.blurb}`,
+        detail: `${plural(inside.length, "deck", "decks")} · ${group.blurb}`,
         score,
         deckIds: inside.map((d) => d.id),
       });

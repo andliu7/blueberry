@@ -21,6 +21,8 @@
  * rest of the client: render the unlock, never rule on it.
  */
 
+import { plural } from "@/lib/helpers";
+
 /** The same vocabulary the pathway derives; see MapNodeState in pathwayState.ts. */
 export type SheetNodeState = "done" | "current" | "open" | "review" | "locked";
 
@@ -281,7 +283,7 @@ function checkpointStakes(checkpoint: NonNullable<SheetNode["checkpoint"]>): { r
   const title = checkpoint.opens === null ? "Pass to finish the course" : `Pass to open ${checkpoint.opens}`;
   const parts: string[] = [];
   if (checkpoint.questions !== null) {
-    parts.push(`${checkpoint.questions} ${checkpoint.questions === 1 ? "question" : "questions"} from this unit's lessons.`);
+    parts.push(`${plural(checkpoint.questions, "question", "questions")} from this unit's lessons.`);
   }
   if (checkpoint.opens !== null && checkpoint.skipped.length > 0) {
     const names = checkpoint.skipped.length === 1 ? checkpoint.skipped[0]! : `${checkpoint.skipped.slice(0, -1).join(", ")} and ${checkpoint.skipped[checkpoint.skipped.length - 1]!}`;

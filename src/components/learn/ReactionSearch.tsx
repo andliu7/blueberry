@@ -7,6 +7,7 @@ import { PATHWAY_UNITS } from "@/game/demo/pathwayMap";
 import { findUnit, unitForFamily, unitParts, unitsForLesson } from "@/data/learnMap";
 import { ReactionCard } from "@/components/learn/ReactionCard";
 import { SEARCH_EXAMPLES, searchLessons, searchReactions } from "@/lib/learnSearch";
+import { plural } from "@/lib/helpers";
 
 /**
  * Learn's reaction search (SITE-REPLAN.md section 3): "the flat library survives
@@ -108,8 +109,8 @@ export function ReactionSearch({
         {total === 0 && lessons.length === 0
           ? "Nothing matches that. Try a reagent, or a starting material."
           : [
-              lessons.length ? `${lessons.length} ${lessons.length === 1 ? "lesson" : "lessons"}` : null,
-              `${total} ${total === 1 ? "reaction" : "reactions"}`,
+              lessons.length ? `${plural(lessons.length, "lesson", "lessons")}` : null,
+              `${plural(total, "reaction", "reactions")}`,
             ]
               .filter(Boolean)
               .join(", ")}

@@ -36,6 +36,7 @@
  */
 
 import type { Card } from "../types";
+import { plural } from "@/lib/helpers";
 
 /* ------------------------------------------------------------------ */
 /* The character level parser                                           */
@@ -330,9 +331,9 @@ export const APKG_IMPORT_NOTE =
 /** The one line summary of an import, in the coach voice, specific about counts. */
 export function importSummary(report: ImportReport): string {
   const count = report.cards.length;
-  const cards = count === 1 ? "1 card" : `${count} cards`;
+  const cards = plural(count, "card", "cards");
   if (report.skipped.length === 0) return `${cards} read, all of them clean.`;
-  const bad = report.skipped.length === 1 ? "1 row" : `${report.skipped.length} rows`;
+  const bad = plural(report.skipped.length, "row", "rows");
   return `${cards} read. ${bad} had no question or no answer, listed below so you can check the file.`;
 }
 

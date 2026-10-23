@@ -18,6 +18,7 @@
  */
 
 import { MOOD_SHAPE, type BerryMood } from "./berryMood";
+import { clamp01 } from "@/lib/helpers";
 
 export type BerryState =
   /** No transform. The default. */
@@ -140,8 +141,6 @@ export interface ComposedStateMood {
   /** Blush after the state applies, 0 to 1. */
   blush: number;
 }
-
-const clamp01 = (n: number) => (n < 0 ? 0 : n > 1 ? 1 : n);
 
 /**
  * The two numbers where a state and a mood both have an opinion.

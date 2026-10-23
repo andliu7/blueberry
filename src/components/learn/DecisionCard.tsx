@@ -264,6 +264,6 @@ function ReactionPlate({ reaction }: { reaction: StagedReaction }) {
 }
 
 /** "formaldehyde (two equivalents)" to "formaldehyde", for a label beside a drawn count. */
-export function withoutEquivalents(label: string): string {
+function withoutEquivalents(label: string): string {
   return label.replace(/\s*\((?:one|two|three|four|\d+)\s+equivalents?\)\s*$/i, "");
 }

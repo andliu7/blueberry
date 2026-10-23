@@ -48,6 +48,7 @@ import {
   leadDays,
   nothingLine,
 } from "@/lib/calendarCells";
+import { plural } from "@/lib/helpers";
 
 /**
  * The course calendar: what is due, what is examined, and when.
@@ -725,7 +726,7 @@ export function CourseCalendar({
                           return (
                             <span key="open" data-cat="hours" className={chip}>
                               <Clock className="sch-mark size-3 shrink-0" strokeWidth={2.5} />
-                              <span className="truncate">{e.count === 1 ? "1 open time" : `${e.count} open times`}</span>
+                              <span className="truncate">{plural(e.count, "open time", "open times")}</span>
                             </span>
                           );
                         const { Icon, cat } = KINDS[e.item.kind];

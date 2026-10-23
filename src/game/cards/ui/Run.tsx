@@ -67,6 +67,7 @@ import {
 } from "./session";
 import { useDeckSnapshot } from "./useDeck";
 import "./cards.css";
+import { plural } from "@/lib/helpers";
 
 export interface RunProps {
   readonly cards: readonly Card[];
@@ -627,7 +628,7 @@ function RunSummary({
 
       <p className="m-0 rounded-2xl bg-bb-card p-4 text-scale-sm leading-normal">
         <span className="font-semibold">Coming up. </span>
-        {tomorrow === 1 ? "1 card tomorrow" : `${tomorrow} cards tomorrow`}, {week} over the next six days.
+        {plural(tomorrow, "card tomorrow", "cards tomorrow")}, {week} over the next six days.
       </p>
 
       <button

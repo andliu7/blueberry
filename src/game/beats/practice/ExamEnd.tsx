@@ -18,6 +18,7 @@ import { GemMark } from "../chromeIcons";
 import { poolHomeOf } from "./pools";
 import { endSaid, examPassed, examSize, firstTimeRight, type PracticeRunState } from "./run";
 import "./exam-end.css";
+import { plural } from "@/lib/helpers";
 
 interface Topic {
   readonly node: string;
@@ -135,7 +136,7 @@ export function ExamEnd({ node, state, ids, banked, onContinue, reducedMotion, w
         <p className="lesson-banked exam-end__banked">
           <GemMark />
           <span>
-            +{banked} {banked === 1 ? "diamond" : "diamonds"}
+            +{plural(banked, "diamond", "diamonds")}
           </span>
         </p>
       ) : null}

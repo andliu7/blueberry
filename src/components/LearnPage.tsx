@@ -22,6 +22,7 @@ import {
 import { GAME_HREF } from "@/game/app/routes";
 import { LearnRail, useRailNumbers } from "@/components/learn/LearnRail";
 import "@/components/learn/learn.css";
+import { plural } from "@/lib/helpers";
 
 /**
  * Learn, `#/learn` (SITE-REPLAN.md sections 3 and 8): the front door to the
@@ -274,10 +275,10 @@ export function LearnPage() {
                           <span className="block text-sm text-[var(--site-quiet)]">
                             {[
                               c.lessons
-                                ? `${c.finished} of ${c.lessons} ${c.lessons === 1 ? "lesson" : "lessons"} finished`
+                                ? `${c.finished} of ${plural(c.lessons, "lesson", "lessons")} finished`
                                 : null,
                               c.reactions
-                                ? `${c.reactions} ${c.reactions === 1 ? "reaction" : "reactions"}`
+                                ? `${plural(c.reactions, "reaction", "reactions")}`
                                 : null,
                               c.practice ? `${c.practice} to practice` : null,
                             ]

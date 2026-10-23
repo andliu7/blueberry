@@ -39,8 +39,7 @@
 
 import { useId } from "react";
 import type { StreakState } from "./hudModel";
-
-const clamp01 = (n: number): number => (n < 0 ? 0 : n > 1 ? 1 : n);
+import { clamp01 } from "@/lib/helpers";
 
 /**
  * The clip window for a mark drawn at a level: a rect whose top edge is the

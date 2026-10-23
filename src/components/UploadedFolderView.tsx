@@ -9,6 +9,7 @@ import { reviewedCount } from "@/lib/progress";
 import { postToAppsScript } from "@/lib/appsScript";
 import { useGoogleAuth } from "@/lib/useGoogleAuth";
 import { forgetDeck, forgetShelf, rememberShelf, fileDeck } from "@/lib/useDecks";
+import { plural } from "@/lib/helpers";
 
 /**
  * The Uploaded folder, which is the only one anyone can rearrange.
@@ -186,7 +187,7 @@ export function UploadedFolderView({
               {name}
             </h2>
             <span className="font-mono text-xs text-slate-400 dark:text-stone-500">
-              {inside.length} {inside.length === 1 ? "deck" : "decks"}
+              {plural(inside.length, "deck", "decks")}
             </span>
             {manage && (
               <ButtonHoldAndRelease

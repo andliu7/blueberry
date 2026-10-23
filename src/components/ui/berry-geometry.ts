@@ -129,10 +129,6 @@ export function surfaceZ(x: number, y: number, proud = 0.02): number {
 /** The outward tilt at that point, so a card lies along the curve. */
 export const surfaceYaw = (x: number, y: number) => Math.atan2(x, surfaceZ(x, y, 0));
 
-/** Triangles in a geometry, for the honest count this ships with. */
-export const triangleCount = (geo: THREE.BufferGeometry) =>
-  geo.index ? geo.index.count / 3 : geo.attributes.position.count / 3;
-
 /* ---------------------------------------------------------------- material -- */
 
 /**

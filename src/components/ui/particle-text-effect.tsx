@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useReducedMotion } from "motion/react";
 import { cn } from "@/lib/utils";
+import { shuffle } from "@/lib/helpers";
 
 /**
  * A word drawn as a swarm of particles that fly in from off screen, hold the
@@ -763,11 +764,7 @@ export function ParticleTextEffect({
 
       // Shuffled so particles claim scattered pixels rather than sweeping the
       // word top to bottom, and so the cap below takes an even subset.
-      for (let i = coords.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [coords[i], coords[j]] = [coords[j], coords[i]];
-      }
-      const wanted = coords.slice(0, MAX_PARTICLES);
+      const wanted = shuffle(coords).slice(0, MAX_PARTICLES);
 
       wanted.forEach((coord, i) => {
         let p = particles[i];

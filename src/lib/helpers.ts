@@ -9,6 +9,11 @@ export function clamp(value: number, low: number, high: number): number {
   return Math.max(low, Math.min(high, value));
 }
 
+/** `value` held inside [0, 1], for fractions and animation progress. */
+export function clamp01(value: number): number {
+  return clamp(value, 0, 1);
+}
+
 /** "1 day" and "2 days": the count, then the singular or the plural word. */
 export function plural(count: number, one: string, many: string): string {
   return `${count} ${count === 1 ? one : many}`;

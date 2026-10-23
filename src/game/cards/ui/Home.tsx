@@ -32,6 +32,7 @@ import { deckNameFromFilename, readDeckFile, type ImportResult } from "./importF
 import { heroModel, lessonDeckTiles, MISTAKES_DECK_ID, mistakeDeckCards, myDeckTiles, reviewQueue } from "./landing";
 import type { CardSchedulerState } from "./cardState";
 import "./cards.css";
+import { plural } from "@/lib/helpers";
 
 export interface HomeProps {
   readonly snapshot: DeckSnapshot;
@@ -112,7 +113,7 @@ export function Home({ snapshot, journal, source, onStart, onOpenDeck, onCompose
           disabled={hero.buttonDisabled}
           onClick={() => onStart(reviewQueue(snapshot, journal, now))}
         >
-          {hero.buttonDisabled ? hero.buttonLabel : `Start review, ${hero.due} ${hero.due === 1 ? "card" : "cards"}`}
+          {hero.buttonDisabled ? hero.buttonLabel : `Start review, ${plural(hero.due, "card", "cards")}`}
         </button>
       </section>
 
@@ -177,7 +178,7 @@ function DeckRow({
             )}
           </span>
           <span className="text-scale-xs text-bb-muted-foreground">
-            {count === 1 ? "1 card" : `${count} cards`}
+            {plural(count, "card", "cards")}
           </span>
           {cells.length > 0 && <Strip cells={cells} />}
         </span>

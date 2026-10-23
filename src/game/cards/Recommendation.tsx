@@ -79,7 +79,7 @@ import {
   type ElectronSource,
 } from "@blueberry/chem-core";
 import { causeCopy } from "@blueberry/feedback";
-import { clamp } from "@/lib/helpers";
+import { clamp, plural } from "@/lib/helpers";
 
 import { TRAINER_REACTIONS, type TrainerReaction } from "../demo/reactions";
 import { matchDistractor, type TrainerDistractor } from "../tabs/trainer/distractors";
@@ -521,7 +521,7 @@ export function DeckIcon({ count, onClick, floating = true, label }: DeckIconPro
     else if (mountedDeckIcon !== null && !mountedDeckIcon.isConnected) mountedDeckIcon = null;
   }, []);
 
-  const spoken = label ?? `${DECK_CHROME.deck}, ${count} ${count === 1 ? "card" : "cards"}`;
+  const spoken = label ?? `${DECK_CHROME.deck}, ${plural(count, "card", "cards")}`;
   return (
     <button
       type="button"

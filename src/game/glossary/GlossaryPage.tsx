@@ -35,6 +35,7 @@ import {
 import { GLOSSARY_DATA } from "./glossary.generated";
 import type { FamilyId } from "./types";
 import "./glossary.css";
+import { plural } from "@/lib/helpers";
 
 const SECTIONS: readonly GlossarySection[] = ["shorthands", "names", "pka", "reactions", "mine"];
 
@@ -337,7 +338,7 @@ export default function GlossaryPage({
         </div>
 
         <p className="gl-count" aria-live="polite">
-          {shown.length === 0 ? "Nothing matches. Try a shorter word." : `${shown.length} ${shown.length === 1 ? "entry" : "entries"}`}
+          {shown.length === 0 ? "Nothing matches. Try a shorter word." : `${plural(shown.length, "entry", "entries")}`}
         </p>
 
         {SECTIONS.filter((id) => id !== "reactions").map((id) => {

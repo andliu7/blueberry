@@ -295,8 +295,8 @@ export function WorkspacePage({ user }: { user: GoogleUser }) {
   /**
    * Your role, read off the allowlist the page already fetched.
    *
-   * Deliberately not `useAccountRole`, which would fire a second `fetchWorkspace`
-   * for an answer that is sitting in `owners` and `admins` right here. Anyone
+   * No second `fetchWorkspace`: the answer is sitting in `owners` and `admins`
+   * right here. Anyone
    * who is neither gets no rail: the page still works, it just has no admin
    * furniture on it.
    */

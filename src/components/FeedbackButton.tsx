@@ -20,7 +20,7 @@ const FEEDBACK_KEY = "grignard_lcta_feedback_v1";
  * when one is configured. With no endpoint set nothing leaves the browser, so a
  * default checkout transmits nothing.
  */
-export async function saveFeedback(entry: {
+async function saveFeedback(entry: {
   rating: "helpful" | "not-helpful";
   comment: string;
 }) {

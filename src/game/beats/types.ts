@@ -87,24 +87,6 @@ export type { LessonId };
  */
 export type MasteryLevel = 0 | 1 | 2 | 3;
 
-export const MASTERY_LEVELS: readonly MasteryLevel[] = Object.freeze([0, 1, 2, 3]);
-
-/** Student facing, in the coach voice: what this rung asks of them. */
-export const MASTERY_LABELS: Readonly<Record<MasteryLevel, string>> = Object.freeze({
-  0: "Meet it",
-  1: "With guides",
-  2: "From memory",
-  3: "On your own",
-});
-
-export function masteryLabel(level: MasteryLevel): string {
-  return MASTERY_LABELS[level];
-}
-
-export function isMasteryLevel(value: unknown): value is MasteryLevel {
-  return value === 0 || value === 1 || value === 2 || value === 3;
-}
-
 /**
  * L0 cannot fail. That is a contract and not a difficulty setting: a first
  * meeting that can be got wrong is a test, and the ladder's first rung exists
@@ -457,24 +439,6 @@ export function beatAllowedAt(beat: BeatSpec, level: MasteryLevel): boolean {
   return beat.levels.includes(level);
 }
 
-export function beatsForLevel(
-  beats: readonly BeatSpec[],
-  level: MasteryLevel,
-): readonly BeatSpec[] {
-  return beats.filter((beat) => beatAllowedAt(beat, level));
-}
-
-/** The highest rung this playlist can currently reach. Null when it has none. */
-export function highestLevelIn(beats: readonly BeatSpec[]): MasteryLevel | null {
-  let highest: MasteryLevel | null = null;
-  for (const beat of beats) {
-    for (const level of beat.levels) {
-      if (highest === null || level > highest) highest = level;
-    }
-  }
-  return highest;
-}
-
 export interface LevelRuleViolation {
   readonly beatId: BeatId;
   readonly message: string;
@@ -598,29 +562,6 @@ export type BeatShapeCauseId =
   | "reagent_right_class_wrong_reagent"
   | "no_named_cause_logged";
 
-export const BEAT_SHAPE_CAUSES: readonly BeatShapeCauseId[] = Object.freeze([
-  "order_adjacent_pair_swapped",
-  "order_fully_reversed",
-  "order_used_a_different_criterion",
-  "matched_by_name_not_by_property",
-  "matched_all_but_one_pair",
-  "chose_authored_distractor",
-  "trace_left_the_target",
-  "trace_incomplete",
-  "synthesis_step_out_of_order",
-  "synthesis_step_missing",
-  "reagent_right_class_wrong_reagent",
-  "no_named_cause_logged",
-]);
-
-export function beatShapeCauseCount(): number {
-  return BEAT_SHAPE_CAUSES.length;
-}
-
-export function isBeatShapeCause(cause: BeatCauseId): cause is BeatShapeCauseId {
-  return (BEAT_SHAPE_CAUSES as readonly string[]).includes(cause);
-}
-
 /** Every beat result names a cause: chem-core's registry, or a shape cause. */
 export type BeatCauseId = CauseId | BeatShapeCauseId;
 
@@ -705,8 +646,6 @@ export interface MasterySnapshot {
   readonly nodes: Readonly<Record<NodeId, NodeMastery>>;
 }
 
-export const EMPTY_MASTERY: MasterySnapshot = Object.freeze({ nodes: {} });
-
 /**
  * What the surfaces read through.
  *
@@ -724,14 +663,4 @@ export interface MasterySource {
   /** Record one played beat. The implementation decides whether the level rises. */
   record(node: NodeId, result: BeatResult): void;
   reset(): void;
-}
-
-/** Pure read of a snapshot. A node nobody has opened is at L0, not missing. */
-export function levelIn(snapshot: MasterySnapshot, node: NodeId): MasteryLevel {
-  return snapshot.nodes[node]?.level ?? 0;
-}
-
-/** The rung to serve next: never above what the student has proved. */
-export function levelToServe(snapshot: MasterySnapshot, node: NodeId): MasteryLevel {
-  return levelIn(snapshot, node);
 }

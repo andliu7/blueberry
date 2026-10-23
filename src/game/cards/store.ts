@@ -114,7 +114,7 @@ function save(stored: StoredDecks): void {
 /**
  * Drop the oldest cards past the cap, and everything that pointed at them.
  * Pruning the review states and the deck lists in the same pass is what keeps
- * `dueCount` from counting a schedule whose card is gone.
+ * `dueTodayCount` from counting a schedule whose card is gone.
  */
 function trim(snapshot: DeckSnapshot, cap: number): DeckSnapshot {
   const ids = Object.keys(snapshot.cards);

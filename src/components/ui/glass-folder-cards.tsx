@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useId, useRef, useState, type CSSProperties } from "react";
 import { isReducedMotion } from "@/lib/motionPref";
-import { mulberry32 } from "@/lib/helpers";
+import { mulberry32, plural } from "@/lib/helpers";
 import "./glass-folder-cards.css";
 
 /**
@@ -597,7 +597,7 @@ export function GlassFolder({
   const first = Math.max(0, items.length - MAX_SHEETS);
   const shown = items.slice(first);
   const count = items.length;
-  const metaText = meta ?? `${count} ${count === 1 ? "item" : "items"}`;
+  const metaText = meta ?? `${plural(count, "item", "items")}`;
   // The meta line rolls in only when it changes after the first paint (owner rule:
   // nothing animates on first page paint). Same "adjust state while rendering"
   // pattern as the file list above: the change is noticed here, not in an effect.

@@ -110,6 +110,7 @@ import "./beat-chrome.css";
 // for the plan, the pathway and the tests. Re-exported to keep import paths.
 export { LADDER_FOR_NODE, nodeHasBeat, resolveBeat, type ResolvedBeat } from "./template";
 import type { ResolvedBeat } from "./template";
+import { plural } from "@/lib/helpers";
 
 /** The match boards authored for one pathway node. None gives an empty list. */
 function matchBoardsForNode(node: string) {
@@ -400,7 +401,7 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
       <ResumePrompt
         node={node}
         title={pathwayNode(node)?.title ?? ""}
-        detail={`${answered} ${answered === 1 ? "question" : "questions"} done and saved`}
+        detail={`${plural(answered, "question", "questions")} done and saved`}
         saved={`${answered} saved ${answered === 1 ? "question" : "questions"}`}
         bar={
           <RecipeStrip
@@ -993,7 +994,7 @@ function RewardSlot({
             <p className="lesson-banked">
               <GemMark />
               <span>
-                +{banked} {banked === 1 ? "diamond" : "diamonds"}
+                +{plural(banked, "diamond", "diamonds")}
               </span>
             </p>
           ) : null}
@@ -1039,7 +1040,7 @@ function RewardSlot({
           <p className="lesson-banked">
             <GemMark />
             <span>
-              +{banked} {banked === 1 ? "diamond" : "diamonds"}
+              +{plural(banked, "diamond", "diamonds")}
             </span>
           </p>
         ) : null}

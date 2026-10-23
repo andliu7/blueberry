@@ -45,9 +45,10 @@ export function nothingLine(days: Date[]): string {
  * click apart (critic, round 2: the sheet ran Mon to Sun under a Sun to Sat page).
  */
 export const WEEK_STARTS_ON = 0;
-/** The seven weekday names in grid order, from `WEEK_STARTS_ON`. */
-export const WEEKDAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
-  .map((_, i, all) => all[(i + WEEK_STARTS_ON) % 7]);
+/** The seven weekday names in grid order, from `WEEK_STARTS_ON`. 4 Jan 2026 was a Sunday. */
+const WEEKDAY_SHORT = new Intl.DateTimeFormat("en-US", { weekday: "short", timeZone: "UTC" });
+export const WEEKDAY_NAMES = Array.from({ length: 7 }, (_, i) =>
+  WEEKDAY_SHORT.format(Date.UTC(2026, 0, 4 + ((i + WEEK_STARTS_ON) % 7))));
 /** How many blank cells come before `first` in its week row. */
 export function leadDays(first: Date): number {
   return (first.getDay() - WEEK_STARTS_ON + 7) % 7;

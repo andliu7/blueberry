@@ -34,7 +34,7 @@ export type TicketGeometry = typeof TICKET_GEOMETRY;
  * edges where the stub tears off, which is what makes it read as a ticket
  * rather than a rounded rectangle.
  */
-export function ticketClipPath(width: number, height: number, g: TicketGeometry = TICKET_GEOMETRY) {
+function ticketClipPath(width: number, height: number, g: TicketGeometry = TICKET_GEOMETRY) {
   const r = g.cornerRadius * width;
   const n = g.notchRadius * width;
   const p = g.perforation * width;

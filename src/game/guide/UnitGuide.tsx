@@ -39,6 +39,7 @@ import { GuideMol } from "./GuideMol";
 import { guideInHash, savedGuideScroll, saveGuideScroll, writeGuideToHash } from "./guideLink";
 import type { GuideExample, GuideIdea, GuideLesson, GuidePanel, GuideStage, LessonDoor, UnitGuide } from "./types";
 import "./guide.css";
+import { plural } from "@/lib/helpers";
 
 export interface UnitGuidePageProps {
   readonly guide: UnitGuide;
@@ -641,7 +642,7 @@ function Ladder({ panel }: { readonly panel: Extract<GuidePanel, { kind: "ladder
             {level.electrons >= 1 ? <path d={`M76 ${y + 9}v-18M72 ${y - 5}l4-4 4 4`} className="ug-ladder__e" fill="none" strokeWidth="2" strokeLinecap="round" /> : null}
             {level.electrons >= 2 ? <path d={`M96 ${y - 9}v18M92 ${y + 5}l4 4 4-4`} className="ug-ladder__e" fill="none" strokeWidth="2" strokeLinecap="round" /> : null}
             <text x="130" y={y + 5} className="ug-ladder__nodes">
-              {level.nodes} {level.nodes === 1 ? "node" : "nodes"}
+              {plural(level.nodes, "node", "nodes")}
             </text>
             {tag === null ? null : (
               <text x="196" y={y + 5} className={`ug-ladder__tag ug-ladder__tag--${tag.toLowerCase()}`}>

@@ -29,6 +29,7 @@ import { BackIcon, BinIcon, MODE_ICONS, StarIcon } from "./StudyIcons";
 import { readStars, splitSegments, STUDY_MODES, toggled, writeStars, type StudyMode } from "./studyModel";
 import { TestMode } from "./TestMode";
 import { WriteMode } from "./WriteMode";
+import { plural } from "@/lib/helpers";
 
 const UNDO_MS = 5000;
 
@@ -160,7 +161,7 @@ export function DeckSet({
         <div className="ct-set__titles">
           <h1 className="ct-set__title">{title}</h1>
           <p className="ct-set__meta">
-            {visible.length === 1 ? "1 card" : `${visible.length} cards`}
+            {plural(visible.length, "card", "cards")}
             {due.length > 0 && <span className="ct-due">{due.length} due</span>}
           </p>
         </div>

@@ -28,6 +28,7 @@ import { clearTargetFor, reviewCheckpointFor } from "./reviewCheckpoints";
 import { reviewPool } from "./reviewPool";
 import { answerReview, countsTowardRun } from "./reviewRunRules";
 import type { ReceiptLine } from "@blueberry/economy";
+import { plural } from "@/lib/helpers";
 
 const McqRunner = lazy(() => import("../../beats/mcq/McqRunner").then((m) => ({ default: m.McqRunner })));
 const SortBeatView = lazy(() => import("../../beats/sort/SortBeatView").then((m) => ({ default: m.SortBeatView })));
@@ -133,7 +134,7 @@ export function ReviewRun({ id, onExit, reducedMotion = false }: { readonly id: 
               </p>
               {banked !== null && banked > 0 ? (
                 <p className="lesson-banked">
-                  +{banked} {banked === 1 ? "diamond" : "diamonds"}
+                  +{plural(banked, "diamond", "diamonds")}
                 </p>
               ) : null}
               {/* Where the diamonds came from. A clear can cross a mastery rank, which pays on its own line. */}

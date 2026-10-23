@@ -76,7 +76,7 @@ export function ModeSwitch({
 /* ---------------------------------------------------------------- helpers -- */
 
 /** The indexes of an MC card's right options. */
-export function correctOf(q: Question): number[] {
+function correctOf(q: Question): number[] {
   if (!q.mc) return [];
   return Array.isArray(q.correct) ? q.correct : [q.correct];
 }

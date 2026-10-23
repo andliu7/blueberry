@@ -273,7 +273,7 @@ export function endOfLocalDay(now: Date): Date {
  * line on the homepage.
  *
  * It counts everything due by the END of today, not everything due by this
- * instant. `dueCount` in types.ts answers the second question and is the right
+ * instant. `isDue` in types.ts answers the second question and is the right
  * read for "what is in the queue right now". This one answers "how much is
  * there to do today", which is what a number on a homepage means: a card
  * scheduled for 9pm should already be in the count at breakfast, or the number

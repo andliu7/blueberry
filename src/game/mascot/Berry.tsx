@@ -77,10 +77,9 @@ import {
 } from "./berryState";
 import type { BerryCostume } from "./berryCostume";
 import { BlueberryMark } from "./BlueberryMark";
+import { clamp01 } from "@/lib/helpers";
 
 const REST: SampledPose = { scaleY: 1, scaleX: 1, scaleZ: 1, lift: 0, tilt: 0, pitch: 0 };
-
-const clamp01 = (n: number) => (n < 0 ? 0 : n > 1 ? 1 : n);
 
 /**
  * What a screen reader hears. The badge glyph is aria-hidden, because a `<div

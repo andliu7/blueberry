@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { Search, X, FileText, Folder, Layers, Rows3 } from "lucide-react";
 import { type SearchHit } from "@/lib/searchDecks";
 import { cn } from "@/lib/utils";
+import { plural } from "@/lib/helpers";
 
 const KIND_ICON = {
   folder: <Folder className="h-3.5 w-3.5" />,
@@ -128,7 +129,7 @@ export function SearchResults({
   return (
     <div className={className}>
       <p className="mb-2 font-mono text-xs text-slate-400 dark:text-stone-500">
-        {hits.length} match{hits.length === 1 ? "" : "es"}
+        {plural(hits.length, "match", "matches")}
       </p>
       <ul className="divide-y divide-slate-200 overflow-hidden rounded-xl border border-slate-200 bg-white dark:divide-stone-800 dark:border-stone-800 dark:bg-stone-900">
         {hits.map((hit, i) => (

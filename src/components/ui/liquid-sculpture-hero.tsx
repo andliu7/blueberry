@@ -14,6 +14,7 @@
  */
 
 import * as React from "react"
+import { clamp } from "@/lib/helpers"
 
 /* ────────────────────────────────────────────────────────────────────
    Engine (WebGL2 GPGPU particles)
@@ -42,10 +43,6 @@ interface EngineOptions {
   imgBg: [number, number, number] | null
   /** 0 to 2: how much the whole sculpture flows while the cursor is over it */
   liquid: number
-}
-
-function clamp(v: number, a: number, b: number) {
-  return Math.min(b, Math.max(a, v))
 }
 
 function hexToRgb(hex: string, fallback: [number, number, number]): [number, number, number] {

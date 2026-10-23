@@ -58,6 +58,7 @@
  */
 
 import { CHARGE_REGEN_MINUTES, type EconomySnapshot } from "@blueberry/economy";
+import { clamp01 } from "@/lib/helpers";
 
 /** The four states of the committed states sheet, in its own words. */
 export type ChargeMeterState = "full" | "spending" | "empty" | "exam";
@@ -145,8 +146,6 @@ export interface ChargeMeterInput {
 
 /** docs/ECONOMY.md, Charge rule 2, said where a student is most likely to doubt it. */
 const EMPTY_CAPTION = "Refills on its own. Mistakes never cost charge.";
-
-const clamp01 = (n: number): number => (n < 0 ? 0 : n > 1 ? 1 : n);
 
 /** "in 9 days", "tomorrow", "today". A date, not a countdown. */
 function whenExam(daysLeft: number): string {

@@ -27,7 +27,8 @@ import { REDUCED_MOTION_FRAME } from "../contract";
 import type { AtomPlacement } from "../layout/layout";
 import type { SceneAtom } from "../layout/stepScene";
 import type { Vec } from "../layout/vec";
-import { add, clamp01, fromAngle, lerp, midpoint, normalize, smoothstep, sub } from "../layout/vec";
+import { add, fromAngle, lerp, midpoint, normalize, smoothstep, sub } from "../layout/vec";
+import { clamp01 } from "@/lib/helpers";
 import { AtomSphere, BondCapsule, ChargeBadge, DepthDefs, HydrogenArc, SHADOW_FILTER_ID } from "./depth";
 
 /** Pixels per scene unit (one bond length). */

@@ -24,6 +24,7 @@ import { heroModel, lessonDeckTiles, MISTAKES_DECK_ID, mistakeDeckCards, myDeckT
 import { Berry } from "../../mascot/Berry";
 import { ChevronIcon, FlashcardsIcon, PlusIcon } from "./StudyIcons";
 import { splitSegments } from "./studyModel";
+import { plural } from "@/lib/helpers";
 
 export function CardsShelf({
   snapshot,
@@ -151,7 +152,7 @@ function DeckRow({
             {due > 0 && <span className="ct-due">{due} due</span>}
           </span>
           <span className="ct-deck__meta">
-            {count === 1 ? "1 card" : `${count} cards`}, {percent}% mastered
+            {plural(count, "card", "cards")}, {percent}% mastered
           </span>
           <span className="ct-split ct-split--thin" aria-hidden="true">
             {segments.length === 0 ? (

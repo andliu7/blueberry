@@ -60,6 +60,7 @@ import {
   type Receipt,
   type StreakSave,
 } from "@blueberry/economy";
+import { plural } from "@/lib/helpers";
 
 /** How many days the strip draws. A week, ending today. */
 const STRIP_DAYS = 7;
@@ -344,7 +345,7 @@ export function streakScreenModel(input: StreakModelInput): StreakScreenModel {
   return {
     days,
     unit: "day streak",
-    label: `Streak, ${days} ${days === 1 ? "day" : "days"}, ${
+    label: `Streak, ${plural(days, "day", "days")}, ${
       snapshot.streak.todayCounted ? "today counted" : "today not counted yet"
     }`,
     week,

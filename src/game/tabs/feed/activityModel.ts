@@ -9,6 +9,7 @@
  */
 
 import { daysBetween, localDate, type EconomyEvent } from "@blueberry/economy";
+import { plural } from "@/lib/helpers";
 
 export type ActivityKind = "cleared" | "flawless" | "unit" | "quiz" | "challenge" | "cards" | "boss";
 
@@ -42,7 +43,7 @@ function post(event: EconomyEvent, titleFor: (id: string) => string | null): { k
     case "challenge_passed":
       return { kind: "challenge", text: `Beat the challenge on ${titleFor(event.nodeId) ?? "a lesson"}` };
     case "cards_reviewed":
-      return event.graded > 0 ? { kind: "cards", text: `Reviewed ${event.graded} ${event.graded === 1 ? "card" : "cards"}` } : null;
+      return event.graded > 0 ? { kind: "cards", text: `Reviewed ${plural(event.graded, "card", "cards")}` } : null;
     case "boss_cleared":
       return { kind: "boss", text: "Beat a boss level" };
     default:

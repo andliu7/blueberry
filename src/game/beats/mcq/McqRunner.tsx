@@ -59,6 +59,7 @@ import {
   type McqProgress,
   type McqReport,
 } from "./session";
+import { plural } from "@/lib/helpers";
 
 export interface McqRunnerProps {
   /** The pathway node whose beats to play, for example "u3-directing". */
@@ -184,7 +185,7 @@ export function McqRunner({
         </h2>
         <p className="text-scale-sm text-bb-muted-foreground">
           {done
-            ? `You worked through ${progress.total} ${progress.total === 1 ? "question" : "questions"} and cleared ${progress.cleared}. Every one of them explained itself on the way past, which is the part that sticks.`
+            ? `You worked through ${plural(progress.total, "question", "questions")} and cleared ${progress.cleared}. Every one of them explained itself on the way past, which is the part that sticks.`
             : "This topic has no quick questions written for this rung yet. The pathway will have more here soon."}
         </p>
         <Press className="w-full" onClick={onExit}>

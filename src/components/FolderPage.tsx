@@ -11,6 +11,7 @@ import { DeckTile } from "@/components/review/DeckTile";
 import { matchedDeckIds, searchDecks } from "@/lib/searchDecks";
 import { cardsWord } from "@/lib/reviewProgress";
 import "@/components/review/review.css";
+import { plural } from "@/lib/helpers";
 
 /**
  * One folder's decks on their own page, at `#/folder/<id>` (SITE-REPLAN.md phase 7).
@@ -44,7 +45,7 @@ export function FolderPage({ groupId }: { groupId: DeckGroupId }) {
             <>
               <p>{group.blurb}</p>
               <p className="mt-1 text-sm">
-                {all.length} {all.length === 1 ? "deck" : "decks"} · {cardsWord(cards)}
+                {plural(all.length, "deck", "decks")} · {cardsWord(cards)}
               </p>
             </>
           }

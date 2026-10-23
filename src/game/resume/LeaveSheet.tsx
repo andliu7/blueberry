@@ -36,6 +36,7 @@ import { leaveRewardLine } from "./restartCopy";
 import { progress } from "../app/progress";
 import "../charge/charge.css";
 import "./resume.css";
+import { plural } from "@/lib/helpers";
 
 export interface LessonLeaveProps {
   readonly node: string;
@@ -91,7 +92,7 @@ export function LessonLeave({ node, saves, reducedMotion, onLeave, children }: L
             <p className="resume-prompt__saved" data-leave="saved">
               <SavedMark />
               <span>
-                {saved} {saved === 1 ? "question" : "questions"} done and saved
+                {plural(saved, "question", "questions")} done and saved
               </span>
             </p>
             <p className="charge-line">Open this lesson again and you pick up right where you stopped.</p>

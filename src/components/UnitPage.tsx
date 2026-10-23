@@ -11,6 +11,7 @@ import type { StagedReaction } from "@/data/reactions";
 import { findDeck } from "@/data/decks";
 import { hrefForNode, partHref, partLabel, partReactions, partsForUnit, unitForFamily, unitParts, unitReaction } from "@/data/learnMap";
 import "@/components/learn/learn.css";
+import { plural } from "@/lib/helpers";
 
 /**
  * One unit of Organic Chemistry II, on its own page.
@@ -230,8 +231,8 @@ export function UnitPage({ unitId }: { unitId?: string }) {
                 </p>
                 <p className="mt-1 text-sm text-[var(--site-quiet)]">
                   {[
-                    lessons.length ? `${lessons.length} ${lessons.length === 1 ? "lesson" : "lessons"}` : null,
-                    inUnit.length ? `${inUnit.length} ${inUnit.length === 1 ? "reaction" : "reactions"}` : null,
+                    lessons.length ? `${plural(lessons.length, "lesson", "lessons")}` : null,
+                    inUnit.length ? `${plural(inUnit.length, "reaction", "reactions")}` : null,
                     playable.length ? `${playable.length} to practice` : null,
                   ]
                     .filter(Boolean)
@@ -240,7 +241,7 @@ export function UnitPage({ unitId }: { unitId?: string }) {
                 {lessons.length > 0 && (
                   <>
                     <p className="title-face mt-1 text-base font-extrabold text-[var(--bb-deep)]">
-                      {done} of {lessons.length} {lessons.length === 1 ? "lesson" : "lessons"} finished
+                      {done} of {plural(lessons.length, "lesson", "lessons")} finished
                     </p>
                     <div className="lrn-bar mt-2" aria-hidden>
                       <span style={{ width: `${(100 * done) / lessons.length}%` }} />
@@ -297,7 +298,7 @@ export function UnitPage({ unitId }: { unitId?: string }) {
                             <span className="lrn-eyebrow">
                               Lesson {i + 1}
                               {state === "done" ? ", finished" : ""}
-                              {count > 0 ? ` · ${count} ${count === 1 ? "reaction" : "reactions"}` : ""}
+                              {count > 0 ? ` · ${plural(count, "reaction", "reactions")}` : ""}
                             </span>
                             <span className="lrn-title">{t.label}</span>
                             {/* The lesson's headline, where there is room for it. */}

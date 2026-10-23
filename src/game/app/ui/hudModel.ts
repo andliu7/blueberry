@@ -43,7 +43,7 @@ import {
   type DailyGoalTier,
   type EconomySnapshot,
 } from "@blueberry/economy";
-import { plural } from "@/lib/helpers";
+import { plural, clamp01 } from "@/lib/helpers";
 import { formatCountdown } from "../../charge/chargeGateModel";
 
 export type HudItemId = "xp" | "diamonds" | "streak" | "charge";
@@ -238,8 +238,6 @@ const TIER_LABEL: Readonly<Record<DailyGoalTier, string>> = Object.freeze({
   serious: "Serious",
   exam: "Exam mode",
 });
-
-const clamp01 = (n: number): number => (n < 0 ? 0 : n > 1 ? 1 : n);
 
 /** "today", "tomorrow", "in 9 days". The exam window's copy reads as a date, not a count. */
 function whenExam(daysLeft: number): string {

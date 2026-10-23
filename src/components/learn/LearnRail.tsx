@@ -19,6 +19,7 @@ import {
   loadOfficeHours,
   type OfficeHour,
 } from "@/lib/officeHours";
+import { plural } from "@/lib/helpers";
 
 /**
  * Learn's right rail (S3): your progress, today's quests, and one card for what else is
@@ -201,7 +202,7 @@ function ProgressCard({
         <Flame lit={todayCounts && run > 0} />
         <p className="min-w-0 leading-tight">
           <span className="title-face block text-lg font-black text-[var(--bb-deep)]">
-            {run > 0 ? `${run} ${run === 1 ? "day" : "days"} in a row` : "Start a run today"}
+            {run > 0 ? `${plural(run, "day", "days")} in a row` : "Start a run today"}
           </span>
           <span className="text-sm text-[var(--site-quiet)]">
             {run > 0 && todayCounts

@@ -18,6 +18,7 @@ import {
   type StartAnswers,
   type StepId,
 } from "@/components/start/flow";
+import { plural } from "@/lib/helpers";
 
 /**
  * The funnel: goals, then a real first lesson, then the ask.
@@ -240,7 +241,7 @@ function examHint(examOn: string | null): string {
   const days = daysUntil(examOn);
   if (days === null) return "Leave it blank if you would rather not think about it.";
   if (days === 0) return "Today. Right, let's be quick.";
-  return `${days} day${days === 1 ? "" : "s"} away.`;
+  return `${plural(days, "day", "days")} away.`;
 }
 
 /* Step one: the welcome beat */

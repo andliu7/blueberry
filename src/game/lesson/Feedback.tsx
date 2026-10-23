@@ -14,8 +14,7 @@
  *
  * Split in two on 2026-08-27 for the reaction strip (ReactionStrip.tsx): the
  * HEADLINE sits beside the character in the strip's band and the BODY sits
- * under it. `Feedback` still renders both as one card for any caller that
- * wants the old shape.
+ * under it.
  */
 
 import { curriculumCause, type GradingResult } from "@blueberry/curriculum";
@@ -111,23 +110,4 @@ export function FeedbackBody({ result }: { readonly result: GradingResult }) {
       return <>{unreachable}</>;
     }
   }
-}
-
-/** Headline and body as one card, the pre strip shape. */
-export function Feedback({ result }: { readonly result: GradingResult }) {
-  const tone =
-    result.kind === "correct"
-      ? "border-good/40 bg-good-soft"
-      : result.kind === "indeterminate"
-        ? "border-bb-border bg-bb-muted"
-        : "border-bb-primary/30 bg-bb-primary/5";
-  const ink = result.kind === "correct" ? "text-good-ink" : "text-bb-foreground";
-  return (
-    <section className={`fade-in rounded-2xl border p-4 ${tone}`} aria-live="polite">
-      <h3 className={`text-scale-base font-semibold ${ink}`}>{feedbackHeadline(result)}</h3>
-      <div className="mt-2">
-        <FeedbackBody result={result} />
-      </div>
-    </section>
-  );
 }

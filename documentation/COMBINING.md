@@ -42,7 +42,7 @@ The site carries **137 UI primitives**. Three of the owner's notes are already b
 | the notifications bar | `ui/notifications.tsx` and `ui/notification-bell.tsx` |
 
 Also present and worth knowing about: `tetris.tsx`, `shader-animation.tsx`,
-`spotlight-cursor.tsx`, `blueberry-bot-3d.tsx`, `stacked-cards.tsx`, `snap-carousel.tsx`.
+`blueberry-bot-3d.tsx`, `stacked-cards.tsx`, `snap-carousel.tsx`.
 
 ## The one thing in the brief I would change
 

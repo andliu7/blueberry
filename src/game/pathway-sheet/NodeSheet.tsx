@@ -55,6 +55,7 @@ import { closeOnBackdrop } from "../app/ui/dismiss";
 import { pressClassName } from "../app/ui/Press";
 import { browserStorage, nodeOfHref, savedCount } from "../resume/lessonSave";
 import "../resume/resume.css";
+import { plural } from "@/lib/helpers";
 
 
 /** The commit-on-release activation. See the header note. */
@@ -282,7 +283,7 @@ export function NodeSheet({ node, onClose, onStart, onChallenge, onGuidebook, re
                     <circle cx="10" cy="10" r="9" fill="currentColor" />
                     <path d="M5.8 10.4l2.7 2.7 5.7-5.9" fill="none" stroke="var(--bb-card)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
-                  <span>{`${saved} ${saved === 1 ? "question" : "questions"} done and saved`}</span>
+                  <span>{`${plural(saved, "question", "questions")} done and saved`}</span>
                 </p>
               ) : null}
               {model.practice.enabled ? (

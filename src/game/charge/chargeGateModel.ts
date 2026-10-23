@@ -47,6 +47,7 @@ import {
   type EconomySnapshot,
   type NodeKind,
 } from "@blueberry/economy";
+import { clamp01 } from "@/lib/helpers";
 
 export type ChargeGateState = "ready" | "free" | "empty" | "exam";
 
@@ -214,8 +215,6 @@ const CHALLENGE_PROMISE = "Wrong answers cost nothing, but in a Challenge the fi
  * it. It did not.
  */
 const MISTAKES_PROMISE_EMPTY = "None of it went on wrong answers. Being wrong has never cost you charge.";
-
-const clamp01 = (n: number): number => (n < 0 ? 0 : n > 1 ? 1 : n);
 
 /** "in 9 days", "tomorrow", "today". Reads as a date rather than a count. */
 function whenExam(daysLeft: number): string {

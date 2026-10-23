@@ -64,6 +64,7 @@ import {
   type VertexId,
 } from "./target";
 import type { BondOrder, Element } from "@blueberry/chem-core";
+import { plural } from "@/lib/helpers";
 
 /** One gesture at L3: raw sampled points plus the bond order that was selected. */
 export interface FreehandStroke {
@@ -294,7 +295,7 @@ export function gradeDrawing(target: TraceTarget, drawn: Graph): TraceOutcome {
       return {
         kind: "invalid",
         cause: "valence_exceeded",
-        detail: `more bonds than there is room for at ${error.vertexIds.length} atom${error.vertexIds.length === 1 ? "" : "s"}`,
+        detail: `more bonds than there is room for at ${plural(error.vertexIds.length, "atom", "atoms")}`,
       };
     }
     throw error;

@@ -251,7 +251,7 @@ export interface Graph {
   readonly edges: readonly TraceEdge[];
 }
 
-export function bondOrderSums(graph: Graph): ReadonlyMap<VertexId, number> {
+function bondOrderSums(graph: Graph): ReadonlyMap<VertexId, number> {
   const sums = new Map<VertexId, number>();
   for (const vertex of graph.vertices) sums.set(vertex.id, 0);
   for (const edge of graph.edges) {

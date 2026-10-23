@@ -27,6 +27,7 @@ import {
 } from "@/data/learnMap";
 import { PATHWAY_UNITS } from "@/game/demo/pathwayMap";
 import "@/components/learn/learn.css";
+import { plural } from "@/lib/helpers";
 
 /**
  * One lesson, `#/lessons/<section>` (SITE-REPLAN.md sections 3 and 8).
@@ -362,7 +363,7 @@ export function LessonsPage({ section, reaction }: { section?: string; reaction?
                 <div className="min-w-0">
                   <p className="lrn-eyebrow">
                     End of lesson
-                    {mine.length > 0 ? ` · ${mine.length} ${mine.length === 1 ? "reaction" : "reactions"} in this lesson` : ""}
+                    {mine.length > 0 ? ` · ${plural(mine.length, "reaction", "reactions")} in this lesson` : ""}
                   </p>
                   <h2 id="next-title" className="title-face mt-1 text-2xl leading-tight font-extrabold text-[var(--bb-deep)]">
                     {next.href === "#/learn" ? next.title : `Next: ${next.title}`}

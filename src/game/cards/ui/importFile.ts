@@ -31,6 +31,7 @@
 import type { Card } from "../types";
 import { DECK_EXPORT_FORMAT } from "./exportDeck";
 import { APKG_IMPORT_NOTE, importCsv, importSummary, type ImportReport } from "./importCsv";
+import { plural } from "@/lib/helpers";
 
 export interface ImportResult {
   /** Empty when nothing could be read. Never null, so the caller has no branch. */
@@ -106,7 +107,7 @@ function readOwnExport(parsed: unknown, options: ImportFileOptions): ImportResul
 
   const notes: string[] = [];
   if (dropped > 0) {
-    notes.push(`${dropped} ${dropped === 1 ? "entry" : "entries"} had no question or no answer and was left out.`);
+    notes.push(`${plural(dropped, "entry", "entries")} had no question or no answer and was left out.`);
   }
   if (carriedSchedule > 0) {
     notes.push(
@@ -117,7 +118,7 @@ function readOwnExport(parsed: unknown, options: ImportFileOptions): ImportResul
   return {
     cards,
     message:
-      cards.length === 1 ? "1 card read from the export." : `${cards.length} cards read from the export.`,
+      plural(cards.length, "card read from the export.", "cards read from the export."),
     notes,
     refused: cards.length === 0,
   };

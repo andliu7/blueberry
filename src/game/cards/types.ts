@@ -411,10 +411,6 @@ export function isDue(state: ReviewState, now: Date): boolean {
   return Date.parse(state.dueAt) <= now.getTime();
 }
 
-export function dueCount(states: readonly ReviewState[], now: Date): number {
-  return states.filter((state) => isDue(state, now)).length;
-}
-
 /* ------------------------------------------------------------------ */
 /* The recommendation                                                   */
 /* ------------------------------------------------------------------ */

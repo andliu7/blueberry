@@ -24,6 +24,8 @@
  * across. Anything that needs a scene graph belongs in the component.
  */
 
+import { clamp01 } from "@/lib/helpers";
+
 /* ------------------------------------------------------------------ types -- */
 
 /**
@@ -308,8 +310,6 @@ export const MODIFIERS = {
 } as const;
 
 /* ---------------------------------------------------------------- sampling -- */
-
-const clamp01 = (n: number) => (n < 0 ? 0 : n > 1 ? 1 : n);
 
 /** Springy without the cartoon overshoot the brief rules out. */
 const easeInOutCubic = (t: number) =>

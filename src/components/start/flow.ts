@@ -13,7 +13,7 @@
  * the ask last.
  */
 
-export const STEP_IDS = ["welcome", "course", "exam", "topics", "lesson", "finish"] as const;
+const STEP_IDS = ["welcome", "course", "exam", "topics", "lesson", "finish"] as const;
 
 export type StepId = (typeof STEP_IDS)[number];
 

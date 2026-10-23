@@ -119,6 +119,7 @@ import { SavedRing } from "../../resume/SavedRing";
 // The written unit guidebook (src/game/guide), opened from the unit card's GUIDEBOOK key.
 import { hasUnitGuide, loadUnitGuide, unitGuideFor, type LessonDoor } from "../../guide";
 import { guideInHash } from "../../guide/guideLink";
+import { plural } from "@/lib/helpers";
 
 /*
  * Both guidebooks load when first opened, not with the path (owner,
@@ -1025,7 +1026,7 @@ function TrackNode({
       ? "Opens when the unit before it is done"
       : node.problemCount === 0
         ? "Not yet authored"
-        : `${node.problemCount} problem${node.problemCount === 1 ? "" : "s"}`;
+        : `${plural(node.problemCount, "problem", "problems")}`;
   const href = hrefForTab("courses", course, node.topic);
   return (
     <TrackSlab
@@ -2396,7 +2397,7 @@ function OrgoMapTrack({
                  not discs of their own (round 3, Unit 2). */
               const soonSaid =
                 plan.checkSoon.length > 0
-                  ? `Coming soon: its ${plan.checkSoon.length} ${plan.checkSoon.length === 1 ? "question is" : "questions are"} being written`
+                  ? `Coming soon: its ${plural(plan.checkSoon.length, "question is", "questions are")} being written`
                   : "Coming soon: nothing in this unit is written yet";
               const detail = waitsForLessons
                 ? `${placeSaid(place) ?? "Unit checkpoint"}. ${checkWaitNote}`

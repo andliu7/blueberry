@@ -65,6 +65,7 @@ import {
   type Badge,
 } from "./meModel";
 import "./me.css";
+import { plural } from "@/lib/helpers";
 
 // React.lazy: the pKa editor (and its 900 line store) loads only when opened.
 const PkaSettings = lazy(() => import("../../settings/PkaSettings"));
@@ -590,7 +591,7 @@ function StreakCalendar({ journal, tz, days, today, xpToday, goalXp }: { readonl
         </tbody>
       </table>
       <p id="me-cal-count" className="m-0 mt-2 text-center font-bold me-muted">
-        {count === 0 ? `No study days in ${title} yet` : `Studied ${count} ${count === 1 ? "day" : "days"} in ${title}`}
+        {count === 0 ? `No study days in ${title} yet` : `Studied ${plural(count, "day", "days")} in ${title}`}
       </p>
       <div className="me-cal-key" aria-hidden>
         <span>
@@ -722,7 +723,7 @@ function ExamSetting({ examDate, daysLeft, today }: { readonly examDate: string 
               ? "That date has passed"
               : daysLeft === 0
                 ? "Exam day. Good luck!"
-                : `${daysLeft} ${daysLeft === 1 ? "day" : "days"} to go`}
+                : `${plural(daysLeft, "day", "days")} to go`}
         </span>
       </span>
       <button type="button" className="me-date-btn" onClick={openPicker} aria-describedby="me-exam-date">

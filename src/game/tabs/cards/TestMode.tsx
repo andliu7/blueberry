@@ -14,7 +14,7 @@
  */
 
 import { useMemo, useState } from "react";
-import { seededShuffle } from "@/lib/helpers";
+import { seededShuffle, plural } from "@/lib/helpers";
 import { REACTIONS } from "../../../data/reactions";
 import { Berry } from "../../mascot/Berry";
 import type { Card } from "../../cards/types";
@@ -145,7 +145,7 @@ export function TestMode({
         <span className="ct-qcount">
           Question {index + 1} of {questions.length}
         </span>
-        {skipped > 0 && <span className="ct-qnote">{skipped} card{skipped === 1 ? "" : "s"} without options left out</span>}
+        {skipped > 0 && <span className="ct-qnote">{plural(skipped, "card", "cards")} without options left out</span>}
       </div>
       <div className="ct-qbar" aria-hidden="true">
         <span style={{ width: `${(index / questions.length) * 100}%` }} />

@@ -19,6 +19,8 @@
  * bug and the exact figure does not change anybody's press.
  */
 
+import { plural } from "@/lib/helpers";
+
 const MINUTES_PER_DAY = 24 * 60;
 
 /**
@@ -51,25 +53,25 @@ export function intervalLabel(days: number, form: IntervalForm = "long"): string
     if (minutes < 60) return short ? `${minutes}m` : `${minutes} min`;
     const hours = Math.round(minutes / 60);
     if (short) return `${hours}h`;
-    return hours === 1 ? "1 hour" : `${hours} hours`;
+    return plural(hours, "hour", "hours");
   }
 
   const whole = Math.round(days);
   if (whole < 7) {
     if (short) return `${whole}d`;
-    return whole === 1 ? "1 day" : `${whole} days`;
+    return plural(whole, "day", "days");
   }
   if (whole < 31) {
     const weeks = Math.round(whole / 7);
     if (short) return `${weeks}w`;
-    return weeks === 1 ? "1 week" : `${weeks} weeks`;
+    return plural(weeks, "week", "weeks");
   }
   if (whole < 365) {
     const months = Math.round(whole / 30);
     if (short) return `${months}mo`;
-    return months === 1 ? "1 month" : `${months} months`;
+    return plural(months, "month", "months");
   }
   const years = Math.round((whole / 365) * 10) / 10;
   if (short) return `${years}y`;
-  return years === 1 ? "1 year" : `${years} years`;
+  return plural(years, "year", "years");
 }

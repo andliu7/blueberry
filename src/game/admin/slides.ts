@@ -86,11 +86,6 @@ export function lessonIndex(): readonly UnitRow[] {
   });
 }
 
-/** The unit a lesson id sits in, from the index, or null. */
-export function unitOfLesson(node: string): UnitRow | null {
-  return lessonIndex().find((unit) => unit.lessons.some((lesson) => lesson.id === node)) ?? null;
-}
-
 function poolMeta(entry: PoolEntry) {
   return {
     explanation: entry.explanation,

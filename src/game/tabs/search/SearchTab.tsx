@@ -24,6 +24,7 @@ import { pressClassName } from "../../app/ui/Press";
 import { BloomAvatar } from "../social/BloomAvatar";
 import { SEARCH_SUGGESTIONS } from "./searchSuggestions";
 import "./search.css";
+import { plural } from "@/lib/helpers";
 
 const AXIS_LABEL: Record<MatchAxis, string> = {
   name: "Name",
@@ -204,7 +205,7 @@ export default function SearchTab({ query: initial }: { readonly query: string }
       ) : (
         <>
           <p className="sr-count" role="status">
-            {matches.length} reaction{matches.length === 1 ? "" : "s"}
+            {plural(matches.length, "reaction", "reactions")}
           </p>
           <ul className="sr-list">
             {matches.map((match) => (

@@ -48,6 +48,7 @@ import {
   unreachableTiers,
   type PracticeRunState,
 } from "./run";
+import { plural } from "@/lib/helpers";
 
 const McqRunner = lazy(() => import("../mcq/McqRunner").then((m) => ({ default: m.McqRunner })));
 const SortBeatView = lazy(() => import("../sort/SortBeatView").then((m) => ({ default: m.SortBeatView })));
@@ -180,7 +181,7 @@ export function PracticeRunner({ node, onExit, onFinish, reducedMotion = false, 
         node={node}
         title={pathwayNode(node)?.title ?? ""}
         // An exam has no in-a-row rule, so its resume line does not mention one (round 4).
-        detail={`${resumable.answered} ${resumable.answered === 1 ? "problem" : "problems"} done${resumable.run > 0 && !exam ? `, ${resumable.run} in a row` : ""} and saved`}
+        detail={`${plural(resumable.answered, "problem", "problems")} done${resumable.run > 0 && !exam ? `, ${resumable.run} in a row` : ""} and saved`}
         saved={`${resumable.answered} saved ${resumable.answered === 1 ? "problem" : "problems"}`}
         bar={<RunCount state={resumable} run={resumable.run} />}
         reducedMotion={reducedMotion}
@@ -221,7 +222,7 @@ export function PracticeRunner({ node, onExit, onFinish, reducedMotion = false, 
             <p className="text-scale-base text-bb-foreground">{endSaid(state)}</p>
             {banked !== null && banked > 0 ? (
               <p className="lesson-banked">
-                +{banked} {banked === 1 ? "diamond" : "diamonds"}
+                +{plural(banked, "diamond", "diamonds")}
               </p>
             ) : null}
             <ChipPress className="mt-2 w-full" onClick={onFinish ?? onExit}>

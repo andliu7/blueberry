@@ -19,6 +19,7 @@ import { importSyllabus, saveDates } from "@/lib/calendar";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { HoverExpandAction } from "@/components/ui/hover-expand-action";
 import { cn } from "@/lib/utils";
+import { plural } from "@/lib/helpers";
 
 /**
  * Upload a syllabus, check what was read, save it.
@@ -153,7 +154,7 @@ export function SyllabusImportTicket({
       <div className="flex items-start justify-between gap-3 pr-12">
         <div>
           <h2 className="text-base font-semibold text-card-foreground">
-            {draft ? `Found ${draft.length} ${draft.length === 1 ? "date" : "dates"}` : "Import a syllabus"}
+            {draft ? `Found ${plural(draft.length, "date", "dates")}` : "Import a syllabus"}
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
             {draft

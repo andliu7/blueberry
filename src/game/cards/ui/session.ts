@@ -30,6 +30,7 @@
  */
 
 import type { Card, CardId, Rating } from "../types";
+import { plural } from "@/lib/helpers";
 
 export interface RatingRecord {
   readonly cardId: CardId;
@@ -217,7 +218,7 @@ export function scheduleChange(
 
 /** The line under it. Names the work, then says what the schedule did. */
 export function summaryLine(summary: SessionSummary, change: ScheduleChange): string {
-  const cards = summary.reviewed === 1 ? "1 card" : `${summary.reviewed} cards`;
+  const cards = plural(summary.reviewed, "card", "cards");
   const all = change.longer + change.sooner + change.same;
   if (all === 0) return `${cards} reviewed.`;
   if (change.longer === all) return `${cards} reviewed. Those intervals just got longer.`;
@@ -225,7 +226,7 @@ export function summaryLine(summary: SessionSummary, change: ScheduleChange): st
   if (change.same === all) return `${cards} reviewed. Their schedules did not change.`;
   const parts = [
     change.longer > 0 ? `${change.longer} now ${change.longer === 1 ? "waits" : "wait"} longer` : null,
-    change.sooner > 0 ? `${change.sooner} ${change.sooner === 1 ? "comes" : "come"} back sooner` : null,
+    change.sooner > 0 ? `${plural(change.sooner, "comes", "come")} back sooner` : null,
     change.same > 0 ? `${change.same} kept ${change.same === 1 ? "its" : "their"} schedule` : null,
   ].filter((part): part is string => part !== null);
   return `${cards} reviewed: ${parts.join(", ")}.`;

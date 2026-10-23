@@ -287,6 +287,9 @@ export function shuffledTargetIds(spec: MatchBoardSpec): readonly OptionId[] {
     return seed / 4294967296;
   };
 
+  // Not seededShuffle from "@/lib/helpers" on purpose: that picks the swap as
+  // state % (i + 1), this as floor(next * (i + 1)), so swapping would reorder
+  // every board a student has already seen.
   const shuffled = [...ids];
   for (let index = shuffled.length - 1; index > 0; index -= 1) {
     const swap = Math.floor(next() * (index + 1));

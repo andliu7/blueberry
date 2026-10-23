@@ -3,6 +3,7 @@ import { COURSES, DECK_GROUPS, deckCount, deckHref, foldersUnder, isReference, t
 import { cardsWord } from "@/lib/reviewProgress";
 import { useIsDark } from "@/lib/useIsDark";
 import { GlassFolder, type ArtPreset, type GlassFile } from "@/components/ui/glass-folder-cards";
+import { plural } from "@/lib/helpers";
 
 /**
  * The Review library as glass folders (owner, 15 Oct 2026): one folder per deck folder
@@ -32,7 +33,7 @@ const FILE_SLOTS = 4;
 
 function deckMeta(d: Deck): string {
   const n = deckCount(d);
-  return isReference(d) ? `${n} ${n === 1 ? "row" : "rows"}` : cardsWord(n);
+  return isReference(d) ? `${plural(n, "row", "rows")}` : cardsWord(n);
 }
 
 export type DeckFolderView = { id: DeckGroupId; title: string; meta: string; files: GlassFile[] };
@@ -57,7 +58,7 @@ export function buildDeckFolders(decks: Deck[]): DeckFolderView[] {
       return {
         id,
         title: group!.title,
-        meta: `${inFolder.length} ${inFolder.length === 1 ? "deck" : "decks"} · ${cards} ${unit}`,
+        meta: `${plural(inFolder.length, "deck", "decks")} · ${cards} ${unit}`,
         files,
       };
     });

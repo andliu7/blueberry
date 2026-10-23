@@ -39,6 +39,7 @@ export {
 export { problemsForTopic } from "./courseProblems";
 import { COURSE_BLURB, COURSE_LABEL, COURSE_MARK } from "./courseCopy";
 import { problemsForTopic } from "./courseProblems";
+import { plural } from "@/lib/helpers";
 
 
 function isCourseId(value: string): value is CourseId {
@@ -256,7 +257,7 @@ function TopicList({ course }: { readonly course: CourseId }) {
                 <span className="flex-1">
                   <span className="block text-scale-base font-medium">{definition.label}</span>
                   <span className="block text-scale-xs text-bb-muted-foreground">
-                    {count === 0 ? "Problems not yet authored" : `${count} problem${count === 1 ? "" : "s"}`}
+                    {count === 0 ? "Problems not yet authored" : `${plural(count, "problem", "problems")}`}
                     {definition.course !== course ? ` · from ${COURSE_LABEL[definition.course]}` : ""}
                   </span>
                 </span>

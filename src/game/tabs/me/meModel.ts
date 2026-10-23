@@ -29,6 +29,7 @@ import {
   type EconomyEvent,
   type EconomySnapshot,
 } from "@blueberry/economy";
+import { plural } from "@/lib/helpers";
 
 /** The journal without the beta preview's epoch stamped events. */
 export function realJournal(journal: readonly EconomyEvent[]): readonly EconomyEvent[] {
@@ -225,14 +226,14 @@ export function badgesFor(economy: EconomySnapshot, journal: readonly EconomyEve
   // count says "Best" and its line names the number outright.
   const best = economy.streak.best;
   const streakBadge: Badge = {
-    ...tiered("streak", "On fire", "orange", best, STREAK_MILESTONES, (t) => `Best streak ${best} ${best === 1 ? "day" : "days"}. Reach ${t} to level up`),
+    ...tiered("streak", "On fire", "orange", best, STREAK_MILESTONES, (t) => `Best streak ${plural(best, "day", "days")}. Reach ${t} to level up`),
     countLabel: "Best",
   };
 
   return [
     streakBadge,
     rankBadge,
-    tiered("clears", "Pathfinder", "green", clears, CLEAR_TIERS, (t) => `Finish ${t} ${t === 1 ? "lesson" : "lessons"} for the first time`),
+    tiered("clears", "Pathfinder", "green", clears, CLEAR_TIERS, (t) => `Finish ${plural(t, "lesson", "lessons")} for the first time`),
     tiered("cards", "Card sharp", "blue", cardRuns, CARD_RUN_TIERS, (t) => `Finish ${t} card ${t === 1 ? "review" : "reviews"}`),
     tiered("xp", "Scholar", "yellow", economy.xp.total, XP_TIERS, (t) => `Earn ${t.toLocaleString("en-US")} XP`),
   ];

@@ -5,7 +5,7 @@ import type { Status } from "@/components/QuestionCard";
 import { MathHtml } from "@/components/ui/math-html";
 import { RATING_WORDS } from "@/lib/reviewProgress";
 import { maskableScheme } from "@/lib/deckFilters";
-import { clamp } from "@/lib/helpers";
+import { clamp, plural } from "@/lib/helpers";
 
 /**
  * The study card at the top of a deck (SITE-REPLAN.md phase 7): one card at a time,
@@ -407,9 +407,9 @@ function EndOfDeck({
     <div className="rv-card-box absolute inset-0 flex flex-col items-start justify-center gap-4 p-6">
       <p className="rv-eyebrow">End of the deck</p>
       <p className="text-2xl font-extrabold text-[var(--bb-deep)] [font-family:var(--site-display)]">
-        {left === 0 ? "Nothing left to learn here." : `${left} ${left === 1 ? "card" : "cards"} still to learn.`}
+        {left === 0 ? "Nothing left to learn here." : `${plural(left, "card", "cards")} still to learn.`}
       </p>
-      <p className="text-[var(--site-quiet)]">You went through {queue.length} {queue.length === 1 ? "card" : "cards"} this time.</p>
+      <p className="text-[var(--site-quiet)]">You went through {plural(queue.length, "card", "cards")} this time.</p>
       <div className="flex flex-wrap gap-3">
         {left > 0 && (
           <button type="button" className="rv-btn" onClick={() => onStudyAgain("missed")}>
