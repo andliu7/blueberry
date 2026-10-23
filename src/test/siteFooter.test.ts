@@ -16,7 +16,7 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("@/components/AboutOverlay", () => ({ AboutOverlay: () => null }));
 
 const { SiteFooter } = await import("@/components/ui/site-footer");
-const { EMAIL, GITHUB_URL, LINKEDIN_URL } = await import("@/data/site");
+const { FIND_ME_EMAIL, GITHUB_URL, LINKEDIN_URL } = await import("@/data/site");
 
 const read = (p: string) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
 const css = read("components/ui/site-shell.css");
@@ -29,13 +29,19 @@ describe("Find me: three icon chips that open into their word", () => {
   const chips = [...html.matchAll(/<a href="([^"]*)"[^>]*class="site-find"[^>]*>([\s\S]*?)<\/a>/g)];
 
   it("is GitHub, LinkedIn and email, in that order, each with an icon and its word", () => {
-    expect(chips.map((m) => m[1])).toEqual([GITHUB_URL, LINKEDIN_URL, `mailto:${EMAIL}`]);
+    expect(chips.map((m) => m[1])).toEqual([GITHUB_URL, LINKEDIN_URL, `mailto:${FIND_ME_EMAIL}`]);
+    // The same address andliu.dev's footer mails (andliu-portfolio/lib/site.ts EMAIL).
+    expect(FIND_ME_EMAIL).toBe("zeus.andrewliu@gmail.com");
     for (const [, , inner] of chips) expect(inner).toMatch(/<svg/);
     expect(chips.map((m) => /<span class="site-find-label">([^<]*)<\/span>/.exec(m[2])?.[1])).toEqual([
       "GitHub",
       "LinkedIn",
       "Email",
     ]);
+  });
+
+  it("opens GitHub and LinkedIn in a new tab but not the mail link, which would leave an empty tab", () => {
+    expect(chips.map((m) => /target="_blank"/.test(m[0]))).toEqual([true, true, false]);
   });
 
   it("hides the word at rest by clipping it, so it stays the link's name", () => {

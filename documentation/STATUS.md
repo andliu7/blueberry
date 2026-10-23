@@ -171,8 +171,9 @@ Feed and accounts
 - Item 22 (site footer) DONE: built in 47ec43b (Find me chips grow into words on hover and focus,
   FAQ card, footer comes up from under the page; pinned by siteFooter.test.ts), and now loaded
   lazily from SiteChrome so #/app never downloads it or the About sheet: #/app first open 346.4 to
-  339.4 KB. ASK: the footer mails andliu@terpmail.umd.edu (src/data/site.ts EMAIL), andliu.dev
-  uses zeus.andrewliu@gmail.com; which one should Blueberry show?
+  339.4 KB. The Find me Email chip now mails zeus.andrewliu@gmail.com, the address andliu.dev's
+  footer uses (FIND_ME_EMAIL in src/data/site.ts), and opens the mail app without a new tab. The
+  contact page and office hours still use EMAIL, andliu@terpmail.umd.edu; say if they should move too.
 - Item 21 (pathway supernova) DONE 21 Oct in af74062, on origin/main: four-point star flash closing
   to a red or blue glow with one ripple; reduced motion shows two still glows; pinned by
   src/game/test/pathSupernova.test.ts. Owner to check it on the live pathway.

@@ -59,6 +59,11 @@ export const HERO = {
 export const GITHUB_URL = "https://github.com/andliu7";
 export const LINKEDIN_URL = "https://www.linkedin.com/in/andrew-liu-06154225b/";
 export const EMAIL = "andliu@terpmail.umd.edu";
+/**
+ * The footer's Find me email, taken from andliu.dev (andliu-portfolio/lib/site.ts EMAIL) as
+ * item 22 asks. The contact page and office hours keep EMAIL above.
+ */
+export const FIND_ME_EMAIL = "zeus.andrewliu@gmail.com";
 
 /** The project's own repository, which is not the same link as the profile. */
 export const REPO_URL = "https://github.com/andliu7/blueberry";

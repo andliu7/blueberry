@@ -3,7 +3,7 @@ import { CircleHelp, Mail } from "lucide-react";
 import { GithubMark, LinkedinMark } from "@/components/ui/brand-marks";
 import { BlueberryMark } from "@/components/ui/blueberry-mark";
 import { AboutOverlay } from "@/components/AboutOverlay";
-import { EMAIL, GITHUB_URL, LINKEDIN_URL, REPO_URL, SITE_NAME } from "@/data/site";
+import { FIND_ME_EMAIL, GITHUB_URL, LINKEDIN_URL, REPO_URL, SITE_NAME } from "@/data/site";
 import { SITE_CONTAINER } from "@/components/ui/site-nav";
 import { isReducedMotion } from "@/lib/motionPref";
 import { cn } from "@/lib/utils";
@@ -55,7 +55,7 @@ const SITE_LINKS: FooterLink[] = [
 const FIND_ME: FooterLink[] = [
   { title: "GitHub", href: GITHUB_URL, icon: GithubMark, external: true },
   { title: "LinkedIn", href: LINKEDIN_URL, icon: LinkedinMark, external: true },
-  { title: "Email", href: `mailto:${EMAIL}`, icon: Mail, external: true },
+  { title: "Email", href: `mailto:${FIND_ME_EMAIL}`, icon: Mail },
 ];
 
 // 44 by 44 at least: `min-w-11` because "Terms" alone measured 41px wide (shell round 7).
