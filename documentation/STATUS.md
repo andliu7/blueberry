@@ -118,6 +118,23 @@ six Bloom moves, hand-written wordmark, jump / curtain lift / land exit.
   list and, for the day's first open, the gift sheet: 401.0 to 397.9 KB first open of the day,
   398.5 to 395.4 KB after (404 page lazy, motif names split from the drawings).
 
+**23 Oct workflow run (wf_6a2d3c6a-47c), finished. Commits only, nothing pushed**
+- Passed the critic: supabase lazy (9066e61), 21 supernova (already shipped), 24 back disc
+  (c9637b1), 22 footer (5e77a62, fcbc006: Find me email now matches andliu.dev), 11 welcome back
+  (3f45107, 86ae178: league nickname kept apart from the account name), guides u3-u6, glossary
+  (4bc2015, 3a33426: info icons in the Learn review run too), sections split u3/5/7/8/9
+  (c09bc62), 16 scratch paper + sketch spike (fde080b), 23 admin viewer at #/app/admin
+  (cda5fc4), press and hold, action on release (db159dc).
+- Tidy-ups (7bca639, fa870d0) did NOT pass the second critic: four hand-written seeded shuffles
+  remain (data/tips.ts, glass-folder-cards.tsx, beats/match/board.ts, lib/helpers.ts; fold them
+  into one shuffle(items, random)), and the test-only exports item was skipped. Open.
+- Final check: tsc clean, 4880/4880 tests (bootLoader red on purpose), build passes, payload
+  341.8 KB gz first open (was 399.2; supabase-js 53 KB plus the footer left the first open).
+- Found: `npm run test:packages` exits 1 because packages/validators has no vitest config
+  (its 14 test files, 87 tests, pass with one). OWNER: add the config (validators package).
+- OWNER: glossary info icons on the site's own deck cards (src/data/decks), recorded by the
+  glossary worker, not built.
+
 **Owner brief, 23 Oct (queued after the 23 Oct workflow run; not started)**
 Tutoring (business test 1)
 - T1 Tutoring end to end, testable with seeded model cases: bring a tutor in, the tutor sets
