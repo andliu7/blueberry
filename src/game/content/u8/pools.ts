@@ -15,10 +15,11 @@
  *
  * Every pool in U8_POOLS is a LESSON pool: MCQs join the node's recognise
  * step, and the ladders and match boards fill the lesson's order and connect
- * slots (beats/template.ts planLesson). U8_UNWIRED holds the items drafted
- * for u8-ladder, which keeps its authored sort ladder: test/beatRunner.test.ts
- * requires a LADDER_FOR_NODE node to carry nothing else, so nothing plays
- * these until the owner decides. Ladders are built with createProblem and
+ * slots (beats/template.ts planLesson). u8-ladder's pool opens its lesson,
+ * and its authored sort ladder (LADDER_FOR_NODE) stays the order step, drawn
+ * from U8_SORT_FIGURES["sort-acyl-reactivity"]. U8_TEST_ONLY holds held-out
+ * twins of level 2 items (same rule, new molecule) that only test-outs draw.
+ * Ladders are built with createProblem and
  * createOrderingAnswer exactly as content/u5/pools.ts does; match boards go
  * through buildMatchBoard, so a bad board throws at import time.
  */
@@ -141,6 +142,292 @@ function match(spec: { readonly beat: MatchBeat; readonly explanation: string; r
 
 /** Lesson pools keyed by map node id (beats/practice/pools.ts). */
 export const U8_POOLS: UnitPools = {
+  "u8-ladder": [
+    {
+      "id": "u8-lad-meet",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u8-lad-meet",
+          "node": "u8-ladder",
+          "conceptIds": [
+            "acyl_reactivity_ladder"
+          ],
+          "levels": [
+            0
+          ],
+          "prompt": "Pick the acyl chloride.",
+          "correctOptionId": "cl",
+          "options": [
+            {
+              "id": "amd",
+              "text": "Acetamide",
+              "why": "N on the C=O carbon makes an amide, near the bottom of the ladder."
+            },
+            {
+              "id": "cl",
+              "text": "Acetyl chloride",
+              "why": "Cl sits directly on the C=O carbon. That C-Cl is the leaving group the whole ladder starts from."
+            },
+            {
+              "id": "anh",
+              "text": "Acetic anhydride",
+              "why": "Two C=O groups share one oxygen. That is an anhydride, one rung below the acyl chloride."
+            },
+            {
+              "id": "est",
+              "text": "Ethyl acetate",
+              "why": "The C=O carbon carries an O-ethyl group. That is an ester."
+            }
+          ]
+        }
+      },
+      "explanation": "Name the group on the C=O carbon first. Cl means acyl chloride, the top rung.",
+      "provenance": "scripts/u8_pools.py: SMARTS class of each derivative. OpenStax Organic Chemistry ch. 21 (CC BY-NC-SA) is the named check, not yet read against this draft.",
+      "placeholder": true
+    },
+    {
+      "id": "u8-lad-top",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u8-lad-top",
+          "node": "u8-ladder",
+          "conceptIds": [
+            "acyl_reactivity_ladder"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "Pick the derivative highest on the reactivity ladder.",
+          "correctOptionId": "anh",
+          "options": [
+            {
+              "id": "est",
+              "text": "Methyl acetate",
+              "why": "Methoxide is a worse leaving group than a carboxylate, so the ester sits one rung lower."
+            },
+            {
+              "id": "amd",
+              "text": "N,N-dimethylacetamide",
+              "why": "Nitrogen holds onto the carbonyl hardest. Amides are the lowest neutral rung."
+            },
+            {
+              "id": "anh",
+              "text": "Acetic anhydride",
+              "why": "Its leaving group is a carboxylate, the best of these three. Anhydrides sit just under acyl chlorides."
+            }
+          ]
+        }
+      },
+      "explanation": "Anhydride above ester above amide: the better the leaving group, the higher the rung.",
+      "provenance": "scripts/u8_pools.py: ladder rank looked up by SMARTS class. OpenStax Organic Chemistry ch. 21 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: the acyl ladder order (acyl chloride, anhydride, ester and acid, amide, carboxylate) from the course outline.",
+      "placeholder": true
+    },
+    {
+      "id": "u8-lad-bottom",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u8-lad-bottom",
+          "node": "u8-ladder",
+          "conceptIds": [
+            "acyl_reactivity_ladder"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "Pick the derivative lowest on the reactivity ladder.",
+          "correctOptionId": "amd",
+          "options": [
+            {
+              "id": "cl",
+              "text": "Benzoyl chloride",
+              "why": "An acyl chloride is the top rung, even with a benzene ring on it."
+            },
+            {
+              "id": "amd",
+              "text": "Acetamide",
+              "why": "An amide: nitrogen is the worst leaving group of the three, so it reacts last."
+            },
+            {
+              "id": "est",
+              "text": "Ethyl acetate",
+              "why": "An ester sits above an amide. It reacts with hydroxide in water; an amide needs heat and time."
+            }
+          ]
+        }
+      },
+      "explanation": "Amides sit lowest of the neutral derivatives.",
+      "provenance": "scripts/u8_pools.py: ladder rank looked up by SMARTS class. OpenStax Organic Chemistry ch. 21 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: the acyl ladder order (acyl chloride, anhydride, ester and acid, amide, carboxylate) from the course outline.",
+      "placeholder": true
+    },
+    {
+      "id": "u8-lad-down",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u8-lad-down",
+          "node": "u8-ladder",
+          "conceptIds": [
+            "acyl_reactivity_ladder"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "Pick the change that runs downhill with no activating reagent.",
+          "correctOptionId": "down",
+          "options": [
+            {
+              "id": "down",
+              "text": "Acetyl chloride to ethyl acetate",
+              "why": "Acyl chloride to ester is a step down the ladder, so ethanol alone does it."
+            },
+            {
+              "id": "up",
+              "text": "Ethyl acetate to acetyl chloride",
+              "why": "That climbs two rungs. Chloride is a worse nucleophile than the ethoxide it would push out."
+            },
+            {
+              "id": "amide",
+              "text": "Acetamide to ethyl acetate",
+              "why": "That climbs one rung. An amide will not trade its nitrogen for an alcohol on its own."
+            }
+          ]
+        }
+      },
+      "explanation": "Downhill is free from an acyl chloride, anhydride or ester. A free acid is the exception: an amine or base takes its proton first, so the acid needs activation (SOCl₂ or DCC) even to go down.",
+      "provenance": "scripts/u8_pools.py: ladder ranks of start and end compared. OpenStax Organic Chemistry ch. 21 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: the acyl ladder order (acyl chloride, anhydride, ester and acid, amide, carboxylate) from the course outline.",
+      "placeholder": true
+    },
+    {
+      "id": "u8-lad-ester",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u8-lad-ester",
+          "node": "u8-ladder",
+          "conceptIds": [
+            "nucleophilic_acyl_substitution"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "Pick the ester.",
+          "correctOptionId": "est",
+          "options": [
+            {
+              "id": "acid",
+              "text": "Acetic acid",
+              "why": "The O on the C=O carbon carries H, not carbon. That is the acid."
+            },
+            {
+              "id": "est",
+              "text": "Methyl acetate",
+              "why": "The C=O carbon has an O-CH₃ on it, and that CH₃ is not another C=O. That is an ester."
+            },
+            {
+              "id": "anh",
+              "text": "Acetic anhydride",
+              "why": "Its single-bonded O leads to a second C=O, which makes it an anhydride, not an ester."
+            }
+          ]
+        }
+      },
+      "explanation": "An ester is C(=O)-O-C where the last carbon is not a carbonyl.",
+      "provenance": "scripts/u8_pools.py: SMARTS class of each option. OpenStax Organic Chemistry ch. 21 (CC BY-NC-SA) is the named check, not yet read against this draft.",
+      "placeholder": true
+    },
+    {
+      "id": "u8-lad-amide",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u8-lad-amide",
+          "node": "u8-ladder",
+          "conceptIds": [
+            "nucleophilic_acyl_substitution"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "Pick the amide.",
+          "correctOptionId": "amd",
+          "options": [
+            {
+              "id": "amd",
+              "text": "N,N-dimethylacetamide",
+              "why": "N bonds straight to the C=O carbon. That makes it an amide, even with two methyls on N."
+            },
+            {
+              "id": "amine",
+              "text": "1-aminopropan-2-one",
+              "why": "Here N sits one carbon away from the C=O. That is a ketone with an amine, not an amide."
+            },
+            {
+              "id": "nitrile",
+              "text": "Acetonitrile",
+              "why": "C≡N with no C=O is a nitrile. It hydrolyses to an amide, but it is not one."
+            }
+          ]
+        }
+      },
+      "explanation": "An amide's nitrogen is on the C=O carbon itself.",
+      "provenance": "scripts/u8_pools.py: SMARTS class of each option. OpenStax Organic Chemistry ch. 21 (CC BY-NC-SA) is the named check, not yet read against this draft.",
+      "placeholder": true
+    },
+    match({
+      "beat": {
+        "kind": "match",
+        "id": "u8-lad-match",
+        "node": "u8-ladder",
+        "conceptIds": [
+          "acyl_reactivity_ladder"
+        ],
+        "levels": [
+          1,
+          2
+        ],
+        "presentation": "columns",
+        "prompt": "Match each formula to its derivative class.",
+        "brief": "Read the group on the C=O carbon.",
+        "pairs": [
+          {
+            "id": "cl",
+            "left": "CH₃COCl",
+            "right": "Acyl chloride",
+            "why": "Cl on the acyl carbon: the top rung."
+          },
+          {
+            "id": "anh",
+            "left": "(CH₃CO)₂O",
+            "right": "Anhydride",
+            "why": "Two acyl groups sharing one O."
+          },
+          {
+            "id": "est",
+            "left": "CH₃COOCH₃",
+            "right": "Ester",
+            "why": "O-CH₃ on the acyl carbon."
+          },
+          {
+            "id": "amd",
+            "left": "CH₃CONH₂",
+            "right": "Amide",
+            "why": "NH₂ on the acyl carbon: the lowest neutral rung."
+          }
+        ]
+      },
+      "explanation": "Cl, O-C(=O), O-R and N on the acyl carbon: acyl chloride, anhydride, ester, amide.",
+      "provenance": "scripts/u8_pools.py: SMARTS class of each formula's structure. OpenStax Organic Chemistry ch. 21 (CC BY-NC-SA) is the named check, not yet read against this draft."
+    }),
+  ],
   "u8-tetrahedral": [
     {
       "id": "u8-tet-meet",
@@ -530,7 +817,7 @@ export const U8_POOLS: UnitPools = {
           ]
         }
       },
-      "explanation": "Uphill moves on the ladder need activation; downhill moves do not.",
+      "explanation": "Uphill moves on the ladder need activation. Downhill is free from an acyl chloride, anhydride or ester; a free acid needs activation even to go down.",
       "provenance": "scripts/u8_pools.py: ladder ranks of start and end compared. OpenStax Organic Chemistry ch. 21 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: the acyl ladder order (acyl chloride, anhydride, ester and acid, amide, carboxylate) from the course outline.",
       "placeholder": true
     },
@@ -751,7 +1038,7 @@ export const U8_POOLS: UnitPools = {
             {
               "id": "six",
               "text": "Six-membered",
-              "why": "Count the ring: four carbons and the shared O, plus the second C=O carbon. Five carbons and one O make six."
+              "why": "Count the ring: two C=O carbons, the three CH₂ between them, and the shared O. Five carbons and one O make six."
             },
             {
               "id": "five",
@@ -800,7 +1087,7 @@ export const U8_POOLS: UnitPools = {
             {
               "id": "benz",
               "text": "Benzoic acid",
-              "why": "That has lost a whole CO₂. Neither acid has a C=O on its alpha carbon, so it does not decarboxylate."
+              "why": "That has lost a whole CO₂. Neither CO₂H has another C=O carbon bonded to its alpha carbon, so it does not decarboxylate."
             }
           ]
         }
@@ -3808,9 +4095,14 @@ export const U8_POOLS: UnitPools = {
               "why": "No second C=O at all. Simple acids keep their CO₂H."
             },
             {
+              "id": "alpha",
+              "text": "2-oxopropanoic acid",
+              "why": "Here the C=O is on the alpha carbon itself (an alpha-keto acid). The six-membered path needs that C=O one carbon further out, so it keeps its CO₂H."
+            },
+            {
               "id": "beta",
               "text": "3-oxobutanoic acid",
-              "why": "Its alpha carbon carries a second C=O, so a six-membered cyclic path is available."
+              "why": "Its alpha carbon is bonded to a second C=O carbon (the ketone sits beta to the CO₂H), so a six-membered cyclic path is available."
             },
             {
               "id": "gamma",
@@ -3820,8 +4112,8 @@ export const U8_POOLS: UnitPools = {
           ]
         }
       },
-      "explanation": "Only a CO₂H with a C=O on its alpha carbon decarboxylates easily.",
-      "provenance": "scripts/u8_pools.py: SMARTS for a C=O on the alpha carbon of a CO2H. OpenStax Organic Chemistry ch. 22 (CC BY-NC-SA) is the named check, not yet read against this draft.",
+      "explanation": "Only a CO₂H whose alpha carbon is bonded to another C=O carbon (a beta-keto acid or a malonic acid) loses CO₂ easily.",
+      "provenance": "scripts/u8_pools.py: SMARTS for a C=O carbon bonded to the alpha carbon of a CO2H. OpenStax Organic Chemistry ch. 22 (CC BY-NC-SA) is the named check, not yet read against this draft.",
       "placeholder": true
     },
     {
@@ -4097,6 +4389,45 @@ export const U8_POOLS: UnitPools = {
       },
       "explanation": "DCC plus the elements of water gives DCU.",
       "provenance": "scripts/u8_pools.py: RDKit atom balance: DCC plus water against DCU. OpenStax Organic Chemistry ch. 21 (CC BY-NC-SA) is the named check, not yet read against this draft.",
+      "placeholder": true
+    },
+    {
+      "id": "u8-ste-salt",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u8-ste-salt",
+          "node": "u8-steglich",
+          "conceptIds": [
+            "nucleophilic_acyl_substitution"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "Acetic acid meets CH₃NH₂ at room temperature. Pick the product.",
+          "correctOptionId": "salt",
+          "options": [
+            {
+              "id": "est",
+              "text": "Methyl acetate",
+              "why": "No methanol is present. The amine's carbon never ends up on O."
+            },
+            {
+              "id": "salt",
+              "text": "Methylammonium acetate",
+              "why": "The amine is a base, and the acid's O-H is the fastest thing to react: the proton moves to N and a salt forms."
+            },
+            {
+              "id": "amd",
+              "text": "N-methylacetamide",
+              "why": "Acid to amide is downhill, but the amine takes the acid's proton first. The salt needs strong heat or DCC to become the amide."
+            }
+          ]
+        }
+      },
+      "explanation": "A free acid and an amine make a salt first, so the acid needs activation (SOCl₂ or DCC) even to go down.",
+      "provenance": "scripts/u8_pools.py: proton moved from the acid O-H to the amine N; RDKit atom balance of salt and of amide plus water. OpenStax Organic Chemistry ch. 21 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: an amine and a free carboxylic acid make the ammonium carboxylate salt, not the amide (corpus board org2-match-acyl-synthesis-jobs: an amine attacking a carboxylic acid directly mostly makes a salt).",
       "placeholder": true
     },
     {
@@ -4749,7 +5080,7 @@ export const U8_POOLS: UnitPools = {
             {
               "id": "est",
               "text": "Methyl benzoate",
-              "why": "N is the better nucleophile here, so the amide forms, not the ester."
+              "why": "The OCH₃ oxygen is already bonded to N and CH₃, so it cannot hand an OCH₃ to the acyl carbon. The N-H is the only nucleophile: the amide forms."
             },
             {
               "id": "nm",
@@ -5910,293 +6241,212 @@ export const U8_POOLS: UnitPools = {
   ],
 };
 
-/** Drafted for u8-ladder, which nothing plays yet: see the header. Not merged into the lesson lookup. */
-export const U8_UNWIRED: UnitPools = {
-  "u8-ladder": [
+/** Held-out twins keyed by the lesson they twin: test-outs only (tabs/pathway/testOutPool.ts), never a lesson. */
+export const U8_TEST_ONLY: UnitPools = {
+  "u8-to-acylcl": [
     {
-      "id": "u8-lad-meet",
+      "id": "u8-held-acl-next",
       "item": {
         "kind": "mcq",
         "beat": {
           "kind": "mcq",
-          "id": "u8-lad-meet",
-          "node": "u8-ladder",
-          "conceptIds": [
-            "acyl_reactivity_ladder"
-          ],
-          "levels": [
-            0
-          ],
-          "prompt": "Pick the acyl chloride.",
-          "correctOptionId": "cl",
-          "options": [
-            {
-              "id": "amd",
-              "text": "Acetamide",
-              "why": "N on the C=O carbon makes an amide, near the bottom of the ladder."
-            },
-            {
-              "id": "cl",
-              "text": "Acetyl chloride",
-              "why": "Cl sits directly on the C=O carbon. That C-Cl is the leaving group the whole ladder starts from."
-            },
-            {
-              "id": "anh",
-              "text": "Acetic anhydride",
-              "why": "Two C=O groups share one oxygen. That is an anhydride, one rung below the acyl chloride."
-            },
-            {
-              "id": "est",
-              "text": "Ethyl acetate",
-              "why": "The C=O carbon carries an O-ethyl group. That is an ester."
-            }
-          ]
-        }
-      },
-      "explanation": "Name the group on the C=O carbon first. Cl means acyl chloride, the top rung.",
-      "provenance": "scripts/u8_pools.py: SMARTS class of each derivative. OpenStax Organic Chemistry ch. 21 (CC BY-NC-SA) is the named check, not yet read against this draft.",
-      "placeholder": true
-    },
-    {
-      "id": "u8-lad-top",
-      "item": {
-        "kind": "mcq",
-        "beat": {
-          "kind": "mcq",
-          "id": "u8-lad-top",
-          "node": "u8-ladder",
-          "conceptIds": [
-            "acyl_reactivity_ladder"
-          ],
-          "levels": [
-            1
-          ],
-          "prompt": "Pick the derivative highest on the reactivity ladder.",
-          "correctOptionId": "anh",
-          "options": [
-            {
-              "id": "est",
-              "text": "Methyl acetate",
-              "why": "Methoxide is a worse leaving group than a carboxylate, so the ester sits one rung lower."
-            },
-            {
-              "id": "amd",
-              "text": "N,N-dimethylacetamide",
-              "why": "Nitrogen holds onto the carbonyl hardest. Amides are the lowest neutral rung."
-            },
-            {
-              "id": "anh",
-              "text": "Acetic anhydride",
-              "why": "Its leaving group is a carboxylate, the best of these three. Anhydrides sit just under acyl chlorides."
-            }
-          ]
-        }
-      },
-      "explanation": "Anhydride above ester above amide: the better the leaving group, the higher the rung.",
-      "provenance": "scripts/u8_pools.py: ladder rank looked up by SMARTS class. OpenStax Organic Chemistry ch. 21 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: the acyl ladder order (acyl chloride, anhydride, ester and acid, amide, carboxylate) from the course outline.",
-      "placeholder": true
-    },
-    {
-      "id": "u8-lad-bottom",
-      "item": {
-        "kind": "mcq",
-        "beat": {
-          "kind": "mcq",
-          "id": "u8-lad-bottom",
-          "node": "u8-ladder",
-          "conceptIds": [
-            "acyl_reactivity_ladder"
-          ],
-          "levels": [
-            1
-          ],
-          "prompt": "Pick the derivative lowest on the reactivity ladder.",
-          "correctOptionId": "amd",
-          "options": [
-            {
-              "id": "cl",
-              "text": "Benzoyl chloride",
-              "why": "An acyl chloride is the top rung, even with a benzene ring on it."
-            },
-            {
-              "id": "amd",
-              "text": "Acetamide",
-              "why": "An amide: nitrogen is the worst leaving group of the three, so it reacts last."
-            },
-            {
-              "id": "est",
-              "text": "Ethyl acetate",
-              "why": "An ester sits above an amide. It reacts with hydroxide in water; an amide needs heat and time."
-            }
-          ]
-        }
-      },
-      "explanation": "Amides sit lowest of the neutral derivatives.",
-      "provenance": "scripts/u8_pools.py: ladder rank looked up by SMARTS class. OpenStax Organic Chemistry ch. 21 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: the acyl ladder order (acyl chloride, anhydride, ester and acid, amide, carboxylate) from the course outline.",
-      "placeholder": true
-    },
-    {
-      "id": "u8-lad-down",
-      "item": {
-        "kind": "mcq",
-        "beat": {
-          "kind": "mcq",
-          "id": "u8-lad-down",
-          "node": "u8-ladder",
-          "conceptIds": [
-            "acyl_reactivity_ladder"
-          ],
-          "levels": [
-            1
-          ],
-          "prompt": "Pick the change that runs downhill with no activating reagent.",
-          "correctOptionId": "down",
-          "options": [
-            {
-              "id": "down",
-              "text": "Acetyl chloride to ethyl acetate",
-              "why": "Acyl chloride to ester is a step down the ladder, so ethanol alone does it."
-            },
-            {
-              "id": "up",
-              "text": "Ethyl acetate to acetyl chloride",
-              "why": "That climbs two rungs. Chloride is a worse nucleophile than the ethoxide it would push out."
-            },
-            {
-              "id": "amide",
-              "text": "Acetamide to ethyl acetate",
-              "why": "That climbs one rung. An amide will not trade its nitrogen for an alcohol on its own."
-            }
-          ]
-        }
-      },
-      "explanation": "Downhill on the ladder is free; uphill needs a reagent that activates the acid first.",
-      "provenance": "scripts/u8_pools.py: ladder ranks of start and end compared. OpenStax Organic Chemistry ch. 21 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: the acyl ladder order (acyl chloride, anhydride, ester and acid, amide, carboxylate) from the course outline.",
-      "placeholder": true
-    },
-    {
-      "id": "u8-lad-ester",
-      "item": {
-        "kind": "mcq",
-        "beat": {
-          "kind": "mcq",
-          "id": "u8-lad-ester",
-          "node": "u8-ladder",
+          "id": "u8-held-acl-next",
+          "node": "u8-to-acylcl",
           "conceptIds": [
             "nucleophilic_acyl_substitution"
           ],
           "levels": [
-            1
+            2
           ],
-          "prompt": "Pick the ester.",
+          "prompt": "Propanoic acid meets SOCl₂, then methanol. Pick the product.",
           "correctOptionId": "est",
           "options": [
             {
               "id": "acid",
-              "text": "Acetic acid",
-              "why": "The O on the C=O carbon carries H, not carbon. That is the acid."
+              "text": "Propanoic acid",
+              "why": "Methanol, not water, attacks the acyl chloride, so the acid does not come back."
             },
             {
               "id": "est",
-              "text": "Methyl acetate",
-              "why": "The C=O carbon has an O-CH₃ on it, and that CH₃ is not another C=O. That is an ester."
+              "text": "Methyl propanoate",
+              "why": "SOCl₂ climbs to propanoyl chloride, then methanol takes it one step down to the ester."
             },
             {
-              "id": "anh",
-              "text": "Acetic anhydride",
-              "why": "Its single-bonded O leads to a second C=O, which makes it an anhydride, not an ester."
+              "id": "cl",
+              "text": "Propanoyl chloride",
+              "why": "That is the halfway point. Methanol then attacks it and chloride leaves."
             }
           ]
         }
       },
-      "explanation": "An ester is C(=O)-O-C where the last carbon is not a carbonyl.",
-      "provenance": "scripts/u8_pools.py: SMARTS class of each option. OpenStax Organic Chemistry ch. 21 (CC BY-NC-SA) is the named check, not yet read against this draft.",
+      "explanation": "Climb once with SOCl₂, then walk down to whatever derivative you need.",
+      "provenance": "scripts/u8_pools.py: Rule S twice. OpenStax Organic Chemistry ch. 21 (CC BY-NC-SA) is the named check, not yet read against this draft.",
       "placeholder": true
     },
+  ],
+  "u8-hydrolysis": [
     {
-      "id": "u8-lad-amide",
+      "id": "u8-held-hyd-sapon",
       "item": {
         "kind": "mcq",
         "beat": {
           "kind": "mcq",
-          "id": "u8-lad-amide",
-          "node": "u8-ladder",
+          "id": "u8-held-hyd-sapon",
+          "node": "u8-hydrolysis",
           "conceptIds": [
             "nucleophilic_acyl_substitution"
           ],
           "levels": [
-            1
+            2
           ],
-          "prompt": "Pick the amide.",
-          "correctOptionId": "amd",
+          "prompt": "Propyl 4-methylbenzoate is heated with NaOH. Pick the organic anion.",
+          "correctOptionId": "carb",
           "options": [
             {
-              "id": "amd",
-              "text": "N,N-dimethylacetamide",
-              "why": "N bonds straight to the C=O carbon. That makes it an amide, even with two methyls on N."
+              "id": "acid",
+              "text": "4-methylbenzoic acid",
+              "why": "In NaOH the acid cannot survive: it loses its proton. The acid only appears after acid workup."
             },
             {
-              "id": "amine",
-              "text": "1-aminopropan-2-one",
-              "why": "Here N sits one carbon away from the C=O. That is a ketone with an amine, not an amide."
+              "id": "alc",
+              "text": "(4-methylphenyl)methanol",
+              "why": "That is a reduction product. Hydroxide does not deliver hydride."
             },
             {
-              "id": "nitrile",
-              "text": "Acetonitrile",
-              "why": "C≡N with no C=O is a nitrile. It hydrolyses to an amide, but it is not one."
+              "id": "carb",
+              "text": "4-methylbenzoate",
+              "why": "Hydroxide swaps the propoxy group for OH, then base takes the acid's proton. The carboxylate stays until workup."
             }
           ]
         }
       },
-      "explanation": "An amide's nitrogen is on the C=O carbon itself.",
-      "provenance": "scripts/u8_pools.py: SMARTS class of each option. OpenStax Organic Chemistry ch. 21 (CC BY-NC-SA) is the named check, not yet read against this draft.",
+      "explanation": "Saponification ends at the carboxylate.",
+      "provenance": "scripts/u8_pools.py: Rule S with water, then the CO2H deprotonated. OpenStax Organic Chemistry ch. 21 (CC BY-NC-SA) is the named check, not yet read against this draft.",
       "placeholder": true
     },
-    match({
-      "beat": {
-        "kind": "match",
-        "id": "u8-lad-match",
-        "node": "u8-ladder",
-        "conceptIds": [
-          "acyl_reactivity_ladder"
-        ],
-        "levels": [
-          1,
-          2
-        ],
-        "presentation": "columns",
-        "prompt": "Match each formula to its derivative class.",
-        "brief": "Read the group on the C=O carbon.",
-        "pairs": [
-          {
-            "id": "cl",
-            "left": "CH₃COCl",
-            "right": "Acyl chloride",
-            "why": "Cl on the acyl carbon: the top rung."
-          },
-          {
-            "id": "anh",
-            "left": "(CH₃CO)₂O",
-            "right": "Anhydride",
-            "why": "Two acyl groups sharing one O."
-          },
-          {
-            "id": "est",
-            "left": "CH₃COOCH₃",
-            "right": "Ester",
-            "why": "O-CH₃ on the acyl carbon."
-          },
-          {
-            "id": "amd",
-            "left": "CH₃CONH₂",
-            "right": "Amide",
-            "why": "NH₂ on the acyl carbon: the lowest neutral rung."
-          }
-        ]
+  ],
+  "u8-lialh4": [
+    {
+      "id": "u8-held-lah-amide",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u8-held-lah-amide",
+          "node": "u8-lialh4",
+          "conceptIds": [
+            "oxidation_state_ladder"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "N,N-Diethylacetamide meets LiAlH₄, then H₂O. Pick the product.",
+          "correctOptionId": "a",
+          "options": [
+            {
+              "id": "a",
+              "text": "N,N-diethylethanamine",
+              "why": "LiAlH₄ removes the amide's C=O oxygen. The C-N bond stays: a tertiary amine."
+            },
+            {
+              "id": "alc",
+              "text": "Ethanol",
+              "why": "That cuts the C-N bond, the ester outcome. An amide keeps its N and loses its O."
+            },
+            {
+              "id": "sec",
+              "text": "N-ethylethanamine",
+              "why": "The acetyl carbon is not cut off. It stays on N as a third ethyl."
+            }
+          ]
+        }
       },
-      "explanation": "Cl, O-C(=O), O-R and N on the acyl carbon: acyl chloride, anhydride, ester, amide.",
-      "provenance": "scripts/u8_pools.py: SMARTS class of each formula's structure. OpenStax Organic Chemistry ch. 21 (CC BY-NC-SA) is the named check, not yet read against this draft."
-    }),
+      "explanation": "LiAlH₄ turns an amide into an amine with the same carbons.",
+      "provenance": "scripts/u8_pools.py: Rule R with LiAlH4, amide O removed. OpenStax Organic Chemistry ch. 21 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: LiAlH4 reduces every acid derivative and nitrile.",
+      "placeholder": true
+    },
+  ],
+  "u8-organomet": [
+    {
+      "id": "u8-held-org-phenyl",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u8-held-org-phenyl",
+          "node": "u8-organomet",
+          "conceptIds": [
+            "nucleophilic_addition_carbon"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "Methyl propanoate meets excess C₆H₅MgBr, then H₃O⁺. Pick the product.",
+          "correctOptionId": "t",
+          "options": [
+            {
+              "id": "k",
+              "text": "1-phenylpropan-1-one",
+              "why": "That ketone is the halfway point. Excess Grignard adds again."
+            },
+            {
+              "id": "s",
+              "text": "1-phenylpropan-1-ol",
+              "why": "Only one phenyl there. Esters take two."
+            },
+            {
+              "id": "t",
+              "text": "1,1-diphenylpropan-1-ol",
+              "why": "Two phenyls end on the old acyl carbon, with the ethyl and the OH."
+            }
+          ]
+        }
+      },
+      "explanation": "Two identical groups on the carbinol carbon is the fingerprint of ester plus Grignard.",
+      "provenance": "scripts/u8_pools.py: Rule G. OpenStax Organic Chemistry ch. 21 (CC BY-NC-SA) is the named check, not yet read against this draft.",
+      "placeholder": true
+    },
+  ],
+  "u8-decarb": [
+    {
+      "id": "u8-held-dec-ring",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u8-held-dec-ring",
+          "node": "u8-decarb",
+          "conceptIds": [
+            "carboxylic_acids"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "2-Oxocyclopentane-1-carboxylic acid is heated. Pick the product.",
+          "correctOptionId": "k",
+          "options": [
+            {
+              "id": "acid",
+              "text": "Cyclopentanecarboxylic acid",
+              "why": "That loses the ketone O instead. Heat removes CO₂, not O."
+            },
+            {
+              "id": "ene",
+              "text": "Cyclopent-2-en-1-one",
+              "why": "No H₂ is lost. The alpha carbon just takes an H."
+            },
+            {
+              "id": "k",
+              "text": "Cyclopentanone",
+              "why": "The CO₂H is on the carbon next to the ring C=O. It leaves as CO₂ and the enol gives the ketone."
+            }
+          ]
+        }
+      },
+      "explanation": "Ring or chain, a beta-keto acid loses CO₂.",
+      "provenance": "scripts/u8_pools.py: Rule D. OpenStax Organic Chemistry ch. 22 (CC BY-NC-SA) is the named check, not yet read against this draft.",
+      "placeholder": true
+    },
   ],
 };
 
@@ -11965,7 +12215,7 @@ export const U8_VISUALS: Readonly<Record<string, McqVisual>> = {
         }
       ]
     },
-    "name": "three acids, heat"
+    "name": "four acids, heat"
   },
   "u8-dec-malonic": {
     "kind": "structure",
@@ -12501,6 +12751,47 @@ export const U8_VISUALS: Readonly<Record<string, McqVisual>> = {
       ]
     },
     "name": "DCC"
+  },
+  "u8-ste-salt": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 42.7,
+          "y1": 58.9,
+          "x2": 60.0,
+          "y2": 49.0
+        },
+        {
+          "x1": 60.0,
+          "y1": 49.0,
+          "x2": 60.1,
+          "y2": 35.0,
+          "order": 2
+        },
+        {
+          "x1": 60.0,
+          "y1": 49.0,
+          "x2": 72.1,
+          "y2": 56.0
+        }
+      ],
+      "labels": [
+        {
+          "x": 60.1,
+          "y": 34.0,
+          "t": "O",
+          "size": 13
+        },
+        {
+          "x": 77.3,
+          "y": 64.0,
+          "t": "OH",
+          "size": 13
+        }
+      ]
+    },
+    "name": "+ CH₃NH₂, room temperature"
   },
   "u8-ste-amide": {
     "kind": "structure",
@@ -15603,6 +15894,359 @@ export const U8_VISUALS: Readonly<Record<string, McqVisual>> = {
       ]
     },
     "name": "Br₂ on an acid, two ways"
+  },
+  "u8-held-acl-next": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 77.3,
+          "y1": 19.0,
+          "x2": 77.3,
+          "y2": 39.0
+        },
+        {
+          "x1": 77.3,
+          "y1": 39.0,
+          "x2": 60.0,
+          "y2": 49.0
+        },
+        {
+          "x1": 60.0,
+          "y1": 49.0,
+          "x2": 47.9,
+          "y2": 42.0,
+          "order": 2
+        },
+        {
+          "x1": 60.0,
+          "y1": 49.0,
+          "x2": 60.0,
+          "y2": 63.0
+        }
+      ],
+      "labels": [
+        {
+          "x": 42.7,
+          "y": 44.1,
+          "t": "O",
+          "size": 13
+        },
+        {
+          "x": 60.1,
+          "y": 74.0,
+          "t": "OH",
+          "size": 13
+        }
+      ]
+    },
+    "name": "1. SOCl₂  2. methanol"
+  },
+  "u8-held-dec-ring": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 45.3,
+          "y1": 24.6,
+          "x2": 45.3,
+          "y2": 37.5,
+          "order": 2
+        },
+        {
+          "x1": 45.3,
+          "y1": 37.5,
+          "x2": 34.1,
+          "y2": 44.0
+        },
+        {
+          "x1": 45.3,
+          "y1": 37.5,
+          "x2": 61.4,
+          "y2": 46.8
+        },
+        {
+          "x1": 61.4,
+          "y1": 46.8,
+          "x2": 63.3,
+          "y2": 65.2
+        },
+        {
+          "x1": 63.3,
+          "y1": 65.2,
+          "x2": 81.5,
+          "y2": 69.0
+        },
+        {
+          "x1": 81.5,
+          "y1": 69.0,
+          "x2": 90.7,
+          "y2": 53.0
+        },
+        {
+          "x1": 90.7,
+          "y1": 53.0,
+          "x2": 78.3,
+          "y2": 39.2
+        },
+        {
+          "x1": 78.3,
+          "y1": 39.2,
+          "x2": 81.0,
+          "y2": 26.5,
+          "order": 2
+        },
+        {
+          "x1": 78.3,
+          "y1": 39.2,
+          "x2": 61.4,
+          "y2": 46.8
+        }
+      ],
+      "labels": [
+        {
+          "x": 45.3,
+          "y": 24.0,
+          "t": "O",
+          "size": 13
+        },
+        {
+          "x": 29.3,
+          "y": 51.8,
+          "t": "OH",
+          "size": 13
+        },
+        {
+          "x": 82.1,
+          "y": 26.1,
+          "t": "O",
+          "size": 13
+        }
+      ]
+    },
+    "name": "β-keto acid, heat"
+  },
+  "u8-held-org-phenyl": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 25.4,
+          "y1": 49.0,
+          "x2": 42.7,
+          "y2": 59.0
+        },
+        {
+          "x1": 42.7,
+          "y1": 59.0,
+          "x2": 60.0,
+          "y2": 49.0
+        },
+        {
+          "x1": 60.0,
+          "y1": 49.0,
+          "x2": 60.0,
+          "y2": 35.0,
+          "order": 2
+        },
+        {
+          "x1": 60.0,
+          "y1": 49.0,
+          "x2": 72.1,
+          "y2": 56.0
+        },
+        {
+          "x1": 82.5,
+          "y1": 56.0,
+          "x2": 94.6,
+          "y2": 49.0
+        }
+      ],
+      "labels": [
+        {
+          "x": 60.0,
+          "y": 34.0,
+          "t": "O",
+          "size": 13
+        },
+        {
+          "x": 77.3,
+          "y": 64.0,
+          "t": "O",
+          "size": 13
+        }
+      ]
+    },
+    "name": "ester + excess C₆H₅MgBr"
+  },
+  "u8-held-lah-amide": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 45.6,
+          "y1": 69.0,
+          "x2": 60.0,
+          "y2": 60.6
+        },
+        {
+          "x1": 60.0,
+          "y1": 60.6,
+          "x2": 60.0,
+          "y2": 49.0
+        },
+        {
+          "x1": 55.7,
+          "y1": 41.5,
+          "x2": 45.6,
+          "y2": 35.7
+        },
+        {
+          "x1": 45.6,
+          "y1": 35.7,
+          "x2": 31.2,
+          "y2": 44.1
+        },
+        {
+          "x1": 64.3,
+          "y1": 41.5,
+          "x2": 74.4,
+          "y2": 35.6
+        },
+        {
+          "x1": 74.4,
+          "y1": 35.6,
+          "x2": 88.8,
+          "y2": 43.9
+        },
+        {
+          "x1": 74.4,
+          "y1": 35.6,
+          "x2": 74.4,
+          "y2": 24.0,
+          "order": 2
+        }
+      ],
+      "labels": [
+        {
+          "x": 60.0,
+          "y": 49.0,
+          "t": "N",
+          "size": 13
+        },
+        {
+          "x": 74.4,
+          "y": 24.0,
+          "t": "O",
+          "size": 13
+        }
+      ]
+    },
+    "name": "amide + LiAlH₄"
+  },
+  "u8-held-hyd-sapon": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 18.0,
+          "y1": 37.7,
+          "x2": 28.5,
+          "y2": 43.8
+        },
+        {
+          "x1": 28.5,
+          "y1": 43.8,
+          "x2": 39.0,
+          "y2": 37.8
+        },
+        {
+          "x1": 39.0,
+          "y1": 37.8,
+          "x2": 46.4,
+          "y2": 42.1
+        },
+        {
+          "x1": 52.7,
+          "y1": 42.1,
+          "x2": 60.0,
+          "y2": 37.9
+        },
+        {
+          "x1": 60.0,
+          "y1": 37.9,
+          "x2": 60.1,
+          "y2": 29.4,
+          "order": 2
+        },
+        {
+          "x1": 60.0,
+          "y1": 37.9,
+          "x2": 70.5,
+          "y2": 44.0
+        },
+        {
+          "x1": 70.5,
+          "y1": 44.0,
+          "x2": 81.1,
+          "y2": 37.9
+        },
+        {
+          "x1": 81.1,
+          "y1": 37.9,
+          "x2": 91.6,
+          "y2": 44.0,
+          "order": 2
+        },
+        {
+          "x1": 91.6,
+          "y1": 44.0,
+          "x2": 91.5,
+          "y2": 56.2
+        },
+        {
+          "x1": 91.5,
+          "y1": 56.2,
+          "x2": 102.0,
+          "y2": 62.3
+        },
+        {
+          "x1": 91.5,
+          "y1": 56.2,
+          "x2": 81.0,
+          "y2": 62.2,
+          "order": 2
+        },
+        {
+          "x1": 81.0,
+          "y1": 62.2,
+          "x2": 70.5,
+          "y2": 56.1
+        },
+        {
+          "x1": 70.5,
+          "y1": 56.1,
+          "x2": 70.5,
+          "y2": 44.0,
+          "order": 2
+        }
+      ],
+      "labels": [
+        {
+          "x": 49.5,
+          "y": 48.9,
+          "t": "O",
+          "size": 13
+        },
+        {
+          "x": 60.1,
+          "y": 30.7,
+          "t": "O",
+          "size": 13
+        }
+      ]
+    },
+    "name": "an aryl ester + NaOH"
   }
 };
 
@@ -26729,6 +27373,65 @@ export const U8_OPTION_TILES: Readonly<Record<string, Readonly<Record<string, Na
         ]
       },
       "name": "butanoic acid"
+    },
+    "alpha": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 86.0,
+            "y1": 48.9,
+            "x2": 68.6,
+            "y2": 39.0
+          },
+          {
+            "x1": 68.6,
+            "y1": 39.0,
+            "x2": 68.6,
+            "y2": 25.0,
+            "order": 2
+          },
+          {
+            "x1": 68.6,
+            "y1": 39.0,
+            "x2": 51.4,
+            "y2": 49.0
+          },
+          {
+            "x1": 51.4,
+            "y1": 49.0,
+            "x2": 51.4,
+            "y2": 63.0,
+            "order": 2
+          },
+          {
+            "x1": 51.4,
+            "y1": 49.0,
+            "x2": 39.2,
+            "y2": 42.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 68.6,
+            "y": 24.0,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 51.4,
+            "y": 74.0,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 34.0,
+            "y": 44.1,
+            "t": "OH",
+            "size": 13
+          }
+        ]
+      },
+      "name": "2-oxopropanoic acid"
     }
   },
   "u8-dec-malonic": {
@@ -27732,6 +28435,164 @@ export const U8_OPTION_TILES: Readonly<Record<string, Readonly<Record<string, Na
         ]
       },
       "name": "cyclohexanamine"
+    }
+  },
+  "u8-ste-salt": {
+    "salt": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 37.7,
+            "y1": 48.9,
+            "x2": 55.0,
+            "y2": 39.0
+          },
+          {
+            "x1": 55.0,
+            "y1": 39.0,
+            "x2": 55.1,
+            "y2": 25.0,
+            "order": 2
+          },
+          {
+            "x1": 55.0,
+            "y1": 39.0,
+            "x2": 67.1,
+            "y2": 46.0
+          },
+          {
+            "x1": 62.3,
+            "y1": 69.0,
+            "x2": 76.3,
+            "y2": 69.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 55.1,
+            "y": 24.0,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 72.3,
+            "y": 54.0,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 81.3,
+            "y": 47.5,
+            "t": "−",
+            "size": 13
+          },
+          {
+            "x": 82.3,
+            "y": 74.0,
+            "t": "NH_3",
+            "size": 13
+          },
+          {
+            "x": 95.3,
+            "y": 67.5,
+            "t": "+",
+            "size": 13
+          }
+        ]
+      },
+      "name": "methylammonium acetate"
+    },
+    "amd": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 77.3,
+            "y1": 19.0,
+            "x2": 77.3,
+            "y2": 33.0
+          },
+          {
+            "x1": 72.1,
+            "y1": 42.0,
+            "x2": 60.0,
+            "y2": 49.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 49.0,
+            "x2": 60.1,
+            "y2": 69.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 49.0,
+            "x2": 47.9,
+            "y2": 42.0,
+            "order": 2
+          }
+        ],
+        "labels": [
+          {
+            "x": 77.3,
+            "y": 44.0,
+            "t": "NH",
+            "size": 13
+          },
+          {
+            "x": 42.7,
+            "y": 44.1,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "N-methylacetamide"
+    },
+    "est": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 77.3,
+            "y1": 19.0,
+            "x2": 77.3,
+            "y2": 33.0
+          },
+          {
+            "x1": 72.1,
+            "y1": 42.0,
+            "x2": 60.0,
+            "y2": 49.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 49.0,
+            "x2": 60.1,
+            "y2": 69.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 49.0,
+            "x2": 47.9,
+            "y2": 42.0,
+            "order": 2
+          }
+        ],
+        "labels": [
+          {
+            "x": 77.3,
+            "y": 44.0,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 42.7,
+            "y": 44.1,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "methyl acetate"
     }
   },
   "u8-ste-amide": {
@@ -33511,6 +34372,980 @@ export const U8_OPTION_TILES: Readonly<Record<string, Readonly<Record<string, Na
       },
       "name": "1-bromocyclohexane-1-carboxylic acid"
     }
+  },
+  "u8-held-acl-next": {
+    "est": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 25.4,
+            "y1": 49.0,
+            "x2": 42.7,
+            "y2": 59.0
+          },
+          {
+            "x1": 42.7,
+            "y1": 59.0,
+            "x2": 60.0,
+            "y2": 49.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 49.0,
+            "x2": 60.0,
+            "y2": 35.0,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 49.0,
+            "x2": 72.1,
+            "y2": 56.0
+          },
+          {
+            "x1": 82.5,
+            "y1": 56.0,
+            "x2": 94.6,
+            "y2": 49.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 60.0,
+            "y": 34.0,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 77.3,
+            "y": 64.0,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "methyl propanoate"
+    },
+    "cl": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 77.3,
+            "y1": 19.0,
+            "x2": 77.3,
+            "y2": 39.0
+          },
+          {
+            "x1": 77.3,
+            "y1": 39.0,
+            "x2": 60.0,
+            "y2": 49.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 49.0,
+            "x2": 47.9,
+            "y2": 42.0,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 49.0,
+            "x2": 60.0,
+            "y2": 63.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 42.7,
+            "y": 44.1,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 60.1,
+            "y": 74.0,
+            "t": "Cl",
+            "size": 13
+          }
+        ]
+      },
+      "name": "propanoyl chloride"
+    },
+    "acid": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 77.3,
+            "y1": 19.0,
+            "x2": 77.3,
+            "y2": 39.0
+          },
+          {
+            "x1": 77.3,
+            "y1": 39.0,
+            "x2": 60.0,
+            "y2": 49.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 49.0,
+            "x2": 47.9,
+            "y2": 42.0,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 49.0,
+            "x2": 60.0,
+            "y2": 63.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 42.7,
+            "y": 44.1,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 60.1,
+            "y": 74.0,
+            "t": "OH",
+            "size": 13
+          }
+        ]
+      },
+      "name": "propanoic acid"
+    }
+  },
+  "u8-held-dec-ring": {
+    "k": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 40.7,
+            "y1": 30.0,
+            "x2": 52.8,
+            "y2": 37.0,
+            "order": 2
+          },
+          {
+            "x1": 52.8,
+            "y1": 37.0,
+            "x2": 71.1,
+            "y2": 28.8
+          },
+          {
+            "x1": 71.1,
+            "y1": 28.8,
+            "x2": 84.5,
+            "y2": 43.7
+          },
+          {
+            "x1": 84.5,
+            "y1": 43.7,
+            "x2": 74.5,
+            "y2": 61.0
+          },
+          {
+            "x1": 74.5,
+            "y1": 61.0,
+            "x2": 54.9,
+            "y2": 56.9
+          },
+          {
+            "x1": 54.9,
+            "y1": 56.9,
+            "x2": 52.8,
+            "y2": 37.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 35.5,
+            "y": 32.0,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "cyclopentanone"
+    },
+    "acid": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 45.5,
+            "y1": 24.5,
+            "x2": 45.4,
+            "y2": 37.4,
+            "order": 2
+          },
+          {
+            "x1": 45.4,
+            "y1": 37.4,
+            "x2": 34.2,
+            "y2": 43.9
+          },
+          {
+            "x1": 45.4,
+            "y1": 37.4,
+            "x2": 61.4,
+            "y2": 46.7
+          },
+          {
+            "x1": 61.4,
+            "y1": 46.7,
+            "x2": 63.2,
+            "y2": 65.1
+          },
+          {
+            "x1": 63.2,
+            "y1": 65.1,
+            "x2": 81.3,
+            "y2": 69.0
+          },
+          {
+            "x1": 81.3,
+            "y1": 69.0,
+            "x2": 90.6,
+            "y2": 53.1
+          },
+          {
+            "x1": 90.6,
+            "y1": 53.1,
+            "x2": 78.3,
+            "y2": 39.3
+          },
+          {
+            "x1": 78.3,
+            "y1": 39.3,
+            "x2": 61.4,
+            "y2": 46.7
+          }
+        ],
+        "labels": [
+          {
+            "x": 45.5,
+            "y": 24.0,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 29.4,
+            "y": 51.6,
+            "t": "OH",
+            "size": 13
+          }
+        ]
+      },
+      "name": "cyclopentanecarboxylic acid"
+    },
+    "ene": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 40.7,
+            "y1": 30.0,
+            "x2": 52.8,
+            "y2": 37.0,
+            "order": 2
+          },
+          {
+            "x1": 52.8,
+            "y1": 37.0,
+            "x2": 71.1,
+            "y2": 28.8
+          },
+          {
+            "x1": 71.1,
+            "y1": 28.8,
+            "x2": 84.5,
+            "y2": 43.7,
+            "order": 2
+          },
+          {
+            "x1": 84.5,
+            "y1": 43.7,
+            "x2": 74.5,
+            "y2": 61.0
+          },
+          {
+            "x1": 74.5,
+            "y1": 61.0,
+            "x2": 54.9,
+            "y2": 56.9
+          },
+          {
+            "x1": 54.9,
+            "y1": 56.9,
+            "x2": 52.8,
+            "y2": 37.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 35.5,
+            "y": 32.0,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "cyclopent-2-en-1-one"
+    }
+  },
+  "u8-held-org-phenyl": {
+    "t": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 68.0,
+            "y1": 66.4,
+            "x2": 73.0,
+            "y2": 57.7
+          },
+          {
+            "x1": 73.0,
+            "y1": 57.7,
+            "x2": 68.0,
+            "y2": 49.0
+          },
+          {
+            "x1": 68.0,
+            "y1": 49.0,
+            "x2": 75.0,
+            "y2": 49.0
+          },
+          {
+            "x1": 68.0,
+            "y1": 49.0,
+            "x2": 68.0,
+            "y2": 39.0
+          },
+          {
+            "x1": 68.0,
+            "y1": 39.0,
+            "x2": 76.7,
+            "y2": 34.0,
+            "order": 2
+          },
+          {
+            "x1": 76.7,
+            "y1": 34.0,
+            "x2": 76.7,
+            "y2": 24.0
+          },
+          {
+            "x1": 76.7,
+            "y1": 24.0,
+            "x2": 68.1,
+            "y2": 19.0,
+            "order": 2
+          },
+          {
+            "x1": 68.1,
+            "y1": 19.0,
+            "x2": 59.4,
+            "y2": 24.0
+          },
+          {
+            "x1": 59.4,
+            "y1": 24.0,
+            "x2": 59.4,
+            "y2": 34.0,
+            "order": 2
+          },
+          {
+            "x1": 68.0,
+            "y1": 49.0,
+            "x2": 59.3,
+            "y2": 54.0
+          },
+          {
+            "x1": 59.3,
+            "y1": 54.0,
+            "x2": 50.7,
+            "y2": 49.0,
+            "order": 2
+          },
+          {
+            "x1": 50.7,
+            "y1": 49.0,
+            "x2": 42.0,
+            "y2": 54.0
+          },
+          {
+            "x1": 42.0,
+            "y1": 54.0,
+            "x2": 42.0,
+            "y2": 64.0,
+            "order": 2
+          },
+          {
+            "x1": 42.0,
+            "y1": 64.0,
+            "x2": 50.6,
+            "y2": 69.0
+          },
+          {
+            "x1": 50.6,
+            "y1": 69.0,
+            "x2": 59.3,
+            "y2": 64.0,
+            "order": 2
+          },
+          {
+            "x1": 59.4,
+            "y1": 34.0,
+            "x2": 68.0,
+            "y2": 39.0
+          },
+          {
+            "x1": 59.3,
+            "y1": 64.0,
+            "x2": 59.3,
+            "y2": 54.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 78.0,
+            "y": 54.0,
+            "t": "OH",
+            "size": 13
+          }
+        ]
+      },
+      "name": "1,1-diphenylpropan-1-ol"
+    },
+    "k": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 24.0,
+            "y1": 35.5,
+            "x2": 38.4,
+            "y2": 43.9
+          },
+          {
+            "x1": 38.4,
+            "y1": 43.9,
+            "x2": 52.8,
+            "y2": 35.6
+          },
+          {
+            "x1": 52.8,
+            "y1": 35.6,
+            "x2": 52.9,
+            "y2": 24.0,
+            "order": 2
+          },
+          {
+            "x1": 52.8,
+            "y1": 35.6,
+            "x2": 67.2,
+            "y2": 44.0
+          },
+          {
+            "x1": 67.2,
+            "y1": 44.0,
+            "x2": 81.6,
+            "y2": 35.7,
+            "order": 2
+          },
+          {
+            "x1": 81.6,
+            "y1": 35.7,
+            "x2": 96.0,
+            "y2": 44.1
+          },
+          {
+            "x1": 96.0,
+            "y1": 44.1,
+            "x2": 95.9,
+            "y2": 60.7,
+            "order": 2
+          },
+          {
+            "x1": 95.9,
+            "y1": 60.7,
+            "x2": 81.5,
+            "y2": 69.0
+          },
+          {
+            "x1": 81.5,
+            "y1": 69.0,
+            "x2": 67.1,
+            "y2": 60.6,
+            "order": 2
+          },
+          {
+            "x1": 67.1,
+            "y1": 60.6,
+            "x2": 67.2,
+            "y2": 44.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 52.9,
+            "y": 24.0,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "1-phenylpropan-1-one"
+    },
+    "s": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 69.7,
+            "y1": 19.0,
+            "x2": 69.6,
+            "y2": 30.1
+          },
+          {
+            "x1": 69.6,
+            "y1": 30.1,
+            "x2": 60.0,
+            "y2": 35.7
+          },
+          {
+            "x1": 60.0,
+            "y1": 35.7,
+            "x2": 53.3,
+            "y2": 31.8
+          },
+          {
+            "x1": 60.0,
+            "y1": 35.7,
+            "x2": 60.0,
+            "y2": 46.8
+          },
+          {
+            "x1": 60.0,
+            "y1": 46.8,
+            "x2": 50.3,
+            "y2": 52.3,
+            "order": 2
+          },
+          {
+            "x1": 50.3,
+            "y1": 52.3,
+            "x2": 50.3,
+            "y2": 63.4
+          },
+          {
+            "x1": 50.3,
+            "y1": 63.4,
+            "x2": 59.9,
+            "y2": 69.0,
+            "order": 2
+          },
+          {
+            "x1": 59.9,
+            "y1": 69.0,
+            "x2": 69.6,
+            "y2": 63.5
+          },
+          {
+            "x1": 69.6,
+            "y1": 63.5,
+            "x2": 69.6,
+            "y2": 52.3,
+            "order": 2
+          },
+          {
+            "x1": 69.6,
+            "y1": 52.3,
+            "x2": 60.0,
+            "y2": 46.8
+          }
+        ],
+        "labels": [
+          {
+            "x": 50.4,
+            "y": 35.1,
+            "t": "OH",
+            "size": 13
+          }
+        ]
+      },
+      "name": "1-phenylpropan-1-ol"
+    }
+  },
+  "u8-held-lah-amide": {
+    "a": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 81.6,
+            "y1": 19.0,
+            "x2": 81.6,
+            "y2": 35.6
+          },
+          {
+            "x1": 81.6,
+            "y1": 35.6,
+            "x2": 71.5,
+            "y2": 41.5
+          },
+          {
+            "x1": 62.9,
+            "y1": 41.5,
+            "x2": 52.8,
+            "y2": 35.7
+          },
+          {
+            "x1": 52.8,
+            "y1": 35.7,
+            "x2": 38.4,
+            "y2": 44.1
+          },
+          {
+            "x1": 67.2,
+            "y1": 49.0,
+            "x2": 67.3,
+            "y2": 60.6
+          },
+          {
+            "x1": 67.3,
+            "y1": 60.6,
+            "x2": 52.9,
+            "y2": 69.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 67.2,
+            "y": 49.0,
+            "t": "N",
+            "size": 13
+          }
+        ]
+      },
+      "name": "N,N-diethylethanamine"
+    },
+    "alc": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 77.3,
+            "y1": 49.0,
+            "x2": 60.0,
+            "y2": 39.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 39.0,
+            "x2": 47.9,
+            "y2": 46.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 42.7,
+            "y": 54.0,
+            "t": "OH",
+            "size": 13
+          }
+        ]
+      },
+      "name": "ethanol"
+    },
+    "sec": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 25.4,
+            "y1": 49.0,
+            "x2": 42.7,
+            "y2": 39.0
+          },
+          {
+            "x1": 42.7,
+            "y1": 39.0,
+            "x2": 54.8,
+            "y2": 46.0
+          },
+          {
+            "x1": 65.2,
+            "y1": 46.0,
+            "x2": 77.3,
+            "y2": 39.0
+          },
+          {
+            "x1": 77.3,
+            "y1": 39.0,
+            "x2": 94.6,
+            "y2": 49.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 60.0,
+            "y": 54.0,
+            "t": "NH",
+            "size": 13
+          }
+        ]
+      },
+      "name": "N-ethylethanamine"
+    }
+  },
+  "u8-held-hyd-sapon": {
+    "carb": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 23.9,
+            "y1": 19.0,
+            "x2": 38.3,
+            "y2": 27.3
+          },
+          {
+            "x1": 38.3,
+            "y1": 27.3,
+            "x2": 52.8,
+            "y2": 19.0
+          },
+          {
+            "x1": 52.8,
+            "y1": 19.0,
+            "x2": 67.2,
+            "y2": 27.3,
+            "order": 2
+          },
+          {
+            "x1": 67.2,
+            "y1": 27.3,
+            "x2": 67.2,
+            "y2": 44.0
+          },
+          {
+            "x1": 67.2,
+            "y1": 44.0,
+            "x2": 81.7,
+            "y2": 52.3
+          },
+          {
+            "x1": 81.7,
+            "y1": 52.3,
+            "x2": 91.8,
+            "y2": 46.5,
+            "order": 2
+          },
+          {
+            "x1": 81.7,
+            "y1": 52.3,
+            "x2": 81.7,
+            "y2": 64.0
+          },
+          {
+            "x1": 67.2,
+            "y1": 44.0,
+            "x2": 52.8,
+            "y2": 52.3,
+            "order": 2
+          },
+          {
+            "x1": 52.8,
+            "y1": 52.3,
+            "x2": 38.3,
+            "y2": 44.0
+          },
+          {
+            "x1": 38.3,
+            "y1": 44.0,
+            "x2": 38.3,
+            "y2": 27.3,
+            "order": 2
+          }
+        ],
+        "labels": [
+          {
+            "x": 96.1,
+            "y": 49.0,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 81.7,
+            "y": 74.0,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 90.7,
+            "y": 67.5,
+            "t": "−",
+            "size": 13
+          }
+        ]
+      },
+      "name": "4-methylbenzoate"
+    },
+    "acid": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 23.9,
+            "y1": 19.0,
+            "x2": 38.3,
+            "y2": 27.3
+          },
+          {
+            "x1": 38.3,
+            "y1": 27.3,
+            "x2": 52.8,
+            "y2": 19.0
+          },
+          {
+            "x1": 52.8,
+            "y1": 19.0,
+            "x2": 67.2,
+            "y2": 27.3,
+            "order": 2
+          },
+          {
+            "x1": 67.2,
+            "y1": 27.3,
+            "x2": 67.2,
+            "y2": 44.0
+          },
+          {
+            "x1": 67.2,
+            "y1": 44.0,
+            "x2": 81.7,
+            "y2": 52.3
+          },
+          {
+            "x1": 81.7,
+            "y1": 52.3,
+            "x2": 91.8,
+            "y2": 46.5,
+            "order": 2
+          },
+          {
+            "x1": 81.7,
+            "y1": 52.3,
+            "x2": 81.7,
+            "y2": 64.0
+          },
+          {
+            "x1": 67.2,
+            "y1": 44.0,
+            "x2": 52.8,
+            "y2": 52.3,
+            "order": 2
+          },
+          {
+            "x1": 52.8,
+            "y1": 52.3,
+            "x2": 38.3,
+            "y2": 44.0
+          },
+          {
+            "x1": 38.3,
+            "y1": 44.0,
+            "x2": 38.3,
+            "y2": 27.3,
+            "order": 2
+          }
+        ],
+        "labels": [
+          {
+            "x": 96.1,
+            "y": 49.0,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 81.7,
+            "y": 74.0,
+            "t": "OH",
+            "size": 13
+          }
+        ]
+      },
+      "name": "4-methylbenzoic acid"
+    },
+    "alc": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 102.0,
+            "y1": 24.9,
+            "x2": 85.2,
+            "y2": 34.4
+          },
+          {
+            "x1": 85.2,
+            "y1": 34.4,
+            "x2": 85.1,
+            "y2": 53.8
+          },
+          {
+            "x1": 85.1,
+            "y1": 53.8,
+            "x2": 68.2,
+            "y2": 63.4,
+            "order": 2
+          },
+          {
+            "x1": 68.2,
+            "y1": 63.4,
+            "x2": 51.5,
+            "y2": 53.6
+          },
+          {
+            "x1": 51.5,
+            "y1": 53.6,
+            "x2": 34.7,
+            "y2": 63.1
+          },
+          {
+            "x1": 34.7,
+            "y1": 63.1,
+            "x2": 23.0,
+            "y2": 56.3
+          },
+          {
+            "x1": 51.5,
+            "y1": 53.6,
+            "x2": 51.6,
+            "y2": 34.2,
+            "order": 2
+          },
+          {
+            "x1": 51.6,
+            "y1": 34.2,
+            "x2": 68.5,
+            "y2": 24.6
+          },
+          {
+            "x1": 68.5,
+            "y1": 24.6,
+            "x2": 85.2,
+            "y2": 34.4,
+            "order": 2
+          }
+        ],
+        "labels": [
+          {
+            "x": 18.0,
+            "y": 58.4,
+            "t": "OH",
+            "size": 13
+          }
+        ]
+      },
+      "name": "(4-methylphenyl)methanol"
+    }
   }
 };
 
@@ -33923,6 +35758,205 @@ export const U8_SORT_FIGURES: Readonly<Record<string, Readonly<Record<string, Na
         ]
       },
       "name": "Butane"
+    }
+  },
+  "sort-acyl-reactivity": {
+    "acid-chloride": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 42.7,
+            "y1": 29.1,
+            "x2": 60.0,
+            "y2": 39.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 39.0,
+            "x2": 72.1,
+            "y2": 32.0,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 39.0,
+            "x2": 60.1,
+            "y2": 53.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 77.3,
+            "y": 34.0,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 60.1,
+            "y": 64.0,
+            "t": "Cl",
+            "size": 13
+          }
+        ]
+      },
+      "name": "acetyl chloride"
+    },
+    "anhydride": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 25.4,
+            "y1": 58.9,
+            "x2": 42.7,
+            "y2": 48.9
+          },
+          {
+            "x1": 42.7,
+            "y1": 48.9,
+            "x2": 42.7,
+            "y2": 34.9,
+            "order": 2
+          },
+          {
+            "x1": 42.7,
+            "y1": 48.9,
+            "x2": 54.8,
+            "y2": 56.0
+          },
+          {
+            "x1": 65.2,
+            "y1": 56.0,
+            "x2": 77.3,
+            "y2": 49.0
+          },
+          {
+            "x1": 77.3,
+            "y1": 49.0,
+            "x2": 94.6,
+            "y2": 59.1
+          },
+          {
+            "x1": 77.3,
+            "y1": 49.0,
+            "x2": 77.4,
+            "y2": 35.0,
+            "order": 2
+          }
+        ],
+        "labels": [
+          {
+            "x": 42.7,
+            "y": 33.9,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 60.0,
+            "y": 64.0,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 77.4,
+            "y": 34.0,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "acetic anhydride"
+    },
+    "ester": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 25.4,
+            "y1": 59.1,
+            "x2": 42.7,
+            "y2": 49.0
+          },
+          {
+            "x1": 42.7,
+            "y1": 49.0,
+            "x2": 54.8,
+            "y2": 56.0
+          },
+          {
+            "x1": 65.2,
+            "y1": 56.0,
+            "x2": 77.3,
+            "y2": 48.9
+          },
+          {
+            "x1": 77.3,
+            "y1": 48.9,
+            "x2": 94.6,
+            "y2": 58.9
+          },
+          {
+            "x1": 77.3,
+            "y1": 48.9,
+            "x2": 77.3,
+            "y2": 34.9,
+            "order": 2
+          }
+        ],
+        "labels": [
+          {
+            "x": 60.0,
+            "y": 64.0,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 77.3,
+            "y": 33.9,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "ethyl acetate"
+    },
+    "amide": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 42.7,
+            "y1": 58.9,
+            "x2": 60.0,
+            "y2": 49.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 49.0,
+            "x2": 72.1,
+            "y2": 56.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 49.0,
+            "x2": 60.1,
+            "y2": 35.0,
+            "order": 2
+          }
+        ],
+        "labels": [
+          {
+            "x": 77.3,
+            "y": 64.0,
+            "t": "NH_2",
+            "size": 13
+          },
+          {
+            "x": 60.1,
+            "y": 34.0,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "acetamide"
     }
   }
 };

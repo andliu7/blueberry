@@ -11,8 +11,8 @@
  * beats/mcq/mcqFigures.ts (the question drawings and drawn options) and
  * beats/PoolItemsStep.tsx (the sort card drawings), each through one
  * fallback after the earlier units' tables. Every pool in U8_POOLS is a
- * lesson pool. U8_UNWIRED holds the items drafted for u8-ladder, which keeps
- * its authored sort ladder and so may carry nothing else (beatRunner.test.ts,
- * "the ladder table"); nothing reads it until the owner decides.
+ * lesson pool, u8-ladder's included (wired 23 Oct; its authored sort stays
+ * the order step). U8_TEST_ONLY holds held-out twins that only test-outs draw
+ * (beats/practice/pools.ts testOnlyPool).
  */
-export { U8_OPTION_TILES, U8_POOLS, U8_SORT_FIGURES, U8_UNWIRED, U8_VISUALS } from "./pools";
+export { U8_OPTION_TILES, U8_POOLS, U8_SORT_FIGURES, U8_TEST_ONLY, U8_VISUALS } from "./pools";

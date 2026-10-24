@@ -19,7 +19,7 @@
  * Kept apart from testOuts.ts because the pools pull every unit's content in,
  * and the pathway itself must not.
  */
-import { interleave, lessonPool, practicePool } from "../../beats/practice/pools";
+import { interleave, lessonPool, practicePool, testOnlyPool } from "../../beats/practice/pools";
 import type { PoolEntry } from "../../content/u1/types";
 import type { TestOut } from "./testOuts";
 
@@ -44,10 +44,14 @@ function rungOf(entry: PoolEntry): number {
   return 2;
 }
 
-/** A lesson's questions a test may ask, hardest first; ties keep authored order. */
+/**
+ * A lesson's questions a test may ask, hardest first; ties keep authored order.
+ * Its held-out twins (testOnlyPool) go first, so on a tie the test asks the
+ * molecule the lesson never showed before the lesson's own screen.
+ */
 export function candidatesOf(node: string): readonly TestOutEntry[] {
   if (node.includes("nomen")) return [];
-  return [...lessonPool(node), ...practicePool(node)]
+  return [...testOnlyPool(node), ...lessonPool(node), ...practicePool(node)]
     .filter((entry) => entry.item.kind !== "draw" && !asksForName(entry))
     .map((entry, at) => ({ entry, at }))
     .sort((a, b) => rungOf(b.entry) - rungOf(a.entry) || a.at - b.at)

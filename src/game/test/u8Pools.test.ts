@@ -9,10 +9,11 @@
  * the two ladders and two lesson match boards fill their lesson's order and
  * connect slots.
  *
- * u8-ladder keeps its authored sort ladder (LADDER_FOR_NODE in
- * beats/template.ts). beatRunner.test.ts "the ladder table" requires such a
- * node to carry nothing else, so its drafted items sit in U8_UNWIRED: pinned
- * well formed and, honestly, unplayed until the owner decides.
+ * u8-ladder's drafted items are wired (audit 23 Oct, top-25 #3): they open
+ * its lesson as meet, recognise and connect steps, and its authored sort
+ * ladder (LADDER_FOR_NODE in beats/template.ts) stays the order step, drawn.
+ * U8_TEST_ONLY holds held-out twins that only test-outs draw: pinned well
+ * formed, absent from every lesson, and present in the unit exam.
  *
  * CONCEPT IDS. CONCEPTS holds only cross-cutting ideas (the acyl ladder,
  * oxidation state), so Unit 8 borrows TOPICS ids as stand-ins for the rest,
@@ -35,12 +36,17 @@ import { lessonPool, practicePool } from "../beats/practice/pools";
 import type { McqBeat } from "../beats/types";
 import { U1_POOLS, mergePools } from "../content/u1";
 import type { PoolEntry } from "../content/u1/types";
-import { U8_OPTION_TILES, U8_POOLS, U8_SORT_FIGURES, U8_UNWIRED, U8_VISUALS } from "../content/u8";
+import { U8_OPTION_TILES, U8_POOLS, U8_SORT_FIGURES, U8_TEST_ONLY, U8_VISUALS } from "../content/u8";
+import { sortContentById } from "../beats/sort";
+import { testOutPool } from "../tabs/pathway/testOutPool";
+import { testOutFor, unitExamId } from "../tabs/pathway/testOuts";
 import { PATHWAY_UNITS, checkpointNodeId, pathwayNode } from "../demo/pathwayMap";
 import { roadOf } from "../tabs/pathway/unitShape";
 import { FIGURE_HEIGHT, FIGURE_WIDTH, type Figure } from "../onboarding/figures";
 
+// u8-ladder joined on 23 Oct (top-25 #3) and u8-steglich went 6 to 7 for u8-ste-salt (2a #4).
 const EXPECTED_SIZES: Readonly<Record<string, number>> = {
+  "u8-ladder": 7,
   "u8-tetrahedral": 6,
   "u8-to-acylcl": 6,
   "u8-to-anhydride": 6,
@@ -56,7 +62,7 @@ const EXPECTED_SIZES: Readonly<Record<string, number>> = {
   "u8-organomet": 7,
   "u8-gilman": 6,
   "u8-decarb": 7,
-  "u8-steglich": 6,
+  "u8-steglich": 7,
   "u8-diazomethane": 6,
   "u8-carboxylate-alk": 6,
   "u8-weinreb": 6,
@@ -81,14 +87,15 @@ const TOPIC_STAND_INS = [
 
 /** Lessons whose pool holds a ladder or a match board, and the step it must fill. */
 const POOL_STEPS: Readonly<Record<string, string>> = {
+  "u8-ladder": "poolMatch",
   "u8-acylcl-all": "poolMatch",
   "u8-lialh4": "poolMatch",
   "u8-amide-hyd": "poolSort",
   "u8-dibal": "poolSort",
 };
 
-/** Lesson entries and the unwired u8-ladder items: every contract below holds for both. */
-const entries: readonly (readonly [string, PoolEntry])[] = [...Object.entries(U8_POOLS), ...Object.entries(U8_UNWIRED)].flatMap(
+/** Lesson entries and the held-out test-only twins: every contract below holds for both. */
+const entries: readonly (readonly [string, PoolEntry])[] = [...Object.entries(U8_POOLS), ...Object.entries(U8_TEST_ONLY)].flatMap(
   ([node, pool]) => pool.map((entry) => [node, entry] as const),
 );
 
@@ -125,20 +132,34 @@ describe("u8 draft pools", () => {
   it("covers exactly the authored Unit 8 nodes, at the authored sizes", () => {
     const sizes = Object.fromEntries(Object.entries(U8_POOLS).map(([node, pool]) => [node, pool.length]));
     expect(sizes).toEqual(EXPECTED_SIZES);
-    expect(Object.keys(U8_UNWIRED)).toEqual(["u8-ladder"]);
-    expect(U8_UNWIRED["u8-ladder"]?.length).toBe(7);
   });
 
-  it("drafts something for every Unit 8 map node, lesson pool or unwired", () => {
+  it("drafts a lesson pool for every Unit 8 map node", () => {
     const unit = PATHWAY_UNITS.find((entry) => entry.id === "u8");
     expect(unit).toBeDefined();
-    expect(unit!.nodes.map((node) => node.id).sort()).toEqual([...LESSON_NODES, "u8-ladder"].sort());
+    expect(unit!.nodes.map((node) => node.id).sort()).toEqual([...LESSON_NODES].sort());
   });
 
-  it("keeps u8-ladder on its authored ladder and plays none of the unwired items", () => {
+  it("opens u8-ladder on its warm-up and keeps the authored sort as its order step", () => {
     expect(pathwayNode("u8-ladder")?.playable).toEqual({ kind: "beat", id: "u8-ladder" });
-    expect(lessonPool("u8-ladder")).toEqual([]);
-    expect(planLesson("u8-ladder")?.steps.map((step) => step.beat.kind)).toEqual(["sort"]);
+    expect(planLesson("u8-ladder")?.steps.map((step) => step.beat.kind)).toEqual(["meet", "mcq", "poolMatch", "sort"]);
+  });
+
+  it("draws every card of the authored acyl sort", () => {
+    const content = sortContentById("sort-acyl-reactivity");
+    expect(content).toBeDefined();
+    const drawn = U8_SORT_FIGURES["sort-acyl-reactivity"] ?? {};
+    expect(Object.keys(drawn).sort()).toEqual(content!.beat.items.map((item) => item.id).sort());
+  });
+
+  it("keeps the held-out twins out of every lesson and puts them in the unit exam", () => {
+    const held = Object.values(U8_TEST_ONLY).flat().map((entry) => entry.id);
+    expect(held.length).toBe(5);
+    for (const node of Object.keys(U8_TEST_ONLY)) expect(LESSON_NODES, node).toContain(node);
+    const lessonIds = new Set(LESSON_NODES.flatMap((node) => lessonPool(node).map((entry) => entry.id)));
+    for (const id of held) expect(lessonIds.has(id), id).toBe(false);
+    const exam = testOutPool(testOutFor(unitExamId("u8"))!).map((one) => one.entry.id);
+    for (const id of held) expect(exam, id).toContain(id);
   });
 
   it("marks every entry as a placeholder", () => {
@@ -204,7 +225,9 @@ describe("u8 draft pools", () => {
   });
 
   it("merges with Unit 1 with no node or id collision", () => {
-    expect(() => mergePools(U1_POOLS, U8_POOLS, U8_UNWIRED)).not.toThrow();
+    expect(() => mergePools(U1_POOLS, U8_POOLS)).not.toThrow();
+    // The twins share their lesson's node key by design, so they merge with Unit 1 on their own.
+    expect(() => mergePools(U1_POOLS, U8_TEST_ONLY)).not.toThrow();
   });
 });
 

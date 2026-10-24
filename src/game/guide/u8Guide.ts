@@ -7,8 +7,7 @@
  * a quote the source does not contain, and an idea whose source is not in its
  * own lesson. The `text`, `mistake` and `fix` lines are plain paraphrases.
  *
- * u8-ladder quotes the entries drafted for it in U8_UNWIRED (the same pool
- * file; its lesson plays the acyl sort ladder, so they are not wired yet).
+ * u8-ladder quotes its own pool, wired on 23 Oct ahead of the acyl sort.
  * Side quests sit in the stage of the lesson they branch from. The drawings
  * are generated: u8Guide.figures.ts, by scripts/guide_u8.py. This file is
  * loaded only when a student opens the Unit 8 guide (index.ts).
@@ -39,9 +38,9 @@ const STAGES: readonly GuideStage[] = [
             quote: "Name the group on the C=O carbon first. Cl means acyl chloride, the top rung.",
           },
           {
-            text: "Downhill on the ladder is free; uphill needs a reagent that activates the acid first.",
+            text: "Downhill is free from an acyl chloride, anhydride or ester; a free acid needs activation even to go down, because an amine takes its proton first.",
             source: "u8-lad-down",
-            quote: "Downhill on the ladder is free; uphill needs a reagent that activates the acid first.",
+            quote: "Downhill is free from an acyl chloride, anhydride or ester. A free acid is the exception: an amine or base takes its proton first, so the acid needs activation (SOCl₂ or DCC) even to go down.",
           },
           {
             text: "Amides sit lowest of the neutral derivatives.",
@@ -93,9 +92,9 @@ const STAGES: readonly GuideStage[] = [
             quote: "SOCl₂ leaves as two gases, SO₂ and HCl, which drives the reaction.",
           },
           {
-            text: "Uphill moves on the ladder need activation; downhill moves do not.",
+            text: "Uphill moves on the ladder need activation; downhill is free except from a free acid.",
             source: "u8-acl-uphill",
-            quote: "Uphill moves on the ladder need activation; downhill moves do not.",
+            quote: "Uphill moves on the ladder need activation.",
           },
           {
             text: "Climb once with SOCl₂, then walk down to whatever derivative you need.",
@@ -155,7 +154,7 @@ const STAGES: readonly GuideStage[] = [
         mistake: "Expecting an acid to climb to an acyl chloride on its own.",
         fix: "Uphill needs an activating reagent such as SOCl₂.",
         source: "u8-acl-uphill",
-        quote: "Uphill moves on the ladder need activation; downhill moves do not.",
+        quote: "Uphill moves on the ladder need activation.",
       },
       {
         mistake: "Letting the nucleophile leave again from the tetrahedral intermediate.",
@@ -661,9 +660,9 @@ const STAGES: readonly GuideStage[] = [
             quote: "Beta-keto acids lose CO₂ on gentle heating.",
           },
           {
-            text: "Only a CO₂H with a C=O on its alpha carbon decarboxylates easily.",
+            text: "Only a CO₂H whose alpha carbon is bonded to another C=O carbon (a beta-keto acid or a malonic acid) loses CO₂ easily.",
             source: "u8-dec-which",
-            quote: "Only a CO₂H with a C=O on its alpha carbon decarboxylates easily.",
+            quote: "Only a CO₂H whose alpha carbon is bonded to another C=O carbon (a beta-keto acid or a malonic acid) loses CO₂ easily.",
           },
           {
             text: "A six-membered cyclic path is why beta-keto acids decarboxylate easily.",
@@ -725,10 +724,10 @@ const STAGES: readonly GuideStage[] = [
     ],
     mistakes: [
       {
-        mistake: "Heating an acid with no C=O on its alpha carbon and expecting CO₂ to leave.",
-        fix: "Only a CO₂H with a C=O on its alpha carbon loses CO₂ easily.",
+        mistake: "Heating an acid whose alpha carbon is not bonded to another C=O carbon (an alpha-keto acid, say) and expecting CO₂ to leave.",
+        fix: "The second C=O must sit beta to the CO₂H: a beta-keto acid or a malonic acid.",
         source: "u8-dec-which",
-        quote: "Only a CO₂H with a C=O on its alpha carbon decarboxylates easily.",
+        quote: "Only a CO₂H whose alpha carbon is bonded to another C=O carbon (a beta-keto acid or a malonic acid) loses CO₂ easily.",
       },
       {
         mistake: "Drawing the enol as the decarboxylation product.",

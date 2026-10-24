@@ -21,7 +21,11 @@ S. Acyl substitution: on C(=O)-L the C-L bond is cut and the carbon bonds to
 T. The tetrahedral intermediate: the nucleophile bonds to the acyl carbon and
    the C=O becomes C-O(-), with L still on.
 L. The ladder: acyl chloride 5, anhydride 4, ester and acid 3, amide 2,
-   carboxylate 1. A conversion runs on its own only downhill. The ORDER is an
+   carboxylate 1. A conversion runs on its own only downhill, and a free acid
+   is the exception: an amine or base takes its proton first, so the acid needs
+   activation even to go down (the corpus board org2-match-acyl-synthesis-jobs
+   says so: "An amine attacking a carboxylic acid directly mostly makes a
+   salt"). The ORDER is an
    authored convention, taken from the course record
    (documentation/COURSE-OUTLINE-ORGO2.md, nucleophilic_acyl_substitution) and
    the corpus ladder org2-order-acyl-reactivity; RDKit cannot rank it.
@@ -34,7 +38,8 @@ G. Organometallics: a Grignard runs S once (to a ketone) then adds to that
 N. Nitriles: SN2 swaps the halide for C#N; hydrolysis swaps N for O (and OH);
    amide dehydration removes the C=O oxygen and makes C#N; a Grignard bonds to
    the nitrile carbon and hydrolysis gives the ketone.
-D. Decarboxylation: a CO2H whose alpha carbon carries another C=O loses the
+D. Decarboxylation: a CO2H whose alpha carbon is bonded to another C=O carbon
+   (a beta-keto acid or a malonic acid, the BETA pattern) loses the
    CO2H carbon and its oxygens; the enol is put in its keto form by RDKit's
    tautomer canonicaliser. HVZ swaps an alpha C-H for C-Br. Kolbe joins two
    R groups after both carboxyl carbons leave; Hunsdiecker puts Br where the
@@ -1086,7 +1091,7 @@ BETA = "[OX1]=[CX3][CX4][CX3](=[OX1])[OX2H1]"
 
 
 def decarboxylate(smi: str) -> list[str]:
-    """Rule D: [] when no CO2H has a C=O on its alpha carbon."""
+    """Rule D: [] when no CO2H has an alpha carbon bonded to another C=O carbon (BETA)."""
     m = mol(smi)
     outs = set()
     for _, _, a, cc, o1, o2 in m.GetSubstructMatches(Chem.MolFromSmarts(BETA)):
@@ -1280,7 +1285,7 @@ def node_ladder() -> None:
          ("up", "Ethyl acetate to acetyl chloride", "That climbs two rungs. Chloride is a worse nucleophile than the ethoxide it would push out."),
          ("amide", "Acetamide to ethyl acetate", "That climbs one rung. An amide will not trade its nitrogen for an alcohol on its own.")],
         {k: rank(a) > rank(b) for k, (a, b) in moves.items()}, True, "down",
-        "Downhill on the ladder is free; uphill needs a reagent that activates the acid first.",
+        "Downhill is free from an acyl chloride, anhydride or ester. A free acid is the exception: an amine or base takes its proton first, so the acid needs activation (SOCl₂ or DCC) even to go down.",
         prov("ladder ranks of start and end compared", CH_DER, LADDER_CONV),
         lead(S["acetyl_cl"], "acetyl chloride", "three conversions"), concepts=LAD, convention=LADDER_CONV)
 
@@ -1425,7 +1430,7 @@ def node_to_acylcl() -> None:
          ("ester", "Acyl chloride to ester", "That runs downhill. An alcohol does it alone."),
          ("sapon", "Ester to carboxylate (NaOH)", "That runs downhill to the bottom rung. Hydroxide does it alone.")],
         {k: rank(b) > rank(a) for k, (a, b) in moves.items()}, True, "acid",
-        "Uphill moves on the ladder need activation; downhill moves do not.",
+        "Uphill moves on the ladder need activation. Downhill is free from an acyl chloride, anhydride or ester; a free acid needs activation even to go down.",
         prov("ladder ranks of start and end compared", CH_DER, LADDER_CONV),
         lead(s, "butanoic acid", "three conversions"), concepts=LAD, convention=LADDER_CONV)
 
@@ -1483,7 +1488,7 @@ def node_to_anhydride() -> None:
     ga, _ = intramolecular(glut, ACID, "[OX2H1]C=O")
     size = ring_size_new(glut, ga)
     ask(node, "u8-anm-ring", "Pentanedioic acid closes to its anhydride. Pick the ring size.",
-        [("six", "Six-membered", "Count the ring: four carbons and the shared O, plus the second C=O carbon. Five carbons and one O make six."),
+        [("six", "Six-membered", "Count the ring: two C=O carbons, the three CH₂ between them, and the shared O. Five carbons and one O make six."),
          ("five", "Five-membered", "Five is butanedioic acid's ring. This chain has one more CH₂."),
          ("seven", "Seven-membered", "The carbonyl oxygens are outside the ring. Only one O is in it.")],
         {"six": 6, "five": 5, "seven": 7}, size, "six",
@@ -1495,7 +1500,7 @@ def node_to_anhydride() -> None:
     pa, _ = intramolecular(phth, ACID, "[OX2H1]C=O")
     pick(node, "u8-anm-phthalic", "Benzene-1,2-dicarboxylic acid is heated. Pick the product.",
          [o("anh", pa, "2-benzofuran-1,3-dione", "The two neighbouring CO₂H groups lose water and close a five-membered anhydride on the ring."),
-          o("benz", S["phcooh"], "benzoic acid", "That has lost a whole CO₂. Neither acid has a C=O on its alpha carbon, so it does not decarboxylate."),
+          o("benz", S["phcooh"], "benzoic acid", "That has lost a whole CO₂. Neither CO₂H has another C=O carbon bonded to its alpha carbon, so it does not decarboxylate."),
           o("lact", "O=C1OCc2ccccc21", "2-benzofuran-1(3H)-one", "That ring has only one C=O. Both carbonyls survive the dehydration.")],
          [pa], "anh", "Two acids on neighbouring ring carbons close to a cyclic anhydride.",
          prov("Rule S inside one molecule", CH_DER), lead(phth, "benzene-1,2-dicarboxylic acid", "the diacid, heat"), concepts=NAS)
@@ -2301,14 +2306,17 @@ def node_decarb() -> None:
          got, "k", "Beta-keto acids lose CO₂ on gentle heating.",
          prov("Rule D", CH_ALPHA), lead(s, "3-oxobutanoic acid", "β-keto acid, heat"), level=0, concepts=ACIDS)
 
-    three = {"beta": s, "gamma": "CC(=O)CCC(=O)O", "plain": S["buacid"]}
+    # The alpha-keto acid is the misreading the audit (23 Oct, 2a #3) named: a C=O ON the alpha carbon,
+    # which the BETA pattern rejects. Its keeping its CO2H is the textbook convention, not an RDKit result.
+    three = {"beta": s, "gamma": "CC(=O)CCC(=O)O", "plain": S["buacid"], "alpha": "CC(=O)C(=O)O"}
     pick(node, "u8-dec-which", "Pick the acid that loses CO₂ on gentle heating.",
-         [o("beta", three["beta"], "3-oxobutanoic acid", "Its alpha carbon carries a second C=O, so a six-membered cyclic path is available."),
+         [o("beta", three["beta"], "3-oxobutanoic acid", "Its alpha carbon is bonded to a second C=O carbon (the ketone sits beta to the CO₂H), so a six-membered cyclic path is available."),
           o("gamma", three["gamma"], "4-oxopentanoic acid", "The ketone is one carbon too far away. No six-membered path."),
-          o("plain", three["plain"], "butanoic acid", "No second C=O at all. Simple acids keep their CO₂H.")],
+          o("plain", three["plain"], "butanoic acid", "No second C=O at all. Simple acids keep their CO₂H."),
+          o("alpha", three["alpha"], "2-oxopropanoic acid", "Here the C=O is on the alpha carbon itself (an alpha-keto acid). The six-membered path needs that C=O one carbon further out, so it keeps its CO₂H.")],
          [k for k in three.values() if decarboxylate(k)], "beta",
-         "Only a CO₂H with a C=O on its alpha carbon decarboxylates easily.",
-         prov("SMARTS for a C=O on the alpha carbon of a CO2H", CH_ALPHA), lead(S["buacid"], "butanoic acid", "three acids, heat"),
+         "Only a CO₂H whose alpha carbon is bonded to another C=O carbon (a beta-keto acid or a malonic acid) loses CO₂ easily.",
+         prov("SMARTS for a C=O carbon bonded to the alpha carbon of a CO2H", CH_ALPHA), lead(S["buacid"], "butanoic acid", "four acids, heat"),
          concepts=ACIDS)
 
     mal = "CC(C(=O)O)C(=O)O"
@@ -2368,6 +2376,25 @@ DCC = "C1CCC(CC1)N=C=NC1CCCCC1"
 DCU = "O=C(NC1CCCCC1)NC1CCCCC1"
 
 
+SALT_CONV = ("an amine and a free carboxylic acid make the ammonium carboxylate salt, not the amide "
+             "(corpus board org2-match-acyl-synthesis-jobs: an amine attacking a carboxylic acid directly mostly makes a salt)")
+
+
+def proton_transfer(acid: str, base: str) -> str:
+    """The acid's CO2H proton moves to the base's N: the carboxylate and the ammonium ion, as one salt SMILES."""
+    rw = Chem.RWMol(mol(acid + "." + base))
+    _, _, oh = sites(acid, ACID)[0]
+    n = [a.GetIdx() for a in rw.GetAtoms() if a.GetSymbol() == "N" and a.GetIdx() >= mol(acid).GetNumAtoms()][0]
+    for i, charge, dh in ((oh, -1, -1), (n, 1, 1)):
+        a = rw.GetAtomWithIdx(i)
+        a.SetNumExplicitHs(a.GetTotalNumHs() + dh)
+        a.SetNoImplicit(True)
+        a.SetFormalCharge(charge)
+    m = rw.GetMol()
+    Chem.SanitizeMol(m)
+    return Chem.MolToSmiles(m)
+
+
 def node_steglich() -> None:
     node = "u8-steglich"
     mb, _ = fischer(S["phcooh"], "CO")
@@ -2385,6 +2412,18 @@ def node_steglich() -> None:
          [p for p in [DCU] if balances([DCC, "O"], [DCU])], "dcu",
          "DCC plus the elements of water gives DCU.",
          prov("RDKit atom balance: DCC plus water against DCU", CH_DER), lead(DCC, "N,N'-dicyclohexylcarbodiimide", "DCC"), concepts=NAS)
+
+    # Audit 23 Oct, 2a #4: the trap the ladder rule used to get wrong, practised alone before DCC fixes it.
+    salt = proton_transfer(S["acoh"], "CN")
+    wrong_amide, _ = acyl_sub(S["acoh"], nu_of("CN", "[NX3;H2]"), ACID)
+    pick(node, "u8-ste-salt", "Acetic acid meets CH₃NH₂ at room temperature. Pick the product.",
+         [o("salt", salt, "methylammonium acetate", "The amine is a base, and the acid's O-H is the fastest thing to react: the proton moves to N and a salt forms."),
+          o("amd", wrong_amide, "N-methylacetamide", "Acid to amide is downhill, but the amine takes the acid's proton first. The salt needs strong heat or DCC to become the amide."),
+          o("est", S["meoac"], "methyl acetate", "No methanol is present. The amine's carbon never ends up on O.")],
+         [salt] if balances([S["acoh"], "CN"], [salt]) and balances([S["acoh"], "CN"], [wrong_amide, "O"]) else None, "salt",
+         "A free acid and an amine make a salt first, so the acid needs activation (SOCl₂ or DCC) even to go down.",
+         prov("proton moved from the acid O-H to the amine N; RDKit atom balance of salt and of amide plus water", CH_DER, SALT_CONV),
+         lead(S["acoh"], "acetic acid", "+ CH₃NH₂, room temperature"), concepts=NAS, convention=SALT_CONV)
 
     amd, _ = acyl_sub(S["acoh"], nu_of("NCc1ccccc1", "[NX3;H2]"), ACID)
     pick(node, "u8-ste-amide", "Acetic acid meets phenylmethanamine and DCC. Pick the product.",
@@ -2572,7 +2611,7 @@ def node_weinreb() -> None:
     w, _ = acyl_sub(S["phcocl"], nu_of("CNOC", "[NX3;H1]"))
     pick(node, "u8-wei-meet", "Benzoyl chloride meets CH₃NHOCH₃. Pick the product.",
          [o("w", w, "N-methoxy-N-methylbenzamide", "The N bonds to the acyl carbon and Cl leaves: a Weinreb amide, with OCH₃ and CH₃ on N."),
-          o("est", S["phcoome"], "methyl benzoate", "N is the better nucleophile here, so the amide forms, not the ester."),
+          o("est", S["phcoome"], "methyl benzoate", "The OCH₃ oxygen is already bonded to N and CH₃, so it cannot hand an OCH₃ to the acyl carbon. The N-H is the only nucleophile: the amide forms."),
           o("nm", "CNC(=O)c1ccccc1", "N-methylbenzamide", "The N keeps its OCH₃. Nothing removes it.")],
          [w], "w", "A Weinreb amide is an N-methoxy-N-methyl amide.",
          prov("Rule S", CH_DER), lead(S["phcocl"], "benzoyl chloride", "+ CH₃NHOCH₃"), level=0, concepts=NAS)
@@ -2866,13 +2905,87 @@ def node_hunsdiecker() -> None:
         "Both use Br₂ on an acid; only Hunsdiecker shortens the chain.",
         prov("RDKit carbon counts of both products", CH_ACID), lead(s, "butanoic acid", "Br₂ on an acid, two ways"), level=2, concepts=ACIDS)
 # ---------------------------------------------------------------------------
+# Held-out twins, for test-outs only
+# ---------------------------------------------------------------------------
+
+# Audit 23 Oct (top-25 "close behind", section 6 "exam-only twins"): the section tests and the unit exam
+# replayed lesson screens word for word. Each twin asks a level 2 lesson item's skill on a new molecule, is
+# derived by the same rule, and is written to U8_TEST_ONLY, which no lesson plays (testOutPool.ts reads it).
+HELD: set[str] = set()
+
+
+def node_held() -> None:
+    before = set(IDS)
+
+    pc, _ = acyl_sub("CCC(=O)O", "[*]Cl", ACID)
+    pe, _ = acyl_sub(pc, "[*]OC")
+    pick("u8-to-acylcl", "u8-held-acl-next", "Propanoic acid meets SOCl₂, then methanol. Pick the product.",
+         [o("est", pe, "methyl propanoate", "SOCl₂ climbs to propanoyl chloride, then methanol takes it one step down to the ester."),
+          o("cl", pc, "propanoyl chloride", "That is the halfway point. Methanol then attacks it and chloride leaves."),
+          o("acid", "CCC(=O)O", "propanoic acid", "Methanol, not water, attacks the acyl chloride, so the acid does not come back.")],
+         [pe], "est", "Climb once with SOCl₂, then walk down to whatever derivative you need.",
+         prov("Rule S twice", CH_DER), lead("CCC(=O)O", "propanoic acid", "1. SOCl₂  2. methanol"), level=2, concepts=NAS)
+
+    ring = "O=C1CCCC1C(=O)O"
+    got = decarboxylate(ring)
+    pick("u8-decarb", "u8-held-dec-ring", "2-Oxocyclopentane-1-carboxylic acid is heated. Pick the product.",
+         [o("k", got[0], "cyclopentanone", "The CO₂H is on the carbon next to the ring C=O. It leaves as CO₂ and the enol gives the ketone."),
+          o("acid", "OC(=O)C1CCCC1", "cyclopentanecarboxylic acid", "That loses the ketone O instead. Heat removes CO₂, not O."),
+          o("ene", "O=C1C=CCC1", "cyclopent-2-en-1-one", "No H₂ is lost. The alpha carbon just takes an H.")],
+         got, "k", "Ring or chain, a beta-keto acid loses CO₂.",
+         prov("Rule D", CH_ALPHA), lead(ring, "2-oxocyclopentane-1-carboxylic acid", "β-keto acid, heat"), level=2, concepts=ACIDS)
+
+    p, _ = grignard_twice("CCC(=O)OC", "c1ccccc1")
+    pick("u8-organomet", "u8-held-org-phenyl", "Methyl propanoate meets excess C₆H₅MgBr, then H₃O⁺. Pick the product.",
+         [o("t", p, "1,1-diphenylpropan-1-ol", "Two phenyls end on the old acyl carbon, with the ethyl and the OH."),
+          o("k", "CCC(=O)c1ccccc1", "1-phenylpropan-1-one", "That ketone is the halfway point. Excess Grignard adds again."),
+          o("s", "CCC(O)c1ccccc1", "1-phenylpropan-1-ol", "Only one phenyl there. Esters take two.")],
+         [p], "t", "Two identical groups on the carbinol carbon is the fingerprint of ester plus Grignard.",
+         prov("Rule G", CH_DER), lead("CCC(=O)OC", "methyl propanoate", "ester + excess C₆H₅MgBr"), level=2, concepts=NUCC)
+
+    amd = "CCN(CC)C(C)=O"
+    got = lialh4(amd)
+    pick("u8-lialh4", "u8-held-lah-amide", "N,N-Diethylacetamide meets LiAlH₄, then H₂O. Pick the product.",
+         [o("a", got[0], "N,N-diethylethanamine", "LiAlH₄ removes the amide's C=O oxygen. The C-N bond stays: a tertiary amine."),
+          o("alc", "CCO", "ethanol", "That cuts the C-N bond, the ester outcome. An amide keeps its N and loses its O."),
+          o("sec", "CCNCC", "N-ethylethanamine", "The acetyl carbon is not cut off. It stays on N as a third ethyl.")],
+         got, "a", "LiAlH₄ turns an amide into an amine with the same carbons.",
+         prov("Rule R with LiAlH4, amide O removed", CH_DER, LAH_CONV), lead(amd, "N,N-diethylacetamide", "amide + LiAlH₄"),
+         level=2, concepts=RED, convention=LAH_CONV)
+
+    est = "CCCOC(=O)c1ccc(C)cc1"
+    carb, _ = saponify(est)
+    pick("u8-hydrolysis", "u8-held-hyd-sapon", "Propyl 4-methylbenzoate is heated with NaOH. Pick the organic anion.",
+         [o("carb", carb, "4-methylbenzoate", "Hydroxide swaps the propoxy group for OH, then base takes the acid's proton. The carboxylate stays until workup."),
+          o("acid", "Cc1ccc(C(=O)O)cc1", "4-methylbenzoic acid", "In NaOH the acid cannot survive: it loses its proton. The acid only appears after acid workup."),
+          o("alc", "Cc1ccc(CO)cc1", "(4-methylphenyl)methanol", "That is a reduction product. Hydroxide does not deliver hydride.")],
+         [carb], "carb", "Saponification ends at the carboxylate.",
+         prov("Rule S with water, then the CO2H deprotonated", CH_DER), lead(est, "propyl 4-methylbenzoate", "an aryl ester + NaOH"),
+         level=2, concepts=NAS)
+
+    HELD.update(IDS - before)
+
+
+# ---------------------------------------------------------------------------
 # Build and emit
 # ---------------------------------------------------------------------------
 
-# u8-ladder keeps its authored sort ladder (beats/template.ts LADDER_FOR_NODE). test/beatRunner.test.ts
-# "the ladder table" requires a ladder node to have nothing else authored, so its drafted items are written
-# to U8_UNWIRED, not to the lesson pools, until the owner decides (see the u8 owner report).
-UNWIRED = {"u8-ladder"}
+# u8-ladder's drafted items are WIRED (audit 23 Oct, top-25 #3): its lesson opened on the level 2-3 acyl
+# sort with nothing before it. They now play as the lesson's meet, recognise and connect steps, and the
+# authored sort (beats/template.ts LADDER_FOR_NODE) stays its order step, the way u5-oxidation was wired on
+# 2026-10-20. The sort's four cards are drawn from the table below.
+ACYL_SORT = "sort-acyl-reactivity"
+
+
+def acyl_sort_figures() -> None:
+    """Drawings for the authored acyl sort (beats/sort/ladders.ts), keyed by its card ids, one acetyl compound each."""
+    cards = {"acid-chloride": (S["acetyl_cl"], "acetyl chloride"), "anhydride": (S["ac2o"], "acetic anhydride"),
+             "ester": (S["etoac"], "ethyl acetate"), "amide": (S["acetamide"], "acetamide")}
+    want = {"acid-chloride": "acyl chloride", "anhydride": "anhydride", "ester": "ester", "amide": "amide"}
+    for card, (smi, _) in cards.items():
+        if acyl_class(smi) != want[card]:
+            fail(f"{ACYL_SORT} card {card}: {smi} is a {acyl_class(smi)}")
+    SORT_FIGURES[ACYL_SORT] = {card: named(smi, name) for card, (smi, name) in cards.items()}
 
 
 def build() -> None:
@@ -2900,8 +3013,10 @@ def build() -> None:
     node_hvz()
     node_kolbe()
     node_hunsdiecker()
+    node_held()
+    acyl_sort_figures()
     check_names()
-    for node, entries in POOLS.items():
+    for node, entries in lesson_pools().items():
         if not 6 <= len(entries) <= 12:
             fail(f"{node}: {len(entries)} items, outside 6 to 12")
     for slot in range(4):
@@ -2927,10 +3042,11 @@ HEADER = '''/**
  *
  * Every pool in U8_POOLS is a LESSON pool: MCQs join the node's recognise
  * step, and the ladders and match boards fill the lesson's order and connect
- * slots (beats/template.ts planLesson). U8_UNWIRED holds the items drafted
- * for u8-ladder, which keeps its authored sort ladder: test/beatRunner.test.ts
- * requires a LADDER_FOR_NODE node to carry nothing else, so nothing plays
- * these until the owner decides. Ladders are built with createProblem and
+ * slots (beats/template.ts planLesson). u8-ladder's pool opens its lesson,
+ * and its authored sort ladder (LADDER_FOR_NODE) stays the order step, drawn
+ * from U8_SORT_FIGURES["sort-acyl-reactivity"]. U8_TEST_ONLY holds held-out
+ * twins of level 2 items (same rule, new molecule) that only test-outs draw.
+ * Ladders are built with createProblem and
  * createOrderingAnswer exactly as content/u5/pools.ts does; match boards go
  * through buildMatchBoard, so a bad board throws at import time.
  */
@@ -2961,10 +3077,18 @@ def ts(value) -> str:
     return json.dumps(value, ensure_ascii=False, indent=2)
 
 
-def emit_table(name: str, nodes: list[str], doc: str) -> list[str]:
+def lesson_pools() -> dict[str, list[dict]]:
+    return {n: [e for e in es if e.get("id") not in HELD] for n, es in POOLS.items()}
+
+
+def held_pools() -> dict[str, list[dict]]:
+    out = {n: [e for e in es if e.get("id") in HELD] for n, es in POOLS.items()}
+    return {n: es for n, es in out.items() if es}
+
+
+def emit_table(name: str, pools: dict[str, list[dict]], doc: str) -> list[str]:
     out = [doc, f"export const {name}: UnitPools = {{"]
-    for node in nodes:
-        entries = POOLS[node]
+    for node, entries in pools.items():
         out.append(f"  {json.dumps(node)}: [")
         for e in entries:
             if e.get("__ladder__"):
@@ -2982,9 +3106,9 @@ def emit_table(name: str, nodes: list[str], doc: str) -> list[str]:
 
 def emit() -> str:
     out = [HEADER, ladder_helpers()]
-    out += emit_table("U8_POOLS", [n for n in POOLS if n not in UNWIRED], "/** Lesson pools keyed by map node id (beats/practice/pools.ts). */")
-    out += emit_table("U8_UNWIRED", [n for n in POOLS if n in UNWIRED],
-                      "/** Drafted for u8-ladder, which nothing plays yet: see the header. Not merged into the lesson lookup. */")
+    out += emit_table("U8_POOLS", lesson_pools(), "/** Lesson pools keyed by map node id (beats/practice/pools.ts). */")
+    out += emit_table("U8_TEST_ONLY", held_pools(),
+                      "/** Held-out twins keyed by the lesson they twin: test-outs only (tabs/pathway/testOutPool.ts), never a lesson. */")
     out.append("/** The drawing beside each MCQ, keyed by beat id. */")
     out.append("export const U8_VISUALS: Readonly<Record<string, McqVisual>> = " + ts(VISUALS) + ";\n")
     out.append("/** Drawn options, keyed by beat id then option id. All or nothing per beat. */")
@@ -3000,6 +3124,7 @@ def reset() -> None:
     for seq in (CORRECT_INDEX, NAME_CHECKS, FAILURES, NOTES):
         seq.clear()
     IDS.clear()
+    HELD.clear()
 
 
 def report_disagreements() -> None:
@@ -3039,10 +3164,11 @@ def main() -> int:
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(text, encoding="utf-8", newline="\n")
     total = 0
-    for node, entries in POOLS.items():
+    for node, entries in lesson_pools().items():
         print(f"{node}: {len(entries)}")
         total += len(entries)
     print(f"total: {total}")
+    print(f"held-out twins (test-outs only): {len(HELD)}")
     print("answer slot spread: " + ", ".join(f"{s}: {CORRECT_INDEX.count(s)}" for s in range(4)))
     print("entries resting on an authored convention:")
     for k, v in CONVENTIONS.items():

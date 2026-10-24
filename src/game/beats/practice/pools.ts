@@ -15,7 +15,7 @@ import { U4_POOLS } from "../../content/u4";
 import { U5_POOLS } from "../../content/u5";
 import { U6_POOLS } from "../../content/u6";
 import { U7_POOLS } from "../../content/u7";
-import { U8_POOLS } from "../../content/u8";
+import { U8_POOLS, U8_TEST_ONLY } from "../../content/u8";
 // Unit 9 draft pools (ADDED 2026-10-17, scripts/u9_pools.py).
 import { U9_POOLS } from "../../content/u9";
 // Unit 10 draft pools (ADDED 2026-10-17, scripts/u10_pools.py).
@@ -139,6 +139,18 @@ export function challengePool(nodeId: string, pools: UnitPools = ALL_POOLS): rea
   const own = practicePool(nodeId, pools);
   if (own.length === 0) return [];
   return interleave(own, ...(CHALLENGE_EXTRAS[nodeId] ?? []).map((source) => pools[source] ?? []));
+}
+
+/**
+ * Held-out twins written for a lesson but never played in it: the same skill on
+ * a new molecule, so a test-out is not a replay of lesson screens (audit 23 Oct,
+ * section 6). Unit 8 only so far. Kept out of ALL_POOLS, so no lesson, run or
+ * checkpoint reaches them; tabs/pathway/testOutPool.ts is the one reader.
+ */
+const TEST_ONLY_POOLS: UnitPools = mergePools(U8_TEST_ONLY);
+
+export function testOnlyPool(nodeId: string, pools: UnitPools = TEST_ONLY_POOLS): readonly PoolEntry[] {
+  return pools[nodeId] ?? [];
 }
 
 /** A lesson node's pool entries, played inside its seven-slot lesson. Empty for a run node. */

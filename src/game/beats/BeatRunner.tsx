@@ -68,6 +68,8 @@ import { CORRECT_CAUSE } from "./mcq/grade";
 import { questionForBeat } from "../tabs/trainer/engine/question";
 import { MATCH_BOARDS } from "./match";
 import { sortContentById } from "./sort";
+// The authored ladders' card drawings sit in the same generated tables as the pool ladders' (u8's acyl sort).
+import { sortFiguresFor } from "./sortFigures";
 import { synthesisGapsForNode } from "./synthesis";
 import { Berry } from "../mascot/Berry";
 import { pathwayNode } from "../demo/pathwayMap";
@@ -728,6 +730,7 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
         {step?.beat.kind === "sort" ? (
           <SortBeatView
             content={sortContentById(step.beat.ladderId)!}
+            figures={sortFiguresFor(step.beat.ladderId)}
             level={level}
             onResult={(result) => {
               stepResult.current = result;
