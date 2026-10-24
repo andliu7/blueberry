@@ -45,6 +45,7 @@ export function HomeHero({ entered }: { entered: boolean }) {
       </h1>
 
       <div className="home-hero__rest">
+        <p className="home-hero__course">{HERO.course}</p>
         <p className="home-hero__sell">{HERO.sell}</p>
         <div className="home-hero__actions">
           {/* The one filled button on the screen. Straight into the first lesson, as its

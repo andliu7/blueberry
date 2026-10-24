@@ -48,6 +48,11 @@ export const HERO = {
    * replan (question 8) found it a claim any competitor could make.
    */
   headline: HOME_HEADLINE,
+  /**
+   * Which class this is, under the headline (audit 23 Oct, section 5 #11: the
+   * hero never named the course). The FAQ's "CHEM 241 and 242" in short.
+   */
+  course: "Organic chemistry II · UMD CHEM 241/242",
   sell: "Lessons that explain it properly, mechanisms you draw yourself, and flashcards that hunt down the one thing you keep getting wrong.",
   /** SITE-REPLAN.md section 7, beat 1: a verb that says what happens. */
   cta: "Start the first lesson",
