@@ -284,10 +284,18 @@ interface ItemProps {
  * which element was pressed, and the spotlight has to be cut around exactly
  * that one.
  */
+/**
+ * The word each mark stands for, the same word its sheet's eyebrow uses. Shown
+ * as the hover title (audit 23 Oct, section 5 #10: a first-timer could not
+ * tell the three icons apart); the row itself stays one mark and one number.
+ */
+const HUD_NAME: Readonly<Record<HudButtonId, string>> = { streak: "Streak", diamonds: "Diamonds", charge: "Charge" };
+
 function HudButton({ id, label, rank, onOpen, streak, children }: ItemProps) {
   return (
     <button
       type="button"
+      title={HUD_NAME[id]}
       data-hud={id}
       data-rank={rank}
       data-streak={streak}

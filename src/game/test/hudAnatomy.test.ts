@@ -437,3 +437,12 @@ describe.each([
     }
   });
 });
+
+describe("the header names its marks", () => {
+  // Audit 23 Oct, section 5 #10: the three icons had no words on them. Each
+  // readout carries its sheet's own word as a hover title.
+  it("titles every readout with the word its sheet uses", () => {
+    expect(HUD_TSX).toContain('const HUD_NAME: Readonly<Record<HudButtonId, string>> = { streak: "Streak", diamonds: "Diamonds", charge: "Charge" };');
+    expect(HUD_TSX).toContain("title={HUD_NAME[id]}");
+  });
+});
