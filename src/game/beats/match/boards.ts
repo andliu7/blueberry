@@ -228,9 +228,9 @@ export const IR_SIGNAL_BOARD: MatchBeat = Object.freeze({
       id: "alcohol",
       text: "An alcohol",
       why:
-        "An alcohol's O-H is broad too, but it sits around 3300 with no carbonyl beside it. The " +
-        "band on this board runs all the way down to 2500 and has a C=O underneath, which is the " +
-        "acid dimer rather than a lone O-H.",
+        "An alcohol's O-H is broad too, but it sits higher, 3400 to 3650, with no carbonyl beside " +
+        "it. The band on this board runs all the way down to 2500 and has a C=O underneath, which " +
+        "is the acid dimer rather than a lone O-H.",
     },
   ],
 });

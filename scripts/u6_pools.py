@@ -1559,14 +1559,20 @@ def node_uv() -> None:
 # 3100; aromatic C-H 3030; terminal alkyne C-H 3300. Section 20.8: acid O-H
 # very broad, 2500 to 3300; acid C=O near 1710; nitrile C≡N near 2250. Read
 # 24 Oct 2026, section 19.14: conjugation lowers a ketone's C=O to 1685 to
-# 1690; section 21.10: saturated ester 1735, saturated amide 1690.
+# 1690; section 21.10: saturated ester 1735, saturated amide 1690. Section
+# 12.7, read 24 Oct 2026: four regions, 4000 to 2500 single bonds to H (N-H,
+# C-H, O-H), 2500 to 2000 triple bonds, 2000 to 1500 double bonds (C=O, C=N,
+# C=C), and below 1500 the fingerprint region.
 # The owner signed off on 24 Oct 2026, in his words: C=O "usually somewhere
 # around 1690, 1720 with shifts", then above and below 1500 and 3000, broad
-# O-H and N-H. Which groups a molecule has is RDKit substructure matching; the
+# O-H and N-H. His "broad O-H" is the alcohol O-H at 3400 to 3650 (12.8:
+# "usually broad and intense"), with the acid's very broad 2500 to 3300 as the
+# other O-H; the match board (src/game/beats/match/boards.ts) quotes the same
+# ranges. Which groups a molecule has is RDKit substructure matching; the
 # band each group gives is the cited table. Questions ask for the relative
 # reading (lower, higher, above or below 3000), not a memorised decimal.
 
-IR_SOURCE = ("IR band positions quoted from OpenStax Organic Chemistry sections 12.8, 19.14, 20.8 and 21.10 "
+IR_SOURCE = ("IR band positions quoted from OpenStax Organic Chemistry sections 12.7, 12.8, 19.14, 20.8 and 21.10 "
              "(CC BY-NC-SA), read 23 and 24 Oct 2026; signed off by the owner 24 Oct 2026")
 IR_C = ("spectroscopy_ir",)
 IR_GROUPS = {
@@ -1625,7 +1631,7 @@ def co_band(smi: str) -> int:
 
 
 def ir_prov(what: str) -> str:
-    return (f"{SCRIPT}: {what}. Band positions from OpenStax Organic Chemistry ch. 12, 19, 20 and 21 (sections 12.8, 19.14, 20.8 and 21.10, "
+    return (f"{SCRIPT}: {what}. Band positions from OpenStax Organic Chemistry ch. 12, 19, 20 and 21 (sections 12.7, 12.8, 19.14, 20.8 and 21.10, "
             "CC BY-NC-SA), read 23 and 24 Oct 2026. Signed off by the owner 24 Oct 2026.")
 
 
@@ -1732,6 +1738,19 @@ def ir_items() -> None:
         ir_prov("each option's C-H by RDKit hybridisation match, read against the cited bands"),
         cue_visual("below 3000", "the C-H bands"),
         tiles=tiles3(opts, {"ane": "hexane", "ene": "hex-1-ene", "yne": "hex-1-yne"}),
+        concepts=IR_C, convention=IR_SOURCE)
+
+    # The 1500 line, from the four regions of OpenStax 12.7: above it each band names a bond, below it the fingerprint.
+    regions = {"fp": (400, 1500), "grp": (1500, 4000)}
+    below = [k for k, (lo, hi) in regions.items() if hi <= 1500]
+    mcq(node, "u6-ir-1500", "Below 1500 cm⁻¹ the spectrum is crowded with bands. Pick what that region is for.",
+        [("fp", "Matching a known compound's spectrum", "The pattern below 1500 is unique to each compound, so it is called the fingerprint region: you match it, you do not read it band by band."),
+         ("grp", "Reading which groups are present", "Groups are read above 1500: O-H, N-H and C-H from 2500 to 4000, triple bonds from 2000 to 2500, C=O and C=C from 1500 to 2000."),
+         ("co", "Finding the C=O band", "A C=O absorbs above the line, from 1670 to 1780 cm⁻¹, in the double bond region.")],
+        below[0] if len(below) == 1 else None, "fp",
+        "Read the 1500 line: above it each band names a bond, below it is the fingerprint region, matched as a whole pattern.",
+        ir_prov("region boundaries quoted from OpenStax 12.7; no molecule, so nothing for RDKit to match"),
+        cue_visual("below 1500", "the fingerprint region"),
         concepts=IR_C, convention=IR_SOURCE)
 
     # N-H count: an NH2 stretches in step and out of step, two bands; an NH has one.

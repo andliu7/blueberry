@@ -76,6 +76,11 @@ const STAGES: readonly GuideStage[] = [
             quote: "Read the 3000 line: sp³ C-H just below it, alkene and aromatic C-H just above, a terminal alkyne C-H sharp at 3300.",
           },
           {
+            text: "Read the 1500 line: above it each band names a bond, below it is the fingerprint region, matched as a whole pattern.",
+            source: "u6-ir-1500",
+            quote: "Read the 1500 line: above it each band names a bond, below it is the fingerprint region, matched as a whole pattern.",
+          },
+          {
             text: "Only a carboxylic acid has both: an O-H band so broad it runs down to 2500 cm⁻¹, and a C=O near 1710.",
             source: "u6-ir-acid",
             quote: "Only a carboxylic acid has both: an O-H band so broad it runs down to 2500 cm⁻¹, and a C=O near 1710.",

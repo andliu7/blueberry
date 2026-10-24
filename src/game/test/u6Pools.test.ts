@@ -27,6 +27,7 @@
 import { describe, expect, it } from "vitest";
 
 import { CONCEPTS, TOPICS } from "@blueberry/curriculum";
+import { IR_SIGNAL_BOARD } from "../beats/match/boards";
 import { mcqAuthoringViolations } from "../beats/mcq/authoring";
 import { figuresOf, mcqOptionTiles, mcqVisualFor } from "../beats/mcq/mcqFigures";
 import { lessonMcqBeats, lessonRecogniseBeats, planLesson } from "../beats/template";
@@ -42,11 +43,12 @@ import { FIGURE_HEIGHT, FIGURE_WIDTH, type Figure } from "../onboarding/figures"
  * Seven lessons. u6-hnmr went from 9 to 12 on 23 Oct (audit: the chloroethane
  * triplet and quartet items, and the splitting board). u6-ir joined on 24 Oct
  * with 9: the six questions held for sign-off plus the C-H, N-H count and C=O
- * shift questions (audit top-25 #9).
+ * shift questions (audit top-25 #9), and went to 10 the same day with the
+ * 1500 line question the owner's sign-off names.
  */
 const EXPECTED_SIZES: Readonly<Record<string, number>> = {
   "u6-dou": 8,
-  "u6-ir": 9,
+  "u6-ir": 10,
   "u6-hnmr": 12,
   "u6-cnmr": 8,
   "u6-ms": 8,
@@ -103,16 +105,24 @@ describe("u6 draft pools", () => {
 
   it("cites the band numbers on every IR question and records the owner's sign-off", () => {
     for (const entry of U6_POOLS["u6-ir"] ?? []) {
-      expect(entry.provenance, entry.id).toContain("(sections 12.8, 19.14, 20.8 and 21.10, CC BY-NC-SA)");
+      expect(entry.provenance, entry.id).toContain("(sections 12.7, 12.8, 19.14, 20.8 and 21.10, CC BY-NC-SA)");
       expect(entry.provenance, entry.id).toContain("Signed off by the owner 24 Oct 2026");
     }
   });
 
-  it("teaches each band the owner signed off: C=O shifts, the 3000 line, broad O-H, N-H count, the nitrile", () => {
+  it("teaches each band the owner signed off: C=O shifts, the 1500 and 3000 lines, broad O-H, N-H count, the nitrile", () => {
     const ids = (U6_POOLS["u6-ir"] ?? []).map((entry) => entry.id);
-    for (const id of ["u6-ir-meet", "u6-ir-carbonyl", "u6-ir-ch", "u6-ir-alcohol", "u6-ir-acid", "u6-ir-amine", "u6-ir-nitrile"]) {
+    for (const id of ["u6-ir-meet", "u6-ir-carbonyl", "u6-ir-ch", "u6-ir-1500", "u6-ir-alcohol", "u6-ir-acid", "u6-ir-amine", "u6-ir-nitrile"]) {
       expect(ids, id).toContain(id);
     }
+  });
+
+  it("gives the alcohol O-H one range, 3400 to 3650, in the pool and on the match board", () => {
+    const alcohol = IR_SIGNAL_BOARD.decoys?.find((d) => d.id === "alcohol")?.why ?? "";
+    expect(alcohol).toContain("3400 to 3650");
+    const text = JSON.stringify(U6_POOLS["u6-ir"] ?? []);
+    expect(text).toContain("3400 to 3650");
+    expect(text).not.toMatch(/alcohol[^"]{0,40}3300/i);
   });
 
   it("marks every entry as a placeholder", () => {

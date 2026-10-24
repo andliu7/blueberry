@@ -439,11 +439,15 @@ Sign-in, Pro, paywalls, ads (owner, 23 Oct)
   with real ids: DevTools Network shows no pagead2 request before "Allow ads", none for Pro,
   none inside a lesson.
 - u6-ir LIVE 24 Oct (audit top-25 #9, owner signed off the IR bands: C=O around 1690 to 1720
-  with shifts, the 1500 and 3000 lines, broad O-H and N-H). The map links it; the lesson plays 9
-  MCQs then IR_SIGNAL_BOARD. The six held items moved into U6_POOLS (U6_IR_HELD is gone) plus three
-  new: the 3000 line (sp3 below, sp2 above, terminal alkyne 3300), N-H count (two, one, none) and
+  with shifts, the 1500 and 3000 lines, broad O-H and N-H). The map links it; the lesson plays 10
+  MCQs then IR_SIGNAL_BOARD. The six held items moved into U6_POOLS (U6_IR_HELD is gone) plus four
+  new: the 3000 line (sp3 below, sp2 above, terminal alkyne 3300), the 1500 line (u6-ir-1500:
+  above it bands name bonds, below it the fingerprint region), N-H count (two, one, none) and
   the C=O shift (conjugated lower, ester higher, read from the 1715 ketone). Bands cited from
-  OpenStax sections 12.8, 19.14, 20.8, 21.10 (CC BY-NC-SA) in scripts/u6_pools.py. The u6
+  OpenStax sections 12.7, 12.8, 19.14, 20.8, 21.10 (CC BY-NC-SA) in scripts/u6_pools.py. "Broad
+  O-H" maps to the alcohol O-H at 3400 to 3650 (OpenStax 12.8) beside the acid's very broad 2500
+  to 3300; the board's alcohol decoy said "around 3300" and now quotes 3400 to 3650, pinned by a
+  u6Pools test so the pool and board cannot drift apart again. The u6
   guidebook gains its IR section and a C=O drawing (guide_u6.py); NODE_MOVES u6-ir 1 to 3
   (measured). Not drawn by the Unit 6 exam yet: OWNER, should it be?
 

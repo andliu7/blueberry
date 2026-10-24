@@ -2001,7 +2001,7 @@ export const U6_POOLS: UnitPools = {
         }
       },
       "explanation": "Each bond stretches in its own range. A strong, sharp band from 1670 to 1780 cm⁻¹ is a C=O.",
-      "provenance": "scripts/u6_pools.py: carbonyl band, butan-2-one's groups by RDKit substructure match. Band positions from OpenStax Organic Chemistry ch. 12, 19, 20 and 21 (sections 12.8, 19.14, 20.8 and 21.10, CC BY-NC-SA), read 23 and 24 Oct 2026. Signed off by the owner 24 Oct 2026.",
+      "provenance": "scripts/u6_pools.py: carbonyl band, butan-2-one's groups by RDKit substructure match. Band positions from OpenStax Organic Chemistry ch. 12, 19, 20 and 21 (sections 12.7, 12.8, 19.14, 20.8 and 21.10, CC BY-NC-SA), read 23 and 24 Oct 2026. Signed off by the owner 24 Oct 2026.",
       "placeholder": true
     },
     {
@@ -2040,7 +2040,7 @@ export const U6_POOLS: UnitPools = {
         }
       },
       "explanation": "Read the carbonyl range and the O-H range together: a C=O with no O-H is a ketone, an aldehyde or an ester.",
-      "provenance": "scripts/u6_pools.py: each option's groups by RDKit substructure match, read against the cited bands. Band positions from OpenStax Organic Chemistry ch. 12, 19, 20 and 21 (sections 12.8, 19.14, 20.8 and 21.10, CC BY-NC-SA), read 23 and 24 Oct 2026. Signed off by the owner 24 Oct 2026.",
+      "provenance": "scripts/u6_pools.py: each option's groups by RDKit substructure match, read against the cited bands. Band positions from OpenStax Organic Chemistry ch. 12, 19, 20 and 21 (sections 12.7, 12.8, 19.14, 20.8 and 21.10, CC BY-NC-SA), read 23 and 24 Oct 2026. Signed off by the owner 24 Oct 2026.",
       "placeholder": true
     },
     {
@@ -2079,7 +2079,7 @@ export const U6_POOLS: UnitPools = {
         }
       },
       "explanation": "3400 to 3650 cm⁻¹ is the alcohol O-H. An ether has the same O but no O-H, so it shows no band there.",
-      "provenance": "scripts/u6_pools.py: each option's groups by RDKit substructure match, read against the cited bands. Band positions from OpenStax Organic Chemistry ch. 12, 19, 20 and 21 (sections 12.8, 19.14, 20.8 and 21.10, CC BY-NC-SA), read 23 and 24 Oct 2026. Signed off by the owner 24 Oct 2026.",
+      "provenance": "scripts/u6_pools.py: each option's groups by RDKit substructure match, read against the cited bands. Band positions from OpenStax Organic Chemistry ch. 12, 19, 20 and 21 (sections 12.7, 12.8, 19.14, 20.8 and 21.10, CC BY-NC-SA), read 23 and 24 Oct 2026. Signed off by the owner 24 Oct 2026.",
       "placeholder": true
     },
     {
@@ -2118,7 +2118,7 @@ export const U6_POOLS: UnitPools = {
         }
       },
       "explanation": "An intense band near 2250 cm⁻¹ is the C≡N of a nitrile.",
-      "provenance": "scripts/u6_pools.py: each option's groups by RDKit substructure match, read against the cited bands. Band positions from OpenStax Organic Chemistry ch. 12, 19, 20 and 21 (sections 12.8, 19.14, 20.8 and 21.10, CC BY-NC-SA), read 23 and 24 Oct 2026. Signed off by the owner 24 Oct 2026.",
+      "provenance": "scripts/u6_pools.py: each option's groups by RDKit substructure match, read against the cited bands. Band positions from OpenStax Organic Chemistry ch. 12, 19, 20 and 21 (sections 12.7, 12.8, 19.14, 20.8 and 21.10, CC BY-NC-SA), read 23 and 24 Oct 2026. Signed off by the owner 24 Oct 2026.",
       "placeholder": true
     },
     {
@@ -2157,7 +2157,7 @@ export const U6_POOLS: UnitPools = {
         }
       },
       "explanation": "Only a carboxylic acid has both: an O-H band so broad it runs down to 2500 cm⁻¹, and a C=O near 1710.",
-      "provenance": "scripts/u6_pools.py: each option's groups by RDKit substructure match, read against the cited bands. Band positions from OpenStax Organic Chemistry ch. 12, 19, 20 and 21 (sections 12.8, 19.14, 20.8 and 21.10, CC BY-NC-SA), read 23 and 24 Oct 2026. Signed off by the owner 24 Oct 2026.",
+      "provenance": "scripts/u6_pools.py: each option's groups by RDKit substructure match, read against the cited bands. Band positions from OpenStax Organic Chemistry ch. 12, 19, 20 and 21 (sections 12.7, 12.8, 19.14, 20.8 and 21.10, CC BY-NC-SA), read 23 and 24 Oct 2026. Signed off by the owner 24 Oct 2026.",
       "placeholder": true
     },
     {
@@ -2196,7 +2196,7 @@ export const U6_POOLS: UnitPools = {
         }
       },
       "explanation": "IR follows a reaction by the groups it makes and breaks: oxidising an alcohol to a ketone trades the O-H band for a C=O band.",
-      "provenance": "scripts/u6_pools.py: starting material and product groups by RDKit substructure match, read against the cited bands. Band positions from OpenStax Organic Chemistry ch. 12, 19, 20 and 21 (sections 12.8, 19.14, 20.8 and 21.10, CC BY-NC-SA), read 23 and 24 Oct 2026. Signed off by the owner 24 Oct 2026.",
+      "provenance": "scripts/u6_pools.py: starting material and product groups by RDKit substructure match, read against the cited bands. Band positions from OpenStax Organic Chemistry ch. 12, 19, 20 and 21 (sections 12.7, 12.8, 19.14, 20.8 and 21.10, CC BY-NC-SA), read 23 and 24 Oct 2026. Signed off by the owner 24 Oct 2026.",
       "placeholder": true
     },
     {
@@ -2235,7 +2235,46 @@ export const U6_POOLS: UnitPools = {
         }
       },
       "explanation": "Read the 3000 line: sp³ C-H just below it, alkene and aromatic C-H just above, a terminal alkyne C-H sharp at 3300.",
-      "provenance": "scripts/u6_pools.py: each option's C-H by RDKit hybridisation match, read against the cited bands. Band positions from OpenStax Organic Chemistry ch. 12, 19, 20 and 21 (sections 12.8, 19.14, 20.8 and 21.10, CC BY-NC-SA), read 23 and 24 Oct 2026. Signed off by the owner 24 Oct 2026.",
+      "provenance": "scripts/u6_pools.py: each option's C-H by RDKit hybridisation match, read against the cited bands. Band positions from OpenStax Organic Chemistry ch. 12, 19, 20 and 21 (sections 12.7, 12.8, 19.14, 20.8 and 21.10, CC BY-NC-SA), read 23 and 24 Oct 2026. Signed off by the owner 24 Oct 2026.",
+      "placeholder": true
+    },
+    {
+      "id": "u6-ir-1500",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u6-ir-1500",
+          "node": "u6-ir",
+          "conceptIds": [
+            "spectroscopy_ir"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "Below 1500 cm⁻¹ the spectrum is crowded with bands. Pick what that region is for.",
+          "correctOptionId": "fp",
+          "options": [
+            {
+              "id": "fp",
+              "text": "Matching a known compound's spectrum",
+              "why": "The pattern below 1500 is unique to each compound, so it is called the fingerprint region: you match it, you do not read it band by band."
+            },
+            {
+              "id": "grp",
+              "text": "Reading which groups are present",
+              "why": "Groups are read above 1500: O-H, N-H and C-H from 2500 to 4000, triple bonds from 2000 to 2500, C=O and C=C from 1500 to 2000."
+            },
+            {
+              "id": "co",
+              "text": "Finding the C=O band",
+              "why": "A C=O absorbs above the line, from 1670 to 1780 cm⁻¹, in the double bond region."
+            }
+          ]
+        }
+      },
+      "explanation": "Read the 1500 line: above it each band names a bond, below it is the fingerprint region, matched as a whole pattern.",
+      "provenance": "scripts/u6_pools.py: region boundaries quoted from OpenStax 12.7; no molecule, so nothing for RDKit to match. Band positions from OpenStax Organic Chemistry ch. 12, 19, 20 and 21 (sections 12.7, 12.8, 19.14, 20.8 and 21.10, CC BY-NC-SA), read 23 and 24 Oct 2026. Signed off by the owner 24 Oct 2026.",
       "placeholder": true
     },
     {
@@ -2274,7 +2313,7 @@ export const U6_POOLS: UnitPools = {
         }
       },
       "explanation": "Count the N-H bands: two for a primary amine, one for a secondary, none for a tertiary. N-H is sharper than a broad O-H.",
-      "provenance": "scripts/u6_pools.py: N-H count on each option's nitrogen by RDKit substructure match, read against the cited bands. Band positions from OpenStax Organic Chemistry ch. 12, 19, 20 and 21 (sections 12.8, 19.14, 20.8 and 21.10, CC BY-NC-SA), read 23 and 24 Oct 2026. Signed off by the owner 24 Oct 2026.",
+      "provenance": "scripts/u6_pools.py: N-H count on each option's nitrogen by RDKit substructure match, read against the cited bands. Band positions from OpenStax Organic Chemistry ch. 12, 19, 20 and 21 (sections 12.7, 12.8, 19.14, 20.8 and 21.10, CC BY-NC-SA), read 23 and 24 Oct 2026. Signed off by the owner 24 Oct 2026.",
       "placeholder": true
     },
     {
@@ -2313,7 +2352,7 @@ export const U6_POOLS: UnitPools = {
         }
       },
       "explanation": "Read C=O shifts from the 1715 ketone: conjugation, or an amide's N, lowers it toward 1690; an ester's O raises it toward 1735.",
-      "provenance": "scripts/u6_pools.py: each option's carbonyl kind by RDKit substructure match, read against the cited C=O bands. Band positions from OpenStax Organic Chemistry ch. 12, 19, 20 and 21 (sections 12.8, 19.14, 20.8 and 21.10, CC BY-NC-SA), read 23 and 24 Oct 2026. Signed off by the owner 24 Oct 2026.",
+      "provenance": "scripts/u6_pools.py: each option's carbonyl kind by RDKit substructure match, read against the cited C=O bands. Band positions from OpenStax Organic Chemistry ch. 12, 19, 20 and 21 (sections 12.7, 12.8, 19.14, 20.8 and 21.10, CC BY-NC-SA), read 23 and 24 Oct 2026. Signed off by the owner 24 Oct 2026.",
       "placeholder": true
     },
   ],
@@ -4164,6 +4203,21 @@ export const U6_VISUALS: Readonly<Record<string, McqVisual>> = {
       ]
     },
     "name": "the C-H bands"
+  },
+  "u6-ir-1500": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [],
+      "labels": [
+        {
+          "x": 60.0,
+          "y": 48.0,
+          "t": "below 1500",
+          "size": 16
+        }
+      ]
+    },
+    "name": "the fingerprint region"
   },
   "u6-ir-amine": {
     "kind": "structure",
