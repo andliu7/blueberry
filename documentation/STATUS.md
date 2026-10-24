@@ -168,6 +168,15 @@ Feed and accounts
   student can start anywhere; only the lessons after it are gated. Completing a lesson plays a
   green glow down the path to the next node, a lock-unlocking animation, a bright glow and a
   small celebration (no confetti; reference Duolingo and others on Mobbin).
+  - unlock-sections DONE 23 Oct: every section's first lesson is open on every unit, later
+    lessons open behind the stop before them in their own section, side quests behind their own
+    prerequisite, a unit check once its unit's lessons are cleared (sectionStarts.ts, laid over
+    the old rule). START stays where it was. The unlock plays once on return to the path
+    (unlockCelebration.ts, pathUnlock.css): glow down the road, padlock lifts, bounce, halo,
+    sparkle ring; reduced motion shows a still halo. No migration or deploy. Owner: the old
+    stricter rule is still pinned by its tests as the base layer (pathwayUnlock, checkpointStakes:
+    unitLockSaid, the "Locked. Finish Unit N" note); the student never sees those locks now.
+    Keep them as the base, or retire them?
 Sign-in, Pro, paywalls, ads (owner, 23 Oct)
 - G1 Sign-in before anything: #/app sends a signed-out visitor to a sign-in page with a Pro
   suggestion (owner chose this over lesson-first after the trade-off was raised). The admin viewer

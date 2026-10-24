@@ -18,7 +18,9 @@
  * lessons follow a predictable path"), retiring the 2026-09-01 free-order
  * ruling on the map: each main-line lesson opens the next in authored order,
  * and a side quest opens after its prerequisite. The map's rule lives in
- * pathwayState.ts and test/pathwayUnlock.test.ts pins it. The topic view
+ * pathwayState.ts and test/pathwayUnlock.test.ts pins it; since 23 Oct
+ * sectionStarts.ts lays an open first lesson on every section over it (owner:
+ * "start wherever ... just gate the next one"). The topic view
  * (topicPathway.ts) still runs the free-order rule; whether it follows is an
  * open owner question.
  *
@@ -54,6 +56,7 @@ import {
   type CourseId,
   type TopicId,
 } from "@blueberry/curriculum";
+import type { EconomyEvent } from "@blueberry/economy";
 import { Card } from "../../app/ui/Card";
 import { Press, pressClassName } from "../../app/ui/Press";
 import { TabIcon } from "../../app/ui/TabIcon";
@@ -68,6 +71,7 @@ import { PathMascot } from "./PathMascot";
 import { COURSE_LABEL, problemCountForTopic } from "../courses/courseCopy";
 import { closedCourseTag, isCourseOpen } from "../../app/courses";
 import "./pathway.css";
+import "./pathUnlock.css";
 
 export type NodeState = "done" | "current" | "open" | "review" | "locked";
 
@@ -88,7 +92,7 @@ import {
    name itself after its unit. Re-exported because they were exported from here
    and the pathway's own callers read them off this module. */
 export { unitName, unitNumber } from "../../demo/pathwayMap";
-import { deriveMapPathway, statusOf, unitLockSaid, unitNote, unitOpenedAfter, unitPassed, waitingOn, type MapPathwayStatus } from "./pathwayState";
+import { statusOf, unitLockSaid, unitNote, unitOpenedAfter, unitPassed, waitingOn, type MapPathwayStatus } from "./pathwayState";
 import { deriveFreeOrderStates } from "./topicPathway";
 import { isCheckpointUnit, nodePlaces, placeSaid, roadOf, unitShape, type NodePlace, type UnitShape } from "./unitShape";
 import type { TrackMapNode } from "./trail";
@@ -109,7 +113,9 @@ import { checkpointQuestions, difficultyForNode } from "../../pathway-sheet/node
 // Pure label geometry, in its own module so it can be tested without a document.
 // Re-exported because callers and tests have always reached it through this file.
 import { nameSide, revealWords, trackWind, withBreakHints } from "./pathwayLayout";
-import { reviewHolding, reviewsAfter, withReviewGates, type ReviewCheckpoint } from "./reviewCheckpoints";
+import { reviewHolding, reviewsAfter, type ReviewCheckpoint } from "./reviewCheckpoints";
+import { clearedIdsOf, pathStatus, sectionWaits } from "./sectionStarts";
+import { readCelebration, type Celebration } from "./unlockCelebration";
 import { splitSections, type SectionStop } from "./pathwaySections";
 import { TreasureChest, type ChestState } from "./TreasureChest";
 import { passedTests, sectionTestSize, unitExamId, unitSections, TEST_OUT_UNITS, UNIT_EXAM_SIZE } from "./testOuts";
@@ -740,6 +746,8 @@ function StartTag({ saved = false }: { readonly saved?: boolean }) {
  * buried here.
  */
 const MASCOT_PX = 72;
+/** The unlock's sparkle ring: eight dots, one every 45 degrees. */
+const SPARKS = [0, 1, 2, 3, 4, 5, 6, 7] as const;
 
 /**
  * One slab on the winding track, in whatever state it is in. Shared by the
@@ -759,10 +767,16 @@ function TrackSlab({
   queued = false,
   reducedMotion = false,
   aside = null,
+  roadId,
+  unlock = false,
   onOpenNode,
   sheetNode,
   gateNode,
 }: {
+  /** The stop's id on the road, so RoadLine can find the two ends of the unlock glow. */
+  readonly roadId?: string;
+  /** Plays the unlock celebration on this chip once (unlockCelebration.ts, .path-unlock in pathUnlock.css). */
+  readonly unlock?: boolean;
   readonly state: NodeState;
   readonly label: string;
   readonly detail: string;
@@ -823,7 +837,7 @@ function TrackSlab({
             The mascot and the side quests ride inside it (round 3 of P1), on
             the chip's lean side, so they follow its swing. Both are absolutely
             placed, so neither changes the box the road is drawn through. */}
-        <div className="path-row__slab" data-road-stop>
+        <div className="path-row__slab" data-road-stop data-road-id={roadId}>
           {/* 20 Oct: no longer only decoration. Bloom is a button now and
               answers a tap with a hop and a line (PathMascot.tsx). */}
           {state === "current" ? (
@@ -834,18 +848,42 @@ function TrackSlab({
           {aside}
           {/* A lesson left half done wears its saved bar as a ring (resume/SavedRing.tsx). */}
           {state !== "locked" && href !== null ? <HalfDoneRing href={href} /> : null}
-          <Chip
-            state={state}
-            label={label}
-            detail={detail}
-            href={href}
-            badge={badge}
-            dim={dim}
-            queued={queued}
-            onOpenNode={onOpenNode}
-            sheetNode={sheetNode}
-            gateNode={gateNode}
-          />
+          {/* THE UNLOCK, when this chip just opened: a halo and a sparkle ring
+              behind it, a padlock over it whose shackle lifts before it fades,
+              and a bounce on this wrapper (never on the chip, which owns the
+              press transform, nor on the slab, which RoadLine measures). All
+              aria-hidden: the chip's own name already says it is open.
+              Reduced motion keeps only a soft halo (pathUnlock.css). */}
+          <span className={unlock ? `path-unlock${reducedMotion ? " path-unlock--still" : ""}` : "path-unlock-off"}>
+            {unlock ? (
+              <span className="path-unlock__fx" aria-hidden>
+                <span className="path-unlock__halo" />
+                <span className="path-unlock__ring">
+                  {SPARKS.map((n) => (
+                    <span key={n} className="path-unlock__spark" style={{ "--n": n } as CSSProperties} />
+                  ))}
+                </span>
+              </span>
+            ) : null}
+            <Chip
+              state={state}
+              label={label}
+              detail={detail}
+              href={href}
+              badge={badge}
+              dim={dim}
+              queued={queued}
+              onOpenNode={onOpenNode}
+              sheetNode={sheetNode}
+              gateNode={gateNode}
+            />
+            {unlock ? (
+              <svg className="path-unlock__lock" viewBox="0 0 24 24" aria-hidden>
+                <path className="path-unlock__shackle" d="M8.2 11V8a3.8 3.8 0 0 1 7.6 0v3" fill="none" strokeWidth="2.6" strokeLinecap="round" />
+                <rect x="5" y="10.5" width="14" height="10" rx="2.2" />
+              </svg>
+            ) : null}
+          </span>
           {/* A shut checkpoint keeps its gold and says "locked" with a padlock
               instead. aria-hidden: the chip's name already says why it waits. */}
           {lane === "check" && state === "locked" && !queued ? (
@@ -974,9 +1012,17 @@ function SoonRow({ row, aside }: { readonly row: UnitRow; readonly aside: ReactN
  * the unit: a child's layout effect runs before React attaches the parent's
  * ref, so a parent ref is still null on the first pass and the road never drew.
  */
-function RoadLine({ version }: { readonly version: string }) {
+function RoadLine({ version, glow = null }: { readonly version: string; readonly glow?: Celebration | null }) {
   const ref = useRef<SVGSVGElement | null>(null);
-  const [road, setRoad] = useState<{ readonly w: number; readonly h: number; readonly legs: readonly { readonly d: string; readonly walked: boolean }[] } | null>(null);
+  const [road, setRoad] = useState<{
+    readonly w: number;
+    readonly h: number;
+    readonly legs: readonly { readonly d: string; readonly walked: boolean }[];
+    /** The unlock glow's leg: its start, length and angle, or null. */
+    readonly glowLeg: { readonly x: number; readonly y: number; readonly len: number; readonly deg: number } | null;
+  } | null>(null);
+  const from = glow?.from ?? null;
+  const to = glow?.to ?? null;
   useLayoutEffect(() => {
     const surface = ref.current?.parentElement ?? null;
     if (surface === null) return;
@@ -985,27 +1031,48 @@ function RoadLine({ version }: { readonly version: string }) {
       const stops = [...surface.querySelectorAll<HTMLElement>("[data-road-stop]")].map((el) => {
         const r = el.getBoundingClientRect();
         const state = el.closest("li")?.getAttribute("data-node-state");
-        return { x: r.left + r.width / 2 - box.left, y: r.top + r.height / 2 - box.top, walked: state === "done" || state === "review" };
+        return { id: el.getAttribute("data-road-id"), x: r.left + r.width / 2 - box.left, y: r.top + r.height / 2 - box.top, walked: state === "done" || state === "review" };
       });
-      const legs = stops.slice(1).map((to, i) => {
-        const from = stops[i]!;
-        return { d: `M${from.x.toFixed(1)} ${from.y.toFixed(1)}L${to.x.toFixed(1)} ${to.y.toFixed(1)}`, walked: from.walked };
+      let glowLeg: { x: number; y: number; len: number; deg: number } | null = null;
+      const legs = stops.slice(1).map((end, i) => {
+        const start = stops[i]!;
+        // The leg the glow travels draws in the ahead grey under it, so the green visibly moves.
+        const glowing = from !== null && start.id === from && end.id === to;
+        if (glowing) glowLeg = { x: start.x, y: start.y, len: Math.hypot(end.x - start.x, end.y - start.y), deg: (Math.atan2(end.y - start.y, end.x - start.x) * 180) / Math.PI };
+        return { d: `M${start.x.toFixed(1)} ${start.y.toFixed(1)}L${end.x.toFixed(1)} ${end.y.toFixed(1)}`, walked: start.walked && !glowing };
       });
-      setRoad({ w: box.width, h: box.height, legs });
+      setRoad({ w: box.width, h: box.height, legs, glowLeg });
     };
     measure();
     if (typeof ResizeObserver === "undefined") return;
     const observer = new ResizeObserver(measure);
     observer.observe(surface);
     return () => observer.disconnect();
-  }, [version]);
+  }, [version, from, to]);
+  const leg = road?.glowLeg ?? null;
   // Always rendered, empty until measured, so the ref exists to measure from.
   return (
-    <svg ref={ref} className="path-road" width={road?.w ?? 0} height={road?.h ?? 0} aria-hidden>
-      {(road?.legs ?? []).map((leg, i) => (
-        <path key={i} d={leg.d} className={`path-road__leg${leg.walked ? " path-road__leg--walked" : ""}`} />
-      ))}
-    </svg>
+    <>
+      <svg ref={ref} className="path-road" width={road?.w ?? 0} height={road?.h ?? 0} aria-hidden>
+        {(road?.legs ?? []).map((entry, i) => (
+          <path key={i} d={entry.d} className={`path-road__leg${entry.walked ? " path-road__leg--walked" : ""}`} />
+        ))}
+      </svg>
+      {/* THE UNLOCK GLOW (unlockCelebration.ts): a green bar that fills the
+          leg from the cleared stop to the one it opened, led by a bright head.
+          Placed once from the measured points and animated by CSS transform
+          only, so the compositor runs it. Hidden under reduced motion. */}
+      {leg === null ? null : (
+        <span
+          className="path-road__glow"
+          aria-hidden
+          style={{ left: `${leg.x}px`, top: `${leg.y}px`, width: `${leg.len}px`, transform: `rotate(${leg.deg}deg)`, "--len": `${leg.len}px` } as CSSProperties}
+        >
+          <span className="path-road__glow-bar" />
+          <span className="path-road__glow-head" />
+        </span>
+      )}
+    </>
   );
 }
 
@@ -1469,8 +1536,9 @@ export function currentIndexFor(plan: UnitPlan, status: MapPathwayStatus): numbe
  *                           own mixed check. The unit's last thing: nothing
  *                           is drawn after it
  *
- * State comes from deriveMapPathway: the line opens one lesson at a time and
- * a loop opens after its prerequisite.
+ * State comes from pathStatus (sectionStarts.ts): the first lesson of every
+ * section is open, each later one opens behind the stop before it, and a
+ * loop opens after its prerequisite.
  *
  * WHERE THE PAGE LIVES: in the hash, as "#/app/pathway?unit=u7", the same
  * in-hash query the trainer's deep links ride (see hashParam in app/routes.ts
@@ -1480,12 +1548,10 @@ export function currentIndexFor(plan: UnitPlan, status: MapPathwayStatus): numbe
  * reading the param during render is live, the contract TrainerTab already
  * relies on.
  *
- * NAVIGATION STOPS AT THE GATE. The rail above the page lists all fifteen
- * units with their locked, current and done states, the whole mountain, but
- * the swipe and the arrow keys will not walk past the frontier, and a
- * browsed unit past it says why at its top. Unlock SEMANTICS are untouched
- * (unit gates are still the only locks, pathwayState.ts, pinned by
- * pathwayUnlock.test.ts); this is a navigation rule over them.
+ * NAVIGATION STOPS AT THE GATE, and since 23 Oct there is no gate to stop
+ * at: every section's first lesson is open (sectionStarts.ts), so every unit
+ * is reachable and the swipe and the arrow keys walk the whole course. The
+ * frontier logic below is kept; it now only ever finds the last unit.
  */
 
 /** Horizontal travel, in pixels, before a drag counts as a swipe. The same
@@ -1495,6 +1561,8 @@ const SWIPE_PX = 64;
 const SWIPE_SLOPE = 1.2;
 /** How long the road fades before the unit list appears (pathway-sheet.css matches it). */
 const ROAD_FADE_MS = 200;
+/** How long the unlock celebration runs (pathway.css .path-unlock*). */
+const UNLOCK_MS = 2600;
 
 /** The pager's deep link: one unit, addressed inside the hash. */
 function hrefForUnit(unitId: string): string {
@@ -1683,9 +1751,12 @@ function OrgoMapTrack({
   gatedBy,
   cleared,
   passed,
+  journal,
   reducedMotion,
 }: {
   readonly onOpenNode: OpenNode;
+  /** The journal, read once on mount for the unlock celebration (unlockCelebration.ts). */
+  readonly journal: readonly EconomyEvent[];
   /** Test-out ids the journal holds a pass for (testOuts.ts). */
   readonly passed: ReadonlySet<string>;
   /** Main-line lessons held shut by a review stop (withReviewGates), to that stop. */
@@ -1700,6 +1771,17 @@ function OrgoMapTrack({
   readonly reducedMotion: boolean;
 }) {
   const plans = useMemo(() => planUnits(PATHWAY_UNITS), []);
+  /*
+    THE UNLOCK CELEBRATION, owner 23 Oct: the glow down the road, the lock
+    lifting, the halo. React pattern: lazy initial state. useState runs the
+    function once, on mount, so it is read when the student returns to the
+    path and not on every render; readCelebration marks it seen at once, so a
+    reload never replays it. Cleared after it has played (the effect below).
+  */
+  const [celebrate, setCelebrate] = useState<Celebration | null>(() => readCelebration(PATHWAY_UNITS, journal, browserStorage()));
+  /* The unit it played on, kept after the celebration ends (useState with no
+     setter: fixed at mount), so the page does not jump back to START's unit. */
+  const [landedUnit] = useState(() => celebrate?.unitId ?? null);
 
   // The frontier: the last unit the gates have opened. `reachable` is a
   // prefix property (pathwayState.ts flips it once, at the first unfinished
@@ -1724,9 +1806,12 @@ function OrgoMapTrack({
   // unreachable unit; what the page loses is the way onward, and it says so.
   // Looking is not continuing, so the swipe and the arrow keys still stop at
   // the frontier (see nextOpen below) and the rail is the browse affordance.
-  // Unlock SEMANTICS are untouched: pathwayState.ts still decides what is
-  // locked, and pathwayUnlock.test.ts still pins it.
-  const index = requestedAt === -1 ? (activeAt === -1 ? frontier : activeAt) : requestedAt;
+  // Since 23 Oct no unit is unreachable (sectionStarts.ts lays open section
+  // starts over pathwayState.ts), so a browsed unit is never read only.
+  // A celebration opens on its own unit: a student who cleared a Unit 5
+  // lesson comes back to Unit 5, not to the unit START stands in.
+  const celebratedAt = landedUnit === null ? -1 : PATHWAY_UNITS.findIndex((entry) => entry.id === landedUnit);
+  const index = requestedAt !== -1 ? requestedAt : celebratedAt !== -1 ? celebratedAt : activeAt === -1 ? frontier : activeAt;
 
   const plan = plans[index]!;
   const { unit, shape } = plan;
@@ -1932,18 +2017,48 @@ function OrgoMapTrack({
     window.scrollTo(0, 0);
   }, [unit.id, requested]);
 
+  /*
+    Bring the celebrated node to the middle of the screen, after the layout
+    effect above has placed the page, then end the celebration once it has
+    played (2.6s, the length of the longest keyframe), so a later re-measure
+    or re-render never plays it again.
+  */
+  useEffect(() => {
+    if (celebrate === null) return;
+    /* On the next task, not now: the shell's own effects run after this one
+       (a parent's effects follow its children's) and put a new route at the
+       top of the page, which would undo this scroll. Instant rather than
+       smooth, so the glow is on screen from its first frame. */
+    const place = window.setTimeout(() => {
+      const target = surfaceRef.current?.querySelector<HTMLElement>(`[data-road-id="${celebrate.to}"]`) ?? null;
+      if (target !== null && typeof target.scrollIntoView === "function") target.scrollIntoView({ block: "center" });
+    }, 0);
+    const done = window.setTimeout(() => setCelebrate(null), UNLOCK_MS);
+    return () => {
+      window.clearTimeout(place);
+      window.clearTimeout(done);
+    };
+  }, [celebrate]);
+  // Only on the celebrated unit's page: browsing elsewhere shows nothing.
+  const glow = celebrate !== null && celebrate.unitId === unit.id ? celebrate : null;
+
   /* One chip's props for a map node, shared by the road and the side lane,
      so the two cannot draw one node two ways. */
   const chipFor = (node: MapNode) => {
     const nodeStatus = statusOf(status, node.id);
     const playable = node.playable;
     const clickable = playable !== undefined && nodeStatus.state !== "locked";
-    /* A lesson shut inside an open unit is shut by the lesson before it on
-       the line (pathwayState.ts), so it names that lesson rather than saying
-       the unit-gate sentence, which would send the student backwards. Only
-       the nearest one: on a line, the ones before it are implied. In a shut
-       unit it names the unit to finish. */
-    const waits = gateLocked ? [] : waitingOn(status, unit, node);
+    /* A lesson shut inside an open unit is shut by the stop before it in its
+       own section (sectionStarts.ts), so it names that stop rather than the
+       unit-gate sentence, which would send the student backwards. Only the
+       nearest one: on a line, the ones before it are implied. A side quest
+       names its own prerequisite (waitingOn). */
+    const inSection = sectionWaits(unit, node.id);
+    const waits = gateLocked
+      ? []
+      : inSection === null
+        ? waitingOn(status, unit, node)
+        : inSection.filter((id) => !cleared.has(id));
     /* The review stop holding it: the live gate once its lesson is cleared,
        or, before that, the uncleared review between it and its nearest wait
        (reviewHolding), so a fresh profile reads the same rule. */
@@ -2028,6 +2143,8 @@ function OrgoMapTrack({
     return (
       <TrackSlab
         key={row.node.id}
+        roadId={row.node.id}
+        unlock={glow?.to === row.node.id}
         state={chip.state}
         label={row.node.title}
         detail={`${chip.detail}${opens}`}
@@ -2082,6 +2199,8 @@ function OrgoMapTrack({
     return (
       <TrackSlab
         key={review.id}
+        roadId={review.id}
+        unlock={glow?.to === review.id}
         state={state}
         label={review.title}
         detail={open ? `Concept check. ${review.blurb}` : `Concept check. ${lockedNote}`}
@@ -2307,7 +2426,7 @@ function OrgoMapTrack({
           return (
             <div key={section.number} className="path-section mx-auto flex w-full max-w-md flex-col" role="group" aria-labelledby={headingId}>
               <SectionDivider id={headingId} eyebrow={`Section ${section.number}`} title={section.title} />
-              <RoadLine version={roadVersion} />
+              <RoadLine version={roadVersion} glow={reducedMotion ? null : glow} />
               <ol className="path-track flex w-full flex-col">
                 {section.stops.map((stop) => stop.item)}
                 {chestId !== null ? (
@@ -2380,7 +2499,7 @@ function OrgoMapTrack({
         */}
         <div className="path-gate mx-auto flex w-full max-w-md flex-col" role="group" aria-label="Unit gate">
           <SectionDivider id={`path-sec-${unit.id}-review`} eyebrow="Unit review" title={`${unitNumber(unit.title)} checkpoint`} />
-          <RoadLine version={roadVersion} />
+          <RoadLine version={roadVersion} glow={reducedMotion ? null : glow} />
           <ol className="path-track flex w-full flex-col" aria-label="Unit checkpoint">
             {[...plan.gateRun, plan.check].map((row) => {
               const nodeStatus = statusOf(status, row.node.id);
@@ -2389,7 +2508,8 @@ function OrgoMapTrack({
               const clickable = playable !== undefined && !locked;
               const href = clickable && playable !== undefined ? hrefForPlayable(playable) : null;
               const isCheck = row === plan.check;
-              const waitsForLessons = isCheck && locked && !gateLocked && !nodeStatus.queued;
+              // Every unit is reachable now (sectionStarts.ts), so a shut check waits only for its own unit's lessons.
+              const waitsForLessons = isCheck && locked && !nodeStatus.queued;
               const checkWaitNote = checkWaits(status.units.get(unit.id)?.playable ?? 0);
               const place = places.get(row.node.id) ?? null;
               /* A check over nothing written says so, and says it once: the
@@ -2420,6 +2540,8 @@ function OrgoMapTrack({
               return (
                 <TrackSlab
                   key={row.node.id}
+                  roadId={row.node.id}
+                  unlock={glow?.to === row.node.id}
                   state={nodeStatus.state}
                   label={row.node.title}
                   detail={detail}
@@ -2536,28 +2658,11 @@ export default function PathwayTab({ reducedMotion }: { readonly reducedMotion: 
   };
   const nodes = useMemo(() => (course === null ? [] : derivePathway(course, snapshot)), [course, snapshot]);
   const units = useMemo(() => (course === null ? [] : groupIntoUnits(course, nodes)), [course, nodes]);
-  const clearedIds = useMemo(
-    // Opened chests ride in the same set (chest ids are never map nodes, so
-    // the gates ignore them); a chest opened before chest_opened existed was
-    // journalled as a node clear, and that still counts as open.
-    () =>
-      new Set(
-        snapshot.journal.flatMap((event) =>
-          event.kind === "node_cleared"
-            ? [event.nodeId]
-            : event.kind === "chest_opened"
-              ? [event.chestId]
-              : // A passed test-out (testOuts.ts) lights its lessons and review stops.
-                event.kind === "tested_out"
-                ? event.nodeIds
-                : [],
-        ),
-      ),
-    [snapshot.journal],
-  );
+  // Opened chests and test-out passes ride in the same set (sectionStarts.ts clearedIdsOf).
+  const clearedIds = useMemo(() => clearedIdsOf(snapshot.journal), [snapshot.journal]);
   const passedIds = useMemo(() => passedTests(snapshot.journal), [snapshot.journal]);
-  // The map's own unlock rule, then the review stops laid over it (reviewCheckpoints.ts).
-  const gated = useMemo(() => withReviewGates(PATHWAY_UNITS, deriveMapPathway(PATHWAY_UNITS, snapshot.journal), clearedIds), [snapshot.journal, clearedIds]);
+  // Every layer of the unlock rule in order: the map's own, the review stops, then the open section starts (sectionStarts.ts).
+  const gated = useMemo(() => pathStatus(PATHWAY_UNITS, snapshot.journal, clearedIds), [snapshot.journal, clearedIds]);
   const mapStatus = gated.status;
 
   if (course === null) return <CoursePicker />;
@@ -2622,6 +2727,7 @@ export default function PathwayTab({ reducedMotion }: { readonly reducedMotion: 
           gatedBy={gated.gatedBy}
           cleared={clearedIds}
           passed={passedIds}
+          journal={snapshot.journal}
           reducedMotion={reducedMotion}
         />
       ) : (

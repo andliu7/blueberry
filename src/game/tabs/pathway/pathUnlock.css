@@ -1,0 +1,253 @@
+/*
+ * The unlock celebration on the path (PathwayTab.tsx, unlockCelebration.ts).
+ * Its own file, beside pathway.css, the way pathStars.css and path-mascot.css
+ * are: pathwayRowLanes.test.ts pins pathway.css's own animation inventory,
+ * and test/pathUnlockMotion.test.ts pins this one to the same discipline
+ * (transform and opacity only, declared only under no-preference). The two
+ * colour tokens it reads, --path-unlock-glow and --path-unlock-halo, sit with
+ * the road's tokens in pathway.css, light and dark.
+ *
+ * THE UNLOCK, owner 23 Oct: "a green glow follows the path down to the next
+ * button and that one has a lock unlocking animation and then has a bright
+ * glow and slight celebration (not confetti)". Plays once, on the first
+ * return to the path after a clear (unlockCelebration.ts). Every keyframe
+ * moves only transform and opacity, so the compositor runs it off the main
+ * thread; test/pathUnlockMotion.test.ts pins that.
+ *
+ *   0.15s to 0.75s  the glow fills the leg to the next stop (.path-road__glow)
+ *   0.75s           the padlock's shackle lifts
+ *   0.95s to 1.15s  the padlock fades and shrinks away
+ *   1.05s to 1.45s  the chip bounces, the halo blooms, the sparkle ring opens
+ *   by 2.4s         the halo has settled back to the chip's own glow
+ */
+/*
+ * THE STILL FRAME COMES FIRST: outside any media block, every part sits in the
+ * reduced-motion end state (no glow, no padlock, no sparks, a soft halo at
+ * 0.6), and the motion is declared only inside the no-preference block below,
+ * so it never runs when the OS asks for less. The in-app setting is answered
+ * by .path-unlock--still. Under either, the halo holds still at 0.6 until the
+ * celebration ends (2.6s) and the chip goes back to its own face.
+ */
+.path-road__glow {
+  position: absolute;
+  z-index: 0;
+  display: none;
+  height: 6px;
+  margin-top: -3px;
+  transform-origin: 0 50%;
+  pointer-events: none;
+}
+.path-road__glow-bar {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: var(--path-road-walked);
+  box-shadow: 0 0 10px 2px var(--path-unlock-halo);
+  transform-origin: 0 50%;
+}
+.path-road__glow-head {
+  position: absolute;
+  left: -6px;
+  top: -3px;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: var(--path-unlock-glow);
+  box-shadow: 0 0 14px 6px var(--path-unlock-halo);
+  opacity: 0;
+}
+/* Off, the wrapper is not a box at all, so the slab RoadLine measures is unchanged. */
+.path-unlock-off {
+  display: contents;
+}
+.path-unlock {
+  position: relative;
+  display: block;
+  isolation: isolate;
+}
+.path-unlock__fx {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+.path-unlock__halo {
+  position: absolute;
+  inset: -14px;
+  border-radius: 999px;
+  background: radial-gradient(closest-side, var(--path-unlock-halo), transparent);
+  opacity: 0.6;
+}
+.path-unlock__ring {
+  position: absolute;
+  left: 50%;
+  top: 2.2rem;
+  display: none;
+}
+.path-unlock__spark {
+  position: absolute;
+  left: -4px;
+  top: -4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--path-unlock-glow);
+  box-shadow: 0 0 6px 1px var(--path-unlock-halo);
+  opacity: 0;
+}
+.path-unlock__lock {
+  position: absolute;
+  left: 50%;
+  top: 2rem;
+  z-index: 2;
+  display: none;
+  width: 34px;
+  height: 34px;
+  margin: -17px 0 0 -17px;
+  padding: 6px;
+  border-radius: 999px;
+  background: var(--bb-background);
+  border: 2px solid var(--path-road-line);
+  fill: var(--path-road-line);
+  stroke: var(--path-road-line);
+  pointer-events: none;
+}
+.path-unlock__lock rect {
+  stroke: none;
+}
+.path-unlock__shackle {
+  transform-box: fill-box;
+  transform-origin: 100% 100%;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .path-road__glow {
+    display: block;
+  }
+  .path-road__glow-bar {
+    transform: scaleX(0);
+    animation: path-unlock-fill 0.6s ease-in-out 0.15s forwards;
+  }
+  .path-road__glow-head {
+    animation: path-unlock-travel 0.75s ease-in-out 0.1s forwards;
+  }
+  .path-unlock {
+    animation: path-unlock-bounce 0.4s ease-out 1.05s both;
+  }
+  .path-unlock__halo {
+    opacity: 0;
+    animation: path-unlock-halo 1.35s ease-out 1.05s both;
+  }
+  .path-unlock__ring {
+    display: block;
+  }
+  .path-unlock__spark {
+    transform: rotate(calc(var(--n) * 45deg)) translateY(-2.6rem) scale(0.4);
+    animation: path-unlock-spark 0.8s ease-out 1.1s both;
+  }
+  .path-unlock__lock {
+    display: block;
+    animation: path-unlock-lock 0.2s ease-in 0.95s both;
+  }
+  .path-unlock__shackle {
+    animation: path-unlock-shackle 0.2s ease-out 0.75s both;
+  }
+  /* THE IN-APP REDUCE SETTING (the reducedMotion prop): back to the still frame. */
+  .path-unlock--still,
+  .path-unlock--still .path-unlock__halo {
+    animation: none;
+  }
+  .path-unlock--still .path-unlock__halo {
+    opacity: 0.6;
+  }
+  .path-unlock--still .path-unlock__lock,
+  .path-unlock--still .path-unlock__ring {
+    display: none;
+  }
+  @keyframes path-unlock-fill {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+  @keyframes path-unlock-travel {
+    0% {
+      opacity: 0;
+      transform: translateX(0);
+    }
+    10% {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    85% {
+      opacity: 1;
+      transform: translateX(var(--len));
+    }
+    100% {
+      opacity: 0;
+      transform: translateX(var(--len));
+    }
+  }
+  @keyframes path-unlock-shackle {
+    from {
+      transform: none;
+    }
+    to {
+      transform: translateY(-5px) rotate(-14deg);
+    }
+  }
+  @keyframes path-unlock-lock {
+    from {
+      opacity: 1;
+      transform: scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+  }
+  @keyframes path-unlock-bounce {
+    0% {
+      transform: scale(1);
+    }
+    40% {
+      transform: scale(1.12);
+    }
+    75% {
+      transform: scale(0.96);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+  /* The bloom, settling back to nothing: the chip's own glow is what stays. */
+  @keyframes path-unlock-halo {
+    0% {
+      opacity: 0;
+      transform: scale(0.7);
+    }
+    30% {
+      opacity: 0.9;
+      transform: scale(1.15);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(1);
+    }
+  }
+  /* Out and gone: no fall, no gravity, so it is a ring and not confetti. */
+  @keyframes path-unlock-spark {
+    0% {
+      opacity: 0;
+      transform: rotate(calc(var(--n) * 45deg)) translateY(-2.6rem) scale(0.4);
+    }
+    30% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+      transform: rotate(calc(var(--n) * 45deg)) translateY(-3.6rem) scale(1);
+    }
+  }
+}

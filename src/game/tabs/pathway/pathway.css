@@ -2042,6 +2042,10 @@
      it the main line. */
   --path-road-line: #c4c4c4; /* neutral grey like the locked chips ahead, A1 r5 */
   --path-road-walked: #58a838;
+  /* The unlock (.path-unlock, .path-road__glow): a brighter green for the
+     travelling head and the arrival halo, so it reads as light on the walked road. */
+  --path-unlock-glow: #7ee04f;
+  --path-unlock-halo: rgb(126 224 79 / 0.55);
   /*
    * THE --path-trail-* FAMILY IS DELETED, owner 2026-09-23: "even get rid of
    * the path connections. just give it a glow." The road's rest and detour colours, the
@@ -2101,6 +2105,8 @@
   --path-branch-trail: #737aa8;
   --path-road-line: #455862; /* neutral, as the locked chips, A1 r5 */
   --path-road-walked: #3d7d27;
+  --path-unlock-glow: #8af05a;
+  --path-unlock-halo: rgb(138 240 90 / 0.42);
 }
 
 

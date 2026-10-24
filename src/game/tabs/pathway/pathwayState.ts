@@ -63,6 +63,11 @@ const REVIEW_ACCURACY = 0.75;
  *     or, with none, for every main-line lesson authored before it.
  *
  * Review counts as cleared: the lesson was finished, just not at the bar.
+ *
+ * WHAT THE STUDENT SEES IS LOOSER, owner 23 Oct: sectionStarts.ts lays an
+ * open start on every section over this rule (and over the review stops),
+ * so a lesson waits only for the stops before it in its own section. This
+ * file's stricter rule stays as the base layer, and its tests pin it.
  */
 
 /** What a node waits for, by id: see the policy above. Pure over the unit. */
