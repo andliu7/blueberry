@@ -456,7 +456,8 @@ create policy "tutor_ratings_select_party_or_staff"
   );
 
 -- A referral is a student's address a tutor brought in. It only counts toward
--- the raise once that student has completed a session (tutor_stats).
+-- the raise once that student, new to tutoring when referred, has completed a
+-- session after it (tutor_stats).
 create table public.tutor_referrals (
   id              uuid primary key default gen_random_uuid(),
   tutor_id        uuid not null default public.current_tutor_id() references public.tutors (id),
@@ -560,7 +561,10 @@ create trigger tutor_ledger_stamp_paid
 --              least min_avg_rating times their count (sums, never a rounded
 --              average, so 4.45 cannot round its way past 4.5)
 --   lessons    completed sessions that ended before p_at
---   referrals  referred addresses whose account completed a session before p_at
+--   referrals  referred addresses whose account completed a session that ended
+--              after the referral was written and before p_at, and that had
+--              booked no tutoring at all before the referral (so typing in a
+--              student someone already teaches credits nothing)
 --
 -- All four: raised_rate_cents. Otherwise base_rate_cents.
 
@@ -594,7 +598,14 @@ as $$
           join public.tutor_bookings b on b.student_id = p.id
           where lower(p.email) = f.referred_email
             and b.status = 'completed'
+            and b.ends_at > f.created_at
             and b.ends_at < p_at
+            -- New to tutoring when referred: no booking of any status, with
+            -- any tutor, made before the referral row.
+            and not exists (
+              select 1 from public.tutor_bookings b0
+              where b0.student_id = p.id and b0.created_at < f.created_at
+            )
         ))
   from public.tutors t
   cross join public.tutor_pay_rules r

@@ -486,7 +486,7 @@ function ReferralList({ tutorId, onMessage }: { tutorId: string; onMessage: (m: 
         Students you referred
       </h3>
       <p className="text-sm text-[var(--site-quiet)]">
-        Add the address a student signs in with. It counts toward your raise once they finish a session with any tutor.
+        Add the address a student signs in with. Add them before they book: it counts toward your raise once they finish a session with any tutor, and a student who had already booked tutoring does not count.
       </p>
       <form
         className="flex flex-wrap items-end gap-3"

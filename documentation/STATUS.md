@@ -229,6 +229,23 @@ Tutoring (business test 1)
     still $25 and the 21st is the first $30; right? (c) referrals are addresses a tutor enters on
     their desk, credited once that student completes any session; is that the referral you meant?
     (d) cancellations have no cutoff (any time before the start); want a 24-hour rule?
+  - tutoring fix round 24 Oct: a referral no longer pays for typing in a student who is already
+    taught. tutor_stats now credits a referred address only if that student had booked no
+    tutoring at all (any tutor, any status) before the referral row, and the completed session
+    ends after the referral. created_at on tutor_referrals is not client-writable (insert grant
+    is referred_email only), so it cannot be backdated. New rls-test case (an active student
+    typed in as a referral, not credited) fails on the old function and passes on the new one;
+    all 19 tutoring checks and office_hours.sql pass locally. Payload on a clean checkout of HEAD:
+    399.3 KB total gz, 399.1 KB before the tutoring commit (+0.2 KB, the lazy route entry); the
+    341.8 figure in the run brief is stale for this harness. OWNER: the migration file changed
+    before it was ever applied, so apply 20261024120000_tutoring.sql as it stands now.
+    More owner questions: (e) the tutor alone marks a session done, which writes a ledger row
+    with no student confirmation, so a no-show can be billed as completed; fine while you pay by
+    hand, or should the student confirm (or only staff)? (f) a deactivated tutor loses all
+    access, including reading their own ledger, and their future booked sessions stay booked
+    with nobody told; staff also cannot edit a mistyped invite email (deactivate and invite
+    again). Change either? (g) "exceptions" are time off only; a tutor cannot add a one-off
+    extra hour outside the weekly pattern. Want extra hours too?
 - T2 Admin view for the owner and TAs (roster already makes Kai, Ryan Rathbun and V. Wedekin admin;
   Ryan and V. have no account yet and become admin on first sign-in): preview + edit, tutor testing,
   watch test accounts complete lessons.

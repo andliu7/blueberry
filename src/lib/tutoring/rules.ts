@@ -41,7 +41,7 @@ export interface TutorStats {
   ratingCount: number;
   /** Completed sessions that ended before the instant. */
   lessons: number;
-  /** Referred students who completed a session before the instant. */
+  /** Referred students, new to tutoring when referred, who then completed a session before the instant. */
   referrals: number;
 }
 

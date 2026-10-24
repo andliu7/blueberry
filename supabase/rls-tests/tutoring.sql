@@ -25,11 +25,14 @@
 begin;
 
 -- The test tutor: the seed's new tutor, given every hour of every day inside
--- this transaction so any future hour is bookable. The slot is two days out,
--- on the hour (UTC hours are whole hours in New York too).
+-- this transaction so any future hour is bookable. The slot is 01:00 UTC two
+-- days from today (UTC hours are whole hours in New York too). The seed books
+-- this tutor's real hours, 17:00 to 23:00 UTC, so the checks below, which reach
+-- up to 7 hours past the slot and a day after it, never land on a seeded
+-- session whatever time of day the test runs.
 do $$
 begin
-  perform set_config('test.slot', (date_trunc('hour', now()) + interval '2 days')::text, true);
+  perform set_config('test.slot', (date_trunc('day', now()) + interval '2 days 1 hour')::text, true);
   perform set_config('test.tutor', (select id::text from public.tutors where email = 'tutor.new@test.local'), true);
   perform set_config('test.full', (select id::text from public.tutors where email = 'tutor.full@test.local'), true);
 end $$;
@@ -66,6 +69,19 @@ begin
   if (select l.rate_cents from public.tutor_ledger l
       where l.tutor_id = current_setting('test.full')::uuid and l.session_ends_at = '2026-11-03T18:00:00Z') <> 3000 then
     raise exception 'FAIL 1: the full tutor''s next session was not priced 3000';
+  end if;
+  -- A referral of a student who was already booking is not a referral. The
+  -- referrals1 tutor types in student03, taught since late July (lessons 2, 8,
+  -- 14, 20), and the Aug 14 session ends after the referral and before AT. It
+  -- must not be credited, or this tutor would reach 2 referrals and $30.
+  insert into public.tutor_referrals (tutor_id, referred_email, created_at)
+  select tu.id, 'student03@test.local', '2026-08-10T00:00:00Z'
+  from public.tutors tu where tu.email = 'tutor.referrals1@test.local';
+  if public.tutor_rate_cents((select id from public.tutors where email = 'tutor.referrals1@test.local'), at) <> 2500 then
+    raise exception 'FAIL 1: referring an already active student counted toward the raise';
+  end if;
+  if (public.tutor_rate_basis((select id from public.tutors where email = 'tutor.referrals1@test.local'), at) ->> 'referrals')::int <> 1 then
+    raise exception 'FAIL 1: the referrals1 tutor should still have exactly 1 credited referral';
   end if;
   -- Admin-edited benchmarks move the line: 21 lessons needed, the full tutor drops.
   update public.tutor_pay_rules set min_lessons = 21;
