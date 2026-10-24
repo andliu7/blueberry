@@ -140,8 +140,10 @@ Tutoring (business test 1)
 - T1 Tutoring end to end, testable with seeded model cases: bring a tutor in, the tutor sets
   availability, students book specific slots, the tutor is paid per booked session, and the tutor
   sees a short questionnaire about the student. Today tutoring still runs on Apps Script; this needs
-  Supabase tables + RLS and Stripe (money server side). OWNER: how tutors get paid (Stripe Connect
-  payouts, or a ledger paid by hand) and the rate.
+  Supabase tables + RLS and Stripe (money server side). DECIDED 23 Oct: a ledger paid by hand
+  (site records hours and what is owed, owner pays and marks paid). $25/hour, $30/hour once a
+  tutor has 6 months (a semester), good ratings, a minimum number of lessons and referrals (easy
+  benchmarks; admin-editable numbers).
 - T2 Admin view for the owner and TAs (roster already makes Kai, Ryan Rathbun and V. Wedekin admin;
   Ryan and V. have no account yet and become admin on first sign-in): preview + edit, tutor testing,
   watch test accounts complete lessons.
@@ -149,7 +151,7 @@ Course (business test 2)
 - C1 Syllabus import: paste an Orgo II syllabus, reorder units/lessons to its schedule, adjustable by
   hand afterwards (the site already has an Apps Script syllabus PDF import for the calendar).
 - C2 pKa sheet paste updates the site's pKa values, with visible feedback on what changed.
-  OWNER: everyone's values (admin only) or a student's own sheet?
+  DECIDED 23 Oct: a student's own values only.
 - C3 Problem sets, Khan Academy style: small sets with a celebration each, split a pasted set into
   parts, suggest similar problems from the database.
 - C4 Lesson confidence: a student rates a lesson; "too easy" raises the difficulty. Needs a design.
@@ -162,8 +164,18 @@ Feed and accounts
 - F1 Brainstorm the feed (show options first), plus a feed view in admin to test with the TA.
 - A1 Lessons tracked on the account (server-side progress, table + RLS; today progress lives in
   localStorage only) and a reminder to sign in to save progress.
-- A2 BUG (owner): only the first lesson can be opened. Reproduce first: live site or local, signed
-  in or out, which unit.
+- A2 REPLACED 23 Oct by a rule: the first lesson of every section in every unit is open, so a
+  student can start anywhere; only the lessons after it are gated. Completing a lesson plays a
+  green glow down the path to the next node, a lock-unlocking animation, a bright glow and a
+  small celebration (no confetti; reference Duolingo and others on Mobbin).
+Sign-in, Pro, paywalls, ads (owner, 23 Oct)
+- G1 Sign-in before anything: #/app sends a signed-out visitor to a sign-in page with a Pro
+  suggestion (owner chose this over lesson-first after the trade-off was raised). The admin viewer
+  gets a sign-in CTA too.
+- G2 Stripe for Pro now, gated so only staff can test it (server side), Stripe test mode.
+- G3 Paywalls after value: after the first completed lesson, then intermittent reminders like
+  Duolingo.
+- G4 Ads from a real ad network, easy to remove (Pro removes them), consent first.
 
 **Progress, 22 Oct (Wave 3 item 12 = evening brief items 1+2: test-outs)**
 - Every section chest of units 1-10 offers a test-out (10 to 15 questions, longer each section);
