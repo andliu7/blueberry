@@ -28,6 +28,7 @@ import { U1_POOLS, mergePools } from "../content/u1";
 import type { PoolEntry } from "../content/u1/types";
 import { U5_OPTION_TILES, U5_POOLS, U5_SORT_FIGURES, U5_UNWIRED, U5_VISUALS } from "../content/u5";
 import { checkpointNodeId, pathwayNode } from "../demo/pathwayMap";
+import { TRAINER_SEQUENCES } from "../demo/sequences";
 import { FIGURE_HEIGHT, FIGURE_WIDTH, type Figure } from "../onboarding/figures";
 
 /** Eighteen lessons of MCQs: all eleven spine nodes and seven of the eight side quests (u5-sharpless has none). */
@@ -305,5 +306,28 @@ describe("u5 drawings", () => {
         expect((caption ?? "").toLowerCase().includes(right), `${beat.id}: caption "${caption}" names the answer`).toBe(false);
       }
     }
+  });
+});
+
+describe("the dehydration lesson plays acid E1, not hydroxide E2 (audit 23 Oct, top-25 #20)", () => {
+  const seq = TRAINER_SEQUENCES.find((entry) => entry.id === "seq-acid-dehydration");
+
+  it("links u5-dehydration to the three-step acid sequence", () => {
+    expect(pathwayNode("u5-dehydration")?.playable).toEqual({ kind: "sequence", id: "seq-acid-dehydration" });
+    expect(seq?.steps.map((s) => s.step.identity.elementaryStep)).toEqual(["proton_transfer", "leaving_group_departure", "proton_transfer"]);
+  });
+
+  it("ends on the Zaitsev alkene: the CH2 carbon loses its H and joins the cation carbon", () => {
+    const last = seq?.steps[2]?.step;
+    const product = last?.to.members.find((member) => member.role === "product")?.species;
+    const double = product?.bonds.filter((bond) => bond.order === 2) ?? [];
+    expect(double.map((bond) => [bond.a, bond.b])).toEqual([["ca", "cb"]]);
+    expect(product?.atoms.find((atom) => atom.id === "cb")?.implicitHydrogens).toBe(1);
+  });
+
+  it("plays the meet and the MCQs before the mechanism", () => {
+    const slots = planLesson("u5-dehydration")?.steps.map((step) => step.slot) ?? [];
+    expect(slots[slots.length - 1]).toBe("produce");
+    expect(slots).toContain("recognise");
   });
 });

@@ -263,7 +263,7 @@ export const PATHWAY_UNITS: readonly PathwayUnit[] = [
     nodes: [
       { id: "u5-roh-rx", kind: "spine", title: "Alcohol → alkyl halide", blurb: "SOCl₂, PBr₃, HX; inversion where it matters.", playable: { kind: "sequence", id: "seq-roh-hbr" } },
       { id: "u5-tosylate", kind: "spine", title: "Tosylate / mesylate", blurb: "Bad LG to good LG with retention.", playable: { kind: "sequence", id: "seq-mesylate" } },
-      { id: "u5-dehydration", kind: "spine", title: "Dehydration", blurb: "H₂SO₄ Δ (E1, Zaitsev) or POCl₃/pyridine (E2).", playable: { kind: "reaction", id: "e2" } },
+      { id: "u5-dehydration", kind: "spine", title: "Dehydration", blurb: "H₂SO₄ Δ (E1, Zaitsev) or POCl₃/pyridine (E2).", playable: { kind: "sequence", id: "seq-acid-dehydration" } },
       { id: "u5-oxidation", kind: "spine", title: "Oxidation ladder", blurb: "PCC to aldehyde, Jones to acid, 3° no reaction.", playable: { kind: "beat", id: "u5-oxidation" } },
       { id: "u5-williamson", kind: "spine", title: "Williamson ether synthesis", blurb: "Alkoxide + 1° halide, SN2.", playable: { kind: "reaction", id: "williamson" } },
       { id: "u5-protecting", kind: "spine", title: "Protecting-group logic", blurb: "Silyl ethers, benzyl, THP: orthogonality.", playable: { kind: "beat", id: "u5-protecting" } },
@@ -289,7 +289,9 @@ export const PATHWAY_UNITS: readonly PathwayUnit[] = [
     note: "Parallel track: one node injected into every downstream problem.",
     nodes: [
       // Unit 6 DRAFT wiring (2026-10-17): each node with a pool from scripts/u6_pools.py plays its lesson on the beat
-      // route; kind stays "gate" as Unit 2 does. u6-ir has no pool (IR band values are not derivable; see the u6 owner report).
+      // route; kind stays "gate" as Unit 2 does. u6-ir has no link yet: its board (boards.ts) and six
+      // MCQs (U6_IR_HELD, band numbers cited from OpenStax) wait for the owner's sign-off. Going live is
+      // `playable: { kind: "beat", id: "u6-ir" }` here plus moving the held items into U6_POOLS in scripts/u6_pools.py.
       { id: "u6-dou", kind: "gate", title: "Degrees of unsaturation", blurb: "Cheapest information in the problem.", playable: { kind: "beat", id: "u6-dou" } },
       { id: "u6-ir", kind: "gate", title: "IR diagnostics", blurb: "C=O ≈ 1700 and its shifts; O–H broad; C≡N ≈ 2250." },
       { id: "u6-hnmr", kind: "gate", title: "¹H NMR", blurb: "Shift, integration, multiplicity, J.", playable: { kind: "beat", id: "u6-hnmr" } },

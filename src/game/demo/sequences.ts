@@ -30,6 +30,7 @@ import type { StepFork } from "../tabs/trainer/engine/question";
 import { GILMAN_SEQUENCES } from "./forks/gilman";
 import { GRIGNARD_ACID_SEQUENCES } from "./forks/grignardAcid";
 import { BENZYLIC_SEQUENCES } from "./forks/benzylic";
+import { ACID_DEHYDRATION_SEQUENCE } from "./acidDehydration";
 
 export interface TrainerSequence {
   readonly id: string;
@@ -7459,4 +7460,6 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
   ...GILMAN_SEQUENCES,
   ...GRIGNARD_ACID_SEQUENCES,
   ...BENZYLIC_SEQUENCES,
+  // Unit 5 spine: E1 dehydration of 2-methylbutan-2-ol, in its own module.
+  ACID_DEHYDRATION_SEQUENCE,
 ];
