@@ -88,7 +88,7 @@ import { useEffect, useRef, type ReactNode } from "react";
 
 import { Berry } from "../../mascot/Berry";
 import { ChipPress } from "../ChipPress";
-import { type MasteryLevel, type McqBeat } from "../types";
+import { canFail, type MasteryLevel, type McqBeat } from "../types";
 import { ExitMark, FlagMark } from "../chromeIcons";
 import { LessonBar } from "../LessonBar";
 import { ToolRail } from "../../app/ui/ToolRail";
@@ -336,10 +336,15 @@ export function McqBeatView({
           // explanation panel underneath. Measured after grading: the third
           // tile drew across the reveal text.
           <ul className="option-tiles shrink-0" role="group" aria-label="Answer options">
-            {beat.options.map((option) => {
+            {beat.options.map((option, index) => {
               const isAnswer = option.id === beat.correctOptionId;
               const isSelected = selectedId === option.id;
               const tile = tiles[option.id] as NonNullable<(typeof tiles)[string]>;
+              // A graded question shows A, B, C under the drawings until Check,
+              // then the names: "Pick the thiol" over a tile captioned
+              // "ethanethiol" was answered by reading (audit 23 Oct, top-25 #11).
+              // A first meeting cannot fail, so it keeps its names to teach with.
+              const named = answered || !canFail(level);
               return (
                 <li key={option.id}>
                   <button
@@ -357,8 +362,11 @@ export function McqBeatView({
                         wording still reaches a screen reader, because the
                         caption is a short name and the option is a sentence. */}
                     <span className="option-tile__caption" aria-hidden>
-                      {tile.name ?? option.text}
+                      {named ? (tile.name ?? option.text) : String.fromCharCode(65 + index)}
                     </span>
+                    {/* Kept for a screen reader even before Check: without a
+                        name, a drawing is no option at all to a student who
+                        cannot see it. */}
                     <span className="sr-only">{option.text}</span>
                     <OptionMark state={optionState(answered, isAnswer, isSelected)} />
                   </button>
