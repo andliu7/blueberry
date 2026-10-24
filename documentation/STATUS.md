@@ -215,6 +215,32 @@ Sign-in, Pro, paywalls, ads (owner, 23 Oct)
     further? Pro is there when you want it." (3) The game's onboarding funnel (#/start then #/app)
     now meets sign-in on its way into the app; say if the funnel should ask earlier.
 - G2 Stripe for Pro now, gated so only staff can test it (server side), Stripe test mode.
+  DONE 23 Oct in 3e58e81: Pro checkout gated server side (stripe-checkout refuses non-staff while
+  PRO_CHECKOUT_OPEN is not "true", and refuses sk_live_ keys while shut); staff see Test checkout,
+  everyone else Pro is coming soon; return URL fixed to #/d/subscriptions. No new migration (the
+  billing migration already denies clients any write on entitlements). Payload unchanged by this
+  item (#/app first open 398.4 KB, billing is dashboard only). Owner: run the OWNER STEPS below
+  (also in documentation/STRIPE.md, "Staff-only test gate").
+  OWNER STEPS:
+  1. Check the billing migration is applied: `npx supabase migration list`; if
+     20260907120000_billing is missing remotely, `npx supabase db push`.
+  2. Stripe dashboard in TEST mode: create product "Blueberry Pro" with a monthly price (and a
+     yearly one if wanted) and "Semester pass" with a one-time price; copy the price_... ids.
+  3. `npx supabase secrets set STRIPE_SECRET_KEY=sk_test_... STRIPE_PRICE_PRO_MONTHLY=price_... STRIPE_PRICE_PRO_YEARLY=price_... STRIPE_PRICE_SEMESTER_PASS=price_... SEMESTER_PASS_ENDS_ON=2026-12-20 SITE_URL=https://andliu7.github.io/blueberry`
+     (leave PRO_CHECKOUT_OPEN unset; that is the gate).
+  4. Deploy: `npx supabase functions deploy stripe-checkout --use-api`,
+     `npx supabase functions deploy stripe-prices --use-api --no-verify-jwt`, and stripe-webhook
+     (`--no-verify-jwt`) and stripe-portal if they were never deployed.
+  5. Stripe test-mode webhook endpoint
+     https://kwoqzfvssoxxuvlzzhrp.supabase.co/functions/v1/stripe-webhook with events
+     checkout.session.completed and customer.subscription.created/updated/deleted; then
+     `npx supabase secrets set STRIPE_WEBHOOK_SECRET=whsec_...`.
+  6. Test: sign in as owner, #/d/subscriptions, Test checkout (staff only), card
+     4242 4242 4242 4242, any future expiry, any CVC. Expect a webhook 200, one entitlements row,
+     the Current badge on Pro. Check that a non-staff account sees "Pro is coming soon", and that
+     calling stripe-checkout with a student token returns 403 checkout-closed.
+  7. Going public later = set PRO_CHECKOUT_OPEN=true and switch to live keys, once the copyright
+     question in STRIPE.md is settled. Owner decision, not part of this build.
 - G3 Paywalls after value: after the first completed lesson, then intermittent reminders like
   Duolingo.
 - G4 Ads from a real ad network, easy to remove (Pro removes them), consent first.
