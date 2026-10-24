@@ -16,8 +16,8 @@ import { challengePool, isDraftCard, isExamRun, lessonPool, mayOfferCard, poolHo
 import { answerProblem, cleared, endSaid, examPassMark, examPassed, firstTimeRight, startPracticeRun, stopRun, type PracticeRunState } from "../beats/practice/run";
 import { mcqCardId } from "../beats/mcq/card";
 import { isCheckpointUnit } from "../tabs/pathway/unitShape";
-import { challengeable, lessonHasDraft, lessonMcqBeats, lessonMeetBeats, lessonPoolItems, planLesson } from "../beats/template";
-import { startMcqSession } from "../beats/mcq/session";
+import { challengeable, hasHardRecognise, lessonHasDraft, lessonMeetBeats, lessonPoolItems, lessonRecogniseBeats, planLesson } from "../beats/template";
+import { levelNow, startMcqSession } from "../beats/mcq/session";
 import { figuresOf, mcqOptionTiles, mcqVisualFor } from "../beats/mcq/mcqFigures";
 
 const u2 = PATHWAY_UNITS.find((unit) => unit.id === "u2")!;
@@ -62,6 +62,8 @@ describe("every Unit 2 node is playable", () => {
   // CHANGED 2026-10-17 (round 2): the lessons were meet + mcq only. Hückel now connects (a match board) and
   // produces (a drawing); NMR connects.
   // CHANGED 2026-10-17 (round 4): five lessons, was two. The three former runs open on their new worked examples.
+  // CHANGED 2026-10-24 (audit top-25 #1, section 6): the recognise step is read the way the runner plays it,
+  // lessonRecogniseBeats in a "declared" session, not a rung 1 filter, now that level 2 items are rung 2 only.
   it("opens every lesson on the meet step, then the graded questions, and never plays a question twice", () => {
     expect(kinds("u2-huckel")).toEqual(["meet", "mcq", "poolMatch", "draw"]);
     expect(kinds("u2-charged")).toEqual(["meet", "mcq", "poolSort", "draw"]);
@@ -71,13 +73,13 @@ describe("every Unit 2 node is playable", () => {
     for (const id of LESSON_NODES) {
       expect(practicePool(id), id).toEqual([]);
       const meet = lessonMeetBeats(id).map((beat) => beat.id);
-      const rung1 = startMcqSession(lessonMcqBeats(id), 1).beats.map((beat) => beat.id);
+      const graded = startMcqSession(lessonRecogniseBeats(id), "declared").beats.map((beat) => beat.id);
       expect(meet.length, id).toBeGreaterThan(0);
-      expect(rung1.length, id).toBeGreaterThan(0);
-      for (const beat of meet) expect(rung1, `${id} replays ${beat}`).not.toContain(beat);
+      expect(graded.length, id).toBeGreaterThan(0);
+      for (const beat of meet) expect(graded, `${id} replays ${beat}`).not.toContain(beat);
       // Every pool MCQ of the lesson reaches the student in one of the two steps.
       for (const entry of lessonPool(id)) {
-        if (entry.item.kind === "mcq") expect([...meet, ...rung1], entry.id).toContain(entry.id);
+        if (entry.item.kind === "mcq") expect([...meet, ...graded], entry.id).toContain(entry.id);
       }
     }
   });
@@ -90,12 +92,27 @@ describe("every Unit 2 node is playable", () => {
   // clean in-a-row run never reached. A lesson plays its whole pool: every entry lands in exactly one step.
   it("plays every authored item of every lesson exactly once", () => {
     for (const id of LESSON_NODES) {
-      const mcqIds = [...lessonMeetBeats(id), ...startMcqSession(lessonMcqBeats(id), 1).beats].map((beat) => beat.id);
+      const mcqIds = [...lessonMeetBeats(id), ...startMcqSession(lessonRecogniseBeats(id), "declared").beats].map((beat) => beat.id);
       const others = (["sort", "match", "draw"] as const).flatMap((kind) => lessonPoolItems(id, kind).map((entry) => entry.id));
       const played = [...mcqIds.filter((one) => (U2_POOLS[id] ?? []).some((entry) => entry.id === one)), ...others];
       expect([...played].sort(), id).toEqual((U2_POOLS[id] ?? []).map((entry) => entry.id).sort());
       expect(new Set(played).size, id).toBe(played.length);
       expect(challengeable(id), id).toBe(true);
+    }
+  });
+
+  // Added 2026-10-24 (audit section 6, top-25 #1): a level 2 item tagged (1, 2) played at rung 1, so no U2 lesson
+  // had a level 2 question at runtime. Each lesson now grades two or more at rung 2, last in the step, and pace
+  // +1 has them to lead with while pace -1 leaves them out.
+  it("grades two or more questions per lesson at rung 2, after the rung 1 ones", () => {
+    for (const id of LESSON_NODES) {
+      const session = startMcqSession(lessonRecogniseBeats(id), "declared");
+      const rungs = session.beats.map((_, index) => levelNow({ ...session, index }));
+      expect(rungs.filter((rung) => rung === 2).length, id).toBeGreaterThanOrEqual(2);
+      expect([...rungs].sort(), id).toEqual(rungs);
+      expect(hasHardRecognise(id), id).toBe(true);
+      expect(lessonRecogniseBeats(id, -1).every((beat) => !beat.levels.includes(2)), id).toBe(true);
+      expect(lessonRecogniseBeats(id, 1)[0]?.levels, id).toEqual([2]);
     }
   });
 });

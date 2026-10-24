@@ -132,8 +132,10 @@ describe("u2 draft pools", () => {
   // drawing (produce), so the kinds are pinned exactly and the MCQ rule below still holds for every MCQ.
   // CHANGED 2026-10-17 (round 4): the three former runs are pinned too, each with exactly two L0 worked examples.
   // CHANGED 2026-10-23 (content audit #7 and section 6): Hückel has three L0 worked examples (the Frost circle is
-  // new), and every lesson has at least two level 2 items, tagged rung 1 and 2 so the rung 1 lesson still plays them.
-  it("gives each lesson its MCQs (its meet questions at L0, the rest at rung 1, two or more also at rung 2) and its exact boards, ladders and drawings", () => {
+  // new), and every lesson has at least two level 2 items.
+  // CHANGED 2026-10-24 (audit top-25 #1 landed): level 2 items are rung 2 only, was rung 1 and 2, which the
+  // declared-rung lesson played at rung 1.
+  it("gives each lesson its MCQs (its meet questions at L0, the rest at rung 1, two or more at rung 2) and its exact boards, ladders and drawings", () => {
     const WANT: Readonly<Record<string, Readonly<Record<string, number>>>> = {
       "u2-huckel": { mcq: 9, match: 1, draw: 1 },
       "u2-charged": { mcq: 13, sort: 2, draw: 2 },
@@ -149,7 +151,7 @@ describe("u2 draft pools", () => {
       expect(counts, node).toEqual(WANT[node]);
       const levels = pool.flatMap((entry) => (entry.item.kind === "mcq" ? [entry.item.beat.levels] : []));
       const meet = MEET[node] ?? 2;
-      const level2 = levels.filter((l) => l.length === 2 && l[0] === 1 && l[1] === 2).length;
+      const level2 = levels.filter((l) => l.length === 1 && l[0] === 2).length;
       expect(levels.filter((l) => l.length === 1 && l[0] === 0).length, node).toBe(meet);
       expect(level2, node).toBeGreaterThanOrEqual(2);
       expect(levels.filter((l) => l.length === 1 && l[0] === 1).length, node).toBe(levels.length - meet - level2);

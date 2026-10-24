@@ -455,7 +455,6 @@ export const U2_POOLS: UnitPools = {
             "aromaticity"
           ],
           "levels": [
-            1,
             2
           ],
           "prompt": "Anthracene has three fused rings. Count its pi electrons, then find n in 4n + 2.",
@@ -501,7 +500,6 @@ export const U2_POOLS: UnitPools = {
             "aromaticity"
           ],
           "levels": [
-            1,
             2
           ],
           "prompt": "Pentalene is two fused five rings, taken as flat. Classify it.",
@@ -1024,7 +1022,6 @@ export const U2_POOLS: UnitPools = {
             "aromaticity"
           ],
           "levels": [
-            1,
             2
           ],
           "prompt": "[10]Annulene has 10 pi electrons. Pick the test it fails.",
@@ -1299,7 +1296,6 @@ export const U2_POOLS: UnitPools = {
             "aromaticity"
           ],
           "levels": [
-            1,
             2
           ],
           "prompt": "The cyclononatetraenyl anion is a flat nine ring. Count its pi electrons and classify it.",
@@ -1867,7 +1863,6 @@ export const U2_POOLS: UnitPools = {
             "aromaticity"
           ],
           "levels": [
-            1,
             2
           ],
           "prompt": "Find the lettered imidazole atom that picks up a proton.",
@@ -2029,7 +2024,6 @@ export const U2_POOLS: UnitPools = {
             "aromaticity"
           ],
           "levels": [
-            1,
             2
           ],
           "prompt": "Find the lettered atom that keeps 1,4-dihydropyridine from being aromatic.",
@@ -2949,7 +2943,6 @@ export const U2_POOLS: UnitPools = {
             "conjugate_base_stability_argument"
           ],
           "levels": [
-            1,
             2
           ],
           "prompt": "Pick the most acidic hydrocarbon. Judge each by its conjugate base.",
@@ -3029,7 +3022,6 @@ export const U2_POOLS: UnitPools = {
             "aromaticity"
           ],
           "levels": [
-            1,
             2
           ],
           "prompt": "Each can lose a bromide ion to leave a ring cation. Pick the one that ionises most easily.",
@@ -3235,7 +3227,6 @@ export const U2_POOLS: UnitPools = {
             "aromaticity"
           ],
           "levels": [
-            1,
             2
           ],
           "prompt": "Pick the ring whose spectrum shows H both above 6.5 ppm and below 0 ppm.",
@@ -3281,7 +3272,6 @@ export const U2_POOLS: UnitPools = {
             "aromaticity"
           ],
           "levels": [
-            1,
             2
           ],
           "prompt": "Pick the ring whose C=C H show up in the aromatic band, 6.5 to 8 ppm.",

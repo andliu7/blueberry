@@ -1019,10 +1019,12 @@ def mcq(node: str, id: str, prompt: str, options: list[tuple[str, str, str]], de
 
 CLASS_RANK = {"aromatic": 0, "nonaromatic": 1, "antiaromatic": 2}
 
-# A level 2 item (23 Oct audit, section 6). It is tagged rung 1 AND rung 2:
-# lessons play rung 1 only until audit top-25 #1 lands, and every lesson item
-# must still reach the student (u2Wiring.test.ts). Test-outs read it as level 2.
-L2 = (1, 2)
+# A level 2 item (23 Oct audit, section 6). Rung 2 only: since audit top-25 #1
+# (4d0d650) a lesson's recognise step plays every question at its own declared
+# rung, L1 then L2, so a level 2 item reaches the student in the lesson, is
+# graded as level 2, leads a pace +1 run and stays out of a pace -1 run.
+# (It was (1, 2) before #1 landed, which declaredLevel read as level 1.)
+L2 = (2,)
 
 
 def ladder(node: str, id: str, species: list[tuple[str, str, str, str]], key: str, prompt: str, brief: str,
@@ -1334,7 +1336,7 @@ BASE_OF = {"cyclopentadiene": "cp_anion", "chd13": "c6_anion", "cyclopropene": "
 
 
 # ---------------------------------------------------------------------------
-# u2-huckel (lesson): 3 meet questions at L0, then rung 1 (two of them also L2)
+# u2-huckel (lesson): 3 meet questions at L0, then rung 1, then two at rung 2
 # ---------------------------------------------------------------------------
 
 def node_huckel() -> None:
