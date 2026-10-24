@@ -645,12 +645,12 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
   ],
   "u1-dienes": [
     { entry: {
-      "id": "u1-cd-dienes-draw-norbornene",
+      "id": "u1-cd-dienes-draw-dmb",
       "item": {
         "kind": "draw",
         "beat": {
           "kind": "draw",
-          "id": "u1-cd-dienes-draw-norbornene",
+          "id": "u1-cd-dienes-draw-dmb",
           "node": "u1-dienes",
           "conceptIds": [
             "diels_alder_geometry"
@@ -658,48 +658,48 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
           "levels": [
             2
           ],
-          "prompt": "Cyclopentadiene and ethene, heat. Draw the product.",
-          "brief": "No wedges needed. Keep track of every carbon in the five-membered ring.",
+          "prompt": "2,3-Dimethylbutadiene and ethene, heat. Draw the product.",
+          "brief": "No wedges needed. Find the diene's two end carbons first.",
           "visual": {
             "kind": "pair",
             "a": {
               "figure": {
                 "bonds": [
                   {
-                    "x1": 78,
-                    "y1": 62,
-                    "x2": 48,
-                    "y2": 66,
+                    "x1": 71,
+                    "y1": 9,
+                    "x2": 71,
+                    "y2": 35,
                     "order": 2
                   },
                   {
-                    "x1": 48,
-                    "y1": 66,
-                    "x2": 36,
-                    "y2": 38
+                    "x1": 71,
+                    "y1": 35,
+                    "x2": 94,
+                    "y2": 49
                   },
                   {
-                    "x1": 36,
-                    "y1": 38,
-                    "x2": 58,
-                    "y2": 18
+                    "x1": 71,
+                    "y1": 35,
+                    "x2": 49,
+                    "y2": 49
                   },
                   {
-                    "x1": 58,
-                    "y1": 18,
-                    "x2": 84,
-                    "y2": 33,
+                    "x1": 49,
+                    "y1": 49,
+                    "x2": 26,
+                    "y2": 35
+                  },
+                  {
+                    "x1": 49,
+                    "y1": 49,
+                    "x2": 49,
+                    "y2": 75,
                     "order": 2
-                  },
-                  {
-                    "x1": 84,
-                    "y1": 33,
-                    "x2": 78,
-                    "y2": 62
                   }
                 ]
               },
-              "name": "cyclopentadiene"
+              "name": "2,3-dimethylbuta-1,3-diene"
             },
             "b": {
               "figure": {
@@ -731,78 +731,99 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
             }
           },
           "answer": {
-            "smiles": "C1=CC2CCC1C2",
-            "inchi": "InChI=1S/C7H10/c1-2-7-4-3-6(1)5-7/h1-2,6-7H,3-5H2",
-            "name": "bicyclo[2.2.1]hept-2-ene",
+            "smiles": "CC1=C(C)CCCC1",
+            "inchi": "InChI=1S/C8H14/c1-7-5-3-4-6-8(7)2/h3-6H2,1-2H3",
+            "name": "1,2-dimethylcyclohexene",
             "figure": {
               "bonds": [
                 {
-                  "x1": 44,
+                  "x1": 38,
+                  "y1": 59,
+                  "x2": 53,
+                  "y2": 50
+                },
+                {
+                  "x1": 53,
                   "y1": 50,
-                  "x2": 44,
+                  "x2": 53,
                   "y2": 33,
                   "order": 2
                 },
                 {
-                  "x1": 44,
+                  "x1": 53,
                   "y1": 33,
-                  "x2": 60,
-                  "y2": 28
+                  "x2": 38,
+                  "y2": 25
                 },
                 {
-                  "x1": 60,
-                  "y1": 28,
-                  "x2": 76,
+                  "x1": 53,
+                  "y1": 33,
+                  "x2": 67,
+                  "y2": 25
+                },
+                {
+                  "x1": 67,
+                  "y1": 25,
+                  "x2": 82,
                   "y2": 34
                 },
                 {
-                  "x1": 76,
+                  "x1": 82,
                   "y1": 34,
-                  "x2": 76,
+                  "x2": 82,
                   "y2": 51
                 },
                 {
-                  "x1": 76,
+                  "x1": 82,
                   "y1": 51,
-                  "x2": 60,
-                  "y2": 56
+                  "x2": 67,
+                  "y2": 59
                 },
                 {
-                  "x1": 60,
-                  "y1": 56,
-                  "x2": 70,
-                  "y2": 42
-                },
-                {
-                  "x1": 60,
-                  "y1": 56,
-                  "x2": 44,
+                  "x1": 67,
+                  "y1": 59,
+                  "x2": 53,
                   "y2": 50
-                },
-                {
-                  "x1": 70,
-                  "y1": 42,
-                  "x2": 60,
-                  "y2": 28
                 }
               ]
             }
           },
           "stereo": false,
-          "why": "Cyclopentadiene's ends bond to the two ethene carbons. Its CH2 was between those ends, so it ends up as a one-carbon bridge over the new six-membered ring: a bridged bicycle.",
-          "lookAt": "The CH2 of the five-membered ring becomes a bridge. Draw the new six-membered ring with its C=C, then join the two carbons that made new bonds with that one CH2.",
+          "why": "The diene's two end carbons bond to the two ethene carbons, closing a six-membered ring. The new C=C sits where the diene's single bond was, between the two carbons that carry the methyls.",
+          "lookAt": "New bonds at the diene's C1 and C4. Draw the six-membered ring, then put its one C=C between the two methyl-bearing carbons.",
           "misses": [
             {
               "id": "no-ene",
-              "inchi": "InChI=1S/C7H12/c1-2-7-4-3-6(1)5-7/h6-7H,1-5H2",
-              "smiles": "C1CC2CCC1C2",
-              "name": "a bicycle with no C=C",
+              "inchi": "InChI=1S/C8H16/c1-7-5-3-4-6-8(7)2/h7-8H,3-6H2,1-2H3",
+              "smiles": "CC1CCCCC1C",
+              "name": "a ring with no C=C",
               "says": "The diene's old middle bond becomes a C=C in the new ring. Every Diels-Alder product made from an alkene keeps exactly one."
+            },
+            {
+              "id": "moved0",
+              "inchi": "InChI=1S/C8H14/c1-7-5-3-4-6-8(7)2/h5,8H,3-4,6H2,1-2H3",
+              "smiles": "CC1=CCCCC1C",
+              "name": "a ring with its C=C moved",
+              "says": "The new C=C sits where the diene's single bond was, between its old C2 and C3, not next to a carbon that just made a new bond."
+            },
+            {
+              "id": "moved1",
+              "inchi": "InChI=1S/C8H14/c1-7-5-3-4-6-8(7)2/h3,5,7-8H,4,6H2,1-2H3",
+              "smiles": "CC1C=CCCC1C",
+              "name": "a ring with its C=C moved",
+              "says": "The new C=C sits where the diene's single bond was, between its old C2 and C3, not next to a carbon that just made a new bond."
+            },
+            {
+              "id": "moved2",
+              "inchi": "InChI=1S/C8H14/c1-7-5-3-4-6-8(7)2/h3-4,7-8H,5-6H2,1-2H3",
+              "smiles": "CC1CC=CCC1C",
+              "name": "a ring with its C=C moved",
+              "says": "The new C=C sits where the diene's single bond was, between its old C2 and C3, not next to a carbon that just made a new bond."
             }
           ]
         }
       },
-      "explanation": "A cyclic diene gives a bridged product: the ring atoms between the diene's ends become the bridge.",
+      "explanation": "The diene's ends make the two new sigma bonds, and its middle single bond becomes the ring's C=C.",
       "conditions": "heat",
       "provenance": "scripts/u1_pools_cd.py section 3 (Diels-Alder reaction SMARTS) and section 8; name checked with OPSIN.",
       "placeholder": true
@@ -2454,6 +2475,169 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
     } },
   ],
   "u1-da-stereo": [
+    { at: 3, entry: {
+      "id": "u1-cd-st-draw-norbornene",
+      "item": {
+        "kind": "draw",
+        "beat": {
+          "kind": "draw",
+          "id": "u1-cd-st-draw-norbornene",
+          "node": "u1-da-stereo",
+          "conceptIds": [
+            "diels_alder_geometry"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "Cyclopentadiene and ethene, heat. Draw the product.",
+          "brief": "No wedges needed. Keep track of every carbon in the five-membered ring.",
+          "visual": {
+            "kind": "pair",
+            "a": {
+              "figure": {
+                "bonds": [
+                  {
+                    "x1": 78,
+                    "y1": 62,
+                    "x2": 48,
+                    "y2": 66,
+                    "order": 2
+                  },
+                  {
+                    "x1": 48,
+                    "y1": 66,
+                    "x2": 36,
+                    "y2": 38
+                  },
+                  {
+                    "x1": 36,
+                    "y1": 38,
+                    "x2": 58,
+                    "y2": 18
+                  },
+                  {
+                    "x1": 58,
+                    "y1": 18,
+                    "x2": 84,
+                    "y2": 33,
+                    "order": 2
+                  },
+                  {
+                    "x1": 84,
+                    "y1": 33,
+                    "x2": 78,
+                    "y2": 62
+                  }
+                ]
+              },
+              "name": "cyclopentadiene"
+            },
+            "b": {
+              "figure": {
+                "bonds": [
+                  {
+                    "x1": 51,
+                    "y1": 42,
+                    "x2": 69,
+                    "y2": 42,
+                    "order": 2
+                  }
+                ],
+                "labels": [
+                  {
+                    "x": 38,
+                    "y": 47,
+                    "t": "CH_2",
+                    "size": 14
+                  },
+                  {
+                    "x": 82,
+                    "y": 47,
+                    "t": "CH_2",
+                    "size": 14
+                  }
+                ]
+              },
+              "name": "ethene"
+            }
+          },
+          "answer": {
+            "smiles": "C1=CC2CCC1C2",
+            "inchi": "InChI=1S/C7H10/c1-2-7-4-3-6(1)5-7/h1-2,6-7H,3-5H2",
+            "name": "bicyclo[2.2.1]hept-2-ene",
+            "figure": {
+              "bonds": [
+                {
+                  "x1": 44,
+                  "y1": 50,
+                  "x2": 44,
+                  "y2": 33,
+                  "order": 2
+                },
+                {
+                  "x1": 44,
+                  "y1": 33,
+                  "x2": 60,
+                  "y2": 28
+                },
+                {
+                  "x1": 60,
+                  "y1": 28,
+                  "x2": 76,
+                  "y2": 34
+                },
+                {
+                  "x1": 76,
+                  "y1": 34,
+                  "x2": 76,
+                  "y2": 51
+                },
+                {
+                  "x1": 76,
+                  "y1": 51,
+                  "x2": 60,
+                  "y2": 56
+                },
+                {
+                  "x1": 60,
+                  "y1": 56,
+                  "x2": 70,
+                  "y2": 42
+                },
+                {
+                  "x1": 60,
+                  "y1": 56,
+                  "x2": 44,
+                  "y2": 50
+                },
+                {
+                  "x1": 70,
+                  "y1": 42,
+                  "x2": 60,
+                  "y2": 28
+                }
+              ]
+            }
+          },
+          "stereo": false,
+          "why": "Cyclopentadiene's ends bond to the two ethene carbons. Its CH2 was between those ends, so it ends up as a one-carbon bridge over the new six-membered ring: a bridged bicycle.",
+          "lookAt": "The CH2 of the five-membered ring becomes a bridge. Draw the new six-membered ring with its C=C, then join the two carbons that made new bonds with that one CH2.",
+          "misses": [
+            {
+              "id": "no-ene",
+              "inchi": "InChI=1S/C7H12/c1-2-7-4-3-6(1)5-7/h6-7H,1-5H2",
+              "smiles": "C1CC2CCC1C2",
+              "name": "a bicycle with no C=C",
+              "says": "The diene's old middle bond becomes a C=C in the new ring. Every Diels-Alder product made from an alkene keeps exactly one."
+            }
+          ]
+        }
+      },
+      "explanation": "A cyclic diene gives a bridged product: the ring atoms between the diene's ends become the bridge.",
+      "conditions": "heat",
+      "provenance": "scripts/u1_pools_cd.py section 3 (Diels-Alder reaction SMARTS) and section 8; name checked with OPSIN.",
+      "placeholder": true
+    } },
     { entry: {
       "id": "u1-cd-st-draw-maleate",
       "item": {

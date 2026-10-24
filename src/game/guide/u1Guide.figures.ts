@@ -1368,52 +1368,50 @@ export const U1_GUIDE_EXAMPLES: Readonly<Record<string, GuideExample>> = {
     "placeholder": true
   },
   "u1-dienes": {
-    "caption": "Cyclopentadiene is locked s-cis, and a cyclic diene gives a bridged product.",
+    "caption": "The diene's ends make the new bonds, and its middle single bond becomes the ring's C=C.",
     "panels": [
       {
         "kind": "mol",
-        "smiles": "C1=CCC=C1",
+        "smiles": "C=C(C)C(C)=C",
         "figure": {
-          "w": 54.6,
-          "h": 54.0,
+          "w": 78.4,
+          "h": 76.0,
           "bonds": [
             {
-              "x1": 41.7,
-              "y1": 43.4,
-              "x2": 17.9,
-              "y2": 46.0,
-              "order": 2,
-              "inner": 1
-            },
-            {
-              "x1": 17.9,
-              "y1": 46.0,
-              "x2": 8.0,
-              "y2": 24.2
-            },
-            {
-              "x1": 8.0,
-              "y1": 24.2,
-              "x2": 25.8,
-              "y2": 8.0
-            },
-            {
-              "x1": 25.8,
+              "x1": 49.5,
               "y1": 8.0,
-              "x2": 46.6,
-              "y2": 19.9,
-              "order": 2,
-              "inner": 1
+              "x2": 49.6,
+              "y2": 32.0,
+              "order": 2
             },
             {
-              "x1": 46.6,
-              "y1": 19.9,
-              "x2": 41.7,
-              "y2": 43.4
+              "x1": 49.6,
+              "y1": 32.0,
+              "x2": 70.4,
+              "y2": 44.0
+            },
+            {
+              "x1": 49.6,
+              "y1": 32.0,
+              "x2": 28.8,
+              "y2": 44.0
+            },
+            {
+              "x1": 28.8,
+              "y1": 44.0,
+              "x2": 8.0,
+              "y2": 32.1
+            },
+            {
+              "x1": 28.8,
+              "y1": 44.0,
+              "x2": 28.9,
+              "y2": 68.0,
+              "order": 2
             }
           ]
         },
-        "name": "Cyclopentadiene"
+        "name": "2,3-Dimethylbutadiene"
       },
       {
         "kind": "plus"
@@ -1423,13 +1421,13 @@ export const U1_GUIDE_EXAMPLES: Readonly<Record<string, GuideExample>> = {
         "smiles": "C=C",
         "figure": {
           "w": 40.0,
-          "h": 54.0,
+          "h": 76.0,
           "bonds": [
             {
               "x1": 8.0,
-              "y1": 27.0,
+              "y1": 38.0,
               "x2": 32.0,
-              "y2": 27.0,
+              "y2": 38.0,
               "order": 2
             }
           ]
@@ -1441,66 +1439,65 @@ export const U1_GUIDE_EXAMPLES: Readonly<Record<string, GuideExample>> = {
       },
       {
         "kind": "mol",
-        "smiles": "C1=CC2CCC1C2",
+        "smiles": "CC1=C(C)CCCC1",
         "figure": {
-          "w": 61.7,
-          "h": 54.8,
+          "w": 78.4,
+          "h": 64.0,
           "bonds": [
             {
               "x1": 8.0,
-              "y1": 39.4,
-              "x2": 8.0,
-              "y2": 15.4,
-              "order": 2,
-              "inner": 1
+              "y1": 56.0,
+              "x2": 28.8,
+              "y2": 44.0
             },
             {
-              "x1": 8.0,
-              "y1": 15.4,
-              "x2": 30.9,
+              "x1": 28.8,
+              "y1": 44.0,
+              "x2": 28.8,
+              "y2": 20.0,
+              "order": 2,
+              "inner": 1,
+              "hi": true
+            },
+            {
+              "x1": 28.8,
+              "y1": 20.0,
+              "x2": 8.0,
               "y2": 8.0
             },
             {
-              "x1": 30.9,
+              "x1": 28.8,
+              "y1": 20.0,
+              "x2": 49.6,
+              "y2": 8.0
+            },
+            {
+              "x1": 49.6,
               "y1": 8.0,
-              "x2": 53.7,
-              "y2": 15.4
+              "x2": 70.4,
+              "y2": 20.0
             },
             {
-              "x1": 53.7,
-              "y1": 15.4,
-              "x2": 53.7,
-              "y2": 39.4
+              "x1": 70.4,
+              "y1": 20.0,
+              "x2": 70.4,
+              "y2": 44.0
             },
             {
-              "x1": 53.7,
-              "y1": 39.4,
-              "x2": 30.8,
-              "y2": 46.8
+              "x1": 70.4,
+              "y1": 44.0,
+              "x2": 49.6,
+              "y2": 56.0
             },
             {
-              "x1": 30.8,
-              "y1": 46.8,
-              "x2": 44.9,
-              "y2": 27.4,
-              "hi": true
-            },
-            {
-              "x1": 30.8,
-              "y1": 46.8,
-              "x2": 8.0,
-              "y2": 39.4
-            },
-            {
-              "x1": 44.9,
-              "y1": 27.4,
-              "x2": 30.9,
-              "y2": 8.0,
-              "hi": true
+              "x1": 49.6,
+              "y1": 56.0,
+              "x2": 28.8,
+              "y2": 44.0
             }
           ]
         },
-        "name": "Bridged",
+        "name": "1,2-Dimethylcyclohexene",
         "focus": true
       }
     ],

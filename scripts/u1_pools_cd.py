@@ -429,6 +429,7 @@ def da_section() -> dict:
         "butadiene+maleicanhydride": ("butadiene", "maleicanhydride", False),
         "dimethylbutadiene+acrylonitrile": ("dimethylbutadiene", "acrylonitrile", False),
         "dimethylbutadiene+maleicanhydride": ("dimethylbutadiene", "maleicanhydride", False),
+        "dimethylbutadiene+ethene": ("dimethylbutadiene", "ethene", False),
         "butadiene+dmad": ("butadiene", "dmad", True),
         "butadiene+dimethylmaleate": ("butadiene", "dimethylmaleate", False),
         "cyclopentadiene+ethene": ("cyclopentadiene", "ethene", False),
@@ -450,6 +451,7 @@ def da_section() -> dict:
     assert out["dimethylbutadiene+acrylonitrile"] == [flat("CC1=C(C)CC(C#N)CC1")]
     assert out["butadiene+dmad"] == [flat("COC(=O)C1=C(C(=O)OC)CC=CC1")]
     assert out["cyclopentadiene+ethene"] == [flat("C1=CC2CCC1C2")]
+    assert out["dimethylbutadiene+ethene"] == [flat("CC1=C(C)CCCC1")]
     assert out["cyclohexa13diene+ethene"] == [flat("C1=CC2CCC1CC2")]
 
     # Fused or bridged: two smallest rings sharing 2 atoms is fused, more is bridged.
@@ -1717,18 +1719,21 @@ def active_section(facts: dict) -> None:
         "Diels-Alder: two new sigma bonds, one ring, the new C=C where the diene's single bond was.",
         P_DA, "diels_alder_geometry", conditions="heat", misses=da_misses(acro),
     )
-    norb = one(da["cyclopentadiene+ethene"])
+    # CHANGED 24 Oct (audit 23 Oct, close behind): the Dienes lesson used to draw
+    # cyclopentadiene + ethene, a bridged bicycle, two lessons before u1-da-stereo
+    # teaches why a cyclic diene bridges (u1-cd-st-bridged). That drawing moved
+    # there, below; this one needs only the u1-da ring-closing rule.
+    dmb = one(da["dimethylbutadiene+ethene"])
     active_draw(
-        "u1-dienes", "u1-cd-dienes-draw-norbornene",
-        "Cyclopentadiene and ethene, heat. Draw the product.",
-        "No wedges needed. Keep track of every carbon in the five-membered ring.",
-        pair("cyclopentadiene", "cyclopentadiene", "ethene", "ethene"),
-        norb, "bicyclo[2.2.1]hept-2-ene",
-        "Cyclopentadiene's ends bond to the two ethene carbons. Its CH2 was between those ends, so it ends up as a one-carbon bridge over the new six-membered ring: a bridged bicycle.",
-        "The CH2 of the five-membered ring becomes a bridge. Draw the new six-membered ring with its C=C, then join the two carbons that made new bonds with that one CH2.",
-        "A cyclic diene gives a bridged product: the ring atoms between the diene's ends become the bridge.",
-        P_DA, "diels_alder_geometry", conditions="heat",
-        misses=[("no-ene", saturated(norb) if norb else None, "a bicycle with no C=C", NO_ENE)],
+        "u1-dienes", "u1-cd-dienes-draw-dmb",
+        "2,3-Dimethylbutadiene and ethene, heat. Draw the product.",
+        "No wedges needed. Find the diene's two end carbons first.",
+        pair("dimethylbutadiene", "2,3-dimethylbuta-1,3-diene", "ethene", "ethene"),
+        dmb, "1,2-dimethylcyclohexene",
+        "The diene's two end carbons bond to the two ethene carbons, closing a six-membered ring. The new C=C sits where the diene's single bond was, between the two carbons that carry the methyls.",
+        "New bonds at the diene's C1 and C4. Draw the six-membered ring, then put its one C=C between the two methyl-bearing carbons.",
+        "The diene's ends make the two new sigma bonds, and its middle single bond becomes the ring's C=C.",
+        P_DA, "diels_alder_geometry", conditions="heat", misses=da_misses(dmb),
     )
     acn = one(da["butadiene+acrylonitrile"])
     active_draw(
@@ -1841,6 +1846,21 @@ def active_section(facts: dict) -> None:
 
     # Stereo items: graded on relative stereo (grade.ts relativeStereo). The
     # cis and trans diesters are section 5's derived isomers.
+    # MOVED 24 Oct from u1-dienes (was u1-cd-dienes-draw-norbornene): drawn
+    # right after u1-cd-st-bridged, the question that teaches the bridge.
+    norb = one(da["cyclopentadiene+ethene"])
+    active_draw(
+        "u1-da-stereo", "u1-cd-st-draw-norbornene",
+        "Cyclopentadiene and ethene, heat. Draw the product.",
+        "No wedges needed. Keep track of every carbon in the five-membered ring.",
+        pair("cyclopentadiene", "cyclopentadiene", "ethene", "ethene"),
+        norb, "bicyclo[2.2.1]hept-2-ene",
+        "Cyclopentadiene's ends bond to the two ethene carbons. Its CH2 was between those ends, so it ends up as a one-carbon bridge over the new six-membered ring: a bridged bicycle.",
+        "The CH2 of the five-membered ring becomes a bridge. Draw the new six-membered ring with its C=C, then join the two carbons that made new bonds with that one CH2.",
+        "A cyclic diene gives a bridged product: the ring atoms between the diene's ends become the bridge.",
+        P_DA, "diels_alder_geometry", conditions="heat", at=3,
+        misses=[("no-ene", saturated(norb) if norb else None, "a bicycle with no C=C", NO_ENE)],
+    )
     st = facts["stereo"]["diester"]
     cis = [r["smiles"] for r in st if r["relation"] == "cis"]
     trans = [r["smiles"] for r in st if r["relation"] == "trans"]

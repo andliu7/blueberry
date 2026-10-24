@@ -705,10 +705,11 @@ def build() -> dict:
     assert len(ring) == 1
     ex["u1-da"] = {"caption": "Two new σ bonds, one ring. The new C=C sits where the diene's single bond was.",
                    "panels": [mol("C=CC=C", "Diene"), PLUS, mol("C=C", "Dienophile"), arrow("heat"), focus(mol(ring[0], "Cyclohexene", hi=("C=C",)))]}
-    bridged = diels_alder("C1=CCC=C1", "C=C")
-    assert len(bridged) == 1
-    ex["u1-dienes"] = {"caption": "Cyclopentadiene is locked s-cis, and a cyclic diene gives a bridged product.",
-                       "panels": [mol("C1=CCC=C1", "Cyclopentadiene"), PLUS, mol("C=C"), arrow("heat"), focus(mol(in_pool(bridged[0]), "Bridged", hi=("[CH2;R2]~[CH1;R2]",)))]}
+    # CHANGED 24 Oct: the bridged norbornene moved to u1-da-stereo, where the bridge is taught (audit 23 Oct).
+    dimethyl = diels_alder("C=C(C)C(C)=C", "C=C")
+    assert len(dimethyl) == 1
+    ex["u1-dienes"] = {"caption": "The diene's ends make the new bonds, and its middle single bond becomes the ring's C=C.",
+                       "panels": [mol("C=C(C)C(C)=C", "2,3-Dimethylbutadiene"), PLUS, mol("C=C"), arrow("heat"), focus(mol(in_pool(dimethyl[0]), "1,2-Dimethylcyclohexene", hi=("C=C",)))]}
     nitrile = diels_alder("C=CC=C", "C=CC#N")
     assert len(nitrile) == 1
     ex["u1-dienophiles"] = {"caption": "The CN withdraws, activates the dienophile, and ends up on the new ring.",

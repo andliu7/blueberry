@@ -322,3 +322,14 @@ describe("round 4: the reveal and the drawing can not be copied", () => {
     for (const beat of draws) expect(`${beat.prompt} ${beat.brief ?? ""}`, beat.id).not.toMatch(/Number the/);
   });
 });
+
+describe("the bridged drawing follows the lesson that teaches the bridge (audit 23 Oct, close behind)", () => {
+  it("draws norbornene in u1-da-stereo, right after u1-cd-st-bridged, and not in u1-dienes", () => {
+    const stereo = (U1_POOLS["u1-da-stereo"] ?? []).map((entry) => entry.id);
+    expect(stereo.indexOf("u1-cd-st-draw-norbornene")).toBe(stereo.indexOf("u1-cd-st-bridged") + 1);
+    expect(drawFor("u1-cd-st-draw-norbornene").node).toBe("u1-da-stereo");
+    const dienes = U1_POOLS["u1-dienes"] ?? [];
+    expect(dienes.some((entry) => entry.item.kind === "draw" && /bicyclo/.test(entry.item.beat.answer.name))).toBe(false);
+    expect(drawFor("u1-cd-dienes-draw-dmb").answer.smiles).toBe("CC1=C(C)CCCC1");
+  });
+});

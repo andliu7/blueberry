@@ -379,15 +379,11 @@ const STAGES: readonly GuideStage[] = [
       },
       {
         node: "u1-dienes",
+        // The bridged-product idea moved to u1-da-stereo with its drawing (24 Oct, audit 23 Oct close behind).
         ideas: [
           {
-            text: "A cyclic diene gives a bridged product.",
-            mark: "bridged product",
-            source: "u1-cd-dienes-draw-norbornene",
-            quote: "A cyclic diene gives a bridged product",
-          },
-          {
             text: "Shape first: locked s-cis is fastest, free rotation is fine, locked s-trans is out.",
+            mark: "Shape first",
             source: "u1-cd-dienes-fastest",
             quote: "Shape first: locked s-cis is fastest, free rotation is fine, locked s-trans is out.",
           },
@@ -397,7 +393,7 @@ const STAGES: readonly GuideStage[] = [
             quote: "A diene that cannot reach s-cis does not react, however good its donor groups are.",
           },
         ],
-        example: { source: "u1-cd-dienes-draw-norbornene", quote: "A cyclic diene gives a bridged product" },
+        example: { source: "u1-cd-dienes-draw-dmb", quote: "its middle single bond becomes the ring's C=C" },
       },
       {
         node: "u1-dienophiles",
