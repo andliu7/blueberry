@@ -1580,7 +1580,7 @@ const U1_DIENOPHILES: readonly Spec[] = [
       {
         id: "diene",
         text: "Diene: it has two pi bonds in a row",
-        why: "A diene needs two C=C. The C≡N is a carbon-nitrogen triple bond, and the nitrile carbon has no place to form the ring's new sigma bond.",
+        why: "Butadiene is the diene here: it has two C=C that can swing s-cis. Acrylonitrile's C=C is the electron-poor partner, and its C≡N only pulls density out of that C=C.",
       },
       {
         id: "donor",

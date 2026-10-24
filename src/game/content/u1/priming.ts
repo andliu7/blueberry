@@ -691,10 +691,10 @@ export const U1_PRIMING: Readonly<Record<string, LessonPriming>> = {
         quote: "withdrawing groups lower the dienophile's LUMO",
       },
       {
-        label: "The gap still closes",
-        via: "; put each on the other partner and",
+        label: "A different gap closes",
+        via: "; swap each onto the other partner and",
         source: "mcq-ied-roles",
-        quote: "Put each one on the other partner and the gap still closes",
+        quote: "Swap each one onto the other partner and a different gap closes",
       },
     ],
     bridge: {

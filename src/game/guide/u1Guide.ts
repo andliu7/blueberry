@@ -492,9 +492,9 @@ const STAGES: readonly GuideStage[] = [
             quote: "with the electron-rich alkene donating and the diene accepting. That is inverse demand.",
           },
           {
-            text: "Donating groups raise the diene's HOMO, and withdrawing groups lower the dienophile's LUMO. Put each group on the other partner and the gap still closes.",
+            text: "Donating groups raise the diene's HOMO, and withdrawing groups lower the dienophile's LUMO. Swap each group onto the other partner and a different gap closes: the alkene's HOMO feeds the diene's LUMO.",
             source: "mcq-ied-roles",
-            quote: "Put each one on the other partner and the gap still closes",
+            quote: "Swap each one onto the other partner and a different gap closes, alkene HOMO to diene LUMO",
           },
         ],
         example: { source: "u1-cd-phile-ether-role", quote: "a vinyl ether is electron-rich and a poor normal-demand dienophile" },

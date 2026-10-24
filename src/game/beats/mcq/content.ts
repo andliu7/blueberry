@@ -1104,7 +1104,7 @@ const ELECTRON_DEMAND: readonly McqBeat[] = Object.freeze([
       {
         id: "roles-flip",
         text: "The roles flip: the diene accepts now",
-        why: "Donating groups raise the diene's HOMO and withdrawing groups lower the dienophile's LUMO, so the two kinds of substituent close the same gap from opposite sides. Put each one on the other partner and the gap still closes, with the electron-rich alkene donating and the diene accepting. That is inverse demand.",
+        why: "Donating groups raise the diene's HOMO and withdrawing groups lower the dienophile's LUMO, closing the same gap from opposite sides. Swap each one onto the other partner and a different gap closes, alkene HOMO to diene LUMO, with the electron-rich alkene donating and the diene accepting. That is inverse demand.",
       },
       {
         id: "no-s-cis",
