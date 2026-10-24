@@ -14,8 +14,8 @@
  * A `practice` node plays the in-a-row run, which tiers at "3 for Pro", stops
  * early and can end before a tutorial has shown every control (critic, round
  * 1). The scene node plays its "guess first" question (primeItem, level 0,
- * ungraded) until the animated scene player is built; the steps below are its
- * script.
+ * ungraded), then the steps below as a tap-through card (beats/StoryScene.tsx,
+ * 23 Oct) until the animated scene player is built.
  *
  * WHY UNIT 0 IS NOT IN PATHWAY_UNITS. Adding it would move the inventory pins
  * (208 nodes over 15 units, the spine counts, coverage()) and deriveMapPathway
@@ -68,7 +68,7 @@ export interface StoryStep {
   readonly arrows?: readonly StoryArrow[];
   /** A control to try on this step. */
   readonly tryIt?: TryIt;
-  /** A chart drawn in place of a molecule: "sn" is U0_SN_CHART (figures.ts), chapter 7's decision table. */
+  /** A chart drawn in place of a molecule: "sn" is U0_SN_CHART (pools.ts), chapter 7's decision table. */
   readonly chart?: "sn";
 }
 
@@ -395,6 +395,16 @@ export const STORY_NODE_IDS: readonly string[] = STORY_UNIT.nodes.map((node) => 
 /** A Unit 0 node by id, or null. pathwayNode() falls back to this. */
 export function storyNode(id: string): PathwayNode | null {
   return STORY_UNIT.nodes.find((node) => node.id === id) ?? null;
+}
+
+/**
+ * The chapter whose scene this node plays, or null for every other node.
+ * BeatRunner plays that scene as a tap-through card (beats/StoryScene.tsx)
+ * right after the node's guess-first question, inside the same meet step, so
+ * the guess still comes before the answer (content audit 23 Oct, top-25 #5).
+ */
+export function sceneChapterFor(nodeId: string): StoryChapter | null {
+  return STORY_CHAPTERS.find((chapter) => chapter.sceneNode === nodeId) ?? null;
 }
 
 /** The chapter a scene or practice node belongs to, or null. */

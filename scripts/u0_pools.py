@@ -2214,6 +2214,10 @@ def emit_pools() -> str:
     out.append("export const U0_EXAM_IDS: readonly string[] = Object.freeze(" + ts(EXAM_IDS) + ");\n")
     out.append("/** The chapters the test out quiz interleaves, in teaching order. */")
     out.append("export const U0_EXAM_CHAPTERS: readonly string[] = Object.freeze(" + ts(EXAM_CHAPTERS) + ");\n")
+    # Here, not in figures.ts: only the lazy story card (beats/StoryScene.tsx) reads the chart, and figures.ts
+    # rides in the entry chunk through the pathway map, where the chart cost first open 0.3 KB gz (24 Oct).
+    out.append("/** Chapter 7's decision chart: the cited SN/E table (an OWNER FLAG), substrate down the side, reagent across the top. */")
+    out.append("export const U0_SN_CHART = " + ts(sn_chart()) + " as const;\n")
     return "\n".join(out)
 
 
@@ -2227,9 +2231,7 @@ def sn_chart() -> dict:
 
 def emit_figs() -> str:
     return (FIGS_HEADER + "export const U0_STORY_FIGURES = " + ts(STORY)
-            + " as const satisfies Readonly<Record<string, StoryFigure>>;\n\nexport type StoryFigureId = keyof typeof U0_STORY_FIGURES;\n"
-            + "\n/** Chapter 7's decision chart: the cited SN/E table (an OWNER FLAG), substrate down the side, reagent across the top. */\n"
-            + "export const U0_SN_CHART = " + ts(sn_chart()) + " as const;\n")
+            + " as const satisfies Readonly<Record<string, StoryFigure>>;\n\nexport type StoryFigureId = keyof typeof U0_STORY_FIGURES;\n")
 
 
 def emit_guide(ex: dict) -> str:

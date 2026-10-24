@@ -19,10 +19,11 @@ export {
   U0_OPTION_TILES,
   U0_POOLS,
   U0_PREVIEW_UNITS,
+  U0_SN_CHART,
   U0_SORT_FIGURES,
   U0_VISUALS,
 } from "./pools";
-export { U0_SN_CHART, U0_STORY_FIGURES } from "./figures";
+export { U0_STORY_FIGURES } from "./figures";
 export type { StoryFigure, StoryFigureId } from "./figures";
 export {
   STORY_CHAPTERS,
@@ -31,6 +32,7 @@ export {
   STORY_UNIT,
   U0_FINISH_NODES,
   U0_OPEN_FROM_START,
+  sceneChapterFor,
   storyChapterFor,
   storyNode,
 } from "./story";

@@ -82,6 +82,8 @@ import { RecipeStrip } from "./RecipeStrip";
 import { LessonPreview } from "./LessonPreview";
 import { LessonRecap } from "./LessonRecap";
 import { PoolItemsStep } from "./PoolItemsStep";
+// Straight from story.ts, as demo/pathwayMap.ts does, so the U0 pools never join this chunk.
+import { sceneChapterFor } from "../content/u0/story";
 import { markPrimed, opensOnPreview, primedThisSession, primingFor } from "./priming";
 import {
   challengeable,
@@ -133,6 +135,8 @@ function matchBoardsForNode(node: string) {
 const McqRunner = lazy(() => import("./mcq/McqRunner").then((m) => ({ default: m.McqRunner })));
 const MatchBoard = lazy(() => import("./match/MatchBoard").then((m) => ({ default: m.MatchBoard })));
 const SortBeatView = lazy(() => import("./sort/SortBeatView").then((m) => ({ default: m.SortBeatView })));
+// A Unit 0 chapter's story scene, played after the scene node's guess-first question.
+const StoryScene = lazy(() => import("./StoryScene").then((m) => ({ default: m.StoryScene })));
 const SynthesisGapBeat = lazy(() =>
   import("./synthesis/SynthesisGapBeat").then((m) => ({ default: m.SynthesisGapBeat })),
 );
@@ -204,6 +208,10 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
   // The recycle pass replays missed drawings first, then missed quick
   // questions. Set once the drawings are done, with how they went.
   const [recycleDraws, setRecycleDraws] = useState<{ cleared: number; total: number } | null>(null);
+  // A Unit 0 scene node's meet step (content/u0/story.ts sceneChapterFor): the
+  // step key whose guess-first question is answered, so its story card plays
+  // before the step advances. Null while the question is still up.
+  const [sceneAt, setSceneAt] = useState<string | null>(null);
   /**
    * The diamonds the store actually paid for this run, or null before it has
    * been asked. Not computed here: CLAUDE.md's rule is that every number in
@@ -290,6 +298,7 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
     setDrawsDoneAt(-1);
     drawTally.current = { cleared: 0, total: 0, missed: [] };
     setRecycleDraws(null);
+    setSceneAt(null);
     setBanked(null);
     setOffer(null);
     setResume(null);
@@ -603,7 +612,10 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
   // (progressSlot), so each screen keeps exactly one bar and one exit, in
   // the one lesson header shape: X and the bar (A2 round 6).
   const recyclingDraws = run.phase === "recycle" && recycleDraws === null && missedPoolIdsOf(run).length > 0;
-  const inMcq = step?.beat.kind === "meet" || step?.beat.kind === "mcq" || (run.phase === "recycle" && !recyclingDraws);
+  // The guess comes first, then the chapter's story card, inside the same meet step (content audit 23 Oct, top-25 #5).
+  const sceneChapter = step?.beat.kind === "meet" ? sceneChapterFor(step.beat.node) : null;
+  const sceneShowing = sceneChapter !== null && sceneAt === stepKey;
+  const inMcq = (step?.beat.kind === "meet" && !sceneShowing) || step?.beat.kind === "mcq" || (run.phase === "recycle" && !recyclingDraws);
   // The trainer engine is a fixed full-viewport screen with its own exit, so
   // while it plays the lesson chrome underneath is covered but still in the
   // accessibility tree. inert takes the tool rail out of the tab order and
@@ -664,7 +676,10 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
           than unconditional, and the condition is which surface is playing. */}
       <div className={`beat-runner__stage${inMcq ? "" : " beat-runner__stage--gutter"}`}>
       <Suspense fallback={<p role="status">Loading the lesson.</p>}>
-        {step?.beat.kind === "meet" ? (
+        {sceneShowing ? (
+          <StoryScene chapter={sceneChapter} reducedMotion={reducedMotion} onDone={() => advanceStep(0, 0)} />
+        ) : null}
+        {step?.beat.kind === "meet" && !sceneShowing ? (
           // THE MEET STEP: the first-meeting questions at level 0, where a
           // pick cannot fail and the how-to shows the answer forming. It
           // reports 0 of 0 so nothing here counts for or against the run;
@@ -688,7 +703,7 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
             onProgress={(progress) => setMcqFraction(progress.fraction)}
             {...resumeResults}
             onCommit={(results, progress) => saveAnswer(results, progress.fraction)}
-            onDone={() => advanceStep(0, 0)}
+            onDone={() => (sceneChapter !== null ? setSceneAt(stepKey) : advanceStep(0, 0))}
           />
         ) : null}
         {step?.beat.kind === "mcq" ? (
