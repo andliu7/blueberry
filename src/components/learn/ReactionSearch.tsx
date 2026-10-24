@@ -109,7 +109,7 @@ export function ReactionSearch({
         {total === 0 && lessons.length === 0
           ? "Nothing matches that. Try a reagent, or a starting material."
           : [
-              lessons.length ? `${plural(lessons.length, "lesson", "lessons")}` : null,
+              lessons.length ? `${plural(lessons.length, "note", "notes")}` : null,
               `${plural(total, "reaction", "reactions")}`,
             ]
               .filter(Boolean)
@@ -133,7 +133,7 @@ export function ReactionSearch({
             return (
               <li key={t.id} className="flex">
                 <a href={`#/lessons/${t.id}`} className="lrn-tap gap-1 p-4">
-                  <span className="lrn-eyebrow">{["Lesson", home ? unitParts(home).number : null].filter(Boolean).join(" · ")}</span>
+                  <span className="lrn-eyebrow">{["Unit note", home ? unitParts(home).number : null].filter(Boolean).join(" · ")}</span>
                   <span className="title-face text-base leading-tight font-extrabold text-[var(--bb-deep)]">{t.label}</span>
                   <span className="text-sm text-[var(--site-quiet)]">{t.title}</span>
                 </a>
