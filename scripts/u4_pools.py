@@ -1088,14 +1088,15 @@ def node_meisenheimer() -> None:
     rels = info["ring"]
     word = {frozenset({"ortho", "para"}): "op", frozenset({"meta"}): "meta", frozenset({"ipso"}): "ipso"}.get(frozenset(rels), "other")
     # Stands alone (audit 23 Oct, top-25 #24): tests shuffle the order, so "that complex" pointed at nothing.
-    mcq(node, "u4-meis-sites", "Methoxide adds at C-Cl of 1-chloro-4-nitrobenzene. Pick where the ring's minus can sit.",
+    mcq(node, "u4-meis-sites", "Methoxide adds at C-Cl of 1-chloro-4-nitrobenzene. Pick where the ring's charge can sit.",
         [("op", "Ortho and para to the attacked carbon", "The pair moves across each C=C in turn: ortho, then para, then the other ortho. Every hop skips one carbon."),
          ("meta", "Meta to the attacked carbon", "The meta carbons sit between charged ones. The walk always jumps over them."),
          ("ipso", "On the attacked carbon itself", "That carbon is sp³, with four bonds and no lone pair. It cannot hold the charge.")],
         word, "op",
         "Like an arenium ion in reverse: the charge sits ortho and para to where the nucleophile added. That is why acceptors must be ortho or para.",
         prov(f"Rule 4 walk: {len(forms)} forms; ring carbons reached, by relation: {sorted(rels)}", sec),
-        structure(start, "", "the complex from 1-chloro-4-nitrobenzene", check=False), concepts=MEIS_CONCEPTS)
+        # The substrate, not the complex: the complex drawing shows the minus ortho, which gives the answer away.
+        structure(pcnb, N4("pcnb"), "1-chloro-4-nitrobenzene + ⁻OCH₃"), concepts=MEIS_CONCEPTS)
 
     on_o = [f for f, a, mm in info["forms"] if mm.GetAtomWithIdx(a).GetSymbol() == "O"]
     on_c = [(f, a) for f, a, mm in info["forms"] if mm.GetAtomWithIdx(a).GetSymbol() == "C"]
@@ -1390,7 +1391,7 @@ def node_isotope() -> None:
     trip = [b for b in m_ary.GetBonds() if b.GetBondType() == Chem.BondType.TRIPLE]
     sym = len(trip) == 1 and ranks[trip[0].GetBeginAtomIdx()] == ranks[trip[0].GetEndAtomIdx()]
     # Stands alone (top-25 #24): "those two carbons" pointed back at the previous screen.
-    mcq(node, "u4-iso-ratio", "Labelled chlorobenzene and NaNH₂ put ¹⁴C on C-N or beside it. Pick how it splits.",
+    mcq(node, "u4-iso-ratio", "Chlorobenzene-1-¹⁴C and NaNH₂ put ¹⁴C on C-N or beside it. Pick how it splits.",
         [("half", "About half and half", "Without the label the two aryne carbons are identical, so NH₂⁻ adds to each equally often."),
          ("ipso", "Nearly all on the C-NH₂ carbon", "That would mean the nucleophile prefers the old C-Cl end. The aryne's ends are equivalent."),
          ("ortho", "Nearly all beside C-NH₂", "Nothing favours the unlabelled end either. Equal ends give equal amounts.")],

@@ -638,7 +638,7 @@ export const U4_POOLS: UnitPools = {
           "levels": [
             1
           ],
-          "prompt": "Methoxide adds at C-Cl of 1-chloro-4-nitrobenzene. Pick where the ring's minus can sit.",
+          "prompt": "Methoxide adds at C-Cl of 1-chloro-4-nitrobenzene. Pick where the ring's charge can sit.",
           "correctOptionId": "op",
           "options": [
             {
@@ -1491,7 +1491,7 @@ export const U4_POOLS: UnitPools = {
           "levels": [
             1
           ],
-          "prompt": "Labelled chlorobenzene and NaNH₂ put ¹⁴C on C-N or beside it. Pick how it splits.",
+          "prompt": "Chlorobenzene-1-¹⁴C and NaNH₂ put ¹⁴C on C-N or beside it. Pick how it splits.",
           "correctOptionId": "half",
           "options": [
             {
@@ -2650,97 +2650,74 @@ export const U4_VISUALS: Readonly<Record<string, McqVisual>> = {
     "figure": {
       "bonds": [
         {
-          "x1": 97.0,
-          "y1": 63.9,
-          "x2": 91.5,
-          "y2": 57.4
+          "x1": 29.1,
+          "y1": 22.0,
+          "x2": 38.3,
+          "y2": 27.3
         },
         {
-          "x1": 81.8,
-          "y1": 53.8,
-          "x2": 73.4,
-          "y2": 55.3
+          "x1": 38.3,
+          "y1": 27.3,
+          "x2": 52.8,
+          "y2": 19.0
         },
         {
-          "x1": 73.4,
-          "y1": 55.3,
-          "x2": 76.3,
-          "y2": 63.4
-        },
-        {
-          "x1": 73.4,
-          "y1": 55.3,
-          "x2": 73.3,
-          "y2": 40.8
-        },
-        {
-          "x1": 73.3,
-          "y1": 40.8,
-          "x2": 60.7,
-          "y2": 33.5,
+          "x1": 52.8,
+          "y1": 19.0,
+          "x2": 67.2,
+          "y2": 27.3,
           "order": 2
         },
         {
-          "x1": 60.7,
-          "y1": 33.5,
-          "x2": 48.2,
-          "y2": 40.8
+          "x1": 67.2,
+          "y1": 27.3,
+          "x2": 67.2,
+          "y2": 44.0
         },
         {
-          "x1": 48.2,
-          "y1": 40.8,
-          "x2": 40.7,
-          "y2": 36.5
+          "x1": 67.2,
+          "y1": 44.0,
+          "x2": 76.5,
+          "y2": 49.3
         },
         {
-          "x1": 48.2,
-          "y1": 40.8,
-          "x2": 48.2,
-          "y2": 55.4,
+          "x1": 67.2,
+          "y1": 44.0,
+          "x2": 52.8,
+          "y2": 52.3,
           "order": 2
         },
         {
-          "x1": 48.2,
-          "y1": 55.4,
-          "x2": 60.8,
-          "y2": 62.6
+          "x1": 52.8,
+          "y1": 52.3,
+          "x2": 38.3,
+          "y2": 44.0
         },
         {
-          "x1": 60.8,
-          "y1": 62.6,
-          "x2": 73.4,
-          "y2": 55.3
+          "x1": 38.3,
+          "y1": 44.0,
+          "x2": 38.3,
+          "y2": 27.3,
+          "order": 2
         }
       ],
       "labels": [
         {
-          "x": 87.7,
-          "y": 57.8,
-          "t": "O",
-          "size": 13
-        },
-        {
-          "x": 78.3,
-          "y": 74.0,
+          "x": 23.9,
+          "y": 24.0,
           "t": "Cl",
           "size": 13
         },
         {
-          "x": 40.0,
-          "y": 38.5,
-          "t": "O_2N",
+          "x": 77.2,
+          "y": 57.3,
+          "t": "NO_2",
           "size": 13,
-          "anchor": "end"
-        },
-        {
-          "x": 60.8,
-          "y": 75.1,
-          "t": "−",
-          "size": 13
+          "anchor": "start"
         }
       ]
     },
-    "name": "the complex from 1-chloro-4-nitrobenzene"
+    "name": "1-chloro-4-nitrobenzene + ⁻OCH₃"
   },
   "u4-meis-oxygen": {
     "kind": "structure",
