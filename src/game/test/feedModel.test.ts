@@ -142,6 +142,19 @@ describe("the get-right quest", () => {
     const journal = [attempt(1, 1, true), attempt(1, 2, true)];
     expect(questById(journal, "get-right").progress).toBe(0);
   });
+  // Audit 23 Oct, section 5 #10: beat lessons journal no attempts, only a clear
+  // that carries how many were right on the first try. Those count too.
+  it("counts a beat lesson's first-try right answers from its clear", () => {
+    const lesson: EconomyEvent = { ...clear(0, "seed:beat"), stepsInOneSitting: 6, cleared: 4 };
+    const quest = questById([lesson, attempt(0, 1, true)], "get-right");
+    expect(quest.progress).toBe(5);
+    expect(quest.done).toBe(true);
+  });
+
+  it("does not count a clear that carries no answer count, or yesterday's lesson", () => {
+    const yesterday: EconomyEvent = { ...clear(1, "seed:beat"), stepsInOneSitting: 6, cleared: 6 };
+    expect(questById([clear(0, "seed:legacy"), yesterday], "get-right").progress).toBe(0);
+  });
 });
 
 describe("the clock, which is part of the surface", () => {

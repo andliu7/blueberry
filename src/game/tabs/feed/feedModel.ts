@@ -12,7 +12,7 @@
  * THE ONE RULE, ECONOMY.md's: "The client animates what the server concluded."
  * Nothing here invents a reward, adds a balance, or decides whether today
  * counted. The three quests are three questions put to `deriveEconomy`, plus
- * one count of the journal's own attempt events on today's local date. The
+ * one count of the journal's own correct answers on today's local date. The
  * chest at the end of a quest bar is drawn state, not a payout: the only quest
  * that pays anything is the daily goal, and the ENGINE pays that (+10 XP on
  * the receipt), never this file.
@@ -92,12 +92,21 @@ export interface FeedModel {
   readonly snapshot: EconomySnapshot;
 }
 
-/** Correct attempt events on today's local date, each read in its own zone. */
+/**
+ * Correct answers on today's local date, each event read in its own zone.
+ *
+ * Two places carry them. The legacy lessons (and the v1 migration) journal one
+ * `attempt` per question. Beat lessons journal no attempts: their clear carries
+ * `cleared`, the questions right on the first try (BeatRunner.tsx). Audit 23 Oct,
+ * section 5 #10: counting attempts alone left this quest at 0 / 5 after a beat
+ * lesson full of right answers. A clear never carries `cleared` from the legacy
+ * path, so nothing is counted twice. A lesson's answers land when it is cleared.
+ */
 function correctToday(journal: readonly EconomyEvent[], today: string): number {
   let count = 0;
   for (const event of journal) {
-    if (event.kind !== "attempt" || !event.correct) continue;
-    if (localDate(Date.parse(event.at), event.tz) === today) count += 1;
+    const right = event.kind === "attempt" ? (event.correct ? 1 : 0) : event.kind === "node_cleared" ? (event.cleared ?? 0) : 0;
+    if (right > 0 && localDate(Date.parse(event.at), event.tz) === today) count += right;
   }
   return count;
 }
@@ -160,7 +169,7 @@ export function feedModel(journal: readonly EconomyEvent[], now: string): FeedMo
     counted ? `Day ${snapshot.streak.current}` : "Today is open",
   );
 
-  // Get five right. A count of the journal's own attempt events; wrong
+  // Get five right. A count of the journal's own correct answers; wrong
   // answers move nothing, in either direction, per the economy's own rule
   // that no wrong answer costs anything.
   const right = correctToday(journal, today);
@@ -187,8 +196,10 @@ export function feedModel(journal: readonly EconomyEvent[], now: string): FeedMo
  * Feed shows. Every number is `snapshot.quests`; this only words it.
  *
  * The three quests `feedModel` builds above (earn the goal, keep the streak,
- * get five right) came before the owner's set and are no longer on screen;
- * they stay, with their tests, until the owner says to retire them.
+ * get five right) came before the owner's set and are no longer on the Feed.
+ * Two of them (earn the goal, get five right) are still on the site's Learn
+ * rail (components/learn/LearnRail.tsx), so they stay, with their tests, until
+ * the owner says to retire them.
  */
 export interface DailyQuestRow {
   readonly id: string;
