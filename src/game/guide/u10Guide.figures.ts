@@ -12,24 +12,67 @@ import type { GuideExample } from "./types";
 
 export const U10_GUIDE_EXAMPLES: Readonly<Record<string, GuideExample>> = {
   "u10-basicity": {
-    "caption": "In ethanol, HS⁻ attacks carbon faster than OH⁻, even though OH⁻ is the stronger base: speed is a rate, not an equilibrium.",
+    "caption": "Cyclohexanamine keeps its N lone pair on N, aniline spreads it into the ring, acetamide shares it with the C=O: strongest base to weakest.",
     "panels": [
       {
         "kind": "mol",
-        "smiles": "[SH-]",
+        "smiles": "NC1CCCCC1",
         "figure": {
-          "w": 34.4,
-          "h": 26.8,
-          "bonds": [],
+          "w": 87.6,
+          "h": 69.4,
+          "bonds": [
+            {
+              "x1": 25.0,
+              "y1": 51.5,
+              "x2": 38.0,
+              "y2": 44.0
+            },
+            {
+              "x1": 38.0,
+              "y1": 44.0,
+              "x2": 38.0,
+              "y2": 20.0
+            },
+            {
+              "x1": 38.0,
+              "y1": 20.0,
+              "x2": 58.8,
+              "y2": 8.0
+            },
+            {
+              "x1": 58.8,
+              "y1": 8.0,
+              "x2": 79.6,
+              "y2": 20.0
+            },
+            {
+              "x1": 79.6,
+              "y1": 20.0,
+              "x2": 79.6,
+              "y2": 44.0
+            },
+            {
+              "x1": 79.6,
+              "y1": 44.0,
+              "x2": 58.8,
+              "y2": 56.0
+            },
+            {
+              "x1": 58.8,
+              "y1": 56.0,
+              "x2": 38.0,
+              "y2": 44.0
+            }
+          ],
           "labels": [
             {
               "x": 17.2,
-              "y": 18.4,
-              "t": "SH^−"
+              "y": 61.0,
+              "t": "NH_2"
             }
           ]
         },
-        "name": "Hydrosulfide: attacks faster",
+        "name": "Cyclohexanamine: strongest base",
         "focus": true
       },
       {
@@ -37,21 +80,114 @@ export const U10_GUIDE_EXAMPLES: Readonly<Record<string, GuideExample>> = {
       },
       {
         "kind": "mol",
-        "smiles": "[OH-]",
+        "smiles": "Nc1ccccc1",
         "figure": {
-          "w": 34.4,
-          "h": 26.8,
-          "bonds": [],
+          "w": 87.6,
+          "h": 69.4,
+          "bonds": [
+            {
+              "x1": 25.0,
+              "y1": 51.5,
+              "x2": 38.0,
+              "y2": 44.0
+            },
+            {
+              "x1": 38.0,
+              "y1": 44.0,
+              "x2": 38.0,
+              "y2": 20.0,
+              "order": 2,
+              "inner": 1
+            },
+            {
+              "x1": 38.0,
+              "y1": 20.0,
+              "x2": 58.8,
+              "y2": 8.0
+            },
+            {
+              "x1": 58.8,
+              "y1": 8.0,
+              "x2": 79.6,
+              "y2": 20.0,
+              "order": 2,
+              "inner": 1
+            },
+            {
+              "x1": 79.6,
+              "y1": 20.0,
+              "x2": 79.6,
+              "y2": 44.0
+            },
+            {
+              "x1": 79.6,
+              "y1": 44.0,
+              "x2": 58.8,
+              "y2": 56.0,
+              "order": 2,
+              "inner": 1
+            },
+            {
+              "x1": 58.8,
+              "y1": 56.0,
+              "x2": 38.0,
+              "y2": 44.0
+            }
+          ],
           "labels": [
             {
               "x": 17.2,
-              "y": 18.4,
-              "t": "OH^−"
+              "y": 61.0,
+              "t": "NH_2"
             }
           ]
         },
-        "name": "Hydroxide: the stronger base",
-        "focus": true
+        "name": "Aniline: pair spread into the ring"
+      },
+      {
+        "kind": "break"
+      },
+      {
+        "kind": "mol",
+        "smiles": "CC(N)=O",
+        "figure": {
+          "w": 66.8,
+          "h": 69.4,
+          "bonds": [
+            {
+              "x1": 8.0,
+              "y1": 52.6,
+              "x2": 28.8,
+              "y2": 40.7
+            },
+            {
+              "x1": 28.8,
+              "y1": 40.7,
+              "x2": 41.8,
+              "y2": 48.2
+            },
+            {
+              "x1": 28.8,
+              "y1": 40.7,
+              "x2": 28.9,
+              "y2": 25.7,
+              "order": 2
+            }
+          ],
+          "labels": [
+            {
+              "x": 49.6,
+              "y": 57.8,
+              "t": "NH_2"
+            },
+            {
+              "x": 28.9,
+              "y": 21.7,
+              "t": "O"
+            }
+          ]
+        },
+        "name": "Acetamide: weakest base"
       }
     ],
     "placeholder": true

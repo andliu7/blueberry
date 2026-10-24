@@ -140,6 +140,348 @@ function match(spec: { readonly beat: MatchBeat; readonly explanation: string; r
 
 /** Lesson pools keyed by map node id (beats/practice/pools.ts). */
 export const U10_POOLS: UnitPools = {
+  "u10-basicity": [
+    {
+      "id": "u10-bas-meet",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u10-bas-meet",
+          "node": "u10-basicity",
+          "conceptIds": [
+            "amines",
+            "resonance_delocalisation"
+          ],
+          "levels": [
+            0
+          ],
+          "prompt": "Pick the strongest base of the three.",
+          "correctOptionId": "chxa",
+          "options": [
+            {
+              "id": "chxa",
+              "text": "Cyclohexanamine",
+              "why": "Its N carries only alkyl groups, so the lone pair stays on N, fully available to a proton."
+            },
+            {
+              "id": "anil",
+              "text": "Aniline",
+              "why": "The lone pair is spread into the benzene ring by resonance, so less of it is available to a proton."
+            },
+            {
+              "id": "amide",
+              "text": "Acetamide",
+              "why": "The lone pair is shared with the C=O. An amide N barely acts as a base."
+            }
+          ]
+        }
+      },
+      "explanation": "Alkyl amine above aryl amine above amide: the more the lone pair is spread out, the weaker the base.",
+      "provenance": "scripts/u10_pools.py: Rule L, the lone pair class of each N. OpenStax Organic Chemistry ch. 24 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: basicity order alkyl amine > aryl amine > amide, set by where the N lone pair is delocalised (the course outline's order).",
+      "placeholder": true
+    },
+    {
+      "id": "u10-bas-weakest",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u10-bas-weakest",
+          "node": "u10-basicity",
+          "conceptIds": [
+            "amines",
+            "resonance_delocalisation"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "Pick the weakest base of the three.",
+          "correctOptionId": "anil",
+          "options": [
+            {
+              "id": "mechxa",
+              "text": "N-methylcyclohexanamine",
+              "why": "Another alkyl amine, with a localised lone pair like cyclohexanamine's."
+            },
+            {
+              "id": "anil",
+              "text": "Aniline",
+              "why": "Its lone pair is delocalised into the ring, so it is the one least ready to take a proton."
+            },
+            {
+              "id": "chxa",
+              "text": "Cyclohexanamine",
+              "why": "An alkyl amine. Nothing pulls its lone pair away from N."
+            }
+          ]
+        }
+      },
+      "explanation": "A ring on N spreads the lone pair out; alkyl groups do not.",
+      "provenance": "scripts/u10_pools.py: Rule L, the lone pair class of each N. OpenStax Organic Chemistry ch. 24 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: basicity order alkyl amine > aryl amine > amide, set by where the N lone pair is delocalised (the course outline's order).",
+      "placeholder": true
+    },
+    {
+      "id": "u10-bas-two",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u10-bas-two",
+          "node": "u10-basicity",
+          "conceptIds": [
+            "amines",
+            "resonance_delocalisation"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "4-(Aminomethyl)aniline meets one H⁺. Pick the N it protonates.",
+          "correctOptionId": "ch2",
+          "options": [
+            {
+              "id": "ch2",
+              "text": "The CH₂NH₂ nitrogen",
+              "why": "That N has only sp3 carbon beside it, so its lone pair is localised. It is the stronger base and takes the proton."
+            },
+            {
+              "id": "ring",
+              "text": "The NH₂ on the ring",
+              "why": "Its lone pair is spread into the ring, so it holds a proton less well than the other N."
+            },
+            {
+              "id": "same",
+              "text": "Both equally",
+              "why": "One N sits on the ring and one is a CH₂ away from it, so their lone pairs are not alike."
+            }
+          ]
+        }
+      },
+      "explanation": "In a molecule with two N, the one whose lone pair is not delocalised is protonated first.",
+      "provenance": "scripts/u10_pools.py: Rule L on each N of the molecule. OpenStax Organic Chemistry ch. 24 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: basicity order alkyl amine > aryl amine > amide, set by where the N lone pair is delocalised (the course outline's order).",
+      "placeholder": true
+    },
+    {
+      "id": "u10-bas-pka",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u10-bas-pka",
+          "node": "u10-basicity",
+          "conceptIds": [
+            "amines",
+            "pka_keq_viability"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "Pick the course pKa for the N-H of an alkylammonium ion, R-NH₃⁺.",
+          "correctOptionId": "ten",
+          "options": [
+            {
+              "id": "ten",
+              "text": "About 10",
+              "why": "The course table puts the conjugate acid of an alkyl amine near 10, which is why an amine is a useful base."
+            },
+            {
+              "id": "tf",
+              "text": "About 35",
+              "why": "That is an amine N-H losing a proton to make R-NH⁻, a far weaker acid. The table keeps the two apart."
+            },
+            {
+              "id": "five",
+              "text": "About 5",
+              "why": "That is a carboxylic acid O-H. An ammonium N-H holds its proton more tightly."
+            }
+          ]
+        }
+      },
+      "explanation": "R-NH₃⁺ near pKa 10; R-NH₂ itself near 35. A stronger amine base has a higher pKa for its conjugate acid.",
+      "provenance": "scripts/u10_pools.py: pKa read from packages/curriculum/src/pka.ts. OpenStax Organic Chemistry ch. 24 (CC BY-NC-SA) is the named check, not yet read against this draft.",
+      "placeholder": true
+    },
+    {
+      "id": "u10-bas-amide",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u10-bas-amide",
+          "node": "u10-basicity",
+          "conceptIds": [
+            "amines",
+            "resonance_delocalisation"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "Acetamide's N is barely basic. Pick the reason.",
+          "correctOptionId": "shared",
+          "options": [
+            {
+              "id": "none",
+              "text": "Its N has no lone pair",
+              "why": "The N has three bonds and still one lone pair. The pair is there, just delocalised."
+            },
+            {
+              "id": "ring",
+              "text": "Its lone pair is part of a ring",
+              "why": "Acetamide has no ring at all."
+            },
+            {
+              "id": "shared",
+              "text": "Its lone pair is shared with the C=O",
+              "why": "Resonance moves the N lone pair toward the carbonyl O, so little is left for a proton."
+            }
+          ]
+        }
+      },
+      "explanation": "An amide N's lone pair is shared with the C=O, so amides are not basic at N.",
+      "provenance": "scripts/u10_pools.py: Rule L, the amide class. OpenStax Organic Chemistry ch. 24 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: basicity order alkyl amine > aryl amine > amide, set by where the N lone pair is delocalised (the course outline's order).",
+      "placeholder": true
+    },
+    match({
+      "beat": {
+        "kind": "match",
+        "id": "u10-bas-match",
+        "node": "u10-basicity",
+        "conceptIds": [
+          "amines",
+          "resonance_delocalisation"
+        ],
+        "levels": [
+          1,
+          2
+        ],
+        "presentation": "columns",
+        "prompt": "Match each compound to where its N lone pair sits.",
+        "brief": "Where the lone pair goes decides how basic the N is.",
+        "pairs": [
+          {
+            "id": "c",
+            "left": "Cyclohexanamine",
+            "right": "Localised lone pair",
+            "why": "Only alkyl groups on N, so its lone pair is localised on N."
+          },
+          {
+            "id": "a",
+            "left": "Aniline",
+            "right": "Lone pair spread into the ring",
+            "why": "The N sits on the ring, and its lone pair is spread into the ring by resonance."
+          },
+          {
+            "id": "m",
+            "left": "Acetamide",
+            "right": "Lone pair shared with C=O",
+            "why": "The N sits on a C=O, and its lone pair is shared with the carbonyl."
+          },
+          {
+            "id": "p",
+            "left": "Pyrrole",
+            "right": "Lone pair in the aromatic sextet",
+            "why": "The N is in the aromatic ring and its lone pair is two of the six pi electrons."
+          }
+        ]
+      },
+      "explanation": "Localised pair: a strong base. Spread into a ring or a C=O, or used in the sextet: a weak one.",
+      "provenance": "scripts/u10_pools.py: Rule L run on each card (RDKit aromaticity for pyrrole). OpenStax Organic Chemistry ch. 24 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: basicity order alkyl amine > aryl amine > amide, set by where the N lone pair is delocalised (the course outline's order)."
+    }),
+    ladder({
+      "id": "u10-bas-ladder",
+      "node": "u10-basicity",
+      "problemId": "u10-pool-u10-bas-ladder",
+      "topic": "amines",
+      "difficulty": 1100,
+      "problemPrompt": "Rank cyclohexanamine, aniline and acetamide by basicity, strongest base first.",
+      "criterionText": "strongest base",
+      "items": [
+        {
+          "id": "chxa",
+          "text": "Cyclohexanamine"
+        },
+        {
+          "id": "anil",
+          "text": "Aniline"
+        },
+        {
+          "id": "amide",
+          "text": "Acetamide"
+        }
+      ],
+      "order": [
+        "chxa",
+        "anil",
+        "amide"
+      ],
+      "solution": {
+        "whatHappened": "Cyclohexanamine, aniline, acetamide.",
+        "why": "The more the N lone pair is spread out, the weaker the base.",
+        "lookAt": "Ask where the N lone pair can go."
+      },
+      "distractors": [
+        {
+          "id": "reversed",
+          "cause": "ordering_is_reversed",
+          "order": [
+            "amide",
+            "anil",
+            "chxa"
+          ],
+          "explanation": {
+            "whatHappened": "The ladder read from the bottom.",
+            "why": "An amide N barely acts as a base; an alkyl N is the strongest here.",
+            "lookAt": "Put cyclohexanamine first."
+          }
+        },
+        {
+          "id": "anil-chxa",
+          "cause": "ordering_one_adjacent_pair_swapped",
+          "order": [
+            "anil",
+            "chxa",
+            "amide"
+          ],
+          "explanation": {
+            "whatHappened": "Aniline above cyclohexanamine.",
+            "why": "The ring pulls aniline's lone pair into its pi system; an alkyl N keeps its pair.",
+            "lookAt": "Ask whether the N sits on the ring."
+          }
+        }
+      ],
+      "beat": {
+        "conceptIds": [
+          "amines",
+          "resonance_delocalisation"
+        ],
+        "prompt": "Rank these three by how strongly they take a proton, strongest base first.",
+        "brief": "Follow the N lone pair: on N alone, spread into a ring, or shared with a C=O.",
+        "criterion": "basicity",
+        "direction": "descending",
+        "notes": {
+          "chxa": "Only alkyl groups on N, so its lone pair stays on N, ready for a proton.",
+          "anil": "The N sits on the ring, and its lone pair is spread into the ring by resonance.",
+          "amide": "The N sits on a C=O, and its lone pair is shared with the carbonyl. Barely basic."
+        }
+      },
+      "trackEnds": {
+        "first": "Strongest base",
+        "last": "Weakest base"
+      },
+      "meanings": [
+        {
+          "id": "reversed",
+          "cause": "order_fully_reversed"
+        },
+        {
+          "id": "anil-chxa",
+          "cause": "order_adjacent_pair_swapped"
+        }
+      ],
+      "explanation": "The more the N lone pair is spread out, the weaker the base: alkyl, then aryl, then amide.",
+      "provenance": "scripts/u10_pools.py: Rule L, basic_rank per card. OpenStax Organic Chemistry ch. 24 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: basicity order alkyl amine > aryl amine > amide, set by where the N lone pair is delocalised (the course outline's order)."
+    }),
+  ],
   "u10-red-amination": [
     {
       "id": "u10-ra-meet",
@@ -3804,6 +4146,234 @@ export const U10_POOLS: UnitPools = {
 
 /** The drawing beside each MCQ, keyed by beat id. */
 export const U10_VISUALS: Readonly<Record<string, McqVisual>> = {
+  "u10-bas-meet": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 50.0,
+          "y1": 44.0,
+          "x2": 64.0,
+          "y2": 44.0
+        }
+      ],
+      "labels": [
+        {
+          "x": 70.0,
+          "y": 49.0,
+          "t": "NH_2",
+          "size": 13
+        }
+      ]
+    },
+    "name": "compare each N with CH₃NH₂"
+  },
+  "u10-bas-weakest": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 39.2,
+          "y1": 61.0,
+          "x2": 51.3,
+          "y2": 54.0
+        },
+        {
+          "x1": 51.3,
+          "y1": 54.0,
+          "x2": 51.4,
+          "y2": 34.0
+        },
+        {
+          "x1": 51.4,
+          "y1": 34.0,
+          "x2": 68.7,
+          "y2": 24.0
+        },
+        {
+          "x1": 68.7,
+          "y1": 24.0,
+          "x2": 86.0,
+          "y2": 34.0
+        },
+        {
+          "x1": 86.0,
+          "y1": 34.0,
+          "x2": 86.0,
+          "y2": 54.0
+        },
+        {
+          "x1": 86.0,
+          "y1": 54.0,
+          "x2": 68.6,
+          "y2": 64.0
+        },
+        {
+          "x1": 68.6,
+          "y1": 64.0,
+          "x2": 51.3,
+          "y2": 54.0
+        }
+      ],
+      "labels": [
+        {
+          "x": 34.0,
+          "y": 69.0,
+          "t": "NH_2",
+          "size": 13
+        }
+      ]
+    },
+    "name": "an alkyl amine, for reference"
+  },
+  "u10-bas-two": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 66.8,
+          "y1": 67.3,
+          "x2": 60.0,
+          "y2": 63.5
+        },
+        {
+          "x1": 60.0,
+          "y1": 63.5,
+          "x2": 60.0,
+          "y2": 52.3
+        },
+        {
+          "x1": 60.0,
+          "y1": 52.3,
+          "x2": 50.4,
+          "y2": 46.8
+        },
+        {
+          "x1": 50.4,
+          "y1": 46.8,
+          "x2": 50.3,
+          "y2": 35.7,
+          "order": 2
+        },
+        {
+          "x1": 50.3,
+          "y1": 35.7,
+          "x2": 60.0,
+          "y2": 30.1
+        },
+        {
+          "x1": 60.0,
+          "y1": 30.1,
+          "x2": 59.9,
+          "y2": 22.3
+        },
+        {
+          "x1": 60.0,
+          "y1": 30.1,
+          "x2": 69.6,
+          "y2": 35.7,
+          "order": 2
+        },
+        {
+          "x1": 69.6,
+          "y1": 35.7,
+          "x2": 69.6,
+          "y2": 46.8
+        },
+        {
+          "x1": 69.6,
+          "y1": 46.8,
+          "x2": 60.0,
+          "y2": 52.3,
+          "order": 2
+        }
+      ],
+      "labels": [
+        {
+          "x": 69.7,
+          "y": 74.0,
+          "t": "NH_2",
+          "size": 13
+        },
+        {
+          "x": 59.9,
+          "y": 24.0,
+          "t": "NH_2",
+          "size": 13
+        }
+      ]
+    },
+    "name": "two kinds of N"
+  },
+  "u10-bas-pka": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 50.0,
+          "y1": 44.0,
+          "x2": 64.0,
+          "y2": 44.0
+        }
+      ],
+      "labels": [
+        {
+          "x": 70.0,
+          "y": 49.0,
+          "t": "NH_3",
+          "size": 13
+        },
+        {
+          "x": 83.0,
+          "y": 42.5,
+          "t": "+",
+          "size": 13
+        }
+      ]
+    },
+    "name": "CH₃NH₃⁺"
+  },
+  "u10-bas-amide": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 42.7,
+          "y1": 58.9,
+          "x2": 60.0,
+          "y2": 49.0
+        },
+        {
+          "x1": 60.0,
+          "y1": 49.0,
+          "x2": 72.1,
+          "y2": 56.0
+        },
+        {
+          "x1": 60.0,
+          "y1": 49.0,
+          "x2": 60.1,
+          "y2": 35.0,
+          "order": 2
+        }
+      ],
+      "labels": [
+        {
+          "x": 77.3,
+          "y": 64.0,
+          "t": "NH_2",
+          "size": 13
+        },
+        {
+          "x": 60.1,
+          "y": 34.0,
+          "t": "O",
+          "size": 13
+        }
+      ]
+    },
+    "name": "acetamide"
+  },
   "u10-ra-meet": {
     "kind": "structure",
     "figure": {
@@ -10000,6 +10570,347 @@ export const U10_VISUALS: Readonly<Record<string, McqVisual>> = {
 
 /** Drawn options, keyed by beat id then option id. All or nothing per beat. */
 export const U10_OPTION_TILES: Readonly<Record<string, Readonly<Record<string, NamedFigure>>>> = {
+  "u10-bas-meet": {
+    "chxa": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 39.2,
+            "y1": 61.0,
+            "x2": 51.3,
+            "y2": 54.0
+          },
+          {
+            "x1": 51.3,
+            "y1": 54.0,
+            "x2": 51.4,
+            "y2": 34.0
+          },
+          {
+            "x1": 51.4,
+            "y1": 34.0,
+            "x2": 68.7,
+            "y2": 24.0
+          },
+          {
+            "x1": 68.7,
+            "y1": 24.0,
+            "x2": 86.0,
+            "y2": 34.0
+          },
+          {
+            "x1": 86.0,
+            "y1": 34.0,
+            "x2": 86.0,
+            "y2": 54.0
+          },
+          {
+            "x1": 86.0,
+            "y1": 54.0,
+            "x2": 68.6,
+            "y2": 64.0
+          },
+          {
+            "x1": 68.6,
+            "y1": 64.0,
+            "x2": 51.3,
+            "y2": 54.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 34.0,
+            "y": 69.0,
+            "t": "NH_2",
+            "size": 13
+          }
+        ]
+      },
+      "name": "cyclohexanamine"
+    },
+    "anil": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 39.2,
+            "y1": 61.0,
+            "x2": 51.3,
+            "y2": 54.0
+          },
+          {
+            "x1": 51.3,
+            "y1": 54.0,
+            "x2": 51.4,
+            "y2": 34.0,
+            "order": 2
+          },
+          {
+            "x1": 51.4,
+            "y1": 34.0,
+            "x2": 68.7,
+            "y2": 24.0
+          },
+          {
+            "x1": 68.7,
+            "y1": 24.0,
+            "x2": 86.0,
+            "y2": 34.0,
+            "order": 2
+          },
+          {
+            "x1": 86.0,
+            "y1": 34.0,
+            "x2": 86.0,
+            "y2": 54.0
+          },
+          {
+            "x1": 86.0,
+            "y1": 54.0,
+            "x2": 68.6,
+            "y2": 64.0,
+            "order": 2
+          },
+          {
+            "x1": 68.6,
+            "y1": 64.0,
+            "x2": 51.3,
+            "y2": 54.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 34.0,
+            "y": 69.0,
+            "t": "NH_2",
+            "size": 13
+          }
+        ]
+      },
+      "name": "aniline"
+    },
+    "amide": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 42.7,
+            "y1": 58.9,
+            "x2": 60.0,
+            "y2": 49.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 49.0,
+            "x2": 72.1,
+            "y2": 56.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 49.0,
+            "x2": 60.1,
+            "y2": 35.0,
+            "order": 2
+          }
+        ],
+        "labels": [
+          {
+            "x": 77.3,
+            "y": 64.0,
+            "t": "NH_2",
+            "size": 13
+          },
+          {
+            "x": 60.1,
+            "y": 34.0,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "acetamide"
+    }
+  },
+  "u10-bas-weakest": {
+    "anil": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 39.2,
+            "y1": 61.0,
+            "x2": 51.3,
+            "y2": 54.0
+          },
+          {
+            "x1": 51.3,
+            "y1": 54.0,
+            "x2": 51.4,
+            "y2": 34.0,
+            "order": 2
+          },
+          {
+            "x1": 51.4,
+            "y1": 34.0,
+            "x2": 68.7,
+            "y2": 24.0
+          },
+          {
+            "x1": 68.7,
+            "y1": 24.0,
+            "x2": 86.0,
+            "y2": 34.0,
+            "order": 2
+          },
+          {
+            "x1": 86.0,
+            "y1": 34.0,
+            "x2": 86.0,
+            "y2": 54.0
+          },
+          {
+            "x1": 86.0,
+            "y1": 54.0,
+            "x2": 68.6,
+            "y2": 64.0,
+            "order": 2
+          },
+          {
+            "x1": 68.6,
+            "y1": 64.0,
+            "x2": 51.3,
+            "y2": 54.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 34.0,
+            "y": 69.0,
+            "t": "NH_2",
+            "size": 13
+          }
+        ]
+      },
+      "name": "aniline"
+    },
+    "chxa": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 39.2,
+            "y1": 61.0,
+            "x2": 51.3,
+            "y2": 54.0
+          },
+          {
+            "x1": 51.3,
+            "y1": 54.0,
+            "x2": 51.4,
+            "y2": 34.0
+          },
+          {
+            "x1": 51.4,
+            "y1": 34.0,
+            "x2": 68.7,
+            "y2": 24.0
+          },
+          {
+            "x1": 68.7,
+            "y1": 24.0,
+            "x2": 86.0,
+            "y2": 34.0
+          },
+          {
+            "x1": 86.0,
+            "y1": 34.0,
+            "x2": 86.0,
+            "y2": 54.0
+          },
+          {
+            "x1": 86.0,
+            "y1": 54.0,
+            "x2": 68.6,
+            "y2": 64.0
+          },
+          {
+            "x1": 68.6,
+            "y1": 64.0,
+            "x2": 51.3,
+            "y2": 54.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 34.0,
+            "y": 69.0,
+            "t": "NH_2",
+            "size": 13
+          }
+        ]
+      },
+      "name": "cyclohexanamine"
+    },
+    "mechxa": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 25.4,
+            "y1": 54.1,
+            "x2": 37.5,
+            "y2": 61.1
+          },
+          {
+            "x1": 47.9,
+            "y1": 61.0,
+            "x2": 60.0,
+            "y2": 54.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 54.0,
+            "x2": 77.4,
+            "y2": 63.9
+          },
+          {
+            "x1": 77.4,
+            "y1": 63.9,
+            "x2": 94.6,
+            "y2": 53.9
+          },
+          {
+            "x1": 94.6,
+            "y1": 53.9,
+            "x2": 94.6,
+            "y2": 33.9
+          },
+          {
+            "x1": 94.6,
+            "y1": 33.9,
+            "x2": 77.2,
+            "y2": 23.9
+          },
+          {
+            "x1": 77.2,
+            "y1": 23.9,
+            "x2": 59.9,
+            "y2": 34.0
+          },
+          {
+            "x1": 59.9,
+            "y1": 34.0,
+            "x2": 60.0,
+            "y2": 54.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 42.7,
+            "y": 69.1,
+            "t": "NH",
+            "size": 13
+          }
+        ]
+      },
+      "name": "N-methylcyclohexanamine"
+    }
+  },
   "u10-ra-meet": {
     "amine": {
       "figure": {
@@ -23565,6 +24476,165 @@ export const U10_OPTION_TILES: Readonly<Record<string, Readonly<Record<string, N
 
 /** A drawing for every sort card, keyed by beat id then item id. */
 export const U10_SORT_FIGURES: Readonly<Record<string, Readonly<Record<string, NamedFigure>>>> = {
+  "u10-bas-ladder": {
+    "chxa": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 39.2,
+            "y1": 61.0,
+            "x2": 51.3,
+            "y2": 54.0
+          },
+          {
+            "x1": 51.3,
+            "y1": 54.0,
+            "x2": 51.4,
+            "y2": 34.0
+          },
+          {
+            "x1": 51.4,
+            "y1": 34.0,
+            "x2": 68.7,
+            "y2": 24.0
+          },
+          {
+            "x1": 68.7,
+            "y1": 24.0,
+            "x2": 86.0,
+            "y2": 34.0
+          },
+          {
+            "x1": 86.0,
+            "y1": 34.0,
+            "x2": 86.0,
+            "y2": 54.0
+          },
+          {
+            "x1": 86.0,
+            "y1": 54.0,
+            "x2": 68.6,
+            "y2": 64.0
+          },
+          {
+            "x1": 68.6,
+            "y1": 64.0,
+            "x2": 51.3,
+            "y2": 54.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 34.0,
+            "y": 69.0,
+            "t": "NH_2",
+            "size": 13
+          }
+        ]
+      },
+      "name": "Cyclohexanamine"
+    },
+    "anil": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 39.2,
+            "y1": 61.0,
+            "x2": 51.3,
+            "y2": 54.0
+          },
+          {
+            "x1": 51.3,
+            "y1": 54.0,
+            "x2": 51.4,
+            "y2": 34.0,
+            "order": 2
+          },
+          {
+            "x1": 51.4,
+            "y1": 34.0,
+            "x2": 68.7,
+            "y2": 24.0
+          },
+          {
+            "x1": 68.7,
+            "y1": 24.0,
+            "x2": 86.0,
+            "y2": 34.0,
+            "order": 2
+          },
+          {
+            "x1": 86.0,
+            "y1": 34.0,
+            "x2": 86.0,
+            "y2": 54.0
+          },
+          {
+            "x1": 86.0,
+            "y1": 54.0,
+            "x2": 68.6,
+            "y2": 64.0,
+            "order": 2
+          },
+          {
+            "x1": 68.6,
+            "y1": 64.0,
+            "x2": 51.3,
+            "y2": 54.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 34.0,
+            "y": 69.0,
+            "t": "NH_2",
+            "size": 13
+          }
+        ]
+      },
+      "name": "Aniline"
+    },
+    "amide": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 42.7,
+            "y1": 58.9,
+            "x2": 60.0,
+            "y2": 49.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 49.0,
+            "x2": 72.1,
+            "y2": 56.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 49.0,
+            "x2": 60.1,
+            "y2": 35.0,
+            "order": 2
+          }
+        ],
+        "labels": [
+          {
+            "x": 77.3,
+            "y": 64.0,
+            "t": "NH_2",
+            "size": 13
+          },
+          {
+            "x": 60.1,
+            "y": 34.0,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "Acetamide"
+    }
+  },
   "u10-ap-ladder": {
     "anil": {
       "figure": {

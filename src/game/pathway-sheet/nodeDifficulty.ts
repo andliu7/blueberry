@@ -68,7 +68,7 @@ export const NODE_MOVES: Readonly<Record<string, number>> = Object.freeze({
   "u10-amide-red": 4,
   "u10-azide": 2,
   "u10-azo": 2,
-  "u10-basicity": 1,
+  "u10-basicity": 4,
   "u10-cope": 2,
   "u10-curtius": 2,
   "u10-diazo-sub": 5,

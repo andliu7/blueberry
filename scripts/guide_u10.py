@@ -16,10 +16,9 @@ Where a rule picks between products (Hofmann elimination's less substituted
 alkene, coupling para to the activating group), the rule is the pool's own,
 quoted in the guide words, and applied here by counting atoms.
 
-u10-basicity's lesson plays the nucleophilicity sort ladder
-(beats/sort/ladders.ts), so its example draws the two anions that ladder
-ranks first; test/guideU10.test.ts checks the drawn order against the
-ladder's own.
+u10-basicity's example draws the three amines of its pool sort
+(u10-bas-ladder) in the sort's own order; test/guideU10.test.ts checks the
+drawn order against the ladder's.
 
 WHAT IT DOES NOT OWN. The words: src/game/guide/u10Guide.ts, where every line
 quotes a Unit 10 pool entry or lesson question word for word. The drawing
@@ -80,8 +79,12 @@ def build() -> dict:
 
     # STAGE A: basicity and making amines.
     ex["u10-basicity"] = {
-        "caption": "In ethanol, HS⁻ attacks carbon faster than OH⁻, even though OH⁻ is the stronger base: speed is a rate, not an equilibrium.",
-        "panels": [focus(named("[SH-]", "Hydrosulfide", "attacks faster")), {"kind": "break"}, focus(named("[OH-]", "Hydroxide", "the stronger base"))],
+        "caption": "Cyclohexanamine keeps its N lone pair on N, aniline spreads it into the ring, acetamide shares it with the C=O: strongest base to weakest.",
+        "panels": [
+            focus(named("NC1CCCCC1", "Cyclohexanamine", "strongest base")), {"kind": "break"},
+            named("Nc1ccccc1", "Aniline", "pair spread into the ring"), {"kind": "break"},
+            named("CC(N)=O", "Acetamide", "weakest base"),
+        ],
     }
     ex["u10-direct-alk"] = {
         "caption": "Every amine made is still a nucleophile, so excess bromoethane keeps going until N has four ethyls and no lone pair.",

@@ -2,13 +2,13 @@
  * Unit 10's guidebook, the words. Drafts until the owner signs them off.
  *
  * NO NEW CHEMISTRY LIVES HERE. Every idea, every mistake and every example
- * names `source`, a Unit 10 pool entry or the ladder a lesson plays, and
+ * names `source`, a Unit 10 pool entry, and
  * `quote`, words copied exactly from it. test/guideU10.test.ts fails a quote
  * the source does not contain, and an idea whose source is not in its own
  * lesson. The `text`, `mistake` and `fix` lines are plain paraphrases.
  *
- * u10-basicity has no pool yet: its lesson plays the nucleophilicity sort
- * ladder (sort-basicity-vs-nucleophilicity), so its words quote that ladder.
+ * u10-basicity quotes its own pool (amine basicity, un-held 2026-10-24 per the
+ * 23 Oct audit, top-25 #4), like every other lesson.
  * Side quests sit in the stage of the lesson they branch from. The drawings
  * are generated: u10Guide.figures.ts, by scripts/guide_u10.py. This file is
  * loaded only when a student opens the Unit 10 guide (index.ts).
@@ -20,7 +20,7 @@ const STAGES: readonly GuideStage[] = [
   {
     id: "a",
     label: "Stage A",
-    title: "Nucleophiles and making amines",
+    title: "Amine basicity and making amines",
     optional: false,
     checkpoint: null,
     lessons: [
@@ -28,28 +28,33 @@ const STAGES: readonly GuideStage[] = [
         node: "u10-basicity",
         ideas: [
           {
-            text: "How fast a nucleophile attacks is a rate, not an equilibrium, so the basicity ladder is not the answer.",
-            mark: "a rate, not an equilibrium",
-            source: "sort-basicity-vs-nucleophilicity",
-            quote: "This is a rate, not an equilibrium, so the basicity ladder is not the answer here.",
+            text: "Alkyl amine above aryl amine above amide: the more the lone pair is spread out, the weaker the base.",
+            mark: "the more the lone pair is spread out, the weaker the base",
+            source: "u10-bas-meet",
+            quote: "Alkyl amine above aryl amine above amide: the more the lone pair is spread out, the weaker the base.",
           },
           {
-            text: "Big, polarisable, weakly solvated HS⁻ reaches the carbon first.",
-            source: "sort-basicity-vs-nucleophilicity",
-            quote: "Big and polarisable, weakly solvated, so its electrons reach the carbon first.",
+            text: "A ring on N spreads the lone pair out; alkyl groups do not.",
+            source: "u10-bas-weakest",
+            quote: "A ring on N spreads the lone pair out; alkyl groups do not.",
           },
           {
-            text: "OH⁻ is the stronger base but the slower nucleophile: small and well solvated.",
-            source: "sort-basicity-vs-nucleophilicity",
-            quote: "The stronger base of the top two, and the slower nucleophile here. Small and well solvated.",
+            text: "An amide N's lone pair is shared with the C=O, so amides are not basic at N.",
+            source: "u10-bas-amide",
+            quote: "An amide N's lone pair is shared with the C=O, so amides are not basic at N.",
           },
           {
-            text: "Neutral water comes last on both ladders.",
-            source: "sort-basicity-vs-nucleophilicity",
-            quote: "Neutral, so it comes last on both the basicity and the nucleophilicity ladder.",
+            text: "R-NH₃⁺ sits near pKa 10: a stronger amine base has a higher pKa for its conjugate acid.",
+            source: "u10-bas-pka",
+            quote: "A stronger amine base has a higher pKa for its conjugate acid.",
+          },
+          {
+            text: "With two N in one molecule, the one whose lone pair is not delocalised takes the proton first.",
+            source: "u10-bas-two",
+            quote: "In a molecule with two N, the one whose lone pair is not delocalised is protonated first.",
           },
         ],
-        example: { source: "sort-basicity-vs-nucleophilicity", quote: "Big and polarisable, weakly solvated, so its electrons reach the carbon first." },
+        example: { source: "u10-bas-meet", quote: "Its N carries only alkyl groups, so the lone pair stays on N, fully available to a proton." },
       },
       {
         node: "u10-direct-alk",

@@ -1326,9 +1326,6 @@ def ox_values(a: str, b: str) -> tuple[int, int]:
 # u10-basicity
 # ---------------------------------------------------------------------------
 
-# Ids drafted for u10-basicity and withheld from the output (see build()).
-HELD: list[str] = []
-
 CLASS_TEXT = {
     "alkyl": "Localised lone pair",
     "aryl": "Lone pair spread into the ring",
@@ -1338,7 +1335,7 @@ CLASS_TEXT = {
 
 
 def node_basicity() -> None:
-    """HELD: derived and checked every run, then withheld from the output. See the note in build()."""
+    """Amine basicity, the unit's opener (audit 23 Oct, top-25 #4): six questions and the amine sort, all from Rule L."""
     node = "u10-basicity"
     opts = {"chxa": S["chxa"], "anil": S["aniline"], "amide": S["acetamide"]}
     low = min(basic_rank(s) for s in opts.values())
@@ -1406,6 +1403,26 @@ def node_basicity() -> None:
           "Where the lone pair goes decides how basic the N is.", pairs,
           "Localised pair: a strong base. Spread into a ring or a C=O, or used in the sextet: a weak one.",
           prov("Rule L run on each card (RDKit aromaticity for pyrrole)", CH_AMINE, BASIC_CONV), AMINE + RES)
+
+    cards = [
+        ("chxa", "Cyclohexanamine", S["chxa"], "cyclohexanamine", "Only alkyl groups on N, so its lone pair stays on N, ready for a proton."),
+        ("anil", "Aniline", S["aniline"], "aniline", "The N sits on the ring, and its lone pair is spread into the ring by resonance."),
+        ("amide", "Acetamide", S["acetamide"], "acetamide", "The N sits on a C=O, and its lone pair is shared with the carbonyl. Barely basic."),
+    ]
+    ladder(node, "u10-bas-ladder", cards, basic_rank,
+           "Rank these three by how strongly they take a proton, strongest base first.",
+           "Follow the N lone pair: on N alone, spread into a ring, or shared with a C=O.",
+           "basicity", ("Strongest base", "Weakest base"),
+           "Rank cyclohexanamine, aniline and acetamide by basicity, strongest base first.",
+           ("Cyclohexanamine, aniline, acetamide.", "The more the N lone pair is spread out, the weaker the base.",
+            "Ask where the N lone pair can go."),
+           [("reversed", ["amide", "anil", "chxa"], "ordering_is_reversed",
+             ("The ladder read from the bottom.", "An amide N barely acts as a base; an alkyl N is the strongest here.", "Put cyclohexanamine first.")),
+            ("anil-chxa", ["anil", "chxa", "amide"], "ordering_one_adjacent_pair_swapped",
+             ("Aniline above cyclohexanamine.", "The ring pulls aniline's lone pair into its pi system; an alkyl N keeps its pair.",
+              "Ask whether the N sits on the ring."))],
+           "The more the N lone pair is spread out, the weaker the base: alkyl, then aryl, then amide.",
+           prov("Rule L, basic_rank per card", CH_AMINE, BASIC_CONV), AMINE + RES, "amines")
 
 
 # ---------------------------------------------------------------------------
@@ -2364,19 +2381,7 @@ def node_azo() -> None:
 # ---------------------------------------------------------------------------
 
 def build() -> None:
-    # node_basicity() is drafted and HELD, not emitted: u10-basicity is in
-    # LADDER_FOR_NODE (beats/template.ts), and test/beatRunner.test.ts "resolves
-    # each of those nodes to its ladder" asserts that its lesson OPENS on the
-    # sort, which any pool content would push down. That test is the owner's
-    # call (template.ts records the one-line fix), so the pool waits; turning it
-    # on is deleting the withhold below, plus "u10-basicity": 6 in test/u10Pools.test.ts.
-    # It still runs every time, so its derivations, names and copy stay checked.
     node_basicity()
-    for e in POOLS.pop("u10-basicity"):
-        held = e.get("id") or e["beat"]["id"]
-        for table in (VISUALS, TILES, CONVENTIONS):
-            table.pop(held, None)
-        HELD.append(held)
     node_red_amination()
     node_amide_red()
     node_nitrile_red()
@@ -2485,7 +2490,7 @@ def emit() -> str:
 def reset() -> None:
     for table in (POOLS, VISUALS, TILES, SORT_FIGURES, CONVENTIONS):
         table.clear()
-    for seq in (CORRECT_INDEX, NAME_CHECKS, FAILURES, NOTES, HELD):
+    for seq in (CORRECT_INDEX, NAME_CHECKS, FAILURES, NOTES):
         seq.clear()
     IDS.clear()
 
@@ -2535,7 +2540,6 @@ def main() -> int:
     print("entries resting on an authored convention:")
     for k, v in CONVENTIONS.items():
         print(f"  {k}: {v}")
-    print("held, not written (u10-basicity, see build()): " + ", ".join(HELD))
     report_disagreements()
     print(f"wrote {OUT.relative_to(REPO)}")
     return 0

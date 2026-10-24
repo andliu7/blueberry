@@ -68,7 +68,7 @@ export function describeUnitGuide({ unitId, guide, pools, script, minStructures 
       const correct = beat.options.find((option) => option.id === beat.correctOptionId);
       parts.push(correct?.text ?? "", correct?.why ?? "");
     }
-    // A node whose lesson plays a sort ladder (u10-basicity): its brief and each card's why.
+    // A node whose lesson plays a LADDER_FOR_NODE sort ladder: its brief and each card's why.
     const ladder = LADDER_FOR_NODE[node] === source ? sortContentById(source) : undefined;
     if (ladder !== undefined) parts.push(ladder.beat.brief ?? "", ...ladder.beat.items.flatMap((item) => [item.label, item.why ?? ""]));
     return parts.length === 0 ? null : parts.join(" | ");

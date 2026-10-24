@@ -85,7 +85,9 @@ export type ContentSlot = "hook" | "recognise" | "connect" | "order" | "produce"
 export const LADDER_FOR_NODE: Readonly<Record<string, string>> = Object.freeze({
   "u5-oxidation": "sort-oxidation-ladder",
   "u8-ladder": "sort-acyl-reactivity",
-  "u10-basicity": "sort-basicity-vs-nucleophilicity",
+  // u10-basicity left this table on 2026-10-24 (audit 23 Oct, top-25 #4): its
+  // lesson now plays the amine sort from its own pool (u10-bas-ladder), not the
+  // HS-/OH-/F-/water nucleophilicity ladder, which has no nitrogen in it.
 });
 
 /*

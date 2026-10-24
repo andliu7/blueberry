@@ -37,6 +37,7 @@ import { roadOf } from "../tabs/pathway/unitShape";
 import { FIGURE_HEIGHT, FIGURE_WIDTH, type Figure } from "../onboarding/figures";
 
 const EXPECTED_SIZES: Readonly<Record<string, number>> = {
+  "u10-basicity": 7,
   "u10-red-amination": 6,
   "u10-amide-red": 6,
   "u10-nitrile-red": 6,
@@ -56,13 +57,6 @@ const EXPECTED_SIZES: Readonly<Record<string, number>> = {
 
 const LESSON_NODES = Object.keys(EXPECTED_SIZES);
 
-/**
- * Drafted in scripts/u10_pools.py and withheld from the output: u10-basicity is
- * a LADDER_FOR_NODE node, and beatRunner.test.ts pins that its lesson opens on
- * that ladder, which pool content would push down. The owner decides that test.
- */
-const HELD_NODES = ["u10-basicity"];
-
 /** Nodes whose map link was a trainer before this draft. Their link is kept; the lesson embeds the trainer. */
 const TRAINER_LINKED = [
   "u10-red-amination", "u10-amide-red", "u10-nitrile-red", "u10-diazonium", "u10-diazo-sub", "u10-acyl-protect",
@@ -72,6 +66,7 @@ const TOPIC_STAND_INS = ["amines", "diazonium_chemistry", "multistep_synthesis",
 
 /** Lessons whose pool holds a ladder or a match board, and the step it must fill. */
 const POOL_STEPS: Readonly<Record<string, string>> = {
+  "u10-basicity": "poolSort",
   "u10-diazo-sub": "poolMatch",
   "u10-acyl-protect": "poolSort",
 };
@@ -116,17 +111,16 @@ describe("u10 draft pools", () => {
     expect(sizes).toEqual(EXPECTED_SIZES);
   });
 
-  it("drafts a pool for every Unit 10 map node but the held one", () => {
+  it("drafts a pool for every Unit 10 map node", () => {
     const unit = PATHWAY_UNITS.find((entry) => entry.id === "u10");
     expect(unit).toBeDefined();
-    expect(unit!.nodes.map((node) => node.id).sort()).toEqual([...LESSON_NODES, ...HELD_NODES].sort());
+    expect(unit!.nodes.map((node) => node.id).sort()).toEqual([...LESSON_NODES].sort());
   });
 
-  it("leaves the held node without a pool, still opening on its own ladder", () => {
-    for (const node of HELD_NODES) {
-      expect(U10_POOLS[node], node).toBeUndefined();
-      expect(planLesson(node)?.steps[0]?.beat.kind, node).toBe("sort");
-    }
+  it("opens u10-basicity on amines: its pool sort, never the nitrogen-free nucleophilicity ladder (audit 23 Oct, top-25 #4)", () => {
+    const beats = (planLesson("u10-basicity")?.steps ?? []).map((step) => step.beat);
+    expect(beats).toContainEqual({ kind: "poolSort", node: "u10-basicity" });
+    expect(beats).not.toContainEqual({ kind: "sort", ladderId: "sort-basicity-vs-nucleophilicity" });
   });
 
   it("marks every entry as a placeholder", () => {
@@ -257,8 +251,8 @@ describe("u10 boards and ladders", () => {
   const ladders = entries.flatMap(([, entry]) => (entry.item.kind === "sort" ? [entry.item.content] : []));
 
   it("exist, so this block cannot pass vacuously", () => {
-    expect(boards.length).toBe(1);
-    expect(ladders.length).toBe(1);
+    expect(boards.length).toBe(2);
+    expect(ladders.length).toBe(2);
   });
 
   it("explain every pairing on every board", () => {
