@@ -342,23 +342,26 @@ function Pending({ onChange }: { onChange: (pending: boolean) => void }) {
  * only reports whether the boundary is waiting. When it stops waiting, the
  * page mounts underneath and the loader runs its finish before it lets go.
  */
-export function LoaderGate({ children }: { children: ReactNode }) {
+export function LoaderGate({ children, waiting = false }: { children?: ReactNode; waiting?: boolean }) {
   const [pending, setPending] = useState(false);
   const [late, setLate] = useState(false);
+  // `waiting` is a wait the caller knows about that is not a chunk, such as the
+  // #/app gate restoring a stored session (AppGate.tsx). Same berry, same delay.
+  const busy = pending || waiting;
 
   useEffect(() => {
-    if (!pending) {
+    if (!busy) {
       setLate(false);
       return;
     }
     const id = window.setTimeout(() => setLate(true), SHOW_AFTER_MS);
     return () => window.clearTimeout(id);
-  }, [pending]);
+  }, [busy]);
 
   return (
     <>
       <Suspense fallback={<Pending onChange={setPending} />}>{children}</Suspense>
-      <AnimatePresence>{pending && late && <BlueberryLoader key="loader" />}</AnimatePresence>
+      <AnimatePresence>{busy && late && <BlueberryLoader key="loader" />}</AnimatePresence>
     </>
   );
 }

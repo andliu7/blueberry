@@ -35,11 +35,11 @@ const GAME_ROUTE_COLD_LOAD_MODULES = [
  *
  * - src/components/ui/blueberry-loader.tsx: the loader imports its tip list
  *   when it appears, and it appears over #/app on a cold open.
- *
- * src/lib/supabase.ts is not listed: AuthProvider loads supabase-js on mount
- * only when a stored session or an auth redirect is present
- * (supabaseAuthToRestore), and a first open has neither. If AuthProvider ever
- * loads it unconditionally again, add it back, or the number lies again.
+ * - src/lib/supabase.ts: since G1 (owner, 23 Oct) the game renders only for a
+ *   signed-in visitor (src/components/AppGate.tsx). A signed-in visitor has a
+ *   stored session, and AuthProvider loads supabase-js on mount whenever one is
+ *   stored (supabaseAuthToRestore), so every open that reaches the game fetches
+ *   it. A signed-out open never reaches the game; it lands on #/signin.
  *
  * src/lib/useDecks.ts is not listed: its built-in decks chunk loads only on
  * pages that read deck data, and #/app is not one of them. If a component the
@@ -47,6 +47,7 @@ const GAME_ROUTE_COLD_LOAD_MODULES = [
  */
 const GAME_ROUTE_ON_MOUNT_DYNAMIC_IMPORTERS = [
   'src/components/ui/blueberry-loader.tsx',
+  'src/lib/supabase.ts',
 ]
 
 function budgetSubjects(): Plugin {

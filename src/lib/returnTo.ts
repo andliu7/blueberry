@@ -38,6 +38,15 @@ export function forgetReturnUnlessSigningIn(hash: string): void {
   }
 }
 
+/** The remembered game hash, read without using it up. The sign-in page reads it to know why the visitor came. */
+export function peekReturn(): string | null {
+  try {
+    return sessionStorage.getItem(KEY);
+  } catch {
+    return null;
+  }
+}
+
 /** Go back to the remembered game hash, once. Returns true when it navigated. */
 export function consumeReturn(): boolean {
   try {

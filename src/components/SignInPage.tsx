@@ -8,6 +8,7 @@ import { SupabaseAuth } from "@/components/ui/supabase-auth";
 import { StaffSignInNotice } from "@/components/ui/staff-signin-notice";
 import { useSession } from "@/lib/useSession";
 import { supabaseConfigured } from "@/lib/supabase";
+import { peekReturn } from "@/lib/returnTo";
 import { cn } from "@/lib/utils";
 
 /**
@@ -57,6 +58,12 @@ export function SignInPage({ mode = "signin" }: { mode?: "signin" | "signup" | "
   const [signup, setSignup] = useState(mode === "signup");
   const session = useSession();
   const reduced = useReducedMotion();
+  // Where the visitor was headed, if the #/app gate sent them here (AppGate.tsx,
+  // owner 23 Oct, G1). Read once, on the first render: React pattern, a lazy
+  // useState initializer.
+  const [headedTo] = useState(peekReturn);
+  const forGame = headedTo?.startsWith("#/app") ?? false;
+  const forAdmin = headedTo?.startsWith("#/app/admin") ?? false;
 
   // The page follows the visitor's theme (owner, 2026-10-07). It used to force
   // dark mode and paint a photograph, so a light-mode visitor flipped to a
@@ -106,8 +113,9 @@ export function SignInPage({ mode = "signin" }: { mode?: "signin" | "signup" | "
             </ul>
 
             <p className="mt-7 text-sm leading-6 text-muted-foreground">
-              Decks and lessons are readable without an account. Signing in is for the things
-              that belong to you.
+              {forGame
+                ? "The practice app keeps your lessons, streak and XP on your account, so sign in first. Decks and lessons on the site stay open without one."
+                : "Decks and lessons are readable without an account. Signing in is for the things that belong to you."}
             </p>
           </div>
 
@@ -122,6 +130,11 @@ export function SignInPage({ mode = "signin" }: { mode?: "signin" | "signup" | "
                 </p>
               ) : (
                 <>
+                  {forAdmin && (
+                    <p className="mb-4 rounded-xl bg-[var(--bb-wash)] px-3 py-2.5 text-sm leading-5 text-foreground">
+                      Staff: sign in to open the lesson viewer. Your role comes from the course roster.
+                    </p>
+                  )}
                   {/* Two tabs with a sliding indicator rather than two routes.
                       Switching used to be a navigation, which threw away
                       anything typed and made a decision feel like a commitment.
@@ -188,6 +201,24 @@ export function SignInPage({ mode = "signin" }: { mode?: "signin" | "signup" | "
                 </>
               )}
             </div>
+
+            {/* A quiet Pro suggestion for someone on their way into the app. No price
+                and no feature list: prices come from Stripe, and every promise lives
+                on the plans page (subscription-plans.tsx), not in this chunk. */}
+            {!session && forGame && (
+              <div className="mt-4 rounded-2xl border-2 border-[var(--site-border)] bg-card px-4 py-3">
+                <p className="text-sm font-semibold">Blueberry Pro</p>
+                <p className="mt-0.5 text-sm leading-6 text-muted-foreground">
+                  Thinking of going further? Pro is there when you want it.
+                </p>
+                <a
+                  href="#/d/subscriptions"
+                  className="mt-1 inline-flex min-h-11 items-center text-sm font-semibold text-accent-foreground transition hover:text-foreground"
+                >
+                  See Pro
+                </a>
+              </div>
+            )}
 
             {!session && (
               <p className="mt-4 px-1 text-xs leading-5 text-muted-foreground">

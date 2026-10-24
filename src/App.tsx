@@ -8,6 +8,7 @@ import { useHashRoute } from "@/lib/useHashRoute";
 import { useDocumentTitle } from "@/lib/useDocumentTitle";
 import { redirectFor } from "@/lib/redirects";
 import { Redirect } from "@/components/Redirect";
+import { AppGate } from "@/components/AppGate";
 
 /**
  * Split by route, because the whole site used to arrive as one 755 kB file.
@@ -66,15 +67,6 @@ function StartPageRoute({ step }: { step: string }) {
 /* Split like the rest: the calendar pulls in the syllabus importer and the
    Radix dialog, and none of that should be in the bundle someone downloads to
    read a deck. */
-/**
- * The game, and the one route on this site that is a whole other application.
- *
- * Lazy, and it matters more here than anywhere else: this is 87,000 lines of
- * app plus five engine packages, and a student who only ever reads the lessons
- * should never download it. Everything the game needs, including its own
- * stylesheet, arrives with this chunk.
- */
-const GamePage = lazy(() => import("@/components/GamePage"));
 /* Lazy because almost nobody lands on it, and its card art (the motif SVGs in
    testimonialArt.ts) was about 5 KB of every #/app cold load. */
 const NotFoundPage = lazy(() => import("@/components/ui/404-page-not-found"));
@@ -176,7 +168,9 @@ export default function App() {
   // "#/app/lesson/<node>" a lesson, "#/app/start/welcome" its onboarding. The
   // game parses the tail itself and this branch only decides whose router is
   // in charge, which is why a site route can never shadow a tab of the game's.
-  if (route === "app" || route.startsWith("app/")) return withBoundary(<GamePage />);
+  // Signed out, AppGate sends the visitor to #/signin first (owner, 23 Oct, G1).
+  // It owns the lazy GamePage and its LoaderGate.
+  if (route === "app" || route.startsWith("app/")) return <AppGate />;
   // "#/unit/u7" opens Aldehydes and Ketones. Bare "#/unit" falls to the first,
   // and so does an id that does not exist, because a stale link in somebody's
   // notes should land on the course rather than on nothing.

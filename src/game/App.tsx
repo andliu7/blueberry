@@ -25,6 +25,7 @@ import { progress } from "./app/progress";
 import { claimAppOpenGifts, watchEarnedChests } from "./chest/chestFlow";
 import { useAuth } from "@/lib/AuthContext";
 import { isStaffRole } from "./admin/staff";
+import { AdminSignIn } from "./admin/AdminSignIn";
 
 const Onboarding = lazy(() => import("./onboarding/Onboarding"));
 const BeatRunner = lazy(() => import("./beats/BeatRunner").then((m) => ({ default: m.BeatRunner })));
@@ -246,7 +247,8 @@ function Body({
 /**
  * Who may open the staff viewer. The role is the site's own (useAuth reads
  * public.profiles), so this draws UI only; RLS is the gate on anything that
- * writes. A non-staff visitor is sent to the path and never fetches the chunk.
+ * writes. A signed-in non-staff visitor is sent to the path, a signed-out one
+ * is offered a sign-in, and neither fetches the chunk.
  */
 function AdminGate({ node }: { readonly node: string | null }) {
   const { role, loading, user, profileLoaded } = useAuth();
@@ -257,10 +259,21 @@ function AdminGate({ node }: { readonly node: string | null }) {
 
   // Every hook runs before any early return: React matches hooks by call
   // order, so a hook skipped on one render would break the next.
+  // Signed out: offer a sign-in here rather than bounce (owner, 23 Oct).
+  // Signed in without a staff role: back to the path, as before.
+  const signedOut = !loading && user === null;
   useEffect(() => {
-    if (!waiting && !staff) navigate(hrefForTab("pathway"));
-  }, [waiting, staff]);
+    if (!waiting && !staff && !signedOut) navigate(hrefForTab("pathway"));
+  }, [waiting, staff, signedOut]);
 
+  if (signedOut) {
+    return (
+      <>
+        <BootReady />
+        <AdminSignIn />
+      </>
+    );
+  }
   if (waiting || !staff) {
     return (
       <>

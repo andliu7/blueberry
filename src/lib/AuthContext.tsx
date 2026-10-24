@@ -61,7 +61,11 @@ function asRole(value: unknown): AccountRole {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [role, setRole] = useState<AccountRole>("member");
-  const [loading, setLoading] = useState(supabaseConfigured);
+  // Waiting only when there is a session to restore. A cold signed-out open
+  // reads loading=false from the first frame, so the #/app gate (AppGate.tsx)
+  // never shows the loader just to say "signed out". React pattern: a lazy
+  // initializer, run once on the first render.
+  const [loading, setLoading] = useState(() => supabaseConfigured && supabaseAuthToRestore());
   const [roleNonce, setRoleNonce] = useState(0);
   const [profileName, setProfileName] = useState<string | null>(null);
   // Which user the name above belongs to, so a name still loading never reads as "no name".

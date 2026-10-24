@@ -479,8 +479,10 @@ export const BONDING_STEP: StepId = "intro";
  * questions to come before any ask, and "a real win before the ask", which
  * wants a whole lesson finished before a paywall or an account screen. Neither
  * is satisfied by promising to be careful later; both are satisfied by there
- * being nothing of the kind inside onboarding at all. A student reaches the
- * pathway having been asked for nothing.
+ * being nothing of the kind inside onboarding at all. Inside onboarding a
+ * student is asked for nothing. The account ask now happens before #/app
+ * entirely (owner, 23 Oct, G1: src/components/AppGate.tsx sends a signed-out
+ * visitor to #/signin), outside these steps, so this list stays empty.
  *
  * "PERMISSIONS ASKED LATE, never screen one, re-askable if declined" is the
  * same rule seen from the other side. Notification permission is the one this

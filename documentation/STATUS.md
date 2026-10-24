@@ -181,6 +181,24 @@ Sign-in, Pro, paywalls, ads (owner, 23 Oct)
 - G1 Sign-in before anything: #/app sends a signed-out visitor to a sign-in page with a Pro
   suggestion (owner chose this over lesson-first after the trade-off was raised). The admin viewer
   gets a sign-in CTA too.
+  - signin-gate DONE 23 Oct: a signed-out open of #/app (any sub-route) replaces the hash with
+    #/signin, remembering where they were headed; signing in (Google, password or email code)
+    brings them back there. The gate sits at the site router (AppGate.tsx, appGate.ts) and reuses
+    the existing sign-in page and returnTo errand. A stored session shows the loader while it
+    restores, never the sign-in page; a cold signed-out open never loads supabase-js or the game.
+    The sign-in page, when headed into the app, says why and shows a quiet Pro card linking
+    #/d/subscriptions (no price, no promises); headed to #/app/admin it adds a staff line. The
+    admin viewer offers a sign-in card instead of bouncing a signed-out visitor. Payload: #/app
+    first open 397.4 KB of 400 (supabase-js is now counted, since the game only renders signed
+    in); a signed-out #/app open, which lands on #/signin, is about 251 KB (255 with the loader
+    tip). Nothing to apply or deploy (no migration, no Edge Function, Google redirect URL
+    unchanged). A1's "reminder to sign in to save progress" is moot inside the game now.
+    Owner questions: (1) the puppeteer harnesses in measurements/ (contrast-audit, economy-moments,
+    hit-targets) open #/app signed out against a configured build and will now land on #/signin;
+    run them against a build with VITE_SUPABASE_* unset (the gate lets everyone in when sign-in
+    is not configured), or decide another way. (2) Pro card copy is a draft: "Thinking of going
+    further? Pro is there when you want it." (3) The game's onboarding funnel (#/start then #/app)
+    now meets sign-in on its way into the app; say if the funnel should ask earlier.
 - G2 Stripe for Pro now, gated so only staff can test it (server side), Stripe test mode.
 - G3 Paywalls after value: after the first completed lesson, then intermittent reminders like
   Duolingo.
