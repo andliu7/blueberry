@@ -1760,7 +1760,9 @@ def node_directing() -> None:
         tiles={"agree": named(opts["agree"], "2-bromo-1-methyl-4-nitrobenzene"), "other": named(opts["other"], "2-bromo-4-methyl-1-nitrobenzene"),
                "ipso": named(opts["ipso"], "1-bromo-4-nitrobenzene")})
 
-    # exam: the rate ladder and the class board
+    # The rate ladder and the class board. Since the 23 Oct audit (top-25 #14)
+    # both play in this lesson: the ladder on the order step, the board on the
+    # connect step. The second ladder stays drafted under u3-exam.
     ladder_cards = [
         ("phenol", "phenol", S("phenol"), "phenol", "OH gives a lone pair to the sigma complex: the fastest tier."),
         ("toluene", "toluene", S("toluene"), "toluene", "An alkyl group helps a little, by making one form a more substituted cation."),
@@ -1768,7 +1770,7 @@ def node_directing() -> None:
         ("chloro", "chlorobenzene", S("chlorobenzene"), "chlorobenzene", "Cl pulls through the sigma bond, so it is slower than benzene, though it still directs o/p."),
         ("nitro", "nitrobenzene", S("nitrobenzene"), "nitrobenzene", "NO2 pulls hard and puts a + beside any o/p sigma complex: the slowest."),
     ]
-    ladder("u3-exam", "u3-dir-ladder-rate", ladder_cards, tier_of,
+    ladder(node, "u3-dir-ladder-rate", ladder_cards, tier_of,
            "Rank these by how fast they nitrate, fastest first.",
            "Lone pair donors, then alkyl, then benzene, then halogens, then withdrawers.",
            "ring_activation", ("Fastest", "Slowest"),
@@ -1816,7 +1818,7 @@ def node_directing() -> None:
                "halogen": "The lone pair sets o/p; the pull through the sigma bond makes it slower than benzene.",
                "withdrawer": "The C=O carbon is electron poor; o/p attack would put a + beside it, so meta, and slower."}[k]
         pairs.append((pid, left, right, why, right))
-    match("u3-exam", "u3-dir-match-class", "Match each group to how it directs and how it changes the rate.",
+    match(node, "u3-dir-match-class", "Match each group to how it directs and how it changes the rate.",
           "Look at the first atom bonded to the ring.", pairs,
           "Lone pair donors and alkyls direct o/p and activate; halogens direct o/p but deactivate; withdrawers direct meta.",
           prov("Rule 1 class of each group", sec), ("ewg_edg_rubric",))
@@ -2574,12 +2576,12 @@ HEADER = '''/**
  * derived. Where an answer rests on an authored convention RDKit cannot check,
  * the entry's provenance says so.
  *
- * U3_UNWIRED holds the unit's sort ladders and match boards under `u3-exam`,
- * which is not a map node. NOTHING PLAYS THEM YET: pool ladders and boards
- * only play in an in-a-row run, Unit 3 has no practice node, and the one place
- * they would fit, the Unit 3 checkpoint, is pinned to its derived mix by
- * test/u1Pools.test.ts and test/checkpointStakes.test.ts. Wiring them is an
- * owner decision, listed in the unit's owner report.
+ * The rate ladder (u3-dir-ladder-rate) and the class board
+ * (u3-dir-match-class) play in u3-directing's lesson since the 23 Oct audit
+ * (top-25 #14): a lesson plays a pool ladder on its order step and a pool
+ * board on its connect step (beats/template.ts). U3_UNWIRED keeps the rest
+ * under `u3-exam`, which is not a map node, so nothing plays them yet: the
+ * second rate ladder and the two sequencing boards.
  *
  * Ladders are built with createProblem and createOrderingAnswer exactly as
  * content/u2/pools.ts does; match boards go through buildMatchBoard, the
@@ -2634,7 +2636,7 @@ def emit_table(name: str, nodes: list[str], doc: str) -> list[str]:
 def emit() -> str:
     out = [HEADER, ladder_helpers()]
     lessons = [n for n in POOLS if n != "u3-exam"]
-    out += emit_table("U3_POOLS", lessons, "/** Lesson pools keyed by map node id. Each lesson plays its MCQs (beats/practice/pools.ts). */")
+    out += emit_table("U3_POOLS", lessons, "/** Lesson pools keyed by map node id. Each lesson plays its MCQs, and u3-directing its ladder and board too (beats/practice/pools.ts). */")
     out += emit_table("U3_UNWIRED", ["u3-exam"], "/** Ladders and boards drafted for the checkpoint. Nothing plays them yet: see the header. */")
     out.append("/** The drawing beside each MCQ, keyed by beat id. */")
     out.append("export const U3_VISUALS: Readonly<Record<string, McqVisual>> = " + ts(VISUALS) + ";\n")

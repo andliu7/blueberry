@@ -95,7 +95,7 @@ export const NODE_MOVES: Readonly<Record<string, number>> = Object.freeze({
   "u3-birch": 2,
   "u3-blocking": 2,
   "u3-c-to-ch2": 4,
-  "u3-directing": 2,
+  "u3-directing": 4,
   "u3-fc-acyl": 6,
   "u3-fc-alkyl": 2,
   "u3-halo": 6,
@@ -237,7 +237,7 @@ export function difficultyForNode(nodeId: string): Pips | null {
 export const CHECKPOINT_QUESTIONS: Readonly<Record<string, number>> = Object.freeze({
   u1: 1,
   u2: 1,
-  u3: 3,
+  u3: 4,
   u4: 1,
   u5: 4,
   u6: 2,

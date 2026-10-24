@@ -11,12 +11,12 @@
  * derived. Where an answer rests on an authored convention RDKit cannot check,
  * the entry's provenance says so.
  *
- * U3_UNWIRED holds the unit's sort ladders and match boards under `u3-exam`,
- * which is not a map node. NOTHING PLAYS THEM YET: pool ladders and boards
- * only play in an in-a-row run, Unit 3 has no practice node, and the one place
- * they would fit, the Unit 3 checkpoint, is pinned to its derived mix by
- * test/u1Pools.test.ts and test/checkpointStakes.test.ts. Wiring them is an
- * owner decision, listed in the unit's owner report.
+ * The rate ladder (u3-dir-ladder-rate) and the class board
+ * (u3-dir-match-class) play in u3-directing's lesson since the 23 Oct audit
+ * (top-25 #14): a lesson plays a pool ladder on its order step and a pool
+ * board on its connect step (beats/template.ts). U3_UNWIRED keeps the rest
+ * under `u3-exam`, which is not a map node, so nothing plays them yet: the
+ * second rate ladder and the two sequencing boards.
  *
  * Ladders are built with createProblem and createOrderingAnswer exactly as
  * content/u2/pools.ts does; match boards go through buildMatchBoard, the
@@ -140,7 +140,7 @@ function match(spec: { readonly beat: MatchBeat; readonly explanation: string; r
 
 
 
-/** Lesson pools keyed by map node id. Each lesson plays its MCQs (beats/practice/pools.ts). */
+/** Lesson pools keyed by map node id. Each lesson plays its MCQs, and u3-directing its ladder and board too (beats/practice/pools.ts). */
 export const U3_POOLS: UnitPools = {
   "u3-arenium": [
     {
@@ -1875,6 +1875,160 @@ export const U3_POOLS: UnitPools = {
       "provenance": "scripts/u3_pools.py: Rules 1 and 2 on 4-nitrotoluene: alkyl leads, its ortho sites are meta to the nitro group. OpenStax Organic Chemistry 16.4 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
+    ladder({
+      "id": "u3-dir-ladder-rate",
+      "node": "u3-directing",
+      "problemId": "u3-pool-u3-dir-ladder-rate",
+      "topic": "eas_directing_effects",
+      "difficulty": 1100,
+      "problemPrompt": "Rank phenol, toluene, benzene, chlorobenzene and nitrobenzene by rate of electrophilic aromatic substitution, fastest first.",
+      "criterionText": "fastest",
+      "items": [
+        {
+          "id": "phenol",
+          "text": "phenol"
+        },
+        {
+          "id": "toluene",
+          "text": "toluene"
+        },
+        {
+          "id": "benzene",
+          "text": "benzene"
+        },
+        {
+          "id": "chloro",
+          "text": "chlorobenzene"
+        },
+        {
+          "id": "nitro",
+          "text": "nitrobenzene"
+        }
+      ],
+      "order": [
+        "phenol",
+        "toluene",
+        "benzene",
+        "chloro",
+        "nitro"
+      ],
+      "solution": {
+        "whatHappened": "Phenol, toluene, benzene, chlorobenzene, nitrobenzene.",
+        "why": "Each one sits in a different tier: lone pair donor, alkyl, nothing, halogen, withdrawer. The more a group feeds the ring, the faster the attack.",
+        "lookAt": "Look at the first atom on the ring: a lone pair, a plain carbon, a halogen, or a group with a + or a C=O."
+      },
+      "distractors": [
+        {
+          "id": "reversed",
+          "cause": "ordering_is_reversed",
+          "order": [
+            "nitro",
+            "chloro",
+            "benzene",
+            "toluene",
+            "phenol"
+          ],
+          "explanation": {
+            "whatHappened": "The right ladder read from the slow end.",
+            "why": "Every step holds, but the track asks for the fastest at the top.",
+            "lookAt": "Put phenol, the lone pair donor, first."
+          }
+        },
+        {
+          "id": "halogen-up",
+          "cause": "ordering_one_adjacent_pair_swapped",
+          "order": [
+            "phenol",
+            "toluene",
+            "chloro",
+            "benzene",
+            "nitro"
+          ],
+          "explanation": {
+            "whatHappened": "Chlorobenzene is placed above benzene.",
+            "why": "Chlorine directs o/p like an activator, but it slows the ring: its pull through the sigma bond beats its lone pair on rate.",
+            "lookAt": "Compare chlorobenzene with plain benzene: the halogen tier sits below benzene."
+          }
+        }
+      ],
+      "beat": {
+        "conceptIds": [
+          "ewg_edg_rubric"
+        ],
+        "prompt": "Rank these by how fast they nitrate, fastest first.",
+        "brief": "Lone pair donors, then alkyl, then benzene, then halogens, then withdrawers.",
+        "criterion": "ring_activation",
+        "direction": "descending",
+        "notes": {
+          "phenol": "OH gives a lone pair to the sigma complex: the fastest tier.",
+          "toluene": "An alkyl group helps a little, by making one form a more substituted cation.",
+          "benzene": "The reference point: no group helps or hurts.",
+          "chloro": "Cl pulls through the sigma bond, so it is slower than benzene, though it still directs o/p.",
+          "nitro": "NO2 pulls hard and puts a + beside any o/p sigma complex: the slowest."
+        }
+      },
+      "trackEnds": {
+        "first": "Fastest",
+        "last": "Slowest"
+      },
+      "meanings": [
+        {
+          "id": "reversed",
+          "cause": "order_fully_reversed"
+        },
+        {
+          "id": "halogen-up",
+          "cause": "order_adjacent_pair_swapped"
+        }
+      ],
+      "explanation": "Rate follows the tier of the group on the ring: donor, alkyl, none, halogen, withdrawer.",
+      "provenance": "scripts/u3_pools.py: Rule 1 tiers; one card per tier, so the model alone decides each step. OpenStax Organic Chemistry 16.4 (CC BY-NC-SA), read as a check only. Rests on an authored convention: the five rate tiers."
+    }),
+    match({
+      "beat": {
+        "kind": "match",
+        "id": "u3-dir-match-class",
+        "node": "u3-directing",
+        "conceptIds": [
+          "ewg_edg_rubric"
+        ],
+        "levels": [
+          1,
+          2
+        ],
+        "presentation": "columns",
+        "prompt": "Match each group to how it directs and how it changes the rate.",
+        "brief": "Look at the first atom bonded to the ring.",
+        "pairs": [
+          {
+            "id": "ome",
+            "left": "-OCH₃ on a ring",
+            "right": "o/p, activates by a lone pair",
+            "why": "Oxygen's lone pair joins the sigma complex when the + reaches its carbon: o/p and fast."
+          },
+          {
+            "id": "me",
+            "left": "-CH₃ on a ring",
+            "right": "o/p, activates weakly",
+            "why": "A methyl makes one o/p form a more substituted cation: o/p, a little faster than benzene."
+          },
+          {
+            "id": "br",
+            "left": "-Br on a ring",
+            "right": "o/p, deactivates",
+            "why": "The lone pair sets o/p; the pull through the sigma bond makes it slower than benzene."
+          },
+          {
+            "id": "cho",
+            "left": "-CHO on a ring",
+            "right": "meta, deactivates",
+            "why": "The C=O carbon is electron poor; o/p attack would put a + beside it, so meta, and slower."
+          }
+        ]
+      },
+      "explanation": "Lone pair donors and alkyls direct o/p and activate; halogens direct o/p but deactivate; withdrawers direct meta.",
+      "provenance": "scripts/u3_pools.py: Rule 1 class of each group. OpenStax Organic Chemistry 16.4 (CC BY-NC-SA), read as a check only."
+    }),
   ],
   "u3-blocking": [
     {
@@ -3848,115 +4002,6 @@ export const U3_POOLS: UnitPools = {
 export const U3_UNWIRED: UnitPools = {
   "u3-exam": [
     ladder({
-      "id": "u3-dir-ladder-rate",
-      "node": "u3-exam",
-      "problemId": "u3-pool-u3-dir-ladder-rate",
-      "topic": "eas_directing_effects",
-      "difficulty": 1100,
-      "problemPrompt": "Rank phenol, toluene, benzene, chlorobenzene and nitrobenzene by rate of electrophilic aromatic substitution, fastest first.",
-      "criterionText": "fastest",
-      "items": [
-        {
-          "id": "phenol",
-          "text": "phenol"
-        },
-        {
-          "id": "toluene",
-          "text": "toluene"
-        },
-        {
-          "id": "benzene",
-          "text": "benzene"
-        },
-        {
-          "id": "chloro",
-          "text": "chlorobenzene"
-        },
-        {
-          "id": "nitro",
-          "text": "nitrobenzene"
-        }
-      ],
-      "order": [
-        "phenol",
-        "toluene",
-        "benzene",
-        "chloro",
-        "nitro"
-      ],
-      "solution": {
-        "whatHappened": "Phenol, toluene, benzene, chlorobenzene, nitrobenzene.",
-        "why": "Each one sits in a different tier: lone pair donor, alkyl, nothing, halogen, withdrawer. The more a group feeds the ring, the faster the attack.",
-        "lookAt": "Look at the first atom on the ring: a lone pair, a plain carbon, a halogen, or a group with a + or a C=O."
-      },
-      "distractors": [
-        {
-          "id": "reversed",
-          "cause": "ordering_is_reversed",
-          "order": [
-            "nitro",
-            "chloro",
-            "benzene",
-            "toluene",
-            "phenol"
-          ],
-          "explanation": {
-            "whatHappened": "The right ladder read from the slow end.",
-            "why": "Every step holds, but the track asks for the fastest at the top.",
-            "lookAt": "Put phenol, the lone pair donor, first."
-          }
-        },
-        {
-          "id": "halogen-up",
-          "cause": "ordering_one_adjacent_pair_swapped",
-          "order": [
-            "phenol",
-            "toluene",
-            "chloro",
-            "benzene",
-            "nitro"
-          ],
-          "explanation": {
-            "whatHappened": "Chlorobenzene is placed above benzene.",
-            "why": "Chlorine directs o/p like an activator, but it slows the ring: its pull through the sigma bond beats its lone pair on rate.",
-            "lookAt": "Compare chlorobenzene with plain benzene: the halogen tier sits below benzene."
-          }
-        }
-      ],
-      "beat": {
-        "conceptIds": [
-          "ewg_edg_rubric"
-        ],
-        "prompt": "Rank these by how fast they nitrate, fastest first.",
-        "brief": "Lone pair donors, then alkyl, then benzene, then halogens, then withdrawers.",
-        "criterion": "ring_activation",
-        "direction": "descending",
-        "notes": {
-          "phenol": "OH gives a lone pair to the sigma complex: the fastest tier.",
-          "toluene": "An alkyl group helps a little, by making one form a more substituted cation.",
-          "benzene": "The reference point: no group helps or hurts.",
-          "chloro": "Cl pulls through the sigma bond, so it is slower than benzene, though it still directs o/p.",
-          "nitro": "NO2 pulls hard and puts a + beside any o/p sigma complex: the slowest."
-        }
-      },
-      "trackEnds": {
-        "first": "Fastest",
-        "last": "Slowest"
-      },
-      "meanings": [
-        {
-          "id": "reversed",
-          "cause": "order_fully_reversed"
-        },
-        {
-          "id": "halogen-up",
-          "cause": "order_adjacent_pair_swapped"
-        }
-      ],
-      "explanation": "Rate follows the tier of the group on the ring: donor, alkyl, none, halogen, withdrawer.",
-      "provenance": "scripts/u3_pools.py: Rule 1 tiers; one card per tier, so the model alone decides each step. OpenStax Organic Chemistry 16.4 (CC BY-NC-SA), read as a check only. Rests on an authored convention: the five rate tiers."
-    }),
-    ladder({
       "id": "u3-dir-ladder-rate2",
       "node": "u3-exam",
       "problemId": "u3-pool-u3-dir-ladder-rate2",
@@ -4056,51 +4101,6 @@ export const U3_UNWIRED: UnitPools = {
       ],
       "explanation": "The tier of the first atom decides: donor, alkyl, halogen, withdrawer.",
       "provenance": "scripts/u3_pools.py: Rule 1 tiers, one card per tier. OpenStax Organic Chemistry 16.4 (CC BY-NC-SA), read as a check only. Rests on an authored convention: the five rate tiers."
-    }),
-    match({
-      "beat": {
-        "kind": "match",
-        "id": "u3-dir-match-class",
-        "node": "u3-exam",
-        "conceptIds": [
-          "ewg_edg_rubric"
-        ],
-        "levels": [
-          1,
-          2
-        ],
-        "presentation": "columns",
-        "prompt": "Match each group to how it directs and how it changes the rate.",
-        "brief": "Look at the first atom bonded to the ring.",
-        "pairs": [
-          {
-            "id": "ome",
-            "left": "-OCH₃ on a ring",
-            "right": "o/p, activates by a lone pair",
-            "why": "Oxygen's lone pair joins the sigma complex when the + reaches its carbon: o/p and fast."
-          },
-          {
-            "id": "me",
-            "left": "-CH₃ on a ring",
-            "right": "o/p, activates weakly",
-            "why": "A methyl makes one o/p form a more substituted cation: o/p, a little faster than benzene."
-          },
-          {
-            "id": "br",
-            "left": "-Br on a ring",
-            "right": "o/p, deactivates",
-            "why": "The lone pair sets o/p; the pull through the sigma bond makes it slower than benzene."
-          },
-          {
-            "id": "cho",
-            "left": "-CHO on a ring",
-            "right": "meta, deactivates",
-            "why": "The C=O carbon is electron poor; o/p attack would put a + beside it, so meta, and slower."
-          }
-        ]
-      },
-      "explanation": "Lone pair donors and alkyls direct o/p and activate; halogens direct o/p but deactivate; withdrawers direct meta.",
-      "provenance": "scripts/u3_pools.py: Rule 1 class of each group. OpenStax Organic Chemistry 16.4 (CC BY-NC-SA), read as a check only."
     }),
     match({
       "beat": {

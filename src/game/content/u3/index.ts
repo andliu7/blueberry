@@ -8,8 +8,8 @@
  *
  * Who reads it: beats/practice/pools.ts (the lesson pools) and
  * beats/mcq/mcqFigures.ts (the question drawings and drawn options), each
- * through one fallback after Unit 1's table. U3_UNWIRED and U3_SORT_FIGURES
- * (the drafted ladders and boards) are read by nothing but the suite yet: see
- * the header of pools.ts for why.
+ * through one fallback after Unit 1's table. U3_SORT_FIGURES draws the
+ * ladders; U3_UNWIRED (the second rate ladder and the two sequencing boards
+ * since 23 Oct) is read by nothing but the suite: see the header of pools.ts.
  */
 export { U3_OPTION_TILES, U3_POOLS, U3_SORT_FIGURES, U3_UNWIRED, U3_VISUALS } from "./pools";
