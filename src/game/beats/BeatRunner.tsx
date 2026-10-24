@@ -379,7 +379,7 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
     const flawless = !run.recycled && run.clearedBeats === run.totalBeats;
     const spine = pathwayNode(node)?.kind === "spine";
     let live = true;
-    void Promise.all([import("../app/progress"), import("../chest/chestFlow")]).then(([{ progress }, { earnChestForClear }]) => {
+    void Promise.all([import("../app/progress"), import("../chest/chestFlow"), import("../upsell/noteLessonClear")]).then(([{ progress }, { earnChestForClear }, { noteLessonClear }]) => {
       const diamonds = progress.clearNode(node, "concept", {
         flawless,
         stepsInOneSitting: run.totalBeats,
@@ -387,8 +387,12 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
         // First-try right, so the unit's pace can tell a rough lesson from a mixed one (beats/pace.ts).
         ...(run.totalBeats > 0 ? { cleared: Math.min(run.clearedBeats, run.totalBeats) } : {}),
       });
+      // Read now: earning the chest below replaces lastReceipt, and the streak milestone is on this one.
+      const afterClear = progress.getSnapshot();
       // A section final saves its section's chest, offered back on the path.
       earnChestForClear(progress, node);
+      // The Pro sheet may ask, on the way back to the path (upsell/upsellRule.ts).
+      noteLessonClear(afterClear);
       if (live) setBanked(diamonds);
     });
     return () => {

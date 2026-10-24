@@ -75,6 +75,7 @@ import { useReducedMotion } from "./hooks";
 import { CourseChip } from "./ui/CourseChip";
 import { Hud } from "./ui/Hud";
 import { ChestHost } from "../chest/ChestHost";
+import { UpsellHost } from "../upsell/UpsellHost";
 import { NotOpenYet } from "./ui/NotOpenYet";
 import { ToolSheet } from "./ui/ToolRail";
 import { TabIcon, ToolsIcon } from "./ui/TabIcon";
@@ -467,6 +468,8 @@ export function Shell({ route, children }: { readonly route: Route; readonly chi
       </div>
       {/* The chest offer and the C1 opening, over everything (chest/ChestHost.tsx). */}
       <ChestHost />
+      {/* The Pro sheet, after the chest, never over it (upsell/UpsellHost.tsx). */}
+      <UpsellHost />
 
     </div>
   );

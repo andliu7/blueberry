@@ -243,6 +243,21 @@ Sign-in, Pro, paywalls, ads (owner, 23 Oct)
      question in STRIPE.md is settled. Owner decision, not part of this build.
 - G3 Paywalls after value: after the first completed lesson, then intermittent reminders like
   Duolingo.
+  DONE 23 Oct: the Pro sheet (src/game/upsell/). Shown once on the path after the first completed
+  lesson, then at most once a local day, never on two clears in a row, every 3 lessons growing
+  to 6, 12, 24 and waiting 1, 2, 4, 8, 14 days as "Not now" taps add up; a streak milestone (7,
+  14, 30 days) skips the lesson gap; "Tell me when it opens" leaves only streak milestones; never
+  mid-lesson, never over a chest, never to a Pro account (checked when it draws). Staff see "Try
+  the test checkout"; everyone else "Pro is coming soon. Nothing is on sale yet." and "Tell me
+  when it opens", which writes pro_interest (falls back to "Saved on this device" if the table
+  is missing). Lines of what Pro adds come only from the Pro card in subscription-plans.tsx
+  (pinned by upsellCopy.test.ts). Schedule is per device (localStorage blueberry.upsell) until
+  account progress syncs it. Payload +0.3 KB (#/app first open 399.5 KB of 400 with the tree's
+  other uncommitted work). Owner: apply supabase/migrations/20261023180000_pro_interest.sql
+  (`npx supabase db push`). Owner questions: (1) the sheet lists "Mechanism practice, marked as
+  you draw it" and "Importing your own notes" because the Pro card does, but both are free in
+  the game today; confirm or trim the card. (2) pro_interest collects who asked; nothing emails
+  them yet: say whether Pro opening should be an email or only the in-app sheet.
 - G4 Ads from a real ad network, easy to remove (Pro removes them), consent first.
 
 **Progress, 22 Oct (Wave 3 item 12 = evening brief items 1+2: test-outs)**

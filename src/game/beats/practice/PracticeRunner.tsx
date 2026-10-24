@@ -144,12 +144,14 @@ export function PracticeRunner({ node, onExit, onFinish, reducedMotion = false, 
     if (!cleared(state)) return;
     let live = true;
     const spine = pathwayNode(node)?.kind === "spine";
-    void import("../../app/progress").then(({ progress }) => {
+    void Promise.all([import("../../app/progress"), import("../../upsell/noteLessonClear")]).then(([{ progress }, { noteLessonClear }]) => {
       const diamonds = progress.clearNode(node, "concept", {
         flawless: state.missed.length === 0,
         stepsInOneSitting: state.answered,
         spine,
       });
+      // The Pro sheet may ask, on the way back to the path (upsell/upsellRule.ts).
+      noteLessonClear(progress.getSnapshot());
       if (live) setBanked(diamonds);
     });
     return () => {
