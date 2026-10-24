@@ -287,6 +287,8 @@ export const PATHWAY_UNITS: readonly PathwayUnit[] = [
     id: "u6",
     title: "Unit 6 · Spectroscopy & Structure Determination",
     note: "Parallel track: one node injected into every downstream problem.",
+    // Audit 23 Oct, top-25 #15: the check plays the four lessons with a pool as one exam (beats/practice/pools.ts EXAM_SOURCES).
+    examBlurb: "The unit exam: every question once, degrees of unsaturation, ¹H NMR, ¹³C and DEPT and mass spectrometry in turn. 80% right first time passes it.",
     nodes: [
       // Unit 6 DRAFT wiring (2026-10-17): each node with a pool from scripts/u6_pools.py plays its lesson on the beat
       // route; kind stays "gate" as Unit 2 does. u6-ir has no link yet: its board (boards.ts) and six
