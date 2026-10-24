@@ -721,6 +721,7 @@ function run(journal: readonly EconomyEvent[], now: string, options: DeriveOptio
       }
 
       case "settings":
+      case "lesson_rated":
         break;
     }
 

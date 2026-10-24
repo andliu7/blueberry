@@ -50,6 +50,7 @@ import {
   currentBeat,
   isFinished,
   isReported,
+  levelNow,
   markReported,
   mcqReportFor,
   selectOption,
@@ -64,7 +65,8 @@ import { plural } from "@/lib/helpers";
 export interface McqRunnerProps {
   /** The pathway node whose beats to play, for example "u3-directing". */
   readonly node: string;
-  readonly level: MasteryLevel;
+  /** The rung every beat plays at, or "declared": each beat at its own rung (session.ts). */
+  readonly level: MasteryLevel | "declared";
   /**
    * The beats to play. Defaults to everything authored for the node, which is
    * what a pathway slot wants; a test or a preview passes its own.
@@ -198,7 +200,7 @@ export function McqRunner({
   return (
     <McqBeatView
       beat={beat}
-      level={level}
+      level={levelNow(session)}
       selectedId={session.selectedId}
       reveal={session.reveal}
       progress={progress}

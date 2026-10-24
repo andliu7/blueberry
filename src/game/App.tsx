@@ -22,6 +22,7 @@ import { TabSkeleton } from "./app/ui/Skeleton";
 import { BootReady, Loader } from "./app/Loader";
 import { reviewCheckpointFor } from "./tabs/pathway/reviewCheckpoints";
 import { progress } from "./app/progress";
+import { paceForNode } from "./beats/pace";
 import { claimAppOpenGifts, watchEarnedChests } from "./chest/chestFlow";
 import { useAuth } from "@/lib/AuthContext";
 import { isStaffRole } from "./admin/staff";
@@ -223,6 +224,8 @@ function Body({
               key={`${route.node}:${challenge ? "challenge" : "practice"}`}
               node={route.node}
               challenge={challenge}
+              // The unit's pace from the real journal (beats/pace.ts). A Challenge plays the authored lesson.
+              pace={challenge ? 0 : paceForNode(progress.storedJournal(), route.node)}
               reducedMotion={reducedMotion}
               onExit={exit}
             />

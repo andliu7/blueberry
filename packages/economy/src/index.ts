@@ -37,6 +37,7 @@ export type {
   Difficulty,
   EconomyEvent,
   EconomyEventKind,
+  LessonRating,
   NodeKind,
   SpendSink,
 } from "./journal.js";

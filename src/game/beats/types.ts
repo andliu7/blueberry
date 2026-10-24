@@ -97,6 +97,16 @@ export function canFail(level: MasteryLevel): boolean {
   return level > 0;
 }
 
+/**
+ * The rung an item plays at when it is played at its OWN declared level: the
+ * first failable rung it allows, so a miss can count, else its first rung.
+ * The same rule practice/PracticeRunner.tsx uses for its pool items; a lesson's
+ * recognise step plays each question at this rung (audit 23 Oct, top-25 #1).
+ */
+export function declaredLevel(levels: readonly MasteryLevel[]): MasteryLevel {
+  return levels.find((level) => canFail(level)) ?? levels[0] ?? 1;
+}
+
 /* ------------------------------------------------------------------ */
 /* The beat union                                                       */
 /* ------------------------------------------------------------------ */

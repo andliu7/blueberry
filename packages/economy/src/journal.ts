@@ -66,6 +66,9 @@ export type JournalledChestSource = Exclude<ChestSource, "daily_quest">;
 /** The daily goal the student picked at onboarding. It is the streak's bar. */
 export type DailyGoalTier = "casual" | "regular" | "serious" | "exam";
 
+/** The three answers on a lesson's rating row. */
+export type LessonRating = "too_easy" | "about_right" | "too_hard";
+
 /** Node difficulty, the mastery weight. Same 1 to 5 scale as the curriculum package. */
 export type Difficulty = 1 | 2 | 3 | 4 | 5;
 
@@ -101,6 +104,13 @@ export type EconomyEvent =
       /** On the exam weighted spine, rather than a side branch. */
       readonly spine: boolean;
       readonly difficulty: Difficulty;
+      /**
+       * Questions right on the FIRST try, out of stepsInOneSitting. Optional:
+       * absent on clears written before 23 Oct 2026 and from surfaces that do
+       * not count. Read only by the game's lesson pace (src/game/beats/pace.ts);
+       * the derivation never pays on it.
+       */
+      readonly cleared?: number;
     })
   | (EventBase & { readonly kind: "quiz_passed"; readonly unitId: string; readonly flawless: boolean })
   /**
@@ -149,6 +159,12 @@ export type EconomyEvent =
       readonly ref?: string;
     })
   | (EventBase & { readonly kind: "combo_bonus"; readonly charge: number })
+  /**
+   * The student's one-tap read of a lesson on its reward card (audit 23 Oct,
+   * section 4). Pays nothing and moves nothing here; the game derives a unit's
+   * pace from it (src/game/beats/pace.ts).
+   */
+  | (EventBase & { readonly kind: "lesson_rated"; readonly nodeId: string; readonly rating: LessonRating })
   | (EventBase & {
       readonly kind: "settings";
       readonly dailyGoal?: DailyGoalTier;
@@ -176,6 +192,8 @@ const SPEND_SINKS: readonly SpendSink[] = [
 const CHARGE_ENTRIES: readonly ChargeEntry[] = ["challenge", "final"];
 
 const JOURNALLED_CHEST_SOURCES: readonly JournalledChestSource[] = ["section_final", "daily_gift", "onboarding_gift"];
+
+const LESSON_RATINGS: readonly LessonRating[] = ["too_easy", "about_right", "too_hard"];
 
 const GOAL_TIERS: readonly DailyGoalTier[] = ["casual", "regular", "serious", "exam"];
 
@@ -250,7 +268,12 @@ export function isEconomyEvent(x: unknown): x is EconomyEvent {
         isPositiveInt(x["stepsInOneSitting"]) &&
         typeof x["spine"] === "boolean" &&
         isPositiveInt(x["difficulty"]) &&
-        (x["difficulty"] as number) <= 5
+        (x["difficulty"] as number) <= 5 &&
+        (x["cleared"] === undefined ||
+          (typeof x["cleared"] === "number" &&
+            Number.isInteger(x["cleared"]) &&
+            x["cleared"] >= 0 &&
+            x["cleared"] <= (x["stepsInOneSitting"] as number)))
       );
     case "quiz_passed":
       return nonEmptyString(x["unitId"]) && typeof x["flawless"] === "boolean";
@@ -282,6 +305,8 @@ export function isEconomyEvent(x: unknown): x is EconomyEvent {
       );
     case "combo_bonus":
       return isPositiveInt(x["charge"]);
+    case "lesson_rated":
+      return nonEmptyString(x["nodeId"]) && LESSON_RATINGS.includes(x["rating"] as LessonRating);
     case "settings":
       return (
         (x["dailyGoal"] === undefined || GOAL_TIERS.includes(x["dailyGoal"] as DailyGoalTier)) &&

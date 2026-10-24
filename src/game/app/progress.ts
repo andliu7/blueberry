@@ -69,6 +69,7 @@ import {
   type DeriveOptions,
   type EconomyEvent,
   type EconomySnapshot,
+  type LessonRating,
   type NodeKind,
   type Receipt,
   type SpendSink,
@@ -114,6 +115,8 @@ export interface ClearNodeOptions {
   readonly stepsInOneSitting?: number;
   readonly spine?: boolean;
   readonly difficulty?: Difficulty;
+  /** Questions right on the first try, out of stepsInOneSitting; read by beats/pace.ts. */
+  readonly cleared?: number;
 }
 
 export interface SettingsFields {
@@ -193,6 +196,11 @@ export interface ProgressSource {
    * the day's cap: the economy decides (packages/economy, DIAMONDS_CARD_RUN).
    */
   finishCardRun(graded: number): number;
+  /**
+   * The reward card's one tap: Too easy, About right or Too hard. Pays and
+   * animates nothing; beats/pace.ts reads it to set the unit's pace.
+   */
+  rateLesson(nodeId: string, rating: LessonRating): void;
   spend(sink: SpendSink, cost: number, ref?: string): Receipt;
   setSettings(fields: SettingsFields): Receipt;
   /** The stored journal: the real history, without the beta flags' synthetic events. What account sync pushes. */
@@ -793,6 +801,7 @@ export function createLocalProgress(): ProgressSource {
         stepsInOneSitting: options.stepsInOneSitting ?? 1,
         spine: options.spine ?? false,
         difficulty: options.difficulty ?? LESSON_DIFFICULTY,
+        ...(options.cleared !== undefined ? { cleared: options.cleared } : {}),
       }));
       return next.diamonds.reduce((sum, line) => sum + line.amount, 0);
     },
@@ -856,6 +865,11 @@ export function createLocalProgress(): ProgressSource {
       if (!Number.isInteger(graded) || graded <= 0) return 0;
       const next = appendOne((at, tz) => ({ kind: "cards_reviewed", at, tz, graded }));
       return next.diamonds.reduce((sum, line) => sum + line.amount, 0);
+    },
+    rateLesson(nodeId, rating) {
+      // Quietly: a rating earns nothing, so it must not replace the reward
+      // moment's receipt for the clear it sits under.
+      appendQuietly([{ id: newEventId(), kind: "lesson_rated", at: nowIso(), tz: deviceZone(), nodeId, rating }]);
     },
     spend(sink, cost, ref) {
       return appendOne((at, tz) =>

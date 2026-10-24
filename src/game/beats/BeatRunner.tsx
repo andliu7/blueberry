@@ -86,9 +86,9 @@ import {
   challengeOutcome,
   currentStep,
   lessonHasDraft,
-  lessonMcqBeats,
   lessonMeetBeats,
   lessonPoolItems,
+  lessonRecogniseBeats,
   missedMcqIdsFrom,
   missedPoolIdsOf,
   planLesson,
@@ -104,6 +104,8 @@ import {
 } from "./template";
 import { browserStorage, clearSave, loadLesson, resumePool, saveLesson, savedCount, type LessonResume, type McqSave, type PoolSave } from "../resume/lessonSave";
 import { ResumePrompt } from "../resume/ResumePrompt";
+import { skipAheadTestId, unitIdForNode, type LessonRating, type Pace } from "./pace";
+import { hrefForLesson, hrefForReview, hrefForTab } from "../app/routes";
 import "./beat-chrome.css";
 
 // The resolution API lives in template.ts now: one table and one ordering
@@ -156,6 +158,12 @@ export interface BeatRunnerProps {
    * template.ts for why that is what "harder" means here.
    */
   readonly challenge?: boolean;
+  /**
+   * The unit's pace (beats/pace.ts), read by the parent from the journal when
+   * the lesson opens. Changes which questions the plan plays; 0 is the
+   * authored lesson.
+   */
+  readonly pace?: Pace;
 }
 
 /**
@@ -165,8 +173,13 @@ export interface BeatRunnerProps {
  * should be unreachable from the pathway, which only links nodes that pass
  * nodeHasBeat, but a deep link can still arrive by hand.
  */
-export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, challenge = false }: BeatRunnerProps) {
-  const plan = useMemo(() => planLesson(node), [node]);
+export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, challenge = false, pace: paceProp = 0 }: BeatRunnerProps) {
+  // The pace is read ONCE, when the lesson opens: useState keeps its first
+  // value and ignores later props. This lesson's own clear and rating change
+  // the journal (and so the parent's pace) before it ends, and the plan must
+  // not change under a run that is still playing it.
+  const [pace] = useState(paceProp);
+  const plan = useMemo(() => planLesson(node, { pace }), [node, pace]);
   const mode = challenge ? "challenge" : "practice";
 
   const [seenNode, setSeenNode] = useState(node);
@@ -371,6 +384,8 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
         flawless,
         stepsInOneSitting: run.totalBeats,
         spine,
+        // First-try right, so the unit's pace can tell a rough lesson from a mixed one (beats/pace.ts).
+        ...(run.totalBeats > 0 ? { cleared: Math.min(run.clearedBeats, run.totalBeats) } : {}),
       });
       // A section final saves its section's chest, offered back on the path.
       earnChestForClear(progress, node);
@@ -670,10 +685,11 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
           />
         ) : null}
         {step?.beat.kind === "mcq" ? (
+          // Each question at its own rung, L1 before L2, chosen by the pace (template.ts).
           <McqRunner
             node={step.beat.node}
-            level={level}
-            beats={lessonMcqBeats(step.beat.node)}
+            level="declared"
+            beats={lessonRecogniseBeats(step.beat.node, step.beat.pace)}
             onExit={onExit}
             reducedMotion={reducedMotion}
             progressSlot={
@@ -788,7 +804,7 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
           // Same surface, same rules, only the ones that got away.
           <McqRunner
             node={node}
-            level={level}
+            level="declared"
             beats={recycleBeatsFor(run.plan, run.missedMcqIds)}
             onExit={onExit}
             reducedMotion={reducedMotion}
@@ -818,6 +834,8 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
         {run.phase === "reward" ? (
           <RewardSlot
             run={run}
+            node={node}
+            pace={pace}
             banked={banked}
             reducedMotion={reducedMotion}
             onExit={finish}
@@ -949,12 +967,17 @@ function LessonHeader({
  */
 function RewardSlot({
   run,
+  node,
+  pace,
   banked,
   reducedMotion,
   onExit,
   offerSlot,
 }: {
   readonly run: LessonRun;
+  readonly node: string;
+  /** The pace this lesson was planned at. */
+  readonly pace: Pace;
   /** Diamonds the store actually paid, or null while the clear is still landing. */
   readonly banked: number | null;
   readonly reducedMotion: boolean;
@@ -1056,10 +1079,74 @@ function RewardSlot({
             a run the progress store already committed. A green claim chip
             over the word Continue promises a payout the screen does not
             make. */}
+        <PaceRow node={node} pace={pace} />
       </div>
       {offerSlot}
       </div>
       <EndingFooter onExit={onExit} />
+    </div>
+  );
+}
+
+const RATINGS: readonly { readonly rating: LessonRating; readonly label: string }[] = [
+  { rating: "too_easy", label: "Too easy" },
+  { rating: "about_right", label: "About right" },
+  { rating: "too_hard", label: "Too hard" },
+];
+
+/**
+ * THE PACE ROW (audit 23 Oct, section 4): an optional one-tap read of the
+ * lesson, journalled as lesson_rated, which sets the unit's pace for the next
+ * lesson (beats/pace.ts). Nothing is locked and no diamond moves. Under it,
+ * what the pace offers: the guide and the flashcards when it was hard, the
+ * section test as "Skip ahead" when it was easy. The tap, once made, decides
+ * which; before that, the pace this lesson was played at does.
+ */
+function PaceRow({ node, pace }: { readonly node: string; readonly pace: Pace }) {
+  const [rated, setRated] = useState<LessonRating | null>(null);
+  const rate = (rating: LessonRating) => {
+    setRated(rating);
+    // Dynamic for the reason the banking above gives: app/progress touches the DOM at module scope.
+    void import("../app/progress").then(({ progress }) => progress.rateLesson(node, rating));
+  };
+  const leaning: Pace = rated === null ? pace : rated === "too_easy" ? 1 : rated === "too_hard" ? -1 : 0;
+  const unitId = unitIdForNode(node);
+  const testId = leaning === 1 ? skipAheadTestId(node) : null;
+  return (
+    <div className="flex w-full flex-col items-center gap-2">
+      <p className="text-scale-sm text-bb-muted-foreground">{rated === null ? "How was that?" : "Thanks. The next lesson will adjust."}</p>
+      <div className="flex flex-wrap justify-center gap-2" role="group" aria-label="How was this lesson?">
+        {RATINGS.map(({ rating, label }) => (
+          <button
+            key={rating}
+            type="button"
+            aria-pressed={rated === rating}
+            onClick={() => rate(rating)}
+            className={`rounded-xl border-2 px-3 py-1.5 text-scale-sm font-semibold ${
+              rated === rating ? "border-bb-primary bg-bb-primary text-bb-primary-foreground" : "border-bb-border bg-bb-card text-bb-foreground"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      {leaning === -1 ? (
+        <p className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-scale-sm">
+          {unitId !== null ? (
+            <a className="font-semibold text-bb-primary-ink underline" href={`${hrefForTab("pathway")}?unit=${unitId}&guide=${unitId}`}>
+              Read the guide for this lesson
+            </a>
+          ) : null}
+          <a className="font-semibold text-bb-primary-ink underline" href={hrefForReview()}>
+            Review your flashcards
+          </a>
+        </p>
+      ) : null}
+      {testId !== null ? (
+        <a className="text-scale-sm font-semibold text-bb-primary-ink underline" href={hrefForLesson(testId)}>
+          Skip ahead: take the section test
+        </a>
+      ) : null}
     </div>
   );
 }

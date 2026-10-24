@@ -38,7 +38,8 @@
  * on the reward card rather than chased.
  */
 
-import { canFail, clearsBeat, type BeatResult, type MasteryLevel } from "./types";
+import { canFail, clearsBeat, declaredLevel, type BeatResult, type MasteryLevel } from "./types";
+import type { Pace } from "./pace";
 import { mcqBeatsForNode } from "./mcq";
 import { MATCH_BOARDS } from "./match";
 import { sortContentById } from "./sort";
@@ -127,7 +128,8 @@ export const LADDER_FOR_NODE: Readonly<Record<string, string>> = Object.freeze({
 export type ResolvedBeat =
   /** The node's first-meeting (L0) questions, played at level 0 before anything is graded. */
   | { readonly kind: "meet"; readonly node: string }
-  | { readonly kind: "mcq"; readonly node: string }
+  /** The graded quick questions, each at its own rung. `pace` is set only when it is not 0 (lessonRecogniseBeats). */
+  | { readonly kind: "mcq"; readonly node: string; readonly pace?: Pace }
   | { readonly kind: "match"; readonly node: string }
   | { readonly kind: "sort"; readonly ladderId: string }
   | { readonly kind: "synthesis"; readonly node: string }
@@ -205,6 +207,37 @@ export function lessonMeetBeats(node: string): readonly McqBeat[] {
  */
 function hasGradedMcqs(node: string): boolean {
   return lessonMcqBeats(node).some((beat) => beat.levels.some((level) => level > 0));
+}
+
+/**
+ * THE RECOGNISE STEP'S QUESTIONS, in play order (audit 23 Oct, top-25 #1 and
+ * section 4). Every graded question plays at its OWN declared rung
+ * (declaredLevel; the runner starts its session "declared"), so the L2
+ * questions authored for a node are played in its lesson instead of first
+ * appearing in a section test.
+ *
+ *   pace 0   L1, then L2 (then L3), authored order within a rung
+ *   pace +1  L2 and up first, then at most two L1
+ *   pace -1  L1 only
+ *
+ * NEVER EMPTY when the node has graded questions: +1 needs at least two
+ * questions above L1 (hasHardRecognise) or it plays as 0, and -1 on a node
+ * with nothing at L1 plays as 0.
+ */
+export function lessonRecogniseBeats(node: string, pace: Pace = 0): readonly McqBeat[] {
+  const graded = lessonMcqBeats(node).filter((beat) => beat.levels.some((level) => level > 0));
+  // Array.prototype.sort is stable, so authored order holds within a rung.
+  const ordered = [...graded].sort((a, b) => declaredLevel(a.levels) - declaredLevel(b.levels));
+  const easy = ordered.filter((beat) => declaredLevel(beat.levels) <= 1);
+  const hard = ordered.filter((beat) => declaredLevel(beat.levels) >= 2);
+  if (pace === 1 && hard.length >= 2) return [...hard, ...easy.slice(0, 2)];
+  if (pace === -1 && easy.length > 0) return easy;
+  return ordered;
+}
+
+/** Whether the node has the two questions above L1 that pace +1 needs (section 4's fallback rule). */
+export function hasHardRecognise(node: string): boolean {
+  return lessonRecogniseBeats(node).filter((beat) => declaredLevel(beat.levels) >= 2).length >= 2;
 }
 
 /** Whether a node's lesson plays any draft pool question, so the runner shows the human-gate mark. */
@@ -294,7 +327,12 @@ function checkpointPlan(unit: PathwayUnit, node: string): LessonPlan | null {
   return { node, steps: [...steps].sort((a, b) => LESSON_SLOTS.indexOf(a.slot) - LESSON_SLOTS.indexOf(b.slot)) };
 }
 
-export function planLesson(node: string): LessonPlan | null {
+export interface PlanOptions {
+  /** The unit's pace (beats/pace.ts). Absent is 0, the authored lesson. */
+  readonly pace?: Pace;
+}
+
+export function planLesson(node: string, options: PlanOptions = {}): LessonPlan | null {
   // A RUN MODE, not a second lesson system (owner, 2026-09-29): a practice or
   // stage-quiz node with problems in its pool plays the in-a-row run as its one
   // step, and BeatRunner hands that step to PracticeRunner. A unit whose exam
@@ -308,17 +346,23 @@ export function planLesson(node: string): LessonPlan | null {
   if (checkpointUnit !== null) return checkpointPlan(checkpointUnit, node);
 
   const steps: PlanStep[] = [];
+  // +1 on a node without two harder questions falls back to the authored
+  // lesson whole, meet step included: skipping the meet only to replay the
+  // same L1 questions would take the teaching away and add nothing harder.
+  const pace: Pace = options.pace === 1 && !hasHardRecognise(node) ? 0 : (options.pace ?? 0);
 
   // hook: an authored video open. No node carries one yet, and the free tier
   // rule in CLAUDE.md is that lessons must stand without video, so no video is
   // faked here. What opens the lesson instead is the meet step: the node's
   // first-meeting questions, at level 0, before anything is graded.
-  if (lessonMeetBeats(node).length > 0) {
+  // At pace +1 the meet step is skipped: the student said, or showed, that
+  // they already know it.
+  if (pace !== 1 && lessonMeetBeats(node).length > 0) {
     steps.push({ slot: "hook", beat: { kind: "meet", node } });
   }
 
   if (hasGradedMcqs(node)) {
-    steps.push({ slot: "recognise", beat: { kind: "mcq", node } });
+    steps.push({ slot: "recognise", beat: pace === 0 ? { kind: "mcq", node } : { kind: "mcq", node, pace } });
   }
   // One step per slot (lessonTemplate.test.ts): an authored board or ladder
   // keeps its slot, and the pool's own only fill a slot nothing else has.

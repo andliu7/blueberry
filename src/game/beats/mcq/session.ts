@@ -34,7 +34,7 @@
 
 import { mcqCardOffer, type McqCardOffer } from "./card";
 import { gradeMcq, type McqReveal } from "./grade";
-import { beatAllowedAt, type BeatResult, type MasteryLevel, type McqBeat } from "../types";
+import { beatAllowedAt, declaredLevel, type BeatResult, type MasteryLevel, type McqBeat } from "../types";
 
 /**
  * One run over one node's beats.
@@ -48,6 +48,12 @@ import { beatAllowedAt, type BeatResult, type MasteryLevel, type McqBeat } from 
 export interface McqSession {
   readonly beats: readonly McqBeat[];
   readonly level: MasteryLevel;
+  /**
+   * Set on a DECLARED run (a lesson's recognise step): the rung each beat is
+   * graded at, one per beat, in step with `beats`. Absent means every beat
+   * plays at `level`. Read through levelNow, never directly.
+   */
+  readonly levels?: readonly MasteryLevel[];
   /** Which beat is on screen. Equal to `beats.length` when the run is done. */
   readonly index: number;
   /** The option under the student's finger. Changeable until they commit. */
@@ -71,8 +77,16 @@ export interface McqSession {
  */
 export function startMcqSession(
   beats: readonly McqBeat[],
-  level: MasteryLevel,
+  level: MasteryLevel | "declared",
 ): McqSession {
+  // "declared": every beat plays at its OWN rung (declaredLevel), in the order
+  // given, so a lesson's L2 questions are graded as L2 instead of being
+  // filtered out of a rung-1 run (audit 23 Oct, top-25 #1). Nothing is dropped
+  // here: template.ts already chose and ordered the list.
+  if (level === "declared") {
+    const levels = beats.map((beat) => declaredLevel(beat.levels));
+    return { beats, level: levels[0] ?? 1, levels, index: 0, selectedId: null, reveal: null, results: [], reported: [] };
+  }
   return {
     beats: beats.filter((beat) => beatAllowedAt(beat, level)),
     level,
@@ -82,6 +96,11 @@ export function startMcqSession(
     results: [],
     reported: [],
   };
+}
+
+/** The rung the beat on screen is graded at: its own on a declared run, else the run's. */
+export function levelNow(session: McqSession): MasteryLevel {
+  return session.levels?.[session.index] ?? session.level;
 }
 
 /** The beat on screen, or null when the run is finished or empty. */
@@ -154,7 +173,7 @@ export function commitPick(session: McqSession, input: McqCommitInput): McqCommi
 
   const reveal = gradeMcq({
     beat,
-    level: session.level,
+    level: levelNow(session),
     chosenId: session.selectedId,
     elapsedMs: Math.max(0, input.elapsedMs),
     at: input.at,
@@ -276,7 +295,7 @@ export function mcqReportFor(session: McqSession, at: string): McqReport | null 
   return {
     beatId: beat.id,
     node: beat.node,
-    level: session.level,
+    level: levelNow(session),
     prompt: beat.prompt,
     selectedId: session.reveal?.chosenId ?? session.selectedId,
     revealed: isRevealed(session),
