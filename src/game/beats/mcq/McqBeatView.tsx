@@ -88,7 +88,7 @@ import { useEffect, useRef, type ReactNode } from "react";
 
 import { Berry } from "../../mascot/Berry";
 import { ChipPress } from "../ChipPress";
-import { canFail, type MasteryLevel, type McqBeat } from "../types";
+import { type MasteryLevel, type McqBeat } from "../types";
 import { ExitMark, FlagMark } from "../chromeIcons";
 import { LessonBar } from "../LessonBar";
 import { ToolRail } from "../../app/ui/ToolRail";
@@ -340,11 +340,12 @@ export function McqBeatView({
               const isAnswer = option.id === beat.correctOptionId;
               const isSelected = selectedId === option.id;
               const tile = tiles[option.id] as NonNullable<(typeof tiles)[string]>;
-              // A graded question shows A, B, C under the drawings until Check,
-              // then the names: "Pick the thiol" over a tile captioned
+              // Every tile question shows A, B, C under the drawings until
+              // Check, then the names: "Pick the thiol" over a tile captioned
               // "ethanethiol" was answered by reading (audit 23 Oct, top-25 #11).
-              // A first meeting cannot fail, so it keeps its names to teach with.
-              const named = answered || !canFail(level);
+              // A first meeting too: the audit's three examples are all L0, and
+              // the names still teach once they appear with the answer.
+              const named = answered;
               return (
                 <li key={option.id}>
                   <button
