@@ -82,7 +82,7 @@ export const SECTION_ENDS: Readonly<Record<string, string>> = Object.freeze({
   "u9-acetoacetic": "Alkylating enolates",
   "u9-retro": "Conjugate addition and annulation",
   "u10-nitrile-red": "Basicity and reductions to amines",
-  "u10-acyl-protect": "Anilines and diazonium salts",
+  "u10-diazo-sub": "Anilines and diazonium salts",
   "u11-phenoxide": "Phenol acidity and phenoxide",
   "u14-orthogonal": "Protecting amino acids",
 });

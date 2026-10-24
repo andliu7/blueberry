@@ -24,6 +24,6 @@ describe("the u10-basicity example", () => {
     expect(drawn).toEqual(["NC1CCCCC1", "Nc1ccccc1", "CC(N)=O"]);
     expect(entry.item.content.beat.order).toEqual(["chxa", "anil", "amide"]);
     const drawnNames = U10_GUIDE.examples["u10-basicity"]!.panels.flatMap((panel) => (panel.kind === "mol" ? [panel.name] : []));
-    expect(drawnNames.map((name) => name.split(":")[0])).toEqual(sortNames);
+    expect(drawnNames.map((name) => (name ?? "").split(":")[0])).toEqual(sortNames);
   });
 });
