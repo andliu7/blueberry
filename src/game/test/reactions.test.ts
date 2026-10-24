@@ -149,9 +149,11 @@ describe("the pathway map is a truthful ledger", () => {
   // whiteboard (8 nodes to 24, spine 4 to 18) and no longer mirrors the PDF inventory.
   // Restored 2026-10-17 (Unit 2 draft, round 3): round 2 had moved this pin to 105 by making Unit 2 spine; the
   // brief kept Unit 2 as gates, so the owner's pin stands at 100 until the owner decides otherwise.
-  it("carries the full inventory: 208 nodes, 100 of them spine", () => {
+  // CHANGED 2026-10-23, 100 to 102: the learner audit's top-25 #13 (documentation/CONTENT-AUDIT-OCT-23.md)
+  // moved u3-fc-alkyl and u3-benzylic-ox from side quests onto the Unit 3 main line. Total unchanged.
+  it("carries the full inventory: 208 nodes, 102 of them spine", () => {
     const score = coverage();
     expect(score.total).toBe(208);
-    expect(score.spineTotal).toBe(100);
+    expect(score.spineTotal).toBe(102);
   });
 });
