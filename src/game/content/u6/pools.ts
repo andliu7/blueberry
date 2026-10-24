@@ -13,13 +13,15 @@
  * rests on a convention RDKit cannot check (first-order splitting, what DEPT
  * and the 2D experiments show, the conjugation and wavelength trend), the
  * entry's provenance says so. No chemical shift, IR band or lambda max value
- * appears anywhere: none of them is derivable here.
+ * appears in a played item: none of them is derivable here. The IR items
+ * (U6_IR_HELD) quote cited band positions and are held, unplayed, for the
+ * owner's sign-off.
  *
- * U6_UNWIRED holds the unit's match boards under `u6-exam`, which is not a
- * map node. NOTHING PLAYS THEM YET: pool boards only play in an in-a-row run,
- * Unit 6 has no practice node, and the Unit 6 checkpoint keeps its derived
- * mix. Wiring them is an owner decision, listed in the unit's owner report.
- * No sort ladder is drafted: no SortCriterion names a spectroscopy property.
+ * The splitting board (u6-exam-match-split) plays in u6-hnmr as its connect
+ * step (audit 23 Oct, top-25 #14). U6_UNWIRED holds the one board still
+ * unplayed, the degrees of unsaturation board, under `u6-exam`, which is not
+ * a map node. No sort ladder is drafted: no SortCriterion names a
+ * spectroscopy property.
  *
  * Match boards go through buildMatchBoard, the same adapter the shipped
  * boards use, so a bad board throws at import time.
@@ -157,7 +159,7 @@ export const U6_POOLS: UnitPools = {
             {
               "id": "1",
               "text": "One",
-              "why": "Leaving Br out makes nine H look one short. A halogen stands where an H would be, so count it as one."
+              "why": "Leaving Br out leaves nine H against the alkane's ten, which does not even give a whole number. A halogen takes an H's place, so count C₄H₉Br as C₄H₁₀: zero."
             },
             {
               "id": "2",
@@ -546,7 +548,7 @@ export const U6_POOLS: UnitPools = {
             {
               "id": "e",
               "text": "1 : 1",
-              "why": "Two signals is not a 1 : 1 ratio. Integration counts the H under each signal."
+              "why": "1 : 1 would need the same number of H in each set. Here the two CH₃ groups hold six H and the two CH₂ groups hold four."
             },
             {
               "id": "t",
@@ -602,6 +604,85 @@ export const U6_POOLS: UnitPools = {
       },
       "explanation": "A tert-butyl group is nine equivalent H, a large singlet that is easy to spot.",
       "provenance": "scripts/u6_pools.py: rule 3, H per class from RDKit canonical ranks, reduced. Textbook check still owed: OpenStax Organic Chemistry ch. 13 (NMR spectroscopy) (CC BY-NC-SA), not read in this run.",
+      "placeholder": true
+    },
+    {
+      "id": "u6-hnmr-triplet",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u6-hnmr-triplet",
+          "node": "u6-hnmr",
+          "conceptIds": [
+            "spectroscopy_nmr"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "Pick the splitting of the circled CH₃ in chloroethane.",
+          "brief": "Count the H on the neighbouring carbons, then add one.",
+          "correctOptionId": "3",
+          "options": [
+            {
+              "id": "3",
+              "text": "Triplet",
+              "why": "Two H on the CH₂Cl next door: two plus one, three lines."
+            },
+            {
+              "id": "4",
+              "text": "Quartet",
+              "why": "That counts the CH₃'s own three H. H in the same set do not split each other; count the H on the carbon next door."
+            },
+            {
+              "id": "2",
+              "text": "Doublet",
+              "why": "That counts one neighbour H. The CH₂Cl next door carries two."
+            }
+          ]
+        }
+      },
+      "explanation": "A signal splits into n + 1 lines, n being the H on neighbouring carbons. An ethyl CH₃ sees the two H of its CH₂: a triplet.",
+      "provenance": "scripts/u6_pools.py: rule 3, n counted on bonded carbons. Textbook check still owed: OpenStax Organic Chemistry ch. 13 (NMR spectroscopy) (CC BY-NC-SA), not read in this run. Rests on an authored convention: first-order splitting by the n + 1 rule, all couplings taken equal.",
+      "placeholder": true
+    },
+    {
+      "id": "u6-hnmr-quartet",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u6-hnmr-quartet",
+          "node": "u6-hnmr",
+          "conceptIds": [
+            "spectroscopy_nmr"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "Pick the splitting of the circled CH₂ in chloroethane.",
+          "correctOptionId": "4",
+          "options": [
+            {
+              "id": "6",
+              "text": "Sextet",
+              "why": "That adds this CH₂'s own two H to the CH₃'s three. H in the same set do not split each other."
+            },
+            {
+              "id": "4",
+              "text": "Quartet",
+              "why": "Three H on the CH₃ next door: three plus one, four lines. The Cl carries no H."
+            },
+            {
+              "id": "3",
+              "text": "Triplet",
+              "why": "That counts the CH₂'s own two H. Its neighbour is the CH₃, which has three."
+            }
+          ]
+        }
+      },
+      "explanation": "An ethyl CH₂ sees the three H of its CH₃, so it is a quartet. A 3H triplet beside a 2H quartet is an ethyl group.",
+      "provenance": "scripts/u6_pools.py: rule 3, n counted on bonded carbons. Textbook check still owed: OpenStax Organic Chemistry ch. 13 (NMR spectroscopy) (CC BY-NC-SA), not read in this run. Rests on an authored convention: first-order splitting by the n + 1 rule, all couplings taken equal.",
       "placeholder": true
     },
     {
@@ -721,6 +802,57 @@ export const U6_POOLS: UnitPools = {
       "provenance": "scripts/u6_pools.py: rule 3, n counted on bonded carbons. Textbook check still owed: OpenStax Organic Chemistry ch. 13 (NMR spectroscopy) (CC BY-NC-SA), not read in this run. Rests on an authored convention: first-order splitting by the n + 1 rule, all couplings taken equal.",
       "placeholder": true
     },
+    match({
+      "beat": {
+        "kind": "match",
+        "id": "u6-exam-match-split",
+        "node": "u6-hnmr",
+        "conceptIds": [
+          "spectroscopy_nmr"
+        ],
+        "levels": [
+          1,
+          2
+        ],
+        "presentation": "columns",
+        "prompt": "Match each set of H to its splitting.",
+        "brief": "Count the H on neighbouring carbons, then add one.",
+        "pairs": [
+          {
+            "id": "sept",
+            "left": "CH of 2-chloropropane",
+            "right": "septet",
+            "why": "Six H on the two CH₃ neighbours: seven lines."
+          },
+          {
+            "id": "dbl",
+            "left": "CH₃ of 2-chloropropane",
+            "right": "doublet",
+            "why": "One H on the CH next door: two lines."
+          },
+          {
+            "id": "trip",
+            "left": "CH₃ of chloroethane",
+            "right": "triplet",
+            "why": "Two H on the CH₂Cl next door: three lines."
+          },
+          {
+            "id": "quart",
+            "left": "CH₂ of chloroethane",
+            "right": "quartet",
+            "why": "Three H on the CH₃ next door: four lines."
+          },
+          {
+            "id": "sing",
+            "left": "OCH₃ of 2-methoxy-2-methylpropane",
+            "right": "singlet",
+            "why": "Across an O from a carbon with no H: no neighbours, one line."
+          }
+        ]
+      },
+      "explanation": "The n + 1 rule: n H on neighbouring carbons split a signal into n + 1 lines.",
+      "provenance": "scripts/u6_pools.py: rule 3, n counted on bonded carbons. Textbook check still owed: OpenStax Organic Chemistry ch. 13 (NMR spectroscopy) (CC BY-NC-SA), not read in this run. Rests on an authored convention: first-order splitting by the n + 1 rule, all couplings taken equal."
+    }),
   ],
   "u6-cnmr": [
     {
@@ -1833,60 +1965,9 @@ export const U6_POOLS: UnitPools = {
   ],
 };
 
-/** Boards drafted for the checkpoint. Nothing plays them yet: see the header. */
+/** The board drafted for the checkpoint and still unplayed: see the header. */
 export const U6_UNWIRED: UnitPools = {
   "u6-exam": [
-    match({
-      "beat": {
-        "kind": "match",
-        "id": "u6-exam-match-split",
-        "node": "u6-exam",
-        "conceptIds": [
-          "spectroscopy_nmr"
-        ],
-        "levels": [
-          1,
-          2
-        ],
-        "presentation": "columns",
-        "prompt": "Match each set of H to its splitting.",
-        "brief": "Count the H on neighbouring carbons, then add one.",
-        "pairs": [
-          {
-            "id": "sept",
-            "left": "CH of 2-chloropropane",
-            "right": "septet",
-            "why": "Six H on the two CH₃ neighbours: seven lines."
-          },
-          {
-            "id": "dbl",
-            "left": "CH₃ of 2-chloropropane",
-            "right": "doublet",
-            "why": "One H on the CH next door: two lines."
-          },
-          {
-            "id": "trip",
-            "left": "CH₃ of chloroethane",
-            "right": "triplet",
-            "why": "Two H on the CH₂Cl next door: three lines."
-          },
-          {
-            "id": "quart",
-            "left": "CH₂ of chloroethane",
-            "right": "quartet",
-            "why": "Three H on the CH₃ next door: four lines."
-          },
-          {
-            "id": "sing",
-            "left": "OCH₃ of tert-butyl methyl ether",
-            "right": "singlet",
-            "why": "Across an O from a carbon with no H: no neighbours, one line."
-          }
-        ]
-      },
-      "explanation": "The n + 1 rule: n H on neighbouring carbons split a signal into n + 1 lines.",
-      "provenance": "scripts/u6_pools.py: rule 3, n counted on bonded carbons. Textbook check still owed: OpenStax Organic Chemistry ch. 13 (NMR spectroscopy) (CC BY-NC-SA), not read in this run. Rests on an authored convention: first-order splitting by the n + 1 rule, all couplings taken equal."
-    }),
     match({
       "beat": {
         "kind": "match",
@@ -1938,6 +2019,247 @@ export const U6_UNWIRED: UnitPools = {
       "explanation": "Every two H missing from the saturated formula is one ring or one pi bond.",
       "provenance": "scripts/u6_pools.py: rule 1, formula count checked against rings plus pi bonds. Textbook check still owed: OpenStax Organic Chemistry ch. 7 (degree of unsaturation) (CC BY-NC-SA), not read in this run."
     }),
+  ],
+};
+
+/** IR questions with cited band numbers, HELD for the owner's sign-off: nothing reads this table, and u6-ir keeps no map link. */
+export const U6_IR_HELD: UnitPools = {
+  "u6-ir": [
+    {
+      "id": "u6-ir-meet",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u6-ir-meet",
+          "node": "u6-ir",
+          "conceptIds": [
+            "spectroscopy_ir"
+          ],
+          "levels": [
+            0
+          ],
+          "prompt": "Butan-2-one shows a strong, sharp band at 1715 cm⁻¹. Pick the bond behind it.",
+          "brief": "Each kind of bond absorbs in its own range of the IR spectrum.",
+          "correctOptionId": "co",
+          "options": [
+            {
+              "id": "oh",
+              "text": "O-H",
+              "why": "An alcohol O-H sits much higher, 3400 to 3650 cm⁻¹, and butan-2-one has no O-H."
+            },
+            {
+              "id": "cn",
+              "text": "C≡N",
+              "why": "A nitrile's C≡N is near 2250 cm⁻¹, and butan-2-one has no nitrogen."
+            },
+            {
+              "id": "co",
+              "text": "C=O",
+              "why": "A saturated ketone's C=O stretches at 1715 cm⁻¹, inside the 1670 to 1780 carbonyl range."
+            }
+          ]
+        }
+      },
+      "explanation": "Each bond stretches in its own range. A strong, sharp band from 1670 to 1780 cm⁻¹ is a C=O.",
+      "provenance": "scripts/u6_pools.py: carbonyl band, butan-2-one's groups by RDKit substructure match. Band positions from OpenStax Organic Chemistry ch. 12 (sections 12.8 and 20.8, CC BY-NC-SA), read 23 Oct 2026. Held: the owner signs off the numbers before u6-ir goes live.",
+      "placeholder": true
+    },
+    {
+      "id": "u6-ir-ketone",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u6-ir-ketone",
+          "node": "u6-ir",
+          "conceptIds": [
+            "spectroscopy_ir"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "A strong band at 1715 cm⁻¹ and no O-H band. Pick the compound.",
+          "correctOptionId": "one",
+          "options": [
+            {
+              "id": "ol",
+              "text": "Pentan-1-ol",
+              "why": "An alcohol shows its O-H at 3400 to 3650 cm⁻¹ and has no C=O to give 1715."
+            },
+            {
+              "id": "acid",
+              "text": "Pentanoic acid",
+              "why": "An acid has the C=O, but also a very broad O-H from 2500 to 3300 cm⁻¹."
+            },
+            {
+              "id": "one",
+              "text": "Pentan-3-one",
+              "why": "A C=O and nothing else: the 1715 band with an empty O-H region."
+            }
+          ]
+        }
+      },
+      "explanation": "Read the carbonyl range and the O-H range together: a C=O with no O-H is a ketone, an aldehyde or an ester.",
+      "provenance": "scripts/u6_pools.py: each option's groups by RDKit substructure match, read against the cited bands. Band positions from OpenStax Organic Chemistry ch. 12 (sections 12.8 and 20.8, CC BY-NC-SA), read 23 Oct 2026. Held: the owner signs off the numbers before u6-ir goes live.",
+      "placeholder": true
+    },
+    {
+      "id": "u6-ir-alcohol",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u6-ir-alcohol",
+          "node": "u6-ir",
+          "conceptIds": [
+            "spectroscopy_ir"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "A band at 3400 to 3650 cm⁻¹ and none from 1670 to 1780. Pick the compound.",
+          "correctOptionId": "ol",
+          "options": [
+            {
+              "id": "ol",
+              "text": "Butan-1-ol",
+              "why": "The O-H gives the band at 3400 to 3650, and with no C=O the carbonyl range is empty."
+            },
+            {
+              "id": "al",
+              "text": "Butanal",
+              "why": "An aldehyde's C=O would fill the 1670 to 1780 range, and it has no O-H."
+            },
+            {
+              "id": "ether",
+              "text": "Ethoxyethane",
+              "why": "An ether has C-O bonds but no O-H, so nothing appears at 3400 to 3650."
+            }
+          ]
+        }
+      },
+      "explanation": "3400 to 3650 cm⁻¹ is the alcohol O-H. An ether has the same O but no O-H, so it shows no band there.",
+      "provenance": "scripts/u6_pools.py: each option's groups by RDKit substructure match, read against the cited bands. Band positions from OpenStax Organic Chemistry ch. 12 (sections 12.8 and 20.8, CC BY-NC-SA), read 23 Oct 2026. Held: the owner signs off the numbers before u6-ir goes live.",
+      "placeholder": true
+    },
+    {
+      "id": "u6-ir-nitrile",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u6-ir-nitrile",
+          "node": "u6-ir",
+          "conceptIds": [
+            "spectroscopy_ir"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "An intense band near 2250 cm⁻¹. Pick the compound.",
+          "correctOptionId": "cn",
+          "options": [
+            {
+              "id": "cn",
+              "text": "Butanenitrile",
+              "why": "A saturated nitrile's C≡N gives an intense band near 2250 cm⁻¹."
+            },
+            {
+              "id": "nh",
+              "text": "Butan-1-amine",
+              "why": "An amine's N-H absorbs at 3300 to 3500 cm⁻¹, far above 2250."
+            },
+            {
+              "id": "one",
+              "text": "Pentan-2-one",
+              "why": "A ketone's C=O sits at 1715 cm⁻¹, not near 2250."
+            }
+          ]
+        }
+      },
+      "explanation": "An intense band near 2250 cm⁻¹ is the C≡N of a nitrile.",
+      "provenance": "scripts/u6_pools.py: each option's groups by RDKit substructure match, read against the cited bands. Band positions from OpenStax Organic Chemistry ch. 12 (sections 12.8 and 20.8, CC BY-NC-SA), read 23 Oct 2026. Held: the owner signs off the numbers before u6-ir goes live.",
+      "placeholder": true
+    },
+    {
+      "id": "u6-ir-acid",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u6-ir-acid",
+          "node": "u6-ir",
+          "conceptIds": [
+            "spectroscopy_ir"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "A very broad band from 2500 to 3300 cm⁻¹, and one near 1710. Pick the compound.",
+          "correctOptionId": "acid",
+          "options": [
+            {
+              "id": "ester",
+              "text": "Ethyl acetate",
+              "why": "An ester has the C=O but no O-H, so nothing broad appears from 2500 to 3300."
+            },
+            {
+              "id": "acid",
+              "text": "Butanoic acid",
+              "why": "The carboxyl O-H gives the very broad band, and its C=O the one near 1710."
+            },
+            {
+              "id": "ol",
+              "text": "Butan-1-ol",
+              "why": "An alcohol's O-H sits at 3400 to 3650 cm⁻¹, and it has no C=O for the 1710 band."
+            }
+          ]
+        }
+      },
+      "explanation": "Only a carboxylic acid has both: an O-H band so broad it runs down to 2500 cm⁻¹, and a C=O near 1710.",
+      "provenance": "scripts/u6_pools.py: each option's groups by RDKit substructure match, read against the cited bands. Band positions from OpenStax Organic Chemistry ch. 12 (sections 12.8 and 20.8, CC BY-NC-SA), read 23 Oct 2026. Held: the owner signs off the numbers before u6-ir goes live.",
+      "placeholder": true
+    },
+    {
+      "id": "u6-ir-oxidation",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u6-ir-oxidation",
+          "node": "u6-ir",
+          "conceptIds": [
+            "spectroscopy_ir"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "Cyclohexanol is oxidised to cyclohexanone. Pick the IR change that shows it.",
+          "correctOptionId": "fwd",
+          "options": [
+            {
+              "id": "fwd",
+              "text": "O-H band gone, a band at 1715 appears",
+              "why": "The O-H at 3400 to 3650 cm⁻¹ leaves with the alcohol, and the new C=O shows at 1715."
+            },
+            {
+              "id": "back",
+              "text": "1715 band gone, an O-H band appears",
+              "why": "That is the reverse, a ketone reduced to an alcohol."
+            },
+            {
+              "id": "cn",
+              "text": "A band near 2250 appears",
+              "why": "2250 cm⁻¹ is a C≡N. Oxidation adds no nitrogen."
+            }
+          ]
+        }
+      },
+      "explanation": "IR follows a reaction by the groups it makes and breaks: oxidising an alcohol to a ketone trades the O-H band for a C=O band.",
+      "provenance": "scripts/u6_pools.py: starting material and product groups by RDKit substructure match, read against the cited bands. Band positions from OpenStax Organic Chemistry ch. 12 (sections 12.8 and 20.8, CC BY-NC-SA), read 23 Oct 2026. Held: the owner signs off the numbers before u6-ir goes live.",
+      "placeholder": true
+    },
   ],
 };
 
@@ -2353,6 +2675,76 @@ export const U6_VISUALS: Readonly<Record<string, McqVisual>> = {
       ]
     },
     "name": "2-methoxy-2-methylpropane"
+  },
+  "u6-hnmr-triplet": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 77.3,
+          "y1": 49.0,
+          "x2": 60.0,
+          "y2": 39.0
+        },
+        {
+          "x1": 60.0,
+          "y1": 39.0,
+          "x2": 47.9,
+          "y2": 46.0
+        }
+      ],
+      "labels": [
+        {
+          "x": 42.7,
+          "y": 54.0,
+          "t": "Cl",
+          "size": 13
+        }
+      ],
+      "rings": [
+        {
+          "x": 77.3,
+          "y": 49.0,
+          "r": 7
+        }
+      ]
+    },
+    "name": "chloroethane, CH₃ circled"
+  },
+  "u6-hnmr-quartet": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 77.3,
+          "y1": 49.0,
+          "x2": 60.0,
+          "y2": 39.0
+        },
+        {
+          "x1": 60.0,
+          "y1": 39.0,
+          "x2": 47.9,
+          "y2": 46.0
+        }
+      ],
+      "labels": [
+        {
+          "x": 42.7,
+          "y": 54.0,
+          "t": "Cl",
+          "size": 13
+        }
+      ],
+      "rings": [
+        {
+          "x": 60.0,
+          "y": 39.0,
+          "r": 7
+        }
+      ]
+    },
+    "name": "chloroethane, CH₂ circled"
   },
   "u6-hnmr-septet": {
     "kind": "structure",
@@ -3425,6 +3817,227 @@ export const U6_VISUALS: Readonly<Record<string, McqVisual>> = {
       ]
     },
     "name": "two π bonds in every option"
+  },
+  "u6-ir-meet": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 86.0,
+          "y1": 58.9,
+          "x2": 68.7,
+          "y2": 49.0
+        },
+        {
+          "x1": 68.7,
+          "y1": 49.0,
+          "x2": 68.6,
+          "y2": 35.0,
+          "order": 2
+        },
+        {
+          "x1": 68.7,
+          "y1": 49.0,
+          "x2": 51.3,
+          "y2": 59.0
+        },
+        {
+          "x1": 51.3,
+          "y1": 59.0,
+          "x2": 34.0,
+          "y2": 49.1
+        }
+      ],
+      "labels": [
+        {
+          "x": 68.6,
+          "y": 34.0,
+          "t": "O",
+          "size": 13
+        }
+      ]
+    },
+    "name": "butan-2-one"
+  },
+  "u6-ir-ketone": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [],
+      "labels": [
+        {
+          "x": 60.0,
+          "y": 48.0,
+          "t": "1715 cm⁻¹",
+          "size": 16
+        }
+      ]
+    },
+    "name": "the IR band"
+  },
+  "u6-ir-alcohol": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [],
+      "labels": [
+        {
+          "x": 60.0,
+          "y": 48.0,
+          "t": "3400-3650 cm⁻¹",
+          "size": 13
+        }
+      ]
+    },
+    "name": "the IR band"
+  },
+  "u6-ir-nitrile": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [],
+      "labels": [
+        {
+          "x": 60.0,
+          "y": 48.0,
+          "t": "2250 cm⁻¹",
+          "size": 16
+        }
+      ]
+    },
+    "name": "the IR band"
+  },
+  "u6-ir-acid": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [],
+      "labels": [
+        {
+          "x": 60.0,
+          "y": 48.0,
+          "t": "2500-3300 cm⁻¹",
+          "size": 13
+        }
+      ]
+    },
+    "name": "the IR bands"
+  },
+  "u6-ir-oxidation": {
+    "kind": "pair",
+    "a": {
+      "kind": "structure",
+      "figure": {
+        "bonds": [
+          {
+            "x1": 39.2,
+            "y1": 61.0,
+            "x2": 51.3,
+            "y2": 54.0
+          },
+          {
+            "x1": 51.3,
+            "y1": 54.0,
+            "x2": 51.4,
+            "y2": 34.0
+          },
+          {
+            "x1": 51.4,
+            "y1": 34.0,
+            "x2": 68.7,
+            "y2": 24.0
+          },
+          {
+            "x1": 68.7,
+            "y1": 24.0,
+            "x2": 86.0,
+            "y2": 34.0
+          },
+          {
+            "x1": 86.0,
+            "y1": 34.0,
+            "x2": 86.0,
+            "y2": 54.0
+          },
+          {
+            "x1": 86.0,
+            "y1": 54.0,
+            "x2": 68.6,
+            "y2": 64.0
+          },
+          {
+            "x1": 68.6,
+            "y1": 64.0,
+            "x2": 51.3,
+            "y2": 54.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 34.0,
+            "y": 69.0,
+            "t": "OH",
+            "size": 13
+          }
+        ]
+      },
+      "name": "cyclohexanol"
+    },
+    "b": {
+      "kind": "structure",
+      "figure": {
+        "bonds": [
+          {
+            "x1": 39.2,
+            "y1": 27.0,
+            "x2": 51.3,
+            "y2": 34.0,
+            "order": 2
+          },
+          {
+            "x1": 51.3,
+            "y1": 34.0,
+            "x2": 51.4,
+            "y2": 54.0
+          },
+          {
+            "x1": 51.4,
+            "y1": 54.0,
+            "x2": 68.7,
+            "y2": 64.0
+          },
+          {
+            "x1": 68.7,
+            "y1": 64.0,
+            "x2": 86.0,
+            "y2": 54.0
+          },
+          {
+            "x1": 86.0,
+            "y1": 54.0,
+            "x2": 86.0,
+            "y2": 34.0
+          },
+          {
+            "x1": 86.0,
+            "y1": 34.0,
+            "x2": 68.6,
+            "y2": 24.0
+          },
+          {
+            "x1": 68.6,
+            "y1": 24.0,
+            "x2": 51.3,
+            "y2": 34.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 34.0,
+            "y": 29.0,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "cyclohexanone"
+    }
   }
 };
 
@@ -5216,6 +5829,549 @@ export const U6_OPTION_TILES: Readonly<Record<string, Readonly<Record<string, Na
         ]
       },
       "name": "but-3-en-2-one"
+    }
+  },
+  "u6-ir-ketone": {
+    "one": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 94.6,
+            "y1": 49.0,
+            "x2": 77.3,
+            "y2": 59.0
+          },
+          {
+            "x1": 77.3,
+            "y1": 59.0,
+            "x2": 60.0,
+            "y2": 49.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 49.0,
+            "x2": 60.0,
+            "y2": 35.0,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 49.0,
+            "x2": 42.7,
+            "y2": 59.0
+          },
+          {
+            "x1": 42.7,
+            "y1": 59.0,
+            "x2": 25.4,
+            "y2": 49.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 60.0,
+            "y": 34.0,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "pentan-3-one"
+    },
+    "ol": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 102.0,
+            "y1": 39.2,
+            "x2": 85.2,
+            "y2": 48.9
+          },
+          {
+            "x1": 85.2,
+            "y1": 48.9,
+            "x2": 68.4,
+            "y2": 39.2
+          },
+          {
+            "x1": 68.4,
+            "y1": 39.2,
+            "x2": 51.6,
+            "y2": 48.8
+          },
+          {
+            "x1": 51.6,
+            "y1": 48.8,
+            "x2": 34.8,
+            "y2": 39.1
+          },
+          {
+            "x1": 34.8,
+            "y1": 39.1,
+            "x2": 23.2,
+            "y2": 45.8
+          }
+        ],
+        "labels": [
+          {
+            "x": 18.0,
+            "y": 53.8,
+            "t": "OH",
+            "size": 13
+          }
+        ]
+      },
+      "name": "pentan-1-ol"
+    },
+    "acid": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 18.0,
+            "y1": 48.9,
+            "x2": 34.8,
+            "y2": 58.6
+          },
+          {
+            "x1": 34.8,
+            "y1": 58.6,
+            "x2": 51.6,
+            "y2": 48.9
+          },
+          {
+            "x1": 51.6,
+            "y1": 48.9,
+            "x2": 68.4,
+            "y2": 58.5
+          },
+          {
+            "x1": 68.4,
+            "y1": 58.5,
+            "x2": 85.2,
+            "y2": 48.8
+          },
+          {
+            "x1": 85.2,
+            "y1": 48.8,
+            "x2": 85.2,
+            "y2": 35.4,
+            "order": 2
+          },
+          {
+            "x1": 85.2,
+            "y1": 48.8,
+            "x2": 96.8,
+            "y2": 55.5
+          }
+        ],
+        "labels": [
+          {
+            "x": 85.1,
+            "y": 34.4,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 102.0,
+            "y": 63.5,
+            "t": "OH",
+            "size": 13
+          }
+        ]
+      },
+      "name": "pentanoic acid"
+    }
+  },
+  "u6-ir-alcohol": {
+    "ol": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 25.4,
+            "y1": 49.0,
+            "x2": 42.7,
+            "y2": 39.0
+          },
+          {
+            "x1": 42.7,
+            "y1": 39.0,
+            "x2": 60.0,
+            "y2": 49.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 49.0,
+            "x2": 77.3,
+            "y2": 39.0
+          },
+          {
+            "x1": 77.3,
+            "y1": 39.0,
+            "x2": 89.4,
+            "y2": 46.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 94.6,
+            "y": 54.0,
+            "t": "OH",
+            "size": 13
+          }
+        ]
+      },
+      "name": "butan-1-ol"
+    },
+    "al": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 25.4,
+            "y1": 39.0,
+            "x2": 42.7,
+            "y2": 49.0
+          },
+          {
+            "x1": 42.7,
+            "y1": 49.0,
+            "x2": 60.0,
+            "y2": 39.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 39.0,
+            "x2": 77.3,
+            "y2": 49.0
+          },
+          {
+            "x1": 77.3,
+            "y1": 49.0,
+            "x2": 89.4,
+            "y2": 42.0,
+            "order": 2
+          }
+        ],
+        "labels": [
+          {
+            "x": 94.6,
+            "y": 44.0,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "butanal"
+    },
+    "ether": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 25.4,
+            "y1": 49.0,
+            "x2": 42.7,
+            "y2": 39.0
+          },
+          {
+            "x1": 42.7,
+            "y1": 39.0,
+            "x2": 54.8,
+            "y2": 46.0
+          },
+          {
+            "x1": 65.2,
+            "y1": 46.0,
+            "x2": 77.3,
+            "y2": 39.0
+          },
+          {
+            "x1": 77.3,
+            "y1": 39.0,
+            "x2": 94.6,
+            "y2": 49.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 60.0,
+            "y": 54.0,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "ethoxyethane"
+    }
+  },
+  "u6-ir-nitrile": {
+    "cn": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 94.6,
+            "y1": 54.0,
+            "x2": 77.3,
+            "y2": 44.0
+          },
+          {
+            "x1": 77.3,
+            "y1": 44.0,
+            "x2": 60.0,
+            "y2": 54.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 54.0,
+            "x2": 42.7,
+            "y2": 44.0
+          },
+          {
+            "x1": 42.7,
+            "y1": 44.0,
+            "x2": 30.5,
+            "y2": 37.0,
+            "order": 3
+          }
+        ],
+        "labels": [
+          {
+            "x": 25.4,
+            "y": 39.0,
+            "t": "N",
+            "size": 13
+          }
+        ]
+      },
+      "name": "butanenitrile"
+    },
+    "nh": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 25.4,
+            "y1": 49.0,
+            "x2": 42.7,
+            "y2": 39.0
+          },
+          {
+            "x1": 42.7,
+            "y1": 39.0,
+            "x2": 60.0,
+            "y2": 49.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 49.0,
+            "x2": 77.3,
+            "y2": 39.0
+          },
+          {
+            "x1": 77.3,
+            "y1": 39.0,
+            "x2": 89.4,
+            "y2": 46.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 94.6,
+            "y": 54.0,
+            "t": "NH_2",
+            "size": 13
+          }
+        ]
+      },
+      "name": "butan-1-amine"
+    },
+    "one": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 25.4,
+            "y1": 59.1,
+            "x2": 42.7,
+            "y2": 49.0
+          },
+          {
+            "x1": 42.7,
+            "y1": 49.0,
+            "x2": 60.0,
+            "y2": 59.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 59.0,
+            "x2": 77.3,
+            "y2": 48.9
+          },
+          {
+            "x1": 77.3,
+            "y1": 48.9,
+            "x2": 94.6,
+            "y2": 58.9
+          },
+          {
+            "x1": 77.3,
+            "y1": 48.9,
+            "x2": 77.3,
+            "y2": 34.9,
+            "order": 2
+          }
+        ],
+        "labels": [
+          {
+            "x": 77.3,
+            "y": 33.9,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "pentan-2-one"
+    }
+  },
+  "u6-ir-acid": {
+    "acid": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 25.4,
+            "y1": 59.1,
+            "x2": 42.7,
+            "y2": 49.0
+          },
+          {
+            "x1": 42.7,
+            "y1": 49.0,
+            "x2": 60.0,
+            "y2": 59.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 59.0,
+            "x2": 77.3,
+            "y2": 48.9
+          },
+          {
+            "x1": 77.3,
+            "y1": 48.9,
+            "x2": 77.3,
+            "y2": 34.9,
+            "order": 2
+          },
+          {
+            "x1": 77.3,
+            "y1": 48.9,
+            "x2": 89.4,
+            "y2": 55.9
+          }
+        ],
+        "labels": [
+          {
+            "x": 77.3,
+            "y": 33.9,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 94.6,
+            "y": 63.9,
+            "t": "OH",
+            "size": 13
+          }
+        ]
+      },
+      "name": "butanoic acid"
+    },
+    "ol": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 25.4,
+            "y1": 49.0,
+            "x2": 42.7,
+            "y2": 39.0
+          },
+          {
+            "x1": 42.7,
+            "y1": 39.0,
+            "x2": 60.0,
+            "y2": 49.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 49.0,
+            "x2": 77.3,
+            "y2": 39.0
+          },
+          {
+            "x1": 77.3,
+            "y1": 39.0,
+            "x2": 89.4,
+            "y2": 46.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 94.6,
+            "y": 54.0,
+            "t": "OH",
+            "size": 13
+          }
+        ]
+      },
+      "name": "butan-1-ol"
+    },
+    "ester": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 25.4,
+            "y1": 59.1,
+            "x2": 42.7,
+            "y2": 49.0
+          },
+          {
+            "x1": 42.7,
+            "y1": 49.0,
+            "x2": 54.8,
+            "y2": 56.0
+          },
+          {
+            "x1": 65.2,
+            "y1": 56.0,
+            "x2": 77.3,
+            "y2": 48.9
+          },
+          {
+            "x1": 77.3,
+            "y1": 48.9,
+            "x2": 94.6,
+            "y2": 58.9
+          },
+          {
+            "x1": 77.3,
+            "y1": 48.9,
+            "x2": 77.3,
+            "y2": 34.9,
+            "order": 2
+          }
+        ],
+        "labels": [
+          {
+            "x": 60.0,
+            "y": 64.0,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 77.3,
+            "y": 33.9,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "ethyl acetate"
     }
   }
 };

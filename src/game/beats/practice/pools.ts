@@ -52,6 +52,15 @@ const EXAM_SOURCES: Readonly<Record<string, readonly (readonly string[] | string
       .filter((entry) => entry.item.kind !== "mcq" || entry.item.beat.levels.some((level) => level > 0))
       .map((entry) => entry.id),
   ),
+  // Unit 6 (audit 23 Oct, top-25 #15): the derived mix was u6-dou's questions plus u6-ir's match board,
+  // whose IR band numbers the owner has not signed off. Now the graded entries of the four lessons with a
+  // pool, interleaved in teaching order, by the same rule as Unit 4's row. u6-ir has no pool, so nothing of
+  // it is drawn; the 2D NMR and UV side quests stay off.
+  [checkpointNodeId("u6")]: ["u6-dou", "u6-hnmr", "u6-cnmr", "u6-ms"].map((node) =>
+    (U6_POOLS[node] ?? [])
+      .filter((entry) => entry.item.kind !== "mcq" || entry.item.beat.levels.some((level) => level > 0))
+      .map((entry) => entry.id),
+  ),
 });
 
 /** Every unit's pools in one table. Node ids carry their unit prefix, so keys cannot collide. */
@@ -106,8 +115,14 @@ export function practicePool(nodeId: string, pools: UnitPools = ALL_POOLS): read
 // Unit 0's test out quiz plays as the whole set too, so it cannot pass on three lucky answers (2026-10-17).
 // Unit 1's exam joined 2026-10-23 (content audit top-25 #2, owner delegated the call): in a row, it passed
 // on its first three answers, one per stage, and never reached Diels-Alder stereo or MO.
-// Unit 4's joined with its EXAM_SOURCES row (top-25 #15), so it is scored as a whole set like Unit 2's.
-const EXAM_RUNS: ReadonlySet<string> = new Set([checkpointNodeId("u2"), checkpointNodeId("u0"), checkpointNodeId("u1"), checkpointNodeId("u4")]);
+// Unit 4's joined with its EXAM_SOURCES row (top-25 #15), so it is scored as a whole set like Unit 2's. Unit 6's likewise.
+const EXAM_RUNS: ReadonlySet<string> = new Set([
+  checkpointNodeId("u2"),
+  checkpointNodeId("u0"),
+  checkpointNodeId("u1"),
+  checkpointNodeId("u4"),
+  checkpointNodeId("u6"),
+]);
 
 export function isExamRun(nodeId: string): boolean {
   return EXAM_RUNS.has(nodeId);

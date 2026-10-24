@@ -52,8 +52,9 @@ molecular graph or computed from RDKit's isotope table.
    Woodward-Fieser increments are recall, not derivable, so they are left
    out (see the owner report).
 
-LEFT OUT: u6-ir (every IR item rests on band positions, which are spectrum
-values with no cited dataset here), alpha-cleavage and McLafferty (named
+HELD: u6-ir. Its items rest on band positions quoted from OpenStax ch. 12.8
+and 20.8 (see ir_items), emitted as U6_IR_HELD and read by nothing until the
+owner signs off the numbers. LEFT OUT: alpha-cleavage and McLafferty (named
 fragmentations RDKit cannot decide), and chemical shift values. See the
 owner report.
 
@@ -986,9 +987,11 @@ def node_dou() -> None:
         formula_visual(hexene, "formula only"), level=1, concepts=DOU_C)
 
     brb = "CCCCBr"
+    if (saturated_h(brb), atom_counts(brb)["H"]) != (10, 9):
+        fail("u6-dou-halogen: the copy says nine H against the alkane's ten")
     mcq(node, "u6-dou-halogen", f"A compound is {pretty(brb)}. Pick its degrees of unsaturation.",
         [("0", "Zero", "Count Br as an H: that makes C₄H₁₀, the saturated alkane. No rings, no pi bonds."),
-         ("1", "One", "Leaving Br out makes nine H look one short. A halogen stands where an H would be, so count it as one."),
+         ("1", "One", "Leaving Br out leaves nine H against the alkane's ten, which does not even give a whole number. A halogen takes an H's place, so count C₄H₉Br as C₄H₁₀: zero."),
          ("2", "Two", "Br is not a site of unsaturation. It takes an H's place, so the count is the alkane's.")],
         key_val({"0": 0, "1": 1, "2": 2}, dou(brb)), "0",
         "Halogens count as hydrogens. C₄H₉Br counts like C₄H₁₀, which is saturated.",
@@ -1110,9 +1113,11 @@ def node_hnmr() -> None:
         concepts=NMR_C)
 
     eth = "CCOCC"
+    if sorted(len(v) for v in h_classes(eth).values()) != [4, 6]:
+        fail("u6-hnmr-ratio-ether: the copy says six H on the CH3 groups and four on the CH2 groups")
     mcq(node, "u6-hnmr-ratio-ether", "Pick the integration ratio of ethoxyethane's two signals.",
         [("r", "3 : 2", "Two CH₃ groups give six H, two CH₂ groups give four. Six to four is 3 : 2."),
-         ("e", "1 : 1", "Two signals is not a 1 : 1 ratio. Integration counts the H under each signal."),
+         ("e", "1 : 1", "1 : 1 would need the same number of H in each set. Here the two CH₃ groups hold six H and the two CH₂ groups hold four."),
          ("t", "3 : 1", "That compares one CH₃ with one CH₂ H. Count every H in each set.")],
         key_val({"r": "3 : 2", "e": "1 : 1", "t": "3 : 1"}, ratio(eth)), "r",
         "Integration is proportional to the number of H in each set, so count all of them and reduce.",
@@ -1128,6 +1133,28 @@ def node_hnmr() -> None:
         "A tert-butyl group is nine equivalent H, a large singlet that is easy to spot.",
         prov("rule 3, H per class from RDKit canonical ranks, reduced", sec),
         structure(mtbe, "2-methoxy-2-methylpropane"), concepts=NMR_C)
+
+    # Close-behind item in the 23 Oct audit: the everyday ethyl triplet and
+    # quartet come first, so the septet and sextet are not the first splittings.
+    cle = "CCCl"
+    mcq(node, "u6-hnmr-triplet", "Pick the splitting of the circled CH₃ in chloroethane.",
+        [("3", "Triplet", "Two H on the CH₂Cl next door: two plus one, three lines."),
+         ("4", "Quartet", "That counts the CH₃'s own three H. H in the same set do not split each other; count the H on the carbon next door."),
+         ("2", "Doublet", "That counts one neighbour H. The CH₂Cl next door carries two.")],
+        key_val({"3": "Triplet", "4": "Quartet", "2": "Doublet"}, split(cle, 0)), "3",
+        "A signal splits into n + 1 lines, n being the H on neighbouring carbons. An ethyl CH₃ sees the two H of its CH₂: a triplet.",
+        prov("rule 3, n counted on bonded carbons", sec, N1),
+        structure(cle, "chloroethane", "chloroethane, CH₃ circled", marks=[0]),
+        brief="Count the H on the neighbouring carbons, then add one.", concepts=NMR_C, convention=N1)
+
+    mcq(node, "u6-hnmr-quartet", "Pick the splitting of the circled CH₂ in chloroethane.",
+        [("4", "Quartet", "Three H on the CH₃ next door: three plus one, four lines. The Cl carries no H."),
+         ("3", "Triplet", "That counts the CH₂'s own two H. Its neighbour is the CH₃, which has three."),
+         ("6", "Sextet", "That adds this CH₂'s own two H to the CH₃'s three. H in the same set do not split each other.")],
+        key_val({"4": "Quartet", "3": "Triplet", "6": "Sextet"}, split(cle, 1)), "4",
+        "An ethyl CH₂ sees the three H of its CH₃, so it is a quartet. A 3H triplet beside a 2H quartet is an ethyl group.",
+        prov("rule 3, n counted on bonded carbons", sec, N1),
+        structure(cle, "chloroethane", "chloroethane, CH₂ circled", marks=[1]), concepts=NMR_C, convention=N1)
 
     ipc = "CC(Cl)C"
     mcq(node, "u6-hnmr-septet", "Pick the splitting of the circled CH in 2-chloropropane.",
@@ -1520,7 +1547,133 @@ def node_uv() -> None:
 
 
 # ---------------------------------------------------------------------------
-# u6-exam: match boards for the checkpoint (unwired, as Units 3 to 5)
+# u6-ir: HELD for the owner's sign-off (audit 23 Oct, top-25 #9)
+# ---------------------------------------------------------------------------
+#
+# Band positions are not derivable, so they are a cited table, like pKa. Every
+# number below is quoted from OpenStax Organic Chemistry (CC BY-NC-SA), read
+# 23 Oct 2026: section 12.8 (C=O 1670 to 1780, saturated ketone 1715; alcohol
+# O-H 3400 to 3650; amine N-H 3300 to 3500) and section 20.8 (acid O-H very
+# broad, 2500 to 3300; acid C=O near 1710; nitrile C≡N near 2250). Which
+# groups a molecule has is RDKit substructure matching; the band each group
+# gives is the cited table. These items are emitted as U6_IR_HELD, which no
+# lesson, checkpoint or test-out reads, and u6-ir keeps no map link, so it
+# still shows "Coming soon" until the owner signs off the numbers.
+
+IR_SOURCE = ("IR band positions quoted from OpenStax Organic Chemistry ch. 12.8 and ch. 20.8 "
+             "(CC BY-NC-SA), read 23 Oct 2026; held for the owner's sign-off")
+IR_C = ("spectroscopy_ir",)
+IR_GROUPS = {
+    # band name: SMARTS for the group that gives it
+    "acid O-H": "[CX3](=O)[OX2H1]",
+    "alcohol O-H": "[OX2H1][CX4]",
+    "N-H": "[NX3;H1,H2;!$(NC=O)]",
+    "C=O": "[CX3]=[OX1]",
+    "C≡N": "[CX2]#[NX1]",
+}
+
+
+def ir_bands(smi: str) -> frozenset[str]:
+    m = mol(smi)
+    return frozenset(b for b, sma in IR_GROUPS.items() if m.HasSubstructMatch(Chem.MolFromSmarts(sma)))
+
+
+def ir_prov(what: str) -> str:
+    return (f"{SCRIPT}: {what}. Band positions from OpenStax Organic Chemistry ch. 12 (sections 12.8 and 20.8, "
+            "CC BY-NC-SA), read 23 Oct 2026. Held: the owner signs off the numbers before u6-ir goes live.")
+
+
+def ir_items() -> None:
+    node = "u6-ir"
+
+    def key_bands(options: dict[str, str], want: set[str]) -> str | None:
+        hits = [k for k, smi in options.items() if ir_bands(smi) == frozenset(want)]
+        return hits[0] if len(hits) == 1 else None
+
+    def tiles3(opts: dict[str, str], names: dict[str, str]) -> dict:
+        return {k: tile(opts[k], names[k]) for k in opts}
+
+    bk = "CC(=O)CC"
+    bond_band = {"co": "C=O", "oh": "alcohol O-H", "cn": "C≡N"}
+    present = [k for k, b in bond_band.items() if b in ir_bands(bk)]
+    mcq(node, "u6-ir-meet", "Butan-2-one shows a strong, sharp band at 1715 cm⁻¹. Pick the bond behind it.",
+        [("co", "C=O", "A saturated ketone's C=O stretches at 1715 cm⁻¹, inside the 1670 to 1780 carbonyl range."),
+         ("oh", "O-H", "An alcohol O-H sits much higher, 3400 to 3650 cm⁻¹, and butan-2-one has no O-H."),
+         ("cn", "C≡N", "A nitrile's C≡N is near 2250 cm⁻¹, and butan-2-one has no nitrogen.")],
+        present[0] if len(present) == 1 else None, "co",
+        "Each bond stretches in its own range. A strong, sharp band from 1670 to 1780 cm⁻¹ is a C=O.",
+        ir_prov("carbonyl band, butan-2-one's groups by RDKit substructure match"),
+        structure(bk, "butan-2-one"), brief="Each kind of bond absorbs in its own range of the IR spectrum.",
+        level=0, concepts=IR_C, convention=IR_SOURCE)
+
+    opts = {"one": "CCC(=O)CC", "ol": "CCCCCO", "acid": "CCCCC(=O)O"}
+    mcq(node, "u6-ir-ketone", "A strong band at 1715 cm⁻¹ and no O-H band. Pick the compound.",
+        [("one", "Pentan-3-one", "A C=O and nothing else: the 1715 band with an empty O-H region."),
+         ("ol", "Pentan-1-ol", "An alcohol shows its O-H at 3400 to 3650 cm⁻¹ and has no C=O to give 1715."),
+         ("acid", "Pentanoic acid", "An acid has the C=O, but also a very broad O-H from 2500 to 3300 cm⁻¹.")],
+        key_bands(opts, {"C=O"}), "one",
+        "Read the carbonyl range and the O-H range together: a C=O with no O-H is a ketone, an aldehyde or an ester.",
+        ir_prov("each option's groups by RDKit substructure match, read against the cited bands"),
+        cue_visual("1715 cm⁻¹", "the IR band"),
+        tiles=tiles3(opts, {"one": "pentan-3-one", "ol": "pentan-1-ol", "acid": "pentanoic acid"}),
+        concepts=IR_C, convention=IR_SOURCE)
+
+    opts = {"ol": "CCCCO", "al": "CCCC=O", "ether": "CCOCC"}
+    mcq(node, "u6-ir-alcohol", "A band at 3400 to 3650 cm⁻¹ and none from 1670 to 1780. Pick the compound.",
+        [("ol", "Butan-1-ol", "The O-H gives the band at 3400 to 3650, and with no C=O the carbonyl range is empty."),
+         ("al", "Butanal", "An aldehyde's C=O would fill the 1670 to 1780 range, and it has no O-H."),
+         ("ether", "Ethoxyethane", "An ether has C-O bonds but no O-H, so nothing appears at 3400 to 3650.")],
+        key_bands(opts, {"alcohol O-H"}), "ol",
+        "3400 to 3650 cm⁻¹ is the alcohol O-H. An ether has the same O but no O-H, so it shows no band there.",
+        ir_prov("each option's groups by RDKit substructure match, read against the cited bands"),
+        cue_visual("3400-3650 cm⁻¹", "the IR band", size=13),
+        tiles=tiles3(opts, {"ol": "butan-1-ol", "al": "butanal", "ether": "ethoxyethane"}),
+        concepts=IR_C, convention=IR_SOURCE)
+
+    opts = {"cn": "CCCC#N", "nh": "CCCCN", "one": "CCCC(C)=O"}
+    hits = [k for k, smi in opts.items() if "C≡N" in ir_bands(smi)]
+    mcq(node, "u6-ir-nitrile", "An intense band near 2250 cm⁻¹. Pick the compound.",
+        [("cn", "Butanenitrile", "A saturated nitrile's C≡N gives an intense band near 2250 cm⁻¹."),
+         ("nh", "Butan-1-amine", "An amine's N-H absorbs at 3300 to 3500 cm⁻¹, far above 2250."),
+         ("one", "Pentan-2-one", "A ketone's C=O sits at 1715 cm⁻¹, not near 2250.")],
+        hits[0] if len(hits) == 1 else None, "cn",
+        "An intense band near 2250 cm⁻¹ is the C≡N of a nitrile.",
+        ir_prov("each option's groups by RDKit substructure match, read against the cited bands"),
+        cue_visual("2250 cm⁻¹", "the IR band"),
+        tiles=tiles3(opts, {"cn": "butanenitrile", "nh": "butan-1-amine", "one": "pentan-2-one"}),
+        concepts=IR_C, convention=IR_SOURCE)
+
+    opts = {"acid": "CCCC(=O)O", "ol": "CCCCO", "ester": "CCOC(C)=O"}
+    mcq(node, "u6-ir-acid", "A very broad band from 2500 to 3300 cm⁻¹, and one near 1710. Pick the compound.",
+        [("acid", "Butanoic acid", "The carboxyl O-H gives the very broad band, and its C=O the one near 1710."),
+         ("ol", "Butan-1-ol", "An alcohol's O-H sits at 3400 to 3650 cm⁻¹, and it has no C=O for the 1710 band."),
+         ("ester", "Ethyl acetate", "An ester has the C=O but no O-H, so nothing broad appears from 2500 to 3300.")],
+        key_bands(opts, {"acid O-H", "C=O"}), "acid",
+        "Only a carboxylic acid has both: an O-H band so broad it runs down to 2500 cm⁻¹, and a C=O near 1710.",
+        ir_prov("each option's groups by RDKit substructure match, read against the cited bands"),
+        cue_visual("2500-3300 cm⁻¹", "the IR bands", size=13),
+        tiles=tiles3(opts, {"acid": "butanoic acid", "ol": "butan-1-ol", "ester": "ethyl acetate"}),
+        level=2, concepts=IR_C, convention=IR_SOURCE)
+
+    sm, pr = "OC1CCCCC1", "O=C1CCCCC1"
+    lost, gained = ir_bands(sm) - ir_bands(pr), ir_bands(pr) - ir_bands(sm)
+    change = {"fwd": (frozenset({"alcohol O-H"}), frozenset({"C=O"})),
+              "back": (frozenset({"C=O"}), frozenset({"alcohol O-H"})),
+              "cn": (frozenset(), frozenset({"C≡N"}))}
+    hits = [k for k, v in change.items() if v == (lost, gained)]
+    mcq(node, "u6-ir-oxidation", "Cyclohexanol is oxidised to cyclohexanone. Pick the IR change that shows it.",
+        [("fwd", "O-H band gone, a band at 1715 appears", "The O-H at 3400 to 3650 cm⁻¹ leaves with the alcohol, and the new C=O shows at 1715."),
+         ("back", "1715 band gone, an O-H band appears", "That is the reverse, a ketone reduced to an alcohol."),
+         ("cn", "A band near 2250 appears", "2250 cm⁻¹ is a C≡N. Oxidation adds no nitrogen.")],
+        hits[0] if len(hits) == 1 else None, "fwd",
+        "IR follows a reaction by the groups it makes and breaks: oxidising an alcohol to a ketone trades the O-H band for a C=O band.",
+        ir_prov("starting material and product groups by RDKit substructure match, read against the cited bands"),
+        pair(structure(sm, "cyclohexanol"), structure(pr, "cyclohexanone")),
+        level=2, concepts=IR_C, convention=IR_SOURCE)
+
+
+# ---------------------------------------------------------------------------
+# u6-exam: match boards for the checkpoint (the split board now plays in u6-hnmr)
 # ---------------------------------------------------------------------------
 
 def exam_items() -> None:
@@ -1530,9 +1683,11 @@ def exam_items() -> None:
         ("dbl", "CH₃ of 2-chloropropane", "doublet", "One H on the CH next door: two lines.", split(ipc, 0).lower()),
         ("trip", "CH₃ of chloroethane", "triplet", "Two H on the CH₂Cl next door: three lines.", split(cle, 0).lower()),
         ("quart", "CH₂ of chloroethane", "quartet", "Three H on the CH₃ next door: four lines.", split(cle, 1).lower()),
-        ("sing", "OCH₃ of tert-butyl methyl ether", "singlet", "Across an O from a carbon with no H: no neighbours, one line.", split(mtbe, 0).lower()),
+        ("sing", "OCH₃ of 2-methoxy-2-methylpropane", "singlet", "Across an O from a carbon with no H: no neighbours, one line.", split(mtbe, 0).lower()),
     ]
-    match("u6-exam", "u6-exam-match-split", "Match each set of H to its splitting.",
+    # Audit 23 Oct, top-25 #14: the splitting board plays in u6-hnmr as its
+    # connect step (the id keeps its u6-exam- prefix so saved progress still matches).
+    match("u6-hnmr", "u6-exam-match-split", "Match each set of H to its splitting.",
           "Count the H on neighbouring carbons, then add one.", pairs,
           "The n + 1 rule: n H on neighbouring carbons split a signal into n + 1 lines.",
           prov("rule 3, n counted on bonded carbons", S_NMR, N1), NMR_C)
@@ -1560,6 +1715,7 @@ def build() -> None:
     node_ms()
     node_2d()
     node_uv()
+    ir_items()
     exam_items()
     check_names()
     for node, entries in POOLS.items():
@@ -1586,13 +1742,15 @@ HEADER = '''/**
  * rests on a convention RDKit cannot check (first-order splitting, what DEPT
  * and the 2D experiments show, the conjugation and wavelength trend), the
  * entry's provenance says so. No chemical shift, IR band or lambda max value
- * appears anywhere: none of them is derivable here.
+ * appears in a played item: none of them is derivable here. The IR items
+ * (U6_IR_HELD) quote cited band positions and are held, unplayed, for the
+ * owner's sign-off.
  *
- * U6_UNWIRED holds the unit's match boards under `u6-exam`, which is not a
- * map node. NOTHING PLAYS THEM YET: pool boards only play in an in-a-row run,
- * Unit 6 has no practice node, and the Unit 6 checkpoint keeps its derived
- * mix. Wiring them is an owner decision, listed in the unit's owner report.
- * No sort ladder is drafted: no SortCriterion names a spectroscopy property.
+ * The splitting board (u6-exam-match-split) plays in u6-hnmr as its connect
+ * step (audit 23 Oct, top-25 #14). U6_UNWIRED holds the one board still
+ * unplayed, the degrees of unsaturation board, under `u6-exam`, which is not
+ * a map node. No sort ladder is drafted: no SortCriterion names a
+ * spectroscopy property.
  *
  * Match boards go through buildMatchBoard, the same adapter the shipped
  * boards use, so a bad board throws at import time.
@@ -1634,9 +1792,10 @@ def emit_table(name: str, nodes: list[str], doc: str) -> list[str]:
 
 def emit() -> str:
     out = [HEADER, match_helper()]
-    lessons = [n for n in POOLS if n != "u6-exam"]
+    lessons = [n for n in POOLS if n not in ("u6-exam", "u6-ir")]
     out += emit_table("U6_POOLS", lessons, "/** Lesson pools keyed by map node id. Each lesson plays its MCQs (beats/practice/pools.ts). */")
-    out += emit_table("U6_UNWIRED", ["u6-exam"], "/** Boards drafted for the checkpoint. Nothing plays them yet: see the header. */")
+    out += emit_table("U6_UNWIRED", ["u6-exam"], "/** The board drafted for the checkpoint and still unplayed: see the header. */")
+    out += emit_table("U6_IR_HELD", ["u6-ir"], "/** IR questions with cited band numbers, HELD for the owner's sign-off: nothing reads this table, and u6-ir keeps no map link. */")
     out.append("/** The drawing beside each MCQ, keyed by beat id. */")
     out.append("export const U6_VISUALS: Readonly<Record<string, McqVisual>> = " + ts(VISUALS) + ";\n")
     out.append("/** Drawn options, keyed by beat id then option id. All or nothing per beat. */")
