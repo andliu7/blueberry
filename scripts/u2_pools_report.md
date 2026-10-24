@@ -33,36 +33,38 @@ Where they part, the item was still built from the counter and its provenance sa
 
 | species | SMILES | counter class | pi | n | RDKit flag | tier | why RDKit differs | items |
 |---|---|---|---|---|---|---|---|---|
-| cyclobutadiene | `C1=CC=C1` | antiaromatic | 4 | 0.5 | not aromatic | granularity | RDKit has two classes, aromatic or not. It agrees the ring is not aromatic but cannot say antiaromatic versus nonaromatic; the antiaromatic call is the counter's alone. | u2-ann-frost-cbd, u2-ann-match, u2-ann-pick-anti, u2-ann-tell, u2-huckel-cbd, u2-huckel-match |
-| cp_cation | `[CH+]1C=CC=C1` | antiaromatic | 4 | 0.5 | not aromatic | granularity | RDKit has two classes, aromatic or not. It agrees the ring is not aromatic but cannot say antiaromatic versus nonaromatic; the antiaromatic call is the counter's alone. | u2-ann-ladder-cation, u2-chg-cp-cation, u2-chg-frost-cp |
+| cyclobutadiene | `C1=CC=C1` | antiaromatic | 4 | 0.5 | not aromatic | granularity | RDKit has two classes, aromatic or not. It agrees the ring is not aromatic but cannot say antiaromatic versus nonaromatic; the antiaromatic call is the counter's alone. | u2-ann-match, u2-ann-pick-anti, u2-ann-tell, u2-huckel-cbd, u2-huckel-frost-cbd, u2-huckel-match |
+| cp_cation | `[CH+]1C=CC=C1` | antiaromatic | 4 | 0.5 | not aromatic | granularity | RDKit has two classes, aromatic or not. It agrees the ring is not aromatic but cannot say antiaromatic versus nonaromatic; the antiaromatic call is the counter's alone. | u2-ann-ladder-cation, u2-chg-bromide, u2-chg-cp-cation, u2-chg-frost-cp |
 | c3_anion | `[CH-]1C=C1` | antiaromatic | 4 | 0.5 | not aromatic | granularity | RDKit has two classes, aromatic or not. It agrees the ring is not aromatic but cannot say antiaromatic versus nonaromatic; the antiaromatic call is the counter's alone. | u2-chg-c3-anion, u2-chg-ladder-acid, u2-chg-ladder-anion |
 | c7_anion | `[CH-]1C=CC=CC=C1` | antiaromatic | 8 | 1.5 | not aromatic | granularity | RDKit has two classes, aromatic or not. It agrees the ring is not aromatic but cannot say antiaromatic versus nonaromatic; the antiaromatic call is the counter's alone. | u2-chg-acid-pick, u2-chg-c7-anion |
 | ann10 | `C1=CC=CC=CC=CC=C1` | nonaromatic | 10 | 2 | aromatic | conflict | RDKit ignores geometry. It counts a 4n + 2 ring and flags it aromatic; the counter rules it out on the authored planarity call (inner H clash: flat [10]annulene puts two inside H atoms on top of each other, so it twists). | u2-ann-10 |
+| pentalene | `C1=CC2=CC=CC2=C1` | antiaromatic | 8 | 1.5 | not aromatic | granularity | RDKit has two classes, aromatic or not. It agrees the ring is not aromatic but cannot say antiaromatic versus nonaromatic; the antiaromatic call is the counter's alone. | u2-huckel-pentalene |
 
 ## 3. Every item where the authored planarity call decided the answer
 
 | species | planar | reason | class with the call | class if flat | items |
 |---|---|---|---|---|---|
-| cot | False | tub: a flat octagon needs 135 degree angles, so the ring folds | nonaromatic | antiaromatic | u2-ann-cot, u2-ann-cot-why, u2-ann-match, u2-ann-meet-flat, u2-ann-pick-anti, u2-huckel-match, u2-huckel-n-cot, u2-nmr-cot |
+| cot | False | tub: a flat octagon needs 135 degree angles, so the ring folds | nonaromatic | antiaromatic | u2-ann-cot, u2-ann-cot-why, u2-ann-match, u2-ann-meet-flat, u2-ann-pick-anti, u2-huckel-match, u2-huckel-n-cot, u2-nmr-both-ends, u2-nmr-cot, u2-nmr-thiophene |
 | ann10 | False | inner H clash: flat [10]annulene puts two inside H atoms on top of each other, so it twists | nonaromatic | aromatic | u2-ann-10 |
 
 Planarity authored as True but load bearing (a flat call that makes the class antiaromatic or aromatic):
 
-- cyclobutadiene: taught as a flat square (antiaromatic). Items: u2-ann-frost-cbd, u2-ann-match, u2-ann-pick-anti, u2-ann-tell, u2-huckel-cbd, u2-huckel-match
-- cp_cation: taught as a flat pentagon (antiaromatic). Items: u2-ann-ladder-cation, u2-chg-cp-cation, u2-chg-frost-cp
+- cyclobutadiene: taught as a flat square (antiaromatic). Items: u2-ann-match, u2-ann-pick-anti, u2-ann-tell, u2-huckel-cbd, u2-huckel-frost-cbd, u2-huckel-match
+- cp_cation: taught as a flat pentagon (antiaromatic). Items: u2-ann-ladder-cation, u2-chg-bromide, u2-chg-cp-cation, u2-chg-frost-cp
 - c3_anion: a triangle is always flat (antiaromatic). Items: u2-chg-c3-anion, u2-chg-ladder-acid, u2-chg-ladder-anion
 - c7_anion: taught as flat; the real anion may distort to escape antiaromaticity (antiaromatic). Items: u2-chg-acid-pick, u2-chg-c7-anion
-- ann18: large enough to hold its six inner H without a clash (aromatic). Items: u2-ann-18, u2-ann-18-n, u2-ann-match, u2-ann-meet-size, u2-ann-tell, u2-nmr-match, u2-nmr-meet-inner, u2-nmr-shielded
+- ann18: large enough to hold its six inner H without a clash (aromatic). Items: u2-ann-18, u2-ann-18-n, u2-ann-match, u2-ann-meet-size, u2-ann-tell, u2-nmr-both-ends, u2-nmr-match, u2-nmr-meet-inner, u2-nmr-shielded
+- pentalene: taught as flat fused rings, as the question states (antiaromatic). Items: u2-huckel-pentalene
 
 ## 4. Items marked NEEDS OWNER RULING
 
 - u2-ann-10: ann10 (conflict)
-- u2-ann-frost-cbd: cyclobutadiene (granularity)
 - u2-ann-ladder-cation: cp_cation (granularity)
 - u2-ann-match: cyclobutadiene (granularity)
 - u2-ann-pick-anti: cyclobutadiene (granularity)
 - u2-ann-tell: cyclobutadiene (granularity)
 - u2-chg-acid-pick: c7_anion (granularity)
+- u2-chg-bromide: cp_cation (granularity)
 - u2-chg-c3-anion: c3_anion (granularity)
 - u2-chg-c7-anion: c7_anion (granularity)
 - u2-chg-cp-cation: cp_cation (granularity)
@@ -70,7 +72,9 @@ Planarity authored as True but load bearing (a flat call that makes the class an
 - u2-chg-ladder-acid: c3_anion (granularity)
 - u2-chg-ladder-anion: c3_anion (granularity)
 - u2-huckel-cbd: cyclobutadiene (granularity)
+- u2-huckel-frost-cbd: cyclobutadiene (granularity)
 - u2-huckel-match: cyclobutadiene (granularity)
+- u2-huckel-pentalene: pentalene (granularity)
 
 ## 5. Per atom contributions (counter)
 
@@ -107,6 +111,9 @@ Planarity authored as True but load bearing (a flat call that makes the class an
 - c5_ene_cation: C0:0(empty p) C1:1 C2:1 C3:no p C4:no p
 - cyclohexane: C0:no p C1:no p C2:no p C3:no p C4:no p C5:no p
 - cyclohexene: C0:1 C1:1 C2:no p C3:no p C4:no p C5:no p
+- anthracene: C0:1 C1:1 C2:1 C3:1 C4:1 C5:1 C6:1 C7:1 C8:1 C9:1 C10:1 C11:1 C12:1 C13:1
+- pentalene: C0:1 C1:1 C2:1 C3:1 C4:1 C5:1 C6:1 C7:1
+- c9_anion: C0:2(p) C1:1 C2:1 C3:1 C4:1 C5:1 C6:1 C7:1 C8:1
 
 ## 6. Model notes for the owner
 

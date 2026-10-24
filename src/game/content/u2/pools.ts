@@ -246,6 +246,46 @@ export const U2_POOLS: UnitPools = {
       "placeholder": true
     },
     {
+      "id": "u2-huckel-meet-frost",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u2-huckel-meet-frost",
+          "node": "u2-huckel",
+          "conceptIds": [
+            "aromaticity"
+          ],
+          "levels": [
+            0
+          ],
+          "prompt": "Benzene's Frost circle: the hexagon point down, one level per corner. Pick its filling.",
+          "brief": "Corners at the same height are a matched (degenerate) pair. Fill its 6 pi electrons from the bottom.",
+          "correctOptionId": "b",
+          "options": [
+            {
+              "id": "a",
+              "text": "Filling A",
+              "why": "This holds 4 electrons. Count again: benzene has 6 pi electrons."
+            },
+            {
+              "id": "b",
+              "text": "Filling B",
+              "why": "6 pi electrons, filled from the bottom, one per level across a matched pair before any pairing. Then every occupied level is full, a closed shell: aromatic."
+            },
+            {
+              "id": "c",
+              "text": "Filling C",
+              "why": "This holds 8 electrons. Count again: benzene has 6 pi electrons."
+            }
+          ]
+        }
+      },
+      "explanation": "Worked example. Draw the ring point down inside a circle; each corner is one pi level, and corners at the same height are a matched (degenerate) pair. Benzene's six levels run 1 low, 2 matched, 2 matched, 1 high. Its 6 pi electrons fill the bottom level and the first pair: every filled level is full, a closed shell, so benzene is aromatic.",
+      "provenance": "scripts/u2_pools.py: Frost circle levels alpha + 2 beta cos(2 pi j / 6), filled with the counter's 6 electrons. OpenStax Organic Chemistry 15.3 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
+    {
       "id": "u2-huckel-cbd",
       "item": {
         "kind": "mcq",
@@ -361,6 +401,133 @@ export const U2_POOLS: UnitPools = {
       },
       "explanation": "n = (8 - 2) / 4 = 1.5. A non whole n is the tell: the count fails. COT also bends into a tub, so it ends up nonaromatic, not antiaromatic.",
       "provenance": "scripts/u2_pools.py: Huckel counter: 8 pi, n not a whole number; planarity authored (tub). OpenStax Organic Chemistry 15.3 (CC BY-NC-SA), read as a check only. planarity authored for cot.",
+      "placeholder": true
+    },
+    {
+      "id": "u2-huckel-frost-cbd",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u2-huckel-frost-cbd",
+          "node": "u2-huckel",
+          "conceptIds": [
+            "aromaticity"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "Fill the Frost circle for cyclobutadiene. Pick the right filling.",
+          "brief": "Count its pi electrons, then fill from the bottom. Matched levels take one each first.",
+          "correctOptionId": "b",
+          "options": [
+            {
+              "id": "a",
+              "text": "Filling A",
+              "why": "Two electrons are paired in one level of a matched pair while its twin sits empty. Matched levels take one electron each first."
+            },
+            {
+              "id": "b",
+              "text": "Filling B",
+              "why": "4 pi electrons, filled from the bottom, one per level across a matched pair before any pairing. Then a matched pair is left half full: antiaromatic."
+            },
+            {
+              "id": "c",
+              "text": "Filling C",
+              "why": "This holds 6 electrons. Count again: cyclobutadiene has 4 pi electrons."
+            }
+          ]
+        }
+      },
+      "explanation": "Four pi electrons: two in the bottom level, then one in each level of the matched pair. A half full matched pair is the Frost picture of antiaromatic, so it agrees with the count.",
+      "provenance": "scripts/u2_pools.py: Frost circle levels alpha + 2 beta cos(2 pi j / 4), filled with the counter's 4 electrons. OpenStax Organic Chemistry 15.3 (CC BY-NC-SA), read as a check only. NEEDS OWNER RULING: RDKit disagrees with the counter on cyclobutadiene (scripts/u2_pools_report.md).",
+      "placeholder": true
+    },
+    {
+      "id": "u2-huckel-anthracene",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u2-huckel-anthracene",
+          "node": "u2-huckel",
+          "conceptIds": [
+            "aromaticity"
+          ],
+          "levels": [
+            1,
+            2
+          ],
+          "prompt": "Anthracene has three fused rings. Count its pi electrons, then find n in 4n + 2.",
+          "brief": "Count every carbon once, the shared ones included, as for naphthalene.",
+          "correctOptionId": "fourteen",
+          "options": [
+            {
+              "id": "eighteen",
+              "text": "18 pi electrons, n = 4",
+              "why": "That counts each ring as a benzene, 6 apiece, so the four shared carbons are counted twice. Each carbon has one p orbital and gives 1, once."
+            },
+            {
+              "id": "fourteen",
+              "text": "14 pi electrons, n = 3",
+              "why": "Fourteen carbons, each in one C=C, each giving 1: 14. Take 2 off and divide by 4: n = 3, a whole number, so the fused system is aromatic."
+            },
+            {
+              "id": "ten",
+              "text": "10 pi electrons, n = 2",
+              "why": "That is naphthalene, two rings. Anthracene adds a third ring and four more carbons."
+            },
+            {
+              "id": "twelve",
+              "text": "12 pi electrons, n = 2.5",
+              "why": "That misses one C=C bond. Count every carbon once; each sits in one C=C."
+            }
+          ]
+        }
+      },
+      "explanation": "Anthracene has 14 pi electrons over its fourteen carbons, n = 3, so the whole fused system is aromatic, like naphthalene.",
+      "provenance": "scripts/u2_pools.py: Huckel counter over the whole fused system. OpenStax Organic Chemistry 15.3 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
+    {
+      "id": "u2-huckel-pentalene",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u2-huckel-pentalene",
+          "node": "u2-huckel",
+          "conceptIds": [
+            "aromaticity"
+          ],
+          "levels": [
+            1,
+            2
+          ],
+          "prompt": "Pentalene is two fused five rings, taken as flat. Classify it.",
+          "brief": "Count every carbon once, as for naphthalene. Then decide 4n + 2 or 4n.",
+          "correctOptionId": "antiaromatic",
+          "options": [
+            {
+              "id": "aromatic",
+              "text": "Aromatic",
+              "why": "Every carbon has a p orbital and the rings are flat, so the gate passes. But the count is 8, which is 4n, not 4n + 2."
+            },
+            {
+              "id": "nonaromatic",
+              "text": "Nonaromatic",
+              "why": "Nonaromatic needs a failed gate: an sp3 atom or a bent ring. Every pentalene carbon is sp2, and the question takes it as flat."
+            },
+            {
+              "id": "antiaromatic",
+              "text": "Antiaromatic",
+              "why": "Eight carbons, four C=C bonds, 8 pi electrons round the outside. Flat, cyclic, a p orbital everywhere and a 4n count: antiaromatic."
+            }
+          ]
+        }
+      },
+      "explanation": "Count a fused system round the whole outside, as for naphthalene. Pentalene has 8 pi electrons, 4n, on a flat system: antiaromatic.",
+      "provenance": "scripts/u2_pools.py: Huckel counter over the whole fused system; planarity authored (taken as flat). OpenStax Organic Chemistry 15.3 (CC BY-NC-SA), read as a check only. NEEDS OWNER RULING: RDKit disagrees with the counter on pentalene (scripts/u2_pools_report.md).",
       "placeholder": true
     },
     match({
@@ -857,7 +1024,8 @@ export const U2_POOLS: UnitPools = {
             "aromaticity"
           ],
           "levels": [
-            1
+            1,
+            2
           ],
           "prompt": "[10]Annulene has 10 pi electrons. Pick the test it fails.",
           "correctOptionId": "flat",
@@ -1120,43 +1288,49 @@ export const U2_POOLS: UnitPools = {
       "placeholder": true
     },
     {
-      "id": "u2-ann-frost-cbd",
+      "id": "u2-ann-c9-anion",
       "item": {
         "kind": "mcq",
         "beat": {
           "kind": "mcq",
-          "id": "u2-ann-frost-cbd",
+          "id": "u2-ann-c9-anion",
           "node": "u2-annulene",
           "conceptIds": [
             "aromaticity"
           ],
           "levels": [
-            1
+            1,
+            2
           ],
-          "prompt": "Fill the Frost circle for cyclobutadiene. Pick the right filling.",
-          "brief": "Count its pi electrons, then fill from the bottom. Matched levels take one each first.",
-          "correctOptionId": "b",
+          "prompt": "The cyclononatetraenyl anion is a flat nine ring. Count its pi electrons and classify it.",
+          "brief": "A negative ring carbon holds a lone pair. Count it, then run the 4n + 2 test.",
+          "correctOptionId": "ten_aro",
           "options": [
             {
-              "id": "a",
-              "text": "Filling A",
-              "why": "Two electrons are paired in one level of a matched pair while its twin sits empty. Matched levels take one electron each first."
+              "id": "eight_anti",
+              "text": "8 pi electrons, antiaromatic",
+              "why": "That leaves out the lone pair on the charged carbon. It sits in a p orbital and is counted, as in the cyclopentadienyl anion."
             },
             {
-              "id": "b",
-              "text": "Filling B",
-              "why": "4 pi electrons, filled from the bottom, one per level across a matched pair before any pairing. Then a matched pair is left half full: antiaromatic."
+              "id": "nine_non",
+              "text": "9 pi electrons, nonaromatic",
+              "why": "That gives the charged carbon 1, like a C=C carbon. It holds a whole lone pair, so it gives 2."
             },
             {
-              "id": "c",
-              "text": "Filling C",
-              "why": "This holds 6 electrons. Count again: cyclobutadiene has 4 pi electrons."
+              "id": "ten_aro",
+              "text": "10 pi electrons, aromatic",
+              "why": "Four C=C bonds give 8 and the charged carbon's lone pair, in its p orbital, gives 2: 10, n = 2. Ring size does not decide; the count does."
+            },
+            {
+              "id": "ten_anti",
+              "text": "10 pi electrons, antiaromatic",
+              "why": "The count is right, but 10 is 4n + 2 (n = 2), not 4n."
             }
           ]
         }
       },
-      "explanation": "Four pi electrons: two in the bottom level, then one in each level of the matched pair. A half full matched pair is the Frost picture of antiaromatic, so it agrees with the count.",
-      "provenance": "scripts/u2_pools.py: Frost circle levels alpha + 2 beta cos(2 pi j / 4), filled with the counter's 4 electrons. OpenStax Organic Chemistry 15.3 (CC BY-NC-SA), read as a check only. NEEDS OWNER RULING: RDKit disagrees with the counter on cyclobutadiene (scripts/u2_pools_report.md).",
+      "explanation": "Nine p orbitals, 10 pi electrons, n = 2: aromatic. The same rule as benzene and the cyclopentadienyl anion, in a bigger ring.",
+      "provenance": "scripts/u2_pools.py: Huckel counter per atom: the carbanion carbon gives 2; planarity authored (taken as flat); Frost circle agrees. OpenStax Organic Chemistry 15.4 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
   ],
@@ -1693,7 +1867,8 @@ export const U2_POOLS: UnitPools = {
             "aromaticity"
           ],
           "levels": [
-            1
+            1,
+            2
           ],
           "prompt": "Find the lettered imidazole atom that picks up a proton.",
           "correctOptionId": "n",
@@ -1854,7 +2029,8 @@ export const U2_POOLS: UnitPools = {
             "aromaticity"
           ],
           "levels": [
-            1
+            1,
+            2
           ],
           "prompt": "Find the lettered atom that keeps 1,4-dihydropyridine from being aromatic.",
           "brief": "Go round the ring one atom at a time. For each, ask whether it has a p orbital.",
@@ -2773,7 +2949,8 @@ export const U2_POOLS: UnitPools = {
             "conjugate_base_stability_argument"
           ],
           "levels": [
-            1
+            1,
+            2
           ],
           "prompt": "Pick the most acidic hydrocarbon. Judge each by its conjugate base.",
           "correctOptionId": "cpd",
@@ -2838,6 +3015,47 @@ export const U2_POOLS: UnitPools = {
       },
       "explanation": "Look at the conjugate base. The cyclopentadienyl anion is aromatic, so cyclopentadiene gives up its proton far more easily than other hydrocarbons.",
       "provenance": "scripts/u2_pools.py: counter class of the conjugate base. OpenStax Organic Chemistry 15.4 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
+    {
+      "id": "u2-chg-bromide",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u2-chg-bromide",
+          "node": "u2-charged",
+          "conceptIds": [
+            "aromaticity"
+          ],
+          "levels": [
+            1,
+            2
+          ],
+          "prompt": "Each can lose a bromide ion to leave a ring cation. Pick the one that ionises most easily.",
+          "brief": "Take Br off each ring and classify the cation that is left.",
+          "correctOptionId": "c7",
+          "options": [
+            {
+              "id": "c5ene",
+              "text": "3-bromocyclopent-1-ene",
+              "why": "Losing bromide leaves an allylic cation, but the ring keeps two sp3 CH2 carbons: nonaromatic, no ring bonus either way."
+            },
+            {
+              "id": "c7",
+              "text": "7-bromocyclohepta-1,3,5-triene",
+              "why": "Losing bromide leaves tropylium: 6 pi electrons on seven p orbitals, aromatic. The most stable cation forms most easily."
+            },
+            {
+              "id": "c5",
+              "text": "5-bromocyclopenta-1,3-diene",
+              "why": "Losing bromide leaves the cyclopentadienyl cation: 4 pi electrons in a flat ring, antiaromatic. That cation is the hardest to form."
+            }
+          ]
+        }
+      },
+      "explanation": "Judge each bromide by the cation it leaves, as acidity is judged by the base: aromatic beats nonaromatic, and nonaromatic beats antiaromatic. Only the seven ring leaves an aromatic cation, tropylium.",
+      "provenance": "scripts/u2_pools.py: counter class of the cation each bromide leaves (built with RDKit), ranked aromatic > nonaromatic > antiaromatic; no rate typed. OpenStax Organic Chemistry 15.4 (CC BY-NC-SA), read as a check only. NEEDS OWNER RULING: RDKit disagrees with the counter on cp_cation (scripts/u2_pools_report.md).",
       "placeholder": true
     },
   ],
@@ -3002,6 +3220,98 @@ export const U2_POOLS: UnitPools = {
       },
       "explanation": "NMR can tell aromatic from not. COT's H appear in the vinylic band, which is evidence it is a nonaromatic tub.",
       "provenance": "scripts/u2_pools.py: NMR teaching table; the counter's nonaromatic verdict (planarity authored) puts COT's H in the vinylic row. OpenStax Organic Chemistry 15.7 (CC BY-NC-SA), read as a check only. planarity authored for cot.",
+      "placeholder": true
+    },
+    {
+      "id": "u2-nmr-both-ends",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u2-nmr-both-ends",
+          "node": "u2-nmr",
+          "conceptIds": [
+            "spectroscopy_nmr",
+            "aromaticity"
+          ],
+          "levels": [
+            1,
+            2
+          ],
+          "prompt": "Pick the ring whose spectrum shows H both above 6.5 ppm and below 0 ppm.",
+          "correctOptionId": "ann18",
+          "options": [
+            {
+              "id": "bz",
+              "text": "Benzene",
+              "why": "Benzene's H all sit outside its ring, about 6.5 to 8 ppm. It has no H inside to be shielded."
+            },
+            {
+              "id": "cot",
+              "text": "Cyclooctatetraene",
+              "why": "COT is a nonaromatic tub with no ring current. Its H sit in the vinylic band, about 4.5 to 6.5 ppm."
+            },
+            {
+              "id": "ane",
+              "text": "Cyclohexane",
+              "why": "No pi bonds, no ring current: alkyl H, about 0.9 to 1.5 ppm."
+            },
+            {
+              "id": "ann18",
+              "text": "[18]Annulene",
+              "why": "Its outer H are deshielded, about 6.5 to 8 ppm, and its inner H are shielded, below 0 ppm, the far upfield end. Both ends need a ring current and H inside the ring."
+            }
+          ]
+        }
+      },
+      "explanation": "One ring current does both: it deshields the H outside an aromatic ring and shields the H inside. [18]Annulene has H in both places.",
+      "provenance": "scripts/u2_pools.py: NMR teaching table; inner H list authored. OpenStax Organic Chemistry 15.7 (CC BY-NC-SA), read as a check only. planarity authored for cot.",
+      "placeholder": true
+    },
+    {
+      "id": "u2-nmr-thiophene",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u2-nmr-thiophene",
+          "node": "u2-nmr",
+          "conceptIds": [
+            "spectroscopy_nmr",
+            "aromaticity"
+          ],
+          "levels": [
+            1,
+            2
+          ],
+          "prompt": "Pick the ring whose C=C H show up in the aromatic band, 6.5 to 8 ppm.",
+          "correctOptionId": "thi",
+          "options": [
+            {
+              "id": "dhf",
+              "text": "2,3-Dihydrofuran",
+              "why": "Its C=C H are vinylic, about 4.5 to 6.5 ppm. The two sp3 CH2 carbons break the loop, so there is no ring current."
+            },
+            {
+              "id": "thi",
+              "text": "Thiophene",
+              "why": "Thiophene is aromatic: 6 pi electrons, one S pair included. Its ring current pushes its H to about 6.5 to 8 ppm."
+            },
+            {
+              "id": "cot",
+              "text": "Cyclooctatetraene",
+              "why": "A nonaromatic tub: no ring current, so its H stay in the vinylic band."
+            },
+            {
+              "id": "chd",
+              "text": "Cyclohexa-1,3-diene",
+              "why": "Two sp3 CH2 carbons break the loop. Its C=C H are vinylic, about 4.5 to 6.5 ppm."
+            }
+          ]
+        }
+      },
+      "explanation": "Classify the ring first, then read the band. Only an aromatic ring has a ring current, and only its H reach the aromatic band. Thiophene is aromatic; the other three are not.",
+      "provenance": "scripts/u2_pools.py: NMR teaching table, environments classified with the Huckel counter. OpenStax Organic Chemistry 15.7 (CC BY-NC-SA), read as a check only. planarity authored for cot.",
       "placeholder": true
     },
     match({
@@ -3680,6 +3990,108 @@ export const U2_VISUALS: Readonly<Record<string, McqVisual>> = {
     "name": "benzene: one p orbital per carbon",
     "large": true
   },
+  "u2-huckel-meet-frost": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 31.0,
+          "y1": 73.0,
+          "x2": 56.1,
+          "y2": 58.5
+        },
+        {
+          "x1": 56.1,
+          "y1": 58.5,
+          "x2": 56.1,
+          "y2": 29.5
+        },
+        {
+          "x1": 56.1,
+          "y1": 29.5,
+          "x2": 31.0,
+          "y2": 15.0
+        },
+        {
+          "x1": 31.0,
+          "y1": 15.0,
+          "x2": 5.9,
+          "y2": 29.5
+        },
+        {
+          "x1": 5.9,
+          "y1": 29.5,
+          "x2": 5.9,
+          "y2": 58.5
+        },
+        {
+          "x1": 5.9,
+          "y1": 58.5,
+          "x2": 31.0,
+          "y2": 73.0
+        },
+        {
+          "x1": 88.0,
+          "y1": 73.0,
+          "x2": 106.0,
+          "y2": 73.0
+        },
+        {
+          "x1": 76.0,
+          "y1": 58.5,
+          "x2": 94.0,
+          "y2": 58.5
+        },
+        {
+          "x1": 100.0,
+          "y1": 58.5,
+          "x2": 118.0,
+          "y2": 58.5
+        },
+        {
+          "x1": 76.0,
+          "y1": 29.5,
+          "x2": 94.0,
+          "y2": 29.5
+        },
+        {
+          "x1": 100.0,
+          "y1": 29.5,
+          "x2": 118.0,
+          "y2": 29.5
+        },
+        {
+          "x1": 88.0,
+          "y1": 15.0,
+          "x2": 106.0,
+          "y2": 15.0
+        },
+        {
+          "x1": 68.0,
+          "y1": 80.0,
+          "x2": 68.0,
+          "y2": 14.0,
+          "arrow": true
+        }
+      ],
+      "labels": [
+        {
+          "x": 68.0,
+          "y": 11.0,
+          "t": "E",
+          "size": 11
+        }
+      ],
+      "rings": [
+        {
+          "x": 31.0,
+          "y": 44.0,
+          "r": 29.0
+        }
+      ]
+    },
+    "name": "Frost circle for a 6 ring, empty"
+  },
   "u2-huckel-cbd": {
     "kind": "structure",
     "figure": {
@@ -3854,6 +4266,263 @@ export const U2_VISUALS: Readonly<Record<string, McqVisual>> = {
       ]
     },
     "name": "cyclooctatetraene, drawn flat",
+    "large": true
+  },
+  "u2-huckel-frost-cbd": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 31.0,
+          "y1": 73.0,
+          "x2": 60.0,
+          "y2": 44.0
+        },
+        {
+          "x1": 60.0,
+          "y1": 44.0,
+          "x2": 31.0,
+          "y2": 15.0
+        },
+        {
+          "x1": 31.0,
+          "y1": 15.0,
+          "x2": 2.0,
+          "y2": 44.0
+        },
+        {
+          "x1": 2.0,
+          "y1": 44.0,
+          "x2": 31.0,
+          "y2": 73.0
+        },
+        {
+          "x1": 88.0,
+          "y1": 73.0,
+          "x2": 106.0,
+          "y2": 73.0
+        },
+        {
+          "x1": 76.0,
+          "y1": 44.0,
+          "x2": 94.0,
+          "y2": 44.0
+        },
+        {
+          "x1": 100.0,
+          "y1": 44.0,
+          "x2": 118.0,
+          "y2": 44.0
+        },
+        {
+          "x1": 88.0,
+          "y1": 15.0,
+          "x2": 106.0,
+          "y2": 15.0
+        },
+        {
+          "x1": 68.0,
+          "y1": 80.0,
+          "x2": 68.0,
+          "y2": 14.0,
+          "arrow": true
+        }
+      ],
+      "labels": [
+        {
+          "x": 68.0,
+          "y": 11.0,
+          "t": "E",
+          "size": 11
+        }
+      ],
+      "rings": [
+        {
+          "x": 31.0,
+          "y": 44.0,
+          "r": 29.0
+        }
+      ]
+    },
+    "name": "Frost circle for a 4 ring, empty"
+  },
+  "u2-huckel-anthracene": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 12.0,
+          "y1": 34.7,
+          "x2": 12.0,
+          "y2": 53.2,
+          "order": 2
+        },
+        {
+          "x1": 12.0,
+          "y1": 53.2,
+          "x2": 28.0,
+          "y2": 62.4
+        },
+        {
+          "x1": 28.0,
+          "y1": 62.4,
+          "x2": 44.0,
+          "y2": 53.2,
+          "order": 2
+        },
+        {
+          "x1": 44.0,
+          "y1": 53.2,
+          "x2": 60.0,
+          "y2": 62.5
+        },
+        {
+          "x1": 60.0,
+          "y1": 62.5,
+          "x2": 76.0,
+          "y2": 53.2,
+          "order": 2
+        },
+        {
+          "x1": 76.0,
+          "y1": 53.2,
+          "x2": 92.0,
+          "y2": 62.5
+        },
+        {
+          "x1": 92.0,
+          "y1": 62.5,
+          "x2": 108.0,
+          "y2": 53.3,
+          "order": 2
+        },
+        {
+          "x1": 108.0,
+          "y1": 53.3,
+          "x2": 108.0,
+          "y2": 34.8
+        },
+        {
+          "x1": 108.0,
+          "y1": 34.8,
+          "x2": 92.0,
+          "y2": 25.6,
+          "order": 2
+        },
+        {
+          "x1": 92.0,
+          "y1": 25.6,
+          "x2": 76.0,
+          "y2": 34.8
+        },
+        {
+          "x1": 76.0,
+          "y1": 34.8,
+          "x2": 60.0,
+          "y2": 25.5,
+          "order": 2
+        },
+        {
+          "x1": 60.0,
+          "y1": 25.5,
+          "x2": 44.0,
+          "y2": 34.8
+        },
+        {
+          "x1": 44.0,
+          "y1": 34.8,
+          "x2": 28.0,
+          "y2": 25.5,
+          "order": 2
+        },
+        {
+          "x1": 28.0,
+          "y1": 25.5,
+          "x2": 12.0,
+          "y2": 34.7
+        },
+        {
+          "x1": 44.0,
+          "y1": 34.8,
+          "x2": 44.0,
+          "y2": 53.2
+        },
+        {
+          "x1": 76.0,
+          "y1": 34.8,
+          "x2": 76.0,
+          "y2": 53.2
+        }
+      ]
+    },
+    "name": "anthracene",
+    "large": true
+  },
+  "u2-huckel-pentalene": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 12.0,
+          "y1": 44.0,
+          "x2": 30.3,
+          "y2": 69.2,
+          "order": 2
+        },
+        {
+          "x1": 30.3,
+          "y1": 69.2,
+          "x2": 60.0,
+          "y2": 59.6
+        },
+        {
+          "x1": 60.0,
+          "y1": 59.6,
+          "x2": 89.6,
+          "y2": 69.3,
+          "order": 2
+        },
+        {
+          "x1": 89.6,
+          "y1": 69.3,
+          "x2": 108.0,
+          "y2": 44.0
+        },
+        {
+          "x1": 108.0,
+          "y1": 44.0,
+          "x2": 89.7,
+          "y2": 18.8,
+          "order": 2
+        },
+        {
+          "x1": 89.7,
+          "y1": 18.8,
+          "x2": 60.0,
+          "y2": 28.4
+        },
+        {
+          "x1": 60.0,
+          "y1": 28.4,
+          "x2": 30.4,
+          "y2": 18.7,
+          "order": 2
+        },
+        {
+          "x1": 30.4,
+          "y1": 18.7,
+          "x2": 12.0,
+          "y2": 44.0
+        },
+        {
+          "x1": 60.0,
+          "y1": 28.4,
+          "x2": 60.0,
+          "y2": 59.6
+        }
+      ]
+    },
+    "name": "pentalene",
     "large": true
   },
   "u2-ann-meet-size": {
@@ -5082,83 +5751,86 @@ export const U2_VISUALS: Readonly<Record<string, McqVisual>> = {
     "name": "worked example: naphthalene, 10 pi electrons, n = 2",
     "large": true
   },
-  "u2-ann-frost-cbd": {
+  "u2-ann-c9-anion": {
     "kind": "structure",
     "figure": {
       "bonds": [
         {
-          "x1": 31.0,
-          "y1": 73.0,
-          "x2": 60.0,
-          "y2": 44.0
-        },
-        {
           "x1": 60.0,
-          "y1": 44.0,
-          "x2": 31.0,
-          "y2": 15.0
-        },
-        {
-          "x1": 31.0,
           "y1": 15.0,
-          "x2": 2.0,
-          "y2": 44.0
+          "x2": 79.2,
+          "y2": 22.0
         },
         {
-          "x1": 2.0,
-          "y1": 44.0,
-          "x2": 31.0,
-          "y2": 73.0
+          "x1": 79.2,
+          "y1": 22.0,
+          "x2": 89.4,
+          "y2": 39.7,
+          "order": 2
         },
         {
-          "x1": 88.0,
+          "x1": 89.4,
+          "y1": 39.7,
+          "x2": 85.9,
+          "y2": 59.9
+        },
+        {
+          "x1": 85.9,
+          "y1": 59.9,
+          "x2": 70.2,
+          "y2": 73.0,
+          "order": 2
+        },
+        {
+          "x1": 70.2,
           "y1": 73.0,
-          "x2": 106.0,
+          "x2": 49.8,
           "y2": 73.0
         },
         {
-          "x1": 76.0,
-          "y1": 44.0,
-          "x2": 94.0,
-          "y2": 44.0
+          "x1": 49.8,
+          "y1": 73.0,
+          "x2": 34.1,
+          "y2": 59.9,
+          "order": 2
         },
         {
-          "x1": 100.0,
-          "y1": 44.0,
-          "x2": 118.0,
-          "y2": 44.0
+          "x1": 34.1,
+          "y1": 59.9,
+          "x2": 30.6,
+          "y2": 39.7
         },
         {
-          "x1": 88.0,
-          "y1": 15.0,
-          "x2": 106.0,
+          "x1": 30.6,
+          "y1": 39.7,
+          "x2": 40.8,
+          "y2": 22.0,
+          "order": 2
+        },
+        {
+          "x1": 40.8,
+          "y1": 22.0,
+          "x2": 60.0,
           "y2": 15.0
-        },
-        {
-          "x1": 68.0,
-          "y1": 80.0,
-          "x2": 68.0,
-          "y2": 14.0,
-          "arrow": true
         }
       ],
       "labels": [
         {
-          "x": 68.0,
-          "y": 11.0,
-          "t": "E",
-          "size": 11
-        }
-      ],
-      "rings": [
+          "x": 64.2,
+          "y": 12.7,
+          "t": "−",
+          "size": 15
+        },
         {
-          "x": 31.0,
-          "y": 44.0,
-          "r": 29.0
+          "x": 55.8,
+          "y": 13.1,
+          "t": "··",
+          "size": 14
         }
       ]
     },
-    "name": "Frost circle for a 4 ring, empty"
+    "name": "cyclononatetraenyl anion",
+    "large": true
   },
   "u2-het-meet-pyridine": {
     "kind": "structure",
@@ -7110,6 +7782,59 @@ export const U2_VISUALS: Readonly<Record<string, McqVisual>> = {
     },
     "large": true
   },
+  "u2-chg-bromide": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 40.0,
+          "y1": 42.0,
+          "x2": 74.0,
+          "y2": 42.0,
+          "arrow": true
+        }
+      ],
+      "labels": [
+        {
+          "x": 22.0,
+          "y": 47.0,
+          "t": "C-Br",
+          "size": 15
+        },
+        {
+          "x": 57.0,
+          "y": 33.0,
+          "t": "lose Br−",
+          "size": 10
+        },
+        {
+          "x": 92.0,
+          "y": 47.0,
+          "t": "C",
+          "size": 15
+        },
+        {
+          "x": 101.0,
+          "y": 39.0,
+          "t": "+",
+          "size": 14
+        },
+        {
+          "x": 22.0,
+          "y": 70.0,
+          "t": "bromide",
+          "size": 10
+        },
+        {
+          "x": 94.0,
+          "y": 70.0,
+          "t": "cation",
+          "size": 10
+        }
+      ]
+    },
+    "name": "judge the bromide by the cation it leaves"
+  },
   "u2-nmr-meet-downfield": {
     "kind": "structure",
     "figure": {
@@ -7580,6 +8305,170 @@ export const U2_VISUALS: Readonly<Record<string, McqVisual>> = {
       "name": "benzene"
     },
     "large": true
+  },
+  "u2-nmr-both-ends": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 10.0,
+          "y1": 38.0,
+          "x2": 112.0,
+          "y2": 38.0
+        },
+        {
+          "x1": 14.0,
+          "y1": 34.0,
+          "x2": 14.0,
+          "y2": 42.0
+        },
+        {
+          "x1": 49.0,
+          "y1": 34.0,
+          "x2": 49.0,
+          "y2": 42.0
+        },
+        {
+          "x1": 84.0,
+          "y1": 34.0,
+          "x2": 84.0,
+          "y2": 42.0
+        }
+      ],
+      "labels": [
+        {
+          "x": 14.0,
+          "y": 54.0,
+          "t": "10",
+          "size": 11
+        },
+        {
+          "x": 49.0,
+          "y": 54.0,
+          "t": "5",
+          "size": 11
+        },
+        {
+          "x": 84.0,
+          "y": 54.0,
+          "t": "0",
+          "size": 11
+        },
+        {
+          "x": 106.0,
+          "y": 54.0,
+          "t": "ppm",
+          "size": 10
+        },
+        {
+          "x": 26.0,
+          "y": 24.0,
+          "t": "downfield",
+          "size": 10
+        },
+        {
+          "x": 92.0,
+          "y": 24.0,
+          "t": "upfield",
+          "size": 10
+        },
+        {
+          "x": 26.0,
+          "y": 72.0,
+          "t": "deshielded",
+          "size": 10
+        },
+        {
+          "x": 92.0,
+          "y": 72.0,
+          "t": "shielded",
+          "size": 10
+        }
+      ]
+    },
+    "name": "the ppm scale: more shielded is further right"
+  },
+  "u2-nmr-thiophene": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 10.0,
+          "y1": 38.0,
+          "x2": 112.0,
+          "y2": 38.0
+        },
+        {
+          "x1": 14.0,
+          "y1": 34.0,
+          "x2": 14.0,
+          "y2": 42.0
+        },
+        {
+          "x1": 49.0,
+          "y1": 34.0,
+          "x2": 49.0,
+          "y2": 42.0
+        },
+        {
+          "x1": 84.0,
+          "y1": 34.0,
+          "x2": 84.0,
+          "y2": 42.0
+        }
+      ],
+      "labels": [
+        {
+          "x": 14.0,
+          "y": 54.0,
+          "t": "10",
+          "size": 11
+        },
+        {
+          "x": 49.0,
+          "y": 54.0,
+          "t": "5",
+          "size": 11
+        },
+        {
+          "x": 84.0,
+          "y": 54.0,
+          "t": "0",
+          "size": 11
+        },
+        {
+          "x": 106.0,
+          "y": 54.0,
+          "t": "ppm",
+          "size": 10
+        },
+        {
+          "x": 26.0,
+          "y": 24.0,
+          "t": "downfield",
+          "size": 10
+        },
+        {
+          "x": 92.0,
+          "y": 24.0,
+          "t": "upfield",
+          "size": 10
+        },
+        {
+          "x": 26.0,
+          "y": 72.0,
+          "t": "deshielded",
+          "size": 10
+        },
+        {
+          "x": 92.0,
+          "y": 72.0,
+          "t": "shielded",
+          "size": 10
+        }
+      ]
+    },
+    "name": "the ppm scale: more shielded is further right"
   },
   "u2-nom-xylene": {
     "kind": "structure",
@@ -8372,6 +9261,658 @@ export const U2_VISUALS: Readonly<Record<string, McqVisual>> = {
 
 /** Drawn options, keyed by beat id then option id. All or nothing per beat. */
 export const U2_OPTION_TILES: Readonly<Record<string, Readonly<Record<string, NamedFigure>>>> = {
+  "u2-huckel-meet-frost": {
+    "a": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 31.0,
+            "y1": 73.0,
+            "x2": 56.1,
+            "y2": 58.5
+          },
+          {
+            "x1": 56.1,
+            "y1": 58.5,
+            "x2": 56.1,
+            "y2": 29.5
+          },
+          {
+            "x1": 56.1,
+            "y1": 29.5,
+            "x2": 31.0,
+            "y2": 15.0
+          },
+          {
+            "x1": 31.0,
+            "y1": 15.0,
+            "x2": 5.9,
+            "y2": 29.5
+          },
+          {
+            "x1": 5.9,
+            "y1": 29.5,
+            "x2": 5.9,
+            "y2": 58.5
+          },
+          {
+            "x1": 5.9,
+            "y1": 58.5,
+            "x2": 31.0,
+            "y2": 73.0
+          },
+          {
+            "x1": 88.0,
+            "y1": 73.0,
+            "x2": 106.0,
+            "y2": 73.0
+          },
+          {
+            "x1": 76.0,
+            "y1": 58.5,
+            "x2": 94.0,
+            "y2": 58.5
+          },
+          {
+            "x1": 100.0,
+            "y1": 58.5,
+            "x2": 118.0,
+            "y2": 58.5
+          },
+          {
+            "x1": 76.0,
+            "y1": 29.5,
+            "x2": 94.0,
+            "y2": 29.5
+          },
+          {
+            "x1": 100.0,
+            "y1": 29.5,
+            "x2": 118.0,
+            "y2": 29.5
+          },
+          {
+            "x1": 88.0,
+            "y1": 15.0,
+            "x2": 106.0,
+            "y2": 15.0
+          },
+          {
+            "x1": 68.0,
+            "y1": 80.0,
+            "x2": 68.0,
+            "y2": 14.0,
+            "arrow": true
+          }
+        ],
+        "labels": [
+          {
+            "x": 97.0,
+            "y": 71.0,
+            "t": "↑↓",
+            "size": 14
+          },
+          {
+            "x": 85.0,
+            "y": 56.5,
+            "t": "↑",
+            "size": 14
+          },
+          {
+            "x": 109.0,
+            "y": 56.5,
+            "t": "↑",
+            "size": 14
+          },
+          {
+            "x": 68.0,
+            "y": 11.0,
+            "t": "E",
+            "size": 11
+          }
+        ],
+        "rings": [
+          {
+            "x": 31.0,
+            "y": 44.0,
+            "r": 29.0
+          }
+        ]
+      },
+      "name": "filling A"
+    },
+    "b": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 31.0,
+            "y1": 73.0,
+            "x2": 56.1,
+            "y2": 58.5
+          },
+          {
+            "x1": 56.1,
+            "y1": 58.5,
+            "x2": 56.1,
+            "y2": 29.5
+          },
+          {
+            "x1": 56.1,
+            "y1": 29.5,
+            "x2": 31.0,
+            "y2": 15.0
+          },
+          {
+            "x1": 31.0,
+            "y1": 15.0,
+            "x2": 5.9,
+            "y2": 29.5
+          },
+          {
+            "x1": 5.9,
+            "y1": 29.5,
+            "x2": 5.9,
+            "y2": 58.5
+          },
+          {
+            "x1": 5.9,
+            "y1": 58.5,
+            "x2": 31.0,
+            "y2": 73.0
+          },
+          {
+            "x1": 88.0,
+            "y1": 73.0,
+            "x2": 106.0,
+            "y2": 73.0
+          },
+          {
+            "x1": 76.0,
+            "y1": 58.5,
+            "x2": 94.0,
+            "y2": 58.5
+          },
+          {
+            "x1": 100.0,
+            "y1": 58.5,
+            "x2": 118.0,
+            "y2": 58.5
+          },
+          {
+            "x1": 76.0,
+            "y1": 29.5,
+            "x2": 94.0,
+            "y2": 29.5
+          },
+          {
+            "x1": 100.0,
+            "y1": 29.5,
+            "x2": 118.0,
+            "y2": 29.5
+          },
+          {
+            "x1": 88.0,
+            "y1": 15.0,
+            "x2": 106.0,
+            "y2": 15.0
+          },
+          {
+            "x1": 68.0,
+            "y1": 80.0,
+            "x2": 68.0,
+            "y2": 14.0,
+            "arrow": true
+          }
+        ],
+        "labels": [
+          {
+            "x": 97.0,
+            "y": 71.0,
+            "t": "↑↓",
+            "size": 14
+          },
+          {
+            "x": 85.0,
+            "y": 56.5,
+            "t": "↑↓",
+            "size": 14
+          },
+          {
+            "x": 109.0,
+            "y": 56.5,
+            "t": "↑↓",
+            "size": 14
+          },
+          {
+            "x": 68.0,
+            "y": 11.0,
+            "t": "E",
+            "size": 11
+          }
+        ],
+        "rings": [
+          {
+            "x": 31.0,
+            "y": 44.0,
+            "r": 29.0
+          }
+        ]
+      },
+      "name": "filling B"
+    },
+    "c": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 31.0,
+            "y1": 73.0,
+            "x2": 56.1,
+            "y2": 58.5
+          },
+          {
+            "x1": 56.1,
+            "y1": 58.5,
+            "x2": 56.1,
+            "y2": 29.5
+          },
+          {
+            "x1": 56.1,
+            "y1": 29.5,
+            "x2": 31.0,
+            "y2": 15.0
+          },
+          {
+            "x1": 31.0,
+            "y1": 15.0,
+            "x2": 5.9,
+            "y2": 29.5
+          },
+          {
+            "x1": 5.9,
+            "y1": 29.5,
+            "x2": 5.9,
+            "y2": 58.5
+          },
+          {
+            "x1": 5.9,
+            "y1": 58.5,
+            "x2": 31.0,
+            "y2": 73.0
+          },
+          {
+            "x1": 88.0,
+            "y1": 73.0,
+            "x2": 106.0,
+            "y2": 73.0
+          },
+          {
+            "x1": 76.0,
+            "y1": 58.5,
+            "x2": 94.0,
+            "y2": 58.5
+          },
+          {
+            "x1": 100.0,
+            "y1": 58.5,
+            "x2": 118.0,
+            "y2": 58.5
+          },
+          {
+            "x1": 76.0,
+            "y1": 29.5,
+            "x2": 94.0,
+            "y2": 29.5
+          },
+          {
+            "x1": 100.0,
+            "y1": 29.5,
+            "x2": 118.0,
+            "y2": 29.5
+          },
+          {
+            "x1": 88.0,
+            "y1": 15.0,
+            "x2": 106.0,
+            "y2": 15.0
+          },
+          {
+            "x1": 68.0,
+            "y1": 80.0,
+            "x2": 68.0,
+            "y2": 14.0,
+            "arrow": true
+          }
+        ],
+        "labels": [
+          {
+            "x": 97.0,
+            "y": 71.0,
+            "t": "↑↓",
+            "size": 14
+          },
+          {
+            "x": 85.0,
+            "y": 56.5,
+            "t": "↑↓",
+            "size": 14
+          },
+          {
+            "x": 109.0,
+            "y": 56.5,
+            "t": "↑↓",
+            "size": 14
+          },
+          {
+            "x": 85.0,
+            "y": 27.5,
+            "t": "↑",
+            "size": 14
+          },
+          {
+            "x": 109.0,
+            "y": 27.5,
+            "t": "↑",
+            "size": 14
+          },
+          {
+            "x": 68.0,
+            "y": 11.0,
+            "t": "E",
+            "size": 11
+          }
+        ],
+        "rings": [
+          {
+            "x": 31.0,
+            "y": 44.0,
+            "r": 29.0
+          }
+        ]
+      },
+      "name": "filling C"
+    }
+  },
+  "u2-huckel-frost-cbd": {
+    "a": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 31.0,
+            "y1": 73.0,
+            "x2": 60.0,
+            "y2": 44.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 44.0,
+            "x2": 31.0,
+            "y2": 15.0
+          },
+          {
+            "x1": 31.0,
+            "y1": 15.0,
+            "x2": 2.0,
+            "y2": 44.0
+          },
+          {
+            "x1": 2.0,
+            "y1": 44.0,
+            "x2": 31.0,
+            "y2": 73.0
+          },
+          {
+            "x1": 88.0,
+            "y1": 73.0,
+            "x2": 106.0,
+            "y2": 73.0
+          },
+          {
+            "x1": 76.0,
+            "y1": 44.0,
+            "x2": 94.0,
+            "y2": 44.0
+          },
+          {
+            "x1": 100.0,
+            "y1": 44.0,
+            "x2": 118.0,
+            "y2": 44.0
+          },
+          {
+            "x1": 88.0,
+            "y1": 15.0,
+            "x2": 106.0,
+            "y2": 15.0
+          },
+          {
+            "x1": 68.0,
+            "y1": 80.0,
+            "x2": 68.0,
+            "y2": 14.0,
+            "arrow": true
+          }
+        ],
+        "labels": [
+          {
+            "x": 97.0,
+            "y": 71.0,
+            "t": "↑↓",
+            "size": 14
+          },
+          {
+            "x": 85.0,
+            "y": 42.0,
+            "t": "↑↓",
+            "size": 14
+          },
+          {
+            "x": 68.0,
+            "y": 11.0,
+            "t": "E",
+            "size": 11
+          }
+        ],
+        "rings": [
+          {
+            "x": 31.0,
+            "y": 44.0,
+            "r": 29.0
+          }
+        ]
+      },
+      "name": "filling A"
+    },
+    "b": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 31.0,
+            "y1": 73.0,
+            "x2": 60.0,
+            "y2": 44.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 44.0,
+            "x2": 31.0,
+            "y2": 15.0
+          },
+          {
+            "x1": 31.0,
+            "y1": 15.0,
+            "x2": 2.0,
+            "y2": 44.0
+          },
+          {
+            "x1": 2.0,
+            "y1": 44.0,
+            "x2": 31.0,
+            "y2": 73.0
+          },
+          {
+            "x1": 88.0,
+            "y1": 73.0,
+            "x2": 106.0,
+            "y2": 73.0
+          },
+          {
+            "x1": 76.0,
+            "y1": 44.0,
+            "x2": 94.0,
+            "y2": 44.0
+          },
+          {
+            "x1": 100.0,
+            "y1": 44.0,
+            "x2": 118.0,
+            "y2": 44.0
+          },
+          {
+            "x1": 88.0,
+            "y1": 15.0,
+            "x2": 106.0,
+            "y2": 15.0
+          },
+          {
+            "x1": 68.0,
+            "y1": 80.0,
+            "x2": 68.0,
+            "y2": 14.0,
+            "arrow": true
+          }
+        ],
+        "labels": [
+          {
+            "x": 97.0,
+            "y": 71.0,
+            "t": "↑↓",
+            "size": 14
+          },
+          {
+            "x": 85.0,
+            "y": 42.0,
+            "t": "↑",
+            "size": 14
+          },
+          {
+            "x": 109.0,
+            "y": 42.0,
+            "t": "↑",
+            "size": 14
+          },
+          {
+            "x": 68.0,
+            "y": 11.0,
+            "t": "E",
+            "size": 11
+          }
+        ],
+        "rings": [
+          {
+            "x": 31.0,
+            "y": 44.0,
+            "r": 29.0
+          }
+        ]
+      },
+      "name": "filling B"
+    },
+    "c": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 31.0,
+            "y1": 73.0,
+            "x2": 60.0,
+            "y2": 44.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 44.0,
+            "x2": 31.0,
+            "y2": 15.0
+          },
+          {
+            "x1": 31.0,
+            "y1": 15.0,
+            "x2": 2.0,
+            "y2": 44.0
+          },
+          {
+            "x1": 2.0,
+            "y1": 44.0,
+            "x2": 31.0,
+            "y2": 73.0
+          },
+          {
+            "x1": 88.0,
+            "y1": 73.0,
+            "x2": 106.0,
+            "y2": 73.0
+          },
+          {
+            "x1": 76.0,
+            "y1": 44.0,
+            "x2": 94.0,
+            "y2": 44.0
+          },
+          {
+            "x1": 100.0,
+            "y1": 44.0,
+            "x2": 118.0,
+            "y2": 44.0
+          },
+          {
+            "x1": 88.0,
+            "y1": 15.0,
+            "x2": 106.0,
+            "y2": 15.0
+          },
+          {
+            "x1": 68.0,
+            "y1": 80.0,
+            "x2": 68.0,
+            "y2": 14.0,
+            "arrow": true
+          }
+        ],
+        "labels": [
+          {
+            "x": 97.0,
+            "y": 71.0,
+            "t": "↑↓",
+            "size": 14
+          },
+          {
+            "x": 85.0,
+            "y": 42.0,
+            "t": "↑↓",
+            "size": 14
+          },
+          {
+            "x": 109.0,
+            "y": 42.0,
+            "t": "↑↓",
+            "size": 14
+          },
+          {
+            "x": 68.0,
+            "y": 11.0,
+            "t": "E",
+            "size": 11
+          }
+        ],
+        "rings": [
+          {
+            "x": 31.0,
+            "y": 44.0,
+            "r": 29.0
+          }
+        ]
+      },
+      "name": "filling C"
+    }
+  },
   "u2-ann-pick-anti": {
     "benzene": {
       "figure": {
@@ -8789,287 +10330,6 @@ export const U2_OPTION_TILES: Readonly<Record<string, Readonly<Record<string, Na
         ]
       },
       "name": "cyclobutadiene"
-    }
-  },
-  "u2-ann-frost-cbd": {
-    "a": {
-      "figure": {
-        "bonds": [
-          {
-            "x1": 31.0,
-            "y1": 73.0,
-            "x2": 60.0,
-            "y2": 44.0
-          },
-          {
-            "x1": 60.0,
-            "y1": 44.0,
-            "x2": 31.0,
-            "y2": 15.0
-          },
-          {
-            "x1": 31.0,
-            "y1": 15.0,
-            "x2": 2.0,
-            "y2": 44.0
-          },
-          {
-            "x1": 2.0,
-            "y1": 44.0,
-            "x2": 31.0,
-            "y2": 73.0
-          },
-          {
-            "x1": 88.0,
-            "y1": 73.0,
-            "x2": 106.0,
-            "y2": 73.0
-          },
-          {
-            "x1": 76.0,
-            "y1": 44.0,
-            "x2": 94.0,
-            "y2": 44.0
-          },
-          {
-            "x1": 100.0,
-            "y1": 44.0,
-            "x2": 118.0,
-            "y2": 44.0
-          },
-          {
-            "x1": 88.0,
-            "y1": 15.0,
-            "x2": 106.0,
-            "y2": 15.0
-          },
-          {
-            "x1": 68.0,
-            "y1": 80.0,
-            "x2": 68.0,
-            "y2": 14.0,
-            "arrow": true
-          }
-        ],
-        "labels": [
-          {
-            "x": 97.0,
-            "y": 71.0,
-            "t": "↑↓",
-            "size": 14
-          },
-          {
-            "x": 85.0,
-            "y": 42.0,
-            "t": "↑↓",
-            "size": 14
-          },
-          {
-            "x": 68.0,
-            "y": 11.0,
-            "t": "E",
-            "size": 11
-          }
-        ],
-        "rings": [
-          {
-            "x": 31.0,
-            "y": 44.0,
-            "r": 29.0
-          }
-        ]
-      },
-      "name": "filling A"
-    },
-    "b": {
-      "figure": {
-        "bonds": [
-          {
-            "x1": 31.0,
-            "y1": 73.0,
-            "x2": 60.0,
-            "y2": 44.0
-          },
-          {
-            "x1": 60.0,
-            "y1": 44.0,
-            "x2": 31.0,
-            "y2": 15.0
-          },
-          {
-            "x1": 31.0,
-            "y1": 15.0,
-            "x2": 2.0,
-            "y2": 44.0
-          },
-          {
-            "x1": 2.0,
-            "y1": 44.0,
-            "x2": 31.0,
-            "y2": 73.0
-          },
-          {
-            "x1": 88.0,
-            "y1": 73.0,
-            "x2": 106.0,
-            "y2": 73.0
-          },
-          {
-            "x1": 76.0,
-            "y1": 44.0,
-            "x2": 94.0,
-            "y2": 44.0
-          },
-          {
-            "x1": 100.0,
-            "y1": 44.0,
-            "x2": 118.0,
-            "y2": 44.0
-          },
-          {
-            "x1": 88.0,
-            "y1": 15.0,
-            "x2": 106.0,
-            "y2": 15.0
-          },
-          {
-            "x1": 68.0,
-            "y1": 80.0,
-            "x2": 68.0,
-            "y2": 14.0,
-            "arrow": true
-          }
-        ],
-        "labels": [
-          {
-            "x": 97.0,
-            "y": 71.0,
-            "t": "↑↓",
-            "size": 14
-          },
-          {
-            "x": 85.0,
-            "y": 42.0,
-            "t": "↑",
-            "size": 14
-          },
-          {
-            "x": 109.0,
-            "y": 42.0,
-            "t": "↑",
-            "size": 14
-          },
-          {
-            "x": 68.0,
-            "y": 11.0,
-            "t": "E",
-            "size": 11
-          }
-        ],
-        "rings": [
-          {
-            "x": 31.0,
-            "y": 44.0,
-            "r": 29.0
-          }
-        ]
-      },
-      "name": "filling B"
-    },
-    "c": {
-      "figure": {
-        "bonds": [
-          {
-            "x1": 31.0,
-            "y1": 73.0,
-            "x2": 60.0,
-            "y2": 44.0
-          },
-          {
-            "x1": 60.0,
-            "y1": 44.0,
-            "x2": 31.0,
-            "y2": 15.0
-          },
-          {
-            "x1": 31.0,
-            "y1": 15.0,
-            "x2": 2.0,
-            "y2": 44.0
-          },
-          {
-            "x1": 2.0,
-            "y1": 44.0,
-            "x2": 31.0,
-            "y2": 73.0
-          },
-          {
-            "x1": 88.0,
-            "y1": 73.0,
-            "x2": 106.0,
-            "y2": 73.0
-          },
-          {
-            "x1": 76.0,
-            "y1": 44.0,
-            "x2": 94.0,
-            "y2": 44.0
-          },
-          {
-            "x1": 100.0,
-            "y1": 44.0,
-            "x2": 118.0,
-            "y2": 44.0
-          },
-          {
-            "x1": 88.0,
-            "y1": 15.0,
-            "x2": 106.0,
-            "y2": 15.0
-          },
-          {
-            "x1": 68.0,
-            "y1": 80.0,
-            "x2": 68.0,
-            "y2": 14.0,
-            "arrow": true
-          }
-        ],
-        "labels": [
-          {
-            "x": 97.0,
-            "y": 71.0,
-            "t": "↑↓",
-            "size": 14
-          },
-          {
-            "x": 85.0,
-            "y": 42.0,
-            "t": "↑↓",
-            "size": 14
-          },
-          {
-            "x": 109.0,
-            "y": 42.0,
-            "t": "↑↓",
-            "size": 14
-          },
-          {
-            "x": 68.0,
-            "y": 11.0,
-            "t": "E",
-            "size": 11
-          }
-        ],
-        "rings": [
-          {
-            "x": 31.0,
-            "y": 44.0,
-            "r": 29.0
-          }
-        ]
-      },
-      "name": "filling C"
     }
   },
   "u2-het-imid-which": {
@@ -10559,6 +11819,179 @@ export const U2_OPTION_TILES: Readonly<Record<string, Readonly<Record<string, Na
       "name": "cyclohepta-1,3,5-triene"
     }
   },
+  "u2-chg-bromide": {
+    "c5ene": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 26.0,
+            "y1": 68.2,
+            "x2": 48.5,
+            "y2": 55.2
+          },
+          {
+            "x1": 48.5,
+            "y1": 55.2,
+            "x2": 77.8,
+            "y2": 68.3
+          },
+          {
+            "x1": 77.8,
+            "y1": 68.3,
+            "x2": 99.2,
+            "y2": 44.5,
+            "order": 2
+          },
+          {
+            "x1": 99.2,
+            "y1": 44.5,
+            "x2": 83.2,
+            "y2": 16.8
+          },
+          {
+            "x1": 83.2,
+            "y1": 16.8,
+            "x2": 51.9,
+            "y2": 23.4
+          },
+          {
+            "x1": 51.9,
+            "y1": 23.4,
+            "x2": 48.5,
+            "y2": 55.2
+          }
+        ],
+        "labels": [
+          {
+            "x": 20.8,
+            "y": 76.2,
+            "t": "Br",
+            "size": 13
+          }
+        ]
+      },
+      "name": "3-bromocyclopent-1-ene"
+    },
+    "c7": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 77.2,
+            "y1": 20.2,
+            "x2": 70.6,
+            "y2": 31.7
+          },
+          {
+            "x1": 70.6,
+            "y1": 31.7,
+            "x2": 51.5,
+            "y2": 30.3
+          },
+          {
+            "x1": 51.5,
+            "y1": 30.3,
+            "x2": 38.5,
+            "y2": 44.5,
+            "order": 2
+          },
+          {
+            "x1": 38.5,
+            "y1": 44.5,
+            "x2": 41.4,
+            "y2": 63.5
+          },
+          {
+            "x1": 41.4,
+            "y1": 63.5,
+            "x2": 58.1,
+            "y2": 73.0,
+            "order": 2
+          },
+          {
+            "x1": 58.1,
+            "y1": 73.0,
+            "x2": 76.0,
+            "y2": 65.9
+          },
+          {
+            "x1": 76.0,
+            "y1": 65.9,
+            "x2": 81.5,
+            "y2": 47.5,
+            "order": 2
+          },
+          {
+            "x1": 81.5,
+            "y1": 47.5,
+            "x2": 70.6,
+            "y2": 31.7
+          }
+        ],
+        "labels": [
+          {
+            "x": 80.2,
+            "y": 20.0,
+            "t": "Br",
+            "size": 13
+          }
+        ]
+      },
+      "name": "7-bromocyclohepta-1,3,5-triene"
+    },
+    "c5": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 26.0,
+            "y1": 68.2,
+            "x2": 48.5,
+            "y2": 55.2
+          },
+          {
+            "x1": 48.5,
+            "y1": 55.2,
+            "x2": 77.8,
+            "y2": 68.3
+          },
+          {
+            "x1": 77.8,
+            "y1": 68.3,
+            "x2": 99.2,
+            "y2": 44.5,
+            "order": 2
+          },
+          {
+            "x1": 99.2,
+            "y1": 44.5,
+            "x2": 83.2,
+            "y2": 16.8
+          },
+          {
+            "x1": 83.2,
+            "y1": 16.8,
+            "x2": 51.9,
+            "y2": 23.4,
+            "order": 2
+          },
+          {
+            "x1": 51.9,
+            "y1": 23.4,
+            "x2": 48.5,
+            "y2": 55.2
+          }
+        ],
+        "labels": [
+          {
+            "x": 20.8,
+            "y": 76.2,
+            "t": "Br",
+            "size": 13
+          }
+        ]
+      },
+      "name": "5-bromocyclopenta-1,3-diene"
+    }
+  },
   "u2-nmr-meet-downfield": {
     "bz": {
       "figure": {
@@ -11118,6 +12551,553 @@ export const U2_OPTION_TILES: Readonly<Record<string, Readonly<Record<string, Na
         ]
       },
       "name": "[18]annulene, inner H circled"
+    }
+  },
+  "u2-nmr-both-ends": {
+    "bz": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 34.9,
+            "y1": 58.5,
+            "x2": 34.9,
+            "y2": 29.5
+          },
+          {
+            "x1": 34.9,
+            "y1": 29.5,
+            "x2": 60.0,
+            "y2": 15.0,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 15.0,
+            "x2": 85.1,
+            "y2": 29.5
+          },
+          {
+            "x1": 85.1,
+            "y1": 29.5,
+            "x2": 85.1,
+            "y2": 58.5,
+            "order": 2
+          },
+          {
+            "x1": 85.1,
+            "y1": 58.5,
+            "x2": 60.0,
+            "y2": 73.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 73.0,
+            "x2": 34.9,
+            "y2": 58.5,
+            "order": 2
+          }
+        ]
+      },
+      "name": "benzene"
+    },
+    "cot": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 89.0,
+            "y1": 47.7,
+            "x2": 77.9,
+            "y2": 67.1,
+            "order": 2
+          },
+          {
+            "x1": 77.9,
+            "y1": 67.1,
+            "x2": 56.3,
+            "y2": 73.0
+          },
+          {
+            "x1": 56.3,
+            "y1": 73.0,
+            "x2": 36.9,
+            "y2": 61.9,
+            "order": 2
+          },
+          {
+            "x1": 36.9,
+            "y1": 61.9,
+            "x2": 31.0,
+            "y2": 40.3
+          },
+          {
+            "x1": 31.0,
+            "y1": 40.3,
+            "x2": 42.1,
+            "y2": 20.9,
+            "order": 2
+          },
+          {
+            "x1": 42.1,
+            "y1": 20.9,
+            "x2": 63.7,
+            "y2": 15.0
+          },
+          {
+            "x1": 63.7,
+            "y1": 15.0,
+            "x2": 83.1,
+            "y2": 26.1,
+            "order": 2
+          },
+          {
+            "x1": 83.1,
+            "y1": 26.1,
+            "x2": 89.0,
+            "y2": 47.7
+          }
+        ]
+      },
+      "name": "cyclooctatetraene"
+    },
+    "ane": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 34.9,
+            "y1": 58.5,
+            "x2": 34.9,
+            "y2": 29.5
+          },
+          {
+            "x1": 34.9,
+            "y1": 29.5,
+            "x2": 60.0,
+            "y2": 15.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 15.0,
+            "x2": 85.1,
+            "y2": 29.5
+          },
+          {
+            "x1": 85.1,
+            "y1": 29.5,
+            "x2": 85.1,
+            "y2": 58.5
+          },
+          {
+            "x1": 85.1,
+            "y1": 58.5,
+            "x2": 60.0,
+            "y2": 73.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 73.0,
+            "x2": 34.9,
+            "y2": 58.5
+          }
+        ]
+      },
+      "name": "cyclohexane"
+    },
+    "ann18": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 35.1,
+            "y1": 13.2,
+            "x2": 47.6,
+            "y2": 6.0,
+            "order": 2
+          },
+          {
+            "x1": 47.6,
+            "y1": 6.0,
+            "x2": 60.1,
+            "y2": 13.2
+          },
+          {
+            "x1": 60.1,
+            "y1": 13.2,
+            "x2": 72.5,
+            "y2": 6.0,
+            "order": 2
+          },
+          {
+            "x1": 72.5,
+            "y1": 6.0,
+            "x2": 85.0,
+            "y2": 13.3
+          },
+          {
+            "x1": 85.0,
+            "y1": 13.3,
+            "x2": 85.0,
+            "y2": 27.7,
+            "order": 2
+          },
+          {
+            "x1": 85.0,
+            "y1": 27.7,
+            "x2": 97.4,
+            "y2": 34.9
+          },
+          {
+            "x1": 97.4,
+            "y1": 34.9,
+            "x2": 97.4,
+            "y2": 49.3,
+            "order": 2
+          },
+          {
+            "x1": 97.4,
+            "y1": 49.3,
+            "x2": 84.9,
+            "y2": 56.4
+          },
+          {
+            "x1": 84.9,
+            "y1": 56.4,
+            "x2": 84.9,
+            "y2": 70.8,
+            "order": 2
+          },
+          {
+            "x1": 84.9,
+            "y1": 70.8,
+            "x2": 72.4,
+            "y2": 78.0
+          },
+          {
+            "x1": 72.4,
+            "y1": 78.0,
+            "x2": 59.9,
+            "y2": 70.8,
+            "order": 2
+          },
+          {
+            "x1": 59.9,
+            "y1": 70.8,
+            "x2": 47.5,
+            "y2": 78.0
+          },
+          {
+            "x1": 47.5,
+            "y1": 78.0,
+            "x2": 35.0,
+            "y2": 70.7,
+            "order": 2
+          },
+          {
+            "x1": 35.0,
+            "y1": 70.7,
+            "x2": 35.0,
+            "y2": 56.3
+          },
+          {
+            "x1": 35.0,
+            "y1": 56.3,
+            "x2": 22.6,
+            "y2": 49.1,
+            "order": 2
+          },
+          {
+            "x1": 22.6,
+            "y1": 49.1,
+            "x2": 22.6,
+            "y2": 34.7
+          },
+          {
+            "x1": 22.6,
+            "y1": 34.7,
+            "x2": 35.1,
+            "y2": 27.6,
+            "order": 2
+          },
+          {
+            "x1": 35.1,
+            "y1": 27.6,
+            "x2": 35.1,
+            "y2": 13.2
+          },
+          {
+            "x1": 60.1,
+            "y1": 14.4,
+            "x2": 60.0,
+            "y2": 17.5
+          },
+          {
+            "x1": 84.0,
+            "y1": 28.2,
+            "x2": 81.2,
+            "y2": 29.8
+          },
+          {
+            "x1": 83.9,
+            "y1": 55.9,
+            "x2": 81.2,
+            "y2": 54.3
+          },
+          {
+            "x1": 59.9,
+            "y1": 69.6,
+            "x2": 60.0,
+            "y2": 66.5
+          },
+          {
+            "x1": 36.0,
+            "y1": 55.8,
+            "x2": 38.8,
+            "y2": 54.2
+          },
+          {
+            "x1": 36.1,
+            "y1": 28.1,
+            "x2": 38.8,
+            "y2": 29.7
+          }
+        ],
+        "labels": [
+          {
+            "x": 60.0,
+            "y": 23.9,
+            "t": "H",
+            "size": 10
+          },
+          {
+            "x": 78.7,
+            "y": 34.7,
+            "t": "H",
+            "size": 10
+          },
+          {
+            "x": 78.7,
+            "y": 56.3,
+            "t": "H",
+            "size": 10
+          },
+          {
+            "x": 60.0,
+            "y": 67.1,
+            "t": "H",
+            "size": 10
+          },
+          {
+            "x": 41.3,
+            "y": 56.3,
+            "t": "H",
+            "size": 10
+          },
+          {
+            "x": 41.3,
+            "y": 34.7,
+            "t": "H",
+            "size": 10
+          }
+        ]
+      },
+      "name": "[18]annulene"
+    }
+  },
+  "u2-nmr-thiophene": {
+    "dhf": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 34.3,
+            "y1": 40.2,
+            "x2": 47.4,
+            "y2": 69.4,
+            "order": 2
+          },
+          {
+            "x1": 47.4,
+            "y1": 69.4,
+            "x2": 73.3,
+            "y2": 66.5
+          },
+          {
+            "x1": 80.5,
+            "y1": 60.0,
+            "x2": 85.7,
+            "y2": 34.5
+          },
+          {
+            "x1": 85.7,
+            "y1": 34.5,
+            "x2": 57.9,
+            "y2": 18.6
+          },
+          {
+            "x1": 57.9,
+            "y1": 18.6,
+            "x2": 34.3,
+            "y2": 40.2
+          }
+        ],
+        "labels": [
+          {
+            "x": 79.2,
+            "y": 70.8,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "2,3-dihydrofuran"
+    },
+    "thi": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 34.3,
+            "y1": 40.2,
+            "x2": 47.4,
+            "y2": 69.4,
+            "order": 2
+          },
+          {
+            "x1": 47.4,
+            "y1": 69.4,
+            "x2": 73.3,
+            "y2": 66.5
+          },
+          {
+            "x1": 80.5,
+            "y1": 60.0,
+            "x2": 85.7,
+            "y2": 34.5
+          },
+          {
+            "x1": 85.7,
+            "y1": 34.5,
+            "x2": 57.9,
+            "y2": 18.6,
+            "order": 2
+          },
+          {
+            "x1": 57.9,
+            "y1": 18.6,
+            "x2": 34.3,
+            "y2": 40.2
+          }
+        ],
+        "labels": [
+          {
+            "x": 79.2,
+            "y": 70.8,
+            "t": "S",
+            "size": 13
+          }
+        ]
+      },
+      "name": "thiophene"
+    },
+    "cot": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 89.0,
+            "y1": 47.7,
+            "x2": 77.9,
+            "y2": 67.1,
+            "order": 2
+          },
+          {
+            "x1": 77.9,
+            "y1": 67.1,
+            "x2": 56.3,
+            "y2": 73.0
+          },
+          {
+            "x1": 56.3,
+            "y1": 73.0,
+            "x2": 36.9,
+            "y2": 61.9,
+            "order": 2
+          },
+          {
+            "x1": 36.9,
+            "y1": 61.9,
+            "x2": 31.0,
+            "y2": 40.3
+          },
+          {
+            "x1": 31.0,
+            "y1": 40.3,
+            "x2": 42.1,
+            "y2": 20.9,
+            "order": 2
+          },
+          {
+            "x1": 42.1,
+            "y1": 20.9,
+            "x2": 63.7,
+            "y2": 15.0
+          },
+          {
+            "x1": 63.7,
+            "y1": 15.0,
+            "x2": 83.1,
+            "y2": 26.1,
+            "order": 2
+          },
+          {
+            "x1": 83.1,
+            "y1": 26.1,
+            "x2": 89.0,
+            "y2": 47.7
+          }
+        ]
+      },
+      "name": "cyclooctatetraene"
+    },
+    "chd": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 34.9,
+            "y1": 58.5,
+            "x2": 34.9,
+            "y2": 29.5,
+            "order": 2
+          },
+          {
+            "x1": 34.9,
+            "y1": 29.5,
+            "x2": 60.0,
+            "y2": 15.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 15.0,
+            "x2": 85.1,
+            "y2": 29.5
+          },
+          {
+            "x1": 85.1,
+            "y1": 29.5,
+            "x2": 85.1,
+            "y2": 58.5
+          },
+          {
+            "x1": 85.1,
+            "y1": 58.5,
+            "x2": 60.0,
+            "y2": 73.0,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 73.0,
+            "x2": 34.9,
+            "y2": 58.5
+          }
+        ]
+      },
+      "name": "cyclohexa-1,3-diene"
     }
   },
   "u2-nom-para": {
@@ -15596,6 +17576,512 @@ export const U2_PI_TALLY: Readonly<Record<string, PiTally>> = {
     "planar": false,
     "planarReason": "half chair; it fails on sp3 carbons first",
     "frostLevelsBottomUp": null
+  },
+  "anthracene": {
+    "smiles": "C1=CC=C2C=C3C=CC=CC3=CC2=C1",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 12.0,
+          "y1": 34.7,
+          "x2": 12.0,
+          "y2": 53.2,
+          "order": 2
+        },
+        {
+          "x1": 12.0,
+          "y1": 53.2,
+          "x2": 28.0,
+          "y2": 62.4
+        },
+        {
+          "x1": 28.0,
+          "y1": 62.4,
+          "x2": 44.0,
+          "y2": 53.2,
+          "order": 2
+        },
+        {
+          "x1": 44.0,
+          "y1": 53.2,
+          "x2": 60.0,
+          "y2": 62.5
+        },
+        {
+          "x1": 60.0,
+          "y1": 62.5,
+          "x2": 76.0,
+          "y2": 53.2,
+          "order": 2
+        },
+        {
+          "x1": 76.0,
+          "y1": 53.2,
+          "x2": 92.0,
+          "y2": 62.5
+        },
+        {
+          "x1": 92.0,
+          "y1": 62.5,
+          "x2": 108.0,
+          "y2": 53.3,
+          "order": 2
+        },
+        {
+          "x1": 108.0,
+          "y1": 53.3,
+          "x2": 108.0,
+          "y2": 34.8
+        },
+        {
+          "x1": 108.0,
+          "y1": 34.8,
+          "x2": 92.0,
+          "y2": 25.6,
+          "order": 2
+        },
+        {
+          "x1": 92.0,
+          "y1": 25.6,
+          "x2": 76.0,
+          "y2": 34.8
+        },
+        {
+          "x1": 76.0,
+          "y1": 34.8,
+          "x2": 60.0,
+          "y2": 25.5,
+          "order": 2
+        },
+        {
+          "x1": 60.0,
+          "y1": 25.5,
+          "x2": 44.0,
+          "y2": 34.8
+        },
+        {
+          "x1": 44.0,
+          "y1": 34.8,
+          "x2": 28.0,
+          "y2": 25.5,
+          "order": 2
+        },
+        {
+          "x1": 28.0,
+          "y1": 25.5,
+          "x2": 12.0,
+          "y2": 34.7
+        },
+        {
+          "x1": 44.0,
+          "y1": 34.8,
+          "x2": 44.0,
+          "y2": 53.2
+        },
+        {
+          "x1": 76.0,
+          "y1": 34.8,
+          "x2": 76.0,
+          "y2": 53.2
+        }
+      ]
+    },
+    "atoms": [
+      {
+        "index": 0,
+        "x": 12.0,
+        "y": 34.7,
+        "element": "C",
+        "pi": 1
+      },
+      {
+        "index": 1,
+        "x": 12.0,
+        "y": 53.2,
+        "element": "C",
+        "pi": 1
+      },
+      {
+        "index": 2,
+        "x": 28.0,
+        "y": 62.4,
+        "element": "C",
+        "pi": 1
+      },
+      {
+        "index": 3,
+        "x": 44.0,
+        "y": 53.2,
+        "element": "C",
+        "pi": 1
+      },
+      {
+        "index": 4,
+        "x": 60.0,
+        "y": 62.5,
+        "element": "C",
+        "pi": 1
+      },
+      {
+        "index": 5,
+        "x": 76.0,
+        "y": 53.2,
+        "element": "C",
+        "pi": 1
+      },
+      {
+        "index": 6,
+        "x": 92.0,
+        "y": 62.5,
+        "element": "C",
+        "pi": 1
+      },
+      {
+        "index": 7,
+        "x": 108.0,
+        "y": 53.3,
+        "element": "C",
+        "pi": 1
+      },
+      {
+        "index": 8,
+        "x": 108.0,
+        "y": 34.8,
+        "element": "C",
+        "pi": 1
+      },
+      {
+        "index": 9,
+        "x": 92.0,
+        "y": 25.6,
+        "element": "C",
+        "pi": 1
+      },
+      {
+        "index": 10,
+        "x": 76.0,
+        "y": 34.8,
+        "element": "C",
+        "pi": 1
+      },
+      {
+        "index": 11,
+        "x": 60.0,
+        "y": 25.5,
+        "element": "C",
+        "pi": 1
+      },
+      {
+        "index": 12,
+        "x": 44.0,
+        "y": 34.8,
+        "element": "C",
+        "pi": 1
+      },
+      {
+        "index": 13,
+        "x": 28.0,
+        "y": 25.5,
+        "element": "C",
+        "pi": 1
+      }
+    ],
+    "pi": 14,
+    "n": 3.0,
+    "verdict": "aromatic",
+    "planar": true,
+    "planarReason": "flat fused rings",
+    "frostLevelsBottomUp": null
+  },
+  "pentalene": {
+    "smiles": "C1=CC2=CC=CC2=C1",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 12.0,
+          "y1": 44.0,
+          "x2": 30.3,
+          "y2": 69.2,
+          "order": 2
+        },
+        {
+          "x1": 30.3,
+          "y1": 69.2,
+          "x2": 60.0,
+          "y2": 59.6
+        },
+        {
+          "x1": 60.0,
+          "y1": 59.6,
+          "x2": 89.6,
+          "y2": 69.3,
+          "order": 2
+        },
+        {
+          "x1": 89.6,
+          "y1": 69.3,
+          "x2": 108.0,
+          "y2": 44.0
+        },
+        {
+          "x1": 108.0,
+          "y1": 44.0,
+          "x2": 89.7,
+          "y2": 18.8,
+          "order": 2
+        },
+        {
+          "x1": 89.7,
+          "y1": 18.8,
+          "x2": 60.0,
+          "y2": 28.4
+        },
+        {
+          "x1": 60.0,
+          "y1": 28.4,
+          "x2": 30.4,
+          "y2": 18.7,
+          "order": 2
+        },
+        {
+          "x1": 30.4,
+          "y1": 18.7,
+          "x2": 12.0,
+          "y2": 44.0
+        },
+        {
+          "x1": 60.0,
+          "y1": 28.4,
+          "x2": 60.0,
+          "y2": 59.6
+        }
+      ]
+    },
+    "atoms": [
+      {
+        "index": 0,
+        "x": 12.0,
+        "y": 44.0,
+        "element": "C",
+        "pi": 1
+      },
+      {
+        "index": 1,
+        "x": 30.3,
+        "y": 69.2,
+        "element": "C",
+        "pi": 1
+      },
+      {
+        "index": 2,
+        "x": 60.0,
+        "y": 59.6,
+        "element": "C",
+        "pi": 1
+      },
+      {
+        "index": 3,
+        "x": 89.6,
+        "y": 69.3,
+        "element": "C",
+        "pi": 1
+      },
+      {
+        "index": 4,
+        "x": 108.0,
+        "y": 44.0,
+        "element": "C",
+        "pi": 1
+      },
+      {
+        "index": 5,
+        "x": 89.7,
+        "y": 18.8,
+        "element": "C",
+        "pi": 1
+      },
+      {
+        "index": 6,
+        "x": 60.0,
+        "y": 28.4,
+        "element": "C",
+        "pi": 1
+      },
+      {
+        "index": 7,
+        "x": 30.4,
+        "y": 18.7,
+        "element": "C",
+        "pi": 1
+      }
+    ],
+    "pi": 8,
+    "n": 1.5,
+    "verdict": "antiaromatic",
+    "planar": true,
+    "planarReason": "taught as flat fused rings, as the question states",
+    "frostLevelsBottomUp": null
+  },
+  "c9_anion": {
+    "smiles": "[CH-]1C=CC=CC=CC=C1",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 60.0,
+          "y1": 15.0,
+          "x2": 79.2,
+          "y2": 22.0
+        },
+        {
+          "x1": 79.2,
+          "y1": 22.0,
+          "x2": 89.4,
+          "y2": 39.7,
+          "order": 2
+        },
+        {
+          "x1": 89.4,
+          "y1": 39.7,
+          "x2": 85.9,
+          "y2": 59.9
+        },
+        {
+          "x1": 85.9,
+          "y1": 59.9,
+          "x2": 70.2,
+          "y2": 73.0,
+          "order": 2
+        },
+        {
+          "x1": 70.2,
+          "y1": 73.0,
+          "x2": 49.8,
+          "y2": 73.0
+        },
+        {
+          "x1": 49.8,
+          "y1": 73.0,
+          "x2": 34.1,
+          "y2": 59.9,
+          "order": 2
+        },
+        {
+          "x1": 34.1,
+          "y1": 59.9,
+          "x2": 30.6,
+          "y2": 39.7
+        },
+        {
+          "x1": 30.6,
+          "y1": 39.7,
+          "x2": 40.8,
+          "y2": 22.0,
+          "order": 2
+        },
+        {
+          "x1": 40.8,
+          "y1": 22.0,
+          "x2": 60.0,
+          "y2": 15.0
+        }
+      ],
+      "labels": [
+        {
+          "x": 64.2,
+          "y": 12.7,
+          "t": "−",
+          "size": 15
+        },
+        {
+          "x": 55.8,
+          "y": 13.1,
+          "t": "··",
+          "size": 14
+        }
+      ]
+    },
+    "atoms": [
+      {
+        "index": 0,
+        "x": 60.0,
+        "y": 15.0,
+        "element": "C",
+        "pi": 2,
+        "orbital": "p"
+      },
+      {
+        "index": 1,
+        "x": 79.2,
+        "y": 22.0,
+        "element": "C",
+        "pi": 1
+      },
+      {
+        "index": 2,
+        "x": 89.4,
+        "y": 39.7,
+        "element": "C",
+        "pi": 1
+      },
+      {
+        "index": 3,
+        "x": 85.9,
+        "y": 59.9,
+        "element": "C",
+        "pi": 1
+      },
+      {
+        "index": 4,
+        "x": 70.2,
+        "y": 73.0,
+        "element": "C",
+        "pi": 1
+      },
+      {
+        "index": 5,
+        "x": 49.8,
+        "y": 73.0,
+        "element": "C",
+        "pi": 1
+      },
+      {
+        "index": 6,
+        "x": 34.1,
+        "y": 59.9,
+        "element": "C",
+        "pi": 1
+      },
+      {
+        "index": 7,
+        "x": 30.6,
+        "y": 39.7,
+        "element": "C",
+        "pi": 1
+      },
+      {
+        "index": 8,
+        "x": 40.8,
+        "y": 22.0,
+        "element": "C",
+        "pi": 1
+      }
+    ],
+    "pi": 10,
+    "n": 2.0,
+    "verdict": "aromatic",
+    "planar": true,
+    "planarReason": "taught as a flat nine ring, as the question states",
+    "frostLevelsBottomUp": [
+      2,
+      2,
+      2,
+      2,
+      2,
+      0,
+      0,
+      0,
+      0
+    ]
   }
 };
 

@@ -46,6 +46,11 @@ const STAGES: readonly GuideStage[] = [
             source: "u2-huckel-n-cot",
             quote: "A non whole n is the tell: the count fails.",
           },
+          {
+            text: "Frost circle: draw the ring point down in a circle. Each corner is one π level, and corners at the same height are a matched (degenerate) pair.",
+            source: "u2-huckel-meet-frost",
+            quote: "each corner is one pi level, and corners at the same height are a matched (degenerate) pair.",
+          },
         ],
         example: { source: "u2-huckel-meet-gate", quote: "One sp3 carbon breaks the loop" },
       },

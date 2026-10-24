@@ -36,12 +36,15 @@ import { FIGURE_HEIGHT, FIGURE_WIDTH, type Figure } from "../onboarding/figures"
  * CHANGED 2026-10-17 (wire piece, round 4): Charged, Annulenes and Heterocycles became seven-slot lessons,
  * so each opens on two new L0 worked examples (14 to 16, 12 to 14, 13 to 15).
  */
+// CHANGED 2026-10-23 (content audit #7 and section 6): Hückel gains the Frost worked example, the cyclobutadiene
+// Frost circle (moved from Annulenes) and two level 2 items (7 to 11); Charged one level 2 item (16 to 17);
+// Annulenes lose the Frost circle and gain one level 2 item (14 stays 14); NMR two level 2 items (5 to 7).
 const EXPECTED_SIZES: Readonly<Record<string, number>> = {
-  "u2-huckel": 7,
+  "u2-huckel": 11,
   "u2-annulene": 14,
   "u2-hetero": 15,
-  "u2-charged": 16,
-  "u2-nmr": 5,
+  "u2-charged": 17,
+  "u2-nmr": 7,
   "u2-nomen": 12,
 };
 
@@ -128,22 +131,28 @@ describe("u2 draft pools", () => {
   // CHANGED 2026-10-17 (round 2): lessons were MCQ only; each now carries a match board (connect) and Hückel a
   // drawing (produce), so the kinds are pinned exactly and the MCQ rule below still holds for every MCQ.
   // CHANGED 2026-10-17 (round 4): the three former runs are pinned too, each with exactly two L0 worked examples.
-  it("gives each lesson its MCQs (two meet questions at L0, the rest at rung 1) and its exact boards, ladders and drawings", () => {
+  // CHANGED 2026-10-23 (content audit #7 and section 6): Hückel has three L0 worked examples (the Frost circle is
+  // new), and every lesson has at least two level 2 items, tagged rung 1 and 2 so the rung 1 lesson still plays them.
+  it("gives each lesson its MCQs (its meet questions at L0, the rest at rung 1, two or more also at rung 2) and its exact boards, ladders and drawings", () => {
     const WANT: Readonly<Record<string, Readonly<Record<string, number>>>> = {
-      "u2-huckel": { mcq: 5, match: 1, draw: 1 },
-      "u2-charged": { mcq: 12, sort: 2, draw: 2 },
+      "u2-huckel": { mcq: 9, match: 1, draw: 1 },
+      "u2-charged": { mcq: 13, sort: 2, draw: 2 },
       "u2-annulene": { mcq: 12, match: 1, sort: 1 },
       "u2-hetero": { mcq: 13, match: 1, draw: 1 },
-      "u2-nmr": { mcq: 4, match: 1 },
+      "u2-nmr": { mcq: 6, match: 1 },
     };
+    const MEET: Readonly<Record<string, number>> = { "u2-huckel": 3 };
     for (const node of LESSON_NODES) {
       const pool = U2_POOLS[node] ?? [];
       const counts: Record<string, number> = {};
       for (const entry of pool) counts[entry.item.kind] = (counts[entry.item.kind] ?? 0) + 1;
       expect(counts, node).toEqual(WANT[node]);
       const levels = pool.flatMap((entry) => (entry.item.kind === "mcq" ? [entry.item.beat.levels] : []));
-      expect(levels.filter((l) => l.length === 1 && l[0] === 0).length, node).toBe(2);
-      expect(levels.filter((l) => l.length === 1 && l[0] === 1).length, node).toBe(levels.length - 2);
+      const meet = MEET[node] ?? 2;
+      const level2 = levels.filter((l) => l.length === 2 && l[0] === 1 && l[1] === 2).length;
+      expect(levels.filter((l) => l.length === 1 && l[0] === 0).length, node).toBe(meet);
+      expect(level2, node).toBeGreaterThanOrEqual(2);
+      expect(levels.filter((l) => l.length === 1 && l[0] === 1).length, node).toBe(levels.length - meet - level2);
     }
   });
 

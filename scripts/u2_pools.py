@@ -160,6 +160,10 @@ SPECIES: dict[str, tuple[str, bool, str, str]] = {
     "c5_ene_cation": ("[CH+]1C=CCC1", True, "fails on the sp3 CH2 groups first", "ring"),
     "cyclohexane": ("C1CCCCC1", False, "chair; no pi bonds at all", "ring"),
     "cyclohexene": ("C1=CCCCC1", False, "half chair; it fails on sp3 carbons first", "ring"),
+    # Added 23 Oct (audit section 6, level 2 items).
+    "anthracene": ("C1=CC=C2C=C3C=CC=CC3=CC2=C1", True, "flat fused rings", "system"),
+    "pentalene": ("C1=CC2=CC=CC2=C1", True, "taught as flat fused rings, as the question states", "system"),
+    "c9_anion": ("[CH-]1C=CC=CC=CC=C1", True, "taught as a flat nine ring, as the question states", "ring"),
 }
 
 # Textbook expectations, used ONLY to test the counter. Never a source of answers.
@@ -964,7 +968,7 @@ def prov(what: str, page: str, uses: list[str]) -> str:
 
 def mcq(node: str, id: str, prompt: str, options: list[tuple[str, str, str]], derived: str | None,
         correct: str, explanation: str, provenance: str, visual: dict, uses: list[str],
-        tiles: dict | None = None, brief: str | None = None, level: int = 1,
+        tiles: dict | None = None, brief: str | None = None, level: int | tuple[int, ...] = 1,
         concepts: tuple[str, ...] = ("aromaticity",)) -> None:
     lint_copy(f"{id} prompt", prompt, CAPS["prompt"])
     lint_arith(f"{id} prompt", prompt)
@@ -989,7 +993,7 @@ def mcq(node: str, id: str, prompt: str, options: list[tuple[str, str, str]], de
     ids = [o for o, _, _ in options]
     if correct in ids:
         CORRECT_INDEX.append(ids.index(correct))
-    beat = {"kind": "mcq", "id": id, "node": node, "conceptIds": list(concepts), "levels": [level], "prompt": prompt}
+    beat = {"kind": "mcq", "id": id, "node": node, "conceptIds": list(concepts), "levels": list(level) if isinstance(level, tuple) else [level], "prompt": prompt}
     if brief is not None:
         beat["brief"] = brief
     beat["correctOptionId"] = correct
@@ -1014,6 +1018,11 @@ def mcq(node: str, id: str, prompt: str, options: list[tuple[str, str, str]], de
 
 
 CLASS_RANK = {"aromatic": 0, "nonaromatic": 1, "antiaromatic": 2}
+
+# A level 2 item (23 Oct audit, section 6). It is tagged rung 1 AND rung 2:
+# lessons play rung 1 only until audit top-25 #1 lands, and every lesson item
+# must still reach the student (u2Wiring.test.ts). Test-outs read it as level 2.
+L2 = (1, 2)
 
 
 def ladder(node: str, id: str, species: list[tuple[str, str, str, str]], key: str, prompt: str, brief: str,
@@ -1183,7 +1192,7 @@ ACID_SCHEME = {
 
 
 def frost_mcq(node: str, id: str, name: str, k: int, ring_word: str, prompt: str, kinds: list[str], correct: str,
-              explanation: str, page: str, brief: str) -> None:
+              explanation: str, page: str, brief: str, level: int = 1) -> None:
     """
     Fill the Frost circle. The question draws the EMPTY circle; the options are
     three drawn fillings, so the student picks the filling they would make
@@ -1220,9 +1229,22 @@ def frost_mcq(node: str, id: str, name: str, k: int, ring_word: str, prompt: str
         node, id, prompt, options, hits[0] if len(hits) == 1 else None, correct, explanation,
         prov(f"Frost circle levels alpha + 2 beta cos(2 pi j / {k}), filled with the counter's {pi} electrons", page, [name]),
         {"kind": "structure", "figure": frost_figure(k), "name": f"Frost circle for a {k} ring, empty"},
-        [name], tiles=tiles, brief=brief,
+        [name], tiles=tiles, brief=brief, level=level,
     )
 
+
+# Labels only: a C-Br losing bromide to leave a carbocation. It names no option.
+ION_SCHEME = {
+    "bonds": [{"x1": 40.0, "y1": 42.0, "x2": 74.0, "y2": 42.0, "arrow": True}],
+    "labels": [
+        {"x": 22.0, "y": 47.0, "t": "C-Br", "size": 15},
+        {"x": 57.0, "y": 33.0, "t": "lose Br" + MINUS, "size": 10},
+        {"x": 92.0, "y": 47.0, "t": "C", "size": 15},
+        {"x": 101.0, "y": 39.0, "t": "+", "size": 14},
+        {"x": 22.0, "y": 70.0, "t": "bromide", "size": 10},
+        {"x": 94.0, "y": 70.0, "t": "cation", "size": 10},
+    ],
+}
 
 SECTORS = ["right", "upper right", "top", "upper left", "left", "lower left", "bottom", "lower right"]
 
@@ -1312,7 +1334,7 @@ BASE_OF = {"cyclopentadiene": "cp_anion", "chd13": "c6_anion", "cyclopropene": "
 
 
 # ---------------------------------------------------------------------------
-# u2-huckel (lesson): 2 meet questions at L0, 3 at rung 1
+# u2-huckel (lesson): 3 meet questions at L0, then rung 1 (two of them also L2)
 # ---------------------------------------------------------------------------
 
 def node_huckel() -> None:
@@ -1350,6 +1372,25 @@ def node_huckel() -> None:
         struct_visual("benzene", "benzene: one p orbital per carbon"),
         ["benzene"],
         brief="Each ring carbon in a C=C gives 1 electron from its p orbital.",
+        level=0,
+    )
+    # 23 Oct audit #7: Frost circles were graded three times and never taught.
+    # A worked first meeting on benzene, then the simplest graded one
+    # (cyclobutadiene, moved here from u2-annulene) before the 5 and 7 rings
+    # of u2-charged, which the map plays next.
+    groups = sorted({round(math.cos(2 * math.pi * j / 6), 6) for j in range(6)}, reverse=True)
+    sizes = [sum(1 for j in range(6) if round(math.cos(2 * math.pi * j / 6), 6) == c) for c in groups]
+    if sizes != [1, 2, 2, 1]:
+        fail(f"benzene Frost levels {sizes}, the meet copy says 1, 2, 2, 1")
+    if H("benzene")["frost"]["shell"] != "closed":
+        fail("benzene Frost circle is not a closed shell")
+    frost_mcq(
+        node, "u2-huckel-meet-frost", "benzene", 6, "benzene",
+        "Benzene's Frost circle: the hexagon point down, one level per corner. Pick its filling.",
+        ["less", "right", "more"], "b",
+        f"Worked example. Draw the ring point down inside a circle; each corner is one pi level, and corners at the same height are a matched (degenerate) pair. Benzene's six levels run 1 low, 2 matched, 2 matched, 1 high. Its {b} pi electrons fill the bottom level and the first pair: every filled level is full, a closed shell, so benzene is aromatic.",
+        OS_15_3,
+        f"Corners at the same height are a matched (degenerate) pair. Fill its {b} pi electrons from the bottom.",
         level=0,
     )
     cbd = H("cyclobutadiene")
@@ -1397,6 +1438,56 @@ def node_huckel() -> None:
         struct_visual("cot", "cyclooctatetraene, drawn flat"),
         ["cot"],
         brief="Take 2 off the count and divide by 4. A whole number passes.",
+    )
+    frost_mcq(
+        node, "u2-huckel-frost-cbd", "cyclobutadiene", 4, "cyclobutadiene",
+        "Fill the Frost circle for cyclobutadiene. Pick the right filling.",
+        ["paired", "right", "more"], "b",
+        "Four pi electrons: two in the bottom level, then one in each level of the matched pair. A half full matched pair is the Frost picture of antiaromatic, so it agrees with the count.",
+        OS_15_3,
+        "Count its pi electrons, then fill from the bottom. Matched levels take one each first.",
+    )
+    # Level 2 (23 Oct audit, section 6): a third fused ring, and a fused 4n system.
+    ant = H("anthracene")
+    ant_c = sum(1 for a in mol(SPECIES["anthracene"][0]).GetAtoms() if a.GetSymbol() == "C")
+    if ant_c != 14:
+        fail(f"anthracene: {ant_c} carbons, the copy says fourteen")
+    ant_opts = [
+        ("eighteen", "18 pi electrons, n = 4", "That counts each ring as a benzene, 6 apiece, so the four shared carbons are counted twice. Each carbon has one p orbital and gives 1, once."),
+        ("fourteen", f"{ant['pi']} pi electrons, {n_text(ant['n'])}", f"Fourteen carbons, each in one C=C, each giving 1: {ant['pi']}. Take 2 off and divide by 4: {n_text(ant['n'])}, a whole number, so the fused system is aromatic."),
+        ("ten", "10 pi electrons, n = 2", "That is naphthalene, two rings. Anthracene adds a third ring and four more carbons."),
+        ("twelve", "12 pi electrons, n = 2.5", "That misses one C=C bond. Count every carbon once; each sits in one C=C."),
+    ]
+    ant_want = f"{ant['pi']} pi electrons, {n_text(ant['n'])}"
+    ant_hits = [o for o, t, _ in ant_opts if t == ant_want]
+    mcq(
+        node, "u2-huckel-anthracene",
+        "Anthracene has three fused rings. Count its pi electrons, then find n in 4n + 2.",
+        ant_opts,
+        ant_hits[0] if len(ant_hits) == 1 else None, "fourteen",
+        f"Anthracene has {ant['pi']} pi electrons over its fourteen carbons, {n_text(ant['n'])}, so the whole fused system is aromatic, like naphthalene.",
+        prov("Huckel counter over the whole fused system", OS_15_3, ["anthracene"]),
+        struct_visual("anthracene", "anthracene"),
+        ["anthracene"],
+        brief="Count every carbon once, the shared ones included, as for naphthalene.",
+        level=L2,
+    )
+    pen = H("pentalene")
+    mcq(
+        node, "u2-huckel-pentalene",
+        "Pentalene is two fused five rings, taken as flat. Classify it.",
+        class_options("pentalene", {
+            "aromatic": f"Every carbon has a p orbital and the rings are flat, so the gate passes. But the count is {pi_of('pentalene')}, which is 4n, not 4n + 2.",
+            "antiaromatic": f"Eight carbons, four C=C bonds, {pi_of('pentalene')} pi electrons round the outside. Flat, cyclic, a p orbital everywhere and a 4n count: antiaromatic.",
+            "nonaromatic": "Nonaromatic needs a failed gate: an sp3 atom or a bent ring. Every pentalene carbon is sp2, and the question takes it as flat.",
+        }, ("aromatic", "nonaromatic", "antiaromatic")),
+        pen["klass"], "antiaromatic",
+        f"Count a fused system round the whole outside, as for naphthalene. Pentalene has {pi_of('pentalene')} pi electrons, 4n, on a flat system: antiaromatic.",
+        prov("Huckel counter over the whole fused system; planarity authored (taken as flat)", OS_15_3, ["pentalene"]),
+        struct_visual("pentalene", "pentalene"),
+        ["pentalene"],
+        brief="Count every carbon once, as for naphthalene. Then decide 4n + 2 or 4n.",
+        level=L2,
     )
 
 
@@ -1495,6 +1586,7 @@ def node_annulene() -> None:
         prov("Huckel counter: 10 pi, n = 2; planarity authored (inner H clash) decides nonaromatic", OS_15_3, ["ann10"]),
         struct_visual("ann10", "[10]annulene, drawn flat"),
         ["ann10"],
+        level=L2,
     )
     mcq(
         node, "u2-ann-18",
@@ -1595,14 +1687,6 @@ def node_annulene() -> None:
         ["benzene", "ann18", "cyclobutadiene", "naphthalene"],
         tiles=tell_tiles,
     )
-    frost_mcq(
-        node, "u2-ann-frost-cbd", "cyclobutadiene", 4, "cyclobutadiene",
-        "Fill the Frost circle for cyclobutadiene. Pick the right filling.",
-        ["paired", "right", "more"], "b",
-        "Four pi electrons: two in the bottom level, then one in each level of the matched pair. A half full matched pair is the Frost picture of antiaromatic, so it agrees with the count.",
-        OS_15_3,
-        "Count its pi electrons, then fill from the bottom. Matched levels take one each first.",
-    )
     # ROUND 2 (2026-10-17): the cards describe rings by size, shape and count instead of naming
     # molecules, because a molecule identified by name alone breaks the draw-structures rule and a
     # match board has no drawings. Every right card is derived from the counter for its ring.
@@ -1623,6 +1707,28 @@ def node_annulene() -> None:
         "Gate first (an sp3 atom or a bent ring means nonaromatic), then the count: 4n + 2 aromatic, 4n antiaromatic.",
         prov("Huckel counter for each card's ring (benzene, cyclobutadiene, COT, [18]annulene); planarity authored for COT", OS_15_3, ["benzene", "cyclobutadiene", "cot", "ann18"]),
         ["benzene", "cyclobutadiene", "cot", "ann18"],
+    )
+    # Level 2 (23 Oct audit, section 6): ring size never decides, the count does.
+    c9 = H("c9_anion")
+    c9_opts = [
+        ("eight_anti", "8 pi electrons, antiaromatic", "That leaves out the lone pair on the charged carbon. It sits in a p orbital and is counted, as in the cyclopentadienyl anion."),
+        ("nine_non", "9 pi electrons, nonaromatic", "That gives the charged carbon 1, like a C=C carbon. It holds a whole lone pair, so it gives 2."),
+        ("ten_aro", f"{c9['pi']} pi electrons, {c9['klass']}", f"Four C=C bonds give 8 and the charged carbon's lone pair, in its p orbital, gives 2: {c9['pi']}, {n_text(c9['n'])}. Ring size does not decide; the count does."),
+        ("ten_anti", f"{c9['pi']} pi electrons, antiaromatic", f"The count is right, but {c9['pi']} is 4n + 2 ({n_text(c9['n'])}), not 4n."),
+    ]
+    c9_want = f"{c9['pi']} pi electrons, {c9['klass']}"
+    c9_hits = [o for o, t, _ in c9_opts if t == c9_want]
+    mcq(
+        node, "u2-ann-c9-anion",
+        "The cyclononatetraenyl anion is a flat nine ring. Count its pi electrons and classify it.",
+        c9_opts,
+        c9_hits[0] if len(c9_hits) == 1 else None, "ten_aro",
+        f"Nine p orbitals, {c9['pi']} pi electrons, {n_text(c9['n'])}: aromatic. The same rule as benzene and the cyclopentadienyl anion, in a bigger ring.",
+        prov("Huckel counter per atom: the carbanion carbon gives 2; planarity authored (taken as flat); Frost circle agrees", OS_15_4, ["c9_anion"]),
+        struct_visual("c9_anion", "cyclononatetraenyl anion"),
+        ["c9_anion"],
+        brief="A negative ring carbon holds a lone pair. Count it, then run the 4n + 2 test.",
+        level=L2,
     )
     ladder(
         node, "u2-ann-ladder-cation",
@@ -1823,6 +1929,7 @@ def node_hetero() -> None:
         prov("Huckel counter: the N whose pair is sp2, in the plane, is the base", OS_15_5, ["imidazole"]),
         imi_visual,
         ["imidazole"],
+        level=L2,
     )
     pairs_tiles = {
         "pyrrole": smi_named(SPECIES["pyrrole"][0], "pyrrole", "u2-het-matched::pyrrole"),
@@ -1907,6 +2014,7 @@ def node_hetero() -> None:
         dhp_visual,
         ["dihydropyridine"],
         brief="Go round the ring one atom at a time. For each, ask whether it has a p orbital.",
+        level=L2,
     )
 
     def home_card(name: str, symbol: str) -> str:
@@ -2112,6 +2220,7 @@ def node_charged() -> None:
         ["cyclopentadiene", "chd13", "cycloheptatriene", "cp_anion", "c6_anion", "c7_anion"],
         tiles=acid_tiles,
         concepts=("aromaticity", "conjugate_base_stability_argument"),
+        level=L2,
     )
     mcq(
         node, "u2-chg-acid-why",
@@ -2127,6 +2236,52 @@ def node_charged() -> None:
         pair_visual(("cyclopentadiene", "cyclopentadiene"), ("cp_anion", "its conjugate base")),
         ["cyclopentadiene", "cp_anion"],
         concepts=("aromaticity", "conjugate_base_stability_argument"),
+    )
+    # Level 2 (23 Oct audit, section 6): which bromide ionises. Each cation is
+    # built from its bromide with RDKit (Br off, + on its carbon) and must be the
+    # species the lesson already classifies; the key is that cation's class.
+    def cation_of(smi: str) -> str | None:
+        rw = Chem.RWMol(mol(smi))
+        br = [a.GetIdx() for a in rw.GetAtoms() if a.GetSymbol() == "Br"]
+        if len(br) != 1:
+            return None
+        c = rw.GetAtomWithIdx(br[0]).GetNeighbors()[0]
+        c.SetFormalCharge(1)
+        c.SetNumExplicitHs(c.GetTotalNumHs())
+        c.SetNoImplicit(True)
+        rw.RemoveAtom(br[0])
+        Chem.SanitizeMol(rw)
+        got = Chem.MolToSmiles(rw)
+        hits = [nm for nm in ("tropylium", "cp_cation", "c5_ene_cation") if canon(SPECIES[nm][0]) == got]
+        return hits[0] if len(hits) == 1 else None
+
+    bromides = {
+        "c5ene": ("BrC1C=CCC1", "3-bromocyclopent-1-ene"),
+        "c7": ("BrC1C=CC=CC=C1", "7-bromocyclohepta-1,3,5-triene"),
+        "c5": ("BrC1C=CC=C1", "5-bromocyclopenta-1,3-diene"),
+    }
+    cat = {o: cation_of(smi) for o, (smi, _) in bromides.items()}
+    ranked = []
+    if None in cat.values():
+        fail(f"u2-chg-bromide: a bromide's cation is not a lesson species: {cat}")
+    else:
+        ranked = sorted((CLASS_RANK[H(nm)["klass"]], o) for o, nm in cat.items())
+    mcq(
+        node, "u2-chg-bromide",
+        "Each can lose a bromide ion to leave a ring cation. Pick the one that ionises most easily.",
+        [
+            ("c5ene", cap1(bromides["c5ene"][1]), "Losing bromide leaves an allylic cation, but the ring keeps two sp3 CH2 carbons: nonaromatic, no ring bonus either way."),
+            ("c7", cap1(bromides["c7"][1]), f"Losing bromide leaves tropylium: {pi_of('tropylium')} pi electrons on seven p orbitals, aromatic. The most stable cation forms most easily."),
+            ("c5", cap1(bromides["c5"][1]), f"Losing bromide leaves the cyclopentadienyl cation: {pi_of('cp_cation')} pi electrons in a flat ring, antiaromatic. That cation is the hardest to form."),
+        ],
+        ranked[0][1] if len(ranked) == 3 and ranked[0][0] != ranked[1][0] else None, "c7",
+        "Judge each bromide by the cation it leaves, as acidity is judged by the base: aromatic beats nonaromatic, and nonaromatic beats antiaromatic. Only the seven ring leaves an aromatic cation, tropylium.",
+        prov("counter class of the cation each bromide leaves (built with RDKit), ranked aromatic > nonaromatic > antiaromatic; no rate typed", OS_15_4, ["tropylium", "cp_cation", "c5_ene_cation"]),
+        {"kind": "structure", "figure": ION_SCHEME, "name": "judge the bromide by the cation it leaves"},
+        ["tropylium", "cp_cation", "c5_ene_cation"],
+        tiles={o: smi_named(smi, nm, f"u2-chg-bromide::{o}") for o, (smi, nm) in bromides.items()},
+        brief="Take Br off each ring and classify the cation that is left.",
+        level=L2,
     )
     ladder(
         node, "u2-chg-ladder-anion",
@@ -2306,6 +2461,62 @@ def node_nmr() -> None:
         pair_visual(("cot", "cyclooctatetraene"), ("benzene", "benzene")),
         ["cot", "benzene"],
         concepts=conc,
+    )
+    # Level 2 (23 Oct audit, section 6): two ideas at once, read off the table.
+    def bands(name: str) -> set:
+        out = {h_class(name, "all")}
+        if h_class(name, "inner"):
+            out.add("inner")
+        return out
+
+    both = {"bz": "benzene", "cot": "cot", "ann18": "ann18", "ane": "cyclohexane"}
+    if any(None in bands(nm) for nm in both.values()):
+        fail("u2-nmr-both-ends: an option sits outside the teaching table")
+    both_hits = [o for o, nm in both.items() if {"aromatic", "inner"} <= bands(nm)]
+    mcq(
+        node, "u2-nmr-both-ends",
+        "Pick the ring whose spectrum shows H both above 6.5 ppm and below 0 ppm.",
+        [
+            ("bz", "Benzene", f"Benzene's H all sit outside its ring, {SHIFT_RANGE['aromatic']}. It has no H inside to be shielded."),
+            ("cot", "Cyclooctatetraene", f"COT is a nonaromatic tub with no ring current. Its H sit in the vinylic band, {SHIFT_RANGE['vinylic']}."),
+            ("ane", "Cyclohexane", f"No pi bonds, no ring current: alkyl H, {SHIFT_RANGE['alkyl']}."),
+            ("ann18", "[18]Annulene", f"Its outer H are deshielded, {SHIFT_RANGE['aromatic']}, and its inner H are shielded, {SHIFT_RANGE['inner']}. Both ends need a ring current and H inside the ring."),
+        ],
+        both_hits[0] if len(both_hits) == 1 else None, "ann18",
+        "One ring current does both: it deshields the H outside an aromatic ring and shields the H inside. [18]Annulene has H in both places.",
+        prov("NMR teaching table; inner H list authored", OS_15_7, ["benzene", "cot", "ann18", "cyclohexane"]),
+        {"kind": "structure", "figure": ppm_scale(), "name": "the ppm scale: more shielded is further right"},
+        ["benzene", "cot", "ann18", "cyclohexane"],
+        tiles={
+            "bz": named("benzene", "benzene"),
+            "cot": named("cot", "cyclooctatetraene"),
+            "ane": named("cyclohexane", "cyclohexane"),
+            "ann18": named("ann18", "[18]annulene"),
+        },
+        level=L2, concepts=conc,
+    )
+    band = {"thi": ("thiophene", "all"), "dhf": ("dihydrofuran", "vinylic"), "cot": ("cot", "all"), "chd": ("chd13", "vinylic")}
+    mcq(
+        node, "u2-nmr-thiophene",
+        "Pick the ring whose C=C H show up in the aromatic band, 6.5 to 8 ppm.",
+        [
+            ("dhf", "2,3-Dihydrofuran", f"Its C=C H are vinylic, {SHIFT_RANGE['vinylic']}. The two sp3 CH2 carbons break the loop, so there is no ring current."),
+            ("thi", "Thiophene", f"Thiophene is aromatic: {pi_of('thiophene')} pi electrons, one S pair included. Its ring current pushes its H to {SHIFT_RANGE['aromatic']}."),
+            ("cot", "Cyclooctatetraene", "A nonaromatic tub: no ring current, so its H stay in the vinylic band."),
+            ("chd", "Cyclohexa-1,3-diene", f"Two sp3 CH2 carbons break the loop. Its C=C H are vinylic, {SHIFT_RANGE['vinylic']}."),
+        ],
+        most(band, "downfield"), "thi",
+        "Classify the ring first, then read the band. Only an aromatic ring has a ring current, and only its H reach the aromatic band. Thiophene is aromatic; the other three are not.",
+        prov("NMR teaching table, environments classified with the Huckel counter", OS_15_7, ["thiophene", "dihydrofuran", "cot", "chd13"]),
+        {"kind": "structure", "figure": ppm_scale(), "name": "the ppm scale: more shielded is further right"},
+        ["thiophene", "dihydrofuran", "cot", "chd13"],
+        tiles={
+            "dhf": smi_named(SPECIES["dihydrofuran"][0], "2,3-dihydrofuran", "u2-nmr-thiophene::dhf"),
+            "thi": named("thiophene", "thiophene"),
+            "cot": named("cot", "cyclooctatetraene"),
+            "chd": smi_named(SPECIES["chd13"][0], "cyclohexa-1,3-diene", "u2-nmr-thiophene::chd"),
+        },
+        level=L2, concepts=conc,
     )
 
 
