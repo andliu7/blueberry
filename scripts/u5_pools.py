@@ -1331,6 +1331,8 @@ LG = ("conjugate_base_stability_argument",)
 REARR = ("carbocation_rearrangement",)
 OXL = ("oxidation_state_ladder",)
 GEOM = ("anti_addition_geometry",)
+# Epoxidation and OsO4 add both new bonds to one face (audit 23 Oct 2b): tagged syn, not anti.
+SYN = ("syn_addition_geometry",)
 PROTECT = ("protecting_group_strategy",)
 DEPROT = ("pka_keq_viability",)
 
@@ -1401,7 +1403,7 @@ def node_roh_rx() -> None:
               "with excess halide the cation is trapped by substitution, not elimination"),
          lead(s, "3-methylbutan-2-ol", "3-methylbutan-2-ol + HBr"), level=2, concepts=REARR)
 
-    pick(node, "u5-rx-noshift", "3-Methylbutan-2-ol meets PBr₃ instead. Pick the product.",
+    pick(node, "u5-rx-noshift", "3-Methylbutan-2-ol meets PBr₃. Pick the product.",
          [("plain", plain, "2-bromo-3-methylbutane", "2-Bromo-3-methylbutane",
            "PBr₃ never makes a cation. Bromide displaces the activated oxygen at C2, so the skeleton stays as drawn."),
           ("shift", shifted_p, "2-bromo-2-methylbutane", "2-Bromo-2-methylbutane",
@@ -1481,7 +1483,7 @@ def node_tosylate() -> None:
 
     c, o = tosylate_atoms(ots)
     cn_inv, cn_ret = sn2_3d(ots, c, o, "C#N"), sn2_3d(ots, c, o, "C#N", invert=False)
-    pick(node, "u5-ts-cyanide", "That (R) tosylate meets NaCN in DMSO. Pick the product.",
+    pick(node, "u5-ts-cyanide", "(R)-Butan-2-yl tosylate meets NaCN in DMSO. Pick the product.",
          [("inv", cn_inv, "(2S)-2-methylbutanenitrile", "(S)-2-Methylbutanenitrile",
            "Cyanide attacks behind the C-OTs bond and tosylate leaves: SN2 at a secondary carbon, with inversion."),
           ("ret", cn_ret, "(2R)-2-methylbutanenitrile", "(R)-2-Methylbutanenitrile",
@@ -1846,7 +1848,7 @@ def node_protecting() -> None:
          prov("Rule P: O-H becomes O-Si, the C-O bond is kept", PROT),
          lead(s, "butan-1-ol", "butan-1-ol + TBSCl, imidazole"), level=0, concepts=PROTECT)
 
-    pick(node, "u5-pg-tbaf", "That TBS ether meets TBAF. Pick the organic product.",
+    pick(node, "u5-pg-tbaf", "The TBS ether of butan-1-ol meets TBAF. Pick the organic product.",
          [("oh", silyl_off(tbs), "butan-1-ol", "Butan-1-ol",
            "Fluoride attacks silicon and the Si-O bond breaks. The alcohol comes back unchanged."),
           ("f", "CCCCF", "1-fluorobutane", "1-Fluorobutane",
@@ -1943,7 +1945,7 @@ def node_epoxidation() -> None:
          ep, "ep",
          "A peracid turns a C=C into an epoxide in one step.",
          prov("O placed on one face of the C=C in 3D, both faces run, configuration read back", ALK),
-         lead(s, "cyclohexene", "cyclohexene + mCPBA"), level=0, concepts=GEOM)
+         lead(s, "cyclohexene", "cyclohexene + mCPBA"), level=0, concepts=SYN)
 
     z, e = add_across(S["zbut"], "epoxide"), add_across(S["ebut"], "epoxide")
     pick(node, "u5-ep-cis", "(Z)-But-2-ene meets mCPBA. Pick the product.",
@@ -1956,7 +1958,7 @@ def node_epoxidation() -> None:
          z, "cis",
          "Epoxidation is stereospecific: cis alkene, cis epoxide.",
          prov("O placed on each face of the (Z) alkene in 3D; meso read back by comparing mirror images", ALK),
-         lead(S["zbut"], "(Z)-but-2-ene", "(Z)-but-2-ene + mCPBA"), concepts=GEOM)
+         lead(S["zbut"], "(Z)-but-2-ene", "(Z)-but-2-ene + mCPBA"), concepts=SYN)
 
     pick(node, "u5-ep-trans", "(E)-But-2-ene meets mCPBA. Pick the product (it forms with its mirror image).",
          [("trans", e[0], cip_name(e[0], "2,3-dimethyloxirane", ("2", "3")), "trans-2,3-Dimethyloxirane",
@@ -1968,7 +1970,7 @@ def node_epoxidation() -> None:
          e, "trans",
          "Trans in, trans out, as a pair of enantiomers.",
          prov("O placed on each face of the (E) alkene in 3D; two enantiomers read back", ALK),
-         lead(S["ebut"], "(E)-but-2-ene", "(E)-but-2-ene + mCPBA"), concepts=GEOM)
+         lead(S["ebut"], "(E)-but-2-ene", "(E)-but-2-ene + mCPBA"), concepts=SYN)
 
     s = S["mecyhexene"]
     ep = add_across(s, "epoxide")
@@ -1982,7 +1984,7 @@ def node_epoxidation() -> None:
          ep, "ep",
          "Trisubstituted or not, the C=C becomes an epoxide in place.",
          prov("O placed on each face of the C=C in 3D", ALK),
-         lead(s, "1-methylcyclohex-1-ene", "1-methylcyclohexene + mCPBA"), concepts=GEOM)
+         lead(s, "1-methylcyclohex-1-ene", "1-methylcyclohexene + mCPBA"), concepts=SYN)
 
     s = "OC1CCCCC1Br"
     o = match_one(s, "[OX2H]")[0]
@@ -2032,7 +2034,7 @@ def node_epoxidation() -> None:
          "With a choice of alkenes, the peracid picks the most substituted one.",
          prov("each C=C counted for carbon substituents, the epoxide built on the higher count", EPX,
               "a more substituted alkene reacts faster with a peracid"),
-         lead(s, "1-methyl-4-(prop-1-en-2-yl)cyclohex-1-ene", "limonene + mCPBA (one equivalent)"), level=2, concepts=GEOM)
+         lead(s, "1-methyl-4-(prop-1-en-2-yl)cyclohex-1-ene", "limonene + mCPBA (one equivalent)"), level=2, concepts=SYN)
 
 
 # ---------------------------------------------------------------------------
@@ -2279,7 +2281,7 @@ def node_syn_diol() -> None:
          syn, "cis",
          "OsO₄ is syn dihydroxylation: both OH on one face.",
          prov("two OH placed on one face of the C=C in 3D, both faces run, configuration read back", ALK),
-         lead(s, "cyclohexene", "cyclohexene + OsO₄, NMO"), level=0, concepts=GEOM)
+         lead(s, "cyclohexene", "cyclohexene + OsO₄, NMO"), level=0, concepts=SYN)
 
     zs, es = add_across(S["zbut"], "syn"), add_across(S["ebut"], "syn")
     pick(node, "u5-sd-z", "(Z)-But-2-ene meets OsO₄, then NMO. Pick the product.",
@@ -2292,7 +2294,7 @@ def node_syn_diol() -> None:
          zs, "meso",
          "cis alkene plus syn addition gives meso.",
          prov("syn OH placement on the (Z) alkene in 3D; meso read back by comparing mirror images", ALK),
-         lead(S["zbut"], "(Z)-but-2-ene", "(Z)-but-2-ene + OsO₄"), concepts=GEOM)
+         lead(S["zbut"], "(Z)-but-2-ene", "(Z)-but-2-ene + OsO₄"), concepts=SYN)
 
     pick(node, "u5-sd-e", "(E)-But-2-ene meets OsO₄, then NMO. Pick a product (its mirror image forms too).",
          [("chiral", es[0], "(2R,3R)-butane-2,3-diol", "(2R,3R)-Butane-2,3-diol",
@@ -2304,7 +2306,7 @@ def node_syn_diol() -> None:
          es, "chiral",
          "trans alkene plus syn addition gives the racemic pair.",
          prov("syn OH placement on the (E) alkene in 3D, two enantiomers read back", ALK),
-         lead(S["ebut"], "(E)-but-2-ene", "(E)-but-2-ene + OsO₄"), concepts=GEOM)
+         lead(S["ebut"], "(E)-but-2-ene", "(E)-but-2-ene + OsO₄"), concepts=SYN)
 
     s = S["mecyhexene"]
     syn, anti = add_across(s, "syn"), add_across(s, "anti")
@@ -2318,7 +2320,7 @@ def node_syn_diol() -> None:
          syn, "cis",
          "Cold dilute KMnO₄ and OsO₄ are the same reaction type: syn dihydroxylation.",
          prov("syn OH placement in 3D, configuration read back", ALK, "cold dilute basic KMnO4 stops at the cis diol"),
-         lead(s, "1-methylcyclohex-1-ene", "1-methylcyclohexene + cold KMnO₄"), concepts=GEOM)
+         lead(s, "1-methylcyclohex-1-ene", "1-methylcyclohexene + cold KMnO₄"), concepts=SYN)
 
     for oid, alk, label in (("u5-sd-set-z", S["zbut"], "(Z)"), ("u5-sd-set-e", S["ebut"], "(E)")):
         got = describe_set(add_across(alk, "syn"))
@@ -2336,7 +2338,7 @@ def node_syn_diol() -> None:
             "Pair the alkene geometry with the addition mode: cis with syn, or trans with anti, gives meso.",
             prov("both faces run in 3D; meso or enantiomer pair read back by comparing mirror images", ALK),
             lead(alk, f"{label}-but-2-ene", f"{label}-but-2-ene + OsO₄"),
-            level=2, concepts=GEOM)
+            level=2, concepts=SYN)
 
 
 def node_anti_diol() -> None:
@@ -2421,7 +2423,7 @@ def node_anti_diol() -> None:
         same[0] if len(same) == 1 else None, "match",
         "Flip the alkene geometry and flip the mode, and the product comes out the same.",
         prov("product sets from the four routes built in 3D and compared", ALK),
-        lead(S["zbut"], "(Z)-but-2-ene", "but-2-ene, four routes"), level=2, concepts=GEOM)
+        lead(S["zbut"], "(Z)-but-2-ene", "but-2-ene, four routes"), level=2, concepts=GEOM + SYN)
 
 
 
@@ -2675,7 +2677,7 @@ def node_alkoxymerc() -> None:
          prov("Rule M without a shift (mercurinium bridge)", ETH, "the mercurinium ion does not rearrange"),
          lead(s, "3,3-dimethylbut-1-ene", "3,3-dimethylbut-1-ene, Hg(OAc)₂, CH₃OH"), level=2, concepts=REARR)
 
-    pick(node, "u5-am-acid", "3,3-Dimethylbut-1-ene with CH₃OH and H₂SO₄ instead. Pick the major product.",
+    pick(node, "u5-am-acid", "3,3-Dimethylbut-1-ene meets CH₃OH with H₂SO₄. Pick the major product.",
          [("shift", acid, "2-methoxy-2,3-dimethylbutane", "2-Methoxy-2,3-dimethylbutane",
            "Acid makes a free secondary cation next to a carbon with three methyls. A methyl shifts to make it tertiary, then methanol bonds."),
           ("plain", hg, "2-methoxy-3,3-dimethylbutane", "2-Methoxy-3,3-dimethylbutane",

@@ -183,6 +183,7 @@ export type ConceptId =
   | "resonance_delocalisation"
   | "carbocation_rearrangement"
   | "anti_addition_geometry"
+  | "syn_addition_geometry"
   | "protecting_group_strategy"
   | "acyl_reactivity_ladder"
   | "oxidation_state_ladder"
@@ -682,6 +683,14 @@ export const CONCEPTS: Readonly<Record<ConceptId, ConceptDefinition>> = Object.f
   anti_addition_geometry: Object.freeze({
     id: "anti_addition_geometry",
     label: "Anti addition, and what it does to the product stereochemistry",
+    introducedIn: "epoxides",
+    reusedIn: Object.freeze(["alkene_addition", "oxidation_and_reduction_ladder"] as const),
+  }),
+  // Added 2026-10-23 (content audit 2b): epoxidation and OsO4 dihydroxylation
+  // add both new bonds to one face, so tagging them anti lumped the two together.
+  syn_addition_geometry: Object.freeze({
+    id: "syn_addition_geometry",
+    label: "Syn addition, and what it does to the product stereochemistry",
     introducedIn: "epoxides",
     reusedIn: Object.freeze(["alkene_addition", "oxidation_and_reduction_ladder"] as const),
   }),

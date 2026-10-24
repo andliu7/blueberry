@@ -314,7 +314,7 @@ export const U5_POOLS: UnitPools = {
           "levels": [
             2
           ],
-          "prompt": "3-Methylbutan-2-ol meets PBr₃ instead. Pick the product.",
+          "prompt": "3-Methylbutan-2-ol meets PBr₃. Pick the product.",
           "correctOptionId": "plain",
           "options": [
             {
@@ -516,7 +516,7 @@ export const U5_POOLS: UnitPools = {
           "levels": [
             1
           ],
-          "prompt": "That (R) tosylate meets NaCN in DMSO. Pick the product.",
+          "prompt": "(R)-Butan-2-yl tosylate meets NaCN in DMSO. Pick the product.",
           "correctOptionId": "inv",
           "options": [
             {
@@ -1460,7 +1460,7 @@ export const U5_POOLS: UnitPools = {
           "levels": [
             1
           ],
-          "prompt": "That TBS ether meets TBAF. Pick the organic product.",
+          "prompt": "The TBS ether of butan-1-ol meets TBAF. Pick the organic product.",
           "correctOptionId": "oh",
           "options": [
             {
@@ -1691,7 +1691,7 @@ export const U5_POOLS: UnitPools = {
           "id": "u5-ep-meet",
           "node": "u5-epoxidation",
           "conceptIds": [
-            "anti_addition_geometry"
+            "syn_addition_geometry"
           ],
           "levels": [
             0
@@ -1730,7 +1730,7 @@ export const U5_POOLS: UnitPools = {
           "id": "u5-ep-cis",
           "node": "u5-epoxidation",
           "conceptIds": [
-            "anti_addition_geometry"
+            "syn_addition_geometry"
           ],
           "levels": [
             1
@@ -1769,7 +1769,7 @@ export const U5_POOLS: UnitPools = {
           "id": "u5-ep-trans",
           "node": "u5-epoxidation",
           "conceptIds": [
-            "anti_addition_geometry"
+            "syn_addition_geometry"
           ],
           "levels": [
             1
@@ -1808,7 +1808,7 @@ export const U5_POOLS: UnitPools = {
           "id": "u5-ep-methyl",
           "node": "u5-epoxidation",
           "conceptIds": [
-            "anti_addition_geometry"
+            "syn_addition_geometry"
           ],
           "levels": [
             1
@@ -1886,7 +1886,7 @@ export const U5_POOLS: UnitPools = {
           "id": "u5-ep-select",
           "node": "u5-epoxidation",
           "conceptIds": [
-            "anti_addition_geometry"
+            "syn_addition_geometry"
           ],
           "levels": [
             2
@@ -2438,7 +2438,7 @@ export const U5_POOLS: UnitPools = {
           "id": "u5-sd-meet",
           "node": "u5-syn-diol",
           "conceptIds": [
-            "anti_addition_geometry"
+            "syn_addition_geometry"
           ],
           "levels": [
             0
@@ -2477,7 +2477,7 @@ export const U5_POOLS: UnitPools = {
           "id": "u5-sd-z",
           "node": "u5-syn-diol",
           "conceptIds": [
-            "anti_addition_geometry"
+            "syn_addition_geometry"
           ],
           "levels": [
             1
@@ -2516,7 +2516,7 @@ export const U5_POOLS: UnitPools = {
           "id": "u5-sd-e",
           "node": "u5-syn-diol",
           "conceptIds": [
-            "anti_addition_geometry"
+            "syn_addition_geometry"
           ],
           "levels": [
             1
@@ -2555,7 +2555,7 @@ export const U5_POOLS: UnitPools = {
           "id": "u5-sd-kmno4",
           "node": "u5-syn-diol",
           "conceptIds": [
-            "anti_addition_geometry"
+            "syn_addition_geometry"
           ],
           "levels": [
             1
@@ -2594,7 +2594,7 @@ export const U5_POOLS: UnitPools = {
           "id": "u5-sd-set-z",
           "node": "u5-syn-diol",
           "conceptIds": [
-            "anti_addition_geometry"
+            "syn_addition_geometry"
           ],
           "levels": [
             2
@@ -2633,7 +2633,7 @@ export const U5_POOLS: UnitPools = {
           "id": "u5-sd-set-e",
           "node": "u5-syn-diol",
           "conceptIds": [
-            "anti_addition_geometry"
+            "syn_addition_geometry"
           ],
           "levels": [
             2
@@ -2869,7 +2869,8 @@ export const U5_POOLS: UnitPools = {
           "id": "u5-ad-same",
           "node": "u5-anti-diol",
           "conceptIds": [
-            "anti_addition_geometry"
+            "anti_addition_geometry",
+            "syn_addition_geometry"
           ],
           "levels": [
             2
@@ -3543,7 +3544,7 @@ export const U5_POOLS: UnitPools = {
           "levels": [
             2
           ],
-          "prompt": "3,3-Dimethylbut-1-ene with CH₃OH and H₂SO₄ instead. Pick the major product.",
+          "prompt": "3,3-Dimethylbut-1-ene meets CH₃OH with H₂SO₄. Pick the major product.",
           "correctOptionId": "shift",
           "options": [
             {
