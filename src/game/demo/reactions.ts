@@ -2338,6 +2338,33 @@ export const TRAINER_REACTIONS: readonly TrainerReaction[] = [
       cn: { x: 2.05, y: 0.05 },
     },
   },
+  // u10-amide-red (audit 23 Oct, 2a #12): the same hydride-onto-iminium step as
+  // reductive amination, told as the second LiAlH₄ hydride of an amide reduction.
+  // That an iminium forms after the O leaves as an aluminate is the textbook
+  // account (OpenStax ch. 21), not something RDKit checks.
+  {
+    id: "amide-iminium-reduction",
+    title: "Amide reduction, second hydride",
+    brief: "LiAlH₄ delivers the second hydride to the iminium carbon.",
+    successLine: "Once the oxygen has left as an aluminate, an iminium is left. A second hydride from LiAlH₄ lands on its carbon, so the C=O ends as CH₂ and the C-N bond stays.",
+    step: IMINIUM_REDUCTION,
+    fromHints: {
+      h9: { x: -1.35, y: -0.35 },
+      cf: { x: 0, y: 0 },
+      hf1: { x: -0.35, y: 0.94 },
+      hf2: { x: 0.55, y: -0.9 },
+      nm: { x: 1.05, y: 0.45 },
+      cn: { x: 2.05, y: 0.05 },
+    },
+    toHints: {
+      h9: { x: -0.85, y: -0.3 },
+      cf: { x: 0, y: 0 },
+      hf1: { x: -0.35, y: 0.94 },
+      hf2: { x: 0.55, y: -0.9 },
+      nm: { x: 1.05, y: 0.45 },
+      cn: { x: 2.05, y: 0.05 },
+    },
+  },
   {
     id: "dibal-ester",
     title: "DIBAL-H, the deliberate stop",

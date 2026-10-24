@@ -329,6 +329,33 @@ const STAGES: readonly GuideStage[] = [
         example: { source: "u10-no-meet", quote: "Both O atoms leave and the N gains two H. The ring stays aromatic." },
       },
       {
+        node: "u10-acyl-protect",
+        ideas: [
+          {
+            text: "Protection works by sharing the lone pair, not removing it.",
+            mark: "sharing the lone pair",
+            source: "u10-ap-why",
+            quote: "Protection works by sharing the lone pair, not removing it.",
+          },
+          {
+            text: "Free aniline is too activated to stop at one Br.",
+            source: "u10-ap-over",
+            quote: "Free aniline is too activated to stop at one Br.",
+          },
+          {
+            text: "Protected aniline brominates once, para.",
+            source: "u10-ap-para",
+            quote: "Protected aniline brominates once, para.",
+          },
+          {
+            text: "Protect, react, deprotect.",
+            source: "u10-ap-route",
+            quote: "Protect, react, deprotect.",
+          },
+        ],
+        example: { source: "u10-ap-para", quote: "Protected aniline brominates once, para." },
+      },
+      {
         node: "u10-diazonium",
         ideas: [
           {
@@ -393,33 +420,6 @@ const STAGES: readonly GuideStage[] = [
           },
         ],
         example: { source: "u10-az2-meet", quote: "The N=N link joins two rings: an azo dye." },
-      },
-      {
-        node: "u10-acyl-protect",
-        ideas: [
-          {
-            text: "Protection works by sharing the lone pair, not removing it.",
-            mark: "sharing the lone pair",
-            source: "u10-ap-why",
-            quote: "Protection works by sharing the lone pair, not removing it.",
-          },
-          {
-            text: "Free aniline is too activated to stop at one Br.",
-            source: "u10-ap-over",
-            quote: "Free aniline is too activated to stop at one Br.",
-          },
-          {
-            text: "Protected aniline brominates once, para.",
-            source: "u10-ap-para",
-            quote: "Protected aniline brominates once, para.",
-          },
-          {
-            text: "Protect, react, deprotect.",
-            source: "u10-ap-route",
-            quote: "Protect, react, deprotect.",
-          },
-        ],
-        example: { source: "u10-ap-para", quote: "Protected aniline brominates once, para." },
       },
     ],
     mistakes: [
