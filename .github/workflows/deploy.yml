@@ -65,6 +65,9 @@ jobs:
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
           VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
           VITE_APPS_SCRIPT_ENDPOINT: ${{ secrets.VITE_APPS_SCRIPT_ENDPOINT }}
+          # AdSense ids (public). Unset secrets build as empty, which means no ads.
+          VITE_ADSENSE_CLIENT: ${{ secrets.VITE_ADSENSE_CLIENT }}
+          VITE_ADSENSE_SLOT: ${{ secrets.VITE_ADSENSE_SLOT }}
 
       # The gate (owner 2026-10-20: tests now, budgets later). It runs after the
       # build because the engine packages load from their compiled dist/. A

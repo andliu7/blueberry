@@ -126,6 +126,7 @@ import { SavedRing } from "../../resume/SavedRing";
 import { hasUnitGuide, loadUnitGuide, unitGuideFor, type LessonDoor } from "../../guide";
 import { guideInHash } from "../../guide/guideLink";
 import { plural } from "@/lib/helpers";
+import { AdSlot } from "@/components/ads/AdSlot";
 
 /*
  * Both guidebooks load when first opened, not with the path (owner,
@@ -2424,7 +2425,9 @@ function OrgoMapTrack({
                 ? "ready"
                 : "locked";
           return (
-            <div key={section.number} className="path-section mx-auto flex w-full max-w-md flex-col" role="group" aria-labelledby={headingId}>
+            // A keyed Fragment groups the section with the ad after it without adding a wrapper div.
+            <Fragment key={section.number}>
+            <div className="path-section mx-auto flex w-full max-w-md flex-col" role="group" aria-labelledby={headingId}>
               <SectionDivider id={headingId} eyebrow={`Section ${section.number}`} title={section.title} />
               <RoadLine version={roadVersion} glow={reducedMotion ? null : glow} />
               <ol className="path-track flex w-full flex-col">
@@ -2443,6 +2446,9 @@ function OrgoMapTrack({
                 ) : null}
               </ol>
             </div>
+            {/* One ad slot per unit, between its first two sections, never on the road itself (owner G4). */}
+            {section === sections[0] && sections.length >= 2 ? <AdSlot placement="path" /> : null}
+            </Fragment>
           );
         })}
 

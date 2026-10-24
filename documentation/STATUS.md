@@ -259,6 +259,33 @@ Sign-in, Pro, paywalls, ads (owner, 23 Oct)
   the game today; confirm or trim the card. (2) pro_interest collects who asked; nothing emails
   them yet: say whether Pro opening should be an email or only the in-app sheet.
 - G4 Ads from a real ad network, easy to remove (Pro removes them), consent first.
+  DONE 23 Oct, OFF by default: Google AdSense slots (src/components/ads/, src/lib/ads/). With
+  VITE_ADSENSE_CLIENT or VITE_ADSENSE_SLOT empty (today) there are no ads, no consent prompt, and
+  the ad chunk is never fetched. With both set: one slot per unit between its first two path
+  sections, one on the feed under "Your activity", one at the foot of Home and FAQ; never in a
+  lesson, quiz, test-out, review, sign-in, the funnel, checkout or the admin viewer (pinned by
+  adPlacement.test.ts). Each slot asks first ("Allow ads" / "No thanks"); Google's script loads
+  only after "Allow ads", never for a Pro account, never while Pro is still being checked
+  (adSlot.test.ts). "No thanks" leaves one line, "Ads are off. Remove ads with Pro". "Ad choices"
+  (in each slot, and in the site footer when ads are on) forgets the answer. The answer is per
+  device (localStorage blueberry.adConsent). The consent card copy is a DRAFT for the owner.
+  Payload +0.3 KB (#/app first open 399.9 KB of 400; 399.6 without ads, the rest is the tree's
+  other uncommitted work). Owner steps: (1) create an AdSense account and add the site; decide
+  github.io versus a custom domain (AdSense wants a domain you control, see (4)). (2) Create ONE
+  responsive Display ad unit; leave Auto ads OFF. (3) Set repo secrets VITE_ADSENSE_CLIENT=ca-pub-...
+  and VITE_ADSENSE_SLOT=<unit id> (deploy.yml already reads them), then redeploy. (4) Publish
+  ads.txt at the DOMAIN root with Google's line `google.com, pub-<your id>, DIRECT,
+  f08c47fec0942fa0`, copied from the AdSense ads.txt page, not typed. (5) Write a privacy policy
+  page (Terms has no privacy section today). AdSense requires it to say, in your own words: third
+  party vendors including Google use cookies to serve ads based on a user's prior visits; Google's
+  advertising cookies let it and its partners serve ads based on visits to this and other sites;
+  users can opt out of personalised ads at Google's Ads Settings; and a link to Google's "How
+  Google uses information from sites or apps that use our services". Also say Blueberry asks
+  before loading any ad code and that Pro removes ads. (6) Decide on EEA/UK: Google requires a
+  certified consent platform (CMP) there; the in-site prompt is not one. Until decided, either
+  keep ads off or restrict serving to non-EEA/UK regions in AdSense. Manual check still to do
+  with real ids: DevTools Network shows no pagead2 request before "Allow ads", none for Pro,
+  none inside a lesson.
 
 **Progress, 22 Oct (Wave 3 item 12 = evening brief items 1+2: test-outs)**
 - Every section chest of units 1-10 offers a test-out (10 to 15 questions, longer each section);

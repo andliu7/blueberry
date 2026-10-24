@@ -82,6 +82,7 @@ import { PATHWAY_UNITS, pathwayNode } from "../../demo/pathwayMap";
 import { browserStorage, hasSavedLesson } from "../../resume/lessonSave";
 import { firstNameOf } from "@/lib/accountName";
 import { rememberReturn } from "@/lib/returnTo";
+import { AdSlot } from "@/components/ads/AdSlot";
 import { useStudyState } from "../social/useStudyState";
 import "../social/social.css";
 import { activityFeed, type ActivityItem, type ActivityKind } from "./activityModel";
@@ -744,6 +745,8 @@ export default function FeedTab() {
               </ol>
             </section>
           )}
+
+          <AdSlot placement="feed" />
 
           <section aria-label={`Daily quests, ${questsDone} of ${quests.length} done`} className="flex flex-col gap-3">
             <QuestsHeader done={questsDone} total={quests.length} />

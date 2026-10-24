@@ -26,6 +26,9 @@ interface ImportMetaEnv {
   readonly VITE_FEEDBACK_ENDPOINT?: string;
   readonly VITE_CONTACT_ENDPOINT?: string;
   readonly VITE_DECKS_ENDPOINT?: string;
+  /** AdSense publisher id (ca-pub-...) and one ad unit id. Public. Either empty = no ads. */
+  readonly VITE_ADSENSE_CLIENT?: string;
+  readonly VITE_ADSENSE_SLOT?: string;
 }
 
 interface ImportMeta {

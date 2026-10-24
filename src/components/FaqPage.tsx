@@ -1,3 +1,4 @@
+import { AdSlot } from "@/components/ads/AdSlot";
 import SlitTypeFaq, { type FaqItem } from "@/components/ui/slit-type-faq";
 
 /**
@@ -152,6 +153,7 @@ export function FaqPage() {
           textFont={SYSTEM_FONT}
         />
       </div>
+      <AdSlot placement="site" />
     </main>
   );
 }

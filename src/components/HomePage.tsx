@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useRef, useState, type ComponentType, type RefObject } from "react";
 import { HomeHero } from "@/components/HomeHero";
 import { HomeLoader } from "@/components/HomeLoader";
+import { AdSlot } from "@/components/ads/AdSlot";
 import { hasSeenIntro, markIntroSeen } from "@/lib/intro";
 import "./home.css";
 
@@ -104,6 +105,7 @@ export function HomePage() {
       <PhoneDemoSlot />
       <SculptureSlot Sculpture={LiquidSculpture} />
       <SectionsSlot />
+      <AdSlot placement="site" />
       {HomeNewsletter && new URLSearchParams(window.location.search).has("newsletter") && (
         <Suspense fallback={null}>
           <HomeNewsletter onSubscribe={previewSubscribe} />

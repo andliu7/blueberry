@@ -1,0 +1,84 @@
+/* Ad slots (AdSlotBody.tsx). Global tokens from src/tokens.css, so the same card reads on the
+   site and in the game, in both themes. Quiet on purpose: an ad never outshouts the lesson. */
+
+.bb-ad {
+  width: 100%;
+  max-width: 28rem;
+  margin: 1.25rem auto;
+  color: var(--bb-deep);
+  font-size: 0.875rem;
+}
+
+.bb-ad--ask,
+.bb-ad--unit {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  border: 1px solid var(--site-border);
+  border-radius: 1.15rem;
+  background: var(--bb-sheet);
+  padding: 0.9rem;
+}
+
+.bb-ad--off {
+  text-align: center;
+  color: var(--site-quiet);
+}
+
+.bb-ad__text {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.bb-ad__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.bb-ad__btn {
+  min-height: 2.75rem;
+  padding: 0 1rem;
+  border: 2px solid var(--site-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--bb-deep);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.bb-ad__btn--yes {
+  border-color: var(--site-edge);
+  background: var(--bb-wash);
+}
+
+.bb-ad__pro,
+.bb-ad__choices {
+  color: var(--bb-blue-ink);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.bb-ad__choices {
+  border: 0;
+  background: none;
+  padding: 0;
+  font-size: inherit;
+  cursor: pointer;
+}
+
+.bb-ad__label {
+  color: var(--site-quiet);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.bb-ad__foot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem;
+}

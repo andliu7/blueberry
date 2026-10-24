@@ -7,6 +7,8 @@ import { FIND_ME_EMAIL, GITHUB_URL, LINKEDIN_URL, REPO_URL, SITE_NAME } from "@/
 import { SITE_CONTAINER } from "@/components/ui/site-nav";
 import { isReducedMotion } from "@/lib/motionPref";
 import { cn } from "@/lib/utils";
+import { adsEnabled } from "@/lib/ads/adsConfig";
+import { clearAdConsent } from "@/lib/ads/consent";
 
 /**
  * The foot of the page.
@@ -155,6 +157,14 @@ export function SiteFooter({ className }: { className?: string }) {
                 <li>
                   <MotionSwitch />
                 </li>
+                {/* Only when the build has ads (owner G4): forgets the ad answer, so the next ad slot asks again. */}
+                {adsEnabled && (
+                  <li>
+                    <button type="button" onClick={clearAdConsent} className={cn(LINK, "cursor-pointer")}>
+                      Ad choices
+                    </button>
+                  </li>
+                )}
               </ul>
             </div>
             {/* Full width under the other two on a phone, so the three chips sit in one row. */}
