@@ -655,7 +655,7 @@ describe("the decision card moves on when a lesson is finished, not opened", () 
     // The picture is from that lesson's first family.
     expect(host.querySelector("#resume-title")?.textContent).toBe("Dienes & Diels-Alder");
     expect(host.querySelector(".lrn-decide-unit")?.textContent).toBe("Conjugation, Resonance & Dienes");
-    expect(host.querySelector(".lrn-decide-body .lrn-eyebrow")?.textContent).toBe("Up next · Unit 1 · Lesson 1 of 1");
+    expect(host.querySelector(".lrn-decide-body .lrn-eyebrow")?.textContent).toBe("Up next · Unit 1 notes · Part 1 of 1");
     expect(host.querySelector(".lrn-decide-art-name")?.textContent).toBe("1,4-addition to a conjugated diene");
     expect(button()).toBe("Keep reading");
   });
@@ -670,7 +670,7 @@ describe("the decision card moves on when a lesson is finished, not opened", () 
     await visit("learn");
     await settle(() => h1() === "Learn");
     await settle(() => button() !== "");
-    expect(button()).toBe("Start Unit 2");
+    expect(button()).toBe("Read Unit 2 notes");
     localStorage.removeItem("blueberry_lessons_opened_v1");
     localStorage.removeItem("blueberry_lessons_finished_v1");
   });
@@ -689,7 +689,7 @@ describe("the decision card moves on when a lesson is finished, not opened", () 
     await settle(() => button() !== "");
     expect(host.querySelector("#resume-title")?.textContent).toBe("Periodic acid cleavage");
     expect(host.querySelector(".lrn-decide-unit")?.textContent).toBe("Alcohols, Diols, Ethers & Epoxides");
-    expect(host.querySelector(".lrn-decide-body .lrn-eyebrow")?.textContent).toContain("Lesson 3 of 3");
+    expect(host.querySelector(".lrn-decide-body .lrn-eyebrow")?.textContent).toContain("Part 3 of 3");
     // S3 round 4: the button opens the lesson AS UNIT 5 READS IT (`?unit=u5`), so its back
     // link, menu and "Up next" stay in Unit 5 instead of handing the student to Unit 10.
     expect(host.querySelector(".lrn-decide-btn")?.getAttribute("href")).toBe("#/lessons/amines?unit=u5");
@@ -723,7 +723,7 @@ describe("a shared lesson counts for one unit at a time", () => {
     await visit("learn");
     await settle(() => h1() === "Learn");
     await settle(() => button() !== "");
-    expect(button()).toBe("Start Unit 2");
+    expect(button()).toBe("Read Unit 2 notes");
     // S3 round 5: no reaction to draw, so Bloom says what the reading is; no plate.
     expect(host.querySelector(".lrn-scene-bubble")?.textContent).toBe("Reading first: Aromaticity");
     expect(host.querySelector(".lrn-decide-plate")).toBeNull();

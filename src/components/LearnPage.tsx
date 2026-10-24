@@ -174,7 +174,7 @@ export function LearnPage() {
                 <div className="lrn-decide-body">
                   <p className="lrn-eyebrow">All caught up</p>
                   <h2 id="resume-title" className="lrn-decide-title">
-                    Every lesson is finished.
+                    Every unit note is read.
                   </h2>
                   <p className="text-[var(--site-quiet)]">
                     Practice is where it sticks now.
@@ -275,7 +275,7 @@ export function LearnPage() {
                           <span className="block text-sm text-[var(--site-quiet)]">
                             {[
                               c.lessons
-                                ? `${c.finished} of ${plural(c.lessons, "lesson", "lessons")} finished`
+                                ? `${c.finished} of ${plural(c.lessons, "note", "notes")} read`
                                 : null,
                               c.reactions
                                 ? `${plural(c.reactions, "reaction", "reactions")}`
@@ -283,7 +283,7 @@ export function LearnPage() {
                               c.practice ? `${c.practice} to practice` : null,
                             ]
                               .filter(Boolean)
-                              .join(" · ") || "No lessons or practice yet"}
+                              .join(" · ") || "No notes or practice yet"}
                           </span>
                         </span>
                         {state === "soon" ? (

@@ -9,6 +9,7 @@ import { dueEverywhere } from "@/game/cards/types";
 import { DECKS } from "@/data/decks";
 import { dueAcross } from "@/lib/reviewProgress";
 import { PATHWAY_UNITS } from "@/game/demo/pathwayMap";
+import { deriveMapPathway } from "@/game/tabs/pathway/pathwayState";
 import { partsForUnit } from "@/data/learnMap";
 import { dayKey, lessonsFinished, lessonsFinishedByDay } from "@/components/learn/lessonsOpened";
 import { useSupabaseSession } from "@/lib/useSupabaseSession";
@@ -26,8 +27,12 @@ import { plural } from "@/lib/helpers";
  * waiting (cards due, the next office hours).
  *
  * WHERE EACH NUMBER COMES FROM, because the rule is real data or an honest empty state:
- *  - Lessons: the lessons (one unit's reading of a lesson, data/learnMap.ts `partsForUnit`)
- *    finished on this device, from the end-of-lesson button (learn/lessonsOpened.ts).
+ *  - Notes: the reading notes (one unit's reading of a written lesson, data/learnMap.ts
+ *    `partsForUnit`) finished on this device, from the end-of-lesson button
+ *    (learn/lessonsOpened.ts). Audit 23 Oct, section 5 #2: these are called NOTES here,
+ *    because "lesson" and "Unit 1" mean the app's lessons everywhere else.
+ *  - Lessons: the app's own count, the same "1 of 109" the Path says, read from the
+ *    journal by the Path's own rule (pathwayState.ts deriveMapPathway).
  *  - Study days: a day counts when a lesson was finished on it here (the study log in
  *    lessonsOpened.ts) OR the app's streak counted it (game/app/progress.ts, read through
  *    hudModel, the model the app's header draws from). S3 round 4: before this, reading on
@@ -100,16 +105,19 @@ export function useRailNumbers() {
     today: d.today,
   }));
 
-  // Lessons, as the units read them (a lesson shared by three units is three).
+  // Notes, as the units read them (a written lesson shared by three units is three).
   const finished = lessonsFinished();
   const parts = PATHWAY_UNITS.flatMap((u) => partsForUnit(u.id));
-  const lessons = { done: parts.filter((p) => finished.has(p.key)).length, total: parts.length };
+  const notes = { done: parts.filter((p) => finished.has(p.key)).length, total: parts.length };
+  // The app's lessons, counted exactly as the Path counts them.
+  const path = deriveMapPathway(PATHWAY_UNITS, game.journal);
+  const lessons = { done: path.doneCount, total: path.playableCount };
 
   const readToday = byDay.get(dayKey(now)) ?? 0;
   const quests: RailQuest[] = [
     {
       id: "read",
-      label: "Finish a lesson",
+      label: "Read a unit note",
       target: 1,
       fraction: Math.min(readToday, 1),
       done: readToday > 0,
@@ -126,6 +134,7 @@ export function useRailNumbers() {
     run,
     todayCounts: studied(0),
     week,
+    notes,
     lessons,
     quests,
     questsDone: quests.filter((q) => q.done).length,
@@ -137,10 +146,10 @@ export function useRailNumbers() {
 export type RailNumbers = ReturnType<typeof useRailNumbers>;
 
 export function LearnRail({ numbers }: { numbers: RailNumbers }) {
-  const { run, todayCounts, week, lessons, quests, questsDone, appDue, siteDue } = numbers;
+  const { run, todayCounts, week, notes, lessons, quests, questsDone, appDue, siteDue } = numbers;
   return (
     <div className="lrn-rail" aria-label="Your progress">
-      <ProgressCard run={run} todayCounts={todayCounts} week={week} lessons={lessons} />
+      <ProgressCard run={run} todayCounts={todayCounts} week={week} notes={notes} lessons={lessons} />
       <QuestsCard quests={quests} doneCount={questsDone} />
       <section className="lrn-rail-card lrn-rail-more" aria-label="Also waiting">
         <DueRow appDue={appDue} siteDue={siteDue.count} siteDeckId={siteDue.deckId} />
@@ -162,22 +171,24 @@ function ProgressCard({
   run,
   todayCounts,
   week,
+  notes,
   lessons,
 }: {
   run: number;
   todayCounts: boolean;
   week: readonly RailDay[];
+  notes: { done: number; total: number };
   lessons: { done: number; total: number };
 }) {
   const r = 30;
   const c = 2 * Math.PI * r;
-  const share = lessons.total ? lessons.done / lessons.total : 0;
+  const share = notes.total ? notes.done / notes.total : 0;
   return (
     <section className="lrn-rail-card lrn-progress" aria-labelledby="rail-progress">
       <div className="flex items-center gap-4">
         <svg viewBox="0 0 76 76" width="76" height="76" aria-hidden className="shrink-0 -rotate-90">
           <circle cx="38" cy="38" r={r} fill="none" strokeWidth="10" className="lrn-ring-track" />
-          {lessons.done > 0 && (
+          {notes.done > 0 && (
             <circle
               cx="38"
               cy="38"
@@ -192,9 +203,12 @@ function ProgressCard({
         </svg>
         <div className="min-w-0">
           <h2 id="rail-progress" className="lrn-rail-big">
-            {lessons.done} of {lessons.total}
+            {notes.done} of {notes.total}
           </h2>
-          <p className="text-sm font-semibold text-[var(--site-quiet)]">lessons finished</p>
+          <p className="text-sm font-semibold text-[var(--site-quiet)]">unit notes read</p>
+          <p className="text-sm text-[var(--site-quiet)]">
+            {lessons.done} of {plural(lessons.total, "lesson", "lessons")} done in the app
+          </p>
         </div>
       </div>
 
@@ -209,7 +223,7 @@ function ProgressCard({
               ? "Today counts. Nice."
               : run > 0
                 ? "Finish a lesson today to keep it going."
-                : "Finish a lesson here or practice in the app."}
+                : "Read a note here or practice in the app."}
           </span>
         </p>
       </div>

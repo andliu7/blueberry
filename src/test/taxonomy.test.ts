@@ -49,7 +49,7 @@ describe("the taxonomy module", () => {
   it("writes the home card lines from those counts", () => {
     const c = siteCounts();
     const lines = homeCardCounts(c);
-    expect(lines.learn).toBe(`${c.lessons} lessons, ${c.reactions} reactions`);
+    expect(lines.learn).toBe(`${c.lessons} reading notes, ${c.reactions} reactions`);
     expect(lines.practice).toBe(`${c.units} units on the path`);
     expect(lines.review).toBe(`${c.decks} decks, ${c.cards} cards`);
     expect(counted(1, "unit")).toBe("1 unit");

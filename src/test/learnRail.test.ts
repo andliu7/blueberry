@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+// @vitest-environment-options {"url": "http://localhost/?flags="}
 
 /**
  * Learn's right rail (S3, 16 Oct). The rule it is held to: real data on this device
@@ -14,7 +15,9 @@
  *
  * Office hours reads Supabase, which only answers a signed-in student; the session
  * hook is mocked to "signed out" so the test needs no network (vi.mock is hoisted above
- * the imports, so the rail gets the mock).
+ * the imports, so the rail gets the mock). The URL carries `flags=` so the dev beta flags
+ * do not inject their synthetic journal (a "new visitor" would otherwise have cleared
+ * u1-allylic); that is flags.ts's own off switch, not a looser check.
  */
 
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -65,7 +68,9 @@ describe("Learn rail, a new visitor", () => {
     const text = el.textContent ?? "";
 
     expect(text).toContain("Start a run today");
-    expect(text).toMatch(/0 of \d+lessons finished/);
+    expect(text).toMatch(/0 of \d+unit notes read/);
+    // The app's lessons, counted as the Path counts them (audit 23 Oct, section 5 #2).
+    expect(text).toMatch(/0 of \d+ lessons done in the app/);
     // Seven days, exactly one of them today, none counted.
     const days = el.querySelectorAll(".lrn-week li");
     expect(days).toHaveLength(7);
@@ -76,11 +81,11 @@ describe("Learn rail, a new visitor", () => {
     expect(text).toMatch(/0 of 3 done/);
     // The empty run says what starts one (reading counts as well as the app), and every
     // quest has a bar, read as a count. S3 round 4: the first quest is the site's own.
-    expect(text).toContain("Finish a lesson here or practice in the app.");
+    expect(text).toContain("Read a note here or practice in the app.");
     expect(el.querySelectorAll(".lrn-quest-bar")).toHaveLength(3);
     expect(text).not.toContain("Today is open");
     // S3 round 5: a spoken separator between the quest and its count.
-    expect(text).toContain("Finish a lesson: 0 / 1");
+    expect(text).toContain("Read a unit note: 0 / 1");
     expect(text).toContain("Nothing due");
 
     // Signed out: the office hours card offers sign-in, it does not guess a time.
@@ -110,18 +115,18 @@ describe("Learn rail, a lesson finished on the site today", () => {
     markLessonFinished("dienes");
     const el = await renderRail();
     const text = el.textContent ?? "";
-    expect(text).toMatch(/1 of \d+lessons finished/);
+    expect(text).toMatch(/1 of \d+unit notes read/);
     expect(text).toContain("1 day in a row");
     expect(el.querySelectorAll(".lrn-week li[data-counted]")).toHaveLength(1);
     expect(el.querySelector(".lrn-week li[data-today]")?.hasAttribute("data-counted")).toBe(true);
     expect(text).toMatch(/1 of 3 done/);
-    expect(text).toContain("Finish a lesson: 1 / 1");
+    expect(text).toContain("Read a unit note: 1 / 1");
   });
 
   it("a lesson finished before the log existed counts as a lesson but lights no day", async () => {
     localStorage.setItem("blueberry_lessons_finished_v1", JSON.stringify(["dienes"]));
     const el = await renderRail();
-    expect(el.textContent).toMatch(/1 of \d+lessons finished/);
+    expect(el.textContent).toMatch(/1 of \d+unit notes read/);
     expect(el.querySelectorAll(".lrn-week li[data-counted]")).toHaveLength(0);
     expect(el.textContent).toContain("Start a run today");
   });

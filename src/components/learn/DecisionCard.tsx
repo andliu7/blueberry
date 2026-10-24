@@ -58,11 +58,13 @@ export function DecisionCard({
   const total = resume.parts.length;
   const label = partLabel(part, reactions);
   const href = partHref(part.lesson.id, resume.unit.id);
+  // Audit 23 Oct, section 5 #2: the reading is "Unit N notes" here, because "lesson"
+  // and "Unit 1" on their own name the app's lessons.
   const action = opened.has(part.key)
     ? "Keep reading"
     : resume.index === 0
-      ? `Start ${number}`
-      : `Start lesson ${resume.index + 1}`;
+      ? `Read ${number} notes`
+      : `Read part ${resume.index + 1}`;
 
   // The real button, watched so the phone's dock knows when it has scrolled away.
   // A ref is React's handle on the rendered DOM element.
@@ -121,7 +123,7 @@ export function DecisionCard({
         <div className="lrn-decide-body">
           <div className="min-w-0">
             <p className="lrn-eyebrow">
-              Up next · {number} · Lesson {resume.index + 1} of {total}
+              Up next · {number} notes · Part {resume.index + 1} of {total}
             </p>
             <h2 id="resume-title" className="lrn-decide-title">
               {label}

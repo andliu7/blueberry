@@ -51,7 +51,8 @@ export function counted(n: number, noun: string): string {
  *  dates live in the database, not in a table this module can count at build time. */
 export function homeCardCounts(c: SiteCounts = siteCounts()) {
   return {
-    learn: `${counted(c.lessons, "lesson")}, ${counted(c.reactions, "reaction")}`,
+    // "notes", not "lessons": a lesson is the app's (audit 23 Oct, section 5 #2).
+    learn: `${counted(c.lessons, "reading note")}, ${counted(c.reactions, "reaction")}`,
     practice: `${counted(c.units, "unit")} on the path`,
     review: `${counted(c.decks, "deck")}, ${counted(c.cards, "card")}`,
   } as const;
