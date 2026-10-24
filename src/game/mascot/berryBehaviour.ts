@@ -25,6 +25,7 @@
  */
 
 import { clamp01 } from "@/lib/helpers";
+import { PEEK, SIGH } from "./bloomMotion";
 
 /* ------------------------------------------------------------------ types -- */
 
@@ -48,7 +49,9 @@ export type BerryBehaviour =
   | "celebrate"
   | "stressed"
   | "drag"
-  | "wave";
+  | "wave"
+  | "sigh"
+  | "peek";
 
 /**
  * A pose, as multipliers and offsets on a rest state of 1.
@@ -272,6 +275,47 @@ export const BEHAVIOURS: Record<BerryBehaviour, BehaviourConfig> = {
       { at: 0.2, scaleY: 1.05, lift: 0.06, tilt: 0.22, pitch: 0 },
       { at: 0.45, scaleY: 1.02, lift: 0.04, tilt: -0.2, pitch: 0 },
       { at: 0.7, scaleY: 1.05, lift: 0.06, tilt: 0.18, pitch: 0 },
+      { at: 1, ...rest },
+    ],
+    returnTo: "idle",
+  },
+
+  /**
+   * Bored, after 20s without input on an ambient screen. Sink, a slow tilt,
+   * back. Reactive and short, so it fires once per idle spell and never loops:
+   * a berry that keeps sighing at you is a guilt trip. No foot tap, because
+   * there are no feet.
+   */
+  sigh: {
+    family: "reactive",
+    durationMs: SIGH.durationMs,
+    blendMs: 300,
+    mood: "sleepy",
+    keyframes: [
+      { at: 0, ...rest },
+      { at: SIGH.sinkAt, scaleY: SIGH.sinkScaleY, lift: 0, tilt: 0, pitch: 0.06 },
+      { at: SIGH.tiltAt, scaleY: 0.97, lift: 0, tilt: SIGH.tilt, pitch: 0.03 },
+      { at: 1, ...rest },
+    ],
+    returnTo: "idle",
+  },
+
+  /**
+   * Rises from below its anchor with one overshoot. The mechanism canvas plays
+   * it on mount and the return greet chains it into `wave`.
+   *
+   * The only behaviour that does not START at rest: it starts hidden low, so
+   * the blend is near instant (blending up from rest to the low start would
+   * read as a drop before the rise).
+   */
+  peek: {
+    family: "event",
+    durationMs: PEEK.durationMs,
+    blendMs: 1,
+    mood: "curious",
+    keyframes: [
+      { at: 0, scaleY: 1, lift: PEEK.startLift, tilt: 0, pitch: 0 },
+      { at: PEEK.overshootAt, scaleY: PEEK.overshootScaleY, lift: PEEK.overshootLift, tilt: 0, pitch: 0 },
       { at: 1, ...rest },
     ],
     returnTo: "idle",

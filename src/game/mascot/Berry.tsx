@@ -57,9 +57,20 @@
  * carry yet; that is a Phase 5 human gate question (the webfont and motion
  * payload decision noted in theme.css), so the flat mark stands alone for now
  * and the upgrade is one lazy import away when the owner wants it.
+ *
+ * THE LOOK, added 2026-10-24 for documentation/BLOOM-STATES-SPEC.md.
+ *
+ * The eyes now point where the mood says (`MoodShape.lookX/lookY`, defined
+ * since the start and read by nothing until now), or where `lookAt` says when
+ * the caller passes one. On top of that, while an ambient behaviour runs and no
+ * `lookAt` is set, a seeded glance (berryGlance.ts) looks off every 3 to 6s and
+ * back. The loop stays one rAF writing one transform: the glance is two custom
+ * properties written only when the clock flips, and the travel is a CSS
+ * transition in bloom-motion.css.
  */
 
 import { useEffect, useRef, type CSSProperties } from "react";
+import "./bloom-motion.css";
 import {
   BEHAVIOURS,
   MODIFIERS,
@@ -68,8 +79,10 @@ import {
   type BerryBehaviour,
   type SampledPose,
 } from "./berryBehaviour";
-import type { BerryMood } from "./berryMood";
+import { resolveLook, type BerryLook, type BerryMood } from "./berryMood";
+import { startGlance, stepGlance, type GlanceClock } from "./berryGlance";
 import {
+  STATE_LABEL,
   STATE_SHAPE,
   composeStateAndMood,
   type BerryState,
@@ -80,22 +93,6 @@ import { BlueberryMark } from "./BlueberryMark";
 import { clamp01 } from "@/lib/helpers";
 
 const REST: SampledPose = { scaleY: 1, scaleX: 1, scaleZ: 1, lift: 0, tilt: 0, pitch: 0 };
-
-/**
- * What a screen reader hears. The badge glyph is aria-hidden, because a `<div
- * role="img">` hides its own contents from the accessibility tree, so the state
- * has to reach the label or it does not reach anybody.
- */
-const STATE_ALT: Record<BerryState, string> = {
-  neutral: "",
-  charged: ", charged",
-  protonated: ", protonated",
-  carbocation: ", a carbocation",
-  radical: ", a radical",
-  resonance: ", in resonance",
-  aromatic: ", aromatic",
-  charred: ", charred",
-};
 
 function transformFor(
   pose: SampledPose,
@@ -211,6 +208,12 @@ export interface BerryProps {
   readonly sparkleKey?: number;
   /** Bump to fire the brighter puff that clears a charred berry. 0 draws none. */
   readonly flashKey?: number;
+  /**
+   * Where to look, -1 to 1 on each axis (positive x is its right, positive y
+   * is down). Wins over the mood's own look and pauses the ambient glance.
+   * (0, 0) is "at the user". Omit it to let the mood and the glance decide.
+   */
+  readonly lookAt?: BerryLook | undefined;
   readonly reducedMotion: boolean;
   readonly sizePx?: number;
   readonly className?: string;
@@ -251,6 +254,7 @@ export function Berry({
   working = false,
   sparkleKey = 0,
   flashKey = 0,
+  lookAt,
   reducedMotion,
   sizePx = 96,
   className = "",
@@ -270,6 +274,11 @@ export function Berry({
   const blinkRef = useRef<BlinkClock>({ seed: BLINK_SEED, closeAt: 0, openAt: 0, closed: false, owed: false });
   const chainRef = useRef(chain);
   chainRef.current = chain;
+  // Null until the loop starts, so the first glance counts from the first frame.
+  const glanceRef = useRef<GlanceClock | null>(null);
+  // Read by the loop without restarting it; the same trick as chainRef above.
+  const lookAtRef = useRef(lookAt);
+  lookAtRef.current = lookAt;
 
   const shape = STATE_SHAPE[state];
   // A ref so the loop sees the current state without being torn down and
@@ -300,6 +309,8 @@ export function Berry({
         // Eyes open, and no blink attribute at all, so the lid CSS never
         // applies: a settled frame is a face holding one expression.
         delete nodeRef.current.dataset.blink;
+        nodeRef.current.style.removeProperty("--berry-glance-x");
+        nodeRef.current.style.removeProperty("--berry-glance-y");
       }
       return;
     }
@@ -389,6 +400,20 @@ export function Berry({
         lid.openAt = lid.closeAt + MODIFIERS.blink.closeMs;
       }
 
+      // The glance, on its own clock and only while nothing else is going on:
+      // a glance mid-reaction would pull the face off the moment it reports.
+      const prior = glanceRef.current ?? startGlance(now);
+      const free = config.family === "ambient" && lookAtRef.current === undefined;
+      // Not free: eyes come home, and the next glance waits a full gap after
+      // the berry is free again rather than firing the instant a hop lands.
+      const held = prior.looking || now >= prior.nextAt ? startGlance(now, prior.seed) : prior;
+      const glance = free ? stepGlance(prior, now) : held;
+      if (glance !== glanceRef.current) {
+        glanceRef.current = glance;
+        node.style.setProperty("--berry-glance-x", glance.x.toFixed(3));
+        node.style.setProperty("--berry-glance-y", glance.y.toFixed(3));
+      }
+
       // A finished reactive or event behaviour returns where its config says.
       if (config.family !== "ambient" && progress >= 1 && config.returnTo !== undefined) {
         fromPoseRef.current = pose;
@@ -411,6 +436,7 @@ export function Berry({
       // comes back from reduced motion opens on a fresh first blink rather than
       // on a deadline that expired while it was still.
       blinkRef.current = { seed: BLINK_SEED, closeAt: 0, openAt: 0, closed: false, owed: false };
+      glanceRef.current = null;
     };
   }, [reducedMotion, sizePx]);
 
@@ -428,7 +454,11 @@ export function Berry({
   const haloStrength =
     state === "charged" && chargeLevel !== undefined ? clamp01(chargeLevel) : shape.haloStrength;
 
+  const look = resolveLook(impliedMood, lookAt);
+
   const vars = {
+    "--berry-look-x": look.x.toFixed(3),
+    "--berry-look-y": look.y.toFixed(3),
     width: sizePx,
     height: sizePx,
     "--berry-size": `${sizePx}px`,
@@ -458,8 +488,10 @@ export function Berry({
       // Only a state that contributes blush takes the blush over from the mood
       // CSS, so every mood the shell already renders is untouched.
       data-blush={shape.blush > 0 ? "state" : undefined}
+      // Prop-driven, so a still pose shows even where the media query does not apply.
+      data-motion={reducedMotion ? "still" : undefined}
       // The character is Bloom; Blueberry is the product (documentation/MASCOT.md).
-      aria-label={`Bloom, looking ${impliedMood}${STATE_ALT[state]}`}
+      aria-label={`Bloom, looking ${impliedMood}${STATE_LABEL[state]}`}
       role="img"
     >
       {shape.haloKind !== "none" ? <span className="berry-halo" aria-hidden /> : null}

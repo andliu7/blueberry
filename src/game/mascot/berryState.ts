@@ -49,6 +49,24 @@ export const BERRY_STATES: readonly BerryState[] = Object.freeze([
   "charred",
 ]);
 
+/**
+ * What a screen reader hears after "Bloom, looking <mood>". Lives beside the
+ * union so a new state brings its label with it. Berry.tsx reads it because
+ * the badge glyph is aria-hidden: a `<div role="img">` hides its own contents
+ * from the accessibility tree, so the state has to reach the label or it does
+ * not reach anybody.
+ */
+export const STATE_LABEL: Readonly<Record<BerryState, string>> = Object.freeze({
+  neutral: "",
+  charged: ", charged",
+  protonated: ", protonated",
+  carbocation: ", a carbocation",
+  radical: ", a radical",
+  resonance: ", in resonance",
+  aromatic: ", aromatic",
+  charred: ", charred",
+});
+
 export type HaloKind = "none" | "static" | "ring" | "unpaired";
 export type StateBadge = null | "H+" | "+" | "•";
 

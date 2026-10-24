@@ -1,0 +1,80 @@
+/*
+ * Bloom's shared motion tokens, and the glance.
+ *
+ * documentation/BLOOM-STATES-SPEC.md section 3b. Imported once by Berry.tsx,
+ * so every screen with a berry has them. The `--bloom-` prefix is deliberate:
+ * `--bb-ease-out` and `--bb-dur-press` already exist in src/tokens.css with
+ * different values from the Duolingo sheet, and reusing those names would
+ * retime the whole site. Where a site token already has the exact curve, it is
+ * aliased rather than typed twice. Timings only, no colour, so there is no
+ * dark-theme half to keep in step.
+ *
+ * The ms values match bloomMotion.ts; berryBehaviour.test.ts holds them to it.
+ */
+
+:root {
+  --bloom-ease-pop: var(--bb-ease-sheet); /* .35,1.8,.35,.83, big overshoot */
+  --bloom-ease-settle: var(--bb-ease-spring); /* .34,1.56,.64,1, small overshoot */
+  --bloom-ease-out: cubic-bezier(0.22, 1, 0.36, 1); /* ease-out-quint, card moves */
+  --bloom-ease-windup: cubic-bezier(0.6, -0.28, 0.735, 0.045); /* anticipation */
+  --bloom-ease-breathe: cubic-bezier(0.45, 0, 0.55, 1); /* sine in-out, loops */
+  --bloom-ease-fall: cubic-bezier(0.5, 0, 0.75, 0); /* accelerate into a target */
+  --bloom-dur-fast: 200ms;
+  --bloom-dur-base: 400ms;
+  --bloom-dur-slow: 700ms;
+  --bloom-dur-crossfade: 150ms; /* the only motion under reduced */
+  --bloom-glance-move: 200ms; /* GLANCE.moveMs */
+  --bloom-glance-lead: 80ms; /* GLANCE.eyesLeadMs */
+}
+
+/* =========================================================================
+ * THE LOOK. Where the eyes point: the mood's resting look or an explicit
+ * `lookAt` (`--berry-look-*`, written by React), plus the ambient glance
+ * (`--berry-glance-*`, written by the rAF loop only on a transition). The sum
+ * is clamped to one full look either way.
+ *
+ * Two layers, so the eyes lead the head the way the Duolingo idle does: the
+ * pupils travel first, the whole face (eyes, blush and mouth, which is how a
+ * flat sprite turns its head) follows 80ms later. Both use the individual
+ * `translate` property, not `transform`, so they compose with the blink's
+ * scaleY on the eye groups and the mood's scaleY on the mouth instead of
+ * replacing them. In an SVG, px here are viewBox units out of 64.
+ * ========================================================================= */
+
+.berry-origin {
+  --bloom-look-x: clamp(-1, calc(var(--berry-look-x, 0) + var(--berry-glance-x, 0)), 1);
+  --bloom-look-y: clamp(-1, calc(var(--berry-look-y, 0) + var(--berry-glance-y, 0)), 1);
+}
+
+.berry-origin .bb-eyes {
+  translate: calc(var(--bloom-look-x) * 1.4px) calc(var(--bloom-look-y) * 1px);
+  transition: translate var(--bloom-glance-move) var(--bloom-ease-out) var(--bloom-glance-lead);
+}
+
+.berry-origin .bb-eye-open > ellipse,
+.berry-origin .bb-eye-kind > path {
+  translate: calc(var(--bloom-look-x) * 2.2px) calc(var(--bloom-look-y) * 1.6px);
+  transition: translate var(--bloom-glance-move) var(--bloom-ease-out);
+}
+
+/* Still under reduced motion: the look is drawn, it just does not travel. The
+ * prop-driven attribute lets the gallery's toggle show the still pose. */
+.berry-origin[data-motion="still"] .bb-eyes,
+.berry-origin[data-motion="still"] .bb-eye-open > ellipse,
+.berry-origin[data-motion="still"] .bb-eye-kind > path {
+  transition: none;
+}
+
+html[data-motion="reduced"] .berry-origin .bb-eyes,
+html[data-motion="reduced"] .berry-origin .bb-eye-open > ellipse,
+html[data-motion="reduced"] .berry-origin .bb-eye-kind > path {
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .berry-origin .bb-eyes,
+  .berry-origin .bb-eye-open > ellipse,
+  .berry-origin .bb-eye-kind > path {
+    transition: none;
+  }
+}

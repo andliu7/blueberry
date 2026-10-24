@@ -112,3 +112,41 @@ export const MOOD_SHAPE: Record<BerryMood, MoodShape> = {
   // sleepy has its eyes shut and belongs to empty states, calm is present.
   calm: { eyes: "kind", blush: 0.1, mouth: 0.8, sway: 0.18, lookX: 0, lookY: 0, tracks: false },
 };
+
+/* ------------------------------------------------------------- the look -- */
+
+/** Where the eyes point on the flat mark, -1 to 1 on each axis. Positive x is its right, positive y is down. */
+export interface BerryLook {
+  readonly x: number;
+  readonly y: number;
+}
+
+export const LOOK_AHEAD: BerryLook = Object.freeze({ x: 0, y: 0 });
+
+/**
+ * The radians a mood's look has to reach to count as a full look on the flat
+ * mark. 0.42 is the largest `lookY` in the table (thinking), so thinking looks
+ * all the way up and away and every other mood scales against it.
+ */
+export const MOOD_LOOK_RANGE = 0.42;
+
+const clampLook = (v: number) => Math.max(-1, Math.min(1, v));
+
+/**
+ * A mood's resting look, for the flat mark. `lookY` turns the head right and
+ * `lookX` tips it down, so they land on the screen's x and y respectively.
+ */
+export function lookForMood(mood: BerryMood): BerryLook {
+  const shape = MOOD_SHAPE[mood];
+  return { x: clampLook(shape.lookY / MOOD_LOOK_RANGE), y: clampLook(shape.lookX / MOOD_LOOK_RANGE) };
+}
+
+/**
+ * The look the renderer draws. An explicit `lookAt` wins outright, the way an
+ * explicit mood wins over a behaviour's: "look at the user" is (0, 0) whatever
+ * the mood would rather do. Without one, the mood decides.
+ */
+export function resolveLook(mood: BerryMood, lookAt: BerryLook | undefined): BerryLook {
+  if (lookAt === undefined) return lookForMood(mood);
+  return { x: clampLook(lookAt.x), y: clampLook(lookAt.y) };
+}
