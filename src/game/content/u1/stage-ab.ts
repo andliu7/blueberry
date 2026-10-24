@@ -6932,8 +6932,8 @@ export const STAGE_AB_VISUALS: Readonly<Record<string, McqVisual>> = {
           "size": 14
         },
         {
-          "x": 29.7,
-          "y": 35.6,
+          "x": 42.6,
+          "y": 31.1,
           "t": "1",
           "size": 10
         },
@@ -7200,8 +7200,8 @@ export const STAGE_AB_VISUALS: Readonly<Record<string, McqVisual>> = {
           "size": 14
         },
         {
-          "x": 12.4,
-          "y": 35.5,
+          "x": 25.3,
+          "y": 31.0,
           "t": "1",
           "size": 10
         },
@@ -8642,8 +8642,8 @@ export const STAGE_AB_VISUALS: Readonly<Record<string, McqVisual>> = {
           "size": 14
         },
         {
-          "x": 117.0,
-          "y": 36.2,
+          "x": 104.0,
+          "y": 31.7,
           "t": "1",
           "size": 10
         },
@@ -11008,8 +11008,8 @@ export const STAGE_AB_VISUALS: Readonly<Record<string, McqVisual>> = {
             "size": 14
           },
           {
-            "x": 68.6,
-            "y": 28.0,
+            "x": 58.3,
+            "y": 37.0,
             "t": "2",
             "size": 10
           },
@@ -11078,8 +11078,8 @@ export const STAGE_AB_VISUALS: Readonly<Record<string, McqVisual>> = {
             "size": 14
           },
           {
-            "x": 21.0,
-            "y": 60.5,
+            "x": 23.6,
+            "y": 47.0,
             "t": "4",
             "size": 10
           }
@@ -12176,8 +12176,8 @@ export const STAGE_AB_VISUALS: Readonly<Record<string, McqVisual>> = {
             "size": 14
           },
           {
-            "x": 60.0,
-            "y": 28.0,
+            "x": 70.4,
+            "y": 37.0,
             "t": "2",
             "size": 10
           },
@@ -12258,8 +12258,8 @@ export const STAGE_AB_VISUALS: Readonly<Record<string, McqVisual>> = {
             "size": 14
           },
           {
-            "x": 107.6,
-            "y": 60.5,
+            "x": 94.6,
+            "y": 65.0,
             "t": "4",
             "size": 10
           }

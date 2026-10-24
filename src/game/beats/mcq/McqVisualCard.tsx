@@ -17,7 +17,7 @@
  * brief, and reading the picture aloud would say the question twice.
  */
 
-import { formulaRuns } from "../../onboarding/figures";
+import { fitBox, formulaRuns, sharedFitBoxes, type FigureBox } from "../../onboarding/figures";
 import { StructureFigure } from "../../onboarding/StructureFigure";
 import { SchemeCard } from "../../lesson/SchemeCard";
 import type { McqVisual, NamedFigure } from "./mcqFigures";
@@ -39,10 +39,14 @@ function captionRuns(name: string) {
   );
 }
 
-function Species({ figure, name }: { readonly figure: NamedFigure["figure"]; readonly name: string | undefined }) {
+/*
+ * The question drawing is fitted to its own ink (figures.ts fitBox, audit 23
+ * Oct, section 5 #7), so a small molecule is drawn large in the same card.
+ */
+function Species({ figure, name, box }: { readonly figure: NamedFigure["figure"]; readonly name: string | undefined; readonly box: FigureBox }) {
   return (
     <div className="scheme__species">
-      <StructureFigure figure={figure} className="scheme__figure" />
+      <StructureFigure figure={figure} className="scheme__figure" box={box} />
       {name === undefined ? null : <span className="scheme__caption">{captionRuns(name)}</span>}
     </div>
   );
@@ -53,16 +57,18 @@ export function McqVisualCard({ visual }: { readonly visual: McqVisual }) {
   // `large` picks the big figure (scheme.css .scheme--large); every other visual keeps the thumbnail.
   const box = visual.large === true ? "scheme scheme--large" : "scheme";
   if (visual.kind === "pair") {
+    // One scale for both halves, so a bond is the same length in each contributor.
+    const [boxA, boxB] = sharedFitBoxes([visual.a.figure, visual.b.figure]);
     return (
       <div className={box} aria-hidden>
-        <Species figure={visual.a.figure} name={visual.a.name} />
-        <Species figure={visual.b.figure} name={visual.b.name} />
+        <Species figure={visual.a.figure} name={visual.a.name} box={boxA ?? fitBox(visual.a.figure)} />
+        <Species figure={visual.b.figure} name={visual.b.name} box={boxB ?? fitBox(visual.b.figure)} />
       </div>
     );
   }
   return (
     <div className={box} aria-hidden>
-      <Species figure={visual.figure} name={visual.name} />
+      <Species figure={visual.figure} name={visual.name} box={fitBox(visual.figure)} />
     </div>
   );
 }

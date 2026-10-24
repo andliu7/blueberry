@@ -321,6 +321,82 @@ export function bondEndsJoined(bonds: readonly BondLine[], index: number): reado
 export const FIGURE_WIDTH = 120;
 export const FIGURE_HEIGHT = 84;
 
+/** A viewBox rectangle, in figure units. */
+export interface FigureBox {
+  readonly x: number;
+  readonly y: number;
+  readonly w: number;
+  readonly h: number;
+}
+
+/** Room left round the ink of a fitted figure, in viewBox units. */
+const FIT_PAD = 3;
+/**
+ * The smallest box a figure is fitted to: half the full viewBox each way, so a
+ * fitted figure is drawn at most twice its full-box size and a lone bond does
+ * not swell to fill the card.
+ */
+const FIT_MIN_W = FIGURE_WIDTH / 2;
+const FIT_MIN_H = FIGURE_HEIGHT / 2;
+
+/**
+ * The box round a figure's ink: bonds, rings and labels, padded, never
+ * smaller than half the full viewBox, keeping the full box's ratio so CSS
+ * sizes it the same way.
+ *
+ * Why (audit 23 Oct, section 5 #7): the generators draw every figure in the
+ * full 120 by 84 box at a fixed bond length, so the allyl cation filled a
+ * third of it and was drawn about 50 px wide in a 510 px card. A question
+ * drawing fitted to this box keeps its CSS size and draws its bonds larger
+ * (the allyl cation's go from about 17 px to about 30 px at the 72 px
+ * thumbnail height). A label's size is estimated from its characters (0.6 em
+ * each, 0.68 of that in a sub- or superscript); nothing here measures text.
+ */
+export function fitBox(figure: Figure): FigureBox {
+  let left = Infinity;
+  let top = Infinity;
+  let right = -Infinity;
+  let bottom = -Infinity;
+  const take = (x1: number, y1: number, x2: number, y2: number) => {
+    left = Math.min(left, x1);
+    top = Math.min(top, y1);
+    right = Math.max(right, x2);
+    bottom = Math.max(bottom, y2);
+  };
+  for (const bond of figure.bonds ?? []) {
+    take(Math.min(bond.x1, bond.x2), Math.min(bond.y1, bond.y2), Math.max(bond.x1, bond.x2), Math.max(bond.y1, bond.y2));
+  }
+  for (const ring of figure.rings ?? []) take(ring.x - ring.r, ring.y - ring.r, ring.x + ring.r, ring.y + ring.r);
+  for (const label of figure.labels ?? []) {
+    const size = label.size ?? 15;
+    const width = formulaRuns(label.t).reduce((sum, run) => sum + run.text.length * 0.6 * size * (run.level === 0 ? 1 : 0.68), 0);
+    const start = label.anchor === "start" ? label.x : label.anchor === "end" ? label.x - width : label.x - width / 2;
+    // The text sits on its baseline: cap height above, a little descent below.
+    take(start, label.y - size * 0.8, start + width, label.y + size * 0.25);
+  }
+  if (left === Infinity) return { x: 0, y: 0, w: FIGURE_WIDTH, h: FIGURE_HEIGHT };
+  const cx = (left + right) / 2;
+  const cy = (top + bottom) / 2;
+  let w = Math.max(right - left + 2 * FIT_PAD, FIT_MIN_W);
+  let h = Math.max(bottom - top + 2 * FIT_PAD, FIT_MIN_H);
+  // Keep the 120 by 84 ratio: widen or heighten, never crop ink.
+  if (w / h > FIGURE_WIDTH / FIGURE_HEIGHT) h = (w * FIGURE_HEIGHT) / FIGURE_WIDTH;
+  else w = (h * FIGURE_WIDTH) / FIGURE_HEIGHT;
+  return { x: cx - w / 2, y: cy - h / 2, w, h };
+}
+
+/**
+ * One box for figures that are shown side by side (a pair of contributors):
+ * each keeps its own centre but takes the largest box, so both are drawn at
+ * the same scale and a bond is the same length in both.
+ */
+export function sharedFitBoxes(figures: readonly Figure[]): readonly FigureBox[] {
+  const boxes = figures.map(fitBox);
+  const w = Math.max(...boxes.map((box) => box.w));
+  const h = Math.max(...boxes.map((box) => box.h));
+  return boxes.map((box) => ({ x: box.x + box.w / 2 - w / 2, y: box.y + box.h / 2 - h / 2, w, h }));
+}
+
 function key(problemId: string, optionId: string): string {
   return `${problemId}::${optionId}`;
 }

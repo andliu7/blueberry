@@ -17,7 +17,7 @@
  * A duplicate description of the drawing would read the answer twice.
  */
 
-import type { Figure, FigureBond, FigureLabel } from "./figures";
+import type { Figure, FigureBond, FigureBox, FigureLabel } from "./figures";
 import { bondEndsJoined, doubleBondSide, FIGURE_HEIGHT, FIGURE_WIDTH, formulaRuns, stereoShape } from "./figures";
 
 /** Bond weight, in viewBox units. Reads at the 145px the tile draws it at. */
@@ -170,17 +170,23 @@ function Bond({
 /* The figure                                                          */
 /* ------------------------------------------------------------------ */
 
+/**
+ * `box` draws only that part of the viewBox (figures.ts fitBox), so a small
+ * molecule fills the space it is given; left out, the full 120 by 84 box.
+ */
 export function StructureFigure({
   figure,
   className,
+  box,
 }: {
   readonly figure: Figure;
   readonly className?: string;
+  readonly box?: FigureBox;
 }) {
   return (
     <svg
       className={className}
-      viewBox={`0 0 ${FIGURE_WIDTH} ${FIGURE_HEIGHT}`}
+      viewBox={box === undefined ? `0 0 ${FIGURE_WIDTH} ${FIGURE_HEIGHT}` : `${box.x} ${box.y} ${box.w} ${box.h}`}
       fill="none"
       aria-hidden
       focusable="false"

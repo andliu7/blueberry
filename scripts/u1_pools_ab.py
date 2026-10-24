@@ -481,17 +481,39 @@ def figure(smi: str, marks: list[int] | None = None, numbers: dict[int, str] | N
             bond["order"] = order
         bonds.append(bond)
 
-    def away(i: int, dist: float) -> tuple[float, float]:
-        """A point `dist` out from atom i, in the widest gap between its bonds."""
+    def widest_gap(i: int) -> tuple[float, float]:
+        """The middle and the width, in radians, of the widest gap between atom i's bonds."""
         x, y = at(i)
         angles = sorted(math.atan2(ny - y, nx - x) for nx, ny in (at(n.GetIdx()) for n in m.GetAtomWithIdx(i).GetNeighbors()))
         if len(angles) == 1:
-            theta = angles[0] + math.pi
-        else:
-            gaps = [((angles[(k + 1) % len(angles)] - angles[k]) % (2 * math.pi) or 2 * math.pi, angles[k]) for k in range(len(angles))]
-            width, start_angle = max(gaps)
-            theta = start_angle + width / 2
+            return (angles[0] + math.pi, 2 * math.pi)
+        gaps = [((angles[(k + 1) % len(angles)] - angles[k]) % (2 * math.pi) or 2 * math.pi, angles[k]) for k in range(len(angles))]
+        width, start_angle = max(gaps)
+        return (start_angle + width / 2, width)
+
+    def away(i: int, dist: float, turn: float = 0.0) -> tuple[float, float]:
+        """A point `dist` out from atom i, in the widest gap between its bonds, turned by `turn` radians."""
+        x, y = at(i)
+        theta = widest_gap(i)[0] + turn
         return (x + math.cos(theta) * dist, y + math.sin(theta) * dist)
+
+    def number_turn(i: int) -> float:
+        """
+        Where a locant goes beside an atom that also carries a charge mark.
+        Audit 23 Oct, section 5 #7: on the same ray as the mark, the "1"
+        landed on the "+". It now swings off the mark's ray by up to 60
+        degrees, staying 20 degrees inside the gap so it clears the bonds,
+        to whichever side is farther from the rest of the molecule.
+        """
+        width = widest_gap(i)[1]
+        turn = max(0.0, min(math.radians(60), width / 2 - math.radians(20)))
+        others = [at(k) for k in range(m.GetNumAtoms()) if k != i]
+
+        def room(sign: float) -> float:
+            px, py = away(i, 12, sign * turn)
+            return min((math.dist((px, py), o) for o in others), default=math.inf)
+
+        return turn if room(1.0) >= room(-1.0) else -turn
 
     labels = []
     for a in m.GetAtoms():
@@ -510,7 +532,7 @@ def figure(smi: str, marks: list[int] | None = None, numbers: dict[int, str] | N
             x, y = away(i, 8)
             labels.append({"x": r1(x), "y": r1(y + 5), "t": mark, "size": 14})
         if i in numbers:
-            x, y = away(i, 9 if mark is None else 15)
+            x, y = away(i, 9) if mark is None else away(i, 12, number_turn(i))
             labels.append({"x": r1(x), "y": r1(y + 4), "t": numbers[i], "size": 10})
     rings = []
     for i in marks:
