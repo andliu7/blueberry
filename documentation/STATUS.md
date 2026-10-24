@@ -240,6 +240,21 @@ Course (business test 2)
     text (lesson copy, the match board, Unit 9's "about 10") still say Blueberry's number; leave,
     or route them through pkaValueFor? (3) "Reset" clears the student's own changes only and keeps
     the chosen table (worksheet or textbook); should it also switch back to the worksheet?
+  - pka-per-student FIX 24 Oct: the site's pKa deck now shows every value the game grades with.
+    A student on "Standard textbook" sees its numbers there ("4.8 (your table)", resolved by the
+    game's own pkaValueFor through src/game/settings/pkaSiteBridge.ts, loaded only when needed);
+    their own values read "(yours)"; the Hydronium / protonated alcohol row shows either rung. Rows
+    with no rung (HI, HBr, HCl, H2SO4, HNO3, HF, HN3, HCN, carbocations, amide) now take a pasted
+    value for the deck only (src/game/settings/pkaSheet.ts; names and SMILES in pkaAliases.json,
+    RDKit-checked by scripts/check_pka_aliases.py), so owner question (1) is now only "should
+    lessons get rungs for them". Opening the deck signed in runs account sync, so a new device
+    shows the account's values without opening #/app. A change made just before sign-out is now
+    pushed at once. Question (2), authored prose, is unchanged and still the owner's call.
+    Payload: no change on the #/app first open (no pka chunk in the first-open set; total gz
+    400.3 KB with and without this fix in the same tree, so the overage over 400 comes from
+    other sessions' uncommitted edits, not C2). OWNER: apply supabase/migrations/20261023130000_user_pka_settings.sql
+    then 20261024130000_user_pka_sheet_values.sql (until the second is applied, sync reports
+    "saved on this device" and values stay local).
 - C3 Problem sets, Khan Academy style: small sets with a celebration each, split a pasted set into
   parts, suggest similar problems from the database.
 - C4 Lesson confidence: a student rates a lesson; "too easy" raises the difficulty. Needs a design.
