@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { TRAINER_URL } from "@/data/site";
+import { FIRST_LESSON_URL } from "@/data/site";
 import { motion, useReducedMotion } from "motion/react";
 import { ArrowRight, SlidersHorizontal } from "lucide-react";
 import { SystemWindow } from "@/components/ui/system-window";
@@ -77,11 +77,11 @@ import { cn } from "@/lib/utils";
  *
  * It used to be "#/start/course", the site's own funnel, which asked its own
  * course and topic questions and then handed over to a game that asks them
- * again. Owner direction: one placement quiz, not two. The game's onboarding
- * already redirects a first visit with no stored progress into itself, so
- * landing on the game IS landing on the first question.
+ * again. Owner direction: one placement quiz, not two. Onboarding is skipped
+ * now (owner, 17 Oct), so the press goes to the first lesson itself, as the
+ * button says (audit 23 Oct, section 5 #9).
  */
-const FIRST_QUESTION = TRAINER_URL;
+const FIRST_QUESTION = FIRST_LESSON_URL;
 
 /**
  * The promise, and the largest thing on the screen.

@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useState, type CSSProperties } from "react";
 import { Blueberry } from "@/components/ui/blueberry";
 import { useReducedMotionPref } from "@/lib/motionPref";
-import { HERO, HOME_HEADLINE_FLIPS, TRAINER_URL } from "@/data/site";
+import { FIRST_LESSON_URL, HERO, HOME_HEADLINE_FLIPS } from "@/data/site";
 
 /**
  * The hero's stage: Bloom beside a live mechanism board (home round 2). Its own chunk, so the
@@ -47,10 +47,10 @@ export function HomeHero({ entered }: { entered: boolean }) {
       <div className="home-hero__rest">
         <p className="home-hero__sell">{HERO.sell}</p>
         <div className="home-hero__actions">
-          {/* The one filled button on the screen. Straight into the game: onboarding is
-              skipped (owner, 17 Oct), so this lands on the Unit 1 path. */}
+          {/* The one filled button on the screen. Straight into the first lesson, as its
+              label says (onboarding is skipped, owner 17 Oct; audit 23 Oct, section 5 #9). */}
           <a
-            href={TRAINER_URL}
+            href={FIRST_LESSON_URL}
             className="home-btn"
           >
             <span className="home-btn__face">{HERO.cta}</span>

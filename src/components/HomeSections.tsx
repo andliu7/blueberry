@@ -2,7 +2,7 @@ import { useEffect, useRef, type CSSProperties } from "react";
 import { Hexagon, MessageSquareText, MoveUpRight } from "lucide-react";
 import { ELECTRON_FLOW_COPY } from "@blueberry/feedback";
 import { BlueberryMark } from "@/components/ui/blueberry-mark";
-import { HERO, TRAINER_URL } from "@/data/site";
+import { FIRST_LESSON_URL, HERO } from "@/data/site";
 import "./home-sections.css";
 
 /**
@@ -161,7 +161,7 @@ function Close() {
           <h2 id="home-close-title" className="home-close__title">
             Ready when you are.
           </h2>
-          <a href={TRAINER_URL} className="home-btn">
+          <a href={FIRST_LESSON_URL} className="home-btn">
             <span className="home-btn__face">{HERO.cta}</span>
             <span className="home-btn__face home-btn__face--back" aria-hidden>
               {HERO.cta}

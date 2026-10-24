@@ -85,6 +85,16 @@ export const REPO_URL = "https://github.com/andliu7/blueberry";
  */
 export const TRAINER_URL = "#/app";
 
+/**
+ * Where "Start the first lesson" goes: the first lesson itself, not the Path
+ * (audit 23 Oct, section 5 #9: the button promised a lesson in about two
+ * minutes and landed on the map). Signed out, the app gate sends the visitor
+ * to sign in and brings them back here. A literal so the site bundle does not
+ * load the game's router; firstLessonLink.test.ts holds it to the first node
+ * on the Unit 1 path.
+ */
+export const FIRST_LESSON_URL = "#/app/lesson/u1-allylic";
+
 /** Where the about card's two tags point: the college, and the advising programme. */
 export const CMNS_URL = "https://cmns.umd.edu/";
 export const PREHEALTH_URL =
