@@ -39,9 +39,14 @@ export interface PlanPrice {
  * somebody typed. That is also what happens if the function is unreachable,
  * which is the right failure: a price that cannot be confirmed should not be
  * shown, because the only thing worse than no price is a wrong one.
+ *
+ * `checkoutOpen` is whether Pro is on sale to everyone. It defaults to false,
+ * so an older deployed function that sends no such field fails closed and the
+ * public panel keeps saying "coming soon". The real gate is in stripe-checkout.
  */
-export function usePlanPrices(): { prices: PlanPrice[]; loading: boolean } {
+export function usePlanPrices(): { prices: PlanPrice[]; checkoutOpen: boolean; loading: boolean } {
   const [prices, setPrices] = useState<PlanPrice[]>([]);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -56,6 +61,7 @@ export function usePlanPrices(): { prices: PlanPrice[]; loading: boolean } {
         const data = res?.data;
         if (!live) return;
         setPrices(Array.isArray(data?.prices) ? (data.prices as PlanPrice[]) : []);
+        setCheckoutOpen(data?.checkoutOpen === true);
       })
       .catch(() => {})
       .finally(() => live && setLoading(false));
@@ -64,7 +70,7 @@ export function usePlanPrices(): { prices: PlanPrice[]; loading: boolean } {
     };
   }, []);
 
-  return { prices, loading };
+  return { prices, checkoutOpen, loading };
 }
 
 /** "$6.00" from Stripe's 600 and "usd". Intl does the currency's own rules. */
@@ -180,6 +186,15 @@ export async function startCheckout(plan: PlanKey): Promise<CheckoutResult> {
   if (error) return { ok: false, error: await readError(error) };
   return data as CheckoutResult;
 }
+
+/**
+ * What the panel says when stripe-checkout refuses on the staff-only gate.
+ * The codes come from `supabase/functions/_shared/checkoutGate.ts`.
+ */
+export const CHECKOUT_REFUSALS: Record<string, string> = {
+  "checkout-closed": "Pro is coming soon.",
+  "live-key-while-closed": "Staff test checkout runs on Stripe test keys only.",
+};
 
 /** A link to Stripe's own billing portal, for changing a card or cancelling. */
 export async function openBillingPortal(): Promise<CheckoutResult> {

@@ -3,6 +3,7 @@ import { BookOpen, Check, Loader2, Sparkles, Ticket, User } from "lucide-react";
 import * as PricingCard from "@/components/ui/pricing-card";
 import { useAuth } from "@/lib/AuthContext";
 import {
+  CHECKOUT_REFUSALS,
   formatPrice,
   startCheckout,
   useEntitlements,
@@ -142,16 +143,28 @@ const COMING: Plan = {
   // Owner, 2026-10-07: keep Plans visible and mark the paid tiers "coming soon"
   // with honest copy. So the card names no feature and no price: it says the tier
   // is coming, that nothing is on sale, and that what is free now stays free.
-  name: "Paid tiers, coming soon",
+  // Owner, 2026-10-23: the card is named "Pro is coming soon".
+  name: "Pro is coming soon",
   description:
     "Nothing is on sale yet and no price is set. Everything on the site today stays free.",
   features: [],
 };
 
 export function SubscriptionPlans({ onNavigate }: { onNavigate?: () => void }) {
-  const { user } = useAuth();
-  const { prices } = usePlanPrices();
+  const { user, role } = useAuth();
+  const staff = role === "owner" || role === "admin";
+  const { prices, checkoutOpen } = usePlanPrices();
   const { pro } = useEntitlements();
+
+  // Gates what is drawn only. The real gate is in stripe-checkout, which
+  // refuses anyone but staff while PRO_CHECKOUT_OPEN is off.
+  const canBuy = checkoutOpen || staff;
+
+  // Lazy useState initialiser: read the URL once on mount. Stripe sends the
+  // buyer back to #/d/subscriptions?checkout=done (or =cancelled).
+  const [returned] = useState(
+    () => new URLSearchParams(window.location.hash.split("?")[1] ?? "").get("checkout"),
+  );
 
   /**
    * Which card wears the "Current" badge. One badge, on the highest tier the
@@ -166,7 +179,9 @@ export function SubscriptionPlans({ onNavigate }: { onNavigate?: () => void }) {
    * the entries keeps the property `documentation/STRIPE.md` relies on: a real
    * card appears the moment its price exists in Stripe, with no code change.
    */
-  const sellable = PLANS.filter((plan) => !plan.buys || prices.some((p) => p.plan === plan.buys));
+  const sellable = PLANS.filter(
+    (plan) => !plan.buys || (canBuy && prices.some((p) => p.plan === plan.buys)),
+  );
   const shown = sellable.some((plan) => plan.buys) ? sellable : [...sellable, COMING];
 
   // The column count follows the cards, so a shorter row does not leave a hole.
@@ -174,6 +189,16 @@ export function SubscriptionPlans({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <div>
+      {returned === "done" && (
+        <p className="mb-3 text-sm text-slate-600 dark:text-stone-300">
+          Payment received. Pro shows here once Stripe confirms it, usually within a few seconds.
+        </p>
+      )}
+      {returned === "cancelled" && (
+        <p className="mb-3 text-sm text-slate-600 dark:text-stone-300">
+          Checkout cancelled. Nothing was charged.
+        </p>
+      )}
       <div className={`grid gap-3 sm:grid-cols-2 ${columns}`}>
         {shown.map((plan) => {
           const price = plan.buys ? prices.find((p) => p.plan === plan.buys) : undefined;
@@ -206,6 +231,7 @@ export function SubscriptionPlans({ onNavigate }: { onNavigate?: () => void }) {
                   price={price}
                   isCurrent={current === plan.id}
                   signedIn={Boolean(user)}
+                  staffTest={!checkoutOpen && staff}
                   onNavigate={onNavigate}
                 />
               </PricingCard.Header>
@@ -277,12 +303,15 @@ function PlanAction({
   price,
   isCurrent,
   signedIn,
+  staffTest,
   onNavigate,
 }: {
   plan: Plan;
   price: PlanPrice | undefined;
   isCurrent: boolean;
   signedIn: boolean;
+  /** Pro is not on sale yet and this is staff, so the button is a test run. */
+  staffTest: boolean;
   onNavigate?: () => void;
 }) {
   const [busy, setBusy] = useState(false);
@@ -334,8 +363,11 @@ function PlanAction({
       return;
     }
     setBusy(false);
+    const error = result.error ?? "";
     setFailed(
-      result.error === "not-signed-in" ? "Sign in first." : (result.error ?? "That did not work."),
+      error === "not-signed-in"
+        ? "Sign in first."
+        : (CHECKOUT_REFUSALS[error] ?? (error || "That did not work.")),
     );
   };
 
@@ -347,10 +379,17 @@ function PlanAction({
             <Loader2 className="size-3.5 animate-spin" />
             Opening Stripe
           </span>
+        ) : staffTest ? (
+          "Test checkout (staff only)"
         ) : (
           `Get ${plan.name}`
         )}
       </button>
+      {staffTest && (
+        <p className="mt-1.5 text-center text-xs text-slate-500 dark:text-stone-400">
+          Stripe test mode. Card 4242 4242 4242 4242, any future date, any CVC.
+        </p>
+      )}
       {failed && <p className="mt-1.5 text-center text-xs text-rose-600">{failed}</p>}
     </>
   );

@@ -15,9 +15,14 @@
  * A plan with no configured price id is simply absent from the answer, which
  * is how the cards know to draw "not on sale yet" rather than a number that is
  * not real. Today all three are absent, and that is the correct output.
+ *
+ * `checkoutOpen` rides along so the panel knows whether to offer the prices to
+ * everyone or only to staff. Prices stay public, since a price is not a
+ * secret: the UI decides who sees them, and stripe-checkout decides who pays.
  */
 
 import { CORS, PLANS, json, priceIdFor, semesterPassEnd, stripe } from "../_shared/billing.ts";
+import { proCheckoutOpen } from "../_shared/checkoutGate.ts";
 
 /** One minute at the edge. Prices change roughly never; this is not a feed. */
 const CACHE = "public, max-age=60";
@@ -38,7 +43,8 @@ interface PriceRow {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
 
-  if (!Deno.env.get("STRIPE_SECRET_KEY")) return json({ ok: true, prices: [] });
+  const checkoutOpen = proCheckoutOpen(Deno.env.get("PRO_CHECKOUT_OPEN"));
+  if (!Deno.env.get("STRIPE_SECRET_KEY")) return json({ ok: true, prices: [], checkoutOpen });
 
   const passEnd = semesterPassEnd();
   const rows: PriceRow[] = [];
@@ -70,7 +76,7 @@ Deno.serve(async (req) => {
     }
   }
 
-  return new Response(JSON.stringify({ ok: true, prices: rows }), {
+  return new Response(JSON.stringify({ ok: true, prices: rows, checkoutOpen }), {
     headers: { ...CORS, "Content-Type": "application/json", "Cache-Control": CACHE },
   });
 });

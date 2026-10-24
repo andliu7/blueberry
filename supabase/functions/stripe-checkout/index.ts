@@ -10,6 +10,12 @@
  * on the first checkout. Looking it up costs one query and saves a support
  * question later, when a person with two customer records sees an empty
  * billing portal.
+ *
+ * **Staff only until Pro goes on sale.** While PRO_CHECKOUT_OPEN is not
+ * "true", only staff_roster owners and admins (via `is_staff`) can open
+ * checkout, and only on test keys. It is enforced here, before any Stripe
+ * call, so calling the function directly cannot get round it. See
+ * `_shared/checkoutGate.ts` for the rules.
  */
 
 import {
@@ -23,6 +29,7 @@ import {
   stripe,
   userClient,
 } from "../_shared/billing.ts";
+import { checkoutRefusal, proCheckoutOpen } from "../_shared/checkoutGate.ts";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
@@ -39,6 +46,21 @@ Deno.serve(async (req) => {
     // a generic failure, the same contract the `chat` function uses.
     return json({ ok: false, error: "not-signed-in" }, 401);
   }
+
+  const open = proCheckoutOpen(Deno.env.get("PRO_CHECKOUT_OPEN"));
+  let staff = false;
+  if (!open) {
+    // The caller's own JWT, so the answer is about them. Any error counts as
+    // not staff.
+    const { data, error } = await supabase.rpc("is_staff");
+    staff = !error && data === true;
+  }
+  const refusal = checkoutRefusal({
+    open,
+    staff,
+    liveKey: (Deno.env.get("STRIPE_SECRET_KEY") ?? "").startsWith("sk_live_"),
+  });
+  if (refusal) return json({ ok: false, error: refusal }, 403);
 
   let planKey = "";
   try {
@@ -95,8 +117,8 @@ Deno.serve(async (req) => {
     mode: plan.kind === "subscription" ? "subscription" : "payment",
     customer: customerId,
     line_items: [{ price, quantity: 1 }],
-    success_url: `${site}/#/d/billing?checkout=done`,
-    cancel_url: `${site}/#/d/billing?checkout=cancelled`,
+    success_url: `${site}/#/d/subscriptions?checkout=done`,
+    cancel_url: `${site}/#/d/subscriptions?checkout=cancelled`,
     // THE METADATA IS THE WEBHOOK'S ONLY INPUT. It arrives on the event Stripe
     // sends back, which is what lets the webhook write the right row without
     // trusting anything the browser said at the time. `pass_until` is stamped

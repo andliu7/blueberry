@@ -112,6 +112,9 @@ npx supabase secrets set STRIPE_SECRET_KEY=sk_test_... STRIPE_PRICE_PRO_MONTHLY=
 
 `STRIPE_WEBHOOK_SECRET` comes from step 5 and is set there.
 
+`PRO_CHECKOUT_OPEN`: **leave unset.** Unset is the staff-only gate described in
+"Staff-only test gate" below.
+
 Secrets are read at invocation, so nothing needs redeploying after a
 `secrets set`. Confirm the names arrived without printing the values:
 
@@ -147,7 +150,8 @@ writes one is a signed webhook delivery.
 npm run dev
 ```
 
-Sign in, open the plans panel, press Get Pro. Stripe's test card is
+Sign in as the owner, open the plans panel (`#/d/subscriptions`), press **Test
+checkout (staff only)**. Stripe's test card is
 `4242 4242 4242 4242`, any future expiry, any CVC, any postcode.
 
 Three checks afterwards, in this order:
@@ -159,11 +163,47 @@ Three checks afterwards, in this order:
    for a subscription or `complete` for the pass.
 3. Reload the plans panel: Pro wears the "Current" badge.
 
+A fourth check, for the gate: a non-staff account sees "Pro is coming soon" and
+no price, and calling `stripe-checkout` with a student's token returns 403
+`checkout-closed`.
+
 If the webhook shows a 500:
 
 ```powershell
 npx supabase functions logs stripe-webhook
 ```
+
+## Staff-only test gate
+
+Added 23 Oct 2026 (owner: "add the stripe payment for pro now, but gate it so
+people can't do it now but we can test it").
+
+- **`PRO_CHECKOUT_OPEN`** is an Edge Function secret. Anything other than the
+  exact string `true` (unset, `1`, `TRUE`) means closed. The rules live in
+  `supabase/functions/_shared/checkoutGate.ts` and are pinned by
+  `src/test/proCheckoutGate.test.ts`.
+- **While closed, `stripe-checkout` asks `is_staff()`** with the caller's own
+  token and refuses everyone else with 403 `checkout-closed`, before any Stripe
+  customer or session is created. `is_staff()` follows `staff_roster` through the
+  sign-up trigger, so adding a TA to the roster gives them test checkout with no
+  code change. Calling the function directly does not get round it.
+- **While closed, a live key is refused too** (403 `live-key-while-closed`): a
+  staff test must never charge a real card.
+- **The panel follows.** `stripe-prices` returns `checkoutOpen`; the public sees
+  "Pro is coming soon" and no price, staff see the priced cards with "Test
+  checkout (staff only)" and the test card line. A function that predates the
+  field reads as closed.
+- **The return URL** is `#/d/subscriptions?checkout=done` (or `=cancelled`). It
+  used to be `#/d/billing`, which is not a dashboard view, so a buyer landed on
+  the Me home page with no confirmation. The panel now shows a one-line note.
+- **Test card:** `4242 4242 4242 4242`, any future expiry, any CVC.
+- `stripe-webhook` and `stripe-portal` are not gated: the webhook has to grant a
+  row for a staff test purchase, and the portal only opens the caller's own
+  customer.
+
+Opening Pro to everyone later is `npx supabase secrets set PRO_CHECKOUT_OPEN=true`
+plus live keys, once the copyright question below is settled. That is an owner
+decision.
 
 ## The grant trap, recorded because it nearly shipped
 
