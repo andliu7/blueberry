@@ -312,8 +312,9 @@ export const PROTECTING_GROUP_BOARD: MatchBeat = Object.freeze({
  * the exam question is which reagent does which JOB, so that the jobs can be
  * put in an order. The synthesis gaps downstream ask for the order. This asks
  * for the vocabulary the order is built from, which is the connect slot's own
- * definition, and every left card here is a reagent set that appears in one of
- * those gaps.
+ * definition. Nitration, Sn/HCl and acylation each appear in one of those gaps
+ * (synthesis/corpus.ts, rewritten 23 Oct as EAS routes); sulfonation's gap is
+ * the blocking lesson's.
  *
  * The decoy is the mistake the course's own exams keep catching: reaching for
  * bromination when the sequence asked for sulfonation, because both are "put

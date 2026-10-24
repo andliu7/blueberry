@@ -1,7 +1,7 @@
 /**
- * The authored synthesis gaps. Eight routes, every one of them lifted off a
+ * The authored synthesis gaps. Eleven routes, every one of them lifted off a
  * document the owner already teaches from, and every one carrying the filename
- * and problem number it came from.
+ * and problem number (or topic) it came from.
  *
  * WHY THE SOURCES ARE REAL AND NOT INVENTED. CLAUDE.md's authoring ruling is
  * that course materials are mined for STRUCTURE and the content is ours: the
@@ -14,7 +14,7 @@
  * THE FILES, all in the owner's gitignored `reference images/` folder:
  *   Synthesis Practice Problems_KEY.pdf            problems 1, 4 and 7
  *   Additional Enolate Synthesis Problems_KEY.pdf  problems 1, 3 and 4
- *   Orgo2_Reagent_Reference.pdf                    topics 7 and 14
+ *   Orgo2_Reagent_Reference.pdf                    topics 3, 7 and 14
  *   Orgo_Pathway_Map_Full.pdf                      Unit 5 and Unit 7a
  *
  * THE THREE NODES THIS CORPUS SERVES, from demo/pathwayMap.ts, and they are
@@ -40,12 +40,22 @@ const REAGENT_REFERENCE = "Orgo2_Reagent_Reference.pdf";
 const PATHWAY_MAP = "Orgo_Pathway_Map_Full.pdf";
 
 /* ------------------------------------------------------------------ */
-/* u3-sequencing: the order of operations                               */
+/* Orgo I review: parked until a review node exists                     */
+/*                                                                      */
+/* These three used to be u3-sequencing's produce rung, and none of     */
+/* them has a benzene ring step: bulky-base E2, hydroboration and a     */
+/* Grignard on an epoxide are Orgo I. The 23 Oct learner audit (top-25  */
+/* #8) moved them off the EAS lesson. No map node is called             */
+/* ORGO1_REVIEW, so no lesson plays them until one is built; they stay  */
+/* here, ids unchanged, because the grader tests use them and the       */
+/* routes are good review once they have a home.                        */
 /* ------------------------------------------------------------------ */
+
+const ORGO1_REVIEW = "orgo1-review";
 
 const butaneToAcid = createSynthesisGapProblem({
   id: "syn-u3-butane-acid",
-  node: "u3-sequencing",
+  node: ORGO1_REVIEW,
   conceptIds: ["order-of-operations", "hofmann-vs-zaitsev", "anti-markovnikov-hydration"],
   gapKind: "reagent",
   prompt: "Fill the blank: what takes 2-bromobutane to 1-butene?",
@@ -112,7 +122,7 @@ const butaneToAcid = createSynthesisGapProblem({
 
 const methylenecyclohexaneToKetone = createSynthesisGapProblem({
   id: "syn-u3-methylenecyclohexane",
-  node: "u3-sequencing",
+  node: ORGO1_REVIEW,
   conceptIds: ["order-of-operations", "anti-markovnikov-hydration", "oxidation-ladder"],
   gapKind: "reagent",
   prompt: "Fill the blank: what puts the OH on carbon 2 of 1-methylcyclohexene?",
@@ -184,7 +194,7 @@ const methylenecyclohexaneToKetone = createSynthesisGapProblem({
 
 const bromobenzeneToAlkylbenzene = createSynthesisGapProblem({
   id: "syn-u3-grignard-epoxide",
-  node: "u3-sequencing",
+  node: ORGO1_REVIEW,
   conceptIds: ["retrosynthetic-disconnection", "epoxide-opening-basic", "grignard-addition"],
   gapKind: "reactant",
   prompt: "Fill the blank: which epoxide does the Grignard open to reach that alcohol?",
@@ -252,6 +262,192 @@ const bromobenzeneToAlkylbenzene = createSynthesisGapProblem({
   why: "Read the target backwards: the bond that has to be made is between the ring and a CH₂, and the piece on the other side of it carries three more carbons with a branch. That is 2-isopropyloxirane, and a Grignard opens it at the end the phenyl can reach.",
   source: { file: SYNTHESIS_KEY, locator: "problem 7" },
   diamonds: 15,
+});
+
+/* ------------------------------------------------------------------ */
+/* u3-sequencing: the order of operations                               */
+/*                                                                      */
+/* Three EAS routes, built from the reagents the Unit 3 lessons teach,  */
+/* with the blank on the step whose ORDER is the point. Every structure */
+/* and name here was derived, not recalled: scripts/u3_synthesis_gaps.py */
+/* runs each route and each wrong chip's product through                */
+/* scripts/u3_pools.py's own model (RDKit canonical SMILES) and reads   */
+/* every name back through OPSIN. The reagents are topic 3 of the       */
+/* reagent reference. Friedel-Crafts failing on a withdrawer ring is    */
+/* the same authored convention u3-acyl-fails and u3-alk-fails rest on. */
+/* A lesson plays the first gap for its node (BeatRunner), so the       */
+/* Friedel-Crafts-first route leads.                                    */
+/* ------------------------------------------------------------------ */
+
+const acylateBeforeNitrating = createSynthesisGapProblem({
+  id: "syn-u3-acyl-then-nitrate",
+  node: "u3-sequencing",
+  conceptIds: ["order-of-operations", "eas-sequencing", "directing-effects"],
+  gapKind: "reagent",
+  prompt: "Fill the blank: what turns benzene into acetophenone?",
+  brief: "The next arrow puts a nitro group on, and no Friedel-Crafts step works on the ring after that.",
+  start: "Benzene",
+  target: "1-(3-Nitrophenyl)ethan-1-one",
+  steps: [
+    {
+      id: "s1",
+      over: null,
+      produces: "Acetophenone",
+      note: "The acetyl group goes on while the ring is still plain benzene, the last moment a Friedel-Crafts step can work.",
+    },
+    { id: "s2", over: "HNO₃, H₂SO₄", produces: "1-(3-Nitrophenyl)ethan-1-one" },
+  ],
+  bank: [
+    { id: "opt-acyl", text: "CH₃COCl, AlCl₃", answer: [["CH3COCl", "AlCl3"]] },
+    {
+      id: "opt-nitrate",
+      text: "HNO₃, H₂SO₄",
+      answer: [["HNO3", "H2SO4"]],
+      builds: "nitrobenzene",
+      why: "Nitrating first is the trap this route is built around. Nitrobenzene is too electron poor for Friedel-Crafts, so the acetyl group could never go on afterwards.",
+    },
+    {
+      id: "opt-ethyl",
+      text: "CH₃CH₂Cl, AlCl₃",
+      answer: [["CH3CH2Cl", "AlCl3"]],
+      builds: "ethylbenzene, an alkyl group rather than a ketone",
+      why: "Alkylation puts on CH₂CH₃, which has no C=O. It also directs ortho and para, so the nitro group that follows would miss the meta position.",
+    },
+    {
+      id: "opt-bromo",
+      text: "Br₂, FeBr₃",
+      answer: [["Br2", "FeBr3"]],
+      builds: "bromobenzene",
+      why: "That puts a bromine on, not the acetyl group the target carries.",
+    },
+  ],
+  correctOptionId: "opt-acyl",
+  typed: {
+    mode: "set",
+    steps: [["CH3COCl", "AlCl3"]],
+    equivalents: [
+      ["CH3COCl", "acetyl chloride", "AcCl"],
+      ["AlCl3", "aluminum chloride", "aluminium chloride"],
+    ],
+    placeholder: "Type the acyl chloride and the Lewis acid",
+  },
+  why: "Do the Friedel-Crafts step before any strong withdrawer goes on. The acetyl group is itself a meta director, so the nitration that follows lands meta to it and the target falls out.",
+  source: { file: REAGENT_REFERENCE, locator: "topic 3, EAS: Friedel-Crafts fails on strongly deactivated rings; synthesis order" },
+  diamonds: 12,
+});
+
+const brominateBeforeReducing = createSynthesisGapProblem({
+  id: "syn-u3-bromo-aniline",
+  node: "u3-sequencing",
+  conceptIds: ["order-of-operations", "eas-sequencing", "directing-effects"],
+  gapKind: "reagent",
+  prompt: "Fill the blank: what puts the bromine meta to the nitro group?",
+  brief: "The nitro group is still on the ring at this step, and it is the group doing the steering.",
+  start: "Benzene",
+  target: "3-Bromoaniline",
+  steps: [
+    { id: "s1", over: "HNO₃, H₂SO₄", produces: "Nitrobenzene" },
+    {
+      id: "s2",
+      over: null,
+      produces: "1-Bromo-3-nitrobenzene",
+      note: "Bromine goes on while NO₂ is still a meta director. Reduce first and the NH₂ would send it ortho and para.",
+    },
+    { id: "s3", over: "Sn, HCl, then NaOH", produces: "3-Bromoaniline" },
+  ],
+  bank: [
+    { id: "opt-br", text: "Br₂, FeBr₃", answer: [["Br2", "FeBr3"]] },
+    {
+      id: "opt-cl",
+      text: "Cl₂, FeCl₃",
+      answer: [["Cl2", "FeCl3"]],
+      builds: "1-chloro-3-nitrobenzene",
+      why: "Right position, wrong halogen. Chlorine also goes meta to NO₂, and the route then ends at 3-chloroaniline.",
+    },
+    {
+      id: "opt-reduce",
+      text: "Sn, HCl, then NaOH",
+      answer: [["Sn", "HCl"], ["NaOH"]],
+      builds: "aniline",
+      why: "Reducing now turns NO₂ into NH₂, an ortho and para director, so the bromine would never land meta.",
+    },
+    {
+      id: "opt-nbs",
+      text: "NBS, hν",
+      answer: [["NBS", "hv"]],
+      why: "NBS brominates a benzylic carbon, and nitrobenzene has no benzylic H. The ring needs Br₂ with a Lewis acid.",
+    },
+  ],
+  correctOptionId: "opt-br",
+  typed: {
+    mode: "set",
+    steps: [["Br2", "FeBr3"]],
+    equivalents: [
+      ["Br2", "bromine"],
+      ["FeBr3", "Fe", "iron(III) bromide"],
+    ],
+    placeholder: "Type the halogen and the Lewis acid",
+  },
+  why: "Order is the whole route: nitrate, brominate while NO₂ points meta, and only then reduce NO₂ to NH₂. The amine goes on last, because it would steer every step after it.",
+  source: { file: REAGENT_REFERENCE, locator: "topic 3, EAS: halogenation, nitration, nitro reduction; synthesis order" },
+  diamonds: 12,
+});
+
+const nitrateBeforeOxidising = createSynthesisGapProblem({
+  id: "syn-u3-nitro-acid",
+  node: "u3-sequencing",
+  conceptIds: ["order-of-operations", "eas-sequencing", "benzylic-oxidation"],
+  gapKind: "reagent",
+  prompt: "Fill the blank: what turns the methyl into COOH?",
+  brief: "The nitro group is already para. All that is left is the carbon that steered it there.",
+  start: "Toluene",
+  target: "4-Nitrobenzoic acid",
+  steps: [
+    { id: "s1", over: "HNO₃, H₂SO₄", produces: "1-Methyl-4-nitrobenzene" },
+    {
+      id: "s2",
+      over: null,
+      produces: "4-Nitrobenzoic acid",
+      note: "Oxidation comes second on purpose: CH₃ sent the nitro group para, and COOH, a meta director, would not have.",
+    },
+  ],
+  bank: [
+    { id: "opt-kmno4", text: "KMnO₄, heat", answer: [["KMnO4", "Δ"]] },
+    {
+      id: "opt-nbs",
+      text: "NBS, hν",
+      answer: [["NBS", "hv"]],
+      builds: "1-(bromomethyl)-4-nitrobenzene",
+      why: "NBS does work at the benzylic carbon, but it swaps one H for Br. The carbon is not oxidised to COOH.",
+    },
+    {
+      id: "opt-sn",
+      text: "Sn, HCl, then NaOH",
+      answer: [["Sn", "HCl"], ["NaOH"]],
+      builds: "4-methylaniline",
+      why: "That reduces the nitro group to NH₂ and leaves the CH₃ alone, the opposite of what the target needs.",
+    },
+    {
+      id: "opt-clemmensen",
+      text: "Zn(Hg), HCl",
+      answer: [["Zn(Hg)", "HCl"]],
+      why: "Clemmensen takes a C=O down to CH₂. There is no C=O here, and the target needs the carbon oxidised, not reduced.",
+    },
+  ],
+  correctOptionId: "opt-kmno4",
+  typed: {
+    mode: "set",
+    steps: [["KMnO4"]],
+    equivalents: [
+      ["KMnO4", "potassium permanganate"],
+      ["Δ", "heat"],
+    ],
+    alternatives: [{ label: "The same oxidation, with the heat written in", steps: [["KMnO4", "Δ"]] }],
+    placeholder: "Type the oxidant",
+  },
+  why: "Benzylic oxidation needs a benzylic H, and CH₃ has three, so KMnO₄ cuts it back to COOH. Nitrating first while CH₃ points para is what makes the para acid.",
+  source: { file: REAGENT_REFERENCE, locator: "topic 3, EAS: side-chain benzylic oxidation; synthesis order" },
+  diamonds: 12,
 });
 
 /* ------------------------------------------------------------------ */
@@ -555,6 +751,9 @@ const acetalProtection = createSynthesisGapProblem({
  * reviewed by a person.
  */
 export const SYNTHESIS_GAPS: readonly SynthesisGapProblem[] = Object.freeze([
+  acylateBeforeNitrating,
+  brominateBeforeReducing,
+  nitrateBeforeOxidising,
   butaneToAcid,
   methylenecyclohexaneToKetone,
   bromobenzeneToAlkylbenzene,
