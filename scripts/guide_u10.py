@@ -105,7 +105,7 @@ def build() -> dict:
     amine = "CCCC(C)N"
     salt = alkylate_to_quaternary(amine, "C")
     ex["u10-hofmann-e"] = {
-        "caption": "Exhaustive methylation makes N(CH₃)₃⁺ a leaving group. The bulky group takes an H from the less hindered CH₃ end: the less substituted alkene.",
+        "caption": "Exhaustive methylation makes N(CH₃)₃⁺ a leaving group. Hydroxide takes an H from the less hindered CH₃ end, where the bulky group crowds least: the less substituted alkene.",
         "panels": [
             named(amine, "Pentan-2-amine"), arrow("excess CH₃I"), focus(named(salt, "N,N,N-Trimethylpentan-2-aminium", hi=("[N+]",))),
             {"kind": "break"},

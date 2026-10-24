@@ -137,7 +137,7 @@ const STAGES: readonly GuideStage[] = [
             quote: "A primary amine takes three CH₃.",
           },
         ],
-        example: { source: "u10-he-meet", quote: "The bulky N(CH₃)₃ leaving group takes an H from the less hindered CH₃ end" },
+        example: { source: "u10-he-meet", quote: "Hydroxide takes an H from the less hindered CH₃ end, because the bulky N(CH₃)₃⁺ group crowds the inside CH₂" },
       },
       {
         node: "u10-cope",

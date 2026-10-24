@@ -821,7 +821,7 @@ export const U10_GUIDE_EXAMPLES: Readonly<Record<string, GuideExample>> = {
     "placeholder": true
   },
   "u10-hofmann-e": {
-    "caption": "Exhaustive methylation makes N(CH₃)₃⁺ a leaving group. The bulky group takes an H from the less hindered CH₃ end: the less substituted alkene.",
+    "caption": "Exhaustive methylation makes N(CH₃)₃⁺ a leaving group. Hydroxide takes an H from the less hindered CH₃ end, where the bulky group crowds least: the less substituted alkene.",
     "panels": [
       {
         "kind": "mol",

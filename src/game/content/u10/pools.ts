@@ -3103,7 +3103,7 @@ export const U10_POOLS: UnitPools = {
             {
               "id": "one",
               "text": "Pent-1-ene",
-              "why": "The bulky N(CH₃)₃ leaving group takes an H from the less hindered CH₃ end: the less substituted alkene."
+              "why": "Hydroxide takes an H from the less hindered CH₃ end, because the bulky N(CH₃)₃⁺ group crowds the inside CH₂: the less substituted alkene."
             },
             {
               "id": "two",
@@ -3212,7 +3212,7 @@ export const U10_POOLS: UnitPools = {
             "amines"
           ],
           "levels": [
-            1
+            2
           ],
           "prompt": "2-Methylbutan-2-amine: excess CH₃I, then Ag₂O and heat. Pick the major alkene.",
           "correctOptionId": "one",

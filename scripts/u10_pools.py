@@ -2188,7 +2188,7 @@ def node_hofmann_e() -> None:
     alkenes = hofmann_e(q)
     p = least_subst(alkenes)
     pick(node, "u10-he-meet", "This salt meets Ag₂O, then heat. Pick the major alkene.",
-         [o("one", p, "pent-1-ene", "The bulky N(CH₃)₃ leaving group takes an H from the less hindered CH₃ end: the less substituted alkene."),
+         [o("one", p, "pent-1-ene", "Hydroxide takes an H from the less hindered CH₃ end, because the bulky N(CH₃)₃⁺ group crowds the inside CH₂: the less substituted alkene."),
           o("two", "CC=CCC", "pent-2-ene", "That more substituted alkene is the Zaitsev product, which a halide gives. Here it is minor."),
           o("alc", "CCCC(C)O", "pentan-2-ol", "Hydroxide acts as a base here, and heat drives elimination.")],
          [p] if p else None, "one", "Hofmann elimination: the less substituted alkene wins.",
@@ -2220,7 +2220,7 @@ def node_hofmann_e() -> None:
           o("alc", "CCC(C)(C)O", "2-methylbutan-2-ol", "Hydroxide removes an H; it does not replace the N.")],
          [p2] if p2 else None, "one", "Hofmann elimination prefers the less substituted alkene.",
          prov("Rule E, every alkene enumerated, the least substituted picked", CH_AMINE, HOFE_CONV),
-         lead("CCC(C)(C)N", "2-methylbutan-2-amine", "excess CH₃I; Ag₂O, heat"), concepts=AMINE, convention=HOFE_CONV)
+         lead("CCC(C)(C)N", "2-methylbutan-2-amine", "excess CH₃I; Ag₂O, heat"), level=2, concepts=AMINE, convention=HOFE_CONV)
 
     side = byproduct([q, "[OH-]"], [p, "O"], {"tma": "CN(C)C", "dma": "CNC", "nh3": "N"})
     ask(node, "u10-he-leaves", "Pick the leaving group a Hofmann elimination loses.",
