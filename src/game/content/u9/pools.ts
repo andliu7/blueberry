@@ -382,6 +382,89 @@ export const U9_POOLS: UnitPools = {
       "provenance": "scripts/u9_pools.py: formula and hybridisation compared by RDKit. OpenStax Organic Chemistry ch. 22 (CC BY-NC-SA) is the named check, not yet read against this draft.",
       "placeholder": true
     },
+    {
+      "id": "u9-tau-hd",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u9-tau-hd",
+          "node": "u9-tautomer",
+          "conceptIds": [
+            "enols_and_enolates"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "Butan-2-one sits in D₂O with a trace of NaOD. Pick how many H swap for D.",
+          "correctOptionId": "five",
+          "options": [
+            {
+              "id": "eight",
+              "text": "Eight",
+              "why": "The ethyl CH₃ is β to the C=O. Its H never sit next to the carbanion, so they stay H."
+            },
+            {
+              "id": "two",
+              "text": "Two",
+              "why": "That counts only the CH₂. The CH₃ on the C=O is α as well."
+            },
+            {
+              "id": "five",
+              "text": "Five",
+              "why": "Every α-H comes off as the enolate forms and goes back on as D: three on the CH₃ and two on the CH₂."
+            },
+            {
+              "id": "three",
+              "text": "Three",
+              "why": "That counts only the CH₃. The CH₂ on the other side of the C=O is α too, and its two H swap as well."
+            }
+          ]
+        }
+      },
+      "explanation": "Each α-H exchanges through the enolate; no other C-H does.",
+      "provenance": "scripts/u9_pools.py: alpha C-H found by SMARTS, H counted by RDKit. OpenStax Organic Chemistry ch. 22 (CC BY-NC-SA) is the named check, not yet read against this draft.",
+      "placeholder": true
+    },
+    {
+      "id": "u9-tau-rac",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u9-tau-rac",
+          "node": "u9-tautomer",
+          "conceptIds": [
+            "enols_and_enolates"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "Pick the ketone that loses its optical activity in dilute acid.",
+          "correctOptionId": "rac",
+          "options": [
+            {
+              "id": "beta",
+              "text": "(S)-4-methylhexan-2-one",
+              "why": "The stereocentre is β. The enol's C=C forms at C1 or C3, never at C4, so C4 keeps its configuration."
+            },
+            {
+              "id": "quat",
+              "text": "(S)-3-methyl-3-phenylpentan-2-one",
+              "why": "The stereocentre is α but has no H to lose, so no enol forms toward it and it stays as it was."
+            },
+            {
+              "id": "rac",
+              "text": "(S)-3-methylpentan-2-one",
+              "why": "Its stereocentre is the α-carbon and carries an H. The enol makes that carbon flat, and the H returns to either face: a racemate."
+            }
+          ]
+        }
+      },
+      "explanation": "An α stereocentre with an H racemises through the enol.",
+      "provenance": "scripts/u9_pools.py: stereocentres counted by RDKit before and after Rule E. OpenStax Organic Chemistry ch. 22 (CC BY-NC-SA) is the named check, not yet read against this draft.",
+      "placeholder": true
+    },
   ],
   "u9-pka": [
     {
@@ -698,6 +781,84 @@ export const U9_POOLS: UnitPools = {
       "explanation": "The α-proton ladder: two C=O near 10, one ketone near 20, one ester near 25.",
       "provenance": "scripts/u9_pools.py: pKa read per card from pka.ts. OpenStax Organic Chemistry ch. 22 (CC BY-NC-SA) is the named check, not yet read against this draft."
     }),
+    {
+      "id": "u9-pka-window",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u9-pka-window",
+          "node": "u9-pka",
+          "conceptIds": [
+            "pka_keq_viability"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "Pick the base that fully deprotonates pentane-2,4-dione but not propan-2-one.",
+          "correctOptionId": "NaOEt",
+          "options": [
+            {
+              "id": "NaHCO3",
+              "text": "NaHCO₃",
+              "why": "Carbonic acid, near 6, is below both. Neither C-H is taken fully."
+            },
+            {
+              "id": "NaOEt",
+              "text": "NaOEt",
+              "why": "Ethanol, near 16, sits between the two: above the dione's C-H at about 10, below the ketone's α-H at about 20."
+            },
+            {
+              "id": "LDA",
+              "text": "LDA",
+              "why": "Diisopropylamine, near 35, is above both, so LDA deprotonates both fully."
+            }
+          ]
+        }
+      },
+      "explanation": "A base takes a proton fully when its conjugate acid has the higher pKa.",
+      "provenance": "scripts/u9_pools.py: Rule P on the course pKa table. OpenStax Organic Chemistry ch. 22 (CC BY-NC-SA) is the named check, not yet read against this draft.",
+      "placeholder": true
+    },
+    {
+      "id": "u9-pka-first",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u9-pka-first",
+          "node": "u9-pka",
+          "conceptIds": [
+            "pka_keq_viability"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "4-Oxopentanoic acid meets one equivalent of NaOEt. Pick the H removed.",
+          "correctOptionId": "acid",
+          "options": [
+            {
+              "id": "alpha",
+              "text": "An α-H next to the ketone",
+              "why": "Near pKa 20, that C-H loses to the O-H at about 5. The base never reaches it."
+            },
+            {
+              "id": "ch2",
+              "text": "An H on the CH₂ next to the CO₂H",
+              "why": "That C-H is α to the acid, but the acid's own O-H, far more acidic, goes first."
+            },
+            {
+              "id": "acid",
+              "text": "The carboxylic acid O-H",
+              "why": "Near pKa 5, it is by far the most acidic H, so the one equivalent of base is spent there."
+            }
+          ]
+        }
+      },
+      "explanation": "A base takes the most acidic H first, which is where one equivalent goes.",
+      "provenance": "scripts/u9_pools.py: protons classified by SMARTS, pKa read from pka.ts. OpenStax Organic Chemistry ch. 22 (CC BY-NC-SA) is the named check, not yet read against this draft.",
+      "placeholder": true
+    },
   ],
   "u9-enolate-res": [
     {
@@ -935,6 +1096,86 @@ export const U9_POOLS: UnitPools = {
       },
       "explanation": "More atoms sharing the charge, more stable anion, lower pKa.",
       "provenance": "scripts/u9_pools.py: resonance forms enumerated by RDKit. OpenStax Organic Chemistry ch. 22 (CC BY-NC-SA) is the named check, not yet read against this draft.",
+      "placeholder": true
+    },
+    {
+      "id": "u9-res-mal",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u9-res-mal",
+          "node": "u9-enolate-res",
+          "conceptIds": [
+            "enols_and_enolates",
+            "resonance_delocalisation"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "Pick the atoms that share the charge in diethyl malonate's enolate.",
+          "correctOptionId": "cOO",
+          "options": [
+            {
+              "id": "all",
+              "text": "The central C and all four oxygens",
+              "why": "The OCH₂CH₃ oxygens have no π bond to the carbanion. They donate electrons; they do not take the charge."
+            },
+            {
+              "id": "cOO",
+              "text": "The central C and both C=O oxygens",
+              "why": "The carbanion delocalises into each C=O, so the charge sits on carbon and on both carbonyl oxygens."
+            },
+            {
+              "id": "cO",
+              "text": "The central C and one oxygen",
+              "why": "Both C=O groups take part. That is why this C-H is far more acidic than a simple ester's."
+            }
+          ]
+        }
+      },
+      "explanation": "Count the atoms RDKit's resonance forms put the minus charge on.",
+      "provenance": "scripts/u9_pools.py: RDKit resonance forms of the enolate. OpenStax Organic Chemistry ch. 22 (CC BY-NC-SA) is the named check, not yet read against this draft.",
+      "placeholder": true
+    },
+    {
+      "id": "u9-res-gamma",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u9-res-gamma",
+          "node": "u9-enolate-res",
+          "conceptIds": [
+            "enols_and_enolates",
+            "resonance_delocalisation"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "A base removes an H from the CH₃ of but-2-enal. Pick how many atoms share the charge.",
+          "correctOptionId": "three",
+          "options": [
+            {
+              "id": "four",
+              "text": "Four",
+              "why": "C1 and C3 never carry it. In each form the charge sits on every other atom: C4, C2, then O."
+            },
+            {
+              "id": "three",
+              "text": "Three",
+              "why": "The carbanion on C4 pushes through the C=C into the C=O: C4, C2 and the oxygen each carry it in one form."
+            },
+            {
+              "id": "two",
+              "text": "Two",
+              "why": "The C=C between them relays it: C2 holds the charge too, between C4 and the oxygen."
+            }
+          ]
+        }
+      },
+      "explanation": "A C=C between the carbanion and the C=O passes the charge along.",
+      "provenance": "scripts/u9_pools.py: RDKit resonance forms of the anion. OpenStax Organic Chemistry ch. 22 (CC BY-NC-SA) is the named check, not yet read against this draft.",
       "placeholder": true
     },
   ],
@@ -1176,6 +1417,46 @@ export const U9_POOLS: UnitPools = {
       },
       "explanation": "A quaternary α-carbon cannot enolise, so only one enolate exists.",
       "provenance": "scripts/u9_pools.py: Rule E on every alpha C-H; one exists. OpenStax Organic Chemistry ch. 22 (CC BY-NC-SA) is the named check, not yet read against this draft.",
+      "placeholder": true
+    },
+    {
+      "id": "u9-kvt-ipr",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u9-kvt-ipr",
+          "node": "u9-kvt-enolate",
+          "conceptIds": [
+            "kinetic_vs_thermodynamic_control",
+            "enols_and_enolates"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "2-Methylpentan-3-one meets LDA at −78 °C. Pick the enolate.",
+          "correctOptionId": "k",
+          "options": [
+            {
+              "id": "k",
+              "text": "4-methylpent-2-en-3-olate",
+              "why": "LDA is bulky and takes the more exposed H: the ethyl's CH₂, with two H, against the lone CH. Cold, it stays where it formed."
+            },
+            {
+              "id": "t",
+              "text": "2-methylpent-2-en-3-olate",
+              "why": "That is the more substituted enolate, the one a warm alkoxide equilibrates to."
+            },
+            {
+              "id": "enol",
+              "text": "4-methylpent-2-en-3-ol",
+              "why": "That is an enol, with H on the oxygen. LDA leaves the lithium enolate, and nothing protonates it at −78 °C."
+            }
+          ]
+        }
+      },
+      "explanation": "Kinetic: the side with more H, even when both sides are substituted.",
+      "provenance": "scripts/u9_pools.py: Rule E at the alpha carbon with more H. OpenStax Organic Chemistry ch. 22 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: LDA at -78 C removes the alpha H on the carbon with more H (kinetic); an alkoxide, warm, equilibrates to the more substituted enolate (thermodynamic).",
       "placeholder": true
     },
   ],
@@ -1420,6 +1701,84 @@ export const U9_POOLS: UnitPools = {
       "provenance": "scripts/u9_pools.py: Rule E, the enol is neutral. OpenStax Organic Chemistry ch. 22 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: acid stops at one halogen, on the more substituted alpha carbon; base with excess halogen replaces every H on a methyl ketone's methyl, then cleaves (haloform).",
       "placeholder": true
     },
+    {
+      "id": "u9-ha-ipr",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u9-ha-ipr",
+          "node": "u9-halo-acid",
+          "conceptIds": [
+            "enols_and_enolates"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "3-Methylbutan-2-one meets Br₂ in acetic acid. Pick the major product.",
+          "correctOptionId": "p",
+          "options": [
+            {
+              "id": "m",
+              "text": "1-bromo-3-methylbutan-2-one",
+              "why": "That is the methyl side, the less substituted enol. Under acid the more substituted enol forms and reacts."
+            },
+            {
+              "id": "di",
+              "text": "1,3-dibromo-3-methylbutan-2-one",
+              "why": "Acid stops at one bromine: the first Br makes the next enol slower to form."
+            },
+            {
+              "id": "p",
+              "text": "3-bromo-3-methylbutan-2-one",
+              "why": "Acid goes through the more substituted enol, the C=C toward the CH. Bromine lands on that tertiary carbon."
+            }
+          ]
+        }
+      },
+      "explanation": "Acid: one halogen, on the more substituted α-carbon.",
+      "provenance": "scripts/u9_pools.py: Rule H through the more substituted enol. OpenStax Organic Chemistry ch. 22 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: acid stops at one halogen, on the more substituted alpha carbon; base with excess halogen replaces every H on a methyl ketone's methyl, then cleaves (haloform).",
+      "placeholder": true
+    },
+    {
+      "id": "u9-ha-benzyl",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u9-ha-benzyl",
+          "node": "u9-halo-acid",
+          "conceptIds": [
+            "enols_and_enolates"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "1-Phenylpropan-2-one meets Br₂ with acid. Pick the major product.",
+          "correctOptionId": "p",
+          "options": [
+            {
+              "id": "p",
+              "text": "1-bromo-1-phenylpropan-2-one",
+              "why": "The enol forms toward the CH₂ that carries the ring, the more substituted side, so Br goes on the carbon next to the phenyl."
+            },
+            {
+              "id": "me",
+              "text": "1-bromo-3-phenylpropan-2-one",
+              "why": "That brominates the CH₃ side, through the less substituted enol."
+            },
+            {
+              "id": "ring",
+              "text": "1-(4-bromophenyl)propan-2-one",
+              "why": "Ring bromination needs FeBr₃. Here the enol's C=C is the nucleophile, not the ring."
+            }
+          ]
+        }
+      },
+      "explanation": "A ring counts as a substituent on the enol's C=C.",
+      "provenance": "scripts/u9_pools.py: Rule H through the more substituted enol. OpenStax Organic Chemistry ch. 22 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: acid stops at one halogen, on the more substituted alpha carbon; base with excess halogen replaces every H on a methyl ketone's methyl, then cleaves (haloform).",
+      "placeholder": true
+    },
   ],
   "u9-halo-base": [
     {
@@ -1657,6 +2016,89 @@ export const U9_POOLS: UnitPools = {
       "explanation": "Acid: one X. Base: CX₃, then cleavage to a carboxylate and HCX₃.",
       "provenance": "scripts/u9_pools.py: Rule H run on each row. OpenStax Organic Chemistry ch. 22 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: acid stops at one halogen, on the more substituted alpha carbon; base with excess halogen replaces every H on a methyl ketone's methyl, then cleaves (haloform)."
     }),
+    {
+      "id": "u9-hb-acid",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u9-hb-acid",
+          "node": "u9-halo-base",
+          "conceptIds": [
+            "enols_and_enolates"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "4-Methylpentan-2-one meets excess Br₂ and NaOH, then acid. Pick the organic acid.",
+          "correctOptionId": "p",
+          "options": [
+            {
+              "id": "p",
+              "text": "3-methylbutanoic acid",
+              "why": "The CH₃ on the C=O becomes CBr₃ and leaves as CHBr₃. The rest keeps the carbonyl carbon and becomes the acid, one carbon shorter."
+            },
+            {
+              "id": "same",
+              "text": "4-methylpentanoic acid",
+              "why": "That keeps all six carbons. The haloform cut removes the methyl carbon as bromoform."
+            },
+            {
+              "id": "short",
+              "text": "2-methylpropanoic acid",
+              "why": "That loses two carbons. Only the CBr₃ carbon leaves."
+            }
+          ]
+        }
+      },
+      "explanation": "Haloform: a methyl ketone becomes an acid with one carbon fewer.",
+      "provenance": "scripts/u9_pools.py: Rule H with haloform cleavage, then the carboxylate protonated. OpenStax Organic Chemistry ch. 22 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: acid stops at one halogen, on the more substituted alpha carbon; base with excess halogen replaces every H on a methyl ketone's methyl, then cleaves (haloform).",
+      "placeholder": true
+    },
+    {
+      "id": "u9-hb-noform",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u9-hb-noform",
+          "node": "u9-halo-base",
+          "conceptIds": [
+            "enols_and_enolates"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "Pick the ketone that gives no CHBr₃ with excess Br₂ and NaOH.",
+          "correctOptionId": "p3",
+          "options": [
+            {
+              "id": "ipr",
+              "text": "3-methylbutan-2-one",
+              "why": "The isopropyl side does not matter. The CH₃ on the C=O does."
+            },
+            {
+              "id": "p3",
+              "text": "Pentan-3-one",
+              "why": "Both sides are ethyl. No CH₃ sits on the C=O, so no CBr₃ forms to leave."
+            },
+            {
+              "id": "p2",
+              "text": "Pentan-2-one",
+              "why": "A CH₃ on the C=O: it is brominated three times and leaves as bromoform."
+            },
+            {
+              "id": "acp",
+              "text": "Acetophenone",
+              "why": "The CH₃ on the C=O makes it a methyl ketone, and the ring does not stop it."
+            }
+          ]
+        }
+      },
+      "explanation": "Only a methyl ketone gives the haloform products.",
+      "provenance": "scripts/u9_pools.py: methyl ketone read by SMARTS. OpenStax Organic Chemistry ch. 22 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: acid stops at one halogen, on the more substituted alpha carbon; base with excess halogen replaces every H on a methyl ketone's methyl, then cleaves (haloform).",
+      "placeholder": true
+    },
   ],
   "u9-aldol": [
     {
@@ -1891,6 +2333,85 @@ export const U9_POOLS: UnitPools = {
       },
       "explanation": "Nucleophile α-carbon, electrophile C=O carbon.",
       "provenance": "scripts/u9_pools.py: Rule A, the bond the edit adds. OpenStax Organic Chemistry ch. 23 (CC BY-NC-SA) is the named check, not yet read against this draft.",
+      "placeholder": true
+    },
+    {
+      "id": "u9-ald-ival",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u9-ald-ival",
+          "node": "u9-aldol",
+          "conceptIds": [
+            "aldol_and_claisen"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "Two 3-methylbutanal molecules meet NaOH, cold. Pick the aldol product.",
+          "correctOptionId": "p",
+          "options": [
+            {
+              "id": "c",
+              "text": "5-methyl-2-(propan-2-yl)hex-2-enal",
+              "why": "That is the condensed enal. Cold base stops at the β-hydroxy aldehyde."
+            },
+            {
+              "id": "b",
+              "text": "4-hydroxy-3,3,6-trimethylheptanal",
+              "why": "That bonds through C3, the CH that carries the methyls. Only C2, next to the C=O, is the α-carbon."
+            },
+            {
+              "id": "p",
+              "text": "3-hydroxy-5-methyl-2-(propan-2-yl)hexanal",
+              "why": "C2, the only α-carbon, bonds to the other molecule's CHO carbon, which becomes CH-OH. The isopropyl rides along on C2."
+            }
+          ]
+        }
+      },
+      "explanation": "The α-carbon carries its branch into the new bond.",
+      "provenance": "scripts/u9_pools.py: Rule A, self aldol. OpenStax Organic Chemistry ch. 23 (CC BY-NC-SA) is the named check, not yet read against this draft.",
+      "placeholder": true
+    },
+    {
+      "id": "u9-ald-which",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u9-ald-which",
+          "node": "u9-aldol",
+          "conceptIds": [
+            "multistep_synthesis",
+            "aldol_and_claisen"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "Pick the aldehyde whose self-aldol gives 2-ethyl-3-hydroxyhexanal.",
+          "correctOptionId": "bu",
+          "options": [
+            {
+              "id": "pe",
+              "text": "Pentanal",
+              "why": "That gives a propyl branch and ten carbons in all."
+            },
+            {
+              "id": "bu",
+              "text": "Butanal",
+              "why": "Cut C2-C3: the C2 side with its ethyl branch and the CHO is one butanal, the CH(OH) side with its propyl is the other."
+            },
+            {
+              "id": "pr",
+              "text": "Propanal",
+              "why": "Its aldol is 3-hydroxy-2-methylpentanal: a methyl branch, six carbons in all."
+            }
+          ]
+        }
+      },
+      "explanation": "Cut the bond between the α-carbon and the C-OH carbon.",
+      "provenance": "scripts/u9_pools.py: forward aldol run on each option. OpenStax Organic Chemistry ch. 23 (CC BY-NC-SA) is the named check, not yet read against this draft.",
       "placeholder": true
     },
   ],
@@ -2174,6 +2695,84 @@ export const U9_POOLS: UnitPools = {
       "provenance": "scripts/u9_pools.py: E1cb run on each option. OpenStax Organic Chemistry ch. 23 (CC BY-NC-SA) is the named check, not yet read against this draft.",
       "placeholder": true
     },
+    {
+      "id": "u9-cond-butanal",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u9-cond-butanal",
+          "node": "u9-aldol-cond",
+          "conceptIds": [
+            "aldol_and_claisen"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "Two butanal molecules are heated with NaOH. Pick the product.",
+          "correctOptionId": "p",
+          "options": [
+            {
+              "id": "deconj",
+              "text": "2-ethylhex-3-enal",
+              "why": "That C=C is not conjugated with the C=O. E1cb forms the C=C at the α-carbon."
+            },
+            {
+              "id": "p",
+              "text": "2-ethylhex-2-enal",
+              "why": "Aldol at C2, then E1cb removes the OH with the α-H: the C=C sits between C2 and C3, conjugated with the CHO."
+            },
+            {
+              "id": "add",
+              "text": "2-ethyl-3-hydroxyhexanal",
+              "why": "That is the aldol before water leaves. Heat with base carries on."
+            }
+          ]
+        }
+      },
+      "explanation": "Heat turns the aldol into the conjugated enal.",
+      "provenance": "scripts/u9_pools.py: Rule A then E1cb. OpenStax Organic Chemistry ch. 23 (CC BY-NC-SA) is the named check, not yet read against this draft.",
+      "placeholder": true
+    },
+    {
+      "id": "u9-cond-acphen",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u9-cond-acphen",
+          "node": "u9-aldol-cond",
+          "conceptIds": [
+            "aldol_and_claisen"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "Two acetophenone molecules are heated with base. Pick the condensation product.",
+          "correctOptionId": "p",
+          "options": [
+            {
+              "id": "chal",
+              "text": "1,3-diphenylprop-2-en-1-one",
+              "why": "That needs benzaldehyde. The acceptor here is a ketone, so its carbon keeps a CH₃."
+            },
+            {
+              "id": "p",
+              "text": "1,3-diphenylbut-2-en-1-one",
+              "why": "One ketone's CH₃ enolate adds to the other's C=O, then water leaves to give the conjugated enone."
+            },
+            {
+              "id": "ald",
+              "text": "3-hydroxy-1,3-diphenylbutan-1-one",
+              "why": "That is the aldol addition. Heat removes the OH."
+            }
+          ]
+        }
+      },
+      "explanation": "A ketone can be the acceptor too; its C=O carbon keeps both groups.",
+      "provenance": "scripts/u9_pools.py: Rule A then E1cb. OpenStax Organic Chemistry ch. 23 (CC BY-NC-SA) is the named check, not yet read against this draft.",
+      "placeholder": true
+    },
   ],
   "u9-crossed": [
     {
@@ -2415,6 +3014,84 @@ export const U9_POOLS: UnitPools = {
       "provenance": "scripts/u9_pools.py: Rule A then E1cb. OpenStax Organic Chemistry ch. 23 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: in a crossed aldol the partner with no alpha H can only be the acceptor.",
       "placeholder": true
     },
+    {
+      "id": "u9-cx-dba",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u9-cx-dba",
+          "node": "u9-crossed",
+          "conceptIds": [
+            "aldol_and_claisen"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "Propan-2-one meets two benzaldehyde, NaOH and heat. Pick the product.",
+          "correctOptionId": "p",
+          "options": [
+            {
+              "id": "mono",
+              "text": "4-phenylbut-3-en-2-one",
+              "why": "That uses one benzaldehyde. The other CH₃ still has α-H, and a second benzaldehyde is there."
+            },
+            {
+              "id": "self",
+              "text": "4-methylpent-3-en-2-one",
+              "why": "That is propan-2-one condensing with itself. Benzaldehyde is the far better acceptor."
+            },
+            {
+              "id": "p",
+              "text": "1,5-diphenylpenta-1,4-dien-3-one",
+              "why": "Both CH₃ groups of propan-2-one have α-H. Each condenses with one benzaldehyde, so two C=C form."
+            }
+          ]
+        }
+      },
+      "explanation": "Two α-carbons with H can condense twice.",
+      "provenance": "scripts/u9_pools.py: Rule A then E1cb, run twice. OpenStax Organic Chemistry ch. 23 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: in a crossed aldol the partner with no alpha H can only be the acceptor.",
+      "placeholder": true
+    },
+    {
+      "id": "u9-cx-piv",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u9-cx-piv",
+          "node": "u9-crossed",
+          "conceptIds": [
+            "aldol_and_claisen"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "2,2-Dimethylpropanal and acetophenone meet NaOH with heat. Pick the product.",
+          "correctOptionId": "p",
+          "options": [
+            {
+              "id": "ald",
+              "text": "3-hydroxy-4,4-dimethyl-1-phenylpentan-1-one",
+              "why": "That is the addition product. Heat with base removes the OH."
+            },
+            {
+              "id": "p",
+              "text": "4,4-dimethyl-1-phenylpent-2-en-1-one",
+              "why": "The aldehyde has no α-H, so only acetophenone's CH₃ makes an enolate. It adds to the aldehyde C=O and water leaves."
+            },
+            {
+              "id": "self",
+              "text": "1,3-diphenylbut-2-en-1-one",
+              "why": "That is acetophenone condensing with itself. The aldehyde C=O is the better acceptor."
+            }
+          ]
+        }
+      },
+      "explanation": "No α-H on one partner makes the crossed reaction clean.",
+      "provenance": "scripts/u9_pools.py: Rule A then E1cb. OpenStax Organic Chemistry ch. 23 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: in a crossed aldol the partner with no alpha H can only be the acceptor.",
+      "placeholder": true
+    },
   ],
   "u9-intra": [
     {
@@ -2585,7 +3262,7 @@ export const U9_POOLS: UnitPools = {
             "aldol_and_claisen"
           ],
           "levels": [
-            1
+            2
           ],
           "prompt": "Octane-2,7-dione is heated with base. Pick the product.",
           "correctOptionId": "five",
@@ -2649,6 +3326,45 @@ export const U9_POOLS: UnitPools = {
       },
       "explanation": "1,5-diketones give six-membered rings.",
       "provenance": "scripts/u9_pools.py: ring size by RDKit. OpenStax Organic Chemistry ch. 23 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: five- and six-membered rings form; three-, four- and seven-membered rings do not compete.",
+      "placeholder": true
+    },
+    {
+      "id": "u9-in-fused",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u9-in-fused",
+          "node": "u9-intra",
+          "conceptIds": [
+            "aldol_and_claisen"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "2-(2-Oxopropyl)cyclohexan-1-one is heated with base. Pick the product.",
+          "correctOptionId": "p",
+          "options": [
+            {
+              "id": "p",
+              "text": "1,4,5,6,7,7a-hexahydro-2H-inden-2-one",
+              "why": "The side chain's CH₃ attacks the ring C=O, closing a five-membered ring, and water leaves to give the conjugated enone."
+            },
+            {
+              "id": "ald",
+              "text": "7a-hydroxyoctahydro-2H-inden-2-one",
+              "why": "That is the ring-closed aldol before water leaves. Heat with base removes it."
+            },
+            {
+              "id": "iso",
+              "text": "1,3,4,5,6,7-hexahydro-2H-inden-2-one",
+              "why": "That C=C sits between the two ring-fusion carbons, not next to the C=O. E1cb puts it in conjugation."
+            }
+          ]
+        }
+      },
+      "explanation": "A 1,4-diketone closes a five-membered ring.",
+      "provenance": "scripts/u9_pools.py: Rule A inside one molecule, ring size by RDKit, then E1cb. OpenStax Organic Chemistry ch. 23 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: five- and six-membered rings form; three-, four- and seven-membered rings do not compete.",
       "placeholder": true
     },
   ],
@@ -2788,7 +3504,7 @@ export const U9_POOLS: UnitPools = {
             "pka_keq_viability"
           ],
           "levels": [
-            1
+            2
           ],
           "prompt": "Pick the ester whose self-Claisen with NaOEt does not go.",
           "correctOptionId": "iso",
@@ -2897,6 +3613,51 @@ export const U9_POOLS: UnitPools = {
       },
       "explanation": "Match the alkoxide to the ester's alkoxy group.",
       "provenance": "scripts/u9_pools.py: the ester's alcohol from Rule M hydrolysis compared with each base. OpenStax Organic Chemistry ch. 23 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: the alkoxide base matches the ester's OR, so transesterification changes nothing.",
+      "placeholder": true
+    },
+    {
+      "id": "u9-cl-which",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u9-cl-which",
+          "node": "u9-claisen",
+          "conceptIds": [
+            "multistep_synthesis",
+            "aldol_and_claisen"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "Pick the ester whose self-Claisen gives ethyl 2-methyl-3-oxopentanoate.",
+          "correctOptionId": "prop",
+          "options": [
+            {
+              "id": "but",
+              "text": "Ethyl butanoate",
+              "why": "That gives an ethyl branch at C2 and a propyl ketone."
+            },
+            {
+              "id": "mep",
+              "text": "Methyl propanoate",
+              "why": "Right skeleton, wrong ester: the product keeps the methyl ester, not the ethyl."
+            },
+            {
+              "id": "prop",
+              "text": "Ethyl propanoate",
+              "why": "Cut between C2 and the ketone C=O: each half is CH₃CH₂C(=O)-, so both partners are ethyl propanoate."
+            },
+            {
+              "id": "ac",
+              "text": "Ethyl acetate",
+              "why": "That gives ethyl 3-oxobutanoate, with no methyl at C2."
+            }
+          ]
+        }
+      },
+      "explanation": "Cut the α-carbon to ketone C=O bond; the ester's OR stays.",
+      "provenance": "scripts/u9_pools.py: forward Claisen run on each option. OpenStax Organic Chemistry ch. 23 (CC BY-NC-SA) is the named check, not yet read against this draft.",
       "placeholder": true
     },
   ],
@@ -3136,6 +3897,85 @@ export const U9_POOLS: UnitPools = {
       "provenance": "scripts/u9_pools.py: Rule M hydrolysis then decarboxylation. OpenStax Organic Chemistry ch. 23 (CC BY-NC-SA) is the named check, not yet read against this draft.",
       "placeholder": true
     },
+    {
+      "id": "u9-dk-ketone",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u9-dk-ketone",
+          "node": "u9-dieckmann",
+          "conceptIds": [
+            "aldol_and_claisen"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "Diethyl heptanedioate meets NaOEt, then H₃O⁺ and heat. Pick the final product.",
+          "correctOptionId": "p",
+          "options": [
+            {
+              "id": "ke",
+              "text": "Ethyl 2-oxocyclohexane-1-carboxylate",
+              "why": "That is the Dieckmann product. Hot acid carries on: hydrolysis, then loss of CO₂."
+            },
+            {
+              "id": "c5",
+              "text": "Cyclopentanone",
+              "why": "That comes from the hexanedioate. Heptanedioate's chain closes a six-membered ring."
+            },
+            {
+              "id": "p",
+              "text": "Cyclohexanone",
+              "why": "Dieckmann closes a six-membered β-keto ester. Hot acid hydrolyses the ester, and the β-keto acid loses CO₂."
+            }
+          ]
+        }
+      },
+      "explanation": "Dieckmann, then hydrolysis and decarboxylation, gives a cyclic ketone.",
+      "provenance": "scripts/u9_pools.py: Rule C inside one molecule, then Rule M. OpenStax Organic Chemistry ch. 23 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: five- and six-membered rings form; three-, four- and seven-membered rings do not compete.",
+      "placeholder": true
+    },
+    {
+      "id": "u9-dk-methyl",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u9-dk-methyl",
+          "node": "u9-dieckmann",
+          "conceptIds": [
+            "aldol_and_claisen",
+            "pka_keq_viability"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "Diethyl 2-methylhexanedioate meets NaOEt, then H₃O⁺. Pick the main product.",
+          "correctOptionId": "p",
+          "options": [
+            {
+              "id": "dec",
+              "text": "2-methylcyclopentan-1-one",
+              "why": "That needs heat in acid to lose CO₂. Cold H₃O⁺ workup only protonates the enolate."
+            },
+            {
+              "id": "p",
+              "text": "Ethyl 3-methyl-2-oxocyclopentane-1-carboxylate",
+              "why": "The CH₂ end's α-carbon attacks. That product keeps an H between its two C=O, ethoxide removes it, and that last step pulls the reaction forward."
+            },
+            {
+              "id": "q",
+              "text": "Ethyl 1-methyl-2-oxocyclopentane-1-carboxylate",
+              "why": "The CH(CH₃) end can attack too, but that product has no H left between its two C=O. Nothing pulls it forward, so it reverts."
+            }
+          ]
+        }
+      },
+      "explanation": "The Dieckmann that wins keeps an acidic H between its two C=O.",
+      "provenance": "scripts/u9_pools.py: Rule C inside one molecule, both ring closures run, the driven one kept. OpenStax Organic Chemistry ch. 23 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: an alkoxide Claisen is pulled forward only when the product keeps an H between its two C=O to lose.",
+      "placeholder": true
+    },
   ],
   "u9-crossed-claisen": [
     {
@@ -3312,7 +4152,7 @@ export const U9_POOLS: UnitPools = {
             "pka_keq_viability"
           ],
           "levels": [
-            1
+            2
           ],
           "prompt": "Propan-2-one and ethyl acetate meet NaOEt, then H₃O⁺. Pick the main product.",
           "correctOptionId": "p",
@@ -3376,6 +4216,45 @@ export const U9_POOLS: UnitPools = {
       },
       "explanation": "Oxalate adds a CO-CO₂Et group.",
       "provenance": "scripts/u9_pools.py: Rule C, crossed. OpenStax Organic Chemistry ch. 23 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: in a crossed aldol the partner with no alpha H can only be the acceptor.",
+      "placeholder": true
+    },
+    {
+      "id": "u9-cc-formyl",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u9-cc-formyl",
+          "node": "u9-crossed-claisen",
+          "conceptIds": [
+            "aldol_and_claisen"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "Cyclohexanone and ethyl formate meet NaOEt, then H₃O⁺. Pick the product.",
+          "correctOptionId": "p",
+          "options": [
+            {
+              "id": "ald",
+              "text": "2-(1-hydroxycyclohexyl)cyclohexan-1-one",
+              "why": "That is cyclohexanone's self-aldol. The formate's C=O is the more reactive acceptor, and the Claisen product is pulled forward by its acidic C-H."
+            },
+            {
+              "id": "p",
+              "text": "2-oxocyclohexane-1-carbaldehyde",
+              "why": "The ketone's enolate attacks the formate's C=O and ethoxide leaves: a CHO lands on the α-carbon. Ethyl formate has no α-H, so it is only ever the acceptor."
+            },
+            {
+              "id": "est",
+              "text": "Ethyl 2-oxocyclohexane-1-carboxylate",
+              "why": "That needs diethyl carbonate. Ethyl formate delivers H-C=O, not an ester."
+            }
+          ]
+        }
+      },
+      "explanation": "A ketone enolate on an ester with no α-H: a crossed Claisen.",
+      "provenance": "scripts/u9_pools.py: Rule C with a ketone donor. OpenStax Organic Chemistry ch. 23 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: in a crossed aldol the partner with no alpha H can only be the acceptor.",
       "placeholder": true
     },
   ],
@@ -3619,6 +4498,86 @@ export const U9_POOLS: UnitPools = {
       },
       "explanation": "Kinetic enolate, then alkylation on the less substituted side.",
       "provenance": "scripts/u9_pools.py: Rule H at the kinetic site. OpenStax Organic Chemistry ch. 22 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: LDA at -78 C removes the alpha H on the carbon with more H (kinetic); an alkoxide, warm, equilibrates to the more substituted enolate (thermodynamic).",
+      "placeholder": true
+    },
+    {
+      "id": "u9-alk-ipr",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u9-alk-ipr",
+          "node": "u9-alkylation",
+          "conceptIds": [
+            "alpha_alkylation",
+            "kinetic_vs_thermodynamic_control"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "3-Methylbutan-2-one, LDA at −78 °C, then bromoethane. Pick the product.",
+          "correctOptionId": "p",
+          "options": [
+            {
+              "id": "t",
+              "text": "3,3-dimethylpentan-2-one",
+              "why": "That alkylates the CH, the thermodynamic site. LDA, cold, works on the CH₃."
+            },
+            {
+              "id": "o",
+              "text": "2-ethoxy-3-methylbut-1-ene",
+              "why": "That is O-alkylation. With an alkyl bromide the enolate's carbon is the nucleophile."
+            },
+            {
+              "id": "p",
+              "text": "2-methylhexan-3-one",
+              "why": "LDA takes an H from the CH₃, the side with more H. That carbon then attacks bromoethane."
+            }
+          ]
+        }
+      },
+      "explanation": "LDA, cold: alkylation on the side with more H.",
+      "provenance": "scripts/u9_pools.py: Rule H at the kinetic alpha carbon. OpenStax Organic Chemistry ch. 22 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: LDA at -78 C removes the alpha H on the carbon with more H (kinetic); an alkoxide, warm, equilibrates to the more substituted enolate (thermodynamic).",
+      "placeholder": true
+    },
+    {
+      "id": "u9-alk-twice",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u9-alk-twice",
+          "node": "u9-alkylation",
+          "conceptIds": [
+            "alpha_alkylation",
+            "kinetic_vs_thermodynamic_control"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "Cyclohexanone, LDA, CH₃I, then LDA and CH₃I again. Pick the product.",
+          "correctOptionId": "p",
+          "options": [
+            {
+              "id": "p",
+              "text": "2,6-dimethylcyclohexan-1-one",
+              "why": "The second LDA takes the more exposed H: the CH₂ on the other side, not the CH that already holds a methyl."
+            },
+            {
+              "id": "gem",
+              "text": "2,2-dimethylcyclohexan-1-one",
+              "why": "That puts the second methyl on the substituted carbon, the thermodynamic site. LDA chooses the CH₂."
+            },
+            {
+              "id": "mono",
+              "text": "2-methylcyclohexan-1-one",
+              "why": "That is after one round. The second LDA and CH₃I add another methyl."
+            }
+          ]
+        }
+      },
+      "explanation": "Each LDA round picks the side with more H.",
+      "provenance": "scripts/u9_pools.py: Rule H at the kinetic alpha carbon, run twice. OpenStax Organic Chemistry ch. 22 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: LDA at -78 C removes the alpha H on the carbon with more H (kinetic); an alkoxide, warm, equilibrates to the more substituted enolate (thermodynamic).",
       "placeholder": true
     },
   ],
@@ -3876,7 +4835,7 @@ export const U9_POOLS: UnitPools = {
             "alpha_alkylation"
           ],
           "levels": [
-            1
+            2
           ],
           "prompt": "Diethyl malonate, 2 NaOEt, 1,4-dibromobutane, then H₃O⁺ and heat. Pick the product.",
           "correctOptionId": "p",
@@ -3901,6 +4860,51 @@ export const U9_POOLS: UnitPools = {
       },
       "explanation": "A dihalide on malonate closes a ring.",
       "provenance": "scripts/u9_pools.py: Rule H twice, the second inside the molecule, then Rule M. OpenStax Organic Chemistry ch. 22 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: SN2 by an enolate wants a methyl or primary halide; a tertiary halide eliminates and an aryl halide does not react.",
+      "placeholder": true
+    },
+    {
+      "id": "u9-mal-pair",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u9-mal-pair",
+          "node": "u9-malonic",
+          "conceptIds": [
+            "alpha_alkylation",
+            "multistep_synthesis"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "Pick the halides for 2-methylbutanoic acid by the malonic ester route.",
+          "correctOptionId": "me_et",
+          "options": [
+            {
+              "id": "pr",
+              "text": "One CH₃CH₂CH₂Br",
+              "why": "One alkylation with propyl gives pentanoic acid, a straight chain."
+            },
+            {
+              "id": "me_pr",
+              "text": "CH₃I and CH₃CH₂CH₂Br",
+              "why": "That gives 2-methylpentanoic acid, one carbon too long."
+            },
+            {
+              "id": "me_et",
+              "text": "CH₃I and CH₃CH₂Br",
+              "why": "C2 of the acid carries a methyl and an ethyl. Each came from one alkylation of the malonate's central carbon."
+            },
+            {
+              "id": "et_et",
+              "text": "Two CH₃CH₂Br",
+              "why": "That gives 2-ethylbutanoic acid: two ethyl branches."
+            }
+          ]
+        }
+      },
+      "explanation": "Every group on C2 of the acid was one alkylation.",
+      "provenance": "scripts/u9_pools.py: malonic route run for each option. OpenStax Organic Chemistry ch. 22 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: SN2 by an enolate wants a methyl or primary halide; a tertiary halide eliminates and an aryl halide does not react.",
       "placeholder": true
     },
   ],
@@ -4139,6 +5143,90 @@ export const U9_POOLS: UnitPools = {
       },
       "explanation": "The carbon between two carbonyls is the one that reacts.",
       "provenance": "scripts/u9_pools.py: protons classified by SMARTS, pKa from pka.ts. OpenStax Organic Chemistry ch. 22 (CC BY-NC-SA) is the named check, not yet read against this draft.",
+      "placeholder": true
+    },
+    {
+      "id": "u9-aa-two",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u9-aa-two",
+          "node": "u9-acetoacetic",
+          "conceptIds": [
+            "alpha_alkylation"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "Ethyl acetoacetate is methylated, then ethylated, then heated in acid. Pick the product.",
+          "correctOptionId": "p",
+          "options": [
+            {
+              "id": "p",
+              "text": "3-methylpentan-2-one",
+              "why": "Both groups go on the central carbon. Hydrolysis and loss of CO₂ leave a methyl ketone with both on C3."
+            },
+            {
+              "id": "one",
+              "text": "Pentan-2-one",
+              "why": "That keeps only the ethyl. The methyl went on the same carbon, and it stays."
+            },
+            {
+              "id": "est",
+              "text": "Ethyl 2-acetyl-2-methylbutanoate",
+              "why": "That is before the acid and heat. Hydrolysis and decarboxylation remove the ester carbon."
+            }
+          ]
+        }
+      },
+      "explanation": "Two alkylations, then hydrolysis and decarboxylation.",
+      "provenance": "scripts/u9_pools.py: Rule H twice, then Rule M. OpenStax Organic Chemistry ch. 22 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: SN2 by an enolate wants a methyl or primary halide; a tertiary halide eliminates and an aryl halide does not react.",
+      "placeholder": true
+    },
+    {
+      "id": "u9-aa-iso",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u9-aa-iso",
+          "node": "u9-acetoacetic",
+          "conceptIds": [
+            "alpha_alkylation",
+            "multistep_synthesis"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "Pick the halide that gives 5-methylhexan-2-one by the acetoacetic route.",
+          "correctOptionId": "iso",
+          "options": [
+            {
+              "id": "tbu",
+              "text": "2-Bromo-2-methylpropane",
+              "why": "A tertiary halide eliminates instead of doing SN2, and its skeleton would give 4,4-dimethylpentan-2-one anyway."
+            },
+            {
+              "id": "ipr",
+              "text": "2-Bromopropane",
+              "why": "That gives 4-methylpentan-2-one, one CH₂ short."
+            },
+            {
+              "id": "bu",
+              "text": "1-Bromobutane",
+              "why": "That gives heptan-2-one, an unbranched chain."
+            },
+            {
+              "id": "iso",
+              "text": "1-Bromo-2-methylpropane",
+              "why": "Cut the bond to C3 of the ketone: the piece on it is CH₂CH(CH₃)₂, a primary halide that does SN2 well."
+            }
+          ]
+        }
+      },
+      "explanation": "The group on C3 of the methyl ketone is the halide's carbon chain.",
+      "provenance": "scripts/u9_pools.py: acetoacetic route run for each option. OpenStax Organic Chemistry ch. 22 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: SN2 by an enolate wants a methyl or primary halide; a tertiary halide eliminates and an aryl halide does not react.",
       "placeholder": true
     },
   ],
@@ -4383,6 +5471,85 @@ export const U9_POOLS: UnitPools = {
       "provenance": "scripts/u9_pools.py: Rule K. OpenStax Organic Chemistry ch. 23 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: cuprates and stabilised enolates add 1,4; Grignard and organolithium reagents add 1,2.",
       "placeholder": true
     },
+    {
+      "id": "u9-mi-chxenone",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u9-mi-chxenone",
+          "node": "u9-michael",
+          "conceptIds": [
+            "conjugate_addition"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "Ethyl acetoacetate and cyclohex-2-en-1-one meet NaOEt. Pick the product.",
+          "correctOptionId": "p",
+          "options": [
+            {
+              "id": "alpha",
+              "text": "Ethyl 3-oxo-2-(2-oxocyclohexyl)butanoate",
+              "why": "That bonds to C2, the α-carbon. The β-carbon is the electrophilic end."
+            },
+            {
+              "id": "p",
+              "text": "Ethyl 3-oxo-2-(3-oxocyclohexyl)butanoate",
+              "why": "The central carbon of the β-keto ester adds to C3 of the enone, the β-carbon. The ring keeps its C=O."
+            },
+            {
+              "id": "12",
+              "text": "The ring alcohol from 1,2-addition",
+              "why": "That is 1,2-addition to the ring C=O. A stabilised enolate adds 1,4."
+            }
+          ]
+        }
+      },
+      "explanation": "A cyclic enone is a Michael acceptor at C3.",
+      "provenance": "scripts/u9_pools.py: Rule K. OpenStax Organic Chemistry ch. 23 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: cuprates and stabilised enolates add 1,4; Grignard and organolithium reagents add 1,2.",
+      "placeholder": true
+    },
+    {
+      "id": "u9-mi-acid",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u9-mi-acid",
+          "node": "u9-michael",
+          "conceptIds": [
+            "conjugate_addition",
+            "alpha_alkylation"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "Diethyl malonate and but-3-en-2-one meet NaOEt, then H₃O⁺ and heat. Pick the product.",
+          "correctOptionId": "p",
+          "options": [
+            {
+              "id": "p",
+              "text": "5-oxohexanoic acid",
+              "why": "Michael addition first, then both esters hydrolyse and one CO₂H leaves, as in the malonic ester route."
+            },
+            {
+              "id": "m",
+              "text": "Diethyl 2-(3-oxobutyl)propanedioate",
+              "why": "That is the Michael product before hot acid. Hydrolysis and loss of CO₂ follow."
+            },
+            {
+              "id": "di",
+              "text": "2-(3-oxobutyl)propanedioic acid",
+              "why": "Heat removes one CO₂H from a carbon that holds two."
+            }
+          ]
+        }
+      },
+      "explanation": "Michael, then the malonic ester ending.",
+      "provenance": "scripts/u9_pools.py: Rule K, then Rule M. OpenStax Organic Chemistry ch. 23 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: cuprates and stabilised enolates add 1,4; Grignard and organolithium reagents add 1,2.",
+      "placeholder": true
+    },
   ],
   "u9-cuprate": [
     {
@@ -4593,7 +5760,7 @@ export const U9_POOLS: UnitPools = {
             "conjugate_addition"
           ],
           "levels": [
-            1
+            2
           ],
           "prompt": "4-Methylpent-3-en-2-one meets (CH₃)₂CuLi, then H₂O. Pick the product.",
           "correctOptionId": "p",
@@ -4659,6 +5826,46 @@ export const U9_POOLS: UnitPools = {
       "explanation": "Cuprates and stabilised enolates add 1,4; Grignards add 1,2.",
       "provenance": "scripts/u9_pools.py: Rule K and Rule A run on cyclohexenone. OpenStax Organic Chemistry ch. 19 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: cuprates and stabilised enolates add 1,4; Grignard and organolithium reagents add 1,2."
     }),
+    {
+      "id": "u9-cu-trap",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u9-cu-trap",
+          "node": "u9-cuprate",
+          "conceptIds": [
+            "conjugate_addition",
+            "alpha_alkylation"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "Cyclohex-2-en-1-one, (CH₃)₂CuLi, then CH₃I. Pick the product.",
+          "correctOptionId": "p",
+          "options": [
+            {
+              "id": "one",
+              "text": "3-methylcyclohexan-1-one",
+              "why": "That is the product after water. Here CH₃I traps the enolate instead of a proton."
+            },
+            {
+              "id": "other",
+              "text": "2,5-dimethylcyclohexan-1-one",
+              "why": "That methylates the other α-carbon. The enolate the cuprate leaves sits at C2, beside C3."
+            },
+            {
+              "id": "p",
+              "text": "2,3-dimethylcyclohexan-1-one",
+              "why": "The cuprate puts CH₃ on C3 and leaves an enolate on C2. That enolate attacks CH₃I, so the second methyl lands on C2."
+            }
+          ]
+        }
+      },
+      "explanation": "The enolate from a 1,4-addition can be trapped by an alkyl halide.",
+      "provenance": "scripts/u9_pools.py: Rule K, then Rule H at the enolate carbon Rule K leaves. OpenStax Organic Chemistry ch. 19 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: cuprates and stabilised enolates add 1,4; Grignard and organolithium reagents add 1,2.",
+      "placeholder": true
+    },
   ],
   "u9-robinson": [
     {
@@ -4753,7 +5960,7 @@ export const U9_POOLS: UnitPools = {
             "aldol_and_claisen"
           ],
           "levels": [
-            1
+            2
           ],
           "prompt": "2-Methylcyclohexane-1,3-dione meets but-3-en-2-one, base, heat. Pick the product.",
           "correctOptionId": "p",
@@ -4896,6 +6103,46 @@ export const U9_POOLS: UnitPools = {
       },
       "explanation": "The condensation half of the annulation loses water.",
       "provenance": "scripts/u9_pools.py: atom balance. OpenStax Organic Chemistry ch. 23 (CC BY-NC-SA) is the named check, not yet read against this draft.",
+      "placeholder": true
+    },
+    {
+      "id": "u9-rob-c5",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u9-rob-c5",
+          "node": "u9-robinson",
+          "conceptIds": [
+            "conjugate_addition",
+            "aldol_and_claisen"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "Cyclopentanone and but-3-en-2-one meet base with heat. Pick the annulation product.",
+          "correctOptionId": "p",
+          "options": [
+            {
+              "id": "m",
+              "text": "The open-chain diketone",
+              "why": "That is the Michael product only. Heat with base carries on to the ring."
+            },
+            {
+              "id": "cond",
+              "text": "A cyclopentylidene ketone",
+              "why": "That is a plain aldol condensation, with no conjugate addition."
+            },
+            {
+              "id": "p",
+              "text": "The fused bicyclic enone",
+              "why": "Michael addition first, then the new chain's methyl attacks the ring C=O, closing a six-membered ring, and water leaves."
+            }
+          ]
+        }
+      },
+      "explanation": "The ring the annulation adds is six-membered whatever ring it starts on.",
+      "provenance": "scripts/u9_pools.py: Rule K then the intramolecular aldol, ring size by RDKit, then E1cb. OpenStax Organic Chemistry ch. 23 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: five- and six-membered rings form; three-, four- and seven-membered rings do not compete; the Robinson donor is the ketone's alpha carbon, and then the MVK methyl attacks the ring C=O.",
       "placeholder": true
     },
   ],
@@ -5138,6 +6385,86 @@ export const U9_POOLS: UnitPools = {
       },
       "explanation": "A group β to a ketone suggests a conjugate addition.",
       "provenance": "scripts/u9_pools.py: Rule K run for each option. OpenStax Organic Chemistry ch. 19 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: cuprates and stabilised enolates add 1,4; Grignard and organolithium reagents add 1,2.",
+      "placeholder": true
+    },
+    {
+      "id": "u9-re-route",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u9-re-route",
+          "node": "u9-retro",
+          "conceptIds": [
+            "multistep_synthesis",
+            "alpha_alkylation"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "Pick the route to 4-phenylbutan-2-one.",
+          "correctOptionId": "aa",
+          "options": [
+            {
+              "id": "aa",
+              "text": "Acetoacetic ester, NaOEt, PhCH₂Br, H₃O⁺, heat",
+              "why": "The benzyl goes on the central carbon, then the ester carbon leaves as CO₂: CH₃C(=O)CH₂CH₂Ph."
+            },
+            {
+              "id": "mal",
+              "text": "Malonic ester, NaOEt, PhCH₂Br, H₃O⁺, heat",
+              "why": "Same alkylation, but the malonic route ends at a carboxylic acid: 3-phenylpropanoic acid."
+            },
+            {
+              "id": "ald",
+              "text": "Propan-2-one, benzaldehyde, NaOH, heat",
+              "why": "That gives 4-phenylbut-3-en-2-one. The C=C is still there."
+            }
+          ]
+        }
+      },
+      "explanation": "Methyl ketone out: acetoacetic. Acid out: malonic.",
+      "provenance": "scripts/u9_pools.py: each route run forward. OpenStax Organic Chemistry ch. 23 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: SN2 by an enolate wants a methyl or primary halide; a tertiary halide eliminates and an aryl halide does not react.",
+      "placeholder": true
+    },
+    {
+      "id": "u9-re-ethyl",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u9-re-ethyl",
+          "node": "u9-retro",
+          "conceptIds": [
+            "multistep_synthesis",
+            "alpha_alkylation"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "Pick the route to 2-ethylcyclohexan-1-one.",
+          "correctOptionId": "lda",
+          "options": [
+            {
+              "id": "lda",
+              "text": "Cyclohexanone, LDA, then CH₃CH₂Br",
+              "why": "The enolate's α-carbon attacks bromoethane, so the ethyl lands on C2."
+            },
+            {
+              "id": "cu",
+              "text": "Cyclohexenone, (CH₃CH₂)₂CuLi, then H₂O",
+              "why": "The cuprate adds at the β-carbon, so that gives 3-ethylcyclohexan-1-one."
+            },
+            {
+              "id": "ald",
+              "text": "Cyclohexanone, ethanal, NaOH, heat",
+              "why": "That condenses to 2-ethylidenecyclohexan-1-one. The C=C is still there."
+            }
+          ]
+        }
+      },
+      "explanation": "Which carbon the new group lands on picks the route.",
+      "provenance": "scripts/u9_pools.py: each route run forward. OpenStax Organic Chemistry ch. 23 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: SN2 by an enolate wants a methyl or primary halide; a tertiary halide eliminates and an aryl halide does not react.",
       "placeholder": true
     },
   ],
@@ -6507,7 +7834,7 @@ export const U9_POOLS: UnitPools = {
             "kinetic_vs_thermodynamic_control"
           ],
           "levels": [
-            1
+            2
           ],
           "prompt": "2-Methylcyclohexanone, LDA at −78 °C, then benzaldehyde, then H₂O. Pick the product.",
           "correctOptionId": "p",
@@ -15082,6 +16409,2541 @@ export const U9_VISUALS: Readonly<Record<string, McqVisual>> = {
         {
           "x": 102.0,
           "y": 29.8,
+          "t": "O",
+          "size": 13
+        }
+      ]
+    },
+    "name": "the target"
+  },
+  "u9-tau-hd": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 77.3,
+          "y1": 19.0,
+          "x2": 77.3,
+          "y2": 39.0
+        },
+        {
+          "x1": 77.3,
+          "y1": 39.0,
+          "x2": 60.0,
+          "y2": 49.0
+        },
+        {
+          "x1": 60.0,
+          "y1": 49.0,
+          "x2": 60.1,
+          "y2": 69.0
+        },
+        {
+          "x1": 60.0,
+          "y1": 49.0,
+          "x2": 47.9,
+          "y2": 42.0,
+          "order": 2
+        }
+      ],
+      "labels": [
+        {
+          "x": 42.7,
+          "y": 44.1,
+          "t": "O",
+          "size": 13
+        }
+      ]
+    },
+    "name": "D₂O, NaOD"
+  },
+  "u9-tau-rac": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 77.3,
+          "y1": 59.0,
+          "x2": 60.0,
+          "y2": 49.0
+        },
+        {
+          "x1": 60.0,
+          "y1": 49.0,
+          "x2": 42.7,
+          "y2": 58.9
+        },
+        {
+          "x1": 60.0,
+          "y1": 49.0,
+          "x2": 60.1,
+          "y2": 35.0,
+          "order": 2
+        }
+      ],
+      "labels": [
+        {
+          "x": 60.1,
+          "y": 34.0,
+          "t": "O",
+          "size": 13
+        }
+      ]
+    },
+    "name": "dilute H₃O⁺"
+  },
+  "u9-pka-window": {
+    "kind": "pair",
+    "a": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 25.4,
+            "y1": 58.9,
+            "x2": 42.7,
+            "y2": 48.9
+          },
+          {
+            "x1": 42.7,
+            "y1": 48.9,
+            "x2": 42.7,
+            "y2": 34.9,
+            "order": 2
+          },
+          {
+            "x1": 42.7,
+            "y1": 48.9,
+            "x2": 60.0,
+            "y2": 59.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 59.0,
+            "x2": 77.3,
+            "y2": 49.0
+          },
+          {
+            "x1": 77.3,
+            "y1": 49.0,
+            "x2": 94.6,
+            "y2": 59.1
+          },
+          {
+            "x1": 77.3,
+            "y1": 49.0,
+            "x2": 77.4,
+            "y2": 35.0,
+            "order": 2
+          }
+        ],
+        "labels": [
+          {
+            "x": 42.7,
+            "y": 33.9,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 77.4,
+            "y": 34.0,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "pentane-2,4-dione"
+    },
+    "b": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 77.3,
+            "y1": 59.0,
+            "x2": 60.0,
+            "y2": 49.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 49.0,
+            "x2": 42.7,
+            "y2": 58.9
+          },
+          {
+            "x1": 60.0,
+            "y1": 49.0,
+            "x2": 60.1,
+            "y2": 35.0,
+            "order": 2
+          }
+        ],
+        "labels": [
+          {
+            "x": 60.1,
+            "y": 34.0,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "propan-2-one"
+    }
+  },
+  "u9-pka-first": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 102.0,
+          "y1": 48.8,
+          "x2": 85.2,
+          "y2": 39.1
+        },
+        {
+          "x1": 85.2,
+          "y1": 39.1,
+          "x2": 85.2,
+          "y2": 25.5,
+          "order": 2
+        },
+        {
+          "x1": 85.2,
+          "y1": 39.1,
+          "x2": 68.4,
+          "y2": 48.8
+        },
+        {
+          "x1": 68.4,
+          "y1": 48.8,
+          "x2": 51.6,
+          "y2": 39.2
+        },
+        {
+          "x1": 51.6,
+          "y1": 39.2,
+          "x2": 34.8,
+          "y2": 48.9
+        },
+        {
+          "x1": 34.8,
+          "y1": 48.9,
+          "x2": 34.8,
+          "y2": 62.5,
+          "order": 2
+        },
+        {
+          "x1": 34.8,
+          "y1": 48.9,
+          "x2": 23.0,
+          "y2": 42.1
+        }
+      ],
+      "labels": [
+        {
+          "x": 85.1,
+          "y": 24.7,
+          "t": "O",
+          "size": 13
+        },
+        {
+          "x": 34.9,
+          "y": 73.3,
+          "t": "O",
+          "size": 13
+        },
+        {
+          "x": 18.0,
+          "y": 44.2,
+          "t": "OH",
+          "size": 13
+        }
+      ]
+    },
+    "name": "4-oxopentanoic acid"
+  },
+  "u9-res-mal": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 18.0,
+          "y1": 53.0,
+          "x2": 28.5,
+          "y2": 47.0
+        },
+        {
+          "x1": 28.5,
+          "y1": 47.0,
+          "x2": 35.9,
+          "y2": 51.2
+        },
+        {
+          "x1": 42.2,
+          "y1": 51.2,
+          "x2": 49.5,
+          "y2": 47.0
+        },
+        {
+          "x1": 49.5,
+          "y1": 47.0,
+          "x2": 49.5,
+          "y2": 38.5,
+          "order": 2
+        },
+        {
+          "x1": 49.5,
+          "y1": 47.0,
+          "x2": 60.0,
+          "y2": 53.1
+        },
+        {
+          "x1": 60.0,
+          "y1": 53.1,
+          "x2": 70.5,
+          "y2": 47.0
+        },
+        {
+          "x1": 70.5,
+          "y1": 47.0,
+          "x2": 70.5,
+          "y2": 38.5,
+          "order": 2
+        },
+        {
+          "x1": 70.5,
+          "y1": 47.0,
+          "x2": 77.9,
+          "y2": 51.3
+        },
+        {
+          "x1": 84.2,
+          "y1": 51.3,
+          "x2": 91.5,
+          "y2": 47.0
+        },
+        {
+          "x1": 91.5,
+          "y1": 47.0,
+          "x2": 102.0,
+          "y2": 53.1
+        }
+      ],
+      "labels": [
+        {
+          "x": 39.0,
+          "y": 58.1,
+          "t": "O",
+          "size": 13
+        },
+        {
+          "x": 49.5,
+          "y": 39.9,
+          "t": "O",
+          "size": 13
+        },
+        {
+          "x": 70.5,
+          "y": 39.9,
+          "t": "O",
+          "size": 13
+        },
+        {
+          "x": 81.0,
+          "y": 58.1,
+          "t": "O",
+          "size": 13
+        }
+      ]
+    },
+    "name": "diethyl malonate"
+  },
+  "u9-res-gamma": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 25.4,
+          "y1": 39.0,
+          "x2": 42.7,
+          "y2": 49.0
+        },
+        {
+          "x1": 42.7,
+          "y1": 49.0,
+          "x2": 60.0,
+          "y2": 39.0,
+          "order": 2
+        },
+        {
+          "x1": 60.0,
+          "y1": 39.0,
+          "x2": 77.3,
+          "y2": 49.0
+        },
+        {
+          "x1": 77.3,
+          "y1": 49.0,
+          "x2": 89.4,
+          "y2": 42.0,
+          "order": 2
+        }
+      ],
+      "labels": [
+        {
+          "x": 94.6,
+          "y": 44.0,
+          "t": "O",
+          "size": 13
+        }
+      ]
+    },
+    "name": "but-2-enal"
+  },
+  "u9-kvt-ipr": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 25.4,
+          "y1": 39.0,
+          "x2": 42.7,
+          "y2": 49.0
+        },
+        {
+          "x1": 42.7,
+          "y1": 49.0,
+          "x2": 60.0,
+          "y2": 39.0
+        },
+        {
+          "x1": 60.0,
+          "y1": 39.0,
+          "x2": 60.0,
+          "y2": 25.0,
+          "order": 2
+        },
+        {
+          "x1": 60.0,
+          "y1": 39.0,
+          "x2": 77.3,
+          "y2": 49.0
+        },
+        {
+          "x1": 77.3,
+          "y1": 49.0,
+          "x2": 94.6,
+          "y2": 39.0
+        },
+        {
+          "x1": 77.3,
+          "y1": 49.0,
+          "x2": 77.3,
+          "y2": 69.0
+        }
+      ],
+      "labels": [
+        {
+          "x": 60.0,
+          "y": 24.0,
+          "t": "O",
+          "size": 13
+        }
+      ]
+    },
+    "name": "LDA, −78 °C"
+  },
+  "u9-ha-ipr": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 42.6,
+          "y1": 24.1,
+          "x2": 60.0,
+          "y2": 34.0
+        },
+        {
+          "x1": 60.0,
+          "y1": 34.0,
+          "x2": 72.1,
+          "y2": 27.0,
+          "order": 2
+        },
+        {
+          "x1": 60.0,
+          "y1": 34.0,
+          "x2": 60.0,
+          "y2": 54.0
+        },
+        {
+          "x1": 60.0,
+          "y1": 54.0,
+          "x2": 77.4,
+          "y2": 63.9
+        },
+        {
+          "x1": 60.0,
+          "y1": 54.0,
+          "x2": 42.8,
+          "y2": 64.1
+        }
+      ],
+      "labels": [
+        {
+          "x": 77.2,
+          "y": 28.9,
+          "t": "O",
+          "size": 13
+        }
+      ]
+    },
+    "name": "Br₂, CH₃CO₂H"
+  },
+  "u9-ha-benzyl": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 18.0,
+          "y1": 63.5,
+          "x2": 34.8,
+          "y2": 53.8
+        },
+        {
+          "x1": 34.8,
+          "y1": 53.8,
+          "x2": 34.7,
+          "y2": 40.2,
+          "order": 2
+        },
+        {
+          "x1": 34.8,
+          "y1": 53.8,
+          "x2": 51.6,
+          "y2": 63.4
+        },
+        {
+          "x1": 51.6,
+          "y1": 63.4,
+          "x2": 68.4,
+          "y2": 53.6
+        },
+        {
+          "x1": 68.4,
+          "y1": 53.6,
+          "x2": 85.2,
+          "y2": 63.3,
+          "order": 2
+        },
+        {
+          "x1": 85.2,
+          "y1": 63.3,
+          "x2": 102.0,
+          "y2": 53.5
+        },
+        {
+          "x1": 102.0,
+          "y1": 53.5,
+          "x2": 101.9,
+          "y2": 34.1,
+          "order": 2
+        },
+        {
+          "x1": 101.9,
+          "y1": 34.1,
+          "x2": 85.1,
+          "y2": 24.5
+        },
+        {
+          "x1": 85.1,
+          "y1": 24.5,
+          "x2": 68.3,
+          "y2": 34.2,
+          "order": 2
+        },
+        {
+          "x1": 68.3,
+          "y1": 34.2,
+          "x2": 68.4,
+          "y2": 53.6
+        }
+      ],
+      "labels": [
+        {
+          "x": 34.7,
+          "y": 39.4,
+          "t": "O",
+          "size": 13
+        }
+      ]
+    },
+    "name": "Br₂, H⁺"
+  },
+  "u9-hb-acid": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 25.4,
+          "y1": 58.9,
+          "x2": 42.7,
+          "y2": 48.9
+        },
+        {
+          "x1": 42.7,
+          "y1": 48.9,
+          "x2": 42.7,
+          "y2": 34.9,
+          "order": 2
+        },
+        {
+          "x1": 42.7,
+          "y1": 48.9,
+          "x2": 60.0,
+          "y2": 59.0
+        },
+        {
+          "x1": 60.0,
+          "y1": 59.0,
+          "x2": 77.3,
+          "y2": 49.0
+        },
+        {
+          "x1": 77.3,
+          "y1": 49.0,
+          "x2": 94.6,
+          "y2": 59.1
+        },
+        {
+          "x1": 77.3,
+          "y1": 49.0,
+          "x2": 77.4,
+          "y2": 29.0
+        }
+      ],
+      "labels": [
+        {
+          "x": 42.7,
+          "y": 33.9,
+          "t": "O",
+          "size": 13
+        }
+      ]
+    },
+    "name": "excess Br₂, NaOH, then H₃O⁺"
+  },
+  "u9-hb-noform": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 77.3,
+          "y1": 59.0,
+          "x2": 60.0,
+          "y2": 49.0
+        },
+        {
+          "x1": 60.0,
+          "y1": 49.0,
+          "x2": 42.7,
+          "y2": 58.9
+        },
+        {
+          "x1": 60.0,
+          "y1": 49.0,
+          "x2": 60.1,
+          "y2": 35.0,
+          "order": 2
+        }
+      ],
+      "labels": [
+        {
+          "x": 60.1,
+          "y": 34.0,
+          "t": "O",
+          "size": 13
+        }
+      ]
+    },
+    "name": "excess Br₂, NaOH"
+  },
+  "u9-ald-ival": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 94.6,
+          "y1": 29.0,
+          "x2": 77.3,
+          "y2": 39.0
+        },
+        {
+          "x1": 77.3,
+          "y1": 39.0,
+          "x2": 77.3,
+          "y2": 59.0
+        },
+        {
+          "x1": 77.3,
+          "y1": 39.0,
+          "x2": 60.0,
+          "y2": 29.0
+        },
+        {
+          "x1": 60.0,
+          "y1": 29.0,
+          "x2": 42.7,
+          "y2": 39.0
+        },
+        {
+          "x1": 42.7,
+          "y1": 39.0,
+          "x2": 30.6,
+          "y2": 32.0,
+          "order": 2
+        }
+      ],
+      "labels": [
+        {
+          "x": 25.4,
+          "y": 34.0,
+          "t": "O",
+          "size": 13
+        }
+      ]
+    },
+    "name": "2 × 3-methylbutanal, NaOH"
+  },
+  "u9-ald-which": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 18.0,
+          "y1": 44.0,
+          "x2": 32.0,
+          "y2": 52.1
+        },
+        {
+          "x1": 32.0,
+          "y1": 52.1,
+          "x2": 46.0,
+          "y2": 44.0
+        },
+        {
+          "x1": 46.0,
+          "y1": 44.0,
+          "x2": 60.0,
+          "y2": 52.1
+        },
+        {
+          "x1": 60.0,
+          "y1": 52.1,
+          "x2": 60.0,
+          "y2": 63.4
+        },
+        {
+          "x1": 60.0,
+          "y1": 52.1,
+          "x2": 74.0,
+          "y2": 44.0
+        },
+        {
+          "x1": 74.0,
+          "y1": 44.0,
+          "x2": 88.0,
+          "y2": 52.1
+        },
+        {
+          "x1": 88.0,
+          "y1": 52.1,
+          "x2": 97.8,
+          "y2": 46.5,
+          "order": 2
+        },
+        {
+          "x1": 74.0,
+          "y1": 44.0,
+          "x2": 74.0,
+          "y2": 27.8
+        },
+        {
+          "x1": 74.0,
+          "y1": 27.8,
+          "x2": 60.0,
+          "y2": 19.8
+        }
+      ],
+      "labels": [
+        {
+          "x": 60.0,
+          "y": 73.2,
+          "t": "OH",
+          "size": 13
+        },
+        {
+          "x": 102.0,
+          "y": 49.0,
+          "t": "O",
+          "size": 13
+        }
+      ]
+    },
+    "name": "the target"
+  },
+  "u9-cond-butanal": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 25.4,
+          "y1": 39.0,
+          "x2": 42.7,
+          "y2": 49.0
+        },
+        {
+          "x1": 42.7,
+          "y1": 49.0,
+          "x2": 60.0,
+          "y2": 39.0
+        },
+        {
+          "x1": 60.0,
+          "y1": 39.0,
+          "x2": 77.3,
+          "y2": 49.0
+        },
+        {
+          "x1": 77.3,
+          "y1": 49.0,
+          "x2": 89.4,
+          "y2": 42.0,
+          "order": 2
+        }
+      ],
+      "labels": [
+        {
+          "x": 94.6,
+          "y": 44.0,
+          "t": "O",
+          "size": 13
+        }
+      ]
+    },
+    "name": "2 × butanal, NaOH, heat"
+  },
+  "u9-cond-acphen": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 31.1,
+          "y1": 44.0,
+          "x2": 45.5,
+          "y2": 35.7
+        },
+        {
+          "x1": 45.5,
+          "y1": 35.7,
+          "x2": 45.5,
+          "y2": 24.0,
+          "order": 2
+        },
+        {
+          "x1": 45.5,
+          "y1": 35.7,
+          "x2": 60.0,
+          "y2": 44.0
+        },
+        {
+          "x1": 60.0,
+          "y1": 44.0,
+          "x2": 60.0,
+          "y2": 60.7,
+          "order": 2
+        },
+        {
+          "x1": 60.0,
+          "y1": 60.7,
+          "x2": 74.5,
+          "y2": 69.0
+        },
+        {
+          "x1": 74.5,
+          "y1": 69.0,
+          "x2": 88.9,
+          "y2": 60.6,
+          "order": 2
+        },
+        {
+          "x1": 88.9,
+          "y1": 60.6,
+          "x2": 88.9,
+          "y2": 44.0
+        },
+        {
+          "x1": 88.9,
+          "y1": 44.0,
+          "x2": 74.4,
+          "y2": 35.7,
+          "order": 2
+        },
+        {
+          "x1": 74.4,
+          "y1": 35.7,
+          "x2": 60.0,
+          "y2": 44.0
+        }
+      ],
+      "labels": [
+        {
+          "x": 45.5,
+          "y": 24.0,
+          "t": "O",
+          "size": 13
+        }
+      ]
+    },
+    "name": "2 × acetophenone, base, heat"
+  },
+  "u9-cx-dba": {
+    "kind": "pair",
+    "a": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 77.3,
+            "y1": 59.0,
+            "x2": 60.0,
+            "y2": 49.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 49.0,
+            "x2": 42.7,
+            "y2": 58.9
+          },
+          {
+            "x1": 60.0,
+            "y1": 49.0,
+            "x2": 60.1,
+            "y2": 35.0,
+            "order": 2
+          }
+        ],
+        "labels": [
+          {
+            "x": 60.1,
+            "y": 34.0,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "propan-2-one"
+    },
+    "b": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 68.7,
+            "y1": 21.1,
+            "x2": 60.0,
+            "y2": 26.1,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 26.1,
+            "x2": 60.0,
+            "y2": 40.4
+          },
+          {
+            "x1": 60.0,
+            "y1": 40.4,
+            "x2": 47.6,
+            "y2": 47.5,
+            "order": 2
+          },
+          {
+            "x1": 47.6,
+            "y1": 47.5,
+            "x2": 47.6,
+            "y2": 61.8
+          },
+          {
+            "x1": 47.6,
+            "y1": 61.8,
+            "x2": 59.9,
+            "y2": 69.0,
+            "order": 2
+          },
+          {
+            "x1": 59.9,
+            "y1": 69.0,
+            "x2": 72.3,
+            "y2": 61.9
+          },
+          {
+            "x1": 72.3,
+            "y1": 61.9,
+            "x2": 72.4,
+            "y2": 47.6,
+            "order": 2
+          },
+          {
+            "x1": 72.4,
+            "y1": 47.6,
+            "x2": 60.0,
+            "y2": 40.4
+          }
+        ],
+        "labels": [
+          {
+            "x": 72.4,
+            "y": 24.0,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "benzaldehyde"
+    }
+  },
+  "u9-cx-piv": {
+    "kind": "pair",
+    "a": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 58.6,
+            "y1": 30.3,
+            "x2": 68.7,
+            "y2": 47.7
+          },
+          {
+            "x1": 68.7,
+            "y1": 47.7,
+            "x2": 78.6,
+            "y2": 30.3
+          },
+          {
+            "x1": 68.7,
+            "y1": 47.7,
+            "x2": 86.0,
+            "y2": 57.6
+          },
+          {
+            "x1": 68.7,
+            "y1": 47.7,
+            "x2": 51.3,
+            "y2": 57.7
+          },
+          {
+            "x1": 51.3,
+            "y1": 57.7,
+            "x2": 39.2,
+            "y2": 50.7,
+            "order": 2
+          }
+        ],
+        "labels": [
+          {
+            "x": 34.0,
+            "y": 52.7,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "2,2-dimethylpropanal"
+    },
+    "b": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 31.1,
+            "y1": 44.0,
+            "x2": 45.5,
+            "y2": 35.7
+          },
+          {
+            "x1": 45.5,
+            "y1": 35.7,
+            "x2": 45.5,
+            "y2": 24.0,
+            "order": 2
+          },
+          {
+            "x1": 45.5,
+            "y1": 35.7,
+            "x2": 60.0,
+            "y2": 44.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 44.0,
+            "x2": 60.0,
+            "y2": 60.7,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 60.7,
+            "x2": 74.5,
+            "y2": 69.0
+          },
+          {
+            "x1": 74.5,
+            "y1": 69.0,
+            "x2": 88.9,
+            "y2": 60.6,
+            "order": 2
+          },
+          {
+            "x1": 88.9,
+            "y1": 60.6,
+            "x2": 88.9,
+            "y2": 44.0
+          },
+          {
+            "x1": 88.9,
+            "y1": 44.0,
+            "x2": 74.4,
+            "y2": 35.7,
+            "order": 2
+          },
+          {
+            "x1": 74.4,
+            "y1": 35.7,
+            "x2": 60.0,
+            "y2": 44.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 45.5,
+            "y": 24.0,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "1-phenylethan-1-one"
+    }
+  },
+  "u9-in-fused": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 23.9,
+          "y1": 35.5,
+          "x2": 38.3,
+          "y2": 43.8
+        },
+        {
+          "x1": 38.3,
+          "y1": 43.8,
+          "x2": 38.3,
+          "y2": 55.5,
+          "order": 2
+        },
+        {
+          "x1": 38.3,
+          "y1": 43.8,
+          "x2": 52.8,
+          "y2": 35.6
+        },
+        {
+          "x1": 52.8,
+          "y1": 35.6,
+          "x2": 67.2,
+          "y2": 43.9
+        },
+        {
+          "x1": 67.2,
+          "y1": 43.9,
+          "x2": 67.1,
+          "y2": 60.6
+        },
+        {
+          "x1": 67.1,
+          "y1": 60.6,
+          "x2": 81.5,
+          "y2": 69.0
+        },
+        {
+          "x1": 81.5,
+          "y1": 69.0,
+          "x2": 96.0,
+          "y2": 60.7
+        },
+        {
+          "x1": 96.0,
+          "y1": 60.7,
+          "x2": 96.1,
+          "y2": 44.1
+        },
+        {
+          "x1": 96.1,
+          "y1": 44.1,
+          "x2": 81.7,
+          "y2": 35.7
+        },
+        {
+          "x1": 81.7,
+          "y1": 35.7,
+          "x2": 81.7,
+          "y2": 24.0,
+          "order": 2
+        },
+        {
+          "x1": 81.7,
+          "y1": 35.7,
+          "x2": 67.2,
+          "y2": 43.9
+        }
+      ],
+      "labels": [
+        {
+          "x": 38.3,
+          "y": 65.5,
+          "t": "O",
+          "size": 13
+        },
+        {
+          "x": 81.7,
+          "y": 24.0,
+          "t": "O",
+          "size": 13
+        }
+      ]
+    },
+    "name": "base, heat"
+  },
+  "u9-cl-which": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 18.0,
+          "y1": 47.4,
+          "x2": 30.0,
+          "y2": 40.5
+        },
+        {
+          "x1": 30.0,
+          "y1": 40.5,
+          "x2": 38.4,
+          "y2": 45.4
+        },
+        {
+          "x1": 45.6,
+          "y1": 45.4,
+          "x2": 54.0,
+          "y2": 40.5
+        },
+        {
+          "x1": 54.0,
+          "y1": 40.5,
+          "x2": 54.0,
+          "y2": 30.8,
+          "order": 2
+        },
+        {
+          "x1": 54.0,
+          "y1": 40.5,
+          "x2": 66.0,
+          "y2": 47.5
+        },
+        {
+          "x1": 66.0,
+          "y1": 47.5,
+          "x2": 66.0,
+          "y2": 61.3
+        },
+        {
+          "x1": 66.0,
+          "y1": 47.5,
+          "x2": 78.0,
+          "y2": 40.5
+        },
+        {
+          "x1": 78.0,
+          "y1": 40.5,
+          "x2": 78.0,
+          "y2": 30.9,
+          "order": 2
+        },
+        {
+          "x1": 78.0,
+          "y1": 40.5,
+          "x2": 90.0,
+          "y2": 47.5
+        },
+        {
+          "x1": 90.0,
+          "y1": 47.5,
+          "x2": 102.0,
+          "y2": 40.6
+        }
+      ],
+      "labels": [
+        {
+          "x": 42.0,
+          "y": 52.5,
+          "t": "O",
+          "size": 13
+        },
+        {
+          "x": 54.0,
+          "y": 31.7,
+          "t": "O",
+          "size": 13
+        },
+        {
+          "x": 78.0,
+          "y": 31.7,
+          "t": "O",
+          "size": 13
+        }
+      ]
+    },
+    "name": "the target"
+  },
+  "u9-dk-ketone": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 18.0,
+          "y1": 50.0,
+          "x2": 25.0,
+          "y2": 46.0
+        },
+        {
+          "x1": 25.0,
+          "y1": 46.0,
+          "x2": 29.9,
+          "y2": 48.8
+        },
+        {
+          "x1": 34.1,
+          "y1": 48.8,
+          "x2": 39.0,
+          "y2": 46.0
+        },
+        {
+          "x1": 39.0,
+          "y1": 46.0,
+          "x2": 39.0,
+          "y2": 40.3,
+          "order": 2
+        },
+        {
+          "x1": 39.0,
+          "y1": 46.0,
+          "x2": 46.0,
+          "y2": 50.0
+        },
+        {
+          "x1": 46.0,
+          "y1": 50.0,
+          "x2": 53.0,
+          "y2": 46.0
+        },
+        {
+          "x1": 53.0,
+          "y1": 46.0,
+          "x2": 60.0,
+          "y2": 50.1
+        },
+        {
+          "x1": 60.0,
+          "y1": 50.1,
+          "x2": 67.0,
+          "y2": 46.0
+        },
+        {
+          "x1": 67.0,
+          "y1": 46.0,
+          "x2": 74.0,
+          "y2": 50.1
+        },
+        {
+          "x1": 74.0,
+          "y1": 50.1,
+          "x2": 81.0,
+          "y2": 46.0
+        },
+        {
+          "x1": 81.0,
+          "y1": 46.0,
+          "x2": 81.0,
+          "y2": 40.4,
+          "order": 2
+        },
+        {
+          "x1": 81.0,
+          "y1": 46.0,
+          "x2": 85.9,
+          "y2": 48.9
+        },
+        {
+          "x1": 90.1,
+          "y1": 48.9,
+          "x2": 95.0,
+          "y2": 46.0
+        },
+        {
+          "x1": 95.0,
+          "y1": 46.0,
+          "x2": 102.0,
+          "y2": 50.1
+        }
+      ],
+      "labels": [
+        {
+          "x": 32.0,
+          "y": 55.0,
+          "t": "O",
+          "size": 13
+        },
+        {
+          "x": 39.0,
+          "y": 42.9,
+          "t": "O",
+          "size": 13
+        },
+        {
+          "x": 81.0,
+          "y": 42.9,
+          "t": "O",
+          "size": 13
+        },
+        {
+          "x": 88.0,
+          "y": 55.1,
+          "t": "O",
+          "size": 13
+        }
+      ]
+    },
+    "name": "NaOEt, then H₃O⁺, heat"
+  },
+  "u9-dk-methyl": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 18.0,
+          "y1": 41.8,
+          "x2": 25.6,
+          "y2": 46.2
+        },
+        {
+          "x1": 25.6,
+          "y1": 46.2,
+          "x2": 31.0,
+          "y2": 43.1
+        },
+        {
+          "x1": 35.6,
+          "y1": 43.1,
+          "x2": 40.9,
+          "y2": 46.2
+        },
+        {
+          "x1": 40.9,
+          "y1": 46.2,
+          "x2": 40.9,
+          "y2": 52.4,
+          "order": 2
+        },
+        {
+          "x1": 40.9,
+          "y1": 46.2,
+          "x2": 48.5,
+          "y2": 41.8
+        },
+        {
+          "x1": 48.5,
+          "y1": 41.8,
+          "x2": 56.2,
+          "y2": 46.2
+        },
+        {
+          "x1": 56.2,
+          "y1": 46.2,
+          "x2": 63.8,
+          "y2": 41.8
+        },
+        {
+          "x1": 63.8,
+          "y1": 41.8,
+          "x2": 71.5,
+          "y2": 46.2
+        },
+        {
+          "x1": 71.5,
+          "y1": 46.2,
+          "x2": 71.5,
+          "y2": 55.0
+        },
+        {
+          "x1": 71.5,
+          "y1": 46.2,
+          "x2": 79.1,
+          "y2": 41.8
+        },
+        {
+          "x1": 79.1,
+          "y1": 41.8,
+          "x2": 79.1,
+          "y2": 35.6,
+          "order": 2
+        },
+        {
+          "x1": 79.1,
+          "y1": 41.8,
+          "x2": 84.4,
+          "y2": 44.9
+        },
+        {
+          "x1": 89.0,
+          "y1": 44.9,
+          "x2": 94.4,
+          "y2": 41.8
+        },
+        {
+          "x1": 94.4,
+          "y1": 41.8,
+          "x2": 102.0,
+          "y2": 46.2
+        }
+      ],
+      "labels": [
+        {
+          "x": 33.3,
+          "y": 46.8,
+          "t": "O",
+          "size": 13
+        },
+        {
+          "x": 40.9,
+          "y": 60.0,
+          "t": "O",
+          "size": 13
+        },
+        {
+          "x": 79.1,
+          "y": 38.0,
+          "t": "O",
+          "size": 13
+        },
+        {
+          "x": 86.7,
+          "y": 51.2,
+          "t": "O",
+          "size": 13
+        }
+      ]
+    },
+    "name": "NaOEt, then H₃O⁺"
+  },
+  "u9-cc-formyl": {
+    "kind": "pair",
+    "a": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 39.2,
+            "y1": 27.0,
+            "x2": 51.3,
+            "y2": 34.0,
+            "order": 2
+          },
+          {
+            "x1": 51.3,
+            "y1": 34.0,
+            "x2": 51.4,
+            "y2": 54.0
+          },
+          {
+            "x1": 51.4,
+            "y1": 54.0,
+            "x2": 68.7,
+            "y2": 64.0
+          },
+          {
+            "x1": 68.7,
+            "y1": 64.0,
+            "x2": 86.0,
+            "y2": 54.0
+          },
+          {
+            "x1": 86.0,
+            "y1": 54.0,
+            "x2": 86.0,
+            "y2": 34.0
+          },
+          {
+            "x1": 86.0,
+            "y1": 34.0,
+            "x2": 68.6,
+            "y2": 24.0
+          },
+          {
+            "x1": 68.6,
+            "y1": 24.0,
+            "x2": 51.3,
+            "y2": 34.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 34.0,
+            "y": 29.0,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "cyclohexanone"
+    },
+    "b": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 25.4,
+            "y1": 39.0,
+            "x2": 42.7,
+            "y2": 49.0
+          },
+          {
+            "x1": 42.7,
+            "y1": 49.0,
+            "x2": 54.8,
+            "y2": 42.0
+          },
+          {
+            "x1": 65.2,
+            "y1": 42.0,
+            "x2": 77.3,
+            "y2": 49.0
+          },
+          {
+            "x1": 77.3,
+            "y1": 49.0,
+            "x2": 89.4,
+            "y2": 42.0,
+            "order": 2
+          }
+        ],
+        "labels": [
+          {
+            "x": 60.0,
+            "y": 44.0,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 94.6,
+            "y": 44.0,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "ethyl formate"
+    }
+  },
+  "u9-alk-ipr": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 42.6,
+          "y1": 24.1,
+          "x2": 60.0,
+          "y2": 34.0
+        },
+        {
+          "x1": 60.0,
+          "y1": 34.0,
+          "x2": 72.1,
+          "y2": 27.0,
+          "order": 2
+        },
+        {
+          "x1": 60.0,
+          "y1": 34.0,
+          "x2": 60.0,
+          "y2": 54.0
+        },
+        {
+          "x1": 60.0,
+          "y1": 54.0,
+          "x2": 77.4,
+          "y2": 63.9
+        },
+        {
+          "x1": 60.0,
+          "y1": 54.0,
+          "x2": 42.8,
+          "y2": 64.1
+        }
+      ],
+      "labels": [
+        {
+          "x": 77.2,
+          "y": 28.9,
+          "t": "O",
+          "size": 13
+        }
+      ]
+    },
+    "name": "LDA, −78 °C, then CH₃CH₂Br"
+  },
+  "u9-alk-twice": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 39.2,
+          "y1": 27.0,
+          "x2": 51.3,
+          "y2": 34.0,
+          "order": 2
+        },
+        {
+          "x1": 51.3,
+          "y1": 34.0,
+          "x2": 51.4,
+          "y2": 54.0
+        },
+        {
+          "x1": 51.4,
+          "y1": 54.0,
+          "x2": 68.7,
+          "y2": 64.0
+        },
+        {
+          "x1": 68.7,
+          "y1": 64.0,
+          "x2": 86.0,
+          "y2": 54.0
+        },
+        {
+          "x1": 86.0,
+          "y1": 54.0,
+          "x2": 86.0,
+          "y2": 34.0
+        },
+        {
+          "x1": 86.0,
+          "y1": 34.0,
+          "x2": 68.6,
+          "y2": 24.0
+        },
+        {
+          "x1": 68.6,
+          "y1": 24.0,
+          "x2": 51.3,
+          "y2": 34.0
+        }
+      ],
+      "labels": [
+        {
+          "x": 34.0,
+          "y": 29.0,
+          "t": "O",
+          "size": 13
+        }
+      ]
+    },
+    "name": "LDA, CH₃I, twice"
+  },
+  "u9-mal-pair": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 25.4,
+          "y1": 49.1,
+          "x2": 42.7,
+          "y2": 39.1
+        },
+        {
+          "x1": 42.7,
+          "y1": 39.1,
+          "x2": 60.0,
+          "y2": 49.0
+        },
+        {
+          "x1": 60.0,
+          "y1": 49.0,
+          "x2": 60.0,
+          "y2": 69.0
+        },
+        {
+          "x1": 60.0,
+          "y1": 49.0,
+          "x2": 77.3,
+          "y2": 39.0
+        },
+        {
+          "x1": 77.3,
+          "y1": 39.0,
+          "x2": 77.3,
+          "y2": 25.0,
+          "order": 2
+        },
+        {
+          "x1": 77.3,
+          "y1": 39.0,
+          "x2": 89.4,
+          "y2": 46.0
+        }
+      ],
+      "labels": [
+        {
+          "x": 77.2,
+          "y": 24.0,
+          "t": "O",
+          "size": 13
+        },
+        {
+          "x": 94.6,
+          "y": 53.9,
+          "t": "OH",
+          "size": 13
+        }
+      ]
+    },
+    "name": "the target"
+  },
+  "u9-aa-two": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 18.0,
+          "y1": 56.2,
+          "x2": 32.0,
+          "y2": 48.1
+        },
+        {
+          "x1": 32.0,
+          "y1": 48.1,
+          "x2": 41.8,
+          "y2": 53.7
+        },
+        {
+          "x1": 50.2,
+          "y1": 53.7,
+          "x2": 60.0,
+          "y2": 48.0
+        },
+        {
+          "x1": 60.0,
+          "y1": 48.0,
+          "x2": 60.0,
+          "y2": 36.7,
+          "order": 2
+        },
+        {
+          "x1": 60.0,
+          "y1": 48.0,
+          "x2": 74.0,
+          "y2": 56.1
+        },
+        {
+          "x1": 74.0,
+          "y1": 56.1,
+          "x2": 88.0,
+          "y2": 48.0
+        },
+        {
+          "x1": 88.0,
+          "y1": 48.0,
+          "x2": 102.0,
+          "y2": 56.0
+        },
+        {
+          "x1": 88.0,
+          "y1": 48.0,
+          "x2": 88.0,
+          "y2": 36.7,
+          "order": 2
+        }
+      ],
+      "labels": [
+        {
+          "x": 46.0,
+          "y": 61.1,
+          "t": "O",
+          "size": 13
+        },
+        {
+          "x": 59.9,
+          "y": 36.9,
+          "t": "O",
+          "size": 13
+        },
+        {
+          "x": 88.0,
+          "y": 36.8,
+          "t": "O",
+          "size": 13
+        }
+      ]
+    },
+    "name": "NaOEt, CH₃I; NaOEt, CH₃CH₂Br; H₃O⁺, heat"
+  },
+  "u9-aa-iso": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 102.0,
+          "y1": 48.8,
+          "x2": 85.2,
+          "y2": 39.1
+        },
+        {
+          "x1": 85.2,
+          "y1": 39.1,
+          "x2": 85.2,
+          "y2": 25.5,
+          "order": 2
+        },
+        {
+          "x1": 85.2,
+          "y1": 39.1,
+          "x2": 68.4,
+          "y2": 48.8
+        },
+        {
+          "x1": 68.4,
+          "y1": 48.8,
+          "x2": 51.6,
+          "y2": 39.2
+        },
+        {
+          "x1": 51.6,
+          "y1": 39.2,
+          "x2": 34.8,
+          "y2": 48.9
+        },
+        {
+          "x1": 34.8,
+          "y1": 48.9,
+          "x2": 18.0,
+          "y2": 39.2
+        },
+        {
+          "x1": 34.8,
+          "y1": 48.9,
+          "x2": 34.9,
+          "y2": 68.3
+        }
+      ],
+      "labels": [
+        {
+          "x": 85.1,
+          "y": 24.7,
+          "t": "O",
+          "size": 13
+        }
+      ]
+    },
+    "name": "the target"
+  },
+  "u9-mi-chxenone": {
+    "kind": "pair",
+    "a": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 18.0,
+            "y1": 56.2,
+            "x2": 32.0,
+            "y2": 48.1
+          },
+          {
+            "x1": 32.0,
+            "y1": 48.1,
+            "x2": 41.8,
+            "y2": 53.7
+          },
+          {
+            "x1": 50.2,
+            "y1": 53.7,
+            "x2": 60.0,
+            "y2": 48.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 48.0,
+            "x2": 60.0,
+            "y2": 36.7,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 48.0,
+            "x2": 74.0,
+            "y2": 56.1
+          },
+          {
+            "x1": 74.0,
+            "y1": 56.1,
+            "x2": 88.0,
+            "y2": 48.0
+          },
+          {
+            "x1": 88.0,
+            "y1": 48.0,
+            "x2": 102.0,
+            "y2": 56.0
+          },
+          {
+            "x1": 88.0,
+            "y1": 48.0,
+            "x2": 88.0,
+            "y2": 36.7,
+            "order": 2
+          }
+        ],
+        "labels": [
+          {
+            "x": 46.0,
+            "y": 61.1,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 59.9,
+            "y": 36.9,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 88.0,
+            "y": 36.8,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "ethyl 3-oxobutanoate"
+    },
+    "b": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 39.2,
+            "y1": 27.0,
+            "x2": 51.3,
+            "y2": 34.0,
+            "order": 2
+          },
+          {
+            "x1": 51.3,
+            "y1": 34.0,
+            "x2": 51.4,
+            "y2": 54.0
+          },
+          {
+            "x1": 51.4,
+            "y1": 54.0,
+            "x2": 68.7,
+            "y2": 64.0,
+            "order": 2
+          },
+          {
+            "x1": 68.7,
+            "y1": 64.0,
+            "x2": 86.0,
+            "y2": 54.0
+          },
+          {
+            "x1": 86.0,
+            "y1": 54.0,
+            "x2": 86.0,
+            "y2": 34.0
+          },
+          {
+            "x1": 86.0,
+            "y1": 34.0,
+            "x2": 68.6,
+            "y2": 24.0
+          },
+          {
+            "x1": 68.6,
+            "y1": 24.0,
+            "x2": 51.3,
+            "y2": 34.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 34.0,
+            "y": 29.0,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "cyclohex-2-en-1-one"
+    }
+  },
+  "u9-mi-acid": {
+    "kind": "pair",
+    "a": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 18.0,
+            "y1": 53.0,
+            "x2": 28.5,
+            "y2": 47.0
+          },
+          {
+            "x1": 28.5,
+            "y1": 47.0,
+            "x2": 35.9,
+            "y2": 51.2
+          },
+          {
+            "x1": 42.2,
+            "y1": 51.2,
+            "x2": 49.5,
+            "y2": 47.0
+          },
+          {
+            "x1": 49.5,
+            "y1": 47.0,
+            "x2": 49.5,
+            "y2": 38.5,
+            "order": 2
+          },
+          {
+            "x1": 49.5,
+            "y1": 47.0,
+            "x2": 60.0,
+            "y2": 53.1
+          },
+          {
+            "x1": 60.0,
+            "y1": 53.1,
+            "x2": 70.5,
+            "y2": 47.0
+          },
+          {
+            "x1": 70.5,
+            "y1": 47.0,
+            "x2": 70.5,
+            "y2": 38.5,
+            "order": 2
+          },
+          {
+            "x1": 70.5,
+            "y1": 47.0,
+            "x2": 77.9,
+            "y2": 51.3
+          },
+          {
+            "x1": 84.2,
+            "y1": 51.3,
+            "x2": 91.5,
+            "y2": 47.0
+          },
+          {
+            "x1": 91.5,
+            "y1": 47.0,
+            "x2": 102.0,
+            "y2": 53.1
+          }
+        ],
+        "labels": [
+          {
+            "x": 39.0,
+            "y": 58.1,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 49.5,
+            "y": 39.9,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 70.5,
+            "y": 39.9,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 81.0,
+            "y": 58.1,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "diethyl propanedioate"
+    },
+    "b": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 77.3,
+            "y1": 19.0,
+            "x2": 77.3,
+            "y2": 39.0,
+            "order": 2
+          },
+          {
+            "x1": 77.3,
+            "y1": 39.0,
+            "x2": 60.0,
+            "y2": 49.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 49.0,
+            "x2": 60.1,
+            "y2": 69.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 49.0,
+            "x2": 47.9,
+            "y2": 42.0,
+            "order": 2
+          }
+        ],
+        "labels": [
+          {
+            "x": 42.7,
+            "y": 44.1,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "but-3-en-2-one"
+    }
+  },
+  "u9-cu-trap": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 39.2,
+          "y1": 27.0,
+          "x2": 51.3,
+          "y2": 34.0,
+          "order": 2
+        },
+        {
+          "x1": 51.3,
+          "y1": 34.0,
+          "x2": 51.4,
+          "y2": 54.0
+        },
+        {
+          "x1": 51.4,
+          "y1": 54.0,
+          "x2": 68.7,
+          "y2": 64.0,
+          "order": 2
+        },
+        {
+          "x1": 68.7,
+          "y1": 64.0,
+          "x2": 86.0,
+          "y2": 54.0
+        },
+        {
+          "x1": 86.0,
+          "y1": 54.0,
+          "x2": 86.0,
+          "y2": 34.0
+        },
+        {
+          "x1": 86.0,
+          "y1": 34.0,
+          "x2": 68.6,
+          "y2": 24.0
+        },
+        {
+          "x1": 68.6,
+          "y1": 24.0,
+          "x2": 51.3,
+          "y2": 34.0
+        }
+      ],
+      "labels": [
+        {
+          "x": 34.0,
+          "y": 29.0,
+          "t": "O",
+          "size": 13
+        }
+      ]
+    },
+    "name": "(CH₃)₂CuLi, then CH₃I"
+  },
+  "u9-rob-c5": {
+    "kind": "pair",
+    "a": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 40.7,
+            "y1": 30.0,
+            "x2": 52.8,
+            "y2": 37.0,
+            "order": 2
+          },
+          {
+            "x1": 52.8,
+            "y1": 37.0,
+            "x2": 71.1,
+            "y2": 28.8
+          },
+          {
+            "x1": 71.1,
+            "y1": 28.8,
+            "x2": 84.5,
+            "y2": 43.7
+          },
+          {
+            "x1": 84.5,
+            "y1": 43.7,
+            "x2": 74.5,
+            "y2": 61.0
+          },
+          {
+            "x1": 74.5,
+            "y1": 61.0,
+            "x2": 54.9,
+            "y2": 56.9
+          },
+          {
+            "x1": 54.9,
+            "y1": 56.9,
+            "x2": 52.8,
+            "y2": 37.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 35.5,
+            "y": 32.0,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "cyclopentanone"
+    },
+    "b": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 77.3,
+            "y1": 19.0,
+            "x2": 77.3,
+            "y2": 39.0,
+            "order": 2
+          },
+          {
+            "x1": 77.3,
+            "y1": 39.0,
+            "x2": 60.0,
+            "y2": 49.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 49.0,
+            "x2": 60.1,
+            "y2": 69.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 49.0,
+            "x2": 47.9,
+            "y2": 42.0,
+            "order": 2
+          }
+        ],
+        "labels": [
+          {
+            "x": 42.7,
+            "y": 44.1,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "but-3-en-2-one"
+    }
+  },
+  "u9-re-route": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 18.0,
+          "y1": 43.9,
+          "x2": 32.0,
+          "y2": 35.8
+        },
+        {
+          "x1": 32.0,
+          "y1": 35.8,
+          "x2": 32.1,
+          "y2": 24.5,
+          "order": 2
+        },
+        {
+          "x1": 32.0,
+          "y1": 35.8,
+          "x2": 46.0,
+          "y2": 44.0
+        },
+        {
+          "x1": 46.0,
+          "y1": 44.0,
+          "x2": 60.0,
+          "y2": 35.9
+        },
+        {
+          "x1": 60.0,
+          "y1": 35.9,
+          "x2": 74.0,
+          "y2": 44.1
+        },
+        {
+          "x1": 74.0,
+          "y1": 44.1,
+          "x2": 88.0,
+          "y2": 36.0,
+          "order": 2
+        },
+        {
+          "x1": 88.0,
+          "y1": 36.0,
+          "x2": 102.0,
+          "y2": 44.2
+        },
+        {
+          "x1": 102.0,
+          "y1": 44.2,
+          "x2": 101.9,
+          "y2": 60.3,
+          "order": 2
+        },
+        {
+          "x1": 101.9,
+          "y1": 60.3,
+          "x2": 87.9,
+          "y2": 68.3
+        },
+        {
+          "x1": 87.9,
+          "y1": 68.3,
+          "x2": 73.9,
+          "y2": 60.2,
+          "order": 2
+        },
+        {
+          "x1": 73.9,
+          "y1": 60.2,
+          "x2": 74.0,
+          "y2": 44.1
+        }
+      ],
+      "labels": [
+        {
+          "x": 32.1,
+          "y": 24.7,
+          "t": "O",
+          "size": 13
+        }
+      ]
+    },
+    "name": "the target"
+  },
+  "u9-re-ethyl": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 78.6,
+          "y1": 19.0,
+          "x2": 66.2,
+          "y2": 26.1
+        },
+        {
+          "x1": 66.2,
+          "y1": 26.1,
+          "x2": 66.2,
+          "y2": 40.4
+        },
+        {
+          "x1": 66.2,
+          "y1": 40.4,
+          "x2": 78.5,
+          "y2": 47.6
+        },
+        {
+          "x1": 78.5,
+          "y1": 47.6,
+          "x2": 78.5,
+          "y2": 61.9
+        },
+        {
+          "x1": 78.5,
+          "y1": 61.9,
+          "x2": 66.1,
+          "y2": 69.0
+        },
+        {
+          "x1": 66.1,
+          "y1": 69.0,
+          "x2": 53.7,
+          "y2": 61.8
+        },
+        {
+          "x1": 53.7,
+          "y1": 61.8,
+          "x2": 53.8,
+          "y2": 47.5
+        },
+        {
+          "x1": 53.8,
+          "y1": 47.5,
+          "x2": 45.1,
+          "y2": 42.5,
+          "order": 2
+        },
+        {
+          "x1": 53.8,
+          "y1": 47.5,
+          "x2": 66.2,
+          "y2": 40.4
+        }
+      ],
+      "labels": [
+        {
+          "x": 41.4,
+          "y": 45.4,
           "t": "O",
           "size": 13
         }
@@ -34428,6 +38290,5508 @@ export const U9_OPTION_TILES: Readonly<Record<string, Readonly<Record<string, Na
         ]
       },
       "name": "(2-bromoethyl)benzene"
+    }
+  },
+  "u9-tau-rac": {
+    "rac": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 25.4,
+            "y1": 49.1,
+            "x2": 42.7,
+            "y2": 39.1
+          },
+          {
+            "x1": 42.7,
+            "y1": 39.1,
+            "x2": 60.0,
+            "y2": 49.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 49.0,
+            "x2": 60.0,
+            "y2": 69.0,
+            "stereo": "wedge"
+          },
+          {
+            "x1": 60.0,
+            "y1": 49.0,
+            "x2": 77.3,
+            "y2": 39.0
+          },
+          {
+            "x1": 77.3,
+            "y1": 39.0,
+            "x2": 94.6,
+            "y2": 48.9
+          },
+          {
+            "x1": 77.3,
+            "y1": 39.0,
+            "x2": 77.3,
+            "y2": 25.0,
+            "order": 2
+          }
+        ],
+        "labels": [
+          {
+            "x": 77.2,
+            "y": 24.0,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "(S)-3-methylpentan-2-one"
+    },
+    "beta": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 76.2,
+            "y1": 19.0,
+            "x2": 76.2,
+            "y2": 31.5
+          },
+          {
+            "x1": 76.2,
+            "y1": 31.5,
+            "x2": 65.4,
+            "y2": 37.8
+          },
+          {
+            "x1": 65.4,
+            "y1": 37.8,
+            "x2": 54.6,
+            "y2": 31.5,
+            "stereo": "wedge"
+          },
+          {
+            "x1": 65.4,
+            "y1": 37.8,
+            "x2": 65.4,
+            "y2": 50.2
+          },
+          {
+            "x1": 65.4,
+            "y1": 50.2,
+            "x2": 54.6,
+            "y2": 56.5
+          },
+          {
+            "x1": 54.6,
+            "y1": 56.5,
+            "x2": 54.6,
+            "y2": 69.0
+          },
+          {
+            "x1": 54.6,
+            "y1": 56.5,
+            "x2": 47.0,
+            "y2": 52.2,
+            "order": 2
+          }
+        ],
+        "labels": [
+          {
+            "x": 43.8,
+            "y": 55.3,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "(S)-4-methylhexan-2-one"
+    },
+    "quat": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 93.5,
+            "y1": 69.0,
+            "x2": 76.1,
+            "y2": 68.9
+          },
+          {
+            "x1": 76.1,
+            "y1": 68.9,
+            "x2": 67.5,
+            "y2": 53.9
+          },
+          {
+            "x1": 67.5,
+            "y1": 53.9,
+            "x2": 58.8,
+            "y2": 68.9,
+            "stereo": "hash"
+          },
+          {
+            "x1": 67.5,
+            "y1": 53.9,
+            "x2": 82.6,
+            "y2": 45.2
+          },
+          {
+            "x1": 82.6,
+            "y1": 45.2,
+            "x2": 97.6,
+            "y2": 54.0
+          },
+          {
+            "x1": 82.6,
+            "y1": 45.2,
+            "x2": 82.6,
+            "y2": 33.1,
+            "order": 2
+          },
+          {
+            "x1": 67.5,
+            "y1": 53.9,
+            "x2": 52.5,
+            "y2": 45.1
+          },
+          {
+            "x1": 52.5,
+            "y1": 45.1,
+            "x2": 37.4,
+            "y2": 53.8,
+            "order": 2
+          },
+          {
+            "x1": 37.4,
+            "y1": 53.8,
+            "x2": 22.4,
+            "y2": 45.0
+          },
+          {
+            "x1": 22.4,
+            "y1": 45.0,
+            "x2": 22.5,
+            "y2": 27.6,
+            "order": 2
+          },
+          {
+            "x1": 22.5,
+            "y1": 27.6,
+            "x2": 37.5,
+            "y2": 19.0
+          },
+          {
+            "x1": 37.5,
+            "y1": 19.0,
+            "x2": 52.6,
+            "y2": 27.7,
+            "order": 2
+          },
+          {
+            "x1": 52.6,
+            "y1": 27.7,
+            "x2": 52.5,
+            "y2": 45.1
+          }
+        ],
+        "labels": [
+          {
+            "x": 82.6,
+            "y": 32.9,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "(S)-3-methyl-3-phenylpentan-2-one"
+    }
+  },
+  "u9-kvt-ipr": {
+    "k": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 86.0,
+            "y1": 68.9,
+            "x2": 86.0,
+            "y2": 48.9
+          },
+          {
+            "x1": 86.0,
+            "y1": 48.9,
+            "x2": 68.6,
+            "y2": 39.0,
+            "order": 2
+          },
+          {
+            "x1": 68.6,
+            "y1": 39.0,
+            "x2": 68.6,
+            "y2": 25.0
+          },
+          {
+            "x1": 68.6,
+            "y1": 39.0,
+            "x2": 51.3,
+            "y2": 49.0
+          },
+          {
+            "x1": 51.3,
+            "y1": 49.0,
+            "x2": 51.4,
+            "y2": 69.0
+          },
+          {
+            "x1": 51.3,
+            "y1": 49.0,
+            "x2": 34.0,
+            "y2": 39.1
+          }
+        ],
+        "labels": [
+          {
+            "x": 68.6,
+            "y": 24.0,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 77.6,
+            "y": 17.5,
+            "t": "−",
+            "size": 13
+          }
+        ]
+      },
+      "name": "4-methylpent-2-en-3-olate"
+    },
+    "t": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 74.4,
+            "y1": 19.0,
+            "x2": 74.4,
+            "y2": 35.6
+          },
+          {
+            "x1": 74.4,
+            "y1": 35.6,
+            "x2": 60.0,
+            "y2": 44.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 44.0,
+            "x2": 49.9,
+            "y2": 38.2
+          },
+          {
+            "x1": 60.0,
+            "y1": 44.0,
+            "x2": 60.0,
+            "y2": 60.6,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 60.6,
+            "x2": 45.6,
+            "y2": 69.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 60.6,
+            "x2": 74.5,
+            "y2": 68.9
+          }
+        ],
+        "labels": [
+          {
+            "x": 45.5,
+            "y": 40.7,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 54.5,
+            "y": 34.2,
+            "t": "−",
+            "size": 13
+          }
+        ]
+      },
+      "name": "2-methylpent-2-en-3-olate"
+    },
+    "enol": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 86.0,
+            "y1": 68.9,
+            "x2": 86.0,
+            "y2": 48.9
+          },
+          {
+            "x1": 86.0,
+            "y1": 48.9,
+            "x2": 68.6,
+            "y2": 39.0,
+            "order": 2
+          },
+          {
+            "x1": 68.6,
+            "y1": 39.0,
+            "x2": 68.6,
+            "y2": 25.0
+          },
+          {
+            "x1": 68.6,
+            "y1": 39.0,
+            "x2": 51.3,
+            "y2": 49.0
+          },
+          {
+            "x1": 51.3,
+            "y1": 49.0,
+            "x2": 51.4,
+            "y2": 69.0
+          },
+          {
+            "x1": 51.3,
+            "y1": 49.0,
+            "x2": 34.0,
+            "y2": 39.1
+          }
+        ],
+        "labels": [
+          {
+            "x": 68.6,
+            "y": 24.0,
+            "t": "OH",
+            "size": 13
+          }
+        ]
+      },
+      "name": "4-methylpent-2-en-3-ol"
+    }
+  },
+  "u9-ha-ipr": {
+    "p": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 34.0,
+            "y1": 50.3,
+            "x2": 51.3,
+            "y2": 40.3
+          },
+          {
+            "x1": 51.3,
+            "y1": 40.3,
+            "x2": 51.4,
+            "y2": 26.3,
+            "order": 2
+          },
+          {
+            "x1": 51.3,
+            "y1": 40.3,
+            "x2": 68.6,
+            "y2": 50.3
+          },
+          {
+            "x1": 68.6,
+            "y1": 50.3,
+            "x2": 78.6,
+            "y2": 67.7
+          },
+          {
+            "x1": 68.6,
+            "y1": 50.3,
+            "x2": 86.0,
+            "y2": 40.4
+          },
+          {
+            "x1": 68.6,
+            "y1": 50.3,
+            "x2": 61.6,
+            "y2": 62.5
+          }
+        ],
+        "labels": [
+          {
+            "x": 51.4,
+            "y": 25.3,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 58.6,
+            "y": 72.6,
+            "t": "Br",
+            "size": 13
+          }
+        ]
+      },
+      "name": "3-bromo-3-methylbutan-2-one"
+    },
+    "m": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 94.6,
+            "y1": 39.0,
+            "x2": 77.3,
+            "y2": 49.0
+          },
+          {
+            "x1": 77.3,
+            "y1": 49.0,
+            "x2": 77.3,
+            "y2": 69.0
+          },
+          {
+            "x1": 77.3,
+            "y1": 49.0,
+            "x2": 60.0,
+            "y2": 39.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 39.0,
+            "x2": 60.0,
+            "y2": 25.0,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 39.0,
+            "x2": 42.7,
+            "y2": 49.0
+          },
+          {
+            "x1": 42.7,
+            "y1": 49.0,
+            "x2": 30.6,
+            "y2": 42.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 60.0,
+            "y": 24.0,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 25.4,
+            "y": 44.0,
+            "t": "Br",
+            "size": 13
+          }
+        ]
+      },
+      "name": "1-bromo-3-methylbutan-2-one"
+    },
+    "di": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 87.3,
+            "y1": 67.7,
+            "x2": 77.3,
+            "y2": 50.3
+          },
+          {
+            "x1": 77.3,
+            "y1": 50.3,
+            "x2": 94.6,
+            "y2": 40.4
+          },
+          {
+            "x1": 77.3,
+            "y1": 50.3,
+            "x2": 70.3,
+            "y2": 62.5
+          },
+          {
+            "x1": 77.3,
+            "y1": 50.3,
+            "x2": 60.0,
+            "y2": 40.3
+          },
+          {
+            "x1": 60.0,
+            "y1": 40.3,
+            "x2": 60.0,
+            "y2": 26.3,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 40.3,
+            "x2": 42.7,
+            "y2": 50.3
+          },
+          {
+            "x1": 42.7,
+            "y1": 50.3,
+            "x2": 30.6,
+            "y2": 43.3
+          }
+        ],
+        "labels": [
+          {
+            "x": 67.3,
+            "y": 72.7,
+            "t": "Br",
+            "size": 13
+          },
+          {
+            "x": 60.0,
+            "y": 25.3,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 25.4,
+            "y": 45.3,
+            "t": "Br",
+            "size": 13
+          }
+        ]
+      },
+      "name": "1,3-dibromo-3-methylbutan-2-one"
+    }
+  },
+  "u9-ha-benzyl": {
+    "p": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 35.2,
+            "y1": 19.0,
+            "x2": 47.6,
+            "y2": 26.2
+          },
+          {
+            "x1": 47.6,
+            "y1": 26.2,
+            "x2": 56.3,
+            "y2": 21.1,
+            "order": 2
+          },
+          {
+            "x1": 47.6,
+            "y1": 26.2,
+            "x2": 47.6,
+            "y2": 40.4
+          },
+          {
+            "x1": 47.6,
+            "y1": 40.4,
+            "x2": 39.0,
+            "y2": 45.5
+          },
+          {
+            "x1": 47.6,
+            "y1": 40.4,
+            "x2": 60.0,
+            "y2": 47.6
+          },
+          {
+            "x1": 60.0,
+            "y1": 47.6,
+            "x2": 60.0,
+            "y2": 61.9,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 61.9,
+            "x2": 72.4,
+            "y2": 69.0
+          },
+          {
+            "x1": 72.4,
+            "y1": 69.0,
+            "x2": 84.8,
+            "y2": 61.8,
+            "order": 2
+          },
+          {
+            "x1": 84.8,
+            "y1": 61.8,
+            "x2": 84.8,
+            "y2": 47.6
+          },
+          {
+            "x1": 84.8,
+            "y1": 47.6,
+            "x2": 72.4,
+            "y2": 40.4,
+            "order": 2
+          },
+          {
+            "x1": 72.4,
+            "y1": 40.4,
+            "x2": 60.0,
+            "y2": 47.6
+          }
+        ],
+        "labels": [
+          {
+            "x": 60.0,
+            "y": 24.0,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 35.3,
+            "y": 52.6,
+            "t": "Br",
+            "size": 13
+          }
+        ]
+      },
+      "name": "1-bromo-1-phenylpropan-2-one"
+    },
+    "me": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 46.0,
+            "y1": 40.8,
+            "x2": 46.0,
+            "y2": 52.1,
+            "order": 2
+          },
+          {
+            "x1": 46.0,
+            "y1": 52.1,
+            "x2": 32.0,
+            "y2": 60.3
+          },
+          {
+            "x1": 32.0,
+            "y1": 60.3,
+            "x2": 22.2,
+            "y2": 54.6
+          },
+          {
+            "x1": 46.0,
+            "y1": 52.1,
+            "x2": 60.0,
+            "y2": 60.2
+          },
+          {
+            "x1": 60.0,
+            "y1": 60.2,
+            "x2": 74.0,
+            "y2": 52.0
+          },
+          {
+            "x1": 74.0,
+            "y1": 52.0,
+            "x2": 88.0,
+            "y2": 60.1,
+            "order": 2
+          },
+          {
+            "x1": 88.0,
+            "y1": 60.1,
+            "x2": 102.0,
+            "y2": 51.9
+          },
+          {
+            "x1": 102.0,
+            "y1": 51.9,
+            "x2": 101.9,
+            "y2": 35.8,
+            "order": 2
+          },
+          {
+            "x1": 101.9,
+            "y1": 35.8,
+            "x2": 87.9,
+            "y2": 27.7
+          },
+          {
+            "x1": 87.9,
+            "y1": 27.7,
+            "x2": 73.9,
+            "y2": 35.9,
+            "order": 2
+          },
+          {
+            "x1": 73.9,
+            "y1": 35.9,
+            "x2": 74.0,
+            "y2": 52.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 45.9,
+            "y": 41.0,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 18.0,
+            "y": 57.2,
+            "t": "Br",
+            "size": 13
+          }
+        ]
+      },
+      "name": "1-bromo-3-phenylpropan-2-one"
+    },
+    "ring": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 18.0,
+            "y1": 60.3,
+            "x2": 32.0,
+            "y2": 52.2
+          },
+          {
+            "x1": 32.0,
+            "y1": 52.2,
+            "x2": 31.9,
+            "y2": 40.9,
+            "order": 2
+          },
+          {
+            "x1": 32.0,
+            "y1": 52.2,
+            "x2": 46.0,
+            "y2": 60.2
+          },
+          {
+            "x1": 46.0,
+            "y1": 60.2,
+            "x2": 60.0,
+            "y2": 52.1
+          },
+          {
+            "x1": 60.0,
+            "y1": 52.1,
+            "x2": 74.1,
+            "y2": 60.1
+          },
+          {
+            "x1": 74.1,
+            "y1": 60.1,
+            "x2": 88.1,
+            "y2": 52.0,
+            "order": 2
+          },
+          {
+            "x1": 88.1,
+            "y1": 52.0,
+            "x2": 88.0,
+            "y2": 35.8
+          },
+          {
+            "x1": 88.0,
+            "y1": 35.8,
+            "x2": 97.8,
+            "y2": 30.1
+          },
+          {
+            "x1": 88.0,
+            "y1": 35.8,
+            "x2": 74.0,
+            "y2": 27.8,
+            "order": 2
+          },
+          {
+            "x1": 74.0,
+            "y1": 27.8,
+            "x2": 60.0,
+            "y2": 35.9
+          },
+          {
+            "x1": 60.0,
+            "y1": 35.9,
+            "x2": 60.0,
+            "y2": 52.1,
+            "order": 2
+          }
+        ],
+        "labels": [
+          {
+            "x": 31.9,
+            "y": 41.0,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 102.0,
+            "y": 32.7,
+            "t": "Br",
+            "size": 13
+          }
+        ]
+      },
+      "name": "1-(4-bromophenyl)propan-2-one"
+    }
+  },
+  "u9-hb-acid": {
+    "p": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 25.4,
+            "y1": 59.0,
+            "x2": 42.7,
+            "y2": 49.0
+          },
+          {
+            "x1": 42.7,
+            "y1": 49.0,
+            "x2": 42.7,
+            "y2": 29.0
+          },
+          {
+            "x1": 42.7,
+            "y1": 49.0,
+            "x2": 60.0,
+            "y2": 59.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 59.0,
+            "x2": 77.3,
+            "y2": 49.0
+          },
+          {
+            "x1": 77.3,
+            "y1": 49.0,
+            "x2": 77.3,
+            "y2": 35.0,
+            "order": 2
+          },
+          {
+            "x1": 77.3,
+            "y1": 49.0,
+            "x2": 89.4,
+            "y2": 56.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 77.3,
+            "y": 34.0,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 94.6,
+            "y": 64.0,
+            "t": "OH",
+            "size": 13
+          }
+        ]
+      },
+      "name": "3-methylbutanoic acid"
+    },
+    "same": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 102.0,
+            "y1": 39.2,
+            "x2": 85.2,
+            "y2": 48.9
+          },
+          {
+            "x1": 85.2,
+            "y1": 48.9,
+            "x2": 85.2,
+            "y2": 68.3
+          },
+          {
+            "x1": 85.2,
+            "y1": 48.9,
+            "x2": 68.4,
+            "y2": 39.2
+          },
+          {
+            "x1": 68.4,
+            "y1": 39.2,
+            "x2": 51.6,
+            "y2": 48.8
+          },
+          {
+            "x1": 51.6,
+            "y1": 48.8,
+            "x2": 34.8,
+            "y2": 39.1
+          },
+          {
+            "x1": 34.8,
+            "y1": 39.1,
+            "x2": 34.8,
+            "y2": 25.6,
+            "order": 2
+          },
+          {
+            "x1": 34.8,
+            "y1": 39.1,
+            "x2": 23.0,
+            "y2": 45.9
+          }
+        ],
+        "labels": [
+          {
+            "x": 34.8,
+            "y": 24.7,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 18.0,
+            "y": 53.8,
+            "t": "OH",
+            "size": 13
+          }
+        ]
+      },
+      "name": "4-methylpentanoic acid"
+    },
+    "short": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 68.6,
+            "y1": 19.0,
+            "x2": 68.6,
+            "y2": 39.0
+          },
+          {
+            "x1": 68.6,
+            "y1": 39.0,
+            "x2": 86.0,
+            "y2": 48.9
+          },
+          {
+            "x1": 68.6,
+            "y1": 39.0,
+            "x2": 51.4,
+            "y2": 49.0
+          },
+          {
+            "x1": 51.4,
+            "y1": 49.0,
+            "x2": 39.2,
+            "y2": 42.0,
+            "order": 2
+          },
+          {
+            "x1": 51.4,
+            "y1": 49.0,
+            "x2": 51.4,
+            "y2": 63.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 34.0,
+            "y": 44.1,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 51.4,
+            "y": 74.0,
+            "t": "OH",
+            "size": 13
+          }
+        ]
+      },
+      "name": "2-methylpropanoic acid"
+    }
+  },
+  "u9-hb-noform": {
+    "p3": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 94.6,
+            "y1": 49.0,
+            "x2": 77.3,
+            "y2": 59.0
+          },
+          {
+            "x1": 77.3,
+            "y1": 59.0,
+            "x2": 60.0,
+            "y2": 49.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 49.0,
+            "x2": 60.0,
+            "y2": 35.0,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 49.0,
+            "x2": 42.7,
+            "y2": 59.0
+          },
+          {
+            "x1": 42.7,
+            "y1": 59.0,
+            "x2": 25.4,
+            "y2": 49.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 60.0,
+            "y": 34.0,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "pentan-3-one"
+    },
+    "p2": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 25.4,
+            "y1": 59.1,
+            "x2": 42.7,
+            "y2": 49.0
+          },
+          {
+            "x1": 42.7,
+            "y1": 49.0,
+            "x2": 60.0,
+            "y2": 59.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 59.0,
+            "x2": 77.3,
+            "y2": 48.9
+          },
+          {
+            "x1": 77.3,
+            "y1": 48.9,
+            "x2": 94.6,
+            "y2": 58.9
+          },
+          {
+            "x1": 77.3,
+            "y1": 48.9,
+            "x2": 77.3,
+            "y2": 34.9,
+            "order": 2
+          }
+        ],
+        "labels": [
+          {
+            "x": 77.3,
+            "y": 33.9,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "pentan-2-one"
+    },
+    "acp": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 31.1,
+            "y1": 44.0,
+            "x2": 45.5,
+            "y2": 35.7
+          },
+          {
+            "x1": 45.5,
+            "y1": 35.7,
+            "x2": 45.5,
+            "y2": 24.0,
+            "order": 2
+          },
+          {
+            "x1": 45.5,
+            "y1": 35.7,
+            "x2": 60.0,
+            "y2": 44.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 44.0,
+            "x2": 60.0,
+            "y2": 60.7,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 60.7,
+            "x2": 74.5,
+            "y2": 69.0
+          },
+          {
+            "x1": 74.5,
+            "y1": 69.0,
+            "x2": 88.9,
+            "y2": 60.6,
+            "order": 2
+          },
+          {
+            "x1": 88.9,
+            "y1": 60.6,
+            "x2": 88.9,
+            "y2": 44.0
+          },
+          {
+            "x1": 88.9,
+            "y1": 44.0,
+            "x2": 74.4,
+            "y2": 35.7,
+            "order": 2
+          },
+          {
+            "x1": 74.4,
+            "y1": 35.7,
+            "x2": 60.0,
+            "y2": 44.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 45.5,
+            "y": 24.0,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "acetophenone"
+    },
+    "ipr": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 42.6,
+            "y1": 24.1,
+            "x2": 60.0,
+            "y2": 34.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 34.0,
+            "x2": 72.1,
+            "y2": 27.0,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 34.0,
+            "x2": 60.0,
+            "y2": 54.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 54.0,
+            "x2": 77.4,
+            "y2": 63.9
+          },
+          {
+            "x1": 60.0,
+            "y1": 54.0,
+            "x2": 42.8,
+            "y2": 64.1
+          }
+        ],
+        "labels": [
+          {
+            "x": 77.2,
+            "y": 28.9,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "3-methylbutan-2-one"
+    }
+  },
+  "u9-ald-ival": {
+    "p": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 18.0,
+            "y1": 44.0,
+            "x2": 32.0,
+            "y2": 52.0
+          },
+          {
+            "x1": 32.0,
+            "y1": 52.0,
+            "x2": 32.0,
+            "y2": 68.2
+          },
+          {
+            "x1": 32.0,
+            "y1": 52.0,
+            "x2": 46.0,
+            "y2": 44.0
+          },
+          {
+            "x1": 46.0,
+            "y1": 44.0,
+            "x2": 60.0,
+            "y2": 52.1
+          },
+          {
+            "x1": 60.0,
+            "y1": 52.1,
+            "x2": 60.0,
+            "y2": 63.4
+          },
+          {
+            "x1": 60.0,
+            "y1": 52.1,
+            "x2": 74.0,
+            "y2": 44.0
+          },
+          {
+            "x1": 74.0,
+            "y1": 44.0,
+            "x2": 74.0,
+            "y2": 27.8
+          },
+          {
+            "x1": 74.0,
+            "y1": 27.8,
+            "x2": 64.2,
+            "y2": 22.2,
+            "order": 2
+          },
+          {
+            "x1": 74.0,
+            "y1": 44.0,
+            "x2": 88.0,
+            "y2": 52.1
+          },
+          {
+            "x1": 88.0,
+            "y1": 52.1,
+            "x2": 102.0,
+            "y2": 44.0
+          },
+          {
+            "x1": 88.0,
+            "y1": 52.1,
+            "x2": 88.0,
+            "y2": 68.3
+          }
+        ],
+        "labels": [
+          {
+            "x": 60.0,
+            "y": 73.2,
+            "t": "OH",
+            "size": 13
+          },
+          {
+            "x": 60.0,
+            "y": 24.7,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "3-hydroxy-5-methyl-2-(propan-2-yl)hexanal"
+    },
+    "c": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 79.3,
+            "y1": 19.0,
+            "x2": 69.6,
+            "y2": 24.6
+          },
+          {
+            "x1": 69.6,
+            "y1": 24.6,
+            "x2": 60.0,
+            "y2": 19.0
+          },
+          {
+            "x1": 69.6,
+            "y1": 24.6,
+            "x2": 69.6,
+            "y2": 35.7
+          },
+          {
+            "x1": 69.6,
+            "y1": 35.7,
+            "x2": 60.0,
+            "y2": 41.2
+          },
+          {
+            "x1": 60.0,
+            "y1": 41.2,
+            "x2": 60.0,
+            "y2": 52.3,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 52.3,
+            "x2": 50.4,
+            "y2": 57.9
+          },
+          {
+            "x1": 50.4,
+            "y1": 57.9,
+            "x2": 43.6,
+            "y2": 54.0,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 52.3,
+            "x2": 69.6,
+            "y2": 57.9
+          },
+          {
+            "x1": 69.6,
+            "y1": 57.9,
+            "x2": 79.2,
+            "y2": 52.3
+          },
+          {
+            "x1": 69.6,
+            "y1": 57.9,
+            "x2": 69.6,
+            "y2": 69.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 40.7,
+            "y": 57.3,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "5-methyl-2-(propan-2-yl)hex-2-enal"
+    },
+    "b": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 102.0,
+            "y1": 48.4,
+            "x2": 90.0,
+            "y2": 41.4
+          },
+          {
+            "x1": 90.0,
+            "y1": 41.4,
+            "x2": 90.0,
+            "y2": 27.6
+          },
+          {
+            "x1": 90.0,
+            "y1": 41.4,
+            "x2": 78.0,
+            "y2": 48.4
+          },
+          {
+            "x1": 78.0,
+            "y1": 48.4,
+            "x2": 66.0,
+            "y2": 41.5
+          },
+          {
+            "x1": 66.0,
+            "y1": 41.5,
+            "x2": 66.0,
+            "y2": 31.8
+          },
+          {
+            "x1": 66.0,
+            "y1": 41.5,
+            "x2": 54.0,
+            "y2": 48.4
+          },
+          {
+            "x1": 54.0,
+            "y1": 48.4,
+            "x2": 60.9,
+            "y2": 60.4
+          },
+          {
+            "x1": 54.0,
+            "y1": 48.4,
+            "x2": 47.1,
+            "y2": 60.4
+          },
+          {
+            "x1": 54.0,
+            "y1": 48.4,
+            "x2": 42.0,
+            "y2": 41.5
+          },
+          {
+            "x1": 42.0,
+            "y1": 41.5,
+            "x2": 30.0,
+            "y2": 48.4
+          },
+          {
+            "x1": 30.0,
+            "y1": 48.4,
+            "x2": 21.6,
+            "y2": 43.6,
+            "order": 2
+          }
+        ],
+        "labels": [
+          {
+            "x": 66.0,
+            "y": 32.6,
+            "t": "OH",
+            "size": 13
+          },
+          {
+            "x": 18.0,
+            "y": 46.5,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "4-hydroxy-3,3,6-trimethylheptanal"
+    }
+  },
+  "u9-cond-butanal": {
+    "p": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 18.0,
+            "y1": 52.0,
+            "x2": 32.0,
+            "y2": 60.1
+          },
+          {
+            "x1": 32.0,
+            "y1": 60.1,
+            "x2": 46.0,
+            "y2": 52.1
+          },
+          {
+            "x1": 46.0,
+            "y1": 52.1,
+            "x2": 60.0,
+            "y2": 60.2
+          },
+          {
+            "x1": 60.0,
+            "y1": 60.2,
+            "x2": 74.0,
+            "y2": 52.1,
+            "order": 2
+          },
+          {
+            "x1": 74.0,
+            "y1": 52.1,
+            "x2": 88.0,
+            "y2": 60.2
+          },
+          {
+            "x1": 88.0,
+            "y1": 60.2,
+            "x2": 97.8,
+            "y2": 54.5,
+            "order": 2
+          },
+          {
+            "x1": 74.0,
+            "y1": 52.1,
+            "x2": 74.0,
+            "y2": 35.9
+          },
+          {
+            "x1": 74.0,
+            "y1": 35.9,
+            "x2": 60.0,
+            "y2": 27.8
+          }
+        ],
+        "labels": [
+          {
+            "x": 102.0,
+            "y": 57.1,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "2-ethylhex-2-enal"
+    },
+    "add": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 18.0,
+            "y1": 44.0,
+            "x2": 32.0,
+            "y2": 52.1
+          },
+          {
+            "x1": 32.0,
+            "y1": 52.1,
+            "x2": 46.0,
+            "y2": 44.0
+          },
+          {
+            "x1": 46.0,
+            "y1": 44.0,
+            "x2": 60.0,
+            "y2": 52.1
+          },
+          {
+            "x1": 60.0,
+            "y1": 52.1,
+            "x2": 60.0,
+            "y2": 63.4
+          },
+          {
+            "x1": 60.0,
+            "y1": 52.1,
+            "x2": 74.0,
+            "y2": 44.0
+          },
+          {
+            "x1": 74.0,
+            "y1": 44.0,
+            "x2": 88.0,
+            "y2": 52.1
+          },
+          {
+            "x1": 88.0,
+            "y1": 52.1,
+            "x2": 97.8,
+            "y2": 46.5,
+            "order": 2
+          },
+          {
+            "x1": 74.0,
+            "y1": 44.0,
+            "x2": 74.0,
+            "y2": 27.8
+          },
+          {
+            "x1": 74.0,
+            "y1": 27.8,
+            "x2": 60.0,
+            "y2": 19.8
+          }
+        ],
+        "labels": [
+          {
+            "x": 60.0,
+            "y": 73.2,
+            "t": "OH",
+            "size": 13
+          },
+          {
+            "x": 102.0,
+            "y": 49.0,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "2-ethyl-3-hydroxyhexanal"
+    },
+    "deconj": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 18.0,
+            "y1": 52.0,
+            "x2": 32.0,
+            "y2": 60.1
+          },
+          {
+            "x1": 32.0,
+            "y1": 60.1,
+            "x2": 46.0,
+            "y2": 52.1
+          },
+          {
+            "x1": 46.0,
+            "y1": 52.1,
+            "x2": 60.0,
+            "y2": 60.2,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 60.2,
+            "x2": 74.0,
+            "y2": 52.1
+          },
+          {
+            "x1": 74.0,
+            "y1": 52.1,
+            "x2": 88.0,
+            "y2": 60.2
+          },
+          {
+            "x1": 88.0,
+            "y1": 60.2,
+            "x2": 97.8,
+            "y2": 54.5,
+            "order": 2
+          },
+          {
+            "x1": 74.0,
+            "y1": 52.1,
+            "x2": 74.0,
+            "y2": 35.9
+          },
+          {
+            "x1": 74.0,
+            "y1": 35.9,
+            "x2": 60.0,
+            "y2": 27.8
+          }
+        ],
+        "labels": [
+          {
+            "x": 102.0,
+            "y": 57.1,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "2-ethylhex-3-enal"
+    }
+  },
+  "u9-cond-acphen": {
+    "p": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 76.7,
+            "y1": 42.1,
+            "x2": 70.0,
+            "y2": 45.9
+          },
+          {
+            "x1": 70.0,
+            "y1": 45.9,
+            "x2": 63.3,
+            "y2": 42.1,
+            "order": 2
+          },
+          {
+            "x1": 63.3,
+            "y1": 42.1,
+            "x2": 63.3,
+            "y2": 34.4
+          },
+          {
+            "x1": 63.3,
+            "y1": 34.4,
+            "x2": 68.0,
+            "y2": 31.7,
+            "order": 2
+          },
+          {
+            "x1": 63.3,
+            "y1": 34.4,
+            "x2": 56.7,
+            "y2": 30.5
+          },
+          {
+            "x1": 56.7,
+            "y1": 30.5,
+            "x2": 56.7,
+            "y2": 22.8,
+            "order": 2
+          },
+          {
+            "x1": 56.7,
+            "y1": 22.8,
+            "x2": 50.0,
+            "y2": 19.0
+          },
+          {
+            "x1": 50.0,
+            "y1": 19.0,
+            "x2": 43.3,
+            "y2": 22.9,
+            "order": 2
+          },
+          {
+            "x1": 43.3,
+            "y1": 22.9,
+            "x2": 43.3,
+            "y2": 30.5
+          },
+          {
+            "x1": 43.3,
+            "y1": 30.5,
+            "x2": 50.0,
+            "y2": 34.4,
+            "order": 2
+          },
+          {
+            "x1": 70.0,
+            "y1": 45.9,
+            "x2": 70.0,
+            "y2": 53.6
+          },
+          {
+            "x1": 70.0,
+            "y1": 53.6,
+            "x2": 63.3,
+            "y2": 57.5,
+            "order": 2
+          },
+          {
+            "x1": 63.3,
+            "y1": 57.5,
+            "x2": 63.3,
+            "y2": 65.2
+          },
+          {
+            "x1": 63.3,
+            "y1": 65.2,
+            "x2": 70.0,
+            "y2": 69.0,
+            "order": 2
+          },
+          {
+            "x1": 70.0,
+            "y1": 69.0,
+            "x2": 76.7,
+            "y2": 65.1
+          },
+          {
+            "x1": 76.7,
+            "y1": 65.1,
+            "x2": 76.7,
+            "y2": 57.5,
+            "order": 2
+          },
+          {
+            "x1": 50.0,
+            "y1": 34.4,
+            "x2": 56.7,
+            "y2": 30.5
+          },
+          {
+            "x1": 76.7,
+            "y1": 57.5,
+            "x2": 70.0,
+            "y2": 53.6
+          }
+        ],
+        "labels": [
+          {
+            "x": 70.0,
+            "y": 35.5,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "1,3-diphenylbut-2-en-1-one"
+    },
+    "ald": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 64.5,
+            "y1": 27.4,
+            "x2": 70.5,
+            "y2": 37.9
+          },
+          {
+            "x1": 70.5,
+            "y1": 37.9,
+            "x2": 74.8,
+            "y2": 30.6
+          },
+          {
+            "x1": 70.5,
+            "y1": 37.9,
+            "x2": 60.0,
+            "y2": 44.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 44.0,
+            "x2": 49.5,
+            "y2": 37.9
+          },
+          {
+            "x1": 49.5,
+            "y1": 37.9,
+            "x2": 49.6,
+            "y2": 29.4,
+            "order": 2
+          },
+          {
+            "x1": 49.5,
+            "y1": 37.9,
+            "x2": 39.0,
+            "y2": 43.9
+          },
+          {
+            "x1": 39.0,
+            "y1": 43.9,
+            "x2": 39.0,
+            "y2": 56.0,
+            "order": 2
+          },
+          {
+            "x1": 39.0,
+            "y1": 56.0,
+            "x2": 28.5,
+            "y2": 62.0
+          },
+          {
+            "x1": 28.5,
+            "y1": 62.0,
+            "x2": 18.0,
+            "y2": 55.9,
+            "order": 2
+          },
+          {
+            "x1": 18.0,
+            "y1": 55.9,
+            "x2": 18.0,
+            "y2": 43.8
+          },
+          {
+            "x1": 18.0,
+            "y1": 43.8,
+            "x2": 28.6,
+            "y2": 37.8,
+            "order": 2
+          },
+          {
+            "x1": 70.5,
+            "y1": 37.9,
+            "x2": 81.0,
+            "y2": 44.0
+          },
+          {
+            "x1": 81.0,
+            "y1": 44.0,
+            "x2": 91.5,
+            "y2": 38.0,
+            "order": 2
+          },
+          {
+            "x1": 91.5,
+            "y1": 38.0,
+            "x2": 102.0,
+            "y2": 44.1
+          },
+          {
+            "x1": 102.0,
+            "y1": 44.1,
+            "x2": 102.0,
+            "y2": 56.2,
+            "order": 2
+          },
+          {
+            "x1": 102.0,
+            "y1": 56.2,
+            "x2": 91.4,
+            "y2": 62.3
+          },
+          {
+            "x1": 91.4,
+            "y1": 62.3,
+            "x2": 81.0,
+            "y2": 56.2,
+            "order": 2
+          },
+          {
+            "x1": 28.6,
+            "y1": 37.8,
+            "x2": 39.0,
+            "y2": 43.9
+          },
+          {
+            "x1": 81.0,
+            "y1": 56.2,
+            "x2": 81.0,
+            "y2": 44.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 76.6,
+            "y": 32.5,
+            "t": "OH",
+            "size": 13
+          },
+          {
+            "x": 49.6,
+            "y": 30.7,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "3-hydroxy-1,3-diphenylbutan-1-one"
+    },
+    "chal": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 70.6,
+            "y1": 29.4,
+            "x2": 70.5,
+            "y2": 37.9,
+            "order": 2
+          },
+          {
+            "x1": 70.5,
+            "y1": 37.9,
+            "x2": 60.0,
+            "y2": 43.9
+          },
+          {
+            "x1": 60.0,
+            "y1": 43.9,
+            "x2": 49.5,
+            "y2": 37.8,
+            "order": 2
+          },
+          {
+            "x1": 49.5,
+            "y1": 37.8,
+            "x2": 39.0,
+            "y2": 43.8
+          },
+          {
+            "x1": 39.0,
+            "y1": 43.8,
+            "x2": 39.0,
+            "y2": 56.0,
+            "order": 2
+          },
+          {
+            "x1": 39.0,
+            "y1": 56.0,
+            "x2": 28.5,
+            "y2": 62.0
+          },
+          {
+            "x1": 28.5,
+            "y1": 62.0,
+            "x2": 18.0,
+            "y2": 55.9,
+            "order": 2
+          },
+          {
+            "x1": 18.0,
+            "y1": 55.9,
+            "x2": 18.0,
+            "y2": 43.8
+          },
+          {
+            "x1": 18.0,
+            "y1": 43.8,
+            "x2": 28.6,
+            "y2": 37.8,
+            "order": 2
+          },
+          {
+            "x1": 70.5,
+            "y1": 37.9,
+            "x2": 81.0,
+            "y2": 44.0
+          },
+          {
+            "x1": 81.0,
+            "y1": 44.0,
+            "x2": 91.5,
+            "y2": 38.0,
+            "order": 2
+          },
+          {
+            "x1": 91.5,
+            "y1": 38.0,
+            "x2": 102.0,
+            "y2": 44.1
+          },
+          {
+            "x1": 102.0,
+            "y1": 44.1,
+            "x2": 102.0,
+            "y2": 56.2,
+            "order": 2
+          },
+          {
+            "x1": 102.0,
+            "y1": 56.2,
+            "x2": 91.4,
+            "y2": 62.2
+          },
+          {
+            "x1": 91.4,
+            "y1": 62.2,
+            "x2": 81.0,
+            "y2": 56.1,
+            "order": 2
+          },
+          {
+            "x1": 28.6,
+            "y1": 37.8,
+            "x2": 39.0,
+            "y2": 43.8
+          },
+          {
+            "x1": 81.0,
+            "y1": 56.1,
+            "x2": 81.0,
+            "y2": 44.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 70.6,
+            "y": 30.8,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "1,3-diphenylprop-2-en-1-one"
+    }
+  },
+  "u9-cx-dba": {
+    "p": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 60.1,
+            "y1": 32.3,
+            "x2": 60.0,
+            "y2": 39.1,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 39.1,
+            "x2": 68.4,
+            "y2": 44.0
+          },
+          {
+            "x1": 68.4,
+            "y1": 44.0,
+            "x2": 76.8,
+            "y2": 39.2,
+            "order": 2
+          },
+          {
+            "x1": 76.8,
+            "y1": 39.2,
+            "x2": 85.2,
+            "y2": 44.0
+          },
+          {
+            "x1": 85.2,
+            "y1": 44.0,
+            "x2": 93.6,
+            "y2": 39.2,
+            "order": 2
+          },
+          {
+            "x1": 93.6,
+            "y1": 39.2,
+            "x2": 102.0,
+            "y2": 44.1
+          },
+          {
+            "x1": 102.0,
+            "y1": 44.1,
+            "x2": 102.0,
+            "y2": 53.8,
+            "order": 2
+          },
+          {
+            "x1": 102.0,
+            "y1": 53.8,
+            "x2": 93.6,
+            "y2": 58.6
+          },
+          {
+            "x1": 93.6,
+            "y1": 58.6,
+            "x2": 85.2,
+            "y2": 53.7,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 39.1,
+            "x2": 51.6,
+            "y2": 43.9
+          },
+          {
+            "x1": 51.6,
+            "y1": 43.9,
+            "x2": 43.2,
+            "y2": 39.0,
+            "order": 2
+          },
+          {
+            "x1": 43.2,
+            "y1": 39.0,
+            "x2": 34.8,
+            "y2": 43.8
+          },
+          {
+            "x1": 34.8,
+            "y1": 43.8,
+            "x2": 34.8,
+            "y2": 53.5,
+            "order": 2
+          },
+          {
+            "x1": 34.8,
+            "y1": 53.5,
+            "x2": 26.4,
+            "y2": 58.4
+          },
+          {
+            "x1": 26.4,
+            "y1": 58.4,
+            "x2": 18.0,
+            "y2": 53.5,
+            "order": 2
+          },
+          {
+            "x1": 18.0,
+            "y1": 53.5,
+            "x2": 18.0,
+            "y2": 43.8
+          },
+          {
+            "x1": 18.0,
+            "y1": 43.8,
+            "x2": 26.4,
+            "y2": 39.0,
+            "order": 2
+          },
+          {
+            "x1": 85.2,
+            "y1": 53.7,
+            "x2": 85.2,
+            "y2": 44.0
+          },
+          {
+            "x1": 26.4,
+            "y1": 39.0,
+            "x2": 34.8,
+            "y2": 43.8
+          }
+        ],
+        "labels": [
+          {
+            "x": 60.1,
+            "y": 34.4,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "1,5-diphenylpenta-1,4-dien-3-one"
+    },
+    "mono": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 18.0,
+            "y1": 43.9,
+            "x2": 32.0,
+            "y2": 35.8
+          },
+          {
+            "x1": 32.0,
+            "y1": 35.8,
+            "x2": 32.1,
+            "y2": 24.5,
+            "order": 2
+          },
+          {
+            "x1": 32.0,
+            "y1": 35.8,
+            "x2": 46.0,
+            "y2": 44.0
+          },
+          {
+            "x1": 46.0,
+            "y1": 44.0,
+            "x2": 60.0,
+            "y2": 35.9,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 35.9,
+            "x2": 74.0,
+            "y2": 44.1
+          },
+          {
+            "x1": 74.0,
+            "y1": 44.1,
+            "x2": 88.0,
+            "y2": 36.0,
+            "order": 2
+          },
+          {
+            "x1": 88.0,
+            "y1": 36.0,
+            "x2": 102.0,
+            "y2": 44.2
+          },
+          {
+            "x1": 102.0,
+            "y1": 44.2,
+            "x2": 101.9,
+            "y2": 60.3,
+            "order": 2
+          },
+          {
+            "x1": 101.9,
+            "y1": 60.3,
+            "x2": 87.9,
+            "y2": 68.3
+          },
+          {
+            "x1": 87.9,
+            "y1": 68.3,
+            "x2": 73.9,
+            "y2": 60.2,
+            "order": 2
+          },
+          {
+            "x1": 73.9,
+            "y1": 60.2,
+            "x2": 74.0,
+            "y2": 44.1
+          }
+        ],
+        "labels": [
+          {
+            "x": 32.1,
+            "y": 24.7,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "4-phenylbut-3-en-2-one"
+    },
+    "self": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 25.4,
+            "y1": 58.9,
+            "x2": 42.7,
+            "y2": 48.9
+          },
+          {
+            "x1": 42.7,
+            "y1": 48.9,
+            "x2": 42.7,
+            "y2": 34.9,
+            "order": 2
+          },
+          {
+            "x1": 42.7,
+            "y1": 48.9,
+            "x2": 60.0,
+            "y2": 59.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 59.0,
+            "x2": 77.3,
+            "y2": 49.0,
+            "order": 2
+          },
+          {
+            "x1": 77.3,
+            "y1": 49.0,
+            "x2": 77.4,
+            "y2": 29.0
+          },
+          {
+            "x1": 77.3,
+            "y1": 49.0,
+            "x2": 94.6,
+            "y2": 59.1
+          }
+        ],
+        "labels": [
+          {
+            "x": 42.7,
+            "y": 33.9,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "4-methylpent-3-en-2-one"
+    }
+  },
+  "u9-cx-piv": {
+    "p": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 36.9,
+            "y1": 55.9,
+            "x2": 30.0,
+            "y2": 43.8
+          },
+          {
+            "x1": 30.0,
+            "y1": 43.8,
+            "x2": 23.0,
+            "y2": 55.8
+          },
+          {
+            "x1": 30.0,
+            "y1": 43.8,
+            "x2": 18.0,
+            "y2": 36.9
+          },
+          {
+            "x1": 30.0,
+            "y1": 43.8,
+            "x2": 42.0,
+            "y2": 36.9
+          },
+          {
+            "x1": 42.0,
+            "y1": 36.9,
+            "x2": 54.0,
+            "y2": 43.9,
+            "order": 2
+          },
+          {
+            "x1": 54.0,
+            "y1": 43.9,
+            "x2": 66.0,
+            "y2": 37.0
+          },
+          {
+            "x1": 66.0,
+            "y1": 37.0,
+            "x2": 66.1,
+            "y2": 27.3,
+            "order": 2
+          },
+          {
+            "x1": 66.0,
+            "y1": 37.0,
+            "x2": 78.0,
+            "y2": 44.0
+          },
+          {
+            "x1": 78.0,
+            "y1": 44.0,
+            "x2": 90.0,
+            "y2": 37.1,
+            "order": 2
+          },
+          {
+            "x1": 90.0,
+            "y1": 37.1,
+            "x2": 102.0,
+            "y2": 44.1
+          },
+          {
+            "x1": 102.0,
+            "y1": 44.1,
+            "x2": 102.0,
+            "y2": 57.9,
+            "order": 2
+          },
+          {
+            "x1": 102.0,
+            "y1": 57.9,
+            "x2": 89.9,
+            "y2": 64.8
+          },
+          {
+            "x1": 89.9,
+            "y1": 64.8,
+            "x2": 77.9,
+            "y2": 57.9,
+            "order": 2
+          },
+          {
+            "x1": 77.9,
+            "y1": 57.9,
+            "x2": 78.0,
+            "y2": 44.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 66.1,
+            "y": 28.2,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "4,4-dimethyl-1-phenylpent-2-en-1-one"
+    },
+    "self": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 76.7,
+            "y1": 42.1,
+            "x2": 70.0,
+            "y2": 45.9
+          },
+          {
+            "x1": 70.0,
+            "y1": 45.9,
+            "x2": 63.3,
+            "y2": 42.1,
+            "order": 2
+          },
+          {
+            "x1": 63.3,
+            "y1": 42.1,
+            "x2": 63.3,
+            "y2": 34.4
+          },
+          {
+            "x1": 63.3,
+            "y1": 34.4,
+            "x2": 68.0,
+            "y2": 31.7,
+            "order": 2
+          },
+          {
+            "x1": 63.3,
+            "y1": 34.4,
+            "x2": 56.7,
+            "y2": 30.5
+          },
+          {
+            "x1": 56.7,
+            "y1": 30.5,
+            "x2": 56.7,
+            "y2": 22.8,
+            "order": 2
+          },
+          {
+            "x1": 56.7,
+            "y1": 22.8,
+            "x2": 50.0,
+            "y2": 19.0
+          },
+          {
+            "x1": 50.0,
+            "y1": 19.0,
+            "x2": 43.3,
+            "y2": 22.9,
+            "order": 2
+          },
+          {
+            "x1": 43.3,
+            "y1": 22.9,
+            "x2": 43.3,
+            "y2": 30.5
+          },
+          {
+            "x1": 43.3,
+            "y1": 30.5,
+            "x2": 50.0,
+            "y2": 34.4,
+            "order": 2
+          },
+          {
+            "x1": 70.0,
+            "y1": 45.9,
+            "x2": 70.0,
+            "y2": 53.6
+          },
+          {
+            "x1": 70.0,
+            "y1": 53.6,
+            "x2": 63.3,
+            "y2": 57.5,
+            "order": 2
+          },
+          {
+            "x1": 63.3,
+            "y1": 57.5,
+            "x2": 63.3,
+            "y2": 65.2
+          },
+          {
+            "x1": 63.3,
+            "y1": 65.2,
+            "x2": 70.0,
+            "y2": 69.0,
+            "order": 2
+          },
+          {
+            "x1": 70.0,
+            "y1": 69.0,
+            "x2": 76.7,
+            "y2": 65.1
+          },
+          {
+            "x1": 76.7,
+            "y1": 65.1,
+            "x2": 76.7,
+            "y2": 57.5,
+            "order": 2
+          },
+          {
+            "x1": 50.0,
+            "y1": 34.4,
+            "x2": 56.7,
+            "y2": 30.5
+          },
+          {
+            "x1": 76.7,
+            "y1": 57.5,
+            "x2": 70.0,
+            "y2": 53.6
+          }
+        ],
+        "labels": [
+          {
+            "x": 70.0,
+            "y": 35.5,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "1,3-diphenylbut-2-en-1-one"
+    },
+    "ald": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 36.9,
+            "y1": 56.0,
+            "x2": 30.0,
+            "y2": 44.0
+          },
+          {
+            "x1": 30.0,
+            "y1": 44.0,
+            "x2": 23.1,
+            "y2": 56.0
+          },
+          {
+            "x1": 30.0,
+            "y1": 44.0,
+            "x2": 18.0,
+            "y2": 37.1
+          },
+          {
+            "x1": 30.0,
+            "y1": 44.0,
+            "x2": 42.0,
+            "y2": 37.1
+          },
+          {
+            "x1": 42.0,
+            "y1": 37.1,
+            "x2": 42.0,
+            "y2": 27.4
+          },
+          {
+            "x1": 42.0,
+            "y1": 37.1,
+            "x2": 54.0,
+            "y2": 44.0
+          },
+          {
+            "x1": 54.0,
+            "y1": 44.0,
+            "x2": 66.0,
+            "y2": 37.1
+          },
+          {
+            "x1": 66.0,
+            "y1": 37.1,
+            "x2": 66.0,
+            "y2": 27.4,
+            "order": 2
+          },
+          {
+            "x1": 66.0,
+            "y1": 37.1,
+            "x2": 78.0,
+            "y2": 44.0
+          },
+          {
+            "x1": 78.0,
+            "y1": 44.0,
+            "x2": 78.0,
+            "y2": 57.9,
+            "order": 2
+          },
+          {
+            "x1": 78.0,
+            "y1": 57.9,
+            "x2": 90.0,
+            "y2": 64.8
+          },
+          {
+            "x1": 90.0,
+            "y1": 64.8,
+            "x2": 102.0,
+            "y2": 57.8,
+            "order": 2
+          },
+          {
+            "x1": 102.0,
+            "y1": 57.8,
+            "x2": 102.0,
+            "y2": 44.0
+          },
+          {
+            "x1": 102.0,
+            "y1": 44.0,
+            "x2": 90.0,
+            "y2": 37.1,
+            "order": 2
+          },
+          {
+            "x1": 90.0,
+            "y1": 37.1,
+            "x2": 78.0,
+            "y2": 44.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 42.0,
+            "y": 28.2,
+            "t": "OH",
+            "size": 13
+          },
+          {
+            "x": 66.0,
+            "y": 28.2,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "3-hydroxy-4,4-dimethyl-1-phenylpentan-1-one"
+    }
+  },
+  "u9-in-fused": {
+    "p": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 23.9,
+            "y1": 43.9,
+            "x2": 37.7,
+            "y2": 44.0,
+            "order": 2
+          },
+          {
+            "x1": 37.7,
+            "y1": 44.0,
+            "x2": 49.2,
+            "y2": 59.9
+          },
+          {
+            "x1": 49.2,
+            "y1": 59.9,
+            "x2": 67.9,
+            "y2": 53.8,
+            "order": 2
+          },
+          {
+            "x1": 67.9,
+            "y1": 53.8,
+            "x2": 84.9,
+            "y2": 63.7
+          },
+          {
+            "x1": 84.9,
+            "y1": 63.7,
+            "x2": 102.0,
+            "y2": 53.8
+          },
+          {
+            "x1": 102.0,
+            "y1": 53.8,
+            "x2": 102.0,
+            "y2": 34.2
+          },
+          {
+            "x1": 102.0,
+            "y1": 34.2,
+            "x2": 85.0,
+            "y2": 24.3
+          },
+          {
+            "x1": 85.0,
+            "y1": 24.3,
+            "x2": 67.9,
+            "y2": 34.2
+          },
+          {
+            "x1": 67.9,
+            "y1": 34.2,
+            "x2": 49.2,
+            "y2": 28.1
+          },
+          {
+            "x1": 49.2,
+            "y1": 28.1,
+            "x2": 37.7,
+            "y2": 44.0
+          },
+          {
+            "x1": 67.9,
+            "y1": 34.2,
+            "x2": 67.9,
+            "y2": 53.8
+          }
+        ],
+        "labels": [
+          {
+            "x": 18.0,
+            "y": 48.9,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "1,4,5,6,7,7a-hexahydro-2H-inden-2-one"
+    },
+    "ald": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 23.9,
+            "y1": 39.1,
+            "x2": 37.7,
+            "y2": 39.1,
+            "order": 2
+          },
+          {
+            "x1": 37.7,
+            "y1": 39.1,
+            "x2": 49.2,
+            "y2": 23.2
+          },
+          {
+            "x1": 49.2,
+            "y1": 23.2,
+            "x2": 67.9,
+            "y2": 29.3
+          },
+          {
+            "x1": 67.9,
+            "y1": 29.3,
+            "x2": 85.0,
+            "y2": 19.5
+          },
+          {
+            "x1": 85.0,
+            "y1": 19.5,
+            "x2": 102.0,
+            "y2": 29.3
+          },
+          {
+            "x1": 102.0,
+            "y1": 29.3,
+            "x2": 102.0,
+            "y2": 49.0
+          },
+          {
+            "x1": 102.0,
+            "y1": 49.0,
+            "x2": 84.9,
+            "y2": 58.8
+          },
+          {
+            "x1": 84.9,
+            "y1": 58.8,
+            "x2": 67.9,
+            "y2": 49.0
+          },
+          {
+            "x1": 67.9,
+            "y1": 49.0,
+            "x2": 66.5,
+            "y2": 62.7
+          },
+          {
+            "x1": 67.9,
+            "y1": 49.0,
+            "x2": 49.2,
+            "y2": 55.0
+          },
+          {
+            "x1": 49.2,
+            "y1": 55.0,
+            "x2": 37.7,
+            "y2": 39.1
+          },
+          {
+            "x1": 67.9,
+            "y1": 49.0,
+            "x2": 67.9,
+            "y2": 29.3
+          }
+        ],
+        "labels": [
+          {
+            "x": 18.0,
+            "y": 44.1,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 65.8,
+            "y": 73.5,
+            "t": "OH",
+            "size": 13
+          }
+        ]
+      },
+      "name": "7a-hydroxyoctahydro-2H-inden-2-one"
+    },
+    "iso": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 23.9,
+            "y1": 43.9,
+            "x2": 37.7,
+            "y2": 44.0,
+            "order": 2
+          },
+          {
+            "x1": 37.7,
+            "y1": 44.0,
+            "x2": 49.2,
+            "y2": 59.9
+          },
+          {
+            "x1": 49.2,
+            "y1": 59.9,
+            "x2": 67.9,
+            "y2": 53.8
+          },
+          {
+            "x1": 67.9,
+            "y1": 53.8,
+            "x2": 67.9,
+            "y2": 34.2,
+            "order": 2
+          },
+          {
+            "x1": 67.9,
+            "y1": 34.2,
+            "x2": 85.0,
+            "y2": 24.3
+          },
+          {
+            "x1": 85.0,
+            "y1": 24.3,
+            "x2": 102.0,
+            "y2": 34.2
+          },
+          {
+            "x1": 102.0,
+            "y1": 34.2,
+            "x2": 102.0,
+            "y2": 53.8
+          },
+          {
+            "x1": 102.0,
+            "y1": 53.8,
+            "x2": 84.9,
+            "y2": 63.7
+          },
+          {
+            "x1": 67.9,
+            "y1": 34.2,
+            "x2": 49.2,
+            "y2": 28.1
+          },
+          {
+            "x1": 49.2,
+            "y1": 28.1,
+            "x2": 37.7,
+            "y2": 44.0
+          },
+          {
+            "x1": 84.9,
+            "y1": 63.7,
+            "x2": 67.9,
+            "y2": 53.8
+          }
+        ],
+        "labels": [
+          {
+            "x": 18.0,
+            "y": 48.9,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "1,3,4,5,6,7-hexahydro-2H-inden-2-one"
+    }
+  },
+  "u9-dk-ketone": {
+    "p": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 39.2,
+            "y1": 27.0,
+            "x2": 51.3,
+            "y2": 34.0,
+            "order": 2
+          },
+          {
+            "x1": 51.3,
+            "y1": 34.0,
+            "x2": 51.4,
+            "y2": 54.0
+          },
+          {
+            "x1": 51.4,
+            "y1": 54.0,
+            "x2": 68.7,
+            "y2": 64.0
+          },
+          {
+            "x1": 68.7,
+            "y1": 64.0,
+            "x2": 86.0,
+            "y2": 54.0
+          },
+          {
+            "x1": 86.0,
+            "y1": 54.0,
+            "x2": 86.0,
+            "y2": 34.0
+          },
+          {
+            "x1": 86.0,
+            "y1": 34.0,
+            "x2": 68.6,
+            "y2": 24.0
+          },
+          {
+            "x1": 68.6,
+            "y1": 24.0,
+            "x2": 51.3,
+            "y2": 34.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 34.0,
+            "y": 29.0,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "cyclohexanone"
+    },
+    "ke": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 18.0,
+            "y1": 43.8,
+            "x2": 32.0,
+            "y2": 35.8
+          },
+          {
+            "x1": 32.0,
+            "y1": 35.8,
+            "x2": 41.8,
+            "y2": 41.5
+          },
+          {
+            "x1": 50.2,
+            "y1": 41.5,
+            "x2": 60.0,
+            "y2": 35.9
+          },
+          {
+            "x1": 60.0,
+            "y1": 35.9,
+            "x2": 60.1,
+            "y2": 24.6,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 35.9,
+            "x2": 74.0,
+            "y2": 44.0
+          },
+          {
+            "x1": 74.0,
+            "y1": 44.0,
+            "x2": 73.9,
+            "y2": 60.2
+          },
+          {
+            "x1": 73.9,
+            "y1": 60.2,
+            "x2": 87.9,
+            "y2": 68.3
+          },
+          {
+            "x1": 87.9,
+            "y1": 68.3,
+            "x2": 101.9,
+            "y2": 60.3
+          },
+          {
+            "x1": 101.9,
+            "y1": 60.3,
+            "x2": 102.0,
+            "y2": 44.1
+          },
+          {
+            "x1": 102.0,
+            "y1": 44.1,
+            "x2": 88.0,
+            "y2": 36.0
+          },
+          {
+            "x1": 88.0,
+            "y1": 36.0,
+            "x2": 88.1,
+            "y2": 24.7,
+            "order": 2
+          },
+          {
+            "x1": 88.0,
+            "y1": 36.0,
+            "x2": 74.0,
+            "y2": 44.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 46.0,
+            "y": 48.9,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 60.1,
+            "y": 24.7,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 88.1,
+            "y": 24.8,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "ethyl 2-oxocyclohexane-1-carboxylate"
+    },
+    "c5": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 40.7,
+            "y1": 30.0,
+            "x2": 52.8,
+            "y2": 37.0,
+            "order": 2
+          },
+          {
+            "x1": 52.8,
+            "y1": 37.0,
+            "x2": 71.1,
+            "y2": 28.8
+          },
+          {
+            "x1": 71.1,
+            "y1": 28.8,
+            "x2": 84.5,
+            "y2": 43.7
+          },
+          {
+            "x1": 84.5,
+            "y1": 43.7,
+            "x2": 74.5,
+            "y2": 61.0
+          },
+          {
+            "x1": 74.5,
+            "y1": 61.0,
+            "x2": 54.9,
+            "y2": 56.9
+          },
+          {
+            "x1": 54.9,
+            "y1": 56.9,
+            "x2": 52.8,
+            "y2": 37.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 35.5,
+            "y": 32.0,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "cyclopentanone"
+    }
+  },
+  "u9-dk-methyl": {
+    "p": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 18.0,
+            "y1": 46.1,
+            "x2": 30.0,
+            "y2": 39.2
+          },
+          {
+            "x1": 30.0,
+            "y1": 39.2,
+            "x2": 38.5,
+            "y2": 44.0
+          },
+          {
+            "x1": 45.7,
+            "y1": 44.0,
+            "x2": 54.1,
+            "y2": 39.1
+          },
+          {
+            "x1": 54.1,
+            "y1": 39.1,
+            "x2": 54.1,
+            "y2": 29.4,
+            "order": 2
+          },
+          {
+            "x1": 54.1,
+            "y1": 39.1,
+            "x2": 66.2,
+            "y2": 46.1
+          },
+          {
+            "x1": 66.2,
+            "y1": 46.1,
+            "x2": 67.6,
+            "y2": 59.9
+          },
+          {
+            "x1": 67.6,
+            "y1": 59.9,
+            "x2": 81.2,
+            "y2": 62.8
+          },
+          {
+            "x1": 81.2,
+            "y1": 62.8,
+            "x2": 88.2,
+            "y2": 50.7
+          },
+          {
+            "x1": 88.2,
+            "y1": 50.7,
+            "x2": 102.0,
+            "y2": 49.3
+          },
+          {
+            "x1": 88.2,
+            "y1": 50.7,
+            "x2": 78.9,
+            "y2": 40.4
+          },
+          {
+            "x1": 78.9,
+            "y1": 40.4,
+            "x2": 80.9,
+            "y2": 30.9,
+            "order": 2
+          },
+          {
+            "x1": 78.9,
+            "y1": 40.4,
+            "x2": 66.2,
+            "y2": 46.1
+          }
+        ],
+        "labels": [
+          {
+            "x": 42.1,
+            "y": 51.1,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 54.1,
+            "y": 30.2,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 81.7,
+            "y": 31.8,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "ethyl 3-methyl-2-oxocyclopentane-1-carboxylate"
+    },
+    "q": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 24.6,
+            "y1": 43.0,
+            "x2": 38.5,
+            "y2": 35.0
+          },
+          {
+            "x1": 38.5,
+            "y1": 35.0,
+            "x2": 48.2,
+            "y2": 40.6
+          },
+          {
+            "x1": 56.5,
+            "y1": 40.6,
+            "x2": 66.3,
+            "y2": 35.0
+          },
+          {
+            "x1": 66.3,
+            "y1": 35.0,
+            "x2": 66.3,
+            "y2": 23.8,
+            "order": 2
+          },
+          {
+            "x1": 66.3,
+            "y1": 35.0,
+            "x2": 80.1,
+            "y2": 43.1
+          },
+          {
+            "x1": 80.1,
+            "y1": 43.1,
+            "x2": 86.7,
+            "y2": 28.4
+          },
+          {
+            "x1": 80.1,
+            "y1": 43.1,
+            "x2": 95.4,
+            "y2": 48.0
+          },
+          {
+            "x1": 95.4,
+            "y1": 48.0,
+            "x2": 95.4,
+            "y2": 64.1
+          },
+          {
+            "x1": 95.4,
+            "y1": 64.1,
+            "x2": 80.1,
+            "y2": 69.0
+          },
+          {
+            "x1": 80.1,
+            "y1": 69.0,
+            "x2": 70.7,
+            "y2": 56.0
+          },
+          {
+            "x1": 70.7,
+            "y1": 56.0,
+            "x2": 59.5,
+            "y2": 56.0,
+            "order": 2
+          },
+          {
+            "x1": 70.7,
+            "y1": 56.0,
+            "x2": 80.1,
+            "y2": 43.1
+          }
+        ],
+        "labels": [
+          {
+            "x": 52.4,
+            "y": 48.0,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 66.3,
+            "y": 24.0,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 54.7,
+            "y": 61.0,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "ethyl 1-methyl-2-oxocyclopentane-1-carboxylate"
+    },
+    "dec": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 38.4,
+            "y1": 24.2,
+            "x2": 51.8,
+            "y2": 39.0
+          },
+          {
+            "x1": 51.8,
+            "y1": 39.0,
+            "x2": 47.8,
+            "y2": 58.6
+          },
+          {
+            "x1": 47.8,
+            "y1": 58.6,
+            "x2": 65.2,
+            "y2": 68.5
+          },
+          {
+            "x1": 65.2,
+            "y1": 68.5,
+            "x2": 79.9,
+            "y2": 55.1
+          },
+          {
+            "x1": 79.9,
+            "y1": 55.1,
+            "x2": 71.7,
+            "y2": 36.8
+          },
+          {
+            "x1": 71.7,
+            "y1": 36.8,
+            "x2": 78.7,
+            "y2": 24.7,
+            "order": 2
+          },
+          {
+            "x1": 71.7,
+            "y1": 36.8,
+            "x2": 51.8,
+            "y2": 39.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 81.6,
+            "y": 24.5,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "2-methylcyclopentan-1-one"
+    }
+  },
+  "u9-cc-formyl": {
+    "p": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 74.9,
+            "y1": 21.1,
+            "x2": 66.2,
+            "y2": 26.1,
+            "order": 2
+          },
+          {
+            "x1": 66.2,
+            "y1": 26.1,
+            "x2": 66.2,
+            "y2": 40.4
+          },
+          {
+            "x1": 66.2,
+            "y1": 40.4,
+            "x2": 78.5,
+            "y2": 47.6
+          },
+          {
+            "x1": 78.5,
+            "y1": 47.6,
+            "x2": 78.5,
+            "y2": 61.9
+          },
+          {
+            "x1": 78.5,
+            "y1": 61.9,
+            "x2": 66.1,
+            "y2": 69.0
+          },
+          {
+            "x1": 66.1,
+            "y1": 69.0,
+            "x2": 53.7,
+            "y2": 61.8
+          },
+          {
+            "x1": 53.7,
+            "y1": 61.8,
+            "x2": 53.8,
+            "y2": 47.5
+          },
+          {
+            "x1": 53.8,
+            "y1": 47.5,
+            "x2": 45.1,
+            "y2": 42.5,
+            "order": 2
+          },
+          {
+            "x1": 53.8,
+            "y1": 47.5,
+            "x2": 66.2,
+            "y2": 40.4
+          }
+        ],
+        "labels": [
+          {
+            "x": 78.6,
+            "y": 24.0,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 41.4,
+            "y": 45.4,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "2-oxocyclohexane-1-carbaldehyde"
+    },
+    "est": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 18.0,
+            "y1": 43.8,
+            "x2": 32.0,
+            "y2": 35.8
+          },
+          {
+            "x1": 32.0,
+            "y1": 35.8,
+            "x2": 41.8,
+            "y2": 41.5
+          },
+          {
+            "x1": 50.2,
+            "y1": 41.5,
+            "x2": 60.0,
+            "y2": 35.9
+          },
+          {
+            "x1": 60.0,
+            "y1": 35.9,
+            "x2": 60.1,
+            "y2": 24.6,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 35.9,
+            "x2": 74.0,
+            "y2": 44.0
+          },
+          {
+            "x1": 74.0,
+            "y1": 44.0,
+            "x2": 73.9,
+            "y2": 60.2
+          },
+          {
+            "x1": 73.9,
+            "y1": 60.2,
+            "x2": 87.9,
+            "y2": 68.3
+          },
+          {
+            "x1": 87.9,
+            "y1": 68.3,
+            "x2": 101.9,
+            "y2": 60.3
+          },
+          {
+            "x1": 101.9,
+            "y1": 60.3,
+            "x2": 102.0,
+            "y2": 44.1
+          },
+          {
+            "x1": 102.0,
+            "y1": 44.1,
+            "x2": 88.0,
+            "y2": 36.0
+          },
+          {
+            "x1": 88.0,
+            "y1": 36.0,
+            "x2": 88.1,
+            "y2": 24.7,
+            "order": 2
+          },
+          {
+            "x1": 88.0,
+            "y1": 36.0,
+            "x2": 74.0,
+            "y2": 44.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 46.0,
+            "y": 48.9,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 60.1,
+            "y": 24.7,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 88.1,
+            "y": 24.8,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "ethyl 2-oxocyclohexane-1-carboxylate"
+    },
+    "ald": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 74.1,
+            "y1": 34.2,
+            "x2": 74.1,
+            "y2": 43.2,
+            "order": 2
+          },
+          {
+            "x1": 74.1,
+            "y1": 43.2,
+            "x2": 85.3,
+            "y2": 49.7
+          },
+          {
+            "x1": 85.3,
+            "y1": 49.7,
+            "x2": 85.3,
+            "y2": 62.6
+          },
+          {
+            "x1": 85.3,
+            "y1": 62.6,
+            "x2": 74.1,
+            "y2": 69.0
+          },
+          {
+            "x1": 74.1,
+            "y1": 69.0,
+            "x2": 62.9,
+            "y2": 62.5
+          },
+          {
+            "x1": 62.9,
+            "y1": 62.5,
+            "x2": 63.0,
+            "y2": 49.7
+          },
+          {
+            "x1": 63.0,
+            "y1": 49.7,
+            "x2": 51.8,
+            "y2": 43.2
+          },
+          {
+            "x1": 51.8,
+            "y1": 43.2,
+            "x2": 48.7,
+            "y2": 51.7
+          },
+          {
+            "x1": 51.8,
+            "y1": 43.2,
+            "x2": 60.1,
+            "y2": 33.4
+          },
+          {
+            "x1": 60.1,
+            "y1": 33.4,
+            "x2": 55.7,
+            "y2": 21.2
+          },
+          {
+            "x1": 55.7,
+            "y1": 21.2,
+            "x2": 43.0,
+            "y2": 19.0
+          },
+          {
+            "x1": 43.0,
+            "y1": 19.0,
+            "x2": 34.7,
+            "y2": 28.9
+          },
+          {
+            "x1": 34.7,
+            "y1": 28.9,
+            "x2": 39.1,
+            "y2": 41.0
+          },
+          {
+            "x1": 63.0,
+            "y1": 49.7,
+            "x2": 74.1,
+            "y2": 43.2
+          },
+          {
+            "x1": 39.1,
+            "y1": 41.0,
+            "x2": 51.8,
+            "y2": 43.2
+          }
+        ],
+        "labels": [
+          {
+            "x": 74.1,
+            "y": 35.4,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 47.4,
+            "y": 60.3,
+            "t": "OH",
+            "size": 13
+          }
+        ]
+      },
+      "name": "2-(1-hydroxycyclohexyl)cyclohexan-1-one"
+    }
+  },
+  "u9-alk-ipr": {
+    "p": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 18.0,
+            "y1": 48.8,
+            "x2": 34.8,
+            "y2": 39.1
+          },
+          {
+            "x1": 34.8,
+            "y1": 39.1,
+            "x2": 51.6,
+            "y2": 48.8
+          },
+          {
+            "x1": 51.6,
+            "y1": 48.8,
+            "x2": 68.4,
+            "y2": 39.1
+          },
+          {
+            "x1": 68.4,
+            "y1": 39.1,
+            "x2": 68.4,
+            "y2": 25.6,
+            "order": 2
+          },
+          {
+            "x1": 68.4,
+            "y1": 39.1,
+            "x2": 85.2,
+            "y2": 48.9
+          },
+          {
+            "x1": 85.2,
+            "y1": 48.9,
+            "x2": 102.0,
+            "y2": 39.2
+          },
+          {
+            "x1": 85.2,
+            "y1": 48.9,
+            "x2": 85.2,
+            "y2": 68.3
+          }
+        ],
+        "labels": [
+          {
+            "x": 68.4,
+            "y": 24.7,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "2-methylhexan-3-one"
+    },
+    "t": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 25.4,
+            "y1": 50.4,
+            "x2": 42.7,
+            "y2": 40.4
+          },
+          {
+            "x1": 42.7,
+            "y1": 40.4,
+            "x2": 60.0,
+            "y2": 50.3
+          },
+          {
+            "x1": 60.0,
+            "y1": 50.3,
+            "x2": 70.0,
+            "y2": 67.6
+          },
+          {
+            "x1": 60.0,
+            "y1": 50.3,
+            "x2": 50.0,
+            "y2": 67.7
+          },
+          {
+            "x1": 60.0,
+            "y1": 50.3,
+            "x2": 77.3,
+            "y2": 40.3
+          },
+          {
+            "x1": 77.3,
+            "y1": 40.3,
+            "x2": 94.6,
+            "y2": 50.3
+          },
+          {
+            "x1": 77.3,
+            "y1": 40.3,
+            "x2": 77.3,
+            "y2": 26.3,
+            "order": 2
+          }
+        ],
+        "labels": [
+          {
+            "x": 77.3,
+            "y": 25.3,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "3,3-dimethylpentan-2-one"
+    },
+    "o": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 68.4,
+            "y1": 19.7,
+            "x2": 68.4,
+            "y2": 39.1,
+            "order": 2
+          },
+          {
+            "x1": 68.4,
+            "y1": 39.1,
+            "x2": 56.6,
+            "y2": 45.9
+          },
+          {
+            "x1": 46.6,
+            "y1": 45.9,
+            "x2": 34.8,
+            "y2": 39.1
+          },
+          {
+            "x1": 34.8,
+            "y1": 39.1,
+            "x2": 18.0,
+            "y2": 48.8
+          },
+          {
+            "x1": 68.4,
+            "y1": 39.1,
+            "x2": 85.2,
+            "y2": 48.9
+          },
+          {
+            "x1": 85.2,
+            "y1": 48.9,
+            "x2": 102.0,
+            "y2": 39.2
+          },
+          {
+            "x1": 85.2,
+            "y1": 48.9,
+            "x2": 85.2,
+            "y2": 68.3
+          }
+        ],
+        "labels": [
+          {
+            "x": 51.6,
+            "y": 53.8,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "2-ethoxy-3-methylbut-1-ene"
+    }
+  },
+  "u9-alk-twice": {
+    "p": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 31.1,
+            "y1": 35.7,
+            "x2": 45.6,
+            "y2": 44.0
+          },
+          {
+            "x1": 45.6,
+            "y1": 44.0,
+            "x2": 45.6,
+            "y2": 60.7
+          },
+          {
+            "x1": 45.6,
+            "y1": 60.7,
+            "x2": 60.1,
+            "y2": 69.0
+          },
+          {
+            "x1": 60.1,
+            "y1": 69.0,
+            "x2": 74.5,
+            "y2": 60.6
+          },
+          {
+            "x1": 74.5,
+            "y1": 60.6,
+            "x2": 74.5,
+            "y2": 44.0
+          },
+          {
+            "x1": 74.5,
+            "y1": 44.0,
+            "x2": 88.9,
+            "y2": 35.6
+          },
+          {
+            "x1": 74.5,
+            "y1": 44.0,
+            "x2": 60.0,
+            "y2": 35.7
+          },
+          {
+            "x1": 60.0,
+            "y1": 35.7,
+            "x2": 60.0,
+            "y2": 24.0,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 35.7,
+            "x2": 45.6,
+            "y2": 44.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 60.0,
+            "y": 24.0,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "2,6-dimethylcyclohexan-1-one"
+    },
+    "gem": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 87.2,
+            "y1": 46.1,
+            "x2": 67.5,
+            "y2": 49.6
+          },
+          {
+            "x1": 67.5,
+            "y1": 49.6,
+            "x2": 74.3,
+            "y2": 68.4
+          },
+          {
+            "x1": 67.5,
+            "y1": 49.6,
+            "x2": 50.2,
+            "y2": 59.6
+          },
+          {
+            "x1": 50.2,
+            "y1": 59.6,
+            "x2": 32.8,
+            "y2": 49.6
+          },
+          {
+            "x1": 32.8,
+            "y1": 49.6,
+            "x2": 32.8,
+            "y2": 29.6
+          },
+          {
+            "x1": 32.8,
+            "y1": 29.6,
+            "x2": 50.1,
+            "y2": 19.6
+          },
+          {
+            "x1": 50.1,
+            "y1": 19.6,
+            "x2": 67.5,
+            "y2": 29.6
+          },
+          {
+            "x1": 67.5,
+            "y1": 29.6,
+            "x2": 79.6,
+            "y2": 22.6,
+            "order": 2
+          },
+          {
+            "x1": 67.5,
+            "y1": 29.6,
+            "x2": 67.5,
+            "y2": 49.6
+          }
+        ],
+        "labels": [
+          {
+            "x": 84.8,
+            "y": 24.6,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "2,2-dimethylcyclohexan-1-one"
+    },
+    "mono": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 34.0,
+            "y1": 64.0,
+            "x2": 51.3,
+            "y2": 54.0
+          },
+          {
+            "x1": 51.3,
+            "y1": 54.0,
+            "x2": 68.6,
+            "y2": 64.0
+          },
+          {
+            "x1": 68.6,
+            "y1": 64.0,
+            "x2": 86.0,
+            "y2": 54.0
+          },
+          {
+            "x1": 86.0,
+            "y1": 54.0,
+            "x2": 86.0,
+            "y2": 34.0
+          },
+          {
+            "x1": 86.0,
+            "y1": 34.0,
+            "x2": 68.7,
+            "y2": 24.0
+          },
+          {
+            "x1": 68.7,
+            "y1": 24.0,
+            "x2": 51.4,
+            "y2": 34.0
+          },
+          {
+            "x1": 51.4,
+            "y1": 34.0,
+            "x2": 39.2,
+            "y2": 27.0,
+            "order": 2
+          },
+          {
+            "x1": 51.4,
+            "y1": 34.0,
+            "x2": 51.3,
+            "y2": 54.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 34.0,
+            "y": 29.0,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "2-methylcyclohexan-1-one"
+    }
+  },
+  "u9-aa-two": {
+    "p": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 25.4,
+            "y1": 49.1,
+            "x2": 42.7,
+            "y2": 39.1
+          },
+          {
+            "x1": 42.7,
+            "y1": 39.1,
+            "x2": 60.0,
+            "y2": 49.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 49.0,
+            "x2": 60.0,
+            "y2": 69.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 49.0,
+            "x2": 77.3,
+            "y2": 39.0
+          },
+          {
+            "x1": 77.3,
+            "y1": 39.0,
+            "x2": 94.6,
+            "y2": 48.9
+          },
+          {
+            "x1": 77.3,
+            "y1": 39.0,
+            "x2": 77.3,
+            "y2": 25.0,
+            "order": 2
+          }
+        ],
+        "labels": [
+          {
+            "x": 77.2,
+            "y": 24.0,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "3-methylpentan-2-one"
+    },
+    "one": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 25.4,
+            "y1": 59.1,
+            "x2": 42.7,
+            "y2": 49.0
+          },
+          {
+            "x1": 42.7,
+            "y1": 49.0,
+            "x2": 60.0,
+            "y2": 59.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 59.0,
+            "x2": 77.3,
+            "y2": 48.9
+          },
+          {
+            "x1": 77.3,
+            "y1": 48.9,
+            "x2": 94.6,
+            "y2": 58.9
+          },
+          {
+            "x1": 77.3,
+            "y1": 48.9,
+            "x2": 77.3,
+            "y2": 34.9,
+            "order": 2
+          }
+        ],
+        "labels": [
+          {
+            "x": 77.3,
+            "y": 33.9,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "pentan-2-one"
+    },
+    "est": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 18.0,
+            "y1": 49.1,
+            "x2": 32.0,
+            "y2": 41.0
+          },
+          {
+            "x1": 32.0,
+            "y1": 41.0,
+            "x2": 41.8,
+            "y2": 46.7
+          },
+          {
+            "x1": 50.2,
+            "y1": 46.7,
+            "x2": 60.0,
+            "y2": 41.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 41.0,
+            "x2": 60.0,
+            "y2": 29.7,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 41.0,
+            "x2": 74.0,
+            "y2": 49.1
+          },
+          {
+            "x1": 74.0,
+            "y1": 49.1,
+            "x2": 65.9,
+            "y2": 63.1
+          },
+          {
+            "x1": 74.0,
+            "y1": 49.1,
+            "x2": 82.1,
+            "y2": 63.1
+          },
+          {
+            "x1": 82.1,
+            "y1": 63.1,
+            "x2": 98.2,
+            "y2": 63.1
+          },
+          {
+            "x1": 74.0,
+            "y1": 49.1,
+            "x2": 88.0,
+            "y2": 41.0
+          },
+          {
+            "x1": 88.0,
+            "y1": 41.0,
+            "x2": 102.0,
+            "y2": 49.1
+          },
+          {
+            "x1": 88.0,
+            "y1": 41.0,
+            "x2": 88.0,
+            "y2": 29.7,
+            "order": 2
+          }
+        ],
+        "labels": [
+          {
+            "x": 46.0,
+            "y": 54.1,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 60.0,
+            "y": 29.9,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 88.0,
+            "y": 29.9,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "ethyl 2-acetyl-2-methylbutanoate"
+    }
+  },
+  "u9-mi-chxenone": {
+    "p": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 31.2,
+            "y1": 35.7,
+            "x2": 40.8,
+            "y2": 30.2
+          },
+          {
+            "x1": 40.8,
+            "y1": 30.2,
+            "x2": 47.5,
+            "y2": 34.0
+          },
+          {
+            "x1": 53.3,
+            "y1": 34.0,
+            "x2": 60.0,
+            "y2": 30.1
+          },
+          {
+            "x1": 60.0,
+            "y1": 30.1,
+            "x2": 60.0,
+            "y2": 22.4,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 30.1,
+            "x2": 69.6,
+            "y2": 35.7
+          },
+          {
+            "x1": 69.6,
+            "y1": 35.7,
+            "x2": 79.2,
+            "y2": 30.1
+          },
+          {
+            "x1": 79.2,
+            "y1": 30.1,
+            "x2": 88.8,
+            "y2": 35.6
+          },
+          {
+            "x1": 79.2,
+            "y1": 30.1,
+            "x2": 79.2,
+            "y2": 22.3,
+            "order": 2
+          },
+          {
+            "x1": 69.6,
+            "y1": 35.7,
+            "x2": 69.6,
+            "y2": 46.8
+          },
+          {
+            "x1": 69.6,
+            "y1": 46.8,
+            "x2": 79.3,
+            "y2": 52.3
+          },
+          {
+            "x1": 79.3,
+            "y1": 52.3,
+            "x2": 79.3,
+            "y2": 63.4
+          },
+          {
+            "x1": 79.3,
+            "y1": 63.4,
+            "x2": 69.7,
+            "y2": 69.0
+          },
+          {
+            "x1": 69.7,
+            "y1": 69.0,
+            "x2": 60.1,
+            "y2": 63.4
+          },
+          {
+            "x1": 60.1,
+            "y1": 63.4,
+            "x2": 53.3,
+            "y2": 67.3,
+            "order": 2
+          },
+          {
+            "x1": 60.1,
+            "y1": 63.4,
+            "x2": 60.0,
+            "y2": 52.3
+          },
+          {
+            "x1": 60.0,
+            "y1": 52.3,
+            "x2": 69.6,
+            "y2": 46.8
+          }
+        ],
+        "labels": [
+          {
+            "x": 50.4,
+            "y": 40.7,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 60.0,
+            "y": 24.0,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 79.2,
+            "y": 24.0,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 50.5,
+            "y": 74.0,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "ethyl 3-oxo-2-(3-oxocyclohexyl)butanoate"
+    },
+    "12": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 29.1,
+            "y1": 36.9,
+            "x2": 39.4,
+            "y2": 31.0
+          },
+          {
+            "x1": 39.4,
+            "y1": 31.0,
+            "x2": 46.6,
+            "y2": 35.1
+          },
+          {
+            "x1": 52.8,
+            "y1": 35.1,
+            "x2": 60.0,
+            "y2": 30.9
+          },
+          {
+            "x1": 60.0,
+            "y1": 30.9,
+            "x2": 60.0,
+            "y2": 22.6,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 30.9,
+            "x2": 70.3,
+            "y2": 36.9
+          },
+          {
+            "x1": 70.3,
+            "y1": 36.9,
+            "x2": 80.6,
+            "y2": 30.9
+          },
+          {
+            "x1": 80.6,
+            "y1": 30.9,
+            "x2": 90.9,
+            "y2": 36.8
+          },
+          {
+            "x1": 80.6,
+            "y1": 30.9,
+            "x2": 80.6,
+            "y2": 22.6,
+            "order": 2
+          },
+          {
+            "x1": 70.3,
+            "y1": 36.9,
+            "x2": 70.3,
+            "y2": 48.7
+          },
+          {
+            "x1": 70.3,
+            "y1": 48.7,
+            "x2": 62.1,
+            "y2": 47.3
+          },
+          {
+            "x1": 70.3,
+            "y1": 48.7,
+            "x2": 82.0,
+            "y2": 46.6
+          },
+          {
+            "x1": 82.0,
+            "y1": 46.6,
+            "x2": 89.7,
+            "y2": 55.8,
+            "order": 2
+          },
+          {
+            "x1": 89.7,
+            "y1": 55.8,
+            "x2": 85.7,
+            "y2": 66.9
+          },
+          {
+            "x1": 85.7,
+            "y1": 66.9,
+            "x2": 74.0,
+            "y2": 69.0
+          },
+          {
+            "x1": 74.0,
+            "y1": 69.0,
+            "x2": 66.3,
+            "y2": 59.9
+          },
+          {
+            "x1": 66.3,
+            "y1": 59.9,
+            "x2": 70.3,
+            "y2": 48.7
+          }
+        ],
+        "labels": [
+          {
+            "x": 49.7,
+            "y": 41.9,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 60.0,
+            "y": 24.0,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 80.6,
+            "y": 24.0,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 58.6,
+            "y": 51.7,
+            "t": "OH",
+            "size": 13
+          }
+        ]
+      },
+      "name": "ethyl 2-(1-hydroxycyclohex-2-en-1-yl)-3-oxobutanoate"
+    },
+    "alpha": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 31.1,
+            "y1": 35.8,
+            "x2": 40.8,
+            "y2": 30.2
+          },
+          {
+            "x1": 40.8,
+            "y1": 30.2,
+            "x2": 47.5,
+            "y2": 34.1
+          },
+          {
+            "x1": 53.3,
+            "y1": 34.0,
+            "x2": 60.0,
+            "y2": 30.1
+          },
+          {
+            "x1": 60.0,
+            "y1": 30.1,
+            "x2": 60.0,
+            "y2": 22.4,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 30.1,
+            "x2": 69.6,
+            "y2": 35.7
+          },
+          {
+            "x1": 69.6,
+            "y1": 35.7,
+            "x2": 79.2,
+            "y2": 30.1
+          },
+          {
+            "x1": 79.2,
+            "y1": 30.1,
+            "x2": 88.9,
+            "y2": 35.6
+          },
+          {
+            "x1": 79.2,
+            "y1": 30.1,
+            "x2": 79.2,
+            "y2": 22.3,
+            "order": 2
+          },
+          {
+            "x1": 69.6,
+            "y1": 35.7,
+            "x2": 69.6,
+            "y2": 46.8
+          },
+          {
+            "x1": 69.6,
+            "y1": 46.8,
+            "x2": 79.3,
+            "y2": 52.3
+          },
+          {
+            "x1": 79.3,
+            "y1": 52.3,
+            "x2": 79.3,
+            "y2": 63.4
+          },
+          {
+            "x1": 79.3,
+            "y1": 63.4,
+            "x2": 69.7,
+            "y2": 69.0
+          },
+          {
+            "x1": 69.7,
+            "y1": 69.0,
+            "x2": 60.1,
+            "y2": 63.5
+          },
+          {
+            "x1": 60.1,
+            "y1": 63.5,
+            "x2": 60.0,
+            "y2": 52.4
+          },
+          {
+            "x1": 60.0,
+            "y1": 52.4,
+            "x2": 53.3,
+            "y2": 48.5,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 52.4,
+            "x2": 69.6,
+            "y2": 46.8
+          }
+        ],
+        "labels": [
+          {
+            "x": 50.4,
+            "y": 40.7,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 60.0,
+            "y": 24.0,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 79.2,
+            "y": 24.0,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 50.4,
+            "y": 51.8,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "ethyl 3-oxo-2-(2-oxocyclohexyl)butanoate"
+    }
+  },
+  "u9-mi-acid": {
+    "p": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 18.0,
+            "y1": 56.0,
+            "x2": 32.0,
+            "y2": 48.0
+          },
+          {
+            "x1": 32.0,
+            "y1": 48.0,
+            "x2": 32.0,
+            "y2": 36.7,
+            "order": 2
+          },
+          {
+            "x1": 32.0,
+            "y1": 48.0,
+            "x2": 46.0,
+            "y2": 56.1
+          },
+          {
+            "x1": 46.0,
+            "y1": 56.1,
+            "x2": 60.0,
+            "y2": 48.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 48.0,
+            "x2": 74.0,
+            "y2": 56.1
+          },
+          {
+            "x1": 74.0,
+            "y1": 56.1,
+            "x2": 88.0,
+            "y2": 48.1
+          },
+          {
+            "x1": 88.0,
+            "y1": 48.1,
+            "x2": 88.0,
+            "y2": 36.8,
+            "order": 2
+          },
+          {
+            "x1": 88.0,
+            "y1": 48.1,
+            "x2": 97.8,
+            "y2": 53.8
+          }
+        ],
+        "labels": [
+          {
+            "x": 32.0,
+            "y": 36.8,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 88.0,
+            "y": 36.9,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 102.0,
+            "y": 61.2,
+            "t": "OH",
+            "size": 13
+          }
+        ]
+      },
+      "name": "5-oxohexanoic acid"
+    },
+    "m": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 81.6,
+            "y1": 69.0,
+            "x2": 81.6,
+            "y2": 60.7
+          },
+          {
+            "x1": 81.6,
+            "y1": 60.7,
+            "x2": 76.6,
+            "y2": 57.8
+          },
+          {
+            "x1": 74.4,
+            "y1": 54.0,
+            "x2": 74.4,
+            "y2": 48.2
+          },
+          {
+            "x1": 74.4,
+            "y1": 48.2,
+            "x2": 79.5,
+            "y2": 45.3,
+            "order": 2
+          },
+          {
+            "x1": 74.4,
+            "y1": 48.2,
+            "x2": 67.2,
+            "y2": 44.0
+          },
+          {
+            "x1": 67.2,
+            "y1": 44.0,
+            "x2": 67.2,
+            "y2": 35.7
+          },
+          {
+            "x1": 67.2,
+            "y1": 35.7,
+            "x2": 60.0,
+            "y2": 31.5
+          },
+          {
+            "x1": 60.0,
+            "y1": 31.5,
+            "x2": 60.0,
+            "y2": 23.2
+          },
+          {
+            "x1": 60.0,
+            "y1": 23.2,
+            "x2": 52.8,
+            "y2": 19.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 23.2,
+            "x2": 65.1,
+            "y2": 20.3,
+            "order": 2
+          },
+          {
+            "x1": 67.2,
+            "y1": 44.0,
+            "x2": 60.0,
+            "y2": 48.1
+          },
+          {
+            "x1": 60.0,
+            "y1": 48.1,
+            "x2": 60.0,
+            "y2": 54.0,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 48.1,
+            "x2": 55.0,
+            "y2": 45.2
+          },
+          {
+            "x1": 50.6,
+            "y1": 45.2,
+            "x2": 45.6,
+            "y2": 48.1
+          },
+          {
+            "x1": 45.6,
+            "y1": 48.1,
+            "x2": 38.4,
+            "y2": 43.9
+          }
+        ],
+        "labels": [
+          {
+            "x": 74.4,
+            "y": 61.5,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 81.6,
+            "y": 49.0,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 67.3,
+            "y": 24.0,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 60.0,
+            "y": 61.5,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 52.8,
+            "y": 49.0,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "diethyl 2-(3-oxobutyl)propanedioate"
+    },
+    "di": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 18.0,
+            "y1": 44.1,
+            "x2": 32.0,
+            "y2": 36.0
+          },
+          {
+            "x1": 32.0,
+            "y1": 36.0,
+            "x2": 32.0,
+            "y2": 24.7,
+            "order": 2
+          },
+          {
+            "x1": 32.0,
+            "y1": 36.0,
+            "x2": 46.0,
+            "y2": 44.1
+          },
+          {
+            "x1": 46.0,
+            "y1": 44.1,
+            "x2": 60.0,
+            "y2": 35.9
+          },
+          {
+            "x1": 60.0,
+            "y1": 35.9,
+            "x2": 74.0,
+            "y2": 44.0
+          },
+          {
+            "x1": 74.0,
+            "y1": 44.0,
+            "x2": 88.0,
+            "y2": 35.9
+          },
+          {
+            "x1": 88.0,
+            "y1": 35.9,
+            "x2": 88.0,
+            "y2": 24.6,
+            "order": 2
+          },
+          {
+            "x1": 88.0,
+            "y1": 35.9,
+            "x2": 97.8,
+            "y2": 41.5
+          },
+          {
+            "x1": 74.0,
+            "y1": 44.0,
+            "x2": 74.0,
+            "y2": 60.2
+          },
+          {
+            "x1": 74.0,
+            "y1": 60.2,
+            "x2": 83.8,
+            "y2": 65.8,
+            "order": 2
+          },
+          {
+            "x1": 74.0,
+            "y1": 60.2,
+            "x2": 64.2,
+            "y2": 65.8
+          }
+        ],
+        "labels": [
+          {
+            "x": 32.0,
+            "y": 24.8,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 88.0,
+            "y": 24.7,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 102.0,
+            "y": 48.9,
+            "t": "OH",
+            "size": 13
+          },
+          {
+            "x": 88.0,
+            "y": 73.2,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 60.1,
+            "y": 73.3,
+            "t": "OH",
+            "size": 13
+          }
+        ]
+      },
+      "name": "2-(3-oxobutyl)propanedioic acid"
+    }
+  },
+  "u9-cu-trap": {
+    "p": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 31.1,
+            "y1": 35.7,
+            "x2": 45.6,
+            "y2": 44.0
+          },
+          {
+            "x1": 45.6,
+            "y1": 44.0,
+            "x2": 45.6,
+            "y2": 60.7
+          },
+          {
+            "x1": 45.6,
+            "y1": 60.7,
+            "x2": 60.1,
+            "y2": 69.0
+          },
+          {
+            "x1": 60.1,
+            "y1": 69.0,
+            "x2": 74.5,
+            "y2": 60.6
+          },
+          {
+            "x1": 74.5,
+            "y1": 60.6,
+            "x2": 74.5,
+            "y2": 44.0
+          },
+          {
+            "x1": 74.5,
+            "y1": 44.0,
+            "x2": 84.5,
+            "y2": 38.1,
+            "order": 2
+          },
+          {
+            "x1": 74.5,
+            "y1": 44.0,
+            "x2": 60.0,
+            "y2": 35.7
+          },
+          {
+            "x1": 60.0,
+            "y1": 35.7,
+            "x2": 60.0,
+            "y2": 19.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 35.7,
+            "x2": 45.6,
+            "y2": 44.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 88.9,
+            "y": 40.6,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "2,3-dimethylcyclohexan-1-one"
+    },
+    "one": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 38.3,
+            "y1": 69.0,
+            "x2": 52.8,
+            "y2": 60.7
+          },
+          {
+            "x1": 52.8,
+            "y1": 60.7,
+            "x2": 67.2,
+            "y2": 69.0
+          },
+          {
+            "x1": 67.2,
+            "y1": 69.0,
+            "x2": 81.6,
+            "y2": 60.7
+          },
+          {
+            "x1": 81.6,
+            "y1": 60.7,
+            "x2": 81.7,
+            "y2": 44.0
+          },
+          {
+            "x1": 81.7,
+            "y1": 44.0,
+            "x2": 67.2,
+            "y2": 35.7
+          },
+          {
+            "x1": 67.2,
+            "y1": 35.7,
+            "x2": 67.2,
+            "y2": 24.0,
+            "order": 2
+          },
+          {
+            "x1": 67.2,
+            "y1": 35.7,
+            "x2": 52.8,
+            "y2": 44.0
+          },
+          {
+            "x1": 52.8,
+            "y1": 44.0,
+            "x2": 52.8,
+            "y2": 60.7
+          }
+        ],
+        "labels": [
+          {
+            "x": 67.2,
+            "y": 24.0,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "3-methylcyclohexan-1-one"
+    },
+    "other": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 88.8,
+            "y1": 69.0,
+            "x2": 74.4,
+            "y2": 60.6
+          },
+          {
+            "x1": 74.4,
+            "y1": 60.6,
+            "x2": 60.0,
+            "y2": 68.9
+          },
+          {
+            "x1": 60.0,
+            "y1": 68.9,
+            "x2": 45.6,
+            "y2": 60.6
+          },
+          {
+            "x1": 45.6,
+            "y1": 60.6,
+            "x2": 45.6,
+            "y2": 43.9
+          },
+          {
+            "x1": 45.6,
+            "y1": 43.9,
+            "x2": 31.2,
+            "y2": 35.6
+          },
+          {
+            "x1": 45.6,
+            "y1": 43.9,
+            "x2": 60.0,
+            "y2": 35.6
+          },
+          {
+            "x1": 60.0,
+            "y1": 35.6,
+            "x2": 60.1,
+            "y2": 24.0,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 35.6,
+            "x2": 74.4,
+            "y2": 44.0
+          },
+          {
+            "x1": 74.4,
+            "y1": 44.0,
+            "x2": 74.4,
+            "y2": 60.6
+          }
+        ],
+        "labels": [
+          {
+            "x": 60.1,
+            "y": 24.0,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "2,5-dimethylcyclohexan-1-one"
+    }
+  },
+  "u9-rob-c5": {
+    "p": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 23.8,
+            "y1": 27.0,
+            "x2": 36.0,
+            "y2": 34.0,
+            "order": 2
+          },
+          {
+            "x1": 36.0,
+            "y1": 34.0,
+            "x2": 53.3,
+            "y2": 24.0
+          },
+          {
+            "x1": 53.3,
+            "y1": 24.0,
+            "x2": 70.6,
+            "y2": 34.0,
+            "order": 2
+          },
+          {
+            "x1": 70.6,
+            "y1": 34.0,
+            "x2": 89.6,
+            "y2": 27.9
+          },
+          {
+            "x1": 89.6,
+            "y1": 27.9,
+            "x2": 101.4,
+            "y2": 44.1
+          },
+          {
+            "x1": 101.4,
+            "y1": 44.1,
+            "x2": 89.6,
+            "y2": 60.2
+          },
+          {
+            "x1": 89.6,
+            "y1": 60.2,
+            "x2": 70.6,
+            "y2": 54.0
+          },
+          {
+            "x1": 70.6,
+            "y1": 54.0,
+            "x2": 53.2,
+            "y2": 64.0
+          },
+          {
+            "x1": 53.2,
+            "y1": 64.0,
+            "x2": 35.9,
+            "y2": 54.0
+          },
+          {
+            "x1": 35.9,
+            "y1": 54.0,
+            "x2": 36.0,
+            "y2": 34.0
+          },
+          {
+            "x1": 70.6,
+            "y1": 54.0,
+            "x2": 70.6,
+            "y2": 34.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 18.6,
+            "y": 29.0,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "1,2,3,6,7,7a-hexahydro-5H-inden-5-one"
+    },
+    "m": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 18.0,
+            "y1": 46.5,
+            "x2": 32.4,
+            "y2": 38.2
+          },
+          {
+            "x1": 32.4,
+            "y1": 38.2,
+            "x2": 32.4,
+            "y2": 26.5,
+            "order": 2
+          },
+          {
+            "x1": 32.4,
+            "y1": 38.2,
+            "x2": 46.8,
+            "y2": 46.5
+          },
+          {
+            "x1": 46.8,
+            "y1": 46.5,
+            "x2": 61.2,
+            "y2": 38.2
+          },
+          {
+            "x1": 61.2,
+            "y1": 38.2,
+            "x2": 75.7,
+            "y2": 46.5
+          },
+          {
+            "x1": 75.7,
+            "y1": 46.5,
+            "x2": 77.4,
+            "y2": 63.0
+          },
+          {
+            "x1": 77.4,
+            "y1": 63.0,
+            "x2": 93.7,
+            "y2": 66.5
+          },
+          {
+            "x1": 93.7,
+            "y1": 66.5,
+            "x2": 102.0,
+            "y2": 52.0
+          },
+          {
+            "x1": 102.0,
+            "y1": 52.0,
+            "x2": 90.8,
+            "y2": 39.7
+          },
+          {
+            "x1": 90.8,
+            "y1": 39.7,
+            "x2": 93.3,
+            "y2": 28.3,
+            "order": 2
+          },
+          {
+            "x1": 90.8,
+            "y1": 39.7,
+            "x2": 75.7,
+            "y2": 46.5
+          }
+        ],
+        "labels": [
+          {
+            "x": 32.4,
+            "y": 26.5,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 94.3,
+            "y": 28.4,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "2-(3-oxobutyl)cyclopentan-1-one"
+    },
+    "cond": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 18.2,
+            "y1": 61.0,
+            "x2": 35.5,
+            "y2": 51.0
+          },
+          {
+            "x1": 35.5,
+            "y1": 51.0,
+            "x2": 35.5,
+            "y2": 37.0,
+            "order": 2
+          },
+          {
+            "x1": 35.5,
+            "y1": 51.0,
+            "x2": 52.8,
+            "y2": 61.0
+          },
+          {
+            "x1": 52.8,
+            "y1": 61.0,
+            "x2": 70.2,
+            "y2": 51.0,
+            "order": 2
+          },
+          {
+            "x1": 70.2,
+            "y1": 51.0,
+            "x2": 88.4,
+            "y2": 59.2
+          },
+          {
+            "x1": 88.4,
+            "y1": 59.2,
+            "x2": 101.8,
+            "y2": 44.3
+          },
+          {
+            "x1": 101.8,
+            "y1": 44.3,
+            "x2": 91.8,
+            "y2": 27.0
+          },
+          {
+            "x1": 91.8,
+            "y1": 27.0,
+            "x2": 72.3,
+            "y2": 31.1
+          },
+          {
+            "x1": 72.3,
+            "y1": 31.1,
+            "x2": 70.2,
+            "y2": 51.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 35.5,
+            "y": 36.0,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "1-cyclopentylidenepropan-2-one"
     }
   },
   "u9-hf-meet": {

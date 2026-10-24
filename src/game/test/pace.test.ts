@@ -145,12 +145,15 @@ describe("planLesson with a pace", () => {
     expect(beats.every((beat) => declaredLevel(beat.levels) === 1)).toBe(true);
   });
 
-  it("u9-aldol at +1 falls back to L1 and is not empty", () => {
-    expect(hasHardRecognise("u9-aldol")).toBe(false);
-    const beats = recognised("u9-aldol", 1);
+  // CHANGED 2026-10-24: this used u9-aldol, picked because Unit 9 had no L2 at all. The audit's section 6
+  // gave every Unit 9 spine node two L2 items, so the fallback is now shown on u9-haloform, a side quest with
+  // L1 questions and no L2. The assertions are the same.
+  it("u9-haloform at +1 falls back to L1 and is not empty", () => {
+    expect(hasHardRecognise("u9-haloform")).toBe(false);
+    const beats = recognised("u9-haloform", 1);
     expect(beats.length).toBeGreaterThan(0);
-    expect(beats.map((beat) => beat.id)).toEqual(recognised("u9-aldol", 0).map((beat) => beat.id));
-    expect(planLesson("u9-aldol", { pace: 1 })).toEqual(planLesson("u9-aldol"));
+    expect(beats.map((beat) => beat.id)).toEqual(recognised("u9-haloform", 0).map((beat) => beat.id));
+    expect(planLesson("u9-haloform", { pace: 1 })).toEqual(planLesson("u9-haloform"));
   });
 
   it("never empties a recognise step the authored lesson has, at any pace", () => {

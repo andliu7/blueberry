@@ -2174,7 +2174,7 @@ def node_intra() -> None:
           o("seven", "CC1=CC(=O)CCCC1", "3-methylcyclohept-2-en-1-one", "Seven-membered rings close too slowly to compete with five."),
           o("six", "CC1=CC(=O)CCC1", "3-methylcyclohex-2-en-1-one", "That needs heptane-2,6-dione.")],
          [p8], "five", "The ring size decides which α-carbon reacts.", prov("every intramolecular aldol enumerated", CH_COND, RING_CONV),
-         lead(S["oct27"], "octane-2,7-dione", "base, heat"), concepts=ALDOL, convention=RING_CONV)
+         lead(S["oct27"], "octane-2,7-dione", "base, heat"), level=2, concepts=ALDOL, convention=RING_CONV)
 
     cands = {"hex": S["hex25"], "hep": S["hep26"], "oct": S["oct27"]}
     six = [s for s in cands.values() if favoured(intra_aldols(s))[0] == 6]
@@ -2230,7 +2230,7 @@ def node_claisen() -> None:
          dead, "iso", "A Claisen needs two α-H on the donor: one to react, one to lose at the end.",
          prov("Rule C, then the product's C-H between the carbonyls checked", CH_COND, CLAISEN_CONV),
          lead("CCOC(=O)C(C)(C)C(=O)C(C)C", "ethyl 2,2,4-trimethyl-3-oxopentanoate", "the product it would need"),
-         concepts=ALDOL + PKA, convention=CLAISEN_CONV)
+         level=2, concepts=ALDOL + PKA, convention=CLAISEN_CONV)
 
     prod = claisen_main(S["etoac"], S["etoac"])
     drive = "deprot" if PKA_TABLE[most_acidic(prod)][0] < PKA_TABLE["alcohol"][0] else None
@@ -2373,7 +2373,7 @@ def node_crossed_claisen() -> None:
           o("self", "CCOC(=O)CC(C)=O", "ethyl 3-oxobutanoate", "That is the ester with itself. The ketone enolate forms more easily.")],
          [p] if donor == "ketone" else None, "p", "The more acidic partner is the donor.",
          prov("pKa from pka.ts picks the donor; Rule C", CH_COND, DONOR_CONV),
-         pair(named(S["acetone"], "propan-2-one"), named(S["etoac"], "ethyl acetate")), concepts=ALDOL + PKA, convention=DONOR_CONV)
+         pair(named(S["acetone"], "propan-2-one"), named(S["etoac"], "ethyl acetate")), level=2, concepts=ALDOL + PKA, convention=DONOR_CONV)
 
     p = claisen_main(S["etprop"], S["oxalate"])
     pick(node, "u9-cc-oxalate", "Diethyl oxalate and ethyl propanoate meet NaOEt, then H₃O⁺. Pick the product.",
@@ -2514,7 +2514,7 @@ def node_malonic() -> None:
           o("chain", "O=C(O)CCCCCBr", "6-bromohexanoic acid", "The second NaOEt lets the same carbon attack the other C-Br, closing the ring."),
           o("six", "O=C(O)C1CCCCC1", "cyclohexanecarboxylic acid", "Four CH₂ plus the central carbon make five ring atoms, not six.")],
          [ring], "p", "A dihalide on malonate closes a ring.", prov("Rule H twice, the second inside the molecule, then Rule M", CH_ALPHA, SN2_CONV),
-         lead("BrCCCCBr", "1,4-dibromobutane", "with diethyl malonate"), concepts=ALK, convention=SN2_CONV)
+         lead("BrCCCCBr", "1,4-dibromobutane", "with diethyl malonate"), level=2, concepts=ALK, convention=SN2_CONV)
 
 
 # ---------------------------------------------------------------------------
@@ -2693,7 +2693,7 @@ def node_cuprate() -> None:
           o("12", "CC(C)=CC(C)(C)O", "2,4-dimethylpent-3-en-2-ol", "That is 1,2-addition."),
           o("none", "CC(=O)CC(C)C", "4-methylpentan-2-one", "That adds an H, not a methyl. The cuprate delivers carbon.")],
          [p], "p", "1,4-addition can build a quaternary carbon.", prov("Rule K", CH_CONJ, CONJ_CONV),
-         lead(s, "4-methylpent-3-en-2-one", "(CH₃)₂CuLi"), concepts=CONJ, convention=CONJ_CONV)
+         lead(s, "4-methylpent-3-en-2-one", "(CH₃)₂CuLi"), level=2, concepts=CONJ, convention=CONJ_CONV)
 
     # Each right card names the site AND the group that arrives, so no two are true for the same reagent.
     # The site is read off the derived product: a ketone C=O left means the group went to the beta-carbon.
@@ -2757,7 +2757,7 @@ def node_robinson() -> None:
           o("ald", wald, "4a-hydroxy-8a-methyloctahydronaphthalene-1,6(2H,7H)-dione", "That is the ring-closed aldol before water leaves. Heat with base removes it.", text="The ring-closed β-hydroxy ketone")],
          [wp], "p", "The Wieland-Miescher ketone, the classic Robinson product.",
          prov("Rule K at the most acidic C-H, the fused intramolecular aldol, then E1cb", CH_COND, ROB_CONV),
-         pair(named(dione, "2-methylcyclohexane-1,3-dione"), named(S["mvk"], "but-3-en-2-one")), concepts=CONJ + ALDOL, convention=ROB_CONV)
+         pair(named(dione, "2-methylcyclohexane-1,3-dione"), named(S["mvk"], "but-3-en-2-one")), level=2, concepts=CONJ + ALDOL, convention=ROB_CONV)
 
     ask(node, "u9-rob-size", "Pick the size of the ring a Robinson annulation adds.",
         [("six", "Six", "The 1,5-diketone's methyl attacks the ring C=O: the new ring has six atoms."),
@@ -3145,7 +3145,7 @@ def node_directed() -> None:
           o("t", "CC1(C(O)c2ccccc2)CCCCC1=O", "2-[hydroxy(phenyl)methyl]-2-methylcyclohexan-1-one", "That is the thermodynamic side, at the carbon with the methyl.", text="New CH(OH)Ph on the methyl carbon"),
           o("cond", "CC1CCCC(=Cc2ccccc2)C1=O", "2-benzylidene-6-methylcyclohexan-1-one", "That has lost water. Cold, the addition product stays.")],
          [p3], "p", "Kinetic enolate, then aldol on the less substituted side.", prov("Rule A at the kinetic site", CH_COND, KINETIC_CONV),
-         lead(S["mechx"], "2-methylcyclohexan-1-one", "LDA, −78 °C, then PhCHO"), concepts=ALDOL + KVT, convention=KINETIC_CONV)
+         lead(S["mechx"], "2-methylcyclohexan-1-one", "LDA, −78 °C, then PhCHO"), level=2, concepts=ALDOL + KVT, convention=KINETIC_CONV)
 
     p4 = aldol_one(S["acphen"], S["acetone"], "kinetic")
     pick(node, "u9-di-ketone", "Acetophenone, LDA, then propan-2-one, then H₂O. Pick the product.",
@@ -3159,6 +3159,442 @@ def node_directed() -> None:
 # ---------------------------------------------------------------------------
 # Build and emit
 # ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
+# Level 2, audit 23 Oct (documentation/CONTENT-AUDIT-OCT-23.md section 6): two
+# L2 items per spine node, so pace +1 has something harder to play. Seven
+# items already hard were re-tagged level=2 in place (u9-in-oct, u9-cl-dead,
+# u9-rob-wm, u9-mal-ring, u9-cc-ketone, u9-cu-quat, u9-di-mechx), and
+# u9-kvt-enolate already carries mcq-kvt-enolate-lda at L2 in beats/mcq/content.ts.
+# Every item below uses only parts its node or an earlier node teaches.
+# ---------------------------------------------------------------------------
+
+def protonate(smi: str) -> str:
+    """Acid workup: every O- takes an H back."""
+    rw = Chem.RWMol(mol(smi))
+    for a in rw.GetAtoms():
+        if a.GetSymbol() == "O" and a.GetFormalCharge() == -1:
+            a.SetFormalCharge(0)
+            a.SetNoImplicit(False)
+    return one(rw)
+
+
+def loses_centre(smi: str) -> bool:
+    """A stereocentre that some enol (Rule E) makes flat: the ketone racemises through it."""
+    return any(centres(e) < centres(smi) for e in enols(smi))
+
+
+def l2_tautomer() -> None:
+    node = "u9-tautomer"
+    bk = S["butanone"]
+    n = sum(h_on(bk, a) for a in {s[0] for s in alpha_sites(bk)})
+    ask(node, "u9-tau-hd", "Butan-2-one sits in D₂O with a trace of NaOD. Pick how many H swap for D.",
+        [("five", "Five", "Every α-H comes off as the enolate forms and goes back on as D: three on the CH₃ and two on the CH₂."),
+         ("three", "Three", "That counts only the CH₃. The CH₂ on the other side of the C=O is α too, and its two H swap as well."),
+         ("eight", "Eight", "The ethyl CH₃ is β to the C=O. Its H never sit next to the carbanion, so they stay H."),
+         ("two", "Two", "That counts only the CH₂. The CH₃ on the C=O is α as well.")],
+        {"two": 2, "three": 3, "five": 5, "eight": 8}, n, "five",
+        "Each α-H exchanges through the enolate; no other C-H does.",
+        prov("alpha C-H found by SMARTS, H counted by RDKit", CH_ALPHA), lead(bk, "butan-2-one", "D₂O, NaOD"),
+        level=2, concepts=ENOL)
+
+    names = {"rac": "(S)-3-methylpentan-2-one", "beta": "(S)-4-methylhexan-2-one", "quat": "(S)-3-methyl-3-phenylpentan-2-one"}
+    smis = {k: opsin_smiles(v) for k, v in names.items()}
+    pick(node, "u9-tau-rac", "Pick the ketone that loses its optical activity in dilute acid.",
+         [o("rac", smis["rac"], names["rac"], "Its stereocentre is the α-carbon and carries an H. The enol makes that carbon flat, and the H returns to either face: a racemate."),
+          o("beta", smis["beta"], names["beta"], "The stereocentre is β. The enol's C=C forms at C1 or C3, never at C4, so C4 keeps its configuration."),
+          o("quat", smis["quat"], names["quat"], "The stereocentre is α but has no H to lose, so no enol forms toward it and it stays as it was.")],
+         [flat(s) for s in smis.values() if loses_centre(flat(s))], "rac",
+         "An α stereocentre with an H racemises through the enol.",
+         prov("stereocentres counted by RDKit before and after Rule E", CH_ALPHA), lead(S["acetone"], "propan-2-one", "dilute H₃O⁺"),
+         flat_key=True, level=2, concepts=ENOL)
+
+
+def l2_pka() -> None:
+    node = "u9-pka"
+    dione, ketone = most_acidic(S["acac"]), most_acidic(S["acetone"])
+    bases = ("NaOEt", "LDA", "NaHCO3")
+    ask(node, "u9-pka-window", "Pick the base that fully deprotonates pentane-2,4-dione but not propan-2-one.",
+        [("NaOEt", "NaOEt", "Ethanol, near 16, sits between the two: above the dione's C-H at about 10, below the ketone's α-H at about 20."),
+         ("LDA", "LDA", "Diisopropylamine, near 35, is above both, so LDA deprotonates both fully."),
+         ("NaHCO3", "NaHCO₃", "Carbonic acid, near 6, is below both. Neither C-H is taken fully.")],
+        {b: (deprotonates_fully(b, dione), deprotonates_fully(b, ketone)) for b in bases}, (True, False), "NaOEt",
+        "A base takes a proton fully when its conjugate acid has the higher pKa.",
+        prov("Rule P on the course pKa table", CH_ALPHA), pair(named(S["acac"], "pentane-2,4-dione"), named(S["acetone"], "propan-2-one")),
+        level=2, concepts=PKA)
+
+    lev = "CC(=O)CCC(=O)O"
+    ask(node, "u9-pka-first", "4-Oxopentanoic acid meets one equivalent of NaOEt. Pick the H removed.",
+        [("acid", "The carboxylic acid O-H", "Near pKa 5, it is by far the most acidic H, so the one equivalent of base is spent there."),
+         ("alpha", "An α-H next to the ketone", "Near pKa 20, that C-H loses to the O-H at about 5. The base never reaches it."),
+         ("ch2", "An H on the CH₂ next to the CO₂H", "That C-H is α to the acid, but the acid's own O-H, far more acidic, goes first.")],
+        {"acid": "carboxylic_acid", "alpha": "ketone_alpha_ch", "ch2": None}, most_acidic(lev), "acid",
+        "A base takes the most acidic H first, which is where one equivalent goes.",
+        prov("protons classified by SMARTS, pKa read from pka.ts", CH_ALPHA), lead(lev, "4-oxopentanoic acid", "4-oxopentanoic acid"),
+        level=2, concepts=PKA)
+
+
+def l2_enolate_res() -> None:
+    node = "u9-enolate-res"
+    anion = "CCOC(=O)[CH-]C(=O)OCC"
+    ask(node, "u9-res-mal", "Pick the atoms that share the charge in diethyl malonate's enolate.",
+        [("cOO", "The central C and both C=O oxygens", "The carbanion delocalises into each C=O, so the charge sits on carbon and on both carbonyl oxygens."),
+         ("cO", "The central C and one oxygen", "Both C=O groups take part. That is why this C-H is far more acidic than a simple ester's."),
+         ("all", "The central C and all four oxygens", "The OCH₂CH₃ oxygens have no π bond to the carbanion. They donate electrons; they do not take the charge.")],
+        {"cOO": ["C", "O", "O"], "cO": ["C", "O"], "all": ["C", "O", "O", "O", "O"]}, neg_atoms(anion), "cOO",
+        "Count the atoms RDKit's resonance forms put the minus charge on.",
+        prov("RDKit resonance forms of the enolate", CH_ALPHA), lead(MALONATE, "diethyl propanedioate", "diethyl malonate"),
+        level=2, concepts=ENOL + RES)
+
+    n = len(neg_atoms("[CH2-]C=CC=O"))
+    ask(node, "u9-res-gamma", "A base removes an H from the CH₃ of but-2-enal. Pick how many atoms share the charge.",
+        [("three", "Three", "The carbanion on C4 pushes through the C=C into the C=O: C4, C2 and the oxygen each carry it in one form."),
+         ("two", "Two", "The C=C between them relays it: C2 holds the charge too, between C4 and the oxygen."),
+         ("four", "Four", "C1 and C3 never carry it. In each form the charge sits on every other atom: C4, C2, then O.")],
+        {"two": 2, "three": 3, "four": 4}, n, "three",
+        "A C=C between the carbanion and the C=O passes the charge along.",
+        prov("RDKit resonance forms of the anion", CH_ALPHA), lead("CC=CC=O", "but-2-enal", "but-2-enal"),
+        level=2, concepts=ENOL + RES)
+
+
+def l2_kvt() -> None:
+    node = "u9-kvt-enolate"
+    ketone = "CCC(=O)C(C)C"
+    k = enolate(ketone, "kinetic")
+    pick(node, "u9-kvt-ipr", "2-Methylpentan-3-one meets LDA at −78 °C. Pick the enolate.",
+         [o("k", k, "4-methylpent-2-en-3-olate", "LDA is bulky and takes the more exposed H: the ethyl's CH₂, with two H, against the lone CH. Cold, it stays where it formed."),
+          o("t", enolate(ketone, "thermo"), "2-methylpent-2-en-3-olate", "That is the more substituted enolate, the one a warm alkoxide equilibrates to."),
+          o("enol", "CC=C(O)C(C)C", "4-methylpent-2-en-3-ol", "That is an enol, with H on the oxygen. LDA leaves the lithium enolate, and nothing protonates it at −78 °C.")],
+         [k], "k", "Kinetic: the side with more H, even when both sides are substituted.",
+         prov("Rule E at the alpha carbon with more H", CH_ALPHA, KINETIC_CONV), lead(ketone, "2-methylpentan-3-one", "LDA, −78 °C"),
+         level=2, concepts=KVT + ENOL, convention=KINETIC_CONV)
+
+
+def l2_halo_acid() -> None:
+    node = "u9-halo-acid"
+    s = "CC(=O)C(C)C"
+    pick(node, "u9-ha-ipr", "3-Methylbutan-2-one meets Br₂ in acetic acid. Pick the major product.",
+         [o("p", halo_acid(s, "Br"), "3-bromo-3-methylbutan-2-one", "Acid goes through the more substituted enol, the C=C toward the CH. Bromine lands on that tertiary carbon."),
+          o("m", "BrCC(=O)C(C)C", "1-bromo-3-methylbutan-2-one", "That is the methyl side, the less substituted enol. Under acid the more substituted enol forms and reacts."),
+          o("di", "BrCC(=O)C(C)(C)Br", "1,3-dibromo-3-methylbutan-2-one", "Acid stops at one bromine: the first Br makes the next enol slower to form.")],
+         [halo_acid(s, "Br")], "p", "Acid: one halogen, on the more substituted α-carbon.",
+         prov("Rule H through the more substituted enol", CH_ALPHA, HALO_CONV), lead(s, "3-methylbutan-2-one", "Br₂, CH₃CO₂H"),
+         level=2, concepts=ENOL, convention=HALO_CONV)
+
+    s = "CC(=O)Cc1ccccc1"
+    pick(node, "u9-ha-benzyl", "1-Phenylpropan-2-one meets Br₂ with acid. Pick the major product.",
+         [o("p", halo_acid(s, "Br"), "1-bromo-1-phenylpropan-2-one", "The enol forms toward the CH₂ that carries the ring, the more substituted side, so Br goes on the carbon next to the phenyl."),
+          o("me", "BrCC(=O)Cc1ccccc1", "1-bromo-3-phenylpropan-2-one", "That brominates the CH₃ side, through the less substituted enol."),
+          o("ring", "CC(=O)Cc1ccc(Br)cc1", "1-(4-bromophenyl)propan-2-one", "Ring bromination needs FeBr₃. Here the enol's C=C is the nucleophile, not the ring.")],
+         [halo_acid(s, "Br")], "p", "A ring counts as a substituent on the enol's C=C.",
+         prov("Rule H through the more substituted enol", CH_ALPHA, HALO_CONV), lead(s, "1-phenylpropan-2-one", "Br₂, H⁺"),
+         level=2, concepts=ENOL, convention=HALO_CONV)
+
+
+def l2_halo_base() -> None:
+    node = "u9-halo-base"
+    s = "CC(=O)CC(C)C"
+    acid = protonate(largest(haloform(s, "Br")))
+    pick(node, "u9-hb-acid", "4-Methylpentan-2-one meets excess Br₂ and NaOH, then acid. Pick the organic acid.",
+         [o("p", acid, "3-methylbutanoic acid", "The CH₃ on the C=O becomes CBr₃ and leaves as CHBr₃. The rest keeps the carbonyl carbon and becomes the acid, one carbon shorter."),
+          o("same", "CC(C)CCC(=O)O", "4-methylpentanoic acid", "That keeps all six carbons. The haloform cut removes the methyl carbon as bromoform."),
+          o("short", "CC(C)C(=O)O", "2-methylpropanoic acid", "That loses two carbons. Only the CBr₃ carbon leaves.")],
+         [acid], "p", "Haloform: a methyl ketone becomes an acid with one carbon fewer.",
+         prov("Rule H with haloform cleavage, then the carboxylate protonated", CH_ALPHA, HALO_CONV),
+         lead(s, "4-methylpentan-2-one", "excess Br₂, NaOH, then H₃O⁺"), level=2, concepts=ENOL, convention=HALO_CONV)
+
+    cands = {"p3": "CCC(=O)CC", "p2": "CCCC(C)=O", "acp": S["acphen"], "ipr": "CC(=O)C(C)C"}
+    pick(node, "u9-hb-noform", "Pick the ketone that gives no CHBr₃ with excess Br₂ and NaOH.",
+         [o("p3", cands["p3"], "pentan-3-one", "Both sides are ethyl. No CH₃ sits on the C=O, so no CBr₃ forms to leave."),
+          o("p2", cands["p2"], "pentan-2-one", "A CH₃ on the C=O: it is brominated three times and leaves as bromoform."),
+          o("acp", cands["acp"], "acetophenone", "The CH₃ on the C=O makes it a methyl ketone, and the ring does not stop it."),
+          o("ipr", cands["ipr"], "3-methylbutan-2-one", "The isopropyl side does not matter. The CH₃ on the C=O does.")],
+         [s for s in cands.values() if not is_methyl_ketone(s)], "p3", "Only a methyl ketone gives the haloform products.",
+         prov("methyl ketone read by SMARTS", CH_ALPHA, HALO_CONV), lead(S["acetone"], "propan-2-one", "excess Br₂, NaOH"),
+         level=2, concepts=ENOL, convention=HALO_CONV)
+
+
+def l2_aldol() -> None:
+    node = "u9-aldol"
+    s = "CC(C)CC=O"
+    p = aldol_one(s, s)
+    pick(node, "u9-ald-ival", "Two 3-methylbutanal molecules meet NaOH, cold. Pick the aldol product.",
+         [o("p", p, "3-hydroxy-5-methyl-2-(propan-2-yl)hexanal", "C2, the only α-carbon, bonds to the other molecule's CHO carbon, which becomes CH-OH. The isopropyl rides along on C2."),
+          o("c", "CC(C)CC=C(C=O)C(C)C", "5-methyl-2-(propan-2-yl)hex-2-enal", "That is the condensed enal. Cold base stops at the β-hydroxy aldehyde."),
+          o("b", "CC(C)(CC=O)C(O)CC(C)C", "4-hydroxy-3,3,6-trimethylheptanal", "That bonds through C3, the CH that carries the methyls. Only C2, next to the C=O, is the α-carbon.")],
+         [p], "p", "The α-carbon carries its branch into the new bond.", prov("Rule A, self aldol", CH_COND),
+         lead(s, "3-methylbutanal", "2 × 3-methylbutanal, NaOH"), level=2, concepts=ALDOL)
+
+    t = canon("CCCC(O)C(CC)C=O")
+    opts = {"bu": "CCCC=O", "pr": "CCC=O", "pe": "CCCCC=O"}
+    ask(node, "u9-ald-which", "Pick the aldehyde whose self-aldol gives 2-ethyl-3-hydroxyhexanal.",
+        [("bu", "Butanal", "Cut C2-C3: the C2 side with its ethyl branch and the CHO is one butanal, the CH(OH) side with its propyl is the other."),
+         ("pr", "Propanal", "Its aldol is 3-hydroxy-2-methylpentanal: a methyl branch, six carbons in all."),
+         ("pe", "Pentanal", "That gives a propyl branch and ten carbons in all.")],
+        {k: t in {canon(x) for x in aldols(a, a)} for k, a in opts.items()}, True, "bu",
+        "Cut the bond between the α-carbon and the C-OH carbon.", prov("forward aldol run on each option", CH_COND),
+        lead(t, "2-ethyl-3-hydroxyhexanal", "the target"), level=2, concepts=SYN + ALDOL)
+
+
+def l2_aldol_cond() -> None:
+    node = "u9-aldol-cond"
+    s = "CCCC=O"
+    a = aldol_one(s, s)
+    p = condensed(a)
+    pick(node, "u9-cond-butanal", "Two butanal molecules are heated with NaOH. Pick the product.",
+         [o("p", p, "2-ethylhex-2-enal", "Aldol at C2, then E1cb removes the OH with the α-H: the C=C sits between C2 and C3, conjugated with the CHO."),
+          o("add", a, "2-ethyl-3-hydroxyhexanal", "That is the aldol before water leaves. Heat with base carries on."),
+          o("deconj", "CCC=CC(CC)C=O", "2-ethylhex-3-enal", "That C=C is not conjugated with the C=O. E1cb forms the C=C at the α-carbon.")],
+         [p], "p", "Heat turns the aldol into the conjugated enal.", prov("Rule A then E1cb", CH_COND),
+         lead(s, "butanal", "2 × butanal, NaOH, heat"), level=2, concepts=ALDOL)
+
+    s = S["acphen"]
+    a = aldol_one(s, s)
+    p = condensed(a)
+    pick(node, "u9-cond-acphen", "Two acetophenone molecules are heated with base. Pick the condensation product.",
+         [o("p", p, "1,3-diphenylbut-2-en-1-one", "One ketone's CH₃ enolate adds to the other's C=O, then water leaves to give the conjugated enone."),
+          o("ald", a, "3-hydroxy-1,3-diphenylbutan-1-one", "That is the aldol addition. Heat removes the OH."),
+          o("chal", "O=C(C=Cc1ccccc1)c1ccccc1", "1,3-diphenylprop-2-en-1-one", "That needs benzaldehyde. The acceptor here is a ketone, so its carbon keeps a CH₃.")],
+         [p], "p", "A ketone can be the acceptor too; its C=O carbon keeps both groups.", prov("Rule A then E1cb", CH_COND),
+         lead(s, "1-phenylethan-1-one", "2 × acetophenone, base, heat"), level=2, concepts=ALDOL)
+
+
+def l2_crossed() -> None:
+    node = "u9-crossed"
+    mono = condensed(aldol_one(S["acetone"], S["phcho"]))
+    two = condensed(aldol_one(mono, S["phcho"])) if mono else None
+    pick(node, "u9-cx-dba", "Propan-2-one meets two benzaldehyde, NaOH and heat. Pick the product.",
+         [o("p", two, "1,5-diphenylpenta-1,4-dien-3-one", "Both CH₃ groups of propan-2-one have α-H. Each condenses with one benzaldehyde, so two C=C form."),
+          o("mono", mono, "4-phenylbut-3-en-2-one", "That uses one benzaldehyde. The other CH₃ still has α-H, and a second benzaldehyde is there."),
+          o("self", "CC(C)=CC(C)=O", "4-methylpent-3-en-2-one", "That is propan-2-one condensing with itself. Benzaldehyde is the far better acceptor.")],
+         [two] if two else None, "p", "Two α-carbons with H can condense twice.", prov("Rule A then E1cb, run twice", CH_COND, CROSS_CONV),
+         pair(named(S["acetone"], "propan-2-one"), named(S["phcho"], "benzaldehyde")), level=2, concepts=ALDOL, convention=CROSS_CONV)
+
+    piv = "CC(C)(C)C=O"
+    a = aldol_one(S["acphen"], piv)
+    p = condensed(a)
+    pick(node, "u9-cx-piv", "2,2-Dimethylpropanal and acetophenone meet NaOH with heat. Pick the product.",
+         [o("p", p, "4,4-dimethyl-1-phenylpent-2-en-1-one", "The aldehyde has no α-H, so only acetophenone's CH₃ makes an enolate. It adds to the aldehyde C=O and water leaves."),
+          o("self", "CC(=CC(=O)c1ccccc1)c1ccccc1", "1,3-diphenylbut-2-en-1-one", "That is acetophenone condensing with itself. The aldehyde C=O is the better acceptor."),
+          o("ald", a, "3-hydroxy-4,4-dimethyl-1-phenylpentan-1-one", "That is the addition product. Heat with base removes the OH.")],
+         [p], "p", "No α-H on one partner makes the crossed reaction clean.", prov("Rule A then E1cb", CH_COND, CROSS_CONV),
+         pair(named(piv, "2,2-dimethylpropanal"), named(S["acphen"], "1-phenylethan-1-one")), level=2, concepts=ALDOL, convention=CROSS_CONV)
+
+
+def l2_intra() -> None:
+    node = "u9-intra"
+    s = "CC(=O)CC1CCCCC1=O"
+    size, a = favoured(intra_aldols(s))
+    p = condensed(a) if a else None
+    pick(node, "u9-in-fused", "2-(2-Oxopropyl)cyclohexan-1-one is heated with base. Pick the product.",
+         [o("p", p, "1,4,5,6,7,7a-hexahydro-2H-inden-2-one", "The side chain's CH₃ attacks the ring C=O, closing a five-membered ring, and water leaves to give the conjugated enone."),
+          o("ald", a, "7a-hydroxyoctahydro-2H-inden-2-one", "That is the ring-closed aldol before water leaves. Heat with base removes it."),
+          o("iso", "O=C1CC2=C(CCCC2)C1", "1,3,4,5,6,7-hexahydro-2H-inden-2-one", "That C=C sits between the two ring-fusion carbons, not next to the C=O. E1cb puts it in conjugation.")],
+         [p] if p else None, "p", "A 1,4-diketone closes a five-membered ring.",
+         prov("Rule A inside one molecule, ring size by RDKit, then E1cb", CH_COND, RING_CONV),
+         lead(s, "2-(2-oxopropyl)cyclohexan-1-one", "base, heat"), level=2, concepts=ALDOL, convention=RING_CONV)
+
+
+def l2_claisen() -> None:
+    node = "u9-claisen"
+    t = canon("CCOC(=O)C(C)C(=O)CC")
+    opts = {"prop": S["etprop"], "ac": S["etoac"], "but": "CCCC(=O)OCC", "mep": "CCC(=O)OC"}
+    ask(node, "u9-cl-which", "Pick the ester whose self-Claisen gives ethyl 2-methyl-3-oxopentanoate.",
+        [("prop", "Ethyl propanoate", "Cut between C2 and the ketone C=O: each half is CH₃CH₂C(=O)-, so both partners are ethyl propanoate."),
+         ("ac", "Ethyl acetate", "That gives ethyl 3-oxobutanoate, with no methyl at C2."),
+         ("but", "Ethyl butanoate", "That gives an ethyl branch at C2 and a propyl ketone."),
+         ("mep", "Methyl propanoate", "Right skeleton, wrong ester: the product keeps the methyl ester, not the ethyl.")],
+        {k: claisen_main(e, e) == t for k, e in opts.items()}, True, "prop",
+        "Cut the α-carbon to ketone C=O bond; the ester's OR stays.", prov("forward Claisen run on each option", CH_COND),
+        lead(t, "ethyl 2-methyl-3-oxopentanoate", "the target"), level=2, concepts=SYN + ALDOL)
+
+
+def l2_dieckmann() -> None:
+    node = "u9-dieckmann"
+    ke = first(sorted(dieckmanns(S["pimelate"]).get(6, set())))
+    p = hydrolyse_decarb(ke)
+    pick(node, "u9-dk-ketone", "Diethyl heptanedioate meets NaOEt, then H₃O⁺ and heat. Pick the final product.",
+         [o("p", p, "cyclohexanone", "Dieckmann closes a six-membered β-keto ester. Hot acid hydrolyses the ester, and the β-keto acid loses CO₂."),
+          o("ke", ke, "ethyl 2-oxocyclohexane-1-carboxylate", "That is the Dieckmann product. Hot acid carries on: hydrolysis, then loss of CO₂."),
+          o("c5", "O=C1CCCC1", "cyclopentanone", "That comes from the hexanedioate. Heptanedioate's chain closes a six-membered ring.")],
+         [p], "p", "Dieckmann, then hydrolysis and decarboxylation, gives a cyclic ketone.",
+         prov("Rule C inside one molecule, then Rule M", CH_COND, RING_CONV), lead(S["pimelate"], "diethyl heptanedioate", "NaOEt, then H₃O⁺, heat"),
+         level=2, concepts=ALDOL, convention=RING_CONV)
+
+    d = "CCOC(=O)C(C)CCCC(=O)OCC"
+    five = dieckmanns(d).get(5, set())
+    driven = sorted(x for x in five if claisen_driven(x))
+    pick(node, "u9-dk-methyl", "Diethyl 2-methylhexanedioate meets NaOEt, then H₃O⁺. Pick the main product.",
+         [o("p", "CCOC(=O)C1CCC(C)C1=O", "ethyl 3-methyl-2-oxocyclopentane-1-carboxylate", "The CH₂ end's α-carbon attacks. That product keeps an H between its two C=O, ethoxide removes it, and that last step pulls the reaction forward."),
+          o("q", "CCOC(=O)C1(C)CCCC1=O", "ethyl 1-methyl-2-oxocyclopentane-1-carboxylate", "The CH(CH₃) end can attack too, but that product has no H left between its two C=O. Nothing pulls it forward, so it reverts."),
+          o("dec", "CC1CCCC1=O", "2-methylcyclopentan-1-one", "That needs heat in acid to lose CO₂. Cold H₃O⁺ workup only protonates the enolate.")],
+         driven if len(driven) == 1 else None, "p", "The Dieckmann that wins keeps an acidic H between its two C=O.",
+         prov("Rule C inside one molecule, both ring closures run, the driven one kept", CH_COND, CLAISEN_CONV),
+         lead(d, "diethyl 2-methylhexanedioate", "NaOEt, then H₃O⁺"), level=2, concepts=ALDOL + PKA, convention=CLAISEN_CONV)
+
+
+def l2_crossed_claisen() -> None:
+    node = "u9-crossed-claisen"
+    p = claisen_main(S["chx"], S["formate"], ester=False)
+    pick(node, "u9-cc-formyl", "Cyclohexanone and ethyl formate meet NaOEt, then H₃O⁺. Pick the product.",
+         [o("p", p, "2-oxocyclohexane-1-carbaldehyde", "The ketone's enolate attacks the formate's C=O and ethoxide leaves: a CHO lands on the α-carbon. Ethyl formate has no α-H, so it is only ever the acceptor."),
+          o("est", "CCOC(=O)C1CCCCC1=O", "ethyl 2-oxocyclohexane-1-carboxylate", "That needs diethyl carbonate. Ethyl formate delivers H-C=O, not an ester."),
+          o("ald", "O=C1CCCCC1C1(O)CCCCC1", "2-(1-hydroxycyclohexyl)cyclohexan-1-one", "That is cyclohexanone's self-aldol. The formate's C=O is the more reactive acceptor, and the Claisen product is pulled forward by its acidic C-H.")],
+         [p], "p", "A ketone enolate on an ester with no α-H: a crossed Claisen.", prov("Rule C with a ketone donor", CH_COND, CROSS_CONV),
+         pair(named(S["chx"], "cyclohexanone"), named(S["formate"], "ethyl formate")), level=2, concepts=ALDOL, convention=CROSS_CONV)
+
+
+def l2_alkylation() -> None:
+    node = "u9-alkylation"
+    s = "CC(=O)C(C)C"
+    p = alkylated(s, "kinetic", S["etbr"])
+    pick(node, "u9-alk-ipr", "3-Methylbutan-2-one, LDA at −78 °C, then bromoethane. Pick the product.",
+         [o("p", p, "2-methylhexan-3-one", "LDA takes an H from the CH₃, the side with more H. That carbon then attacks bromoethane."),
+          o("t", "CCC(C)(C)C(C)=O", "3,3-dimethylpentan-2-one", "That alkylates the CH, the thermodynamic site. LDA, cold, works on the CH₃."),
+          o("o", "C=C(OCC)C(C)C", "2-ethoxy-3-methylbut-1-ene", "That is O-alkylation. With an alkyl bromide the enolate's carbon is the nucleophile.")],
+         [p], "p", "LDA, cold: alkylation on the side with more H.", prov("Rule H at the kinetic alpha carbon", CH_ALPHA, KINETIC_CONV),
+         lead(s, "3-methylbutan-2-one", "LDA, −78 °C, then CH₃CH₂Br"), level=2, concepts=ALK + KVT, convention=KINETIC_CONV)
+
+    m1 = alkylated(S["chx"], "kinetic", S["mei"])
+    p = alkylated(m1, "kinetic", S["mei"]) if m1 else None
+    pick(node, "u9-alk-twice", "Cyclohexanone, LDA, CH₃I, then LDA and CH₃I again. Pick the product.",
+         [o("p", p, "2,6-dimethylcyclohexan-1-one", "The second LDA takes the more exposed H: the CH₂ on the other side, not the CH that already holds a methyl."),
+          o("gem", "CC1(C)CCCCC1=O", "2,2-dimethylcyclohexan-1-one", "That puts the second methyl on the substituted carbon, the thermodynamic site. LDA chooses the CH₂."),
+          o("mono", m1, "2-methylcyclohexan-1-one", "That is after one round. The second LDA and CH₃I add another methyl.")],
+         [p] if p else None, "p", "Each LDA round picks the side with more H.", prov("Rule H at the kinetic alpha carbon, run twice", CH_ALPHA, KINETIC_CONV),
+         lead(S["chx"], "cyclohexanone", "LDA, CH₃I, twice"), level=2, concepts=ALK + KVT, convention=KINETIC_CONV)
+
+
+def l2_malonic() -> None:
+    node = "u9-malonic"
+    t = canon("CCC(C)C(=O)O")
+    opts = {"me_et": ["CI", "CCBr"], "et_et": ["CCBr", "CCBr"], "pr": ["CCCBr"], "me_pr": ["CI", "CCCBr"]}
+    ask(node, "u9-mal-pair", "Pick the halides for 2-methylbutanoic acid by the malonic ester route.",
+        [("me_et", "CH₃I and CH₃CH₂Br", "C2 of the acid carries a methyl and an ethyl. Each came from one alkylation of the malonate's central carbon."),
+         ("et_et", "Two CH₃CH₂Br", "That gives 2-ethylbutanoic acid: two ethyl branches."),
+         ("pr", "One CH₃CH₂CH₂Br", "One alkylation with propyl gives pentanoic acid, a straight chain."),
+         ("me_pr", "CH₃I and CH₃CH₂CH₂Br", "That gives 2-methylpentanoic acid, one carbon too long.")],
+        {k: canon(malonic(hs)[1]) == t for k, hs in opts.items()}, True, "me_et",
+        "Every group on C2 of the acid was one alkylation.", prov("malonic route run for each option", CH_ALPHA, SN2_CONV),
+        lead(t, "2-methylbutanoic acid", "the target"), level=2, concepts=ALK + SYN, convention=SN2_CONV)
+
+
+def l2_acetoacetic() -> None:
+    node = "u9-acetoacetic"
+    mid, p = malonic(["CI", "CCBr"], ACAC_ESTER)
+    pick(node, "u9-aa-two", "Ethyl acetoacetate is methylated, then ethylated, then heated in acid. Pick the product.",
+         [o("p", p, "3-methylpentan-2-one", "Both groups go on the central carbon. Hydrolysis and loss of CO₂ leave a methyl ketone with both on C3."),
+          o("one", "CCCC(C)=O", "pentan-2-one", "That keeps only the ethyl. The methyl went on the same carbon, and it stays."),
+          o("est", mid, "ethyl 2-acetyl-2-methylbutanoate", "That is before the acid and heat. Hydrolysis and decarboxylation remove the ester carbon.")],
+         [p], "p", "Two alkylations, then hydrolysis and decarboxylation.", prov("Rule H twice, then Rule M", CH_ALPHA, SN2_CONV),
+         lead(ACAC_ESTER, "ethyl 3-oxobutanoate", "NaOEt, CH₃I; NaOEt, CH₃CH₂Br; H₃O⁺, heat"), level=2, concepts=ALK, convention=SN2_CONV)
+
+    t = canon("CC(=O)CCC(C)C")
+    opts = {"iso": "CC(C)CBr", "tbu": "CC(C)(C)Br", "ipr": "CC(C)Br", "bu": "CCCCBr"}
+    ask(node, "u9-aa-iso", "Pick the halide that gives 5-methylhexan-2-one by the acetoacetic route.",
+        [("iso", "1-Bromo-2-methylpropane", "Cut the bond to C3 of the ketone: the piece on it is CH₂CH(CH₃)₂, a primary halide that does SN2 well."),
+         ("tbu", "2-Bromo-2-methylpropane", "A tertiary halide eliminates instead of doing SN2, and its skeleton would give 4,4-dimethylpentan-2-one anyway."),
+         ("ipr", "2-Bromopropane", "That gives 4-methylpentan-2-one, one CH₂ short."),
+         ("bu", "1-Bromobutane", "That gives heptan-2-one, an unbranched chain.")],
+        {k: canon(malonic([h], ACAC_ESTER)[1]) == t and halide_class(h) in ("methyl", "primary") for k, h in opts.items()}, True, "iso",
+        "The group on C3 of the methyl ketone is the halide's carbon chain.", prov("acetoacetic route run for each option", CH_ALPHA, SN2_CONV),
+        lead(t, "5-methylhexan-2-one", "the target"), level=2, concepts=ALK + SYN, convention=SN2_CONV)
+
+
+def l2_michael() -> None:
+    node = "u9-michael"
+    p = michael(ACAC_ESTER, S["chxenone"])
+    pick(node, "u9-mi-chxenone", "Ethyl acetoacetate and cyclohex-2-en-1-one meet NaOEt. Pick the product.",
+         [o("p", p, "ethyl 3-oxo-2-(3-oxocyclohexyl)butanoate", "The central carbon of the β-keto ester adds to C3 of the enone, the β-carbon. The ring keeps its C=O."),
+          o("12", "CCOC(=O)C(C(C)=O)C1(O)C=CCCC1", "ethyl 2-(1-hydroxycyclohex-2-en-1-yl)-3-oxobutanoate", "That is 1,2-addition to the ring C=O. A stabilised enolate adds 1,4.", text="The ring alcohol from 1,2-addition"),
+          o("alpha", "CCOC(=O)C(C(C)=O)C1CCCCC1=O", "ethyl 3-oxo-2-(2-oxocyclohexyl)butanoate", "That bonds to C2, the α-carbon. The β-carbon is the electrophilic end.")],
+         [p], "p", "A cyclic enone is a Michael acceptor at C3.", prov("Rule K", CH_COND, CONJ_CONV),
+         pair(named(ACAC_ESTER, "ethyl 3-oxobutanoate"), named(S["chxenone"], "cyclohex-2-en-1-one")), level=2, concepts=CONJ, convention=CONJ_CONV)
+
+    m = michael(MALONATE, S["mvk"])
+    p = hydrolyse_decarb(m)
+    pick(node, "u9-mi-acid", "Diethyl malonate and but-3-en-2-one meet NaOEt, then H₃O⁺ and heat. Pick the product.",
+         [o("p", p, "5-oxohexanoic acid", "Michael addition first, then both esters hydrolyse and one CO₂H leaves, as in the malonic ester route."),
+          o("m", m, "diethyl 2-(3-oxobutyl)propanedioate", "That is the Michael product before hot acid. Hydrolysis and loss of CO₂ follow."),
+          o("di", "CC(=O)CCC(C(=O)O)C(=O)O", "2-(3-oxobutyl)propanedioic acid", "Heat removes one CO₂H from a carbon that holds two.")],
+         [p], "p", "Michael, then the malonic ester ending.", prov("Rule K, then Rule M", CH_COND, CONJ_CONV),
+         pair(named(MALONATE, "diethyl propanedioate"), named(S["mvk"], "but-3-en-2-one")), level=2, concepts=CONJ + ALK, convention=CONJ_CONV)
+
+
+def l2_cuprate() -> None:
+    node = "u9-cuprate"
+    c = conj_add(S["chxenone"], "[*]C")
+    # The enolate the cuprate leaves sits on the old alpha carbon: the one between the C=O and the carbon that took CH3.
+    a = match_one(c, "[CX4;!H0]([CX3]=[OX1])[CX4;H1][CH3]")[0]
+    p = alkylate(c, a, S["mei"])
+    pick(node, "u9-cu-trap", "Cyclohex-2-en-1-one, (CH₃)₂CuLi, then CH₃I. Pick the product.",
+         [o("p", p, "2,3-dimethylcyclohexan-1-one", "The cuprate puts CH₃ on C3 and leaves an enolate on C2. That enolate attacks CH₃I, so the second methyl lands on C2."),
+          o("one", c, "3-methylcyclohexan-1-one", "That is the product after water. Here CH₃I traps the enolate instead of a proton."),
+          o("other", "CC1CCC(C)C(=O)C1", "2,5-dimethylcyclohexan-1-one", "That methylates the other α-carbon. The enolate the cuprate leaves sits at C2, beside C3.")],
+         [p], "p", "The enolate from a 1,4-addition can be trapped by an alkyl halide.",
+         prov("Rule K, then Rule H at the enolate carbon Rule K leaves", CH_CONJ, CONJ_CONV),
+         lead(S["chxenone"], "cyclohex-2-en-1-one", "(CH₃)₂CuLi, then CH₃I"), level=2, concepts=CONJ + ALK, convention=CONJ_CONV)
+
+
+def l2_robinson() -> None:
+    node = "u9-robinson"
+    m, p, size = robinson("O=C1CCCC1")
+    pick(node, "u9-rob-c5", "Cyclopentanone and but-3-en-2-one meet base with heat. Pick the annulation product.",
+         [o("p", p, "1,2,3,6,7,7a-hexahydro-5H-inden-5-one", "Michael addition first, then the new chain's methyl attacks the ring C=O, closing a six-membered ring, and water leaves.", text="The fused bicyclic enone"),
+          o("m", m, "2-(3-oxobutyl)cyclopentan-1-one", "That is the Michael product only. Heat with base carries on to the ring.", text="The open-chain diketone"),
+          o("cond", "CC(=O)C=C1CCCC1", "1-cyclopentylidenepropan-2-one", "That is a plain aldol condensation, with no conjugate addition.", text="A cyclopentylidene ketone")],
+         [p] if p else None, "p", "The ring the annulation adds is six-membered whatever ring it starts on.",
+         prov("Rule K then the intramolecular aldol, ring size by RDKit, then E1cb", CH_COND, ROB_CONV),
+         pair(named("O=C1CCCC1", "cyclopentanone"), named(S["mvk"], "but-3-en-2-one")), level=2, concepts=CONJ + ALDOL, convention=ROB_CONV)
+
+
+def l2_retro() -> None:
+    node = "u9-retro"
+    t = canon("CC(=O)CCc1ccccc1")
+    routes = {"aa": canon(malonic([S["bnbr"]], ACAC_ESTER)[1]), "mal": canon(malonic([S["bnbr"]])[1]),
+              "ald": canon(condensed(aldol_one(S["acetone"], S["phcho"])) or "C")}
+    ask(node, "u9-re-route", "Pick the route to 4-phenylbutan-2-one.",
+        [("aa", "Acetoacetic ester, NaOEt, PhCH₂Br, H₃O⁺, heat", "The benzyl goes on the central carbon, then the ester carbon leaves as CO₂: CH₃C(=O)CH₂CH₂Ph."),
+         ("mal", "Malonic ester, NaOEt, PhCH₂Br, H₃O⁺, heat", "Same alkylation, but the malonic route ends at a carboxylic acid: 3-phenylpropanoic acid."),
+         ("ald", "Propan-2-one, benzaldehyde, NaOH, heat", "That gives 4-phenylbut-3-en-2-one. The C=C is still there.")],
+        {k: v == t for k, v in routes.items()}, True, "aa",
+        "Methyl ketone out: acetoacetic. Acid out: malonic.", prov("each route run forward", CH_COND, SN2_CONV),
+        lead(t, "4-phenylbutan-2-one", "the target"), level=2, concepts=SYN + ALK, convention=SN2_CONV)
+
+    t = canon("CCC1CCCCC1=O")
+    routes = {"lda": canon(alkylated(S["chx"], "kinetic", S["etbr"]) or "C"), "cu": canon(conj_add(S["chxenone"], "[*]CC")),
+              "ald": canon(condensed(aldol_one(S["chx"], S["acetal"])) or "C")}
+    ask(node, "u9-re-ethyl", "Pick the route to 2-ethylcyclohexan-1-one.",
+        [("lda", "Cyclohexanone, LDA, then CH₃CH₂Br", "The enolate's α-carbon attacks bromoethane, so the ethyl lands on C2."),
+         ("cu", "Cyclohexenone, (CH₃CH₂)₂CuLi, then H₂O", "The cuprate adds at the β-carbon, so that gives 3-ethylcyclohexan-1-one."),
+         ("ald", "Cyclohexanone, ethanal, NaOH, heat", "That condenses to 2-ethylidenecyclohexan-1-one. The C=C is still there.")],
+        {k: v == t for k, v in routes.items()}, True, "lda",
+        "Which carbon the new group lands on picks the route.", prov("each route run forward", CH_COND, SN2_CONV),
+        lead(t, "2-ethylcyclohexan-1-one", "the target"), level=2, concepts=SYN + ALK, convention=SN2_CONV)
+
+
+def level_two() -> None:
+    l2_tautomer()
+    l2_pka()
+    l2_enolate_res()
+    l2_kvt()
+    l2_halo_acid()
+    l2_halo_base()
+    l2_aldol()
+    l2_aldol_cond()
+    l2_crossed()
+    l2_intra()
+    l2_claisen()
+    l2_dieckmann()
+    l2_crossed_claisen()
+    l2_alkylation()
+    l2_malonic()
+    l2_acetoacetic()
+    l2_michael()
+    l2_cuprate()
+    l2_robinson()
+    l2_retro()
+
 
 def build() -> None:
     node_tautomer()
@@ -3181,6 +3617,7 @@ def build() -> None:
     node_cuprate()
     node_robinson()
     node_retro()
+    level_two()
     node_haloform()
     node_stork()
     node_mannich()

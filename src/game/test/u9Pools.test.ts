@@ -26,7 +26,7 @@ import { describe, expect, it } from "vitest";
 import { CONCEPTS, TOPICS } from "@blueberry/curriculum";
 import { mcqAuthoringViolations } from "../beats/mcq/authoring";
 import { figuresOf, mcqOptionTiles, mcqVisualFor } from "../beats/mcq/mcqFigures";
-import { lessonMcqBeats, planLesson } from "../beats/template";
+import { hasHardRecognise, lessonMcqBeats, planLesson } from "../beats/template";
 import { lessonPool, practicePool } from "../beats/practice/pools";
 import type { McqBeat } from "../beats/types";
 import { U1_POOLS, mergePools } from "../content/u1";
@@ -36,27 +36,29 @@ import { PATHWAY_UNITS, checkpointNodeId, pathwayNode } from "../demo/pathwayMap
 import { roadOf } from "../tabs/pathway/unitShape";
 import { FIGURE_HEIGHT, FIGURE_WIDTH, type Figure } from "../onboarding/figures";
 
+// CHANGED 2026-10-24, audit 23 Oct section 6: every spine node gained the L2 items that bring it to two
+// (one where a re-tagged item already counts), authored in scripts/u9_pools.py with RDKit. Side quests unchanged.
 const EXPECTED_SIZES: Readonly<Record<string, number>> = {
-  "u9-tautomer": 6,
-  "u9-pka": 6,
-  "u9-enolate-res": 6,
-  "u9-kvt-enolate": 6,
-  "u9-halo-acid": 6,
-  "u9-halo-base": 6,
-  "u9-aldol": 6,
-  "u9-aldol-cond": 7,
-  "u9-crossed": 6,
-  "u9-intra": 6,
-  "u9-claisen": 6,
-  "u9-dieckmann": 6,
-  "u9-crossed-claisen": 6,
-  "u9-alkylation": 6,
-  "u9-malonic": 7,
-  "u9-acetoacetic": 6,
-  "u9-michael": 6,
-  "u9-cuprate": 7,
-  "u9-robinson": 6,
-  "u9-retro": 6,
+  "u9-tautomer": 8,
+  "u9-pka": 8,
+  "u9-enolate-res": 8,
+  "u9-kvt-enolate": 7,
+  "u9-halo-acid": 8,
+  "u9-halo-base": 8,
+  "u9-aldol": 8,
+  "u9-aldol-cond": 9,
+  "u9-crossed": 8,
+  "u9-intra": 7,
+  "u9-claisen": 7,
+  "u9-dieckmann": 8,
+  "u9-crossed-claisen": 7,
+  "u9-alkylation": 8,
+  "u9-malonic": 8,
+  "u9-acetoacetic": 8,
+  "u9-michael": 8,
+  "u9-cuprate": 8,
+  "u9-robinson": 7,
+  "u9-retro": 8,
   "u9-haloform": 6,
   "u9-stork": 6,
   "u9-mannich": 6,
@@ -250,6 +252,13 @@ describe("u9 pools are reachable", () => {
       const kinds = (planLesson(node)?.steps ?? []).map((step) => step.beat.kind);
       expect(kinds, node).toContain("mechanism");
     }
+  });
+
+  it("gives every spine lesson the two L2 questions pace +1 plays (audit 23 Oct, section 6)", () => {
+    const unit = PATHWAY_UNITS.find((entry) => entry.id === "u9");
+    const spine = (unit?.nodes ?? []).filter((node) => node.kind === "spine").map((node) => node.id);
+    expect(spine.length).toBeGreaterThan(0);
+    for (const node of spine) expect(hasHardRecognise(node), node).toBe(true);
   });
 
   it("plays the resonance surface, and no mechanism, in every resonance-linked lesson", () => {
