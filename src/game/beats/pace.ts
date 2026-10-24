@@ -15,7 +15,7 @@
  * THE RULES, walked in journal order over the unit's lessons:
  *   - a TAP wins. lesson_rated too_easy sets +1, too_hard sets -1, about_right
  *     sets 0. It is journalled after the clear it rates, so it overrides that
- *     lesson's own result.
+ *     lesson's own result, and it restarts the run of flawless clears.
  *   - otherwise each lesson clear moves pace by how it went: two flawless
  *     (recycle-free) clears in a row set +1; first-try accuracy under 50% sets
  *     -1; a mixed result decays pace to 0. One flawless clear lifts -1 to 0 and
@@ -83,6 +83,9 @@ export function paceFor(journal: readonly EconomyEvent[], unitId: string): Pace 
   for (const { event } of events) {
     if (event.kind === "lesson_rated") {
       pace = RATING_PACE[event.rating];
+      // A tap starts the count again: "flawless, About right, flawless" is
+      // one flawless lesson since the student said the pace was right.
+      flawlessRun = 0;
       continue;
     }
     if (event.kind !== "node_cleared" || hasMechanismStep(event.nodeId)) continue;

@@ -71,6 +71,11 @@ describe("paceFor", () => {
     expect(paceFor([clear(A, true), clear(B, true), rated(B, "about_right")], "u5")).toBe(0);
   });
 
+  it("restarts the flawless run on a tap", () => {
+    expect(paceFor([clear(A, true), rated(A, "about_right"), clear(B, true)], "u5")).toBe(0);
+    expect(paceFor([clear(A, true), rated(A, "about_right"), clear(B, true), clear(C, true)], "u5")).toBe(1);
+  });
+
   it("reads a trainer lesson from its tap alone", () => {
     expect(paceFor([clear(MECH, true), clear(MECH, true)], "u5")).toBe(0);
     expect(paceFor([clear(MECH, false, 0)], "u5")).toBe(0);
