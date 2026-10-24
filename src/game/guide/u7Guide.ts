@@ -181,9 +181,9 @@ const STAGES: readonly GuideStage[] = [
             quote: "H₃O⁺ takes the acetal off and gives the original ketone back.",
           },
           {
-            text: "Protect, react elsewhere, deprotect: the ketone comes through untouched.",
-            source: "u7-pro-ester",
-            quote: "Protect, react elsewhere, deprotect: the ketone comes through untouched.",
+            text: "Acetals survive base and come off only in aqueous acid.",
+            source: "u7-pro-base",
+            quote: "Acetals survive base and come off only in aqueous acid.",
           },
           {
             text: "Aldehydes protect before ketones: fewer alkyl groups, faster addition.",
@@ -385,6 +385,11 @@ const STAGES: readonly GuideStage[] = [
             text: "Hydride turns a ketone into a secondary alcohol.",
             source: "u7-hdr-meet",
             quote: "Hydride turns a ketone into a secondary alcohol.",
+          },
+          {
+            text: "Protect, react elsewhere, deprotect: the ketone comes through untouched.",
+            source: "u7-pro-ester",
+            quote: "Protect, react elsewhere, deprotect: the ketone comes through untouched.",
           },
         ],
         example: { source: "u7-hdr-nabh4-ester", quote: "NaBH₄ is mild: it reduces the ketone and leaves the ester." },

@@ -657,7 +657,7 @@ const ACETAL_PROTECTION: readonly McqBeat[] = Object.freeze([
     kind: "mcq",
     id: "mcq-acetal-what-survives",
     node: "u7-protect",
-    conceptIds: ["oxidation_state_ladder"],
+    conceptIds: ["protecting_group_strategy"],
     levels: [0],
     prompt: "A ketone is hidden as an acetal. Pick the reagent that leaves it alone.",
     brief: "An acetal has no carbonyl left for a nucleophile to attack.",
@@ -684,9 +684,11 @@ const ACETAL_PROTECTION: readonly McqBeat[] = Object.freeze([
   {
     kind: "mcq",
     id: "mcq-acetal-which-carbonyl",
-    node: "u7-protect",
-    conceptIds: ["oxidation_state_ladder"],
-    levels: [1],
+    // Plays in u7-hydride, at rung 2 after u7-hdr-lah-ester: it needs LiAlH4 on esters,
+    // which the protect lesson comes before (audit 23 Oct, top-25 #18).
+    node: "u7-hydride",
+    conceptIds: ["protecting_group_strategy"],
+    levels: [2],
     prompt: "You want to reduce only the ester, not the ketone. Pick the first move.",
     brief: "Both react with hydride, and one of them reacts faster.",
     diamonds: 6,

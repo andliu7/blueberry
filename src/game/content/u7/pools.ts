@@ -832,9 +832,9 @@ export const U7_POOLS: UnitPools = {
               "why": "The carbonyl oxygen leaves as water once it is protonated. That is why removing water drives the acetal to form."
             },
             {
-              "id": "h2",
-              "text": "Hydrogen gas",
-              "why": "No H-H forms. Count the atoms: one oxygen must leave, and only water carries it."
+              "id": "oh",
+              "text": "Hydroxide ion",
+              "why": "In acid the OH is protonated first and leaves as neutral water. Hydroxide is a poor leaving group and is never set free here."
             },
             {
               "id": "meoh",
@@ -914,7 +914,7 @@ export const U7_POOLS: UnitPools = {
             {
               "id": "hemi",
               "text": "Open hemiacetal",
-              "why": "The open hemiacetal still has an OH that a Grignard would destroy itself on. The ring closes it off."
+              "why": "That is the halfway point. In acid the OH is protonated and leaves as water, and the diol's second OH closes the five-membered ring."
             },
             {
               "id": "ether",
@@ -968,12 +968,51 @@ export const U7_POOLS: UnitPools = {
       "placeholder": true
     },
     {
-      "id": "u7-pro-ester",
+      "id": "u7-pro-ring",
       "item": {
         "kind": "mcq",
         "beat": {
           "kind": "mcq",
-          "id": "u7-pro-ester",
+          "id": "u7-pro-ring",
+          "node": "u7-protect",
+          "conceptIds": [
+            "protecting_group_strategy"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "Cyclohexanone meets ethane-1,2-diol and acid. Pick the protected form.",
+          "correctOptionId": "five",
+          "options": [
+            {
+              "id": "hemi",
+              "text": "Open hemiacetal",
+              "why": "That is the halfway point. The OH is protonated and leaves as water, and the second OH closes the ring."
+            },
+            {
+              "id": "five",
+              "text": "1,4-Dioxaspiro[4.5]decane",
+              "why": "Two O and the diol's two CH₂ close a five-membered ring on the old carbonyl carbon."
+            },
+            {
+              "id": "six",
+              "text": "1,5-Dioxaspiro[5.5]undecane",
+              "why": "A six-membered acetal ring needs three CH₂ between the oxygens, from propane-1,3-diol. This diol has two."
+            }
+          ]
+        }
+      },
+      "explanation": "The diol's chain sets the ring: two carbons between the oxygens make a five-membered acetal.",
+      "provenance": "scripts/u7_pools.py: Rule C with ethane-1,2-diol. OpenStax Organic Chemistry ch. 19 (CC BY-NC-SA) is the named check, not yet read against this draft.",
+      "placeholder": true
+    },
+    {
+      "id": "u7-pro-base",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u7-pro-base",
           "node": "u7-protect",
           "conceptIds": [
             "protecting_group_strategy"
@@ -981,29 +1020,29 @@ export const U7_POOLS: UnitPools = {
           "levels": [
             2
           ],
-          "prompt": "Methyl 4-oxopentanoate: diol and H⁺, then LiAlH₄, then H₃O⁺. Pick the product.",
-          "correctOptionId": "target",
+          "prompt": "1,4-Dioxaspiro[4.5]decane is warmed in aqueous NaOH. Pick what you recover.",
+          "correctOptionId": "same",
           "options": [
             {
-              "id": "target",
-              "text": "5-Hydroxypentan-2-one",
-              "why": "The ketone hides as an acetal, LiAlH₄ reduces only the ester to CH₂OH, and acid brings the ketone back."
+              "id": "hemi",
+              "text": "Open hemiacetal",
+              "why": "Opening the ring needs an acetal oxygen protonated first. In base nothing is."
             },
             {
-              "id": "diol",
-              "text": "Pentane-1,4-diol",
-              "why": "That is what LiAlH₄ gives with no protection: both carbonyls reduced."
+              "id": "same",
+              "text": "The acetal, unchanged",
+              "why": "Base has no proton to put on an acetal oxygen, so no oxygen can leave. That is why the acetal is a protecting group."
             },
             {
-              "id": "start",
-              "text": "Unchanged keto ester",
-              "why": "LiAlH₄ reduces esters. The ketone was the only group hidden from it."
+              "id": "ket",
+              "text": "Cyclohexanone",
+              "why": "That is what aqueous acid does. Hydroxide cannot open an acetal."
             }
           ]
         }
       },
-      "explanation": "Protect, react elsewhere, deprotect: the ketone comes through untouched.",
-      "provenance": "scripts/u7_pools.py: Rule C, then rule R with LiAlH4, then rule H, applied in turn. OpenStax Organic Chemistry ch. 19 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: acetals survive LiAlH4 and fall apart in aqueous acid.",
+      "explanation": "Acetals survive base and come off only in aqueous acid.",
+      "provenance": "scripts/u7_pools.py: No rule applies: the acetal is drawn again. OpenStax Organic Chemistry ch. 19 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: acetals survive base and fall apart in aqueous acid.",
       "placeholder": true
     },
     {
@@ -1082,45 +1121,6 @@ export const U7_POOLS: UnitPools = {
       },
       "explanation": "Aldehydes protect before ketones: fewer alkyl groups, faster addition.",
       "provenance": "scripts/u7_pools.py: Rule C at the carbonyl with fewer carbon neighbours. OpenStax Organic Chemistry ch. 19 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: aldehydes react faster than ketones.",
-      "placeholder": true
-    },
-    {
-      "id": "u7-pro-grignard",
-      "item": {
-        "kind": "mcq",
-        "beat": {
-          "kind": "mcq",
-          "id": "u7-pro-grignard",
-          "node": "u7-protect",
-          "conceptIds": [
-            "protecting_group_strategy"
-          ],
-          "levels": [
-            2
-          ],
-          "prompt": "Protected 4-bromobutanal: Mg, then propanone, then neutral water. Pick the product.",
-          "correctOptionId": "acetal",
-          "options": [
-            {
-              "id": "target",
-              "text": "5-Hydroxy-5-methylhexanal",
-              "why": "Taking the acetal off needs aqueous acid. Neutral water leaves it on."
-            },
-            {
-              "id": "acetal",
-              "text": "Still protected",
-              "why": "With the aldehyde hidden, Mg makes a Grignard at C-Br, it adds to propanone, and water protonates the alkoxide. The acetal stays."
-            },
-            {
-              "id": "diol",
-              "text": "5-Methylhexane-1,5-diol",
-              "why": "That has lost the acetal and reduced the aldehyde. None of these steps is a hydride source."
-            }
-          ]
-        }
-      },
-      "explanation": "A Grignard and an aldehyde cannot share a molecule unless the aldehyde is protected.",
-      "provenance": "scripts/u7_pools.py: Rule C, Br to MgBr, rule A on propanone, applied in turn. OpenStax Organic Chemistry ch. 19 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: acetals survive Grignard reagents and a neutral workup.",
       "placeholder": true
     },
   ],
@@ -1377,9 +1377,9 @@ export const U7_POOLS: UnitPools = {
           "correctOptionId": "water",
           "options": [
             {
-              "id": "h2",
-              "text": "Hydrogen gas",
-              "why": "No H-H forms. The oxygen has to leave, and water is what carries it."
+              "id": "oh",
+              "text": "Hydroxide ion",
+              "why": "The trace of acid protonates the carbinolamine OH, so it leaves as neutral water, not as hydroxide."
             },
             {
               "id": "water",
@@ -1851,7 +1851,7 @@ export const U7_POOLS: UnitPools = {
             {
               "id": "plain",
               "text": "Butan-2-one",
-              "why": "No acidic H at all: a clean tertiary alcohol after workup."
+              "why": "No O-H or N-H, so nothing quenches the Grignard: it adds to the C=O and gives a tertiary alcohol after workup."
             },
             {
               "id": "oh",
@@ -1915,6 +1915,84 @@ export const U7_POOLS: UnitPools = {
       "explanation": "Methanal: primary. Aldehyde: secondary. Ketone: tertiary. CO₂: carboxylic acid.",
       "provenance": "scripts/u7_pools.py: Rule A on each pair; product class read by SMARTS. OpenStax Organic Chemistry ch. 19 (CC BY-NC-SA) is the named check, not yet read against this draft."
     }),
+    {
+      "id": "u7-grg-mg",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u7-grg-mg",
+          "node": "u7-grignard",
+          "conceptIds": [
+            "nucleophilic_addition_carbon"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "Bromobenzene meets Mg in dry ether. Pick the main species formed.",
+          "correctOptionId": "rmgx",
+          "options": [
+            {
+              "id": "biph",
+              "text": "Biphenyl",
+              "why": "Two phenyls joining is a minor side reaction. Most of the bromobenzene becomes the Grignard reagent."
+            },
+            {
+              "id": "rmgx",
+              "text": "Phenylmagnesium bromide",
+              "why": "Mg slips into the C-Br bond: C-Mg-Br. The ring carbon now carries the electron density of a carbanion."
+            },
+            {
+              "id": "bz",
+              "text": "Benzene",
+              "why": "That is what the Grignard becomes if water gets in: it takes an H and is destroyed. Dry ether keeps water out."
+            }
+          ]
+        }
+      },
+      "explanation": "R-Br plus Mg in dry ether gives R-MgBr, the Grignard reagent.",
+      "provenance": "scripts/u7_pools.py: Mg inserted into the C-Br bond. OpenStax Organic Chemistry ch. 19 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: dry ether; water destroys the reagent.",
+      "placeholder": true
+    },
+    {
+      "id": "u7-pro-grignard",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u7-pro-grignard",
+          "node": "u7-grignard",
+          "conceptIds": [
+            "protecting_group_strategy"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "Protected 4-bromobutanal: Mg, then propanone, then neutral water. Pick the product.",
+          "correctOptionId": "acetal",
+          "options": [
+            {
+              "id": "target",
+              "text": "5-Hydroxy-5-methylhexanal",
+              "why": "Taking the acetal off needs aqueous acid. Neutral water leaves it on."
+            },
+            {
+              "id": "acetal",
+              "text": "Still protected",
+              "why": "With the aldehyde hidden, Mg makes a Grignard at C-Br, it adds to propanone, and water protonates the alkoxide. The acetal stays."
+            },
+            {
+              "id": "diol",
+              "text": "5-Methylhexane-1,5-diol",
+              "why": "That has lost the acetal and reduced the aldehyde. None of these steps is a hydride source."
+            }
+          ]
+        }
+      },
+      "explanation": "A Grignard and an aldehyde cannot share a molecule unless the aldehyde is protected.",
+      "provenance": "scripts/u7_pools.py: Rule C, Br to MgBr, rule A on propanone, applied in turn. OpenStax Organic Chemistry ch. 19 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: acetals survive Grignard reagents and a neutral workup.",
+      "placeholder": true
+    },
   ],
   "u7-hydride": [
     {
@@ -1935,9 +2013,9 @@ export const U7_POOLS: UnitPools = {
           "correctOptionId": "ol",
           "options": [
             {
-              "id": "ene",
-              "text": "Cyclohexene",
-              "why": "That is a dehydration product. NaBH₄ adds H; it does not remove water."
+              "id": "oxide",
+              "text": "The alkoxide",
+              "why": "That is the halfway point, right after hydride adds. Methanol hands an H to the O, so what you isolate is the alcohol."
             },
             {
               "id": "ol",
@@ -2213,6 +2291,45 @@ export const U7_POOLS: UnitPools = {
       "explanation": "Reduction moves down the ladder one step per hydride.",
       "provenance": "scripts/u7_pools.py: carbon oxidation state computed per card. OpenStax Organic Chemistry ch. 19 (CC BY-NC-SA) is the named check, not yet read against this draft."
     }),
+    {
+      "id": "u7-pro-ester",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u7-pro-ester",
+          "node": "u7-hydride",
+          "conceptIds": [
+            "protecting_group_strategy"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "Methyl 4-oxopentanoate: diol and H⁺, then LiAlH₄, then H₃O⁺. Pick the product.",
+          "correctOptionId": "target",
+          "options": [
+            {
+              "id": "target",
+              "text": "5-Hydroxypentan-2-one",
+              "why": "The ketone hides as an acetal, LiAlH₄ reduces only the ester to CH₂OH, and acid brings the ketone back."
+            },
+            {
+              "id": "diol",
+              "text": "Pentane-1,4-diol",
+              "why": "That is what LiAlH₄ gives with no protection: both carbonyls reduced."
+            },
+            {
+              "id": "keto",
+              "text": "Methyl 4-hydroxypentanoate",
+              "why": "That reduces the ketone and keeps the ester, backwards on both counts: the ketone was hidden, and LiAlH₄ reduces esters."
+            }
+          ]
+        }
+      },
+      "explanation": "Protect, react elsewhere, deprotect: the ketone comes through untouched.",
+      "provenance": "scripts/u7_pools.py: Rule C, then rule R with LiAlH4, then rule H, applied in turn. OpenStax Organic Chemistry ch. 19 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: acetals survive LiAlH4 and fall apart in aqueous acid.",
+      "placeholder": true
+    },
   ],
   "u7-wittig": [
     {
@@ -2715,9 +2832,9 @@ export const U7_POOLS: UnitPools = {
               "why": "That is the NaBH₄ product. Clemmensen goes past the alcohol to CH₂."
             },
             {
-              "id": "ene",
-              "text": "Styrene",
-              "why": "No C=C forms. Both C-O bonds are replaced by C-H."
+              "id": "cl",
+              "text": "(1-Chloroethyl)benzene",
+              "why": "HCl is the acid here, not a source of Cl on carbon. Both C-O bonds are replaced by C-H."
             }
           ]
         }
@@ -2844,6 +2961,45 @@ export const U7_POOLS: UnitPools = {
       "placeholder": true
     },
     {
+      "id": "u7-ch2-thio",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u7-ch2-thio",
+          "node": "u7-to-ch2",
+          "conceptIds": [
+            "nucleophilic_addition_oxygen"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "Cyclohexanone meets ethane-1,2-dithiol and BF₃. Pick the product.",
+          "correctOptionId": "t",
+          "options": [
+            {
+              "id": "t",
+              "text": "The thioacetal",
+              "why": "Both SH groups bond to the carbonyl carbon and water leaves: a five-membered ring with two S on the old C=O carbon."
+            },
+            {
+              "id": "o",
+              "text": "The oxygen acetal",
+              "why": "That ring has oxygens, from ethane-1,2-diol. A dithiol puts sulfur in their place."
+            },
+            {
+              "id": "half",
+              "text": "One S added, OH kept",
+              "why": "That is the halfway point. The OH leaves as water and the second SH closes the ring."
+            }
+          ]
+        }
+      },
+      "explanation": "A dithiol makes a thioacetal the way a diol makes an acetal.",
+      "provenance": "scripts/u7_pools.py: Rule C with ethane-1,2-dithiol. OpenStax Organic Chemistry ch. 19 (CC BY-NC-SA) is the named check, not yet read against this draft.",
+      "placeholder": true
+    },
+    {
       "id": "u7-ch2-raney",
       "item": {
         "kind": "mcq",
@@ -2857,7 +3013,7 @@ export const U7_POOLS: UnitPools = {
           "levels": [
             1
           ],
-          "prompt": "1,4-Dithiaspiro[4.5]decane meets Raney nickel. Pick the ring product.",
+          "prompt": "Cyclohexanone's thioacetal meets Raney nickel. Pick the ring product.",
           "correctOptionId": "ane",
           "options": [
             {
@@ -3255,9 +3411,9 @@ export const U7_POOLS: UnitPools = {
           "correctOptionId": "tol",
           "options": [
             {
-              "id": "bz",
-              "text": "Benzene",
-              "why": "The C-C bond to the ring stays. Only C-S bonds break."
+              "id": "half",
+              "text": "One C-S bond cut",
+              "why": "Raney Ni cuts every C-S bond, not just one. No sulfur stays on the old aldehyde carbon."
             },
             {
               "id": "tol",
@@ -3304,9 +3460,9 @@ export const U7_POOLS: UnitPools = {
               "why": "Both sulfurs stay in the ring. It is the oxygen that leaves."
             },
             {
-              "id": "h2",
-              "text": "Hydrogen gas",
-              "why": "No H-H forms. The O has to go, and it goes as water."
+              "id": "oh",
+              "text": "Hydroxide ion",
+              "why": "The Lewis acid takes hold of the O first, so it leaves as water with the two SH hydrogens, not as free hydroxide."
             }
           ]
         }
@@ -3667,7 +3823,7 @@ export const U7_POOLS: UnitPools = {
             {
               "id": "z",
               "text": "Ethyl (Z)-3-phenylpropenoate",
-              "why": "Same connectivity, but the Z isomer is the minor one here: phenyl and ester end up on opposite sides."
+              "why": "Same connectivity, but this is the Z isomer: phenyl and ester sit on the same side of the C=C. A stabilised phosphonate gives mostly E, where they sit on opposite sides."
             }
           ]
         }
@@ -3935,9 +4091,9 @@ export const U7_POOLS: UnitPools = {
               "why": "That ring is the same size as the ketone. Inserting O always adds one atom."
             },
             {
-              "id": "same",
-              "text": "No reaction",
-              "why": "Ketones react with peracids. The ring ketone is a textbook substrate."
+              "id": "open",
+              "text": "5-Hydroxypentanoic acid",
+              "why": "That is the lactone opened by water. mCPBA only inserts the O, and nothing here hydrolyses the ring."
             },
             {
               "id": "six",
@@ -4004,13 +4160,13 @@ export const U7_POOLS: UnitPools = {
           "levels": [
             2
           ],
-          "prompt": "3,3-dimethylbutan-2-one meets mCPBA. Pick the main ester.",
+          "prompt": "3,3-dimethylbutan-2-one meets mCPBA. Pick the main product.",
           "correctOptionId": "r",
           "options": [
             {
               "id": "k",
-              "text": "No reaction",
-              "why": "Ketones react with mCPBA. The question is only which group moves."
+              "text": "2,2-Dimethylpropanoic acid",
+              "why": "That loses the methyl carbon, as a haloform reaction would. mCPBA keeps every carbon and inserts one O."
             },
             {
               "id": "r",
@@ -4043,7 +4199,7 @@ export const U7_POOLS: UnitPools = {
           "levels": [
             2
           ],
-          "prompt": "1-phenylethan-1-one meets mCPBA. Pick the main ester.",
+          "prompt": "1-phenylethan-1-one meets mCPBA. Pick the main product.",
           "correctOptionId": "r",
           "options": [
             {
@@ -4053,8 +4209,8 @@ export const U7_POOLS: UnitPools = {
             },
             {
               "id": "k",
-              "text": "No reaction",
-              "why": "Ketones react with mCPBA. The question is only which group moves."
+              "text": "Benzoic acid",
+              "why": "That loses the methyl carbon, as a haloform reaction would. mCPBA keeps every carbon and inserts one O."
             },
             {
               "id": "r",
@@ -4082,7 +4238,7 @@ export const U7_POOLS: UnitPools = {
           "levels": [
             2
           ],
-          "prompt": "1-cyclohexylethan-1-one meets mCPBA. Pick the main ester.",
+          "prompt": "1-cyclohexylethan-1-one meets mCPBA. Pick the main product.",
           "correctOptionId": "r",
           "options": [
             {
@@ -4097,8 +4253,8 @@ export const U7_POOLS: UnitPools = {
             },
             {
               "id": "k",
-              "text": "No reaction",
-              "why": "Ketones react with mCPBA. The question is only which group moves."
+              "text": "Cyclohexanecarboxylic acid",
+              "why": "That loses the methyl carbon, as a haloform reaction would. mCPBA keeps every carbon and inserts one O."
             }
           ]
         }
@@ -4293,9 +4449,9 @@ export const U7_POOLS: UnitPools = {
               "why": "Silver is reduced, so the organic partner must be oxidised, not reduced."
             },
             {
-              "id": "same",
-              "text": "No reaction",
-              "why": "Aldehydes react with Tollens: the aldehyde C-H is oxidised."
+              "id": "acid",
+              "text": "Benzoic acid",
+              "why": "Right oxidation, wrong form. In the basic ammonia solution the acid loses its proton; benzoic acid only appears after acid workup."
             }
           ]
         }
@@ -4661,9 +4817,9 @@ export const U7_POOLS: UnitPools = {
           "correctOptionId": "ol",
           "options": [
             {
-              "id": "same",
-              "text": "No reaction",
-              "why": "Aluminium isopropoxide reduces ketones. That is the MPV reduction."
+              "id": "ipr",
+              "text": "Isopropyl added",
+              "why": "No C-C bond forms. The isopropoxide gives a hydride from its C-H, not its carbon chain."
             },
             {
               "id": "ol",
@@ -4790,7 +4946,7 @@ export const U7_POOLS: UnitPools = {
             {
               "id": "both",
               "text": "3-Phenylpropan-1-ol",
-              "why": "MPV has no way to reduce an isolated C=C. Only the carbonyl is touched."
+              "why": "MPV delivers hydride only to the C=O carbon, through the aluminium complex. The conjugated C=C is left alone, so only the C=O is reduced."
             }
           ]
         }
@@ -5888,83 +6044,152 @@ export const U7_VISUALS: Readonly<Record<string, McqVisual>> = {
     },
     "name": "protected ketone + H₃O⁺"
   },
-  "u7-pro-ester": {
+  "u7-pro-ring": {
     "kind": "structure",
     "figure": {
       "bonds": [
         {
-          "x1": 18.0,
-          "y1": 48.0,
-          "x2": 27.8,
-          "y2": 42.4
-        },
-        {
-          "x1": 36.2,
-          "y1": 42.4,
-          "x2": 46.0,
-          "y2": 48.0
-        },
-        {
-          "x1": 46.0,
-          "y1": 48.0,
-          "x2": 46.0,
-          "y2": 59.3,
+          "x1": 39.2,
+          "y1": 27.0,
+          "x2": 51.3,
+          "y2": 34.0,
           "order": 2
         },
         {
-          "x1": 46.0,
-          "y1": 48.0,
-          "x2": 60.0,
-          "y2": 40.0
+          "x1": 51.3,
+          "y1": 34.0,
+          "x2": 51.4,
+          "y2": 54.0
         },
         {
-          "x1": 60.0,
-          "y1": 40.0,
-          "x2": 74.0,
-          "y2": 48.0
+          "x1": 51.4,
+          "y1": 54.0,
+          "x2": 68.7,
+          "y2": 64.0
         },
         {
-          "x1": 74.0,
-          "y1": 48.0,
-          "x2": 88.0,
-          "y2": 40.0
+          "x1": 68.7,
+          "y1": 64.0,
+          "x2": 86.0,
+          "y2": 54.0
         },
         {
-          "x1": 88.0,
-          "y1": 40.0,
-          "x2": 102.0,
-          "y2": 48.1
+          "x1": 86.0,
+          "y1": 54.0,
+          "x2": 86.0,
+          "y2": 34.0
         },
         {
-          "x1": 88.0,
-          "y1": 40.0,
-          "x2": 88.0,
-          "y2": 28.7,
-          "order": 2
+          "x1": 86.0,
+          "y1": 34.0,
+          "x2": 68.6,
+          "y2": 24.0
+        },
+        {
+          "x1": 68.6,
+          "y1": 24.0,
+          "x2": 51.3,
+          "y2": 34.0
         }
       ],
       "labels": [
         {
-          "x": 32.0,
-          "y": 44.9,
-          "t": "O",
-          "size": 13
-        },
-        {
-          "x": 46.0,
-          "y": 69.2,
-          "t": "O",
-          "size": 13
-        },
-        {
-          "x": 88.0,
-          "y": 28.8,
+          "x": 34.0,
+          "y": 29.0,
           "t": "O",
           "size": 13
         }
       ]
     },
-    "name": "keto ester, three steps"
+    "name": "cyclohexanone + diol"
+  },
+  "u7-pro-base": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 24.6,
+          "y1": 43.9,
+          "x2": 34.6,
+          "y2": 26.7
+        },
+        {
+          "x1": 34.6,
+          "y1": 26.7,
+          "x2": 54.6,
+          "y2": 26.7
+        },
+        {
+          "x1": 54.6,
+          "y1": 26.7,
+          "x2": 64.6,
+          "y2": 44.1
+        },
+        {
+          "x1": 64.6,
+          "y1": 44.1,
+          "x2": 54.6,
+          "y2": 61.3
+        },
+        {
+          "x1": 54.6,
+          "y1": 61.3,
+          "x2": 34.6,
+          "y2": 61.3
+        },
+        {
+          "x1": 64.6,
+          "y1": 44.1,
+          "x2": 72.8,
+          "y2": 55.4
+        },
+        {
+          "x1": 82.0,
+          "y1": 58.4,
+          "x2": 95.3,
+          "y2": 54.1
+        },
+        {
+          "x1": 95.3,
+          "y1": 54.1,
+          "x2": 95.4,
+          "y2": 34.1
+        },
+        {
+          "x1": 95.4,
+          "y1": 34.1,
+          "x2": 82.1,
+          "y2": 29.8
+        },
+        {
+          "x1": 34.6,
+          "y1": 61.3,
+          "x2": 24.6,
+          "y2": 43.9
+        },
+        {
+          "x1": 72.9,
+          "y1": 32.8,
+          "x2": 64.6,
+          "y2": 44.1
+        }
+      ],
+      "labels": [
+        {
+          "x": 76.3,
+          "y": 65.3,
+          "t": "O",
+          "size": 13
+        },
+        {
+          "x": 76.4,
+          "y": 32.9,
+          "t": "O",
+          "size": 13
+        }
+      ]
+    },
+    "name": "protected ketone + NaOH, water"
   },
   "u7-pro-site": {
     "kind": "structure",
@@ -6103,59 +6328,6 @@ export const U7_VISUALS: Readonly<Record<string, McqVisual>> = {
       ]
     },
     "name": "keto aldehyde + one diol"
-  },
-  "u7-pro-grignard": {
-    "kind": "structure",
-    "figure": {
-      "bonds": [
-        {
-          "x1": 97.0,
-          "y1": 42.1,
-          "x2": 85.2,
-          "y2": 48.9,
-          "order": 2
-        },
-        {
-          "x1": 85.2,
-          "y1": 48.9,
-          "x2": 68.4,
-          "y2": 39.2
-        },
-        {
-          "x1": 68.4,
-          "y1": 39.2,
-          "x2": 51.6,
-          "y2": 48.8
-        },
-        {
-          "x1": 51.6,
-          "y1": 48.8,
-          "x2": 34.8,
-          "y2": 39.1
-        },
-        {
-          "x1": 34.8,
-          "y1": 39.1,
-          "x2": 23.0,
-          "y2": 45.9
-        }
-      ],
-      "labels": [
-        {
-          "x": 102.0,
-          "y": 44.2,
-          "t": "O",
-          "size": 13
-        },
-        {
-          "x": 18.0,
-          "y": 53.8,
-          "t": "Br",
-          "size": 13
-        }
-      ]
-    },
-    "name": "4-bromobutanal, three steps"
   },
   "u7-imn-meet": {
     "kind": "structure",
@@ -7267,6 +7439,120 @@ export const U7_VISUALS: Readonly<Record<string, McqVisual>> = {
     },
     "name": "three ketones + CH₃MgBr"
   },
+  "u7-grg-mg": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 39.2,
+          "y1": 61.0,
+          "x2": 51.3,
+          "y2": 54.0
+        },
+        {
+          "x1": 51.3,
+          "y1": 54.0,
+          "x2": 51.4,
+          "y2": 34.0,
+          "order": 2
+        },
+        {
+          "x1": 51.4,
+          "y1": 34.0,
+          "x2": 68.7,
+          "y2": 24.0
+        },
+        {
+          "x1": 68.7,
+          "y1": 24.0,
+          "x2": 86.0,
+          "y2": 34.0,
+          "order": 2
+        },
+        {
+          "x1": 86.0,
+          "y1": 34.0,
+          "x2": 86.0,
+          "y2": 54.0
+        },
+        {
+          "x1": 86.0,
+          "y1": 54.0,
+          "x2": 68.6,
+          "y2": 64.0,
+          "order": 2
+        },
+        {
+          "x1": 68.6,
+          "y1": 64.0,
+          "x2": 51.3,
+          "y2": 54.0
+        }
+      ],
+      "labels": [
+        {
+          "x": 34.0,
+          "y": 69.0,
+          "t": "Br",
+          "size": 13
+        }
+      ]
+    },
+    "name": "bromobenzene + Mg, ether"
+  },
+  "u7-pro-grignard": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 97.0,
+          "y1": 42.1,
+          "x2": 85.2,
+          "y2": 48.9,
+          "order": 2
+        },
+        {
+          "x1": 85.2,
+          "y1": 48.9,
+          "x2": 68.4,
+          "y2": 39.2
+        },
+        {
+          "x1": 68.4,
+          "y1": 39.2,
+          "x2": 51.6,
+          "y2": 48.8
+        },
+        {
+          "x1": 51.6,
+          "y1": 48.8,
+          "x2": 34.8,
+          "y2": 39.1
+        },
+        {
+          "x1": 34.8,
+          "y1": 39.1,
+          "x2": 23.0,
+          "y2": 45.9
+        }
+      ],
+      "labels": [
+        {
+          "x": 102.0,
+          "y": 44.2,
+          "t": "O",
+          "size": 13
+        },
+        {
+          "x": 18.0,
+          "y": 53.8,
+          "t": "Br",
+          "size": 13
+        }
+      ]
+    },
+    "name": "4-bromobutanal, three steps"
+  },
   "u7-hdr-meet": {
     "kind": "structure",
     "figure": {
@@ -7623,6 +7909,84 @@ export const U7_VISUALS: Readonly<Record<string, McqVisual>> = {
       ]
     },
     "name": "butanone + NaBH₄"
+  },
+  "u7-pro-ester": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 18.0,
+          "y1": 48.0,
+          "x2": 27.8,
+          "y2": 42.4
+        },
+        {
+          "x1": 36.2,
+          "y1": 42.4,
+          "x2": 46.0,
+          "y2": 48.0
+        },
+        {
+          "x1": 46.0,
+          "y1": 48.0,
+          "x2": 46.0,
+          "y2": 59.3,
+          "order": 2
+        },
+        {
+          "x1": 46.0,
+          "y1": 48.0,
+          "x2": 60.0,
+          "y2": 40.0
+        },
+        {
+          "x1": 60.0,
+          "y1": 40.0,
+          "x2": 74.0,
+          "y2": 48.0
+        },
+        {
+          "x1": 74.0,
+          "y1": 48.0,
+          "x2": 88.0,
+          "y2": 40.0
+        },
+        {
+          "x1": 88.0,
+          "y1": 40.0,
+          "x2": 102.0,
+          "y2": 48.1
+        },
+        {
+          "x1": 88.0,
+          "y1": 40.0,
+          "x2": 88.0,
+          "y2": 28.7,
+          "order": 2
+        }
+      ],
+      "labels": [
+        {
+          "x": 32.0,
+          "y": 44.9,
+          "t": "O",
+          "size": 13
+        },
+        {
+          "x": 46.0,
+          "y": 69.2,
+          "t": "O",
+          "size": 13
+        },
+        {
+          "x": 88.0,
+          "y": 28.8,
+          "t": "O",
+          "size": 13
+        }
+      ]
+    },
+    "name": "keto ester, three steps"
   },
   "u7-wit-meet": {
     "kind": "structure",
@@ -8563,6 +8927,65 @@ export const U7_VISUALS: Readonly<Record<string, McqVisual>> = {
       ]
     },
     "name": "ketone with an acetal"
+  },
+  "u7-ch2-thio": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 39.2,
+          "y1": 27.0,
+          "x2": 51.3,
+          "y2": 34.0,
+          "order": 2
+        },
+        {
+          "x1": 51.3,
+          "y1": 34.0,
+          "x2": 51.4,
+          "y2": 54.0
+        },
+        {
+          "x1": 51.4,
+          "y1": 54.0,
+          "x2": 68.7,
+          "y2": 64.0
+        },
+        {
+          "x1": 68.7,
+          "y1": 64.0,
+          "x2": 86.0,
+          "y2": 54.0
+        },
+        {
+          "x1": 86.0,
+          "y1": 54.0,
+          "x2": 86.0,
+          "y2": 34.0
+        },
+        {
+          "x1": 86.0,
+          "y1": 34.0,
+          "x2": 68.6,
+          "y2": 24.0
+        },
+        {
+          "x1": 68.6,
+          "y1": 24.0,
+          "x2": 51.3,
+          "y2": 34.0
+        }
+      ],
+      "labels": [
+        {
+          "x": 34.0,
+          "y": 29.0,
+          "t": "O",
+          "size": 13
+        }
+      ]
+    },
+    "name": "cyclohexanone + HSCH₂CH₂SH"
   },
   "u7-ch2-raney": {
     "kind": "structure",
@@ -13827,198 +14250,519 @@ export const U7_OPTION_TILES: Readonly<Record<string, Readonly<Record<string, Na
       "name": "1-phenylethane-1,1-diol"
     }
   },
-  "u7-pro-ester": {
-    "target": {
+  "u7-pro-ring": {
+    "five": {
       "figure": {
         "bonds": [
           {
-            "x1": 102.0,
-            "y1": 58.5,
-            "x2": 85.2,
-            "y2": 48.8
+            "x1": 24.6,
+            "y1": 43.9,
+            "x2": 34.6,
+            "y2": 26.7
           },
           {
-            "x1": 85.2,
-            "y1": 48.8,
-            "x2": 85.2,
-            "y2": 35.2,
-            "order": 2
+            "x1": 34.6,
+            "y1": 26.7,
+            "x2": 54.6,
+            "y2": 26.7
           },
           {
-            "x1": 85.2,
-            "y1": 48.8,
-            "x2": 68.4,
-            "y2": 58.5
+            "x1": 54.6,
+            "y1": 26.7,
+            "x2": 64.6,
+            "y2": 44.1
           },
           {
-            "x1": 68.4,
-            "y1": 58.5,
-            "x2": 51.6,
-            "y2": 48.9
+            "x1": 64.6,
+            "y1": 44.1,
+            "x2": 54.6,
+            "y2": 61.3
           },
           {
-            "x1": 51.6,
-            "y1": 48.9,
-            "x2": 34.8,
-            "y2": 58.6
+            "x1": 54.6,
+            "y1": 61.3,
+            "x2": 34.6,
+            "y2": 61.3
           },
           {
-            "x1": 34.8,
-            "y1": 58.6,
-            "x2": 23.0,
-            "y2": 51.8
+            "x1": 64.6,
+            "y1": 44.1,
+            "x2": 72.8,
+            "y2": 55.4
+          },
+          {
+            "x1": 82.0,
+            "y1": 58.4,
+            "x2": 95.3,
+            "y2": 54.1
+          },
+          {
+            "x1": 95.3,
+            "y1": 54.1,
+            "x2": 95.4,
+            "y2": 34.1
+          },
+          {
+            "x1": 95.4,
+            "y1": 34.1,
+            "x2": 82.1,
+            "y2": 29.8
+          },
+          {
+            "x1": 34.6,
+            "y1": 61.3,
+            "x2": 24.6,
+            "y2": 43.9
+          },
+          {
+            "x1": 72.9,
+            "y1": 32.8,
+            "x2": 64.6,
+            "y2": 44.1
           }
         ],
         "labels": [
           {
-            "x": 85.1,
-            "y": 34.4,
+            "x": 76.3,
+            "y": 65.3,
             "t": "O",
             "size": 13
           },
           {
-            "x": 18.0,
-            "y": 53.9,
-            "t": "OH",
+            "x": 76.4,
+            "y": 32.9,
+            "t": "O",
             "size": 13
           }
         ]
       },
-      "name": "5-hydroxypentan-2-one"
+      "name": "1,4-dioxaspiro[4.5]decane"
     },
-    "diol": {
+    "six": {
       "figure": {
         "bonds": [
           {
-            "x1": 102.0,
-            "y1": 58.5,
-            "x2": 85.2,
-            "y2": 48.8
+            "x1": 88.9,
+            "y1": 27.4,
+            "x2": 74.5,
+            "y2": 19.0
           },
           {
-            "x1": 85.2,
-            "y1": 48.8,
-            "x2": 85.2,
-            "y2": 35.2
-          },
-          {
-            "x1": 85.2,
-            "y1": 48.8,
-            "x2": 68.4,
-            "y2": 58.5
-          },
-          {
-            "x1": 68.4,
-            "y1": 58.5,
-            "x2": 51.6,
-            "y2": 48.9
-          },
-          {
-            "x1": 51.6,
-            "y1": 48.9,
-            "x2": 34.8,
-            "y2": 58.6
-          },
-          {
-            "x1": 34.8,
-            "y1": 58.6,
-            "x2": 23.0,
-            "y2": 51.8
-          }
-        ],
-        "labels": [
-          {
-            "x": 85.1,
-            "y": 34.4,
-            "t": "OH",
-            "size": 13
-          },
-          {
-            "x": 18.0,
-            "y": 53.9,
-            "t": "OH",
-            "size": 13
-          }
-        ]
-      },
-      "name": "pentane-1,4-diol"
-    },
-    "start": {
-      "figure": {
-        "bonds": [
-          {
-            "x1": 18.0,
-            "y1": 48.0,
-            "x2": 27.8,
-            "y2": 42.4
-          },
-          {
-            "x1": 36.2,
-            "y1": 42.4,
-            "x2": 46.0,
-            "y2": 48.0
-          },
-          {
-            "x1": 46.0,
-            "y1": 48.0,
-            "x2": 46.0,
-            "y2": 59.3,
-            "order": 2
-          },
-          {
-            "x1": 46.0,
-            "y1": 48.0,
+            "x1": 74.5,
+            "y1": 19.0,
             "x2": 60.0,
-            "y2": 40.0
+            "y2": 27.3
           },
           {
             "x1": 60.0,
-            "y1": 40.0,
-            "x2": 74.0,
-            "y2": 48.0
+            "y1": 27.3,
+            "x2": 60.0,
+            "y2": 44.0
           },
           {
-            "x1": 74.0,
-            "y1": 48.0,
-            "x2": 88.0,
-            "y2": 40.0
+            "x1": 60.0,
+            "y1": 44.0,
+            "x2": 74.4,
+            "y2": 52.3
           },
           {
-            "x1": 88.0,
-            "y1": 40.0,
-            "x2": 102.0,
-            "y2": 48.1
+            "x1": 74.4,
+            "y1": 52.3,
+            "x2": 88.9,
+            "y2": 44.0
           },
           {
-            "x1": 88.0,
-            "y1": 40.0,
-            "x2": 88.0,
-            "y2": 28.7,
-            "order": 2
+            "x1": 60.0,
+            "y1": 44.0,
+            "x2": 60.0,
+            "y2": 55.7
+          },
+          {
+            "x1": 55.7,
+            "y1": 63.2,
+            "x2": 45.5,
+            "y2": 69.0
+          },
+          {
+            "x1": 45.5,
+            "y1": 69.0,
+            "x2": 31.1,
+            "y2": 60.6
+          },
+          {
+            "x1": 31.1,
+            "y1": 60.6,
+            "x2": 31.1,
+            "y2": 44.0
+          },
+          {
+            "x1": 31.1,
+            "y1": 44.0,
+            "x2": 41.2,
+            "y2": 38.2
+          },
+          {
+            "x1": 88.9,
+            "y1": 44.0,
+            "x2": 88.9,
+            "y2": 27.4
+          },
+          {
+            "x1": 49.9,
+            "y1": 38.2,
+            "x2": 60.0,
+            "y2": 44.0
           }
         ],
         "labels": [
           {
-            "x": 32.0,
-            "y": 44.9,
+            "x": 60.0,
+            "y": 65.7,
             "t": "O",
             "size": 13
           },
           {
-            "x": 46.0,
-            "y": 69.2,
-            "t": "O",
-            "size": 13
-          },
-          {
-            "x": 88.0,
-            "y": 28.8,
+            "x": 45.6,
+            "y": 40.7,
             "t": "O",
             "size": 13
           }
         ]
       },
-      "name": "methyl 4-oxopentanoate"
+      "name": "1,5-dioxaspiro[5.5]undecane"
+    },
+    "hemi": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 22.6,
+            "y1": 54.9,
+            "x2": 33.2,
+            "y2": 61.1
+          },
+          {
+            "x1": 33.2,
+            "y1": 61.1,
+            "x2": 48.4,
+            "y2": 52.3
+          },
+          {
+            "x1": 48.4,
+            "y1": 52.3,
+            "x2": 59.0,
+            "y2": 58.4
+          },
+          {
+            "x1": 68.1,
+            "y1": 58.4,
+            "x2": 78.7,
+            "y2": 52.3
+          },
+          {
+            "x1": 78.7,
+            "y1": 52.3,
+            "x2": 83.0,
+            "y2": 63.8
+          },
+          {
+            "x1": 78.7,
+            "y1": 52.3,
+            "x2": 67.5,
+            "y2": 38.8
+          },
+          {
+            "x1": 67.5,
+            "y1": 38.8,
+            "x2": 73.4,
+            "y2": 22.3
+          },
+          {
+            "x1": 73.4,
+            "y1": 22.3,
+            "x2": 90.7,
+            "y2": 19.3
+          },
+          {
+            "x1": 90.7,
+            "y1": 19.3,
+            "x2": 102.0,
+            "y2": 32.7
+          },
+          {
+            "x1": 102.0,
+            "y1": 32.7,
+            "x2": 96.0,
+            "y2": 49.2
+          },
+          {
+            "x1": 96.0,
+            "y1": 49.2,
+            "x2": 78.7,
+            "y2": 52.3
+          }
+        ],
+        "labels": [
+          {
+            "x": 18.0,
+            "y": 57.3,
+            "t": "OH",
+            "size": 13
+          },
+          {
+            "x": 63.6,
+            "y": 66.0,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 84.8,
+            "y": 73.7,
+            "t": "OH",
+            "size": 13
+          }
+        ]
+      },
+      "name": "2-[(1-hydroxycyclohexyl)oxy]ethan-1-ol"
+    }
+  },
+  "u7-pro-base": {
+    "same": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 24.6,
+            "y1": 43.9,
+            "x2": 34.6,
+            "y2": 26.7
+          },
+          {
+            "x1": 34.6,
+            "y1": 26.7,
+            "x2": 54.6,
+            "y2": 26.7
+          },
+          {
+            "x1": 54.6,
+            "y1": 26.7,
+            "x2": 64.6,
+            "y2": 44.1
+          },
+          {
+            "x1": 64.6,
+            "y1": 44.1,
+            "x2": 54.6,
+            "y2": 61.3
+          },
+          {
+            "x1": 54.6,
+            "y1": 61.3,
+            "x2": 34.6,
+            "y2": 61.3
+          },
+          {
+            "x1": 64.6,
+            "y1": 44.1,
+            "x2": 72.8,
+            "y2": 55.4
+          },
+          {
+            "x1": 82.0,
+            "y1": 58.4,
+            "x2": 95.3,
+            "y2": 54.1
+          },
+          {
+            "x1": 95.3,
+            "y1": 54.1,
+            "x2": 95.4,
+            "y2": 34.1
+          },
+          {
+            "x1": 95.4,
+            "y1": 34.1,
+            "x2": 82.1,
+            "y2": 29.8
+          },
+          {
+            "x1": 34.6,
+            "y1": 61.3,
+            "x2": 24.6,
+            "y2": 43.9
+          },
+          {
+            "x1": 72.9,
+            "y1": 32.8,
+            "x2": 64.6,
+            "y2": 44.1
+          }
+        ],
+        "labels": [
+          {
+            "x": 76.3,
+            "y": 65.3,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 76.4,
+            "y": 32.9,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "1,4-dioxaspiro[4.5]decane"
+    },
+    "ket": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 39.2,
+            "y1": 27.0,
+            "x2": 51.3,
+            "y2": 34.0,
+            "order": 2
+          },
+          {
+            "x1": 51.3,
+            "y1": 34.0,
+            "x2": 51.4,
+            "y2": 54.0
+          },
+          {
+            "x1": 51.4,
+            "y1": 54.0,
+            "x2": 68.7,
+            "y2": 64.0
+          },
+          {
+            "x1": 68.7,
+            "y1": 64.0,
+            "x2": 86.0,
+            "y2": 54.0
+          },
+          {
+            "x1": 86.0,
+            "y1": 54.0,
+            "x2": 86.0,
+            "y2": 34.0
+          },
+          {
+            "x1": 86.0,
+            "y1": 34.0,
+            "x2": 68.6,
+            "y2": 24.0
+          },
+          {
+            "x1": 68.6,
+            "y1": 24.0,
+            "x2": 51.3,
+            "y2": 34.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 34.0,
+            "y": 29.0,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "cyclohexanone"
+    },
+    "hemi": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 22.6,
+            "y1": 54.9,
+            "x2": 33.2,
+            "y2": 61.1
+          },
+          {
+            "x1": 33.2,
+            "y1": 61.1,
+            "x2": 48.4,
+            "y2": 52.3
+          },
+          {
+            "x1": 48.4,
+            "y1": 52.3,
+            "x2": 59.0,
+            "y2": 58.4
+          },
+          {
+            "x1": 68.1,
+            "y1": 58.4,
+            "x2": 78.7,
+            "y2": 52.3
+          },
+          {
+            "x1": 78.7,
+            "y1": 52.3,
+            "x2": 83.0,
+            "y2": 63.8
+          },
+          {
+            "x1": 78.7,
+            "y1": 52.3,
+            "x2": 67.5,
+            "y2": 38.8
+          },
+          {
+            "x1": 67.5,
+            "y1": 38.8,
+            "x2": 73.4,
+            "y2": 22.3
+          },
+          {
+            "x1": 73.4,
+            "y1": 22.3,
+            "x2": 90.7,
+            "y2": 19.3
+          },
+          {
+            "x1": 90.7,
+            "y1": 19.3,
+            "x2": 102.0,
+            "y2": 32.7
+          },
+          {
+            "x1": 102.0,
+            "y1": 32.7,
+            "x2": 96.0,
+            "y2": 49.2
+          },
+          {
+            "x1": 96.0,
+            "y1": 49.2,
+            "x2": 78.7,
+            "y2": 52.3
+          }
+        ],
+        "labels": [
+          {
+            "x": 18.0,
+            "y": 57.3,
+            "t": "OH",
+            "size": 13
+          },
+          {
+            "x": 63.6,
+            "y": 66.0,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 84.8,
+            "y": 73.7,
+            "t": "OH",
+            "size": 13
+          }
+        ]
+      },
+      "name": "2-[(1-hydroxycyclohexyl)oxy]ethan-1-ol"
     }
   },
   "u7-pro-which": {
@@ -14314,246 +15058,6 @@ export const U7_OPTION_TILES: Readonly<Record<string, Readonly<Record<string, Na
         ]
       },
       "name": "2-methyl-2-[2-(1,3-dioxolan-2-yl)ethyl]-1,3-dioxolane"
-    }
-  },
-  "u7-pro-grignard": {
-    "acetal": {
-      "figure": {
-        "bonds": [
-          {
-            "x1": 23.1,
-            "y1": 36.8,
-            "x2": 30.3,
-            "y2": 49.1
-          },
-          {
-            "x1": 30.3,
-            "y1": 49.1,
-            "x2": 18.0,
-            "y2": 56.3
-          },
-          {
-            "x1": 30.3,
-            "y1": 49.1,
-            "x2": 35.2,
-            "y2": 40.5
-          },
-          {
-            "x1": 30.3,
-            "y1": 49.1,
-            "x2": 42.6,
-            "y2": 56.2
-          },
-          {
-            "x1": 42.6,
-            "y1": 56.2,
-            "x2": 54.9,
-            "y2": 49.0
-          },
-          {
-            "x1": 54.9,
-            "y1": 49.0,
-            "x2": 67.2,
-            "y2": 56.1
-          },
-          {
-            "x1": 67.2,
-            "y1": 56.1,
-            "x2": 79.5,
-            "y2": 48.9
-          },
-          {
-            "x1": 79.5,
-            "y1": 48.9,
-            "x2": 80.5,
-            "y2": 39.0
-          },
-          {
-            "x1": 85.1,
-            "y1": 33.9,
-            "x2": 94.9,
-            "y2": 31.7
-          },
-          {
-            "x1": 94.9,
-            "y1": 31.7,
-            "x2": 102.0,
-            "y2": 44.0
-          },
-          {
-            "x1": 102.0,
-            "y1": 44.0,
-            "x2": 95.4,
-            "y2": 51.5
-          },
-          {
-            "x1": 88.6,
-            "y1": 52.9,
-            "x2": 79.5,
-            "y2": 48.9
-          }
-        ],
-        "labels": [
-          {
-            "x": 37.3,
-            "y": 41.8,
-            "t": "OH",
-            "size": 13
-          },
-          {
-            "x": 81.0,
-            "y": 39.8,
-            "t": "O",
-            "size": 13
-          },
-          {
-            "x": 92.5,
-            "y": 59.6,
-            "t": "O",
-            "size": 13
-          }
-        ]
-      },
-      "name": "5-(1,3-dioxolan-2-yl)-2-methylpentan-2-ol"
-    },
-    "diol": {
-      "figure": {
-        "bonds": [
-          {
-            "x1": 96.1,
-            "y1": 33.0,
-            "x2": 88.0,
-            "y2": 47.0
-          },
-          {
-            "x1": 88.0,
-            "y1": 47.0,
-            "x2": 102.0,
-            "y2": 55.0
-          },
-          {
-            "x1": 88.0,
-            "y1": 47.0,
-            "x2": 82.4,
-            "y2": 37.2
-          },
-          {
-            "x1": 88.0,
-            "y1": 47.0,
-            "x2": 74.0,
-            "y2": 55.0
-          },
-          {
-            "x1": 74.0,
-            "y1": 55.0,
-            "x2": 60.0,
-            "y2": 46.9
-          },
-          {
-            "x1": 60.0,
-            "y1": 46.9,
-            "x2": 46.0,
-            "y2": 55.0
-          },
-          {
-            "x1": 46.0,
-            "y1": 55.0,
-            "x2": 32.0,
-            "y2": 46.9
-          },
-          {
-            "x1": 32.0,
-            "y1": 46.9,
-            "x2": 22.2,
-            "y2": 52.6
-          }
-        ],
-        "labels": [
-          {
-            "x": 79.9,
-            "y": 38.0,
-            "t": "OH",
-            "size": 13
-          },
-          {
-            "x": 18.0,
-            "y": 60.0,
-            "t": "OH",
-            "size": 13
-          }
-        ]
-      },
-      "name": "5-methylhexane-1,5-diol"
-    },
-    "target": {
-      "figure": {
-        "bonds": [
-          {
-            "x1": 96.1,
-            "y1": 55.0,
-            "x2": 88.0,
-            "y2": 41.0
-          },
-          {
-            "x1": 88.0,
-            "y1": 41.0,
-            "x2": 102.0,
-            "y2": 33.0
-          },
-          {
-            "x1": 88.0,
-            "y1": 41.0,
-            "x2": 82.4,
-            "y2": 50.8
-          },
-          {
-            "x1": 88.0,
-            "y1": 41.0,
-            "x2": 74.0,
-            "y2": 33.0
-          },
-          {
-            "x1": 74.0,
-            "y1": 33.0,
-            "x2": 60.0,
-            "y2": 41.1
-          },
-          {
-            "x1": 60.0,
-            "y1": 41.1,
-            "x2": 46.0,
-            "y2": 33.0
-          },
-          {
-            "x1": 46.0,
-            "y1": 33.0,
-            "x2": 32.0,
-            "y2": 41.1
-          },
-          {
-            "x1": 32.0,
-            "y1": 41.1,
-            "x2": 22.2,
-            "y2": 35.4,
-            "order": 2
-          }
-        ],
-        "labels": [
-          {
-            "x": 79.9,
-            "y": 60.0,
-            "t": "OH",
-            "size": 13
-          },
-          {
-            "x": 18.0,
-            "y": 38.0,
-            "t": "O",
-            "size": 13
-          }
-        ]
-      },
-      "name": "5-hydroxy-5-methylhexanal"
     }
   },
   "u7-imn-meet": {
@@ -17047,6 +17551,457 @@ export const U7_OPTION_TILES: Readonly<Record<string, Readonly<Record<string, Na
       "name": "butan-2-one"
     }
   },
+  "u7-grg-mg": {
+    "rmgx": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 68.7,
+            "y1": 21.1,
+            "x2": 63.7,
+            "y2": 24.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 30.4,
+            "x2": 60.0,
+            "y2": 40.4
+          },
+          {
+            "x1": 60.0,
+            "y1": 40.4,
+            "x2": 47.6,
+            "y2": 47.5,
+            "order": 2
+          },
+          {
+            "x1": 47.6,
+            "y1": 47.5,
+            "x2": 47.6,
+            "y2": 61.8
+          },
+          {
+            "x1": 47.6,
+            "y1": 61.8,
+            "x2": 59.9,
+            "y2": 69.0,
+            "order": 2
+          },
+          {
+            "x1": 59.9,
+            "y1": 69.0,
+            "x2": 72.3,
+            "y2": 61.9
+          },
+          {
+            "x1": 72.3,
+            "y1": 61.9,
+            "x2": 72.4,
+            "y2": 47.6,
+            "order": 2
+          },
+          {
+            "x1": 72.4,
+            "y1": 47.6,
+            "x2": 60.0,
+            "y2": 40.4
+          }
+        ],
+        "labels": [
+          {
+            "x": 72.4,
+            "y": 24.0,
+            "t": "Br",
+            "size": 13
+          },
+          {
+            "x": 60.0,
+            "y": 31.1,
+            "t": "Mg",
+            "size": 13
+          }
+        ]
+      },
+      "name": "phenylmagnesium bromide"
+    },
+    "bz": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 42.7,
+            "y1": 54.0,
+            "x2": 42.7,
+            "y2": 34.0
+          },
+          {
+            "x1": 42.7,
+            "y1": 34.0,
+            "x2": 60.0,
+            "y2": 24.0,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 24.0,
+            "x2": 77.3,
+            "y2": 34.0
+          },
+          {
+            "x1": 77.3,
+            "y1": 34.0,
+            "x2": 77.3,
+            "y2": 54.0,
+            "order": 2
+          },
+          {
+            "x1": 77.3,
+            "y1": 54.0,
+            "x2": 60.0,
+            "y2": 64.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 64.0,
+            "x2": 42.7,
+            "y2": 54.0,
+            "order": 2
+          }
+        ]
+      },
+      "name": "benzene"
+    },
+    "biph": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 59.9,
+            "y1": 19.0,
+            "x2": 51.3,
+            "y2": 24.0,
+            "order": 2
+          },
+          {
+            "x1": 51.3,
+            "y1": 24.0,
+            "x2": 51.3,
+            "y2": 34.0
+          },
+          {
+            "x1": 51.3,
+            "y1": 34.0,
+            "x2": 60.0,
+            "y2": 39.0,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 39.0,
+            "x2": 60.0,
+            "y2": 49.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 49.0,
+            "x2": 68.7,
+            "y2": 54.0,
+            "order": 2
+          },
+          {
+            "x1": 68.7,
+            "y1": 54.0,
+            "x2": 68.7,
+            "y2": 64.0
+          },
+          {
+            "x1": 68.7,
+            "y1": 64.0,
+            "x2": 60.1,
+            "y2": 69.0,
+            "order": 2
+          },
+          {
+            "x1": 60.1,
+            "y1": 69.0,
+            "x2": 51.4,
+            "y2": 64.0
+          },
+          {
+            "x1": 51.4,
+            "y1": 64.0,
+            "x2": 51.4,
+            "y2": 54.0,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 39.0,
+            "x2": 68.6,
+            "y2": 34.0
+          },
+          {
+            "x1": 68.6,
+            "y1": 34.0,
+            "x2": 68.6,
+            "y2": 24.0,
+            "order": 2
+          },
+          {
+            "x1": 68.6,
+            "y1": 24.0,
+            "x2": 59.9,
+            "y2": 19.0
+          },
+          {
+            "x1": 51.4,
+            "y1": 54.0,
+            "x2": 60.0,
+            "y2": 49.0
+          }
+        ]
+      },
+      "name": "biphenyl"
+    }
+  },
+  "u7-pro-grignard": {
+    "acetal": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 23.1,
+            "y1": 36.8,
+            "x2": 30.3,
+            "y2": 49.1
+          },
+          {
+            "x1": 30.3,
+            "y1": 49.1,
+            "x2": 18.0,
+            "y2": 56.3
+          },
+          {
+            "x1": 30.3,
+            "y1": 49.1,
+            "x2": 35.2,
+            "y2": 40.5
+          },
+          {
+            "x1": 30.3,
+            "y1": 49.1,
+            "x2": 42.6,
+            "y2": 56.2
+          },
+          {
+            "x1": 42.6,
+            "y1": 56.2,
+            "x2": 54.9,
+            "y2": 49.0
+          },
+          {
+            "x1": 54.9,
+            "y1": 49.0,
+            "x2": 67.2,
+            "y2": 56.1
+          },
+          {
+            "x1": 67.2,
+            "y1": 56.1,
+            "x2": 79.5,
+            "y2": 48.9
+          },
+          {
+            "x1": 79.5,
+            "y1": 48.9,
+            "x2": 80.5,
+            "y2": 39.0
+          },
+          {
+            "x1": 85.1,
+            "y1": 33.9,
+            "x2": 94.9,
+            "y2": 31.7
+          },
+          {
+            "x1": 94.9,
+            "y1": 31.7,
+            "x2": 102.0,
+            "y2": 44.0
+          },
+          {
+            "x1": 102.0,
+            "y1": 44.0,
+            "x2": 95.4,
+            "y2": 51.5
+          },
+          {
+            "x1": 88.6,
+            "y1": 52.9,
+            "x2": 79.5,
+            "y2": 48.9
+          }
+        ],
+        "labels": [
+          {
+            "x": 37.3,
+            "y": 41.8,
+            "t": "OH",
+            "size": 13
+          },
+          {
+            "x": 81.0,
+            "y": 39.8,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 92.5,
+            "y": 59.6,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "5-(1,3-dioxolan-2-yl)-2-methylpentan-2-ol"
+    },
+    "diol": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 96.1,
+            "y1": 33.0,
+            "x2": 88.0,
+            "y2": 47.0
+          },
+          {
+            "x1": 88.0,
+            "y1": 47.0,
+            "x2": 102.0,
+            "y2": 55.0
+          },
+          {
+            "x1": 88.0,
+            "y1": 47.0,
+            "x2": 82.4,
+            "y2": 37.2
+          },
+          {
+            "x1": 88.0,
+            "y1": 47.0,
+            "x2": 74.0,
+            "y2": 55.0
+          },
+          {
+            "x1": 74.0,
+            "y1": 55.0,
+            "x2": 60.0,
+            "y2": 46.9
+          },
+          {
+            "x1": 60.0,
+            "y1": 46.9,
+            "x2": 46.0,
+            "y2": 55.0
+          },
+          {
+            "x1": 46.0,
+            "y1": 55.0,
+            "x2": 32.0,
+            "y2": 46.9
+          },
+          {
+            "x1": 32.0,
+            "y1": 46.9,
+            "x2": 22.2,
+            "y2": 52.6
+          }
+        ],
+        "labels": [
+          {
+            "x": 79.9,
+            "y": 38.0,
+            "t": "OH",
+            "size": 13
+          },
+          {
+            "x": 18.0,
+            "y": 60.0,
+            "t": "OH",
+            "size": 13
+          }
+        ]
+      },
+      "name": "5-methylhexane-1,5-diol"
+    },
+    "target": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 96.1,
+            "y1": 55.0,
+            "x2": 88.0,
+            "y2": 41.0
+          },
+          {
+            "x1": 88.0,
+            "y1": 41.0,
+            "x2": 102.0,
+            "y2": 33.0
+          },
+          {
+            "x1": 88.0,
+            "y1": 41.0,
+            "x2": 82.4,
+            "y2": 50.8
+          },
+          {
+            "x1": 88.0,
+            "y1": 41.0,
+            "x2": 74.0,
+            "y2": 33.0
+          },
+          {
+            "x1": 74.0,
+            "y1": 33.0,
+            "x2": 60.0,
+            "y2": 41.1
+          },
+          {
+            "x1": 60.0,
+            "y1": 41.1,
+            "x2": 46.0,
+            "y2": 33.0
+          },
+          {
+            "x1": 46.0,
+            "y1": 33.0,
+            "x2": 32.0,
+            "y2": 41.1
+          },
+          {
+            "x1": 32.0,
+            "y1": 41.1,
+            "x2": 22.2,
+            "y2": 35.4,
+            "order": 2
+          }
+        ],
+        "labels": [
+          {
+            "x": 79.9,
+            "y": 60.0,
+            "t": "OH",
+            "size": 13
+          },
+          {
+            "x": 18.0,
+            "y": 38.0,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "5-hydroxy-5-methylhexanal"
+    }
+  },
   "u7-hdr-meet": {
     "ol": {
       "figure": {
@@ -17148,49 +18103,68 @@ export const U7_OPTION_TILES: Readonly<Record<string, Readonly<Record<string, Na
       },
       "name": "cyclohexane"
     },
-    "ene": {
+    "oxide": {
       "figure": {
         "bonds": [
           {
-            "x1": 42.7,
+            "x1": 39.2,
+            "y1": 61.0,
+            "x2": 51.3,
+            "y2": 54.0
+          },
+          {
+            "x1": 51.3,
             "y1": 54.0,
-            "x2": 42.7,
-            "y2": 34.0,
-            "order": 2
-          },
-          {
-            "x1": 42.7,
-            "y1": 34.0,
-            "x2": 60.0,
-            "y2": 24.0
-          },
-          {
-            "x1": 60.0,
-            "y1": 24.0,
-            "x2": 77.3,
+            "x2": 51.4,
             "y2": 34.0
           },
           {
-            "x1": 77.3,
+            "x1": 51.4,
             "y1": 34.0,
-            "x2": 77.3,
+            "x2": 68.7,
+            "y2": 24.0
+          },
+          {
+            "x1": 68.7,
+            "y1": 24.0,
+            "x2": 86.0,
+            "y2": 34.0
+          },
+          {
+            "x1": 86.0,
+            "y1": 34.0,
+            "x2": 86.0,
             "y2": 54.0
           },
           {
-            "x1": 77.3,
+            "x1": 86.0,
             "y1": 54.0,
-            "x2": 60.0,
+            "x2": 68.6,
             "y2": 64.0
           },
           {
-            "x1": 60.0,
+            "x1": 68.6,
             "y1": 64.0,
-            "x2": 42.7,
+            "x2": 51.3,
             "y2": 54.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 34.0,
+            "y": 69.0,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 43.0,
+            "y": 62.5,
+            "t": "−",
+            "size": 13
           }
         ]
       },
-      "name": "cyclohexene"
+      "name": "cyclohexanolate"
     }
   },
   "u7-hdr-lah": {
@@ -17887,6 +18861,199 @@ export const U7_OPTION_TILES: Readonly<Record<string, Readonly<Record<string, Na
         ]
       },
       "name": "4-hydroxypentanoic acid"
+    }
+  },
+  "u7-pro-ester": {
+    "target": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 102.0,
+            "y1": 58.5,
+            "x2": 85.2,
+            "y2": 48.8
+          },
+          {
+            "x1": 85.2,
+            "y1": 48.8,
+            "x2": 85.2,
+            "y2": 35.2,
+            "order": 2
+          },
+          {
+            "x1": 85.2,
+            "y1": 48.8,
+            "x2": 68.4,
+            "y2": 58.5
+          },
+          {
+            "x1": 68.4,
+            "y1": 58.5,
+            "x2": 51.6,
+            "y2": 48.9
+          },
+          {
+            "x1": 51.6,
+            "y1": 48.9,
+            "x2": 34.8,
+            "y2": 58.6
+          },
+          {
+            "x1": 34.8,
+            "y1": 58.6,
+            "x2": 23.0,
+            "y2": 51.8
+          }
+        ],
+        "labels": [
+          {
+            "x": 85.1,
+            "y": 34.4,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 18.0,
+            "y": 53.9,
+            "t": "OH",
+            "size": 13
+          }
+        ]
+      },
+      "name": "5-hydroxypentan-2-one"
+    },
+    "diol": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 102.0,
+            "y1": 58.5,
+            "x2": 85.2,
+            "y2": 48.8
+          },
+          {
+            "x1": 85.2,
+            "y1": 48.8,
+            "x2": 85.2,
+            "y2": 35.2
+          },
+          {
+            "x1": 85.2,
+            "y1": 48.8,
+            "x2": 68.4,
+            "y2": 58.5
+          },
+          {
+            "x1": 68.4,
+            "y1": 58.5,
+            "x2": 51.6,
+            "y2": 48.9
+          },
+          {
+            "x1": 51.6,
+            "y1": 48.9,
+            "x2": 34.8,
+            "y2": 58.6
+          },
+          {
+            "x1": 34.8,
+            "y1": 58.6,
+            "x2": 23.0,
+            "y2": 51.8
+          }
+        ],
+        "labels": [
+          {
+            "x": 85.1,
+            "y": 34.4,
+            "t": "OH",
+            "size": 13
+          },
+          {
+            "x": 18.0,
+            "y": 53.9,
+            "t": "OH",
+            "size": 13
+          }
+        ]
+      },
+      "name": "pentane-1,4-diol"
+    },
+    "keto": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 18.0,
+            "y1": 40.0,
+            "x2": 27.8,
+            "y2": 45.6
+          },
+          {
+            "x1": 36.2,
+            "y1": 45.6,
+            "x2": 46.0,
+            "y2": 40.0
+          },
+          {
+            "x1": 46.0,
+            "y1": 40.0,
+            "x2": 46.0,
+            "y2": 28.7,
+            "order": 2
+          },
+          {
+            "x1": 46.0,
+            "y1": 40.0,
+            "x2": 60.0,
+            "y2": 48.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 48.0,
+            "x2": 74.0,
+            "y2": 40.0
+          },
+          {
+            "x1": 74.0,
+            "y1": 40.0,
+            "x2": 88.0,
+            "y2": 48.0
+          },
+          {
+            "x1": 88.0,
+            "y1": 48.0,
+            "x2": 102.0,
+            "y2": 39.9
+          },
+          {
+            "x1": 88.0,
+            "y1": 48.0,
+            "x2": 88.0,
+            "y2": 59.3
+          }
+        ],
+        "labels": [
+          {
+            "x": 32.0,
+            "y": 53.1,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 46.0,
+            "y": 28.8,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 88.0,
+            "y": 69.2,
+            "t": "OH",
+            "size": 13
+          }
+        ]
+      },
+      "name": "methyl 4-hydroxypentanoate"
     }
   },
   "u7-wit-meet": {
@@ -19636,64 +20803,77 @@ export const U7_OPTION_TILES: Readonly<Record<string, Readonly<Record<string, Na
       },
       "name": "1-phenylethan-1-ol"
     },
-    "ene": {
+    "cl": {
       "figure": {
         "bonds": [
           {
-            "x1": 25.4,
-            "y1": 54.1,
-            "x2": 42.7,
-            "y2": 64.1,
-            "order": 2
+            "x1": 31.1,
+            "y1": 44.0,
+            "x2": 45.5,
+            "y2": 35.7
           },
           {
-            "x1": 42.7,
-            "y1": 64.1,
+            "x1": 45.5,
+            "y1": 35.7,
+            "x2": 45.5,
+            "y2": 24.0
+          },
+          {
+            "x1": 45.5,
+            "y1": 35.7,
             "x2": 60.0,
-            "y2": 54.0
+            "y2": 44.0
           },
           {
             "x1": 60.0,
-            "y1": 54.0,
-            "x2": 77.4,
-            "y2": 63.9,
-            "order": 2
-          },
-          {
-            "x1": 77.4,
-            "y1": 63.9,
-            "x2": 94.6,
-            "y2": 53.9
-          },
-          {
-            "x1": 94.6,
-            "y1": 53.9,
-            "x2": 94.6,
-            "y2": 33.9,
-            "order": 2
-          },
-          {
-            "x1": 94.6,
-            "y1": 33.9,
-            "x2": 77.2,
-            "y2": 23.9
-          },
-          {
-            "x1": 77.2,
-            "y1": 23.9,
-            "x2": 59.9,
-            "y2": 34.0,
-            "order": 2
-          },
-          {
-            "x1": 59.9,
-            "y1": 34.0,
+            "y1": 44.0,
             "x2": 60.0,
-            "y2": 54.0
+            "y2": 60.7,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 60.7,
+            "x2": 74.5,
+            "y2": 69.0
+          },
+          {
+            "x1": 74.5,
+            "y1": 69.0,
+            "x2": 88.9,
+            "y2": 60.6,
+            "order": 2
+          },
+          {
+            "x1": 88.9,
+            "y1": 60.6,
+            "x2": 88.9,
+            "y2": 44.0
+          },
+          {
+            "x1": 88.9,
+            "y1": 44.0,
+            "x2": 74.4,
+            "y2": 35.7,
+            "order": 2
+          },
+          {
+            "x1": 74.4,
+            "y1": 35.7,
+            "x2": 60.0,
+            "y2": 44.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 45.5,
+            "y": 24.0,
+            "t": "Cl",
+            "size": 13
           }
         ]
       },
-      "name": "ethenylbenzene"
+      "name": "(1-chloroethyl)benzene"
     }
   },
   "u7-ch2-wk": {
@@ -19855,6 +21035,275 @@ export const U7_OPTION_TILES: Readonly<Record<string, Readonly<Record<string, Na
         ]
       },
       "name": "cyclohexanol"
+    }
+  },
+  "u7-ch2-thio": {
+    "t": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 24.6,
+            "y1": 43.9,
+            "x2": 34.6,
+            "y2": 26.7
+          },
+          {
+            "x1": 34.6,
+            "y1": 26.7,
+            "x2": 54.6,
+            "y2": 26.7
+          },
+          {
+            "x1": 54.6,
+            "y1": 26.7,
+            "x2": 64.6,
+            "y2": 44.1
+          },
+          {
+            "x1": 64.6,
+            "y1": 44.1,
+            "x2": 54.6,
+            "y2": 61.3
+          },
+          {
+            "x1": 54.6,
+            "y1": 61.3,
+            "x2": 34.6,
+            "y2": 61.3
+          },
+          {
+            "x1": 64.6,
+            "y1": 44.1,
+            "x2": 72.8,
+            "y2": 55.4
+          },
+          {
+            "x1": 82.0,
+            "y1": 58.4,
+            "x2": 95.3,
+            "y2": 54.1
+          },
+          {
+            "x1": 95.3,
+            "y1": 54.1,
+            "x2": 95.4,
+            "y2": 34.1
+          },
+          {
+            "x1": 95.4,
+            "y1": 34.1,
+            "x2": 82.1,
+            "y2": 29.8
+          },
+          {
+            "x1": 34.6,
+            "y1": 61.3,
+            "x2": 24.6,
+            "y2": 43.9
+          },
+          {
+            "x1": 72.9,
+            "y1": 32.8,
+            "x2": 64.6,
+            "y2": 44.1
+          }
+        ],
+        "labels": [
+          {
+            "x": 76.3,
+            "y": 65.3,
+            "t": "S",
+            "size": 13
+          },
+          {
+            "x": 76.4,
+            "y": 32.9,
+            "t": "S",
+            "size": 13
+          }
+        ]
+      },
+      "name": "1,4-dithiaspiro[4.5]decane"
+    },
+    "o": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 24.6,
+            "y1": 43.9,
+            "x2": 34.6,
+            "y2": 26.7
+          },
+          {
+            "x1": 34.6,
+            "y1": 26.7,
+            "x2": 54.6,
+            "y2": 26.7
+          },
+          {
+            "x1": 54.6,
+            "y1": 26.7,
+            "x2": 64.6,
+            "y2": 44.1
+          },
+          {
+            "x1": 64.6,
+            "y1": 44.1,
+            "x2": 54.6,
+            "y2": 61.3
+          },
+          {
+            "x1": 54.6,
+            "y1": 61.3,
+            "x2": 34.6,
+            "y2": 61.3
+          },
+          {
+            "x1": 64.6,
+            "y1": 44.1,
+            "x2": 72.8,
+            "y2": 55.4
+          },
+          {
+            "x1": 82.0,
+            "y1": 58.4,
+            "x2": 95.3,
+            "y2": 54.1
+          },
+          {
+            "x1": 95.3,
+            "y1": 54.1,
+            "x2": 95.4,
+            "y2": 34.1
+          },
+          {
+            "x1": 95.4,
+            "y1": 34.1,
+            "x2": 82.1,
+            "y2": 29.8
+          },
+          {
+            "x1": 34.6,
+            "y1": 61.3,
+            "x2": 24.6,
+            "y2": 43.9
+          },
+          {
+            "x1": 72.9,
+            "y1": 32.8,
+            "x2": 64.6,
+            "y2": 44.1
+          }
+        ],
+        "labels": [
+          {
+            "x": 76.3,
+            "y": 65.3,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 76.4,
+            "y": 32.9,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "1,4-dioxaspiro[4.5]decane"
+    },
+    "half": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 83.0,
+            "y1": 63.8,
+            "x2": 78.7,
+            "y2": 52.3
+          },
+          {
+            "x1": 78.7,
+            "y1": 52.3,
+            "x2": 68.1,
+            "y2": 58.4
+          },
+          {
+            "x1": 59.0,
+            "y1": 58.4,
+            "x2": 48.4,
+            "y2": 52.3
+          },
+          {
+            "x1": 48.4,
+            "y1": 52.3,
+            "x2": 33.2,
+            "y2": 61.1
+          },
+          {
+            "x1": 33.2,
+            "y1": 61.1,
+            "x2": 22.6,
+            "y2": 54.9
+          },
+          {
+            "x1": 78.7,
+            "y1": 52.3,
+            "x2": 67.5,
+            "y2": 38.8
+          },
+          {
+            "x1": 67.5,
+            "y1": 38.8,
+            "x2": 73.4,
+            "y2": 22.3
+          },
+          {
+            "x1": 73.4,
+            "y1": 22.3,
+            "x2": 90.7,
+            "y2": 19.3
+          },
+          {
+            "x1": 90.7,
+            "y1": 19.3,
+            "x2": 102.0,
+            "y2": 32.7
+          },
+          {
+            "x1": 102.0,
+            "y1": 32.7,
+            "x2": 96.0,
+            "y2": 49.2
+          },
+          {
+            "x1": 96.0,
+            "y1": 49.2,
+            "x2": 78.7,
+            "y2": 52.3
+          }
+        ],
+        "labels": [
+          {
+            "x": 84.8,
+            "y": 73.7,
+            "t": "OH",
+            "size": 13
+          },
+          {
+            "x": 63.6,
+            "y": 66.0,
+            "t": "S",
+            "size": 13
+          },
+          {
+            "x": 18.0,
+            "y": 57.3,
+            "t": "SH",
+            "size": 13
+          }
+        ]
+      },
+      "name": "2-[(1-hydroxycyclohexyl)sulfanyl]ethane-1-thiol"
     }
   },
   "u7-ch2-raney": {
@@ -21716,51 +23165,101 @@ export const U7_OPTION_TILES: Readonly<Record<string, Readonly<Record<string, Na
       },
       "name": "benzaldehyde"
     },
-    "bz": {
+    "half": {
       "figure": {
         "bonds": [
           {
-            "x1": 42.7,
-            "y1": 54.0,
-            "x2": 42.7,
-            "y2": 34.0
+            "x1": 21.1,
+            "y1": 51.8,
+            "x2": 28.5,
+            "y2": 56.1
           },
           {
-            "x1": 42.7,
-            "y1": 34.0,
-            "x2": 60.0,
-            "y2": 24.0,
+            "x1": 28.5,
+            "y1": 56.1,
+            "x2": 39.0,
+            "y2": 50.0
+          },
+          {
+            "x1": 39.0,
+            "y1": 50.0,
+            "x2": 49.5,
+            "y2": 56.1
+          },
+          {
+            "x1": 49.5,
+            "y1": 56.1,
+            "x2": 56.8,
+            "y2": 51.9
+          },
+          {
+            "x1": 63.1,
+            "y1": 51.9,
+            "x2": 70.5,
+            "y2": 56.1
+          },
+          {
+            "x1": 70.5,
+            "y1": 56.1,
+            "x2": 81.0,
+            "y2": 50.1
+          },
+          {
+            "x1": 81.0,
+            "y1": 50.1,
+            "x2": 91.5,
+            "y2": 56.1,
             "order": 2
           },
           {
-            "x1": 60.0,
-            "y1": 24.0,
-            "x2": 77.3,
-            "y2": 34.0
+            "x1": 91.5,
+            "y1": 56.1,
+            "x2": 102.0,
+            "y2": 50.1
           },
           {
-            "x1": 77.3,
-            "y1": 34.0,
-            "x2": 77.3,
-            "y2": 54.0,
+            "x1": 102.0,
+            "y1": 50.1,
+            "x2": 102.0,
+            "y2": 37.9,
             "order": 2
           },
           {
-            "x1": 77.3,
-            "y1": 54.0,
-            "x2": 60.0,
-            "y2": 64.0
+            "x1": 102.0,
+            "y1": 37.9,
+            "x2": 91.5,
+            "y2": 31.9
           },
           {
-            "x1": 60.0,
-            "y1": 64.0,
-            "x2": 42.7,
-            "y2": 54.0,
+            "x1": 91.5,
+            "y1": 31.9,
+            "x2": 81.0,
+            "y2": 37.9,
             "order": 2
+          },
+          {
+            "x1": 81.0,
+            "y1": 37.9,
+            "x2": 81.0,
+            "y2": 50.1
+          }
+        ],
+        "labels": [
+          {
+            "x": 18.0,
+            "y": 55.0,
+            "t": "SH",
+            "size": 13
+          },
+          {
+            "x": 60.0,
+            "y": 55.0,
+            "t": "S",
+            "size": 13
           }
         ]
       },
-      "name": "benzene"
+      "name": "3-(benzylsulfanyl)propane-1-thiol"
     }
   },
   "u7-thi-butanone": {
@@ -24415,57 +25914,75 @@ export const U7_OPTION_TILES: Readonly<Record<string, Readonly<Record<string, Na
       },
       "name": "oxolan-2-one"
     },
-    "same": {
+    "open": {
       "figure": {
         "bonds": [
           {
-            "x1": 40.7,
-            "y1": 30.0,
-            "x2": 52.8,
-            "y2": 37.0,
+            "x1": 88.0,
+            "y1": 36.7,
+            "x2": 88.0,
+            "y2": 48.0,
             "order": 2
           },
           {
-            "x1": 52.8,
-            "y1": 37.0,
-            "x2": 71.1,
-            "y2": 28.8
+            "x1": 88.0,
+            "y1": 48.0,
+            "x2": 97.8,
+            "y2": 53.6
           },
           {
-            "x1": 71.1,
-            "y1": 28.8,
-            "x2": 84.5,
-            "y2": 43.7
+            "x1": 88.0,
+            "y1": 48.0,
+            "x2": 74.0,
+            "y2": 56.1
           },
           {
-            "x1": 84.5,
-            "y1": 43.7,
-            "x2": 74.5,
-            "y2": 61.0
+            "x1": 74.0,
+            "y1": 56.1,
+            "x2": 60.0,
+            "y2": 48.0
           },
           {
-            "x1": 74.5,
-            "y1": 61.0,
-            "x2": 54.9,
-            "y2": 56.9
+            "x1": 60.0,
+            "y1": 48.0,
+            "x2": 46.0,
+            "y2": 56.1
           },
           {
-            "x1": 54.9,
-            "y1": 56.9,
-            "x2": 52.8,
-            "y2": 37.0
+            "x1": 46.0,
+            "y1": 56.1,
+            "x2": 32.0,
+            "y2": 48.1
+          },
+          {
+            "x1": 32.0,
+            "y1": 48.1,
+            "x2": 22.2,
+            "y2": 53.8
           }
         ],
         "labels": [
           {
-            "x": 35.5,
-            "y": 32.0,
+            "x": 87.9,
+            "y": 36.8,
             "t": "O",
+            "size": 13
+          },
+          {
+            "x": 102.0,
+            "y": 61.0,
+            "t": "OH",
+            "size": 13
+          },
+          {
+            "x": 18.0,
+            "y": 61.2,
+            "t": "OH",
             "size": 13
           }
         ]
       },
-      "name": "cyclopentanone"
+      "name": "5-hydroxypentanoic acid"
     }
   },
   "u7-bv-sym": {
@@ -24752,7 +26269,25 @@ export const U7_OPTION_TILES: Readonly<Record<string, Readonly<Record<string, Na
       "figure": {
         "bonds": [
           {
-            "x1": 34.0,
+            "x1": 58.6,
+            "y1": 67.6,
+            "x2": 68.6,
+            "y2": 50.3
+          },
+          {
+            "x1": 68.6,
+            "y1": 50.3,
+            "x2": 78.6,
+            "y2": 67.7
+          },
+          {
+            "x1": 68.6,
+            "y1": 50.3,
+            "x2": 86.0,
+            "y2": 40.4
+          },
+          {
+            "x1": 68.6,
             "y1": 50.3,
             "x2": 51.3,
             "y2": 40.3
@@ -24767,26 +26302,8 @@ export const U7_OPTION_TILES: Readonly<Record<string, Readonly<Record<string, Na
           {
             "x1": 51.3,
             "y1": 40.3,
-            "x2": 68.6,
-            "y2": 50.3
-          },
-          {
-            "x1": 68.6,
-            "y1": 50.3,
-            "x2": 58.6,
-            "y2": 67.6
-          },
-          {
-            "x1": 68.6,
-            "y1": 50.3,
-            "x2": 78.6,
-            "y2": 67.7
-          },
-          {
-            "x1": 68.6,
-            "y1": 50.3,
-            "x2": 86.0,
-            "y2": 40.4
+            "x2": 39.2,
+            "y2": 47.3
           }
         ],
         "labels": [
@@ -24795,10 +26312,16 @@ export const U7_OPTION_TILES: Readonly<Record<string, Readonly<Record<string, Na
             "y": 25.3,
             "t": "O",
             "size": 13
+          },
+          {
+            "x": 34.0,
+            "y": 55.3,
+            "t": "OH",
+            "size": 13
           }
         ]
       },
-      "name": "3,3-dimethylbutan-2-one"
+      "name": "2,2-dimethylpropanoic acid"
     }
   },
   "u7-bv-ph": {
@@ -24976,74 +26499,80 @@ export const U7_OPTION_TILES: Readonly<Record<string, Readonly<Record<string, Na
       "figure": {
         "bonds": [
           {
-            "x1": 31.1,
-            "y1": 44.0,
-            "x2": 45.5,
-            "y2": 35.7
-          },
-          {
-            "x1": 45.5,
-            "y1": 35.7,
-            "x2": 45.5,
-            "y2": 24.0,
-            "order": 2
-          },
-          {
-            "x1": 45.5,
-            "y1": 35.7,
+            "x1": 51.3,
+            "y1": 21.2,
             "x2": 60.0,
-            "y2": 44.0
-          },
-          {
-            "x1": 60.0,
-            "y1": 44.0,
-            "x2": 60.0,
-            "y2": 60.7,
+            "y2": 26.2,
             "order": 2
           },
           {
             "x1": 60.0,
-            "y1": 60.7,
-            "x2": 74.5,
-            "y2": 69.0
+            "y1": 26.2,
+            "x2": 68.6,
+            "y2": 21.1
           },
           {
-            "x1": 74.5,
+            "x1": 60.0,
+            "y1": 26.2,
+            "x2": 60.0,
+            "y2": 40.4
+          },
+          {
+            "x1": 60.0,
+            "y1": 40.4,
+            "x2": 72.4,
+            "y2": 47.6,
+            "order": 2
+          },
+          {
+            "x1": 72.4,
+            "y1": 47.6,
+            "x2": 72.4,
+            "y2": 61.8
+          },
+          {
+            "x1": 72.4,
+            "y1": 61.8,
+            "x2": 60.1,
+            "y2": 69.0,
+            "order": 2
+          },
+          {
+            "x1": 60.1,
             "y1": 69.0,
-            "x2": 88.9,
-            "y2": 60.6,
+            "x2": 47.7,
+            "y2": 61.9
+          },
+          {
+            "x1": 47.7,
+            "y1": 61.9,
+            "x2": 47.6,
+            "y2": 47.6,
             "order": 2
           },
           {
-            "x1": 88.9,
-            "y1": 60.6,
-            "x2": 88.9,
-            "y2": 44.0
-          },
-          {
-            "x1": 88.9,
-            "y1": 44.0,
-            "x2": 74.4,
-            "y2": 35.7,
-            "order": 2
-          },
-          {
-            "x1": 74.4,
-            "y1": 35.7,
+            "x1": 47.6,
+            "y1": 47.6,
             "x2": 60.0,
-            "y2": 44.0
+            "y2": 40.4
           }
         ],
         "labels": [
           {
-            "x": 45.5,
-            "y": 24.0,
+            "x": 47.6,
+            "y": 24.1,
             "t": "O",
+            "size": 13
+          },
+          {
+            "x": 72.3,
+            "y": 24.0,
+            "t": "OH",
             "size": 13
           }
         ]
       },
-      "name": "1-phenylethan-1-one"
+      "name": "benzoic acid"
     }
   },
   "u7-bv-chx": {
@@ -25215,71 +26744,77 @@ export const U7_OPTION_TILES: Readonly<Record<string, Readonly<Record<string, Na
       "figure": {
         "bonds": [
           {
-            "x1": 31.1,
-            "y1": 44.0,
-            "x2": 45.5,
-            "y2": 35.7
-          },
-          {
-            "x1": 45.5,
-            "y1": 35.7,
-            "x2": 45.5,
-            "y2": 24.0,
+            "x1": 51.3,
+            "y1": 21.2,
+            "x2": 60.0,
+            "y2": 26.2,
             "order": 2
           },
           {
-            "x1": 45.5,
-            "y1": 35.7,
-            "x2": 60.0,
-            "y2": 44.0
+            "x1": 60.0,
+            "y1": 26.2,
+            "x2": 68.6,
+            "y2": 21.1
           },
           {
             "x1": 60.0,
-            "y1": 44.0,
+            "y1": 26.2,
             "x2": 60.0,
-            "y2": 60.7
+            "y2": 40.4
           },
           {
             "x1": 60.0,
-            "y1": 60.7,
-            "x2": 74.5,
+            "y1": 40.4,
+            "x2": 72.4,
+            "y2": 47.6
+          },
+          {
+            "x1": 72.4,
+            "y1": 47.6,
+            "x2": 72.4,
+            "y2": 61.8
+          },
+          {
+            "x1": 72.4,
+            "y1": 61.8,
+            "x2": 60.1,
             "y2": 69.0
           },
           {
-            "x1": 74.5,
+            "x1": 60.1,
             "y1": 69.0,
-            "x2": 88.9,
-            "y2": 60.6
+            "x2": 47.7,
+            "y2": 61.9
           },
           {
-            "x1": 88.9,
-            "y1": 60.6,
-            "x2": 88.9,
-            "y2": 44.0
+            "x1": 47.7,
+            "y1": 61.9,
+            "x2": 47.6,
+            "y2": 47.6
           },
           {
-            "x1": 88.9,
-            "y1": 44.0,
-            "x2": 74.4,
-            "y2": 35.7
-          },
-          {
-            "x1": 74.4,
-            "y1": 35.7,
+            "x1": 47.6,
+            "y1": 47.6,
             "x2": 60.0,
-            "y2": 44.0
+            "y2": 40.4
           }
         ],
         "labels": [
           {
-            "x": 45.5,
-            "y": 24.0,
+            "x": 47.6,
+            "y": 24.1,
             "t": "O",
+            "size": 13
+          },
+          {
+            "x": 72.3,
+            "y": 24.0,
+            "t": "OH",
             "size": 13
           }
         ]
       },
-      "name": "1-cyclohexylethan-1-one"
+      "name": "cyclohexanecarboxylic acid"
     }
   },
   "u7-ox-meet": {
@@ -26249,51 +27784,31 @@ export const U7_OPTION_TILES: Readonly<Record<string, Readonly<Record<string, Na
       },
       "name": "phenylmethanol"
     },
-    "same": {
+    "acid": {
       "figure": {
         "bonds": [
           {
-            "x1": 68.7,
-            "y1": 21.1,
+            "x1": 51.3,
+            "y1": 21.2,
             "x2": 60.0,
-            "y2": 26.1,
+            "y2": 26.2,
             "order": 2
           },
           {
             "x1": 60.0,
-            "y1": 26.1,
+            "y1": 26.2,
+            "x2": 68.6,
+            "y2": 21.1
+          },
+          {
+            "x1": 60.0,
+            "y1": 26.2,
             "x2": 60.0,
             "y2": 40.4
           },
           {
             "x1": 60.0,
             "y1": 40.4,
-            "x2": 47.6,
-            "y2": 47.5,
-            "order": 2
-          },
-          {
-            "x1": 47.6,
-            "y1": 47.5,
-            "x2": 47.6,
-            "y2": 61.8
-          },
-          {
-            "x1": 47.6,
-            "y1": 61.8,
-            "x2": 59.9,
-            "y2": 69.0,
-            "order": 2
-          },
-          {
-            "x1": 59.9,
-            "y1": 69.0,
-            "x2": 72.3,
-            "y2": 61.9
-          },
-          {
-            "x1": 72.3,
-            "y1": 61.9,
             "x2": 72.4,
             "y2": 47.6,
             "order": 2
@@ -26301,20 +27816,52 @@ export const U7_OPTION_TILES: Readonly<Record<string, Readonly<Record<string, Na
           {
             "x1": 72.4,
             "y1": 47.6,
+            "x2": 72.4,
+            "y2": 61.8
+          },
+          {
+            "x1": 72.4,
+            "y1": 61.8,
+            "x2": 60.1,
+            "y2": 69.0,
+            "order": 2
+          },
+          {
+            "x1": 60.1,
+            "y1": 69.0,
+            "x2": 47.7,
+            "y2": 61.9
+          },
+          {
+            "x1": 47.7,
+            "y1": 61.9,
+            "x2": 47.6,
+            "y2": 47.6,
+            "order": 2
+          },
+          {
+            "x1": 47.6,
+            "y1": 47.6,
             "x2": 60.0,
             "y2": 40.4
           }
         ],
         "labels": [
           {
-            "x": 72.4,
-            "y": 24.0,
+            "x": 47.6,
+            "y": 24.1,
             "t": "O",
+            "size": 13
+          },
+          {
+            "x": 72.3,
+            "y": 24.0,
+            "t": "OH",
             "size": 13
           }
         ]
       },
-      "name": "benzaldehyde"
+      "name": "benzoic acid"
     }
   },
   "u7-can-meet": {
@@ -26946,63 +28493,80 @@ export const U7_OPTION_TILES: Readonly<Record<string, Readonly<Record<string, Na
       },
       "name": "(propan-2-yloxy)cyclohexane"
     },
-    "same": {
+    "ipr": {
       "figure": {
         "bonds": [
           {
-            "x1": 39.2,
-            "y1": 27.0,
-            "x2": 51.3,
-            "y2": 34.0,
-            "order": 2
+            "x1": 37.4,
+            "y1": 41.2,
+            "x2": 50.2,
+            "y2": 33.8
           },
           {
-            "x1": 51.3,
-            "y1": 34.0,
-            "x2": 51.4,
-            "y2": 54.0
+            "x1": 50.2,
+            "y1": 33.8,
+            "x2": 50.2,
+            "y2": 19.0
           },
           {
-            "x1": 51.4,
-            "y1": 54.0,
-            "x2": 68.7,
-            "y2": 64.0
+            "x1": 50.2,
+            "y1": 33.8,
+            "x2": 63.0,
+            "y2": 41.2
           },
           {
-            "x1": 68.7,
-            "y1": 64.0,
-            "x2": 86.0,
-            "y2": 54.0
+            "x1": 63.0,
+            "y1": 41.2,
+            "x2": 66.6,
+            "y2": 31.5
           },
           {
-            "x1": 86.0,
-            "y1": 54.0,
-            "x2": 86.0,
-            "y2": 34.0
+            "x1": 63.0,
+            "y1": 41.2,
+            "x2": 53.5,
+            "y2": 52.5
           },
           {
-            "x1": 86.0,
-            "y1": 34.0,
-            "x2": 68.6,
-            "y2": 24.0
+            "x1": 53.5,
+            "y1": 52.5,
+            "x2": 58.5,
+            "y2": 66.4
           },
           {
-            "x1": 68.6,
-            "y1": 24.0,
-            "x2": 51.3,
-            "y2": 34.0
+            "x1": 58.5,
+            "y1": 66.4,
+            "x2": 73.1,
+            "y2": 69.0
+          },
+          {
+            "x1": 73.1,
+            "y1": 69.0,
+            "x2": 82.6,
+            "y2": 57.7
+          },
+          {
+            "x1": 82.6,
+            "y1": 57.7,
+            "x2": 77.6,
+            "y2": 43.8
+          },
+          {
+            "x1": 77.6,
+            "y1": 43.8,
+            "x2": 63.0,
+            "y2": 41.2
           }
         ],
         "labels": [
           {
-            "x": 34.0,
-            "y": 29.0,
-            "t": "O",
+            "x": 68.1,
+            "y": 32.3,
+            "t": "OH",
             "size": 13
           }
         ]
       },
-      "name": "cyclohexanone"
+      "name": "1-(propan-2-yl)cyclohexan-1-ol"
     }
   },
   "u7-mpv-oppenauer": {

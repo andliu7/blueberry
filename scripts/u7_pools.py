@@ -1361,10 +1361,10 @@ def node_acetal() -> None:
          prov("Rule H on the acetal", CH), lead(s, "2,2-dimethoxypropane", "2,2-dimethoxypropane + H₃O⁺"), concepts=OXY)
 
     left = [S["etcho"], "CO", "CO"]
-    cand = {"water": "O", "h2": "[H][H]", "meoh": "CO"}
+    cand = {"water": "O", "oh": "[OH-]", "meoh": "CO"}
     ask(node, "u7-acl-water", "Propanal and two CH₃OH give the dimethyl acetal. Pick the other product.",
         [("water", "Water", "The carbonyl oxygen leaves as water once it is protonated. That is why removing water drives the acetal to form."),
-         ("h2", "Hydrogen gas", "No H-H forms. Count the atoms: one oxygen must leave, and only water carries it."),
+         ("oh", "Hydroxide ion", "In acid the OH is protonated first and leaves as neutral water. Hydroxide is a poor leaving group and is never set free here."),
          ("meoh", "Methanol", "Both methanols are built into the acetal. None is given back while it forms.")],
         {k: k for k in cand}, byproduct(left, [acetal], cand), "water",
         "Acetal formation releases one water, so removing water pushes it forward.",
@@ -1405,7 +1405,7 @@ def node_protect() -> None:
          [("diox", prot, "2-methyl-2-phenyl-1,3-dioxolane", "2-Methyl-2-phenyl-1,3-dioxolane",
            "The diol closes a five-membered acetal on the ketone carbon. No C=O is left for a nucleophile."),
           ("hemi", "CC(O)(OCCO)c1ccccc1", "1-(2-hydroxyethoxy)-1-phenylethan-1-ol", "Open hemiacetal",
-           "The open hemiacetal still has an OH that a Grignard would destroy itself on. The ring closes it off."),
+           "That is the halfway point. In acid the OH is protonated and leaves as water, and the diol's second OH closes the five-membered ring."),
           ("ether", "CC(OCCO)c1ccccc1", "2-(1-phenylethoxy)ethan-1-ol", "Ether alcohol",
            "That has lost an oxygen from the ketone carbon. Protection keeps both oxygens on it.")],
          [prot], "diox",
@@ -1425,22 +1425,38 @@ def node_protect() -> None:
          prov("Rule H on the acetal", CH), structure(prot, "2-methyl-2-phenyl-1,3-dioxolane", "protected ketone + H₃O⁺"),
          concepts=PROT)
 
-    s = S["keto_ester"]
-    step1 = condense(s, "[*]OCCO[*]")
-    step2 = [f for f in lialh4(step1) if f != "CO"]
-    step3 = [f for f in hydrolyse_acetal(step2[0]) if f != "OCCO"]
-    pick(node, "u7-pro-ester", "Methyl 4-oxopentanoate: diol and H⁺, then LiAlH₄, then H₃O⁺. Pick the product.",
-         [("target", step3[0], "5-hydroxypentan-2-one", "5-Hydroxypentan-2-one",
-           "The ketone hides as an acetal, LiAlH₄ reduces only the ester to CH₂OH, and acid brings the ketone back."),
-          ("diol", "CC(O)CCCO", "pentane-1,4-diol", "Pentane-1,4-diol",
-           "That is what LiAlH₄ gives with no protection: both carbonyls reduced."),
-          ("start", s, "methyl 4-oxopentanoate", "Unchanged keto ester",
-           "LiAlH₄ reduces esters. The ketone was the only group hidden from it.")],
-         step3, "target",
-         "Protect, react elsewhere, deprotect: the ketone comes through untouched.",
-         prov("Rule C, then rule R with LiAlH4, then rule H, applied in turn", CH, "acetals survive LiAlH4 and fall apart in aqueous acid"),
-         lead(s, "methyl 4-oxopentanoate", "keto ester, three steps"), level=2, concepts=PROT,
-         convention="acetals survive LiAlH4 and fall apart in aqueous acid")
+    # u7-pro-ester and u7-pro-grignard used to sit here. They lean on LiAlH4 on
+    # esters and on Grignard formation, taught later, so they now close
+    # u7-hydride and u7-grignard (audit 23 Oct, top-25 #18): see the
+    # protect_capstone_* functions below.
+    # Two single-step items take their place: put the acetal on, and see that
+    # base leaves it on.
+    s = S["chx"]
+    prot = condense(s, "[*]OCCO[*]")
+    pick(node, "u7-pro-ring", "Cyclohexanone meets ethane-1,2-diol and acid. Pick the protected form.",
+         [("five", prot, "1,4-dioxaspiro[4.5]decane", "1,4-Dioxaspiro[4.5]decane",
+           "Two O and the diol's two CH₂ close a five-membered ring on the old carbonyl carbon."),
+          ("six", "C1CCC2(CC1)OCCCO2", "1,5-dioxaspiro[5.5]undecane", "1,5-Dioxaspiro[5.5]undecane",
+           "A six-membered acetal ring needs three CH₂ between the oxygens, from propane-1,3-diol. This diol has two."),
+          ("hemi", "OCCOC1(O)CCCCC1", "2-[(1-hydroxycyclohexyl)oxy]ethan-1-ol", "Open hemiacetal",
+           "That is the halfway point. The OH is protonated and leaves as water, and the second OH closes the ring.")],
+         [prot], "five",
+         "The diol's chain sets the ring: two carbons between the oxygens make a five-membered acetal.",
+         prov("Rule C with ethane-1,2-diol", CH), lead(s, "cyclohexanone", "cyclohexanone + diol"), concepts=PROT)
+
+    got = no_rxn(prot, [])
+    pick(node, "u7-pro-base", "1,4-Dioxaspiro[4.5]decane is warmed in aqueous NaOH. Pick what you recover.",
+         [("same", prot, "1,4-dioxaspiro[4.5]decane", "The acetal, unchanged",
+           "Base has no proton to put on an acetal oxygen, so no oxygen can leave. That is why the acetal is a protecting group."),
+          ("ket", s, "cyclohexanone", "Cyclohexanone",
+           "That is what aqueous acid does. Hydroxide cannot open an acetal."),
+          ("hemi", "OCCOC1(O)CCCCC1", "2-[(1-hydroxycyclohexyl)oxy]ethan-1-ol", "Open hemiacetal",
+           "Opening the ring needs an acetal oxygen protonated first. In base nothing is.")],
+         got, "same",
+         "Acetals survive base and come off only in aqueous acid.",
+         prov("No rule applies: the acetal is drawn again", CH, "acetals survive base and fall apart in aqueous acid"),
+         structure(prot, "1,4-dioxaspiro[4.5]decane", "protected ketone + NaOH, water"), level=2, concepts=PROT,
+         convention="acetals survive base and fall apart in aqueous acid")
 
     s = S["keto_ester"]
     hit = {"ket": len(co_sites(s)) == 1, "ester": False, "both": len(co_sites(s)) == 2}
@@ -1471,6 +1487,29 @@ def node_protect() -> None:
          lead(s, "4-oxopentanal", "keto aldehyde + one diol"), level=2, concepts=PROT,
          convention="aldehydes react faster than ketones")
 
+
+def protect_capstone_ester(node: str) -> None:
+    """u7-pro-ester, the closing question of u7-hydride: it needs LiAlH4 on an ester (u7-hdr-lah-ester) first."""
+    s = S["keto_ester"]
+    step1 = condense(s, "[*]OCCO[*]")
+    step2 = [f for f in lialh4(step1) if f != "CO"]
+    step3 = [f for f in hydrolyse_acetal(step2[0]) if f != "OCCO"]
+    pick(node, "u7-pro-ester", "Methyl 4-oxopentanoate: diol and H⁺, then LiAlH₄, then H₃O⁺. Pick the product.",
+         [("target", step3[0], "5-hydroxypentan-2-one", "5-Hydroxypentan-2-one",
+           "The ketone hides as an acetal, LiAlH₄ reduces only the ester to CH₂OH, and acid brings the ketone back."),
+          ("diol", "CC(O)CCCO", "pentane-1,4-diol", "Pentane-1,4-diol",
+           "That is what LiAlH₄ gives with no protection: both carbonyls reduced."),
+          ("keto", "CC(O)CCC(=O)OC", "methyl 4-hydroxypentanoate", "Methyl 4-hydroxypentanoate",
+           "That reduces the ketone and keeps the ester, backwards on both counts: the ketone was hidden, and LiAlH₄ reduces esters.")],
+         step3, "target",
+         "Protect, react elsewhere, deprotect: the ketone comes through untouched.",
+         prov("Rule C, then rule R with LiAlH4, then rule H, applied in turn", CH, "acetals survive LiAlH4 and fall apart in aqueous acid"),
+         lead(s, "methyl 4-oxopentanoate", "keto ester, three steps"), level=2, concepts=PROT,
+         convention="acetals survive LiAlH4 and fall apart in aqueous acid")
+
+
+def protect_capstone_grignard(node: str) -> None:
+    """u7-pro-grignard, the closing question of u7-grignard, after u7-grg-mg has made a Grignard from Mg."""
     # Grignard on a protected bromoaldehyde.
     s = "BrCCCC=O"
     p1 = condense(s, "[*]OCCO[*]")
@@ -1591,12 +1630,12 @@ def node_imine() -> None:
          prov("Rule C inside one molecule; ring size read by RDKit", CH), lead(s, "5-aminopentan-2-one", "5-aminopentan-2-one"),
          level=2, concepts=NIT)
 
-    cand = {"water": "O", "nh3": "N", "h2": "[H][H]"}
+    cand = {"water": "O", "nh3": "N", "oh": "[OH-]"}
     left = [S["chx"], "CN"]
     ask(node, "u7-imn-water", "Cyclohexanone and CH₃NH₂ give the imine. Pick the other product.",
         [("water", "Water", "The carbonyl O leaves with two H: one from N and one from the acid catalyst, then returned. Net: water."),
          ("nh3", "Ammonia", "The nitrogen stays in the imine. Losing NH₃ would remove the very atom that makes the C=N."),
-         ("h2", "Hydrogen gas", "No H-H forms. The oxygen has to leave, and water is what carries it.")],
+         ("oh", "Hydroxide ion", "The trace of acid protonates the carbinolamine OH, so it leaves as neutral water, not as hydroxide.")],
         {k: k for k in cand}, byproduct(left, with_amine(S["chx"], "CN"), cand), "water",
         "Imines form by condensation: water is lost.",
         prov("Rule C, then RDKit atom balance over each candidate", CH),
@@ -1705,6 +1744,17 @@ def alc_kind(smi: str) -> str:
     return ["methanol", "primary alcohol", "secondary alcohol", "tertiary alcohol"][cdeg(m, c)]
 
 
+def grignard_reagent(smi: str) -> str:
+    """The one C-Br bond cut and Mg put between the two atoms: R-Br to R-Mg-Br."""
+    c, br = match_one(smi, "[#6]Br")
+    rw = Chem.RWMol(mol(smi))
+    rw.RemoveBond(c, br)
+    mg = rw.AddAtom(Chem.Atom(12))
+    rw.AddBond(c, mg, SINGLE)
+    rw.AddBond(mg, br, SINGLE)
+    return one(rw)
+
+
 def node_grignard() -> None:
     node = "u7-grignard"
     s = S["hcho"]
@@ -1774,7 +1824,7 @@ def node_grignard() -> None:
           ("ome", subs["ome"], "4-methoxybutan-2-one", "4-Methoxybutan-2-one",
            "An ether has no O-H, so the Grignard reaches the ketone."),
           ("plain", subs["plain"], "butan-2-one", "Butan-2-one",
-           "No acidic H at all: a clean tertiary alcohol after workup.")],
+           "No O-H or N-H, so nothing quenches the Grignard: it adds to the C=O and gives a tertiary alcohol after workup.")],
          [subs[k] for k, v in acidic.items() if v], "oh",
          "Any O-H or N-H destroys a Grignard before it can add.",
          prov("SMARTS for O-H or N-H on each substrate", CH, "a Grignard is destroyed by any O-H or N-H"),
@@ -1797,6 +1847,24 @@ def node_grignard() -> None:
           "Methanal: primary. Aldehyde: secondary. Ketone: tertiary. CO₂: carboxylic acid.",
           prov("Rule A on each pair; product class read by SMARTS", CH), NUC)
 
+    # Making the Grignard comes before the protected-bromoaldehyde capstone
+    # that needs it (audit 23 Oct, top-25 #18).
+    s = "Brc1ccccc1"
+    rgx = grignard_reagent(s)
+    pick(node, "u7-grg-mg", "Bromobenzene meets Mg in dry ether. Pick the main species formed.",
+         [("rmgx", rgx, "phenylmagnesium bromide", "Phenylmagnesium bromide",
+           "Mg slips into the C-Br bond: C-Mg-Br. The ring carbon now carries the electron density of a carbanion."),
+          ("bz", "c1ccccc1", "benzene", "Benzene",
+           "That is what the Grignard becomes if water gets in: it takes an H and is destroyed. Dry ether keeps water out."),
+          ("biph", "c1ccc(-c2ccccc2)cc1", "biphenyl", "Biphenyl",
+           "Two phenyls joining is a minor side reaction. Most of the bromobenzene becomes the Grignard reagent.")],
+         [rgx], "rmgx", "R-Br plus Mg in dry ether gives R-MgBr, the Grignard reagent.",
+         prov("Mg inserted into the C-Br bond", CH, "dry ether; water destroys the reagent"),
+         lead(s, "bromobenzene", "bromobenzene + Mg, ether"), concepts=NUC,
+         convention="dry ether; water destroys the reagent")
+
+    protect_capstone_grignard(node)
+
 
 # ---------------------------------------------------------------------------
 # u7-hydride
@@ -1810,8 +1878,8 @@ def node_hydride() -> None:
            "Hydride adds to the carbonyl carbon and the alkoxide takes H from methanol: a secondary alcohol."),
           ("ane", "C1CCCCC1", "cyclohexane", "Cyclohexane",
            "Removing the oxygen entirely takes Clemmensen or Wolff-Kishner. Hydride stops at the alcohol."),
-          ("ene", "C1=CCCCC1", "cyclohexene", "Cyclohexene",
-           "That is a dehydration product. NaBH₄ adds H; it does not remove water.")],
+          ("oxide", "[O-]C1CCCCC1", "cyclohexanolate", "The alkoxide",
+           "That is the halfway point, right after hydride adds. Methanol hands an H to the O, so what you isolate is the alcohol.")],
          [reduce_co(s)], "ol", "Hydride turns a ketone into a secondary alcohol.",
          prov("Rule R", CH), lead(s, "cyclohexanone", "cyclohexanone + NaBH₄"), level=0, concepts=RED)
 
@@ -1887,6 +1955,9 @@ def node_hydride() -> None:
              ("Alcohol above aldehyde.", "The aldehyde has two bonds to O, the alcohol one.", "Compare C1 in butanal and butan-1-ol."))],
            "Reduction moves down the ladder one step per hydride.",
            prov("carbon oxidation state computed per card", CH), RED, "oxidation_and_reduction_ladder")
+
+    # Closes the lesson once LiAlH4 on an ester has been met (audit 23 Oct, top-25 #18).
+    protect_capstone_ester(node)
 
 
 # ---------------------------------------------------------------------------
@@ -2072,8 +2143,8 @@ def node_to_ch2() -> None:
            "Clemmensen removes the carbonyl oxygen completely: C=O becomes CH₂."),
           ("ol", "CC(O)c1ccccc1", "1-phenylethan-1-ol", "1-Phenylethanol",
            "That is the NaBH₄ product. Clemmensen goes past the alcohol to CH₂."),
-          ("ene", "C=Cc1ccccc1", "ethenylbenzene", "Styrene",
-           "No C=C forms. Both C-O bonds are replaced by C-H.")],
+          ("cl", "CC(Cl)c1ccccc1", "(1-chloroethyl)benzene", "(1-Chloroethyl)benzene",
+           "HCl is the acid here, not a source of Cl on carbon. Both C-O bonds are replaced by C-H.")],
          [to_ch2(s)], "ane", "Clemmensen: C=O to CH₂ in hot acid.",
          prov("Rule R, to CH2", CH), lead(s, "1-phenylethan-1-one", "acetophenone + Zn(Hg), HCl"), level=0, concepts=RED)
 
@@ -2112,10 +2183,22 @@ def node_to_ch2() -> None:
         lead(s, "4-(1,3-dioxolan-2-yl)butan-2-one", "ketone with an acetal"), level=2, concepts=RED,
         convention="acetals survive base and fall apart in aqueous acid")
 
+    # The thioacetal side quest is optional, so the lesson makes the thioacetal
+    # itself before Raney Ni takes it on (audit 23 Oct, top-25 #18).
     s = S["chx"]
     thio = condense(s, "[*]SCCS[*]")
+    pick(node, "u7-ch2-thio", "Cyclohexanone meets ethane-1,2-dithiol and BF₃. Pick the product.",
+         [("t", thio, "1,4-dithiaspiro[4.5]decane", "The thioacetal",
+           "Both SH groups bond to the carbonyl carbon and water leaves: a five-membered ring with two S on the old C=O carbon."),
+          ("o", "C1CCC2(CC1)OCCO2", "1,4-dioxaspiro[4.5]decane", "The oxygen acetal",
+           "That ring has oxygens, from ethane-1,2-diol. A dithiol puts sulfur in their place."),
+          ("half", "OC1(SCCS)CCCCC1", "2-[(1-hydroxycyclohexyl)sulfanyl]ethane-1-thiol", "One S added, OH kept",
+           "That is the halfway point. The OH leaves as water and the second SH closes the ring.")],
+         [thio], "t", "A dithiol makes a thioacetal the way a diol makes an acetal.",
+         prov("Rule C with ethane-1,2-dithiol", CH), lead(s, "cyclohexanone", "cyclohexanone + HSCH₂CH₂SH"), concepts=OXY)
+
     out = raney(thio)
-    pick(node, "u7-ch2-raney", "1,4-Dithiaspiro[4.5]decane meets Raney nickel. Pick the ring product.",
+    pick(node, "u7-ch2-raney", "Cyclohexanone's thioacetal meets Raney nickel. Pick the ring product.",
          [("ane", "C1CCCCC1", "cyclohexane", "Cyclohexane",
            "Raney Ni replaces both C-S bonds with C-H. The old carbonyl carbon ends as CH₂."),
           ("ket", s, "cyclohexanone", "Cyclohexanone",
@@ -2264,17 +2347,17 @@ def node_thioacetal() -> None:
            "Both C-S bonds become C-H, so the old aldehyde carbon ends as CH₃ on the ring."),
           ("ald", S["phcho"], "benzaldehyde", "Benzaldehyde",
            "Getting the aldehyde back needs hydrolysis. Raney Ni reduces."),
-          ("bz", "c1ccccc1", "benzene", "Benzene",
-           "The C-C bond to the ring stays. Only C-S bonds break.")],
+          ("half", "SCCCSCc1ccccc1", "3-(benzylsulfanyl)propane-1-thiol", "One C-S bond cut",
+           "Raney Ni cuts every C-S bond, not just one. No sulfur stays on the old aldehyde carbon.")],
          out, "tol", "Raney Ni desulfurises: CHO to CH₃ in two steps.",
          prov("Rule R: every S removed", CH), structure(t, "2-phenyl-1,3-dithiane", "dithiane + Raney Ni"), concepts=RED)
 
     left = [S["chx"], "SCCS"]
-    cand = {"water": "O", "h2s": "S", "h2": "[H][H]"}
+    cand = {"water": "O", "h2s": "S", "oh": "[OH-]"}
     ask(node, "u7-thi-water", "Cyclohexanone and ethane-1,2-dithiol form the thioacetal. Pick the other product.",
         [("water", "Water", "The carbonyl oxygen leaves with the two SH hydrogens."),
          ("h2s", "H₂S", "Both sulfurs stay in the ring. It is the oxygen that leaves."),
-         ("h2", "Hydrogen gas", "No H-H forms. The O has to go, and it goes as water.")],
+         ("oh", "Hydroxide ion", "The Lewis acid takes hold of the O first, so it leaves as water with the two SH hydrogens, not as free hydroxide.")],
         {k: k for k in cand}, byproduct(left, [condense(S["chx"], "[*]SCCS[*]")], cand), "water",
         "Thioacetal formation releases water, like acetal formation.",
         prov("Rule C, then RDKit atom balance over each candidate", CH),
@@ -2424,7 +2507,7 @@ def node_hwe() -> None:
          [("e", e, "ethyl (2E)-3-phenylprop-2-enoate", "Ethyl (E)-3-phenylpropenoate",
            "The phosphonate carbanion adds and the phosphate leaves, forming C=C. With an ester on the carbanion the E alkene dominates."),
           ("z", z, "ethyl (2Z)-3-phenylprop-2-enoate", "Ethyl (Z)-3-phenylpropenoate",
-           "Same connectivity, but the Z isomer is the minor one here: phenyl and ester end up on opposite sides."),
+           "Same connectivity, but this is the Z isomer: phenyl and ester sit on the same side of the C=C. A stabilised phosphonate gives mostly E, where they sit on opposite sides."),
           ("ald", "CCOC(=O)CC(O)c1ccccc1", "ethyl 3-hydroxy-3-phenylpropanoate", "Ethyl 3-hydroxy-3-phenylpropanoate",
            "That is the addition step without the elimination. The phosphate leaves and takes the oxygen with it.")],
          [e], "e", "HWE: an ester-stabilised carbanion gives the E-alkene.",
@@ -2533,8 +2616,8 @@ def node_bv() -> None:
            "Five ring atoms plus the inserted O: a six-membered lactone."),
           ("five", "O=C1CCCO1", "oxolan-2-one", "Oxolan-2-one",
            "That ring is the same size as the ketone. Inserting O always adds one atom."),
-          ("same", s, "cyclopentanone", "No reaction",
-           "Ketones react with peracids. The ring ketone is a textbook substrate.")],
+          ("open", "OCCCCC(=O)O", "5-hydroxypentanoic acid", "5-Hydroxypentanoic acid",
+           "That is the lactone opened by water. mCPBA only inserts the O, and nothing here hydrolyses the ring.")],
          [p], "six", "Ring size goes up by one.",
          prov("Rule B; ring size read by RDKit", CH), lead(s, "cyclopentanone", "cyclopentanone + mCPBA"), concepts=RED)
 
@@ -2550,25 +2633,28 @@ def node_bv() -> None:
          [p], "p", "A symmetric ketone gives one ester.",
          prov("Rule B; both groups give the same product", CH), lead(s, "pentan-3-one", "pentan-3-one + mCPBA"), concepts=RED)
 
-    for id, smi, nm1, txt, other, nm2, txt2, why_r, why_w, cap in [
+    for id, smi, nm1, txt, other, nm2, txt2, why_r, why_w, cap, acid, nm3, txt3 in [
         ("u7-bv-tbu", S["pinacolone"], "tert-butyl acetate", "tert-Butyl acetate",
          "CC(C)(C)C(=O)OC", "methyl 2,2-dimethylpropanoate", "Methyl 2,2-dimethylpropanoate",
          "The tertiary group migrates far better than methyl, so the O ends on the tert-butyl carbon.",
-         "That has methyl migrating. Methyl is the worst migrator.", "3,3-dimethylbutan-2-one"),
+         "That has methyl migrating. Methyl is the worst migrator.", "3,3-dimethylbutan-2-one",
+         "CC(C)(C)C(=O)O", "2,2-dimethylpropanoic acid", "2,2-Dimethylpropanoic acid"),
         ("u7-bv-ph", S["acph"], "phenyl acetate", "Phenyl acetate",
          "COC(=O)c1ccccc1", "methyl benzoate", "Methyl benzoate",
          "Phenyl migrates in preference to methyl, so the O ends between the C=O and the ring.",
-         "That is methyl migrating. Aryl beats methyl.", "1-phenylethan-1-one"),
+         "That is methyl migrating. Aryl beats methyl.", "1-phenylethan-1-one",
+         "OC(=O)c1ccccc1", "benzoic acid", "Benzoic acid"),
         ("u7-bv-chx", "CC(=O)C1CCCCC1", "cyclohexyl acetate", "Cyclohexyl acetate",
          "COC(=O)C1CCCCC1", "methyl cyclohexanecarboxylate", "Methyl cyclohexanecarboxylate",
          "The secondary cyclohexyl migrates in preference to methyl, so the O ends on the ring carbon.",
-         "Methyl migrating gives this. Secondary beats methyl.", "1-cyclohexylethan-1-one"),
+         "Methyl migrating gives this. Secondary beats methyl.", "1-cyclohexylethan-1-one",
+         "OC(=O)C1CCCCC1", "cyclohexanecarboxylic acid", "Cyclohexanecarboxylic acid"),
     ]:
         got = bv(smi)
-        pick(node, id, f"{nm_cap(cap)} meets mCPBA. Pick the main ester.",
+        pick(node, id, f"{nm_cap(cap)} meets mCPBA. Pick the main product.",
              [("r", got[0] if got else smi, nm1, txt, why_r),
               ("w", other, nm2, txt2, why_w),
-              ("k", smi, cap, "No reaction", "Ketones react with mCPBA. The question is only which group moves.")],
+              ("k", acid, nm3, txt3, "That loses the methyl carbon, as a haloform reaction would. mCPBA keeps every carbon and inserts one O.")],
              [got[0]] if got else None, "r",
              "Migratory aptitude: H, then 3°, then 2° and aryl, then 1°, then methyl.",
              prov(f"Rule B: the {got[1] if got else '?'} group moves", CH, "migratory aptitude H > 3 > 2 = aryl > 1 > methyl"),
@@ -2646,8 +2732,8 @@ def node_ald_to_acid() -> None:
            "The aldehyde is oxidised. In the basic ammonia solution the acid is present as its carboxylate."),
           ("alc", "OCc1ccccc1", "phenylmethanol", "Phenylmethanol",
            "Silver is reduced, so the organic partner must be oxidised, not reduced."),
-          ("same", s, "benzaldehyde", "No reaction",
-           "Aldehydes react with Tollens: the aldehyde C-H is oxidised.")],
+          ("acid", "OC(=O)c1ccccc1", "benzoic acid", "Benzoic acid",
+           "Right oxidation, wrong form. In the basic ammonia solution the acid loses its proton; benzoic acid only appears after acid workup.")],
          p, "ate", "Tollens makes the carboxylate, and acid workup gives the acid.",
          prov("Rule O, then the acid drawn as its anion in basic solution", CH),
          lead(s, "benzaldehyde", "benzaldehyde + Tollens"), level=2, concepts=RED)
@@ -2769,8 +2855,8 @@ def node_mpv() -> None:
            "A hydride moves from the isopropoxide's C-H to the ketone carbon: the ketone is reduced."),
           ("ether", "CC(C)OC1CCCCC1", "(propan-2-yloxy)cyclohexane", "Isopropyl cyclohexyl ether",
            "No C-O bond forms between the two partners. Only a hydride is passed across."),
-          ("same", s, "cyclohexanone", "No reaction",
-           "Aluminium isopropoxide reduces ketones. That is the MPV reduction.")],
+          ("ipr", "CC(C)C1(O)CCCCC1", "1-(propan-2-yl)cyclohexan-1-ol", "Isopropyl added",
+           "No C-C bond forms. The isopropoxide gives a hydride from its C-H, not its carbon chain.")],
          [p], "ol", "MPV: propan-2-ol is the hydride source.",
          prov("Rule R", CH), lead(s, "cyclohexanone", "cyclohexanone + Al(OiPr)₃"), level=0, concepts=RED)
 
@@ -2805,7 +2891,7 @@ def node_mpv() -> None:
           ("sat", "O=CCCc1ccccc1", "3-phenylpropanal", "3-Phenylpropanal",
            "That reduces the C=C and keeps the C=O, the opposite selectivity."),
           ("both", "OCCCc1ccccc1", "3-phenylpropan-1-ol", "3-Phenylpropan-1-ol",
-           "MPV has no way to reduce an isolated C=C. Only the carbonyl is touched.")],
+           "MPV delivers hydride only to the C=O carbon, through the aluminium complex. The conjugated C=C is left alone, so only the C=O is reduced.")],
          [p], "ol", "MPV is chemoselective for C=O.",
          prov("Rule R on the C=O only", CH, "MPV leaves C=C alone"), lead(s, "(2E)-3-phenylprop-2-enal", "cinnamaldehyde + Al(OiPr)₃"),
          level=2, concepts=RED, convention="MPV leaves C=C alone")
