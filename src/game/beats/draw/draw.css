@@ -48,6 +48,18 @@
   min-height: 0;
   width: 100%;
 }
+/* Night (audit 23 Oct, section 5 #11: the board was a white slab on the
+   night page). Ketcher draws black ink for white paper and has no dark
+   theme, so the board is inverted as a picture: white paper turns #1a1a1a,
+   black bonds turn light, and the half-turn of hue puts red O, blue N and
+   the selection colours back near their own hues. A filter moves no pixels,
+   so taps land where they did. The box behind it takes the same #1a1a1a. */
+.dark .draw-beat__canvas {
+  background: #1a1a1a;
+}
+.dark .draw-beat__editor {
+  filter: invert(0.9) hue-rotate(180deg);
+}
 /* The editor and the scratch paper, stacked. Not side by side even on a wide
    screen: the lesson column is held to 36rem (beat-chrome.css), and half of
    that is too narrow for Ketcher's toolbar. */
