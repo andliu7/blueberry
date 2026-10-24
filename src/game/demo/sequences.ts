@@ -4974,21 +4974,43 @@ const mesylateVs = createSpecies({
   ],
 });
 
-const hclVs = createSpecies({
-  id: "sp-hcl-vs",
-  atoms: [
-    createAtom({ id: "vscl", element: "Cl", lonePairs: 3 }),
-    createAtom({ id: "vsh", element: "H" }),
-  ],
-  bonds: [createBond({ id: "b-vsclh", a: "vscl", b: "vsh" })],
-});
+/*
+ * Step 2's base is triethylamine, the amine the lesson's own questions name
+ * (u5-ts-mesyl: "Et₃N takes the H and the HCl"). Audit 23 Oct 2b: chloride
+ * used to take the proton here, so the student drew one base and read about
+ * another. The chloride from step 1 ends as the counter-ion of Et₃NH⁺.
+ */
+function triethylamineVs(protonated: boolean) {
+  return createSpecies({
+    id: protonated ? "sp-et3nh-vs" : "sp-et3n-vs",
+    atoms: [
+      createAtom({ id: "vsn", element: "N", formalCharge: protonated ? 1 : 0, lonePairs: protonated ? 0 : 1 }),
+      createAtom({ id: "vsa1", element: "C", implicitHydrogens: 2 }),
+      createAtom({ id: "vsa2", element: "C", implicitHydrogens: 3 }),
+      createAtom({ id: "vsb1", element: "C", implicitHydrogens: 2 }),
+      createAtom({ id: "vsb2", element: "C", implicitHydrogens: 3 }),
+      createAtom({ id: "vsd1", element: "C", implicitHydrogens: 2 }),
+      createAtom({ id: "vsd2", element: "C", implicitHydrogens: 3 }),
+      ...(protonated ? [createAtom({ id: "vsh", element: "H" })] : []),
+    ],
+    bonds: [
+      createBond({ id: "b-vsna", a: "vsn", b: "vsa1" }),
+      createBond({ id: "b-vsa12", a: "vsa1", b: "vsa2" }),
+      createBond({ id: "b-vsnb", a: "vsn", b: "vsb1" }),
+      createBond({ id: "b-vsb12", a: "vsb1", b: "vsb2" }),
+      createBond({ id: "b-vsnd", a: "vsn", b: "vsd1" }),
+      createBond({ id: "b-vsd12", a: "vsd1", b: "vsd2" }),
+      ...(protonated ? [createBond({ id: "b-vsnh", a: "vsn", b: "vsh" })] : []),
+    ],
+  });
+}
 
 const MESYL_DEPROT: MechanismStep = createStep({
   id: "mesyl-deprot",
   from: createState({
     id: "vs2-before",
     members: [
-      { species: chlorideVs, role: "nucleophile" },
+      { species: triethylamineVs(false), role: "base" },
       { species: protMesylateVs, role: "substrate" },
     ],
   }),
@@ -4996,15 +5018,26 @@ const MESYL_DEPROT: MechanismStep = createStep({
     id: "vs2-after",
     members: [
       { species: mesylateVs, role: "product" },
-      { species: hclVs, role: "product" },
+      { species: triethylamineVs(true), role: "byproduct" },
     ],
   }),
-  identity: { elementaryStep: "proton_transfer", route: "acid_base_proton_transfer", reactionCenters: ["vsh", "vscl"] },
+  identity: { elementaryStep: "proton_transfer", route: "acid_base_proton_transfer", reactionCenters: ["vsh", "vsn"] },
   arrows: [
-    createArrow({ id: "a-grab", source: fromLonePair("vscl"), sink: toBondBetween("vscl", "vsh") }),
+    createArrow({ id: "a-grab", source: fromLonePair("vsn"), sink: toBondBetween("vsn", "vsh") }),
     createArrow({ id: "a-release", source: fromBond("b-vsoh"), sink: toAtom("vso") }),
   ],
 });
+
+/** Triethylamine sits lower left of the oxonium H, its three ethyls pointing away from it. */
+const ET3N_HINTS: LayoutHints = {
+  vsn: { x: -2.95, y: 1.75 },
+  vsa1: { x: -2.95, y: 2.75 },
+  vsa2: { x: -2.1, y: 3.25 },
+  vsb1: { x: -3.95, y: 1.6 },
+  vsb2: { x: -4.55, y: 2.4 },
+  vsd1: { x: -3.45, y: 0.9 },
+  vsd2: { x: -4.45, y: 0.75 },
+};
 
 /* ------------------------------------------------------------------ */
 /* Unit 7 spine: hemiacetal formation under acid. Protonate the        */
@@ -7253,7 +7286,7 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
     id: "seq-mesylate",
     title: "Mesylate formation · 2 steps",
     brief: "The polite way to fix a bad leaving group: no acid, no carbocation, stereocentre untouched.",
-    successLine: "The alcohol attacked sulfur, chloride left, and chloride then collected the proton: an ethyl mesylate, ready for any SN2 you point at it. Unlike the HBr route there was never a cation on the map, which is why this is the move when a stereocentre is nearby.",
+    successLine: "The alcohol attacked sulfur, chloride left, and triethylamine then took the proton: an ethyl mesylate, ready for any SN2 you point at it. Unlike the HBr route there was never a cation on the map, which is why this is the move when a stereocentre is nearby.",
     steps: [
       {
         step: MESYL_ATTACK,
@@ -7284,9 +7317,9 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
       },
       {
         step: MESYL_DEPROT,
-        stepBrief: "Step 2 · Chloride comes back for the proton. Mesylate done.",
+        stepBrief: "Step 2 · Triethylamine takes the proton off the oxygen. Mesylate done.",
         fromHints: {
-          vscl: { x: -2.85, y: 1.6 },
+          ...ET3N_HINTS,
           vso: { x: -0.85, y: 0.45 },
           vsh: { x: -1.6, y: 1.0 },
           vsc1: { x: -1.25, y: -0.6 },
@@ -7297,8 +7330,8 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
           vsk2: { x: 1.45, y: 0.6 },
         },
         toHints: {
-          vscl: { x: -2.95, y: 1.7 },
-          vsh: { x: -2.15, y: 1.35 },
+          ...ET3N_HINTS,
+          vsh: { x: -2.1, y: 1.35 },
           vso: { x: -0.85, y: 0.45 },
           vsc1: { x: -1.25, y: -0.6 },
           vsc2: { x: -2.3, y: -0.95 },
