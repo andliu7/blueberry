@@ -264,6 +264,17 @@ interface ItemProps {
 }
 
 /**
+ * The word each mark stands for, the same word its sheet's eyebrow uses. Shown
+ * as the hover title (audit 23 Oct, section 5 #10: a first-timer could not
+ * tell the three icons apart); the row itself stays one mark and one number.
+ * LIMIT: a title never shows on a phone or iPad. There the name comes from a
+ * tap, which opens the sheet whose headline says it ("3 day streak", "12
+ * diamonds", "Mistakes never cost charge"). A visible word on the row would break the
+ * one-mark-one-number ruling above, so that is left for the owner.
+ */
+const HUD_NAME: Readonly<Record<HudButtonId, string>> = { streak: "Streak", diamonds: "Diamonds", charge: "Charge" };
+
+/**
  * One readout. 44px minimum in both directions, pressed on pointer down.
  *
  * ALL THREE ARE THE SAME OBJECT, and after round six that is meant literally:
@@ -284,13 +295,6 @@ interface ItemProps {
  * which element was pressed, and the spotlight has to be cut around exactly
  * that one.
  */
-/**
- * The word each mark stands for, the same word its sheet's eyebrow uses. Shown
- * as the hover title (audit 23 Oct, section 5 #10: a first-timer could not
- * tell the three icons apart); the row itself stays one mark and one number.
- */
-const HUD_NAME: Readonly<Record<HudButtonId, string>> = { streak: "Streak", diamonds: "Diamonds", charge: "Charge" };
-
 function HudButton({ id, label, rank, onOpen, streak, children }: ItemProps) {
   return (
     <button
