@@ -121,6 +121,36 @@ six Bloom moves, hand-written wordmark, jump / curtain lift / land exit.
   list and, for the day's first open, the gift sheet: 401.0 to 397.9 KB first open of the day,
   398.5 to 395.4 KB after (404 page lazy, motif names split from the drawings).
 
+**Content fixes, 23 Oct (24 Oct 04:40 final check; audit documentation/CONTENT-AUDIT-OCT-23.md). Commits only, nothing pushed**
+- Shipped per unit: U0 pool fixes, harder test out (2eed935). U1 exam scored whole at 80% (4240fd4),
+  NBS names both products (27fd79a). U2 Frost circle taught first, level 2 items, wording and N-H
+  fixes (59cce0f, 0acb268, a697d6e). U3 sequencing key fixed, directing after arenium, ladders wired,
+  EAS synthesis gaps (fa81b0a, f8b1b71, 6c85a6a, 3ca76fa, bed0b3c, c20adc2). U4 audit set incl. unit
+  exam (f440f9d, d1eafb5). U5 syn addition, seq-mesylate base, acid dehydration trainer (263f72f,
+  eaafc3e, c392412). U6 splitting basics, unit exam, IR held (38ecbea, 16a238d, d505043). U7 E/Z,
+  protect order, real distractors (8170367, 6251fe7). U8 decarboxylation and ladder rules, wired
+  first lesson, test twins (6b8b03c). U9 malonate pKa, retro aldol, enolate resonance, level 2
+  (dd557cb, 0074d10, f6b5526, b7ff450). U10 Hofmann base, Sandmeyer, amide reduction, basicity
+  opener, level 2 (9f077e0, 291e0c9, d67a9dc, ea05bce, 40c3176, 3ba68be).
+- Shipped across the game: harder questions played and paced (4d0d650), A/B/C tiles until Check
+  (e12272f, e29d5a9), ladders keep drawings in tests (0607b96), why-yours-is-wrong open (5cd7803),
+  bigger figures (a410a6c), missed-drag hint (6f9d448), CTA opens lesson 1 (104a930), section
+  names (b12e9b0), Train tab dev notes gone (0fdb727), one lesson count and "notes" (9dc2a44,
+  ce8b02f, 83104fb), rewards and quests (b80cf3a, fe67220, ccb69d3, 686ca0d, 85d74a3), Section
+  wording, dark draw board, class in hero (f0b86a7, f888f24, a9ea54d).
+- Left from the audit: top-25 #5 (U0 story chapters; StoryScene.tsx and u0/u1 edits sit
+  uncommitted, tsc -b red on StoryScene.tsx:78 until it lands), #12 (easiest first), #21 for
+  U1 (picks with names only; U3's u3-alk-fails got drawn tiles in f8b1b71); section 5 #3
+  (test out on locked pages) and #10 day-one goal; section 6 draw items in U4 to U7, extra L0
+  items, exam twins for U2/U3/U6, distractor swaps, and the by-unit authoring lists.
+- Final check: tsc -b one error (StoryScene.tsx, untracked, in progress); build passes; vitest
+  75 red in the full run with a second workflow on the machine, all timeouts but two (U6 exam
+  follow-ups, fixed in d505043); reruns green except learn.test's first two Learn addresses
+  (cold lazy load past its 3 s settle under load). Payload 400.3 KB gz first open (was 341.8):
+  supabase-js (53 KB) is back on #/app first open since c926b19 (G1 sign in before the app).
+- OWNER decisions pending: side quests on exams (top-25 #10, not done); IR band numbers sign-off
+  (#9: U6_IR_HELD and the board are built, u6-ir still shows Coming soon).
+
 **23 Oct workflow run (wf_6a2d3c6a-47c), finished. Commits only, nothing pushed**
 - Passed the critic: supabase lazy (9066e61), 21 supernova (already shipped), 24 back disc
   (c9637b1), 22 footer (5e77a62, fcbc006: Find me email now matches andliu.dev), 11 welcome back
