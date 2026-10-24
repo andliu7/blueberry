@@ -209,21 +209,25 @@ export const PATHWAY_UNITS: readonly PathwayUnit[] = [
     note: "Core of the course. Gates Units 4, 10, 11.",
     nodes: [
       { id: "u3-arenium", kind: "spine", title: "Arenium (σ-complex) mechanism", blurb: "Attack → cation → rearomatize: the mechanism under every node here.", playable: { kind: "sequence", id: "seq-eas" } },
+      // Audit 23 Oct (top-25 #13): directing comes straight after the arenium lesson, so the halo,
+      // nitration and sulfo lessons can ask where a group sends the electrophile after it is taught.
+      // Alkylation and benzylic oxidation are on the main line: acylation's payoff needs alkylation's
+      // failure first, and sequencing's KMnO4 routes need benzylic oxidation first.
+      { id: "u3-directing", kind: "spine", title: "Directing effects", blurb: "o/p vs m; activators vs deactivators; the halogen anomaly.", playable: { kind: "beat", id: "u3-directing" } },
       { id: "u3-halo", kind: "spine", title: "Halogenation", blurb: "Cl₂/FeCl₃; Br₂/FeBr₃; I₂ needs an oxidant.", playable: { kind: "sequence", id: "seq-eas-br" } },
       { id: "u3-nitration", kind: "spine", title: "Nitration", blurb: "HNO₃/H₂SO₄, electrophile NO₂⁺.", playable: { kind: "sequence", id: "seq-eas" } },
       { id: "u3-sulfo", kind: "spine", title: "Sulfonation and desulfonation", blurb: "Reversible, which is what makes it a blocking group.", playable: { kind: "sequence", id: "seq-sulfonation" } },
+      { id: "u3-fc-alkyl", kind: "spine", title: "Friedel–Crafts alkylation", blurb: "Taught as a failure mode: rearrangement, polyalkylation.", playable: { kind: "beat", id: "u3-fc-alkyl" } },
       { id: "u3-fc-acyl", kind: "spine", title: "Friedel–Crafts acylation", blurb: "RCOCl/AlCl₃; no rearrangement, self-limiting.", playable: { kind: "sequence", id: "seq-fc-acyl" } },
-      { id: "u3-directing", kind: "spine", title: "Directing effects", blurb: "o/p vs m; activators vs deactivators; the halogen anomaly.", playable: { kind: "beat", id: "u3-directing" } },
       { id: "u3-blocking", kind: "spine", title: "Blocking-group strategy", blurb: "Sulfonate para, react, desulfonate.", playable: { kind: "beat", id: "u3-blocking" } },
       { id: "u3-nitro-red", kind: "spine", title: "Nitro reduction", blurb: "H₂/Pd or metal/HCl → aniline. The bridge into Unit 10.", playable: { kind: "beat", id: "u3-nitro-red" } },
       { id: "u3-c-to-ch2", kind: "spine", title: "Carbonyl → CH₂ after acylation", blurb: "Clemmensen or Wolff–Kishner: the unrearranged alkyl chain.", playable: { kind: "reaction", id: "wolff-extrusion" } },
+      { id: "u3-benzylic-ox", kind: "spine", title: "Benzylic oxidation", blurb: "KMnO₄ → ArCOOH; t-Bu survives.", playable: { kind: "beat", id: "u3-benzylic-ox" } },
       { id: "u3-sequencing", kind: "spine", title: "Multistep sequencing logic", blurb: "When to nitrate, reduce, block: order of operations.", playable: { kind: "beat", id: "u3-sequencing" } },
       // Unit 3 side quests with a DRAFT pool (scripts/u3_pools.py), each hung beside the lesson its
-      // questions lean on: alkylation is contrasted with acylation (u3-fc-acyl), NBS with ring
-      // bromination (u3-halo), and KMnO4 and Birch use the donor and withdrawer classes (u3-directing).
-      { id: "u3-fc-alkyl", kind: "branch", title: "Friedel–Crafts alkylation", blurb: "Taught as a failure mode: rearrangement, polyalkylation.", playable: { kind: "beat", id: "u3-fc-alkyl" }, after: ["u3-fc-acyl"] },
+      // questions lean on: NBS is contrasted with ring bromination (u3-halo), and Birch uses the donor
+      // and withdrawer classes (u3-directing).
       { id: "u3-benzylic-br", kind: "branch", title: "Benzylic bromination", blurb: "NBS, hν; needs a benzylic H.", playable: { kind: "beat", id: "u3-benzylic-br" }, after: ["u3-halo"] },
-      { id: "u3-benzylic-ox", kind: "branch", title: "Benzylic oxidation", blurb: "KMnO₄ → ArCOOH; t-Bu survives.", playable: { kind: "beat", id: "u3-benzylic-ox" }, after: ["u3-directing"] },
       { id: "u3-birch", kind: "branch", title: "Birch reduction", blurb: "Na/NH₃(l)/ROH → 1,4-cyclohexadiene.", playable: { kind: "beat", id: "u3-birch" }, after: ["u3-directing"] },
       { id: "u3-gk", kind: "branch", title: "Gattermann–Koch formylation", blurb: "CO, HCl, AlCl₃/CuCl → ArCHO." },
       { id: "u3-ghh", kind: "branch", title: "Gattermann / Houben–Hoesch", blurb: "HCN or RCN, HCl, ZnCl₂." },

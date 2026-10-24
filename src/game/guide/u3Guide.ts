@@ -20,7 +20,7 @@ const STAGES: readonly GuideStage[] = [
   {
     id: "a",
     label: "Stage A",
-    title: "Attack, then rearomatise",
+    title: "Attack, and where it lands",
     optional: false,
     checkpoint: null,
     lessons: [
@@ -53,6 +53,58 @@ const STAGES: readonly GuideStage[] = [
           source: "u3-aren-rearom",
           quote: "Losing that H+ puts its bond pair back into the ring: six pi electrons on six sp2 carbons, aromatic again. That is bromobenzene.",
         },
+      },
+      {
+        node: "u3-directing",
+        ideas: [
+          {
+            text: "A lone pair on the first atom makes a group an o/p director and an activator: oxygen's lone pair stabilises the sigma complex.",
+            mark: "o/p director and an activator",
+            source: "u3-dir-phenol",
+            quote: "OH is an o/p director and a strong activator: oxygen's lone pair stabilises the sigma complex.",
+          },
+          {
+            text: "Alkyl groups are o/p directors and weak activators.",
+            source: "u3-dir-ethyl",
+            quote: "Alkyl groups are o/p directors and weak activators.",
+          },
+          {
+            text: "Halogens deactivate the ring but direct o/p: induction sets the rate, the lone pair sets the position.",
+            source: "u3-dir-bromo",
+            quote: "Halogens deactivate the ring but direct o/p: induction sets the rate, the lone pair sets the position.",
+          },
+          {
+            text: "A multiple bond to N or O on the first atom makes a meta director and a deactivator.",
+            source: "u3-dir-cn",
+            quote: "A nitrile is a meta director and a deactivator: a multiple bond to N on the first atom.",
+          },
+        ],
+        example: {
+          source: "u3-dir-compete",
+          quote: "When two groups disagree, the stronger activator decides. OMe beats CH3, so Br goes ortho to the OMe.",
+        },
+      },
+      {
+        node: "u3-birch",
+        ideas: [
+          {
+            text: "Birch reduction adds H to two para carbons and leaves a nonconjugated 1,4-diene.",
+            mark: "a nonconjugated 1,4-diene",
+            source: "u3-bir-meet",
+            quote: "Birch reduction adds H to two para carbons and leaves a nonconjugated 1,4-diene.",
+          },
+          {
+            text: "A donor's carbon stays on a C=C.",
+            source: "u3-bir-anisole",
+            quote: "OMe is a donor, so its carbon stays on a C=C.",
+          },
+          {
+            text: "The Birch product has isolated C=C bonds and no aromaticity.",
+            source: "u3-bir-conj",
+            quote: "The Birch product has isolated C=C bonds and no aromaticity.",
+          },
+        ],
+        example: { source: "u3-bir-acid", quote: "COOH is a withdrawer, so its carbon goes sp3 and the C=C bonds sit away from it." },
       },
       {
         node: "u3-halo",
@@ -137,6 +189,69 @@ const STAGES: readonly GuideStage[] = [
         ],
         example: { source: "u3-sul-reverse", quote: "Desulfonation: hot dilute acid takes the SO3H off and puts H back." },
       },
+    ],
+    mistakes: [
+      {
+        mistake: "Adding Br₂ across the ring, as with an alkene.",
+        fix: "Lose H⁺ instead, and the ring is aromatic again.",
+        source: "u3-aren-rearom",
+        quote: "Adding bromide instead would leave a nonaromatic diene.",
+      },
+      {
+        mistake: "Putting the + on the sp³ carbon in a sigma complex form.",
+        fix: "The + walks ortho, para, ortho; the sp³ carbon never carries it.",
+        source: "u3-aren-count",
+        quote: "The sp3 carbon never carries it.",
+      },
+      {
+        mistake: "Calling a halogen a meta director because it deactivates.",
+        fix: "Halogens deactivate but still direct o/p.",
+        source: "u3-nit-chloro",
+        quote: "Chlorine deactivates the ring but still directs ortho and para.",
+      },
+      {
+        mistake: "Letting the weaker activator decide when two groups disagree.",
+        fix: "The stronger activator decides.",
+        source: "u3-dir-compete",
+        quote: "When two groups disagree, the stronger activator decides.",
+      },
+      {
+        mistake: "Brominating the side chain with Br₂ and FeBr₃.",
+        fix: "A Lewis acid sends the electrophile to the ring. The benzylic C-H needs radical conditions.",
+        source: "u3-halo-vs-nbs",
+        quote: "The benzylic C-H needs radical conditions instead.",
+      },
+    ],
+  },
+  {
+    id: "b",
+    label: "Stage B",
+    title: "Friedel-Crafts and blocking",
+    optional: false,
+    checkpoint: null,
+    lessons: [
+      {
+        node: "u3-fc-alkyl",
+        ideas: [
+          {
+            text: "The cation shifts to the best carbon one shift away, and the ring bonds to that carbon.",
+            mark: "the ring bonds to that carbon",
+            source: "u3-alk-propyl",
+            quote: "The cation from 1-chloropropane ends up secondary (shift: hydride), and the ring bonds to that carbon.",
+          },
+          {
+            text: "Each alkyl group activates the ring, so the product outcompetes benzene: polyalkylation.",
+            source: "u3-alk-poly",
+            quote: "Each alkyl group activates the ring, so the product outcompetes benzene: polyalkylation.",
+          },
+          {
+            text: "With no H on the next carbon, a methyl shifts instead.",
+            source: "u3-alk-neopentyl",
+            quote: "The neighbouring carbon has no H, so a methyl shifts instead.",
+          },
+        ],
+        example: { source: "u3-alk-propyl", quote: "The primary cation takes a hydride from the next carbon and becomes secondary." },
+      },
       {
         node: "u3-fc-acyl",
         ideas: [
@@ -163,135 +278,6 @@ const STAGES: readonly GuideStage[] = [
         },
       },
       {
-        node: "u3-fc-alkyl",
-        ideas: [
-          {
-            text: "The cation shifts to the best carbon one shift away, and the ring bonds to that carbon.",
-            mark: "the ring bonds to that carbon",
-            source: "u3-alk-propyl",
-            quote: "The cation from 1-chloropropane ends up secondary (shift: hydride), and the ring bonds to that carbon.",
-          },
-          {
-            text: "Each alkyl group activates the ring, so the product outcompetes benzene: polyalkylation.",
-            source: "u3-alk-poly",
-            quote: "Each alkyl group activates the ring, so the product outcompetes benzene: polyalkylation.",
-          },
-          {
-            text: "With no H on the next carbon, a methyl shifts instead.",
-            source: "u3-alk-neopentyl",
-            quote: "The neighbouring carbon has no H, so a methyl shifts instead.",
-          },
-        ],
-        example: { source: "u3-alk-propyl", quote: "The primary cation takes a hydride from the next carbon and becomes secondary." },
-      },
-    ],
-    mistakes: [
-      {
-        mistake: "Adding Br₂ across the ring, as with an alkene.",
-        fix: "Lose H⁺ instead, and the ring is aromatic again.",
-        source: "u3-aren-rearom",
-        quote: "Adding bromide instead would leave a nonaromatic diene.",
-      },
-      {
-        mistake: "Putting the + on the sp³ carbon in a sigma complex form.",
-        fix: "The + walks ortho, para, ortho; the sp³ carbon never carries it.",
-        source: "u3-aren-count",
-        quote: "The sp3 carbon never carries it.",
-      },
-      {
-        mistake: "Expecting a straight chain from Friedel-Crafts alkylation with 1-chloropropane.",
-        fix: "Acylate then reduce: direct alkylation gives mainly isopropylbenzene.",
-        source: "u3-ch2-why",
-        quote: "Direct alkylation gives mainly isopropylbenzene.",
-      },
-      {
-        mistake: "Brominating the side chain with Br₂ and FeBr₃.",
-        fix: "A Lewis acid sends the electrophile to the ring. The benzylic C-H needs radical conditions.",
-        source: "u3-halo-vs-nbs",
-        quote: "The benzylic C-H needs radical conditions instead.",
-      },
-    ],
-  },
-  {
-    id: "b",
-    label: "Stage B",
-    title: "Directing effects",
-    optional: false,
-    checkpoint: null,
-    lessons: [
-      {
-        node: "u3-directing",
-        ideas: [
-          {
-            text: "A lone pair on the first atom makes a group an o/p director and an activator: oxygen's lone pair stabilises the sigma complex.",
-            mark: "o/p director and an activator",
-            source: "u3-dir-phenol",
-            quote: "OH is an o/p director and a strong activator: oxygen's lone pair stabilises the sigma complex.",
-          },
-          {
-            text: "Alkyl groups are o/p directors and weak activators.",
-            source: "u3-dir-ethyl",
-            quote: "Alkyl groups are o/p directors and weak activators.",
-          },
-          {
-            text: "Halogens deactivate the ring but direct o/p: induction sets the rate, the lone pair sets the position.",
-            source: "u3-dir-bromo",
-            quote: "Halogens deactivate the ring but direct o/p: induction sets the rate, the lone pair sets the position.",
-          },
-          {
-            text: "A multiple bond to N or O on the first atom makes a meta director and a deactivator.",
-            source: "u3-dir-cn",
-            quote: "A nitrile is a meta director and a deactivator: a multiple bond to N on the first atom.",
-          },
-        ],
-        example: {
-          source: "u3-dir-compete",
-          quote: "When two groups disagree, the stronger activator decides. OMe beats CH3, so Br goes ortho to the OMe.",
-        },
-      },
-      {
-        node: "u3-benzylic-ox",
-        ideas: [
-          {
-            text: "Every side chain with a benzylic H is cut back to COOH; a side chain with no benzylic H survives.",
-            mark: "cut back to COOH",
-            source: "u3-box-meet",
-            quote: "Every side chain with a benzylic H is cut back to COOH; a side chain with no benzylic H survives.",
-          },
-          {
-            text: "Oxidising CH₃ to COOH flips o/p to meta.",
-            source: "u3-box-flip",
-            quote: "Oxidising CH3 to COOH flips o/p to meta.",
-          },
-        ],
-        example: {
-          source: "u3-box-tbu",
-          quote: "The CH3 has benzylic H and becomes COOH. The tert-butyl carbon bonded to the ring has no H, so it survives.",
-        },
-      },
-      {
-        node: "u3-birch",
-        ideas: [
-          {
-            text: "Birch reduction adds H to two para carbons and leaves a nonconjugated 1,4-diene.",
-            mark: "a nonconjugated 1,4-diene",
-            source: "u3-bir-meet",
-            quote: "Birch reduction adds H to two para carbons and leaves a nonconjugated 1,4-diene.",
-          },
-          {
-            text: "A donor's carbon stays on a C=C.",
-            source: "u3-bir-anisole",
-            quote: "OMe is a donor, so its carbon stays on a C=C.",
-          },
-          {
-            text: "The Birch product has isolated C=C bonds and no aromaticity.",
-            source: "u3-bir-conj",
-            quote: "The Birch product has isolated C=C bonds and no aromaticity.",
-          },
-        ],
-        example: { source: "u3-bir-acid", quote: "COOH is a withdrawer, so its carbon goes sp3 and the C=C bonds sit away from it." },
-      },
-      {
         node: "u3-blocking",
         ideas: [
           {
@@ -316,22 +302,16 @@ const STAGES: readonly GuideStage[] = [
     ],
     mistakes: [
       {
-        mistake: "Calling a halogen a meta director because it deactivates.",
-        fix: "Halogens deactivate but still direct o/p.",
-        source: "u3-nit-chloro",
-        quote: "Chlorine deactivates the ring but still directs ortho and para.",
+        mistake: "Expecting a straight chain from Friedel-Crafts alkylation with 1-chloropropane.",
+        fix: "Acylate then reduce: direct alkylation gives mainly isopropylbenzene.",
+        source: "u3-ch2-why",
+        quote: "Direct alkylation gives mainly isopropylbenzene.",
       },
       {
-        mistake: "Letting the weaker activator decide when two groups disagree.",
-        fix: "The stronger activator decides.",
-        source: "u3-dir-compete",
-        quote: "When two groups disagree, the stronger activator decides.",
-      },
-      {
-        mistake: "Oxidising a tert-butyl group with KMnO₄.",
-        fix: "No benzylic H, no reaction.",
-        source: "u3-box-tbu-alone",
-        quote: "No benzylic H, no reaction. tert-Butyl groups survive KMnO4.",
+        mistake: "Running Friedel-Crafts on nitrobenzene.",
+        fix: "Friedel-Crafts fails on strongly deactivated rings: nitrobenzene comes back unchanged.",
+        source: "u3-acyl-fails",
+        quote: "Friedel-Crafts reactions fail on strongly deactivated rings, so nitrobenzene comes back unchanged.",
       },
       {
         mistake: "Brominating toluene and expecting the ortho product alone.",
@@ -393,6 +373,26 @@ const STAGES: readonly GuideStage[] = [
         example: { source: "u3-ch2-meet", quote: "Clemmensen (or Wolff-Kishner) turns the aryl ketone's C=O into CH2" },
       },
       {
+        node: "u3-benzylic-ox",
+        ideas: [
+          {
+            text: "Every side chain with a benzylic H is cut back to COOH; a side chain with no benzylic H survives.",
+            mark: "cut back to COOH",
+            source: "u3-box-meet",
+            quote: "Every side chain with a benzylic H is cut back to COOH; a side chain with no benzylic H survives.",
+          },
+          {
+            text: "Oxidising CH₃ to COOH flips o/p to meta.",
+            source: "u3-box-flip",
+            quote: "Oxidising CH3 to COOH flips o/p to meta.",
+          },
+        ],
+        example: {
+          source: "u3-box-tbu",
+          quote: "The CH3 has benzylic H and becomes COOH. The tert-butyl carbon bonded to the ring has no H, so it survives.",
+        },
+      },
+      {
         node: "u3-sequencing",
         ideas: [
           {
@@ -423,10 +423,10 @@ const STAGES: readonly GuideStage[] = [
         quote: "Nitration has no such reverse step, and reducing NO2 gives NH2, not H.",
       },
       {
-        mistake: "Running Friedel-Crafts on nitrobenzene.",
-        fix: "Friedel-Crafts fails on strongly deactivated rings: nitrobenzene comes back unchanged.",
-        source: "u3-acyl-fails",
-        quote: "Friedel-Crafts reactions fail on strongly deactivated rings, so nitrobenzene comes back unchanged.",
+        mistake: "Oxidising a tert-butyl group with KMnO₄.",
+        fix: "No benzylic H, no reaction.",
+        source: "u3-box-tbu-alone",
+        quote: "No benzylic H, no reaction. tert-Butyl groups survive KMnO4.",
       },
       {
         mistake: "Oxidising CH₃ to COOH before nitrating when the target is para.",
@@ -441,7 +441,7 @@ const STAGES: readonly GuideStage[] = [
 export const U3_GUIDE: UnitGuide = {
   unitId: "u3",
   intro:
-    "How an electrophile replaces an H on a benzene ring: the sigma complex, the five reactions, where each group sends the next one, and how to order steps to reach a target. Read a stage before its lessons, or come back when one trips you up.",
+    "How an electrophile replaces an H on a benzene ring: the sigma complex, where each group sends the next one, the five reactions, and how to order steps to reach a target. Read a stage before its lessons, or come back when one trips you up.",
   stages: STAGES,
   examples: U3_GUIDE_EXAMPLES,
   placeholder: true,

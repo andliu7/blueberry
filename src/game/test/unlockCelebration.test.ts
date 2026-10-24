@@ -29,7 +29,8 @@ function memory(seed: Record<string, string> = {}): SaveStorage & { readonly dat
 }
 
 const U3 = PATHWAY_UNITS.find((unit) => unit.id === "u3")!;
-const [S1, S2] = unitSections(U3);
+const SECTIONS = unitSections(U3);
+const [S1, S2] = SECTIONS;
 
 describe("what a clear unlocks", () => {
   it("finds the latest clear", () => {
@@ -48,8 +49,9 @@ describe("what a clear unlocks", () => {
   });
 
   it("the last lesson of a unit opens its check, which draws its own road, so from is null", () => {
-    const lessons = [...S1!.lights, ...S2!.lights].map((id) => cleared(id));
-    expect(celebrationFor(PATHWAY_UNITS, lessons)).toEqual({ key: `${AT}|${S2!.lights.at(-1)}`, unitId: "u3", from: null, to: checkpointNodeId("u3") });
+    // Every section's lessons, so the last one cleared is the unit's last (Unit 3 has three sections since 23 Oct).
+    const lessons = SECTIONS.flatMap((section) => section.lights).map((id) => cleared(id));
+    expect(celebrationFor(PATHWAY_UNITS, lessons)).toEqual({ key: `${AT}|${SECTIONS.at(-1)!.lights.at(-1)}`, unitId: "u3", from: null, to: checkpointNodeId("u3") });
   });
 
   it("the last lesson of a section that opens nothing celebrates nothing", () => {
