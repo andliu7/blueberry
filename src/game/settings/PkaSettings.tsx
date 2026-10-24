@@ -63,8 +63,10 @@ import {
   type KeyboardEvent,
 } from "react";
 import type { ReactNode } from "react";
-import type { PkaSiteId } from "@blueberry/curriculum";
+import { pkaEntry, type PkaSiteId } from "@blueberry/curriculum";
 import {
+  PKA_INPUT_MAX,
+  PKA_INPUT_MIN,
   PKA_PRESETS,
   formatPka,
   overrideCount,
@@ -78,6 +80,15 @@ import {
   type PkaSettingsSnapshot,
   type ResolvedPka,
 } from "./pka";
+import {
+  matchPkaSheet,
+  overridesFrom,
+  parsePkaSheet,
+  summarisePaste,
+  type PasteProblem,
+  type PasteSummary,
+} from "./pkaPaste";
+import { getPkaSyncStatus, subscribePkaSyncStatus, type PkaSyncStatus } from "./pkaSync";
 
 /**
  * The settings snapshot, re-rendering the caller when the store commits.
@@ -166,6 +177,8 @@ export default function PkaSettings() {
           them.
         </p>
       </Card>
+
+      <PasteSheet />
 
       {conflicts.length > 0 ? (
         /* Amber and not red. Red is for errors, per the token rules, and this
@@ -519,5 +532,159 @@ function LadderRow({
         </form>
       ) : null}
     </li>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Paste your sheet (STATUS C2)                                         */
+/* ------------------------------------------------------------------ */
+
+const PROBLEM_REASON: Readonly<Record<PasteProblem, string>> = {
+  no_number: "No number on this line, so there was nothing to use.",
+  no_name: "A number with no name beside it.",
+  two_numbers: "Not a single number: this line has two. Set that rung by hand below.",
+  range: "A range, not a single number. Pick the one your professor marks to and set it by hand below.",
+  out_of_range: `Looks like a slipped digit. Every rung sits between ${PKA_INPUT_MIN} and ${PKA_INPUT_MAX}.`,
+};
+
+const SYNC_LINE: Readonly<Record<PkaSyncStatus, string>> = {
+  account: "Saved to your account.",
+  syncing: "Saved on this device.",
+  device: "Saved on this device.",
+  idle: "Saved on this device. Sign in to keep them on every device.",
+};
+
+type PasteResult = { readonly kind: "summary"; readonly summary: PasteSummary } | { readonly kind: "reset" } | null;
+
+/**
+ * The paste box. The textarea is LOCAL DRAFT STATE (its own useState here, not
+ * in the page), so typing a long sheet re-renders this card alone and not the
+ * sixteen-row ladder. The store write happens once, on the button.
+ */
+function PasteSheet() {
+  const [draft, setDraft] = useState("");
+  const [result, setResult] = useState<PasteResult>(null);
+  const sync = useSyncExternalStore(subscribePkaSyncStatus, getPkaSyncStatus);
+  const fieldId = useId();
+
+  const update = () => {
+    const summary = summarisePaste(pkaSettings.getSnapshot(), matchPkaSheet(parsePkaSheet(draft)));
+    // One commit for the whole sheet, so the ladder re-sorts once.
+    pkaSettings.setOverrides(overridesFrom(summary));
+    setResult({ kind: "summary", summary });
+  };
+
+  const reset = () => {
+    pkaSettings.clearAllOverrides();
+    setResult({ kind: "reset" });
+  };
+
+  return (
+    <Card>
+      <h2 className="me-h2">Paste your sheet</h2>
+      <label htmlFor={fieldId} className="mt-1 block text-scale-sm me-muted">
+        Copy your professor's pKa table from a PDF or spreadsheet and paste it here. Only your own
+        numbers change.
+      </label>
+      <textarea
+        id={fieldId}
+        value={draft}
+        onChange={(event) => setDraft(event.currentTarget.value)}
+        rows={5}
+        spellCheck={false}
+        placeholder={"acetic acid 4.76\nH2O 15.7"}
+        className="mt-3 w-full rounded-2xl border-2 border-bb-input bg-bb-card px-3 py-2 text-scale-base"
+      />
+      <div className="mt-3 flex flex-wrap gap-2">
+        <button
+          type="button"
+          disabled={draft.trim() === ""}
+          onClick={update}
+          className="btn3d btn3d--primary"
+        >
+          Update my values
+        </button>
+        <button type="button" onClick={reset} className="btn3d btn3d--secondary">
+          Reset to Blueberry's values
+        </button>
+      </div>
+      <p className="mt-2 text-scale-sm me-muted">{SYNC_LINE[sync]}</p>
+      <div role="status" aria-live="polite">
+        {result === null ? null : result.kind === "reset" ? (
+          <p className="mt-3 text-scale-sm font-semibold">Back to Blueberry's values.</p>
+        ) : (
+          <PasteReport summary={result.summary} />
+        )}
+      </div>
+    </Card>
+  );
+}
+
+function PasteReport({ summary }: { readonly summary: PasteSummary }) {
+  const couldNot: { key: string; raw: string; reason: string }[] = [
+    ...summary.conflicts.map((c) => ({
+      key: `conflict:${c.siteId}`,
+      raw: c.entries.map((entry) => entry.raw).join(" / "),
+      reason: `Two values for ${pkaEntry(c.siteId).label.toLowerCase()}, so set it by hand below.`,
+    })),
+    ...summary.noRung.map((row, i) => ({
+      key: `norung:${i}`,
+      raw: row.raw,
+      reason: "Blueberry's ladder has no rung for this one yet.",
+    })),
+    ...summary.unknown.map((row, i) => ({
+      key: `unknown:${i}`,
+      raw: row.raw,
+      reason: "Blueberry does not know this name. Find the rung below and set it by hand.",
+    })),
+    ...summary.rejected.map((row, i) => ({
+      key: `rejected:${i}`,
+      raw: row.raw,
+      reason: PROBLEM_REASON[row.problem],
+    })),
+  ];
+  const nothing = summary.changed.length + summary.unchanged.length + couldNot.length === 0;
+
+  return (
+    <div className="mt-3 flex flex-col gap-3">
+      {nothing ? <p className="text-scale-sm">Nothing to read yet. Paste a few lines first.</p> : null}
+      {summary.changed.length > 0 ? (
+        <div>
+          <h3 className="text-scale-sm font-bold">Changed ({summary.changed.length})</h3>
+          <ul className="mt-1 flex flex-col gap-0.5">
+            {summary.changed.map((row) => (
+              <li key={row.siteId} className="text-scale-sm">
+                {row.label} {formatPka(row.from)} -&gt; {formatPka(row.to)}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+      {summary.unchanged.length > 0 ? (
+        <div>
+          <h3 className="text-scale-sm font-bold">Already the same ({summary.unchanged.length})</h3>
+          <p className="mt-1 text-scale-sm me-muted">
+            {summary.unchanged.map((row) => `${row.label} ${formatPka(row.value)}`).join(", ")}
+          </p>
+        </div>
+      ) : null}
+      {couldNot.length > 0 ? (
+        /* Amber, not red: a line Blueberry could not use is not an error. */
+        <div
+          className="rounded-[12px] border p-3"
+          style={{ background: "var(--warn-soft-solid)", borderColor: "var(--warn)", color: "var(--warn-ink-strong)" }}
+        >
+          <h3 className="text-scale-sm font-bold">Could not use ({couldNot.length})</h3>
+          <ul className="mt-1 flex flex-col gap-2">
+            {couldNot.map((row) => (
+              <li key={row.key} className="text-scale-sm">
+                <span className="block font-semibold">{row.raw}</span>
+                <span className="block">{row.reason}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+    </div>
   );
 }

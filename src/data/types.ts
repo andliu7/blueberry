@@ -70,6 +70,12 @@ export interface DeckItem {
   badge: string;
   /** Diagram shown on hover, or inline on tap. Omit for a text-only row. */
   image?: string;
+  /**
+   * The game's pKa rung this row is (a PkaSiteId in packages/curriculum), so a
+   * student's own value replaces the badge. Plain string: the site does not
+   * import the curriculum. Only set on rows that ARE a rung.
+   */
+  pkaSiteId?: string;
 }
 
 /** A labelled block of reference rows. */

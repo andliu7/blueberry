@@ -759,6 +759,13 @@ export function pkaCard(
 export const PKA_SETTINGS_KEY = "blueberry.pka.v1";
 
 /**
+ * When this device last changed the settings, as epoch milliseconds. A separate
+ * key so the settings JSON keeps its shape; account sync (pkaSync.ts) compares
+ * it with the account row's updated_at to decide which side is newer.
+ */
+export const PKA_SAVED_AT_KEY = "blueberry.pka.savedAt.v1";
+
+/**
  * The two methods this file needs from localStorage, named so a test can pass a
  * Map and so a browser with storage blocked degrades to a session-only choice
  * rather than a crash.
@@ -803,6 +810,21 @@ export interface PkaSettingsSource {
   clearOverride(site: PkaSiteId): void;
   clearAllOverrides(): void;
   reset(): void;
+  /**
+   * Several overrides in ONE commit, so a pasted sheet re-sorts the ladder once
+   * rather than once per line. Each value passes `isStorablePka` or is refused;
+   * returns the refused ids.
+   */
+  setOverrides(values: Partial<Record<PkaSiteId, number>>): readonly PkaSiteId[];
+  /**
+   * The preset and every override at once, replacing what is there (account
+   * sync adopting a newer copy). Values are sanitised like a reload. `at` is
+   * recorded as the save time, so an adopted copy keeps the account's time
+   * rather than looking newer than it.
+   */
+  replaceAll(next: { readonly presetId: PkaPresetId; readonly overrides: unknown }, at?: number): void;
+  /** When this device last committed, or 0 when it never has. */
+  savedAt(): number;
 }
 
 /** Anything that is not a finite number on a real rung is dropped on the way in. */
@@ -838,10 +860,11 @@ export function createPkaSettings(storage: SettingsStorage = browserStorage()): 
   let snapshot = load(storage);
   const listeners = new Set<() => void>();
 
-  const commit = (next: PkaSettingsSnapshot) => {
+  const commit = (next: PkaSettingsSnapshot, at: number = Date.now()) => {
     snapshot = next;
     try {
       storage.setItem(PKA_SETTINGS_KEY, JSON.stringify(next));
+      storage.setItem(PKA_SAVED_AT_KEY, String(at));
     } catch {
       /* storage blocked: the choice lasts for the session */
     }
@@ -885,6 +908,34 @@ export function createPkaSettings(storage: SettingsStorage = browserStorage()): 
     },
     reset() {
       commit(DEFAULT_PKA_SETTINGS);
+    },
+    setOverrides(values) {
+      const refused: PkaSiteId[] = [];
+      const next = { ...snapshot.overrides };
+      let changed = false;
+      for (const [key, value] of Object.entries(values) as [PkaSiteId, number | undefined][]) {
+        if (value === undefined) continue;
+        if (!(key in PKA_TABLE) || !isStorablePka(value)) {
+          refused.push(key);
+          continue;
+        }
+        if (next[key] === value) continue;
+        next[key] = value;
+        changed = true;
+      }
+      if (changed) commit({ ...snapshot, overrides: next });
+      return refused;
+    },
+    replaceAll(next, at) {
+      commit({ presetId: pkaPreset(next.presetId).id, overrides: sanitiseOverrides(next.overrides) }, at);
+    },
+    savedAt() {
+      try {
+        const raw = Number(storage.getItem(PKA_SAVED_AT_KEY));
+        return Number.isFinite(raw) && raw > 0 ? raw : 0;
+      } catch {
+        return 0;
+      }
     },
   };
 }

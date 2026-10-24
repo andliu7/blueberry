@@ -13,6 +13,7 @@ import { DeckAbout } from "@/components/ui/deck-about";
 import { DrillBanner, REFERENCE_STEPS } from "@/components/ui/drill-banner";
 import { CardGallery3D, GALLERY_MAX, type GalleryItem } from "@/components/ui/card-gallery-3d";
 import { cn } from "@/lib/utils";
+import { applyPkaOverrides, usePkaOverrides } from "@/lib/pkaOverrides";
 
 /**
  * The page for a reference deck.
@@ -72,7 +73,10 @@ export function ReferenceApp({ deck }: { deck: ReferenceDeck }) {
    * for the ring to be readable. The pKa and IR sheets run past twenty rows and
    * would smear into each other; NMR and resonance fit.
    */
-  const rows = useMemo(() => deck.groups.flatMap((g) => g.items), [deck.groups]);
+  // The student's own pKa values (STATUS C2) replace a rung row's badge; every other deck is untouched.
+  const pkaOverrides = usePkaOverrides();
+  const groups = useMemo(() => applyPkaOverrides(deck.groups, pkaOverrides), [deck.groups, pkaOverrides]);
+  const rows = useMemo(() => groups.flatMap((g) => g.items), [groups]);
   const VIEWS = useMemo(
     () => (rows.length <= GALLERY_MAX ? ALL_VIEWS : (["table", "flip", "carousel"] as const)),
     [rows.length],
@@ -298,7 +302,7 @@ export function ReferenceApp({ deck }: { deck: ReferenceDeck }) {
 
             {view === "table" ? (
               <HoverDeck
-                groups={deck.groups}
+                groups={groups}
                 quizMode={quizMode}
                 hoverPreview={hoverPreview}
                 preview={previewOpts}
@@ -328,7 +332,7 @@ export function ReferenceApp({ deck }: { deck: ReferenceDeck }) {
                 <div className="mx-auto flex w-full max-w-3xl flex-1 items-center">
                   <div className="w-full">
                     <ReferenceCards
-                      groups={deck.groups}
+                      groups={groups}
                       preview={previewOpts}
                       layout="carousel"
                     />
@@ -340,7 +344,7 @@ export function ReferenceApp({ deck }: { deck: ReferenceDeck }) {
                 </p>
               </div>
             ) : (
-              <ReferenceCards groups={deck.groups} preview={previewOpts} layout={view} />
+              <ReferenceCards groups={groups} preview={previewOpts} layout={view} />
             )}
 
             <ScrollToTop className="mt-6" />

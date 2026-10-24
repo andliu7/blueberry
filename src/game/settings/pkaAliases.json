@@ -1,0 +1,159 @@
+{
+  "$comment": "Names a pasted pKa sheet may use for each rung. One source for pkaAliases.ts and scripts/check_pka_aliases.py. A SMILES is checked by RDKit against its rung's SMARTS; a name without one is vocabulary, not chemistry. Never add a substituted compound (TFA, p-nitrophenol, benzoic acid): its pKa is not the rung's value.",
+  "rungSmarts": {
+    "protonated_carbonyl": "[CX3]=[OX2H1+]",
+    "protonated_alcohol": "[CX4][OX3H2+]",
+    "hydronium": "[OX3H3+]",
+    "carboxylic_acid": "[CX3](=O)[OX2H1]",
+    "carbonic_acid": "[OX2H1][CX3](=O)[OX2H1]",
+    "phenol": "c[OX2H1]",
+    "ammonium": "[NX4+;!H0]",
+    "beta_dicarbonyl_alpha_ch": "[CX3](=O)[CX4;!H0][CX3](=O)",
+    "water": "[OX2H2]",
+    "alcohol": "[CX4][OX2H1]",
+    "ketone_alpha_ch": "[CX4;!H0][CX3](=O)[#6]",
+    "ester_alpha_ch": "[CX4;!H0][CX3](=O)[OX2][#6]",
+    "terminal_alkyne_ch": "[CX2]#[CX2H1]",
+    "amine_nh": "[NX3;!H0;!$(N[CX3]=O)]",
+    "vinylic_or_aromatic_ch": "[#6;H1,H2;$([c]),$([CX3]=[CX3])]",
+    "alkane_ch": "[CX4;!H0]"
+  },
+  "aliases": {
+    "protonated_carbonyl": [
+      { "name": "protonated carbonyl" },
+      { "name": "protonated carbonyl oxygen" },
+      { "name": "protonated ketone" },
+      { "name": "C=OH+" },
+      { "name": "R2C=OH+" }
+    ],
+    "protonated_alcohol": [
+      { "name": "protonated alcohol" },
+      { "name": "protonated alcohol oxygen" },
+      { "name": "ROH2+" }
+    ],
+    "hydronium": [
+      { "name": "hydronium" },
+      { "name": "hydronium ion" },
+      { "name": "H3O+", "smiles": "[OH3+]" }
+    ],
+    "carboxylic_acid": [
+      { "name": "carboxylic acid" },
+      { "name": "carboxylic acids" },
+      { "name": "RCOOH" },
+      { "name": "RCO2H" },
+      { "name": "acetic acid", "smiles": "CC(=O)O" },
+      { "name": "CH3COOH", "smiles": "CC(=O)O" },
+      { "name": "CH3CO2H", "smiles": "CC(=O)O" },
+      { "name": "AcOH", "smiles": "CC(=O)O" }
+    ],
+    "carbonic_acid": [
+      { "name": "carbonic acid", "smiles": "OC(=O)O" },
+      { "name": "H2CO3", "smiles": "OC(=O)O" }
+    ],
+    "phenol": [
+      { "name": "phenol", "smiles": "Oc1ccccc1" },
+      { "name": "phenols" },
+      { "name": "ArOH" },
+      { "name": "PhOH", "smiles": "Oc1ccccc1" }
+    ],
+    "ammonium": [
+      { "name": "ammonium" },
+      { "name": "ammonium ion", "smiles": "[NH4+]" },
+      { "name": "protonated amine" },
+      { "name": "NH4+", "smiles": "[NH4+]" },
+      { "name": "R3NH+" },
+      { "name": "RNH3+" }
+    ],
+    "beta_dicarbonyl_alpha_ch": [
+      { "name": "1,3-dicarbonyl" },
+      { "name": "beta-dicarbonyl" },
+      { "name": "beta dicarbonyl" },
+      { "name": "proton between two carbonyls" },
+      { "name": "alpha C-H between two carbonyls" },
+      { "name": "1,3-diketone" },
+      { "name": "beta-diketone" }
+    ],
+    "water": [
+      { "name": "water", "smiles": "O" },
+      { "name": "H2O", "smiles": "O" },
+      { "name": "HOH", "smiles": "O" }
+    ],
+    "alcohol": [
+      { "name": "alcohol" },
+      { "name": "alcohols" },
+      { "name": "alcohol O-H" },
+      { "name": "ROH" },
+      { "name": "ethanol", "smiles": "CCO" },
+      { "name": "EtOH", "smiles": "CCO" },
+      { "name": "methanol", "smiles": "CO" },
+      { "name": "MeOH", "smiles": "CO" }
+    ],
+    "ketone_alpha_ch": [
+      { "name": "alpha proton" },
+      { "name": "alpha hydrogen" },
+      { "name": "alpha C-H" },
+      { "name": "alpha C-H of a ketone or aldehyde" },
+      { "name": "ketone" },
+      { "name": "ketones" },
+      { "name": "aldehyde" },
+      { "name": "aldehydes" },
+      { "name": "acetone", "smiles": "CC(C)=O" }
+    ],
+    "ester_alpha_ch": [
+      { "name": "ester" },
+      { "name": "esters" },
+      { "name": "alpha C-H of an ester" },
+      { "name": "ester alpha proton" },
+      { "name": "ethyl acetate", "smiles": "CCOC(C)=O" }
+    ],
+    "terminal_alkyne_ch": [
+      { "name": "terminal alkyne" },
+      { "name": "terminal alkynes" },
+      { "name": "alkyne" },
+      { "name": "RC≡CH" },
+      { "name": "RCCH" },
+      { "name": "acetylene", "smiles": "C#C" },
+      { "name": "HC≡CH", "smiles": "C#C" }
+    ],
+    "amine_nh": [
+      { "name": "amine" },
+      { "name": "amines" },
+      { "name": "amine N-H" },
+      { "name": "R2NH" },
+      { "name": "RNH2" },
+      { "name": "ammonia", "smiles": "N" },
+      { "name": "NH3", "smiles": "N" }
+    ],
+    "vinylic_or_aromatic_ch": [
+      { "name": "vinylic or aromatic" },
+      { "name": "vinylic or aromatic C-H" },
+      { "name": "vinylic" },
+      { "name": "vinyl" },
+      { "name": "vinyl proton" },
+      { "name": "aromatic" },
+      { "name": "aryl" },
+      { "name": "alkene" },
+      { "name": "benzene", "smiles": "c1ccccc1" },
+      { "name": "ethylene", "smiles": "C=C" }
+    ],
+    "alkane_ch": [
+      { "name": "alkane" },
+      { "name": "alkanes" },
+      { "name": "sp3 C-H" },
+      { "name": "methane", "smiles": "C" },
+      { "name": "ethane", "smiles": "CC" }
+    ]
+  },
+  "knownNoRung": [
+    "HI", "hydroiodic acid", "hydrogen iodide",
+    "HBr", "hydrobromic acid", "hydrogen bromide",
+    "HCl", "hydrochloric acid", "hydrogen chloride",
+    "H2SO4", "sulfuric acid",
+    "HNO3", "nitric acid",
+    "HF", "hydrofluoric acid", "hydrogen fluoride",
+    "HN3", "hydrazoic acid", "hydrogen azide", "hydrogen nitride",
+    "HCN", "hydrogen cyanide", "hydrocyanic acid",
+    "carbocation", "carbocations",
+    "amide", "amides", "amide N-H"
+  ]
+}

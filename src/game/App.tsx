@@ -265,9 +265,16 @@ function ProgressSync() {
       if (cancelled) return;
       stop = startProgressSync({ userId, store: progress, getClient: getSupabase }).stop;
     });
+    // The student's own pKa values ride along (STATUS C2, settings/pkaSync.ts), also loaded on demand.
+    let stopPka: (() => void) | null = null;
+    void import("./settings/pkaSync").then(({ startPkaSync }) => {
+      if (cancelled) return;
+      stopPka = startPkaSync({ userId, getClient: getSupabase }).stop;
+    });
     return () => {
       cancelled = true;
       stop?.();
+      stopPka?.();
     };
   }, [userId]);
   return null;
