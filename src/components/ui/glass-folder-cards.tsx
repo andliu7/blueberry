@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useId, useRef, useState, type CSSProperties } from "react";
 import { isReducedMotion } from "@/lib/motionPref";
-import { mulberry32, plural } from "@/lib/helpers";
+import { mulberry32, plural, shuffle } from "@/lib/helpers";
 import "./glass-folder-cards.css";
 
 /**
@@ -82,14 +82,7 @@ function makeFbm(seed: number) {
   const random = mulberry32(seed);
   const perm = new Uint8Array(512);
   const grad = new Float32Array(512);
-  const order: number[] = [];
-  for (let i = 0; i < 256; i++) order.push(i);
-  for (let i = 255; i > 0; i--) {
-    const j = Math.floor(random() * (i + 1));
-    const t = order[i];
-    order[i] = order[j];
-    order[j] = t;
-  }
+  const order = shuffle(Array.from({ length: 256 }, (_, i) => i), random);
   for (let i = 0; i < 512; i++) perm[i] = order[i & 255];
   for (let i = 0; i < 256; i++) {
     const a = random() * Math.PI * 2;

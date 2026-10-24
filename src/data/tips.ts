@@ -20,7 +20,7 @@
  * so every visitor gets a different line each time and never the same line twice in a row.
  */
 
-import { mulberry32 } from "@/lib/helpers";
+import { mulberry32, shuffle } from "@/lib/helpers";
 
 export type TipKind = "study" | "app" | "quote";
 
@@ -226,15 +226,9 @@ export function dayNumber(date: Date): number {
   return Math.floor(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) / 86_400_000);
 }
 
-/** 0 .. n-1 in an order fixed by `day` (a Fisher-Yates shuffle with the seeded generator). */
+/** 0 .. n-1 in an order fixed by `day` (the shared shuffle with the seeded generator). */
 export function dayOrder(n: number, day: number): number[] {
-  const order = Array.from({ length: n }, (_, i) => i);
-  const random = mulberry32(day);
-  for (let i = n - 1; i > 0; i--) {
-    const j = Math.floor(random() * (i + 1));
-    [order[i], order[j]] = [order[j], order[i]];
-  }
-  return order;
+  return shuffle(Array.from({ length: n }, (_, i) => i), mulberry32(day));
 }
 
 /**

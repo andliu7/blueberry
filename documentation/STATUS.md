@@ -48,6 +48,7 @@ six Bloom moves, hand-written wordmark, jump / curtain lift / land exit.
   interaction's @vitest/coverage-v8.
 - DO: the small tidy-ups (unused exports, test-only exports, one shared seeded shuffle, clamp,
   plural, Intl and crypto.randomUUID built-ins).
+  - 24 Oct: shared shuffle and the test-only export audit done, see "tidy-leftovers DONE 24 Oct".
 - NOT NOW: swapping Radix select/tooltip/dropdown and recharts for native (visible change).
 
 **Next, right after the 17 Oct push (owner)**
@@ -161,6 +162,23 @@ six Bloom moves, hand-written wordmark, jump / curtain lift / land exit.
 - Tidy-ups (7bca639, fa870d0) did NOT pass the second critic: four hand-written seeded shuffles
   remain (data/tips.ts, glass-folder-cards.tsx, beats/match/board.ts, lib/helpers.ts; fold them
   into one shuffle(items, random)), and the test-only exports item was skipped. Open.
+  - tidy-leftovers DONE 24 Oct: one shared shuffle(items, random = Math.random) in
+    src/lib/helpers.ts is the only Fisher-Yates loop left in src; seededShuffle, tips dayOrder,
+    the glass-folder noise permutation and the match board's target column all call it, every
+    order byte-identical (src/test/sharedShuffle.test.ts holds frozen copies of the four old
+    loops and compares them over fixed seeds, lengths, days and every shipped match board).
+    Test-only exports audited: 448 exports are referenced only by tests outside their own file,
+    all imported for real, so 0 unexported. Left on purpose: 296 used in their own module and
+    exported for a test to pin (A), 76 package barrel surface (B), 3 lazy-loaded pages whose
+    named export the test reads (SchedulePage, GlossaryPage, PkaSettings) (C), 43 authoring
+    budgets, validators, fixtures, test resets and the tutoring SQL mirrors (D). OWNER: rule on these 30 (E), production
+    code nothing but a test calls; delete each with its test, or keep: SoundToggle (mounted
+    nowhere), hudReadouts, readBestRun, quotableText, previousOnPath, sort/board emptyBoard,
+    openingBoard, allCards, applyDrop, hitTarget, isSound, stagedReagentLine, offerFromMistake,
+    DeckIcon, dueInDeck, deckFromPlaylist, skippedBeatsNote, composer canSave, importIdNote,
+    cards/ui/session sessionProgress, trackMapModel, flowOrder, authoredDistractors,
+    trailAtSpeed, hasEquivalentAtoms, hitLayout resettleOpenAngles, terminalNeighbor,
+    orbitPoint, crossesHeading, pkaCard. No owner step otherwise.
 - Final check: tsc clean, 4880/4880 tests (bootLoader red on purpose), build passes, payload
   341.8 KB gz first open (was 399.2; supabase-js 53 KB plus the footer left the first open).
 - Found: `npm run test:packages` exits 1 because packages/validators has no vitest config

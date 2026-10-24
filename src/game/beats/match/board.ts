@@ -49,6 +49,7 @@ import {
   type MatchBoardSpec,
 } from "./spec";
 import { messageForLanding, messageForMiss, type PairMessage } from "./reasons";
+import { shuffle } from "@/lib/helpers";
 
 export type Side = "prompt" | "target";
 
@@ -287,16 +288,10 @@ export function shuffledTargetIds(spec: MatchBoardSpec): readonly OptionId[] {
     return seed / 4294967296;
   };
 
-  // Not seededShuffle from "@/lib/helpers" on purpose: that picks the swap as
-  // state % (i + 1), this as floor(next * (i + 1)), so swapping would reorder
-  // every board a student has already seen.
-  const shuffled = [...ids];
-  for (let index = shuffled.length - 1; index > 0; index -= 1) {
-    const swap = Math.floor(next() * (index + 1));
-    const held = shuffled[index] as OptionId;
-    shuffled[index] = shuffled[swap] as OptionId;
-    shuffled[swap] = held;
-  }
+  // The shared shuffle with this LCG as its random, and not seededShuffle: that
+  // one picks the swap by modulo of the raw state, this by flooring a fraction,
+  // so switching would reorder every board a student has already seen.
+  const shuffled = shuffle(ids, next);
   const unmoved = shuffled.every((id, index) => id === ids[index]);
   return unmoved ? [...shuffled.slice(1), shuffled[0] as OptionId] : shuffled;
 }

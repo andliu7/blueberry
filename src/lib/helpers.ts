@@ -21,21 +21,27 @@ export function plural(count: number, one: string, many: string): string {
 
 /** A seeded shuffle (Fisher-Yates over a small LCG), so one seed always deals one order. */
 export function seededShuffle<T>(items: readonly T[], seed: number): T[] {
-  const out = [...items];
   let state = seed >>> 0 || 1;
-  for (let i = out.length - 1; i > 0; i -= 1) {
+  let bound = items.length;
+  // shuffle asks once per position from the end down, so call k picks below items.length - k.
+  // The +0.5 centres the value inside its slot, so floor gives back exactly the old modulo pick.
+  return shuffle(items, () => {
     state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
-    const j = state % (i + 1);
-    [out[i], out[j]] = [out[j]!, out[i]!];
-  }
-  return out;
+    const pick = state % bound;
+    const r = (pick + 0.5) / bound;
+    bound -= 1;
+    return r;
+  });
 }
 
-/** A shuffled copy (Fisher-Yates with Math.random), for orders nobody needs to reproduce. */
-export function shuffle<T>(items: readonly T[]): T[] {
+/**
+ * A shuffled copy (Fisher-Yates). Math.random by default, for orders nobody needs to
+ * reproduce. Pass a seeded random, such as mulberry32(seed), to deal the same order every time.
+ */
+export function shuffle<T>(items: readonly T[], random: () => number = Math.random): T[] {
   const out = [...items];
   for (let i = out.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(random() * (i + 1));
     [out[i], out[j]] = [out[j]!, out[i]!];
   }
   return out;
