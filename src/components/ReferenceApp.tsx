@@ -13,7 +13,8 @@ import { DeckAbout } from "@/components/ui/deck-about";
 import { DrillBanner, REFERENCE_STEPS } from "@/components/ui/drill-banner";
 import { CardGallery3D, GALLERY_MAX, type GalleryItem } from "@/components/ui/card-gallery-3d";
 import { cn } from "@/lib/utils";
-import { applyPkaOverrides, usePkaOverrides } from "@/lib/pkaOverrides";
+import { applyPkaOverrides, useStudentPka } from "@/lib/pkaOverrides";
+import { useAuth } from "@/lib/AuthContext";
 
 /**
  * The page for a reference deck.
@@ -73,9 +74,17 @@ export function ReferenceApp({ deck }: { deck: ReferenceDeck }) {
    * for the ring to be readable. The pKa and IR sheets run past twenty rows and
    * would smear into each other; NMR and resonance fit.
    */
-  // The student's own pKa values (STATUS C2) replace a rung row's badge; every other deck is untouched.
-  const pkaOverrides = usePkaOverrides();
-  const groups = useMemo(() => applyPkaOverrides(deck.groups, pkaOverrides), [deck.groups, pkaOverrides]);
+  // The student's own pKa values and chosen table (STATUS C2) replace a row's badge; every other deck is untouched.
+  const hasPkaRows = useMemo(
+    () => deck.groups.some((g) => g.items.some((item) => item.pkaSiteId !== undefined || item.pkaSheetId !== undefined)),
+    [deck.groups],
+  );
+  const userId = useAuth().user?.id ?? null;
+  const studentPka = useStudentPka(hasPkaRows, userId);
+  const groups = useMemo(
+    () => applyPkaOverrides(deck.groups, studentPka.overrides, studentPka),
+    [deck.groups, studentPka],
+  );
   const rows = useMemo(() => groups.flatMap((g) => g.items), [groups]);
   const VIEWS = useMemo(
     () => (rows.length <= GALLERY_MAX ? ALL_VIEWS : (["table", "flip", "carousel"] as const)),

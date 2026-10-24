@@ -6,6 +6,8 @@
  *   parsePkaSheet     text to lines, each a name and ONE number, or a reason
  *   matchPkaSheet     names to rungs, through pkaAliases.json
  *   summarisePaste    what would change against the student's current table
+ *   summariseSheetPaste  the same for species with no rung (HCl, HCN...),
+ *                     whose values go to the site's pKa deck only (pkaSheet.ts)
  *
  * WHY IT REFUSES RATHER THAN GUESSES. A wrong number on a rung is worse than no
  * number: the student is marked against it. So a line with two numbers, a
@@ -18,8 +20,9 @@
  */
 
 import { pkaEntry, type PkaSiteId } from "@blueberry/curriculum";
-import { aliasIndex, isKnownNoRung, normaliseSpeciesName } from "./pkaAliases";
+import { aliasIndex, isKnownNoRung, normaliseSpeciesName, sheetIndex } from "./pkaAliases";
 import { isStorablePka, pkaValueFor, type PkaSettingsSnapshot } from "./pka";
+import { pkaSheetRows, type PkaSheetValues } from "./pkaSheet";
 
 export type PasteProblem = "no_number" | "no_name" | "two_numbers" | "range" | "out_of_range";
 
@@ -237,6 +240,12 @@ export interface PasteMatch {
     readonly siteId: PkaSiteId;
     readonly entries: readonly { readonly raw: string; readonly value: number }[];
   }[];
+  /**
+   * The noRung lines that name a row of the site's pKa deck (DeckItem.pkaSheetId),
+   * one per row. They stay in noRung too: lessons still cannot use them. A row
+   * named twice with different values is left out here and stays in noRung only.
+   */
+  readonly sheet: readonly { readonly sheetId: string; readonly value: number; readonly raw: string }[];
 }
 
 function lookup(name: string): PkaSiteId | undefined {
@@ -276,11 +285,22 @@ function namesNoRung(name: string, extras: readonly string[]): boolean {
   return [name, ...parts, ...extras].some((candidate) => isKnownNoRung(candidate));
 }
 
+/** The deck row a no-rung line names, tried in the same order as namesNoRung. */
+function sheetRowFor(name: string, extras: readonly string[]): string | undefined {
+  const parts = name.split(/\s*\/\s*|\s+or\s+/i);
+  for (const candidate of [name, ...parts, ...extras]) {
+    const row = sheetIndex().get(normaliseSpeciesName(candidate));
+    if (row !== undefined) return row;
+  }
+  return undefined;
+}
+
 export function matchPkaSheet(lines: readonly PasteLine[]): PasteMatch {
   const bySite = new Map<PkaSiteId, { raw: string; value: number }[]>();
   const noRung: { raw: string; name: string }[] = [];
   const unknown: { raw: string; name: string }[] = [];
   const rejected: { raw: string; problem: PasteProblem }[] = [];
+  const bySheet = new Map<string, { raw: string; value: number }[]>();
 
   for (const line of lines) {
     if ("problem" in line) {
@@ -290,6 +310,8 @@ export function matchPkaSheet(lines: readonly PasteLine[]): PasteMatch {
     const rungs = rungsFor(line.name, line.extras);
     if (rungs.length === 0) {
       (namesNoRung(line.name, line.extras) ? noRung : unknown).push({ raw: line.raw, name: line.name });
+      const row = sheetRowFor(line.name, line.extras);
+      if (row !== undefined) bySheet.set(row, [...(bySheet.get(row) ?? []), { raw: line.raw, value: line.value }]);
       continue;
     }
     for (const siteId of rungs) {
@@ -309,7 +331,14 @@ export function matchPkaSheet(lines: readonly PasteLine[]): PasteMatch {
     if (values.size === 1) matched.push({ siteId, value: first.value, raw: first.raw });
     else conflicts.push({ siteId, entries });
   }
-  return { matched, noRung, unknown, rejected, conflicts };
+  const sheet: { sheetId: string; value: number; raw: string }[] = [];
+  for (const [sheetId, entries] of bySheet) {
+    const first = entries[0];
+    if (first !== undefined && new Set(entries.map((entry) => entry.value)).size === 1) {
+      sheet.push({ sheetId, value: first.value, raw: first.raw });
+    }
+  }
+  return { matched, noRung, unknown, rejected, conflicts, sheet };
 }
 
 /* ------------------------------------------------------------------ */
@@ -354,5 +383,38 @@ export function summarisePaste(settings: PkaSettingsSnapshot, match: PasteMatch)
 export function overridesFrom(summary: PasteSummary): Partial<Record<PkaSiteId, number>> {
   const out: Partial<Record<PkaSiteId, number>> = {};
   for (const row of summary.changed) out[row.siteId] = row.to;
+  return out;
+}
+
+export interface SheetPasteSummary {
+  readonly changed: readonly {
+    readonly sheetId: string;
+    readonly label: string;
+    /** What the deck row shows now: the student's earlier value, else the printed number. */
+    readonly from: number | null;
+    readonly to: number;
+    readonly raw: string;
+  }[];
+  readonly unchanged: readonly { readonly sheetId: string; readonly label: string; readonly value: number; readonly raw: string }[];
+}
+
+/** summarisePaste for the deck rows with no rung, against what the deck shows this student now. */
+export function summariseSheetPaste(current: PkaSheetValues, match: PasteMatch): SheetPasteSummary {
+  const changed: SheetPasteSummary["changed"][number][] = [];
+  const unchanged: SheetPasteSummary["unchanged"][number][] = [];
+  for (const { sheetId, value, raw } of match.sheet) {
+    const row = pkaSheetRows().get(sheetId);
+    if (row === undefined) continue;
+    const from = current[sheetId] ?? row.deckValue;
+    if (from === value) unchanged.push({ sheetId, label: row.label, value, raw });
+    else changed.push({ sheetId, label: row.label, from, to: value, raw });
+  }
+  return { changed, unchanged };
+}
+
+/** Changed sheet rows as pkaSheet.setValues takes them. */
+export function sheetValuesFrom(summary: SheetPasteSummary): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const row of summary.changed) out[row.sheetId] = row.to;
   return out;
 }

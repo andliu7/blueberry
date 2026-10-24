@@ -84,10 +84,14 @@ import {
   matchPkaSheet,
   overridesFrom,
   parsePkaSheet,
+  sheetValuesFrom,
   summarisePaste,
+  summariseSheetPaste,
   type PasteProblem,
   type PasteSummary,
+  type SheetPasteSummary,
 } from "./pkaPaste";
+import { pkaSheet } from "./pkaSheet";
 import { getPkaSyncStatus, subscribePkaSyncStatus, type PkaSyncStatus } from "./pkaSync";
 
 /**
@@ -554,7 +558,10 @@ const SYNC_LINE: Readonly<Record<PkaSyncStatus, string>> = {
   idle: "Saved on this device. Sign in to keep them on every device.",
 };
 
-type PasteResult = { readonly kind: "summary"; readonly summary: PasteSummary } | { readonly kind: "reset" } | null;
+type PasteResult =
+  | { readonly kind: "summary"; readonly summary: PasteSummary; readonly sheet: SheetPasteSummary }
+  | { readonly kind: "reset" }
+  | null;
 
 /**
  * The paste box. The textarea is LOCAL DRAFT STATE (its own useState here, not
@@ -568,14 +575,19 @@ function PasteSheet() {
   const fieldId = useId();
 
   const update = () => {
-    const summary = summarisePaste(pkaSettings.getSnapshot(), matchPkaSheet(parsePkaSheet(draft)));
+    const match = matchPkaSheet(parsePkaSheet(draft));
+    const summary = summarisePaste(pkaSettings.getSnapshot(), match);
+    const sheet = summariseSheetPaste(pkaSheet.getSnapshot(), match);
     // One commit for the whole sheet, so the ladder re-sorts once.
     pkaSettings.setOverrides(overridesFrom(summary));
-    setResult({ kind: "summary", summary });
+    // Species with no rung (HCl, HCN...) go to the site's pKa deck only.
+    pkaSheet.setValues(sheetValuesFrom(sheet));
+    setResult({ kind: "summary", summary, sheet });
   };
 
   const reset = () => {
     pkaSettings.clearAllOverrides();
+    pkaSheet.clearAll();
     setResult({ kind: "reset" });
   };
 
@@ -613,21 +625,36 @@ function PasteSheet() {
         {result === null ? null : result.kind === "reset" ? (
           <p className="mt-3 text-scale-sm font-semibold">Back to Blueberry's values.</p>
         ) : (
-          <PasteReport summary={result.summary} />
+          <PasteReport summary={result.summary} sheet={result.sheet} />
         )}
       </div>
     </Card>
   );
 }
 
-function PasteReport({ summary }: { readonly summary: PasteSummary }) {
+const SHEET_ONLY = " (pKa deck only)";
+
+function PasteReport({ summary, sheet }: { readonly summary: PasteSummary; readonly sheet: SheetPasteSummary }) {
+  // A no-rung line that landed on a deck row was used, so it is not listed under "Could not use".
+  const onDeck = new Set([...sheet.changed, ...sheet.unchanged].map((row) => row.raw));
+  const changed = [
+    ...summary.changed.map((row) => ({ key: row.siteId, text: `${row.label} ${formatPka(row.from)} -> ${formatPka(row.to)}` })),
+    ...sheet.changed.map((row) => ({
+      key: `sheet:${row.sheetId}`,
+      text: `${row.label}${SHEET_ONLY} ${row.from === null ? "" : `${formatPka(row.from)} -> `}${formatPka(row.to)}`,
+    })),
+  ];
+  const unchanged = [
+    ...summary.unchanged.map((row) => `${row.label} ${formatPka(row.value)}`),
+    ...sheet.unchanged.map((row) => `${row.label}${SHEET_ONLY} ${formatPka(row.value)}`),
+  ];
   const couldNot: { key: string; raw: string; reason: string }[] = [
     ...summary.conflicts.map((c) => ({
       key: `conflict:${c.siteId}`,
       raw: c.entries.map((entry) => entry.raw).join(" / "),
       reason: `Two values for ${pkaEntry(c.siteId).label.toLowerCase()}, so set it by hand below.`,
     })),
-    ...summary.noRung.map((row, i) => ({
+    ...summary.noRung.filter((row) => !onDeck.has(row.raw)).map((row, i) => ({
       key: `norung:${i}`,
       raw: row.raw,
       reason: "Blueberry's ladder has no rung for this one yet.",
@@ -643,30 +670,34 @@ function PasteReport({ summary }: { readonly summary: PasteSummary }) {
       reason: PROBLEM_REASON[row.problem],
     })),
   ];
-  const nothing = summary.changed.length + summary.unchanged.length + couldNot.length === 0;
+  const nothing = changed.length + unchanged.length + couldNot.length === 0;
 
   return (
     <div className="mt-3 flex flex-col gap-3">
       {nothing ? <p className="text-scale-sm">Nothing to read yet. Paste a few lines first.</p> : null}
-      {summary.changed.length > 0 ? (
+      {changed.length > 0 ? (
         <div>
-          <h3 className="text-scale-sm font-bold">Changed ({summary.changed.length})</h3>
+          <h3 className="text-scale-sm font-bold">Changed ({changed.length})</h3>
           <ul className="mt-1 flex flex-col gap-0.5">
-            {summary.changed.map((row) => (
-              <li key={row.siteId} className="text-scale-sm">
-                {row.label} {formatPka(row.from)} -&gt; {formatPka(row.to)}
+            {changed.map((row) => (
+              <li key={row.key} className="text-scale-sm">
+                {row.text}
               </li>
             ))}
           </ul>
         </div>
       ) : null}
-      {summary.unchanged.length > 0 ? (
+      {unchanged.length > 0 ? (
         <div>
-          <h3 className="text-scale-sm font-bold">Already the same ({summary.unchanged.length})</h3>
-          <p className="mt-1 text-scale-sm me-muted">
-            {summary.unchanged.map((row) => `${row.label} ${formatPka(row.value)}`).join(", ")}
-          </p>
+          <h3 className="text-scale-sm font-bold">Already the same ({unchanged.length})</h3>
+          <p className="mt-1 text-scale-sm me-muted">{unchanged.join(", ")}</p>
         </div>
+      ) : null}
+      {sheet.changed.length + sheet.unchanged.length > 0 ? (
+        <p className="text-scale-sm me-muted">
+          Rows marked pKa deck only have no rung in the lessons yet, so they show on the site's pKa
+          reference deck and nowhere else.
+        </p>
       ) : null}
       {couldNot.length > 0 ? (
         /* Amber, not red: a line Blueberry could not use is not an error. */

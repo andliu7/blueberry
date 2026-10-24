@@ -4,7 +4,9 @@
  * One row per user in public.user_pka_settings (migration
  * 20261023130000_user_pka_settings.sql). On sign-in: read the row; if it is
  * newer than this device's last save, adopt it; if this device is newer, or
- * there is no row, push. After that, every change is pushed, debounced.
+ * there is no row, push. After that, every change is pushed, debounced. The
+ * row carries both stores: pka.ts (table and overrides) and pkaSheet.ts (the
+ * deck rows with no rung, in sheet_values), on one clock.
  *
  * WHOSE VALUES ARE ON THIS DEVICE. OWNER_KEY names the account the local copy
  * belongs to. None yet: the first account to sign in adopts it, so values set
@@ -28,9 +30,11 @@ import {
   pkaSettings,
   type PkaSettingsSource,
 } from "./pka";
+import { PKA_SHEET_KEY, pkaSheet, type PkaSheetSource } from "./pkaSheet";
 
 export const OWNER_KEY = "blueberry.pka.owner.v1";
 const STASH_PREFIX = "blueberry.pka.v1.stash:";
+const SHEET_STASH_PREFIX = "blueberry.pka.sheet.v1.stash:";
 const TABLE = "user_pka_settings";
 const DEBOUNCE_MS = 800;
 
@@ -74,12 +78,16 @@ export interface PkaSyncOptions {
   readonly userId: string;
   readonly getClient: () => Promise<SupabaseClient | null>;
   readonly store?: PkaSettingsSource;
+  /** Values for the deck rows with no rung (pkaSheet.ts), synced with the same row. */
+  readonly sheet?: PkaSheetSource;
   readonly storage?: Pick<Storage, "getItem" | "setItem">;
 }
 
 interface Row {
   readonly preset_id: string;
   readonly overrides: unknown;
+  /** Absent on a row written before the column existed; reads as none. */
+  readonly sheet_values?: unknown;
   readonly updated_at: string;
 }
 
@@ -112,11 +120,14 @@ export function startPkaSync({
   userId,
   getClient,
   store = pkaSettings,
+  sheet = pkaSheet,
   storage = defaultStorage(),
 }: PkaSyncOptions): { stop(): void; done: Promise<void> } {
   let stopped = false;
   let unsubscribe: (() => void) | null = null;
   let timer: ReturnType<typeof setTimeout> | null = null;
+  /** The client once the first read worked, so stop() can flush a pending push. */
+  let live: SupabaseClient | null = null;
   /** True while adopting the account's copy, so that commit is not pushed straight back. */
   let adopting = false;
 
@@ -135,6 +146,7 @@ export function startPkaSync({
         user_id: userId,
         preset_id: snapshot.presetId,
         overrides: snapshot.overrides,
+        sheet_values: sheet.getSnapshot(),
         updated_at: new Date(at).toISOString(),
       },
       { onConflict: "user_id" },
@@ -158,7 +170,7 @@ export function startPkaSync({
     try {
       const { data, error } = await client
         .from(TABLE)
-        .select("preset_id, overrides, updated_at")
+        .select("preset_id, overrides, sheet_values, updated_at")
         .eq("user_id", userId)
         .maybeSingle();
       if (stopped) return;
@@ -175,11 +187,15 @@ export function startPkaSync({
         // take this account's row or the defaults.
         const local = safeGet(storage, PKA_SETTINGS_KEY);
         if (local !== null) safeSet(storage, STASH_PREFIX + owner, local);
+        const localSheet = safeGet(storage, PKA_SHEET_KEY);
+        if (localSheet !== null) safeSet(storage, SHEET_STASH_PREFIX + owner, localSheet);
         adopting = true;
+        const at = row === null ? undefined : Date.parse(row.updated_at);
         store.replaceAll(
           row === null ? DEFAULT_PKA_SETTINGS : { presetId: row.preset_id, overrides: row.overrides },
-          row === null ? undefined : Date.parse(row.updated_at),
+          at,
         );
+        sheet.replaceAll(row === null ? {} : row.sheet_values, at);
         adopting = false;
       } else {
         const remoteAt = row === null ? 0 : Date.parse(row.updated_at);
@@ -187,6 +203,7 @@ export function startPkaSync({
         if (row !== null && remoteAt > localAt) {
           adopting = true;
           store.replaceAll({ presetId: row.preset_id, overrides: row.overrides }, remoteAt);
+          sheet.replaceAll(row.sheet_values, remoteAt);
           adopting = false;
         } else if (localAt > remoteAt) {
           if (!(await push(client))) {
@@ -199,20 +216,26 @@ export function startPkaSync({
       if (stopped) return;
       setStatus("account");
 
-      const live = client;
-      unsubscribe = store.subscribe(() => {
+      live = client;
+      const onChange = () => {
         if (adopting || stopped) return;
         if (timer !== null) clearTimeout(timer);
         timer = setTimeout(() => {
           timer = null;
-          void push(live).then(
+          void push(client).then(
             (ok) => {
               if (!ok) fail();
             },
             () => fail(),
           );
         }, DEBOUNCE_MS);
-      });
+      };
+      const offStore = store.subscribe(onChange);
+      const offSheet = sheet.subscribe(onChange);
+      unsubscribe = () => {
+        offStore();
+        offSheet();
+      };
     } catch {
       fail();
     }
@@ -224,7 +247,13 @@ export function startPkaSync({
     stop() {
       stopped = true;
       unsubscribe?.();
-      if (timer !== null) clearTimeout(timer);
+      if (timer !== null) {
+        clearTimeout(timer);
+        timer = null;
+        // A change made just before stop (sign-out, leaving the deck) still goes
+        // up now, fire and forget, rather than waiting for the next sign-in.
+        if (live !== null) void push(live).catch(() => undefined);
+      }
       setStatus("idle");
     },
   };

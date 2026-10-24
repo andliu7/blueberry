@@ -1,5 +1,5 @@
 {
-  "$comment": "Names a pasted pKa sheet may use for each rung. One source for pkaAliases.ts and scripts/check_pka_aliases.py. A SMILES is checked by RDKit against its rung's SMARTS; a name without one is vocabulary, not chemistry. Never add a substituted compound (TFA, p-nitrophenol, benzoic acid): its pKa is not the rung's value.",
+  "$comment": "Names a pasted pKa sheet may use for each rung. One source for pkaAliases.ts and scripts/check_pka_aliases.py. A SMILES is checked by RDKit against its rung's SMARTS; a name without one is vocabulary, not chemistry. Never add a substituted compound (TFA, p-nitrophenol, benzoic acid): its pKa is not the rung's value. sheetRows are species the course sheet prints with no rung on the ladder; a pasted value for one is shown on the site's pKa deck only (src/game/settings/pkaSheet.ts), and their SMILES are checked against sheetSmarts the same way.",
   "rungSmarts": {
     "protonated_carbonyl": "[CX3]=[OX2H1+]",
     "protonated_alcohol": "[CX4][OX3H2+]",
@@ -144,16 +144,66 @@
       { "name": "ethane", "smiles": "CC" }
     ]
   },
-  "knownNoRung": [
-    "HI", "hydroiodic acid", "hydrogen iodide",
-    "HBr", "hydrobromic acid", "hydrogen bromide",
-    "HCl", "hydrochloric acid", "hydrogen chloride",
-    "H2SO4", "sulfuric acid",
-    "HNO3", "nitric acid",
-    "HF", "hydrofluoric acid", "hydrogen fluoride",
-    "HN3", "hydrazoic acid", "hydrogen azide", "hydrogen nitride",
-    "HCN", "hydrogen cyanide", "hydrocyanic acid",
-    "carbocation", "carbocations",
-    "amide", "amides", "amide N-H"
-  ]
+  "sheetSmarts": {
+    "hi": "[IH1]",
+    "hbr": "[BrH1]",
+    "hcl": "[ClH1]",
+    "h2so4": "[OH1][SX4](=O)(=O)[OH1]",
+    "hno3": "[OH1][N+](=O)[O-]",
+    "hf": "[FH1]",
+    "hn3": "[NX2H1]=[N+]=[N-]",
+    "hcn": "[CH1]#N",
+    "carbocation": "[CX3+]",
+    "amide": "[CX3](=O)[NX3;!H0]"
+  },
+  "sheetRows": {
+    "hi": [
+      { "name": "HI", "smiles": "I" },
+      { "name": "hydroiodic acid", "smiles": "I" },
+      { "name": "hydrogen iodide", "smiles": "I" }
+    ],
+    "hbr": [
+      { "name": "HBr", "smiles": "Br" },
+      { "name": "hydrobromic acid", "smiles": "Br" },
+      { "name": "hydrogen bromide", "smiles": "Br" }
+    ],
+    "hcl": [
+      { "name": "HCl", "smiles": "Cl" },
+      { "name": "hydrochloric acid", "smiles": "Cl" },
+      { "name": "hydrogen chloride", "smiles": "Cl" }
+    ],
+    "h2so4": [
+      { "name": "H2SO4", "smiles": "OS(=O)(=O)O" },
+      { "name": "sulfuric acid", "smiles": "OS(=O)(=O)O" }
+    ],
+    "hno3": [
+      { "name": "HNO3", "smiles": "O[N+](=O)[O-]" },
+      { "name": "nitric acid", "smiles": "O[N+](=O)[O-]" }
+    ],
+    "hf": [
+      { "name": "HF", "smiles": "F" },
+      { "name": "hydrofluoric acid", "smiles": "F" },
+      { "name": "hydrogen fluoride", "smiles": "F" }
+    ],
+    "hn3": [
+      { "name": "HN3", "smiles": "N=[N+]=[N-]" },
+      { "name": "hydrazoic acid", "smiles": "N=[N+]=[N-]" },
+      { "name": "hydrogen azide", "smiles": "N=[N+]=[N-]" },
+      { "name": "hydrogen nitride", "smiles": "N=[N+]=[N-]" }
+    ],
+    "hcn": [
+      { "name": "HCN", "smiles": "C#N" },
+      { "name": "hydrogen cyanide", "smiles": "C#N" },
+      { "name": "hydrocyanic acid", "smiles": "C#N" }
+    ],
+    "carbocation": [
+      { "name": "carbocation" },
+      { "name": "carbocations" }
+    ],
+    "amide": [
+      { "name": "amide" },
+      { "name": "amides" },
+      { "name": "amide N-H" }
+    ]
+  }
 }

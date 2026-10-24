@@ -31,10 +31,22 @@ export const PKA_RUNG_SMARTS = data.rungSmarts as unknown as Readonly<Record<Pka
 
 /**
  * Species the course sheet prints that have no rung on Blueberry's ladder yet
- * (the HX acids, HCN, carbocations, amides). They get their own message rather
- * than "unknown", because the student typed a real thing correctly.
+ * (the HX acids, HCN, carbocations, amides), keyed by the site deck row that
+ * prints each one (DeckItem.pkaSheetId). A pasted value for one is kept for
+ * that deck row only (pkaSheet.ts); lessons have no rung to use it on.
  */
-export const PKA_KNOWN_NO_RUNG: readonly string[] = data.knownNoRung;
+export const PKA_SHEET_ALIASES = data.sheetRows as unknown as Readonly<Record<string, readonly AliasEntry[]>>;
+
+/** The row patterns the RDKit check uses for those species. */
+export const PKA_SHEET_SMARTS = data.sheetSmarts as unknown as Readonly<Record<string, string>>;
+
+/**
+ * Every name in PKA_SHEET_ALIASES. They get their own message rather than
+ * "unknown", because the student typed a real thing correctly.
+ */
+export const PKA_KNOWN_NO_RUNG: readonly string[] = Object.values(PKA_SHEET_ALIASES).flatMap((entries) =>
+  entries.map((entry) => entry.name),
+);
 
 const SUBSCRIPTS: Readonly<Record<string, string>> = {
   "₀": "0", "₁": "1", "₂": "2", "₃": "3", "₄": "4",
@@ -91,9 +103,18 @@ export function aliasIndex(): ReadonlyMap<string, PkaSiteId> {
   return index;
 }
 
-let noRung: Set<string> | null = null;
+/** Normalised name to sheet row, for the species with no rung. */
+let sheet: Map<string, string> | null = null;
+
+export function sheetIndex(): ReadonlyMap<string, string> {
+  if (sheet !== null) return sheet;
+  sheet = new Map();
+  for (const [row, entries] of Object.entries(PKA_SHEET_ALIASES)) {
+    for (const entry of entries) sheet.set(normaliseSpeciesName(entry.name), row);
+  }
+  return sheet;
+}
 
 export function isKnownNoRung(name: string): boolean {
-  noRung ??= new Set(PKA_KNOWN_NO_RUNG.map(normaliseSpeciesName));
-  return noRung.has(normaliseSpeciesName(name));
+  return sheetIndex().has(normaliseSpeciesName(name));
 }

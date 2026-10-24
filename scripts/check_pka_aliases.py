@@ -6,6 +6,8 @@ and asserts:
   - every alias SMILES parses
   - every alias SMILES matches its own rung's SMARTS, so a compound filed under
     "phenol" really carries a phenol O-H
+  - the same three for sheetSmarts / sheetRows, the species the course sheet
+    prints with no rung (HCl, HCN...), so "HCl" really is H-Cl
 
 Names without a SMILES are vocabulary, not chemistry, and are not checked here
 (pkaAliases.test.ts checks they are unique across rungs).
@@ -26,10 +28,8 @@ RDLogger.DisableLog("rdApp.*")
 SOURCE = Path(__file__).resolve().parent.parent / "src" / "game" / "settings" / "pkaAliases.json"
 
 
-def main() -> int:
-    data = json.loads(SOURCE.read_text(encoding="utf-8"))
-    smarts_by_rung = data["rungSmarts"]
-    problems: list[str] = []
+def check(smarts_by_rung: dict, aliases: dict, problems: list[str]) -> tuple[int, int]:
+    """One table of SMARTS and its alias lists. Returns (patterns, SMILES checked)."""
     checked = 0
 
     patterns = {}
@@ -40,7 +40,7 @@ def main() -> int:
         else:
             patterns[rung] = pattern
 
-    for rung, entries in data["aliases"].items():
+    for rung, entries in aliases.items():
         if rung not in smarts_by_rung:
             problems.append(f"{rung}: has aliases but no rung SMARTS")
             continue
@@ -62,14 +62,26 @@ def main() -> int:
             checked += 1
 
     for rung in smarts_by_rung:
-        if rung not in data["aliases"]:
+        if rung not in aliases:
             problems.append(f"{rung}: has a SMARTS but no aliases")
+    return len(patterns), checked
+
+
+def main() -> int:
+    data = json.loads(SOURCE.read_text(encoding="utf-8"))
+    problems: list[str] = []
+    rungs, checked = check(data["rungSmarts"], data["aliases"], problems)
+    # Species the sheet prints with no rung (HCl, HCN...), checked the same way.
+    rows, sheet_checked = check(data["sheetSmarts"], data["sheetRows"], problems)
 
     if problems:
         for line in problems:
             print("FAIL", line)
         return 1
-    print(f"ok: {len(patterns)} rung SMARTS parse, {checked} alias SMILES match their rung")
+    print(
+        f"ok: {rungs} rung SMARTS parse, {checked} alias SMILES match their rung; "
+        f"{rows} sheet-row SMARTS parse, {sheet_checked} sheet SMILES match their row"
+    )
     return 0
 
 

@@ -76,6 +76,16 @@ export interface DeckItem {
    * import the curriculum. Only set on rows that ARE a rung.
    */
   pkaSiteId?: string;
+  /**
+   * A second rung the same row prints, for "Hydronium / protonated alcohol":
+   * a student's value for either rung shows on the row.
+   */
+  pkaSecondSiteId?: string;
+  /**
+   * For a row with NO game rung (HCl, HCN, amide...): the key a pasted value is
+   * kept under (src/game/settings/pkaSheet.ts), shown on this deck only.
+   */
+  pkaSheetId?: string;
 }
 
 /** A labelled block of reference rows. */
