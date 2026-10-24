@@ -2088,11 +2088,27 @@ function OrgoMapTrack({
   /* The written unit guide, with every lesson's door worked out here, where
      the unlock rules live. Used by the GUIDEBOOK key and by the effect below. */
   const openUnitGuide = () => {
+    // Which map section each lesson sits in, a side quest in its row's, so
+    // the guide's chapters say "Section 2" as the road does (audit 23 Oct, 5 #11).
+    const sectionOf = new Map<string, number>();
+    for (const section of sections) for (const stop of section.stops) sectionOf.set(stop.id, section.number);
+    for (const row of plan.rows) {
+      const number = sectionOf.get(row.node.id);
+      if (number !== undefined) for (const side of row.sides) sectionOf.set(side.id, number);
+    }
     const doors = new Map<string, LessonDoor>();
     for (const node of unit.nodes) {
       if (node.playable === undefined) continue;
       const chip = chipFor(node);
-      doors.set(node.id, { title: node.title, state: chip.state, gate: chip.gateNode, note: chip.gateNode === null ? chip.waitNote : null, sideQuest: node.kind === "branch" });
+      const section = sectionOf.get(node.id);
+      doors.set(node.id, {
+        title: node.title,
+        state: chip.state,
+        gate: chip.gateNode,
+        note: chip.gateNode === null ? chip.waitNote : null,
+        sideQuest: node.kind === "branch",
+        ...(section === undefined ? {} : { section }),
+      });
     }
     onUnitGuide(unit.id, doors, { done: unitDone, total: unitLessons });
   };

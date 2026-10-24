@@ -71,6 +71,24 @@ function stageNodes(stage: GuideStage): readonly string[] {
 }
 
 /**
+ * A stage's eyebrow in the map's words (audit 23 Oct, section 5 #11: the map
+ * said "Section 2" where the guide said "Stage B", with different cuts). The
+ * map sections its lessons sit in: "Section 2", "Sections 3 and 4", or
+ * "Sections 1 to 3". The guide's own "Stage A" when the path gave no sections.
+ */
+export function stageEyebrow(stage: GuideStage, doors: ReadonlyMap<string, LessonDoor>): string {
+  const numbers = [...new Set(stageNodes(stage).flatMap((node) => {
+    const section = doors.get(node)?.section;
+    return section === undefined ? [] : [section];
+  }))].sort((a, b) => a - b);
+  const first = numbers[0];
+  const last = numbers[numbers.length - 1];
+  if (first === undefined || last === undefined) return stage.label;
+  if (first === last) return `Section ${first}`;
+  return numbers.length === 2 ? `Sections ${first} and ${last}` : `Sections ${first} to ${last}`;
+}
+
+/**
  * A stage's count, by the path's rule: main-line lessons and checkpoints
  * count, side quests do not. So the stages add up to the path's "x / 18".
  */
@@ -232,7 +250,7 @@ export function UnitGuidePage({ guide, unitLabel, unitName, doors, progress, onS
           {/* On a wide screen: the stages as a sticky list, filling the space
               beside the reading column. Hidden on a phone, where the folds
               themselves are the list. */}
-          <nav className="ug-toc" aria-label="Stages">
+          <nav className="ug-toc" aria-label="Sections">
             {guide.stages.map((stage) => {
               const count = stageCount(stage, doors);
               return (
@@ -244,7 +262,7 @@ export function UnitGuidePage({ guide, unitLabel, unitName, doors, progress, onS
                   aria-current={open === stage.id ? "true" : undefined}
                   onClick={() => goTo(stage.id)}
                 >
-                  <span className="ug-toc__eyebrow">{stage.label}</span>
+                  <span className="ug-toc__eyebrow">{stageEyebrow(stage, doors)}</span>
                   <span className="ug-toc__title">{stage.title}</span>
                   <span className="ug-toc__count">{count.total > 0 ? `${count.done} / ${count.total}` : "Side quest"}</span>
                 </button>
@@ -264,7 +282,7 @@ export function UnitGuidePage({ guide, unitLabel, unitName, doors, progress, onS
                 <button type="button" className="ug-stage__toggle" aria-expanded={isOpen} aria-controls={bodyId} onClick={() => toggle(stage.id)}>
                   <span className="ug-stage__lines">
                     <span className="ug-stage__eyebrow">
-                      {stage.label}
+                      {stageEyebrow(stage, doors)}
                       {stage.optional ? <span className="ug-tag">Side quest</span> : null}
                     </span>
                     <span className="ug-stage__title">
@@ -697,7 +715,7 @@ function Checkpoint({
         </svg>
       </span>
       <div className="ug-check__text">
-        <p className="ug-check__eyebrow">Stage checkpoint</p>
+        <p className="ug-check__eyebrow">Checkpoint</p>
         <p className="ug-check__title">{title}</p>
         {door?.gate == null ? <p className="ug-shut">{door?.note ?? "Not open yet."}</p> : null}
       </div>

@@ -159,4 +159,10 @@ export interface LessonDoor {
   readonly note: string | null;
   /** A side quest (a branch off the path). The path's lesson count leaves these out, so the guide does too. */
   readonly sideQuest: boolean;
+  /**
+   * The map section the lesson sits in ("Section 2" on the path), so the
+   * guide names its chapters in the map's words. Absent when the path did
+   * not say (a test, or a unit drawn without sections).
+   */
+  readonly section?: number;
 }
