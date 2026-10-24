@@ -2799,7 +2799,7 @@ def node_retro() -> None:
     ok = [k for k, (d, a) in opts.items() if t in {canon(x) for x in aldols(d, a) + aldols(a, d)}]
     ask(node, "u9-re-aldol", "Pick the aldol partners for 4-hydroxy-4-methylpentan-2-one.",
         [("aa", "Two propan-2-one", "Cut the bond between the C-OH carbon and the α-carbon: both halves are propan-2-one."),
-         ("eb", "Ethanal and butan-2-one", "Those give a secondary OH. This target's OH is on a carbon with two methyls."),
+         ("eb", "Ethanal and butan-2-one", "No pairing gives this target: butan-2-one's enolate on ethanal gives a secondary OH, and ethanal's enolate on butan-2-one gives an aldehyde with an ethyl and a methyl on the C-OH carbon. The target is a ketone with two methyls on the C-OH carbon."),
          ("pp", "Two propanal", "Those give an aldehyde product. The target is a ketone.")],
         {k: k for k in opts}, ok[0] if len(ok) == 1 else None, "aa",
         "Disconnect the α-to-β bond of the β-hydroxy carbonyl.", prov("forward aldol run on each option", CH_COND),

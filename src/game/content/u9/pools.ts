@@ -4921,7 +4921,7 @@ export const U9_POOLS: UnitPools = {
             {
               "id": "eb",
               "text": "Ethanal and butan-2-one",
-              "why": "Those give a secondary OH. This target's OH is on a carbon with two methyls."
+              "why": "No pairing gives this target: butan-2-one's enolate on ethanal gives a secondary OH, and ethanal's enolate on butan-2-one gives an aldehyde with an ethyl and a methyl on the C-OH carbon. The target is a ketone with two methyls on the C-OH carbon."
             },
             {
               "id": "pp",

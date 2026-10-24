@@ -288,13 +288,13 @@ const KINETIC_VS_THERMO: readonly McqBeat[] = Object.freeze([
       {
         id: "less",
         text: "The less substituted enolate",
-        why: "LDA is bulky and reaches the more exposed alpha proton first, and cold means nothing equilibrates afterwards. This is the same kinetic against thermodynamic split as the diene, two units later.",
+        why: "LDA is bulky and reaches the more exposed alpha proton first, and cold means nothing equilibrates afterwards. This is the same kinetic against thermodynamic split you met on dienes in Unit 1.",
       },
       {
         id: "more",
         text: "The more substituted enolate",
         why: "That is the enolate a smaller base at room temperature gives, because warm conditions let the proton move around until the more substituted enolate wins on stability. LDA and minus 78 ask the other question.",
-        cause: "attacked_wrong_electrophilic_site",
+        cause: "thermodynamic_product_under_kinetic_control",
       },
       {
         id: "mix",
