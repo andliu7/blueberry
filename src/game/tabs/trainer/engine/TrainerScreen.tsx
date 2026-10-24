@@ -218,7 +218,19 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
   targetsRef.current = targets;
   armedRef.current = mechanism.armed !== null;
   const guide = inFlightGuide(machine);
-  const dispatch = useCallback((event: InteractionEvent) => void store.dispatch(event), [store]);
+  // A drag that ends on nothing (audit 23 Oct, section 5 #8): the machine
+  // reports a release that only let go of what the press picked up as
+  // "disarmed", and the hint pill says where to drop it until the next press.
+  const [missedDrop, setMissedDrop] = useState(false);
+  const dispatch = useCallback(
+    (event: InteractionEvent) => {
+      const transition = store.dispatch(event);
+      if (event.kind === "pointerDown") setMissedDrop(false);
+      else if (event.kind === "pointerUp" && transition.report === "disarmed") setMissedDrop(true);
+    },
+    [store],
+  );
+  useEffect(() => setMissedDrop(false), [step, epoch]);
 
   useEffect(() => {
     if (EXPOSE_STORE) window.__pilotStore = store;
@@ -389,10 +401,21 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
   };
 
   const onUndo = () => {
-    // One graded or in-progress push per press: the machine pops one entry,
-    // which is a committed arrow, an arming, or a lone pair reveal, and the
-    // arrow-count effect above unwinds the recorded steps to match.
-    store.dispatch({ kind: "command", command: { kind: "undo" } });
+    // One push per press. The machine pops one entry at a time, and an
+    // arming or a missed drag's let-go is an entry too, so a press after a
+    // miss used to "undo" something the student could not see (audit 23 Oct,
+    // section 5 #8). So a press pops until an arrow comes off, or, with no
+    // arrow drawn, until nothing is picked up. The arrow-count effect above
+    // unwinds the recorded steps to match.
+    const shown = currentDraft(store.getSnapshot());
+    const arrowsBefore = shown.shape === "mechanism" ? shown.arrows.length : 0;
+    setMissedDrop(false);
+    for (let guard = 0; guard < 64 && canUndo(store.getSnapshot()); guard += 1) {
+      store.dispatch({ kind: "command", command: { kind: "undo" } });
+      const now = currentDraft(store.getSnapshot());
+      if (now.shape !== "mechanism") break;
+      if (arrowsBefore > 0 ? now.arrows.length < arrowsBefore : now.armed === null) break;
+    }
   };
 
   // A clean screen over whichever step comes next: redraw pairs it with a
@@ -466,7 +489,8 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
                 verdict.kind === "not_requested" ? (describeStrays(step, verdict.extras) ?? undefined) : undefined,
               )
             : null;
-  const undoDisabled = !interactive || !canUndo(machine);
+  // Nothing drawn and nothing picked up means nothing the student can see to take back.
+  const undoDisabled = !interactive || !canUndo(machine) || (mechanism.arrows.length === 0 && mechanism.armed === null);
   const checkDisabled = !interactive || mechanism.arrows.length === 0;
   // A miss rings what the student hit, and calmly marks where the same
   // electrons should have gone: the authored arrow that leaves from the same
@@ -738,8 +762,12 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
           // already say the honest thing about the win. At a decision point
           // the conditions line is the hint, and a hint pill here would be
           // the one place left for the answer to leak.
-          <div className="rounded-full border-2 border-bb-border bg-bb-card px-5 py-2.5 text-center text-scale-sm font-medium text-bb-foreground">
-            {current.hint}
+          <div
+            className="rounded-full border-2 border-bb-border bg-bb-card px-5 py-2.5 text-center text-scale-sm font-medium text-bb-foreground"
+            role="status"
+            data-missed-drop={missedDrop ? "" : undefined}
+          >
+            {missedDrop ? "Drop it on an atom or bond." : current.hint}
           </div>
         )}
 

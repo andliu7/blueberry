@@ -457,9 +457,12 @@ export function TrainerCanvas({
             .filter((entry) => entry.target.kind === "bondEndHandle")
             .map((entry) => {
               const isArmed = armedTarget !== undefined && targetKey(entry.target) === targetKey(armedTarget);
+              // Pulse the handles until the first grab (push.css .push-handle-hello).
+              const hello = !reducedMotion && draft.arrows.length === 0 && armedTarget === undefined;
               return (
                 <circle
                   key={targetKey(entry.target)}
+                  className={hello ? "push-handle-hello" : undefined}
                   cx={entry.centre.x}
                   cy={entry.centre.y}
                   r={isArmed ? 8 : 6.5}

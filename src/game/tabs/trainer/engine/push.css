@@ -56,7 +56,21 @@
   100% { transform: scale(1); opacity: 1; }
 }
 
+/* The bond handles on a fresh stage: three slow pulses saying "grab me",
+   then still (audit 23 Oct, section 5 #8: a first-timer did not know what a
+   handle was). Added only while nothing is drawn or picked up. */
+.push-handle-hello {
+  animation: push-handle-hello 0.9s ease-in-out 0.3s 3;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+@keyframes push-handle-hello {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.45); }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .push-handle-hello,
   .push-snap-throb,
   .push-mark-pop {
     animation: none;
