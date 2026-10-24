@@ -175,6 +175,203 @@ export const U6_GUIDE_EXAMPLES: Readonly<Record<string, GuideExample>> = {
     ],
     "placeholder": true
   },
+  "u6-ir": {
+    "caption": "Read C=O from the 1715 ketone: conjugation with a ring lowers it, an ester's O raises it.",
+    "panels": [
+      {
+        "kind": "mol",
+        "smiles": "CC(=O)c1ccccc1",
+        "figure": {
+          "w": 99.2,
+          "h": 93.4,
+          "bonds": [
+            {
+              "x1": 8.0,
+              "y1": 49.4,
+              "x2": 28.8,
+              "y2": 37.4
+            },
+            {
+              "x1": 28.8,
+              "y1": 37.4,
+              "x2": 28.8,
+              "y2": 22.4,
+              "order": 2,
+              "hi": true
+            },
+            {
+              "x1": 28.8,
+              "y1": 37.4,
+              "x2": 49.6,
+              "y2": 49.4
+            },
+            {
+              "x1": 49.6,
+              "y1": 49.4,
+              "x2": 49.6,
+              "y2": 73.4,
+              "order": 2,
+              "inner": -1
+            },
+            {
+              "x1": 49.6,
+              "y1": 73.4,
+              "x2": 70.4,
+              "y2": 85.4
+            },
+            {
+              "x1": 70.4,
+              "y1": 85.4,
+              "x2": 91.2,
+              "y2": 73.4,
+              "order": 2,
+              "inner": -1
+            },
+            {
+              "x1": 91.2,
+              "y1": 73.4,
+              "x2": 91.1,
+              "y2": 49.4
+            },
+            {
+              "x1": 91.1,
+              "y1": 49.4,
+              "x2": 70.3,
+              "y2": 37.4,
+              "order": 2,
+              "inner": -1
+            },
+            {
+              "x1": 70.3,
+              "y1": 37.4,
+              "x2": 49.6,
+              "y2": 49.4
+            }
+          ],
+          "labels": [
+            {
+              "x": 28.8,
+              "y": 18.4,
+              "t": "O",
+              "hi": true
+            }
+          ]
+        },
+        "name": "Acetophenone: C=O near 1690 cm⁻¹",
+        "focus": true
+      },
+      {
+        "kind": "break"
+      },
+      {
+        "kind": "mol",
+        "smiles": "CCC(C)=O",
+        "figure": {
+          "w": 59.2,
+          "h": 93.4,
+          "bonds": [
+            {
+              "x1": 51.1,
+              "y1": 16.7,
+              "x2": 51.2,
+              "y2": 40.7
+            },
+            {
+              "x1": 51.2,
+              "y1": 40.7,
+              "x2": 30.4,
+              "y2": 52.7
+            },
+            {
+              "x1": 30.4,
+              "y1": 52.7,
+              "x2": 30.5,
+              "y2": 76.7
+            },
+            {
+              "x1": 30.4,
+              "y1": 52.7,
+              "x2": 17.4,
+              "y2": 45.3,
+              "order": 2,
+              "hi": true
+            }
+          ],
+          "labels": [
+            {
+              "x": 9.6,
+              "y": 45.8,
+              "t": "O",
+              "hi": true
+            }
+          ]
+        },
+        "name": "Butan-2-one: C=O near 1715 cm⁻¹",
+        "focus": true
+      },
+      {
+        "kind": "break"
+      },
+      {
+        "kind": "mol",
+        "smiles": "CCOC(C)=O",
+        "figure": {
+          "w": 99.1,
+          "h": 93.4,
+          "bonds": [
+            {
+              "x1": 8.0,
+              "y1": 64.8,
+              "x2": 28.8,
+              "y2": 52.8
+            },
+            {
+              "x1": 28.8,
+              "y1": 52.8,
+              "x2": 41.8,
+              "y2": 60.3
+            },
+            {
+              "x1": 57.4,
+              "y1": 60.2,
+              "x2": 70.3,
+              "y2": 52.7
+            },
+            {
+              "x1": 70.3,
+              "y1": 52.7,
+              "x2": 91.1,
+              "y2": 64.7
+            },
+            {
+              "x1": 70.3,
+              "y1": 52.7,
+              "x2": 70.3,
+              "y2": 37.7,
+              "order": 2,
+              "hi": true
+            }
+          ],
+          "labels": [
+            {
+              "x": 49.6,
+              "y": 69.8,
+              "t": "O"
+            },
+            {
+              "x": 70.3,
+              "y": 33.7,
+              "t": "O",
+              "hi": true
+            }
+          ]
+        },
+        "name": "Ethyl acetate: C=O near 1735 cm⁻¹",
+        "focus": true
+      }
+    ],
+    "placeholder": true
+  },
   "u6-hnmr": {
     "caption": "Butan-2-one has three sets of H. Pentan-3-one's two ethyl groups are one environment, so it has two.",
     "panels": [

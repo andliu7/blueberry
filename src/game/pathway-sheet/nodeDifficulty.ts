@@ -131,7 +131,7 @@ export const NODE_MOVES: Readonly<Record<string, number>> = Object.freeze({
   "u6-cnmr": 2,
   "u6-dou": 2,
   "u6-hnmr": 3,
-  "u6-ir": 1,
+  "u6-ir": 3,
   "u6-ms": 2,
   "u6-uv": 2,
   "u7-12v14": 4,

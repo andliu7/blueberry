@@ -52,9 +52,9 @@ molecular graph or computed from RDKit's isotope table.
    Woodward-Fieser increments are recall, not derivable, so they are left
    out (see the owner report).
 
-HELD: u6-ir. Its items rest on band positions quoted from OpenStax ch. 12.8
-and 20.8 (see ir_items), emitted as U6_IR_HELD and read by nothing until the
-owner signs off the numbers. LEFT OUT: alpha-cleavage and McLafferty (named
+u6-ir. Its items rest on band positions quoted from OpenStax sections 12.8,
+19.14, 20.8 and 21.10 (see ir_items); the owner signed the numbers off on
+24 Oct 2026 and they play in the u6-ir lesson. LEFT OUT: alpha-cleavage and McLafferty (named
 fragmentations RDKit cannot decide), and chemical shift values. See the
 owner report.
 
@@ -1547,21 +1547,27 @@ def node_uv() -> None:
 
 
 # ---------------------------------------------------------------------------
-# u6-ir: HELD for the owner's sign-off (audit 23 Oct, top-25 #9)
+# u6-ir: live (audit 23 Oct, top-25 #9; owner sign-off 24 Oct 2026)
 # ---------------------------------------------------------------------------
 #
 # Band positions are not derivable, so they are a cited table, like pKa. Every
-# number below is quoted from OpenStax Organic Chemistry (CC BY-NC-SA), read
-# 23 Oct 2026: section 12.8 (C=O 1670 to 1780, saturated ketone 1715; alcohol
-# O-H 3400 to 3650; amine N-H 3300 to 3500) and section 20.8 (acid O-H very
-# broad, 2500 to 3300; acid C=O near 1710; nitrile C≡N near 2250). Which
-# groups a molecule has is RDKit substructure matching; the band each group
-# gives is the cited table. These items are emitted as U6_IR_HELD, which no
-# lesson, checkpoint or test-out reads, and u6-ir keeps no map link, so it
-# still shows "Coming soon" until the owner signs off the numbers.
+# number below is quoted from OpenStax Organic Chemistry (CC BY-NC-SA: adapted
+# with attribution, non-commercially, under the same licence). Section 12.8,
+# read 23 Oct 2026: C=O 1670 to 1780, saturated ketone 1715; alcohol O-H 3400
+# to 3650, broad; amine N-H 3300 to 3500, sharper, two bands for a primary
+# amine and one for a secondary; alkane C-H 2850 to 2960; vinylic =C-H 3020 to
+# 3100; aromatic C-H 3030; terminal alkyne C-H 3300. Section 20.8: acid O-H
+# very broad, 2500 to 3300; acid C=O near 1710; nitrile C≡N near 2250. Read
+# 24 Oct 2026, section 19.14: conjugation lowers a ketone's C=O to 1685 to
+# 1690; section 21.10: saturated ester 1735, saturated amide 1690.
+# The owner signed off on 24 Oct 2026, in his words: C=O "usually somewhere
+# around 1690, 1720 with shifts", then above and below 1500 and 3000, broad
+# O-H and N-H. Which groups a molecule has is RDKit substructure matching; the
+# band each group gives is the cited table. Questions ask for the relative
+# reading (lower, higher, above or below 3000), not a memorised decimal.
 
-IR_SOURCE = ("IR band positions quoted from OpenStax Organic Chemistry ch. 12.8 and ch. 20.8 "
-             "(CC BY-NC-SA), read 23 Oct 2026; held for the owner's sign-off")
+IR_SOURCE = ("IR band positions quoted from OpenStax Organic Chemistry sections 12.8, 19.14, 20.8 and 21.10 "
+             "(CC BY-NC-SA), read 23 and 24 Oct 2026; signed off by the owner 24 Oct 2026")
 IR_C = ("spectroscopy_ir",)
 IR_GROUPS = {
     # band name: SMARTS for the group that gives it
@@ -1578,9 +1584,49 @@ def ir_bands(smi: str) -> frozenset[str]:
     return frozenset(b for b, sma in IR_GROUPS.items() if m.HasSubstructMatch(Chem.MolFromSmarts(sma)))
 
 
+# C-H by the carbon's hybridisation, kept apart from IR_GROUPS so the group sets
+# the items above compare stay exactly the heteroatom bands they were written for.
+CH_GROUPS = {
+    "sp3 C-H": "[CX4;!H0]",
+    "sp2 C-H": "[$([CX3;!H0]=[#6]),$([c;!H0])]",
+    "sp C-H": "[CX2;H1]#[#6]",
+}
+
+
+def ch_bands(smi: str) -> frozenset[str]:
+    m = mol(smi)
+    return frozenset(b for b, sma in CH_GROUPS.items() if m.HasSubstructMatch(Chem.MolFromSmarts(sma)))
+
+
+def amine_nh_bands(smi: str) -> int:
+    """N-H stretch bands in 3300 to 3500 (OpenStax 12.8): two for an NH2, one for an NH, none without N-H."""
+    m = mol(smi)
+    if m.HasSubstructMatch(Chem.MolFromSmarts("[NX3;H2;!$(NC=O)]")):
+        return 2
+    return 1 if m.HasSubstructMatch(Chem.MolFromSmarts("[NX3;H1;!$(NC=O)]")) else 0
+
+
+# C=O position by kind, quoted from OpenStax 19.14 and 21.10. Order matters: an
+# ester is checked before the plain ketone pattern it would otherwise also meet.
+CO_BAND = [
+    ("ester", "[#6][CX3](=O)[OX2][#6]", 1735),
+    ("conjugated ketone", "[#6][CX3](=O)[c,$([CX3]=[CX3])]", 1690),
+    ("saturated ketone", "[#6][CX3](=O)[#6]", 1715),
+]
+
+
+def co_band(smi: str) -> int:
+    m = mol(smi)
+    for _, sma, band in CO_BAND:
+        if m.HasSubstructMatch(Chem.MolFromSmarts(sma)):
+            return band
+    fail(f"{smi}: no cited C=O band")
+    return 0
+
+
 def ir_prov(what: str) -> str:
-    return (f"{SCRIPT}: {what}. Band positions from OpenStax Organic Chemistry ch. 12 (sections 12.8 and 20.8, "
-            "CC BY-NC-SA), read 23 Oct 2026. Held: the owner signs off the numbers before u6-ir goes live.")
+    return (f"{SCRIPT}: {what}. Band positions from OpenStax Organic Chemistry ch. 12, 19, 20 and 21 (sections 12.8, 19.14, 20.8 and 21.10, "
+            "CC BY-NC-SA), read 23 and 24 Oct 2026. Signed off by the owner 24 Oct 2026.")
 
 
 def ir_items() -> None:
@@ -1588,6 +1634,10 @@ def ir_items() -> None:
 
     def key_bands(options: dict[str, str], want: set[str]) -> str | None:
         hits = [k for k, smi in options.items() if ir_bands(smi) == frozenset(want)]
+        return hits[0] if len(hits) == 1 else None
+
+    def key_ch(options: dict[str, str], want: set[str]) -> str | None:
+        hits = [k for k, smi in options.items() if ch_bands(smi) == frozenset(want)]
         return hits[0] if len(hits) == 1 else None
 
     def tiles3(opts: dict[str, str], names: dict[str, str]) -> dict:
@@ -1671,6 +1721,48 @@ def ir_items() -> None:
         pair(named(sm, "cyclohexanol"), named(pr, "cyclohexanone")),
         level=2, concepts=IR_C, convention=IR_SOURCE)
 
+    # The 3000 line: sp3 C-H just below it, sp2 just above, a terminal alkyne sharp at 3300.
+    opts = {"ane": "CCCCCC", "ene": "C=CCCCC", "yne": "C#CCCCC"}
+    mcq(node, "u6-ir-ch", "Every C-H band sits just below 3000 cm⁻¹, none above. Pick the compound.",
+        [("ane", "Hexane", "Only sp³ C-H, and those stretch just below 3000, from 2850 to 2960 cm⁻¹."),
+         ("ene", "Hex-1-ene", "Its =C-H bonds stretch just above 3000, from 3020 to 3100 cm⁻¹."),
+         ("yne", "Hex-1-yne", "Its terminal ≡C-H gives a sharp band at 3300 cm⁻¹, well above 3000.")],
+        key_ch(opts, {"sp3 C-H"}), "ane",
+        "Read the 3000 line: sp³ C-H just below it, alkene and aromatic C-H just above, a terminal alkyne C-H sharp at 3300.",
+        ir_prov("each option's C-H by RDKit hybridisation match, read against the cited bands"),
+        cue_visual("below 3000", "the C-H bands"),
+        tiles=tiles3(opts, {"ane": "hexane", "ene": "hex-1-ene", "yne": "hex-1-yne"}),
+        concepts=IR_C, convention=IR_SOURCE)
+
+    # N-H count: an NH2 stretches in step and out of step, two bands; an NH has one.
+    opts = {"pri": "CCCCN", "sec": "CCNCC", "ter": "CCN(C)C"}
+    hits = [k for k, smi in opts.items() if amine_nh_bands(smi) == 2]
+    mcq(node, "u6-ir-amine", "Two sharp bands between 3300 and 3500 cm⁻¹. Pick the compound.",
+        [("pri", "Butan-1-amine", "An NH₂ has two N-H bonds stretching in step and out of step: two bands."),
+         ("sec", "N-Ethylethanamine", "A secondary amine has one N-H, so it gives one band there."),
+         ("ter", "N,N-Dimethylethanamine", "A tertiary amine has no N-H at all, so nothing appears there.")],
+        hits[0] if len(hits) == 1 else None, "pri",
+        "Count the N-H bands: two for a primary amine, one for a secondary, none for a tertiary. N-H is sharper than a broad O-H.",
+        ir_prov("N-H count on each option's nitrogen by RDKit substructure match, read against the cited bands"),
+        cue_visual("3300-3500 cm⁻¹", "the IR bands", size=13),
+        tiles=tiles3(opts, {"pri": "butan-1-amine", "sec": "N-ethylethanamine", "ter": "N,N-dimethylethanamine"}),
+        level=2, concepts=IR_C, convention=IR_SOURCE)
+
+    # C=O shifts, read against the 1715 ketone: conjugation lowers it, an ester's O raises it.
+    opts = {"conj": "CC(=O)c1ccccc1", "one": "CCC(C)=O", "ester": "CCOC(C)=O"}
+    bands = {k: co_band(smi) for k, smi in opts.items()}
+    low = [k for k, b in bands.items() if b == min(bands.values())]
+    mcq(node, "u6-ir-carbonyl", "Pick the compound whose C=O band sits lowest.",
+        [("conj", "Acetophenone", "The ring conjugates with the C=O and lowers it to about 1690 cm⁻¹."),
+         ("one", "Butan-2-one", "A plain ketone is the reference point, 1715 cm⁻¹."),
+         ("ester", "Ethyl acetate", "An ester's C=O sits higher than a ketone's, at 1735 cm⁻¹.")],
+        low[0] if len(low) == 1 else None, "conj",
+        "Read C=O shifts from the 1715 ketone: conjugation, or an amide's N, lowers it toward 1690; an ester's O raises it toward 1735.",
+        ir_prov("each option's carbonyl kind by RDKit substructure match, read against the cited C=O bands"),
+        cue_visual("lowest C=O", "the IR band"),
+        tiles=tiles3(opts, {"conj": "acetophenone", "one": "butan-2-one", "ester": "ethyl acetate"}),
+        level=2, concepts=IR_C, convention=IR_SOURCE)
+
 
 # ---------------------------------------------------------------------------
 # u6-exam: match boards for the checkpoint (the split board now plays in u6-hnmr)
@@ -1741,10 +1833,10 @@ HEADER = '''/**
  * file when an authored key disagrees with what it derived. Where an answer
  * rests on a convention RDKit cannot check (first-order splitting, what DEPT
  * and the 2D experiments show, the conjugation and wavelength trend), the
- * entry's provenance says so. No chemical shift, IR band or lambda max value
- * appears in a played item: none of them is derivable here. The IR items
- * (U6_IR_HELD) quote cited band positions and are held, unplayed, for the
- * owner's sign-off.
+ * entry's provenance says so. No chemical shift or lambda max value appears
+ * in a played item: neither is derivable here. IR bands are not derivable
+ * either, so the u6-ir items quote band positions cited from OpenStax
+ * (CC BY-NC-SA), signed off by the owner on 24 Oct 2026.
  *
  * The splitting board (u6-exam-match-split) plays in u6-hnmr as its connect
  * step (audit 23 Oct, top-25 #14). U6_UNWIRED holds the one board still
@@ -1792,10 +1884,9 @@ def emit_table(name: str, nodes: list[str], doc: str) -> list[str]:
 
 def emit() -> str:
     out = [HEADER, match_helper()]
-    lessons = [n for n in POOLS if n not in ("u6-exam", "u6-ir")]
+    lessons = [n for n in POOLS if n != "u6-exam"]
     out += emit_table("U6_POOLS", lessons, "/** Lesson pools keyed by map node id. Each lesson plays its MCQs (beats/practice/pools.ts). */")
     out += emit_table("U6_UNWIRED", ["u6-exam"], "/** The board drafted for the checkpoint and still unplayed: see the header. */")
-    out += emit_table("U6_IR_HELD", ["u6-ir"], "/** IR questions with cited band numbers, HELD for the owner's sign-off: nothing reads this table, and u6-ir keeps no map link. */")
     out.append("/** The drawing beside each MCQ, keyed by beat id. */")
     out.append("export const U6_VISUALS: Readonly<Record<string, McqVisual>> = " + ts(VISUALS) + ";\n")
     out.append("/** Drawn options, keyed by beat id then option id. All or nothing per beat. */")

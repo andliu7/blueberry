@@ -72,7 +72,7 @@ describe("which nodes have a Challenge", () => {
     for (const node of nodes) {
       // A node the map gives no playable link has no Practice door, so it can
       // have no Challenge door either, whatever content happens to be authored
-      // under its id (u6-ir has a match board the map does not link yet).
+      // under its id.
       if (node.playable === undefined) {
         expect(hasChallengeRun(node), node.id).toBe(false);
         continue;

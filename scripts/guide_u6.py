@@ -59,6 +59,18 @@ def build() -> dict:
         "panels": panels[:-1],
     }
 
+    # u6-ir: the C=O band read from the 1715 ketone, lowest to highest. co_band is the
+    # pool script's own RDKit match against the cited OpenStax table.
+    co_rows = [("CC(=O)c1ccccc1", "Acetophenone"), ("CCC(C)=O", "Butan-2-one"), ("CCOC(C)=O", "Ethyl acetate")]
+    assert [u6.co_band(s) for s, _ in co_rows] == sorted(u6.co_band(s) for s, _ in co_rows)
+    panels = []
+    for smiles, name in co_rows:
+        panels += [focus(named(canon(smiles), name, f"C=O near {u6.co_band(smiles)} cm⁻¹", hi=("C=O",))), BREAK]
+    ex["u6-ir"] = {
+        "caption": "Read C=O from the 1715 ketone: conjugation with a ring lowers it, an ester's O raises it.",
+        "panels": panels[:-1],
+    }
+
     two_butanone, three_pentanone, chloro = "CCC(C)=O", "CCC(=O)CC", "CC(C)Cl"
     ch = carbon(chloro, "[CH1]Cl")
     ex["u6-hnmr"] = {

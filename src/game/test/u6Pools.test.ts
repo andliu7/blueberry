@@ -8,13 +8,13 @@
  * every node with a pool can actually reach it (a lesson plays its MCQs).
  * The splitting board plays in u6-hnmr (audit 23 Oct, top-25 #14); the one
  * board left in U6_UNWIRED is pinned well formed and, honestly, unplayed.
- * u6-ir is pinned with NO lesson pool and NO map link: its IR questions sit
- * in U6_IR_HELD (cited band numbers, audit top-25 #9) and nothing reads them
- * until the owner signs the numbers off. The Unit 6 checkpoint plays a set
- * drawn from the four lessons with a pool (top-25 #15).
+ * u6-ir went live on 24 Oct 2026 when the owner signed off its band numbers
+ * (audit top-25 #9): it plays its MCQs and the IR board (beats/match/boards.ts),
+ * and every IR item cites OpenStax and the sign-off. The Unit 6 checkpoint
+ * still plays a set drawn from the four lessons it had before (top-25 #15).
  *
  * CONCEPT IDS. CONCEPTS has no spectroscopy concept, so Unit 6 borrows three
- * TOPICS ids as stand-ins, as Unit 2 does for NMR, and the held IR questions
+ * TOPICS ids as stand-ins, as Unit 2 does for NMR, and the IR questions
  * a fourth, spectroscopy_ir. Any other id must be a CONCEPTS id.
  *
  * WHAT IS NOT. The chemistry. scripts/u6_pools.py derives it (degrees of
@@ -34,16 +34,19 @@ import { isExamRun, lessonPool, practicePool } from "../beats/practice/pools";
 import type { McqBeat } from "../beats/types";
 import { U1_POOLS, mergePools } from "../content/u1";
 import type { PoolEntry } from "../content/u1/types";
-import { U6_IR_HELD, U6_OPTION_TILES, U6_POOLS, U6_UNWIRED, U6_VISUALS } from "../content/u6";
+import { U6_OPTION_TILES, U6_POOLS, U6_UNWIRED, U6_VISUALS } from "../content/u6";
 import { checkpointNodeId, pathwayNode } from "../demo/pathwayMap";
 import { FIGURE_HEIGHT, FIGURE_WIDTH, type Figure } from "../onboarding/figures";
 
 /**
- * Six lessons. u6-ir is left out on purpose. u6-hnmr went from 9 to 12 on 23 Oct
- * (audit: the chloroethane triplet and quartet items, and the splitting board).
+ * Seven lessons. u6-hnmr went from 9 to 12 on 23 Oct (audit: the chloroethane
+ * triplet and quartet items, and the splitting board). u6-ir joined on 24 Oct
+ * with 9: the six questions held for sign-off plus the C-H, N-H count and C=O
+ * shift questions (audit top-25 #9).
  */
 const EXPECTED_SIZES: Readonly<Record<string, number>> = {
   "u6-dou": 8,
+  "u6-ir": 9,
   "u6-hnmr": 12,
   "u6-cnmr": 8,
   "u6-ms": 8,
@@ -58,11 +61,10 @@ const TOPIC_STAND_INS = ["degrees_of_unsaturation", "spectroscopy_nmr", "structu
 /** The one pool board a lesson plays (top-25 #14). Every other lesson entry is an MCQ. */
 const LESSON_BOARDS: Readonly<Record<string, string>> = { "u6-hnmr": "u6-exam-match-split" };
 
-/** Lesson entries, the unwired board and the held IR questions: every contract below holds for all three. */
+/** Lesson entries and the unwired board: every contract below holds for both. */
 const entries: readonly (readonly [string, PoolEntry])[] = [
   ...Object.entries(U6_POOLS),
   ...Object.entries(U6_UNWIRED),
-  ...Object.entries(U6_IR_HELD),
 ].flatMap(([node, pool]) => pool.map((entry) => [node, entry] as const));
 
 const mcqs: readonly McqBeat[] = entries.flatMap(([, entry]) => (entry.item.kind === "mcq" ? [entry.item.beat] : []));
@@ -97,20 +99,19 @@ describe("u6 draft pools", () => {
     expect(sizes).toEqual(EXPECTED_SIZES);
     expect(Object.keys(U6_UNWIRED)).toEqual(["u6-exam"]);
     expect(U6_UNWIRED["u6-exam"]?.length).toBe(1);
-    expect(Object.keys(U6_IR_HELD)).toEqual(["u6-ir"]);
-    expect(U6_IR_HELD["u6-ir"]?.length).toBe(6);
   });
 
-  it("leaves u6-ir without a lesson pool and without a map link, so it still reads Coming soon", () => {
-    expect(U6_POOLS["u6-ir"]).toBeUndefined();
-    expect(lessonPool("u6-ir")).toEqual([]);
-    expect(pathwayNode("u6-ir")?.playable).toBeUndefined();
+  it("cites the band numbers on every IR question and records the owner's sign-off", () => {
+    for (const entry of U6_POOLS["u6-ir"] ?? []) {
+      expect(entry.provenance, entry.id).toContain("(sections 12.8, 19.14, 20.8 and 21.10, CC BY-NC-SA)");
+      expect(entry.provenance, entry.id).toContain("Signed off by the owner 24 Oct 2026");
+    }
   });
 
-  it("cites the band numbers on every held IR question and marks it held for sign-off", () => {
-    for (const entry of U6_IR_HELD["u6-ir"] ?? []) {
-      expect(entry.provenance, entry.id).toContain("OpenStax Organic Chemistry ch. 12 (sections 12.8 and 20.8, CC BY-NC-SA)");
-      expect(entry.provenance, entry.id).toContain("Held: the owner signs off the numbers");
+  it("teaches each band the owner signed off: C=O shifts, the 3000 line, broad O-H, N-H count, the nitrile", () => {
+    const ids = (U6_POOLS["u6-ir"] ?? []).map((entry) => entry.id);
+    for (const id of ["u6-ir-meet", "u6-ir-carbonyl", "u6-ir-ch", "u6-ir-alcohol", "u6-ir-acid", "u6-ir-amine", "u6-ir-nitrile"]) {
+      expect(ids, id).toContain(id);
     }
   });
 
@@ -179,7 +180,7 @@ describe("u6 draft pools", () => {
   });
 
   it("merges with Unit 1 with no node or id collision", () => {
-    expect(() => mergePools(U1_POOLS, U6_POOLS, U6_UNWIRED, U6_IR_HELD)).not.toThrow();
+    expect(() => mergePools(U1_POOLS, U6_POOLS, U6_UNWIRED)).not.toThrow();
   });
 });
 
@@ -213,7 +214,13 @@ describe("u6 pools are reachable", () => {
     }
   });
 
-  it("plays the Unit 6 checkpoint as a whole set drawn from all four lessons, with no IR item and no unwired board", () => {
+  it("opens the IR lesson from the map: its MCQs, then the IR board", () => {
+    expect(pathwayNode("u6-ir")?.playable).toEqual({ kind: "beat", id: "u6-ir" });
+    const steps = planLesson("u6-ir")?.steps ?? [];
+    expect(steps.map((step) => step.beat.kind)).toEqual(["meet", "mcq", "match"]);
+  });
+
+  it("plays the Unit 6 checkpoint as a whole set drawn from the four lessons it had, with no IR item and no unwired board", () => {
     const check = checkpointNodeId("u6");
     const pool = practicePool(check);
     expect(isExamRun(check)).toBe(true);
@@ -222,17 +229,17 @@ describe("u6 pools are reachable", () => {
     // Interleaved, not in blocks: the first four questions already sample every lesson.
     expect(new Set(pool.slice(0, 4).map(homeOf)).size).toBe(4);
     const ids = new Set(pool.map((entry) => entry.id));
-    for (const entry of [...(U6_IR_HELD["u6-ir"] ?? []), ...(U6_UNWIRED["u6-exam"] ?? [])]) expect(ids.has(entry.id), entry.id).toBe(false);
+    for (const entry of [...(U6_POOLS["u6-ir"] ?? []), ...(U6_UNWIRED["u6-exam"] ?? [])]) expect(ids.has(entry.id), entry.id).toBe(false);
     expect(JSON.stringify(planLesson(check))).not.toContain("u6-ir");
     for (const entry of pool) {
       if (entry.item.kind === "mcq") expect(entry.item.beat.levels.some((level) => level > 0), entry.id).toBe(true);
     }
   });
 
-  it("plays the held IR questions and the unwired board nowhere", () => {
-    const sources = [...LESSON_NODES, "u6-ir", checkpointNodeId("u6")];
+  it("plays the unwired board nowhere", () => {
+    const sources = [...LESSON_NODES, checkpointNodeId("u6")];
     const played = new Set(sources.flatMap((node) => [...lessonPool(node), ...practicePool(node)].map((entry) => entry.id)));
-    for (const entry of [...(U6_IR_HELD["u6-ir"] ?? []), ...(U6_UNWIRED["u6-exam"] ?? [])]) expect(played.has(entry.id), entry.id).toBe(false);
+    for (const entry of U6_UNWIRED["u6-exam"] ?? []) expect(played.has(entry.id), entry.id).toBe(false);
   });
 });
 

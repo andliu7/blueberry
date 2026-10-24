@@ -10,8 +10,7 @@
  * Who reads it: beats/practice/pools.ts (the lesson pools) and
  * beats/mcq/mcqFigures.ts (the question drawings and drawn options), each
  * through one fallback after the earlier units' tables. U6_UNWIRED (the
- * one drafted board still unplayed) and U6_IR_HELD (the IR questions, held
- * until the owner signs off their band numbers) are read by nothing but the
- * suite yet: see the header of pools.ts for why.
+ * one drafted board still unplayed) is read by nothing but the suite yet:
+ * see the header of pools.ts for why.
  */
-export { U6_IR_HELD, U6_OPTION_TILES, U6_POOLS, U6_UNWIRED, U6_VISUALS } from "./pools";
+export { U6_OPTION_TILES, U6_POOLS, U6_UNWIRED, U6_VISUALS } from "./pools";

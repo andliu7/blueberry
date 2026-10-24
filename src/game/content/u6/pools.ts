@@ -12,10 +12,10 @@
  * file when an authored key disagrees with what it derived. Where an answer
  * rests on a convention RDKit cannot check (first-order splitting, what DEPT
  * and the 2D experiments show, the conjugation and wavelength trend), the
- * entry's provenance says so. No chemical shift, IR band or lambda max value
- * appears in a played item: none of them is derivable here. The IR items
- * (U6_IR_HELD) quote cited band positions and are held, unplayed, for the
- * owner's sign-off.
+ * entry's provenance says so. No chemical shift or lambda max value appears
+ * in a played item: neither is derivable here. IR bands are not derivable
+ * either, so the u6-ir items quote band positions cited from OpenStax
+ * (CC BY-NC-SA), signed off by the owner on 24 Oct 2026.
  *
  * The splitting board (u6-exam-match-split) plays in u6-hnmr as its connect
  * step (audit 23 Oct, top-25 #14). U6_UNWIRED holds the one board still
@@ -1963,6 +1963,360 @@ export const U6_POOLS: UnitPools = {
       "placeholder": true
     },
   ],
+  "u6-ir": [
+    {
+      "id": "u6-ir-meet",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u6-ir-meet",
+          "node": "u6-ir",
+          "conceptIds": [
+            "spectroscopy_ir"
+          ],
+          "levels": [
+            0
+          ],
+          "prompt": "Butan-2-one shows a strong, sharp band at 1715 cm⁻¹. Pick the bond behind it.",
+          "brief": "Each kind of bond absorbs in its own range of the IR spectrum.",
+          "correctOptionId": "co",
+          "options": [
+            {
+              "id": "oh",
+              "text": "O-H",
+              "why": "An alcohol O-H sits much higher, 3400 to 3650 cm⁻¹, and butan-2-one has no O-H."
+            },
+            {
+              "id": "cn",
+              "text": "C≡N",
+              "why": "A nitrile's C≡N is near 2250 cm⁻¹, and butan-2-one has no nitrogen."
+            },
+            {
+              "id": "co",
+              "text": "C=O",
+              "why": "A saturated ketone's C=O stretches at 1715 cm⁻¹, inside the 1670 to 1780 carbonyl range."
+            }
+          ]
+        }
+      },
+      "explanation": "Each bond stretches in its own range. A strong, sharp band from 1670 to 1780 cm⁻¹ is a C=O.",
+      "provenance": "scripts/u6_pools.py: carbonyl band, butan-2-one's groups by RDKit substructure match. Band positions from OpenStax Organic Chemistry ch. 12, 19, 20 and 21 (sections 12.8, 19.14, 20.8 and 21.10, CC BY-NC-SA), read 23 and 24 Oct 2026. Signed off by the owner 24 Oct 2026.",
+      "placeholder": true
+    },
+    {
+      "id": "u6-ir-ketone",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u6-ir-ketone",
+          "node": "u6-ir",
+          "conceptIds": [
+            "spectroscopy_ir"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "A strong band at 1715 cm⁻¹ and no O-H band. Pick the compound.",
+          "correctOptionId": "one",
+          "options": [
+            {
+              "id": "ol",
+              "text": "Pentan-1-ol",
+              "why": "An alcohol shows its O-H at 3400 to 3650 cm⁻¹ and has no C=O to give 1715."
+            },
+            {
+              "id": "acid",
+              "text": "Pentanoic acid",
+              "why": "An acid has the C=O, but also a very broad O-H from 2500 to 3300 cm⁻¹."
+            },
+            {
+              "id": "one",
+              "text": "Pentan-3-one",
+              "why": "A C=O and nothing else: the 1715 band with an empty O-H region."
+            }
+          ]
+        }
+      },
+      "explanation": "Read the carbonyl range and the O-H range together: a C=O with no O-H is a ketone, an aldehyde or an ester.",
+      "provenance": "scripts/u6_pools.py: each option's groups by RDKit substructure match, read against the cited bands. Band positions from OpenStax Organic Chemistry ch. 12, 19, 20 and 21 (sections 12.8, 19.14, 20.8 and 21.10, CC BY-NC-SA), read 23 and 24 Oct 2026. Signed off by the owner 24 Oct 2026.",
+      "placeholder": true
+    },
+    {
+      "id": "u6-ir-alcohol",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u6-ir-alcohol",
+          "node": "u6-ir",
+          "conceptIds": [
+            "spectroscopy_ir"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "A band at 3400 to 3650 cm⁻¹ and none from 1670 to 1780. Pick the compound.",
+          "correctOptionId": "ol",
+          "options": [
+            {
+              "id": "ol",
+              "text": "Butan-1-ol",
+              "why": "The O-H gives the band at 3400 to 3650, and with no C=O the carbonyl range is empty."
+            },
+            {
+              "id": "al",
+              "text": "Butanal",
+              "why": "An aldehyde's C=O would fill the 1670 to 1780 range, and it has no O-H."
+            },
+            {
+              "id": "ether",
+              "text": "Ethoxyethane",
+              "why": "An ether has C-O bonds but no O-H, so nothing appears at 3400 to 3650."
+            }
+          ]
+        }
+      },
+      "explanation": "3400 to 3650 cm⁻¹ is the alcohol O-H. An ether has the same O but no O-H, so it shows no band there.",
+      "provenance": "scripts/u6_pools.py: each option's groups by RDKit substructure match, read against the cited bands. Band positions from OpenStax Organic Chemistry ch. 12, 19, 20 and 21 (sections 12.8, 19.14, 20.8 and 21.10, CC BY-NC-SA), read 23 and 24 Oct 2026. Signed off by the owner 24 Oct 2026.",
+      "placeholder": true
+    },
+    {
+      "id": "u6-ir-nitrile",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u6-ir-nitrile",
+          "node": "u6-ir",
+          "conceptIds": [
+            "spectroscopy_ir"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "An intense band near 2250 cm⁻¹. Pick the compound.",
+          "correctOptionId": "cn",
+          "options": [
+            {
+              "id": "cn",
+              "text": "Butanenitrile",
+              "why": "A saturated nitrile's C≡N gives an intense band near 2250 cm⁻¹."
+            },
+            {
+              "id": "nh",
+              "text": "Butan-1-amine",
+              "why": "An amine's N-H absorbs at 3300 to 3500 cm⁻¹, far above 2250."
+            },
+            {
+              "id": "one",
+              "text": "Pentan-2-one",
+              "why": "A ketone's C=O sits at 1715 cm⁻¹, not near 2250."
+            }
+          ]
+        }
+      },
+      "explanation": "An intense band near 2250 cm⁻¹ is the C≡N of a nitrile.",
+      "provenance": "scripts/u6_pools.py: each option's groups by RDKit substructure match, read against the cited bands. Band positions from OpenStax Organic Chemistry ch. 12, 19, 20 and 21 (sections 12.8, 19.14, 20.8 and 21.10, CC BY-NC-SA), read 23 and 24 Oct 2026. Signed off by the owner 24 Oct 2026.",
+      "placeholder": true
+    },
+    {
+      "id": "u6-ir-acid",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u6-ir-acid",
+          "node": "u6-ir",
+          "conceptIds": [
+            "spectroscopy_ir"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "A very broad band from 2500 to 3300 cm⁻¹, and one near 1710. Pick the compound.",
+          "correctOptionId": "acid",
+          "options": [
+            {
+              "id": "ester",
+              "text": "Ethyl acetate",
+              "why": "An ester has the C=O but no O-H, so nothing broad appears from 2500 to 3300."
+            },
+            {
+              "id": "acid",
+              "text": "Butanoic acid",
+              "why": "The carboxyl O-H gives the very broad band, and its C=O the one near 1710."
+            },
+            {
+              "id": "ol",
+              "text": "Butan-1-ol",
+              "why": "An alcohol's O-H sits at 3400 to 3650 cm⁻¹, and it has no C=O for the 1710 band."
+            }
+          ]
+        }
+      },
+      "explanation": "Only a carboxylic acid has both: an O-H band so broad it runs down to 2500 cm⁻¹, and a C=O near 1710.",
+      "provenance": "scripts/u6_pools.py: each option's groups by RDKit substructure match, read against the cited bands. Band positions from OpenStax Organic Chemistry ch. 12, 19, 20 and 21 (sections 12.8, 19.14, 20.8 and 21.10, CC BY-NC-SA), read 23 and 24 Oct 2026. Signed off by the owner 24 Oct 2026.",
+      "placeholder": true
+    },
+    {
+      "id": "u6-ir-oxidation",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u6-ir-oxidation",
+          "node": "u6-ir",
+          "conceptIds": [
+            "spectroscopy_ir"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "Cyclohexanol is oxidised to cyclohexanone. Pick the IR change that shows it.",
+          "correctOptionId": "fwd",
+          "options": [
+            {
+              "id": "fwd",
+              "text": "O-H band gone, a band at 1715 appears",
+              "why": "The O-H at 3400 to 3650 cm⁻¹ leaves with the alcohol, and the new C=O shows at 1715."
+            },
+            {
+              "id": "back",
+              "text": "1715 band gone, an O-H band appears",
+              "why": "That is the reverse, a ketone reduced to an alcohol."
+            },
+            {
+              "id": "cn",
+              "text": "A band near 2250 appears",
+              "why": "2250 cm⁻¹ is a C≡N. Oxidation adds no nitrogen."
+            }
+          ]
+        }
+      },
+      "explanation": "IR follows a reaction by the groups it makes and breaks: oxidising an alcohol to a ketone trades the O-H band for a C=O band.",
+      "provenance": "scripts/u6_pools.py: starting material and product groups by RDKit substructure match, read against the cited bands. Band positions from OpenStax Organic Chemistry ch. 12, 19, 20 and 21 (sections 12.8, 19.14, 20.8 and 21.10, CC BY-NC-SA), read 23 and 24 Oct 2026. Signed off by the owner 24 Oct 2026.",
+      "placeholder": true
+    },
+    {
+      "id": "u6-ir-ch",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u6-ir-ch",
+          "node": "u6-ir",
+          "conceptIds": [
+            "spectroscopy_ir"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "Every C-H band sits just below 3000 cm⁻¹, none above. Pick the compound.",
+          "correctOptionId": "ane",
+          "options": [
+            {
+              "id": "yne",
+              "text": "Hex-1-yne",
+              "why": "Its terminal ≡C-H gives a sharp band at 3300 cm⁻¹, well above 3000."
+            },
+            {
+              "id": "ane",
+              "text": "Hexane",
+              "why": "Only sp³ C-H, and those stretch just below 3000, from 2850 to 2960 cm⁻¹."
+            },
+            {
+              "id": "ene",
+              "text": "Hex-1-ene",
+              "why": "Its =C-H bonds stretch just above 3000, from 3020 to 3100 cm⁻¹."
+            }
+          ]
+        }
+      },
+      "explanation": "Read the 3000 line: sp³ C-H just below it, alkene and aromatic C-H just above, a terminal alkyne C-H sharp at 3300.",
+      "provenance": "scripts/u6_pools.py: each option's C-H by RDKit hybridisation match, read against the cited bands. Band positions from OpenStax Organic Chemistry ch. 12, 19, 20 and 21 (sections 12.8, 19.14, 20.8 and 21.10, CC BY-NC-SA), read 23 and 24 Oct 2026. Signed off by the owner 24 Oct 2026.",
+      "placeholder": true
+    },
+    {
+      "id": "u6-ir-amine",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u6-ir-amine",
+          "node": "u6-ir",
+          "conceptIds": [
+            "spectroscopy_ir"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "Two sharp bands between 3300 and 3500 cm⁻¹. Pick the compound.",
+          "correctOptionId": "pri",
+          "options": [
+            {
+              "id": "pri",
+              "text": "Butan-1-amine",
+              "why": "An NH₂ has two N-H bonds stretching in step and out of step: two bands."
+            },
+            {
+              "id": "sec",
+              "text": "N-Ethylethanamine",
+              "why": "A secondary amine has one N-H, so it gives one band there."
+            },
+            {
+              "id": "ter",
+              "text": "N,N-Dimethylethanamine",
+              "why": "A tertiary amine has no N-H at all, so nothing appears there."
+            }
+          ]
+        }
+      },
+      "explanation": "Count the N-H bands: two for a primary amine, one for a secondary, none for a tertiary. N-H is sharper than a broad O-H.",
+      "provenance": "scripts/u6_pools.py: N-H count on each option's nitrogen by RDKit substructure match, read against the cited bands. Band positions from OpenStax Organic Chemistry ch. 12, 19, 20 and 21 (sections 12.8, 19.14, 20.8 and 21.10, CC BY-NC-SA), read 23 and 24 Oct 2026. Signed off by the owner 24 Oct 2026.",
+      "placeholder": true
+    },
+    {
+      "id": "u6-ir-carbonyl",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u6-ir-carbonyl",
+          "node": "u6-ir",
+          "conceptIds": [
+            "spectroscopy_ir"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "Pick the compound whose C=O band sits lowest.",
+          "correctOptionId": "conj",
+          "options": [
+            {
+              "id": "conj",
+              "text": "Acetophenone",
+              "why": "The ring conjugates with the C=O and lowers it to about 1690 cm⁻¹."
+            },
+            {
+              "id": "one",
+              "text": "Butan-2-one",
+              "why": "A plain ketone is the reference point, 1715 cm⁻¹."
+            },
+            {
+              "id": "ester",
+              "text": "Ethyl acetate",
+              "why": "An ester's C=O sits higher than a ketone's, at 1735 cm⁻¹."
+            }
+          ]
+        }
+      },
+      "explanation": "Read C=O shifts from the 1715 ketone: conjugation, or an amide's N, lowers it toward 1690; an ester's O raises it toward 1735.",
+      "provenance": "scripts/u6_pools.py: each option's carbonyl kind by RDKit substructure match, read against the cited C=O bands. Band positions from OpenStax Organic Chemistry ch. 12, 19, 20 and 21 (sections 12.8, 19.14, 20.8 and 21.10, CC BY-NC-SA), read 23 and 24 Oct 2026. Signed off by the owner 24 Oct 2026.",
+      "placeholder": true
+    },
+  ],
 };
 
 /** The board drafted for the checkpoint and still unplayed: see the header. */
@@ -2019,247 +2373,6 @@ export const U6_UNWIRED: UnitPools = {
       "explanation": "Every two H missing from the saturated formula is one ring or one pi bond.",
       "provenance": "scripts/u6_pools.py: rule 1, formula count checked against rings plus pi bonds. Textbook check still owed: OpenStax Organic Chemistry ch. 7 (degree of unsaturation) (CC BY-NC-SA), not read in this run."
     }),
-  ],
-};
-
-/** IR questions with cited band numbers, HELD for the owner's sign-off: nothing reads this table, and u6-ir keeps no map link. */
-export const U6_IR_HELD: UnitPools = {
-  "u6-ir": [
-    {
-      "id": "u6-ir-meet",
-      "item": {
-        "kind": "mcq",
-        "beat": {
-          "kind": "mcq",
-          "id": "u6-ir-meet",
-          "node": "u6-ir",
-          "conceptIds": [
-            "spectroscopy_ir"
-          ],
-          "levels": [
-            0
-          ],
-          "prompt": "Butan-2-one shows a strong, sharp band at 1715 cm⁻¹. Pick the bond behind it.",
-          "brief": "Each kind of bond absorbs in its own range of the IR spectrum.",
-          "correctOptionId": "co",
-          "options": [
-            {
-              "id": "oh",
-              "text": "O-H",
-              "why": "An alcohol O-H sits much higher, 3400 to 3650 cm⁻¹, and butan-2-one has no O-H."
-            },
-            {
-              "id": "cn",
-              "text": "C≡N",
-              "why": "A nitrile's C≡N is near 2250 cm⁻¹, and butan-2-one has no nitrogen."
-            },
-            {
-              "id": "co",
-              "text": "C=O",
-              "why": "A saturated ketone's C=O stretches at 1715 cm⁻¹, inside the 1670 to 1780 carbonyl range."
-            }
-          ]
-        }
-      },
-      "explanation": "Each bond stretches in its own range. A strong, sharp band from 1670 to 1780 cm⁻¹ is a C=O.",
-      "provenance": "scripts/u6_pools.py: carbonyl band, butan-2-one's groups by RDKit substructure match. Band positions from OpenStax Organic Chemistry ch. 12 (sections 12.8 and 20.8, CC BY-NC-SA), read 23 Oct 2026. Held: the owner signs off the numbers before u6-ir goes live.",
-      "placeholder": true
-    },
-    {
-      "id": "u6-ir-ketone",
-      "item": {
-        "kind": "mcq",
-        "beat": {
-          "kind": "mcq",
-          "id": "u6-ir-ketone",
-          "node": "u6-ir",
-          "conceptIds": [
-            "spectroscopy_ir"
-          ],
-          "levels": [
-            1
-          ],
-          "prompt": "A strong band at 1715 cm⁻¹ and no O-H band. Pick the compound.",
-          "correctOptionId": "one",
-          "options": [
-            {
-              "id": "ol",
-              "text": "Pentan-1-ol",
-              "why": "An alcohol shows its O-H at 3400 to 3650 cm⁻¹ and has no C=O to give 1715."
-            },
-            {
-              "id": "acid",
-              "text": "Pentanoic acid",
-              "why": "An acid has the C=O, but also a very broad O-H from 2500 to 3300 cm⁻¹."
-            },
-            {
-              "id": "one",
-              "text": "Pentan-3-one",
-              "why": "A C=O and nothing else: the 1715 band with an empty O-H region."
-            }
-          ]
-        }
-      },
-      "explanation": "Read the carbonyl range and the O-H range together: a C=O with no O-H is a ketone, an aldehyde or an ester.",
-      "provenance": "scripts/u6_pools.py: each option's groups by RDKit substructure match, read against the cited bands. Band positions from OpenStax Organic Chemistry ch. 12 (sections 12.8 and 20.8, CC BY-NC-SA), read 23 Oct 2026. Held: the owner signs off the numbers before u6-ir goes live.",
-      "placeholder": true
-    },
-    {
-      "id": "u6-ir-alcohol",
-      "item": {
-        "kind": "mcq",
-        "beat": {
-          "kind": "mcq",
-          "id": "u6-ir-alcohol",
-          "node": "u6-ir",
-          "conceptIds": [
-            "spectroscopy_ir"
-          ],
-          "levels": [
-            1
-          ],
-          "prompt": "A band at 3400 to 3650 cm⁻¹ and none from 1670 to 1780. Pick the compound.",
-          "correctOptionId": "ol",
-          "options": [
-            {
-              "id": "ol",
-              "text": "Butan-1-ol",
-              "why": "The O-H gives the band at 3400 to 3650, and with no C=O the carbonyl range is empty."
-            },
-            {
-              "id": "al",
-              "text": "Butanal",
-              "why": "An aldehyde's C=O would fill the 1670 to 1780 range, and it has no O-H."
-            },
-            {
-              "id": "ether",
-              "text": "Ethoxyethane",
-              "why": "An ether has C-O bonds but no O-H, so nothing appears at 3400 to 3650."
-            }
-          ]
-        }
-      },
-      "explanation": "3400 to 3650 cm⁻¹ is the alcohol O-H. An ether has the same O but no O-H, so it shows no band there.",
-      "provenance": "scripts/u6_pools.py: each option's groups by RDKit substructure match, read against the cited bands. Band positions from OpenStax Organic Chemistry ch. 12 (sections 12.8 and 20.8, CC BY-NC-SA), read 23 Oct 2026. Held: the owner signs off the numbers before u6-ir goes live.",
-      "placeholder": true
-    },
-    {
-      "id": "u6-ir-nitrile",
-      "item": {
-        "kind": "mcq",
-        "beat": {
-          "kind": "mcq",
-          "id": "u6-ir-nitrile",
-          "node": "u6-ir",
-          "conceptIds": [
-            "spectroscopy_ir"
-          ],
-          "levels": [
-            1
-          ],
-          "prompt": "An intense band near 2250 cm⁻¹. Pick the compound.",
-          "correctOptionId": "cn",
-          "options": [
-            {
-              "id": "cn",
-              "text": "Butanenitrile",
-              "why": "A saturated nitrile's C≡N gives an intense band near 2250 cm⁻¹."
-            },
-            {
-              "id": "nh",
-              "text": "Butan-1-amine",
-              "why": "An amine's N-H absorbs at 3300 to 3500 cm⁻¹, far above 2250."
-            },
-            {
-              "id": "one",
-              "text": "Pentan-2-one",
-              "why": "A ketone's C=O sits at 1715 cm⁻¹, not near 2250."
-            }
-          ]
-        }
-      },
-      "explanation": "An intense band near 2250 cm⁻¹ is the C≡N of a nitrile.",
-      "provenance": "scripts/u6_pools.py: each option's groups by RDKit substructure match, read against the cited bands. Band positions from OpenStax Organic Chemistry ch. 12 (sections 12.8 and 20.8, CC BY-NC-SA), read 23 Oct 2026. Held: the owner signs off the numbers before u6-ir goes live.",
-      "placeholder": true
-    },
-    {
-      "id": "u6-ir-acid",
-      "item": {
-        "kind": "mcq",
-        "beat": {
-          "kind": "mcq",
-          "id": "u6-ir-acid",
-          "node": "u6-ir",
-          "conceptIds": [
-            "spectroscopy_ir"
-          ],
-          "levels": [
-            2
-          ],
-          "prompt": "A very broad band from 2500 to 3300 cm⁻¹, and one near 1710. Pick the compound.",
-          "correctOptionId": "acid",
-          "options": [
-            {
-              "id": "ester",
-              "text": "Ethyl acetate",
-              "why": "An ester has the C=O but no O-H, so nothing broad appears from 2500 to 3300."
-            },
-            {
-              "id": "acid",
-              "text": "Butanoic acid",
-              "why": "The carboxyl O-H gives the very broad band, and its C=O the one near 1710."
-            },
-            {
-              "id": "ol",
-              "text": "Butan-1-ol",
-              "why": "An alcohol's O-H sits at 3400 to 3650 cm⁻¹, and it has no C=O for the 1710 band."
-            }
-          ]
-        }
-      },
-      "explanation": "Only a carboxylic acid has both: an O-H band so broad it runs down to 2500 cm⁻¹, and a C=O near 1710.",
-      "provenance": "scripts/u6_pools.py: each option's groups by RDKit substructure match, read against the cited bands. Band positions from OpenStax Organic Chemistry ch. 12 (sections 12.8 and 20.8, CC BY-NC-SA), read 23 Oct 2026. Held: the owner signs off the numbers before u6-ir goes live.",
-      "placeholder": true
-    },
-    {
-      "id": "u6-ir-oxidation",
-      "item": {
-        "kind": "mcq",
-        "beat": {
-          "kind": "mcq",
-          "id": "u6-ir-oxidation",
-          "node": "u6-ir",
-          "conceptIds": [
-            "spectroscopy_ir"
-          ],
-          "levels": [
-            2
-          ],
-          "prompt": "Cyclohexanol is oxidised to cyclohexanone. Pick the IR change that shows it.",
-          "correctOptionId": "fwd",
-          "options": [
-            {
-              "id": "fwd",
-              "text": "O-H band gone, a band at 1715 appears",
-              "why": "The O-H at 3400 to 3650 cm⁻¹ leaves with the alcohol, and the new C=O shows at 1715."
-            },
-            {
-              "id": "back",
-              "text": "1715 band gone, an O-H band appears",
-              "why": "That is the reverse, a ketone reduced to an alcohol."
-            },
-            {
-              "id": "cn",
-              "text": "A band near 2250 appears",
-              "why": "2250 cm⁻¹ is a C≡N. Oxidation adds no nitrogen."
-            }
-          ]
-        }
-      },
-      "explanation": "IR follows a reaction by the groups it makes and breaks: oxidising an alcohol to a ketone trades the O-H band for a C=O band.",
-      "provenance": "scripts/u6_pools.py: starting material and product groups by RDKit substructure match, read against the cited bands. Band positions from OpenStax Organic Chemistry ch. 12 (sections 12.8 and 20.8, CC BY-NC-SA), read 23 Oct 2026. Held: the owner signs off the numbers before u6-ir goes live.",
-      "placeholder": true
-    },
   ],
 };
 
@@ -4036,6 +4149,51 @@ export const U6_VISUALS: Readonly<Record<string, McqVisual>> = {
       },
       "name": "cyclohexanone"
     }
+  },
+  "u6-ir-ch": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [],
+      "labels": [
+        {
+          "x": 60.0,
+          "y": 48.0,
+          "t": "below 3000",
+          "size": 16
+        }
+      ]
+    },
+    "name": "the C-H bands"
+  },
+  "u6-ir-amine": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [],
+      "labels": [
+        {
+          "x": 60.0,
+          "y": 48.0,
+          "t": "3300-3500 cm⁻¹",
+          "size": 13
+        }
+      ]
+    },
+    "name": "the IR bands"
+  },
+  "u6-ir-carbonyl": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [],
+      "labels": [
+        {
+          "x": 60.0,
+          "y": 48.0,
+          "t": "lowest C=O",
+          "size": 16
+        }
+      ]
+    },
+    "name": "the IR band"
   }
 };
 
@@ -6318,6 +6476,407 @@ export const U6_OPTION_TILES: Readonly<Record<string, Readonly<Record<string, Na
         ]
       },
       "name": "butan-1-ol"
+    },
+    "ester": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 25.4,
+            "y1": 59.1,
+            "x2": 42.7,
+            "y2": 49.0
+          },
+          {
+            "x1": 42.7,
+            "y1": 49.0,
+            "x2": 54.8,
+            "y2": 56.0
+          },
+          {
+            "x1": 65.2,
+            "y1": 56.0,
+            "x2": 77.3,
+            "y2": 48.9
+          },
+          {
+            "x1": 77.3,
+            "y1": 48.9,
+            "x2": 94.6,
+            "y2": 58.9
+          },
+          {
+            "x1": 77.3,
+            "y1": 48.9,
+            "x2": 77.3,
+            "y2": 34.9,
+            "order": 2
+          }
+        ],
+        "labels": [
+          {
+            "x": 60.0,
+            "y": 64.0,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 77.3,
+            "y": 33.9,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "ethyl acetate"
+    }
+  },
+  "u6-ir-ch": {
+    "ane": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 102.0,
+            "y1": 39.2,
+            "x2": 85.2,
+            "y2": 48.9
+          },
+          {
+            "x1": 85.2,
+            "y1": 48.9,
+            "x2": 68.4,
+            "y2": 39.2
+          },
+          {
+            "x1": 68.4,
+            "y1": 39.2,
+            "x2": 51.6,
+            "y2": 48.8
+          },
+          {
+            "x1": 51.6,
+            "y1": 48.8,
+            "x2": 34.8,
+            "y2": 39.1
+          },
+          {
+            "x1": 34.8,
+            "y1": 39.1,
+            "x2": 18.0,
+            "y2": 48.8
+          }
+        ]
+      },
+      "name": "hexane"
+    },
+    "ene": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 102.0,
+            "y1": 39.2,
+            "x2": 85.2,
+            "y2": 48.9,
+            "order": 2
+          },
+          {
+            "x1": 85.2,
+            "y1": 48.9,
+            "x2": 68.4,
+            "y2": 39.2
+          },
+          {
+            "x1": 68.4,
+            "y1": 39.2,
+            "x2": 51.6,
+            "y2": 48.8
+          },
+          {
+            "x1": 51.6,
+            "y1": 48.8,
+            "x2": 34.8,
+            "y2": 39.1
+          },
+          {
+            "x1": 34.8,
+            "y1": 39.1,
+            "x2": 18.0,
+            "y2": 48.8
+          }
+        ]
+      },
+      "name": "hex-1-ene"
+    },
+    "yne": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 18.0,
+            "y1": 34.3,
+            "x2": 34.8,
+            "y2": 44.0,
+            "order": 3
+          },
+          {
+            "x1": 34.8,
+            "y1": 44.0,
+            "x2": 51.6,
+            "y2": 53.7
+          },
+          {
+            "x1": 51.6,
+            "y1": 53.7,
+            "x2": 68.4,
+            "y2": 44.0
+          },
+          {
+            "x1": 68.4,
+            "y1": 44.0,
+            "x2": 85.2,
+            "y2": 53.7
+          },
+          {
+            "x1": 85.2,
+            "y1": 53.7,
+            "x2": 102.0,
+            "y2": 43.9
+          }
+        ]
+      },
+      "name": "hex-1-yne"
+    }
+  },
+  "u6-ir-amine": {
+    "pri": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 25.4,
+            "y1": 49.0,
+            "x2": 42.7,
+            "y2": 39.0
+          },
+          {
+            "x1": 42.7,
+            "y1": 39.0,
+            "x2": 60.0,
+            "y2": 49.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 49.0,
+            "x2": 77.3,
+            "y2": 39.0
+          },
+          {
+            "x1": 77.3,
+            "y1": 39.0,
+            "x2": 89.4,
+            "y2": 46.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 94.6,
+            "y": 54.0,
+            "t": "NH_2",
+            "size": 13
+          }
+        ]
+      },
+      "name": "butan-1-amine"
+    },
+    "sec": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 25.4,
+            "y1": 49.0,
+            "x2": 42.7,
+            "y2": 39.0
+          },
+          {
+            "x1": 42.7,
+            "y1": 39.0,
+            "x2": 54.8,
+            "y2": 46.0
+          },
+          {
+            "x1": 65.2,
+            "y1": 46.0,
+            "x2": 77.3,
+            "y2": 39.0
+          },
+          {
+            "x1": 77.3,
+            "y1": 39.0,
+            "x2": 94.6,
+            "y2": 49.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 60.0,
+            "y": 54.0,
+            "t": "NH",
+            "size": 13
+          }
+        ]
+      },
+      "name": "N-ethylethanamine"
+    },
+    "ter": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 77.3,
+            "y1": 69.0,
+            "x2": 77.3,
+            "y2": 49.0
+          },
+          {
+            "x1": 77.3,
+            "y1": 49.0,
+            "x2": 65.2,
+            "y2": 42.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 33.0,
+            "x2": 60.1,
+            "y2": 19.0
+          },
+          {
+            "x1": 54.8,
+            "y1": 42.0,
+            "x2": 42.7,
+            "y2": 48.9
+          }
+        ],
+        "labels": [
+          {
+            "x": 60.0,
+            "y": 44.0,
+            "t": "N",
+            "size": 13
+          }
+        ]
+      },
+      "name": "N,N-dimethylethanamine"
+    }
+  },
+  "u6-ir-carbonyl": {
+    "conj": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 31.1,
+            "y1": 44.0,
+            "x2": 45.5,
+            "y2": 35.7
+          },
+          {
+            "x1": 45.5,
+            "y1": 35.7,
+            "x2": 45.5,
+            "y2": 25.0,
+            "order": 2
+          },
+          {
+            "x1": 45.5,
+            "y1": 35.7,
+            "x2": 60.0,
+            "y2": 44.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 44.0,
+            "x2": 60.0,
+            "y2": 60.7,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 60.7,
+            "x2": 74.5,
+            "y2": 69.0
+          },
+          {
+            "x1": 74.5,
+            "y1": 69.0,
+            "x2": 88.9,
+            "y2": 60.6,
+            "order": 2
+          },
+          {
+            "x1": 88.9,
+            "y1": 60.6,
+            "x2": 88.9,
+            "y2": 44.0
+          },
+          {
+            "x1": 88.9,
+            "y1": 44.0,
+            "x2": 74.4,
+            "y2": 35.7,
+            "order": 2
+          },
+          {
+            "x1": 74.4,
+            "y1": 35.7,
+            "x2": 60.0,
+            "y2": 44.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 45.5,
+            "y": 24.0,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "acetophenone"
+    },
+    "one": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 77.3,
+            "y1": 19.0,
+            "x2": 77.3,
+            "y2": 39.0
+          },
+          {
+            "x1": 77.3,
+            "y1": 39.0,
+            "x2": 60.0,
+            "y2": 49.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 49.0,
+            "x2": 60.1,
+            "y2": 69.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 49.0,
+            "x2": 47.9,
+            "y2": 42.0,
+            "order": 2
+          }
+        ],
+        "labels": [
+          {
+            "x": 42.7,
+            "y": 44.1,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "butan-2-one"
     },
     "ester": {
       "figure": {

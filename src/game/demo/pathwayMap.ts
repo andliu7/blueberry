@@ -291,11 +291,10 @@ export const PATHWAY_UNITS: readonly PathwayUnit[] = [
     examBlurb: "The unit exam: every question once, degrees of unsaturation, ¹H NMR, ¹³C and DEPT and mass spectrometry in turn. 80% right first time passes it.",
     nodes: [
       // Unit 6 DRAFT wiring (2026-10-17): each node with a pool from scripts/u6_pools.py plays its lesson on the beat
-      // route; kind stays "gate" as Unit 2 does. u6-ir has no link yet: its board (boards.ts) and six
-      // MCQs (U6_IR_HELD, band numbers cited from OpenStax) wait for the owner's sign-off. Going live is
-      // `playable: { kind: "beat", id: "u6-ir" }` here plus moving the held items into U6_POOLS in scripts/u6_pools.py.
+      // route; kind stays "gate" as Unit 2 does. u6-ir went live 24 Oct 2026 on the owner's sign-off of its
+      // band numbers (cited from OpenStax in scripts/u6_pools.py): it plays its MCQs and the IR board (boards.ts).
       { id: "u6-dou", kind: "gate", title: "Degrees of unsaturation", blurb: "Cheapest information in the problem.", playable: { kind: "beat", id: "u6-dou" } },
-      { id: "u6-ir", kind: "gate", title: "IR diagnostics", blurb: "C=O ≈ 1700 and its shifts; O–H broad; C≡N ≈ 2250." },
+      { id: "u6-ir", kind: "gate", title: "IR diagnostics", blurb: "C=O ≈ 1700 and its shifts; O–H broad; C≡N ≈ 2250.", playable: { kind: "beat", id: "u6-ir" } },
       { id: "u6-hnmr", kind: "gate", title: "¹H NMR", blurb: "Shift, integration, multiplicity, J.", playable: { kind: "beat", id: "u6-hnmr" } },
       { id: "u6-cnmr", kind: "gate", title: "¹³C and DEPT", blurb: "Count, symmetry, CH₃/CH₂/CH/quaternary.", playable: { kind: "beat", id: "u6-cnmr" } },
       { id: "u6-ms", kind: "gate", title: "Mass spectrometry", blurb: "Isotope patterns, α-cleavage, McLafferty.", playable: { kind: "beat", id: "u6-ms" } },

@@ -53,9 +53,9 @@ const EXAM_SOURCES: Readonly<Record<string, readonly (readonly string[] | string
       .map((entry) => entry.id),
   ),
   // Unit 6 (audit 23 Oct, top-25 #15): the derived mix was u6-dou's questions plus u6-ir's match board,
-  // whose IR band numbers the owner has not signed off. Now the graded entries of the four lessons with a
-  // pool, interleaved in teaching order, by the same rule as Unit 4's row. u6-ir has no pool, so nothing of
-  // it is drawn; the 2D NMR and UV side quests stay off.
+  // whose IR band numbers the owner had not signed off. Now the graded entries of these four lessons,
+  // interleaved in teaching order, by the same rule as Unit 4's row; the 2D NMR and UV side quests stay off.
+  // u6-ir went live 24 Oct with a pool of its own, but whether the exam draws it is the owner's call, so not yet.
   [checkpointNodeId("u6")]: ["u6-dou", "u6-hnmr", "u6-cnmr", "u6-ms"].map((node) =>
     (U6_POOLS[node] ?? [])
       .filter((entry) => entry.item.kind !== "mcq" || entry.item.beat.levels.some((level) => level > 0))

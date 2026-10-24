@@ -20,7 +20,7 @@ const STAGES: readonly GuideStage[] = [
   {
     id: "a",
     label: "Stage A",
-    title: "Formula, NMR and mass",
+    title: "Formula, IR, NMR and mass",
     optional: false,
     checkpoint: null,
     lessons: [
@@ -55,6 +55,43 @@ const STAGES: readonly GuideStage[] = [
           },
         ],
         example: { source: "u6-dou-meet-ring", quote: "Each ring and each pi bond is one degree of unsaturation." },
+      },
+      {
+        node: "u6-ir",
+        ideas: [
+          {
+            text: "Each bond stretches in its own range. A strong, sharp band from 1670 to 1780 cm⁻¹ is a C=O.",
+            mark: "1670 to 1780 cm⁻¹",
+            source: "u6-ir-meet",
+            quote: "Each bond stretches in its own range. A strong, sharp band from 1670 to 1780 cm⁻¹ is a C=O.",
+          },
+          {
+            text: "Read C=O shifts from the 1715 ketone: conjugation, or an amide's N, lowers it toward 1690; an ester's O raises it toward 1735.",
+            source: "u6-ir-carbonyl",
+            quote: "Read C=O shifts from the 1715 ketone: conjugation, or an amide's N, lowers it toward 1690; an ester's O raises it toward 1735.",
+          },
+          {
+            text: "Read the 3000 line: sp³ C-H just below it, alkene and aromatic C-H just above, a terminal alkyne C-H sharp at 3300.",
+            source: "u6-ir-ch",
+            quote: "Read the 3000 line: sp³ C-H just below it, alkene and aromatic C-H just above, a terminal alkyne C-H sharp at 3300.",
+          },
+          {
+            text: "Only a carboxylic acid has both: an O-H band so broad it runs down to 2500 cm⁻¹, and a C=O near 1710.",
+            source: "u6-ir-acid",
+            quote: "Only a carboxylic acid has both: an O-H band so broad it runs down to 2500 cm⁻¹, and a C=O near 1710.",
+          },
+          {
+            text: "Count the N-H bands: two for a primary amine, one for a secondary, none for a tertiary.",
+            source: "u6-ir-amine",
+            quote: "Count the N-H bands: two for a primary amine, one for a secondary, none for a tertiary.",
+          },
+          {
+            text: "An intense band near 2250 cm⁻¹ is the C≡N of a nitrile.",
+            source: "u6-ir-nitrile",
+            quote: "An intense band near 2250 cm⁻¹ is the C≡N of a nitrile.",
+          },
+        ],
+        example: { source: "u6-ir-carbonyl", quote: "Read C=O shifts from the 1715 ketone" },
       },
       {
         node: "u6-hnmr",
@@ -144,6 +181,12 @@ const STAGES: readonly GuideStage[] = [
         fix: "Ignore O: only C, H, N and the halogens enter the count.",
         source: "u6-dou-ester",
         quote: "Oxygen does not enter the count.",
+      },
+      {
+        mistake: "Reading an ether's oxygen as an O-H band.",
+        fix: "An ether has no O-H, so the 3400 to 3650 region stays empty.",
+        source: "u6-ir-alcohol",
+        quote: "An ether has the same O but no O-H, so it shows no band there.",
       },
       {
         mistake: "Giving each ethyl group of a symmetric molecule its own signals.",
@@ -243,7 +286,7 @@ const STAGES: readonly GuideStage[] = [
 export const U6_GUIDE: UnitGuide = {
   unitId: "u6",
   intro:
-    "Reading a structure off its data: degrees of unsaturation from the formula, then ¹H and ¹³C NMR, DEPT and the mass spectrum, with 2D NMR and UV as side quests. Read a stage before its lessons, or come back when one trips you up.",
+    "Reading a structure off its data: degrees of unsaturation from the formula, then the IR bands, ¹H and ¹³C NMR, DEPT and the mass spectrum, with 2D NMR and UV as side quests. Read a stage before its lessons, or come back when one trips you up.",
   stages: STAGES,
   examples: U6_GUIDE_EXAMPLES,
   placeholder: true,

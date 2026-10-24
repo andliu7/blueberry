@@ -150,7 +150,7 @@ six Bloom moves, hand-written wordmark, jump / curtain lift / land exit.
   (cold lazy load past its 3 s settle under load). Payload 400.3 KB gz first open (was 341.8):
   supabase-js (53 KB) is back on #/app first open since c926b19 (G1 sign in before the app).
 - OWNER decisions pending: side quests on exams (top-25 #10, not done); IR band numbers sign-off
-  (#9: U6_IR_HELD and the board are built, u6-ir still shows Coming soon).
+  (#9: signed off and live 24 Oct, see the Owner brief, 23 Oct block).
 
 **23 Oct workflow run (wf_6a2d3c6a-47c), finished. Commits only, nothing pushed**
 - Passed the critic: supabase lazy (9066e61), 21 supernova (already shipped), 24 back disc
@@ -434,6 +434,14 @@ Sign-in, Pro, paywalls, ads (owner, 23 Oct)
   keep ads off or restrict serving to non-EEA/UK regions in AdSense. Manual check still to do
   with real ids: DevTools Network shows no pagead2 request before "Allow ads", none for Pro,
   none inside a lesson.
+- u6-ir LIVE 24 Oct (audit top-25 #9, owner signed off the IR bands: C=O around 1690 to 1720
+  with shifts, the 1500 and 3000 lines, broad O-H and N-H). The map links it; the lesson plays 9
+  MCQs then IR_SIGNAL_BOARD. The six held items moved into U6_POOLS (U6_IR_HELD is gone) plus three
+  new: the 3000 line (sp3 below, sp2 above, terminal alkyne 3300), N-H count (two, one, none) and
+  the C=O shift (conjugated lower, ester higher, read from the 1715 ketone). Bands cited from
+  OpenStax sections 12.8, 19.14, 20.8, 21.10 (CC BY-NC-SA) in scripts/u6_pools.py. The u6
+  guidebook gains its IR section and a C=O drawing (guide_u6.py); NODE_MOVES u6-ir 1 to 3
+  (measured). Not drawn by the Unit 6 exam yet: OWNER, should it be?
 
 **Progress, 22 Oct (Wave 3 item 12 = evening brief items 1+2: test-outs)**
 - Every section chest of units 1-10 offers a test-out (10 to 15 questions, longer each section);
