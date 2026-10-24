@@ -1013,12 +1013,12 @@ const ALLYLIC_HALOGENATION: readonly McqBeat[] = Object.freeze([
       {
         id: "ring-only",
         text: "Nothing happens, NBS only brominates rings",
-        why: "Backwards, and it is the commonest slip on this reagent. NBS is the one bromine source that does not touch a ring. It needs a radical position, allylic here and benzylic later in the course, plus light or an initiator to start the chain. Ring bromination is Br2 with a Lewis acid.",
+        why: "Backwards, and it is the commonest slip on this reagent. NBS is not how you brominate a benzene ring. It needs a radical position, allylic here and benzylic later in the course, plus light or an initiator to start the chain. Ring bromination is Br2 with a Lewis acid.",
       },
       {
         id: "allylic",
         text: "On the carbon next to the double bond",
-        why: "That carbon is C3, and the product is 3-bromobut-1-ene. The hydrogen that comes off first is the allylic one, because the radical left behind is spread across two carbons rather than stuck on one, and the cheapest radical to make is the one that is delocalised.",
+        why: "That carbon is C3. The H that comes off is the allylic one, because the radical left behind is spread over C3 and C1. Both ends take Br, so two products form: 3-bromobut-1-ene and 1-bromobut-2-ene.",
       },
     ],
   },
