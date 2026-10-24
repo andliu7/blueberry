@@ -1488,7 +1488,7 @@ export const U0_SN_CHART = {
       "cells": [
         "E2",
         "E2",
-        "SN1 and E1",
+        "slow; SN1/E1 only in protic solvent",
         "SN1 and E1"
       ]
     }

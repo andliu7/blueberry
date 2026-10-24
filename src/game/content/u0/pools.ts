@@ -748,7 +748,7 @@ export const U0_POOLS: UnitPools = {
             1
           ],
           "prompt": "Four H atoms on one N. Pick the formal charge on that N.",
-          "brief": "Four bonds, no lone pair.",
+          "brief": "Count the electrons N owns: one per bond, two per lone pair.",
           "correctOptionId": "p",
           "options": [
             {
@@ -810,6 +810,45 @@ export const U0_POOLS: UnitPools = {
       },
       "explanation": "O in hydroxide has one bond and three lone pairs. It owns 7 electrons against the 6 it brought, so it is minus 1.",
       "provenance": "scripts/u0_pools.py: hydroxide made by removing H+ from water; formal charge from RDKit. OpenStax Organic Chemistry 2.3 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
+    {
+      "id": "u0-bond-fc-h3o",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u0-bond-fc-h3o",
+          "node": "u0-bonding",
+          "conceptIds": [
+            "structure_and_bonding"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "Three bonds and one lone pair on O. Pick its formal charge.",
+          "correctOptionId": "p",
+          "options": [
+            {
+              "id": "z",
+              "text": "0",
+              "why": "Neutral O has two bonds and two lone pairs, like water. This O has a third bond."
+            },
+            {
+              "id": "m",
+              "text": "−1",
+              "why": "Minus 1 is hydroxide's O, with one bond and three pairs. This O owns fewer than it brought."
+            },
+            {
+              "id": "p",
+              "text": "+1",
+              "why": "Right. O brings 6 and owns 5: two in its lone pair plus one from each of three bonds."
+            }
+          ]
+        }
+      },
+      "explanation": "O in hydronium, H₃O⁺, has three bonds and one lone pair. It owns 5 electrons against the 6 it brought, so it is +1.",
+      "provenance": "scripts/u0_pools.py: hydronium made by adding H+ to water; formal charge and lone pairs from RDKit. OpenStax Organic Chemistry 2.3 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
     {
@@ -1440,7 +1479,7 @@ export const U0_POOLS: UnitPools = {
       "solution": {
         "whatHappened": "Hydrogen chloride, then acetic acid, then phenol, then ethanol.",
         "why": "Each step up the ladder is a lower pKa: a more stable conjugate base.",
-        "lookAt": "Read the pKa on each card, lowest first."
+        "lookAt": "Compare how well each conjugate base holds its charge."
       },
       "distractors": [
         {
@@ -1479,7 +1518,7 @@ export const U0_POOLS: UnitPools = {
           "pka_and_acidity"
         ],
         "prompt": "Drag these acids into order, strongest first.",
-        "brief": "Lowest pKa at the top.",
+        "brief": "Rank by how stable each conjugate base is.",
         "criterion": "acidity",
         "direction": "descending",
         "notes": {
@@ -2122,7 +2161,7 @@ export const U0_POOLS: UnitPools = {
             1
           ],
           "prompt": "CH₃Br meets HO⁻. Pick the mechanism.",
-          "brief": "Methyl carbon, strong nucleophile.",
+          "brief": "Classify the C-Br carbon first, then the reagent.",
           "correctOptionId": "SN2",
           "options": [
             {
@@ -2161,8 +2200,8 @@ export const U0_POOLS: UnitPools = {
           "levels": [
             1
           ],
-          "prompt": "tert-Butyl bromide sits in warm water. Pick the mechanism.",
-          "brief": "3° carbon, weak nucleophile.",
+          "prompt": "tert-Butyl bromide sits in water. Pick the mechanism.",
+          "brief": "Classify the carbon, then ask how strong the reagent is.",
           "correctOptionId": "SN1",
           "options": [
             {
@@ -2385,6 +2424,45 @@ export const U0_POOLS: UnitPools = {
       "placeholder": true
     },
     {
+      "id": "u0-st-rs",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u0-st-rs",
+          "node": "u0-stereo",
+          "conceptIds": [
+            "structure_and_bonding"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "Pick the label for C2 in this drawing of 2-bromobutane.",
+          "correctOptionId": "S",
+          "options": [
+            {
+              "id": "R",
+              "text": "R",
+              "why": "Check where H points. If it comes toward you, the turn you trace is reversed: flip it."
+            },
+            {
+              "id": "none",
+              "text": "No label, it is achiral",
+              "why": "C2 holds H, Br, CH₃ and CH₂CH₃: four different groups, so it gets a label."
+            },
+            {
+              "id": "S",
+              "text": "S",
+              "why": "Right. Br, then CH₂CH₃, then CH₃. With H pointing away, that path runs counterclockwise: S."
+            }
+          ]
+        }
+      },
+      "explanation": "Rank Br first, ethyl over methyl (ethyl's next atom is a C), H last. Point H away and trace 1 to 2 to 3.",
+      "provenance": "scripts/u0_pools.py: label from rdCIPLabeler on OPSIN (S)-2-bromobutane, drawn with RDKit's wedges. OpenStax Organic Chemistry 5.5 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
+    {
       "id": "u0-st-mirror",
       "item": {
         "kind": "mcq",
@@ -2437,7 +2515,7 @@ export const U0_POOLS: UnitPools = {
           "levels": [
             1
           ],
-          "prompt": "In 2-butene the two CH₃ groups sit on opposite sides. Pick the label.",
+          "prompt": "Pick the E/Z label for this 2-butene.",
           "correctOptionId": "E",
           "options": [
             {
@@ -2623,7 +2701,7 @@ export const U0_POOLS: UnitPools = {
             "diels_alder"
           ],
           "levels": [
-            1
+            0
           ],
           "prompt": "Butadiene and ethene join in a Diels-Alder. Pick the ring that forms.",
           "brief": "Unit 1: Conjugation, Resonance & Dienes",
@@ -2663,7 +2741,7 @@ export const U0_POOLS: UnitPools = {
             "aromaticity"
           ],
           "levels": [
-            1
+            0
           ],
           "prompt": "Pick the aromatic ring.",
           "brief": "Unit 2: Aromaticity & Benzene",
@@ -2703,7 +2781,7 @@ export const U0_POOLS: UnitPools = {
             "aromatic_substitution"
           ],
           "levels": [
-            1
+            0
           ],
           "prompt": "Benzene meets Br₂ and FeBr₃. Pick what happens to the ring.",
           "brief": "Unit 3: Electrophilic Aromatic Substitution",
@@ -2743,7 +2821,7 @@ export const U0_POOLS: UnitPools = {
             "nucleophilic_aromatic_substitution"
           ],
           "levels": [
-            1
+            0
           ],
           "prompt": "HO⁻ attacks 4-chloronitrobenzene. Pick what leaves the ring.",
           "brief": "Unit 4: Nucleophilic Aromatic Substitution & Benzyne",
@@ -2783,7 +2861,7 @@ export const U0_POOLS: UnitPools = {
             "alcohol_leaving_groups"
           ],
           "levels": [
-            1
+            0
           ],
           "prompt": "Pick the class of 2-propanol as an alcohol.",
           "brief": "Unit 5: Alcohols, Diols, Ethers & Epoxides",
@@ -2823,7 +2901,7 @@ export const U0_POOLS: UnitPools = {
             "degrees_of_unsaturation"
           ],
           "levels": [
-            1
+            0
           ],
           "prompt": "Pick the rings plus pi bonds in benzene, C₆H₆.",
           "brief": "Unit 6: Spectroscopy & Structure Determination",
@@ -2863,7 +2941,7 @@ export const U0_POOLS: UnitPools = {
             "nucleophilic_addition_nitrogen"
           ],
           "levels": [
-            1
+            0
           ],
           "prompt": "Acetone meets methylamine with mild acid. Pick the new bond.",
           "brief": "Unit 7: Aldehydes & Ketones: Nucleophilic Addition",
@@ -2903,7 +2981,7 @@ export const U0_POOLS: UnitPools = {
             "nucleophilic_acyl_substitution"
           ],
           "levels": [
-            1
+            0
           ],
           "prompt": "Acetic acid and ethanol make an ester. Pick what else forms.",
           "brief": "Unit 8: Carboxylic Acids & Derivatives",
@@ -2943,7 +3021,7 @@ export const U0_POOLS: UnitPools = {
             "enols_and_enolates"
           ],
           "levels": [
-            1
+            0
           ],
           "prompt": "A base pulls H⁺ off acetone. Pick the carbon it comes from.",
           "brief": "Unit 9: Enols & Enolates: α-Carbon Chemistry",
@@ -2983,7 +3061,7 @@ export const U0_POOLS: UnitPools = {
             "amines"
           ],
           "levels": [
-            1
+            0
           ],
           "prompt": "Pick what makes methylamine a base.",
           "brief": "Unit 10: Amines",
@@ -3023,7 +3101,7 @@ export const U0_POOLS: UnitPools = {
             "phenols"
           ],
           "levels": [
-            1
+            0
           ],
           "prompt": "Pick the anion whose charge spreads into a ring.",
           "brief": "Unit 11: Phenols",
@@ -3063,7 +3141,7 @@ export const U0_POOLS: UnitPools = {
             "diels_alder"
           ],
           "levels": [
-            1
+            0
           ],
           "prompt": "Pick how many pi electrons move in a Diels-Alder.",
           "brief": "Unit 12: Pericyclic Reactions",
@@ -3103,9 +3181,9 @@ export const U0_POOLS: UnitPools = {
             "structure_and_bonding"
           ],
           "levels": [
-            1
+            0
           ],
-          "prompt": "Pick how many stereocentres open-chain glucose has.",
+          "prompt": "Pick how many stereocentres an open-chain aldohexose (such as glucose) has.",
           "brief": "Unit 13: Carbohydrates",
           "correctOptionId": "4",
           "options": [
@@ -3143,7 +3221,7 @@ export const U0_POOLS: UnitPools = {
             "structure_and_bonding"
           ],
           "levels": [
-            1
+            0
           ],
           "prompt": "Pick the amino acid with no stereocentre.",
           "brief": "Unit 14: Amino Acids, Peptides & Proteins",
@@ -3183,7 +3261,7 @@ export const U0_POOLS: UnitPools = {
             "carboxylic_acids"
           ],
           "levels": [
-            1
+            0
           ],
           "prompt": "A fat is split by NaOH, as in soap making. Pick the alcohol released.",
           "brief": "Unit 15: Lipids & Capstone",
@@ -3695,6 +3773,64 @@ export const U0_VISUALS: Readonly<Record<string, McqVisual>> = {
       ]
     },
     "name": "hydroxide"
+  },
+  "u0-bond-fc-h3o": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 65.2,
+          "y1": 54.5,
+          "x2": 80.8,
+          "y2": 63.5
+        },
+        {
+          "x1": 54.8,
+          "y1": 54.5,
+          "x2": 39.2,
+          "y2": 63.5
+        },
+        {
+          "x1": 60.0,
+          "y1": 45.5,
+          "x2": 60.0,
+          "y2": 27.5
+        }
+      ],
+      "labels": [
+        {
+          "x": 60.0,
+          "y": 56.5,
+          "t": "O",
+          "size": 13
+        },
+        {
+          "x": 49.6,
+          "y": 49.5,
+          "t": ":",
+          "size": 13
+        },
+        {
+          "x": 86.0,
+          "y": 71.5,
+          "t": "H",
+          "size": 13
+        },
+        {
+          "x": 34.0,
+          "y": 71.5,
+          "t": "H",
+          "size": 13
+        },
+        {
+          "x": 60.0,
+          "y": 26.5,
+          "t": "H",
+          "size": 13
+        }
+      ]
+    },
+    "name": "hydronium"
   },
   "u0-bond-lp-water": {
     "kind": "structure",
@@ -4855,6 +4991,47 @@ export const U0_VISUALS: Readonly<Record<string, McqVisual>> = {
     },
     "name": "(R)-2-butanol"
   },
+  "u0-st-rs": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 75.9,
+          "y1": 67.0,
+          "x2": 75.9,
+          "y2": 48.6
+        },
+        {
+          "x1": 75.9,
+          "y1": 48.6,
+          "x2": 60.0,
+          "y2": 39.4
+        },
+        {
+          "x1": 60.0,
+          "y1": 39.4,
+          "x2": 60.1,
+          "y2": 21.0,
+          "stereo": "wedge"
+        },
+        {
+          "x1": 60.0,
+          "y1": 39.4,
+          "x2": 48.9,
+          "y2": 45.8
+        }
+      ],
+      "labels": [
+        {
+          "x": 44.1,
+          "y": 53.6,
+          "t": "Br",
+          "size": 13
+        }
+      ]
+    },
+    "name": "2-bromobutane"
+  },
   "u0-st-mirror": {
     "kind": "pair",
     "a": {
@@ -5703,7 +5880,7 @@ export const U0_VISUALS: Readonly<Record<string, McqVisual>> = {
         }
       ]
     },
-    "name": "glucose (open chain)"
+    "name": "open-chain aldohexose"
   },
   "u0-pv-u14": {
     "kind": "pair",
@@ -8435,15 +8612,15 @@ export const U0_PREVIEW_UNITS: Readonly<Record<string, string>> = Object.freeze(
 
 /** The test out quiz (u0-check): items set aside from chapters 2 to 8. */
 export const U0_EXAM_IDS: readonly string[] = Object.freeze([
-  "u0-bond-fc-nh4",
-  "u0-res-where",
-  "u0-acid-stronger",
-  "u0-ne-ch3br",
-  "u0-arr-tail",
-  "u0-se-methyl",
-  "u0-st-count",
-  "u0-bond-lp-water",
-  "u0-acid-equilibrium"
+  "u0-bond-fc-oh",
+  "u0-res-match",
+  "u0-acid-sort",
+  "u0-ne-acetone",
+  "u0-arr-second",
+  "u0-se-zaitsev",
+  "u0-st-rs",
+  "u0-se-e2",
+  "u0-st-mirror"
 ]);
 
 /** The chapters the test out quiz interleaves, in teaching order. */

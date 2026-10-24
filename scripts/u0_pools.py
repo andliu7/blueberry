@@ -151,12 +151,13 @@ NAMED: dict[str, tuple[str, str]] = {
     "propan2ol": ("propan-2-ol", "2-propanol"),
     "butan2ol": ("butan-2-ol", "2-butanol"),
     "r_butan2ol": ("(R)-butan-2-ol", "(R)-2-butanol"),
+    "s_bromobutane2": ("(S)-2-bromobutane", "(S)-2-bromobutane"),
     "butanediol": ("butane-2,3-diol", "butane-2,3-diol"),
     "e_butene": ("(E)-but-2-ene", "(E)-2-butene"),
     "butadiene": ("buta-1,3-diene", "1,3-butadiene"),
     "methylamine": ("methylamine", "methylamine"),
     "chloronitrobenzene": ("1-chloro-4-nitrobenzene", "4-chloronitrobenzene"),
-    "glucose_chain": ("2,3,4,5,6-pentahydroxyhexanal", "glucose (open chain)"),
+    "glucose_chain": ("2,3,4,5,6-pentahydroxyhexanal", "open-chain aldohexose"),
     "glycine": ("glycine", "glycine"),
     "alanine": ("2-aminopropanoic acid", "alanine"),
     "tributyrin": ("propane-1,2,3-triyl tributanoate", "a small fat (glyceryl tributanoate)"),
@@ -403,7 +404,7 @@ SN_TABLE: dict[tuple[int, str], str] = {
     (0, "strong_base"): "SN2", (0, "bulky_base"): "SN2", (0, "good_nuc"): "SN2", (0, "weak"): "no reaction",
     (1, "strong_base"): "SN2", (1, "bulky_base"): "E2", (1, "good_nuc"): "SN2", (1, "weak"): "no reaction",
     (2, "strong_base"): "E2", (2, "bulky_base"): "E2", (2, "good_nuc"): "SN2", (2, "weak"): "SN1 and E1, slow",
-    (3, "strong_base"): "E2", (3, "bulky_base"): "E2", (3, "good_nuc"): "SN1 and E1", (3, "weak"): "SN1 and E1",
+    (3, "strong_base"): "E2", (3, "bulky_base"): "E2", (3, "good_nuc"): "slow; SN1/E1 only in protic solvent", (3, "weak"): "SN1 and E1",
 }
 
 
@@ -966,7 +967,7 @@ def ch2() -> None:
         key_where({"p": 1, "z": 0, "m": -1}, n.GetFormalCharge()), "p",
         "Formal charge is valence electrons minus the electrons the atom owns. N in NH₄⁺ owns 4 of its 5, so it is +1.",
         prov("formal charge read from RDKit on ammonia protonated at N", "2.3"), structure("ammonium", pairs=True, charges=False),
-        brief="Four bonds, no lone pair.", note=f"N formal charge {n.GetFormalCharge()}")
+        brief="Count the electrons N owns: one per bond, two per lone pair.", note=f"N formal charge {n.GetFormalCharge()}")
 
     oh = species("hydroxide")
     o = next(a for a in mol(oh).GetAtoms() if a.GetSymbol() == "O")
@@ -978,6 +979,19 @@ def ch2() -> None:
         "O in hydroxide has one bond and three lone pairs. It owns 7 electrons against the 6 it brought, so it is minus 1.",
         prov("hydroxide made by removing H+ from water; formal charge from RDKit", "2.3"), structure("hydroxide", pairs=True, charges=False),
         note=f"O formal charge {o.GetFormalCharge()}, lone pairs {lone_pairs(o)}")
+
+    # Charge on O+ (hydronium), which every protonated alcohol and carbonyl ahead carries (content audit, 23 Oct).
+    h3o = species("hydronium")
+    o3 = next(a for a in mol(h3o).GetAtoms() if a.GetSymbol() == "O")
+    mcq(node, "u0-bond-fc-h3o", "Three bonds and one lone pair on O. Pick its formal charge.",
+        [("p", "+1", "Right. O brings 6 and owns 5: two in its lone pair plus one from each of three bonds."),
+         ("z", "0", "Neutral O has two bonds and two lone pairs, like water. This O has a third bond."),
+         ("m", f"{MINUS}1", "Minus 1 is hydroxide's O, with one bond and three pairs. This O owns fewer than it brought.")],
+        key_where({"p": 1, "z": 0, "m": -1}, o3.GetFormalCharge()), "p",
+        "O in hydronium, H₃O⁺, has three bonds and one lone pair. It owns 5 electrons against the 6 it brought, so it is +1.",
+        prov("hydronium made by adding H+ to water; formal charge and lone pairs from RDKit", "2.3"),
+        structure("hydronium", pairs=True, charges=False),
+        note=f"O formal charge {o3.GetFormalCharge()}, lone pairs {lone_pairs(o3)}, bonds {o3.GetTotalDegree()}")
 
     w = next(a for a in mol(species("water")).GetAtoms() if a.GetSymbol() == "O")
     mcq(node, "u0-bond-lp-water", "Pick how many lone pairs sit on the O in water.",
@@ -1130,12 +1144,12 @@ def ch4() -> None:
              ("ph", "Phenol", "phenol", f"pKa about {PKA['phenol'][0]:g}: the ring spreads phenoxide's charge."),
              ("et", "Ethanol", "ethanol", f"pKa about {PKA['ethanol'][0]:g}: ethoxide keeps its charge on one O.")]
     ladder(node, "u0-acid-sort", cards, lambda k: -PKA[k][0],
-           "Drag these acids into order, strongest first.", "Lowest pKa at the top.",
+           "Drag these acids into order, strongest first.", "Rank by how stable each conjugate base is.",
            "acidity", "pka_and_acidity", ("Strongest acid", "Weakest acid"),
            "Rank hydrogen chloride, acetic acid, phenol and ethanol by acidity, strongest first.",
            ("Hydrogen chloride, then acetic acid, then phenol, then ethanol.",
             "Each step up the ladder is a lower pKa: a more stable conjugate base.",
-            "Read the pKa on each card, lowest first."),
+            "Compare how well each conjugate base holds its charge."),
            ("The top two are swapped.", "Acetic acid is strong for an organic acid, but HCl's pKa is far lower.",
             "Compare the two lowest pKa values."),
            "Lower pKa, stronger acid. A more stable conjugate base makes a stronger acid.",
@@ -1335,19 +1349,19 @@ def ch7() -> None:
         mech, "SN2",
         "Methyl and 1° carbons with a strong nucleophile react by SN2: one step, backside attack.",
         prov("degree from RDKit, decision from the SN/E table", "11.12", "SN_TABLE"), structure("bromomethane"),
-        brief="Methyl carbon, strong nucleophile.", concept="substitution_and_elimination", note=f"table says {mech}")
+        brief="Classify the C-Br carbon first, then the reagent.", concept="substitution_and_elimination", note=f"table says {mech}")
 
     mech = mechanism(species("tbubr"), "weak")
     prod = only(react(SN1_WATER, species("tbubr"), species("water")), "SN1 water")
     alcohol = [p for p in prod if p != species("bromide")]
-    mcq(node, "u0-se-sn1", "tert-Butyl bromide sits in warm water. Pick the mechanism.",
+    mcq(node, "u0-se-sn1", "tert-Butyl bromide sits in water. Pick the mechanism.",
         [("SN1", "SN1, giving tert-butanol", "Right. A 3° cation forms, then water adds to it."),
          ("SN2", "SN2, giving tert-butanol", "Three carbons crowd the backside. A 3° carbon does not do SN2."),
          ("E2", "E2, giving an alkene", "E2 needs a strong base. Water is a weak one.")],
         "SN1" if mech.startswith("SN1") and alcohol == [species("tbuoh")] else None, "SN1",
         "3° carbon, weak nucleophile, protic solvent: the leaving group goes first (SN1). E1 competes, more so when hot.",
         prov("decision from the SN/E table; product from an SN1 SMARTS with water, checked against OPSIN tert-butanol", "11.4", "SN_TABLE"),
-        structure("tbubr"), brief="3° carbon, weak nucleophile.", concept="substitution_and_elimination",
+        structure("tbubr"), brief="Classify the carbon, then ask how strong the reagent is.", concept="substitution_and_elimination",
         note=f"table says {mech}; product {alcohol}")
 
     mech = mechanism(species("tbubr"), "bulky_base")
@@ -1430,6 +1444,20 @@ def ch8() -> None:
         prov("CIP ranks from RDKit on the neighbours of the stereocentre", "5.5"), structure("r_butan2ol"),
         concept="structure_and_bonding", note=f"neighbour ranks {nbrs}")
 
+    # Assign R/S yourself from the wedge drawing (content audit, 23 Oct): the scene does it once on
+    # (R)-2-butanol, so the item uses the other letter on a new molecule. Key from rdCIPLabeler.
+    sb = species("s_bromobutane2")
+    sb_c = stereocentres(sb)
+    sb_lab = cip_atoms(sb).get(sb_c[0]) if len(sb_c) == 1 else None
+    mcq(node, "u0-st-rs", "Pick the label for C2 in this drawing of 2-bromobutane.",
+        [("S", "S", "Right. Br, then CH₂CH₃, then CH₃. With H pointing away, that path runs counterclockwise: S."),
+         ("R", "R", "Check where H points. If it comes toward you, the turn you trace is reversed: flip it."),
+         ("none", "No label, it is achiral", "C2 holds H, Br, CH₃ and CH₂CH₃: four different groups, so it gets a label.")],
+        {"R": "R", "S": "S"}.get(sb_lab or ""), "S",
+        "Rank Br first, ethyl over methyl (ethyl's next atom is a C), H last. Point H away and trace 1 to 2 to 3.",
+        prov("label from rdCIPLabeler on OPSIN (S)-2-bromobutane, drawn with RDKit's wedges", "5.5"),
+        structure("s_bromobutane2", "2-bromobutane"), concept="structure_and_bonding", note=f"stereocentres {sb_c}, label {sb_lab}")
+
     r_lab = cip_atoms(species("r_butan2ol")).get(centre)
     s_lab = cip_atoms(species("s_butan2ol")).get(stereocentres(species("s_butan2ol"))[0])
     mcq(node, "u0-st-mirror", "(R)-2-Butanol is reflected in a mirror. Pick the image's label.",
@@ -1442,7 +1470,7 @@ def ch8() -> None:
         pair(named("r_butan2ol"), named("s_butan2ol")), concept="structure_and_bonding", note=f"R form {r_lab}, mirror {s_lab}")
 
     ez = list(cip_bonds(species("e_butene")).values())
-    mcq(node, "u0-st-ez", "In 2-butene the two CH₃ groups sit on opposite sides. Pick the label.",
+    mcq(node, "u0-st-ez", "Pick the E/Z label for this 2-butene.",
         [("E", "E", "Right. The two top priority groups are on opposite sides: E, from entgegen."),
          ("Z", "Z", "Z means the top priority groups are on the SAME side."),
          ("none", "Neither, no stereo", "Each alkene carbon holds two different groups, so E/Z applies.")],
@@ -1478,10 +1506,13 @@ def unit_titles() -> dict[str, str]:
 
 
 def preview(unit: str, titles: dict[str, str], *args, **kw) -> None:
-    """One ch9 MCQ, tied to its unit. The brief names the unit from PATHWAY_UNITS."""
+    """One ch9 MCQ, tied to its unit. The brief names the unit from PATHWAY_UNITS.
+    Level 0, so it plays ungraded in the meet step: these are peeks at chemistry
+    not taught yet, and grading them sent misses back through recycle right
+    before the map opens (content audit, 23 Oct)."""
     id = args[0]
     name = titles[unit].split(" · ", 1)[1]
-    mcq("u0-preview", *args, brief=f"{titles[unit].split(' · ')[0]}: {name}"[:CAPS['brief']], **kw)
+    mcq("u0-preview", *args, brief=f"{titles[unit].split(' · ')[0]}: {name}"[:CAPS['brief']], levels=[0], **kw)
     PREVIEW_UNITS[id] = unit
 
 
@@ -1628,7 +1659,7 @@ def ch9() -> None:
             pair(named("butadiene"), named("ethene")), concept="diels_alder", note=f"pi bonds {pi_in}")
 
     gl = len(stereocentres(species("glucose_chain")))
-    preview("u13", t, "u0-pv-u13", "Pick how many stereocentres open-chain glucose has.",
+    preview("u13", t, "u0-pv-u13", "Pick how many stereocentres an open-chain aldohexose (such as glucose) has.",
             [("4", "Four", "Right. C2 to C5 each hold four different groups."),
              ("6", "Six", "C1 is the C=O carbon and C6 is a CH₂OH: neither is a stereocentre."),
              ("1", "One", "Every carbon from C2 to C5 has H, OH and two different chains.")],
@@ -1796,9 +1827,11 @@ def primes() -> None:
 # The test-out quiz: drawn from chapters 2 to 8, interleaved by chapter
 # ---------------------------------------------------------------------------
 
+# The harder card of each chapter, not the first and easiest (content audit, 23 Oct: the old set
+# was the 9 easiest items, so a pass did not show E2 regiochemistry, R/S or a full arrow pair).
 EXAM_IDS = [
-    "u0-bond-fc-nh4", "u0-res-where", "u0-acid-stronger", "u0-ne-ch3br", "u0-arr-tail", "u0-se-methyl", "u0-st-count",
-    "u0-bond-lp-water", "u0-acid-equilibrium",
+    "u0-bond-fc-oh", "u0-res-match", "u0-acid-sort", "u0-ne-acetone", "u0-arr-second", "u0-se-zaitsev", "u0-st-rs",
+    "u0-se-e2", "u0-st-mirror",
 ]
 EXAM_CHAPTERS = ["u0-bonding", "u0-resonance", "u0-acids", "u0-nuc-elec", "u0-arrows", "u0-subst-elim", "u0-stereo"]
 
@@ -2244,7 +2277,7 @@ def report() -> str:
         lines.append(f"| {DEGREE_WORD[d]} | " + " | ".join(SN_TABLE[(d, r)] for r in REAGENT) + " |")
     lines += [
         "",
-        "Used by u0-se-methyl, u0-se-sn1, u0-se-e2, u0-se-zaitsev, u0-se-sn2. The 2° weak nucleophile and 3° good nucleophile cells are the ones courses teach differently.",
+        "Used by u0-se-methyl, u0-se-sn1, u0-se-e2, u0-se-zaitsev, u0-se-sn2. The 2° weak nucleophile and 3° good nucleophile cells are the ones courses teach differently. The 3° good nucleophile cell sits under a polar aprotic header, and OpenStax 11.12 gives SN1/E1 for 3° halides only under neutral protic conditions (pure ethanol or water), so it reads 'slow; SN1/E1 only in protic solvent' (content audit, 23 Oct).",
         "",
         "### 3. Electronegativity (table `EN`), for the delta plus carbon",
         "",

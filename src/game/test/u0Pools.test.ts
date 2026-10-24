@@ -215,7 +215,9 @@ describe("every chapter plays as a lesson that shows every card once", () => {
 
   it("plays all fifteen previews in chapter 9, so every unit on the map is shown", () => {
     expect(lessonMcqBeats("u0-preview").map((beat) => beat.id).sort()).toEqual(Object.keys(U0_PREVIEW_UNITS).sort());
-    expect(planLesson("u0-preview")?.steps.map((step) => step.beat.kind)).toEqual(["mcq"]);
+    // Ungraded since the 23 Oct content audit: peeks at untaught chemistry play in the meet step, at level 0.
+    expect(planLesson("u0-preview")?.steps.map((step) => step.beat.kind)).toEqual(["meet"]);
+    expect(lessonMeetBeats("u0-preview").map((beat) => beat.id).sort()).toEqual(Object.keys(U0_PREVIEW_UNITS).sort());
   });
 
   it("plays each scene's new guess first question, ungraded, and never reuses a practice item", () => {
@@ -242,6 +244,16 @@ describe("the test out quiz", () => {
     for (const entry of pool) expect(allowed, entry.id).toContain(home(entry.id));
     expect(new Set(pool.map((entry) => home(entry.id))).size).toBe(allowed.length);
     expect(pool.map((entry) => entry.id).sort()).toEqual([...U0_EXAM_IDS].sort());
+  });
+
+  it("asks the harder card of a chapter, never a first-of-chapter card or one whose brief names the answer", () => {
+    const pool = practicePool(checkpointNodeId("u0"));
+    for (const c of STORY_CHAPTERS.filter((ch) => ch.number >= 2 && ch.number <= 8)) {
+      expect(U0_EXAM_IDS, c.practiceNode).not.toContain(U0_POOLS[c.practiceNode]![0]!.id);
+    }
+    for (const id of ["u0-se-methyl", "u0-se-sn1", "u0-bond-fc-nh4"]) expect(U0_EXAM_IDS).not.toContain(id);
+    // R/S assignment and E2 regiochemistry are on it, so a pass means those can be done.
+    expect(pool.map((entry) => entry.id)).toEqual(expect.arrayContaining(["u0-st-rs", "u0-se-zaitsev"]));
   });
 
   it("interleaves by chapter: the first seven items come from seven different chapters", () => {

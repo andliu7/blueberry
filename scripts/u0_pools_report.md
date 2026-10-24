@@ -28,9 +28,9 @@ Read from: OpenStax Organic Chemistry 11.12 (A Summary of Reactivity: SN1, SN2, 
 | methyl | SN2 | SN2 | SN2 | no reaction |
 | 1° | SN2 | E2 | SN2 | no reaction |
 | 2° | E2 | E2 | SN2 | SN1 and E1, slow |
-| 3° | E2 | E2 | SN1 and E1 | SN1 and E1 |
+| 3° | E2 | E2 | slow; SN1/E1 only in protic solvent | SN1 and E1 |
 
-Used by u0-se-methyl, u0-se-sn1, u0-se-e2, u0-se-zaitsev, u0-se-sn2. The 2° weak nucleophile and 3° good nucleophile cells are the ones courses teach differently.
+Used by u0-se-methyl, u0-se-sn1, u0-se-e2, u0-se-zaitsev, u0-se-sn2. The 2° weak nucleophile and 3° good nucleophile cells are the ones courses teach differently. The 3° good nucleophile cell sits under a polar aprotic header, and OpenStax 11.12 gives SN1/E1 for 3° halides only under neutral protic conditions (pure ethanol or water), so it reads 'slow; SN1/E1 only in protic solvent' (content audit, 23 Oct).
 
 ### 3. Electronegativity (table `EN`), for the delta plus carbon
 
@@ -96,6 +96,7 @@ Used by u0-ne-ch3br, u0-ne-acetone, u0-arr-head and the chapter 5 and 6 story dr
 | propan2ol | `CC(C)O` | C3H8O | OPSIN 'propan-2-ol' |
 | butan2ol | `CCC(C)O` | C4H10O | OPSIN 'butan-2-ol' |
 | r_butan2ol | `CC[C@@H](C)O` | C4H10O | OPSIN '(R)-butan-2-ol' |
+| s_bromobutane2 | `CC[C@H](C)Br` | C4H9Br | OPSIN '(S)-2-bromobutane' |
 | butanediol | `CC(O)C(C)O` | C4H10O2 | OPSIN 'butane-2,3-diol' |
 | e_butene | `C/C=C/C` | C4H8 | OPSIN '(E)-but-2-ene' |
 | butadiene | `C=CC=C` | C4H6 | OPSIN 'buta-1,3-diene' |
@@ -151,6 +152,7 @@ Used by u0-ne-ch3br, u0-ne-acetone, u0-arr-head and the chapter 5 and 6 story dr
 | `u0-ctl-draw` | draw | CCO | formula C2H6O |
 | `u0-bond-fc-nh4` | mcq | p | N formal charge 1 |
 | `u0-bond-fc-oh` | mcq | m | O formal charge -1, lone pairs 3 |
+| `u0-bond-fc-h3o` | mcq | p | O formal charge 1, lone pairs 1, bonds 3 |
 | `u0-bond-lp-water` | mcq | two | lone pairs on O 2 |
 | `u0-bond-lp-nh3` | mcq | one | lone pairs on N 1 |
 | `u0-bond-match-hyb` | match | Carbon in ethane = sp³; Carbon in ethene = sp²; Carbon in ethyne = sp | every right card derived |
@@ -182,6 +184,7 @@ Used by u0-ne-ch3br, u0-ne-acetone, u0-arr-head and the chapter 5 and 6 story dr
 | `u0-se-sn2` | mcq | SN2 | table says SN2; product ['CCCCC#N'] |
 | `u0-st-count` | mcq | 1 | stereocentres 1 |
 | `u0-st-priority` | mcq | oh | neighbour ranks [(2, 'C', 2, 1), (1, 'C', 1, 3), (4, 'O', 1, 4)] |
+| `u0-st-rs` | mcq | S | stereocentres [2], label S |
 | `u0-st-mirror` | mcq | S | R form R, mirror S |
 | `u0-st-ez` | mcq | E | bond label ['E'] |
 | `u0-st-match` | match | Ethanol = No stereocentre; 2-butanol = One stereocentre; Butane-2,3-diol = Two stereocentres | every right card derived |
@@ -212,4 +215,4 @@ Used by u0-ne-ch3br, u0-ne-acetone, u0-arr-head and the chapter 5 and 6 story dr
 
 ## Test out quiz
 
-u0-bond-fc-nh4, u0-res-where, u0-acid-stronger, u0-ne-ch3br, u0-arr-tail, u0-se-methyl, u0-st-count, u0-bond-lp-water, u0-acid-equilibrium
+u0-bond-fc-oh, u0-res-match, u0-acid-sort, u0-ne-acetone, u0-arr-second, u0-se-zaitsev, u0-st-rs, u0-se-e2, u0-st-mirror
