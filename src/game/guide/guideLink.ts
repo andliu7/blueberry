@@ -30,6 +30,11 @@ export function guideInHash(): GuideSpot | null {
   return { unit: unit!, stage: stage === undefined || stage === "" ? null : stage };
 }
 
+/** The ?guide= value for a spot: "u1" for the default stage, "u1.b" for stage b. */
+export function guideParam(spot: GuideSpot): string {
+  return spot.stage === null ? spot.unit : `${spot.unit}.${spot.stage}`;
+}
+
 export function writeGuideToHash(spot: GuideSpot | null): void {
   if (typeof window === "undefined") return;
   const hash = window.location.hash;
@@ -37,7 +42,7 @@ export function writeGuideToHash(spot: GuideSpot | null): void {
   const path = q === -1 ? hash : hash.slice(0, q);
   const params = new URLSearchParams(q === -1 ? "" : hash.slice(q + 1));
   if (spot === null) params.delete("guide");
-  else params.set("guide", spot.stage === null ? spot.unit : `${spot.unit}.${spot.stage}`);
+  else params.set("guide", guideParam(spot));
   const query = params.toString();
   const next = query === "" ? path : `${path}?${query}`;
   if (next === hash) return;

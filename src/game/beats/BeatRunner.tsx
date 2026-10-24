@@ -108,6 +108,7 @@ import { browserStorage, clearSave, loadLesson, resumePool, saveLesson, savedCou
 import { ResumePrompt } from "../resume/ResumePrompt";
 import { skipAheadTestId, unitIdForNode, type LessonRating, type Pace } from "./pace";
 import { hrefForLesson, hrefForReview, hrefForTab } from "../app/routes";
+import { guideParam } from "../guide/guideLink";
 import "./beat-chrome.css";
 
 // The resolution API lives in template.ts now: one table and one ordering
@@ -1119,6 +1120,24 @@ function PaceRow({ node, pace }: { readonly node: string; readonly pace: Pace })
   const leaning: Pace = rated === null ? pace : rated === "too_easy" ? 1 : rated === "too_hard" ? -1 : 0;
   const unitId = unitIdForNode(node);
   const testId = leaning === 1 ? skipAheadTestId(node) : null;
+  // The guide stage that teaches this lesson, so "Read the guide for this
+  // lesson" opens on it. Found once the row offers the guide; the guides for
+  // Units 2 to 10 are fetched on demand (guide/index.ts), hence the import().
+  // `live` drops a late answer if the row has gone by then.
+  const [stage, setStage] = useState<string | null>(null);
+  useEffect(() => {
+    if (unitId === null || leaning !== -1) return;
+    let live = true;
+    void import("../guide")
+      .then(({ loadUnitGuide }) => loadUnitGuide(unitId))
+      .then((guide) => {
+        const found = guide?.stages.find((one) => one.checkpoint === node || one.lessons.some((lesson) => lesson.node === node));
+        if (live && found !== undefined) setStage(found.id);
+      });
+    return () => {
+      live = false;
+    };
+  }, [unitId, node, leaning]);
   return (
     <div className="flex w-full flex-col items-center gap-2">
       <p className="text-scale-sm text-bb-muted-foreground">{rated === null ? "How was that?" : "Thanks. The next lesson will adjust."}</p>
@@ -1140,8 +1159,11 @@ function PaceRow({ node, pace }: { readonly node: string; readonly pace: Pace })
       {leaning === -1 ? (
         <p className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-scale-sm">
           {unitId !== null ? (
-            <a className="font-semibold text-bb-primary-ink underline" href={`${hrefForTab("pathway")}?unit=${unitId}&guide=${unitId}`}>
-              Read the guide for this lesson
+            <a
+              className="font-semibold text-bb-primary-ink underline"
+              href={`${hrefForTab("pathway")}?unit=${unitId}&guide=${guideParam({ unit: unitId, stage })}`}
+            >
+              {stage === null ? "Read the unit guide" : "Read the guide for this lesson"}
             </a>
           ) : null}
           <a className="font-semibold text-bb-primary-ink underline" href={hrefForReview()}>
