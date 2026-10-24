@@ -20,14 +20,7 @@ import { Suspense, lazy, useRef, useState } from "react";
 import { canFail, clearsBeat, type BeatResult, type MasteryLevel } from "./types";
 import type { PoolEntry } from "../content/u1/types";
 import type { PoolResume } from "../resume/lessonSave";
-import { U1_SORT_FIGURES } from "../content/u1";
-import { U2_SORT_FIGURES } from "../content/u2";
-import { U7_SORT_FIGURES } from "../content/u7";
-import { U8_SORT_FIGURES } from "../content/u8";
-import { U9_SORT_FIGURES } from "../content/u9";
-import { U10_SORT_FIGURES } from "../content/u10";
-// Unit 0 ("Start here") ladder drawings (ADDED 2026-10-17).
-import { U0_SORT_FIGURES } from "../content/u0";
+import { sortFiguresFor } from "./sortFigures";
 
 const SortBeatView = lazy(() => import("./sort/SortBeatView").then((m) => ({ default: m.SortBeatView })));
 const MatchBoardFromSpec = lazy(() => import("./match/MatchBoard").then((m) => ({ default: m.Board })));
@@ -86,7 +79,7 @@ export function PoolItemsStep({ entries, onDone, resume = null, onCommit }: Pool
           key={entry.id}
           content={item.content}
           level={poolItemLevel(item.content.beat.levels)}
-          figures={U1_SORT_FIGURES[entry.id] ?? U2_SORT_FIGURES[entry.id] ?? U7_SORT_FIGURES[entry.id] ?? U8_SORT_FIGURES[entry.id] ?? U9_SORT_FIGURES[entry.id] ?? U10_SORT_FIGURES[entry.id] ?? U0_SORT_FIGURES[entry.id]}
+          figures={sortFiguresFor(entry.id)}
           onResult={keep}
           onContinue={next}
         />

@@ -20,7 +20,7 @@ import { LessonBar } from "../../beats/LessonBar";
 import { ExitMark } from "../../beats/chromeIcons";
 import { showDraftMarks } from "../../app/flags";
 import { HUMAN_GATE_MARK } from "../../pathway-sheet/nodeSheetModel";
-import { U1_SORT_FIGURES } from "../../content/u1";
+import { sortFiguresFor } from "../../beats/sortFigures";
 import { currentProblem, startPracticeRun, stopRun, type PracticeRunState } from "../../beats/practice/run";
 import { progress } from "../../app/progress";
 import { earnChestForClear } from "../../chest/chestFlow";
@@ -192,7 +192,7 @@ export function ReviewRun({ id, onExit, reducedMotion = false }: { readonly id: 
               key={key}
               content={item.content}
               level={levelOf(item.content.beat.levels)}
-              figures={U1_SORT_FIGURES[entry.id]}
+              figures={sortFiguresFor(entry.id)}
               onResult={keepFirst}
               onContinue={() => answer(firstResult.current)}
             />

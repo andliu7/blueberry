@@ -27,8 +27,7 @@ import { LessonBar } from "../LessonBar";
 import { Press } from "../../app/ui/Press";
 import { ExitMark } from "../chromeIcons";
 import type { PoolEntry } from "../../content/u1/types";
-import { U1_SORT_FIGURES } from "../../content/u1";
-import { U2_SORT_FIGURES } from "../../content/u2";
+import { sortFiguresFor } from "../sortFigures";
 import { challengePool, isExamRun, practicePool } from "./pools";
 // The unit exam's ending (Unit 2 draft, 2026-10-17): verdict, stat tiles, per-topic rows.
 import { ExamEnd } from "./ExamEnd";
@@ -262,7 +261,7 @@ export function PracticeRunner({ node, onExit, onFinish, reducedMotion = false, 
               key={key}
               content={item.content}
               level={levelOf(item.content.beat.levels)}
-              figures={U1_SORT_FIGURES[entry.id] ?? U2_SORT_FIGURES[entry.id]}
+              figures={sortFiguresFor(entry.id)}
               onResult={keepFirst}
               onContinue={() => answer(firstResult.current)}
             />

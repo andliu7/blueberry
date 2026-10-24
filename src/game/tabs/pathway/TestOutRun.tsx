@@ -20,8 +20,7 @@ import { LessonBar } from "../../beats/LessonBar";
 import { ExitMark } from "../../beats/chromeIcons";
 import { showDraftMarks } from "../../app/flags";
 import { HUMAN_GATE_MARK } from "../../pathway-sheet/nodeSheetModel";
-import { U1_SORT_FIGURES } from "../../content/u1";
-import { U2_SORT_FIGURES } from "../../content/u2";
+import { sortFiguresFor } from "../../beats/sortFigures";
 import { ExamEnd } from "../../beats/practice/ExamEnd";
 import { answerProblem, currentProblem, examPassMark, examPassed, examSize, firstTimeRight, startPracticeRun, type PracticeRunState } from "../../beats/practice/run";
 import { PATHWAY_UNITS, unitNumber } from "../../demo/pathwayMap";
@@ -162,7 +161,7 @@ export function TestOutRun({ id, onExit, reducedMotion = false }: { readonly id:
               key={key}
               content={item.content}
               level={levelOf(item.content.beat.levels)}
-              figures={U1_SORT_FIGURES[entry.id] ?? U2_SORT_FIGURES[entry.id]}
+              figures={sortFiguresFor(entry.id)}
               onResult={keepFirst}
               onContinue={() => answer(firstResult.current)}
             />
