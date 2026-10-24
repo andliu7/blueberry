@@ -7400,8 +7400,10 @@ export const TRAINER_SEQUENCES: readonly TrainerSequence[] = [
   {
     id: "seq-diazo-sub",
     title: "Diazonium substitution · 2 steps",
-    brief: "N2 is the best leaving group in chemistry. It leaves on its own, and whatever is nearby takes the cation.",
-    successLine: "The C-N bond broke by itself because nitrogen gas is the one leaving group that never comes back, and water captured the phenyl cation the instant it existed. Swap the water for CuBr, CuCN or KI and the same skeleton delivers the whole Sandmeyer family.",
+    brief: "N2 is the best leaving group in chemistry. It leaves on its own, and here water takes the cation.",
+    // Audit 23 Oct, 2a #17: the Cu(I) Sandmeyer goes by a radical path, not cation capture
+    // (the textbook account, OpenStax ch. 24); RDKit cannot check a mechanism.
+    successLine: "The C-N bond broke by itself because nitrogen gas is the one leaving group that never comes back, and water captured the phenyl cation the instant it existed. The copper salts (CuCl, CuBr, CuCN) give the matching aryl halide or nitrile by a different, radical path, and KI swaps in iodide without any copper.",
     steps: [
       {
         step: DIAZO_LOSS,
