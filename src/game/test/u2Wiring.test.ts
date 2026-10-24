@@ -139,9 +139,10 @@ describe("the Unit 2 checkpoint is a whole exam", () => {
     return state;
   };
 
-  it("is an exam run; Unit 1's checkpoint and every lesson node are not", () => {
+  // CHANGED 2026-10-23 (content audit top-25 #2, owner delegated): Unit 1's checkpoint is a whole exam now too.
+  it("is an exam run, as Unit 1's checkpoint is; every lesson node is not", () => {
     expect(isExamRun(check)).toBe(true);
-    expect(isExamRun(checkpointNodeId("u1"))).toBe(false);
+    expect(isExamRun(checkpointNodeId("u1"))).toBe(true);
     for (const node of u2.nodes) expect(isExamRun(node.id), node.id).toBe(false);
   });
 

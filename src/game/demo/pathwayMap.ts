@@ -120,7 +120,7 @@ export const PATHWAY_UNITS: readonly PathwayUnit[] = [
     title: "Unit 1 · Conjugation, Resonance & Dienes",
     note: "Gates Unit 9's control logic and all of Unit 12.",
     // The exam is a pool (beats/practice/pools.ts), so the checkpoint says that instead of the mix.
-    examBlurb: "The unit exam: allylic stability, diene addition and Diels-Alder, in turn. Three in a row passes it.",
+    examBlurb: "The unit exam: every question once, allylic stability, diene addition and Diels-Alder in turn. 80% right first time passes it.",
     // REBUILT 2026-10-07 from the owner's whiteboard (prompt of 2026-09-29), in four stages, and
     // no longer a mirror of the PDF inventory. The 1 Oct rulings shape it: one main line in
     // dependency order (no D2a | D2b fork, so dienes then dienophiles), side quests beside it,

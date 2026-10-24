@@ -93,11 +93,12 @@ export function practicePool(nodeId: string, pools: UnitPools = ALL_POOLS): read
 /**
  * Checkpoints that play as a UNIT EXAM (run.ts: the whole set, passed on the
  * share right first time) instead of the in-a-row run. Unit 2 draft only, 2026-10-17:
- * the in-a-row rule let its 14-problem exam clear after 4 answers. Unit 1's
- * checkpoint still plays in a row; adding it here is one line and the owner's call.
+ * the in-a-row rule let its 14-problem exam clear after 4 answers.
  */
 // Unit 0's test out quiz plays as the whole set too, so it cannot pass on three lucky answers (2026-10-17).
-const EXAM_RUNS: ReadonlySet<string> = new Set([checkpointNodeId("u2"), checkpointNodeId("u0")]);
+// Unit 1's exam joined 2026-10-23 (content audit top-25 #2, owner delegated the call): in a row, it passed
+// on its first three answers, one per stage, and never reached Diels-Alder stereo or MO.
+const EXAM_RUNS: ReadonlySet<string> = new Set([checkpointNodeId("u2"), checkpointNodeId("u0"), checkpointNodeId("u1")]);
 
 export function isExamRun(nodeId: string): boolean {
   return EXAM_RUNS.has(nodeId);
