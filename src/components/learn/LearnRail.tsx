@@ -10,7 +10,7 @@ import { DECKS } from "@/data/decks";
 import { dueAcross } from "@/lib/reviewProgress";
 import { PATHWAY_UNITS } from "@/game/demo/pathwayMap";
 import { deriveMapPathway } from "@/game/tabs/pathway/pathwayState";
-import { partsForUnit } from "@/data/learnMap";
+import { allUnitNotes } from "@/data/learnMap";
 import { dayKey, lessonsFinished, lessonsFinishedByDay } from "@/components/learn/lessonsOpened";
 import { useSupabaseSession } from "@/lib/useSupabaseSession";
 import {
@@ -27,8 +27,8 @@ import { plural } from "@/lib/helpers";
  * waiting (cards due, the next office hours).
  *
  * WHERE EACH NUMBER COMES FROM, because the rule is real data or an honest empty state:
- *  - Notes: the reading notes (one unit's reading of a written lesson, data/learnMap.ts
- *    `partsForUnit`) finished on this device, from the end-of-lesson button
+ *  - Notes: the unit notes (one unit's reading of a written lesson, data/learnMap.ts
+ *    `allUnitNotes`, the list the home card counts too) finished on this device, from the end-of-lesson button
  *    (learn/lessonsOpened.ts). Audit 23 Oct, section 5 #2: these are called NOTES here,
  *    because "lesson" and "Unit 1" mean the app's lessons everywhere else.
  *  - Lessons: the app's own count, the same "1 of 109" the Path says, read from the
@@ -107,7 +107,7 @@ export function useRailNumbers() {
 
   // Notes, as the units read them (a written lesson shared by three units is three).
   const finished = lessonsFinished();
-  const parts = PATHWAY_UNITS.flatMap((u) => partsForUnit(u.id));
+  const parts = allUnitNotes();
   const notes = { done: parts.filter((p) => finished.has(p.key)).length, total: parts.length };
   // The app's lessons, counted exactly as the Path counts them.
   const path = deriveMapPathway(PATHWAY_UNITS, game.journal);

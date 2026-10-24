@@ -1,5 +1,5 @@
 import { PATHWAY_UNITS } from "@/game/demo/pathwayMap";
-import { LESSON_TOPICS } from "@/data/lessonTopics";
+import { allUnitNotes } from "@/data/learnMap";
 import { REACTIONS } from "@/data/reactions";
 import { DECKS } from "@/data/decks";
 import { deckCount } from "@/data/types";
@@ -17,7 +17,9 @@ import { plural } from "@/lib/helpers";
  *   deck and node hangs off. `src/data/learnMap.ts` maps the lessons onto those units
  *   (a draft pending the owner, section 1), and it reads the same `PATHWAY_UNITS`, so the
  *   two cannot disagree about how many units there are.
- * - lessons: the written lesson sections (`LESSON_TOPICS`).
+ * - notes: the unit notes (`allUnitNotes` in learnMap.ts), the same list the Learn rail
+ *   counts, so home and Learn say one number (audit 23 Oct, section 5 #2). The app's
+ *   lessons are counted by the Path's own rule (pathwayState.ts deriveMapPathway), never here.
  * - reactions: the checked reactions (`src/data/reactions.ts`, generated and RDKit-validated).
  * - decks and cards: the built-in deck library (`DECKS`), the same list Study Decks opens on.
  *
@@ -26,7 +28,7 @@ import { plural } from "@/lib/helpers";
  */
 export interface SiteCounts {
   units: number;
-  lessons: number;
+  notes: number;
   reactions: number;
   decks: number;
   cards: number;
@@ -35,7 +37,7 @@ export interface SiteCounts {
 export function siteCounts(): SiteCounts {
   return {
     units: PATHWAY_UNITS.length,
-    lessons: LESSON_TOPICS.length,
+    notes: allUnitNotes().length,
     reactions: REACTIONS.length,
     decks: DECKS.length,
     cards: DECKS.reduce((n, d) => n + deckCount(d), 0),
@@ -51,8 +53,8 @@ export function counted(n: number, noun: string): string {
  *  dates live in the database, not in a table this module can count at build time. */
 export function homeCardCounts(c: SiteCounts = siteCounts()) {
   return {
-    // "notes", not "lessons": a lesson is the app's (audit 23 Oct, section 5 #2).
-    learn: `${counted(c.lessons, "reading note")}, ${counted(c.reactions, "reaction")}`,
+    // "unit notes", not "lessons": a lesson is the app's (audit 23 Oct, section 5 #2).
+    learn: `${counted(c.notes, "unit note")}, ${counted(c.reactions, "reaction")}`,
     practice: `${counted(c.units, "unit")} on the path`,
     review: `${counted(c.decks, "deck")}, ${counted(c.cards, "card")}`,
   } as const;

@@ -206,6 +206,15 @@ export function partsForUnit(unitId: string): LessonPart[] {
   }));
 }
 
+/**
+ * Every unit note in the course, unit by unit: THE reading count (audit 23 Oct, section 5
+ * #2). A lesson shared by three units is three notes, as progress is kept. The home card
+ * (data/taxonomy.ts) and the Learn rail both count this list, so they say the same number.
+ */
+export function allUnitNotes(): LessonPart[] {
+  return PATHWAY_UNITS.flatMap((u) => partsForUnit(u.id));
+}
+
 /** The reactions of one lesson that belong to one unit, in the lesson's family order. */
 export function partReactions(
   lessonId: string,

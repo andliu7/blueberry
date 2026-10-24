@@ -73,6 +73,7 @@ export function unitExamId(unitId: string): string {
   return `${unitId}-unit-test`;
 }
 
+// Side quests stay off quizzes and exams by default: the owner's syllabus rule, STATUS.md "Owner brief, 23 Oct" (C1).
 function onLine(node: PathwayNode): boolean {
   return node.kind !== "branch" && node.playable !== undefined;
 }

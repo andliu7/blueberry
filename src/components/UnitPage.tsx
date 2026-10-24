@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { SITE_CONTAINER } from "@/components/ui/site-nav";
 
 import { PATHWAY_UNITS, type PathwayNode, type PathwayUnit } from "@/game/demo/pathwayMap";
+import { deriveMapPathway } from "@/game/tabs/pathway/pathwayState";
 import { lessonsFinished } from "@/components/learn/lessonsOpened";
 import { useLearnReactions } from "@/components/learn/useLearnReactions";
 import { ReactionScheme, StructureThumb } from "@/components/learn/ReactionCard";
@@ -182,6 +183,9 @@ export function UnitPage({ unitId }: { unitId?: string }) {
     .filter((d) => d !== undefined);
   const playable = unit.nodes.filter((n) => n.playable && !n.mentionOnly);
   const waiting = unit.nodes.filter((n) => !n.playable && !n.mentionOnly).length;
+  // The app's lesson count, by the Path's own rule (audit 23 Oct, section 5 #2): the same
+  // number the Path and the Learn rail say. Side quests are listed below but not counted.
+  const appLessons = deriveMapPathway([unit], []).units.get(unit.id)?.playable ?? 0;
   // Read once per visit: initial state from a function runs on the first render only.
   // S3 round 2: "done" means finished (read to the end), not merely opened.
   const [opened] = useState(lessonsFinished);
@@ -234,7 +238,7 @@ export function UnitPage({ unitId }: { unitId?: string }) {
                     // Audit 23 Oct, section 5 #2: the readings are unit notes; "lesson" means the app's lessons.
                     lessons.length ? `${plural(lessons.length, "note", "notes")}` : null,
                     inUnit.length ? `${plural(inUnit.length, "reaction", "reactions")}` : null,
-                    playable.length ? `${playable.length} to practice` : null,
+                    appLessons ? `${plural(appLessons, "lesson", "lessons")} in the app` : null,
                   ]
                     .filter(Boolean)
                     .join(" · ") || "Coming later"}

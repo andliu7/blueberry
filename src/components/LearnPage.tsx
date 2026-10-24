@@ -13,6 +13,7 @@ import { DecisionCard } from "@/components/learn/DecisionCard";
 import { DECKS } from "@/data/decks";
 import { deckCount } from "@/data/types";
 import { PATHWAY_UNITS } from "@/game/demo/pathwayMap";
+import { deriveMapPathway } from "@/game/tabs/pathway/pathwayState";
 import {
   partReactions,
   partsForUnit,
@@ -105,28 +106,29 @@ export function LearnPage() {
   const reference = DECKS.filter((d) => d.group === "reference");
   const carbonyls = DECKS.filter((d) => d.group === "carbonyls");
 
-  const unitCounts = useMemo(
-    () =>
-      new Map(
-        PATHWAY_UNITS.map((u) => {
-          // S3 round 4: a unit's lessons are its PARTS (data/learnMap.ts), so reading
-          // Aromaticity for Unit 2 ticks Unit 2 and not Units 3 and 4 as well.
-          const parts = partsForUnit(u.id);
-          return [
-            u.id,
-            {
-              lessons: parts.length,
-              finished: parts.filter((p) => finished.has(p.key)).length,
-              reactions: reactions.filter(
-                (r) => unitForFamily(r.family) === u.id,
-              ).length,
-              practice: u.nodes.filter((n) => n.playable).length,
-            },
-          ];
-        }),
-      ),
-    [reactions, finished],
-  );
+  const unitCounts = useMemo(() => {
+    // The app's lessons per unit, by the Path's own rule (audit 23 Oct, section 5 #2), so
+    // they add up to the rail's app total. How many carry content does not read the journal.
+    const path = deriveMapPathway(PATHWAY_UNITS, []).units;
+    return new Map(
+      PATHWAY_UNITS.map((u) => {
+        // S3 round 4: a unit's lessons are its PARTS (data/learnMap.ts), so reading
+        // Aromaticity for Unit 2 ticks Unit 2 and not Units 3 and 4 as well.
+        const parts = partsForUnit(u.id);
+        return [
+          u.id,
+          {
+            lessons: parts.length,
+            finished: parts.filter((p) => finished.has(p.key)).length,
+            reactions: reactions.filter(
+              (r) => unitForFamily(r.family) === u.id,
+            ).length,
+            practice: path.get(u.id)?.playable ?? 0,
+          },
+        ];
+      }),
+    );
+  }, [reactions, finished]);
   const resume = resumeAt(finished);
   // The picture on the decision card: the first reaction of THIS unit's part of the
   // lesson, in the lesson's own family order. S3 round 4: never a reaction from another
@@ -280,7 +282,7 @@ export function LearnPage() {
                               c.reactions
                                 ? `${plural(c.reactions, "reaction", "reactions")}`
                                 : null,
-                              c.practice ? `${c.practice} to practice` : null,
+                              c.practice ? `${plural(c.practice, "lesson", "lessons")} in the app` : null,
                             ]
                               .filter(Boolean)
                               .join(" · ") || "No notes or practice yet"}

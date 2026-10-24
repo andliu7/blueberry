@@ -252,6 +252,10 @@ Tutoring (business test 1)
 Course (business test 2)
 - C1 Syllabus import: paste an Orgo II syllabus, reorder units/lessons to its schedule, adjustable by
   hand afterwards (the site already has an Apps Script syllabus PDF import for the calendar).
+  - RULE, owner 24 Oct: Side quests (benzyne, Hofmann and the like) count on quizzes and exams only
+    when the student's syllabus covers them; default no. The syllabus import (C1) sets it. Today's
+    behaviour already matches the default: test-outs and exams draw from the main line only
+    (onLine in src/game/tabs/pathway/testOuts.ts drops branches).
 - C2 pKa sheet paste updates the site's pKa values, with visible feedback on what changed.
   DECIDED 23 Oct: a student's own values only.
   - pka-per-student DONE 24 Oct: Me, Settings, pKa values has a "Paste your sheet" card. A student
