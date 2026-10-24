@@ -5,15 +5,16 @@
  * lines and would have reached eighty-six. The map is the navigation the
  * owner's own PDF designed: units in teaching order, each node badged
  * spine / branch / gate / boss, playable nodes tappable, the rest shown as
- * the authoring queue they are. The header carries the coverage count read
- * from the data itself, so this surface is also the campaign's scoreboard.
+ * the authoring queue they are. The header and unit rows carry student-facing
+ * text only (audit 23 Oct, section 5 #1): the coverage score and the
+ * authoring notes on each unit were developer notes and are not shown.
  *
  * It renders INLINE, not behind a chip. The tab at rest IS this list, so the
  * units are on screen without a tap; only a unit's nodes fold.
  */
 
-import { useMemo, useState } from "react";
-import { PATHWAY_UNITS, coverage, type PathwayNode, type PlayableLink } from "../../demo/pathwayMap";
+import { useState } from "react";
+import { PATHWAY_UNITS, type PathwayNode, type PlayableLink } from "../../demo/pathwayMap";
 
 const KIND_BADGE: Record<string, { label: string; className: string }> = {
   spine: { label: "SPINE", className: "bg-good text-white" },
@@ -24,7 +25,6 @@ const KIND_BADGE: Record<string, { label: string; className: string }> = {
 
 export function ProblemBrowser({ onPick }: { readonly onPick: (link: PlayableLink) => void }) {
   const [expandedUnit, setExpandedUnit] = useState<string | null>(null);
-  const score = useMemo(() => coverage(), []);
 
   const pick = (node: PathwayNode) => {
     if (node.playable === undefined) return;
@@ -36,7 +36,7 @@ export function ProblemBrowser({ onPick }: { readonly onPick: (link: PlayableLin
       <div className="border-b border-bb-border p-4">
         <h2 className="text-scale-lg font-semibold text-bb-foreground">The pathway map</h2>
         <p className="text-scale-xs text-bb-muted-foreground">
-          {score.playable} of {score.total} nodes playable · spine {score.spinePlayable} of {score.spineTotal}
+          Every reaction in the course, unit by unit. Tap a unit, then a problem to play it.
         </p>
       </div>
       <div className="p-3">
@@ -51,10 +51,7 @@ export function ProblemBrowser({ onPick }: { readonly onPick: (link: PlayableLin
                 aria-expanded={expanded}
                 onClick={() => setExpandedUnit(expanded ? null : unit.id)}
               >
-                <div>
-                  <h3 className="text-scale-sm font-semibold text-bb-foreground">{unit.title}</h3>
-                  <p className="text-scale-xs text-bb-muted-foreground">{unit.note}</p>
-                </div>
+                <h3 className="text-scale-sm font-semibold text-bb-foreground">{unit.title}</h3>
                 <span className="ml-3 shrink-0 text-scale-xs font-semibold text-bb-muted-foreground">
                   {playableCount > 0 ? `${playableCount} playable` : "queued"}
                 </span>
