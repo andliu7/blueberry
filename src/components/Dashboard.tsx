@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { lazy, Suspense, useMemo, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import {
   ArrowUpRight,
@@ -33,6 +33,12 @@ import { useGoogleAuth } from "@/lib/useGoogleAuth";
 import { useIsDark } from "@/lib/useIsDark";
 import { cn } from "@/lib/utils";
 import { OfficeHoursEditor } from "@/components/OfficeHoursEditor";
+
+// React.lazy + Suspense: the tutoring panels' code downloads only when one of
+// these views opens, so the dashboard (and every other page) never carries it.
+const TutorAdminPanel = lazy(() => import("@/components/tutoring/TutorAdminPanel"));
+const TutorDesk = lazy(() => import("@/components/tutoring/TutorDesk"));
+const panelFallback = <p className="text-sm text-[var(--site-quiet)]">Loading.</p>;
 
 /**
  * The dashboard's panels: what `#/d` and each `#/d/<view>` page shows (see
@@ -127,6 +133,18 @@ export function Panel({
       return <ProfilePanel onClose={onClose} />;
     case "hours":
       return <OfficeHoursEditor />;
+    case "tutors":
+      return (
+        <Suspense fallback={panelFallback}>
+          <TutorAdminPanel />
+        </Suspense>
+      );
+    case "tutor":
+      return (
+        <Suspense fallback={panelFallback}>
+          <TutorDesk />
+        </Suspense>
+      );
     // A real panel rather than a redirect: a redirect fired from render is the
     // bug this replaced.
     case "lessons":

@@ -19,6 +19,7 @@ const TITLES: Record<string, string> = {
   "study-decks": "Review",
   learn: "Learn",
   schedule: "Schedule",
+  tutors: "Book a tutor",
   "new-reaction": "New Reaction",
   contact: "Contact",
   about: "Contact",

@@ -13,6 +13,9 @@ the f142b2c5 session scratchpad `progress.html`; the 16 Oct page is `progress-oc
 
 **Waiting on the owner**
 - Unit 1 sign-off: all ~179 items are `placeholder: true`, which keeps them out of spaced review.
+  Review page (23 Oct, dev only): `npm run dev`, then http://localhost:5173/#/signoff (213 pool
+  items in the students' own views, A/S/J/K). Verdicts land in `documentation/unit1-signoff.json`;
+  no flag is flipped until the owner asks. Code: `src/game/signoff/`.
 - Six pieces parked after 6 rounds without a blind win: X1 loader, X3 pomodoro, S2 home tint,
   X5 me + settings, A2 buttons + headings, X6 leaderboards/feed/messages. Keep or send back.
 - Bloom gradient (A, A softer, keep); AI tutor personas; Twilio go-ahead.
@@ -144,6 +147,40 @@ Tutoring (business test 1)
   (site records hours and what is owed, owner pays and marks paid). $25/hour, $30/hour once a
   tutor has 6 months (a semester), good ratings, a minimum number of lessons and referrals (easy
   benchmarks; admin-editable numbers).
+  - Note 24 Oct: the "still runs on Apps Script" line above was already stale. Free office hours
+    moved to Supabase on 7 Oct (office_hours tables, #/tutoring redirects to #/schedule?view=hours)
+    and are unchanged by this item; paid tutoring sits beside them.
+  - tutoring DONE 24 Oct: paid tutoring on Supabase, migration
+    supabase/migrations/20261024120000_tutoring.sql (tutors keyed by email and linked to the
+    account by trigger, no new profiles.role; weekly hours + time off; bookings with the
+    double-booking guard as an exclusion constraint; the four-question questionnaire readable only
+    by the booked tutor and staff; ratings; referrals; a ledger written only by a trigger that
+    prices each completed session from tenure and stats at its end, $25 or $30, with the basis
+    stored per row; admin-editable benchmarks in tutor_pay_rules, defaults avg >= 4.5 over >= 5
+    ratings, >= 20 lessons, >= 2 referrals, 6 months). Pages, all lazy: #/tutors (Book a tutor:
+    a week of open hours, questionnaire sheet, Add to my calendar, My tutoring sessions with
+    cancel and 1-5 stars), #/d/tutor (Tutor desk: 3-step walk-through, weekly hours grid, time
+    off, upcoming sessions with the questionnaire, Mark done / No-show, own rate and ledger),
+    #/d/tutors (Tutors, staff: bring a tutor in with a copyable invite and mailto, list with
+    $25/$30 badge, missing benchmarks named, amount owed, unpaid sessions with Mark paid, pay
+    benchmarks editor). Schedule's header gains "Book a tutor" (everyone) and "Tutors" (staff).
+    Until the migration is applied every page says "opens soon" honestly; no localStorage data.
+    Model cases: supabase/seed.sql (LOCAL ONLY) seeds seven tutors on the rate edges (6.0 vs 5.9
+    months, 4.5 vs 4.4 over 10 ratings, 4 vs 5 ratings, 19 vs 20 lessons, 1 vs 2 referrals);
+    supabase/rls-tests/tutoring.sql passes on the local stack (19 checks: rates at AT, the
+    constraint refusing a direct overlapping insert, refusals, who reads answers, money columns,
+    ledger on completion); office_hours.sql still passes; 51 vitest tests in
+    src/test/tutoring*.test.ts mirror the rule and the guard. Payload: no first-open change
+    (400.2 KB measured with and without this item's entry edits; the gap from 341.8 is other
+    sessions' uncommitted edits in the tree). OWNER: (1) apply the office_hours migration if not yet
+    applied, then 20261024120000_tutoring.sql (it enables btree_gist, which Supabase ships);
+    (2) never run supabase/seed.sql against the live project (`supabase db push` does not);
+    (3) invite emails are copy/mailto for now, an Edge Function sender is optional later.
+    Owner questions: (a) the student cannot read back their own questionnaire (brief followed
+    strictly); allow it? (b) a session is priced on the record before it, so the 20th lesson is
+    still $25 and the 21st is the first $30; right? (c) referrals are addresses a tutor enters on
+    their desk, credited once that student completes any session; is that the referral you meant?
+    (d) cancellations have no cutoff (any time before the start); want a 24-hour rule?
 - T2 Admin view for the owner and TAs (roster already makes Kai, Ryan Rathbun and V. Wedekin admin;
   Ryan and V. have no account yet and become admin on first sign-in): preview + edit, tutor testing,
   watch test accounts complete lessons.

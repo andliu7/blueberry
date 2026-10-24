@@ -48,7 +48,11 @@ export type DashboardView =
   | "imports"
   | "profile"
   /** Staff tools: posting office hours (phase 6). Linked from Schedule, not the nav. */
-  | "hours";
+  | "hours"
+  /** Staff tools: paid tutors, their pay status and the ledger (T1). Linked from Schedule. */
+  | "tutors"
+  /** A paid tutor's own desk: hours, sessions, questionnaires, pay (T1). */
+  | "tutor";
 
 export const VIEW_TITLE: Record<DashboardView, string> = {
   home: "Me", // matches its tab in the site nav (shell round 5); was "Dashboard"
@@ -62,6 +66,8 @@ export const VIEW_TITLE: Record<DashboardView, string> = {
   imports: "Imports",
   profile: "Profile",
   hours: "Office hours",
+  tutors: "Tutors",
+  tutor: "Tutor desk",
 };
 
 /** `home` is the bare `#/d`, so the dashboard's own front page has one address. */

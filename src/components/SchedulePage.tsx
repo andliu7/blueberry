@@ -257,20 +257,28 @@ export default function SchedulePage() {
               : "Sign in to see the course dates and book office hours."
         }
         actions={
-          isStaff && (
-            <>
-              <a href="#/d/hours" className="sch-ghost">
-                Post your hours
-              </a>
-              <SyllabusImportTicket
-                idToken={idToken}
-                onSaved={(rows) => {
-                  setDates(rows);
-                  setError(null);
-                }}
-              />
-            </>
-          )
+          <>
+            <a href="#/tutors" className="sch-ghost">
+              Book a tutor
+            </a>
+            {isStaff && (
+              <>
+                <a href="#/d/hours" className="sch-ghost">
+                  Post your hours
+                </a>
+                <a href="#/d/tutors" className="sch-ghost">
+                  Tutors
+                </a>
+                <SyllabusImportTicket
+                  idToken={idToken}
+                  onSaved={(rows) => {
+                    setDates(rows);
+                    setError(null);
+                  }}
+                />
+              </>
+            )}
+          </>
         }
       />
 

@@ -78,6 +78,8 @@ const NotFoundPage = lazy(() => import("@/components/ui/404-page-not-found"));
 const UnitPage = lazy(() => import("@/components/UnitPage"));
 // Schedule: the calendar and office hours on one page (SITE-REPLAN.md phase 6).
 const SchedulePage = lazy(() => import("@/components/SchedulePage"));
+// Book a tutor: paid one-hour sessions (STATUS T1). #/tutoring still redirects to office hours.
+const BookTutorPage = lazy(() => import("@/components/tutoring/BookTutorPage"));
 // Learn's index (SITE-REPLAN.md phase 5): units, reaction search, the Reference shelf.
 const LearnPage = lazy(() => import("@/components/LearnPage"));
 /* Lazy, and it matters more here than anywhere else on the site: this route
@@ -188,6 +190,7 @@ export default function App() {
     return withBoundary(<LessonsPage section={section} reaction={reaction} />);
   }
   if (route === "schedule") return withBoundary(<SchedulePage />);
+  if (route === "tutors") return withBoundary(<BookTutorPage />);
   if (route === "new-reaction") return withBoundary(<ReactionComposerPage />);
   if (route.startsWith("draw/")) {
     return withBoundary(<ReactionDrawPage reactionId={route.slice(5)} />);
