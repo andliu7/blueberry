@@ -30,11 +30,12 @@
  * only change what this device shows.
  */
 
-import { Suspense, lazy, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { Suspense, lazy, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { localDate, type DailyGoalTier, type EconomyEvent } from "@blueberry/economy";
 import { useLanguage, useProgress, useTheme, setTheme } from "../../app/hooks";
 import { progress } from "../../app/progress";
 import { useDisplayName } from "../../app/useDisplayName";
+import { getSyncStatus, subscribeSyncStatus } from "../../app/syncStatus";
 import { rememberReturn } from "@/lib/returnTo";
 import { languageByCode } from "../../app/i18n";
 import { LanguageSheet } from "../../app/ui/LanguagePicker";
@@ -326,8 +327,18 @@ function PencilIcon() {
  * device, so signed out the pencil asks for a sign-in instead of opening a box
  * that would only half save. lib/accountName.ts has the whole story.
  */
+/** What account sync wants said, if anything. The normal case (synced, syncing) needs no words. */
+const SYNC_NOTE = {
+  "local-only": "Lessons save on this device for now.",
+  offline: "Saving to your account when you are back online.",
+  synced: null,
+  syncing: null,
+} as const;
+
 export function Profile({ joined, course }: { readonly joined: string | null; readonly course: string | null }) {
   const { name, signedIn, accountNameless, localName, save: saveName } = useDisplayName();
+  // useSyncExternalStore: reads a store that lives outside React and re-renders when it changes.
+  const syncNote = SYNC_NOTE[useSyncExternalStore(subscribeSyncStatus, getSyncStatus)];
   const [editing, setEditing] = useState(false);
   const [askSignIn, setAskSignIn] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -426,7 +437,7 @@ export function Profile({ joined, course }: { readonly joined: string | null; re
         ) : askSignIn ? (
           <div className="me-name-form" role="group" aria-labelledby="me-signin-note">
             <p id="me-signin-note" className="me-signin-note">
-              Sign in to save your name. It follows you to every device.
+              Sign in to save your name. It and your lessons follow you to every device.
             </p>
             <a href="#/signin" className="btn3d btn3d--primary" onClick={() => rememberReturn(window.location.hash)}>
               Sign in
@@ -460,6 +471,7 @@ export function Profile({ joined, course }: { readonly joined: string | null; re
           <span>{joined ?? "New here: your first lesson starts the record"}</span>
           {course === null ? null : <span className="me-meta-course">{course}</span>}
         </p>
+        {signedIn && syncNote !== null ? <p className="me-meta m-0">{syncNote}</p> : null}
       </div>
     </section>
   );

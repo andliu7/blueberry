@@ -164,6 +164,21 @@ Feed and accounts
 - F1 Brainstorm the feed (show options first), plus a feed view in admin to test with the TA.
 - A1 Lessons tracked on the account (server-side progress, table + RLS; today progress lives in
   localStorage only) and a reminder to sign in to save progress.
+  - account-progress DONE 23 Oct: every journal event now carries an id (old caches get stable
+    legacy:<hash> ids), and a signed-in student's journal syncs to a new table progress_events
+    (append only, own rows only, insert by column grant). On sign-in the app pulls the account's
+    events, merges by id (nothing local is lost on a first sign-in, lesson records rebuild from
+    the journal), then pushes what the account lacks, batched, retrying with backoff; the local
+    journal is the offline queue. A second account on the same device gets its own journal and
+    the first one's store is kept under blueberry.progress.v2.stash:<id>. Until the table exists
+    sync goes local-only and Me says "Lessons save on this device for now." Feed's sign-in links
+    now read "Sign in to save your progress and your name". Payload: #/app first open 398.3 KB of
+    400 (progressSync is its own lazy chunk). OWNER: apply
+    supabase/migrations/20261023120000_progress_events.sql, then sign in on two devices, finish a
+    lesson on one and reload the other. Known limits: each session pulls the whole history (fine
+    at today's sizes; switch to an id-only diff if journals grow); events are client-claimed (the
+    Phase 6 server check is not in scope); crypto.randomUUID needs a secure context, as the
+    existing callers already do.
 - A2 REPLACED 23 Oct by a rule: the first lesson of every section in every unit is open, so a
   student can start anywhere; only the lessons after it are gated. Completing a lesson plays a
   green glow down the path to the next node, a lock-unlocking animation, a bright glow and a

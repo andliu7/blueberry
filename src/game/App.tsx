@@ -26,6 +26,7 @@ import { claimAppOpenGifts, watchEarnedChests } from "./chest/chestFlow";
 import { useAuth } from "@/lib/AuthContext";
 import { isStaffRole } from "./admin/staff";
 import { AdminSignIn } from "./admin/AdminSignIn";
+import { getSupabase } from "@/lib/supabase";
 
 const Onboarding = lazy(() => import("./onboarding/Onboarding"));
 const BeatRunner = lazy(() => import("./beats/BeatRunner").then((m) => ({ default: m.BeatRunner })));
@@ -123,6 +124,7 @@ export default function App() {
   return (
     <>
       <Loader reducedMotion={reducedMotion} />
+      <ProgressSync />
       <Body route={route} reducedMotion={reducedMotion} needsOnboarding={needsOnboarding} />
     </>
   );
@@ -242,6 +244,30 @@ function Body({
   }
 
   return <Shell route={route} />;
+}
+
+/**
+ * Keeps a signed-in student's progress on their account (STATUS A1, see
+ * app/progressSync.ts). Renders nothing.
+ */
+function ProgressSync() {
+  const userId = useAuth().user?.id ?? null;
+  // An effect with a cleanup, so React stops the sync on sign-out or an account change.
+  useEffect(() => {
+    if (userId === null) return;
+    let stop: (() => void) | null = null;
+    let cancelled = false;
+    // Dynamic import: the sync code loads only for a signed-in student, and supabase-js is already lazy.
+    void import("./app/progressSync").then(({ startProgressSync }) => {
+      if (cancelled) return;
+      stop = startProgressSync({ userId, store: progress, getClient: getSupabase }).stop;
+    });
+    return () => {
+      cancelled = true;
+      stop?.();
+    };
+  }, [userId]);
+  return null;
 }
 
 /**

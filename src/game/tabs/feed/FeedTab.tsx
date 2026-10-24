@@ -631,7 +631,7 @@ function WelcomeBack({ card }: { readonly card: WelcomeCard }) {
       </a>
       {card.askSignIn ? (
         <p className="m-0 text-center">
-          <SignInLink>Sign in so Blueberry remembers your name</SignInLink>
+          <SignInLink>Sign in to save your progress and your name</SignInLink>
         </p>
       ) : null}
     </section>
@@ -728,7 +728,7 @@ export default function FeedTab() {
           )}
           {activity.length === 0 && !signedIn ? (
             <p className="m-0 text-center">
-              <SignInLink>Sign in so Blueberry remembers your name</SignInLink>
+              <SignInLink>Sign in to save your progress and your name</SignInLink>
             </p>
           ) : null}
 

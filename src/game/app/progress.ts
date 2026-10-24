@@ -56,6 +56,7 @@ import { PATHWAY_UNITS } from "../demo/pathwayMap";
 import { OPEN_COURSE_IDS } from "./courses";
 import { isBetaOn } from "./flags";
 import { deviceZone } from "@/lib/helpers";
+import { attemptedFromJournal, lessonsFromJournal, mergeJournals, newEventId, withIds } from "./journalMerge";
 import {
   deriveEconomy,
   isEconomyEvent,
@@ -194,6 +195,20 @@ export interface ProgressSource {
   finishCardRun(graded: number): number;
   spend(sink: SpendSink, cost: number, ref?: string): Receipt;
   setSettings(fields: SettingsFields): Receipt;
+  /** The stored journal: the real history, without the beta flags' synthetic events. What account sync pushes. */
+  storedJournal(): readonly EconomyEvent[];
+  /**
+   * Merge events from the account (another device). Fills lesson records from
+   * the journal, keeps lastReceipt so no reward moment replays, and returns how
+   * many events were new. 0 means nothing changed and nobody is notified.
+   */
+  mergeRemote(events: readonly EconomyEvent[]): number;
+  /**
+   * Replace the history with another account's (a different student signed in
+   * on this device). Keeps the device fields (course, onboarding) and clears
+   * the personal ones (name, league nickname), which belonged to the last student.
+   */
+  replaceJournal(events: readonly EconomyEvent[]): void;
 }
 
 const STORAGE_KEY = "blueberry.progress.v2";
@@ -600,11 +615,16 @@ function load(): StoredProgress {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw !== null) {
       const parsed = JSON.parse(raw) as Partial<StoredProgress>;
-      const journal = Array.isArray(parsed.journal) ? parsed.journal.filter(isEconomyEvent) : [];
+      // Ids for events written before ids existed. Deterministic, so two tabs
+      // agree; they persist on the next commit.
+      const journal = withIds(Array.isArray(parsed.journal) ? parsed.journal.filter(isEconomyEvent) : []);
       return { ...EMPTY_STORED, ...parsed, journal };
     }
     const legacy = localStorage.getItem(LEGACY_KEY);
-    if (legacy !== null) return migrateFromV1(legacy);
+    if (legacy !== null) {
+      const migrated = migrateFromV1(legacy);
+      return { ...migrated, journal: withIds(migrated.journal) };
+    }
     return EMPTY_STORED;
   } catch {
     return EMPTY_STORED;
@@ -649,7 +669,7 @@ export function createLocalProgress(): ProgressSource {
   /** Append one event and keep its receipt, which is what the reward moment plays. */
   const appendOne = (make: (at: string, tz: string) => EconomyEvent): Receipt => {
     const at = nowIso();
-    const event = make(at, deviceZone());
+    const event: EconomyEvent = { ...make(at, deviceZone()), id: newEventId() };
     // The receipt and the snapshot must read the same course, or a rank up on
     // the reward moment would not be a rank up on the pathway.
     const next = receiptFor(stored.journal, event, at, deriveOptions(stored.course));
@@ -701,6 +721,7 @@ export function createLocalProgress(): ProgressSource {
       // player, so the first `correct` of them carry the flag: the counts are
       // true and the attribution is a guess, same as the v1 migration.
       const attempts: EconomyEvent[] = problemIds.map((problemId, i) => ({
+        id: newEventId(),
         kind: "attempt",
         at,
         tz,
@@ -709,6 +730,7 @@ export function createLocalProgress(): ProgressSource {
         correct: i < correct,
       }));
       const clear: EconomyEvent = {
+        id: newEventId(),
         kind: "node_cleared",
         at,
         tz,
@@ -747,7 +769,8 @@ export function createLocalProgress(): ProgressSource {
     reset() {
       commit(EMPTY_STORED, null);
     },
-    append(event) {
+    append(given) {
+      const event: EconomyEvent = given.id === undefined ? { ...given, id: newEventId() } : given;
       const next = receiptFor(stored.journal, event, nowIso(), deriveOptions(stored.course));
       commit({ ...stored, journal: [...stored.journal, event] }, next);
       return next;
@@ -795,7 +818,7 @@ export function createLocalProgress(): ProgressSource {
       let journal = stored.journal;
       let merged: Receipt | null = null;
       for (const chest of saved) {
-        const event: EconomyEvent = { kind: "chest_opened", at, tz, chestId: chest.id };
+        const event: EconomyEvent = { id: newEventId(), kind: "chest_opened", at, tz, chestId: chest.id };
         const one = receiptFor(journal, event, at, options);
         merged =
           merged === null
@@ -843,9 +866,39 @@ export function createLocalProgress(): ProgressSource {
       // A settings change earns nothing, so it does not replace a reward moment
       // the student has not seen yet. It still has to reach the journal.
       const at = nowIso();
-      const event: EconomyEvent = { kind: "settings", at, tz: deviceZone(), ...fields };
+      const event: EconomyEvent = { id: newEventId(), kind: "settings", at, tz: deviceZone(), ...fields };
       appendQuietly([event]);
       return emptyReceipt();
+    },
+    storedJournal: () => stored.journal,
+    mergeRemote(events) {
+      const merged = mergeJournals(stored.journal, events);
+      if (merged.added.length === 0) return 0;
+      commit(
+        {
+          ...stored,
+          journal: merged.journal,
+          lessons: lessonsFromJournal(merged.journal, stored.lessons),
+          attemptedProblems: attemptedFromJournal(merged.added, stored.attemptedProblems),
+        },
+        receipt,
+      );
+      return merged.added.length;
+    },
+    replaceJournal(events) {
+      const journal = mergeJournals([], events).journal;
+      commit(
+        {
+          ...stored,
+          startTopics: EMPTY_STORED.startTopics,
+          displayName: EMPTY_STORED.displayName,
+          leagueName: EMPTY_STORED.leagueName,
+          journal,
+          lessons: lessonsFromJournal(journal, {}),
+          attemptedProblems: attemptedFromJournal(journal, []),
+        },
+        null,
+      );
     },
   };
 }

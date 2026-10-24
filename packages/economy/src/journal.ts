@@ -70,6 +70,12 @@ export type DailyGoalTier = "casual" | "regular" | "serious" | "exam";
 export type Difficulty = 1 | 2 | 3 | 4 | 5;
 
 interface EventBase {
+  /**
+   * A stable id, so a journal held in two places (this device and the account)
+   * can be merged without double counting. Derivation ignores it. Absent on
+   * events written before ids existed.
+   */
+  readonly id?: string;
   /** Absolute time, ISO 8601 with an offset or Z. */
   readonly at: string;
   /** IANA timezone the student was in, so local days are recomputable. */
@@ -173,6 +179,9 @@ const JOURNALLED_CHEST_SOURCES: readonly JournalledChestSource[] = ["section_fin
 
 const GOAL_TIERS: readonly DailyGoalTier[] = ["casual", "regular", "serious", "exam"];
 
+/** The shape an event id may take. The progress_events table checks the same pattern. */
+const EVENT_ID = /^[A-Za-z0-9:_-]{1,80}$/;
+
 function isRecord(x: unknown): x is Record<string, unknown> {
   return typeof x === "object" && x !== null && !Array.isArray(x);
 }
@@ -224,6 +233,7 @@ export function isEconomyEvent(x: unknown): x is EconomyEvent {
   if (!isRecord(x)) return false;
   if (!isIsoInstant(x["at"])) return false;
   if (!isTimezone(x["tz"])) return false;
+  if (x["id"] !== undefined && !(typeof x["id"] === "string" && EVENT_ID.test(x["id"]))) return false;
 
   switch (x["kind"]) {
     case "node_started":

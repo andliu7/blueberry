@@ -5,8 +5,9 @@
  */
 
 import { describe, expect, it } from "vitest";
+import { deriveEconomy } from "../src/derive.ts";
 import { isCalendarDate, isEconomyEvent, readJournal } from "../src/journal.ts";
-import { at, cleared, settings, spend } from "./helpers.ts";
+import { at, cleared, settings, spend, started } from "./helpers.ts";
 
 const base = { at: at("2026-08-27"), tz: "UTC" };
 
@@ -72,5 +73,33 @@ describe("isCalendarDate", () => {
     expect(isCalendarDate("2026-02-30")).toBe(false);
     expect(isCalendarDate("2026-8-27")).toBe(false);
     expect(isCalendarDate("")).toBe(false);
+  });
+});
+
+describe("event ids", () => {
+  const event = { ...base, kind: "unit_cleared", unitId: "u1" };
+
+  it("accepts an event with a well formed id, and one with none", () => {
+    expect(isEconomyEvent({ ...event, id: "3f0c2a1e-9b7d-4c1e-8f00-1a2b3c4d5e6f" })).toBe(true);
+    expect(isEconomyEvent({ ...event, id: "legacy:1a2b3c:0" })).toBe(true);
+    expect(isEconomyEvent(event)).toBe(true);
+  });
+
+  it("rejects an empty id, an id over 80 characters, and an id that is not a string", () => {
+    expect(isEconomyEvent({ ...event, id: "" })).toBe(false);
+    expect(isEconomyEvent({ ...event, id: "a".repeat(81) })).toBe(false);
+    expect(isEconomyEvent({ ...event, id: 42 })).toBe(false);
+    expect(isEconomyEvent({ ...event, id: "has space" })).toBe(false);
+  });
+
+  it("derives the same snapshot from a journal with ids as from the same journal without", () => {
+    const journal = [
+      started("n1", "concept", "2026-08-27", "11:00"),
+      cleared("n1", "concept", "2026-08-27"),
+      spend("costume", 10, "2026-08-27"),
+    ];
+    const withIds = journal.map((e, i) => ({ ...e, id: `id-${i}` }));
+    const now = at("2026-08-27", "23:00");
+    expect(deriveEconomy(withIds, now)).toEqual(deriveEconomy(journal, now));
   });
 });
