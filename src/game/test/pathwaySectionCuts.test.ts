@@ -1,6 +1,6 @@
 /**
  * Section cuts by topic (owner decision 20 Oct; tabs/pathway/pathwaySections.ts
- * SECTION_ENDS): units 3, 5, 7, 8 and 9 have no checkpoints of their own, so
+ * SECTION_ENDS): units 3, 4, 5, 7, 8, 9 and 10 have no checkpoints of their own, so
  * they are cut after named lessons into sections of 3 to 5, each ending on its
  * test-out chest.
  */
@@ -13,7 +13,10 @@ import { testOutPool } from "../tabs/pathway/testOutPool";
 import { unitShape } from "../tabs/pathway/unitShape";
 
 const EXPECTED: Readonly<Record<string, readonly string[]>> = {
-  u3: ["The five EAS reactions", "Directing groups and synthesis"],
+  // Three sections since the 23 Oct audit (top-25 #13) put directing after the arenium lesson and
+  // alkylation and benzylic oxidation on the main line: twelve lessons no longer fit two sections of 3 to 5.
+  u3: ["Directing and the first reactions", "Friedel-Crafts and blocking", "Changing groups and synthesis"],
+  u4: ["Addition-elimination (SNAr)"],
   u5: ["Reactions of alcohols", "Ethers and epoxides", "Opening epoxides, making diols"],
   u7: ["Hydrates and acetals", "Amines, Grignards and hydrides", "Wittig, enones and C=O to CH₂"],
   u8: ["The reactivity ladder", "Down the ladder", "Hydrolysis and nitriles", "Reductions and organometallics"],
@@ -25,6 +28,20 @@ const EXPECTED: Readonly<Record<string, readonly string[]>> = {
     "Alkylating enolates",
     "Conjugate addition and annulation",
   ],
+  u10: ["Basicity and reductions to amines", "Anilines and diazonium salts"],
+};
+
+/**
+ * Units whose road is too short for the 3-to-5 rule above, or that have no
+ * test-outs yet, still read a topic name and never "Part 1" (audit 23 Oct,
+ * section 5 #4). Units 2 and 6 draw their lessons as the gate run, so their one
+ * section is the side quests.
+ */
+const NAMED_ONLY: Readonly<Record<string, readonly string[]>> = {
+  u2: ["Side quest: naming benzene rings"],
+  u6: ["Side quests: 2D NMR and UV-Vis"],
+  u11: ["Phenol acidity and phenoxide"],
+  u14: ["Protecting amino acids"],
 };
 
 function unitOf(id: string) {
@@ -79,6 +96,14 @@ describe("units cut by topic", () => {
           expect(testOutPool(test)).toHaveLength(test.size);
         }
       });
+    });
+  }
+});
+
+describe("short units named by topic", () => {
+  for (const [id, titles] of Object.entries(NAMED_ONLY)) {
+    it(`${id} names its sections`, () => {
+      expect(unitSections(unitOf(id)).map((section) => section.title)).toEqual(titles);
     });
   }
 });

@@ -56,11 +56,18 @@ export const SECTION_TITLES: Readonly<Record<string, string>> = Object.freeze({
  * section; the value is that section's title.
  */
 export const SECTION_ENDS: Readonly<Record<string, string>> = Object.freeze({
-  "u3-fc-acyl": "The five EAS reactions",
-  "u3-sequencing": "Directing groups and synthesis",
+  // Units 2 and 6 are checkpoint units (unitShape.ts isCheckpointUnit): their
+  // lessons are the gate run, so the only section on the road is the side
+  // quests, and the title says so (audit 23 Oct, section 5 #4).
+  "u2-nomen": "Side quest: naming benzene rings",
+  "u3-sulfo": "Directing and the first reactions",
+  "u3-blocking": "Friedel-Crafts and blocking",
+  "u3-sequencing": "Changing groups and synthesis",
+  "u4-lg-order": "Addition-elimination (SNAr)",
   "u5-oxidation": "Reactions of alcohols",
   "u5-epoxidation": "Ethers and epoxides",
   "u5-anti-diol": "Opening epoxides, making diols",
+  "u6-uv": "Side quests: 2D NMR and UV-Vis",
   "u7-protect": "Hydrates and acetals",
   "u7-hydride": "Amines, Grignards and hydrides",
   "u7-to-ch2": "Wittig, enones and C=O to CH₂",
@@ -74,6 +81,10 @@ export const SECTION_ENDS: Readonly<Record<string, string>> = Object.freeze({
   "u9-crossed-claisen": "The Claisen",
   "u9-acetoacetic": "Alkylating enolates",
   "u9-retro": "Conjugate addition and annulation",
+  "u10-nitrile-red": "Basicity and reductions to amines",
+  "u10-acyl-protect": "Anilines and diazonium salts",
+  "u11-phenoxide": "Phenol acidity and phenoxide",
+  "u14-orthogonal": "Protecting amino acids",
 });
 
 /** The chest a checkpoint earns. Journalled under this id when opened. */
