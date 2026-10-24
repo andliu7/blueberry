@@ -57,15 +57,27 @@ export function firstSentence(text: string): { readonly first: string; readonly 
 
 /**
  * The tray's explanation: the first sentence of `lead` on show, and the rest of
- * it plus `more` (for example why the student's own pick was wrong) behind a native
- * <details>, which opens and closes itself with no React state.
+ * it plus `more` behind a native <details>, which opens and closes itself with
+ * no React state.
+ *
+ * `yours` is why the student's own pick was wrong. Audit 23 Oct, section 5 #6:
+ * it was folded under "Why?" and a first-timer never found it, so it now shows
+ * by default under "Why yours isn't it" (a <details> rendered open: the
+ * student can still fold it, and React only sets `open` on the first render).
  */
-export function TrayWhy({ lead, more = [] }: { readonly lead: string; readonly more?: readonly string[] }) {
+export function TrayWhy({ lead, more = [], yours }: { readonly lead: string; readonly more?: readonly string[]; readonly yours?: string }) {
   const { first, rest } = firstSentence(lead);
-  const extra = [rest, ...more.filter((part) => part !== lead)].filter((part) => part.length > 0);
+  const ownWhy = yours !== undefined && yours.length > 0 && yours !== lead ? yours : null;
+  const extra = [rest, ...more.filter((part) => part !== lead && part !== ownWhy)].filter((part) => part.length > 0);
   return (
     <>
       <p>{first}</p>
+      {ownWhy !== null ? (
+        <details className="answer-tray__more" open>
+          <summary>Why yours isn&rsquo;t it</summary>
+          <p>{ownWhy}</p>
+        </details>
+      ) : null}
       {extra.length > 0 ? (
         <details className="answer-tray__more">
           <summary>Why?</summary>

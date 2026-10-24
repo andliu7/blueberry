@@ -443,15 +443,16 @@ export function McqBeatView({
           actionDisabled={!primaryEnabled}
         >
           {/* A2 round 5: the tray reads in one glance. A wrong answer leads with
-              the labelled correct answer in large type, then ONE sentence of why.
-              Everything else the author wrote is one tap away in "Why?". */}
+              the labelled correct answer in large type, then ONE sentence of why,
+              then why the student's own pick misses, open (audit 23 Oct, section
+              5 #6). The rest of the author's why is one tap away in "Why?". */}
           {reveal.matchedAnswer ? (
             <TrayWhy lead={reveal.chosenWhy} />
           ) : (
             <>
               <p className="answer-tray__label">Correct answer:</p>
               <p className="answer-tray__answer answer-tray__answer--big">{reveal.answerText}</p>
-              <TrayWhy lead={reveal.answerWhy} more={[reveal.chosenWhy]} />
+              <TrayWhy lead={reveal.answerWhy} yours={reveal.chosenWhy} />
             </>
           )}
         </AnswerTray>

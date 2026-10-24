@@ -4,9 +4,11 @@
  * answers in a row, where a first-meeting miss breaks the run even though it
  * clears the beat.
  */
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
-import { firstSentence } from "../beats/AnswerTray";
+import { firstSentence, TrayWhy } from "../beats/AnswerTray";
 import { currentRun, startMcqSession } from "../beats/mcq/session";
 import type { BeatResult } from "../beats/types";
 
@@ -38,5 +40,23 @@ describe("currentRun", () => {
   it("is broken by a miss and by a first-meeting pass", () => {
     expect(currentRun(withResults([right, miss]))).toBe(0);
     expect(currentRun(withResults([right, pass]))).toBe(0);
+  });
+});
+
+describe("TrayWhy", () => {
+  // Audit 23 Oct, section 5 #6: on a wrong pick the student sees why their own
+  // option misses without hunting for it.
+  it("shows why the student's own pick misses, open, under its own heading", () => {
+    const html = renderToStaticMarkup(
+      createElement(TrayWhy, { lead: "C1 takes the proton. C2 carries the plus.", yours: "That carbon ends up neutral." }),
+    );
+    expect(html).toContain('<details class="answer-tray__more" open=""><summary>Why yours isn');
+    expect(html).toContain("That carbon ends up neutral.");
+    expect(html).toContain("<summary>Why?</summary>");
+  });
+
+  it("adds no extra fold when there is no own pick to explain", () => {
+    const html = renderToStaticMarkup(createElement(TrayWhy, { lead: "Cold locks it in." }));
+    expect(html).not.toContain("<details");
   });
 });
