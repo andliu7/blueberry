@@ -161,11 +161,17 @@ const PICTURE = { outputFormat: "svg", "bond-length": 32, "bond-length-unit": "p
 
 export default function DrawEditor({
   stereo,
+  start,
   onReady,
+  onEdit,
 }: {
   /** Show the wedge and dash keys (the stereo items only). */
   readonly stereo: boolean;
+  /** A SMILES to put on the board before it goes live (DrawBeat.start). */
+  readonly start?: string;
   readonly onReady: (reader: DrawReader) => void;
+  /** Called when a press on the board itself ends (a tap or a drag drew there), so the beat knows the student has drawn. CHECK waits for it. */
+  readonly onEdit?: () => void;
 }) {
   // One provider per editor instance (see molecule-canvas.tsx for the deadlock a shared one caused).
   const structServiceProvider = useMemo(() => new StandaloneStructServiceProvider(), []);
@@ -308,7 +314,7 @@ export default function DrawEditor({
         <div className="draw-beat__tool-row">{row(BOND_ROW)}</div>
         <div className="draw-beat__tool-row">{row(ATOM_ROW)}</div>
       </div>
-      <div className="draw-beat__editor" ref={box}>
+      <div className="draw-beat__editor" ref={box} onPointerUp={onEdit}>
         <Editor
           staticResourcesUrl=""
           structServiceProvider={structServiceProvider}
@@ -325,8 +331,20 @@ export default function DrawEditor({
             // CHECK goes live only after the bond tool is really on, so the
             // first tap always draws (round 2: one early tap drew nothing).
             // Ketcher draws its toolbar a moment after onInit, hence the wait.
+            // A starting structure goes on first, so the board never goes live empty
+            // and then fills under the student's finger.
             window.setTimeout(() => {
-              void pickBond("bond-single").then(() => onReady(reader(ketcher)));
+              void (async () => {
+                if (start !== undefined) {
+                  try {
+                    await registered(ketcher).setMolecule(start);
+                  } catch (error) {
+                    console.warn("[draw] could not put the starting structure on the board", error);
+                  }
+                }
+                await pickBond("bond-single");
+                onReady(reader(ketcher));
+              })();
             }, 300);
           }}
         />

@@ -151,6 +151,45 @@ export const STAGE_AB_POOLS: UnitPools = {
       "placeholder": true
     },
     {
+      "id": "u1-allylic-plus-carbon",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u1-allylic-plus-carbon",
+          "node": "u1-allylic",
+          "conceptIds": [
+            "resonance_delocalisation"
+          ],
+          "levels": [
+            0
+          ],
+          "prompt": "H+ adds to C1 of buta-1,3-diene. Pick the carbon that carries the +.",
+          "correctOptionId": "c2",
+          "options": [
+            {
+              "id": "c1",
+              "text": "C1, the carbon the H joined",
+              "why": "C1 used the C1=C2 pi pair to bond the H+. It now has four bonds, three H and C2, so it carries no charge."
+            },
+            {
+              "id": "c2",
+              "text": "C2, next door to C1",
+              "why": "The C1=C2 pi pair went into the new C-H bond, so C2 is left with three bonds and an empty p orbital: the +. The C3=C4 pi bond beside it can share that + with C4."
+            },
+            {
+              "id": "c3",
+              "text": "C3",
+              "why": "C3 keeps its C3=C4 double bond, so it still has four bonds and no charge. The + sits on the carbon that lost its pi pair."
+            }
+          ]
+        }
+      },
+      "explanation": "H+ bonds to C1 with the C1=C2 pi pair, which leaves C2 with three bonds: the +. The C=C beside C2 makes it an allylic cation.",
+      "provenance": "scripts/u1_pools_ab.py: H+ put on C1 of the mapped diene; the charged carbon read off the result, its contributors from ResonanceMolSupplier (C2 and C4), and the cation checked against diene_addition. OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
+    {
       "id": "u1-allylic-draw-cation",
       "item": {
         "kind": "draw",
@@ -165,7 +204,7 @@ export const STAGE_AB_POOLS: UnitPools = {
             2
           ],
           "prompt": "H+ adds to C1 of buta-1,3-diene. Draw the cation that forms.",
-          "brief": "Count the bonds on each carbon once the H is on. Either resonance contributor counts.",
+          "brief": "The diene is on the board. Count each carbon's bonds once the H is on. Either contributor counts.",
           "visual": {
             "kind": "scheme",
             "scheme": {
@@ -191,9 +230,35 @@ export const STAGE_AB_POOLS: UnitPools = {
                     "y2": 49.0,
                     "order": 2
                   }
+                ],
+                "labels": [
+                  {
+                    "x": 93.8,
+                    "y": 38.5,
+                    "t": "1",
+                    "size": 10
+                  },
+                  {
+                    "x": 68.6,
+                    "y": 62.0,
+                    "t": "2",
+                    "size": 10
+                  },
+                  {
+                    "x": 51.4,
+                    "y": 34.0,
+                    "t": "3",
+                    "size": 10
+                  },
+                  {
+                    "x": 26.2,
+                    "y": 57.5,
+                    "t": "4",
+                    "size": 10
+                  }
                 ]
               },
-              "leftName": "buta-1,3-diene",
+              "leftName": "buta-1,3-diene, numbered",
               "over": "H^+"
             }
           },
@@ -236,6 +301,7 @@ export const STAGE_AB_POOLS: UnitPools = {
           "stereo": false,
           "why": "H+ goes on the end carbon, so the + lands on C2, right next to the remaining C=C. That pi bond can shift over and share the charge with C4.",
           "lookAt": "Put the H on C1, then put the + on the carbon next to it. It is allylic, which is why this end gets protonated.",
+          "start": "C=CC=C",
           "misses": [
             {
               "id": "inner",
@@ -260,6 +326,382 @@ export const STAGE_AB_POOLS: UnitPools = {
     },
   ],
   "u1-rank-cation": [
+    {
+      "id": "u1-cat-hyperconj",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u1-cat-hyperconj",
+          "node": "u1-rank-cation",
+          "conceptIds": [
+            "resonance_delocalisation"
+          ],
+          "levels": [
+            0
+          ],
+          "prompt": "tert-Butyl beats ethyl. Pick the reason.",
+          "correctOptionId": "hyper",
+          "options": [
+            {
+              "id": "res",
+              "text": "tert-Butyl has resonance",
+              "why": "No pi bond sits next to either charged carbon, so neither has a second contributor. The difference here is hyperconjugation alone."
+            },
+            {
+              "id": "hyper",
+              "text": "More C-H bonds feed the empty p orbital",
+              "why": "Each neighbouring carbon brings C-H bonds that can lean into the empty orbital. tert-Butyl has three such carbons and ethyl has one."
+            },
+            {
+              "id": "withdraw",
+              "text": "Methyl groups pull density away",
+              "why": "It is the other way round. Alkyl groups donate into an electron-poor carbon, which is why more of them helps a cation."
+            }
+          ]
+        }
+      },
+      "explanation": "Alkyl groups stabilise a carbocation by hyperconjugation: their C-H and C-C bonds donate into the empty p orbital.",
+      "provenance": "scripts/u1_pools_ab.py: neither species has a second charge position; substitution 3 against 1. OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
+    {
+      "id": "u1-cat-vinyl",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u1-cat-vinyl",
+          "node": "u1-rank-cation",
+          "conceptIds": [
+            "resonance_delocalisation"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "Pick the most stable cation.",
+          "brief": "Look for a pi bond the charge can actually share.",
+          "correctOptionId": "allyl",
+          "options": [
+            {
+              "id": "vinyl",
+              "text": "The vinyl cation",
+              "why": "A double bond is right there, but the charge sits on one of its own carbons. That empty orbital is at right angles to the pi bond, so the pi electrons cannot reach it and there is no second contributor."
+            },
+            {
+              "id": "ethyl",
+              "text": "The ethyl cation",
+              "why": "One carbon neighbour gives a little hyperconjugation and nothing else. There is no pi bond, so the charge stays on one carbon."
+            },
+            {
+              "id": "allyl",
+              "text": "The allyl cation",
+              "why": "The charged carbon sits next to a C=C, so the pi electrons can shift over and put the charge on C3 as well. Sharing the charge beats leaving it on one primary carbon."
+            }
+          ]
+        }
+      },
+      "explanation": "A C=C helps only when it is NEXT to the charged carbon. A charge on the alkene carbon itself (vinyl) gets no resonance.",
+      "provenance": "scripts/u1_pools_ab.py: most stable by dominance over charge positions and substitution. OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only; OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
+    {
+      "id": "u1-cat-draw-protonate",
+      "item": {
+        "kind": "draw",
+        "beat": {
+          "kind": "draw",
+          "id": "u1-cat-draw-protonate",
+          "node": "u1-rank-cation",
+          "conceptIds": [
+            "resonance_delocalisation"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "H+ adds to 2-methylpropene. Draw the cation that forms.",
+          "brief": "There are two ways to put the H on. Draw the cation each one leaves, then keep one.",
+          "visual": {
+            "kind": "structure",
+            "figure": {
+              "bonds": [
+                {
+                  "x1": 60.0,
+                  "y1": 29.0,
+                  "x2": 60.0,
+                  "y2": 49.0,
+                  "order": 2
+                },
+                {
+                  "x1": 60.0,
+                  "y1": 49.0,
+                  "x2": 77.3,
+                  "y2": 59.0
+                },
+                {
+                  "x1": 60.0,
+                  "y1": 49.0,
+                  "x2": 42.7,
+                  "y2": 59.0
+                }
+              ]
+            },
+            "name": "2-methylpropene"
+          },
+          "answer": {
+            "smiles": "C[C+](C)C",
+            "inchi": "InChI=1S/C4H9/c1-4(2)3/h1-3H3/q+1",
+            "name": "the tert-butyl cation",
+            "figure": {
+              "bonds": [
+                {
+                  "x1": 60.0,
+                  "y1": 29.0,
+                  "x2": 60.0,
+                  "y2": 49.0
+                },
+                {
+                  "x1": 60.0,
+                  "y1": 49.0,
+                  "x2": 77.3,
+                  "y2": 59.0
+                },
+                {
+                  "x1": 60.0,
+                  "y1": 49.0,
+                  "x2": 42.7,
+                  "y2": 59.0
+                }
+              ],
+              "labels": [
+                {
+                  "x": 53.1,
+                  "y": 50.0,
+                  "t": "+",
+                  "size": 14
+                }
+              ]
+            }
+          },
+          "stereo": false,
+          "why": "H+ goes on the CH2 end, which leaves the + on the carbon carrying three carbons. Three alkyl groups donate into the empty orbital, so this cation forms much faster than the primary one.",
+          "lookAt": "Put the H on the CH2 end. The + then sits on the central carbon, with three carbons around it.",
+          "misses": [
+            {
+              "id": "c1",
+              "inchi": "InChI=1S/C4H9/c1-4(2)3/h4H,1H2,2-3H3/q+1",
+              "smiles": "[CH2+]C(C)C",
+              "name": "the primary cation",
+              "says": "That puts the + on the carbon with fewer carbons around it. H+ goes on the end that leaves the more substituted cation."
+            }
+          ]
+        }
+      },
+      "explanation": "H+ adds to the end of the C=C that leaves the more substituted, more stable cation.",
+      "provenance": "scripts/u1_pools_ab.py: both protonations built and ranked with the script's cation model (compare). OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
+    {
+      "id": "u1-cat-allyl-vs-2",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u1-cat-allyl-vs-2",
+          "node": "u1-rank-cation",
+          "conceptIds": [
+            "resonance_delocalisation"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "Compare these two cations. Pick the closest statement.",
+          "brief": "Count the substitution on each charged carbon, then look for resonance.",
+          "correctOptionId": "crotyl",
+          "options": [
+            {
+              "id": "crotyl",
+              "text": "The crotyl cation is more stable",
+              "why": "Its best charged carbon is secondary, just like isopropyl's. On top of that, resonance spreads the charge over a second carbon. Same substitution plus resonance wins."
+            },
+            {
+              "id": "ipr",
+              "text": "The isopropyl cation is more stable",
+              "why": "Isopropyl's charged carbon is secondary, but so is the crotyl cation's best one. Isopropyl has no C=C next door, so its one carbon holds the whole charge."
+            },
+            {
+              "id": "tie",
+              "text": "They are about as stable as each other",
+              "why": "Count the substitution first: both have a secondary charged carbon, so that part ties. Then look for resonance. Only the crotyl cation has it, so the tie breaks."
+            }
+          ]
+        }
+      },
+      "explanation": "Same substitution, plus resonance: a 2° allylic cation beats a 2° alkyl cation, because resonance spreads the charge over a second carbon.",
+      "provenance": "scripts/u1_pools_ab.py: compare() dominance: crotyl (2 charge positions, best 2°) over isopropyl (1 position, 2°); takeaway scale 3 against 2. OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only; OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
+    {
+      "id": "u1-cat-major",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u1-cat-major",
+          "node": "u1-rank-cation",
+          "conceptIds": [
+            "resonance_delocalisation"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "One cation, two contributors. Pick the one that counts for more.",
+          "correctOptionId": "sec",
+          "options": [
+            {
+              "id": "equal",
+              "text": "Both count equally",
+              "why": "Both are real, and they are not equal. A contributor that puts the charge where more carbons can help it weighs more."
+            },
+            {
+              "id": "sec",
+              "text": "The one with + on the 2° carbon",
+              "why": "That carbon has two carbon neighbours to donate into its empty orbital, so this picture is lower in energy and counts for more."
+            },
+            {
+              "id": "pri",
+              "text": "The one with + on the 1° carbon",
+              "why": "This contributor puts the charge where fewer carbons help it. It still matters, which is why a nucleophile can attack there, but it is the smaller share."
+            }
+          ]
+        }
+      },
+      "explanation": "Contributors are not equal. The one with the charge on the more substituted carbon counts for more.",
+      "provenance": "scripts/u1_pools_ab.py: RDKit confirms the two drawings are one ion; substitution counted at each charge position. OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
+    {
+      "id": "u1-cat-pentadienyl",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u1-cat-pentadienyl",
+          "node": "u1-rank-cation",
+          "conceptIds": [
+            "resonance_delocalisation"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "Pick the carbons that share the charge in this cation.",
+          "correctOptionId": "three",
+          "options": [
+            {
+              "id": "two",
+              "text": "C1 and C3",
+              "why": "That is one arrow push. The C=C made by that push can push again, which moves the charge on to C5."
+            },
+            {
+              "id": "five",
+              "text": "All five carbons",
+              "why": "C2 and C4 keep four bonds in every contributor, so they never carry the charge. It lands on every other carbon."
+            },
+            {
+              "id": "three",
+              "text": "C1, C3 and C5",
+              "why": "Push the C2=C3 pi bond toward C1 and the charge moves to C3; push C4=C5 toward C3 and it moves to C5. That is three contributors, with the charge on three carbons."
+            }
+          ]
+        }
+      },
+      "explanation": "Keep pushing arrows until the charge stops moving. In a conjugated chain it lands on every other carbon.",
+      "provenance": "scripts/u1_pools_ab.py: charge positions from ResonanceMolSupplier. OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
+    {
+      "id": "u1-cat-3allyl-vs-3",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u1-cat-3allyl-vs-3",
+          "node": "u1-rank-cation",
+          "conceptIds": [
+            "resonance_delocalisation"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "Pick the more stable cation.",
+          "correctOptionId": "allyl",
+          "options": [
+            {
+              "id": "tie",
+              "text": "They tie, both are 3°",
+              "why": "Both charged carbons are tertiary, so substitution ties. Only one also has a C=C next door, and resonance is extra help on top."
+            },
+            {
+              "id": "tbu",
+              "text": "tert-Butyl",
+              "why": "Three methyls is strong help, and the allylic cation has that same substitution plus a second carbon to share the charge."
+            },
+            {
+              "id": "allyl",
+              "text": "The 3° allylic cation",
+              "why": "Same substitution at the charged carbon, plus resonance with the C=C next door. Both effects count, and it wins on the second."
+            }
+          ]
+        }
+      },
+      "explanation": "When substitution ties, resonance breaks the tie. A 3° allylic cation beats a 3° alkyl one.",
+      "provenance": "scripts/u1_pools_ab.py: dominance: equal substitution, more charge positions. OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
+    {
+      "id": "u1-cat-count-both",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u1-cat-count-both",
+          "node": "u1-rank-cation",
+          "conceptIds": [
+            "resonance_delocalisation"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "Count both effects, then pick the most stable cation.",
+          "correctOptionId": "crotyl",
+          "options": [
+            {
+              "id": "ipr",
+              "text": "isopropyl, 2°",
+              "why": "Secondary is good, and the 2° allylic cation has a secondary charged carbon too, plus resonance on top."
+            },
+            {
+              "id": "allyl",
+              "text": "allyl, 1° allylic",
+              "why": "It has resonance, but both charged carbons are primary. The 2° allylic cation has the same resonance and a methyl as well."
+            },
+            {
+              "id": "et",
+              "text": "ethyl, 1°",
+              "why": "A primary carbon and no resonance, so it is the least helped of the four."
+            },
+            {
+              "id": "crotyl",
+              "text": "2° allylic",
+              "why": "It is the only one that scores on both counts: resonance shares the charge, and the better charged carbon is secondary."
+            }
+          ]
+        }
+      },
+      "explanation": "Score each cation on resonance and on substitution. The one that is at least as good on both and better on one wins.",
+      "provenance": "scripts/u1_pools_ab.py: most stable by dominance over charge positions and substitution. OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only; OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
     ladder({
       "id": "u1-cat-ladder-alkyl",
       "node": "u1-rank-cation",
@@ -500,102 +942,6 @@ export const STAGE_AB_POOLS: UnitPools = {
       "explanation": "Resonance spreads the charge first; among allylic cations, more substitution on the charged carbons wins. 3° allylic > 2° allylic > 1° allylic > 1° alkyl.",
       "provenance": "scripts/u1_pools_ab.py: charge positions from ResonanceMolSupplier and substitution counted per position; every adjacent pair checked decidable. OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only; OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only."
     }),
-    {
-      "id": "u1-cat-draw-protonate",
-      "item": {
-        "kind": "draw",
-        "beat": {
-          "kind": "draw",
-          "id": "u1-cat-draw-protonate",
-          "node": "u1-rank-cation",
-          "conceptIds": [
-            "resonance_delocalisation"
-          ],
-          "levels": [
-            2
-          ],
-          "prompt": "H+ adds to 2-methylpropene. Draw the cation that forms.",
-          "brief": "There are two ways to put the H on. Draw the cation each one leaves, then keep one.",
-          "visual": {
-            "kind": "structure",
-            "figure": {
-              "bonds": [
-                {
-                  "x1": 60.0,
-                  "y1": 29.0,
-                  "x2": 60.0,
-                  "y2": 49.0,
-                  "order": 2
-                },
-                {
-                  "x1": 60.0,
-                  "y1": 49.0,
-                  "x2": 77.3,
-                  "y2": 59.0
-                },
-                {
-                  "x1": 60.0,
-                  "y1": 49.0,
-                  "x2": 42.7,
-                  "y2": 59.0
-                }
-              ]
-            },
-            "name": "2-methylpropene"
-          },
-          "answer": {
-            "smiles": "C[C+](C)C",
-            "inchi": "InChI=1S/C4H9/c1-4(2)3/h1-3H3/q+1",
-            "name": "the tert-butyl cation",
-            "figure": {
-              "bonds": [
-                {
-                  "x1": 60.0,
-                  "y1": 29.0,
-                  "x2": 60.0,
-                  "y2": 49.0
-                },
-                {
-                  "x1": 60.0,
-                  "y1": 49.0,
-                  "x2": 77.3,
-                  "y2": 59.0
-                },
-                {
-                  "x1": 60.0,
-                  "y1": 49.0,
-                  "x2": 42.7,
-                  "y2": 59.0
-                }
-              ],
-              "labels": [
-                {
-                  "x": 53.1,
-                  "y": 50.0,
-                  "t": "+",
-                  "size": 14
-                }
-              ]
-            }
-          },
-          "stereo": false,
-          "why": "H+ goes on the CH2 end, which leaves the + on the carbon carrying three carbons. Three alkyl groups donate into the empty orbital, so this cation forms much faster than the primary one.",
-          "lookAt": "Put the H on the CH2 end. The + then sits on the central carbon, with three carbons around it.",
-          "misses": [
-            {
-              "id": "c1",
-              "inchi": "InChI=1S/C4H9/c1-4(2)3/h4H,1H2,2-3H3/q+1",
-              "smiles": "[CH2+]C(C)C",
-              "name": "the primary cation",
-              "says": "That puts the + on the carbon with fewer carbons around it. H+ goes on the end that leaves the more substituted cation."
-            }
-          ]
-        }
-      },
-      "explanation": "H+ adds to the end of the C=C that leaves the more substituted, more stable cation.",
-      "provenance": "scripts/u1_pools_ab.py: both protonations built and ranked with the script's cation model (compare). OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only.",
-      "placeholder": true
-    },
     ladder({
       "id": "u1-cat-ladder-ring",
       "node": "u1-rank-cation",
@@ -716,164 +1062,6 @@ export const STAGE_AB_POOLS: UnitPools = {
       "explanation": "More conjugated pi bonds share the charge over more carbons. With no resonance, substitution decides.",
       "provenance": "scripts/u1_pools_ab.py: charge positions from ResonanceMolSupplier; every adjacent pair checked decidable. OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only; OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only."
     }),
-    {
-      "id": "u1-cat-vinyl",
-      "item": {
-        "kind": "mcq",
-        "beat": {
-          "kind": "mcq",
-          "id": "u1-cat-vinyl",
-          "node": "u1-rank-cation",
-          "conceptIds": [
-            "resonance_delocalisation"
-          ],
-          "levels": [
-            1
-          ],
-          "prompt": "Pick the most stable cation.",
-          "brief": "Look for a pi bond the charge can actually share.",
-          "correctOptionId": "allyl",
-          "options": [
-            {
-              "id": "vinyl",
-              "text": "The vinyl cation",
-              "why": "A double bond is right there, but the charge sits on one of its own carbons. That empty orbital is at right angles to the pi bond, so the pi electrons cannot reach it and there is no second contributor."
-            },
-            {
-              "id": "ethyl",
-              "text": "The ethyl cation",
-              "why": "One carbon neighbour gives a little hyperconjugation and nothing else. There is no pi bond, so the charge stays on one carbon."
-            },
-            {
-              "id": "allyl",
-              "text": "The allyl cation",
-              "why": "The charged carbon sits next to a C=C, so the pi electrons can shift over and put the charge on C3 as well. Sharing the charge beats leaving it on one primary carbon."
-            }
-          ]
-        }
-      },
-      "explanation": "A C=C helps only when it is NEXT to the charged carbon. A charge on the alkene carbon itself (vinyl) gets no resonance.",
-      "provenance": "scripts/u1_pools_ab.py: most stable by dominance over charge positions and substitution. OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only; OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only.",
-      "placeholder": true
-    },
-    {
-      "id": "u1-cat-allyl-vs-2",
-      "item": {
-        "kind": "mcq",
-        "beat": {
-          "kind": "mcq",
-          "id": "u1-cat-allyl-vs-2",
-          "node": "u1-rank-cation",
-          "conceptIds": [
-            "resonance_delocalisation"
-          ],
-          "levels": [
-            1
-          ],
-          "prompt": "Compare these two cations. Pick the closest statement.",
-          "brief": "Count the substitution on each charged carbon, then look for resonance.",
-          "correctOptionId": "crotyl",
-          "options": [
-            {
-              "id": "crotyl",
-              "text": "The crotyl cation is more stable",
-              "why": "Its best charged carbon is secondary, just like isopropyl's. On top of that, resonance spreads the charge over a second carbon. Same substitution plus resonance wins."
-            },
-            {
-              "id": "ipr",
-              "text": "The isopropyl cation is more stable",
-              "why": "Isopropyl's charged carbon is secondary, but so is the crotyl cation's best one. Isopropyl has no C=C next door, so its one carbon holds the whole charge."
-            },
-            {
-              "id": "tie",
-              "text": "They are about as stable as each other",
-              "why": "Count the substitution first: both have a secondary charged carbon, so that part ties. Then look for resonance. Only the crotyl cation has it, so the tie breaks."
-            }
-          ]
-        }
-      },
-      "explanation": "Same substitution, plus resonance: a 2° allylic cation beats a 2° alkyl cation, because resonance spreads the charge over a second carbon.",
-      "provenance": "scripts/u1_pools_ab.py: compare() dominance: crotyl (2 charge positions, best 2°) over isopropyl (1 position, 2°); takeaway scale 3 against 2. OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only; OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only.",
-      "placeholder": true
-    },
-    {
-      "id": "u1-cat-major",
-      "item": {
-        "kind": "mcq",
-        "beat": {
-          "kind": "mcq",
-          "id": "u1-cat-major",
-          "node": "u1-rank-cation",
-          "conceptIds": [
-            "resonance_delocalisation"
-          ],
-          "levels": [
-            1
-          ],
-          "prompt": "One cation, two contributors. Pick the one that counts for more.",
-          "correctOptionId": "sec",
-          "options": [
-            {
-              "id": "equal",
-              "text": "Both count equally",
-              "why": "Both are real, and they are not equal. A contributor that puts the charge where more carbons can help it weighs more."
-            },
-            {
-              "id": "sec",
-              "text": "The one with + on the 2° carbon",
-              "why": "That carbon has two carbon neighbours to donate into its empty orbital, so this picture is lower in energy and counts for more."
-            },
-            {
-              "id": "pri",
-              "text": "The one with + on the 1° carbon",
-              "why": "This contributor puts the charge where fewer carbons help it. It still matters, which is why a nucleophile can attack there, but it is the smaller share."
-            }
-          ]
-        }
-      },
-      "explanation": "Contributors are not equal. The one with the charge on the more substituted carbon counts for more.",
-      "provenance": "scripts/u1_pools_ab.py: RDKit confirms the two drawings are one ion; substitution counted at each charge position. OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only.",
-      "placeholder": true
-    },
-    {
-      "id": "u1-cat-pentadienyl",
-      "item": {
-        "kind": "mcq",
-        "beat": {
-          "kind": "mcq",
-          "id": "u1-cat-pentadienyl",
-          "node": "u1-rank-cation",
-          "conceptIds": [
-            "resonance_delocalisation"
-          ],
-          "levels": [
-            1
-          ],
-          "prompt": "Pick the carbons that share the charge in this cation.",
-          "correctOptionId": "three",
-          "options": [
-            {
-              "id": "two",
-              "text": "C1 and C3",
-              "why": "That is one arrow push. The C=C made by that push can push again, which moves the charge on to C5."
-            },
-            {
-              "id": "five",
-              "text": "All five carbons",
-              "why": "C2 and C4 keep four bonds in every contributor, so they never carry the charge. It lands on every other carbon."
-            },
-            {
-              "id": "three",
-              "text": "C1, C3 and C5",
-              "why": "Push the C2=C3 pi bond toward C1 and the charge moves to C3; push C4=C5 toward C3 and it moves to C5. That is three contributors, with the charge on three carbons."
-            }
-          ]
-        }
-      },
-      "explanation": "Keep pushing arrows until the charge stops moving. In a conjugated chain it lands on every other carbon.",
-      "provenance": "scripts/u1_pools_ab.py: charge positions from ResonanceMolSupplier. OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only.",
-      "placeholder": true
-    },
     ladder({
       "id": "u1-cat-middle-methyl",
       "node": "u1-rank-cation",
@@ -986,84 +1174,6 @@ export const STAGE_AB_POOLS: UnitPools = {
       "provenance": "scripts/u1_pools_ab.py: charge positions from ResonanceMolSupplier and substitution counted per position; every adjacent pair checked decidable. OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only; OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only."
     }),
     {
-      "id": "u1-cat-hyperconj",
-      "item": {
-        "kind": "mcq",
-        "beat": {
-          "kind": "mcq",
-          "id": "u1-cat-hyperconj",
-          "node": "u1-rank-cation",
-          "conceptIds": [
-            "resonance_delocalisation"
-          ],
-          "levels": [
-            0
-          ],
-          "prompt": "tert-Butyl beats ethyl. Pick the reason.",
-          "correctOptionId": "hyper",
-          "options": [
-            {
-              "id": "res",
-              "text": "tert-Butyl has resonance",
-              "why": "No pi bond sits next to either charged carbon, so neither has a second contributor. The difference here is hyperconjugation alone."
-            },
-            {
-              "id": "hyper",
-              "text": "More C-H bonds feed the empty p orbital",
-              "why": "Each neighbouring carbon brings C-H bonds that can lean into the empty orbital. tert-Butyl has three such carbons and ethyl has one."
-            },
-            {
-              "id": "withdraw",
-              "text": "Methyl groups pull density away",
-              "why": "It is the other way round. Alkyl groups donate into an electron-poor carbon, which is why more of them helps a cation."
-            }
-          ]
-        }
-      },
-      "explanation": "Alkyl groups stabilise a carbocation by hyperconjugation: their C-H and C-C bonds donate into the empty p orbital.",
-      "provenance": "scripts/u1_pools_ab.py: neither species has a second charge position; substitution 3 against 1. OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only.",
-      "placeholder": true
-    },
-    {
-      "id": "u1-cat-3allyl-vs-3",
-      "item": {
-        "kind": "mcq",
-        "beat": {
-          "kind": "mcq",
-          "id": "u1-cat-3allyl-vs-3",
-          "node": "u1-rank-cation",
-          "conceptIds": [
-            "resonance_delocalisation"
-          ],
-          "levels": [
-            1
-          ],
-          "prompt": "Pick the more stable cation.",
-          "correctOptionId": "allyl",
-          "options": [
-            {
-              "id": "tie",
-              "text": "They tie, both are 3°",
-              "why": "Both charged carbons are tertiary, so substitution ties. Only one also has a C=C next door, and resonance is extra help on top."
-            },
-            {
-              "id": "tbu",
-              "text": "tert-Butyl",
-              "why": "Three methyls is strong help, and the allylic cation has that same substitution plus a second carbon to share the charge."
-            },
-            {
-              "id": "allyl",
-              "text": "The 3° allylic cation",
-              "why": "Same substitution at the charged carbon, plus resonance with the C=C next door. Both effects count, and it wins on the second."
-            }
-          ]
-        }
-      },
-      "explanation": "When substitution ties, resonance breaks the tie. A 3° allylic cation beats a 3° alkyl one.",
-      "provenance": "scripts/u1_pools_ab.py: dominance: equal substitution, more charge positions. OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only.",
-      "placeholder": true
-    },
-    {
       "id": "u1-cat-tbu-vs-allyl",
       "item": {
         "kind": "mcq",
@@ -1102,52 +1212,445 @@ export const STAGE_AB_POOLS: UnitPools = {
       "provenance": "scripts/u1_pools_ab.py: takeaway scale (best substitution plus one per extra charge position): tert-butyl 3, allyl 2. OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
+  ],
+  "u1-rank-anion": [
     {
-      "id": "u1-cat-count-both",
+      "id": "u1-ani-why-alkyl",
       "item": {
         "kind": "mcq",
         "beat": {
           "kind": "mcq",
-          "id": "u1-cat-count-both",
-          "node": "u1-rank-cation",
+          "id": "u1-ani-why-alkyl",
+          "node": "u1-rank-anion",
           "conceptIds": [
+            "carbanion_stability",
+            "resonance_delocalisation"
+          ],
+          "levels": [
+            0
+          ],
+          "prompt": "Alkyl groups destabilise a carbanion. Pick the reason.",
+          "correctOptionId": "push",
+          "options": [
+            {
+              "id": "pull",
+              "text": "They pull density away from the carbon",
+              "why": "Alkyl groups are weak donors, not withdrawers. Donation is welcome on an empty orbital and unwelcome on a lone pair."
+            },
+            {
+              "id": "res",
+              "text": "They add a resonance contributor",
+              "why": "An alkyl group has no pi bond, so it adds no contributor. Its effect is donation, and donation pushes the wrong way here."
+            },
+            {
+              "id": "push",
+              "text": "They push density onto an already full carbon",
+              "why": "The charged carbon already has a lone pair and a negative charge. Donating more density onto it raises its energy."
+            }
+          ]
+        }
+      },
+      "explanation": "Alkyl groups donate electron density. That helps an electron-poor cation and hurts an electron-rich anion.",
+      "provenance": "scripts/u1_pools_ab.py: neither species has a second charge position; ethyl has one alkyl group, methyl none. OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
+    {
+      "id": "u1-ani-why-sp",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u1-ani-why-sp",
+          "node": "u1-rank-anion",
+          "conceptIds": [
+            "carbanion_stability",
+            "resonance_delocalisation"
+          ],
+          "levels": [
+            0
+          ],
+          "prompt": "The ethynyl anion beats the ethyl anion. Pick the reason.",
+          "correctOptionId": "s",
+          "options": [
+            {
+              "id": "res",
+              "text": "The triple bond shares the charge",
+              "why": "The lone pair sits in an sp orbital along the axis, at right angles to both pi bonds. It cannot overlap with them, so there is no second contributor."
+            },
+            {
+              "id": "s",
+              "text": "More s character holds the lone pair closer",
+              "why": "An sp orbital is half s, and s electrons sit closer to the nucleus. A lone pair held closer is a steadier negative charge."
+            },
+            {
+              "id": "h",
+              "text": "It carries fewer hydrogens",
+              "why": "Hydrogen count is not the effect. What changes is the orbital the lone pair sits in: sp here, sp3 in ethyl."
+            }
+          ]
+        }
+      },
+      "explanation": "More s character in the orbital holding the lone pair steadies a carbanion: sp > sp2 > sp3.",
+      "provenance": "scripts/u1_pools_ab.py: hybridisation read from the bonds at the charged carbon; neither has a second charge position. OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
+    {
+      "id": "u1-ani-draw-pentene",
+      "item": {
+        "kind": "draw",
+        "beat": {
+          "kind": "draw",
+          "id": "u1-ani-draw-pentene",
+          "node": "u1-rank-anion",
+          "conceptIds": [
+            "carbanion_stability",
+            "resonance_delocalisation"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "A strong base takes one H from an sp3 carbon of pent-1-ene. Draw the most stable anion.",
+          "brief": "Three sp3 carbons carry H. Draw the anion each one gives, then compare. Either contributor counts.",
+          "visual": {
+            "kind": "structure",
+            "figure": {
+              "bonds": [
+                {
+                  "x1": 25.4,
+                  "y1": 39.0,
+                  "x2": 42.7,
+                  "y2": 49.0,
+                  "order": 2
+                },
+                {
+                  "x1": 42.7,
+                  "y1": 49.0,
+                  "x2": 60.0,
+                  "y2": 39.0
+                },
+                {
+                  "x1": 60.0,
+                  "y1": 39.0,
+                  "x2": 77.3,
+                  "y2": 49.0
+                },
+                {
+                  "x1": 77.3,
+                  "y1": 49.0,
+                  "x2": 94.6,
+                  "y2": 39.0
+                }
+              ]
+            },
+            "name": "pent-1-ene"
+          },
+          "answer": {
+            "smiles": "C=C[CH-]CC",
+            "inchi": "InChI=1S/C5H9/c1-3-5-4-2/h3,5H,1,4H2,2H3/q-1",
+            "name": "the pent-1-en-3-yl anion, an allylic anion",
+            "figure": {
+              "bonds": [
+                {
+                  "x1": 25.4,
+                  "y1": 39.0,
+                  "x2": 42.7,
+                  "y2": 49.0,
+                  "order": 2
+                },
+                {
+                  "x1": 42.7,
+                  "y1": 49.0,
+                  "x2": 60.0,
+                  "y2": 39.0
+                },
+                {
+                  "x1": 60.0,
+                  "y1": 39.0,
+                  "x2": 77.3,
+                  "y2": 49.0
+                },
+                {
+                  "x1": 77.3,
+                  "y1": 49.0,
+                  "x2": 94.6,
+                  "y2": 39.0
+                }
+              ],
+              "labels": [
+                {
+                  "x": 60.0,
+                  "y": 36.0,
+                  "t": "−",
+                  "size": 14
+                }
+              ]
+            }
+          },
+          "stereo": false,
+          "why": "Taking an H from C3 leaves a lone pair next to the C=C, so the charge is shared by C3 and C1. The other sp3 carbons give anions with no resonance and more alkyl groups pushing on them.",
+          "lookAt": "Take the H from C3, the allylic carbon, right next to the C=C. The pi bond shares the negative charge.",
+          "misses": [
+            {
+              "id": "a1",
+              "inchi": "InChI=1S/C5H9/c1-3-5-4-2/h3-4H,1,5H2,2H3/q-1",
+              "smiles": "C=CC[CH-]C",
+              "name": "an anion with no C=C beside it",
+              "says": "No pi bond sits next to that carbon, so one carbon holds the whole charge. The allylic carbon can share it."
+            },
+            {
+              "id": "a2",
+              "inchi": "InChI=1S/C5H9/c1-3-5-4-2/h3H,1-2,4-5H2/q-1",
+              "smiles": "C=CCC[CH2-]",
+              "name": "an anion with no C=C beside it",
+              "says": "No pi bond sits next to that carbon, so one carbon holds the whole charge. The allylic carbon can share it."
+            }
+          ]
+        }
+      },
+      "explanation": "Resonance makes the allylic C-H the most acidic sp3 C-H in an alkene.",
+      "provenance": "scripts/u1_pools_ab.py: every sp3 carbanion of pent-1-ene built and ranked with the script's anion model (resonance, then orbital, then alkyl groups); contributors share one InChI. OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
+    {
+      "id": "u1-ani-flip",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u1-ani-flip",
+          "node": "u1-rank-anion",
+          "conceptIds": [
+            "carbanion_stability",
             "resonance_delocalisation"
           ],
           "levels": [
             1
           ],
-          "prompt": "Count both effects, then pick the most stable cation.",
-          "correctOptionId": "crotyl",
+          "prompt": "Pick the more stable carbanion.",
+          "correctOptionId": "me",
           "options": [
             {
-              "id": "ipr",
-              "text": "isopropyl, 2°",
-              "why": "Secondary is good, and the 2° allylic cation has a secondary charged carbon too, plus resonance on top."
+              "id": "tbu",
+              "text": "The tert-butyl anion",
+              "why": "That is the cation trend. Alkyl groups donate density, which helps a carbon short of electrons and hurts one that already holds a lone pair."
             },
             {
-              "id": "allyl",
-              "text": "allyl, 1° allylic",
-              "why": "It has resonance, but both charged carbons are primary. The 2° allylic cation has the same resonance and a methyl as well."
+              "id": "tie",
+              "text": "They tie, neither has resonance",
+              "why": "Neither has resonance, true, so the alkyl groups decide, and here they hurt. Three of them make tert-butyl the worst of the alkyl anions."
             },
             {
-              "id": "et",
-              "text": "ethyl, 1°",
-              "why": "A primary carbon and no resonance, so it is the least helped of the four."
-            },
-            {
-              "id": "crotyl",
-              "text": "2° allylic",
-              "why": "It is the only one that scores on both counts: resonance shares the charge, and the better charged carbon is secondary."
+              "id": "me",
+              "text": "The methyl anion",
+              "why": "No alkyl groups push density onto its lone pair. For a carbanion, the fewer donors the better."
             }
           ]
         }
       },
-      "explanation": "Score each cation on resonance and on substitution. The one that is at least as good on both and better on one wins.",
-      "provenance": "scripts/u1_pools_ab.py: most stable by dominance over charge positions and substitution. OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only; OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only.",
+      "explanation": "For a carbanion the alkyl trend flips: methyl > 1° > 2° > 3°.",
+      "provenance": "scripts/u1_pools_ab.py: dominance: no resonance in either, fewer alkyl groups on methyl. OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
-  ],
-  "u1-rank-anion": [
+    {
+      "id": "u1-ani-major",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u1-ani-major",
+          "node": "u1-rank-anion",
+          "conceptIds": [
+            "carbanion_stability",
+            "resonance_delocalisation"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "One anion, two contributors. Pick the one that counts for more.",
+          "correctOptionId": "pri",
+          "options": [
+            {
+              "id": "sec",
+              "text": "The one with − on the 2° carbon",
+              "why": "That is the cation answer. For an anion, the methyl on that carbon pushes more density onto the lone pair, so the charge prefers the other end."
+            },
+            {
+              "id": "pri",
+              "text": "The one with − on the 1° carbon",
+              "why": "The end carbon has no alkyl group donating onto it, so a negative charge sits there more comfortably. That picture counts for more."
+            },
+            {
+              "id": "equal",
+              "text": "Both count equally",
+              "why": "Both are real, and they are not equal. The methyl makes one end a worse home for a negative charge."
+            }
+          ]
+        }
+      },
+      "explanation": "For an anion, the better contributor puts the charge on the LESS substituted carbon, the reverse of a cation.",
+      "provenance": "scripts/u1_pools_ab.py: RDKit confirms the two drawings are one ion; alkyl groups counted at each charge position. OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
+    {
+      "id": "u1-ani-least",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u1-ani-least",
+          "node": "u1-rank-anion",
+          "conceptIds": [
+            "carbanion_stability",
+            "resonance_delocalisation"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "Pick the LEAST stable carbanion.",
+          "correctOptionId": "tbu",
+          "options": [
+            {
+              "id": "vinyl",
+              "text": "vinyl anion",
+              "why": "Its lone pair sits in an sp2 orbital, with more s character than sp3, and no alkyl group pushes on it, so it is not the worst."
+            },
+            {
+              "id": "allyl",
+              "text": "allyl anion",
+              "why": "Resonance spreads its charge over two carbons. That makes it one of the better carbanions here."
+            },
+            {
+              "id": "tbu",
+              "text": "tert-butyl anion",
+              "why": "An sp3 lone pair, no resonance, and three alkyl groups pushing density onto it. Every factor points the wrong way."
+            }
+          ]
+        }
+      },
+      "explanation": "A carbanion is worst with no resonance, an sp3 lone pair and many alkyl groups. tert-Butyl has all three.",
+      "provenance": "scripts/u1_pools_ab.py: least stable by dominance over charge positions, orbital and alkyl groups. OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
+    {
+      "id": "u1-ani-sp2-sp3",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u1-ani-sp2-sp3",
+          "node": "u1-rank-anion",
+          "conceptIds": [
+            "carbanion_stability",
+            "resonance_delocalisation"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "Pick the more stable carbanion.",
+          "correctOptionId": "vinyl",
+          "options": [
+            {
+              "id": "tie",
+              "text": "They tie, one carbon neighbour each",
+              "why": "Same number of carbon neighbours, yes. The difference is the orbital: the vinyl lone pair is sp2, the ethyl one sp3."
+            },
+            {
+              "id": "vinyl",
+              "text": "The vinyl anion",
+              "why": "Its lone pair sits in an sp2 orbital, a third s character, held closer than ethyl's sp3 pair. The alkyl count ties, so the orbital decides."
+            },
+            {
+              "id": "ethyl",
+              "text": "The ethyl anion",
+              "why": "Ethyl's lone pair is sp3, the least s character. Nothing else in its favour here, so it sits below vinyl."
+            }
+          ]
+        }
+      },
+      "explanation": "When nothing else differs, the carbanion whose lone pair has more s character is more stable.",
+      "provenance": "scripts/u1_pools_ab.py: dominance: same position count, sp2 against sp3, no alkyl group on vinyl. OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
+    {
+      "id": "u1-ani-vs-cation",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u1-ani-vs-cation",
+          "node": "u1-rank-anion",
+          "conceptIds": [
+            "carbanion_stability",
+            "resonance_delocalisation"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "tert-Butyl is the best alkyl cation. Pick where it ranks as an anion.",
+          "correctOptionId": "worst",
+          "options": [
+            {
+              "id": "best",
+              "text": "Also the best",
+              "why": "The same three methyls are at work, and they push the other way here. Donation that fills an empty orbital overfills a lone pair."
+            },
+            {
+              "id": "worst",
+              "text": "The worst of the alkyl anions",
+              "why": "Three alkyl groups donate onto the charged carbon. That rescues a cation and burdens an anion, so the ladder turns upside down."
+            },
+            {
+              "id": "middle",
+              "text": "Somewhere in the middle",
+              "why": "Nothing about tert-butyl is middling. It has the most alkyl groups of any alkyl anion, so it sits at one end."
+            }
+          ]
+        }
+      },
+      "explanation": "Same alkyl groups, opposite effect: 3° is the best alkyl cation and the worst alkyl anion.",
+      "provenance": "scripts/u1_pools_ab.py: cation and anion alkyl ladders both derived; tert-butyl tops one and bottoms the other. OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
+    {
+      "id": "u1-ani-allyl-vs-methyl",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u1-ani-allyl-vs-methyl",
+          "node": "u1-rank-anion",
+          "conceptIds": [
+            "carbanion_stability",
+            "resonance_delocalisation"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "Pick the more stable carbanion.",
+          "correctOptionId": "allyl",
+          "options": [
+            {
+              "id": "me",
+              "text": "The methyl anion, no alkyl groups",
+              "why": "No alkyl groups is a real advantage, and the allyl anion has none on its charged carbons either: its middle carbon is the pi partner. So resonance decides."
+            },
+            {
+              "id": "allyl",
+              "text": "The allyl anion",
+              "why": "Its charge is shared between two carbons by resonance, and neither charged carbon carries an alkyl group. Methyl has to hold the whole charge on one carbon."
+            },
+            {
+              "id": "tie",
+              "text": "They tie, both are primary or less",
+              "why": "Counting the vinyl group as an alkyl group misreads it. It is a pi bond that takes up half the charge, which pushes allyl ahead."
+            }
+          ]
+        }
+      },
+      "explanation": "A neighbouring C=C is not an alkyl group. It shares a carbanion's charge by resonance.",
+      "provenance": "scripts/u1_pools_ab.py: dominance: two charge positions against one, no alkyl group on either. OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
     ladder({
       "id": "u1-ani-ladder-alkyl",
       "node": "u1-rank-anion",
@@ -1390,123 +1893,6 @@ export const STAGE_AB_POOLS: UnitPools = {
       "explanation": "More s character steadies a carbanion: sp > sp2 > sp3. When the orbital ties, fewer alkyl groups wins.",
       "provenance": "scripts/u1_pools_ab.py: hybridisation read from the bonds at the charged carbon; every adjacent pair checked decidable. OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only."
     }),
-    {
-      "id": "u1-ani-draw-pentene",
-      "item": {
-        "kind": "draw",
-        "beat": {
-          "kind": "draw",
-          "id": "u1-ani-draw-pentene",
-          "node": "u1-rank-anion",
-          "conceptIds": [
-            "carbanion_stability",
-            "resonance_delocalisation"
-          ],
-          "levels": [
-            2
-          ],
-          "prompt": "A strong base takes one H from an sp3 carbon of pent-1-ene. Draw the most stable anion.",
-          "brief": "Three sp3 carbons carry H. Draw the anion each one gives, then compare. Either contributor counts.",
-          "visual": {
-            "kind": "structure",
-            "figure": {
-              "bonds": [
-                {
-                  "x1": 25.4,
-                  "y1": 39.0,
-                  "x2": 42.7,
-                  "y2": 49.0,
-                  "order": 2
-                },
-                {
-                  "x1": 42.7,
-                  "y1": 49.0,
-                  "x2": 60.0,
-                  "y2": 39.0
-                },
-                {
-                  "x1": 60.0,
-                  "y1": 39.0,
-                  "x2": 77.3,
-                  "y2": 49.0
-                },
-                {
-                  "x1": 77.3,
-                  "y1": 49.0,
-                  "x2": 94.6,
-                  "y2": 39.0
-                }
-              ]
-            },
-            "name": "pent-1-ene"
-          },
-          "answer": {
-            "smiles": "C=C[CH-]CC",
-            "inchi": "InChI=1S/C5H9/c1-3-5-4-2/h3,5H,1,4H2,2H3/q-1",
-            "name": "the pent-1-en-3-yl anion, an allylic anion",
-            "figure": {
-              "bonds": [
-                {
-                  "x1": 25.4,
-                  "y1": 39.0,
-                  "x2": 42.7,
-                  "y2": 49.0,
-                  "order": 2
-                },
-                {
-                  "x1": 42.7,
-                  "y1": 49.0,
-                  "x2": 60.0,
-                  "y2": 39.0
-                },
-                {
-                  "x1": 60.0,
-                  "y1": 39.0,
-                  "x2": 77.3,
-                  "y2": 49.0
-                },
-                {
-                  "x1": 77.3,
-                  "y1": 49.0,
-                  "x2": 94.6,
-                  "y2": 39.0
-                }
-              ],
-              "labels": [
-                {
-                  "x": 60.0,
-                  "y": 36.0,
-                  "t": "−",
-                  "size": 14
-                }
-              ]
-            }
-          },
-          "stereo": false,
-          "why": "Taking an H from C3 leaves a lone pair next to the C=C, so the charge is shared by C3 and C1. The other sp3 carbons give anions with no resonance and more alkyl groups pushing on them.",
-          "lookAt": "Take the H from C3, the allylic carbon, right next to the C=C. The pi bond shares the negative charge.",
-          "misses": [
-            {
-              "id": "a1",
-              "inchi": "InChI=1S/C5H9/c1-3-5-4-2/h3-4H,1,5H2,2H3/q-1",
-              "smiles": "C=CC[CH-]C",
-              "name": "an anion with no C=C beside it",
-              "says": "No pi bond sits next to that carbon, so one carbon holds the whole charge. The allylic carbon can share it."
-            },
-            {
-              "id": "a2",
-              "inchi": "InChI=1S/C5H9/c1-3-5-4-2/h3H,1-2,4-5H2/q-1",
-              "smiles": "C=CCC[CH2-]",
-              "name": "an anion with no C=C beside it",
-              "says": "No pi bond sits next to that carbon, so one carbon holds the whole charge. The allylic carbon can share it."
-            }
-          ]
-        }
-      },
-      "explanation": "Resonance makes the allylic C-H the most acidic sp3 C-H in an alkene.",
-      "provenance": "scripts/u1_pools_ab.py: every sp3 carbanion of pent-1-ene built and ranked with the script's anion model (resonance, then orbital, then alkyl groups); contributors share one InChI. OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only.",
-      "placeholder": true
-    },
     ladder({
       "id": "u1-ani-ladder-res",
       "node": "u1-rank-anion",
@@ -1628,166 +2014,6 @@ export const STAGE_AB_POOLS: UnitPools = {
       "explanation": "Resonance stabilises a carbanion: more carbons sharing the charge is better. With no resonance, fewer alkyl groups wins.",
       "provenance": "scripts/u1_pools_ab.py: charge positions from ResonanceMolSupplier, alkyl groups counted per position; every adjacent pair checked decidable. OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only."
     }),
-    {
-      "id": "u1-ani-flip",
-      "item": {
-        "kind": "mcq",
-        "beat": {
-          "kind": "mcq",
-          "id": "u1-ani-flip",
-          "node": "u1-rank-anion",
-          "conceptIds": [
-            "carbanion_stability",
-            "resonance_delocalisation"
-          ],
-          "levels": [
-            1
-          ],
-          "prompt": "Pick the more stable carbanion.",
-          "correctOptionId": "me",
-          "options": [
-            {
-              "id": "tbu",
-              "text": "The tert-butyl anion",
-              "why": "That is the cation trend. Alkyl groups donate density, which helps a carbon short of electrons and hurts one that already holds a lone pair."
-            },
-            {
-              "id": "tie",
-              "text": "They tie, neither has resonance",
-              "why": "Neither has resonance, true, so the alkyl groups decide, and here they hurt. Three of them make tert-butyl the worst of the alkyl anions."
-            },
-            {
-              "id": "me",
-              "text": "The methyl anion",
-              "why": "No alkyl groups push density onto its lone pair. For a carbanion, the fewer donors the better."
-            }
-          ]
-        }
-      },
-      "explanation": "For a carbanion the alkyl trend flips: methyl > 1° > 2° > 3°.",
-      "provenance": "scripts/u1_pools_ab.py: dominance: no resonance in either, fewer alkyl groups on methyl. OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only.",
-      "placeholder": true
-    },
-    {
-      "id": "u1-ani-why-alkyl",
-      "item": {
-        "kind": "mcq",
-        "beat": {
-          "kind": "mcq",
-          "id": "u1-ani-why-alkyl",
-          "node": "u1-rank-anion",
-          "conceptIds": [
-            "carbanion_stability",
-            "resonance_delocalisation"
-          ],
-          "levels": [
-            0
-          ],
-          "prompt": "Alkyl groups destabilise a carbanion. Pick the reason.",
-          "correctOptionId": "push",
-          "options": [
-            {
-              "id": "pull",
-              "text": "They pull density away from the carbon",
-              "why": "Alkyl groups are weak donors, not withdrawers. Donation is welcome on an empty orbital and unwelcome on a lone pair."
-            },
-            {
-              "id": "res",
-              "text": "They add a resonance contributor",
-              "why": "An alkyl group has no pi bond, so it adds no contributor. Its effect is donation, and donation pushes the wrong way here."
-            },
-            {
-              "id": "push",
-              "text": "They push density onto an already full carbon",
-              "why": "The charged carbon already has a lone pair and a negative charge. Donating more density onto it raises its energy."
-            }
-          ]
-        }
-      },
-      "explanation": "Alkyl groups donate electron density. That helps an electron-poor cation and hurts an electron-rich anion.",
-      "provenance": "scripts/u1_pools_ab.py: neither species has a second charge position; ethyl has one alkyl group, methyl none. OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only.",
-      "placeholder": true
-    },
-    {
-      "id": "u1-ani-major",
-      "item": {
-        "kind": "mcq",
-        "beat": {
-          "kind": "mcq",
-          "id": "u1-ani-major",
-          "node": "u1-rank-anion",
-          "conceptIds": [
-            "carbanion_stability",
-            "resonance_delocalisation"
-          ],
-          "levels": [
-            1
-          ],
-          "prompt": "One anion, two contributors. Pick the one that counts for more.",
-          "correctOptionId": "pri",
-          "options": [
-            {
-              "id": "sec",
-              "text": "The one with − on the 2° carbon",
-              "why": "That is the cation answer. For an anion, the methyl on that carbon pushes more density onto the lone pair, so the charge prefers the other end."
-            },
-            {
-              "id": "pri",
-              "text": "The one with − on the 1° carbon",
-              "why": "The end carbon has no alkyl group donating onto it, so a negative charge sits there more comfortably. That picture counts for more."
-            },
-            {
-              "id": "equal",
-              "text": "Both count equally",
-              "why": "Both are real, and they are not equal. The methyl makes one end a worse home for a negative charge."
-            }
-          ]
-        }
-      },
-      "explanation": "For an anion, the better contributor puts the charge on the LESS substituted carbon, the reverse of a cation.",
-      "provenance": "scripts/u1_pools_ab.py: RDKit confirms the two drawings are one ion; alkyl groups counted at each charge position. OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only.",
-      "placeholder": true
-    },
-    {
-      "id": "u1-ani-why-sp",
-      "item": {
-        "kind": "mcq",
-        "beat": {
-          "kind": "mcq",
-          "id": "u1-ani-why-sp",
-          "node": "u1-rank-anion",
-          "conceptIds": [
-            "carbanion_stability",
-            "resonance_delocalisation"
-          ],
-          "levels": [
-            0
-          ],
-          "prompt": "The ethynyl anion beats the ethyl anion. Pick the reason.",
-          "correctOptionId": "s",
-          "options": [
-            {
-              "id": "res",
-              "text": "The triple bond shares the charge",
-              "why": "The lone pair sits in an sp orbital along the axis, at right angles to both pi bonds. It cannot overlap with them, so there is no second contributor."
-            },
-            {
-              "id": "s",
-              "text": "More s character holds the lone pair closer",
-              "why": "An sp orbital is half s, and s electrons sit closer to the nucleus. A lone pair held closer is a steadier negative charge."
-            },
-            {
-              "id": "h",
-              "text": "It carries fewer hydrogens",
-              "why": "Hydrogen count is not the effect. What changes is the orbital the lone pair sits in: sp here, sp3 in ethyl."
-            }
-          ]
-        }
-      },
-      "explanation": "More s character in the orbital holding the lone pair steadies a carbanion: sp > sp2 > sp3.",
-      "provenance": "scripts/u1_pools_ab.py: hybridisation read from the bonds at the charged carbon; neither has a second charge position. OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only.",
-      "placeholder": true
-    },
     ladder({
       "id": "u1-ani-ring",
       "node": "u1-rank-anion",
@@ -1900,327 +2126,86 @@ export const STAGE_AB_POOLS: UnitPools = {
       "explanation": "Resonance helps an anion just as it helps a cation. With no resonance, the more substituted carbanion is the less stable one.",
       "provenance": "scripts/u1_pools_ab.py: charge positions, orbital and alkyl groups counted; every adjacent pair checked decidable. OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only."
     }),
-    {
-      "id": "u1-ani-least",
-      "item": {
-        "kind": "mcq",
-        "beat": {
-          "kind": "mcq",
-          "id": "u1-ani-least",
-          "node": "u1-rank-anion",
-          "conceptIds": [
-            "carbanion_stability",
-            "resonance_delocalisation"
-          ],
-          "levels": [
-            1
-          ],
-          "prompt": "Pick the LEAST stable carbanion.",
-          "correctOptionId": "tbu",
-          "options": [
-            {
-              "id": "vinyl",
-              "text": "vinyl anion",
-              "why": "Its lone pair sits in an sp2 orbital, with more s character than sp3, and no alkyl group pushes on it, so it is not the worst."
-            },
-            {
-              "id": "allyl",
-              "text": "allyl anion",
-              "why": "Resonance spreads its charge over two carbons. That makes it one of the better carbanions here."
-            },
-            {
-              "id": "tbu",
-              "text": "tert-butyl anion",
-              "why": "An sp3 lone pair, no resonance, and three alkyl groups pushing density onto it. Every factor points the wrong way."
-            }
-          ]
-        }
-      },
-      "explanation": "A carbanion is worst with no resonance, an sp3 lone pair and many alkyl groups. tert-Butyl has all three.",
-      "provenance": "scripts/u1_pools_ab.py: least stable by dominance over charge positions, orbital and alkyl groups. OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only.",
-      "placeholder": true
-    },
-    {
-      "id": "u1-ani-sp2-sp3",
-      "item": {
-        "kind": "mcq",
-        "beat": {
-          "kind": "mcq",
-          "id": "u1-ani-sp2-sp3",
-          "node": "u1-rank-anion",
-          "conceptIds": [
-            "carbanion_stability",
-            "resonance_delocalisation"
-          ],
-          "levels": [
-            1
-          ],
-          "prompt": "Pick the more stable carbanion.",
-          "correctOptionId": "vinyl",
-          "options": [
-            {
-              "id": "tie",
-              "text": "They tie, one carbon neighbour each",
-              "why": "Same number of carbon neighbours, yes. The difference is the orbital: the vinyl lone pair is sp2, the ethyl one sp3."
-            },
-            {
-              "id": "vinyl",
-              "text": "The vinyl anion",
-              "why": "Its lone pair sits in an sp2 orbital, a third s character, held closer than ethyl's sp3 pair. The alkyl count ties, so the orbital decides."
-            },
-            {
-              "id": "ethyl",
-              "text": "The ethyl anion",
-              "why": "Ethyl's lone pair is sp3, the least s character. Nothing else in its favour here, so it sits below vinyl."
-            }
-          ]
-        }
-      },
-      "explanation": "When nothing else differs, the carbanion whose lone pair has more s character is more stable.",
-      "provenance": "scripts/u1_pools_ab.py: dominance: same position count, sp2 against sp3, no alkyl group on vinyl. OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only.",
-      "placeholder": true
-    },
-    {
-      "id": "u1-ani-vs-cation",
-      "item": {
-        "kind": "mcq",
-        "beat": {
-          "kind": "mcq",
-          "id": "u1-ani-vs-cation",
-          "node": "u1-rank-anion",
-          "conceptIds": [
-            "carbanion_stability",
-            "resonance_delocalisation"
-          ],
-          "levels": [
-            1
-          ],
-          "prompt": "tert-Butyl is the best alkyl cation. Pick where it ranks as an anion.",
-          "correctOptionId": "worst",
-          "options": [
-            {
-              "id": "best",
-              "text": "Also the best",
-              "why": "The same three methyls are at work, and they push the other way here. Donation that fills an empty orbital overfills a lone pair."
-            },
-            {
-              "id": "worst",
-              "text": "The worst of the alkyl anions",
-              "why": "Three alkyl groups donate onto the charged carbon. That rescues a cation and burdens an anion, so the ladder turns upside down."
-            },
-            {
-              "id": "middle",
-              "text": "Somewhere in the middle",
-              "why": "Nothing about tert-butyl is middling. It has the most alkyl groups of any alkyl anion, so it sits at one end."
-            }
-          ]
-        }
-      },
-      "explanation": "Same alkyl groups, opposite effect: 3° is the best alkyl cation and the worst alkyl anion.",
-      "provenance": "scripts/u1_pools_ab.py: cation and anion alkyl ladders both derived; tert-butyl tops one and bottoms the other. OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only.",
-      "placeholder": true
-    },
-    {
-      "id": "u1-ani-allyl-vs-methyl",
-      "item": {
-        "kind": "mcq",
-        "beat": {
-          "kind": "mcq",
-          "id": "u1-ani-allyl-vs-methyl",
-          "node": "u1-rank-anion",
-          "conceptIds": [
-            "carbanion_stability",
-            "resonance_delocalisation"
-          ],
-          "levels": [
-            1
-          ],
-          "prompt": "Pick the more stable carbanion.",
-          "correctOptionId": "allyl",
-          "options": [
-            {
-              "id": "me",
-              "text": "The methyl anion, no alkyl groups",
-              "why": "No alkyl groups is a real advantage, and the allyl anion has none on its charged carbons either: its middle carbon is the pi partner. So resonance decides."
-            },
-            {
-              "id": "allyl",
-              "text": "The allyl anion",
-              "why": "Its charge is shared between two carbons by resonance, and neither charged carbon carries an alkyl group. Methyl has to hold the whole charge on one carbon."
-            },
-            {
-              "id": "tie",
-              "text": "They tie, both are primary or less",
-              "why": "Counting the vinyl group as an alkyl group misreads it. It is a pi bond that takes up half the charge, which pushes allyl ahead."
-            }
-          ]
-        }
-      },
-      "explanation": "A neighbouring C=C is not an alkyl group. It shares a carbanion's charge by resonance.",
-      "provenance": "scripts/u1_pools_ab.py: dominance: two charge positions against one, no alkyl group on either. OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only.",
-      "placeholder": true
-    },
   ],
   "u1-rank-radical": [
-    ladder({
-      "id": "u1-rad-alkyl",
-      "node": "u1-rank-radical",
-      "problemId": "u1-u1-rad-alkyl",
-      "topic": "allylic_halogenation",
-      "difficulty": 1100,
-      "problemPrompt": "Rank four alkyl radicals by stability, most stable first: tert-butyl, isopropyl, ethyl and methyl.",
-      "criterionText": "most stable",
-      "items": [
-        {
-          "id": "tbu",
-          "text": "tert-butyl radical"
-        },
-        {
-          "id": "ipr",
-          "text": "isopropyl radical"
-        },
-        {
-          "id": "et",
-          "text": "ethyl radical"
-        },
-        {
-          "id": "me",
-          "text": "methyl radical"
-        }
-      ],
-      "order": [
-        "tbu",
-        "ipr",
-        "et",
-        "me"
-      ],
-      "solution": {
-        "whatHappened": "tert-Butyl, then isopropyl, then ethyl, then methyl.",
-        "why": "A radical carbon is one electron short of an octet, so each alkyl group on it donates a little density and helps. More carbons on the radical carbon, more stable: 3° > 2° > 1° > methyl, the cation trend.",
-        "lookAt": "Count the carbons bonded to each radical carbon: more is better for a radical."
-      },
-      "distractors": [
-        {
-          "id": "ranked-least-stable-first",
-          "cause": "ordering_is_reversed",
-          "order": [
-            "me",
-            "et",
-            "ipr",
-            "tbu"
-          ],
-          "explanation": {
-            "whatHappened": "This is the right ladder, read from the other end.",
-            "why": "Every comparison in it holds; only the direction is wrong. The most stable species goes at the top.",
-            "lookAt": "Put tert-butyl at the top and work down from there."
-          }
-        },
-        {
-          "id": "isopropyl-above-tertbutyl",
-          "cause": "ordering_one_adjacent_pair_swapped",
-          "order": [
-            "ipr",
-            "tbu",
-            "et",
-            "me"
-          ],
-          "explanation": {
-            "whatHappened": "Isopropyl is placed above tert-butyl.",
-            "why": "Three carbon neighbours beat two. A radical is electron poor, so each extra alkyl group helps it.",
-            "lookAt": "Count carbons on the radical carbon of those two."
-          }
-        },
-        {
-          "id": "ethyl-above-isopropyl",
-          "cause": "ordering_one_adjacent_pair_swapped",
-          "order": [
-            "tbu",
-            "et",
-            "ipr",
-            "me"
-          ],
-          "explanation": {
-            "whatHappened": "Ethyl is placed above isopropyl.",
-            "why": "Isopropyl's radical carbon has two carbon neighbours, ethyl's has one. More donation means more stable.",
-            "lookAt": "Count carbons on the radical carbon of those two."
-          }
-        }
-      ],
-      "beat": {
-        "conceptIds": [
-          "radical_stability",
-          "resonance_delocalisation"
-        ],
-        "prompt": "Rank these radicals, most stable at the top.",
-        "brief": "No resonance in any of them. Count what is attached to each radical carbon.",
-        "criterion": "radical_stability",
-        "direction": "descending",
-        "notes": {
-          "tbu": "Three carbon neighbours donate into the half-empty orbital. Radicals follow the cation trend, so 3° is first.",
-          "ipr": "Two carbon neighbours: good help, one less than tert-butyl.",
-          "et": "One carbon neighbour gives a little hyperconjugation.",
-          "me": "No carbon neighbours at all, so nothing helps the odd electron."
-        }
-      },
-      "trackEnds": {
-        "first": "Most stable",
-        "last": "Least stable"
-      },
-      "meanings": [
-        {
-          "id": "ranked-least-stable-first",
-          "cause": "order_fully_reversed"
-        },
-        {
-          "id": "isopropyl-above-tertbutyl",
-          "cause": "order_adjacent_pair_swapped"
-        },
-        {
-          "id": "ethyl-above-isopropyl",
-          "cause": "order_adjacent_pair_swapped"
-        }
-      ],
-      "explanation": "Alkyl radicals follow the cation trend: 3° > 2° > 1° > methyl, because the radical carbon is electron poor.",
-      "provenance": "scripts/u1_pools_ab.py: ranking by charge positions then substitution, the radical model in the script header; every adjacent pair checked decidable. OpenStax Organic Chemistry 10.5 (CC BY-NC-SA), read as a check only."
-    }),
     {
-      "id": "u1-rad-allyl",
+      "id": "u1-rad-trend",
       "item": {
         "kind": "mcq",
         "beat": {
           "kind": "mcq",
-          "id": "u1-rad-allyl",
+          "id": "u1-rad-trend",
           "node": "u1-rank-radical",
           "conceptIds": [
             "radical_stability",
             "resonance_delocalisation"
           ],
           "levels": [
-            1
+            0
           ],
-          "prompt": "Pick the most stable radical.",
-          "correctOptionId": "allyl",
+          "prompt": "Pick the trend alkyl radicals follow.",
+          "correctOptionId": "cation",
           "options": [
             {
-              "id": "vinyl",
-              "text": "vinyl radical",
-              "why": "The odd electron sits on a carbon of the C=C itself, in an orbital that cannot overlap the pi bond, so there is no second contributor."
+              "id": "none",
+              "text": "No trend, alkyl radicals all tie",
+              "why": "They do not tie. Each carbon on the radical carbon donates a little into its half-empty orbital, so substitution matters."
             },
             {
-              "id": "propyl",
-              "text": "propyl radical",
-              "why": "A primary radical with no pi bond nearby. One carbon holds the odd electron alone."
+              "id": "anion",
+              "text": "The anion trend, methyl best",
+              "why": "A carbanion has a full lone pair, so donation hurts it. A radical is one electron short of an octet, so donation helps, as for a cation."
             },
             {
-              "id": "allyl",
-              "text": "allyl radical",
-              "why": "The C=C next door shares the odd electron between both ends. Resonance makes allylic radicals among the most stable you will meet."
+              "id": "cation",
+              "text": "The cation trend, 3° best",
+              "why": "The radical carbon is one electron short of an octet, so it welcomes donation from alkyl groups, just as a cation does."
             }
           ]
         }
       },
-      "explanation": "An allylic radical is shared between two carbons by resonance, which beats any simple alkyl radical.",
-      "provenance": "scripts/u1_pools_ab.py: ranking by charge positions then substitution; positions found through the cation analogue. OpenStax Organic Chemistry 10.5 (CC BY-NC-SA), read as a check only.",
+      "explanation": "Radicals are electron poor, so they follow the cation trend: 3° > 2° > 1° > methyl.",
+      "provenance": "scripts/u1_pools_ab.py: radical, cation and anion alkyl comparisons all derived; radical and cation agree. OpenStax Organic Chemistry 10.5 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
+    {
+      "id": "u1-rad-why",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u1-rad-why",
+          "node": "u1-rank-radical",
+          "conceptIds": [
+            "radical_stability",
+            "resonance_delocalisation"
+          ],
+          "levels": [
+            0
+          ],
+          "prompt": "Alkyl groups steady a radical. Pick the reason.",
+          "correctOptionId": "short",
+          "options": [
+            {
+              "id": "short",
+              "text": "The carbon is one electron short of an octet",
+              "why": "Seven valence electrons leaves the radical carbon electron poor, so donation from neighbouring C-H bonds helps it, as it helps a cation."
+            },
+            {
+              "id": "neg",
+              "text": "The radical carbon is negatively charged",
+              "why": "A radical carries no charge. It has one unpaired electron, which leaves it one short of an octet."
+            },
+            {
+              "id": "pull",
+              "text": "Alkyl groups pull density away from it",
+              "why": "Alkyl groups donate rather than withdraw, and an electron-poor radical carbon welcomes that donation."
+            }
+          ]
+        }
+      },
+      "explanation": "A radical carbon has seven valence electrons, one short of an octet, so electron donation from alkyl groups stabilises it.",
+      "provenance": "scripts/u1_pools_ab.py: radical carbon electron count from RDKit (one radical electron, no charge). OpenStax Organic Chemistry 10.5 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
     {
@@ -2399,83 +2384,43 @@ export const STAGE_AB_POOLS: UnitPools = {
       "placeholder": true
     },
     {
-      "id": "u1-rad-trend",
+      "id": "u1-rad-allyl",
       "item": {
         "kind": "mcq",
         "beat": {
           "kind": "mcq",
-          "id": "u1-rad-trend",
+          "id": "u1-rad-allyl",
           "node": "u1-rank-radical",
           "conceptIds": [
             "radical_stability",
             "resonance_delocalisation"
           ],
           "levels": [
-            0
+            1
           ],
-          "prompt": "Pick the trend alkyl radicals follow.",
-          "correctOptionId": "cation",
+          "prompt": "Pick the most stable radical.",
+          "correctOptionId": "allyl",
           "options": [
             {
-              "id": "none",
-              "text": "No trend, alkyl radicals all tie",
-              "why": "They do not tie. Each carbon on the radical carbon donates a little into its half-empty orbital, so substitution matters."
+              "id": "vinyl",
+              "text": "vinyl radical",
+              "why": "The odd electron sits on a carbon of the C=C itself, in an orbital that cannot overlap the pi bond, so there is no second contributor."
             },
             {
-              "id": "anion",
-              "text": "The anion trend, methyl best",
-              "why": "A carbanion has a full lone pair, so donation hurts it. A radical is one electron short of an octet, so donation helps, as for a cation."
+              "id": "propyl",
+              "text": "propyl radical",
+              "why": "A primary radical with no pi bond nearby. One carbon holds the odd electron alone."
             },
             {
-              "id": "cation",
-              "text": "The cation trend, 3° best",
-              "why": "The radical carbon is one electron short of an octet, so it welcomes donation from alkyl groups, just as a cation does."
+              "id": "allyl",
+              "text": "allyl radical",
+              "why": "The C=C next door shares the odd electron between both ends. Resonance makes allylic radicals among the most stable you will meet."
             }
           ]
         }
       },
-      "explanation": "Radicals are electron poor, so they follow the cation trend: 3° > 2° > 1° > methyl.",
-      "provenance": "scripts/u1_pools_ab.py: radical, cation and anion alkyl comparisons all derived; radical and cation agree. OpenStax Organic Chemistry 10.5 (CC BY-NC-SA), read as a check only.",
-      "placeholder": true
-    },
-    {
-      "id": "u1-rad-why",
-      "item": {
-        "kind": "mcq",
-        "beat": {
-          "kind": "mcq",
-          "id": "u1-rad-why",
-          "node": "u1-rank-radical",
-          "conceptIds": [
-            "radical_stability",
-            "resonance_delocalisation"
-          ],
-          "levels": [
-            0
-          ],
-          "prompt": "Alkyl groups steady a radical. Pick the reason.",
-          "correctOptionId": "short",
-          "options": [
-            {
-              "id": "short",
-              "text": "The carbon is one electron short of an octet",
-              "why": "Seven valence electrons leaves the radical carbon electron poor, so donation from neighbouring C-H bonds helps it, as it helps a cation."
-            },
-            {
-              "id": "neg",
-              "text": "The radical carbon is negatively charged",
-              "why": "A radical carries no charge. It has one unpaired electron, which leaves it one short of an octet."
-            },
-            {
-              "id": "pull",
-              "text": "Alkyl groups pull density away from it",
-              "why": "Alkyl groups donate rather than withdraw, and an electron-poor radical carbon welcomes that donation."
-            }
-          ]
-        }
-      },
-      "explanation": "A radical carbon has seven valence electrons, one short of an octet, so electron donation from alkyl groups stabilises it.",
-      "provenance": "scripts/u1_pools_ab.py: radical carbon electron count from RDKit (one radical electron, no charge). OpenStax Organic Chemistry 10.5 (CC BY-NC-SA), read as a check only.",
+      "explanation": "An allylic radical is shared between two carbons by resonance, which beats any simple alkyl radical.",
+      "provenance": "scripts/u1_pools_ab.py: ranking by charge positions then substitution; positions found through the cation analogue. OpenStax Organic Chemistry 10.5 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
     {
@@ -2599,46 +2544,6 @@ export const STAGE_AB_POOLS: UnitPools = {
       "placeholder": true
     },
     {
-      "id": "u1-rad-benzyl-vs-3",
-      "item": {
-        "kind": "mcq",
-        "beat": {
-          "kind": "mcq",
-          "id": "u1-rad-benzyl-vs-3",
-          "node": "u1-rank-radical",
-          "conceptIds": [
-            "radical_stability",
-            "resonance_delocalisation"
-          ],
-          "levels": [
-            2
-          ],
-          "prompt": "Pick the more stable radical.",
-          "correctOptionId": "benzyl",
-          "options": [
-            {
-              "id": "tbu",
-              "text": "tert-Butyl, it is 3°",
-              "why": "Three carbon neighbours is the best substitution can do, and resonance is worth more for a radical. The benzylic odd electron is spread over four carbons."
-            },
-            {
-              "id": "benzyl",
-              "text": "Benzyl",
-              "why": "Its odd electron is shared over four carbons through the ring. For radicals, resonance like this outweighs being 3°."
-            },
-            {
-              "id": "tie",
-              "text": "They tie",
-              "why": "They do not. A benzylic C-H is weaker than a tertiary one, which is how we know the benzylic radical sits lower."
-            }
-          ]
-        }
-      },
-      "explanation": "For radicals, allylic and benzylic resonance beats substitution: a benzylic radical is more stable than a 3° alkyl one.",
-      "provenance": "scripts/u1_pools_ab.py: radical model: resonance first, then substitution. The radical takeaway names allylic and benzylic as the best. OpenStax Organic Chemistry 10.5 (CC BY-NC-SA), read as a check only.",
-      "placeholder": true
-    },
-    {
       "id": "u1-rad-ring-h",
       "item": {
         "kind": "mcq",
@@ -2677,6 +2582,167 @@ export const STAGE_AB_POOLS: UnitPools = {
       },
       "explanation": "The allylic position gives the most stable radical, because the odd electron is shared with the far end of the C=C.",
       "provenance": "scripts/u1_pools_ab.py: the three radicals built and ranked by charge positions then substitution. OpenStax Organic Chemistry 10.5 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
+    ladder({
+      "id": "u1-rad-alkyl",
+      "node": "u1-rank-radical",
+      "problemId": "u1-u1-rad-alkyl",
+      "topic": "allylic_halogenation",
+      "difficulty": 1100,
+      "problemPrompt": "Rank four alkyl radicals by stability, most stable first: tert-butyl, isopropyl, ethyl and methyl.",
+      "criterionText": "most stable",
+      "items": [
+        {
+          "id": "tbu",
+          "text": "tert-butyl radical"
+        },
+        {
+          "id": "ipr",
+          "text": "isopropyl radical"
+        },
+        {
+          "id": "et",
+          "text": "ethyl radical"
+        },
+        {
+          "id": "me",
+          "text": "methyl radical"
+        }
+      ],
+      "order": [
+        "tbu",
+        "ipr",
+        "et",
+        "me"
+      ],
+      "solution": {
+        "whatHappened": "tert-Butyl, then isopropyl, then ethyl, then methyl.",
+        "why": "A radical carbon is one electron short of an octet, so each alkyl group on it donates a little density and helps. More carbons on the radical carbon, more stable: 3° > 2° > 1° > methyl, the cation trend.",
+        "lookAt": "Count the carbons bonded to each radical carbon: more is better for a radical."
+      },
+      "distractors": [
+        {
+          "id": "ranked-least-stable-first",
+          "cause": "ordering_is_reversed",
+          "order": [
+            "me",
+            "et",
+            "ipr",
+            "tbu"
+          ],
+          "explanation": {
+            "whatHappened": "This is the right ladder, read from the other end.",
+            "why": "Every comparison in it holds; only the direction is wrong. The most stable species goes at the top.",
+            "lookAt": "Put tert-butyl at the top and work down from there."
+          }
+        },
+        {
+          "id": "isopropyl-above-tertbutyl",
+          "cause": "ordering_one_adjacent_pair_swapped",
+          "order": [
+            "ipr",
+            "tbu",
+            "et",
+            "me"
+          ],
+          "explanation": {
+            "whatHappened": "Isopropyl is placed above tert-butyl.",
+            "why": "Three carbon neighbours beat two. A radical is electron poor, so each extra alkyl group helps it.",
+            "lookAt": "Count carbons on the radical carbon of those two."
+          }
+        },
+        {
+          "id": "ethyl-above-isopropyl",
+          "cause": "ordering_one_adjacent_pair_swapped",
+          "order": [
+            "tbu",
+            "et",
+            "ipr",
+            "me"
+          ],
+          "explanation": {
+            "whatHappened": "Ethyl is placed above isopropyl.",
+            "why": "Isopropyl's radical carbon has two carbon neighbours, ethyl's has one. More donation means more stable.",
+            "lookAt": "Count carbons on the radical carbon of those two."
+          }
+        }
+      ],
+      "beat": {
+        "conceptIds": [
+          "radical_stability",
+          "resonance_delocalisation"
+        ],
+        "prompt": "Rank these radicals, most stable at the top.",
+        "brief": "No resonance in any of them. Count what is attached to each radical carbon.",
+        "criterion": "radical_stability",
+        "direction": "descending",
+        "notes": {
+          "tbu": "Three carbon neighbours donate into the half-empty orbital. Radicals follow the cation trend, so 3° is first.",
+          "ipr": "Two carbon neighbours: good help, one less than tert-butyl.",
+          "et": "One carbon neighbour gives a little hyperconjugation.",
+          "me": "No carbon neighbours at all, so nothing helps the odd electron."
+        }
+      },
+      "trackEnds": {
+        "first": "Most stable",
+        "last": "Least stable"
+      },
+      "meanings": [
+        {
+          "id": "ranked-least-stable-first",
+          "cause": "order_fully_reversed"
+        },
+        {
+          "id": "isopropyl-above-tertbutyl",
+          "cause": "order_adjacent_pair_swapped"
+        },
+        {
+          "id": "ethyl-above-isopropyl",
+          "cause": "order_adjacent_pair_swapped"
+        }
+      ],
+      "explanation": "Alkyl radicals follow the cation trend: 3° > 2° > 1° > methyl, because the radical carbon is electron poor.",
+      "provenance": "scripts/u1_pools_ab.py: ranking by charge positions then substitution, the radical model in the script header; every adjacent pair checked decidable. OpenStax Organic Chemistry 10.5 (CC BY-NC-SA), read as a check only."
+    }),
+    {
+      "id": "u1-rad-benzyl-vs-3",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u1-rad-benzyl-vs-3",
+          "node": "u1-rank-radical",
+          "conceptIds": [
+            "radical_stability",
+            "resonance_delocalisation"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "Pick the more stable radical.",
+          "correctOptionId": "benzyl",
+          "options": [
+            {
+              "id": "tbu",
+              "text": "tert-Butyl, it is 3°",
+              "why": "Three carbon neighbours is the best substitution can do, and resonance is worth more for a radical. The benzylic odd electron is spread over four carbons."
+            },
+            {
+              "id": "benzyl",
+              "text": "Benzyl",
+              "why": "Its odd electron is shared over four carbons through the ring. For radicals, resonance like this outweighs being 3°."
+            },
+            {
+              "id": "tie",
+              "text": "They tie",
+              "why": "They do not. A benzylic C-H is weaker than a tertiary one, which is how we know the benzylic radical sits lower."
+            }
+          ]
+        }
+      },
+      "explanation": "For radicals, allylic and benzylic resonance beats substitution: a benzylic radical is more stable than a 3° alkyl one.",
+      "provenance": "scripts/u1_pools_ab.py: radical model: resonance first, then substitution. The radical takeaway names allylic and benzylic as the best. OpenStax Organic Chemistry 10.5 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
     ladder({
@@ -2793,247 +2859,85 @@ export const STAGE_AB_POOLS: UnitPools = {
     }),
   ],
   "u1-quiz-a": [
-    ladder({
-      "id": "u1-qa-ladder-cation",
-      "node": "u1-quiz-a",
-      "problemId": "u1-u1-qa-ladder-cation",
-      "topic": "carbocation_stability_and_rearrangement",
-      "difficulty": 1300,
-      "problemPrompt": "Rank these four carbocations by stability, most stable first: pentadienyl, but-3-en-2-yl, isopropyl and ethyl.",
-      "criterionText": "most stable",
-      "items": [
-        {
-          "id": "penta",
-          "text": "pentadienyl"
-        },
-        {
-          "id": "all2",
-          "text": "crotyl"
-        },
-        {
-          "id": "ipr",
-          "text": "isopropyl"
-        },
-        {
-          "id": "et",
-          "text": "ethyl"
-        }
-      ],
-      "order": [
-        "penta",
-        "all2",
-        "ipr",
-        "et"
-      ],
-      "solution": {
-        "whatHappened": "Pentadienyl, then 2° allylic, then isopropyl, then ethyl.",
-        "why": "The pentadienyl cation shares its charge over three carbons and the 2° allylic over two, with the same best substitution. The 2° allylic cation also beats isopropyl: same secondary carbon, plus resonance. Ethyl is primary with nothing else.",
-        "lookAt": "For each card, count the carbons that carry the charge, then the carbons on the best one."
-      },
-      "distractors": [
-        {
-          "id": "ranked-least-stable-first",
-          "cause": "ordering_is_reversed",
-          "order": [
-            "et",
-            "ipr",
-            "all2",
-            "penta"
+    {
+      "id": "u1-qa-prenyl-cation",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u1-qa-prenyl-cation",
+          "node": "u1-quiz-a",
+          "conceptIds": [
+            "resonance_delocalisation"
           ],
-          "explanation": {
-            "whatHappened": "This is the right ladder, read from the other end.",
-            "why": "Every comparison in it holds; only the direction is wrong. The most stable species goes at the top.",
-            "lookAt": "Put the cation with two conjugated C=C at the top and work down from there."
-          }
-        },
-        {
-          "id": "isopropyl-above-allylic",
-          "cause": "ordering_one_adjacent_pair_swapped",
-          "order": [
-            "penta",
-            "ipr",
-            "all2",
-            "et"
+          "levels": [
+            1
           ],
-          "explanation": {
-            "whatHappened": "Isopropyl is placed above the 2° allylic cation.",
-            "why": "Both have a secondary charged carbon. Only the allylic one also shares the charge with a second carbon, so it sits higher.",
-            "lookAt": "Draw the second contributor of the allylic card."
-          }
-        },
-        {
-          "id": "allylic-above-pentadienyl",
-          "cause": "ordering_one_adjacent_pair_swapped",
-          "order": [
-            "all2",
-            "penta",
-            "ipr",
-            "et"
-          ],
-          "explanation": {
-            "whatHappened": "The 2° allylic cation is placed above pentadienyl.",
-            "why": "Pentadienyl has a second conjugated C=C that carries the charge on to a third carbon, and its middle charged carbon is secondary too.",
-            "lookAt": "Keep pushing arrows on the pentadienyl card until the charge stops moving."
-          }
-        }
-      ],
-      "beat": {
-        "conceptIds": [
-          "resonance_delocalisation"
-        ],
-        "prompt": "Rank these cations, most stable at the top.",
-        "brief": "Draw every contributor before you rank.",
-        "criterion": "carbocation_stability",
-        "direction": "descending",
-        "notes": {
-          "penta": "Three carbons share the charge.",
-          "all2": "Two carbons share it, and one of them is secondary.",
-          "ipr": "Secondary, but one carbon holds the whole charge.",
-          "et": "Primary and no resonance."
+          "prompt": "One cation, two contributors. Pick the one that counts for more.",
+          "correctOptionId": "ter",
+          "options": [
+            {
+              "id": "pri",
+              "text": "The one with + on the 1° carbon",
+              "why": "One carbon neighbour helps there. Two methyls help at the other end, so this is the smaller share."
+            },
+            {
+              "id": "equal",
+              "text": "Both count equally",
+              "why": "Both are real, and one puts the charge where three carbons help it."
+            },
+            {
+              "id": "ter",
+              "text": "The one with + on the 3° carbon",
+              "why": "Three carbon neighbours feed that empty orbital, so this picture is lower in energy and counts for more."
+            }
+          ]
         }
       },
-      "trackEnds": {
-        "first": "Most stable",
-        "last": "Least stable"
-      },
-      "meanings": [
-        {
-          "id": "ranked-least-stable-first",
-          "cause": "order_fully_reversed"
-        },
-        {
-          "id": "isopropyl-above-allylic",
-          "cause": "order_adjacent_pair_swapped"
-        },
-        {
-          "id": "allylic-above-pentadienyl",
-          "cause": "order_adjacent_pair_swapped"
-        }
-      ],
-      "explanation": "Draw every contributor, count the carbons sharing the charge, then count substitution.",
-      "provenance": "scripts/u1_pools_ab.py: charge positions from ResonanceMolSupplier; every adjacent pair checked decidable. OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only; OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only."
-    }),
-    ladder({
-      "id": "u1-qa-ladder-anion",
-      "node": "u1-quiz-a",
-      "problemId": "u1-u1-qa-ladder-anion",
-      "topic": "pka_and_acidity",
-      "difficulty": 1250,
-      "problemPrompt": "Rank these four carbanions by stability, most stable first: ethynyl, vinyl, methyl and ethyl.",
-      "criterionText": "most stable",
-      "items": [
-        {
-          "id": "sp",
-          "text": "ethynyl"
-        },
-        {
-          "id": "sp2",
-          "text": "vinyl"
-        },
-        {
-          "id": "me",
-          "text": "methyl"
-        },
-        {
-          "id": "et",
-          "text": "ethyl"
-        }
-      ],
-      "order": [
-        "sp",
-        "sp2",
-        "me",
-        "et"
-      ],
-      "solution": {
-        "whatHappened": "Ethynyl, then vinyl, then methyl, then ethyl.",
-        "why": "More s character holds the lone pair closer: sp, then sp2, then sp3. Methyl and ethyl are both sp3, and the alkyl group on ethyl pushes more density onto its charge.",
-        "lookAt": "Name each lone pair's orbital, then count alkyl groups on the two sp3 cards."
-      },
-      "distractors": [
-        {
-          "id": "ranked-least-stable-first",
-          "cause": "ordering_is_reversed",
-          "order": [
-            "et",
-            "me",
-            "sp2",
-            "sp"
+      "explanation": "For a cation, the better contributor puts the charge on the MORE substituted carbon.",
+      "provenance": "scripts/u1_pools_ab.py: RDKit confirms one ion; substitution counted at each charge position. OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
+    {
+      "id": "u1-qa-prenyl-anion",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u1-qa-prenyl-anion",
+          "node": "u1-quiz-a",
+          "conceptIds": [
+            "carbanion_stability",
+            "resonance_delocalisation"
           ],
-          "explanation": {
-            "whatHappened": "This is the right ladder, read from the other end.",
-            "why": "Every comparison in it holds; only the direction is wrong. The most stable species goes at the top.",
-            "lookAt": "Put the sp anion, ethynyl, at the top and work down from there."
-          }
-        },
-        {
-          "id": "methyl-above-vinyl",
-          "cause": "ordering_one_adjacent_pair_swapped",
-          "order": [
-            "sp",
-            "me",
-            "sp2",
-            "et"
+          "levels": [
+            1
           ],
-          "explanation": {
-            "whatHappened": "Methyl is placed above vinyl.",
-            "why": "Neither has an alkyl group on its charged carbon, so the orbital decides: vinyl's lone pair is sp2 and methyl's is sp3.",
-            "lookAt": "Name the orbital on those two charged carbons."
-          }
-        },
-        {
-          "id": "ethyl-above-methyl",
-          "cause": "ordering_one_adjacent_pair_swapped",
-          "order": [
-            "sp",
-            "sp2",
-            "et",
-            "me"
-          ],
-          "explanation": {
-            "whatHappened": "Ethyl is placed above methyl.",
-            "why": "Both lone pairs are sp3. Ethyl carries one alkyl group donating onto the charge and methyl none.",
-            "lookAt": "Those two tie on the orbital, so count alkyl groups."
-          }
-        }
-      ],
-      "beat": {
-        "conceptIds": [
-          "carbanion_stability",
-          "resonance_delocalisation"
-        ],
-        "prompt": "Rank these carbanions, most stable at the top.",
-        "brief": "Orbital first, then alkyl groups.",
-        "criterion": "carbanion_stability",
-        "direction": "descending",
-        "notes": {
-          "sp": "sp lone pair, held closest.",
-          "sp2": "sp2 lone pair.",
-          "me": "sp3 lone pair, and no alkyl groups.",
-          "et": "sp3 lone pair plus an alkyl group pushing on it."
+          "prompt": "Same skeleton, now an anion. Pick the contributor that counts for more.",
+          "correctOptionId": "pri",
+          "options": [
+            {
+              "id": "ter",
+              "text": "The one with − on the 3° carbon",
+              "why": "That is the cation answer. Two methyls push density onto that end, which hurts a negative charge."
+            },
+            {
+              "id": "pri",
+              "text": "The one with − on the 1° carbon",
+              "why": "No alkyl group donates onto the end carbon, so the negative charge sits there more comfortably."
+            },
+            {
+              "id": "equal",
+              "text": "Both count equally",
+              "why": "Both are real, and the two methyls make one end a much worse home for a negative charge."
+            }
+          ]
         }
       },
-      "trackEnds": {
-        "first": "Most stable",
-        "last": "Least stable"
-      },
-      "meanings": [
-        {
-          "id": "ranked-least-stable-first",
-          "cause": "order_fully_reversed"
-        },
-        {
-          "id": "methyl-above-vinyl",
-          "cause": "order_adjacent_pair_swapped"
-        },
-        {
-          "id": "ethyl-above-methyl",
-          "cause": "order_adjacent_pair_swapped"
-        }
-      ],
-      "explanation": "For a carbanion: more s character first, then fewer alkyl groups.",
-      "provenance": "scripts/u1_pools_ab.py: hybridisation read from the bonds at the charged carbon; every adjacent pair checked decidable. OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only."
-    }),
+      "explanation": "For an anion, the better contributor puts the charge on the LESS substituted carbon.",
+      "provenance": "scripts/u1_pools_ab.py: RDKit confirms one ion; alkyl groups counted at each charge position. OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
     {
       "id": "u1-qa-draw-protonate",
       "item": {
@@ -3176,85 +3080,6 @@ export const STAGE_AB_POOLS: UnitPools = {
       },
       "explanation": "Protonation leaves the more substituted cation: here, tertiary beats secondary.",
       "provenance": "scripts/u1_pools_ab.py: both protonations built and ranked with the script's cation model (compare). OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only.",
-      "placeholder": true
-    },
-    {
-      "id": "u1-qa-prenyl-cation",
-      "item": {
-        "kind": "mcq",
-        "beat": {
-          "kind": "mcq",
-          "id": "u1-qa-prenyl-cation",
-          "node": "u1-quiz-a",
-          "conceptIds": [
-            "resonance_delocalisation"
-          ],
-          "levels": [
-            1
-          ],
-          "prompt": "One cation, two contributors. Pick the one that counts for more.",
-          "correctOptionId": "ter",
-          "options": [
-            {
-              "id": "pri",
-              "text": "The one with + on the 1° carbon",
-              "why": "One carbon neighbour helps there. Two methyls help at the other end, so this is the smaller share."
-            },
-            {
-              "id": "equal",
-              "text": "Both count equally",
-              "why": "Both are real, and one puts the charge where three carbons help it."
-            },
-            {
-              "id": "ter",
-              "text": "The one with + on the 3° carbon",
-              "why": "Three carbon neighbours feed that empty orbital, so this picture is lower in energy and counts for more."
-            }
-          ]
-        }
-      },
-      "explanation": "For a cation, the better contributor puts the charge on the MORE substituted carbon.",
-      "provenance": "scripts/u1_pools_ab.py: RDKit confirms one ion; substitution counted at each charge position. OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only.",
-      "placeholder": true
-    },
-    {
-      "id": "u1-qa-prenyl-anion",
-      "item": {
-        "kind": "mcq",
-        "beat": {
-          "kind": "mcq",
-          "id": "u1-qa-prenyl-anion",
-          "node": "u1-quiz-a",
-          "conceptIds": [
-            "carbanion_stability",
-            "resonance_delocalisation"
-          ],
-          "levels": [
-            1
-          ],
-          "prompt": "Same skeleton, now an anion. Pick the contributor that counts for more.",
-          "correctOptionId": "pri",
-          "options": [
-            {
-              "id": "ter",
-              "text": "The one with − on the 3° carbon",
-              "why": "That is the cation answer. Two methyls push density onto that end, which hurts a negative charge."
-            },
-            {
-              "id": "pri",
-              "text": "The one with − on the 1° carbon",
-              "why": "No alkyl group donates onto the end carbon, so the negative charge sits there more comfortably."
-            },
-            {
-              "id": "equal",
-              "text": "Both count equally",
-              "why": "Both are real, and the two methyls make one end a much worse home for a negative charge."
-            }
-          ]
-        }
-      },
-      "explanation": "For an anion, the better contributor puts the charge on the LESS substituted carbon.",
-      "provenance": "scripts/u1_pools_ab.py: RDKit confirms one ion; alkyl groups counted at each charge position. OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
     {
@@ -3502,6 +3327,247 @@ export const STAGE_AB_POOLS: UnitPools = {
       "provenance": "scripts/u1_pools_ab.py: allyl beats propyl for both charges; isopropyl beats ethyl as a cation and loses as an anion. OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only; OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
+    ladder({
+      "id": "u1-qa-ladder-cation",
+      "node": "u1-quiz-a",
+      "problemId": "u1-u1-qa-ladder-cation",
+      "topic": "carbocation_stability_and_rearrangement",
+      "difficulty": 1300,
+      "problemPrompt": "Rank these four carbocations by stability, most stable first: pentadienyl, but-3-en-2-yl, isopropyl and ethyl.",
+      "criterionText": "most stable",
+      "items": [
+        {
+          "id": "penta",
+          "text": "pentadienyl"
+        },
+        {
+          "id": "all2",
+          "text": "crotyl"
+        },
+        {
+          "id": "ipr",
+          "text": "isopropyl"
+        },
+        {
+          "id": "et",
+          "text": "ethyl"
+        }
+      ],
+      "order": [
+        "penta",
+        "all2",
+        "ipr",
+        "et"
+      ],
+      "solution": {
+        "whatHappened": "Pentadienyl, then 2° allylic, then isopropyl, then ethyl.",
+        "why": "The pentadienyl cation shares its charge over three carbons and the 2° allylic over two, with the same best substitution. The 2° allylic cation also beats isopropyl: same secondary carbon, plus resonance. Ethyl is primary with nothing else.",
+        "lookAt": "For each card, count the carbons that carry the charge, then the carbons on the best one."
+      },
+      "distractors": [
+        {
+          "id": "ranked-least-stable-first",
+          "cause": "ordering_is_reversed",
+          "order": [
+            "et",
+            "ipr",
+            "all2",
+            "penta"
+          ],
+          "explanation": {
+            "whatHappened": "This is the right ladder, read from the other end.",
+            "why": "Every comparison in it holds; only the direction is wrong. The most stable species goes at the top.",
+            "lookAt": "Put the cation with two conjugated C=C at the top and work down from there."
+          }
+        },
+        {
+          "id": "isopropyl-above-allylic",
+          "cause": "ordering_one_adjacent_pair_swapped",
+          "order": [
+            "penta",
+            "ipr",
+            "all2",
+            "et"
+          ],
+          "explanation": {
+            "whatHappened": "Isopropyl is placed above the 2° allylic cation.",
+            "why": "Both have a secondary charged carbon. Only the allylic one also shares the charge with a second carbon, so it sits higher.",
+            "lookAt": "Draw the second contributor of the allylic card."
+          }
+        },
+        {
+          "id": "allylic-above-pentadienyl",
+          "cause": "ordering_one_adjacent_pair_swapped",
+          "order": [
+            "all2",
+            "penta",
+            "ipr",
+            "et"
+          ],
+          "explanation": {
+            "whatHappened": "The 2° allylic cation is placed above pentadienyl.",
+            "why": "Pentadienyl has a second conjugated C=C that carries the charge on to a third carbon, and its middle charged carbon is secondary too.",
+            "lookAt": "Keep pushing arrows on the pentadienyl card until the charge stops moving."
+          }
+        }
+      ],
+      "beat": {
+        "conceptIds": [
+          "resonance_delocalisation"
+        ],
+        "prompt": "Rank these cations, most stable at the top.",
+        "brief": "Draw every contributor before you rank.",
+        "criterion": "carbocation_stability",
+        "direction": "descending",
+        "notes": {
+          "penta": "Three carbons share the charge.",
+          "all2": "Two carbons share it, and one of them is secondary.",
+          "ipr": "Secondary, but one carbon holds the whole charge.",
+          "et": "Primary and no resonance."
+        }
+      },
+      "trackEnds": {
+        "first": "Most stable",
+        "last": "Least stable"
+      },
+      "meanings": [
+        {
+          "id": "ranked-least-stable-first",
+          "cause": "order_fully_reversed"
+        },
+        {
+          "id": "isopropyl-above-allylic",
+          "cause": "order_adjacent_pair_swapped"
+        },
+        {
+          "id": "allylic-above-pentadienyl",
+          "cause": "order_adjacent_pair_swapped"
+        }
+      ],
+      "explanation": "Draw every contributor, count the carbons sharing the charge, then count substitution.",
+      "provenance": "scripts/u1_pools_ab.py: charge positions from ResonanceMolSupplier; every adjacent pair checked decidable. OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only; OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only."
+    }),
+    ladder({
+      "id": "u1-qa-ladder-anion",
+      "node": "u1-quiz-a",
+      "problemId": "u1-u1-qa-ladder-anion",
+      "topic": "pka_and_acidity",
+      "difficulty": 1250,
+      "problemPrompt": "Rank these four carbanions by stability, most stable first: ethynyl, vinyl, methyl and ethyl.",
+      "criterionText": "most stable",
+      "items": [
+        {
+          "id": "sp",
+          "text": "ethynyl"
+        },
+        {
+          "id": "sp2",
+          "text": "vinyl"
+        },
+        {
+          "id": "me",
+          "text": "methyl"
+        },
+        {
+          "id": "et",
+          "text": "ethyl"
+        }
+      ],
+      "order": [
+        "sp",
+        "sp2",
+        "me",
+        "et"
+      ],
+      "solution": {
+        "whatHappened": "Ethynyl, then vinyl, then methyl, then ethyl.",
+        "why": "More s character holds the lone pair closer: sp, then sp2, then sp3. Methyl and ethyl are both sp3, and the alkyl group on ethyl pushes more density onto its charge.",
+        "lookAt": "Name each lone pair's orbital, then count alkyl groups on the two sp3 cards."
+      },
+      "distractors": [
+        {
+          "id": "ranked-least-stable-first",
+          "cause": "ordering_is_reversed",
+          "order": [
+            "et",
+            "me",
+            "sp2",
+            "sp"
+          ],
+          "explanation": {
+            "whatHappened": "This is the right ladder, read from the other end.",
+            "why": "Every comparison in it holds; only the direction is wrong. The most stable species goes at the top.",
+            "lookAt": "Put the sp anion, ethynyl, at the top and work down from there."
+          }
+        },
+        {
+          "id": "methyl-above-vinyl",
+          "cause": "ordering_one_adjacent_pair_swapped",
+          "order": [
+            "sp",
+            "me",
+            "sp2",
+            "et"
+          ],
+          "explanation": {
+            "whatHappened": "Methyl is placed above vinyl.",
+            "why": "Neither has an alkyl group on its charged carbon, so the orbital decides: vinyl's lone pair is sp2 and methyl's is sp3.",
+            "lookAt": "Name the orbital on those two charged carbons."
+          }
+        },
+        {
+          "id": "ethyl-above-methyl",
+          "cause": "ordering_one_adjacent_pair_swapped",
+          "order": [
+            "sp",
+            "sp2",
+            "et",
+            "me"
+          ],
+          "explanation": {
+            "whatHappened": "Ethyl is placed above methyl.",
+            "why": "Both lone pairs are sp3. Ethyl carries one alkyl group donating onto the charge and methyl none.",
+            "lookAt": "Those two tie on the orbital, so count alkyl groups."
+          }
+        }
+      ],
+      "beat": {
+        "conceptIds": [
+          "carbanion_stability",
+          "resonance_delocalisation"
+        ],
+        "prompt": "Rank these carbanions, most stable at the top.",
+        "brief": "Orbital first, then alkyl groups.",
+        "criterion": "carbanion_stability",
+        "direction": "descending",
+        "notes": {
+          "sp": "sp lone pair, held closest.",
+          "sp2": "sp2 lone pair.",
+          "me": "sp3 lone pair, and no alkyl groups.",
+          "et": "sp3 lone pair plus an alkyl group pushing on it."
+        }
+      },
+      "trackEnds": {
+        "first": "Most stable",
+        "last": "Least stable"
+      },
+      "meanings": [
+        {
+          "id": "ranked-least-stable-first",
+          "cause": "order_fully_reversed"
+        },
+        {
+          "id": "methyl-above-vinyl",
+          "cause": "order_adjacent_pair_swapped"
+        },
+        {
+          "id": "ethyl-above-methyl",
+          "cause": "order_adjacent_pair_swapped"
+        }
+      ],
+      "explanation": "For a carbanion: more s character first, then fewer alkyl groups.",
+      "provenance": "scripts/u1_pools_ab.py: hybridisation read from the bonds at the charged carbon; every adjacent pair checked decidable. OpenStax Organic Chemistry 7.9 (CC BY-NC-SA), read as a check only."
+    }),
   ],
   "u1-kvt": [
     {
@@ -4698,7 +4764,7 @@ export const STAGE_AB_POOLS: UnitPools = {
           "levels": [
             0
           ],
-          "prompt": "Both form from 2-methylpenta-1,3-diene and HCl. Pick the thermodynamic one.",
+          "prompt": "HCl adds to 2-methylpenta-1,3-diene. Pick the thermodynamic product.",
           "correctOptionId": "p14",
           "options": [
             {
@@ -4724,42 +4790,42 @@ export const STAGE_AB_POOLS: UnitPools = {
       "placeholder": true
     },
     {
-      "id": "u1-hx-too-close",
+      "id": "u1-hx-label-kinetic",
       "item": {
         "kind": "mcq",
         "beat": {
           "kind": "mcq",
-          "id": "u1-hx-too-close",
+          "id": "u1-hx-label-kinetic",
           "node": "u1-hx-dienes",
           "conceptIds": [
             "kinetic_vs_thermodynamic_control"
           ],
           "levels": [
-            2
+            0
           ],
-          "prompt": "Both form from hexa-2,4-diene and HBr. Pick the thermodynamic one.",
-          "correctOptionId": "close",
+          "prompt": "HBr adds to isoprene. Pick the kinetic product.",
+          "correctOptionId": "p12",
           "options": [
             {
-              "id": "p14",
-              "text": "2-bromohex-3-ene",
-              "why": "Tempting, because 1,4 often wins warm. That is only because it usually has the more substituted C=C, and here both alkenes carry two carbons."
-            },
-            {
-              "id": "close",
-              "text": "Too close to call by alkene substitution",
-              "why": "Each product's C=C carries two carbons, so the substitution rule gives no winner."
-            },
-            {
               "id": "p12",
-              "text": "4-bromohex-2-ene",
-              "why": "Nothing favours the 1,2 product on stability here either. Both alkenes are disubstituted."
+              "text": "3-bromo-3-methylbut-1-ene",
+              "why": "Bromide is captured right beside the new C-H, on the carbon that carries most of the charge. That is the fast, 1,2 product."
+            },
+            {
+              "id": "p14",
+              "text": "1-bromo-3-methylbut-2-ene",
+              "why": "This one has the more substituted C=C, so it is the stable one. Stability is the thermodynamic call, not the kinetic one."
+            },
+            {
+              "id": "same",
+              "text": "Neither, they form at the same rate",
+              "why": "They do not. Bromide reaches the nearby tertiary carbon first, so the 1,2 product forms faster."
             }
           ]
         }
       },
-      "explanation": "Decide the thermodynamic product by alkene substitution. Do not assume 1,4 always wins. When the counts tie, the rule cannot call it.",
-      "provenance": "scripts/u1_pools_ab.py: both products from diene_addition; alkene substitution 2 against 2; names checked with OPSIN. OpenStax Organic Chemistry 14.3 (CC BY-NC-SA), read as a check only.",
+      "explanation": "The kinetic product is the 1,2 product: the nucleophile attacks the charged carbon next to the new C-H.",
+      "provenance": "scripts/u1_pools_ab.py: both products from diene_addition; 1,2 carbon tertiary, 1,4 carbon primary; names checked with OPSIN. OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only; OpenStax Organic Chemistry 14.3 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
     {
@@ -4891,45 +4957,6 @@ export const STAGE_AB_POOLS: UnitPools = {
       "placeholder": true
     },
     {
-      "id": "u1-hx-label-kinetic",
-      "item": {
-        "kind": "mcq",
-        "beat": {
-          "kind": "mcq",
-          "id": "u1-hx-label-kinetic",
-          "node": "u1-hx-dienes",
-          "conceptIds": [
-            "kinetic_vs_thermodynamic_control"
-          ],
-          "levels": [
-            0
-          ],
-          "prompt": "Both form from isoprene and HBr. Pick the kinetic one.",
-          "correctOptionId": "p12",
-          "options": [
-            {
-              "id": "p12",
-              "text": "3-bromo-3-methylbut-1-ene",
-              "why": "Bromide is captured right beside the new C-H, on the carbon that carries most of the charge. That is the fast, 1,2 product."
-            },
-            {
-              "id": "p14",
-              "text": "1-bromo-3-methylbut-2-ene",
-              "why": "This one has the more substituted C=C, so it is the stable one. Stability is the thermodynamic call, not the kinetic one."
-            },
-            {
-              "id": "same",
-              "text": "Neither, they form at the same rate",
-              "why": "They do not. Bromide reaches the nearby tertiary carbon first, so the 1,2 product forms faster."
-            }
-          ]
-        }
-      },
-      "explanation": "The kinetic product is the 1,2 product: the nucleophile attacks the charged carbon next to the new C-H.",
-      "provenance": "scripts/u1_pools_ab.py: both products from diene_addition; 1,2 carbon tertiary, 1,4 carbon primary; names checked with OPSIN. OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only; OpenStax Organic Chemistry 14.3 (CC BY-NC-SA), read as a check only.",
-      "placeholder": true
-    },
-    {
       "id": "u1-hx-isoprene-site",
       "item": {
         "kind": "mcq",
@@ -5007,6 +5034,46 @@ export const STAGE_AB_POOLS: UnitPools = {
       },
       "explanation": "Protonate the end carbon that leaves the best allylic cation.",
       "provenance": "scripts/u1_pools_ab.py: every protonation built and the cations ranked by dominance. OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
+    {
+      "id": "u1-hx-dmb-warm",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u1-hx-dmb-warm",
+          "node": "u1-hx-dienes",
+          "conceptIds": [
+            "kinetic_vs_thermodynamic_control"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "Add HBr at 40 degrees and wait. Pick the major product.",
+          "correctOptionId": "p14",
+          "options": [
+            {
+              "id": "p12",
+              "text": "3-bromo-2,3-dimethylbut-1-ene",
+              "why": "This forms first, and warm gives it a way back to the cation. Given time, the mixture drifts to the more stable alkene."
+            },
+            {
+              "id": "inner",
+              "text": "4-bromo-2,3-dimethylbut-1-ene",
+              "why": "This needs H+ on an inner carbon, which leaves a primary cation with no resonance. It does not form."
+            },
+            {
+              "id": "p14",
+              "text": "1-bromo-2,3-dimethylbut-2-ene",
+              "why": "Its C=C carries four carbons, against two in the 1,2 product. Warm and reversible, the most substituted alkene wins."
+            }
+          ]
+        }
+      },
+      "explanation": "Warm and reversible: the product with the more substituted alkene.",
+      "conditions": "one equivalent; 40 degrees, given time: both products can return to the cation",
+      "provenance": "scripts/u1_pools_ab.py: thermodynamic call from diene_addition; names checked with OPSIN. OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only; OpenStax Organic Chemistry 14.3 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
     {
@@ -5150,12 +5217,12 @@ export const STAGE_AB_POOLS: UnitPools = {
       "placeholder": true
     },
     {
-      "id": "u1-hx-dmb-warm",
+      "id": "u1-hx-chd",
       "item": {
         "kind": "mcq",
         "beat": {
           "kind": "mcq",
-          "id": "u1-hx-dmb-warm",
+          "id": "u1-hx-chd",
           "node": "u1-hx-dienes",
           "conceptIds": [
             "kinetic_vs_thermodynamic_control"
@@ -5163,30 +5230,30 @@ export const STAGE_AB_POOLS: UnitPools = {
           "levels": [
             1
           ],
-          "prompt": "Add HBr at 40 degrees and wait. Pick the major product.",
-          "correctOptionId": "p14",
+          "prompt": "Add HBr to cyclohexa-1,3-diene at 40 degrees. Pick the major product.",
+          "correctOptionId": "one",
           "options": [
             {
-              "id": "p12",
-              "text": "3-bromo-2,3-dimethylbut-1-ene",
-              "why": "This forms first, and warm gives it a way back to the cation. Given time, the mixture drifts to the more stable alkene."
+              "id": "vinyl",
+              "text": "1-bromocyclohexene",
+              "why": "Bromine on a C=C carbon would need a vinyl cation, which has no resonance. The proton goes to an end of the diene instead."
+            },
+            {
+              "id": "one",
+              "text": "3-bromocyclohexene",
+              "why": "The ring makes C2 and C4 equivalent, so 1,2 and 1,4 addition give the same compound. One product, whatever the temperature."
             },
             {
               "id": "inner",
-              "text": "4-bromo-2,3-dimethylbut-1-ene",
-              "why": "This needs H+ on an inner carbon, which leaves a primary cation with no resonance. It does not form."
-            },
-            {
-              "id": "p14",
-              "text": "1-bromo-2,3-dimethylbut-2-ene",
-              "why": "Its C=C carries four carbons, against two in the 1,2 product. Warm and reversible, the most substituted alkene wins."
+              "text": "4-bromocyclohexene",
+              "why": "Bromine two carbons from the C=C needs a cation with no resonance. The allylic cation puts bromine right beside the C=C."
             }
           ]
         }
       },
-      "explanation": "Warm and reversible: the product with the more substituted alkene.",
+      "explanation": "A symmetric allylic cation gives the same product by 1,2 and 1,4 addition.",
       "conditions": "one equivalent; 40 degrees, given time: both products can return to the cation",
-      "provenance": "scripts/u1_pools_ab.py: thermodynamic call from diene_addition; names checked with OPSIN. OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only; OpenStax Organic Chemistry 14.3 (CC BY-NC-SA), read as a check only.",
+      "provenance": "scripts/u1_pools_ab.py: 1,2 and 1,4 products from diene_addition are the same canonical SMILES; names checked with OPSIN. OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
     {
@@ -5330,12 +5397,12 @@ export const STAGE_AB_POOLS: UnitPools = {
       "placeholder": true
     },
     {
-      "id": "u1-hx-chd",
+      "id": "u1-hx-mp2-cold",
       "item": {
         "kind": "mcq",
         "beat": {
           "kind": "mcq",
-          "id": "u1-hx-chd",
+          "id": "u1-hx-mp2-cold",
           "node": "u1-hx-dienes",
           "conceptIds": [
             "kinetic_vs_thermodynamic_control"
@@ -5343,39 +5410,39 @@ export const STAGE_AB_POOLS: UnitPools = {
           "levels": [
             1
           ],
-          "prompt": "Add HBr to cyclohexa-1,3-diene at 40 degrees. Pick the major product.",
-          "correctOptionId": "one",
+          "prompt": "Add HBr at minus 80 degrees. Pick the major product.",
+          "correctOptionId": "p12",
           "options": [
             {
-              "id": "vinyl",
-              "text": "1-bromocyclohexene",
-              "why": "Bromine on a C=C carbon would need a vinyl cation, which has no resonance. The proton goes to an end of the diene instead."
+              "id": "p12",
+              "text": "4-bromo-4-methylpent-2-ene",
+              "why": "H on C1, then bromide captured at C2, the tertiary carbon right beside it. Cold locks in this fast, 1,2 product."
             },
             {
-              "id": "one",
-              "text": "3-bromocyclohexene",
-              "why": "The ring makes C2 and C4 equivalent, so 1,2 and 1,4 addition give the same compound. One product, whatever the temperature."
+              "id": "p14",
+              "text": "4-bromo-2-methylpent-2-ene",
+              "why": "This has the better alkene, so it wins warm. Cold, nothing reverses, and the near carbon captures bromide first."
             },
             {
-              "id": "inner",
-              "text": "4-bromocyclohexene",
-              "why": "Bromine two carbons from the C=C needs a cation with no resonance. The allylic cation puts bromine right beside the C=C."
+              "id": "loser",
+              "text": "3-bromo-2-methylpent-1-ene",
+              "why": "This needs H+ on C4, which gives a weaker cation than H+ on C1."
             }
           ]
         }
       },
-      "explanation": "A symmetric allylic cation gives the same product by 1,2 and 1,4 addition.",
-      "conditions": "one equivalent; 40 degrees, given time: both products can return to the cation",
-      "provenance": "scripts/u1_pools_ab.py: 1,2 and 1,4 products from diene_addition are the same canonical SMILES; names checked with OPSIN. OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only.",
+      "explanation": "Cold: protonate for the best cation, then the nucleophile is captured at the near charged carbon.",
+      "conditions": "one equivalent; minus 80 degrees: nothing reverses, so the faster product is locked in",
+      "provenance": "scripts/u1_pools_ab.py: kinetic call from diene_addition; names checked with OPSIN. OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only; OpenStax Organic Chemistry 14.3 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
     {
-      "id": "u1-hx-pentadiene",
+      "id": "u1-hx-too-close",
       "item": {
         "kind": "mcq",
         "beat": {
           "kind": "mcq",
-          "id": "u1-hx-pentadiene",
+          "id": "u1-hx-too-close",
           "node": "u1-hx-dienes",
           "conceptIds": [
             "kinetic_vs_thermodynamic_control"
@@ -5383,30 +5450,29 @@ export const STAGE_AB_POOLS: UnitPools = {
           "levels": [
             2
           ],
-          "prompt": "Add HBr to penta-1,3-diene at minus 80 degrees. Pick the major product.",
-          "correctOptionId": "win",
+          "prompt": "HBr adds to hexa-2,4-diene. Pick the thermodynamic product.",
+          "correctOptionId": "close",
           "options": [
             {
-              "id": "lp14",
-              "text": "1-bromopent-2-ene",
-              "why": "This comes from H+ on C4, which gives a cation shared by a secondary and a primary carbon. H+ on C1 gives a better one."
+              "id": "p14",
+              "text": "2-bromohex-3-ene",
+              "why": "Tempting, because 1,4 often wins warm. That is only because it usually has the more substituted C=C, and here both alkenes carry two carbons."
             },
             {
-              "id": "lp12",
-              "text": "3-bromopent-1-ene",
-              "why": "Also from H+ on C4, the weaker cation. Protonating C1 instead shares the charge between two secondary carbons."
+              "id": "close",
+              "text": "Too close to call by alkene substitution",
+              "why": "Each product's C=C carries two carbons, so the substitution rule gives no winner."
             },
             {
-              "id": "win",
-              "text": "4-bromopent-2-ene",
-              "why": "H+ on C1 shares the charge between C2 and C4, and bromide on either one gives this same compound. One product from the best cation."
+              "id": "p12",
+              "text": "4-bromohex-2-ene",
+              "why": "Nothing favours the 1,2 product on stability here either. Both alkenes are disubstituted."
             }
           ]
         }
       },
-      "explanation": "Protonate to make the best allylic cation first. Here its two ends give the same product.",
-      "conditions": "one equivalent; minus 80 degrees: nothing reverses, so the faster product is locked in",
-      "provenance": "scripts/u1_pools_ab.py: both protonations built; the best cation's 1,2 and 1,4 products are the same SMILES; names checked with OPSIN. OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only.",
+      "explanation": "Decide the thermodynamic product by alkene substitution. Do not assume 1,4 always wins. When the counts tie, the rule cannot call it.",
+      "provenance": "scripts/u1_pools_ab.py: both products from diene_addition; alkene substitution 2 against 2; names checked with OPSIN. OpenStax Organic Chemistry 14.3 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
     {
@@ -5550,43 +5616,43 @@ export const STAGE_AB_POOLS: UnitPools = {
       "placeholder": true
     },
     {
-      "id": "u1-hx-mp2-cold",
+      "id": "u1-hx-pentadiene",
       "item": {
         "kind": "mcq",
         "beat": {
           "kind": "mcq",
-          "id": "u1-hx-mp2-cold",
+          "id": "u1-hx-pentadiene",
           "node": "u1-hx-dienes",
           "conceptIds": [
             "kinetic_vs_thermodynamic_control"
           ],
           "levels": [
-            1
+            2
           ],
-          "prompt": "Add HBr at minus 80 degrees. Pick the major product.",
-          "correctOptionId": "p12",
+          "prompt": "Add HBr to penta-1,3-diene at minus 80 degrees. Pick the major product.",
+          "correctOptionId": "win",
           "options": [
             {
-              "id": "p12",
-              "text": "4-bromo-4-methylpent-2-ene",
-              "why": "H on C1, then bromide captured at C2, the tertiary carbon right beside it. Cold locks in this fast, 1,2 product."
+              "id": "lp14",
+              "text": "1-bromopent-2-ene",
+              "why": "This comes from H+ on C4, which gives a cation shared by a secondary and a primary carbon. H+ on C1 gives a better one."
             },
             {
-              "id": "p14",
-              "text": "4-bromo-2-methylpent-2-ene",
-              "why": "This has the better alkene, so it wins warm. Cold, nothing reverses, and the near carbon captures bromide first."
+              "id": "lp12",
+              "text": "3-bromopent-1-ene",
+              "why": "Also from H+ on C4, the weaker cation. Protonating C1 instead shares the charge between two secondary carbons."
             },
             {
-              "id": "loser",
-              "text": "3-bromo-2-methylpent-1-ene",
-              "why": "This needs H+ on C4, which gives a weaker cation than H+ on C1."
+              "id": "win",
+              "text": "4-bromopent-2-ene",
+              "why": "H+ on C1 shares the charge between C2 and C4, and bromide on either one gives this same compound. One product from the best cation."
             }
           ]
         }
       },
-      "explanation": "Cold: protonate for the best cation, then the nucleophile is captured at the near charged carbon.",
+      "explanation": "Protonate to make the best allylic cation first. Here its two ends give the same product.",
       "conditions": "one equivalent; minus 80 degrees: nothing reverses, so the faster product is locked in",
-      "provenance": "scripts/u1_pools_ab.py: kinetic call from diene_addition; names checked with OPSIN. OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only; OpenStax Organic Chemistry 14.3 (CC BY-NC-SA), read as a check only.",
+      "provenance": "scripts/u1_pools_ab.py: both protonations built; the best cation's 1,2 and 1,4 products are the same SMILES; names checked with OPSIN. OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
   ],
@@ -7010,6 +7076,63 @@ export const STAGE_AB_VISUALS: Readonly<Record<string, McqVisual>> = {
         ]
       },
       "name": "contributor 2"
+    }
+  },
+  "u1-allylic-plus-carbon": {
+    "kind": "scheme",
+    "scheme": {
+      "left": {
+        "bonds": [
+          {
+            "x1": 86.0,
+            "y1": 39.0,
+            "x2": 68.7,
+            "y2": 49.0,
+            "order": 2
+          },
+          {
+            "x1": 68.7,
+            "y1": 49.0,
+            "x2": 51.3,
+            "y2": 39.0
+          },
+          {
+            "x1": 51.3,
+            "y1": 39.0,
+            "x2": 34.0,
+            "y2": 49.0,
+            "order": 2
+          }
+        ],
+        "labels": [
+          {
+            "x": 93.8,
+            "y": 38.5,
+            "t": "1",
+            "size": 10
+          },
+          {
+            "x": 68.6,
+            "y": 62.0,
+            "t": "2",
+            "size": 10
+          },
+          {
+            "x": 51.4,
+            "y": 34.0,
+            "t": "3",
+            "size": 10
+          },
+          {
+            "x": 26.2,
+            "y": 57.5,
+            "t": "4",
+            "size": 10
+          }
+        ]
+      },
+      "leftName": "buta-1,3-diene, numbered",
+      "over": "H^+"
     }
   },
   "u1-cat-vinyl": {
@@ -11120,312 +11243,126 @@ export const STAGE_AB_VISUALS: Readonly<Record<string, McqVisual>> = {
     }
   },
   "u1-hx-label-thermo": {
-    "kind": "pair",
-    "a": {
-      "figure": {
+    "kind": "scheme",
+    "scheme": {
+      "left": {
         "bonds": [
           {
-            "x1": 25.4,
-            "y1": 57.7,
-            "x2": 42.7,
-            "y2": 47.7
-          },
-          {
-            "x1": 42.7,
-            "y1": 47.7,
-            "x2": 60.0,
-            "y2": 57.7,
+            "x1": 77.3,
+            "y1": 28.9,
+            "x2": 77.3,
+            "y2": 48.9,
             "order": 2
           },
           {
-            "x1": 60.0,
-            "y1": 57.7,
-            "x2": 77.3,
-            "y2": 47.6
-          },
-          {
             "x1": 77.3,
-            "y1": 47.6,
-            "x2": 87.3,
-            "y2": 30.3
-          },
-          {
-            "x1": 77.3,
-            "y1": 47.6,
-            "x2": 94.6,
-            "y2": 57.6
-          },
-          {
-            "x1": 77.3,
-            "y1": 47.6,
-            "x2": 70.8,
-            "y2": 36.4
-          }
-        ],
-        "labels": [
-          {
-            "x": 67.3,
-            "y": 35.3,
-            "t": "Cl",
-            "size": 13
-          }
-        ]
-      },
-      "name": "4-chloro-4-methylpent-2-ene"
-    },
-    "b": {
-      "figure": {
-        "bonds": [
-          {
-            "x1": 94.6,
-            "y1": 59.1,
-            "x2": 77.3,
-            "y2": 49.0
-          },
-          {
-            "x1": 77.3,
-            "y1": 49.0,
-            "x2": 77.4,
-            "y2": 29.0
-          },
-          {
-            "x1": 77.3,
-            "y1": 49.0,
-            "x2": 60.0,
-            "y2": 59.0,
-            "order": 2
-          },
-          {
-            "x1": 60.0,
-            "y1": 59.0,
-            "x2": 42.7,
-            "y2": 48.9
-          },
-          {
-            "x1": 42.7,
             "y1": 48.9,
-            "x2": 25.4,
+            "x2": 94.6,
             "y2": 58.9
           },
           {
-            "x1": 42.7,
+            "x1": 77.3,
             "y1": 48.9,
-            "x2": 42.7,
-            "y2": 35.0
-          }
-        ],
-        "labels": [
-          {
-            "x": 42.7,
-            "y": 33.9,
-            "t": "Cl",
-            "size": 13
-          }
-        ]
-      },
-      "name": "4-chloro-2-methylpent-2-ene"
-    }
-  },
-  "u1-hx-too-close": {
-    "kind": "pair",
-    "a": {
-      "figure": {
-        "bonds": [
-          {
-            "x1": 16.7,
-            "y1": 59.0,
-            "x2": 34.0,
-            "y2": 49.0
-          },
-          {
-            "x1": 34.0,
-            "y1": 49.0,
-            "x2": 51.3,
-            "y2": 59.0,
-            "order": 2
-          },
-          {
-            "x1": 51.3,
-            "y1": 59.0,
-            "x2": 68.7,
-            "y2": 49.0
-          },
-          {
-            "x1": 68.7,
-            "y1": 49.0,
-            "x2": 68.6,
-            "y2": 35.0
-          },
-          {
-            "x1": 68.7,
-            "y1": 49.0,
-            "x2": 86.0,
+            "x2": 60.0,
             "y2": 59.0
           },
           {
-            "x1": 86.0,
-            "y1": 59.0,
-            "x2": 103.3,
-            "y2": 49.0
-          }
-        ],
-        "labels": [
-          {
-            "x": 68.6,
-            "y": 34.0,
-            "t": "Br",
-            "size": 13
-          }
-        ]
-      },
-      "name": "4-bromohex-2-ene"
-    },
-    "b": {
-      "figure": {
-        "bonds": [
-          {
-            "x1": 16.7,
-            "y1": 49.1,
-            "x2": 34.0,
-            "y2": 59.1
-          },
-          {
-            "x1": 34.0,
-            "y1": 59.1,
-            "x2": 51.3,
-            "y2": 49.0
-          },
-          {
-            "x1": 51.3,
-            "y1": 49.0,
-            "x2": 68.7,
-            "y2": 59.0,
-            "order": 2
-          },
-          {
-            "x1": 68.7,
-            "y1": 59.0,
-            "x2": 86.0,
-            "y2": 48.9
-          },
-          {
-            "x1": 86.0,
-            "y1": 48.9,
-            "x2": 103.3,
-            "y2": 58.9
-          },
-          {
-            "x1": 86.0,
-            "y1": 48.9,
-            "x2": 85.9,
-            "y2": 35.0
-          }
-        ],
-        "labels": [
-          {
-            "x": 85.9,
-            "y": 33.9,
-            "t": "Br",
-            "size": 13
-          }
-        ]
-      },
-      "name": "2-bromohex-3-ene"
-    }
-  },
-  "u1-hx-label-kinetic": {
-    "kind": "pair",
-    "a": {
-      "figure": {
-        "bonds": [
-          {
-            "x1": 34.0,
-            "y1": 47.7,
-            "x2": 51.3,
-            "y2": 57.7,
-            "order": 2
-          },
-          {
-            "x1": 51.3,
-            "y1": 57.7,
-            "x2": 68.7,
-            "y2": 47.7
-          },
-          {
-            "x1": 68.7,
-            "y1": 47.7,
-            "x2": 78.6,
-            "y2": 30.3
-          },
-          {
-            "x1": 68.7,
-            "y1": 47.7,
-            "x2": 86.0,
-            "y2": 57.6
-          },
-          {
-            "x1": 68.7,
-            "y1": 47.7,
-            "x2": 62.1,
-            "y2": 36.4
-          }
-        ],
-        "labels": [
-          {
-            "x": 58.6,
-            "y": 35.3,
-            "t": "Br",
-            "size": 13
-          }
-        ]
-      },
-      "name": "3-bromo-3-methylbut-1-ene"
-    },
-    "b": {
-      "figure": {
-        "bonds": [
-          {
-            "x1": 94.6,
-            "y1": 59.0,
-            "x2": 77.3,
-            "y2": 49.0
-          },
-          {
-            "x1": 77.3,
-            "y1": 49.0,
-            "x2": 77.3,
-            "y2": 29.0
-          },
-          {
-            "x1": 77.3,
-            "y1": 49.0,
-            "x2": 60.0,
-            "y2": 59.0,
-            "order": 2
-          },
-          {
             "x1": 60.0,
             "y1": 59.0,
             "x2": 42.7,
-            "y2": 49.0
+            "y2": 49.0,
+            "order": 2
           },
           {
             "x1": 42.7,
             "y1": 49.0,
-            "x2": 34.0,
-            "y2": 54.0
-          }
-        ],
-        "labels": [
-          {
-            "x": 25.4,
-            "y": 64.0,
-            "t": "Br",
-            "size": 13
+            "x2": 25.4,
+            "y2": 59.1
           }
         ]
       },
-      "name": "1-bromo-3-methylbut-2-ene"
+      "leftName": "2-methylpenta-1,3-diene",
+      "over": "HCl"
+    }
+  },
+  "u1-hx-too-close": {
+    "kind": "scheme",
+    "scheme": {
+      "left": {
+        "bonds": [
+          {
+            "x1": 103.3,
+            "y1": 49.0,
+            "x2": 86.0,
+            "y2": 39.0
+          },
+          {
+            "x1": 86.0,
+            "y1": 39.0,
+            "x2": 68.7,
+            "y2": 49.0,
+            "order": 2
+          },
+          {
+            "x1": 68.7,
+            "y1": 49.0,
+            "x2": 51.3,
+            "y2": 39.0
+          },
+          {
+            "x1": 51.3,
+            "y1": 39.0,
+            "x2": 34.0,
+            "y2": 49.0,
+            "order": 2
+          },
+          {
+            "x1": 34.0,
+            "y1": 49.0,
+            "x2": 16.7,
+            "y2": 39.0
+          }
+        ]
+      },
+      "leftName": "hexa-2,4-diene",
+      "over": "HBr"
+    }
+  },
+  "u1-hx-label-kinetic": {
+    "kind": "scheme",
+    "scheme": {
+      "left": {
+        "bonds": [
+          {
+            "x1": 68.6,
+            "y1": 29.0,
+            "x2": 68.7,
+            "y2": 49.0,
+            "order": 2
+          },
+          {
+            "x1": 68.7,
+            "y1": 49.0,
+            "x2": 86.0,
+            "y2": 58.9
+          },
+          {
+            "x1": 68.7,
+            "y1": 49.0,
+            "x2": 51.3,
+            "y2": 59.0
+          },
+          {
+            "x1": 51.3,
+            "y1": 59.0,
+            "x2": 34.0,
+            "y2": 49.1,
+            "order": 2
+          }
+        ]
+      },
+      "leftName": "isoprene",
+      "over": "HBr"
     }
   },
   "u1-hx-isoprene-site": {
@@ -11952,100 +11889,24 @@ export const STAGE_AB_VISUALS: Readonly<Record<string, McqVisual>> = {
     }
   },
   "u1-x2-chd-14": {
-    "kind": "pair",
-    "a": {
-      "figure": {
+    "kind": "scheme",
+    "scheme": {
+      "left": {
         "bonds": [
           {
             "x1": 42.7,
-            "y1": 59.0,
-            "x2": 51.3,
-            "y2": 54.0
-          },
-          {
-            "x1": 51.3,
             "y1": 54.0,
-            "x2": 68.6,
-            "y2": 64.0
-          },
-          {
-            "x1": 68.6,
-            "y1": 64.0,
-            "x2": 86.0,
-            "y2": 54.0,
+            "x2": 42.7,
+            "y2": 34.0,
             "order": 2
           },
           {
-            "x1": 86.0,
-            "y1": 54.0,
-            "x2": 86.0,
-            "y2": 34.0
-          },
-          {
-            "x1": 86.0,
+            "x1": 42.7,
             "y1": 34.0,
-            "x2": 68.7,
+            "x2": 60.0,
             "y2": 24.0
           },
           {
-            "x1": 68.7,
-            "y1": 24.0,
-            "x2": 51.4,
-            "y2": 34.0
-          },
-          {
-            "x1": 51.4,
-            "y1": 34.0,
-            "x2": 42.7,
-            "y2": 29.0
-          },
-          {
-            "x1": 51.4,
-            "y1": 34.0,
-            "x2": 51.3,
-            "y2": 54.0
-          }
-        ],
-        "labels": [
-          {
-            "x": 34.0,
-            "y": 69.0,
-            "t": "Br",
-            "size": 13
-          },
-          {
-            "x": 34.0,
-            "y": 29.0,
-            "t": "Br",
-            "size": 13
-          }
-        ]
-      },
-      "name": "3,4-dibromocyclohexene"
-    },
-    "b": {
-      "figure": {
-        "bonds": [
-          {
-            "x1": 34.0,
-            "y1": 59.0,
-            "x2": 42.7,
-            "y2": 54.0
-          },
-          {
-            "x1": 42.7,
-            "y1": 54.0,
-            "x2": 42.7,
-            "y2": 34.0
-          },
-          {
-            "x1": 42.7,
-            "y1": 34.0,
-            "x2": 60.0,
-            "y2": 24.0,
-            "order": 2
-          },
-          {
             "x1": 60.0,
             "y1": 24.0,
             "x2": 77.3,
@@ -12054,12 +11915,6 @@ export const STAGE_AB_VISUALS: Readonly<Record<string, McqVisual>> = {
           {
             "x1": 77.3,
             "y1": 34.0,
-            "x2": 86.0,
-            "y2": 29.0
-          },
-          {
-            "x1": 77.3,
-            "y1": 34.0,
             "x2": 77.3,
             "y2": 54.0
           },
@@ -12067,7 +11922,8 @@ export const STAGE_AB_VISUALS: Readonly<Record<string, McqVisual>> = {
             "x1": 77.3,
             "y1": 54.0,
             "x2": 60.0,
-            "y2": 64.0
+            "y2": 64.0,
+            "order": 2
           },
           {
             "x1": 60.0,
@@ -12075,23 +11931,10 @@ export const STAGE_AB_VISUALS: Readonly<Record<string, McqVisual>> = {
             "x2": 42.7,
             "y2": 54.0
           }
-        ],
-        "labels": [
-          {
-            "x": 25.3,
-            "y": 69.0,
-            "t": "Br",
-            "size": 13
-          },
-          {
-            "x": 94.7,
-            "y": 29.0,
-            "t": "Br",
-            "size": 13
-          }
         ]
       },
-      "name": "3,6-dibromocyclohexene"
+      "leftName": "cyclohexa-1,3-diene",
+      "over": "Br_2, 1 equiv"
     }
   },
   "u1-x2-two-equiv": {
@@ -12306,100 +12149,24 @@ export const STAGE_AB_VISUALS: Readonly<Record<string, McqVisual>> = {
     }
   },
   "u1-x2-chd-warm": {
-    "kind": "pair",
-    "a": {
-      "figure": {
+    "kind": "scheme",
+    "scheme": {
+      "left": {
         "bonds": [
           {
             "x1": 42.7,
-            "y1": 59.0,
-            "x2": 51.3,
-            "y2": 54.0
-          },
-          {
-            "x1": 51.3,
             "y1": 54.0,
-            "x2": 68.6,
-            "y2": 64.0
-          },
-          {
-            "x1": 68.6,
-            "y1": 64.0,
-            "x2": 86.0,
-            "y2": 54.0,
+            "x2": 42.7,
+            "y2": 34.0,
             "order": 2
           },
           {
-            "x1": 86.0,
-            "y1": 54.0,
-            "x2": 86.0,
-            "y2": 34.0
-          },
-          {
-            "x1": 86.0,
+            "x1": 42.7,
             "y1": 34.0,
-            "x2": 68.7,
+            "x2": 60.0,
             "y2": 24.0
           },
           {
-            "x1": 68.7,
-            "y1": 24.0,
-            "x2": 51.4,
-            "y2": 34.0
-          },
-          {
-            "x1": 51.4,
-            "y1": 34.0,
-            "x2": 42.7,
-            "y2": 29.0
-          },
-          {
-            "x1": 51.4,
-            "y1": 34.0,
-            "x2": 51.3,
-            "y2": 54.0
-          }
-        ],
-        "labels": [
-          {
-            "x": 34.0,
-            "y": 69.0,
-            "t": "Cl",
-            "size": 13
-          },
-          {
-            "x": 34.0,
-            "y": 29.0,
-            "t": "Cl",
-            "size": 13
-          }
-        ]
-      },
-      "name": "3,4-dichlorocyclohexene"
-    },
-    "b": {
-      "figure": {
-        "bonds": [
-          {
-            "x1": 34.0,
-            "y1": 59.0,
-            "x2": 42.7,
-            "y2": 54.0
-          },
-          {
-            "x1": 42.7,
-            "y1": 54.0,
-            "x2": 42.7,
-            "y2": 34.0
-          },
-          {
-            "x1": 42.7,
-            "y1": 34.0,
-            "x2": 60.0,
-            "y2": 24.0,
-            "order": 2
-          },
-          {
             "x1": 60.0,
             "y1": 24.0,
             "x2": 77.3,
@@ -12408,12 +12175,6 @@ export const STAGE_AB_VISUALS: Readonly<Record<string, McqVisual>> = {
           {
             "x1": 77.3,
             "y1": 34.0,
-            "x2": 86.0,
-            "y2": 29.0
-          },
-          {
-            "x1": 77.3,
-            "y1": 34.0,
             "x2": 77.3,
             "y2": 54.0
           },
@@ -12421,7 +12182,8 @@ export const STAGE_AB_VISUALS: Readonly<Record<string, McqVisual>> = {
             "x1": 77.3,
             "y1": 54.0,
             "x2": 60.0,
-            "y2": 64.0
+            "y2": 64.0,
+            "order": 2
           },
           {
             "x1": 60.0,
@@ -12429,23 +12191,11 @@ export const STAGE_AB_VISUALS: Readonly<Record<string, McqVisual>> = {
             "x2": 42.7,
             "y2": 54.0
           }
-        ],
-        "labels": [
-          {
-            "x": 25.3,
-            "y": 69.0,
-            "t": "Cl",
-            "size": 13
-          },
-          {
-            "x": 94.7,
-            "y": 29.0,
-            "t": "Cl",
-            "size": 13
-          }
         ]
       },
-      "name": "3,6-dichlorocyclohexene"
+      "leftName": "cyclohexa-1,3-diene",
+      "over": "Cl_2, 1 equiv",
+      "under": "40 degrees"
     }
   },
   "u1-qb-diagram-warm": {
@@ -14462,6 +14212,369 @@ export const STAGE_AB_OPTION_TILES: Readonly<Record<string, Readonly<Record<stri
       "name": "1-bromobut-2-ene"
     }
   },
+  "u1-hx-label-thermo": {
+    "p12": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 25.4,
+            "y1": 57.7,
+            "x2": 42.7,
+            "y2": 47.7
+          },
+          {
+            "x1": 42.7,
+            "y1": 47.7,
+            "x2": 60.0,
+            "y2": 57.7,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 57.7,
+            "x2": 77.3,
+            "y2": 47.6
+          },
+          {
+            "x1": 77.3,
+            "y1": 47.6,
+            "x2": 87.3,
+            "y2": 30.3
+          },
+          {
+            "x1": 77.3,
+            "y1": 47.6,
+            "x2": 94.6,
+            "y2": 57.6
+          },
+          {
+            "x1": 77.3,
+            "y1": 47.6,
+            "x2": 70.8,
+            "y2": 36.4
+          }
+        ],
+        "labels": [
+          {
+            "x": 67.3,
+            "y": 35.3,
+            "t": "Cl",
+            "size": 13
+          }
+        ]
+      },
+      "name": "4-chloro-4-methylpent-2-ene"
+    },
+    "close": {
+      "figure": {
+        "labels": [
+          {
+            "x": 60,
+            "y": 37,
+            "t": "Too close",
+            "size": 13
+          },
+          {
+            "x": 60,
+            "y": 55,
+            "t": "to call",
+            "size": 13
+          }
+        ]
+      },
+      "name": "Too close to call by alkene substitution"
+    },
+    "p14": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 94.6,
+            "y1": 59.1,
+            "x2": 77.3,
+            "y2": 49.0
+          },
+          {
+            "x1": 77.3,
+            "y1": 49.0,
+            "x2": 77.4,
+            "y2": 29.0
+          },
+          {
+            "x1": 77.3,
+            "y1": 49.0,
+            "x2": 60.0,
+            "y2": 59.0,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 59.0,
+            "x2": 42.7,
+            "y2": 48.9
+          },
+          {
+            "x1": 42.7,
+            "y1": 48.9,
+            "x2": 25.4,
+            "y2": 58.9
+          },
+          {
+            "x1": 42.7,
+            "y1": 48.9,
+            "x2": 42.7,
+            "y2": 35.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 42.7,
+            "y": 33.9,
+            "t": "Cl",
+            "size": 13
+          }
+        ]
+      },
+      "name": "4-chloro-2-methylpent-2-ene"
+    }
+  },
+  "u1-hx-too-close": {
+    "p14": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 16.7,
+            "y1": 49.1,
+            "x2": 34.0,
+            "y2": 59.1
+          },
+          {
+            "x1": 34.0,
+            "y1": 59.1,
+            "x2": 51.3,
+            "y2": 49.0
+          },
+          {
+            "x1": 51.3,
+            "y1": 49.0,
+            "x2": 68.7,
+            "y2": 59.0,
+            "order": 2
+          },
+          {
+            "x1": 68.7,
+            "y1": 59.0,
+            "x2": 86.0,
+            "y2": 48.9
+          },
+          {
+            "x1": 86.0,
+            "y1": 48.9,
+            "x2": 103.3,
+            "y2": 58.9
+          },
+          {
+            "x1": 86.0,
+            "y1": 48.9,
+            "x2": 85.9,
+            "y2": 35.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 85.9,
+            "y": 33.9,
+            "t": "Br",
+            "size": 13
+          }
+        ]
+      },
+      "name": "2-bromohex-3-ene"
+    },
+    "close": {
+      "figure": {
+        "labels": [
+          {
+            "x": 60,
+            "y": 37,
+            "t": "Too close",
+            "size": 13
+          },
+          {
+            "x": 60,
+            "y": 55,
+            "t": "to call",
+            "size": 13
+          }
+        ]
+      },
+      "name": "Too close to call by alkene substitution"
+    },
+    "p12": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 16.7,
+            "y1": 59.0,
+            "x2": 34.0,
+            "y2": 49.0
+          },
+          {
+            "x1": 34.0,
+            "y1": 49.0,
+            "x2": 51.3,
+            "y2": 59.0,
+            "order": 2
+          },
+          {
+            "x1": 51.3,
+            "y1": 59.0,
+            "x2": 68.7,
+            "y2": 49.0
+          },
+          {
+            "x1": 68.7,
+            "y1": 49.0,
+            "x2": 68.6,
+            "y2": 35.0
+          },
+          {
+            "x1": 68.7,
+            "y1": 49.0,
+            "x2": 86.0,
+            "y2": 59.0
+          },
+          {
+            "x1": 86.0,
+            "y1": 59.0,
+            "x2": 103.3,
+            "y2": 49.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 68.6,
+            "y": 34.0,
+            "t": "Br",
+            "size": 13
+          }
+        ]
+      },
+      "name": "4-bromohex-2-ene"
+    }
+  },
+  "u1-hx-label-kinetic": {
+    "p12": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 34.0,
+            "y1": 47.7,
+            "x2": 51.3,
+            "y2": 57.7,
+            "order": 2
+          },
+          {
+            "x1": 51.3,
+            "y1": 57.7,
+            "x2": 68.7,
+            "y2": 47.7
+          },
+          {
+            "x1": 68.7,
+            "y1": 47.7,
+            "x2": 78.6,
+            "y2": 30.3
+          },
+          {
+            "x1": 68.7,
+            "y1": 47.7,
+            "x2": 86.0,
+            "y2": 57.6
+          },
+          {
+            "x1": 68.7,
+            "y1": 47.7,
+            "x2": 62.1,
+            "y2": 36.4
+          }
+        ],
+        "labels": [
+          {
+            "x": 58.6,
+            "y": 35.3,
+            "t": "Br",
+            "size": 13
+          }
+        ]
+      },
+      "name": "3-bromo-3-methylbut-1-ene"
+    },
+    "p14": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 94.6,
+            "y1": 59.0,
+            "x2": 77.3,
+            "y2": 49.0
+          },
+          {
+            "x1": 77.3,
+            "y1": 49.0,
+            "x2": 77.3,
+            "y2": 29.0
+          },
+          {
+            "x1": 77.3,
+            "y1": 49.0,
+            "x2": 60.0,
+            "y2": 59.0,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 59.0,
+            "x2": 42.7,
+            "y2": 49.0
+          },
+          {
+            "x1": 42.7,
+            "y1": 49.0,
+            "x2": 34.0,
+            "y2": 54.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 25.4,
+            "y": 64.0,
+            "t": "Br",
+            "size": 13
+          }
+        ]
+      },
+      "name": "1-bromo-3-methylbut-2-ene"
+    },
+    "same": {
+      "figure": {
+        "labels": [
+          {
+            "x": 60,
+            "y": 37,
+            "t": "Same",
+            "size": 13
+          },
+          {
+            "x": 60,
+            "y": 55,
+            "t": "rate",
+            "size": 13
+          }
+        ]
+      },
+      "name": "Neither, they form at the same rate"
+    }
+  },
   "u1-hx-dmb-warm": {
     "p14": {
       "figure": {
@@ -16206,6 +16319,167 @@ export const STAGE_AB_OPTION_TILES: Readonly<Record<string, Readonly<Record<stri
       "name": "3,4-dichloro-2,3-dimethylbut-1-ene"
     }
   },
+  "u1-x2-chd-14": {
+    "same": {
+      "figure": {
+        "labels": [
+          {
+            "x": 60,
+            "y": 37,
+            "t": "Same",
+            "size": 13
+          },
+          {
+            "x": 60,
+            "y": 55,
+            "t": "compound",
+            "size": 13
+          }
+        ]
+      },
+      "name": "They are the same compound"
+    },
+    "a": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 42.7,
+            "y1": 59.0,
+            "x2": 51.3,
+            "y2": 54.0
+          },
+          {
+            "x1": 51.3,
+            "y1": 54.0,
+            "x2": 68.6,
+            "y2": 64.0
+          },
+          {
+            "x1": 68.6,
+            "y1": 64.0,
+            "x2": 86.0,
+            "y2": 54.0,
+            "order": 2
+          },
+          {
+            "x1": 86.0,
+            "y1": 54.0,
+            "x2": 86.0,
+            "y2": 34.0
+          },
+          {
+            "x1": 86.0,
+            "y1": 34.0,
+            "x2": 68.7,
+            "y2": 24.0
+          },
+          {
+            "x1": 68.7,
+            "y1": 24.0,
+            "x2": 51.4,
+            "y2": 34.0
+          },
+          {
+            "x1": 51.4,
+            "y1": 34.0,
+            "x2": 42.7,
+            "y2": 29.0
+          },
+          {
+            "x1": 51.4,
+            "y1": 34.0,
+            "x2": 51.3,
+            "y2": 54.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 34.0,
+            "y": 69.0,
+            "t": "Br",
+            "size": 13
+          },
+          {
+            "x": 34.0,
+            "y": 29.0,
+            "t": "Br",
+            "size": 13
+          }
+        ]
+      },
+      "name": "3,4-dibromocyclohexene"
+    },
+    "b": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 34.0,
+            "y1": 59.0,
+            "x2": 42.7,
+            "y2": 54.0
+          },
+          {
+            "x1": 42.7,
+            "y1": 54.0,
+            "x2": 42.7,
+            "y2": 34.0
+          },
+          {
+            "x1": 42.7,
+            "y1": 34.0,
+            "x2": 60.0,
+            "y2": 24.0,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 24.0,
+            "x2": 77.3,
+            "y2": 34.0
+          },
+          {
+            "x1": 77.3,
+            "y1": 34.0,
+            "x2": 86.0,
+            "y2": 29.0
+          },
+          {
+            "x1": 77.3,
+            "y1": 34.0,
+            "x2": 77.3,
+            "y2": 54.0
+          },
+          {
+            "x1": 77.3,
+            "y1": 54.0,
+            "x2": 60.0,
+            "y2": 64.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 64.0,
+            "x2": 42.7,
+            "y2": 54.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 25.3,
+            "y": 69.0,
+            "t": "Br",
+            "size": 13
+          },
+          {
+            "x": 94.7,
+            "y": 29.0,
+            "t": "Br",
+            "size": 13
+          }
+        ]
+      },
+      "name": "3,6-dibromocyclohexene"
+    }
+  },
   "u1-x2-two-equiv": {
     "p14": {
       "figure": {
@@ -16561,6 +16835,167 @@ export const STAGE_AB_OPTION_TILES: Readonly<Record<string, Readonly<Record<stri
         ]
       },
       "name": "3,4-dibromopent-1-ene"
+    }
+  },
+  "u1-x2-chd-warm": {
+    "b": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 34.0,
+            "y1": 59.0,
+            "x2": 42.7,
+            "y2": 54.0
+          },
+          {
+            "x1": 42.7,
+            "y1": 54.0,
+            "x2": 42.7,
+            "y2": 34.0
+          },
+          {
+            "x1": 42.7,
+            "y1": 34.0,
+            "x2": 60.0,
+            "y2": 24.0,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 24.0,
+            "x2": 77.3,
+            "y2": 34.0
+          },
+          {
+            "x1": 77.3,
+            "y1": 34.0,
+            "x2": 86.0,
+            "y2": 29.0
+          },
+          {
+            "x1": 77.3,
+            "y1": 34.0,
+            "x2": 77.3,
+            "y2": 54.0
+          },
+          {
+            "x1": 77.3,
+            "y1": 54.0,
+            "x2": 60.0,
+            "y2": 64.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 64.0,
+            "x2": 42.7,
+            "y2": 54.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 25.3,
+            "y": 69.0,
+            "t": "Cl",
+            "size": 13
+          },
+          {
+            "x": 94.7,
+            "y": 29.0,
+            "t": "Cl",
+            "size": 13
+          }
+        ]
+      },
+      "name": "3,6-dichlorocyclohexene"
+    },
+    "a": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 42.7,
+            "y1": 59.0,
+            "x2": 51.3,
+            "y2": 54.0
+          },
+          {
+            "x1": 51.3,
+            "y1": 54.0,
+            "x2": 68.6,
+            "y2": 64.0
+          },
+          {
+            "x1": 68.6,
+            "y1": 64.0,
+            "x2": 86.0,
+            "y2": 54.0,
+            "order": 2
+          },
+          {
+            "x1": 86.0,
+            "y1": 54.0,
+            "x2": 86.0,
+            "y2": 34.0
+          },
+          {
+            "x1": 86.0,
+            "y1": 34.0,
+            "x2": 68.7,
+            "y2": 24.0
+          },
+          {
+            "x1": 68.7,
+            "y1": 24.0,
+            "x2": 51.4,
+            "y2": 34.0
+          },
+          {
+            "x1": 51.4,
+            "y1": 34.0,
+            "x2": 42.7,
+            "y2": 29.0
+          },
+          {
+            "x1": 51.4,
+            "y1": 34.0,
+            "x2": 51.3,
+            "y2": 54.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 34.0,
+            "y": 69.0,
+            "t": "Cl",
+            "size": 13
+          },
+          {
+            "x": 34.0,
+            "y": 29.0,
+            "t": "Cl",
+            "size": 13
+          }
+        ]
+      },
+      "name": "3,4-dichlorocyclohexene"
+    },
+    "close": {
+      "figure": {
+        "labels": [
+          {
+            "x": 60,
+            "y": 37,
+            "t": "Too close",
+            "size": 13
+          },
+          {
+            "x": 60,
+            "y": 55,
+            "t": "to call",
+            "size": 13
+          }
+        ]
+      },
+      "name": "Too close to call by alkene substitution"
     }
   },
   "u1-qb-pentadiene": {

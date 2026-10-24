@@ -63,6 +63,13 @@ export interface DrawBeat {
   readonly brief?: string;
   /** What the student starts from: the reactants and the conditions. */
   readonly visual: McqVisual;
+  /**
+   * A SMILES the board opens with, so the item is an edit of a given structure
+   * rather than a drawing from nothing (u1-allylic's first drawing, audit 23 Oct
+   * first-timer #5). The script refuses a start that already grades as the
+   * answer or a named miss. Absent: an empty board.
+   */
+  readonly start?: string;
   readonly answer: DrawAnswer;
   /**
    * Whether wedges and E/Z count. False for most items: the lesson asks for

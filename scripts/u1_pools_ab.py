@@ -883,6 +883,25 @@ def tile_set(table: dict[str, tuple[str, str]]) -> dict:
     return {o: named(s, name) for o, (s, name) in table.items()}
 
 
+def word_tile(name: str, *lines: str) -> dict:
+    """
+    A tile for an option that is a statement, not a molecule ("Too close to
+    call"): its words, set as the picture. ADDED 24 Oct (audit top-25 #21) so a
+    product pick with one such option can still draw its products as tiles,
+    since a tile set is all or nothing per beat (mcqFigures.ts mcqOptionTiles).
+    """
+    size = 13
+    top = 42 - (len(lines) - 1) * 9
+    labels = []
+    for i, text in enumerate(lines):
+        if len(text) * 0.6 * size > W - 8:
+            fail(f"word tile {name}: '{text}' is too wide for the tile")
+        labels.append({"x": W // 2, "y": r1(top + 18 * i + 4), "t": text, "size": size})
+    fig = {"labels": labels}
+    check_bounds(fig, f"word tile {name}")
+    return {"figure": fig, "name": name}
+
+
 def pick(answer: str | None, table: dict[str, tuple[str, str]]) -> str | None:
     return opt_for(answer, {o: s for o, (s, _) in table.items()})
 
@@ -1032,6 +1051,30 @@ def node_allylic() -> None:
         prov("RDKit confirms the two drawings are contributors of one ion with identical atoms and hydrogens", OS_14_2),
         {"kind": "pair", "a": named(a, "contributor 1"), "b": named(b, "contributor 2")},
         level=0, derived="electrons" if ok else None,
+    )
+    # ADDED 24 Oct (audit 23 Oct, first-timer #5): the lesson's drawing asks for
+    # the cation H+ makes on buta-1,3-diene, and nothing before it had asked
+    # which carbon ends up with the +. One tap first, on the same numbered diene.
+    mapped = "[CH2:1]=[CH:2][CH:3]=[CH2:4]"
+    rw = Chem.RWMol(mol(mapped))
+    rw.GetBondBetweenAtoms(atom_index(mapped, 1), atom_index(mapped, 2)).SetBondType(Chem.BondType.SINGLE)
+    rw.GetAtomWithIdx(atom_index(mapped, 2)).SetFormalCharge(1)
+    cation = _finish(rw)
+    first = [a.GetAtomMapNum() for a in mol(cation).GetAtoms() if a.GetFormalCharge() == 1]
+    shared = sorted(mol(cation).GetAtomWithIdx(i).GetAtomMapNum() for i in positions(cation))
+    ok = first == [2] and shared == [2, 4] and same_ion(unmap(cation), diene_addition(BUTADIENE, "H", "Br")["cation"])
+    mcq(
+        node, "u1-allylic-plus-carbon", "H+ adds to C1 of buta-1,3-diene. Pick the carbon that carries the +.",
+        [
+            ("c1", "C1, the carbon the H joined", "C1 used the C1=C2 pi pair to bond the H+. It now has four bonds, three H and C2, so it carries no charge."),
+            ("c2", "C2, next door to C1", "The C1=C2 pi pair went into the new C-H bond, so C2 is left with three bonds and an empty p orbital: the +. The C3=C4 pi bond beside it can share that + with C4."),
+            ("c3", "C3", "C3 keeps its C3=C4 double bond, so it still has four bonds and no charge. The + sits on the carbon that lost its pi pair."),
+        ],
+        "c2",
+        "H+ bonds to C1 with the C1=C2 pi pair, which leaves C2 with three bonds: the +. The C=C beside C2 makes it an allylic cation.",
+        prov("H+ put on C1 of the mapped diene; the charged carbon read off the result, its contributors from ResonanceMolSupplier (C2 and C4), and the cation checked against diene_addition", OS_14_2),
+        scheme_visual(unmap(mapped), "buta-1,3-diene, numbered", "H^+", left_kw={"numbers": {atom_index(mapped, k): str(k) for k in (1, 2, 3, 4)}}),
+        level=0, derived="c2" if ok else None,
     )
 
 
@@ -2403,11 +2446,14 @@ def node_hx() -> None:
     k = dict(concepts=CONCEPT_KVT)
 
     # --- recognise: label a given pair ---------------------------------
+    # CHANGED 24 Oct (audit top-25 #21): the pair was drawn above three named
+    # options; the products are the option tiles now, under a reaction scheme,
+    # so the prompts name the reaction instead of saying "Both form from".
     r = diene_addition(MP2, "H", "Cl")
     n12, n14 = "4-chloro-4-methylpent-2-ene", "4-chloro-2-methylpent-2-ene"
     derived = "p14" if r["thermo"] == r["p14"] and r["thermo"] != r["p12"] else None
     mcq(
-        node, "u1-hx-label-thermo", "Both form from 2-methylpenta-1,3-diene and HCl. Pick the thermodynamic one.",
+        node, "u1-hx-label-thermo", "HCl adds to 2-methylpenta-1,3-diene. Pick the thermodynamic product.",
         [
             ("p12", n12, "This is the 1,2 product, chlorine on the tertiary carbon. Its C=C carries only two carbons, so it is not the more stable one."),
             ("close", "Too close to call by alkene substitution", "The two alkenes differ here: one C=C carries three carbons and the other two. The rule can call it."),
@@ -2415,13 +2461,15 @@ def node_hx() -> None:
         ],
         "p14", "Call the thermodynamic product by alkene substitution: the product whose C=C carries more carbons.",
         prov("both products from diene_addition; alkene substitution 2 against 3; names checked with OPSIN", OS_14_3),
-        {"kind": "pair", "a": iupac(r["p12"], n12, "u1-hx-label-thermo a"), "b": iupac(r["p14"], n14, "u1-hx-label-thermo b")},
+        scheme_visual(MP2, "2-methylpenta-1,3-diene", "HCl"),
+        tiles={"p12": iupac(r["p12"], n12, "u1-hx-label-thermo p12"), "close": word_tile("Too close to call by alkene substitution", "Too close", "to call"),
+               "p14": iupac(r["p14"], n14, "u1-hx-label-thermo p14")},
         level=0, derived=derived, **k,
     )
     r = diene_addition(HEXADIENE, "H", "Br")
     n12, n14 = "4-bromohex-2-ene", "2-bromohex-3-ene"
     mcq(
-        node, "u1-hx-too-close", "Both form from hexa-2,4-diene and HBr. Pick the thermodynamic one.",
+        node, "u1-hx-too-close", "HBr adds to hexa-2,4-diene. Pick the thermodynamic product.",
         [
             ("p14", n14, "Tempting, because 1,4 often wins warm. That is only because it usually has the more substituted C=C, and here both alkenes carry two carbons."),
             ("close", "Too close to call by alkene substitution", "Each product's C=C carries two carbons, so the substitution rule gives no winner."),
@@ -2429,13 +2477,15 @@ def node_hx() -> None:
         ],
         "close", "Decide the thermodynamic product by alkene substitution. Do not assume 1,4 always wins. When the counts tie, the rule cannot call it.",
         prov("both products from diene_addition; alkene substitution 2 against 2; names checked with OPSIN", OS_14_3),
-        {"kind": "pair", "a": iupac(r["p12"], n12, "u1-hx-too-close a"), "b": iupac(r["p14"], n14, "u1-hx-too-close b")},
+        scheme_visual(HEXADIENE, "hexa-2,4-diene", "HBr"),
+        tiles={"p14": iupac(r["p14"], n14, "u1-hx-too-close p14"), "close": word_tile("Too close to call by alkene substitution", "Too close", "to call"),
+               "p12": iupac(r["p12"], n12, "u1-hx-too-close p12")},
         level=2, derived="close" if r["thermo"] is None else None, **k,
     )
     r = diene_addition(ISOPRENE, "H", "Br")
     n12, n14 = "3-bromo-3-methylbut-1-ene", "1-bromo-3-methylbut-2-ene"
     mcq(
-        node, "u1-hx-label-kinetic", "Both form from isoprene and HBr. Pick the kinetic one.",
+        node, "u1-hx-label-kinetic", "HBr adds to isoprene. Pick the kinetic product.",
         [
             ("p12", n12, "Bromide is captured right beside the new C-H, on the carbon that carries most of the charge. That is the fast, 1,2 product."),
             ("p14", n14, "This one has the more substituted C=C, so it is the stable one. Stability is the thermodynamic call, not the kinetic one."),
@@ -2443,7 +2493,9 @@ def node_hx() -> None:
         ],
         "p12", "The kinetic product is the 1,2 product: the nucleophile attacks the charged carbon next to the new C-H.",
         prov("both products from diene_addition; 1,2 carbon tertiary, 1,4 carbon primary; names checked with OPSIN", OS_14_2, OS_14_3),
-        {"kind": "pair", "a": iupac(r["p12"], n12, "u1-hx-label-kinetic a"), "b": iupac(r["p14"], n14, "u1-hx-label-kinetic b")},
+        scheme_visual(ISOPRENE, "isoprene", "HBr"),
+        tiles={"p12": iupac(r["p12"], n12, "u1-hx-label-kinetic p12"), "p14": iupac(r["p14"], n14, "u1-hx-label-kinetic p14"),
+               "same": word_tile("Neither, they form at the same rate", "Same", "rate")},
         level=0, derived="p12" if r["kinetic"] == r["p12"] else None, **k,
     )
 
@@ -2731,7 +2783,9 @@ def node_x2() -> None:
         ],
         "b", "With X2 the first X marks C1, so the 1,2 and 1,4 dihalides are different compounds even on a symmetric diene.",
         prov("1,2 and 1,4 dibromides from diene_addition differ as SMILES; names checked with OPSIN", OS_14_2),
-        {"kind": "pair", "a": iupac(r["p12"], n12, "u1-x2-chd-14 a"), "b": iupac(r["p14"], n14, "u1-x2-chd-14 b")},
+        scheme_visual(CHD, "cyclohexa-1,3-diene", "Br_2, 1 equiv"),
+        tiles={"same": word_tile("They are the same compound", "Same", "compound"),
+               "a": iupac(r["p12"], n12, "u1-x2-chd-14 a"), "b": iupac(r["p14"], n14, "u1-x2-chd-14 b")},
         conditions="one equivalent of Br2", derived="b" if ok else None, **k,
     )
     r = diene_addition(BUTADIENE, "Br", "Br")
@@ -2799,7 +2853,9 @@ def node_x2() -> None:
         ],
         "close", "When the two alkenes are equally substituted, the substitution rule cannot pick the thermodynamic product.",
         prov("both dichlorides from diene_addition; alkene substitution 2 against 2; names checked with OPSIN", OS_14_3),
-        {"kind": "pair", "a": iupac(r["p12"], n12, "u1-x2-chd-warm a"), "b": iupac(r["p14"], n14, "u1-x2-chd-warm b")},
+        scheme_visual(CHD, "cyclohexa-1,3-diene", "Cl_2, 1 equiv", WARM_UNDER),
+        tiles={"b": iupac(r["p14"], n14, "u1-x2-chd-warm b"), "a": iupac(r["p12"], n12, "u1-x2-chd-warm a"),
+               "close": word_tile("Too close to call by alkene substitution", "Too close", "to call")},
         conditions="one equivalent of Cl2; " + WARM, level=2, derived="close" if r["thermo"] is None else None, **k,
     )
 
@@ -3012,6 +3068,7 @@ def draw(
     any_contributor: bool = False,
     misses: list[tuple[str, str | None, str, str]] | None = None,
     keep_place: bool = False,
+    start: str | None = None,
 ) -> None:
     """
     One "Draw it" entry. `misses` (round 2) are (id, SMILES, what it is, coach
@@ -3019,7 +3076,8 @@ def draw(
     built by a derivation in this file and must grade differently from the
     answer and from every other miss (stereo layers dropped, as the browser
     grader does), or the file is refused. `keep_place` appends the entry where
-    an MCQ with the same id used to sit (a converted item) instead of third. `answer` is the derived SMILES (None means the script
+    an MCQ with the same id used to sit (a converted item) instead of third. `start` is a SMILES the board
+    opens with, for an item that edits a given structure instead of drawing from nothing. `answer` is the derived SMILES (None means the script
     could not derive it, which refuses the file). With any_contributor, every
     resonance contributor of the answer must share its InChI, so drawing either
     one is graded right, which is what the prompt then promises.
@@ -3073,6 +3131,10 @@ def draw(
         "why": why,
         "lookAt": look_at,
     }
+    if start is not None:
+        if no_stereo(inchi_of(start)) in graded:
+            fail(f"{id}: the board would open on a structure that already grades as {graded[no_stereo(inchi_of(start))]}")
+        beat["start"] = canon(start)
     if out_misses:
         beat["misses"] = out_misses
     entry = {"id": id, "item": {"kind": "draw", "beat": beat}, "explanation": explanation}
@@ -3134,14 +3196,16 @@ def node_draws() -> None:
     draw(
         "u1-allylic", "u1-allylic-draw-cation",
         "H+ adds to C1 of buta-1,3-diene. Draw the cation that forms.",
-        "Count the bonds on each carbon once the H is on. Either resonance contributor counts.",
-        scheme_visual(BUTADIENE, "buta-1,3-diene", "H^+"),
+        # CHANGED 24 Oct (first-timer #5): the board opens on the diene and the
+        # scheme numbers C1 to C4, so the first drawing of lesson 1 is an edit.
+        "The diene is on the board. Count each carbon's bonds once the H is on. Either contributor counts.",
+        scheme_visual(BUTADIENE, "buta-1,3-diene, numbered", "H^+", left_kw={"numbers": {0: "1", 1: "2", 2: "3", 3: "4"}}),
         r["cation"], "the but-3-en-2-yl cation, an allylic cation",
         "H+ goes on the end carbon, so the + lands on C2, right next to the remaining C=C. That pi bond can shift over and share the charge with C4.",
         "Put the H on C1, then put the + on the carbon next to it. It is allylic, which is why this end gets protonated.",
         "Protonating the end carbon of a diene gives an allylic cation: the charge is shared by C2 and C4.",
         prov("cation from diene_addition, the end-carbon orientation; contributors from ResonanceMolSupplier share one InChI; misses built from the same diene", OS_14_2),
-        concepts=CONCEPT_RES, any_contributor=True,
+        concepts=CONCEPT_RES, any_contributor=True, start=BUTADIENE,
         misses=[
             ("inner", inner_cation(BUTADIENE), "the cation from H+ on C2",
              "That + sits on an end carbon with no C=C beside it, so nothing can share it. The prompt puts the H on C1."),
@@ -3468,6 +3532,33 @@ def build() -> None:
     node_draws()
     node_produce_more()
     check_names()
+    for node in PRACTICE_NODES:
+        POOLS[node] = easiest_first(POOLS[node])
+
+
+def play_level(entry: dict) -> int:
+    """The rung an entry plays at: an MCQ's first graded level (beats/types.ts
+    declaredLevel), and 2 for a ladder, the rung beats/sort/ladders.ts gives its
+    own ladders."""
+    if entry.get("__ladder__"):
+        return 2
+    levels = entry["item"]["beat"]["levels"]
+    return next((level for level in levels if level > 0), levels[0])
+
+
+def easiest_first(entries: list[dict]) -> list[dict]:
+    """
+    ADDED 24 Oct (audit 23 Oct, top-25 #12). An in-a-row run plays its pool in
+    order and clears at three right, so a pool that opened on a ladder, a
+    drawing or a level 2 trick question cleared many students before they met
+    its level 0 "why" questions. Now everything plays lowest rung first, ties in
+    authored order (sorted() is stable). The drawings keep the seats draw()
+    gave them, third or where a converted MCQ sat, so the first tier still
+    reaches one (test/u1Active.test.ts).
+    """
+    seats = {i: e for i, e in enumerate(entries) if not e.get("__ladder__") and e["item"]["kind"] == "draw"}
+    rest = iter(sorted((e for i, e in enumerate(entries) if i not in seats), key=play_level))
+    return [seats[i] if i in seats else next(rest) for i in range(len(entries))]
 
 
 # ---------------------------------------------------------------------------

@@ -41,7 +41,8 @@ import { FIGURE_HEIGHT, FIGURE_WIDTH, type Figure } from "../onboarding/figures"
 // so every stage A and B node now asks for a drawn structure. Two radical MCQs became ladders and four produce MCQs became
 // "Draw it" items, all under their own ids, which changes no size.
 const EXPECTED_SIZES: Readonly<Record<string, number>> = {
-  "u1-allylic": 4,
+  // 5 since 24 Oct: u1-allylic-plus-carbon, the one tap before the cation drawing (audit 23 Oct, first-timer #5).
+  "u1-allylic": 5,
   "u1-rank-cation": 13,
   "u1-rank-anion": 13,
   "u1-rank-radical": 11,
@@ -239,5 +240,41 @@ describe("u1 stage A and B drawings", () => {
         expect(ring.y + ring.r, where).toBeLessThanOrEqual(FIGURE_HEIGHT);
       }
     }
+  });
+});
+
+describe("audit 23 Oct fixes (24 Oct)", () => {
+  // The rung a run plays an entry at: an MCQ's first graded level, 2 for a ladder (scripts/u1_pools_ab.py play_level).
+  const rung = (entry: PoolEntry): number =>
+    entry.item.kind === "sort" ? 2 : entry.item.kind === "mcq" ? (entry.item.beat.levels.find((l) => l > 0) ?? entry.item.beat.levels[0]!) : -1;
+  const RUNS = ["u1-rank-cation", "u1-rank-anion", "u1-rank-radical", "u1-quiz-a", "u1-energy-diagram", "u1-hx-dienes", "u1-quiz-b"];
+
+  it.each(RUNS)("plays %s easiest first, drawings left in their seats (top-25 #12)", (node) => {
+    const pool = STAGE_AB_POOLS[node] ?? [];
+    const rungs = pool.filter((entry) => entry.item.kind !== "draw").map(rung);
+    expect(rungs, node).toEqual([...rungs].sort((a, b) => a - b));
+    expect(pool[2]?.item.kind, node).toBe("draw");
+    expect(pool.slice(0, 2).every((entry) => entry.item.kind === "mcq"), node).toBe(true);
+  });
+
+  it.each(["u1-hx-label-thermo", "u1-hx-too-close", "u1-hx-label-kinetic", "u1-x2-chd-14", "u1-x2-chd-warm"])(
+    "draws the products of %s as option tiles, not names alone (top-25 #21)",
+    (id) => {
+      const beat = mcqs.find((one) => one.id === id)!;
+      expect(Object.keys(STAGE_AB_OPTION_TILES[id] ?? {}).sort()).toEqual(beat.options.map((option) => option.id).sort());
+      expect(STAGE_AB_VISUALS[id]?.kind, id).toBe("scheme");
+    },
+  );
+
+  it("asks which carbon carries the + before the empty-board cation drawing, and opens that board on the diene (first-timer #5)", () => {
+    const ids = (STAGE_AB_POOLS["u1-allylic"] ?? []).map((entry) => entry.id);
+    expect(ids.indexOf("u1-allylic-plus-carbon")).toBeGreaterThanOrEqual(0);
+    expect(ids.indexOf("u1-allylic-plus-carbon")).toBeLessThan(ids.indexOf("u1-allylic-draw-cation"));
+    const tap = mcqs.find((one) => one.id === "u1-allylic-plus-carbon")!;
+    expect(tap.levels).toEqual([0]);
+    expect(tap.correctOptionId).toBe("c2");
+    const draw = (STAGE_AB_POOLS["u1-allylic"] ?? []).find((entry) => entry.id === "u1-allylic-draw-cation")!;
+    expect(draw.item.kind === "draw" ? draw.item.beat.start : undefined).toBe("C=CC=C");
+    expect(JSON.stringify(draw.item.kind === "draw" ? draw.item.beat.visual : null)).toContain("numbered");
   });
 });

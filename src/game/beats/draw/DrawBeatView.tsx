@@ -26,7 +26,10 @@
  * back in the recycle pass (PoolItemsStep.tsx reports it, template.ts queues
  * it); an in-a-row run requeues it on its own.
  *
- * An empty canvas is never a miss: CHECK says "draw something first".
+ * An empty canvas is never a miss. CHECK stays off until the student first
+ * presses on the board (audit 23 Oct, first-timer #5: a first-timer pressed
+ * CHECK on an empty board); a board cleared after that gets "draw something
+ * first". An item with a `start` opens with that structure on the board.
  *
  * The editor is React.lazy (DrawEditor.tsx), so Ketcher downloads only when
  * this screen mounts. Its box has a fixed height, so nothing jumps when it
@@ -108,6 +111,8 @@ export function DrawBeatView({ beat, level, onResult, onContinue }: DrawBeatView
   const [empty, setEmpty] = useState(false);
   // True when the board holds a drawing the editor could not read (CHECK again usually works).
   const [unreadable, setUnreadable] = useState(false);
+  // False until the first press on the board ends, so CHECK cannot fire on a board the student has not touched.
+  const [edited, setEdited] = useState(false);
   // True while the board still holds the exact drawing that last missed.
   const [unchanged, setUnchanged] = useState(false);
   // The graded form (grade.ts) of the drawing that last missed, to spot a re-check with no edit.
@@ -235,6 +240,8 @@ export function DrawBeatView({ beat, level, onResult, onContinue }: DrawBeatView
           <Suspense fallback={<p className="draw-beat__wait" role="status">Loading the drawing board</p>}>
             <DrawEditor
               stereo={beat.stereo}
+              start={beat.start}
+              onEdit={() => setEdited(true)}
               onReady={(next) => {
                 reader.current = next;
                 setPhase((now) => (now === "loading" ? "ready" : now));
@@ -333,7 +340,7 @@ export function DrawBeatView({ beat, level, onResult, onContinue }: DrawBeatView
               Second try. Fix your drawing, then check again.
             </p>
           ) : null}
-          <ChipPress onClick={() => void check()} disabled={phase !== "ready"}>
+          <ChipPress onClick={() => void check()} disabled={phase !== "ready" || !edited}>
             {phase === "loading" ? "Loading" : phase === "checking" ? "Checking" : "Check"}
           </ChipPress>
         </div>
