@@ -152,6 +152,27 @@ Course (business test 2)
   hand afterwards (the site already has an Apps Script syllabus PDF import for the calendar).
 - C2 pKa sheet paste updates the site's pKa values, with visible feedback on what changed.
   DECIDED 23 Oct: a student's own values only.
+  - pka-per-student DONE 24 Oct: Me, Settings, pKa values has a "Paste your sheet" card. A student
+    pastes a table (spreadsheet, CSV, PDF copy with names and values on alternating lines,
+    bullets, Unicode minus, subscripts); each line is matched to a rung by name, formula or
+    parent compound (src/game/settings/pkaAliases.json, every SMILES checked by RDKit in
+    scripts/check_pka_aliases.py; substituted compounds like TFA are never aliases). The card
+    shows Changed (old -> new), Already the same, and Could not use with a reason (unknown name,
+    no rung yet, two values for one rung, a range, a slipped digit), plus "Reset to Blueberry's
+    values". One store commit per paste. Lessons, cards, glossary and the conflict panel already
+    read the student's values; the site's pKa reference deck now shows an overridden rung as
+    "15.7 (yours)" (overrides only, not the preset). Values sync to the account when signed in
+    (src/game/settings/pkaSync.ts, newer side wins, another account's values are stashed, never
+    pushed); until the table exists they stay on the device and the card says so. Payload: no
+    first-open change (everything new is in the lazy settings chunk or a dynamic import; total gz
+    400.1 KB measured with and without this item, the overage coming from other sessions'
+    uncommitted edits in the tree). OWNER: apply
+    supabase/migrations/20261023130000_user_pka_settings.sql. Owner questions: (1) the HX acids,
+    HCN, HN3, carbocations and amides have no rung, so a pasted value for them is reported, not
+    used; add rungs (a curriculum change)? (2) authored prose and feedback that print a pKa as
+    text (lesson copy, the match board, Unit 9's "about 10") still say Blueberry's number; leave,
+    or route them through pkaValueFor? (3) "Reset" clears the student's own changes only and keeps
+    the chosen table (worksheet or textbook); should it also switch back to the worksheet?
 - C3 Problem sets, Khan Academy style: small sets with a celebration each, split a pasted set into
   parts, suggest similar problems from the database.
 - C4 Lesson confidence: a student rates a lesson; "too easy" raises the difficulty. Needs a design.

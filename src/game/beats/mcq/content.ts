@@ -662,12 +662,15 @@ const ACETAL_PROTECTION: readonly McqBeat[] = Object.freeze([
     prompt: "A ketone is hidden as an acetal. Pick the reagent that leaves it alone.",
     brief: "An acetal has no carbonyl left for a nucleophile to attack.",
     diamonds: 5,
-    correctOptionId: "grignard",
+    // The right answer is aqueous base, not a Grignard: u7-grignard and u7-hydride come
+    // after this lesson, so the meet step stays inside what u7-protect itself teaches
+    // (audit 23 Oct, top-25 #18).
+    correctOptionId: "aqueous-base",
     options: [
       {
-        id: "grignard",
-        text: "A Grignard reagent",
-        why: "The acetal carbon carries two single bonded oxygens and no pi bond, so there is nothing for a carbanion to add to. That is the entire point: the ketone becomes invisible to every nucleophile and hydride in the course.",
+        id: "aqueous-base",
+        text: "Aqueous NaOH",
+        why: "Hydroxide has no proton to put on an acetal oxygen, so no oxygen can leave and the acetal carbon, with no pi bond, gives it nothing to add to. That is the point: acetals survive base and come off only in aqueous acid.",
       },
       {
         id: "aqueous-acid",

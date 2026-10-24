@@ -1412,6 +1412,26 @@ def node_protect() -> None:
          "Protection turns the C=O into an acetal ring that nucleophiles and bases ignore.",
          prov("Rule C with ethane-1,2-diol", CH), lead(s, "1-phenylethan-1-one", "acetophenone + diol"), level=0, concepts=PROT)
 
+    # u7-pro-ester and u7-pro-grignard used to sit here. They lean on LiAlH4 on
+    # esters and on Grignard formation, taught later, so they now close
+    # u7-hydride and u7-grignard (audit 23 Oct, top-25 #18): see the
+    # protect_capstone_* functions below.
+    # Two single-step items take their place: put the acetal on (u7-pro-ring, played
+    # before u7-pro-off so the acetal is formed before it is taken off), and see
+    # that base leaves it on (u7-pro-base).
+    ring_s = S["chx"]
+    ring = condense(ring_s, "[*]OCCO[*]")
+    pick(node, "u7-pro-ring", "Cyclohexanone meets ethane-1,2-diol and acid. Pick the protected form.",
+         [("five", ring, "1,4-dioxaspiro[4.5]decane", "1,4-Dioxaspiro[4.5]decane",
+           "Two O and the diol's two CH₂ close a five-membered ring on the old carbonyl carbon."),
+          ("six", "C1CCC2(CC1)OCCCO2", "1,5-dioxaspiro[5.5]undecane", "1,5-Dioxaspiro[5.5]undecane",
+           "A six-membered acetal ring needs three CH₂ between the oxygens, from propane-1,3-diol. This diol has two."),
+          ("hemi", "OCCOC1(O)CCCCC1", "2-[(1-hydroxycyclohexyl)oxy]ethan-1-ol", "Open hemiacetal",
+           "That is the halfway point. The OH is protonated and leaves as water, and the second OH closes the ring.")],
+         [ring], "five",
+         "The diol's chain sets the ring: two carbons between the oxygens make a five-membered acetal.",
+         prov("Rule C with ethane-1,2-diol", CH), lead(ring_s, "cyclohexanone", "cyclohexanone + diol"), concepts=PROT)
+
     back = hydrolyse_acetal(prot)
     pick(node, "u7-pro-off", "2-Methyl-2-phenyl-1,3-dioxolane meets H₃O⁺. Pick the organic product.",
          [("ket", s, "1-phenylethan-1-one", "Acetophenone",
@@ -1425,25 +1445,7 @@ def node_protect() -> None:
          prov("Rule H on the acetal", CH), structure(prot, "2-methyl-2-phenyl-1,3-dioxolane", "protected ketone + H₃O⁺"),
          concepts=PROT)
 
-    # u7-pro-ester and u7-pro-grignard used to sit here. They lean on LiAlH4 on
-    # esters and on Grignard formation, taught later, so they now close
-    # u7-hydride and u7-grignard (audit 23 Oct, top-25 #18): see the
-    # protect_capstone_* functions below.
-    # Two single-step items take their place: put the acetal on, and see that
-    # base leaves it on.
-    s = S["chx"]
-    prot = condense(s, "[*]OCCO[*]")
-    pick(node, "u7-pro-ring", "Cyclohexanone meets ethane-1,2-diol and acid. Pick the protected form.",
-         [("five", prot, "1,4-dioxaspiro[4.5]decane", "1,4-Dioxaspiro[4.5]decane",
-           "Two O and the diol's two CH₂ close a five-membered ring on the old carbonyl carbon."),
-          ("six", "C1CCC2(CC1)OCCCO2", "1,5-dioxaspiro[5.5]undecane", "1,5-Dioxaspiro[5.5]undecane",
-           "A six-membered acetal ring needs three CH₂ between the oxygens, from propane-1,3-diol. This diol has two."),
-          ("hemi", "OCCOC1(O)CCCCC1", "2-[(1-hydroxycyclohexyl)oxy]ethan-1-ol", "Open hemiacetal",
-           "That is the halfway point. The OH is protonated and leaves as water, and the second OH closes the ring.")],
-         [prot], "five",
-         "The diol's chain sets the ring: two carbons between the oxygens make a five-membered acetal.",
-         prov("Rule C with ethane-1,2-diol", CH), lead(s, "cyclohexanone", "cyclohexanone + diol"), concepts=PROT)
-
+    s, prot = ring_s, ring
     got = no_rxn(prot, [])
     pick(node, "u7-pro-base", "1,4-Dioxaspiro[4.5]decane is warmed in aqueous NaOH. Pick what you recover.",
          [("same", prot, "1,4-dioxaspiro[4.5]decane", "The acetal, unchanged",
@@ -2651,7 +2653,8 @@ def node_bv() -> None:
          "OC(=O)C1CCCCC1", "cyclohexanecarboxylic acid", "Cyclohexanecarboxylic acid"),
     ]:
         got = bv(smi)
-        pick(node, id, f"{nm_cap(cap)} meets mCPBA. Pick the main product.",
+        shown = "acetophenone" if smi == S["acph"] else cap  # the name other lessons use
+        pick(node, id, f"{nm_cap(shown)} meets mCPBA. Pick the main product.",
              [("r", got[0] if got else smi, nm1, txt, why_r),
               ("w", other, nm2, txt2, why_w),
               ("k", acid, nm3, txt3, "That loses the methyl carbon, as a haloform reaction would. mCPBA keeps every carbon and inserts one O.")],
@@ -2663,7 +2666,9 @@ def node_bv() -> None:
 
 
 def nm_cap(name: str) -> str:
-    return name[0].upper() + name[1:]
+    """Sentence case for a name that may open with locants: 3,3-dimethyl... -> 3,3-Dimethyl..."""
+    i = next((k for k, ch in enumerate(name) if ch.isalpha()), 0)
+    return name[:i] + name[i].upper() + name[i + 1:]
 
 
 # ---------------------------------------------------------------------------
@@ -2861,10 +2866,10 @@ def node_mpv() -> None:
          prov("Rule R", CH), lead(s, "cyclohexanone", "cyclohexanone + Al(OiPr)₃"), level=0, concepts=RED)
 
     left = [S["chx"], "CC(C)O"]
-    cand = {"acetone": "CC(C)=O", "propene": "C=CC", "water": "O"}
+    cand = {"acetone": "CC(C)=O", "h2": "[H][H]", "water": "O"}
     ask(node, "u7-mpv-byproduct", "Cyclohexanone is reduced by propan-2-ol (MPV). Pick the other product.",
         [("acetone", "Propanone", "Propan-2-ol gives up the H on its carbon and becomes the ketone. Distilling propanone out drives the reaction."),
-         ("propene", "Propene", "That would be a dehydration. MPV transfers a hydride, not water."),
+         ("h2", "Hydrogen gas", "No H₂ is set free. The hydride goes straight from propan-2-ol's carbon to the ketone carbon."),
          ("water", "Water", "No oxygen leaves. Both partners keep theirs.")],
         {k: k for k in cand}, byproduct(left, [reduce_co(S["chx"])], cand), "acetone",
         "MPV swaps oxidation levels: the ketone down, propan-2-ol up.",
@@ -2875,10 +2880,11 @@ def node_mpv() -> None:
     pick(node, "u7-mpv-oppenauer", "Cyclohexanol meets Al(OtBu)₃ and excess propanone (Oppenauer). Pick the product.",
          [("ket", S["chx"], "cyclohexanone", "Cyclohexanone",
            "MPV run backwards: the alcohol gives its C-H hydride to propanone, which is in excess, and becomes the ketone."),
-          ("ene", "C1=CCCCC1", "cyclohexene", "Cyclohexene",
-           "That is dehydration. Oppenauer moves a hydride, not water."),
-          ("same", s, "cyclohexanol", "No reaction",
-           "A big excess of propanone pulls the equilibrium toward the ketone.")],
+          # Two near misses replace a dehydration product and "No reaction" (audit 23 Oct, 2b).
+          ("hemi", "CC(C)(O)OC1CCCCC1", "2-(cyclohexyloxy)propan-2-ol", "Hemiketal",
+           "The alcohol can add to propanone's C=O, but that hemiketal is a reversible dead end. The aluminium passes a hydride instead, and the alcohol carbon becomes C=O."),
+          ("diacid", "OC(=O)CCCCC(=O)O", "hexanedioic acid", "Hexanedioic acid",
+           "That breaks a C-C bond in the ring. Oppenauer only moves a hydride, so it stops at the ketone.")],
          [the_reverse("OC1CCCCC1")], "ket", "Oppenauer is the reverse of MPV, driven by excess propanone.",
          prov("Rule R reversed", CH, "excess propanone drives the equilibrium"), lead(s, "cyclohexanol", "cyclohexanol + propanone, Al(OtBu)₃"),
          concepts=RED, convention="excess propanone drives the equilibrium")
