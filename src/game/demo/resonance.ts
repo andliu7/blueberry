@@ -139,6 +139,78 @@ const ACETATE_A_TO_B: MechanismStep = createStep({
   ],
 });
 
+/* ---------------- the Meisenheimer complex, ring carbon to nitro oxygen ---------------- */
+/* The complex from 1-fluoro-4-nitrobenzene + methoxide, seq-snar's own
+ * species (same atom ids). Form A holds the charge on the ring carbon that
+ * carries NO2 (para to the attacked carbon); form B is seq-snar's
+ * intermediate, the charge on oxygen. Both forms come out of
+ * scripts/u4_pools.py's resonance walk (anion_forms) as
+ * COC1(F)C=C[C-]([N+](=O)[O-])C=C1 and COC1(F)C=CC(=[N+]([O-])[O-])C=C1.
+ * Unit 4's u4-meisenheimer plays it: one push, before seq-snar asks for all
+ * eight arrows at the end of u4-lg-order (audit 23 Oct, top-25 #6). */
+
+function meisenheimerForm(id: string, chargeOn: "ring" | "oxygen") {
+  const ring = chargeOn === "ring";
+  return createSpecies({
+    id,
+    atoms: [
+      createAtom({ id: "c1", element: "C" }),
+      createAtom({ id: "f1", element: "F", lonePairs: 3 }),
+      createAtom({ id: "om", element: "O", lonePairs: 2 }),
+      createAtom({ id: "cm", element: "C", implicitHydrogens: 3 }),
+      createAtom({ id: "c2", element: "C", implicitHydrogens: 1 }),
+      createAtom({ id: "c3", element: "C", implicitHydrogens: 1 }),
+      ring ? createAtom({ id: "c4", element: "C", formalCharge: -1, lonePairs: 1 }) : createAtom({ id: "c4", element: "C" }),
+      createAtom({ id: "c5", element: "C", implicitHydrogens: 1 }),
+      createAtom({ id: "c6", element: "C", implicitHydrogens: 1 }),
+      createAtom({ id: "n1", element: "N", formalCharge: 1 }),
+      createAtom({ id: "on1", element: "O", formalCharge: -1, lonePairs: 3 }),
+      ring ? createAtom({ id: "on2", element: "O", lonePairs: 2 }) : createAtom({ id: "on2", element: "O", formalCharge: -1, lonePairs: 3 }),
+    ],
+    bonds: [
+      createBond({ id: "b-cf", a: "c1", b: "f1" }),
+      createBond({ id: "b-com", a: "c1", b: "om" }),
+      createBond({ id: "b-om", a: "om", b: "cm" }),
+      createBond({ id: "b12", a: "c1", b: "c2" }),
+      createBond({ id: "b23", a: "c2", b: "c3", order: 2 }),
+      createBond({ id: "b34", a: "c3", b: "c4" }),
+      createBond({ id: "b45", a: "c4", b: "c5" }),
+      createBond({ id: "b56", a: "c5", b: "c6", order: 2 }),
+      createBond({ id: "b61", a: "c6", b: "c1" }),
+      createBond({ id: "b-cn", a: "c4", b: "n1", order: ring ? 1 : 2 }),
+      createBond({ id: "b-no1", a: "n1", b: "on1" }),
+      createBond({ id: "b-no2", a: "n1", b: "on2", order: ring ? 2 : 1 }),
+    ],
+  });
+}
+
+/** seq-snar's intermediate layout, so the complex looks the same here as in the full mechanism. */
+const MEISENHEIMER_HINTS: LayoutHints = {
+  om: { x: -0.9, y: 1.75 },
+  cm: { x: -1.85, y: 2.15 },
+  c1: { x: 0.0, y: 1.0 },
+  f1: { x: -1.0, y: 0.55 },
+  c2: { x: 0.87, y: 1.5 },
+  c3: { x: 1.74, y: 1.0 },
+  c4: { x: 1.74, y: 0.0 },
+  c5: { x: 0.87, y: -0.5 },
+  c6: { x: 0.0, y: 0.0 },
+  n1: { x: 2.6, y: -0.5 },
+  on1: { x: 3.5, y: 0.0 },
+  on2: { x: 2.6, y: -1.5 },
+};
+
+const MEISENHEIMER_RING_TO_O: MechanismStep = createStep({
+  id: "res-meisenheimer-ring-to-o",
+  from: createState({ id: "meisenheimer-ring", members: [{ species: meisenheimerForm("sp-meisenheimer-ring", "ring"), role: "substrate" }] }),
+  to: createState({ id: "meisenheimer-oxygen", members: [{ species: meisenheimerForm("sp-meisenheimer-oxygen", "oxygen"), role: "product" }] }),
+  identity: { elementaryStep: "electron_delocalisation", route: "resonance", reactionCenters: ["c4", "on2"] },
+  arrows: [
+    createArrow({ id: "a-lp-to-cn", source: fromLonePair("c4"), sink: toBondBetween("c4", "n1") }),
+    createArrow({ id: "a-no-off", source: fromBond("b-no2"), sink: toAtom("on2") }),
+  ],
+});
+
 export const RESONANCE_HUNT: readonly ResonanceEntry[] = [
   {
     id: "res-allyl-1",
@@ -168,5 +240,16 @@ export const RESONANCE_HUNT: readonly ResonanceEntry[] = [
     step: ACETATE_A_TO_B,
     fromHints: ACETATE_HINTS,
     toHints: ACETATE_HINTS,
+  },
+  {
+    id: "res-meisenheimer",
+    title: "Meisenheimer complex",
+    brief: "Two arrows: the ring's lone pair goes in toward N as an N=O π bond steps off onto oxygen.",
+    foundLine: "The charge left the ring for a nitro oxygen. That oxygen form is why a nitro group ortho or para to the halogen makes SNAr go.",
+    prompt: "Push the ring's negative charge onto a nitro oxygen.",
+    hint: "Start from the lone pair on the carbon that holds NO₂.",
+    step: MEISENHEIMER_RING_TO_O,
+    fromHints: MEISENHEIMER_HINTS,
+    toHints: MEISENHEIMER_HINTS,
   },
 ];

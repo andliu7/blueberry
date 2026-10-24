@@ -1266,84 +1266,84 @@ export const U4_GUIDE_EXAMPLES: Readonly<Record<string, GuideExample>> = {
     "placeholder": true
   },
   "u4-lg-order": {
-    "caption": "F is ortho to NO₂, so its carbon is activated. Br is meta to NO₂ and is not.",
+    "caption": "Br is ortho to NO₂, so its carbon is activated. F is meta to NO₂ and is not.",
     "panels": [
       {
         "kind": "mol",
-        "smiles": "O=[N+]([O-])c1cc(Br)ccc1F",
+        "smiles": "O=[N+]([O-])c1cc(F)ccc1Br",
         "figure": {
-          "w": 130.7,
+          "w": 126.1,
           "h": 98.9,
           "bonds": [
             {
-              "x1": 97.4,
+              "x1": 92.8,
               "y1": 22.5,
-              "x2": 97.4,
+              "x2": 92.8,
               "y2": 28.5,
               "order": 2
             },
             {
-              "x1": 105.2,
+              "x1": 100.5,
               "y1": 42.0,
-              "x2": 110.4,
+              "x2": 105.7,
               "y2": 45.0
             },
             {
-              "x1": 89.6,
+              "x1": 85.0,
               "y1": 42.0,
-              "x2": 76.6,
+              "x2": 72.0,
               "y2": 49.5
             },
             {
-              "x1": 76.6,
+              "x1": 72.0,
               "y1": 49.5,
-              "x2": 55.8,
+              "x2": 51.2,
               "y2": 37.5
             },
             {
-              "x1": 55.8,
+              "x1": 51.2,
               "y1": 37.5,
-              "x2": 35.0,
+              "x2": 30.4,
               "y2": 49.5,
               "order": 2,
               "inner": -1
             },
             {
-              "x1": 35.0,
+              "x1": 30.4,
               "y1": 49.5,
-              "x2": 22.0,
+              "x2": 17.4,
               "y2": 41.9
             },
             {
-              "x1": 35.0,
+              "x1": 30.4,
               "y1": 49.5,
-              "x2": 35.0,
+              "x2": 30.4,
               "y2": 73.5
             },
             {
-              "x1": 35.0,
+              "x1": 30.4,
               "y1": 73.5,
-              "x2": 55.8,
+              "x2": 51.1,
               "y2": 85.5,
               "order": 2,
               "inner": -1
             },
             {
-              "x1": 55.8,
+              "x1": 51.1,
               "y1": 85.5,
-              "x2": 76.6,
+              "x2": 71.9,
               "y2": 73.5
             },
             {
-              "x1": 76.6,
+              "x1": 71.9,
               "y1": 73.5,
-              "x2": 89.5,
+              "x2": 84.9,
               "y2": 81.0
             },
             {
-              "x1": 76.6,
+              "x1": 71.9,
               "y1": 73.5,
-              "x2": 76.6,
+              "x2": 72.0,
               "y2": 49.5,
               "order": 2,
               "inner": -1
@@ -1351,33 +1351,33 @@ export const U4_GUIDE_EXAMPLES: Readonly<Record<string, GuideExample>> = {
           ],
           "labels": [
             {
-              "x": 97.4,
+              "x": 92.8,
               "y": 18.5,
               "t": "O"
             },
             {
-              "x": 97.4,
+              "x": 92.8,
               "y": 42.5,
               "t": "N^+"
             },
             {
-              "x": 118.2,
+              "x": 113.5,
               "y": 54.6,
               "t": "O^−"
             },
             {
-              "x": 14.2,
+              "x": 9.6,
               "y": 42.5,
-              "t": "Br"
+              "t": "F"
             },
             {
-              "x": 97.3,
+              "x": 92.7,
               "y": 90.5,
-              "t": "F"
+              "t": "Br"
             }
           ]
         },
-        "name": "4-bromo-1-fluoro-2-nitrobenzene"
+        "name": "1-bromo-4-fluoro-2-nitrobenzene"
       },
       {
         "kind": "arrow",
@@ -1385,9 +1385,9 @@ export const U4_GUIDE_EXAMPLES: Readonly<Record<string, GuideExample>> = {
       },
       {
         "kind": "mol",
-        "smiles": "COc1ccc(Br)cc1[N+](=O)[O-]",
+        "smiles": "COc1ccc(F)cc1[N+](=O)[O-]",
         "figure": {
-          "w": 126.1,
+          "w": 121.5,
           "h": 110.9,
           "bonds": [
             {
@@ -1481,7 +1481,7 @@ export const U4_GUIDE_EXAMPLES: Readonly<Record<string, GuideExample>> = {
             {
               "x": 111.8,
               "y": 102.6,
-              "t": "Br"
+              "t": "F"
             },
             {
               "x": 70.4,
@@ -1500,7 +1500,7 @@ export const U4_GUIDE_EXAMPLES: Readonly<Record<string, GuideExample>> = {
             }
           ]
         },
-        "name": "4-Bromo-1-methoxy-2-nitrobenzene",
+        "name": "4-Fluoro-1-methoxy-2-nitrobenzene",
         "focus": true
       },
       {

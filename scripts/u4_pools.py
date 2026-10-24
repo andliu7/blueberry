@@ -203,7 +203,8 @@ def figure(smi: str, marks: list[int] | None = None, h_on: list[int] | None = No
     span_x = max(xs) - min(xs) or 1.0
     span_y = max(ys) - min(ys) or 1.0
     lengths = [math.dist(pts[b.GetBeginAtomIdx()], pts[b.GetEndAtomIdx()]) for b in m.GetBonds()]
-    unit = sum(lengths) / len(lengths)
+    # a lone ion (hydroxide, drawn as a reagent-only stem) has no bond to measure
+    unit = sum(lengths) / len(lengths) if lengths else 1.0
     scale = min(20.0 / unit, 84.0 / span_x, 50.0 / span_y)
     cx = (max(xs) + min(xs)) / 2
     cy = (max(ys) + min(ys)) / 2
@@ -384,7 +385,8 @@ def prov(what: str, section: str, convention: str | None = None) -> str:
 def mcq(node: str, id: str, prompt: str, options: list[tuple[str, str, str]], derived: str | None,
         correct: str, explanation: str, provenance: str, visual: dict, tiles: dict | None = None,
         brief: str | None = None, level: int = 1, concepts: tuple[str, ...] = ("ewg_edg_rubric",),
-        convention: str | None = None) -> None:
+        convention: str | None = None, levels: list[int] | None = None) -> None:
+    """`levels` overrides `level` for an item that plays on more than one rung (audit 23 Oct, top-25 #17)."""
     lint_copy(f"{id} prompt", prompt, CAPS["prompt"])
     lint_arith(f"{id} prompt", prompt)
     if brief is not None:
@@ -414,7 +416,7 @@ def mcq(node: str, id: str, prompt: str, options: list[tuple[str, str, str]], de
         fail(f"{id}: two options share an id")
     if correct in ids:
         CORRECT_INDEX.append(ids.index(correct))
-    beat = {"kind": "mcq", "id": id, "node": node, "conceptIds": list(concepts), "levels": [level], "prompt": prompt}
+    beat = {"kind": "mcq", "id": id, "node": node, "conceptIds": list(concepts), "levels": levels or [level], "prompt": prompt}
     if brief is not None:
         beat["brief"] = brief
     beat["correctOptionId"] = correct
@@ -889,7 +891,7 @@ C4 = {
     "pinb": ("Ic1ccc([N+](=O)[O-])cc1", "1-iodo-4-nitrobenzene"),
     "dcnb": ("Clc1ccc([N+](=O)[O-])cc1Cl", "1,2-dichloro-4-nitrobenzene"),
     "cfdnb": ("Clc1cc(F)c([N+](=O)[O-])cc1[N+](=O)[O-]", "1-chloro-5-fluoro-2,4-dinitrobenzene"),
-    "bfnb": ("Fc1ccc(Br)cc1[N+](=O)[O-]", "4-bromo-1-fluoro-2-nitrobenzene"),
+    "bfnb": ("Brc1ccc(F)cc1[N+](=O)[O-]", "1-bromo-4-fluoro-2-nitrobenzene"),
     "pccn": ("N#Cc1ccc(Cl)cc1", "4-chlorobenzonitrile"),
     "pca": ("COc1ccc(Cl)cc1", "1-chloro-4-methoxybenzene"),
     "pct": ("Cc1ccc(Cl)cc1", "1-chloro-4-methylbenzene"),
@@ -913,6 +915,15 @@ def N4(key: str) -> str:
 def nm(smi: str, name: str, caption: str | None = None, **kw) -> dict:
     """A drawn, OPSIN-checked tile."""
     return named(canon(smi), name, caption, **kw)
+
+
+def reagent(smi: str, caption: str) -> dict:
+    """
+    A reagent-only stem for a "pick one of these" item whose options are all
+    drawn: the reagent ion, never a candidate, so the picture above the
+    question is not the answer (audit 23 Oct, top-25 #16).
+    """
+    return structure(smi, "", caption, check=False)
 
 
 SNAR_CONCEPTS = ("ewg_edg_rubric", "resonance_delocalisation")
@@ -970,7 +981,7 @@ def node_snar() -> None:
         inert[0] if len(inert) == 1 else None, "meta",
         "Ortho and para acceptors activate; a meta one does not, because the charge never reaches its carbon.",
         prov("Rule 2: o/p acceptor count at each C-Cl carbon", sec),
-        structure(S4("mcnb"), N4("mcnb"), "nitro chlorobenzenes + NaOH"),
+        reagent("[OH-]", "NaOH"),
         tiles={k: nm(s, N4(k2)) for k, s, k2 in (("meta", cands["meta"], "mcnb"), ("ortho", cands["ortho"], "ocnb"), ("para", cands["para"], "pcnb"), ("di", cands["di"], "cdnb"))},
         concepts=SNAR_CONCEPTS)
 
@@ -1000,12 +1011,12 @@ def node_snar() -> None:
         structure(dcnb, N4("dcnb"), "1,2-dichloro-4-nitrobenzene + NaOCH₃"),
         tiles={"para": nm(opts["para"], "2-chloro-1-methoxy-4-nitrobenzene"), "meta": nm(opts["meta"], "1-chloro-2-methoxy-4-nitrobenzene"),
                "both": nm(opts["both"], "1,2-dimethoxy-4-nitrobenzene")},
-        level=2, concepts=SNAR_CONCEPTS)
+        levels=[1, 2], concepts=SNAR_CONCEPTS)
 
     cands = {"cn": S4("pccn"), "ome": S4("pca"), "me": S4("pct"), "nh2": S4("pcan")}
     act = [k for k, s in cands.items() if snar_sites(s)]
     mcq(node, "u4-snar-acceptor", "Pick the para group that lets the C-Cl carbon react with NaOCH₃.",
-        [("cn", "C≡N", "The nitrile's C≡N can take the ring's negative charge onto nitrogen. That is an acceptor, like NO₂."),
+        [("cn", "C≡N", "The nitrile's C≡N can take the ring's negative charge onto nitrogen, so it counts as an acceptor."),
          ("ome", "OCH₃", "Oxygen's lone pairs push electrons into the ring. That makes an added anion less stable, not more."),
          ("me", "CH₃", "An alkyl group gives a little electron density. It cannot hold a negative charge."),
          ("nh2", "NH₂", "Nitrogen's lone pair feeds the ring, the opposite of what SNAr needs.")],
@@ -1076,14 +1087,15 @@ def node_meisenheimer() -> None:
 
     rels = info["ring"]
     word = {frozenset({"ortho", "para"}): "op", frozenset({"meta"}): "meta", frozenset({"ipso"}): "ipso"}.get(frozenset(rels), "other")
-    mcq(node, "u4-meis-sites", "In that complex, pick where the ring's minus charge can sit.",
+    # Stands alone (audit 23 Oct, top-25 #24): tests shuffle the order, so "that complex" pointed at nothing.
+    mcq(node, "u4-meis-sites", "Methoxide adds at C-Cl of 1-chloro-4-nitrobenzene. Pick where the ring's minus can sit.",
         [("op", "Ortho and para to the attacked carbon", "The pair moves across each C=C in turn: ortho, then para, then the other ortho. Every hop skips one carbon."),
          ("meta", "Meta to the attacked carbon", "The meta carbons sit between charged ones. The walk always jumps over them."),
          ("ipso", "On the attacked carbon itself", "That carbon is sp³, with four bonds and no lone pair. It cannot hold the charge.")],
         word, "op",
         "Like an arenium ion in reverse: the charge sits ortho and para to where the nucleophile added. That is why acceptors must be ortho or para.",
         prov(f"Rule 4 walk: {len(forms)} forms; ring carbons reached, by relation: {sorted(rels)}", sec),
-        structure(pcnb, N4("pcnb"), "attack at the C-Cl carbon"), concepts=MEIS_CONCEPTS)
+        structure(start, "", "the complex from 1-chloro-4-nitrobenzene", check=False), concepts=MEIS_CONCEPTS)
 
     on_o = [f for f, a, mm in info["forms"] if mm.GetAtomWithIdx(a).GetSymbol() == "O"]
     on_c = [(f, a) for f, a, mm in info["forms"] if mm.GetAtomWithIdx(a).GetSymbol() == "C"]
@@ -1100,7 +1112,7 @@ def node_meisenheimer() -> None:
         structure(start, "", "Meisenheimer complex", check=False),
         tiles={"o": named(opts["o"], "", "Form 1", check=False), "para": named(opts["para"], "", "Form 2", check=False),
                "ortho": named(opts["ortho"], "", "Form 3", check=False)},
-        level=2, concepts=MEIS_CONCEPTS)
+        levels=[1, 2], concepts=MEIS_CONCEPTS)
 
     mcnb = S4("mcnb")
     cm, _ = site(mcnb)
@@ -1123,7 +1135,7 @@ def node_meisenheimer() -> None:
         which = "both" if {"Cl", "O"} <= nbs else "other"
     mcq(node, "u4-meis-sp3", "Pick the ring carbon that is sp³ in the Meisenheimer complex.",
         [("both", "The one holding Cl and OCH₃", "It gained a fourth bond to methoxide, so it is tetrahedral until chloride leaves."),
-         ("nitro", "The one holding NO₂", "That carbon keeps three bonds and joins the charge's resonance. It stays sp²."),
+         ("nitro", "The one holding NO₂", "That carbon still has only three atoms attached, and its p orbital stays in the ring's π system that carries the charge. It stays sp²."),
          ("none", "None, the ring stays flat", "One carbon must take a fourth group for the nucleophile to add. The ring is not aromatic while it holds it.")],
         "both" if which == "both" else None, "both",
         "Addition makes one sp³ carbon carrying both the nucleophile and the leaving group.",
@@ -1179,7 +1191,8 @@ def node_lg_order() -> None:
         structure(S4("cdnb"), N4("cdnb"), "1-X-2,4-dinitrobenzenes + NaOCH₃"), tiles=tiles,
         concepts=("ewg_edg_rubric",), convention=LG_CONVENTION)
 
-    mcq(node, "u4-lg-slowest", "Same four substrates, same NaOCH₃. Pick the slowest.",
+    # Stands alone (top-25 #24) and its stem is the reagent, not the keyed iodide (top-25 #16).
+    mcq(node, "u4-lg-slowest", "These 1-X-2,4-dinitrobenzenes react with NaOCH₃ by SNAr. Pick the slowest.",
         [("i", "The iodide", "Iodine is the least electronegative halogen, so the attacked carbon is least positive and addition is slowest."),
          ("f", "The fluoride", "Fluoride is the fastest: its carbon is the most electron poor, and addition is the slow step."),
          ("cl", "The chloride", "Chlorine sits second: slower than F, faster than Br and I."),
@@ -1187,7 +1200,7 @@ def node_lg_order() -> None:
         slowest, "i",
         "The SNAr order runs F > Cl > Br > I, the reverse of SN2.",
         prov("Gasteiger charge on each C-X carbon, lowest wins slowest", sec, LG_CONVENTION),
-        structure(S4("idnb"), N4("idnb"), "the 2,4-dinitro series"),
+        reagent("C[O-]", "NaOCH₃"),
         tiles={k: tiles[k] for k in ("i", "f", "cl", "br")},
         concepts=("ewg_edg_rubric",), convention=LG_CONVENTION)
 
@@ -1229,17 +1242,19 @@ def node_lg_order() -> None:
         pair(nm(S4("pfnb"), N4("pfnb"), "A"), nm(S4("pinb"), N4("pinb"), "B")),
         concepts=("ewg_edg_rubric",), convention=LG_CONVENTION)
 
+    # Halogens swapped (audit 23 Oct, close behind): when the activated halogen was F, "F is fastest"
+    # got it right without reading activation. Now the activated one is Br and F sits meta to NO₂.
     bfnb = S4("bfnb")
-    opts = {"f": "COc1ccc(Br)cc1[N+](=O)[O-]", "br": "COc1ccc(F)c([N+](=O)[O-])c1", "none": bfnb}
-    mcq(node, "u4-lg-bromo-fluoro", "4-Bromo-1-fluoro-2-nitrobenzene meets NaOCH₃. Pick the product.",
-        [("f", "F is replaced", "F is ortho to NO₂, so its carbon is activated. Br is meta to NO₂ and is not."),
-         ("br", "Br is replaced", "Br is the better SN2 leaving group, but its carbon is meta to NO₂, so addition there gets no help."),
-         ("none", "No reaction", "The C-F carbon has an ortho nitro group. That is enough activation.")],
-        key_in(opts, snar(bfnb, "[O]C")), "f",
+    opts = {"br": "COc1ccc(F)cc1[N+](=O)[O-]", "f": "COc1ccc(Br)c([N+](=O)[O-])c1", "none": bfnb}
+    mcq(node, "u4-lg-bromo-fluoro", "1-Bromo-4-fluoro-2-nitrobenzene meets NaOCH₃. Pick the product.",
+        [("br", "Br is replaced", "Br is ortho to NO₂, so its carbon is activated. F is meta to NO₂ and is not."),
+         ("f", "F is replaced", "F is the faster SNAr halogen only when both are activated. This F is meta to NO₂, so addition there gets no help."),
+         ("none", "No reaction", "The C-Br carbon has an ortho nitro group. That is enough activation.")],
+        key_in(opts, snar(bfnb, "[O]C")), "br",
         "Activation first, halogen second: only the halogen ortho or para to the acceptor reacts.",
-        prov("Rule 2: only the C-F carbon has an o/p acceptor", sec),
+        prov("Rule 2: only the C-Br carbon has an o/p acceptor", sec),
         structure(bfnb, N4("bfnb")),
-        tiles={"f": nm(opts["f"], "4-bromo-1-methoxy-2-nitrobenzene"), "br": nm(opts["br"], "1-fluoro-4-methoxy-2-nitrobenzene"),
+        tiles={"br": nm(opts["br"], "4-fluoro-1-methoxy-2-nitrobenzene"), "f": nm(opts["f"], "1-bromo-4-methoxy-2-nitrobenzene"),
                "none": nm(bfnb, N4("bfnb"))},
         concepts=("ewg_edg_rubric",))
 
@@ -1283,7 +1298,7 @@ def node_benzyne() -> None:
         tiles={"right": named(opts["right"], "2-methylcyclohexa-1,3-dien-5-yne", "aryne A"),
                "wrong": named(opts["wrong"], "1-methylcyclohexa-1,3-dien-5-yne", "aryne B"),
                "plain": named(opts["plain"], "cyclohexa-1,3-dien-5-yne", "aryne C")},
-        level=2, concepts=BZ_CONCEPTS)
+        levels=[1, 2], concepts=BZ_CONCEPTS)  # rung 1 too, and authored before u4-bz-pct, so the aryne is found before the mixture (top-25 #17)
 
     T = {"o": "Cc1ccccc1N", "m": "Cc1cccc(N)c1", "p": "Cc1ccc(N)cc1"}
     sets = {"mp": [T["m"], T["p"]], "p": [T["p"]], "m": [T["m"]], "op": [T["o"], T["p"]]}
@@ -1374,7 +1389,8 @@ def node_isotope() -> None:
     ranks = list(Chem.CanonicalRankAtoms(m_ary, breakTies=False))
     trip = [b for b in m_ary.GetBonds() if b.GetBondType() == Chem.BondType.TRIPLE]
     sym = len(trip) == 1 and ranks[trip[0].GetBeginAtomIdx()] == ranks[trip[0].GetEndAtomIdx()]
-    mcq(node, "u4-iso-ratio", "Pick how the label splits between those two carbons.",
+    # Stands alone (top-25 #24): "those two carbons" pointed back at the previous screen.
+    mcq(node, "u4-iso-ratio", "Labelled chlorobenzene and NaNH₂ put ¹⁴C on C-N or beside it. Pick how it splits.",
         [("half", "About half and half", "Without the label the two aryne carbons are identical, so NH₂⁻ adds to each equally often."),
          ("ipso", "Nearly all on the C-NH₂ carbon", "That would mean the nucleophile prefers the old C-Cl end. The aryne's ends are equivalent."),
          ("ortho", "Nearly all beside C-NH₂", "Nothing favours the unlabelled end either. Equal ends give equal amounts.")],
@@ -1445,7 +1461,7 @@ def node_dow() -> None:
     cb = S4("cb")
     opts = {"phenol": "Oc1ccccc1", "chloro": "Oc1ccccc1Cl", "cy": "OC1CCCCC1"}
     mcq(node, "u4-dow-meet", "Chlorobenzene, hot NaOH under pressure, then acid. Pick the product.",
-        [("phenol", "Phenol", "Under forcing conditions hydroxide swaps for chlorine."),
+        [("phenol", "Phenol", "Hydroxide pulls an H beside C-Cl, chloride leaves to make benzyne, then OH⁻ adds."),
          ("chloro", "2-Chlorophenol", "Cl leaves; it does not stay beside the new OH."),
          ("cy", "Cyclohexanol", "Nothing reduces the ring. It stays aromatic.")],
         key_in(opts, outcome(cb, "NaOH")), "phenol",
@@ -1487,7 +1503,7 @@ def node_dow() -> None:
         single[0] if len(single) == 1 else None, "pcnb",
         "An acceptor switches the mechanism to SNAr, and SNAr gives one product.",
         prov("Rule 2 where an o/p acceptor exists, else Rule 3; count products", sec, conv),
-        structure(S4("pcnb"), N4("pcnb"), "aryl halides + hot NaOH"),
+        reagent("[OH-]", "hot NaOH"),
         tiles={"pcnb": nm(S4("pcnb"), N4("pcnb")), "pbt": nm(pbt, N4("pbt")), "mct": nm(S4("mct"), N4("mct"))},
         level=2, concepts=BZ_CONCEPTS, convention=conv)
 
@@ -1521,7 +1537,10 @@ def node_dow() -> None:
 
 
 # ---------------------------------------------------------------------------
-# u4-exam: ladders and a board for the checkpoint (unwired, as Unit 3)
+# u4-exam: ladders and a board for the checkpoint. The activation ladder and the
+# route board play in u4-snar and u4-benzyne since 23 Oct (top-25 #14); the
+# halogen ladder stays unwired, because it grades Cl strictly above Br on a
+# Gasteiger gap the audit doubts (an owner call)
 # ---------------------------------------------------------------------------
 
 def exam_items() -> None:
@@ -1553,7 +1572,8 @@ def exam_items() -> None:
         ("mono", "one NO₂", S4("pcnb"), N4("pcnb"), "One para nitro group: one oxygen form."),
         ("none", "no NO₂", S4("cb"), N4("cb"), "Nothing to take the charge. No SNAr under these conditions."),
     ]
-    ladder("u4-exam", "u4-act-ladder", cards, lambda s: -op_acceptors(s, site(s)[0]),
+    # Wired into u4-snar's lesson, where it fills the order slot (audit 23 Oct, top-25 #14).
+    ladder("u4-snar", "u4-act-ladder", cards, lambda s: -op_acceptors(s, site(s)[0]),
            "Rank by SNAr rate with hydroxide, fastest first.",
            "Count the nitro groups ortho or para to Cl.",
            "ring_activation", ("Fastest", "Slowest"),
@@ -1582,7 +1602,8 @@ def exam_items() -> None:
         ("bz1", "chlorobenzene + NaNH₂", "benzyne, one product", "The aryne's two ends are equivalent, so both give aniline.", describe(S4("cb"), "NaNH2")),
         ("none", "2-bromo-m-xylene + NaNH₂", "no reaction", "No H beside C-Br, so no aryne, and no acceptor for SNAr.", describe(S4("bxyl"), "NaNH2")),
     ]
-    match("u4-exam", "u4-exam-match-route", "Match each reaction to its route and result.",
+    # Wired into u4-benzyne's lesson, where it fills the connect slot (top-25 #14): the one item that asks SNAr vs benzyne vs nothing.
+    match("u4-benzyne", "u4-exam-match-route", "Match each reaction to its route and result.",
           "Look for an o/p acceptor first, then for an H beside the halogen.", pairs,
           "Acceptor present: SNAr. No acceptor, strong base, ortho H: benzyne. Neither: nothing.",
           prov("Rules 2 and 3 applied to each pair", OS_BZ), ("ewg_edg_rubric", "carbanion_stability"))
@@ -1620,11 +1641,11 @@ HEADER = '''/**
  * cannot check (the F > Cl > Br > I rate order, the isotope 50:50, the Dow
  * process through benzyne), the entry's provenance says so.
  *
- * U4_UNWIRED holds the unit's sort ladders and match board under `u4-exam`,
- * which is not a map node. NOTHING PLAYS THEM YET: pool ladders and boards
- * only play in an in-a-row run, Unit 4 has no practice node, and the Unit 4
- * checkpoint is pinned to its derived mix by other suites. Wiring them is an
- * owner decision, listed in the unit's owner report.
+ * The activation ladder (u4-act-ladder) plays in u4-snar's lesson and the
+ * route board (u4-exam-match-route) in u4-benzyne's, since the 23 Oct audit
+ * (top-25 #14). U4_UNWIRED keeps the halogen ladder under `u4-exam`, which is
+ * not a map node, so NOTHING PLAYS IT: it grades Cl strictly above Br on a
+ * Gasteiger gap the audit doubts, and wiring it is an owner decision.
  *
  * Ladders are built with createProblem and createOrderingAnswer exactly as
  * content/u2/pools.ts does; match boards go through buildMatchBoard, the

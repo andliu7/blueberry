@@ -5,9 +5,11 @@
  * content/u1/types.ts (every entry a placeholder, unique ids, an explanation
  * and a provenance on every entry), the easy MCQ authoring rules run
  * unchanged, the exact size of every node, the drawing invariants, and that
- * every node with a pool can actually reach it (a lesson plays its MCQs).
- * The drafted ladders and boards (U4_UNWIRED) are pinned well formed and,
- * honestly, unplayed: no surface reads them until the owner decides where.
+ * every node with a pool can actually reach it (a lesson plays its MCQs, and
+ * its ladder or board on their own steps). Since the 23 Oct audit (top-25
+ * #14) the activation ladder plays in u4-snar and the route board in
+ * u4-benzyne; the halogen ladder left in U4_UNWIRED is pinned well formed
+ * and, honestly, unplayed. The checkpoint plays every spine lesson (#15).
  *
  * WHAT IS NOT. The chemistry. scripts/u4_pools.py derives it (an acceptor
  * test, ring path relations, a Meisenheimer resonance walk, aryne edits and
@@ -20,8 +22,8 @@ import { describe, expect, it } from "vitest";
 import { CONCEPTS } from "@blueberry/curriculum";
 import { mcqAuthoringViolations } from "../beats/mcq/authoring";
 import { figuresOf, mcqOptionTiles, mcqVisualFor } from "../beats/mcq/mcqFigures";
-import { lessonMcqBeats, planLesson } from "../beats/template";
-import { lessonPool, practicePool } from "../beats/practice/pools";
+import { lessonMcqBeats, lessonPoolItems, planLesson } from "../beats/template";
+import { isExamRun, lessonPool, poolHomeOf, practicePool } from "../beats/practice/pools";
 import type { McqBeat } from "../beats/types";
 import { U1_POOLS, mergePools } from "../content/u1";
 import type { PoolEntry } from "../content/u1/types";
@@ -30,17 +32,30 @@ import { checkpointNodeId, pathwayNode } from "../demo/pathwayMap";
 import { FIGURE_HEIGHT, FIGURE_WIDTH, type Figure } from "../onboarding/figures";
 
 /** Six lessons of MCQs: the three SNAr spine nodes and the three benzyne side quests. */
+// u4-snar and u4-benzyne each gained one entry on 23 Oct: the ladder and the board audit top-25 #14 wires in.
 const EXPECTED_SIZES: Readonly<Record<string, number>> = {
-  "u4-snar": 8,
+  "u4-snar": 9,
   "u4-meisenheimer": 7,
   "u4-lg-order": 6,
-  "u4-benzyne": 7,
+  "u4-benzyne": 8,
   "u4-isotope": 6,
   "u4-dow": 6,
 };
 
-/** Nodes whose map link stays the SNAr trainer sequence, kept as it was. Their pools play on the lesson route only. */
-const TRAINER_LINKED = ["u4-snar", "u4-meisenheimer", "u4-lg-order"];
+/**
+ * Nodes whose map link is a trainer surface rather than their own lesson beat (audit 23 Oct, top-25 #6):
+ * u4-meisenheimer pushes the one ring-to-oxygen step, and the full seq-snar is u4-lg-order's capstone only.
+ */
+const TRAINER_LINKED: Readonly<Record<string, { readonly kind: string; readonly id: string }>> = {
+  "u4-meisenheimer": { kind: "resonance", id: "res-meisenheimer" },
+  "u4-lg-order": { kind: "sequence", id: "seq-snar" },
+};
+
+/** The one non-MCQ entry each lesson carries, and the plan step that plays it (top-25 #14). */
+const WIRED: Readonly<Record<string, { readonly id: string; readonly kind: "sort" | "match"; readonly step: string }>> = {
+  "u4-snar": { id: "u4-act-ladder", kind: "sort", step: "poolSort" },
+  "u4-benzyne": { id: "u4-exam-match-route", kind: "match", step: "poolMatch" },
+};
 
 const LESSON_NODES = Object.keys(EXPECTED_SIZES);
 
@@ -89,7 +104,7 @@ describe("u4 draft pools", () => {
     const sizes = Object.fromEntries(Object.entries(U4_POOLS).map(([node, pool]) => [node, pool.length]));
     expect(sizes).toEqual(EXPECTED_SIZES);
     expect(Object.keys(U4_UNWIRED)).toEqual(["u4-exam"]);
-    expect(U4_UNWIRED["u4-exam"]?.length).toBe(3);
+    expect(U4_UNWIRED["u4-exam"]?.length).toBe(1);
   });
 
   it("marks every entry as a placeholder", () => {
@@ -122,10 +137,12 @@ describe("u4 draft pools", () => {
     expect(mcqAuthoringViolations(mcqs)).toEqual([]);
   });
 
-  it("keeps every lesson node to MCQs, with at least one graded question", () => {
+  it("keeps every lesson node to MCQs plus at most its one wired ladder or board, with at least one graded question", () => {
     for (const node of LESSON_NODES) {
       const pool = U4_POOLS[node] ?? [];
-      for (const entry of pool) expect(entry.item.kind, entry.id).toBe("mcq");
+      const wired = WIRED[node];
+      for (const entry of pool) expect(entry.item.kind, entry.id).toBe(entry.id === wired?.id ? wired.kind : "mcq");
+      if (wired !== undefined) expect(pool.some((entry) => entry.id === wired.id), `${node} lost ${wired.id}`).toBe(true);
       const graded = pool.filter((entry) => entry.item.kind === "mcq" && entry.item.beat.levels.some((level) => level > 0));
       expect(graded.length, node).toBeGreaterThan(0);
     }
@@ -166,30 +183,51 @@ describe("u4 pools are reachable", () => {
     for (const node of LESSON_NODES) expect(pathwayNode(node)?.id, node).toBe(node);
   });
 
-  it("plays every lesson pool's MCQs inside that node's lesson", () => {
+  it("plays every lesson pool entry inside that node's lesson: MCQs as quick questions, the ladder or board on its own step", () => {
     for (const node of LESSON_NODES) {
-      const ids = new Set(lessonMcqBeats(node).map((beat) => beat.id));
+      const ids = new Set([
+        ...lessonMcqBeats(node).map((beat) => beat.id),
+        ...lessonPoolItems(node, "sort").map((entry) => entry.id),
+        ...lessonPoolItems(node, "match").map((entry) => entry.id),
+      ]);
       for (const entry of lessonPool(node)) expect(ids.has(entry.id), `${node} drops ${entry.id}`).toBe(true);
       expect(lessonPool(node).length, node).toBe(EXPECTED_SIZES[node]);
       const kinds = (planLesson(node)?.steps ?? []).map((step) => step.beat.kind);
       expect(kinds.includes("mcq") || kinds.includes("meet"), `${node} plan ${kinds.join(",")}`).toBe(true);
+      const wired = WIRED[node];
+      if (wired !== undefined) expect(kinds, `${node} plan ${kinds.join(",")}`).toContain(wired.step);
     }
   });
 
   it("opens the lesson from the map for every node whose link is not a kept trainer", () => {
     for (const node of LESSON_NODES) {
       const link = pathwayNode(node)?.playable;
-      if (TRAINER_LINKED.includes(node)) {
-        expect(link?.kind === "sequence" || link?.kind === "reaction", `${node} lost its trainer link`).toBe(true);
+      const trainer = TRAINER_LINKED[node];
+      if (trainer !== undefined) {
+        expect(link, `${node} lost its trainer link`).toEqual(trainer);
       } else {
         expect(link, node).toEqual({ kind: "beat", id: node });
       }
     }
   });
 
-  it("leaves the Unit 4 checkpoint on its derived mix, so the unwired ladders and boards reach no student yet", () => {
-    expect(practicePool(checkpointNodeId("u4"))).toEqual([]);
-    const played = new Set(LESSON_NODES.flatMap((node) => [...lessonPool(node), ...practicePool(node)].map((entry) => entry.id)));
+  it("plays every spine lesson's graded entries on the Unit 4 checkpoint, interleaved, scored as a whole set", () => {
+    const check = checkpointNodeId("u4");
+    const exam = practicePool(check);
+    const spine = ["u4-snar", "u4-meisenheimer", "u4-lg-order"];
+    const graded = (node: string) =>
+      (U4_POOLS[node] ?? []).filter((entry) => entry.item.kind !== "mcq" || entry.item.beat.levels.some((level) => level > 0));
+    expect(exam.map((entry) => entry.id).sort()).toEqual(spine.flatMap((node) => graded(node).map((entry) => entry.id)).sort());
+    // Interleaved: the first three questions come from the three lessons, in teaching order.
+    expect(exam.slice(0, 3).map((entry) => poolHomeOf(entry.id))).toEqual(spine);
+    expect(isExamRun(check)).toBe(true);
+    expect(planLesson(check)?.steps.map((step) => step.beat.kind)).toEqual(["practice"]);
+  });
+
+  it("keeps the halogen ladder left in U4_UNWIRED away from every student", () => {
+    const played = new Set(
+      [...LESSON_NODES.flatMap((node) => [...lessonPool(node), ...practicePool(node)]), ...practicePool(checkpointNodeId("u4"))].map((entry) => entry.id),
+    );
     for (const entry of U4_UNWIRED["u4-exam"] ?? []) expect(played.has(entry.id), entry.id).toBe(false);
   });
 });

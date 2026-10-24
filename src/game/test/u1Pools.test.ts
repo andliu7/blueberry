@@ -187,7 +187,8 @@ describe("the unit exam on u1-check", () => {
     // CHANGED 2026-10-17 (round 3): back to the exact set the brief asked for. The examBlurb rule above can be
     // satisfied by any lane that writes a blurb, so it cannot catch a stray exam pool; this line can. A lane that
     // adds a unit exam adds its id here, in the open, for the owner to see.
-    expect(withExam).toEqual(["u1", "u2"]);
+    // CHANGED 2026-10-23: Unit 4's check became a unit exam (content audit top-25 #15), added here in the open.
+    expect(withExam).toEqual(["u1", "u2", "u4"]);
     for (const unit of PATHWAY_UNITS) {
       if (withExam.includes(unit.id)) continue;
       expect(practicePool(checkpointNodeId(unit.id)), unit.id).toEqual([]);

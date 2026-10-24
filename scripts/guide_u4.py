@@ -96,9 +96,9 @@ def build() -> dict:
 
     # The reversed leaving group order: activation first, then F before the other halogens.
     ex["u4-lg-order"] = {
-        "caption": "F is ortho to NO₂, so its carbon is activated. Br is meta to NO₂ and is not.",
+        "caption": "Br is ortho to NO₂, so its carbon is activated. F is meta to NO₂ and is not.",
         "panels": [
-            sp("bfnb"), arrow("NaOCH₃"), focus(named(swap("bfnb", OME), "4-Bromo-1-methoxy-2-nitrobenzene", hi=("[CH3]O",))),
+            sp("bfnb"), arrow("NaOCH₃"), focus(named(swap("bfnb", OME), "4-Fluoro-1-methoxy-2-nitrobenzene", hi=("[CH3]O",))),
             BREAK,
             sp("cfdnb"), arrow("NaOCH₃", "1 equiv"), focus(named(swap("cfdnb", OME), "1-Chloro-5-methoxy-2,4-dinitrobenzene", hi=("[CH3]O",))),
         ],

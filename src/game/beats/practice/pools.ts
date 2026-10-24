@@ -44,6 +44,14 @@ const EXAM_SOURCES: Readonly<Record<string, readonly (readonly string[] | string
   [checkpointNodeId("u0")]: U0_EXAM_CHAPTERS.map((node) =>
     U0_EXAM_IDS.filter((id) => (U0_POOLS[node] ?? []).some((entry) => entry.id === id)),
   ),
+  // Unit 4 (audit 23 Oct, top-25 #15): the derived mix took one step per slot, so the check was u4-snar's
+  // questions alone. Now every spine lesson's graded entries, interleaved in teaching order. A first-meeting
+  // (L0 only) question cannot fail, so it stays in its lesson. Side quests stay off, as on every check.
+  [checkpointNodeId("u4")]: ["u4-snar", "u4-meisenheimer", "u4-lg-order"].map((node) =>
+    (U4_POOLS[node] ?? [])
+      .filter((entry) => entry.item.kind !== "mcq" || entry.item.beat.levels.some((level) => level > 0))
+      .map((entry) => entry.id),
+  ),
 });
 
 /** Every unit's pools in one table. Node ids carry their unit prefix, so keys cannot collide. */
@@ -98,7 +106,8 @@ export function practicePool(nodeId: string, pools: UnitPools = ALL_POOLS): read
 // Unit 0's test out quiz plays as the whole set too, so it cannot pass on three lucky answers (2026-10-17).
 // Unit 1's exam joined 2026-10-23 (content audit top-25 #2, owner delegated the call): in a row, it passed
 // on its first three answers, one per stage, and never reached Diels-Alder stereo or MO.
-const EXAM_RUNS: ReadonlySet<string> = new Set([checkpointNodeId("u2"), checkpointNodeId("u0"), checkpointNodeId("u1")]);
+// Unit 4's joined with its EXAM_SOURCES row (top-25 #15), so it is scored as a whole set like Unit 2's.
+const EXAM_RUNS: ReadonlySet<string> = new Set([checkpointNodeId("u2"), checkpointNodeId("u0"), checkpointNodeId("u1"), checkpointNodeId("u4")]);
 
 export function isExamRun(nodeId: string): boolean {
   return EXAM_RUNS.has(nodeId);

@@ -131,7 +131,7 @@ const STAGES: readonly GuideStage[] = [
             quote: "Equal activation, so the halogen order decides: F goes first.",
           },
         ],
-        example: { source: "u4-lg-bromo-fluoro", quote: "F is ortho to NO₂, so its carbon is activated. Br is meta to NO₂ and is not." },
+        example: { source: "u4-lg-bromo-fluoro", quote: "Br is ortho to NO₂, so its carbon is activated. F is meta to NO₂ and is not." },
       },
     ],
     mistakes: [

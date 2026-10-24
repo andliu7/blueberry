@@ -236,9 +236,14 @@ export const PATHWAY_UNITS: readonly PathwayUnit[] = [
     id: "u4",
     title: "Unit 4 · Nucleophilic Aromatic Substitution & Benzyne",
     note: "Short unit: aromatic reactivity inverts.",
+    // Audit 23 Oct, top-25 #15: the check plays every spine lesson as one exam (beats/practice/pools.ts EXAM_SOURCES).
+    examBlurb: "The unit exam: every question once, SNAr, the Meisenheimer complex and the leaving-group order in turn. 80% right first time passes it.",
     nodes: [
-      { id: "u4-snar", kind: "spine", title: "SNAr addition–elimination", blurb: "Aryl halide with o/p EWG + a nucleophile.", playable: { kind: "sequence", id: "seq-snar" } },
-      { id: "u4-meisenheimer", kind: "spine", title: "Meisenheimer complex", blurb: "Drawing the charge onto the nitro oxygen is the exam question.", playable: { kind: "sequence", id: "seq-snar" } },
+      // Audit 23 Oct, top-25 #6: the full 8-arrow seq-snar played at the end of all three lessons, the first time
+      // before u4-meisenheimer taught where the charge goes. Now u4-snar is its lesson alone, u4-meisenheimer
+      // pushes the one ring-to-oxygen step (res-meisenheimer), and seq-snar is u4-lg-order's capstone.
+      { id: "u4-snar", kind: "spine", title: "SNAr addition–elimination", blurb: "Aryl halide with o/p EWG + a nucleophile.", playable: { kind: "beat", id: "u4-snar" } },
+      { id: "u4-meisenheimer", kind: "spine", title: "Meisenheimer complex", blurb: "Drawing the charge onto the nitro oxygen is the exam question.", playable: { kind: "resonance", id: "res-meisenheimer" } },
       { id: "u4-lg-order", kind: "spine", title: "Reversed leaving-group order", blurb: "F > Cl > Br > I: addition is rate-determining.", playable: { kind: "sequence", id: "seq-snar" } },
       // Unit 4 side quests with a DRAFT pool (scripts/u4_pools.py): each plays its lesson on the beat route.
       { id: "u4-benzyne", kind: "branch", title: "Benzyne elimination–addition", blurb: "NaNH₂/NH₃; symmetric addition gives a mixture.", playable: { kind: "beat", id: "u4-benzyne" } },
@@ -626,9 +631,9 @@ export function pathwayNode(id: string): PathwayNode | null {
  * spaces and nothing stops a reaction and a sequence from sharing a name.
  *
  * FIRST MATCH IN TEACHING ORDER, and that is a real decision rather than an
- * accident of the loop: ten of the map's playables are shared by two or three
- * nodes (wolff-extrusion on u3-c-to-ch2 and u7-to-ch2, seq-snar on three Unit 4
- * nodes, and eight more), because the same mechanism is genuinely taught twice.
+ * accident of the loop: several of the map's playables are shared by two
+ * nodes (wolff-extrusion on u3-c-to-ch2 and u7-to-ch2, for one), because the
+ * same mechanism is genuinely taught twice.
  * The link cannot say which of them was pressed. Every member of every one of
  * those groups is a spine node, so the economy kind and the spine bonus are the
  * same whichever is chosen and only WHICH node turns green differs; the earlier

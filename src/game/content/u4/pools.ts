@@ -12,11 +12,11 @@
  * cannot check (the F > Cl > Br > I rate order, the isotope 50:50, the Dow
  * process through benzyne), the entry's provenance says so.
  *
- * U4_UNWIRED holds the unit's sort ladders and match board under `u4-exam`,
- * which is not a map node. NOTHING PLAYS THEM YET: pool ladders and boards
- * only play in an in-a-row run, Unit 4 has no practice node, and the Unit 4
- * checkpoint is pinned to its derived mix by other suites. Wiring them is an
- * owner decision, listed in the unit's owner report.
+ * The activation ladder (u4-act-ladder) plays in u4-snar's lesson and the
+ * route board (u4-exam-match-route) in u4-benzyne's, since the 23 Oct audit
+ * (top-25 #14). U4_UNWIRED keeps the halogen ladder under `u4-exam`, which is
+ * not a map node, so NOTHING PLAYS IT: it grades Cl strictly above Br on a
+ * Gasteiger gap the audit doubts, and wiring it is an owner decision.
  *
  * Ladders are built with createProblem and createOrderingAnswer exactly as
  * content/u2/pools.ts does; match boards go through buildMatchBoard, the
@@ -326,6 +326,7 @@ export const U4_POOLS: UnitPools = {
             "resonance_delocalisation"
           ],
           "levels": [
+            1,
             2
           ],
           "prompt": "One equivalent of NaOCH₃ meets 1,2-dichloro-4-nitrobenzene. Pick the product.",
@@ -374,7 +375,7 @@ export const U4_POOLS: UnitPools = {
             {
               "id": "cn",
               "text": "C≡N",
-              "why": "The nitrile's C≡N can take the ring's negative charge onto nitrogen. That is an acceptor, like NO₂."
+              "why": "The nitrile's C≡N can take the ring's negative charge onto nitrogen, so it counts as an acceptor."
             },
             {
               "id": "ome",
@@ -478,6 +479,108 @@ export const U4_POOLS: UnitPools = {
       "provenance": "scripts/u4_pools.py: Rule 2: Cl carbon has a para acceptor; Cl swapped for OH. Conditions as given in OpenStax 16.6. OpenStax Organic Chemistry 16.6 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
+    ladder({
+      "id": "u4-act-ladder",
+      "node": "u4-snar",
+      "problemId": "u4-pool-u4-act-ladder",
+      "topic": "nucleophilic_aromatic_substitution",
+      "difficulty": 1100,
+      "problemPrompt": "Rank chloro-trinitro, chloro-dinitro, chloro-nitro benzene and chlorobenzene by SNAr rate, fastest first.",
+      "criterionText": "fastest",
+      "items": [
+        {
+          "id": "tri",
+          "text": "three NO₂"
+        },
+        {
+          "id": "di",
+          "text": "two NO₂"
+        },
+        {
+          "id": "mono",
+          "text": "one NO₂"
+        },
+        {
+          "id": "none",
+          "text": "no NO₂"
+        }
+      ],
+      "order": [
+        "tri",
+        "di",
+        "mono",
+        "none"
+      ],
+      "solution": {
+        "whatHappened": "Trinitro, dinitro, nitro, chlorobenzene.",
+        "why": "Each o/p nitro group gives the Meisenheimer complex one more place to hold the charge.",
+        "lookAt": "Count the nitro groups ortho or para to the C-Cl carbon."
+      },
+      "distractors": [
+        {
+          "id": "reversed",
+          "cause": "ordering_is_reversed",
+          "order": [
+            "none",
+            "mono",
+            "di",
+            "tri"
+          ],
+          "explanation": {
+            "whatHappened": "The right ladder read from the slow end.",
+            "why": "More acceptors make the anion more stable and the reaction faster.",
+            "lookAt": "Put the most nitrated ring first."
+          }
+        },
+        {
+          "id": "di-up",
+          "cause": "ordering_one_adjacent_pair_swapped",
+          "order": [
+            "di",
+            "tri",
+            "mono",
+            "none"
+          ],
+          "explanation": {
+            "whatHappened": "Dinitro is placed above trinitro.",
+            "why": "The third nitro group adds another oxygen form.",
+            "lookAt": "Count o/p nitro groups on each."
+          }
+        }
+      ],
+      "beat": {
+        "conceptIds": [
+          "ewg_edg_rubric",
+          "resonance_delocalisation"
+        ],
+        "prompt": "Rank by SNAr rate with hydroxide, fastest first.",
+        "brief": "Count the nitro groups ortho or para to Cl.",
+        "criterion": "ring_activation",
+        "direction": "descending",
+        "notes": {
+          "tri": "Two ortho and one para nitro group: three oxygen forms for the anion.",
+          "di": "One ortho, one para: two oxygen forms.",
+          "mono": "One para nitro group: one oxygen form.",
+          "none": "Nothing to take the charge. No SNAr under these conditions."
+        }
+      },
+      "trackEnds": {
+        "first": "Fastest",
+        "last": "Slowest"
+      },
+      "meanings": [
+        {
+          "id": "reversed",
+          "cause": "order_fully_reversed"
+        },
+        {
+          "id": "di-up",
+          "cause": "order_adjacent_pair_swapped"
+        }
+      ],
+      "explanation": "Each ortho or para acceptor speeds SNAr.",
+      "provenance": "scripts/u4_pools.py: Rule 2: o/p acceptor count at the C-Cl carbon orders the ladder. OpenStax Organic Chemistry 16.6 (CC BY-NC-SA), read as a check only. Rests on an authored convention: rate rises with the count of o/p acceptors."
+    }),
   ],
   "u4-meisenheimer": [
     {
@@ -535,7 +638,7 @@ export const U4_POOLS: UnitPools = {
           "levels": [
             1
           ],
-          "prompt": "In that complex, pick where the ring's minus charge can sit.",
+          "prompt": "Methoxide adds at C-Cl of 1-chloro-4-nitrobenzene. Pick where the ring's minus can sit.",
           "correctOptionId": "op",
           "options": [
             {
@@ -573,6 +676,7 @@ export const U4_POOLS: UnitPools = {
             "carbanion_stability"
           ],
           "levels": [
+            1,
             2
           ],
           "prompt": "Pick the resonance form that puts the charge on a nitro oxygen.",
@@ -661,7 +765,7 @@ export const U4_POOLS: UnitPools = {
             {
               "id": "nitro",
               "text": "The one holding NO₂",
-              "why": "That carbon keeps three bonds and joins the charge's resonance. It stays sp²."
+              "why": "That carbon still has only three atoms attached, and its p orbital stays in the ring's π system that carries the charge. It stays sp²."
             },
             {
               "id": "none",
@@ -819,7 +923,7 @@ export const U4_POOLS: UnitPools = {
           "levels": [
             1
           ],
-          "prompt": "Same four substrates, same NaOCH₃. Pick the slowest.",
+          "prompt": "These 1-X-2,4-dinitrobenzenes react with NaOCH₃ by SNAr. Pick the slowest.",
           "correctOptionId": "i",
           "options": [
             {
@@ -980,29 +1084,29 @@ export const U4_POOLS: UnitPools = {
           "levels": [
             1
           ],
-          "prompt": "4-Bromo-1-fluoro-2-nitrobenzene meets NaOCH₃. Pick the product.",
-          "correctOptionId": "f",
+          "prompt": "1-Bromo-4-fluoro-2-nitrobenzene meets NaOCH₃. Pick the product.",
+          "correctOptionId": "br",
           "options": [
             {
               "id": "none",
               "text": "No reaction",
-              "why": "The C-F carbon has an ortho nitro group. That is enough activation."
-            },
-            {
-              "id": "f",
-              "text": "F is replaced",
-              "why": "F is ortho to NO₂, so its carbon is activated. Br is meta to NO₂ and is not."
+              "why": "The C-Br carbon has an ortho nitro group. That is enough activation."
             },
             {
               "id": "br",
               "text": "Br is replaced",
-              "why": "Br is the better SN2 leaving group, but its carbon is meta to NO₂, so addition there gets no help."
+              "why": "Br is ortho to NO₂, so its carbon is activated. F is meta to NO₂ and is not."
+            },
+            {
+              "id": "f",
+              "text": "F is replaced",
+              "why": "F is the faster SNAr halogen only when both are activated. This F is meta to NO₂, so addition there gets no help."
             }
           ]
         }
       },
       "explanation": "Activation first, halogen second: only the halogen ortho or para to the acceptor reacts.",
-      "provenance": "scripts/u4_pools.py: Rule 2: only the C-F carbon has an o/p acceptor. OpenStax Organic Chemistry 16.6 (CC BY-NC-SA), read as a check only.",
+      "provenance": "scripts/u4_pools.py: Rule 2: only the C-Br carbon has an o/p acceptor. OpenStax Organic Chemistry 16.6 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
   ],
@@ -1058,6 +1162,7 @@ export const U4_POOLS: UnitPools = {
             "carbanion_stability"
           ],
           "levels": [
+            1,
             2
           ],
           "prompt": "1-Chloro-4-methylbenzene meets NaNH₂. Pick the aryne it forms.",
@@ -1285,6 +1390,52 @@ export const U4_POOLS: UnitPools = {
       "provenance": "scripts/u4_pools.py: Rules 2 and 3: no o/p acceptor; methoxide is not counted as a benzyne base. OpenStax Organic Chemistry 16.7 (CC BY-NC-SA), read as a check only. Rests on an authored convention: methoxide under mild conditions does not make benzyne.",
       "placeholder": true
     },
+    match({
+      "beat": {
+        "kind": "match",
+        "id": "u4-exam-match-route",
+        "node": "u4-benzyne",
+        "conceptIds": [
+          "ewg_edg_rubric",
+          "carbanion_stability"
+        ],
+        "levels": [
+          1,
+          2
+        ],
+        "presentation": "columns",
+        "prompt": "Match each reaction to its route and result.",
+        "brief": "Look for an o/p acceptor first, then for an H beside the halogen.",
+        "pairs": [
+          {
+            "id": "snar",
+            "left": "1-chloro-4-nitrobenzene + NaOCH₃",
+            "right": "SNAr, one product",
+            "why": "The para nitro group activates the C-Cl carbon; methoxide swaps in there."
+          },
+          {
+            "id": "bz2",
+            "left": "4-chlorotoluene + NaNH₂",
+            "right": "benzyne, 2 products",
+            "why": "No acceptor; amide makes the aryne, and NH₂ adds to either end."
+          },
+          {
+            "id": "bz1",
+            "left": "chlorobenzene + NaNH₂",
+            "right": "benzyne, one product",
+            "why": "The aryne's two ends are equivalent, so both give aniline."
+          },
+          {
+            "id": "none",
+            "left": "2-bromo-m-xylene + NaNH₂",
+            "right": "no reaction",
+            "why": "No H beside C-Br, so no aryne, and no acceptor for SNAr."
+          }
+        ]
+      },
+      "explanation": "Acceptor present: SNAr. No acceptor, strong base, ortho H: benzyne. Neither: nothing.",
+      "provenance": "scripts/u4_pools.py: Rules 2 and 3 applied to each pair. OpenStax Organic Chemistry 16.7 (CC BY-NC-SA), read as a check only."
+    }),
   ],
   "u4-isotope": [
     {
@@ -1340,7 +1491,7 @@ export const U4_POOLS: UnitPools = {
           "levels": [
             1
           ],
-          "prompt": "Pick how the label splits between those two carbons.",
+          "prompt": "Labelled chlorobenzene and NaNH₂ put ¹⁴C on C-N or beside it. Pick how it splits.",
           "correctOptionId": "half",
           "options": [
             {
@@ -1548,7 +1699,7 @@ export const U4_POOLS: UnitPools = {
             {
               "id": "phenol",
               "text": "Phenol",
-              "why": "Under forcing conditions hydroxide swaps for chlorine."
+              "why": "Hydroxide pulls an H beside C-Cl, chloride leaves to make benzyne, then OH⁻ adds."
             },
             {
               "id": "chloro",
@@ -1864,154 +2015,6 @@ export const U4_UNWIRED: UnitPools = {
       "explanation": "SNAr rate follows halogen electronegativity: F > Cl > Br > I.",
       "provenance": "scripts/u4_pools.py: Gasteiger charge on each C-X carbon orders the ladder. OpenStax Organic Chemistry 16.6 (CC BY-NC-SA), read as a check only. Rests on an authored convention: the SNAr rate order F > Cl > Br > I (addition is rate determining); the Gasteiger charge on the C-X carbon is the computed proxy that orders it."
     }),
-    ladder({
-      "id": "u4-act-ladder",
-      "node": "u4-exam",
-      "problemId": "u4-pool-u4-act-ladder",
-      "topic": "nucleophilic_aromatic_substitution",
-      "difficulty": 1100,
-      "problemPrompt": "Rank chloro-trinitro, chloro-dinitro, chloro-nitro benzene and chlorobenzene by SNAr rate, fastest first.",
-      "criterionText": "fastest",
-      "items": [
-        {
-          "id": "tri",
-          "text": "three NO₂"
-        },
-        {
-          "id": "di",
-          "text": "two NO₂"
-        },
-        {
-          "id": "mono",
-          "text": "one NO₂"
-        },
-        {
-          "id": "none",
-          "text": "no NO₂"
-        }
-      ],
-      "order": [
-        "tri",
-        "di",
-        "mono",
-        "none"
-      ],
-      "solution": {
-        "whatHappened": "Trinitro, dinitro, nitro, chlorobenzene.",
-        "why": "Each o/p nitro group gives the Meisenheimer complex one more place to hold the charge.",
-        "lookAt": "Count the nitro groups ortho or para to the C-Cl carbon."
-      },
-      "distractors": [
-        {
-          "id": "reversed",
-          "cause": "ordering_is_reversed",
-          "order": [
-            "none",
-            "mono",
-            "di",
-            "tri"
-          ],
-          "explanation": {
-            "whatHappened": "The right ladder read from the slow end.",
-            "why": "More acceptors make the anion more stable and the reaction faster.",
-            "lookAt": "Put the most nitrated ring first."
-          }
-        },
-        {
-          "id": "di-up",
-          "cause": "ordering_one_adjacent_pair_swapped",
-          "order": [
-            "di",
-            "tri",
-            "mono",
-            "none"
-          ],
-          "explanation": {
-            "whatHappened": "Dinitro is placed above trinitro.",
-            "why": "The third nitro group adds another oxygen form.",
-            "lookAt": "Count o/p nitro groups on each."
-          }
-        }
-      ],
-      "beat": {
-        "conceptIds": [
-          "ewg_edg_rubric",
-          "resonance_delocalisation"
-        ],
-        "prompt": "Rank by SNAr rate with hydroxide, fastest first.",
-        "brief": "Count the nitro groups ortho or para to Cl.",
-        "criterion": "ring_activation",
-        "direction": "descending",
-        "notes": {
-          "tri": "Two ortho and one para nitro group: three oxygen forms for the anion.",
-          "di": "One ortho, one para: two oxygen forms.",
-          "mono": "One para nitro group: one oxygen form.",
-          "none": "Nothing to take the charge. No SNAr under these conditions."
-        }
-      },
-      "trackEnds": {
-        "first": "Fastest",
-        "last": "Slowest"
-      },
-      "meanings": [
-        {
-          "id": "reversed",
-          "cause": "order_fully_reversed"
-        },
-        {
-          "id": "di-up",
-          "cause": "order_adjacent_pair_swapped"
-        }
-      ],
-      "explanation": "Each ortho or para acceptor speeds SNAr.",
-      "provenance": "scripts/u4_pools.py: Rule 2: o/p acceptor count at the C-Cl carbon orders the ladder. OpenStax Organic Chemistry 16.6 (CC BY-NC-SA), read as a check only. Rests on an authored convention: rate rises with the count of o/p acceptors."
-    }),
-    match({
-      "beat": {
-        "kind": "match",
-        "id": "u4-exam-match-route",
-        "node": "u4-exam",
-        "conceptIds": [
-          "ewg_edg_rubric",
-          "carbanion_stability"
-        ],
-        "levels": [
-          1,
-          2
-        ],
-        "presentation": "columns",
-        "prompt": "Match each reaction to its route and result.",
-        "brief": "Look for an o/p acceptor first, then for an H beside the halogen.",
-        "pairs": [
-          {
-            "id": "snar",
-            "left": "1-chloro-4-nitrobenzene + NaOCH₃",
-            "right": "SNAr, one product",
-            "why": "The para nitro group activates the C-Cl carbon; methoxide swaps in there."
-          },
-          {
-            "id": "bz2",
-            "left": "4-chlorotoluene + NaNH₂",
-            "right": "benzyne, 2 products",
-            "why": "No acceptor; amide makes the aryne, and NH₂ adds to either end."
-          },
-          {
-            "id": "bz1",
-            "left": "chlorobenzene + NaNH₂",
-            "right": "benzyne, one product",
-            "why": "The aryne's two ends are equivalent, so both give aniline."
-          },
-          {
-            "id": "none",
-            "left": "2-bromo-m-xylene + NaNH₂",
-            "right": "no reaction",
-            "why": "No H beside C-Br, so no aryne, and no acceptor for SNAr."
-          }
-        ]
-      },
-      "explanation": "Acceptor present: SNAr. No acceptor, strong base, ortho H: benzyne. Neither: nothing.",
-      "provenance": "scripts/u4_pools.py: Rules 2 and 3 applied to each pair. OpenStax Organic Chemistry 16.7 (CC BY-NC-SA), read as a check only."
-    }),
   ],
 };
 
@@ -2168,76 +2171,23 @@ export const U4_VISUALS: Readonly<Record<string, McqVisual>> = {
   "u4-snar-meta-out": {
     "kind": "structure",
     "figure": {
-      "bonds": [
-        {
-          "x1": 70.8,
-          "y1": 25.0,
-          "x2": 70.8,
-          "y2": 31.5
-        },
-        {
-          "x1": 70.8,
-          "y1": 31.5,
-          "x2": 81.7,
-          "y2": 37.8
-        },
-        {
-          "x1": 81.7,
-          "y1": 37.8,
-          "x2": 81.7,
-          "y2": 50.3,
-          "order": 2
-        },
-        {
-          "x1": 81.7,
-          "y1": 50.3,
-          "x2": 70.8,
-          "y2": 56.5
-        },
-        {
-          "x1": 70.8,
-          "y1": 56.5,
-          "x2": 60.0,
-          "y2": 50.3,
-          "order": 2
-        },
-        {
-          "x1": 60.0,
-          "y1": 50.3,
-          "x2": 54.4,
-          "y2": 53.5
-        },
-        {
-          "x1": 60.0,
-          "y1": 50.3,
-          "x2": 60.0,
-          "y2": 37.7
-        },
-        {
-          "x1": 60.0,
-          "y1": 37.7,
-          "x2": 70.8,
-          "y2": 31.5,
-          "order": 2
-        }
-      ],
+      "bonds": [],
       "labels": [
         {
-          "x": 70.8,
-          "y": 24.0,
-          "t": "Cl",
+          "x": 60.0,
+          "y": 49.0,
+          "t": "OH",
           "size": 13
         },
         {
-          "x": 53.7,
-          "y": 61.5,
-          "t": "O_2N",
-          "size": 13,
-          "anchor": "end"
+          "x": 73.0,
+          "y": 42.5,
+          "t": "−",
+          "size": 13
         }
       ]
     },
-    "name": "nitro chlorobenzenes + NaOH"
+    "name": "NaOH"
   },
   "u4-snar-amine": {
     "kind": "structure",
@@ -2700,74 +2650,97 @@ export const U4_VISUALS: Readonly<Record<string, McqVisual>> = {
     "figure": {
       "bonds": [
         {
-          "x1": 29.1,
-          "y1": 22.0,
-          "x2": 38.3,
-          "y2": 27.3
+          "x1": 97.0,
+          "y1": 63.9,
+          "x2": 91.5,
+          "y2": 57.4
         },
         {
-          "x1": 38.3,
-          "y1": 27.3,
-          "x2": 52.8,
-          "y2": 19.0
+          "x1": 81.8,
+          "y1": 53.8,
+          "x2": 73.4,
+          "y2": 55.3
         },
         {
-          "x1": 52.8,
-          "y1": 19.0,
-          "x2": 67.2,
-          "y2": 27.3,
+          "x1": 73.4,
+          "y1": 55.3,
+          "x2": 76.3,
+          "y2": 63.4
+        },
+        {
+          "x1": 73.4,
+          "y1": 55.3,
+          "x2": 73.3,
+          "y2": 40.8
+        },
+        {
+          "x1": 73.3,
+          "y1": 40.8,
+          "x2": 60.7,
+          "y2": 33.5,
           "order": 2
         },
         {
-          "x1": 67.2,
-          "y1": 27.3,
-          "x2": 67.2,
-          "y2": 44.0
+          "x1": 60.7,
+          "y1": 33.5,
+          "x2": 48.2,
+          "y2": 40.8
         },
         {
-          "x1": 67.2,
-          "y1": 44.0,
-          "x2": 76.5,
-          "y2": 49.3
+          "x1": 48.2,
+          "y1": 40.8,
+          "x2": 40.7,
+          "y2": 36.5
         },
         {
-          "x1": 67.2,
-          "y1": 44.0,
-          "x2": 52.8,
-          "y2": 52.3,
+          "x1": 48.2,
+          "y1": 40.8,
+          "x2": 48.2,
+          "y2": 55.4,
           "order": 2
         },
         {
-          "x1": 52.8,
-          "y1": 52.3,
-          "x2": 38.3,
-          "y2": 44.0
+          "x1": 48.2,
+          "y1": 55.4,
+          "x2": 60.8,
+          "y2": 62.6
         },
         {
-          "x1": 38.3,
-          "y1": 44.0,
-          "x2": 38.3,
-          "y2": 27.3,
-          "order": 2
+          "x1": 60.8,
+          "y1": 62.6,
+          "x2": 73.4,
+          "y2": 55.3
         }
       ],
       "labels": [
         {
-          "x": 23.9,
-          "y": 24.0,
+          "x": 87.7,
+          "y": 57.8,
+          "t": "O",
+          "size": 13
+        },
+        {
+          "x": 78.3,
+          "y": 74.0,
           "t": "Cl",
           "size": 13
         },
         {
-          "x": 77.2,
-          "y": 57.3,
-          "t": "NO_2",
+          "x": 40.0,
+          "y": 38.5,
+          "t": "O_2N",
           "size": 13,
-          "anchor": "start"
+          "anchor": "end"
+        },
+        {
+          "x": 60.8,
+          "y": 75.1,
+          "t": "−",
+          "size": 13
         }
       ]
     },
-    "name": "attack at the C-Cl carbon"
+    "name": "the complex from 1-chloro-4-nitrobenzene"
   },
   "u4-meis-oxygen": {
     "kind": "structure",
@@ -3313,87 +3286,28 @@ export const U4_VISUALS: Readonly<Record<string, McqVisual>> = {
     "figure": {
       "bonds": [
         {
-          "x1": 82.8,
-          "y1": 65.3,
-          "x2": 74.0,
-          "y2": 60.2
-        },
-        {
-          "x1": 74.0,
-          "y1": 60.2,
-          "x2": 60.0,
-          "y2": 68.2
-        },
-        {
-          "x1": 60.0,
-          "y1": 68.2,
-          "x2": 46.0,
-          "y2": 60.2,
-          "order": 2
-        },
-        {
-          "x1": 46.0,
-          "y1": 60.2,
-          "x2": 46.0,
+          "x1": 50.0,
+          "y1": 44.0,
+          "x2": 64.0,
           "y2": 44.0
-        },
-        {
-          "x1": 46.0,
-          "y1": 44.0,
-          "x2": 37.2,
-          "y2": 38.9
-        },
-        {
-          "x1": 46.0,
-          "y1": 44.0,
-          "x2": 60.0,
-          "y2": 35.9,
-          "order": 2
-        },
-        {
-          "x1": 60.0,
-          "y1": 35.9,
-          "x2": 74.0,
-          "y2": 44.0
-        },
-        {
-          "x1": 74.0,
-          "y1": 44.0,
-          "x2": 82.8,
-          "y2": 38.9
-        },
-        {
-          "x1": 74.0,
-          "y1": 44.0,
-          "x2": 74.0,
-          "y2": 60.2,
-          "order": 2
         }
       ],
       "labels": [
         {
-          "x": 88.0,
-          "y": 73.3,
-          "t": "I",
+          "x": 70.0,
+          "y": 49.0,
+          "t": "O",
           "size": 13
         },
         {
-          "x": 36.5,
-          "y": 40.9,
-          "t": "O_2N",
-          "size": 13,
-          "anchor": "end"
-        },
-        {
-          "x": 83.5,
-          "y": 40.9,
-          "t": "NO_2",
-          "size": 13,
-          "anchor": "start"
+          "x": 79.0,
+          "y": 42.5,
+          "t": "−",
+          "size": 13
         }
       ]
     },
-    "name": "the 2,4-dinitro series"
+    "name": "NaOCH₃"
   },
   "u4-lg-why": {
     "kind": "pair",
@@ -3884,13 +3798,13 @@ export const U4_VISUALS: Readonly<Record<string, McqVisual>> = {
         {
           "x": 81.6,
           "y": 74.0,
-          "t": "F",
+          "t": "Br",
           "size": 13
         },
         {
           "x": 23.9,
           "y": 40.6,
-          "t": "Br",
+          "t": "F",
           "size": 13
         },
         {
@@ -3902,7 +3816,7 @@ export const U4_VISUALS: Readonly<Record<string, McqVisual>> = {
         }
       ]
     },
-    "name": "4-bromo-1-fluoro-2-nitrobenzene"
+    "name": "1-bromo-4-fluoro-2-nitrobenzene"
   },
   "u4-bz-meet": {
     "kind": "structure",
@@ -4973,76 +4887,23 @@ export const U4_VISUALS: Readonly<Record<string, McqVisual>> = {
   "u4-dow-single": {
     "kind": "structure",
     "figure": {
-      "bonds": [
-        {
-          "x1": 29.1,
-          "y1": 22.0,
-          "x2": 38.3,
-          "y2": 27.3
-        },
-        {
-          "x1": 38.3,
-          "y1": 27.3,
-          "x2": 52.8,
-          "y2": 19.0
-        },
-        {
-          "x1": 52.8,
-          "y1": 19.0,
-          "x2": 67.2,
-          "y2": 27.3,
-          "order": 2
-        },
-        {
-          "x1": 67.2,
-          "y1": 27.3,
-          "x2": 67.2,
-          "y2": 44.0
-        },
-        {
-          "x1": 67.2,
-          "y1": 44.0,
-          "x2": 76.5,
-          "y2": 49.3
-        },
-        {
-          "x1": 67.2,
-          "y1": 44.0,
-          "x2": 52.8,
-          "y2": 52.3,
-          "order": 2
-        },
-        {
-          "x1": 52.8,
-          "y1": 52.3,
-          "x2": 38.3,
-          "y2": 44.0
-        },
-        {
-          "x1": 38.3,
-          "y1": 44.0,
-          "x2": 38.3,
-          "y2": 27.3,
-          "order": 2
-        }
-      ],
+      "bonds": [],
       "labels": [
         {
-          "x": 23.9,
-          "y": 24.0,
-          "t": "Cl",
+          "x": 60.0,
+          "y": 49.0,
+          "t": "OH",
           "size": 13
         },
         {
-          "x": 77.2,
-          "y": 57.3,
-          "t": "NO_2",
-          "size": 13,
-          "anchor": "start"
+          "x": 73.0,
+          "y": 42.5,
+          "t": "−",
+          "size": 13
         }
       ]
     },
-    "name": "aryl halides + hot NaOH"
+    "name": "hot NaOH"
   },
   "u4-dow-mct": {
     "kind": "structure",
@@ -9032,7 +8893,7 @@ export const U4_OPTION_TILES: Readonly<Record<string, Readonly<Record<string, Na
     }
   },
   "u4-lg-bromo-fluoro": {
-    "f": {
+    "br": {
       "figure": {
         "bonds": [
           {
@@ -9109,7 +8970,7 @@ export const U4_OPTION_TILES: Readonly<Record<string, Readonly<Record<string, Na
           {
             "x": 90.9,
             "y": 74.0,
-            "t": "Br",
+            "t": "F",
             "size": 13
           },
           {
@@ -9120,9 +8981,9 @@ export const U4_OPTION_TILES: Readonly<Record<string, Readonly<Record<string, Na
           }
         ]
       },
-      "name": "4-bromo-1-methoxy-2-nitrobenzene"
+      "name": "4-fluoro-1-methoxy-2-nitrobenzene"
     },
-    "br": {
+    "f": {
       "figure": {
         "bonds": [
           {
@@ -9199,7 +9060,7 @@ export const U4_OPTION_TILES: Readonly<Record<string, Readonly<Record<string, Na
           {
             "x": 88.0,
             "y": 73.2,
-            "t": "F",
+            "t": "Br",
             "size": 13
           },
           {
@@ -9211,7 +9072,7 @@ export const U4_OPTION_TILES: Readonly<Record<string, Readonly<Record<string, Na
           }
         ]
       },
-      "name": "1-fluoro-4-methoxy-2-nitrobenzene"
+      "name": "1-bromo-4-methoxy-2-nitrobenzene"
     },
     "none": {
       "figure": {
@@ -9285,18 +9146,18 @@ export const U4_OPTION_TILES: Readonly<Record<string, Readonly<Record<string, Na
           {
             "x": 23.9,
             "y": 40.6,
-            "t": "Br",
+            "t": "F",
             "size": 13
           },
           {
             "x": 81.6,
             "y": 74.0,
-            "t": "F",
+            "t": "Br",
             "size": 13
           }
         ]
       },
-      "name": "4-bromo-1-fluoro-2-nitrobenzene"
+      "name": "1-bromo-4-fluoro-2-nitrobenzene"
     }
   },
   "u4-bz-meet": {
