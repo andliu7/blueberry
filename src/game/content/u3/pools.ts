@@ -2244,7 +2244,7 @@ export const U3_POOLS: UnitPools = {
           "levels": [
             1
           ],
-          "prompt": "Reduce 4-nitrobenzoic acid with Sn and HCl, then base. Pick the product.",
+          "prompt": "Reduce 4-nitrobenzoic acid with Sn and HCl, then NaOH, then H₃O⁺ workup. Pick the product.",
           "correctOptionId": "amine",
           "options": [
             {
@@ -3074,17 +3074,17 @@ export const U3_POOLS: UnitPools = {
           "options": [
             {
               "id": "para",
-              "text": "4-Isopropylnitrobenzene",
+              "text": "The para product",
               "why": "NO2 does not direct para, and the ring does not react anyway."
             },
             {
               "id": "none",
-              "text": "No reaction",
+              "text": "No reaction, nitrobenzene is recovered",
               "why": "A nitro group makes the ring too electron poor for a Friedel-Crafts electrophile. Nothing happens."
             },
             {
               "id": "meta",
-              "text": "3-Isopropylnitrobenzene",
+              "text": "The meta product",
               "why": "Meta is where NO2 would send an electrophile, but this ring is too deactivated to react at all."
             }
           ]
@@ -7863,7 +7863,7 @@ export const U3_VISUALS: Readonly<Record<string, McqVisual>> = {
         }
       ]
     },
-    "name": "4-nitrobenzoic acid + Sn, HCl; then NaOH"
+    "name": "4-nitrobenzoic acid + Sn, HCl; then NaOH; then H₃O⁺"
   },
   "u3-nred-flip": {
     "kind": "pair",
@@ -18907,6 +18907,226 @@ export const U3_OPTION_TILES: Readonly<Record<string, Readonly<Record<string, Na
         ]
       },
       "name": "tert-butylbenzene"
+    }
+  },
+  "u3-alk-fails": {
+    "meta": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 79.3,
+            "y1": 19.0,
+            "x2": 69.6,
+            "y2": 24.6
+          },
+          {
+            "x1": 69.6,
+            "y1": 24.6,
+            "x2": 60.0,
+            "y2": 19.0
+          },
+          {
+            "x1": 69.6,
+            "y1": 24.6,
+            "x2": 69.6,
+            "y2": 35.7
+          },
+          {
+            "x1": 69.6,
+            "y1": 35.7,
+            "x2": 79.2,
+            "y2": 41.3
+          },
+          {
+            "x1": 79.2,
+            "y1": 41.3,
+            "x2": 79.2,
+            "y2": 52.4,
+            "order": 2
+          },
+          {
+            "x1": 79.2,
+            "y1": 52.4,
+            "x2": 69.6,
+            "y2": 57.9
+          },
+          {
+            "x1": 69.6,
+            "y1": 57.9,
+            "x2": 60.0,
+            "y2": 52.3,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 52.3,
+            "x2": 55.5,
+            "y2": 54.9
+          },
+          {
+            "x1": 60.0,
+            "y1": 52.3,
+            "x2": 60.0,
+            "y2": 41.2
+          },
+          {
+            "x1": 60.0,
+            "y1": 41.2,
+            "x2": 69.6,
+            "y2": 35.7,
+            "order": 2
+          }
+        ],
+        "labels": [
+          {
+            "x": 54.8,
+            "y": 62.9,
+            "t": "O_2N",
+            "size": 13,
+            "anchor": "end"
+          }
+        ]
+      },
+      "name": "1-nitro-3-(propan-2-yl)benzene"
+    },
+    "para": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 27.5,
+            "y1": 50.2,
+            "x2": 38.3,
+            "y2": 56.5
+          },
+          {
+            "x1": 38.3,
+            "y1": 56.5,
+            "x2": 38.3,
+            "y2": 69.0
+          },
+          {
+            "x1": 38.3,
+            "y1": 56.5,
+            "x2": 49.2,
+            "y2": 50.2
+          },
+          {
+            "x1": 49.2,
+            "y1": 50.2,
+            "x2": 49.2,
+            "y2": 37.7
+          },
+          {
+            "x1": 49.2,
+            "y1": 37.7,
+            "x2": 60.0,
+            "y2": 31.5,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 31.5,
+            "x2": 70.8,
+            "y2": 37.8
+          },
+          {
+            "x1": 70.8,
+            "y1": 37.8,
+            "x2": 76.5,
+            "y2": 34.5
+          },
+          {
+            "x1": 70.8,
+            "y1": 37.8,
+            "x2": 70.8,
+            "y2": 50.3,
+            "order": 2
+          },
+          {
+            "x1": 70.8,
+            "y1": 50.3,
+            "x2": 60.0,
+            "y2": 56.5
+          },
+          {
+            "x1": 60.0,
+            "y1": 56.5,
+            "x2": 49.2,
+            "y2": 50.2,
+            "order": 2
+          }
+        ],
+        "labels": [
+          {
+            "x": 77.2,
+            "y": 36.5,
+            "t": "NO_2",
+            "size": 13,
+            "anchor": "start"
+          }
+        ]
+      },
+      "name": "1-nitro-4-(propan-2-yl)benzene"
+    },
+    "none": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 60.0,
+            "y1": 32.2,
+            "x2": 60.0,
+            "y2": 40.4
+          },
+          {
+            "x1": 60.0,
+            "y1": 40.4,
+            "x2": 72.4,
+            "y2": 47.6,
+            "order": 2
+          },
+          {
+            "x1": 72.4,
+            "y1": 47.6,
+            "x2": 72.4,
+            "y2": 61.8
+          },
+          {
+            "x1": 72.4,
+            "y1": 61.8,
+            "x2": 60.1,
+            "y2": 69.0,
+            "order": 2
+          },
+          {
+            "x1": 60.1,
+            "y1": 69.0,
+            "x2": 47.7,
+            "y2": 61.9
+          },
+          {
+            "x1": 47.7,
+            "y1": 61.9,
+            "x2": 47.6,
+            "y2": 47.6,
+            "order": 2
+          },
+          {
+            "x1": 47.6,
+            "y1": 47.6,
+            "x2": 60.0,
+            "y2": 40.4
+          }
+        ],
+        "labels": [
+          {
+            "x": 60.0,
+            "y": 31.2,
+            "t": "NO_2",
+            "size": 13
+          }
+        ]
+      },
+      "name": "nitrobenzene"
     }
   },
   "u3-alk-sec": {

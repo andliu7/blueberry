@@ -1939,6 +1939,11 @@ def node_nitro_red() -> None:
     ]
     for id, sname, smi, pname, names, level in cases:
         words, caption = pd if level == 0 else sn
+        if id == "u3-nred-acid":
+            # Audit 23 Oct (2a #14): a base step alone would leave the carboxylate,
+            # not the neutral acid the key draws, so the acid workup is stated.
+            # That NaOH deprotonates COOH is a pKa claim RDKit cannot check.
+            words, caption = "Sn and HCl, then NaOH, then H₃O⁺ workup", "Sn, HCl; then NaOH; then H₃O⁺"
         if id == "u3-nred-dinitro":
             # 3-nitroaniline is a real product of milder or limited reduction, so say excess
             words, caption = "excess " + words, "excess " + caption
@@ -2256,14 +2261,21 @@ def node_fc_alkyl() -> None:
 
     nb = S("nitrobenzene")
     derived = "none" if eas_fails(nb) else None
+    # Drawn tiles, as u3-acyl-fails has for the acylation twin (audit 23 Oct, top-25 #21).
+    m = mol(nb)
+    r = substituents(nb)[0][0]
+    meta = attach(nb, [s for s in ring_sites(nb) if relation(m, r, s) == "meta"][0], "C(C)C")
+    para = attach(nb, [s for s in ring_sites(nb) if relation(m, r, s) == "para"][0], "C(C)C")
     mcq(node, "u3-alk-fails", "Try to alkylate nitrobenzene with 2-chloropropane and AlCl₃. Pick the outcome.",
-        [("none", "No reaction", "A nitro group makes the ring too electron poor for a Friedel-Crafts electrophile. Nothing happens."),
-         ("meta", "3-Isopropylnitrobenzene", "Meta is where NO2 would send an electrophile, but this ring is too deactivated to react at all."),
-         ("para", "4-Isopropylnitrobenzene", "NO2 does not direct para, and the ring does not react anyway.")],
+        [("none", "No reaction, nitrobenzene is recovered", "A nitro group makes the ring too electron poor for a Friedel-Crafts electrophile. Nothing happens."),
+         ("meta", "The meta product", "Meta is where NO2 would send an electrophile, but this ring is too deactivated to react at all."),
+         ("para", "The para product", "NO2 does not direct para, and the ring does not react anyway.")],
         derived, "none",
         "Friedel-Crafts fails on rings carrying a strong withdrawer such as NO2.",
         prov("Rule 1 withdrawer; Friedel-Crafts failure rule", sec, "Friedel-Crafts fails on a ring carrying a withdrawer"),
-        structure(nb, N("nitrobenzene"), "nitrobenzene + 2-chloropropane, AlCl₃"), level=2, concepts=("ewg_edg_rubric",),
+        structure(nb, N("nitrobenzene"), "nitrobenzene + 2-chloropropane, AlCl₃"),
+        tiles={"meta": named(meta, "1-nitro-3-(propan-2-yl)benzene"), "para": named(para, "1-nitro-4-(propan-2-yl)benzene"), "none": named(canon(nb), "nitrobenzene")},
+        level=2, concepts=("ewg_edg_rubric",),
         convention="Friedel-Crafts fails on a ring carrying a withdrawer")
 
     out2 = fc_alkylation(bz, "CC(C)Cl")
