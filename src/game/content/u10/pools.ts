@@ -234,7 +234,7 @@ export const U10_POOLS: UnitPools = {
             "resonance_delocalisation"
           ],
           "levels": [
-            1
+            2
           ],
           "prompt": "4-(Aminomethyl)aniline meets one H⁺. Pick the N it protonates.",
           "correctOptionId": "ch2",
@@ -481,6 +481,46 @@ export const U10_POOLS: UnitPools = {
       "explanation": "The more the N lone pair is spread out, the weaker the base: alkyl, then aryl, then amide.",
       "provenance": "scripts/u10_pools.py: Rule L, basic_rank per card. OpenStax Organic Chemistry ch. 24 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: basicity order alkyl amine > aryl amine > amide, set by where the N lone pair is delocalised (the course outline's order)."
     }),
+    {
+      "id": "u10-bas-aryl-amide",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u10-bas-aryl-amide",
+          "node": "u10-basicity",
+          "conceptIds": [
+            "amines",
+            "resonance_delocalisation"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "N-(4-Aminophenyl)acetamide meets one H⁺. Pick the N it protonates.",
+          "correctOptionId": "ring",
+          "options": [
+            {
+              "id": "ring",
+              "text": "The NH₂ on the ring",
+              "why": "Its pair is spread into the ring, but the other N shares its pair with a C=O as well. The aryl NH₂ is still the better base."
+            },
+            {
+              "id": "amide",
+              "text": "The N-H beside the C=O",
+              "why": "That is an amide N. Its lone pair is shared with the C=O, so it barely acts as a base."
+            },
+            {
+              "id": "same",
+              "text": "Both equally",
+              "why": "One N is an aryl amine and one is an amide N, so their lone pairs are not alike."
+            }
+          ]
+        }
+      },
+      "explanation": "Aryl amine above amide: even an NH₂ on a ring beats an N that shares its pair with a C=O.",
+      "provenance": "scripts/u10_pools.py: Rule L on each N of the molecule. OpenStax Organic Chemistry ch. 24 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: basicity order alkyl amine > aryl amine > amide, set by where the N lone pair is delocalised (the course outline's order).",
+      "placeholder": true
+    },
   ],
   "u10-red-amination": [
     {
@@ -613,7 +653,7 @@ export const U10_POOLS: UnitPools = {
             "multistep_synthesis"
           ],
           "levels": [
-            1
+            2
           ],
           "prompt": "Benzylamine and NaBH₃CN make this amine. Pick the carbonyl partner.",
           "correctOptionId": "acetone",
@@ -716,6 +756,46 @@ export const U10_POOLS: UnitPools = {
       },
       "explanation": "NaBH₃CN reduces the iminium, not the C=O, so amine and carbonyl can share one pot.",
       "provenance": "scripts/u10_pools.py: the reductant's selectivity, a convention. OpenStax Organic Chemistry ch. 24 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: NaBH3CN reduces the iminium faster than the aldehyde or ketone it came from.",
+      "placeholder": true
+    },
+    {
+      "id": "u10-ra-pair",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u10-ra-pair",
+          "node": "u10-red-amination",
+          "conceptIds": [
+            "amines",
+            "multistep_synthesis"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "Pick the pair that NaBH₃CN joins into this amine.",
+          "correctOptionId": "one",
+          "options": [
+            {
+              "id": "ol",
+              "text": "Cyclohexanol and aniline",
+              "why": "An alcohol has no C=O, so no iminium forms and nothing is joined."
+            },
+            {
+              "id": "bz",
+              "text": "Cyclohexanamine and benzaldehyde",
+              "why": "That puts a CH₂ between ring and N: N-benzylcyclohexanamine, one carbon too many."
+            },
+            {
+              "id": "one",
+              "text": "Cyclohexanone and aniline",
+              "why": "The ring CH on N was the ketone's C=O carbon. An aryl carbon can never come from a C=O, so the cut goes on the cyclohexyl side."
+            }
+          ]
+        }
+      },
+      "explanation": "Work back from the C-N bond: the carbon on N that carries an H came from a C=O carbon.",
+      "provenance": "scripts/u10_pools.py: Rule R run forward on each pair. OpenStax Organic Chemistry ch. 24 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: NaBH3CN reduces the iminium faster than the aldehyde or ketone it came from.",
       "placeholder": true
     },
   ],
@@ -889,7 +969,7 @@ export const U10_POOLS: UnitPools = {
             "multistep_synthesis"
           ],
           "levels": [
-            1
+            2
           ],
           "prompt": "Pick the amide whose LiAlH₄ reduction gives this amine.",
           "correctOptionId": "acet",
@@ -955,6 +1035,46 @@ export const U10_POOLS: UnitPools = {
       "provenance": "scripts/u10_pools.py: Rule D on three amides, then N and C counts compared. OpenStax Organic Chemistry ch. 21 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: LiAlH4 removes an amide's O and keeps its C-N bond (an ester loses its OR instead).",
       "placeholder": true
     },
+    {
+      "id": "u10-ar-route",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u10-ar-route",
+          "node": "u10-amide-red",
+          "conceptIds": [
+            "amines",
+            "multistep_synthesis"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "Benzoyl chloride meets (CH₃)₂NH, then LiAlH₄ and water. Pick the product.",
+          "correctOptionId": "amine",
+          "options": [
+            {
+              "id": "amine",
+              "text": "N,N-dimethyl-1-phenylmethanamine",
+              "why": "The amine makes the amide first, then LiAlH₄ turns its C=O into CH₂. Both methyls stay on N."
+            },
+            {
+              "id": "amide",
+              "text": "N,N-dimethylbenzamide",
+              "why": "That is the halfway point. LiAlH₄ then removes the amide's O."
+            },
+            {
+              "id": "alcohol",
+              "text": "Phenylmethanol",
+              "why": "LiAlH₄ gives that from the acyl chloride alone. The amine reacts first, so an amide is what gets reduced."
+            }
+          ]
+        }
+      },
+      "explanation": "Acyl chloride to amide, then amide to amine: two steps, and the new C-N bond is kept.",
+      "provenance": "scripts/u10_pools.py: acyl substitution by the amine, then Rule D. OpenStax Organic Chemistry ch. 21 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: an amine turns an acyl chloride into an amide (the Unit 8 rule); LiAlH4 removes an amide's O and keeps its C-N bond (an ester loses its OR instead).",
+      "placeholder": true
+    },
   ],
   "u10-nitrile-red": [
     {
@@ -1009,7 +1129,7 @@ export const U10_POOLS: UnitPools = {
             "multistep_synthesis"
           ],
           "levels": [
-            1
+            2
           ],
           "prompt": "1-Bromobutane meets NaCN, then LiAlH₄ and water. Pick the product.",
           "correctOptionId": "amine",
@@ -1089,7 +1209,7 @@ export const U10_POOLS: UnitPools = {
             "multistep_synthesis"
           ],
           "levels": [
-            1
+            2
           ],
           "prompt": "Pick the nitrile whose LiAlH₄ reduction gives 2-phenylethan-1-amine.",
           "correctOptionId": "bn",
@@ -1436,6 +1556,89 @@ export const U10_POOLS: UnitPools = {
       "provenance": "scripts/u10_pools.py: Rule D, then each group read by SMARTS against the Unit 3 table. OpenStax Organic Chemistry ch. 24 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: NO2 is a deactivating meta director and NH2 an activating ortho/para director (the Unit 3 rubric).",
       "placeholder": true
     },
+    {
+      "id": "u10-no-route",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u10-no-route",
+          "node": "u10-nitro-red",
+          "conceptIds": [
+            "amines",
+            "multistep_synthesis",
+            "eas_directing_effects"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "Bromobenzene: HNO₃ and H₂SO₄, then Sn and HCl. Pick the product.",
+          "correctOptionId": "para",
+          "options": [
+            {
+              "id": "meta",
+              "text": "3-bromoaniline",
+              "why": "Br is an ortho/para director, so the NO₂ does not go meta to it."
+            },
+            {
+              "id": "nitro",
+              "text": "1-bromo-4-nitrobenzene",
+              "why": "That is the halfway point. Sn and HCl reduce the NO₂ to NH₂."
+            },
+            {
+              "id": "para",
+              "text": "4-bromoaniline",
+              "why": "Br directs the NO₂ ortho and para, para mostly, and Sn with HCl then reduces it to NH₂."
+            }
+          ]
+        }
+      },
+      "explanation": "Nitrate where the ring directs, then reduce: the NH₂ lands where the NO₂ went.",
+      "provenance": "scripts/u10_pools.py: EAS position counted by RDKit, then Rule D. OpenStax Organic Chemistry ch. 24 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: NO2 directs meta; Br, NHAc and NH2 direct ortho and para, the para product taken as the major one; Br2 on free aniline takes every ortho and para C-H (the Unit 3 rubric); Fe or Sn with HCl, or H2 over Pd, reduce an aryl NO2 and leave the ring and a CO2H alone.",
+      "placeholder": true
+    },
+    {
+      "id": "u10-no-order",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u10-no-order",
+          "node": "u10-nitro-red",
+          "conceptIds": [
+            "amines",
+            "multistep_synthesis",
+            "eas_directing_effects"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "Pick the order that turns benzene into 3-bromoaniline.",
+          "brief": "Nitrate = HNO₃, H₂SO₄. Brominate = Br₂, FeBr₃. Reduce = Sn, HCl.",
+          "correctOptionId": "nbr",
+          "options": [
+            {
+              "id": "nbr",
+              "text": "Nitrate, brominate, reduce",
+              "why": "NO₂ goes on first and sends the Br meta. Reducing last turns NO₂ into NH₂, meta to Br."
+            },
+            {
+              "id": "brn",
+              "text": "Brominate, nitrate, reduce",
+              "why": "Br goes on first and sends the NO₂ para: that makes 4-bromoaniline."
+            },
+            {
+              "id": "nrb",
+              "text": "Nitrate, reduce, brominate",
+              "why": "Reducing first gives aniline, and Br₂ then takes all three ortho and para C-H: 2,4,6-tribromoaniline."
+            }
+          ]
+        }
+      },
+      "explanation": "Order sets position: put on the meta director while it is still NO₂, and reduce it last.",
+      "provenance": "scripts/u10_pools.py: each order run step by step: EAS position counted by RDKit, Rule D. OpenStax Organic Chemistry ch. 24 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: NO2 directs meta; Br, NHAc and NH2 direct ortho and para, the para product taken as the major one; Br2 on free aniline takes every ortho and para C-H (the Unit 3 rubric).",
+      "placeholder": true
+    },
   ],
   "u10-diazonium": [
     {
@@ -1678,6 +1881,85 @@ export const U10_POOLS: UnitPools = {
       "provenance": "scripts/u10_pools.py: Rule Z run forward on each option. OpenStax Organic Chemistry ch. 24 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: only a primary aryl amine gives a diazonium salt that lasts long enough to use.",
       "placeholder": true
     },
+    {
+      "id": "u10-dz-warm",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u10-dz-warm",
+          "node": "u10-diazonium",
+          "conceptIds": [
+            "diazonium_chemistry"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "Aniline meets NaNO₂ and HCl at 40 °C in water. Pick the main product.",
+          "correctOptionId": "oh",
+          "options": [
+            {
+              "id": "cl",
+              "text": "Chlorobenzene",
+              "why": "Cl⁻ is only the counter-ion. Without CuCl, water is what replaces the N₂."
+            },
+            {
+              "id": "oh",
+              "text": "Phenol",
+              "why": "Warm, the diazonium salt loses N₂ as fast as it forms, and water takes that ring carbon: phenol."
+            },
+            {
+              "id": "dz",
+              "text": "Benzenediazonium",
+              "why": "That salt is kept only at 0 to 5 °C. At 40 °C in water it does not last."
+            }
+          ]
+        }
+      },
+      "explanation": "Keep it cold: a warm diazonium salt in water turns into the phenol.",
+      "provenance": "scripts/u10_pools.py: Rule Z, then water on the diazonium salt. OpenStax Organic Chemistry ch. 24 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: an aryl diazonium salt is kept at 0 to 5 °C; warmer, in water, it loses N2 and water gives the phenol.",
+      "placeholder": true
+    },
+    {
+      "id": "u10-dz-nitroso",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u10-dz-nitroso",
+          "node": "u10-diazonium",
+          "conceptIds": [
+            "diazonium_chemistry",
+            "amines"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "N-Methylaniline meets NaNO₂ and HCl, cold. Pick the product.",
+          "correctOptionId": "nno",
+          "options": [
+            {
+              "id": "nno",
+              "text": "PhN(CH₃)-N=O",
+              "why": "Its one N-H is swapped for N=O. With no second N-H to lose, it stops at this N-nitrosamine."
+            },
+            {
+              "id": "dz",
+              "text": "Benzenediazonium",
+              "why": "The N-CH₃ bond does not break, so the N can never reach N≡N⁺."
+            },
+            {
+              "id": "ring",
+              "text": "N-methyl-4-nitrosoaniline",
+              "why": "The N-H is where the N=O goes, not the ring."
+            }
+          ]
+        }
+      },
+      "explanation": "A secondary amine with NaNO₂ and HCl stops at R₂N-N=O, never a diazonium salt.",
+      "provenance": "scripts/u10_pools.py: N-nitrosation edit on the one N-H. OpenStax Organic Chemistry ch. 24 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: a secondary amine with NaNO2 and HCl stops at the N-nitrosamine, R2N-N=O: it has no second N-H to lose.",
+      "placeholder": true
+    },
   ],
   "u10-diazo-sub": [
     {
@@ -1850,7 +2132,7 @@ export const U10_POOLS: UnitPools = {
             "eas_directing_effects"
           ],
           "levels": [
-            1
+            2
           ],
           "prompt": "Aniline: excess Br₂, then NaNO₂ and HCl, then H₃PO₂. Pick the product.",
           "correctOptionId": "135",
@@ -1875,6 +2157,48 @@ export const U10_POOLS: UnitPools = {
       },
       "explanation": "NH₂ as a temporary director: place the groups, then delete it.",
       "provenance": "scripts/u10_pools.py: ortho and para counted by RDKit, Rule Z, then the reagent table. OpenStax Organic Chemistry ch. 24 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: NH2, NHAc, OH and NMe2 direct ortho and para; Br2 on aniline takes every ortho and para C-H; NHAc and the azo electrophile go para first, ortho when para is taken; the diazonium reagent table: CuCl gives Cl, CuBr Br, CuCN CN, KI I, HBF4 with heat F, water with heat OH, H3PO2 H.",
+      "placeholder": true
+    },
+    {
+      "id": "u10-ds-order",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u10-ds-order",
+          "node": "u10-diazo-sub",
+          "conceptIds": [
+            "diazonium_chemistry",
+            "multistep_synthesis",
+            "eas_directing_effects"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "Pick the order that turns benzene into 3-bromophenol.",
+          "brief": "Nitrate = HNO₃, H₂SO₄. Brominate = Br₂, FeBr₃. Reduce = Sn, HCl. Diazotise = NaNO₂, HCl. Warm = H₂O, heat.",
+          "correctOptionId": "nbr",
+          "options": [
+            {
+              "id": "nbr",
+              "text": "Nitrate, brominate, reduce, diazotise, warm",
+              "why": "NO₂ sends the Br meta, then NO₂ becomes NH₂, then N₂⁺, then OH: OH and Br end meta."
+            },
+            {
+              "id": "brn",
+              "text": "Brominate, nitrate, reduce, diazotise, warm",
+              "why": "Br first sends the NO₂ para, so the OH ends para to Br: 4-bromophenol."
+            },
+            {
+              "id": "nrb",
+              "text": "Nitrate, reduce, brominate, diazotise, warm",
+              "why": "Free aniline takes three Br, so the route ends at 2,4,6-tribromophenol."
+            }
+          ]
+        }
+      },
+      "explanation": "OH cannot go straight onto the meta carbon: place a NO₂, let it direct, then turn it into OH through N₂⁺.",
+      "provenance": "scripts/u10_pools.py: each order run step by step: EAS position counted by RDKit, Rule D, Rule Z, the reagent table. OpenStax Organic Chemistry ch. 24 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: NO2 directs meta; Br, NHAc and NH2 direct ortho and para, the para product taken as the major one; Br2 on free aniline takes every ortho and para C-H (the Unit 3 rubric); the diazonium reagent table: CuCl gives Cl, CuBr Br, CuCN CN, KI I, HBF4 with heat F, water with heat OH, H3PO2 H.",
       "placeholder": true
     },
     match({
@@ -2069,7 +2393,7 @@ export const U10_POOLS: UnitPools = {
             "multistep_synthesis"
           ],
           "levels": [
-            1
+            2
           ],
           "prompt": "Aniline: Ac₂O, then Br₂, then H₃O⁺ with heat. Pick the product.",
           "correctOptionId": "para",
@@ -2134,6 +2458,47 @@ export const U10_POOLS: UnitPools = {
       },
       "explanation": "Protection works by sharing the lone pair, not removing it.",
       "provenance": "scripts/u10_pools.py: Rule L, the amide class. OpenStax Organic Chemistry ch. 24 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: a free N lone pair activates the ring most, sharing it with a C=O moderates it, and NO2 deactivates (the Unit 3 rubric).",
+      "placeholder": true
+    },
+    {
+      "id": "u10-ap-nitro",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u10-ap-nitro",
+          "node": "u10-acyl-protect",
+          "conceptIds": [
+            "protecting_group_strategy",
+            "multistep_synthesis",
+            "eas_directing_effects"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "Aniline: Ac₂O, then HNO₃ and H₂SO₄, then H₃O⁺ with heat. Pick the product.",
+          "correctOptionId": "para",
+          "options": [
+            {
+              "id": "amide",
+              "text": "N-(4-nitrophenyl)acetamide",
+              "why": "The last step, acid and heat, removes the acetyl group."
+            },
+            {
+              "id": "meta",
+              "text": "3-nitroaniline",
+              "why": "NHAc directs ortho and para, never meta."
+            },
+            {
+              "id": "para",
+              "text": "4-nitroaniline",
+              "why": "Protect as NHAc, nitrate once para, then hydrolyse the amide back to NH₂."
+            }
+          ]
+        }
+      },
+      "explanation": "Protect, nitrate para, deprotect.",
+      "provenance": "scripts/u10_pools.py: acylation, para nitration, then amide hydrolysis. OpenStax Organic Chemistry ch. 24 (CC BY-NC-SA) is the named check, not yet read against this draft. Rests on an authored convention: NO2 directs meta; Br, NHAc and NH2 direct ortho and para, the para product taken as the major one; Br2 on free aniline takes every ortho and para C-H (the Unit 3 rubric).",
       "placeholder": true
     },
     ladder({
@@ -4374,6 +4739,104 @@ export const U10_VISUALS: Readonly<Record<string, McqVisual>> = {
     },
     "name": "acetamide"
   },
+  "u10-bas-aryl-amide": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 18.0,
+          "y1": 60.3,
+          "x2": 32.0,
+          "y2": 52.2
+        },
+        {
+          "x1": 32.0,
+          "y1": 52.2,
+          "x2": 31.9,
+          "y2": 40.9,
+          "order": 2
+        },
+        {
+          "x1": 32.0,
+          "y1": 52.2,
+          "x2": 41.8,
+          "y2": 57.8
+        },
+        {
+          "x1": 50.2,
+          "y1": 57.8,
+          "x2": 60.0,
+          "y2": 52.1
+        },
+        {
+          "x1": 60.0,
+          "y1": 52.1,
+          "x2": 74.1,
+          "y2": 60.1
+        },
+        {
+          "x1": 74.1,
+          "y1": 60.1,
+          "x2": 88.1,
+          "y2": 52.0,
+          "order": 2
+        },
+        {
+          "x1": 88.1,
+          "y1": 52.0,
+          "x2": 88.0,
+          "y2": 35.8
+        },
+        {
+          "x1": 88.0,
+          "y1": 35.8,
+          "x2": 97.8,
+          "y2": 30.1
+        },
+        {
+          "x1": 88.0,
+          "y1": 35.8,
+          "x2": 74.0,
+          "y2": 27.8,
+          "order": 2
+        },
+        {
+          "x1": 74.0,
+          "y1": 27.8,
+          "x2": 60.0,
+          "y2": 35.9
+        },
+        {
+          "x1": 60.0,
+          "y1": 35.9,
+          "x2": 60.0,
+          "y2": 52.1,
+          "order": 2
+        }
+      ],
+      "labels": [
+        {
+          "x": 31.9,
+          "y": 41.0,
+          "t": "O",
+          "size": 13
+        },
+        {
+          "x": 46.0,
+          "y": 65.2,
+          "t": "NH",
+          "size": 13
+        },
+        {
+          "x": 102.0,
+          "y": 32.7,
+          "t": "NH_2",
+          "size": 13
+        }
+      ]
+    },
+    "name": "two kinds of N"
+  },
   "u10-ra-meet": {
     "kind": "structure",
     "figure": {
@@ -4771,6 +5234,109 @@ export const U10_VISUALS: Readonly<Record<string, McqVisual>> = {
       ]
     },
     "name": "CH₃NH₂, NaBH₃CN"
+  },
+  "u10-ra-pair": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 42.7,
+          "y1": 64.0,
+          "x2": 51.4,
+          "y2": 69.0,
+          "order": 2
+        },
+        {
+          "x1": 51.4,
+          "y1": 69.0,
+          "x2": 60.0,
+          "y2": 64.0
+        },
+        {
+          "x1": 60.0,
+          "y1": 64.0,
+          "x2": 60.0,
+          "y2": 54.0,
+          "order": 2
+        },
+        {
+          "x1": 60.0,
+          "y1": 54.0,
+          "x2": 66.1,
+          "y2": 50.5
+        },
+        {
+          "x1": 68.7,
+          "y1": 46.0,
+          "x2": 68.6,
+          "y2": 39.0
+        },
+        {
+          "x1": 68.6,
+          "y1": 39.0,
+          "x2": 60.0,
+          "y2": 34.0
+        },
+        {
+          "x1": 60.0,
+          "y1": 34.0,
+          "x2": 60.0,
+          "y2": 24.0
+        },
+        {
+          "x1": 60.0,
+          "y1": 24.0,
+          "x2": 68.6,
+          "y2": 19.0
+        },
+        {
+          "x1": 68.6,
+          "y1": 19.0,
+          "x2": 77.3,
+          "y2": 24.0
+        },
+        {
+          "x1": 77.3,
+          "y1": 24.0,
+          "x2": 77.3,
+          "y2": 34.0
+        },
+        {
+          "x1": 60.0,
+          "y1": 54.0,
+          "x2": 51.4,
+          "y2": 49.0
+        },
+        {
+          "x1": 51.4,
+          "y1": 49.0,
+          "x2": 42.7,
+          "y2": 54.0,
+          "order": 2
+        },
+        {
+          "x1": 42.7,
+          "y1": 54.0,
+          "x2": 42.7,
+          "y2": 64.0
+        },
+        {
+          "x1": 77.3,
+          "y1": 34.0,
+          "x2": 68.6,
+          "y2": 39.0
+        }
+      ],
+      "labels": [
+        {
+          "x": 68.7,
+          "y": 54.0,
+          "t": "NH",
+          "size": 13
+        }
+      ]
+    },
+    "name": "the target amine"
   },
   "u10-ar-meet": {
     "kind": "structure",
@@ -5223,6 +5789,86 @@ export const U10_VISUALS: Readonly<Record<string, McqVisual>> = {
       ]
     },
     "name": "LiAlH₄, then H₂O"
+  },
+  "u10-ar-route": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 35.4,
+          "y1": 46.5,
+          "x2": 45.5,
+          "y2": 52.3,
+          "order": 2
+        },
+        {
+          "x1": 45.5,
+          "y1": 52.3,
+          "x2": 45.5,
+          "y2": 64.0
+        },
+        {
+          "x1": 45.5,
+          "y1": 52.3,
+          "x2": 60.0,
+          "y2": 44.0
+        },
+        {
+          "x1": 60.0,
+          "y1": 44.0,
+          "x2": 60.0,
+          "y2": 27.3,
+          "order": 2
+        },
+        {
+          "x1": 60.0,
+          "y1": 27.3,
+          "x2": 74.5,
+          "y2": 19.0
+        },
+        {
+          "x1": 74.5,
+          "y1": 19.0,
+          "x2": 88.9,
+          "y2": 27.4,
+          "order": 2
+        },
+        {
+          "x1": 88.9,
+          "y1": 27.4,
+          "x2": 88.9,
+          "y2": 44.0
+        },
+        {
+          "x1": 88.9,
+          "y1": 44.0,
+          "x2": 74.4,
+          "y2": 52.3,
+          "order": 2
+        },
+        {
+          "x1": 74.4,
+          "y1": 52.3,
+          "x2": 60.0,
+          "y2": 44.0
+        }
+      ],
+      "labels": [
+        {
+          "x": 31.1,
+          "y": 49.0,
+          "t": "O",
+          "size": 13
+        },
+        {
+          "x": 45.5,
+          "y": 74.0,
+          "t": "Cl",
+          "size": 13
+        }
+      ]
+    },
+    "name": "(CH₃)₂NH; LiAlH₄, then H₂O"
   },
   "u10-nr-meet": {
     "kind": "structure",
@@ -5976,6 +6622,140 @@ export const U10_VISUALS: Readonly<Record<string, McqVisual>> = {
     },
     "name": "Fe, HCl"
   },
+  "u10-no-route": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 39.2,
+          "y1": 61.0,
+          "x2": 51.3,
+          "y2": 54.0
+        },
+        {
+          "x1": 51.3,
+          "y1": 54.0,
+          "x2": 51.4,
+          "y2": 34.0,
+          "order": 2
+        },
+        {
+          "x1": 51.4,
+          "y1": 34.0,
+          "x2": 68.7,
+          "y2": 24.0
+        },
+        {
+          "x1": 68.7,
+          "y1": 24.0,
+          "x2": 86.0,
+          "y2": 34.0,
+          "order": 2
+        },
+        {
+          "x1": 86.0,
+          "y1": 34.0,
+          "x2": 86.0,
+          "y2": 54.0
+        },
+        {
+          "x1": 86.0,
+          "y1": 54.0,
+          "x2": 68.6,
+          "y2": 64.0,
+          "order": 2
+        },
+        {
+          "x1": 68.6,
+          "y1": 64.0,
+          "x2": 51.3,
+          "y2": 54.0
+        }
+      ],
+      "labels": [
+        {
+          "x": 34.0,
+          "y": 69.0,
+          "t": "Br",
+          "size": 13
+        }
+      ]
+    },
+    "name": "HNO₃, H₂SO₄; Sn, HCl"
+  },
+  "u10-no-order": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 42.7,
+          "y1": 66.5,
+          "x2": 52.8,
+          "y2": 60.7
+        },
+        {
+          "x1": 52.8,
+          "y1": 60.7,
+          "x2": 67.2,
+          "y2": 69.0
+        },
+        {
+          "x1": 67.2,
+          "y1": 69.0,
+          "x2": 81.6,
+          "y2": 60.7,
+          "order": 2
+        },
+        {
+          "x1": 81.6,
+          "y1": 60.7,
+          "x2": 81.7,
+          "y2": 44.0
+        },
+        {
+          "x1": 81.7,
+          "y1": 44.0,
+          "x2": 67.2,
+          "y2": 35.7,
+          "order": 2
+        },
+        {
+          "x1": 67.2,
+          "y1": 35.7,
+          "x2": 67.2,
+          "y2": 24.0
+        },
+        {
+          "x1": 67.2,
+          "y1": 35.7,
+          "x2": 52.8,
+          "y2": 44.0
+        },
+        {
+          "x1": 52.8,
+          "y1": 44.0,
+          "x2": 52.8,
+          "y2": 60.7,
+          "order": 2
+        }
+      ],
+      "labels": [
+        {
+          "x": 38.3,
+          "y": 74.0,
+          "t": "NH_2",
+          "size": 13
+        },
+        {
+          "x": 67.2,
+          "y": 24.0,
+          "t": "Br",
+          "size": 13
+        }
+      ]
+    },
+    "name": "the target"
+  },
   "u10-dz-meet": {
     "kind": "structure",
     "figure": {
@@ -6363,6 +7143,134 @@ export const U10_VISUALS: Readonly<Record<string, McqVisual>> = {
     },
     "name": "the diazonium salt"
   },
+  "u10-dz-warm": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 39.2,
+          "y1": 61.0,
+          "x2": 51.3,
+          "y2": 54.0
+        },
+        {
+          "x1": 51.3,
+          "y1": 54.0,
+          "x2": 51.4,
+          "y2": 34.0,
+          "order": 2
+        },
+        {
+          "x1": 51.4,
+          "y1": 34.0,
+          "x2": 68.7,
+          "y2": 24.0
+        },
+        {
+          "x1": 68.7,
+          "y1": 24.0,
+          "x2": 86.0,
+          "y2": 34.0,
+          "order": 2
+        },
+        {
+          "x1": 86.0,
+          "y1": 34.0,
+          "x2": 86.0,
+          "y2": 54.0
+        },
+        {
+          "x1": 86.0,
+          "y1": 54.0,
+          "x2": 68.6,
+          "y2": 64.0,
+          "order": 2
+        },
+        {
+          "x1": 68.6,
+          "y1": 64.0,
+          "x2": 51.3,
+          "y2": 54.0
+        }
+      ],
+      "labels": [
+        {
+          "x": 34.0,
+          "y": 69.0,
+          "t": "NH_2",
+          "size": 13
+        }
+      ]
+    },
+    "name": "NaNO₂, HCl, 40 °C"
+  },
+  "u10-dz-nitroso": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 25.4,
+          "y1": 54.1,
+          "x2": 37.5,
+          "y2": 61.1
+        },
+        {
+          "x1": 47.9,
+          "y1": 61.0,
+          "x2": 60.0,
+          "y2": 54.0
+        },
+        {
+          "x1": 60.0,
+          "y1": 54.0,
+          "x2": 77.4,
+          "y2": 63.9,
+          "order": 2
+        },
+        {
+          "x1": 77.4,
+          "y1": 63.9,
+          "x2": 94.6,
+          "y2": 53.9
+        },
+        {
+          "x1": 94.6,
+          "y1": 53.9,
+          "x2": 94.6,
+          "y2": 33.9,
+          "order": 2
+        },
+        {
+          "x1": 94.6,
+          "y1": 33.9,
+          "x2": 77.2,
+          "y2": 23.9
+        },
+        {
+          "x1": 77.2,
+          "y1": 23.9,
+          "x2": 59.9,
+          "y2": 34.0,
+          "order": 2
+        },
+        {
+          "x1": 59.9,
+          "y1": 34.0,
+          "x2": 60.0,
+          "y2": 54.0
+        }
+      ],
+      "labels": [
+        {
+          "x": 42.7,
+          "y": 69.1,
+          "t": "NH",
+          "size": 13
+        }
+      ]
+    },
+    "name": "NaNO₂, HCl, 0 to 5 °C"
+  },
   "u10-ds-meet": {
     "kind": "structure",
     "figure": {
@@ -6695,6 +7603,79 @@ export const U10_VISUALS: Readonly<Record<string, McqVisual>> = {
       ]
     },
     "name": "Br₂, NaNO₂ and HCl, H₃PO₂"
+  },
+  "u10-ds-order": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 42.7,
+          "y1": 66.5,
+          "x2": 52.8,
+          "y2": 60.7
+        },
+        {
+          "x1": 52.8,
+          "y1": 60.7,
+          "x2": 67.2,
+          "y2": 69.0
+        },
+        {
+          "x1": 67.2,
+          "y1": 69.0,
+          "x2": 81.6,
+          "y2": 60.7,
+          "order": 2
+        },
+        {
+          "x1": 81.6,
+          "y1": 60.7,
+          "x2": 81.7,
+          "y2": 44.0
+        },
+        {
+          "x1": 81.7,
+          "y1": 44.0,
+          "x2": 67.2,
+          "y2": 35.7,
+          "order": 2
+        },
+        {
+          "x1": 67.2,
+          "y1": 35.7,
+          "x2": 67.2,
+          "y2": 24.0
+        },
+        {
+          "x1": 67.2,
+          "y1": 35.7,
+          "x2": 52.8,
+          "y2": 44.0
+        },
+        {
+          "x1": 52.8,
+          "y1": 44.0,
+          "x2": 52.8,
+          "y2": 60.7,
+          "order": 2
+        }
+      ],
+      "labels": [
+        {
+          "x": 38.3,
+          "y": 74.0,
+          "t": "OH",
+          "size": 13
+        },
+        {
+          "x": 67.2,
+          "y": 24.0,
+          "t": "Br",
+          "size": 13
+        }
+      ]
+    },
+    "name": "the target"
   },
   "u10-ap-meet": {
     "kind": "structure",
@@ -7050,6 +8031,67 @@ export const U10_VISUALS: Readonly<Record<string, McqVisual>> = {
       ]
     },
     "name": "acetanilide"
+  },
+  "u10-ap-nitro": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 39.2,
+          "y1": 61.0,
+          "x2": 51.3,
+          "y2": 54.0
+        },
+        {
+          "x1": 51.3,
+          "y1": 54.0,
+          "x2": 51.4,
+          "y2": 34.0,
+          "order": 2
+        },
+        {
+          "x1": 51.4,
+          "y1": 34.0,
+          "x2": 68.7,
+          "y2": 24.0
+        },
+        {
+          "x1": 68.7,
+          "y1": 24.0,
+          "x2": 86.0,
+          "y2": 34.0,
+          "order": 2
+        },
+        {
+          "x1": 86.0,
+          "y1": 34.0,
+          "x2": 86.0,
+          "y2": 54.0
+        },
+        {
+          "x1": 86.0,
+          "y1": 54.0,
+          "x2": 68.6,
+          "y2": 64.0,
+          "order": 2
+        },
+        {
+          "x1": 68.6,
+          "y1": 64.0,
+          "x2": 51.3,
+          "y2": 54.0
+        }
+      ],
+      "labels": [
+        {
+          "x": 34.0,
+          "y": 69.0,
+          "t": "NH_2",
+          "size": 13
+        }
+      ]
+    },
+    "name": "Ac₂O; HNO₃, H₂SO₄; H₃O⁺, heat"
   },
   "u10-da-meet": {
     "kind": "structure",
@@ -12515,6 +13557,243 @@ export const U10_OPTION_TILES: Readonly<Record<string, Readonly<Record<string, N
       "name": "N-ethylcyclohexanecarboxamide"
     }
   },
+  "u10-ar-route": {
+    "amine": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 18.0,
+            "y1": 63.5,
+            "x2": 29.7,
+            "y2": 56.7
+          },
+          {
+            "x1": 34.8,
+            "y1": 47.9,
+            "x2": 34.7,
+            "y2": 34.4
+          },
+          {
+            "x1": 39.8,
+            "y1": 56.7,
+            "x2": 51.6,
+            "y2": 63.4
+          },
+          {
+            "x1": 51.6,
+            "y1": 63.4,
+            "x2": 68.4,
+            "y2": 53.6
+          },
+          {
+            "x1": 68.4,
+            "y1": 53.6,
+            "x2": 85.2,
+            "y2": 63.3,
+            "order": 2
+          },
+          {
+            "x1": 85.2,
+            "y1": 63.3,
+            "x2": 102.0,
+            "y2": 53.5
+          },
+          {
+            "x1": 102.0,
+            "y1": 53.5,
+            "x2": 101.9,
+            "y2": 34.1,
+            "order": 2
+          },
+          {
+            "x1": 101.9,
+            "y1": 34.1,
+            "x2": 85.1,
+            "y2": 24.5
+          },
+          {
+            "x1": 85.1,
+            "y1": 24.5,
+            "x2": 68.3,
+            "y2": 34.2,
+            "order": 2
+          },
+          {
+            "x1": 68.3,
+            "y1": 34.2,
+            "x2": 68.4,
+            "y2": 53.6
+          }
+        ],
+        "labels": [
+          {
+            "x": 34.8,
+            "y": 58.8,
+            "t": "N",
+            "size": 13
+          }
+        ]
+      },
+      "name": "N,N-dimethyl-1-phenylmethanamine"
+    },
+    "amide": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 35.2,
+            "y1": 69.0,
+            "x2": 43.9,
+            "y2": 64.0
+          },
+          {
+            "x1": 51.3,
+            "y1": 64.0,
+            "x2": 60.0,
+            "y2": 69.0
+          },
+          {
+            "x1": 47.6,
+            "y1": 57.6,
+            "x2": 47.6,
+            "y2": 47.6
+          },
+          {
+            "x1": 47.6,
+            "y1": 47.6,
+            "x2": 39.0,
+            "y2": 42.5,
+            "order": 2
+          },
+          {
+            "x1": 47.6,
+            "y1": 47.6,
+            "x2": 60.0,
+            "y2": 40.4
+          },
+          {
+            "x1": 60.0,
+            "y1": 40.4,
+            "x2": 60.0,
+            "y2": 26.1,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 26.1,
+            "x2": 72.4,
+            "y2": 19.0
+          },
+          {
+            "x1": 72.4,
+            "y1": 19.0,
+            "x2": 84.8,
+            "y2": 26.2,
+            "order": 2
+          },
+          {
+            "x1": 84.8,
+            "y1": 26.2,
+            "x2": 84.8,
+            "y2": 40.4
+          },
+          {
+            "x1": 84.8,
+            "y1": 40.4,
+            "x2": 72.4,
+            "y2": 47.6,
+            "order": 2
+          },
+          {
+            "x1": 72.4,
+            "y1": 47.6,
+            "x2": 60.0,
+            "y2": 40.4
+          }
+        ],
+        "labels": [
+          {
+            "x": 47.6,
+            "y": 66.8,
+            "t": "N",
+            "size": 13
+          },
+          {
+            "x": 35.3,
+            "y": 45.4,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "N,N-dimethylbenzamide"
+    },
+    "alcohol": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 68.7,
+            "y1": 21.1,
+            "x2": 60.0,
+            "y2": 26.1
+          },
+          {
+            "x1": 60.0,
+            "y1": 26.1,
+            "x2": 60.0,
+            "y2": 40.4
+          },
+          {
+            "x1": 60.0,
+            "y1": 40.4,
+            "x2": 47.6,
+            "y2": 47.5,
+            "order": 2
+          },
+          {
+            "x1": 47.6,
+            "y1": 47.5,
+            "x2": 47.6,
+            "y2": 61.8
+          },
+          {
+            "x1": 47.6,
+            "y1": 61.8,
+            "x2": 59.9,
+            "y2": 69.0,
+            "order": 2
+          },
+          {
+            "x1": 59.9,
+            "y1": 69.0,
+            "x2": 72.3,
+            "y2": 61.9
+          },
+          {
+            "x1": 72.3,
+            "y1": 61.9,
+            "x2": 72.4,
+            "y2": 47.6,
+            "order": 2
+          },
+          {
+            "x1": 72.4,
+            "y1": 47.6,
+            "x2": 60.0,
+            "y2": 40.4
+          }
+        ],
+        "labels": [
+          {
+            "x": 72.4,
+            "y": 24.0,
+            "t": "OH",
+            "size": 13
+          }
+        ]
+      },
+      "name": "phenylmethanol"
+    }
+  },
   "u10-nr-meet": {
     "amine": {
       "figure": {
@@ -14056,6 +15335,225 @@ export const U10_OPTION_TILES: Readonly<Record<string, Readonly<Record<string, N
       "name": "aniline"
     }
   },
+  "u10-no-route": {
+    "para": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 30.5,
+            "y1": 61.0,
+            "x2": 42.7,
+            "y2": 54.0
+          },
+          {
+            "x1": 42.7,
+            "y1": 54.0,
+            "x2": 42.7,
+            "y2": 34.0
+          },
+          {
+            "x1": 42.7,
+            "y1": 34.0,
+            "x2": 60.0,
+            "y2": 24.0,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 24.0,
+            "x2": 77.3,
+            "y2": 34.0
+          },
+          {
+            "x1": 77.3,
+            "y1": 34.0,
+            "x2": 89.5,
+            "y2": 27.0
+          },
+          {
+            "x1": 77.3,
+            "y1": 34.0,
+            "x2": 77.3,
+            "y2": 54.0,
+            "order": 2
+          },
+          {
+            "x1": 77.3,
+            "y1": 54.0,
+            "x2": 60.0,
+            "y2": 64.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 64.0,
+            "x2": 42.7,
+            "y2": 54.0,
+            "order": 2
+          }
+        ],
+        "labels": [
+          {
+            "x": 25.3,
+            "y": 69.0,
+            "t": "NH_2",
+            "size": 13
+          },
+          {
+            "x": 94.7,
+            "y": 29.0,
+            "t": "Br",
+            "size": 13
+          }
+        ]
+      },
+      "name": "4-bromoaniline"
+    },
+    "meta": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 42.7,
+            "y1": 66.5,
+            "x2": 52.8,
+            "y2": 60.7
+          },
+          {
+            "x1": 52.8,
+            "y1": 60.7,
+            "x2": 67.2,
+            "y2": 69.0
+          },
+          {
+            "x1": 67.2,
+            "y1": 69.0,
+            "x2": 81.6,
+            "y2": 60.7,
+            "order": 2
+          },
+          {
+            "x1": 81.6,
+            "y1": 60.7,
+            "x2": 81.7,
+            "y2": 44.0
+          },
+          {
+            "x1": 81.7,
+            "y1": 44.0,
+            "x2": 67.2,
+            "y2": 35.7,
+            "order": 2
+          },
+          {
+            "x1": 67.2,
+            "y1": 35.7,
+            "x2": 67.2,
+            "y2": 24.0
+          },
+          {
+            "x1": 67.2,
+            "y1": 35.7,
+            "x2": 52.8,
+            "y2": 44.0
+          },
+          {
+            "x1": 52.8,
+            "y1": 44.0,
+            "x2": 52.8,
+            "y2": 60.7,
+            "order": 2
+          }
+        ],
+        "labels": [
+          {
+            "x": 38.3,
+            "y": 74.0,
+            "t": "NH_2",
+            "size": 13
+          },
+          {
+            "x": 67.2,
+            "y": 24.0,
+            "t": "Br",
+            "size": 13
+          }
+        ]
+      },
+      "name": "3-bromoaniline"
+    },
+    "nitro": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 77.3,
+            "y1": 49.8,
+            "x2": 67.2,
+            "y2": 44.0
+          },
+          {
+            "x1": 67.2,
+            "y1": 44.0,
+            "x2": 67.2,
+            "y2": 27.3
+          },
+          {
+            "x1": 67.2,
+            "y1": 27.3,
+            "x2": 52.8,
+            "y2": 19.0,
+            "order": 2
+          },
+          {
+            "x1": 52.8,
+            "y1": 19.0,
+            "x2": 38.3,
+            "y2": 27.3
+          },
+          {
+            "x1": 38.3,
+            "y1": 27.3,
+            "x2": 28.2,
+            "y2": 21.5
+          },
+          {
+            "x1": 38.3,
+            "y1": 27.3,
+            "x2": 38.3,
+            "y2": 44.0,
+            "order": 2
+          },
+          {
+            "x1": 38.3,
+            "y1": 44.0,
+            "x2": 52.8,
+            "y2": 52.3
+          },
+          {
+            "x1": 52.8,
+            "y1": 52.3,
+            "x2": 67.2,
+            "y2": 44.0,
+            "order": 2
+          }
+        ],
+        "labels": [
+          {
+            "x": 77.2,
+            "y": 57.3,
+            "t": "NO_2",
+            "size": 13,
+            "anchor": "start"
+          },
+          {
+            "x": 23.9,
+            "y": 24.0,
+            "t": "Br",
+            "size": 13
+          }
+        ]
+      },
+      "name": "1-bromo-4-nitrobenzene"
+    }
+  },
   "u10-dz-meet": {
     "dz": {
       "figure": {
@@ -14927,6 +16425,434 @@ export const U10_OPTION_TILES: Readonly<Record<string, Readonly<Record<string, N
         ]
       },
       "name": "4-chloro-N-methylaniline"
+    }
+  },
+  "u10-dz-warm": {
+    "oh": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 39.2,
+            "y1": 61.0,
+            "x2": 51.3,
+            "y2": 54.0
+          },
+          {
+            "x1": 51.3,
+            "y1": 54.0,
+            "x2": 51.4,
+            "y2": 34.0,
+            "order": 2
+          },
+          {
+            "x1": 51.4,
+            "y1": 34.0,
+            "x2": 68.7,
+            "y2": 24.0
+          },
+          {
+            "x1": 68.7,
+            "y1": 24.0,
+            "x2": 86.0,
+            "y2": 34.0,
+            "order": 2
+          },
+          {
+            "x1": 86.0,
+            "y1": 34.0,
+            "x2": 86.0,
+            "y2": 54.0
+          },
+          {
+            "x1": 86.0,
+            "y1": 54.0,
+            "x2": 68.6,
+            "y2": 64.0,
+            "order": 2
+          },
+          {
+            "x1": 68.6,
+            "y1": 64.0,
+            "x2": 51.3,
+            "y2": 54.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 34.0,
+            "y": 69.0,
+            "t": "OH",
+            "size": 13
+          }
+        ]
+      },
+      "name": "phenol"
+    },
+    "dz": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 47.8,
+            "y1": 56.0,
+            "x2": 60.0,
+            "y2": 49.1
+          },
+          {
+            "x1": 60.0,
+            "y1": 49.1,
+            "x2": 77.3,
+            "y2": 59.2,
+            "order": 2
+          },
+          {
+            "x1": 77.3,
+            "y1": 59.2,
+            "x2": 94.6,
+            "y2": 49.3
+          },
+          {
+            "x1": 94.6,
+            "y1": 49.3,
+            "x2": 94.8,
+            "y2": 29.3,
+            "order": 2
+          },
+          {
+            "x1": 94.8,
+            "y1": 29.3,
+            "x2": 77.5,
+            "y2": 19.2
+          },
+          {
+            "x1": 77.5,
+            "y1": 19.2,
+            "x2": 60.1,
+            "y2": 29.1,
+            "order": 2
+          },
+          {
+            "x1": 60.1,
+            "y1": 29.1,
+            "x2": 60.0,
+            "y2": 49.1
+          }
+        ],
+        "labels": [
+          {
+            "x": 47.1,
+            "y": 63.9,
+            "t": "H_2NN",
+            "size": 13,
+            "anchor": "end"
+          }
+        ]
+      },
+      "name": "benzenediazonium"
+    },
+    "cl": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 39.2,
+            "y1": 61.0,
+            "x2": 51.3,
+            "y2": 54.0
+          },
+          {
+            "x1": 51.3,
+            "y1": 54.0,
+            "x2": 51.4,
+            "y2": 34.0,
+            "order": 2
+          },
+          {
+            "x1": 51.4,
+            "y1": 34.0,
+            "x2": 68.7,
+            "y2": 24.0
+          },
+          {
+            "x1": 68.7,
+            "y1": 24.0,
+            "x2": 86.0,
+            "y2": 34.0,
+            "order": 2
+          },
+          {
+            "x1": 86.0,
+            "y1": 34.0,
+            "x2": 86.0,
+            "y2": 54.0
+          },
+          {
+            "x1": 86.0,
+            "y1": 54.0,
+            "x2": 68.6,
+            "y2": 64.0,
+            "order": 2
+          },
+          {
+            "x1": 68.6,
+            "y1": 64.0,
+            "x2": 51.3,
+            "y2": 54.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 34.0,
+            "y": 69.0,
+            "t": "Cl",
+            "size": 13
+          }
+        ]
+      },
+      "name": "chlorobenzene"
+    }
+  },
+  "u10-dz-nitroso": {
+    "nno": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 50.4,
+            "y1": 30.1,
+            "x2": 57.1,
+            "y2": 34.0
+          },
+          {
+            "x1": 62.9,
+            "y1": 34.0,
+            "x2": 66.8,
+            "y2": 31.8
+          },
+          {
+            "x1": 69.7,
+            "y1": 26.8,
+            "x2": 69.7,
+            "y2": 22.3,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 39.0,
+            "x2": 60.0,
+            "y2": 46.8
+          },
+          {
+            "x1": 60.0,
+            "y1": 46.8,
+            "x2": 50.3,
+            "y2": 52.3,
+            "order": 2
+          },
+          {
+            "x1": 50.3,
+            "y1": 52.3,
+            "x2": 50.3,
+            "y2": 63.4
+          },
+          {
+            "x1": 50.3,
+            "y1": 63.4,
+            "x2": 59.9,
+            "y2": 69.0,
+            "order": 2
+          },
+          {
+            "x1": 59.9,
+            "y1": 69.0,
+            "x2": 69.6,
+            "y2": 63.5
+          },
+          {
+            "x1": 69.6,
+            "y1": 63.5,
+            "x2": 69.6,
+            "y2": 52.3,
+            "order": 2
+          },
+          {
+            "x1": 69.6,
+            "y1": 52.3,
+            "x2": 60.0,
+            "y2": 46.8
+          }
+        ],
+        "labels": [
+          {
+            "x": 60.0,
+            "y": 40.7,
+            "t": "N",
+            "size": 13
+          },
+          {
+            "x": 69.6,
+            "y": 35.1,
+            "t": "N",
+            "size": 13
+          },
+          {
+            "x": 69.7,
+            "y": 24.0,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "N-methyl-N-phenylnitrous amide"
+    },
+    "dz": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 47.8,
+            "y1": 56.0,
+            "x2": 60.0,
+            "y2": 49.1
+          },
+          {
+            "x1": 60.0,
+            "y1": 49.1,
+            "x2": 77.3,
+            "y2": 59.2,
+            "order": 2
+          },
+          {
+            "x1": 77.3,
+            "y1": 59.2,
+            "x2": 94.6,
+            "y2": 49.3
+          },
+          {
+            "x1": 94.6,
+            "y1": 49.3,
+            "x2": 94.8,
+            "y2": 29.3,
+            "order": 2
+          },
+          {
+            "x1": 94.8,
+            "y1": 29.3,
+            "x2": 77.5,
+            "y2": 19.2
+          },
+          {
+            "x1": 77.5,
+            "y1": 19.2,
+            "x2": 60.1,
+            "y2": 29.1,
+            "order": 2
+          },
+          {
+            "x1": 60.1,
+            "y1": 29.1,
+            "x2": 60.0,
+            "y2": 49.1
+          }
+        ],
+        "labels": [
+          {
+            "x": 47.1,
+            "y": 63.9,
+            "t": "H_2NN",
+            "size": 13,
+            "anchor": "end"
+          }
+        ]
+      },
+      "name": "benzenediazonium"
+    },
+    "ring": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 68.7,
+            "y1": 69.0,
+            "x2": 62.6,
+            "y2": 65.5
+          },
+          {
+            "x1": 60.0,
+            "y1": 61.0,
+            "x2": 60.0,
+            "y2": 54.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 54.0,
+            "x2": 51.3,
+            "y2": 49.0
+          },
+          {
+            "x1": 51.3,
+            "y1": 49.0,
+            "x2": 51.3,
+            "y2": 39.0,
+            "order": 2
+          },
+          {
+            "x1": 51.3,
+            "y1": 39.0,
+            "x2": 60.0,
+            "y2": 34.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 34.0,
+            "x2": 60.0,
+            "y2": 27.0
+          },
+          {
+            "x1": 57.4,
+            "y1": 22.5,
+            "x2": 53.9,
+            "y2": 20.5,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 34.0,
+            "x2": 68.7,
+            "y2": 39.0,
+            "order": 2
+          },
+          {
+            "x1": 68.7,
+            "y1": 39.0,
+            "x2": 68.7,
+            "y2": 49.0
+          },
+          {
+            "x1": 68.7,
+            "y1": 49.0,
+            "x2": 60.0,
+            "y2": 54.0,
+            "order": 2
+          }
+        ],
+        "labels": [
+          {
+            "x": 60.0,
+            "y": 69.0,
+            "t": "NH",
+            "size": 13
+          },
+          {
+            "x": 60.0,
+            "y": 29.0,
+            "t": "N",
+            "size": 13
+          },
+          {
+            "x": 51.3,
+            "y": 24.0,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "N-methyl-4-nitrosoaniline"
     }
   },
   "u10-ds-meet": {
@@ -17009,6 +18935,252 @@ export const U10_OPTION_TILES: Readonly<Record<string, Readonly<Record<string, N
         ]
       },
       "name": "N-(4-bromophenyl)acetamide"
+    }
+  },
+  "u10-ap-nitro": {
+    "para": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 28.2,
+            "y1": 21.5,
+            "x2": 38.3,
+            "y2": 27.3
+          },
+          {
+            "x1": 38.3,
+            "y1": 27.3,
+            "x2": 52.8,
+            "y2": 19.0
+          },
+          {
+            "x1": 52.8,
+            "y1": 19.0,
+            "x2": 67.2,
+            "y2": 27.3,
+            "order": 2
+          },
+          {
+            "x1": 67.2,
+            "y1": 27.3,
+            "x2": 67.2,
+            "y2": 44.0
+          },
+          {
+            "x1": 67.2,
+            "y1": 44.0,
+            "x2": 77.3,
+            "y2": 49.8
+          },
+          {
+            "x1": 67.2,
+            "y1": 44.0,
+            "x2": 52.8,
+            "y2": 52.3,
+            "order": 2
+          },
+          {
+            "x1": 52.8,
+            "y1": 52.3,
+            "x2": 38.3,
+            "y2": 44.0
+          },
+          {
+            "x1": 38.3,
+            "y1": 44.0,
+            "x2": 38.3,
+            "y2": 27.3,
+            "order": 2
+          }
+        ],
+        "labels": [
+          {
+            "x": 23.9,
+            "y": 24.0,
+            "t": "NH_2",
+            "size": 13
+          },
+          {
+            "x": 77.2,
+            "y": 57.3,
+            "t": "NO_2",
+            "size": 13,
+            "anchor": "start"
+          }
+        ]
+      },
+      "name": "4-nitroaniline"
+    },
+    "amide": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 18.0,
+            "y1": 64.7,
+            "x2": 30.0,
+            "y2": 57.8
+          },
+          {
+            "x1": 30.0,
+            "y1": 57.8,
+            "x2": 30.0,
+            "y2": 48.1,
+            "order": 2
+          },
+          {
+            "x1": 30.0,
+            "y1": 57.8,
+            "x2": 38.4,
+            "y2": 62.7
+          },
+          {
+            "x1": 45.6,
+            "y1": 62.7,
+            "x2": 54.0,
+            "y2": 57.8
+          },
+          {
+            "x1": 54.0,
+            "y1": 57.8,
+            "x2": 66.0,
+            "y2": 64.8
+          },
+          {
+            "x1": 66.0,
+            "y1": 64.8,
+            "x2": 78.0,
+            "y2": 57.9,
+            "order": 2
+          },
+          {
+            "x1": 78.0,
+            "y1": 57.9,
+            "x2": 78.0,
+            "y2": 44.0
+          },
+          {
+            "x1": 78.0,
+            "y1": 44.0,
+            "x2": 86.4,
+            "y2": 39.2
+          },
+          {
+            "x1": 78.0,
+            "y1": 44.0,
+            "x2": 66.0,
+            "y2": 37.1,
+            "order": 2
+          },
+          {
+            "x1": 66.0,
+            "y1": 37.1,
+            "x2": 54.0,
+            "y2": 44.0
+          },
+          {
+            "x1": 54.0,
+            "y1": 44.0,
+            "x2": 54.0,
+            "y2": 57.8,
+            "order": 2
+          }
+        ],
+        "labels": [
+          {
+            "x": 30.0,
+            "y": 49.0,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 42.0,
+            "y": 69.8,
+            "t": "NH",
+            "size": 13
+          },
+          {
+            "x": 85.5,
+            "y": 42.1,
+            "t": "NO_2",
+            "size": 13,
+            "anchor": "start"
+          }
+        ]
+      },
+      "name": "N-(4-nitrophenyl)acetamide"
+    },
+    "meta": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 70.8,
+            "y1": 22.8,
+            "x2": 70.8,
+            "y2": 31.5
+          },
+          {
+            "x1": 70.8,
+            "y1": 31.5,
+            "x2": 81.7,
+            "y2": 37.8
+          },
+          {
+            "x1": 81.7,
+            "y1": 37.8,
+            "x2": 81.7,
+            "y2": 50.3,
+            "order": 2
+          },
+          {
+            "x1": 81.7,
+            "y1": 50.3,
+            "x2": 70.8,
+            "y2": 56.5
+          },
+          {
+            "x1": 70.8,
+            "y1": 56.5,
+            "x2": 60.0,
+            "y2": 50.3,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 50.3,
+            "x2": 52.4,
+            "y2": 54.6
+          },
+          {
+            "x1": 60.0,
+            "y1": 50.3,
+            "x2": 60.0,
+            "y2": 37.7
+          },
+          {
+            "x1": 60.0,
+            "y1": 37.7,
+            "x2": 70.8,
+            "y2": 31.5,
+            "order": 2
+          }
+        ],
+        "labels": [
+          {
+            "x": 70.8,
+            "y": 24.0,
+            "t": "NH_2",
+            "size": 13
+          },
+          {
+            "x": 53.7,
+            "y": 61.5,
+            "t": "O_2N",
+            "size": 13,
+            "anchor": "end"
+          }
+        ]
+      },
+      "name": "3-nitroaniline"
     }
   },
   "u10-da-meet": {

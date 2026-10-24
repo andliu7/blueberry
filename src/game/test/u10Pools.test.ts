@@ -37,14 +37,14 @@ import { roadOf } from "../tabs/pathway/unitShape";
 import { FIGURE_HEIGHT, FIGURE_WIDTH, type Figure } from "../onboarding/figures";
 
 const EXPECTED_SIZES: Readonly<Record<string, number>> = {
-  "u10-basicity": 7,
-  "u10-red-amination": 6,
-  "u10-amide-red": 6,
+  "u10-basicity": 8,
+  "u10-red-amination": 7,
+  "u10-amide-red": 7,
   "u10-nitrile-red": 6,
-  "u10-nitro-red": 6,
-  "u10-diazonium": 6,
-  "u10-diazo-sub": 6,
-  "u10-acyl-protect": 6,
+  "u10-nitro-red": 8,
+  "u10-diazonium": 8,
+  "u10-diazo-sub": 7,
+  "u10-acyl-protect": 7,
   "u10-direct-alk": 6,
   "u10-gabriel": 6,
   "u10-azide": 6,

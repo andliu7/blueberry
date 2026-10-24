@@ -887,6 +887,11 @@ LIAL_CONV = "LiAlH4 removes an amide's O and keeps its C-N bond (an ester loses 
 RING_CONV = ("a free N lone pair activates the ring most, sharing it with a C=O moderates it, and NO2 "
              "deactivates (the Unit 3 rubric)")
 GROUP_CONV = "NO2 is a deactivating meta director and NH2 an activating ortho/para director (the Unit 3 rubric)"
+EAS_CONV = ("NO2 directs meta; Br, NHAc and NH2 direct ortho and para, the para product taken as the major one; "
+            "Br2 on free aniline takes every ortho and para C-H (the Unit 3 rubric)")
+WARM_CONV = "an aryl diazonium salt is kept at 0 to 5 °C; warmer, in water, it loses N2 and water gives the phenol"
+NITROSO_CONV = "a secondary amine with NaNO2 and HCl stops at the N-nitrosamine, R2N-N=O: it has no second N-H to lose"
+ACYL_CONV = "an amine turns an acyl chloride into an amide (the Unit 8 rule)"
 
 
 def products(smarts: str, *reactants: str) -> list[str]:
@@ -1210,6 +1215,57 @@ def brominate_op(smi: str, mode: str) -> str:
     return put_on(smi, with_h(smi, pos["para"]), "Br")
 
 
+EAS_GROUP = {"Br": "Br", "NO2": "[N+](=O)[O-]"}
+META_DIRECTOR = "c[N+](=O)[O-]"
+
+
+def eas_mono(smi: str, group: str) -> str:
+    """
+    One EAS step (EAS_CONV) for the order-of-steps items: on benzene any C; on a
+    ring with one group, meta to NO2 and para to anything else; Br2 on a free
+    aryl NH2 takes every ortho and para C-H (OP_CONV, brominate_op).
+    """
+    m = mol(smi)
+    if group == "Br" and m.HasSubstructMatch(Chem.MolFromSmarts("c[NX3;H2;+0]")):
+        return brominate_op(smi, "all")
+    ring = benzene_ring(m)
+    if ring is None:
+        raise ValueError(f"{smi}: no benzene ring")
+    subs = [i for i in ring if any(n.GetIdx() not in ring for n in m.GetAtomWithIdx(i).GetNeighbors())]
+    if not subs:
+        site = ring[0]
+    elif len(subs) == 1:
+        pos = ring_positions(smi, subs[0])
+        site = pos["meta"][0] if m.HasSubstructMatch(Chem.MolFromSmarts(META_DIRECTOR)) else pos["para"][0]
+    else:
+        raise ValueError(f"{smi}: eas_mono takes a ring with at most one group")
+    frag = mol(EAS_GROUP[group])
+    rw = Chem.RWMol(Chem.CombineMols(m, frag))
+    rw.AddBond(site, m.GetNumAtoms(), SINGLE)
+    return one(rw)
+
+
+def route(start: str, steps: list[str]) -> str | None:
+    """Run named steps in order: "NO2" and "Br" (eas_mono), "reduce" (Rule D, nitro), "diazotise", or a SAND reagent."""
+    cur: str | None = start
+    for step in steps:
+        if cur is None:
+            return None
+        if step in EAS_GROUP:
+            cur = eas_mono(cur, step)
+        elif step == "reduce":
+            cur = nitro_red(cur)
+        elif step == "diazotise":
+            cur = diazotise(cur)
+        else:
+            cur = replace_n2(cur, step)
+    return canon(cur) if cur else None
+
+
+NITROSO = "[NX3;H1;+0;!$(N-C=O):1]>>[N:1]N=O"
+ACYL_SUB = "[C:1](=[O:2])Cl.[NX3;!H0;+0:3]>>[C:1](=[O:2])[N:3]"
+
+
 def acylate(amine: str) -> str | None:
     return only(products("[NX3;!H0;!$(N-C=O);+0:1]>>[N:1]C(C)=O", amine), f"Ac2O on {amine}")
 
@@ -1371,7 +1427,7 @@ def node_basicity() -> None:
         {"ch2": "alkyl", "ring": "aryl", "same": "same"}, derived, "ch2",
         "In a molecule with two N, the one whose lone pair is not delocalised is protonated first.",
         prov("Rule L on each N of the molecule", CH_AMINE, BASIC_CONV), lead(two, "4-(aminomethyl)aniline", "two kinds of N"),
-        concepts=AMINE + RES, convention=BASIC_CONV)
+        level=2, concepts=AMINE + RES, convention=BASIC_CONV)
 
     vals = {"ten": pka("ammonium"), "tf": pka("amine_nh"), "five": pka("carboxylic_acid")}
     ask(node, "u10-bas-pka", "Pick the course pKa for the N-H of an alkylammonium ion, R-NH₃⁺.",
@@ -1424,6 +1480,21 @@ def node_basicity() -> None:
            "The more the N lone pair is spread out, the weaker the base: alkyl, then aryl, then amide.",
            prov("Rule L, basic_rank per card", CH_AMINE, BASIC_CONV), AMINE + RES, "amines")
 
+    # Level 2 (audit 23 Oct, section 6): two N where neither is an alkyl amine.
+    two = "CC(=O)Nc1ccc(N)cc1"
+    m = mol(two)
+    by_class = {n_class(two, a.GetIdx()): a.GetIdx() for a in m.GetAtoms() if a.GetSymbol() == "N"}
+    ranked = sorted(by_class, key=lambda c: BASIC_RANK[c])
+    derived = ranked[0] if len(ranked) == 2 and BASIC_RANK[ranked[0]] != BASIC_RANK[ranked[1]] else "same"
+    ask(node, "u10-bas-aryl-amide", "N-(4-Aminophenyl)acetamide meets one H⁺. Pick the N it protonates.",
+        [("ring", "The NH₂ on the ring", "Its pair is spread into the ring, but the other N shares its pair with a C=O as well. The aryl NH₂ is still the better base."),
+         ("amide", "The N-H beside the C=O", "That is an amide N. Its lone pair is shared with the C=O, so it barely acts as a base."),
+         ("same", "Both equally", "One N is an aryl amine and one is an amide N, so their lone pairs are not alike.")],
+        {"ring": "aryl", "amide": "amide", "same": "same"}, derived, "ring",
+        "Aryl amine above amide: even an NH₂ on a ring beats an N that shares its pair with a C=O.",
+        prov("Rule L on each N of the molecule", CH_AMINE, BASIC_CONV), lead(two, "N-(4-aminophenyl)acetamide", "two kinds of N"),
+        level=2, concepts=AMINE + RES, convention=BASIC_CONV)
+
 
 # ---------------------------------------------------------------------------
 # u10-red-amination
@@ -1470,7 +1541,7 @@ def node_red_amination() -> None:
           o("ipa", S["ipa"], "propan-2-ol", "An alcohol has no C=O, so no iminium can form.")],
          hits, "acetone", "Work back: the carbon on N that carries the H came from a C=O carbon.",
          prov("Rule R run forward on each option", CH_AMINE, CNBH3_CONV), lead(target, "N-benzylpropan-2-amine", "the target amine"),
-         concepts=AMINE + SYN, convention=CNBH3_CONV)
+         level=2, concepts=AMINE + SYN, convention=CNBH3_CONV)
 
     p = red_am(S["bzald"], S["me2nh"])
     ask(node, "u10-ra-class", "Benzaldehyde and (CH₃)₂NH meet NaBH₃CN. Pick the amine class made.",
@@ -1490,6 +1561,17 @@ def node_red_amination() -> None:
         "NaBH₃CN reduces the iminium, not the C=O, so amine and carbonyl can share one pot.",
         prov("the reductant's selectivity, a convention", CH_AMINE, CNBH3_CONV), lead(S["chxone"], "cyclohexanone", "CH₃NH₂, NaBH₃CN"),
         concepts=AMINE, convention=CNBH3_CONV)
+
+    target = "c1ccc(NC2CCCCC2)cc1"
+    pairs = {"one": red_am(S["chxone"], S["aniline"]), "ol": red_am("OC1CCCCC1", S["aniline"]), "bz": red_am(S["bzald"], S["chxa"])}
+    ask(node, "u10-ra-pair", "Pick the pair that NaBH₃CN joins into this amine.",
+        [("one", "Cyclohexanone and aniline", "The ring CH on N was the ketone's C=O carbon. An aryl carbon can never come from a C=O, so the cut goes on the cyclohexyl side."),
+         ("ol", "Cyclohexanol and aniline", "An alcohol has no C=O, so no iminium forms and nothing is joined."),
+         ("bz", "Cyclohexanamine and benzaldehyde", "That puts a CH₂ between ring and N: N-benzylcyclohexanamine, one carbon too many.")],
+        {k: (canon(v) if v else None) for k, v in pairs.items()}, canon(target), "one",
+        "Work back from the C-N bond: the carbon on N that carries an H came from a C=O carbon.",
+        prov("Rule R run forward on each pair", CH_AMINE, CNBH3_CONV), lead(target, "N-cyclohexylaniline", "the target amine"),
+        level=2, concepts=AMINE + SYN, convention=CNBH3_CONV)
 
 
 # ---------------------------------------------------------------------------
@@ -1544,7 +1626,7 @@ def node_amide_red() -> None:
           o("rev", opts["rev"], "N-ethylcyclohexanecarboxamide", "Here the C=O is on the ring side, so the product has a CH₂ between ring and N.")],
          hits, "acet", "Work back: the CH₂ next to N in the amine was the amide's C=O.",
          prov("Rule D run forward on each option", CH_ACYL, LIAL_CONV), lead(target, "N-ethylcyclohexanamine", "the target amine"),
-         concepts=AMINE + SYN, convention=LIAL_CONV)
+         level=2, concepts=AMINE + SYN, convention=LIAL_CONV)
 
     tests = ["CN(C)C(=O)c1ccccc1", "CCNC(C)=O", "NC(=O)Cc1ccccc1"]
     same = all(n_carbons(t) == n_carbons(amide_red(t)) and carbons(t) == carbons(amide_red(t)) for t in tests)
@@ -1556,6 +1638,16 @@ def node_amide_red() -> None:
         "Same carbons, same N substitution; only the C=O becomes CH₂.",
         prov("Rule D on three amides, then N and C counts compared", CH_ACYL, LIAL_CONV),
         lead("CN(C)C(=O)c1ccccc1", "N,N-dimethylbenzamide", "LiAlH₄, then H₂O"), concepts=AMINE, convention=LIAL_CONV)
+
+    amide = only(products(ACYL_SUB, S["bzcl"], S["me2nh"]), "benzoyl chloride with dimethylamine")
+    p = amide_red(amide) if amide else None
+    pick(node, "u10-ar-route", "Benzoyl chloride meets (CH₃)₂NH, then LiAlH₄ and water. Pick the product.",
+         [o("amine", p, "N,N-dimethyl-1-phenylmethanamine", "The amine makes the amide first, then LiAlH₄ turns its C=O into CH₂. Both methyls stay on N."),
+          o("amide", amide, "N,N-dimethylbenzamide", "That is the halfway point. LiAlH₄ then removes the amide's O."),
+          o("alcohol", "OCc1ccccc1", "phenylmethanol", "LiAlH₄ gives that from the acyl chloride alone. The amine reacts first, so an amide is what gets reduced.")],
+         [p] if p else None, "amine", "Acyl chloride to amide, then amide to amine: two steps, and the new C-N bond is kept.",
+         prov("acyl substitution by the amine, then Rule D", CH_ACYL, ACYL_CONV + "; " + LIAL_CONV),
+         lead(S["bzcl"], "benzoyl chloride", "(CH₃)₂NH; LiAlH₄, then H₂O"), level=2, concepts=AMINE + SYN, convention=LIAL_CONV)
 
 
 # ---------------------------------------------------------------------------
@@ -1581,7 +1673,7 @@ def node_nitrile_red() -> None:
           o("nitrile", cn, "pentanenitrile", "That is the halfway point. LiAlH₄ reduces the C≡N.")],
          [p], "amine", "NaCN then LiAlH₄: one more carbon, ending in CH₂NH₂.",
          prov("SN2 by cyanide, then Rule D", CH_NITRILE, SN2_CONV), lead(S["bubr"], "1-bromobutane", "NaCN, then LiAlH₄"),
-         concepts=AMINE + SYN, convention=SN2_CONV)
+         level=2, concepts=AMINE + SYN, convention=SN2_CONV)
 
     change = carbons(p) - carbons(S["bubr"])
     ask(node, "u10-nr-count", "1-Bromobutane goes through NaCN, then LiAlH₄. Pick the carbon count change.",
@@ -1602,7 +1694,7 @@ def node_nitrile_red() -> None:
           o("pr", opts["pr"], "3-phenylpropanenitrile", "That gives three CH₂ between ring and N, one too many.")],
          hits, "bn", "Work back: the CH₂ on N was the nitrile carbon.",
          prov("Rule D run forward on each option", CH_NITRILE), lead(target, "2-phenylethan-1-amine", "the target amine"),
-         concepts=AMINE + SYN)
+         level=2, concepts=AMINE + SYN)
 
     n = "N#CCCCCC#N"
     p = nitrile_red(n)
@@ -1694,6 +1786,29 @@ def node_nitro_red() -> None:
         prov("Rule D, then each group read by SMARTS against the Unit 3 table", CH_AMINE, GROUP_CONV),
         lead(S["nitrobenzene"], "nitrobenzene", "Fe, HCl"), concepts=AMINE + EWG, convention=GROUP_CONV)
 
+    phbr = "Brc1ccccc1"
+    p = route(phbr, ["NO2", "reduce"])
+    pick(node, "u10-no-route", "Bromobenzene: HNO₃ and H₂SO₄, then Sn and HCl. Pick the product.",
+         [o("para", p, "4-bromoaniline", "Br directs the NO₂ ortho and para, para mostly, and Sn with HCl then reduces it to NH₂."),
+          o("meta", "Nc1cccc(Br)c1", "3-bromoaniline", "Br is an ortho/para director, so the NO₂ does not go meta to it."),
+          o("nitro", eas_mono(phbr, "NO2"), "1-bromo-4-nitrobenzene", "That is the halfway point. Sn and HCl reduce the NO₂ to NH₂.")],
+         [p] if p else None, "para", "Nitrate where the ring directs, then reduce: the NH₂ lands where the NO₂ went.",
+         prov("EAS position counted by RDKit, then Rule D", CH_AMINE, EAS_CONV + "; " + NITRO_CONV),
+         lead(phbr, "bromobenzene", "HNO₃, H₂SO₄; Sn, HCl"), level=2, concepts=AMINE + SYN + EAS, convention=EAS_CONV)
+
+    target = "Nc1cccc(Br)c1"
+    orders = {"nbr": ["NO2", "Br", "reduce"], "brn": ["Br", "NO2", "reduce"], "nrb": ["NO2", "reduce", "Br"]}
+    ask(node, "u10-no-order", "Pick the order that turns benzene into 3-bromoaniline.",
+        [("nbr", "Nitrate, brominate, reduce", "NO₂ goes on first and sends the Br meta. Reducing last turns NO₂ into NH₂, meta to Br."),
+         ("brn", "Brominate, nitrate, reduce", "Br goes on first and sends the NO₂ para: that makes 4-bromoaniline."),
+         ("nrb", "Nitrate, reduce, brominate", "Reducing first gives aniline, and Br₂ then takes all three ortho and para C-H: 2,4,6-tribromoaniline.")],
+        {k: route("c1ccccc1", v) for k, v in orders.items()}, canon(target), "nbr",
+        "Order sets position: put on the meta director while it is still NO₂, and reduce it last.",
+        prov("each order run step by step: EAS position counted by RDKit, Rule D", CH_AMINE, EAS_CONV),
+        lead(target, "3-bromoaniline", "the target"),
+        brief="Nitrate = HNO₃, H₂SO₄. Brominate = Br₂, FeBr₃. Reduce = Sn, HCl.",
+        level=2, concepts=AMINE + SYN + EAS, convention=EAS_CONV)
+
 
 # ---------------------------------------------------------------------------
 # u10-diazonium
@@ -1756,6 +1871,26 @@ def node_diazonium() -> None:
          hits, "p", "Work back: put NH₂ where the N≡N⁺ is.", prov("Rule Z run forward on each option", CH_AMINE, DIAZO_CONV),
          lead(target, "4-chlorobenzenediazonium", "the diazonium salt"), concepts=DIAZO, convention=DIAZO_CONV)
 
+    p = replace_n2(diazotise(S["aniline"]), "H2O, heat")
+    pick(node, "u10-dz-warm", "Aniline meets NaNO₂ and HCl at 40 °C in water. Pick the main product.",
+         [o("oh", p, "phenol", "Warm, the diazonium salt loses N₂ as fast as it forms, and water takes that ring carbon: phenol."),
+          o("dz", BZN2, "benzenediazonium", "That salt is kept only at 0 to 5 °C. At 40 °C in water it does not last."),
+          o("cl", "Clc1ccccc1", "chlorobenzene", "Cl⁻ is only the counter-ion. Without CuCl, water is what replaces the N₂.")],
+         [p] if p else None, "oh", "Keep it cold: a warm diazonium salt in water turns into the phenol.",
+         prov("Rule Z, then water on the diazonium salt", CH_AMINE, WARM_CONV), lead(S["aniline"], "aniline", "NaNO₂, HCl, 40 °C"),
+         level=2, concepts=DIAZO, convention=WARM_CONV)
+
+    nme = "CNc1ccccc1"
+    p = only(products(NITROSO, nme), "nitrosation of N-methylaniline")
+    pick(node, "u10-dz-nitroso", "N-Methylaniline meets NaNO₂ and HCl, cold. Pick the product.",
+         [o("nno", p, "N-methyl-N-phenylnitrous amide", "Its one N-H is swapped for N=O. With no second N-H to lose, it stops at this N-nitrosamine.",
+            text="PhN(CH₃)-N=O"),
+          o("dz", BZN2, "benzenediazonium", "The N-CH₃ bond does not break, so the N can never reach N≡N⁺."),
+          o("ring", "CNc1ccc(N=O)cc1", "N-methyl-4-nitrosoaniline", "The N-H is where the N=O goes, not the ring.")],
+         [p] if p else None, "nno", "A secondary amine with NaNO₂ and HCl stops at R₂N-N=O, never a diazonium salt.",
+         prov("N-nitrosation edit on the one N-H", CH_AMINE, NITROSO_CONV), lead(nme, "N-methylaniline", "NaNO₂, HCl, 0 to 5 °C"),
+         level=2, concepts=DIAZO + AMINE, convention=NITROSO_CONV)
+
 
 # ---------------------------------------------------------------------------
 # u10-diazo-sub
@@ -1806,7 +1941,23 @@ def node_diazo_sub() -> None:
           o("one", "Brc1ccccc1", "bromobenzene", "Excess Br₂ on aniline takes all three ortho and para positions.")],
          [p], "135", "NH₂ as a temporary director: place the groups, then delete it.",
          prov("ortho and para counted by RDKit, Rule Z, then the reagent table", CH_AMINE, OP_CONV + "; " + SAND_CONV),
-         lead(S["aniline"], "aniline", "Br₂, NaNO₂ and HCl, H₃PO₂"), concepts=DIAZO + SYN + EAS, convention=OP_CONV)
+         lead(S["aniline"], "aniline", "Br₂, NaNO₂ and HCl, H₃PO₂"), level=2, concepts=DIAZO + SYN + EAS, convention=OP_CONV)
+
+    target = "Oc1cccc(Br)c1"
+    orders = {"nbr": ["NO2", "Br", "reduce", "diazotise", "H2O, heat"],
+              "brn": ["Br", "NO2", "reduce", "diazotise", "H2O, heat"],
+              "nrb": ["NO2", "reduce", "Br", "diazotise", "H2O, heat"]}
+    ask(node, "u10-ds-order", "Pick the order that turns benzene into 3-bromophenol.",
+        [("nbr", "Nitrate, brominate, reduce, diazotise, warm", "NO₂ sends the Br meta, then NO₂ becomes NH₂, then N₂⁺, then OH: OH and Br end meta."),
+         ("brn", "Brominate, nitrate, reduce, diazotise, warm", "Br first sends the NO₂ para, so the OH ends para to Br: 4-bromophenol."),
+         ("nrb", "Nitrate, reduce, brominate, diazotise, warm", "Free aniline takes three Br, so the route ends at 2,4,6-tribromophenol.")],
+        {k: route("c1ccccc1", v) for k, v in orders.items()}, canon(target), "nbr",
+        "OH cannot go straight onto the meta carbon: place a NO₂, let it direct, then turn it into OH through N₂⁺.",
+        prov("each order run step by step: EAS position counted by RDKit, Rule D, Rule Z, the reagent table", CH_AMINE,
+             EAS_CONV + "; " + SAND_CONV),
+        lead(target, "3-bromophenol", "the target"),
+        brief="Nitrate = HNO₃, H₂SO₄. Brominate = Br₂, FeBr₃. Reduce = Sn, HCl. Diazotise = NaNO₂, HCl. Warm = H₂O, heat.",
+        level=2, concepts=DIAZO + SYN + EAS, convention=EAS_CONV)
 
     rows = [("cucl", "CuCl", "chlorobenzene", "Copper chloride delivers Cl, the Sandmeyer reaction."),
             ("cubr", "CuBr", "bromobenzene", "Copper bromide delivers Br."),
@@ -1862,7 +2013,7 @@ def node_acyl_protect() -> None:
           o("amide", "CC(=O)Nc1ccc(Br)cc1", "N-(4-bromophenyl)acetamide", "The last step, acid and heat, removes the acetyl group.")],
          [p], "para", "Protect, react, deprotect.",
          prov("acylation, para bromination, then amide hydrolysis", CH_AMINE, OP_CONV), lead(S["aniline"], "aniline", "Ac₂O; Br₂; H₃O⁺, heat"),
-         concepts=PROT + SYN, convention=OP_CONV)
+         level=2, concepts=PROT + SYN, convention=OP_CONV)
 
     ask(node, "u10-ap-why", "Pick why the acetyl group calms the aniline ring.",
         [("shared", "The N lone pair is shared with C=O", "The amide C=O pulls on the lone pair, so less of it pushes into the ring."),
@@ -1872,6 +2023,15 @@ def node_acyl_protect() -> None:
         "Protection works by sharing the lone pair, not removing it.",
         prov("Rule L, the amide class", CH_AMINE, RING_CONV), lead(S["acetanilide"], "N-phenylacetamide", "acetanilide"),
         concepts=PROT + RES, convention=RING_CONV)
+
+    p = deacylate(eas_mono(acylate(S["aniline"]), "NO2"))
+    pick(node, "u10-ap-nitro", "Aniline: Ac₂O, then HNO₃ and H₂SO₄, then H₃O⁺ with heat. Pick the product.",
+         [o("para", p, "4-nitroaniline", "Protect as NHAc, nitrate once para, then hydrolyse the amide back to NH₂."),
+          o("amide", "CC(=O)Nc1ccc([N+](=O)[O-])cc1", "N-(4-nitrophenyl)acetamide", "The last step, acid and heat, removes the acetyl group."),
+          o("meta", "Nc1cccc([N+](=O)[O-])c1", "3-nitroaniline", "NHAc directs ortho and para, never meta.")],
+         [p] if p else None, "para", "Protect, nitrate para, deprotect.",
+         prov("acylation, para nitration, then amide hydrolysis", CH_AMINE, EAS_CONV),
+         lead(S["aniline"], "aniline", "Ac₂O; HNO₃, H₂SO₄; H₃O⁺, heat"), level=2, concepts=PROT + SYN + EAS, convention=EAS_CONV)
 
     cards = [
         ("anil", "Aniline", S["aniline"], "aniline", "A free N lone pair pushes straight into the ring: the most activated."),
