@@ -26,6 +26,7 @@ import {
   afterAskToHear,
   afterCheckout,
   afterDismiss,
+  afterProSeen,
   afterShown,
   deviceStorage,
   loadUpsellState,
@@ -38,8 +39,13 @@ import "../charge/charge.css";
  * What Pro adds. EVERY LINE MUST ALSO BE ON THE PRO CARD in
  * src/components/ui/subscription-plans.tsx (upsellCopy.test.ts checks it), so
  * this sheet can never promise a feature the plans card does not.
+ *
+ * AND EVERY LINE MUST BE SOMETHING PRO ACTUALLY GATES. "No ads" is: AdSlotBody
+ * draws nothing for a Pro account. The card's other two lines (mechanism
+ * practice, importing notes) are free in the game today, so they stay off this
+ * sheet, which every student sees after their first lesson.
  */
-export const PRO_VALUE: readonly string[] = ["Mechanism practice, marked as you draw it", "Importing your own notes"];
+export const PRO_VALUE: readonly string[] = ["No ads"];
 
 /** Apply one change to the saved schedule. */
 function update(change: (state: UpsellState) => UpsellState): void {
@@ -82,9 +88,12 @@ export default function UpsellSheet({ offer }: { readonly offer: UpsellOffer }) 
   useEffect(() => {
     if (!ready || counted.current) return;
     counted.current = true;
-    // A Pro user: close and record nothing.
-    if (ent.pro) closeUpsell();
-    else update((s) => afterShown(s, localDate(Date.now(), deviceZone())));
+    const today = localDate(Date.now(), deviceZone());
+    // A Pro user: close, drawing nothing, and back the schedule off so it stops asking.
+    if (ent.pro) {
+      update((s) => afterProSeen(s, today));
+      closeUpsell();
+    } else update((s) => afterShown(s, today));
   }, [ready, ent.pro]);
 
   // showModal cannot be declared in JSX, so an effect opens the dialog once it is drawn.
@@ -146,8 +155,10 @@ export default function UpsellSheet({ offer }: { readonly offer: UpsellOffer }) 
     update(afterAskToHear);
     setBusy(false);
     // Never claim an email that was not recorded. A missing table, no session or
-    // no network all land here.
-    setTold(recorded ? "Thanks. We'll email you when Pro opens." : "Saved on this device. You'll see it here when Pro opens.");
+    // no network all land here. The device keeps only askedToHear, which quiets
+    // lesson reminders, so that is all the fallback line promises.
+    const deviceOnly = "Saved on this device. We'll ask less often. It didn't reach us, so no email is coming.";
+    setTold(recorded ? "Thanks. We'll email you when Pro opens." : deviceOnly);
   };
 
   return (

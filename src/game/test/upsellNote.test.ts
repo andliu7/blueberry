@@ -6,7 +6,9 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { noteLessonClear } from "../upsell/noteLessonClear";
 import { closeUpsell, upsellFlow } from "../upsell/upsellFlow";
-import { UPSELL_STORAGE_KEY, loadUpsellState } from "../upsell/upsellRule";
+import { localDate } from "@blueberry/economy";
+import { deviceZone } from "@/lib/helpers";
+import { UPSELL_STORAGE_KEY, afterShown, loadUpsellState, saveUpsellState } from "../upsell/upsellRule";
 
 function memoryStorage(): Storage {
   const map = new Map<string, string>();
@@ -69,5 +71,27 @@ describe("noteLessonClear", () => {
     noteLessonClear(snap(), storage, NOON, "?auto=1");
     expect(upsellFlow.getState()).toBeNull();
     expect(storage.getItem(UPSELL_STORAGE_KEY)).toBeNull();
+  });
+
+  it("never shows on two clears in a row, even when the next clear is a new day and a streak milestone", () => {
+    const storage = memoryStorage();
+    const day = (ms: number) => localDate(ms, deviceZone());
+    // Seen once long ago, then enough clears that the next lesson clear would ask.
+    storage.setItem(
+      UPSELL_STORAGE_KEY,
+      JSON.stringify({ shown: 1, lastShownDay: "2026-09-01", clearsSinceShown: 30, dismissals: 0, askedToHear: false }),
+    );
+    noteLessonClear(snap(), storage, NOON, "");
+    expect(upsellFlow.getState()).not.toBeNull();
+    // The sheet draws and records the show (what UpsellSheet does), then closes.
+    saveUpsellState(storage, afterShown(loadUpsellState(storage), day(NOON)));
+    closeUpsell();
+    // The very next clear, a day later, crosses a streak milestone: still no sheet.
+    const tomorrow = NOON + 86_400_000;
+    noteLessonClear(snap({ current: 7, milestone: 7 }), storage, tomorrow, "");
+    expect(upsellFlow.getState()).toBeNull();
+    // The clear after that may ask again, on the streak.
+    noteLessonClear(snap({ current: 8, milestone: 7 }), storage, tomorrow, "");
+    expect(upsellFlow.getState()).toEqual({ trigger: "streak", firstLesson: false, streakDays: 8 });
   });
 });

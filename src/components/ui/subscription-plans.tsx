@@ -112,7 +112,10 @@ const PLANS: Plan[] = [
     // are", which does not exist anywhere in src, and narrowed the import line
     // from "notes and images" to notes, because no import path handles an image.
     // Add a line back when the thing ships, not when it is planned.
+    // 2026-10-24: "No ads" added, because AdSlotBody draws nothing for a Pro
+    // account (G4). It is the one line here that Pro actually gates today.
     adds: [
+      "No ads",
       "Mechanism practice, marked as you draw it",
       "Importing your own notes",
     ],

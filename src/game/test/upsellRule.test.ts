@@ -9,6 +9,7 @@ import {
   afterAskToHear,
   afterCheckout,
   afterDismiss,
+  afterProSeen,
   afterShown,
   gapLessons,
   minDays,
@@ -96,5 +97,17 @@ describe("upsell schedule", () => {
     const reset = afterCheckout(backedOff);
     expect(reset.dismissals).toBe(0);
     expect(shouldOffer({ state: reset, trigger: "lesson", today: "2026-10-26" })).toBe(true);
+  });
+
+  it("a Pro account that reached the sheet is not asked again for 14 days and 24 lessons", () => {
+    const pro = afterProSeen(noteClear(INITIAL_UPSELL_STATE), DAY);
+    let s = pro;
+    for (let i = 0; i < 23; i++) s = noteClear(s);
+    // Rule (a) no longer fires, so it is not re-offered on every clear.
+    expect(shouldOffer({ state: pro, trigger: "lesson", today: "2026-10-24" })).toBe(false);
+    expect(shouldOffer({ state: noteClear(s), trigger: "lesson", today: "2026-11-05" })).toBe(false);
+    expect(shouldOffer({ state: s, trigger: "lesson", today: "2026-12-31" })).toBe(false);
+    // Two weeks and 24 lessons on, it checks again, so a lapsed Pro is not lost.
+    expect(shouldOffer({ state: noteClear(s), trigger: "lesson", today: "2026-11-06" })).toBe(true);
   });
 });

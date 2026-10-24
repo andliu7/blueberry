@@ -19,7 +19,11 @@ export interface UpsellState {
   readonly shown: number;
   /** Local date of the last show, or null before the first. */
   readonly lastShownDay: string | null;
-  /** Lesson clears since the last show, counted whether or not it showed. */
+  /**
+   * Lesson clears since the last show, counted whether or not it showed.
+   * shouldOffer reads it BEFORE the clear being decided is counted, so 0 means
+   * "this is the clear right after a show".
+   */
   readonly clearsSinceShown: number;
   /** "Not now" taps since the last checkout attempt. Drives the backoff. */
   readonly dismissals: number;
@@ -40,17 +44,20 @@ export function minDays(dismissals: number): number {
   return Math.min(2 ** dismissals, 14);
 }
 
-/** Lesson clears between shows: 3, 6, 12, then 24 at most. */
+/** Lesson clears that must pass between shows: 3, 6, 12, then 24 at most. */
 export function gapLessons(dismissals: number): number {
   return 3 << Math.min(dismissals, 3);
 }
 
-/** Called on every lesson clear, shown or not. */
+/** Called on every lesson clear, shown or not, AFTER shouldOffer has decided it. */
 export function noteClear(state: UpsellState): UpsellState {
   return { ...state, clearsSinceShown: state.clearsSinceShown + 1 };
 }
 
-/** The rule, in order. The first rule that decides wins. */
+/**
+ * The rule, in order. The first rule that decides wins. `state` is the saved
+ * state before this clear is counted (noteLessonClear decides, then counts).
+ */
 export function shouldOffer({
   state,
   trigger,
@@ -78,6 +85,16 @@ export function shouldOffer({
 
 export function afterShown(state: UpsellState, today: string): UpsellState {
   return { ...state, shown: state.shown + 1, lastShownDay: today, clearsSinceShown: 0 };
+}
+
+/**
+ * A Pro account reached the sheet, so nothing was drawn. Recorded like a show
+ * with the longest backoff, so a Pro account costs a sheet fetch at most once
+ * every 14 days and 24 lessons instead of after every lesson, and an account
+ * whose Pro lapses still sees the sheet again.
+ */
+export function afterProSeen(state: UpsellState, today: string): UpsellState {
+  return { ...afterShown(state, today), dismissals: Math.max(state.dismissals, 4) };
 }
 
 export function afterDismiss(state: UpsellState): UpsellState {

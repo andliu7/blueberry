@@ -258,6 +258,16 @@ Sign-in, Pro, paywalls, ads (owner, 23 Oct)
   you draw it" and "Importing your own notes" because the Pro card does, but both are free in
   the game today; confirm or trim the card. (2) pro_interest collects who asked; nothing emails
   them yet: say whether Pro opening should be an email or only the in-app sheet.
+  FIX 24 Oct (critic round): "never twice in a row" now holds in production (noteLessonClear
+  decides before it counts the clear; pinned by a show-then-next-clear test in
+  upsellNote.test.ts). The sheet lists only "No ads", the one thing Pro gates today (AdSlotBody
+  hides ads for Pro), added to the Pro card too; mechanism practice and note import are off the
+  sheet because they are free. The fallback now says "Saved on this device. We'll ask less
+  often. It didn't reach us, so no email is coming." instead of promising a notice nobody
+  sends. A Pro account that reaches the sheet is recorded with the longest backoff (14 days, 24
+  lessons), so Pro users stop fetching it after every lesson. Owner question (1) now applies to
+  the hidden Pro card only. Ads stay off until the AdSense ids are set, so today "No ads" is
+  true but sells little. #/app first open 399.9 KB with the tree's other uncommitted work.
 - G4 Ads from a real ad network, easy to remove (Pro removes them), consent first.
   DONE 23 Oct, OFF by default: Google AdSense slots (src/components/ads/, src/lib/ads/). With
   VITE_ADSENSE_CLIENT or VITE_ADSENSE_SLOT empty (today) there are no ads, no consent prompt, and
