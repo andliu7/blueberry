@@ -231,7 +231,8 @@ export function UnitPage({ unitId }: { unitId?: string }) {
                 </p>
                 <p className="mt-1 text-sm text-[var(--site-quiet)]">
                   {[
-                    lessons.length ? `${plural(lessons.length, "lesson", "lessons")}` : null,
+                    // Audit 23 Oct, section 5 #2: the readings are unit notes; "lesson" means the app's lessons.
+                    lessons.length ? `${plural(lessons.length, "note", "notes")}` : null,
                     inUnit.length ? `${plural(inUnit.length, "reaction", "reactions")}` : null,
                     playable.length ? `${playable.length} to practice` : null,
                   ]
@@ -241,7 +242,7 @@ export function UnitPage({ unitId }: { unitId?: string }) {
                 {lessons.length > 0 && (
                   <>
                     <p className="title-face mt-1 text-base font-extrabold text-[var(--bb-deep)]">
-                      {done} of {plural(lessons.length, "lesson", "lessons")} finished
+                      {done} of {plural(lessons.length, "note", "notes")} read
                     </p>
                     <div className="lrn-bar mt-2" aria-hidden>
                       <span style={{ width: `${(100 * done) / lessons.length}%` }} />
@@ -259,11 +260,11 @@ export function UnitPage({ unitId }: { unitId?: string }) {
               {/* Named for a screen reader; on screen the path says it (Learn round 5:
                   the heading's line was the room the next step's button needed). */}
               <h2 id="lessons-title" className="sr-only">
-                Lessons
+                Unit notes
               </h2>
               {lessons.length === 0 ? (
                 <>
-                  <p className="text-[var(--site-quiet)]">No written lesson for this unit yet. Its practice is below.</p>
+                  <p className="text-[var(--site-quiet)]">No notes for this unit yet. Its practice is below.</p>
                   <div className="mt-4 max-w-md">{stepCard(false)}</div>
                 </>
               ) : (
@@ -471,7 +472,7 @@ function nextStep(
   if (lesson) {
     const started = lessons.some((t) => opened.has(t.id));
     return {
-      eyebrow: `Lesson ${i + 1} of ${lessons.length}`,
+      eyebrow: `Note ${i + 1} of ${lessons.length}`,
       title: lesson.label,
       action: started ? "Continue" : "Start",
       href: lesson.href,

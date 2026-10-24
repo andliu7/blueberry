@@ -222,7 +222,7 @@ function ProgressCard({
             {run > 0 && todayCounts
               ? "Today counts. Nice."
               : run > 0
-                ? "Finish a lesson today to keep it going."
+                ? "Read a note or finish a lesson today to keep it going."
                 : "Read a note here or practice in the app."}
           </span>
         </p>

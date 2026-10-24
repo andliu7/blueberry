@@ -210,7 +210,7 @@ export function LessonsPage({ section, reaction }: { section?: string; reaction?
 
         {/* The phone's lesson menu: a row of chips under the title. The desktop
             sidebar is the same list down the side. */}
-        <nav aria-label={home ? `${unitParts(home).number} lessons` : "Lessons"} className="lrn-row lg:hidden">
+        <nav aria-label={home ? `${unitParts(home).number} notes` : "Notes"} className="lrn-row lg:hidden">
           {menu.map((x, i) => (
             <a key={x.id} href={x.href} aria-current={x.id === t.id ? "page" : undefined} className="lrn-chip">
               {i + 1}. {x.label}
@@ -219,7 +219,7 @@ export function LessonsPage({ section, reaction }: { section?: string; reaction?
         </nav>
 
         <div className="mt-5 grid items-start gap-5 lg:grid-cols-[220px_1fr]">
-          <nav aria-label={home ? `${unitParts(home).number} lessons` : "Lessons"} className="lrn-card hidden p-2 lg:block">
+          <nav aria-label={home ? `${unitParts(home).number} notes` : "Notes"} className="lrn-card hidden p-2 lg:block">
             {home && <p className="lrn-eyebrow px-2.5 pt-2 pb-1">{unitParts(home).number}</p>}
             <ol className="flex flex-col gap-0.5">
               {menu.map((x, i) => (
@@ -362,13 +362,13 @@ export function LessonsPage({ section, reaction }: { section?: string; reaction?
                 </span>
                 <div className="min-w-0">
                   <p className="lrn-eyebrow">
-                    End of lesson
-                    {mine.length > 0 ? ` · ${plural(mine.length, "reaction", "reactions")} in this lesson` : ""}
+                    End of note
+                    {mine.length > 0 ? ` · ${plural(mine.length, "reaction", "reactions")} in this note` : ""}
                   </p>
                   <h2 id="next-title" className="title-face mt-1 text-2xl leading-tight font-extrabold text-[var(--bb-deep)]">
                     {next.href === "#/learn" ? next.title : `Next: ${next.title}`}
                   </h2>
-                  {/* "Lesson 3 of 5", "Practice Unit 7": the eyebrow upNext writes, minus "Up next". */}
+                  {/* "Note 3 of 5", "Practice Unit 7": the eyebrow upNext writes, minus "Up next". */}
                   {next.href === "#/learn" && (
                     <p className="mt-1 text-sm text-[var(--site-quiet)]">Learn opens on what comes next.</p>
                   )}
@@ -443,15 +443,16 @@ function upNext(
   const i = lessons.findIndex((x) => x.id === id);
   const lesson = i >= 0 ? lessons[i + 1] : undefined;
   if (lesson) {
-    return { eyebrow: `Up next · Lesson ${i + 2} of ${lessons.length}`, title: lesson.label, action: "Next lesson", href: lesson.href };
+    // Audit 23 Oct, section 5 #2: these readings are unit notes; "lesson" means the app's lessons.
+    return { eyebrow: `Up next · Note ${i + 2} of ${lessons.length}`, title: lesson.label, action: "Next note", href: lesson.href };
   }
   const unit = PATHWAY_UNITS.find((u) => u.id === unitId);
   const node = unit?.nodes.find((n) => n.playable && !n.mentionOnly);
   const practiceHref = node ? hrefForNode(node) : null;
   return {
     eyebrow: "Up next",
-    title: unit ? `That is ${unitParts(unit).number} read` : "That is every lesson read",
-    action: "Finish lesson",
+    title: unit ? `That is ${unitParts(unit).number} read` : "That is every note read",
+    action: "Finish note",
     href: "#/learn",
     practice: unit && practiceHref ? { href: practiceHref, unit: unitParts(unit).number } : undefined,
   };

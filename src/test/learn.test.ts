@@ -782,7 +782,8 @@ describe("a lesson read as another unit's part opens on that part", () => {
     expect(main.querySelector("details.lrn-fold summary")?.textContent).toContain("The whole Amines & sugars lesson");
     // Unit 5's last lesson: finish it here, back to Learn; practice is the quiet link.
     const end = main.querySelector<HTMLAnchorElement>('[aria-labelledby="next-title"] a.lrn-btn')!;
-    expect(end.textContent).toBe("Finish lesson");
+    // Audit 23 Oct, section 5 #2: a reading is a unit note, so its button says note.
+    expect(end.textContent).toBe("Finish note");
     expect(end.getAttribute("href")).toBe("#/learn");
     expect(main.querySelector("#next-title")?.textContent).toBe("That is Unit 5 read");
     expect(main.querySelectorAll(".lrn-btn").length).toBe(1);
