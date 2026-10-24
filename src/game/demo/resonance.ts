@@ -211,6 +211,53 @@ const MEISENHEIMER_RING_TO_O: MechanismStep = createStep({
   ],
 });
 
+/* ---------------- acetone's enolate, carbon to oxygen ---------------- */
+/* The anion from propan-2-one, with sequences.ts's sp-enolate atom ids. RDKit's
+ * ResonanceMolSupplier on [CH2-]C(C)=O returns exactly the two forms drawn
+ * here, [CH2-]C(C)=O and C=C(C)[O-] (both C3H5O-). Unit 9's u9-enolate-res
+ * plays it: the resonance itself, without the aldol that seq-aldol used to
+ * run six lessons early (audit 23 Oct, top-25 #23). */
+
+function enolateForm(id: string, chargeOn: "carbon" | "oxygen") {
+  const onCarbon = chargeOn === "carbon";
+  return createSpecies({
+    id,
+    atoms: [
+      onCarbon
+        ? createAtom({ id: "c1", element: "C", implicitHydrogens: 2, formalCharge: -1, lonePairs: 1 })
+        : createAtom({ id: "c1", element: "C", implicitHydrogens: 2 }),
+      createAtom({ id: "c2", element: "C" }),
+      onCarbon
+        ? createAtom({ id: "o1", element: "O", lonePairs: 2 })
+        : createAtom({ id: "o1", element: "O", formalCharge: -1, lonePairs: 3 }),
+      createAtom({ id: "c3", element: "C", implicitHydrogens: 3 }),
+    ],
+    bonds: [
+      createBond({ id: "b-12", a: "c1", b: "c2", order: onCarbon ? 1 : 2 }),
+      createBond({ id: "b-2o", a: "c2", b: "o1", order: onCarbon ? 2 : 1 }),
+      createBond({ id: "b-23", a: "c2", b: "c3" }),
+    ],
+  });
+}
+
+const ENOLATE_HINTS: LayoutHints = {
+  c1: { x: -1.2, y: -0.2 },
+  c2: { x: 0, y: 0.2 },
+  o1: { x: 0.4, y: 1.15 },
+  c3: { x: 0.95, y: -0.5 },
+};
+
+const ENOLATE_C_TO_O: MechanismStep = createStep({
+  id: "res-enolate-c-to-o",
+  from: createState({ id: "enolate-carbon", members: [{ species: enolateForm("sp-enolate-carbon", "carbon"), role: "substrate" }] }),
+  to: createState({ id: "enolate-oxygen", members: [{ species: enolateForm("sp-enolate-oxygen", "oxygen"), role: "product" }] }),
+  identity: { elementaryStep: "electron_delocalisation", route: "resonance", reactionCenters: ["c1", "o1"] },
+  arrows: [
+    createArrow({ id: "a-lp-to-cc", source: fromLonePair("c1"), sink: toBondBetween("c1", "c2") }),
+    createArrow({ id: "a-pi-onto-o", source: fromBond("b-2o"), sink: toAtom("o1") }),
+  ],
+});
+
 export const RESONANCE_HUNT: readonly ResonanceEntry[] = [
   {
     id: "res-allyl-1",
@@ -251,5 +298,16 @@ export const RESONANCE_HUNT: readonly ResonanceEntry[] = [
     step: MEISENHEIMER_RING_TO_O,
     fromHints: MEISENHEIMER_HINTS,
     toHints: MEISENHEIMER_HINTS,
+  },
+  {
+    id: "res-enolate",
+    title: "Enolate anion",
+    brief: "Two arrows: the carbon's lone pair goes in to make C=C as the C=O π bond steps off onto oxygen.",
+    foundLine: "The charge moved from the α-carbon onto oxygen. The real enolate is both forms at once, which is why it can react at carbon or at oxygen.",
+    prompt: "Push the α-carbon's negative charge onto the oxygen.",
+    hint: "Start from the lone pair on the CH₂ carbon.",
+    step: ENOLATE_C_TO_O,
+    fromHints: ENOLATE_HINTS,
+    toHints: ENOLATE_HINTS,
   },
 ];

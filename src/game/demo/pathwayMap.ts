@@ -368,7 +368,7 @@ export const PATHWAY_UNITS: readonly PathwayUnit[] = [
     nodes: [
       { id: "u9-tautomer", kind: "spine", title: "9a · Keto–enol tautomerism", blurb: "Acid- and base-catalyzed, both directions.", playable: { kind: "sequence", id: "seq-tautomer" } },
       { id: "u9-pka", kind: "spine", title: "9a · α-proton pKa hierarchy", blurb: "The table that decides which base you need.", playable: { kind: "beat", id: "u9-pka" } },
-      { id: "u9-enolate-res", kind: "spine", title: "9a · Enolate resonance and geometry", blurb: "Ambident: C- vs O-alkylation.", playable: { kind: "sequence", id: "seq-aldol" } },
+      { id: "u9-enolate-res", kind: "spine", title: "9a · Enolate resonance and geometry", blurb: "Ambident: C- vs O-alkylation.", playable: { kind: "resonance", id: "res-enolate" } },
       { id: "u9-kvt-enolate", kind: "spine", title: "9a · Kinetic vs thermodynamic enolate", blurb: "LDA cold vs NaOEt warm. Callback to Unit 1.", playable: { kind: "beat", id: "u9-kvt-enolate" } },
       { id: "u9-halo-acid", kind: "spine", title: "9a · α-Halogenation, acid", blurb: "Stops at mono; halogen deactivates the enol.", playable: { kind: "sequence", id: "seq-halo-acid" } },
       { id: "u9-halo-base", kind: "spine", title: "9a · α-Halogenation, base", blurb: "Runs away: each halogen acidifies the rest.", playable: { kind: "reaction", id: "alpha-bromination" } },

@@ -69,10 +69,19 @@ const LESSON_NODES = Object.keys(EXPECTED_SIZES);
 
 /** Nodes whose map link was a trainer before this draft. Their link is kept; the lesson embeds the trainer. */
 const TRAINER_LINKED = [
-  "u9-tautomer", "u9-enolate-res", "u9-halo-acid", "u9-halo-base", "u9-aldol", "u9-aldol-cond", "u9-crossed",
+  "u9-tautomer", "u9-halo-acid", "u9-halo-base", "u9-aldol", "u9-aldol-cond", "u9-crossed",
   "u9-intra", "u9-claisen", "u9-dieckmann", "u9-crossed-claisen", "u9-alkylation", "u9-malonic", "u9-acetoacetic",
   "u9-michael", "u9-cuprate", "u9-robinson",
 ];
+
+/**
+ * Nodes whose map link is a resonance surface. CHANGED 2026-10-24, audit 23 Oct top-25 #23: u9-enolate-res
+ * was a kept trainer linked to seq-aldol, six lessons before the aldol is taught; it now pushes the enolate's
+ * own two resonance forms and no aldol.
+ */
+const RESONANCE_LINKED: Readonly<Record<string, string>> = {
+  "u9-enolate-res": "res-enolate",
+};
 
 const TOPIC_STAND_INS = [
   "enols_and_enolates", "aldol_and_claisen", "alpha_alkylation", "conjugate_addition", "multistep_synthesis",
@@ -209,6 +218,8 @@ describe("u9 pools are reachable", () => {
       const link = pathwayNode(node)?.playable;
       if (TRAINER_LINKED.includes(node)) {
         expect(link?.kind === "sequence" || link?.kind === "reaction", `${node} lost its trainer link`).toBe(true);
+      } else if (node in RESONANCE_LINKED) {
+        expect(link, node).toEqual({ kind: "resonance", id: RESONANCE_LINKED[node] });
       } else {
         expect(link, node).toEqual({ kind: "beat", id: node });
       }
@@ -238,6 +249,14 @@ describe("u9 pools are reachable", () => {
     for (const node of TRAINER_LINKED) {
       const kinds = (planLesson(node)?.steps ?? []).map((step) => step.beat.kind);
       expect(kinds, node).toContain("mechanism");
+    }
+  });
+
+  it("plays the resonance surface, and no mechanism, in every resonance-linked lesson", () => {
+    for (const node of Object.keys(RESONANCE_LINKED)) {
+      const kinds = (planLesson(node)?.steps ?? []).map((step) => step.beat.kind);
+      expect(kinds, node).toContain("resonance");
+      expect(kinds, node).not.toContain("mechanism");
     }
   });
 

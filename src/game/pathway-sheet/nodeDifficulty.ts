@@ -187,7 +187,7 @@ export const NODE_MOVES: Readonly<Record<string, number>> = Object.freeze({
   "u9-cuprate": 10,
   "u9-dieckmann": 6,
   "u9-directed": 2,
-  "u9-enolate-res": 8,
+  "u9-enolate-res": 4,
   "u9-halo-acid": 7,
   "u9-halo-base": 6,
   "u9-haloform": 2,
