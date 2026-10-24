@@ -23,8 +23,8 @@
  * and per value overrides. `SortItem` in ../types.ts carries a `pkaSiteId` for
  * exactly that reason. `MatchPair` does not, so a number written into a match
  * target is authored text and no settings layer can reach it. Two things follow
- * and both are deliberate. The right hand cards say "about 5" and "about 13"
- * rather than 4.76 and 13.3, because presets differ by tenths and a band that
+ * and both are deliberate. The right hand cards say "about 5" and "about 10"
+ * rather than a decimal, because presets differ by tenths and a band that
  * wide stays true under every table anyone would configure. And the missing
  * field is reported as an integration edit rather than added here, because
  * ../types.ts is not this piece's file to change.
@@ -142,7 +142,7 @@ export const PKA_LADDER_BOARD: MatchBeat = Object.freeze({
     {
       id: "malonate",
       left: "Malonic ester C-H",
-      right: "pKa about 13",
+      right: "pKa about 10",
       why:
         "The proton meant here is the one between the two ester carbonyls, so the anion " +
         "delocalises into both of them. It is why a malonic ester alkylation runs on sodium " +
@@ -162,7 +162,7 @@ export const PKA_LADDER_BOARD: MatchBeat = Object.freeze({
       right: "pKa about 20",
       why:
         "One carbonyl to delocalise into, and carbon holds charge worse than oxygen does. " +
-        "Adding a second carbonyl, as the malonic ester has, drops it about seven units further.",
+        "Adding a second carbonyl, as the malonic ester has, drops it about ten units further.",
     },
   ],
   decoys: [
