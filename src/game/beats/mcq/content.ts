@@ -103,7 +103,7 @@ const DIRECTING: readonly McqBeat[] = Object.freeze([
       {
         id: "meta",
         text: "Meta",
-        why: "Meta is where the deactivators send an electrophile, so this is the pattern most substituents follow. Methyl is on the other side of that split: it activates, and activators direct ortho and para.",
+        why: "Meta is where the withdrawers send an electrophile: groups like NO2, C=O and CN, whose first atom carries a + or a multiple bond to O or N. Methyl is not one of them. It activates the ring and helps the + at ortho and para, so those positions win.",
       },
       {
         id: "methyl",
@@ -865,6 +865,11 @@ const SEQUENCING: readonly McqBeat[] = Object.freeze([
     node: "u3-sequencing",
     conceptIds: ["ewg_edg_rubric"],
     levels: [0, 1],
+    // Target and keys derived with RDKit through scripts/u3_pools.py's own
+    // directing model (route_gives, the same check that keys u3-seq-mbr), and
+    // checked against OpenStax Organic Chemistry 16.11. Until 23 Oct the target
+    // was 3-nitrotoluene keyed "nitrate, then alkylate", which runs
+    // Friedel-Crafts on nitrobenzene, the failure u3-alk-fails teaches.
     prompt: "Pick the order that ends with the two groups meta.",
     brief: "Whichever group lands first is the one that decides where the second one goes.",
     diamonds: 6,
@@ -872,18 +877,18 @@ const SEQUENCING: readonly McqBeat[] = Object.freeze([
     options: [
       {
         id: "nitrate-first",
-        text: "Nitrate first, then alkylate",
-        why: "Nitro is a meta director, so once it is on the ring it sends the next electrophile to meta and the target falls out. Order is the whole answer here, and this is the order that gives it.",
+        text: "Nitrate first, then brominate",
+        why: "Nitro is a meta director, so once it is on the ring it sends the bromine to meta and the target falls out. Order is the whole answer here, and this is the order that gives it.",
       },
       {
-        id: "alkylate-first",
-        text: "Alkylate first, then nitrate",
-        why: "Both steps are real and both work, so this reads fine until you ask where the second group lands. Methyl is an ortho and para director, so nitrating after it gives the ortho and para product rather than the meta one.",
+        id: "brominate-first",
+        text: "Brominate first, then nitrate",
+        why: "Bromine deactivates the ring but still directs ortho and para, so nitrating after it puts the nitro group ortho or para to the Br. The meta product barely forms.",
       },
       {
         id: "either",
         text: "Either order, the product is the same",
-        why: "The two groups are the same two groups, which is what makes this tempting. What changes is the ring they arrive at: the second electrophile meets a ring the first group has already committed to a pattern.",
+        why: "The two groups are the same two groups, which is what makes this tempting. What changes is the ring they arrive at: the second electrophile meets a ring the first group has already committed to a pattern, and Br and NO2 commit it to different ones.",
       },
     ],
   },

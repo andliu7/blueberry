@@ -605,9 +605,10 @@ const VISUALS: Readonly<Record<string, McqVisual>> = Object.freeze({
   /* --- multistep sequencing ---------------------------------------- */
 
   // The target is what the question is about, so the target is what is drawn:
-  // benzene in, and a ring carrying a methyl and a nitro META to each other
-  // out. The reagents are the answer, so the arrow carries no conditions,
-  // which is the supply-the-reagents reading of a scheme.
+  // benzene in, and a ring carrying a bromine and a nitro META to each other
+  // out (1-bromo-3-nitrobenzene, O=[N+]([O-])c1cccc(Br)c1). The reagents are
+  // the answer, so the arrow carries no conditions, which is the
+  // supply-the-reagents reading of a scheme.
   "mcq-sequencing-order": {
     kind: "scheme",
     scheme: {
@@ -626,7 +627,7 @@ const VISUALS: Readonly<Record<string, McqVisual>> = Object.freeze({
             stub(meta, meta.x + 13, meta.y + 8),
           ],
           labels: [
-            { x: top.x, y: top.y - 19, t: "CH_3", size: 13 },
+            { x: top.x, y: top.y - 19, t: "Br", size: 13 },
             { x: meta.x + 17, y: meta.y + 13, t: "NO_2", size: 13, anchor: "start" },
           ],
         };
