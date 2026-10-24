@@ -1668,7 +1668,7 @@ def ir_items() -> None:
         hits[0] if len(hits) == 1 else None, "fwd",
         "IR follows a reaction by the groups it makes and breaks: oxidising an alcohol to a ketone trades the O-H band for a C=O band.",
         ir_prov("starting material and product groups by RDKit substructure match, read against the cited bands"),
-        pair(structure(sm, "cyclohexanol"), structure(pr, "cyclohexanone")),
+        pair(named(sm, "cyclohexanol"), named(pr, "cyclohexanone")),
         level=2, concepts=IR_C, convention=IR_SOURCE)
 
 

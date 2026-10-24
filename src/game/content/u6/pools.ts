@@ -3922,7 +3922,6 @@ export const U6_VISUALS: Readonly<Record<string, McqVisual>> = {
   "u6-ir-oxidation": {
     "kind": "pair",
     "a": {
-      "kind": "structure",
       "figure": {
         "bonds": [
           {
@@ -3980,7 +3979,6 @@ export const U6_VISUALS: Readonly<Record<string, McqVisual>> = {
       "name": "cyclohexanol"
     },
     "b": {
-      "kind": "structure",
       "figure": {
         "bonds": [
           {
