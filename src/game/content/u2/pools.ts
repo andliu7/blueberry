@@ -556,8 +556,8 @@ export const U2_POOLS: UnitPools = {
           "levels": [
             0
           ],
-          "prompt": "Benzene is [6]annulene: n is the ring size. Count [18]annulene's pi electrons.",
-          "brief": "Each ring carbon in a C=C gives 1 pi electron.",
+          "prompt": "Benzene is [6]annulene. Count [18]annulene's pi electrons.",
+          "brief": "The number in brackets is the ring size. Each ring carbon in a C=C gives 1 pi electron.",
           "correctOptionId": "eighteen",
           "options": [
             {
@@ -687,22 +687,22 @@ export const U2_POOLS: UnitPools = {
           "options": [
             {
               "id": "a",
-              "text": "Atom A, lower right",
+              "text": "Atom a, lower right",
               "why": "This carbon sits in a C=C bond, so it is sp2 with a p orbital. The loop runs through it."
             },
             {
               "id": "b",
-              "text": "Atom B, top",
+              "text": "Atom b, top",
               "why": "This carbon sits in a C=C bond, so it is sp2 with a p orbital. The loop runs through it."
             },
             {
               "id": "c",
-              "text": "Atom C, left",
+              "text": "Atom c, left",
               "why": "This is the CH2. It is sp3, with four single bonds and no p orbital, so the loop has a gap here and the ring is nonaromatic."
             },
             {
               "id": "d",
-              "text": "Atom D, upper right",
+              "text": "Atom d, upper right",
               "why": "This carbon sits in a C=C bond, so it is sp2 with a p orbital. The loop runs through it."
             }
           ]
@@ -1700,22 +1700,22 @@ export const U2_POOLS: UnitPools = {
           "options": [
             {
               "id": "nh",
-              "text": "Atom A, lower left",
+              "text": "Atom a, lower left",
               "why": "This N carries the H. Its pair is in the pi system, and using it for a proton would break the aromatic loop."
             },
             {
               "id": "n",
-              "text": "Atom B, right",
+              "text": "Atom b, right",
               "why": "This N has no H. Its pair sits in the plane, outside the pi system, so it can take a proton and the ring stays aromatic."
             },
             {
               "id": "c",
-              "text": "Atom C, bottom",
+              "text": "Atom c, bottom",
               "why": "A ring carbon. It has no lone pair to give a proton."
             },
             {
               "id": "c2",
-              "text": "Atom D, upper left",
+              "text": "Atom d, upper left",
               "why": "A ring carbon. It has no lone pair to give a proton."
             }
           ]
@@ -1823,7 +1823,7 @@ export const U2_POOLS: UnitPools = {
             {
               "id": "pyrH",
               "text": "Protonated pyrrole",
-              "why": "Pyrrole's N pair was part of the ring. Used for the proton, it leaves the N with no p electrons and the loop breaks."
+              "why": "Pyrrole's N pair was part of the ring. Used for the proton, the N gets four single bonds and turns sp3, with no p orbital, so the loop has a gap."
             },
             {
               "id": "pyH",
@@ -1862,22 +1862,22 @@ export const U2_POOLS: UnitPools = {
           "options": [
             {
               "id": "a",
-              "text": "Atom A, lower right",
+              "text": "Atom a, lower right",
               "why": "This carbon is in a C=C bond, so it has a p orbital that joins the loop."
             },
             {
               "id": "b",
-              "text": "Atom B, upper right",
+              "text": "Atom b, upper right",
               "why": "This is the CH2 opposite N. It is sp3 with no p orbital, so the loop stops here, whatever the N does."
             },
             {
               "id": "c",
-              "text": "Atom C, lower left",
-              "why": "This is the CH2 opposite N. It is sp3 with no p orbital, so the loop stops here, whatever the N does."
+              "text": "Atom c, lower left",
+              "why": "This is the N-H. Its pair can sit in a p orbital, as in pyrrole, so it does not break the loop. The trouble is elsewhere."
             },
             {
               "id": "d",
-              "text": "Atom D, upper left",
+              "text": "Atom d, upper left",
               "why": "This carbon is in a C=C bond, so it has a p orbital that joins the loop."
             }
           ]
@@ -2228,7 +2228,7 @@ export const U2_POOLS: UnitPools = {
             {
               "id": "four",
               "text": "4 pi electrons, n = 0.5",
-              "why": "Two C=C bonds give 4 and the empty p orbital gives 0. Take 2 off and divide by 4: n = 0.5. Not a whole number, so the flat ring is antiaromatic."
+              "why": "Two C=C bonds give 4 and the empty p orbital gives 0. Take 2 off and divide by 4: n = 0.5, not whole, so it is not aromatic. 4 is 4n (n = 1), so if the ring stays flat it is antiaromatic."
             },
             {
               "id": "six",
@@ -2238,7 +2238,7 @@ export const U2_POOLS: UnitPools = {
           ]
         }
       },
-      "explanation": "The cation has 4 pi electrons and n = 0.5. A non whole n is the tell: flat and 4n, so it is antiaromatic.",
+      "explanation": "The cation has 4 pi electrons. 4n + 2 gives n = 0.5, so it is not aromatic; 4 is 4n, so the flat ring is antiaromatic.",
       "provenance": "scripts/u2_pools.py: Huckel counter: empty p counts 0; n = (pi - 2) / 4. OpenStax Organic Chemistry 15.4 (CC BY-NC-SA), read as a check only. NEEDS OWNER RULING: RDKit disagrees with the counter on cp_cation (scripts/u2_pools_report.md).",
       "placeholder": true
     },
@@ -4158,25 +4158,25 @@ export const U2_VISUALS: Readonly<Record<string, McqVisual>> = {
         {
           "x": 82.8,
           "y": 74.1,
-          "t": "A",
+          "t": "a",
           "size": 13
         },
         {
           "x": 28.6,
           "y": 43.2,
-          "t": "C",
+          "t": "c",
           "size": 13
         },
         {
           "x": 57.1,
           "y": 17.3,
-          "t": "B",
+          "t": "b",
           "size": 13
         },
         {
           "x": 90.6,
           "y": 36.4,
-          "t": "D",
+          "t": "d",
           "size": 13
         }
       ]
@@ -5795,7 +5795,7 @@ export const U2_VISUALS: Readonly<Record<string, McqVisual>> = {
         {
           "x": 45.4,
           "y": 24.7,
-          "t": "D",
+          "t": "d",
           "size": 13
         },
         {
@@ -5813,13 +5813,13 @@ export const U2_VISUALS: Readonly<Record<string, McqVisual>> = {
         {
           "x": 113.2,
           "y": 51.2,
-          "t": "B",
+          "t": "b",
           "size": 13
         },
         {
           "x": 76.5,
           "y": 78.7,
-          "t": "C",
+          "t": "c",
           "size": 13
         },
         {
@@ -5837,7 +5837,7 @@ export const U2_VISUALS: Readonly<Record<string, McqVisual>> = {
         {
           "x": 52.0,
           "y": 79.5,
-          "t": "A",
+          "t": "a",
           "size": 13
         },
         {
@@ -6249,7 +6249,7 @@ export const U2_VISUALS: Readonly<Record<string, McqVisual>> = {
         {
           "x": 99.6,
           "y": 65.8,
-          "t": "A",
+          "t": "a",
           "size": 13
         },
         {
@@ -6259,21 +6259,21 @@ export const U2_VISUALS: Readonly<Record<string, McqVisual>> = {
           "size": 13
         },
         {
-          "x": 63.8,
-          "y": 52.1,
-          "t": "C",
+          "x": 35.1,
+          "y": 54.0,
+          "t": "c",
           "size": 13
         },
         {
           "x": 40.6,
           "y": 31.2,
-          "t": "D",
+          "t": "d",
           "size": 13
         },
         {
           "x": 99.8,
           "y": 31.6,
-          "t": "B",
+          "t": "b",
           "size": 13
         },
         {

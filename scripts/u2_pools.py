@@ -683,7 +683,20 @@ def figure(smi: str, marks: list[int] | None = None, numbers: dict[int, str] | N
             # dots, so ":B" never reads as part of the N label (round 4 critic).
             has_dots = pairs and sym not in ("C", "H") and a.IsInRing() and i < base.GetNumAtoms() and lone_pairs(base.GetAtomWithIdx(i)) > 0
             dist = 22 if has_dots else 11 if mark is None and i not in labelled else 16
-            x, y = out(i, dist, gap_angle(i))
+            theta_n = gap_angle(i)
+            ring = [r for r in m.GetRingInfo().AtomRings() if i in r]
+            if ring:
+                # A ring N-H draws its H outside, so the widest gap is inside
+                # the ring and the letter landed there, away from its atom
+                # (23 Oct audit, 1,4-dihydropyridine). Keep it outside, turned
+                # off the exocyclic bond.
+                gx = sum(at(k)[0] for k in ring[0]) / len(ring[0])
+                gy = sum(at(k)[1] for k in ring[0]) / len(ring[0])
+                x0, y0 = at(i)
+                outward = math.atan2(y0 - gy, x0 - gx)
+                if math.cos(theta_n - outward) < 0:
+                    theta_n = outward + 0.9
+            x, y = out(i, dist, theta_n)
             labels.append({"x": r1(x), "y": r1(y + 4.5), "t": numbers[i], "size": 13})
     rings = []
     for i in marks:
@@ -1153,6 +1166,7 @@ HOME_TEXT = {
 }
 
 LETTERS = "ABCD"
+ATOM_LETTERS = "abcd"
 
 # Labels only: an acid C-H losing H+ to leave a carbanion. It names no option.
 ACID_SCHEME = {
@@ -1241,7 +1255,9 @@ def atom_choice(name: str, caption: str, atoms: dict[str, int], why, **kw) -> tu
     if len(set(places.values())) != len(places):
         fail(f"{name}: two offered atoms share the place word {places}")
     letters = {}
-    for letter, (o, i) in zip(LETTERS, atoms.items()):
+    # Lower case on purpose (23 Oct audit): on a skeletal drawing a capital C
+    # beside a ring atom reads as a carbon label, and "Atom C" as "the carbon".
+    for letter, (o, i) in zip(ATOM_LETTERS, atoms.items()):
         options.append((o, f"Atom {letter}, {places[o]}", why(i)))
         letters[i] = letter
     return options, struct_visual(name, caption, numbers=letters, **kw)
@@ -1396,7 +1412,7 @@ def node_annulene() -> None:
     a18_pi = pi_of("ann18")
     mcq(
         node, "u2-ann-meet-size",
-        "Benzene is [6]annulene: n is the ring size. Count [18]annulene's pi electrons.",
+        "Benzene is [6]annulene. Count [18]annulene's pi electrons.",
         [
             ("nine", "9 pi electrons", "Nine is the number of C=C bonds. Each C=C bond holds 2 pi electrons."),
             ("eighteen", f"{a18_pi} pi electrons", f"Eighteen carbons, each in one C=C bond, each giving 1: {a18_pi}. That fits 4n + 2 with {nn('ann18')}."),
@@ -1407,7 +1423,9 @@ def node_annulene() -> None:
         prov("Huckel counter: 1 electron per ring pi bond atom", OS_15_3, ["ann18"]),
         struct_visual("ann18", "[18]annulene"),
         ["ann18"],
-        brief="Each ring carbon in a C=C gives 1 pi electron.",
+        # 23 Oct audit #22: the bracket number is named in words, so the letter n
+        # keeps one meaning in this unit, the n of 4n + 2.
+        brief="The number in brackets is the ring size. Each ring carbon in a C=C gives 1 pi electron.",
         level=0,
     )
     flat_cot = {"aromatic": "aromatic", "antiaromatic": "antiaromatic"}.get(cot["electronic"])
@@ -1848,7 +1866,7 @@ def node_hetero() -> None:
         node, "u2-het-protonate",
         "A proton lands on each nitrogen. Pick the ring that stays aromatic.",
         [
-            ("pyrH", "Protonated pyrrole", "Pyrrole's N pair was part of the ring. Used for the proton, it leaves the N with no p electrons and the loop breaks."),
+            ("pyrH", "Protonated pyrrole", "Pyrrole's N pair was part of the ring. Used for the proton, the N gets four single bonds and turns sp3, with no p orbital, so the loop has a gap."),
             ("pyH", "Protonated pyridine", f"Pyridine's pair was in the plane, outside the ring. Protonating it leaves all {pi_of('pyridinium')} pi electrons in place."),
             ("pyrdH", "Protonated pyrrolidine", "Pyrrolidine had no pi bonds to begin with. Every ring carbon is sp3, before and after."),
         ],
@@ -1869,10 +1887,13 @@ def node_hetero() -> None:
     dhp_m = kekule(dhp["smi"])
 
     def dhp_why(i: int) -> str:
-        if dhp["per"][i] is None:
-            return "This is the CH2 opposite N. It is sp3 with no p orbital, so the loop stops here, whatever the N does."
+        # The element is checked first: the counter clears the N's tally to None
+        # once the loop is broken, so a None test first gave the N the CH2 text
+        # (23 Oct audit 2a #5).
         if dhp_m.GetAtomWithIdx(i).GetSymbol() == "N":
             return "This is the N-H. Its pair can sit in a p orbital, as in pyrrole, so it does not break the loop. The trouble is elsewhere."
+        if dhp["per"][i] is None:
+            return "This is the CH2 opposite N. It is sp3 with no p orbital, so the loop stops here, whatever the N does."
         return "This carbon is in a C=C bond, so it has a p orbital that joins the loop."
 
     dhp_options, dhp_visual = atom_choice("dihydropyridine", "1,4-dihydropyridine", dhp_atoms, dhp_why)
@@ -1992,7 +2013,7 @@ def node_charged() -> None:
     cpc_opts = [
         count_n("five", 5, 0.75, "That gives the charged carbon 1, like a C=C carbon. Its p orbital is empty, so it gives 0."),
         count_n("fourone", 4, 1.0, "The count is right, and 4 is 4n with n = 1, the antiaromatic test. The question asks for n in 4n + 2: take 2 off first, then divide by 4."),
-        count_n("four", cpc["pi"], cpc["n"], f"Two C=C bonds give {cpc['pi']} and the empty p orbital gives 0. Take 2 off and divide by 4: {n_text(cpc['n'])}. Not a whole number, so the flat ring is antiaromatic."),
+        count_n("four", cpc["pi"], cpc["n"], f"Two C=C bonds give {cpc['pi']} and the empty p orbital gives 0. Take 2 off and divide by 4: {n_text(cpc['n'])}, not whole, so it is not aromatic. {cpc['pi']} is 4n ({n_text(cpc['pi'] / 4)}), so if the ring stays flat it is antiaromatic."),
         count_n("six", 6, 1.0, "That gives the charged carbon a lone pair. That is the anion; the cation's p orbital is empty."),
     ]
     mcq(
@@ -2000,7 +2021,7 @@ def node_charged() -> None:
         "Count the cyclopentadienyl cation's pi electrons, then find n in 4n + 2.",
         cpc_opts,
         count_n_key("cp_cation", cpc_opts), "four",
-        f"The cation has {cpc['pi']} pi electrons and {n_text(cpc['n'])}. A non whole n is the tell: flat and 4n, so it is antiaromatic.",
+        f"The cation has {cpc['pi']} pi electrons. 4n + 2 gives {n_text(cpc['n'])}, so it is not aromatic; {cpc['pi']} is 4n, so the flat ring is antiaromatic.",
         prov("Huckel counter: empty p counts 0; n = (pi - 2) / 4", OS_15_4, ["cp_cation"]),
         struct_visual("cp_cation", "cyclopentadienyl cation"),
         ["cp_cation"],

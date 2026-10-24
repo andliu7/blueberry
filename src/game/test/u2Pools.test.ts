@@ -346,7 +346,8 @@ describe("u2 copy does not give the answer away", () => {
       expect(U2_OPTION_TILES[beat.id], beat.id).toBeUndefined();
       const drawn = figuresOf(U2_VISUALS[beat.id]!).flatMap(({ figure }) => (figure.labels ?? []).map((label) => label.t));
       for (const option of beat.options) {
-        const letter = /^Atom ([A-D]),/.exec(option.text)?.[1];
+        // CHANGED 2026-10-23 (content audit, close behind): lower case letters, so a lettered ring atom never reads as a carbon label.
+        const letter = /^Atom ([a-d]),/.exec(option.text)?.[1];
         expect(letter, `${beat.id} ${option.id}`).toBeDefined();
         expect(drawn, `${beat.id} ${option.id}`).toContain(letter);
       }
